@@ -1,128 +1,569 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:15598 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753229AbdF2OAk (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:36892 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753819AbdFMTgg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Jun 2017 10:00:40 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        "H. Nikolaus Schaller" <hns@goldelico.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        "Rob Herring" <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        "Maxime Coquelin" <mcoquelin.stm32@gmail.com>,
-        Alexandre TORGUE <alexandre.torgue@st.com>,
+        Tue, 13 Jun 2017 15:36:36 -0400
+From: Helen Koike <helen.koike@collabora.com>
+To: linux-media@vger.kernel.org,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Hans Verkuil" <hverkuil@xs4all.nl>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick FERTRE <yannick.fertre@st.com>
-Subject: Re: [PATCH v1 4/6] [media] ov9650: use write_array() for resolution
- sequences
-Date: Thu, 29 Jun 2017 13:59:31 +0000
-Message-ID: <9ac5d920-b29e-afe3-4413-3e147870a103@st.com>
-References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
- <1498143942-12682-5-git-send-email-hugues.fruchet@st.com>
- <20170626163330.GR12407@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20170626163330.GR12407@valkosipuli.retiisi.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <DD30F200E8D9FA4E84C4D1BB5C564B68@st.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+        linux-kernel@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, jgebben@codeaurora.org,
+        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v4 02/11] [media] vimc: Move common code from the core
+Date: Tue, 13 Jun 2017 16:35:30 -0300
+Message-Id: <1497382545-16408-3-git-send-email-helen.koike@collabora.com>
+In-Reply-To: <1497382545-16408-1-git-send-email-helen.koike@collabora.com>
+References: <1497382545-16408-1-git-send-email-helen.koike@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQoNCk9uIDA2LzI2LzIwMTcgMDY6MzMgUE0sIFNha2FyaSBBaWx1cyB3cm90ZToNCj4gSGkgSHVn
-dWVzLA0KPiANCj4gT24gVGh1LCBKdW4gMjIsIDIwMTcgYXQgMDU6MDU6NDBQTSArMDIwMCwgSHVn
-dWVzIEZydWNoZXQgd3JvdGU6DQo+PiBBbGlnbiByZXNvbHV0aW9uIHNlcXVlbmNlcyBvbiBpbml0
-aWFsaXphdGlvbiBzZXF1ZW5jZSB1c2luZw0KPj4gaTJjX3J2IHN0cnVjdHVyZSBOVUxMIHRlcm1p
-bmF0ZWQgLlRoaXMgYWRkIGZsZXhpYmlsaXR5DQo+PiBvbiByZXNvbHV0aW9uIHNlcXVlbmNlIHNp
-emUuDQo+PiBEb2N1bWVudCByZXNvbHV0aW9uIHJlbGF0ZWQgcmVnaXN0ZXJzIGJ5IHVzaW5nIGNv
-cnJlc3BvbmRpbmcNCj4+IGRlZmluZSBpbnN0ZWFkIG9mIGhleGEgYWRkcmVzcy92YWx1ZS4NCj4+
-DQo+PiBTaWduZWQtb2ZmLWJ5OiBIdWd1ZXMgRnJ1Y2hldCA8aHVndWVzLmZydWNoZXRAc3QuY29t
-Pg0KPj4gLS0tDQo+PiAgIGRyaXZlcnMvbWVkaWEvaTJjL292OTY1MC5jIHwgOTggKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLQ0KPj4gICAxIGZpbGUgY2hhbmdl
-ZCwgNjQgaW5zZXJ0aW9ucygrKSwgMzQgZGVsZXRpb25zKC0pDQo+Pg0KPj4gZGlmZiAtLWdpdCBh
-L2RyaXZlcnMvbWVkaWEvaTJjL292OTY1MC5jIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y5NjUwLmMN
-Cj4+IGluZGV4IDQzMTFkYTYuLjhiMjgzYzkgMTAwNjQ0DQo+PiAtLS0gYS9kcml2ZXJzL21lZGlh
-L2kyYy9vdjk2NTAuYw0KPj4gKysrIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y5NjUwLmMNCj4+IEBA
-IC0yMjcsMTEgKzIyNywxNiBAQCBzdHJ1Y3Qgb3Y5NjV4X2N0cmxzIHsNCj4+ICAgCXU4IHVwZGF0
-ZTsNCj4+ICAgfTsNCj4+ICAgDQo+PiArc3RydWN0IGkyY19ydiB7DQo+PiArCXU4IGFkZHI7DQo+
-PiArCXU4IHZhbHVlOw0KPj4gK307DQo+PiArDQo+PiAgIHN0cnVjdCBvdjk2NXhfZnJhbWVzaXpl
-IHsNCj4+ICAgCXUxNiB3aWR0aDsNCj4+ICAgCXUxNiBoZWlnaHQ7DQo+PiAgIAl1MTYgbWF4X2V4
-cF9saW5lczsNCj4+IC0JY29uc3QgdTggKnJlZ3M7DQo+PiArCWNvbnN0IHN0cnVjdCBpMmNfcnYg
-KnJlZ3M7DQo+PiAgIH07DQo+PiAgIA0KPj4gICBzdHJ1Y3Qgb3Y5NjV4X2ludGVydmFsIHsNCj4+
-IEBAIC0yODAsOSArMjg1LDExIEBAIHN0cnVjdCBvdjk2NXggew0KPj4gICAJdTggYXBwbHlfZnJh
-bWVfZm10Ow0KPj4gICB9Ow0KPj4gICANCj4+IC1zdHJ1Y3QgaTJjX3J2IHsNCj4+IC0JdTggYWRk
-cjsNCj4+IC0JdTggdmFsdWU7DQo+PiArc3RydWN0IG92OTY1eF9waXhmbXQgew0KPj4gKwl1MzIg
-Y29kZTsNCj4+ICsJdTMyIGNvbG9yc3BhY2U7DQo+PiArCS8qIFJFR19UU0xCIHZhbHVlLCBvbmx5
-IGJpdHMgWzM6Ml0gbWF5IGJlIHNldC4gKi8NCj4+ICsJdTggdHNsYl9yZWc7DQo+PiAgIH07DQo+
-PiAgIA0KPj4gICBzdGF0aWMgY29uc3Qgc3RydWN0IGkyY19ydiBvdjk2NXhfaW5pdF9yZWdzW10g
-PSB7DQo+PiBAQCAtMzQyLDMwICszNDksNTkgQEAgc3RydWN0IGkyY19ydiB7DQo+PiAgIAl7IFJF
-R19OVUxMLCAwIH0NCj4+ICAgfTsNCj4+ICAgDQo+PiAtI2RlZmluZSBOVU1fRk1UX1JFR1MgMTQN
-Cj4+IC0vKg0KPj4gLSAqIENPTTcsICBDT00zLCAgQ09NNCwgSFNUQVJULCBIU1RPUCwgSFJFRiwg
-VlNUQVJULCBWU1RPUCwgVlJFRiwNCj4+IC0gKiBFWEhDSCwgRVhIQ0wsIEFEQywgIE9DT00sICAg
-T0ZPTg0KPj4gLSAqLw0KPj4gLXN0YXRpYyBjb25zdCB1OCBmcmFtZV9zaXplX3JlZ19hZGRyW05V
-TV9GTVRfUkVHU10gPSB7DQo+PiAtCTB4MTIsIDB4MGMsIDB4MGQsIDB4MTcsIDB4MTgsIDB4MzIs
-IDB4MTksIDB4MWEsIDB4MDMsDQo+PiAtCTB4MmEsIDB4MmIsIDB4MzcsIDB4MzgsIDB4MzksDQo+
-PiAtfTsNCj4+IC0NCj4+IC1zdGF0aWMgY29uc3QgdTggb3Y5NjV4X3N4Z2FfcmVnc1tOVU1fRk1U
-X1JFR1NdID0gew0KPj4gLQkweDAwLCAweDAwLCAweDAwLCAweDFlLCAweGJlLCAweGJmLCAweDAx
-LCAweDgxLCAweDEyLA0KPj4gLQkweDEwLCAweDM0LCAweDgxLCAweDkzLCAweDUxLA0KPj4gK3N0
-YXRpYyBjb25zdCBzdHJ1Y3QgaTJjX3J2IG92OTY1eF9zeGdhX3JlZ3NbXSA9IHsNCj4+ICsJeyBS
-RUdfQ09NNywgMHgwMCB9LA0KPj4gKwl7IFJFR19DT00zLCAweDAwIH0sDQo+PiArCXsgUkVHX0NP
-TTQsIDB4MDAgfSwNCj4+ICsJeyBSRUdfSFNUQVJULCAweDFlIH0sDQo+PiArCXsgUkVHX0hTVE9Q
-LCAweGJlIH0sDQo+PiArCXsgMHgzMiwgMHhiZiB9LA0KPj4gKwl7IFJFR19WU1RBUlQsIDB4MDEg
-fSwNCj4+ICsJeyBSRUdfVlNUT1AsIDB4ODEgfSwNCj4+ICsJeyBSRUdfVlJFRiwgMHgxMiB9LA0K
-Pj4gKwl7IFJFR19FWEhDSCwgMHgxMCB9LA0KPj4gKwl7IFJFR19FWEhDTCwgMHgzNCB9LA0KPj4g
-Kwl7IFJFR19BREMsIDB4ODEgfSwNCj4+ICsJeyBSRUdfQUNPTSwgMHg5MyB9LA0KPj4gKwl7IFJF
-R19PRk9OLCAweDUxIH0sDQo+PiArCXsgUkVHX05VTEwsIDAgfSwNCj4+ICAgfTsNCj4+ICAgDQo+
-PiAtc3RhdGljIGNvbnN0IHU4IG92OTY1eF92Z2FfcmVnc1tOVU1fRk1UX1JFR1NdID0gew0KPj4g
-LQkweDQwLCAweDA0LCAweDgwLCAweDI2LCAweGM2LCAweGVkLCAweDAxLCAweDNkLCAweDAwLA0K
-Pj4gLQkweDEwLCAweDQwLCAweDkxLCAweDEyLCAweDQzLA0KPj4gK3N0YXRpYyBjb25zdCBzdHJ1
-Y3QgaTJjX3J2IG92OTY1eF92Z2FfcmVnc1tdID0gew0KPj4gKwl7IFJFR19DT003LCAweDQwIH0s
-DQo+PiArCXsgUkVHX0NPTTMsIDB4MDQgfSwNCj4+ICsJeyBSRUdfQ09NNCwgMHg4MCB9LA0KPj4g
-Kwl7IFJFR19IU1RBUlQsIDB4MjYgfSwNCj4+ICsJeyBSRUdfSFNUT1AsIDB4YzYgfSwNCj4+ICsJ
-eyAweDMyLCAweGVkIH0sDQo+PiArCXsgUkVHX1ZTVEFSVCwgMHgwMSB9LA0KPj4gKwl7IFJFR19W
-U1RPUCwgMHgzZCB9LA0KPj4gKwl7IFJFR19WUkVGLCAweDAwIH0sDQo+PiArCXsgUkVHX0VYSENI
-LCAweDEwIH0sDQo+PiArCXsgUkVHX0VYSENMLCAweDQwIH0sDQo+PiArCXsgUkVHX0FEQywgMHg5
-MSB9LA0KPj4gKwl7IFJFR19BQ09NLCAweDEyIH0sDQo+PiArCXsgUkVHX09GT04sIDB4NDMgfSwN
-Cj4+ICsJeyBSRUdfTlVMTCwgMCB9LA0KPj4gICB9Ow0KPj4gICANCj4+ICAgLyogRGV0ZXJtaW5l
-ZCBlbXBpcmljYWxseS4gKi8NCj4+IC1zdGF0aWMgY29uc3QgdTggb3Y5NjV4X3F2Z2FfcmVnc1tO
-VU1fRk1UX1JFR1NdID0gew0KPj4gLQkweDEwLCAweDA0LCAweDgwLCAweDI1LCAweGM1LCAweGJm
-LCAweDAwLCAweDgwLCAweDEyLA0KPj4gLQkweDEwLCAweDQwLCAweDkxLCAweDEyLCAweDQzLA0K
-Pj4gK3N0YXRpYyBjb25zdCBzdHJ1Y3QgaTJjX3J2IG92OTY1eF9xdmdhX3JlZ3NbXSA9IHsNCj4+
-ICsJeyBSRUdfQ09NNywgMHgxMCB9LA0KPj4gKwl7IFJFR19DT00zLCAweDA0IH0sDQo+PiArCXsg
-UkVHX0NPTTQsIDB4ODAgfSwNCj4+ICsJeyBSRUdfSFNUQVJULCAweDI1IH0sDQo+PiArCXsgUkVH
-X0hTVE9QLCAweGM1IH0sDQo+PiArCXsgMHgzMiwgMHhiZiB9LA0KPj4gKwl7IFJFR19WU1RBUlQs
-IDB4MDAgfSwNCj4+ICsJeyBSRUdfVlNUT1AsIDB4ODAgfSwNCj4+ICsJeyBSRUdfVlJFRiwgMHgx
-MiB9LA0KPj4gKwl7IFJFR19FWEhDSCwgMHgxMCB9LA0KPj4gKwl7IFJFR19FWEhDTCwgMHg0MCB9
-LA0KPj4gKwl7IFJFR19BREMsIDB4OTEgfSwNCj4+ICsJeyBSRUdfQUNPTSwgMHgxMiB9LA0KPj4g
-Kwl7IFJFR19PRk9OLCAweDQzIH0sDQo+PiArCXsgUkVHX05VTEwsIDAgfSwNCj4+ICAgfTsNCj4+
-ICAgDQo+PiAgIHN0YXRpYyBjb25zdCBzdHJ1Y3Qgb3Y5NjV4X2ZyYW1lc2l6ZSBvdjk2NXhfZnJh
-bWVzaXplc1tdID0gew0KPj4gQEAgLTM4NywxMyArNDIzLDYgQEAgc3RydWN0IGkyY19ydiB7DQo+
-PiAgIAl9LA0KPj4gICB9Ow0KPj4gICANCj4+IC1zdHJ1Y3Qgb3Y5NjV4X3BpeGZtdCB7DQo+PiAt
-CXUzMiBjb2RlOw0KPj4gLQl1MzIgY29sb3JzcGFjZTsNCj4+IC0JLyogUkVHX1RTTEIgdmFsdWUs
-IG9ubHkgYml0cyBbMzoyXSBtYXkgYmUgc2V0LiAqLw0KPj4gLQl1OCB0c2xiX3JlZzsNCj4+IC19
-Ow0KPiANCj4gQW55IHBhcnRpY3VsYXIgcmVhc29uIGZvciBtb3Zpbmcgc3RydWN0IG92OTY1eF9w
-aXhmbXQgZGVmaW5pdGlvbj8NCg0KTm90IGluIHRoZSByaWdodCBwYXRjaCwgbXVzdCBiZSBpbiA1
-LzYgW21lZGlhXSBvdjk2NTA6IGFkZCBtdWx0aXBsZSANCnZhcmlhbnQgc3VwcG9ydCwgSSdsbCBm
-aXggaW4gdjIuDQoNCj4gDQo+PiAtDQo+PiAgIHN0YXRpYyBjb25zdCBzdHJ1Y3Qgb3Y5NjV4X3Bp
-eGZtdCBvdjk2NXhfZm9ybWF0c1tdID0gew0KPj4gICAJeyBNRURJQV9CVVNfRk1UX1lVWVY4XzJY
-OCwgVjRMMl9DT0xPUlNQQUNFX0pQRUcsIDB4MDB9LA0KPj4gICAJeyBNRURJQV9CVVNfRk1UX1lW
-WVU4XzJYOCwgVjRMMl9DT0xPUlNQQUNFX0pQRUcsIDB4MDR9LA0KPj4gQEAgLTEyNjgsMTEgKzEy
-OTcsMTIgQEAgc3RhdGljIGludCBvdjk2NXhfc2V0X2ZtdChzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNk
-LCBzdHJ1Y3QgdjRsMl9zdWJkZXZfcGFkX2NvbmZpZw0KPj4gICANCj4+ICAgc3RhdGljIGludCBv
-djk2NXhfc2V0X2ZyYW1lX3NpemUoc3RydWN0IG92OTY1eCAqb3Y5NjV4KQ0KPj4gICB7DQo+PiAt
-CWludCBpLCByZXQgPSAwOw0KPj4gKwlpbnQgcmV0ID0gMDsNCj4+ICsNCj4+ICsJdjRsMl9kYmco
-MSwgZGVidWcsIG92OTY1eC0+Y2xpZW50LCAiJXNcbiIsIF9fZnVuY19fKTsNCj4+ICAgDQo+PiAt
-CWZvciAoaSA9IDA7IHJldCA9PSAwICYmIGkgPCBOVU1fRk1UX1JFR1M7IGkrKykNCj4+IC0JCXJl
-dCA9IG92OTY1eF93cml0ZShvdjk2NXgtPmNsaWVudCwgZnJhbWVfc2l6ZV9yZWdfYWRkcltpXSwN
-Cj4+IC0JCQkJICAgb3Y5NjV4LT5mcmFtZV9zaXplLT5yZWdzW2ldKTsNCj4+ICsJcmV0ID0gb3Y5
-NjV4X3dyaXRlX2FycmF5KG92OTY1eC0+Y2xpZW50LA0KPj4gKwkJCQkgb3Y5NjV4LT5mcmFtZV9z
-aXplLT5yZWdzKTsNCj4+ICAgCXJldHVybiByZXQ7DQo+PiAgIH0NCj4+ICAgDQo+IA==
+Remove helper functions from vimc-core and add it in vimc-common to
+clean up the core.
+
+Signed-off-by: Helen Koike <helen.koike@collabora.com>
+
+---
+
+Changes in v4: None
+Changes in v3:
+[media] vimc: Move common code from the core
+	- This is a new patch in the series
+
+Changes in v2: None
+
+
+---
+ drivers/media/platform/vimc/Makefile               |   2 +-
+ drivers/media/platform/vimc/vimc-capture.h         |   2 +-
+ drivers/media/platform/vimc/vimc-common.c          | 221 +++++++++++++++++++++
+ .../platform/vimc/{vimc-core.h => vimc-common.h}   |   7 +-
+ drivers/media/platform/vimc/vimc-core.c            | 205 +------------------
+ drivers/media/platform/vimc/vimc-sensor.h          |   2 +-
+ 6 files changed, 229 insertions(+), 210 deletions(-)
+ create mode 100644 drivers/media/platform/vimc/vimc-common.c
+ rename drivers/media/platform/vimc/{vimc-core.h => vimc-common.h} (96%)
+
+diff --git a/drivers/media/platform/vimc/Makefile b/drivers/media/platform/vimc/Makefile
+index c45195e..6b6ddf4 100644
+--- a/drivers/media/platform/vimc/Makefile
++++ b/drivers/media/platform/vimc/Makefile
+@@ -1,3 +1,3 @@
+-vimc-objs := vimc-core.o vimc-capture.o vimc-sensor.o
++vimc-objs := vimc-core.o vimc-capture.o vimc-common.o vimc-sensor.o
+ 
+ obj-$(CONFIG_VIDEO_VIMC) += vimc.o
+diff --git a/drivers/media/platform/vimc/vimc-capture.h b/drivers/media/platform/vimc/vimc-capture.h
+index 581a813..7e5c707 100644
+--- a/drivers/media/platform/vimc/vimc-capture.h
++++ b/drivers/media/platform/vimc/vimc-capture.h
+@@ -18,7 +18,7 @@
+ #ifndef _VIMC_CAPTURE_H_
+ #define _VIMC_CAPTURE_H_
+ 
+-#include "vimc-core.h"
++#include "vimc-common.h"
+ 
+ struct vimc_ent_device *vimc_cap_create(struct v4l2_device *v4l2_dev,
+ 					const char *const name,
+diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
+new file mode 100644
+index 0000000..42f779a
+--- /dev/null
++++ b/drivers/media/platform/vimc/vimc-common.c
+@@ -0,0 +1,221 @@
++/*
++ * vimc-common.c Virtual Media Controller Driver
++ *
++ * Copyright (C) 2015-2017 Helen Koike <helen.fornazier@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#include "vimc-common.h"
++
++static const struct vimc_pix_map vimc_pix_map_list[] = {
++	/* TODO: add all missing formats */
++
++	/* RGB formats */
++	{
++		.code = MEDIA_BUS_FMT_BGR888_1X24,
++		.pixelformat = V4L2_PIX_FMT_BGR24,
++		.bpp = 3,
++	},
++	{
++		.code = MEDIA_BUS_FMT_RGB888_1X24,
++		.pixelformat = V4L2_PIX_FMT_RGB24,
++		.bpp = 3,
++	},
++	{
++		.code = MEDIA_BUS_FMT_ARGB8888_1X32,
++		.pixelformat = V4L2_PIX_FMT_ARGB32,
++		.bpp = 4,
++	},
++
++	/* Bayer formats */
++	{
++		.code = MEDIA_BUS_FMT_SBGGR8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SBGGR8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGBRG8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SGBRG8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGRBG8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SGRBG8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SRGGB8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SRGGB8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SBGGR10_1X10,
++		.pixelformat = V4L2_PIX_FMT_SBGGR10,
++		.bpp = 2,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGBRG10_1X10,
++		.pixelformat = V4L2_PIX_FMT_SGBRG10,
++		.bpp = 2,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGRBG10_1X10,
++		.pixelformat = V4L2_PIX_FMT_SGRBG10,
++		.bpp = 2,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SRGGB10_1X10,
++		.pixelformat = V4L2_PIX_FMT_SRGGB10,
++		.bpp = 2,
++	},
++
++	/* 10bit raw bayer a-law compressed to 8 bits */
++	{
++		.code = MEDIA_BUS_FMT_SBGGR10_ALAW8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SBGGR10ALAW8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGBRG10_ALAW8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SGBRG10ALAW8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGRBG10_ALAW8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SGRBG10ALAW8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SRGGB10_ALAW8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SRGGB10ALAW8,
++		.bpp = 1,
++	},
++
++	/* 10bit raw bayer DPCM compressed to 8 bits */
++	{
++		.code = MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SBGGR10DPCM8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SGBRG10DPCM8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SGRBG10DPCM8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SRGGB10DPCM8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SBGGR12_1X12,
++		.pixelformat = V4L2_PIX_FMT_SBGGR12,
++		.bpp = 2,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGBRG12_1X12,
++		.pixelformat = V4L2_PIX_FMT_SGBRG12,
++		.bpp = 2,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGRBG12_1X12,
++		.pixelformat = V4L2_PIX_FMT_SGRBG12,
++		.bpp = 2,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SRGGB12_1X12,
++		.pixelformat = V4L2_PIX_FMT_SRGGB12,
++		.bpp = 2,
++	},
++};
++
++const struct vimc_pix_map *vimc_pix_map_by_code(u32 code)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(vimc_pix_map_list); i++) {
++		if (vimc_pix_map_list[i].code == code)
++			return &vimc_pix_map_list[i];
++	}
++	return NULL;
++}
++
++const struct vimc_pix_map *vimc_pix_map_by_pixelformat(u32 pixelformat)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(vimc_pix_map_list); i++) {
++		if (vimc_pix_map_list[i].pixelformat == pixelformat)
++			return &vimc_pix_map_list[i];
++	}
++	return NULL;
++}
++
++int vimc_propagate_frame(struct media_pad *src, const void *frame)
++{
++	struct media_link *link;
++
++	if (!(src->flags & MEDIA_PAD_FL_SOURCE))
++		return -EINVAL;
++
++	/* Send this frame to all sink pads that are direct linked */
++	list_for_each_entry(link, &src->entity->links, list) {
++		if (link->source == src &&
++		    (link->flags & MEDIA_LNK_FL_ENABLED)) {
++			struct vimc_ent_device *ved = NULL;
++			struct media_entity *entity = link->sink->entity;
++
++			if (is_media_entity_v4l2_subdev(entity)) {
++				struct v4l2_subdev *sd =
++					container_of(entity, struct v4l2_subdev,
++						     entity);
++				ved = v4l2_get_subdevdata(sd);
++			} else if (is_media_entity_v4l2_video_device(entity)) {
++				struct video_device *vdev =
++					container_of(entity,
++						     struct video_device,
++						     entity);
++				ved = video_get_drvdata(vdev);
++			}
++			if (ved && ved->process_frame)
++				ved->process_frame(ved, link->sink, frame);
++		}
++	}
++
++	return 0;
++}
++
++/* Helper function to allocate and initialize pads */
++struct media_pad *vimc_pads_init(u16 num_pads, const unsigned long *pads_flag)
++{
++	struct media_pad *pads;
++	unsigned int i;
++
++	/* Allocate memory for the pads */
++	pads = kcalloc(num_pads, sizeof(*pads), GFP_KERNEL);
++	if (!pads)
++		return ERR_PTR(-ENOMEM);
++
++	/* Initialize the pads */
++	for (i = 0; i < num_pads; i++) {
++		pads[i].index = i;
++		pads[i].flags = pads_flag[i];
++	}
++
++	return pads;
++}
+diff --git a/drivers/media/platform/vimc/vimc-core.h b/drivers/media/platform/vimc/vimc-common.h
+similarity index 96%
+rename from drivers/media/platform/vimc/vimc-core.h
+rename to drivers/media/platform/vimc/vimc-common.h
+index 4525d23..00d3da4 100644
+--- a/drivers/media/platform/vimc/vimc-core.h
++++ b/drivers/media/platform/vimc/vimc-common.h
+@@ -1,5 +1,5 @@
+ /*
+- * vimc-core.h Virtual Media Controller Driver
++ * vimc-ccommon.h Virtual Media Controller Driver
+  *
+  * Copyright (C) 2015-2017 Helen Koike <helen.fornazier@gmail.com>
+  *
+@@ -15,10 +15,11 @@
+  *
+  */
+ 
+-#ifndef _VIMC_CORE_H_
+-#define _VIMC_CORE_H_
++#ifndef _VIMC_COMMON_H_
++#define _VIMC_COMMON_H_
+ 
+ #include <linux/slab.h>
++#include <media/media-device.h>
+ #include <media/v4l2-device.h>
+ 
+ /**
+diff --git a/drivers/media/platform/vimc/vimc-core.c b/drivers/media/platform/vimc/vimc-core.c
+index bc107da..afc79e2 100644
+--- a/drivers/media/platform/vimc/vimc-core.c
++++ b/drivers/media/platform/vimc/vimc-core.c
+@@ -22,7 +22,7 @@
+ #include <media/v4l2-device.h>
+ 
+ #include "vimc-capture.h"
+-#include "vimc-core.h"
++#include "vimc-common.h"
+ #include "vimc-sensor.h"
+ 
+ #define VIMC_PDEV_NAME "vimc"
+@@ -197,189 +197,6 @@ static const struct vimc_pipeline_config pipe_cfg = {
+ 
+ /* -------------------------------------------------------------------------- */
+ 
+-static const struct vimc_pix_map vimc_pix_map_list[] = {
+-	/* TODO: add all missing formats */
+-
+-	/* RGB formats */
+-	{
+-		.code = MEDIA_BUS_FMT_BGR888_1X24,
+-		.pixelformat = V4L2_PIX_FMT_BGR24,
+-		.bpp = 3,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_RGB888_1X24,
+-		.pixelformat = V4L2_PIX_FMT_RGB24,
+-		.bpp = 3,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_ARGB8888_1X32,
+-		.pixelformat = V4L2_PIX_FMT_ARGB32,
+-		.bpp = 4,
+-	},
+-
+-	/* Bayer formats */
+-	{
+-		.code = MEDIA_BUS_FMT_SBGGR8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SBGGR8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGBRG8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SGBRG8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGRBG8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SGRBG8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SRGGB8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SRGGB8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SBGGR10_1X10,
+-		.pixelformat = V4L2_PIX_FMT_SBGGR10,
+-		.bpp = 2,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGBRG10_1X10,
+-		.pixelformat = V4L2_PIX_FMT_SGBRG10,
+-		.bpp = 2,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGRBG10_1X10,
+-		.pixelformat = V4L2_PIX_FMT_SGRBG10,
+-		.bpp = 2,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SRGGB10_1X10,
+-		.pixelformat = V4L2_PIX_FMT_SRGGB10,
+-		.bpp = 2,
+-	},
+-
+-	/* 10bit raw bayer a-law compressed to 8 bits */
+-	{
+-		.code = MEDIA_BUS_FMT_SBGGR10_ALAW8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SBGGR10ALAW8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGBRG10_ALAW8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SGBRG10ALAW8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGRBG10_ALAW8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SGRBG10ALAW8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SRGGB10_ALAW8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SRGGB10ALAW8,
+-		.bpp = 1,
+-	},
+-
+-	/* 10bit raw bayer DPCM compressed to 8 bits */
+-	{
+-		.code = MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SBGGR10DPCM8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SGBRG10DPCM8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SGRBG10DPCM8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SRGGB10DPCM8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SBGGR12_1X12,
+-		.pixelformat = V4L2_PIX_FMT_SBGGR12,
+-		.bpp = 2,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGBRG12_1X12,
+-		.pixelformat = V4L2_PIX_FMT_SGBRG12,
+-		.bpp = 2,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGRBG12_1X12,
+-		.pixelformat = V4L2_PIX_FMT_SGRBG12,
+-		.bpp = 2,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SRGGB12_1X12,
+-		.pixelformat = V4L2_PIX_FMT_SRGGB12,
+-		.bpp = 2,
+-	},
+-};
+-
+-const struct vimc_pix_map *vimc_pix_map_by_code(u32 code)
+-{
+-	unsigned int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(vimc_pix_map_list); i++) {
+-		if (vimc_pix_map_list[i].code == code)
+-			return &vimc_pix_map_list[i];
+-	}
+-	return NULL;
+-}
+-
+-const struct vimc_pix_map *vimc_pix_map_by_pixelformat(u32 pixelformat)
+-{
+-	unsigned int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(vimc_pix_map_list); i++) {
+-		if (vimc_pix_map_list[i].pixelformat == pixelformat)
+-			return &vimc_pix_map_list[i];
+-	}
+-	return NULL;
+-}
+-
+-int vimc_propagate_frame(struct media_pad *src, const void *frame)
+-{
+-	struct media_link *link;
+-
+-	if (!(src->flags & MEDIA_PAD_FL_SOURCE))
+-		return -EINVAL;
+-
+-	/* Send this frame to all sink pads that are direct linked */
+-	list_for_each_entry(link, &src->entity->links, list) {
+-		if (link->source == src &&
+-		    (link->flags & MEDIA_LNK_FL_ENABLED)) {
+-			struct vimc_ent_device *ved = NULL;
+-			struct media_entity *entity = link->sink->entity;
+-
+-			if (is_media_entity_v4l2_subdev(entity)) {
+-				struct v4l2_subdev *sd =
+-					container_of(entity, struct v4l2_subdev,
+-						     entity);
+-				ved = v4l2_get_subdevdata(sd);
+-			} else if (is_media_entity_v4l2_video_device(entity)) {
+-				struct video_device *vdev =
+-					container_of(entity,
+-						     struct video_device,
+-						     entity);
+-				ved = video_get_drvdata(vdev);
+-			}
+-			if (ved && ved->process_frame)
+-				ved->process_frame(ved, link->sink, frame);
+-		}
+-	}
+-
+-	return 0;
+-}
+-
+ static void vimc_device_unregister(struct vimc_device *vimc)
+ {
+ 	unsigned int i;
+@@ -396,26 +213,6 @@ static void vimc_device_unregister(struct vimc_device *vimc)
+ 	media_device_cleanup(&vimc->mdev);
+ }
+ 
+-/* Helper function to allocate and initialize pads */
+-struct media_pad *vimc_pads_init(u16 num_pads, const unsigned long *pads_flag)
+-{
+-	struct media_pad *pads;
+-	unsigned int i;
+-
+-	/* Allocate memory for the pads */
+-	pads = kcalloc(num_pads, sizeof(*pads), GFP_KERNEL);
+-	if (!pads)
+-		return ERR_PTR(-ENOMEM);
+-
+-	/* Initialize the pads */
+-	for (i = 0; i < num_pads; i++) {
+-		pads[i].index = i;
+-		pads[i].flags = pads_flag[i];
+-	}
+-
+-	return pads;
+-}
+-
+ /*
+  * TODO: remove this function when all the
+  * entities specific code are implemented
+diff --git a/drivers/media/platform/vimc/vimc-sensor.h b/drivers/media/platform/vimc/vimc-sensor.h
+index 505310e..580dcec 100644
+--- a/drivers/media/platform/vimc/vimc-sensor.h
++++ b/drivers/media/platform/vimc/vimc-sensor.h
+@@ -18,7 +18,7 @@
+ #ifndef _VIMC_SENSOR_H_
+ #define _VIMC_SENSOR_H_
+ 
+-#include "vimc-core.h"
++#include "vimc-common.h"
+ 
+ struct vimc_ent_device *vimc_sen_create(struct v4l2_device *v4l2_dev,
+ 					const char *const name,
+-- 
+2.7.4
