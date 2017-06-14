@@ -1,463 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59543 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753371AbdFMMWp (ORCPT
+Received: from mx08-00252a01.pphosted.com ([91.207.212.211]:34210 "EHLO
+        mx08-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752380AbdFNVDb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 08:22:45 -0400
-Subject: Re: [PATCH v4 1/2] media: i2c: adv748x: add adv748x driver
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-        Kieran Bingham <kbingham@kernel.org>
-References: <cover.d0545e32d322ca1b939fa2918694173629e680eb.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
- <865b71d4fcf6ce407a94a10d5dcb06944ddb6dcb.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
- <20170613073320.GA16566@bigcity.dyn.berto.se>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        sakari.ailus@iki.fi,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reply-To: kieran.bingham@ideasonboard.com
-Message-ID: <e11bb67f-42b2-5792-2ecf-4a8e237e5d1a@ideasonboard.com>
-Date: Tue, 13 Jun 2017 13:22:33 +0100
+        Wed, 14 Jun 2017 17:03:31 -0400
+Received: from pps.filterd (m0102629.ppops.net [127.0.0.1])
+        by mx08-00252a01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id v5EKxcgC006345
+        for <linux-media@vger.kernel.org>; Wed, 14 Jun 2017 22:03:30 +0100
+Received: from mail-pg0-f72.google.com (mail-pg0-f72.google.com [74.125.83.72])
+        by mx08-00252a01.pphosted.com with ESMTP id 2b058eta4y-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Wed, 14 Jun 2017 22:03:30 +0100
+Received: by mail-pg0-f72.google.com with SMTP id a70so10544462pge.8
+        for <linux-media@vger.kernel.org>; Wed, 14 Jun 2017 14:03:29 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20170613073320.GA16566@bigcity.dyn.berto.se>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <38a9b418-f320-3c98-9536-7e85c00211e4@xs4all.nl>
+References: <cover.1497452006.git.dave.stevenson@raspberrypi.org>
+ <eef29bfb-3336-4f65-c188-975d3937cb67@xs4all.nl> <CAAoAYcN67=d1DyqeAEYpeZDTuMh9p1eaiAzt7RJdcpYOwShVgw@mail.gmail.com>
+ <38a9b418-f320-3c98-9536-7e85c00211e4@xs4all.nl>
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Wed, 14 Jun 2017 22:03:27 +0100
+Message-ID: <CAAoAYcNMwXJeHQkX1nFVqpf8uJc2R+ECXak8r99-5p_SS4qVZw@mail.gmail.com>
+Subject: Re: [RFC 0/2] BCM283x Camera Receiver driver
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-rpi-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas
-
-On 13/06/17 08:33, Niklas Söderlund wrote:
-> Hi Kieran,
-> 
-> Thanks for your patch, and great work!
-
-Thanks for taking a look.
-
-> On 2017-06-13 01:35:07 +0100, Kieran Bingham wrote:
->> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+On 14 June 2017 at 18:38, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 06/14/2017 06:29 PM, Dave Stevenson wrote:
 >>
->> Provide support for the ADV7481 and ADV7482.
+>> Hi Hans.
 >>
->> The driver is modelled with 4 subdevices to allow simultaneous streaming
->> from the AFE (Analog front end) and HDMI inputs though two CSI TX
->> entities.
+>> On 14 June 2017 at 16:42, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>
+>>> Hi Dave,
+>>>
+>>> How does this driver relate to this staging driver:
+>>>
+>>> drivers/staging/vc04_services/bcm2835-camera/
+>>>
+>>> It's not obvious to me.
 >>
->> The HDMI entity is linked to the TXA CSI bus, whilst the AFE is linked
->> to the TXB CSI bus.
 >>
->> The driver is based on a prototype by Koji Matsuoka in the Renesas BSP,
->> and an earlier rework by Niklas Söderlund.
+>> drivers/staging/vc04_services/bcm2835-camera/ is using the VideoCore
+>> firmware to control Unicam, ISP, and all the tuner algorithms. The ARM
+>> gets delivered fully processed buffers from the VideoCore side. The
+>> firmware only has drivers for the Omnivision OV5647 and Sony IMX219
+>> (and an unsupported one for the Toshiba TC358743).
 >>
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>> This driver is solely the Unicam block, reading the data in over
+>> CSI2/CCP2 from the sensor and writing it to memory. No ISP or control
+>> loops.
+>> Other than power management, this driver is running solely on the ARM
+>> with no involvement from the VideoCore firmware.
+>> The sensor driver is whatever suitable V4L2 subdevice driver you fancy
+>> attaching (as long as it supports CSI2, or eventually CCP2).
+>
+>
+> What is the interaction between these two drivers? Can they co-exist?
+> I would expect them to be mutually exclusive.
+
+Mutually exclusive for the same Unicam instance, yes.
+
+There are two Unicam instances on all BCM283x chips and both are
+brought out on the Compute Modules. You could run bcm2835-unicam on
+one and bcm2835-camera on the other if you so wished.
+The firmware checks whether the csi nodes in the device tree are
+active, and won't touch them if they are.
+
 >>
+>>> On 06/14/2017 05:15 PM, Dave Stevenson wrote:
+>>>>
+>>>>
+>>>> Hi All.
+>>>>
+>>>> This is adding a V4L2 subdevice driver for the CSI2/CCP2 camera
+>>>> receiver peripheral on BCM283x, as used on Raspberry Pi.
+>>>>
+>>>> v4l2-compliance results depend on the sensor subdevice this is
+>>>> connected to. It passes the basic tests cleanly with TC358743,
+>>>> but objects with OV5647
+>>>> fail: v4l2-test-controls.cpp(574): g_ext_ctrls does not support count ==
+>>>> 0
+>>>> Neither OV5647 nor Unicam support any controls.
+>>>
+>>>
+>>>
+>>> Are you compiling v4l2-compliance from the v4l-utils git repo? If not,
+>>> then please do so and run again. The version packaged by distros tends
+>>> to be seriously outdated.
+>>
+>>
+>> Yes, I'm building from v4l-utils.git.
+>> I updated within the last week, although you appear to have added 2
+>> commits since (both CEC related).
+>> I'm on "ef074cf media-ctl: add colorimetry support"
+>
+>
+> But the line with that error is at line number 587 in my repo, not 574.
+> So I'm a bit suspicious.
+>
+> Anyway, can you give the output of 'v4l2-ctl -l'?
 
-<snip>
+Will do tomorrow. I'll update to the latest v4l2-conformance too to
+avoid confusion.
 
->> +static int adv748x_afe_get_format(struct v4l2_subdev *sd,
->> +				      struct v4l2_subdev_pad_config *cfg,
->> +				      struct v4l2_subdev_format *sdformat)
->> +{
->> +	struct adv748x_afe *afe = adv748x_sd_to_afe(sd);
->> +	struct v4l2_mbus_framefmt *mbusformat;
->> +
->> +	/* The format of the analog sink pads is nonsensical */
->> +	if (sdformat->pad != ADV748X_AFE_SOURCE)
->> +		return -EINVAL;
->> +
->> +	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
->> +		mbusformat = v4l2_subdev_get_try_format(sd, cfg, sdformat->pad);
->> +		sdformat->format = *mbusformat;
->> +	} else {
->> +		adv748x_afe_fill_format(afe, &sdformat->format);
->> +		adv748x_afe_set_pixelrate(afe);
->> +	}
->> +
->> +	return 0;
->> +}
->> +
->> +static int adv748x_afe_set_format(struct v4l2_subdev *sd,
->> +				      struct v4l2_subdev_pad_config *cfg,
->> +				      struct v4l2_subdev_format *sdformat)
->> +{
->> +	struct v4l2_mbus_framefmt *mbusformat;
->> +
->> +	/* The format of the analog sink pads is nonsensical */
->> +	if (sdformat->pad != ADV748X_AFE_SOURCE)
->> +		return -EINVAL;
->> +
->> +	if (sdformat->which == V4L2_SUBDEV_FORMAT_ACTIVE)
->> +		return adv748x_afe_get_format(sd, cfg, sdformat);
->> +
->> +	mbusformat = v4l2_subdev_get_try_format(sd, cfg, sdformat->pad);
->> +	*mbusformat = sdformat->format;
-> 
-> Hum, for the V4L2_SUBDEV_FORMAT_TRY case will this not accept any format 
-> provided to the function? Should you not limit this to the device 
-> capabilities before assigning it to mbusformat ?
+>>
+>>>> I must admit to not having got OV5647 to stream with the current driver
+>>>> register settings. It works with a set of register settings for VGA
+>>>> RAW10.
+>>>> I also have a couple of patches pending for OV5647, but would like to
+>>>> understand the issues better before sending them out.
+>>>>
+>>>> Two queries I do have in V4L2-land:
+>>>> - When s_dv_timings or s_std is called, is the format meant to
+>>>>     be updated automatically?
+>>>
+>>>
+>>>
+>>> Yes. Exception is if the new timings/std is exactly the same as the old
+>>> timings/std, in that case you can just return 0 and do nothing.
+>>
+>>
+>> OK, can do that.
+>>
+>>>> Even if we're already streaming?
+>>>
+>>>
+>>> That's not allowed. Return -EBUSY in that case.
+>>
+>>
+>> Also reasonable.
+>> So if the TC358743 flags a source change we have to stop streaming,
+>> set the new timings (which will update the format), and start up again
+>> with fresh buffers. That's what I was expecting, but wanted to
+>> confirm.
+>
+>
+> Correct. In theory there are ways around this provided the buffers are
+> large enough to accommodate the new format size, but nobody actually
+> supports that (might change in the not-to-distant future).
+>
+>>
+>>>>     Some existing drivers seem to, but others don't.
+>>>> - With s_fmt, is sizeimage settable by the application in the same
+>>>>     way as bytesperline?
+>>>
+>>>
+>>>
+>>> No, the driver will fill in this field, overwriting anything the
+>>> application put there.
+>>>
+>>> bytesperline IS settable, but most drivers will ignore what userspace
+>>> did and overwrite this as well.
+>>>
+>>> Normally the driver knows about HW requirements and will set sizeimage
+>>> to something that will work (e.g. make sure it is a multiple of 16
+>>> lines).
+>>
+>>
+>> There are subtly different requirements in different hardware blocks :-(
+>> eg Unicam needs bytesperline to be a multiple of 16 bytes,whilst the
+>> ISP requires a multiple of 32.
+>> The vertical padding is generally where we're doing software
+>> processing on the VideoCore side as it's easier to just leave the the
+>> 16 way SIMD processor running all 16 ways, hence needing scratch space
+>> to avoid reading beyond buffers.
+>>
+>> The main consumer is likely to be the ISP and that doesn't need
+>> vertical context, so I'll look at removing the requirement there
+>> rather than forcing it in this driver.
+>> As long as we can set bytesperline (which is already supported) then
+>> that requirement of the ISP is already handled.
+>
+>
+> It's up to you, but given the large sizes of the buffers the extra bit
+> of padding doesn't really matter all that much. And if it would make it
+> easier to digest by other HW blocks, then I would just add the padding.
+>
+> Note that users can also call VIDIOC_CREATE_BUFS instead of VIDIOC_REQBUFS
+> in order to request buffers of a larger-than-needed size. I'm not sure if
+> you are aware of that.
 
-Hrmmm maybe it got too late last night :)
+I'll have a look in both cases.
 
-I was trying to remove the effect of the active setting on the TRY format, and
-I've gone too far :)
+Forcing the user to have to create the buffers in a particular manner
+feels a little nasty, but then again it is only the app/downstream
+processing that really knows what buffer size is required there.
+Unicam can then be set up just enforcing its own requirements. Perhaps
+that is the better way around.
 
-> 
->> +
->> +	return 0;
->> +}
+>>
+>>>> yavta allows you to specify it on the command
+>>>>
+>>>>     line, whilst v4l2-ctl doesn't. Some of the other parts of the Pi
+>>>>     firmware have a requirement that the buffer is a multiple of 16
+>>>> lines
+>>>>     high, which can be matched by V4L2 if we can over-allocate the
+>>>>     buffers by the app specifying sizeimage. But if I allow that,
+>>>>     then I get a v4l2-compliance failure as the size doesn't get
+>>>>     reset when switching from RGB3 to UYVY as it takes the request as
+>>>>     a request to over-allocate.
+>>>>
+>>>> Apologies if I've messed up in sending these patches - so many ways
+>>>> to do something.
+>>>
+>>>
+>>>
+>>> It looks fine at a glance.
+>>>
+>>> I will probably review this on Friday or Monday. But I need some
+>>> clarification
+>>> of the difference between this and the staging driver first.
+>>
+>>
+>> Thanks. Hopefully I've given you that clarification above.
+>>
+>> I'll fix the s_dv_timings and s_std handling, and s_fmt of sizeimage,
+>> but will wait for other review comments before sending a v2.
+>
+>
+> OK. As said, I'll take a closer look on Friday or Monday.
 
-<snip>
+Thank you. It is much appreciated.
 
-
->> +
->> +static int adv748x_setup_links(struct adv748x_state *state)
->> +{
->> +	int ret;
->> +	int enabled = MEDIA_LNK_FL_ENABLED;
->> +
->> +/*
->> + * HACK/Workaround:
->> + *
->> + * Currently non-immutable link resets go through the RVin
->> + * driver, and cause the links to fail, due to not being part of RVIN.
->> + * As a temporary workaround until the RVIN driver knows better than to parse
->> + * links that do not belong to it, use static immutable links for our internal
->> + * media paths.
->> + */
-> 
-> The problem is a bigger then just the VIN ignoring the links not 
-> belonging to it self I think. The ADV7482 driver must have a link 
-> notification handler to deal with the links that belong to it.
-> 
-> Else if all links of the media device is reset there is no way to setup 
-> the links between the different ADV7482 subdevices, or am I missing 
-> something?
-
-Ahhh -- this function shouldn't even be in here ! It's not meant to be used -
-Links are now created in adv748x_csi2_register_link() so now I'm concerned why I
-didn't get an unused function compiler warning :)
-
-However - your point still stands.
-
-> 
->> +#define ADV748x_DEV_STATIC_LINKS
->> +#ifdef ADV748x_DEV_STATIC_LINKS
->> +	enabled |= MEDIA_LNK_FL_IMMUTABLE;
->> +#endif
->> +
->> +	/* TXA - Default link is with HDMI */
->> +	ret = media_create_pad_link(&state->hdmi.sd.entity, 1,
->> +				    &state->txa.sd.entity, 0, enabled);
->> +	if (ret) {
->> +		adv_err(state, "Failed to create HDMI-TXA pad link");
->> +		return ret;
->> +	}
->> +
->> +#ifndef ADV748x_DEV_STATIC_LINKS
->> +	ret = media_create_pad_link(&state->afe.sd.entity, ADV748X_AFE_SOURCE,
->> +				    &state->txa.sd.entity, 0, 0);
->> +	if (ret) {
->> +		adv_err(state, "Failed to create AFE-TXA pad link");
->> +		return ret;
->> +	}
->> +#endif
->> +
->> +	/* TXB - Can only output from the AFE */
->> +	ret = media_create_pad_link(&state->afe.sd.entity, ADV748X_AFE_SOURCE,
->> +				    &state->txb.sd.entity, 0, enabled);
->> +	if (ret) {
->> +		adv_err(state, "Failed to create AFE-TXB pad link");
->> +		return ret;
->> +	}
->> +
->> +	return 0;
->> +}
->> +
->> +int adv748x_register_subdevs(struct adv748x_state *state,
->> +			     struct v4l2_device *v4l2_dev)
-
-And that's why I didn't get a function unused warning from the compiler.
-adv748x_setup_links() is called by adv748x_register_subdevs() which is not
-static, but is never used.
-
-I've just removed these two functions. - the new linking mechanism is handled
-during the registration of the CSI2 entitiy.
-
-However your consideration about links resetting is still valid - as I have only
-been testing with immutable links which will have prevented me from seeing the
-issues.
-
-
->> +{
->> +	int ret;
->> +
->> +	ret = v4l2_device_register_subdev(v4l2_dev, &state->hdmi.sd);
->> +	if (ret < 0)
->> +		return ret;
->> +
->> +	ret = v4l2_device_register_subdev(v4l2_dev, &state->afe.sd);
->> +	if (ret < 0)
->> +		goto err_unregister_hdmi;
->> +
->> +	ret = adv748x_setup_links(state);
->> +	if (ret < 0)
->> +		goto err_unregister_afe;
->> +
->> +	return 0;
->> +
->> +err_unregister_afe:
->> +	v4l2_device_unregister_subdev(&state->afe.sd);
->> +err_unregister_hdmi:
->> +	v4l2_device_unregister_subdev(&state->hdmi.sd);
->> +
->> +	return ret;
->> +}
->> +
-
-<snip>
-
->> +static int adv748x_csi2_get_format(struct v4l2_subdev *sd,
->> +				   struct v4l2_subdev_pad_config *cfg,
->> +				   struct v4l2_subdev_format *sdformat)
->> +{
->> +	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
->> +	struct adv748x_state *state = tx->state;
->> +	struct v4l2_mbus_framefmt *mbusformat;
->> +
->> +	mbusformat = adv748x_csi2_get_pad_format(sd, cfg, sdformat->pad,
->> +						 sdformat->which);
->> +	if (!mbusformat)
->> +		return -EINVAL;
->> +
->> +	mutex_lock(&state->mutex);
-> 
-> Why do you need to take the lock here? I'm not saying it's wrong just 
-> curious :-)
-> 
-
-I think the get/set formats are both userspace API's that 'could' be accessed in
-parallel which read/modify the same context ...
-
-
->> +
->> +	sdformat->format = *mbusformat;
->> +
->> +	mutex_unlock(&state->mutex);
->> +
->> +	return 0;
->> +}
->> +
->> +static int adv748x_csi2_set_format(struct v4l2_subdev *sd,
->> +				   struct v4l2_subdev_pad_config *cfg,
->> +				   struct v4l2_subdev_format *sdformat)
->> +{
->> +	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
->> +	struct adv748x_state *state = tx->state;
->> +	struct v4l2_mbus_framefmt *mbusformat;
->> +	int ret = 0;
->> +
->> +	mbusformat = adv748x_csi2_get_pad_format(sd, cfg, sdformat->pad,
->> +						 sdformat->which);
->> +	if (!mbusformat)
->> +		return -EINVAL;
->> +
->> +	mutex_lock(&state->mutex);
-> 
-> Also why you need to lock here?
-
-As above...
-
-if this is extraneous I'll remove it.
-
-
->> +
->> +static int adv748x_hdmi_read_pixelclock(struct adv748x_state *state)
->> +{
->> +	int a, b;
->> +
->> +	a = hdmi_read(state, ADV748X_HDMI_TMDS_1);
->> +	b = hdmi_read(state, ADV748X_HDMI_TMDS_2);
->> +	if (a < 0 || b < 0)
->> +		return -ENODATA;
->> +
->> +	/*
->> +	 * The High 9 bits store TMDS frequency measurement in MHz
-> 
-> s/High/high/
-> 
-
-fixed.
-
-
->> +	 * The low 7 bits of TMDS_2 store the 7-bit TMDS fractional frequency
->> +	 * measurement in 1/128 MHz
->> +	 */
->> +	return ((a << 1) | (b >> 7)) * 1000000 + (b & 0x7f) * 1000000 / 128;
->> +}
->> +
->> +/*
-
-<snip>
-
->> +
->> +static int adv748x_hdmi_g_dv_timings(struct v4l2_subdev *sd,
->> +				     struct v4l2_dv_timings *timings)
->> +{
->> +	struct adv748x_hdmi *hdmi = adv748x_sd_to_hdmi(sd);
->> +	struct adv748x_state *state = adv748x_hdmi_to_state(hdmi);
->> +
->> +	mutex_lock(&state->mutex);
-> 
-> Why you need to take the lock here?
-
-User accessible get/setters...
-
-But it doesn't look like other drivers do the same here.
-
-Maybe I went overkill adding extra locking earlier.
-
-> 
->> +
->> +	*timings = hdmi->timings;
->> +
->> +	mutex_unlock(&state->mutex);
->> +
->> +	return 0;
->> +}
->> +
->> +static int adv748x_hdmi_query_dv_timings(struct v4l2_subdev *sd,
->> +					 struct v4l2_dv_timings *timings)
->> +{
->> +	struct adv748x_hdmi *hdmi = adv748x_sd_to_hdmi(sd);
->> +	struct adv748x_state *state = adv748x_hdmi_to_state(hdmi);
->> +	struct v4l2_bt_timings *bt = &timings->bt;
->> +	int pixelclock;
->> +	int polarity;
->> +
->> +	if (!timings)
->> +		return -EINVAL;
->> +
->> +	memset(timings, 0, sizeof(struct v4l2_dv_timings));
->> +
->> +	if (!adv748x_hdmi_has_signal(state))
->> +		return -ENOLINK;
->> +
->> +	pixelclock = adv748x_hdmi_read_pixelclock(state);
->> +	if (pixelclock < 0)
->> +		return -ENODATA;
->> +
->> +	timings->type = V4L2_DV_BT_656_1120;
->> +
->> +	bt->pixelclock = pixelclock;
->> +	bt->interlaced = hdmi_read(state, ADV748X_HDMI_F1H1) &
->> +				ADV748X_HDMI_F1H1_INTERLACED ?
->> +				V4L2_DV_INTERLACED : V4L2_DV_PROGRESSIVE;
->> +	bt->width = hdmi_read16(state, ADV748X_HDMI_LW1,
->> +				ADV748X_HDMI_LW1_WIDTH_MASK);
->> +	bt->height = hdmi_read16(state, ADV748X_HDMI_F0H1,
->> +				 ADV748X_HDMI_F0H1_HEIGHT_MASK);
->> +	bt->hfrontporch = hdmi_read16(state, ADV748X_HDMI_HFRONT_PORCH,
->> +				      ADV748X_HDMI_HFRONT_PORCH_MASK);
->> +	bt->hsync = hdmi_read16(state, ADV748X_HDMI_HSYNC_WIDTH,
->> +				ADV748X_HDMI_HSYNC_WIDTH_MASK);
->> +	bt->hbackporch = hdmi_read16(state, ADV748X_HDMI_HBACK_PORCH,
->> +				     ADV748X_HDMI_HBACK_PORCH_MASK);
->> +	bt->vfrontporch = hdmi_read16(state, ADV748X_HDMI_VFRONT_PORCH,
->> +				      ADV748X_HDMI_VFRONT_PORCH_MASK) / 2;
->> +	bt->vsync = hdmi_read16(state, ADV748X_HDMI_VSYNC_WIDTH,
->> +				ADV748X_HDMI_VSYNC_WIDTH_MASK) / 2;
->> +	bt->vbackporch = hdmi_read16(state, ADV748X_HDMI_VBACK_PORCH,
->> +				     ADV748X_HDMI_VBACK_PORCH_MASK) / 2;
->> +
-> 
-> Extra newline.
-
-Ah yes,
-
-I just found a nice sed to catch and remove these automatically.
-
-  sed 'N;/^\n$/D;P;D;'
-
-Picked up 2 more lines from -core.c :)
-
-That should be part of checkpatch.pl somewhere ... Then I'd catch them as I commit.
-
-
-> 
->> +
->> +	polarity = hdmi_read(state, 0x05);
->> +	bt->polarities = (polarity & BIT(4) ? V4L2_DV_VSYNC_POS_POL : 0) |
->> +		(polarity & BIT(5) ? V4L2_DV_HSYNC_POS_POL : 0);
->> +
->> +	if (bt->interlaced == V4L2_DV_INTERLACED) {
->> +		bt->height += hdmi_read16(state, 0x0b, 0x1fff);
->> +		bt->il_vfrontporch = hdmi_read16(state, 0x2c, 0x3fff) / 2;
->> +		bt->il_vsync = hdmi_read16(state, 0x30, 0x3fff) / 2;
->> +		bt->il_vbackporch = hdmi_read16(state, 0x34, 0x3fff) / 2;
->> +	}
->> +
->> +	adv748x_fill_optional_dv_timings(timings);
->> +
->> +	/*
->> +	 * No interrupt handling is implemented yet.
->> +	 * There should be an IRQ when a cable is plugged and the new timings
->> +	 * should be figured out and stored to state.
->> +	 */
->> +	hdmi->timings = *timings;
->> +
->> +	return 0;
->> +}
->> +
->> +static int adv748x_hdmi_g_input_status(struct v4l2_subdev *sd, u32 *status)
->> +{
->> +	struct adv748x_hdmi *hdmi = adv748x_sd_to_hdmi(sd);
->> +	struct adv748x_state *state = adv748x_hdmi_to_state(hdmi);
->> +
->> +	mutex_lock(&state->mutex);
-> 
-> Lock ? :-)
-> 
-
-Now this one is talking to the i2c bus ... so I want to keep that - although now
-I've converted to regmap - it might well be locking the bus for me ... I'll have
-to check.
-
->> +
->> +	*status = adv748x_hdmi_has_signal(state) ? 0 : V4L2_IN_ST_NO_SIGNAL;
->> +
->> +	mutex_unlock(&state->mutex);
->> +
->> +	return 0;
->> +}
->> +
-
-<snip>
-
->> +
->> +static int adv748x_hdmi_set_format(struct v4l2_subdev *sd,
->> +				   struct v4l2_subdev_pad_config *cfg,
->> +				   struct v4l2_subdev_format *sdformat)
->> +{
->> +	struct v4l2_mbus_framefmt *mbusformat;
->> +
->> +	if (sdformat->pad != ADV748X_HDMI_SOURCE)
->> +		return -EINVAL;
->> +
->> +	if (sdformat->which == V4L2_SUBDEV_FORMAT_ACTIVE)
->> +		return adv748x_hdmi_get_format(sd, cfg, sdformat);
->> +
->> +	mbusformat = v4l2_subdev_get_try_format(sd, cfg, sdformat->pad);
->> +	*mbusformat = sdformat->format;
-> 
-> Same comment as for adv748x_afe_set_format().
-
-Ack.
-
-> 
->> +
->> +	return 0;
->> +}
->> +
-
-
-Thanks :)
+  Dave
