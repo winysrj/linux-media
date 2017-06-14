@@ -1,70 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:25742 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751436AbdFGBex (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Jun 2017 21:34:53 -0400
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
-        hverkuil@xs4all.nl, hyungwoo.yang@intel.com,
-        Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH v2 0/3]  [media] add IPU3 CIO2 CSI2 driver
-Date: Tue,  6 Jun 2017 20:34:36 -0500
-Message-Id: <1496799279-8774-1-git-send-email-yong.zhi@intel.com>
+Received: from mail-yw0-f177.google.com ([209.85.161.177]:35138 "EHLO
+        mail-yw0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752854AbdFNC7W (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Jun 2017 22:59:22 -0400
+Received: by mail-yw0-f177.google.com with SMTP id v7so42932275ywc.2
+        for <linux-media@vger.kernel.org>; Tue, 13 Jun 2017 19:59:22 -0700 (PDT)
+Received: from mail-yw0-f180.google.com (mail-yw0-f180.google.com. [209.85.161.180])
+        by smtp.gmail.com with ESMTPSA id k28sm5861716ywh.57.2017.06.13.19.59.20
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 13 Jun 2017 19:59:20 -0700 (PDT)
+Received: by mail-yw0-f180.google.com with SMTP id 63so59769549ywr.0
+        for <linux-media@vger.kernel.org>; Tue, 13 Jun 2017 19:59:20 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <C193D76D23A22742993887E6D207B54D0799EC0C@ORSMSX106.amr.corp.intel.com>
+References: <1497385036-1002-1-git-send-email-yong.zhi@intel.com>
+ <1497385036-1002-4-git-send-email-yong.zhi@intel.com> <CAAFQd5BQsha1K3pCGpfJiuuA5Uy_ZAVhDbbUJqAumXSGpV=sWQ@mail.gmail.com>
+ <C193D76D23A22742993887E6D207B54D0799EC0C@ORSMSX106.amr.corp.intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Wed, 14 Jun 2017 11:58:59 +0900
+Message-ID: <CAAFQd5Aoz+mT6d9iFTLe4fLiJgVetn9gDJmZS0CwuoPuYF+q5A@mail.gmail.com>
+Subject: Re: [PATCH 3/3] intel-ipu3: cio2: Add new MIPI-CSI2 driver
+To: "Zhi, Yong" <yong.zhi@intel.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>,
+        "Mohandass, Divagar" <divagar.mohandass@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the driver for the CIO2 device found in some the Skylake
-and Kaby Kake SoCs. The CIO2 consists of four D-PHY receivers.
+On Wed, Jun 14, 2017 at 11:32 AM, Zhi, Yong <yong.zhi@intel.com> wrote:
+> Hi, Tomasz,
+>
+> Thanks for your code review, still need more time to study and test the solution for the rest of comments, going forward, I will respond to your review first before submitting new version.
 
-The CIO2 driver exposes V4L2, V4L2 sub-device and Media controller
-interfaces to the user space.
+Just to clarify, my note was not about addressing all the comments
+instantly, but rather about not leaving any unaddressed comments in
+newer patch sets (unless agreed with the reviewers to do that). The
+default assumption is that next patch set has all comments from
+previous one addressed. If that's not true, it's going to confuse the
+reviewers and make them put additional effort into comparing the code
+manually.
 
-===========
-= history =
-===========
-version 2:
-- remove all explicit DMA flush operations
-- change dma_free_noncoherent() to dma_free_coherent()
-- remove cio2_hw_mipi_lanes()
-- replace v4l2_g_ext_ctrls() with v4l2_ctrl_g_ctrl()
-  in cio2_csi2_calc_timing().
-- use ffs() to iterate the port_status in cio2_irq()
-- add static inline file_to_cio2_queue() function
-- comment dma_wmb(), cio2_rx_timing() and few other places
-- use ktime_get_ns() for vb2_buf.timestamp in cio2_buffer_done()
-- use of SET_RUNTIME_PM_OPS() macro for cio2_pm_ops
-- use BIT() macro for bit difinitions
-- remove un-used macros such as CIO2_QUEUE_WIDTH() in ipu3-cio2.h
-- move the MODULE_AUTHOR() to the end of the file
-- change file path to drivers/media/pci/intel/ipu3
+I'd say it's just better to reply on the list that you need a bit more
+time to address the comments, rather than sending a half-done next
+patch set. That's just my opinion, though.
 
-version 1:
-- Initial submission
-Yong Zhi (3):
-  [media] videodev2.h, v4l2-ioctl: add IPU3 raw10 color format
-  [media] doc-rst: add IPU3 raw10 bayer pixel format definitions
-  [media] intel-ipu3: cio2: Add new MIPI-CSI2 driver
+Best regards,
+Tomasz
 
- Documentation/media/uapi/v4l/pixfmt-rgb.rst        |    1 +
- .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         |   62 +
- drivers/media/pci/Kconfig                          |    2 +
- drivers/media/pci/Makefile                         |    3 +-
- drivers/media/pci/intel/Makefile                   |    5 +
- drivers/media/pci/intel/ipu3/Kconfig               |   17 +
- drivers/media/pci/intel/ipu3/Makefile              |    1 +
- drivers/media/pci/intel/ipu3/ipu3-cio2.c           | 1788 ++++++++++++++++++++
- drivers/media/pci/intel/ipu3/ipu3-cio2.h           |  424 +++++
- drivers/media/v4l2-core/v4l2-ioctl.c               |    4 +
- include/uapi/linux/videodev2.h                     |    5 +
- 11 files changed, 2311 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
- create mode 100644 drivers/media/pci/intel/Makefile
- create mode 100644 drivers/media/pci/intel/ipu3/Kconfig
- create mode 100644 drivers/media/pci/intel/ipu3/Makefile
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.h
-
--- 
-2.7.4
+>
+> Thanks,
+>
+> Yong
+>
+>> -----Original Message-----
+>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>> owner@vger.kernel.org] On Behalf Of Tomasz Figa
+>> Sent: Tuesday, June 13, 2017 5:01 PM
+>> To: Zhi, Yong <yong.zhi@intel.com>
+>> Cc: linux-media@vger.kernel.org; Sakari Ailus <sakari.ailus@linux.intel.com>;
+>> Zheng, Jian Xu <jian.xu.zheng@intel.com>; Mani, Rajmohan
+>> <rajmohan.mani@intel.com>; Toivonen, Tuukka
+>> <tuukka.toivonen@intel.com>; Yang, Hyungwoo
+>> <hyungwoo.yang@intel.com>; Mohandass, Divagar
+>> <divagar.mohandass@intel.com>
+>> Subject: Re: [PATCH 3/3] intel-ipu3: cio2: Add new MIPI-CSI2 driver
+>>
+>> Hi Yong,
+>>
+>> On Wed, Jun 14, 2017 at 5:17 AM, Yong Zhi <yong.zhi@intel.com> wrote:
+>> > This patch adds CIO2 CSI-2 device driver for Intel's IPU3 camera
+>> > sub-system support.
+>> >
+>> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+>> > ---
+>> >  drivers/media/pci/Kconfig                |    2 +
+>> >  drivers/media/pci/Makefile               |    3 +-
+>> >  drivers/media/pci/intel/Makefile         |    5 +
+>> >  drivers/media/pci/intel/ipu3/Kconfig     |   17 +
+>> >  drivers/media/pci/intel/ipu3/Makefile    |    1 +
+>> >  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 1779
+>> > ++++++++++++++++++++++++++++++
+>> > drivers/media/pci/intel/ipu3/ipu3-cio2.h |  434 ++++++++
+>> >  7 files changed, 2240 insertions(+), 1 deletion(-)  create mode
+>> > 100644 drivers/media/pci/intel/Makefile  create mode 100644
+>> > drivers/media/pci/intel/ipu3/Kconfig
+>> >  create mode 100644 drivers/media/pci/intel/ipu3/Makefile
+>> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.c
+>> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.h
+>> >
+>>
+>> I quickly checked the code and it doesn't seem to have most of my comments
+>> from v2 addressed. It's not a very good practice to send new version without
+>> addressing or at least replying to all the comments - it's the best way to lose
+>> track of necessary changes. Please make sure that all the comments are
+>> taken care of.
+>>
+>> Best regards,
+>> Tomasz
