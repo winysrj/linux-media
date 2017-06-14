@@ -1,47 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:42087 "EHLO
-        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751125AbdFBMSf (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53074 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751600AbdFNWnK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Jun 2017 08:18:35 -0400
-Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
-        by mx07-00252a01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id v52CDumC012139
-        for <linux-media@vger.kernel.org>; Fri, 2 Jun 2017 13:18:34 +0100
-Received: from mail-wm0-f71.google.com (mail-wm0-f71.google.com [74.125.82.71])
-        by mx07-00252a01.pphosted.com with ESMTP id 2apxuyawfb-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
-        for <linux-media@vger.kernel.org>; Fri, 02 Jun 2017 13:18:33 +0100
-Received: by mail-wm0-f71.google.com with SMTP id 139so16780361wmf.5
-        for <linux-media@vger.kernel.org>; Fri, 02 Jun 2017 05:18:33 -0700 (PDT)
-From: Dave Stevenson <dave.stevenson@raspberrypi.org>
-To: Mats Randgaard <matrandg@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Subject: [PATCH 0/3] tc358743: minor driver fixes
-Date: Fri,  2 Jun 2017 13:18:11 +0100
-Message-Id: <cover.1496397071.git.dave.stevenson@raspberrypi.org>
+        Wed, 14 Jun 2017 18:43:10 -0400
+Date: Thu, 15 Jun 2017 01:43:05 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+        devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
+        robh@kernel.org
+Subject: Re: [PATCH 6/8] leds: as3645a: Add LED flash class driver
+Message-ID: <20170614224304.GW12407@valkosipuli.retiisi.org.uk>
+References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1497433639-13101-7-git-send-email-sakari.ailus@linux.intel.com>
+ <20170614213941.GC10200@amd>
+ <20170614222135.GT12407@valkosipuli.retiisi.org.uk>
+ <20170614222833.GA26406@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170614222833.GA26406@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These 3 patches for TC358743 came out of trying to use the
-existing driver with a new Raspberry Pi CSI-2 receiver driver.
+Ahoy!
 
-A couple of the subdevice API calls were not implemented or
-otherwise gave odd results. Those are fixed.
+On Thu, Jun 15, 2017 at 12:28:33AM +0200, Pavel Machek wrote:
+> Hi!
+> 
+> > Thanks for the review!
+> 
+> You are welcome :-).
+> 
+> > On Wed, Jun 14, 2017 at 11:39:41PM +0200, Pavel Machek wrote:
+> > > Hi!
+> > > 
+> > > > From: Sakari Ailus <sakari.ailus@iki.fi>
+> > > 
+> > > That address no longer works, right?
+> > 
+> > Why wouldn't it work? Or... do you know something I don't? :-)
+> 
+> Aha. I thought I was removing it from source files because it was no
+> longer working, but maybe I'm misremembering? 
 
-The TC358743 interface board being used didn't have the IRQ
-line wired up to the SoC. "interrupts" is listed as being
-optional in the DT binding, but the driver didn't actually
-function if it wasn't provided.
+That was probably my @maxwell.research.nokia.com address. :-) There are no
+occurrences of that in the kernel source anymore.
 
-Dave Stevenson (3):
-  [media] tc358743: Add enum_mbus_code
-  [media] tc358743: Setup default mbus_fmt before registering
-  [media] tc358743: Add support for platforms without IRQ line
+> 
+> > > > +static unsigned int as3645a_current_to_reg(struct as3645a *flash, bool is_flash,
+> > > > +					   unsigned int ua)
+> > > > +{
+> > > > +	struct {
+> > > > +		unsigned int min;
+> > > > +		unsigned int max;
+> > > > +		unsigned int step;
+> > > > +	} __mms[] = {
+> > > > +		{
+> > > > +			AS_TORCH_INTENSITY_MIN,
+> > > > +			flash->cfg.assist_max_ua,
+> > > > +			AS_TORCH_INTENSITY_STEP
+> > > > +		},
+> > > > +		{
+> > > > +			AS_FLASH_INTENSITY_MIN,
+> > > > +			flash->cfg.flash_max_ua,
+> > > > +			AS_FLASH_INTENSITY_STEP
+> > > > +		},
+> > > > +	}, *mms = &__mms[is_flash];
+> > > > +
+> > > > +	if (ua < mms->min)
+> > > > +		ua = mms->min;
+> > > 
+> > > That's some... seriously interesting code. And you are forcing gcc to
+> > > create quite interesting structure on stack. Would it be easier to do
+> > > normal if()... without this magic?
+> > > 
+> > > > +	struct v4l2_flash_config cfg = {
+> > > > +		.torch_intensity = {
+> > > > +			.min = AS_TORCH_INTENSITY_MIN,
+> > > > +			.max = flash->cfg.assist_max_ua,
+> > > > +			.step = AS_TORCH_INTENSITY_STEP,
+> > > > +			.val = flash->cfg.assist_max_ua,
+> > > > +		},
+> > > > +		.indicator_intensity = {
+> > > > +			.min = AS_INDICATOR_INTENSITY_MIN,
+> > > > +			.max = flash->cfg.indicator_max_ua,
+> > > > +			.step = AS_INDICATOR_INTENSITY_STEP,
+> > > > +			.val = flash->cfg.indicator_max_ua,
+> > > > +		},
+> > > > +	};
+> > > 
+> > > Ugh. And here you have copy of the above struct, + .val. Can it be
+> > > somehow de-duplicated?
+> > 
+> > The flash_brightness_set callback uses micro-Amps as the unit and the driver
+> > needs to convert that to its own specific units. Yeah, there would be
+> > probably an easier way, too. But that'd likely require changes to the LED
+> > flash class.
+> 
+> Can as3645a_current_to_reg just access struct v4l2_flash_config so
+> that it does not have to recreate its look-alike on the fly?
 
- drivers/media/i2c/tc358743.c | 59 +++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 58 insertions(+), 1 deletion(-)
+struct v4l2_flash_config is only needed as an argument for
+v4l2_flash_init(). I'll split that into two functions in this occasion,
+it'll be nicer.
+
+We now have more or less the same conversion implemented in three or so
+times, there have to be ways to make that easier for drivers. I think that
+could be done later, as well as adding support for checking the flash
+strobe status.
 
 -- 
-2.7.4
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
