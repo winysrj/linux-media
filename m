@@ -1,263 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:17881 "EHLO
-        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752689AbdF2MFA (ORCPT
+Received: from mx08-00252a01.pphosted.com ([91.207.212.211]:57438 "EHLO
+        mx08-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751880AbdFNQ3c (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Jun 2017 08:05:00 -0400
-Subject: Re: [PATCH v3 7/8] [media] s5p-jpeg: Add support for resolution change
- event
-To: Thierry Escande <thierry.escande@collabora.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Message-id: <0ffcd243-24a2-3cb5-f421-6134a12c25c6@samsung.com>
-Date: Thu, 29 Jun 2017 14:04:53 +0200
-MIME-version: 1.0
-In-reply-to: <1498579734-1594-8-git-send-email-thierry.escande@collabora.com>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-language: en-US
-Content-transfer-encoding: 7bit
-References: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
- <CGME20170627161104epcas2p4480e376fb194d189571797699c55295b@epcas2p4.samsung.com>
- <1498579734-1594-8-git-send-email-thierry.escande@collabora.com>
+        Wed, 14 Jun 2017 12:29:32 -0400
+Received: from pps.filterd (m0102629.ppops.net [127.0.0.1])
+        by mx08-00252a01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id v5EGSWO9017734
+        for <linux-media@vger.kernel.org>; Wed, 14 Jun 2017 17:29:31 +0100
+Received: from mail-pf0-f198.google.com (mail-pf0-f198.google.com [209.85.192.198])
+        by mx08-00252a01.pphosted.com with ESMTP id 2b058et7ee-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Wed, 14 Jun 2017 17:29:30 +0100
+Received: by mail-pf0-f198.google.com with SMTP id h21so4198012pfk.13
+        for <linux-media@vger.kernel.org>; Wed, 14 Jun 2017 09:29:30 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <eef29bfb-3336-4f65-c188-975d3937cb67@xs4all.nl>
+References: <cover.1497452006.git.dave.stevenson@raspberrypi.org> <eef29bfb-3336-4f65-c188-975d3937cb67@xs4all.nl>
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Wed, 14 Jun 2017 17:29:28 +0100
+Message-ID: <CAAoAYcN67=d1DyqeAEYpeZDTuMh9p1eaiAzt7RJdcpYOwShVgw@mail.gmail.com>
+Subject: Re: [RFC 0/2] BCM283x Camera Receiver driver
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-rpi-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-W dniu 27.06.2017 o 18:08, Thierry Escande pisze:
-> From: henryhsu <henryhsu@chromium.org>
-> 
-> This patch adds support for resolution change event to notify clients so
-> they can prepare correct output buffer. When resolution change happened,
-> G_FMT for CAPTURE should return old resolution and format before CAPTURE
-> queues streamoff.
-> 
-> This event is used in the Chromium browser project by the V4L2 JPEG
-> Decode Accelerator (V4L2JDA) to allocate output buffer.
-> 
-> Signed-off-by: Henry-Ruey Hsu <henryhsu@chromium.org>
-> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+Hi Hans.
 
-Acked-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+On 14 June 2017 at 16:42, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Dave,
+>
+> How does this driver relate to this staging driver:
+>
+> drivers/staging/vc04_services/bcm2835-camera/
+>
+> It's not obvious to me.
 
-> ---
->   drivers/media/platform/s5p-jpeg/jpeg-core.c | 106 +++++++++++++++++++++-------
->   drivers/media/platform/s5p-jpeg/jpeg-core.h |   7 ++
->   2 files changed, 89 insertions(+), 24 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> index cca0fb8..5ad3d43 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> @@ -24,6 +24,7 @@
->   #include <linux/slab.h>
->   #include <linux/spinlock.h>
->   #include <linux/string.h>
-> +#include <media/v4l2-event.h>
->   #include <media/v4l2-mem2mem.h>
->   #include <media/v4l2-ioctl.h>
->   #include <media/videobuf2-v4l2.h>
-> @@ -1633,8 +1634,6 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
->   			FMT_TYPE_OUTPUT : FMT_TYPE_CAPTURE;
->   
->   	q_data->fmt = s5p_jpeg_find_format(ct, pix->pixelformat, f_type);
-> -	q_data->w = pix->width;
-> -	q_data->h = pix->height;
->   	if (q_data->fmt->fourcc != V4L2_PIX_FMT_JPEG) {
->   		/*
->   		 * During encoding Exynos4x12 SoCs access wider memory area
-> @@ -1642,6 +1641,8 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
->   		 * the JPEG_IMAGE_SIZE register. In order to avoid sysmmu
->   		 * page fault calculate proper buffer size in such a case.
->   		 */
-> +		q_data->w = pix->width;
-> +		q_data->h = pix->height;
->   		if (ct->jpeg->variant->hw_ex4_compat &&
->   		    f_type == FMT_TYPE_OUTPUT && ct->mode == S5P_JPEG_ENCODE)
->   			q_data->size = exynos4_jpeg_get_output_buffer_size(ct,
-> @@ -1717,6 +1718,15 @@ static int s5p_jpeg_s_fmt_vid_out(struct file *file, void *priv,
->   	return s5p_jpeg_s_fmt(fh_to_ctx(priv), f);
->   }
->   
-> +static int s5p_jpeg_subscribe_event(struct v4l2_fh *fh,
-> +				    const struct v4l2_event_subscription *sub)
-> +{
-> +	if (sub->type == V4L2_EVENT_SOURCE_CHANGE)
-> +		return v4l2_src_change_event_subscribe(fh, sub);
-> +
-> +	return -EINVAL;
-> +}
-> +
->   static int exynos3250_jpeg_try_downscale(struct s5p_jpeg_ctx *ctx,
->   				   struct v4l2_rect *r)
->   {
-> @@ -2042,6 +2052,9 @@ static const struct v4l2_ioctl_ops s5p_jpeg_ioctl_ops = {
->   
->   	.vidioc_g_selection		= s5p_jpeg_g_selection,
->   	.vidioc_s_selection		= s5p_jpeg_s_selection,
-> +
-> +	.vidioc_subscribe_event		= s5p_jpeg_subscribe_event,
-> +	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
->   };
->   
->   /*
-> @@ -2434,8 +2447,17 @@ static int s5p_jpeg_job_ready(void *priv)
->   {
->   	struct s5p_jpeg_ctx *ctx = priv;
->   
-> -	if (ctx->mode == S5P_JPEG_DECODE)
-> +	if (ctx->mode == S5P_JPEG_DECODE) {
-> +		/*
-> +		 * We have only one input buffer and one output buffer. If there
-> +		 * is a resolution change event, no need to continue decoding.
-> +		 */
-> +		if (ctx->state == JPEGCTX_RESOLUTION_CHANGE)
-> +			return 0;
-> +
->   		return ctx->hdr_parsed;
-> +	}
-> +
->   	return 1;
->   }
->   
-> @@ -2514,6 +2536,30 @@ static int s5p_jpeg_buf_prepare(struct vb2_buffer *vb)
->   	return 0;
->   }
->   
-> +static void s5p_jpeg_set_capture_queue_data(struct s5p_jpeg_ctx *ctx)
-> +{
-> +	struct s5p_jpeg_q_data *q_data = &ctx->cap_q;
-> +
-> +	q_data->w = ctx->out_q.w;
-> +	q_data->h = ctx->out_q.h;
-> +
-> +	/*
-> +	 * This call to jpeg_bound_align_image() takes care of width and
-> +	 * height values alignment when user space calls the QBUF of
-> +	 * OUTPUT buffer after the S_FMT of CAPTURE buffer.
-> +	 * Please note that on Exynos4x12 SoCs, resigning from executing
-> +	 * S_FMT on capture buffer for each JPEG image can result in a
-> +	 * hardware hangup if subsampling is lower than the one of input
-> +	 * JPEG.
-> +	 */
-> +	jpeg_bound_align_image(ctx, &q_data->w, S5P_JPEG_MIN_WIDTH,
-> +			       S5P_JPEG_MAX_WIDTH, q_data->fmt->h_align,
-> +			       &q_data->h, S5P_JPEG_MIN_HEIGHT,
-> +			       S5P_JPEG_MAX_HEIGHT, q_data->fmt->v_align);
-> +
-> +	q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
-> +}
-> +
->   static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
->   {
->   	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-> @@ -2521,7 +2567,18 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
->   
->   	if (ctx->mode == S5P_JPEG_DECODE &&
->   	    vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> -		struct s5p_jpeg_q_data *q_data;
-> +		static const struct v4l2_event ev_src_ch = {
-> +			.type = V4L2_EVENT_SOURCE_CHANGE,
-> +			.u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION,
-> +		};
-> +		struct vb2_queue *dst_vq;
-> +		u32 ori_w;
-> +		u32 ori_h;
-> +
-> +		dst_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx,
-> +					 V4L2_BUF_TYPE_VIDEO_CAPTURE);
-> +		ori_w = ctx->out_q.w;
-> +		ori_h = ctx->out_q.h;
->   
->   		ctx->hdr_parsed = s5p_jpeg_parse_hdr(&ctx->out_q,
->   		     (unsigned long)vb2_plane_vaddr(vb, 0),
-> @@ -2532,28 +2589,18 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
->   			return;
->   		}
->   
-> -		q_data = &ctx->cap_q;
-> -		q_data->w = ctx->out_q.w;
-> -		q_data->h = ctx->out_q.h;
-> -
->   		/*
-> -		 * This call to jpeg_bound_align_image() takes care of width and
-> -		 * height values alignment when user space calls the QBUF of
-> -		 * OUTPUT buffer after the S_FMT of CAPTURE buffer.
-> -		 * Please note that on Exynos4x12 SoCs, resigning from executing
-> -		 * S_FMT on capture buffer for each JPEG image can result in a
-> -		 * hardware hangup if subsampling is lower than the one of input
-> -		 * JPEG.
-> +		 * If there is a resolution change event, only update capture
-> +		 * queue when it is not streaming. Otherwise, update it in
-> +		 * STREAMOFF. See s5p_jpeg_stop_streaming for detail.
->   		 */
-> -		jpeg_bound_align_image(ctx,
-> -				       &q_data->w,
-> -				       S5P_JPEG_MIN_WIDTH, S5P_JPEG_MAX_WIDTH,
-> -				       q_data->fmt->h_align,
-> -				       &q_data->h,
-> -				       S5P_JPEG_MIN_HEIGHT, S5P_JPEG_MAX_HEIGHT,
-> -				       q_data->fmt->v_align);
-> -
-> -		q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
-> +		if (ctx->out_q.w != ori_w || ctx->out_q.h != ori_h) {
-> +			v4l2_event_queue_fh(&ctx->fh, &ev_src_ch);
-> +			if (vb2_is_streaming(dst_vq))
-> +				ctx->state = JPEGCTX_RESOLUTION_CHANGE;
-> +			else
-> +				s5p_jpeg_set_capture_queue_data(ctx);
-> +		}
->   	}
->   
->   	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
-> @@ -2573,6 +2620,17 @@ static void s5p_jpeg_stop_streaming(struct vb2_queue *q)
->   {
->   	struct s5p_jpeg_ctx *ctx = vb2_get_drv_priv(q);
->   
-> +	/*
-> +	 * STREAMOFF is an acknowledgment for resolution change event.
-> +	 * Before STREAMOFF, we still have to return the old resolution and
-> +	 * subsampling. Update capture queue when the stream is off.
-> +	 */
-> +	if (ctx->state == JPEGCTX_RESOLUTION_CHANGE &&
-> +	    q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-> +		s5p_jpeg_set_capture_queue_data(ctx);
-> +		ctx->state = JPEGCTX_RUNNING;
-> +	}
-> +
->   	pm_runtime_put(ctx->jpeg->dev);
->   }
->   
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.h b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-> index 4492a35..9aa26bd 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-> @@ -98,6 +98,11 @@ enum  exynos4_jpeg_img_quality_level {
->   	QUALITY_LEVEL_4,	/* low */
->   };
->   
-> +enum s5p_jpeg_ctx_state {
-> +	JPEGCTX_RUNNING = 0,
-> +	JPEGCTX_RESOLUTION_CHANGE,
-> +};
-> +
->   /**
->    * struct s5p_jpeg - JPEG IP abstraction
->    * @lock:		the mutex protecting this structure
-> @@ -220,6 +225,7 @@ struct s5p_jpeg_q_data {
->    * @hdr_parsed:		set if header has been parsed during decompression
->    * @crop_altered:	set if crop rectangle has been altered by the user space
->    * @ctrl_handler:	controls handler
-> + * @state:		state of the context
->    */
->   struct s5p_jpeg_ctx {
->   	struct s5p_jpeg		*jpeg;
-> @@ -235,6 +241,7 @@ struct s5p_jpeg_ctx {
->   	bool			hdr_parsed;
->   	bool			crop_altered;
->   	struct v4l2_ctrl_handler ctrl_handler;
-> +	enum s5p_jpeg_ctx_state	state;
->   };
->   
->   /**
-> 
+drivers/staging/vc04_services/bcm2835-camera/ is using the VideoCore
+firmware to control Unicam, ISP, and all the tuner algorithms. The ARM
+gets delivered fully processed buffers from the VideoCore side. The
+firmware only has drivers for the Omnivision OV5647 and Sony IMX219
+(and an unsupported one for the Toshiba TC358743).
+
+This driver is solely the Unicam block, reading the data in over
+CSI2/CCP2 from the sensor and writing it to memory. No ISP or control
+loops.
+Other than power management, this driver is running solely on the ARM
+with no involvement from the VideoCore firmware.
+The sensor driver is whatever suitable V4L2 subdevice driver you fancy
+attaching (as long as it supports CSI2, or eventually CCP2).
+
+> On 06/14/2017 05:15 PM, Dave Stevenson wrote:
+>>
+>> Hi All.
+>>
+>> This is adding a V4L2 subdevice driver for the CSI2/CCP2 camera
+>> receiver peripheral on BCM283x, as used on Raspberry Pi.
+>>
+>> v4l2-compliance results depend on the sensor subdevice this is
+>> connected to. It passes the basic tests cleanly with TC358743,
+>> but objects with OV5647
+>> fail: v4l2-test-controls.cpp(574): g_ext_ctrls does not support count == 0
+>> Neither OV5647 nor Unicam support any controls.
+>
+>
+> Are you compiling v4l2-compliance from the v4l-utils git repo? If not,
+> then please do so and run again. The version packaged by distros tends
+> to be seriously outdated.
+
+Yes, I'm building from v4l-utils.git.
+I updated within the last week, although you appear to have added 2
+commits since (both CEC related).
+I'm on "ef074cf media-ctl: add colorimetry support"
+
+>> I must admit to not having got OV5647 to stream with the current driver
+>> register settings. It works with a set of register settings for VGA RAW10.
+>> I also have a couple of patches pending for OV5647, but would like to
+>> understand the issues better before sending them out.
+>>
+>> Two queries I do have in V4L2-land:
+>> - When s_dv_timings or s_std is called, is the format meant to
+>>    be updated automatically?
+>
+>
+> Yes. Exception is if the new timings/std is exactly the same as the old
+> timings/std, in that case you can just return 0 and do nothing.
+
+OK, can do that.
+
+>> Even if we're already streaming?
+>
+> That's not allowed. Return -EBUSY in that case.
+
+Also reasonable.
+So if the TC358743 flags a source change we have to stop streaming,
+set the new timings (which will update the format), and start up again
+with fresh buffers. That's what I was expecting, but wanted to
+confirm.
+
+>>    Some existing drivers seem to, but others don't.
+>> - With s_fmt, is sizeimage settable by the application in the same
+>>    way as bytesperline?
+>
+>
+> No, the driver will fill in this field, overwriting anything the
+> application put there.
+>
+> bytesperline IS settable, but most drivers will ignore what userspace
+> did and overwrite this as well.
+>
+> Normally the driver knows about HW requirements and will set sizeimage
+> to something that will work (e.g. make sure it is a multiple of 16 lines).
+
+There are subtly different requirements in different hardware blocks :-(
+eg Unicam needs bytesperline to be a multiple of 16 bytes,whilst the
+ISP requires a multiple of 32.
+The vertical padding is generally where we're doing software
+processing on the VideoCore side as it's easier to just leave the the
+16 way SIMD processor running all 16 ways, hence needing scratch space
+to avoid reading beyond buffers.
+
+The main consumer is likely to be the ISP and that doesn't need
+vertical context, so I'll look at removing the requirement there
+rather than forcing it in this driver.
+As long as we can set bytesperline (which is already supported) then
+that requirement of the ISP is already handled.
+
+>> yavta allows you to specify it on the command
+>>
+>>    line, whilst v4l2-ctl doesn't. Some of the other parts of the Pi
+>>    firmware have a requirement that the buffer is a multiple of 16 lines
+>>    high, which can be matched by V4L2 if we can over-allocate the
+>>    buffers by the app specifying sizeimage. But if I allow that,
+>>    then I get a v4l2-compliance failure as the size doesn't get
+>>    reset when switching from RGB3 to UYVY as it takes the request as
+>>    a request to over-allocate.
+>>
+>> Apologies if I've messed up in sending these patches - so many ways
+>> to do something.
+>
+>
+> It looks fine at a glance.
+>
+> I will probably review this on Friday or Monday. But I need some
+> clarification
+> of the difference between this and the staging driver first.
+
+Thanks. Hopefully I've given you that clarification above.
+
+I'll fix the s_dv_timings and s_std handling, and s_fmt of sizeimage,
+but will wait for other review comments before sending a v2.
+
+  Dave
