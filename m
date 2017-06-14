@@ -1,138 +1,292 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:34992 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751662AbdFONCd (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:37672 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753963AbdFNEu5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 09:02:33 -0400
-Subject: Re: [PATCH 6/8] leds: as3645a: Add LED flash class driver
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
- <1497433639-13101-7-git-send-email-sakari.ailus@linux.intel.com>
- <343d88ea-c839-6682-df84-844f92bc9050@gmail.com>
- <20170614221028.GS12407@valkosipuli.retiisi.org.uk>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
-        robh@kernel.org, pavel@ucw.cz
-From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Message-ID: <6d27154d-4550-d1ae-8b7a-07dcaaee69ac@gmail.com>
-Date: Thu, 15 Jun 2017 15:01:47 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170614221028.GS12407@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+        Wed, 14 Jun 2017 00:50:57 -0400
+From: Helen Koike <helen.koike@collabora.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        jgebben@codeaurora.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2] [media] v4l2: add V4L2_CAP_IO_MC
+Date: Wed, 14 Jun 2017 01:50:26 -0300
+Message-Id: <1497415836-15142-1-git-send-email-helen.koike@collabora.com>
+In-Reply-To: <1490889738-30009-1-git-send-email-helen.koike@collabora.com>
+References: <1490889738-30009-1-git-send-email-helen.koike@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Add V4L2_CAP_IO_MC to be used in struct v4l2_capability to indicate that
+input and output are controlled by the Media Controller instead of V4L2
+API.
+When this flag is set, ioctls for get, set and enum input and outputs
+are automatically enabled and programmed to call helper function.
 
-On 06/15/2017 12:10 AM, Sakari Ailus wrote:
-> Hi Jacek,
-> 
-> Thanks for the review!
+Signed-off-by: Helen Koike <helen.koike@collabora.com>
 
-You're welcome!
+---
 
-> I have to say I found the v4l2-flash-led-class framework quite useful, now
-> that I refactored a driver for using it. Now we have a user for the
-> indicator, too. :-)
+Changes in v2::
+	- replace the type by capability
+	- erase V4L2_INPUT_TYPE_DEFAULT
+	- also consider output
+	- plug helpers in the ops automatically so drivers doesn't need
+	to set it by hand
+	- update docs
+	- commit message and title
+---
+ Documentation/media/uapi/v4l/vidioc-querycap.rst |  3 +
+ Documentation/media/videodev2.h.rst.exceptions   |  1 +
+ drivers/media/v4l2-core/v4l2-dev.c               | 35 +++++++--
+ drivers/media/v4l2-core/v4l2-ioctl.c             | 91 ++++++++++++++++++++++--
+ include/uapi/linux/videodev2.h                   |  2 +
+ 5 files changed, 120 insertions(+), 12 deletions(-)
 
-Nice :-). I'm also surprised that v4l2-flash API is also used in
-drivers/staging/greybus/light.c which popped up with kbuild test robot
-complaints.
-
-> On Wed, Jun 14, 2017 at 11:15:24PM +0200, Jacek Anaszewski wrote:
->>> +static __maybe_unused int as3645a_suspend(struct device *dev)
->>> +{
->>> +	struct i2c_client *client = to_i2c_client(dev);
->>> +	struct as3645a *flash = i2c_get_clientdata(client);
->>> +	int rval;
->>> +
->>> +	rval = as3645a_set_control(flash, AS_MODE_EXT_TORCH, false);
->>> +	dev_dbg(dev, "Suspend %s\n", rval < 0 ? "failed" : "ok");
->>> +
->>> +	return rval;
->>> +}
->>> +
->>> +static __maybe_unused int as3645a_resume(struct device *dev)
->>> +{
->>> +	struct i2c_client *client = to_i2c_client(dev);
->>> +	struct as3645a *flash = i2c_get_clientdata(client);
->>> +	int rval;
->>> +
->>> +	rval = as3645a_setup(flash);
->>> +
->>
->> nitpicking: inconsistent coding style - there is no empty line before
->> dev_dbg() in the as3645a_suspend().
-> 
-> Added one for as3645a_suspend() --- it should have been there.
-> 
->>
->>> +	dev_dbg(dev, "Resume %s\n", rval < 0 ? "fail" : "ok");
->>> +
->>> +	return rval;
->>> +}
-> 
-> ...
-> 
->>> +static int as3645a_led_class_setup(struct as3645a *flash)
->>> +{
->>> +	struct led_classdev *fled_cdev = &flash->fled.led_cdev;
->>> +	struct led_classdev *iled_cdev = &flash->iled_cdev;
->>> +	struct led_flash_setting *cfg;
->>> +	int rval;
->>> +
->>> +	iled_cdev->name = "as3645a indicator";
->>> +	iled_cdev->brightness_set_blocking = as3645a_set_indicator_brightness;
->>> +	iled_cdev->max_brightness =
->>> +		flash->cfg.indicator_max_ua / AS_INDICATOR_INTENSITY_STEP;
->>> +
->>> +	rval = led_classdev_register(&flash->client->dev, iled_cdev);
->>> +	if (rval < 0)
->>> +		return rval;
->>> +
->>> +	cfg = &flash->fled.brightness;
->>> +	cfg->min = AS_FLASH_INTENSITY_MIN;
->>> +	cfg->max = flash->cfg.flash_max_ua;
->>> +	cfg->step = AS_FLASH_INTENSITY_STEP;
->>> +	cfg->val = flash->cfg.flash_max_ua;
->>> +
->>> +	cfg = &flash->fled.timeout;
->>> +	cfg->min = AS_FLASH_TIMEOUT_MIN;
->>> +	cfg->max = flash->cfg.flash_timeout_us;
->>> +	cfg->step = AS_FLASH_TIMEOUT_STEP;
->>> +	cfg->val = flash->cfg.flash_timeout_us;
->>> +
->>> +	flash->fled.ops = &as3645a_led_flash_ops;
->>> +
->>> +	fled_cdev->name = "as3645a flash";
->>
->> LED class device name should be taken from label DT property,
->> or DT node name if the former wasn't defined.
->>
->> Also LED device naming convention defines colon as a separator
->> between name segments.
-> 
-> Right. I'll fix that.
-> 
-> I just realised I'm missing DT binding documentation for this device; I'll
-> add that, too.
-> 
-> Is the preference to allow freely chosen node names for the LEDs? Now that
-> there's the label, too, this appears to be somewhat duplicated information.
-
-It depends on whether the sub-leds are identified by reg property.
-In this case usually common prefix is used followed by reg value,
-e.g. led@1, led@2 etc.
-
-Otherwise prevailing scheme is e.g.:
-
-        blue-power {
-		...
-                label = "netxbig:blue:power";
-	}
-
+diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+index 12e0d9a..2bd1223 100644
+--- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
++++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+@@ -252,6 +252,9 @@ specification the ioctl returns an ``EINVAL`` error code.
+     * - ``V4L2_CAP_TOUCH``
+       - 0x10000000
+       - This is a touch device.
++    * - ``V4L2_CAP_IO_MC``
++      - 0x20000000
++      - This device has its inputs and outputs controller by the Media Controller
+     * - ``V4L2_CAP_DEVICE_CAPS``
+       - 0x80000000
+       - The driver fills the ``device_caps`` field. This capability can
+diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
+index a5cb0a8..0b48cd0 100644
+--- a/Documentation/media/videodev2.h.rst.exceptions
++++ b/Documentation/media/videodev2.h.rst.exceptions
+@@ -159,6 +159,7 @@ replace define V4L2_CAP_ASYNCIO device-capabilities
+ replace define V4L2_CAP_STREAMING device-capabilities
+ replace define V4L2_CAP_DEVICE_CAPS device-capabilities
+ replace define V4L2_CAP_TOUCH device-capabilities
++replace define V4L2_CAP_IO_MC device-capabilities
+ 
+ # V4L2 pix flags
+ replace define V4L2_PIX_FMT_PRIV_MAGIC :c:type:`v4l2_pix_format`
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index c647ba6..0f272fe 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -688,22 +688,34 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 		SET_VALID_IOCTL(ops, VIDIOC_G_STD, vidioc_g_std);
+ 		if (is_rx) {
+ 			SET_VALID_IOCTL(ops, VIDIOC_QUERYSTD, vidioc_querystd);
+-			SET_VALID_IOCTL(ops, VIDIOC_ENUMINPUT, vidioc_enum_input);
+-			SET_VALID_IOCTL(ops, VIDIOC_G_INPUT, vidioc_g_input);
+-			SET_VALID_IOCTL(ops, VIDIOC_S_INPUT, vidioc_s_input);
+ 			SET_VALID_IOCTL(ops, VIDIOC_ENUMAUDIO, vidioc_enumaudio);
+ 			SET_VALID_IOCTL(ops, VIDIOC_G_AUDIO, vidioc_g_audio);
+ 			SET_VALID_IOCTL(ops, VIDIOC_S_AUDIO, vidioc_s_audio);
+ 			SET_VALID_IOCTL(ops, VIDIOC_QUERY_DV_TIMINGS, vidioc_query_dv_timings);
+ 			SET_VALID_IOCTL(ops, VIDIOC_S_EDID, vidioc_s_edid);
++			if (vdev->device_caps & V4L2_CAP_IO_MC) {
++				set_bit(_IOC_NR(VIDIOC_ENUMINPUT), valid_ioctls);
++				set_bit(_IOC_NR(VIDIOC_G_INPUT), valid_ioctls);
++				set_bit(_IOC_NR(VIDIOC_S_INPUT), valid_ioctls);
++			} else {
++				SET_VALID_IOCTL(ops, VIDIOC_ENUMINPUT, vidioc_enum_input);
++				SET_VALID_IOCTL(ops, VIDIOC_G_INPUT, vidioc_g_input);
++				SET_VALID_IOCTL(ops, VIDIOC_S_INPUT, vidioc_s_input);
++			}
+ 		}
+ 		if (is_tx) {
+-			SET_VALID_IOCTL(ops, VIDIOC_ENUMOUTPUT, vidioc_enum_output);
+-			SET_VALID_IOCTL(ops, VIDIOC_G_OUTPUT, vidioc_g_output);
+-			SET_VALID_IOCTL(ops, VIDIOC_S_OUTPUT, vidioc_s_output);
+ 			SET_VALID_IOCTL(ops, VIDIOC_ENUMAUDOUT, vidioc_enumaudout);
+ 			SET_VALID_IOCTL(ops, VIDIOC_G_AUDOUT, vidioc_g_audout);
+ 			SET_VALID_IOCTL(ops, VIDIOC_S_AUDOUT, vidioc_s_audout);
++			if (vdev->device_caps & V4L2_CAP_IO_MC) {
++				set_bit(_IOC_NR(VIDIOC_ENUMOUTPUT), valid_ioctls);
++				set_bit(_IOC_NR(VIDIOC_G_OUTPUT), valid_ioctls);
++				set_bit(_IOC_NR(VIDIOC_S_OUTPUT), valid_ioctls);
++			} else {
++				SET_VALID_IOCTL(ops, VIDIOC_ENUMOUTPUT, vidioc_enum_output);
++				SET_VALID_IOCTL(ops, VIDIOC_G_OUTPUT, vidioc_g_output);
++				SET_VALID_IOCTL(ops, VIDIOC_S_OUTPUT, vidioc_s_output);
++			}
+ 		}
+ 		if (ops->vidioc_g_parm || (vdev->vfl_type == VFL_TYPE_GRABBER &&
+ 					ops->vidioc_g_std))
+@@ -945,6 +957,17 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+ 	video_device[vdev->minor] = vdev;
+ 	mutex_unlock(&videodev_lock);
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (vdev->ioctl_ops
++	    && !vdev->ioctl_ops->vidioc_enum_input
++	    && !vdev->ioctl_ops->vidioc_s_input
++	    && !vdev->ioctl_ops->vidioc_g_input
++	    && !vdev->ioctl_ops->vidioc_enum_output
++	    && !vdev->ioctl_ops->vidioc_s_output
++	    && !vdev->ioctl_ops->vidioc_g_output)
++		vdev->device_caps |= V4L2_CAP_IO_MC;
++#endif
++
+ 	if (vdev->ioctl_ops)
+ 		determine_valid_ioctls(vdev);
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index e5a2187..9d8c645 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1019,6 +1019,70 @@ static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
+ 	return ret;
+ }
+ 
++static int v4l2_ioctl_enum_input_mc(struct file *file, void *priv,
++				    struct v4l2_input *i)
++{
++	struct video_device *vfd = video_devdata(file);
++
++	if (i->index > 0)
++		return -EINVAL;
++
++	memset(i, 0, sizeof(*i));
++	strlcpy(i->name, vfd->name, sizeof(i->name));
++
++	return 0;
++}
++
++static int v4l2_ioctl_enum_output_mc(struct file *file, void *priv,
++				     struct v4l2_output *o)
++{
++	struct video_device *vfd = video_devdata(file);
++
++	if (o->index > 0)
++		return -EINVAL;
++
++	memset(o, 0, sizeof(*o));
++	strlcpy(o->name, vfd->name, sizeof(o->name));
++
++	return 0;
++}
++
++static int v4l2_ioctl_g_input_mc(struct file *file, void *priv, unsigned int *i)
++{
++	*i = 0;
++	return 0;
++}
++#define v4l2_ioctl_g_output_mc v4l2_ioctl_g_input_mc
++
++static int v4l2_ioctl_s_input_mc(struct file *file, void *priv, unsigned int i)
++{
++	return i ? -EINVAL : 0;
++}
++#define v4l2_ioctl_s_output_mc v4l2_ioctl_s_input_mc
++
++
++static int v4l_g_input(const struct v4l2_ioctl_ops *ops,
++		       struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++
++	if (vfd->device_caps & V4L2_CAP_IO_MC)
++		return v4l2_ioctl_g_input_mc(file, fh, arg);
++	else
++		return ops->vidioc_g_input(file, fh, arg);
++}
++
++static int v4l_g_output(const struct v4l2_ioctl_ops *ops,
++		       struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++
++	if (vfd->device_caps & V4L2_CAP_IO_MC)
++		return v4l2_ioctl_g_output_mc(file, fh, arg);
++	else
++		return ops->vidioc_g_output(file, fh, arg);
++}
++
+ static int v4l_s_input(const struct v4l2_ioctl_ops *ops,
+ 				struct file *file, void *fh, void *arg)
+ {
+@@ -1028,13 +1092,22 @@ static int v4l_s_input(const struct v4l2_ioctl_ops *ops,
+ 	ret = v4l_enable_media_source(vfd);
+ 	if (ret)
+ 		return ret;
+-	return ops->vidioc_s_input(file, fh, *(unsigned int *)arg);
++
++	if (vfd->device_caps & V4L2_CAP_IO_MC)
++		return v4l2_ioctl_s_input_mc(file, fh, *(unsigned int *)arg);
++	else
++		return ops->vidioc_s_input(file, fh, *(unsigned int *)arg);
+ }
+ 
+ static int v4l_s_output(const struct v4l2_ioctl_ops *ops,
+ 				struct file *file, void *fh, void *arg)
+ {
+-	return ops->vidioc_s_output(file, fh, *(unsigned int *)arg);
++	struct video_device *vfd = video_devdata(file);
++
++	if (vfd->device_caps & V4L2_CAP_IO_MC)
++		return v4l2_ioctl_s_output_mc(file, fh, *(unsigned int *)arg);
++	else
++		return ops->vidioc_s_output(file, fh, *(unsigned int *)arg);
+ }
+ 
+ static int v4l_g_priority(const struct v4l2_ioctl_ops *ops,
+@@ -1077,7 +1150,10 @@ static int v4l_enuminput(const struct v4l2_ioctl_ops *ops,
+ 	if (is_valid_ioctl(vfd, VIDIOC_S_STD))
+ 		p->capabilities |= V4L2_IN_CAP_STD;
+ 
+-	return ops->vidioc_enum_input(file, fh, p);
++	if (vfd->device_caps & V4L2_CAP_IO_MC)
++		return v4l2_ioctl_enum_input_mc(file, fh, p);
++	else
++		return ops->vidioc_enum_input(file, fh, p);
+ }
+ 
+ static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
+@@ -1095,7 +1171,10 @@ static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
+ 	if (is_valid_ioctl(vfd, VIDIOC_S_STD))
+ 		p->capabilities |= V4L2_OUT_CAP_STD;
+ 
+-	return ops->vidioc_enum_output(file, fh, p);
++	if (vfd->device_caps & V4L2_CAP_IO_MC)
++		return v4l2_ioctl_enum_output_mc(file, fh, p);
++	else
++		return ops->vidioc_enum_output(file, fh, p);
+ }
+ 
+ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+@@ -2534,11 +2613,11 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_STD(VIDIOC_S_AUDIO, vidioc_s_audio, v4l_print_audio, INFO_FL_PRIO),
+ 	IOCTL_INFO_FNC(VIDIOC_QUERYCTRL, v4l_queryctrl, v4l_print_queryctrl, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_queryctrl, id)),
+ 	IOCTL_INFO_FNC(VIDIOC_QUERYMENU, v4l_querymenu, v4l_print_querymenu, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_querymenu, index)),
+-	IOCTL_INFO_STD(VIDIOC_G_INPUT, vidioc_g_input, v4l_print_u32, 0),
++	IOCTL_INFO_FNC(VIDIOC_G_INPUT, v4l_g_input, v4l_print_u32, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_S_INPUT, v4l_s_input, v4l_print_u32, INFO_FL_PRIO),
+ 	IOCTL_INFO_STD(VIDIOC_G_EDID, vidioc_g_edid, v4l_print_edid, 0),
+ 	IOCTL_INFO_STD(VIDIOC_S_EDID, vidioc_s_edid, v4l_print_edid, INFO_FL_PRIO),
+-	IOCTL_INFO_STD(VIDIOC_G_OUTPUT, vidioc_g_output, v4l_print_u32, 0),
++	IOCTL_INFO_FNC(VIDIOC_G_OUTPUT, v4l_g_output, v4l_print_u32, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_S_OUTPUT, v4l_s_output, v4l_print_u32, INFO_FL_PRIO),
+ 	IOCTL_INFO_FNC(VIDIOC_ENUMOUTPUT, v4l_enumoutput, v4l_print_enumoutput, INFO_FL_CLEAR(v4l2_output, index)),
+ 	IOCTL_INFO_STD(VIDIOC_G_AUDOUT, vidioc_g_audout, v4l_print_audioout, 0),
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 2b8feb8..94cb196 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -460,6 +460,8 @@ struct v4l2_capability {
+ 
+ #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
+ 
++#define V4L2_CAP_IO_MC			0x20000000  /* Is input/output controlled by the media controler */
++
+ #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device capabilities field */
+ 
+ /*
 -- 
-Best regards,
-Jacek Anaszewski
+2.7.4
