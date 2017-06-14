@@ -1,67 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:40280 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753103AbdFMObq (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34934 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752300AbdFNJy3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 10:31:46 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v3 0/2] media: entity: add operation to help map DT node to media pad
-Date: Tue, 13 Jun 2017 16:31:24 +0200
-Message-Id: <20170613143126.755-1-niklas.soderlund+renesas@ragnatech.se>
+        Wed, 14 Jun 2017 05:54:29 -0400
+Date: Wed, 14 Jun 2017 12:53:46 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+        devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
+        robh@kernel.org, pavel@ucw.cz
+Subject: Re: [PATCH 0/8] Support registering lens, flash and EEPROM devices
+Message-ID: <20170614095346.GG12407@valkosipuli.retiisi.org.uk>
+References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wed, Jun 14, 2017 at 12:47:11PM +0300, Sakari Ailus wrote:
+> Hi folks,
+> 
+> This set adds support for async registering of lens, flash and EEPROM
+> devices, as well as support for this in the smiapp driver and a LED driver
+> for the as3645a.
+> 
+> The lens and flash devices are entities in the media graph whereas the
+> EEPROM is at least currently not. By providing the association information
+> it is possible to add the flash device to the media graph.
 
-This series add a new entity operation which will aid capture
-drivers to map a port/endpoint in DT to a media graph pad.
+I forgot to add that this set depends on another set Niklas recently posted:
 
-This series is implemented support for the ongoing ADV748x work by
-Kieran Bingham. In his work he have a driver which registers more then
-one subdevice. So when a driver finds this subdevice it must be able to
-ask the subdevice itself which pad number correspond to the DT endpoint
-the driver used to bind subdevice in the first place.
-
-This is tested on Renesas H3 and M3-W together with the Renesas CSI-2
-and VIN Gen3 driver (posted separately). It is based on top media-tree.
-
-* Changes since v2
-- Renamed pad_from_fwnode to get_fwnode_pad as suggested by Sakari.
-- Return pad number instead of passing it as a pointer to both 
-  get_fwnode_pad() and media_entity_pad_from_fwnode().
-- Document possible flags of the direction argument to 
-  media_entity_pad_from_fwnode().
-- Use unsigned int instead of int for bitmask.
-- Fix numerous spelling mistakes, thanks Hans!
-- Rebased to latest media-tree.
-
-* Changes since v1
-- Rebased work ontop of Sakaris fwnode branch and make use of the fwnode 
-  instead of the raw DT port/reg numbers.
-- Do not assume DT port is equal to pad number if the driver do not 
-  implement the lookup function. Instead search for the first pad with
-  the correct direction and use that. Thanks Sakari for the suggestion!
-- Use ENXIO instead of EINVAL to signal lookup error.
-
-Niklas Söderlund (2):
-  media: entity: Add get_fwnode_pad entity operation
-  media: entity: Add media_entity_get_fwnode_pad() function
-
- drivers/media/media-entity.c | 35 +++++++++++++++++++++++++++++++++++
- include/media/media-entity.h | 28 ++++++++++++++++++++++++++++
- 2 files changed, 63 insertions(+)
+<URL:http://www.spinics.net/lists/linux-media/msg116906.html>
 
 -- 
-2.13.1
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
