@@ -1,94 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.220]:36811 "EHLO
-        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750795AbdFWLAH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Jun 2017 07:00:07 -0400
-Content-Type: text/plain; charset=utf-8
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Subject: Re: [PATCH v1 1/6] DT bindings: add bindings for ov965x camera module
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-In-Reply-To: <d14b8c6e-b480-36f0-ed0a-684647617dbe@suse.de>
-Date: Fri, 23 Jun 2017 12:59:24 +0200
-Cc: Hugues Fruchet <hugues.fruchet@st.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        devicetree <devicetree@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Discussions about the Letux Kernel
-        <letux-kernel@openphoenux.org>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Rob Herring <robh+dt@kernel.org>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-media@vger.kernel.org
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <3E7B1344-ECE6-4CCC-9E9D-7521BB566CDE@goldelico.com>
-References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com> <1498143942-12682-2-git-send-email-hugues.fruchet@st.com> <D5629236-95D8-45B6-9719-E8B9796FEC90@goldelico.com> <d14b8c6e-b480-36f0-ed0a-684647617dbe@suse.de>
-To: =?utf-8?Q?Andreas_F=C3=A4rber?= <afaerber@suse.de>,
-        Suman Anna <s-anna@ti.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mga01.intel.com ([192.55.52.88]:12320 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751829AbdFNPVM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Jun 2017 11:21:12 -0400
+From: "Zhi, Yong" <yong.zhi@intel.com>
+To: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>,
+        "Mohandass, Divagar" <divagar.mohandass@intel.com>
+Subject: RE: [PATCH v3 1/3] videodev2.h, v4l2-ioctl: add IPU3 raw10 color
+ format
+Date: Wed, 14 Jun 2017 15:21:10 +0000
+Message-ID: <C193D76D23A22742993887E6D207B54D0799EF06@ORSMSX106.amr.corp.intel.com>
+References: <1497385036-1002-1-git-send-email-yong.zhi@intel.com>
+        <1497385036-1002-2-git-send-email-yong.zhi@intel.com>
+ <20170614144840.4260501d@alans-desktop>
+In-Reply-To: <20170614144840.4260501d@alans-desktop>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-> Am 23.06.2017 um 12:46 schrieb Andreas F=C3=A4rber <afaerber@suse.de>:
->=20
-> Hi,
->=20
-> Am 23.06.2017 um 12:25 schrieb H. Nikolaus Schaller:
->>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov965x.txt =
-b/Documentation/devicetree/bindings/media/i2c/ov965x.txt
->>> new file mode 100644
->>> index 0000000..0e0de1f
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/media/i2c/ov965x.txt
->>> @@ -0,0 +1,37 @@
->>> +* Omnivision OV9650/9652/9655 CMOS sensor
->>> +
->>> +The Omnivision OV965x sensor support multiple resolutions output, =
-such as
->>> +CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw =
-RGB
->>> +output format.
->>> +
->>> +Required Properties:
->>> +- compatible: should be one of
->>> +	"ovti,ov9650"
->>> +	"ovti,ov9652"
->>> +	"ovti,ov9655"
->>> +- clocks: reference to the mclk input clock.
->>=20
->> I wonder why you have removed the clock-frequency property?
->>=20
->> In some situations the camera driver must be able to tell the clock =
-source
->> which frequency it wants to see.
->=20
-> That's what assigned-clock-rates property is for:
->=20
-> =
-https://www.kernel.org/doc/Documentation/devicetree/bindings/clock/clock-b=
-indings.txt
->=20
-> AFAIU clock-frequency on devices is deprecated and equivalent to =
-having
-> a clocks property pointing to a fixed-clock, which is different from a
-> clock with varying rate.
 
-I am not sure if that helps here. The OMAP3-ISP does not have a fixed =
-clock rate
-so we can only have the driver define what it wants to see.
+> -----Original Message-----
+> From: Alan Cox [mailto:gnomes@lxorguk.ukuu.org.uk]
+> Sent: Wednesday, June 14, 2017 6:49 AM
+> To: Zhi, Yong <yong.zhi@intel.com>
+> Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com; Zheng, Jian
+> Xu <jian.xu.zheng@intel.com>; tfiga@chromium.org; Mani, Rajmohan
+> <rajmohan.mani@intel.com>; Toivonen, Tuukka
+> <tuukka.toivonen@intel.com>; Yang, Hyungwoo
+> <hyungwoo.yang@intel.com>; Mohandass, Divagar
+> <divagar.mohandass@intel.com>
+> Subject: Re: [PATCH v3 1/3] videodev2.h, v4l2-ioctl: add IPU3 raw10 color
+> format
+> 
+> On Tue, 13 Jun 2017 15:17:14 -0500
+> Yong Zhi <yong.zhi@intel.com> wrote:
+> 
+> > Add IPU3 specific formats:
+> >
+> > 	V4L2_PIX_FMT_IPU3_SBGGR10
+> > 	V4L2_PIX_FMT_IPU3_SGBRG10
+> > 	V4L2_PIX_FMT_IPU3_SGRBG10
+> > 	V4L2_PIX_FMT_IPU3_SRGGB10
+> 
+> As I said before these are just more bitpacked bayer formats with no reason
+> to encode them as IPUv3 specific names.
+> 
+> Alan
 
-And common practise for OMAP3-ISP based camera modules (e.g. N900, N9) =
-is that they do it in the driver.
-
-Maybe ISP developers can comment?
-
-BR,
-Nikolaus=
+Ack, will update for next version.
