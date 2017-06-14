@@ -1,123 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00252a01.pphosted.com ([91.207.212.211]:55679 "EHLO
-        mx08-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752986AbdFNPQU (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33355 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751972AbdFNJLn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 11:16:20 -0400
-Received: from pps.filterd (m0102629.ppops.net [127.0.0.1])
-        by mx08-00252a01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id v5EFDvV7008728
-        for <linux-media@vger.kernel.org>; Wed, 14 Jun 2017 16:16:19 +0100
-Received: from mail-wr0-f197.google.com (mail-wr0-f197.google.com [209.85.128.197])
-        by mx08-00252a01.pphosted.com with ESMTP id 2b058et6e2-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
-        for <linux-media@vger.kernel.org>; Wed, 14 Jun 2017 16:16:18 +0100
-Received: by mail-wr0-f197.google.com with SMTP id u101so1040130wrc.2
-        for <linux-media@vger.kernel.org>; Wed, 14 Jun 2017 08:16:18 -0700 (PDT)
-From: Dave Stevenson <dave.stevenson@raspberrypi.org>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-rpi-kernel@lists.infradead.org
-Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Subject: [RFC 1/2] [media] dt-bindings: Document BCM283x CSI2/CCP2 receiver
-Date: Wed, 14 Jun 2017 16:15:46 +0100
-Message-Id: <888a28269a8a7c22feb2a126db699b1259d1b457.1497452006.git.dave.stevenson@raspberrypi.org>
-In-Reply-To: <cover.1497452006.git.dave.stevenson@raspberrypi.org>
-References: <cover.1497452006.git.dave.stevenson@raspberrypi.org>
-In-Reply-To: <cover.1497452006.git.dave.stevenson@raspberrypi.org>
-References: <cover.1497452006.git.dave.stevenson@raspberrypi.org>
+        Wed, 14 Jun 2017 05:11:43 -0400
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH v4 2/2] arm64: dts: renesas: salvator-x: Add ADV7482
+ support
+References: <cover.d0545e32d322ca1b939fa2918694173629e680eb.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <7d4b2333912ad23e62dbb8cc3792ad70e9cc1702.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <20170614090446.GG26958@verge.net.au>
+To: Simon Horman <horms@verge.net.au>,
+        Kieran Bingham <kbingham@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        sakari.ailus@iki.fi, niklas.soderlund@ragnatech.se
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <8ca8f22c-ce12-359e-31fc-ac1548998f01@ideasonboard.com>
+Date: Wed, 14 Jun 2017 10:11:37 +0100
+MIME-Version: 1.0
+In-Reply-To: <20170614090446.GG26958@verge.net.au>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document the DT bindings for the CSI2/CCP2 receiver peripheral
-(known as Unicam) on BCM283x SoCs.
+Hi Simon,
 
-Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
----
- .../devicetree/bindings/media/bcm2835-unicam.txt   | 76 ++++++++++++++++++++++
- 1 file changed, 76 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/bcm2835-unicam.txt
+On 14/06/17 10:04, Simon Horman wrote:
+> On Tue, Jun 13, 2017 at 01:35:08AM +0100, Kieran Bingham wrote:
+>> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>
+>> Provide ADV7482, and the needed connectors
+>>
+>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> I am marking this as deferred pending acceptance of the bindings.
 
-diff --git a/Documentation/devicetree/bindings/media/bcm2835-unicam.txt b/Documentation/devicetree/bindings/media/bcm2835-unicam.txt
-new file mode 100644
-index 0000000..cc5a451
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/bcm2835-unicam.txt
-@@ -0,0 +1,76 @@
-+Broadcom BCM283x Camera Interface (Unicam)
-+------------------------------------------
-+
-+The Unicam block on BCM283x SoCs is the receiver for either
-+CSI-2 or CCP2 data from image sensors or similar devices.
-+
-+Required properties:
-+===================
-+- compatible	: must be "brcm,bcm2835-unicam".
-+- reg		: physical base address and length of the register sets for the
-+		  device.
-+- interrupts	: should contain the IRQ line for this Unicam instance.
-+- clocks	: list of clock specifiers, corresponding to entries in
-+		  clock-names property.
-+- clock-names	: must contain an "lp_clock" entry, matching entries
-+		  in the clocks property.
-+
-+Optional properties
-+===================
-+- max-data-lanes: the hardware can support varying numbers of clock lanes.
-+		  This value is the maximum number supported by this instance.
-+		  Known values of 2 or 4. Default is 2.
-+
-+
-+Unicam supports a single port node. It should contain one 'port' child node
-+with child 'endpoint' node. Please refer to the bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+	csi1: csi@7e801000 {
-+		compatible = "brcm,bcm2835-unicam";
-+		reg = <0x7e801000 0x800>,
-+		      <0x7e802004 0x4>;
-+		interrupts = <2 7>;
-+		clocks = <&clocks BCM2835_CLOCK_CAM1>;
-+		clock-names = "lp_clock";
-+
-+		port {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			endpoint {
-+				remote-endpoint = <&tc358743_0>;
-+
-+			};
-+		};
-+	};
-+
-+	i2c0: i2c@7e205000 {
-+
-+		tc358743: tc358743@0f {
-+			compatible = "toshiba,tc358743";
-+			reg = <0x0f>;
-+			status = "okay";
-+
-+			clocks = <&tc358743_clk>;
-+			clock-names = "refclk";
-+
-+			tc358743_clk: bridge-clk {
-+				compatible = "fixed-clock";
-+				#clock-cells = <0>;
-+				clock-frequency = <27000000>;
-+			};
-+
-+			port {
-+				tc358743_0: endpoint {
-+					remote-endpoint = <&csi1>;
-+					clock-lanes = <0>;
-+					data-lanes = <1 2 3 4>;
-+					clock-noncontinuous;
-+					link-frequencies =
-+						/bits/ 64 <297000000>;
-+				};
-+			};
-+		};
-+	};
--- 
-2.7.4
+Good point - I didn't include RobH / DT-relevant lists on the mailing :)
+If only there was a script called get_maintainer.pl to remind me who to include :D
+
+Thanks for the heads up.
+I'll aim to send out a v5 today and include the required lists.
+
+--
+Kieran
