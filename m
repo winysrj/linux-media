@@ -1,260 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35098 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752992AbdF3Uv3 (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:35698 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752456AbdFNAnU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Jun 2017 16:51:29 -0400
-Received: by mail-wm0-f66.google.com with SMTP id u23so9885929wma.2
-        for <linux-media@vger.kernel.org>; Fri, 30 Jun 2017 13:51:24 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: rjkm@metzlerbros.de, jasmin@anw.at
-Subject: [PATCH v2 08/10] [media] ddbridge: support for CineS2 V7(A) and DuoFlex S2 V4 hardware
-Date: Fri, 30 Jun 2017 22:51:04 +0200
-Message-Id: <20170630205106.1268-9-d.scheller.oss@gmail.com>
-In-Reply-To: <20170630205106.1268-1-d.scheller.oss@gmail.com>
-References: <20170630205106.1268-1-d.scheller.oss@gmail.com>
+        Tue, 13 Jun 2017 20:43:20 -0400
+Received: by mail-pf0-f194.google.com with SMTP id s66so9485770pfs.2
+        for <linux-media@vger.kernel.org>; Tue, 13 Jun 2017 17:43:20 -0700 (PDT)
+Subject: Re: [GIT PULL FOR v4.13] Add video-mux, ov5640 and i.MX media staging
+ driver
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+References: <e52a521e-2c39-ad85-50dd-6313f87daf0f@xs4all.nl>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <7f2b1fb0-1298-cd8a-6b57-0b07673d9285@gmail.com>
+Date: Tue, 13 Jun 2017 17:43:16 -0700
+MIME-Version: 1.0
+In-Reply-To: <e52a521e-2c39-ad85-50dd-6313f87daf0f@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
 
-This adds all required glue code to support - in conjunction with the new
-stv0910 and stv6111 demod/tuner drivers and additionally the lnbh25 LNB
-controller driver - all current DVB-S/S2 hardware (bridges and flex
-modules) from Digital Devices like the DD CineS2 V7 and V7A, current
-S2 V4 DuoFlex modules, and probably all upcoming devices based on this
-STV0910/STV6111/LNBH25 hardware stack.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ddbridge/Kconfig         |   4 +
- drivers/media/pci/ddbridge/ddbridge-core.c | 135 ++++++++++++++++++++++++++++-
- drivers/media/pci/ddbridge/ddbridge.h      |   2 +
- 3 files changed, 138 insertions(+), 3 deletions(-)
+On 06/13/2017 12:55 PM, Hans Verkuil wrote:
+> It's been a long road, but the i.MX6 platform now has a proper driver. 
+> There
+> are a few relatively minor issues remaining (see the TODO file) before it
+> can be moved out of staging.
+> 
+> I want to thank Steve and Philipp for their hard work!
 
-diff --git a/drivers/media/pci/ddbridge/Kconfig b/drivers/media/pci/ddbridge/Kconfig
-index ffed78c2ffb4..c79a58fa5fc3 100644
---- a/drivers/media/pci/ddbridge/Kconfig
-+++ b/drivers/media/pci/ddbridge/Kconfig
-@@ -8,6 +8,9 @@ config DVB_DDBRIDGE
- 	select DVB_TDA18271C2DD if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_STV0367 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_CXD2841ER if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_STV0910 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_STV6111 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_LNBH25 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_TDA18212 if MEDIA_SUBDRV_AUTOSELECT
- 	---help---
- 	  Support for cards with the Digital Devices PCI express bridge:
-@@ -20,5 +23,6 @@ config DVB_DDBRIDGE
- 	  - CineCTv6 and DuoFlex CT (STV0367-based)
- 	  - CineCTv7 and DuoFlex CT2/C2T2/C2T2I (Sony CXD28xx-based)
- 	  - MaxA8 series
-+	  - CineS2 V7/V7A and DuoFlex S2 V4 (ST STV0910-based)
- 
- 	  Say Y if you own such a card and want to use it.
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 3fbac7bee2d4..b3fc6a875279 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -45,6 +45,9 @@
- #include "stv0367_priv.h"
- #include "cxd2841er.h"
- #include "tda18212.h"
-+#include "stv0910.h"
-+#include "stv6111.h"
-+#include "lnbh25.h"
- 
- static int xo2_speed = 2;
- module_param(xo2_speed, int, 0444);
-@@ -920,6 +923,71 @@ static int tuner_attach_stv6110(struct ddb_input *input, int type)
- 	return 0;
- }
- 
-+static struct stv0910_cfg stv0910_p = {
-+	.adr      = 0x68,
-+	.parallel = 1,
-+	.rptlvl   = 4,
-+	.clk      = 30000000,
-+};
-+
-+static struct lnbh25_config lnbh25_cfg = {
-+	.i2c_address = 0x0c << 1,
-+	.data2_config = LNBH25_TEN
-+};
-+
-+static int demod_attach_stv0910(struct ddb_input *input, int type)
-+{
-+	struct i2c_adapter *i2c = &input->port->i2c->adap;
-+	struct device *dev = &input->port->dev->pdev->dev;
-+	struct stv0910_cfg cfg = stv0910_p;
-+	struct lnbh25_config lnbcfg = lnbh25_cfg;
-+
-+	if (type)
-+		cfg.parallel = 2;
-+	input->fe = dvb_attach(stv0910_attach, i2c, &cfg, (input->nr & 1));
-+	if (!input->fe) {
-+		cfg.adr = 0x6c;
-+		input->fe = dvb_attach(stv0910_attach, i2c,
-+					&cfg, (input->nr & 1));
-+	}
-+	if (!input->fe) {
-+		dev_err(dev, "No STV0910 found!\n");
-+		return -ENODEV;
-+	}
-+
-+	/* attach lnbh25 - leftshift by one as the lnbh25 driver expects 8bit
-+	 * i2c addresses
-+	 */
-+	lnbcfg.i2c_address = (((input->nr & 1) ? 0x0d : 0x0c) << 1);
-+	if (!dvb_attach(lnbh25_attach, input->fe, &lnbcfg, i2c)) {
-+		lnbcfg.i2c_address = (((input->nr & 1) ? 0x09 : 0x08) << 1);
-+		if (!dvb_attach(lnbh25_attach, input->fe, &lnbcfg, i2c)) {
-+			dev_err(dev, "No LNBH25 found!\n");
-+			return -ENODEV;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int tuner_attach_stv6111(struct ddb_input *input, int type)
-+{
-+	struct i2c_adapter *i2c = &input->port->i2c->adap;
-+	struct device *dev = &input->port->dev->pdev->dev;
-+	struct dvb_frontend *fe;
-+	u8 adr = (type ? 0 : 4) + ((input->nr & 1) ? 0x63 : 0x60);
-+
-+	fe = dvb_attach(stv6111_attach, input->fe, i2c, adr);
-+	if (!fe) {
-+		fe = dvb_attach(stv6111_attach, input->fe, i2c, adr & ~4);
-+		if (!fe) {
-+			dev_err(dev, "No STV6111 found at 0x%02x!\n", adr);
-+			return -ENODEV;
-+		}
-+	}
-+	return 0;
-+}
-+
- static int my_dvb_dmx_ts_card_init(struct dvb_demux *dvbdemux, char *id,
- 			    int (*start_feed)(struct dvb_demux_feed *),
- 			    int (*stop_feed)(struct dvb_demux_feed *),
-@@ -1086,6 +1154,36 @@ static int dvb_input_attach(struct ddb_input *input)
- 				return -ENODEV;
- 		}
- 		break;
-+	case DDB_TUNER_XO2_DVBS_STV0910:
-+		if (demod_attach_stv0910(input, 0) < 0)
-+			return -ENODEV;
-+		if (tuner_attach_stv6111(input, 0) < 0)
-+			return -ENODEV;
-+		if (input->fe) {
-+			if (dvb_register_frontend(adap, input->fe) < 0)
-+				return -ENODEV;
-+		}
-+		break;
-+	case DDB_TUNER_DVBS_STV0910_PR:
-+		if (demod_attach_stv0910(input, 1) < 0)
-+			return -ENODEV;
-+		if (tuner_attach_stv6111(input, 1) < 0)
-+			return -ENODEV;
-+		if (input->fe) {
-+			if (dvb_register_frontend(adap, input->fe) < 0)
-+				return -ENODEV;
-+		}
-+		break;
-+	case DDB_TUNER_DVBS_STV0910_P:
-+		if (demod_attach_stv0910(input, 0) < 0)
-+			return -ENODEV;
-+		if (tuner_attach_stv6111(input, 1) < 0)
-+			return -ENODEV;
-+		if (input->fe) {
-+			if (dvb_register_frontend(adap, input->fe) < 0)
-+				return -ENODEV;
-+		}
-+		break;
- 	case DDB_TUNER_DVBCT_TR:
- 		if (demod_attach_drxk(input) < 0)
- 			return -ENODEV;
-@@ -1548,8 +1646,8 @@ static void ddb_port_probe(struct ddb_port *port)
- 			init_xo2(port);
- 			switch (xo2_id >> 2) {
- 			case 0:
--				modname = "DUAL DVB-S2 (unsupported)";
--				port->class = DDB_PORT_NONE;
-+				modname = "DUAL DVB-S2";
-+				port->class = DDB_PORT_TUNER;
- 				port->type = DDB_TUNER_XO2_DVBS_STV0910;
- 				break;
- 			case 1:
-@@ -1624,7 +1722,18 @@ static void ddb_port_probe(struct ddb_port *port)
- 	} else if (port_has_stv0900_aa(port, &stv_id)) {
- 		modname = "DUAL DVB-S2";
- 		port->class = DDB_PORT_TUNER;
--		port->type = DDB_TUNER_DVBS_ST_AA;
-+		switch (stv_id) {
-+		case 0x51:
-+			if (dev->info->ts_quirks & TS_QUIRK_REVERSED &&
-+					port->nr == 0)
-+				port->type = DDB_TUNER_DVBS_STV0910_PR;
-+			else
-+				port->type = DDB_TUNER_DVBS_STV0910_P;
-+			break;
-+		default:
-+			port->type = DDB_TUNER_DVBS_ST_AA;
-+			break;
-+		}
- 		ddbwritel(I2C_SPEED_100, port->i2c->regs + I2C_TIMING);
- 	} else if (port_has_drxks(port)) {
- 		modname = "DUAL DVB-C/T";
-@@ -2140,6 +2249,24 @@ static const struct ddb_info ddb_v6_5 = {
- 	.port_num = 4,
- };
- 
-+static const struct ddb_info ddb_v7 = {
-+	.type     = DDB_OCTOPUS,
-+	.name     = "Digital Devices Cine S2 V7 DVB adapter",
-+	.port_num = 4,
-+	.board_control   = 2,
-+	.board_control_2 = 4,
-+	.ts_quirks = TS_QUIRK_REVERSED,
-+};
-+
-+static const struct ddb_info ddb_v7a = {
-+	.type     = DDB_OCTOPUS,
-+	.name     = "Digital Devices Cine S2 V7 Advanced DVB adapter",
-+	.port_num = 4,
-+	.board_control   = 2,
-+	.board_control_2 = 4,
-+	.ts_quirks = TS_QUIRK_REVERSED,
-+};
-+
- static const struct ddb_info ddb_dvbct = {
- 	.type     = DDB_OCTOPUS,
- 	.name     = "Digital Devices DVBCT V6.1 DVB adapter",
-@@ -2232,6 +2359,8 @@ static const struct pci_device_id ddb_id_tbl[] = {
- 	DDB_ID(DDVID, 0x0005, DDVID, 0x0011, ddb_octopus_mini),
- 	DDB_ID(DDVID, 0x0003, DDVID, 0x0020, ddb_v6),
- 	DDB_ID(DDVID, 0x0003, DDVID, 0x0021, ddb_v6_5),
-+	DDB_ID(DDVID, 0x0006, DDVID, 0x0022, ddb_v7),
-+	DDB_ID(DDVID, 0x0006, DDVID, 0x0024, ddb_v7a),
- 	DDB_ID(DDVID, 0x0003, DDVID, 0x0030, ddb_dvbct),
- 	DDB_ID(DDVID, 0x0003, DDVID, 0xdb03, ddb_satixS2v3),
- 	DDB_ID(DDVID, 0x0006, DDVID, 0x0031, ddb_ctv7),
-diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
-index 4a0e3283d646..4783a17175a8 100644
---- a/drivers/media/pci/ddbridge/ddbridge.h
-+++ b/drivers/media/pci/ddbridge/ddbridge.h
-@@ -160,6 +160,8 @@ struct ddb_port {
- #define DDB_TUNER_DVBCT2_SONY_P		7
- #define DDB_TUNER_DVBC2T2_SONY_P	8
- #define DDB_TUNER_ISDBT_SONY_P		9
-+#define DDB_TUNER_DVBS_STV0910_P	10
-+#define DDB_TUNER_DVBS_STV0910_PR	14
- #define DDB_TUNER_DVBC2T2I_SONY_P	15
- #define DDB_TUNER_DVBCT_TR		16
- #define DDB_TUNER_DVBCT_ST		17
--- 
-2.13.0
+Your welcome! :)
+
+But the Freescale ARM DTS patches are still pending, this driver is not
+operational until those patches are merged. What is holding that up?
+They implement the associated bindings docs which have been Acked.
+
+Steve
+
+
+> 
+> Regards,
+> 
+>      Hans
+> 
+> The following changes since commit 
+> 47f910f0e0deb880c2114811f7ea1ec115a19ee4:
+> 
+>    [media] v4l: subdev: tolerate null in media_entity_to_v4l2_subdev 
+> (2017-06-08 16:55:25 -0300)
+> 
+> are available in the git repository at:
+> 
+>    git://linuxtv.org/hverkuil/media_tree.git imx6
+> 
+> for you to fetch changes up to 5f19bcc69f4e351ab6700214e4f8f3d71807d4e2:
+> 
+>    MAINTAINERS: add entry for Freescale i.MX media driver (2017-06-13 
+> 21:48:28 +0200)
+> 
+> ----------------------------------------------------------------
+> Marek Vasut (1):
+>        media: imx: Drop warning upon multiple S_STREAM disable calls
+> 
+> Philipp Zabel (7):
+>        dt-bindings: Add bindings for video-multiplexer device
+>        add mux and video interface bridge entity functions
+>        platform: add video-multiplexer subdevice driver
+>        MAINTAINERS: add maintainer entry for video multiplexer v4l2 
+> subdevice driver
+>        media: imx: csi: increase burst size for YUV formats
+>        media: imx: csi: add frame skipping support
+>        media: imx: csi: add sink selection rectangles
+> 
+> Russell King (3):
+>        media: imx: csi: add support for bayer formats
+>        media: imx: csi: add frame size/interval enumeration
+>        media: imx: capture: add frame sizes/interval enumeration
+> 
+> Steve Longerbeam (14):
+>        dt/bindings: Add bindings for OV5640
+>        add Omnivision OV5640 sensor driver
+>        MAINTAINERS: add entry for OV5640 sensor driver
+>        dt-bindings: Add bindings for i.MX media driver
+>        media: Add userspace header file for i.MX
+>        media: Add i.MX media core driver
+>        media: imx: Add a TODO file
+>        media: imx: Add Capture Device Interface
+>        media: imx: Add CSI subdev driver
+>        media: imx: Add VDIC subdev driver
+>        media: imx: Add IC subdev drivers
+>        media: imx: Add MIPI CSI-2 Receiver subdev driver
+>        media: imx: set and propagate default field, colorimetry
+>        MAINTAINERS: add entry for Freescale i.MX media driver
+> 
+>   Documentation/devicetree/bindings/media/i2c/ov5640.txt |   45 +
+>   Documentation/devicetree/bindings/media/imx.txt        |   53 +
+>   Documentation/devicetree/bindings/media/video-mux.txt  |   60 ++
+>   Documentation/media/uapi/mediactl/media-types.rst      |   21 +
+>   Documentation/media/v4l-drivers/imx.rst                |  614 
+> ++++++++++++
+>   MAINTAINERS                                            |   25 +
+>   drivers/media/i2c/Kconfig                              |   10 +
+>   drivers/media/i2c/Makefile                             |    1 +
+>   drivers/media/i2c/ov5640.c                             | 2344 
+> ++++++++++++++++++++++++++++++++++++++++++++
+>   drivers/media/platform/Kconfig                         |    7 +
+>   drivers/media/platform/Makefile                        |    2 +
+>   drivers/media/platform/video-mux.c                     |  334 +++++++
+>   drivers/staging/media/Kconfig                          |    2 +
+>   drivers/staging/media/Makefile                         |    1 +
+>   drivers/staging/media/imx/Kconfig                      |   21 +
+>   drivers/staging/media/imx/Makefile                     |   12 +
+>   drivers/staging/media/imx/TODO                         |   23 +
+>   drivers/staging/media/imx/imx-ic-common.c              |  113 +++
+>   drivers/staging/media/imx/imx-ic-prp.c                 |  518 ++++++++++
+>   drivers/staging/media/imx/imx-ic-prpencvf.c            | 1309 
+> +++++++++++++++++++++++++
+>   drivers/staging/media/imx/imx-ic.h                     |   38 +
+>   drivers/staging/media/imx/imx-media-capture.c          |  775 
+> +++++++++++++++
+>   drivers/staging/media/imx/imx-media-csi.c              | 1817 
+> ++++++++++++++++++++++++++++++++++
+>   drivers/staging/media/imx/imx-media-dev.c              |  667 
+> +++++++++++++
+>   drivers/staging/media/imx/imx-media-fim.c              |  494 ++++++++++
+>   drivers/staging/media/imx/imx-media-internal-sd.c      |  349 +++++++
+>   drivers/staging/media/imx/imx-media-of.c               |  270 +++++
+>   drivers/staging/media/imx/imx-media-utils.c            |  896 
+> +++++++++++++++++
+>   drivers/staging/media/imx/imx-media-vdic.c             | 1009 
+> +++++++++++++++++++
+>   drivers/staging/media/imx/imx-media.h                  |  325 ++++++
+>   drivers/staging/media/imx/imx6-mipi-csi2.c             |  698 
+> +++++++++++++
+>   include/linux/imx-media.h                              |   29 +
+>   include/media/imx.h                                    |   15 +
+>   include/uapi/linux/media.h                             |    6 +
+>   include/uapi/linux/v4l2-controls.h                     |    4 +
+>   35 files changed, 12907 insertions(+)
+>   create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5640.txt
+>   create mode 100644 Documentation/devicetree/bindings/media/imx.txt
+>   create mode 100644 Documentation/devicetree/bindings/media/video-mux.txt
+>   create mode 100644 Documentation/media/v4l-drivers/imx.rst
+>   create mode 100644 drivers/media/i2c/ov5640.c
+>   create mode 100644 drivers/media/platform/video-mux.c
+>   create mode 100644 drivers/staging/media/imx/Kconfig
+>   create mode 100644 drivers/staging/media/imx/Makefile
+>   create mode 100644 drivers/staging/media/imx/TODO
+>   create mode 100644 drivers/staging/media/imx/imx-ic-common.c
+>   create mode 100644 drivers/staging/media/imx/imx-ic-prp.c
+>   create mode 100644 drivers/staging/media/imx/imx-ic-prpencvf.c
+>   create mode 100644 drivers/staging/media/imx/imx-ic.h
+>   create mode 100644 drivers/staging/media/imx/imx-media-capture.c
+>   create mode 100644 drivers/staging/media/imx/imx-media-csi.c
+>   create mode 100644 drivers/staging/media/imx/imx-media-dev.c
+>   create mode 100644 drivers/staging/media/imx/imx-media-fim.c
+>   create mode 100644 drivers/staging/media/imx/imx-media-internal-sd.c
+>   create mode 100644 drivers/staging/media/imx/imx-media-of.c
+>   create mode 100644 drivers/staging/media/imx/imx-media-utils.c
+>   create mode 100644 drivers/staging/media/imx/imx-media-vdic.c
+>   create mode 100644 drivers/staging/media/imx/imx-media.h
+>   create mode 100644 drivers/staging/media/imx/imx6-mipi-csi2.c
+>   create mode 100644 include/linux/imx-media.h
+>   create mode 100644 include/media/imx.h
