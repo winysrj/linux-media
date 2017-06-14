@@ -1,153 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41192 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752033AbdFONeL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 09:34:11 -0400
-Date: Thu, 15 Jun 2017 16:34:04 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
-        robh@kernel.org, pavel@ucw.cz
-Subject: Re: [PATCH 6/8] leds: as3645a: Add LED flash class driver
-Message-ID: <20170615133404.GF12407@valkosipuli.retiisi.org.uk>
-References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
- <1497433639-13101-7-git-send-email-sakari.ailus@linux.intel.com>
- <343d88ea-c839-6682-df84-844f92bc9050@gmail.com>
- <20170614221028.GS12407@valkosipuli.retiisi.org.uk>
- <6d27154d-4550-d1ae-8b7a-07dcaaee69ac@gmail.com>
+Received: from www.llwyncelyn.cymru ([82.70.14.225]:36620 "EHLO fuzix.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751979AbdFNNsz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Jun 2017 09:48:55 -0400
+Date: Wed, 14 Jun 2017 14:48:40 +0100
+From: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
+To: Yong Zhi <yong.zhi@intel.com>
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        jian.xu.zheng@intel.com, tfiga@chromium.org,
+        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
+        hyungwoo.yang@intel.com, divagar.mohandass@intel.com
+Subject: Re: [PATCH v3 1/3] videodev2.h, v4l2-ioctl: add IPU3 raw10 color
+ format
+Message-ID: <20170614144840.4260501d@alans-desktop>
+In-Reply-To: <1497385036-1002-2-git-send-email-yong.zhi@intel.com>
+References: <1497385036-1002-1-git-send-email-yong.zhi@intel.com>
+        <1497385036-1002-2-git-send-email-yong.zhi@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6d27154d-4550-d1ae-8b7a-07dcaaee69ac@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+On Tue, 13 Jun 2017 15:17:14 -0500
+Yong Zhi <yong.zhi@intel.com> wrote:
 
-On Thu, Jun 15, 2017 at 03:01:47PM +0200, Jacek Anaszewski wrote:
-> Hi Sakari,
+> Add IPU3 specific formats:
 > 
-> On 06/15/2017 12:10 AM, Sakari Ailus wrote:
-> > Hi Jacek,
-> > 
-> > Thanks for the review!
-> 
-> You're welcome!
-> 
-> > I have to say I found the v4l2-flash-led-class framework quite useful, now
-> > that I refactored a driver for using it. Now we have a user for the
-> > indicator, too. :-)
-> 
-> Nice :-). I'm also surprised that v4l2-flash API is also used in
-> drivers/staging/greybus/light.c which popped up with kbuild test robot
-> complaints.
+> 	V4L2_PIX_FMT_IPU3_SBGGR10
+> 	V4L2_PIX_FMT_IPU3_SGBRG10
+> 	V4L2_PIX_FMT_IPU3_SGRBG10
+> 	V4L2_PIX_FMT_IPU3_SRGGB10
 
-I missed that on the first round of the submission as well. I'll fix that
-in v2.
+As I said before these are just more bitpacked bayer formats with no
+reason to encode them as IPUv3 specific names.
 
-> 
-> > On Wed, Jun 14, 2017 at 11:15:24PM +0200, Jacek Anaszewski wrote:
-> >>> +static __maybe_unused int as3645a_suspend(struct device *dev)
-> >>> +{
-> >>> +	struct i2c_client *client = to_i2c_client(dev);
-> >>> +	struct as3645a *flash = i2c_get_clientdata(client);
-> >>> +	int rval;
-> >>> +
-> >>> +	rval = as3645a_set_control(flash, AS_MODE_EXT_TORCH, false);
-> >>> +	dev_dbg(dev, "Suspend %s\n", rval < 0 ? "failed" : "ok");
-> >>> +
-> >>> +	return rval;
-> >>> +}
-> >>> +
-> >>> +static __maybe_unused int as3645a_resume(struct device *dev)
-> >>> +{
-> >>> +	struct i2c_client *client = to_i2c_client(dev);
-> >>> +	struct as3645a *flash = i2c_get_clientdata(client);
-> >>> +	int rval;
-> >>> +
-> >>> +	rval = as3645a_setup(flash);
-> >>> +
-> >>
-> >> nitpicking: inconsistent coding style - there is no empty line before
-> >> dev_dbg() in the as3645a_suspend().
-> > 
-> > Added one for as3645a_suspend() --- it should have been there.
-> > 
-> >>
-> >>> +	dev_dbg(dev, "Resume %s\n", rval < 0 ? "fail" : "ok");
-> >>> +
-> >>> +	return rval;
-> >>> +}
-> > 
-> > ...
-> > 
-> >>> +static int as3645a_led_class_setup(struct as3645a *flash)
-> >>> +{
-> >>> +	struct led_classdev *fled_cdev = &flash->fled.led_cdev;
-> >>> +	struct led_classdev *iled_cdev = &flash->iled_cdev;
-> >>> +	struct led_flash_setting *cfg;
-> >>> +	int rval;
-> >>> +
-> >>> +	iled_cdev->name = "as3645a indicator";
-> >>> +	iled_cdev->brightness_set_blocking = as3645a_set_indicator_brightness;
-> >>> +	iled_cdev->max_brightness =
-> >>> +		flash->cfg.indicator_max_ua / AS_INDICATOR_INTENSITY_STEP;
-> >>> +
-> >>> +	rval = led_classdev_register(&flash->client->dev, iled_cdev);
-> >>> +	if (rval < 0)
-> >>> +		return rval;
-> >>> +
-> >>> +	cfg = &flash->fled.brightness;
-> >>> +	cfg->min = AS_FLASH_INTENSITY_MIN;
-> >>> +	cfg->max = flash->cfg.flash_max_ua;
-> >>> +	cfg->step = AS_FLASH_INTENSITY_STEP;
-> >>> +	cfg->val = flash->cfg.flash_max_ua;
-> >>> +
-> >>> +	cfg = &flash->fled.timeout;
-> >>> +	cfg->min = AS_FLASH_TIMEOUT_MIN;
-> >>> +	cfg->max = flash->cfg.flash_timeout_us;
-> >>> +	cfg->step = AS_FLASH_TIMEOUT_STEP;
-> >>> +	cfg->val = flash->cfg.flash_timeout_us;
-> >>> +
-> >>> +	flash->fled.ops = &as3645a_led_flash_ops;
-> >>> +
-> >>> +	fled_cdev->name = "as3645a flash";
-> >>
-> >> LED class device name should be taken from label DT property,
-> >> or DT node name if the former wasn't defined.
-> >>
-> >> Also LED device naming convention defines colon as a separator
-> >> between name segments.
-> > 
-> > Right. I'll fix that.
-> > 
-> > I just realised I'm missing DT binding documentation for this device; I'll
-> > add that, too.
-> > 
-> > Is the preference to allow freely chosen node names for the LEDs? Now that
-> > there's the label, too, this appears to be somewhat duplicated information.
-> 
-> It depends on whether the sub-leds are identified by reg property.
-> In this case usually common prefix is used followed by reg value,
-> e.g. led@1, led@2 etc.
-
-Is there a device that would use this already? I checked common.txt and
-I couldn't find a suggestion of this scheme there.
-
-> 
-> Otherwise prevailing scheme is e.g.:
-> 
->         blue-power {
-> 		...
->                 label = "netxbig:blue:power";
-> 	}
-> 
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Alan
