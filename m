@@ -1,82 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48933
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753253AbdFMOtV (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34294 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752282AbdFNJrg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 10:49:21 -0400
-Date: Tue, 13 Jun 2017 11:49:12 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v4.12-rc6] media fixes
-Message-ID: <20170613114912.2959beb4@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Wed, 14 Jun 2017 05:47:36 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org
+Cc: devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
+        robh@kernel.org, pavel@ucw.cz
+Subject: [PATCH 0/8] Support registering lens, flash and EEPROM devices
+Date: Wed, 14 Jun 2017 12:47:11 +0300
+Message-Id: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+Hi folks,
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.12-3
+This set adds support for async registering of lens, flash and EEPROM
+devices, as well as support for this in the smiapp driver and a LED driver
+for the as3645a.
 
-For:
+The lens and flash devices are entities in the media graph whereas the
+EEPROM is at least currently not. By providing the association information
+it is possible to add the flash device to the media graph.
 
-  - some build dependency issues at CEC core with randconfigs;
-  - fix an off by one error at vb2;
-  - a race fix at cec core;
-  - driver fixes at tc358743, sir_ir and rainshadow-cec.
+The smiapp driver makes use of the newly added properties.
 
-Regards,
-Mauro
+changes since "Document bindings for camera modules and associated flash 
+        devices",
+	<URL:https://www.spinics.net/lists/linux-media/msg115124.html>:
 
--
+- Mention flash is a phandle reference to the flash driver chip only. Do
+  not reference to LEDs themselves since this would be somewhat
+  problematic for drivers to handle: the V4L2 sub-devices may have a flash
+  as well as an indicator LED. Alternatively, allowing to use both LED
+  driver and LED references could cause complications in async matching:
+  the flash driver (software) doesn't know which one is presend in the
+  sensor OF node.
 
-The following changes since commit 963761a0b2e85663ee4a5630f72930885a06598a:
+  Instead, I'll propose using numeric IDs for the LEDs, just as we have
+  for clocks for instance. The current definition of a flash driver device
+  reference remains extensible.
 
-  [media] rc-core: race condition during ir_raw_event_register() (2017-06-04 15:25:38 -0300)
+  Due to the changes I've dropped the acks I've received to the flash
+  binding patch.
 
-are available in the git repository at:
+Sakari Ailus (8):
+  dt: bindings: Add a binding for flash devices associated to a sensor
+  dt: bindings: Add lens-focus binding for image sensors
+  dt: bindings: Add a binding for referencing EEPROM from camera sensors
+  v4l2-flash: Use led_classdev instead of led_classdev_flash for
+    indicator
+  v4l2-flash: Flash ops aren't mandatory
+  leds: as3645a: Add LED flash class driver
+  smiapp: Add support for flash, lens and EEPROM devices
+  arm: dts: omap3: N9/N950: Add AS3645A camera flash
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.12-3
+ .../devicetree/bindings/media/video-interfaces.txt |  13 +
+ MAINTAINERS                                        |   6 +
+ arch/arm/boot/dts/omap3-n9.dts                     |   1 +
+ arch/arm/boot/dts/omap3-n950-n9.dtsi               |  14 +
+ arch/arm/boot/dts/omap3-n950.dts                   |   1 +
+ drivers/leds/Kconfig                               |   8 +
+ drivers/leds/Makefile                              |   1 +
+ drivers/leds/leds-as3645a.c                        | 744 +++++++++++++++++++++
+ drivers/media/i2c/smiapp/smiapp-core.c             |  81 ++-
+ drivers/media/i2c/smiapp/smiapp.h                  |   5 +
+ drivers/media/v4l2-core/v4l2-flash-led-class.c     |  23 +-
+ include/media/v4l2-flash-led-class.h               |   6 +-
+ 12 files changed, 879 insertions(+), 24 deletions(-)
+ create mode 100644 drivers/leds/leds-as3645a.c
 
-for you to fetch changes up to f9f314f323951a33d8b4a4f63f7d04b7f3bc0603:
-
-  [media] media/cec.h: use IS_REACHABLE instead of IS_ENABLED (2017-06-08 16:52:28 -0300)
-
-----------------------------------------------------------------
-media fixes for v4.12-rc6
-
-----------------------------------------------------------------
-Arnd Bergmann (2):
-      [media] cec: improve MEDIA_CEC_RC dependencies
-      [media] cec-notifier.h: handle unreachable CONFIG_CEC_CORE
-
-Christophe JAILLET (1):
-      [media] vb2: Fix an off by one error in 'vb2_plane_vaddr'
-
-Hans Verkuil (2):
-      [media] cec: race fix: don't return -ENONET in cec_receive()
-      [media] media/cec.h: use IS_REACHABLE instead of IS_ENABLED
-
-Philipp Zabel (1):
-      [media] tc358743: fix register i2c_rd/wr function fix
-
-Sean Young (1):
-      [media] sir_ir: infinite loop in interrupt handler
-
-Wei Yongjun (1):
-      [media] rainshadow-cec: Fix missing spin_lock_init()
-
- drivers/media/cec/Kconfig                         |  1 +
- drivers/media/cec/cec-api.c                       |  8 +-------
- drivers/media/i2c/tc358743.c                      |  2 +-
- drivers/media/rc/sir_ir.c                         |  6 ++++++
- drivers/media/usb/rainshadow-cec/rainshadow-cec.c |  1 +
- drivers/media/v4l2-core/videobuf2-core.c          |  2 +-
- include/media/cec-notifier.h                      | 10 ++++++++++
- include/media/cec.h                               |  2 +-
- 8 files changed, 22 insertions(+), 10 deletions(-)
+-- 
+2.1.4
