@@ -1,72 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f176.google.com ([209.85.192.176]:36273 "EHLO
-        mail-pf0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751437AbdFFXho (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Jun 2017 19:37:44 -0400
-Received: by mail-pf0-f176.google.com with SMTP id x63so4908116pff.3
-        for <linux-media@vger.kernel.org>; Tue, 06 Jun 2017 16:37:44 -0700 (PDT)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: Sekhar Nori <nsekhar@ti.com>, David Lechner <david@lechnology.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        Benoit Parrot <bparrot@ti.com>,
-        Prabhakar Lad <prabhakar.csengg@gmail.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: [PATCH v2 1/4] [media] davinci: vpif_capture: drop compliance hack
-Date: Tue,  6 Jun 2017 16:37:38 -0700
-Message-Id: <20170606233741.26718-2-khilman@baylibre.com>
-In-Reply-To: <20170606233741.26718-1-khilman@baylibre.com>
-References: <20170606233741.26718-1-khilman@baylibre.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34372 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751727AbdFNJr6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Jun 2017 05:47:58 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org
+Cc: devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
+        robh@kernel.org, pavel@ucw.cz, Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 8/8] arm: dts: omap3: N9/N950: Add AS3645A camera flash
+Date: Wed, 14 Jun 2017 12:47:19 +0300
+Message-Id: <1497433639-13101-9-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Capture driver silently overrides pixel format with a hack (according to
-the comments) to pass v4l2 compliance tests.  This isn't needed for
-normal functionality, and works for composite video and raw camera capture
-without.
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-In addition, the hack assumes that it only supports raw capture with a
-single format (SBGGR8) which isn't true.  VPIF can also capture 10- and
-12-bit raw formats as well.  Forthcoming patches will enable VPIF
-input with raw-camera support and has been tested with 10-bit format
-from the aptina,mt9v032 sensor.
+Add the as3645a flash controller to the DT source as well as the flash
+property with the as3645a device phandle to the sensor DT node.
 
-Any compliance failures should be fixed with a real fix.
-
-Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/davinci/vpif_capture.c | 15 ---------------
- 1 file changed, 15 deletions(-)
+ arch/arm/boot/dts/omap3-n9.dts       |  1 +
+ arch/arm/boot/dts/omap3-n950-n9.dtsi | 14 ++++++++++++++
+ arch/arm/boot/dts/omap3-n950.dts     |  1 +
+ 3 files changed, 16 insertions(+)
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 128e92d1dd5a..fc5c7622660c 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -936,21 +936,6 @@ static int vpif_try_fmt_vid_cap(struct file *file, void *priv,
- 	struct channel_obj *ch = video_get_drvdata(vdev);
- 	struct v4l2_pix_format *pixfmt = &fmt->fmt.pix;
- 	struct common_obj *common = &(ch->common[VPIF_VIDEO_INDEX]);
--	struct vpif_params *vpif_params = &ch->vpifparams;
--
--	/*
--	 * to supress v4l-compliance warnings silently correct
--	 * the pixelformat
--	 */
--	if (vpif_params->iface.if_type == VPIF_IF_RAW_BAYER) {
--		if (pixfmt->pixelformat != V4L2_PIX_FMT_SBGGR8)
--			pixfmt->pixelformat = V4L2_PIX_FMT_SBGGR8;
--	} else {
--		if (pixfmt->pixelformat != V4L2_PIX_FMT_NV16)
--			pixfmt->pixelformat = V4L2_PIX_FMT_NV16;
--	}
--
--	common->fmt.fmt.pix.pixelformat = pixfmt->pixelformat;
+diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
+index b9e58c5..f95e7b1 100644
+--- a/arch/arm/boot/dts/omap3-n9.dts
++++ b/arch/arm/boot/dts/omap3-n9.dts
+@@ -26,6 +26,7 @@
+ 		clocks = <&isp 0>;
+ 		clock-frequency = <9600000>;
+ 		nokia,nvm-size = <(16 * 64)>;
++		flash = <&as3645a>;
+ 		port {
+ 			smia_1_1: endpoint {
+ 				link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index df3366f..8bd6673 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -265,6 +265,20 @@
  
- 	vpif_update_std_info(ch);
+ &i2c2 {
+ 	clock-frequency = <400000>;
++
++	as3645a: flash@30 {
++		reg = <0x30>;
++		compatible = "ams,as3645a";
++		flash {
++			flash-timeout-us = <150000>;
++			flash-max-microamp = <320000>;
++			led-max-microamp = <60000>;
++			peak-current-limit = <1750000>;
++		};
++		indicator {
++			led-max-microamp = <10000>;
++		};
++	};
+ };
  
+ &i2c3 {
+diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
+index 646601a..8fca038 100644
+--- a/arch/arm/boot/dts/omap3-n950.dts
++++ b/arch/arm/boot/dts/omap3-n950.dts
+@@ -60,6 +60,7 @@
+ 		clocks = <&isp 0>;
+ 		clock-frequency = <9600000>;
+ 		nokia,nvm-size = <(16 * 64)>;
++		flash = <&as3645a>;
+ 		port {
+ 			smia_1_1: endpoint {
+ 				link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
 -- 
-2.9.3
+2.1.4
