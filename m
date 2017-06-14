@@ -1,232 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:34801 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751957AbdFGTFk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 15:05:40 -0400
-Subject: Re: [PATCH v8 00/34] i.MX Media Driver
-To: Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
- <e7e4669c-2963-b9e1-edd7-02731a6e0f9c@xs4all.nl>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <a3acd5b9-6270-1b2e-6fdc-732c42855fd8@gmail.com>
-Date: Wed, 7 Jun 2017 12:05:36 -0700
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58908 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754449AbdFNHp4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Jun 2017 03:45:56 -0400
+Date: Wed, 14 Jun 2017 10:45:22 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Helen Koike <helen.koike@collabora.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v2] [media] v4l2-subdev: check colorimetry in link
+ validate
+Message-ID: <20170614074521.GF12407@valkosipuli.retiisi.org.uk>
+References: <fe95a0c2-aebc-c4a8-e771-6c4eb2d0f340@collabora.com>
+ <1496941513-29040-1-git-send-email-helen.koike@collabora.com>
 MIME-Version: 1.0
-In-Reply-To: <e7e4669c-2963-b9e1-edd7-02731a6e0f9c@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1496941513-29040-1-git-send-email-helen.koike@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Helen and Mauro,
 
+On Thu, Jun 08, 2017 at 02:05:08PM -0300, Helen Koike wrote:
+> colorspace, ycbcr_enc, quantization and xfer_func must match
+> across the link.
+> Check if they match in v4l2_subdev_link_validate_default
+> unless they are set as _DEFAULT.
 
-On 06/07/2017 12:02 PM, Hans Verkuil wrote:
-> We're still waiting for an Ack for patch 02/34, right?
+I think you could ignore my earlier comments on this --- the check will take
+place only iff both are not defaults, i.e. non-zero. And these values
+definitely should be zero unless explicitly set otherwise -- by the driver.
+I missed this on the previous review round.
+
+So I think it'd be fine to return an error on these.
+
+How about using dev_dbg() instead if dev_warn()? Using dev_warn() gives an
+easy way to flood the logs to the user. A debug level message is still
+important as it's next to impossible for the user to figure out what
+actually went wrong. Getting a single numeric error code from starting the
+pipeline isn't telling much...
+
 > 
-
-Hi Hans, Yes still waiting for an ack for the imx-media bindings.
-
-
-> Other than that everything is ready AFAICT.
-
-Agreed.
-
-Steve
-
+> Signed-off-by: Helen Koike <helen.koike@collabora.com>
 > 
-> Regards,
+> ---
 > 
-> 	Hans
+> Hi,
 > 
-> On 07/06/17 20:33, Steve Longerbeam wrote:
->> In version 8:
->>
->> - Switched to v4l2_fwnode APIs.
->>
->> - Always pass a valid CSI id to ipu_set_ic_src_mux() in imx-ic-prp, even
->>    if the IC is receiving from the VDIC. The reason is due to a bug in the
->>    i.MX6 reference manual: from experiment it is determined that the CSI id
->>    select bit in IPU_CONF register selects which CSI is routed to either
->>    the VDIC or the IC, and is independent of whether the IC is set to
->>    receive from a CSI or the VDIC. Sugested by Marek Vasut <marex@denx.de>.
->>
->> - ov5640: propagate error codes from all i2c register accesses.
->>    Sugested by Sakari Ailus <sakari.ailus@iki.fi>.
->>
->> - ov5640: drop the entity stream count check in ov5640_s_stream().
->>    Sugested by Sakari Ailus <sakari.ailus@iki.fi>.
->>
->> - ov5640: Fix manual exposure control. The manual exposure setting
->>    (in line periods) cannot exceed the max exposure value in registers
->>    {0x380E, 0x380F} + {0x350C,0x350D}, however the max eposure value was
->>    not being calcualted correctly.
->>
->> - ov5640: the video mode register tables require auto gain/exposure be
->>    disabled before programming the register set. However auto gain/exp was
->>    being disabled by direct register write. This caused the auto gain/exp
->>    control values to be inconsistent with the actual hardware setting. Fixed
->>    by going through v4l2-ctrl when disabling auto gain/exp.
->>
->> - ov5640: converted virtual channel macro to a module parameter, default
->>    to channel 0.
->>
->> - ov5640: override the v4l2-ctl lock to use the ov5640 subdev driver's
->>    lock. Sugested by Sakari Ailus <sakari.ailus@iki.fi>.
->>
->> - ov5640: switch to unit-less V4L2_CID_EXPOSURE. Using
->>    V4L2_CID_EXPOSURE_ABSOLUTE will require converting from 100-usec units
->>    to line periods and vice-versa. Sugested by Sakari Ailus and
->>    Pavel Machek <pavel@ucw.cz>.
->>
->> - ov5640: drop dangling regulator_bulk_disable() from probe/remove.
->>    Sugested by Sakari Ailus <sakari.ailus@iki.fi>.
->>
->> - FIM: move input capture channel selection out of the device-tree and
->>    make this a V4L2 control. In order to support attaching a FIM to prpencvf,
->>    the FIM cannot have any device-tree configuration, because prpencvf has
->>    no device node. The FIM now is completely configurable via its V4L2
->>    controls.
->>
->> - FIM: drop imx_media_fim_set_power(), and move the input capture channel
->>    request to imx_media_fim_set_stream(). This allows to drop csi_s_power()
->>    as well, since the latter only called imx_media_fim_set_power().
->>
->> - FIM: add a spinlock to protect the frame_interval_monitor() from the
->>    setting of new control values. The frame_interval_monitor() is called
->>    from interrupt context so a spinlock must be used.
->>
->> - Updated to version 8 video-mux patchset from Philipp Zabel
->>    <p.zabel@pengutronix.de>.
->>
->>
->> Marek Vasut (1):
->>    media: imx: Drop warning upon multiple S_STREAM disable calls
->>
->> Philipp Zabel (8):
->>    dt-bindings: Add bindings for video-multiplexer device
->>    ARM: dts: imx6qdl: add multiplexer controls
->>    ARM: dts: imx6qdl: Add video multiplexers, mipi_csi, and their
->>      connections
->>    add mux and video interface bridge entity functions
->>    platform: add video-multiplexer subdevice driver
->>    media: imx: csi: increase burst size for YUV formats
->>    media: imx: csi: add frame skipping support
->>    media: imx: csi: add sink selection rectangles
->>
->> Russell King (3):
->>    media: imx: csi: add support for bayer formats
->>    media: imx: csi: add frame size/interval enumeration
->>    media: imx: capture: add frame sizes/interval enumeration
->>
->> Steve Longerbeam (22):
->>    [media] dt-bindings: Add bindings for i.MX media driver
->>    [media] dt/bindings: Add bindings for OV5640
->>    ARM: dts: imx6qdl: Add compatible, clocks, irqs to MIPI CSI-2 node
->>    ARM: dts: imx6qdl: add capture-subsystem device
->>    ARM: dts: imx6qdl-sabrelite: remove erratum ERR006687 workaround
->>    ARM: dts: imx6-sabrelite: add OV5642 and OV5640 camera sensors
->>    ARM: dts: imx6-sabresd: add OV5642 and OV5640 camera sensors
->>    ARM: dts: imx6-sabreauto: create i2cmux for i2c3
->>    ARM: dts: imx6-sabreauto: add reset-gpios property for max7310_b
->>    ARM: dts: imx6-sabreauto: add pinctrl for gpt input capture
->>    ARM: dts: imx6-sabreauto: add the ADV7180 video decoder
->>    [media] add Omnivision OV5640 sensor driver
->>    media: Add userspace header file for i.MX
->>    media: Add i.MX media core driver
->>    media: imx: Add a TODO file
->>    media: imx: Add Capture Device Interface
->>    media: imx: Add CSI subdev driver
->>    media: imx: Add VDIC subdev driver
->>    media: imx: Add IC subdev drivers
->>    media: imx: Add MIPI CSI-2 Receiver subdev driver
->>    media: imx: set and propagate default field, colorimetry
->>    ARM: imx_v6_v7_defconfig: Enable staging video4linux drivers
->>
->>   .../devicetree/bindings/media/i2c/ov5640.txt       |   45 +
->>   Documentation/devicetree/bindings/media/imx.txt    |   47 +
->>   .../devicetree/bindings/media/video-mux.txt        |   60 +
->>   Documentation/media/uapi/mediactl/media-types.rst  |   21 +
->>   Documentation/media/v4l-drivers/imx.rst            |  614 +++++
->>   arch/arm/boot/dts/imx6dl-sabrelite.dts             |    5 +
->>   arch/arm/boot/dts/imx6dl-sabresd.dts               |    5 +
->>   arch/arm/boot/dts/imx6dl.dtsi                      |  189 ++
->>   arch/arm/boot/dts/imx6q-sabrelite.dts              |    5 +
->>   arch/arm/boot/dts/imx6q-sabresd.dts                |    5 +
->>   arch/arm/boot/dts/imx6q.dtsi                       |  125 ++
->>   arch/arm/boot/dts/imx6qdl-sabreauto.dtsi           |  136 +-
->>   arch/arm/boot/dts/imx6qdl-sabrelite.dtsi           |  152 +-
->>   arch/arm/boot/dts/imx6qdl-sabresd.dtsi             |  114 +-
->>   arch/arm/boot/dts/imx6qdl.dtsi                     |   20 +-
->>   arch/arm/configs/imx_v6_v7_defconfig               |   11 +
->>   drivers/media/i2c/Kconfig                          |   10 +
->>   drivers/media/i2c/Makefile                         |    1 +
->>   drivers/media/i2c/ov5640.c                         | 2344 ++++++++++++++++++++
->>   drivers/media/platform/Kconfig                     |    6 +
->>   drivers/media/platform/Makefile                    |    2 +
->>   drivers/media/platform/video-mux.c                 |  334 +++
->>   drivers/staging/media/Kconfig                      |    2 +
->>   drivers/staging/media/Makefile                     |    1 +
->>   drivers/staging/media/imx/Kconfig                  |   21 +
->>   drivers/staging/media/imx/Makefile                 |   12 +
->>   drivers/staging/media/imx/TODO                     |   23 +
->>   drivers/staging/media/imx/imx-ic-common.c          |  113 +
->>   drivers/staging/media/imx/imx-ic-prp.c             |  518 +++++
->>   drivers/staging/media/imx/imx-ic-prpencvf.c        | 1309 +++++++++++
->>   drivers/staging/media/imx/imx-ic.h                 |   38 +
->>   drivers/staging/media/imx/imx-media-capture.c      |  775 +++++++
->>   drivers/staging/media/imx/imx-media-csi.c          | 1816 +++++++++++++++
->>   drivers/staging/media/imx/imx-media-dev.c          |  666 ++++++
->>   drivers/staging/media/imx/imx-media-fim.c          |  494 +++++
->>   drivers/staging/media/imx/imx-media-internal-sd.c  |  349 +++
->>   drivers/staging/media/imx/imx-media-of.c           |  270 +++
->>   drivers/staging/media/imx/imx-media-utils.c        |  896 ++++++++
->>   drivers/staging/media/imx/imx-media-vdic.c         | 1009 +++++++++
->>   drivers/staging/media/imx/imx-media.h              |  325 +++
->>   drivers/staging/media/imx/imx6-mipi-csi2.c         |  698 ++++++
->>   include/linux/imx-media.h                          |   29 +
->>   include/media/imx.h                                |   15 +
->>   include/uapi/linux/media.h                         |    6 +
->>   include/uapi/linux/v4l2-controls.h                 |    4 +
->>   45 files changed, 13613 insertions(+), 27 deletions(-)
->>   create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5640.txt
->>   create mode 100644 Documentation/devicetree/bindings/media/imx.txt
->>   create mode 100644 Documentation/devicetree/bindings/media/video-mux.txt
->>   create mode 100644 Documentation/media/v4l-drivers/imx.rst
->>   create mode 100644 drivers/media/i2c/ov5640.c
->>   create mode 100644 drivers/media/platform/video-mux.c
->>   create mode 100644 drivers/staging/media/imx/Kconfig
->>   create mode 100644 drivers/staging/media/imx/Makefile
->>   create mode 100644 drivers/staging/media/imx/TODO
->>   create mode 100644 drivers/staging/media/imx/imx-ic-common.c
->>   create mode 100644 drivers/staging/media/imx/imx-ic-prp.c
->>   create mode 100644 drivers/staging/media/imx/imx-ic-prpencvf.c
->>   create mode 100644 drivers/staging/media/imx/imx-ic.h
->>   create mode 100644 drivers/staging/media/imx/imx-media-capture.c
->>   create mode 100644 drivers/staging/media/imx/imx-media-csi.c
->>   create mode 100644 drivers/staging/media/imx/imx-media-dev.c
->>   create mode 100644 drivers/staging/media/imx/imx-media-fim.c
->>   create mode 100644 drivers/staging/media/imx/imx-media-internal-sd.c
->>   create mode 100644 drivers/staging/media/imx/imx-media-of.c
->>   create mode 100644 drivers/staging/media/imx/imx-media-utils.c
->>   create mode 100644 drivers/staging/media/imx/imx-media-vdic.c
->>   create mode 100644 drivers/staging/media/imx/imx-media.h
->>   create mode 100644 drivers/staging/media/imx/imx6-mipi-csi2.c
->>   create mode 100644 include/linux/imx-media.h
->>   create mode 100644 include/media/imx.h
->>
+> As discussed previously, I added a warn message instead of returning
+> error to give drivers some time to adapt.
+> But the problem is that: as the format is set by userspace, it is
+> possible that userspace will set the wrong format at pads and see these
+> messages when there is no error in the driver's code at all (or maybe
+> this is not a problem, just noise in the log).
 > 
+> Helen
+> ---
+>  drivers/media/v4l2-core/v4l2-subdev.c | 38 +++++++++++++++++++++++++++++++++++
+>  1 file changed, 38 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+> index da78497..1a642c7 100644
+> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> @@ -508,6 +508,44 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
+>  	    || source_fmt->format.code != sink_fmt->format.code)
+>  		return -EPIPE;
+>  
+> +	/*
+> +	 * TODO: return -EPIPE instead of printing a warning in the following
+> +	 * checks. As colorimetry properties were added after most of the
+> +	 * drivers, only a warning was added to avoid potential regressions
+> +	 */
+> +
+> +	/* colorspace match. */
+> +	if (source_fmt->format.colorspace != sink_fmt->format.colorspace)
+> +		dev_warn(sd->v4l2_dev->dev,
+> +			 "colorspace doesn't match in link \"%s\":%d->\"%s\":%d\n",
+> +			link->source->entity->name, link->source->index,
+> +			link->sink->entity->name, link->sink->index);
+> +
+> +	/* Colorimetry must match if they are not set to DEFAULT */
+> +	if (source_fmt->format.ycbcr_enc != V4L2_YCBCR_ENC_DEFAULT
+> +	    && sink_fmt->format.ycbcr_enc != V4L2_YCBCR_ENC_DEFAULT
+> +	    && source_fmt->format.ycbcr_enc != sink_fmt->format.ycbcr_enc)
+> +		dev_warn(sd->v4l2_dev->dev,
+> +			 "YCbCr encoding doesn't match in link \"%s\":%d->\"%s\":%d\n",
+> +			link->source->entity->name, link->source->index,
+> +			link->sink->entity->name, link->sink->index);
+> +
+> +	if (source_fmt->format.quantization != V4L2_QUANTIZATION_DEFAULT
+> +	    && sink_fmt->format.quantization != V4L2_QUANTIZATION_DEFAULT
+> +	    && source_fmt->format.quantization != sink_fmt->format.quantization)
+> +		dev_warn(sd->v4l2_dev->dev,
+> +			 "quantization doesn't match in link \"%s\":%d->\"%s\":%d\n",
+> +			link->source->entity->name, link->source->index,
+> +			link->sink->entity->name, link->sink->index);
+> +
+> +	if (source_fmt->format.xfer_func != V4L2_XFER_FUNC_DEFAULT
+> +	    && sink_fmt->format.xfer_func != V4L2_XFER_FUNC_DEFAULT
+> +	    && source_fmt->format.xfer_func != sink_fmt->format.xfer_func)
+> +		dev_warn(sd->v4l2_dev->dev,
+> +			 "transfer function doesn't match in link \"%s\":%d->\"%s\":%d\n",
+> +			link->source->entity->name, link->source->index,
+> +			link->sink->entity->name, link->sink->index);
+> +
+>  	/* The field order must match, or the sink field order must be NONE
+>  	 * to support interlaced hardware connected to bridges that support
+>  	 * progressive formats only.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
