@@ -1,96 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:34329 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752194AbdFGSfx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:35:53 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v8 34/34] ARM: imx_v6_v7_defconfig: Enable staging video4linux drivers
-Date: Wed,  7 Jun 2017 11:34:13 -0700
-Message-Id: <1496860453-6282-35-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34304 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752322AbdFNJrn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Jun 2017 05:47:43 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org
+Cc: devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
+        robh@kernel.org, pavel@ucw.cz
+Subject: [PATCH 1/8] dt: bindings: Add a binding for flash devices associated to a sensor
+Date: Wed, 14 Jun 2017 12:47:12 +0300
+Message-Id: <1497433639-13101-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable i.MX v4l2 media staging driver. For video capture on i.MX, the
-video multiplexer subdev is required. On the SabreAuto, the ADV7180
-video decoder is required along with i2c-mux-gpio. The Sabrelite
-and SabreSD require the OV5640 and the SabreLite requires PWM clocks
-for the OV5640.
+Camera flash drivers (and LEDs) are separate from the sensor devices in
+DT. In order to make an association between the two, provide the
+association information to the software.
 
-Increase max zoneorder to allow larger video buffer allocations.
-
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- arch/arm/configs/imx_v6_v7_defconfig | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ Documentation/devicetree/bindings/media/video-interfaces.txt | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/arch/arm/configs/imx_v6_v7_defconfig b/arch/arm/configs/imx_v6_v7_defconfig
-index bb6fa56..63caf25 100644
---- a/arch/arm/configs/imx_v6_v7_defconfig
-+++ b/arch/arm/configs/imx_v6_v7_defconfig
-@@ -51,6 +51,7 @@ CONFIG_PREEMPT_VOLUNTARY=y
- CONFIG_AEABI=y
- CONFIG_HIGHMEM=y
- CONFIG_CMA=y
-+CONFIG_FORCE_MAX_ZONEORDER=14
- CONFIG_CMDLINE="noinitrd console=ttymxc0,115200"
- CONFIG_KEXEC=y
- CONFIG_CPU_FREQ=y
-@@ -183,6 +184,7 @@ CONFIG_SERIAL_FSL_LPUART=y
- CONFIG_SERIAL_FSL_LPUART_CONSOLE=y
- # CONFIG_I2C_COMPAT is not set
- CONFIG_I2C_CHARDEV=y
-+CONFIG_I2C_MUX=y
- CONFIG_I2C_MUX_GPIO=y
- # CONFIG_I2C_HELPER_AUTO is not set
- CONFIG_I2C_ALGOPCF=m
-@@ -223,14 +225,20 @@ CONFIG_REGULATOR_PFUZE100=y
- CONFIG_MEDIA_SUPPORT=y
- CONFIG_MEDIA_CAMERA_SUPPORT=y
- CONFIG_MEDIA_RC_SUPPORT=y
-+CONFIG_MEDIA_CONTROLLER=y
-+CONFIG_VIDEO_V4L2_SUBDEV_API=y
- CONFIG_RC_DEVICES=y
- CONFIG_IR_GPIO_CIR=y
- CONFIG_MEDIA_USB_SUPPORT=y
- CONFIG_USB_VIDEO_CLASS=m
- CONFIG_V4L_PLATFORM_DRIVERS=y
-+CONFIG_VIDEO_MUX=y
- CONFIG_SOC_CAMERA=y
- CONFIG_V4L_MEM2MEM_DRIVERS=y
- CONFIG_VIDEO_CODA=y
-+# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
-+CONFIG_VIDEO_ADV7180=m
-+CONFIG_VIDEO_OV5640=m
- CONFIG_SOC_CAMERA_OV2640=y
- CONFIG_IMX_IPUV3_CORE=y
- CONFIG_DRM=y
-@@ -340,6 +348,9 @@ CONFIG_FSL_EDMA=y
- CONFIG_IMX_SDMA=y
- CONFIG_MXS_DMA=y
- CONFIG_STAGING=y
-+CONFIG_STAGING_MEDIA=y
-+CONFIG_VIDEO_IMX_MEDIA=y
-+CONFIG_COMMON_CLK_PWM=y
- CONFIG_IIO=y
- CONFIG_VF610_ADC=y
- CONFIG_MPL3115=y
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index 9cd2a36..9723f7e 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -67,6 +67,14 @@ are required in a relevant parent node:
+ 		    identifier, should be 1.
+  - #size-cells    : should be zero.
+ 
++
++Optional properties
++-------------------
++
++- flash: phandle referring to the flash driver chip. A flash driver may
++  have multiple flashes connected to it.
++
++
+ Optional endpoint properties
+ ----------------------------
+ 
 -- 
-2.7.4
+2.1.4
