@@ -1,49 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f176.google.com ([209.85.128.176]:33663 "EHLO
-        mail-wr0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752661AbdFOQd3 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34328 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752220AbdFNJr2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 12:33:29 -0400
-Received: by mail-wr0-f176.google.com with SMTP id r103so25476281wrb.0
-        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 09:33:29 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v11 19/19] media: venus: enable building with COMPILE_TEST
-Date: Thu, 15 Jun 2017 19:32:00 +0300
-Message-Id: <1497544320-2269-20-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
+        Wed, 14 Jun 2017 05:47:28 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org
+Cc: devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
+        robh@kernel.org, pavel@ucw.cz
+Subject: [PATCH 4/8] v4l2-flash: Use led_classdev instead of led_classdev_flash for indicator
+Date: Wed, 14 Jun 2017 12:47:15 +0300
+Message-Id: <1497433639-13101-5-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We want all media drivers to build with COMPILE_TEST, as the
-Coverity instance we use on Kernel works only for x86. Also,
-our test workflow relies on it, in order to identify git
-bisect breakages.
+The V4L2 flash class initialisation expects struct led_classdev_flash that
+describes an indicator but only uses struct led_classdev which is a field
+iled_cdev in the struct. Use struct iled_cdev only.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-flash-led-class.c | 19 +++++++------------
+ include/media/v4l2-flash-led-class.h           |  6 +++---
+ 2 files changed, 10 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 6027dbd4e04d..f9bbba5c5dd6 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -467,7 +467,7 @@ config VIDEO_TI_VPE_DEBUG
- config VIDEO_QCOM_VENUS
- 	tristate "Qualcomm Venus V4L2 encoder/decoder driver"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
--	depends on ARCH_QCOM && IOMMU_DMA
-+	depends on (ARCH_QCOM && IOMMU_DMA) || COMPILE_TEST
- 	select QCOM_MDT_LOADER
- 	select VIDEOBUF2_DMA_SG
- 	select V4L2_MEM2MEM_DEV
+diff --git a/drivers/media/v4l2-core/v4l2-flash-led-class.c b/drivers/media/v4l2-core/v4l2-flash-led-class.c
+index 7b82881..6d69119 100644
+--- a/drivers/media/v4l2-core/v4l2-flash-led-class.c
++++ b/drivers/media/v4l2-core/v4l2-flash-led-class.c
+@@ -110,7 +110,7 @@ static void v4l2_flash_set_led_brightness(struct v4l2_flash *v4l2_flash,
+ 		led_set_brightness_sync(&v4l2_flash->fled_cdev->led_cdev,
+ 					brightness);
+ 	} else {
+-		led_set_brightness_sync(&v4l2_flash->iled_cdev->led_cdev,
++		led_set_brightness_sync(v4l2_flash->iled_cdev,
+ 					brightness);
+ 	}
+ }
+@@ -133,7 +133,7 @@ static int v4l2_flash_update_led_brightness(struct v4l2_flash *v4l2_flash,
+ 			return 0;
+ 		led_cdev = &v4l2_flash->fled_cdev->led_cdev;
+ 	} else {
+-		led_cdev = &v4l2_flash->iled_cdev->led_cdev;
++		led_cdev = v4l2_flash->iled_cdev;
+ 	}
+ 
+ 	ret = led_update_brightness(led_cdev);
+@@ -529,8 +529,7 @@ static int v4l2_flash_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+ 	struct v4l2_flash *v4l2_flash = v4l2_subdev_to_v4l2_flash(sd);
+ 	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
+ 	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
+-	struct led_classdev_flash *iled_cdev = v4l2_flash->iled_cdev;
+-	struct led_classdev *led_cdev_ind = NULL;
++	struct led_classdev *led_cdev_ind = v4l2_flash->iled_cdev;
+ 	int ret = 0;
+ 
+ 	if (!v4l2_fh_is_singular(&fh->vfh))
+@@ -543,9 +542,7 @@ static int v4l2_flash_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+ 
+ 	mutex_unlock(&led_cdev->led_access);
+ 
+-	if (iled_cdev) {
+-		led_cdev_ind = &iled_cdev->led_cdev;
+-
++	if (led_cdev_ind) {
+ 		mutex_lock(&led_cdev_ind->led_access);
+ 
+ 		led_sysfs_disable(led_cdev_ind);
+@@ -578,7 +575,7 @@ static int v4l2_flash_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+ 	struct v4l2_flash *v4l2_flash = v4l2_subdev_to_v4l2_flash(sd);
+ 	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
+ 	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
+-	struct led_classdev_flash *iled_cdev = v4l2_flash->iled_cdev;
++	struct led_classdev *led_cdev_ind = v4l2_flash->iled_cdev;
+ 	int ret = 0;
+ 
+ 	if (!v4l2_fh_is_singular(&fh->vfh))
+@@ -593,9 +590,7 @@ static int v4l2_flash_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+ 
+ 	mutex_unlock(&led_cdev->led_access);
+ 
+-	if (iled_cdev) {
+-		struct led_classdev *led_cdev_ind = &iled_cdev->led_cdev;
+-
++	if (led_cdev_ind) {
+ 		mutex_lock(&led_cdev_ind->led_access);
+ 		led_sysfs_enable(led_cdev_ind);
+ 		mutex_unlock(&led_cdev_ind->led_access);
+@@ -614,7 +609,7 @@ static const struct v4l2_subdev_ops v4l2_flash_subdev_ops;
+ struct v4l2_flash *v4l2_flash_init(
+ 	struct device *dev, struct fwnode_handle *fwn,
+ 	struct led_classdev_flash *fled_cdev,
+-	struct led_classdev_flash *iled_cdev,
++	struct led_classdev *iled_cdev,
+ 	const struct v4l2_flash_ops *ops,
+ 	struct v4l2_flash_config *config)
+ {
+diff --git a/include/media/v4l2-flash-led-class.h b/include/media/v4l2-flash-led-class.h
+index f9dcd54..54e31a8 100644
+--- a/include/media/v4l2-flash-led-class.h
++++ b/include/media/v4l2-flash-led-class.h
+@@ -85,7 +85,7 @@ struct v4l2_flash_config {
+  */
+ struct v4l2_flash {
+ 	struct led_classdev_flash *fled_cdev;
+-	struct led_classdev_flash *iled_cdev;
++	struct led_classdev *iled_cdev;
+ 	const struct v4l2_flash_ops *ops;
+ 
+ 	struct v4l2_subdev sd;
+@@ -124,7 +124,7 @@ static inline struct v4l2_flash *v4l2_ctrl_to_v4l2_flash(struct v4l2_ctrl *c)
+ struct v4l2_flash *v4l2_flash_init(
+ 	struct device *dev, struct fwnode_handle *fwn,
+ 	struct led_classdev_flash *fled_cdev,
+-	struct led_classdev_flash *iled_cdev,
++	struct led_classdev *iled_cdev,
+ 	const struct v4l2_flash_ops *ops,
+ 	struct v4l2_flash_config *config);
+ 
+@@ -140,7 +140,7 @@ void v4l2_flash_release(struct v4l2_flash *v4l2_flash);
+ static inline struct v4l2_flash *v4l2_flash_init(
+ 	struct device *dev, struct fwnode_handle *fwn,
+ 	struct led_classdev_flash *fled_cdev,
+-	struct led_classdev_flash *iled_cdev,
++	struct led_classdev *iled_cdev,
+ 	const struct v4l2_flash_ops *ops,
+ 	struct v4l2_flash_config *config)
+ {
 -- 
-2.7.4
+2.1.4
