@@ -1,733 +1,2674 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:58919 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751150AbdFCDBv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 23:01:51 -0400
-From: Helen Koike <helen.koike@collabora.com>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, jgebben@codeaurora.org,
-        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [RFC PATCH v3 11/11] [media] vimc: sca: Add scaler
-Date: Fri,  2 Jun 2017 23:58:11 -0300
-Message-Id: <1496458714-16834-12-git-send-email-helen.koike@collabora.com>
-In-Reply-To: <1496458714-16834-1-git-send-email-helen.koike@collabora.com>
-References: <1491604632-23544-1-git-send-email-helen.koike@collabora.com>
- <1496458714-16834-1-git-send-email-helen.koike@collabora.com>
+Received: from mga01.intel.com ([192.55.52.88]:35648 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753217AbdFNBlQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Jun 2017 21:41:16 -0400
+From: chiranjeevi.rapolu@intel.com
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        tfiga@chromium.org
+Cc: jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
+        hyungwoo.yang@intel.com,
+        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+Subject: [PATCH v3 1/1] i2c: Add Omnivision OV5670 5M sensor support
+Date: Tue, 13 Jun 2017 18:39:08 -0700
+Message-Id: <1497404348-16255-1-git-send-email-chiranjeevi.rapolu@intel.com>
+In-Reply-To: <1495752141-29922-1-git-send-email-chiranjeevi.rapolu@intel.com>
+References: <1495752141-29922-1-git-send-email-chiranjeevi.rapolu@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement scaler and integrated with the core
+From: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
 
-Signed-off-by: Helen Koike <helen.koike@collabora.com>
+Provides single source pad with up to 2592x1944 pixels at 10-bit raw
+bayer format over MIPI CSI2 two lanes at 640Mbps/lane.
+The driver supports following features:
+- up to  30fps at 5M pixels
+- manual exposure
+- digital/analog gain
+- V-blank/H-blank
+- test pattern
+- media controller
+- runtime pm
 
+Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
 ---
+ drivers/media/i2c/Kconfig  |   12 +
+ drivers/media/i2c/Makefile |    1 +
+ drivers/media/i2c/ov5670.c | 2591 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 2604 insertions(+)
+ create mode 100644 drivers/media/i2c/ov5670.c
 
-Changes in v3:
-[media] vimc: sca: Add scaler
-	- Declare frame_size as a local variable
-	- s_stream(sd, 1): return 0 if stream is already enabled
-	- s_stream(sd, 0): return 0 if stream is already disabled
-	- s_stream: add ret variable to propagate return errors
-	- structure code to be a module, use platform_driver and component system
-	- s/thought/through
-	- clamp height and width of the image by an even value
-	- if user try to set colorspace to an invalid format, set all
-	    colorimetry parameters to _DEFAULT
-	- uset _DEFAULT for colorimetry in the default format
-
-Changes in v2:
-[media] vimc: sca: Add scaler
-	- Add function MEDIA_ENT_F_IO_V4L
-	- remove v4l2_dev and dev
-	- s/sink_mbus_fmt/sink_fmt
-	- remove BUG_ON, remove redundant if else, rewrite TODO, check end of enum
-	- rm src_width/height, enum fsize with min and max values
-	- set/try fmt
-	- remove unecessary include freezer.h
-	- core: add bayer boolean in pixel table
-	- coding style
-	- fix bug in enum frame size
-	- check pad types on create
-	- return EBUSY when trying to set the format while stream is on
-	- remove vsd struct
-	- add IS_SRC and IS_SINK macros
-	- add sca_mult as a parameter of the module
-	- check set_fmt default parameters for quantization, colorspace ...
-	- add more dev_dbg
-
-
----
- drivers/media/platform/vimc/Makefile      |   3 +-
- drivers/media/platform/vimc/vimc-common.c |  27 ++
- drivers/media/platform/vimc/vimc-common.h |   1 +
- drivers/media/platform/vimc/vimc-scaler.c | 469 ++++++++++++++++++++++++++++++
- 4 files changed, 499 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/platform/vimc/vimc-scaler.c
-
-diff --git a/drivers/media/platform/vimc/Makefile b/drivers/media/platform/vimc/Makefile
-index 4fba8ef..68c5d98 100644
---- a/drivers/media/platform/vimc/Makefile
-+++ b/drivers/media/platform/vimc/Makefile
-@@ -2,7 +2,8 @@ vimc-objs := vimc-core.o
- vimc_capture-objs := vimc-capture.o
- vimc_common-objs := vimc-common.o
- vimc_debayer-objs := vimc-debayer.o
-+vimc_scaler-objs := vimc-scaler.o
- vimc_sensor-objs := vimc-sensor.o
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index c380e24..55e1877 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -573,6 +573,18 @@ config VIDEO_OV5647
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called ov5647.
  
- obj-$(CONFIG_VIDEO_VIMC) += vimc.o vimc_capture.o vimc_common.o vimc-debayer.o \
--				vimc_sensor.o
-+				vimc_scaler.o vimc_sensor.o
-diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
-index d5ed387..68887d7 100644
---- a/drivers/media/platform/vimc/vimc-common.c
-+++ b/drivers/media/platform/vimc/vimc-common.c
-@@ -20,6 +20,10 @@
- 
- #include "vimc-common.h"
- 
-+/*
-+ * NOTE: non-bayer formats need to come first (necessary for enum_mbus_code
-+ * in the scaler)
-+ */
- static const struct vimc_pix_map vimc_pix_map_list[] = {
- 	/* TODO: add all missing formats */
- 
-@@ -28,16 +32,19 @@ static const struct vimc_pix_map vimc_pix_map_list[] = {
- 		.code = MEDIA_BUS_FMT_BGR888_1X24,
- 		.pixelformat = V4L2_PIX_FMT_BGR24,
- 		.bpp = 3,
-+		.bayer = false,
- 	},
- 	{
- 		.code = MEDIA_BUS_FMT_RGB888_1X24,
- 		.pixelformat = V4L2_PIX_FMT_RGB24,
- 		.bpp = 3,
-+		.bayer = false,
- 	},
- 	{
- 		.code = MEDIA_BUS_FMT_ARGB8888_1X32,
- 		.pixelformat = V4L2_PIX_FMT_ARGB32,
- 		.bpp = 4,
-+		.bayer = false,
- 	},
- 
- 	/* Bayer formats */
-@@ -45,41 +52,49 @@ static const struct vimc_pix_map vimc_pix_map_list[] = {
- 		.code = MEDIA_BUS_FMT_SBGGR8_1X8,
- 		.pixelformat = V4L2_PIX_FMT_SBGGR8,
- 		.bpp = 1,
-+		.bayer = true,
- 	},
- 	{
- 		.code = MEDIA_BUS_FMT_SGBRG8_1X8,
- 		.pixelformat = V4L2_PIX_FMT_SGBRG8,
- 		.bpp = 1,
-+		.bayer = true,
- 	},
- 	{
- 		.code = MEDIA_BUS_FMT_SGRBG8_1X8,
- 		.pixelformat = V4L2_PIX_FMT_SGRBG8,
- 		.bpp = 1,
-+		.bayer = true,
- 	},
- 	{
- 		.code = MEDIA_BUS_FMT_SRGGB8_1X8,
- 		.pixelformat = V4L2_PIX_FMT_SRGGB8,
- 		.bpp = 1,
-+		.bayer = true,
- 	},
- 	{
- 		.code = MEDIA_BUS_FMT_SBGGR10_1X10,
- 		.pixelformat = V4L2_PIX_FMT_SBGGR10,
- 		.bpp = 2,
-+		.bayer = true,
- 	},
- 	{
- 		.code = MEDIA_BUS_FMT_SGBRG10_1X10,
- 		.pixelformat = V4L2_PIX_FMT_SGBRG10,
- 		.bpp = 2,
-+		.bayer = true,
- 	},
- 	{
- 		.code = MEDIA_BUS_FMT_SGRBG10_1X10,
- 		.pixelformat = V4L2_PIX_FMT_SGRBG10,
- 		.bpp = 2,
-+		.bayer = true,
- 	},
- 	{
- 		.code = MEDIA_BUS_FMT_SRGGB10_1X10,
- 		.pixelformat = V4L2_PIX_FMT_SRGGB10,
- 		.bpp = 2,
-+		.bayer = true,
- 	},
- 
- 	/* 10bit raw bayer a-law compressed to 8 bits */
-@@ -87,21 +102,25 @@ static const struct vimc_pix_map vimc_pix_map_list[] = {
- 		.code = MEDIA_BUS_FMT_SBGGR10_ALAW8_1X8,
- 		.pixelformat = V4L2_PIX_FMT_SBGGR10ALAW8,
- 		.bpp = 1,
-+		.bayer = true,
- 	},
- 	{
- 		.code = MEDIA_BUS_FMT_SGBRG10_ALAW8_1X8,
- 		.pixelformat = V4L2_PIX_FMT_SGBRG10ALAW8,
- 		.bpp = 1,
-+		.bayer = true,
- 	},
- 	{
- 		.code = MEDIA_BUS_FMT_SGRBG10_ALAW8_1X8,
- 		.pixelformat = V4L2_PIX_FMT_SGRBG10ALAW8,
- 		.bpp = 1,
-+		.bayer = true,
- 	},
- 	{
- 		.code = MEDIA_BUS_FMT_SRGGB10_ALAW8_1X8,
- 		.pixelformat = V4L2_PIX_FMT_SRGGB10ALAW8,
- 		.bpp = 1,
-+		.bayer = true,
- 	},
- 
- 	/* 10bit raw bayer DPCM compressed to 8 bits */
-@@ -109,41 +128,49 @@ static const struct vimc_pix_map vimc_pix_map_list[] = {
- 		.code = MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8,
- 		.pixelformat = V4L2_PIX_FMT_SBGGR10DPCM8,
- 		.bpp = 1,
-+		.bayer = true,
- 	},
- 	{
- 		.code = MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8,
- 		.pixelformat = V4L2_PIX_FMT_SGBRG10DPCM8,
- 		.bpp = 1,
-+		.bayer = true,
- 	},
- 	{
- 		.code = MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8,
- 		.pixelformat = V4L2_PIX_FMT_SGRBG10DPCM8,
- 		.bpp = 1,
-+		.bayer = true,
- 	},
- 	{
- 		.code = MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8,
- 		.pixelformat = V4L2_PIX_FMT_SRGGB10DPCM8,
- 		.bpp = 1,
-+		.bayer = true,
- 	},
- 	{
- 		.code = MEDIA_BUS_FMT_SBGGR12_1X12,
- 		.pixelformat = V4L2_PIX_FMT_SBGGR12,
- 		.bpp = 2,
-+		.bayer = true,
- 	},
- 	{
- 		.code = MEDIA_BUS_FMT_SGBRG12_1X12,
- 		.pixelformat = V4L2_PIX_FMT_SGBRG12,
- 		.bpp = 2,
-+		.bayer = true,
- 	},
- 	{
- 		.code = MEDIA_BUS_FMT_SGRBG12_1X12,
- 		.pixelformat = V4L2_PIX_FMT_SGRBG12,
- 		.bpp = 2,
-+		.bayer = true,
- 	},
- 	{
- 		.code = MEDIA_BUS_FMT_SRGGB12_1X12,
- 		.pixelformat = V4L2_PIX_FMT_SRGGB12,
- 		.bpp = 2,
-+		.bayer = true,
- 	},
- };
- 
-diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
-index c63d51f..e1687f0 100644
---- a/drivers/media/platform/vimc/vimc-common.h
-+++ b/drivers/media/platform/vimc/vimc-common.h
-@@ -45,6 +45,7 @@ struct vimc_pix_map {
- 	unsigned int code;
- 	unsigned int bpp;
- 	u32 pixelformat;
-+	bool bayer;
- };
- 
- /**
-diff --git a/drivers/media/platform/vimc/vimc-scaler.c b/drivers/media/platform/vimc/vimc-scaler.c
++config VIDEO_OV5670
++	tristate "OmniVision OV5670 sensor support"
++	depends on I2C && VIDEO_V4L2
++	depends on MEDIA_CAMERA_SUPPORT
++	select V4L2_FWNODE
++	---help---
++	  This is a Video4Linux2 sensor-level driver for the OmniVision
++	  OV5670 camera.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called ov5670.
++
+ config VIDEO_OV7640
+ 	tristate "OmniVision OV7640 sensor support"
+ 	depends on I2C && VIDEO_V4L2
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 62323ec..de95651 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -60,6 +60,7 @@ obj-$(CONFIG_VIDEO_UPD64083) += upd64083.o
+ obj-$(CONFIG_VIDEO_OV2640) += ov2640.o
+ obj-$(CONFIG_VIDEO_OV5645) += ov5645.o
+ obj-$(CONFIG_VIDEO_OV5647) += ov5647.o
++obj-$(CONFIG_VIDEO_OV5670) += ov5670.o
+ obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
+ obj-$(CONFIG_VIDEO_OV7670) += ov7670.o
+ obj-$(CONFIG_VIDEO_OV9650) += ov9650.o
+diff --git a/drivers/media/i2c/ov5670.c b/drivers/media/i2c/ov5670.c
 new file mode 100644
-index 0000000..c98ced2
+index 0000000..64bb858
 --- /dev/null
-+++ b/drivers/media/platform/vimc/vimc-scaler.c
-@@ -0,0 +1,469 @@
++++ b/drivers/media/i2c/ov5670.c
+@@ -0,0 +1,2591 @@
 +/*
-+ * vimc-scaler.c Virtual Media Controller Driver
++ * Copyright (c) 2017 Intel Corporation.
 + *
-+ * Copyright (C) 2015-2017 Helen Koike <helen.fornazier@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
 + *
 + * This program is distributed in the hope that it will be useful,
 + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 + * GNU General Public License for more details.
 + *
 + */
 +
-+#include <linux/component.h>
++#include <linux/acpi.h>
++#include <linux/i2c.h>
 +#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/vmalloc.h>
-+#include <linux/v4l2-mediabus.h>
-+#include <media/v4l2-subdev.h>
++#include <linux/pm_runtime.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
 +
-+#include "vimc-common.h"
++#define OV5670_REG_CHIP_ID		0x300a
++#define OV5670_CHIP_ID			0x005670
 +
-+#define VIMC_SCA_DRV_NAME "vimc-scaler"
++#define OV5670_REG_MODE_SELECT		0x0100
++#define OV5670_MODE_STANDBY		0x00
++#define OV5670_MODE_STREAMING		0x01
 +
-+static unsigned int sca_mult = 3;
-+module_param(sca_mult, uint, 0000);
-+MODULE_PARM_DESC(sca_mult, " the image size multiplier");
++#define OV5670_REG_SOFTWARE_RST		0x0103
++#define OV5670_SOFTWARE_RST		0x01
 +
-+#define IS_SINK(pad)	(!pad)
-+#define IS_SRC(pad)	(pad)
-+#define MAX_ZOOM	8
++/* vertical-timings from sensor */
++#define OV5670_REG_VTS			0x380e
++#define OV5670_VTS_30FPS		0x0808 /* default for 30 fps */
++#define OV5670_VTS_MAX			0x7fff
++#define OV5670_VBLANK_MIN		56
 +
-+struct vimc_sca_device {
-+	struct vimc_ent_device ved;
++/* horizontal-timings from sensor */
++#define OV5670_MAX_PPL			3408	/* Maximum pixels per line */
++
++/* Exposure controls from sensor */
++#define OV5670_REG_EXPOSURE		0x3500
++#define	OV5670_EXPOSURE_MIN		0
++#define	OV5670_EXPOSURE_MAX		1048575
++#define	OV5670_EXPOSURE_STEP		1
++#define	OV5670_EXPOSURE_DEFAULT		31872
++
++/* Analog gain controls from sensor */
++#define OV5670_REG_ANALOG_GAIN		0x3508
++#define	ANALOG_GAIN_MIN			0
++#define	ANALOG_GAIN_MAX			8191
++#define	ANALOG_GAIN_STEP		1
++#define	ANALOG_GAIN_DEFAULT		128
++
++/* Digital gain controls from sensor */
++#define OV5670_REG_R_DGTL_GAIN		0x5032
++#define OV5670_REG_G_DGTL_GAIN		0x5034
++#define OV5670_REG_B_DGTL_GAIN		0x5036
++#define OV5670_DGTL_GAIN_MIN		0
++#define OV5670_DGTL_GAIN_MAX		4095
++#define OV5670_DGTL_GAIN_STEP		1
++#define OV5670_DGTL_GAIN_DEFAULT	1024
++
++/* Test Pattern Control */
++#define OV5670_REG_TEST_PATTERN		0x4303
++#define OV5670_TEST_PATTERN_ENABLE	BIT(3)
++#define OV5670_REG_TEST_PATTERN_CTRL	0x4320
++
++#define OV5670_REG_VALUE_08BIT		1
++#define OV5670_REG_VALUE_16BIT		2
++#define OV5670_REG_VALUE_24BIT		3
++
++struct ov5670_reg {
++	u16 address;
++	u8 val;
++};
++
++struct ov5670_reg_list {
++	u32 num_of_regs;
++	const struct ov5670_reg *regs;
++};
++
++struct ov5670_link_freq_config {
++	u32 pixel_rate;
++	const struct ov5670_reg_list reg_list;
++};
++
++struct ov5670_mode {
++	/* Frame width in pixels */
++	u32 width;
++
++	/* Frame height in pixels */
++	u32 height;
++
++	/* Vertical timining size */
++	u32 vts;
++
++	/* Initial number of frames to skip to avoid garbage in the frames */
++	u32 skip_frames;
++
++	/* Link frequency needed for this resolution */
++	u32 link_freq_index;
++
++	/* Sensor register settings for this resolution */
++	const struct ov5670_reg_list reg_list;
++};
++
++static const struct ov5670_reg mipi_data_rate_840mbps[] = {
++	{0x0300, 0x04},
++	{0x0301, 0x00},
++	{0x0302, 0x84},
++	{0x0303, 0x00},
++	{0x0304, 0x03},
++	{0x0305, 0x01},
++	{0x0306, 0x01},
++	{0x030a, 0x00},
++	{0x030b, 0x00},
++	{0x030c, 0x00},
++	{0x030d, 0x26},
++	{0x030e, 0x00},
++	{0x030f, 0x06},
++	{0x0312, 0x01},
++	{0x3031, 0x0a},
++};
++
++static const struct ov5670_reg mode_2592x1944_regs[] = {
++	{0x3000, 0x00},
++	{0x3002, 0x21},
++	{0x3005, 0xf0},
++	{0x3007, 0x00},
++	{0x3015, 0x0f},
++	{0x3018, 0x32},
++	{0x301a, 0xf0},
++	{0x301b, 0xf0},
++	{0x301c, 0xf0},
++	{0x301d, 0xf0},
++	{0x301e, 0xf0},
++	{0x3030, 0x00},
++	{0x3031, 0x0a},
++	{0x303c, 0xff},
++	{0x303e, 0xff},
++	{0x3040, 0xf0},
++	{0x3041, 0x00},
++	{0x3042, 0xf0},
++	{0x3106, 0x11},
++	{0x3500, 0x00},
++	{0x3501, 0x7c},
++	{0x3502, 0x80},
++	{0x3503, 0x04},
++	{0x3504, 0x03},
++	{0x3505, 0x83},
++	{0x3508, 0x04},
++	{0x3509, 0x00},
++	{0x350e, 0x04},
++	{0x350f, 0x00},
++	{0x3510, 0x00},
++	{0x3511, 0x02},
++	{0x3512, 0x00},
++	{0x3601, 0xc8},
++	{0x3610, 0x88},
++	{0x3612, 0x48},
++	{0x3614, 0x5b},
++	{0x3615, 0x96},
++	{0x3621, 0xd0},
++	{0x3622, 0x00},
++	{0x3623, 0x00},
++	{0x3633, 0x13},
++	{0x3634, 0x13},
++	{0x3635, 0x13},
++	{0x3636, 0x13},
++	{0x3645, 0x13},
++	{0x3646, 0x82},
++	{0x3650, 0x00},
++	{0x3652, 0xff},
++	{0x3655, 0x20},
++	{0x3656, 0xff},
++	{0x365a, 0xff},
++	{0x365e, 0xff},
++	{0x3668, 0x00},
++	{0x366a, 0x07},
++	{0x366e, 0x10},
++	{0x366d, 0x00},
++	{0x366f, 0x80},
++	{0x3700, 0x28},
++	{0x3701, 0x10},
++	{0x3702, 0x3a},
++	{0x3703, 0x19},
++	{0x3704, 0x10},
++	{0x3705, 0x00},
++	{0x3706, 0x66},
++	{0x3707, 0x08},
++	{0x3708, 0x34},
++	{0x3709, 0x40},
++	{0x370a, 0x01},
++	{0x370b, 0x1b},
++	{0x3714, 0x24},
++	{0x371a, 0x3e},
++	{0x3733, 0x00},
++	{0x3734, 0x00},
++	{0x373a, 0x05},
++	{0x373b, 0x06},
++	{0x373c, 0x0a},
++	{0x373f, 0xa0},
++	{0x3755, 0x00},
++	{0x3758, 0x00},
++	{0x375b, 0x0e},
++	{0x3766, 0x5f},
++	{0x3768, 0x00},
++	{0x3769, 0x22},
++	{0x3773, 0x08},
++	{0x3774, 0x1f},
++	{0x3776, 0x06},
++	{0x37a0, 0x88},
++	{0x37a1, 0x5c},
++	{0x37a7, 0x88},
++	{0x37a8, 0x70},
++	{0x37aa, 0x88},
++	{0x37ab, 0x48},
++	{0x37b3, 0x66},
++	{0x37c2, 0x04},
++	{0x37c5, 0x00},
++	{0x37c8, 0x00},
++	{0x3800, 0x00},
++	{0x3801, 0x0c},
++	{0x3802, 0x00},
++	{0x3803, 0x04},
++	{0x3804, 0x0a},
++	{0x3805, 0x33},
++	{0x3806, 0x07},
++	{0x3807, 0xa3},
++	{0x3808, 0x0a},
++	{0x3809, 0x20},
++	{0x380a, 0x07},
++	{0x380b, 0x98},
++	{0x380c, 0x06},
++	{0x380d, 0x90},
++	{0x380e, 0x07},
++	{0x380f, 0xb8},
++	{0x3811, 0x04},
++	{0x3813, 0x02},
++	{0x3814, 0x01},
++	{0x3815, 0x01},
++	{0x3816, 0x00},
++	{0x3817, 0x00},
++	{0x3818, 0x00},
++	{0x3819, 0x00},
++	{0x3820, 0x84},
++	{0x3821, 0x46},
++	{0x3822, 0x48},
++	{0x3826, 0x00},
++	{0x3827, 0x08},
++	{0x382a, 0x01},
++	{0x382b, 0x01},
++	{0x3830, 0x08},
++	{0x3836, 0x02},
++	{0x3837, 0x00},
++	{0x3838, 0x10},
++	{0x3841, 0xff},
++	{0x3846, 0x48},
++	{0x3861, 0x00},
++	{0x3862, 0x04},
++	{0x3863, 0x06},
++	{0x3a11, 0x01},
++	{0x3a12, 0x78},
++	{0x3b00, 0x00},
++	{0x3b02, 0x00},
++	{0x3b03, 0x00},
++	{0x3b04, 0x00},
++	{0x3b05, 0x00},
++	{0x3c00, 0x89},
++	{0x3c01, 0xab},
++	{0x3c02, 0x01},
++	{0x3c03, 0x00},
++	{0x3c04, 0x00},
++	{0x3c05, 0x03},
++	{0x3c06, 0x00},
++	{0x3c07, 0x05},
++	{0x3c0c, 0x00},
++	{0x3c0d, 0x00},
++	{0x3c0e, 0x00},
++	{0x3c0f, 0x00},
++	{0x3c40, 0x00},
++	{0x3c41, 0xa3},
++	{0x3c43, 0x7d},
++	{0x3c45, 0xd7},
++	{0x3c47, 0xfc},
++	{0x3c50, 0x05},
++	{0x3c52, 0xaa},
++	{0x3c54, 0x71},
++	{0x3c56, 0x80},
++	{0x3d85, 0x17},
++	{0x3f03, 0x00},
++	{0x3f0a, 0x00},
++	{0x3f0b, 0x00},
++	{0x4001, 0x60},
++	{0x4009, 0x0d},
++	{0x4020, 0x00},
++	{0x4021, 0x00},
++	{0x4022, 0x00},
++	{0x4023, 0x00},
++	{0x4024, 0x00},
++	{0x4025, 0x00},
++	{0x4026, 0x00},
++	{0x4027, 0x00},
++	{0x4028, 0x00},
++	{0x4029, 0x00},
++	{0x402a, 0x00},
++	{0x402b, 0x00},
++	{0x402c, 0x00},
++	{0x402d, 0x00},
++	{0x402e, 0x00},
++	{0x402f, 0x00},
++	{0x4040, 0x00},
++	{0x4041, 0x03},
++	{0x4042, 0x00},
++	{0x4043, 0x7A},
++	{0x4044, 0x00},
++	{0x4045, 0x7A},
++	{0x4046, 0x00},
++	{0x4047, 0x7A},
++	{0x4048, 0x00},
++	{0x4049, 0x7A},
++	{0x4307, 0x30},
++	{0x4500, 0x58},
++	{0x4501, 0x04},
++	{0x4502, 0x40},
++	{0x4503, 0x10},
++	{0x4508, 0xaa},
++	{0x4509, 0xaa},
++	{0x450a, 0x00},
++	{0x450b, 0x00},
++	{0x4600, 0x01},
++	{0x4601, 0x03},
++	{0x4700, 0xa4},
++	{0x4800, 0x4c},
++	{0x4816, 0x53},
++	{0x481f, 0x40},
++	{0x4837, 0x13},
++	{0x5000, 0x56},
++	{0x5001, 0x01},
++	{0x5002, 0x28},
++	{0x5004, 0x0c},
++	{0x5006, 0x0c},
++	{0x5007, 0xe0},
++	{0x5008, 0x01},
++	{0x5009, 0xb0},
++	{0x5901, 0x00},
++	{0x5a01, 0x00},
++	{0x5a03, 0x00},
++	{0x5a04, 0x0c},
++	{0x5a05, 0xe0},
++	{0x5a06, 0x09},
++	{0x5a07, 0xb0},
++	{0x5a08, 0x06},
++	{0x5e00, 0x00},
++	{0x3734, 0x40},
++	{0x5b00, 0x01},
++	{0x5b01, 0x10},
++	{0x5b02, 0x01},
++	{0x5b03, 0xdb},
++	{0x3d8c, 0x71},
++	{0x3d8d, 0xea},
++	{0x4017, 0x08},
++	{0x3618, 0x2a},
++	{0x5780, 0x3e},
++	{0x5781, 0x0f},
++	{0x5782, 0x44},
++	{0x5783, 0x02},
++	{0x5784, 0x01},
++	{0x5785, 0x01},
++	{0x5786, 0x00},
++	{0x5787, 0x04},
++	{0x5788, 0x02},
++	{0x5789, 0x0f},
++	{0x578a, 0xfd},
++	{0x578b, 0xf5},
++	{0x578c, 0xf5},
++	{0x578d, 0x03},
++	{0x578e, 0x08},
++	{0x578f, 0x0c},
++	{0x5790, 0x08},
++	{0x5791, 0x06},
++	{0x5792, 0x00},
++	{0x5793, 0x52},
++	{0x5794, 0xa3},
++	{0x3503, 0x00}
++};
++
++static const struct ov5670_reg mode_1296x972_regs[] = {
++	{0x3000, 0x00},
++	{0x3002, 0x21},
++	{0x3005, 0xf0},
++	{0x3007, 0x00},
++	{0x3015, 0x0f},
++	{0x3018, 0x32},
++	{0x301a, 0xf0},
++	{0x301b, 0xf0},
++	{0x301c, 0xf0},
++	{0x301d, 0xf0},
++	{0x301e, 0xf0},
++	{0x3030, 0x00},
++	{0x3031, 0x0a},
++	{0x303c, 0xff},
++	{0x303e, 0xff},
++	{0x3040, 0xf0},
++	{0x3041, 0x00},
++	{0x3042, 0xf0},
++	{0x3106, 0x11},
++	{0x3500, 0x00},
++	{0x3501, 0x7c},
++	{0x3502, 0x80},
++	{0x3503, 0x04},
++	{0x3504, 0x03},
++	{0x3505, 0x83},
++	{0x3508, 0x07},
++	{0x3509, 0x80},
++	{0x350e, 0x04},
++	{0x350f, 0x00},
++	{0x3510, 0x00},
++	{0x3511, 0x02},
++	{0x3512, 0x00},
++	{0x3601, 0xc8},
++	{0x3610, 0x88},
++	{0x3612, 0x48},
++	{0x3614, 0x5b},
++	{0x3615, 0x96},
++	{0x3621, 0xd0},
++	{0x3622, 0x00},
++	{0x3623, 0x00},
++	{0x3633, 0x13},
++	{0x3634, 0x13},
++	{0x3635, 0x13},
++	{0x3636, 0x13},
++	{0x3645, 0x13},
++	{0x3646, 0x82},
++	{0x3650, 0x00},
++	{0x3652, 0xff},
++	{0x3655, 0x20},
++	{0x3656, 0xff},
++	{0x365a, 0xff},
++	{0x365e, 0xff},
++	{0x3668, 0x00},
++	{0x366a, 0x07},
++	{0x366e, 0x08},
++	{0x366d, 0x00},
++	{0x366f, 0x80},
++	{0x3700, 0x28},
++	{0x3701, 0x10},
++	{0x3702, 0x3a},
++	{0x3703, 0x19},
++	{0x3704, 0x10},
++	{0x3705, 0x00},
++	{0x3706, 0x66},
++	{0x3707, 0x08},
++	{0x3708, 0x34},
++	{0x3709, 0x40},
++	{0x370a, 0x01},
++	{0x370b, 0x1b},
++	{0x3714, 0x24},
++	{0x371a, 0x3e},
++	{0x3733, 0x00},
++	{0x3734, 0x00},
++	{0x373a, 0x05},
++	{0x373b, 0x06},
++	{0x373c, 0x0a},
++	{0x373f, 0xa0},
++	{0x3755, 0x00},
++	{0x3758, 0x00},
++	{0x375b, 0x0e},
++	{0x3766, 0x5f},
++	{0x3768, 0x00},
++	{0x3769, 0x22},
++	{0x3773, 0x08},
++	{0x3774, 0x1f},
++	{0x3776, 0x06},
++	{0x37a0, 0x88},
++	{0x37a1, 0x5c},
++	{0x37a7, 0x88},
++	{0x37a8, 0x70},
++	{0x37aa, 0x88},
++	{0x37ab, 0x48},
++	{0x37b3, 0x66},
++	{0x37c2, 0x04},
++	{0x37c5, 0x00},
++	{0x37c8, 0x00},
++	{0x3800, 0x00},
++	{0x3801, 0x0c},
++	{0x3802, 0x00},
++	{0x3803, 0x04},
++	{0x3804, 0x0a},
++	{0x3805, 0x33},
++	{0x3806, 0x07},
++	{0x3807, 0xa3},
++	{0x3808, 0x05},
++	{0x3809, 0x10},
++	{0x380a, 0x03},
++	{0x380b, 0xcc},
++	{0x380c, 0x06},
++	{0x380d, 0x90},
++	{0x380e, 0x07},
++	{0x380f, 0xb8},
++	{0x3811, 0x04},
++	{0x3813, 0x04},
++	{0x3814, 0x03},
++	{0x3815, 0x01},
++	{0x3816, 0x00},
++	{0x3817, 0x00},
++	{0x3818, 0x00},
++	{0x3819, 0x00},
++	{0x3820, 0x94},
++	{0x3821, 0x47},
++	{0x3822, 0x48},
++	{0x3826, 0x00},
++	{0x3827, 0x08},
++	{0x382a, 0x03},
++	{0x382b, 0x01},
++	{0x3830, 0x08},
++	{0x3836, 0x02},
++	{0x3837, 0x00},
++	{0x3838, 0x10},
++	{0x3841, 0xff},
++	{0x3846, 0x48},
++	{0x3861, 0x00},
++	{0x3862, 0x04},
++	{0x3863, 0x06},
++	{0x3a11, 0x01},
++	{0x3a12, 0x78},
++	{0x3b00, 0x00},
++	{0x3b02, 0x00},
++	{0x3b03, 0x00},
++	{0x3b04, 0x00},
++	{0x3b05, 0x00},
++	{0x3c00, 0x89},
++	{0x3c01, 0xab},
++	{0x3c02, 0x01},
++	{0x3c03, 0x00},
++	{0x3c04, 0x00},
++	{0x3c05, 0x03},
++	{0x3c06, 0x00},
++	{0x3c07, 0x05},
++	{0x3c0c, 0x00},
++	{0x3c0d, 0x00},
++	{0x3c0e, 0x00},
++	{0x3c0f, 0x00},
++	{0x3c40, 0x00},
++	{0x3c41, 0xa3},
++	{0x3c43, 0x7d},
++	{0x3c45, 0xd7},
++	{0x3c47, 0xfc},
++	{0x3c50, 0x05},
++	{0x3c52, 0xaa},
++	{0x3c54, 0x71},
++	{0x3c56, 0x80},
++	{0x3d85, 0x17},
++	{0x3f03, 0x00},
++	{0x3f0a, 0x00},
++	{0x3f0b, 0x00},
++	{0x4001, 0x60},
++	{0x4009, 0x05},
++	{0x4020, 0x00},
++	{0x4021, 0x00},
++	{0x4022, 0x00},
++	{0x4023, 0x00},
++	{0x4024, 0x00},
++	{0x4025, 0x00},
++	{0x4026, 0x00},
++	{0x4027, 0x00},
++	{0x4028, 0x00},
++	{0x4029, 0x00},
++	{0x402a, 0x00},
++	{0x402b, 0x00},
++	{0x402c, 0x00},
++	{0x402d, 0x00},
++	{0x402e, 0x00},
++	{0x402f, 0x00},
++	{0x4040, 0x00},
++	{0x4041, 0x03},
++	{0x4042, 0x00},
++	{0x4043, 0x7A},
++	{0x4044, 0x00},
++	{0x4045, 0x7A},
++	{0x4046, 0x00},
++	{0x4047, 0x7A},
++	{0x4048, 0x00},
++	{0x4049, 0x7A},
++	{0x4307, 0x30},
++	{0x4500, 0x58},
++	{0x4501, 0x04},
++	{0x4502, 0x48},
++	{0x4503, 0x10},
++	{0x4508, 0x55},
++	{0x4509, 0x55},
++	{0x450a, 0x00},
++	{0x450b, 0x00},
++	{0x4600, 0x00},
++	{0x4601, 0x81},
++	{0x4700, 0xa4},
++	{0x4800, 0x4c},
++	{0x4816, 0x53},
++	{0x481f, 0x40},
++	{0x4837, 0x13},
++	{0x5000, 0x56},
++	{0x5001, 0x01},
++	{0x5002, 0x28},
++	{0x5004, 0x0c},
++	{0x5006, 0x0c},
++	{0x5007, 0xe0},
++	{0x5008, 0x01},
++	{0x5009, 0xb0},
++	{0x5901, 0x00},
++	{0x5a01, 0x00},
++	{0x5a03, 0x00},
++	{0x5a04, 0x0c},
++	{0x5a05, 0xe0},
++	{0x5a06, 0x09},
++	{0x5a07, 0xb0},
++	{0x5a08, 0x06},
++	{0x5e00, 0x00},
++	{0x3734, 0x40},
++	{0x5b00, 0x01},
++	{0x5b01, 0x10},
++	{0x5b02, 0x01},
++	{0x5b03, 0xdb},
++	{0x3d8c, 0x71},
++	{0x3d8d, 0xea},
++	{0x4017, 0x10},
++	{0x3618, 0x2a},
++	{0x5780, 0x3e},
++	{0x5781, 0x0f},
++	{0x5782, 0x44},
++	{0x5783, 0x02},
++	{0x5784, 0x01},
++	{0x5785, 0x01},
++	{0x5786, 0x00},
++	{0x5787, 0x04},
++	{0x5788, 0x02},
++	{0x5789, 0x0f},
++	{0x578a, 0xfd},
++	{0x578b, 0xf5},
++	{0x578c, 0xf5},
++	{0x578d, 0x03},
++	{0x578e, 0x08},
++	{0x578f, 0x0c},
++	{0x5790, 0x08},
++	{0x5791, 0x04},
++	{0x5792, 0x00},
++	{0x5793, 0x52},
++	{0x5794, 0xa3},
++	{0x3503, 0x00}
++};
++
++static const struct ov5670_reg mode_648x486_regs[] = {
++	{0x3000, 0x00},
++	{0x3002, 0x21},
++	{0x3005, 0xf0},
++	{0x3007, 0x00},
++	{0x3015, 0x0f},
++	{0x3018, 0x32},
++	{0x301a, 0xf0},
++	{0x301b, 0xf0},
++	{0x301c, 0xf0},
++	{0x301d, 0xf0},
++	{0x301e, 0xf0},
++	{0x3030, 0x00},
++	{0x3031, 0x0a},
++	{0x303c, 0xff},
++	{0x303e, 0xff},
++	{0x3040, 0xf0},
++	{0x3041, 0x00},
++	{0x3042, 0xf0},
++	{0x3106, 0x11},
++	{0x3500, 0x00},
++	{0x3501, 0x7c},
++	{0x3502, 0x80},
++	{0x3503, 0x04},
++	{0x3504, 0x03},
++	{0x3505, 0x83},
++	{0x3508, 0x04},
++	{0x3509, 0x00},
++	{0x350e, 0x04},
++	{0x350f, 0x00},
++	{0x3510, 0x00},
++	{0x3511, 0x02},
++	{0x3512, 0x00},
++	{0x3601, 0xc8},
++	{0x3610, 0x88},
++	{0x3612, 0x48},
++	{0x3614, 0x5b},
++	{0x3615, 0x96},
++	{0x3621, 0xd0},
++	{0x3622, 0x00},
++	{0x3623, 0x04},
++	{0x3633, 0x13},
++	{0x3634, 0x13},
++	{0x3635, 0x13},
++	{0x3636, 0x13},
++	{0x3645, 0x13},
++	{0x3646, 0x82},
++	{0x3650, 0x00},
++	{0x3652, 0xff},
++	{0x3655, 0x20},
++	{0x3656, 0xff},
++	{0x365a, 0xff},
++	{0x365e, 0xff},
++	{0x3668, 0x00},
++	{0x366a, 0x07},
++	{0x366e, 0x08},
++	{0x366d, 0x00},
++	{0x366f, 0x80},
++	{0x3700, 0x28},
++	{0x3701, 0x10},
++	{0x3702, 0x3a},
++	{0x3703, 0x19},
++	{0x3704, 0x10},
++	{0x3705, 0x00},
++	{0x3706, 0x66},
++	{0x3707, 0x08},
++	{0x3708, 0x34},
++	{0x3709, 0x40},
++	{0x370a, 0x01},
++	{0x370b, 0x1b},
++	{0x3714, 0x24},
++	{0x371a, 0x3e},
++	{0x3733, 0x00},
++	{0x3734, 0x00},
++	{0x373a, 0x05},
++	{0x373b, 0x06},
++	{0x373c, 0x0a},
++	{0x373f, 0xa0},
++	{0x3755, 0x00},
++	{0x3758, 0x00},
++	{0x375b, 0x0e},
++	{0x3766, 0x5f},
++	{0x3768, 0x00},
++	{0x3769, 0x22},
++	{0x3773, 0x08},
++	{0x3774, 0x1f},
++	{0x3776, 0x06},
++	{0x37a0, 0x88},
++	{0x37a1, 0x5c},
++	{0x37a7, 0x88},
++	{0x37a8, 0x70},
++	{0x37aa, 0x88},
++	{0x37ab, 0x48},
++	{0x37b3, 0x66},
++	{0x37c2, 0x04},
++	{0x37c5, 0x00},
++	{0x37c8, 0x00},
++	{0x3800, 0x00},
++	{0x3801, 0x0c},
++	{0x3802, 0x00},
++	{0x3803, 0x04},
++	{0x3804, 0x0a},
++	{0x3805, 0x33},
++	{0x3806, 0x07},
++	{0x3807, 0xa3},
++	{0x3808, 0x02},
++	{0x3809, 0x88},
++	{0x380a, 0x01},
++	{0x380b, 0xe6},
++	{0x380c, 0x06},
++	{0x380d, 0x90},
++	{0x380e, 0x07},
++	{0x380f, 0xb8},
++	{0x3811, 0x04},
++	{0x3813, 0x02},
++	{0x3814, 0x07},
++	{0x3815, 0x01},
++	{0x3816, 0x00},
++	{0x3817, 0x00},
++	{0x3818, 0x00},
++	{0x3819, 0x00},
++	{0x3820, 0x94},
++	{0x3821, 0xc6},
++	{0x3822, 0x48},
++	{0x3826, 0x00},
++	{0x3827, 0x08},
++	{0x382a, 0x07},
++	{0x382b, 0x01},
++	{0x3830, 0x08},
++	{0x3836, 0x02},
++	{0x3837, 0x00},
++	{0x3838, 0x10},
++	{0x3841, 0xff},
++	{0x3846, 0x48},
++	{0x3861, 0x00},
++	{0x3862, 0x04},
++	{0x3863, 0x06},
++	{0x3a11, 0x01},
++	{0x3a12, 0x78},
++	{0x3b00, 0x00},
++	{0x3b02, 0x00},
++	{0x3b03, 0x00},
++	{0x3b04, 0x00},
++	{0x3b05, 0x00},
++	{0x3c00, 0x89},
++	{0x3c01, 0xab},
++	{0x3c02, 0x01},
++	{0x3c03, 0x00},
++	{0x3c04, 0x00},
++	{0x3c05, 0x03},
++	{0x3c06, 0x00},
++	{0x3c07, 0x05},
++	{0x3c0c, 0x00},
++	{0x3c0d, 0x00},
++	{0x3c0e, 0x00},
++	{0x3c0f, 0x00},
++	{0x3c40, 0x00},
++	{0x3c41, 0xa3},
++	{0x3c43, 0x7d},
++	{0x3c45, 0xd7},
++	{0x3c47, 0xfc},
++	{0x3c50, 0x05},
++	{0x3c52, 0xaa},
++	{0x3c54, 0x71},
++	{0x3c56, 0x80},
++	{0x3d85, 0x17},
++	{0x3f03, 0x00},
++	{0x3f0a, 0x00},
++	{0x3f0b, 0x00},
++	{0x4001, 0x60},
++	{0x4009, 0x05},
++	{0x4020, 0x00},
++	{0x4021, 0x00},
++	{0x4022, 0x00},
++	{0x4023, 0x00},
++	{0x4024, 0x00},
++	{0x4025, 0x00},
++	{0x4026, 0x00},
++	{0x4027, 0x00},
++	{0x4028, 0x00},
++	{0x4029, 0x00},
++	{0x402a, 0x00},
++	{0x402b, 0x00},
++	{0x402c, 0x00},
++	{0x402d, 0x00},
++	{0x402e, 0x00},
++	{0x402f, 0x00},
++	{0x4040, 0x00},
++	{0x4041, 0x03},
++	{0x4042, 0x00},
++	{0x4043, 0x7A},
++	{0x4044, 0x00},
++	{0x4045, 0x7A},
++	{0x4046, 0x00},
++	{0x4047, 0x7A},
++	{0x4048, 0x00},
++	{0x4049, 0x7A},
++	{0x4307, 0x30},
++	{0x4500, 0x58},
++	{0x4501, 0x04},
++	{0x4502, 0x40},
++	{0x4503, 0x10},
++	{0x4508, 0x55},
++	{0x4509, 0x55},
++	{0x450a, 0x02},
++	{0x450b, 0x00},
++	{0x4600, 0x00},
++	{0x4601, 0x40},
++	{0x4700, 0xa4},
++	{0x4800, 0x4c},
++	{0x4816, 0x53},
++	{0x481f, 0x40},
++	{0x4837, 0x13},
++	{0x5000, 0x56},
++	{0x5001, 0x01},
++	{0x5002, 0x28},
++	{0x5004, 0x0c},
++	{0x5006, 0x0c},
++	{0x5007, 0xe0},
++	{0x5008, 0x01},
++	{0x5009, 0xb0},
++	{0x5901, 0x00},
++	{0x5a01, 0x00},
++	{0x5a03, 0x00},
++	{0x5a04, 0x0c},
++	{0x5a05, 0xe0},
++	{0x5a06, 0x09},
++	{0x5a07, 0xb0},
++	{0x5a08, 0x06},
++	{0x5e00, 0x00},
++	{0x3734, 0x40},
++	{0x5b00, 0x01},
++	{0x5b01, 0x10},
++	{0x5b02, 0x01},
++	{0x5b03, 0xdb},
++	{0x3d8c, 0x71},
++	{0x3d8d, 0xea},
++	{0x4017, 0x10},
++	{0x3618, 0x2a},
++	{0x5780, 0x3e},
++	{0x5781, 0x0f},
++	{0x5782, 0x44},
++	{0x5783, 0x02},
++	{0x5784, 0x01},
++	{0x5785, 0x01},
++	{0x5786, 0x00},
++	{0x5787, 0x04},
++	{0x5788, 0x02},
++	{0x5789, 0x0f},
++	{0x578a, 0xfd},
++	{0x578b, 0xf5},
++	{0x578c, 0xf5},
++	{0x578d, 0x03},
++	{0x578e, 0x08},
++	{0x578f, 0x0c},
++	{0x5790, 0x08},
++	{0x5791, 0x06},
++	{0x5792, 0x00},
++	{0x5793, 0x52},
++	{0x5794, 0xa3},
++	{0x3503, 0x00}
++};
++
++static const struct ov5670_reg mode_2560x1440_regs[] = {
++	{0x3000, 0x00},
++	{0x3002, 0x21},
++	{0x3005, 0xf0},
++	{0x3007, 0x00},
++	{0x3015, 0x0f},
++	{0x3018, 0x32},
++	{0x301a, 0xf0},
++	{0x301b, 0xf0},
++	{0x301c, 0xf0},
++	{0x301d, 0xf0},
++	{0x301e, 0xf0},
++	{0x3030, 0x00},
++	{0x3031, 0x0a},
++	{0x303c, 0xff},
++	{0x303e, 0xff},
++	{0x3040, 0xf0},
++	{0x3041, 0x00},
++	{0x3042, 0xf0},
++	{0x3106, 0x11},
++	{0x3500, 0x00},
++	{0x3501, 0x7c},
++	{0x3502, 0x80},
++	{0x3503, 0x04},
++	{0x3504, 0x03},
++	{0x3505, 0x83},
++	{0x3508, 0x04},
++	{0x3509, 0x00},
++	{0x350e, 0x04},
++	{0x350f, 0x00},
++	{0x3510, 0x00},
++	{0x3511, 0x02},
++	{0x3512, 0x00},
++	{0x3601, 0xc8},
++	{0x3610, 0x88},
++	{0x3612, 0x48},
++	{0x3614, 0x5b},
++	{0x3615, 0x96},
++	{0x3621, 0xd0},
++	{0x3622, 0x00},
++	{0x3623, 0x00},
++	{0x3633, 0x13},
++	{0x3634, 0x13},
++	{0x3635, 0x13},
++	{0x3636, 0x13},
++	{0x3645, 0x13},
++	{0x3646, 0x82},
++	{0x3650, 0x00},
++	{0x3652, 0xff},
++	{0x3655, 0x20},
++	{0x3656, 0xff},
++	{0x365a, 0xff},
++	{0x365e, 0xff},
++	{0x3668, 0x00},
++	{0x366a, 0x07},
++	{0x366e, 0x10},
++	{0x366d, 0x00},
++	{0x366f, 0x80},
++	{0x3700, 0x28},
++	{0x3701, 0x10},
++	{0x3702, 0x3a},
++	{0x3703, 0x19},
++	{0x3704, 0x10},
++	{0x3705, 0x00},
++	{0x3706, 0x66},
++	{0x3707, 0x08},
++	{0x3708, 0x34},
++	{0x3709, 0x40},
++	{0x370a, 0x01},
++	{0x370b, 0x1b},
++	{0x3714, 0x24},
++	{0x371a, 0x3e},
++	{0x3733, 0x00},
++	{0x3734, 0x00},
++	{0x373a, 0x05},
++	{0x373b, 0x06},
++	{0x373c, 0x0a},
++	{0x373f, 0xa0},
++	{0x3755, 0x00},
++	{0x3758, 0x00},
++	{0x375b, 0x0e},
++	{0x3766, 0x5f},
++	{0x3768, 0x00},
++	{0x3769, 0x22},
++	{0x3773, 0x08},
++	{0x3774, 0x1f},
++	{0x3776, 0x06},
++	{0x37a0, 0x88},
++	{0x37a1, 0x5c},
++	{0x37a7, 0x88},
++	{0x37a8, 0x70},
++	{0x37aa, 0x88},
++	{0x37ab, 0x48},
++	{0x37b3, 0x66},
++	{0x37c2, 0x04},
++	{0x37c5, 0x00},
++	{0x37c8, 0x00},
++	{0x3800, 0x00},
++	{0x3801, 0x0c},
++	{0x3802, 0x00},
++	{0x3803, 0x04},
++	{0x3804, 0x0a},
++	{0x3805, 0x33},
++	{0x3806, 0x07},
++	{0x3807, 0xa3},
++	{0x3808, 0x0a},
++	{0x3809, 0x00},
++	{0x380a, 0x05},
++	{0x380b, 0xa0},
++	{0x380c, 0x06},
++	{0x380d, 0x90},
++	{0x380e, 0x07},
++	{0x380f, 0xb8},
++	{0x3811, 0x04},
++	{0x3813, 0x02},
++	{0x3814, 0x01},
++	{0x3815, 0x01},
++	{0x3816, 0x00},
++	{0x3817, 0x00},
++	{0x3818, 0x00},
++	{0x3819, 0x00},
++	{0x3820, 0x84},
++	{0x3821, 0x46},
++	{0x3822, 0x48},
++	{0x3826, 0x00},
++	{0x3827, 0x08},
++	{0x382a, 0x01},
++	{0x382b, 0x01},
++	{0x3830, 0x08},
++	{0x3836, 0x02},
++	{0x3837, 0x00},
++	{0x3838, 0x10},
++	{0x3841, 0xff},
++	{0x3846, 0x48},
++	{0x3861, 0x00},
++	{0x3862, 0x04},
++	{0x3863, 0x06},
++	{0x3a11, 0x01},
++	{0x3a12, 0x78},
++	{0x3b00, 0x00},
++	{0x3b02, 0x00},
++	{0x3b03, 0x00},
++	{0x3b04, 0x00},
++	{0x3b05, 0x00},
++	{0x3c00, 0x89},
++	{0x3c01, 0xab},
++	{0x3c02, 0x01},
++	{0x3c03, 0x00},
++	{0x3c04, 0x00},
++	{0x3c05, 0x03},
++	{0x3c06, 0x00},
++	{0x3c07, 0x05},
++	{0x3c0c, 0x00},
++	{0x3c0d, 0x00},
++	{0x3c0e, 0x00},
++	{0x3c0f, 0x00},
++	{0x3c40, 0x00},
++	{0x3c41, 0xa3},
++	{0x3c43, 0x7d},
++	{0x3c45, 0xd7},
++	{0x3c47, 0xfc},
++	{0x3c50, 0x05},
++	{0x3c52, 0xaa},
++	{0x3c54, 0x71},
++	{0x3c56, 0x80},
++	{0x3d85, 0x17},
++	{0x3f03, 0x00},
++	{0x3f0a, 0x00},
++	{0x3f0b, 0x00},
++	{0x4001, 0x60},
++	{0x4009, 0x0d},
++	{0x4020, 0x00},
++	{0x4021, 0x00},
++	{0x4022, 0x00},
++	{0x4023, 0x00},
++	{0x4024, 0x00},
++	{0x4025, 0x00},
++	{0x4026, 0x00},
++	{0x4027, 0x00},
++	{0x4028, 0x00},
++	{0x4029, 0x00},
++	{0x402a, 0x00},
++	{0x402b, 0x00},
++	{0x402c, 0x00},
++	{0x402d, 0x00},
++	{0x402e, 0x00},
++	{0x402f, 0x00},
++	{0x4040, 0x00},
++	{0x4041, 0x03},
++	{0x4042, 0x00},
++	{0x4043, 0x7A},
++	{0x4044, 0x00},
++	{0x4045, 0x7A},
++	{0x4046, 0x00},
++	{0x4047, 0x7A},
++	{0x4048, 0x00},
++	{0x4049, 0x7A},
++	{0x4307, 0x30},
++	{0x4500, 0x58},
++	{0x4501, 0x04},
++	{0x4502, 0x40},
++	{0x4503, 0x10},
++	{0x4508, 0xaa},
++	{0x4509, 0xaa},
++	{0x450a, 0x00},
++	{0x450b, 0x00},
++	{0x4600, 0x01},
++	{0x4601, 0x00},
++	{0x4700, 0xa4},
++	{0x4800, 0x4c},
++	{0x4816, 0x53},
++	{0x481f, 0x40},
++	{0x4837, 0x13},
++	{0x5000, 0x56},
++	{0x5001, 0x01},
++	{0x5002, 0x28},
++	{0x5004, 0x0c},
++	{0x5006, 0x0c},
++	{0x5007, 0xe0},
++	{0x5008, 0x01},
++	{0x5009, 0xb0},
++	{0x5901, 0x00},
++	{0x5a01, 0x00},
++	{0x5a03, 0x00},
++	{0x5a04, 0x0c},
++	{0x5a05, 0xe0},
++	{0x5a06, 0x09},
++	{0x5a07, 0xb0},
++	{0x5a08, 0x06},
++	{0x5e00, 0x00},
++	{0x3734, 0x40},
++	{0x5b00, 0x01},
++	{0x5b01, 0x10},
++	{0x5b02, 0x01},
++	{0x5b03, 0xdb},
++	{0x3d8c, 0x71},
++	{0x3d8d, 0xea},
++	{0x4017, 0x08},
++	{0x3618, 0x2a},
++	{0x5780, 0x3e},
++	{0x5781, 0x0f},
++	{0x5782, 0x44},
++	{0x5783, 0x02},
++	{0x5784, 0x01},
++	{0x5785, 0x01},
++	{0x5786, 0x00},
++	{0x5787, 0x04},
++	{0x5788, 0x02},
++	{0x5789, 0x0f},
++	{0x578a, 0xfd},
++	{0x578b, 0xf5},
++	{0x578c, 0xf5},
++	{0x578d, 0x03},
++	{0x578e, 0x08},
++	{0x578f, 0x0c},
++	{0x5790, 0x08},
++	{0x5791, 0x06},
++	{0x5792, 0x00},
++	{0x5793, 0x52},
++	{0x5794, 0xa3}
++};
++
++static const struct ov5670_reg mode_1280x720_regs[] = {
++	{0x3000, 0x00},
++	{0x3002, 0x21},
++	{0x3005, 0xf0},
++	{0x3007, 0x00},
++	{0x3015, 0x0f},
++	{0x3018, 0x32},
++	{0x301a, 0xf0},
++	{0x301b, 0xf0},
++	{0x301c, 0xf0},
++	{0x301d, 0xf0},
++	{0x301e, 0xf0},
++	{0x3030, 0x00},
++	{0x3031, 0x0a},
++	{0x303c, 0xff},
++	{0x303e, 0xff},
++	{0x3040, 0xf0},
++	{0x3041, 0x00},
++	{0x3042, 0xf0},
++	{0x3106, 0x11},
++	{0x3500, 0x00},
++	{0x3501, 0x7c},
++	{0x3502, 0x80},
++	{0x3503, 0x04},
++	{0x3504, 0x03},
++	{0x3505, 0x83},
++	{0x3508, 0x04},
++	{0x3509, 0x00},
++	{0x350e, 0x04},
++	{0x350f, 0x00},
++	{0x3510, 0x00},
++	{0x3511, 0x02},
++	{0x3512, 0x00},
++	{0x3601, 0xc8},
++	{0x3610, 0x88},
++	{0x3612, 0x48},
++	{0x3614, 0x5b},
++	{0x3615, 0x96},
++	{0x3621, 0xd0},
++	{0x3622, 0x00},
++	{0x3623, 0x00},
++	{0x3633, 0x13},
++	{0x3634, 0x13},
++	{0x3635, 0x13},
++	{0x3636, 0x13},
++	{0x3645, 0x13},
++	{0x3646, 0x82},
++	{0x3650, 0x00},
++	{0x3652, 0xff},
++	{0x3655, 0x20},
++	{0x3656, 0xff},
++	{0x365a, 0xff},
++	{0x365e, 0xff},
++	{0x3668, 0x00},
++	{0x366a, 0x07},
++	{0x366e, 0x08},
++	{0x366d, 0x00},
++	{0x366f, 0x80},
++	{0x3700, 0x28},
++	{0x3701, 0x10},
++	{0x3702, 0x3a},
++	{0x3703, 0x19},
++	{0x3704, 0x10},
++	{0x3705, 0x00},
++	{0x3706, 0x66},
++	{0x3707, 0x08},
++	{0x3708, 0x34},
++	{0x3709, 0x40},
++	{0x370a, 0x01},
++	{0x370b, 0x1b},
++	{0x3714, 0x24},
++	{0x371a, 0x3e},
++	{0x3733, 0x00},
++	{0x3734, 0x00},
++	{0x373a, 0x05},
++	{0x373b, 0x06},
++	{0x373c, 0x0a},
++	{0x373f, 0xa0},
++	{0x3755, 0x00},
++	{0x3758, 0x00},
++	{0x375b, 0x0e},
++	{0x3766, 0x5f},
++	{0x3768, 0x00},
++	{0x3769, 0x22},
++	{0x3773, 0x08},
++	{0x3774, 0x1f},
++	{0x3776, 0x06},
++	{0x37a0, 0x88},
++	{0x37a1, 0x5c},
++	{0x37a7, 0x88},
++	{0x37a8, 0x70},
++	{0x37aa, 0x88},
++	{0x37ab, 0x48},
++	{0x37b3, 0x66},
++	{0x37c2, 0x04},
++	{0x37c5, 0x00},
++	{0x37c8, 0x00},
++	{0x3800, 0x00},
++	{0x3801, 0x0c},
++	{0x3802, 0x00},
++	{0x3803, 0x04},
++	{0x3804, 0x0a},
++	{0x3805, 0x33},
++	{0x3806, 0x07},
++	{0x3807, 0xa3},
++	{0x3808, 0x05},
++	{0x3809, 0x00},
++	{0x380a, 0x02},
++	{0x380b, 0xd0},
++	{0x380c, 0x06},
++	{0x380d, 0x90},
++	{0x380e, 0x07},
++	{0x380f, 0xb8},
++	{0x3811, 0x04},
++	{0x3813, 0x02},
++	{0x3814, 0x03},
++	{0x3815, 0x01},
++	{0x3816, 0x00},
++	{0x3817, 0x00},
++	{0x3818, 0x00},
++	{0x3819, 0x00},
++	{0x3820, 0x94},
++	{0x3821, 0x47},
++	{0x3822, 0x48},
++	{0x3826, 0x00},
++	{0x3827, 0x08},
++	{0x382a, 0x03},
++	{0x382b, 0x01},
++	{0x3830, 0x08},
++	{0x3836, 0x02},
++	{0x3837, 0x00},
++	{0x3838, 0x10},
++	{0x3841, 0xff},
++	{0x3846, 0x48},
++	{0x3861, 0x00},
++	{0x3862, 0x04},
++	{0x3863, 0x06},
++	{0x3a11, 0x01},
++	{0x3a12, 0x78},
++	{0x3b00, 0x00},
++	{0x3b02, 0x00},
++	{0x3b03, 0x00},
++	{0x3b04, 0x00},
++	{0x3b05, 0x00},
++	{0x3c00, 0x89},
++	{0x3c01, 0xab},
++	{0x3c02, 0x01},
++	{0x3c03, 0x00},
++	{0x3c04, 0x00},
++	{0x3c05, 0x03},
++	{0x3c06, 0x00},
++	{0x3c07, 0x05},
++	{0x3c0c, 0x00},
++	{0x3c0d, 0x00},
++	{0x3c0e, 0x00},
++	{0x3c0f, 0x00},
++	{0x3c40, 0x00},
++	{0x3c41, 0xa3},
++	{0x3c43, 0x7d},
++	{0x3c45, 0xd7},
++	{0x3c47, 0xfc},
++	{0x3c50, 0x05},
++	{0x3c52, 0xaa},
++	{0x3c54, 0x71},
++	{0x3c56, 0x80},
++	{0x3d85, 0x17},
++	{0x3f03, 0x00},
++	{0x3f0a, 0x00},
++	{0x3f0b, 0x00},
++	{0x4001, 0x60},
++	{0x4009, 0x05},
++	{0x4020, 0x00},
++	{0x4021, 0x00},
++	{0x4022, 0x00},
++	{0x4023, 0x00},
++	{0x4024, 0x00},
++	{0x4025, 0x00},
++	{0x4026, 0x00},
++	{0x4027, 0x00},
++	{0x4028, 0x00},
++	{0x4029, 0x00},
++	{0x402a, 0x00},
++	{0x402b, 0x00},
++	{0x402c, 0x00},
++	{0x402d, 0x00},
++	{0x402e, 0x00},
++	{0x402f, 0x00},
++	{0x4040, 0x00},
++	{0x4041, 0x03},
++	{0x4042, 0x00},
++	{0x4043, 0x7A},
++	{0x4044, 0x00},
++	{0x4045, 0x7A},
++	{0x4046, 0x00},
++	{0x4047, 0x7A},
++	{0x4048, 0x00},
++	{0x4049, 0x7A},
++	{0x4307, 0x30},
++	{0x4500, 0x58},
++	{0x4501, 0x04},
++	{0x4502, 0x48},
++	{0x4503, 0x10},
++	{0x4508, 0x55},
++	{0x4509, 0x55},
++	{0x450a, 0x00},
++	{0x450b, 0x00},
++	{0x4600, 0x00},
++	{0x4601, 0x80},
++	{0x4700, 0xa4},
++	{0x4800, 0x4c},
++	{0x4816, 0x53},
++	{0x481f, 0x40},
++	{0x4837, 0x13},
++	{0x5000, 0x56},
++	{0x5001, 0x01},
++	{0x5002, 0x28},
++	{0x5004, 0x0c},
++	{0x5006, 0x0c},
++	{0x5007, 0xe0},
++	{0x5008, 0x01},
++	{0x5009, 0xb0},
++	{0x5901, 0x00},
++	{0x5a01, 0x00},
++	{0x5a03, 0x00},
++	{0x5a04, 0x0c},
++	{0x5a05, 0xe0},
++	{0x5a06, 0x09},
++	{0x5a07, 0xb0},
++	{0x5a08, 0x06},
++	{0x5e00, 0x00},
++	{0x3734, 0x40},
++	{0x5b00, 0x01},
++	{0x5b01, 0x10},
++	{0x5b02, 0x01},
++	{0x5b03, 0xdb},
++	{0x3d8c, 0x71},
++	{0x3d8d, 0xea},
++	{0x4017, 0x10},
++	{0x3618, 0x2a},
++	{0x5780, 0x3e},
++	{0x5781, 0x0f},
++	{0x5782, 0x44},
++	{0x5783, 0x02},
++	{0x5784, 0x01},
++	{0x5785, 0x01},
++	{0x5786, 0x00},
++	{0x5787, 0x04},
++	{0x5788, 0x02},
++	{0x5789, 0x0f},
++	{0x578a, 0xfd},
++	{0x578b, 0xf5},
++	{0x578c, 0xf5},
++	{0x578d, 0x03},
++	{0x578e, 0x08},
++	{0x578f, 0x0c},
++	{0x5790, 0x08},
++	{0x5791, 0x06},
++	{0x5792, 0x00},
++	{0x5793, 0x52},
++	{0x5794, 0xa3},
++	{0x3503, 0x00}
++};
++
++static const struct ov5670_reg mode_640x360_regs[] = {
++	{0x3000, 0x00},
++	{0x3002, 0x21},
++	{0x3005, 0xf0},
++	{0x3007, 0x00},
++	{0x3015, 0x0f},
++	{0x3018, 0x32},
++	{0x301a, 0xf0},
++	{0x301b, 0xf0},
++	{0x301c, 0xf0},
++	{0x301d, 0xf0},
++	{0x301e, 0xf0},
++	{0x3030, 0x00},
++	{0x3031, 0x0a},
++	{0x303c, 0xff},
++	{0x303e, 0xff},
++	{0x3040, 0xf0},
++	{0x3041, 0x00},
++	{0x3042, 0xf0},
++	{0x3106, 0x11},
++	{0x3500, 0x00},
++	{0x3501, 0x7c},
++	{0x3502, 0x80},
++	{0x3503, 0x04},
++	{0x3504, 0x03},
++	{0x3505, 0x83},
++	{0x3508, 0x04},
++	{0x3509, 0x00},
++	{0x350e, 0x04},
++	{0x350f, 0x00},
++	{0x3510, 0x00},
++	{0x3511, 0x02},
++	{0x3512, 0x00},
++	{0x3601, 0xc8},
++	{0x3610, 0x88},
++	{0x3612, 0x48},
++	{0x3614, 0x5b},
++	{0x3615, 0x96},
++	{0x3621, 0xd0},
++	{0x3622, 0x00},
++	{0x3623, 0x04},
++	{0x3633, 0x13},
++	{0x3634, 0x13},
++	{0x3635, 0x13},
++	{0x3636, 0x13},
++	{0x3645, 0x13},
++	{0x3646, 0x82},
++	{0x3650, 0x00},
++	{0x3652, 0xff},
++	{0x3655, 0x20},
++	{0x3656, 0xff},
++	{0x365a, 0xff},
++	{0x365e, 0xff},
++	{0x3668, 0x00},
++	{0x366a, 0x07},
++	{0x366e, 0x08},
++	{0x366d, 0x00},
++	{0x366f, 0x80},
++	{0x3700, 0x28},
++	{0x3701, 0x10},
++	{0x3702, 0x3a},
++	{0x3703, 0x19},
++	{0x3704, 0x10},
++	{0x3705, 0x00},
++	{0x3706, 0x66},
++	{0x3707, 0x08},
++	{0x3708, 0x34},
++	{0x3709, 0x40},
++	{0x370a, 0x01},
++	{0x370b, 0x1b},
++	{0x3714, 0x24},
++	{0x371a, 0x3e},
++	{0x3733, 0x00},
++	{0x3734, 0x00},
++	{0x373a, 0x05},
++	{0x373b, 0x06},
++	{0x373c, 0x0a},
++	{0x373f, 0xa0},
++	{0x3755, 0x00},
++	{0x3758, 0x00},
++	{0x375b, 0x0e},
++	{0x3766, 0x5f},
++	{0x3768, 0x00},
++	{0x3769, 0x22},
++	{0x3773, 0x08},
++	{0x3774, 0x1f},
++	{0x3776, 0x06},
++	{0x37a0, 0x88},
++	{0x37a1, 0x5c},
++	{0x37a7, 0x88},
++	{0x37a8, 0x70},
++	{0x37aa, 0x88},
++	{0x37ab, 0x48},
++	{0x37b3, 0x66},
++	{0x37c2, 0x04},
++	{0x37c5, 0x00},
++	{0x37c8, 0x00},
++	{0x3800, 0x00},
++	{0x3801, 0x0c},
++	{0x3802, 0x00},
++	{0x3803, 0x04},
++	{0x3804, 0x0a},
++	{0x3805, 0x33},
++	{0x3806, 0x07},
++	{0x3807, 0xa3},
++	{0x3808, 0x02},
++	{0x3809, 0x80},
++	{0x380a, 0x01},
++	{0x380b, 0x68},
++	{0x380c, 0x06},
++	{0x380d, 0x90},
++	{0x380e, 0x07},
++	{0x380f, 0xb8},
++	{0x3811, 0x04},
++	{0x3813, 0x02},
++	{0x3814, 0x07},
++	{0x3815, 0x01},
++	{0x3816, 0x00},
++	{0x3817, 0x00},
++	{0x3818, 0x00},
++	{0x3819, 0x00},
++	{0x3820, 0x94},
++	{0x3821, 0xc6},
++	{0x3822, 0x48},
++	{0x3826, 0x00},
++	{0x3827, 0x08},
++	{0x382a, 0x07},
++	{0x382b, 0x01},
++	{0x3830, 0x08},
++	{0x3836, 0x02},
++	{0x3837, 0x00},
++	{0x3838, 0x10},
++	{0x3841, 0xff},
++	{0x3846, 0x48},
++	{0x3861, 0x00},
++	{0x3862, 0x04},
++	{0x3863, 0x06},
++	{0x3a11, 0x01},
++	{0x3a12, 0x78},
++	{0x3b00, 0x00},
++	{0x3b02, 0x00},
++	{0x3b03, 0x00},
++	{0x3b04, 0x00},
++	{0x3b05, 0x00},
++	{0x3c00, 0x89},
++	{0x3c01, 0xab},
++	{0x3c02, 0x01},
++	{0x3c03, 0x00},
++	{0x3c04, 0x00},
++	{0x3c05, 0x03},
++	{0x3c06, 0x00},
++	{0x3c07, 0x05},
++	{0x3c0c, 0x00},
++	{0x3c0d, 0x00},
++	{0x3c0e, 0x00},
++	{0x3c0f, 0x00},
++	{0x3c40, 0x00},
++	{0x3c41, 0xa3},
++	{0x3c43, 0x7d},
++	{0x3c45, 0xd7},
++	{0x3c47, 0xfc},
++	{0x3c50, 0x05},
++	{0x3c52, 0xaa},
++	{0x3c54, 0x71},
++	{0x3c56, 0x80},
++	{0x3d85, 0x17},
++	{0x3f03, 0x00},
++	{0x3f0a, 0x00},
++	{0x3f0b, 0x00},
++	{0x4001, 0x60},
++	{0x4009, 0x05},
++	{0x4020, 0x00},
++	{0x4021, 0x00},
++	{0x4022, 0x00},
++	{0x4023, 0x00},
++	{0x4024, 0x00},
++	{0x4025, 0x00},
++	{0x4026, 0x00},
++	{0x4027, 0x00},
++	{0x4028, 0x00},
++	{0x4029, 0x00},
++	{0x402a, 0x00},
++	{0x402b, 0x00},
++	{0x402c, 0x00},
++	{0x402d, 0x00},
++	{0x402e, 0x00},
++	{0x402f, 0x00},
++	{0x4040, 0x00},
++	{0x4041, 0x03},
++	{0x4042, 0x00},
++	{0x4043, 0x7A},
++	{0x4044, 0x00},
++	{0x4045, 0x7A},
++	{0x4046, 0x00},
++	{0x4047, 0x7A},
++	{0x4048, 0x00},
++	{0x4049, 0x7A},
++	{0x4307, 0x30},
++	{0x4500, 0x58},
++	{0x4501, 0x04},
++	{0x4502, 0x40},
++	{0x4503, 0x10},
++	{0x4508, 0x55},
++	{0x4509, 0x55},
++	{0x450a, 0x02},
++	{0x450b, 0x00},
++	{0x4600, 0x00},
++	{0x4601, 0x40},
++	{0x4700, 0xa4},
++	{0x4800, 0x4c},
++	{0x4816, 0x53},
++	{0x481f, 0x40},
++	{0x4837, 0x13},
++	{0x5000, 0x56},
++	{0x5001, 0x01},
++	{0x5002, 0x28},
++	{0x5004, 0x0c},
++	{0x5006, 0x0c},
++	{0x5007, 0xe0},
++	{0x5008, 0x01},
++	{0x5009, 0xb0},
++	{0x5901, 0x00},
++	{0x5a01, 0x00},
++	{0x5a03, 0x00},
++	{0x5a04, 0x0c},
++	{0x5a05, 0xe0},
++	{0x5a06, 0x09},
++	{0x5a07, 0xb0},
++	{0x5a08, 0x06},
++	{0x5e00, 0x00},
++	{0x3734, 0x40},
++	{0x5b00, 0x01},
++	{0x5b01, 0x10},
++	{0x5b02, 0x01},
++	{0x5b03, 0xdb},
++	{0x3d8c, 0x71},
++	{0x3d8d, 0xea},
++	{0x4017, 0x10},
++	{0x3618, 0x2a},
++	{0x5780, 0x3e},
++	{0x5781, 0x0f},
++	{0x5782, 0x44},
++	{0x5783, 0x02},
++	{0x5784, 0x01},
++	{0x5785, 0x01},
++	{0x5786, 0x00},
++	{0x5787, 0x04},
++	{0x5788, 0x02},
++	{0x5789, 0x0f},
++	{0x578a, 0xfd},
++	{0x578b, 0xf5},
++	{0x578c, 0xf5},
++	{0x578d, 0x03},
++	{0x578e, 0x08},
++	{0x578f, 0x0c},
++	{0x5790, 0x08},
++	{0x5791, 0x06},
++	{0x5792, 0x00},
++	{0x5793, 0x52},
++	{0x5794, 0xa3},
++	{0x3503, 0x00}
++};
++
++static const char * const ov5670_test_pattern_menu[] = {
++	"Disabled",
++	"Vertical Color Bar Type 1",
++};
++
++/* Supported link frequencies */
++#define OV5670_LINK_FREQ_840MBPS	840000000
++#define OV5670_LINK_FREQ_840MBPS_INDEX	0
++static const struct ov5670_link_freq_config link_freq_configs[] = {
++	{
++		.pixel_rate = 336000000,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(mipi_data_rate_840mbps),
++			.regs = mipi_data_rate_840mbps,
++		}
++	}
++};
++
++static const const s64 link_freq_menu_items[] = {
++	OV5670_LINK_FREQ_840MBPS
++};
++
++/*
++ * OV5670 sensor supports following resolutions with full FOV:
++ * 4:3  ==> {2592x1944, 1296x972, 648x486}
++ * 16:9 ==> {2560x1440, 1280x720, 640x360}
++ */
++static const struct ov5670_mode supported_modes[] = {
++	{
++		.width = 2592,
++		.height = 1944,
++		.vts = OV5670_VTS_30FPS,
++		.skip_frames = 2,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(mode_2592x1944_regs),
++			.regs = mode_2592x1944_regs,
++		},
++		.link_freq_index = OV5670_LINK_FREQ_840MBPS_INDEX,
++	},
++	{
++		.width = 1296,
++		.height = 972,
++		.vts = OV5670_VTS_30FPS,
++		.skip_frames = 2,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(mode_1296x972_regs),
++			.regs = mode_1296x972_regs,
++		},
++		.link_freq_index = OV5670_LINK_FREQ_840MBPS_INDEX,
++	},
++	{
++		.width = 648,
++		.height = 486,
++		.vts = OV5670_VTS_30FPS,
++		.skip_frames = 2,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(mode_648x486_regs),
++			.regs = mode_648x486_regs,
++		},
++		.link_freq_index = OV5670_LINK_FREQ_840MBPS_INDEX,
++	},
++	{
++		.width = 2560,
++		.height = 1440,
++		.vts = OV5670_VTS_30FPS,
++		.skip_frames = 2,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(mode_2560x1440_regs),
++			.regs = mode_2560x1440_regs,
++		},
++		.link_freq_index = OV5670_LINK_FREQ_840MBPS_INDEX,
++	},
++	{
++		.width = 1280,
++		.height = 720,
++		.vts = OV5670_VTS_30FPS,
++		.skip_frames = 2,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(mode_1280x720_regs),
++			.regs = mode_1280x720_regs,
++		},
++		.link_freq_index = OV5670_LINK_FREQ_840MBPS_INDEX,
++	},
++	{
++		.width = 640,
++		.height = 360,
++		.vts = OV5670_VTS_30FPS,
++		.skip_frames = 2,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(mode_640x360_regs),
++			.regs = mode_640x360_regs,
++		},
++		.link_freq_index = OV5670_LINK_FREQ_840MBPS_INDEX,
++	}
++};
++
++struct ov5670 {
 +	struct v4l2_subdev sd;
-+	struct device *dev;
-+	/* NOTE: the source fmt is the same as the sink
-+	 * with the width and hight multiplied by mult
-+	 */
-+	struct v4l2_mbus_framefmt sink_fmt;
-+	/* Values calculated when the stream starts */
-+	u8 *src_frame;
-+	unsigned int src_line_size;
-+	unsigned int bpp;
++	struct media_pad pad;
++
++	struct v4l2_ctrl_handler ctrl_handler;
++	/* V4L2 Controls */
++	struct v4l2_ctrl *link_freq;
++	struct v4l2_ctrl *pixel_rate;
++	struct v4l2_ctrl *vblank;
++	struct v4l2_ctrl *hblank;
++	struct v4l2_ctrl *exposure;
++
++	/* Current mode */
++	const struct ov5670_mode *cur_mode;
++
++	/* To serialize asynchronus callbacks */
++	struct mutex mutex;
++
++	/* Streaming on/off */
++	bool streaming;
 +};
 +
-+static const struct v4l2_mbus_framefmt sink_fmt_default = {
-+	.width = 640,
-+	.height = 480,
-+	.code = MEDIA_BUS_FMT_RGB888_1X24,
-+	.field = V4L2_FIELD_NONE,
-+	.colorspace = V4L2_COLORSPACE_SRGB,
-+};
++#define to_ov5670(_sd)	container_of(_sd, struct ov5670, sd)
 +
-+static int vimc_sca_init_cfg(struct v4l2_subdev *sd,
-+			     struct v4l2_subdev_pad_config *cfg)
++/* Read registers up to 4 at a time */
++static int ov5670_read_reg(struct ov5670 *ov5670, u16 reg, unsigned int len,
++			   u32 *val)
 +{
-+	struct v4l2_mbus_framefmt *mf;
-+	unsigned int i;
-+
-+	mf = v4l2_subdev_get_try_format(sd, cfg, 0);
-+	*mf = sink_fmt_default;
-+
-+	for (i = 1; i < sd->entity.num_pads; i++) {
-+		mf = v4l2_subdev_get_try_format(sd, cfg, i);
-+		*mf = sink_fmt_default;
-+		mf->width = mf->width * sca_mult;
-+		mf->height = mf->height * sca_mult;
-+	}
-+
-+	return 0;
-+}
-+
-+static int vimc_sca_enum_mbus_code(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_pad_config *cfg,
-+				   struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	const struct vimc_pix_map *vpix = vimc_pix_map_by_index(code->index);
-+
-+	/* We don't support bayer format */
-+	if (!vpix || vpix->bayer)
-+		return -EINVAL;
-+
-+	code->code = vpix->code;
-+
-+	return 0;
-+}
-+
-+static int vimc_sca_enum_frame_size(struct v4l2_subdev *sd,
-+				    struct v4l2_subdev_pad_config *cfg,
-+				    struct v4l2_subdev_frame_size_enum *fse)
-+{
-+	const struct vimc_pix_map *vpix;
-+
-+	if (fse->index)
-+		return -EINVAL;
-+
-+	/* Only accept code in the pix map table in non bayer format */
-+	vpix = vimc_pix_map_by_code(fse->code);
-+	if (!vpix || vpix->bayer)
-+		return -EINVAL;
-+
-+	fse->min_width = VIMC_FRAME_MIN_WIDTH;
-+	fse->min_height = VIMC_FRAME_MIN_HEIGHT;
-+
-+	if (IS_SINK(fse->pad)) {
-+		fse->max_width = VIMC_FRAME_MAX_WIDTH;
-+		fse->max_height = VIMC_FRAME_MAX_HEIGHT;
-+	} else {
-+		fse->max_width = VIMC_FRAME_MAX_WIDTH * MAX_ZOOM;
-+		fse->max_height = VIMC_FRAME_MAX_HEIGHT * MAX_ZOOM;
-+	}
-+
-+	return 0;
-+}
-+
-+static int vimc_sca_get_fmt(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *format)
-+{
-+	struct vimc_sca_device *vsca = v4l2_get_subdevdata(sd);
-+
-+	/* Get the current sink format */
-+	format->format = (format->which == V4L2_SUBDEV_FORMAT_TRY) ?
-+			 *v4l2_subdev_get_try_format(sd, cfg, 0) :
-+			 vsca->sink_fmt;
-+
-+	/* Scale the frame size for the source pad */
-+	if (IS_SRC(format->pad)) {
-+		format->format.width = vsca->sink_fmt.width * sca_mult;
-+		format->format.height = vsca->sink_fmt.height * sca_mult;
-+	}
-+
-+	return 0;
-+}
-+
-+static void vimc_sca_adjust_sink_fmt(struct v4l2_mbus_framefmt *fmt)
-+{
-+	const struct vimc_pix_map *vpix;
-+
-+	/* Only accept code in the pix map table in non bayer format */
-+	vpix = vimc_pix_map_by_code(fmt->code);
-+	if (!vpix || vpix->bayer)
-+		fmt->code = sink_fmt_default.code;
-+
-+	fmt->width = clamp_t(u32, fmt->width, VIMC_FRAME_MIN_WIDTH,
-+			     VIMC_FRAME_MAX_WIDTH) & ~1;
-+	fmt->height = clamp_t(u32, fmt->height, VIMC_FRAME_MIN_HEIGHT,
-+			      VIMC_FRAME_MAX_HEIGHT) & ~1;
-+
-+	if (fmt->field == V4L2_FIELD_ANY)
-+		fmt->field = sink_fmt_default.field;
-+
-+	if (fmt->colorspace == V4L2_COLORSPACE_DEFAULT)
-+		fmt->colorspace = sink_fmt_default.colorspace;
-+
-+	/* Check if values are out of range */
-+	if (fmt->colorspace > V4L2_COLORSPACE_DCI_P3) {
-+		fmt->colorspace = sink_fmt_default.colorspace;
-+		fmt->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
-+		fmt->quantization = V4L2_QUANTIZATION_DEFAULT;
-+		fmt->xfer_func = V4L2_XFER_FUNC_DEFAULT;
-+	}
-+	if (fmt->ycbcr_enc > V4L2_YCBCR_ENC_SMPTE240M)
-+		fmt->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
-+	if (fmt->quantization > V4L2_QUANTIZATION_LIM_RANGE)
-+		fmt->quantization = V4L2_QUANTIZATION_DEFAULT;
-+	if (fmt->xfer_func > V4L2_XFER_FUNC_SMPTE2084)
-+		fmt->xfer_func = V4L2_XFER_FUNC_DEFAULT;
-+}
-+
-+static int vimc_sca_set_fmt(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *fmt)
-+{
-+	struct vimc_sca_device *vsca = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *sink_fmt;
-+
-+	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-+		/* Do not change the format while stream is on */
-+		if (vsca->src_frame)
-+			return -EBUSY;
-+
-+		sink_fmt = &vsca->sink_fmt;
-+	} else {
-+		sink_fmt = v4l2_subdev_get_try_format(sd, cfg, 0);
-+	}
-+
-+	/*
-+	 * Do not change the format of the source pad,
-+	 * it is propagated from the sink
-+	 */
-+	if (IS_SRC(fmt->pad)) {
-+		fmt->format = *sink_fmt;
-+		fmt->format.width = sink_fmt->width * sca_mult;
-+		fmt->format.height = sink_fmt->height * sca_mult;
-+	} else {
-+		/* Set the new format in the sink pad */
-+		vimc_sca_adjust_sink_fmt(&fmt->format);
-+
-+		dev_dbg(vsca->dev, "%s: sink format update: "
-+			"old:%dx%d (0x%x, %d, %d, %d, %d) "
-+			"new:%dx%d (0x%x, %d, %d, %d, %d)\n", vsca->sd.name,
-+			/* old */
-+			sink_fmt->width, sink_fmt->height, sink_fmt->code,
-+			sink_fmt->colorspace, sink_fmt->quantization,
-+			sink_fmt->xfer_func, sink_fmt->ycbcr_enc,
-+			/* new */
-+			fmt->format.width, fmt->format.height, fmt->format.code,
-+			fmt->format.colorspace,	fmt->format.quantization,
-+			fmt->format.xfer_func, fmt->format.ycbcr_enc);
-+
-+		*sink_fmt = fmt->format;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_pad_ops vimc_sca_pad_ops = {
-+	.init_cfg		= vimc_sca_init_cfg,
-+	.enum_mbus_code		= vimc_sca_enum_mbus_code,
-+	.enum_frame_size	= vimc_sca_enum_frame_size,
-+	.get_fmt		= vimc_sca_get_fmt,
-+	.set_fmt		= vimc_sca_set_fmt,
-+};
-+
-+static int vimc_sca_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct vimc_sca_device *vsca = v4l2_get_subdevdata(sd);
++	struct i2c_client *client = v4l2_get_subdevdata(&ov5670->sd);
++	struct i2c_msg msgs[2];
++	u8 *data_be_p;
++	u32 data_be = 0;
++	u16 reg_addr_be = cpu_to_be16(reg);
 +	int ret;
 +
-+	if (enable) {
-+		const struct vimc_pix_map *vpix;
-+		unsigned int frame_size;
++	if (len > 4)
++		return -EINVAL;
 +
-+		if (vsca->src_frame)
-+			return 0;
++	data_be_p = (u8 *)&data_be;
++	/* Write register address */
++	msgs[0].addr = client->addr;
++	msgs[0].flags = 0;
++	msgs[0].len = 2;
++	msgs[0].buf = (u8 *)&reg_addr_be;
 +
-+		/* Save the bytes per pixel of the sink */
-+		vpix = vimc_pix_map_by_code(vsca->sink_fmt.code);
-+		vsca->bpp = vpix->bpp;
++	/* Read data from register */
++	msgs[1].addr = client->addr;
++	msgs[1].flags = I2C_M_RD;
++	msgs[1].len = len;
++	msgs[1].buf = &data_be_p[4 - len];
 +
-+		/* Calculate the width in bytes of the src frame */
-+		vsca->src_line_size = vsca->sink_fmt.width *
-+				      sca_mult * vsca->bpp;
++	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
++	if (ret != ARRAY_SIZE(msgs))
++		return -EIO;
 +
-+		/* Calculate the frame size of the source pad */
-+		frame_size = vsca->src_line_size * vsca->sink_fmt.height *
-+			     sca_mult;
++	*val = be32_to_cpu(data_be);
 +
-+		/* Allocate the frame buffer. Use vmalloc to be able to
-+		 * allocate a large amount of memory
-+		 */
-+		vsca->src_frame = vmalloc(frame_size);
-+		if (!vsca->src_frame)
-+			return -ENOMEM;
++	return 0;
++}
 +
-+		/* Turn the stream on in the subdevices directly connected */
-+		ret = vimc_pipeline_s_stream(&vsca->sd.entity, 1);
++/* Write registers up to 4 at a time */
++static int ov5670_write_reg(struct ov5670 *ov5670, u16 reg, unsigned int len,
++			    u32 val)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&ov5670->sd);
++	int buf_i;
++	int val_i;
++	u8 buf[6];
++	u8 *val_p;
++
++	if (len > 4)
++		return -EINVAL;
++
++	buf[0] = reg >> 8;
++	buf[1] = reg & 0xff;
++
++	val = cpu_to_be32(val);
++	val_p = (u8 *)&val;
++	buf_i = 2;
++	val_i = 4 - len;
++
++	while (val_i < 4)
++		buf[buf_i++] = val_p[val_i++];
++
++	if (i2c_master_send(client, buf, len + 2) != len + 2)
++		return -EIO;
++
++	return 0;
++}
++
++/* Write a list of registers */
++static int ov5670_write_regs(struct ov5670 *ov5670,
++			     const struct ov5670_reg *regs, unsigned int len)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&ov5670->sd);
++	unsigned int i;
++	int ret;
++
++	for (i = 0; i < len; i++) {
++		ret = ov5670_write_reg(ov5670, regs[i].address, 1, regs[i].val);
 +		if (ret) {
-+			vfree(vsca->src_frame);
-+			vsca->src_frame = NULL;
++			dev_err_ratelimited(
++				&client->dev,
++				"Failed to write reg 0x%4.4x. error = %d\n",
++				regs[i].address, ret);
++
 +			return ret;
 +		}
-+	} else {
-+		if (!vsca->src_frame)
-+			return 0;
-+
-+		/* Disable streaming from the pipe */
-+		ret = vimc_pipeline_s_stream(&vsca->sd.entity, 0);
-+		if (ret)
-+			return ret;
-+
-+		vfree(vsca->src_frame);
-+		vsca->src_frame = NULL;
 +	}
 +
 +	return 0;
 +}
 +
-+struct v4l2_subdev_video_ops vimc_sca_video_ops = {
-+	.s_stream = vimc_sca_s_stream,
-+};
-+
-+static const struct v4l2_subdev_ops vimc_sca_ops = {
-+	.pad = &vimc_sca_pad_ops,
-+	.video = &vimc_sca_video_ops,
-+};
-+
-+static void vimc_sca_fill_pix(u8 *const ptr,
-+			      const u8 *const pixel,
-+			      const unsigned int bpp)
++static int ov5670_write_reg_list(struct ov5670 *ov5670,
++				 const struct ov5670_reg_list *r_list)
 +{
-+	unsigned int i;
-+
-+	/* copy the pixel to the pointer */
-+	for (i = 0; i < bpp; i++)
-+		ptr[i] = pixel[i];
++	return ov5670_write_regs(ov5670, r_list->regs, r_list->num_of_regs);
 +}
 +
-+static void vimc_sca_scale_pix(const struct vimc_sca_device *const vsca,
-+			       const unsigned int lin, const unsigned int col,
-+			       const u8 *const sink_frame)
++/* Open sub-device */
++static int ov5670_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
 +{
-+	unsigned int i, j, index;
-+	const u8 *pixel;
++	struct ov5670 *ov5670 = to_ov5670(sd);
++	struct v4l2_mbus_framefmt *try_fmt = v4l2_subdev_get_try_format(sd,
++									fh->pad,
++									0);
 +
-+	/* Point to the pixel value in position (lin, col) in the sink frame */
-+	index = VIMC_FRAME_INDEX(lin, col,
-+				 vsca->sink_fmt.width,
-+				 vsca->bpp);
-+	pixel = &sink_frame[index];
++	mutex_lock(&ov5670->mutex);
 +
-+	dev_dbg(vsca->dev,
-+		"sca: %s: --- scale_pix sink pos %dx%d, index %d ---\n",
-+		vsca->sd.name, lin, col, index);
++	try_fmt->width = ov5670->cur_mode->width;
++	try_fmt->height = ov5670->cur_mode->height;
++	try_fmt->code = MEDIA_BUS_FMT_SGRBG10_1X10;
++	try_fmt->field = V4L2_FIELD_NONE;
 +
-+	/* point to the place we are going to put the first pixel
-+	 * in the scaled src frame
-+	 */
-+	index = VIMC_FRAME_INDEX(lin * sca_mult, col * sca_mult,
-+				 vsca->sink_fmt.width * sca_mult, vsca->bpp);
++	/* No crop or compose */
++	mutex_unlock(&ov5670->mutex);
 +
-+	dev_dbg(vsca->dev, "sca: %s: scale_pix src pos %dx%d, index %d\n",
-+		vsca->sd.name, lin * sca_mult, col * sca_mult, index);
-+
-+	/* Repeat this pixel mult times */
-+	for (i = 0; i < sca_mult; i++) {
-+		/* Iterate through each beginning of a
-+		 * pixel repetition in a line
-+		 */
-+		for (j = 0; j < sca_mult * vsca->bpp; j += vsca->bpp) {
-+			dev_dbg(vsca->dev,
-+				"sca: %s: sca: scale_pix src pos %d\n",
-+				vsca->sd.name, index + j);
-+
-+			/* copy the pixel to the position index + j */
-+			vimc_sca_fill_pix(&vsca->src_frame[index + j],
-+					  pixel, vsca->bpp);
-+		}
-+
-+		/* move the index to the next line */
-+		index += vsca->src_line_size;
-+	}
++	return 0;
 +}
 +
-+static void vimc_sca_fill_src_frame(const struct vimc_sca_device *const vsca,
-+				    const u8 *const sink_frame)
++static int ov5670_update_digital_gain(struct ov5670 *ov5670, u32 d_gain)
 +{
-+	unsigned int i, j;
-+
-+	/* Scale each pixel from the original sink frame */
-+	/* TODO: implement scale down, only scale up is supported for now */
-+	for (i = 0; i < vsca->sink_fmt.height; i++)
-+		for (j = 0; j < vsca->sink_fmt.width; j++)
-+			vimc_sca_scale_pix(vsca, i, j, sink_frame);
-+}
-+
-+static void vimc_sca_process_frame(struct vimc_ent_device *ved,
-+				   struct media_pad *sink,
-+				   const void *sink_frame)
-+{
-+	struct vimc_sca_device *vsca = container_of(ved, struct vimc_sca_device,
-+						    ved);
-+	unsigned int i;
-+
-+	/* If the stream in this node is not active, just return */
-+	if (!vsca->src_frame)
-+		return;
-+
-+	vimc_sca_fill_src_frame(vsca, sink_frame);
-+
-+	/* Propagate the frame through all source pads */
-+	for (i = 1; i < vsca->sd.entity.num_pads; i++) {
-+		struct media_pad *pad = &vsca->sd.entity.pads[i];
-+
-+		vimc_propagate_frame(pad, vsca->src_frame);
-+	}
-+};
-+
-+static void vimc_sca_comp_unbind(struct device *comp, struct device *master,
-+				 void *master_data)
-+{
-+	struct vimc_ent_device *ved = dev_get_drvdata(comp);
-+	struct vimc_sca_device *vsca = container_of(ved, struct vimc_sca_device,
-+						    ved);
-+
-+	vimc_ent_sd_unregister(ved, &vsca->sd);
-+	kfree(vsca);
-+}
-+
-+
-+static int vimc_sca_comp_bind(struct device *comp, struct device *master,
-+			      void *master_data)
-+{
-+	struct v4l2_device *v4l2_dev = master_data;
-+	char *name = comp->platform_data;
-+	struct vimc_sca_device *vsca;
 +	int ret;
 +
-+	/* Allocate the vsca struct */
-+	vsca = kzalloc(sizeof(*vsca), GFP_KERNEL);
-+	if (!vsca)
-+		return -ENOMEM;
++	ret = ov5670_write_reg(ov5670, OV5670_REG_R_DGTL_GAIN,
++			       OV5670_REG_VALUE_16BIT, d_gain);
++	if (ret)
++		return ret;
 +
-+	/* Initialize ved and sd */
-+	ret = vimc_ent_sd_register(&vsca->ved, &vsca->sd, v4l2_dev, name,
-+				   MEDIA_ENT_F_ATV_DECODER, 2,
-+				   (const unsigned long[2]) {MEDIA_PAD_FL_SINK,
-+				   MEDIA_PAD_FL_SOURCE},
-+				   &vimc_sca_ops);
++	ret = ov5670_write_reg(ov5670, OV5670_REG_G_DGTL_GAIN,
++			       OV5670_REG_VALUE_16BIT, d_gain);
++	if (ret)
++		return ret;
++
++	return ov5670_write_reg(ov5670, OV5670_REG_B_DGTL_GAIN,
++				OV5670_REG_VALUE_16BIT, d_gain);
++}
++
++static int ov5670_enable_test_pattern(struct ov5670 *ov5670, u32 pattern)
++{
++	u32 val;
++	int ret;
++
++	/* Set the bayer order that we support */
++	ret = ov5670_write_reg(ov5670, OV5670_REG_TEST_PATTERN_CTRL,
++			       OV5670_REG_VALUE_08BIT, 0);
++	if (ret)
++		return ret;
++
++	ret = ov5670_read_reg(ov5670, OV5670_REG_TEST_PATTERN,
++			      OV5670_REG_VALUE_08BIT, &val);
++	if (ret)
++		return ret;
++
++	if (pattern)
++		val |= OV5670_TEST_PATTERN_ENABLE;
++	else
++		val &= ~OV5670_TEST_PATTERN_ENABLE;
++
++	return ov5670_write_reg(ov5670, OV5670_REG_TEST_PATTERN,
++				OV5670_REG_VALUE_08BIT, val);
++}
++
++/* Initialize control handlers */
++static int ov5670_set_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct ov5670 *ov5670 = container_of(ctrl->handler,
++					     struct ov5670, ctrl_handler);
++	struct i2c_client *client = v4l2_get_subdevdata(&ov5670->sd);
++	s64 max;
++	int ret;
++
++	/* Propagate change of current control to all related controls */
++	switch (ctrl->id) {
++	case V4L2_CID_VBLANK:
++	/* Update max exposure while meeting expected vblanking */
++	max = ov5670->cur_mode->height + ctrl->val - 8;
++	/* 4 least significant bits of expsoure are fractional part */
++	max = max << 4;
++	__v4l2_ctrl_modify_range(ov5670->exposure, ov5670->exposure->minimum,
++				 max, ov5670->exposure->step, max);
++	break;
++	};
++
++	/* V4L2 controls values will be applied only when power is already up */
++	if (pm_runtime_get_if_in_use(&client->dev) <= 0)
++		return 0;
++
++	ret = 0;
++	switch (ctrl->id) {
++	case V4L2_CID_ANALOGUE_GAIN:
++		ret = ov5670_write_reg(ov5670, OV5670_REG_ANALOG_GAIN,
++				       OV5670_REG_VALUE_16BIT, ctrl->val);
++		break;
++	case V4L2_CID_GAIN:
++		ret = ov5670_update_digital_gain(ov5670, ctrl->val);
++		break;
++	case V4L2_CID_EXPOSURE:
++		ret = ov5670_write_reg(ov5670, OV5670_REG_EXPOSURE,
++				       OV5670_REG_VALUE_24BIT, ctrl->val);
++		break;
++	case V4L2_CID_VBLANK:
++		/* Update VTS that meets expected vertical blanking */
++		ret = ov5670_write_reg(ov5670, OV5670_REG_VTS,
++				       OV5670_REG_VALUE_16BIT,
++				       ov5670->cur_mode->height + ctrl->val);
++		break;
++	case V4L2_CID_TEST_PATTERN:
++		ret = ov5670_enable_test_pattern(ov5670, ctrl->val);
++		break;
++	default:
++		dev_info(&client->dev, "%s Unhandled id:0x%x, val:0x%x\n",
++			 __func__, ctrl->id, ctrl->val);
++		break;
++	};
++
++	pm_runtime_put(&client->dev);
++
++	return ret;
++}
++
++static const struct v4l2_ctrl_ops ov5670_ctrl_ops = {
++	.s_ctrl = ov5670_set_ctrl,
++};
++
++/* Initialize control handlers */
++static int ov5670_init_controls(struct ov5670 *ov5670)
++{
++	struct v4l2_ctrl_handler *ctrl_hdlr;
++	s64 vblank_max;
++	s64 vblank_def;
++	int ret;
++
++	ctrl_hdlr = &ov5670->ctrl_handler;
++	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 8);
++	if (ret)
++		return ret;
++
++	ctrl_hdlr->lock = &ov5670->mutex;
++	ov5670->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr,
++				&ov5670_ctrl_ops,
++				V4L2_CID_LINK_FREQ, 0, 0,
++				link_freq_menu_items);
++	ov5670->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
++
++	/* By default, V4L2_CID_PIXEL_RATE is read only */
++	ov5670->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &ov5670_ctrl_ops,
++					V4L2_CID_PIXEL_RATE, 0,
++					OV5670_LINK_FREQ_840MBPS, 1,
++					link_freq_configs[0].pixel_rate);
++
++	vblank_max = OV5670_VTS_MAX - ov5670->cur_mode->height;
++	vblank_def = ov5670->cur_mode->vts - ov5670->cur_mode->height;
++	ov5670->vblank = v4l2_ctrl_new_std(ctrl_hdlr, &ov5670_ctrl_ops,
++					   V4L2_CID_VBLANK, OV5670_VBLANK_MIN,
++					   vblank_max, 1, vblank_def);
++
++	ov5670->hblank = v4l2_ctrl_new_std(ctrl_hdlr, &ov5670_ctrl_ops,
++				V4L2_CID_HBLANK,
++				OV5670_MAX_PPL - ov5670->cur_mode->width,
++				OV5670_MAX_PPL - ov5670->cur_mode->width, 1,
++				OV5670_MAX_PPL - ov5670->cur_mode->width);
++	ov5670->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
++
++	/* Get min, max, step, default from sensor */
++	v4l2_ctrl_new_std(ctrl_hdlr, &ov5670_ctrl_ops, V4L2_CID_ANALOGUE_GAIN,
++			  ANALOG_GAIN_MIN, ANALOG_GAIN_MAX, ANALOG_GAIN_STEP,
++			  ANALOG_GAIN_DEFAULT);
++
++	/* Digital gain */
++	v4l2_ctrl_new_std(ctrl_hdlr, &ov5670_ctrl_ops, V4L2_CID_GAIN,
++			  OV5670_DGTL_GAIN_MIN, OV5670_DGTL_GAIN_MAX,
++			  OV5670_DGTL_GAIN_STEP, OV5670_DGTL_GAIN_DEFAULT);
++
++	/* Get min, max, step, default from sensor */
++	ov5670->exposure = v4l2_ctrl_new_std(ctrl_hdlr, &ov5670_ctrl_ops,
++					     V4L2_CID_EXPOSURE,
++					     OV5670_EXPOSURE_MIN,
++					     OV5670_EXPOSURE_MAX,
++					     OV5670_EXPOSURE_STEP,
++					     OV5670_EXPOSURE_DEFAULT);
++
++	v4l2_ctrl_new_std_menu_items(ctrl_hdlr, &ov5670_ctrl_ops,
++				     V4L2_CID_TEST_PATTERN,
++				     ARRAY_SIZE(ov5670_test_pattern_menu) - 1,
++				     0, 0, ov5670_test_pattern_menu);
++
++	if (ctrl_hdlr->error) {
++		ret = ctrl_hdlr->error;
++		goto error;
++	}
++
++	ov5670->sd.ctrl_handler = ctrl_hdlr;
++
++	return 0;
++
++error:
++	v4l2_ctrl_handler_free(ctrl_hdlr);
++
++	return ret;
++}
++
++static int ov5670_enum_mbus_code(struct v4l2_subdev *sd,
++				 struct v4l2_subdev_pad_config *cfg,
++				 struct v4l2_subdev_mbus_code_enum *code)
++{
++	/* Only one bayer order GRBG is supported */
++	if (code->index > 0)
++		return -EINVAL;
++
++	code->code = MEDIA_BUS_FMT_SGRBG10_1X10;
++
++	return 0;
++}
++
++static int ov5670_enum_frame_size(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_pad_config *cfg,
++				  struct v4l2_subdev_frame_size_enum *fse)
++{
++	if (fse->index >= ARRAY_SIZE(supported_modes))
++		return -EINVAL;
++
++	if (fse->code != MEDIA_BUS_FMT_SGRBG10_1X10)
++		return -EINVAL;
++
++	fse->min_width = supported_modes[fse->index].width;
++	fse->max_width = fse->min_width;
++	fse->min_height = supported_modes[fse->index].height;
++	fse->max_height = fse->min_height;
++
++	return 0;
++}
++
++/* Calculate resolution distance */
++static int ov5670_get_reso_dist(const struct ov5670_mode *mode,
++				struct v4l2_mbus_framefmt *framefmt)
++{
++	return abs(mode->width - framefmt->width) +
++	       abs(mode->height - framefmt->height);
++}
++
++/* Find the closest supported resolution to the requested resolution */
++static const struct ov5670_mode *ov5670_find_best_fit(
++						struct ov5670 *ov5670,
++						struct v4l2_subdev_format *fmt)
++{
++	struct v4l2_mbus_framefmt *framefmt = &fmt->format;
++	int dist;
++	int cur_best_fit = 0;
++	int cur_best_fit_dist = -1;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(supported_modes); i++) {
++		dist = ov5670_get_reso_dist(&supported_modes[i], framefmt);
++		if (cur_best_fit_dist == -1 || dist < cur_best_fit_dist) {
++			cur_best_fit_dist = dist;
++			cur_best_fit = i;
++		}
++	}
++
++	return &supported_modes[cur_best_fit];
++}
++
++static void ov5670_update_pad_format(const struct ov5670_mode *mode,
++				     struct v4l2_subdev_format *fmt)
++{
++	fmt->format.width = mode->width;
++	fmt->format.height = mode->height;
++	fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
++	fmt->format.field = V4L2_FIELD_NONE;
++}
++
++static int ov5670_do_get_pad_format(struct ov5670 *ov5670,
++				    struct v4l2_subdev_pad_config *cfg,
++				    struct v4l2_subdev_format *fmt)
++{
++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
++		fmt->format = *v4l2_subdev_get_try_format(&ov5670->sd, cfg,
++							  fmt->pad);
++	else
++		ov5670_update_pad_format(ov5670->cur_mode, fmt);
++
++	return 0;
++}
++
++static int ov5670_get_pad_format(struct v4l2_subdev *sd,
++				 struct v4l2_subdev_pad_config *cfg,
++				 struct v4l2_subdev_format *fmt)
++{
++	struct ov5670 *ov5670 = to_ov5670(sd);
++	int ret;
++
++	mutex_lock(&ov5670->mutex);
++	ret = ov5670_do_get_pad_format(ov5670, cfg, fmt);
++	mutex_unlock(&ov5670->mutex);
++
++	return ret;
++}
++
++static int ov5670_set_pad_format(struct v4l2_subdev *sd,
++				 struct v4l2_subdev_pad_config *cfg,
++				 struct v4l2_subdev_format *fmt)
++{
++	struct ov5670 *ov5670 = to_ov5670(sd);
++	const struct ov5670_mode *mode;
++	s64 h_blank;
++
++	mutex_lock(&ov5670->mutex);
++
++	if (fmt->format.code != MEDIA_BUS_FMT_SGRBG10_1X10)
++		fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
++
++	mode = ov5670_find_best_fit(ov5670, fmt);
++	ov5670_update_pad_format(mode, fmt);
++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
++		*v4l2_subdev_get_try_format(sd, cfg, fmt->pad) = fmt->format;
++	} else {
++		ov5670->cur_mode = mode;
++		__v4l2_ctrl_s_ctrl(ov5670->link_freq, mode->link_freq_index);
++		__v4l2_ctrl_s_ctrl_int64(
++			ov5670->pixel_rate,
++			link_freq_configs[mode->link_freq_index].pixel_rate);
++		/* Update limits and set FPS to default */
++		__v4l2_ctrl_modify_range(
++			ov5670->vblank, OV5670_VBLANK_MIN,
++			OV5670_VTS_MAX - ov5670->cur_mode->height, 1,
++			ov5670->cur_mode->vts - ov5670->cur_mode->height);
++		h_blank = OV5670_MAX_PPL - ov5670->cur_mode->width;
++		__v4l2_ctrl_modify_range(ov5670->hblank, h_blank, h_blank, 1,
++					 h_blank);
++	}
++
++	mutex_unlock(&ov5670->mutex);
++
++	return 0;
++}
++
++static int ov5670_get_skip_frames(struct v4l2_subdev *sd, u32 *frames)
++{
++	struct ov5670 *ov5670 = to_ov5670(sd);
++
++	mutex_lock(&ov5670->mutex);
++	*frames = ov5670->cur_mode->skip_frames;
++	mutex_unlock(&ov5670->mutex);
++
++	return 0;
++}
++
++/* Prepare streaming by writing default values and customized values */
++static int ov5670_start_streaming(struct ov5670 *ov5670)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&ov5670->sd);
++	const struct ov5670_reg_list *reg_list;
++	int link_freq_index;
++	int ret;
++
++	/* Get out of from software reset */
++	ret = ov5670_write_reg(ov5670, OV5670_REG_SOFTWARE_RST,
++			       OV5670_REG_VALUE_08BIT, OV5670_SOFTWARE_RST);
 +	if (ret) {
-+		kfree(vsca);
++		dev_err(&client->dev, "%s failed to set powerup registers\n",
++			__func__);
 +		return ret;
 +	}
 +
-+	vsca->ved.process_frame = vimc_sca_process_frame;
-+	dev_set_drvdata(comp, &vsca->ved);
-+	vsca->dev = comp;
++	/* Setup PLL */
++	link_freq_index = ov5670->cur_mode->link_freq_index;
++	reg_list = &link_freq_configs[link_freq_index].reg_list;
++	ret = ov5670_write_reg_list(ov5670, reg_list);
++	if (ret) {
++		dev_err(&client->dev, "%s failed to set plls\n", __func__);
++		return ret;
++	}
 +
-+	/* Initialize the frame format */
-+	vsca->sink_fmt = sink_fmt_default;
++	/* Apply default values of current mode */
++	reg_list = &ov5670->cur_mode->reg_list;
++	ret = ov5670_write_reg_list(ov5670, reg_list);
++	if (ret) {
++		dev_err(&client->dev, "%s failed to set mode\n", __func__);
++		return ret;
++	}
++
++	ret = __v4l2_ctrl_handler_setup(ov5670->sd.ctrl_handler);
++	if (ret)
++		return ret;
++
++	/* Write stream on list */
++	ret = ov5670_write_reg(ov5670, OV5670_REG_MODE_SELECT,
++			       OV5670_REG_VALUE_08BIT, OV5670_MODE_STREAMING);
++	if (ret) {
++		dev_err(&client->dev, "%s failed to set stream\n", __func__);
++		return ret;
++	}
++
++	ov5670->streaming = 1;
 +
 +	return 0;
 +}
 +
-+static const struct component_ops vimc_sca_comp_ops = {
-+	.bind = vimc_sca_comp_bind,
-+	.unbind = vimc_sca_comp_unbind,
-+};
-+
-+static int vimc_sca_probe(struct platform_device *pdev)
++static int ov5670_stop_streaming(struct ov5670 *ov5670)
 +{
-+	return component_add(&pdev->dev, &vimc_sca_comp_ops);
++	struct i2c_client *client = v4l2_get_subdevdata(&ov5670->sd);
++	int ret;
++
++	ret = ov5670_write_reg(ov5670, OV5670_REG_MODE_SELECT,
++			       OV5670_REG_VALUE_08BIT, OV5670_MODE_STANDBY);
++	if (ret) {
++		dev_err(&client->dev, "%s failed to set stream\n", __func__);
++		return ret;
++	}
++	ov5670->streaming = 0;
++
++	return ret;
 +}
 +
-+static int vimc_sca_remove(struct platform_device *pdev)
++static int ov5670_set_stream(struct v4l2_subdev *sd, int enable)
 +{
-+	component_del(&pdev->dev, &vimc_sca_comp_ops);
++	struct ov5670 *ov5670 = to_ov5670(sd);
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	int ret = 0;
++
++	mutex_lock(&ov5670->mutex);
++	if (ov5670->streaming == enable)
++		goto unlock_and_return;
++
++	if (enable) {
++		ret = pm_runtime_get_sync(&client->dev);
++		if (ret < 0) {
++			pm_runtime_put_noidle(&client->dev);
++			goto unlock_and_return;
++		}
++
++		ret = ov5670_start_streaming(ov5670);
++		if (ret)
++			goto error;
++	} else {
++		ret = ov5670_stop_streaming(ov5670);
++		pm_runtime_put(&client->dev);
++	}
++	goto unlock_and_return;
++
++error:
++	pm_runtime_put(&client->dev);
++
++unlock_and_return:
++	mutex_unlock(&ov5670->mutex);
++
++	return ret;
++}
++
++static int __maybe_unused ov5670_suspend(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct ov5670 *ov5670 = to_ov5670(sd);
++
++	if (ov5670->streaming)
++		ov5670_stop_streaming(ov5670);
 +
 +	return 0;
 +}
 +
-+static struct platform_driver vimc_sca_pdrv = {
-+	.probe		= vimc_sca_probe,
-+	.remove		= vimc_sca_remove,
-+	.driver		= {
-+		.name	= VIMC_SCA_DRV_NAME,
-+	},
++static int __maybe_unused ov5670_resume(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct ov5670 *ov5670 = to_ov5670(sd);
++	int ret;
++
++	if (ov5670->streaming) {
++		ret = ov5670_start_streaming(ov5670);
++		if (ret) {
++			ov5670_stop_streaming(ov5670);
++			return ret;
++		}
++	}
++
++	return 0;
++}
++
++/* Verify chip ID */
++static int ov5670_identify_module(struct ov5670 *ov5670)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&ov5670->sd);
++	int ret;
++	u32 val;
++
++	ret = ov5670_read_reg(ov5670, OV5670_REG_CHIP_ID,
++			      OV5670_REG_VALUE_24BIT, &val);
++	if (ret)
++		return ret;
++
++	if (val != OV5670_CHIP_ID) {
++		dev_err(&client->dev, "chip id mismatch: %x!=%x\n",
++			OV5670_CHIP_ID, val);
++		return -ENXIO;
++	}
++
++	return 0;
++}
++
++static const struct v4l2_subdev_video_ops ov5670_video_ops = {
++	.s_stream = ov5670_set_stream,
 +};
 +
-+static const struct platform_device_id vimc_sca_driver_ids[] = {
-+	{
-+		.name           = VIMC_SCA_DRV_NAME,
-+	},
-+	{ }
++static const struct v4l2_subdev_pad_ops ov5670_pad_ops = {
++	.enum_mbus_code = ov5670_enum_mbus_code,
++	.get_fmt = ov5670_get_pad_format,
++	.set_fmt = ov5670_set_pad_format,
++	.enum_frame_size = ov5670_enum_frame_size,
 +};
 +
-+module_platform_driver(vimc_sca_pdrv);
++static const struct v4l2_subdev_sensor_ops ov5670_sensor_ops = {
++	.g_skip_frames = ov5670_get_skip_frames,
++};
 +
-+MODULE_DEVICE_TABLE(platform, vimc_sca_driver_ids);
++static const struct v4l2_subdev_ops ov5670_subdev_ops = {
++	.video = &ov5670_video_ops,
++	.pad = &ov5670_pad_ops,
++	.sensor = &ov5670_sensor_ops,
++};
 +
-+MODULE_DESCRIPTION("Virtual Media Controller Driver (VIMC) Scaler");
-+MODULE_AUTHOR("Helen Mae Koike Fornazier <helen.fornazier@gmail.com>");
-+MODULE_LICENSE("GPL");
++static const struct media_entity_operations ov5670_subdev_entity_ops = {
++	.link_validate = v4l2_subdev_link_validate,
++};
++
++static const struct v4l2_subdev_internal_ops ov5670_internal_ops = {
++	.open = ov5670_open,
++};
++
++static int ov5670_probe(struct i2c_client *client,
++			const struct i2c_device_id *devid)
++{
++	struct ov5670 *ov5670;
++	const char *err_msg;
++	int ret;
++
++	ov5670 = devm_kzalloc(&client->dev, sizeof(*ov5670), GFP_KERNEL);
++	if (!ov5670) {
++		ret = -ENOMEM;
++		err_msg = "devm_kzalloc() error";
++		goto error_print;
++	}
++
++	/* Initialize subdev */
++	v4l2_i2c_subdev_init(&ov5670->sd, client, &ov5670_subdev_ops);
++
++	/* Check module identity */
++	ret = ov5670_identify_module(ov5670);
++	if (ret) {
++		err_msg = "ov5670_identify_module() error";
++		goto error_print;
++	}
++
++	mutex_init(&ov5670->mutex);
++
++	/* Set default mode to max resolution */
++	ov5670->cur_mode = &supported_modes[0];
++
++	ret = ov5670_init_controls(ov5670);
++	if (ret) {
++		err_msg = "ov5670_init_controls() error";
++		goto error_mutex_destroy;
++	}
++
++	ov5670->sd.internal_ops = &ov5670_internal_ops;
++	ov5670->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	ov5670->sd.entity.ops = &ov5670_subdev_entity_ops;
++	ov5670->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
++
++	/* Source pad initialization */
++	ov5670->pad.flags = MEDIA_PAD_FL_SOURCE;
++	ret = media_entity_pads_init(&ov5670->sd.entity, 1, &ov5670->pad);
++	if (ret) {
++		err_msg = "media_entity_pads_init() error";
++		goto error_handler_free;
++	}
++
++	/* Async register for subdev */
++	ret = v4l2_async_register_subdev(&ov5670->sd);
++	if (ret < 0) {
++		err_msg = "v4l2_async_register_subdev() error";
++		goto error_entity_cleanup;
++	}
++
++	ov5670->streaming = 0;
++
++	/*
++	 * Device is already turned on by i2c-core with ACPI domain PM.
++	 * Enable runtime PM and turn off the device.
++	 */
++	pm_runtime_get_noresume(&client->dev);
++	pm_runtime_set_active(&client->dev);
++	pm_runtime_enable(&client->dev);
++	pm_runtime_put(&client->dev);
++
++	return 0;
++
++error_entity_cleanup:
++	media_entity_cleanup(&ov5670->sd.entity);
++
++error_handler_free:
++	v4l2_ctrl_handler_free(ov5670->sd.ctrl_handler);
++
++error_mutex_destroy:
++	mutex_destroy(&ov5670->mutex);
++
++error_print:
++	dev_err(&client->dev, "%s: %s %d\n", __func__, err_msg, ret);
++
++	return ret;
++}
++
++static int ov5670_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct ov5670 *ov5670 = to_ov5670(sd);
++
++	v4l2_async_unregister_subdev(sd);
++	media_entity_cleanup(&sd->entity);
++	v4l2_ctrl_handler_free(sd->ctrl_handler);
++	mutex_destroy(&ov5670->mutex);
++
++	/*
++	 * Disable runtime PM but keep the device turned on.
++	 * i2c-core with ACPI domain PM will turn off the device.
++	 */
++	pm_runtime_get_sync(&client->dev);
++	pm_runtime_disable(&client->dev);
++	pm_runtime_set_suspended(&client->dev);
++	pm_runtime_put_noidle(&client->dev);
++
++	return 0;
++}
++
++static const struct i2c_device_id ov5670_id_table[] = {
++	{"ov5670", 0},
++	{},
++};
++
++MODULE_DEVICE_TABLE(i2c, ov5670_id_table);
++
++static const struct dev_pm_ops ov5670_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(ov5670_suspend, ov5670_resume)
++};
++
++#ifdef CONFIG_ACPI
++static const struct acpi_device_id ov5670_acpi_ids[] = {
++	{"INT3479"},
++	{ /* sentinel */ }
++};
++
++MODULE_DEVICE_TABLE(acpi, ov5670_acpi_ids);
++#endif
++
++static struct i2c_driver ov5670_i2c_driver = {
++	.driver = {
++		.name = "ov5670",
++		.owner = THIS_MODULE,
++		.pm = &ov5670_pm_ops,
++		.acpi_match_table = ACPI_PTR(ov5670_acpi_ids),
++	},
++	.probe = ov5670_probe,
++	.remove = ov5670_remove,
++	.id_table = ov5670_id_table,
++};
++
++module_i2c_driver(ov5670_i2c_driver);
++
++MODULE_AUTHOR("Rapolu, Chiranjeevi <chiranjeevi.rapolu@intel.com>");
++MODULE_AUTHOR("Yang, Hyungwoo <hyungwoo.yang@intel.com>");
++MODULE_DESCRIPTION("Omnivision ov5670 sensor driver");
++MODULE_LICENSE("GPL v2");
 -- 
-2.7.4
+1.9.1
