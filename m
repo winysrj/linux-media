@@ -1,117 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:36687 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750919AbdFHRIj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 13:08:39 -0400
-Subject: Re: [PATCH v8 02/34] [media] dt-bindings: Add bindings for i.MX media
- driver
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com
-Cc: kernel@pengutronix.de, mchehab@kernel.org, hverkuil@xs4all.nl,
-        p.zabel@pengutronix.de, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
- <1496860453-6282-3-git-send-email-steve_longerbeam@mentor.com>
- <18997640-8cbd-734d-160e-a930f887d14f@gmail.com>
-Message-ID: <c7edc53b-bdfc-4a82-1c6c-70bf1c4db84a@gmail.com>
-Date: Thu, 8 Jun 2017 10:08:35 -0700
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37170 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750728AbdFNLQq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Jun 2017 07:16:46 -0400
+Date: Wed, 14 Jun 2017 14:16:09 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Pavel Machek <pavel@ucw.cz>,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        pali.rohar@gmail.com, sre@kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com
+Subject: Re: [patch, libv4l]: add sdlcam example for testing digital still
+ camera functionality
+Message-ID: <20170614111609.GQ12407@valkosipuli.retiisi.org.uk>
+References: <20170426105300.GA857@amd>
+ <20170426081330.6ca10e42@vento.lan>
+ <20170426132337.GA6482@amd>
+ <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com>
+ <20170508222819.GA14833@amd>
+ <db37ee9a-9675-d1db-5d2e-b0549ba004fd@xs4all.nl>
+ <20170521103315.GA10716@amd>
+ <57f24742-f039-dce3-8c8f-65b114dfd7d2@xs4all.nl>
+ <20170529073227.GA11921@amd>
+ <9c846164-a7aa-eb2f-a78f-c14685ab248f@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <18997640-8cbd-734d-160e-a930f887d14f@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <9c846164-a7aa-eb2f-a78f-c14685ab248f@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans, Pavel, Mauro, others,
 
-
-On 06/08/2017 09:45 AM, Steve Longerbeam wrote:
-> Hi Rob, Mark,
+On Mon, May 29, 2017 at 10:02:26AM +0200, Hans Verkuil wrote:
+> On 05/29/2017 09:32 AM, Pavel Machek wrote:
+> >On Mon 2017-05-29 08:13:22, Hans Verkuil wrote:
+> >>Hi Pavel,
+> >>
+> >>On 05/21/2017 12:33 PM, Pavel Machek wrote:
+> >>>Add simple SDL-based application for capturing photos. Manual
+> >>>focus/gain/exposure can be set, flash can be controlled and
+> >>>autofocus/autogain can be selected if camera supports that.
+> >>>
+> >>>It is already useful for testing autofocus/autogain improvements to
+> >>>the libraries on Nokia N900.
+> >>>
+> >>>Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> >>
+> >>I think this is more suitable as a github project. To be honest, I feel that
+> >>v4l-utils already contains too many random utilities, so I prefer not to add
+> >>to that.
+> >
+> >>On the other hand, there is nothing against sharing this as on github as it
+> >>certainly can be useful.
+> >
+> >Can I get you to reconsider that?
+> >
+> >Originally, I planed to keep the utility separate, but then I got
+> >comments from Mauro ( https://lkml.org/lkml/2017/4/24/457 ) explaining
+> >that hard sdl dependency is not acceptable etc, and how I should do
+> >automake.
+> >
+> >So I had a lot of fun with automake integration, and generally doing
+> >things right.
+> >
+> >So getting "we all ready have too many utilities" _now_ is quite an
+> >unwelcome surprise.
 > 
-> Are there any remaining technical issues with this
-> binding doc? At this point an Ack from you is the only
-> thing holding up merge of the imx-media driver.
+> Too many *random* utilities.
 > 
->
-
-Note that the Synopsys core in the i.MX6 is a differently configured
-Synopsys core from the core as described in the bindings at [1].
-
-Russell King provided more information on the differences between these
-cores at [2]. They are essentially different devices.
-
-So perhaps the "snps,dw-mipi-csi2" compatibility needs to be removed
-from this binding, for now, until this driver is moved to drivers/media/
-and is made compatible with other MIPI CSI-2 Synopsys cores with
-different configurations.
-
-
-[1] http://patchwork.ozlabs.org/patch/736177/
-[2] <20170403150342.GZ7909@n2100.armlinux.org.uk>
-
+> Utilities like v4l2-ctl are tied closely to the kernel and are updated whenever
+> new APIs appear. But yet another viewer?
 > 
-> On 06/07/2017 11:33 AM, Steve Longerbeam wrote:
->> Add bindings documentation for the i.MX media driver.
->>
->> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->> ---
->>   Documentation/devicetree/bindings/media/imx.txt | 47 
->> +++++++++++++++++++++++++
->>   1 file changed, 47 insertions(+)
->>   create mode 100644 Documentation/devicetree/bindings/media/imx.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/imx.txt 
->> b/Documentation/devicetree/bindings/media/imx.txt
->> new file mode 100644
->> index 0000000..c1e1e2b
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/imx.txt
->> @@ -0,0 +1,47 @@
->> +Freescale i.MX Media Video Device
->> +=================================
->> +
->> +Video Media Controller node
->> +---------------------------
->> +
->> +This is the media controller node for video capture support. It is a
->> +virtual device that lists the camera serial interface nodes that the
->> +media device will control.
->> +
->> +Required properties:
->> +- compatible : "fsl,imx-capture-subsystem";
->> +- ports      : Should contain a list of phandles pointing to camera
->> +        sensor interface ports of IPU devices
->> +
->> +example:
->> +
->> +capture-subsystem {
->> +    compatible = "fsl,imx-capture-subsystem";
->> +    ports = <&ipu1_csi0>, <&ipu1_csi1>;
->> +};
->> +
->> +
->> +mipi_csi2 node
->> +--------------
->> +
->> +This is the device node for the MIPI CSI-2 Receiver, required for MIPI
->> +CSI-2 sensors.
->> +
->> +Required properties:
->> +- compatible    : "fsl,imx6-mipi-csi2", "snps,dw-mipi-csi2";
->> +- reg           : physical base address and length of the register set;
->> +- clocks    : the MIPI CSI-2 receiver requires three clocks: hsi_tx
->> +          (the D-PHY clock), video_27m (D-PHY PLL reference
->> +          clock), and eim_podf;
->> +- clock-names    : must contain "dphy", "ref", "pix";
->> +- port@*        : five port nodes must exist, containing endpoints
->> +          connecting to the source and sink devices according to
->> +          of_graph bindings. The first port is an input port,
->> +          connecting with a MIPI CSI-2 source, and ports 1
->> +          through 4 are output ports connecting with parallel
->> +          bus sink endpoint nodes and correspond to the four
->> +          MIPI CSI-2 virtual channel outputs.
->> +
->> +Optional properties:
->> +- interrupts    : must contain two level-triggered interrupts,
->> +          in order: 100 and 101;
->>
+> Mauro, I find that v4l-utils is a bit polluted with non-core utilities.
+> IMHO it should only contain the core libv4l2, core utilities and driver-specific
+> utilities. I wonder if we should make a media-utils-contrib for all the non-core
+> stuff.
+> 
+> What is your opinion?
+
+One of the purposes the v4l-utils repository has is that the distributions
+get these programs included to their v4l-utils package as it's typically
+called. It's debatable whether or how much it should contain device specific
+or otherwise random projects, but having a common location for such programs
+has clear benefits, too.
+
+Based on how this one looks it is definitely not an end user application (I
+hope I'm not miscategorising it) and as Pavel mentioned, it has been useful
+in testing automatic focus / gain control on N900.
+
+Just my 5 euro cents...
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
