@@ -1,106 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53174
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751434AbdFUKTR (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51236 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752654AbdFNVUT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Jun 2017 06:19:17 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Markus Heiser <markus.heiser@darmarIT.de>
-Subject: [PATCH v2] [media] dvb uapi docs: enums are passed by value, not reference
-Date: Wed, 21 Jun 2017 07:18:38 -0300
-Message-Id: <f67f95172e80f45ecd62aa0ab7da8ae4cdad4b8b.1498040306.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Wed, 14 Jun 2017 17:20:19 -0400
+Date: Thu, 15 Jun 2017 00:19:40 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+        devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
+        robh@kernel.org, pavel@ucw.cz
+Subject: Re: [PATCH 5/8] v4l2-flash: Flash ops aren't mandatory
+Message-ID: <20170614211939.GR12407@valkosipuli.retiisi.org.uk>
+References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1497433639-13101-6-git-send-email-sakari.ailus@linux.intel.com>
+ <3e0a8823-a8b4-3f78-25e0-22d8cb8ad090@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3e0a8823-a8b4-3f78-25e0-22d8cb8ad090@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since 2015, the documentation for FE_DISEQC_SEND_BURST, FE_SET_TONE
-and FE_SET_VOLTAGE are incorrectly saying that the enums are passed
-by reference. They aren't: they're passed by value.
+Hi Jacek,
 
-Fix the documentation to reflect reality.
+On Wed, Jun 14, 2017 at 11:14:13PM +0200, Jacek Anaszewski wrote:
+> Hi Sakari,
+> 
+> On 06/14/2017 11:47 AM, Sakari Ailus wrote:
+> > None of the flash operations are not mandatory and therefore there should
+> > be no need for the flash ops structure either. Accept NULL.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-flash-led-class.c | 4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-flash-led-class.c b/drivers/media/v4l2-core/v4l2-flash-led-class.c
+> > index 6d69119..fdb79da 100644
+> > --- a/drivers/media/v4l2-core/v4l2-flash-led-class.c
+> > +++ b/drivers/media/v4l2-core/v4l2-flash-led-class.c
+> > @@ -18,7 +18,7 @@
+> >  #include <media/v4l2-flash-led-class.h>
+> >  
+> >  #define has_flash_op(v4l2_flash, op)				\
+> > -	(v4l2_flash && v4l2_flash->ops->op)
+> > +	(v4l2_flash && v4l2_flash->ops && v4l2_flash->ops->op)
+> 
+> This change doesn't seem to be related to the patch subject.
 
-Fixes: 81959d996a3b ("[media] DocBook: better document FE_DISEQC_SEND_BURST ioctl")
-Fixes: d6b6d346e560 ("[media] DocBook: better document FE_SET_VOLTAGE ioctl")
-Fixes: 6dc59e7a195f ("[media] DocBook: better document FE_SET_TONE ioctl")
-Reported-by: Thierry Lelegard <thierry.lelegard@free.fr>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/dvb/fe-diseqc-send-burst.rst | 4 ++--
- Documentation/media/uapi/dvb/fe-set-tone.rst          | 4 ++--
- Documentation/media/uapi/dvb/fe-set-voltage.rst       | 7 ++-----
- 3 files changed, 6 insertions(+), 9 deletions(-)
+Yes, it is: if there's a chance that ops is NULL, then you have to test here
+you actually have the ops struct around. The test is no longer in
+v4l2_flash_init().
 
-diff --git a/Documentation/media/uapi/dvb/fe-diseqc-send-burst.rst b/Documentation/media/uapi/dvb/fe-diseqc-send-burst.rst
-index 26272f2860bc..7e39d77dcf85 100644
---- a/Documentation/media/uapi/dvb/fe-diseqc-send-burst.rst
-+++ b/Documentation/media/uapi/dvb/fe-diseqc-send-burst.rst
-@@ -15,7 +15,7 @@ FE_DISEQC_SEND_BURST - Sends a 22KHz tone burst for 2x1 mini DiSEqC satellite se
- Synopsis
- ========
- 
--.. c:function:: int ioctl( int fd, FE_DISEQC_SEND_BURST, enum fe_sec_mini_cmd *tone )
-+.. c:function:: int ioctl( int fd, FE_DISEQC_SEND_BURST, enum fe_sec_mini_cmd tone )
-     :name: FE_DISEQC_SEND_BURST
- 
- 
-@@ -26,7 +26,7 @@ Arguments
-     File descriptor returned by :ref:`open() <frontend_f_open>`.
- 
- ``tone``
--    pointer to enum :c:type:`fe_sec_mini_cmd`
-+    an integer value described at enum :c:type:`fe_sec_mini_cmd`
- 
- 
- Description
-diff --git a/Documentation/media/uapi/dvb/fe-set-tone.rst b/Documentation/media/uapi/dvb/fe-set-tone.rst
-index bea193234cb4..085356755e49 100644
---- a/Documentation/media/uapi/dvb/fe-set-tone.rst
-+++ b/Documentation/media/uapi/dvb/fe-set-tone.rst
-@@ -15,7 +15,7 @@ FE_SET_TONE - Sets/resets the generation of the continuous 22kHz tone.
- Synopsis
- ========
- 
--.. c:function:: int ioctl( int fd, FE_SET_TONE, enum fe_sec_tone_mode *tone )
-+.. c:function:: int ioctl( int fd, FE_SET_TONE, enum fe_sec_tone_mode tone )
-     :name: FE_SET_TONE
- 
- 
-@@ -26,7 +26,7 @@ Arguments
-     File descriptor returned by :ref:`open() <frontend_f_open>`.
- 
- ``tone``
--    pointer to enum :c:type:`fe_sec_tone_mode`
-+    an integer value described at enum :c:type:`fe_sec_tone_mode`
- 
- 
- Description
-diff --git a/Documentation/media/uapi/dvb/fe-set-voltage.rst b/Documentation/media/uapi/dvb/fe-set-voltage.rst
-index fcf6f38ef18e..d89a70b9c36f 100644
---- a/Documentation/media/uapi/dvb/fe-set-voltage.rst
-+++ b/Documentation/media/uapi/dvb/fe-set-voltage.rst
-@@ -15,7 +15,7 @@ FE_SET_VOLTAGE - Allow setting the DC level sent to the antenna subsystem.
- Synopsis
- ========
- 
--.. c:function:: int ioctl( int fd, FE_SET_VOLTAGE, enum fe_sec_voltage *voltage )
-+.. c:function:: int ioctl( int fd, FE_SET_VOLTAGE, enum fe_sec_voltage voltage )
-     :name: FE_SET_VOLTAGE
- 
- 
-@@ -26,10 +26,7 @@ Arguments
-     File descriptor returned by :ref:`open() <frontend_f_open>`.
- 
- ``voltage``
--    pointer to enum :c:type:`fe_sec_voltage`
--
--    Valid values are described at enum
--    :c:type:`fe_sec_voltage`.
-+    an integer value described at enum :c:type:`fe_sec_voltage`
- 
- 
- Description
+> 
+> >  #define call_flash_op(v4l2_flash, op, arg)			\
+> >  		(has_flash_op(v4l2_flash, op) ?			\
+> > @@ -618,7 +618,7 @@ struct v4l2_flash *v4l2_flash_init(
+> >  	struct v4l2_subdev *sd;
+> >  	int ret;
+> >  
+> > -	if (!fled_cdev || !ops || !config)
+> > +	if (!fled_cdev || !config)
+> >  		return ERR_PTR(-EINVAL);
+> >  
+> >  	led_cdev = &fled_cdev->led_cdev;
+> > 
+
 -- 
-2.9.4
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
