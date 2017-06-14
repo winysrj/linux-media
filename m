@@ -1,195 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:36469 "EHLO
-        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751798AbdFOQcr (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:40100 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751750AbdFNPmo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 12:32:47 -0400
-Received: by mail-wm0-f50.google.com with SMTP id m125so4486994wmm.1
-        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 09:32:46 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v11 01/19] media: v4l2-mem2mem: extend m2m APIs for more accurate buffer management
-Date: Thu, 15 Jun 2017 19:31:42 +0300
-Message-Id: <1497544320-2269-2-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
+        Wed, 14 Jun 2017 11:42:44 -0400
+Subject: Re: [RFC 0/2] BCM283x Camera Receiver driver
+To: Dave Stevenson <dave.stevenson@raspberrypi.org>,
+        linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-rpi-kernel@lists.infradead.org
+References: <cover.1497452006.git.dave.stevenson@raspberrypi.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <eef29bfb-3336-4f65-c188-975d3937cb67@xs4all.nl>
+Date: Wed, 14 Jun 2017 17:42:39 +0200
+MIME-Version: 1.0
+In-Reply-To: <cover.1497452006.git.dave.stevenson@raspberrypi.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this add functions for:
-  - remove buffers from src/dst queue by index
-  - remove exact buffer from src/dst queue
+Hi Dave,
 
-also extends m2m API to iterate over a list of src/dst buffers
-in safely and non-safely manner.
+How does this driver relate to this staging driver:
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- drivers/media/v4l2-core/v4l2-mem2mem.c | 37 ++++++++++++++
- include/media/v4l2-mem2mem.h           | 92 ++++++++++++++++++++++++++++++++++
- 2 files changed, 129 insertions(+)
+drivers/staging/vc04_services/bcm2835-camera/
 
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index 6bc27e7b2a33..f62e68aa04c4 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -126,6 +126,43 @@ void *v4l2_m2m_buf_remove(struct v4l2_m2m_queue_ctx *q_ctx)
- }
- EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove);
- 
-+void v4l2_m2m_buf_remove_by_buf(struct v4l2_m2m_queue_ctx *q_ctx,
-+				struct vb2_v4l2_buffer *vbuf)
-+{
-+	struct v4l2_m2m_buffer *b;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&q_ctx->rdy_spinlock, flags);
-+	b = container_of(vbuf, struct v4l2_m2m_buffer, vb);
-+	list_del(&b->list);
-+	q_ctx->num_rdy--;
-+	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove_by_buf);
-+
-+struct vb2_v4l2_buffer *
-+v4l2_m2m_buf_remove_by_idx(struct v4l2_m2m_queue_ctx *q_ctx, unsigned int idx)
-+
-+{
-+	struct v4l2_m2m_buffer *b, *tmp;
-+	struct vb2_v4l2_buffer *ret = NULL;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&q_ctx->rdy_spinlock, flags);
-+	list_for_each_entry_safe(b, tmp, &q_ctx->rdy_queue, list) {
-+		if (b->vb.vb2_buf.index == idx) {
-+			list_del(&b->list);
-+			q_ctx->num_rdy--;
-+			ret = &b->vb;
-+			break;
-+		}
-+	}
-+	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove_by_idx);
-+
- /*
-  * Scheduling handlers
-  */
-diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
-index 3ccd01bd245e..e157d5c9b224 100644
---- a/include/media/v4l2-mem2mem.h
-+++ b/include/media/v4l2-mem2mem.h
-@@ -437,6 +437,47 @@ static inline void *v4l2_m2m_next_dst_buf(struct v4l2_m2m_ctx *m2m_ctx)
- }
- 
- /**
-+ * v4l2_m2m_for_each_dst_buf() - iterate over a list of destination ready
-+ * buffers
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @b: current buffer of type struct v4l2_m2m_buffer
-+ */
-+#define v4l2_m2m_for_each_dst_buf(m2m_ctx, b)	\
-+	list_for_each_entry(b, &m2m_ctx->cap_q_ctx.rdy_queue, list)
-+
-+/**
-+ * v4l2_m2m_for_each_src_buf() - iterate over a list of source ready buffers
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @b: current buffer of type struct v4l2_m2m_buffer
-+ */
-+#define v4l2_m2m_for_each_src_buf(m2m_ctx, b)	\
-+	list_for_each_entry(b, &m2m_ctx->out_q_ctx.rdy_queue, list)
-+
-+/**
-+ * v4l2_m2m_for_each_dst_buf_safe() - iterate over a list of destination ready
-+ * buffers safely
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @b: current buffer of type struct v4l2_m2m_buffer
-+ * @n: used as temporary storage
-+ */
-+#define v4l2_m2m_for_each_dst_buf_safe(m2m_ctx, b, n)	\
-+	list_for_each_entry_safe(b, n, &m2m_ctx->cap_q_ctx.rdy_queue, list)
-+
-+/**
-+ * v4l2_m2m_for_each_src_buf_safe() - iterate over a list of source ready
-+ * buffers safely
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @b: current buffer of type struct v4l2_m2m_buffer
-+ * @n: used as temporary storage
-+ */
-+#define v4l2_m2m_for_each_src_buf_safe(m2m_ctx, b, n)	\
-+	list_for_each_entry_safe(b, n, &m2m_ctx->out_q_ctx.rdy_queue, list)
-+
-+/**
-  * v4l2_m2m_get_src_vq() - return vb2_queue for source buffers
-  *
-  * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-@@ -488,6 +529,57 @@ static inline void *v4l2_m2m_dst_buf_remove(struct v4l2_m2m_ctx *m2m_ctx)
- 	return v4l2_m2m_buf_remove(&m2m_ctx->cap_q_ctx);
- }
- 
-+/**
-+ * v4l2_m2m_buf_remove_by_buf() - take off exact buffer from the list of ready
-+ * buffers
-+ *
-+ * @q_ctx: pointer to struct @v4l2_m2m_queue_ctx
-+ * @vbuf: the buffer to be removed
-+ */
-+void v4l2_m2m_buf_remove_by_buf(struct v4l2_m2m_queue_ctx *q_ctx,
-+				struct vb2_v4l2_buffer *vbuf);
-+
-+/**
-+ * v4l2_m2m_src_buf_remove_by_buf() - take off exact source buffer from the list
-+ * of ready buffers
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @vbuf: the buffer to be removed
-+ */
-+static inline void v4l2_m2m_src_buf_remove_by_buf(struct v4l2_m2m_ctx *m2m_ctx,
-+						  struct vb2_v4l2_buffer *vbuf)
-+{
-+	v4l2_m2m_buf_remove_by_buf(&m2m_ctx->out_q_ctx, vbuf);
-+}
-+
-+/**
-+ * v4l2_m2m_dst_buf_remove_by_buf() - take off exact destination buffer from the
-+ * list of ready buffers
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @vbuf: the buffer to be removed
-+ */
-+static inline void v4l2_m2m_dst_buf_remove_by_buf(struct v4l2_m2m_ctx *m2m_ctx,
-+						  struct vb2_v4l2_buffer *vbuf)
-+{
-+	v4l2_m2m_buf_remove_by_buf(&m2m_ctx->cap_q_ctx, vbuf);
-+}
-+
-+struct vb2_v4l2_buffer *
-+v4l2_m2m_buf_remove_by_idx(struct v4l2_m2m_queue_ctx *q_ctx, unsigned int idx);
-+
-+static inline struct vb2_v4l2_buffer *
-+v4l2_m2m_src_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
-+{
-+	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->out_q_ctx, idx);
-+}
-+
-+static inline struct vb2_v4l2_buffer *
-+v4l2_m2m_dst_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
-+{
-+	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->cap_q_ctx, idx);
-+}
-+
- /* v4l2 ioctl helpers */
- 
- int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
--- 
-2.7.4
+It's not obvious to me.
+
+On 06/14/2017 05:15 PM, Dave Stevenson wrote:
+> Hi All.
+> 
+> This is adding a V4L2 subdevice driver for the CSI2/CCP2 camera
+> receiver peripheral on BCM283x, as used on Raspberry Pi.
+> 
+> v4l2-compliance results depend on the sensor subdevice this is
+> connected to. It passes the basic tests cleanly with TC358743,
+> but objects with OV5647
+> fail: v4l2-test-controls.cpp(574): g_ext_ctrls does not support count == 0
+> Neither OV5647 nor Unicam support any controls.
+
+Are you compiling v4l2-compliance from the v4l-utils git repo? If not,
+then please do so and run again. The version packaged by distros tends
+to be seriously outdated.
+
+> 
+> I must admit to not having got OV5647 to stream with the current driver
+> register settings. It works with a set of register settings for VGA RAW10.
+> I also have a couple of patches pending for OV5647, but would like to
+> understand the issues better before sending them out.
+> 
+> Two queries I do have in V4L2-land:
+> - When s_dv_timings or s_std is called, is the format meant to
+>    be updated automatically?
+
+Yes. Exception is if the new timings/std is exactly the same as the old
+timings/std, in that case you can just return 0 and do nothing.
+
+ > Even if we're already streaming?
+
+That's not allowed. Return -EBUSY in that case.
+
+>    Some existing drivers seem to, but others don't.
+> - With s_fmt, is sizeimage settable by the application in the same
+>    way as bytesperline?
+
+No, the driver will fill in this field, overwriting anything the
+application put there.
+
+bytesperline IS settable, but most drivers will ignore what userspace
+did and overwrite this as well.
+
+Normally the driver knows about HW requirements and will set sizeimage
+to something that will work (e.g. make sure it is a multiple of 16 lines).
+
+
+ > yavta allows you to specify it on the command
+>    line, whilst v4l2-ctl doesn't. Some of the other parts of the Pi
+>    firmware have a requirement that the buffer is a multiple of 16 lines
+>    high, which can be matched by V4L2 if we can over-allocate the
+>    buffers by the app specifying sizeimage. But if I allow that,
+>    then I get a v4l2-compliance failure as the size doesn't get
+>    reset when switching from RGB3 to UYVY as it takes the request as
+>    a request to over-allocate.
+> 
+> Apologies if I've messed up in sending these patches - so many ways
+> to do something.
+
+It looks fine at a glance.
+
+I will probably review this on Friday or Monday. But I need some clarification
+of the difference between this and the staging driver first.
+
+Thanks!
+
+	Hans
