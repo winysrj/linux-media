@@ -1,119 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:59144 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751180AbdFBHbb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Jun 2017 03:31:31 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Maling list - DRI developers
-        <dri-devel@lists.freedesktop.org>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] cec: add cec_transmit_attempt_done helper function
-Message-ID: <e90b4d52-f88e-1dd3-dbf5-42821b580e8b@xs4all.nl>
-Date: Fri, 2 Jun 2017 09:31:25 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Received: from mga06.intel.com ([134.134.136.31]:9630 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751600AbdFNVqj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Jun 2017 17:46:39 -0400
+From: "Zhi, Yong" <yong.zhi@intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
+CC: "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>
+Subject: RE: [PATCH 07/12] intel-ipu3: css: firmware management
+Date: Wed, 14 Jun 2017 21:46:33 +0000
+Message-ID: <C193D76D23A22742993887E6D207B54D0799F2DB@ORSMSX106.amr.corp.intel.com>
+References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+ <1496695157-19926-8-git-send-email-yong.zhi@intel.com>
+ <f065881d-1024-2e06-f2d4-382f3cbefbab@xs4all.nl>
+In-Reply-To: <f065881d-1024-2e06-f2d4-382f3cbefbab@xs4all.nl>
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A simpler variant of cec_transmit_done to be used where the HW does
-just a single attempt at a transmit. So if the status indicates an
-error, then the corresponding error count will always be 1 and this
-function figures that out based on the status argument.
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Hans Verkuil
+> Sent: Tuesday, June 6, 2017 1:39 AM
+> To: Zhi, Yong <yong.zhi@intel.com>; linux-media@vger.kernel.org;
+> sakari.ailus@linux.intel.com
+> Cc: Zheng, Jian Xu <jian.xu.zheng@intel.com>; tfiga@chromium.org; Mani,
+> Rajmohan <rajmohan.mani@intel.com>; Toivonen, Tuukka
+> <tuukka.toivonen@intel.com>
+> Subject: Re: [PATCH 07/12] intel-ipu3: css: firmware management
+> 
+> On 05/06/17 22:39, Yong Zhi wrote:
+> > Functions to load and install imgu FW blobs
+> >
+> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> > ---
+> >  drivers/media/pci/intel/ipu3/ipu3-abi.h    | 1572
+> ++++++++++++++++++++++++++++
+> >  drivers/media/pci/intel/ipu3/ipu3-css-fw.c |  272 +++++
+> > drivers/media/pci/intel/ipu3/ipu3-css-fw.h |  215 ++++
+> >  drivers/media/pci/intel/ipu3/ipu3-css.h    |   54 +
+> >  4 files changed, 2113 insertions(+)
+> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-abi.h
+> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-fw.c
+> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-fw.h
+> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css.h
+> 
+> Has this been tested for both i686 and x86_64 modes?
+> 
+> Regards,
+> 
+> 	Hans
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-Russell, this should simplify things for you.
----
-  Documentation/media/kapi/cec-core.rst | 10 ++++++++++
-  drivers/media/cec/cec-adap.c          | 26 ++++++++++++++++++++++++++
-  include/media/cec.h                   |  6 ++++++
-  3 files changed, 42 insertions(+)
-
-diff --git a/Documentation/media/kapi/cec-core.rst b/Documentation/media/kapi/cec-core.rst
-index 7a04c5386dc8..25728545e4ec 100644
---- a/Documentation/media/kapi/cec-core.rst
-+++ b/Documentation/media/kapi/cec-core.rst
-@@ -194,6 +194,11 @@ When a transmit finished (successfully or otherwise):
-  	void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
-  		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt);
-
-+or:
-+
-+.. c:function::
-+	void cec_transmit_attempt_done(struct cec_adapter *adap, u8 status);
-+
-  The status can be one of:
-
-  CEC_TX_STATUS_OK:
-@@ -231,6 +236,11 @@ to 1, if the hardware does support retry then either set these counters to
-  0 if the hardware provides no feedback of which errors occurred and how many
-  times, or fill in the correct values as reported by the hardware.
-
-+The cec_transmit_attempt_done() function is a helper for cases where the
-+hardware never retries, so the transmit was always for just a single
-+attempt. It will call cec_transmit_done() in turn, filling in 1 for the
-+count argument corresponding to the status. Or all 0 if the status was OK.
-+
-  When a CEC message was received:
-
-  .. c:function::
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index f5fe01c9da8a..0f4621cd8748 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -544,6 +544,32 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
-  }
-  EXPORT_SYMBOL_GPL(cec_transmit_done);
-
-+void cec_transmit_attempt_done(struct cec_adapter *adap, u8 status)
-+{
-+	switch (status) {
-+	case CEC_TX_STATUS_OK:
-+		cec_transmit_done(adap, status, 0, 0, 0, 0);
-+		return;
-+	case CEC_TX_STATUS_ARB_LOST:
-+		cec_transmit_done(adap, status, 1, 0, 0, 0);
-+		return;
-+	case CEC_TX_STATUS_NACK:
-+		cec_transmit_done(adap, status, 0, 1, 0, 0);
-+		return;
-+	case CEC_TX_STATUS_LOW_DRIVE:
-+		cec_transmit_done(adap, status, 0, 0, 1, 0);
-+		return;
-+	case CEC_TX_STATUS_ERROR:
-+		cec_transmit_done(adap, status, 0, 0, 0, 1);
-+		return;
-+	default:
-+		/* Should never happen */
-+		WARN(1, "cec-%s: invalid status 0x%02x\n", adap->name, status);
-+		return;
-+	}
-+}
-+EXPORT_SYMBOL_GPL(cec_transmit_attempt_done);
-+
-  /*
-   * Called when waiting for a reply times out.
-   */
-diff --git a/include/media/cec.h b/include/media/cec.h
-index b8eb895731d5..5582e1cac1b9 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -223,6 +223,12 @@ int cec_transmit_msg(struct cec_adapter *adap, struct cec_msg *msg,
-  /* Called by the adapter */
-  void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
-  		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt);
-+/*
-+ * Simplified version of cec_transmit_done for hardware that doesn't retry
-+ * failed transmits. So this is was always just one attempt in which case
-+ * the status is sufficient.
-+ */
-+void cec_transmit_attempt_done(struct cec_adapter *adap, u8 status);
-  void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
-
-  /**
--- 
-2.11.0
+Sorry for the late response, the above code has been tested for x86_64 mode only.
