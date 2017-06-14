@@ -1,139 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:35450 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750851AbdFBAnn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Jun 2017 20:43:43 -0400
-Subject: Re: [PATCH v7 00/34] i.MX Media Driver
-To: Tim Harvey <tharvey@gateworks.com>
-Cc: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        mchehab@kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Nick Dyer <nick@shmanahar.org>, markus.heiser@darmarit.de,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, Arnd Bergmann <arnd@arndb.de>,
-        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-        minghsiu.tsai@mediatek.com, Tiffany Lin <tiffany.lin@mediatek.com>,
-        Jean-Christophe TROTIN <jean-christophe.trotin@st.com>,
-        Simon Horman <horms+renesas@verge.net.au>,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
- <CAJ+vNU2K1g32HTbJktLYaCGWLbPs19HSM_PMNryPBqQC-O77vw@mail.gmail.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <8e240c2d-f762-ff04-f57b-2741cb6fab58@gmail.com>
-Date: Thu, 1 Jun 2017 17:43:39 -0700
-MIME-Version: 1.0
-In-Reply-To: <CAJ+vNU2K1g32HTbJktLYaCGWLbPs19HSM_PMNryPBqQC-O77vw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Received: from mga14.intel.com ([192.55.52.115]:18960 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753323AbdFNCcQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Jun 2017 22:32:16 -0400
+From: "Zhi, Yong" <yong.zhi@intel.com>
+To: Tomasz Figa <tfiga@chromium.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>,
+        "Mohandass, Divagar" <divagar.mohandass@intel.com>
+Subject: RE: [PATCH 3/3] intel-ipu3: cio2: Add new MIPI-CSI2 driver
+Date: Wed, 14 Jun 2017 02:32:14 +0000
+Message-ID: <C193D76D23A22742993887E6D207B54D0799EC0C@ORSMSX106.amr.corp.intel.com>
+References: <1497385036-1002-1-git-send-email-yong.zhi@intel.com>
+ <1497385036-1002-4-git-send-email-yong.zhi@intel.com>
+ <CAAFQd5BQsha1K3pCGpfJiuuA5Uy_ZAVhDbbUJqAumXSGpV=sWQ@mail.gmail.com>
+In-Reply-To: <CAAFQd5BQsha1K3pCGpfJiuuA5Uy_ZAVhDbbUJqAumXSGpV=sWQ@mail.gmail.com>
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tim,
-
-On 06/01/2017 05:25 PM, Tim Harvey wrote:
-> 
-> 
-> Hi Steve,
-> 
-> I've applied adv7180 device-tree config for the Gateworks ventana
-> boards on top of your imx-media-staging-md-v15 github branch but am
-> not able to get it to work.
-> 
-> Here's my device-tree patch that adds adv7180 to the GW54xx connected
-> to IPU2_CSI1:
-> --- a/arch/arm/boot/dts/imx6q-gw54xx.dts
-> +++ b/arch/arm/boot/dts/imx6q-gw54xx.dts
-
-
-I haven't studied your device-tree in detail yet, I'll try to have a
-better look this weekend.
-
-<snip>
-
-> 
-> 
-> Here's my userspace test commands:
-> 
-> media-ctl -r # reset all links
-> export outputfmt="UYVY2X8/720x480"
-> # Setup links (ADV7180 IPU2_CSI1)
-> media-ctl -l '"adv7180 2-0020":0 -> "ipu2_csi1_mux":1[1]'
-> media-ctl -l '"ipu2_csi1_mux":2 -> "ipu2_csi1":0[1]'
-> media-ctl -l '"ipu2_csi1":1 -> "ipu2_vdic":0[1]'
-> media-ctl -l '"ipu2_vdic":2 -> "ipu2_ic_prp":0[1]'
-> media-ctl -l '"ipu2_ic_prp":2 -> "ipu2_ic_prpvf":0[1]'
-> media-ctl -l '"ipu2_ic_prpvf":1 -> "ipu2_ic_prpvf capture":0[1]'
-> # Configure pads
-> media-ctl -V "'adv7180 2-0020':0 [fmt:UYVY2X8/720x480]"
-> media-ctl -V "'ipu2_csi1_mux':2 [fmt:UYVY2X8/720x480 field:interlaced]"
-> media-ctl -V "'ipu2_csi1':1 [fmt:UYVY2X8/720x480 field:interlaced]"
-> media-ctl -V "'ipu2_vdic':2 [fmt:UYVY2X8/720x480 field:none]"
-> media-ctl -V "'ipu2_ic_prp':2 [fmt:AYUV32/720x480 field:none]"
-> media-ctl -V "'ipu2_ic_prpvf':1 [fmt:$outputfmt field:none]"
-> ^^^^ no errors up to this point; streaming can now begin on
-> 'ipu2_ic_prpvf capture'
-> 
-> # select input
-> v4l2-ctl --device /dev/video3 -i0 # 0=AIN1 1=AIN2 2=AIN3
-> VIDIOC_S_INPUT: failed: Inappropriate ioctl for device
-> ^^^^ /sys/class/video4linux/v4l-subdev2/name is 'ipu2_ic_prpvf
-> capture' - is this not right?
-
-
-Support for setting sensor inputs from the main video capture nodes
-was long ago removed. Sorry about that, but there were objections to
-reaching across the media graph to make this happen.
-
-Until a VIDIOC_SUBDEV_S_INPUT is added to v4l2, you will just need to
-send your analog signal to whichever ADV7180 input is active.
-
-
-
-> 
-> # select any supported YUV or RGB pixelformat on the capture device node
-> v4l2-ctl --device /dev/video3
-> --set-fmt-video=width=720,height=480,pixelformat=UYVY
-> v4l2-ctl --device /dev/video3 --stream-mmap --stream-to=/x.raw
-> --stream-count=1 # capture single raw-frame
-> [  904.870444] ipu2_ic_prpvf: EOF timeout
-> VIDIOC_DQBUF: failed: Input/output error
-> [  905.910702] ipu2_ic_prpvf: wait last EOF timeout
-> ^^^^ not getting any frames
-> 
-> The last patchset of yours I had running on this board was your v3
-> patchset - any ideas?
-
-
-Beyond maybe the input selection issue above, not really, your pipeline
-config looks correct.
-
-I have a script for the ADV7180 VDIC -> prpvf pipeline on IPU1 for the
-SabreAuto, I will send to you separately to see if that helps.
-
-
-> 
-> As it looks like things have settled down with this patchset and it
-> sounds like it will get merged for 4.13 I'm going to start working on
-> a driver for the tda1997x HDMI receiver which is also on this board
-> connected to IPU1_CSI0.
-
-Awesome, thanks.
-
-Steve
+SGksIFRvbWFzeiwNCg0KVGhhbmtzIGZvciB5b3VyIGNvZGUgcmV2aWV3LCBzdGlsbCBuZWVkIG1v
+cmUgdGltZSB0byBzdHVkeSBhbmQgdGVzdCB0aGUgc29sdXRpb24gZm9yIHRoZSByZXN0IG9mIGNv
+bW1lbnRzLCBnb2luZyBmb3J3YXJkLCBJIHdpbGwgcmVzcG9uZCB0byB5b3VyIHJldmlldyBmaXJz
+dCBiZWZvcmUgc3VibWl0dGluZyBuZXcgdmVyc2lvbi4NCg0KVGhhbmtzLA0KDQpZb25nICANCg0K
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1tZWRpYS1vd25lckB2
+Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1tZWRpYS0NCj4gb3duZXJAdmdlci5rZXJuZWwu
+b3JnXSBPbiBCZWhhbGYgT2YgVG9tYXN6IEZpZ2ENCj4gU2VudDogVHVlc2RheSwgSnVuZSAxMywg
+MjAxNyA1OjAxIFBNDQo+IFRvOiBaaGksIFlvbmcgPHlvbmcuemhpQGludGVsLmNvbT4NCj4gQ2M6
+IGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZzsgU2FrYXJpIEFpbHVzIDxzYWthcmkuYWlsdXNA
+bGludXguaW50ZWwuY29tPjsNCj4gWmhlbmcsIEppYW4gWHUgPGppYW4ueHUuemhlbmdAaW50ZWwu
+Y29tPjsgTWFuaSwgUmFqbW9oYW4NCj4gPHJham1vaGFuLm1hbmlAaW50ZWwuY29tPjsgVG9pdm9u
+ZW4sIFR1dWtrYQ0KPiA8dHV1a2thLnRvaXZvbmVuQGludGVsLmNvbT47IFlhbmcsIEh5dW5nd29v
+DQo+IDxoeXVuZ3dvby55YW5nQGludGVsLmNvbT47IE1vaGFuZGFzcywgRGl2YWdhcg0KPiA8ZGl2
+YWdhci5tb2hhbmRhc3NAaW50ZWwuY29tPg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIDMvM10gaW50
+ZWwtaXB1MzogY2lvMjogQWRkIG5ldyBNSVBJLUNTSTIgZHJpdmVyDQo+IA0KPiBIaSBZb25nLA0K
+PiANCj4gT24gV2VkLCBKdW4gMTQsIDIwMTcgYXQgNToxNyBBTSwgWW9uZyBaaGkgPHlvbmcuemhp
+QGludGVsLmNvbT4gd3JvdGU6DQo+ID4gVGhpcyBwYXRjaCBhZGRzIENJTzIgQ1NJLTIgZGV2aWNl
+IGRyaXZlciBmb3IgSW50ZWwncyBJUFUzIGNhbWVyYQ0KPiA+IHN1Yi1zeXN0ZW0gc3VwcG9ydC4N
+Cj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6IFlvbmcgWmhpIDx5b25nLnpoaUBpbnRlbC5jb20+DQo+
+ID4gLS0tDQo+ID4gIGRyaXZlcnMvbWVkaWEvcGNpL0tjb25maWcgICAgICAgICAgICAgICAgfCAg
+ICAyICsNCj4gPiAgZHJpdmVycy9tZWRpYS9wY2kvTWFrZWZpbGUgICAgICAgICAgICAgICB8ICAg
+IDMgKy0NCj4gPiAgZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwvTWFrZWZpbGUgICAgICAgICB8ICAg
+IDUgKw0KPiA+ICBkcml2ZXJzL21lZGlhL3BjaS9pbnRlbC9pcHUzL0tjb25maWcgICAgIHwgICAx
+NyArDQo+ID4gIGRyaXZlcnMvbWVkaWEvcGNpL2ludGVsL2lwdTMvTWFrZWZpbGUgICAgfCAgICAx
+ICsNCj4gPiAgZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwvaXB1My9pcHUzLWNpbzIuYyB8IDE3NzkN
+Cj4gPiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysNCj4gPiBkcml2ZXJzL21lZGlhL3Bj
+aS9pbnRlbC9pcHUzL2lwdTMtY2lvMi5oIHwgIDQzNCArKysrKysrKw0KPiA+ICA3IGZpbGVzIGNo
+YW5nZWQsIDIyNDAgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKSAgY3JlYXRlIG1vZGUNCj4g
+PiAxMDA2NDQgZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwvTWFrZWZpbGUgIGNyZWF0ZSBtb2RlIDEw
+MDY0NA0KPiA+IGRyaXZlcnMvbWVkaWEvcGNpL2ludGVsL2lwdTMvS2NvbmZpZw0KPiA+ICBjcmVh
+dGUgbW9kZSAxMDA2NDQgZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwvaXB1My9NYWtlZmlsZQ0KPiA+
+ICBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwvaXB1My9pcHUzLWNp
+bzIuYw0KPiA+ICBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwvaXB1
+My9pcHUzLWNpbzIuaA0KPiA+DQo+IA0KPiBJIHF1aWNrbHkgY2hlY2tlZCB0aGUgY29kZSBhbmQg
+aXQgZG9lc24ndCBzZWVtIHRvIGhhdmUgbW9zdCBvZiBteSBjb21tZW50cw0KPiBmcm9tIHYyIGFk
+ZHJlc3NlZC4gSXQncyBub3QgYSB2ZXJ5IGdvb2QgcHJhY3RpY2UgdG8gc2VuZCBuZXcgdmVyc2lv
+biB3aXRob3V0DQo+IGFkZHJlc3Npbmcgb3IgYXQgbGVhc3QgcmVwbHlpbmcgdG8gYWxsIHRoZSBj
+b21tZW50cyAtIGl0J3MgdGhlIGJlc3Qgd2F5IHRvIGxvc2UNCj4gdHJhY2sgb2YgbmVjZXNzYXJ5
+IGNoYW5nZXMuIFBsZWFzZSBtYWtlIHN1cmUgdGhhdCBhbGwgdGhlIGNvbW1lbnRzIGFyZQ0KPiB0
+YWtlbiBjYXJlIG9mLg0KPiANCj4gQmVzdCByZWdhcmRzLA0KPiBUb21hc3oNCg==
