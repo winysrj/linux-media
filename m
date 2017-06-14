@@ -1,100 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:47601 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751454AbdFFP7V (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.135]:58098 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752080AbdFNVVH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Jun 2017 11:59:21 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 1/2] [media] coda: implement forced key frames
-Date: Tue,  6 Jun 2017 17:59:01 +0200
-Message-Id: <20170606155902.3703-1-p.zabel@pengutronix.de>
+        Wed, 14 Jun 2017 17:21:07 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: kasan-dev@googlegroups.com, Dmitry Vyukov <dvyukov@google.com>,
+        Alexander Potapenko <glider@google.com>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Arend van Spriel <arend.vanspriel@broadcom.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        linux-media@vger.kernel.org
+Subject: [PATCH v2 07/11] r820t: mark register functions as noinline_if_stackbloat
+Date: Wed, 14 Jun 2017 23:15:42 +0200
+Message-Id: <20170614211556.2062728-8-arnd@arndb.de>
+In-Reply-To: <20170614211556.2062728-1-arnd@arndb.de>
+References: <20170614211556.2062728-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement the V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME control to force IDR
-frames. This is useful to implement VFU (Video Fast Update) on RTP
-transmissions.
-We already force an IDR frame at the beginning of each GOP to work
-around a firmware bug on i.MX27, use the same mechanism to service IDR
-requests from userspace.
+With KASAN, we get an overly long stack frame due to inlining
+the register access function:
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+drivers/media/tuners/r820t.c: In function 'generic_set_freq.isra.7':
+drivers/media/tuners/r820t.c:1334:1: error: the frame size of 2880 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]
+
+An earlier patch I tried used an open-coded r820t_write_reg()
+implementation that may have been more efficent, while this
+version simply adds the annotation, which has a lower risk for
+regressions.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/platform/coda/coda-bit.c    | 12 ++++++++----
- drivers/media/platform/coda/coda-common.c |  3 +++
- drivers/media/platform/coda/coda.h        |  1 +
- 3 files changed, 12 insertions(+), 4 deletions(-)
+ drivers/media/tuners/r820t.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 403214e00e954..22e4630f36711 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -1247,12 +1247,18 @@ static int coda_prepare_encode(struct coda_ctx *ctx)
- 	dst_buf->sequence = ctx->osequence;
- 	ctx->osequence++;
+diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+index ba80376a3b86..a26d0eb64555 100644
+--- a/drivers/media/tuners/r820t.c
++++ b/drivers/media/tuners/r820t.c
+@@ -396,7 +396,7 @@ static int r820t_write(struct r820t_priv *priv, u8 reg, const u8 *val,
+ 	return 0;
+ }
  
-+	force_ipicture = ctx->params.force_ipicture;
-+	if (force_ipicture)
-+		ctx->params.force_ipicture = false;
-+	else if ((src_buf->sequence % ctx->params.gop_size) == 0)
-+		force_ipicture = 1;
-+
- 	/*
- 	 * Workaround coda firmware BUG that only marks the first
- 	 * frame as IDR. This is a problem for some decoders that can't
- 	 * recover when a frame is lost.
- 	 */
--	if (src_buf->sequence % ctx->params.gop_size) {
-+	if (!force_ipicture) {
- 		src_buf->flags |= V4L2_BUF_FLAG_PFRAME;
- 		src_buf->flags &= ~V4L2_BUF_FLAG_KEYFRAME;
- 	} else {
-@@ -1291,8 +1297,7 @@ static int coda_prepare_encode(struct coda_ctx *ctx)
- 		pic_stream_buffer_size = q_data_dst->sizeimage;
- 	}
+-static int r820t_write_reg(struct r820t_priv *priv, u8 reg, u8 val)
++static noinline_if_stackbloat int r820t_write_reg(struct r820t_priv *priv, u8 reg, u8 val)
+ {
+ 	return r820t_write(priv, reg, &val, 1);
+ }
+@@ -411,7 +411,7 @@ static int r820t_read_cache_reg(struct r820t_priv *priv, int reg)
+ 		return -EINVAL;
+ }
  
--	if (src_buf->flags & V4L2_BUF_FLAG_KEYFRAME) {
--		force_ipicture = 1;
-+	if (force_ipicture) {
- 		switch (dst_fourcc) {
- 		case V4L2_PIX_FMT_H264:
- 			quant_param = ctx->params.h264_intra_qp;
-@@ -1309,7 +1314,6 @@ static int coda_prepare_encode(struct coda_ctx *ctx)
- 			break;
- 		}
- 	} else {
--		force_ipicture = 0;
- 		switch (dst_fourcc) {
- 		case V4L2_PIX_FMT_H264:
- 			quant_param = ctx->params.h264_inter_qp;
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index d523e990d5093..f3fe4adf21a7e 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1680,6 +1680,9 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB:
- 		ctx->params.intra_refresh = ctrl->val;
- 		break;
-+	case V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME:
-+		ctx->params.force_ipicture = true;
-+		break;
- 	case V4L2_CID_JPEG_COMPRESSION_QUALITY:
- 		coda_set_jpeg_compression_quality(ctx, ctrl->val);
- 		break;
-diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
-index 20222befb9b2f..dccb105a1a384 100644
---- a/drivers/media/platform/coda/coda.h
-+++ b/drivers/media/platform/coda/coda.h
-@@ -135,6 +135,7 @@ struct coda_params {
- 	u32			vbv_size;
- 	u32			slice_max_bits;
- 	u32			slice_max_mb;
-+	bool			force_ipicture;
- };
- 
- struct coda_buffer_meta {
+-static int r820t_write_reg_mask(struct r820t_priv *priv, u8 reg, u8 val,
++static noinline_if_stackbloat int r820t_write_reg_mask(struct r820t_priv *priv, u8 reg, u8 val,
+ 				u8 bit_mask)
+ {
+ 	int rc = r820t_read_cache_reg(priv, reg);
 -- 
-2.11.0
+2.9.0
