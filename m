@@ -1,161 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:54624 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751013AbdFSFY6 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:40433 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750728AbdFNKrj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 01:24:58 -0400
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v5 01/12] [media] s5p-mfc: Rename IS_MFCV8 macro
-Date: Mon, 19 Jun 2017 10:40:44 +0530
-Message-id: <1497849055-26583-2-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
-References: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
-        <CGME20170619052455epcas5p3b0c71e840af3b9022bf69d1058cc94e5@epcas5p3.samsung.com>
+        Wed, 14 Jun 2017 06:47:39 -0400
+Subject: Re: [PATCH v2 1/2] v4l: ctrls: Add a control for digital gain
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+References: <1497014507-1835-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1497014507-1835-2-git-send-email-sakari.ailus@linux.intel.com>
+Cc: mchehab@s-opensource.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <98cc1af5-1ad1-3e30-7341-ac1a1eedd745@xs4all.nl>
+Date: Wed, 14 Jun 2017 12:47:30 +0200
+MIME-Version: 1.0
+In-Reply-To: <1497014507-1835-2-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch renames macro IS_MFCV8 to IS_MFCV8_PLUS so that the MFCv8
-code can be resued for MFCv10.10 support. Since the MFCv8 specific code
-holds good for MFC v10.10 also.
+On 06/09/17 15:21, Sakari Ailus wrote:
+> Add V4L2_CID_DIGITAL_GAIN to control explicitly digital gain.
+> 
+> We already have analogue gain control which the digital gain control
+> complements. Typically higher quality images are obtained using analogue
+> gain only as the digital gain does not add information to the image
+> (rather it may remove it).
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-Acked-by: Andrzej Hajda <a.hajda@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |  2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 18 +++++++++---------
- 4 files changed, 12 insertions(+), 12 deletions(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 4220914..5fb2684 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -711,7 +711,7 @@ void s5p_mfc_cleanup_queue(struct list_head *lh, struct vb2_queue *vq);
- #define IS_TWOPORT(dev)		(dev->variant->port_num == 2 ? 1 : 0)
- #define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
- #define IS_MFCV7_PLUS(dev)	(dev->variant->version >= 0x70 ? 1 : 0)
--#define IS_MFCV8(dev)		(dev->variant->version >= 0x80 ? 1 : 0)
-+#define IS_MFCV8_PLUS(dev)	(dev->variant->version >= 0x80 ? 1 : 0)
- 
- #define MFC_V5_BIT	BIT(0)
- #define MFC_V6_BIT	BIT(1)
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-index 69ef9c2..3769d22 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-@@ -399,7 +399,7 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
- 	s5p_mfc_clear_cmds(dev);
- 	s5p_mfc_clean_dev_int_flags(dev);
- 	/* 3. Send MFC wakeup command and wait for completion*/
--	if (IS_MFCV8(dev))
-+	if (IS_MFCV8_PLUS(dev))
- 		ret = s5p_mfc_v8_wait_wakeup(dev);
- 	else
- 		ret = s5p_mfc_wait_wakeup(dev);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 8937b0a..42e9351 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -1177,7 +1177,7 @@ void s5p_mfc_dec_init(struct s5p_mfc_ctx *ctx)
- 	struct v4l2_format f;
- 	f.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_H264;
- 	ctx->src_fmt = find_format(&f, MFC_FMT_DEC);
--	if (IS_MFCV8(ctx->dev))
-+	if (IS_MFCV8_PLUS(ctx->dev))
- 		f.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_NV12M;
- 	else if (IS_MFCV6_PLUS(ctx->dev))
- 		f.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_NV12MT_16X16;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index 88dbb9c..fe14479 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -74,7 +74,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 			  ctx->luma_size, ctx->chroma_size, ctx->mv_size);
- 		mfc_debug(2, "Totals bufs: %d\n", ctx->total_dpb_count);
- 	} else if (ctx->type == MFCINST_ENCODER) {
--		if (IS_MFCV8(dev))
-+		if (IS_MFCV8_PLUS(dev))
- 			ctx->tmv_buffer_size = S5P_FIMV_NUM_TMV_BUFFERS_V6 *
- 			ALIGN(S5P_FIMV_TMV_BUFFER_SIZE_V8(mb_width, mb_height),
- 			S5P_FIMV_TMV_BUFFER_ALIGN_V6);
-@@ -89,7 +89,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 		ctx->chroma_dpb_size = ALIGN((mb_width * mb_height) *
- 				S5P_FIMV_CHROMA_MB_TO_PIXEL_V6,
- 				S5P_FIMV_CHROMA_DPB_BUFFER_ALIGN_V6);
--		if (IS_MFCV8(dev))
-+		if (IS_MFCV8_PLUS(dev))
- 			ctx->me_buffer_size = ALIGN(S5P_FIMV_ME_BUFFER_SIZE_V8(
- 						ctx->img_width, ctx->img_height,
- 						mb_width, mb_height),
-@@ -110,7 +110,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 	switch (ctx->codec_mode) {
- 	case S5P_MFC_CODEC_H264_DEC:
- 	case S5P_MFC_CODEC_H264_MVC_DEC:
--		if (IS_MFCV8(dev))
-+		if (IS_MFCV8_PLUS(dev))
- 			ctx->scratch_buf_size =
- 				S5P_FIMV_SCRATCH_BUF_SIZE_H264_DEC_V8(
- 					mb_width,
-@@ -167,7 +167,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 		ctx->bank1.size = ctx->scratch_buf_size;
- 		break;
- 	case S5P_MFC_CODEC_VP8_DEC:
--		if (IS_MFCV8(dev))
-+		if (IS_MFCV8_PLUS(dev))
- 			ctx->scratch_buf_size =
- 				S5P_FIMV_SCRATCH_BUF_SIZE_VP8_DEC_V8(
- 						mb_width,
-@@ -182,7 +182,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 		ctx->bank1.size = ctx->scratch_buf_size;
- 		break;
- 	case S5P_MFC_CODEC_H264_ENC:
--		if (IS_MFCV8(dev))
-+		if (IS_MFCV8_PLUS(dev))
- 			ctx->scratch_buf_size =
- 				S5P_FIMV_SCRATCH_BUF_SIZE_H264_ENC_V8(
- 					mb_width,
-@@ -215,7 +215,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 		ctx->bank2.size = 0;
- 		break;
- 	case S5P_MFC_CODEC_VP8_ENC:
--		if (IS_MFCV8(dev))
-+		if (IS_MFCV8_PLUS(dev))
- 			ctx->scratch_buf_size =
- 				S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V8(
- 					mb_width,
-@@ -364,7 +364,7 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
- 
- 	ctx->luma_size = calc_plane(ctx->img_width, ctx->img_height);
- 	ctx->chroma_size = calc_plane(ctx->img_width, (ctx->img_height >> 1));
--	if (IS_MFCV8(ctx->dev)) {
-+	if (IS_MFCV8_PLUS(ctx->dev)) {
- 		/* MFCv8 needs additional 64 bytes for luma,chroma dpb*/
- 		ctx->luma_size += S5P_FIMV_D_ALIGN_PLANE_SIZE_V8;
- 		ctx->chroma_size += S5P_FIMV_D_ALIGN_PLANE_SIZE_V8;
-@@ -445,7 +445,7 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
- 	writel(buf_addr1, mfc_regs->d_scratch_buffer_addr);
- 	writel(ctx->scratch_buf_size, mfc_regs->d_scratch_buffer_size);
- 
--	if (IS_MFCV8(dev)) {
-+	if (IS_MFCV8_PLUS(dev)) {
- 		writel(ctx->img_width,
- 			mfc_regs->d_first_plane_dpb_stride_size);
- 		writel(ctx->img_width,
-@@ -2109,7 +2109,7 @@ const struct s5p_mfc_regs *s5p_mfc_init_regs_v6_plus(struct s5p_mfc_dev *dev)
- 			S5P_FIMV_E_ENCODED_SOURCE_SECOND_ADDR_V7);
- 	R(e_vp8_options, S5P_FIMV_E_VP8_OPTIONS_V7);
- 
--	if (!IS_MFCV8(dev))
-+	if (!IS_MFCV8_PLUS(dev))
- 		goto done;
- 
- 	/* Initialize registers used in MFC v8 only.
--- 
-2.7.4
+Regards,
+
+	Hans
+
+> ---
+>  Documentation/media/uapi/v4l/extended-controls.rst | 7 +++++++
+>  drivers/media/v4l2-core/v4l2-ctrls.c               | 1 +
+>  include/uapi/linux/v4l2-controls.h                 | 2 +-
+>  3 files changed, 9 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+> index 76c5b1a..9acc9cad 100644
+> --- a/Documentation/media/uapi/v4l/extended-controls.rst
+> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
+> @@ -3021,6 +3021,13 @@ Image Process Control IDs
+>      The video deinterlacing mode (such as Bob, Weave, ...). The menu items are
+>      driver specific and are documented in :ref:`v4l-drivers`.
+>  
+> +``V4L2_CID_DIGITAL_GAIN (integer)``
+> +    Digital gain is the value by which all colour components
+> +    are multiplied by. Typically the digital gain applied is the
+> +    control value divided by e.g. 0x100, meaning that to get no
+> +    digital gain the control value needs to be 0x100. The no-gain
+> +    configuration is also typically the default.
+> +
+>  
+>  .. _dv-controls:
+>  
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 5aed7bd..36eede3 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -886,6 +886,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
+>  	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
+>  	case V4L2_CID_DEINTERLACING_MODE:	return "Deinterlacing Mode";
+> +	case V4L2_CID_DIGITAL_GAIN:		return "Digital Gain";
+>  
+>  	/* DV controls */
+>  	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> index 0d2e1e0..0cdb8eb 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -893,7 +893,7 @@ enum v4l2_jpeg_chroma_subsampling {
+>  #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
+>  #define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
+>  #define V4L2_CID_DEINTERLACING_MODE		(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
+> -
+> +#define V4L2_CID_DIGITAL_GAIN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 5)
+>  
+>  /*  DV-class control IDs defined by V4L2 */
+>  #define V4L2_CID_DV_CLASS_BASE			(V4L2_CTRL_CLASS_DV | 0x900)
+> 
