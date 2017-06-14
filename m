@@ -1,54 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:11012 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751921AbdFMFgN (ORCPT
+Received: from r0.smtpout1.alwaysdata.com ([176.31.58.0]:33222 "EHLO
+        r0.smtpout1.alwaysdata.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752099AbdFNSUR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 01:36:13 -0400
-Received: from epcas5p4.samsung.com (unknown [182.195.41.42])
-        by mailout1.samsung.com (KnoxPortal) with ESMTP id 20170613053611epoutp0145a8f7c3118a4026a9ca81432103032b~Hl61RnO-o2607626076epoutp01c
-        for <linux-media@vger.kernel.org>; Tue, 13 Jun 2017 05:36:11 +0000 (GMT)
-Subject: Re: [Patch v4 00/12] Add MFC v10.10 support
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
-        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com
-In-Reply-To: <95f6389c-4535-75c0-dcc9-6076b76777a0@samsung.com>
-Date: Tue, 13 Jun 2017 10:54:11 +0530
-Message-ID: <1497331451.22203.8.camel@smitha-fedora>
-Mime-Version: 1.0
+        Wed, 14 Jun 2017 14:20:17 -0400
+Subject: Re: [PATCH] uvcvideo: Hardcoded CTRL_QUERY GET_LEN for a lying device
+To: linux-media@vger.kernel.org
+References: <20170604134119.16936-1-web+oss@zopieux.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Alexandre Macabies <web+oss@zopieux.com>
+Message-ID: <3f058773-37f6-dd63-78a5-b6e9005313ab@zopieux.com>
+Date: Wed, 14 Jun 2017 20:19:53 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170604134119.16936-1-web+oss@zopieux.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="utf-8"
-References: <CGME20170406060957epcas1p36f883512ccfaf24359d1b31a6d199d87@epcas1p3.samsung.com>
-        <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
-        <95f6389c-4535-75c0-dcc9-6076b76777a0@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2017-06-09 at 19:36 +0200, Sylwester Nawrocki wrote:
-> On 04/06/2017 08:11 AM, Smitha T Murthy wrote:
-> > This patch series adds MFC v10.10 support. MFC v10.10 is used in some
-> > of Exynos7 variants.
-> > 
-> > This adds support for following:
-> > 
-> > * Add support for HEVC encoder and decoder
-> > * Add support for VP9 decoder
-> > * Update Documentation for control id definitions
-> > * Update computation of min scratch buffer size requirement for V8 onwards
-> Smitha, do you have any updates on this?  IIRC, there were few things
-> which needed corrections but we were rather close to the final version.
-> 
-> --
-> Thanks,
-> Sylwester
-> 
-Hi Sylwester,
+On 06/04/2017 03:41 PM, Alexandre Macabies wrote:
+> Hello,
 
-Sorry, I am currently held up with some other work. I will try to make
-time and work on the next the updated patch series soon.
+I forgot to Cc: the full list of maintainers for this patch. This follow-up
+includes them. Sorry for the noise! My original email & patch is quoted below.
 
-Regards,
-Smitha
+Best,
+Alexandre
+
+> This thread comes after two others[1][2] about a similar issue.
+> 
+> I own a USB video microscope[3] from Dino-Lite. Even if the constructor does
+> not advertise it as being supported on Linux, it is mostly a "good citizen"
+> camera: it registers as a standard USB video device and as such, it is properly
+> recognized by uvcvideo.
+> 
+> This device is equipped with an integrated illuminator/lamp -- a set of LEDs.
+> After some research (using a USB sniffer) I managed to identify the
+> non-standard XU control used to switch this lamp on and off: one shall send
+> either 80 01 f0 (off) or 80 01 f1 (on) to XU control unit 4 selector 3.
+> 
+> So at first I tried to send a raw ctrl_set using:
+> 
+>     $ uvcdynctrl -S 4:3 8001f0
+>     [...]
+>     query control size of : 1
+>     [...]
+>     ERROR: Unable to set the control value: Invalid argument. (Code: 3)
+> 
+> Indeed, the device reports this XU as being only 1 in length, but the payload
+> has to be 3 bytes. So I assume there is a bug (or deliberate inaccuracy) in the
+> GET_LEN reply from the device firmware. To overcome this issue, I compiled
+> a patched version of uvcvideo in which uvc_query_ctrl[4] returns an hardcoded
+> size of 3 for this specific device & UX control. I was finally able to switch
+> the lamp on and off:
+> 
+>     $ uvcdynctrl -S 4:3 8001f0
+>     [39252.854261] uvcvideo: Fixing USB a168:0870 UX control 4/3 len: 1 -> 3
+>     [...]
+>     query control size of : 3
+>     [...]
+>     set value of          : (LE)0x8001f0  (BE)0xf00180
+>     [lamp goes off]
+> 
+> You can find the patch below. I abstracted it in the spirit of
+> uvc_ctrl_fixup_xu_info[5] so we can add more entries to the table in the
+> future. What do you think, would it be relevant to merge? AFAICT there is no
+> API in uvcvideo or v4l for controlling this kind of illuminator/lamp features,
+> so giving userland the ability to control the devices via XU by lying seems to
+> be the only solution.
+> 
+> Best,
+> 
+> Alexandre
+> 
+> [1] "Dino-Lite uvc support", 2008, https://sourceforge.net/p/linux-uvc/mailman/message/29831153/
+> [2] "switching light on device Dino-Lite Premier", 2013, https://sourceforge.net/p/linux-uvc/mailman/message/31219122/
+> [3] https://www.dinolite.us/products/digital-microscopes/usb/basic/am4111t
+> [4] http://elixir.free-electrons.com/linux/v4.11/source/drivers/media/usb/uvc/uvc_video.c#L72
+> [5] http://elixir.free-electrons.com/linux/v4.11/source/drivers/media/usb/uvc/uvc_ctrl.c#L1593
+> 
+> Signed-off-by: Alexandre Macabies <web+oss@zopieux.com>
+> 
+> ---
+>  drivers/media/usb/uvc/uvc_video.c | 37 +++++++++++++++++++++++++++++++++++++
+>  1 file changed, 37 insertions(+)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+> index 07a6c833ef7b..839dc02b4f33 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -69,6 +69,40 @@ static const char *uvc_query_name(__u8 query)
+>  	}
+>  }
+>  
+> +static void uvc_fixup_query_ctrl_len(const struct uvc_device *dev, __u8 unit,
+> +	__u8 cs, void *data)
+> +{
+> +	struct uvc_ctrl_fixup {
+> +		struct usb_device_id id;
+> +		u8 unit;
+> +		u8 selector;
+> +		u16 len;
+> +	};
+> +
+> +	static const struct uvc_ctrl_fixup fixups[] = {
+> +		// Dino-Lite Premier (AM4111T)
+> +		{ { USB_DEVICE(0xa168, 0x0870) }, 4, 3, 3 },
+> +	};
+> +
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(fixups); ++i) {
+> +		if (!usb_match_one_id(dev->intf, &fixups[i].id))
+> +			continue;
+> +
+> +		if (!(fixups[i].unit == unit && fixups[i].selector == cs))
+> +			continue;
+> +
+> +		uvc_trace(UVC_TRACE_CONTROL,
+> +			  "Fixing USB %04x:%04x %u/%u GET_LEN: %u -> %u",
+> +			  fixups[i].id.idVendor, fixups[i].id.idProduct,
+> +			  unit, cs,
+> +			  le16_to_cpup((__le16 *)data), fixups[i].len);
+> +		*((__le16 *)data) = cpu_to_le16(fixups[i].len);
+> +		break;
+> +	}
+> +}
+> +
+>  int uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
+>  			__u8 intfnum, __u8 cs, void *data, __u16 size)
+>  {
+> @@ -83,6 +117,9 @@ int uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
+>  		return -EIO;
+>  	}
+>  
+> +	if (query == UVC_GET_LEN && size == 2)
+> +		uvc_fixup_query_ctrl_len(dev, unit, cs, data);
+> +
+>  	return 0;
+>  }
+>  
+> 
+> -- 
+> 2.13.0
+> 
