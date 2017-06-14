@@ -1,106 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bh-25.webhostbox.net ([208.91.199.152]:38601 "EHLO
-        bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751560AbdF1U0Z (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33396 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751771AbdFNJnU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Jun 2017 16:26:25 -0400
-Date: Wed, 28 Jun 2017 13:26:21 -0700
-From: Guenter Roeck <linux@roeck-us.net>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Robb Glasser <rglasser@google.com>,
-        Richard Simmons <rssimmo@amazon.com>
-Subject: Re: [media] uvcvideo: Prevent heap overflow in uvc driver
-Message-ID: <20170628202621.GA19176@roeck-us.net>
-References: <1495482484-32125-1-git-send-email-linux@roeck-us.net>
- <20170628143643.GA30654@roeck-us.net>
- <1797631.lsAEjhpLaU@avalon>
- <1612560.vxfrDdQTFq@avalon>
+        Wed, 14 Jun 2017 05:43:20 -0400
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH v4 2/2] arm64: dts: renesas: salvator-x: Add ADV7482
+ support
+References: <cover.d0545e32d322ca1b939fa2918694173629e680eb.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <7d4b2333912ad23e62dbb8cc3792ad70e9cc1702.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <CAMuHMdWVrqArGasrW8F8KOjRfRzFqQ_5hCskP30zGrTrxJ75hQ@mail.gmail.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>,
+        Kieran Bingham <kbingham@kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <51d9d2d7-de34-9ed3-5fa1-4db7cbcec47a@ideasonboard.com>
+Date: Wed, 14 Jun 2017 10:43:15 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1612560.vxfrDdQTFq@avalon>
+In-Reply-To: <CAMuHMdWVrqArGasrW8F8KOjRfRzFqQ_5hCskP30zGrTrxJ75hQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 28, 2017 at 09:18:37PM +0300, Laurent Pinchart wrote:
-> Hi Guenter,
-> 
-> On Wednesday 28 Jun 2017 20:59:17 Laurent Pinchart wrote:
-> > On Wednesday 28 Jun 2017 07:36:43 Guenter Roeck wrote:
-> > > On Mon, May 22, 2017 at 12:48:04PM -0700, Guenter Roeck wrote:
-> > >> From: Robb Glasser <rglasser@google.com>
-> > >> 
-> > >> The size of uvc_control_mapping is user controlled leading to a
-> > >> potential heap overflow in the uvc driver. This adds a check to verify
-> > >> the user provided size fits within the bounds of the defined buffer
-> > >> size.
-> > >> 
-> > >> Signed-off-by: Robb Glasser <rglasser@google.com>
-> > >> [groeck: cherry picked from
-> > >> 
-> > >>  https://source.codeaurora.org/quic/la/kernel/msm-3.10
-> > >>  commit b7b99e55bc7770187913ed092990852ea52d7892;
-> > >>  updated subject]
-> > >> 
-> > >> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > >> ---
-> > >> Fixes CVE-2017-0627.
-> > > 
-> > > Please do not apply this patch. It is buggy.
-> > 
-> > I apologize for not noticing the initial patch, even if it looks like it was
-> > all for the best. Will you send a new version ?
-> > 
-> > >>  drivers/media/usb/uvc/uvc_ctrl.c | 3 +++
-> > >>  1 file changed, 3 insertions(+)
-> > >> 
-> > >> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
-> > >> b/drivers/media/usb/uvc/uvc_ctrl.c index c2ee6e39fd0c..252ab991396f
-> > >> 100644
-> > >> --- a/drivers/media/usb/uvc/uvc_ctrl.c
-> > >> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
-> > >> @@ -1992,6 +1992,9 @@ int uvc_ctrl_add_mapping(struct uvc_video_chain
-> > >> *chain,
-> > >>  	if (!found)
-> > >>  		return -ENOENT;
-> > >> 
-> > >> +	if (ctrl->info.size < mapping->size)
-> > >> +		return -EINVAL;
-> > >> +
-> 
-> By the way, I believe the right fix should be
-> 
-> 	if (mapping->offset + mapping->size > ctrl->info.size * 8)
-> 		return -EINVAL;
-> 
-> Both mapping->offset and mapping->size are 8-bit integers, so there's no risk 
-> of overflow in the addition. If we want to safeguard against a possible future 
-> bug if the type of the fields change, we could add
-> 
-> 	if (mapping->offset + mapping->size < mapping->offset)
-> 		return -EINVAL;
-> 
+Hi Geert,
 
-I currently have this:
+On 14/06/17 10:39, Geert Uytterhoeven wrote:
+> Hi Kieran,
+> 
+> On Tue, Jun 13, 2017 at 2:35 AM, Kieran Bingham <kbingham@kernel.org> wrote:
+>> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>
+>> Provide ADV7482, and the needed connectors
+>>
+>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> Thanks for your patch!
+> 
+>> v4:
+>>  - dt: Rebase to dts/renesas/salvator-x.dtsi
+>>  - dt: Use AIN0-7 rather than AIN1-8
+>>
+>>  arch/arm64/boot/dts/renesas/salvator-x.dtsi | 123 +++++++++++++++++++++-
+> 
+> I believe all of this applies to both Salvator-X and Salvator-XS?
+> 
+> Hence it should be applied to salvator-common.dtsi instead of salvator-x.dtsi.
 
-@@ -2004,6 +2004,13 @@ int uvc_ctrl_add_mapping(struct uvc_video_chain *chain,
- 		goto done;
- 	}
- 
-+	/* validate that the user provided bit-size and offset is valid */
-+	if ((mapping->size > 32) ||
-+	    ((mapping->offset + mapping->size) > (ctrl->info.size * 8))) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
- 	list_for_each_entry(map, &ctrl->info.mappings, list) {
- 		if (mapping->id == map->id) {
- 			uvc_trace(UVC_TRACE_CONTROL, "Can't add mapping '%s', "
+Hrm ... I don't have a salator-common.dtsi ... I'll need a new rebase.
 
-This version originates from Richard Simmons. Copying him to see if he wants
-to submit it himself.
+But it sounds logical :)
 
-Guenter
+--
+Thanks
+
+> 
+> Gr{oetje,eeting}s,
+> 
+>                         Geert
+> 
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+> 
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
+> 
