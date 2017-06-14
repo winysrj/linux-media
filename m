@@ -1,132 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:35752 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751562AbdFGHVj (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53020 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752204AbdFNWjV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Jun 2017 03:21:39 -0400
-Subject: Re: [PATCH 2/3] [media] coda: first step at error recovery
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Lucas Stach <l.stach@pengutronix.de>
-References: <20170405130955.30513-1-l.stach@pengutronix.de>
- <20170405130955.30513-2-l.stach@pengutronix.de>
- <1491400188.2381.95.camel@pengutronix.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, kernel@pengutronix.de,
-        patchwork-lst@pengutronix.de
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <160cafc6-cbed-32b8-8a23-636b08a03418@xs4all.nl>
-Date: Wed, 7 Jun 2017 09:21:15 +0200
+        Wed, 14 Jun 2017 18:39:21 -0400
+Date: Thu, 15 Jun 2017 01:38:46 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
+Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com, jian.xu.zheng@intel.com,
+        tfiga@chromium.org, rajmohan.mani@intel.com,
+        tuukka.toivonen@intel.com, hyungwoo.yang@intel.com,
+        divagar.mohandass@intel.com, hverkuil@xs4all.nl
+Subject: Re: [PATCH v3 1/3] videodev2.h, v4l2-ioctl: add IPU3 raw10 color
+ format
+Message-ID: <20170614223846.GV12407@valkosipuli.retiisi.org.uk>
+References: <1497385036-1002-1-git-send-email-yong.zhi@intel.com>
+ <1497385036-1002-2-git-send-email-yong.zhi@intel.com>
+ <20170614144840.4260501d@alans-desktop>
 MIME-Version: 1.0
-In-Reply-To: <1491400188.2381.95.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170614144840.4260501d@alans-desktop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Lucas,
+On Wed, Jun 14, 2017 at 02:48:40PM +0100, Alan Cox wrote:
+> On Tue, 13 Jun 2017 15:17:14 -0500
+> Yong Zhi <yong.zhi@intel.com> wrote:
+> 
+> > Add IPU3 specific formats:
+> > 
+> > 	V4L2_PIX_FMT_IPU3_SBGGR10
+> > 	V4L2_PIX_FMT_IPU3_SGBRG10
+> > 	V4L2_PIX_FMT_IPU3_SGRBG10
+> > 	V4L2_PIX_FMT_IPU3_SRGGB10
+> 
+> As I said before these are just more bitpacked bayer formats with no
+> reason to encode them as IPUv3 specific names.
 
-Can you address these nitpicks?
+I must have missed that comment --- the format is pretty unusual still.
+Basically it rams as much pixels into a 256-bit DMA word as there's room and
+then leaves the rest of the DMA word empty (6 bits in this case).
 
-Thanks!
+The newer IPUs do not use this format AFAIK (they do use other unusual
+formats though). I haven't seen such formats being used by other non-IPU
+hardware either.
 
-	Hans
+I think I'd keep this IPU specific unless there's an indication the same
+formats might be used elsewhere. The other packed formats that have been
+defined in V4L2 are hardware independent.
 
-On 05/04/17 15:49, Philipp Zabel wrote:
-> Hi Lucas,
-> 
-> On Wed, 2017-04-05 at 15:09 +0200, Lucas Stach wrote:
->> This implements a simple handler for the case where decode did not finish
->> sucessfully. This might be helpful during normal streaming, but for now it
->> only handles the case where the context would deadlock with userspace,
->> i.e. userspace issued DEC_CMD_STOP and waits for EOS, but after the failed
->> decode run we would hold the context and wait for userspace to queue more
->> buffers.
->>
->> Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-> 
-> Just a naming nitpick below.
-> 
-> Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
-> 
->> ---
->>  drivers/media/platform/coda/coda-bit.c    | 20 ++++++++++++++++++++
->>  drivers/media/platform/coda/coda-common.c |  3 +++
->>  drivers/media/platform/coda/coda.h        |  1 +
->>  3 files changed, 24 insertions(+)
->>
->> diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
->> index 36062fc494e3..6a088f9343bb 100644
->> --- a/drivers/media/platform/coda/coda-bit.c
->> +++ b/drivers/media/platform/coda/coda-bit.c
->> @@ -2113,12 +2113,32 @@ static void coda_finish_decode(struct coda_ctx *ctx)
->>  	ctx->display_idx = display_idx;
->>  }
->>  
->> +static void coda_error_decode(struct coda_ctx *ctx)
-> 
-> This sounds a bit like we are decoding an error code. Could we maybe
-> rename this any of coda_fail_decode or coda_decode_error/failure  or
-> similar?
-> 
->> +{
->> +	struct vb2_v4l2_buffer *dst_buf;
->> +
->> +	/*
->> +	 * For now this only handles the case where we would deadlock with
->> +	 * userspace, i.e. userspace issued DEC_CMD_STOP and waits for EOS,
->> +	 * but after a failed decode run we would hold the context and wait for
->> +	 * userspace to queue more buffers.
->> +	 */
->> +	if (!(ctx->bit_stream_param & CODA_BIT_STREAM_END_FLAG))
->> +		return;
->> +
->> +	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
->> +	dst_buf->sequence = ctx->qsequence - 1;
->> +
->> +	coda_m2m_buf_done(ctx, dst_buf, VB2_BUF_STATE_ERROR);
->> +}
->> +
->>  const struct coda_context_ops coda_bit_decode_ops = {
->>  	.queue_init = coda_decoder_queue_init,
->>  	.reqbufs = coda_decoder_reqbufs,
->>  	.start_streaming = coda_start_decoding,
->>  	.prepare_run = coda_prepare_decode,
->>  	.finish_run = coda_finish_decode,
->> +	.error_run = coda_error_decode,
-> 
-> How about .fail_run to follow the <verb>_run pattern, or
-> .run_error/failure to break it?
-> 
->>  	.seq_end_work = coda_seq_end_work,
->>  	.release = coda_bit_release,
->>  };
->> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
->> index eb6548f46cba..0bbf155f9783 100644
->> --- a/drivers/media/platform/coda/coda-common.c
->> +++ b/drivers/media/platform/coda/coda-common.c
->> @@ -1100,6 +1100,9 @@ static void coda_pic_run_work(struct work_struct *work)
->>  		ctx->hold = true;
->>  
->>  		coda_hw_reset(ctx);
->> +
->> +		if (ctx->ops->error_run)
->> +			ctx->ops->error_run(ctx);
->>  	} else if (!ctx->aborting) {
->>  		ctx->ops->finish_run(ctx);
->>  	}
->> diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
->> index 4b831c91ae4a..799ffca72203 100644
->> --- a/drivers/media/platform/coda/coda.h
->> +++ b/drivers/media/platform/coda/coda.h
->> @@ -180,6 +180,7 @@ struct coda_context_ops {
->>  	int (*start_streaming)(struct coda_ctx *ctx);
->>  	int (*prepare_run)(struct coda_ctx *ctx);
->>  	void (*finish_run)(struct coda_ctx *ctx);
->> +	void (*error_run)(struct coda_ctx *ctx);
->>  	void (*seq_end_work)(struct work_struct *work);
->>  	void (*release)(struct coda_ctx *ctx);
->>  };
-> 
-> regards
-> Philipp
-> 
+Cc Hans, too.
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
