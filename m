@@ -1,77 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48881 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751844AbdFJIaa (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52654 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751600AbdFNW0p (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Jun 2017 04:30:30 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Dave Airlie <airlied@gmail.com>
-Cc: dri-devel@lists.freedesktop.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.13] Renesas R-Car DU driver changes
-Date: Sat, 10 Jun 2017 11:30:53 +0300
-Message-ID: <3610138.aMAhgRn3Pg@avalon>
+        Wed, 14 Jun 2017 18:26:45 -0400
+Date: Thu, 15 Jun 2017 01:26:09 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
+Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com, jian.xu.zheng@intel.com,
+        tfiga@chromium.org, rajmohan.mani@intel.com,
+        tuukka.toivonen@intel.com
+Subject: Re: [PATCH 00/12] Intel IPU3 ImgU patchset
+Message-ID: <20170614222608.GU12407@valkosipuli.retiisi.org.uk>
+References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+ <20170605214659.6678540b@lxorguk.ukuu.org.uk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170605214659.6678540b@lxorguk.ukuu.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dave,
+Hi Alan,
 
-The following changes since commit 2ea659a9ef488125eb46da6eb571de5eae5c43f6:
+On Mon, Jun 05, 2017 at 09:46:59PM +0100, Alan Cox wrote:
+> > data structures used by the firmware and the hardware. On top of that,
+> > the algorithms require highly specialized user space to make meaningful
+> > use of them. For these reasons it has been chosen video buffers to pass
+> > the parameters to the device.
+> 
+> You should provide a pointer to the relevant userspace here as well.
+> People need that to evaluate the interface.
 
-  Linux 4.12-rc1 (2017-05-13 13:19:49 -0700)
+I know... there will be some user space software to use this interface but
+it's unfortunately not available yet.
 
-are available in the git repository at:
+> 
+> > 6 and 7 provide some utility functions and manage IPU3 fw download and
+> > install.
+> 
+> and a pointer to the firmware (which ideally should go into the standard
+> Linux firmware git)
 
-  git://linuxtv.org/pinchartl/media.git drm/next/du
+Good question. Let me see what I can find.
 
-for you to fetch changes up to fa5b4114202de0c1a7a64fd407af0b81ca529419:
+> 
+> Otherwise this is so much nicer than the IPUv2 code!
 
-  drm: rcar-du: Map memory through the VSP device (2017-06-09 12:25:38 +0100)
-
-The series interleaves DRM and V4L2 patches due to dependencies between the R-
-Car DU and VSP drivers. Mauro has acked all the V4L2 patches to go through 
-your tree, and they don't conflict with anything queued for v4.13 in his tree. 
-If I need to send any conflicting patches through Mauro's tree for v4.13, I'll 
-make sure to base them on this branch.
-
-----------------------------------------------------------------
-Kieran Bingham (3):
-      v4l: vsp1: Postpone frame end handling in event of display list race
-      v4l: vsp1: Extend VSP1 module API to allow DRM callbacks
-      drm: rcar-du: Register a completion callback with VSP1
-
-Laurent Pinchart (5):
-      drm: rcar-du: Arm the page flip event after queuing the page flip
-      v4l: rcar-fcp: Don't get/put module reference
-      v4l: rcar-fcp: Add an API to retrieve the FCP device
-      v4l: vsp1: Add API to map and unmap DRM buffers through the VSP
-      drm: rcar-du: Map memory through the VSP device
-
-Magnus Damm (1):
-      v4l: vsp1: Map the DL and video buffers through the proper bus master
-
- drivers/gpu/drm/rcar-du/rcar_du_crtc.c   | 30 ++++++++-------
- drivers/gpu/drm/rcar-du/rcar_du_crtc.h   |  1 +
- drivers/gpu/drm/rcar-du/rcar_du_vsp.c    | 83 ++++++++++++++++++++++++++++---
- drivers/gpu/drm/rcar-du/rcar_du_vsp.h    |  2 +
- drivers/media/platform/rcar-fcp.c        | 17 ++++----
- drivers/media/platform/vsp1/vsp1.h       |  1 +
- drivers/media/platform/vsp1/vsp1_dl.c    | 23 +++++++++--
- drivers/media/platform/vsp1/vsp1_dl.h    |  2 +-
- drivers/media/platform/vsp1/vsp1_drm.c   | 41 ++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_drm.h   | 11 ++++++
- drivers/media/platform/vsp1/vsp1_drv.c   |  9 +++++
- drivers/media/platform/vsp1/vsp1_pipe.c  | 13 ++++++-
- drivers/media/platform/vsp1/vsp1_video.c |  2 +-
- include/media/rcar-fcp.h                 |  5 +++
- include/media/vsp1.h                     | 10 +++++
- 15 files changed, 215 insertions(+), 35 deletions(-)
+Thanks!
 
 -- 
-Regards,
+Kind regards,
 
-Laurent Pinchart
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
