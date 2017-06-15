@@ -1,52 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:35974 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751106AbdFUTyH (ORCPT
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:38555 "EHLO
+        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752640AbdFOQd1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Jun 2017 15:54:07 -0400
-Received: by mail-wr0-f196.google.com with SMTP id 77so29347723wrb.3
-        for <linux-media@vger.kernel.org>; Wed, 21 Jun 2017 12:54:06 -0700 (PDT)
-Date: Wed, 21 Jun 2017 21:54:03 +0200
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        linux-media@vger.kernel.org, mchehab@kernel.org,
-        liplianin@netup.ru, rjkm@metzlerbros.de
-Subject: Re: [PATCH] [media] ddbridge: use dev_* macros in favor of printk
-Message-ID: <20170621215403.5035db43@audiostation.wuest.de>
-In-Reply-To: <740f66fc-d256-489d-82e5-d8602dfaeaa2@iki.fi>
-References: <20170621165347.19409-1-d.scheller.oss@gmail.com>
-        <20170621140808.7d5ad295@vento.lan>
-        <20170621191440.2f38616a@audiostation.wuest.de>
-        <20170621142031.641cfd29@vento.lan>
-        <740f66fc-d256-489d-82e5-d8602dfaeaa2@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Thu, 15 Jun 2017 12:33:27 -0400
+Received: by mail-wm0-f54.google.com with SMTP id n195so4100466wmg.1
+        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 09:33:22 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v11 15/19] media: venus: vdec: fix compile error in vdec_close
+Date: Thu, 15 Jun 2017 19:31:56 +0300
+Message-Id: <1497544320-2269-16-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Wed, 21 Jun 2017 22:20:35 +0300
-schrieb Antti Palosaari <crope@iki.fi>:
+This fixes the following compile error ocured when building
+with gcc7:
 
-> On 06/21/2017 08:20 PM, Mauro Carvalho Chehab wrote:
-> > Em Wed, 21 Jun 2017 19:14:40 +0200
-> > Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
-> >   
-> >> I intentionally left this in for the pr_info used in module_init_ddbridge(). If you prefer, we can ofc probably also leave this as printk like
-> >>
-> >> printk(KERN_INFO KBUILD_MODNAME ": Digital...");  
-> > 
-> > Ah, OK!  
-> 
-> But why you even need it? Probe should be first place you need to print 
-> something and there is always proper device pointer.
+drivers/media/platform/qcom/venus/vdec.c:1022
+vdec_close() error: dereferencing freed memory 'inst'
 
-This will be printed whenever the module is loaded. When in ddb_probe, you won't notice ever if the module is loaded for whatever reason if no DD card is there, or a card is present which isn't supported, and printed multiple times if you have more than one supported card (imagine a CTv6 plus module, and a CI Bridge, which gets common these days).
+by moving kfree as a last call.
 
-Let's keep it as it is, please.
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/qcom/venus/vdec.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Regards,
-Daniel Scheller
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index 96e7e7e71e5f..594315b55b1f 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -1017,9 +1017,10 @@ static int vdec_close(struct file *file)
+ 	mutex_destroy(&inst->lock);
+ 	v4l2_fh_del(&inst->fh);
+ 	v4l2_fh_exit(&inst->fh);
+-	kfree(inst);
+ 
+ 	pm_runtime_put_sync(inst->core->dev_dec);
++
++	kfree(inst);
+ 	return 0;
+ }
+ 
 -- 
-https://github.com/herrnst
+2.7.4
