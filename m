@@ -1,75 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:56039 "EHLO extserv.mm-sol.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:57513 "EHLO mail.kapsi.fi"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751196AbdFSO4e (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 10:56:34 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
-Cc: Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v2 10/19] media: camss: Enable building
-Date: Mon, 19 Jun 2017 17:48:30 +0300
-Message-Id: <1497883719-12410-11-git-send-email-todor.tomov@linaro.org>
-In-Reply-To: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
-References: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
+        id S1751869AbdFODbf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Jun 2017 23:31:35 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 04/15] af9033: use kernel 64-bit division
+Date: Thu, 15 Jun 2017 06:30:54 +0300
+Message-Id: <20170615033105.13517-4-crope@iki.fi>
+In-Reply-To: <20170615033105.13517-1-crope@iki.fi>
+References: <20170615033105.13517-1-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add Makefile and update platform/Kconfig and platform/Makefile
-to enable building of the QCom CAMSS driver.
+Replace own binary division with 64-bit multiply and division.
 
-Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/Kconfig                  |  6 ++++++
- drivers/media/platform/Makefile                 |  2 ++
- drivers/media/platform/qcom/camss-8x16/Makefile | 11 +++++++++++
- 3 files changed, 19 insertions(+)
- create mode 100644 drivers/media/platform/qcom/camss-8x16/Makefile
+ drivers/media/dvb-frontends/af9013.c      | 34 +++----------------------------
+ drivers/media/dvb-frontends/af9013_priv.h |  1 +
+ 2 files changed, 4 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 041cb80..cf69c41 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -100,6 +100,12 @@ config VIDEO_PXA27x
- 	---help---
- 	  This is a v4l2 driver for the PXA27x Quick Capture Interface
+diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
+index f644182..dd7ac0a 100644
+--- a/drivers/media/dvb-frontends/af9013.c
++++ b/drivers/media/dvb-frontends/af9013.c
+@@ -277,33 +277,6 @@ static int af9013_set_gpio(struct af9013_state *state, u8 gpio, u8 gpioval)
+ 	return ret;
+ }
  
-+config VIDEO_QCOM_CAMSS
-+	tristate "Qualcomm 8x16 V4L2 Camera Subsystem driver"
-+	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-+	depends on (ARCH_QCOM && IOMMU_DMA) || COMPILE_TEST
-+	select VIDEOBUF2_DMA_SG
-+
- config VIDEO_S3C_CAMIF
- 	tristate "Samsung S3C24XX/S3C64XX SoC Camera Interface driver"
- 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 63303d6..f083b8a 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -77,3 +77,5 @@ obj-$(CONFIG_VIDEO_MEDIATEK_VCODEC)	+= mtk-vcodec/
- obj-$(CONFIG_VIDEO_MEDIATEK_MDP)	+= mtk-mdp/
+-static u32 af9013_div(struct af9013_state *state, u32 a, u32 b, u32 x)
+-{
+-	u32 r = 0, c = 0, i;
+-
+-	dev_dbg(&state->client->dev, "%s: a=%d b=%d x=%d\n", __func__, a, b, x);
+-
+-	if (a > b) {
+-		c = a / b;
+-		a = a - c * b;
+-	}
+-
+-	for (i = 0; i < x; i++) {
+-		if (a >= b) {
+-			r += 1;
+-			a -= b;
+-		}
+-		a <<= 1;
+-		r <<= 1;
+-	}
+-	r = (c << (u32)x) + r;
+-
+-	dev_dbg(&state->client->dev, "%s: a=%d b=%d x=%d r=%d r=%x\n",
+-			__func__, a, b, x, r, r);
+-
+-	return r;
+-}
+-
+ static int af9013_power_ctrl(struct af9013_state *state, u8 onoff)
+ {
+ 	int ret, i;
+@@ -638,8 +611,8 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
+ 			spec_inv = !state->spec_inv;
+ 		}
  
- obj-$(CONFIG_VIDEO_MEDIATEK_JPEG)	+= mtk-jpeg/
-+
-+obj-$(CONFIG_VIDEO_QCOM_CAMSS)		+= qcom/camss-8x16/
-diff --git a/drivers/media/platform/qcom/camss-8x16/Makefile b/drivers/media/platform/qcom/camss-8x16/Makefile
-new file mode 100644
-index 0000000..4a6b08f
---- /dev/null
-+++ b/drivers/media/platform/qcom/camss-8x16/Makefile
-@@ -0,0 +1,11 @@
-+# Makefile for Qualcomm CAMSS driver
-+
-+qcom-camss-objs += \
-+		camss.o \
-+		csid.o \
-+		csiphy.o \
-+		ispif.o \
-+		vfe.o \
-+		video.o \
-+
-+obj-$(CONFIG_VIDEO_QCOM_CAMSS) += qcom-camss.o
+-		freq_cw = af9013_div(state, sampling_freq, state->clk,
+-				23);
++		freq_cw = DIV_ROUND_CLOSEST_ULL((u64)sampling_freq * 0x800000,
++						state->clk);
+ 
+ 		if (spec_inv)
+ 			freq_cw = 0x800000 - freq_cw;
+@@ -1108,11 +1081,10 @@ static int af9013_init(struct dvb_frontend *fe)
+ 		return -EINVAL;
+ 	}
+ 
+-	adc_cw = af9013_div(state, state->clk, 1000000ul, 19);
++	adc_cw = div_u64((u64)state->clk * 0x80000, 1000000);
+ 	buf[0] = (adc_cw >>  0) & 0xff;
+ 	buf[1] = (adc_cw >>  8) & 0xff;
+ 	buf[2] = (adc_cw >> 16) & 0xff;
+-
+ 	ret = af9013_wr_regs(state, 0xd180, buf, 3);
+ 	if (ret)
+ 		goto err;
+diff --git a/drivers/media/dvb-frontends/af9013_priv.h b/drivers/media/dvb-frontends/af9013_priv.h
+index 31d6538..97b5b0c 100644
+--- a/drivers/media/dvb-frontends/af9013_priv.h
++++ b/drivers/media/dvb-frontends/af9013_priv.h
+@@ -24,6 +24,7 @@
+ #include "dvb_frontend.h"
+ #include "af9013.h"
+ #include <linux/firmware.h>
++#include <linux/math64.h>
+ 
+ #define AF9013_FIRMWARE "dvb-fe-af9013.fw"
+ 
 -- 
-1.9.1
+http://palosaari.fi/
