@@ -1,340 +1,283 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:41294 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752475AbdFLJuv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Jun 2017 05:50:51 -0400
-Subject: Re: [RFC PATCH v3 05/11] [media] vimc: common: Add vimc_link_validate
-To: Helen Koike <helen.koike@collabora.com>,
-        linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-Cc: jgebben@codeaurora.org, mchehab@osg.samsung.com,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1491604632-23544-1-git-send-email-helen.koike@collabora.com>
- <1496458714-16834-1-git-send-email-helen.koike@collabora.com>
- <1496458714-16834-6-git-send-email-helen.koike@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <1e189fc2-3574-ef52-1b2b-69f0a9e7c7ca@xs4all.nl>
-Date: Mon, 12 Jun 2017 11:50:45 +0200
-MIME-Version: 1.0
-In-Reply-To: <1496458714-16834-6-git-send-email-helen.koike@collabora.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:44595 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751956AbdFODbf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Jun 2017 23:31:35 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 07/15] af9013: fix error handling
+Date: Thu, 15 Jun 2017 06:30:57 +0300
+Message-Id: <20170615033105.13517-7-crope@iki.fi>
+In-Reply-To: <20170615033105.13517-1-crope@iki.fi>
+References: <20170615033105.13517-1-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/03/2017 04:58 AM, Helen Koike wrote:
-> All links will be checked in the same way. Adding a helper function for
-> that
-> 
-> Signed-off-by: Helen Koike <helen.koike@collabora.com>
-> 
-> ---
-> 
-> Changes in v3:
-> [media] vimc: common: Add vimc_link_validate
-> 	- this is a new patch in the series
-> 
-> Changes in v2: None
-> 
-> 
-> ---
->   drivers/media/platform/vimc/vimc-capture.c |  78 +++---------------
->   drivers/media/platform/vimc/vimc-common.c  | 124 ++++++++++++++++++++++++++++-
->   drivers/media/platform/vimc/vimc-common.h  |  14 ++++
->   3 files changed, 148 insertions(+), 68 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
-> index 93f6a09..5bdecd1 100644
-> --- a/drivers/media/platform/vimc/vimc-capture.c
-> +++ b/drivers/media/platform/vimc/vimc-capture.c
-> @@ -64,6 +64,15 @@ static int vimc_cap_querycap(struct file *file, void *priv,
->   	return 0;
->   }
->   
-> +static void vimc_cap_get_format(struct vimc_ent_device *ved,
-> +				struct v4l2_pix_format *fmt)
-> +{
-> +	struct vimc_cap_device *vcap = container_of(ved, struct vimc_cap_device,
-> +						    ved);
-> +
-> +	*fmt = vcap->format;
-> +}
-> +
->   static int vimc_cap_fmt_vid_cap(struct file *file, void *priv,
->   				  struct v4l2_format *f)
->   {
-> @@ -231,74 +240,8 @@ static const struct vb2_ops vimc_cap_qops = {
->   	.wait_finish		= vb2_ops_wait_finish,
->   };
->   
-> -/*
-> - * NOTE: this function is a copy of v4l2_subdev_link_validate_get_format
-> - * maybe the v4l2 function should be public
-> - */
-> -static int vimc_cap_v4l2_subdev_link_validate_get_format(struct media_pad *pad,
-> -						struct v4l2_subdev_format *fmt)
-> -{
-> -	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(pad->entity);
-> -
-> -	fmt->which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> -	fmt->pad = pad->index;
-> -
-> -	return v4l2_subdev_call(sd, pad, get_fmt, NULL, fmt);
-> -}
-> -
-> -static int vimc_cap_link_validate(struct media_link *link)
-> -{
-> -	struct v4l2_subdev_format source_fmt;
-> -	const struct vimc_pix_map *vpix;
-> -	struct vimc_cap_device *vcap = container_of(link->sink->entity,
-> -						    struct vimc_cap_device,
-> -						    vdev.entity);
-> -	struct v4l2_pix_format *sink_fmt = &vcap->format;
-> -	int ret;
-> -
-> -	/*
-> -	 * if it is a raw node from vimc-core, ignore the link for now
-> -	 * TODO: remove this when there are no more raw nodes in the
-> -	 * core and return error instead
-> -	 */
-> -	if (link->source->entity->obj_type == MEDIA_ENTITY_TYPE_BASE)
-> -		return 0;
-> -
-> -	/* Get the the format of the subdev */
-> -	ret = vimc_cap_v4l2_subdev_link_validate_get_format(link->source,
-> -							    &source_fmt);
-> -	if (ret)
-> -		return ret;
-> -
-> -	dev_dbg(vcap->vdev.v4l2_dev->dev,
-> -		"%s: link validate formats src:%dx%d %d sink:%dx%d %d\n",
-> -		vcap->vdev.name,
-> -		source_fmt.format.width, source_fmt.format.height,
-> -		source_fmt.format.code,
-> -		sink_fmt->width, sink_fmt->height,
-> -		sink_fmt->pixelformat);
-> -
-> -	/* The width, height and code must match. */
-> -	vpix = vimc_pix_map_by_pixelformat(sink_fmt->pixelformat);
-> -	if (source_fmt.format.width != sink_fmt->width
-> -	    || source_fmt.format.height != sink_fmt->height
-> -	    || vpix->code != source_fmt.format.code)
-> -		return -EPIPE;
-> -
-> -	/*
-> -	 * The field order must match, or the sink field order must be NONE
-> -	 * to support interlaced hardware connected to bridges that support
-> -	 * progressive formats only.
-> -	 */
-> -	if (source_fmt.format.field != sink_fmt->field &&
-> -	    sink_fmt->field != V4L2_FIELD_NONE)
-> -		return -EPIPE;
-> -
-> -	return 0;
-> -}
-> -
->   static const struct media_entity_operations vimc_cap_mops = {
-> -	.link_validate		= vimc_cap_link_validate,
-> +	.link_validate		= vimc_link_validate,
->   };
->   
->   static void vimc_cap_destroy(struct vimc_ent_device *ved)
-> @@ -434,6 +377,7 @@ struct vimc_ent_device *vimc_cap_create(struct v4l2_device *v4l2_dev,
->   	vcap->ved.destroy = vimc_cap_destroy;
->   	vcap->ved.ent = &vcap->vdev.entity;
->   	vcap->ved.process_frame = vimc_cap_process_frame;
-> +	vcap->ved.vdev_get_format = vimc_cap_get_format;
->   
->   	/* Initialize the video_device struct */
->   	vdev = &vcap->vdev;
-> diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
-> index f809a9d..83d4251 100644
-> --- a/drivers/media/platform/vimc/vimc-common.c
-> +++ b/drivers/media/platform/vimc/vimc-common.c
-> @@ -252,8 +252,130 @@ int vimc_pipeline_s_stream(struct media_entity *ent, int enable)
->   	return 0;
->   }
->   
-> +static void vimc_fmt_pix_to_mbus(struct v4l2_mbus_framefmt *mfmt,
-> +				 struct v4l2_pix_format *pfmt)
-> +{
-> +	const struct vimc_pix_map *vpix =
-> +		vimc_pix_map_by_pixelformat(pfmt->pixelformat);
-> +
-> +	mfmt->width = pfmt->width;
-> +	mfmt->height = pfmt->height;
-> +	mfmt->code = vpix->code;
-> +	mfmt->field = pfmt->field;
-> +	mfmt->colorspace = pfmt->colorspace;
-> +	mfmt->ycbcr_enc = pfmt->ycbcr_enc;
-> +	mfmt->quantization = pfmt->quantization;
-> +	mfmt->xfer_func = pfmt->xfer_func;
+Use typical (return 0/goto err/return err) error handling everywhere.
+Add missing error handling where missing.
 
-You can use v4l2_fill_mbus_format() here.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/af9013.c | 86 +++++++++++++++++++++---------------
+ 1 file changed, 51 insertions(+), 35 deletions(-)
 
-> +}
-> +
-> +static int vimc_get_mbus_format(struct media_pad *pad,
-> +				struct v4l2_subdev_format *fmt)
-> +{
-> +	if (is_media_entity_v4l2_subdev(pad->entity)) {
-> +		struct v4l2_subdev *sd =
-> +			media_entity_to_v4l2_subdev(pad->entity);
-> +		int ret;
-> +
-> +		fmt->which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> +		fmt->pad = pad->index;
-> +
-> +		ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, fmt);
-> +		if (ret)
-> +			return ret;
-> +
-> +	} else if (is_media_entity_v4l2_video_device(pad->entity)) {
-> +		struct video_device *vdev = container_of(pad->entity,
-> +							 struct video_device,
-> +							 entity);
-> +		struct vimc_ent_device *ved = video_get_drvdata(vdev);
-> +		struct v4l2_pix_format vdev_fmt;
-> +
-> +		if (!ved->vdev_get_format)
-> +			return -ENOIOCTLCMD;
-> +
-> +		ved->vdev_get_format(ved, &vdev_fmt);
-> +		vimc_fmt_pix_to_mbus(&fmt->format, &vdev_fmt);
-> +	} else {
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +int vimc_link_validate(struct media_link *link)
-> +{
-> +	struct v4l2_subdev_format source_fmt, sink_fmt;
-> +	int ret;
-> +
-> +	/*
-> +	 * if it is a raw node from vimc-core, ignore the link for now
-> +	 * TODO: remove this when there are no more raw nodes in the
-> +	 * core and return error instead
-> +	 */
-> +	if (link->source->entity->obj_type == MEDIA_ENTITY_TYPE_BASE)
-> +		return 0;
-> +
-> +	ret = vimc_get_mbus_format(link->source, &source_fmt);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = vimc_get_mbus_format(link->sink, &sink_fmt);
-> +	if (ret)
-> +		return ret;
-> +
-> +	pr_info("vimc link validate: "
-> +		"%s:src:%dx%d (0x%x, %d, %d, %d, %d) "
-> +		"%s:snk:%dx%d (0x%x, %d, %d, %d, %d)\n",
-> +		/* src */
-> +		link->source->entity->name,
-> +		source_fmt.format.width, source_fmt.format.height,
-> +		source_fmt.format.code, source_fmt.format.colorspace,
-> +		source_fmt.format.quantization, source_fmt.format.xfer_func,
-> +		source_fmt.format.ycbcr_enc,
-> +		/* sink */
-> +		link->sink->entity->name,
-> +		sink_fmt.format.width, sink_fmt.format.height,
-> +		sink_fmt.format.code, sink_fmt.format.colorspace,
-> +		sink_fmt.format.quantization, sink_fmt.format.xfer_func,
-> +		sink_fmt.format.ycbcr_enc);
-> +
-> +	/* The width, height, code and colorspace must match. */
-> +	if (source_fmt.format.width != sink_fmt.format.width
-> +	    || source_fmt.format.height != sink_fmt.format.height
-> +	    || source_fmt.format.code != sink_fmt.format.code
-> +	    || source_fmt.format.colorspace != sink_fmt.format.colorspace)
-
-Source and/or Sink may be COLORSPACE_DEFAULT. If that's the case, then
-you should skip comparing ycbcr_enc, quantization or xfer_func. If colorspace
-is DEFAULT, then that implies that the other fields are DEFAULT as well. Nothing
-else makes sense in that case.
-
-> +		return -EPIPE;
-> +
-> +	/* Colorimetry must match if they are not set to DEFAULT */
-> +	if (source_fmt.format.ycbcr_enc != V4L2_YCBCR_ENC_DEFAULT
-> +	    && sink_fmt.format.ycbcr_enc != V4L2_YCBCR_ENC_DEFAULT
-> +	    && source_fmt.format.ycbcr_enc != sink_fmt.format.ycbcr_enc)
-> +		return -EPIPE;
-> +
-> +	if (source_fmt.format.quantization != V4L2_QUANTIZATION_DEFAULT
-> +	    && sink_fmt.format.quantization != V4L2_QUANTIZATION_DEFAULT
-> +	    && source_fmt.format.quantization != sink_fmt.format.quantization)
-> +		return -EPIPE;
-> +
-> +	if (source_fmt.format.xfer_func != V4L2_XFER_FUNC_DEFAULT
-> +	    && sink_fmt.format.xfer_func != V4L2_XFER_FUNC_DEFAULT
-> +	    && source_fmt.format.xfer_func != sink_fmt.format.xfer_func)
-> +		return -EPIPE;
-> +
-> +	/* The field order must match, or the sink field order must be NONE
-> +	 * to support interlaced hardware connected to bridges that support
-> +	 * progressive formats only.
-> +	 */
-> +	if (source_fmt.format.field != sink_fmt.format.field &&
-> +	    sink_fmt.format.field != V4L2_FIELD_NONE)
-> +		return -EPIPE;
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(vimc_link_validate);
-> +
->   static const struct media_entity_operations vimc_ent_sd_mops = {
-> -	.link_validate = v4l2_subdev_link_validate,
-> +	.link_validate = vimc_link_validate,
->   };
->   
->   int vimc_ent_sd_register(struct vimc_ent_device *ved,
-> diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
-> index 73e7e94..60ebde2 100644
-> --- a/drivers/media/platform/vimc/vimc-common.h
-> +++ b/drivers/media/platform/vimc/vimc-common.h
-> @@ -45,6 +45,9 @@ struct vimc_pix_map {
->    * @pads:		the list of pads of the node
->    * @destroy:		callback to destroy the node
->    * @process_frame:	callback send a frame to that node
-> + * @vdev_get_format:	callback that returns the current format a pad, used
-> + *			only when is_media_entity_v4l2_video_device(ent) returns
-> + *			true
->    *
->    * Each node of the topology must create a vimc_ent_device struct. Depending on
->    * the node it will be of an instance of v4l2_subdev or video_device struct
-> @@ -60,6 +63,8 @@ struct vimc_ent_device {
->   	void (*destroy)(struct vimc_ent_device *);
->   	void (*process_frame)(struct vimc_ent_device *ved,
->   			      struct media_pad *sink, const void *frame);
-> +	void (*vdev_get_format)(struct vimc_ent_device *ved,
-> +			      struct v4l2_pix_format *fmt);
->   };
->   
->   /**
-> @@ -160,4 +165,13 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
->   void vimc_ent_sd_unregister(struct vimc_ent_device *ved,
->   			    struct v4l2_subdev *sd);
->   
-> +/**
-> + * vimc_link_validate - validates a media link
-> + *
-> + * @link: pointer to &struct media_link
-> + *
-> + * This function calls validates if a media link is valid for streaming.
-> + */
-> +int vimc_link_validate(struct media_link *link);
-> +
->   #endif
-> 
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
+index 70102c1..a6b88ae 100644
+--- a/drivers/media/dvb-frontends/af9013.c
++++ b/drivers/media/dvb-frontends/af9013.c
+@@ -94,7 +94,7 @@ static int af9013_set_gpio(struct af9013_state *state, u8 gpio, u8 gpioval)
+ 	if (ret)
+ 		goto err;
+ 
+-	return ret;
++	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+@@ -147,7 +147,7 @@ static int af9013_power_ctrl(struct af9013_state *state, u8 onoff)
+ 			goto err;
+ 	}
+ 
+-	return ret;
++	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+@@ -166,7 +166,7 @@ static int af9013_statistics_ber_unc_start(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	return ret;
++	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+@@ -199,7 +199,7 @@ static int af9013_statistics_ber_unc_result(struct dvb_frontend *fe)
+ 	state->ber = (buf[2] << 16) | (buf[1] << 8) | buf[0];
+ 	state->ucblocks += (buf[4] << 8) | buf[3];
+ 
+-	return ret;
++	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+@@ -218,7 +218,7 @@ static int af9013_statistics_snr_start(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	return ret;
++	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+@@ -283,7 +283,7 @@ static int af9013_statistics_snr_result(struct dvb_frontend *fe)
+ 	}
+ 	state->snr = utmp * 10; /* dB/10 */
+ 
+-	return ret;
++	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+@@ -321,7 +321,7 @@ static int af9013_statistics_signal_strength(struct dvb_frontend *fe)
+ 
+ 	state->signal_strength = signal_strength;
+ 
+-	return ret;
++	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+@@ -398,8 +398,11 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
+ 		c->frequency, c->bandwidth_hz);
+ 
+ 	/* program tuner */
+-	if (fe->ops.tuner_ops.set_params)
+-		fe->ops.tuner_ops.set_params(fe);
++	if (fe->ops.tuner_ops.set_params) {
++		ret = fe->ops.tuner_ops.set_params(fe);
++		if (ret)
++			goto err;
++	}
+ 
+ 	/* program CFOE coefficients */
+ 	if (c->bandwidth_hz != state->bandwidth_hz) {
+@@ -411,20 +414,28 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
+ 		}
+ 
+ 		/* Return an error if can't find bandwidth or the right clock */
+-		if (i == ARRAY_SIZE(coeff_lut))
+-			return -EINVAL;
++		if (i == ARRAY_SIZE(coeff_lut)) {
++			ret = -EINVAL;
++			goto err;
++		}
+ 
+ 		ret = regmap_bulk_write(state->regmap, 0xae00, coeff_lut[i].val,
+ 					sizeof(coeff_lut[i].val));
++		if (ret)
++			goto err;
+ 	}
+ 
+ 	/* program frequency control */
+ 	if (c->bandwidth_hz != state->bandwidth_hz || state->first_tune) {
+ 		/* get used IF frequency */
+-		if (fe->ops.tuner_ops.get_if_frequency)
+-			fe->ops.tuner_ops.get_if_frequency(fe, &if_frequency);
+-		else
++		if (fe->ops.tuner_ops.get_if_frequency) {
++			ret = fe->ops.tuner_ops.get_if_frequency(fe,
++								 &if_frequency);
++			if (ret)
++				goto err;
++		} else {
+ 			if_frequency = state->if_frequency;
++		}
+ 
+ 		dev_dbg(&client->dev, "if_frequency %u\n", if_frequency);
+ 
+@@ -659,7 +670,7 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
+ 	state->set_frontend_jiffies = jiffies;
+ 	state->first_tune = false;
+ 
+-	return ret;
++	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+@@ -777,7 +788,7 @@ static int af9013_get_frontend(struct dvb_frontend *fe,
+ 		break;
+ 	}
+ 
+-	return ret;
++	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+@@ -828,7 +839,7 @@ static int af9013_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ 	state->fe_status = *status;
+ 	state->read_status_jiffies = jiffies;
+ 
+-	return ret;
++	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+@@ -1087,7 +1098,7 @@ static int af9013_init(struct dvb_frontend *fe)
+ 	state->first_tune = true;
+ 	schedule_delayed_work(&state->statistics_work, msecs_to_jiffies(400));
+ 
+-	return ret;
++	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+@@ -1114,7 +1125,7 @@ static int af9013_sleep(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	return ret;
++	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+@@ -1143,7 +1154,7 @@ static int af9013_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
+ 
+ 	state->i2c_gate_state = enable;
+ 
+-	return ret;
++	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+@@ -1164,7 +1175,7 @@ static const struct dvb_frontend_ops af9013_ops;
+ static int af9013_download_firmware(struct af9013_state *state)
+ {
+ 	struct i2c_client *client = state->client;
+-	int i, len, remaining, ret;
++	int ret, i, len, remaining;
+ 	unsigned int utmp;
+ 	const struct firmware *fw;
+ 	u16 checksum = 0;
+@@ -1176,11 +1187,11 @@ static int af9013_download_firmware(struct af9013_state *state)
+ 	ret = regmap_read(state->regmap, 0x98be, &utmp);
+ 	if (ret)
+ 		goto err;
+-	else
+-		dev_dbg(&client->dev, "firmware status %02x\n", utmp);
++
++	dev_dbg(&client->dev, "firmware status %02x\n", utmp);
+ 
+ 	if (utmp == 0x0c) /* fw is running, no need for download */
+-		goto exit;
++		return 0;
+ 
+ 	dev_info(&client->dev, "found a '%s' in cold state, will try to load a firmware\n",
+ 		 af9013_ops.info.name);
+@@ -1210,7 +1221,7 @@ static int af9013_download_firmware(struct af9013_state *state)
+ 				sizeof(fw_params));
+ 
+ 	if (ret)
+-		goto err_release;
++		goto err_release_firmware;
+ 
+ 	#define FW_ADDR 0x5100 /* firmware start address */
+ 	#define LEN_MAX 16 /* max packet size */
+@@ -1225,39 +1236,44 @@ static int af9013_download_firmware(struct af9013_state *state)
+ 		if (ret) {
+ 			dev_err(&client->dev, "firmware download failed %d\n",
+ 				ret);
+-			goto err_release;
++			goto err_release_firmware;
+ 		}
+ 	}
+ 
++	release_firmware(fw);
++
+ 	/* request boot firmware */
+ 	ret = regmap_write(state->regmap, 0xe205, 0x01);
+ 	if (ret)
+-		goto err_release;
++		goto err;
+ 
+ 	/* Check firmware status. 0c=OK, 04=fail */
+ 	ret = regmap_read_poll_timeout(state->regmap, 0x98be, utmp,
+ 				       (utmp == 0x0c || utmp == 0x04),
+ 				       5000, 1000000);
+ 	if (ret)
+-		goto err_release;
++		goto err;
+ 
+ 	dev_dbg(&client->dev, "firmware status %02x\n", utmp);
+ 
+ 	if (utmp == 0x04) {
+-		dev_err(&client->dev, "firmware did not run\n");
+ 		ret = -ENODEV;
++		dev_err(&client->dev, "firmware did not run\n");
++		goto err;
+ 	} else if (utmp != 0x0c) {
+-		dev_err(&client->dev, "firmware boot timeout\n");
+ 		ret = -ENODEV;
++		dev_err(&client->dev, "firmware boot timeout\n");
++		goto err;
+ 	}
+ 
+-err_release:
++	dev_info(&client->dev, "found a '%s' in warm state\n",
++		 af9013_ops.info.name);
++
++	return 0;
++err_release_firmware:
+ 	release_firmware(fw);
+ err:
+-exit:
+-	if (!ret)
+-		dev_info(&client->dev, "found a '%s' in warm state\n",
+-			 af9013_ops.info.name);
++	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+ }
+ 
+-- 
+http://palosaari.fi/
