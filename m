@@ -1,117 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f53.google.com ([74.125.82.53]:37150 "EHLO
-        mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751720AbdFHUZe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 16:25:34 -0400
-Received: by mail-wm0-f53.google.com with SMTP id d73so38101526wma.0
-        for <linux-media@vger.kernel.org>; Thu, 08 Jun 2017 13:25:33 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1496860453-6282-15-git-send-email-steve_longerbeam@mentor.com>
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com> <1496860453-6282-15-git-send-email-steve_longerbeam@mentor.com>
-From: Tim Harvey <tharvey@gateworks.com>
-Date: Thu, 8 Jun 2017 13:25:27 -0700
-Message-ID: <CAJ+vNU0C0=4hUq+g1P7yTzLzFPidfauQROPOVr4WQWKNZz_xmQ@mail.gmail.com>
-Subject: Re: [PATCH v8 14/34] ARM: dts: imx6-sabreauto: add the ADV7180 video decoder
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        mchehab@kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Nick Dyer <nick@shmanahar.org>, markus.heiser@darmarit.de,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, Arnd Bergmann <arnd@arndb.de>,
-        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-        minghsiu.tsai@mediatek.com, Tiffany Lin <tiffany.lin@mediatek.com>,
-        Jean-Christophe TROTIN <jean-christophe.trotin@st.com>,
-        Simon Horman <horms+renesas@verge.net.au>,
-        =?UTF-8?Q?Niklas_S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail.kapsi.fi ([217.30.184.167]:40814 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751555AbdFODbf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Jun 2017 23:31:35 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 02/15] af9013: move config values directly under driver state
+Date: Thu, 15 Jun 2017 06:30:52 +0300
+Message-Id: <20170615033105.13517-2-crope@iki.fi>
+In-Reply-To: <20170615033105.13517-1-crope@iki.fi>
+References: <20170615033105.13517-1-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 7, 2017 at 11:33 AM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
-> Enables the ADV7180 decoder sensor. The ADV7180 connects to the
-> parallel-bus mux input on ipu1_csi0_mux.
->
-> The ADV7180 power pin is via max7310_b port expander.
->
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->
-> - Use IRQ_TYPE_LEVEL_LOW instead of 0x8 for interrupt type for clarity.
-> - For 8-bit parallel IPU1-CSI0 bus connection only data[12-19] are used.
->
-> Signed-off-by: Tim Harvey <tharvey@gateworks.com>
-> ---
->  arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 50 ++++++++++++++++++++++++++++++++
->  1 file changed, 50 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-> index 1212f82..c24af28 100644
-> --- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-> +++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-> @@ -124,6 +124,21 @@
->                         #size-cells = <0>;
->                         reg = <1>;
->
-> +                       adv7180: camera@21 {
-> +                               compatible = "adi,adv7180";
-> +                               reg = <0x21>;
-> +                               powerdown-gpios = <&max7310_b 2 GPIO_ACTIVE_LOW>;
-> +                               interrupt-parent = <&gpio1>;
-> +                               interrupts = <27 IRQ_TYPE_LEVEL_LOW>;
-> +
-> +                               port {
-> +                                       adv7180_to_ipu1_csi0_mux: endpoint {
-> +                                               remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-> +                                               bus-width = <8>;
-> +                                       };
-> +                               };
-> +                       };
-> +
->                         max7310_a: gpio@30 {
->                                 compatible = "maxim,max7310";
->                                 reg = <0x30>;
-> @@ -151,6 +166,25 @@
->         };
->  };
->
-> +&ipu1_csi0_from_ipu1_csi0_mux {
-> +       bus-width = <8>;
-> +};
-> +
-> +&ipu1_csi0_mux_from_parallel_sensor {
-> +       remote-endpoint = <&adv7180_to_ipu1_csi0_mux>;
-> +       bus-width = <8>;
-> +};
-> +
-> +&ipu1_csi0 {
-> +       pinctrl-names = "default";
-> +       pinctrl-0 = <&pinctrl_ipu1_csi0>;
-> +
-> +       /* enable frame interval monitor on this port */
-> +       fim {
-> +               status = "okay";
-> +       };
+It shorten, as typed chars, access to config values as there is one
+pointer less. Also, when config/platform data is passed to driver there
+could be some values that are not relevant to store state as such or
+not needed to store at all.
 
-Steve,
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/af9013.c | 62 ++++++++++++++++++++++--------------
+ 1 file changed, 38 insertions(+), 24 deletions(-)
 
-You need to remove the fim node now that you've moved this to V4L2 controls.
-
-Regards,
-
-Tim
+diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
+index b978002..7880a63 100644
+--- a/drivers/media/dvb-frontends/af9013.c
++++ b/drivers/media/dvb-frontends/af9013.c
+@@ -26,7 +26,14 @@
+ struct af9013_state {
+ 	struct i2c_adapter *i2c;
+ 	struct dvb_frontend fe;
+-	struct af9013_config config;
++	u8 i2c_addr;
++	u32 clk;
++	u8 tuner;
++	u32 if_frequency;
++	u8 ts_mode;
++	bool spec_inv;
++	u8 api_version[4];
++	u8 gpio[4];
+ 
+ 	/* tuner/demod RF and IF AGC limits used for signal strength calc */
+ 	u8 signal_strength_en, rf_50, rf_80, if_50, if_80;
+@@ -52,7 +59,7 @@ static int af9013_wr_regs_i2c(struct af9013_state *priv, u8 mbox, u16 reg,
+ 	u8 buf[MAX_XFER_SIZE];
+ 	struct i2c_msg msg[1] = {
+ 		{
+-			.addr = priv->config.i2c_addr,
++			.addr = priv->i2c_addr,
+ 			.flags = 0,
+ 			.len = 3 + len,
+ 			.buf = buf,
+@@ -90,12 +97,12 @@ static int af9013_rd_regs_i2c(struct af9013_state *priv, u8 mbox, u16 reg,
+ 	u8 buf[3];
+ 	struct i2c_msg msg[2] = {
+ 		{
+-			.addr = priv->config.i2c_addr,
++			.addr = priv->i2c_addr,
+ 			.flags = 0,
+ 			.len = 3,
+ 			.buf = buf,
+ 		}, {
+-			.addr = priv->config.i2c_addr,
++			.addr = priv->i2c_addr,
+ 			.flags = I2C_M_RD,
+ 			.len = len,
+ 			.buf = val,
+@@ -124,7 +131,7 @@ static int af9013_wr_regs(struct af9013_state *priv, u16 reg, const u8 *val,
+ 	int ret, i;
+ 	u8 mbox = (0 << 7)|(0 << 6)|(1 << 1)|(1 << 0);
+ 
+-	if ((priv->config.ts_mode == AF9013_TS_USB) &&
++	if ((priv->ts_mode == AF9013_TS_USB) &&
+ 		((reg & 0xff00) != 0xff00) && ((reg & 0xff00) != 0xae00)) {
+ 		mbox |= ((len - 1) << 2);
+ 		ret = af9013_wr_regs_i2c(priv, mbox, reg, val, len);
+@@ -146,7 +153,7 @@ static int af9013_rd_regs(struct af9013_state *priv, u16 reg, u8 *val, int len)
+ 	int ret, i;
+ 	u8 mbox = (0 << 7)|(0 << 6)|(1 << 1)|(0 << 0);
+ 
+-	if ((priv->config.ts_mode == AF9013_TS_USB) &&
++	if ((priv->ts_mode == AF9013_TS_USB) &&
+ 		((reg & 0xff00) != 0xff00) && ((reg & 0xff00) != 0xae00)) {
+ 		mbox |= ((len - 1) << 2);
+ 		ret = af9013_rd_regs_i2c(priv, mbox, reg, val, len);
+@@ -595,7 +602,7 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
+ 	/* program CFOE coefficients */
+ 	if (c->bandwidth_hz != state->bandwidth_hz) {
+ 		for (i = 0; i < ARRAY_SIZE(coeff_lut); i++) {
+-			if (coeff_lut[i].clock == state->config.clock &&
++			if (coeff_lut[i].clock == state->clk &&
+ 				coeff_lut[i].bandwidth_hz == c->bandwidth_hz) {
+ 				break;
+ 			}
+@@ -615,24 +622,24 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
+ 		if (fe->ops.tuner_ops.get_if_frequency)
+ 			fe->ops.tuner_ops.get_if_frequency(fe, &if_frequency);
+ 		else
+-			if_frequency = state->config.if_frequency;
++			if_frequency = state->if_frequency;
+ 
+ 		dev_dbg(&state->i2c->dev, "%s: if_frequency=%d\n",
+ 				__func__, if_frequency);
+ 
+ 		sampling_freq = if_frequency;
+ 
+-		while (sampling_freq > (state->config.clock / 2))
+-			sampling_freq -= state->config.clock;
++		while (sampling_freq > (state->clk / 2))
++			sampling_freq -= state->clk;
+ 
+ 		if (sampling_freq < 0) {
+ 			sampling_freq *= -1;
+-			spec_inv = state->config.spec_inv;
++			spec_inv = state->spec_inv;
+ 		} else {
+-			spec_inv = !state->config.spec_inv;
++			spec_inv = !state->spec_inv;
+ 		}
+ 
+-		freq_cw = af9013_div(state, sampling_freq, state->config.clock,
++		freq_cw = af9013_div(state, sampling_freq, state->clk,
+ 				23);
+ 
+ 		if (spec_inv)
+@@ -1078,12 +1085,12 @@ static int af9013_init(struct dvb_frontend *fe)
+ 		goto err;
+ 
+ 	/* write API version to firmware */
+-	ret = af9013_wr_regs(state, 0x9bf2, state->config.api_version, 4);
++	ret = af9013_wr_regs(state, 0x9bf2, state->api_version, 4);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* program ADC control */
+-	switch (state->config.clock) {
++	switch (state->clk) {
+ 	case 28800000: /* 28.800 MHz */
+ 		tmp = 0;
+ 		break;
+@@ -1102,7 +1109,7 @@ static int af9013_init(struct dvb_frontend *fe)
+ 		return -EINVAL;
+ 	}
+ 
+-	adc_cw = af9013_div(state, state->config.clock, 1000000ul, 19);
++	adc_cw = af9013_div(state, state->clk, 1000000ul, 19);
+ 	buf[0] = (adc_cw >>  0) & 0xff;
+ 	buf[1] = (adc_cw >>  8) & 0xff;
+ 	buf[2] = (adc_cw >> 16) & 0xff;
+@@ -1136,7 +1143,7 @@ static int af9013_init(struct dvb_frontend *fe)
+ 		goto err;
+ 
+ 	/* settings for mp2if */
+-	if (state->config.ts_mode == AF9013_TS_USB) {
++	if (state->ts_mode == AF9013_TS_USB) {
+ 		/* AF9015 split PSB to 1.5k + 0.5k */
+ 		ret = af9013_wr_reg_bits(state, 0xd50b, 2, 1, 1);
+ 		if (ret)
+@@ -1171,7 +1178,7 @@ static int af9013_init(struct dvb_frontend *fe)
+ 	/* load tuner specific settings */
+ 	dev_dbg(&state->i2c->dev, "%s: load tuner specific settings\n",
+ 			__func__);
+-	switch (state->config.tuner) {
++	switch (state->tuner) {
+ 	case AF9013_TUNER_MXL5003D:
+ 		len = ARRAY_SIZE(tuner_init_mxl5003d);
+ 		init = tuner_init_mxl5003d;
+@@ -1223,7 +1230,7 @@ static int af9013_init(struct dvb_frontend *fe)
+ 	}
+ 
+ 	/* TS mode */
+-	ret = af9013_wr_reg_bits(state, 0xd500, 1, 2, state->config.ts_mode);
++	ret = af9013_wr_reg_bits(state, 0xd500, 1, 2, state->ts_mode);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -1322,7 +1329,7 @@ static int af9013_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
+ 	if (state->i2c_gate_state == enable)
+ 		return 0;
+ 
+-	if (state->config.ts_mode == AF9013_TS_USB)
++	if (state->ts_mode == AF9013_TS_USB)
+ 		ret = af9013_wr_reg_bits(state, 0xd417, 3, 1, enable);
+ 	else
+ 		ret = af9013_wr_reg_bits(state, 0xd607, 2, 1, enable);
+@@ -1474,10 +1481,17 @@ struct dvb_frontend *af9013_attach(const struct af9013_config *config,
+ 
+ 	/* setup the state */
+ 	state->i2c = i2c;
+-	memcpy(&state->config, config, sizeof(struct af9013_config));
++	state->i2c_addr = config->i2c_addr;
++	state->clk = config->clock;
++	state->tuner = config->tuner;
++	state->if_frequency = config->if_frequency;
++	state->ts_mode = config->ts_mode;
++	state->spec_inv = config->spec_inv;
++	memcpy(&state->api_version, config->api_version, sizeof(state->api_version));
++	memcpy(&state->gpio, config->gpio, sizeof(state->gpio));
+ 
+ 	/* download firmware */
+-	if (state->config.ts_mode != AF9013_TS_USB) {
++	if (state->ts_mode != AF9013_TS_USB) {
+ 		ret = af9013_download_firmware(state);
+ 		if (ret)
+ 			goto err;
+@@ -1492,8 +1506,8 @@ struct dvb_frontend *af9013_attach(const struct af9013_config *config,
+ 			KBUILD_MODNAME, buf[0], buf[1], buf[2], buf[3]);
+ 
+ 	/* set GPIOs */
+-	for (i = 0; i < sizeof(state->config.gpio); i++) {
+-		ret = af9013_set_gpio(state, i, state->config.gpio[i]);
++	for (i = 0; i < sizeof(state->gpio); i++) {
++		ret = af9013_set_gpio(state, i, state->gpio[i]);
+ 		if (ret)
+ 			goto err;
+ 	}
+-- 
+http://palosaari.fi/
