@@ -1,73 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:56400 "EHLO hardeman.nu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751050AbdFYMbS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Jun 2017 08:31:18 -0400
-Subject: [PATCH 00/19] lirc_dev modernisation
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, sean@mess.org
-Date: Sun, 25 Jun 2017 14:31:14 +0200
-Message-ID: <149839373103.28811.9486751698665303339.stgit@zeus.hardeman.nu>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:46881 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750820AbdFOWXE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Jun 2017 18:23:04 -0400
+Date: Fri, 16 Jun 2017 00:23:02 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org
+Subject: [PATCH] omap3isp: fix compilation
+Message-ID: <20170615222302.GB20714@amd>
+References: <20170302101603.GE27818@amd>
+ <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
+ <20170302123848.GA28230@amd>
+ <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
+ <20170306072323.GA23509@amd>
+ <20170310225418.GJ3220@valkosipuli.retiisi.org.uk>
+ <20170613122240.GA2803@amd>
+ <20170613124748.GD12407@valkosipuli.retiisi.org.uk>
+ <20170613210900.GA31456@amd>
+ <20170614110634.GP12407@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="MfFXiAuoTsnnDAfZ"
+Content-Disposition: inline
+In-Reply-To: <20170614110634.GP12407@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series reworks lirc_dev to use a single struct lirc_dev to
-keep track of registered lirc devices rather than the current situation
-where a combination of a struct lirc_driver and a struct irctl are used.
-The fact that two structs are currently used per device makes the current
-code harder to read and to analyse (e.g. wrt locking correctness).
 
-The idea started out with this patch:
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg112159.html
-
-Which was rejected due to the struct copying. In fixing that issue and
-at the same time trying to split up the patch in smaller pieces, I ended
-up with quite a bit larger patch series than first expected.
-
-The end result is that struct lirc_dev (which is maintained by lirc_dev)
-has proper lifecycle management and that we can avoid the current struct
-copying that is performed between struct lirc_driver and struct irctl.
-
-The locking in lirc_dev is also much improved by only having one mutex per
-struct lirc_dev which is used to synchronize all operations.
-
-The modifications to lirc_dev and ir-lirc-codec have been tested using
-rc-loopback and mceusb. The changes to lirc_zilog are only compile tested.
-
----
-
-David Härdeman (19):
-      lirc_dev: clarify error handling
-      lirc_dev: remove support for manually specifying minor number
-      lirc_dev: remove min_timeout and max_timeout
-      lirc_dev: use cdev_device_add() helper function
-      lirc_dev: make better use of file->private_data
-      lirc_dev: make chunk_size and buffer_size mandatory
-      lirc_dev: remove kmalloc in lirc_dev_fop_read()
-      lirc_dev: change irctl->attached to be a boolean
-      lirc_dev: sanitize locking
-      lirc_dev: use an IDA instead of an array to keep track of registered devices
-      lirc_dev: rename struct lirc_driver to struct lirc_dev
-      lirc_dev: introduce lirc_allocate_device and lirc_free_device
-      lirc_dev: remove the BUFLEN define
-      lirc_zilog: add a pointer to the parent device to struct IR
-      lirc_zilog: use a dynamically allocated lirc_dev
-      lirc_dev: merge struct irctl into struct lirc_dev
-      ir-lirc-codec: merge lirc_dev_fop_ioctl into ir_lirc_ioctl
-      ir-lirc-codec: move the remaining fops over from lirc_dev
-      lirc_dev: consistent device registration printk
+--MfFXiAuoTsnnDAfZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
 
- drivers/media/rc/ir-lirc-codec.c        |  404 ++++++++++++++++-----
- drivers/media/rc/lirc_dev.c             |  587 ++++++-------------------------
- drivers/media/rc/rc-core-priv.h         |    2 
- drivers/staging/media/lirc/lirc_zilog.c |  234 +++++-------
- include/media/lirc_dev.h                |  111 ++----
- 5 files changed, 570 insertions(+), 768 deletions(-)
+Fix compilation of isp.c
+   =20
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
---
-David Härdeman
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform=
+/omap3isp/isp.c
+index 4ca3fc9..b80debf 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2026,7 +2026,7 @@ static int isp_fwnode_parse(struct device *dev, struc=
+t fwnode_handle *fwnode,
+=20
+ 	isd->bus =3D buscfg;
+=20
+-	ret =3D v4l2_fwnode_endpoint_parse(fwn, vep);
++	ret =3D v4l2_fwnode_endpoint_parse(fwnode, &vep);
+ 	if (ret)
+ 		return ret;
+=20
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--MfFXiAuoTsnnDAfZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAllDCMYACgkQMOfwapXb+vLZQACgoAeqa6pLadGBhn9N8/NgU+L8
+5PwAnjc7rVVqimIGneIEPnJ59noh2T4u
+=SGK/
+-----END PGP SIGNATURE-----
+
+--MfFXiAuoTsnnDAfZ--
