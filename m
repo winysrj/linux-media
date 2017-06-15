@@ -1,84 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:37060 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752078AbdFMNhe (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:56077 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751956AbdFOHe5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 09:37:34 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.13] CEC helper functions and CEC_CAP_NEEDS_HPD
- capability
-Message-ID: <557bbead-4420-f029-c91a-351de5001560@xs4all.nl>
-Date: Tue, 13 Jun 2017 15:37:27 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+        Thu, 15 Jun 2017 03:34:57 -0400
+Message-ID: <fbf09dd54ec54b2c1e5d9e84e2ebd725@smtp-cloud3.xs4all.net>
+Date: Thu, 15 Jun 2017 09:34:53 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds various useful helper functions (esp. for
-upcoming CEC support in drm drivers).
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The other addition is support for the new CEC_CAP_NEEDS_HPD capability: it
-turns out there is a lot of hardware out there that cannot use the CEC pin
-when there is no HPD. The CEC specification allows this in order to wake up
-displays that pull the HPD low when in standby, but CEC still works.
+Results of the daily build of media_tree:
 
-But hardware like the Odroid U3 that hooks the HPD to a level-shifter and
-that powers it off when the HPD goes low will also block the CEC signal from
-reaching the SoC. So even though the SoC can handle this, the board design
-prevents it from working.
+date:			Thu Jun 15 05:00:15 CEST 2017
+media-tree git hash:	acec3630155763c170c7ae6508cf973355464508
+media_build git hash:	dbdc2495ec17a3e71d2ec56778eed10081bb718f
+v4l-utils git hash:	ce237eefc1f6dafafc0e1fe3a5fd9f075d3fd066
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-There are more upcoming drivers (e.g. DisplayPort CEC-over-AUX tunneling)
-that have the same limitation, so this capability is needed for 4.13.
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: ERRORS
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-The final two patches generalizes the CEC DT bindings at the request of Rob
-Herring.
+Detailed results are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-	Hans
+Full logs are available here:
 
-The following changes since commit 47f910f0e0deb880c2114811f7ea1ec115a19ee4:
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-  [media] v4l: subdev: tolerate null in media_entity_to_v4l2_subdev (2017-06-08 16:55:25 -0300)
+The Media Infrastructure API from this daily build is here:
 
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git cec-hpd
-
-for you to fetch changes up to a1aba50d302888f607a2e50f9240dd64b9a2bea5:
-
-  dt-bindings: media/s5p-cec.txt, media/stih-cec.txt: refer to cec.txt (2017-06-13 15:00:22 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (10):
-      cec: add cec_s_phys_addr_from_edid helper function
-      cec: add cec_phys_addr_invalidate() helper function
-      cec: add cec_transmit_attempt_done helper function
-      stih-cec/vivid/pulse8/rainshadow: use cec_transmit_attempt_done
-      cec: add CEC_CAP_NEEDS_HPD
-      cec-ioc-adap-g-caps.rst: document CEC_CAP_NEEDS_HPD
-      dt-bindings: media/s5p-cec.txt: document needs-hpd property
-      s5p_cec: set the CEC_CAP_NEEDS_HPD flag if needed
-      dt-bindings: add media/cec.txt
-      dt-bindings: media/s5p-cec.txt, media/stih-cec.txt: refer to cec.txt
-
- Documentation/devicetree/bindings/media/cec.txt      |  8 ++++++++
- Documentation/devicetree/bindings/media/s5p-cec.txt  |  6 +++++-
- Documentation/devicetree/bindings/media/stih-cec.txt |  2 +-
- Documentation/media/kapi/cec-core.rst                | 18 ++++++++++++++++++
- Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst |  8 ++++++++
- MAINTAINERS                                          |  1 +
- drivers/media/cec/cec-adap.c                         | 60 ++++++++++++++++++++++++++++++++++++++++++++++++++++++------
- drivers/media/cec/cec-api.c                          |  5 ++++-
- drivers/media/cec/cec-core.c                         |  1 +
- drivers/media/platform/s5p-cec/s5p_cec.c             |  4 +++-
- drivers/media/platform/sti/cec/stih-cec.c            |  9 ++++-----
- drivers/media/platform/vivid/vivid-cec.c             |  6 +++---
- drivers/media/usb/pulse8-cec/pulse8-cec.c            |  9 +++------
- drivers/media/usb/rainshadow-cec/rainshadow-cec.c    |  9 +++------
- include/media/cec.h                                  | 29 +++++++++++++++++++++++++++++
- include/uapi/linux/cec.h                             |  2 ++
- 16 files changed, 147 insertions(+), 30 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/cec.txt
+http://www.xs4all.nl/~hverkuil/spec/index.html
