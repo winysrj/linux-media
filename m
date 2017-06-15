@@ -1,156 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:55424 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753850AbdFSLob (ORCPT
+Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:31542 "EHLO
+        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753195AbdFOPLX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 07:44:31 -0400
-Subject: Re: [PATCH v7 2/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2
- receiver driver
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <20170524001353.13482-1-niklas.soderlund@ragnatech.se>
- <20170524001353.13482-3-niklas.soderlund@ragnatech.se>
- <c81499b3-b875-af4a-6e0a-8e66412d3cf4@xs4all.nl>
- <20170612144850.GK17461@bigcity.dyn.berto.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <22bf8ad0-c93c-e858-bf95-75338940997f@xs4all.nl>
-Date: Mon, 19 Jun 2017 13:44:22 +0200
+        Thu, 15 Jun 2017 11:11:23 -0400
+Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
+        by mx07-00252a01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id v5FF8qkc002993
+        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 16:11:16 +0100
+Received: from mail-pf0-f198.google.com (mail-pf0-f198.google.com [209.85.192.198])
+        by mx07-00252a01.pphosted.com with ESMTP id 2b065ytkkx-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 16:11:16 +0100
+Received: by mail-pf0-f198.google.com with SMTP id a65so13579599pfg.11
+        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 08:11:16 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20170612144850.GK17461@bigcity.dyn.berto.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <38437cd7-5703-11bb-ce3f-01c6315746ff@xs4all.nl>
+References: <cover.1497452006.git.dave.stevenson@raspberrypi.org>
+ <e268d99095dea34a049d9cacf9c18e855050abe1.1497452006.git.dave.stevenson@raspberrypi.org>
+ <ec774750-d6a9-d8b7-9b38-0fd97fe7678d@xs4all.nl> <CAAoAYcNPk==5=sNZRuVvShPv+ky=ewdg7O7G4xGp6qLFaMTvYQ@mail.gmail.com>
+ <38437cd7-5703-11bb-ce3f-01c6315746ff@xs4all.nl>
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Thu, 15 Jun 2017 16:11:13 +0100
+Message-ID: <CAAoAYcPwPEifHBqcK-gBi2pPfPiTfC66UU-HRLDtZJUA+8mDTw@mail.gmail.com>
+Subject: Re: [RFC 2/2] [media] bcm2835-unicam: Driver for CCP2/CSI2 camera interface
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-rpi-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/12/2017 04:48 PM, Niklas Söderlund wrote:
-> Hi Hans,
-> 
-> Thanks for your comments.
-> 
-> On 2017-05-29 13:16:23 +0200, Hans Verkuil wrote:
->> On 05/24/2017 02:13 AM, Niklas Söderlund wrote:
->>> From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
->>>
->>> A V4L2 driver for Renesas R-Car MIPI CSI-2 receiver. The driver
->>> supports the rcar-vin driver on R-Car Gen3 SoCs where separate CSI-2
->>> hardware blocks are connected between the video sources and the video
->>> grabbers (VIN).
->>>
->>> Driver is based on a prototype by Koji Matsuoka in the Renesas BSP.
->>>
->>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
->>> ---
->>>    drivers/media/platform/rcar-vin/Kconfig     |  12 +
->>>    drivers/media/platform/rcar-vin/Makefile    |   1 +
->>>    drivers/media/platform/rcar-vin/rcar-csi2.c | 867 ++++++++++++++++++++++++++++
->>>    3 files changed, 880 insertions(+)
->>>    create mode 100644 drivers/media/platform/rcar-vin/rcar-csi2.c
->>>
-
->>> +static int rcar_csi2_registered(struct v4l2_subdev *sd)
->>> +{
->>> +	struct rcar_csi2 *priv = container_of(sd, struct rcar_csi2, subdev);
->>> +	struct v4l2_async_subdev **subdevs = NULL;
->>> +	int ret;
->>> +
->>> +	subdevs = devm_kzalloc(priv->dev, sizeof(*subdevs), GFP_KERNEL);
->>> +	if (subdevs == NULL)
->>> +		return -ENOMEM;
->>> +
->>> +	subdevs[0] = &priv->remote.asd;
->>> +
->>> +	priv->notifier.num_subdevs = 1;
->>> +	priv->notifier.subdevs = subdevs;
->>> +	priv->notifier.bound = rcar_csi2_notify_bound;
->>> +	priv->notifier.unbind = rcar_csi2_notify_unbind;
->>> +	priv->notifier.complete = rcar_csi2_notify_complete;
->>> +
->>> +	ret = v4l2_async_subnotifier_register(&priv->subdev, &priv->notifier);
->>> +	if (ret < 0) {
->>> +		dev_err(priv->dev, "Notifier registration failed\n");
->>> +		return ret;
->>> +	}
->>> +
->>> +	return 0;
->>> +}
+On 15 June 2017 at 15:14, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 06/15/17 15:38, Dave Stevenson wrote:
+>> Hi Hans.
 >>
->> Hmm, I'm trying to understand this, and I got one question. There are at least
->> two complete callbacks: rcar_csi2_notify_complete and the bridge driver's
->> complete callback. Am I right that the bridge driver's complete callback is
->> called as soon as this function exists (assuming this is the only subdev)?
-> 
-> Yes (at least for the async case).
-> 
-> In v4l2_async_test_notify() calls v4l2_device_register_subdev() which in
-> turns calls this registered callback. v4l2_async_test_notify() then go
-> on and calls the notifiers complete callback.
-> 
-> In my case I have (in the simplified case) AD7482 -> CSI-2 -> VIN. Where
-> VIN is the video device and CSI-2 is the subdevice of VIN while the
-> ADV7482 is a subdevice to the CSI-2. In that case the call graph would
-> be:
-> 
-> v4l2_async_test_notify()                (From VIN on the CSI-2 subdev)
->    v4l2_device_register_subdev()
->      sd->internal_ops->registered(sd);   (sd == CSI-2 subdev)
->        v4l2_async_subnotifier_register() (CSI-2 notifier for the ADV7482 subdev)
->          v4l2_async_test_notify()        (From CSI-2 on the ADV7482) [1]
->    notifier->complete(notifier);         (on the notifier from VIN)
-> 
+>> "On 15 June 2017 at 08:12, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>> Hi Dave,
+>>>
+>>> Here is a quick review of this driver. Once a v2 is posted I'll do a more
+>>> thorough
+>>> check.
 >>
->> So the bridge driver thinks it is complete when in reality this subdev may
->> be waiting on newly registered subdevs?
-> 
-> Yes if the ADV7482 subdevice are not already registered in [1] above the
-> VIN complete callback would be called before the complete callback have
-> been called on the notifier register from the CSI-2 registered callback.
-> Instead that would be called once the ADV7482 calls
-> v4l2_async_register_subdev().
-> 
+>> Thank you. I wasn't expecting such a quick response.
 >>
->> If I am right, then my question is if that is what we want. If I am wrong,
->> then what did I miss?
-> 
-> I think that is what we want?
-> 
->  From the VIN point of view all the subdevices it registered in it's
-> notifier have been found and bound right so I think it's correct to call
-> the complete callback for that notifier at this point?  If it really
-> cared about that all devices be present before it calls it complete
-> callback should it not also add all devices to its own notifier list?
-> 
-> But I do see your point that the VIN really have no way of telling if
-> all devices are present and we are ready to start to stream. This
-> however will be found out with a -EPIPE error if a stream is tried to be
-> started since the CSI-2 driver will fail to verify the pipeline since it
-> have no subdevice attached to its source pad. What do you think?
+>>> On 06/14/2017 05:15 PM, Dave Stevenson wrote:
+>>>>
+>>>> Add driver for the Unicam camera receiver block on
+>>>> BCM283x processors.
+>>>>
+>>>> Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+>>>> ---
+>>>>   drivers/media/platform/Kconfig                   |    1 +
+>>>>   drivers/media/platform/Makefile                  |    2 +
+>>>>   drivers/media/platform/bcm2835/Kconfig           |   14 +
+>>>>   drivers/media/platform/bcm2835/Makefile          |    3 +
+>>>>   drivers/media/platform/bcm2835/bcm2835-unicam.c  | 2100
+>>>> ++++++++++++++++++++++
+>>>>   drivers/media/platform/bcm2835/vc4-regs-unicam.h |  257 +++
+>>>>   6 files changed, 2377 insertions(+)
+>>>>   create mode 100644 drivers/media/platform/bcm2835/Kconfig
+>>>>   create mode 100644 drivers/media/platform/bcm2835/Makefile
+>>>>   create mode 100644 drivers/media/platform/bcm2835/bcm2835-unicam.c
+>>>>   create mode 100644 drivers/media/platform/bcm2835/vc4-regs-unicam.h
+>>>>
+>>>> +static int unicam_s_input(struct file *file, void *priv, unsigned int i)
+>>>> +{
+>>>> +       struct unicam_device *dev = video_drvdata(file);
+>>>> +       int ret;
+>>>> +
+>>>> +       if (v4l2_subdev_has_op(dev->sensor, video, s_routing))
+>>>> +               ret =  v4l2_subdev_call(dev->sensor, video, s_routing, i,
+>>>> 0, 0);
+>>>> +       else
+>>>> +               ret = -EINVAL;  /* v4l2-compliance insists on -EINVAL */
+>>>
+>>>
+>>> Drop this if-else entirely. s_routing makes really no sense when using a
+>>> device
+>>> tree. In this particular case there really is just one input, period.
+>>
+>> I added this due to the ADV7282-M analogue to CSI bridge chip (uses
+>> adv7180.c driver). It uses s_routing to select the physical input /
+>> input type.
+>> If this is dropped, what is the correct mechanism for selecting the
+>> input? Unless I've missed it, s_routing is not a call that is exposed
+>> to userspace, so we're stuck with composite input 1.
+>>
+>> I had asked this question in previously [1], and whilst Sakari had
+>> kindly replied with "s_routing() video op as it stands now is awful, I
+>> hope no-one uses it", the fact is that it is used.
+>>
+>> [1] http://www.spinics.net/lists/linux-media/msg115550.html
+>
+> s_routing was developed for USB and PCI(e) devices and predates the device tree.
+> Basically USB and PCI drivers will have card definitions where USB/PCI card IDs
+> are mapped to card descriptions, and that includes information on the various
+> inputs (composite, S-Video, etc) that are available on the backplane and how those
+> physical connectors are hooked up to the pins on the video ICs.
+>
+> The enum/s/g_input ioctls all show the end-user view, i.e. they enumerate the
+> inputs on the backpanel of the product. The s_routing op was created to map
+> such inputs to actual pins on the ICs.
+>
+> For platform devices we would do this in the device tree today, but some of
+> the necessary bindings are still missing. Specifically those for connectors,
+> AFAIK those are not yet defined. It's been discussed, but never finalized.
+>
+> So if this was done correctly you would use the connector endpoints in the
+> device tree to enumerate the inputs and use how they are connected to the
+> other blocks as the routing information (i.e. pad number).
+>
+> I would say that is the advanced course and to do this later.
 
-I think this is a bad idea. From the point of view of the application you
-expect that once the device nodes appear they will also *work*. In this
-case it might not work because one piece is still missing. So applications
-would have to know that if they get -EPIPE, then if they wait for a few
-seconds it might suddenly work because the last component was finally
-loaded. That's IMHO not acceptable and will drive application developers
-crazy.
+Certainly the advanced course, but I'm still not seeing how that all
+hangs together.
 
-In the example above the CSI-2 subdev can't tell VIN that it is complete
-when it is still waiting for the ADV7482. Because it *isn't* complete.
+To me that all sounds like stuff that ought to be within the ADV
+driver? From my perspective as the CSI-2 receiver I only have one
+input.
+So how does the application select between those inputs?
 
-It is also unexpected: if A depends on B and B depends on C and D, then
-you expect that B won't tell A that is it ready unless C and D are both
-loaded.
+Having had a bit of a grep I think the tvp5150 driver is doing what
+you're suggesting. However that appears to force you into using the
+media controller API. Is that not overkill particularly from an
+application perspective?
 
-I was planning to merge this patch today: https://patchwork.linuxtv.org/patch/41834/
+You also say above that enum/s/g_input is all about switching between
+physical connectors, and that's what I'm doing. I'm now getting lost
+as to what is intended
 
-But I've decided to hold off on it for a bit in case changes are needed
-to solve this particular issue. I think it is better to add that patch
-as part of this driver's patch series.
+> Do you even have hardware where you can switch between inputs?
 
-Regards,
+I have an ADV7282-M eval board [1] sitting in front of me, with the
+I2C and CSI-2 output hooked up to a butchered Pi camera board.
+6 phono inputs set up as 2 single-ended composite inputs, and 2 pairs
+of differentital composite inputs. It can be reconfigured to take
+s-video, or component (although it needs a couple of surface mount
+resistors changed to do component).
+1 CSI-2 (single lane) output going to the Pi.
 
-	Hans
+I haven't got it producing CSI data that the Pi is happy with yet, but
+hopefully that is only a matter of time.
+The I2C comms is all working.
+With the driver as it stands I can use the s_input ioctl to send the
+I2C for the relevant input. It was a few weeks ago I last played with
+it, but IIRC it did appear to be detecting the incoming video standard
+correctly on each of composite 1 and composite 2 (I haven't got
+s-video or differential hooked up).
+
+  Dave
+
+[1] http://www.analog.com/en/design-center/evaluation-hardware-and-software/evaluation-boards-kits/EVAL-ADV7282MEBZ.html
