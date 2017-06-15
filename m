@@ -1,130 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:41233 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750711AbdFTEFk (ORCPT
+Received: from mx08-00252a01.pphosted.com ([91.207.212.211]:50584 "EHLO
+        mx08-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751016AbdFOM3X (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Jun 2017 00:05:40 -0400
-Message-ID: <d2ffbca7d581ba15b51ed3f6bb8775de@smtp-cloud2.xs4all.net>
-Date: Tue, 20 Jun 2017 06:05:37 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Thu, 15 Jun 2017 08:29:23 -0400
+Received: from pps.filterd (m0102629.ppops.net [127.0.0.1])
+        by mx08-00252a01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id v5FCSR6x004945
+        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 13:29:22 +0100
+Received: from mail-pg0-f72.google.com (mail-pg0-f72.google.com [74.125.83.72])
+        by mx08-00252a01.pphosted.com with ESMTP id 2b058etmh9-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 13:29:22 +0100
+Received: by mail-pg0-f72.google.com with SMTP id d13so12070661pgf.12
+        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 05:29:22 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <22ebb6e2-52d9-b055-c702-e3e0497d60a9@xs4all.nl>
+References: <cover.1497452006.git.dave.stevenson@raspberrypi.org>
+ <eef29bfb-3336-4f65-c188-975d3937cb67@xs4all.nl> <CAAoAYcN67=d1DyqeAEYpeZDTuMh9p1eaiAzt7RJdcpYOwShVgw@mail.gmail.com>
+ <38a9b418-f320-3c98-9536-7e85c00211e4@xs4all.nl> <CAAoAYcNMwXJeHQkX1nFVqpf8uJc2R+ECXak8r99-5p_SS4qVZw@mail.gmail.com>
+ <22ebb6e2-52d9-b055-c702-e3e0497d60a9@xs4all.nl>
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Thu, 15 Jun 2017 13:29:19 +0100
+Message-ID: <CAAoAYcMpc=84qFT8ekzWo9g3isA++8e2k5kHocXSx74_QzYT9g@mail.gmail.com>
+Subject: Re: [RFC 0/2] BCM283x Camera Receiver driver
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-rpi-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 15 June 2017 at 08:17, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 06/14/2017 11:03 PM, Dave Stevenson wrote:
+>>
+>> On 14 June 2017 at 18:38, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>
+>>> On 06/14/2017 06:29 PM, Dave Stevenson wrote:
+>>>>
+>>>>
+>>>> Hi Hans.
+>>>>
+>>>> On 14 June 2017 at 16:42, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>>>
+>>>>>
+>>>>> Hi Dave,
+>>>>>
+>>>>> How does this driver relate to this staging driver:
+>>>>>
+>>>>> drivers/staging/vc04_services/bcm2835-camera/
+>>>>>
+>>>>> It's not obvious to me.
+>>>>
+>>>>
+>>>>
+>>>> drivers/staging/vc04_services/bcm2835-camera/ is using the VideoCore
+>>>> firmware to control Unicam, ISP, and all the tuner algorithms. The ARM
+>>>> gets delivered fully processed buffers from the VideoCore side. The
+>>>> firmware only has drivers for the Omnivision OV5647 and Sony IMX219
+>>>> (and an unsupported one for the Toshiba TC358743).
+>>>>
+>>>> This driver is solely the Unicam block, reading the data in over
+>>>> CSI2/CCP2 from the sensor and writing it to memory. No ISP or control
+>>>> loops.
+>>>> Other than power management, this driver is running solely on the ARM
+>>>> with no involvement from the VideoCore firmware.
+>>>> The sensor driver is whatever suitable V4L2 subdevice driver you fancy
+>>>> attaching (as long as it supports CSI2, or eventually CCP2).
+>>>
+>>>
+>>>
+>>> What is the interaction between these two drivers? Can they co-exist?
+>>> I would expect them to be mutually exclusive.
+>>
+>>
+>> Mutually exclusive for the same Unicam instance, yes.
+>>
+>> There are two Unicam instances on all BCM283x chips and both are
+>> brought out on the Compute Modules. You could run bcm2835-unicam on
+>> one and bcm2835-camera on the other if you so wished.
+>> The firmware checks whether the csi nodes in the device tree are
+>> active, and won't touch them if they are.
+>
+>
+> It would be good if this explanation is mentioned both in the driver code
+> and (I think) in the bindings document of *both* drivers. This setup is
+> unusual, so some extra documentation isn't amiss.
 
-Results of the daily build of media_tree:
+OK, will add it to this driver for V2.
+The other driver cleanups are on my to-do list. Would you object
+horrendously if I deferred adding the explanation to that driver to
+when I'm doing those cleanups?
 
-date:			Tue Jun 20 05:00:15 CEST 2017
-media-tree git hash:	acec3630155763c170c7ae6508cf973355464508
-media_build git hash:	a5ec7f00979b6c866911fb42507770727ff5afd4
-v4l-utils git hash:	ce237eefc1f6dafafc0e1fe3a5fd9f075d3fd066
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
-
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> Regards,
+>
+>         Hans
