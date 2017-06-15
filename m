@@ -1,100 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:38214 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751162AbdFCWRo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Jun 2017 18:17:44 -0400
-Date: Sun, 4 Jun 2017 00:17:41 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v7 16/34] [media] add Omnivision OV5640 sensor driver
-Message-ID: <20170603221741.GA2379@amd>
-References: <1495672189-29164-1-git-send-email-steve_longerbeam@mentor.com>
- <1495672189-29164-17-git-send-email-steve_longerbeam@mentor.com>
- <20170531195821.GA16962@amd>
- <20170601082659.GJ1019@valkosipuli.retiisi.org.uk>
- <755909bf-d1de-e0f3-1569-0d4b16e26817@gmail.com>
- <20170603195139.GA3062@amd>
- <20170603215709.GU1019@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="YiEDa0DAkWCtVeE4"
-Content-Disposition: inline
-In-Reply-To: <20170603215709.GU1019@valkosipuli.retiisi.org.uk>
+Received: from mail-wr0-f182.google.com ([209.85.128.182]:34126 "EHLO
+        mail-wr0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752739AbdFOQdj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Jun 2017 12:33:39 -0400
+Received: by mail-wr0-f182.google.com with SMTP id 77so25379050wrb.1
+        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 09:33:39 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v11 14/19] media: venus: hfi_msgs: fix set but not used variables
+Date: Thu, 15 Jun 2017 19:31:55 +0300
+Message-Id: <1497544320-2269-15-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This fixes a warning found when building with gcc7:
 
---YiEDa0DAkWCtVeE4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+drivers/media/platform/qcom/venus/hfi_msgs.c:465:40:
+warning: variable 'domain' set but not used [-Wunused-but-set-variable]
+  u32 rem_bytes, num_props, codecs = 0, domain = 0;
+                                        ^~~~~~
+drivers/media/platform/qcom/venus/hfi_msgs.c:465:28:
+warning: variable 'codecs' set but not used [-Wunused-but-set-variable]
+  u32 rem_bytes, num_props, codecs = 0, domain = 0;
 
-Hi!
+The warning is avoided by deleting the variables declaration.
 
-> > > According to the docs V4L2_CID_EXPOSURE_ABSOLUTE is in 100 usec units.
-> > >=20
-> > >  OTOH V4L2_CID_EXPOSURE has no defined unit, so it's a better fit IMO.
-> > > >Way more drivers appear to be using EXPOSURE than EXPOSURE_ABSOLUTE,=
- too.
-> > >=20
-> > > Done, switched to V4L2_CID_EXPOSURE. It's true, this control is not
-> > > taking 100 usec units, so unit-less is better.
-> >=20
-> > Thanks. If you know the units, it would be of course better to use
-> > right units...
->=20
-> Steve: what's the unit in this case? Is it lines or something else?
->=20
-> Pavel: we do need to make sure the user space will be able to know the un=
-it,
-> too. It's rather a case with a number of controls: the unit is known but
-> there's no API to convey it to the user.
->=20
-> The exposure is a bit special, too: granularity matters a lot on small
-> values. On most other controls it does not.
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/qcom/venus/hfi_msgs.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-Yeah. Basically problem with exposure is that the control is
-logarithmic; by using linear scale we got too much resolution at long
-times and too little resolution at short times.
-
-(Plus, 100 usec ... n900 can do times _way_ shorter than that.)
-
-Anyway, even u32 gives us enough range, but I so the linear/log
-confusion does not matter. But it would be nicer if values were in 10
-usec or usec, not 100 usec...=20
-
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---YiEDa0DAkWCtVeE4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlkzNYUACgkQMOfwapXb+vIJtgCgq9LRaStKASXkFpz4aAJY5FVo
-+8QAnjUE8FZwa10zrYMwuHW9oe3Q58oe
-=7TFq
------END PGP SIGNATURE-----
-
---YiEDa0DAkWCtVeE4--
+diff --git a/drivers/media/platform/qcom/venus/hfi_msgs.c b/drivers/media/platform/qcom/venus/hfi_msgs.c
+index 88898118f6af..f8841713e417 100644
+--- a/drivers/media/platform/qcom/venus/hfi_msgs.c
++++ b/drivers/media/platform/qcom/venus/hfi_msgs.c
+@@ -462,7 +462,7 @@ static u32 init_done_read_prop(struct venus_core *core, struct venus_inst *inst,
+ 			       struct hfi_msg_session_init_done_pkt *pkt)
+ {
+ 	struct device *dev = core->dev;
+-	u32 rem_bytes, num_props, codecs = 0, domain = 0;
++	u32 rem_bytes, num_props;
+ 	u32 ptype, next_offset = 0;
+ 	u32 err;
+ 	u8 *data;
+@@ -490,8 +490,6 @@ static u32 init_done_read_prop(struct venus_core *core, struct venus_inst *inst,
+ 				(struct hfi_codec_mask_supported *)
+ 				(data + next_offset);
+ 
+-			codecs = masks->codecs;
+-			domain = masks->video_domains;
+ 			next_offset += sizeof(*masks);
+ 			num_props--;
+ 			break;
+-- 
+2.7.4
