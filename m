@@ -1,52 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f179.google.com ([209.85.216.179]:35371 "EHLO
-        mail-qt0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751501AbdF0PpQ (ORCPT
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:33844 "EHLO
+        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752121AbdFOQcs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 11:45:16 -0400
-MIME-Version: 1.0
-In-Reply-To: <CAAFQd5BHAiTq9f4nvwFiy5DzZ0Jep9d4K0saAkoxzaK86a8GJg@mail.gmail.com>
-References: <1498488673-27900-1-git-send-email-jacob-chen@iotwrt.com> <CAAFQd5BHAiTq9f4nvwFiy5DzZ0Jep9d4K0saAkoxzaK86a8GJg@mail.gmail.com>
-From: Jacob Chen <jacobchen110@gmail.com>
-Date: Tue, 27 Jun 2017 23:45:14 +0800
-Message-ID: <CAFLEztSVySd5iZFg7Oz3yGoR8zb2ik_qtBvVvmYfgX_zja_7RA@mail.gmail.com>
-Subject: Re: [PATCH 1/5] [media] rockchip/rga: v4l2 m2m support
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        =?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko@sntech.de>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
+        Thu, 15 Jun 2017 12:32:48 -0400
+Received: by mail-wm0-f43.google.com with SMTP id d64so1042215wmf.1
+        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 09:32:47 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Subject: [PATCH v11 02/19] doc: DT: venus: binding document for Qualcomm video driver
+Date: Thu, 15 Jun 2017 19:31:43 +0300
+Message-Id: <1497544320-2269-3-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
-Yeah, the comments are wrong, i will correct it
+Add binding document for Venus video encoder/decoder driver
 
->> +        */
->> +       pages = (unsigned int *)__get_free_pages(GFP_KERNEL | __GFP_ZERO, 3);
->
-> This is rather unfortunate and you should expect failures here on
-> actively used systems with uptime longer than few hours. Changing this
-> to dma_alloc_coherent() and enabling CMA _might_ give you a bit better
-> success rate, but...
->
-> Normally, this kind of (scatter-gather capable) hardware would allow
-> some kind of linking of separate pages, e.g. last entry in the page
-> would point to the next page, or something like that. Doesn't this RGA
-> block have something similar?
->
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: devicetree@vger.kernel.org
+Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ .../devicetree/bindings/media/qcom,venus.txt       | 107 +++++++++++++++++++++
+ 1 file changed, 107 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
 
-Thx for pointing it out ! : )
-
-I looked RGA drvier used in rockchip android and i find it use
-kmalloc, so i think it might support separate pages.
-I will test it.
-
-
-> Best regards,
-> Tomasz
+diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
+new file mode 100644
+index 000000000000..2693449daf73
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
+@@ -0,0 +1,107 @@
++* Qualcomm Venus video encoder/decoder accelerators
++
++- compatible:
++	Usage: required
++	Value type: <stringlist>
++	Definition: Value should contain one of:
++		- "qcom,msm8916-venus"
++		- "qcom,msm8996-venus"
++- reg:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: Register base address and length of the register map.
++- interrupts:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: Should contain interrupt line number.
++- clocks:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A List of phandle and clock specifier pairs as listed
++		    in clock-names property.
++- clock-names:
++	Usage: required for msm8916
++	Value type: <stringlist>
++	Definition: Should contain the following entries:
++		- "core"	Core video accelerator clock
++		- "iface"	Video accelerator AHB clock
++		- "bus"		Video accelerator AXI clock
++- clock-names:
++	Usage: required for msm8996
++	Value type: <stringlist>
++	Definition: Should contain the following entries:
++		- "core"	Core video accelerator clock
++		- "iface"	Video accelerator AHB clock
++		- "bus"		Video accelerator AXI clock
++		- "mbus"	Video MAXI clock
++- power-domains:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A phandle and power domain specifier pairs to the
++		    power domain which is responsible for collapsing
++		    and restoring power to the peripheral.
++- iommus:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A list of phandle and IOMMU specifier pairs.
++- memory-region:
++	Usage: required
++	Value type: <phandle>
++	Definition: reference to the reserved-memory for the firmware
++		    memory region.
++
++* Subnodes
++The Venus video-codec node must contain two subnodes representing
++video-decoder and video-encoder.
++
++Every of video-encoder or video-decoder subnode should have:
++
++- compatible:
++	Usage: required
++	Value type: <stringlist>
++	Definition: Value should contain "venus-decoder" or "venus-encoder"
++- clocks:
++	Usage: required for msm8996
++	Value type: <prop-encoded-array>
++	Definition: A List of phandle and clock specifier pairs as listed
++		    in clock-names property.
++- clock-names:
++	Usage: required for msm8996
++	Value type: <stringlist>
++	Definition: Should contain the following entries:
++		- "core"	Subcore video accelerator clock
++
++- power-domains:
++	Usage: required for msm8996
++	Value type: <prop-encoded-array>
++	Definition: A phandle and power domain specifier pairs to the
++		    power domain which is responsible for collapsing
++		    and restoring power to the subcore.
++
++* An Example
++	video-codec@1d00000 {
++		compatible = "qcom,msm8916-venus";
++		reg = <0x01d00000 0xff000>;
++		interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&gcc GCC_VENUS0_VCODEC0_CLK>,
++			 <&gcc GCC_VENUS0_AHB_CLK>,
++			 <&gcc GCC_VENUS0_AXI_CLK>;
++		clock-names = "core", "iface", "bus";
++		power-domains = <&gcc VENUS_GDSC>;
++		iommus = <&apps_iommu 5>;
++		memory-region = <&venus_mem>;
++
++		video-decoder {
++			compatible = "venus-decoder";
++			clocks = <&mmcc VIDEO_SUBCORE0_CLK>;
++			clock-names = "core";
++			power-domains = <&mmcc VENUS_CORE0_GDSC>;
++		};
++
++		video-encoder {
++			compatible = "venus-encoder";
++			clocks = <&mmcc VIDEO_SUBCORE1_CLK>;
++			clock-names = "core";
++			power-domains = <&mmcc VENUS_CORE1_GDSC>;
++		};
++	};
+-- 
+2.7.4
