@@ -1,260 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f175.google.com ([209.85.192.175]:35669 "EHLO
-        mail-pf0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751474AbdFFXhp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Jun 2017 19:37:45 -0400
-Received: by mail-pf0-f175.google.com with SMTP id l89so28698696pfi.2
-        for <linux-media@vger.kernel.org>; Tue, 06 Jun 2017 16:37:45 -0700 (PDT)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: Sekhar Nori <nsekhar@ti.com>, David Lechner <david@lechnology.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        Benoit Parrot <bparrot@ti.com>,
-        Prabhakar Lad <prabhakar.csengg@gmail.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: [PATCH v2 2/4] [media] davinci: vpif_capture: get subdevs from DT when available
-Date: Tue,  6 Jun 2017 16:37:39 -0700
-Message-Id: <20170606233741.26718-3-khilman@baylibre.com>
-In-Reply-To: <20170606233741.26718-1-khilman@baylibre.com>
-References: <20170606233741.26718-1-khilman@baylibre.com>
+Received: from mail-lf0-f53.google.com ([209.85.215.53]:33655 "EHLO
+        mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750774AbdFOIwV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Jun 2017 04:52:21 -0400
+Received: by mail-lf0-f53.google.com with SMTP id m77so4636278lfe.0
+        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 01:52:20 -0700 (PDT)
+Date: Thu, 15 Jun 2017 10:52:17 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v7 1/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2
+ receiver documentation
+Message-ID: <20170615085217.GG10888@bigcity.dyn.berto.se>
+References: <20170524001353.13482-1-niklas.soderlund@ragnatech.se>
+ <20170524001353.13482-2-niklas.soderlund@ragnatech.se>
+ <20170529111624.GC29527@valkosipuli.retiisi.org.uk>
+ <20170613165014.GA10888@bigcity.dyn.berto.se>
+ <20170614104558.GL12407@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170614104558.GL12407@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable  getting of subdevs from DT ports and endpoints.
+Hi Sakari,
 
-The _get_pdata() function was larely inspired by (i.e. stolen from)
-am437x-vpfe.c
+On 2017-06-14 13:45:58 +0300, Sakari Ailus wrote:
+> Hi Niklas,
+> 
+> On Tue, Jun 13, 2017 at 06:50:14PM +0200, Niklas Söderlund wrote:
+> > Hi Sakari,
+> > 
+> > Thanks for your feedback.
+> > 
+> > On 2017-05-29 14:16:25 +0300, Sakari Ailus wrote:
+> > > Hi Niklas,
+> > > 
+> > > On Wed, May 24, 2017 at 02:13:52AM +0200, Niklas Söderlund wrote:
+> > > > From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > > > 
+> > > > Documentation for Renesas R-Car MIPI CSI-2 receiver. The CSI-2 receivers
+> > > > are located between the video sources (CSI-2 transmitters) and the video
+> > > > grabbers (VIN) on Gen3 of Renesas R-Car SoC.
+> > > > 
+> > > > Each CSI-2 device is connected to more then one VIN device which
+> > > > simultaneously can receive video from the same CSI-2 device. Each VIN
+> > > > device can also be connected to more then one CSI-2 device. The routing
+> > > > of which link are used are controlled by the VIN devices. There are only
+> > > > a few possible routes which are set by hardware limitations, which are
+> > > > different for each SoC in the Gen3 family.
+> > > > 
+> > > > To work with the limitations of routing possibilities it is necessary
+> > > > for the DT bindings to describe which VIN device is connected to which
+> > > > CSI-2 device. This is why port 1 needs to to assign reg numbers for each
+> > > > VIN device that be connected to it. To setup and to know which links are
+> > > > valid for each SoC is the responsibility of the VIN driver since the
+> > > > register to configure it belongs to the VIN hardware.
+> > > > 
+> > > > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > > > ---
+> > > >  .../devicetree/bindings/media/rcar-csi2.txt        | 116 +++++++++++++++++++++
+> > > >  1 file changed, 116 insertions(+)
+> > > >  create mode 100644 Documentation/devicetree/bindings/media/rcar-csi2.txt
+> > > > 
+> > > > diff --git a/Documentation/devicetree/bindings/media/rcar-csi2.txt b/Documentation/devicetree/bindings/media/rcar-csi2.txt
+> > > > new file mode 100644
+> > > > index 0000000000000000..f6e2027ee92b171a
+> > > > --- /dev/null
+> > > > +++ b/Documentation/devicetree/bindings/media/rcar-csi2.txt
+> > > > @@ -0,0 +1,116 @@
+> > > > +Renesas R-Car MIPI CSI-2
+> > > > +------------------------
+> > > > +
+> > > > +The rcar-csi2 device provides MIPI CSI-2 capabilities for the Renesas R-Car
+> > > > +family of devices. It is to be used in conjunction with the R-Car VIN module,
+> > > > +which provides the video capture capabilities.
+> > > > +
+> > > > + - compatible: Must be one or more of the following
+> > > > +   - "renesas,r8a7795-csi2" for the R8A7795 device.
+> > > > +   - "renesas,r8a7796-csi2" for the R8A7796 device.
+> > > > +   - "renesas,rcar-gen3-csi2" for a generic R-Car Gen3 compatible device.
+> > > > +
+> > > > +   When compatible with a generic version nodes must list the
+> > > > +   SoC-specific version corresponding to the platform first
+> > > > +   followed by the generic version.
+> > > > +
+> > > > + - reg: the register base and size for the device registers
+> > > > + - interrupts: the interrupt for the device
+> > > > + - clocks: Reference to the parent clock
+> > > > +
+> > > > +The device node should contain two 'port' child nodes according to the
+> > > > +bindings defined in Documentation/devicetree/bindings/media/
+> > > > +video-interfaces.txt. Port 0 should connect the node that is the video
+> > > > +source for to the CSI-2. Port 1 should connect all the R-Car VIN
+> > > > +modules, which can make use of the CSI-2 module.
+> > > 
+> > > Should or shall?
+> > > 
+> > > I guess you could add that it is possible to leave them unconnected, too.
+> > 
+> > Which ports/endpoints are you talking about? In my mind it's not allowed 
+> > to leave them unconnected.
+> > 
+> > If there ever is a system with only 4 VIN instances (I'm not aware of 
+> > any such system) then yes the endpoints for those VIN not present in the 
+> > system in port 1 should be left unconnected but other then that they 
+> > should all be mandatory right? Or am I missing something?
+> 
+> I think so, yes. Then "shall" is right, isn't it?
 
-Signed-off-by: Kevin Hilman <khilman@baylibre.com>
----
- drivers/media/platform/davinci/vpif_capture.c | 126 +++++++++++++++++++++++++-
- drivers/media/platform/davinci/vpif_display.c |   5 +
- include/media/davinci/vpif_types.h            |   9 +-
- 3 files changed, 134 insertions(+), 6 deletions(-)
+Yes shall is then the correct term, will update for next version.
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index fc5c7622660c..b9d927d1e5a8 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -22,6 +22,8 @@
- #include <linux/slab.h>
- 
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-of.h>
-+#include <media/i2c/tvp514x.h>
- 
- #include "vpif.h"
- #include "vpif_capture.h"
-@@ -655,7 +657,7 @@ static int vpif_input_to_subdev(
- 	/* loop through the sub device list to get the sub device info */
- 	for (i = 0; i < vpif_cfg->subdev_count; i++) {
- 		subdev_info = &vpif_cfg->subdev_info[i];
--		if (!strcmp(subdev_info->name, subdev_name))
-+		if (subdev_info && !strcmp(subdev_info->name, subdev_name))
- 			return i;
- 	}
- 	return -1;
-@@ -1308,6 +1310,21 @@ static int vpif_async_bound(struct v4l2_async_notifier *notifier,
- {
- 	int i;
- 
-+	for (i = 0; i < vpif_obj.config->asd_sizes[0]; i++) {
-+		struct v4l2_async_subdev *_asd = vpif_obj.config->asd[i];
-+		const struct device_node *node = _asd->match.of.node;
-+
-+		if (node == subdev->of_node) {
-+			vpif_obj.sd[i] = subdev;
-+			vpif_obj.config->chan_config->inputs[i].subdev_name =
-+				(char *)subdev->of_node->full_name;
-+			vpif_dbg(2, debug,
-+				 "%s: setting input %d subdev_name = %s\n",
-+				 __func__, i, subdev->of_node->full_name);
-+			return 0;
-+		}
-+	}
-+
- 	for (i = 0; i < vpif_obj.config->subdev_count; i++)
- 		if (!strcmp(vpif_obj.config->subdev_info[i].name,
- 			    subdev->name)) {
-@@ -1403,6 +1420,105 @@ static int vpif_async_complete(struct v4l2_async_notifier *notifier)
- 	return vpif_probe_complete();
- }
- 
-+static struct vpif_capture_config *
-+vpif_capture_get_pdata(struct platform_device *pdev)
-+{
-+	struct device_node *endpoint = NULL;
-+	struct v4l2_of_endpoint bus_cfg;
-+	struct vpif_capture_config *pdata;
-+	struct vpif_subdev_info *sdinfo;
-+	struct vpif_capture_chan_config *chan;
-+	unsigned int i;
-+
-+	/*
-+	 * DT boot: OF node from parent device contains
-+	 * video ports & endpoints data.
-+	 */
-+	if (pdev->dev.parent && pdev->dev.parent->of_node)
-+		pdev->dev.of_node = pdev->dev.parent->of_node;
-+	if (!IS_ENABLED(CONFIG_OF) || !pdev->dev.of_node)
-+		return pdev->dev.platform_data;
-+
-+	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		return NULL;
-+	pdata->subdev_info =
-+		devm_kzalloc(&pdev->dev, sizeof(*pdata->subdev_info) *
-+			     VPIF_CAPTURE_NUM_CHANNELS, GFP_KERNEL);
-+
-+	if (!pdata->subdev_info)
-+		return NULL;
-+
-+	for (i = 0; i < VPIF_CAPTURE_NUM_CHANNELS; i++) {
-+		struct device_node *rem;
-+		unsigned int flags;
-+		int err;
-+
-+		endpoint = of_graph_get_next_endpoint(pdev->dev.of_node,
-+						      endpoint);
-+		if (!endpoint)
-+			break;
-+
-+		sdinfo = &pdata->subdev_info[i];
-+		chan = &pdata->chan_config[i];
-+		chan->inputs = devm_kzalloc(&pdev->dev,
-+					    sizeof(*chan->inputs) *
-+					    VPIF_CAPTURE_NUM_CHANNELS,
-+					    GFP_KERNEL);
-+
-+		chan->input_count++;
-+		chan->inputs[i].input.type = V4L2_INPUT_TYPE_CAMERA;
-+		chan->inputs[i].input.std = V4L2_STD_ALL;
-+		chan->inputs[i].input.capabilities = V4L2_IN_CAP_STD;
-+
-+		err = v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+		if (err) {
-+			dev_err(&pdev->dev, "Could not parse the endpoint\n");
-+			goto done;
-+		}
-+		dev_dbg(&pdev->dev, "Endpoint %s, bus_width = %d\n",
-+			endpoint->full_name, bus_cfg.bus.parallel.bus_width);
-+		flags = bus_cfg.bus.parallel.flags;
-+
-+		if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-+			chan->vpif_if.hd_pol = 1;
-+
-+		if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-+			chan->vpif_if.vd_pol = 1;
-+
-+		rem = of_graph_get_remote_port_parent(endpoint);
-+		if (!rem) {
-+			dev_dbg(&pdev->dev, "Remote device at %s not found\n",
-+				endpoint->full_name);
-+			goto done;
-+		}
-+
-+		dev_dbg(&pdev->dev, "Remote device %s, %s found\n",
-+			rem->name, rem->full_name);
-+		sdinfo->name = rem->full_name;
-+
-+		pdata->asd[i] = devm_kzalloc(&pdev->dev,
-+					     sizeof(struct v4l2_async_subdev),
-+					     GFP_KERNEL);
-+		if (!pdata->asd[i]) {
-+			of_node_put(rem);
-+			pdata = NULL;
-+			goto done;
-+		}
-+
-+		pdata->asd[i]->match_type = V4L2_ASYNC_MATCH_OF;
-+		pdata->asd[i]->match.of.node = rem;
-+		of_node_put(rem);
-+	}
-+
-+done:
-+	pdata->asd_sizes[0] = i;
-+	pdata->subdev_count = i;
-+	pdata->card_name = "DA850/OMAP-L138 Video Capture";
-+
-+	return pdata;
-+}
-+
- /**
-  * vpif_probe : This function probes the vpif capture driver
-  * @pdev: platform device pointer
-@@ -1419,6 +1535,12 @@ static __init int vpif_probe(struct platform_device *pdev)
- 	int res_idx = 0;
- 	int i, err;
- 
-+	pdev->dev.platform_data = vpif_capture_get_pdata(pdev);
-+	if (!pdev->dev.platform_data) {
-+		dev_warn(&pdev->dev, "Missing platform data.  Giving up.\n");
-+		return -EINVAL;
-+	}
-+
- 	if (!pdev->dev.platform_data) {
- 		dev_warn(&pdev->dev, "Missing platform data.  Giving up.\n");
- 		return -EINVAL;
-@@ -1459,7 +1581,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		goto vpif_unregister;
- 	}
- 
--	if (!vpif_obj.config->asd_sizes) {
-+	if (!vpif_obj.config->asd_sizes[0]) {
- 		int i2c_id = vpif_obj.config->i2c_adapter_id;
- 
- 		i2c_adap = i2c_get_adapter(i2c_id);
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 7e5cf9923c8d..b5ac6ce626b3 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -1250,6 +1250,11 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
-+	if (!pdev->dev.platform_data) {
-+		dev_warn(&pdev->dev, "Missing platform data.  Giving up.\n");
-+		return -EINVAL;
-+	}
-+
- 	vpif_dev = &pdev->dev;
- 	err = initialize_vpif();
- 
-diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
-index 385597da20dc..eae23e4e9b93 100644
---- a/include/media/davinci/vpif_types.h
-+++ b/include/media/davinci/vpif_types.h
-@@ -62,14 +62,14 @@ struct vpif_display_config {
- 
- struct vpif_input {
- 	struct v4l2_input input;
--	const char *subdev_name;
-+	char *subdev_name;
- 	u32 input_route;
- 	u32 output_route;
- };
- 
- struct vpif_capture_chan_config {
- 	struct vpif_interface vpif_if;
--	const struct vpif_input *inputs;
-+	struct vpif_input *inputs;
- 	int input_count;
- };
- 
-@@ -81,7 +81,8 @@ struct vpif_capture_config {
- 	int subdev_count;
- 	int i2c_adapter_id;
- 	const char *card_name;
--	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
--	int *asd_sizes;		/* 0-terminated array of asd group sizes */
-+
-+	struct v4l2_async_subdev *asd[VPIF_CAPTURE_MAX_CHANNELS];
-+	int asd_sizes[VPIF_CAPTURE_MAX_CHANNELS];
- };
- #endif /* _VPIF_TYPES_H */
+> 
+> > 
+> > > 
+> > > > +
+> > > > +- Port 0 - Video source
+> > > > +	- Reg 0 - sub-node describing the endpoint that is the video source
+> > > 
+> > > Which endpoint properties are mandatory for the receiver? Which ones are
+> > > optional? (I.e. it shouldn't be necessary to read driver code to write board
+> > > description.)
+> > 
+> > I will add a note that all endpoints in port 0 are mandatory and that 
+> > all endpoints that represents a connection to a VIN instance in the 
+> > system is mandatory for next version. Thanks I did not think about this 
+> > possibility.
+> 
+> Please list the mandatory and optional properties, too. Not just the
+> endpoints.
+
+Good point, will do so.
+
+> 
+> -- 
+> Hälsningar,
+> 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+
 -- 
-2.9.3
+Regards,
+Niklas Söderlund
