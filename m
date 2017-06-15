@@ -1,119 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:41186 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751125AbdFBN1c (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36219 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752469AbdFONsf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Jun 2017 09:27:32 -0400
-Subject: Re: [PATCH 0/3] tc358743: minor driver fixes
-To: Dave Stevenson <dave.stevenson@raspberrypi.org>
-References: <cover.1496397071.git.dave.stevenson@raspberrypi.org>
- <4dd94754-2a3c-532c-f07c-88ac3765efcf@xs4all.nl>
- <CAAoAYcPWK1bLYSJDwM_Bp8szNkhXN38KRsx9j0xNWXwCH9qk3Q@mail.gmail.com>
-Cc: Mats Randgaard <matrandg@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <99d7eba3-c5a8-ade3-54bc-18eb27ef0255@xs4all.nl>
-Date: Fri, 2 Jun 2017 15:27:26 +0200
+        Thu, 15 Jun 2017 09:48:35 -0400
+Subject: Re: [PATCH 6/8] leds: as3645a: Add LED flash class driver
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1497433639-13101-7-git-send-email-sakari.ailus@linux.intel.com>
+ <343d88ea-c839-6682-df84-844f92bc9050@gmail.com>
+ <20170614221028.GS12407@valkosipuli.retiisi.org.uk>
+ <6d27154d-4550-d1ae-8b7a-07dcaaee69ac@gmail.com>
+ <20170615133404.GF12407@valkosipuli.retiisi.org.uk>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+        devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
+        robh@kernel.org, pavel@ucw.cz
+From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Message-ID: <19eae367-e47c-7810-677b-98e3f6f0566d@gmail.com>
+Date: Thu, 15 Jun 2017 15:47:49 +0200
 MIME-Version: 1.0
-In-Reply-To: <CAAoAYcPWK1bLYSJDwM_Bp8szNkhXN38KRsx9j0xNWXwCH9qk3Q@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20170615133404.GF12407@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/02/17 15:03, Dave Stevenson wrote:
-> Hi Hans.
+On 06/15/2017 03:34 PM, Sakari Ailus wrote:
+> Hi Jacek,
 > 
-> On 2 June 2017 at 13:35, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On 06/02/17 14:18, Dave Stevenson wrote:
->>> These 3 patches for TC358743 came out of trying to use the
->>> existing driver with a new Raspberry Pi CSI-2 receiver driver.
+> On Thu, Jun 15, 2017 at 03:01:47PM +0200, Jacek Anaszewski wrote:
+>> Hi Sakari,
 >>
->> Nice! Doing that has been on my todo list for ages but I never got
->> around to it. I have one of these and using the Raspberry Pi with
->> the tc358743 would allow me to add a CEC driver as well.
-> 
-> It's been on my list for a while too! It's working, but just the final
-> clean ups needed.
-> I've got 1 v4l2-compliance failure still outstanding that needs
-> digging into (subscribe_event), rebasing on top of the fwnode tree,
-> and a couple of config things to tidy up. RFC hopefully next week.
-> I'm testing with a demo board designed here at Pi Towers, but there
-> are others successfully testing it using the auvidea.com B101 board.
-> 
-> Are you aware of the HDMI modes that the TC358743 driver has been used with?
-> The comments mention 720P60 at 594MHz, but I have had to modify the
-> fifo_level value from 16 to 110 to get VGA60 or 576P50 to work. (The
-> value came out of Toshiba's spreadsheet for computing register
-> settings). It increases the delay by 2.96usecs at 720P60 on 2 lanes,
-> so not a huge change.
-> Is it worth going to the effort of dynamically computing the delay, or
-> is increasing the default acceptable?
-
-I see that the fifo_level value of 16 was supplied by Philipp Zabel, so
-I have CC-ed him as I am not sure where those values came from. This driver
-is also used in a Cisco product, but we use platform_data for that. Here are
-our settings that we use for reference:
-
-        static struct tc358743_platform_data tc358743_pdata = {
-                .refclk_hz = 27000000,
-                .ddc5v_delay = DDC5V_DELAY_100_MS,
-                .fifo_level = 300,
-                .pll_prd = 4,
-                .pll_fbd = 122,
-                /* CSI */
-                .lineinitcnt = 0x00001770,
-                .lptxtimecnt = 0x00000005,
-                .tclk_headercnt = 0x00001d04,
-                .ths_headercnt = 0x00000505,
-                .twakeup = 0x00004650,
-                .ths_trailcnt = 0x00000004,
-                .hstxvregcnt = 0x00000005,
-                /* HDMI PHY */
-                .hdmi_phy_auto_reset_tmds_detected = true,
-                .hdmi_phy_auto_reset_tmds_in_range = true,
-                .hdmi_phy_auto_reset_tmds_valid = true,
-                .hdmi_phy_auto_reset_hsync_out_of_range = true,
-                .hdmi_phy_auto_reset_vsync_out_of_range = true,
-                .hdmi_detection_delay = HDMI_MODE_DELAY_25_MS,
-        };
-
-I believe these are all calculated from the Toshiba spreadsheet.
-
-Frankly, I have no idea what they mean :-)
-
-I am fine with increasing the default if Philipp is OK as well. Since
-Cisco uses a value of 300 I would expect that 16 is indeed too low.
-
-Regards,
-
-	Hans
-
-> 
->>> A couple of the subdevice API calls were not implemented or
->>> otherwise gave odd results. Those are fixed.
+>> On 06/15/2017 12:10 AM, Sakari Ailus wrote:
+>>> Hi Jacek,
 >>>
->>> The TC358743 interface board being used didn't have the IRQ
->>> line wired up to the SoC. "interrupts" is listed as being
->>> optional in the DT binding, but the driver didn't actually
->>> function if it wasn't provided.
->>>
->>> Dave Stevenson (3):
->>>   [media] tc358743: Add enum_mbus_code
->>>   [media] tc358743: Setup default mbus_fmt before registering
->>>   [media] tc358743: Add support for platforms without IRQ line
+>>> Thanks for the review!
 >>
->> All looks good, I'll take this for 4.12.
+>> You're welcome!
+>>
+>>> I have to say I found the v4l2-flash-led-class framework quite useful, now
+>>> that I refactored a driver for using it. Now we have a user for the
+>>> indicator, too. :-)
+>>
+>> Nice :-). I'm also surprised that v4l2-flash API is also used in
+>> drivers/staging/greybus/light.c which popped up with kbuild test robot
+>> complaints.
 > 
-> Thanks.
+> I missed that on the first round of the submission as well. I'll fix that
+> in v2.
 > 
->> Regards,
 >>
->>         Hans
->>
+>>> On Wed, Jun 14, 2017 at 11:15:24PM +0200, Jacek Anaszewski wrote:
+>>>>> +static __maybe_unused int as3645a_suspend(struct device *dev)
+>>>>> +{
+>>>>> +	struct i2c_client *client = to_i2c_client(dev);
+>>>>> +	struct as3645a *flash = i2c_get_clientdata(client);
+>>>>> +	int rval;
+>>>>> +
+>>>>> +	rval = as3645a_set_control(flash, AS_MODE_EXT_TORCH, false);
+>>>>> +	dev_dbg(dev, "Suspend %s\n", rval < 0 ? "failed" : "ok");
+>>>>> +
+>>>>> +	return rval;
+>>>>> +}
+>>>>> +
+>>>>> +static __maybe_unused int as3645a_resume(struct device *dev)
+>>>>> +{
+>>>>> +	struct i2c_client *client = to_i2c_client(dev);
+>>>>> +	struct as3645a *flash = i2c_get_clientdata(client);
+>>>>> +	int rval;
+>>>>> +
+>>>>> +	rval = as3645a_setup(flash);
+>>>>> +
+>>>>
+>>>> nitpicking: inconsistent coding style - there is no empty line before
+>>>> dev_dbg() in the as3645a_suspend().
 >>>
->>>  drivers/media/i2c/tc358743.c | 59 +++++++++++++++++++++++++++++++++++++++++++-
->>>  1 file changed, 58 insertions(+), 1 deletion(-)
+>>> Added one for as3645a_suspend() --- it should have been there.
 >>>
+>>>>
+>>>>> +	dev_dbg(dev, "Resume %s\n", rval < 0 ? "fail" : "ok");
+>>>>> +
+>>>>> +	return rval;
+>>>>> +}
+>>>
+>>> ...
+>>>
+>>>>> +static int as3645a_led_class_setup(struct as3645a *flash)
+>>>>> +{
+>>>>> +	struct led_classdev *fled_cdev = &flash->fled.led_cdev;
+>>>>> +	struct led_classdev *iled_cdev = &flash->iled_cdev;
+>>>>> +	struct led_flash_setting *cfg;
+>>>>> +	int rval;
+>>>>> +
+>>>>> +	iled_cdev->name = "as3645a indicator";
+>>>>> +	iled_cdev->brightness_set_blocking = as3645a_set_indicator_brightness;
+>>>>> +	iled_cdev->max_brightness =
+>>>>> +		flash->cfg.indicator_max_ua / AS_INDICATOR_INTENSITY_STEP;
+>>>>> +
+>>>>> +	rval = led_classdev_register(&flash->client->dev, iled_cdev);
+>>>>> +	if (rval < 0)
+>>>>> +		return rval;
+>>>>> +
+>>>>> +	cfg = &flash->fled.brightness;
+>>>>> +	cfg->min = AS_FLASH_INTENSITY_MIN;
+>>>>> +	cfg->max = flash->cfg.flash_max_ua;
+>>>>> +	cfg->step = AS_FLASH_INTENSITY_STEP;
+>>>>> +	cfg->val = flash->cfg.flash_max_ua;
+>>>>> +
+>>>>> +	cfg = &flash->fled.timeout;
+>>>>> +	cfg->min = AS_FLASH_TIMEOUT_MIN;
+>>>>> +	cfg->max = flash->cfg.flash_timeout_us;
+>>>>> +	cfg->step = AS_FLASH_TIMEOUT_STEP;
+>>>>> +	cfg->val = flash->cfg.flash_timeout_us;
+>>>>> +
+>>>>> +	flash->fled.ops = &as3645a_led_flash_ops;
+>>>>> +
+>>>>> +	fled_cdev->name = "as3645a flash";
+>>>>
+>>>> LED class device name should be taken from label DT property,
+>>>> or DT node name if the former wasn't defined.
+>>>>
+>>>> Also LED device naming convention defines colon as a separator
+>>>> between name segments.
+>>>
+>>> Right. I'll fix that.
+>>>
+>>> I just realised I'm missing DT binding documentation for this device; I'll
+>>> add that, too.
+>>>
+>>> Is the preference to allow freely chosen node names for the LEDs? Now that
+>>> there's the label, too, this appears to be somewhat duplicated information.
 >>
+>> It depends on whether the sub-leds are identified by reg property.
+>> In this case usually common prefix is used followed by reg value,
+>> e.g. led@1, led@2 etc.
+> 
+> Is there a device that would use this already? I checked common.txt and
+> I couldn't find a suggestion of this scheme there.
+
+There is no suitable suggestion in common.txt indeed, but it is used
+e.g. in:
+
+leds-mt6323.txt, leds-bcm6328.txt, leds-pm8058.txt.
+
+>> Otherwise prevailing scheme is e.g.:
+>>
+>>         blue-power {
+>> 		...
+>>                 label = "netxbig:blue:power";
+>> 	}
+>>
+> 
+
+-- 
+Best regards,
+Jacek Anaszewski
