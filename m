@@ -1,233 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50388 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751402AbdFZQTg (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:60632 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751016AbdFOOPF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 12:19:36 -0400
-Date: Mon, 26 Jun 2017 19:19:30 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Adam Ford <aford173@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com
-Subject: Re: OMAP3630 ISP V4L2 Camera Not Streaming to LCD
-Message-ID: <20170626161930.GP12407@valkosipuli.retiisi.org.uk>
-References: <CAHCN7xJVjDoVUUuCayJ9-oDix711GSqZR842U_V4_tH8_GZAUQ@mail.gmail.com>
+        Thu, 15 Jun 2017 10:15:05 -0400
+Subject: Re: [RFC 2/2] [media] bcm2835-unicam: Driver for CCP2/CSI2 camera
+ interface
+To: Dave Stevenson <dave.stevenson@raspberrypi.org>
+References: <cover.1497452006.git.dave.stevenson@raspberrypi.org>
+ <e268d99095dea34a049d9cacf9c18e855050abe1.1497452006.git.dave.stevenson@raspberrypi.org>
+ <ec774750-d6a9-d8b7-9b38-0fd97fe7678d@xs4all.nl>
+ <CAAoAYcNPk==5=sNZRuVvShPv+ky=ewdg7O7G4xGp6qLFaMTvYQ@mail.gmail.com>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-rpi-kernel@lists.infradead.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <38437cd7-5703-11bb-ce3f-01c6315746ff@xs4all.nl>
+Date: Thu, 15 Jun 2017 16:14:59 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHCN7xJVjDoVUUuCayJ9-oDix711GSqZR842U_V4_tH8_GZAUQ@mail.gmail.com>
+In-Reply-To: <CAAoAYcNPk==5=sNZRuVvShPv+ky=ewdg7O7G4xGp6qLFaMTvYQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Adam,
+On 06/15/17 15:38, Dave Stevenson wrote:
+> Hi Hans.
+> 
+> "On 15 June 2017 at 08:12, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi Dave,
+>>
+>> Here is a quick review of this driver. Once a v2 is posted I'll do a more
+>> thorough
+>> check.
+> 
+> Thank you. I wasn't expecting such a quick response.
+> 
+>> On 06/14/2017 05:15 PM, Dave Stevenson wrote:
+>>>
+>>> Add driver for the Unicam camera receiver block on
+>>> BCM283x processors.
+>>>
+>>> Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+>>> ---
+>>>   drivers/media/platform/Kconfig                   |    1 +
+>>>   drivers/media/platform/Makefile                  |    2 +
+>>>   drivers/media/platform/bcm2835/Kconfig           |   14 +
+>>>   drivers/media/platform/bcm2835/Makefile          |    3 +
+>>>   drivers/media/platform/bcm2835/bcm2835-unicam.c  | 2100
+>>> ++++++++++++++++++++++
+>>>   drivers/media/platform/bcm2835/vc4-regs-unicam.h |  257 +++
+>>>   6 files changed, 2377 insertions(+)
+>>>   create mode 100644 drivers/media/platform/bcm2835/Kconfig
+>>>   create mode 100644 drivers/media/platform/bcm2835/Makefile
+>>>   create mode 100644 drivers/media/platform/bcm2835/bcm2835-unicam.c
+>>>   create mode 100644 drivers/media/platform/bcm2835/vc4-regs-unicam.h
+>>>
+>>> +static int unicam_s_input(struct file *file, void *priv, unsigned int i)
+>>> +{
+>>> +       struct unicam_device *dev = video_drvdata(file);
+>>> +       int ret;
+>>> +
+>>> +       if (v4l2_subdev_has_op(dev->sensor, video, s_routing))
+>>> +               ret =  v4l2_subdev_call(dev->sensor, video, s_routing, i,
+>>> 0, 0);
+>>> +       else
+>>> +               ret = -EINVAL;  /* v4l2-compliance insists on -EINVAL */
+>>
+>>
+>> Drop this if-else entirely. s_routing makes really no sense when using a
+>> device
+>> tree. In this particular case there really is just one input, period.
+> 
+> I added this due to the ADV7282-M analogue to CSI bridge chip (uses
+> adv7180.c driver). It uses s_routing to select the physical input /
+> input type.
+> If this is dropped, what is the correct mechanism for selecting the
+> input? Unless I've missed it, s_routing is not a call that is exposed
+> to userspace, so we're stuck with composite input 1.
+> 
+> I had asked this question in previously [1], and whilst Sakari had
+> kindly replied with "s_routing() video op as it stands now is awful, I
+> hope no-one uses it", the fact is that it is used.
+> 
+> [1] http://www.spinics.net/lists/linux-media/msg115550.html
 
-On Wed, Jun 21, 2017 at 04:34:41PM -0500, Adam Ford wrote:
-> I have a Leopard Imaging LI-5M03 camera attached in 8-bit mode, and I
-> am trying to capture an image on  camera and stream it to the LCD
-> (/dev/fb0) without using the DSP or proprietary codecs.
-> 
-> I was hoping to do it with either gstreamer (preferrably 1.0) or ffpeg.
-> 
-> My board has mainline device tree (logicpd-torpedo-37xx-devkit).
-> ( have played wtih some of the settings, but nothing seems to make any
-> difference)
-> 
-> 
-> Using (https://github.com/Alaganraj/omap3isp/blob/master/0001-ARM-omap3-beagle-Add-.dtsi-for-the-LI-5M03-camera-se.patch)
-> as an example.
-> 
-> Using Linux 4.11.y stable branch, I setup the camera as follows:
-> 
-> media-ctl -v -r -l '"mt9p031 1-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3
-> ISP CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3
-> ISP resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer
-> output":0[1]'
-> 
-> media-ctl -v -V '"mt9p031 1-0048":0 [SGRBG8 1298x970
-> (664,541)/1298x970], "OMAP3 ISP CCDC":2 [SGRBG10 1298x970], "OMAP3 ISP
-> preview":1 [UYVY 1298x970], "OMAP3 ISP resizer":1 [UYVY 320x240]'
-> 
-> 
-> The media controller shows that this part appears to work correctly.
-> # media-ctl -p
-> Media controller API version 0.1.0
-> 
-> Media device information
-> ------------------------
-> driver          omap3isp
-> model           TI OMAP3 ISP
-> serial
-> bus info
-> hw revision     0xf0
-> driver version  0.0.0
-> 
-> Device topology
-> - entity 1: OMAP3 ISP CCP2 (2 pads, 2 links)
->             type V4L2 subdev subtype Unknown flags 0
->             device node name /dev/v4l-subdev0
->         pad0: Sink
->                 [fmt:SGRBG10_1X10/4096x4096 field:none]
->                 <- "OMAP3 ISP CCP2 input":0 []
->         pad1: Source
->                 [fmt:SGRBG10_1X10/4096x4096 field:none]
->                 -> "OMAP3 ISP CCDC":0 []
-> 
-> - entity 4: OMAP3 ISP CCP2 input (1 pad, 1 link)
->             type Node subtype V4L flags 0
->             device node name /dev/video0
->         pad0: Source
->                 -> "OMAP3 ISP CCP2":0 []
-> 
-> - entity 8: OMAP3 ISP CSI2a (2 pads, 2 links)
->             type V4L2 subdev subtype Unknown flags 0
->             device node name /dev/v4l-subdev1
->         pad0: Sink
->                 [fmt:SGRBG10_1X10/4096x4096 field:none]
->         pad1: Source
->                 [fmt:SGRBG10_1X10/4096x4096 field:none]
->                 -> "OMAP3 ISP CSI2a output":0 []
->                 -> "OMAP3 ISP CCDC":0 []
-> 
-> - entity 11: OMAP3 ISP CSI2a output (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video1
->         pad0: Sink
->                 <- "OMAP3 ISP CSI2a":1 []
-> 
-> - entity 15: OMAP3 ISP CCDC (3 pads, 9 links)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev2
->         pad0: Sink
->                 [fmt:SGRBG12_1X12/1298x970 field:none]
->                 <- "OMAP3 ISP CCP2":1 []
->                 <- "OMAP3 ISP CSI2a":1 []
->                 <- "mt9p031 1-0048":0 [ENABLED]
->         pad1: Source
->                 [fmt:SGRBG12_1X12/1296x970 field:none
->                  crop.bounds:(0,0)/1312x970
->                  crop:(0,0)/1296x970]
->                 -> "OMAP3 ISP CCDC output":0 []
->                 -> "OMAP3 ISP resizer":0 []
->         pad2: Source
->                 [fmt:SGRBG10_1X10/1298x969 field:none]
->                 -> "OMAP3 ISP preview":0 [ENABLED]
->                 -> "OMAP3 ISP AEWB":0 [ENABLED,IMMUTABLE]
->                 -> "OMAP3 ISP AF":0 [ENABLED,IMMUTABLE]
->                 -> "OMAP3 ISP histogram":0 [ENABLED,IMMUTABLE]
-> 
-> - entity 19: OMAP3 ISP CCDC output (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video2
->         pad0: Sink
->                 <- "OMAP3 ISP CCDC":1 []
-> 
-> - entity 23: OMAP3 ISP preview (2 pads, 4 links)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev3
->         pad0: Sink
->                 [fmt:SGRBG10_1X10/1298x969 field:none
->                  crop.bounds:(10,4)/1280x961
->                  crop:(10,4)/1280x961]
->                 <- "OMAP3 ISP CCDC":2 [ENABLED]
->                 <- "OMAP3 ISP preview input":0 []
->         pad1: Source
->                 [fmt:UYVY8_1X16/1280x961 field:none]
->                 -> "OMAP3 ISP preview output":0 []
->                 -> "OMAP3 ISP resizer":0 [ENABLED]
-> 
-> - entity 26: OMAP3 ISP preview input (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video3
->         pad0: Source
->                 -> "OMAP3 ISP preview":0 []
-> 
-> - entity 30: OMAP3 ISP preview output (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video4
->         pad0: Sink
->                 <- "OMAP3 ISP preview":1 []
-> 
-> - entity 34: OMAP3 ISP resizer (2 pads, 4 links)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev4
->         pad0: Sink
->                 [fmt:UYVY8_1X16/1280x961 field:none
->                  crop.bounds:(0,0)/1280x961
->                  crop:(0,0)/1280x961]
->                 <- "OMAP3 ISP CCDC":1 []
->                 <- "OMAP3 ISP preview":1 [ENABLED]
->                 <- "OMAP3 ISP resizer input":0 []
->         pad1: Source
->                 [fmt:UYVY8_1X16/320x240 field:none]
->                 -> "OMAP3 ISP resizer output":0 [ENABLED]
-> 
-> - entity 37: OMAP3 ISP resizer input (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video5
->         pad0: Source
->                 -> "OMAP3 ISP resizer":0 []
-> 
-> - entity 41: OMAP3 ISP resizer output (1 pad, 1 link)
->              type Node subtype V4L flags 1
->              device node name /dev/video6
->         pad0: Sink
->                 <- "OMAP3 ISP resizer":1 [ENABLED]
-> 
-> - entity 45: OMAP3 ISP AEWB (1 pad, 1 link)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev5
->         pad0: Sink
->                 <- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
-> 
-> - entity 47: OMAP3 ISP AF (1 pad, 1 link)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev6
->         pad0: Sink
->                 <- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
-> 
-> - entity 49: OMAP3 ISP histogram (1 pad, 1 link)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev7
->         pad0: Sink
->                 <- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
-> 
-> - entity 81: mt9p031 1-0048 (1 pad, 1 link)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev8
->         pad0: Source
->                 [fmt:SGRBG12_1X12/1298x970 field:none
->                  crop:(664,542)/1298x970]
->                 -> "OMAP3 ISP CCDC":0 [ENABLED]
-> 
-> #
-> 
-> Unfortunately, when I run ffmpeg, I get a nothing but white pixels but
-> the resolution matches the resolution I configured as  320x240.
-> 
-> export LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so
-> ffmpeg -an -re -i /dev/video6 -f v4l2  -vcodec rawvideo -pix_fmt
-> rgb565le -f fbdev /dev/fb0
-> 
-> 
-> I got a bunch of repeated messages that read:
->   libv4l2: error dequeuing buf: Resource temporarily unavailable
+s_routing was developed for USB and PCI(e) devices and predates the device tree.
+Basically USB and PCI drivers will have card definitions where USB/PCI card IDs
+are mapped to card descriptions, and that includes information on the various
+inputs (composite, S-Video, etc) that are available on the backplane and how those
+physical connectors are hooked up to the pins on the video ICs.
 
-Could you see what does videobuf2 / V4L2 IOCTL handler tells? This should be
-roughly be enabled by:
+The enum/s/g_input ioctls all show the end-user view, i.e. they enumerate the
+inputs on the backpanel of the product. The s_routing op was created to map
+such inputs to actual pins on the ICs.
 
-echo "file v4l2-ioctl.c +p" > /where/is/debugfs/dynamic_debug/control
-echo 1 > /sys/module/videobuf2_v4l2/parameters/debug
-echo 1 > /sys/module/videobuf2_core/parameters/debug
+For platform devices we would do this in the device tree today, but some of
+the necessary bindings are still missing. Specifically those for connectors,
+AFAIK those are not yet defined. It's been discussed, but never finalized.
 
-And finally use dmesg to view the logs.
+So if this was done correctly you would use the connector endpoints in the
+device tree to enumerate the inputs and use how they are connected to the
+other blocks as the routing information (i.e. pad number).
 
-I have to admit I haven't used GStreamer for a while, perhaps the kernel
-logs could tell something.
+I would say that is the advanced course and to do this later.
 
-Cc Laurent as well.
+Do you even have hardware where you can switch between inputs?
 
--- 
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+	Hans
