@@ -1,61 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:51092 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751808AbdFGU42 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Jun 2017 16:56:28 -0400
-Subject: Re: [RFC v4 00/18] vb2: Handle user cache hints, allow drivers to
- choose cache coherency
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        posciak@chromium.org, m.szyprowski@samsung.com,
-        kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-        sumit.semwal@linaro.org, robdclark@gmail.com,
-        daniel.vetter@ffwll.ch, labbott@redhat.com,
-        laurent.pinchart@ideasonboard.com
-References: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com>
- <20170607141334.4ec3b4a3@vento.lan>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <b201f845-39c0-5c56-1dc1-546e1b645e67@linux.intel.com>
-Date: Wed, 7 Jun 2017 23:56:19 +0300
-MIME-Version: 1.0
-In-Reply-To: <20170607141334.4ec3b4a3@vento.lan>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:35688 "EHLO
+        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751667AbdFOQcv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Jun 2017 12:32:51 -0400
+Received: by mail-wm0-f50.google.com with SMTP id x70so4444744wme.0
+        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 09:32:50 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v11 03/19] MAINTAINERS: Add Qualcomm Venus video accelerator driver
+Date: Thu, 15 Jun 2017 19:31:44 +0300
+Message-Id: <1497544320-2269-4-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Add an entry for Venus video encoder/decoder accelerator driver.
 
-Mauro Carvalho Chehab wrote:
-> Hi Sakari,
->
-> Em Mon,  8 May 2017 18:03:12 +0300
-> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
->
->> Hello,
->>
->> This is a rebased and partially reworked version of the vb2 cache hints
->> support patch series posted by first myself, then Laurent and then myself
->> again.
->>
->> I'm still posting this as RFC primarily because more testing and driver
->> changes will be needed. In particular, a lot of platform drivers assume
->> non-coherent memory but are not properly labelled as such.
->
-> The main issue I see is that, if the driver doesn't "annotate" if it
-> is requiring coherent or non-coherent memory, VB2 should be preserving
-> its old behavior, as, otherwise, it will risk causing regressions.
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Some of the assumptions in VB2 mirror the particular design choices made 
-in ARM DMA API implementation. This was found out during the review. The 
-set requires further work in order to be mergeable to get around these 
-issues, until then this remains in RFC stage.
-
-I posted the three first patches separately --- these do not change how 
-cache management works.
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 053c3bdd1fe5..2cf03bb969b5 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10584,6 +10584,14 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rkuo/linux-hexagon-kernel.g
+ S:	Supported
+ F:	arch/hexagon/
+ 
++QUALCOMM VENUS VIDEO ACCELERATOR DRIVER
++M:	Stanimir Varbanov <stanimir.varbanov@linaro.org>
++L:	linux-media@vger.kernel.org
++L:	linux-arm-msm@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/platform/qcom/venus/
++
+ QUALCOMM WCN36XX WIRELESS DRIVER
+ M:	Eugene Krasnikov <k.eugene.e@gmail.com>
+ L:	wcn36xx@lists.infradead.org
 -- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.7.4
