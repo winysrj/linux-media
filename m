@@ -1,57 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:38734 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750755AbdFFHoQ (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:39166 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752444AbdFOIpV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Jun 2017 03:44:16 -0400
-Subject: Re: Question about Large Custom Coefficients for V4L2 sub-device
- drivers
-To: Rohit Athavale <rohit.athavale@xilinx.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <866603A3C4C8F547969034C425C3995F494A3336@XSJ-PSEXMBX01.xlnx.xilinx.com>
+        Thu, 15 Jun 2017 04:45:21 -0400
+Subject: Re: [PATCH v2] [media] mtk-mdp: Fix g_/s_selection capture/compose
+ logic
+To: Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <1494556970-12278-1-git-send-email-minghsiu.tsai@mediatek.com>
+ <1497508166.3384.5.camel@mtksdaap41>
+Cc: daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Houlong Wei <houlong.wei@mediatek.com>,
+        srv_heupstream@mediatek.com,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        Wu-Cheng Li <wuchengli@google.com>, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <15c9f603-1fa9-da67-7779-ba8dfaf03822@xs4all.nl>
-Date: Tue, 6 Jun 2017 09:44:13 +0200
+Message-ID: <74fd208e-b3d4-6d39-66b2-4fe1ee28be27@xs4all.nl>
+Date: Thu, 15 Jun 2017 10:45:10 +0200
 MIME-Version: 1.0
-In-Reply-To: <866603A3C4C8F547969034C425C3995F494A3336@XSJ-PSEXMBX01.xlnx.xilinx.com>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <1497508166.3384.5.camel@mtksdaap41>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/06/17 18:32, Rohit Athavale wrote:
-> Hello Media Community,
+On 06/15/17 08:29, Minghsiu Tsai wrote:
+> Hi, Hans,
 > 
-> I am working on a scaler and gamma correction V4L2 sub-device based drivers. A common theme to both of them is that
-> the kernel driver is expected bring-up these devices in a working (good) configuration. As it turns out these coefficients are tailor-made
-> or are fairly complex to generate dynamically at run-time.
-> 
-> This implies the driver has to store at least one set of coefficients for each supported configuration. This could easily become 10-20 KB of data stored as a large static array of shorts or integers.
-> 
-> I have a couple of questions to ask all here :
-> 
-> 1. What is the best practice for embedding large coefficients ( > 10 KB) into V4L2 sub-device based drivers ?
+> Would you have time to review this patch v2?
+> The patch v1 violates v4l2 spec. I have fixed it in v2.
 
-Typically it is just a static const array. For large arrays it is best to put them in a separate
-source so it doesn't overwhelm the actual driver code.
-
-> 2. How can user applications feed coefficients to the sub-device based V4L2 drivers ? I'm wondering if there is standard ioctl, write or mmap file op that can be performed to achieve this ?
-
-In most cases you can make an extended control (array or compound) for this. If the hardware
-supports some sort of DMA hardware to load the coefficients quickly into memory, then a video
-node can be created. But based on what you write that doesn't appear to be necessary.
+I plan to review it Friday or Monday.
 
 Regards,
 
 	Hans
 
 > 
-> All inputs will be greatly appreciated :)
 > 
-> Best Regards,
-> Rohit
+> Sincerely,
+> Ming Hsiu
 > 
+> On Fri, 2017-05-12 at 10:42 +0800, Minghsiu Tsai wrote:
+>> From: Daniel Kurtz <djkurtz@chromium.org>
+>>
+>> Experiments show that the:
+>>  (1) mtk-mdp uses the _MPLANE form of CAPTURE/OUTPUT
+>>  (2) CAPTURE types use CROP targets, and OUTPUT types use COMPOSE targets
+>>
+>> Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+>> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+>> Signed-off-by: Houlong Wei <houlong.wei@mediatek.com>
+>>
+>> ---
+>> Changes in v2:
+>> . Can not use *_MPLANE type in g_/s_selection 
+>> ---
+>>  drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c | 10 +++++-----
+>>  1 file changed, 5 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+>> index 13afe48..e18ac626 100644
+>> --- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+>> +++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+>> @@ -838,10 +838,10 @@ static int mtk_mdp_m2m_g_selection(struct file *file, void *fh,
+>>  	bool valid = false;
+>>  
+>>  	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+>> -		if (mtk_mdp_is_target_compose(s->target))
+>> +		if (mtk_mdp_is_target_crop(s->target))
+>>  			valid = true;
+>>  	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+>> -		if (mtk_mdp_is_target_crop(s->target))
+>> +		if (mtk_mdp_is_target_compose(s->target))
+>>  			valid = true;
+>>  	}
+>>  	if (!valid) {
+>> @@ -908,10 +908,10 @@ static int mtk_mdp_m2m_s_selection(struct file *file, void *fh,
+>>  	bool valid = false;
+>>  
+>>  	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+>> -		if (s->target == V4L2_SEL_TGT_COMPOSE)
+>> +		if (s->target == V4L2_SEL_TGT_CROP)
+>>  			valid = true;
+>>  	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+>> -		if (s->target == V4L2_SEL_TGT_CROP)
+>> +		if (s->target == V4L2_SEL_TGT_COMPOSE)
+>>  			valid = true;
+>>  	}
+>>  	if (!valid) {
+>> @@ -925,7 +925,7 @@ static int mtk_mdp_m2m_s_selection(struct file *file, void *fh,
+>>  	if (ret)
+>>  		return ret;
+>>  
+>> -	if (mtk_mdp_is_target_crop(s->target))
+>> +	if (mtk_mdp_is_target_compose(s->target))
+>>  		frame = &ctx->s_frame;
+>>  	else
+>>  		frame = &ctx->d_frame;
 > 
-> 
-> This email and any attachments are intended for the sole use of the named recipient(s) and contain(s) confidential information that may be proprietary, privileged or copyrighted under applicable law. If you are not the intended recipient, do not read, copy, or forward this email message or any attachments. Delete this email message and any attachments immediately.
 > 
