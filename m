@@ -1,64 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47219
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751305AbdFFMsn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Jun 2017 08:48:43 -0400
-Date: Tue, 6 Jun 2017 09:48:34 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        hverkuil@xs4all.nl
-Subject: Re: [PATCH v3 5/7] docs-rst: media: Sort topic list alphabetically
-Message-ID: <20170606094834.0152cd6f@vento.lan>
-In-Reply-To: <1491829376-14791-6-git-send-email-sakari.ailus@linux.intel.com>
-References: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
-        <1491829376-14791-6-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:36972 "EHLO
+        mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752444AbdFOQdJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Jun 2017 12:33:09 -0400
+Received: by mail-wm0-f44.google.com with SMTP id d73so4071015wma.0
+        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 09:33:09 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v11 09/19] media: venus: enable building of Venus video driver
+Date: Thu, 15 Jun 2017 19:31:50 +0300
+Message-Id: <1497544320-2269-10-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 10 Apr 2017 16:02:54 +0300
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+This adds Venus driver Makefile and changes v4l2 platform
+Makefile/Kconfig in order to enable building of the driver.
 
-> Bring some order by alphabetically ordering the list of topics.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  Documentation/media/kapi/v4l2-core.rst | 18 +++++++++---------
->  1 file changed, 9 insertions(+), 9 deletions(-)
-> 
-> diff --git a/Documentation/media/kapi/v4l2-core.rst b/Documentation/media/kapi/v4l2-core.rst
-> index d8f6c46..2fbf532 100644
-> --- a/Documentation/media/kapi/v4l2-core.rst
-> +++ b/Documentation/media/kapi/v4l2-core.rst
-> @@ -4,23 +4,23 @@ Video4Linux devices
->  .. toctree::
->      :maxdepth: 1
->  
-> -    v4l2-intro
+Note that in this initial version the COMPILE_TEST-ing is not
+supported because the drivers specific to ARM builds are still
+in process of enabling the aforementioned compile testing.
+Once that disadvantage is fixed the Venus driver compile testing
+will be possible with follow-up changes.
 
-NACK.
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/Kconfig             | 13 +++++++++++++
+ drivers/media/platform/Makefile            |  2 ++
+ drivers/media/platform/qcom/venus/Makefile | 11 +++++++++++
+ 3 files changed, 26 insertions(+)
+ create mode 100644 drivers/media/platform/qcom/venus/Makefile
 
-The order of the documentation should match what makes sense for the
-user that will be reading the docs, and *not* an alphabetical order. 
-
-I didn't check what order you did, but for sure the introduction should 
-come first, and then the stuff that all drivers use, like
-v4l2-dev, v4l2-device and v4l2-fh. Then, other stuff that it is part of
-the framework but are used only by a subset of the drivers.
-
-That's said, it probably makes sense to use multiple toctrees here, and
-add some description before each of them, in order to better organize
-its contents. Something similar to what it was done with
-	Documentation/admin-guide/index.rst
-
-I'll rebase patch 6/7 to not depend on this one.
-
-
-Regards
-
-Thanks,
-Mauro
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 8da521a8ead7..6027dbd4e04d 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -464,6 +464,19 @@ config VIDEO_TI_VPE_DEBUG
+ 	---help---
+ 	  Enable debug messages on VPE driver.
+ 
++config VIDEO_QCOM_VENUS
++	tristate "Qualcomm Venus V4L2 encoder/decoder driver"
++	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
++	depends on ARCH_QCOM && IOMMU_DMA
++	select QCOM_MDT_LOADER
++	select VIDEOBUF2_DMA_SG
++	select V4L2_MEM2MEM_DEV
++	---help---
++	  This is a V4L2 driver for Qualcomm Venus video accelerator
++	  hardware. It accelerates encoding and decoding operations
++	  on various Qualcomm SoCs.
++	  To compile this driver as a module choose m here.
++
+ endif # V4L_MEM2MEM_DRIVERS
+ 
+ # TI VIDEO PORT Helper Modules
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 6bbdf942e8c8..4607408c047d 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -81,3 +81,5 @@ obj-$(CONFIG_VIDEO_MEDIATEK_VCODEC)	+= mtk-vcodec/
+ obj-$(CONFIG_VIDEO_MEDIATEK_MDP)	+= mtk-mdp/
+ 
+ obj-$(CONFIG_VIDEO_MEDIATEK_JPEG)	+= mtk-jpeg/
++
++obj-$(CONFIG_VIDEO_QCOM_VENUS)		+= qcom/venus/
+diff --git a/drivers/media/platform/qcom/venus/Makefile b/drivers/media/platform/qcom/venus/Makefile
+new file mode 100644
+index 000000000000..0fe9afb83697
+--- /dev/null
++++ b/drivers/media/platform/qcom/venus/Makefile
+@@ -0,0 +1,11 @@
++# Makefile for Qualcomm Venus driver
++
++venus-core-objs += core.o helpers.o firmware.o \
++		   hfi_venus.o hfi_msgs.o hfi_cmds.o hfi.o
++
++venus-dec-objs += vdec.o vdec_ctrls.o
++venus-enc-objs += venc.o venc_ctrls.o
++
++obj-$(CONFIG_VIDEO_QCOM_VENUS) += venus-core.o
++obj-$(CONFIG_VIDEO_QCOM_VENUS) += venus-dec.o
++obj-$(CONFIG_VIDEO_QCOM_VENUS) += venus-enc.o
+-- 
+2.7.4
