@@ -1,49 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f174.google.com ([209.85.128.174]:34079 "EHLO
-        mail-wr0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752506AbdFOQdM (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35686 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750791AbdFOIXu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 12:33:12 -0400
-Received: by mail-wr0-f174.google.com with SMTP id 77so25376920wrb.1
-        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 09:33:06 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v11 10/19] media: venus: hfi: fix mutex unlock
-Date: Thu, 15 Jun 2017 19:31:51 +0300
-Message-Id: <1497544320-2269-11-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
+        Thu, 15 Jun 2017 04:23:50 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 1/6] v4l: vsp1: Remove WPF vertical flip support on VSP2-B[CD] and VSP2-D
+Date: Thu, 15 Jun 2017 11:24:04 +0300
+Message-Id: <20170615082409.9523-2-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20170615082409.9523-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20170615082409.9523-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This fixed a warning when build driver with gcc7:
+The WPF vertical flip is only supported on Gen3 SoCs on the VSP2-I.
+Don't enable it on other VSP2 instances.
 
-drivers/media/platform/qcom/venus/hfi.c:171
-hfi_core_ping() warn: inconsistent returns 'mutex:&core->lock'.
-  Locked on:   line 159
-  Unlocked on: line 171
-
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/platform/qcom/venus/hfi.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/vsp1/vsp1_drv.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/qcom/venus/hfi.c b/drivers/media/platform/qcom/venus/hfi.c
-index 20c9205fdbb4..c09490876516 100644
---- a/drivers/media/platform/qcom/venus/hfi.c
-+++ b/drivers/media/platform/qcom/venus/hfi.c
-@@ -156,7 +156,7 @@ int hfi_core_ping(struct venus_core *core)
- 
- 	ret = core->ops->core_ping(core, 0xbeef);
- 	if (ret)
--		return ret;
-+		goto unlock;
- 
- 	ret = wait_for_completion_timeout(&core->done, TIMEOUT);
- 	if (!ret) {
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 048446af5ae7..239996cf882e 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -690,7 +690,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
+ 		.version = VI6_IP_VERSION_MODEL_VSPBD_GEN3,
+ 		.model = "VSP2-BD",
+ 		.gen = 3,
+-		.features = VSP1_HAS_BRU | VSP1_HAS_WPF_VFLIP,
++		.features = VSP1_HAS_BRU,
+ 		.rpf_count = 5,
+ 		.wpf_count = 1,
+ 		.num_bru_inputs = 5,
+@@ -700,7 +700,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
+ 		.model = "VSP2-BC",
+ 		.gen = 3,
+ 		.features = VSP1_HAS_BRU | VSP1_HAS_CLU | VSP1_HAS_HGO
+-			  | VSP1_HAS_LUT | VSP1_HAS_WPF_VFLIP,
++			  | VSP1_HAS_LUT,
+ 		.rpf_count = 5,
+ 		.wpf_count = 1,
+ 		.num_bru_inputs = 5,
+@@ -709,7 +709,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
+ 		.version = VI6_IP_VERSION_MODEL_VSPD_GEN3,
+ 		.model = "VSP2-D",
+ 		.gen = 3,
+-		.features = VSP1_HAS_BRU | VSP1_HAS_LIF | VSP1_HAS_WPF_VFLIP,
++		.features = VSP1_HAS_BRU | VSP1_HAS_LIF,
+ 		.rpf_count = 5,
+ 		.wpf_count = 2,
+ 		.num_bru_inputs = 5,
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
