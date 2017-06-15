@@ -1,788 +1,715 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:35263 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751274AbdFFJIN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Jun 2017 05:08:13 -0400
-Subject: Re: [PATCH 11/12] intel-ipu3: Add imgu v4l2 driver
-To: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com
-References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
- <1496695157-19926-12-git-send-email-yong.zhi@intel.com>
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <7e246180-8c9b-f4bd-d90e-e55141bf4a38@xs4all.nl>
-Date: Tue, 6 Jun 2017 11:08:07 +0200
-MIME-Version: 1.0
-In-Reply-To: <1496695157-19926-12-git-send-email-yong.zhi@intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:34584 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751908AbdFODbf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Jun 2017 23:31:35 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 05/15] af9013: fix logging
+Date: Thu, 15 Jun 2017 06:30:55 +0300
+Message-Id: <20170615033105.13517-5-crope@iki.fi>
+In-Reply-To: <20170615033105.13517-1-crope@iki.fi>
+References: <20170615033105.13517-1-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/06/17 22:39, Yong Zhi wrote:
-> ipu3 imgu video device based on v4l2, vb2 and
-> media controller framework.
-> 
-> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> ---
->  drivers/media/pci/intel/ipu3/ipu3-v4l2.c | 723 +++++++++++++++++++++++++++++++
->  1 file changed, 723 insertions(+)
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-v4l2.c
-> 
-> diff --git a/drivers/media/pci/intel/ipu3/ipu3-v4l2.c b/drivers/media/pci/intel/ipu3/ipu3-v4l2.c
-> new file mode 100644
-> index 0000000..bc219c1
-> --- /dev/null
-> +++ b/drivers/media/pci/intel/ipu3/ipu3-v4l2.c
-> @@ -0,0 +1,723 @@
-> +/*
-> + * Copyright (c) 2017 Intel Corporation.
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License version
-> + * 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/pm_runtime.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/videobuf2-dma-contig.h>
-> +
-> +#include "ipu3.h"
-> +
-> +/******************** v4l2_subdev_ops ********************/
-> +
-> +static int ipu3_subdev_s_stream(struct v4l2_subdev *sd, int enable)
-> +{
-> +	struct ipu3_mem2mem2_device *m2m2 =
-> +		container_of(sd, struct ipu3_mem2mem2_device, subdev);
-> +	int r = 0;
-> +
-> +	if (m2m2->ops && m2m2->ops->s_stream)
-> +		r = m2m2->ops->s_stream(m2m2, enable);
-> +
-> +	if (!r)
-> +		m2m2->streaming = enable;
-> +
-> +	return r;
-> +}
-> +
-> +static int ipu3_subdev_get_fmt(struct v4l2_subdev *sd,
-> +			       struct v4l2_subdev_pad_config *cfg,
-> +			       struct v4l2_subdev_format *fmt)
-> +{
-> +	struct ipu3_mem2mem2_device *m2m2 =
-> +		container_of(sd, struct ipu3_mem2mem2_device, subdev);
-> +	struct v4l2_mbus_framefmt *mf;
-> +	u32 pad = fmt->pad;
-> +
-> +	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-> +		fmt->format = m2m2->nodes[pad].pad_fmt;
-> +	} else {
-> +		mf = v4l2_subdev_get_try_format(sd, cfg, pad);
-> +		fmt->format = *mf;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int ipu3_subdev_set_fmt(struct v4l2_subdev *sd,
-> +			       struct v4l2_subdev_pad_config *cfg,
-> +			       struct v4l2_subdev_format *fmt)
-> +{
-> +	struct ipu3_mem2mem2_device *m2m2 =
-> +		container_of(sd, struct ipu3_mem2mem2_device, subdev);
-> +	struct v4l2_mbus_framefmt *mf;
-> +	u32 pad = fmt->pad;
-> +
-> +	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
-> +		mf = v4l2_subdev_get_try_format(sd, cfg, pad);
-> +	else
-> +		mf = &m2m2->nodes[pad].pad_fmt;
-> +
-> +	/* Clamp the w and h based on the hardware capabilities */
-> +	if (m2m2->subdev_pads[pad].flags & MEDIA_PAD_FL_SOURCE) {
-> +
-> +		fmt->format.width = clamp(fmt->format.width,
-> +					IPU3_OUTPUT_MIN_WIDTH,
-> +					IPU3_OUTPUT_MAX_WIDTH);
-> +		fmt->format.height = clamp(fmt->format.height,
-> +					IPU3_OUTPUT_MIN_HEIGHT,
-> +					IPU3_OUTPUT_MAX_HEIGHT);
-> +	} else {
-> +		fmt->format.width = clamp(fmt->format.width,
-> +					IPU3_INPUT_MIN_WIDTH,
-> +					IPU3_INPUT_MAX_WIDTH);
-> +		fmt->format.height = clamp(fmt->format.height,
-> +					IPU3_INPUT_MIN_HEIGHT,
-> +					IPU3_INPUT_MAX_HEIGHT);
-> +	}
-> +
-> +	*mf = fmt->format;
-> +
-> +	return 0;
-> +}
-> +
-> +/******************** media_entity_operations ********************/
-> +
-> +static int ipu3_link_setup(struct media_entity *entity,
-> +				     const struct media_pad *local,
-> +				     const struct media_pad *remote, u32 flags)
-> +{
-> +	struct ipu3_mem2mem2_device *m2m2 =
-> +	    container_of(entity, struct ipu3_mem2mem2_device, subdev.entity);
-> +	u32 pad = local->index;
-> +
-> +	WARN_ON(pad >= m2m2->num_nodes);
-> +
-> +	m2m2->nodes[pad].enabled = !!(flags & MEDIA_LNK_FL_ENABLED);
-> +
-> +	return 0;
-> +}
-> +
-> +/******************** vb2_ops ********************/
-> +
-> +/* Transfer buffer ownership to me */
-> +static void ipu3_vb2_buf_queue(struct vb2_buffer *vb)
-> +{
-> +	struct ipu3_mem2mem2_device *m2m2 = vb2_get_drv_priv(vb->vb2_queue);
-> +	struct imgu_device *imgu =
-> +		container_of(m2m2, struct imgu_device, mem2mem2);
-> +	struct imgu_video_device *node =
-> +		container_of(vb->vb2_queue, struct imgu_video_device, vbq);
-> +	struct ipu3_mem2mem2_buffer *b =
-> +		container_of(vb, struct ipu3_mem2mem2_buffer, vbb.vb2_buf);
-> +	int queue;
-> +
-> +	list_add_tail(&b->list, &node->buffers);
-> +
-> +	queue = imgu_node_to_queue(node - m2m2->nodes);
-> +
-> +	if (queue < 0) {
-> +		dev_err(&imgu->pci_dev->dev, "Invalid imgu node.\n");
-> +		return;
-> +	}
-> +
-> +	if (queue == IPU3_CSS_QUEUE_PARAMS) {
-> +		unsigned int need_bytes = sizeof(struct ipu3_uapi_params);
-> +		int r = -EINVAL;
-> +
-> +		if (vb2_get_plane_payload(vb, 0) >= need_bytes)
-> +			r = ipu3_css_set_parameters(&imgu->css,
-> +						vb2_plane_vaddr(vb, 0),
-> +						NULL, 0, NULL, 0);
-> +		imgu_buffer_done(imgu, vb, r == 0 ? VB2_BUF_STATE_DONE
-> +						: VB2_BUF_STATE_ERROR);
-> +	} else {
-> +		struct imgu_buffer *buf = container_of(vb,
-> +				struct imgu_buffer, m2m2_buf.vbb.vb2_buf);
-> +		dma_addr_t daddr = vb2_dma_contig_plane_dma_addr(vb, 0);
-> +
-> +		ipu3_css_buf_init(&buf->css_buf, queue, daddr);
-> +
-> +		if (imgu->mem2mem2.streaming)
-> +			imgu_queue_buffers(imgu, false);
-> +	}
-> +}
-> +
-> +static int ipu3_vb2_queue_setup(struct vb2_queue *vq,
-> +				unsigned int *num_buffers,
-> +				unsigned int *num_planes,
-> +				unsigned int sizes[],
-> +				struct device *alloc_devs[])
-> +{
-> +	struct ipu3_mem2mem2_device *m2m2 = vb2_get_drv_priv(vq);
-> +	struct imgu_video_device *node =
-> +		container_of(vq, struct imgu_video_device, vbq);
-> +	const struct v4l2_format *fmt = &node->vdev_fmt;
-> +	const struct v4l2_pix_format *pix = &fmt->fmt.pix;
-> +
-> +	alloc_devs[0] = m2m2->vb2_alloc_dev;
-> +
-> +	if (*num_planes) {
-> +		/*
-> +		 * Only single plane is supported
-> +		 */
-> +		if (*num_planes != 1 || sizes[0] < pix->sizeimage)
-> +			return -EINVAL;
-> +	}
-> +
-> +	*num_planes = 1;
-> +	sizes[0] = pix->sizeimage;
-> +	*num_buffers = clamp_val(*num_buffers, 1, VB2_MAX_FRAME);
-> +
-> +	/* Initialize buffer queue */
-> +
-> +	INIT_LIST_HEAD(&node->buffers);
-> +
-> +	return 0;
-> +}
-> +
-> +/* Check if all enabled video nodes are streaming, exception ignored */
-> +static bool ipu3_all_nodes_streaming(struct ipu3_mem2mem2_device *m2m2,
-> +					 struct imgu_video_device *except)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < m2m2->num_nodes; i++) {
-> +		struct imgu_video_device *node = &m2m2->nodes[i];
-> +
-> +		if (node == except)
-> +			continue;
-> +		if (node->enabled && !vb2_start_streaming_called(&node->vbq))
-> +			return false;
-> +	}
-> +
-> +	return true;
-> +}
-> +
-> +static void ipu3_return_all_buffers(struct ipu3_mem2mem2_device *m2m2,
-> +					struct imgu_video_device *node,
-> +					enum vb2_buffer_state state)
-> +{
-> +	struct ipu3_mem2mem2_buffer *b, *b0;
-> +
-> +	/* Return all buffers */
-> +	list_for_each_entry_safe(b, b0, &node->buffers, list) {
-> +		list_del(&b->list);
-> +		vb2_buffer_done(&b->vbb.vb2_buf, state);
-> +	}
-> +}
-> +
-> +static int ipu3_vb2_start_streaming(struct vb2_queue *vq, unsigned int count)
-> +{
-> +	struct ipu3_mem2mem2_device *m2m2 = vb2_get_drv_priv(vq);
-> +	struct imgu_video_device *node =
-> +		container_of(vq, struct imgu_video_device, vbq);
-> +	int r;
-> +
-> +	if (m2m2->streaming) {
-> +		r = -EBUSY;
-> +		goto fail_return_bufs;
-> +	}
-> +
-> +	if (!node->enabled) {
-> +		r = -EINVAL;
-> +		goto fail_return_bufs;
-> +	}
-> +
-> +	r = media_pipeline_start(&node->vdev.entity, &m2m2->pipeline);
-> +	if (r < 0)
-> +		goto fail_return_bufs;
-> +
-> +	if (!ipu3_all_nodes_streaming(m2m2, node))
-> +		return 0;
-> +
-> +	/* Start streaming of the whole pipeline now */
-> +
-> +	r = v4l2_subdev_call(&m2m2->subdev, video, s_stream, 1);
-> +	if (r < 0)
-> +		goto fail_stop_pipeline;
-> +
-> +	return 0;
-> +
-> +fail_stop_pipeline:
-> +	media_pipeline_stop(&node->vdev.entity);
-> +fail_return_bufs:
-> +	ipu3_return_all_buffers(m2m2, node, VB2_BUF_STATE_QUEUED);
-> +
-> +	return r;
-> +}
-> +
-> +static void ipu3_vb2_stop_streaming(struct vb2_queue *vq)
-> +{
-> +	struct ipu3_mem2mem2_device *m2m2 = vb2_get_drv_priv(vq);
-> +	struct imgu_video_device *node =
-> +		container_of(vq, struct imgu_video_device, vbq);
-> +	int r;
-> +
-> +	WARN_ON(!node->enabled);
-> +
-> +	/* Was this the first node with streaming disabled? */
-> +	if (ipu3_all_nodes_streaming(m2m2, node)) {
-> +		/* Yes, really stop streaming now */
-> +		r = v4l2_subdev_call(&m2m2->subdev, video, s_stream, 0);
-> +		if (r)
-> +			dev_err(m2m2->dev, "failed to stop streaming\n");
-> +	}
-> +
-> +	ipu3_return_all_buffers(m2m2, node, VB2_BUF_STATE_ERROR);
-> +	media_pipeline_stop(&node->vdev.entity);
-> +
-> +}
-> +
-> +/******************** v4l2_ioctl_ops ********************/
-> +
-> +static int ipu3_videoc_querycap(struct file *file, void *fh,
-> +				  struct v4l2_capability *cap)
-> +{
-> +	struct ipu3_mem2mem2_device *m2m2 = video_drvdata(file);
-> +	struct imgu_video_device *node = file_to_intel_ipu3_node(file);
-> +
-> +	strlcpy(cap->driver, m2m2->name, sizeof(cap->driver));
-> +	strlcpy(cap->card, m2m2->model, sizeof(cap->card));
-> +	snprintf(cap->bus_info, sizeof(cap->bus_info), "%s", node->name);
-> +	cap->device_caps = V4L2_CAP_STREAMING;
-> +	cap->device_caps |= node->output ?
-> +		V4L2_CAP_VIDEO_OUTPUT : V4L2_CAP_VIDEO_CAPTURE;
-> +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+We can simplify logging as we now have a proper i2c client
+to pass for kernel dev_* logging functions.
 
-Don't set device_caps/capabilities here. Instead fill in the device_caps field
-of struct video_device. The V4L2 core will fill in the struct v4l2_capability
-device_caps/capabilities fields for you based on that.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/af9013.c | 202 +++++++++++++++++------------------
+ 1 file changed, 100 insertions(+), 102 deletions(-)
 
-> +
-> +	return 0;
-> +}
-> +
-> +/* Propagate forward always the format from the CIO2 subdev */
-> +static int ipu3_videoc_g_fmt(struct file *file, void *fh,
-> +			       struct v4l2_format *f)
-> +{
-> +	struct imgu_video_device *node = file_to_intel_ipu3_node(file);
-> +
-> +	f->fmt = node->vdev_fmt.fmt;
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * Set input/output format. Unless it is just a try, this also resets
-> + * selections (ie. effective and BDS resolutions) to defaults.
-> + */
-> +static int mem2mem2_fmt(struct ipu3_mem2mem2_device *m2m2_dev,
-> +			int node, struct v4l2_format *f, bool try)
-> +{
-> +	struct imgu_device *imgu =
-> +		container_of(m2m2_dev, struct imgu_device, mem2mem2);
-> +	struct v4l2_pix_format try_fmts[IPU3_CSS_QUEUES];
-> +	struct v4l2_pix_format *fmts[IPU3_CSS_QUEUES];
-> +	struct v4l2_rect *rects[IPU3_CSS_RECTS] = { NULL };
-> +	unsigned int i;
-> +	int css_q, r;
-> +
-> +	if (m2m2_dev->nodes[IMGU_NODE_PV].enabled &&
-> +		m2m2_dev->nodes[IMGU_NODE_VF].enabled) {
-> +		dev_err(&imgu->pci_dev->dev,
-> +				"Postview and vf are not supported simultaneously\n");
-> +		return -EINVAL;
-> +	}
-> +	/*
-> +	 * Tell css that the vf q is used for PV
-> +	 */
-> +	if (m2m2_dev->nodes[IMGU_NODE_PV].enabled)
-> +		imgu->css.vf_output_en = IPU3_NODE_PV_ENABLED;
-> +	else
-> +		imgu->css.vf_output_en = IPU3_NODE_VF_ENABLED;
-> +
-> +	for (i = 0; i < IPU3_CSS_QUEUES; i++) {
-> +		int inode = imgu_map_node(imgu, i);
-> +
-> +		if (inode < 0)
-> +			return -EINVAL;
-> +		if (try) {
-> +			try_fmts[i] = m2m2_dev->nodes[inode].vdev_fmt.fmt.pix;
-> +			fmts[i] = &try_fmts[i];
-> +		} else {
-> +			fmts[i] = &m2m2_dev->nodes[inode].vdev_fmt.fmt.pix;
-> +		}
-> +
-> +		/* CSS expects some format on OUT queue */
-> +		if (i != IPU3_CSS_QUEUE_OUT &&
-> +			!m2m2_dev->nodes[inode].enabled && inode != node)
-> +			fmts[i] = NULL;
-> +	}
-> +
-> +	if (!try) {
-> +		memset(&imgu->rect, 0, sizeof(imgu->rect));
-> +		rects[IPU3_CSS_RECT_EFFECTIVE] = &imgu->rect.eff;
-> +		rects[IPU3_CSS_RECT_BDS] = &imgu->rect.bds;
-> +	}
-> +
-> +	/*
-> +	 * ipu3_mem2mem2 doesn't set the node to the value given by user
-> +	 * before we return success from this function, so set it here.
-> +	 */
-> +	css_q = imgu_node_to_queue(node);
-> +	*fmts[css_q] = f->fmt.pix;
-> +
-> +	if (try)
-> +		r = ipu3_css_fmt_try(&imgu->css, fmts, rects);
-> +	else
-> +		r = ipu3_css_fmt_set(&imgu->css, fmts, rects);
-> +
-> +	/* fmt_try returns the binary number in the firmware blob */
-> +	return r < 0 ? r : 0;
-> +}
-> +
-> +static int ipu3_videoc_try_fmt(struct file *file, void *fh,
-> +				 struct v4l2_format *f)
-> +{
-> +	struct ipu3_mem2mem2_device *m2m2 = video_drvdata(file);
-> +	struct imgu_video_device *node = file_to_intel_ipu3_node(file);
-> +
-> +	return mem2mem2_fmt(m2m2, node - m2m2->nodes, f, true);
-> +}
-> +
-> +static int ipu3_videoc_s_fmt(struct file *file, void *fh,
-> +			       struct v4l2_format *f)
-> +{
-> +	struct ipu3_mem2mem2_device *m2m2 = video_drvdata(file);
-> +	struct imgu_video_device *node = file_to_intel_ipu3_node(file);
-> +	int r;
-> +
-> +	r = mem2mem2_fmt(m2m2, node - m2m2->nodes, f, false);
-> +	if (!r)
-> +		f->fmt = node->vdev_fmt.fmt;
-> +
-> +	return r;
-> +}
-> +
-> +/******************** function pointers ********************/
-> +
-> +static const struct v4l2_subdev_video_ops ipu3_subdev_video_ops = {
-> +	.s_stream = ipu3_subdev_s_stream,
-> +};
-> +
-> +static const struct v4l2_subdev_pad_ops ipu3_subdev_pad_ops = {
-> +	.link_validate = v4l2_subdev_link_validate_default,
-> +	.get_fmt = ipu3_subdev_get_fmt,
-> +	.set_fmt = ipu3_subdev_set_fmt,
-> +};
-> +
-> +static const struct v4l2_subdev_ops ipu3_subdev_ops = {
-> +	.video = &ipu3_subdev_video_ops,
-> +	.pad = &ipu3_subdev_pad_ops,
-> +};
-> +
-> +static const struct media_entity_operations ipu3_media_ops = {
-> +	.link_setup = ipu3_link_setup,
-> +	.link_validate = v4l2_subdev_link_validate,
-> +};
-> +
-> +/****************** vb2_ops of the Q ********************/
-> +
-> +static const struct vb2_ops ipu3_vb2_ops = {
-> +	.buf_queue = ipu3_vb2_buf_queue,
-> +	.queue_setup = ipu3_vb2_queue_setup,
-> +	.start_streaming = ipu3_vb2_start_streaming,
-> +	.stop_streaming = ipu3_vb2_stop_streaming,
-> +	.wait_prepare = vb2_ops_wait_prepare,
-> +	.wait_finish = vb2_ops_wait_finish,
-> +};
-> +
-> +/****************** v4l2_file_operations *****************/
-> +
-> +static const struct v4l2_file_operations ipu3_v4l2_fops = {
-> +	.unlocked_ioctl = video_ioctl2,
-> +	.open = v4l2_fh_open,
-> +	.release = vb2_fop_release,
-> +	.poll = vb2_fop_poll,
-> +	.mmap = vb2_fop_mmap,
-> +};
-> +
-> +/******************** v4l2_ioctl_ops ********************/
-> +
-> +static const struct v4l2_ioctl_ops ipu3_v4l2_ioctl_ops = {
-> +	.vidioc_querycap = ipu3_videoc_querycap,
-> +
-> +	.vidioc_g_fmt_vid_cap = ipu3_videoc_g_fmt,
-> +	.vidioc_s_fmt_vid_cap = ipu3_videoc_s_fmt,
-> +	.vidioc_try_fmt_vid_cap = ipu3_videoc_try_fmt,
-> +
-> +	.vidioc_g_fmt_vid_out = ipu3_videoc_g_fmt,
-> +	.vidioc_s_fmt_vid_out = ipu3_videoc_s_fmt,
-> +	.vidioc_try_fmt_vid_out = ipu3_videoc_try_fmt,
-> +
-> +	/* buffer queue management */
-> +	.vidioc_reqbufs = vb2_ioctl_reqbufs,
-> +	.vidioc_create_bufs = vb2_ioctl_create_bufs,
-> +	.vidioc_prepare_buf = vb2_ioctl_prepare_buf,
-> +	.vidioc_querybuf = vb2_ioctl_querybuf,
-> +	.vidioc_qbuf = vb2_ioctl_qbuf,
-> +	.vidioc_dqbuf = vb2_ioctl_dqbuf,
-> +	.vidioc_streamon = vb2_ioctl_streamon,
-> +	.vidioc_streamoff = vb2_ioctl_streamoff,
-> +	.vidioc_expbuf = vb2_ioctl_expbuf,
-> +};
-> +
-> +/******************** Framework registration ********************/
-> +
-> +int ipu3_v4l2_register(struct imgu_device *dev)
-> +{
-> +	struct ipu3_mem2mem2_device *m2m2 = &dev->mem2mem2;
-> +	int i, r;
-> +
-> +	/* Initialize miscellaneous variables */
-> +	m2m2->streaming = false;
-> +	m2m2->v4l2_file_ops = ipu3_v4l2_fops;
-> +
-> +	/* Set up media device */
-> +	m2m2->media_dev.dev = m2m2->dev;
-> +	strlcpy(m2m2->media_dev.model, m2m2->model,
-> +		sizeof(m2m2->media_dev.model));
-> +	snprintf(m2m2->media_dev.bus_info, sizeof(m2m2->media_dev.bus_info),
-> +		 "%s", dev_name(m2m2->dev));
-> +	m2m2->media_dev.driver_version = KERNEL_VERSION(4, 11, 0);
-
-Use LINUX_VERSION_CODE here. That way it is updated to the current kernel version.
-This really should be part of media_device_init() IMHO. Just as we do for V4L2 and
-CEC devices.
-
-> +	m2m2->media_dev.hw_revision = 0;
-> +	media_device_init(&m2m2->media_dev);
-> +	r = media_device_register(&m2m2->media_dev);
-> +	if (r) {
-> +		dev_err(m2m2->dev, "failed to register media device (%d)\n", r);
-> +		goto fail_media_dev;
-> +	}
-> +
-> +	/* Set up v4l2 device */
-> +	m2m2->v4l2_dev.mdev = &m2m2->media_dev;
-> +	m2m2->v4l2_dev.ctrl_handler = m2m2->ctrl_handler;
-> +	r = v4l2_device_register(m2m2->dev, &m2m2->v4l2_dev);
-> +	if (r) {
-> +		dev_err(m2m2->dev, "failed to register V4L2 device (%d)\n", r);
-> +		goto fail_v4l2_dev;
-> +	}
-> +
-> +	/* Initialize subdev media entity */
-> +	m2m2->subdev_pads = kzalloc(sizeof(*m2m2->subdev_pads) *
-> +					m2m2->num_nodes, GFP_KERNEL);
-> +	if (!m2m2->subdev_pads) {
-> +		r = -ENOMEM;
-> +		goto fail_subdev_pads;
-> +	}
-> +	r = media_entity_pads_init(&m2m2->subdev.entity, m2m2->num_nodes,
-> +				   m2m2->subdev_pads);
-> +	if (r) {
-> +		dev_err(m2m2->dev,
-> +			"failed initialize subdev media entity (%d)\n", r);
-> +		goto fail_media_entity;
-> +	}
-> +	m2m2->subdev.entity.ops = &ipu3_media_ops;
-> +	for (i = 0; i < m2m2->num_nodes; i++) {
-> +		m2m2->subdev_pads[i].flags = m2m2->nodes[i].output ?
-> +			MEDIA_PAD_FL_SINK : MEDIA_PAD_FL_SOURCE;
-> +	}
-> +
-> +	/* Initialize subdev */
-> +	v4l2_subdev_init(&m2m2->subdev, &ipu3_subdev_ops);
-> +	m2m2->subdev.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +	snprintf(m2m2->subdev.name, sizeof(m2m2->subdev.name),
-> +		 "%s", m2m2->name);
-> +	v4l2_set_subdevdata(&m2m2->subdev, m2m2);
-> +	m2m2->subdev.ctrl_handler = m2m2->ctrl_handler;
-> +	r = v4l2_device_register_subdev(&m2m2->v4l2_dev, &m2m2->subdev);
-> +	if (r) {
-> +		dev_err(m2m2->dev, "failed initialize subdev (%d)\n", r);
-> +		goto fail_subdev;
-> +	}
-> +	r = v4l2_device_register_subdev_nodes(&m2m2->v4l2_dev);
-> +	if (r) {
-> +		dev_err(m2m2->dev, "failed to register subdevs (%d)\n", r);
-> +		goto fail_subdevs;
-> +	}
-> +
-> +	/* Create video nodes and links */
-> +	for (i = 0; i < m2m2->num_nodes; i++) {
-> +		struct imgu_video_device *node = &m2m2->nodes[i];
-> +		struct video_device *vdev = &node->vdev;
-> +		struct vb2_queue *vbq = &node->vbq;
-> +		struct v4l2_mbus_framefmt *fmt;
-> +		u32 flags;
-> +
-> +		/* Initialize miscellaneous variables */
-> +		mutex_init(&node->lock);
-> +		INIT_LIST_HEAD(&node->buffers);
-> +
-> +		/* Initialize formats to default values */
-> +		fmt = &node->pad_fmt;
-> +		fmt->width = 352;
-> +		fmt->height = 288;
-> +		fmt->code = MEDIA_BUS_FMT_UYVY8_2X8;
-> +		fmt->field = V4L2_FIELD_NONE;
-> +		fmt->colorspace = V4L2_COLORSPACE_RAW;
-> +		fmt->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
-> +		fmt->quantization = V4L2_QUANTIZATION_DEFAULT;
-> +		fmt->xfer_func = V4L2_XFER_FUNC_DEFAULT;
-> +		fmt = &node->pad_fmt;
-> +		node->vdev_fmt.type = node->output ?
-> +			V4L2_BUF_TYPE_VIDEO_OUTPUT :
-> +			V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +		node->vdev_fmt.fmt.pix.width = fmt->width;
-> +		node->vdev_fmt.fmt.pix.height = fmt->height;
-> +		node->vdev_fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
-> +		node->vdev_fmt.fmt.pix.field = fmt->field;
-> +		node->vdev_fmt.fmt.pix.bytesperline = fmt->width * 2;
-> +		node->vdev_fmt.fmt.pix.sizeimage =
-> +			node->vdev_fmt.fmt.pix.bytesperline * fmt->height;
-> +		node->vdev_fmt.fmt.pix.colorspace = fmt->colorspace;
-> +		node->vdev_fmt.fmt.pix.priv = 0;
-> +		node->vdev_fmt.fmt.pix.flags = 0;
-> +		node->vdev_fmt.fmt.pix.ycbcr_enc = fmt->ycbcr_enc;
-> +		node->vdev_fmt.fmt.pix.quantization = fmt->quantization;
-> +		node->vdev_fmt.fmt.pix.xfer_func = fmt->xfer_func;
-> +
-> +		/* Initialize media entities */
-> +		r = media_entity_pads_init(&vdev->entity, 1, &node->vdev_pad);
-> +		if (r) {
-> +			dev_err(m2m2->dev,
-> +				"failed initialize media entity (%d)\n", r);
-> +			goto fail_vdev_media_entity;
-> +		}
-> +		node->vdev_pad.flags = node->output ?
-> +			MEDIA_PAD_FL_SOURCE : MEDIA_PAD_FL_SINK;
-> +		vdev->entity.ops = NULL;
-> +
-> +		/* Initialize vbq */
-> +		vbq->type = node->output ?
-> +		    V4L2_BUF_TYPE_VIDEO_OUTPUT : V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +		vbq->io_modes = VB2_USERPTR | VB2_MMAP;
-
-You should add VB2_DMABUF.
-
-Are you sure VB2_USERPTR works? This implies that the video buffer can start at
-an offset within the first page of the buffer.
-
-> +		vbq->ops = &ipu3_vb2_ops;
-> +		vbq->mem_ops = m2m2->vb2_mem_ops;
-> +		if (m2m2->buf_struct_size <= 0)
-> +			m2m2->buf_struct_size =
-> +				sizeof(struct ipu3_mem2mem2_buffer);
-> +		vbq->buf_struct_size = m2m2->buf_struct_size;
-> +		vbq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> +		vbq->min_buffers_needed = 0;	/* Can streamon w/o buffers */
-> +		vbq->drv_priv = m2m2;
-> +		vbq->lock = &node->lock;
-> +		r = vb2_queue_init(vbq);
-> +		if (r) {
-> +			dev_err(m2m2->dev,
-> +				"failed to initialize video queue (%d)\n", r);
-> +			goto fail_vdev;
-> +		}
-> +
-> +		/* Initialize vdev */
-> +		strlcpy(vdev->name, node->name, sizeof(vdev->name));
-> +		vdev->release = video_device_release_empty;
-> +		vdev->fops = &m2m2->v4l2_file_ops;
-> +		vdev->ioctl_ops = &ipu3_v4l2_ioctl_ops;
-> +		vdev->lock = &node->lock;
-> +		vdev->v4l2_dev = &m2m2->v4l2_dev;
-> +		vdev->queue = &node->vbq;
-> +		vdev->vfl_dir = node->output ? VFL_DIR_TX : VFL_DIR_RX;
-
-Why have two video nodes (one tx, one rx) instead of a single m2m device node?
-
-I'm not saying this is wrong, I just like to know the rationale for this design.
-
-> +		video_set_drvdata(vdev, m2m2);
-> +		r = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
-> +		if (r) {
-> +			dev_err(m2m2->dev,
-> +				"failed to register video device (%d)\n", r);
-> +			goto fail_vdev;
-> +		}
-> +
-> +		/* Create link between video node and the subdev pad */
-> +		flags = 0;
-> +		if (node->enabled)
-> +			flags |= MEDIA_LNK_FL_ENABLED;
-> +		if (node->immutable)
-> +			flags |= MEDIA_LNK_FL_IMMUTABLE;
-> +		if (node->output) {
-> +			r = media_create_pad_link(
-> +						 &vdev->entity, 0,
-> +						 &m2m2->subdev.entity,
-> +						 i, flags);
-> +		} else {
-> +			r = media_create_pad_link(
-> +						 &m2m2->subdev.entity,
-> +						 i, &vdev->entity, 0,
-> +						 flags);
-> +		}
-> +		if (r)
-> +			goto fail_link;
-> +
-> +	}
-> +
-> +	return 0;
-> +
-> +	for (; i >= 0; i--) {
-> +fail_link:
-> +		video_unregister_device(&m2m2->nodes[i].vdev);
-> +fail_vdev:
-> +		media_entity_cleanup(&m2m2->nodes[i].vdev.entity);
-> +fail_vdev_media_entity:
-> +		mutex_destroy(&m2m2->nodes[i].lock);
-> +	}
-> +fail_subdevs:
-> +	v4l2_device_unregister_subdev(&m2m2->subdev);
-> +fail_subdev:
-> +	media_entity_cleanup(&m2m2->subdev.entity);
-> +fail_media_entity:
-> +	kfree(m2m2->subdev_pads);
-> +fail_subdev_pads:
-> +	v4l2_device_unregister(&m2m2->v4l2_dev);
-> +fail_v4l2_dev:
-> +	media_device_unregister(&m2m2->media_dev);
-> +	media_device_cleanup(&m2m2->media_dev);
-> +fail_media_dev:
-> +
-> +	return r;
-> +}
-> +EXPORT_SYMBOL_GPL(ipu3_v4l2_register);
-> +
-> +int ipu3_v4l2_unregister(struct imgu_device *dev)
-> +{
-> +	struct ipu3_mem2mem2_device *m2m2 = &dev->mem2mem2;
-> +	unsigned int i;
-> +
-> +	for (i = 0; i < m2m2->num_nodes; i++) {
-> +		video_unregister_device(&m2m2->nodes[i].vdev);
-> +		media_entity_cleanup(&m2m2->nodes[i].vdev.entity);
-> +		mutex_destroy(&m2m2->nodes[i].lock);
-> +	}
-> +
-> +	v4l2_device_unregister_subdev(&m2m2->subdev);
-> +	media_entity_cleanup(&m2m2->subdev.entity);
-> +	kfree(m2m2->subdev_pads);
-> +	v4l2_device_unregister(&m2m2->v4l2_dev);
-> +	media_device_unregister(&m2m2->media_dev);
-> +	media_device_cleanup(&m2m2->media_dev);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(ipu3_v4l2_unregister);
-> +
-> +void ipu3_v4l2_buffer_done(struct vb2_buffer *vb,
-> +			   enum vb2_buffer_state state)
-> +{
-> +	struct ipu3_mem2mem2_buffer *b =
-> +		container_of(vb, struct ipu3_mem2mem2_buffer, vbb.vb2_buf);
-> +
-> +	list_del(&b->list);
-> +	vb2_buffer_done(&b->vbb.vb2_buf, state);
-> +};
-> +EXPORT_SYMBOL_GPL(ipu3_v4l2_buffer_done);
-> +
-> +MODULE_AUTHOR("Tuukka Toivonen <tuukka.toivonen@intel.com>");
-> +MODULE_AUTHOR("Tianshu Qiu <tian.shu.qiu@intel.com>");
-> +MODULE_AUTHOR("Jian Xu Zheng <jian.xu.zheng@intel.com>");
-> +MODULE_AUTHOR("Yuning Pu <yuning.pu@intel.com>");
-> +MODULE_AUTHOR("Yong Zhi <yong.zhi@intel.com>");
-> +MODULE_LICENSE("GPL v2");
-> +MODULE_DESCRIPTION("Intel IPU3 Camera Sub-system (ImgU) driver");
-> 
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
+index dd7ac0a..781e958 100644
+--- a/drivers/media/dvb-frontends/af9013.c
++++ b/drivers/media/dvb-frontends/af9013.c
+@@ -51,14 +51,15 @@ struct af9013_state {
+ };
+ 
+ /* write multiple registers */
+-static int af9013_wr_regs_i2c(struct af9013_state *priv, u8 mbox, u16 reg,
++static int af9013_wr_regs_i2c(struct af9013_state *state, u8 mbox, u16 reg,
+ 	const u8 *val, int len)
+ {
++	struct i2c_client *client = state->client;
+ 	int ret;
+ 	u8 buf[MAX_XFER_SIZE];
+ 	struct i2c_msg msg[1] = {
+ 		{
+-			.addr = priv->client->addr,
++			.addr = state->client->addr,
+ 			.flags = 0,
+ 			.len = 3 + len,
+ 			.buf = buf,
+@@ -66,9 +67,8 @@ static int af9013_wr_regs_i2c(struct af9013_state *priv, u8 mbox, u16 reg,
+ 	};
+ 
+ 	if (3 + len > sizeof(buf)) {
+-		dev_warn(&priv->client->dev,
+-			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+-			 KBUILD_MODNAME, reg, len);
++		dev_warn(&client->dev, "i2c wr reg %04x, len %d, is too big!\n",
++			 reg, len);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -77,31 +77,32 @@ static int af9013_wr_regs_i2c(struct af9013_state *priv, u8 mbox, u16 reg,
+ 	buf[2] = mbox;
+ 	memcpy(&buf[3], val, len);
+ 
+-	ret = i2c_transfer(priv->client->adapter, msg, 1);
++	ret = i2c_transfer(state->client->adapter, msg, 1);
+ 	if (ret == 1) {
+ 		ret = 0;
+ 	} else {
+-		dev_warn(&priv->client->dev, "%s: i2c wr failed=%d reg=%04x " \
+-				"len=%d\n", KBUILD_MODNAME, ret, reg, len);
++		dev_warn(&client->dev, "i2c wr failed %d, reg %04x, len %d\n",
++			 ret, reg, len);
+ 		ret = -EREMOTEIO;
+ 	}
+ 	return ret;
+ }
+ 
+ /* read multiple registers */
+-static int af9013_rd_regs_i2c(struct af9013_state *priv, u8 mbox, u16 reg,
++static int af9013_rd_regs_i2c(struct af9013_state *state, u8 mbox, u16 reg,
+ 	u8 *val, int len)
+ {
++	struct i2c_client *client = state->client;
+ 	int ret;
+ 	u8 buf[3];
+ 	struct i2c_msg msg[2] = {
+ 		{
+-			.addr = priv->client->addr,
++			.addr = state->client->addr,
+ 			.flags = 0,
+ 			.len = 3,
+ 			.buf = buf,
+ 		}, {
+-			.addr = priv->client->addr,
++			.addr = state->client->addr,
+ 			.flags = I2C_M_RD,
+ 			.len = len,
+ 			.buf = val,
+@@ -112,31 +113,31 @@ static int af9013_rd_regs_i2c(struct af9013_state *priv, u8 mbox, u16 reg,
+ 	buf[1] = (reg >> 0) & 0xff;
+ 	buf[2] = mbox;
+ 
+-	ret = i2c_transfer(priv->client->adapter, msg, 2);
++	ret = i2c_transfer(state->client->adapter, msg, 2);
+ 	if (ret == 2) {
+ 		ret = 0;
+ 	} else {
+-		dev_warn(&priv->client->dev, "%s: i2c rd failed=%d reg=%04x " \
+-				"len=%d\n", KBUILD_MODNAME, ret, reg, len);
++		dev_warn(&client->dev, "i2c rd failed %d, reg %04x, len %d\n",
++			 ret, reg, len);
+ 		ret = -EREMOTEIO;
+ 	}
+ 	return ret;
+ }
+ 
+ /* write multiple registers */
+-static int af9013_wr_regs(struct af9013_state *priv, u16 reg, const u8 *val,
++static int af9013_wr_regs(struct af9013_state *state, u16 reg, const u8 *val,
+ 	int len)
+ {
+ 	int ret, i;
+ 	u8 mbox = (0 << 7)|(0 << 6)|(1 << 1)|(1 << 0);
+ 
+-	if ((priv->ts_mode == AF9013_TS_USB) &&
++	if ((state->ts_mode == AF9013_TS_USB) &&
+ 		((reg & 0xff00) != 0xff00) && ((reg & 0xff00) != 0xae00)) {
+ 		mbox |= ((len - 1) << 2);
+-		ret = af9013_wr_regs_i2c(priv, mbox, reg, val, len);
++		ret = af9013_wr_regs_i2c(state, mbox, reg, val, len);
+ 	} else {
+ 		for (i = 0; i < len; i++) {
+-			ret = af9013_wr_regs_i2c(priv, mbox, reg+i, val+i, 1);
++			ret = af9013_wr_regs_i2c(state, mbox, reg+i, val+i, 1);
+ 			if (ret)
+ 				goto err;
+ 		}
+@@ -147,18 +148,18 @@ static int af9013_wr_regs(struct af9013_state *priv, u16 reg, const u8 *val,
+ }
+ 
+ /* read multiple registers */
+-static int af9013_rd_regs(struct af9013_state *priv, u16 reg, u8 *val, int len)
++static int af9013_rd_regs(struct af9013_state *state, u16 reg, u8 *val, int len)
+ {
+ 	int ret, i;
+ 	u8 mbox = (0 << 7)|(0 << 6)|(1 << 1)|(0 << 0);
+ 
+-	if ((priv->ts_mode == AF9013_TS_USB) &&
++	if ((state->ts_mode == AF9013_TS_USB) &&
+ 		((reg & 0xff00) != 0xff00) && ((reg & 0xff00) != 0xae00)) {
+ 		mbox |= ((len - 1) << 2);
+-		ret = af9013_rd_regs_i2c(priv, mbox, reg, val, len);
++		ret = af9013_rd_regs_i2c(state, mbox, reg, val, len);
+ 	} else {
+ 		for (i = 0; i < len; i++) {
+-			ret = af9013_rd_regs_i2c(priv, mbox, reg+i, val+i, 1);
++			ret = af9013_rd_regs_i2c(state, mbox, reg+i, val+i, 1);
+ 			if (ret)
+ 				goto err;
+ 		}
+@@ -169,15 +170,15 @@ static int af9013_rd_regs(struct af9013_state *priv, u16 reg, u8 *val, int len)
+ }
+ 
+ /* write single register */
+-static int af9013_wr_reg(struct af9013_state *priv, u16 reg, u8 val)
++static int af9013_wr_reg(struct af9013_state *state, u16 reg, u8 val)
+ {
+-	return af9013_wr_regs(priv, reg, &val, 1);
++	return af9013_wr_regs(state, reg, &val, 1);
+ }
+ 
+ /* read single register */
+-static int af9013_rd_reg(struct af9013_state *priv, u16 reg, u8 *val)
++static int af9013_rd_reg(struct af9013_state *state, u16 reg, u8 *val)
+ {
+-	return af9013_rd_regs(priv, reg, val, 1);
++	return af9013_rd_regs(state, reg, val, 1);
+ }
+ 
+ static int af9013_write_ofsm_regs(struct af9013_state *state, u16 reg, u8 *val,
+@@ -226,12 +227,12 @@ static int af9013_rd_reg_bits(struct af9013_state *state, u16 reg, int pos,
+ 
+ static int af9013_set_gpio(struct af9013_state *state, u8 gpio, u8 gpioval)
+ {
++	struct i2c_client *client = state->client;
+ 	int ret;
+ 	u8 pos;
+ 	u16 addr;
+ 
+-	dev_dbg(&state->client->dev, "%s: gpio=%d gpioval=%02x\n",
+-			__func__, gpio, gpioval);
++	dev_dbg(&client->dev, "gpio %u, gpioval %02x\n", gpio, gpioval);
+ 
+ 	/*
+ 	 * GPIO0 & GPIO1 0xd735
+@@ -249,8 +250,6 @@ static int af9013_set_gpio(struct af9013_state *state, u8 gpio, u8 gpioval)
+ 		break;
+ 
+ 	default:
+-		dev_err(&state->client->dev, "%s: invalid gpio=%d\n",
+-				KBUILD_MODNAME, gpio);
+ 		ret = -EINVAL;
+ 		goto err;
+ 	}
+@@ -273,16 +272,17 @@ static int af9013_set_gpio(struct af9013_state *state, u8 gpio, u8 gpioval)
+ 
+ 	return ret;
+ err:
+-	dev_dbg(&state->client->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+ }
+ 
+ static int af9013_power_ctrl(struct af9013_state *state, u8 onoff)
+ {
++	struct i2c_client *client = state->client;
+ 	int ret, i;
+ 	u8 tmp;
+ 
+-	dev_dbg(&state->client->dev, "%s: onoff=%d\n", __func__, onoff);
++	dev_dbg(&client->dev, "onoff %d\n", onoff);
+ 
+ 	/* enable reset */
+ 	ret = af9013_wr_reg_bits(state, 0xd417, 4, 1, 1);
+@@ -327,16 +327,17 @@ static int af9013_power_ctrl(struct af9013_state *state, u8 onoff)
+ 
+ 	return ret;
+ err:
+-	dev_dbg(&state->client->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+ }
+ 
+ static int af9013_statistics_ber_unc_start(struct dvb_frontend *fe)
+ {
+ 	struct af9013_state *state = fe->demodulator_priv;
++	struct i2c_client *client = state->client;
+ 	int ret;
+ 
+-	dev_dbg(&state->client->dev, "%s:\n", __func__);
++	dev_dbg(&client->dev, "\n");
+ 
+ 	/* reset and start BER counter */
+ 	ret = af9013_wr_reg_bits(state, 0xd391, 4, 1, 1);
+@@ -345,17 +346,18 @@ static int af9013_statistics_ber_unc_start(struct dvb_frontend *fe)
+ 
+ 	return ret;
+ err:
+-	dev_dbg(&state->client->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+ }
+ 
+ static int af9013_statistics_ber_unc_result(struct dvb_frontend *fe)
+ {
+ 	struct af9013_state *state = fe->demodulator_priv;
++	struct i2c_client *client = state->client;
+ 	int ret;
+ 	u8 buf[5];
+ 
+-	dev_dbg(&state->client->dev, "%s:\n", __func__);
++	dev_dbg(&client->dev, "\n");
+ 
+ 	/* check if error bit count is ready */
+ 	ret = af9013_rd_reg_bits(state, 0xd391, 4, 1, &buf[0]);
+@@ -363,7 +365,7 @@ static int af9013_statistics_ber_unc_result(struct dvb_frontend *fe)
+ 		goto err;
+ 
+ 	if (!buf[0]) {
+-		dev_dbg(&state->client->dev, "%s: not ready\n", __func__);
++		dev_dbg(&client->dev, "not ready\n");
+ 		return 0;
+ 	}
+ 
+@@ -376,16 +378,17 @@ static int af9013_statistics_ber_unc_result(struct dvb_frontend *fe)
+ 
+ 	return ret;
+ err:
+-	dev_dbg(&state->client->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+ }
+ 
+ static int af9013_statistics_snr_start(struct dvb_frontend *fe)
+ {
+ 	struct af9013_state *state = fe->demodulator_priv;
++	struct i2c_client *client = state->client;
+ 	int ret;
+ 
+-	dev_dbg(&state->client->dev, "%s:\n", __func__);
++	dev_dbg(&client->dev, "\n");
+ 
+ 	/* start SNR meas */
+ 	ret = af9013_wr_reg_bits(state, 0xd2e1, 3, 1, 1);
+@@ -394,19 +397,20 @@ static int af9013_statistics_snr_start(struct dvb_frontend *fe)
+ 
+ 	return ret;
+ err:
+-	dev_dbg(&state->client->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+ }
+ 
+ static int af9013_statistics_snr_result(struct dvb_frontend *fe)
+ {
+ 	struct af9013_state *state = fe->demodulator_priv;
++	struct i2c_client *client = state->client;
+ 	int ret, i, len;
+ 	u8 buf[3], tmp;
+ 	u32 snr_val;
+ 	const struct af9013_snr *uninitialized_var(snr_lut);
+ 
+-	dev_dbg(&state->client->dev, "%s:\n", __func__);
++	dev_dbg(&client->dev, "\n");
+ 
+ 	/* check if SNR ready */
+ 	ret = af9013_rd_reg_bits(state, 0xd2e1, 3, 1, &tmp);
+@@ -414,7 +418,7 @@ static int af9013_statistics_snr_result(struct dvb_frontend *fe)
+ 		goto err;
+ 
+ 	if (!tmp) {
+-		dev_dbg(&state->client->dev, "%s: not ready\n", __func__);
++		dev_dbg(&client->dev, "not ready\n");
+ 		return 0;
+ 	}
+ 
+@@ -457,18 +461,19 @@ static int af9013_statistics_snr_result(struct dvb_frontend *fe)
+ 
+ 	return ret;
+ err:
+-	dev_dbg(&state->client->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+ }
+ 
+ static int af9013_statistics_signal_strength(struct dvb_frontend *fe)
+ {
+ 	struct af9013_state *state = fe->demodulator_priv;
++	struct i2c_client *client = state->client;
+ 	int ret = 0;
+ 	u8 buf[2], rf_gain, if_gain;
+ 	int signal_strength;
+ 
+-	dev_dbg(&state->client->dev, "%s:\n", __func__);
++	dev_dbg(&client->dev, "\n");
+ 
+ 	if (!state->signal_strength_en)
+ 		return 0;
+@@ -494,7 +499,7 @@ static int af9013_statistics_signal_strength(struct dvb_frontend *fe)
+ 
+ 	return ret;
+ err:
+-	dev_dbg(&state->client->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -558,14 +563,15 @@ static int af9013_get_tune_settings(struct dvb_frontend *fe,
+ static int af9013_set_frontend(struct dvb_frontend *fe)
+ {
+ 	struct af9013_state *state = fe->demodulator_priv;
++	struct i2c_client *client = state->client;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret, i, sampling_freq;
+ 	bool auto_mode, spec_inv;
+ 	u8 buf[6];
+ 	u32 if_frequency, freq_cw;
+ 
+-	dev_dbg(&state->client->dev, "%s: frequency=%d bandwidth_hz=%d\n",
+-			__func__, c->frequency, c->bandwidth_hz);
++	dev_dbg(&client->dev, "frequency %u, bandwidth_hz %u\n",
++		c->frequency, c->bandwidth_hz);
+ 
+ 	/* program tuner */
+ 	if (fe->ops.tuner_ops.set_params)
+@@ -596,8 +602,7 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
+ 		else
+ 			if_frequency = state->if_frequency;
+ 
+-		dev_dbg(&state->client->dev, "%s: if_frequency=%d\n",
+-				__func__, if_frequency);
++		dev_dbg(&client->dev, "if_frequency %u\n", if_frequency);
+ 
+ 		sampling_freq = if_frequency;
+ 
+@@ -670,8 +675,7 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
+ 		buf[0] |= (1 << 0);
+ 		break;
+ 	default:
+-		dev_dbg(&state->client->dev, "%s: invalid transmission_mode\n",
+-				__func__);
++		dev_dbg(&client->dev, "invalid transmission_mode\n");
+ 		auto_mode = true;
+ 	}
+ 
+@@ -691,8 +695,7 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
+ 		buf[0] |= (3 << 2);
+ 		break;
+ 	default:
+-		dev_dbg(&state->client->dev, "%s: invalid guard_interval\n",
+-				__func__);
++		dev_dbg(&client->dev, "invalid guard_interval\n");
+ 		auto_mode = true;
+ 	}
+ 
+@@ -712,7 +715,7 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
+ 		buf[0] |= (3 << 4);
+ 		break;
+ 	default:
+-		dev_dbg(&state->client->dev, "%s: invalid hierarchy\n", __func__);
++		dev_dbg(&client->dev, "invalid hierarchy\n");
+ 		auto_mode = true;
+ 	}
+ 
+@@ -729,7 +732,7 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
+ 		buf[1] |= (2 << 6);
+ 		break;
+ 	default:
+-		dev_dbg(&state->client->dev, "%s: invalid modulation\n", __func__);
++		dev_dbg(&client->dev, "invalid modulation\n");
+ 		auto_mode = true;
+ 	}
+ 
+@@ -755,8 +758,7 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
+ 		buf[2] |= (4 << 0);
+ 		break;
+ 	default:
+-		dev_dbg(&state->client->dev, "%s: invalid code_rate_HP\n",
+-				__func__);
++		dev_dbg(&client->dev, "invalid code_rate_HP\n");
+ 		auto_mode = true;
+ 	}
+ 
+@@ -781,8 +783,7 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
+ 	case FEC_NONE:
+ 		break;
+ 	default:
+-		dev_dbg(&state->client->dev, "%s: invalid code_rate_LP\n",
+-				__func__);
++		dev_dbg(&client->dev, "invalid code_rate_LP\n");
+ 		auto_mode = true;
+ 	}
+ 
+@@ -796,8 +797,7 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
+ 		buf[1] |= (2 << 2);
+ 		break;
+ 	default:
+-		dev_dbg(&state->client->dev, "%s: invalid bandwidth_hz\n",
+-				__func__);
++		dev_dbg(&client->dev, "invalid bandwidth_hz\n");
+ 		ret = -EINVAL;
+ 		goto err;
+ 	}
+@@ -812,7 +812,7 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
+ 		if (ret)
+ 			goto err;
+ 
+-		dev_dbg(&state->client->dev, "%s: auto params\n", __func__);
++		dev_dbg(&client->dev, "auto params\n");
+ 	} else {
+ 		/* set easy mode flag */
+ 		ret = af9013_wr_reg(state, 0xaefd, 1);
+@@ -823,7 +823,7 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
+ 		if (ret)
+ 			goto err;
+ 
+-		dev_dbg(&state->client->dev, "%s: manual params\n", __func__);
++		dev_dbg(&client->dev, "manual params\n");
+ 	}
+ 
+ 	/* tune */
+@@ -837,7 +837,7 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
+ 
+ 	return ret;
+ err:
+-	dev_dbg(&state->client->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -845,10 +845,11 @@ static int af9013_get_frontend(struct dvb_frontend *fe,
+ 			       struct dtv_frontend_properties *c)
+ {
+ 	struct af9013_state *state = fe->demodulator_priv;
++	struct i2c_client *client = state->client;
+ 	int ret;
+ 	u8 buf[3];
+ 
+-	dev_dbg(&state->client->dev, "%s:\n", __func__);
++	dev_dbg(&client->dev, "\n");
+ 
+ 	ret = af9013_rd_regs(state, 0xd3c0, buf, 3);
+ 	if (ret)
+@@ -954,13 +955,14 @@ static int af9013_get_frontend(struct dvb_frontend *fe,
+ 
+ 	return ret;
+ err:
+-	dev_dbg(&state->client->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+ }
+ 
+ static int af9013_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ {
+ 	struct af9013_state *state = fe->demodulator_priv;
++	struct i2c_client *client = state->client;
+ 	int ret;
+ 	u8 tmp;
+ 
+@@ -1004,7 +1006,7 @@ static int af9013_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ 
+ 	return ret;
+ err:
+-	dev_dbg(&state->client->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -1039,12 +1041,13 @@ static int af9013_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ static int af9013_init(struct dvb_frontend *fe)
+ {
+ 	struct af9013_state *state = fe->demodulator_priv;
++	struct i2c_client *client = state->client;
+ 	int ret, i, len;
+ 	u8 buf[3], tmp;
+ 	u32 adc_cw;
+ 	const struct af9013_reg_bit *init;
+ 
+-	dev_dbg(&state->client->dev, "%s:\n", __func__);
++	dev_dbg(&client->dev, "\n");
+ 
+ 	/* power on */
+ 	ret = af9013_power_ctrl(state, 1);
+@@ -1076,9 +1079,8 @@ static int af9013_init(struct dvb_frontend *fe)
+ 		tmp = 3;
+ 		break;
+ 	default:
+-		dev_err(&state->client->dev, "%s: invalid clock\n",
+-				KBUILD_MODNAME);
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto err;
+ 	}
+ 
+ 	adc_cw = div_u64((u64)state->clk * 0x80000, 1000000);
+@@ -1136,7 +1138,7 @@ static int af9013_init(struct dvb_frontend *fe)
+ 		goto err;
+ 
+ 	/* load OFSM settings */
+-	dev_dbg(&state->client->dev, "%s: load ofsm settings\n", __func__);
++	dev_dbg(&client->dev, "load ofsm settings\n");
+ 	len = ARRAY_SIZE(ofsm_init);
+ 	init = ofsm_init;
+ 	for (i = 0; i < len; i++) {
+@@ -1147,8 +1149,7 @@ static int af9013_init(struct dvb_frontend *fe)
+ 	}
+ 
+ 	/* load tuner specific settings */
+-	dev_dbg(&state->client->dev, "%s: load tuner specific settings\n",
+-			__func__);
++	dev_dbg(&client->dev, "load tuner specific settings\n");
+ 	switch (state->tuner) {
+ 	case AF9013_TUNER_MXL5003D:
+ 		len = ARRAY_SIZE(tuner_init_mxl5003d);
+@@ -1259,16 +1260,17 @@ static int af9013_init(struct dvb_frontend *fe)
+ 
+ 	return ret;
+ err:
+-	dev_dbg(&state->client->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+ }
+ 
+ static int af9013_sleep(struct dvb_frontend *fe)
+ {
+ 	struct af9013_state *state = fe->demodulator_priv;
++	struct i2c_client *client = state->client;
+ 	int ret;
+ 
+-	dev_dbg(&state->client->dev, "%s:\n", __func__);
++	dev_dbg(&client->dev, "\n");
+ 
+ 	/* stop statistics polling */
+ 	cancel_delayed_work_sync(&state->statistics_work);
+@@ -1285,7 +1287,7 @@ static int af9013_sleep(struct dvb_frontend *fe)
+ 
+ 	return ret;
+ err:
+-	dev_dbg(&state->client->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -1293,8 +1295,9 @@ static int af9013_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
+ {
+ 	int ret;
+ 	struct af9013_state *state = fe->demodulator_priv;
++	struct i2c_client *client = state->client;
+ 
+-	dev_dbg(&state->client->dev, "%s: enable=%d\n", __func__, enable);
++	dev_dbg(&client->dev, "enable %d\n", enable);
+ 
+ 	/* gate already open or close */
+ 	if (state->i2c_gate_state == enable)
+@@ -1311,7 +1314,7 @@ static int af9013_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
+ 
+ 	return ret;
+ err:
+-	dev_dbg(&state->client->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed %d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -1320,6 +1323,8 @@ static void af9013_release(struct dvb_frontend *fe)
+ 	struct af9013_state *state = fe->demodulator_priv;
+ 	struct i2c_client *client = state->client;
+ 
++	dev_dbg(&client->dev, "\n");
++
+ 	i2c_unregister_device(client);
+ }
+ 
+@@ -1327,6 +1332,7 @@ static const struct dvb_frontend_ops af9013_ops;
+ 
+ static int af9013_download_firmware(struct af9013_state *state)
+ {
++	struct i2c_client *client = state->client;
+ 	int i, len, remaining, ret;
+ 	const struct firmware *fw;
+ 	u16 checksum = 0;
+@@ -1340,28 +1346,24 @@ static int af9013_download_firmware(struct af9013_state *state)
+ 	if (ret)
+ 		goto err;
+ 	else
+-		dev_dbg(&state->client->dev, "%s: firmware status=%02x\n",
+-				__func__, val);
++		dev_dbg(&client->dev, "firmware status %02x\n", val);
+ 
+ 	if (val == 0x0c) /* fw is running, no need for download */
+ 		goto exit;
+ 
+-	dev_info(&state->client->dev, "%s: found a '%s' in cold state, will try " \
+-			"to load a firmware\n",
+-			KBUILD_MODNAME, af9013_ops.info.name);
++	dev_info(&client->dev, "found a '%s' in cold state, will try to load a firmware\n",
++		 af9013_ops.info.name);
+ 
+ 	/* request the firmware, this will block and timeout */
+-	ret = request_firmware(&fw, fw_file, &state->client->dev);
++	ret = request_firmware(&fw, fw_file, &client->dev);
+ 	if (ret) {
+-		dev_info(&state->client->dev, "%s: did not find the firmware " \
+-			"file. (%s) Please see linux/Documentation/dvb/ for " \
+-			"more details on firmware-problems. (%d)\n",
+-			KBUILD_MODNAME, fw_file, ret);
++		dev_info(&client->dev, "firmware file '%s' not found %d\n",
++			 fw_file, ret);
+ 		goto err;
+ 	}
+ 
+-	dev_info(&state->client->dev, "%s: downloading firmware from file '%s'\n",
+-			KBUILD_MODNAME, fw_file);
++	dev_info(&client->dev, "downloading firmware from file '%s'\n",
++		 fw_file);
+ 
+ 	/* calc checksum */
+ 	for (i = 0; i < fw->size; i++)
+@@ -1389,9 +1391,8 @@ static int af9013_download_firmware(struct af9013_state *state)
+ 			FW_ADDR + fw->size - remaining,
+ 			(u8 *) &fw->data[fw->size - remaining], len);
+ 		if (ret) {
+-			dev_err(&state->client->dev,
+-					"%s: firmware download failed=%d\n",
+-					KBUILD_MODNAME, ret);
++			dev_err(&client->dev, "firmware download failed %d\n",
++				ret);
+ 			goto err_release;
+ 		}
+ 	}
+@@ -1409,20 +1410,17 @@ static int af9013_download_firmware(struct af9013_state *state)
+ 		if (ret)
+ 			goto err_release;
+ 
+-		dev_dbg(&state->client->dev, "%s: firmware status=%02x\n",
+-				__func__, val);
++		dev_dbg(&client->dev, "firmware status %02x\n", val);
+ 
+ 		if (val == 0x0c || val == 0x04) /* success or fail */
+ 			break;
+ 	}
+ 
+ 	if (val == 0x04) {
+-		dev_err(&state->client->dev, "%s: firmware did not run\n",
+-				KBUILD_MODNAME);
++		dev_err(&client->dev, "firmware did not run\n");
+ 		ret = -ENODEV;
+ 	} else if (val != 0x0c) {
+-		dev_err(&state->client->dev, "%s: firmware boot timeout\n",
+-				KBUILD_MODNAME);
++		dev_err(&client->dev, "firmware boot timeout\n");
+ 		ret = -ENODEV;
+ 	}
+ 
+@@ -1431,8 +1429,8 @@ static int af9013_download_firmware(struct af9013_state *state)
+ err:
+ exit:
+ 	if (!ret)
+-		dev_info(&state->client->dev, "%s: found a '%s' in warm state\n",
+-				KBUILD_MODNAME, af9013_ops.info.name);
++		dev_info(&client->dev, "found a '%s' in warm state\n",
++			 af9013_ops.info.name);
+ 	return ret;
+ }
+ 
+-- 
+http://palosaari.fi/
