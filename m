@@ -1,45 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39760 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751623AbdFOMcQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 08:32:16 -0400
-Date: Thu, 15 Jun 2017 15:32:10 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org, robh@kernel.org, pavel@ucw.cz
-Subject: Re: [PATCH 5/8] v4l2-flash: Flash ops aren't mandatory
-Message-ID: <20170615123209.GD12407@valkosipuli.retiisi.org.uk>
-References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
- <1497433639-13101-6-git-send-email-sakari.ailus@linux.intel.com>
- <20170615092425.xcgeiu65yxawczr5@earth>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170615092425.xcgeiu65yxawczr5@earth>
+Received: from mail.kapsi.fi ([217.30.184.167]:43523 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751711AbdFODbf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Jun 2017 23:31:35 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 01/15] af9015: use correct 7-bit i2c addresses
+Date: Thu, 15 Jun 2017 06:30:51 +0300
+Message-Id: <20170615033105.13517-1-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 15, 2017 at 11:24:26AM +0200, Sebastian Reichel wrote:
-> Hi,
-> 
-> On Wed, Jun 14, 2017 at 12:47:16PM +0300, Sakari Ailus wrote:
-> > None of the flash operations are not mandatory and therefore there should
-> > be no need for the flash ops structure either. Accept NULL.
-> 
-> I think you negated one time too much :). Otherwise:
-> 
-> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Driver was using wrong "8-bit" i2c addresses for demods and tuners.
+Internal demod i2c address was not set at all. These are needed
+to be fixed before proper i2c client binding is used.
 
-Thanks!
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/af9015.c | 24 +++++++++++++-----------
+ drivers/media/usb/dvb-usb-v2/af9015.h |  4 ++--
+ 2 files changed, 15 insertions(+), 13 deletions(-)
 
-The new one reads:
-
-None of the flash operations are mandatory and therefore there should be no
-need for the flash ops structure either. Accept NULL.
-
+diff --git a/drivers/media/usb/dvb-usb-v2/af9015.c b/drivers/media/usb/dvb-usb-v2/af9015.c
+index caa1e61..138416c 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9015.c
++++ b/drivers/media/usb/dvb-usb-v2/af9015.c
+@@ -36,7 +36,7 @@ static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
+ 
+ 	state->buf[0] = req->cmd;
+ 	state->buf[1] = state->seq++;
+-	state->buf[2] = req->i2c_addr;
++	state->buf[2] = req->i2c_addr << 1;
+ 	state->buf[3] = req->addr >> 8;
+ 	state->buf[4] = req->addr & 0xff;
+ 	state->buf[5] = req->mbox;
+@@ -471,6 +471,8 @@ static int af9015_read_config(struct dvb_usb_device *d)
+ 	if (d->udev->speed == USB_SPEED_FULL)
+ 		state->dual_mode = 0;
+ 
++	state->af9013_config[0].i2c_addr = AF9015_I2C_DEMOD;
++
+ 	if (state->dual_mode) {
+ 		/* read 2nd demodulator I2C address */
+ 		req.addr = AF9015_EEPROM_DEMOD2_I2C;
+@@ -478,7 +480,7 @@ static int af9015_read_config(struct dvb_usb_device *d)
+ 		if (ret)
+ 			goto error;
+ 
+-		state->af9013_config[1].i2c_addr = val;
++		state->af9013_config[1].i2c_addr = val >> 1;
+ 	}
+ 
+ 	for (i = 0; i < state->dual_mode + 1; i++) {
+@@ -870,12 +872,12 @@ static int af9015_af9013_frontend_attach(struct dvb_usb_adapter *adap)
+ }
+ 
+ static struct mt2060_config af9015_mt2060_config = {
+-	.i2c_address = 0xc0,
++	.i2c_address = 0x60,
+ 	.clock_out = 0,
+ };
+ 
+ static struct qt1010_config af9015_qt1010_config = {
+-	.i2c_address = 0xc4,
++	.i2c_address = 0x62,
+ };
+ 
+ static struct tda18271_config af9015_tda18271_config = {
+@@ -884,7 +886,7 @@ static struct tda18271_config af9015_tda18271_config = {
+ };
+ 
+ static struct mxl5005s_config af9015_mxl5003_config = {
+-	.i2c_address     = 0xc6,
++	.i2c_address     = 0x63,
+ 	.if_freq         = IF_FREQ_4570000HZ,
+ 	.xtal_freq       = CRYSTAL_FREQ_16000000HZ,
+ 	.agc_mode        = MXL_SINGLE_AGC,
+@@ -901,7 +903,7 @@ static struct mxl5005s_config af9015_mxl5003_config = {
+ };
+ 
+ static struct mxl5005s_config af9015_mxl5005_config = {
+-	.i2c_address     = 0xc6,
++	.i2c_address     = 0x63,
+ 	.if_freq         = IF_FREQ_4570000HZ,
+ 	.xtal_freq       = CRYSTAL_FREQ_16000000HZ,
+ 	.agc_mode        = MXL_SINGLE_AGC,
+@@ -918,12 +920,12 @@ static struct mxl5005s_config af9015_mxl5005_config = {
+ };
+ 
+ static struct mc44s803_config af9015_mc44s803_config = {
+-	.i2c_address = 0xc0,
++	.i2c_address = 0x60,
+ 	.dig_out = 1,
+ };
+ 
+ static struct tda18218_config af9015_tda18218_config = {
+-	.i2c_address = 0xc0,
++	.i2c_address = 0x60,
+ 	.i2c_wr_max = 21, /* max wr bytes AF9015 I2C adap can handle at once */
+ };
+ 
+@@ -954,7 +956,7 @@ static int af9015_tuner_attach(struct dvb_usb_adapter *adap)
+ 			&af9015_qt1010_config) == NULL ? -ENODEV : 0;
+ 		break;
+ 	case AF9013_TUNER_TDA18271:
+-		ret = dvb_attach(tda18271_attach, adap->fe[0], 0xc0,
++		ret = dvb_attach(tda18271_attach, adap->fe[0], 0x60,
+ 			&adap_to_d(adap)->i2c_adap,
+ 			&af9015_tda18271_config) == NULL ? -ENODEV : 0;
+ 		break;
+@@ -975,7 +977,7 @@ static int af9015_tuner_attach(struct dvb_usb_adapter *adap)
+ 			&af9015_mxl5005_config) == NULL ? -ENODEV : 0;
+ 		break;
+ 	case AF9013_TUNER_ENV77H11D5:
+-		ret = dvb_attach(dvb_pll_attach, adap->fe[0], 0xc0,
++		ret = dvb_attach(dvb_pll_attach, adap->fe[0], 0x60,
+ 			&adap_to_d(adap)->i2c_adap,
+ 			DVB_PLL_TDA665X) == NULL ? -ENODEV : 0;
+ 		break;
+@@ -987,7 +989,7 @@ static int af9015_tuner_attach(struct dvb_usb_adapter *adap)
+ 	case AF9013_TUNER_MXL5007T:
+ 		ret = dvb_attach(mxl5007t_attach, adap->fe[0],
+ 			&adap_to_d(adap)->i2c_adap,
+-			0xc0, &af9015_mxl5007t_config) == NULL ? -ENODEV : 0;
++			0x60, &af9015_mxl5007t_config) == NULL ? -ENODEV : 0;
+ 		break;
+ 	case AF9013_TUNER_UNKNOWN:
+ 	default:
+diff --git a/drivers/media/usb/dvb-usb-v2/af9015.h b/drivers/media/usb/dvb-usb-v2/af9015.h
+index 2dd9231..3a9d981 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9015.h
++++ b/drivers/media/usb/dvb-usb-v2/af9015.h
+@@ -47,8 +47,8 @@
+ #define TS_USB20_MAX_PACKET_SIZE  512
+ #define TS_USB11_MAX_PACKET_SIZE   64
+ 
+-#define AF9015_I2C_EEPROM  0xa0
+-#define AF9015_I2C_DEMOD   0x38
++#define AF9015_I2C_EEPROM  0x50
++#define AF9015_I2C_DEMOD   0x1c
+ #define AF9015_USB_TIMEOUT 2000
+ 
+ /* EEPROM locations */
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+http://palosaari.fi/
