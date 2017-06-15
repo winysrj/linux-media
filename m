@@ -1,38 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:34104 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752335AbdF0KJb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 06:09:31 -0400
-Date: Tue, 27 Jun 2017 03:09:26 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Jyri Sarha <jsarha@ti.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: Re: [PATCH 1/8] arm: omap4: enable CEC pin for Pandaboard A4 and ES
-Message-ID: <20170627100926.GB3730@atomide.com>
-References: <20170414102512.48834-1-hverkuil@xs4all.nl>
- <20170414102512.48834-2-hverkuil@xs4all.nl>
- <4355dab4-9c70-77f7-f89b-9a1cf24976cf@ti.com>
- <20170626110711.GW3730@atomide.com>
- <701dbbfa-000a-2b93-405b-246aa90b6dd6@xs4all.nl>
- <20170627091421.GZ3730@atomide.com>
- <1d970218-d24a-d460-7d95-b31102d735f2@xs4all.nl>
- <a6f7c3d6-f4a6-1dba-2da0-b36ea2dd8803@ti.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39760 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751623AbdFOMcQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Jun 2017 08:32:16 -0400
+Date: Thu, 15 Jun 2017 15:32:10 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+        devicetree@vger.kernel.org, robh@kernel.org, pavel@ucw.cz
+Subject: Re: [PATCH 5/8] v4l2-flash: Flash ops aren't mandatory
+Message-ID: <20170615123209.GD12407@valkosipuli.retiisi.org.uk>
+References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1497433639-13101-6-git-send-email-sakari.ailus@linux.intel.com>
+ <20170615092425.xcgeiu65yxawczr5@earth>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <a6f7c3d6-f4a6-1dba-2da0-b36ea2dd8803@ti.com>
+In-Reply-To: <20170615092425.xcgeiu65yxawczr5@earth>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Jyri Sarha <jsarha@ti.com> [170627 02:47]:
-> There is no real volume on HDMI audio output as it is a digital
-> interface, but it should be possible to provide some volume control
-> using TV's volume trough CEC.
+On Thu, Jun 15, 2017 at 11:24:26AM +0200, Sebastian Reichel wrote:
+> Hi,
+> 
+> On Wed, Jun 14, 2017 at 12:47:16PM +0300, Sakari Ailus wrote:
+> > None of the flash operations are not mandatory and therefore there should
+> > be no need for the flash ops structure either. Accept NULL.
+> 
+> I think you negated one time too much :). Otherwise:
+> 
+> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 
-OK great!
+Thanks!
 
-Tony
+The new one reads:
+
+None of the flash operations are mandatory and therefore there should be no
+need for the flash ops structure either. Accept NULL.
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
