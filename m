@@ -1,120 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40610 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753245AbdFMPaE (ORCPT
+Received: from mail-wr0-f174.google.com ([209.85.128.174]:34079 "EHLO
+        mail-wr0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752506AbdFOQdM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 11:30:04 -0400
-Date: Tue, 13 Jun 2017 18:29:28 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "Hsu, Cedric" <cedric.hsu@intel.com>
-Subject: Re: [PATCH v10 1/1] [media] i2c: add support for OV13858 sensor
-Message-ID: <20170613152928.GE12407@valkosipuli.retiisi.org.uk>
-References: <1497315360-29216-1-git-send-email-hyungwoo.yang@intel.com>
- <1497315360-29216-2-git-send-email-hyungwoo.yang@intel.com>
- <20170613101745.GC12407@valkosipuli.retiisi.org.uk>
- <7A4F467111FEF64486F40DFE7DF3500A03EBA69F@ORSMSX111.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7A4F467111FEF64486F40DFE7DF3500A03EBA69F@ORSMSX111.amr.corp.intel.com>
+        Thu, 15 Jun 2017 12:33:12 -0400
+Received: by mail-wr0-f174.google.com with SMTP id 77so25376920wrb.1
+        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 09:33:06 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v11 10/19] media: venus: hfi: fix mutex unlock
+Date: Thu, 15 Jun 2017 19:31:51 +0300
+Message-Id: <1497544320-2269-11-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hyungwoo,
+This fixed a warning when build driver with gcc7:
 
-On Tue, Jun 13, 2017 at 02:29:25PM +0000, Yang, Hyungwoo wrote:
-> 
-> 
-> Here is the _DSD for 19.2Mhz
+drivers/media/platform/qcom/venus/hfi.c:171
+hfi_core_ping() warn: inconsistent returns 'mutex:&core->lock'.
+  Locked on:   line 159
+  Unlocked on: line 171
 
-If you attached it, the list server most likely removed the attachment.
-Could you send it again in-line?
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/qcom/venus/hfi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> 
-> 
-> 
-> 
-> 
-> i've inlined my comments.
-> 
-> 
-> 
-> -----Original Message-----
-> > From: Sakari Ailus [mailto:sakari.ailus@iki.fi] 
-> > Sent: Tuesday, June 13, 2017 3:18 AM
-> > To: Yang, Hyungwoo <hyungwoo.yang@intel.com>
-> > Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com; Zheng, Jian Xu <jian.xu.zheng@intel.com>; tfiga@chromium.org; Hsu, Cedric <cedric.hsu@intel.com>
-> > Subject: Re: [PATCH v10 1/1] [media] i2c: add support for OV13858 sensor
-> > 
-> > Hi Hyungwoo,
-> > 
-> > On Mon, Jun 12, 2017 at 05:56:00PM -0700, Hyungwoo Yang wrote:
-...
-> > > +	if (ret)
-> > > +		return ret;
-> > > +	ov13858->num_of_skip_frames = val;
-> > > +
-> > > +	device_for_each_child_node(dev, child) {
-> > > +		if (!fwnode_property_present(child, "link"))
-> > > +			continue;
-> > 
-> > You shouldn't need these here.
-> > 
-> 
-> ?? just get child and see if the expected property is found ?
-> Acked
-
-Your child nodes shouldn't look like that, nor an individual driver should
-need to be directly interested in them.
-
-Please see Documentation/acpi/dsd/graph.txt .
-
-> > > +		if (ret) {
-> > > +			dev_err(dev, "link-rate error : %d\n",  ret);
-> > > +			goto error;
-> > > +		}
-> > > +		link_freq_menu_items[freq_id] = val;
-> > > +
-> > > +		freq_cfg = &link_freq_configs[freq_id];
-> > > +		ret = fwnode_property_read_u32(fwn_freq, "pixel-rate", &val);
-> > 
-> > This is something a sensor driver needs to know. It may not be present in device firmware.
-> > 
-> 
-> Real frequency of the link can be different from input clock frequency so
-> pixel reate which is dependent on link frequency should be here.
-
-The pixel rate does depend on the link frequency, but you can either
-calculate it in the driver OR make it specific your sensor configuration.
-
-> 
-> > > +		if (ret) {
-> > > +			dev_err(dev, "pixel-rate error : %d\n",  ret);
-> > > +			goto error;
-> > > +		}
-> > > +		freq_cfg->pixel_rate = val;
-> > > +
-> > > +		num_of_values = fwnode_property_read_u32_array(fwn_freq,
-> > > +							       "pll-regs",
-> > 
-> > This is something that could go to device firmware but I don't really see a reason for that at the moment. Can this continue to be a part of the driver for now?
-> > 
-> > Could you also check that the external clock frequency matches with what your register lists assume? The property should be called "clock-frequency"
-> > and it's a u32.
-> 
-> Are you saying, for now, let's remove pll reg/value pairs from _DSD  and
-> just support only one input clock frequency ?
-
-That would help getting the driver merged during this merge window. It's
-always possible to add support for different configurations later on.
-
+diff --git a/drivers/media/platform/qcom/venus/hfi.c b/drivers/media/platform/qcom/venus/hfi.c
+index 20c9205fdbb4..c09490876516 100644
+--- a/drivers/media/platform/qcom/venus/hfi.c
++++ b/drivers/media/platform/qcom/venus/hfi.c
+@@ -156,7 +156,7 @@ int hfi_core_ping(struct venus_core *core)
+ 
+ 	ret = core->ops->core_ping(core, 0xbeef);
+ 	if (ret)
+-		return ret;
++		goto unlock;
+ 
+ 	ret = wait_for_completion_timeout(&core->done, TIMEOUT);
+ 	if (!ret) {
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.7.4
