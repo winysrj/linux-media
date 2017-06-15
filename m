@@ -1,54 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:42416 "EHLO
-        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751140AbdFBQyz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 12:54:55 -0400
-Date: Fri, 2 Jun 2017 17:54:47 +0100
-From: Mark Brown <broonie@kernel.org>
-To: Tim Harvey <tharvey@gateworks.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>
-Message-ID: <20170602165447.kflg2u6ovdrwcwjo@sirena.org.uk>
-References: <CAJ+vNU1TOOSf-PoXw1oGTVhGNp2w=X2KAmpYtT8c32GRju2kEQ@mail.gmail.com>
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:44521 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750948AbdFOJSp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Jun 2017 05:18:45 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v4 1/2] media: entity: Add get_fwnode_pad entity operation
+Date: Thu, 15 Jun 2017 11:17:25 +0200
+Message-Id: <20170615091726.22370-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170615091726.22370-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170615091726.22370-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="aftmt334f7tolisr"
-Content-Disposition: inline
-In-Reply-To: <CAJ+vNU1TOOSf-PoXw1oGTVhGNp2w=X2KAmpYtT8c32GRju2kEQ@mail.gmail.com>
-Subject: Re: regmap for i2c pages
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The optional operation can be used by entities to report how it maps its
+fwnode endpoints to media pad numbers. This is useful for devices which
+require advanced mappings of pads.
 
---aftmt334f7tolisr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ include/media/media-entity.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-On Thu, Jun 01, 2017 at 11:37:43PM -0700, Tim Harvey wrote:
-
-> I believe this is a very common i2c register mechanism but I'm not
-> clear what the best way to use i2c regmap for this is. I'm reading
-> that regmap 'handles register pages' but I'm not clear if that's the
-> same thing I'm looking for. If so, are there any examples of this? I
-> see several i2c drivers that reference pages but it looks to me that
-> each page is a different i2c slave address which is something
-> different.
-
-You're looking for regmap_range (search for window in regmap.h).
-
---aftmt334f7tolisr
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlkxmFMACgkQJNaLcl1U
-h9DNpwf/UPa0+48wnCqpY9pxU63YTKEzn6jEYFlXDJsMwJHxut4FM1CSoEi2aubn
-ntOpKSj7llZkhZR8c+pfOw/hLx7Gi1EevzEk5Tg7BtRbcaPXoG3j93Eah1tNawuc
-mAPwFdb4sQYD2UIxXN5Z6NYcntvB0hyCDcPJK18tHsvBp8UE/+WNGc2Azowg/3si
-reIzkT7t1f7ksTQEDClr7UoIgnuBgWbZ8mgFsYaTyMextFoHclBY+npk2DPeU1uB
-XVxnb6gjcUmlIaMZMDs3+1Ts1qe9VQEzrC/GkPwxZ7LpgnQZ59WFuYYoId4HGZFt
-XDSNc7AmqQvK4w0QPJcFHo3eJ24yPQ==
-=shLt
------END PGP SIGNATURE-----
-
---aftmt334f7tolisr--
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index c7c254c5bca1761b..46eeb036aa330534 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -21,6 +21,7 @@
+ 
+ #include <linux/bitmap.h>
+ #include <linux/bug.h>
++#include <linux/fwnode.h>
+ #include <linux/kernel.h>
+ #include <linux/list.h>
+ #include <linux/media.h>
+@@ -171,6 +172,9 @@ struct media_pad {
+ 
+ /**
+  * struct media_entity_operations - Media entity operations
++ * @get_fwnode_pad:	Return the pad number based on a fwnode endpoint or
++ *			a negative value on error. This operation can be used
++ *			to map a fwnode to a media pad number. Optional.
+  * @link_setup:		Notify the entity of link changes. The operation can
+  *			return an error, in which case link setup will be
+  *			cancelled. Optional.
+@@ -184,6 +188,7 @@ struct media_pad {
+  *    mutex held.
+  */
+ struct media_entity_operations {
++	int (*get_fwnode_pad)(struct fwnode_endpoint *endpoint);
+ 	int (*link_setup)(struct media_entity *entity,
+ 			  const struct media_pad *local,
+ 			  const struct media_pad *remote, u32 flags);
+-- 
+2.13.1
