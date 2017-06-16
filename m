@@ -1,220 +1,240 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:38605 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752124AbdFPH4x (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Jun 2017 03:56:53 -0400
-Subject: Re: [PATCH] [media] ov6650: convert to standalone v4l2 subdevice
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <20170615225243.12528-1-jmkrzyszt@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <43fe164b-df36-094f-94d3-8285e0cac1f8@xs4all.nl>
-Date: Fri, 16 Jun 2017 09:56:43 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170615225243.12528-1-jmkrzyszt@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mga14.intel.com ([192.55.52.115]:14944 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752439AbdFPPPw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Jun 2017 11:15:52 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: tfiga@chromium.org, yong.zhi@intel.com
+Subject: [RFC 1/2] v4l: Add support for V4L2_BUF_TYPE_META_OUTPUT
+Date: Fri, 16 Jun 2017 18:14:20 +0300
+Message-Id: <1497626061-2129-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1497626061-2129-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1497626061-2129-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/16/2017 12:52 AM, Janusz Krzysztofik wrote:
-> Remove the soc_camera dependencies.
-> 
-> Lost features, fortunately not used or not critical on test platform:
-> - soc_camera power on/off callback - replaced with clock enable/disable
->    only, no support for platform provided regulators nor power callback,
-> - soc_camera sense request - replaced with arbitrarily selected default
->    master clock rate and pixel clock limit, no support for platform
->    requested values,
-> - soc_camera board flags - no support for platform requested mbus config
->    tweaks.
-> 
-> Created against linux-4.12-rc2.
-> Tested on Amstrad Delta with now out of tree but still locally
-> maintained omap1_camera host driver.
+The V4L2_BUF_TYPE_META_OUTPUT mirrors the V4L2_BUF_TYPE_META_CAPTURE with
+the exception that it is an OUTPUT type. The use case for this is to pass
+buffers to the device that are not image data but metadata. The formats,
+just as the metadata capture formats, are typically device specific and
+highly structured.
 
-Nice!
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  2 ++
+ drivers/media/v4l2-core/v4l2-ioctl.c          | 25 +++++++++++++++++++++++++
+ drivers/media/v4l2-core/videobuf2-v4l2.c      |  1 +
+ include/media/v4l2-ioctl.h                    | 17 +++++++++++++++++
+ include/uapi/linux/videodev2.h                |  2 ++
+ 5 files changed, 47 insertions(+)
 
-But for v2 can you also move this driver out of i2c/soc-camera to i2c?
-
-There is no reason anymore to keep it in i2c/soc-camera.
-
-Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-> ---
->   drivers/media/i2c/soc_camera/ov6650.c | 75 ++++++++++-------------------------
->   1 file changed, 22 insertions(+), 53 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/soc_camera/ov6650.c b/drivers/media/i2c/soc_camera/ov6650.c
-> index dbd6d92..20defcb88 100644
-> --- a/drivers/media/i2c/soc_camera/ov6650.c
-> +++ b/drivers/media/i2c/soc_camera/ov6650.c
-> @@ -31,9 +31,9 @@
->   #include <linux/v4l2-mediabus.h>
->   #include <linux/module.h>
->   
-> -#include <media/soc_camera.h>
->   #include <media/v4l2-clk.h>
->   #include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-device.h>
->   
->   /* Register definitions */
->   #define REG_GAIN		0x00	/* range 00 - 3F */
-> @@ -426,10 +426,15 @@ static int ov6650_set_register(struct v4l2_subdev *sd,
->   static int ov6650_s_power(struct v4l2_subdev *sd, int on)
->   {
->   	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> -	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
->   	struct ov6650 *priv = to_ov6650(client);
-> +	int ret = 0;
->   
-> -	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
-> +	if (on)
-> +		ret = v4l2_clk_enable(priv->clk);
-> +	else
-> +		v4l2_clk_disable(priv->clk);
-> +
-> +	return ret;
->   }
->   
->   static int ov6650_get_selection(struct v4l2_subdev *sd,
-> @@ -471,14 +476,13 @@ static int ov6650_set_selection(struct v4l2_subdev *sd,
->   	    sel->target != V4L2_SEL_TGT_CROP)
->   		return -EINVAL;
->   
-> -	rect.left   = ALIGN(rect.left,   2);
-> -	rect.width  = ALIGN(rect.width,  2);
-> -	rect.top    = ALIGN(rect.top,    2);
-> -	rect.height = ALIGN(rect.height, 2);
-> -	soc_camera_limit_side(&rect.left, &rect.width,
-> -			DEF_HSTRT << 1, 2, W_CIF);
-> -	soc_camera_limit_side(&rect.top, &rect.height,
-> -			DEF_VSTRT << 1, 2, H_CIF);
-> +	v4l_bound_align_image(&rect.width, 2, W_CIF, 1,
-> +			      &rect.height, 2, H_CIF, 1, 0);
-> +	v4l_bound_align_image(&rect.left, DEF_HSTRT << 1,
-> +			      (DEF_HSTRT << 1) + W_CIF - (__s32)rect.width, 1,
-> +			      &rect.top, DEF_VSTRT << 1,
-> +			      (DEF_VSTRT << 1) + H_CIF - (__s32)rect.height, 1,
-> +			      0);
->   
->   	ret = ov6650_reg_write(client, REG_HSTRT, rect.left >> 1);
->   	if (!ret) {
-> @@ -547,8 +551,6 @@ static u8 to_clkrc(struct v4l2_fract *timeperframe,
->   static int ov6650_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
->   {
->   	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> -	struct soc_camera_device *icd = v4l2_get_subdev_hostdata(sd);
-> -	struct soc_camera_sense *sense = icd->sense;
->   	struct ov6650 *priv = to_ov6650(client);
->   	bool half_scale = !is_unscaled_ok(mf->width, mf->height, &priv->rect);
->   	struct v4l2_subdev_selection sel = {
-> @@ -640,32 +642,10 @@ static int ov6650_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
->   	}
->   	priv->half_scale = half_scale;
->   
-> -	if (sense) {
-> -		if (sense->master_clock == 8000000) {
-> -			dev_dbg(&client->dev, "8MHz input clock\n");
-> -			clkrc = CLKRC_6MHz;
-> -		} else if (sense->master_clock == 12000000) {
-> -			dev_dbg(&client->dev, "12MHz input clock\n");
-> -			clkrc = CLKRC_12MHz;
-> -		} else if (sense->master_clock == 16000000) {
-> -			dev_dbg(&client->dev, "16MHz input clock\n");
-> -			clkrc = CLKRC_16MHz;
-> -		} else if (sense->master_clock == 24000000) {
-> -			dev_dbg(&client->dev, "24MHz input clock\n");
-> -			clkrc = CLKRC_24MHz;
-> -		} else {
-> -			dev_err(&client->dev,
-> -				"unsupported input clock, check platform data\n");
-> -			return -EINVAL;
-> -		}
-> -		mclk = sense->master_clock;
-> -		priv->pclk_limit = sense->pixel_clock_max;
-> -	} else {
-> -		clkrc = CLKRC_24MHz;
-> -		mclk = 24000000;
-> -		priv->pclk_limit = 0;
-> -		dev_dbg(&client->dev, "using default 24MHz input clock\n");
-> -	}
-> +	clkrc = CLKRC_12MHz;
-> +	mclk = 12000000;
-> +	priv->pclk_limit = 1334000;
-> +	dev_dbg(&client->dev, "using 12MHz input clock\n");
->   
->   	clkrc |= to_clkrc(&priv->tpf, priv->pclk_limit, priv->pclk_max);
->   
-> @@ -897,8 +877,6 @@ static const struct v4l2_subdev_core_ops ov6650_core_ops = {
->   static int ov6650_g_mbus_config(struct v4l2_subdev *sd,
->   				struct v4l2_mbus_config *cfg)
->   {
-> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> -	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
->   
->   	cfg->flags = V4L2_MBUS_MASTER |
->   		V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_PCLK_SAMPLE_FALLING |
-> @@ -906,7 +884,6 @@ static int ov6650_g_mbus_config(struct v4l2_subdev *sd,
->   		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_LOW |
->   		V4L2_MBUS_DATA_ACTIVE_HIGH;
->   	cfg->type = V4L2_MBUS_PARALLEL;
-> -	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
->   
->   	return 0;
->   }
-> @@ -916,25 +893,23 @@ static int ov6650_s_mbus_config(struct v4l2_subdev *sd,
->   				const struct v4l2_mbus_config *cfg)
->   {
->   	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> -	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-> -	unsigned long flags = soc_camera_apply_board_flags(ssdd, cfg);
->   	int ret;
->   
-> -	if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
-> +	if (cfg->flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
->   		ret = ov6650_reg_rmw(client, REG_COMJ, COMJ_PCLK_RISING, 0);
->   	else
->   		ret = ov6650_reg_rmw(client, REG_COMJ, 0, COMJ_PCLK_RISING);
->   	if (ret)
->   		return ret;
->   
-> -	if (flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
-> +	if (cfg->flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
->   		ret = ov6650_reg_rmw(client, REG_COMF, COMF_HREF_LOW, 0);
->   	else
->   		ret = ov6650_reg_rmw(client, REG_COMF, 0, COMF_HREF_LOW);
->   	if (ret)
->   		return ret;
->   
-> -	if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-> +	if (cfg->flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
->   		ret = ov6650_reg_rmw(client, REG_COMJ, COMJ_VSYNC_HIGH, 0);
->   	else
->   		ret = ov6650_reg_rmw(client, REG_COMJ, 0, COMJ_VSYNC_HIGH);
-> @@ -971,14 +946,8 @@ static int ov6650_probe(struct i2c_client *client,
->   			const struct i2c_device_id *did)
->   {
->   	struct ov6650 *priv;
-> -	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
->   	int ret;
->   
-> -	if (!ssdd) {
-> -		dev_err(&client->dev, "Missing platform_data for driver\n");
-> -		return -EINVAL;
-> -	}
-> -
->   	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
->   	if (!priv) {
->   		dev_err(&client->dev,
-> 
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 6f52970..a0360fe 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -232,6 +232,7 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 	case V4L2_BUF_TYPE_SDR_OUTPUT:
+ 		return get_v4l2_sdr_format(&kp->fmt.sdr, &up->fmt.sdr);
+ 	case V4L2_BUF_TYPE_META_CAPTURE:
++	case V4L2_BUF_TYPE_META_OUTPUT:
+ 		return get_v4l2_meta_format(&kp->fmt.meta, &up->fmt.meta);
+ 	default:
+ 		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+@@ -281,6 +282,7 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 	case V4L2_BUF_TYPE_SDR_OUTPUT:
+ 		return put_v4l2_sdr_format(&kp->fmt.sdr, &up->fmt.sdr);
+ 	case V4L2_BUF_TYPE_META_CAPTURE:
++	case V4L2_BUF_TYPE_META_OUTPUT:
+ 		return put_v4l2_meta_format(&kp->fmt.meta, &up->fmt.meta);
+ 	default:
+ 		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 4f27cfa..30dd814 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -156,6 +156,7 @@ const char *v4l2_type_names[] = {
+ 	[V4L2_BUF_TYPE_SDR_CAPTURE]        = "sdr-cap",
+ 	[V4L2_BUF_TYPE_SDR_OUTPUT]         = "sdr-out",
+ 	[V4L2_BUF_TYPE_META_CAPTURE]       = "meta-cap",
++	[V4L2_BUF_TYPE_META_OUTPUT]	   = "meta-out",
+ };
+ EXPORT_SYMBOL(v4l2_type_names);
+ 
+@@ -328,6 +329,7 @@ static void v4l_print_format(const void *arg, bool write_only)
+ 			(sdr->pixelformat >> 24) & 0xff);
+ 		break;
+ 	case V4L2_BUF_TYPE_META_CAPTURE:
++	case V4L2_BUF_TYPE_META_OUTPUT:
+ 		meta = &p->fmt.meta;
+ 		pr_cont(", dataformat=%c%c%c%c, buffersize=%u\n",
+ 			(meta->dataformat >>  0) & 0xff,
+@@ -958,6 +960,10 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
+ 		if (is_vid && is_rx && ops->vidioc_g_fmt_meta_cap)
+ 			return 0;
+ 		break;
++	case V4L2_BUF_TYPE_META_OUTPUT:
++		if (is_vid && is_tx && ops->vidioc_g_fmt_meta_out)
++			return 0;
++		break;
+ 	default:
+ 		break;
+ 	}
+@@ -1349,6 +1355,11 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		ret = ops->vidioc_enum_fmt_meta_cap(file, fh, arg);
+ 		break;
++	case V4L2_BUF_TYPE_META_OUTPUT:
++		if (unlikely(!is_tx || !is_vid || !ops->vidioc_enum_fmt_meta_out))
++			break;
++		ret = ops->vidioc_enum_fmt_meta_out(file, fh, arg);
++		break;
+ 	}
+ 	if (ret == 0)
+ 		v4l_fill_fmtdesc(p);
+@@ -1452,6 +1463,10 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_g_fmt_meta_cap))
+ 			break;
+ 		return ops->vidioc_g_fmt_meta_cap(file, fh, arg);
++	case V4L2_BUF_TYPE_META_OUTPUT:
++		if (unlikely(!is_tx || !is_vid || !ops->vidioc_g_fmt_meta_out))
++			break;
++		return ops->vidioc_g_fmt_meta_out(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
+@@ -1562,6 +1577,11 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.meta);
+ 		return ops->vidioc_s_fmt_meta_cap(file, fh, arg);
++	case V4L2_BUF_TYPE_META_OUTPUT:
++		if (unlikely(!is_tx || !is_vid || !ops->vidioc_s_fmt_meta_out))
++			break;
++		CLEAR_AFTER_FIELD(p, fmt.meta);
++		return ops->vidioc_s_fmt_meta_out(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
+@@ -1652,6 +1672,11 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.meta);
+ 		return ops->vidioc_try_fmt_meta_cap(file, fh, arg);
++	case V4L2_BUF_TYPE_META_OUTPUT:
++		if (unlikely(!is_tx || !is_vid || !ops->vidioc_try_fmt_meta_out))
++			break;
++		CLEAR_AFTER_FIELD(p, fmt.meta);
++		return ops->vidioc_try_fmt_meta_out(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 0c06699..f17f6d7 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -545,6 +545,7 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
+ 		requested_sizes[0] = f->fmt.sdr.buffersize;
+ 		break;
+ 	case V4L2_BUF_TYPE_META_CAPTURE:
++	case V4L2_BUF_TYPE_META_OUTPUT:
+ 		requested_sizes[0] = f->fmt.meta.buffersize;
+ 		break;
+ 	default:
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index bd53121..696bd13 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -47,6 +47,9 @@ struct v4l2_fh;
+  * @vidioc_enum_fmt_meta_cap: pointer to the function that implements
+  *	:ref:`VIDIOC_ENUM_FMT <vidioc_enum_fmt>` ioctl logic
+  *	for metadata capture
++ * @vidioc_enum_fmt_meta_out: pointer to the function that implements
++ *	:ref:`VIDIOC_ENUM_FMT <vidioc_enum_fmt>` ioctl logic
++ *	for metadata output
+  * @vidioc_g_fmt_vid_cap: pointer to the function that implements
+  *	:ref:`VIDIOC_G_FMT <vidioc_g_fmt>` ioctl logic for video capture
+  *	in single plane mode
+@@ -79,6 +82,8 @@ struct v4l2_fh;
+  *	Radio output
+  * @vidioc_g_fmt_meta_cap: pointer to the function that implements
+  *	:ref:`VIDIOC_G_FMT <vidioc_g_fmt>` ioctl logic for metadata capture
++ * @vidioc_g_fmt_meta_out: pointer to the function that implements
++ *	:ref:`VIDIOC_G_FMT <vidioc_g_fmt>` ioctl logic for metadata output
+  * @vidioc_s_fmt_vid_cap: pointer to the function that implements
+  *	:ref:`VIDIOC_S_FMT <vidioc_g_fmt>` ioctl logic for video capture
+  *	in single plane mode
+@@ -111,6 +116,8 @@ struct v4l2_fh;
+  *	Radio output
+  * @vidioc_s_fmt_meta_cap: pointer to the function that implements
+  *	:ref:`VIDIOC_S_FMT <vidioc_g_fmt>` ioctl logic for metadata capture
++ * @vidioc_s_fmt_meta_out: pointer to the function that implements
++ *	:ref:`VIDIOC_S_FMT <vidioc_g_fmt>` ioctl logic for metadata output
+  * @vidioc_try_fmt_vid_cap: pointer to the function that implements
+  *	:ref:`VIDIOC_TRY_FMT <vidioc_g_fmt>` ioctl logic for video capture
+  *	in single plane mode
+@@ -145,6 +152,8 @@ struct v4l2_fh;
+  *	Radio output
+  * @vidioc_try_fmt_meta_cap: pointer to the function that implements
+  *	:ref:`VIDIOC_TRY_FMT <vidioc_g_fmt>` ioctl logic for metadata capture
++ * @vidioc_try_fmt_meta_out: pointer to the function that implements
++ *	:ref:`VIDIOC_TRY_FMT <vidioc_g_fmt>` ioctl logic for metadata output
+  * @vidioc_reqbufs: pointer to the function that implements
+  *	:ref:`VIDIOC_REQBUFS <vidioc_reqbufs>` ioctl
+  * @vidioc_querybuf: pointer to the function that implements
+@@ -317,6 +326,8 @@ struct v4l2_ioctl_ops {
+ 				       struct v4l2_fmtdesc *f);
+ 	int (*vidioc_enum_fmt_meta_cap)(struct file *file, void *fh,
+ 					struct v4l2_fmtdesc *f);
++	int (*vidioc_enum_fmt_meta_out)(struct file *file, void *fh,
++					struct v4l2_fmtdesc *f);
+ 
+ 	/* VIDIOC_G_FMT handlers */
+ 	int (*vidioc_g_fmt_vid_cap)(struct file *file, void *fh,
+@@ -345,6 +356,8 @@ struct v4l2_ioctl_ops {
+ 				    struct v4l2_format *f);
+ 	int (*vidioc_g_fmt_meta_cap)(struct file *file, void *fh,
+ 				     struct v4l2_format *f);
++	int (*vidioc_g_fmt_meta_out)(struct file *file, void *fh,
++				     struct v4l2_format *f);
+ 
+ 	/* VIDIOC_S_FMT handlers */
+ 	int (*vidioc_s_fmt_vid_cap)(struct file *file, void *fh,
+@@ -373,6 +386,8 @@ struct v4l2_ioctl_ops {
+ 				    struct v4l2_format *f);
+ 	int (*vidioc_s_fmt_meta_cap)(struct file *file, void *fh,
+ 				     struct v4l2_format *f);
++	int (*vidioc_s_fmt_meta_out)(struct file *file, void *fh,
++				     struct v4l2_format *f);
+ 
+ 	/* VIDIOC_TRY_FMT handlers */
+ 	int (*vidioc_try_fmt_vid_cap)(struct file *file, void *fh,
+@@ -401,6 +416,8 @@ struct v4l2_ioctl_ops {
+ 				      struct v4l2_format *f);
+ 	int (*vidioc_try_fmt_meta_cap)(struct file *file, void *fh,
+ 				       struct v4l2_format *f);
++	int (*vidioc_try_fmt_meta_out)(struct file *file, void *fh,
++				       struct v4l2_format *f);
+ 
+ 	/* Buffer handlers */
+ 	int (*vidioc_reqbufs)(struct file *file, void *fh,
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 2b8feb8..b6c850a 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -144,6 +144,7 @@ enum v4l2_buf_type {
+ 	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
+ 	V4L2_BUF_TYPE_SDR_OUTPUT           = 12,
+ 	V4L2_BUF_TYPE_META_CAPTURE         = 13,
++	V4L2_BUF_TYPE_META_OUTPUT	   = 14,
+ 	/* Deprecated, do not use */
+ 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
+ };
+@@ -457,6 +458,7 @@ struct v4l2_capability {
+ #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
+ #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
+ #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
++#define V4L2_CAP_META_OUTPUT		0x08000000  /* Is a metadata output device */
+ 
+ #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
+ 
+-- 
+2.7.4
