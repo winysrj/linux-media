@@ -1,271 +1,279 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:54696 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753468AbdFSFZY (ORCPT
+Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:24606 "EHLO
+        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750863AbdFPQrP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 01:25:24 -0400
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v5 10/12] [media] v4l2: Add v4l2 control IDs for HEVC
- encoder
-Date: Mon, 19 Jun 2017 10:40:53 +0530
-Message-id: <1497849055-26583-11-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
-References: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
-        <CGME20170619052516epcas5p349b080cc6c242444d2db1f3c0e1c6f68@epcas5p3.samsung.com>
+        Fri, 16 Jun 2017 12:47:15 -0400
+Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
+        by mx07-00252a01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id v5GGhRRC010707
+        for <linux-media@vger.kernel.org>; Fri, 16 Jun 2017 17:47:13 +0100
+Received: from mail-pf0-f200.google.com (mail-pf0-f200.google.com [209.85.192.200])
+        by mx07-00252a01.pphosted.com with ESMTP id 2b065yu432-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Fri, 16 Jun 2017 17:47:13 +0100
+Received: by mail-pf0-f200.google.com with SMTP id s65so41688448pfi.14
+        for <linux-media@vger.kernel.org>; Fri, 16 Jun 2017 09:47:13 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <0e7c0456-157e-df6d-ffe5-7787454fac56@xs4all.nl>
+References: <cover.1497452006.git.dave.stevenson@raspberrypi.org>
+ <e268d99095dea34a049d9cacf9c18e855050abe1.1497452006.git.dave.stevenson@raspberrypi.org>
+ <ec774750-d6a9-d8b7-9b38-0fd97fe7678d@xs4all.nl> <CAAoAYcNPk==5=sNZRuVvShPv+ky=ewdg7O7G4xGp6qLFaMTvYQ@mail.gmail.com>
+ <38437cd7-5703-11bb-ce3f-01c6315746ff@xs4all.nl> <CAAoAYcPwPEifHBqcK-gBi2pPfPiTfC66UU-HRLDtZJUA+8mDTw@mail.gmail.com>
+ <799abe44-cc1c-8b2c-84e5-adb3f695ee52@xs4all.nl> <CAAoAYcOQg5dN6M2cBo+0AkxGuiAv9VDqPscCtqAUFLNS++MHKw@mail.gmail.com>
+ <0e7c0456-157e-df6d-ffe5-7787454fac56@xs4all.nl>
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Fri, 16 Jun 2017 17:47:09 +0100
+Message-ID: <CAAoAYcPCbn5rpkE53-0vK5GXaWkfqa_QufUZ1UU7ZkXwaTx9ZQ@mail.gmail.com>
+Subject: Re: [RFC 2/2] [media] bcm2835-unicam: Driver for CCP2/CSI2 camera interface
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-rpi-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add v4l2 controls for HEVC encoder
+On 16 June 2017 at 17:08, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 06/16/2017 05:55 PM, Dave Stevenson wrote:
+>>
+>> On 16 June 2017 at 15:05, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>
+>>> On 06/15/17 17:11, Dave Stevenson wrote:
+>>>>
+>>>> On 15 June 2017 at 15:14, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>>>
+>>>>> On 06/15/17 15:38, Dave Stevenson wrote:
+>>>>>>
+>>>>>> Hi Hans.
+>>>>>>
+>>>>>> "On 15 June 2017 at 08:12, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>>>>>
+>>>>>>> Hi Dave,
+>>>>>>>
+>>>>>>> Here is a quick review of this driver. Once a v2 is posted I'll do a
+>>>>>>> more
+>>>>>>> thorough
+>>>>>>> check.
+>>>>>>
+>>>>>>
+>>>>>> Thank you. I wasn't expecting such a quick response.
+>>>>>>
+>>>>>>> On 06/14/2017 05:15 PM, Dave Stevenson wrote:
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> Add driver for the Unicam camera receiver block on
+>>>>>>>> BCM283x processors.
+>>>>>>>>
+>>>>>>>> Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+>>>>>>>> ---
+>>>>>>>>    drivers/media/platform/Kconfig                   |    1 +
+>>>>>>>>    drivers/media/platform/Makefile                  |    2 +
+>>>>>>>>    drivers/media/platform/bcm2835/Kconfig           |   14 +
+>>>>>>>>    drivers/media/platform/bcm2835/Makefile          |    3 +
+>>>>>>>>    drivers/media/platform/bcm2835/bcm2835-unicam.c  | 2100
+>>>>>>>> ++++++++++++++++++++++
+>>>>>>>>    drivers/media/platform/bcm2835/vc4-regs-unicam.h |  257 +++
+>>>>>>>>    6 files changed, 2377 insertions(+)
+>>>>>>>>    create mode 100644 drivers/media/platform/bcm2835/Kconfig
+>>>>>>>>    create mode 100644 drivers/media/platform/bcm2835/Makefile
+>>>>>>>>    create mode 100644
+>>>>>>>> drivers/media/platform/bcm2835/bcm2835-unicam.c
+>>>>>>>>    create mode 100644
+>>>>>>>> drivers/media/platform/bcm2835/vc4-regs-unicam.h
+>>>>>>>>
+>>>>>>>> +static int unicam_s_input(struct file *file, void *priv, unsigned
+>>>>>>>> int i)
+>>>>>>>> +{
+>>>>>>>> +       struct unicam_device *dev = video_drvdata(file);
+>>>>>>>> +       int ret;
+>>>>>>>> +
+>>>>>>>> +       if (v4l2_subdev_has_op(dev->sensor, video, s_routing))
+>>>>>>>> +               ret =  v4l2_subdev_call(dev->sensor, video,
+>>>>>>>> s_routing, i,
+>>>>>>>> 0, 0);
+>>>>>>>> +       else
+>>>>>>>> +               ret = -EINVAL;  /* v4l2-compliance insists on
+>>>>>>>> -EINVAL */
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> Drop this if-else entirely. s_routing makes really no sense when
+>>>>>>> using a
+>>>>>>> device
+>>>>>>> tree. In this particular case there really is just one input, period.
+>>>>>>
+>>>>>>
+>>>>>> I added this due to the ADV7282-M analogue to CSI bridge chip (uses
+>>>>>> adv7180.c driver). It uses s_routing to select the physical input /
+>>>>>> input type.
+>>>>>> If this is dropped, what is the correct mechanism for selecting the
+>>>>>> input? Unless I've missed it, s_routing is not a call that is exposed
+>>>>>> to userspace, so we're stuck with composite input 1.
+>>>>>>
+>>>>>> I had asked this question in previously [1], and whilst Sakari had
+>>>>>> kindly replied with "s_routing() video op as it stands now is awful, I
+>>>>>> hope no-one uses it", the fact is that it is used.
+>>>>>>
+>>>>>> [1] http://www.spinics.net/lists/linux-media/msg115550.html
+>>>>>
+>>>>>
+>>>>> s_routing was developed for USB and PCI(e) devices and predates the
+>>>>> device tree.
+>>>>> Basically USB and PCI drivers will have card definitions where USB/PCI
+>>>>> card IDs
+>>>>> are mapped to card descriptions, and that includes information on the
+>>>>> various
+>>>>> inputs (composite, S-Video, etc) that are available on the backplane
+>>>>> and how those
+>>>>> physical connectors are hooked up to the pins on the video ICs.
+>>>>>
+>>>>> The enum/s/g_input ioctls all show the end-user view, i.e. they
+>>>>> enumerate the
+>>>>> inputs on the backpanel of the product. The s_routing op was created to
+>>>>> map
+>>>>> such inputs to actual pins on the ICs.
+>>>>>
+>>>>> For platform devices we would do this in the device tree today, but
+>>>>> some of
+>>>>> the necessary bindings are still missing. Specifically those for
+>>>>> connectors,
+>>>>> AFAIK those are not yet defined. It's been discussed, but never
+>>>>> finalized.
+>>>>>
+>>>>> So if this was done correctly you would use the connector endpoints in
+>>>>> the
+>>>>> device tree to enumerate the inputs and use how they are connected to
+>>>>> the
+>>>>> other blocks as the routing information (i.e. pad number).
+>>>>>
+>>>>> I would say that is the advanced course and to do this later.
+>>>>
+>>>>
+>>>> Certainly the advanced course, but I'm still not seeing how that all
+>>>> hangs together.
+>>>>
+>>>> To me that all sounds like stuff that ought to be within the ADV
+>>>> driver? From my perspective as the CSI-2 receiver I only have one
+>>>> input.
+>>>
+>>>
+>>> As a csi receiver, yes. But the adv has a mux (or at least the adv7180
+>>> does) where it can switch between multiple Composite or S-Video inputs.
+>>> s_routing controls the mux.
+>>>
+>>> But the end-user knows nothing about the internal routing, he only knows
+>>> about the connectors on the board. So with VIDIOC_ENUMINPUTS you can
+>>> see which inputs there are to choose from with names corresponding to
+>>> the labels on the backplane or in the user manual. With VIDIOC_S_INPUT
+>>> he can select an input, and the device tree then has to provide the
+>>> necessary information on how an input connector is hooked up to the adv.
+>>>
+>>>> So how does the application select between those inputs?
+>>>>
+>>>> Having had a bit of a grep I think the tvp5150 driver is doing what
+>>>> you're suggesting. However that appears to force you into using the
+>>>> media controller API. Is that not overkill particularly from an
+>>>> application perspective?
+>>>
+>>>
+>>> Ah, nice. There are actually already connector bindings. I'd forgotten
+>>> those went in.
+>>>
+>>> Anyway, the tvp5150 is used in two situations:
+>>>
+>>> either as part of the USB non-MC device, or as part of a platform MC
+>>> device.
+>>>
+>>> You have a platform non-MC device. The tvp5150 doesn't support that, but
+>>> if it did, then the DT parsing could wouldn't be under
+>>> CONFIG_MEDIA_CONTROLLER.
+>>>
+>>> It should really be under CONFIG_OF since it is (mostly) unrelated to the
+>>> MC.
+>>>
+>>> But we're missing support for this scenario. For USB/PCI boards we have
+>>> card descriptions whose information is used in s_routing, for MC-devices
+>>> we leave it up to the user to set the routing (tvp5150_link_setup). But
+>>> we don't have anything for a non-MC device that use the device tree.
+>>>
+>>> All the information is there, but we're missing infrastructure to
+>>> give the connector information to the main V4L2 driver so it can
+>>> implement
+>>> the input ioctls, and to tell the subdev driver how to program the mux.
+>>
+>>
+>> That's the bit that I was stumbling over - there is a bit of
+>> infrastructure missing.
+>>
+>> So I'm reading that as the adv driver is incorrect in that it is just
+>> exposing all the potential input configurations. It really needs the
+>> DT connectors bit adding to refine the input selection down to the
+>> actually available connectors on the physical board.
+>> In my eval board case, DT should describe input connectors for 4
+>> inputs, corresponding to CVBS_AIN1, CVBS_AIN2, DIFF_CVBS_AIN3_AIN4,
+>> and DIFF_CVBS_AIN7_AIN8. The fact that I could externally connect
+>> adapters to combine AIN1 and AIN2 to become s-video isn't relevant (or
+>> at least secondary).
+>>
+>> If we have a bit of infrastructure missing, what is the correct way
+>> forward for this driver right now?
+>> I was comparing against the am437x-vfpe, davinci/vpif_capture, and
+>> blackfin/bfin_capture drivers. All of them in some shape or form take
+>> VIDIOC_S_INPUT and end up calling s_routing. It may be incorrect, but
+>> that is how several platforms are using it. Is it acceptable to adopt
+>> this incorrect behaviour until the infrastructure changes are all
+>> done?
+>>
+>> As a relative mainline kernel newbie I'm slightly reluctant to
+>> volunteer to implement the missing infrastructure, but with some
+>> guidance in advance I'm willing to put together a patchset for
+>> discussion, and adapt the adv driver to use DT connectors.
+>>
+>> Then again the dtbindings for connectors in tvp5150 got reverted
+>> although the driver didn't:
+>> 31e717d [media] Revert "[media] tvp5150: document input connectors DT
+>> bindings"
+>>     "There are still ongoing discussions about how the input connectors
+>>      will be supported by the Media Controller framework so until that
+>>      is settled, it is better to revert the connectors portion of the
+>>      bindings to avoid known to be broken bindings docs to hit mainline."
+>>
+>> Did things ever get settled [1], or did it slip through the cracks?
+>> There don't appear to be any input connector bindings described
+>> anywhere I can find them.
+>> This sounds like a topic to be discussed in a new thread rather than
+>> hidden within a patch review.
+>
+>
+> This basically ran out of steam. Lack of time and resources prevented this
+> from going forward.
 
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 103 +++++++++++++++++++++++++++++++++++
- include/uapi/linux/v4l2-controls.h   |  84 ++++++++++++++++++++++++++++
- 2 files changed, 187 insertions(+)
+No problem, I can relate to that.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index ec42872..6a7e732 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -479,6 +479,51 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		NULL,
- 	};
- 
-+	static const char * const hevc_profile[] = {
-+		"Main",
-+		"Main Still Picture",
-+		NULL,
-+	};
-+	static const char * const hevc_level[] = {
-+		"1",
-+		"2",
-+		"2.1",
-+		"3",
-+		"3.1",
-+		"4",
-+		"4.1",
-+		"5",
-+		"5.1",
-+		"5.2",
-+		"6",
-+		"6.1",
-+		"6.2",
-+		NULL,
-+	};
-+	static const char * const hevc_hierarchial_coding_type[] = {
-+		"B",
-+		"P",
-+		NULL,
-+	};
-+	static const char * const hevc_refresh_type[] = {
-+		"None",
-+		"CRA",
-+		"IDR",
-+		NULL,
-+	};
-+	static const char * const hevc_size_of_length_field[] = {
-+		"0",
-+		"1",
-+		"2",
-+		"4",
-+		NULL,
-+	};
-+	static const char * const hevc_tier_flag[] = {
-+		"Main",
-+		"High",
-+		NULL,
-+	};
-+
- 
- 	switch (id) {
- 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-@@ -574,6 +619,18 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return dv_it_content_type;
- 	case V4L2_CID_DETECT_MD_MODE:
- 		return detect_md_mode;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:
-+		return hevc_profile;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:
-+		return hevc_level;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE:
-+		return hevc_hierarchial_coding_type;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:
-+		return hevc_refresh_type;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:
-+		return hevc_size_of_length_field;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:
-+		return hevc_tier_flag;
- 
- 	default:
- 		return NULL;
-@@ -775,6 +832,46 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
- 	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
- 
-+	/* HEVC controls */
-+	case V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP:		return "HEVC I-Frame QP Value";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP:		return "HEVC P-Frame QP Value";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP:		return "HEVC B-Frame QP Value";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP:			return "HEVC Minimum QP Value";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP:			return "HEVC Maximum QP Value";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:			return "HEVC Profile";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:			return "HEVC Level";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:		return "HEVC Tier_flag";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION:	return "HEVC Frame Rate Resolution";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH:	return "HEVC Maximum Coding Unit Depth";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:		return "HEVC Refresh Type";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED:		return "HEVC Constant Intra Prediction";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU:		return "HEVC Lossless Encoding";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT:		return "HEVC Wavefront";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_LF:			return "HEVC Loop Filter";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY:	return "HEVC LF Across Slice Boundary";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_QP:			return "HEVC QP Values";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE:		return "HEVC Hierarchical Coding Type";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER:	return "HEVC Hierarchical Coding Layer";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER_QP:	return "HEVC Hierarchical Layer QP";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_BR:	return "HEVC Hierarchical Lay 0 Bit Rate";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_BR:	return "HEVC Hierarchical Lay 1 Bit Rate";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_BR:	return "HEVC Hierarchical Lay 2 Bit Rate";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_BR:	return "HEVC Hierarchical Lay 3 Bit Rate";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_BR:	return "HEVC Hierarchical Lay 4 Bit Rate";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_BR:	return "HEVC Hierarchical Lay 5 Bit Rate";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_BR:	return "HEVC Hierarchical Lay 6 Bit Rate";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB:		return "HEVC General PB";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID:		return "HEVC Temporal ID";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING:		return "HEVC Strong Intra Smoothing";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_INTRA_PU_SPLIT:		return "HEVC Intra PU Split";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION:		return "HEVC TMV Prediction";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1:	return "HEVC Max Number of Candidate MVs";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE:	return "HEVC ENC Without Startcode";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD:		return "HEVC Num of I Frame b/w 2 IDR";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2:	return "HEVC Loop Filter Beta Offset";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2:	return "HEVC Loop Filter TC Offset";
-+	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:	return "HEVC Size of Length Field";
-+
- 	/* CAMERA controls */
- 	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
-@@ -1067,6 +1164,12 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_TUNE_DEEMPHASIS:
- 	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
- 	case V4L2_CID_DETECT_MD_MODE:
-+	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:
-+	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE:
-+	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:
-+	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:
-+	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_LINK_FREQ:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 0d2e1e0..9c32a55 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -579,6 +579,85 @@ enum v4l2_vp8_golden_frame_sel {
- #define V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP		(V4L2_CID_MPEG_BASE+510)
- #define V4L2_CID_MPEG_VIDEO_VPX_PROFILE			(V4L2_CID_MPEG_BASE+511)
- 
-+/* CIDs for HEVC encoding. Number gaps are for compatibility */
-+
-+#define V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP		(V4L2_CID_MPEG_BASE + 512)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP		(V4L2_CID_MPEG_BASE + 513)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP	(V4L2_CID_MPEG_BASE + 514)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP	(V4L2_CID_MPEG_BASE + 515)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP	(V4L2_CID_MPEG_BASE + 516)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_QP	(V4L2_CID_MPEG_BASE + 517)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE (V4L2_CID_MPEG_BASE + 518)
-+enum v4l2_mpeg_video_hevc_hier_coding_type {
-+	V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B	= 0,
-+	V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_P	= 1,
-+};
-+#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER	(V4L2_CID_MPEG_BASE + 519)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER_QP	(V4L2_CID_MPEG_BASE + 520)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_PROFILE	(V4L2_CID_MPEG_BASE + 521)
-+enum v4l2_mpeg_video_hevc_profile {
-+	V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN = 0,
-+	V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE = 1,
-+};
-+#define V4L2_CID_MPEG_VIDEO_HEVC_LEVEL		(V4L2_CID_MPEG_BASE + 522)
-+enum v4l2_mpeg_video_hevc_level {
-+	V4L2_MPEG_VIDEO_HEVC_LEVEL_1	= 0,
-+	V4L2_MPEG_VIDEO_HEVC_LEVEL_2	= 1,
-+	V4L2_MPEG_VIDEO_HEVC_LEVEL_2_1	= 2,
-+	V4L2_MPEG_VIDEO_HEVC_LEVEL_3	= 3,
-+	V4L2_MPEG_VIDEO_HEVC_LEVEL_3_1	= 4,
-+	V4L2_MPEG_VIDEO_HEVC_LEVEL_4	= 5,
-+	V4L2_MPEG_VIDEO_HEVC_LEVEL_4_1	= 6,
-+	V4L2_MPEG_VIDEO_HEVC_LEVEL_5	= 7,
-+	V4L2_MPEG_VIDEO_HEVC_LEVEL_5_1	= 8,
-+	V4L2_MPEG_VIDEO_HEVC_LEVEL_5_2	= 9,
-+	V4L2_MPEG_VIDEO_HEVC_LEVEL_6	= 10,
-+	V4L2_MPEG_VIDEO_HEVC_LEVEL_6_1	= 11,
-+	V4L2_MPEG_VIDEO_HEVC_LEVEL_6_2	= 12,
-+};
-+#define V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION	(V4L2_CID_MPEG_BASE + 523)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG		(V4L2_CID_MPEG_BASE + 524)
-+enum v4l2_mpeg_video_hevc_tier_flag {
-+	V4L2_MPEG_VIDEO_HEVC_TIER_MAIN = 0,
-+	V4L2_MPEG_VIDEO_HEVC_TIER_HIGH = 1,
-+};
-+#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH	(V4L2_CID_MPEG_BASE + 525)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_LF			(V4L2_CID_MPEG_BASE + 526)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY	(V4L2_CID_MPEG_BASE + 527)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2	(V4L2_CID_MPEG_BASE + 528)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2	(V4L2_CID_MPEG_BASE + 529)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE		(V4L2_CID_MPEG_BASE + 530)
-+enum v4l2_cid_mpeg_video_hevc_refresh_type {
-+	V4L2_MPEG_VIDEO_HEVC_REFRESH_NONE		= 0,
-+	V4L2_MPEG_VIDEO_HEVC_REFRESH_CRA		= 1,
-+	V4L2_MPEG_VIDEO_HEVC_REFRESH_IDR		= 2,
-+};
-+#define V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD		(V4L2_CID_MPEG_BASE + 531)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU		(V4L2_CID_MPEG_BASE + 532)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED	(V4L2_CID_MPEG_BASE + 533)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT		(V4L2_CID_MPEG_BASE + 534)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB		(V4L2_CID_MPEG_BASE + 535)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID		(V4L2_CID_MPEG_BASE + 536)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING	(V4L2_CID_MPEG_BASE + 537)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1	(V4L2_CID_MPEG_BASE + 538)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_INTRA_PU_SPLIT		(V4L2_CID_MPEG_BASE + 539)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION		(V4L2_CID_MPEG_BASE + 540)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE	(V4L2_CID_MPEG_BASE + 541)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD	(V4L2_CID_MPEG_BASE + 542)
-+enum v4l2_cid_mpeg_video_hevc_size_of_length_field {
-+	V4L2_MPEG_VIDEO_HEVC_SIZE_0		= 0,
-+	V4L2_MPEG_VIDEO_HEVC_SIZE_1		= 1,
-+	V4L2_MPEG_VIDEO_HEVC_SIZE_2		= 2,
-+	V4L2_MPEG_VIDEO_HEVC_SIZE_4		= 3,
-+};
-+#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_BR	(V4L2_CID_MPEG_BASE + 543)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_BR	(V4L2_CID_MPEG_BASE + 544)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_BR	(V4L2_CID_MPEG_BASE + 545)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_BR	(V4L2_CID_MPEG_BASE + 546)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_BR	(V4L2_CID_MPEG_BASE + 547)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_BR	(V4L2_CID_MPEG_BASE + 548)
-+#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_BR	(V4L2_CID_MPEG_BASE + 549)
-+
- /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
- #define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
- #define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE 	(V4L2_CID_MPEG_CX2341X_BASE+0)
-@@ -647,6 +726,11 @@ enum v4l2_mpeg_mfc51_video_force_frame_type {
- #define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_STATIC		(V4L2_CID_MPEG_MFC51_BASE+53)
- #define V4L2_CID_MPEG_MFC51_VIDEO_H264_NUM_REF_PIC_FOR_P		(V4L2_CID_MPEG_MFC51_BASE+54)
- 
-+/*  MPEG-class control IDs specific to the Samsung MFC 10.10 driver as defined by V4L2 */
-+#define V4L2_CID_MPEG_MFC10_BASE				(V4L2_CTRL_CLASS_MPEG | 0x1200)
-+
-+#define V4L2_CID_MPEG_MFC10_VIDEO_HEVC_REF_NUMBER_FOR_PFRAMES		(V4L2_CID_MPEG_MFC10_BASE+0)
-+#define V4L2_CID_MPEG_MFC10_VIDEO_HEVC_PREPEND_SPSPPS_TO_IDR		(V4L2_CID_MPEG_MFC10_BASE+1)
- 
- /*  Camera class control IDs */
- 
--- 
-2.7.4
+> Do you *need* to have support for the adv in the first version of this
+> driver? Basically for drivers like this we have good support for sensors,
+> and we can handle video receiver devices as long as there is no need to
+> call s_routing.
+>
+> Why not get that done first?
+
+I don't *need* to have support for any specific devices at V1, but
+obviously I needed something to hook up as a source.
+TC358743, OV5647, and ADV7282-M were the devices I had available to
+test with, and the first two of those particularly made sense as they
+are easily available in a form to connect to the Pi (Auvidea B101/B102
+boards, and the V1 Pi camera). The ADV7282 is a nice one to add as it
+then gives drivers supporting each of enum/s/g_std,
+enum/g/s_dv_timings, and a sensor supporting neither. I was trying to
+support the full feature set of each of them.
+
+My issue was that the approach seemingly taken by other existing
+drivers wasn't acceptable here. It looks like I'd missed that when
+used as platform devices the drivers I'd looked at had routing
+information and were doing the mapping required. My bad.
+
+I'll remove the s_routing call for now and add a FIXME detailing the issue.
+
+Thanks for your help and patience over this.
+
+  Dave
