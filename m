@@ -1,70 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:57413 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751850AbdFHIzU (ORCPT
+Received: from gateway30.websitewelcome.com ([192.185.149.4]:13695 "EHLO
+        gateway30.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751644AbdFPCVG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Jun 2017 04:55:20 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        kernel@pengutronix.de, patchwork-lst@pengutronix.de,
-        Lucas Stach <l.stach@pengutronix.de>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 1/3] [media] coda: use correct offset for mvcol buffer
-Date: Thu,  8 Jun 2017 10:55:11 +0200
-Message-Id: <20170608085513.26857-1-p.zabel@pengutronix.de>
+        Thu, 15 Jun 2017 22:21:06 -0400
+Received: from cm15.websitewelcome.com (cm15.websitewelcome.com [100.42.49.9])
+        by gateway30.websitewelcome.com (Postfix) with ESMTP id A7E7D233D4
+        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 20:57:36 -0500 (CDT)
+Date: Thu, 15 Jun 2017 20:57:36 -0500
+Message-ID: <20170615205736.Horde.S1fREUR1Jdb2BaFvmp4ZiEO@gator4166.hostgator.com>
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linuxtv-commits@linuxtv.org, linux-media@vger.kernel.org
+Subject: Re: [git:media_tree/master] [media] s3c-camif: fix arguments
+ position in a function call
+In-Reply-To: <E1dKs0y-0002Hq-Vp@www.linuxtv.org>
+Content-Type: text/plain; charset=utf-8; format=flowed; DelSp=Yes
+MIME-Version: 1.0
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lucas Stach <l.stach@pengutronix.de>
+Hi Sylwester,
 
-The mvcol buffer needs to be placed behind the chroma plane(s), so
-use the real offset including any required rounding.
+Quoting Mauro Carvalho Chehab <mchehab@s-opensource.com>:
 
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-No changes since v1 [1].
+> This is an automatic generated email to let you know that the  
+> following patch were queued:
+>
+> Subject: [media] s3c-camif: fix arguments position in a function call
+> Author:  Gustavo A. R. Silva <garsilva@embeddedor.com>
+> Date:    Fri Jun 2 00:43:41 2017 -0300
+>
+> Fix the position of arguments so camif->colorfx_cb, camif->colorfx_cr
+> are passed in proper order to the camif_hw_set_effect() function.
+>
+> Addresses-Coverity-ID: 1248800
+> Addresses-Coverity-ID: 1269141
+>
+> [s.nawrocki@samsung.com: edited commit message ]
 
-[1] https://patchwork.linuxtv.org/patch/40604
----
- drivers/media/platform/coda/coda-bit.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Thank you for your editing of the commit message. I will elaborate  
+further in future patches.
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 2ec41375a896f..325035bb0a777 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -427,14 +427,16 @@ static int coda_alloc_framebuffers(struct coda_ctx *ctx,
- 
- 	/* Register frame buffers in the parameter buffer */
- 	for (i = 0; i < ctx->num_internal_frames; i++) {
--		u32 y, cb, cr;
-+		u32 y, cb, cr, mvcol;
- 
- 		/* Start addresses of Y, Cb, Cr planes */
- 		y = ctx->internal_frames[i].paddr;
- 		cb = y + ysize;
- 		cr = y + ysize + ysize/4;
-+		mvcol = y + ysize + ysize/4 + ysize/4;
- 		if (ctx->tiled_map_type == GDI_TILED_FRAME_MB_RASTER_MAP) {
- 			cb = round_up(cb, 4096);
-+			mvcol = cb + ysize/2;
- 			cr = 0;
- 			/* Packed 20-bit MSB of base addresses */
- 			/* YYYYYCCC, CCyyyyyc, cccc.... */
-@@ -448,9 +450,7 @@ static int coda_alloc_framebuffers(struct coda_ctx *ctx,
- 		/* mvcol buffer for h.264 */
- 		if (ctx->codec->src_fourcc == V4L2_PIX_FMT_H264 &&
- 		    dev->devtype->product != CODA_DX6)
--			coda_parabuf_write(ctx, 96 + i,
--					   ctx->internal_frames[i].paddr +
--					   ysize + ysize/4 + ysize/4);
-+			coda_parabuf_write(ctx, 96 + i, mvcol);
- 	}
- 
- 	/* mvcol buffer for mpeg4 */
--- 
-2.11.0
+Best regards.
+--
+Gustavo A. R. Silva
