@@ -1,205 +1,283 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway33.websitewelcome.com ([192.185.146.80]:30289 "EHLO
-        gateway33.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752059AbdFOUtF (ORCPT
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:34959 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750827AbdFPTsV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 16:49:05 -0400
-Received: from cm10.websitewelcome.com (cm10.websitewelcome.com [100.42.49.4])
-        by gateway33.websitewelcome.com (Postfix) with ESMTP id 291A21683A
-        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 15:23:56 -0500 (CDT)
-Date: Thu, 15 Jun 2017 15:23:55 -0500
-Message-ID: <20170615152355.Horde.J4w3Vdm6wjB3m5sAd3fP5WR@gator4166.hostgator.com>
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: Erik Andren <erik.andren@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [media-m5602-po1030] question about return value check
-Content-Type: text/plain; charset=utf-8; format=flowed; DelSp=Yes
-MIME-Version: 1.0
-Content-Disposition: inline
+        Fri, 16 Jun 2017 15:48:21 -0400
+Received: by mail-lf0-f68.google.com with SMTP id v20so5107943lfa.2
+        for <linux-media@vger.kernel.org>; Fri, 16 Jun 2017 12:48:21 -0700 (PDT)
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: [PATCH v2] media: ov6650: convert to standalone v4l2 subdevice
+Date: Fri, 16 Jun 2017 21:45:33 +0200
+Message-Id: <20170616194533.20532-1-jmkrzyszt@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Remove the soc_camera dependencies and move the diver to i2c
 
-Hello everybody,
+Lost features, fortunately not used or not critical on test platform:
+- soc_camera power on/off callback - replaced with clock enable/disable
+  only, no support for platform provided regulators nor power callback,
+- soc_camera sense request - replaced with arbitrarily selected default
+  master clock rate and pixel clock limit, no support for platform
+  requested values,
+- soc_camera board flags - no support for platform requested mbus config
+  tweaks.
 
-While looking into Coverity ID 1227044 I ran into the following piece  
-of code at drivers/media/usb/gspca/m5602/m5602_po1030.c:280:
+Created against linux-4.12-rc2.
+Tested on Amstrad Delta with now out of tree but still locally
+maintained omap1_camera host driver.
 
-280int po1030_start(struct sd *sd)
-281{
-282        struct cam *cam = &sd->gspca_dev.cam;
-283        int i, err = 0;
-284        int width = cam->cam_mode[sd->gspca_dev.curr_mode].width;
-285        int height = cam->cam_mode[sd->gspca_dev.curr_mode].height;
-286        int ver_offs = cam->cam_mode[sd->gspca_dev.curr_mode].priv;
-287        u8 data;
-288
-289        switch (width) {
-290        case 320:
-291                data = PO1030_SUBSAMPLING;
-292                err = m5602_write_sensor(sd, PO1030_CONTROL3, &data, 1);
-293                if (err < 0)
-294                        return err;
-295
-296                data = ((width + 3) >> 8) & 0xff;
-297                err = m5602_write_sensor(sd, PO1030_WINDOWWIDTH_H,  
-&data, 1);
-298                if (err < 0)
-299                        return err;
-300
-301                data = (width + 3) & 0xff;
-302                err = m5602_write_sensor(sd, PO1030_WINDOWWIDTH_L,  
-&data, 1);
-303                if (err < 0)
-304                        return err;
-305
-306                data = ((height + 1) >> 8) & 0xff;
-307                err = m5602_write_sensor(sd, PO1030_WINDOWHEIGHT_H,  
-&data, 1);
-308                if (err < 0)
-309                        return err;
-310
-311                data = (height + 1) & 0xff;
-312                err = m5602_write_sensor(sd, PO1030_WINDOWHEIGHT_L,  
-&data, 1);
-313
-314                height += 6;
-315                width -= 1;
-316                break;
-317
-318        case 640:
-319                data = 0;
-320                err = m5602_write_sensor(sd, PO1030_CONTROL3, &data, 1);
-321                if (err < 0)
-322                        return err;
-323
-324                data = ((width + 7) >> 8) & 0xff;
-325                err = m5602_write_sensor(sd, PO1030_WINDOWWIDTH_H,  
-&data, 1);
-326                if (err < 0)
-327                        return err;
-328
-329                data = (width + 7) & 0xff;
-330                err = m5602_write_sensor(sd, PO1030_WINDOWWIDTH_L,  
-&data, 1);
-331                if (err < 0)
-332                        return err;
-333
-334                data = ((height + 3) >> 8) & 0xff;
-335                err = m5602_write_sensor(sd, PO1030_WINDOWHEIGHT_H,  
-&data, 1);
-336                if (err < 0)
-337                        return err;
-338
-339                data = (height + 3) & 0xff;
-340                err = m5602_write_sensor(sd, PO1030_WINDOWHEIGHT_L,  
-&data, 1);
-341
-342                height += 12;
-343                width -= 2;
-344                break;
-345        }
-346        err = m5602_write_bridge(sd, M5602_XB_SENSOR_TYPE, 0x0c);
-347        if (err < 0)
-348                return err;
-349
-350        err = m5602_write_bridge(sd, M5602_XB_LINE_OF_FRAME_H, 0x81);
-351        if (err < 0)
-352                return err;
-353
-354        err = m5602_write_bridge(sd, M5602_XB_PIX_OF_LINE_H, 0x82);
-355        if (err < 0)
-356                return err;
-357
-358        err = m5602_write_bridge(sd, M5602_XB_SIG_INI, 0x01);
-359        if (err < 0)
-360                return err;
-361
-362        err = m5602_write_bridge(sd, M5602_XB_VSYNC_PARA,
-363                                 ((ver_offs >> 8) & 0xff));
-364        if (err < 0)
-365                return err;
-366
-367        err = m5602_write_bridge(sd, M5602_XB_VSYNC_PARA, (ver_offs  
-& 0xff));
-368        if (err < 0)
-369                return err;
-370
-371        for (i = 0; i < 2 && !err; i++)
-372                err = m5602_write_bridge(sd, M5602_XB_VSYNC_PARA, 0);
-373        if (err < 0)
-374                return err;
-375
-376        err = m5602_write_bridge(sd, M5602_XB_VSYNC_PARA, (height  
- >> 8) & 0xff);
-377        if (err < 0)
-378                return err;
-379
-380        err = m5602_write_bridge(sd, M5602_XB_VSYNC_PARA, (height & 0xff));
-381        if (err < 0)
-382                return err;
-383
-384        for (i = 0; i < 2 && !err; i++)
-385                err = m5602_write_bridge(sd, M5602_XB_VSYNC_PARA, 0);
-386
-387        for (i = 0; i < 2 && !err; i++)
-388                err = m5602_write_bridge(sd, M5602_XB_SIG_INI, 0);
-389
-390        for (i = 0; i < 2 && !err; i++)
-391                err = m5602_write_bridge(sd, M5602_XB_HSYNC_PARA, 0);
-392        if (err < 0)
-393                return err;
-394
-395        err = m5602_write_bridge(sd, M5602_XB_HSYNC_PARA, (width >>  
-8) & 0xff);
-396        if (err < 0)
-397                return err;
-398
-399        err = m5602_write_bridge(sd, M5602_XB_HSYNC_PARA, (width & 0xff));
-400        if (err < 0)
-401                return err;
-402
-403        err = m5602_write_bridge(sd, M5602_XB_SIG_INI, 0);
-404        return err;
-405}
+Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+---
+ drivers/media/i2c/Kconfig                   | 11 +++++
+ drivers/media/i2c/Makefile                  |  1 +
+ drivers/media/i2c/{soc_camera => }/ov6650.c | 77 +++++++++--------------------
+ drivers/media/i2c/soc_camera/Kconfig        |  6 ---
+ drivers/media/i2c/soc_camera/Makefile       |  1 -
+ 5 files changed, 35 insertions(+), 61 deletions(-)
+ rename drivers/media/i2c/{soc_camera => }/ov6650.c (92%)
 
-The issue here is that the value contained in variable _err_ at lines  
-312 and 340 is not being evaluated as it happens in other instances  
-after calling m5602_write_sensor().
-
-I'm suspicious this is not the original intention and maybe a patch  
-like the following could be applied:
-
---- a/drivers/media/usb/gspca/m5602/m5602_po1030.c+++  
-b/drivers/media/usb/gspca/m5602/m5602_po1030.c@@ -310,6 +310,8 @@ int  
-po1030_start(struct sd *sd)
-
-                 data = (height + 1) & 0xff;
-                 err = m5602_write_sensor(sd, PO1030_WINDOWHEIGHT_L, &data, 1);
-+               if (err < 0)
-+                       return err;
-
-                 height += 6;
-                 width -= 1;
-@@ -338,6 +340,8 @@ int po1030_start(struct sd *sd)
-
-                 data = (height + 3) & 0xff;
-                 err = m5602_write_sensor(sd, PO1030_WINDOWHEIGHT_L, &data, 1);
-+               if (err < 0)
-+                       return err;
-
-                 height += 12;
-                 width -= 2;
-
-
-What do you think?
-
-It would be great to hear your opinions about it.
-
-I'd really appreciate any comment on this.
-
-Thank you!
---
-Gustavo A. R. Silva
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index fd181c9..a3c1dff 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -562,6 +562,17 @@ config VIDEO_OV5647
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called ov5647.
+ 
++config VIDEO_OV6650
++	tristate "OmniVision OV6650 sensor support"
++	depends on I2C && VIDEO_V4L2
++	depends on MEDIA_CAMERA_SUPPORT
++	---help---
++	  This is a Video4Linux2 sensor-level driver for the OmniVision
++	  OV6650 camera.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called ov6650.
++
+ config VIDEO_OV7640
+ 	tristate "OmniVision OV7640 sensor support"
+ 	depends on I2C && VIDEO_V4L2
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 62323ec..be58ac0 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -60,6 +60,7 @@ obj-$(CONFIG_VIDEO_UPD64083) += upd64083.o
+ obj-$(CONFIG_VIDEO_OV2640) += ov2640.o
+ obj-$(CONFIG_VIDEO_OV5645) += ov5645.o
+ obj-$(CONFIG_VIDEO_OV5647) += ov5647.o
++obj-$(CONFIG_VIDEO_OV6650) += ov6650.o
+ obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
+ obj-$(CONFIG_VIDEO_OV7670) += ov7670.o
+ obj-$(CONFIG_VIDEO_OV9650) += ov9650.o
+diff --git a/drivers/media/i2c/soc_camera/ov6650.c b/drivers/media/i2c/ov6650.c
+similarity index 92%
+rename from drivers/media/i2c/soc_camera/ov6650.c
+rename to drivers/media/i2c/ov6650.c
+index dbd6d92..2f7b7a7 100644
+--- a/drivers/media/i2c/soc_camera/ov6650.c
++++ b/drivers/media/i2c/ov6650.c
+@@ -1,5 +1,5 @@
+ /*
+- * V4L2 SoC Camera driver for OmniVision OV6650 Camera Sensor
++ * V4L2 subdevice driver for OmniVision OV6650 Camera Sensor
+  *
+  * Copyright (C) 2010 Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+  *
+@@ -31,9 +31,9 @@
+ #include <linux/v4l2-mediabus.h>
+ #include <linux/module.h>
+ 
+-#include <media/soc_camera.h>
+ #include <media/v4l2-clk.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
+ 
+ /* Register definitions */
+ #define REG_GAIN		0x00	/* range 00 - 3F */
+@@ -426,10 +426,15 @@ static int ov6650_set_register(struct v4l2_subdev *sd,
+ static int ov6650_s_power(struct v4l2_subdev *sd, int on)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 	struct ov6650 *priv = to_ov6650(client);
++	int ret = 0;
+ 
+-	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
++	if (on)
++		ret = v4l2_clk_enable(priv->clk);
++	else
++		v4l2_clk_disable(priv->clk);
++
++	return ret;
+ }
+ 
+ static int ov6650_get_selection(struct v4l2_subdev *sd,
+@@ -471,14 +476,13 @@ static int ov6650_set_selection(struct v4l2_subdev *sd,
+ 	    sel->target != V4L2_SEL_TGT_CROP)
+ 		return -EINVAL;
+ 
+-	rect.left   = ALIGN(rect.left,   2);
+-	rect.width  = ALIGN(rect.width,  2);
+-	rect.top    = ALIGN(rect.top,    2);
+-	rect.height = ALIGN(rect.height, 2);
+-	soc_camera_limit_side(&rect.left, &rect.width,
+-			DEF_HSTRT << 1, 2, W_CIF);
+-	soc_camera_limit_side(&rect.top, &rect.height,
+-			DEF_VSTRT << 1, 2, H_CIF);
++	v4l_bound_align_image(&rect.width, 2, W_CIF, 1,
++			      &rect.height, 2, H_CIF, 1, 0);
++	v4l_bound_align_image(&rect.left, DEF_HSTRT << 1,
++			      (DEF_HSTRT << 1) + W_CIF - (__s32)rect.width, 1,
++			      &rect.top, DEF_VSTRT << 1,
++			      (DEF_VSTRT << 1) + H_CIF - (__s32)rect.height, 1,
++			      0);
+ 
+ 	ret = ov6650_reg_write(client, REG_HSTRT, rect.left >> 1);
+ 	if (!ret) {
+@@ -547,8 +551,6 @@ static u8 to_clkrc(struct v4l2_fract *timeperframe,
+ static int ov6650_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_device *icd = v4l2_get_subdev_hostdata(sd);
+-	struct soc_camera_sense *sense = icd->sense;
+ 	struct ov6650 *priv = to_ov6650(client);
+ 	bool half_scale = !is_unscaled_ok(mf->width, mf->height, &priv->rect);
+ 	struct v4l2_subdev_selection sel = {
+@@ -640,32 +642,10 @@ static int ov6650_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
+ 	}
+ 	priv->half_scale = half_scale;
+ 
+-	if (sense) {
+-		if (sense->master_clock == 8000000) {
+-			dev_dbg(&client->dev, "8MHz input clock\n");
+-			clkrc = CLKRC_6MHz;
+-		} else if (sense->master_clock == 12000000) {
+-			dev_dbg(&client->dev, "12MHz input clock\n");
+-			clkrc = CLKRC_12MHz;
+-		} else if (sense->master_clock == 16000000) {
+-			dev_dbg(&client->dev, "16MHz input clock\n");
+-			clkrc = CLKRC_16MHz;
+-		} else if (sense->master_clock == 24000000) {
+-			dev_dbg(&client->dev, "24MHz input clock\n");
+-			clkrc = CLKRC_24MHz;
+-		} else {
+-			dev_err(&client->dev,
+-				"unsupported input clock, check platform data\n");
+-			return -EINVAL;
+-		}
+-		mclk = sense->master_clock;
+-		priv->pclk_limit = sense->pixel_clock_max;
+-	} else {
+-		clkrc = CLKRC_24MHz;
+-		mclk = 24000000;
+-		priv->pclk_limit = 0;
+-		dev_dbg(&client->dev, "using default 24MHz input clock\n");
+-	}
++	clkrc = CLKRC_12MHz;
++	mclk = 12000000;
++	priv->pclk_limit = 1334000;
++	dev_dbg(&client->dev, "using 12MHz input clock\n");
+ 
+ 	clkrc |= to_clkrc(&priv->tpf, priv->pclk_limit, priv->pclk_max);
+ 
+@@ -897,8 +877,6 @@ static const struct v4l2_subdev_core_ops ov6650_core_ops = {
+ static int ov6650_g_mbus_config(struct v4l2_subdev *sd,
+ 				struct v4l2_mbus_config *cfg)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 
+ 	cfg->flags = V4L2_MBUS_MASTER |
+ 		V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_PCLK_SAMPLE_FALLING |
+@@ -906,7 +884,6 @@ static int ov6650_g_mbus_config(struct v4l2_subdev *sd,
+ 		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_LOW |
+ 		V4L2_MBUS_DATA_ACTIVE_HIGH;
+ 	cfg->type = V4L2_MBUS_PARALLEL;
+-	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
+ 
+ 	return 0;
+ }
+@@ -916,25 +893,23 @@ static int ov6650_s_mbus_config(struct v4l2_subdev *sd,
+ 				const struct v4l2_mbus_config *cfg)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+-	unsigned long flags = soc_camera_apply_board_flags(ssdd, cfg);
+ 	int ret;
+ 
+-	if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
++	if (cfg->flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
+ 		ret = ov6650_reg_rmw(client, REG_COMJ, COMJ_PCLK_RISING, 0);
+ 	else
+ 		ret = ov6650_reg_rmw(client, REG_COMJ, 0, COMJ_PCLK_RISING);
+ 	if (ret)
+ 		return ret;
+ 
+-	if (flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
++	if (cfg->flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
+ 		ret = ov6650_reg_rmw(client, REG_COMF, COMF_HREF_LOW, 0);
+ 	else
+ 		ret = ov6650_reg_rmw(client, REG_COMF, 0, COMF_HREF_LOW);
+ 	if (ret)
+ 		return ret;
+ 
+-	if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
++	if (cfg->flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+ 		ret = ov6650_reg_rmw(client, REG_COMJ, COMJ_VSYNC_HIGH, 0);
+ 	else
+ 		ret = ov6650_reg_rmw(client, REG_COMJ, 0, COMJ_VSYNC_HIGH);
+@@ -971,14 +946,8 @@ static int ov6650_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *did)
+ {
+ 	struct ov6650 *priv;
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 	int ret;
+ 
+-	if (!ssdd) {
+-		dev_err(&client->dev, "Missing platform_data for driver\n");
+-		return -EINVAL;
+-	}
+-
+ 	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
+ 	if (!priv) {
+ 		dev_err(&client->dev,
+diff --git a/drivers/media/i2c/soc_camera/Kconfig b/drivers/media/i2c/soc_camera/Kconfig
+index 96859f3..72b3698 100644
+--- a/drivers/media/i2c/soc_camera/Kconfig
++++ b/drivers/media/i2c/soc_camera/Kconfig
+@@ -47,12 +47,6 @@ config SOC_CAMERA_OV5642
+ 	help
+ 	  This is a V4L2 camera driver for the OmniVision OV5642 sensor
+ 
+-config SOC_CAMERA_OV6650
+-	tristate "ov6650 sensor support"
+-	depends on SOC_CAMERA && I2C
+-	---help---
+-	  This is a V4L2 SoC camera driver for the OmniVision OV6650 sensor
+-
+ config SOC_CAMERA_OV772X
+ 	tristate "ov772x camera support"
+ 	depends on SOC_CAMERA && I2C
+diff --git a/drivers/media/i2c/soc_camera/Makefile b/drivers/media/i2c/soc_camera/Makefile
+index 974bdb7..78532a7 100644
+--- a/drivers/media/i2c/soc_camera/Makefile
++++ b/drivers/media/i2c/soc_camera/Makefile
+@@ -4,7 +4,6 @@ obj-$(CONFIG_SOC_CAMERA_MT9T031)	+= mt9t031.o
+ obj-$(CONFIG_SOC_CAMERA_MT9T112)	+= mt9t112.o
+ obj-$(CONFIG_SOC_CAMERA_MT9V022)	+= mt9v022.o
+ obj-$(CONFIG_SOC_CAMERA_OV5642)		+= ov5642.o
+-obj-$(CONFIG_SOC_CAMERA_OV6650)		+= ov6650.o
+ obj-$(CONFIG_SOC_CAMERA_OV772X)		+= ov772x.o
+ obj-$(CONFIG_SOC_CAMERA_OV9640)		+= ov9640.o
+ obj-$(CONFIG_SOC_CAMERA_OV9740)		+= ov9740.o
+-- 
+2.10.2
