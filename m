@@ -1,86 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53481
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751787AbdFGSXp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:23:45 -0400
-Date: Wed, 7 Jun 2017 15:23:38 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Matthias Schwarzott <zzam@gentoo.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: Unknown symbol put_vaddr_frames when using media_build
-Message-ID: <20170607152338.5fd9d304@vento.lan>
-In-Reply-To: <6ea4c402-9523-2345-9dd3-0fb041f07f27@gentoo.org>
-References: <6ea4c402-9523-2345-9dd3-0fb041f07f27@gentoo.org>
+Received: from mga02.intel.com ([134.134.136.20]:9455 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753044AbdFPMpa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Jun 2017 08:45:30 -0400
+Date: Fri, 16 Jun 2017 15:45:26 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+        devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
+        robh@kernel.org
+Subject: Re: [PATCH 7/8] smiapp: Add support for flash, lens and EEPROM
+ devices
+Message-ID: <20170616124526.GM15419@paasikivi.fi.intel.com>
+References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1497433639-13101-8-git-send-email-sakari.ailus@linux.intel.com>
+ <20170616124242.GA8145@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170616124242.GA8145@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 9 May 2017 06:56:25 +0200
-Matthias Schwarzott <zzam@gentoo.org> escreveu:
+Hi Pavel,
 
+On Fri, Jun 16, 2017 at 02:42:42PM +0200, Pavel Machek wrote:
 > Hi!
 > 
-> Whenever I compile the media drivers using media_build against a recent
-> kernel, I get this message when loading them:
+> > These types devices aren't directly related to the sensor, but are
+> > nevertheless handled by the smiapp driver due to the relationship of these
+> > component to the main part of the camera module --- the sensor.
+> > 
+> > Additionally, for the async sub-device registration to work, the notifier
+> > containing matching fwnodes will need to be registered. This is natural to
+> > perform in a sensor driver as well.
+> > 
+> > This does not yet address providing the user space with information on how
+> > to associate the sensor, lens or EEPROM devices but the kernel now has the
+> > necessary information to do that.
 > 
-> [    5.848537] media: Linux media interface: v0.10
-> [    5.881440] Linux video capture interface: v2.00
-> [    5.881441] WARNING: You are using an experimental version of the
-> media stack.
-> ...
-> [    6.166390] videobuf2_memops: Unknown symbol put_vaddr_frames (err 0)
-> [    6.166394] videobuf2_memops: Unknown symbol get_vaddr_frames (err 0)
-> [    6.166396] videobuf2_memops: Unknown symbol frame_vector_destroy (err 0)
-> [    6.166398] videobuf2_memops: Unknown symbol frame_vector_create (err 0)
-> 
-> That means I am not able to load any drivers being based on
-> videobuf2_memops without manual actions.
-> 
-> I used kernel 4.11.0, but it does not matter which kernel version
-> exactly is used.
-> 
-> My solution for that has been to modify mm/Kconfig of my kernel like
-> this and then enable FRAME_VECTOR in .config
+> Do I understand it correctly that basically every sensor driver (in my
+> case et8ek8) needs to get this kind of support? I2c leds are cheap,
+> and may be asociated with pretty much any sensor, AFAICT.
 
-Well, if you build your Kernel with VB2 compiled, you'll have it.
+That's right.
 
-> diff --git a/mm/Kconfig b/mm/Kconfig
-> index 9b8fccb969dc..cfa6a80d1a0a 100644
-> --- a/mm/Kconfig
-> +++ b/mm/Kconfig
-> @@ -701,7 +701,7 @@ config ZONE_DEVICE
->           If FS_DAX is enabled, then say Y.
 > 
->  config FRAME_VECTOR
-> -       bool
-> +       tristate "frame vector"
-> 
->  config ARCH_USES_HIGH_VMA_FLAGS
->         bool
-> 
-> But I do not like that solution.
-> I would prefer one of these solutions:
-> 
-> 1. Have media_build apply its fallback the same way as for older kernels
-> that do not even have the the FRAME_VECTOR support.
-> 
-> 2. Get the above patch merged (plus description etc.).
-> 
-> What do you think?
+> This is quite a lot of boilerplate for that. Would it make sense to
+> provide helper function at least for this?
 
-(1) is probably simpler, but you would need to play with the building
-system in order to identify if the current Kernel has it enabled or not.
-That could be tricky.
+Yes. I've been thinking of having helper functions for notifiers and
+sub-notifiers. Most of the receiver drivers are implementing exactly the
+same thing but with different twists (read: bugs).
 
-I suspect people won't accept (2), as it doesn't make sense upstream.
-> 
-> Regards
-> Matthias
+-- 
+Regards,
 
-
-
-Thanks,
-Mauro
+Sakari Ailus
+sakari.ailus@linux.intel.com
