@@ -1,151 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36538
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754667AbdFXVRs (ORCPT
+Received: from mail-yb0-f175.google.com ([209.85.213.175]:35875 "EHLO
+        mail-yb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750983AbdFPFwb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Jun 2017 17:17:48 -0400
-Date: Sat, 24 Jun 2017 18:17:40 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
-        liplianin@netup.ru, rjkm@metzlerbros.de, crope@iki.fi
-Subject: Re: [PATCH v2 3/4] [media] dvb-frontends/stv0367: SNR DVBv5
- statistics for DVB-C and T
-Message-ID: <20170624181740.75d69c3b@vento.lan>
-In-Reply-To: <20170621194544.16949-4-d.scheller.oss@gmail.com>
-References: <20170621194544.16949-1-d.scheller.oss@gmail.com>
-        <20170621194544.16949-4-d.scheller.oss@gmail.com>
+        Fri, 16 Jun 2017 01:52:31 -0400
+Received: by mail-yb0-f175.google.com with SMTP id t7so9662144yba.3
+        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 22:52:31 -0700 (PDT)
+Received: from mail-yb0-f172.google.com (mail-yb0-f172.google.com. [209.85.213.172])
+        by smtp.gmail.com with ESMTPSA id x3sm580456ywf.46.2017.06.15.22.52.29
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 15 Jun 2017 22:52:29 -0700 (PDT)
+Received: by mail-yb0-f172.google.com with SMTP id 84so9740732ybe.0
+        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 22:52:29 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAAFQd5CY7jUJEicQ79QLTYP65cWqMhtTXJvZD-VCnKN134Ypeg@mail.gmail.com>
+References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+ <1496695157-19926-2-git-send-email-yong.zhi@intel.com> <CAAFQd5B6LiWgX+=-HJnO480FF-AXDa+UqtSs+SYUG=S+kGgNVg@mail.gmail.com>
+ <CAAFQd5DpzAGBi_kevEBp05yC4ytM3Q8WU2owZucsE3AZ=s=OoA@mail.gmail.com>
+ <20170606072519.GF15419@paasikivi.fi.intel.com> <1d067ac0-6265-4262-e59b-089d6055550b@xs4all.nl>
+ <CAAFQd5CY7jUJEicQ79QLTYP65cWqMhtTXJvZD-VCnKN134Ypeg@mail.gmail.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Fri, 16 Jun 2017 14:52:07 +0900
+Message-ID: <CAAFQd5C1PQkMgu3QMJ=_J2-FCiUzVwGft6-U3JQRQNy4=1CgRg@mail.gmail.com>
+Subject: Re: [PATCH 01/12] videodev2.h, v4l2-ioctl: add IPU3 meta buffer format
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 21 Jun 2017 21:45:43 +0200
-Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
+On Tue, Jun 6, 2017 at 7:09 PM, Tomasz Figa <tfiga@chromium.org> wrote:
+> On Tue, Jun 6, 2017 at 5:04 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 06/06/17 09:25, Sakari Ailus wrote:
+>>> Hi Tomasz,
+>>>
+>>> On Tue, Jun 06, 2017 at 01:30:41PM +0900, Tomasz Figa wrote:
+>>>> Uhm, +Laurent. Sorry for the noise.
+>>>>
+>>>> On Tue, Jun 6, 2017 at 1:30 PM, Tomasz Figa <tfiga@chromium.org> wrote:
+>>>>> Hi Yong,
+>>>>>
+>>>>> On Tue, Jun 6, 2017 at 5:39 AM, Yong Zhi <yong.zhi@intel.com> wrote:
+>>>>>> Add the IPU3 specific processing parameter format
+>>>>>> V4L2_META_FMT_IPU3_PARAMS and metadata formats
+>>>>>> for 3A and other statistics:
+>>>>>
+>>>>> Please see my comments inline.
+>>>>>
+>>>>>>
+>>>>>>   V4L2_META_FMT_IPU3_PARAMS
+>>>>>>   V4L2_META_FMT_IPU3_STAT_3A
+>>>>>>   V4L2_META_FMT_IPU3_STAT_DVS
+>>>>>>   V4L2_META_FMT_IPU3_STAT_LACE
+>>>>>>
+>>>>>> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+>>>>>> ---
+>>>>>>  drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
+>>>>>>  include/uapi/linux/videodev2.h       | 6 ++++++
+>>>>>>  2 files changed, 10 insertions(+)
+>>>>> [snip]
+>>>>>> +/* Vendor specific - used for IPU3 camera sub-system */
+>>>>>> +#define V4L2_META_FMT_IPU3_PARAMS      v4l2_fourcc('i', 'p', '3', 'p') /* IPU3 params */
+>>>>>> +#define V4L2_META_FMT_IPU3_STAT_3A     v4l2_fourcc('i', 'p', '3', 's') /* IPU3 3A statistics */
+>>>>>> +#define V4L2_META_FMT_IPU3_STAT_DVS    v4l2_fourcc('i', 'p', '3', 'd') /* IPU3 DVS statistics */
+>>>>>> +#define V4L2_META_FMT_IPU3_STAT_LACE   v4l2_fourcc('i', 'p', '3', 'l') /* IPU3 LACE statistics */
+>>>>>
+>>>>> We had some discussion about this with Laurent and if I remember
+>>>>> correctly, the conclusion was that it might make sense to define one
+>>>>> FourCC for a vendor specific format, ('v', 'n', 'd', 'r') for example,
+>>>>> and then have a V4L2-specific enum within the v4l2_pix_format(_mplane)
+>>>>> struct that specifies the exact vendor data type. It seems saner than
+>>>>> assigning a new FourCC whenever a new hardware revision comes out,
+>>>>> especially given that FourCCs tend to be used outside of the V4L2
+>>>>> world as well and being kind of (de facto) standardized (with existing
+>>>>> exceptions, unfortunately).
+>>
+>> I can't remember that discussion
+>
+> I think that was just a casual chat between Lauren, me and few more guys.
+>
+>> although I've had other discussions with
+>> Laurent related to this on how to handle formats that have many variations
+>> on a theme.
+>>
+>> But speaking for this specific case I see no reason to do something special.
+>> There are only four new formats, which seems perfectly reasonable to me.
+>>
+>> I don't see the advantage of adding another layer of pixel formats. You still
+>> need to define something for this, one way or the other. And this way doesn't
+>> require API changes.
+>>
+>>> If we have four video nodes with different vendor specific formats, how does
+>>> the user tell the formats apart? I presume the user space could use the
+>>> entity names for instance, but that would essentially make them device
+>>> specific.
+>>
+>> Well, they are. There really is no way to avoid that.
+>>
+>>> I'm not sure if there would be any harm from that in practice though: the
+>>> user will need to find the device nodes somehow and that will be very likely
+>>> based on e.g. entity names.
+>>>
+>>> How should the documentation be arranged? The documentation is arranged by
+>>> fourccs currently; we'd probably need a separate section for vendor specific
+>>> formats. I think the device name should be listed there as well.
+>>
+>> There already is a separate section for metadata formats:
+>>
+>> https://hverkuil.home.xs4all.nl/spec/uapi/v4l/meta-formats.html
+>>
+>> But perhaps that page should be organized by device. And with some more
+>> detailed information on how to find the video node (i.e. entity names).
+>>
+>>> I'd like to have perhaps Hans's comment on that as well.
+>>>
+>>> I don't really see a drawback in the current way of doing this either; we
+>>> may get a few new fourcc codes occasionally of which I'm not really worried
+>>> about. --- I'd rather ask why should there be an exception on how vendor
+>>> specific formats are defined. And if we do make an exception, then how do
+>>> you decide which one is and isn't vendor specific? There are raw bayer
+>>> format variants that are just raw bayer data but the pixels are arranged
+>>> differently (e.g. CIO2 driver).
+>>>
+>>
+>> For these unique formats I am happy with the way it is today. The problem
+>> is more with 'parameterized' formats. A simple example would be the 4:2:2
+>> interleaved YUV formats where you have four different ways of ordering the
+>> Y, U and V components. Right now we have four defines for that, but things
+>> get out of hand quickly when you have multiple parameters like that.
+>>
+>> Laurent and myself discussed that with NVidia some time ago, without
+>> reaching a clear conclusion. Mostly because we couldn't come up with an
+>> API that is simple enough.
+>
+> Actually I back off a bit. Still, it looks like we have a metadata
+> interface already, but it's limited to CAPTURE:
+>
+> https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/dev-meta.html#metadata
+>
+> Maybe we can also have V4L2_BUF_TYPE_META_OUTPUT and solve the problem
+> of private FourCCs (and possible collisions with rest of the world) by
+> restricting them to the V4L2_BUF_TYPE_META_* classes only?
 
-> From: Daniel Scheller <d.scheller@gmx.net>
-> 
-> Add signal-to-noise-ratio as provided by the demodulator in decibel scale.
-> QAM/DVB-C needs some intlog calculation to have usable dB values, OFDM/
-> DVB-T values from the demod look alright already and are provided as-is.
-> 
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> ---
->  drivers/media/dvb-frontends/stv0367.c | 35 +++++++++++++++++++++++++++++++++++
->  1 file changed, 35 insertions(+)
-> 
-> diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-> index f8e9cceed04e..d3be25bc1002 100644
-> --- a/drivers/media/dvb-frontends/stv0367.c
-> +++ b/drivers/media/dvb-frontends/stv0367.c
-> @@ -25,6 +25,8 @@
->  #include <linux/slab.h>
->  #include <linux/i2c.h>
->  
-> +#include "dvb_math.h"
-> +
->  #include "stv0367.h"
->  #include "stv0367_defs.h"
->  #include "stv0367_regs.h"
-> @@ -2996,6 +2998,37 @@ static int stv0367ddb_set_frontend(struct dvb_frontend *fe)
->  	return -EINVAL;
->  }
->  
-> +static void stv0367ddb_read_snr(struct dvb_frontend *fe)
-> +{
-> +	struct stv0367_state *state = fe->demodulator_priv;
-> +	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-> +	int cab_pwr;
-> +	u32 regval, tmpval, snrval = 0;
-> +
-> +	switch (state->activedemod) {
-> +	case demod_ter:
-> +		snrval = stv0367ter_snr_readreg(fe);
-> +		break;
-> +	case demod_cab:
-> +		cab_pwr = stv0367cab_snr_power(fe);
-> +		regval = stv0367cab_snr_readreg(fe, 0);
-> +
-> +		/* prevent division by zero */
-> +		if (!regval)
-> +			snrval = 0;
-> +
-> +		tmpval = (cab_pwr * 320) / regval;
-> +		snrval = ((tmpval != 0) ? (intlog2(tmpval) / 5581) : 0);
-> +		break;
-> +	default:
-> +		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-> +		return;
-> +	}
-> +
-> +	p->cnr.stat[0].scale = FE_SCALE_DECIBEL;
-> +	p->cnr.stat[0].uvalue = snrval;
-> +}
-> +
->  static void stv0367ddb_read_ucblocks(struct dvb_frontend *fe)
->  {
->  	struct stv0367_state *state = fe->demodulator_priv;
-> @@ -3042,10 +3075,12 @@ static int stv0367ddb_read_status(struct dvb_frontend *fe,
->  
->  	/* stop if demod isn't locked */
->  	if (!(*status & FE_HAS_LOCK)) {
-> +		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+Any comments on this idea?
 
-It sounds weird that CNR is only available with full lock.
+Actually, there is one more thing, which would become possible with
+switching to different queue types. If we have a device with queues
+like this:
+- video input,
+- video output,
+- parameters,
+- statistics,
+they could all be contained within one video node simply exposing 4
+different queues. It would actually even allow an easy implementation
+of mem2mem, given that for mem2mem devices opening a video node means
+creating a mem2mem context (while multiple video nodes would require
+some special synchronization to map contexts together, which doesn't
+exist as of today).
 
-On a very quick look at the driver, for SYS_DVBC_ANNEX_A, I suspect that
-you will get CNR earlier. Probably when 
-cab_state->state == FE_CAB_CARRIEROK.
-
-For SYS_DVBT, it seems that the algorithm doesn't have an intermediate
-step. So, only after ter_state->state = FE_TER_LOCKOK you have full
-lock.
-
-So, you should likely apply something like the enclosed (untested) patch
-to get more status from the frontend, at least for DVB-C.
-
-Thanks,
-Mauro
-
-media: stv0367: Improve DVB-C frontend status
-
-The stv0367 driver provide a lot of status on its state machine.
-Change the logic to provide more information about frontend locking
-status.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index f266c18c574c..9e5432b761b5 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -1507,7 +1507,8 @@ static int stv0367ter_read_status(struct dvb_frontend *fe,
- 	*status = 0;
- 
- 	if (stv0367_readbits(state, F367TER_LK)) {
--		*status |= FE_HAS_LOCK;
-+		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI
-+			  | FE_HAS_SYNC | FE_HAS_LOCK;
- 		dprintk("%s: stv0367 has locked\n", __func__);
- 	}
- 
-@@ -2155,6 +2156,18 @@ static int stv0367cab_read_status(struct dvb_frontend *fe,
- 
- 	*status = 0;
- 
-+	if (state->cab_state->state > FE_CAB_NOSIGNAL)
-+		*status |= FE_HAS_SIGNAL;
-+
-+	if (state->cab_state->state > FE_CAB_NOCARRIER)
-+		*status |= FE_HAS_CARRIER;
-+
-+	if (state->cab_state->state >= FE_CAB_DEMODOK)
-+		*status |= FE_HAS_VITERBI;
-+
-+	if (state->cab_state->state >= FE_CAB_DATAOK)
-+		*status |= FE_HAS_SYNC;
-+
- 	if (stv0367_readbits(state, (state->cab_state->qamfec_status_reg ?
- 		state->cab_state->qamfec_status_reg : F367CAB_QAMFEC_LOCK))) {
- 		*status |= FE_HAS_LOCK;
+Best regards,
+Tomasz
