@@ -1,130 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:52870 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750899AbdFMHez (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35710 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752865AbdFPIZR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 03:34:55 -0400
-Message-ID: <0eb17af0d22107ccbb7311fc86ec16a8@smtp-cloud3.xs4all.net>
-Date: Tue, 13 Jun 2017 09:34:52 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 16 Jun 2017 04:25:17 -0400
+Date: Fri, 16 Jun 2017 11:25:10 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 01/12] videodev2.h, v4l2-ioctl: add IPU3 meta buffer
+ format
+Message-ID: <20170616082510.GH12407@valkosipuli.retiisi.org.uk>
+References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+ <1496695157-19926-2-git-send-email-yong.zhi@intel.com>
+ <CAAFQd5B6LiWgX+=-HJnO480FF-AXDa+UqtSs+SYUG=S+kGgNVg@mail.gmail.com>
+ <CAAFQd5DpzAGBi_kevEBp05yC4ytM3Q8WU2owZucsE3AZ=s=OoA@mail.gmail.com>
+ <20170606072519.GF15419@paasikivi.fi.intel.com>
+ <1d067ac0-6265-4262-e59b-089d6055550b@xs4all.nl>
+ <CAAFQd5CY7jUJEicQ79QLTYP65cWqMhtTXJvZD-VCnKN134Ypeg@mail.gmail.com>
+ <CAAFQd5C1PQkMgu3QMJ=_J2-FCiUzVwGft6-U3JQRQNy4=1CgRg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAAFQd5C1PQkMgu3QMJ=_J2-FCiUzVwGft6-U3JQRQNy4=1CgRg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Tomasz,
 
-Results of the daily build of media_tree:
+On Fri, Jun 16, 2017 at 02:52:07PM +0900, Tomasz Figa wrote:
+> On Tue, Jun 6, 2017 at 7:09 PM, Tomasz Figa <tfiga@chromium.org> wrote:
+> > On Tue, Jun 6, 2017 at 5:04 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >> On 06/06/17 09:25, Sakari Ailus wrote:
+> >>> Hi Tomasz,
+> >>>
+> >>> On Tue, Jun 06, 2017 at 01:30:41PM +0900, Tomasz Figa wrote:
+> >>>> Uhm, +Laurent. Sorry for the noise.
+> >>>>
+> >>>> On Tue, Jun 6, 2017 at 1:30 PM, Tomasz Figa <tfiga@chromium.org> wrote:
+> >>>>> Hi Yong,
+> >>>>>
+> >>>>> On Tue, Jun 6, 2017 at 5:39 AM, Yong Zhi <yong.zhi@intel.com> wrote:
+> >>>>>> Add the IPU3 specific processing parameter format
+> >>>>>> V4L2_META_FMT_IPU3_PARAMS and metadata formats
+> >>>>>> for 3A and other statistics:
+> >>>>>
+> >>>>> Please see my comments inline.
+> >>>>>
+> >>>>>>
+> >>>>>>   V4L2_META_FMT_IPU3_PARAMS
+> >>>>>>   V4L2_META_FMT_IPU3_STAT_3A
+> >>>>>>   V4L2_META_FMT_IPU3_STAT_DVS
+> >>>>>>   V4L2_META_FMT_IPU3_STAT_LACE
+> >>>>>>
+> >>>>>> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> >>>>>> ---
+> >>>>>>  drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
+> >>>>>>  include/uapi/linux/videodev2.h       | 6 ++++++
+> >>>>>>  2 files changed, 10 insertions(+)
+> >>>>> [snip]
+> >>>>>> +/* Vendor specific - used for IPU3 camera sub-system */
+> >>>>>> +#define V4L2_META_FMT_IPU3_PARAMS      v4l2_fourcc('i', 'p', '3', 'p') /* IPU3 params */
+> >>>>>> +#define V4L2_META_FMT_IPU3_STAT_3A     v4l2_fourcc('i', 'p', '3', 's') /* IPU3 3A statistics */
+> >>>>>> +#define V4L2_META_FMT_IPU3_STAT_DVS    v4l2_fourcc('i', 'p', '3', 'd') /* IPU3 DVS statistics */
+> >>>>>> +#define V4L2_META_FMT_IPU3_STAT_LACE   v4l2_fourcc('i', 'p', '3', 'l') /* IPU3 LACE statistics */
+> >>>>>
+> >>>>> We had some discussion about this with Laurent and if I remember
+> >>>>> correctly, the conclusion was that it might make sense to define one
+> >>>>> FourCC for a vendor specific format, ('v', 'n', 'd', 'r') for example,
+> >>>>> and then have a V4L2-specific enum within the v4l2_pix_format(_mplane)
+> >>>>> struct that specifies the exact vendor data type. It seems saner than
+> >>>>> assigning a new FourCC whenever a new hardware revision comes out,
+> >>>>> especially given that FourCCs tend to be used outside of the V4L2
+> >>>>> world as well and being kind of (de facto) standardized (with existing
+> >>>>> exceptions, unfortunately).
+> >>
+> >> I can't remember that discussion
+> >
+> > I think that was just a casual chat between Lauren, me and few more guys.
+> >
+> >> although I've had other discussions with
+> >> Laurent related to this on how to handle formats that have many variations
+> >> on a theme.
+> >>
+> >> But speaking for this specific case I see no reason to do something special.
+> >> There are only four new formats, which seems perfectly reasonable to me.
+> >>
+> >> I don't see the advantage of adding another layer of pixel formats. You still
+> >> need to define something for this, one way or the other. And this way doesn't
+> >> require API changes.
+> >>
+> >>> If we have four video nodes with different vendor specific formats, how does
+> >>> the user tell the formats apart? I presume the user space could use the
+> >>> entity names for instance, but that would essentially make them device
+> >>> specific.
+> >>
+> >> Well, they are. There really is no way to avoid that.
+> >>
+> >>> I'm not sure if there would be any harm from that in practice though: the
+> >>> user will need to find the device nodes somehow and that will be very likely
+> >>> based on e.g. entity names.
+> >>>
+> >>> How should the documentation be arranged? The documentation is arranged by
+> >>> fourccs currently; we'd probably need a separate section for vendor specific
+> >>> formats. I think the device name should be listed there as well.
+> >>
+> >> There already is a separate section for metadata formats:
+> >>
+> >> https://hverkuil.home.xs4all.nl/spec/uapi/v4l/meta-formats.html
+> >>
+> >> But perhaps that page should be organized by device. And with some more
+> >> detailed information on how to find the video node (i.e. entity names).
+> >>
+> >>> I'd like to have perhaps Hans's comment on that as well.
+> >>>
+> >>> I don't really see a drawback in the current way of doing this either; we
+> >>> may get a few new fourcc codes occasionally of which I'm not really worried
+> >>> about. --- I'd rather ask why should there be an exception on how vendor
+> >>> specific formats are defined. And if we do make an exception, then how do
+> >>> you decide which one is and isn't vendor specific? There are raw bayer
+> >>> format variants that are just raw bayer data but the pixels are arranged
+> >>> differently (e.g. CIO2 driver).
+> >>>
+> >>
+> >> For these unique formats I am happy with the way it is today. The problem
+> >> is more with 'parameterized' formats. A simple example would be the 4:2:2
+> >> interleaved YUV formats where you have four different ways of ordering the
+> >> Y, U and V components. Right now we have four defines for that, but things
+> >> get out of hand quickly when you have multiple parameters like that.
+> >>
+> >> Laurent and myself discussed that with NVidia some time ago, without
+> >> reaching a clear conclusion. Mostly because we couldn't come up with an
+> >> API that is simple enough.
+> >
+> > Actually I back off a bit. Still, it looks like we have a metadata
+> > interface already, but it's limited to CAPTURE:
+> >
+> > https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/dev-meta.html#metadata
+> >
+> > Maybe we can also have V4L2_BUF_TYPE_META_OUTPUT and solve the problem
+> > of private FourCCs (and possible collisions with rest of the world) by
+> > restricting them to the V4L2_BUF_TYPE_META_* classes only?
+> 
+> Any comments on this idea?
 
-date:			Tue Jun 13 05:00:15 CEST 2017
-media-tree git hash:	47f910f0e0deb880c2114811f7ea1ec115a19ee4
-media_build git hash:	170d3ce439eed9f2f43c5e02fc8d3ca201ca78e8
-v4l-utils git hash:	ce237eefc1f6dafafc0e1fe3a5fd9f075d3fd066
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Yes. I can submit a patch to add V4L2_BUF_TYPE_META_OUTPUT.
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+Even if a fourcc is specific to a driver, it needs to be defined in
+videodev2.h as the others. Or some means is needed to make sure no
+collisions will happen --- an easy solution is to keep them in the same
+place. I think that even in this case we'll need a script that checks the
+values in some point in the future.
 
-Detailed results are available here:
+> 
+> Actually, there is one more thing, which would become possible with
+> switching to different queue types. If we have a device with queues
+> like this:
+> - video input,
+> - video output,
+> - parameters,
+> - statistics,
+> they could all be contained within one video node simply exposing 4
+> different queues. It would actually even allow an easy implementation
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+The problem comes when you have multiple queues with the same type. I
+actually once proposed that (albeit for a slightly different purposes:
+streams) but the idea was rejected. It was decided to use separate video
+nodes instead.
 
-Full logs are available here:
+> of mem2mem, given that for mem2mem devices opening a video node means
+> creating a mem2mem context (while multiple video nodes would require
+> some special synchronization to map contexts together, which doesn't
+> exist as of today).
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+V4L2 is very stream oriented and the mem2mem interface somewhat gets around
+that. There are cases where at least partially changing per-frame
+configuration is needed in streaming cases as well. The request API is
+supposed to resolve these issues but it has become evident that the
+implementation is far from trivial.
 
-The Media Infrastructure API from this daily build is here:
+I'd rather like to have a more generic solution than a number of
+framework-lets that have their own semantics of the generic V4L2 IOCTLs that
+only work with a particular kind of a device. Once there are new kind of
+devices, we'd need to implement another framework-let to support them.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Add a CSI-2 receiver to the ImgU device and we'll need again something very
+different...
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
