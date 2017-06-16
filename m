@@ -1,58 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33665 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752995AbdF3Uva (ORCPT
+Received: from smtprelay2.synopsys.com ([198.182.60.111]:46606 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750967AbdFPQjD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Jun 2017 16:51:30 -0400
-Received: by mail-wm0-f66.google.com with SMTP id j85so9870917wmj.0
-        for <linux-media@vger.kernel.org>; Fri, 30 Jun 2017 13:51:29 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: rjkm@metzlerbros.de, jasmin@anw.at
-Subject: [PATCH v2 09/10] [media] ddbridge: stv0910 single demod mode module option
-Date: Fri, 30 Jun 2017 22:51:05 +0200
-Message-Id: <20170630205106.1268-10-d.scheller.oss@gmail.com>
-In-Reply-To: <20170630205106.1268-1-d.scheller.oss@gmail.com>
-References: <20170630205106.1268-1-d.scheller.oss@gmail.com>
+        Fri, 16 Jun 2017 12:39:03 -0400
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org
+Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
+        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>
+Subject: [PATCH v3 3/4] MAINTAINERS: Add entry for Synopsys Designware HDMI drivers
+Date: Fri, 16 Jun 2017 17:38:32 +0100
+Message-Id: <c8a09ab2f541cd29bd3322beffbfc5e1b6732b62.1497630695.git.joabreu@synopsys.com>
+In-Reply-To: <cover.1497630695.git.joabreu@synopsys.com>
+References: <cover.1497630695.git.joabreu@synopsys.com>
+In-Reply-To: <cover.1497630695.git.joabreu@synopsys.com>
+References: <cover.1497630695.git.joabreu@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Add a entry for Synopsys Designware HDMI Receivers drivers
+and phys.
 
-Adds a stv0910_single modparm which, when set, configures the stv0910 to
-run in single demodulator mode, currently intended for high bit rate
-testing.
-
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+Cc: Carlos Palminha <palminha@synopsys.com>
 ---
- drivers/media/pci/ddbridge/ddbridge-core.c | 7 +++++++
+ MAINTAINERS | 7 +++++++
  1 file changed, 7 insertions(+)
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index b3fc6a875279..e762396730db 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -53,6 +53,10 @@ static int xo2_speed = 2;
- module_param(xo2_speed, int, 0444);
- MODULE_PARM_DESC(xo2_speed, "default transfer speed for xo2 based duoflex, 0=55,1=75,2=90,3=104 MBit/s, default=2, use attribute to change for individual cards");
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 053c3bd..e798040 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -11294,6 +11294,13 @@ L:	netdev@vger.kernel.org
+ S:	Supported
+ F:	drivers/net/ethernet/synopsys/
  
-+static int stv0910_single;
-+module_param(stv0910_single, int, 0444);
-+MODULE_PARM_DESC(stv0910_single, "use stv0910 cards as single demods");
++SYNOPSYS DESIGNWARE HDMI RECEIVERS AND PHY DRIVERS
++M:	Jose Abreu <joabreu@synopsys.com>
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	drivers/media/platform/dwc/*
++F:	include/media/dwc/*
 +
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
- /* MSI had problems with lost interrupts, fixed but needs testing */
-@@ -942,6 +946,9 @@ static int demod_attach_stv0910(struct ddb_input *input, int type)
- 	struct stv0910_cfg cfg = stv0910_p;
- 	struct lnbh25_config lnbcfg = lnbh25_cfg;
- 
-+	if (stv0910_single)
-+		cfg.single = 1;
-+
- 	if (type)
- 		cfg.parallel = 2;
- 	input->fe = dvb_attach(stv0910_attach, i2c, &cfg, (input->nr & 1));
+ SYNOPSYS DESIGNWARE I2C DRIVER
+ M:	Jarkko Nikula <jarkko.nikula@linux.intel.com>
+ R:	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 -- 
-2.13.0
+1.9.1
