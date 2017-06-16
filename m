@@ -1,88 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:36680 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751519AbdFIKgn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Jun 2017 06:36:43 -0400
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:37040 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753147AbdFPMHV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Jun 2017 08:07:21 -0400
+Date: Fri, 16 Jun 2017 14:07:13 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+        devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
+        robh@kernel.org
+Subject: Re: [PATCH 7/8] smiapp: Add support for flash, lens and EEPROM
+ devices
+Message-ID: <20170616120712.GA5774@amd>
+References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1497433639-13101-8-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <CAHv-k_-AKvXqXVhxGKLr0R_UW6Tdc_4gm9DxcLXVamNhOrF9UQ@mail.gmail.com>
-References: <1496916298-5909-1-git-send-email-binoy.jayan@linaro.org>
- <1496916298-5909-2-git-send-email-binoy.jayan@linaro.org> <CAK8P3a2huLuzaaHh-hw4S1pRa0BTPEywvp3Kw134j_dm8Lns6g@mail.gmail.com>
- <CAHv-k_-AKvXqXVhxGKLr0R_UW6Tdc_4gm9DxcLXVamNhOrF9UQ@mail.gmail.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Fri, 9 Jun 2017 12:36:41 +0200
-Message-ID: <CAK8P3a24uKE4wYTO123boOfs1pHzgjAjEc8imZT=J03Hsk=rcg@mail.gmail.com>
-Subject: Re: [PATCH 1/3] media: ngene: Replace semaphore cmd_mutex with mutex
-To: Binoy Jayan <binoy.jayan@linaro.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Rajendra <rnayak@codeaurora.org>,
-        Mark Brown <broonie@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        "Michael S. Tsirkin" <mst@redhat.com>,
-        Cao jin <caoj.fnst@cn.fujitsu.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="W/nzBZO5zC0uMSeA"
+Content-Disposition: inline
+In-Reply-To: <1497433639-13101-8-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 9, 2017 at 6:37 AM, Binoy Jayan <binoy.jayan@linaro.org> wrote:
-> On 8 June 2017 at 20:40, Arnd Bergmann <arnd@arndb.de> wrote:
->> On Thu, Jun 8, 2017 at 12:04 PM, Binoy Jayan <binoy.jayan@linaro.org> wrote:
->>> The semaphore 'cmd_mutex' is used as a simple mutex, so
->>> it should be written as one. Semaphores are going away in the future.
->>>
->>> Signed-off-by: Binoy Jayan <binoy.jayan@linaro.org>
->>> ---
->>
->>> @@ -1283,7 +1283,7 @@ static int ngene_load_firm(struct ngene *dev)
->>>
->>>  static void ngene_stop(struct ngene *dev)
->>>  {
->>> -       down(&dev->cmd_mutex);
->>> +       mutex_lock(&dev->cmd_mutex);
->>>         i2c_del_adapter(&(dev->channel[0].i2c_adapter));
->>>         i2c_del_adapter(&(dev->channel[1].i2c_adapter));
->>>         ngwritel(0, NGENE_INT_ENABLE);
->>
->> Are you sure about this one? There is only one mutex_lock() and
->> then the structure gets freed without a corresponding mutex_unlock().
->>
->> I suspect this violates some rules of mutexes, either when compile
->> testing with "make C=1", or when running with lockdep enabled.
->>
->> Can we actually have a concurrently held mutex at the time we
->> get here? If not, using mutex_destroy() in place of the down()
->> may be the right answer.
->
-> I noticed the missing 'up' here, but may be semaphores do not have
-> to adhere to that rule?
 
-The rules for semaphores are very lax, the up() and down() may
-be in completely separate contexts, the up() can even happen from
-an interrupt handler IIRC.
+--W/nzBZO5zC0uMSeA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I read up on the sparse annotations now and found that it only
-tracks spinlocks and rwlocks using the __acquires() annotation,
-but not semaphores or mutexes.
+Hi!
 
-I'm still not sure whether lockdep requires the mutex to be released
-before it gets freed, the code may actually be fine, but it does
-seem odd.
+> These types devices aren't directly related to the sensor, but are
+> nevertheless handled by the smiapp driver due to the relationship of these
+> component to the main part of the camera module --- the sensor.
+>=20
+> Additionally, for the async sub-device registration to work, the notifier
+> containing matching fwnodes will need to be registered. This is natural to
+> perform in a sensor driver as well.
+>=20
+> This does not yet address providing the user space with information on how
+> to associate the sensor, lens or EEPROM devices but the kernel now has the
+> necessary information to do that.
 
-> Thank you for pointing out that. I'll check the
-> concurrency part. By the way why do we need mutex_destoy?
-> To debug an aberrate condition?
+Let me see... I guess this is going to be quite interesting for me,
+too, because I'll be able to remove similar code in omap3 isp driver.
 
-At first I suspected the down() here was added for the same
-purpose as a mutex_destroy: to ensure that we are in a sane
-state before we free the device structure, but the way they
-achieve that is completely different.
+I'm getting same error as the build bot... which is expected as you
+did mention it depends on some other series.
 
-However, if there is any way that a command may still be in
-progress by the time we get to ngene_stop(), we may also
-be lacking reference counting on the ngene structure here.
-So far I haven't found any of those, and think the mutex_destroy()
-is sufficient here as a debugging help.
+(I'll take a look if I can test it easily.)
 
-       Arnd
+Acked-by: Pavel Machek <pavel@ucw.cz>
+
+
+> @@ -2849,6 +2878,45 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig=
+(struct device *dev)
+> =20
+>  	v4l2_fwnode_endpoint_free(bus_cfg);
+>  	fwnode_handle_put(ep);
+> +
+> +	sensor->notifier.subdevs =3D
+> +		devm_kcalloc(dev, SMIAPP_MAX_ASYNC_SUBDEVS,
+> +			     sizeof(struct v4l2_async_subdev *), GFP_KERNEL);
+> +	if (!sensor->notifier.subdevs)
+> +		goto out_err;
+> +
+> +	for (i =3D 0; i < ARRAY_SIZE(props); i++) {
+> +		struct device_node *node;
+> +		unsigned int j =3D 0;
+> +
+> +		while ((node =3D of_parse_phandle(dev->of_node, props[i], j++))) {
+> +			struct v4l2_async_subdev **asd =3D
+> +				 &sensor->notifier.subdevs[
+> +					 sensor->notifier.num_subdevs];
+> +
+> +			if (WARN_ON(sensor->notifier.num_subdevs >=3D
+> +				    SMIAPP_MAX_ASYNC_SUBDEVS)) {
+> +				of_node_put(node);
+> +				goto out;
+> +			}
+> +
+> +			*asd =3D devm_kzalloc(
+> +				dev, sizeof(struct v4l2_async_subdev),
+> +				GFP_KERNEL);
+> +			if (!*asd) {
+> +				of_node_put(node);
+> +				goto out_err;
+> +			}
+> +
+> +			(*asd)->match.fwnode.fwnode =3D of_fwnode_handle(node);
+> +			(*asd)->match_type =3D V4L2_ASYNC_MATCH_FWNODE;
+> +			sensor->notifier.num_subdevs++;
+> +
+> +			of_node_put(node);
+> +		}
+> +	}
+> +
+> +out:
+>  	return hwcfg;
+> =20
+>  out_err:
+> @@ -2861,18 +2929,17 @@ static int smiapp_probe(struct i2c_client *client,
+>  			const struct i2c_device_id *devid)
+>  {
+>  	struct smiapp_sensor *sensor;
+> -	struct smiapp_hwconfig *hwcfg =3D smiapp_get_hwconfig(&client->dev);
+>  	unsigned int i;
+>  	int rval;
+> =20
+> -	if (hwcfg =3D=3D NULL)
+> -		return -ENODEV;
+> -
+>  	sensor =3D devm_kzalloc(&client->dev, sizeof(*sensor), GFP_KERNEL);
+>  	if (sensor =3D=3D NULL)
+>  		return -ENOMEM;
+> =20
+> -	sensor->hwcfg =3D hwcfg;
+> +	sensor->hwcfg =3D smiapp_get_hwconfig(&client->dev, sensor);
+> +	if (sensor->hwcfg =3D=3D NULL)
+> +		return -ENODEV;
+> +
+>  	mutex_init(&sensor->mutex);
+>  	sensor->src =3D &sensor->ssds[sensor->ssds_used];
+> =20
+> diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp=
+/smiapp.h
+> index f74d695..21a55de 100644
+> --- a/drivers/media/i2c/smiapp/smiapp.h
+> +++ b/drivers/media/i2c/smiapp/smiapp.h
+> @@ -20,6 +20,7 @@
+>  #define __SMIAPP_PRIV_H_
+> =20
+>  #include <linux/mutex.h>
+> +#include <media/v4l2-async.h>
+>  #include <media/v4l2-ctrls.h>
+>  #include <media/v4l2-subdev.h>
+>  #include <media/i2c/smiapp.h>
+> @@ -143,6 +144,9 @@ struct smiapp_csi_data_format {
+>  	u8 pixel_order;
+>  };
+> =20
+> +/* Lens, EEPROM and a flash LEDs? */
+> +#define SMIAPP_MAX_ASYNC_SUBDEVS	3
+> +
+>  #define SMIAPP_SUBDEVS			3
+> =20
+>  #define SMIAPP_PA_PAD_SRC		0
+> @@ -189,6 +193,7 @@ struct smiapp_sensor {
+>  	struct regulator *vana;
+>  	struct clk *ext_clk;
+>  	struct gpio_desc *xshutdown;
+> +	struct v4l2_async_notifier notifier;
+>  	u32 limits[SMIAPP_LIMIT_LAST];
+>  	u8 nbinning_subtypes;
+>  	struct smiapp_binning_subtype binning_subtypes[SMIAPP_BINNING_SUBTYPES];
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--W/nzBZO5zC0uMSeA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAllDyfAACgkQMOfwapXb+vJdEQCgogAIcSyrxAuFbGoZmahr30hh
+sQ4Ani7tLOAwCx/T/SCggLfDo/2jWDW7
+=/xNl
+-----END PGP SIGNATURE-----
+
+--W/nzBZO5zC0uMSeA--
