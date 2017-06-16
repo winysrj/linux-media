@@ -1,190 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:46275 "EHLO
-        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750793AbdFOQPJ (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:38911 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752651AbdFPKmh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 12:15:09 -0400
-Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
-        by mx07-00252a01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id v5FGD977007084
-        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 17:15:08 +0100
-Received: from mail-pf0-f200.google.com (mail-pf0-f200.google.com [209.85.192.200])
-        by mx07-00252a01.pphosted.com with ESMTP id 2b065ytm99-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
-        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 17:15:08 +0100
-Received: by mail-pf0-f200.google.com with SMTP id h21so15049883pfk.13
-        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 09:15:07 -0700 (PDT)
+        Fri, 16 Jun 2017 06:42:37 -0400
+Subject: Re: [PATCH v2] [media] mtk-mdp: Fix g_/s_selection capture/compose
+ logic
+To: Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Houlong Wei <houlong.wei@mediatek.com>
+References: <1494556970-12278-1-git-send-email-minghsiu.tsai@mediatek.com>
+Cc: srv_heupstream@mediatek.com,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        Wu-Cheng Li <wuchengli@google.com>, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <a180f2fc-1dce-3630-ed48-25c247eff79a@xs4all.nl>
+Date: Fri, 16 Jun 2017 12:42:22 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170615125958.GE12407@valkosipuli.retiisi.org.uk>
-References: <cover.1497452006.git.dave.stevenson@raspberrypi.org>
- <888a28269a8a7c22feb2a126db699b1259d1b457.1497452006.git.dave.stevenson@raspberrypi.org>
- <20170615125958.GE12407@valkosipuli.retiisi.org.uk>
-From: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Date: Thu, 15 Jun 2017 17:15:04 +0100
-Message-ID: <CAAoAYcOKD=Bd8_yDuoT8g+g1JYJO1fEoY83YWjPY38sru8Cvdw@mail.gmail.com>
-Subject: Re: [RFC 1/2] [media] dt-bindings: Document BCM283x CSI2/CCP2 receiver
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-rpi-kernel@lists.infradead.org
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <1494556970-12278-1-git-send-email-minghsiu.tsai@mediatek.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari.
+On 05/12/17 04:42, Minghsiu Tsai wrote:
+> From: Daniel Kurtz <djkurtz@chromium.org>
+> 
+> Experiments show that the:
+>  (1) mtk-mdp uses the _MPLANE form of CAPTURE/OUTPUT
 
-Thanks for the review.
+Please drop this, since this no longer applies to this patch.
 
-On 15 June 2017 at 13:59, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Dave,
->
-> Thanks for the set!
->
-> On Wed, Jun 14, 2017 at 04:15:46PM +0100, Dave Stevenson wrote:
->> Document the DT bindings for the CSI2/CCP2 receiver peripheral
->> (known as Unicam) on BCM283x SoCs.
->>
->> Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
->> ---
->>  .../devicetree/bindings/media/bcm2835-unicam.txt   | 76 ++++++++++++++++++++++
->>  1 file changed, 76 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/media/bcm2835-unicam.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/bcm2835-unicam.txt b/Documentation/devicetree/bindings/media/bcm2835-unicam.txt
->> new file mode 100644
->> index 0000000..cc5a451
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/bcm2835-unicam.txt
->> @@ -0,0 +1,76 @@
->> +Broadcom BCM283x Camera Interface (Unicam)
->> +------------------------------------------
->> +
->> +The Unicam block on BCM283x SoCs is the receiver for either
->> +CSI-2 or CCP2 data from image sensors or similar devices.
->> +
->> +Required properties:
->> +===================
->> +- compatible : must be "brcm,bcm2835-unicam".
->> +- reg                : physical base address and length of the register sets for the
->> +               device.
->> +- interrupts : should contain the IRQ line for this Unicam instance.
->> +- clocks     : list of clock specifiers, corresponding to entries in
->> +               clock-names property.
->> +- clock-names        : must contain an "lp_clock" entry, matching entries
->> +               in the clocks property.
->> +
->> +Optional properties
->> +===================
->> +- max-data-lanes: the hardware can support varying numbers of clock lanes.
->> +               This value is the maximum number supported by this instance.
->> +               Known values of 2 or 4. Default is 2.
->
-> Please use "data-lanes" endpoint property instead. This is the number of
-> connected physical lanes and specific to the hardware.
+>  (2) CAPTURE types use CROP targets, and OUTPUT types use COMPOSE targets
 
-I'll rethink/test, but to explain what I was intending to achieve:
+Are you really certain about this?
 
-Registers UNICAM_DAT2 and UNICAM_DAT3 are not valid for instances of
-the hardware that only have two lanes instantiated in silicon.
-In the case of the whole BCM283x family, Unicam0 ony has 2 lanes
-instantiated, whilst Unicam1 has the maximum 4 lanes. (Lower
-resolution front cameras would connect to Unicam0, whilst the higher
-resolution back cameras would go to Unicam1).
+For m2m devices the output (i.e. memory to hardware) typically crops from memory
+and the capture side (hardware to memory) composes into memory.
 
-To further confuse matters, on the Pi platforms (other than the
-Compute Module), it is Unicam1 that is brought out to the camera
-connector but with only 2 lanes wired up.
+I.e.: for the output side you crop the part of the memory buffer that you want
+to process and on the capture side you compose the result into a memory buffer:
+i.e. the memory buffer might be 1920x1080, but you compose the decoder output
+into a rectangle of 640x480 at offset 128x128 within that buffer (just an example).
 
-I was intending to make it possible for the driver to avoid writing to
-invalid registers, and also describe the platform limitations to allow
-sanity checking.
-I haven't tested against Unicam0 as yet to see what actually happens
-if we try to write UNICAM_DAT2 or UNICAM_DAT3. If the hardware
-silently swallows it then that requirement is null and void. I'll do
-some testing tomorrow.
-The second bit comes down to how friendly an error you want should
-someone write an invalid DT with 'data-lanes' greater than can be
-supported by the platform.
+CAPTURE using crop would be if, before the data is DMAed, the hardware decoder
+output is cropped. E.g. if the stream fed to the decoder is 1920x1080, but you
+want to only DMA a subselection of that, then that would be cropping, and it
+would go to a memory buffer of the size of the crop selection.
 
-> Could you also document which endpoint properties are mandatory and which
-> ones optional?
+OUTPUT using compose is highly unlikely: that means that the frame you give
+is composed in a larger internal buffer with generated border data around it.
+Very rare and really only something that a compositor of some sort would do.
 
-Will do, although I'm not sure there are any required properties.
+What exactly does the hardware do? Both for the encoder and for the decoder
+case. Perhaps if I knew exactly what that is, then I can advise.
 
->> +
->> +
->> +Unicam supports a single port node. It should contain one 'port' child node
->> +with child 'endpoint' node. Please refer to the bindings defined in
->> +Documentation/devicetree/bindings/media/video-interfaces.txt.
->> +
->> +Example:
->> +     csi1: csi@7e801000 {
->> +             compatible = "brcm,bcm2835-unicam";
->> +             reg = <0x7e801000 0x800>,
->> +                   <0x7e802004 0x4>;
->> +             interrupts = <2 7>;
->> +             clocks = <&clocks BCM2835_CLOCK_CAM1>;
->> +             clock-names = "lp_clock";
->> +
->> +             port {
->> +                     #address-cells = <1>;
->> +                     #size-cells = <0>;
->> +
->> +                     endpoint {
->> +                             remote-endpoint = <&tc358743_0>;
->> +
->
-> Extra newline. Don't you need any other properties here?
+Regards,
 
-Newline done.
-As above, I don't believe there are any other properties required, but
-will double check. What extras were you expecting to see there?
+	Hans
 
->> +                     };
->> +             };
->> +     };
->> +
->> +     i2c0: i2c@7e205000 {
->> +
->> +             tc358743: tc358743@0f {
->> +                     compatible = "toshiba,tc358743";
->> +                     reg = <0x0f>;
->> +                     status = "okay";
->> +
->> +                     clocks = <&tc358743_clk>;
->> +                     clock-names = "refclk";
->> +
->> +                     tc358743_clk: bridge-clk {
->> +                             compatible = "fixed-clock";
->> +                             #clock-cells = <0>;
->> +                             clock-frequency = <27000000>;
->> +                     };
->> +
->> +                     port {
->> +                             tc358743_0: endpoint {
->> +                                     remote-endpoint = <&csi1>;
->
-> This one needs to refer to the endpoint, just as the one in the CSI-2
-> receiver does.
-
-OK.
-(I'm suspecting very few drivers actually follow that link, but I'll correct).
-
->> +                                     clock-lanes = <0>;
->> +                                     data-lanes = <1 2 3 4>;
-
-Oops, DT author beware! That should only have 2 lanes defined (not
-that the TC358743 driver looks at it beyond checking it is non-zero).
-
->> +                                     clock-noncontinuous;
->> +                                     link-frequencies =
->> +                                             /bits/ 64 <297000000>;
->> +                             };
->> +                     };
->> +             };
->> +     };
->
-> --
-> Kind regards,
->
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
+> 
+> Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+> Signed-off-by: Houlong Wei <houlong.wei@mediatek.com>
+> 
+> ---
+> Changes in v2:
+> . Can not use *_MPLANE type in g_/s_selection 
+> ---
+>  drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> index 13afe48..e18ac626 100644
+> --- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> +++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> @@ -838,10 +838,10 @@ static int mtk_mdp_m2m_g_selection(struct file *file, void *fh,
+>  	bool valid = false;
+>  
+>  	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+> -		if (mtk_mdp_is_target_compose(s->target))
+> +		if (mtk_mdp_is_target_crop(s->target))
+>  			valid = true;
+>  	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> -		if (mtk_mdp_is_target_crop(s->target))
+> +		if (mtk_mdp_is_target_compose(s->target))
+>  			valid = true;
+>  	}
+>  	if (!valid) {
+> @@ -908,10 +908,10 @@ static int mtk_mdp_m2m_s_selection(struct file *file, void *fh,
+>  	bool valid = false;
+>  
+>  	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+> -		if (s->target == V4L2_SEL_TGT_COMPOSE)
+> +		if (s->target == V4L2_SEL_TGT_CROP)
+>  			valid = true;
+>  	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> -		if (s->target == V4L2_SEL_TGT_CROP)
+> +		if (s->target == V4L2_SEL_TGT_COMPOSE)
+>  			valid = true;
+>  	}
+>  	if (!valid) {
+> @@ -925,7 +925,7 @@ static int mtk_mdp_m2m_s_selection(struct file *file, void *fh,
+>  	if (ret)
+>  		return ret;
+>  
+> -	if (mtk_mdp_is_target_crop(s->target))
+> +	if (mtk_mdp_is_target_compose(s->target))
+>  		frame = &ctx->s_frame;
+>  	else
+>  		frame = &ctx->d_frame;
+> 
