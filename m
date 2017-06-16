@@ -1,89 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:58443 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752693AbdF0QJK (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:33402 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752375AbdFPHje (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 12:09:10 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v3 3/8] [media] s5p-jpeg: Handle parsing error in s5p_jpeg_parse_hdr()
-Date: Tue, 27 Jun 2017 18:08:49 +0200
-Message-Id: <1498579734-1594-4-git-send-email-thierry.escande@collabora.com>
-In-Reply-To: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
-References: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+        Fri, 16 Jun 2017 03:39:34 -0400
+Received: by mail-pg0-f65.google.com with SMTP id a70so4544944pge.0
+        for <linux-media@vger.kernel.org>; Fri, 16 Jun 2017 00:39:34 -0700 (PDT)
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH 04/12] [media] uvc: enable subscriptions to other events
+Date: Fri, 16 Jun 2017 16:39:07 +0900
+Message-Id: <20170616073915.5027-5-gustavo@padovan.org>
+In-Reply-To: <20170616073915.5027-1-gustavo@padovan.org>
+References: <20170616073915.5027-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch modifies the s5p_jpeg_parse_hdr() function so it only
-modifies the passed s5p_jpeg_q_data structure if the jpeg header parsing
-is successful.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+Call v4l2_ctrl_subscribe_event to subscribe to more events supported by
+v4l.
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c | 38 ++++++++++++++++-------------
- 1 file changed, 21 insertions(+), 17 deletions(-)
+ drivers/media/usb/uvc/uvc_v4l2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 0d935f5..df3e5ee 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1206,22 +1206,9 @@ static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
- 			break;
- 		}
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index 3e7e283..dfa0ccd 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -1240,7 +1240,7 @@ static int uvc_ioctl_subscribe_event(struct v4l2_fh *fh,
+ 	case V4L2_EVENT_CTRL:
+ 		return v4l2_event_subscribe(fh, sub, 0, &uvc_ctrl_sub_ev_ops);
+ 	default:
+-		return -EINVAL;
++		return v4l2_ctrl_subscribe_event(fh, sub);
  	}
--	result->w = width;
--	result->h = height;
--	result->sos = sos;
--	result->dht.n = n_dht;
--	while (n_dht--) {
--		result->dht.marker[n_dht] = dht[n_dht];
--		result->dht.len[n_dht] = dht_len[n_dht];
--	}
--	result->dqt.n = n_dqt;
--	while (n_dqt--) {
--		result->dqt.marker[n_dqt] = dqt[n_dqt];
--		result->dqt.len[n_dqt] = dqt_len[n_dqt];
--	}
--	result->sof = sof;
--	result->sof_len = sof_len;
--	result->size = result->components = components;
-+
-+	if (notfound || !sos)
-+		return false;
- 
- 	switch (subsampling) {
- 	case 0x11:
-@@ -1240,7 +1227,24 @@ static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
- 		return false;
- 	}
- 
--	return !notfound && sos;
-+	result->w = width;
-+	result->h = height;
-+	result->sos = sos;
-+	result->dht.n = n_dht;
-+	while (n_dht--) {
-+		result->dht.marker[n_dht] = dht[n_dht];
-+		result->dht.len[n_dht] = dht_len[n_dht];
-+	}
-+	result->dqt.n = n_dqt;
-+	while (n_dqt--) {
-+		result->dqt.marker[n_dqt] = dqt[n_dqt];
-+		result->dqt.len[n_dqt] = dqt_len[n_dqt];
-+	}
-+	result->sof = sof;
-+	result->sof_len = sof_len;
-+	result->size = result->components = components;
-+
-+	return true;
  }
  
- static int s5p_jpeg_querycap(struct file *file, void *priv,
 -- 
-2.7.4
+2.9.4
