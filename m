@@ -1,69 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-97.mail.aliyun.com ([115.124.20.97]:40866 "EHLO
-        out20-97.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751632AbdF0LHy (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:40327 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750990AbdFPPvA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 07:07:54 -0400
-From: Yong Deng <yong.deng@magewell.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        hans.verkuil@cisco.com, peter.griffin@linaro.org,
-        hugues.fruchet@st.com, krzk@kernel.org, bparrot@ti.com,
-        arnd@arndb.de, jean-christophe.trotin@st.com,
-        benjamin.gaignard@linaro.org, tiffany.lin@mediatek.com,
-        kamil@wypas.org, kieran+renesas@ksquared.org.uk,
-        andrew-ct.chen@mediatek.com, yong.deng@magewell.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: [PATCH RFC 0/2] Initial Allwinner V3s CSI Support
-Date: Tue, 27 Jun 2017 19:07:32 +0800
-Message-Id: <1498561654-14658-1-git-send-email-yong.deng@magewell.com>
+        Fri, 16 Jun 2017 11:51:00 -0400
+Subject: Re: [RFC 2/2] docs-rst: v4l: Document V4L2_BUF_TYPE_META_OUTPUT
+ interface
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: tfiga@chromium.org, yong.zhi@intel.com
+References: <1497626061-2129-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1497626061-2129-3-git-send-email-sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <7ae2000b-2098-0ee6-616c-d4fddae9c0f9@xs4all.nl>
+Date: Fri, 16 Jun 2017 17:50:55 +0200
+MIME-Version: 1.0
+In-Reply-To: <1497626061-2129-3-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset add initial support for Allwinner V3s CSI.
+On 06/16/2017 05:14 PM, Sakari Ailus wrote:
+> Document the interface for metadata output, including
+> V4L2_BUF_TYPE_META_OUTPUT buffer type and V4L2_CAP_META_OUTPUT capability
+> bits.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>   Documentation/media/uapi/v4l/buffer.rst          |  3 +++
+>   Documentation/media/uapi/v4l/dev-meta.rst        | 32 ++++++++++++++----------
+>   Documentation/media/uapi/v4l/vidioc-querycap.rst |  3 +++
+>   3 files changed, 25 insertions(+), 13 deletions(-)
+> 
+> diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+> index ae6ee73..919ac1d 100644
+> --- a/Documentation/media/uapi/v4l/buffer.rst
+> +++ b/Documentation/media/uapi/v4l/buffer.rst
+> @@ -452,6 +452,9 @@ enum v4l2_buf_type
+>       * - ``V4L2_BUF_TYPE_META_CAPTURE``
+>         - 13
+>         - Buffer for metadata capture, see :ref:`metadata`.
+> +    * - ``V4L2_BUF_TYPE_META_CAPTURE``
 
-Allwinner V3s SoC have two CSI module. CSI0 is used for MIPI interface
-and CSI1 is used for parallel interface. This is not documented in
-datatsheet but by testing and guess.
+Should be OUTPUT of course.
 
-This patchset implement a v4l2 framework driver and add a binding 
-documentation for it.
+> +      - 14
+> +      - Buffer for metadata output, see :ref:`metadata`.
+>   
+>   
+>   
+> diff --git a/Documentation/media/uapi/v4l/dev-meta.rst b/Documentation/media/uapi/v4l/dev-meta.rst
+> index 62518ad..cb007dd 100644
+> --- a/Documentation/media/uapi/v4l/dev-meta.rst
+> +++ b/Documentation/media/uapi/v4l/dev-meta.rst
+> @@ -7,21 +7,26 @@ Metadata Interface
+>   ******************
+>   
+>   Metadata refers to any non-image data that supplements video frames with
+> -additional information. This may include statistics computed over the image
+> -or frame capture parameters supplied by the image source. This interface is
+> -intended for transfer of metadata to userspace and control of that operation.
+> +additional information. This may include statistics computed over the image,
+> +frame capture parameters supplied by the image source or device specific
+> +parameters. This interface is intended for transfer of metadata between
+> +the userspace and the hardware and control of that operation.
+>   
+> -The metadata interface is implemented on video capture device nodes. The device
+> -can be dedicated to metadata or can implement both video and metadata capture
+> -as specified in its reported capabilities.
+> +The metadata interface is implemented on video device nodes. The device can be
+> +dedicated to metadata or can support both video and metadata as specified in its
+> +reported capabilities.
+>   
+>   Querying Capabilities
+>   =====================
+>   
+> -Device nodes supporting the metadata interface set the ``V4L2_CAP_META_CAPTURE``
+> -flag in the ``device_caps`` field of the
+> +Device nodes supporting the metadata capture interface set the
+> +``V4L2_CAP_META_CAPTURE`` flag in the ``device_caps`` field of the
+>   :c:type:`v4l2_capability` structure returned by the :c:func:`VIDIOC_QUERYCAP`
+> -ioctl. That flag means the device can capture metadata to memory.
+> +ioctl. That flag means the device can capture metadata to memory. Similarly,
+> +device nodes supporting metadata output interface set the
+> +``V4L2_CAP_META_OUTPUT`` flag in the ``device_caps`` field of
+> +:c:type:`v4l2_capability` structure. That flag means the device can read
+> +metadata from memory.
+>   
+>   At least one of the read/write or streaming I/O methods must be supported.
+>   
+> @@ -35,10 +40,11 @@ to the basic :ref:`format` ioctls, the :c:func:`VIDIOC_ENUM_FMT` ioctl must be
+>   supported as well.
+>   
+>   To use the :ref:`format` ioctls applications set the ``type`` field of the
+> -:c:type:`v4l2_format` structure to ``V4L2_BUF_TYPE_META_CAPTURE`` and use the
+> -:c:type:`v4l2_meta_format` ``meta`` member of the ``fmt`` union as needed per
+> -the desired operation. Both drivers and applications must set the remainder of
+> -the :c:type:`v4l2_format` structure to 0.
+> +:c:type:`v4l2_format` structure to ``V4L2_BUF_TYPE_META_CAPTURE`` or to
+> +``V4L2_BUF_TYPE_META_OUTPUT`` and use the :c:type:`v4l2_meta_format` ``meta``
+> +member of the ``fmt`` union as needed per the desired operation. Both drivers
+> +and applications must set the remainder of the :c:type:`v4l2_format` structure
+> +to 0.
+>   
+>   .. _v4l2-meta-format:
+>   
+> diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+> index 12e0d9a..36bf879 100644
+> --- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
+> +++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+> @@ -249,6 +249,9 @@ specification the ioctl returns an ``EINVAL`` error code.
+>       * - ``V4L2_CAP_STREAMING``
+>         - 0x04000000
+>         - The device supports the :ref:`streaming <mmap>` I/O method.
+> +    * - ``V4L2_CAP_META_OUTPUT``
+> +      - 0x08000000
+> +      - The device supports the :ref:`metadata` output interface.
+>       * - ``V4L2_CAP_TOUCH``
+>         - 0x10000000
+>         - This is a touch device.
+> 
 
-Currently, the driver only support the parallel interface. And has been
-tested with a BT1120 signal which generating from FPGA. The following
-fetures are not support with this patchset:
-  - ISP
-  - MIPI-CSI2
-  - Master clock for camera sensor
-  - Power regulator for the front end IC
+With that fixed:
 
-Yong Deng (2):
-  media: V3s: Add support for Allwinner CSI.
-  dt-bindings: add binding documentation for Allwinner CSI
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
- .../devicetree/bindings/media/sunxi-csi.txt        |  51 ++
- drivers/media/platform/Kconfig                     |   1 +
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/sunxi-csi/Kconfig           |   8 +
- drivers/media/platform/sunxi-csi/Makefile          |   3 +
- drivers/media/platform/sunxi-csi/sunxi_csi.c       | 535 +++++++++++++
- drivers/media/platform/sunxi-csi/sunxi_csi.h       | 203 +++++
- drivers/media/platform/sunxi-csi/sunxi_csi_v3s.c   | 827 +++++++++++++++++++++
- drivers/media/platform/sunxi-csi/sunxi_csi_v3s.h   | 206 +++++
- drivers/media/platform/sunxi-csi/sunxi_video.c     | 667 +++++++++++++++++
- drivers/media/platform/sunxi-csi/sunxi_video.h     |  61 ++
- 11 files changed, 2564 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/sunxi-csi.txt
- create mode 100644 drivers/media/platform/sunxi-csi/Kconfig
- create mode 100644 drivers/media/platform/sunxi-csi/Makefile
- create mode 100644 drivers/media/platform/sunxi-csi/sunxi_csi.c
- create mode 100644 drivers/media/platform/sunxi-csi/sunxi_csi.h
- create mode 100644 drivers/media/platform/sunxi-csi/sunxi_csi_v3s.c
- create mode 100644 drivers/media/platform/sunxi-csi/sunxi_csi_v3s.h
- create mode 100644 drivers/media/platform/sunxi-csi/sunxi_video.c
- create mode 100644 drivers/media/platform/sunxi-csi/sunxi_video.h
+Thanks!
 
--- 
-1.8.3.1
+	Hans
