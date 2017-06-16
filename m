@@ -1,54 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35412 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754510AbdFWK3i (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:33497 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752772AbdFPHjv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Jun 2017 06:29:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 1/6] v4l: vsp1: Remove WPF vertical flip support on VSP2-B[CD] and VSP2-D
-Date: Fri, 23 Jun 2017 13:30:17 +0300
-Message-ID: <2834844.GxJxlkDrrf@avalon>
-In-Reply-To: <e499dfd0-50fd-a45b-6807-a87224d0ddf5@xs4all.nl>
-References: <20170615082409.9523-1-laurent.pinchart+renesas@ideasonboard.com> <3fc0137d-02ce-c9e4-0c82-5fff803b440d@xs4all.nl> <e499dfd0-50fd-a45b-6807-a87224d0ddf5@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Fri, 16 Jun 2017 03:39:51 -0400
+Received: by mail-pf0-f195.google.com with SMTP id w12so4720618pfk.0
+        for <linux-media@vger.kernel.org>; Fri, 16 Jun 2017 00:39:45 -0700 (PDT)
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH 09/12] [media] vivid: mark vivid queues as ordered
+Date: Fri, 16 Jun 2017 16:39:12 +0900
+Message-Id: <20170616073915.5027-10-gustavo@padovan.org>
+In-Reply-To: <20170616073915.5027-1-gustavo@padovan.org>
+References: <20170616073915.5027-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-On Friday 23 Jun 2017 11:10:45 Hans Verkuil wrote:
-> On 06/19/17 13:18, Hans Verkuil wrote:
-> > On 06/19/2017 01:16 PM, Laurent Pinchart wrote:
-> >> On Thursday 15 Jun 2017 10:53:33 Hans Verkuil wrote:
-> >>> On 06/15/17 10:24, Laurent Pinchart wrote:
-> >>>> The WPF vertical flip is only supported on Gen3 SoCs on the VSP2-I.
-> >>>> Don't enable it on other VSP2 instances.
-> >>>> 
-> >>>> Signed-off-by: Laurent Pinchart
-> >>>> <laurent.pinchart+renesas@ideasonboard.com>
-> >>> 
-> >>> Should this go to older kernels as well? Or is that not needed?
-> >> 
-> >> Now that I have access to the hardware again, after further testing, it
-> >> looks like vertical flip is implemented in the VSP2-B[CD] and VSP2-D
-> >> even though the datasheet states otherwise. Let's ignore this patch for
-> >> now, I'll try to double-check with Renesas.
-> > 
-> > Patches 2-6 are OK, though? If they are, then I'll pick them up.
-> 
-> Ping! Please let me know if patches 2-6 are OK for me to pick up. I'll make
-> a final pull request today, after that they'll be postponed until 4.14.
+To enable vivid to be used with explicit synchronization we need
+to mark its queues as ordered.
 
-I've received confirmation that the feature is actually implemented. The bug 
-was in the datasheet, not in the driver. I've thus marked the patch as 
-rejected in patchwork.
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ drivers/media/platform/vivid/vivid-core.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 8843170..c7bef90 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -1063,6 +1063,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->type = dev->multiplanar ? V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE :
+ 			V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
++		q->ordered = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vid_cap_qops;
+@@ -1083,6 +1084,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->type = dev->multiplanar ? V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE :
+ 			V4L2_BUF_TYPE_VIDEO_OUTPUT;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_WRITE;
++		q->ordered = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vid_out_qops;
+@@ -1103,6 +1105,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->type = dev->has_raw_vbi_cap ? V4L2_BUF_TYPE_VBI_CAPTURE :
+ 					      V4L2_BUF_TYPE_SLICED_VBI_CAPTURE;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
++		q->ordered = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vbi_cap_qops;
+@@ -1123,6 +1126,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->type = dev->has_raw_vbi_out ? V4L2_BUF_TYPE_VBI_OUTPUT :
+ 					      V4L2_BUF_TYPE_SLICED_VBI_OUTPUT;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_WRITE;
++		q->ordered = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vbi_out_qops;
+@@ -1142,6 +1146,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q = &dev->vb_sdr_cap_q;
+ 		q->type = V4L2_BUF_TYPE_SDR_CAPTURE;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
++		q->ordered = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_sdr_cap_qops;
 -- 
-Regards,
-
-Laurent Pinchart
+2.9.4
