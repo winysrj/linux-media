@@ -1,77 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54557
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751428AbdFGW7s (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 18:59:48 -0400
-Date: Wed, 7 Jun 2017 19:59:40 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: "Jasmin J." <jasmin@anw.at>
-Cc: linux-media@vger.kernel.org, max.kellermann@gmail.com
-Subject: Re: [PATCH 01/11] [media] dvb-core/dvb_ca_en50221.c: Rename
- STATUSREG_??
-Message-ID: <20170607195940.3f54b6c3@vento.lan>
-In-Reply-To: <b6ce894d-8387-3568-902a-e203cc4f1d7f@anw.at>
-References: <1494192214-20082-1-git-send-email-jasmin@anw.at>
-        <1494192214-20082-2-git-send-email-jasmin@anw.at>
-        <20170508065545.52b26fc9@vento.lan>
-        <3d4c4a10-0c65-9eee-b4e2-b19f1eddb31a@anw.at>
-        <20170607134319.6b90c6a4@vento.lan>
-        <b6ce894d-8387-3568-902a-e203cc4f1d7f@anw.at>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34051 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752352AbdFPITy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Jun 2017 04:19:54 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.13] Add qcom venus driver
+Message-ID: <9a84a004-ebdc-fba7-2cee-b91857788599@xs4all.nl>
+Date: Fri, 16 Jun 2017 10:19:46 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 7 Jun 2017 21:37:02 +0200
-"Jasmin J." <jasmin@anw.at> escreveu:
+Hi Mauro,
 
-> Hello Mauro!
-> 
-> > If you want it applied, this is needed anyway, as the patch doesn't apply 
-> > cleanly:  
-> Because you didn't apply the first series!
-> In the first series
->    [PATCH 0/7] Add block read/write to en50221 CAM functions
-> I wrote:
->  There is another patch series coming soon "Fix coding style in en50221 CAM
->  functions" which fixes nearly all the style issues in
->  dvb-core/dvb_ca_en50221.c/.h, based on this patch series. So please be
->  patient, if any of the dvb_ca_en50221.c/.h might be not 100% checkpatch.pl
->  compliant.
-> 
-> It was NOT intended to apply the second series with the code style changes
-> before the first series! And now, that you accepted two out of this series
-> the first series might not apply also and I need to rework it.
-> Sorry for my feelings about this issue, but this is a bit frustrating!
-> 
-> In the preamble of the style fix series I wrote:
->  These patch series is a follow up to the series "Add block read/write to
->  en50221 CAM functions". It fixed nearly all the style issues reported by
->  checkpatch.pl in dvb-core/dvb_ca_en50221.c
-> 
-> I can't do more as writing what is the right order!
+Second attempt to add the venus driver.
 
-Sorry, I missed it. Unfortunately, patchwork doesn't retrieve patch 00/xx.
-So, sometimes I end by not noticing that a patch series has a cover letter.
+Regards,
 
-> > Btw, don't spend time fixing issues pointed by checkpatch on existing
-> > code, except if you're rewriting most of the code. We don't want to handle
-> > merge conflicts due to checkpatch-only changes.  
-> I think you are talking about
->  [PATCH 04/11] [media] dvb-core/dvb_ca_en50221.c: Refactored dvb_ca_en50221_thread
-> This function is a mess and breaking it into smaller pieces helps for the 80cols
-> limit and for the complexity. You just wrote:
+	Hans
 
-No, I'm actually talking about patches 1 and 2 of this series. Renaming
-macros just due to 80 cols is usually a bad idea, as it causes conflict
-with other stuff.
+The following changes since commit acec3630155763c170c7ae6508cf973355464508:
 
-The idea behind patch 04/11 makes sense to me. I'll review it carefully
-after having everything applied.
+   [media] s3c-camif: fix arguments position in a function call (2017-06-13 14:21:24 -0300)
 
-Please re-send the first series, making sure that the authorship is
-preserved.
+are available in the git repository at:
 
-Thanks,
-Mauro
+   git://linuxtv.org/hverkuil/media_tree.git venus
+
+for you to fetch changes up to 3bf1c3aacb172db8fcbd25c62b042fc265c5a494:
+
+   media: venus: enable building with COMPILE_TEST (2017-06-16 09:59:36 +0200)
+
+----------------------------------------------------------------
+Stanimir Varbanov (19):
+       media: v4l2-mem2mem: extend m2m APIs for more accurate buffer management
+       doc: DT: venus: binding document for Qualcomm video driver
+       MAINTAINERS: Add Qualcomm Venus video accelerator driver
+       media: venus: adding core part and helper functions
+       media: venus: vdec: add video decoder files
+       media: venus: venc: add video encoder files
+       media: venus: hfi: add Host Firmware Interface (HFI)
+       media: venus: hfi: add Venus HFI files
+       media: venus: enable building of Venus video driver
+       media: venus: hfi: fix mutex unlock
+       media: venus: hfi_cmds: fix variable dereferenced before check
+       media: venus: helpers: fix variable dereferenced before check
+       media: venus: hfi_venus: fix variable dereferenced before check
+       media: venus: hfi_msgs: fix set but not used variables
+       media: venus: vdec: fix compile error in vdec_close
+       media: venus: venc: fix compile error in venc_close
+       media: venus: vdec: add support for min buffers for capture
+       media: venus: update firmware path with linux-firmware place
+       media: venus: enable building with COMPILE_TEST
+
+  Documentation/devicetree/bindings/media/qcom,venus.txt |  107 +++
+  MAINTAINERS                                            |    8 +
+  drivers/media/platform/Kconfig                         |   13 +
+  drivers/media/platform/Makefile                        |    2 +
+  drivers/media/platform/qcom/venus/Makefile             |   11 +
+  drivers/media/platform/qcom/venus/core.c               |  390 +++++++++++
+  drivers/media/platform/qcom/venus/core.h               |  324 +++++++++
+  drivers/media/platform/qcom/venus/firmware.c           |  108 +++
+  drivers/media/platform/qcom/venus/firmware.h           |   23 +
+  drivers/media/platform/qcom/venus/helpers.c            |  725 ++++++++++++++++++++
+  drivers/media/platform/qcom/venus/helpers.h            |   45 ++
+  drivers/media/platform/qcom/venus/hfi.c                |  522 +++++++++++++++
+  drivers/media/platform/qcom/venus/hfi.h                |  175 +++++
+  drivers/media/platform/qcom/venus/hfi_cmds.c           | 1259 +++++++++++++++++++++++++++++++++++
+  drivers/media/platform/qcom/venus/hfi_cmds.h           |  304 +++++++++
+  drivers/media/platform/qcom/venus/hfi_helper.h         | 1050 +++++++++++++++++++++++++++++
+  drivers/media/platform/qcom/venus/hfi_msgs.c           | 1052 +++++++++++++++++++++++++++++
+  drivers/media/platform/qcom/venus/hfi_msgs.h           |  283 ++++++++
+  drivers/media/platform/qcom/venus/hfi_venus.c          | 1572 ++++++++++++++++++++++++++++++++++++++++++++
+  drivers/media/platform/qcom/venus/hfi_venus.h          |   23 +
+  drivers/media/platform/qcom/venus/hfi_venus_io.h       |  113 ++++
+  drivers/media/platform/qcom/venus/vdec.c               | 1162 ++++++++++++++++++++++++++++++++
+  drivers/media/platform/qcom/venus/vdec.h               |   23 +
+  drivers/media/platform/qcom/venus/vdec_ctrls.c         |  158 +++++
+  drivers/media/platform/qcom/venus/venc.c               | 1283 ++++++++++++++++++++++++++++++++++++
+  drivers/media/platform/qcom/venus/venc.h               |   23 +
+  drivers/media/platform/qcom/venus/venc_ctrls.c         |  270 ++++++++
+  drivers/media/v4l2-core/v4l2-mem2mem.c                 |   37 ++
+  include/media/v4l2-mem2mem.h                           |   92 +++
+  29 files changed, 11157 insertions(+)
+  create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
+  create mode 100644 drivers/media/platform/qcom/venus/Makefile
+  create mode 100644 drivers/media/platform/qcom/venus/core.c
+  create mode 100644 drivers/media/platform/qcom/venus/core.h
+  create mode 100644 drivers/media/platform/qcom/venus/firmware.c
+  create mode 100644 drivers/media/platform/qcom/venus/firmware.h
+  create mode 100644 drivers/media/platform/qcom/venus/helpers.c
+  create mode 100644 drivers/media/platform/qcom/venus/helpers.h
+  create mode 100644 drivers/media/platform/qcom/venus/hfi.c
+  create mode 100644 drivers/media/platform/qcom/venus/hfi.h
+  create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.c
+  create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.h
+  create mode 100644 drivers/media/platform/qcom/venus/hfi_helper.h
+  create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.c
+  create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.h
+  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.c
+  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.h
+  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus_io.h
+  create mode 100644 drivers/media/platform/qcom/venus/vdec.c
+  create mode 100644 drivers/media/platform/qcom/venus/vdec.h
+  create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
+  create mode 100644 drivers/media/platform/qcom/venus/venc.c
+  create mode 100644 drivers/media/platform/qcom/venus/venc.h
+  create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
