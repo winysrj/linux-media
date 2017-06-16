@@ -1,115 +1,316 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:42218 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752085AbdFUIIe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Jun 2017 04:08:34 -0400
-From: Johannes Thumshirn <jthumshirn@suse.de>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-fbdev@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Johannes Thumshirn <jthumshirn@suse.de>
-Subject: [PATCH RESEND 3/7] [media] media: document the use of MEDIA_REVISION instead of KERNEL_VERSION
-Date: Wed, 21 Jun 2017 10:08:08 +0200
-Message-Id: <20170621080812.6817-4-jthumshirn@suse.de>
-In-Reply-To: <20170621080812.6817-1-jthumshirn@suse.de>
-References: <20170621080812.6817-1-jthumshirn@suse.de>
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:35099 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752763AbdFPHjh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Jun 2017 03:39:37 -0400
+Received: by mail-pg0-f66.google.com with SMTP id f127so4549234pgc.2
+        for <linux-media@vger.kernel.org>; Fri, 16 Jun 2017 00:39:32 -0700 (PDT)
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH 03/12] [media] vb2: add in-fence support to QBUF
+Date: Fri, 16 Jun 2017 16:39:06 +0900
+Message-Id: <20170616073915.5027-4-gustavo@padovan.org>
+In-Reply-To: <20170616073915.5027-1-gustavo@padovan.org>
+References: <20170616073915.5027-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update the documentation to introduce the use of MEDIA_REVISON instead
-of KERNEL_VERSION for the verison triplets of a media drivers hardware
-revision or driver version.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Signed-off-by: Johannes Thumshirn <jthumshirn@suse.de>
+Receive in-fence from userspace and add support for waiting on them
+before queueing the buffer to the driver. Buffers are only queued
+to the driver once they are ready. A buffer is ready when its
+in-fence signals.
+
+v2:
+	- fix vb2_queue_or_prepare_buf() ret check
+	- remove check for VB2_MEMORY_DMABUF only (Javier)
+	- check num of ready buffers to start streaming
+	- when queueing, start from the first ready buffer
+	- handle queue cancel
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
- Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst        | 2 +-
- Documentation/media/uapi/mediactl/media-ioc-device-info.rst | 4 ++--
- Documentation/media/uapi/v4l/vidioc-querycap.rst            | 6 +++---
- include/media/media-device.h                                | 5 ++---
- 4 files changed, 8 insertions(+), 9 deletions(-)
+ drivers/media/Kconfig                    |  1 +
+ drivers/media/v4l2-core/videobuf2-core.c | 97 +++++++++++++++++++++++++-------
+ drivers/media/v4l2-core/videobuf2-v4l2.c | 15 ++++-
+ include/media/videobuf2-core.h           |  7 ++-
+ 4 files changed, 99 insertions(+), 21 deletions(-)
 
-diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-index a0e961f11017..749054f11c77 100644
---- a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-@@ -56,7 +56,7 @@ returns the information to the application. The ioctl never fails.
- 	:ref:`cec-capabilities`.
-     * - __u32
-       - ``version``
--      - CEC Framework API version, formatted with the ``KERNEL_VERSION()``
-+      - CEC Framework API version, formatted with the ``MEDIA_REVISION()``
- 	macro.
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index 55d9c2b..3cd1d3d 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -11,6 +11,7 @@ config CEC_NOTIFIER
+ menuconfig MEDIA_SUPPORT
+ 	tristate "Multimedia support"
+ 	depends on HAS_IOMEM
++	select SYNC_FILE
+ 	help
+ 	  If you want to use Webcams, Video grabber devices and/or TV devices
+ 	  enable this option and other options below.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index ea83126..29aa9d4 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1279,6 +1279,22 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
+ 	return 0;
+ }
  
++static int __get_num_ready_buffers(struct vb2_queue *q)
++{
++	struct vb2_buffer *vb;
++	int ready_count = 0;
++
++	/* count num of buffers ready in front of the queued_list */
++	list_for_each_entry(vb, &q->queued_list, queued_entry) {
++		if (vb->in_fence && !dma_fence_is_signaled(vb->in_fence))
++			break;
++
++		ready_count++;
++	}
++
++	return ready_count;
++}
++
+ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
+ {
+ 	struct vb2_buffer *vb;
+@@ -1324,8 +1340,15 @@ static int vb2_start_streaming(struct vb2_queue *q)
+ 	 * If any buffers were queued before streamon,
+ 	 * we can now pass them to driver for processing.
+ 	 */
+-	list_for_each_entry(vb, &q->queued_list, queued_entry)
++	list_for_each_entry(vb, &q->queued_list, queued_entry) {
++		if (vb->state != VB2_BUF_STATE_QUEUED)
++			continue;
++
++		if (vb->in_fence && !dma_fence_is_signaled(vb->in_fence))
++			break;
++
+ 		__enqueue_in_driver(vb);
++	}
  
-diff --git a/Documentation/media/uapi/mediactl/media-ioc-device-info.rst b/Documentation/media/uapi/mediactl/media-ioc-device-info.rst
-index f690f9afc470..7a18cb6dbe84 100644
---- a/Documentation/media/uapi/mediactl/media-ioc-device-info.rst
-+++ b/Documentation/media/uapi/mediactl/media-ioc-device-info.rst
-@@ -96,7 +96,7 @@ ioctl never fails.
+ 	/* Tell the driver to start streaming */
+ 	q->start_streaming_called = 1;
+@@ -1369,33 +1392,55 @@ static int vb2_start_streaming(struct vb2_queue *q)
  
-        -  ``media_version``
+ static int __vb2_core_qbuf(struct vb2_buffer *vb, struct vb2_queue *q)
+ {
++	struct vb2_buffer *b;
+ 	int ret;
  
--       -  Media API version, formatted with the ``KERNEL_VERSION()`` macro.
-+       -  Media API version, formatted with the ``MEDIA_REVISION()`` macro.
+ 	/*
+ 	 * If already streaming, give the buffer to driver for processing.
+ 	 * If not, the buffer will be given to driver on next streamon.
+ 	 */
+-	if (q->start_streaming_called)
+-		__enqueue_in_driver(vb);
  
-     -  .. row 6
+-	/*
+-	 * If streamon has been called, and we haven't yet called
+-	 * start_streaming() since not enough buffers were queued, and
+-	 * we now have reached the minimum number of queued buffers,
+-	 * then we can finally call start_streaming().
+-	 */
+-	if (q->streaming && !q->start_streaming_called &&
+-	    q->queued_count >= q->min_buffers_needed) {
+-		ret = vb2_start_streaming(q);
+-		if (ret)
+-			return ret;
++	if (q->start_streaming_called) {
++		list_for_each_entry(b, &q->queued_list, queued_entry) {
++			if (b->state != VB2_BUF_STATE_QUEUED)
++				continue;
++
++			if (b->in_fence && !dma_fence_is_signaled(b->in_fence))
++				break;
++
++			__enqueue_in_driver(b);
++		}
++	} else {
++		/*
++		 * If streamon has been called, and we haven't yet called
++		 * start_streaming() since not enough buffers were queued, and
++		 * we now have reached the minimum number of queued buffers
++		 * that are ready, then we can finally call start_streaming().
++		 */
++		if (q->streaming &&
++		    __get_num_ready_buffers(q) >= q->min_buffers_needed) {
++			ret = vb2_start_streaming(q);
++			if (ret)
++				return ret;
++		}
+ 	}
  
-@@ -113,7 +113,7 @@ ioctl never fails.
-        -  ``driver_version``
+ 	dprintk(1, "qbuf of buffer %d succeeded\n", vb->index);
+ 	return 0;
+ }
  
-        -  Media device driver version, formatted with the
--	  ``KERNEL_VERSION()`` macro. Together with the ``driver`` field
-+	  ``MEDIA_REVISION()`` macro. Together with the ``driver`` field
- 	  this identifies a particular driver.
+-int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
++static void vb2_qbuf_fence_cb(struct dma_fence *f, struct dma_fence_cb *cb)
++{
++	struct vb2_buffer *vb = container_of(cb, struct vb2_buffer, fence_cb);
++
++	dma_fence_put(vb->in_fence);
++	vb->in_fence = NULL;
++
++	__vb2_core_qbuf(vb, vb->vb2_queue);
++}
++
++int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
++		  struct dma_fence *fence)
+ {
+ 	struct vb2_buffer *vb;
+ 	int ret;
+@@ -1436,6 +1481,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+ 	if (pb)
+ 		call_void_bufop(q, fill_user_buffer, vb, pb);
  
-     -  .. row 8
-diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-index 12e0d9a63cd8..b66d9caa7211 100644
---- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-@@ -90,13 +90,13 @@ specification the ioctl returns an ``EINVAL`` error code.
- 	example, a stable or distribution-modified kernel uses the V4L2
- 	stack from a newer kernel.
++	vb->in_fence = fence;
++	if (fence && !dma_fence_add_callback(fence, &vb->fence_cb,
++					     vb2_qbuf_fence_cb))
++		return 0;
++
+ 	return __vb2_core_qbuf(vb, q);
+ }
+ EXPORT_SYMBOL_GPL(vb2_core_qbuf);
+@@ -1647,6 +1697,7 @@ EXPORT_SYMBOL_GPL(vb2_core_dqbuf);
+ static void __vb2_queue_cancel(struct vb2_queue *q)
+ {
+ 	unsigned int i;
++	struct vb2_buffer *vb;
  
--	The version number is formatted using the ``KERNEL_VERSION()``
-+	The version number is formatted using the ``MEDIA_REVISION()``
- 	macro:
-     * - :cspan:`2`
+ 	/*
+ 	 * Tell driver to stop all transactions and release all queued
+@@ -1669,6 +1720,14 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 		WARN_ON(atomic_read(&q->owned_by_drv_count));
+ 	}
  
--	``#define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))``
-+	``#define MEDIA_REVISION(a,b,c) (((a) << 16) + ((b) << 8) + (c))``
++	list_for_each_entry(vb, &q->queued_list, queued_entry) {
++		if (vb->in_fence) {
++			dma_fence_remove_callback(vb->in_fence, &vb->fence_cb);
++			dma_fence_put(vb->in_fence);
++			vb->in_fence = NULL;
++		}
++	}
++
+ 	q->streaming = 0;
+ 	q->start_streaming_called = 0;
+ 	q->queued_count = 0;
+@@ -1735,7 +1794,7 @@ int vb2_core_streamon(struct vb2_queue *q, unsigned int type)
+ 	 * Tell driver to start streaming provided sufficient buffers
+ 	 * are available.
+ 	 */
+-	if (q->queued_count >= q->min_buffers_needed) {
++	if (__get_num_ready_buffers(q) >= q->min_buffers_needed) {
+ 		ret = v4l_vb2q_enable_media_source(q);
+ 		if (ret)
+ 			return ret;
+@@ -2250,7 +2309,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 		 * Queue all buffers.
+ 		 */
+ 		for (i = 0; i < q->num_buffers; i++) {
+-			ret = vb2_core_qbuf(q, i, NULL);
++			ret = vb2_core_qbuf(q, i, NULL, NULL);
+ 			if (ret)
+ 				goto err_reqbufs;
+ 			fileio->bufs[i].queued = 1;
+@@ -2429,7 +2488,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
  
--	``__u32 version = KERNEL_VERSION(0, 8, 1);``
-+	``__u32 version = MEDIA_REVISION(0, 8, 1);``
+ 		if (copy_timestamp)
+ 			b->timestamp = ktime_get_ns();
+-		ret = vb2_core_qbuf(q, index, NULL);
++		ret = vb2_core_qbuf(q, index, NULL, NULL);
+ 		dprintk(5, "vb2_dbuf result: %d\n", ret);
+ 		if (ret)
+ 			return ret;
+@@ -2532,7 +2591,7 @@ static int vb2_thread(void *data)
+ 		if (copy_timestamp)
+ 			vb->timestamp = ktime_get_ns();;
+ 		if (!threadio->stop)
+-			ret = vb2_core_qbuf(q, vb->index, NULL);
++			ret = vb2_core_qbuf(q, vb->index, NULL, NULL);
+ 		call_void_qop(q, wait_prepare, q);
+ 		if (ret || threadio->stop)
+ 			break;
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 110fb45..e6ad77f 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -23,6 +23,7 @@
+ #include <linux/sched.h>
+ #include <linux/freezer.h>
+ #include <linux/kthread.h>
++#include <linux/sync_file.h>
  
- 	``printf ("Version: %u.%u.%u\\n",``
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-fh.h>
+@@ -560,6 +561,7 @@ EXPORT_SYMBOL_GPL(vb2_create_bufs);
  
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 6896266031b9..6b3057266ad1 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -247,9 +247,9 @@ void media_device_cleanup(struct media_device *mdev);
-  *
-  *  - &media_entity.hw_revision is the hardware device revision in a
-  *    driver-specific format. When possible the revision should be formatted
-- *    with the KERNEL_VERSION() macro.
-+ *    with the MEDIA_REVISION() macro.
-  *
-- *  - &media_entity.driver_version is formatted with the KERNEL_VERSION()
-+ *  - &media_entity.driver_version is formatted with the MEDIA_REVISION()
-  *    macro. The version minor must be incremented when new features are added
-  *    to the userspace API without breaking binary compatibility. The version
-  *    major must be incremented when binary compatibility is broken.
-@@ -265,7 +265,6 @@ void media_device_cleanup(struct media_device *mdev);
- int __must_check __media_device_register(struct media_device *mdev,
- 					 struct module *owner);
+ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ {
++	struct dma_fence *fence = NULL;
+ 	int ret;
  
--
+ 	if (vb2_fileio_is_active(q)) {
+@@ -568,7 +570,18 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 	}
+ 
+ 	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
+-	return ret ? ret : vb2_core_qbuf(q, b->index, b);
++	if (ret)
++		return ret;
++
++	if (b->flags & V4L2_BUF_FLAG_IN_FENCE) {
++		fence = sync_file_get_fence(b->fence_fd);
++		if (!fence) {
++			dprintk(1, "failed to get in-fence from fd\n");
++			return -EINVAL;
++		}
++	}
++
++	return ret ? ret : vb2_core_qbuf(q, b->index, b, fence);
+ }
+ EXPORT_SYMBOL_GPL(vb2_qbuf);
+ 
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index cb97c22..aa43e43 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -16,6 +16,7 @@
+ #include <linux/mutex.h>
+ #include <linux/poll.h>
+ #include <linux/dma-buf.h>
++#include <linux/dma-fence.h>
+ 
+ #define VB2_MAX_FRAME	(32)
+ #define VB2_MAX_PLANES	(8)
+@@ -259,6 +260,9 @@ struct vb2_buffer {
+ 
+ 	struct list_head	queued_entry;
+ 	struct list_head	done_entry;
++
++	struct dma_fence	*in_fence;
++	struct dma_fence_cb	fence_cb;
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	/*
+ 	 * Counters for how often these buffer-related ops are
+@@ -727,7 +731,8 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
+  * The return values from this function are intended to be directly returned
+  * from vidioc_qbuf handler in driver.
+  */
+-int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
++int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
++		  struct dma_fence *fence);
+ 
  /**
-  * media_device_register() - Registers a media device element
-  *
+  * vb2_core_dqbuf() - Dequeue a buffer to the userspace
 -- 
-2.12.3
+2.9.4
