@@ -1,115 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:34374 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753926AbdFWQho (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Jun 2017 12:37:44 -0400
-Received: by mail-wr0-f194.google.com with SMTP id k67so13724906wrc.1
-        for <linux-media@vger.kernel.org>; Fri, 23 Jun 2017 09:37:43 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH] [media] ddbridge: make (ddb)readl in while-loops fail-safe
-Date: Fri, 23 Jun 2017 18:37:40 +0200
-Message-Id: <20170623163740.21250-1-d.scheller.oss@gmail.com>
+Received: from mga14.intel.com ([192.55.52.115]:46922 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752827AbdFPPQW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Jun 2017 11:16:22 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: tfiga@chromium.org, yong.zhi@intel.com
+Subject: [RFC 2/2] docs-rst: v4l: Document V4L2_BUF_TYPE_META_OUTPUT interface
+Date: Fri, 16 Jun 2017 18:14:21 +0300
+Message-Id: <1497626061-2129-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1497626061-2129-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1497626061-2129-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Document the interface for metadata output, including
+V4L2_BUF_TYPE_META_OUTPUT buffer type and V4L2_CAP_META_OUTPUT capability
+bits.
 
-Reported by smatch:
-
-  drivers/media/pci/ddbridge/ddbridge-core.c:1246 input_tasklet() warn: this loop depends on readl() succeeding
-  drivers/media/pci/ddbridge/ddbridge-core.c:1768 flashio() warn: this loop depends on readl() succeeding
-  drivers/media/pci/ddbridge/ddbridge-core.c:1788 flashio() warn: this loop depends on readl() succeeding
-
-Fix this by introducing safe_ddbreadl() which will wrap ddbreadl and checks
-for all bits set in the return which indicates failure, and return 0 in
-that case. Usable as drop-in-replacement in all affected while loops w/o
-having to change the logic.
-
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/pci/ddbridge/ddbridge-core.c | 23 ++++++++++++++++++-----
- 1 file changed, 18 insertions(+), 5 deletions(-)
+ Documentation/media/uapi/v4l/buffer.rst          |  3 +++
+ Documentation/media/uapi/v4l/dev-meta.rst        | 32 ++++++++++++++----------
+ Documentation/media/uapi/v4l/vidioc-querycap.rst |  3 +++
+ 3 files changed, 25 insertions(+), 13 deletions(-)
 
-TODO: fix up the printk if https://patchwork.linuxtv.org/patch/42034/
-eventually gets merged.
-
-Assuming that (uint)-1 is really a reserved return value in iomem (as
-mentioned, I'm not that much into kernel and io related things) and it
-isn't possible to expect 0xffffffff by definition, this should be good.
-Quickly tested with four tuners and four streams running in parallel
-without issues.
-
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 9420479bee9a..cf7a6b0532dc 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -114,6 +114,19 @@ static int i2c_write_reg(struct i2c_adapter *adap, u8 adr,
- 	return i2c_write(adap, adr, msg, 2);
- }
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index ae6ee73..919ac1d 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -452,6 +452,9 @@ enum v4l2_buf_type
+     * - ``V4L2_BUF_TYPE_META_CAPTURE``
+       - 13
+       - Buffer for metadata capture, see :ref:`metadata`.
++    * - ``V4L2_BUF_TYPE_META_CAPTURE``
++      - 14
++      - Buffer for metadata output, see :ref:`metadata`.
  
-+static inline u32 safe_ddbreadl(struct ddb *dev, u32 adr)
-+{
-+	u32 val = ddbreadl(adr);
-+
-+	/* (ddb)readl returns (uint)-1 (all bits set) on failure, catch that */
-+	if (val == ~0) {
-+		printk(KERN_ERR "ddbreadl failure, adr=%08x\n", adr);
-+		return 0;
-+	}
-+
-+	return val;
-+}
-+
- static int ddb_i2c_cmd(struct ddb_i2c *i2c, u32 adr, u32 cmd)
- {
- 	struct ddb *dev = i2c->dev;
-@@ -1243,7 +1256,7 @@ static void input_tasklet(unsigned long data)
- 		if (4&ddbreadl(DMA_BUFFER_CONTROL(input->nr)))
- 			printk(KERN_ERR "Overflow input %d\n", input->nr);
- 		while (input->cbuf != ((input->stat >> 11) & 0x1f)
--		       || (4&ddbreadl(DMA_BUFFER_CONTROL(input->nr)))) {
-+		       || (4 & safe_ddbreadl(dev, DMA_BUFFER_CONTROL(input->nr)))) {
- 			dvb_dmx_swfilter_packets(&input->demux,
- 						 input->vbuf[input->cbuf],
- 						 input->dma_buf_size / 188);
-@@ -1765,7 +1778,7 @@ static int flashio(struct ddb *dev, u8 *wbuf, u32 wlen, u8 *rbuf, u32 rlen)
- 		wbuf += 4;
- 		wlen -= 4;
- 		ddbwritel(data, SPI_DATA);
--		while (ddbreadl(SPI_CONTROL) & 0x0004)
-+		while (safe_ddbreadl(dev, SPI_CONTROL) & 0x0004)
- 			;
- 	}
  
-@@ -1785,7 +1798,7 @@ static int flashio(struct ddb *dev, u8 *wbuf, u32 wlen, u8 *rbuf, u32 rlen)
- 	if (shift)
- 		data <<= shift;
- 	ddbwritel(data, SPI_DATA);
--	while (ddbreadl(SPI_CONTROL) & 0x0004)
-+	while (safe_ddbreadl(dev, SPI_CONTROL) & 0x0004)
- 		;
  
- 	if (!rlen) {
-@@ -1797,7 +1810,7 @@ static int flashio(struct ddb *dev, u8 *wbuf, u32 wlen, u8 *rbuf, u32 rlen)
+diff --git a/Documentation/media/uapi/v4l/dev-meta.rst b/Documentation/media/uapi/v4l/dev-meta.rst
+index 62518ad..cb007dd 100644
+--- a/Documentation/media/uapi/v4l/dev-meta.rst
++++ b/Documentation/media/uapi/v4l/dev-meta.rst
+@@ -7,21 +7,26 @@ Metadata Interface
+ ******************
  
- 	while (rlen > 4) {
- 		ddbwritel(0xffffffff, SPI_DATA);
--		while (ddbreadl(SPI_CONTROL) & 0x0004)
-+		while (safe_ddbreadl(dev, SPI_CONTROL) & 0x0004)
- 			;
- 		data = ddbreadl(SPI_DATA);
- 		*(u32 *) rbuf = swab32(data);
-@@ -1806,7 +1819,7 @@ static int flashio(struct ddb *dev, u8 *wbuf, u32 wlen, u8 *rbuf, u32 rlen)
- 	}
- 	ddbwritel(0x0003 | ((rlen << (8 + 3)) & 0x1F00), SPI_CONTROL);
- 	ddbwritel(0xffffffff, SPI_DATA);
--	while (ddbreadl(SPI_CONTROL) & 0x0004)
-+	while (safe_ddbreadl(dev, SPI_CONTROL) & 0x0004)
- 		;
+ Metadata refers to any non-image data that supplements video frames with
+-additional information. This may include statistics computed over the image
+-or frame capture parameters supplied by the image source. This interface is
+-intended for transfer of metadata to userspace and control of that operation.
++additional information. This may include statistics computed over the image,
++frame capture parameters supplied by the image source or device specific
++parameters. This interface is intended for transfer of metadata between
++the userspace and the hardware and control of that operation.
  
- 	data = ddbreadl(SPI_DATA);
+-The metadata interface is implemented on video capture device nodes. The device
+-can be dedicated to metadata or can implement both video and metadata capture
+-as specified in its reported capabilities.
++The metadata interface is implemented on video device nodes. The device can be
++dedicated to metadata or can support both video and metadata as specified in its
++reported capabilities.
+ 
+ Querying Capabilities
+ =====================
+ 
+-Device nodes supporting the metadata interface set the ``V4L2_CAP_META_CAPTURE``
+-flag in the ``device_caps`` field of the
++Device nodes supporting the metadata capture interface set the
++``V4L2_CAP_META_CAPTURE`` flag in the ``device_caps`` field of the
+ :c:type:`v4l2_capability` structure returned by the :c:func:`VIDIOC_QUERYCAP`
+-ioctl. That flag means the device can capture metadata to memory.
++ioctl. That flag means the device can capture metadata to memory. Similarly,
++device nodes supporting metadata output interface set the
++``V4L2_CAP_META_OUTPUT`` flag in the ``device_caps`` field of
++:c:type:`v4l2_capability` structure. That flag means the device can read
++metadata from memory.
+ 
+ At least one of the read/write or streaming I/O methods must be supported.
+ 
+@@ -35,10 +40,11 @@ to the basic :ref:`format` ioctls, the :c:func:`VIDIOC_ENUM_FMT` ioctl must be
+ supported as well.
+ 
+ To use the :ref:`format` ioctls applications set the ``type`` field of the
+-:c:type:`v4l2_format` structure to ``V4L2_BUF_TYPE_META_CAPTURE`` and use the
+-:c:type:`v4l2_meta_format` ``meta`` member of the ``fmt`` union as needed per
+-the desired operation. Both drivers and applications must set the remainder of
+-the :c:type:`v4l2_format` structure to 0.
++:c:type:`v4l2_format` structure to ``V4L2_BUF_TYPE_META_CAPTURE`` or to
++``V4L2_BUF_TYPE_META_OUTPUT`` and use the :c:type:`v4l2_meta_format` ``meta``
++member of the ``fmt`` union as needed per the desired operation. Both drivers
++and applications must set the remainder of the :c:type:`v4l2_format` structure
++to 0.
+ 
+ .. _v4l2-meta-format:
+ 
+diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+index 12e0d9a..36bf879 100644
+--- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
++++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+@@ -249,6 +249,9 @@ specification the ioctl returns an ``EINVAL`` error code.
+     * - ``V4L2_CAP_STREAMING``
+       - 0x04000000
+       - The device supports the :ref:`streaming <mmap>` I/O method.
++    * - ``V4L2_CAP_META_OUTPUT``
++      - 0x08000000
++      - The device supports the :ref:`metadata` output interface.
+     * - ``V4L2_CAP_TOUCH``
+       - 0x10000000
+       - This is a touch device.
 -- 
-2.13.0
+2.7.4
