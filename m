@@ -1,242 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00252a01.pphosted.com ([91.207.212.211]:54739 "EHLO
-        mx08-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751752AbdFOPk1 (ORCPT
+Received: from mail-it0-f47.google.com ([209.85.214.47]:34972 "EHLO
+        mail-it0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750837AbdFPQ4g (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 11:40:27 -0400
-Received: from pps.filterd (m0102629.ppops.net [127.0.0.1])
-        by mx08-00252a01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id v5FFd2Sh014203
-        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 16:40:25 +0100
-Received: from mail-pg0-f69.google.com (mail-pg0-f69.google.com [74.125.83.69])
-        by mx08-00252a01.pphosted.com with ESMTP id 2b058etpwg-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
-        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 16:40:25 +0100
-Received: by mail-pg0-f69.google.com with SMTP id e187so15757904pgc.7
-        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 08:40:25 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <2de5b0c1-2408-2a12-8c4c-fa91658e0c0b@i2se.com>
-References: <cover.1497452006.git.dave.stevenson@raspberrypi.org>
- <e268d99095dea34a049d9cacf9c18e855050abe1.1497452006.git.dave.stevenson@raspberrypi.org>
- <ec774750-d6a9-d8b7-9b38-0fd97fe7678d@xs4all.nl> <CAAoAYcNPk==5=sNZRuVvShPv+ky=ewdg7O7G4xGp6qLFaMTvYQ@mail.gmail.com>
- <2de5b0c1-2408-2a12-8c4c-fa91658e0c0b@i2se.com>
-From: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Date: Thu, 15 Jun 2017 16:40:22 +0100
-Message-ID: <CAAoAYcO_6BmqMBm_o1B7R5RUBDbCFmLQwULHvs029SpK0zwN2A@mail.gmail.com>
-Subject: Re: [RFC 2/2] [media] bcm2835-unicam: Driver for CCP2/CSI2 camera interface
-To: Stefan Wahren <stefan.wahren@i2se.com>
+        Fri, 16 Jun 2017 12:56:36 -0400
+Received: by mail-it0-f47.google.com with SMTP id m62so38264000itc.0
+        for <linux-media@vger.kernel.org>; Fri, 16 Jun 2017 09:56:36 -0700 (PDT)
+Message-ID: <1497632193.6020.19.camel@ndufresne.ca>
+Subject: Re: [PATCH 08/12] [media] vb2: add 'ordered' property to queues
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
 Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-rpi-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Date: Fri, 16 Jun 2017 12:56:33 -0400
+In-Reply-To: <20170616073915.5027-9-gustavo@padovan.org>
+References: <20170616073915.5027-1-gustavo@padovan.org>
+         <20170616073915.5027-9-gustavo@padovan.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-SlH54Ca4am+ZhhAqEYyB"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stefan.
 
-On 15 June 2017 at 15:49, Stefan Wahren <stefan.wahren@i2se.com> wrote:
-> Hi Dave,
->
-> Am 15.06.2017 um 15:38 schrieb Dave Stevenson:
->> Hi Hans.
->>
->> "On 15 June 2017 at 08:12, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> Hi Dave,
->>>
->>> Here is a quick review of this driver. Once a v2 is posted I'll do a more
->>> thorough
->>> check.
->> Thank you. I wasn't expecting such a quick response.
->>
->>> On 06/14/2017 05:15 PM, Dave Stevenson wrote:
->>>> ...
->>>>
->>>> +
->>>> +struct bayer_fmt {
->>>> +       u32 fourcc;
->>>> +       u8 depth;
->>>> +};
->>>> +
->>>> +const struct bayer_fmt all_bayer_bggr[] = {
->>>> +       {V4L2_PIX_FMT_SBGGR8,   8},
->>>> +       {V4L2_PIX_FMT_SBGGR10P, 10},
->>>> +       {V4L2_PIX_FMT_SBGGR12,  12},
->>>> +       {V4L2_PIX_FMT_SBGGR16,  16},
->>>> +       {0,                     0}
->>>> +};
->>>> +
->>>> +const struct bayer_fmt all_bayer_rggb[] = {
->>>> +       {V4L2_PIX_FMT_SRGGB8,   8},
->>>> +       {V4L2_PIX_FMT_SRGGB10P, 10},
->>>> +       {V4L2_PIX_FMT_SRGGB12,  12},
->>>> +       /* V4L2_PIX_FMT_SRGGB16,        16},*/
->>>
->>> Why is this commented out? Either uncomment, add a proper comment explaining
->>> why
->>> or remove it.
->> I was developing this against the Pi specific tree, and that is still
->> on 4.9 which didn't have several of the 16 bit Bayer formats. I see
->> that Sakari has added them (thank you Sakari), so I can uncomment
->> them.
->
-> does this series work with Linux Mainline (incl. bcm283x dts files)?
->
-> In case not, please tell what is missing?
+--=-SlH54Ca4am+ZhhAqEYyB
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-I switched about a week or so back onto mainline, partly to pick up
-and use the recent fwnode parsing changes within V4L2.
-This driver is working with Mainline and bcm283x.dts once the relevant
-DT sections are added.
+Le vendredi 16 juin 2017 =C3=A0 16:39 +0900, Gustavo Padovan a =C3=A9crit=
+=C2=A0:
+> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+>=20
+> For explicit synchronization (and soon for HAL3/Request API) we need
+> the v4l2-driver to guarantee the ordering which the buffer were queued
+> by userspace. This is already true for many drivers, but we never had
+> the need to say it.
 
-The DT changes aren't in a state to post as a patch set as yet. The
-main stumbiling block is that the camera I2C is BSC0 but typically on
-GPIOs 28&29 instead of 0&1 (44&45 on Pi3). Swapping to 28&29 would be
-a significant change in behaviour so wouldn't be acceptable.
-If it can be knocked in to shape then the i2c-mux-pinctrl driver
-appears to do what is required to make 0&1 and 28&29 appear as 2
-independent I2C buses, but I haven't had the time as yet to finesse
-that. It needs some care as 44&45 (needed for the camera on Pi3) are
-used for the SMSC9514 clock and audio on Pi2, so the configuration
-needs to be sorted per platform. (switching off the 9514 clock results
-in no ethernet or USB, so generally means time for a swift reboot -
-been there, done that).
+Phrased this way, that sound like a statement that a m2m decoder
+handling b-frame will just never be supported. I think decoders are a
+very important use case for explicit synchronization.
 
-The DT diffs I have for running on a Pi2 are:
-diff --git a/arch/arm/boot/dts/bcm2835-rpi.dtsi
-b/arch/arm/boot/dts/bcm2835-rpi.dtsi
-index a7b5ce1..1f24219 100644
---- a/arch/arm/boot/dts/bcm2835-rpi.dtsi
-+++ b/arch/arm/boot/dts/bcm2835-rpi.dtsi
-@@ -46,7 +46,7 @@
+What I believe happens with decoders is simply that the allocation
+order (the order in which empty buffers are retrieved from the queue)
+will be different then the actual presentation order. Also, multiple
+buffers endup being filled at the same time. Some firmware may inform
+of the new order at the last minute, making indeed the fence useless,
+but these are firmware and the information can be known earlier. Also,
+this information would be known by userspace for the case (up-coming,
+see STM patches and Rockchip comments [0]) or state-less decoder,
+because it is available while parsing the bitstream. For this last
+scenarios, the fact that ordering is not the same should disable the
+fences since userspace can know which fences to wait for first. Those
+drivers would need to set "ordered" to 0, which would be counter
+intuitive.
 
- &i2c0 {
-        pinctrl-names = "default";
--       pinctrl-0 = <&i2c0_gpio0>;
-+       pinctrl-0 = <&i2c0_gpio28>;
-        status = "okay";
-        clock-frequency = <100000>;
- };
-@@ -106,3 +106,11 @@
- &dsi1 {
-        power-domains = <&power RPI_POWER_DOMAIN_DSI1>;
- };
-+
-+&csi0 {
-+       power-domains = <&power RPI_POWER_DOMAIN_UNICAM0>;
-+};
-+
-+&csi1 {
-+       power-domains = <&power RPI_POWER_DOMAIN_UNICAM1>;
-+};
-diff --git a/arch/arm/boot/dts/bcm283x.dtsi b/arch/arm/boot/dts/bcm283x.dtsi
-index 561f27d..4c575e4 100644
---- a/arch/arm/boot/dts/bcm283x.dtsi
-+++ b/arch/arm/boot/dts/bcm283x.dtsi
-@@ -512,6 +512,34 @@
-                        status = "disabled";
-                };
+I think this use case is too important to just ignore it. I would
+expect that we at least have a todo with something sensible as a plan
+to cover this.
 
-+               csi0: csi0@7e800000 {
-+                       compatible = "brcm,bcm2835-unicam";
-+                       reg = <0x7e800000 0x800>,
-+                             <0x7e802000 0x4>;
-+                       interrupts = <2 6>;
-+                       clocks = <&clocks BCM2835_CLOCK_CAM0>;
-+                       clock-names = "lp_clock";
-+                       #address-cells = <1>;
-+                       #size-cells = <0>;
-+                       #clock-cells = <1>;
-+
-+                       status = "disabled";
-+               };
-+
-+               csi1: csi1@7e801000 {
-+                       compatible = "brcm,bcm2835-unicam";
-+                       reg = <0x7e801000 0x800>,
-+                             <0x7e802004 0x4>;
-+                       interrupts = <2 7>;
-+                       clocks = <&clocks BCM2835_CLOCK_CAM1>;
-+                       clock-names = "lp_clock";
-+                       #address-cells = <1>;
-+                       #size-cells = <0>;
-+                       #clock-cells = <1>;
-+
-+                       status = "disabled";
-+               };
-+
-                i2c1: i2c@7e804000 {
-                        compatible = "brcm,bcm2835-i2c";
-                        reg = <0x7e804000 0x1000>;
+>=20
+> > Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+> =C2=A0include/media/videobuf2-core.h | 4 ++++
+> =C2=A01 file changed, 4 insertions(+)
+>=20
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-cor=
+e.h
+> index aa43e43..a8b800e 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -491,6 +491,9 @@ struct vb2_buf_ops {
+> =C2=A0 * @last_buffer_dequeued: used in poll() and DQBUF to immediately r=
+eturn if the
+> > =C2=A0 *		last decoded buffer was already dequeued. Set for capture que=
+ues
+> > =C2=A0 *		when a buffer with the V4L2_BUF_FLAG_LAST is dequeued.
+> + * @ordered: if the driver can guarantee that the queue will be ordered =
+or not.
+> > + *		The default is not ordered unless the driver sets this flag. It
+> > + *		is mandatory for using explicit fences.
+> > =C2=A0 * @fileio:	file io emulator internal data, used only if emulator=
+ is active
+> > =C2=A0 * @threadio:	thread io internal data, used only if thread is act=
+ive
+> =C2=A0 */
+> @@ -541,6 +544,7 @@ struct vb2_queue {
+> > > =C2=A0	unsigned int			is_output:1;
+> > > =C2=A0	unsigned int			copy_timestamp:1;
+> > > =C2=A0	unsigned int			last_buffer_dequeued:1;
+> > > +	unsigned int			ordered:1;
+> =C2=A0
+> > > =C2=A0	struct vb2_fileio_data		*fileio;
+> > > =C2=A0	struct vb2_threadio_data	*threadio;
+--=-SlH54Ca4am+ZhhAqEYyB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-and then an overlay to add the TC358743
-diff --git a/arch/arm/boot/dts/overlays/tc358743-overlay.dts
-b/arch/arm/boot/dts/overlays/tc358743-overlay.dts
-new file mode 100644
-index 0000000..b205ca1
---- /dev/null
-+++ b/arch/arm/boot/dts/overlays/tc358743-overlay.dts
-@@ -0,0 +1,72 @@
-+// Definitions for Toshiba TC358743 HDMI to CSI2 bridge on VC I2C bus
-+/dts-v1/;
-+/plugin/;
-+
-+/{
-+       compatible = "brcm,bcm2708";
-+
-+       fragment@0 {
-+               target = <&i2c_vc>;
-+               __overlay__ {
-+                       #address-cells = <1>;
-+                       #size-cells = <0>;
-+                       status = "okay";
-+
-+                       tc358743@0f {
-+                               compatible = "toshiba,tc358743";
-+                               reg = <0x0f>;
-+                               status = "okay";
-+
-+                               clocks = <&tc358743_clk>;
-+                               clock-names = "refclk";
-+
-+                               tc358743_clk: bridge-clk {
-+                                       compatible = "fixed-clock";
-+                                       #clock-cells = <0>;
-+                                       clock-frequency = <27000000>;
-+                               };
-+
-+                               port {
-+                                       tc358743: endpoint {
-+                                               remote-endpoint = <&csi1>;
-+                                               clock-lanes = <0>;
-+                                               data-lanes = <1 2>;
-+                                               clock-noncontinuous;
-+                                               link-frequencies =
-/bits/ 64 <297000000>;
-+                                       };
-+                               };
-+                       };
-+               };
-+       };
-+
-+       fragment@1 {
-+               target = <&csi1>;
-+               __overlay__ {
-+                       #address-cells = <1>;
-+                       #size-cells = <0>;
-+                       status = "okay";
-+
-+                       port {
-+                               #address-cells = <1>;
-+                               #size-cells = <0>;
-+
-+                               endpoint {
-+                                       remote-endpoint = <&tc358743>;
-+                               };
-+                       };
-+               };
-+       };
-+};
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-Apologies for the formatting - it'll obviously be cleaned up before
-submitting as a patch.
+iEYEABECAAYFAllEDcEACgkQcVMCLawGqBxlngCgwJp7YjXJaQ1NI3Vr9s1i8BPs
+1P4AnRF7Nv7olc5b2PJ1H6K5NWACYEGE
+=ww3u
+-----END PGP SIGNATURE-----
 
-  Dave
+--=-SlH54Ca4am+ZhhAqEYyB--
