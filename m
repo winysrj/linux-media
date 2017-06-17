@@ -1,106 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37724 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40188 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750747AbdFBHye (ORCPT
+        by vger.kernel.org with ESMTP id S1752298AbdFQSqR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Jun 2017 03:54:34 -0400
-Date: Fri, 2 Jun 2017 10:54:29 +0300
+        Sat, 17 Jun 2017 14:46:17 -0400
+Date: Sat, 17 Jun 2017 21:45:43 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hyungwoo Yang <hyungwoo.yang@intel.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        jian.xu.zheng@intel.com, tfiga@chromium.org, cedric.hsu@intel.com
-Subject: Re: [PATCH v7 1/1] [media] i2c: add support for OV13858 sensor
-Message-ID: <20170602075429.GN1019@valkosipuli.retiisi.org.uk>
-References: <1496357116-23194-1-git-send-email-hyungwoo.yang@intel.com>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Tomasz Figa <tfiga@chromium.org>, "Zhi, Yong" <yong.zhi@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>
+Subject: Re: [PATCH v2 12/12] intel-ipu3: imgu top level pci device
+Message-ID: <20170617184543.GX12407@valkosipuli.retiisi.org.uk>
+References: <1497478767-10270-1-git-send-email-yong.zhi@intel.com>
+ <1497478767-10270-13-git-send-email-yong.zhi@intel.com>
+ <CAHp75VdFnawkkE8Bhb8ZbzG2JmODw-a10_wOwSOpuNbTaN2BCA@mail.gmail.com>
+ <C193D76D23A22742993887E6D207B54D079A0A0B@ORSMSX106.amr.corp.intel.com>
+ <CAAFQd5A10VY3q0Q8Qxs3d3f99Y78_4YaC+9b+=c3fiogag_xfA@mail.gmail.com>
+ <CAHp75VeryyZq4m9sc6AkGPSX4rYwW_EWnJ-YN6A=5Rb5y7uGYA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1496357116-23194-1-git-send-email-hyungwoo.yang@intel.com>
+In-Reply-To: <CAHp75VeryyZq4m9sc6AkGPSX4rYwW_EWnJ-YN6A=5Rb5y7uGYA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hyungwoo,
+On Sat, Jun 17, 2017 at 11:37:11AM +0300, Andy Shevchenko wrote:
+> On Sat, Jun 17, 2017 at 9:32 AM, Tomasz Figa <tfiga@chromium.org> wrote:
+> > On Sat, Jun 17, 2017 at 9:00 AM, Zhi, Yong <yong.zhi@intel.com> wrote:
+> >>> On Thu, Jun 15, 2017 at 1:19 AM, Yong Zhi <yong.zhi@intel.com> wrote:
+> 
+> >>> > +       /* Set Power */
+> >>> > +       r = pm_runtime_get_sync(dev);
+> >>> > +       if (r < 0) {
+> >>> > +               dev_err(dev, "failed to set imgu power\n");
+> >>>
+> >>> > +               pm_runtime_put(dev);
+> >>>
+> >>> I'm not sure it's a right thing to do.
+> >>> How did you test runtime PM counters in this case?
+> >>>
+> >>> > +               return r;
+> >>> > +       }
+> 
+> >> Actually I have not tested the error case, what the right way to do in your opinion? there is no checking of this function return in lot of the driver code, or simply returning the error code, I also saw examples to call either pm_runtime_put() or pm_runtime_put_noidle() in this case.
+> >
+> > Instead of speculating, if we inspect pm_runtime_get_sync() [1], we
+> > can see that it always causes the runtime PM counter to increment, but
+> > it never decrements it, even in case of error. So to keep things
+> > balanced, you need to call pm_runtime_put() in error path.
+> >
+> > It shouldn't matter if it's pm_runtime_put() or
+> > pm_runtime_put_noidle(), because of runtime PM semantics, which are
+> > explicitly specified [2] that after an error, no hardware state change
+> > is attempted until the state is explicitly reset by the driver with
+> > either pm_runtime_set_active() or pm_runtime_set_suspended().
+> >
+> > So, as far as I didn't miss some even more obscure bits of the runtime
+> > PM framework, current code is fine.
+> 
+> Indeed. Thanks for explanation. PM runtime is hard :-)
+> Previously I didn't meet (and actually never used) check for returning
+> code of pm_runtime_get*().
 
-On Thu, Jun 01, 2017 at 03:45:16PM -0700, Hyungwoo Yang wrote:
-...
-> +static int ov13858_probe(struct i2c_client *client,
-> +			 const struct i2c_device_id *devid)
-> +{
-> +	struct ov13858 *ov13858;
-> +	int ret;
-> +
-> +	ov13858 = devm_kzalloc(&client->dev, sizeof(*ov13858), GFP_KERNEL);
-> +	if (!ov13858)
-> +		return -ENOMEM;
-> +
-> +	/* Initialize subdev */
-> +	v4l2_i2c_subdev_init(&ov13858->sd, client, &ov13858_subdev_ops);
-> +
-> +	/*
-> +	 * Enable runtime PM.
-> +	 * The sensor is already powered on ACPI domain PM
-> +	 */
-> +	pm_runtime_get_noresume(&client->dev);
-> +	pm_runtime_set_active(&client->dev);
-> +	pm_runtime_enable(&client->dev);
+Yeah, depending on what is actually done it might fail.
 
-As you already have in comments, the device is already powered on in an ACPI
-based system. pm_runtime_get_noresume() prevents powering the device off
-during probe after runtime PM is enabled.
-
-It'd be better to also move the calls to pm_runtime_set_active() and
-pm_runtime_enable() just before returning 0. This way you can get rid of
-extra error handling you'd otherwise need to do: once you call
-pm_runtime_get_noresume(), you need to call pm_runtime_put() or one of its
-variants as well.
-
-> +
-> +	/* Check module identity */
-> +	ret = ov13858_identify_module(ov13858);
-> +	if (ret) {
-> +		dev_err(&client->dev, "failed to find sensor: %d\n", ret);
-> +		return ret;
-> +	}
-> +
-> +	/* Set default mode to max resolution */
-> +	ov13858->cur_mode = &supported_modes[0];
-> +
-> +	ret = ov13858_init_controls(ov13858);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/* Initialize subdev */
-> +	ov13858->sd.internal_ops = &ov13858_internal_ops;
-> +	ov13858->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +	ov13858->sd.entity.ops = &ov13858_subdev_entity_ops;
-> +	ov13858->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
-> +
-> +	/* Initialize source pad */
-> +	ov13858->pad.flags = MEDIA_PAD_FL_SOURCE;
-> +	ret = media_entity_pads_init(&ov13858->sd.entity, 1, &ov13858->pad);
-> +	if (ret) {
-> +		dev_err(&client->dev, "%s failed:%d\n", __func__, ret);
-> +		goto error_handler_free;
-> +	}
-> +
-> +	ret = v4l2_async_register_subdev(&ov13858->sd);
-> +	if (ret < 0)
-> +		goto error_media_entity;
-> +
-> +	/* Turn off */
-> +	pm_runtime_put(&client->dev);
-> +
-> +	return 0;
-> +
-> +error_media_entity:
-> +	media_entity_cleanup(&ov13858->sd.entity);
-> +
-> +error_handler_free:
-> +	ov13858_free_controls(ov13858);
-> +	dev_err(&client->dev, "%s failed:%d\n", __func__, ret);
-> +
-> +	return ret;
-> +}
+pm_runtime_put() isn't wrong but pn_runtime_put_noidle() is sufficient:
+powering the device on just failed so it's already off.
 
 -- 
 Sakari Ailus
