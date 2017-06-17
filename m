@@ -1,70 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f173.google.com ([209.85.161.173]:33355 "EHLO
-        mail-yw0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750704AbdFFEaa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Jun 2017 00:30:30 -0400
-Received: by mail-yw0-f173.google.com with SMTP id 63so51008238ywr.0
-        for <linux-media@vger.kernel.org>; Mon, 05 Jun 2017 21:30:29 -0700 (PDT)
-Received: from mail-yb0-f173.google.com (mail-yb0-f173.google.com. [209.85.213.173])
-        by smtp.gmail.com with ESMTPSA id t14sm7118402ywf.32.2017.06.05.21.30.27
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 05 Jun 2017 21:30:27 -0700 (PDT)
-Received: by mail-yb0-f173.google.com with SMTP id 4so12549322ybl.1
-        for <linux-media@vger.kernel.org>; Mon, 05 Jun 2017 21:30:27 -0700 (PDT)
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:36031 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752410AbdFQIhM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 17 Jun 2017 04:37:12 -0400
+Received: by mail-qt0-f195.google.com with SMTP id s33so14142799qtg.3
+        for <linux-media@vger.kernel.org>; Sat, 17 Jun 2017 01:37:12 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1496695157-19926-2-git-send-email-yong.zhi@intel.com>
-References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com> <1496695157-19926-2-git-send-email-yong.zhi@intel.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Tue, 6 Jun 2017 13:30:06 +0900
-Message-ID: <CAAFQd5B6LiWgX+=-HJnO480FF-AXDa+UqtSs+SYUG=S+kGgNVg@mail.gmail.com>
-Subject: Re: [PATCH 01/12] videodev2.h, v4l2-ioctl: add IPU3 meta buffer format
-To: Yong Zhi <yong.zhi@intel.com>
-Cc: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+In-Reply-To: <CAAFQd5A10VY3q0Q8Qxs3d3f99Y78_4YaC+9b+=c3fiogag_xfA@mail.gmail.com>
+References: <1497478767-10270-1-git-send-email-yong.zhi@intel.com>
+ <1497478767-10270-13-git-send-email-yong.zhi@intel.com> <CAHp75VdFnawkkE8Bhb8ZbzG2JmODw-a10_wOwSOpuNbTaN2BCA@mail.gmail.com>
+ <C193D76D23A22742993887E6D207B54D079A0A0B@ORSMSX106.amr.corp.intel.com> <CAAFQd5A10VY3q0Q8Qxs3d3f99Y78_4YaC+9b+=c3fiogag_xfA@mail.gmail.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Date: Sat, 17 Jun 2017 11:37:11 +0300
+Message-ID: <CAHp75VeryyZq4m9sc6AkGPSX4rYwW_EWnJ-YN6A=5Rb5y7uGYA@mail.gmail.com>
+Subject: Re: [PATCH v2 12/12] intel-ipu3: imgu top level pci device
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: "Zhi, Yong" <yong.zhi@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
         "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
         "Mani, Rajmohan" <rajmohan.mani@intel.com>,
         "Toivonen, Tuukka" <tuukka.toivonen@intel.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
+On Sat, Jun 17, 2017 at 9:32 AM, Tomasz Figa <tfiga@chromium.org> wrote:
+> On Sat, Jun 17, 2017 at 9:00 AM, Zhi, Yong <yong.zhi@intel.com> wrote:
+>>> On Thu, Jun 15, 2017 at 1:19 AM, Yong Zhi <yong.zhi@intel.com> wrote:
 
-On Tue, Jun 6, 2017 at 5:39 AM, Yong Zhi <yong.zhi@intel.com> wrote:
-> Add the IPU3 specific processing parameter format
-> V4L2_META_FMT_IPU3_PARAMS and metadata formats
-> for 3A and other statistics:
+>>> > +       /* Set Power */
+>>> > +       r =3D pm_runtime_get_sync(dev);
+>>> > +       if (r < 0) {
+>>> > +               dev_err(dev, "failed to set imgu power\n");
+>>>
+>>> > +               pm_runtime_put(dev);
+>>>
+>>> I'm not sure it's a right thing to do.
+>>> How did you test runtime PM counters in this case?
+>>>
+>>> > +               return r;
+>>> > +       }
 
-Please see my comments inline.
-
+>> Actually I have not tested the error case, what the right way to do in y=
+our opinion? there is no checking of this function return in lot of the dri=
+ver code, or simply returning the error code, I also saw examples to call e=
+ither pm_runtime_put() or pm_runtime_put_noidle() in this case.
 >
->   V4L2_META_FMT_IPU3_PARAMS
->   V4L2_META_FMT_IPU3_STAT_3A
->   V4L2_META_FMT_IPU3_STAT_DVS
->   V4L2_META_FMT_IPU3_STAT_LACE
+> Instead of speculating, if we inspect pm_runtime_get_sync() [1], we
+> can see that it always causes the runtime PM counter to increment, but
+> it never decrements it, even in case of error. So to keep things
+> balanced, you need to call pm_runtime_put() in error path.
 >
-> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> ---
->  drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
->  include/uapi/linux/videodev2.h       | 6 ++++++
->  2 files changed, 10 insertions(+)
-[snip]
-> +/* Vendor specific - used for IPU3 camera sub-system */
-> +#define V4L2_META_FMT_IPU3_PARAMS      v4l2_fourcc('i', 'p', '3', 'p') /* IPU3 params */
-> +#define V4L2_META_FMT_IPU3_STAT_3A     v4l2_fourcc('i', 'p', '3', 's') /* IPU3 3A statistics */
-> +#define V4L2_META_FMT_IPU3_STAT_DVS    v4l2_fourcc('i', 'p', '3', 'd') /* IPU3 DVS statistics */
-> +#define V4L2_META_FMT_IPU3_STAT_LACE   v4l2_fourcc('i', 'p', '3', 'l') /* IPU3 LACE statistics */
+> It shouldn't matter if it's pm_runtime_put() or
+> pm_runtime_put_noidle(), because of runtime PM semantics, which are
+> explicitly specified [2] that after an error, no hardware state change
+> is attempted until the state is explicitly reset by the driver with
+> either pm_runtime_set_active() or pm_runtime_set_suspended().
+>
+> So, as far as I didn't miss some even more obscure bits of the runtime
+> PM framework, current code is fine.
 
-We had some discussion about this with Laurent and if I remember
-correctly, the conclusion was that it might make sense to define one
-FourCC for a vendor specific format, ('v', 'n', 'd', 'r') for example,
-and then have a V4L2-specific enum within the v4l2_pix_format(_mplane)
-struct that specifies the exact vendor data type. It seems saner than
-assigning a new FourCC whenever a new hardware revision comes out,
-especially given that FourCCs tend to be used outside of the V4L2
-world as well and being kind of (de facto) standardized (with existing
-exceptions, unfortunately).
+Indeed. Thanks for explanation. PM runtime is hard :-)
+Previously I didn't meet (and actually never used) check for returning
+code of pm_runtime_get*().
 
-Best regards,
-Tomasz
+> [1] http://elixir.free-electrons.com/linux/v4.11.6/source/include/linux/p=
+m_runtime.h#L235
+> and the main part:
+> http://elixir.free-electrons.com/linux/v4.11.6/source/drivers/base/power/=
+runtime.c#L1027
+>
+> [2] http://elixir.free-electrons.com/linux/v4.11.6/source/Documentation/p=
+ower/runtime_pm.txt#L128
+
+
+--=20
+With Best Regards,
+Andy Shevchenko
