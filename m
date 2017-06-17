@@ -1,233 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:58928 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751147AbdFCDFZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 23:05:25 -0400
-From: Helen Koike <helen.koike@collabora.com>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, jgebben@codeaurora.org,
-        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [RFC PATCH v3 01/11] [media] vimc: sen: Integrate the tpg on the sensor
-Date: Fri,  2 Jun 2017 23:58:01 -0300
-Message-Id: <1496458714-16834-2-git-send-email-helen.koike@collabora.com>
-In-Reply-To: <1496458714-16834-1-git-send-email-helen.koike@collabora.com>
-References: <1491604632-23544-1-git-send-email-helen.koike@collabora.com>
- <1496458714-16834-1-git-send-email-helen.koike@collabora.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:36023 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752664AbdFQJTm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 17 Jun 2017 05:19:42 -0400
+Date: Sat, 17 Jun 2017 11:19:39 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+        devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
+        robh@kernel.org
+Subject: Re: [PATCH 7/8] smiapp: Add support for flash, lens and EEPROM
+ devices
+Message-ID: <20170617091939.GA27430@amd>
+References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1497433639-13101-8-git-send-email-sakari.ailus@linux.intel.com>
+ <20170616124242.GA8145@amd>
+ <20170616124526.GM15419@paasikivi.fi.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="pWyiEgJYm5f9v55/"
+Content-Disposition: inline
+In-Reply-To: <20170616124526.GM15419@paasikivi.fi.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Initialize the test pattern generator on the sensor
-Generate a colored bar image instead of a grey one
 
-Signed-off-by: Helen Koike <helen.koike@collabora.com>
+--pWyiEgJYm5f9v55/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
----
+Hi!
 
-Changes in v3:
-[media] vimc: sen: Integrate the tpg on the sensor
-	- Declare frame_size as a local variable
-	- Set tpg frame format before starting kthread
-	- s_stream(sd, 1): return 0 if stream is already enabled
-	- s_stream(sd, 0): return 0 if stream is already disabled
-	- s_stream: propagate error from kthread_stop
-	- coding style when calling tpg_s_bytesperline
-	- s/vimc_thread_sen/vimc_sen_tpg_thread
-	- fix multiline comment
+> > > These types devices aren't directly related to the sensor, but are
+> > > nevertheless handled by the smiapp driver due to the relationship of =
+these
+> > > component to the main part of the camera module --- the sensor.
+> > >=20
+> > > Additionally, for the async sub-device registration to work, the noti=
+fier
+> > > containing matching fwnodes will need to be registered. This is natur=
+al to
+> > > perform in a sensor driver as well.
+> > >=20
+> > > This does not yet address providing the user space with information o=
+n how
+> > > to associate the sensor, lens or EEPROM devices but the kernel now ha=
+s the
+> > > necessary information to do that.
+> >=20
+> > Do I understand it correctly that basically every sensor driver (in my
+> > case et8ek8) needs to get this kind of support? I2c leds are cheap,
+> > and may be asociated with pretty much any sensor, AFAICT.
+>=20
+> That's right.
+>=20
+> >=20
+> > This is quite a lot of boilerplate for that. Would it make sense to
+> > provide helper function at least for this?
+>=20
+> Yes. I've been thinking of having helper functions for notifiers and
+> sub-notifiers. Most of the receiver drivers are implementing exactly the
+> same thing but with different twists (read: bugs).
 
-Changes in v2:
-[media] vimc: sen: Integrate the tpg on the sensor
-	- Fix include location
-	- Select V4L2_TPG in Kconfig
-	- configure tpg on streamon only
-	- rm BUG_ON
-	- coding style
-	- remove V4L2_FIELD_ALTERNATE from tpg_s_field
-	- remove V4L2_STD_PAL from tpg_fill_plane_buffer
+Agreed, helpers would be nice. Ping me if you have them, I'll happily
+test it with et8ek8. (Or I can try to create them, but...)
+
+If we move lens/flash to the sensor, this one can probably be dropped:
+
+https://git.linuxtv.org/sailus/media_tree.git/commit/?h=3Dccp2&id=3D1796bbc=
+e05964f86cf546557a96626b2bdebe65b
 
 
----
- drivers/media/platform/vimc/Kconfig       |  1 +
- drivers/media/platform/vimc/vimc-sensor.c | 64 ++++++++++++++++++++++++-------
- 2 files changed, 52 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/platform/vimc/Kconfig b/drivers/media/platform/vimc/Kconfig
-index a18f635..71c9fe7 100644
---- a/drivers/media/platform/vimc/Kconfig
-+++ b/drivers/media/platform/vimc/Kconfig
-@@ -2,6 +2,7 @@ config VIDEO_VIMC
- 	tristate "Virtual Media Controller Driver (VIMC)"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
- 	select VIDEOBUF2_VMALLOC
-+	select VIDEO_V4L2_TPG
- 	default n
- 	---help---
- 	  Skeleton driver for Virtual Media Controller
-diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
-index 591f6a4..2e83487 100644
---- a/drivers/media/platform/vimc/vimc-sensor.c
-+++ b/drivers/media/platform/vimc/vimc-sensor.c
-@@ -20,17 +20,20 @@
- #include <linux/v4l2-mediabus.h>
- #include <linux/vmalloc.h>
- #include <media/v4l2-subdev.h>
-+#include <media/v4l2-tpg.h>
- 
- #include "vimc-sensor.h"
- 
-+#define VIMC_SEN_FRAME_MAX_WIDTH 4096
-+
- struct vimc_sen_device {
- 	struct vimc_ent_device ved;
- 	struct v4l2_subdev sd;
-+	struct tpg_data tpg;
- 	struct task_struct *kthread_sen;
- 	u8 *frame;
- 	/* The active format */
- 	struct v4l2_mbus_framefmt mbus_format;
--	int frame_size;
- };
- 
- static int vimc_sen_enum_mbus_code(struct v4l2_subdev *sd,
-@@ -84,6 +87,24 @@ static int vimc_sen_get_fmt(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
-+static void vimc_sen_tpg_s_format(struct vimc_sen_device *vsen)
-+{
-+	const struct vimc_pix_map *vpix =
-+				vimc_pix_map_by_code(vsen->mbus_format.code);
-+
-+	tpg_reset_source(&vsen->tpg, vsen->mbus_format.width,
-+			 vsen->mbus_format.height, vsen->mbus_format.field);
-+	tpg_s_bytesperline(&vsen->tpg, 0, vsen->mbus_format.width * vpix->bpp);
-+	tpg_s_buf_height(&vsen->tpg, vsen->mbus_format.height);
-+	tpg_s_fourcc(&vsen->tpg, vpix->pixelformat);
-+	/* TODO: add support for V4L2_FIELD_ALTERNATE */
-+	tpg_s_field(&vsen->tpg, vsen->mbus_format.field, false);
-+	tpg_s_colorspace(&vsen->tpg, vsen->mbus_format.colorspace);
-+	tpg_s_ycbcr_enc(&vsen->tpg, vsen->mbus_format.ycbcr_enc);
-+	tpg_s_quantization(&vsen->tpg, vsen->mbus_format.quantization);
-+	tpg_s_xfer_func(&vsen->tpg, vsen->mbus_format.xfer_func);
-+}
-+
- static const struct v4l2_subdev_pad_ops vimc_sen_pad_ops = {
- 	.enum_mbus_code		= vimc_sen_enum_mbus_code,
- 	.enum_frame_size	= vimc_sen_enum_frame_size,
-@@ -97,7 +118,7 @@ static const struct media_entity_operations vimc_sen_mops = {
- 	.link_validate = v4l2_subdev_link_validate,
- };
- 
--static int vimc_thread_sen(void *data)
-+static int vimc_sen_tpg_thread(void *data)
- {
- 	struct vimc_sen_device *vsen = data;
- 	unsigned int i;
-@@ -110,7 +131,7 @@ static int vimc_thread_sen(void *data)
- 		if (kthread_should_stop())
- 			break;
- 
--		memset(vsen->frame, 100, vsen->frame_size);
-+		tpg_fill_plane_buffer(&vsen->tpg, 0, 0, vsen->frame);
- 
- 		/* Send the frame to all source pads */
- 		for (i = 0; i < vsen->sd.entity.num_pads; i++)
-@@ -132,26 +153,31 @@ static int vimc_sen_s_stream(struct v4l2_subdev *sd, int enable)
- 
- 	if (enable) {
- 		const struct vimc_pix_map *vpix;
-+		unsigned int frame_size;
- 
- 		if (vsen->kthread_sen)
--			return -EINVAL;
-+			/* tpg is already executing */
-+			return 0;
- 
- 		/* Calculate the frame size */
- 		vpix = vimc_pix_map_by_code(vsen->mbus_format.code);
--		vsen->frame_size = vsen->mbus_format.width * vpix->bpp *
--				   vsen->mbus_format.height;
-+		frame_size = vsen->mbus_format.width * vpix->bpp *
-+			     vsen->mbus_format.height;
- 
- 		/*
- 		 * Allocate the frame buffer. Use vmalloc to be able to
- 		 * allocate a large amount of memory
- 		 */
--		vsen->frame = vmalloc(vsen->frame_size);
-+		vsen->frame = vmalloc(frame_size);
- 		if (!vsen->frame)
- 			return -ENOMEM;
- 
-+		/* configure the test pattern generator */
-+		vimc_sen_tpg_s_format(vsen);
-+
- 		/* Initialize the image generator thread */
--		vsen->kthread_sen = kthread_run(vimc_thread_sen, vsen, "%s-sen",
--						vsen->sd.v4l2_dev->name);
-+		vsen->kthread_sen = kthread_run(vimc_sen_tpg_thread, vsen,
-+					"%s-sen", vsen->sd.v4l2_dev->name);
- 		if (IS_ERR(vsen->kthread_sen)) {
- 			dev_err(vsen->sd.v4l2_dev->dev,
- 				"%s: kernel_thread() failed\n",	vsen->sd.name);
-@@ -161,15 +187,17 @@ static int vimc_sen_s_stream(struct v4l2_subdev *sd, int enable)
- 		}
- 	} else {
- 		if (!vsen->kthread_sen)
--			return -EINVAL;
-+			return 0;
- 
- 		/* Stop image generator */
- 		ret = kthread_stop(vsen->kthread_sen);
--		vsen->kthread_sen = NULL;
-+		if (ret)
-+			return ret;
- 
-+		vsen->kthread_sen = NULL;
- 		vfree(vsen->frame);
- 		vsen->frame = NULL;
--		return ret;
-+		return 0;
- 	}
- 
- 	return 0;
-@@ -189,6 +217,7 @@ static void vimc_sen_destroy(struct vimc_ent_device *ved)
- 	struct vimc_sen_device *vsen =
- 				container_of(ved, struct vimc_sen_device, ved);
- 
-+	tpg_free(&vsen->tpg);
- 	v4l2_device_unregister_subdev(&vsen->sd);
- 	media_entity_cleanup(ved->ent);
- 	kfree(vsen);
-@@ -254,17 +283,26 @@ struct vimc_ent_device *vimc_sen_create(struct v4l2_device *v4l2_dev,
- 	vsen->mbus_format.quantization = V4L2_QUANTIZATION_FULL_RANGE;
- 	vsen->mbus_format.xfer_func = V4L2_XFER_FUNC_SRGB;
- 
-+	/* Initialize the test pattern generator */
-+	tpg_init(&vsen->tpg, vsen->mbus_format.width,
-+		 vsen->mbus_format.height);
-+	ret = tpg_alloc(&vsen->tpg, VIMC_SEN_FRAME_MAX_WIDTH);
-+	if (ret)
-+		goto err_clean_m_ent;
-+
- 	/* Register the subdev with the v4l2 and the media framework */
- 	ret = v4l2_device_register_subdev(v4l2_dev, &vsen->sd);
- 	if (ret) {
- 		dev_err(vsen->sd.v4l2_dev->dev,
- 			"%s: subdev register failed (err=%d)\n",
- 			vsen->sd.name, ret);
--		goto err_clean_m_ent;
-+		goto err_free_tpg;
- 	}
- 
- 	return &vsen->ved;
- 
-+err_free_tpg:
-+	tpg_free(&vsen->tpg);
- err_clean_m_ent:
- 	media_entity_cleanup(&vsen->sd.entity);
- err_clean_pads:
--- 
-2.7.4
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--pWyiEgJYm5f9v55/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAllE9CsACgkQMOfwapXb+vJiuQCeJ8M9TbbpwNyDxB3i/+C2mSpU
+6dkAoK5+QPfQW29IShkTR1LfaIxBaZbd
+=Z0xh
+-----END PGP SIGNATURE-----
+
+--pWyiEgJYm5f9v55/--
