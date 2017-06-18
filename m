@@ -1,61 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:60460 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753024AbdFMObC (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54616 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752399AbdFRVTQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 10:31:02 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v3 0/2] v4l2-async: add subnotifier registration for subdevices
-Date: Tue, 13 Jun 2017 16:30:34 +0200
-Message-Id: <20170613143036.533-1-niklas.soderlund+renesas@ragnatech.se>
+        Sun, 18 Jun 2017 17:19:16 -0400
+Date: Mon, 19 Jun 2017 00:18:38 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <snawrocki@kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Hans Verkuil <hansverk@cisco.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [RFC PATCH 1/2] v4l2-ioctl/exynos: fix G/S_SELECTION's type
+ handling
+Message-ID: <20170618211837.GY12407@valkosipuli.retiisi.org.uk>
+References: <20170508143506.16448-1-hverkuil@xs4all.nl>
+ <20170616125827.GQ12407@valkosipuli.retiisi.org.uk>
+ <baf6fee6-3c65-5aea-f042-cfdd6698e4ba@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <baf6fee6-3c65-5aea-f042-cfdd6698e4ba@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Sylwester,
 
-This series enables incremental async find and bind of subdevices,
-please se patch 2/2 for a more detailed description.
+On Sun, Jun 18, 2017 at 10:53:48PM +0200, Sylwester Nawrocki wrote:
+> >> + */
+> >> +static int v4l_g_selection(const struct v4l2_ioctl_ops *ops,
+> >> +			   struct file *file, void *fh, void *arg)
+> >> +{
+> >> +	struct v4l2_selection *p = arg;
+> >> +	u32 old_type = p->type;
+> >> +	int ret;
+> >> +
+> >> +	if (p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> >> +		p->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> >> +	else if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> >> +		p->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+> >> +	ret = ops->vidioc_g_selection(file, fh, p);
+> >> +	p->type = old_type;
+> >> +	return ret;
+> >> +}
+> >> +
+> >> +static int v4l_s_selection(const struct v4l2_ioctl_ops *ops,
+> >> +			   struct file *file, void *fh, void *arg)
+> >> +{
+> >> +	struct v4l2_selection *p = arg;
+> >> +	u32 old_type = p->type;
+> >> +	int ret;
+> >> +
+> >> +	if (p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> >> +		p->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> >> +	else if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> >> +		p->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+> >> +	ret = ops->vidioc_s_selection(file, fh, p);
+> > 
+> > Can it be that ops->vidioc_s_selection() is NULL here? I don't think it's
+> > checked anywhere. Same in v4l_g_selection().
+> 
+> I think it can't be, there is the valid_ioctls bitmap test before a call back 
+> to the driver, to see if driver actually implements an ioctl. And the bitmap 
+> is populated beforehand in determine_valid_ioctls().
 
-This is tested on Renesas H3 and M3-W together with the Renesas CSI-2
-and VIN Gen3 driver (posted separately). It is based on top of the media-tree.
+Ack. Looks good to me then.
 
-* Changes since v2
-- Fixed lots of spelling mistakes, thanks Hans!
-- Used a goto instead if state variable when restarting iteration over 
-  subdev list as suggested by Sakari. Thank you it's much easier read 
-  now.
-- Added Acked-by from Sakari and Hans, thanks!
-- Rebased to latest media-tree.
-
-* Changes since v1:
-- Added a pre-patch which adds an error check which was previously in
-  the new incremental async code but is more useful on its own.
-- Added documentation to Documentation/media/kapi/v4l2-subdev.rst.
-- Fixed data type of bool variable.
-- Added call to lockdep_assert_held(), thanks Sakari.
-- Fixed commit messages typo, thanks Sakari.
-
-
-Niklas Söderlund (2):
-  v4l: async: check for v4l2_dev in v4l2_async_notifier_register()
-  v4l: async: add subnotifier registration for subdevices
-
- Documentation/media/kapi/v4l2-subdev.rst | 20 ++++++++++
- drivers/media/v4l2-core/v4l2-async.c     | 68 +++++++++++++++++++++++++++-----
- include/media/v4l2-async.h               | 22 +++++++++++
- 3 files changed, 100 insertions(+), 10 deletions(-)
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
 -- 
-2.13.1
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
