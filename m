@@ -1,77 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:40973 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751636AbdFKPiN (ORCPT
+Received: from mail-yw0-f193.google.com ([209.85.161.193]:35842 "EHLO
+        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753137AbdFROFz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 11 Jun 2017 11:38:13 -0400
-Subject: Re: [PATCH v8 00/34] i.MX Media Driver
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Steve Longerbeam <slongerbeam@gmail.com>, p.zabel@pengutronix.de,
-        linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
- <d99752a4-35aa-33bb-b3d9-85268c38e761@xs4all.nl>
-Message-ID: <bc80e84b-ba53-1bd8-a322-084666b98f39@xs4all.nl>
-Date: Sun, 11 Jun 2017 17:38:06 +0200
+        Sun, 18 Jun 2017 10:05:55 -0400
+Date: Sun, 18 Jun 2017 09:05:53 -0500
+From: Rob Herring <robh@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+        devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
+        pavel@ucw.cz
+Subject: Re: [PATCH 3/8] dt: bindings: Add a binding for referencing EEPROM
+ from camera sensors
+Message-ID: <20170617003949.uq4qldmbzx227cj3@rob-hp-laptop>
+References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1497433639-13101-4-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <d99752a4-35aa-33bb-b3d9-85268c38e761@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1497433639-13101-4-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/11/2017 10:28 AM, Hans Verkuil wrote:
-> Hi Steve, Philipp,
+On Wed, Jun 14, 2017 at 12:47:14PM +0300, Sakari Ailus wrote:
+> Many camera sensor devices contain EEPROM chips that describe the
+> properties of a given unit --- the data is specific to a given unit can
+> thus is not stored e.g. in user space or the driver.
 > 
-> While preparing the pull request I noticed that the MAINTAINERS file wasn't
-> updated. Steve, can you post a patch adding entries for the imx and ov5640 driver?
-> Philipp, can you do the same for the video mux? I assume you're the maintainer
-> for this?
+> Some sensors embed the EEPROM chip and it can be accessed through the
+> sensor's I2C interface. This property is to be used for devices where the
+> EEPROM chip is accessed through a different I2C address than the sensor.
 > 
-> Thanks!
+> The intent is to later provide this information to the user space.
 > 
-> I also made it possible to compile-test this driver with this patch:
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Pavel Machek <pavel@ucw.cz>
+> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 > ---
-> diff --git a/drivers/staging/media/imx/Kconfig b/drivers/staging/media/imx/Kconfig
-> index 7eff50bcea39..22f968cf32b1 100644
-> --- a/drivers/staging/media/imx/Kconfig
-> +++ b/drivers/staging/media/imx/Kconfig
-> @@ -1,6 +1,7 @@
->   config VIDEO_IMX_MEDIA
->   	tristate "i.MX5/6 V4L2 media core driver"
-> -	depends on MEDIA_CONTROLLER && VIDEO_V4L2 && ARCH_MXC && IMX_IPUV3_CORE
-> +	depends on MEDIA_CONTROLLER && VIDEO_V4L2
-> +	depends on (ARCH_MXC && IMX_IPUV3_CORE) || COMPILE_TEST
->   	select V4L2_FWNODE
->   	---help---
->   	  Say yes here to enable support for video4linux media controller
+>  Documentation/devicetree/bindings/media/video-interfaces.txt | 3 +++
+>  1 file changed, 3 insertions(+)
 
-^^^^
-
-This is too optimistic, it fails on IPU code. Ignore this chunk.
-
-	Hans
-
-> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-> index c306146a4247..a2d26693912e 100644
-> --- a/drivers/staging/media/imx/imx-media-csi.c
-> +++ b/drivers/staging/media/imx/imx-media-csi.c
-> @@ -13,6 +13,7 @@
->   #include <linux/gcd.h>
->   #include <linux/interrupt.h>
->   #include <linux/module.h>
-> +#include <linux/pinctrl/consumer.h>
->   #include <linux/platform_device.h>
->   #include <media/v4l2-ctrls.h>
->   #include <media/v4l2-device.h>
-> 
-> Steve, if you're OK with that I was planning to just modify your original patch
-> rather than adding another patch on top.
-> 
-> Regards,
-> 
-> 	Hans
-> 
+Acked-by: Rob Herring <robh@kernel.org>
