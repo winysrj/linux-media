@@ -1,215 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f175.google.com ([209.85.128.175]:34454 "EHLO
-        mail-wr0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752207AbdFLQ3N (ORCPT
+Received: from mail-qk0-f169.google.com ([209.85.220.169]:35598 "EHLO
+        mail-qk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751895AbdFRLzh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Jun 2017 12:29:13 -0400
-Received: by mail-wr0-f175.google.com with SMTP id g76so101820076wrd.1
-        for <linux-media@vger.kernel.org>; Mon, 12 Jun 2017 09:29:13 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v10 00/18] Qualcomm video decoder/encoder driver
-Date: Mon, 12 Jun 2017 19:27:37 +0300
-Message-Id: <1497284875-19999-1-git-send-email-stanimir.varbanov@linaro.org>
+        Sun, 18 Jun 2017 07:55:37 -0400
+MIME-Version: 1.0
+From: CIJOML CIJOMLovic <cijoml@gmail.com>
+Date: Sun, 18 Jun 2017 13:55:35 +0200
+Message-ID: <CAB0z4Npb2ytLTysrtHatQZZa8bJEnCt4ciVEe_KWTjxjm8no0A@mail.gmail.com>
+Subject: LINUX 4.11.6. Leadtek - USB2.0 Winfast DTV dongle does not initialize correctly
+To: linux-media <linux-media@vger.kernel.org>,
+        linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hello,
 
-The changes since patchset v9 are the following:
- * patches from 1/18 to 9/18 are the same.
- * patches from 10/18 to 16/18 are fixes for warns/errors found by
-   Mauro when building with its gcc7.
- * patch 17/18 adding support for minimum buffers for capture
-   get control. This fixes an issue with gstreamer and it will
-   be good to have it in the inital version of the venus driver.
- * patch 18/18 enable COMPILE_TEST Kconfig option for the driver,
-   and this patch depends on the other one for qcom_scm driver.
-   The submited patch for qcom_scm driver can be found at [1].
-
-Mauro, I failed to build gcc7 on my own machine and fallback to
-a pre-built version of the gcc-7 for may Ubuntu distro. The version
-which I tried was: gcc version 7.1.0 (Ubuntu 7.1.0-5ubuntu2~16.04).
-Unfortunately I cannot reproduce the warns/errors (except two
-warnings) from your compiler (even that the version looks
-the same 7.1.0). So I fixed the warns/errors as per your response
-to v9, and hope that the errors will disappear.
-
-[1] https://patchwork.kernel.org/patch/9775803/
-
-Stanimir Varbanov (18):
-  media: v4l2-mem2mem: extend m2m APIs for more accurate buffer
-    management
-  doc: DT: venus: binding document for Qualcomm video driver
-  MAINTAINERS: Add Qualcomm Venus video accelerator driver
-  media: venus: adding core part and helper functions
-  media: venus: vdec: add video decoder files
-  media: venus: venc: add video encoder files
-  media: venus: hfi: add Host Firmware Interface (HFI)
-  media: venus: hfi: add Venus HFI files
-  media: venus: enable building of Venus video driver
-  media: venus: hfi: fix mutex unlock
-  media: venus: hfi_cmds: fix variable dereferenced before check
-  media: venus: helpers: fix variable dereferenced before check
-  media: venus: hfi_venus: fix variable dereferenced before check
-  media: venus: hfi_msgs: fix set but not used variables
-  media: venus: vdec: fix compile error in vdec_close
-  media: venus: venc: fix compile error in venc_close
-  media: venus: vdec: add support for min buffers for capture
-  media: venus: enable building with COMPILE_TEST
-
- .../devicetree/bindings/media/qcom,venus.txt       |  107 ++
- MAINTAINERS                                        |    8 +
- drivers/media/platform/Kconfig                     |   13 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/qcom/venus/Makefile         |   11 +
- drivers/media/platform/qcom/venus/core.c           |  388 +++++
- drivers/media/platform/qcom/venus/core.h           |  323 ++++
- drivers/media/platform/qcom/venus/firmware.c       |  109 ++
- drivers/media/platform/qcom/venus/firmware.h       |   22 +
- drivers/media/platform/qcom/venus/helpers.c        |  725 +++++++++
- drivers/media/platform/qcom/venus/helpers.h        |   45 +
- drivers/media/platform/qcom/venus/hfi.c            |  522 +++++++
- drivers/media/platform/qcom/venus/hfi.h            |  175 +++
- drivers/media/platform/qcom/venus/hfi_cmds.c       | 1259 ++++++++++++++++
- drivers/media/platform/qcom/venus/hfi_cmds.h       |  304 ++++
- drivers/media/platform/qcom/venus/hfi_helper.h     | 1050 +++++++++++++
- drivers/media/platform/qcom/venus/hfi_msgs.c       | 1052 +++++++++++++
- drivers/media/platform/qcom/venus/hfi_msgs.h       |  283 ++++
- drivers/media/platform/qcom/venus/hfi_venus.c      | 1572 ++++++++++++++++++++
- drivers/media/platform/qcom/venus/hfi_venus.h      |   23 +
- drivers/media/platform/qcom/venus/hfi_venus_io.h   |  113 ++
- drivers/media/platform/qcom/venus/vdec.c           | 1162 +++++++++++++++
- drivers/media/platform/qcom/venus/vdec.h           |   23 +
- drivers/media/platform/qcom/venus/vdec_ctrls.c     |  158 ++
- drivers/media/platform/qcom/venus/venc.c           | 1283 ++++++++++++++++
- drivers/media/platform/qcom/venus/venc.h           |   23 +
- drivers/media/platform/qcom/venus/venc_ctrls.c     |  270 ++++
- drivers/media/v4l2-core/v4l2-mem2mem.c             |   37 +
- include/media/v4l2-mem2mem.h                       |   92 ++
- 29 files changed, 11154 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
- create mode 100644 drivers/media/platform/qcom/venus/Makefile
- create mode 100644 drivers/media/platform/qcom/venus/core.c
- create mode 100644 drivers/media/platform/qcom/venus/core.h
- create mode 100644 drivers/media/platform/qcom/venus/firmware.c
- create mode 100644 drivers/media/platform/qcom/venus/firmware.h
- create mode 100644 drivers/media/platform/qcom/venus/helpers.c
- create mode 100644 drivers/media/platform/qcom/venus/helpers.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi.c
- create mode 100644 drivers/media/platform/qcom/venus/hfi.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.c
- create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_helper.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.c
- create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.c
- create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_venus_io.h
- create mode 100644 drivers/media/platform/qcom/venus/vdec.c
- create mode 100644 drivers/media/platform/qcom/venus/vdec.h
- create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
- create mode 100644 drivers/media/platform/qcom/venus/venc.c
- create mode 100644 drivers/media/platform/qcom/venus/venc.h
- create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
-
-Here is the output of v4l2-compliance for decoder (as in this version
-of the patchset only decoder has functional changes):
- 
-dragonboard-410c:~$ ./v4l2-compliance -d /dev/video0
-v4l2-compliance SHA   : 8fc88615b49843acb82cd8316d0bc4ab8474cba2
-
-Driver Info:
-        Driver name   : qcom-venus
-        Card type     : Qualcomm Venus video decoder
-        Bus info      : platform:qcom-venus
-        Driver version: 4.9.27
-        Capabilities  : 0x84204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x04204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-        test for unlimited opens: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-        Control ioctls:
-                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-                test VIDIOC_QUERYCTRL: OK
-                test VIDIOC_G/S_CTRL: OK
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 9 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK (Not Supported)
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                test Cropping: OK (Not Supported)
-                test Composing: OK (Not Supported)
-                test Scaling: OK
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-Test input 0:
+after years of not using the dongle I wanted to use it. And I ended up
+like this. Previously dongle worked correctly. It is not broken I
+checked it in Windows.
 
 
-Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
 
--- 
-2.7.4
+[   22.050048] usb 3-1: new high-speed USB device number 3 using xhci_hcd
+[   22.190321] usb 3-1: New USB device found, idVendor=0413, idProduct=6025
+[   22.190323] usb 3-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+[   23.218049] dvb-usb: found a 'Leadtek - USB2.0 Winfast DTV dongle'
+in cold state, will try to load a firmware
+[   23.218287] dvb-usb: downloading firmware from file
+'dvb-usb-dibusb-6.0.0.8.fw'
+[   23.235307] usbcore: registered new interface driver dvb_usb_dibusb_mc
+[   23.237929] usb 3-1: USB disconnect, device number 3
+[   23.237953] dvb-usb: generic DVB-USB module successfully
+deinitialized and disconnected.
+[   25.015530] usb 3-1: new high-speed USB device number 4 using xhci_hcd
+[   25.164366] usb 3-1: New USB device found, idVendor=0413, idProduct=6026
+[   25.164378] usb 3-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[   25.164380] usb 3-1: Product: MOD3000
+[   25.164380] usb 3-1: Manufacturer: STAE
+[   25.165057] dvb-usb: found a 'Leadtek - USB2.0 Winfast DTV dongle'
+in warm state.
+[   25.165251] dvb-usb: will pass the complete MPEG2 transport stream
+to the software demuxer.
+[   25.169325] dvbdev: DVB: registering new adapter (Leadtek - USB2.0
+Winfast DTV dongle)
+[   25.169784] ------------[ cut here ]------------
+[   25.169791] WARNING: CPU: 3 PID: 29 at
+/home/kernel/COD/linux/drivers/usb/core/hcd.c:1587
+usb_hcd_map_urb_for_dma+0x37f/0x570
+[   25.169791] transfer buffer not dma capable
+[   25.169792] Modules linked in: dvb_usb_dibusb_mc
+dvb_usb_dibusb_mc_common dvb_usb_dibusb_common dib3000mc
+dibx000_common dvb_usb dvb_core rc_core ccm xt_CHECKSUM iptable_mangle
+ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat
+nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack libcrc32c
+ipt_REJECT nf_reject_ipv4 xt_tcpudp bridge stp llc ebtable_filter
+ebtables ip6table_filter ip6_tables iptable_filter ip_tables x_tables
+rfcomm bnep intel_rapl x86_pkg_temp_thermal intel_powerclamp coretemp
+crct10dif_pclmul crc32_pclmul ghash_clmulni_intel pcbc arc4
+snd_hda_codec_hdmi snd_hda_codec_realtek snd_hda_codec_generic
+aesni_intel snd_hda_intel iwldvm aes_x86_64 snd_hda_codec crypto_simd
+glue_helper snd_hda_core cryptd mac80211 snd_seq_midi snd_hwdep
+uvcvideo videobuf2_vmalloc intel_cstate
+[   25.169819]  intel_rapl_perf thinkpad_acpi snd_seq_midi_event
+joydev input_leds videobuf2_memops snd_pcm serio_raw videobuf2_v4l2
+snd_rawmidi videobuf2_core btusb iwlwifi videodev snd_seq cfg80211
+btrtl media nvram mei_me btbcm btintel snd_seq_device bluetooth
+lpc_ich snd_timer shpchp mei snd soundcore mac_hid kvm_intel kvm
+irqbypass parport_pc sunrpc ppdev lp parport autofs4 btrfs xor
+raid6_pq i915 i2c_algo_bit psmouse drm_kms_helper syscopyarea
+sysfillrect sysimgblt fb_sys_fops ahci e1000e drm libahci sdhci_pci
+sdhci ptp pps_core wmi video
+[   25.169854] CPU: 3 PID: 29 Comm: kworker/3:0 Not tainted
+4.11.6-041106-generic #201706170517
+[   25.169855] Hardware name: LENOVO 2325CK9/2325CK9, BIOS G2ETA7WW
+(2.67 ) 09/09/2016
+[   25.169857] Workqueue: usb_hub_wq hub_event
+[   25.169858] Call Trace:
+[   25.169862]  dump_stack+0x63/0x81
+[   25.169864]  __warn+0xcb/0xf0
+[   25.169864]  warn_slowpath_fmt+0x5a/0x80
+[   25.169866]  usb_hcd_map_urb_for_dma+0x37f/0x570
+[   25.169867]  usb_hcd_submit_urb+0x35c/0xb90
+[   25.169869]  ? del_timer_sync+0x48/0x50
+[   25.169871]  ? schedule_timeout+0x184/0x310
+[   25.169872]  ? del_timer_sync+0x50/0x50
+[   25.169874]  usb_submit_urb.part.8+0x30b/0x530
+[   25.169875]  ? wait_for_completion_timeout+0xb8/0x140
+[   25.169876]  usb_submit_urb+0x62/0x70
+[   25.169878]  usb_start_wait_urb+0x6e/0x170
+[   25.169879]  usb_bulk_msg+0xbd/0x160
+[   25.169882]  dvb_usb_generic_rw+0x15f/0x1e0 [dvb_usb]
+[   25.169884]  dibusb_i2c_msg+0xcf/0x130 [dvb_usb_dibusb_common]
+[   25.169886]  dibusb_i2c_xfer+0x13c/0x150 [dvb_usb_dibusb_common]
+[   25.169887]  __i2c_transfer+0x115/0x3f0
+[   25.169889]  ? dvb_usb_fe_sleep+0x60/0x60 [dvb_usb]
+[   25.169890]  i2c_transfer+0x5c/0xc0
+[   25.169892]  dib3000mc_read_word+0x9a/0x100 [dib3000mc]
+[   25.169893]  dib3000mc_identify+0x17/0xc0 [dib3000mc]
+[   25.169895]  ? dib3000mc_identify+0x17/0xc0 [dib3000mc]
+[   25.169896]  dib3000mc_attach+0x6e/0x450 [dib3000mc]
+[   25.169897]  dibusb_dib3000mc_frontend_attach+0x4c/0x160
+[dvb_usb_dibusb_mc_common]
+[   25.169899]  dvb_usb_adapter_frontend_init+0xdf/0x190 [dvb_usb]
+[   25.169900]  dvb_usb_device_init+0x4ca/0x630 [dvb_usb]
+[   25.169902]  dibusb_mc_probe+0x25/0x27 [dvb_usb_dibusb_mc]
+[   25.169903]  usb_probe_interface+0x159/0x2d0
+[   25.169905]  driver_probe_device+0x2bb/0x460
+[   25.169906]  __device_attach_driver+0x8c/0x100
+[   25.169908]  ? __driver_attach+0xf0/0xf0
+[   25.169909]  bus_for_each_drv+0x67/0xb0
+[   25.169910]  __device_attach+0xdd/0x160
+[   25.169912]  device_initial_probe+0x13/0x20
+[   25.169913]  bus_probe_device+0x92/0xa0
+[   25.169914]  device_add+0x373/0x630
+[   25.169916]  usb_set_configuration+0x5d2/0x8c0
+[   25.169918]  generic_probe+0x2e/0x80
+[   25.169919]  usb_probe_device+0x2e/0x70
+[   25.169920]  driver_probe_device+0x2bb/0x460
+[   25.169921]  __device_attach_driver+0x8c/0x100
+[   25.169922]  ? __driver_attach+0xf0/0xf0
+[   25.169923]  bus_for_each_drv+0x67/0xb0
+[   25.169924]  __device_attach+0xdd/0x160
+[   25.169926]  device_initial_probe+0x13/0x20
+[   25.169927]  bus_probe_device+0x92/0xa0
+[   25.169928]  device_add+0x373/0x630
+[   25.169930]  ? random_poll+0x50/0x80
+[   25.169932]  usb_new_device+0x275/0x490
+[   25.169933]  hub_port_connect+0x50e/0x9d0
+[   25.169934]  hub_event+0x958/0xb10
+[   25.169936]  ? pick_next_task_fair+0x319/0x540
+[   25.169938]  process_one_work+0x1fc/0x4b0
+[   25.169939]  worker_thread+0x4b/0x500
+[   25.169941]  kthread+0x109/0x140
+[   25.169942]  ? process_one_work+0x4b0/0x4b0
+[   25.169944]  ? kthread_create_on_node+0x70/0x70
+[   25.169945]  ret_from_fork+0x2c/0x40
+[   25.169946] ---[ end trace 61ae6724a5bf0373 ]---
+[   25.169947] dvb-usb: recv bulk message failed: -11
+[   25.170105] dvb-usb: recv bulk message failed: -11
+[   25.170108] dvb-usb: no frontend was attached by 'Leadtek - USB2.0
+Winfast DTV dongle'
+
+Best regards
+
+Michal
