@@ -1,59 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36008 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752480AbdFMMsA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 08:48:00 -0400
-Date: Tue, 13 Jun 2017 15:47:49 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: v4l2-fwnode: status, plans for merge, any branch to merge
- against?
-Message-ID: <20170613124748.GD12407@valkosipuli.retiisi.org.uk>
-References: <20170215094228.GA8586@amd>
- <2414221.XNA4JCFMRx@avalon>
- <20170302090143.GB27818@amd>
- <20170302101603.GE27818@amd>
- <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
- <20170302123848.GA28230@amd>
- <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
- <20170306072323.GA23509@amd>
- <20170310225418.GJ3220@valkosipuli.retiisi.org.uk>
- <20170613122240.GA2803@amd>
+Received: from mail.kernel.org ([198.145.29.99]:50912 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751018AbdFRUxw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 18 Jun 2017 16:53:52 -0400
+Subject: Re: [RFC PATCH 1/2] v4l2-ioctl/exynos: fix G/S_SELECTION's type
+ handling
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>
+References: <20170508143506.16448-1-hverkuil@xs4all.nl>
+ <20170616125827.GQ12407@valkosipuli.retiisi.org.uk>
+From: Sylwester Nawrocki <snawrocki@kernel.org>
+Message-ID: <baf6fee6-3c65-5aea-f042-cfdd6698e4ba@kernel.org>
+Date: Sun, 18 Jun 2017 22:53:48 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170613122240.GA2803@amd>
+In-Reply-To: <20170616125827.GQ12407@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+Hi,
 
-On Tue, Jun 13, 2017 at 02:22:40PM +0200, Pavel Machek wrote:
-> Hi!
+On 06/16/2017 02:58 PM, Sakari Ailus wrote:
+> Hi Hans,
 > 
-> Are there any news about the fwnode branch?
+> Cc Sylwester and Marek as well.
 > 
-> I have quite usable camera, but it is still based on
-> 982e8e40390d26430ef106fede41594139a4111c (that's v4.10). It would be
-> good to see fwnode stuff upstream... are there any plans for that?
+> On Mon, May 08, 2017 at 04:35:05PM +0200, Hans Verkuil wrote:
+>> From: Hans Verkuil <hansverk@cisco.com>
+>>
+>> The type field in struct v4l2_selection is supposed to never use the
+>> _MPLANE variants. E.g. if the driver supports V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
+>> then userspace should still pass V4L2_BUF_TYPE_VIDEO_CAPTURE.
+>>
+>> The reasons for this are lost in the mists of time, but it is really
+>> annoying. In addition, the exynos drivers didn't follow this rule and
+>> instead expected the _MPLANE type.
+>>
+>> To fix that code is added to the v4l2 core that maps the _MPLANE buffer
+>> types to their regular equivalents before calling the driver.
+>>
+>> Effectively this allows for userspace to use either _MPLANE or the regular
+>> buffer type. This keeps backwards compatibility while making things easier
+>> for userspace.
+>>
+>> Since drivers now never see the _MPLANE buffer types the exynos drivers
+>> had to be adapted as well.
+>>
+>> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+>> ---
+>>   drivers/media/platform/exynos-gsc/gsc-core.c     |  4 +-
+>>   drivers/media/platform/exynos-gsc/gsc-m2m.c      |  8 ++--
+>>   drivers/media/platform/exynos4-is/fimc-capture.c |  4 +-
+>>   drivers/media/platform/exynos4-is/fimc-lite.c    |  4 +-
+>>   drivers/media/v4l2-core/v4l2-ioctl.c             | 53 +++++++++++++++++++++---
+>>   5 files changed, 57 insertions(+), 16 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+>> index 59a634201830..107faa04c947 100644
+>> --- a/drivers/media/platform/exynos-gsc/gsc-core.c
+>> +++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+
+>> +/*
+>> + * The selection API specified originally that the _MPLANE buffer types
+>> + * shouldn't be used. The reasons for this are lost in the mists of time
+>> + * (or just really crappy memories). Regardless, this is really annoying
+>> + * for userspace. So to keep things simple we map _MPLANE buffer types
+>> + * to their 'regular' counterparts before calling the driver. And we
+>> + * restore it afterwards. This way applications can use either buffer
+>> + * type and drivers don't need to check for both.
+
+I agree this is annoying the _MPLANE buffer types are excluded this way. 
+I suspect one of the main reasons was bias of the original author of the 
+selection API to the multi-planar API. Now the API got messy because I didn't
+adhere to this rule of buffer type change for VIDIOC_S_SELECTION, and the
+code propagated to the other driver. Sorry about that.  
+
+I checked GStreamer and AFAIU there is no change of buffer type for
+S_SELECTION there:
+https://cgit.freedesktop.org/gstreamer/gst-plugins-good/tree/sys/v4l2/gstv4l2object.c?id=3342d86d9b92cf60c419b728d10944968d77ecac#n3722
+
+>> + */
+>> +static int v4l_g_selection(const struct v4l2_ioctl_ops *ops,
+>> +			   struct file *file, void *fh, void *arg)
+>> +{
+>> +	struct v4l2_selection *p = arg;
+>> +	u32 old_type = p->type;
+>> +	int ret;
+>> +
+>> +	if (p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+>> +		p->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>> +	else if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+>> +		p->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+>> +	ret = ops->vidioc_g_selection(file, fh, p);
+>> +	p->type = old_type;
+>> +	return ret;
+>> +}
+>> +
+>> +static int v4l_s_selection(const struct v4l2_ioctl_ops *ops,
+>> +			   struct file *file, void *fh, void *arg)
+>> +{
+>> +	struct v4l2_selection *p = arg;
+>> +	u32 old_type = p->type;
+>> +	int ret;
+>> +
+>> +	if (p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+>> +		p->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>> +	else if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+>> +		p->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+>> +	ret = ops->vidioc_s_selection(file, fh, p);
 > 
-> Is there stable branch to which I could move the stuff?
+> Can it be that ops->vidioc_s_selection() is NULL here? I don't think it's
+> checked anywhere. Same in v4l_g_selection().
 
-What's relevant for most V4L2 drivers is in linux-media right now.
+I think it can't be, there is the valid_ioctls bitmap test before a call back 
+to the driver, to see if driver actually implements an ioctl. And the bitmap 
+is populated beforehand in determine_valid_ioctls().
 
-There are new features that will take some time to get in. The trouble has
-been, and continue to be, that the patches need to go through various trees
-so it'll take some time for them to be merged.
-
-I expect to have most of them in during the next merge window.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+--
+Regards,
+Sylwester
