@@ -1,391 +1,328 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54255
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751126AbdFURIb (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:56905 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750941AbdFSRBc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Jun 2017 13:08:31 -0400
-Date: Wed, 21 Jun 2017 14:08:08 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
-        liplianin@netup.ru, rjkm@metzlerbros.de
-Subject: Re: [PATCH] [media] ddbridge: use dev_* macros in favor of printk
-Message-ID: <20170621140808.7d5ad295@vento.lan>
-In-Reply-To: <20170621165347.19409-1-d.scheller.oss@gmail.com>
-References: <20170621165347.19409-1-d.scheller.oss@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Mon, 19 Jun 2017 13:01:32 -0400
+From: Helen Koike <helen.koike@collabora.com>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, jgebben@codeaurora.org,
+        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v5 05/12] [media] vimc: common: Add vimc_link_validate
+Date: Mon, 19 Jun 2017 14:00:14 -0300
+Message-Id: <1497891629-1562-6-git-send-email-helen.koike@collabora.com>
+In-Reply-To: <1497891629-1562-1-git-send-email-helen.koike@collabora.com>
+References: <1497891629-1562-1-git-send-email-helen.koike@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 21 Jun 2017 18:53:47 +0200
-Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
+All links will be checked in the same way. Adding a helper function for
+that
 
-> From: Daniel Scheller <d.scheller@gmx.net>
-> 
-> Side effect: KERN_DEBUG messages aren't written to the kernel log anymore.
-> This also improves the tda18212_ping reporting a bit so users know that if
-> pinging wasn't successful, bad things will happen.
-> 
-> Since in module_init_ddbridge() there's no dev yet, pr_info is used
-> instead.
-> 
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> ---
->  drivers/media/pci/ddbridge/ddbridge-core.c | 78 ++++++++++++++++++------------
->  1 file changed, 46 insertions(+), 32 deletions(-)
-> 
-> diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-> index 9420479bee9a..540a121eadd6 100644
-> --- a/drivers/media/pci/ddbridge/ddbridge-core.c
-> +++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-> @@ -17,6 +17,8 @@
->   * http://www.gnu.org/copyleft/gpl.html
->   */
->  
-> +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> +
+Signed-off-by: Helen Koike <helen.koike@collabora.com>
 
-I guess this is a left over from the old patch. When you use dev_foo,
-it will get the driver's name from dev->name. So, no need to do the
-above.
+---
 
-Except for that, the patch looks fine on a quick glance.
+Changes in v5: None
+Changes in v4:
+[media] vimc: common: Add vimc_link_validate
+	- remove vimc_fmt_pix_to_mbus(), replaced by
+	v4l2_fill_mbus_format()
+	- remove EXPORT_SYMBOL(vimc_link_validate), not necessary in
+	this patch, moved to submodules patch
+	- Fix multi-line comment style
+	- If colorspace is set to DEFAULT, then assume all the other
+	colorimetry parameters are also DEFAULT
 
->  #include <linux/module.h>
->  #include <linux/init.h>
->  #include <linux/interrupt.h>
-> @@ -124,10 +126,10 @@ static int ddb_i2c_cmd(struct ddb_i2c *i2c, u32 adr, u32 cmd)
->  	ddbwritel((adr << 9) | cmd, i2c->regs + I2C_COMMAND);
->  	stat = wait_event_timeout(i2c->wq, i2c->done == 1, HZ);
->  	if (stat == 0) {
-> -		printk(KERN_ERR "I2C timeout\n");
-> +		dev_err(&dev->pdev->dev, "I2C timeout\n");
->  		{ /* MSI debugging*/
->  			u32 istat = ddbreadl(INTERRUPT_STATUS);
-> -			printk(KERN_ERR "IRS %08x\n", istat);
-> +			dev_err(&dev->pdev->dev, "IRS %08x\n", istat);
->  			ddbwritel(istat, INTERRUPT_ACK);
->  		}
->  		return -EIO;
-> @@ -533,7 +535,7 @@ static u32 ddb_input_avail(struct ddb_input *input)
->  	off = (stat & 0x7ff) << 7;
->  
->  	if (ctrl & 4) {
-> -		printk(KERN_ERR "IA %d %d %08x\n", idx, off, ctrl);
-> +		dev_err(&dev->pdev->dev, "IA %d %d %08x\n", idx, off, ctrl);
->  		ddbwritel(input->stat, DMA_BUFFER_ACK(input->nr));
->  		return 0;
->  	}
-> @@ -611,6 +613,7 @@ static int demod_attach_drxk(struct ddb_input *input)
->  	struct i2c_adapter *i2c = &input->port->i2c->adap;
->  	struct dvb_frontend *fe;
->  	struct drxk_config config;
-> +	struct device *dev = &input->port->dev->pdev->dev;
->  
->  	memset(&config, 0, sizeof(config));
->  	config.microcode_name = "drxk_a3.mc";
-> @@ -619,7 +622,7 @@ static int demod_attach_drxk(struct ddb_input *input)
->  
->  	fe = input->fe = dvb_attach(drxk_attach, &config, i2c);
->  	if (!input->fe) {
-> -		printk(KERN_ERR "No DRXK found!\n");
-> +		dev_err(dev, "No DRXK found!\n");
->  		return -ENODEV;
->  	}
->  	fe->sec_priv = input;
-> @@ -632,12 +635,13 @@ static int tuner_attach_tda18271(struct ddb_input *input)
->  {
->  	struct i2c_adapter *i2c = &input->port->i2c->adap;
->  	struct dvb_frontend *fe;
-> +	struct device *dev = &input->port->dev->pdev->dev;
->  
->  	if (input->fe->ops.i2c_gate_ctrl)
->  		input->fe->ops.i2c_gate_ctrl(input->fe, 1);
->  	fe = dvb_attach(tda18271c2dd_attach, input->fe, i2c, 0x60);
->  	if (!fe) {
-> -		printk(KERN_ERR "No TDA18271 found!\n");
-> +		dev_err(dev, "No TDA18271 found!\n");
->  		return -ENODEV;
->  	}
->  	if (input->fe->ops.i2c_gate_ctrl)
-> @@ -670,13 +674,14 @@ static struct stv0367_config ddb_stv0367_config[] = {
->  static int demod_attach_stv0367(struct ddb_input *input)
->  {
->  	struct i2c_adapter *i2c = &input->port->i2c->adap;
-> +	struct device *dev = &input->port->dev->pdev->dev;
->  
->  	/* attach frontend */
->  	input->fe = dvb_attach(stv0367ddb_attach,
->  		&ddb_stv0367_config[(input->nr & 1)], i2c);
->  
->  	if (!input->fe) {
-> -		printk(KERN_ERR "stv0367ddb_attach failed (not found?)\n");
-> +		dev_err(dev, "stv0367ddb_attach failed (not found?)\n");
->  		return -ENODEV;
->  	}
->  
-> @@ -690,17 +695,19 @@ static int demod_attach_stv0367(struct ddb_input *input)
->  static int tuner_tda18212_ping(struct ddb_input *input, unsigned short adr)
->  {
->  	struct i2c_adapter *adapter = &input->port->i2c->adap;
-> +	struct device *dev = &input->port->dev->pdev->dev;
-> +
->  	u8 tda_id[2];
->  	u8 subaddr = 0x00;
->  
-> -	printk(KERN_DEBUG "stv0367-tda18212 tuner ping\n");
-> +	dev_dbg(dev, "stv0367-tda18212 tuner ping\n");
->  	if (input->fe->ops.i2c_gate_ctrl)
->  		input->fe->ops.i2c_gate_ctrl(input->fe, 1);
->  
->  	if (i2c_read_regs(adapter, adr, subaddr, tda_id, sizeof(tda_id)) < 0)
-> -		printk(KERN_DEBUG "tda18212 ping 1 fail\n");
-> +		dev_dbg(dev, "tda18212 ping 1 fail\n");
->  	if (i2c_read_regs(adapter, adr, subaddr, tda_id, sizeof(tda_id)) < 0)
-> -		printk(KERN_DEBUG "tda18212 ping 2 fail\n");
-> +		dev_warn(dev, "tda18212 ping failed, expect problems\n");
->  
->  	if (input->fe->ops.i2c_gate_ctrl)
->  		input->fe->ops.i2c_gate_ctrl(input->fe, 0);
-> @@ -711,6 +718,7 @@ static int tuner_tda18212_ping(struct ddb_input *input, unsigned short adr)
->  static int demod_attach_cxd28xx(struct ddb_input *input, int par, int osc24)
->  {
->  	struct i2c_adapter *i2c = &input->port->i2c->adap;
-> +	struct device *dev = &input->port->dev->pdev->dev;
->  	struct cxd2841er_config cfg;
->  
->  	/* the cxd2841er driver expects 8bit/shifted I2C addresses */
-> @@ -728,7 +736,7 @@ static int demod_attach_cxd28xx(struct ddb_input *input, int par, int osc24)
->  	input->fe = dvb_attach(cxd2841er_attach_t_c, &cfg, i2c);
->  
->  	if (!input->fe) {
-> -		printk(KERN_ERR "No Sony CXD28xx found!\n");
-> +		dev_err(dev, "No Sony CXD28xx found!\n");
->  		return -ENODEV;
->  	}
->  
-> @@ -742,6 +750,7 @@ static int demod_attach_cxd28xx(struct ddb_input *input, int par, int osc24)
->  static int tuner_attach_tda18212(struct ddb_input *input, u32 porttype)
->  {
->  	struct i2c_adapter *adapter = &input->port->i2c->adap;
-> +	struct device *dev = &input->port->dev->pdev->dev;
->  	struct i2c_client *client;
->  	struct tda18212_config config = {
->  		.fe = input->fe,
-> @@ -786,7 +795,7 @@ static int tuner_attach_tda18212(struct ddb_input *input, u32 porttype)
->  
->  	return 0;
->  err:
-> -	printk(KERN_INFO "TDA18212 tuner not found. Device is not fully operational.\n");
-> +	dev_warn(dev, "TDA18212 tuner not found. Device is not fully operational.\n");
->  	return -ENODEV;
->  }
->  
-> @@ -847,19 +856,20 @@ static struct stv6110x_config stv6110b = {
->  static int demod_attach_stv0900(struct ddb_input *input, int type)
->  {
->  	struct i2c_adapter *i2c = &input->port->i2c->adap;
-> +	struct device *dev = &input->port->dev->pdev->dev;
->  	struct stv090x_config *feconf = type ? &stv0900_aa : &stv0900;
->  
->  	input->fe = dvb_attach(stv090x_attach, feconf, i2c,
->  			       (input->nr & 1) ? STV090x_DEMODULATOR_1
->  			       : STV090x_DEMODULATOR_0);
->  	if (!input->fe) {
-> -		printk(KERN_ERR "No STV0900 found!\n");
-> +		dev_err(dev, "No STV0900 found!\n");
->  		return -ENODEV;
->  	}
->  	if (!dvb_attach(lnbh24_attach, input->fe, i2c, 0,
->  			0, (input->nr & 1) ?
->  			(0x09 - type) : (0x0b - type))) {
-> -		printk(KERN_ERR "No LNBH24 found!\n");
-> +		dev_err(dev, "No LNBH24 found!\n");
->  		return -ENODEV;
->  	}
->  	return 0;
-> @@ -868,6 +878,7 @@ static int demod_attach_stv0900(struct ddb_input *input, int type)
->  static int tuner_attach_stv6110(struct ddb_input *input, int type)
->  {
->  	struct i2c_adapter *i2c = &input->port->i2c->adap;
-> +	struct device *dev = &input->port->dev->pdev->dev;
->  	struct stv090x_config *feconf = type ? &stv0900_aa : &stv0900;
->  	struct stv6110x_config *tunerconf = (input->nr & 1) ?
->  		&stv6110b : &stv6110a;
-> @@ -875,10 +886,10 @@ static int tuner_attach_stv6110(struct ddb_input *input, int type)
->  
->  	ctl = dvb_attach(stv6110x_attach, input->fe, tunerconf, i2c);
->  	if (!ctl) {
-> -		printk(KERN_ERR "No STV6110X found!\n");
-> +		dev_err(dev, "No STV6110X found!\n");
->  		return -ENODEV;
->  	}
-> -	printk(KERN_INFO "attach tuner input %d adr %02x\n",
-> +	dev_info(dev, "attach tuner input %d adr %02x\n",
->  			 input->nr, tunerconf->addr);
->  
->  	feconf->tuner_init          = ctl->tuner_init;
-> @@ -1009,13 +1020,14 @@ static int dvb_input_attach(struct ddb_input *input)
->  	struct ddb_port *port = input->port;
->  	struct dvb_adapter *adap = &input->adap;
->  	struct dvb_demux *dvbdemux = &input->demux;
-> +	struct device *dev = &input->port->dev->pdev->dev;
->  	int sony_osc24 = 0, sony_tspar = 0;
->  
->  	ret = dvb_register_adapter(adap, "DDBridge", THIS_MODULE,
->  				   &input->port->dev->pdev->dev,
->  				   adapter_nr);
->  	if (ret < 0) {
-> -		printk(KERN_ERR "ddbridge: Could not register adapter.Check if you enabled enough adapters in dvb-core!\n");
-> +		dev_err(dev, "Could not register adapter. Check if you enabled enough adapters in dvb-core!\n");
->  		return ret;
->  	}
->  	input->attached = 1;
-> @@ -1241,7 +1253,7 @@ static void input_tasklet(unsigned long data)
->  
->  	if (input->port->class == DDB_PORT_TUNER) {
->  		if (4&ddbreadl(DMA_BUFFER_CONTROL(input->nr)))
-> -			printk(KERN_ERR "Overflow input %d\n", input->nr);
-> +			dev_err(&dev->pdev->dev, "Overflow input %d\n", input->nr);
->  		while (input->cbuf != ((input->stat >> 11) & 0x1f)
->  		       || (4&ddbreadl(DMA_BUFFER_CONTROL(input->nr)))) {
->  			dvb_dmx_swfilter_packets(&input->demux,
-> @@ -1310,6 +1322,7 @@ static int ddb_ci_attach(struct ddb_port *port)
->  
->  static int ddb_port_attach(struct ddb_port *port)
->  {
-> +	struct device *dev = &port->dev->pdev->dev;
->  	int ret = 0;
->  
->  	switch (port->class) {
-> @@ -1326,7 +1339,7 @@ static int ddb_port_attach(struct ddb_port *port)
->  		break;
->  	}
->  	if (ret < 0)
-> -		printk(KERN_ERR "port_attach on port %d failed\n", port->nr);
-> +		dev_err(dev, "port_attach on port %d failed\n", port->nr);
->  	return ret;
->  }
->  
-> @@ -1377,6 +1390,7 @@ static void ddb_ports_detach(struct ddb *dev)
->  static int init_xo2(struct ddb_port *port)
->  {
->  	struct i2c_adapter *i2c = &port->i2c->adap;
-> +	struct device *dev = &port->dev->pdev->dev;
->  	u8 val, data[2];
->  	int res;
->  
-> @@ -1385,7 +1399,7 @@ static int init_xo2(struct ddb_port *port)
->  		return res;
->  
->  	if (data[0] != 0x01)  {
-> -		pr_info("Port %d: invalid XO2\n", port->nr);
-> +		dev_info(dev, "Port %d: invalid XO2\n", port->nr);
->  		return -1;
->  	}
->  
-> @@ -1511,7 +1525,7 @@ static void ddb_port_probe(struct ddb_port *port)
->  		port->class = DDB_PORT_CI;
->  		ddbwritel(I2C_SPEED_400, port->i2c->regs + I2C_TIMING);
->  	} else if (port_has_xo2(port, &xo2_type, &xo2_id)) {
-> -		printk(KERN_INFO "Port %d (TAB %d): XO2 type: %d, id: %d\n",
-> +		dev_dbg(&dev->pdev->dev, "Port %d (TAB %d): XO2 type: %d, id: %d\n",
->  			port->nr, port->nr+1, xo2_type, xo2_id);
->  
->  		ddbwritel(I2C_SPEED_400, port->i2c->regs + I2C_TIMING);
-> @@ -1556,10 +1570,10 @@ static void ddb_port_probe(struct ddb_port *port)
->  			}
->  			break;
->  		case DDB_XO2_TYPE_CI:
-> -			printk(KERN_INFO "DuoFlex CI modules not supported\n");
-> +			dev_info(&dev->pdev->dev, "DuoFlex CI modules not supported\n");
->  			break;
->  		default:
-> -			printk(KERN_INFO "Unknown XO2 DuoFlex module\n");
-> +			dev_info(&dev->pdev->dev, "Unknown XO2 DuoFlex module\n");
->  			break;
->  		}
->  	} else if (port_has_cxd28xx(port, &cxd_id)) {
-> @@ -1611,7 +1625,7 @@ static void ddb_port_probe(struct ddb_port *port)
->  		ddbwritel(I2C_SPEED_100, port->i2c->regs + I2C_TIMING);
->  	}
->  
-> -	printk(KERN_INFO "Port %d (TAB %d): %s\n",
-> +	dev_info(&dev->pdev->dev, "Port %d (TAB %d): %s\n",
->  			 port->nr, port->nr+1, modname);
->  }
->  
-> @@ -1993,7 +2007,7 @@ static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
->  	dev->pdev = pdev;
->  	pci_set_drvdata(pdev, dev);
->  	dev->info = (struct ddb_info *) id->driver_data;
-> -	printk(KERN_INFO "DDBridge driver detected: %s\n", dev->info->name);
-> +	dev_info(&pdev->dev, "Detected %s\n", dev->info->name);
->  
->  	dev->regs = ioremap(pci_resource_start(dev->pdev, 0),
->  			    pci_resource_len(dev->pdev, 0));
-> @@ -2001,13 +2015,13 @@ static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
->  		stat = -ENOMEM;
->  		goto fail;
->  	}
-> -	printk(KERN_INFO "HW %08x FW %08x\n", ddbreadl(0), ddbreadl(4));
-> +	dev_info(&pdev->dev, "HW %08x FW %08x\n", ddbreadl(0), ddbreadl(4));
->  
->  #ifdef CONFIG_PCI_MSI
->  	if (pci_msi_enabled())
->  		stat = pci_enable_msi(dev->pdev);
->  	if (stat) {
-> -		printk(KERN_INFO ": MSI not available.\n");
-> +		dev_info(&pdev->dev, "MSI not available.\n");
->  	} else {
->  		irq_flag = 0;
->  		dev->msi = 1;
-> @@ -2040,7 +2054,7 @@ static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
->  		goto fail1;
->  	ddb_ports_init(dev);
->  	if (ddb_buffers_alloc(dev) < 0) {
-> -		printk(KERN_INFO ": Could not allocate buffer memory\n");
-> +		dev_err(&pdev->dev, "Could not allocate buffer memory\n");
->  		goto fail2;
->  	}
->  	if (ddb_ports_attach(dev) < 0)
-> @@ -2050,19 +2064,19 @@ static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
->  
->  fail3:
->  	ddb_ports_detach(dev);
-> -	printk(KERN_ERR "fail3\n");
-> +	dev_err(&pdev->dev, "fail3\n");
->  	ddb_ports_release(dev);
->  fail2:
-> -	printk(KERN_ERR "fail2\n");
-> +	dev_err(&pdev->dev, "fail2\n");
->  	ddb_buffers_free(dev);
->  fail1:
-> -	printk(KERN_ERR "fail1\n");
-> +	dev_err(&pdev->dev, "fail1\n");
->  	if (dev->msi)
->  		pci_disable_msi(dev->pdev);
->  	if (stat == 0)
->  		free_irq(dev->pdev->irq, dev);
->  fail:
-> -	printk(KERN_ERR "fail\n");
-> +	dev_err(&pdev->dev, "fail\n");
->  	ddb_unmap(dev);
->  	pci_set_drvdata(pdev, NULL);
->  	pci_disable_device(pdev);
-> @@ -2242,7 +2256,7 @@ static __init int module_init_ddbridge(void)
->  {
->  	int ret;
->  
-> -	printk(KERN_INFO "Digital Devices PCIE bridge driver, Copyright (C) 2010-11 Digital Devices GmbH\n");
-> +	pr_info("Digital Devices PCIE bridge driver, Copyright (C) 2010-11 Digital Devices GmbH\n");
->  
->  	ret = ddb_class_create();
->  	if (ret < 0)
+Changes in v3:
+[media] vimc: common: Add vimc_link_validate
+	- this is a new patch in the series
+
+Changes in v2: None
 
 
+---
+ drivers/media/platform/vimc/vimc-capture.c |  78 +++----------------
+ drivers/media/platform/vimc/vimc-common.c  | 121 ++++++++++++++++++++++++++++-
+ drivers/media/platform/vimc/vimc-common.h  |  14 ++++
+ 3 files changed, 145 insertions(+), 68 deletions(-)
 
-Thanks,
-Mauro
+diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
+index 93f6a09..5bdecd1 100644
+--- a/drivers/media/platform/vimc/vimc-capture.c
++++ b/drivers/media/platform/vimc/vimc-capture.c
+@@ -64,6 +64,15 @@ static int vimc_cap_querycap(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
++static void vimc_cap_get_format(struct vimc_ent_device *ved,
++				struct v4l2_pix_format *fmt)
++{
++	struct vimc_cap_device *vcap = container_of(ved, struct vimc_cap_device,
++						    ved);
++
++	*fmt = vcap->format;
++}
++
+ static int vimc_cap_fmt_vid_cap(struct file *file, void *priv,
+ 				  struct v4l2_format *f)
+ {
+@@ -231,74 +240,8 @@ static const struct vb2_ops vimc_cap_qops = {
+ 	.wait_finish		= vb2_ops_wait_finish,
+ };
+ 
+-/*
+- * NOTE: this function is a copy of v4l2_subdev_link_validate_get_format
+- * maybe the v4l2 function should be public
+- */
+-static int vimc_cap_v4l2_subdev_link_validate_get_format(struct media_pad *pad,
+-						struct v4l2_subdev_format *fmt)
+-{
+-	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(pad->entity);
+-
+-	fmt->which = V4L2_SUBDEV_FORMAT_ACTIVE;
+-	fmt->pad = pad->index;
+-
+-	return v4l2_subdev_call(sd, pad, get_fmt, NULL, fmt);
+-}
+-
+-static int vimc_cap_link_validate(struct media_link *link)
+-{
+-	struct v4l2_subdev_format source_fmt;
+-	const struct vimc_pix_map *vpix;
+-	struct vimc_cap_device *vcap = container_of(link->sink->entity,
+-						    struct vimc_cap_device,
+-						    vdev.entity);
+-	struct v4l2_pix_format *sink_fmt = &vcap->format;
+-	int ret;
+-
+-	/*
+-	 * if it is a raw node from vimc-core, ignore the link for now
+-	 * TODO: remove this when there are no more raw nodes in the
+-	 * core and return error instead
+-	 */
+-	if (link->source->entity->obj_type == MEDIA_ENTITY_TYPE_BASE)
+-		return 0;
+-
+-	/* Get the the format of the subdev */
+-	ret = vimc_cap_v4l2_subdev_link_validate_get_format(link->source,
+-							    &source_fmt);
+-	if (ret)
+-		return ret;
+-
+-	dev_dbg(vcap->vdev.v4l2_dev->dev,
+-		"%s: link validate formats src:%dx%d %d sink:%dx%d %d\n",
+-		vcap->vdev.name,
+-		source_fmt.format.width, source_fmt.format.height,
+-		source_fmt.format.code,
+-		sink_fmt->width, sink_fmt->height,
+-		sink_fmt->pixelformat);
+-
+-	/* The width, height and code must match. */
+-	vpix = vimc_pix_map_by_pixelformat(sink_fmt->pixelformat);
+-	if (source_fmt.format.width != sink_fmt->width
+-	    || source_fmt.format.height != sink_fmt->height
+-	    || vpix->code != source_fmt.format.code)
+-		return -EPIPE;
+-
+-	/*
+-	 * The field order must match, or the sink field order must be NONE
+-	 * to support interlaced hardware connected to bridges that support
+-	 * progressive formats only.
+-	 */
+-	if (source_fmt.format.field != sink_fmt->field &&
+-	    sink_fmt->field != V4L2_FIELD_NONE)
+-		return -EPIPE;
+-
+-	return 0;
+-}
+-
+ static const struct media_entity_operations vimc_cap_mops = {
+-	.link_validate		= vimc_cap_link_validate,
++	.link_validate		= vimc_link_validate,
+ };
+ 
+ static void vimc_cap_destroy(struct vimc_ent_device *ved)
+@@ -434,6 +377,7 @@ struct vimc_ent_device *vimc_cap_create(struct v4l2_device *v4l2_dev,
+ 	vcap->ved.destroy = vimc_cap_destroy;
+ 	vcap->ved.ent = &vcap->vdev.entity;
+ 	vcap->ved.process_frame = vimc_cap_process_frame;
++	vcap->ved.vdev_get_format = vimc_cap_get_format;
+ 
+ 	/* Initialize the video_device struct */
+ 	vdev = &vcap->vdev;
+diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
+index f809a9d..6ad77fd 100644
+--- a/drivers/media/platform/vimc/vimc-common.c
++++ b/drivers/media/platform/vimc/vimc-common.c
+@@ -252,8 +252,127 @@ int vimc_pipeline_s_stream(struct media_entity *ent, int enable)
+ 	return 0;
+ }
+ 
++static int vimc_get_mbus_format(struct media_pad *pad,
++				struct v4l2_subdev_format *fmt)
++{
++	if (is_media_entity_v4l2_subdev(pad->entity)) {
++		struct v4l2_subdev *sd =
++			media_entity_to_v4l2_subdev(pad->entity);
++		int ret;
++
++		fmt->which = V4L2_SUBDEV_FORMAT_ACTIVE;
++		fmt->pad = pad->index;
++
++		ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, fmt);
++		if (ret)
++			return ret;
++
++	} else if (is_media_entity_v4l2_video_device(pad->entity)) {
++		struct video_device *vdev = container_of(pad->entity,
++							 struct video_device,
++							 entity);
++		struct vimc_ent_device *ved = video_get_drvdata(vdev);
++		const struct vimc_pix_map *vpix;
++		struct v4l2_pix_format vdev_fmt;
++
++		if (!ved->vdev_get_format)
++			return -ENOIOCTLCMD;
++
++		ved->vdev_get_format(ved, &vdev_fmt);
++		vpix = vimc_pix_map_by_pixelformat(vdev_fmt.pixelformat);
++		v4l2_fill_mbus_format(&fmt->format, &vdev_fmt, vpix->code);
++	} else {
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++int vimc_link_validate(struct media_link *link)
++{
++	struct v4l2_subdev_format source_fmt, sink_fmt;
++	int ret;
++
++	/*
++	 * if it is a raw node from vimc-core, ignore the link for now
++	 * TODO: remove this when there are no more raw nodes in the
++	 * core and return error instead
++	 */
++	if (link->source->entity->obj_type == MEDIA_ENTITY_TYPE_BASE)
++		return 0;
++
++	ret = vimc_get_mbus_format(link->source, &source_fmt);
++	if (ret)
++		return ret;
++
++	ret = vimc_get_mbus_format(link->sink, &sink_fmt);
++	if (ret)
++		return ret;
++
++	pr_info("vimc link validate: "
++		"%s:src:%dx%d (0x%x, %d, %d, %d, %d) "
++		"%s:snk:%dx%d (0x%x, %d, %d, %d, %d)\n",
++		/* src */
++		link->source->entity->name,
++		source_fmt.format.width, source_fmt.format.height,
++		source_fmt.format.code, source_fmt.format.colorspace,
++		source_fmt.format.quantization, source_fmt.format.xfer_func,
++		source_fmt.format.ycbcr_enc,
++		/* sink */
++		link->sink->entity->name,
++		sink_fmt.format.width, sink_fmt.format.height,
++		sink_fmt.format.code, sink_fmt.format.colorspace,
++		sink_fmt.format.quantization, sink_fmt.format.xfer_func,
++		sink_fmt.format.ycbcr_enc);
++
++	/* The width, height and code must match. */
++	if (source_fmt.format.width != sink_fmt.format.width
++	    || source_fmt.format.height != sink_fmt.format.height
++	    || source_fmt.format.code != sink_fmt.format.code)
++		return -EPIPE;
++
++	/*
++	 * The field order must match, or the sink field order must be NONE
++	 * to support interlaced hardware connected to bridges that support
++	 * progressive formats only.
++	 */
++	if (source_fmt.format.field != sink_fmt.format.field &&
++	    sink_fmt.format.field != V4L2_FIELD_NONE)
++		return -EPIPE;
++
++	/*
++	 * If colorspace is DEFAULT, then assume all the colorimetry is also
++	 * DEFAULT, return 0 to skip comparing the other colorimetry parameters
++	 */
++	if (source_fmt.format.colorspace == V4L2_COLORSPACE_DEFAULT
++	    || sink_fmt.format.colorspace == V4L2_COLORSPACE_DEFAULT)
++		return 0;
++
++	/* Colorspace must match. */
++	if (source_fmt.format.colorspace != sink_fmt.format.colorspace)
++		return -EPIPE;
++
++	/* Colorimetry must match if they are not set to DEFAULT */
++	if (source_fmt.format.ycbcr_enc != V4L2_YCBCR_ENC_DEFAULT
++	    && sink_fmt.format.ycbcr_enc != V4L2_YCBCR_ENC_DEFAULT
++	    && source_fmt.format.ycbcr_enc != sink_fmt.format.ycbcr_enc)
++		return -EPIPE;
++
++	if (source_fmt.format.quantization != V4L2_QUANTIZATION_DEFAULT
++	    && sink_fmt.format.quantization != V4L2_QUANTIZATION_DEFAULT
++	    && source_fmt.format.quantization != sink_fmt.format.quantization)
++		return -EPIPE;
++
++	if (source_fmt.format.xfer_func != V4L2_XFER_FUNC_DEFAULT
++	    && sink_fmt.format.xfer_func != V4L2_XFER_FUNC_DEFAULT
++	    && source_fmt.format.xfer_func != sink_fmt.format.xfer_func)
++		return -EPIPE;
++
++	return 0;
++}
++
+ static const struct media_entity_operations vimc_ent_sd_mops = {
+-	.link_validate = v4l2_subdev_link_validate,
++	.link_validate = vimc_link_validate,
+ };
+ 
+ int vimc_ent_sd_register(struct vimc_ent_device *ved,
+diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
+index 73e7e94..60ebde2 100644
+--- a/drivers/media/platform/vimc/vimc-common.h
++++ b/drivers/media/platform/vimc/vimc-common.h
+@@ -45,6 +45,9 @@ struct vimc_pix_map {
+  * @pads:		the list of pads of the node
+  * @destroy:		callback to destroy the node
+  * @process_frame:	callback send a frame to that node
++ * @vdev_get_format:	callback that returns the current format a pad, used
++ *			only when is_media_entity_v4l2_video_device(ent) returns
++ *			true
+  *
+  * Each node of the topology must create a vimc_ent_device struct. Depending on
+  * the node it will be of an instance of v4l2_subdev or video_device struct
+@@ -60,6 +63,8 @@ struct vimc_ent_device {
+ 	void (*destroy)(struct vimc_ent_device *);
+ 	void (*process_frame)(struct vimc_ent_device *ved,
+ 			      struct media_pad *sink, const void *frame);
++	void (*vdev_get_format)(struct vimc_ent_device *ved,
++			      struct v4l2_pix_format *fmt);
+ };
+ 
+ /**
+@@ -160,4 +165,13 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
+ void vimc_ent_sd_unregister(struct vimc_ent_device *ved,
+ 			    struct v4l2_subdev *sd);
+ 
++/**
++ * vimc_link_validate - validates a media link
++ *
++ * @link: pointer to &struct media_link
++ *
++ * This function calls validates if a media link is valid for streaming.
++ */
++int vimc_link_validate(struct media_link *link);
++
+ #endif
+-- 
+2.7.4
