@@ -1,71 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor3.renesas.com ([210.160.252.173]:29294 "EHLO
-        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752086AbdFLNkA (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:17944 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752389AbdFSJSC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Jun 2017 09:40:00 -0400
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [PATCH v8 4/8] media: Add new SDR formats PC16, PC18 & PC20
-Date: Mon, 12 Jun 2017 14:26:16 +0100
-Message-Id: <20170612132620.1024-5-ramesh.shanmugasundaram@bp.renesas.com>
-In-Reply-To: <20170612132620.1024-1-ramesh.shanmugasundaram@bp.renesas.com>
-References: <20170612132620.1024-1-ramesh.shanmugasundaram@bp.renesas.com>
+        Mon, 19 Jun 2017 05:18:02 -0400
+Subject: Re: [RFC PATCH 2/2] media/uapi/v4l: clarify cropcap/crop/selection
+ behavior
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <27dd591b-4ef1-20ed-b93a-a30494cdf94d@samsung.com>
+Date: Mon, 19 Jun 2017 11:17:55 +0200
+MIME-version: 1.0
+In-reply-to: <752af6b7-cbc4-6286-e7dd-45f0377d85b0@xs4all.nl>
+Content-type: text/plain; charset="utf-8"; format="flowed"
+Content-language: en-GB
+Content-transfer-encoding: 7bit
+References: <20170508143506.16448-1-hverkuil@xs4all.nl>
+        <20170508143506.16448-2-hverkuil@xs4all.nl>
+        <752af6b7-cbc4-6286-e7dd-45f0377d85b0@xs4all.nl>
+        <CGME20170619091759epcas1p267d09b4cb075df4fbb680077b6f4eedf@epcas1p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for the three new SDR formats. These formats
-were prefixed with "planar" indicating I & Q data are not interleaved
-as in other formats. Here, I & Q data constitutes the top half and bottom
-half of the received buffer respectively.
+Hi Hans,
 
-V4L2_SDR_FMT_PCU16BE - 14-bit complex (I & Q) unsigned big-endian sample
-inside 16-bit. V4L2 FourCC: PC16
+On 06/19/2017 09:35 AM, Hans Verkuil wrote:
 
-V4L2_SDR_FMT_PCU18BE - 16-bit complex (I & Q) unsigned big-endian sample
-inside 18-bit. V4L2 FourCC: PC18
+>> diff --git a/Documentation/media/uapi/v4l/vidioc-cropcap.rst b/Documentation/media/uapi/v4l/vidioc-cropcap.rst
+>> index f21a69b554e1..d354216846e6 100644
+>> --- a/Documentation/media/uapi/v4l/vidioc-cropcap.rst
+>> +++ b/Documentation/media/uapi/v4l/vidioc-cropcap.rst
+>> @@ -39,16 +39,19 @@ structure. Drivers fill the rest of the structure. The results are
+>>    constant except when switching the video standard. Remember this switch
+>>    can occur implicit when switching the video input or output.
+>>    
+>> -Do not use the multiplanar buffer types. Use
+>> -``V4L2_BUF_TYPE_VIDEO_CAPTURE`` instead of
+>> -``V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE`` and use
+>> -``V4L2_BUF_TYPE_VIDEO_OUTPUT`` instead of
+>> -``V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE``.
+>> -
+>>    This ioctl must be implemented for video capture or output devices that
+>>    support cropping and/or scaling and/or have non-square pixels, and for
+>>    overlay devices.
+>>    
+>> +.. note::
+>> +   Unfortunately in the case of multiplanar buffer types
+>> +   (``V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE`` and ``V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE``)
+>> +   this API was messed up with regards to how the :c:type:`v4l2_cropcap` ``type`` field
+>> +   should be filled in. The Samsung Exynos drivers only accepted the
+> 
+> I propose I change this to "Some drivers only..." here and at the other places I
+> refer to Exynos.
+> 
+> Do you agree?
 
-V4L2_SDR_FMT_PCU20BE - 18-bit complex (I & Q) unsigned big-endian sample
-inside 20-bit. V4L2 FourCC: PC20
+Yes, perhaps we could move the note paragraphs on the G_CROP,
+G_SELECTION pages after v4l2_crop, v4l2_selection tables?
 
-Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 3 +++
- include/uapi/linux/videodev2.h       | 3 +++
- 2 files changed, 6 insertions(+)
-
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 4f27cfa134a1..ce40183d9daa 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1229,6 +1229,9 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
- 	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
- 	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
-+	case V4L2_SDR_FMT_PCU16BE:	descr = "Planar Complex U16BE"; break;
-+	case V4L2_SDR_FMT_PCU18BE:	descr = "Planar Complex U18BE"; break;
-+	case V4L2_SDR_FMT_PCU20BE:	descr = "Planar Complex U20BE"; break;
- 	case V4L2_TCH_FMT_DELTA_TD16:	descr = "16-bit signed deltas"; break;
- 	case V4L2_TCH_FMT_DELTA_TD08:	descr = "8-bit signed deltas"; break;
- 	case V4L2_TCH_FMT_TU16:		descr = "16-bit unsigned touch data"; break;
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 2b8feb86d09e..45cf7359822c 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -669,6 +669,9 @@ struct v4l2_pix_format {
- #define V4L2_SDR_FMT_CS8          v4l2_fourcc('C', 'S', '0', '8') /* complex s8 */
- #define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S', '1', '4') /* complex s14le */
- #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
-+#define V4L2_SDR_FMT_PCU16BE	  v4l2_fourcc('P', 'C', '1', '6') /* planar complex u16be */
-+#define V4L2_SDR_FMT_PCU18BE	  v4l2_fourcc('P', 'C', '1', '8') /* planar complex u18be */
-+#define V4L2_SDR_FMT_PCU20BE	  v4l2_fourcc('P', 'C', '2', '0') /* planar complex u20be */
- 
- /* Touch formats - used for Touch devices */
- #define V4L2_TCH_FMT_DELTA_TD16	v4l2_fourcc('T', 'D', '1', '6') /* 16-bit signed deltas */
--- 
-2.12.2
+--
+Regards,
+Sylwester
