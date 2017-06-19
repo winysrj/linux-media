@@ -1,84 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:14218
-        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750823AbdFULaM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Jun 2017 07:30:12 -0400
-Date: Wed, 21 Jun 2017 13:30:07 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Daniel Scheller <d.scheller@gmx.net>
-cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-        linux-media@vger.kernel.org, kbuild-all@01.org
-Subject: [ragnatech:media-tree 1869/1907] drivers/media/dvb-frontends/stv0367.c:3127:3-16:
- duplicated argument to & or | (fwd)
-Message-ID: <alpine.DEB.2.20.1706211329160.3050@hadrien>
+Received: from mail.kernel.org ([198.145.29.99]:39830 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752478AbdFSWKR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Jun 2017 18:10:17 -0400
+Subject: Re: [PATCH v3 2/4] [media] platform: Add Synopsys Designware HDMI RX
+ Controller Driver
+To: Jose Abreu <Jose.Abreu@synopsys.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org,
+        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <cover.1497630695.git.joabreu@synopsys.com>
+ <d7f507ccec6f25f9be457c1c3f2f802b55377a1f.1497630695.git.joabreu@synopsys.com>
+ <fd65183f-b577-9ac6-a56e-689121e82e73@kernel.org>
+ <b4b49f3c-3b07-5638-62b9-26a1fe68af98@synopsys.com>
+From: Sylwester Nawrocki <snawrocki@kernel.org>
+Message-ID: <c75953dc-c5aa-d9ec-e255-dfa6d03df64f@kernel.org>
+Date: Tue, 20 Jun 2017 00:10:07 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <b4b49f3c-3b07-5638-62b9-26a1fe68af98@synopsys.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It seems that some of the constants on lines 3127 and on are the same as
-the ones on lines 3134 and on.
+On 06/19/2017 11:33 AM, Jose Abreu wrote:
+> On 18-06-2017 19:04, Sylwester Nawrocki wrote:
+>> On 06/16/2017 06:38 PM, Jose Abreu wrote:
+>>> This is an initial submission for the Synopsys Designware HDMI RX
+>>> Controller Driver. This driver interacts with a phy driver so that
+>>> a communication between them is created and a video pipeline is
+>>> configured.
+>>>
+>>> The controller + phy pipeline can then be integrated into a fully
+>>> featured system that can be able to receive video up to 4k@60Hz
+>>> with deep color 48bit RGB, depending on the platform. Although,
+>>> this initial version does not yet handle deep color modes.
+>>> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+>>>
+>>> +static int dw_hdmi_phy_init(struct dw_hdmi_dev *dw_dev)
+>>> +{
 
-julia
+>>> +	request_module(pdevinfo.name);
+>>> +
+>>> +	dw_dev->phy_pdev = platform_device_register_full(&pdevinfo);
+>>> +	if (IS_ERR(dw_dev->phy_pdev)) {
+>>> +		dev_err(dw_dev->dev, "failed to register phy device\n");
+>>> +		return PTR_ERR(dw_dev->phy_pdev);
+>>> +	}
+>>> +
+>>> +	if (!dw_dev->phy_pdev->dev.driver) {
+>>> +		dev_err(dw_dev->dev, "failed to initialize phy driver\n");
+>>> +		goto err;
+>>> +	}
+>> I think this is not safe because there is nothing preventing unbinding
+>> or unloading the driver at this point.
+>>
+>>> +	if (!try_module_get(dw_dev->phy_pdev->dev.driver->owner)) {
+>> So dw_dev->phy_pdev->dev.driver may be already NULL here.
+> 
+> How can I make sure it wont be NULL? Because I've seen other
+> media drivers do this and I don't think they do any kind of
+> locking, but they do this mainly for I2C subdevs.
 
----------- Forwarded message ----------
-Date: Wed, 21 Jun 2017 18:20:03 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: kbuild@01.org
-Cc: Julia Lawall <julia.lawall@lip6.fr>
-Subject: [ragnatech:media-tree 1869/1907]
-    drivers/media/dvb-frontends/stv0367.c:3127:3-16: duplicated argument to & or
-     |
+You could do device_lock(dev)/device_unlock(dev) to avoid possible races. 
+And setting 'suppress_bind_attrs' field in the sub-device drivers would 
+disable sysfs unbind attributes, so sub-device driver wouldn't get unbound
+unexpectedly trough sysfs.
+ 
+>>> +		dev_err(dw_dev->dev, "failed to get phy module\n");
+>>> +		goto err;
+>>> +	}
+>>> +
+>>> +	dw_dev->phy_sd = dev_get_drvdata(&dw_dev->phy_pdev->dev);
+>>> +	if (!dw_dev->phy_sd) {
+>>> +		dev_err(dw_dev->dev, "failed to get phy subdev\n");
+>>> +		goto err_put;
+>>> +	}
+>>> +
+>>> +	if (v4l2_device_register_subdev(&dw_dev->v4l2_dev, dw_dev->phy_sd)) {
+>>> +		dev_err(dw_dev->dev, "failed to register phy subdev\n");
+>>> +		goto err_put;
+>>> +	}
+>>
+>> I'd suggest usign v4l2-async API, so we use a common pattern for sub-device
+>> registration.  And with recent change [1] you could handle this PHY subdev
+>> in a standard way.  That might be more complicated than it is now but should
+>> make any future platform integration easier.
 
-CC: kbuild-all@01.org
-TO: Daniel Scheller <d.scheller@gmx.net>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
+> So I will instantiate phy driver and then wait for phy driver to
+> register into v4l2 core?
 
-tree:   git://git.ragnatech.se/linux media-tree
-head:   76724b30f222067faf00874dc277f6c99d03d800
-commit: dbbac11e1de1250ad39bbc15490c8614ac7f9def [1869/1907] [media] dvb-frontends/stv0367: add Digital Devices compatibility
-:::::: branch date: 20 hours ago
-:::::: commit date: 22 hours ago
+Yes, for instance the RX controller driver registers a notifier, instantiates
+the child PHY device and then waits until the PHY driver completes initialization.
 
->> drivers/media/dvb-frontends/stv0367.c:3127:3-16: duplicated argument to & or |
-   drivers/media/dvb-frontends/stv0367.c:3128:3-16: duplicated argument to & or |
-   drivers/media/dvb-frontends/stv0367.c:3128:19-33: duplicated argument to & or |
-   drivers/media/dvb-frontends/stv0367.c:3129:3-17: duplicated argument to & or |
-   drivers/media/dvb-frontends/stv0367.c:3129:20-35: duplicated argument to & or |
+>>> +	module_put(dw_dev->phy_pdev->dev.driver->owner);
+>>> +	return 0;
+>>> +
+>>> +err_put:
+>>> +	module_put(dw_dev->phy_pdev->dev.driver->owner);
+>>> +err:
+>>> +	platform_device_unregister(dw_dev->phy_pdev);
+>>> +	return -EINVAL;
+>>> +}
 
-git remote add ragnatech git://git.ragnatech.se/linux
-git remote update ragnatech
-git checkout dbbac11e1de1250ad39bbc15490c8614ac7f9def
-vim +3127 drivers/media/dvb-frontends/stv0367.c
+>>> +static int dw_hdmi_power_on(struct dw_hdmi_dev *dw_dev, u32 input)
+>>> +{
+>>> +	struct dw_hdmi_work_data *data;
+>>> +	unsigned long flags;
+>>> +
+>>> +	data = devm_kzalloc(dw_dev->dev, sizeof(*data), GFP_KERNEL);
+>>
+>> Why use devm_{kzalloc, kfree} when dw_hdmi_power_on() is not only called
+>> in the device's probe() callback, but in other places, including interrupt
+>> handler?  devm_* API is normally used when life time of a resource is more
+>> or less equal to life time of struct device or its matched driver.  Were
+>> there any specific reasons to not just use kzalloc()/kfree() ?
+> 
+> No specific reason, I just thought it would be safer because if I
+> cancel a work before it started then memory will remain
+> allocated. But I will change to kzalloc().
 
-dbbac11e Daniel Scheller 2017-03-29  3111
-dbbac11e Daniel Scheller 2017-03-29  3112  	return 0;
-dbbac11e Daniel Scheller 2017-03-29  3113  }
-dbbac11e Daniel Scheller 2017-03-29  3114
-dbbac11e Daniel Scheller 2017-03-29  3115  static const struct dvb_frontend_ops stv0367ddb_ops = {
-dbbac11e Daniel Scheller 2017-03-29  3116  	.delsys = { SYS_DVBC_ANNEX_A, SYS_DVBT },
-dbbac11e Daniel Scheller 2017-03-29  3117  	.info = {
-dbbac11e Daniel Scheller 2017-03-29  3118  		.name			= "ST STV0367 DDB DVB-C/T",
-dbbac11e Daniel Scheller 2017-03-29  3119  		.frequency_min		= 47000000,
-dbbac11e Daniel Scheller 2017-03-29  3120  		.frequency_max		= 865000000,
-dbbac11e Daniel Scheller 2017-03-29  3121  		.frequency_stepsize	= 166667,
-dbbac11e Daniel Scheller 2017-03-29  3122  		.frequency_tolerance	= 0,
-dbbac11e Daniel Scheller 2017-03-29  3123  		.symbol_rate_min	= 870000,
-dbbac11e Daniel Scheller 2017-03-29  3124  		.symbol_rate_max	= 11700000,
-dbbac11e Daniel Scheller 2017-03-29  3125  		.caps = /* DVB-C */
-dbbac11e Daniel Scheller 2017-03-29  3126  			0x400 |/* FE_CAN_QAM_4 */
-dbbac11e Daniel Scheller 2017-03-29 @3127  			FE_CAN_QAM_16 | FE_CAN_QAM_32  |
-dbbac11e Daniel Scheller 2017-03-29  3128  			FE_CAN_QAM_64 | FE_CAN_QAM_128 |
-dbbac11e Daniel Scheller 2017-03-29  3129  			FE_CAN_QAM_256 | FE_CAN_FEC_AUTO |
-dbbac11e Daniel Scheller 2017-03-29  3130  			/* DVB-T */
-dbbac11e Daniel Scheller 2017-03-29  3131  			FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 |
-dbbac11e Daniel Scheller 2017-03-29  3132  			FE_CAN_FEC_3_4 | FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 |
-dbbac11e Daniel Scheller 2017-03-29  3133  			FE_CAN_FEC_AUTO |
-dbbac11e Daniel Scheller 2017-03-29  3134  			FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_QAM_64 |
-dbbac11e Daniel Scheller 2017-03-29  3135  			FE_CAN_QAM_128 | FE_CAN_QAM_256 | FE_CAN_QAM_AUTO |
+OK, I overlooked such situation. Since you allow one job queued maybe
+just embed struct work_struct in struct dw_hdmi_dev and retrieve it with
+container_of() macro in the work handler and use additional field in
+struct dw_hdmi_dev protected with dw_dev->lock for passing the input 
+index?
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+>>> +	if (!data)
+>>> +		return -ENOMEM;
+>>> +
+>>> +	INIT_WORK(&data->work, dw_hdmi_work_handler);
+>>> +	data->dw_dev = dw_dev;
+>>> +	data->input = input;
+>>> +
+>>> +	spin_lock_irqsave(&dw_dev->lock, flags);
+>>> +	if (dw_dev->pending_config) {
+>>> +		devm_kfree(dw_dev->dev, data);
+>>> +		spin_unlock_irqrestore(&dw_dev->lock, flags);
+>>> +		return 0;
+>>> +	}
+>>> +
+>>> +	queue_work(dw_dev->wq, &data->work);
+>>> +	dw_dev->pending_config = true;
+>>> +	spin_unlock_irqrestore(&dw_dev->lock, flags);
+>>> +	return 0;
+>>> +}
+
+>>> +struct dw_hdmi_rx_pdata {
+>>> +	/* Controller configuration */
+
+>>> +	struct dw_hdmi_hdcp14_key hdcp14_keys;
+>>> +	/* 5V sense interface */
+>>> +	bool (*dw_5v_status)(void __iomem *regs, int input);
+>>> +	void (*dw_5v_clear)(void __iomem *regs);
+>>> +	void __iomem *dw_5v_arg;> +	/* Zcal interface */
+>>> +	void (*dw_zcal_reset)(void __iomem *regs);
+>>> +	bool (*dw_zcal_done)(void __iomem *regs);
+>>> +	void __iomem *dw_zcal_arg;
+>>
+>> I'm just wondering if these operations could be modeled with the regmap,
+>> so we could avoid callbacks in the platform data structure.
+> 
+> Hmm, I don't think that is safe because registers may not be
+> adjacent to each other. And maybe I was a little generous in
+> passing a __iomem argument, maybe it should be just void instead
+> because this can be not a regmap at all.
+
+I meant two separate regmaps, but it's not that good anyway, since
+register address and register bit fields not specific to the HDMI RX
+block would need to be handled in this driver.
+
+--
+Regards,
+Sylwester 
