@@ -1,74 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52898
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750831AbdFGP5z (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 11:57:55 -0400
-Date: Wed, 7 Jun 2017 12:57:47 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: "Jasmin J." <jasmin@anw.at>, rjkm@metzlerbros.de
-Cc: linux-media@vger.kernel.org, max.kellermann@gmail.com,
-        d.scheller@gmx.net
-Subject: Re: [PATCH 0/7] Add block read/write to en50221 CAM functions
-Message-ID: <20170607125747.63d057c2@vento.lan>
-In-Reply-To: <1494190313-18557-1-git-send-email-jasmin@anw.at>
-References: <1494190313-18557-1-git-send-email-jasmin@anw.at>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:45586 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751090AbdFSJuh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Jun 2017 05:50:37 -0400
+Subject: Re: [PATCH] [media] ov2640: make GPIOLIB an optional dependency
+To: Pavel Machek <pavel@ucw.cz>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>,
+        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Bhumika Goyal <bhumirks@gmail.com>
+References: <a463ea990d2138ca93027b006be96a0324b77fe4.1492602584.git.mchehab@s-opensource.com>
+ <20170419132339.GA31747@amd> <20170419110300.2dbbf784@vento.lan>
+ <20170421063312.GA21434@amd>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <153c35bf-b6bd-eb97-d72e-bab05e96e267@xs4all.nl>
+Date: Mon, 19 Jun 2017 11:50:25 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20170421063312.GA21434@amd>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun,  7 May 2017 22:51:46 +0200
-"Jasmin J." <jasmin@anw.at> escreveu:
+Hi Pavel,
 
-> From: Jasmin Jessich <jasmin@anw.at>
-> 
-> These patch series implement a block read/write interface to the en50221
-> CAM control functions. The origin of this patches can be found in the
-> Digital Devices Git on https://github.com/DigitalDevices/dddvb maintained
-> by Ralph Metzler <rjkm@metzlerbros.de>
-> 
-> The relevant changes concerning dvb-core/dvb_ca_en50221.c/.h and
-> cxd2099/cxd2099.c/.h have been extracted from the mentioned repository by
-> Daniel Scheller <d.scheller@gmx.net> and committed to his branch on
-> https://github.com/herrnst/dddvb-linux-kernel/tree/mediatree/master-cxd2099
-> 
-> I split the patch set is smaller pieces for easier review, compiled each
-> step, fixed code style issues in cxd2099/cxd2099.c/.h (checkpatch.pl) and
-> tested the resulting driver on my hardware with the DD DuoFlex CI (single)
-> card.
-> 
-> Please note, that the block read/write functionality is already implemented
-> in the currently existing cxd2099/cxd2099.c/.h driver, but deactivated. The
-> existing code in this driver is also not functional and has been updated by
-> the working implementation from the Digital Devices Git.
-> 
-> Additionally to the block read/write functions, I merged also two patches
-> in the en50221 CAM control state machine, which were existing in the
-> Digital Devices Git. This are the first two patches of this series.
-> 
-> There is another patch series coming soon "Fix coding style in en50221 CAM
-> functions" which fixes nearly all the style issues in
-> dvb-core/dvb_ca_en50221.c/.h, based on this patch series. So please be
-> patient, if any of the dvb_ca_en50221.c/.h might be not 100% checkpatch.pl
-> compliant. I tried to keep the original patch code from DD as much as
-> possible.
-> 
-> Apologizes if anything regarding the patch submission is/went wrong, as
-> this is my first time contribution of a patch set.
-> 
-> 
-> Jasmin Jessich (7):
->   [media] dvb-core/dvb_ca_en50221.c: State UNINITIALISED instead of INVALID
->   [media] dvb-core/dvb_ca_en50221.c: Increase timeout for link init
->   [media] dvb-core/dvb_ca_en50221.c: Add block read/write functions
->   [staging] cxd2099/cxd2099.c/.h: Fixed buffer mode
->   [media] ddbridge/ddbridge-core.c: Set maximum cxd2099 block size to 512
->   [staging] cxd2099/cxd2099.c: Removed useless printing in cxd2099 driver
->   [staging] cxd2099/cxd2099.c: Activate cxd2099 buffer mode
+I'm dropping this from patchwork since this no longer applies now that ov2640
+has been moved out of soc_camera.
 
-Hmm... from what I understood, the original author for those patches
-is Ralph, right?
+If you still want this (it is a reasonable patch), then please respin.
 
 Regards,
-Mauro
+
+	Hans
+
+On 04/21/2017 08:33 AM, Pavel Machek wrote:
+> Hi!
+> 
+>>> Better solution would be for VIDEO_EM28XX_V4L2 to depend on GPIOLIB,
+>>> too, no? If not, should there be BUG_ON(priv->pwdn_gpio);
+>>> BUG_ON(priv->resetb_gpio);?
+>>
+>> Pavel,
+>>
+>> The em28xx driver was added upstream several years the gpio driver.
+>> It controls GPIO using a different logic. It makes no sense to make
+>> it dependent on GPIOLIB, except if someone converts it to use it.
+> 
+> At least comment in the sourcecode...? Remove pwdn_gpio fields from
+> structure in !GPIOLIB case, because otherwise they are trap for the
+> programmer trying to understand what is going on?
+> 
+> Plus, something like this, because otherwise it is quite confusing?
+> 
+> Thanks,
+> 								Pavel
+> 
+> diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
+> index 56de182..85620e1 100644
+> --- a/drivers/media/i2c/soc_camera/ov2640.c
+> +++ b/drivers/media/i2c/soc_camera/ov2640.c
+> @@ -1060,7 +1060,7 @@ static int ov2640_hw_reset(struct device *dev)
+>   		/* Active the resetb pin to perform a reset pulse */
+>   		gpiod_direction_output(priv->resetb_gpio, 1);
+>   		usleep_range(3000, 5000);
+> -		gpiod_direction_output(priv->resetb_gpio, 0);
+> +		gpiod_set_value(priv->resetb_gpio, 0);
+>   	}
+>   
+>   	return 0;
+> 
