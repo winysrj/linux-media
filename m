@@ -1,37 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f45.google.com ([209.85.214.45]:37588 "EHLO
-        mail-it0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751247AbdFFVGG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Jun 2017 17:06:06 -0400
-Received: by mail-it0-f45.google.com with SMTP id m47so118903313iti.0
-        for <linux-media@vger.kernel.org>; Tue, 06 Jun 2017 14:06:06 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170606165847.3b3cbe19@vento.lan>
-References: <CALzAhNX3ncfu09k2ZaZ+5x28uNhy2kSCw4swatU89N+kJ=2PoQ@mail.gmail.com>
- <20170606165847.3b3cbe19@vento.lan>
-From: Steven Toth <stoth@kernellabs.com>
-Date: Tue, 6 Jun 2017 17:06:05 -0400
-Message-ID: <CALzAhNUDmb15ioT-jeC8mi9=djmS9ZFXahmvGLjtKZu-Vbgfjw@mail.gmail.com>
-Subject: Re: [GIT PULL] [PATCH] saa7164: Bug - Double fetch PCIe access condition
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:56952 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752434AbdFSRCW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Jun 2017 13:02:22 -0400
+From: Helen Koike <helen.koike@collabora.com>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, jgebben@codeaurora.org,
+        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v5 12/12] [media] vimc: sen: Declare vimc_sen_video_ops as static
+Date: Mon, 19 Jun 2017 14:00:21 -0300
+Message-Id: <1497891629-1562-13-git-send-email-helen.koike@collabora.com>
+In-Reply-To: <1497891629-1562-1-git-send-email-helen.koike@collabora.com>
+References: <1497891629-1562-1-git-send-email-helen.koike@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Applied, thanks!
+Declare vimc_sen_video_ops as static, remove warning from sparse tool
 
-Yay!
+Signed-off-by: Helen Koike <helen.koike@collabora.com>
 
->
-> Next time, please either send as a patch or use the command:
->
->         $ git request-pull
->
-> As otherwise I may miss it, as patchwork won't get it.
+---
 
-Will do, thank you.
+Changes in v5:
+[media] vimc: sen: Declare vimc_sen_video_ops as static
+	- This is a new patch in the series
 
+Changes in v4: None
+Changes in v3: None
+Changes in v2: None
+
+
+---
+ drivers/media/platform/vimc/vimc-sensor.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+index 5ea7b08..ebdbbe8 100644
+--- a/drivers/media/platform/vimc/vimc-sensor.c
++++ b/drivers/media/platform/vimc/vimc-sensor.c
+@@ -282,7 +282,7 @@ static int vimc_sen_s_stream(struct v4l2_subdev *sd, int enable)
+ 	return 0;
+ }
+ 
+-struct v4l2_subdev_video_ops vimc_sen_video_ops = {
++static struct v4l2_subdev_video_ops vimc_sen_video_ops = {
+ 	.s_stream = vimc_sen_s_stream,
+ };
+ 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+2.7.4
