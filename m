@@ -1,51 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:36638 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751835AbdFVPNp (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:30135 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751324AbdFSH7I (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Jun 2017 11:13:45 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mon, 19 Jun 2017 03:59:08 -0400
+Message-ID: <1497859143.27486.1.camel@mtksdaap41>
+Subject: Re: [PATCH v2] [media] mtk-vcodec: Show mtk driver error without
+ DEBUG definition
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hirokazu Honda <hiroh@chromium.org>
+CC: Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        <linux-media@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v1 1/5] [media] stm32-dcmi: catch dma submission error
-Date: Thu, 22 Jun 2017 17:12:47 +0200
-Message-ID: <1498144371-13310-2-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1498144371-13310-1-git-send-email-hugues.fruchet@st.com>
-References: <1498144371-13310-1-git-send-email-hugues.fruchet@st.com>
+        <linux-mediatek@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>
+Date: Mon, 19 Jun 2017 15:59:03 +0800
+In-Reply-To: <20170530095358.2685-1-hiroh@chromium.org>
+References: <20170530095358.2685-1-hiroh@chromium.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Test cookie return by dmaengine_submit() and return error if any.
+On Tue, 2017-05-30 at 18:53 +0900, Hirokazu Honda wrote:
+> A driver error message is shown without DEBUG definition
+> to find an error and debug easily.
+> 
+> Signed-off-by: Hirokazu Honda <hiroh@chromium.org>
+Acked-by: Tiffany Lin <tiffany.lin@mediatek.com>
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- drivers/media/platform/stm32/stm32-dcmi.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-index 83d32a5..0dd5d1c 100644
---- a/drivers/media/platform/stm32/stm32-dcmi.c
-+++ b/drivers/media/platform/stm32/stm32-dcmi.c
-@@ -295,6 +295,10 @@ static int dcmi_start_dma(struct stm32_dcmi *dcmi,
- 
- 	/* Push current DMA transaction in the pending queue */
- 	dcmi->dma_cookie = dmaengine_submit(desc);
-+	if (dma_submit_error(dcmi->dma_cookie)) {
-+		dev_err(dcmi->dev, "%s: DMA submission failed\n", __func__);
-+		return -ENXIO;
-+	}
- 
- 	dma_async_issue_pending(dcmi->dma_chan);
- 
--- 
-1.9.1
+> ---
+>  drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h | 20 +++++++++-----------
+>  1 file changed, 9 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
+> index 237e144c194f..06c254f5c171 100644
+> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
+> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
+> @@ -32,6 +32,15 @@ extern int mtk_v4l2_dbg_level;
+>  extern bool mtk_vcodec_dbg;
+>  
+> 
+> +#define mtk_v4l2_err(fmt, args...)                \
+> +	pr_err("[MTK_V4L2][ERROR] %s:%d: " fmt "\n", __func__, __LINE__, \
+> +	       ##args)
+> +
+> +#define mtk_vcodec_err(h, fmt, args...)					\
+> +	pr_err("[MTK_VCODEC][ERROR][%d]: %s() " fmt "\n",		\
+> +	       ((struct mtk_vcodec_ctx *)h->ctx)->id, __func__, ##args)
+> +
+> +
+>  #if defined(DEBUG)
+>  
+>  #define mtk_v4l2_debug(level, fmt, args...)				 \
+> @@ -41,11 +50,6 @@ extern bool mtk_vcodec_dbg;
+>  				level, __func__, __LINE__, ##args);	 \
+>  	} while (0)
+>  
+> -#define mtk_v4l2_err(fmt, args...)                \
+> -	pr_err("[MTK_V4L2][ERROR] %s:%d: " fmt "\n", __func__, __LINE__, \
+> -	       ##args)
+> -
+> -
+>  #define mtk_v4l2_debug_enter()  mtk_v4l2_debug(3, "+")
+>  #define mtk_v4l2_debug_leave()  mtk_v4l2_debug(3, "-")
+>  
+> @@ -57,22 +61,16 @@ extern bool mtk_vcodec_dbg;
+>  				__func__, ##args);			\
+>  	} while (0)
+>  
+> -#define mtk_vcodec_err(h, fmt, args...)					\
+> -	pr_err("[MTK_VCODEC][ERROR][%d]: %s() " fmt "\n",		\
+> -	       ((struct mtk_vcodec_ctx *)h->ctx)->id, __func__, ##args)
+> -
+>  #define mtk_vcodec_debug_enter(h)  mtk_vcodec_debug(h, "+")
+>  #define mtk_vcodec_debug_leave(h)  mtk_vcodec_debug(h, "-")
+>  
+>  #else
+>  
+>  #define mtk_v4l2_debug(level, fmt, args...) {}
+> -#define mtk_v4l2_err(fmt, args...) {}
+>  #define mtk_v4l2_debug_enter() {}
+>  #define mtk_v4l2_debug_leave() {}
+>  
+>  #define mtk_vcodec_debug(h, fmt, args...) {}
+> -#define mtk_vcodec_err(h, fmt, args...) {}
+>  #define mtk_vcodec_debug_enter(h) {}
+>  #define mtk_vcodec_debug_leave(h) {}
+>  
