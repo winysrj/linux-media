@@ -1,123 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:42535 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751190AbdFAU7J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Jun 2017 16:59:09 -0400
-From: Takashi Iwai <tiwai@suse.de>
-To: alsa-devel@alsa-project.org
-Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
-        Mark Brown <broonie@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Felipe Balbi <balbi@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-usb@vger.kernel.org
-Subject: [PATCH v2 13/27] ALSA: sh: Convert to the new PCM ops
-Date: Thu,  1 Jun 2017 22:58:36 +0200
-Message-Id: <20170601205850.24993-14-tiwai@suse.de>
-In-Reply-To: <20170601205850.24993-1-tiwai@suse.de>
-References: <20170601205850.24993-1-tiwai@suse.de>
+Received: from mailout3.samsung.com ([203.254.224.33]:43533 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751875AbdFSFZN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Jun 2017 01:25:13 -0400
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>
+Subject: [Patch v5 05/12] [media] videodev2.h: Add v4l2 definition for HEVC
+Date: Mon, 19 Jun 2017 10:40:48 +0530
+Message-id: <1497849055-26583-6-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
+References: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
+        <CGME20170619052505epcas5p33a78ee709263cc9ae33cd9383794ca06@epcas5p3.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the copy and the silence ops with the new PCM ops.
-Fixed also the user-space buffer copy with the proper
-copy_from_user*() variant.
+Add V4L2 definition for HEVC compressed format
 
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
 ---
- sound/sh/sh_dac_audio.c | 54 +++++++++++++++++++++++++++----------------------
- 1 file changed, 30 insertions(+), 24 deletions(-)
+ include/uapi/linux/videodev2.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/sound/sh/sh_dac_audio.c b/sound/sh/sh_dac_audio.c
-index 461b310c7872..c1e00ed715ee 100644
---- a/sound/sh/sh_dac_audio.c
-+++ b/sound/sh/sh_dac_audio.c
-@@ -184,23 +184,36 @@ static int snd_sh_dac_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
- 	return 0;
- }
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 2b8feb8..488de3d 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -629,6 +629,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
+ #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
+ #define V4L2_PIX_FMT_VP9      v4l2_fourcc('V', 'P', '9', '0') /* VP9 */
++#define V4L2_PIX_FMT_HEVC     v4l2_fourcc('H', 'E', 'V', 'C') /* HEVC */
  
--static int snd_sh_dac_pcm_copy(struct snd_pcm_substream *substream, int channel,
--	snd_pcm_uframes_t pos, void __user *src, snd_pcm_uframes_t count)
-+static int snd_sh_dac_pcm_copy(struct snd_pcm_substream *substream,
-+			       int channel, unsigned long pos,
-+			       void __user *src, unsigned long count)
- {
- 	/* channel is not used (interleaved data) */
- 	struct snd_sh_dac *chip = snd_pcm_substream_chip(substream);
- 	struct snd_pcm_runtime *runtime = substream->runtime;
--	ssize_t b_count = frames_to_bytes(runtime , count);
--	ssize_t b_pos = frames_to_bytes(runtime , pos);
- 
--	if (count < 0)
--		return -EINVAL;
-+	if (copy_from_user_toio(chip->data_buffer + pos, src, count))
-+		return -EFAULT;
-+	chip->buffer_end = chip->data_buffer + pos + count;
- 
--	if (!count)
--		return 0;
-+	if (chip->empty) {
-+		chip->empty = 0;
-+		dac_audio_start_timer(chip);
-+	}
-+
-+	return 0;
-+}
- 
--	memcpy_toio(chip->data_buffer + b_pos, src, b_count);
--	chip->buffer_end = chip->data_buffer + b_pos + b_count;
-+static int snd_sh_dac_pcm_copy_kernel(struct snd_pcm_substream *substream,
-+				      int channel, unsigned long pos,
-+				      void *src, unsigned long count)
-+{
-+	/* channel is not used (interleaved data) */
-+	struct snd_sh_dac *chip = snd_pcm_substream_chip(substream);
-+	struct snd_pcm_runtime *runtime = substream->runtime;
-+
-+	memcpy_toio(chip->data_buffer + pos, src, count);
-+	chip->buffer_end = chip->data_buffer + pos + count;
- 
- 	if (chip->empty) {
- 		chip->empty = 0;
-@@ -211,23 +224,15 @@ static int snd_sh_dac_pcm_copy(struct snd_pcm_substream *substream, int channel,
- }
- 
- static int snd_sh_dac_pcm_silence(struct snd_pcm_substream *substream,
--				  int channel, snd_pcm_uframes_t pos,
--				  snd_pcm_uframes_t count)
-+				  int channel, unsigned long pos,
-+				  unsigned long count)
- {
- 	/* channel is not used (interleaved data) */
- 	struct snd_sh_dac *chip = snd_pcm_substream_chip(substream);
- 	struct snd_pcm_runtime *runtime = substream->runtime;
--	ssize_t b_count = frames_to_bytes(runtime , count);
--	ssize_t b_pos = frames_to_bytes(runtime , pos);
--
--	if (count < 0)
--		return -EINVAL;
--
--	if (!count)
--		return 0;
- 
--	memset_io(chip->data_buffer + b_pos, 0, b_count);
--	chip->buffer_end = chip->data_buffer + b_pos + b_count;
-+	memset_io(chip->data_buffer + pos, 0, count);
-+	chip->buffer_end = chip->data_buffer + pos + count;
- 
- 	if (chip->empty) {
- 		chip->empty = 0;
-@@ -256,8 +261,9 @@ static struct snd_pcm_ops snd_sh_dac_pcm_ops = {
- 	.prepare	= snd_sh_dac_pcm_prepare,
- 	.trigger	= snd_sh_dac_pcm_trigger,
- 	.pointer	= snd_sh_dac_pcm_pointer,
--	.copy		= snd_sh_dac_pcm_copy,
--	.silence	= snd_sh_dac_pcm_silence,
-+	.copy_user	= snd_sh_dac_pcm_copy,
-+	.copy_kernel	= snd_sh_dac_pcm_copy_kernel,
-+	.fill_silence	= snd_sh_dac_pcm_silence,
- 	.mmap		= snd_pcm_lib_mmap_iomem,
- };
- 
+ /*  Vendor-specific formats   */
+ #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
 -- 
-2.13.0
+2.7.4
