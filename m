@@ -1,79 +1,302 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:36921 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753961AbdFMThC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 15:37:02 -0400
-From: Helen Koike <helen.koike@collabora.com>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, jgebben@codeaurora.org,
-        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v4 06/11] [media] vimc: common: Add vimc_colorimetry_clamp
-Date: Tue, 13 Jun 2017 16:35:34 -0300
-Message-Id: <1497382545-16408-7-git-send-email-helen.koike@collabora.com>
-In-Reply-To: <1497382545-16408-1-git-send-email-helen.koike@collabora.com>
-References: <1497382545-16408-1-git-send-email-helen.koike@collabora.com>
+Received: from ns.mm-sol.com ([37.157.136.199]:56021 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750844AbdFSO4c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Jun 2017 10:56:32 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v2 14/19] camss: vfe: Add interface for scaling
+Date: Mon, 19 Jun 2017 17:48:34 +0300
+Message-Id: <1497883719-12410-15-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
+References: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Colorimetry value will always be checked in the same way. Adding a
-helper macro for that
+Add compose selection ioctls to handle scaling configuration.
 
-Signed-off-by: Helen Koike <helen.koike@collabora.com>
-
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
+ drivers/media/platform/qcom/camss-8x16/vfe.c | 189 ++++++++++++++++++++++++++-
+ drivers/media/platform/qcom/camss-8x16/vfe.h |   1 +
+ 2 files changed, 188 insertions(+), 2 deletions(-)
 
-Changes in v4:
-[media] vimc: common: Add vimc_colorimetry_clamp
-	- this is a new patch in the series
-
-Changes in v3: None
-Changes in v2: None
-
-
----
- drivers/media/platform/vimc/vimc-common.h | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
-
-diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
-index 60ebde2..43483ee 100644
---- a/drivers/media/platform/vimc/vimc-common.h
-+++ b/drivers/media/platform/vimc/vimc-common.h
-@@ -23,6 +23,32 @@
- #include <media/v4l2-device.h>
+diff --git a/drivers/media/platform/qcom/camss-8x16/vfe.c b/drivers/media/platform/qcom/camss-8x16/vfe.c
+index 433a54e..2d2bbcb 100644
+--- a/drivers/media/platform/qcom/camss-8x16/vfe.c
++++ b/drivers/media/platform/qcom/camss-8x16/vfe.c
+@@ -211,6 +211,8 @@
+ #define CAMIF_TIMEOUT_SLEEP_US 1000
+ #define CAMIF_TIMEOUT_ALL_US 1000000
  
- /**
-+ * struct vimc_colorimetry_clamp - Adjust colorimetry parameters
-+ *
-+ * @fmt:		the pointer to struct v4l2_pix_format or
-+ *			struct v4l2_mbus_framefmt
-+ *
-+ * Entities must check if colorimetry given by the userspace is valid, if not
-+ * then set them as DEFAULT
-+ */
-+#define vimc_colorimetry_clamp(fmt)					\
-+do {									\
-+	if ((fmt)->colorspace == V4L2_COLORSPACE_DEFAULT		\
-+	    || (fmt)->colorspace > V4L2_COLORSPACE_DCI_P3) {		\
-+		(fmt)->colorspace = V4L2_COLORSPACE_DEFAULT;		\
-+		(fmt)->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;		\
-+		(fmt)->quantization = V4L2_QUANTIZATION_DEFAULT;	\
-+		(fmt)->xfer_func = V4L2_XFER_FUNC_DEFAULT;		\
-+	}								\
-+	if ((fmt)->ycbcr_enc > V4L2_YCBCR_ENC_SMPTE240M)		\
-+		(fmt)->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;		\
-+	if ((fmt)->quantization > V4L2_QUANTIZATION_LIM_RANGE)		\
-+		(fmt)->quantization = V4L2_QUANTIZATION_DEFAULT;	\
-+	if ((fmt)->xfer_func > V4L2_XFER_FUNC_SMPTE2084)		\
-+		(fmt)->xfer_func = V4L2_XFER_FUNC_DEFAULT;		\
-+} while (0)
++#define SCALER_RATIO_MAX 16
 +
-+/**
-  * struct vimc_pix_map - maps media bus code with v4l2 pixel format
-  *
-  * @code:		media bus format code defined by MEDIA_BUS_FMT_* macros
+ static const u32 vfe_formats[] = {
+ 	MEDIA_BUS_FMT_UYVY8_2X8,
+ 	MEDIA_BUS_FMT_VYUY8_2X8,
+@@ -1904,6 +1906,25 @@ static int vfe_set_stream(struct v4l2_subdev *sd, int enable)
+ 	return &line->fmt[pad];
+ }
+ 
++/*
++ * __vfe_get_compose - Get pointer to compose selection structure
++ * @line: VFE line
++ * @cfg: V4L2 subdev pad configuration
++ * @which: TRY or ACTIVE format
++ *
++ * Return pointer to TRY or ACTIVE compose rectangle structure
++ */
++static struct v4l2_rect *
++__vfe_get_compose(struct vfe_line *line,
++		  struct v4l2_subdev_pad_config *cfg,
++		  enum v4l2_subdev_format_whence which)
++{
++	if (which == V4L2_SUBDEV_FORMAT_TRY)
++		return v4l2_subdev_get_try_compose(&line->subdev, cfg,
++						   MSM_VFE_PAD_SINK);
++
++	return &line->compose;
++}
+ 
+ /*
+  * vfe_try_format - Handle try format by pad subdev method
+@@ -1950,7 +1971,14 @@ static void vfe_try_format(struct vfe_line *line,
+ 		*fmt = *__vfe_get_format(line, cfg, MSM_VFE_PAD_SINK,
+ 					 which);
+ 
+-		if (line->id == VFE_LINE_PIX)
++		if (line->id == VFE_LINE_PIX) {
++			struct v4l2_rect *rect;
++
++			rect = __vfe_get_compose(line, cfg, which);
++
++			fmt->width = rect->width;
++			fmt->height = rect->height;
++
+ 			switch (fmt->code) {
+ 			case MEDIA_BUS_FMT_YUYV8_2X8:
+ 				if (code == MEDIA_BUS_FMT_YUYV8_1_5X8)
+@@ -1978,6 +2006,7 @@ static void vfe_try_format(struct vfe_line *line,
+ 					fmt->code = MEDIA_BUS_FMT_VYUY8_2X8;
+ 				break;
+ 			}
++		}
+ 
+ 		break;
+ 	}
+@@ -1986,6 +2015,50 @@ static void vfe_try_format(struct vfe_line *line,
+ }
+ 
+ /*
++ * vfe_try_compose - Handle try compose selection by pad subdev method
++ * @line: VFE line
++ * @cfg: V4L2 subdev pad configuration
++ * @rect: pointer to v4l2 rect structure
++ * @which: wanted subdev format
++ */
++static void vfe_try_compose(struct vfe_line *line,
++			    struct v4l2_subdev_pad_config *cfg,
++			    struct v4l2_rect *rect,
++			    enum v4l2_subdev_format_whence which)
++{
++	struct v4l2_mbus_framefmt *fmt;
++
++	rect->width = rect->width - rect->left;
++	rect->left = 0;
++	rect->height = rect->height - rect->top;
++	rect->top = 0;
++
++	fmt = __vfe_get_format(line, cfg, MSM_VFE_PAD_SINK, which);
++
++	if (rect->width > fmt->width)
++		rect->width = fmt->width;
++
++	if (rect->height > fmt->height)
++		rect->height = fmt->height;
++
++	if (fmt->width > rect->width * SCALER_RATIO_MAX)
++		rect->width = (fmt->width + SCALER_RATIO_MAX - 1) /
++							SCALER_RATIO_MAX;
++
++	rect->width &= ~0x1;
++
++	if (fmt->height > rect->height * SCALER_RATIO_MAX)
++		rect->height = (fmt->height + SCALER_RATIO_MAX - 1) /
++							SCALER_RATIO_MAX;
++
++	if (rect->width < 16)
++		rect->width = 16;
++
++	if (rect->height < 4)
++		rect->height = 4;
++}
++
++/*
+  * vfe_enum_mbus_code - Handle pixel format enumeration
+  * @sd: VFE V4L2 subdevice
+  * @cfg: V4L2 subdev pad configuration
+@@ -2080,6 +2153,10 @@ static int vfe_get_format(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
++static int vfe_set_selection(struct v4l2_subdev *sd,
++			     struct v4l2_subdev_pad_config *cfg,
++			     struct v4l2_subdev_selection *sel);
++
+ /*
+  * vfe_set_format - Handle set format by pads subdev method
+  * @sd: VFE V4L2 subdevice
+@@ -2102,20 +2179,126 @@ static int vfe_set_format(struct v4l2_subdev *sd,
+ 	vfe_try_format(line, cfg, fmt->pad, &fmt->format, fmt->which);
+ 	*format = fmt->format;
+ 
+-	/* Propagate the format from sink to source */
+ 	if (fmt->pad == MSM_VFE_PAD_SINK) {
++		struct v4l2_subdev_selection sel = { 0 };
++		int ret;
++
++		/* Propagate the format from sink to source */
+ 		format = __vfe_get_format(line, cfg, MSM_VFE_PAD_SRC,
+ 					  fmt->which);
+ 
+ 		*format = fmt->format;
+ 		vfe_try_format(line, cfg, MSM_VFE_PAD_SRC, format,
+ 			       fmt->which);
++
++		if (line->id != VFE_LINE_PIX)
++			return 0;
++
++		/* Reset sink pad compose selection */
++		sel.which = fmt->which;
++		sel.pad = MSM_VFE_PAD_SINK;
++		sel.target = V4L2_SEL_TGT_COMPOSE;
++		sel.r.width = fmt->format.width;
++		sel.r.height = fmt->format.height;
++		ret = vfe_set_selection(sd, cfg, &sel);
++		if (ret < 0)
++			return ret;
+ 	}
+ 
+ 	return 0;
+ }
+ 
+ /*
++ * vfe_get_selection - Handle get selection by pads subdev method
++ * @sd: VFE V4L2 subdevice
++ * @cfg: V4L2 subdev pad configuration
++ * @sel: pointer to v4l2 subdev selection structure
++ *
++ * Return -EINVAL or zero on success
++ */
++static int vfe_get_selection(struct v4l2_subdev *sd,
++			     struct v4l2_subdev_pad_config *cfg,
++			     struct v4l2_subdev_selection *sel)
++{
++	struct vfe_line *line = v4l2_get_subdevdata(sd);
++	struct v4l2_subdev_format fmt = { 0 };
++	struct v4l2_rect *compose;
++	int ret;
++
++	if (line->id != VFE_LINE_PIX || sel->pad != MSM_VFE_PAD_SINK)
++		return -EINVAL;
++
++	switch (sel->target) {
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
++		fmt.pad = sel->pad;
++		fmt.which = sel->which;
++		ret = vfe_get_format(sd, cfg, &fmt);
++		if (ret < 0)
++			return ret;
++		sel->r.left = 0;
++		sel->r.top = 0;
++		sel->r.width = fmt.format.width;
++		sel->r.height = fmt.format.height;
++		break;
++	case V4L2_SEL_TGT_COMPOSE:
++		compose = __vfe_get_compose(line, cfg, sel->which);
++		if (compose == NULL)
++			return -EINVAL;
++
++		sel->r = *compose;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++/*
++ * vfe_set_selection - Handle set selection by pads subdev method
++ * @sd: VFE V4L2 subdevice
++ * @cfg: V4L2 subdev pad configuration
++ * @sel: pointer to v4l2 subdev selection structure
++ *
++ * Return -EINVAL or zero on success
++ */
++int vfe_set_selection(struct v4l2_subdev *sd,
++			     struct v4l2_subdev_pad_config *cfg,
++			     struct v4l2_subdev_selection *sel)
++{
++	struct vfe_line *line = v4l2_get_subdevdata(sd);
++	struct v4l2_rect *compose;
++	struct v4l2_subdev_format fmt = { 0 };
++	int ret;
++
++	if (line->id != VFE_LINE_PIX || sel->pad != MSM_VFE_PAD_SINK)
++		return -EINVAL;
++
++	if (sel->target != V4L2_SEL_TGT_COMPOSE)
++		return -EINVAL;
++
++	compose = __vfe_get_compose(line, cfg, sel->which);
++	if (compose == NULL)
++		return -EINVAL;
++
++	vfe_try_compose(line, cfg, &sel->r, sel->which);
++	*compose = sel->r;
++
++	/* Reset source pad format width and height */
++	fmt.which = sel->which;
++	fmt.pad = MSM_VFE_PAD_SRC;
++	ret = vfe_get_format(sd, cfg, &fmt);
++	if (ret < 0)
++		return ret;
++
++	fmt.format.width = compose->width;
++	fmt.format.height = compose->height;
++	ret = vfe_set_format(sd, cfg, &fmt);
++
++	return ret;
++}
++
++/*
+  * vfe_init_formats - Initialize formats on all pads
+  * @sd: VFE V4L2 subdevice
+  * @fh: V4L2 subdev file handle
+@@ -2308,6 +2491,8 @@ static int vfe_link_setup(struct media_entity *entity,
+ 	.enum_frame_size = vfe_enum_frame_size,
+ 	.get_fmt = vfe_get_format,
+ 	.set_fmt = vfe_set_format,
++	.get_selection = vfe_get_selection,
++	.set_selection = vfe_set_selection,
+ };
+ 
+ static const struct v4l2_subdev_ops vfe_v4l2_ops = {
+diff --git a/drivers/media/platform/qcom/camss-8x16/vfe.h b/drivers/media/platform/qcom/camss-8x16/vfe.h
+index 74ad2a6..1a0dc19 100644
+--- a/drivers/media/platform/qcom/camss-8x16/vfe.h
++++ b/drivers/media/platform/qcom/camss-8x16/vfe.h
+@@ -80,6 +80,7 @@ struct vfe_line {
+ 	struct v4l2_subdev subdev;
+ 	struct media_pad pads[MSM_VFE_PADS_NUM];
+ 	struct v4l2_mbus_framefmt fmt[MSM_VFE_PADS_NUM];
++	struct v4l2_rect compose;
+ 	struct camss_video video_out;
+ 	struct vfe_output output;
+ };
 -- 
-2.7.4
+1.9.1
