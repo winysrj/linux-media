@@ -1,68 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:61368 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751974AbdFLMlX (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:56896 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751839AbdFSRBh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Jun 2017 08:41:23 -0400
-Subject: Re: [PATCH 8/9] s5p_cec: set the CEC_CAP_NEEDS_HPD flag if needed
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <1bf6c49a-97e2-4a1c-9a05-41c55b56439e@samsung.com>
-Date: Mon, 12 Jun 2017 14:41:16 +0200
-MIME-version: 1.0
-In-reply-to: <20170607144616.15247-9-hverkuil@xs4all.nl>
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <20170607144616.15247-1-hverkuil@xs4all.nl>
-        <20170607144616.15247-9-hverkuil@xs4all.nl>
-        <CGME20170612124120epcas1p3ef17f5a1f6f71c00757d4f3ee283ffc8@epcas1p3.samsung.com>
+        Mon, 19 Jun 2017 13:01:37 -0400
+From: Helen Koike <helen.koike@collabora.com>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, jgebben@codeaurora.org,
+        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v5 04/12] [media] vimc: common: Add vimc_pipeline_s_stream helper
+Date: Mon, 19 Jun 2017 14:00:13 -0300
+Message-Id: <1497891629-1562-5-git-send-email-helen.koike@collabora.com>
+In-Reply-To: <1497891629-1562-1-git-send-email-helen.koike@collabora.com>
+References: <1497891629-1562-1-git-send-email-helen.koike@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/07/2017 04:46 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Use the needs-hpd DT property to determine if the CEC_CAP_NEEDS_HPD
-> should be set.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Move the vimc_cap_pipeline_s_stream from the vimc-cap.c to vimc-common.c
+as this core will be reused by other subdevices to activate the stream
+in their directly connected nodes
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Helen Koike <helen.koike@collabora.com>
 
-> ---
->   drivers/media/platform/s5p-cec/s5p_cec.c | 4 +++-
->   1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/s5p-cec/s5p_cec.c b/drivers/media/platform/s5p-cec/s5p_cec.c
-> index 65a223e578ed..8e06071a7977 100644
-> --- a/drivers/media/platform/s5p-cec/s5p_cec.c
-> +++ b/drivers/media/platform/s5p-cec/s5p_cec.c
-> @@ -173,6 +173,7 @@ static int s5p_cec_probe(struct platform_device *pdev)
->   	struct platform_device *hdmi_dev;
->   	struct resource *res;
->   	struct s5p_cec_dev *cec;
-> +	bool needs_hpd = of_property_read_bool(pdev->dev.of_node, "needs-hpd");
+---
 
-dev->of_node could also be used instead of pdev->dev.of_node.
+Changes in v5: None
+Changes in v4: None
+Changes in v3:
+[media] vimc: Add vimc_pipeline_s_stream in the core
+	- add it in vimc-common instead of vimc-core
+	- rename commit with "common" tag
 
->   	int ret;
->   
->   	np = of_parse_phandle(pdev->dev.of_node, "hdmi-phandle", 0);
-> @@ -221,7 +222,8 @@ static int s5p_cec_probe(struct platform_device *pdev)
->   	cec->adap = cec_allocate_adapter(&s5p_cec_adap_ops, cec,
->   		CEC_NAME,
->   		CEC_CAP_LOG_ADDRS | CEC_CAP_TRANSMIT |
-> -		CEC_CAP_PASSTHROUGH | CEC_CAP_RC, 1);
-> +		CEC_CAP_PASSTHROUGH | CEC_CAP_RC |
-> +		(needs_hpd ? CEC_CAP_NEEDS_HPD : 0), 1);
->   	ret = PTR_ERR_OR_ZERO(cec->adap);
->   	if (ret)
->   		return ret; 
+Changes in v2:
+[media] vimc: Add vimc_pipeline_s_stream in the core
+	- Use is_media_entity_v4l2_subdev instead of comparing with the old
+	entity->type
+	- Fix comments style
+	- add kernel-docs
+	- call s_stream across all sink pads
 
+
+---
+ drivers/media/platform/vimc/vimc-capture.c | 29 ++-------------------------
+ drivers/media/platform/vimc/vimc-common.c  | 32 ++++++++++++++++++++++++++++++
+ drivers/media/platform/vimc/vimc-common.h  | 11 ++++++++++
+ 3 files changed, 45 insertions(+), 27 deletions(-)
+
+diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
+index 9adb06d..93f6a09 100644
+--- a/drivers/media/platform/vimc/vimc-capture.c
++++ b/drivers/media/platform/vimc/vimc-capture.c
+@@ -132,31 +132,6 @@ static void vimc_cap_return_all_buffers(struct vimc_cap_device *vcap,
+ 	spin_unlock(&vcap->qlock);
+ }
+ 
+-static int vimc_cap_pipeline_s_stream(struct vimc_cap_device *vcap, int enable)
+-{
+-	struct v4l2_subdev *sd;
+-	struct media_pad *pad;
+-	int ret;
+-
+-	/* Start the stream in the subdevice direct connected */
+-	pad = media_entity_remote_pad(&vcap->vdev.entity.pads[0]);
+-
+-	/*
+-	 * if it is a raw node from vimc-core, there is nothing to activate
+-	 * TODO: remove this when there are no more raw nodes in the
+-	 * core and return error instead
+-	 */
+-	if (pad->entity->obj_type == MEDIA_ENTITY_TYPE_BASE)
+-		return 0;
+-
+-	sd = media_entity_to_v4l2_subdev(pad->entity);
+-	ret = v4l2_subdev_call(sd, video, s_stream, enable);
+-	if (ret && ret != -ENOIOCTLCMD)
+-		return ret;
+-
+-	return 0;
+-}
+-
+ static int vimc_cap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct vimc_cap_device *vcap = vb2_get_drv_priv(vq);
+@@ -173,7 +148,7 @@ static int vimc_cap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	}
+ 
+ 	/* Enable streaming from the pipe */
+-	ret = vimc_cap_pipeline_s_stream(vcap, 1);
++	ret = vimc_pipeline_s_stream(&vcap->vdev.entity, 1);
+ 	if (ret) {
+ 		media_pipeline_stop(entity);
+ 		vimc_cap_return_all_buffers(vcap, VB2_BUF_STATE_QUEUED);
+@@ -192,7 +167,7 @@ static void vimc_cap_stop_streaming(struct vb2_queue *vq)
+ 	struct vimc_cap_device *vcap = vb2_get_drv_priv(vq);
+ 
+ 	/* Disable streaming from the pipe */
+-	vimc_cap_pipeline_s_stream(vcap, 0);
++	vimc_pipeline_s_stream(&vcap->vdev.entity, 0);
+ 
+ 	/* Stop the media pipeline */
+ 	media_pipeline_stop(&vcap->vdev.entity);
+diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
+index 3afbabd..f809a9d 100644
+--- a/drivers/media/platform/vimc/vimc-common.c
++++ b/drivers/media/platform/vimc/vimc-common.c
+@@ -220,6 +220,38 @@ struct media_pad *vimc_pads_init(u16 num_pads, const unsigned long *pads_flag)
+ 	return pads;
+ }
+ 
++int vimc_pipeline_s_stream(struct media_entity *ent, int enable)
++{
++	struct v4l2_subdev *sd;
++	struct media_pad *pad;
++	unsigned int i;
++	int ret;
++
++	for (i = 0; i < ent->num_pads; i++) {
++		if (ent->pads[i].flags & MEDIA_PAD_FL_SOURCE)
++			continue;
++
++		/* Start the stream in the subdevice direct connected */
++		pad = media_entity_remote_pad(&ent->pads[i]);
++
++		/*
++		 * if this is a raw node from vimc-core, then there is
++		 * nothing to activate
++		 * TODO: remove this when there are no more raw nodes in the
++		 * core and return error instead
++		 */
++		if (pad->entity->obj_type == MEDIA_ENTITY_TYPE_BASE)
++			continue;
++
++		sd = media_entity_to_v4l2_subdev(pad->entity);
++		ret = v4l2_subdev_call(sd, video, s_stream, enable);
++		if (ret && ret != -ENOIOCTLCMD)
++			return ret;
++	}
++
++	return 0;
++}
++
+ static const struct media_entity_operations vimc_ent_sd_mops = {
+ 	.link_validate = v4l2_subdev_link_validate,
+ };
+diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
+index 9ec361c..73e7e94 100644
+--- a/drivers/media/platform/vimc/vimc-common.h
++++ b/drivers/media/platform/vimc/vimc-common.h
+@@ -97,6 +97,17 @@ static inline void vimc_pads_cleanup(struct media_pad *pads)
+ }
+ 
+ /**
++ * vimc_pipeline_s_stream - start stream through the pipeline
++ *
++ * @ent:		the pointer to struct media_entity for the node
++ * @enable:		1 to start the stream and 0 to stop
++ *
++ * Helper function to call the s_stream of the subdevices connected
++ * in all the sink pads of the entity
++ */
++int vimc_pipeline_s_stream(struct media_entity *ent, int enable);
++
++/**
+  * vimc_pix_map_by_code - get vimc_pix_map struct by media bus code
+  *
+  * @code:		media bus format code defined by MEDIA_BUS_FMT_* macros
 -- 
-Regards,
-Sylwester
+2.7.4
