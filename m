@@ -1,93 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:30135 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751324AbdFSH7I (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44842 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751897AbdFSJqg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 03:59:08 -0400
-Message-ID: <1497859143.27486.1.camel@mtksdaap41>
-Subject: Re: [PATCH v2] [media] mtk-vcodec: Show mtk driver error without
- DEBUG definition
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hirokazu Honda <hiroh@chromium.org>
-CC: Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        <linux-media@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-mediatek@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>
-Date: Mon, 19 Jun 2017 15:59:03 +0800
-In-Reply-To: <20170530095358.2685-1-hiroh@chromium.org>
-References: <20170530095358.2685-1-hiroh@chromium.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+        Mon, 19 Jun 2017 05:46:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        geert@glider.be, kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [PATCH v2] media: fdp1: Support ES2 platforms
+Date: Mon, 19 Jun 2017 12:47:09 +0300
+Message-ID: <2726594.YBGsFatGlI@avalon>
+In-Reply-To: <1497263416-17930-1-git-send-email-kbingham@kernel.org>
+References: <1497263416-17930-1-git-send-email-kbingham@kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2017-05-30 at 18:53 +0900, Hirokazu Honda wrote:
-> A driver error message is shown without DEBUG definition
-> to find an error and debug easily.
+Hi Kieran,
+
+Thank you for the patch.
+
+On Monday 12 Jun 2017 11:30:16 Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 > 
-> Signed-off-by: Hirokazu Honda <hiroh@chromium.org>
-Acked-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> The new Renesas R-Car H3 ES2.0 platforms have a new hw version register.
+> Update the driver accordingly, defaulting to the new hw revision, and
+> differentiating the older revision as ES1
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
 > ---
->  drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h | 20 +++++++++-----------
->  1 file changed, 9 insertions(+), 11 deletions(-)
+>  drivers/media/platform/rcar_fdp1.c | 10 +++++++---
+>  1 file changed, 7 insertions(+), 3 deletions(-)
 > 
-> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
-> index 237e144c194f..06c254f5c171 100644
-> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
-> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
-> @@ -32,6 +32,15 @@ extern int mtk_v4l2_dbg_level;
->  extern bool mtk_vcodec_dbg;
->  
+> diff --git a/drivers/media/platform/rcar_fdp1.c
+> b/drivers/media/platform/rcar_fdp1.c index 42f25d241edd..159786b052f3
+> 100644
+> --- a/drivers/media/platform/rcar_fdp1.c
+> +++ b/drivers/media/platform/rcar_fdp1.c
+> @@ -258,8 +258,9 @@ MODULE_PARM_DESC(debug, "activate debug info");
 > 
-> +#define mtk_v4l2_err(fmt, args...)                \
-> +	pr_err("[MTK_V4L2][ERROR] %s:%d: " fmt "\n", __func__, __LINE__, \
-> +	       ##args)
-> +
-> +#define mtk_vcodec_err(h, fmt, args...)					\
-> +	pr_err("[MTK_VCODEC][ERROR][%d]: %s() " fmt "\n",		\
-> +	       ((struct mtk_vcodec_ctx *)h->ctx)->id, __func__, ##args)
-> +
-> +
->  #if defined(DEBUG)
->  
->  #define mtk_v4l2_debug(level, fmt, args...)				 \
-> @@ -41,11 +50,6 @@ extern bool mtk_vcodec_dbg;
->  				level, __func__, __LINE__, ##args);	 \
->  	} while (0)
->  
-> -#define mtk_v4l2_err(fmt, args...)                \
-> -	pr_err("[MTK_V4L2][ERROR] %s:%d: " fmt "\n", __func__, __LINE__, \
-> -	       ##args)
-> -
-> -
->  #define mtk_v4l2_debug_enter()  mtk_v4l2_debug(3, "+")
->  #define mtk_v4l2_debug_leave()  mtk_v4l2_debug(3, "-")
->  
-> @@ -57,22 +61,16 @@ extern bool mtk_vcodec_dbg;
->  				__func__, ##args);			\
->  	} while (0)
->  
-> -#define mtk_vcodec_err(h, fmt, args...)					\
-> -	pr_err("[MTK_VCODEC][ERROR][%d]: %s() " fmt "\n",		\
-> -	       ((struct mtk_vcodec_ctx *)h->ctx)->id, __func__, ##args)
-> -
->  #define mtk_vcodec_debug_enter(h)  mtk_vcodec_debug(h, "+")
->  #define mtk_vcodec_debug_leave(h)  mtk_vcodec_debug(h, "-")
->  
->  #else
->  
->  #define mtk_v4l2_debug(level, fmt, args...) {}
-> -#define mtk_v4l2_err(fmt, args...) {}
->  #define mtk_v4l2_debug_enter() {}
->  #define mtk_v4l2_debug_leave() {}
->  
->  #define mtk_vcodec_debug(h, fmt, args...) {}
-> -#define mtk_vcodec_err(h, fmt, args...) {}
->  #define mtk_vcodec_debug_enter(h) {}
->  #define mtk_vcodec_debug_leave(h) {}
->  
+>  /* Internal Data (HW Version) */
+>  #define FD1_IP_INTDATA			0x0800
+> -#define FD1_IP_H3			0x02010101
+> +#define FD1_IP_H3_ES1			0x02010101
+>  #define FD1_IP_M3W			0x02010202
+> +#define FD1_IP_H3			0x02010203
+> 
+>  /* LUTs */
+>  #define FD1_LUT_DIF_ADJ			0x1000
+> @@ -2359,12 +2360,15 @@ static int fdp1_probe(struct platform_device *pdev)
+> 
+>  	hw_version = fdp1_read(fdp1, FD1_IP_INTDATA);
+>  	switch (hw_version) {
+> -	case FD1_IP_H3:
+> -		dprintk(fdp1, "FDP1 Version R-Car H3\n");
+> +	case FD1_IP_H3_ES1:
+> +		dprintk(fdp1, "FDP1 Version R-Car H3 ES1\n");
+>  		break;
+>  	case FD1_IP_M3W:
+>  		dprintk(fdp1, "FDP1 Version R-Car M3-W\n");
+>  		break;
+> +	case FD1_IP_H3:
+> +		dprintk(fdp1, "FDP1 Version R-Car H3\n");
+> +		break;
+>  	default:
+>  		dev_err(fdp1->dev, "FDP1 Unidentifiable (0x%08x)\n",
+>  				hw_version);
+
+-- 
+Regards,
+
+Laurent Pinchart
