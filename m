@@ -1,70 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54182 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751606AbdFIPcL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Jun 2017 11:32:11 -0400
-MIME-Version: 1.0
-In-Reply-To: <2fa55431-bef2-9340-4ce8-e06f9648e109@xs4all.nl>
-References: <20170607144616.15247-1-hverkuil@xs4all.nl> <20170607144616.15247-8-hverkuil@xs4all.nl>
- <20170609140719.o2qzty6eyez66oxy@rob-hp-laptop> <2fa55431-bef2-9340-4ce8-e06f9648e109@xs4all.nl>
-From: Rob Herring <robh@kernel.org>
-Date: Fri, 9 Jun 2017 10:31:49 -0500
-Message-ID: <CAL_JsqLzxMSdQGCiCBa2-VKpe==djCsqP9GxywJ-X-defiRXMQ@mail.gmail.com>
-Subject: Re: [PATCH 7/9] dt-bindings: media/s5p-cec.txt: document needs-hpd property
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mailout1.samsung.com ([203.254.224.24]:54603 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750848AbdFSFY5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Jun 2017 01:24:57 -0400
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>
+Subject: [Patch v5 00/12] Add MFC v10.10 support
+Date: Mon, 19 Jun 2017 10:40:43 +0530
+Message-id: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
+References: <CGME20170619052453epcas1p426ebca32768cee57390f39b53d835e81@epcas1p4.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 9, 2017 at 9:11 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 09/06/17 16:07, Rob Herring wrote:
->> On Wed, Jun 07, 2017 at 04:46:14PM +0200, Hans Verkuil wrote:
->>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>
->>> Needed for boards that wire the CEC pin in such a way that it
->>> is unavailable when the HPD is low.
->>>
->>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>> Cc: Krzysztof Kozlowski <krzk@kernel.org>
->>> Cc: Andrzej Hajda <a.hajda@samsung.com>
->>> Cc: devicetree@vger.kernel.org
->>> ---
->>>  Documentation/devicetree/bindings/media/s5p-cec.txt | 6 ++++++
->>>  1 file changed, 6 insertions(+)
->>>
->>> diff --git a/Documentation/devicetree/bindings/media/s5p-cec.txt b/Documentation/devicetree/bindings/media/s5p-cec.txt
->>> index 4bb08d9d940b..261af4d1a791 100644
->>> --- a/Documentation/devicetree/bindings/media/s5p-cec.txt
->>> +++ b/Documentation/devicetree/bindings/media/s5p-cec.txt
->>> @@ -17,6 +17,12 @@ Required properties:
->>>    - samsung,syscon-phandle - phandle to the PMU system controller
->>>    - hdmi-phandle - phandle to the HDMI controller
->>>
->>> +Optional:
->>> +  - needs-hpd : if present the CEC support is only available when the HPD
->>> +    is high. Some boards only let the CEC pin through if the HPD is high, for
->>> +    example if there is a level converter that uses the HPD to power up
->>> +    or down.
->>
->> Seems like something common. Can you document in a common location?
->
-> Should we do the same with hdmi-phandle? It is also used by CEC drivers to find
-> the HDMI driver.
+This patch series adds MFC v10.10 support. MFC v10.10 is used in some  
+of Exynos7 variants.
 
-Yes.
+This adds support for following:
 
-> Currently only used by s5p-cec and stih-cec, but there will be more.
->
-> I guess this would be a sensible place to document this:
->
-> Documentation/devicetree/bindings/media/cec.txt
+* Add support for HEVC encoder and decoder
+* Add support for VP9 decoder
+* Update Documentation for control id definitions
+* Update computation of min scratch buffer size requirement for V8 onwards
 
-Sounds good. You can do this as a follow-up to this patch if you want.
-For this one:
+Changes since v4:
+ - Addressed review comments by Sylwester Nawrocki.
+ - Addressed review comments by Hans Verkuil.
+ - Rebased on latest git://linuxtv.org/snawrocki/samsung.git
+   for-v4.13/media/next and for-v4.12/media/next-2 branches,
+   the same series of patches applies on both branches.
+ - Applied r-o-b from Andrzej on respective patches.
+ - Built and checked the Documentation.
 
-Acked-by: Rob Herring <robh@kernel.org>
+Smitha T Murthy (12):
+  [media] s5p-mfc: Rename IS_MFCV8 macro
+  [media] s5p-mfc: Adding initial support for MFC v10.10
+  [media] s5p-mfc: Use min scratch buffer size as provided by F/W
+  [media] s5p-mfc: Support MFCv10.10 buffer requirements
+  [media] videodev2.h: Add v4l2 definition for HEVC
+  [media] v4l2-ioctl: add HEVC format description
+  Documentation: v4l: Documentation for HEVC v4l2 definition
+  [media] s5p-mfc: Add support for HEVC decoder
+  [media] s5p-mfc: Add VP9 decoder support
+  [media] v4l2: Add v4l2 control IDs for HEVC encoder
+  [media] s5p-mfc: Add support for HEVC encoder
+  Documention: v4l: Documentation for HEVC CIDs
+
+ .../devicetree/bindings/media/s5p-mfc.txt          |   1 +
+ Documentation/media/uapi/v4l/extended-controls.rst | 364 ++++++++++++++
+ Documentation/media/uapi/v4l/pixfmt-013.rst        |   5 +
+ drivers/media/platform/s5p-mfc/regs-mfc-v10.h      |  88 ++++
+ drivers/media/platform/s5p-mfc/regs-mfc-v8.h       |   2 +
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |  28 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c    |   9 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  67 ++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |   6 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |  48 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 542 ++++++++++++++++++++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h       |  14 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    | 383 +++++++++++++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |  15 +
+ drivers/media/v4l2-core/v4l2-ctrls.c               | 103 ++++
+ drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
+ include/uapi/linux/v4l2-controls.h                 |  84 ++++
+ include/uapi/linux/videodev2.h                     |   1 +
+ 18 files changed, 1684 insertions(+), 77 deletions(-)
+ create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+
+-- 
+2.7.4
