@@ -1,78 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.221]:9103 "EHLO
-        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751898AbdFZKAR (ORCPT
+Received: from mailgw01.mediatek.com ([210.61.82.183]:2489 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753783AbdFSKDc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 06:00:17 -0400
-From: Ralph Metzler <rjkm@metzlerbros.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+        Mon, 19 Jun 2017 06:03:32 -0400
+Message-ID: <1497866607.25194.14.camel@mtksdaap41>
+Subject: Re: [PATCH v2] [media] mtk-mdp: Fix g_/s_selection capture/compose
+ logic
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, "Rob Herring" <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Houlong Wei <houlong.wei@mediatek.com>,
+        <srv_heupstream@mediatek.com>,
+        "Eddie Huang" <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        Wu-Cheng Li <wuchengli@google.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
+Date: Mon, 19 Jun 2017 18:03:27 +0800
+In-Reply-To: <a180f2fc-1dce-3630-ed48-25c247eff79a@xs4all.nl>
+References: <1494556970-12278-1-git-send-email-minghsiu.tsai@mediatek.com>
+         <a180f2fc-1dce-3630-ed48-25c247eff79a@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Message-ID: <22864.56056.222371.477817@morden.metzler>
-Date: Mon, 26 Jun 2017 11:59:20 +0200
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Daniel Scheller <d.scheller.oss@gmail.com>,
-        Ralph Metzler <rjkm@metzlerbros.de>,
-        linux-media@vger.kernel.org, mchehab@kernel.org,
-        liplianin@netup.ru, crope@iki.fi, "Jasmin J." <jasmin@anw.at>,
-        "Takiguchi\, Yasunari" <Yasunari.Takiguchi@sony.com>,
-        "tbird20d\@gmail.com" <tbird20d@gmail.com>
-Subject: Re: DD support improvements (was: Re: [PATCH v3 00/13]
- stv0367/ddbridge: support CTv6/FlexCT hardware)
-In-Reply-To: <20170626061920.2f0aa781@vento.lan>
-References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
-        <20170412212327.5b75be19@macbox>
-        <20170507174212.2e45ab71@audiostation.wuest.de>
-        <20170528234537.3bed2dde@macbox>
-        <20170619221821.022fc473@macbox>
-        <20170620093645.6f72fd1a@vento.lan>
-        <20170620204121.4cff42d1@macbox>
-        <20170620161043.1e6a1364@vento.lan>
-        <20170621225712.426d3a17@audiostation.wuest.de>
-        <22860.14367.464168.657791@morden.metzler>
-        <20170624135001.5bcafb64@vento.lan>
-        <20170625195259.1623ef71@audiostation.wuest.de>
-        <20170626061920.2f0aa781@vento.lan>
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab writes:
- > Em Sun, 25 Jun 2017 19:52:59 +0200
- > Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
- > 
- > > Am Sat, 24 Jun 2017 13:50:01 -0300
- > > schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
- > > 
- > > > Em Thu, 22 Jun 2017 23:35:27 +0200
- > > > Ralph Metzler <rjkm@metzlerbros.de> escreveu:
- > > > 
- > > > Would it be possible to change things at the dddvb tree to make
- > > > it to use our coding style (for example, replacing CamelCase by the
- > > > kernel_style), in order to minimize the amount of work to sync from
- > > > your tree?  
- > > 
- > > Note that this mostly (if not only) applies to the demodulator drivers. ddbridge itself is okay in this regard and has only some minors like indent, whitespace and such. There's one bigger thing though I'm not sure of if it needs to be changed: Beginning with the 0.9.9-tarball release, functionality was split from ddbridge-core.c into ddbridge.c, ddbridge-i2c.c, ddbridge-mod.c and ddbridge-ns.c (the two latter being modulator and netstream/octonet related code, which we don't need at this time). The issue is that this wasn't done by updating the build system to build multiple objects, but rather build from ddbridge.c which then does '#include "ddbridge-core.c"', and in that file '#include "ddbridge-i2c.c"'. See [1] for how it actually looks like in the file. Mauro, do you think this is acceptable?
- > 
- > Splitting it is OK. Including a *.c file no. It shouldn't be hard to
+Hi, Hans,
 
-The main reason for using includes at the time were that the OctopusNet driver
-(see https://github.com/DigitalDevices/dddvb/blob/master/ddbridge/octonet.c)
-was using the same files but with different defines set.
-Those differences are pretty much gone now.
+On Fri, 2017-06-16 at 12:42 +0200, Hans Verkuil wrote:
+> On 05/12/17 04:42, Minghsiu Tsai wrote:
+> > From: Daniel Kurtz <djkurtz@chromium.org>
+> > 
+> > Experiments show that the:
+> >  (1) mtk-mdp uses the _MPLANE form of CAPTURE/OUTPUT
+> 
+> Please drop this, since this no longer applies to this patch.
+> 
+
+I will remove it next version
 
 
-> change the makefile to:
- > 	obj-ddbridge = ddbridge-main.o ddbridge-core.o ddbridge-i2c.o \
- > 		       ddbridge-modulator.o and ddbridge-ns.o
- > 
- > The only detail is that "ddbridge.c" should be renamed to 
- > ddbridge-core.c (or something similar) and some *.h files will
- > be needed.
+> >  (2) CAPTURE types use CROP targets, and OUTPUT types use COMPOSE targets
+> 
+> Are you really certain about this?
+> 
+> For m2m devices the output (i.e. memory to hardware) typically crops from memory
+> and the capture side (hardware to memory) composes into memory.
+> 
+> I.e.: for the output side you crop the part of the memory buffer that you want
+> to process and on the capture side you compose the result into a memory buffer:
+> i.e. the memory buffer might be 1920x1080, but you compose the decoder output
+> into a rectangle of 640x480 at offset 128x128 within that buffer (just an example).
+> 
+> CAPTURE using crop would be if, before the data is DMAed, the hardware decoder
+> output is cropped. E.g. if the stream fed to the decoder is 1920x1080, but you
+> want to only DMA a subselection of that, then that would be cropping, and it
+> would go to a memory buffer of the size of the crop selection.
+> 
+> OUTPUT using compose is highly unlikely: that means that the frame you give
+> is composed in a larger internal buffer with generated border data around it.
+> Very rare and really only something that a compositor of some sort would do.
+> 
 
-Hmm, ddbridge -> ddbridge-main would be fine.
-Renaming ddbridge to ddbridge-core and ddbridge-core to something else
-would be confusing.
+That's strange. In v4l2-ioctl.c, v4l_g_crop()
+OUTPUT is using COMPOSE
+CAPTURE is using CROP
+
+static int v4l_g_crop(const struct v4l2_ioctl_ops *ops,
+				struct file *file, void *fh, void *arg)
+...
+	/* crop means compose for output devices */
+	if (V4L2_TYPE_IS_OUTPUT(p->type))
+		s.target = V4L2_SEL_TGT_COMPOSE_ACTIVE;
+	else
+		s.target = V4L2_SEL_TGT_CROP_ACTIVE;
+
+	ret = ops->vidioc_g_selection(file, fh, &s);
 
 
-Regards,
-Ralph
+> What exactly does the hardware do? Both for the encoder and for the decoder
+> case. Perhaps if I knew exactly what that is, then I can advise.
+> 
+
+NV12M/YUV420M/MT21 -> MDP -> NV12M/YUV420M
+
+The usage would be like this:
+For decoder:
+decoder -> MT21 -> MDP -> NV12M/YUV420M
+
+For encoder:
+NV12M/YUV420M -> MDP -> NV12M/YUV420M -> encoder
+
+
+
+> Regards,
+> 
+> 	Hans
+> 
