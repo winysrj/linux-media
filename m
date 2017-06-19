@@ -1,135 +1,230 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:36210 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752147AbdFGSfq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:35:46 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v8 31/34] media: imx: capture: add frame sizes/interval enumeration
-Date: Wed,  7 Jun 2017 11:34:10 -0700
-Message-Id: <1496860453-6282-32-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from smtprelay.synopsys.com ([198.182.47.9]:51735 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750757AbdFSJEc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Jun 2017 05:04:32 -0400
+Subject: Re: [PATCH v3 4/4] dt-bindings: media: Document Synopsys Designware
+ HDMI RX
+To: Sylwester Nawrocki <sylwester.nawrocki@gmail.com>,
+        Jose Abreu <Jose.Abreu@synopsys.com>
+References: <cover.1497630695.git.joabreu@synopsys.com>
+ <51851d7b2335cc8a10fba17056314d7fa8ce88d1.1497630695.git.joabreu@synopsys.com>
+ <f58aaeaa-3e49-3cbc-0ed8-8c3a6ebd3907@gmail.com>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <devicetree@vger.kernel.org>,
+        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+Message-ID: <28d2ca0e-d9bc-816a-313c-e367aaed166e@synopsys.com>
+Date: Mon, 19 Jun 2017 10:01:09 +0100
+MIME-Version: 1.0
+In-Reply-To: <f58aaeaa-3e49-3cbc-0ed8-8c3a6ebd3907@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Russell King <rmk+kernel@armlinux.org.uk>
+Hi Sylwester,
 
-Add support for enumerating frame sizes and frame intervals from the
-first subdev via the V4L2 interfaces.
 
-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/imx-media-capture.c | 73 +++++++++++++++++++++++++++
- 1 file changed, 73 insertions(+)
+Thanks for the feedback!
 
-diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
-index f07ed9a..ddab4c2 100644
---- a/drivers/staging/media/imx/imx-media-capture.c
-+++ b/drivers/staging/media/imx/imx-media-capture.c
-@@ -81,6 +81,76 @@ static int vidioc_querycap(struct file *file, void *fh,
- 	return 0;
- }
- 
-+static int capture_enum_framesizes(struct file *file, void *fh,
-+				   struct v4l2_frmsizeenum *fsize)
-+{
-+	struct capture_priv *priv = video_drvdata(file);
-+	const struct imx_media_pixfmt *cc;
-+	struct v4l2_subdev_frame_size_enum fse = {
-+		.index = fsize->index,
-+		.pad = priv->src_sd_pad,
-+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+	};
-+	int ret;
-+
-+	cc = imx_media_find_format(fsize->pixel_format, CS_SEL_ANY, true);
-+	if (!cc)
-+		return -EINVAL;
-+
-+	fse.code = cc->codes[0];
-+
-+	ret = v4l2_subdev_call(priv->src_sd, pad, enum_frame_size, NULL, &fse);
-+	if (ret)
-+		return ret;
-+
-+	if (fse.min_width == fse.max_width &&
-+	    fse.min_height == fse.max_height) {
-+		fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+		fsize->discrete.width = fse.min_width;
-+		fsize->discrete.height = fse.min_height;
-+	} else {
-+		fsize->type = V4L2_FRMSIZE_TYPE_CONTINUOUS;
-+		fsize->stepwise.min_width = fse.min_width;
-+		fsize->stepwise.max_width = fse.max_width;
-+		fsize->stepwise.min_height = fse.min_height;
-+		fsize->stepwise.max_height = fse.max_height;
-+		fsize->stepwise.step_width = 1;
-+		fsize->stepwise.step_height = 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static int capture_enum_frameintervals(struct file *file, void *fh,
-+				       struct v4l2_frmivalenum *fival)
-+{
-+	struct capture_priv *priv = video_drvdata(file);
-+	const struct imx_media_pixfmt *cc;
-+	struct v4l2_subdev_frame_interval_enum fie = {
-+		.index = fival->index,
-+		.pad = priv->src_sd_pad,
-+		.width = fival->width,
-+		.height = fival->height,
-+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+	};
-+	int ret;
-+
-+	cc = imx_media_find_format(fival->pixel_format, CS_SEL_ANY, true);
-+	if (!cc)
-+		return -EINVAL;
-+
-+	fie.code = cc->codes[0];
-+
-+	ret = v4l2_subdev_call(priv->src_sd, pad, enum_frame_interval, NULL, &fie);
-+	if (ret)
-+		return ret;
-+
-+	fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
-+	fival->discrete = fie.interval;
-+
-+	return 0;
-+}
-+
- static int capture_enum_fmt_vid_cap(struct file *file, void *fh,
- 				    struct v4l2_fmtdesc *f)
- {
-@@ -269,6 +339,9 @@ static int capture_s_parm(struct file *file, void *fh,
- static const struct v4l2_ioctl_ops capture_ioctl_ops = {
- 	.vidioc_querycap	= vidioc_querycap,
- 
-+	.vidioc_enum_framesizes = capture_enum_framesizes,
-+	.vidioc_enum_frameintervals = capture_enum_frameintervals,
-+
- 	.vidioc_enum_fmt_vid_cap        = capture_enum_fmt_vid_cap,
- 	.vidioc_g_fmt_vid_cap           = capture_g_fmt_vid_cap,
- 	.vidioc_try_fmt_vid_cap         = capture_try_fmt_vid_cap,
--- 
-2.7.4
+
+On 18-06-2017 18:34, Sylwester Nawrocki wrote:
+> Hi Jose,
+>
+> On 06/16/2017 06:38 PM, Jose Abreu wrote:
+>> Document the bindings for the Synopsys Designware HDMI RX.
+>>
+>> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+>> new file mode 100644
+>> index 0000000..d30cc1e
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
+>> @@ -0,0 +1,45 @@
+>> +Synopsys DesignWare HDMI RX Decoder
+>> +===================================
+>> +
+>> +This document defines device tree properties for the Synopsys DesignWare HDMI
+>> +RX Decoder (DWC HDMI RX). It doesn't constitute a device tree binding
+>> +specification by itself but is meant to be referenced by platform-specific
+>> +device tree bindings.
+>> +
+>> +When referenced from platform device tree bindings the properties defined in
+>> +this document are defined as follows.
+>> +
+>> +- reg: Memory mapped base address and length of the DWC HDMI RX registers.
+>> +
+>> +- interrupts: Reference to the DWC HDMI RX interrupt and 5v sense interrupt.
+>> +
+>> +- snps,hdmi-phy-jtag-addr: JTAG address of the phy to be used.
+>> +
+>> +- snps,hdmi-phy-version: Version of the phy to be used.
+>> +
+>> +- snps,hdmi-phy-cfg-clk: Value of the cfg clk that is delivered to phy.
+>> +
+>> +- snps,hdmi-phy-driver: *Exact* name of the phy driver to be used.
+> I don't think we can put Linux driver name in DT like this, devicetree 
+> is supposed to be describing hardware in OS agnostic way.
+
+Yeah, I was aware about that, its just that I have a few
+limitations that I need to address. I will highlight them bellow
+but I think that with your proposed DT bindings and using
+of_platform_populate I can address them :)
+
+>
+>> +- snps,hdmi-ctl-cfg-clk: Value of the cfg clk that is delivered to the
+>> +controller.
+> How about creating a separate node for the PHY? The binding could then 
+> be something like:
+>
+>
+> /* Fixed clock needed only if respective clock is not already defined    
+>    in the system */
+>
+> refclk: clock {
+> 	compatible = "fixed-clock";
+> 	#clock-cells = <0>;
+> 	clock-frequency = <25000000>;
+> };
+>
+> hdmi_phy: phy@f3 {
+> 	/* PHY version can be derived from the compatible string */
+> 	compatible = "snps,dw-hdmi-phy-e405"; 	
+> 	/* JTAG address of the PHY */
+> 	reg = <0xf3>
+>
+> 	clocks = <&refclk>
+> 	clock-names = "cfg-clk";
+> }
+>
+> hdmi-controller@0 {
+> 	compatible = "snps,dw-hdmi-rx-controller-vX.X";
+> 	reg = <0x0 0x10000>;
+> 	interrupts = <1 3>; 	
+> 	phys = <&hdmi_phy>;
+>
+> 	clocks = <&refclk>
+> 	clock-names = "cfg-clk";
+> };
+>
+> Or it might be better to make the PHY node child node of the RX controller 
+> node, since the RX controller could be considered a controller of the JTAG 
+> bus IIUC:
+>
+> refclk: clock {
+> 	compatible = "fixed-clock";
+> 	#clock-cells = <0>;
+> 	clock-frequency = <25000000>;
+> };
+>
+> hdmi-controller@0 {
+> 	compatible = "snps,dw-hdmi-rx-controller-xxx";
+> 	reg = <0x0 0x10000>;
+> 	interrupts = <1 3>; 	
+> 	clocks = <&refclk>
+> 	clock-names = "cfg-clk";
+> 	#address-cells = <1>;
+> 	#size-cells = <0>;
+>
+> 	phy@f3 {
+> 		/* PHY version can be derived from the compatible string */
+> 		compatible = "snps,dw-hdmi-phy-e405";
+>  		/* address of the PHY on the JTAG bus */
+> 		reg = <0xf3>
+>
+> 		clocks = <&refclk>
+> 		clock-names = "cfg-clk";
+> 	}
+> };
+>
+> Then rather than creating platform device in the RX controller driver 
+> for the PHY just of_platform_populate() could be used.
+
+Using fixed-clock was already in my todo list. Regarding phy I
+need to pass pdata so that the callbacks between controller and
+phy are established. I also need to make sure that phy driver
+will be loaded by the controller driver. Hmm, and also address of
+the phy on th JTAG bus is fed to the controller driver not to the
+phy driver. Maybe leave the property as is (the
+"snps,hdmi-phy-jtag-addr") or parse it from the phy node?
+
+I also need to pass pdata to the controller driver (the callbacks
+for 5v handling) which are agnostic of the controller. These
+reasons prevented me from adding compatible strings to both
+drivers and just use a wrapper driver instead. This way i do
+"modprobe wrapper_driver" and I get all the drivers loaded via
+request_module(). Still, I like your approach much better. I saw
+that I can pass pdata using of_platform_populate, could you
+please confirm if I can still maintain this architecture (i.e.
+prevent modules from loading until I get all the chain setup)?
+
+Following your approach I could get something like this:
+
+hdmi_system@YYYY {
+    compatible = "snps,dw-hdmi-rx-wrapper";
+    reg = <0xYYYY 0xZZZZ>;
+    interrupts = <3>;
+    #address-cells = <1>;
+    #size-cells = <1>;
+
+    hdmi_controller@0 {
+        compatible = "snps,dw-hdmi-rx-controller";
+        reg = <0x0 0x10000>;
+        interrupts = <1>;
+        edid-phandle = <&hdmi_system>;
+        clocks = <&refclk>;
+        clock-names = "ref-clk";
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        hdmi_phy@f3 {
+            compatible = "snps,dw-hdmi-phy-e405";
+            reg = <0xf3>;
+            clocks = <&cfgclk>;
+            clock-names = "cfg-clk";
+        }
+    }
+};
+
+And then snps,dw-hdmi-rx-wrapper would call of_platform_populate
+for controller which would instead call of_platform_populate for
+phy. Is this possible, and maintainable? Isn't the controller
+driver get auto loaded because of the compatible string match?
+And one more thing: The reg address of the hdmi_controller: Isn't
+this relative to the parent node? I mean isn't this going to be
+0xYYYY + 0x0? Because I don't want that :/
+
+Best regards,
+Jose Miguel Abreu
+
+>
+>> +- edid-phandle: phandle to the EDID driver. It can be, for example, the main
+>> +wrapper driver.
+>> +
+>> +A sample binding is now provided. The compatible string is for a wrapper driver
+>> +which then instantiates the Synopsys Designware HDMI RX decoder driver.
+> I would avoid talking about drivers in DT binding documentation, we should 
+> rather refer to hardware blocks.
+>
+>> +Example:
+>> +
+>> +dw_hdmi_wrapper: dw-hdmi-wrapper@0 {
+>> +	compatible = "snps,dw-hdmi-rx-wrapper";
+>> +	reg = <0x0 0x10000>; /* controller regbank */
+>> +	interrupts = <1 3>; /* controller interrupt + 5v sense interrupt */
+>> +	snps,hdmi-phy-driver = "dw-hdmi-phy-e405";
+>> +	snps,hdmi-phy-version = <405>;
+>> +	snps,hdmi-phy-cfg-clk = <25>; /* MHz */
+>> +	snps,hdmi-ctl-cfg-clk = <25>; /* MHz */
+>> +	snps,hdmi-phy-jtag-addr = /bits/ 8 <0xfc>;
+>> +	edid-phandle = <&dw_hdmi_wrapper>;
+>> +};
+> --
+> Regards,
+> Sylwester
+>
