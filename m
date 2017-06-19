@@ -1,401 +1,386 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0020.hostedemail.com ([216.40.44.20]:32883 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751584AbdFIRzB (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:57031 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751054AbdFSRtk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Jun 2017 13:55:01 -0400
-From: Joe Perches <joe@perches.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH] stkwebcam: Use more common logging styles
-Date: Fri,  9 Jun 2017 10:54:57 -0700
-Message-Id: <3fca8bd5dce632bc2a24020fff821e3afacd20a1.1497030881.git.joe@perches.com>
+        Mon, 19 Jun 2017 13:49:40 -0400
+Subject: Re: [PATCH v2] [media] v4l2: add V4L2_CAP_IO_MC
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1490889738-30009-1-git-send-email-helen.koike@collabora.com>
+ <1497415836-15142-1-git-send-email-helen.koike@collabora.com>
+ <2327e555-118e-0882-f2f6-7c0f74985aee@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        jgebben@codeaurora.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Helen Koike <helen.koike@collabora.com>
+Message-ID: <44dda7f2-1bf7-6b4d-d215-35102612ba21@collabora.com>
+Date: Mon, 19 Jun 2017 14:49:26 -0300
+MIME-Version: 1.0
+In-Reply-To: <2327e555-118e-0882-f2f6-7c0f74985aee@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert STK_<LEVEL> to pr_<level> to use the typical kernel logging.
-Add a define for pr_fmt.  No change in logging output.
+Hi Hans,
 
-Miscellanea:
+Thanks for reviewing this
 
-o Remove now unused PREFIX and STK_<LEVEL> macros
-o Realign arguments
-o Use pr_<level>_ratelimited
-o Add a few missing newlines to formats
+On 2017-06-19 08:15 AM, Hans Verkuil wrote:
+> On 06/14/2017 06:50 AM, Helen Koike wrote:
+>> Add V4L2_CAP_IO_MC to be used in struct v4l2_capability to indicate that
+>> input and output are controlled by the Media Controller instead of V4L2
+>> API.
+>> When this flag is set, ioctls for get, set and enum input and outputs
+>> are automatically enabled and programmed to call helper function.
+>>
+>> Signed-off-by: Helen Koike <helen.koike@collabora.com>
+>>
+>> ---
+>>
+>> Changes in v2::
+>>     - replace the type by capability
+>>     - erase V4L2_INPUT_TYPE_DEFAULT
+>>     - also consider output
+>>     - plug helpers in the ops automatically so drivers doesn't need
+>>     to set it by hand
+>>     - update docs
+>>     - commit message and title
+>> ---
+>>   Documentation/media/uapi/v4l/vidioc-querycap.rst |  3 +
+>>   Documentation/media/videodev2.h.rst.exceptions   |  1 +
+>>   drivers/media/v4l2-core/v4l2-dev.c               | 35 +++++++--
+>>   drivers/media/v4l2-core/v4l2-ioctl.c             | 91
+>> ++++++++++++++++++++++--
+>>   include/uapi/linux/videodev2.h                   |  2 +
+>>   5 files changed, 120 insertions(+), 12 deletions(-)
+>>
+>> diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst
+>> b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+>> index 12e0d9a..2bd1223 100644
+>> --- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
+>> +++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+>> @@ -252,6 +252,9 @@ specification the ioctl returns an ``EINVAL``
+>> error code.
+>>       * - ``V4L2_CAP_TOUCH``
+>>         - 0x10000000
+>>         - This is a touch device.
+>> +    * - ``V4L2_CAP_IO_MC``
+>> +      - 0x20000000
+>> +      - This device has its inputs and outputs controller by the
+>> Media Controller
+>
+> controller -> controlled
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- drivers/media/usb/stkwebcam/stk-sensor.c | 32 ++++++++-------
- drivers/media/usb/stkwebcam/stk-webcam.c | 70 ++++++++++++++++----------------
- drivers/media/usb/stkwebcam/stk-webcam.h |  6 ---
- 3 files changed, 52 insertions(+), 56 deletions(-)
+Sorry, I'll remember to use a spell checker next time
 
-diff --git a/drivers/media/usb/stkwebcam/stk-sensor.c b/drivers/media/usb/stkwebcam/stk-sensor.c
-index 985af9933c7e..c1d4505f84ea 100644
---- a/drivers/media/usb/stkwebcam/stk-sensor.c
-+++ b/drivers/media/usb/stkwebcam/stk-sensor.c
-@@ -41,6 +41,8 @@
- 
- /* It seems the i2c bus is controlled with these registers */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include "stk-webcam.h"
- 
- #define STK_IIC_BASE		(0x0200)
-@@ -239,8 +241,8 @@ static int stk_sensor_outb(struct stk_camera *dev, u8 reg, u8 val)
- 	} while (tmpval == 0 && i < MAX_RETRIES);
- 	if (tmpval != STK_IIC_STAT_TX_OK) {
- 		if (tmpval)
--			STK_ERROR("stk_sensor_outb failed, status=0x%02x\n",
--				tmpval);
-+			pr_err("stk_sensor_outb failed, status=0x%02x\n",
-+			       tmpval);
- 		return 1;
- 	} else
- 		return 0;
-@@ -262,8 +264,8 @@ static int stk_sensor_inb(struct stk_camera *dev, u8 reg, u8 *val)
- 	} while (tmpval == 0 && i < MAX_RETRIES);
- 	if (tmpval != STK_IIC_STAT_RX_OK) {
- 		if (tmpval)
--			STK_ERROR("stk_sensor_inb failed, status=0x%02x\n",
--				tmpval);
-+			pr_err("stk_sensor_inb failed, status=0x%02x\n",
-+			       tmpval);
- 		return 1;
- 	}
- 
-@@ -366,29 +368,29 @@ int stk_sensor_init(struct stk_camera *dev)
- 	if (stk_camera_write_reg(dev, STK_IIC_ENABLE, STK_IIC_ENABLE_YES)
- 		|| stk_camera_write_reg(dev, STK_IIC_ADDR, SENSOR_ADDRESS)
- 		|| stk_sensor_outb(dev, REG_COM7, COM7_RESET)) {
--		STK_ERROR("Sensor resetting failed\n");
-+		pr_err("Sensor resetting failed\n");
- 		return -ENODEV;
- 	}
- 	msleep(10);
- 	/* Read the manufacturer ID: ov = 0x7FA2 */
- 	if (stk_sensor_inb(dev, REG_MIDH, &idh)
- 	    || stk_sensor_inb(dev, REG_MIDL, &idl)) {
--		STK_ERROR("Strange error reading sensor ID\n");
-+		pr_err("Strange error reading sensor ID\n");
- 		return -ENODEV;
- 	}
- 	if (idh != 0x7f || idl != 0xa2) {
--		STK_ERROR("Huh? you don't have a sensor from ovt\n");
-+		pr_err("Huh? you don't have a sensor from ovt\n");
- 		return -ENODEV;
- 	}
- 	if (stk_sensor_inb(dev, REG_PID, &idh)
- 	    || stk_sensor_inb(dev, REG_VER, &idl)) {
--		STK_ERROR("Could not read sensor model\n");
-+		pr_err("Could not read sensor model\n");
- 		return -ENODEV;
- 	}
- 	stk_sensor_write_regvals(dev, ov_initvals);
- 	msleep(10);
--	STK_INFO("OmniVision sensor detected, id %02X%02X at address %x\n",
--		 idh, idl, SENSOR_ADDRESS);
-+	pr_info("OmniVision sensor detected, id %02X%02X at address %x\n",
-+		idh, idl, SENSOR_ADDRESS);
- 	return 0;
- }
- 
-@@ -520,7 +522,8 @@ int stk_sensor_configure(struct stk_camera *dev)
- 	case MODE_SXGA: com7 = COM7_FMT_SXGA;
- 		dummylines = 0;
- 		break;
--	default: STK_ERROR("Unsupported mode %d\n", dev->vsettings.mode);
-+	default:
-+		pr_err("Unsupported mode %d\n", dev->vsettings.mode);
- 		return -EFAULT;
- 	}
- 	switch (dev->vsettings.palette) {
-@@ -544,7 +547,8 @@ int stk_sensor_configure(struct stk_camera *dev)
- 		com7 |= COM7_PBAYER;
- 		rv = ov_fmt_bayer;
- 		break;
--	default: STK_ERROR("Unsupported colorspace\n");
-+	default:
-+		pr_err("Unsupported colorspace\n");
- 		return -EFAULT;
- 	}
- 	/*FIXME sometimes the sensor go to a bad state
-@@ -564,7 +568,7 @@ int stk_sensor_configure(struct stk_camera *dev)
- 	switch (dev->vsettings.mode) {
- 	case MODE_VGA:
- 		if (stk_sensor_set_hw(dev, 302, 1582, 6, 486))
--			STK_ERROR("stk_sensor_set_hw failed (VGA)\n");
-+			pr_err("stk_sensor_set_hw failed (VGA)\n");
- 		break;
- 	case MODE_SXGA:
- 	case MODE_CIF:
-@@ -572,7 +576,7 @@ int stk_sensor_configure(struct stk_camera *dev)
- 	case MODE_QCIF:
- 		/*FIXME These settings seem ignored by the sensor
- 		if (stk_sensor_set_hw(dev, 220, 1500, 10, 1034))
--			STK_ERROR("stk_sensor_set_hw failed (SXGA)\n");
-+			pr_err("stk_sensor_set_hw failed (SXGA)\n");
- 		*/
- 		break;
- 	}
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
-index 6e7fc36b658f..90d4a08cda31 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.c
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-@@ -18,6 +18,8 @@
-  * GNU General Public License for more details.
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
-@@ -175,15 +177,15 @@ static int stk_start_stream(struct stk_camera *dev)
- 	if (!is_present(dev))
- 		return -ENODEV;
- 	if (!is_memallocd(dev) || !is_initialised(dev)) {
--		STK_ERROR("FIXME: Buffers are not allocated\n");
-+		pr_err("FIXME: Buffers are not allocated\n");
- 		return -EFAULT;
- 	}
- 	ret = usb_set_interface(dev->udev, 0, 5);
- 
- 	if (ret < 0)
--		STK_ERROR("usb_set_interface failed !\n");
-+		pr_err("usb_set_interface failed !\n");
- 	if (stk_sensor_wakeup(dev))
--		STK_ERROR("error awaking the sensor\n");
-+		pr_err("error awaking the sensor\n");
- 
- 	stk_camera_read_reg(dev, 0x0116, &value_116);
- 	stk_camera_read_reg(dev, 0x0117, &value_117);
-@@ -224,9 +226,9 @@ static int stk_stop_stream(struct stk_camera *dev)
- 		unset_streaming(dev);
- 
- 		if (usb_set_interface(dev->udev, 0, 0))
--			STK_ERROR("usb_set_interface failed !\n");
-+			pr_err("usb_set_interface failed !\n");
- 		if (stk_sensor_sleep(dev))
--			STK_ERROR("error suspending the sensor\n");
-+			pr_err("error suspending the sensor\n");
- 	}
- 	return 0;
- }
-@@ -313,7 +315,7 @@ static void stk_isoc_handler(struct urb *urb)
- 	dev = (struct stk_camera *) urb->context;
- 
- 	if (dev == NULL) {
--		STK_ERROR("isoc_handler called with NULL device !\n");
-+		pr_err("isoc_handler called with NULL device !\n");
- 		return;
- 	}
- 
-@@ -326,14 +328,13 @@ static void stk_isoc_handler(struct urb *urb)
- 	spin_lock_irqsave(&dev->spinlock, flags);
- 
- 	if (urb->status != -EINPROGRESS && urb->status != 0) {
--		STK_ERROR("isoc_handler: urb->status == %d\n", urb->status);
-+		pr_err("isoc_handler: urb->status == %d\n", urb->status);
- 		goto resubmit;
- 	}
- 
- 	if (list_empty(&dev->sio_avail)) {
- 		/*FIXME Stop streaming after a while */
--		(void) (printk_ratelimit() &&
--		STK_ERROR("isoc_handler without available buffer!\n"));
-+		pr_err_ratelimited("isoc_handler without available buffer!\n");
- 		goto resubmit;
- 	}
- 	fb = list_first_entry(&dev->sio_avail,
-@@ -343,8 +344,8 @@ static void stk_isoc_handler(struct urb *urb)
- 	for (i = 0; i < urb->number_of_packets; i++) {
- 		if (urb->iso_frame_desc[i].status != 0) {
- 			if (urb->iso_frame_desc[i].status != -EXDEV)
--				STK_ERROR("Frame %d has error %d\n", i,
--					urb->iso_frame_desc[i].status);
-+				pr_err("Frame %d has error %d\n",
-+				       i, urb->iso_frame_desc[i].status);
- 			continue;
- 		}
- 		framelen = urb->iso_frame_desc[i].actual_length;
-@@ -368,9 +369,8 @@ static void stk_isoc_handler(struct urb *urb)
- 			/* This marks a new frame */
- 			if (fb->v4lbuf.bytesused != 0
- 				&& fb->v4lbuf.bytesused != dev->frame_size) {
--				(void) (printk_ratelimit() &&
--				STK_ERROR("frame %d, bytesused=%d, skipping\n",
--					i, fb->v4lbuf.bytesused));
-+				pr_err_ratelimited("frame %d, bytesused=%d, skipping\n",
-+						   i, fb->v4lbuf.bytesused);
- 				fb->v4lbuf.bytesused = 0;
- 				fill = fb->buffer;
- 			} else if (fb->v4lbuf.bytesused == dev->frame_size) {
-@@ -395,8 +395,7 @@ static void stk_isoc_handler(struct urb *urb)
- 
- 		/* Our buffer is full !!! */
- 		if (framelen + fb->v4lbuf.bytesused > dev->frame_size) {
--			(void) (printk_ratelimit() &&
--			STK_ERROR("Frame buffer overflow, lost sync\n"));
-+			pr_err_ratelimited("Frame buffer overflow, lost sync\n");
- 			/*FIXME Do something here? */
- 			continue;
- 		}
-@@ -414,8 +413,8 @@ static void stk_isoc_handler(struct urb *urb)
- 	urb->dev = dev->udev;
- 	ret = usb_submit_urb(urb, GFP_ATOMIC);
- 	if (ret != 0) {
--		STK_ERROR("Error (%d) re-submitting urb in stk_isoc_handler.\n",
--			ret);
-+		pr_err("Error (%d) re-submitting urb in stk_isoc_handler\n",
-+		       ret);
- 	}
- }
- 
-@@ -433,32 +432,31 @@ static int stk_prepare_iso(struct stk_camera *dev)
- 	udev = dev->udev;
- 
- 	if (dev->isobufs)
--		STK_ERROR("isobufs already allocated. Bad\n");
-+		pr_err("isobufs already allocated. Bad\n");
- 	else
- 		dev->isobufs = kcalloc(MAX_ISO_BUFS, sizeof(*dev->isobufs),
- 				       GFP_KERNEL);
- 	if (dev->isobufs == NULL) {
--		STK_ERROR("Unable to allocate iso buffers\n");
-+		pr_err("Unable to allocate iso buffers\n");
- 		return -ENOMEM;
- 	}
- 	for (i = 0; i < MAX_ISO_BUFS; i++) {
- 		if (dev->isobufs[i].data == NULL) {
- 			kbuf = kzalloc(ISO_BUFFER_SIZE, GFP_KERNEL);
- 			if (kbuf == NULL) {
--				STK_ERROR("Failed to allocate iso buffer %d\n",
--					i);
-+				pr_err("Failed to allocate iso buffer %d\n", i);
- 				goto isobufs_out;
- 			}
- 			dev->isobufs[i].data = kbuf;
- 		} else
--			STK_ERROR("isobuf data already allocated\n");
-+			pr_err("isobuf data already allocated\n");
- 		if (dev->isobufs[i].urb == NULL) {
- 			urb = usb_alloc_urb(ISO_FRAMES_PER_DESC, GFP_KERNEL);
- 			if (urb == NULL)
- 				goto isobufs_out;
- 			dev->isobufs[i].urb = urb;
- 		} else {
--			STK_ERROR("Killing URB\n");
-+			pr_err("Killing URB\n");
- 			usb_kill_urb(dev->isobufs[i].urb);
- 			urb = dev->isobufs[i].urb;
- 		}
-@@ -567,7 +565,7 @@ static int stk_prepare_sio_buffers(struct stk_camera *dev, unsigned n_sbufs)
- {
- 	int i;
- 	if (dev->sio_bufs != NULL)
--		STK_ERROR("sio_bufs already allocated\n");
-+		pr_err("sio_bufs already allocated\n");
- 	else {
- 		dev->sio_bufs = kzalloc(n_sbufs * sizeof(struct stk_sio_buffer),
- 				GFP_KERNEL);
-@@ -690,7 +688,7 @@ static ssize_t stk_read(struct file *fp, char __user *buf,
- 	spin_lock_irqsave(&dev->spinlock, flags);
- 	if (list_empty(&dev->sio_full)) {
- 		spin_unlock_irqrestore(&dev->spinlock, flags);
--		STK_ERROR("BUG: No siobufs ready\n");
-+		pr_err("BUG: No siobufs ready\n");
- 		return 0;
- 	}
- 	sbuf = list_first_entry(&dev->sio_full, struct stk_sio_buffer, list);
-@@ -907,7 +905,7 @@ static int stk_vidioc_g_fmt_vid_cap(struct file *filp,
- 			stk_sizes[i].m != dev->vsettings.mode; i++)
- 		;
- 	if (i == ARRAY_SIZE(stk_sizes)) {
--		STK_ERROR("ERROR: mode invalid\n");
-+		pr_err("ERROR: mode invalid\n");
- 		return -EINVAL;
- 	}
- 	pix_format->width = stk_sizes[i].w;
-@@ -985,7 +983,7 @@ static int stk_setup_format(struct stk_camera *dev)
- 			stk_sizes[i].m != dev->vsettings.mode)
- 		i++;
- 	if (i == ARRAY_SIZE(stk_sizes)) {
--		STK_ERROR("Something is broken in %s\n", __func__);
-+		pr_err("Something is broken in %s\n", __func__);
- 		return -EFAULT;
- 	}
- 	/* This registers controls some timings, not sure of what. */
-@@ -1241,7 +1239,7 @@ static void stk_v4l_dev_release(struct video_device *vd)
- 	struct stk_camera *dev = vdev_to_camera(vd);
- 
- 	if (dev->sio_bufs != NULL || dev->isobufs != NULL)
--		STK_ERROR("We are leaking memory\n");
-+		pr_err("We are leaking memory\n");
- 	usb_put_intf(dev->interface);
- 	kfree(dev);
- }
-@@ -1264,10 +1262,10 @@ static int stk_register_video_device(struct stk_camera *dev)
- 	video_set_drvdata(&dev->vdev, dev);
- 	err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
- 	if (err)
--		STK_ERROR("v4l registration failed\n");
-+		pr_err("v4l registration failed\n");
- 	else
--		STK_INFO("Syntek USB2.0 Camera is now controlling device %s\n",
--			 video_device_node_name(&dev->vdev));
-+		pr_info("Syntek USB2.0 Camera is now controlling device %s\n",
-+			video_device_node_name(&dev->vdev));
- 	return err;
- }
- 
-@@ -1288,7 +1286,7 @@ static int stk_camera_probe(struct usb_interface *interface,
- 
- 	dev = kzalloc(sizeof(struct stk_camera), GFP_KERNEL);
- 	if (dev == NULL) {
--		STK_ERROR("Out of memory !\n");
-+		pr_err("Out of memory !\n");
- 		return -ENOMEM;
- 	}
- 	err = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
-@@ -1352,7 +1350,7 @@ static int stk_camera_probe(struct usb_interface *interface,
- 		}
- 	}
- 	if (!dev->isoc_ep) {
--		STK_ERROR("Could not find isoc-in endpoint");
-+		pr_err("Could not find isoc-in endpoint\n");
- 		err = -ENODEV;
- 		goto error;
- 	}
-@@ -1387,8 +1385,8 @@ static void stk_camera_disconnect(struct usb_interface *interface)
- 
- 	wake_up_interruptible(&dev->wait_frame);
- 
--	STK_INFO("Syntek USB2.0 Camera release resources device %s\n",
--		 video_device_node_name(&dev->vdev));
-+	pr_info("Syntek USB2.0 Camera release resources device %s\n",
-+		video_device_node_name(&dev->vdev));
- 
- 	video_unregister_device(&dev->vdev);
- 	v4l2_ctrl_handler_free(&dev->hdl);
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.h b/drivers/media/usb/stkwebcam/stk-webcam.h
-index 0284120ce246..5cecbdc97573 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.h
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.h
-@@ -31,12 +31,6 @@
- #define ISO_MAX_FRAME_SIZE	3 * 1024
- #define ISO_BUFFER_SIZE		(ISO_FRAMES_PER_DESC * ISO_MAX_FRAME_SIZE)
- 
--
--#define PREFIX				"stkwebcam: "
--#define STK_INFO(str, args...)		printk(KERN_INFO PREFIX str, ##args)
--#define STK_ERROR(str, args...)		printk(KERN_ERR PREFIX str, ##args)
--#define STK_WARNING(str, args...)	printk(KERN_WARNING PREFIX str, ##args)
--
- struct stk_iso_buf {
- 	void *data;
- 	int length;
--- 
-2.10.0.rc2.1.g053435c
+>
+> But I would rephrase this a bit:
+>
+>     - The inputs and/or outputs of this device are controlled by the
+> Media Controller
+>       (see: <add link to Part IV of the media documentation>).
+>
+
+Sure, much better.
+In this document, almost all the flags start with "The device 
+supports..." or "The device has...", I was thinking to do something similar.
+
+>>       * - ``V4L2_CAP_DEVICE_CAPS``
+>>         - 0x80000000
+>>         - The driver fills the ``device_caps`` field. This capability can
+>> diff --git a/Documentation/media/videodev2.h.rst.exceptions
+>> b/Documentation/media/videodev2.h.rst.exceptions
+>> index a5cb0a8..0b48cd0 100644
+>> --- a/Documentation/media/videodev2.h.rst.exceptions
+>> +++ b/Documentation/media/videodev2.h.rst.exceptions
+>> @@ -159,6 +159,7 @@ replace define V4L2_CAP_ASYNCIO device-capabilities
+>>   replace define V4L2_CAP_STREAMING device-capabilities
+>>   replace define V4L2_CAP_DEVICE_CAPS device-capabilities
+>>   replace define V4L2_CAP_TOUCH device-capabilities
+>> +replace define V4L2_CAP_IO_MC device-capabilities
+>>     # V4L2 pix flags
+>>   replace define V4L2_PIX_FMT_PRIV_MAGIC :c:type:`v4l2_pix_format`
+>> diff --git a/drivers/media/v4l2-core/v4l2-dev.c
+>> b/drivers/media/v4l2-core/v4l2-dev.c
+>> index c647ba6..0f272fe 100644
+>> --- a/drivers/media/v4l2-core/v4l2-dev.c
+>> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+>> @@ -688,22 +688,34 @@ static void determine_valid_ioctls(struct
+>> video_device *vdev)
+>>           SET_VALID_IOCTL(ops, VIDIOC_G_STD, vidioc_g_std);
+>>           if (is_rx) {
+>>               SET_VALID_IOCTL(ops, VIDIOC_QUERYSTD, vidioc_querystd);
+>> -            SET_VALID_IOCTL(ops, VIDIOC_ENUMINPUT, vidioc_enum_input);
+>> -            SET_VALID_IOCTL(ops, VIDIOC_G_INPUT, vidioc_g_input);
+>> -            SET_VALID_IOCTL(ops, VIDIOC_S_INPUT, vidioc_s_input);
+>>               SET_VALID_IOCTL(ops, VIDIOC_ENUMAUDIO, vidioc_enumaudio);
+>>               SET_VALID_IOCTL(ops, VIDIOC_G_AUDIO, vidioc_g_audio);
+>>               SET_VALID_IOCTL(ops, VIDIOC_S_AUDIO, vidioc_s_audio);
+>>               SET_VALID_IOCTL(ops, VIDIOC_QUERY_DV_TIMINGS,
+>> vidioc_query_dv_timings);
+>>               SET_VALID_IOCTL(ops, VIDIOC_S_EDID, vidioc_s_edid);
+>> +            if (vdev->device_caps & V4L2_CAP_IO_MC) {
+>> +                set_bit(_IOC_NR(VIDIOC_ENUMINPUT), valid_ioctls);
+>> +                set_bit(_IOC_NR(VIDIOC_G_INPUT), valid_ioctls);
+>> +                set_bit(_IOC_NR(VIDIOC_S_INPUT), valid_ioctls);
+>> +            } else {
+>> +                SET_VALID_IOCTL(ops, VIDIOC_ENUMINPUT,
+>> vidioc_enum_input);
+>> +                SET_VALID_IOCTL(ops, VIDIOC_G_INPUT, vidioc_g_input);
+>> +                SET_VALID_IOCTL(ops, VIDIOC_S_INPUT, vidioc_s_input);
+>> +            }
+>>           }
+>>           if (is_tx) {
+>> -            SET_VALID_IOCTL(ops, VIDIOC_ENUMOUTPUT, vidioc_enum_output);
+>> -            SET_VALID_IOCTL(ops, VIDIOC_G_OUTPUT, vidioc_g_output);
+>> -            SET_VALID_IOCTL(ops, VIDIOC_S_OUTPUT, vidioc_s_output);
+>>               SET_VALID_IOCTL(ops, VIDIOC_ENUMAUDOUT, vidioc_enumaudout);
+>>               SET_VALID_IOCTL(ops, VIDIOC_G_AUDOUT, vidioc_g_audout);
+>>               SET_VALID_IOCTL(ops, VIDIOC_S_AUDOUT, vidioc_s_audout);
+>> +            if (vdev->device_caps & V4L2_CAP_IO_MC) {
+>> +                set_bit(_IOC_NR(VIDIOC_ENUMOUTPUT), valid_ioctls);
+>> +                set_bit(_IOC_NR(VIDIOC_G_OUTPUT), valid_ioctls);
+>> +                set_bit(_IOC_NR(VIDIOC_S_OUTPUT), valid_ioctls);
+>> +            } else {
+>> +                SET_VALID_IOCTL(ops, VIDIOC_ENUMOUTPUT,
+>> vidioc_enum_output);
+>> +                SET_VALID_IOCTL(ops, VIDIOC_G_OUTPUT, vidioc_g_output);
+>> +                SET_VALID_IOCTL(ops, VIDIOC_S_OUTPUT, vidioc_s_output);
+>> +            }
+>>           }
+>>           if (ops->vidioc_g_parm || (vdev->vfl_type ==
+>> VFL_TYPE_GRABBER &&
+>>                       ops->vidioc_g_std))
+>> @@ -945,6 +957,17 @@ int __video_register_device(struct video_device
+>> *vdev, int type, int nr,
+>>       video_device[vdev->minor] = vdev;
+>>       mutex_unlock(&videodev_lock);
+>>   +#if defined(CONFIG_MEDIA_CONTROLLER)
+>> +    if (vdev->ioctl_ops
+>> +        && !vdev->ioctl_ops->vidioc_enum_input
+>> +        && !vdev->ioctl_ops->vidioc_s_input
+>> +        && !vdev->ioctl_ops->vidioc_g_input
+>> +        && !vdev->ioctl_ops->vidioc_enum_output
+>> +        && !vdev->ioctl_ops->vidioc_s_output
+>> +        && !vdev->ioctl_ops->vidioc_g_output)
+>> +        vdev->device_caps |= V4L2_CAP_IO_MC;
+>
+> No, this part should be dropped.
+>
+> Let the driver set this capability explicitly. This code for example
+> would set the IO_MC
+> bit as well for radio devices, and that's not what you want.
+
+hmm, right, so we will need to update the drivers one by one in the end.
+
+I think I still don't fully understand the importance of the 
+V4L2_CAP_IO_MC flag (sorry to bring this up again, I just want to make 
+sure this is right), we don't have a flag to say that an output is an 
+HDMI, user space uses the VIDIOC_ENUMOUTPUT ioctl to figure that this is 
+an HDMI by its output's name, why this can't be the same for MC 
+controlled IOs?
+
+>
+> The MC can also be used by regular drivers (there is nothing preventing
+> drivers from
+> doing that). So just leave this up to the driver.
+>
+>> +#endif
+>> +
+>>       if (vdev->ioctl_ops)
+>>           determine_valid_ioctls(vdev);
+>>   diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
+>> b/drivers/media/v4l2-core/v4l2-ioctl.c
+>> index e5a2187..9d8c645 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+>> @@ -1019,6 +1019,70 @@ static int v4l_querycap(const struct
+>> v4l2_ioctl_ops *ops,
+>>       return ret;
+>>   }
+>>   +static int v4l2_ioctl_enum_input_mc(struct file *file, void *priv,
+>> +                    struct v4l2_input *i)
+>> +{
+>> +    struct video_device *vfd = video_devdata(file);
+>> +
+>> +    if (i->index > 0)
+>> +        return -EINVAL;
+>> +
+>> +    memset(i, 0, sizeof(*i));
+>> +    strlcpy(i->name, vfd->name, sizeof(i->name));
+>
+>     i->type = V4L2_INPUT_TYPE_CAMERA;
+>
+>> +
+>> +    return 0;
+>> +}
+>> +
+>> +static int v4l2_ioctl_enum_output_mc(struct file *file, void *priv,
+>> +                     struct v4l2_output *o)
+>> +{
+>> +    struct video_device *vfd = video_devdata(file);
+>> +
+>> +    if (o->index > 0)
+>> +        return -EINVAL;
+>> +
+>> +    memset(o, 0, sizeof(*o));
+>> +    strlcpy(o->name, vfd->name, sizeof(o->name));
+>
+>     o->type = V4L2_OUTPUT_TYPE_ANALOG;
+>
+>> +
+>> +    return 0;
+>> +}
+>> +
+>> +static int v4l2_ioctl_g_input_mc(struct file *file, void *priv,
+>> unsigned int *i)
+>> +{
+>> +    *i = 0;
+>> +    return 0;
+>> +}
+>> +#define v4l2_ioctl_g_output_mc v4l2_ioctl_g_input_mc
+>> +
+>> +static int v4l2_ioctl_s_input_mc(struct file *file, void *priv,
+>> unsigned int i)
+>> +{
+>> +    return i ? -EINVAL : 0;
+>> +}
+>> +#define v4l2_ioctl_s_output_mc v4l2_ioctl_s_input_mc
+>> +
+>> +
+>> +static int v4l_g_input(const struct v4l2_ioctl_ops *ops,
+>> +               struct file *file, void *fh, void *arg)
+>> +{
+>> +    struct video_device *vfd = video_devdata(file);
+>> +
+>> +    if (vfd->device_caps & V4L2_CAP_IO_MC)
+>> +        return v4l2_ioctl_g_input_mc(file, fh, arg);
+>> +    else
+>
+> 'else' is not needed.
+
+'else' is not needed but I thought it was easier to read the code this 
+way (and I believe the compiler optimizes this), anyway, I'll remove the 
+'else' then, no problem.
+
+>
+>> +        return ops->vidioc_g_input(file, fh, arg);
+>> +}
+>> +
+>> +static int v4l_g_output(const struct v4l2_ioctl_ops *ops,
+>> +               struct file *file, void *fh, void *arg)
+>> +{
+>> +    struct video_device *vfd = video_devdata(file);
+>> +
+>> +    if (vfd->device_caps & V4L2_CAP_IO_MC)
+>> +        return v4l2_ioctl_g_output_mc(file, fh, arg);
+>> +    else
+>
+> 'else' is not needed. Same for the others below.
+>
+>> +        return ops->vidioc_g_output(file, fh, arg);
+>> +}
+>> +
+>>   static int v4l_s_input(const struct v4l2_ioctl_ops *ops,
+>>                   struct file *file, void *fh, void *arg)
+>>   {
+>> @@ -1028,13 +1092,22 @@ static int v4l_s_input(const struct
+>> v4l2_ioctl_ops *ops,
+>>       ret = v4l_enable_media_source(vfd);
+>>       if (ret)
+>>           return ret;
+>> -    return ops->vidioc_s_input(file, fh, *(unsigned int *)arg);
+>> +
+>> +    if (vfd->device_caps & V4L2_CAP_IO_MC)
+>> +        return v4l2_ioctl_s_input_mc(file, fh, *(unsigned int *)arg);
+>> +    else
+>> +        return ops->vidioc_s_input(file, fh, *(unsigned int *)arg);
+>>   }
+>>     static int v4l_s_output(const struct v4l2_ioctl_ops *ops,
+>>                   struct file *file, void *fh, void *arg)
+>>   {
+>> -    return ops->vidioc_s_output(file, fh, *(unsigned int *)arg);
+>> +    struct video_device *vfd = video_devdata(file);
+>> +
+>> +    if (vfd->device_caps & V4L2_CAP_IO_MC)
+>> +        return v4l2_ioctl_s_output_mc(file, fh, *(unsigned int *)arg);
+>> +    else
+>> +        return ops->vidioc_s_output(file, fh, *(unsigned int *)arg);
+>>   }
+>>     static int v4l_g_priority(const struct v4l2_ioctl_ops *ops,
+>> @@ -1077,7 +1150,10 @@ static int v4l_enuminput(const struct
+>> v4l2_ioctl_ops *ops,
+>>       if (is_valid_ioctl(vfd, VIDIOC_S_STD))
+>>           p->capabilities |= V4L2_IN_CAP_STD;
+>>   -    return ops->vidioc_enum_input(file, fh, p);
+>> +    if (vfd->device_caps & V4L2_CAP_IO_MC)
+>> +        return v4l2_ioctl_enum_input_mc(file, fh, p);
+>> +    else
+>> +        return ops->vidioc_enum_input(file, fh, p);
+>>   }
+>>     static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
+>> @@ -1095,7 +1171,10 @@ static int v4l_enumoutput(const struct
+>> v4l2_ioctl_ops *ops,
+>>       if (is_valid_ioctl(vfd, VIDIOC_S_STD))
+>>           p->capabilities |= V4L2_OUT_CAP_STD;
+>>   -    return ops->vidioc_enum_output(file, fh, p);
+>> +    if (vfd->device_caps & V4L2_CAP_IO_MC)
+>> +        return v4l2_ioctl_enum_output_mc(file, fh, p);
+>> +    else
+>> +        return ops->vidioc_enum_output(file, fh, p);
+>>   }
+>>     static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+>> @@ -2534,11 +2613,11 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+>>       IOCTL_INFO_STD(VIDIOC_S_AUDIO, vidioc_s_audio, v4l_print_audio,
+>> INFO_FL_PRIO),
+>>       IOCTL_INFO_FNC(VIDIOC_QUERYCTRL, v4l_queryctrl,
+>> v4l_print_queryctrl, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_queryctrl, id)),
+>>       IOCTL_INFO_FNC(VIDIOC_QUERYMENU, v4l_querymenu,
+>> v4l_print_querymenu, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_querymenu,
+>> index)),
+>> -    IOCTL_INFO_STD(VIDIOC_G_INPUT, vidioc_g_input, v4l_print_u32, 0),
+>> +    IOCTL_INFO_FNC(VIDIOC_G_INPUT, v4l_g_input, v4l_print_u32, 0),
+>>       IOCTL_INFO_FNC(VIDIOC_S_INPUT, v4l_s_input, v4l_print_u32,
+>> INFO_FL_PRIO),
+>>       IOCTL_INFO_STD(VIDIOC_G_EDID, vidioc_g_edid, v4l_print_edid, 0),
+>>       IOCTL_INFO_STD(VIDIOC_S_EDID, vidioc_s_edid, v4l_print_edid,
+>> INFO_FL_PRIO),
+>> -    IOCTL_INFO_STD(VIDIOC_G_OUTPUT, vidioc_g_output, v4l_print_u32, 0),
+>> +    IOCTL_INFO_FNC(VIDIOC_G_OUTPUT, v4l_g_output, v4l_print_u32, 0),
+>>       IOCTL_INFO_FNC(VIDIOC_S_OUTPUT, v4l_s_output, v4l_print_u32,
+>> INFO_FL_PRIO),
+>>       IOCTL_INFO_FNC(VIDIOC_ENUMOUTPUT, v4l_enumoutput,
+>> v4l_print_enumoutput, INFO_FL_CLEAR(v4l2_output, index)),
+>>       IOCTL_INFO_STD(VIDIOC_G_AUDOUT, vidioc_g_audout,
+>> v4l_print_audioout, 0),
+>> diff --git a/include/uapi/linux/videodev2.h
+>> b/include/uapi/linux/videodev2.h
+>> index 2b8feb8..94cb196 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -460,6 +460,8 @@ struct v4l2_capability {
+>>     #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch
+>> device */
+>>   +#define V4L2_CAP_IO_MC            0x20000000  /* Is input/output
+>> controlled by the media controler */
+>
+> controler -> controller
+>
+>> +
+>>   #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device
+>> capabilities field */
+>>     /*
+>>
+>
+> Regards,
+>
+>     Hans
+
+Thanks,
+Helen
