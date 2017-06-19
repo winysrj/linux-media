@@ -1,92 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:36972 "EHLO
-        mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752444AbdFOQdJ (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:46489 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750952AbdFSHyA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 12:33:09 -0400
-Received: by mail-wm0-f44.google.com with SMTP id d73so4071015wma.0
-        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 09:33:09 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v11 09/19] media: venus: enable building of Venus video driver
-Date: Thu, 15 Jun 2017 19:31:50 +0300
-Message-Id: <1497544320-2269-10-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
+        Mon, 19 Jun 2017 03:54:00 -0400
+Subject: Re: [PATCH v4 00/11] [media]: vimc: Virtual Media Control VPU's
+To: Helen Koike <helen.koike@collabora.com>,
+        linux-media@vger.kernel.org
+Cc: jgebben@codeaurora.org, mchehab@osg.samsung.com,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1497382545-16408-1-git-send-email-helen.koike@collabora.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <1da45fde-5d5b-0746-0bcd-ac8638013151@xs4all.nl>
+Date: Mon, 19 Jun 2017 09:53:53 +0200
+MIME-Version: 1.0
+In-Reply-To: <1497382545-16408-1-git-send-email-helen.koike@collabora.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds Venus driver Makefile and changes v4l2 platform
-Makefile/Kconfig in order to enable building of the driver.
+Hi Helen,
 
-Note that in this initial version the COMPILE_TEST-ing is not
-supported because the drivers specific to ARM builds are still
-in process of enabling the aforementioned compile testing.
-Once that disadvantage is fixed the Venus driver compile testing
-will be possible with follow-up changes.
+On 06/13/2017 09:35 PM, Helen Koike wrote:
+> This patch series improves the current video processing units in vimc
+> (by adding more controls to the sensor and capture node, allowing the
+> user to configure different frame formats) and also adds a debayer
+> and a scaler node.
+> The debayer transforms the bayer format image received in its sink pad
+> to a bayer format by averaging the pixels within a mean window.
+> The scaler only scales up the image for now.
+> 
+> This patch series is based on media/master and it is available at:
+> 	https://github.com/helen-fornazier/opw-staging/tree/z/sent/vimc/vpu/v4
+> 
+> In this version I removed the commit
+> 	[media] vimc: Optimize frame generation through the pipe
+> There was a bug when multiple links going to the same sink was enabled,
+> I'll rework on it and re-send it in a different patch series
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- drivers/media/platform/Kconfig             | 13 +++++++++++++
- drivers/media/platform/Makefile            |  2 ++
- drivers/media/platform/qcom/venus/Makefile | 11 +++++++++++
- 3 files changed, 26 insertions(+)
- create mode 100644 drivers/media/platform/qcom/venus/Makefile
+I ran the v4 patch series through my sparse/smatch test and found a few warnings:
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 8da521a8ead7..6027dbd4e04d 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -464,6 +464,19 @@ config VIDEO_TI_VPE_DEBUG
- 	---help---
- 	  Enable debug messages on VPE driver.
- 
-+config VIDEO_QCOM_VENUS
-+	tristate "Qualcomm Venus V4L2 encoder/decoder driver"
-+	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
-+	depends on ARCH_QCOM && IOMMU_DMA
-+	select QCOM_MDT_LOADER
-+	select VIDEOBUF2_DMA_SG
-+	select V4L2_MEM2MEM_DEV
-+	---help---
-+	  This is a V4L2 driver for Qualcomm Venus video accelerator
-+	  hardware. It accelerates encoding and decoding operations
-+	  on various Qualcomm SoCs.
-+	  To compile this driver as a module choose m here.
-+
- endif # V4L_MEM2MEM_DRIVERS
- 
- # TI VIDEO PORT Helper Modules
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 6bbdf942e8c8..4607408c047d 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -81,3 +81,5 @@ obj-$(CONFIG_VIDEO_MEDIATEK_VCODEC)	+= mtk-vcodec/
- obj-$(CONFIG_VIDEO_MEDIATEK_MDP)	+= mtk-mdp/
- 
- obj-$(CONFIG_VIDEO_MEDIATEK_JPEG)	+= mtk-jpeg/
-+
-+obj-$(CONFIG_VIDEO_QCOM_VENUS)		+= qcom/venus/
-diff --git a/drivers/media/platform/qcom/venus/Makefile b/drivers/media/platform/qcom/venus/Makefile
-new file mode 100644
-index 000000000000..0fe9afb83697
---- /dev/null
-+++ b/drivers/media/platform/qcom/venus/Makefile
-@@ -0,0 +1,11 @@
-+# Makefile for Qualcomm Venus driver
-+
-+venus-core-objs += core.o helpers.o firmware.o \
-+		   hfi_venus.o hfi_msgs.o hfi_cmds.o hfi.o
-+
-+venus-dec-objs += vdec.o vdec_ctrls.o
-+venus-enc-objs += venc.o venc_ctrls.o
-+
-+obj-$(CONFIG_VIDEO_QCOM_VENUS) += venus-core.o
-+obj-$(CONFIG_VIDEO_QCOM_VENUS) += venus-dec.o
-+obj-$(CONFIG_VIDEO_QCOM_VENUS) += venus-enc.o
--- 
-2.7.4
+sparse:
+
+drivers/media/platform/vimc/vimc-debayer.c:376:30: warning: symbol 'vimc_deb_video_ops' was not declared. Should it be static?
+drivers/media/platform/vimc/vimc-scaler.c:270:30: warning: symbol 'vimc_sca_video_ops' was not declared. Should it be static?
+drivers/media/platform/vimc/vimc-sensor.c:285:30: warning: symbol 'vimc_sen_video_ops' was not declared. Should it be static?
+
+smatch:
+
+drivers/media/platform/vimc/vimc-core.c:271 vimc_add_subdevs() warn: always true condition '(--i >= 0) => (0-u32max >= 0)'
+drivers/media/platform/vimc/vimc-core.c:271 vimc_add_subdevs() warn: always true condition '(--i >= 0) => (0-u32max >= 0)'
+
+Can you take a look?
+
+Regards,
+
+	Hans
