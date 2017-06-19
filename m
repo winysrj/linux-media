@@ -1,29 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f41.google.com ([209.85.218.41]:35455 "EHLO
-        mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751125AbdFBNIz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 09:08:55 -0400
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45608
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750780AbdFSRIO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Jun 2017 13:08:14 -0400
+Date: Mon, 19 Jun 2017 14:08:06 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Thierry Lelegard <thierry.lelegard@free.fr>
+Cc: thierry@lelegard.fr, linux-media@vger.kernel.org
+Subject: Re: LinuxTV V3 vs. V4 API doc inconsistency, V4 probably wrong
+Message-ID: <20170619140806.7e92ae66@vento.lan>
+In-Reply-To: <3188f2a2bcba758dccaaa8cdbbd694fb@free.fr>
+References: <3188f2a2bcba758dccaaa8cdbbd694fb@free.fr>
 MIME-Version: 1.0
-From: Ajay kumar <ajaynumb@gmail.com>
-Date: Fri, 2 Jun 2017 18:38:53 +0530
-Message-ID: <CAEC9eQNW1hHrn2p9Tu-WR3Kft62x71383HjwbJQSiq_iWebsnw@mail.gmail.com>
-Subject: Support for RGB/YUV 10, 12 BPC(bits per color/component) image data
- formats in kernel
-To: LKML <linux-kernel@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Em Mon, 19 Jun 2017 16:58:40 +0200
+Thierry Lelegard <thierry.lelegard@free.fr> escreveu:
 
-I have tried searching for RGB/YUV 10, 12 BPC formats in videodev2.h,
-media-bus-format.h and drm_fourcc.h
-I could only find RGB 10BPC support in drm_fourcc.h.
-I guess not much support is present for formats with (BPC > 8) in the kernel.
+> Hi,
 
-Are there any plans to add fourcc defines for such formats?
-Also, I wanted to how to define fourcc code for those formats?
+First of all, there's no Linux DVB API v4. It was skipped, because there
+was a proposal for a v4, with was never adopted.
+
+> 
+> There is an ambiguity in the LinuxTV documentation about the following 
+> ioctl's:
+> 
+>     FE_SET_TONE, FE_SET_VOLTAGE, FE_DISEQC_SEND_BURST.
+> 
+> These ioctl's take an enum value as input. In the old V3 API, the 
+> parameter
+> is passed by value. In the S2API documentation, it is passed by 
+> reference.
+> Most sample programs (a bit old) use the "pass by value" method.
+> 
+> V3 documentation: https://www.linuxtv.org/docs/dvbapi/dvbapi.html
+>     int ioctl(int fd, int request = FE_SET_TONE, fe_sec_tone_mode_t 
+> tone);
+>     int ioctl(int fd, int request = FE_SET_VOLTAGE, fe_sec_voltage_t 
+> voltage);
+>     int ioctl(int fd, int request = FE_DISEQC_SEND_BURST, 
+> fe_sec_mini_cmd_t burst);
+> 
+> S2API documentation: 
+> https://www.linuxtv.org/downloads/v4l-dvb-apis-new/uapi/dvb/frontend_fcalls.html
+>     int ioctl(int fd, FE_SET_TONE, enum fe_sec_tone_mode *tone)
+>     int ioctl(int fd, FE_SET_VOLTAGE, enum fe_sec_voltage *voltage)
+>     int ioctl(int fd, FE_DISEQC_SEND_BURST, enum fe_sec_mini_cmd *tone)
+
+Thanks for reviewing it! Yeah, the asterisks there are wrong.
+The definitions should be, instead:
+
+     int ioctl(int fd, FE_SET_TONE, enum fe_sec_tone_mode tone)
+     int ioctl(int fd, FE_SET_VOLTAGE, enum fe_sec_voltage voltage)
+     int ioctl(int fd, FE_DISEQC_SEND_BURST, enum fe_sec_mini_cmd tone)
+
+As they're passing by value, not by reference[1].
+
+Feel free to send us fix patches.
 
 Thanks,
-Ajay Kumar
+Mauro
