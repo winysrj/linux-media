@@ -1,161 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56948 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751403AbdFZSMb (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:21617 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753367AbdFSFZQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 14:12:31 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v2 02/14] v4l: vsp1: Don't recycle active list at display start
-Date: Mon, 26 Jun 2017 21:12:14 +0300
-Message-Id: <20170626181226.29575-3-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
+        Mon, 19 Jun 2017 01:25:16 -0400
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>
+Subject: [Patch v5 09/12] [media] s5p-mfc: Add VP9 decoder support
+Date: Mon, 19 Jun 2017 10:40:52 +0530
+Message-id: <1497849055-26583-10-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
+References: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
+        <CGME20170619052514epcas1p45d4b590d673a0ff2a3cf0117d55e656a@epcas1p4.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When the display start interrupt occurs, we know that the hardware has
-finished loading the active display list. The driver then proceeds to
-recycle the list, assuming it won't be needed anymore.
+Add support for codec definition and corresponding buffer
+requirements for VP9 decoder.
 
-This assumption holds true for headerless display lists, as the VSP
-doesn't reload the list for the next frame if it hasn't changed.
-However, this isn't true anymore for header display lists, as they are
-loaded at every frame start regardless of whether they have been
-updated.
-
-To prepare for header display lists usage in display pipelines, we need
-to postpone recycling the list until it gets replaced by a new one
-through a page flip. The driver already does so in the frame end
-interrupt handler, so all we need is to skip list recycling in the
-display start interrupt handler.
-
-While the active list can be recycled at display start for headerless
-display lists, there's no real harm in postponing that to the frame end
-interrupt handler in all cases. This simplifies interrupt handling as we
-don't need to process the display start interrupt anymore.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
 ---
- drivers/media/platform/vsp1/vsp1_dl.c  | 16 ----------------
- drivers/media/platform/vsp1/vsp1_dl.h  |  1 -
- drivers/media/platform/vsp1/vsp1_drm.c | 12 ++++--------
- drivers/media/platform/vsp1/vsp1_drm.h |  2 --
- drivers/media/platform/vsp1/vsp1_drv.c |  8 --------
- 5 files changed, 4 insertions(+), 35 deletions(-)
+ drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |  6 ++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |  3 +++
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  7 +++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |  2 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 26 +++++++++++++++++++++++++
+ 6 files changed, 45 insertions(+)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index dc47e236c780..bb92be4fe0f0 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -547,22 +547,6 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
-  * Display List Manager
-  */
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+index 953a073..6754477 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+@@ -18,6 +18,8 @@
+ /* MFCv10 register definitions*/
+ #define S5P_FIMV_MFC_CLOCK_OFF_V10			0x7120
+ #define S5P_FIMV_MFC_STATE_V10				0x7124
++#define S5P_FIMV_D_STATIC_BUFFER_ADDR_V10		0xF570
++#define S5P_FIMV_D_STATIC_BUFFER_SIZE_V10		0xF574
  
--/* Interrupt Handling */
--void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm)
--{
--	spin_lock(&dlm->lock);
--
--	/*
--	 * The display start interrupt signals the end of the display list
--	 * processing by the device. The active display list, if any, won't be
--	 * accessed anymore and can be reused.
--	 */
--	__vsp1_dl_list_put(dlm->active);
--	dlm->active = NULL;
--
--	spin_unlock(&dlm->lock);
--}
--
- /**
-  * vsp1_dlm_irq_frame_end - Display list handler for the frame end interrupt
-  * @dlm: the display list manager
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
-index 6ec1380a10af..ee3508172f0a 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.h
-+++ b/drivers/media/platform/vsp1/vsp1_dl.h
-@@ -27,7 +27,6 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- 					unsigned int prealloc);
- void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
- void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
--void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm);
- bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
+ /* MFCv10 Context buffer sizes */
+ #define MFC_CTX_BUF_SIZE_V10		(30 * SZ_1K)
+@@ -34,8 +36,12 @@
  
- struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index 9377aafa8996..bc3fd9bc7126 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -32,11 +32,6 @@
-  * Interrupt Handling
-  */
+ /* MFCv10 codec defines*/
+ #define S5P_FIMV_CODEC_HEVC_DEC		17
++#define S5P_FIMV_CODEC_VP9_DEC		18
+ #define S5P_FIMV_CODEC_HEVC_ENC         26
  
--void vsp1_drm_display_start(struct vsp1_device *vsp1)
--{
--	vsp1_dlm_irq_display_start(vsp1->drm->pipe.output->dlm);
--}
--
- static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe)
- {
- 	struct vsp1_drm *drm = to_vsp1_drm(pipe);
-@@ -224,6 +219,10 @@ int vsp1_du_setup_lif(struct device *dev, const struct vsp1_du_lif_config *cfg)
- 		return ret;
- 	}
- 
-+	/* Disable the display interrupts. */
-+	vsp1_write(vsp1, VI6_DISP_IRQ_STA, 0);
-+	vsp1_write(vsp1, VI6_DISP_IRQ_ENB, 0);
++/* Decoder buffer size for MFC v10 */
++#define DEC_VP9_STATIC_BUFFER_SIZE	20480
 +
- 	dev_dbg(vsp1->dev, "%s: pipeline enabled\n", __func__);
+ /* Encoder buffer size for MFC v10.0 */
+ #define ENC_V100_BASE_SIZE(x, y) \
+ 	(((x + 3) * (y + 3) * 8) \
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+index 76eca67..102b47e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+@@ -104,6 +104,9 @@ static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_HEVC_DEC:
+ 		codec_type = S5P_FIMV_CODEC_HEVC_DEC;
+ 		break;
++	case S5P_MFC_CODEC_VP9_DEC:
++		codec_type = S5P_FIMV_CODEC_VP9_DEC;
++		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+ 		codec_type = S5P_FIMV_CODEC_H264_ENC_V6;
+ 		break;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 828e07e..b49f220 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -73,6 +73,7 @@
+ #define S5P_MFC_CODEC_VC1RCV_DEC	6
+ #define S5P_MFC_CODEC_VP8_DEC		7
+ #define S5P_MFC_CODEC_HEVC_DEC		17
++#define S5P_MFC_CODEC_VP9_DEC		18
  
- 	return 0;
-@@ -529,13 +528,10 @@ void vsp1_du_atomic_flush(struct device *dev)
+ #define S5P_MFC_CODEC_H264_ENC		20
+ #define S5P_MFC_CODEC_H264_MVC_ENC	21
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 4749355..5cf4d99 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -151,6 +151,13 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.num_planes	= 1,
+ 		.versions	= MFC_V10_BIT,
+ 	},
++	{
++		.fourcc		= V4L2_PIX_FMT_VP9,
++		.codec_mode	= S5P_FIMV_CODEC_VP9_DEC,
++		.type		= MFC_FMT_DEC,
++		.num_planes	= 1,
++		.versions	= MFC_V10_BIT,
++	},
+ };
  
- 	/* Start or stop the pipeline if needed. */
- 	if (!vsp1->drm->num_inputs && pipe->num_inputs) {
--		vsp1_write(vsp1, VI6_DISP_IRQ_STA, 0);
--		vsp1_write(vsp1, VI6_DISP_IRQ_ENB, VI6_DISP_IRQ_ENB_DSTE);
- 		spin_lock_irqsave(&pipe->irqlock, flags);
- 		vsp1_pipeline_run(pipe);
- 		spin_unlock_irqrestore(&pipe->irqlock, flags);
- 	} else if (vsp1->drm->num_inputs && !pipe->num_inputs) {
--		vsp1_write(vsp1, VI6_DISP_IRQ_ENB, 0);
- 		vsp1_pipeline_stop(pipe);
- 	}
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
-index e9f80727ff92..cbdbb8a39883 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.h
-+++ b/drivers/media/platform/vsp1/vsp1_drm.h
-@@ -50,6 +50,4 @@ int vsp1_drm_init(struct vsp1_device *vsp1);
- void vsp1_drm_cleanup(struct vsp1_device *vsp1);
- int vsp1_drm_create_links(struct vsp1_device *vsp1);
+ #define NUM_FORMATS ARRAY_SIZE(formats)
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+index e7a2d46..57f4560 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+@@ -170,6 +170,8 @@ struct s5p_mfc_regs {
+ 	void __iomem *d_used_dpb_flag_upper;/* v7 and v8 */
+ 	void __iomem *d_used_dpb_flag_lower;/* v7 and v8 */
+ 	void __iomem *d_min_scratch_buffer_size; /* v10 */
++	void __iomem *d_static_buffer_addr; /* v10 */
++	void __iomem *d_static_buffer_size; /* v10 */
  
--void vsp1_drm_display_start(struct vsp1_device *vsp1);
--
- #endif /* __VSP1_DRM_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 95c26edead85..6b35e043b554 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -68,14 +68,6 @@ static irqreturn_t vsp1_irq_handler(int irq, void *data)
+ 	/* encoder registers */
+ 	void __iomem *e_frame_width;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index ed725db..f3d0a6f 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -226,6 +226,12 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 			ctx->scratch_buf_size +
+ 			(ctx->mv_count * ctx->mv_size);
+ 		break;
++	case S5P_MFC_CODEC_VP9_DEC:
++		mfc_debug(2, "Use min scratch buffer size\n");
++		ctx->bank1.size =
++			ctx->scratch_buf_size +
++			DEC_VP9_STATIC_BUFFER_SIZE;
++		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+ 		if (IS_MFCV10(dev)) {
+ 			mfc_debug(2, "Use min scratch buffer size\n");
+@@ -336,6 +342,7 @@ static int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_VC1_DEC:
+ 	case S5P_MFC_CODEC_MPEG2_DEC:
+ 	case S5P_MFC_CODEC_VP8_DEC:
++	case S5P_MFC_CODEC_VP9_DEC:
+ 		ctx->ctx.size = buf_size->other_dec_ctx;
+ 		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+@@ -566,6 +573,13 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 			buf_size1 -= frame_size_mv;
  		}
  	}
++	if (ctx->codec_mode == S5P_FIMV_CODEC_VP9_DEC) {
++		writel(buf_addr1, mfc_regs->d_static_buffer_addr);
++		writel(DEC_VP9_STATIC_BUFFER_SIZE,
++				mfc_regs->d_static_buffer_size);
++		buf_addr1 += DEC_VP9_STATIC_BUFFER_SIZE;
++		buf_size1 -= DEC_VP9_STATIC_BUFFER_SIZE;
++	}
  
--	status = vsp1_read(vsp1, VI6_DISP_IRQ_STA);
--	vsp1_write(vsp1, VI6_DISP_IRQ_STA, ~status & VI6_DISP_IRQ_STA_DST);
--
--	if (status & VI6_DISP_IRQ_STA_DST) {
--		vsp1_drm_display_start(vsp1);
--		ret = IRQ_HANDLED;
--	}
--
- 	return ret;
- }
+ 	mfc_debug(2, "Buf1: %zx, buf_size1: %d (frames %d)\n",
+ 			buf_addr1, buf_size1, ctx->total_dpb_count);
+@@ -2272,6 +2286,18 @@ const struct s5p_mfc_regs *s5p_mfc_init_regs_v6_plus(struct s5p_mfc_dev *dev)
+ 	R(e_h264_options, S5P_FIMV_E_H264_OPTIONS_V8);
+ 	R(e_min_scratch_buffer_size, S5P_FIMV_E_MIN_SCRATCH_BUFFER_SIZE_V8);
  
++	if (!IS_MFCV10(dev))
++		goto done;
++
++	/* Initialize registers used in MFC v10 only.
++	 * Also, over-write the registers which have
++	 * a different offset for MFC v10.
++	 */
++
++	/* decoder registers */
++	R(d_static_buffer_addr, S5P_FIMV_D_STATIC_BUFFER_ADDR_V10);
++	R(d_static_buffer_size, S5P_FIMV_D_STATIC_BUFFER_SIZE_V10);
++
+ done:
+ 	return &mfc_regs;
+ #undef S5P_MFC_REG_ADDR
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
