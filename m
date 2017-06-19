@@ -1,71 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46062 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751559AbdFIKDx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Jun 2017 06:03:53 -0400
-Subject: Re: [PATCH v4] v4l: subdev: tolerate null in
- media_entity_to_v4l2_subdev
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-References: <1496829127-28375-1-git-send-email-kbingham@kernel.org>
- <20170608150022.5f696e58@vento.lan>
- <20170608193210.GJ1019@valkosipuli.retiisi.org.uk>
- <20170608171043.73dd28aa@vento.lan>
-Cc: Kieran Bingham <kbingham@kernel.org>, linux-media@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
-        linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <3f9a0b3e-9da6-d2a3-7b3b-793ed0d1872d@ideasonboard.com>
-Date: Fri, 9 Jun 2017 11:03:47 +0100
-MIME-Version: 1.0
-In-Reply-To: <20170608171043.73dd28aa@vento.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:54951 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750811AbdFSNtX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Jun 2017 09:49:23 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Sylwester Nawrocki <snawrocki@kernel.org>
+Subject: [PATCH 0/2] Fix G/S_SELECTION & CROPCAP/G/S_CROP buftype handling
+Date: Mon, 19 Jun 2017 15:49:08 +0200
+Message-Id: <20170619134910.10138-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari, Mauro,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 08/06/17 21:10, Mauro Carvalho Chehab wrote:
-> Em Thu, 8 Jun 2017 22:32:10 +0300
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
->> Hi Mauro,
->>
->> On Thu, Jun 08, 2017 at 03:00:22PM -0300, Mauro Carvalho Chehab wrote:
->>> Em Wed,  7 Jun 2017 10:52:07 +0100
->>> Kieran Bingham <kbingham@kernel.org> escreveu:
->>>   
->>>> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>>>
->>>> Return NULL, if a null entity is parsed for it's v4l2_subdev
->>>>
->>>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>  
->>>
->>> Could you please improve this patch description?
->>>
->>> I'm unsure if this is a bug fix, or some sort of feature...
->>>
->>> On what situations would a null entity be passed to this function? 
+There is a lot of confusion about the correct buffer type to use
+when calling the new selection and old crop APIs. Specifically whether
+the _MPLANE variant of a buf type should be used or not if the device
+is multi-planar. The spec said na, but that was unexpected to applications
+and drivers actually did different things as well.
 
-Sorry for not being clear enough there ...
+This patch series allows both to be used and updates the documentation
+accordingly.
 
->>
->> I actually proposed this patch. This change is simply for convenience ---
->> the caller doesn't need to make sure the subdev is non-NULL, possibly
->> obtained from e.g. media_entity_remote_pad() which returns NULL all links to
->> the pad are disabled. This is a recurring pattern, and making this change
->> avoids an additional check.
->>
->> Having something along these lines in the patch description wouldn't hurt.
+In the end, these APIs don't care whether it is a single or multiplanar
+device, that information is irrelevant to these ioctls. So allowing
+both is not unreasonable, especially given the mess we created.
 
-Yes, the above looks good ...
+The first patch is unchanged from the original RFC here:
 
-> Patch added, with a description based on the above.
+https://patchwork.linuxtv.org/patch/41210/
 
-And thank you :)
+The second patch was updated from this original RFC:
 
-Regards
---
-Kieran
+- the note was moved after the struct containing the 'type' field.
+- kernel 4.12 was replaced with 4.14 (I'm assuming this will be too
+  late for 4.13).
+- The phrase 'The Samsung Exynos drivers' was replaced by 'Some drivers'.
+
+Regards,
+
+	Hans
+
+Hans Verkuil (2):
+  v4l2-ioctl/exynos: fix G/S_SELECTION's type handling
+  media/uapi/v4l: clarify cropcap/crop/selection behavior
+
+ Documentation/media/uapi/v4l/vidioc-cropcap.rst    | 23 ++++++----
+ Documentation/media/uapi/v4l/vidioc-g-crop.rst     | 22 +++++----
+ .../media/uapi/v4l/vidioc-g-selection.rst          | 22 +++++----
+ drivers/media/platform/exynos-gsc/gsc-core.c       |  4 +-
+ drivers/media/platform/exynos-gsc/gsc-m2m.c        |  8 ++--
+ drivers/media/platform/exynos4-is/fimc-capture.c   |  4 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c      |  4 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c               | 53 +++++++++++++++++++---
+ 8 files changed, 95 insertions(+), 45 deletions(-)
+
+-- 
+2.11.0
