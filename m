@@ -1,105 +1,406 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37552 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753219AbdFPJTt (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:21638 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753533AbdFSFZ3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Jun 2017 05:19:49 -0400
-Date: Fri, 16 Jun 2017 12:19:45 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 01/12] videodev2.h, v4l2-ioctl: add IPU3 meta buffer
- format
-Message-ID: <20170616091944.GL12407@valkosipuli.retiisi.org.uk>
-References: <CAAFQd5B6LiWgX+=-HJnO480FF-AXDa+UqtSs+SYUG=S+kGgNVg@mail.gmail.com>
- <CAAFQd5DpzAGBi_kevEBp05yC4ytM3Q8WU2owZucsE3AZ=s=OoA@mail.gmail.com>
- <20170606072519.GF15419@paasikivi.fi.intel.com>
- <1d067ac0-6265-4262-e59b-089d6055550b@xs4all.nl>
- <CAAFQd5CY7jUJEicQ79QLTYP65cWqMhtTXJvZD-VCnKN134Ypeg@mail.gmail.com>
- <CAAFQd5C1PQkMgu3QMJ=_J2-FCiUzVwGft6-U3JQRQNy4=1CgRg@mail.gmail.com>
- <20170616082510.GH12407@valkosipuli.retiisi.org.uk>
- <CAAFQd5CDG0QYDaD=4ono0Yahz+7+TJ_KLsc+K-bgN82yFr6qmg@mail.gmail.com>
- <20170616084935.GJ12407@valkosipuli.retiisi.org.uk>
- <CAAFQd5DuQE5EyFejgVqsdEPgmcWmvU+7vRLC9Vwmkam4K8o6KA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5DuQE5EyFejgVqsdEPgmcWmvU+7vRLC9Vwmkam4K8o6KA@mail.gmail.com>
+        Mon, 19 Jun 2017 01:25:29 -0400
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>
+Subject: [Patch v5 12/12] Documention: v4l: Documentation for HEVC CIDs
+Date: Mon, 19 Jun 2017 10:40:55 +0530
+Message-id: <1497849055-26583-13-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
+References: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
+        <CGME20170619052521epcas5p36a0bc384d10809dcfe775e6da87ed37b@epcas5p3.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 16, 2017 at 06:03:13PM +0900, Tomasz Figa wrote:
-> On Fri, Jun 16, 2017 at 5:49 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > Hi Tomasz,
-> >
-> > On Fri, Jun 16, 2017 at 05:35:52PM +0900, Tomasz Figa wrote:
-> >> On Fri, Jun 16, 2017 at 5:25 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> >> > Hi Tomasz,
-> >> >
-> >> > On Fri, Jun 16, 2017 at 02:52:07PM +0900, Tomasz Figa wrote:
-> >> >> On Tue, Jun 6, 2017 at 7:09 PM, Tomasz Figa <tfiga@chromium.org> wrote:
-> >> >> Actually, there is one more thing, which would become possible with
-> >> >> switching to different queue types. If we have a device with queues
-> >> >> like this:
-> >> >> - video input,
-> >> >> - video output,
-> >> >> - parameters,
-> >> >> - statistics,
-> >> >> they could all be contained within one video node simply exposing 4
-> >> >> different queues. It would actually even allow an easy implementation
-> >> >
-> >> > The problem comes when you have multiple queues with the same type. I
-> >> > actually once proposed that (albeit for a slightly different purposes:
-> >> > streams) but the idea was rejected. It was decided to use separate video
-> >> > nodes instead.
-> >> >
-> >> >> of mem2mem, given that for mem2mem devices opening a video node means
-> >> >> creating a mem2mem context (while multiple video nodes would require
-> >> >> some special synchronization to map contexts together, which doesn't
-> >> >> exist as of today).
-> >> >
-> >> > V4L2 is very stream oriented and the mem2mem interface somewhat gets around
-> >> > that. There are cases where at least partially changing per-frame
-> >> > configuration is needed in streaming cases as well. The request API is
-> >> > supposed to resolve these issues but it has become evident that the
-> >> > implementation is far from trivial.
-> >> >
-> >> > I'd rather like to have a more generic solution than a number of
-> >> > framework-lets that have their own semantics of the generic V4L2 IOCTLs that
-> >> > only work with a particular kind of a device. Once there are new kind of
-> >> > devices, we'd need to implement another framework-let to support them.
-> >> >
-> >> > Add a CSI-2 receiver to the ImgU device and we'll need again something very
-> >> > different...
-> >>
-> >> I need to think if Request API alone is really capable of solving this
-> >> problem, but if so, it would make sense indeed.
-> >
-> > What comes to this driver --- the request API could be beneficial, but the
-> > driver does not strictly need it. If there were controls that would need to
-> > be changed during streaming or if the device contained a CSI-2 receiver,
-> > then it'd be more important to have the request API.
-> 
-> There is one use case, though, which can't be achieved easily with
-> current model - processing images for two cameras at the same time.
-> One could theoretically do all the S_FMT/S_WHATNOT magic every frame,
-> to process the cameras in a round robin fashion, but I'm not sure if
-> this would work really well in practice.
+Added V4l2 controls for HEVC encoder
 
-That's true --- having to wait for all the buffers before configuring the
-formats would introduce some systematic delay which would decrease the total
-throughput. I'm not sure how much that would be though. The number of IOCTLs
-on each frame is big but then again IOCTLs are fast. The buffer memory isn't
-affected in any case. Process scheduling will be required though.
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+---
+ Documentation/media/uapi/v4l/extended-controls.rst | 364 +++++++++++++++++++++
+ 1 file changed, 364 insertions(+)
 
+diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+index abb1057..7767c70 100644
+--- a/Documentation/media/uapi/v4l/extended-controls.rst
++++ b/Documentation/media/uapi/v4l/extended-controls.rst
+@@ -1960,6 +1960,370 @@ enum v4l2_vp8_golden_frame_sel -
+     1, 2 and 3 corresponding to encoder profiles 0, 1, 2 and 3.
+ 
+ 
++High Efficiency Video Coding (HEVC/H.265) Control Reference
++-----------------------------------------------------------
++
++The HEVC/H.265 controls include controls for encoding parameters of HEVC/H.265
++video codec.
++
++
++.. _hevc-control-id:
++
++HEVC/H.265 Control IDs
++^^^^^^^^^^^^^^^^^^^^^^
++
++``V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP (integer)``
++    Minimum quantization parameter for HEVC.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP (integer)``
++    Maximum quantization parameter for HEVC.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP (integer)``
++    Quantization parameter for an I frame for HEVC.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP (integer)``
++    Quantization parameter for a P frame for HEVC.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP (integer)``
++    Quantization parameter for a B frame for HEVC.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_HIER_QP (boolean)``
++    HIERARCHICAL_QP allows host to specify the quantization parameter values
++    for each temporal layer through HIERARCHICAL_QP_LAYER. This is valid only
++    if HIERARCHICAL_CODING_LAYER is greater than 1. Setting the control value
++    to 1 enables setting of the QP values for the layers.
++
++.. _v4l2-hevc-hier-coding-type:
++
++``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE``
++    (enum)
++
++enum v4l2_mpeg_video_hevc_hier_coding_type -
++    Selects the hierarchical coding type for encoding. Possible values are:
++
++.. raw:: latex
++
++    \begin{adjustbox}{width=\columnwidth}
++
++.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++
++    * - ``V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B``
++      - Use the B frame for hierarchical coding.
++    * - ``V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_P``
++      - Use the P frame for hierarchical coding.
++
++.. raw:: latex
++
++    \end{adjustbox}
++
++
++``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER (integer)``
++    Selects the hierarchical coding layer. In normal encoding
++    (non-hierarchial coding), it should be zero. Possible values are 0 ~ 6.
++    0 indicates HIERARCHICAL CODING LAYER 0, 1 indicates HIERARCHICAL CODING
++    LAYER 1 and so on.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER_QP (integer)``
++    Indicates the hierarchical coding layer quantization parameter.
++    For HEVC it can have a value of 0-51. Hence in the control value passed
++    the LSB 16 bits will indicate the quantization parameter. The MSB 16 bit
++    will pass the layer(0-6) it is meant for.
++
++.. _v4l2-hevc-profile:
++
++``V4L2_CID_MPEG_VIDEO_HEVC_PROFILE``
++    (enum)
++
++enum v4l2_mpeg_video_hevc_profile -
++    Select the desired profile for HEVC encoder.
++
++.. raw:: latex
++
++    \begin{adjustbox}{width=\columnwidth}
++
++.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++
++    * - ``V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN``
++      - Main profile.
++    * - ``V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE``
++      - Main still picture profile.
++
++.. raw:: latex
++
++    \end{adjustbox}
++
++
++.. _v4l2-hevc-level:
++
++``V4L2_CID_MPEG_VIDEO_HEVC_LEVEL``
++    (enum)
++
++enum v4l2_mpeg_video_hevc_level -
++    Selects the desired level for HEVC encoder.
++
++.. raw:: latex
++
++    \begin{adjustbox}{width=\columnwidth}
++
++.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++
++    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_1``
++      - Level 1.0
++    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_2``
++      - Level 2.0
++    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_2_1``
++      - Level 2.1
++    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_3``
++      - Level 3.0
++    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_3_1``
++      - Level 3.1
++    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_4``
++      - Level 4.0
++    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_4_1``
++      - Level 4.1
++    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_5``
++      - Level 5.0
++    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_5_1``
++      - Level 5.1
++    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_5_2``
++      - Level 5.2
++    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_6``
++      - Level 6.0
++    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_6_1``
++      - Level 6.1
++    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_6_2``
++      - Level 6.2
++
++.. raw:: latex
++
++    \end{adjustbox}
++
++
++``V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION (integer)``
++    Indicates the number of evenly spaced subintervals, called ticks, within
++    one second. This is a 16bit unsigned integer and has a maximum value up to
++    0xffff.
++
++.. _v4l2-hevc-tier-flag:
++
++``V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG``
++    (enum)
++
++enum v4l2_mpeg_video_hevc_tier_flag -
++    TIER_FLAG specifies tiers information of the HEVC encoded picture. Tier
++    were made to deal with applications that differ in terms of maximum bit
++    rate. Setting the flag to 0 selects HEVC tier_flag as Main tier and setting
++    this flag to 1 indicates High tier. High tier is for applications requiring
++    high bit rates.
++
++.. raw:: latex
++
++    \begin{adjustbox}{width=\columnwidth}
++
++.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++
++    * - ``V4L2_MPEG_VIDEO_HEVC_TIER_MAIN``
++      - Main tier.
++    * - ``V4L2_MPEG_VIDEO_HEVC_TIER_HIGH``
++      - High tier.
++
++.. raw:: latex
++
++    \end{adjustbox}
++
++
++``V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH (integer)``
++    Selects HEVC maximum coding unit depth.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_LF (boolean)``
++    Indicates loop filtering. Control value 1 indicates loop filtering
++    is enabled and when set to 0 indicates loop filtering is disabled.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY (boolean)``
++    Selects whether to apply the loop filter across the slice boundary or not.
++    If the value is 0, loop filter will not be applied across the slice boundary.
++    If the value is 1, loop filter will be applied across the slice boundary.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2 (integer)``
++    Selects HEVC loop filter beta offset. The valid range is [-6, +6].
++
++``V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2 (integer)``
++    Selects HEVC loop filter tc offset. The valid range is [-6, +6].
++
++.. _v4l2-hevc-refresh-type:
++
++``V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE``
++    (enum)
++
++enum v4l2_mpeg_video_hevc_hier_refresh_type -
++    Selects refresh type for HEVC encoder.
++    Host has to specify the period into
++    HEVC_REFRESH_PERIOD.
++
++.. raw:: latex
++
++    \begin{adjustbox}{width=\columnwidth}
++
++.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++
++    * - ``V4L2_MPEG_VIDEO_HEVC_REFRESH_NONE``
++      - Use the B frame for hierarchical coding.
++    * - ``V4L2_MPEG_VIDEO_HEVC_REFRESH_CRA``
++      - Use CRA (Clean Random Access Unit) picture encoding.
++    * - ``V4L2_MPEG_VIDEO_HEVC_REFRESH_IDR``
++      - Use IDR picture encoding.
++
++.. raw:: latex
++
++    \end{adjustbox}
++
++
++``V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD (integer)``
++    Selects the refresh period for HEVC encoder.
++    This specifies the number of I pictures between two CRA/IDR pictures.
++    This is valid only if REFRESH_TYPE is not 0.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU (boolean)``
++    Indicates HEVC lossless encoding. Setting it to 0 disables lossless
++    encoding. Setting it to 1 enables lossless encoding.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED (boolean)``
++    Indicates constant intra prediction for HEVC encoder. Specifies the
++    constrained intra prediction in which intra largest coding unit (LCU)
++    prediction is performed by using residual data and decoded samples of
++    neighboring intra LCU only. Setting the value to 1 enables constant intra
++    prediction and setting the value to 0 disables constant inta prediction.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT (boolean)``
++    Indicates wavefront parallel processing for HEVC encoder. Setting it to 0
++    disables the feature and setting it to 1 enables the wavefront parallel
++    processing.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB (boolean)``
++    Setting the value to 1 enables combination of P and B frame for HEVC
++    encoder.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID (boolean)``
++    Indicates temporal identifier for HEVC encoder which is enabled by
++    setting the value to 1.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING (boolean)``
++    Indicates bi-linear interpolation is conditionally used in the intra
++    prediction filtering process in the CVS when set to 1. Indicates bi-linear
++    interpolation is not used in the CVS when set to 0.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1 (integer)``
++    Indicates maximum number of merge candidate motion vectors.
++    Values are from zero to four.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION (boolean)``
++    Indicates temporal motion vector prediction for HEVC encoder. Setting it to
++    1 enables the prediction. Setting it to 0 disables the prediction.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE (boolean)``
++    Specifies if HEVC generates a stream with a size of the length field
++    instead of start code pattern. The size of the length field is configurable
++    through the V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD control. Setting
++    the value to 0 disables encoding without startcode pattern. Setting the
++    value to 1 will enables encoding without startcode pattern.
++
++.. _v4l2-hevc-size-of-length-field:
++
++``V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD``
++(enum)
++
++enum v4l2_mpeg_video_hevc_size_of_length_field -
++    Indicates the size of length field.
++    This is valid when encoding WITHOUT_STARTCODE_ENABLE is enabled.
++
++.. raw:: latex
++
++    \begin{adjustbox}{width=\columnwidth}
++
++.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++
++    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_0``
++      - Generate start code pattern (Normal).
++    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_1``
++      - Generate size of length field instead of start code pattern and length is 1.
++    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_2``
++      - Generate size of length field instead of start code pattern and length is 2.
++    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_4``
++      - Generate size of length field instead of start code pattern and length is 4.
++
++.. raw:: latex
++
++    \end{adjustbox}
++
++``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_BR (integer)``
++    Indicates bit rate for hierarchical coding layer 0 for HEVC encoder.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_BR (integer)``
++    Indicates bit rate for hierarchical coding layer 1 for HEVC encoder.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_BR (integer)``
++    Indicates bit rate for hierarchical coding layer 2 for HEVC encoder.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_BR (integer)``
++    Indicates bit rate for hierarchical coding layer 3 for HEVC encoder.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_BR (integer)``
++    Indicates bit rate for hierarchical coding layer 4 for HEVC encoder.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_BR (integer)``
++    Indicates bit rate for hierarchical coding layer 5 for HEVC encoder.
++
++``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_BR (integer)``
++    Indicates bit rate for hierarchical coding layer 6 for HEVC encoder.
++
++
++MFC 10.10 MPEG Controls
++-----------------------
++
++The following MPEG class controls deal with MPEG decoding and encoding
++settings that are specific to the Multi Format Codec 10.10 device present
++in the S5P and Exynos family of SoCs by Samsung.
++
++
++.. _mfc1010-control-id:
++
++MFC 10.10 Control IDs
++^^^^^^^^^^^^^^^^^^^^^
++
++``V4L2_CID_MPEG_MFC10_VIDEO_HEVC_REF_NUMBER_FOR_PFRAMES (integer)``
++    Selects number of P reference pictures required for HEVC encoder.
++    P-Frame can use 1 or 2 frames for reference.
++
++``V4L2_CID_MPEG_MFC10_VIDEO_HEVC_PREPEND_SPSPPS_TO_IDR (integer)``
++    Indicates whether to generate SPS and PPS at every IDR. Setting it to 0
++    disables generating SPS and PPS at every IDR. Setting it to one enables
++    generating SPS and PPS at every IDR.
++
++
+ .. _camera-controls:
+ 
+ Camera Control Reference
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.7.4
