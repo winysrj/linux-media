@@ -1,48 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:42268 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752377AbdFUIIi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Jun 2017 04:08:38 -0400
-From: Johannes Thumshirn <jthumshirn@suse.de>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-fbdev@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Johannes Thumshirn <jthumshirn@suse.de>
-Subject: [PATCH RESEND 7/7] staging/atomisp: use MEDIA_VERSION instead of KERNEL_VERSION
-Date: Wed, 21 Jun 2017 10:08:12 +0200
-Message-Id: <20170621080812.6817-8-jthumshirn@suse.de>
-In-Reply-To: <20170621080812.6817-1-jthumshirn@suse.de>
-References: <20170621080812.6817-1-jthumshirn@suse.de>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:59413 "EHLO smtp1-g21.free.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752637AbdFSO6l (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Jun 2017 10:58:41 -0400
+Received: from webmail.free.fr (unknown [172.20.243.54])
+        by smtp1-g21.free.fr (Postfix) with ESMTP id A868CB0055E
+        for <linux-media@vger.kernel.org>; Mon, 19 Jun 2017 16:58:40 +0200 (CEST)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Mon, 19 Jun 2017 16:58:40 +0200
+From: Thierry Lelegard <thierry.lelegard@free.fr>
+To: linux-media@vger.kernel.org
+Subject: LinuxTV V3 vs. V4 API doc inconsistency, V4 probably wrong
+Reply-To: thierry@lelegard.fr
+Message-ID: <3188f2a2bcba758dccaaa8cdbbd694fb@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use MEDIA_VERSION instead of KERNEL_VERSION to encode the driver
-version of the Atom ISP driver.
+Hi,
 
-Signed-off-by: Johannes Thumshirn <jthumshirn@suse.de>
----
- drivers/staging/media/atomisp/include/linux/atomisp.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+There is an ambiguity in the LinuxTV documentation about the following 
+ioctl's:
 
-diff --git a/drivers/staging/media/atomisp/include/linux/atomisp.h b/drivers/staging/media/atomisp/include/linux/atomisp.h
-index 35865462ccf9..0b664ee6f825 100644
---- a/drivers/staging/media/atomisp/include/linux/atomisp.h
-+++ b/drivers/staging/media/atomisp/include/linux/atomisp.h
-@@ -30,9 +30,9 @@
- 
- /* struct media_device_info.driver_version */
- #define ATOMISP_CSS_VERSION_MASK	0x00ffffff
--#define ATOMISP_CSS_VERSION_15		KERNEL_VERSION(1, 5, 0)
--#define ATOMISP_CSS_VERSION_20		KERNEL_VERSION(2, 0, 0)
--#define ATOMISP_CSS_VERSION_21		KERNEL_VERSION(2, 1, 0)
-+#define ATOMISP_CSS_VERSION_15		MEDIA_REVISION(1, 5, 0)
-+#define ATOMISP_CSS_VERSION_20		MEDIA_REVISION(2, 0, 0)
-+#define ATOMISP_CSS_VERSION_21		MEDIA_REVISION(2, 1, 0)
- 
- /* struct media_device_info.hw_revision */
- #define ATOMISP_HW_REVISION_MASK	0x0000ff00
--- 
-2.12.3
+    FE_SET_TONE, FE_SET_VOLTAGE, FE_DISEQC_SEND_BURST.
+
+These ioctl's take an enum value as input. In the old V3 API, the 
+parameter
+is passed by value. In the S2API documentation, it is passed by 
+reference.
+Most sample programs (a bit old) use the "pass by value" method.
+
+V3 documentation: https://www.linuxtv.org/docs/dvbapi/dvbapi.html
+    int ioctl(int fd, int request = FE_SET_TONE, fe_sec_tone_mode_t 
+tone);
+    int ioctl(int fd, int request = FE_SET_VOLTAGE, fe_sec_voltage_t 
+voltage);
+    int ioctl(int fd, int request = FE_DISEQC_SEND_BURST, 
+fe_sec_mini_cmd_t burst);
+
+S2API documentation: 
+https://www.linuxtv.org/downloads/v4l-dvb-apis-new/uapi/dvb/frontend_fcalls.html
+    int ioctl(int fd, FE_SET_TONE, enum fe_sec_tone_mode *tone)
+    int ioctl(int fd, FE_SET_VOLTAGE, enum fe_sec_voltage *voltage)
+    int ioctl(int fd, FE_DISEQC_SEND_BURST, enum fe_sec_mini_cmd *tone)
+
+Also in: 
+https://www.kernel.org/doc/html/v4.10/media/uapi/dvb/frontend_fcalls.html
+
+Which one is correct? If both are correct and the API was changed (I 
+doubt about it),
+how can we know which one to use?
+
+Normally, I would say that the most recent doc is right. However, all 
+sample
+codes use "by value". Moreover, if the most recent doc was right, then 
+passing
+by value should fail since the values are zero or close to zero and are 
+not
+valid addresses.
+
+Thanks
+-Thierry
