@@ -1,61 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:9630 "EHLO mga06.intel.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:56110 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751600AbdFNVqj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 17:46:39 -0400
-From: "Zhi, Yong" <yong.zhi@intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
-CC: "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>
-Subject: RE: [PATCH 07/12] intel-ipu3: css: firmware management
-Date: Wed, 14 Jun 2017 21:46:33 +0000
-Message-ID: <C193D76D23A22742993887E6D207B54D0799F2DB@ORSMSX106.amr.corp.intel.com>
-References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
- <1496695157-19926-8-git-send-email-yong.zhi@intel.com>
- <f065881d-1024-2e06-f2d4-382f3cbefbab@xs4all.nl>
-In-Reply-To: <f065881d-1024-2e06-f2d4-382f3cbefbab@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+        id S1752138AbdFSO4p (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Jun 2017 10:56:45 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Subject: [PATCH v2 01/19] doc: DT: camss: Binding document for Qualcomm Camera subsystem driver
+Date: Mon, 19 Jun 2017 17:48:21 +0300
+Message-Id: <1497883719-12410-2-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
+References: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Hans Verkuil
-> Sent: Tuesday, June 6, 2017 1:39 AM
-> To: Zhi, Yong <yong.zhi@intel.com>; linux-media@vger.kernel.org;
-> sakari.ailus@linux.intel.com
-> Cc: Zheng, Jian Xu <jian.xu.zheng@intel.com>; tfiga@chromium.org; Mani,
-> Rajmohan <rajmohan.mani@intel.com>; Toivonen, Tuukka
-> <tuukka.toivonen@intel.com>
-> Subject: Re: [PATCH 07/12] intel-ipu3: css: firmware management
-> 
-> On 05/06/17 22:39, Yong Zhi wrote:
-> > Functions to load and install imgu FW blobs
-> >
-> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> > ---
-> >  drivers/media/pci/intel/ipu3/ipu3-abi.h    | 1572
-> ++++++++++++++++++++++++++++
-> >  drivers/media/pci/intel/ipu3/ipu3-css-fw.c |  272 +++++
-> > drivers/media/pci/intel/ipu3/ipu3-css-fw.h |  215 ++++
-> >  drivers/media/pci/intel/ipu3/ipu3-css.h    |   54 +
-> >  4 files changed, 2113 insertions(+)
-> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-abi.h
-> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-fw.c
-> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-fw.h
-> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css.h
-> 
-> Has this been tested for both i686 and x86_64 modes?
-> 
-> Regards,
-> 
-> 	Hans
+Add DT binding document for Qualcomm Camera subsystem driver.
 
-Sorry for the late response, the above code has been tested for x86_64 mode only.
+CC: Rob Herring <robh+dt@kernel.org>
+CC: devicetree@vger.kernel.org
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+---
+ .../devicetree/bindings/media/qcom,camss.txt       | 196 +++++++++++++++++++++
+ 1 file changed, 196 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/qcom,camss.txt
+
+diff --git a/Documentation/devicetree/bindings/media/qcom,camss.txt b/Documentation/devicetree/bindings/media/qcom,camss.txt
+new file mode 100644
+index 0000000..5213b03
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/qcom,camss.txt
+@@ -0,0 +1,196 @@
++Qualcomm Camera Subsystem
++
++* Properties
++
++- compatible:
++	Usage: required
++	Value type: <stringlist>
++	Definition: Should contain:
++		- "qcom,msm8916-camss"
++- reg:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: Register ranges as listed in the reg-names property.
++- reg-names:
++	Usage: required
++	Value type: <stringlist>
++	Definition: Should contain the following entries:
++		- "csiphy0"
++		- "csiphy0_clk_mux"
++		- "csiphy1"
++		- "csiphy1_clk_mux"
++		- "csid0"
++		- "csid1"
++		- "ispif"
++		- "csi_clk_mux"
++		- "vfe0"
++- interrupts:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: Interrupts as listed in the interrupt-names property.
++- interrupt-names:
++	Usage: required
++	Value type: <stringlist>
++	Definition: Should contain the following entries:
++		- "csiphy0"
++		- "csiphy1"
++		- "csid0"
++		- "csid1"
++		- "ispif"
++		- "vfe0"
++- power-domains:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A phandle and power domain specifier pairs to the
++		    power domain which is responsible for collapsing
++		    and restoring power to the peripheral.
++- clocks:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A list of phandle and clock specifier pairs as listed
++		    in clock-names property.
++- clock-names:
++	Usage: required
++	Value type: <stringlist>
++	Definition: Should contain the following entries:
++		- "camss_top_ahb_clk"
++		- "ispif_ahb_clk"
++		- "csiphy0_timer_clk"
++		- "csiphy1_timer_clk"
++		- "csi0_ahb_clk"
++		- "csi0_clk"
++		- "csi0_phy_clk"
++		- "csi0_pix_clk"
++		- "csi0_rdi_clk"
++		- "csi1_ahb_clk"
++		- "csi1_clk"
++		- "csi1_phy_clk"
++		- "csi1_pix_clk"
++		- "csi1_rdi_clk"
++		- "camss_ahb_clk"
++		- "camss_vfe_vfe_clk"
++		- "camss_csi_vfe_clk"
++		- "iface_clk"
++		- "bus_clk"
++- vdda-supply:
++	Usage: required
++	Value type: <phandle>
++	Definition: A phandle to voltage supply for CSI2.
++- iommus:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A list of phandle and IOMMU specifier pairs.
++
++* Nodes
++
++- ports:
++	Usage: required
++	Definition: As described in video-interfaces.txt in same directory.
++	Properties:
++		- reg:
++			Usage: required
++			Value type: <u32>
++			Definition: Selects CSI2 PHY interface - PHY0 or PHY1.
++	Endpoint node properties:
++		- clock-lanes:
++			Usage: required
++			Value type: <u32>
++			Definition: The clock lane.
++		- data-lanes:
++			Usage: required
++			Value type: <prop-encoded-array>
++			Definition: An array of data lanes.
++		- qcom,settle-cnt:
++			Usage: required
++			Value type: <u32>
++			Definition: The settle count parameter for CSI PHY.
++
++* An Example
++
++	camss: camss@1b00000 {
++		compatible = "qcom,msm8916-camss";
++		reg = <0x1b0ac00 0x200>,
++			<0x1b00030 0x4>,
++			<0x1b0b000 0x200>,
++			<0x1b00038 0x4>,
++			<0x1b08000 0x100>,
++			<0x1b08400 0x100>,
++			<0x1b0a000 0x500>,
++			<0x1b00020 0x10>,
++			<0x1b10000 0x1000>;
++		reg-names = "csiphy0",
++			"csiphy0_clk_mux",
++			"csiphy1",
++			"csiphy1_clk_mux",
++			"csid0",
++			"csid1",
++			"ispif",
++			"csi_clk_mux",
++			"vfe0";
++		interrupts = <GIC_SPI 78 0>,
++			<GIC_SPI 79 0>,
++			<GIC_SPI 51 0>,
++			<GIC_SPI 52 0>,
++			<GIC_SPI 55 0>,
++			<GIC_SPI 57 0>;
++		interrupt-names = "csiphy0",
++			"csiphy1",
++			"csid0",
++			"csid1",
++			"ispif",
++			"vfe0";
++		power-domains = <&gcc VFE_GDSC>;
++		clocks = <&gcc GCC_CAMSS_TOP_AHB_CLK>,
++			<&gcc GCC_CAMSS_ISPIF_AHB_CLK>,
++			<&gcc GCC_CAMSS_CSI0PHYTIMER_CLK>,
++			<&gcc GCC_CAMSS_CSI1PHYTIMER_CLK>,
++			<&gcc GCC_CAMSS_CSI0_AHB_CLK>,
++			<&gcc GCC_CAMSS_CSI0_CLK>,
++			<&gcc GCC_CAMSS_CSI0PHY_CLK>,
++			<&gcc GCC_CAMSS_CSI0PIX_CLK>,
++			<&gcc GCC_CAMSS_CSI0RDI_CLK>,
++			<&gcc GCC_CAMSS_CSI1_AHB_CLK>,
++			<&gcc GCC_CAMSS_CSI1_CLK>,
++			<&gcc GCC_CAMSS_CSI1PHY_CLK>,
++			<&gcc GCC_CAMSS_CSI1PIX_CLK>,
++			<&gcc GCC_CAMSS_CSI1RDI_CLK>,
++			<&gcc GCC_CAMSS_AHB_CLK>,
++			<&gcc GCC_CAMSS_VFE0_CLK>,
++			<&gcc GCC_CAMSS_CSI_VFE0_CLK>,
++			<&gcc GCC_CAMSS_VFE_AHB_CLK>,
++			<&gcc GCC_CAMSS_VFE_AXI_CLK>;
++		clock-names = "camss_top_ahb_clk",
++			"ispif_ahb_clk",
++			"csiphy0_timer_clk",
++			"csiphy1_timer_clk",
++			"csi0_ahb_clk",
++			"csi0_clk",
++			"csi0_phy_clk",
++			"csi0_pix_clk",
++			"csi0_rdi_clk",
++			"csi1_ahb_clk",
++			"csi1_clk",
++			"csi1_phy_clk",
++			"csi1_pix_clk",
++			"csi1_rdi_clk",
++			"camss_ahb_clk",
++			"camss_vfe_vfe_clk",
++			"camss_csi_vfe_clk",
++			"iface_clk",
++			"bus_clk";
++		vdda-supply = <&pm8916_l2>;
++		iommus = <&apps_iommu 3>;
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			port@0 {
++				reg = <0>;
++				csiphy0_ep: endpoint {
++					clock-lanes = <1>;
++					data-lanes = <0 2>;
++					qcom,settle-cnt = <0xe>;
++					remote-endpoint = <&ov5645_ep>;
++				};
++			};
++		};
++	};
+-- 
+1.9.1
