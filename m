@@ -1,43 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f45.google.com ([209.85.218.45]:33935 "EHLO
-        mail-oi0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752065AbdFLUXo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Jun 2017 16:23:44 -0400
-Received: by mail-oi0-f45.google.com with SMTP id b6so7402935oia.1
-        for <linux-media@vger.kernel.org>; Mon, 12 Jun 2017 13:23:44 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAJ+vNU07V9wR+11KJYqWg6JcfK7Wc45-c-Wf6fpTbTVAeKKDHw@mail.gmail.com>
-References: <CAJ+vNU07V9wR+11KJYqWg6JcfK7Wc45-c-Wf6fpTbTVAeKKDHw@mail.gmail.com>
-From: Fabio Estevam <festevam@gmail.com>
-Date: Mon, 12 Jun 2017 17:23:43 -0300
-Message-ID: <CAOMZO5BSmDo9EyYNmuBS9NRYn9pekcabeHKK_jTkzPbwMOgQhw@mail.gmail.com>
-Subject: Re: how to link up audio bus from media controller driver to soc dai bus?
-To: Tim Harvey <tharvey@gateworks.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from ns.mm-sol.com ([37.157.136.199]:56072 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751385AbdFSO4j (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Jun 2017 10:56:39 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v2 18/19] doc: media/v4l-drivers: Qualcomm Camera Subsystem - Scale and crop
+Date: Mon, 19 Jun 2017 17:48:38 +0300
+Message-Id: <1497883719-12410-19-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
+References: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tim,
+Update the Qualcomm Camera Subsystem driver document for VFE scale
+and crop modules support.
 
-On Mon, Jun 12, 2017 at 4:15 PM, Tim Harvey <tharvey@gateworks.com> wrote:
-> Greetings,
->
-> I'm working on a media controller driver for the tda1997x HDMI
-> receiver which provides an audio bus supporting I2S/SPDIF/OBA/HBR/DST.
-> I'm unclear how to bind the audio bus to a SoC's audio bus, for
-> example the IMX6 SSI (I2S) bus. I thought perhaps it was via a
-> simple-audio-card device-tree binding but that appears to require an
-> ALSA codec to bind to?
->
-> Can anyone point me to an example of a media controller device driver
-> that supports audio and video and how the audio is bound to a I2S bus?
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+---
+ Documentation/media/v4l-drivers/qcom_camss.rst | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-Does the tda998x.txt example help?
-
-Documentation/devicetree/bindings/display/bridge/tda998x.txt
-
-and the dts example:
-
-arch/arm/boot/dts/am335x-boneblack-common.dtsi
+diff --git a/Documentation/media/v4l-drivers/qcom_camss.rst b/Documentation/media/v4l-drivers/qcom_camss.rst
+index 4df5655..7e4ab6e 100644
+--- a/Documentation/media/v4l-drivers/qcom_camss.rst
++++ b/Documentation/media/v4l-drivers/qcom_camss.rst
+@@ -35,7 +35,8 @@ driver consists of:
+   the CSIDs to the inputs of the VFE;
+ - VFE (Video Front End) module. Contains a pipeline of image processing hardware
+   blocks. The VFE has different input interfaces. The PIX input interface feeds
+-  the input data to the image processing pipeline. Three RDI input interfaces
++  the input data to the image processing pipeline. The image processing pipeline
++  contains also a scale and crop module at the end. Three RDI input interfaces
+   bypass the image processing pipeline. The VFE also contains the AXI bus
+   interface which writes the output data to memory.
+ 
+@@ -69,6 +70,11 @@ The current version of the driver supports:
+     - NV12/NV21 (two plane YUV 4:2:0);
+     - NV16/NV61 (two plane YUV 4:2:2).
+ 
++  - Scaling support. Configuration of the VFE Encoder Scale module
++    for downscalling with ratio up to 16x.
++
++  - Cropping support. Configuration of the VFE Encoder Crop module.
++
+ - Concurrent and independent usage of two data inputs - could be camera sensors
+   and/or TG.
+ 
+@@ -130,6 +136,12 @@ not required to implement the currently supported functionality. The complete
+ configuration on each hardware module is applied on STREAMON ioctl based on
+ the current active media links, formats and controls set.
+ 
++The output size of the scaler module in the VFE is configured with the actual
++compose selection rectangle on the sink pad of the 'msm_vfe0_pix' entity.
++
++The crop output area of the crop module in the VFE is configured with the actual
++crop selection rectangle on the source pad of the 'msm_vfe0_pix' entity.
++
+ 
+ Documentation
+ -------------
+-- 
+1.9.1
