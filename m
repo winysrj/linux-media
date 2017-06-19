@@ -1,199 +1,570 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56948 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751386AbdFZSMf (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:56879 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750982AbdFSRBM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 14:12:35 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v2 06/14] v4l: vsp1: Add pipe index argument to the VSP-DU API
-Date: Mon, 26 Jun 2017 21:12:18 +0300
-Message-Id: <20170626181226.29575-7-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
+        Mon, 19 Jun 2017 13:01:12 -0400
+From: Helen Koike <helen.koike@collabora.com>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, jgebben@codeaurora.org,
+        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v5 02/12] [media] vimc: Move common code from the core
+Date: Mon, 19 Jun 2017 14:00:11 -0300
+Message-Id: <1497891629-1562-3-git-send-email-helen.koike@collabora.com>
+In-Reply-To: <1497891629-1562-1-git-send-email-helen.koike@collabora.com>
+References: <1497891629-1562-1-git-send-email-helen.koike@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In the H3 ES2.0 SoC the VSP2-DL instance has two connections to DU
-channels that need to be configured independently. Extend the VSP-DU API
-with a pipeline index to identify which pipeline the caller wants to
-operate on.
+Remove helper functions from vimc-core and add it in vimc-common to
+clean up the core.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Helen Koike <helen.koike@collabora.com>
+
 ---
- drivers/gpu/drm/rcar-du/rcar_du_vsp.c  | 12 ++++++------
- drivers/media/platform/vsp1/vsp1_drm.c | 32 ++++++++++++++++++++++----------
- include/media/vsp1.h                   | 10 ++++++----
- 3 files changed, 34 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-index f870445ebc8d..d46dce054442 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-@@ -81,22 +81,22 @@ void rcar_du_vsp_enable(struct rcar_du_crtc *crtc)
- 	 */
- 	crtc->group->need_restart = true;
+Changes in v5: None
+Changes in v4: None
+Changes in v3:
+[media] vimc: Move common code from the core
+	- This is a new patch in the series
+
+Changes in v2: None
+
+
+---
+ drivers/media/platform/vimc/Makefile               |   2 +-
+ drivers/media/platform/vimc/vimc-capture.h         |   2 +-
+ drivers/media/platform/vimc/vimc-common.c          | 221 +++++++++++++++++++++
+ .../platform/vimc/{vimc-core.h => vimc-common.h}   |   7 +-
+ drivers/media/platform/vimc/vimc-core.c            | 205 +------------------
+ drivers/media/platform/vimc/vimc-sensor.h          |   2 +-
+ 6 files changed, 229 insertions(+), 210 deletions(-)
+ create mode 100644 drivers/media/platform/vimc/vimc-common.c
+ rename drivers/media/platform/vimc/{vimc-core.h => vimc-common.h} (96%)
+
+diff --git a/drivers/media/platform/vimc/Makefile b/drivers/media/platform/vimc/Makefile
+index c45195e..6b6ddf4 100644
+--- a/drivers/media/platform/vimc/Makefile
++++ b/drivers/media/platform/vimc/Makefile
+@@ -1,3 +1,3 @@
+-vimc-objs := vimc-core.o vimc-capture.o vimc-sensor.o
++vimc-objs := vimc-core.o vimc-capture.o vimc-common.o vimc-sensor.o
  
--	vsp1_du_setup_lif(crtc->vsp->vsp, &cfg);
-+	vsp1_du_setup_lif(crtc->vsp->vsp, 0, &cfg);
- }
+ obj-$(CONFIG_VIDEO_VIMC) += vimc.o
+diff --git a/drivers/media/platform/vimc/vimc-capture.h b/drivers/media/platform/vimc/vimc-capture.h
+index 581a813..7e5c707 100644
+--- a/drivers/media/platform/vimc/vimc-capture.h
++++ b/drivers/media/platform/vimc/vimc-capture.h
+@@ -18,7 +18,7 @@
+ #ifndef _VIMC_CAPTURE_H_
+ #define _VIMC_CAPTURE_H_
  
- void rcar_du_vsp_disable(struct rcar_du_crtc *crtc)
- {
--	vsp1_du_setup_lif(crtc->vsp->vsp, NULL);
-+	vsp1_du_setup_lif(crtc->vsp->vsp, 0, NULL);
- }
+-#include "vimc-core.h"
++#include "vimc-common.h"
  
- void rcar_du_vsp_atomic_begin(struct rcar_du_crtc *crtc)
- {
--	vsp1_du_atomic_begin(crtc->vsp->vsp);
-+	vsp1_du_atomic_begin(crtc->vsp->vsp, 0);
- }
- 
- void rcar_du_vsp_atomic_flush(struct rcar_du_crtc *crtc)
- {
--	vsp1_du_atomic_flush(crtc->vsp->vsp);
-+	vsp1_du_atomic_flush(crtc->vsp->vsp, 0);
- }
- 
- /* Keep the two tables in sync. */
-@@ -192,7 +192,7 @@ static void rcar_du_vsp_plane_setup(struct rcar_du_vsp_plane *plane)
- 		}
- 	}
- 
--	vsp1_du_atomic_update(plane->vsp->vsp, plane->index, &cfg);
-+	vsp1_du_atomic_update(plane->vsp->vsp, 0, plane->index, &cfg);
- }
- 
- static int rcar_du_vsp_plane_prepare_fb(struct drm_plane *plane,
-@@ -292,7 +292,7 @@ static void rcar_du_vsp_plane_atomic_update(struct drm_plane *plane,
- 	if (plane->state->crtc)
- 		rcar_du_vsp_plane_setup(rplane);
- 	else
--		vsp1_du_atomic_update(rplane->vsp->vsp, rplane->index, NULL);
-+		vsp1_du_atomic_update(rplane->vsp->vsp, 0, rplane->index, NULL);
- }
- 
- static const struct drm_plane_helper_funcs rcar_du_vsp_plane_helper_funcs = {
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index c72d021ff820..daaafe7885fa 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -58,21 +58,26 @@ EXPORT_SYMBOL_GPL(vsp1_du_init);
- /**
-  * vsp1_du_setup_lif - Setup the output part of the VSP pipeline
-  * @dev: the VSP device
-+ * @pipe_index: the DRM pipeline index
-  * @cfg: the LIF configuration
-  *
-  * Configure the output part of VSP DRM pipeline for the given frame @cfg.width
-- * and @cfg.height. This sets up formats on the BRU source pad, the WPF0 sink
-- * and source pads, and the LIF sink pad.
-+ * and @cfg.height. This sets up formats on the blend unit (BRU or BRS) source
-+ * pad, the WPF sink and source pads, and the LIF sink pad.
-  *
-- * As the media bus code on the BRU source pad is conditioned by the
-- * configuration of the BRU sink 0 pad, we also set up the formats on all BRU
-+ * The @pipe_index argument selects which DRM pipeline to setup. The number of
-+ * available pipelines depend on the VSP instance.
+ struct vimc_ent_device *vimc_cap_create(struct v4l2_device *v4l2_dev,
+ 					const char *const name,
+diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
+new file mode 100644
+index 0000000..42f779a
+--- /dev/null
++++ b/drivers/media/platform/vimc/vimc-common.c
+@@ -0,0 +1,221 @@
++/*
++ * vimc-common.c Virtual Media Controller Driver
 + *
-+ * As the media bus code on the blend unit source pad is conditioned by the
-+ * configuration of its sink 0 pad, we also set up the formats on all blend unit
-  * sinks, even if the configuration will be overwritten later by
-- * vsp1_du_setup_rpf(). This ensures that the BRU configuration is set to a well
-- * defined state.
-+ * vsp1_du_setup_rpf(). This ensures that the blend unit configuration is set to
-+ * a well defined state.
-  *
-  * Return 0 on success or a negative error code on failure.
-  */
--int vsp1_du_setup_lif(struct device *dev, const struct vsp1_du_lif_config *cfg)
-+int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
-+		      const struct vsp1_du_lif_config *cfg)
- {
- 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
- 	struct vsp1_pipeline *pipe = &vsp1->drm->pipe;
-@@ -81,6 +86,9 @@ int vsp1_du_setup_lif(struct device *dev, const struct vsp1_du_lif_config *cfg)
- 	unsigned int i;
- 	int ret;
- 
-+	if (pipe_index > 0)
++ * Copyright (C) 2015-2017 Helen Koike <helen.fornazier@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#include "vimc-common.h"
++
++static const struct vimc_pix_map vimc_pix_map_list[] = {
++	/* TODO: add all missing formats */
++
++	/* RGB formats */
++	{
++		.code = MEDIA_BUS_FMT_BGR888_1X24,
++		.pixelformat = V4L2_PIX_FMT_BGR24,
++		.bpp = 3,
++	},
++	{
++		.code = MEDIA_BUS_FMT_RGB888_1X24,
++		.pixelformat = V4L2_PIX_FMT_RGB24,
++		.bpp = 3,
++	},
++	{
++		.code = MEDIA_BUS_FMT_ARGB8888_1X32,
++		.pixelformat = V4L2_PIX_FMT_ARGB32,
++		.bpp = 4,
++	},
++
++	/* Bayer formats */
++	{
++		.code = MEDIA_BUS_FMT_SBGGR8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SBGGR8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGBRG8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SGBRG8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGRBG8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SGRBG8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SRGGB8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SRGGB8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SBGGR10_1X10,
++		.pixelformat = V4L2_PIX_FMT_SBGGR10,
++		.bpp = 2,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGBRG10_1X10,
++		.pixelformat = V4L2_PIX_FMT_SGBRG10,
++		.bpp = 2,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGRBG10_1X10,
++		.pixelformat = V4L2_PIX_FMT_SGRBG10,
++		.bpp = 2,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SRGGB10_1X10,
++		.pixelformat = V4L2_PIX_FMT_SRGGB10,
++		.bpp = 2,
++	},
++
++	/* 10bit raw bayer a-law compressed to 8 bits */
++	{
++		.code = MEDIA_BUS_FMT_SBGGR10_ALAW8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SBGGR10ALAW8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGBRG10_ALAW8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SGBRG10ALAW8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGRBG10_ALAW8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SGRBG10ALAW8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SRGGB10_ALAW8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SRGGB10ALAW8,
++		.bpp = 1,
++	},
++
++	/* 10bit raw bayer DPCM compressed to 8 bits */
++	{
++		.code = MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SBGGR10DPCM8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SGBRG10DPCM8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SGRBG10DPCM8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8,
++		.pixelformat = V4L2_PIX_FMT_SRGGB10DPCM8,
++		.bpp = 1,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SBGGR12_1X12,
++		.pixelformat = V4L2_PIX_FMT_SBGGR12,
++		.bpp = 2,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGBRG12_1X12,
++		.pixelformat = V4L2_PIX_FMT_SGBRG12,
++		.bpp = 2,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SGRBG12_1X12,
++		.pixelformat = V4L2_PIX_FMT_SGRBG12,
++		.bpp = 2,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SRGGB12_1X12,
++		.pixelformat = V4L2_PIX_FMT_SRGGB12,
++		.bpp = 2,
++	},
++};
++
++const struct vimc_pix_map *vimc_pix_map_by_code(u32 code)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(vimc_pix_map_list); i++) {
++		if (vimc_pix_map_list[i].code == code)
++			return &vimc_pix_map_list[i];
++	}
++	return NULL;
++}
++
++const struct vimc_pix_map *vimc_pix_map_by_pixelformat(u32 pixelformat)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(vimc_pix_map_list); i++) {
++		if (vimc_pix_map_list[i].pixelformat == pixelformat)
++			return &vimc_pix_map_list[i];
++	}
++	return NULL;
++}
++
++int vimc_propagate_frame(struct media_pad *src, const void *frame)
++{
++	struct media_link *link;
++
++	if (!(src->flags & MEDIA_PAD_FL_SOURCE))
 +		return -EINVAL;
 +
- 	if (!cfg) {
- 		/*
- 		 * NULL configuration means the CRTC is being disabled, stop
-@@ -232,8 +240,9 @@ EXPORT_SYMBOL_GPL(vsp1_du_setup_lif);
- /**
-  * vsp1_du_atomic_begin - Prepare for an atomic update
-  * @dev: the VSP device
-+ * @pipe_index: the DRM pipeline index
-  */
--void vsp1_du_atomic_begin(struct device *dev)
-+void vsp1_du_atomic_begin(struct device *dev, unsigned int pipe_index)
- {
- 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
- 	struct vsp1_pipeline *pipe = &vsp1->drm->pipe;
-@@ -245,6 +254,7 @@ EXPORT_SYMBOL_GPL(vsp1_du_atomic_begin);
- /**
-  * vsp1_du_atomic_update - Setup one RPF input of the VSP pipeline
-  * @dev: the VSP device
-+ * @pipe_index: the DRM pipeline index
-  * @rpf_index: index of the RPF to setup (0-based)
-  * @cfg: the RPF configuration
++	/* Send this frame to all sink pads that are direct linked */
++	list_for_each_entry(link, &src->entity->links, list) {
++		if (link->source == src &&
++		    (link->flags & MEDIA_LNK_FL_ENABLED)) {
++			struct vimc_ent_device *ved = NULL;
++			struct media_entity *entity = link->sink->entity;
++
++			if (is_media_entity_v4l2_subdev(entity)) {
++				struct v4l2_subdev *sd =
++					container_of(entity, struct v4l2_subdev,
++						     entity);
++				ved = v4l2_get_subdevdata(sd);
++			} else if (is_media_entity_v4l2_video_device(entity)) {
++				struct video_device *vdev =
++					container_of(entity,
++						     struct video_device,
++						     entity);
++				ved = video_get_drvdata(vdev);
++			}
++			if (ved && ved->process_frame)
++				ved->process_frame(ved, link->sink, frame);
++		}
++	}
++
++	return 0;
++}
++
++/* Helper function to allocate and initialize pads */
++struct media_pad *vimc_pads_init(u16 num_pads, const unsigned long *pads_flag)
++{
++	struct media_pad *pads;
++	unsigned int i;
++
++	/* Allocate memory for the pads */
++	pads = kcalloc(num_pads, sizeof(*pads), GFP_KERNEL);
++	if (!pads)
++		return ERR_PTR(-ENOMEM);
++
++	/* Initialize the pads */
++	for (i = 0; i < num_pads; i++) {
++		pads[i].index = i;
++		pads[i].flags = pads_flag[i];
++	}
++
++	return pads;
++}
+diff --git a/drivers/media/platform/vimc/vimc-core.h b/drivers/media/platform/vimc/vimc-common.h
+similarity index 96%
+rename from drivers/media/platform/vimc/vimc-core.h
+rename to drivers/media/platform/vimc/vimc-common.h
+index 4525d23..00d3da4 100644
+--- a/drivers/media/platform/vimc/vimc-core.h
++++ b/drivers/media/platform/vimc/vimc-common.h
+@@ -1,5 +1,5 @@
+ /*
+- * vimc-core.h Virtual Media Controller Driver
++ * vimc-ccommon.h Virtual Media Controller Driver
   *
-@@ -271,7 +281,8 @@ EXPORT_SYMBOL_GPL(vsp1_du_atomic_begin);
+  * Copyright (C) 2015-2017 Helen Koike <helen.fornazier@gmail.com>
   *
-  * Return 0 on success or a negative error code on failure.
+@@ -15,10 +15,11 @@
+  *
   */
--int vsp1_du_atomic_update(struct device *dev, unsigned int rpf_index,
-+int vsp1_du_atomic_update(struct device *dev, unsigned int pipe_index,
-+			  unsigned int rpf_index,
- 			  const struct vsp1_du_atomic_config *cfg)
- {
- 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
-@@ -437,8 +448,9 @@ static unsigned int rpf_zpos(struct vsp1_device *vsp1, struct vsp1_rwpf *rpf)
+ 
+-#ifndef _VIMC_CORE_H_
+-#define _VIMC_CORE_H_
++#ifndef _VIMC_COMMON_H_
++#define _VIMC_COMMON_H_
+ 
+ #include <linux/slab.h>
++#include <media/media-device.h>
+ #include <media/v4l2-device.h>
+ 
  /**
-  * vsp1_du_atomic_flush - Commit an atomic update
-  * @dev: the VSP device
-+ * @pipe_index: the DRM pipeline index
-  */
--void vsp1_du_atomic_flush(struct device *dev)
-+void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
+diff --git a/drivers/media/platform/vimc/vimc-core.c b/drivers/media/platform/vimc/vimc-core.c
+index bc107da..afc79e2 100644
+--- a/drivers/media/platform/vimc/vimc-core.c
++++ b/drivers/media/platform/vimc/vimc-core.c
+@@ -22,7 +22,7 @@
+ #include <media/v4l2-device.h>
+ 
+ #include "vimc-capture.h"
+-#include "vimc-core.h"
++#include "vimc-common.h"
+ #include "vimc-sensor.h"
+ 
+ #define VIMC_PDEV_NAME "vimc"
+@@ -197,189 +197,6 @@ static const struct vimc_pipeline_config pipe_cfg = {
+ 
+ /* -------------------------------------------------------------------------- */
+ 
+-static const struct vimc_pix_map vimc_pix_map_list[] = {
+-	/* TODO: add all missing formats */
+-
+-	/* RGB formats */
+-	{
+-		.code = MEDIA_BUS_FMT_BGR888_1X24,
+-		.pixelformat = V4L2_PIX_FMT_BGR24,
+-		.bpp = 3,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_RGB888_1X24,
+-		.pixelformat = V4L2_PIX_FMT_RGB24,
+-		.bpp = 3,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_ARGB8888_1X32,
+-		.pixelformat = V4L2_PIX_FMT_ARGB32,
+-		.bpp = 4,
+-	},
+-
+-	/* Bayer formats */
+-	{
+-		.code = MEDIA_BUS_FMT_SBGGR8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SBGGR8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGBRG8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SGBRG8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGRBG8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SGRBG8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SRGGB8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SRGGB8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SBGGR10_1X10,
+-		.pixelformat = V4L2_PIX_FMT_SBGGR10,
+-		.bpp = 2,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGBRG10_1X10,
+-		.pixelformat = V4L2_PIX_FMT_SGBRG10,
+-		.bpp = 2,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGRBG10_1X10,
+-		.pixelformat = V4L2_PIX_FMT_SGRBG10,
+-		.bpp = 2,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SRGGB10_1X10,
+-		.pixelformat = V4L2_PIX_FMT_SRGGB10,
+-		.bpp = 2,
+-	},
+-
+-	/* 10bit raw bayer a-law compressed to 8 bits */
+-	{
+-		.code = MEDIA_BUS_FMT_SBGGR10_ALAW8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SBGGR10ALAW8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGBRG10_ALAW8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SGBRG10ALAW8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGRBG10_ALAW8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SGRBG10ALAW8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SRGGB10_ALAW8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SRGGB10ALAW8,
+-		.bpp = 1,
+-	},
+-
+-	/* 10bit raw bayer DPCM compressed to 8 bits */
+-	{
+-		.code = MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SBGGR10DPCM8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SGBRG10DPCM8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SGRBG10DPCM8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8,
+-		.pixelformat = V4L2_PIX_FMT_SRGGB10DPCM8,
+-		.bpp = 1,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SBGGR12_1X12,
+-		.pixelformat = V4L2_PIX_FMT_SBGGR12,
+-		.bpp = 2,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGBRG12_1X12,
+-		.pixelformat = V4L2_PIX_FMT_SGBRG12,
+-		.bpp = 2,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SGRBG12_1X12,
+-		.pixelformat = V4L2_PIX_FMT_SGRBG12,
+-		.bpp = 2,
+-	},
+-	{
+-		.code = MEDIA_BUS_FMT_SRGGB12_1X12,
+-		.pixelformat = V4L2_PIX_FMT_SRGGB12,
+-		.bpp = 2,
+-	},
+-};
+-
+-const struct vimc_pix_map *vimc_pix_map_by_code(u32 code)
+-{
+-	unsigned int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(vimc_pix_map_list); i++) {
+-		if (vimc_pix_map_list[i].code == code)
+-			return &vimc_pix_map_list[i];
+-	}
+-	return NULL;
+-}
+-
+-const struct vimc_pix_map *vimc_pix_map_by_pixelformat(u32 pixelformat)
+-{
+-	unsigned int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(vimc_pix_map_list); i++) {
+-		if (vimc_pix_map_list[i].pixelformat == pixelformat)
+-			return &vimc_pix_map_list[i];
+-	}
+-	return NULL;
+-}
+-
+-int vimc_propagate_frame(struct media_pad *src, const void *frame)
+-{
+-	struct media_link *link;
+-
+-	if (!(src->flags & MEDIA_PAD_FL_SOURCE))
+-		return -EINVAL;
+-
+-	/* Send this frame to all sink pads that are direct linked */
+-	list_for_each_entry(link, &src->entity->links, list) {
+-		if (link->source == src &&
+-		    (link->flags & MEDIA_LNK_FL_ENABLED)) {
+-			struct vimc_ent_device *ved = NULL;
+-			struct media_entity *entity = link->sink->entity;
+-
+-			if (is_media_entity_v4l2_subdev(entity)) {
+-				struct v4l2_subdev *sd =
+-					container_of(entity, struct v4l2_subdev,
+-						     entity);
+-				ved = v4l2_get_subdevdata(sd);
+-			} else if (is_media_entity_v4l2_video_device(entity)) {
+-				struct video_device *vdev =
+-					container_of(entity,
+-						     struct video_device,
+-						     entity);
+-				ved = video_get_drvdata(vdev);
+-			}
+-			if (ved && ved->process_frame)
+-				ved->process_frame(ved, link->sink, frame);
+-		}
+-	}
+-
+-	return 0;
+-}
+-
+ static void vimc_device_unregister(struct vimc_device *vimc)
  {
- 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
- 	struct vsp1_pipeline *pipe = &vsp1->drm->pipe;
-diff --git a/include/media/vsp1.h b/include/media/vsp1.h
-index c837383b2013..c8fc868fb0f2 100644
---- a/include/media/vsp1.h
-+++ b/include/media/vsp1.h
-@@ -38,7 +38,8 @@ struct vsp1_du_lif_config {
- 	void *callback_data;
- };
+ 	unsigned int i;
+@@ -396,26 +213,6 @@ static void vimc_device_unregister(struct vimc_device *vimc)
+ 	media_device_cleanup(&vimc->mdev);
+ }
  
--int vsp1_du_setup_lif(struct device *dev, const struct vsp1_du_lif_config *cfg);
-+int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
-+		      const struct vsp1_du_lif_config *cfg);
+-/* Helper function to allocate and initialize pads */
+-struct media_pad *vimc_pads_init(u16 num_pads, const unsigned long *pads_flag)
+-{
+-	struct media_pad *pads;
+-	unsigned int i;
+-
+-	/* Allocate memory for the pads */
+-	pads = kcalloc(num_pads, sizeof(*pads), GFP_KERNEL);
+-	if (!pads)
+-		return ERR_PTR(-ENOMEM);
+-
+-	/* Initialize the pads */
+-	for (i = 0; i < num_pads; i++) {
+-		pads[i].index = i;
+-		pads[i].flags = pads_flag[i];
+-	}
+-
+-	return pads;
+-}
+-
+ /*
+  * TODO: remove this function when all the
+  * entities specific code are implemented
+diff --git a/drivers/media/platform/vimc/vimc-sensor.h b/drivers/media/platform/vimc/vimc-sensor.h
+index 505310e..580dcec 100644
+--- a/drivers/media/platform/vimc/vimc-sensor.h
++++ b/drivers/media/platform/vimc/vimc-sensor.h
+@@ -18,7 +18,7 @@
+ #ifndef _VIMC_SENSOR_H_
+ #define _VIMC_SENSOR_H_
  
- struct vsp1_du_atomic_config {
- 	u32 pixelformat;
-@@ -50,10 +51,11 @@ struct vsp1_du_atomic_config {
- 	unsigned int zpos;
- };
+-#include "vimc-core.h"
++#include "vimc-common.h"
  
--void vsp1_du_atomic_begin(struct device *dev);
--int vsp1_du_atomic_update(struct device *dev, unsigned int rpf,
-+void vsp1_du_atomic_begin(struct device *dev, unsigned int pipe_index);
-+int vsp1_du_atomic_update(struct device *dev, unsigned int pipe_index,
-+			  unsigned int rpf,
- 			  const struct vsp1_du_atomic_config *cfg);
--void vsp1_du_atomic_flush(struct device *dev);
-+void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index);
- int vsp1_du_map_sg(struct device *dev, struct sg_table *sgt);
- void vsp1_du_unmap_sg(struct device *dev, struct sg_table *sgt);
- 
+ struct vimc_ent_device *vimc_sen_create(struct v4l2_device *v4l2_dev,
+ 					const char *const name,
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
