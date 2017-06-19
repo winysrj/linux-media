@@ -1,494 +1,333 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:53136 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751213AbdFEUjb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Jun 2017 16:39:31 -0400
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
-        Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH 03/12] intel-ipu3: Add DMA API implementation
-Date: Mon,  5 Jun 2017 15:39:08 -0500
-Message-Id: <1496695157-19926-4-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
-References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:39255 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753711AbdFSLPh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Jun 2017 07:15:37 -0400
+Subject: Re: [PATCH v2] [media] v4l2: add V4L2_CAP_IO_MC
+To: Helen Koike <helen.koike@collabora.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        jgebben@codeaurora.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1490889738-30009-1-git-send-email-helen.koike@collabora.com>
+ <1497415836-15142-1-git-send-email-helen.koike@collabora.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2327e555-118e-0882-f2f6-7c0f74985aee@xs4all.nl>
+Date: Mon, 19 Jun 2017 13:15:26 +0200
+MIME-Version: 1.0
+In-Reply-To: <1497415836-15142-1-git-send-email-helen.koike@collabora.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-IPU3 mmu based DMA mapping driver
+On 06/14/2017 06:50 AM, Helen Koike wrote:
+> Add V4L2_CAP_IO_MC to be used in struct v4l2_capability to indicate that
+> input and output are controlled by the Media Controller instead of V4L2
+> API.
+> When this flag is set, ioctls for get, set and enum input and outputs
+> are automatically enabled and programmed to call helper function.
+> 
+> Signed-off-by: Helen Koike <helen.koike@collabora.com>
+> 
+> ---
+> 
+> Changes in v2::
+> 	- replace the type by capability
+> 	- erase V4L2_INPUT_TYPE_DEFAULT
+> 	- also consider output
+> 	- plug helpers in the ops automatically so drivers doesn't need
+> 	to set it by hand
+> 	- update docs
+> 	- commit message and title
+> ---
+>   Documentation/media/uapi/v4l/vidioc-querycap.rst |  3 +
+>   Documentation/media/videodev2.h.rst.exceptions   |  1 +
+>   drivers/media/v4l2-core/v4l2-dev.c               | 35 +++++++--
+>   drivers/media/v4l2-core/v4l2-ioctl.c             | 91 ++++++++++++++++++++++--
+>   include/uapi/linux/videodev2.h                   |  2 +
+>   5 files changed, 120 insertions(+), 12 deletions(-)
+> 
+> diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+> index 12e0d9a..2bd1223 100644
+> --- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
+> +++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+> @@ -252,6 +252,9 @@ specification the ioctl returns an ``EINVAL`` error code.
+>       * - ``V4L2_CAP_TOUCH``
+>         - 0x10000000
+>         - This is a touch device.
+> +    * - ``V4L2_CAP_IO_MC``
+> +      - 0x20000000
+> +      - This device has its inputs and outputs controller by the Media Controller
 
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
----
- drivers/media/pci/intel/ipu3/Kconfig       |   6 +
- drivers/media/pci/intel/ipu3/Makefile      |   1 +
- drivers/media/pci/intel/ipu3/ipu3-dmamap.c | 408 +++++++++++++++++++++++++++++
- drivers/media/pci/intel/ipu3/ipu3-dmamap.h |  20 ++
- 4 files changed, 435 insertions(+)
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-dmamap.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-dmamap.h
+controller -> controlled
 
-diff --git a/drivers/media/pci/intel/ipu3/Kconfig b/drivers/media/pci/intel/ipu3/Kconfig
-index ab2edcb..2030be7 100644
---- a/drivers/media/pci/intel/ipu3/Kconfig
-+++ b/drivers/media/pci/intel/ipu3/Kconfig
-@@ -26,3 +26,9 @@ config INTEL_IPU3_MMU
- 
- 	  Say Y here if you have Skylake/Kaby Lake SoC with IPU3.
- 	  Say N if un-sure.
-+
-+config INTEL_IPU3_DMAMAP
-+	bool "Intel ipu3 DMA mapping driver"
-+	select IOMMU_IOVA
-+	---help---
-+	  This is IPU3 IOMMU domain specific DMA driver.
-diff --git a/drivers/media/pci/intel/ipu3/Makefile b/drivers/media/pci/intel/ipu3/Makefile
-index 2b669df..2c2a035 100644
---- a/drivers/media/pci/intel/ipu3/Makefile
-+++ b/drivers/media/pci/intel/ipu3/Makefile
-@@ -1,2 +1,3 @@
- obj-$(CONFIG_VIDEO_IPU3_CIO2) += ipu3-cio2.o
- obj-$(CONFIG_INTEL_IPU3_MMU) += ipu3-mmu.o
-+obj-$(CONFIG_INTEL_IPU3_DMAMAP) += ipu3-dmamap.o
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-dmamap.c b/drivers/media/pci/intel/ipu3/ipu3-dmamap.c
-new file mode 100644
-index 0000000..74704d9
---- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/ipu3-dmamap.c
-@@ -0,0 +1,408 @@
-+/*
-+ * Copyright (c) 2017 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+#include <linux/highmem.h>
-+#include <linux/slab.h>
-+#include <linux/version.h>
-+#include <linux/vmalloc.h>
-+#include "ipu3-mmu.h"
-+
-+/* Begin of things adapted from arch/arm/mm/dma-mapping.c */
-+static void ipu3_dmamap_clear_buffer(struct page *page, size_t size,
-+				     unsigned long attrs)
-+{
-+	/*
-+	 * Ensure that the allocated pages are zeroed, and that any data
-+	 * lurking in the kernel direct-mapped region is invalidated.
-+	 */
-+	if (PageHighMem(page)) {
-+		while (size > 0) {
-+			void *ptr = kmap_atomic(page);
-+
-+			memset(ptr, 0, PAGE_SIZE);
-+			if ((attrs & DMA_ATTR_SKIP_CPU_SYNC) == 0)
-+				clflush_cache_range(ptr, PAGE_SIZE);
-+			kunmap_atomic(ptr);
-+			page++;
-+			size -= PAGE_SIZE;
-+		}
-+	} else {
-+		void *ptr = page_address(page);
-+
-+		memset(ptr, 0, size);
-+		if ((attrs & DMA_ATTR_SKIP_CPU_SYNC) == 0)
-+			clflush_cache_range(ptr, size);
-+	}
-+}
-+
-+/**
-+ * ipu3_dmamap_alloc_buffer - allocate buffer based on attributes
-+ * @dev: struct device pointer
-+ * @size: size of buffer in bytes
-+ * @gfp: specify the free page type
-+ * @attrs: defined in linux/dma-attrs.h
-+ *
-+ * This is a helper function for physical page allocation
-+ *
-+ * Return array representing buffer from alloc_pages() on success
-+ * or NULL on failure
-+ *
-+ * Must be freed with ipu3_dmamap_free_buffer.
-+ */
-+static struct page **ipu3_dmamap_alloc_buffer(struct device *dev, size_t size,
-+					      gfp_t gfp, unsigned long attrs)
-+{
-+	struct page **pages;
-+	int count = size >> PAGE_SHIFT;
-+	int array_size = count * sizeof(struct page *);
-+	int i = 0;
-+
-+	/* Allocate mem for array of page ptrs */
-+	if (array_size <= PAGE_SIZE)
-+		pages = kzalloc(array_size, GFP_KERNEL);
-+	else
-+		pages = vzalloc(array_size);
-+	if (!pages)
-+		return NULL;
-+
-+	gfp |= __GFP_NOWARN;
-+
-+	while (count) {
-+		int j, order = __fls(count);
-+
-+		pages[i] = alloc_pages(gfp, order);
-+		while (!pages[i] && order)
-+			pages[i] = alloc_pages(gfp, --order);
-+		if (!pages[i])
-+			goto error;
-+
-+		if (order) {
-+			split_page(pages[i], order);
-+			j = 1 << order;
-+			while (--j)
-+				pages[i + j] = pages[i] + j;
-+		}
-+		/* Zero and invalidate */
-+		ipu3_dmamap_clear_buffer(pages[i], PAGE_SIZE << order, attrs);
-+		i += 1 << order;
-+		count -= 1 << order;
-+	}
-+
-+	return pages;
-+
-+error:
-+	while (i--)
-+		if (pages[i])
-+			__free_pages(pages[i], 0);
-+	if (array_size <= PAGE_SIZE)
-+		kfree(pages);
-+	else
-+		vfree(pages);
-+
-+	return NULL;
-+}
-+
-+/*
-+ * Free a buffer allocated by ipu3_dmamap_alloc_buffer()
-+ */
-+static int ipu3_dmamap_free_buffer(struct device *dev, struct page **pages,
-+				   size_t size, unsigned long attrs)
-+{
-+	int count = size >> PAGE_SHIFT;
-+	int array_size = count * sizeof(struct page *);
-+	int i;
-+
-+	for (i = 0; i < count; i++) {
-+		if (pages[i]) {
-+			ipu3_dmamap_clear_buffer(pages[i], PAGE_SIZE, attrs);
-+			__free_pages(pages[i], 0);
-+		}
-+	}
-+
-+	if (array_size <= PAGE_SIZE)
-+		kfree(pages);
-+	else
-+		vfree(pages);
-+	return 0;
-+}
-+
-+/* End of things adapted from arch/arm/mm/dma-mapping.c */
-+static void ipu3_dmamap_sync_single_for_cpu(struct device *dev,
-+					    dma_addr_t dma_handle, size_t size,
-+					    enum dma_data_direction dir)
-+{
-+	struct ipu3_mmu *mmu = to_ipu3_mmu(dev);
-+	dma_addr_t daddr = iommu_iova_to_phys(mmu->domain, dma_handle);
-+
-+	clflush_cache_range(phys_to_virt(daddr), size);
-+}
-+
-+/*
-+ * Synchronization function to transfer ownership to CPU
-+ */
-+static void ipu3_dmamap_sync_sg_for_cpu(struct device *dev,
-+					struct scatterlist *sglist, int nents,
-+					enum dma_data_direction dir)
-+{
-+	struct ipu3_mmu *mmu = to_ipu3_mmu(dev);
-+	struct scatterlist *sg;
-+	int i;
-+
-+	for_each_sg(sglist, sg, nents, i) {
-+		clflush_cache_range(
-+			phys_to_virt(iommu_iova_to_phys(mmu->domain,
-+			sg_dma_address(sg))), sg->length);
-+	}
-+}
-+
-+/**
-+ * ipu3_dmamap_alloc - allocate and map a buffer into KVA
-+ * @dev: struct device pointer
-+ * @size: size of buffer in bytes
-+ * @gfp: specify the get free page type
-+ * @attrs: defined in linux/dma-attrs.h
-+ *
-+ * Return KVA on success or NULL on failure
-+ *
-+ */
-+static void *ipu3_dmamap_alloc(struct device *dev, size_t size,
-+			       dma_addr_t *dma_handle, gfp_t gfp,
-+			       unsigned long attrs)
-+{
-+	struct ipu3_mmu *mmu = to_ipu3_mmu(dev);
-+	struct page **pages;
-+	struct iova *iova;
-+	struct vm_struct *area;
-+	int i;
-+	int rval;
-+
-+	size = PAGE_ALIGN(size);
-+
-+	iova = alloc_iova(&mmu->iova_domain, size >> PAGE_SHIFT,
-+			dma_get_mask(dev) >> PAGE_SHIFT, 0);
-+	if (!iova)
-+		return NULL;
-+
-+	pages = ipu3_dmamap_alloc_buffer(dev, size, gfp, attrs);
-+	if (!pages)
-+		goto out_free_iova;
-+
-+	/* Call IOMMU driver to setup pgt */
-+	for (i = 0; iova->pfn_lo + i <= iova->pfn_hi; i++) {
-+		rval = iommu_map(mmu->domain,
-+				 (iova->pfn_lo + i) << PAGE_SHIFT,
-+				 page_to_phys(pages[i]), PAGE_SIZE, 0);
-+		if (rval)
-+			goto out_unmap;
-+	}
-+	/* Now grab a virtual region */
-+	area = __get_vm_area(size, 0, VMALLOC_START, VMALLOC_END);
-+	if (!area)
-+		goto out_unmap;
-+
-+	area->pages = pages;
-+	/* And map it in KVA */
-+	if (map_vm_area(area, PAGE_KERNEL, pages))
-+		goto out_vunmap;
-+
-+	*dma_handle = iova->pfn_lo << PAGE_SHIFT;
-+
-+	return area->addr;
-+
-+out_vunmap:
-+	vunmap(area->addr);
-+
-+out_unmap:
-+	ipu3_dmamap_free_buffer(dev, pages, size, attrs);
-+	for (i--; i >= 0; i--) {
-+		iommu_unmap(mmu->domain, (iova->pfn_lo + i) << PAGE_SHIFT,
-+			    PAGE_SIZE);
-+	}
-+
-+out_free_iova:
-+	__free_iova(&mmu->iova_domain, iova);
-+
-+	return NULL;
-+}
-+
-+/*
-+ * Counterpart of ipu3_dmamap_alloc
-+ */
-+static void ipu3_dmamap_free(struct device *dev, size_t size, void *vaddr,
-+			     dma_addr_t dma_handle, unsigned long attrs)
-+{
-+	struct ipu3_mmu *mmu = to_ipu3_mmu(dev);
-+	struct vm_struct *area = find_vm_area(vaddr);
-+	struct iova *iova = find_iova(&mmu->iova_domain,
-+				      dma_handle >> PAGE_SHIFT);
-+
-+	if (WARN_ON(!area) || WARN_ON(!iova))
-+		return;
-+
-+	if (WARN_ON(!area->pages))
-+		return;
-+
-+	size = PAGE_ALIGN(size);
-+
-+	iommu_unmap(mmu->domain, iova->pfn_lo << PAGE_SHIFT,
-+		(iova->pfn_hi - iova->pfn_lo + 1) << PAGE_SHIFT);
-+
-+	__free_iova(&mmu->iova_domain, iova);
-+
-+	ipu3_dmamap_free_buffer(dev, area->pages, size, attrs);
-+
-+	vunmap(vaddr);
-+}
-+
-+/*
-+ * Insert each page into user VMA
-+ */
-+static int ipu3_dmamap_mmap(struct device *dev, struct vm_area_struct *vma,
-+			    void *addr, dma_addr_t iova, size_t size,
-+			    unsigned long attrs)
-+{
-+	struct vm_struct *area = find_vm_area(addr);
-+	size_t count = PAGE_ALIGN(size) >> PAGE_SHIFT;
-+	size_t i;
-+
-+	if (!area)
-+		return -EFAULT;
-+
-+	if (vma->vm_start & ~PAGE_MASK)
-+		return -EINVAL;
-+
-+	if (size > area->size)
-+		return -EFAULT;
-+
-+	for (i = 0; i < count; i++)
-+		vm_insert_page(vma, vma->vm_start + (i << PAGE_SHIFT),
-+				area->pages[i]);
-+
-+	return 0;
-+}
-+
-+static void ipu3_dmamap_unmap_sg(struct device *dev, struct scatterlist *sglist,
-+				 int nents, enum dma_data_direction dir,
-+				 unsigned long attrs)
-+{
-+	struct ipu3_mmu *mmu = to_ipu3_mmu(dev);
-+	struct iova *iova = find_iova(&mmu->iova_domain,
-+					sg_dma_address(sglist) >> PAGE_SHIFT);
-+
-+	if (!nents || WARN_ON(!iova))
-+		return;
-+
-+	if ((attrs & DMA_ATTR_SKIP_CPU_SYNC) == 0)
-+		ipu3_dmamap_sync_sg_for_cpu(dev, sglist, nents,
-+					    DMA_BIDIRECTIONAL);
-+
-+	iommu_unmap(mmu->domain, iova->pfn_lo << PAGE_SHIFT,
-+			(iova->pfn_hi - iova->pfn_lo + 1) << PAGE_SHIFT);
-+
-+	__free_iova(&mmu->iova_domain, iova);
-+}
-+
-+static int ipu3_dmamap_map_sg(struct device *dev, struct scatterlist *sglist,
-+			      int nents, enum dma_data_direction dir,
-+			      unsigned long attrs)
-+{
-+	struct ipu3_mmu *mmu = to_ipu3_mmu(dev);
-+	struct scatterlist *sg;
-+	struct iova *iova;
-+	size_t size = 0;
-+	uint32_t iova_addr;
-+	int i;
-+
-+	for_each_sg(sglist, sg, nents, i)
-+		size += PAGE_ALIGN(sg->length) >> PAGE_SHIFT;
-+
-+	dev_dbg(dev, "dmamap: mapping sg %d entries, %zu pages\n", nents, size);
-+
-+	iova = alloc_iova(&mmu->iova_domain, size,
-+			  dma_get_mask(dev) >> PAGE_SHIFT, 0);
-+	if (!iova)
-+		return 0;
-+
-+	dev_dbg(dev, "dmamap: iova low pfn %lu, high pfn %lu\n", iova->pfn_lo,
-+		iova->pfn_hi);
-+
-+	iova_addr = iova->pfn_lo;
-+
-+	for_each_sg(sglist, sg, nents, i) {
-+		int rval;
-+
-+		dev_dbg(dev,
-+			"dmamap: entry %d: iova 0x%8.8x, phys 0x%16.16llx\n",
-+			i, iova_addr << PAGE_SHIFT, page_to_phys(sg_page(sg)));
-+		rval = iommu_map(mmu->domain, iova_addr << PAGE_SHIFT,
-+				 page_to_phys(sg_page(sg)),
-+				 PAGE_ALIGN(sg->length), 0);
-+		if (rval)
-+			goto out_fail;
-+		sg_dma_address(sg) = iova_addr << PAGE_SHIFT;
-+#ifdef CONFIG_NEED_SG_DMA_LENGTH
-+		sg_dma_len(sg) = sg->length;
-+#endif /* CONFIG_NEED_SG_DMA_LENGTH */
-+
-+		iova_addr += PAGE_ALIGN(sg->length) >> PAGE_SHIFT;
-+	}
-+
-+	if ((attrs & DMA_ATTR_SKIP_CPU_SYNC) == 0)
-+		ipu3_dmamap_sync_sg_for_cpu(dev, sglist, nents,
-+					    DMA_BIDIRECTIONAL);
-+
-+	return nents;
-+
-+out_fail:
-+	ipu3_dmamap_unmap_sg(dev, sglist, i, dir, attrs);
-+
-+	return 0;
-+}
-+
-+/*
-+ * Create scatter-list for the already allocated DMA buffer
-+ */
-+static int ipu3_dmamap_get_sgtable(struct device *dev, struct sg_table *sgt,
-+				   void *cpu_addr, dma_addr_t handle,
-+				   size_t size, unsigned long attrs)
-+{
-+	struct vm_struct *area = find_vm_area(cpu_addr);
-+	int n_pages;
-+	int ret;
-+
-+	if (!area || (WARN_ON(!area->pages)))
-+		return -ENOMEM;
-+
-+	n_pages = PAGE_ALIGN(size) >> PAGE_SHIFT;
-+
-+	ret = sg_alloc_table_from_pages(sgt, area->pages, n_pages, 0, size,
-+					GFP_KERNEL);
-+	if (ret)
-+		dev_dbg(dev, "failed to get sgt table\n");
-+
-+	return ret;
-+}
-+
-+struct dma_map_ops ipu3_dmamap_ops = {
-+	.alloc = ipu3_dmamap_alloc,
-+	.free = ipu3_dmamap_free,
-+	.mmap = ipu3_dmamap_mmap,
-+	.map_sg = ipu3_dmamap_map_sg,
-+	.unmap_sg = ipu3_dmamap_unmap_sg,
-+	.sync_single_for_cpu = ipu3_dmamap_sync_single_for_cpu,
-+	.sync_single_for_device = ipu3_dmamap_sync_single_for_cpu,
-+	.sync_sg_for_cpu = ipu3_dmamap_sync_sg_for_cpu,
-+	.sync_sg_for_device = ipu3_dmamap_sync_sg_for_cpu,
-+	.get_sgtable = ipu3_dmamap_get_sgtable,
-+};
-+EXPORT_SYMBOL_GPL(ipu3_dmamap_ops);
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-dmamap.h b/drivers/media/pci/intel/ipu3/ipu3-dmamap.h
-new file mode 100644
-index 0000000..714bac0
---- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/ipu3-dmamap.h
-@@ -0,0 +1,20 @@
-+/*
-+ * Copyright (c) 2017 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#ifndef __IPU3_DMAMAP_H
-+#define __IPU3_DMAMAP_H
-+
-+extern struct dma_map_ops ipu3_dmamap_ops;
-+
-+#endif
--- 
-2.7.4
+But I would rephrase this a bit:
+
+	- The inputs and/or outputs of this device are controlled by the Media Controller
+	  (see: <add link to Part IV of the media documentation>).
+
+>       * - ``V4L2_CAP_DEVICE_CAPS``
+>         - 0x80000000
+>         - The driver fills the ``device_caps`` field. This capability can
+> diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
+> index a5cb0a8..0b48cd0 100644
+> --- a/Documentation/media/videodev2.h.rst.exceptions
+> +++ b/Documentation/media/videodev2.h.rst.exceptions
+> @@ -159,6 +159,7 @@ replace define V4L2_CAP_ASYNCIO device-capabilities
+>   replace define V4L2_CAP_STREAMING device-capabilities
+>   replace define V4L2_CAP_DEVICE_CAPS device-capabilities
+>   replace define V4L2_CAP_TOUCH device-capabilities
+> +replace define V4L2_CAP_IO_MC device-capabilities
+>   
+>   # V4L2 pix flags
+>   replace define V4L2_PIX_FMT_PRIV_MAGIC :c:type:`v4l2_pix_format`
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> index c647ba6..0f272fe 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -688,22 +688,34 @@ static void determine_valid_ioctls(struct video_device *vdev)
+>   		SET_VALID_IOCTL(ops, VIDIOC_G_STD, vidioc_g_std);
+>   		if (is_rx) {
+>   			SET_VALID_IOCTL(ops, VIDIOC_QUERYSTD, vidioc_querystd);
+> -			SET_VALID_IOCTL(ops, VIDIOC_ENUMINPUT, vidioc_enum_input);
+> -			SET_VALID_IOCTL(ops, VIDIOC_G_INPUT, vidioc_g_input);
+> -			SET_VALID_IOCTL(ops, VIDIOC_S_INPUT, vidioc_s_input);
+>   			SET_VALID_IOCTL(ops, VIDIOC_ENUMAUDIO, vidioc_enumaudio);
+>   			SET_VALID_IOCTL(ops, VIDIOC_G_AUDIO, vidioc_g_audio);
+>   			SET_VALID_IOCTL(ops, VIDIOC_S_AUDIO, vidioc_s_audio);
+>   			SET_VALID_IOCTL(ops, VIDIOC_QUERY_DV_TIMINGS, vidioc_query_dv_timings);
+>   			SET_VALID_IOCTL(ops, VIDIOC_S_EDID, vidioc_s_edid);
+> +			if (vdev->device_caps & V4L2_CAP_IO_MC) {
+> +				set_bit(_IOC_NR(VIDIOC_ENUMINPUT), valid_ioctls);
+> +				set_bit(_IOC_NR(VIDIOC_G_INPUT), valid_ioctls);
+> +				set_bit(_IOC_NR(VIDIOC_S_INPUT), valid_ioctls);
+> +			} else {
+> +				SET_VALID_IOCTL(ops, VIDIOC_ENUMINPUT, vidioc_enum_input);
+> +				SET_VALID_IOCTL(ops, VIDIOC_G_INPUT, vidioc_g_input);
+> +				SET_VALID_IOCTL(ops, VIDIOC_S_INPUT, vidioc_s_input);
+> +			}
+>   		}
+>   		if (is_tx) {
+> -			SET_VALID_IOCTL(ops, VIDIOC_ENUMOUTPUT, vidioc_enum_output);
+> -			SET_VALID_IOCTL(ops, VIDIOC_G_OUTPUT, vidioc_g_output);
+> -			SET_VALID_IOCTL(ops, VIDIOC_S_OUTPUT, vidioc_s_output);
+>   			SET_VALID_IOCTL(ops, VIDIOC_ENUMAUDOUT, vidioc_enumaudout);
+>   			SET_VALID_IOCTL(ops, VIDIOC_G_AUDOUT, vidioc_g_audout);
+>   			SET_VALID_IOCTL(ops, VIDIOC_S_AUDOUT, vidioc_s_audout);
+> +			if (vdev->device_caps & V4L2_CAP_IO_MC) {
+> +				set_bit(_IOC_NR(VIDIOC_ENUMOUTPUT), valid_ioctls);
+> +				set_bit(_IOC_NR(VIDIOC_G_OUTPUT), valid_ioctls);
+> +				set_bit(_IOC_NR(VIDIOC_S_OUTPUT), valid_ioctls);
+> +			} else {
+> +				SET_VALID_IOCTL(ops, VIDIOC_ENUMOUTPUT, vidioc_enum_output);
+> +				SET_VALID_IOCTL(ops, VIDIOC_G_OUTPUT, vidioc_g_output);
+> +				SET_VALID_IOCTL(ops, VIDIOC_S_OUTPUT, vidioc_s_output);
+> +			}
+>   		}
+>   		if (ops->vidioc_g_parm || (vdev->vfl_type == VFL_TYPE_GRABBER &&
+>   					ops->vidioc_g_std))
+> @@ -945,6 +957,17 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+>   	video_device[vdev->minor] = vdev;
+>   	mutex_unlock(&videodev_lock);
+>   
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	if (vdev->ioctl_ops
+> +	    && !vdev->ioctl_ops->vidioc_enum_input
+> +	    && !vdev->ioctl_ops->vidioc_s_input
+> +	    && !vdev->ioctl_ops->vidioc_g_input
+> +	    && !vdev->ioctl_ops->vidioc_enum_output
+> +	    && !vdev->ioctl_ops->vidioc_s_output
+> +	    && !vdev->ioctl_ops->vidioc_g_output)
+> +		vdev->device_caps |= V4L2_CAP_IO_MC;
+
+No, this part should be dropped.
+
+Let the driver set this capability explicitly. This code for example would set the IO_MC
+bit as well for radio devices, and that's not what you want.
+
+The MC can also be used by regular drivers (there is nothing preventing drivers from
+doing that). So just leave this up to the driver.
+
+> +#endif
+> +
+>   	if (vdev->ioctl_ops)
+>   		determine_valid_ioctls(vdev);
+>   
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index e5a2187..9d8c645 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -1019,6 +1019,70 @@ static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
+>   	return ret;
+>   }
+>   
+> +static int v4l2_ioctl_enum_input_mc(struct file *file, void *priv,
+> +				    struct v4l2_input *i)
+> +{
+> +	struct video_device *vfd = video_devdata(file);
+> +
+> +	if (i->index > 0)
+> +		return -EINVAL;
+> +
+> +	memset(i, 0, sizeof(*i));
+> +	strlcpy(i->name, vfd->name, sizeof(i->name));
+
+	i->type = V4L2_INPUT_TYPE_CAMERA;
+
+> +
+> +	return 0;
+> +}
+> +
+> +static int v4l2_ioctl_enum_output_mc(struct file *file, void *priv,
+> +				     struct v4l2_output *o)
+> +{
+> +	struct video_device *vfd = video_devdata(file);
+> +
+> +	if (o->index > 0)
+> +		return -EINVAL;
+> +
+> +	memset(o, 0, sizeof(*o));
+> +	strlcpy(o->name, vfd->name, sizeof(o->name));
+
+	o->type = V4L2_OUTPUT_TYPE_ANALOG;
+
+> +
+> +	return 0;
+> +}
+> +
+> +static int v4l2_ioctl_g_input_mc(struct file *file, void *priv, unsigned int *i)
+> +{
+> +	*i = 0;
+> +	return 0;
+> +}
+> +#define v4l2_ioctl_g_output_mc v4l2_ioctl_g_input_mc
+> +
+> +static int v4l2_ioctl_s_input_mc(struct file *file, void *priv, unsigned int i)
+> +{
+> +	return i ? -EINVAL : 0;
+> +}
+> +#define v4l2_ioctl_s_output_mc v4l2_ioctl_s_input_mc
+> +
+> +
+> +static int v4l_g_input(const struct v4l2_ioctl_ops *ops,
+> +		       struct file *file, void *fh, void *arg)
+> +{
+> +	struct video_device *vfd = video_devdata(file);
+> +
+> +	if (vfd->device_caps & V4L2_CAP_IO_MC)
+> +		return v4l2_ioctl_g_input_mc(file, fh, arg);
+> +	else
+
+'else' is not needed.
+
+> +		return ops->vidioc_g_input(file, fh, arg);
+> +}
+> +
+> +static int v4l_g_output(const struct v4l2_ioctl_ops *ops,
+> +		       struct file *file, void *fh, void *arg)
+> +{
+> +	struct video_device *vfd = video_devdata(file);
+> +
+> +	if (vfd->device_caps & V4L2_CAP_IO_MC)
+> +		return v4l2_ioctl_g_output_mc(file, fh, arg);
+> +	else
+
+'else' is not needed. Same for the others below.
+
+> +		return ops->vidioc_g_output(file, fh, arg);
+> +}
+> +
+>   static int v4l_s_input(const struct v4l2_ioctl_ops *ops,
+>   				struct file *file, void *fh, void *arg)
+>   {
+> @@ -1028,13 +1092,22 @@ static int v4l_s_input(const struct v4l2_ioctl_ops *ops,
+>   	ret = v4l_enable_media_source(vfd);
+>   	if (ret)
+>   		return ret;
+> -	return ops->vidioc_s_input(file, fh, *(unsigned int *)arg);
+> +
+> +	if (vfd->device_caps & V4L2_CAP_IO_MC)
+> +		return v4l2_ioctl_s_input_mc(file, fh, *(unsigned int *)arg);
+> +	else
+> +		return ops->vidioc_s_input(file, fh, *(unsigned int *)arg);
+>   }
+>   
+>   static int v4l_s_output(const struct v4l2_ioctl_ops *ops,
+>   				struct file *file, void *fh, void *arg)
+>   {
+> -	return ops->vidioc_s_output(file, fh, *(unsigned int *)arg);
+> +	struct video_device *vfd = video_devdata(file);
+> +
+> +	if (vfd->device_caps & V4L2_CAP_IO_MC)
+> +		return v4l2_ioctl_s_output_mc(file, fh, *(unsigned int *)arg);
+> +	else
+> +		return ops->vidioc_s_output(file, fh, *(unsigned int *)arg);
+>   }
+>   
+>   static int v4l_g_priority(const struct v4l2_ioctl_ops *ops,
+> @@ -1077,7 +1150,10 @@ static int v4l_enuminput(const struct v4l2_ioctl_ops *ops,
+>   	if (is_valid_ioctl(vfd, VIDIOC_S_STD))
+>   		p->capabilities |= V4L2_IN_CAP_STD;
+>   
+> -	return ops->vidioc_enum_input(file, fh, p);
+> +	if (vfd->device_caps & V4L2_CAP_IO_MC)
+> +		return v4l2_ioctl_enum_input_mc(file, fh, p);
+> +	else
+> +		return ops->vidioc_enum_input(file, fh, p);
+>   }
+>   
+>   static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
+> @@ -1095,7 +1171,10 @@ static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
+>   	if (is_valid_ioctl(vfd, VIDIOC_S_STD))
+>   		p->capabilities |= V4L2_OUT_CAP_STD;
+>   
+> -	return ops->vidioc_enum_output(file, fh, p);
+> +	if (vfd->device_caps & V4L2_CAP_IO_MC)
+> +		return v4l2_ioctl_enum_output_mc(file, fh, p);
+> +	else
+> +		return ops->vidioc_enum_output(file, fh, p);
+>   }
+>   
+>   static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+> @@ -2534,11 +2613,11 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+>   	IOCTL_INFO_STD(VIDIOC_S_AUDIO, vidioc_s_audio, v4l_print_audio, INFO_FL_PRIO),
+>   	IOCTL_INFO_FNC(VIDIOC_QUERYCTRL, v4l_queryctrl, v4l_print_queryctrl, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_queryctrl, id)),
+>   	IOCTL_INFO_FNC(VIDIOC_QUERYMENU, v4l_querymenu, v4l_print_querymenu, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_querymenu, index)),
+> -	IOCTL_INFO_STD(VIDIOC_G_INPUT, vidioc_g_input, v4l_print_u32, 0),
+> +	IOCTL_INFO_FNC(VIDIOC_G_INPUT, v4l_g_input, v4l_print_u32, 0),
+>   	IOCTL_INFO_FNC(VIDIOC_S_INPUT, v4l_s_input, v4l_print_u32, INFO_FL_PRIO),
+>   	IOCTL_INFO_STD(VIDIOC_G_EDID, vidioc_g_edid, v4l_print_edid, 0),
+>   	IOCTL_INFO_STD(VIDIOC_S_EDID, vidioc_s_edid, v4l_print_edid, INFO_FL_PRIO),
+> -	IOCTL_INFO_STD(VIDIOC_G_OUTPUT, vidioc_g_output, v4l_print_u32, 0),
+> +	IOCTL_INFO_FNC(VIDIOC_G_OUTPUT, v4l_g_output, v4l_print_u32, 0),
+>   	IOCTL_INFO_FNC(VIDIOC_S_OUTPUT, v4l_s_output, v4l_print_u32, INFO_FL_PRIO),
+>   	IOCTL_INFO_FNC(VIDIOC_ENUMOUTPUT, v4l_enumoutput, v4l_print_enumoutput, INFO_FL_CLEAR(v4l2_output, index)),
+>   	IOCTL_INFO_STD(VIDIOC_G_AUDOUT, vidioc_g_audout, v4l_print_audioout, 0),
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 2b8feb8..94cb196 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -460,6 +460,8 @@ struct v4l2_capability {
+>   
+>   #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
+>   
+> +#define V4L2_CAP_IO_MC			0x20000000  /* Is input/output controlled by the media controler */
+
+controler -> controller
+
+> +
+>   #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device capabilities field */
+>   
+>   /*
+> 
+
+Regards,
+
+	Hans
