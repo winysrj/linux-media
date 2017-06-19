@@ -1,1002 +1,2059 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:4599 "EHLO mga05.intel.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:56089 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752376AbdFNWUd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 18:20:33 -0400
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
-        Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH v2 12/12] intel-ipu3: imgu top level pci device
-Date: Wed, 14 Jun 2017 17:19:27 -0500
-Message-Id: <1497478767-10270-13-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1497478767-10270-1-git-send-email-yong.zhi@intel.com>
-References: <1497478767-10270-1-git-send-email-yong.zhi@intel.com>
+        id S1751033AbdFSO4r (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Jun 2017 10:56:47 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v2 07/19] media: camss: Add VFE files
+Date: Mon, 19 Jun 2017 17:48:27 +0300
+Message-Id: <1497883719-12410-8-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
+References: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
----
- drivers/media/pci/intel/ipu3/Kconfig  |  15 +
- drivers/media/pci/intel/ipu3/Makefile |   6 +
- drivers/media/pci/intel/ipu3/ipu3.c   | 740 ++++++++++++++++++++++++++++++++++
- drivers/media/pci/intel/ipu3/ipu3.h   | 183 +++++++++
- 4 files changed, 944 insertions(+)
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3.h
+These files control the VFE module. The VFE has different input interfaces.
+The PIX input interface feeds the input data to an image processing pipeline.
+Three RDI input interfaces bypass the image processing pipeline. The VFE also
+contains the AXI bus interface which writes the output data to memory.
 
-diff --git a/drivers/media/pci/intel/ipu3/Kconfig b/drivers/media/pci/intel/ipu3/Kconfig
-index 2030be7..1ba64e6 100644
---- a/drivers/media/pci/intel/ipu3/Kconfig
-+++ b/drivers/media/pci/intel/ipu3/Kconfig
-@@ -32,3 +32,18 @@ config INTEL_IPU3_DMAMAP
- 	select IOMMU_IOVA
- 	---help---
- 	  This is IPU3 IOMMU domain specific DMA driver.
-+
-+config VIDEO_IPU3_IMGU
-+	tristate "Intel ipu3-imgu driver"
-+	depends on PCI && VIDEO_V4L2 && IOMMU_SUPPORT
-+	depends on MEDIA_CONTROLLER && VIDEO_V4L2_SUBDEV_API
-+	select IOMMU_API
-+	select IOMMU_IOVA
-+	select VIDEOBUF2_DMA_CONTIG
-+	---help---
-+	  This is the video4linux2 driver for Intel IPU3 image processing unit,
-+	  found in Intel Skylake and Kaby Lake SoCs and used for processing
-+	  images and video.
-+
-+	  Say Y or M here if you have a Skylake/Kaby Lake SoC with a MIPI
-+	  camera.	The module will be called ipu3-imgu.
-diff --git a/drivers/media/pci/intel/ipu3/Makefile b/drivers/media/pci/intel/ipu3/Makefile
-index 2c2a035..e740877 100644
---- a/drivers/media/pci/intel/ipu3/Makefile
-+++ b/drivers/media/pci/intel/ipu3/Makefile
-@@ -1,3 +1,9 @@
- obj-$(CONFIG_VIDEO_IPU3_CIO2) += ipu3-cio2.o
- obj-$(CONFIG_INTEL_IPU3_MMU) += ipu3-mmu.o
- obj-$(CONFIG_INTEL_IPU3_DMAMAP) += ipu3-dmamap.o
-+ipu3-imgu-objs += \
-+		ipu3-tables.o ipu3-css-pool.o \
-+		ipu3-css-fw.o ipu3-css-params.o \
-+		ipu3-css.o ipu3-v4l2.o  ipu3.o
-+
-+obj-$(CONFIG_VIDEO_IPU3_IMGU) += ipu3-imgu.o
-diff --git a/drivers/media/pci/intel/ipu3/ipu3.c b/drivers/media/pci/intel/ipu3/ipu3.c
+RDI interfaces are supported in this version. PIX interface is not supported.
+
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+---
+ drivers/media/platform/qcom/camss-8x16/vfe.c | 1898 ++++++++++++++++++++++++++
+ drivers/media/platform/qcom/camss-8x16/vfe.h |  114 ++
+ 2 files changed, 2012 insertions(+)
+ create mode 100644 drivers/media/platform/qcom/camss-8x16/vfe.c
+ create mode 100644 drivers/media/platform/qcom/camss-8x16/vfe.h
+
+diff --git a/drivers/media/platform/qcom/camss-8x16/vfe.c b/drivers/media/platform/qcom/camss-8x16/vfe.c
 new file mode 100644
-index 0000000..1550fa9
+index 0000000..00d4e5c
 --- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/ipu3.c
-@@ -0,0 +1,740 @@
++++ b/drivers/media/platform/qcom/camss-8x16/vfe.c
+@@ -0,0 +1,1898 @@
 +/*
-+ * Copyright (c) 2017 Intel Corporation.
++ * vfe.c
 + *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
++ * Qualcomm MSM Camera Subsystem - VFE Module
++ *
++ * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
++ * Copyright (C) 2015-2016 Linaro Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
 + *
 + * This program is distributed in the hope that it will be useful,
 + * but WITHOUT ANY WARRANTY; without even the implied warranty of
 + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 + * GNU General Public License for more details.
-+ *
-+ * Based on Intel IPU4 driver.
-+ *
 + */
-+
-+#include <linux/delay.h>
++#include <linux/clk.h>
++#include <linux/completion.h>
 +#include <linux/interrupt.h>
-+#include <linux/module.h>
-+#include <linux/pm_runtime.h>
-+#include <media/videobuf2-dma-contig.h>
++#include <linux/iommu.h>
++#include <linux/mutex.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
++#include <linux/spinlock_types.h>
++#include <linux/spinlock.h>
++#include <media/media-entity.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-subdev.h>
 +
-+#include "ipu3.h"
++#include "vfe.h"
++#include "camss.h"
 +
-+#define IMGU_NAME			"ipu3-imgu"
-+#define IMGU_PCI_ID			0x1919
-+#define IMGU_PCI_BAR			0
-+#define IMGU_DMA_MASK			DMA_BIT_MASK(39)
-+#define IMGU_MAX_QUEUE_DEPTH		(2 + 2)
++#define MSM_VFE_NAME "msm_vfe"
 +
-+static struct imgu_node_mapping const imgu_node_map[IMGU_NODE_NUM] = {
-+	[IMGU_NODE_IN] = {IPU3_CSS_QUEUE_IN, "input"},
-+	[IMGU_NODE_PARAMS] = {IPU3_CSS_QUEUE_PARAMS, "parameters"},
-+	[IMGU_NODE_OUT] = {IPU3_CSS_QUEUE_OUT, "output"},
-+	[IMGU_NODE_VF] = {IPU3_CSS_QUEUE_VF, "viewfinder"},
-+	[IMGU_NODE_PV] = {IPU3_CSS_QUEUE_VF, "postview"},
-+	[IMGU_NODE_STAT_3A] = {IPU3_CSS_QUEUE_STAT_3A, "3a stat"},
-+	[IMGU_NODE_STAT_DVS] = {IPU3_CSS_QUEUE_STAT_DVS, "dvs stat"},
-+	[IMGU_NODE_STAT_LACE] = {IPU3_CSS_QUEUE_STAT_LACE, "lace stat"},
++#define vfe_line_array(ptr_line)	\
++	((const struct vfe_line (*)[]) &(ptr_line[-(ptr_line->id)]))
++
++#define to_vfe(ptr_line)	\
++	container_of(vfe_line_array(ptr_line), struct vfe_device, ptr_line)
++
++#define VFE_0_HW_VERSION		0x000
++
++#define VFE_0_GLOBAL_RESET_CMD		0x00c
++#define VFE_0_GLOBAL_RESET_CMD_CORE	(1 << 0)
++#define VFE_0_GLOBAL_RESET_CMD_CAMIF	(1 << 1)
++#define VFE_0_GLOBAL_RESET_CMD_BUS	(1 << 2)
++#define VFE_0_GLOBAL_RESET_CMD_BUS_BDG	(1 << 3)
++#define VFE_0_GLOBAL_RESET_CMD_REGISTER	(1 << 4)
++#define VFE_0_GLOBAL_RESET_CMD_TIMER	(1 << 5)
++#define VFE_0_GLOBAL_RESET_CMD_PM	(1 << 6)
++#define VFE_0_GLOBAL_RESET_CMD_BUS_MISR	(1 << 7)
++#define VFE_0_GLOBAL_RESET_CMD_TESTGEN	(1 << 8)
++
++#define VFE_0_IRQ_CMD			0x024
++#define VFE_0_IRQ_CMD_GLOBAL_CLEAR	(1 << 0)
++
++#define VFE_0_IRQ_MASK_0		0x028
++#define VFE_0_IRQ_MASK_0_RDIn_REG_UPDATE(n)		(1 << ((n) + 5))
++#define VFE_0_IRQ_MASK_0_IMAGE_MASTER_n_PING_PONG(n)	(1 << ((n) + 8))
++#define VFE_0_IRQ_MASK_0_RESET_ACK			(1 << 31)
++#define VFE_0_IRQ_MASK_1		0x02c
++#define VFE_0_IRQ_MASK_1_VIOLATION			(1 << 7)
++#define VFE_0_IRQ_MASK_1_BUS_BDG_HALT_ACK		(1 << 8)
++#define VFE_0_IRQ_MASK_1_IMAGE_MASTER_n_BUS_OVERFLOW(n)	(1 << ((n) + 9))
++
++#define VFE_0_IRQ_CLEAR_0		0x030
++#define VFE_0_IRQ_CLEAR_1		0x034
++
++#define VFE_0_IRQ_STATUS_0		0x038
++#define VFE_0_IRQ_STATUS_0_RDIn_REG_UPDATE(n)		(1 << ((n) + 5))
++#define VFE_0_IRQ_STATUS_0_IMAGE_MASTER_n_PING_PONG(n)	(1 << ((n) + 8))
++#define VFE_0_IRQ_STATUS_0_RESET_ACK			(1 << 31)
++#define VFE_0_IRQ_STATUS_1		0x03c
++#define VFE_0_IRQ_STATUS_1_VIOLATION			(1 << 7)
++#define VFE_0_IRQ_STATUS_1_BUS_BDG_HALT_ACK		(1 << 8)
++
++#define VFE_0_VIOLATION_STATUS		0x48
++
++#define VFE_0_BUS_CMD			0x4c
++#define VFE_0_BUS_CMD_Mx_RLD_CMD(x)	(1 << (x))
++
++#define VFE_0_BUS_CFG			0x050
++
++#define VFE_0_BUS_XBAR_CFG_x(x)		(0x58 + 0x4 * ((x) / 2))
++#define VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_SHIFT		8
++#define VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_VAL_RDI0	5
++#define VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_VAL_RDI1	6
++#define VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_VAL_RDI2	7
++
++#define VFE_0_BUS_IMAGE_MASTER_n_WR_CFG(n)		(0x06c + 0x24 * (n))
++#define VFE_0_BUS_IMAGE_MASTER_n_WR_CFG_WR_PATH_SHIFT	0
++#define VFE_0_BUS_IMAGE_MASTER_n_WR_CFG_FRM_BASED_SHIFT	1
++#define VFE_0_BUS_IMAGE_MASTER_n_WR_PING_ADDR(n)	(0x070 + 0x24 * (n))
++#define VFE_0_BUS_IMAGE_MASTER_n_WR_PONG_ADDR(n)	(0x074 + 0x24 * (n))
++#define VFE_0_BUS_IMAGE_MASTER_n_WR_ADDR_CFG(n)		(0x078 + 0x24 * (n))
++#define VFE_0_BUS_IMAGE_MASTER_n_WR_ADDR_CFG_FRM_DROP_PER_SHIFT	2
++#define VFE_0_BUS_IMAGE_MASTER_n_WR_ADDR_CFG_FRM_DROP_PER_MASK	(0x1F << 2)
++
++#define VFE_0_BUS_IMAGE_MASTER_n_WR_UB_CFG(n)		(0x07c + 0x24 * (n))
++#define VFE_0_BUS_IMAGE_MASTER_n_WR_UB_CFG_OFFSET_SHIFT	16
++#define VFE_0_BUS_IMAGE_MASTER_n_WR_FRAMEDROP_PATTERN(n)	\
++							(0x088 + 0x24 * (n))
++#define VFE_0_BUS_IMAGE_MASTER_n_WR_IRQ_SUBSAMPLE_PATTERN(n)	\
++							(0x08c + 0x24 * (n))
++#define VFE_0_BUS_IMAGE_MASTER_n_WR_IRQ_SUBSAMPLE_PATTERN_DEF	0xffffffff
++
++#define VFE_0_BUS_PING_PONG_STATUS	0x268
++
++#define VFE_0_BUS_BDG_CMD		0x2c0
++#define VFE_0_BUS_BDG_CMD_HALT_REQ	1
++
++#define VFE_0_BUS_BDG_QOS_CFG_0		0x2c4
++#define VFE_0_BUS_BDG_QOS_CFG_1		0x2c8
++#define VFE_0_BUS_BDG_QOS_CFG_2		0x2cc
++#define VFE_0_BUS_BDG_QOS_CFG_3		0x2d0
++#define VFE_0_BUS_BDG_QOS_CFG_4		0x2d4
++#define VFE_0_BUS_BDG_QOS_CFG_5		0x2d8
++#define VFE_0_BUS_BDG_QOS_CFG_6		0x2dc
++#define VFE_0_BUS_BDG_QOS_CFG_7		0x2e0
++
++#define VFE_0_RDI_CFG_x(x)		(0x2e8 + (0x4 * (x)))
++#define VFE_0_RDI_CFG_x_RDI_STREAM_SEL_SHIFT	28
++#define VFE_0_RDI_CFG_x_RDI_STREAM_SEL_MASK	(0xf << 28)
++#define VFE_0_RDI_CFG_x_RDI_M0_SEL_SHIFT	4
++#define VFE_0_RDI_CFG_x_RDI_M0_SEL_MASK		(0xf << 4)
++#define VFE_0_RDI_CFG_x_RDI_EN_BIT		(1 << 2)
++#define VFE_0_RDI_CFG_x_MIPI_EN_BITS		0x3
++#define VFE_0_RDI_CFG_x_RDI_Mr_FRAME_BASED_EN(r)	(1 << (16 + (r)))
++
++#define VFE_0_REG_UPDATE			0x378
++#define VFE_0_REG_UPDATE_RDIn(n)		(1 << (1 + (n)))
++
++#define VFE_0_CGC_OVERRIDE_1			0x974
++#define VFE_0_CGC_OVERRIDE_1_IMAGE_Mx_CGC_OVERRIDE(x)	(1 << (x))
++
++/* VFE reset timeout */
++#define VFE_RESET_TIMEOUT_MS 50
++/* VFE halt timeout */
++#define VFE_HALT_TIMEOUT_MS 100
++/* Max number of frame drop updates per frame */
++#define VFE_FRAME_DROP_UPDATES 5
++/* Frame drop value. NOTE: VAL + UPDATES should not exceed 31 */
++#define VFE_FRAME_DROP_VAL 20
++
++static const u32 vfe_formats[] = {
++	MEDIA_BUS_FMT_UYVY8_2X8,
++	MEDIA_BUS_FMT_VYUY8_2X8,
++	MEDIA_BUS_FMT_YUYV8_2X8,
++	MEDIA_BUS_FMT_YVYU8_2X8,
++	MEDIA_BUS_FMT_SBGGR8_1X8,
++	MEDIA_BUS_FMT_SGBRG8_1X8,
++	MEDIA_BUS_FMT_SGRBG8_1X8,
++	MEDIA_BUS_FMT_SRGGB8_1X8,
++	MEDIA_BUS_FMT_SBGGR10_1X10,
++	MEDIA_BUS_FMT_SGBRG10_1X10,
++	MEDIA_BUS_FMT_SGRBG10_1X10,
++	MEDIA_BUS_FMT_SRGGB10_1X10,
++	MEDIA_BUS_FMT_SBGGR12_1X12,
++	MEDIA_BUS_FMT_SGBRG12_1X12,
++	MEDIA_BUS_FMT_SGRBG12_1X12,
++	MEDIA_BUS_FMT_SRGGB12_1X12,
 +};
 +
-+int imgu_node_to_queue(int node)
++static inline void vfe_reg_clr(struct vfe_device *vfe, u32 reg, u32 clr_bits)
 +{
-+	return imgu_node_map[node].css_queue;
++	u32 bits = readl_relaxed(vfe->base + reg);
++
++	writel_relaxed(bits & ~clr_bits, vfe->base + reg);
 +}
 +
-+int imgu_map_node(struct imgu_device *imgu, int css_queue)
++static inline void vfe_reg_set(struct vfe_device *vfe, u32 reg, u32 set_bits)
 +{
-+	unsigned int i;
++	u32 bits = readl_relaxed(vfe->base + reg);
 +
-+	if (css_queue == IPU3_CSS_QUEUE_VF)
-+		return imgu->mem2mem2.nodes[IMGU_NODE_VF].enabled ?
-+			IMGU_NODE_VF : IMGU_NODE_PV;
++	writel_relaxed(bits | set_bits, vfe->base + reg);
++}
 +
-+	for (i = 0; i < IMGU_NODE_NUM; i++)
-+		if (imgu_node_map[i].css_queue == css_queue)
-+			return i;
++static void vfe_global_reset(struct vfe_device *vfe)
++{
++	u32 reset_bits = VFE_0_GLOBAL_RESET_CMD_TESTGEN		|
++			 VFE_0_GLOBAL_RESET_CMD_BUS_MISR	|
++			 VFE_0_GLOBAL_RESET_CMD_PM		|
++			 VFE_0_GLOBAL_RESET_CMD_TIMER		|
++			 VFE_0_GLOBAL_RESET_CMD_REGISTER	|
++			 VFE_0_GLOBAL_RESET_CMD_BUS_BDG		|
++			 VFE_0_GLOBAL_RESET_CMD_BUS		|
++			 VFE_0_GLOBAL_RESET_CMD_CAMIF		|
++			 VFE_0_GLOBAL_RESET_CMD_CORE;
++
++	writel_relaxed(reset_bits, vfe->base + VFE_0_GLOBAL_RESET_CMD);
++}
++
++static void vfe_wm_enable(struct vfe_device *vfe, u8 wm, u8 enable)
++{
++	if (enable)
++		vfe_reg_set(vfe, VFE_0_BUS_IMAGE_MASTER_n_WR_CFG(wm),
++			    1 << VFE_0_BUS_IMAGE_MASTER_n_WR_CFG_WR_PATH_SHIFT);
++	else
++		vfe_reg_clr(vfe, VFE_0_BUS_IMAGE_MASTER_n_WR_CFG(wm),
++			    1 << VFE_0_BUS_IMAGE_MASTER_n_WR_CFG_WR_PATH_SHIFT);
++}
++
++static void vfe_wm_frame_based(struct vfe_device *vfe, u8 wm, u8 enable)
++{
++	if (enable)
++		vfe_reg_set(vfe, VFE_0_BUS_IMAGE_MASTER_n_WR_CFG(wm),
++			1 << VFE_0_BUS_IMAGE_MASTER_n_WR_CFG_FRM_BASED_SHIFT);
++	else
++		vfe_reg_clr(vfe, VFE_0_BUS_IMAGE_MASTER_n_WR_CFG(wm),
++			1 << VFE_0_BUS_IMAGE_MASTER_n_WR_CFG_FRM_BASED_SHIFT);
++}
++
++static void vfe_wm_set_framedrop_period(struct vfe_device *vfe, u8 wm, u8 per)
++{
++	u32 reg;
++
++	reg = readl_relaxed(vfe->base +
++			    VFE_0_BUS_IMAGE_MASTER_n_WR_ADDR_CFG(wm));
++
++	reg &= ~(VFE_0_BUS_IMAGE_MASTER_n_WR_ADDR_CFG_FRM_DROP_PER_MASK);
++
++	reg |= (per << VFE_0_BUS_IMAGE_MASTER_n_WR_ADDR_CFG_FRM_DROP_PER_SHIFT)
++		& VFE_0_BUS_IMAGE_MASTER_n_WR_ADDR_CFG_FRM_DROP_PER_MASK;
++
++	writel_relaxed(reg,
++		       vfe->base + VFE_0_BUS_IMAGE_MASTER_n_WR_ADDR_CFG(wm));
++}
++
++static void vfe_wm_set_framedrop_pattern(struct vfe_device *vfe, u8 wm,
++					 u32 pattern)
++{
++	writel_relaxed(pattern,
++	       vfe->base + VFE_0_BUS_IMAGE_MASTER_n_WR_FRAMEDROP_PATTERN(wm));
++}
++
++static void vfe_wm_set_ub_cfg(struct vfe_device *vfe, u8 wm, u16 offset,
++			      u16 depth)
++{
++	u32 reg;
++
++	reg = (offset << VFE_0_BUS_IMAGE_MASTER_n_WR_UB_CFG_OFFSET_SHIFT) |
++		depth;
++	writel_relaxed(reg, vfe->base + VFE_0_BUS_IMAGE_MASTER_n_WR_UB_CFG(wm));
++}
++
++static void vfe_bus_reload_wm(struct vfe_device *vfe, u8 wm)
++{
++	wmb();
++	writel_relaxed(VFE_0_BUS_CMD_Mx_RLD_CMD(wm), vfe->base + VFE_0_BUS_CMD);
++	wmb();
++}
++
++static void vfe_wm_set_ping_addr(struct vfe_device *vfe, u8 wm, u32 addr)
++{
++	writel_relaxed(addr,
++		       vfe->base + VFE_0_BUS_IMAGE_MASTER_n_WR_PING_ADDR(wm));
++}
++
++static void vfe_wm_set_pong_addr(struct vfe_device *vfe, u8 wm, u32 addr)
++{
++	writel_relaxed(addr,
++		       vfe->base + VFE_0_BUS_IMAGE_MASTER_n_WR_PONG_ADDR(wm));
++}
++
++static int vfe_wm_get_ping_pong_status(struct vfe_device *vfe, u8 wm)
++{
++	u32 reg;
++
++	reg = readl_relaxed(vfe->base + VFE_0_BUS_PING_PONG_STATUS);
++
++	return (reg >> wm) & 0x1;
++}
++
++static void vfe_bus_enable_wr_if(struct vfe_device *vfe, u8 enable)
++{
++	if (enable)
++		writel_relaxed(0x10000009, vfe->base + VFE_0_BUS_CFG);
++	else
++		writel_relaxed(0, vfe->base + VFE_0_BUS_CFG);
++}
++
++static void vfe_bus_connect_wm_to_rdi(struct vfe_device *vfe, u8 wm,
++				      enum vfe_line_id id)
++{
++	u32 reg;
++
++	reg = VFE_0_RDI_CFG_x_MIPI_EN_BITS;
++	reg |= VFE_0_RDI_CFG_x_RDI_Mr_FRAME_BASED_EN(id);
++	vfe_reg_set(vfe, VFE_0_RDI_CFG_x(0), reg);
++
++	reg = VFE_0_RDI_CFG_x_RDI_EN_BIT;
++	reg |= ((3 * id) << VFE_0_RDI_CFG_x_RDI_STREAM_SEL_SHIFT) &
++		VFE_0_RDI_CFG_x_RDI_STREAM_SEL_MASK;
++	vfe_reg_set(vfe, VFE_0_RDI_CFG_x(id), reg);
++
++	switch (id) {
++	case VFE_LINE_RDI0:
++	default:
++		reg = VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_VAL_RDI0 <<
++		      VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_SHIFT;
++		break;
++	case VFE_LINE_RDI1:
++		reg = VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_VAL_RDI1 <<
++		      VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_SHIFT;
++		break;
++	case VFE_LINE_RDI2:
++		reg = VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_VAL_RDI2 <<
++		      VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_SHIFT;
++		break;
++	}
++
++	if (wm % 2 == 1)
++		reg <<= 16;
++
++	vfe_reg_set(vfe, VFE_0_BUS_XBAR_CFG_x(wm), reg);
++
++	writel_relaxed(VFE_0_BUS_IMAGE_MASTER_n_WR_IRQ_SUBSAMPLE_PATTERN_DEF,
++	       vfe->base +
++	       VFE_0_BUS_IMAGE_MASTER_n_WR_IRQ_SUBSAMPLE_PATTERN(wm));
++}
++
++static void vfe_bus_disconnect_wm_from_rdi(struct vfe_device *vfe, u8 wm,
++					   enum vfe_line_id id)
++{
++	u32 reg;
++
++	reg = VFE_0_RDI_CFG_x_RDI_Mr_FRAME_BASED_EN(id);
++	vfe_reg_clr(vfe, VFE_0_RDI_CFG_x(0), reg);
++
++	reg = VFE_0_RDI_CFG_x_RDI_EN_BIT;
++	vfe_reg_clr(vfe, VFE_0_RDI_CFG_x(id), reg);
++
++	switch (id) {
++	case VFE_LINE_RDI0:
++	default:
++		reg = VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_VAL_RDI0 <<
++		      VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_SHIFT;
++		break;
++	case VFE_LINE_RDI1:
++		reg = VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_VAL_RDI1 <<
++		      VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_SHIFT;
++		break;
++	case VFE_LINE_RDI2:
++		reg = VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_VAL_RDI2 <<
++		      VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_SHIFT;
++		break;
++	}
++
++	if (wm % 2 == 1)
++		reg <<= 16;
++
++	vfe_reg_clr(vfe, VFE_0_BUS_XBAR_CFG_x(wm), reg);
++}
++
++static void vfe_set_rdi_cid(struct vfe_device *vfe, enum vfe_line_id id, u8 cid)
++{
++	vfe_reg_clr(vfe, VFE_0_RDI_CFG_x(id),
++		    VFE_0_RDI_CFG_x_RDI_M0_SEL_MASK);
++
++	vfe_reg_set(vfe, VFE_0_RDI_CFG_x(id),
++		    cid << VFE_0_RDI_CFG_x_RDI_M0_SEL_SHIFT);
++}
++
++static void vfe_reg_update(struct vfe_device *vfe, enum vfe_line_id line_id)
++{
++	vfe->reg_update |= VFE_0_REG_UPDATE_RDIn(line_id);
++	wmb();
++	writel_relaxed(vfe->reg_update, vfe->base + VFE_0_REG_UPDATE);
++	wmb();
++}
++
++static void vfe_enable_irq_wm_line(struct vfe_device *vfe, u8 wm,
++				   enum vfe_line_id line_id, u8 enable)
++{
++	u32 irq_en0 = VFE_0_IRQ_MASK_0_IMAGE_MASTER_n_PING_PONG(wm) |
++		      VFE_0_IRQ_MASK_0_RDIn_REG_UPDATE(line_id);
++	u32 irq_en1 = VFE_0_IRQ_MASK_1_IMAGE_MASTER_n_BUS_OVERFLOW(wm);
++
++	if (enable) {
++		vfe_reg_set(vfe, VFE_0_IRQ_MASK_0, irq_en0);
++		vfe_reg_set(vfe, VFE_0_IRQ_MASK_1, irq_en1);
++	} else {
++		vfe_reg_clr(vfe, VFE_0_IRQ_MASK_0, irq_en0);
++		vfe_reg_clr(vfe, VFE_0_IRQ_MASK_1, irq_en1);
++	}
++}
++
++static void vfe_enable_irq_common(struct vfe_device *vfe)
++{
++	u32 irq_en0 = VFE_0_IRQ_MASK_0_RESET_ACK;
++	u32 irq_en1 = VFE_0_IRQ_MASK_1_VIOLATION |
++		      VFE_0_IRQ_MASK_1_BUS_BDG_HALT_ACK;
++
++	vfe_reg_set(vfe, VFE_0_IRQ_MASK_0, irq_en0);
++	vfe_reg_set(vfe, VFE_0_IRQ_MASK_1, irq_en1);
++}
++
++/*
++ * vfe_reset - Trigger reset on VFE module and wait to complete
++ * @vfe: VFE device
++ *
++ * Return 0 on success or a negative error code otherwise
++ */
++static int vfe_reset(struct vfe_device *vfe)
++{
++	unsigned long time;
++
++	reinit_completion(&vfe->reset_complete);
++
++	vfe_global_reset(vfe);
++
++	time = wait_for_completion_timeout(&vfe->reset_complete,
++		msecs_to_jiffies(VFE_RESET_TIMEOUT_MS));
++	if (!time) {
++		dev_err(to_device(vfe), "VFE reset timeout\n");
++		return -EIO;
++	}
++
++	return 0;
++}
++
++/*
++ * vfe_halt - Trigger halt on VFE module and wait to complete
++ * @vfe: VFE device
++ *
++ * Return 0 on success or a negative error code otherwise
++ */
++static int vfe_halt(struct vfe_device *vfe)
++{
++	unsigned long time;
++
++	reinit_completion(&vfe->halt_complete);
++
++	writel_relaxed(VFE_0_BUS_BDG_CMD_HALT_REQ,
++		       vfe->base + VFE_0_BUS_BDG_CMD);
++
++	time = wait_for_completion_timeout(&vfe->halt_complete,
++		msecs_to_jiffies(VFE_HALT_TIMEOUT_MS));
++	if (!time) {
++		dev_err(to_device(vfe), "VFE halt timeout\n");
++		return -EIO;
++	}
++
++	return 0;
++}
++
++static void vfe_init_outputs(struct vfe_device *vfe)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(vfe->line); i++) {
++		struct vfe_output *output = &vfe->line[i].output;
++
++		output->state = VFE_OUTPUT_OFF;
++		output->buf[0] = NULL;
++		output->buf[1] = NULL;
++		INIT_LIST_HEAD(&output->pending_bufs);
++	}
++}
++
++static void vfe_reset_output_maps(struct vfe_device *vfe)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(vfe->wm_output_map); i++)
++		vfe->wm_output_map[i] = VFE_LINE_NONE;
++}
++
++static void vfe_set_qos(struct vfe_device *vfe)
++{
++	u32 val = 0xaaa5aaa5;
++	u32 val7 = 0x0001aaa5;
++
++	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_0);
++	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_1);
++	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_2);
++	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_3);
++	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_4);
++	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_5);
++	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_6);
++	writel_relaxed(val7, vfe->base + VFE_0_BUS_BDG_QOS_CFG_7);
++}
++
++static void vfe_set_cgc_override(struct vfe_device *vfe, u8 wm, u8 enable)
++{
++	u32 val = VFE_0_CGC_OVERRIDE_1_IMAGE_Mx_CGC_OVERRIDE(wm);
++
++	if (enable)
++		vfe_reg_set(vfe, VFE_0_CGC_OVERRIDE_1, val);
++	else
++		vfe_reg_clr(vfe, VFE_0_CGC_OVERRIDE_1, val);
++
++	wmb();
++}
++
++static void vfe_output_init_addrs(struct vfe_device *vfe,
++				  struct vfe_output *output, u8 sync)
++{
++	u32 ping_addr = 0;
++	u32 pong_addr = 0;
++
++	output->active_buf = 0;
++
++	if (output->buf[0])
++		ping_addr = output->buf[0]->addr;
++
++	if (output->buf[1])
++		pong_addr = output->buf[1]->addr;
++	else
++		pong_addr = ping_addr;
++
++	vfe_wm_set_ping_addr(vfe, output->wm_idx, ping_addr);
++	vfe_wm_set_pong_addr(vfe, output->wm_idx, pong_addr);
++	if (sync)
++		vfe_bus_reload_wm(vfe, output->wm_idx);
++}
++
++static void vfe_output_update_ping_addr(struct vfe_device *vfe,
++					struct vfe_output *output, u8 sync)
++{
++	u32 addr = 0;
++
++	if (output->buf[0])
++		addr = output->buf[0]->addr;
++
++	vfe_wm_set_ping_addr(vfe, output->wm_idx, addr);
++	if (sync)
++		vfe_bus_reload_wm(vfe, output->wm_idx);
++}
++
++static void vfe_output_update_pong_addr(struct vfe_device *vfe,
++					struct vfe_output *output, u8 sync)
++{
++	u32 addr = 0;
++
++	if (output->buf[1])
++		addr = output->buf[1]->addr;
++
++	vfe_wm_set_pong_addr(vfe, output->wm_idx, addr);
++	if (sync)
++		vfe_bus_reload_wm(vfe, output->wm_idx);
++
++}
++
++static int vfe_reserve_wm(struct vfe_device *vfe, enum vfe_line_id line_id)
++{
++	int ret = -EBUSY;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(vfe->wm_output_map); i++) {
++		if (vfe->wm_output_map[i] == VFE_LINE_NONE) {
++			vfe->wm_output_map[i] = line_id;
++			ret = i;
++			break;
++		}
++	}
++
++	return ret;
++}
++
++static int vfe_release_wm(struct vfe_device *vfe, u8 wm)
++{
++	if (wm > ARRAY_SIZE(vfe->wm_output_map))
++		return -EINVAL;
++
++	vfe->wm_output_map[wm] = VFE_LINE_NONE;
++
++	return 0;
++}
++
++static void vfe_output_frame_drop(struct vfe_device *vfe,
++				  struct vfe_output *output,
++				  u32 drop_pattern)
++{
++	u8 drop_period;
++
++	/* We need to toggle update period to be valid on next frame */
++	output->drop_update_idx++;
++	output->drop_update_idx %= VFE_FRAME_DROP_UPDATES;
++	drop_period = VFE_FRAME_DROP_VAL + output->drop_update_idx;
++
++	vfe_wm_set_framedrop_period(vfe, output->wm_idx, drop_period);
++	vfe_wm_set_framedrop_pattern(vfe, output->wm_idx, drop_pattern);
++	vfe_reg_update(vfe, container_of(output, struct vfe_line, output)->id);
++
++}
++
++static struct camss_buffer *vfe_buf_get_pending(struct vfe_output *output)
++{
++	struct camss_buffer *buffer = NULL;
++
++	if (!list_empty(&output->pending_bufs)) {
++		buffer = list_first_entry(&output->pending_bufs,
++					  struct camss_buffer,
++					  queue);
++		list_del(&buffer->queue);
++	}
++
++	return buffer;
++}
++
++/*
++ * vfe_buf_add_pending - Add output buffer to list of pending
++ * @output: VFE output
++ * @buffer: Video buffer
++ */
++static void vfe_buf_add_pending(struct vfe_output *output,
++				struct camss_buffer *buffer)
++{
++	INIT_LIST_HEAD(&buffer->queue);
++	list_add_tail(&buffer->queue, &output->pending_bufs);
++}
++
++/*
++ * vfe_buf_flush_pending - Flush all pending buffers.
++ * @output: VFE output
++ * @state: vb2 buffer state
++ */
++static void vfe_buf_flush_pending(struct vfe_output *output,
++				  enum vb2_buffer_state state)
++{
++	struct camss_buffer *buf;
++	struct camss_buffer *t;
++
++	list_for_each_entry_safe(buf, t, &output->pending_bufs, queue) {
++		vb2_buffer_done(&buf->vb.vb2_buf, state);
++		list_del(&buf->queue);
++	}
++}
++
++static void vfe_buf_update_wm_on_next(struct vfe_device *vfe,
++				      struct vfe_output *output)
++{
++	switch (output->state) {
++	case VFE_OUTPUT_CONTINUOUS:
++		vfe_output_frame_drop(vfe, output, 3);
++		break;
++	case VFE_OUTPUT_SINGLE:
++	default:
++		dev_err_ratelimited(to_device(vfe),
++				    "Next buf in wrong state! %d\n",
++				    output->state);
++		break;
++	}
++}
++
++static void vfe_buf_update_wm_on_last(struct vfe_device *vfe,
++				      struct vfe_output *output)
++{
++	switch (output->state) {
++	case VFE_OUTPUT_CONTINUOUS:
++		output->state = VFE_OUTPUT_SINGLE;
++		vfe_output_frame_drop(vfe, output, 1);
++		break;
++	case VFE_OUTPUT_SINGLE:
++		output->state = VFE_OUTPUT_STOPPING;
++		vfe_output_frame_drop(vfe, output, 0);
++		break;
++	default:
++		dev_err_ratelimited(to_device(vfe),
++				    "Last buff in wrong state! %d\n",
++				    output->state);
++		break;
++	}
++}
++
++static void vfe_buf_update_wm_on_new(struct vfe_device *vfe,
++				     struct vfe_output *output,
++				     struct camss_buffer *new_buf)
++{
++	int inactive_idx;
++
++	switch (output->state) {
++	case VFE_OUTPUT_SINGLE:
++		inactive_idx = !output->active_buf;
++
++		if (!output->buf[inactive_idx]) {
++			output->buf[inactive_idx] = new_buf;
++
++			if (inactive_idx)
++				vfe_output_update_pong_addr(vfe, output, 0);
++			else
++				vfe_output_update_ping_addr(vfe, output, 0);
++
++			vfe_output_frame_drop(vfe, output, 3);
++			output->state = VFE_OUTPUT_CONTINUOUS;
++		} else {
++			vfe_buf_add_pending(output, new_buf);
++			dev_err_ratelimited(to_device(vfe),
++					    "Inactive buffer is busy\n");
++		}
++		break;
++
++	case VFE_OUTPUT_IDLE:
++		if (!output->buf[0]) {
++			output->buf[0] = new_buf;
++
++			vfe_output_init_addrs(vfe, output, 1);
++
++			vfe_output_frame_drop(vfe, output, 1);
++			output->state = VFE_OUTPUT_SINGLE;
++		} else {
++			vfe_buf_add_pending(output, new_buf);
++			dev_err_ratelimited(to_device(vfe),
++					    "Output idle with buffer set!\n");
++		}
++		break;
++
++	case VFE_OUTPUT_CONTINUOUS:
++	default:
++		vfe_buf_add_pending(output, new_buf);
++		break;
++	}
++}
++
++static int vfe_get_output(struct vfe_line *line)
++{
++	struct vfe_device *vfe = to_vfe(line);
++	struct vfe_output *output;
++	unsigned long flags;
++	int wm_idx;
++
++	spin_lock_irqsave(&vfe->output_lock, flags);
++
++	output = &line->output;
++	if (output->state != VFE_OUTPUT_OFF) {
++		dev_err(to_device(vfe), "Output is running\n");
++		goto error;
++	}
++	output->state = VFE_OUTPUT_RESERVED;
++
++	output->active_buf = 0;
++
++	/* We will use only one wm per output for now */
++	wm_idx = vfe_reserve_wm(vfe, line->id);
++	if (wm_idx < 0) {
++		dev_err(to_device(vfe), "Can not reserve wm\n");
++		goto error_get_wm;
++	}
++	output->drop_update_idx = 0;
++	output->wm_idx = wm_idx;
++
++	spin_unlock_irqrestore(&vfe->output_lock, flags);
++
++	return 0;
++
++error_get_wm:
++	output->state = VFE_OUTPUT_OFF;
++error:
++	spin_unlock_irqrestore(&vfe->output_lock, flags);
 +
 +	return -EINVAL;
 +}
-+/**************** Dummy buffers ****************/
 +
-+void imgu_dummybufs_cleanup(struct imgu_device *imgu)
++static int vfe_put_output(struct vfe_line *line)
++{
++	struct vfe_device *vfe = to_vfe(line);
++	struct vfe_output *output = &line->output;
++	unsigned long flags;
++	int ret;
++
++	spin_lock_irqsave(&vfe->output_lock, flags);
++
++	ret = vfe_release_wm(vfe, output->wm_idx);
++	if (ret < 0)
++		goto out;
++
++	output->state = VFE_OUTPUT_OFF;
++
++out:
++	spin_unlock_irqrestore(&vfe->output_lock, flags);
++	return ret;
++}
++
++static int vfe_enable_output(struct vfe_line *line)
++{
++	struct vfe_device *vfe = to_vfe(line);
++	struct vfe_output *output = &line->output;
++	unsigned long flags;
++	u16 ub_size;
++
++	switch (vfe->id) {
++	case 0:
++		ub_size = MSM_VFE_VFE0_UB_SIZE_RDI;
++		break;
++	case 1:
++		ub_size = MSM_VFE_VFE1_UB_SIZE_RDI;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	spin_lock_irqsave(&vfe->output_lock, flags);
++
++	vfe->reg_update &= ~VFE_0_REG_UPDATE_RDIn(line->id);
++
++	if (output->state != VFE_OUTPUT_RESERVED) {
++		dev_err(to_device(vfe), "Output is not in reserved state %d\n",
++			output->state);
++		spin_unlock_irqrestore(&vfe->output_lock, flags);
++		return -EINVAL;
++	}
++	output->state = VFE_OUTPUT_IDLE;
++
++	output->buf[0] = vfe_buf_get_pending(output);
++	output->buf[1] = vfe_buf_get_pending(output);
++
++	if (!output->buf[0] && output->buf[1]) {
++		output->buf[0] = output->buf[1];
++		output->buf[1] = NULL;
++	}
++
++	if (output->buf[0])
++		output->state = VFE_OUTPUT_SINGLE;
++
++	if (output->buf[1])
++		output->state = VFE_OUTPUT_CONTINUOUS;
++
++	switch (output->state) {
++	case VFE_OUTPUT_SINGLE:
++		vfe_output_frame_drop(vfe, output, 1);
++		break;
++	case VFE_OUTPUT_CONTINUOUS:
++		vfe_output_frame_drop(vfe, output, 3);
++		break;
++	default:
++		vfe_output_frame_drop(vfe, output, 0);
++		break;
++	}
++
++	output->sequence = 0;
++
++	vfe_output_init_addrs(vfe, output, 0);
++
++	vfe_set_cgc_override(vfe, output->wm_idx, 1);
++
++	vfe_enable_irq_wm_line(vfe, output->wm_idx, line->id, 1);
++
++	vfe_bus_connect_wm_to_rdi(vfe, output->wm_idx, line->id);
++
++	vfe_set_rdi_cid(vfe, line->id, 0);
++
++	vfe_wm_set_ub_cfg(vfe, output->wm_idx,
++			  (ub_size + 1) * output->wm_idx, ub_size);
++
++	vfe_wm_frame_based(vfe, output->wm_idx, 1);
++	vfe_wm_enable(vfe, output->wm_idx, 1);
++
++	vfe_bus_reload_wm(vfe, output->wm_idx);
++
++	vfe_reg_update(vfe, line->id);
++
++	spin_unlock_irqrestore(&vfe->output_lock, flags);
++
++	return 0;
++}
++
++static int vfe_disable_output(struct vfe_line *line)
++{
++	struct vfe_device *vfe = to_vfe(line);
++	struct vfe_output *output = &line->output;
++	unsigned long flags;
++
++	spin_lock_irqsave(&vfe->output_lock, flags);
++
++	vfe_wm_enable(vfe, output->wm_idx, 0);
++	vfe_bus_disconnect_wm_from_rdi(vfe, output->wm_idx, line->id);
++	vfe_reg_update(vfe, line->id);
++
++	spin_unlock_irqrestore(&vfe->output_lock, flags);
++
++	return 0;
++}
++
++/*
++ * vfe_enable - Enable streaming on VFE line
++ * @line: VFE line
++ *
++ * Return 0 on success or a negative error code otherwise
++ */
++static int vfe_enable(struct vfe_line *line)
++{
++	struct vfe_device *vfe = to_vfe(line);
++	int ret;
++
++	mutex_lock(&vfe->stream_lock);
++
++	if (!vfe->stream_count) {
++		vfe_enable_irq_common(vfe);
++
++		vfe_bus_enable_wr_if(vfe, 1);
++
++		vfe_set_qos(vfe);
++	}
++
++	vfe->stream_count++;
++
++	mutex_unlock(&vfe->stream_lock);
++
++	ret = vfe_get_output(line);
++	if (ret < 0)
++		goto error_get_output;
++
++	ret = vfe_enable_output(line);
++	if (ret < 0)
++		goto error_enable_output;
++
++	vfe->was_streaming = 1;
++
++	return 0;
++
++
++error_enable_output:
++	vfe_put_output(line);
++
++error_get_output:
++	mutex_lock(&vfe->stream_lock);
++
++	if (vfe->stream_count == 1)
++		vfe_bus_enable_wr_if(vfe, 0);
++
++	vfe->stream_count--;
++
++	mutex_unlock(&vfe->stream_lock);
++
++	return ret;
++}
++
++/*
++ * vfe_disable - Disable streaming on VFE line
++ * @line: VFE line
++ *
++ * Return 0 on success or a negative error code otherwise
++ */
++static int vfe_disable(struct vfe_line *line)
++{
++	struct vfe_device *vfe = to_vfe(line);
++
++	mutex_lock(&vfe->stream_lock);
++
++	if (vfe->stream_count == 1)
++		vfe_bus_enable_wr_if(vfe, 0);
++
++	vfe->stream_count--;
++
++	mutex_unlock(&vfe->stream_lock);
++
++	vfe_disable_output(line);
++
++	vfe_put_output(line);
++
++	return 0;
++}
++
++/*
++ * vfe_isr_reg_update - Process reg update interrupt
++ * @vfe: VFE Device
++ * @line_id: VFE line
++ */
++static void vfe_isr_reg_update(struct vfe_device *vfe, enum vfe_line_id line_id)
++{
++	struct vfe_output *output;
++	unsigned long flags;
++
++	spin_lock_irqsave(&vfe->output_lock, flags);
++	vfe->reg_update &= ~VFE_0_REG_UPDATE_RDIn(line_id);
++
++	output = &vfe->line[line_id].output;
++	if (output->state == VFE_OUTPUT_STOPPING) {
++		/* Release last buffer when hw is idle */
++		if (output->last_buffer) {
++			vb2_buffer_done(&output->last_buffer->vb.vb2_buf,
++					VB2_BUF_STATE_DONE);
++			output->last_buffer = NULL;
++		}
++		output->state = VFE_OUTPUT_IDLE;
++
++		/* Buffers received in stopping state are queued in */
++		/* dma pending queue, start next capture here */
++
++		output->buf[0] = vfe_buf_get_pending(output);
++		output->buf[1] = vfe_buf_get_pending(output);
++
++		if (!output->buf[0] && output->buf[1]) {
++			output->buf[0] = output->buf[1];
++			output->buf[1] = NULL;
++		}
++
++		if (output->buf[0])
++			output->state = VFE_OUTPUT_SINGLE;
++
++		if (output->buf[1])
++			output->state = VFE_OUTPUT_CONTINUOUS;
++
++		switch (output->state) {
++		case VFE_OUTPUT_SINGLE:
++			vfe_output_frame_drop(vfe, output, 2);
++			break;
++		case VFE_OUTPUT_CONTINUOUS:
++			vfe_output_frame_drop(vfe, output, 3);
++			break;
++		default:
++			vfe_output_frame_drop(vfe, output, 0);
++			break;
++		}
++
++		vfe_output_init_addrs(vfe, output, 1);
++	}
++
++	spin_unlock_irqrestore(&vfe->output_lock, flags);
++}
++
++/*
++ * vfe_isr_wm_done - Process write master done interrupt
++ * @vfe: VFE Device
++ * @wm: Write master id
++ */
++static void vfe_isr_wm_done(struct vfe_device *vfe, u8 wm)
++{
++	struct camss_buffer *ready_buf;
++	struct vfe_output *output;
++	dma_addr_t new_addr;
++	unsigned long flags;
++	u32 active_index;
++	u64 ts = ktime_get_ns();
++
++	active_index = vfe_wm_get_ping_pong_status(vfe, wm);
++
++	spin_lock_irqsave(&vfe->output_lock, flags);
++
++	if (vfe->wm_output_map[wm] == VFE_LINE_NONE) {
++		dev_err_ratelimited(to_device(vfe),
++				    "Received wm done for unmapped index\n");
++		goto out_unlock;
++	}
++	output = &vfe->line[vfe->wm_output_map[wm]].output;
++
++	if (output->active_buf == active_index) {
++		dev_err_ratelimited(to_device(vfe),
++				    "Active buffer mismatch!\n");
++		goto out_unlock;
++	}
++	output->active_buf = active_index;
++
++	ready_buf = output->buf[!active_index];
++	if (!ready_buf) {
++		dev_err_ratelimited(to_device(vfe),
++				    "Missing ready buf %d %d!\n",
++				    !active_index, output->state);
++		goto out_unlock;
++	}
++
++	ready_buf->vb.vb2_buf.timestamp = ts;
++	ready_buf->vb.sequence = output->sequence++;
++
++	/* Get next buffer */
++	output->buf[!active_index] = vfe_buf_get_pending(output);
++	if (!output->buf[!active_index]) {
++		/* No next buffer - set same address */
++		new_addr = ready_buf->addr;
++		vfe_buf_update_wm_on_last(vfe, output);
++	} else {
++		new_addr = output->buf[!active_index]->addr;
++		vfe_buf_update_wm_on_next(vfe, output);
++	}
++
++	if (active_index)
++		vfe_wm_set_ping_addr(vfe, wm, new_addr);
++	else
++		vfe_wm_set_pong_addr(vfe, wm, new_addr);
++
++	spin_unlock_irqrestore(&vfe->output_lock, flags);
++
++	if (output->state == VFE_OUTPUT_STOPPING)
++		output->last_buffer = ready_buf;
++	else
++		vb2_buffer_done(&ready_buf->vb.vb2_buf, VB2_BUF_STATE_DONE);
++
++	return;
++
++out_unlock:
++	spin_unlock_irqrestore(&vfe->output_lock, flags);
++}
++
++/*
++ * vfe_isr - ISPIF module interrupt handler
++ * @irq: Interrupt line
++ * @dev: VFE device
++ *
++ * Return IRQ_HANDLED on success
++ */
++static irqreturn_t vfe_isr(int irq, void *dev)
++{
++	struct vfe_device *vfe = dev;
++	u32 value0, value1;
++	u32 violation;
++	int i;
++
++	value0 = readl_relaxed(vfe->base + VFE_0_IRQ_STATUS_0);
++	value1 = readl_relaxed(vfe->base + VFE_0_IRQ_STATUS_1);
++
++	writel_relaxed(value0, vfe->base + VFE_0_IRQ_CLEAR_0);
++	writel_relaxed(value1, vfe->base + VFE_0_IRQ_CLEAR_1);
++
++	wmb();
++	writel_relaxed(VFE_0_IRQ_CMD_GLOBAL_CLEAR, vfe->base + VFE_0_IRQ_CMD);
++
++	if (value0 & VFE_0_IRQ_STATUS_0_RESET_ACK)
++		complete(&vfe->reset_complete);
++
++	if (value1 & VFE_0_IRQ_STATUS_1_VIOLATION) {
++		violation = readl_relaxed(vfe->base + VFE_0_VIOLATION_STATUS);
++		dev_err_ratelimited(to_device(vfe),
++				    "VFE: violation = 0x%08x\n", violation);
++	}
++
++	if (value1 & VFE_0_IRQ_STATUS_1_BUS_BDG_HALT_ACK) {
++		complete(&vfe->halt_complete);
++		writel_relaxed(0x0, vfe->base + VFE_0_BUS_BDG_CMD);
++	}
++
++	for (i = VFE_LINE_RDI0; i <= VFE_LINE_RDI2; i++)
++		if (value0 & VFE_0_IRQ_STATUS_0_RDIn_REG_UPDATE(i))
++			vfe_isr_reg_update(vfe, i);
++
++	for (i = 0; i < MSM_VFE_IMAGE_MASTERS_NUM; i++)
++		if (value0 & VFE_0_IRQ_STATUS_0_IMAGE_MASTER_n_PING_PONG(i))
++			vfe_isr_wm_done(vfe, i);
++
++	return IRQ_HANDLED;
++}
++
++/*
++ * vfe_get - Power up and reset VFE module
++ * @vfe: VFE Device
++ *
++ * Return 0 on success or a negative error code otherwise
++ */
++static int vfe_get(struct vfe_device *vfe)
++{
++	int ret;
++
++	mutex_lock(&vfe->power_lock);
++
++	if (vfe->power_count == 0) {
++		ret = camss_enable_clocks(vfe->nclocks, vfe->clock,
++					  to_device(vfe));
++		if (ret < 0)
++			goto error_clocks;
++
++		ret = vfe_reset(vfe);
++		if (ret < 0)
++			goto error_reset;
++
++		vfe_reset_output_maps(vfe);
++
++		vfe_init_outputs(vfe);
++	}
++	vfe->power_count++;
++
++	mutex_unlock(&vfe->power_lock);
++
++	return 0;
++
++error_reset:
++	camss_disable_clocks(vfe->nclocks, vfe->clock);
++
++error_clocks:
++	mutex_unlock(&vfe->power_lock);
++
++	return ret;
++}
++
++/*
++ * vfe_put - Power down VFE module
++ * @vfe: VFE Device
++ */
++static void vfe_put(struct vfe_device *vfe)
++{
++	mutex_lock(&vfe->power_lock);
++
++	if (vfe->power_count == 0) {
++		dev_err(to_device(vfe), "vfe power off on power_count == 0\n");
++		goto exit;
++	} else if (vfe->power_count == 1) {
++		if (vfe->was_streaming) {
++			vfe->was_streaming = 0;
++			vfe_halt(vfe);
++		}
++		camss_disable_clocks(vfe->nclocks, vfe->clock);
++	}
++
++	vfe->power_count--;
++
++exit:
++	mutex_unlock(&vfe->power_lock);
++}
++
++/*
++ * vfe_video_pad_to_line - Get pointer to VFE line by media pad
++ * @pad: Media pad
++ *
++ * Return pointer to vfe line structure
++ */
++static struct vfe_line *vfe_video_pad_to_line(struct media_pad *pad)
++{
++	struct media_pad *vfe_pad;
++	struct v4l2_subdev *subdev;
++
++	vfe_pad = media_entity_remote_pad(pad);
++	if (vfe_pad == NULL)
++		return NULL;
++
++	subdev = media_entity_to_v4l2_subdev(vfe_pad->entity);
++
++	return container_of(subdev, struct vfe_line, subdev);
++}
++
++/*
++ * vfe_queue_buffer - Add empty buffer
++ * @vid: Video device structure
++ * @buf: Buffer to be enqueued
++ *
++ * Add an empty buffer - depending on the current number of buffers it will be
++ * put in pending buffer queue or directly given to the hardware to be filled.
++ *
++ * Return 0 on success or a negative error code otherwise
++ */
++static int vfe_queue_buffer(struct camss_video *vid,
++			    struct camss_buffer *buf)
++{
++	struct vfe_device *vfe = &vid->camss->vfe;
++	struct vfe_line *line;
++	struct vfe_output *output;
++	unsigned long flags;
++
++	line = vfe_video_pad_to_line(&vid->pad);
++	if (!line) {
++		dev_err(to_device(vfe), "Can not queue buffer\n");
++		return -1;
++	}
++	output = &line->output;
++
++	spin_lock_irqsave(&vfe->output_lock, flags);
++
++	vfe_buf_update_wm_on_new(vfe, output, buf);
++
++	spin_unlock_irqrestore(&vfe->output_lock, flags);
++
++	return 0;
++}
++
++/*
++ * vfe_flush_buffers - Return all vb2 buffers
++ * @vid: Video device structure
++ * @state: vb2 buffer state of the returned buffers
++ *
++ * Return all buffers to vb2. This includes queued pending buffers (still
++ * unused) and any buffers given to the hardware but again still not used.
++ *
++ * Return 0 on success or a negative error code otherwise
++ */
++static int vfe_flush_buffers(struct camss_video *vid,
++			     enum vb2_buffer_state state)
++{
++	struct vfe_device *vfe = &vid->camss->vfe;
++	struct vfe_line *line;
++	struct vfe_output *output;
++	unsigned long flags;
++
++	line = vfe_video_pad_to_line(&vid->pad);
++	if (!line) {
++		dev_err(to_device(vfe),	"Can not flush buffers\n");
++		return -1;
++	}
++	output = &line->output;
++
++	spin_lock_irqsave(&vfe->output_lock, flags);
++
++	vfe_buf_flush_pending(output, state);
++
++	if (output->buf[0])
++		vb2_buffer_done(&output->buf[0]->vb.vb2_buf, state);
++
++	if (output->buf[1])
++		vb2_buffer_done(&output->buf[1]->vb.vb2_buf, state);
++
++	if (output->last_buffer) {
++		vb2_buffer_done(&output->last_buffer->vb.vb2_buf, state);
++		output->last_buffer = NULL;
++	}
++
++	spin_unlock_irqrestore(&vfe->output_lock, flags);
++
++	return 0;
++}
++
++/*
++ * vfe_set_power - Power on/off VFE module
++ * @sd: VFE V4L2 subdevice
++ * @on: Requested power state
++ *
++ * Return 0 on success or a negative error code otherwise
++ */
++static int vfe_set_power(struct v4l2_subdev *sd, int on)
++{
++	struct vfe_line *line = v4l2_get_subdevdata(sd);
++	struct vfe_device *vfe = to_vfe(line);
++	int ret;
++
++	if (on) {
++		u32 hw_version;
++
++		ret = vfe_get(vfe);
++		if (ret < 0)
++			return ret;
++
++		hw_version = readl_relaxed(vfe->base + VFE_0_HW_VERSION);
++		dev_dbg(to_device(vfe),
++			"VFE HW Version = 0x%08x\n", hw_version);
++	} else {
++		vfe_put(vfe);
++	}
++
++	return 0;
++}
++
++/*
++ * vfe_set_stream - Enable/disable streaming on VFE module
++ * @sd: VFE V4L2 subdevice
++ * @enable: Requested streaming state
++ *
++ * Main configuration of VFE module is triggered here.
++ *
++ * Return 0 on success or a negative error code otherwise
++ */
++static int vfe_set_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct vfe_line *line = v4l2_get_subdevdata(sd);
++	struct vfe_device *vfe = to_vfe(line);
++	int ret;
++
++	if (enable) {
++		ret = vfe_enable(line);
++		if (ret < 0)
++			dev_err(to_device(vfe),
++				"Failed to enable vfe outputs\n");
++	} else {
++		ret = vfe_disable(line);
++		if (ret < 0)
++			dev_err(to_device(vfe),
++				"Failed to disable vfe outputs\n");
++	}
++
++	return ret;
++}
++
++/*
++ * __vfe_get_format - Get pointer to format structure
++ * @line: VFE line
++ * @cfg: V4L2 subdev pad configuration
++ * @pad: pad from which format is requested
++ * @which: TRY or ACTIVE format
++ *
++ * Return pointer to TRY or ACTIVE format structure
++ */
++static struct v4l2_mbus_framefmt *
++__vfe_get_format(struct vfe_line *line,
++		 struct v4l2_subdev_pad_config *cfg,
++		 unsigned int pad,
++		 enum v4l2_subdev_format_whence which)
++{
++	if (which == V4L2_SUBDEV_FORMAT_TRY)
++		return v4l2_subdev_get_try_format(&line->subdev, cfg, pad);
++
++	return &line->fmt[pad];
++}
++
++
++/*
++ * vfe_try_format - Handle try format by pad subdev method
++ * @line: VFE line
++ * @cfg: V4L2 subdev pad configuration
++ * @pad: pad on which format is requested
++ * @fmt: pointer to v4l2 format structure
++ * @which: wanted subdev format
++ */
++static void vfe_try_format(struct vfe_line *line,
++			   struct v4l2_subdev_pad_config *cfg,
++			   unsigned int pad,
++			   struct v4l2_mbus_framefmt *fmt,
++			   enum v4l2_subdev_format_whence which)
 +{
 +	unsigned int i;
 +
-+	for (i = 0; i < IPU3_CSS_QUEUES; i++) {
-+		if (imgu->queues[i].dummybuf_vaddr)
-+			dma_free_coherent(imgu->mmu.dev,
-+					imgu->queues[i].dummybuf_size,
-+					imgu->queues[i].dummybuf_vaddr,
-+					imgu->queues[i].dummybuf_daddr);
-+		imgu->queues[i].dummybuf_vaddr = NULL;
-+	}
-+}
++	switch (pad) {
++	case MSM_VFE_PAD_SINK:
++		/* Set format on sink pad */
 +
-+int imgu_dummybufs_init(struct imgu_device *imgu)
-+{
-+	unsigned int i, j;
-+	int node;
++		for (i = 0; i < ARRAY_SIZE(vfe_formats); i++)
++			if (fmt->code == vfe_formats[i])
++				break;
 +
-+	/* Allocate a dummy buffer for each queue where buffer is optional */
-+	for (i = 0; i < IPU3_CSS_QUEUES; i++) {
-+		node = imgu_map_node(imgu, i);
-+		if (!imgu->queue_enabled[node] || i == IMGU_QUEUE_MASTER) {
-+			/*
-+			 * Do not enable dummy buffers for master queue,
-+			 * always require that real buffers from user are
-+			 * available.
-+			 */
-+			imgu->queues[i].dummybuf_vaddr = NULL;
-+			continue;
-+		}
++		/* If not found, use UYVY as default */
++		if (i >= ARRAY_SIZE(vfe_formats))
++			fmt->code = MEDIA_BUS_FMT_UYVY8_2X8;
 +
-+		if (!imgu->mem2mem2.nodes[IMGU_NODE_VF].enabled &&
-+			!imgu->mem2mem2.nodes[IMGU_NODE_PV].enabled &&
-+			i == IPU3_CSS_QUEUE_VF) {
-+			/*
-+			 * Do not enable dummy buffers for VF/PV if it is not
-+			 * requested by the user.
-+			 */
-+			imgu->queues[i].dummybuf_vaddr = NULL;
-+			continue;
-+		}
++		fmt->width = clamp_t(u32, fmt->width, 1, 8191);
++		fmt->height = clamp_t(u32, fmt->height, 1, 8191);
 +
-+		imgu->queues[i].dummybuf_size =
-+			imgu->mem2mem2.nodes[node].vdev_fmt.fmt.pix.sizeimage;
-+		imgu->queues[i].dummybuf_vaddr =
-+			dma_alloc_coherent(imgu->mmu.dev,
-+				imgu->queues[i].dummybuf_size,
-+				&imgu->queues[i].dummybuf_daddr,
-+				GFP_KERNEL);
-+		if (!imgu->queues[i].dummybuf_vaddr) {
-+			imgu_dummybufs_cleanup(imgu);
-+			return -ENOMEM;
-+		}
++		if (fmt->field == V4L2_FIELD_ANY)
++			fmt->field = V4L2_FIELD_NONE;
 +
-+		for (j = 0; j < IMGU_MAX_QUEUE_DEPTH; j++)
-+			ipu3_css_buf_init(&imgu->queues[i].dummybufs[j], i,
-+					imgu->queues[i].dummybuf_daddr);
++		break;
++
++	case MSM_VFE_PAD_SRC:
++		/* Set and return a format same as sink pad */
++
++		*fmt = *__vfe_get_format(line, cfg, MSM_VFE_PAD_SINK,
++					 which);
++
++		break;
 +	}
 +
-+	return 0;
-+}
-+
-+/* May be called from atomic context */
-+static struct ipu3_css_buffer *imgu_dummybufs_get(
-+			struct imgu_device *imgu, int queue)
-+{
-+	int b;
-+
-+	/* dummybufs are not allocated for master q */
-+	if (queue == IPU3_CSS_QUEUE_IN)
-+		return NULL;
-+
-+	if (WARN_ON(!imgu->queues[queue].dummybuf_vaddr))
-+		/* Buffer should not be allocated here */
-+		return NULL;
-+
-+	for (b = 0; b < IMGU_MAX_QUEUE_DEPTH; b++)
-+		if (ipu3_css_buf_state(&imgu->queues[queue].dummybufs[b]) !=
-+			IPU3_CSS_BUFFER_QUEUED)
-+			break;
-+
-+	if (b >= IMGU_MAX_QUEUE_DEPTH)
-+		return NULL;
-+
-+	ipu3_css_buf_init(&imgu->queues[queue].dummybufs[b], queue,
-+			imgu->queues[queue].dummybuf_daddr);
-+
-+	return &imgu->queues[queue].dummybufs[b];
-+}
-+
-+/* Check if given buffer is a dummy buffer */
-+static bool imgu_dummybufs_check(struct imgu_device *imgu,
-+				struct ipu3_css_buffer *buf)
-+{
-+	int q = buf->queue;
-+	int b;
-+
-+	for (b = 0; b < IMGU_MAX_QUEUE_DEPTH; b++)
-+		if (buf == &imgu->queues[q].dummybufs[b])
-+			break;
-+
-+	return b < IMGU_MAX_QUEUE_DEPTH;
-+}
-+
-+/**************** ipu3_mem2mem2_ops ****************/
-+
-+void imgu_buffer_done(struct imgu_device *imgu,
-+			struct vb2_buffer *vb, enum vb2_buffer_state state)
-+{
-+	mutex_lock(&imgu->lock);
-+	ipu3_v4l2_buffer_done(vb, state);
-+	mutex_unlock(&imgu->lock);
-+}
-+
-+static struct ipu3_css_buffer *imgu_queue_getbuf(struct imgu_device *imgu,
-+						int node)
-+{
-+	struct imgu_buffer *buf;
-+	int queue = imgu_node_map[node].css_queue;
-+
-+	if (queue < 0) {
-+		dev_err(&imgu->pci_dev->dev, "Invalid imgu node.\n");
-+		return NULL;
-+	}
-+
-+	/* Find first free buffer from the node */
-+	list_for_each_entry(buf, &imgu->mem2mem2.nodes[node].buffers,
-+				m2m2_buf.list) {
-+		if (ipu3_css_buf_state(&buf->css_buf) == IPU3_CSS_BUFFER_NEW)
-+			return &buf->css_buf;
-+	}
-+
-+	/* There were no free buffers, try to return a dummy buffer */
-+
-+	return imgu_dummybufs_get(imgu, queue);
++	fmt->colorspace = V4L2_COLORSPACE_SRGB;
 +}
 +
 +/*
-+ * Queue as many buffers to CSS as possible. If all buffers don't fit into
-+ * CSS buffer queues, they remain unqueued and will be queued later.
++ * vfe_enum_mbus_code - Handle pixel format enumeration
++ * @sd: VFE V4L2 subdevice
++ * @cfg: V4L2 subdev pad configuration
++ * @code: pointer to v4l2_subdev_mbus_code_enum structure
++ *
++ * return -EINVAL or zero on success
 + */
-+int imgu_queue_buffers(struct imgu_device *imgu, bool initial)
++static int vfe_enum_mbus_code(struct v4l2_subdev *sd,
++			      struct v4l2_subdev_pad_config *cfg,
++			      struct v4l2_subdev_mbus_code_enum *code)
 +{
-+	unsigned int node;
-+	int r = 0;
-+	struct imgu_buffer *ibuf;
++	struct vfe_line *line = v4l2_get_subdevdata(sd);
++	struct v4l2_mbus_framefmt *format;
 +
-+	mutex_lock(&imgu->lock);
++	if (code->pad == MSM_VFE_PAD_SINK) {
++		if (code->index >= ARRAY_SIZE(vfe_formats))
++			return -EINVAL;
 +
-+	/* Buffer set is queued to FW only when input buffer is ready */
-+	if (!imgu_queue_getbuf(imgu, IMGU_NODE_IN)) {
-+		mutex_unlock(&imgu->lock);
-+		return 0;
-+	}
-+	for (node = IMGU_NODE_IN + 1; 1; node = (node + 1) % IMGU_NODE_NUM) {
-+		if (node == IMGU_NODE_VF &&
-+			(imgu->css.pipe_id == IPU3_CSS_PIPE_ID_CAPTURE ||
-+			!imgu->mem2mem2.nodes[IMGU_NODE_VF].enabled)) {
-+			continue;
-+		} else if (node == IMGU_NODE_PV &&
-+			(imgu->css.pipe_id == IPU3_CSS_PIPE_ID_VIDEO ||
-+			!imgu->mem2mem2.nodes[IMGU_NODE_PV].enabled)) {
-+			continue;
-+		} else if (imgu->queue_enabled[node]) {
-+			struct ipu3_css_buffer *buf =
-+				imgu_queue_getbuf(imgu, node);
-+			int dummy;
++		code->code = vfe_formats[code->index];
++	} else {
++		if (code->index > 0)
++			return -EINVAL;
 +
-+			if (!buf)
-+				break;
++		format = __vfe_get_format(line, cfg, MSM_VFE_PAD_SINK,
++					  code->which);
 +
-+			r = ipu3_css_buf_queue(&imgu->css, buf);
-+			if (r)
-+				break;
-+			dummy = imgu_dummybufs_check(imgu, buf);
-+			if (!dummy)
-+				ibuf = container_of(buf,
-+					struct imgu_buffer, css_buf);
-+			dev_dbg(&imgu->pci_dev->dev,
-+				"queue %s %s buffer %d to css da: 0x%08x\n",
-+				dummy ? "dummy" : "user",
-+				imgu_node_map[node].name,
-+				dummy ? 0 : ibuf->m2m2_buf.vbb.vb2_buf.index,
-+				(u32)buf->daddr);
-+		}
-+		if (node == IMGU_NODE_IN &&
-+		    !imgu_queue_getbuf(imgu, IMGU_NODE_IN))
-+			break;
-+	}
-+	mutex_unlock(&imgu->lock);
-+
-+	if (r && r != -EBUSY)
-+		goto failed;
-+
-+	return 0;
-+
-+failed:
-+	/*
-+	 * On error, mark all buffers as failed which are not
-+	 * yet queued to CSS
-+	 */
-+	dev_err(&imgu->pci_dev->dev,
-+		"failed to queue buffer to CSS on queue %i (%d)\n",
-+		node, r);
-+
-+	if (initial)
-+		/* If we were called from streamon(), no need to finish bufs */
-+		return r;
-+
-+	for (node = 0; node < IMGU_NODE_NUM; node++) {
-+		struct imgu_buffer *buf, *buf0;
-+
-+		if (!imgu->queue_enabled[node])
-+			continue;	/* Skip disabled queues */
-+
-+		mutex_lock(&imgu->lock);
-+		list_for_each_entry_safe(buf, buf0,
-+					&imgu->mem2mem2.nodes[node].buffers,
-+					m2m2_buf.list) {
-+			if (ipu3_css_buf_state(&buf->css_buf) ==
-+				IPU3_CSS_BUFFER_QUEUED)
-+				continue;	/* Was already queued, skip */
-+
-+			ipu3_v4l2_buffer_done(&buf->m2m2_buf.vbb.vb2_buf,
-+						VB2_BUF_STATE_ERROR);
-+		}
-+		mutex_unlock(&imgu->lock);
-+	}
-+
-+	return r;
-+}
-+
-+static int imgu_mem2mem2_s_stream(struct ipu3_mem2mem2_device *m2m2_dev,
-+				int enable)
-+{
-+	struct imgu_device *imgu =
-+	    container_of(m2m2_dev, struct imgu_device, mem2mem2);
-+	struct device *dev = &imgu->pci_dev->dev;
-+	struct v4l2_pix_format *fmts[IPU3_CSS_QUEUES];
-+	struct v4l2_rect *rects[IPU3_CSS_RECTS] = { NULL };
-+	int i, r, node;
-+
-+	if (!enable) {
-+		/* Stop streaming */
-+		dev_dbg(dev, "stream off\n");
-+		mutex_lock(&imgu->lock);
-+		ipu3_css_stop_streaming(&imgu->css);
-+		mutex_unlock(&imgu->lock);
-+		imgu_dummybufs_cleanup(imgu);
-+		pm_runtime_put(&imgu->pci_dev->dev);
-+
-+		return 0;
-+	}
-+
-+	/* Start streaming */
-+
-+	dev_dbg(dev, "stream on\n");
-+	for (i = 0; i < IMGU_NODE_NUM; i++)
-+		imgu->queue_enabled[i] = m2m2_dev->nodes[i].enabled;
-+
-+	/*
-+	 * CSS library expects that the following queues (except lace) are
-+	 * always enabled; if buffers are not provided to some of the
-+	 * queues, it stalls due to lack of buffers.
-+	 * Force the queues to be enabled and if the user really hasn't
-+	 * enabled them, use dummy buffers.
-+	 */
-+	imgu->queue_enabled[IMGU_NODE_OUT] = true;
-+	imgu->queue_enabled[IMGU_NODE_STAT_3A] = true;
-+	imgu->queue_enabled[IMGU_NODE_STAT_DVS] = true;
-+	imgu->queue_enabled[IMGU_NODE_STAT_LACE] = false;
-+
-+	/* This is handled specially */
-+	imgu->queue_enabled[IPU3_CSS_QUEUE_PARAMS] = false;
-+
-+	/* Initialize CSS formats */
-+	for (i = 0; i < IPU3_CSS_QUEUES; i++) {
-+		node = imgu_map_node(imgu, i);
-+		if (node < 0)
-+			continue;
-+		fmts[i] = imgu->queue_enabled[node] ?
-+			&m2m2_dev->nodes[node].vdev_fmt.fmt.pix : NULL;
-+	}
-+
-+	/* Enable VF output only when VF or PV queue requested by user */
-+	imgu->css.vf_output_en = IPU3_NODE_VF_DISABLED;
-+	if (m2m2_dev->nodes[IMGU_NODE_VF].enabled)
-+		imgu->css.vf_output_en = IPU3_NODE_VF_ENABLED;
-+	else if (m2m2_dev->nodes[IMGU_NODE_PV].enabled)
-+		imgu->css.vf_output_en = IPU3_NODE_PV_ENABLED;
-+
-+	rects[IPU3_CSS_RECT_EFFECTIVE] = &imgu->rect.eff;
-+	rects[IPU3_CSS_RECT_BDS] = &imgu->rect.bds;
-+
-+	r = ipu3_css_fmt_set(&imgu->css, fmts, rects);
-+	if (r) {
-+		dev_err(dev, "failed to set initial formats (%d)", r);
-+		goto fail_fmt_set;
-+	}
-+
-+	/* Set Power */
-+	r = pm_runtime_get_sync(dev);
-+	if (r < 0) {
-+		dev_err(dev, "failed to set imgu power\n");
-+		pm_runtime_put(dev);
-+		return r;
-+	}
-+
-+	/* Start CSS streaming */
-+	r = ipu3_css_start_streaming(&imgu->css);
-+	if (r) {
-+		dev_err(dev, "failed to start css streaming (%d)", r);
-+		goto fail_fmt_set;
-+	}
-+
-+	/* Initialize dummy buffers */
-+	r = imgu_dummybufs_init(imgu);
-+	if (r) {
-+		dev_err(dev, "failed to initialize dummy buffers (%d)", r);
-+		goto fail_dummybufs;
-+	}
-+
-+	/* Queue as many buffers from queue as possible */
-+	r = imgu_queue_buffers(imgu, true);
-+	if (r) {
-+		dev_err(dev, "failed to queue initial buffers (%d)", r);
-+		goto fail_queueing;
++		code->code = format->code;
 +	}
 +
 +	return 0;
-+
-+fail_queueing:
-+	imgu_dummybufs_cleanup(imgu);
-+fail_dummybufs:
-+	ipu3_css_stop_streaming(&imgu->css);
-+fail_fmt_set:
-+
-+	return r;
 +}
 +
 +/*
-+ * imgu_mem2mem2_ops - used by v4l2 and vb2
++ * vfe_enum_frame_size - Handle frame size enumeration
++ * @sd: VFE V4L2 subdevice
++ * @cfg: V4L2 subdev pad configuration
++ * @fse: pointer to v4l2_subdev_frame_size_enum structure
++ *
++ * Return -EINVAL or zero on success
 + */
-+static const struct ipu3_mem2mem2_ops imgu_mem2mem2_ops = {
-+	.s_stream = imgu_mem2mem2_s_stream,
-+};
-+
-+static int imgu_mem2mem2_init(struct imgu_device *imgu)
++static int vfe_enum_frame_size(struct v4l2_subdev *sd,
++			       struct v4l2_subdev_pad_config *cfg,
++			       struct v4l2_subdev_frame_size_enum *fse)
 +{
-+	struct v4l2_pix_format *fmts[IPU3_CSS_QUEUES];
-+	struct v4l2_rect *rects[IPU3_CSS_RECTS] = { NULL };
++	struct vfe_line *line = v4l2_get_subdevdata(sd);
++	struct v4l2_mbus_framefmt format;
 +
-+	int r, i;
++	if (fse->index != 0)
++		return -EINVAL;
 +
-+	imgu->mem2mem2.name = IMGU_NAME ":0";
-+	imgu->mem2mem2.model = IMGU_NAME;
-+	imgu->mem2mem2.num_nodes = IMGU_NODE_NUM;
-+	imgu->mem2mem2.vb2_alloc_dev = imgu->mmu.dev;
-+	imgu->mem2mem2.vb2_mem_ops = &vb2_dma_contig_memops;
-+	imgu->mem2mem2.ops = &imgu_mem2mem2_ops;
-+	imgu->mem2mem2.buf_struct_size = sizeof(struct imgu_buffer);
-+	imgu->mem2mem2.ctrl_handler = &imgu->css.ctrls.handler;
-+	imgu->mem2mem2.nodes = imgu->mem2mem2_nodes;
-+	imgu->mem2mem2.dev = &imgu->pci_dev->dev;
++	format.code = fse->code;
++	format.width = 1;
++	format.height = 1;
++	vfe_try_format(line, cfg, fse->pad, &format, fse->which);
++	fse->min_width = format.width;
++	fse->min_height = format.height;
 +
-+	for (i = 0; i < IMGU_NODE_NUM; i++) {
-+		imgu->mem2mem2.nodes[i].name = imgu_node_map[i].name;
-+		imgu->mem2mem2.nodes[i].output = i < IMGU_QUEUE_FIRST_INPUT;
-+		imgu->mem2mem2.nodes[i].immutable = false;
-+		imgu->mem2mem2.nodes[i].enabled = false;
-+		fmts[imgu_node_map[i].css_queue] =
-+			&imgu->mem2mem2.nodes[i].vdev_fmt.fmt.pix;
-+		atomic_set(&imgu->mem2mem2.nodes[i].sequence, 0);
-+	}
++	if (format.code != fse->code)
++		return -EINVAL;
 +
-+	/* Master queue is always enabled */
-+	imgu->mem2mem2.nodes[IMGU_QUEUE_MASTER].immutable = true;
-+	imgu->mem2mem2.nodes[IMGU_QUEUE_MASTER].enabled = true;
-+
-+	r = ipu3_v4l2_register(imgu);
-+	if (r) {
-+		imgu->mem2mem2.vb2_alloc_dev = NULL;
-+		return r;
-+	}
-+
-+	/* Set initial formats and initialize formats of video nodes */
-+	rects[IPU3_CSS_RECT_EFFECTIVE] = &imgu->rect.eff;
-+	rects[IPU3_CSS_RECT_BDS] = &imgu->rect.bds;
-+	ipu3_css_fmt_set(&imgu->css, fmts, rects);
++	format.code = fse->code;
++	format.width = -1;
++	format.height = -1;
++	vfe_try_format(line, cfg, fse->pad, &format, fse->which);
++	fse->max_width = format.width;
++	fse->max_height = format.height;
 +
 +	return 0;
 +}
 +
-+static void imgu_mem2mem2_exit(struct imgu_device *imgu)
++/*
++ * vfe_get_format - Handle get format by pads subdev method
++ * @sd: VFE V4L2 subdevice
++ * @cfg: V4L2 subdev pad configuration
++ * @fmt: pointer to v4l2 subdev format structure
++ *
++ * Return -EINVAL or zero on success
++ */
++static int vfe_get_format(struct v4l2_subdev *sd,
++			  struct v4l2_subdev_pad_config *cfg,
++			  struct v4l2_subdev_format *fmt)
 +{
-+	ipu3_v4l2_unregister(imgu);
-+	imgu->mem2mem2.vb2_alloc_dev = NULL;
-+}
++	struct vfe_line *line = v4l2_get_subdevdata(sd);
++	struct v4l2_mbus_framefmt *format;
 +
-+/**************** PCI interface ****************/
++	format = __vfe_get_format(line, cfg, fmt->pad, fmt->which);
++	if (format == NULL)
++		return -EINVAL;
 +
-+static irqreturn_t imgu_isr_threaded(int irq, void *imgu_ptr)
-+{
-+	struct imgu_device *imgu = imgu_ptr;
-+
-+	/* Dequeue / queue buffers */
-+	do {
-+		u64 ns = ktime_get_ns();
-+		struct ipu3_css_buffer *b;
-+		struct imgu_buffer *buf;
-+		int q, node;
-+		bool dummy;
-+
-+		do {
-+			mutex_lock(&imgu->lock);
-+			b = ipu3_css_buf_dequeue(&imgu->css);
-+			mutex_unlock(&imgu->lock);
-+		} while (PTR_ERR(b) == -EAGAIN);
-+
-+		if (IS_ERR_OR_NULL(b)) {
-+			if (!b || PTR_ERR(b) == -EBUSY)	/* All done */
-+				break;
-+			dev_err(&imgu->pci_dev->dev,
-+				"failed to dequeue buffers (%ld)\n",
-+				PTR_ERR(b));
-+			break;
-+		}
-+
-+		q = b->queue;
-+		node = imgu_map_node(imgu, q);
-+		if (node < 0) {
-+			dev_err(&imgu->pci_dev->dev, "Invalid css queue.\n");
-+			break;
-+		}
-+
-+		dummy = imgu_dummybufs_check(imgu, b);
-+		if (!dummy)
-+			buf = container_of(b, struct imgu_buffer, css_buf);
-+		dev_dbg(&imgu->pci_dev->dev,
-+			"dequeue %s %s buffer %d from css\n",
-+			dummy ? "dummy" : "user",
-+			imgu_node_map[node].name,
-+			dummy ? 0 : buf->m2m2_buf.vbb.vb2_buf.index);
-+
-+		if (dummy)
-+			/* It was a dummy buffer, skip it */
-+			continue;
-+
-+		/* Fill vb2 buffer entries and tell it's ready */
-+		if (!imgu->mem2mem2.nodes[node].output) {
-+			struct v4l2_format vdev_fmt;
-+			unsigned int bytes;
-+
-+			vdev_fmt = imgu->mem2mem2.nodes[node].vdev_fmt;
-+			bytes = vdev_fmt.fmt.pix.sizeimage;
-+
-+			vb2_set_plane_payload(&buf->m2m2_buf.vbb.vb2_buf, 0,
-+						bytes);
-+			buf->m2m2_buf.vbb.vb2_buf.timestamp = ns;
-+			buf->m2m2_buf.vbb.field = V4L2_FIELD_NONE;
-+			memset(&buf->m2m2_buf.vbb.timecode, 0,
-+				sizeof(buf->m2m2_buf.vbb.timecode));
-+			buf->m2m2_buf.vbb.sequence =
-+				atomic_inc_return(
-+				&imgu->mem2mem2.nodes[node].sequence);
-+		}
-+		imgu_buffer_done(imgu, &buf->m2m2_buf.vbb.vb2_buf,
-+				ipu3_css_buf_state(&buf->css_buf) ==
-+				IPU3_CSS_BUFFER_DONE ?
-+				VB2_BUF_STATE_DONE : VB2_BUF_STATE_ERROR);
-+	} while (1);
-+
-+	/* Try to queue more buffers for CSS */
-+	imgu_queue_buffers(imgu, false);
-+
-+	return IRQ_NONE;
-+}
-+
-+irqreturn_t imgu_isr(int irq, void *imgu_ptr)
-+{
-+	struct imgu_device *imgu = imgu_ptr;
-+	irqreturn_t r = IRQ_HANDLED;
-+
-+	/* acknowledge interruption */
-+	if (ipu3_css_irq_ack(&imgu->css) >= 0)
-+		r = IRQ_NONE;
-+
-+	if (!imgu->mem2mem2.streaming)
-+		return r;
-+
-+	return IRQ_WAKE_THREAD;
-+}
-+
-+static int imgu_pci_config_setup(struct pci_dev *dev)
-+{
-+	u16 pci_command;
-+	int r = pci_enable_msi(dev);
-+
-+	if (r) {
-+		dev_err(&dev->dev, "failed to enable MSI (%d)\n", r);
-+		return r;
-+	}
-+
-+	pci_read_config_word(dev, PCI_COMMAND, &pci_command);
-+	pci_command |= PCI_COMMAND_MEMORY | PCI_COMMAND_MASTER |
-+			PCI_COMMAND_INTX_DISABLE;
-+	pci_write_config_word(dev, PCI_COMMAND, pci_command);
++	fmt->format = *format;
 +
 +	return 0;
 +}
 +
-+static int imgu_pci_probe(struct pci_dev *pci_dev,
-+			const struct pci_device_id *id)
++/*
++ * vfe_set_format - Handle set format by pads subdev method
++ * @sd: VFE V4L2 subdevice
++ * @cfg: V4L2 subdev pad configuration
++ * @fmt: pointer to v4l2 subdev format structure
++ *
++ * Return -EINVAL or zero on success
++ */
++static int vfe_set_format(struct v4l2_subdev *sd,
++			  struct v4l2_subdev_pad_config *cfg,
++			  struct v4l2_subdev_format *fmt)
 +{
-+	struct imgu_device *imgu;
-+	phys_addr_t phys;
-+	unsigned long phys_len;
-+	void __iomem *const *iomap;
-+	int r;
++	struct vfe_line *line = v4l2_get_subdevdata(sd);
++	struct v4l2_mbus_framefmt *format;
 +
-+	imgu = devm_kzalloc(&pci_dev->dev, sizeof(*imgu), GFP_KERNEL);
-+	if (!imgu)
++	format = __vfe_get_format(line, cfg, fmt->pad, fmt->which);
++	if (format == NULL)
++		return -EINVAL;
++
++	vfe_try_format(line, cfg, fmt->pad, &fmt->format, fmt->which);
++	*format = fmt->format;
++
++	/* Propagate the format from sink to source */
++	if (fmt->pad == MSM_VFE_PAD_SINK) {
++		format = __vfe_get_format(line, cfg, MSM_VFE_PAD_SRC,
++					  fmt->which);
++
++		*format = fmt->format;
++		vfe_try_format(line, cfg, MSM_VFE_PAD_SRC, format,
++			       fmt->which);
++	}
++
++	return 0;
++}
++
++/*
++ * vfe_init_formats - Initialize formats on all pads
++ * @sd: VFE V4L2 subdevice
++ * @fh: V4L2 subdev file handle
++ *
++ * Initialize all pad formats with default values.
++ *
++ * Return 0 on success or a negative error code otherwise
++ */
++static int vfe_init_formats(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	struct v4l2_subdev_format format;
++
++	memset(&format, 0, sizeof(format));
++	format.pad = MSM_VFE_PAD_SINK;
++	format.which = fh ? V4L2_SUBDEV_FORMAT_TRY : V4L2_SUBDEV_FORMAT_ACTIVE;
++	format.format.code = MEDIA_BUS_FMT_UYVY8_2X8;
++	format.format.width = 1920;
++	format.format.height = 1080;
++
++	return vfe_set_format(sd, fh ? fh->pad : NULL, &format);
++}
++
++/*
++ * msm_vfe_subdev_init - Initialize VFE device structure and resources
++ * @vfe: VFE device
++ * @res: VFE module resources table
++ *
++ * Return 0 on success or a negative error code otherwise
++ */
++int msm_vfe_subdev_init(struct vfe_device *vfe, struct resources *res)
++{
++	struct device *dev = to_device(vfe);
++	struct platform_device *pdev = container_of(dev, struct platform_device,
++						    dev);
++	struct resource *r;
++	struct camss *camss = to_camss(vfe);
++
++	int i;
++	int ret;
++
++	mutex_init(&vfe->power_lock);
++	vfe->power_count = 0;
++
++	mutex_init(&vfe->stream_lock);
++	vfe->stream_count = 0;
++
++	spin_lock_init(&vfe->output_lock);
++
++	vfe->id = 0;
++	vfe->reg_update = 0;
++
++	for (i = VFE_LINE_RDI0; i <= VFE_LINE_RDI2; i++) {
++		vfe->line[i].video_out.type =
++					V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
++		vfe->line[i].video_out.camss = camss;
++		vfe->line[i].id = i;
++	}
++
++	/* Memory */
++
++	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, res->reg[0]);
++	vfe->base = devm_ioremap_resource(dev, r);
++	if (IS_ERR(vfe->base)) {
++		dev_err(dev, "could not map memory\n");
++		return PTR_ERR(vfe->base);
++	}
++
++	/* Interrupt */
++
++	r = platform_get_resource_byname(pdev, IORESOURCE_IRQ,
++					 res->interrupt[0]);
++	if (!r) {
++		dev_err(dev, "missing IRQ\n");
++		return -EINVAL;
++	}
++
++	vfe->irq = r->start;
++	snprintf(vfe->irq_name, sizeof(vfe->irq_name), "%s_%s%d",
++		 dev_name(dev), MSM_VFE_NAME, vfe->id);
++	ret = devm_request_irq(dev, vfe->irq, vfe_isr,
++			       IRQF_TRIGGER_RISING, vfe->irq_name, vfe);
++	if (ret < 0) {
++		dev_err(dev, "request_irq failed\n");
++		return ret;
++	}
++
++	/* Clocks */
++
++	vfe->nclocks = 0;
++	while (res->clock[vfe->nclocks])
++		vfe->nclocks++;
++
++	vfe->clock = devm_kzalloc(dev, vfe->nclocks * sizeof(*vfe->clock),
++				  GFP_KERNEL);
++	if (!vfe->clock)
 +		return -ENOMEM;
 +
-+	imgu->pci_dev = pci_dev;
++	for (i = 0; i < vfe->nclocks; i++) {
++		vfe->clock[i] = devm_clk_get(dev, res->clock[i]);
++		if (IS_ERR(vfe->clock[i]))
++			return PTR_ERR(vfe->clock[i]);
 +
-+	r = pcim_enable_device(pci_dev);
-+	if (r) {
-+		dev_err(&pci_dev->dev, "failed to enable device (%d)\n", r);
-+		return r;
++		if (res->clock_rate[i]) {
++			long clk_rate = clk_round_rate(vfe->clock[i],
++						       res->clock_rate[i]);
++			if (clk_rate < 0) {
++				dev_err(dev, "clk round rate failed\n");
++				return -EINVAL;
++			}
++			ret = clk_set_rate(vfe->clock[i], clk_rate);
++			if (ret < 0) {
++				dev_err(dev, "clk set rate failed\n");
++				return ret;
++			}
++		}
 +	}
 +
-+	dev_info(&pci_dev->dev, "device 0x%x (rev: 0x%x)\n",
-+		 pci_dev->device, pci_dev->revision);
++	init_completion(&vfe->reset_complete);
++	init_completion(&vfe->halt_complete);
 +
-+	phys = pci_resource_start(pci_dev, IMGU_PCI_BAR);
-+	phys_len = pci_resource_len(pci_dev, IMGU_PCI_BAR);
++	return 0;
++}
 +
-+	r = pcim_iomap_regions(pci_dev, 1 << IMGU_PCI_BAR, pci_name(pci_dev));
-+	if (r) {
-+		dev_err(&pci_dev->dev, "failed to remap I/O memory (%d)\n", r);
-+		return r;
++/*
++ * msm_vfe_get_vfe_id - Get VFE HW module id
++ * @entity: Pointer to VFE media entity structure
++ * @id: Return CSID HW module id here
++ */
++void msm_vfe_get_vfe_id(struct media_entity *entity, u8 *id)
++{
++	struct v4l2_subdev *sd;
++	struct vfe_line *line;
++	struct vfe_device *vfe;
++
++	sd = container_of(entity, struct v4l2_subdev, entity);
++	line = v4l2_get_subdevdata(sd);
++	vfe = to_vfe(line);
++
++	*id = vfe->id;
++}
++
++/*
++ * msm_vfe_get_vfe_line_id - Get VFE line id by media entity
++ * @entity: Pointer to VFE media entity structure
++ * @id: Return VFE line id here
++ */
++void msm_vfe_get_vfe_line_id(struct media_entity *entity, enum vfe_line_id *id)
++{
++	struct v4l2_subdev *sd;
++	struct vfe_line *line;
++
++	sd = container_of(entity, struct v4l2_subdev, entity);
++	line = v4l2_get_subdevdata(sd);
++
++	*id = line->id;
++}
++
++/*
++ * vfe_link_setup - Setup VFE connections
++ * @entity: Pointer to media entity structure
++ * @local: Pointer to local pad
++ * @remote: Pointer to remote pad
++ * @flags: Link flags
++ *
++ * Return 0 on success
++ */
++static int vfe_link_setup(struct media_entity *entity,
++			  const struct media_pad *local,
++			  const struct media_pad *remote, u32 flags)
++{
++	if (flags & MEDIA_LNK_FL_ENABLED)
++		if (media_entity_remote_pad((struct media_pad *)local))
++			return -EBUSY;
++
++	return 0;
++}
++
++static const struct v4l2_subdev_core_ops vfe_core_ops = {
++	.s_power = vfe_set_power,
++};
++
++static const struct v4l2_subdev_video_ops vfe_video_ops = {
++	.s_stream = vfe_set_stream,
++};
++
++static const struct v4l2_subdev_pad_ops vfe_pad_ops = {
++	.enum_mbus_code = vfe_enum_mbus_code,
++	.enum_frame_size = vfe_enum_frame_size,
++	.get_fmt = vfe_get_format,
++	.set_fmt = vfe_set_format,
++};
++
++static const struct v4l2_subdev_ops vfe_v4l2_ops = {
++	.core = &vfe_core_ops,
++	.video = &vfe_video_ops,
++	.pad = &vfe_pad_ops,
++};
++
++static const struct v4l2_subdev_internal_ops vfe_v4l2_internal_ops = {
++	.open = vfe_init_formats,
++};
++
++static const struct media_entity_operations vfe_media_ops = {
++	.link_setup = vfe_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
++};
++
++static const struct camss_video_ops camss_vfe_video_ops = {
++	.queue_buffer = vfe_queue_buffer,
++	.flush_buffers = vfe_flush_buffers,
++};
++
++void msm_vfe_stop_streaming(struct vfe_device *vfe)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(vfe->line); i++)
++		msm_video_stop_streaming(&vfe->line[i].video_out);
++}
++
++/*
++ * msm_vfe_register_entities - Register subdev node for VFE module
++ * @vfe: VFE device
++ * @v4l2_dev: V4L2 device
++ *
++ * Return 0 on success or a negative error code otherwise
++ */
++int msm_vfe_register_entities(struct vfe_device *vfe,
++			      struct v4l2_device *v4l2_dev)
++{
++	struct device *dev = to_device(vfe);
++	struct v4l2_subdev *sd;
++	struct media_pad *pads;
++	struct camss_video *video_out;
++	int ret;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(vfe->line); i++) {
++		char name[32];
++
++		sd = &vfe->line[i].subdev;
++		pads = vfe->line[i].pads;
++		video_out = &vfe->line[i].video_out;
++
++		v4l2_subdev_init(sd, &vfe_v4l2_ops);
++		sd->internal_ops = &vfe_v4l2_internal_ops;
++		sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++		snprintf(sd->name, ARRAY_SIZE(sd->name), "%s%d_%s%d",
++			 MSM_VFE_NAME, vfe->id, "rdi", i);
++		v4l2_set_subdevdata(sd, &vfe->line[i]);
++
++		ret = vfe_init_formats(sd, NULL);
++		if (ret < 0) {
++			dev_err(dev, "Failed to init format\n");
++			goto error_init;
++		}
++
++		pads[MSM_VFE_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
++		pads[MSM_VFE_PAD_SRC].flags = MEDIA_PAD_FL_SOURCE;
++
++		sd->entity.function = MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER;
++		sd->entity.ops = &vfe_media_ops;
++		ret = media_entity_pads_init(&sd->entity, MSM_VFE_PADS_NUM,
++					     pads);
++		if (ret < 0) {
++			dev_err(dev, "Failed to init media entity\n");
++			goto error_init;
++		}
++
++		ret = v4l2_device_register_subdev(v4l2_dev, sd);
++		if (ret < 0) {
++			dev_err(dev, "Failed to register subdev\n");
++			goto error_reg_subdev;
++		}
++
++		video_out->ops = &camss_vfe_video_ops;
++		snprintf(name, ARRAY_SIZE(name), "%s%d_%s%d",
++			 MSM_VFE_NAME, vfe->id, "video", i);
++		ret = msm_video_register(video_out, v4l2_dev, name);
++		if (ret < 0) {
++			dev_err(dev, "Failed to register video node\n");
++			goto error_reg_video;
++		}
++
++		ret = media_create_pad_link(
++				&sd->entity, MSM_VFE_PAD_SRC,
++				&video_out->vdev.entity, 0,
++				MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
++		if (ret < 0) {
++			dev_err(dev, "Failed to link %s->%s entities\n",
++			       sd->entity.name, video_out->vdev.entity.name);
++			goto error_link;
++		}
 +	}
-+	dev_info(&pci_dev->dev, "physical base address 0x%llx, %lu bytes\n",
-+		phys, phys_len);
-+
-+	iomap = pcim_iomap_table(pci_dev);
-+	if (!iomap) {
-+		dev_err(&pci_dev->dev, "failed to iomap table\n");
-+		return -ENODEV;
-+	}
-+
-+	imgu->base = iomap[IMGU_PCI_BAR];
-+
-+	pci_set_drvdata(pci_dev, imgu);
-+
-+	pci_set_master(pci_dev);
-+
-+	r = pci_set_dma_mask(pci_dev, IMGU_DMA_MASK);
-+	if (!r)
-+		r = pci_set_consistent_dma_mask(pci_dev, IMGU_DMA_MASK);
-+	if (r) {
-+		dev_err(&pci_dev->dev, "failed to set DMA mask (%d)\n", r);
-+		return r;
-+	}
-+
-+	r = imgu_pci_config_setup(pci_dev);
-+	if (r)
-+		return r;
-+
-+	mutex_init(&imgu->lock);
-+
-+	r = ipu3_mmu_init(&imgu->mmu, imgu->base, &pci_dev->dev);
-+	if (r) {
-+		dev_err(&pci_dev->dev, "failed to initialize MMU (%d)\n", r);
-+		goto failed_mmu;
-+	}
-+
-+	imgu->mmu.dev->dma_ops = &ipu3_dmamap_ops;
-+
-+	/* ISP programming */
-+	r = ipu3_css_init(imgu->mmu.dev, &imgu->css, imgu->base,
-+				imgu->mmu.pgtbl, phys_len);
-+	if (r) {
-+		dev_err(&pci_dev->dev, "failed to initialize CSS (%d)\n", r);
-+		goto failed_css;
-+	}
-+
-+	/* v4l2 sub-device registration */
-+	r = imgu_mem2mem2_init(imgu);
-+	if (r) {
-+		dev_err(&pci_dev->dev, "failed to create V4L2 devices (%d)\n",
-+			r);
-+		goto failed_mem2mem2;
-+	}
-+
-+	r = devm_request_threaded_irq(&pci_dev->dev, pci_dev->irq,
-+				imgu_isr, imgu_isr_threaded,
-+				IRQF_SHARED, IMGU_NAME, imgu);
-+	if (r) {
-+		dev_err(&pci_dev->dev, "failed to request IRQ (%d)\n", r);
-+		return r;
-+	}
-+
-+	pm_runtime_put_noidle(&pci_dev->dev);
-+	pm_runtime_allow(&pci_dev->dev);
 +
 +	return 0;
 +
-+failed_mem2mem2:
-+	ipu3_css_cleanup(&imgu->css);
-+failed_css:
-+	ipu3_mmu_exit(&imgu->mmu);
-+failed_mmu:
-+	mutex_destroy(&imgu->lock);
-+	return r;
++error_link:
++	msm_video_unregister(video_out);
++
++error_reg_video:
++	v4l2_device_unregister_subdev(sd);
++
++error_reg_subdev:
++	media_entity_cleanup(&sd->entity);
++
++error_init:
++	for (i--; i >= 0; i--) {
++		sd = &vfe->line[i].subdev;
++		video_out = &vfe->line[i].video_out;
++
++		msm_video_unregister(video_out);
++		v4l2_device_unregister_subdev(sd);
++		media_entity_cleanup(&sd->entity);
++	}
++
++	return ret;
 +}
 +
-+static void imgu_pci_remove(struct pci_dev *pci_dev)
-+{
-+	struct imgu_device *imgu = pci_get_drvdata(pci_dev);
-+
-+	imgu_mem2mem2_exit(imgu);
-+	ipu3_css_cleanup(&imgu->css);
-+	ipu3_mmu_exit(&imgu->mmu);
-+	mutex_destroy(&imgu->lock);
-+
-+	pm_runtime_forbid(&pci_dev->dev);
-+	pm_runtime_get_noresume(&pci_dev->dev);
-+}
-+
-+static int imgu_runtime_suspend(struct device *dev)
-+{
-+	struct pci_dev *pci_dev = to_pci_dev(dev);
-+	struct imgu_device *imgu = pci_get_drvdata(pci_dev);
-+
-+	return ipu3_css_set_powerdown(&imgu->css);
-+}
-+
-+static int imgu_runtime_resume(struct device *dev)
-+{
-+	struct pci_dev *pci_dev = to_pci_dev(dev);
-+	struct imgu_device *imgu = pci_get_drvdata(pci_dev);
-+
-+	return ipu3_css_set_powerup(&imgu->css);
-+}
-+
-+static const struct dev_pm_ops imgu_pm_ops = {
-+	SET_RUNTIME_PM_OPS(&imgu_runtime_suspend, &imgu_runtime_resume, NULL)
-+};
-+
-+static const struct pci_device_id imgu_pci_tbl[] = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, IMGU_PCI_ID) },
-+	{ 0, }
-+};
-+
-+MODULE_DEVICE_TABLE(pci, imgu_pci_tbl);
-+
-+static struct pci_driver imgu_pci_driver = {
-+	.name = IMGU_NAME,
-+	.id_table = imgu_pci_tbl,
-+	.probe = imgu_pci_probe,
-+	.remove = imgu_pci_remove,
-+	.driver = {
-+		.pm = &imgu_pm_ops,
-+	},
-+};
-+
-+module_pci_driver(imgu_pci_driver);
-+
-+MODULE_AUTHOR("Tuukka Toivonen <tuukka.toivonen@intel.com>");
-+MODULE_AUTHOR("Tianshu Qiu <tian.shu.qiu@intel.com>");
-+MODULE_AUTHOR("Jian Xu Zheng <jian.xu.zheng@intel.com>");
-+MODULE_AUTHOR("Yuning Pu <yuning.pu@intel.com>");
-+MODULE_AUTHOR("Yong Zhi <yong.zhi@intel.com>");
-+MODULE_LICENSE("GPL v2");
-+MODULE_DESCRIPTION("Intel ipu3_imgu PCI driver");
-diff --git a/drivers/media/pci/intel/ipu3/ipu3.h b/drivers/media/pci/intel/ipu3/ipu3.h
-new file mode 100644
-index 0000000..b8e9ba9
---- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/ipu3.h
-@@ -0,0 +1,183 @@
 +/*
-+ * Copyright (c) 2017 Intel Corporation.
++ * msm_vfe_unregister_entities - Unregister VFE module subdev node
++ * @vfe: VFE device
++ */
++void msm_vfe_unregister_entities(struct vfe_device *vfe)
++{
++	int i;
++
++	mutex_destroy(&vfe->power_lock);
++	mutex_destroy(&vfe->stream_lock);
++
++	for (i = 0; i < ARRAY_SIZE(vfe->line); i++) {
++		struct v4l2_subdev *sd = &vfe->line[i].subdev;
++		struct camss_video *video_out = &vfe->line[i].video_out;
++
++		msm_video_unregister(video_out);
++		v4l2_device_unregister_subdev(sd);
++		media_entity_cleanup(&sd->entity);
++	}
++}
+diff --git a/drivers/media/platform/qcom/camss-8x16/vfe.h b/drivers/media/platform/qcom/camss-8x16/vfe.h
+new file mode 100644
+index 0000000..ab551a5
+--- /dev/null
++++ b/drivers/media/platform/qcom/camss-8x16/vfe.h
+@@ -0,0 +1,114 @@
++/*
++ * vfe.h
 + *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
++ * Qualcomm MSM Camera Subsystem - VFE Module
++ *
++ * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
++ * Copyright (C) 2015-2016 Linaro Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
 + *
 + * This program is distributed in the hope that it will be useful,
 + * but WITHOUT ANY WARRANTY; without even the implied warranty of
 + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 + * GNU General Public License for more details.
-+ *
 + */
++#ifndef QC_MSM_CAMSS_VFE_H
++#define QC_MSM_CAMSS_VFE_H
 +
-+#ifndef __IPU3_H
-+#define __IPU3_H
-+
-+#include <linux/pci.h>
++#include <linux/clk.h>
++#include <linux/spinlock_types.h>
++#include <media/media-entity.h>
 +#include <media/v4l2-device.h>
-+#include <media/videobuf2-v4l2.h>
-+#include "ipu3-css.h"
-+#include "ipu3-dmamap.h"
-+#include "ipu3-mmu.h"
++#include <media/v4l2-subdev.h>
 +
-+/*
-+ * The semantics of the driver is that whenever there is a buffer available in
-+ * master queue, the driver queues a buffer also to all other active nodes.
-+ * If user space hasn't provided a buffer to all other video nodes first,
-+ * the driver gets an internal dummy buffer and queues it.
-+ */
-+#define IMGU_QUEUE_MASTER		IPU3_CSS_QUEUE_IN
-+#define IMGU_QUEUE_FIRST_INPUT		IPU3_CSS_QUEUE_OUT
-+#define IMGU_MAX_QUEUE_DEPTH		(2 + 2)
++#include "video.h"
 +
-+#define IMGU_NODE_IN			0 /* Input RAW image */
-+#define IMGU_NODE_PARAMS		1 /* Input parameters */
-+#define IMGU_NODE_OUT			2 /* Main output for still or video */
-+#define IMGU_NODE_VF			3 /* Preview */
-+#define IMGU_NODE_PV			4 /* Postview for still capture */
-+#define IMGU_NODE_STAT_3A		5 /* 3A statistics */
-+#define IMGU_NODE_STAT_DVS		6 /* DVS statistics */
-+#define IMGU_NODE_STAT_LACE		7 /* Lace statistics */
-+#define IMGU_NODE_NUM			8
++#define MSM_VFE_PAD_SINK 0
++#define MSM_VFE_PAD_SRC 1
++#define MSM_VFE_PADS_NUM 2
 +
-+#define file_to_intel_ipu3_node(__file) \
-+	container_of(video_devdata(__file), struct imgu_video_device, vdev)
++#define MSM_VFE_LINE_NUM 3
++#define MSM_VFE_IMAGE_MASTERS_NUM 7
 +
-+#define IPU3_INPUT_MIN_WIDTH		0U
-+#define IPU3_INPUT_MIN_HEIGHT		0U
-+#define IPU3_INPUT_MAX_WIDTH		5120U
-+#define IPU3_INPUT_MAX_HEIGHT		38404U
-+#define IPU3_OUTPUT_MIN_WIDTH		2U
-+#define IPU3_OUTPUT_MIN_HEIGHT		2U
-+#define IPU3_OUTPUT_MAX_WIDTH		4480U
-+#define IPU3_OUTPUT_MAX_HEIGHT		34004U
++#define MSM_VFE_VFE0_UB_SIZE 1023
++#define MSM_VFE_VFE0_UB_SIZE_RDI (MSM_VFE_VFE0_UB_SIZE / 3)
++#define MSM_VFE_VFE1_UB_SIZE 1535
++#define MSM_VFE_VFE1_UB_SIZE_RDI (MSM_VFE_VFE1_UB_SIZE / 3)
 +
-+struct ipu3_mem2mem2_buffer {
-+	/* Public fields */
-+	struct vb2_v4l2_buffer vbb;	/* Must be the first field */
-+
-+	/* Private fields */
-+	struct list_head list;
++enum vfe_output_state {
++	VFE_OUTPUT_OFF,
++	VFE_OUTPUT_RESERVED,
++	VFE_OUTPUT_SINGLE,
++	VFE_OUTPUT_CONTINUOUS,
++	VFE_OUTPUT_IDLE,
++	VFE_OUTPUT_STOPPING
 +};
 +
-+struct imgu_buffer {
-+	struct ipu3_mem2mem2_buffer m2m2_buf;	/* Must be the first field */
-+	struct ipu3_css_buffer css_buf;
++enum vfe_line_id {
++	VFE_LINE_NONE = -1,
++	VFE_LINE_RDI0 = 0,
++	VFE_LINE_RDI1 = 1,
++	VFE_LINE_RDI2 = 2
 +};
 +
-+struct imgu_node_mapping {
-+	int css_queue;
-+	const char *name;
++struct vfe_output {
++	u8 wm_idx;
++
++	int active_buf;
++	struct camss_buffer *buf[2];
++	struct camss_buffer *last_buffer;
++	struct list_head pending_bufs;
++
++	unsigned int drop_update_idx;
++
++	enum vfe_output_state state;
++	unsigned int sequence;
 +};
 +
-+/**
-+ * struct imgu_video_device
-+ * each node registers as video device and maintains its
-+ * own vb2_queue.
-+ */
-+struct imgu_video_device {
-+	const char *name;
-+	bool output;		/* Frames to the driver? */
-+	bool immutable;		/* Can not be enabled/disabled */
-+	bool enabled;
-+	int queued;		/* Buffers already queued */
-+	struct v4l2_format vdev_fmt;	/* Currently set format */
-+
-+	/* Private fields */
-+	struct video_device vdev;
-+	struct media_pad vdev_pad;
-+	struct v4l2_mbus_framefmt pad_fmt;
-+	struct vb2_queue vbq;
-+	struct list_head buffers;
-+	/* Protect vb2_queue and vdev structs*/
-+	struct mutex lock;
-+	atomic_t sequence;
-+};
-+
-+/**
-+ * struct ipu3_mem2mem2_device - mem2mem device
-+ * this is the top level helper struct used by parent PCI device
-+ * to bind everything together for media operations.
-+ */
-+struct ipu3_mem2mem2_device {
-+	/* Public fields, fill before registering */
-+	const char *name;
-+	const char *model;
-+	struct device *dev;
-+	int num_nodes;
-+	struct imgu_video_device *nodes;
-+	struct device *vb2_alloc_dev;
-+	const struct ipu3_mem2mem2_ops *ops;
-+	const struct vb2_mem_ops *vb2_mem_ops;
-+	unsigned int buf_struct_size;
-+	bool streaming;		/* Public read only */
-+	struct v4l2_ctrl_handler *ctrl_handler;
-+
-+	/* Private fields */
-+	struct v4l2_device v4l2_dev;
-+	struct media_device media_dev;
-+	struct media_pipeline pipeline;
++struct vfe_line {
++	enum vfe_line_id id;
 +	struct v4l2_subdev subdev;
-+	struct media_pad *subdev_pads;
-+	struct v4l2_file_operations v4l2_file_ops;
++	struct media_pad pads[MSM_VFE_PADS_NUM];
++	struct v4l2_mbus_framefmt fmt[MSM_VFE_PADS_NUM];
++	struct camss_video video_out;
++	struct vfe_output output;
 +};
 +
-+/**
-+ * struct ipu3_mem2mem2_ops - mem2mem2 ops
-+ * defines driver specific callback APIs like
-+ * start stream.
-+ */
-+struct ipu3_mem2mem2_ops {
-+	int (*s_stream)(struct ipu3_mem2mem2_device *m2m2_dev, int enable);
-+};
-+
-+/*
-+ * imgu_device -- ImgU (Imaging Unit) driver
-+ */
-+struct imgu_device {
-+	struct pci_dev *pci_dev;
++struct vfe_device {
++	u8 id;
 +	void __iomem *base;
-+
-+	/* Internally enabled queues */
-+	struct {
-+		size_t dummybuf_size;
-+		void *dummybuf_vaddr;
-+		dma_addr_t dummybuf_daddr;
-+		struct ipu3_css_buffer dummybufs[IMGU_MAX_QUEUE_DEPTH];
-+	} queues[IPU3_CSS_QUEUES];
-+	struct imgu_video_device mem2mem2_nodes[IMGU_NODE_NUM];
-+	bool queue_enabled[IMGU_NODE_NUM];
-+
-+	/* Delegate v4l2 support */
-+	struct ipu3_mem2mem2_device mem2mem2;
-+	/* MMU driver for css */
-+	struct ipu3_mmu mmu;
-+	/* css - Camera Sub-System */
-+	struct ipu3_css css;
-+
-+	/*
-+	 * Coarse-grained lock to protect
-+	 * m2m2_buf.list and css->queue
-+	 */
-+	struct mutex lock;
-+	struct {
-+		struct v4l2_rect eff; /* effective resolution */
-+		struct v4l2_rect bds; /* bayer-domain scaled resolution*/
-+	} rect;
++	u32 irq;
++	char irq_name[30];
++	struct clk **clock;
++	int nclocks;
++	struct completion reset_complete;
++	struct completion halt_complete;
++	struct mutex power_lock;
++	int power_count;
++	struct mutex stream_lock;
++	int stream_count;
++	spinlock_t output_lock;
++	enum vfe_line_id wm_output_map[MSM_VFE_IMAGE_MASTERS_NUM];
++	struct vfe_line line[MSM_VFE_LINE_NUM];
++	u32 reg_update;
++	u8 was_streaming;
 +};
 +
-+int imgu_node_to_queue(int node);
-+int imgu_map_node(struct imgu_device *imgu, int css_queue);
-+void imgu_buffer_done(struct imgu_device *imgu, struct vb2_buffer *vb,
-+			enum vb2_buffer_state state);
-+int imgu_queue_buffers(struct imgu_device *imgu, bool initial);
-+void imgu_dummybufs_cleanup(struct imgu_device *imgu);
-+int imgu_dummybufs_init(struct imgu_device *imgu);
++struct resources;
 +
-+int ipu3_v4l2_register(struct imgu_device *dev);
-+int ipu3_v4l2_unregister(struct imgu_device *dev);
-+void ipu3_v4l2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state);
++int msm_vfe_subdev_init(struct vfe_device *vfe, struct resources *res);
 +
-+#endif
++int msm_vfe_register_entities(struct vfe_device *vfe,
++			      struct v4l2_device *v4l2_dev);
++
++void msm_vfe_unregister_entities(struct vfe_device *vfe);
++
++void msm_vfe_get_vfe_id(struct media_entity *entity, u8 *id);
++void msm_vfe_get_vfe_line_id(struct media_entity *entity, enum vfe_line_id *id);
++
++void msm_vfe_stop_streaming(struct vfe_device *vfe);
++
++#endif /* QC_MSM_CAMSS_VFE_H */
 -- 
-2.7.4
+1.9.1
