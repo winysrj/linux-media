@@ -1,77 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:33054 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750819AbdFZUDA (ORCPT
+Received: from mail-ua0-f196.google.com ([209.85.217.196]:35025 "EHLO
+        mail-ua0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751038AbdFTMzl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 16:03:00 -0400
+        Tue, 20 Jun 2017 08:55:41 -0400
+Received: by mail-ua0-f196.google.com with SMTP id j53so2328278uaa.2
+        for <linux-media@vger.kernel.org>; Tue, 20 Jun 2017 05:55:40 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <2c173ca0-533c-babc-dcc7-f265bc3fda5d@cogentembedded.com>
-References: <20170623203456.503714406@cogentembedded.com> <20170626194905.zjvdzcdlnv74mnr5@rob-hp-laptop>
- <2c173ca0-533c-babc-dcc7-f265bc3fda5d@cogentembedded.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 26 Jun 2017 22:02:58 +0200
-Message-ID: <CAMuHMdX_RWn_p5U2K8E+zHy8Pmm8azbA4uySyfDxpNKvD6acAw@mail.gmail.com>
-Subject: Re: [PATCH v6] media: platform: Renesas IMR driver
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Rob Herring <robh@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Konstantin Kozhevnikov
-        <Konstantin.Kozhevnikov@cogentembedded.com>
+In-Reply-To: <20170609161026.7582-1-khilman@baylibre.com>
+References: <20170609161026.7582-1-khilman@baylibre.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Tue, 20 Jun 2017 13:55:09 +0100
+Message-ID: <CA+V-a8u49iwtp9G-J5i6omnrS9WGAcXjMsYFas7c0ECw5yOntw@mail.gmail.com>
+Subject: Re: [PATCH v2] [media] davinci: vpif: adaptions for DT support
+To: Kevin Hilman <khilman@baylibre.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        linux-media <linux-media@vger.kernel.org>,
+        Sekhar Nori <nsekhar@ti.com>,
+        David Lechner <david@lechnology.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        Benoit Parrot <bparrot@ti.com>,
+        LAK <linux-arm-kernel@lists.infradead.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergei,
-
-On Mon, Jun 26, 2017 at 9:56 PM, Sergei Shtylyov
-<sergei.shtylyov@cogentembedded.com> wrote:
-> On 06/26/2017 10:49 PM, Rob Herring wrote:
->>> From: Konstantin Kozhevnikov <Konstantin.Kozhevnikov@cogentembedded.com>
->>>
->>> The image renderer, or the distortion correction engine, is a drawing
->>> processor with a simple instruction system capable of referencing video
->>> capture data or data in an external memory as the 2D texture data and
->>> performing texture mapping and drawing with respect to any shape that is
->>> split into triangular objects.
->>>
->>> This V4L2 memory-to-memory device driver only supports image renderer
->>> light
->>> extended 4 (IMR-LX4) found in the R-Car gen3 SoCs; the R-Car gen2 support
->>> can be added later...
->>>
->>> [Sergei: merged 2 original patches, added  the patch description, removed
-
-[...]
-
->>> macros.]
->>
->>
->> TL;DR needed here IMO.
+On Fri, Jun 9, 2017 at 5:10 PM, Kevin Hilman <khilman@baylibre.com> wrote:
+> The davinci VPIF is a single hardware block, but the existing driver
+> is broken up into a common library (vpif.c), output (vpif_display.c) and
+> intput (vpif_capture.c).
 >
->    Not sure I understand... stands for "too long; didn't read", right?
+> When migrating to DT, to better model the hardware, and because
+> registers, interrupts, etc. are all common,it was decided to
+> have a single VPIF hardware node[1].
 >
->> Not sure anyone really cares every detail you
->> changed in re-writing this. If they did, it should all be separate
->> commits.
+> Because davinci uses legacy, non-DT boot on several SoCs still, the
+> platform_drivers need to remain.  But they are also needed in DT boot.
+> Since there are no DT nodes for the display/capture parts in DT
+> boot (there is a single node for the parent/common device) we need to
+> create platform_devices somewhere to instansiate the platform_drivers.
 >
->    AFAIK this is a way that's things are dealt with when you submit somebody
-> else's work with your changes. Sorry if the list is too long...
+> When VPIF display/capture are needed for a DT boot, the VPIF node
+> will have endpoints defined for its subdevs.  Therefore, vpif_probe()
+> checks for the presence of endpoints, and if detected manually creates
+> the platform_devices for the display and capture platform_drivers.
+>
+> [1] Documentation/devicetree/bindings/media/ti,da850-vpif.txt
+>
+> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
 
-Based on a patch by Konstantin Kozhevnikov
-<Konstantin.Kozhevnikov@cogentembedded.com>?
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Of course, that's bad for your coworker's patch statistics...
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Cheers,
+--Prabhakar Lad
