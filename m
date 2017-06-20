@@ -1,78 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f170.google.com ([209.85.216.170]:33887 "EHLO
-        mail-qt0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751693AbdF1A3L (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48875
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750993AbdFTLVx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 20:29:11 -0400
-MIME-Version: 1.0
-In-Reply-To: <CAAFQd5BHAiTq9f4nvwFiy5DzZ0Jep9d4K0saAkoxzaK86a8GJg@mail.gmail.com>
-References: <1498488673-27900-1-git-send-email-jacob-chen@iotwrt.com> <CAAFQd5BHAiTq9f4nvwFiy5DzZ0Jep9d4K0saAkoxzaK86a8GJg@mail.gmail.com>
-From: Jacob Chen <jacobchen110@gmail.com>
-Date: Wed, 28 Jun 2017 08:29:09 +0800
-Message-ID: <CAFLEztT7urS_VAJ5h3dUgyCyJwfeAFezwcAr8QpRHAEEbsGSWQ@mail.gmail.com>
-Subject: Re: [PATCH 1/5] [media] rockchip/rga: v4l2 m2m support
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        =?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko@sntech.de>,
+        Tue, 20 Jun 2017 07:21:53 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH] [media] ov13858: remove duplicated const declaration
+Date: Tue, 20 Jun 2017 08:21:14 -0300
+Message-Id: <6584a77b6ad17a46dba2d39024a148b206f07b8b.1497957671.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+As reported by gcc:
 
-2017-06-27 16:39 GMT+08:00 Tomasz Figa <tfiga@chromium.org>:
-> Hi Jacob,
->
-> Please see my comments inline.
->
-> On Mon, Jun 26, 2017 at 11:51 PM, Jacob Chen <jacob-chen@iotwrt.com> wrote:
->> Rockchip RGA is a separate 2D raster graphic acceleration unit. It
->> accelerates 2D graphics operations, such as point/line drawing, image
->> scaling, rotation, BitBLT, alpha blending and image blur/sharpness.
-> [snip]
->> +static int rga_buf_init(struct vb2_buffer *vb)
->> +{
->> +       struct rga_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
->> +       struct rockchip_rga *rga = ctx->rga;
->> +       struct sg_table *sgt;
->> +       struct scatterlist *sgl;
->> +       unsigned int *pages;
->> +       struct rga_buf *buf;
->> +       unsigned int address, len, i, p;
->> +       unsigned int mapped_size = 0;
->> +
->> +       /* Create local MMU table for RGA */
->> +       sgt = vb2_plane_cookie(vb, 0);
->> +
->> +       /*
->> +        * Alloc (2^3 * 4K) = 32K byte for storing pages, those space could
->> +        * cover 32K * 4K = 128M ram address.
->
-> Unless I'm missing something, there is 1024 32-bit values in one 4K
-> page, which can point to 4 MB of memory. The code allocates 8 of them,
-> which in total allows at most 32 MB per buffer.
->
->> +        */
->> +       pages = (unsigned int *)__get_free_pages(GFP_KERNEL | __GFP_ZERO, 3);
->
-> This is rather unfortunate and you should expect failures here on
-> actively used systems with uptime longer than few hours. Changing this
-> to dma_alloc_coherent() and enabling CMA _might_ give you a bit better
-> success rate, but...
->
+drivers/media/i2c/ov13858.c:953:20: warning: duplicate const
+drivers/media/i2c/ov13858.c:953:14: warning: duplicate 'const' declaration specifier [-Wduplicate-decl-specifier]
+ static const const s64 link_freq_menu_items[OV13858_NUM_OF_LINK_FREQS] = {
+              ^~~~~
 
-I decide to alloc a page pool when driver probe and get page from that poll.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/i2c/ov13858.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> Normally, this kind of (scatter-gather capable) hardware would allow
-> some kind of linking of separate pages, e.g. last entry in the page
-> would point to the next page, or something like that. Doesn't this RGA
-> block have something similar?
->
-> Best regards,
-> Tomasz
+diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+index 7ebcf6763866..86550d8ddfee 100644
+--- a/drivers/media/i2c/ov13858.c
++++ b/drivers/media/i2c/ov13858.c
+@@ -950,7 +950,7 @@ static const char * const ov13858_test_pattern_menu[] = {
+ #define OV13858_LINK_FREQ_INDEX_1	1
+ 
+ /* Menu items for LINK_FREQ V4L2 control */
+-static const s64 const link_freq_menu_items[OV13858_NUM_OF_LINK_FREQS] = {
++static const s64 link_freq_menu_items[OV13858_NUM_OF_LINK_FREQS] = {
+ 	OV13858_LINK_FREQ_1080MBPS,
+ 	OV13858_LINK_FREQ_540MBPS
+ };
+-- 
+2.9.4
