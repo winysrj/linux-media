@@ -1,44 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f180.google.com ([209.85.192.180]:34702 "EHLO
-        mail-pf0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750932AbdFWOwa (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:51331 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750957AbdFTL5x (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Jun 2017 10:52:30 -0400
-Received: by mail-pf0-f180.google.com with SMTP id s66so24446350pfs.1
-        for <linux-media@vger.kernel.org>; Fri, 23 Jun 2017 07:52:30 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <m34lv715hy.fsf@t19.piap.pl>
-References: <590ADAB1.1040501@suntec.net> <m3h90thwjt.fsf@t19.piap.pl>
- <m3d1bhhwf3.fsf_-_@t19.piap.pl> <CAAEAJfBVOKBcZBg91EKHBXKMOkM6eRafe8=XnW8E=6vtn2dBmQ@mail.gmail.com>
- <m38tm3j0wr.fsf@t19.piap.pl> <CAAEAJfAo8-efB-ZopydXFdRZDKsTKcSzx1vkaJwcpDQQ1Eiivw@mail.gmail.com>
- <m3zieiheng.fsf@t19.piap.pl> <b088a7cd-7585-5235-224d-a90ea9042c24@xs4all.nl> <m34lv715hy.fsf@t19.piap.pl>
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Date: Fri, 23 Jun 2017 11:52:29 -0300
-Message-ID: <CAAEAJfBrx-YBjMSfs_YwxuY=iaSYOxWKRYz+FjGUL_CwN6YD+w@mail.gmail.com>
-Subject: Re: [PATCH] TW686x: Fix OOPS on buffer alloc failure
-To: =?UTF-8?Q?Krzysztof_Ha=C5=82asa?= <khalasa@piap.pl>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        linux-media <linux-media@vger.kernel.org>,
-        zhaoxuegang <zhaoxuegang@suntec.net>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Tue, 20 Jun 2017 07:57:53 -0400
+Subject: Re: [PATCH v2 4/6] [media] s5p-jpeg: Decode 4:1:1 chroma subsampling
+ format
+To: Thierry Escande <thierry.escande@collabora.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Message-id: <460fd251-b0ce-5acc-db94-0d0e5fc9eb04@samsung.com>
+Date: Tue, 20 Jun 2017 13:57:46 +0200
+MIME-version: 1.0
+In-reply-to: <1497287605-20074-5-git-send-email-thierry.escande@collabora.com>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-language: en-US
+Content-transfer-encoding: 7bit
+References: <1497287605-20074-1-git-send-email-thierry.escande@collabora.com>
+ <CGME20170612171402epcas2p22a4c2dce550ee9f9fc50b6a504778892@epcas2p2.samsung.com>
+ <1497287605-20074-5-git-send-email-thierry.escande@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23 June 2017 at 05:18, Krzysztof Ha=C5=82asa <khalasa@piap.pl> wrote:
-> Hans Verkuil <hverkuil@xs4all.nl> writes:
->
->> Any progress on this? I gather I can expect a new patch from someone?
->
-> Well, the issue is trivial and very easy to test, though not present
-> on common x86 hw. That patch I've sent fixes it, but I'm not the one who
-> decides.
+Hi Thierry,
 
-If you can re-submit your patch addressing all the comments, I'd be happy
-to Ack it.
+W dniu 12.06.2017 o 19:13, Thierry Escande pisze:
+> From: Tony K Nadackal <tony.kn@samsung.com>
+> 
+> This patch adds support for decoding 4:1:1 chroma subsampling in the
+> jpeg header parsing function.
+> 
+> Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
+> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+> ---
+>   drivers/media/platform/s5p-jpeg/jpeg-core.c | 3 +++
+>   1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> index 0d935f5..7ef7173 100644
+> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> @@ -1236,6 +1236,9 @@ static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
+>   	case 0x33:
+>   		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
+>   		break;
+> +	case 0x41:
+> +		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_411;
+> +		break;
 
-As it stands, with the wrong subject style and without a commit log,
-it's a NAK on my side.
---=20
-Ezequiel Garc=C3=ADa, VanguardiaSur
-www.vanguardiasur.com.ar
+Merely parsing 4:1:1 subsampling is not enough.
+
+Now the s5p_jpeg_parse_hdr() sometimes returns false, among others
+it does so when unsupported subsampling is encountered in the header.
+
+As far as I know 4:1:1 is supported only on some variants (3250, 5420, 5433)
+of the hardware, so the kind of change intended by the patch author
+must take hardware variants into account. In the above function
+ctx is available, so accessing hardware variant information is possible.
+
+The s5p_jpeg_parse_hdr() is a lengthy function, so probably the
+switch (subsampling) part should be factored out to a separate
+function and extended appropriately.
+
+Andrzej  
