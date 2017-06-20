@@ -1,65 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:33597 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750771AbdFNGsU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 02:48:20 -0400
-Subject: Re: [PATCH v2 0/2] Avoid namespace collision within macros & tidyup
-To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        broonie@kernel.org, hverkuil@xs4all.nl, mattw@codeaurora.org,
-        mitchelh@codeaurora.org, akpm@linux-foundation.org,
-        yamada.masahiro@socionext.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, chris.paterson2@renesas.com
-References: <20170613133348.48044-1-ramesh.shanmugasundaram@bp.renesas.com>
-From: Ian Arkver <ian.arkver.dev@gmail.com>
-Message-ID: <293256b4-2477-e5f6-eca6-e5eaf9b14876@gmail.com>
-Date: Wed, 14 Jun 2017 07:48:14 +0100
+Received: from mail.anw.at ([195.234.101.228]:51423 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751446AbdFTUzP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Jun 2017 16:55:15 -0400
+Subject: Re: [PATCH v3 00/13] stv0367/ddbridge: support CTv6/FlexCT hardware
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Daniel Scheller <d.scheller.oss@gmail.com>
+References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
+ <20170412212327.5b75be19@macbox>
+ <20170507174212.2e45ab71@audiostation.wuest.de>
+ <20170528234537.3bed2dde@macbox> <20170619221821.022fc473@macbox>
+ <20170620093645.6f72fd1a@vento.lan>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        Hans Verkuil <hverkuil@xs4all.nl>, liplianin@netup.ru,
+        rjkm@metzlerbros.de, crope@iki.fi
+From: "Jasmin J." <jasmin@anw.at>
+Message-ID: <db610add-40a0-df59-b359-91d576834d51@anw.at>
+Date: Tue, 20 Jun 2017 22:54:56 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170613133348.48044-1-ramesh.shanmugasundaram@bp.renesas.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-GB
+In-Reply-To: <20170620093645.6f72fd1a@vento.lan>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13/06/17 14:33, Ramesh Shanmugasundaram wrote:
-> Hi All,
-> 
-> The readx_poll_timeout & similar macros defines local variable that can
-> cause name space collision with the caller. Fixed this issue by prefixing
-> them with underscores.
+Hello Mauro!
 
-The compound statement has a local variable scope, so these won't 
-collide with the caller I believe.
+> Yeah, it would be great if Ralph would have some time to review
+> them, or to submit a new series adding all pending features from
+> DD drivers upstream.
+I am pretty sure he will not do that.
 
-> Also tidied couple of instances where the macro
-> arguments are used in expressions without paranthesis.
-> 
-> This patchset is based on top of today's linux-next repo.
-> commit bc4c75f41a1c ("Add linux-next specific files for 20170613")
-> 
-> Change history:
-> 
-> v2:
->   - iopoll.h:
-> 	- Enclosed timeout_us & sleep_us arguments with paranthesis
->   - regmap.h:
-> 	- Enclosed timeout_us & sleep_us arguments with paranthesis
-> 	- Renamed pollret to __ret
-> 
-> Note: timeout_us cause spare check warning as identified here [1].
-> 
-> [1] https://www.mail-archive.com/linux-renesas-soc@vger.kernel.org/msg15138.html
-> 
-> Thanks,
-> Ramesh
-> 
-> Ramesh Shanmugasundaram (2):
->    iopoll: Avoid namespace collision within macros & tidyup
->    regmap: Avoid namespace collision within macro & tidyup
-> 
->   include/linux/iopoll.h | 12 +++++++-----
->   include/linux/regmap.h | 17 +++++++++--------
->   2 files changed, 16 insertions(+), 13 deletions(-)
-> 
+> Both Jasmin and Thomas could have reviewed it, and replied
+> if they tested it, and on what conditions.
+I can't test this, I have only S2 cards here, sorry. I will not sign
+things, which I can't test.
+
+BR,
+   Jasmin
