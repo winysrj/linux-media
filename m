@@ -1,125 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:64346 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750971AbdFBSMS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Jun 2017 14:12:18 -0400
-From: "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "Hsu, Cedric" <cedric.hsu@intel.com>
-Subject: RE: [PATCH v7 1/1] [media] i2c: add support for OV13858 sensor
-Date: Fri, 2 Jun 2017 18:12:16 +0000
-Message-ID: <7A4F467111FEF64486F40DFE7DF3500A03EB82E3@ORSMSX111.amr.corp.intel.com>
-References: <1496357116-23194-1-git-send-email-hyungwoo.yang@intel.com>
- <20170602075429.GN1019@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20170602075429.GN1019@valkosipuli.retiisi.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49078
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751124AbdFTMgy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Jun 2017 08:36:54 -0400
+Date: Tue, 20 Jun 2017 09:36:45 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        Hans Verkuil <hverkuil@xs4all.nl>, liplianin@netup.ru,
+        rjkm@metzlerbros.de, crope@iki.fi, "Jasmin J." <jasmin@anw.at>
+Subject: Re: [PATCH v3 00/13] stv0367/ddbridge: support CTv6/FlexCT hardware
+Message-ID: <20170620093645.6f72fd1a@vento.lan>
+In-Reply-To: <20170619221821.022fc473@macbox>
+References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
+        <20170412212327.5b75be19@macbox>
+        <20170507174212.2e45ab71@audiostation.wuest.de>
+        <20170528234537.3bed2dde@macbox>
+        <20170619221821.022fc473@macbox>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Mon, 19 Jun 2017 22:18:21 +0200
+Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
 
-Hi Sakari,
+> Am Sun, 28 May 2017 23:45:37 +0200
+> schrieb Daniel Scheller <d.scheller.oss@gmail.com>:
+> 
+> > Am Sun, 7 May 2017 17:42:12 +0200
+> > schrieb Daniel Scheller <d.scheller.oss@gmail.com>:
+> >   
+> > > Am Wed, 12 Apr 2017 21:23:27 +0200
+> > > schrieb Daniel Scheller <d.scheller.oss@gmail.com>:
+> > >     
+> > > > Am Wed, 29 Mar 2017 18:43:00 +0200
+> > > > schrieb Daniel Scheller <d.scheller.oss@gmail.com>:
+> > > >       
+> > > > > From: Daniel Scheller <d.scheller@gmx.net>
+> > > > > 
+> > > > > Third iteration of the DD CineCTv6/FlexCT support patches with
+> > > > > mostly all things cleaned up that popped up so far. Obsoletes V1
+> > > > > and V2 series.
+> > > > > 
+> > > > > These patches enhance the functionality of dvb-frontends/stv0367
+> > > > > to work with Digital Devices hardware driven by the ST STV0367
+> > > > > demodulator chip and adds probe & attach bits to ddbridge to
+> > > > > make use of them, effectively enabling full support for
+> > > > > CineCTv6 PCIe bridges and (older) DuoFlex CT addon
+> > > > > modules.        
+> > > > 
+> > > > Since V1 was sent over five weeks ago: Ping? Anyone? I'd really
+> > > > like to get this upstreamed.      
+> > > 
+> > > Don't want to sound impatient, but V1 nears nine weeks, so: Second
+> > > Ping.    
+> > 
+> > Friendly third time Ping on this - Really, I'd like to have this
+> > merged so those quite aging (but still fine) DD CineCTv6 boards
+> > finally are supported without having to install out-of-tree drivers
+> > which even break the V4L-DVB subsystem...  
+> 
+> Well. From how things look, these and the cxd2841er+C2T2 ddbridge
+> support patches won't make it in time for the 4.13 merge window.
 
-I have fixed runtime PM calls in .probe() and .remove(). I'll submit v8
+There is time. I just merged this series today.
 
-Thanks,
-Hyungwoo
+The thing is that we currently have few developers working on
+DVB, and no sub-maintainers. Due to that, I need to review
+them myself, with I usually do after reviewing/applying patches
+from sub-maintainers.
 
------Original Message-----
-> From: Sakari Ailus [mailto:sakari.ailus@iki.fi] 
-> Sent: Friday, June 2, 2017 12:54 AM
-> To: Yang, Hyungwoo <hyungwoo.yang@intel.com>
-> Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com; Zheng, Jian Xu <jian.xu.zheng@intel.com>; tfiga@chromium.org; Hsu, Cedric <cedric.hsu@intel.com>
-> Subject: Re: [PATCH v7 1/1] [media] i2c: add support for OV13858 sensor
-> 
-> Hi Hyungwoo,
-> 
-> On Thu, Jun 01, 2017 at 03:45:16PM -0700, Hyungwoo Yang wrote:
-> ...
-> > +static int ov13858_probe(struct i2c_client *client,
-> > +			 const struct i2c_device_id *devid) {
-> > +	struct ov13858 *ov13858;
-> > +	int ret;
-> > +
-> > +	ov13858 = devm_kzalloc(&client->dev, sizeof(*ov13858), GFP_KERNEL);
-> > +	if (!ov13858)
-> > +		return -ENOMEM;
-> > +
-> > +	/* Initialize subdev */
-> > +	v4l2_i2c_subdev_init(&ov13858->sd, client, &ov13858_subdev_ops);
-> > +
-> > +	/*
-> > +	 * Enable runtime PM.
-> > +	 * The sensor is already powered on ACPI domain PM
-> > +	 */
-> > +	pm_runtime_get_noresume(&client->dev);
-> > +	pm_runtime_set_active(&client->dev);
-> > +	pm_runtime_enable(&client->dev);
-> 
-> As you already have in comments, the device is already powered on in an ACPI based system. pm_runtime_get_noresume() prevents powering the device off during probe after runtime PM is enabled.
-> 
-> It'd be better to also move the calls to pm_runtime_set_active() and
-> pm_runtime_enable() just before returning 0. This way you can get rid of extra error handling you'd otherwise need to do: once you call pm_runtime_get_noresume(), you need to call pm_runtime_put() or one of its variants as well.
-> 
+> Also, unfortunately, the original owners and/or maintainers of the
+> affected drivers (besides cxd2841er), namely stv0367 and ddbridge,
+> either are MIA or not interested in reviewing or acking this.
 
-Ack. I agree I have lazy impelementation in .probe() and .remove(). Like you said, it's better to enable runtime PM just before returning 0.
-Yes, I'm calling pm_runtme_put as you can see to turn off the device.
+Yeah, it would be great if Ralph would have some time to review
+them, or to submit a new series adding all pending features from
+DD drivers upstream.
 
-> > +
-> > +	/* Check module identity */
-> > +	ret = ov13858_identify_module(ov13858);
-> > +	if (ret) {
-> > +		dev_err(&client->dev, "failed to find sensor: %d\n", ret);
-> > +		return ret;
-> > +	}
-> > +
-> > +	/* Set default mode to max resolution */
-> > +	ov13858->cur_mode = &supported_modes[0];
-> > +
-> > +	ret = ov13858_init_controls(ov13858);
-> > +	if (ret)
-> > +		return ret;
-> > +
-> > +	/* Initialize subdev */
-> > +	ov13858->sd.internal_ops = &ov13858_internal_ops;
-> > +	ov13858->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> > +	ov13858->sd.entity.ops = &ov13858_subdev_entity_ops;
-> > +	ov13858->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
-> > +
-> > +	/* Initialize source pad */
-> > +	ov13858->pad.flags = MEDIA_PAD_FL_SOURCE;
-> > +	ret = media_entity_pads_init(&ov13858->sd.entity, 1, &ov13858->pad);
-> > +	if (ret) {
-> > +		dev_err(&client->dev, "%s failed:%d\n", __func__, ret);
-> > +		goto error_handler_free;
-> > +	}
-> > +
-> > +	ret = v4l2_async_register_subdev(&ov13858->sd);
-> > +	if (ret < 0)
-> > +		goto error_media_entity;
-> > +
-> > +	/* Turn off */
-> > +	pm_runtime_put(&client->dev);
-> > +
-> > +	return 0;
-> > +
-> > +error_media_entity:
-> > +	media_entity_cleanup(&ov13858->sd.entity);
-> > +
-> > +error_handler_free:
-> > +	ov13858_free_controls(ov13858);
-> > +	dev_err(&client->dev, "%s failed:%d\n", __func__, ret);
-> > +
-> > +	return ret;
-> > +}
+> I have plenty of more work (patches) done, all building upon this CT
+> and C2T2 hardware support, which - together with the work Jasmin has
+> done regarding the en50221 and cxd2099 support - would finally bring
+> the in-tree ddbridge driver on par with the package Digital Devices'
+> provides, having addressed most of the critics the previous attempts to
+> bump the driver received (incremental changes which are more or less
+> easy to review, from what can be done by tearing tarballs without
+> proper changelogs apart).
+
+Both Jasmin and Thomas could have reviewed it, and replied
+if they tested it, and on what conditions. I tend to give
+people some time to review/test patches, before doing my
+review, as I don't usually have time for testing everything
+myself.
+
 > 
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
->
+> The original series of this will be four(!) months old soon :/
+> 
+> Is there anything wrong with this? How to proceed with this?
+> 
+> (Cc Hans since you also seem to be reviewing patches)
+
+Hans is focused at V4L2 side.
+
+> 
+> That said, fourth ping.
+
+Btw, while you're here, it would be great if you could take
+a look on those warnings (that comes via smatch):
+
+	drivers/media/pci/ddbridge/ddbridge-core.c:1009 input_tasklet() warn: this loop depends on readl() succeeding
+	drivers/media/pci/ddbridge/ddbridge-core.c:1353 flashio() warn: this loop depends on readl() succeeding
+	drivers/media/pci/ddbridge/ddbridge-core.c:1373 flashio() warn: this loop depends on readl() succeeding
+
+Regards,
+Mauro
