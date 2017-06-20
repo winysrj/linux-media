@@ -1,52 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:46568 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754243AbdFWJK5 (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:45399 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751101AbdFTNcl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Jun 2017 05:10:57 -0400
-Subject: Re: [PATCH 1/6] v4l: vsp1: Remove WPF vertical flip support on
- VSP2-B[CD] and VSP2-D
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20170615082409.9523-1-laurent.pinchart+renesas@ideasonboard.com>
- <20170615082409.9523-2-laurent.pinchart+renesas@ideasonboard.com>
- <01747c5c-bb5e-77ff-c46d-9589c606cef7@xs4all.nl> <1880337.HyBPYQX1Jb@avalon>
- <3fc0137d-02ce-c9e4-0c82-5fff803b440d@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e499dfd0-50fd-a45b-6807-a87224d0ddf5@xs4all.nl>
-Date: Fri, 23 Jun 2017 11:10:45 +0200
-MIME-Version: 1.0
-In-Reply-To: <3fc0137d-02ce-c9e4-0c82-5fff803b440d@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+        Tue, 20 Jun 2017 09:32:41 -0400
+Subject: Re: [PATCH 2/2] media/uapi/v4l: clarify cropcap/crop/selection
+ behavior
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <9c1e4f38-3d66-b087-5f99-fa6821908705@samsung.com>
+Date: Tue, 20 Jun 2017 15:32:30 +0200
+MIME-version: 1.0
+In-reply-to: <20170619134910.10138-3-hverkuil@xs4all.nl>
+Content-type: text/plain; charset="utf-8"; format="flowed"
+Content-language: en-GB
+Content-transfer-encoding: 7bit
+References: <20170619134910.10138-1-hverkuil@xs4all.nl>
+        <CGME20170619134939epcas4p302a3cc55e8a46c3e61efa407622d14bd@epcas4p3.samsung.com>
+        <20170619134910.10138-3-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/19/17 13:18, Hans Verkuil wrote:
-> On 06/19/2017 01:16 PM, Laurent Pinchart wrote:
->> Hi Hans,
->>
->> On Thursday 15 Jun 2017 10:53:33 Hans Verkuil wrote:
->>> On 06/15/17 10:24, Laurent Pinchart wrote:
->>>> The WPF vertical flip is only supported on Gen3 SoCs on the VSP2-I.
->>>> Don't enable it on other VSP2 instances.
->>>>
->>>> Signed-off-by: Laurent Pinchart
->>>> <laurent.pinchart+renesas@ideasonboard.com>
->>>
->>> Should this go to older kernels as well? Or is that not needed?
->>
->> Now that I have access to the hardware again, after further testing, it looks
->> like vertical flip is implemented in the VSP2-B[CD] and VSP2-D even though the
->> datasheet states otherwise. Let's ignore this patch for now, I'll try to
->> double-check with Renesas.
+On 06/19/2017 03:49 PM, Hans Verkuil wrote:
+> From: Hans Verkuil<hans.verkuil@cisco.com>
 > 
-> Patches 2-6 are OK, though? If they are, then I'll pick them up.
+> Unfortunately the use of 'type' was inconsistent for multiplanar
+> buffer types. Starting with 4.14 both the normal and _MPLANE variants
+> are allowed, thus making it possible to write sensible code.
+> 
+> Yes, we messed up:-(
+> 
+> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
 
-Ping! Please let me know if patches 2-6 are OK for me to pick up. I'll make
-a final pull request today, after that they'll be postponed until 4.14.
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-Regards,
-
-	Hans
+-- 
+Thanks,
+Sylwester
