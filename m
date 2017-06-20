@@ -1,61 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:34909 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751637AbdFJCNt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Jun 2017 22:13:49 -0400
-Received: by mail-pg0-f68.google.com with SMTP id f127so9102560pgc.2
-        for <linux-media@vger.kernel.org>; Fri, 09 Jun 2017 19:13:49 -0700 (PDT)
-Received: from ubuntu.windy (c122-106-153-7.carlnfd1.nsw.optusnet.com.au. [122.106.153.7])
-        by smtp.gmail.com with ESMTPSA id x30sm6045358pge.23.2017.06.09.19.13.46
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 09 Jun 2017 19:13:47 -0700 (PDT)
-Date: Sat, 10 Jun 2017 12:14:09 +1000
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: [patch] [media_build] make check_git() give more information in
- verbose mode (resend)
-Message-ID: <20170610021407.GC12764@ubuntu.windy>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49364
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751056AbdFTNfB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Jun 2017 09:35:01 -0400
+Date: Tue, 20 Jun 2017 10:34:54 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: linuxtv-commits@linuxtv.org
+Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
+Subject: Re: [git:media_tree/master] foo
+Message-ID: <20170620103454.3c80ed17@vento.lan>
+In-Reply-To: <E1dNHGh-0002VG-7X@www.linuxtv.org>
+References: <E1dNHGh-0002VG-7X@www.linuxtv.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Tue, 20 Jun 2017 11:19:56 +0000
+Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
 
-While debugging another issue I found this change helpful.
-Original send Date: Thu, 1 Jun 2017 20:44:27 +1000
+> This is an automatic generated email to let you know that the following patch were queued:
+> 
+> Subject: foo
+> Author:  Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Date:    Tue Jun 20 08:19:56 2017 -0300
 
+This one was just to see if people are paying atention...
+It turns that people were, as I got two reports already
+about it! :-D
 
+Seriously, I was doing a test with gcc warnings, before writing a
+real fix for double const.
 
-Make check_git() give more information in verbose mode.
+Once I noticed I merged it by mistake, I folded it with the right
+fix and rebased, before applying other patches at the tree. So,
+hopefully, no harm done (except that sfr pulled from my tree on
+that time, so, we may have some noise on today's -next).
 
-Signed-off-by: Vincent McIntyre <vincent.mcintyre@gmail.com>
----
- build | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/build b/build
-index d7f51c2..4457a73 100755
---- a/build
-+++ b/build
-@@ -303,12 +303,13 @@ sub check_git($$)
- 	my $cmd = shift;
- 	my $remote = shift;
- 
--	print "\$ git --git-dir media/.git $cmd\n" if ($level);
-+	print "\$ git --git-dir media/.git $cmd (checking for '$remote')\n" if ($level);
- 	open IN, "git --git-dir media/.git $cmd|" or die "can't run git --git-dir media/.git $cmd";
- 	while (<IN>) {
- 		return 1 if (m/^[\*]*\s*($remote)\n$/);
- 	}
- 	close IN;
-+	print "check failed\n" if ($level);
- 	return 0;
- }
- 
--- 
-2.7.4
-
-
------ End forwarded message -----
+Thanks,
+Mauro
