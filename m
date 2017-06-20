@@ -1,181 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:58935 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752141AbdFNRiq (ORCPT
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:36968 "EHLO
+        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751038AbdFTMmc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 13:38:46 -0400
-Subject: Re: [RFC 0/2] BCM283x Camera Receiver driver
-To: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-rpi-kernel@lists.infradead.org
-References: <cover.1497452006.git.dave.stevenson@raspberrypi.org>
- <eef29bfb-3336-4f65-c188-975d3937cb67@xs4all.nl>
- <CAAoAYcN67=d1DyqeAEYpeZDTuMh9p1eaiAzt7RJdcpYOwShVgw@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <38a9b418-f320-3c98-9536-7e85c00211e4@xs4all.nl>
-Date: Wed, 14 Jun 2017 19:38:38 +0200
+        Tue, 20 Jun 2017 08:42:32 -0400
+Received: by mail-wm0-f51.google.com with SMTP id d73so19023808wma.0
+        for <linux-media@vger.kernel.org>; Tue, 20 Jun 2017 05:42:31 -0700 (PDT)
+Subject: Re: [GIT PULL FOR v4.13] Add qcom venus driver
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+References: <9a84a004-ebdc-fba7-2cee-b91857788599@xs4all.nl>
+ <20170620085951.11e5c8dd@vento.lan>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <5ecc833a-e59b-475b-d001-39367b52f46e@linaro.org>
+Date: Tue, 20 Jun 2017 15:42:28 +0300
 MIME-Version: 1.0
-In-Reply-To: <CAAoAYcN67=d1DyqeAEYpeZDTuMh9p1eaiAzt7RJdcpYOwShVgw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
+In-Reply-To: <20170620085951.11e5c8dd@vento.lan>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/14/2017 06:29 PM, Dave Stevenson wrote:
-> Hi Hans.
-> 
-> On 14 June 2017 at 16:42, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> Hi Dave,
->>
->> How does this driver relate to this staging driver:
->>
->> drivers/staging/vc04_services/bcm2835-camera/
->>
->> It's not obvious to me.
-> 
-> drivers/staging/vc04_services/bcm2835-camera/ is using the VideoCore
-> firmware to control Unicam, ISP, and all the tuner algorithms. The ARM
-> gets delivered fully processed buffers from the VideoCore side. The
-> firmware only has drivers for the Omnivision OV5647 and Sony IMX219
-> (and an unsupported one for the Toshiba TC358743).
-> 
-> This driver is solely the Unicam block, reading the data in over
-> CSI2/CCP2 from the sensor and writing it to memory. No ISP or control
-> loops.
-> Other than power management, this driver is running solely on the ARM
-> with no involvement from the VideoCore firmware.
-> The sensor driver is whatever suitable V4L2 subdevice driver you fancy
-> attaching (as long as it supports CSI2, or eventually CCP2).
+Hi Mauro,
 
-What is the interaction between these two drivers? Can they co-exist?
-I would expect them to be mutually exclusive.
-
+On 06/20/2017 02:59 PM, Mauro Carvalho Chehab wrote:
+> Em Fri, 16 Jun 2017 10:19:46 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
->> On 06/14/2017 05:15 PM, Dave Stevenson wrote:
->>>
->>> Hi All.
->>>
->>> This is adding a V4L2 subdevice driver for the CSI2/CCP2 camera
->>> receiver peripheral on BCM283x, as used on Raspberry Pi.
->>>
->>> v4l2-compliance results depend on the sensor subdevice this is
->>> connected to. It passes the basic tests cleanly with TC358743,
->>> but objects with OV5647
->>> fail: v4l2-test-controls.cpp(574): g_ext_ctrls does not support count == 0
->>> Neither OV5647 nor Unicam support any controls.
+>> Hi Mauro,
 >>
+>> Second attempt to add the venus driver.
 >>
->> Are you compiling v4l2-compliance from the v4l-utils git repo? If not,
->> then please do so and run again. The version packaged by distros tends
->> to be seriously outdated.
+>> Regards,
+>>
+>> 	Hans
+>>
+>> The following changes since commit acec3630155763c170c7ae6508cf973355464508:
+>>
+>>    [media] s3c-camif: fix arguments position in a function call (2017-06-13 14:21:24 -0300)
+>>
+>> are available in the git repository at:
+>>
+>>    git://linuxtv.org/hverkuil/media_tree.git venus
+>>
+>> for you to fetch changes up to 3bf1c3aacb172db8fcbd25c62b042fc265c5a494:
+>>
+>>    media: venus: enable building with COMPILE_TEST (2017-06-16 09:59:36 +0200)
+>>
+>> ----------------------------------------------------------------
+>> Stanimir Varbanov (19):
+>>        media: v4l2-mem2mem: extend m2m APIs for more accurate buffer management
+>>        doc: DT: venus: binding document for Qualcomm video driver
+>>        MAINTAINERS: Add Qualcomm Venus video accelerator driver
+>>        media: venus: adding core part and helper functions
+>>        media: venus: vdec: add video decoder files
+>>        media: venus: venc: add video encoder files
+>>        media: venus: hfi: add Host Firmware Interface (HFI)
+>>        media: venus: hfi: add Venus HFI files
+>>        media: venus: enable building of Venus video driver
+>>        media: venus: hfi: fix mutex unlock
+>>        media: venus: hfi_cmds: fix variable dereferenced before check
+>>        media: venus: helpers: fix variable dereferenced before check
+>>        media: venus: hfi_venus: fix variable dereferenced before check
+>>        media: venus: hfi_msgs: fix set but not used variables
+>>        media: venus: vdec: fix compile error in vdec_close
+>>        media: venus: venc: fix compile error in venc_close
+>>        media: venus: vdec: add support for min buffers for capture
+>>        media: venus: update firmware path with linux-firmware place
 > 
-> Yes, I'm building from v4l-utils.git.
-> I updated within the last week, although you appear to have added 2
-> commits since (both CEC related).
-> I'm on "ef074cf media-ctl: add colorimetry support"
-
-But the line with that error is at line number 587 in my repo, not 574.
-So I'm a bit suspicious.
-
-Anyway, can you give the output of 'v4l2-ctl -l'?
-
 > 
->>> I must admit to not having got OV5647 to stream with the current driver
->>> register settings. It works with a set of register settings for VGA RAW10.
->>> I also have a couple of patches pending for OV5647, but would like to
->>> understand the issues better before sending them out.
->>>
->>> Two queries I do have in V4L2-land:
->>> - When s_dv_timings or s_std is called, is the format meant to
->>>     be updated automatically?
->>
->>
->> Yes. Exception is if the new timings/std is exactly the same as the old
->> timings/std, in that case you can just return 0 and do nothing.
+>>        media: venus: enable building with COMPILE_TEST
 > 
-> OK, can do that.
+> It is too early for this patch. I merged from 4.12-rc6, and it
+> still complains about those missing symbols:
 > 
->>> Even if we're already streaming?
->>
->> That's not allowed. Return -EBUSY in that case.
+> WARNING: "qcom_scm_is_available" [drivers/media/platform/qcom/venus/venus-core.ko] undefined!
+> WARNING: "qcom_scm_pas_shutdown" [drivers/media/platform/qcom/venus/venus-core.ko] undefined!
+> WARNING: "qcom_scm_set_remote_state" [drivers/media/platform/qcom/venus/venus-core.ko] undefined!
 > 
-> Also reasonable.
-> So if the TC358743 flags a source change we have to stop streaming,
-> set the new timings (which will update the format), and start up again
-> with fresh buffers. That's what I was expecting, but wanted to
-> confirm.
+> Probably, some patch is needed somewhere to replace those functions
+> by stubs if not the right arch, in order to make it build with
+> COMPILE_TEST.
+> 
+> For now, I'm excluding this patch on today's pull.
 
-Correct. In theory there are ways around this provided the buffers are
-large enough to accommodate the new format size, but nobody actually
-supports that (might change in the not-to-distant future).
+It seems that the patch for the qcom_scm will be delayed, so I have to
+fix this in the Venus Kconfig, which doesn't seem too bad because we
+want to allow compile test for the venus driver itself not for its
+dependencies.
 
-> 
->>>     Some existing drivers seem to, but others don't.
->>> - With s_fmt, is sizeimage settable by the application in the same
->>>     way as bytesperline?
->>
->>
->> No, the driver will fill in this field, overwriting anything the
->> application put there.
->>
->> bytesperline IS settable, but most drivers will ignore what userspace
->> did and overwrite this as well.
->>
->> Normally the driver knows about HW requirements and will set sizeimage
->> to something that will work (e.g. make sure it is a multiple of 16 lines).
-> 
-> There are subtly different requirements in different hardware blocks :-(
-> eg Unicam needs bytesperline to be a multiple of 16 bytes,whilst the
-> ISP requires a multiple of 32.
-> The vertical padding is generally where we're doing software
-> processing on the VideoCore side as it's easier to just leave the the
-> 16 way SIMD processor running all 16 ways, hence needing scratch space
-> to avoid reading beyond buffers.
-> 
-> The main consumer is likely to be the ISP and that doesn't need
-> vertical context, so I'll look at removing the requirement there
-> rather than forcing it in this driver.
-> As long as we can set bytesperline (which is already supported) then
-> that requirement of the ISP is already handled.
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index f9bbba5c5dd6..b7381a4722e2 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -468,7 +468,8 @@ config VIDEO_QCOM_VENUS
+        tristate "Qualcomm Venus V4L2 encoder/decoder driver"
+        depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
+        depends on (ARCH_QCOM && IOMMU_DMA) || COMPILE_TEST
+-       select QCOM_MDT_LOADER
++       select QCOM_MDT_LOADER if (ARM || ARM64)
++       select QCOM_SCM if (ARM || ARM64)
+        select VIDEOBUF2_DMA_SG
+        select V4L2_MEM2MEM_DEV
+        ---help---
 
-It's up to you, but given the large sizes of the buffers the extra bit
-of padding doesn't really matter all that much. And if it would make it
-easier to digest by other HW blocks, then I would just add the padding.
+So if you are fine with the above change I can cook a patch?
 
-Note that users can also call VIDIOC_CREATE_BUFS instead of VIDIOC_REQBUFS
-in order to request buffers of a larger-than-needed size. I'm not sure if
-you are aware of that.
-
-> 
->>> yavta allows you to specify it on the command
->>>
->>>     line, whilst v4l2-ctl doesn't. Some of the other parts of the Pi
->>>     firmware have a requirement that the buffer is a multiple of 16 lines
->>>     high, which can be matched by V4L2 if we can over-allocate the
->>>     buffers by the app specifying sizeimage. But if I allow that,
->>>     then I get a v4l2-compliance failure as the size doesn't get
->>>     reset when switching from RGB3 to UYVY as it takes the request as
->>>     a request to over-allocate.
->>>
->>> Apologies if I've messed up in sending these patches - so many ways
->>> to do something.
->>
->>
->> It looks fine at a glance.
->>
->> I will probably review this on Friday or Monday. But I need some
->> clarification
->> of the difference between this and the staging driver first.
-> 
-> Thanks. Hopefully I've given you that clarification above.
-> 
-> I'll fix the s_dv_timings and s_std handling, and s_fmt of sizeimage,
-> but will wait for other review comments before sending a v2.
-
-OK. As said, I'll take a closer look on Friday or Monday.
-
-Regards,
-
-	Hans
+-- 
+regards,
+Stan
