@@ -1,93 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:36742 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751690AbdFGSe2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:34:28 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v8 02/34] [media] dt-bindings: Add bindings for i.MX media driver
-Date: Wed,  7 Jun 2017 11:33:41 -0700
-Message-Id: <1496860453-6282-3-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mail-oi0-f52.google.com ([209.85.218.52]:36260 "EHLO
+        mail-oi0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751102AbdFTLFH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Jun 2017 07:05:07 -0400
+MIME-Version: 1.0
+In-Reply-To: <20170620082933.GA31799@amd>
 References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+ <e7e4669c-2963-b9e1-edd7-02731a6e0f9c@xs4all.nl> <c0b69c93-b9cd-25e8-ea36-fc0600efdb69@gmail.com>
+ <e4f152de-6e75-7654-178e-e6dcf9ad12f3@xs4all.nl> <43887f25-bb73-9020-0909-d275c319aaad@mentor.com>
+ <20170620082933.GA31799@amd>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Tue, 20 Jun 2017 08:05:05 -0300
+Message-ID: <CAOMZO5A_LjYzzDTG9KmEHxb2F0=1Pj2Wm8s5maKS8pxce-HX3A@mail.gmail.com>
+Subject: Re: Shawn Guo: your attetion is needed here Re: [PATCH v8 00/34] i.MX
+ Media Driver
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        andrew-ct.chen@mediatek.com, minghsiu.tsai@mediatek.com,
+        sakari.ailus@linux.intel.com, Nick Dyer <nick@shmanahar.org>,
+        songjun.wu@microchip.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        devel@driverdev.osuosl.org, markus.heiser@darmarit.de,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        shuah@kernel.org, Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Sascha Hauer <kernel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>, mchehab@kernel.org,
+        bparrot@ti.com, "robh+dt@kernel.org" <robh+dt@kernel.org>,
+        horms+renesas@verge.net.au, Tiffany Lin <tiffany.lin@mediatek.com>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        niklas.soderlund+renesas@ragnatech.se,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        Jean-Christophe TROTIN <jean-christophe.trotin@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add bindings documentation for the i.MX media driver.
+On Tue, Jun 20, 2017 at 5:29 AM, Pavel Machek <pavel@ucw.cz> wrote:
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- Documentation/devicetree/bindings/media/imx.txt | 47 +++++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/imx.txt
+> Hmm. I changed the subject to grab Shawn's attetion.
+>
+> But his acks should not be needed for forward progress. Yes, it would
+> be good, but he does not react -- so just reorder the series so that
+> dts changes come last, then apply the parts you can apply: driver can
+> go in.
+>
+> And actually... if maintainer does not respond at all, there are ways
+> to deal with that, too...
 
-diff --git a/Documentation/devicetree/bindings/media/imx.txt b/Documentation/devicetree/bindings/media/imx.txt
-new file mode 100644
-index 0000000..c1e1e2b
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/imx.txt
-@@ -0,0 +1,47 @@
-+Freescale i.MX Media Video Device
-+=================================
-+
-+Video Media Controller node
-+---------------------------
-+
-+This is the media controller node for video capture support. It is a
-+virtual device that lists the camera serial interface nodes that the
-+media device will control.
-+
-+Required properties:
-+- compatible : "fsl,imx-capture-subsystem";
-+- ports      : Should contain a list of phandles pointing to camera
-+		sensor interface ports of IPU devices
-+
-+example:
-+
-+capture-subsystem {
-+	compatible = "fsl,imx-capture-subsystem";
-+	ports = <&ipu1_csi0>, <&ipu1_csi1>;
-+};
-+
-+
-+mipi_csi2 node
-+--------------
-+
-+This is the device node for the MIPI CSI-2 Receiver, required for MIPI
-+CSI-2 sensors.
-+
-+Required properties:
-+- compatible	: "fsl,imx6-mipi-csi2", "snps,dw-mipi-csi2";
-+- reg           : physical base address and length of the register set;
-+- clocks	: the MIPI CSI-2 receiver requires three clocks: hsi_tx
-+		  (the D-PHY clock), video_27m (D-PHY PLL reference
-+		  clock), and eim_podf;
-+- clock-names	: must contain "dphy", "ref", "pix";
-+- port@*        : five port nodes must exist, containing endpoints
-+		  connecting to the source and sink devices according to
-+		  of_graph bindings. The first port is an input port,
-+		  connecting with a MIPI CSI-2 source, and ports 1
-+		  through 4 are output ports connecting with parallel
-+		  bus sink endpoint nodes and correspond to the four
-+		  MIPI CSI-2 virtual channel outputs.
-+
-+Optional properties:
-+- interrupts	: must contain two level-triggered interrupts,
-+		  in order: 100 and 101;
--- 
-2.7.4
+Shawn has already applied the dts part of the series and they show up
+in linux-next.
