@@ -1,130 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:59834 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754923AbdFXDjb (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:59361 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752328AbdFTOIn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Jun 2017 23:39:31 -0400
-Message-ID: <7c94dfd92e645e826062545dfe84c20c@smtp-cloud3.xs4all.net>
-Date: Sat, 24 Jun 2017 05:39:29 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Tue, 20 Jun 2017 10:08:43 -0400
+Subject: Re: [PATCH v2 5/6] [media] s5p-jpeg: Add support for resolution
+ change event
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Cc: Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1497287605-20074-1-git-send-email-thierry.escande@collabora.com>
+ <CGME20170612171431epcas5p19a448035865da056440a819f17875601@epcas5p1.samsung.com>
+ <1497287605-20074-6-git-send-email-thierry.escande@collabora.com>
+ <dd3fa8e9-48e2-ab1d-4b4e-da63900c08d6@samsung.com>
+ <d214a1d2-bce4-ea46-866c-6e35d16f26c9@collabora.com>
+ <25bfed86-d208-4f70-5b55-d3eb56ba9ed5@samsung.com>
+From: Thierry Escande <thierry.escande@collabora.com>
+Message-ID: <a6a50052-42cb-e4d7-a387-bea1f852345b@collabora.com>
+Date: Tue, 20 Jun 2017 16:08:39 +0200
+MIME-Version: 1.0
+In-Reply-To: <25bfed86-d208-4f70-5b55-d3eb56ba9ed5@samsung.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Andrzej,
 
-Results of the daily build of media_tree:
+On 20/06/2017 12:51, Andrzej Pietrasiewicz wrote:
+> Hi Thierry,
+> 
+> W dniu 19.06.2017 o 15:50, Thierry Escande pisze:
+>> Hi Andrzej,
+>>
+>> On 16/06/2017 17:38, Andrzej Pietrasiewicz wrote:
+>>> Hi Thierry,
+>>>
+>>> Thank you for the patch.
+>>>
+>>> Can you give a use case for resolution change event?
+>> Unfortunately, the original commit does not mention any clear use case.
+>> I've asked to the patch author for more information.
+> 
+> Can you please share what you learn about it if the author gets back to 
+> you?
+> Now that we don't know why to apply a patch I guess we should not do it.
+This event is used in Chromium by the V4L2 jpeg decode accelerator to 
+allocate output buffer. Please see:
+https://cs.chromium.org/chromium/src/media/gpu/v4l2_jpeg_decode_accelerator.cc?rcl=91793c6ef94f05e93d258db8c7f3cad59819c6b8&l=585
 
-date:			Sat Jun 24 05:00:18 CEST 2017
-media-tree git hash:	2a2599c663684a1142dae0bff7737e125891ae6d
-media_build git hash:	a5ec7f00979b6c866911fb42507770727ff5afd4
-v4l-utils git hash:	ce237eefc1f6dafafc0e1fe3a5fd9f075d3fd066
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+I'll add a note in the commit message.
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: ERRORS
-linux-4.12-rc1-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: ERRORS
-linux-4.12-rc1-x86_64: ERRORS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+> 
+> <snip>
+> 
+>>>> @@ -2510,43 +2567,18 @@ static void s5p_jpeg_buf_queue(struct
+>>>> vb2_buffer *vb)
+>>>>                return;
+>>>>            }
+>>>> -        q_data = &ctx->out_q;
+>>>> -        q_data->w = tmp.w;
+>>>> -        q_data->h = tmp.h;
+>>>> -        q_data->sos = tmp.sos;
+>>>> -        memcpy(q_data->dht.marker, tmp.dht.marker,
+>>>> -               sizeof(tmp.dht.marker));
+>>>> -        memcpy(q_data->dht.len, tmp.dht.len, sizeof(tmp.dht.len));
+>>>> -        q_data->dht.n = tmp.dht.n;
+>>>> -        memcpy(q_data->dqt.marker, tmp.dqt.marker,
+>>>> -               sizeof(tmp.dqt.marker));
+>>>> -        memcpy(q_data->dqt.len, tmp.dqt.len, sizeof(tmp.dqt.len));
+>>>> -        q_data->dqt.n = tmp.dqt.n;
+>>>> -        q_data->sof = tmp.sof;
+>>>> -        q_data->sof_len = tmp.sof_len;
+>>>> -
+>>>> -        q_data = &ctx->cap_q;
+>>>> -        q_data->w = tmp.w;
+>>>> -        q_data->h = tmp.h;
+>>>
+>>>
+>>> Why is this part removed?
+>> This has not been removed.
+>> The &tmp s5p_jpeg_q_data struct was passed to s5p_jpeg_parse_hdr() and
+>> then copied field-by-field into ctx->out_q (through q_data pointer).
+>> With this change ctx->out_q is passed to s5p_jpeg_parse_hdr() and this
+>> avoids the copy.
+> 
+> It seems that changing field-by-field copying to passing a pointer
+> directly to s5p_jpeg_parse_hdr() is an unrelated change and as such
+> should be in a separate patch.
+Will do.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Regards,
+  Thierry
