@@ -1,62 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:37754 "EHLO
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:41233 "EHLO
         lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751239AbdFFUeY (ORCPT
+        by vger.kernel.org with ESMTP id S1750711AbdFTEFk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Jun 2017 16:34:24 -0400
-Subject: Re: [PATCH 0/4] [media] davinci: vpif_capture: raw camera support
-To: Kevin Hilman <khilman@baylibre.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-References: <20170602213431.10777-1-khilman@baylibre.com>
-Cc: Sekhar Nori <nsekhar@ti.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        linux-arm-kernel@lists.infradead.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <519d0131-b9a7-4afa-78d4-8bb6dccec1ad@xs4all.nl>
-Date: Tue, 6 Jun 2017 22:34:20 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170602213431.10777-1-khilman@baylibre.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Tue, 20 Jun 2017 00:05:40 -0400
+Message-ID: <d2ffbca7d581ba15b51ed3f6bb8775de@smtp-cloud2.xs4all.net>
+Date: Tue, 20 Jun 2017 06:05:37 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kevin,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 02/06/17 23:34, Kevin Hilman wrote:
-> This series fixes/updates the support for raw camera input to the VPIF.
-> 
-> Tested on da850-evm boards using the add-on UI board.  Tested with
-> both composite video input (on-board tvp514x) and raw camera input
-> using the camera board from On-Semi based on the aptina,mt9v032
-> sensor[1], as this was the only camera board with the right connector
-> for the da850-evm UI board.
-> 
-> Verified that composite video capture is still working well after these
-> updates.
+Results of the daily build of media_tree:
 
-Can you rebase this patch series against the latest media master branch?
+date:			Tue Jun 20 05:00:15 CEST 2017
+media-tree git hash:	acec3630155763c170c7ae6508cf973355464508
+media_build git hash:	a5ec7f00979b6c866911fb42507770727ff5afd4
+v4l-utils git hash:	ce237eefc1f6dafafc0e1fe3a5fd9f075d3fd066
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-Mauro merged a lot of patches, in particular the one switching v4l2_of_ to
-v4l2_fwnode_. And that conflicts with patches 2 and 4.
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-Thanks!
+Detailed results are available here:
 
-	Hans
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-> 
-> [1] http://www.mouser.com/search/ProductDetail.aspx?R=0virtualkey0virtualkeyMT9V032C12STCH-GEVB
-> 
-> Kevin Hilman (4):
->   [media] davinci: vpif_capture: drop compliance hack
->   [media] davinci: vpif_capture: get subdevs from DT when available
->   [media] davinci: vpif_capture: cleanup raw camera support
->   [media] davinci: vpif: adaptions for DT support
-> 
->  drivers/media/platform/davinci/vpif.c         |  49 +++++-
->  drivers/media/platform/davinci/vpif_capture.c | 224 +++++++++++++++++++++++---
->  drivers/media/platform/davinci/vpif_display.c |   5 +
->  include/media/davinci/vpif_types.h            |   9 +-
->  4 files changed, 263 insertions(+), 24 deletions(-)
-> 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
