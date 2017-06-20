@@ -1,87 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:59452 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751167AbdFVOvG (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:33483 "EHLO
+        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751102AbdFTKwB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Jun 2017 10:51:06 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.13] Fix G/S_SELECTION & CROPCAP/G/S_CROP buftype
- handling
-Message-ID: <606567ae-1a26-b487-8832-6a87e8075013@xs4all.nl>
-Date: Thu, 22 Jun 2017 16:50:54 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Tue, 20 Jun 2017 06:52:01 -0400
+Subject: Re: [PATCH v2 5/6] [media] s5p-jpeg: Add support for resolution change
+ event
+To: Thierry Escande <thierry.escande@collabora.com>
+Cc: Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Message-id: <25bfed86-d208-4f70-5b55-d3eb56ba9ed5@samsung.com>
+Date: Tue, 20 Jun 2017 12:51:55 +0200
+MIME-version: 1.0
+In-reply-to: <d214a1d2-bce4-ea46-866c-6e35d16f26c9@collabora.com>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-language: en-US
+Content-transfer-encoding: 7bit
+References: <1497287605-20074-1-git-send-email-thierry.escande@collabora.com>
+ <CGME20170612171431epcas5p19a448035865da056440a819f17875601@epcas5p1.samsung.com>
+ <1497287605-20074-6-git-send-email-thierry.escande@collabora.com>
+ <dd3fa8e9-48e2-ab1d-4b4e-da63900c08d6@samsung.com>
+ <d214a1d2-bce4-ea46-866c-6e35d16f26c9@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- From the cover letter:
+Hi Thierry,
 
---------------------------------------------------
-There is a lot of confusion about the correct buffer type to use
-when calling the new selection and old crop APIs. Specifically whether
-the _MPLANE variant of a buf type should be used or not if the device
-is multi-planar. The spec said na, but that was unexpected to applications
-and drivers actually did different things as well.
+W dniu 19.06.2017 o 15:50, Thierry Escande pisze:
+> Hi Andrzej,
+> 
+> On 16/06/2017 17:38, Andrzej Pietrasiewicz wrote:
+>> Hi Thierry,
+>>
+>> Thank you for the patch.
+>>
+>> Can you give a use case for resolution change event?
+> Unfortunately, the original commit does not mention any clear use case.
+> I've asked to the patch author for more information.
 
-This patch series allows both to be used and updates the documentation
-accordingly.
+Can you please share what you learn about it if the author gets back to you?
+Now that we don't know why to apply a patch I guess we should not do it.
 
-In the end, these APIs don't care whether it is a single or multiplanar
-device, that information is irrelevant to these ioctls. So allowing
-both is not unreasonable, especially given the mess we created.
+> 
 
-The first patch is unchanged from the original RFC here:
+<snip>
 
-https://patchwork.linuxtv.org/patch/41210/
+>>> @@ -2510,43 +2567,18 @@ static void s5p_jpeg_buf_queue(struct
+>>> vb2_buffer *vb)
+>>>                return;
+>>>            }
+>>> -        q_data = &ctx->out_q;
+>>> -        q_data->w = tmp.w;
+>>> -        q_data->h = tmp.h;
+>>> -        q_data->sos = tmp.sos;
+>>> -        memcpy(q_data->dht.marker, tmp.dht.marker,
+>>> -               sizeof(tmp.dht.marker));
+>>> -        memcpy(q_data->dht.len, tmp.dht.len, sizeof(tmp.dht.len));
+>>> -        q_data->dht.n = tmp.dht.n;
+>>> -        memcpy(q_data->dqt.marker, tmp.dqt.marker,
+>>> -               sizeof(tmp.dqt.marker));
+>>> -        memcpy(q_data->dqt.len, tmp.dqt.len, sizeof(tmp.dqt.len));
+>>> -        q_data->dqt.n = tmp.dqt.n;
+>>> -        q_data->sof = tmp.sof;
+>>> -        q_data->sof_len = tmp.sof_len;
+>>> -
+>>> -        q_data = &ctx->cap_q;
+>>> -        q_data->w = tmp.w;
+>>> -        q_data->h = tmp.h;
+>>
+>>
+>> Why is this part removed?
+> This has not been removed.
+> The &tmp s5p_jpeg_q_data struct was passed to s5p_jpeg_parse_hdr() and
+> then copied field-by-field into ctx->out_q (through q_data pointer).
+> With this change ctx->out_q is passed to s5p_jpeg_parse_hdr() and this
+> avoids the copy.
 
-The second patch was updated from this original RFC:
+It seems that changing field-by-field copying to passing a pointer
+directly to s5p_jpeg_parse_hdr() is an unrelated change and as such
+should be in a separate patch.
 
-- the note was moved after the struct containing the 'type' field.
-- kernel 4.12 was replaced with 4.14 (I'm assuming this will be too
-   late for 4.13).
-- The phrase 'The Samsung Exynos drivers' was replaced by 'Some drivers'.
---------------------------------------------------
-
-Since I got all the Acks I decided to make a pull request for 4.13 rather
-than waiting for 4.14. So the second patch was updated to say 4.13 instead
-of 4.14.
-
-Mauro, if you have no or only small comments that I can easily fix, then
-I think it makes sense to resolve this confusing issue in 4.13. Otherwise
-it is not a big deal to let this slip to 4.14.
-
-Regards,
-
-	Hans
-
-The following changes since commit 76724b30f222067faf00874dc277f6c99d03d800:
-
-   [media] media: venus: enable building with COMPILE_TEST (2017-06-20 10:57:08 -0300)
-
-are available in the git repository at:
-
-   git://linuxtv.org/hverkuil/media_tree.git selbuftype
-
-for you to fetch changes up to 10348e44b016809e864193187b943bcf08e3493e:
-
-   media/uapi/v4l: clarify cropcap/crop/selection behavior (2017-06-22 16:46:25 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (2):
-       v4l2-ioctl/exynos: fix G/S_SELECTION's type handling
-       media/uapi/v4l: clarify cropcap/crop/selection behavior
-
-  Documentation/media/uapi/v4l/vidioc-cropcap.rst     | 23 +++++++++++----------
-  Documentation/media/uapi/v4l/vidioc-g-crop.rst      | 22 +++++++++++---------
-  Documentation/media/uapi/v4l/vidioc-g-selection.rst | 22 ++++++++++----------
-  drivers/media/platform/exynos-gsc/gsc-core.c        |  4 ++--
-  drivers/media/platform/exynos-gsc/gsc-m2m.c         |  8 ++++----
-  drivers/media/platform/exynos4-is/fimc-capture.c    |  4 ++--
-  drivers/media/platform/exynos4-is/fimc-lite.c       |  4 ++--
-  drivers/media/v4l2-core/v4l2-ioctl.c                | 53 +++++++++++++++++++++++++++++++++++++++++++------
-  8 files changed, 95 insertions(+), 45 deletions(-)
+Andrzej
