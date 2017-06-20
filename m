@@ -1,379 +1,283 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:57894 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751933AbdF3OfQ (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:35384 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750987AbdFTRoq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Jun 2017 10:35:16 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Eric Anholt <eric@anholt.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 07/12] cec: rework the cec event handling
-Date: Fri, 30 Jun 2017 16:35:04 +0200
-Message-Id: <20170630143509.56029-8-hverkuil@xs4all.nl>
-In-Reply-To: <20170630143509.56029-1-hverkuil@xs4all.nl>
-References: <20170630143509.56029-1-hverkuil@xs4all.nl>
+        Tue, 20 Jun 2017 13:44:46 -0400
+Received: by mail-wr0-f194.google.com with SMTP id z45so19154195wrb.2
+        for <linux-media@vger.kernel.org>; Tue, 20 Jun 2017 10:44:46 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: liplianin@netup.ru, rjkm@metzlerbros.de
+Subject: [PATCH] [media] ddbridge: use pr_* macros in favor of printk
+Date: Tue, 20 Jun 2017 19:44:42 +0200
+Message-Id: <20170620174442.7528-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Event handling was always fairly simplistic since there were only
-two events. With the addition of pin events this needed to be redesigned.
+Side effect: KERN_DEBUG messages aren't written to the kernel log anymore.
+This also improves the tda18212_ping reporting a bit so users know that if
+pinging wasn't successful, bad things might happen.
 
-The state_change and lost_msgs events are now core events with the
-guarantee that the last state is always available. The new pin events
-are a queue of events (up to 64 for each event) and the oldest event
-will be dropped if the application cannot keep up. Lost events are
-marked with a new event flag.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- drivers/media/cec/cec-adap.c | 128 +++++++++++++++++++++++++------------------
- drivers/media/cec/cec-api.c  |  48 +++++++++++-----
- include/media/cec.h          |  14 ++++-
- include/uapi/linux/cec.h     |   3 +-
- 4 files changed, 124 insertions(+), 69 deletions(-)
+ drivers/media/pci/ddbridge/ddbridge-core.c | 64 +++++++++++++++---------------
+ 1 file changed, 33 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index b3163716d95f..58df9e6a4c2d 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -78,42 +78,62 @@ static unsigned int cec_log_addr2dev(const struct cec_adapter *adap, u8 log_addr
-  * Queue a new event for this filehandle. If ts == 0, then set it
-  * to the current time.
-  *
-- * The two events that are currently defined do not need to keep track
-- * of intermediate events, so no actual queue of events is needed,
-- * instead just store the latest state and the total number of lost
-- * messages.
-- *
-- * Should new events be added in the future that require intermediate
-- * results to be queued as well, then a proper queue data structure is
-- * required. But until then, just keep it simple.
-+ * We keep a queue of at most max_event events where max_event differs
-+ * per event. If the queue becomes full, then drop the oldest event and
-+ * keep track of how many events we've dropped.
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 9420479bee9a..fff03a332e08 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -17,6 +17,8 @@
+  * http://www.gnu.org/copyleft/gpl.html
   */
- void cec_queue_event_fh(struct cec_fh *fh,
- 			const struct cec_event *new_ev, u64 ts)
- {
--	struct cec_event *ev = &fh->events[new_ev->event - 1];
-+	static const u8 max_events[CEC_NUM_EVENTS] = {
-+		1, 1, 64, 64,
-+	};
-+	struct cec_event_entry *entry;
-+	unsigned int ev_idx = new_ev->event - 1;
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
-+	if (WARN_ON(ev_idx >= ARRAY_SIZE(fh->events)))
-+		return;
- 
- 	if (ts == 0)
- 		ts = ktime_get_ns();
- 
- 	mutex_lock(&fh->lock);
--	if (new_ev->event == CEC_EVENT_LOST_MSGS &&
--	    fh->pending_events & (1 << new_ev->event)) {
--		/*
--		 * If there is already a lost_msgs event, then just
--		 * update the lost_msgs count. This effectively
--		 * merges the old and new events into one.
--		 */
--		ev->lost_msgs.lost_msgs += new_ev->lost_msgs.lost_msgs;
--		goto unlock;
--	}
-+	if (ev_idx < CEC_NUM_CORE_EVENTS)
-+		entry = &fh->core_events[ev_idx];
-+	else
-+		entry = kmalloc(sizeof(*entry), GFP_KERNEL);
-+	if (entry) {
-+		if (new_ev->event == CEC_EVENT_LOST_MSGS &&
-+		    fh->queued_events[ev_idx]) {
-+			entry->ev.lost_msgs.lost_msgs +=
-+				new_ev->lost_msgs.lost_msgs;
-+			goto unlock;
-+		}
-+		entry->ev = *new_ev;
-+		entry->ev.ts = ts;
-+
-+		if (fh->queued_events[ev_idx] < max_events[ev_idx]) {
-+			/* Add new msg at the end of the queue */
-+			list_add_tail(&entry->list, &fh->events[ev_idx]);
-+			fh->queued_events[ev_idx]++;
-+			fh->total_queued_events++;
-+			goto unlock;
-+		}
- 
--	/*
--	 * Intermediate states are not interesting, so just
--	 * overwrite any older event.
--	 */
--	*ev = *new_ev;
--	ev->ts = ts;
--	fh->pending_events |= 1 << new_ev->event;
-+		if (ev_idx >= CEC_NUM_CORE_EVENTS) {
-+			list_add_tail(&entry->list, &fh->events[ev_idx]);
-+			/* drop the oldest event */
-+			entry = list_first_entry(&fh->events[ev_idx],
-+						 struct cec_event_entry, list);
-+			list_del(&entry->list);
-+			kfree(entry);
-+		}
-+	}
-+	/* Mark that events were lost */
-+	entry = list_first_entry_or_null(&fh->events[ev_idx],
-+					 struct cec_event_entry, list);
-+	if (entry)
-+		entry->ev.flags |= CEC_EVENT_FL_DROPPED_EVENTS;
- 
- unlock:
- 	mutex_unlock(&fh->lock);
-@@ -134,46 +154,50 @@ static void cec_queue_event(struct cec_adapter *adap,
- }
- 
- /*
-- * Queue a new message for this filehandle. If there is no more room
-- * in the queue, then send the LOST_MSGS event instead.
-+ * Queue a new message for this filehandle.
-+ *
-+ * We keep a queue of at most CEC_MAX_MSG_RX_QUEUE_SZ messages. If the
-+ * queue becomes full, then drop the oldest message and keep track
-+ * of how many messages we've dropped.
-  */
- static void cec_queue_msg_fh(struct cec_fh *fh, const struct cec_msg *msg)
- {
--	static const struct cec_event ev_lost_msg = {
--		.ts = 0,
-+	static const struct cec_event ev_lost_msgs = {
- 		.event = CEC_EVENT_LOST_MSGS,
--		.flags = 0,
--		{
--			.lost_msgs.lost_msgs = 1,
--		},
-+		.lost_msgs.lost_msgs = 1,
- 	};
- 	struct cec_msg_entry *entry;
- 
- 	mutex_lock(&fh->lock);
- 	entry = kmalloc(sizeof(*entry), GFP_KERNEL);
--	if (!entry)
--		goto lost_msgs;
--
--	entry->msg = *msg;
--	/* Add new msg at the end of the queue */
--	list_add_tail(&entry->list, &fh->msgs);
-+	if (entry) {
-+		entry->msg = *msg;
-+		/* Add new msg at the end of the queue */
-+		list_add_tail(&entry->list, &fh->msgs);
-+
-+		if (fh->queued_msgs < CEC_MAX_MSG_RX_QUEUE_SZ) {
-+			/* All is fine if there is enough room */
-+			fh->queued_msgs++;
-+			mutex_unlock(&fh->lock);
-+			wake_up_interruptible(&fh->wait);
-+			return;
-+		}
- 
--	/*
--	 * if the queue now has more than CEC_MAX_MSG_RX_QUEUE_SZ
--	 * messages, drop the oldest one and send a lost message event.
--	 */
--	if (fh->queued_msgs == CEC_MAX_MSG_RX_QUEUE_SZ) {
-+		/*
-+		 * if the message queue is full, then drop the oldest one and send
-+		 * a lost message event.
-+		 */
-+		entry = list_first_entry(&fh->msgs, struct cec_msg_entry, list);
- 		list_del(&entry->list);
--		goto lost_msgs;
-+		kfree(entry);
- 	}
--	fh->queued_msgs++;
- 	mutex_unlock(&fh->lock);
--	wake_up_interruptible(&fh->wait);
--	return;
- 
--lost_msgs:
--	mutex_unlock(&fh->lock);
--	cec_queue_event_fh(fh, &ev_lost_msg, 0);
-+	/*
-+	 * We lost a message, either because kmalloc failed or the queue
-+	 * was full.
-+	 */
-+	cec_queue_event_fh(fh, &ev_lost_msgs, ktime_get_ns());
- }
- 
- /*
-diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
-index f7eb4c54a354..48bef1c718ad 100644
---- a/drivers/media/cec/cec-api.c
-+++ b/drivers/media/cec/cec-api.c
-@@ -57,7 +57,7 @@ static unsigned int cec_poll(struct file *filp,
- 		res |= POLLOUT | POLLWRNORM;
- 	if (fh->queued_msgs)
- 		res |= POLLIN | POLLRDNORM;
--	if (fh->pending_events)
-+	if (fh->total_queued_events)
- 		res |= POLLPRI;
- 	poll_wait(filp, &fh->wait, poll);
- 	mutex_unlock(&adap->lock);
-@@ -289,15 +289,17 @@ static long cec_receive(struct cec_adapter *adap, struct cec_fh *fh,
- static long cec_dqevent(struct cec_adapter *adap, struct cec_fh *fh,
- 			bool block, struct cec_event __user *parg)
- {
--	struct cec_event *ev = NULL;
-+	struct cec_event_entry *ev = NULL;
- 	u64 ts = ~0ULL;
- 	unsigned int i;
-+	unsigned int ev_idx;
- 	long err = 0;
- 
- 	mutex_lock(&fh->lock);
--	while (!fh->pending_events && block) {
-+	while (!fh->total_queued_events && block) {
- 		mutex_unlock(&fh->lock);
--		err = wait_event_interruptible(fh->wait, fh->pending_events);
-+		err = wait_event_interruptible(fh->wait,
-+					       fh->total_queued_events);
- 		if (err)
- 			return err;
- 		mutex_lock(&fh->lock);
-@@ -305,23 +307,29 @@ static long cec_dqevent(struct cec_adapter *adap, struct cec_fh *fh,
- 
- 	/* Find the oldest event */
- 	for (i = 0; i < CEC_NUM_EVENTS; i++) {
--		if (fh->pending_events & (1 << (i + 1)) &&
--		    fh->events[i].ts <= ts) {
--			ev = &fh->events[i];
--			ts = ev->ts;
-+		struct cec_event_entry *entry =
-+			list_first_entry_or_null(&fh->events[i],
-+						 struct cec_event_entry, list);
-+
-+		if (entry && entry->ev.ts <= ts) {
-+			ev = entry;
-+			ev_idx = i;
-+			ts = ev->ev.ts;
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+@@ -124,10 +126,10 @@ static int ddb_i2c_cmd(struct ddb_i2c *i2c, u32 adr, u32 cmd)
+ 	ddbwritel((adr << 9) | cmd, i2c->regs + I2C_COMMAND);
+ 	stat = wait_event_timeout(i2c->wq, i2c->done == 1, HZ);
+ 	if (stat == 0) {
+-		printk(KERN_ERR "I2C timeout\n");
++		pr_err("I2C timeout\n");
+ 		{ /* MSI debugging*/
+ 			u32 istat = ddbreadl(INTERRUPT_STATUS);
+-			printk(KERN_ERR "IRS %08x\n", istat);
++			pr_err("IRS %08x\n", istat);
+ 			ddbwritel(istat, INTERRUPT_ACK);
  		}
+ 		return -EIO;
+@@ -533,7 +535,7 @@ static u32 ddb_input_avail(struct ddb_input *input)
+ 	off = (stat & 0x7ff) << 7;
+ 
+ 	if (ctrl & 4) {
+-		printk(KERN_ERR "IA %d %d %08x\n", idx, off, ctrl);
++		pr_err("IA %d %d %08x\n", idx, off, ctrl);
+ 		ddbwritel(input->stat, DMA_BUFFER_ACK(input->nr));
+ 		return 0;
  	}
-+
- 	if (!ev) {
- 		err = -EAGAIN;
- 		goto unlock;
+@@ -619,7 +621,7 @@ static int demod_attach_drxk(struct ddb_input *input)
+ 
+ 	fe = input->fe = dvb_attach(drxk_attach, &config, i2c);
+ 	if (!input->fe) {
+-		printk(KERN_ERR "No DRXK found!\n");
++		pr_err("No DRXK found!\n");
+ 		return -ENODEV;
  	}
-+	list_del(&ev->list);
- 
--	if (copy_to_user(parg, ev, sizeof(*ev))) {
-+	if (copy_to_user(parg, &ev->ev, sizeof(ev->ev)))
- 		err = -EFAULT;
--		goto unlock;
--	}
--
--	fh->pending_events &= ~(1 << ev->event);
-+	if (ev_idx >= CEC_NUM_CORE_EVENTS)
-+		kfree(ev);
-+	fh->queued_events[ev_idx]--;
-+	fh->total_queued_events--;
- 
- unlock:
- 	mutex_unlock(&fh->lock);
-@@ -495,6 +503,7 @@ static int cec_open(struct inode *inode, struct file *filp)
- 		.event = CEC_EVENT_STATE_CHANGE,
- 		.flags = CEC_EVENT_FL_INITIAL_STATE,
- 	};
-+	unsigned int i;
- 	int err;
- 
- 	if (!fh)
-@@ -502,6 +511,8 @@ static int cec_open(struct inode *inode, struct file *filp)
- 
- 	INIT_LIST_HEAD(&fh->msgs);
- 	INIT_LIST_HEAD(&fh->xfer_list);
-+	for (i = 0; i < CEC_NUM_EVENTS; i++)
-+		INIT_LIST_HEAD(&fh->events[i]);
- 	mutex_init(&fh->lock);
- 	init_waitqueue_head(&fh->wait);
- 
-@@ -544,6 +555,7 @@ static int cec_release(struct inode *inode, struct file *filp)
- 	struct cec_devnode *devnode = cec_devnode_data(filp);
- 	struct cec_adapter *adap = to_cec_adapter(devnode);
- 	struct cec_fh *fh = filp->private_data;
-+	unsigned int i;
- 
- 	mutex_lock(&adap->lock);
- 	if (adap->cec_initiator == fh)
-@@ -585,6 +597,16 @@ static int cec_release(struct inode *inode, struct file *filp)
- 		list_del(&entry->list);
- 		kfree(entry);
+ 	fe->sec_priv = input;
+@@ -637,7 +639,7 @@ static int tuner_attach_tda18271(struct ddb_input *input)
+ 		input->fe->ops.i2c_gate_ctrl(input->fe, 1);
+ 	fe = dvb_attach(tda18271c2dd_attach, input->fe, i2c, 0x60);
+ 	if (!fe) {
+-		printk(KERN_ERR "No TDA18271 found!\n");
++		pr_err("No TDA18271 found!\n");
+ 		return -ENODEV;
  	}
-+	for (i = CEC_NUM_CORE_EVENTS; i < CEC_NUM_EVENTS; i++) {
-+		while (!list_empty(&fh->events[i])) {
-+			struct cec_event_entry *entry =
-+				list_first_entry(&fh->events[i],
-+						 struct cec_event_entry, list);
-+
-+			list_del(&entry->list);
-+			kfree(entry);
-+		}
-+	}
- 	kfree(fh);
+ 	if (input->fe->ops.i2c_gate_ctrl)
+@@ -676,7 +678,7 @@ static int demod_attach_stv0367(struct ddb_input *input)
+ 		&ddb_stv0367_config[(input->nr & 1)], i2c);
  
- 	cec_put_device(devnode);
-diff --git a/include/media/cec.h b/include/media/cec.h
-index 37768203572d..6cc862af74e5 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -81,7 +81,13 @@ struct cec_msg_entry {
- 	struct cec_msg		msg;
- };
+ 	if (!input->fe) {
+-		printk(KERN_ERR "stv0367ddb_attach failed (not found?)\n");
++		pr_err("stv0367ddb_attach failed (not found?)\n");
+ 		return -ENODEV;
+ 	}
  
--#define CEC_NUM_EVENTS		CEC_EVENT_LOST_MSGS
-+struct cec_event_entry {
-+	struct list_head	list;
-+	struct cec_event	ev;
-+};
-+
-+#define CEC_NUM_CORE_EVENTS 2
-+#define CEC_NUM_EVENTS CEC_EVENT_PIN_HIGH
+@@ -693,14 +695,14 @@ static int tuner_tda18212_ping(struct ddb_input *input, unsigned short adr)
+ 	u8 tda_id[2];
+ 	u8 subaddr = 0x00;
  
- struct cec_fh {
- 	struct list_head	list;
-@@ -92,9 +98,11 @@ struct cec_fh {
+-	printk(KERN_DEBUG "stv0367-tda18212 tuner ping\n");
++	pr_debug("stv0367-tda18212 tuner ping\n");
+ 	if (input->fe->ops.i2c_gate_ctrl)
+ 		input->fe->ops.i2c_gate_ctrl(input->fe, 1);
  
- 	/* Events */
- 	wait_queue_head_t	wait;
--	unsigned int		pending_events;
--	struct cec_event	events[CEC_NUM_EVENTS];
- 	struct mutex		lock;
-+	struct list_head	events[CEC_NUM_EVENTS]; /* queued events */
-+	u8			queued_events[CEC_NUM_EVENTS];
-+	unsigned int		total_queued_events;
-+	struct cec_event_entry	core_events[CEC_NUM_CORE_EVENTS];
- 	struct list_head	msgs; /* queued messages */
- 	unsigned int		queued_msgs;
- };
-diff --git a/include/uapi/linux/cec.h b/include/uapi/linux/cec.h
-index bba73f33c8aa..d87a67b0bb06 100644
---- a/include/uapi/linux/cec.h
-+++ b/include/uapi/linux/cec.h
-@@ -412,6 +412,7 @@ struct cec_log_addrs {
- #define CEC_EVENT_PIN_HIGH		4
+ 	if (i2c_read_regs(adapter, adr, subaddr, tda_id, sizeof(tda_id)) < 0)
+-		printk(KERN_DEBUG "tda18212 ping 1 fail\n");
++		pr_debug("tda18212 ping 1 fail\n");
+ 	if (i2c_read_regs(adapter, adr, subaddr, tda_id, sizeof(tda_id)) < 0)
+-		printk(KERN_DEBUG "tda18212 ping 2 fail\n");
++		pr_warn("tda18212 ping failed, expect problems\n");
  
- #define CEC_EVENT_FL_INITIAL_STATE	(1 << 0)
-+#define CEC_EVENT_FL_DROPPED_EVENTS	(1 << 1)
+ 	if (input->fe->ops.i2c_gate_ctrl)
+ 		input->fe->ops.i2c_gate_ctrl(input->fe, 0);
+@@ -728,7 +730,7 @@ static int demod_attach_cxd28xx(struct ddb_input *input, int par, int osc24)
+ 	input->fe = dvb_attach(cxd2841er_attach_t_c, &cfg, i2c);
  
- /**
-  * struct cec_event_state_change - used when the CEC adapter changes state.
-@@ -424,7 +425,7 @@ struct cec_event_state_change {
- };
+ 	if (!input->fe) {
+-		printk(KERN_ERR "No Sony CXD28xx found!\n");
++		pr_err("No Sony CXD28xx found!\n");
+ 		return -ENODEV;
+ 	}
  
- /**
-- * struct cec_event_lost_msgs - tells you how many messages were lost due.
-+ * struct cec_event_lost_msgs - tells you how many messages were lost.
-  * @lost_msgs: how many messages were lost.
-  */
- struct cec_event_lost_msgs {
+@@ -786,7 +788,7 @@ static int tuner_attach_tda18212(struct ddb_input *input, u32 porttype)
+ 
+ 	return 0;
+ err:
+-	printk(KERN_INFO "TDA18212 tuner not found. Device is not fully operational.\n");
++	pr_warn("TDA18212 tuner not found. Device is not fully operational.\n");
+ 	return -ENODEV;
+ }
+ 
+@@ -853,13 +855,13 @@ static int demod_attach_stv0900(struct ddb_input *input, int type)
+ 			       (input->nr & 1) ? STV090x_DEMODULATOR_1
+ 			       : STV090x_DEMODULATOR_0);
+ 	if (!input->fe) {
+-		printk(KERN_ERR "No STV0900 found!\n");
++		pr_err("No STV0900 found!\n");
+ 		return -ENODEV;
+ 	}
+ 	if (!dvb_attach(lnbh24_attach, input->fe, i2c, 0,
+ 			0, (input->nr & 1) ?
+ 			(0x09 - type) : (0x0b - type))) {
+-		printk(KERN_ERR "No LNBH24 found!\n");
++		pr_err("No LNBH24 found!\n");
+ 		return -ENODEV;
+ 	}
+ 	return 0;
+@@ -875,10 +877,10 @@ static int tuner_attach_stv6110(struct ddb_input *input, int type)
+ 
+ 	ctl = dvb_attach(stv6110x_attach, input->fe, tunerconf, i2c);
+ 	if (!ctl) {
+-		printk(KERN_ERR "No STV6110X found!\n");
++		pr_err("No STV6110X found!\n");
+ 		return -ENODEV;
+ 	}
+-	printk(KERN_INFO "attach tuner input %d adr %02x\n",
++	pr_info("attach tuner input %d adr %02x\n",
+ 			 input->nr, tunerconf->addr);
+ 
+ 	feconf->tuner_init          = ctl->tuner_init;
+@@ -1015,7 +1017,7 @@ static int dvb_input_attach(struct ddb_input *input)
+ 				   &input->port->dev->pdev->dev,
+ 				   adapter_nr);
+ 	if (ret < 0) {
+-		printk(KERN_ERR "ddbridge: Could not register adapter.Check if you enabled enough adapters in dvb-core!\n");
++		pr_err("Could not register adapter. Check if you enabled enough adapters in dvb-core!\n");
+ 		return ret;
+ 	}
+ 	input->attached = 1;
+@@ -1241,7 +1243,7 @@ static void input_tasklet(unsigned long data)
+ 
+ 	if (input->port->class == DDB_PORT_TUNER) {
+ 		if (4&ddbreadl(DMA_BUFFER_CONTROL(input->nr)))
+-			printk(KERN_ERR "Overflow input %d\n", input->nr);
++			pr_err("Overflow input %d\n", input->nr);
+ 		while (input->cbuf != ((input->stat >> 11) & 0x1f)
+ 		       || (4&ddbreadl(DMA_BUFFER_CONTROL(input->nr)))) {
+ 			dvb_dmx_swfilter_packets(&input->demux,
+@@ -1326,7 +1328,7 @@ static int ddb_port_attach(struct ddb_port *port)
+ 		break;
+ 	}
+ 	if (ret < 0)
+-		printk(KERN_ERR "port_attach on port %d failed\n", port->nr);
++		pr_err("port_attach on port %d failed\n", port->nr);
+ 	return ret;
+ }
+ 
+@@ -1511,7 +1513,7 @@ static void ddb_port_probe(struct ddb_port *port)
+ 		port->class = DDB_PORT_CI;
+ 		ddbwritel(I2C_SPEED_400, port->i2c->regs + I2C_TIMING);
+ 	} else if (port_has_xo2(port, &xo2_type, &xo2_id)) {
+-		printk(KERN_INFO "Port %d (TAB %d): XO2 type: %d, id: %d\n",
++		pr_debug("Port %d (TAB %d): XO2 type: %d, id: %d\n",
+ 			port->nr, port->nr+1, xo2_type, xo2_id);
+ 
+ 		ddbwritel(I2C_SPEED_400, port->i2c->regs + I2C_TIMING);
+@@ -1556,10 +1558,10 @@ static void ddb_port_probe(struct ddb_port *port)
+ 			}
+ 			break;
+ 		case DDB_XO2_TYPE_CI:
+-			printk(KERN_INFO "DuoFlex CI modules not supported\n");
++			pr_info("DuoFlex CI modules not supported\n");
+ 			break;
+ 		default:
+-			printk(KERN_INFO "Unknown XO2 DuoFlex module\n");
++			pr_info("Unknown XO2 DuoFlex module\n");
+ 			break;
+ 		}
+ 	} else if (port_has_cxd28xx(port, &cxd_id)) {
+@@ -1611,7 +1613,7 @@ static void ddb_port_probe(struct ddb_port *port)
+ 		ddbwritel(I2C_SPEED_100, port->i2c->regs + I2C_TIMING);
+ 	}
+ 
+-	printk(KERN_INFO "Port %d (TAB %d): %s\n",
++	pr_info("Port %d (TAB %d): %s\n",
+ 			 port->nr, port->nr+1, modname);
+ }
+ 
+@@ -1993,7 +1995,7 @@ static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 	dev->pdev = pdev;
+ 	pci_set_drvdata(pdev, dev);
+ 	dev->info = (struct ddb_info *) id->driver_data;
+-	printk(KERN_INFO "DDBridge driver detected: %s\n", dev->info->name);
++	pr_info("Detected %s\n", dev->info->name);
+ 
+ 	dev->regs = ioremap(pci_resource_start(dev->pdev, 0),
+ 			    pci_resource_len(dev->pdev, 0));
+@@ -2001,13 +2003,13 @@ static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 		stat = -ENOMEM;
+ 		goto fail;
+ 	}
+-	printk(KERN_INFO "HW %08x FW %08x\n", ddbreadl(0), ddbreadl(4));
++	pr_info("HW %08x FW %08x\n", ddbreadl(0), ddbreadl(4));
+ 
+ #ifdef CONFIG_PCI_MSI
+ 	if (pci_msi_enabled())
+ 		stat = pci_enable_msi(dev->pdev);
+ 	if (stat) {
+-		printk(KERN_INFO ": MSI not available.\n");
++		pr_info("MSI not available.\n");
+ 	} else {
+ 		irq_flag = 0;
+ 		dev->msi = 1;
+@@ -2040,7 +2042,7 @@ static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 		goto fail1;
+ 	ddb_ports_init(dev);
+ 	if (ddb_buffers_alloc(dev) < 0) {
+-		printk(KERN_INFO ": Could not allocate buffer memory\n");
++		pr_info("Could not allocate buffer memory\n");
+ 		goto fail2;
+ 	}
+ 	if (ddb_ports_attach(dev) < 0)
+@@ -2050,19 +2052,19 @@ static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 
+ fail3:
+ 	ddb_ports_detach(dev);
+-	printk(KERN_ERR "fail3\n");
++	pr_err("fail3\n");
+ 	ddb_ports_release(dev);
+ fail2:
+-	printk(KERN_ERR "fail2\n");
++	pr_err("fail2\n");
+ 	ddb_buffers_free(dev);
+ fail1:
+-	printk(KERN_ERR "fail1\n");
++	pr_err("fail1\n");
+ 	if (dev->msi)
+ 		pci_disable_msi(dev->pdev);
+ 	if (stat == 0)
+ 		free_irq(dev->pdev->irq, dev);
+ fail:
+-	printk(KERN_ERR "fail\n");
++	pr_err("fail\n");
+ 	ddb_unmap(dev);
+ 	pci_set_drvdata(pdev, NULL);
+ 	pci_disable_device(pdev);
+@@ -2242,7 +2244,7 @@ static __init int module_init_ddbridge(void)
+ {
+ 	int ret;
+ 
+-	printk(KERN_INFO "Digital Devices PCIE bridge driver, Copyright (C) 2010-11 Digital Devices GmbH\n");
++	pr_info("Digital Devices PCIE bridge driver, Copyright (C) 2010-11 Digital Devices GmbH\n");
+ 
+ 	ret = ddb_class_create();
+ 	if (ret < 0)
 -- 
-2.11.0
+2.13.0
