@@ -1,216 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:58833 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750707AbdFCC6w (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 22:58:52 -0400
-From: Helen Koike <helen.koike@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, jgebben@codeaurora.org,
-        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [RFC PATCH v3 00/11] [media]: vimc: Virtual Media Control VPU's
-Date: Fri,  2 Jun 2017 23:58:00 -0300
-Message-Id: <1496458714-16834-1-git-send-email-helen.koike@collabora.com>
-In-Reply-To: <1491604632-23544-1-git-send-email-helen.koike@collabora.com>
-References: <1491604632-23544-1-git-send-email-helen.koike@collabora.com>
+Received: from mx2.suse.de ([195.135.220.15]:42218 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752085AbdFUIIe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Jun 2017 04:08:34 -0400
+From: Johannes Thumshirn <jthumshirn@suse.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-fbdev@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Johannes Thumshirn <jthumshirn@suse.de>
+Subject: [PATCH RESEND 3/7] [media] media: document the use of MEDIA_REVISION instead of KERNEL_VERSION
+Date: Wed, 21 Jun 2017 10:08:08 +0200
+Message-Id: <20170621080812.6817-4-jthumshirn@suse.de>
+In-Reply-To: <20170621080812.6817-1-jthumshirn@suse.de>
+References: <20170621080812.6817-1-jthumshirn@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series improves the current video processing units in vimc
-(by adding more controls to the sensor and capture node, allowing the
-user to configure different frame formats) and also adds a debayer
-and a scaler node.
-The debayer transforms the bayer format image received in its sink pad
-to a bayer format by averaging the pixels within a mean window.
-The scaler only scales up the image for now.
+Update the documentation to introduce the use of MEDIA_REVISON instead
+of KERNEL_VERSION for the verison triplets of a media drivers hardware
+revision or driver version.
 
-In this version I added an optimization where the image can be generated
-direct in the capture device instead of being generated in the sensor
-and processed by each node in the topology.
-I also changed the approach to implement each node of the topology as a
-submodule to make the code component oriented, where new components
-won't need to touch vimc-core and won't need a header file.
-Please, let me know your view regarding this new approach.
+Signed-off-by: Johannes Thumshirn <jthumshirn@suse.de>
+---
+ Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst        | 2 +-
+ Documentation/media/uapi/mediactl/media-ioc-device-info.rst | 4 ++--
+ Documentation/media/uapi/v4l/vidioc-querycap.rst            | 6 +++---
+ include/media/media-device.h                                | 5 ++---
+ 4 files changed, 8 insertions(+), 9 deletions(-)
 
-Changes in v3:
-[media] vimc: sen: Integrate the tpg on the sensor
-	- Declare frame_size as a local variable
-	- Set tpg frame format before starting kthread
-	- s_stream(sd, 1): return 0 if stream is already enabled
-	- s_stream(sd, 0): return 0 if stream is already disabled
-	- s_stream: propagate error from kthread_stop
-	- coding style when calling tpg_s_bytesperline
-	- s/vimc_thread_sen/vimc_sen_tpg_thread
-	- fix multiline comment
-[media] vimc: Move common code from the core
-	- This is a new patch in the series
-[media] vimc: Add vimc_ent_sd_* helper functions
-	- add it in vimc-common.c instead in vimc-core.c
-	- fix vimc_ent_sd_register, use function parameter to assign
-	sd->entity.function instead of using a fixed value
-	- rename commit to add the "common" tag
-[media] vimc: Add vimc_pipeline_s_stream in the core
-	- add it in vimc-common instead of vimc-core
-	- rename commit with "common" tag
-[media] vimc: common: Add vimc_link_validate
-	- this is a new patch in the series
-[media] vimc: sen: Support several image formats
-	- remove support for V4L2_FIELD_ALTERNATE (left as TODO for now)
-	- clamp image size to an even dimension for height and width
-	- set default values for colorimetry using _DEFAULT macro
-	- reset all values of colorimetry to _DEFAULT if user tries to
-	set an invalid colorspace
-[media] vimc: cap: Support several image formats
-	- use *_DEFAULT macros for colorimetry in the default format
-	- clamp height and width of the image by an even value
-	- is user try to set colorspace to an invalid format, set all
-	colorimetry parameters to _DEFAULT
-	- remove V4L2_FMT_FLAG_COMPRESSED from vimc_cap_enum_fmt_vid_cap
-	- remove V4L2_BUF_TYPE_VIDEO_CAPTURE from vimc_cap_enum_fmt_vid_cap
-	- increase step_width and step_height to 2 instead of 1
-	- remove link validate function, use the one in vimc-common.c
-[media] vimc: Optimize frame generation through the pipe
-	- This is a new patch in the series
-[media] vimc: Subdevices as modules
-	- This is a new patch in the series
-[media] vimc: deb: Add debayer filter
-	- Declare frame_size as a local variable
-	- s_stream(sd, 1): return 0 if stream is already enabled
-	- s_stream(sd, 0): return 0 if stream is already disabled
-	- s_stream: add ret variable to propagate return errors
-	- structure code to be a module, use platform_driver and component system
-	- fix multiline comment
-	- s/thought/through
-	- s/RGB8888/RGB888
-	- clamp height and width of the image by an even value
-	- if user try to set colorspace to an invalid format, set all
-        colorimetry parameters to _DEFAULT
-	- uset _DEFAULT for colorimetry in the default format
-[media] vimc: sca: Add scaler
-	- Declare frame_size as a local variable
-	- s_stream(sd, 1): return 0 if stream is already enabled
-	- s_stream(sd, 0): return 0 if stream is already disabled
-	- s_stream: add ret variable to propagate return errors
-	- structure code to be a module, use platform_driver and component system
-	- s/thought/through
-	- clamp height and width of the image by an even value
-	- if user try to set colorspace to an invalid format, set all
-	    colorimetry parameters to _DEFAULT
-	- uset _DEFAULT for colorimetry in the default format
-
-Changes in v2:
-[media] vimc: sen: Integrate the tpg on the sensor
-	- Fix include location
-	- Select V4L2_TPG in Kconfig
-	- configure tpg on streamon only
-	- rm BUG_ON
-	- coding style
-	- remove V4L2_FIELD_ALTERNATE from tpg_s_field
-	- remove V4L2_STD_PAL from tpg_fill_plane_buffer
-[media] vimc: Add vimc_ent_sd_* helper functions
-	- Comments in vimc_ent_sd_init
-	- Update vimc_ent_sd_init with upstream code as media_entity_pads_init
-	(instead of media_entity_init), entity->function intead of entity->type
-	- Add missing vimc_pads_cleanup in vimc_ent_sd_cleanup
-	- remove subdevice v4l2_dev and dev fields
-	- change unregister order in vimc_ent_sd_cleanup
-	- rename vimc_ent_sd_{init,cleanup} to vimc_ent_sd_{register,unregister}
-	- remove struct vimc_ent_subdevice, use ved and sd directly
-	- don't impose struct vimc_sen_device to declare ved and sd struct first
-	- add kernel docs
-[media] vimc: Add vimc_pipeline_s_stream in the core
-	- Use is_media_entity_v4l2_subdev instead of comparing with the old
-	entity->type
-	- Fix comments style
-	- add kernel-docs
-	- call s_stream across all sink pads
-[media] vimc: sen: Support several image formats
-	- this is a new commit in the serie (the old one was splitted in two)
-	- add init_cfg to initialize try_fmt
-	- reorder code in vimc_sen_set_fmt
-	- allow user space to change all fields from struct v4l2_mbus_framefmt
-	  (e.g. colospace, quantization, field, xfer_func, ycbcr_enc)
-	- merge with patch for the enum_mbus_code and enum_frame_size
-	- change commit message
-	- add vimc_pix_map_by_index
-	- rename MIN/MAX macros
-	- check set_fmt default parameters for quantization, colorspace ...media] vimc: sen: Support several image formats
-[media] vimc: cap: Support several image formats
-	- this is a new commit in the serie (the old one was splitted in two)
-	- allow user space to change all fields from struct v4l2_pix_format
-	  (e.g. colospace, quantization, field, xfer_func, ycbcr_enc)
-	- link_validate and try_fmt: also checks colospace, quantization, field, xfer_func, ycbcr_enc
-	- add struct v4l2_pix_format fmt_default
-	- add enum_framesizes
-	- enum_fmt_vid_cap: enumerate all formats from vimc_pix_map_table
-	- add mode dev_dbg
-[media] vimc: deb: Add debayer filter
-	- Using MEDIA_ENT_F_ATV_DECODER in function
-	- remove v4l2_dev and dev from vimc_deb_device struct
-	- src fmt propagates from the sink
-	- coding style
-	- remove redundant else if statements
-	- check end of enum and remove BUG_ON
-	- enum frame size with min and max values
-	- set/try fmt
-	- remove unecessary include freezer.h
-	- check pad types on create
-	- return EBUSY when trying to set the format while stream is on
-	- remove vsd struct
-	- add IS_SRC and IS_SINK macros
-	- add deb_mean_win_size as a parameter of the module
-	- check set_fmt default parameters for quantization, colorspace ...
-	- add more dev_dbg
-[media] vimc: sca: Add scaler
-	- Add function MEDIA_ENT_F_IO_V4L
-	- remove v4l2_dev and dev
-	- s/sink_mbus_fmt/sink_fmt
-	- remove BUG_ON, remove redundant if else, rewrite TODO, check end of enum
-	- rm src_width/height, enum fsize with min and max values
-	- set/try fmt
-	- remove unecessary include freezer.h
-	- core: add bayer boolean in pixel table
-	- coding style
-	- fix bug in enum frame size
-	- check pad types on create
-	- return EBUSY when trying to set the format while stream is on
-	- remove vsd struct
-	- add IS_SRC and IS_SINK macros
-	- add sca_mult as a parameter of the module
-	- check set_fmt default parameters for quantization, colorspace ...
-	- add more dev_dbg
-
-Helen Koike (11):
-  [media] vimc: sen: Integrate the tpg on the sensor
-  [media] vimc: Move common code from the core
-  [media] vimc: common: Add vimc_ent_sd_* helper
-  [media] vimc: common: Add vimc_pipeline_s_stream helper
-  [media] vimc: common: Add vimc_link_validate
-  [media] vimc: sen: Support several image formats
-  [media] vimc: cap: Support several image formats
-  [media] vimc: Optimize frame generation through the pipe
-  [media] vimc: Subdevices as modules
-  [media] vimc: deb: Add debayer filter
-  [media] vimc: sca: Add scaler
-
- drivers/media/platform/vimc/Kconfig                |   1 +
- drivers/media/platform/vimc/Makefile               |  10 +-
- drivers/media/platform/vimc/vimc-capture.c         | 488 ++++++++++------
- drivers/media/platform/vimc/vimc-capture.h         |  28 -
- drivers/media/platform/vimc/vimc-common.c          | 475 ++++++++++++++++
- .../platform/vimc/{vimc-core.h => vimc-common.h}   |  88 ++-
- drivers/media/platform/vimc/vimc-core.c            | 611 ++++++--------------
- drivers/media/platform/vimc/vimc-debayer.c         | 615 +++++++++++++++++++++
- drivers/media/platform/vimc/vimc-scaler.c          | 469 ++++++++++++++++
- drivers/media/platform/vimc/vimc-sensor.c          | 348 ++++++++----
- drivers/media/platform/vimc/vimc-sensor.h          |  28 -
- 11 files changed, 2370 insertions(+), 791 deletions(-)
- delete mode 100644 drivers/media/platform/vimc/vimc-capture.h
- create mode 100644 drivers/media/platform/vimc/vimc-common.c
- rename drivers/media/platform/vimc/{vimc-core.h => vimc-common.h} (54%)
- create mode 100644 drivers/media/platform/vimc/vimc-debayer.c
- create mode 100644 drivers/media/platform/vimc/vimc-scaler.c
- delete mode 100644 drivers/media/platform/vimc/vimc-sensor.h
-
+diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
+index a0e961f11017..749054f11c77 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
+@@ -56,7 +56,7 @@ returns the information to the application. The ioctl never fails.
+ 	:ref:`cec-capabilities`.
+     * - __u32
+       - ``version``
+-      - CEC Framework API version, formatted with the ``KERNEL_VERSION()``
++      - CEC Framework API version, formatted with the ``MEDIA_REVISION()``
+ 	macro.
+ 
+ 
+diff --git a/Documentation/media/uapi/mediactl/media-ioc-device-info.rst b/Documentation/media/uapi/mediactl/media-ioc-device-info.rst
+index f690f9afc470..7a18cb6dbe84 100644
+--- a/Documentation/media/uapi/mediactl/media-ioc-device-info.rst
++++ b/Documentation/media/uapi/mediactl/media-ioc-device-info.rst
+@@ -96,7 +96,7 @@ ioctl never fails.
+ 
+        -  ``media_version``
+ 
+-       -  Media API version, formatted with the ``KERNEL_VERSION()`` macro.
++       -  Media API version, formatted with the ``MEDIA_REVISION()`` macro.
+ 
+     -  .. row 6
+ 
+@@ -113,7 +113,7 @@ ioctl never fails.
+        -  ``driver_version``
+ 
+        -  Media device driver version, formatted with the
+-	  ``KERNEL_VERSION()`` macro. Together with the ``driver`` field
++	  ``MEDIA_REVISION()`` macro. Together with the ``driver`` field
+ 	  this identifies a particular driver.
+ 
+     -  .. row 8
+diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+index 12e0d9a63cd8..b66d9caa7211 100644
+--- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
++++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+@@ -90,13 +90,13 @@ specification the ioctl returns an ``EINVAL`` error code.
+ 	example, a stable or distribution-modified kernel uses the V4L2
+ 	stack from a newer kernel.
+ 
+-	The version number is formatted using the ``KERNEL_VERSION()``
++	The version number is formatted using the ``MEDIA_REVISION()``
+ 	macro:
+     * - :cspan:`2`
+ 
+-	``#define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))``
++	``#define MEDIA_REVISION(a,b,c) (((a) << 16) + ((b) << 8) + (c))``
+ 
+-	``__u32 version = KERNEL_VERSION(0, 8, 1);``
++	``__u32 version = MEDIA_REVISION(0, 8, 1);``
+ 
+ 	``printf ("Version: %u.%u.%u\\n",``
+ 
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 6896266031b9..6b3057266ad1 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -247,9 +247,9 @@ void media_device_cleanup(struct media_device *mdev);
+  *
+  *  - &media_entity.hw_revision is the hardware device revision in a
+  *    driver-specific format. When possible the revision should be formatted
+- *    with the KERNEL_VERSION() macro.
++ *    with the MEDIA_REVISION() macro.
+  *
+- *  - &media_entity.driver_version is formatted with the KERNEL_VERSION()
++ *  - &media_entity.driver_version is formatted with the MEDIA_REVISION()
+  *    macro. The version minor must be incremented when new features are added
+  *    to the userspace API without breaking binary compatibility. The version
+  *    major must be incremented when binary compatibility is broken.
+@@ -265,7 +265,6 @@ void media_device_cleanup(struct media_device *mdev);
+ int __must_check __media_device_register(struct media_device *mdev,
+ 					 struct module *owner);
+ 
+-
+ /**
+  * media_device_register() - Registers a media device element
+  *
 -- 
-2.7.4
+2.12.3
