@@ -1,58 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:34069 "EHLO
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:35229 "EHLO
         mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754923AbdFXQDP (ORCPT
+        with ESMTP id S1751106AbdFUROv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Jun 2017 12:03:15 -0400
-Received: by mail-wr0-f195.google.com with SMTP id k67so19936932wrc.1
-        for <linux-media@vger.kernel.org>; Sat, 24 Jun 2017 09:03:14 -0700 (PDT)
+        Wed, 21 Jun 2017 13:14:51 -0400
+Received: by mail-wr0-f195.google.com with SMTP id z45so28160430wrb.2
+        for <linux-media@vger.kernel.org>; Wed, 21 Jun 2017 10:14:50 -0700 (PDT)
+Date: Wed, 21 Jun 2017 19:14:40 +0200
 From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: rjkm@metzlerbros.de, jasmin@anw.at
-Subject: [PATCH 9/9] [media] ddbridge: stv0910 single demod mode module option
-Date: Sat, 24 Jun 2017 18:03:01 +0200
-Message-Id: <20170624160301.17710-10-d.scheller.oss@gmail.com>
-In-Reply-To: <20170624160301.17710-1-d.scheller.oss@gmail.com>
-References: <20170624160301.17710-1-d.scheller.oss@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        liplianin@netup.ru, rjkm@metzlerbros.de
+Subject: Re: [PATCH] [media] ddbridge: use dev_* macros in favor of printk
+Message-ID: <20170621191440.2f38616a@audiostation.wuest.de>
+In-Reply-To: <20170621140808.7d5ad295@vento.lan>
+References: <20170621165347.19409-1-d.scheller.oss@gmail.com>
+        <20170621140808.7d5ad295@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Am Wed, 21 Jun 2017 14:08:08 -0300
+schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
 
-Adds a stv0910_single modparm which, when set, configures the stv0910 to
-run in single demodulator mode, currently intended for high bit rate
-testing.
+> Em Wed, 21 Jun 2017 18:53:47 +0200
+> Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
+> 
+> > From: Daniel Scheller <d.scheller@gmx.net>
+> > 
+> > Side effect: KERN_DEBUG messages aren't written to the kernel log anymore.
+> > This also improves the tda18212_ping reporting a bit so users know that if
+> > pinging wasn't successful, bad things will happen.
+> > 
+> > Since in module_init_ddbridge() there's no dev yet, pr_info is used
+> > instead.
+> > 
+> > Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+> > ---
+> >  drivers/media/pci/ddbridge/ddbridge-core.c | 78 ++++++++++++++++++------------
+> >  1 file changed, 46 insertions(+), 32 deletions(-)
+> > 
+> > diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+> > index 9420479bee9a..540a121eadd6 100644
+> > --- a/drivers/media/pci/ddbridge/ddbridge-core.c
+> > +++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+> > @@ -17,6 +17,8 @@
+> >   * http://www.gnu.org/copyleft/gpl.html
+> >   */
+> >  
+> > +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+> > +  
+> 
+> I guess this is a left over from the old patch. When you use dev_foo,
+> it will get the driver's name from dev->name. So, no need to do the
+> above.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ddbridge/ddbridge-core.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+I intentionally left this in for the pr_info used in module_init_ddbridge(). If you prefer, we can ofc probably also leave this as printk like
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 45130fec392a..6ea429b16550 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -51,6 +51,10 @@ static int xo2_speed = 2;
- module_param(xo2_speed, int, 0444);
- MODULE_PARM_DESC(xo2_speed, "default transfer speed for xo2 based duoflex, 0=55,1=75,2=90,3=104 MBit/s, default=2, use attribute to change for individual cards");
- 
-+static int stv0910_single;
-+module_param(stv0910_single, int, 0444);
-+MODULE_PARM_DESC(stv0910_single, "use stv0910 cards as single demods");
-+
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
- /* MSI had problems with lost interrupts, fixed but needs testing */
-@@ -917,6 +921,9 @@ static int demod_attach_stv0910(struct ddb_input *input, int type)
- 	struct stv0910_cfg cfg = stv0910_p;
- 	struct lnbh25_config lnbcfg = lnbh25_cfg;
- 
-+	if (stv0910_single)
-+		cfg.single = 1;
-+
- 	if (type)
- 		cfg.parallel = 2;
- 	input->fe = dvb_attach(stv0910_attach, i2c, &cfg, (input->nr & 1));
+printk(KERN_INFO KBUILD_MODNAME ": Digital..."); 
+
+IMHO, we should also have the modname info there aswell, especially when thinking of a possible ddbridge-legacy, so users see what's loaded.
+
+Best regards,
+Daniel Scheller
 -- 
-2.13.0
+https://github.com/herrnst
