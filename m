@@ -1,535 +1,391 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56949 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751549AbdFZSMf (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54255
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751126AbdFURIb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 14:12:35 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v2 07/14] v4l: vsp1: Add support for the BRS entity
-Date: Mon, 26 Jun 2017 21:12:19 +0300
-Message-Id: <20170626181226.29575-8-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
+        Wed, 21 Jun 2017 13:08:31 -0400
+Date: Wed, 21 Jun 2017 14:08:08 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        liplianin@netup.ru, rjkm@metzlerbros.de
+Subject: Re: [PATCH] [media] ddbridge: use dev_* macros in favor of printk
+Message-ID: <20170621140808.7d5ad295@vento.lan>
+In-Reply-To: <20170621165347.19409-1-d.scheller.oss@gmail.com>
+References: <20170621165347.19409-1-d.scheller.oss@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Blend/ROP Sub Unit (BRS) is a stripped-down version of the BRU found
-in several VSP2 instances. Compared to a regular BRU, it supports two
-inputs only, and thus has no ROP unit.
+Em Wed, 21 Jun 2017 18:53:47 +0200
+Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
 
-Add support for the BRS by modeling it as a new entity type, but reuse
-the vsp1_bru object underneath. Chaining the BRU and BRS entities seems
-to be supported by the hardware but isn't implemented yet as it isn't
-the primary use case for the BRS.
+> From: Daniel Scheller <d.scheller@gmx.net>
+> 
+> Side effect: KERN_DEBUG messages aren't written to the kernel log anymore.
+> This also improves the tda18212_ping reporting a bit so users know that if
+> pinging wasn't successful, bad things will happen.
+> 
+> Since in module_init_ddbridge() there's no dev yet, pr_info is used
+> instead.
+> 
+> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+> ---
+>  drivers/media/pci/ddbridge/ddbridge-core.c | 78 ++++++++++++++++++------------
+>  1 file changed, 46 insertions(+), 32 deletions(-)
+> 
+> diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+> index 9420479bee9a..540a121eadd6 100644
+> --- a/drivers/media/pci/ddbridge/ddbridge-core.c
+> +++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+> @@ -17,6 +17,8 @@
+>   * http://www.gnu.org/copyleft/gpl.html
+>   */
+>  
+> +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+> +
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1.h        |  2 +
- drivers/media/platform/vsp1/vsp1_bru.c    | 45 ++++++++++++++--------
- drivers/media/platform/vsp1/vsp1_bru.h    |  4 +-
- drivers/media/platform/vsp1/vsp1_drv.c    | 19 +++++++++-
- drivers/media/platform/vsp1/vsp1_entity.c | 13 ++++++-
- drivers/media/platform/vsp1/vsp1_entity.h |  1 +
- drivers/media/platform/vsp1/vsp1_pipe.c   |  7 ++--
- drivers/media/platform/vsp1/vsp1_regs.h   | 26 +++++++++----
- drivers/media/platform/vsp1/vsp1_video.c  | 63 ++++++++++++++++++++-----------
- drivers/media/platform/vsp1/vsp1_wpf.c    |  4 +-
- 10 files changed, 130 insertions(+), 54 deletions(-)
+I guess this is a left over from the old patch. When you use dev_foo,
+it will get the driver's name from dev->name. So, no need to do the
+above.
 
-diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
-index 847963b6e9eb..73858a0ed35c 100644
---- a/drivers/media/platform/vsp1/vsp1.h
-+++ b/drivers/media/platform/vsp1/vsp1.h
-@@ -54,6 +54,7 @@ struct vsp1_uds;
- #define VSP1_HAS_WPF_HFLIP	(1 << 6)
- #define VSP1_HAS_HGO		(1 << 7)
- #define VSP1_HAS_HGT		(1 << 8)
-+#define VSP1_HAS_BRS		(1 << 9)
- 
- struct vsp1_device_info {
- 	u32 version;
-@@ -76,6 +77,7 @@ struct vsp1_device {
- 	struct rcar_fcp_device *fcp;
- 	struct device *bus_master;
- 
-+	struct vsp1_bru *brs;
- 	struct vsp1_bru *bru;
- 	struct vsp1_clu *clu;
- 	struct vsp1_hgo *hgo;
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
-index 85362c5ef57a..e8fd2ae3b3eb 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.c
-+++ b/drivers/media/platform/vsp1/vsp1_bru.c
-@@ -33,7 +33,7 @@
- static inline void vsp1_bru_write(struct vsp1_bru *bru, struct vsp1_dl_list *dl,
- 				  u32 reg, u32 data)
- {
--	vsp1_dl_list_write(dl, reg, data);
-+	vsp1_dl_list_write(dl, bru->base + reg, data);
- }
- 
- /* -----------------------------------------------------------------------------
-@@ -332,11 +332,14 @@ static void bru_configure(struct vsp1_entity *entity,
- 	/*
- 	 * Route BRU input 1 as SRC input to the ROP unit and configure the ROP
- 	 * unit with a NOP operation to make BRU input 1 available as the
--	 * Blend/ROP unit B SRC input.
-+	 * Blend/ROP unit B SRC input. Only needed for BRU, the BRS has no ROP
-+	 * unit.
- 	 */
--	vsp1_bru_write(bru, dl, VI6_BRU_ROP, VI6_BRU_ROP_DSTSEL_BRUIN(1) |
--		       VI6_BRU_ROP_CROP(VI6_ROP_NOP) |
--		       VI6_BRU_ROP_AROP(VI6_ROP_NOP));
-+	if (entity->type == VSP1_ENTITY_BRU)
-+		vsp1_bru_write(bru, dl, VI6_BRU_ROP,
-+			       VI6_BRU_ROP_DSTSEL_BRUIN(1) |
-+			       VI6_BRU_ROP_CROP(VI6_ROP_NOP) |
-+			       VI6_BRU_ROP_AROP(VI6_ROP_NOP));
- 
- 	for (i = 0; i < bru->entity.source_pad; ++i) {
- 		bool premultiplied = false;
-@@ -366,12 +369,13 @@ static void bru_configure(struct vsp1_entity *entity,
- 			ctrl |= VI6_BRU_CTRL_DSTSEL_VRPF;
- 
- 		/*
--		 * Route BRU inputs 0 to 3 as SRC inputs to Blend/ROP units A to
--		 * D in that order. The Blend/ROP unit B SRC is hardwired to the
--		 * ROP unit output, the corresponding register bits must be set
--		 * to 0.
-+		 * Route inputs 0 to 3 as SRC inputs to Blend/ROP units A to D
-+		 * in that order. In the BRU the Blend/ROP unit B SRC is
-+		 * hardwired to the ROP unit output, the corresponding register
-+		 * bits must be set to 0. The BRS has no ROP unit and doesn't
-+		 * need any special processing.
- 		 */
--		if (i != 1)
-+		if (!(entity->type == VSP1_ENTITY_BRU && i == 1))
- 			ctrl |= VI6_BRU_CTRL_SRCSEL_BRUIN(i);
- 
- 		vsp1_bru_write(bru, dl, VI6_BRU_CTRL(i), ctrl);
-@@ -407,20 +411,31 @@ static const struct vsp1_entity_operations bru_entity_ops = {
-  * Initialization and Cleanup
-  */
- 
--struct vsp1_bru *vsp1_bru_create(struct vsp1_device *vsp1)
-+struct vsp1_bru *vsp1_bru_create(struct vsp1_device *vsp1,
-+				 enum vsp1_entity_type type)
- {
- 	struct vsp1_bru *bru;
-+	unsigned int num_pads;
-+	const char *name;
- 	int ret;
- 
- 	bru = devm_kzalloc(vsp1->dev, sizeof(*bru), GFP_KERNEL);
- 	if (bru == NULL)
- 		return ERR_PTR(-ENOMEM);
- 
-+	bru->base = type == VSP1_ENTITY_BRU ? VI6_BRU_BASE : VI6_BRS_BASE;
- 	bru->entity.ops = &bru_entity_ops;
--	bru->entity.type = VSP1_ENTITY_BRU;
-+	bru->entity.type = type;
-+
-+	if (type == VSP1_ENTITY_BRU) {
-+		num_pads = vsp1->info->num_bru_inputs + 1;
-+		name = "bru";
-+	} else {
-+		num_pads = 3;
-+		name = "brs";
-+	}
- 
--	ret = vsp1_entity_init(vsp1, &bru->entity, "bru",
--			       vsp1->info->num_bru_inputs + 1, &bru_ops,
-+	ret = vsp1_entity_init(vsp1, &bru->entity, name, num_pads, &bru_ops,
- 			       MEDIA_ENT_F_PROC_VIDEO_COMPOSER);
- 	if (ret < 0)
- 		return ERR_PTR(ret);
-@@ -435,7 +450,7 @@ struct vsp1_bru *vsp1_bru_create(struct vsp1_device *vsp1)
- 	bru->entity.subdev.ctrl_handler = &bru->ctrls;
- 
- 	if (bru->ctrls.error) {
--		dev_err(vsp1->dev, "bru: failed to initialize controls\n");
-+		dev_err(vsp1->dev, "%s: failed to initialize controls\n", name);
- 		ret = bru->ctrls.error;
- 		vsp1_entity_destroy(&bru->entity);
- 		return ERR_PTR(ret);
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.h b/drivers/media/platform/vsp1/vsp1_bru.h
-index 828a3fcadea8..c98ed96d8de6 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.h
-+++ b/drivers/media/platform/vsp1/vsp1_bru.h
-@@ -26,6 +26,7 @@ struct vsp1_rwpf;
- 
- struct vsp1_bru {
- 	struct vsp1_entity entity;
-+	unsigned int base;
- 
- 	struct v4l2_ctrl_handler ctrls;
- 
-@@ -41,6 +42,7 @@ static inline struct vsp1_bru *to_bru(struct v4l2_subdev *subdev)
- 	return container_of(subdev, struct vsp1_bru, entity.subdev);
- }
- 
--struct vsp1_bru *vsp1_bru_create(struct vsp1_device *vsp1);
-+struct vsp1_bru *vsp1_bru_create(struct vsp1_device *vsp1,
-+				 enum vsp1_entity_type type);
- 
- #endif /* __VSP1_BRU_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 5a467b118a1c..6a9aeb71aedf 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -84,6 +84,10 @@ static irqreturn_t vsp1_irq_handler(int irq, void *data)
-  *
-  * - from a UDS to a UDS (UDS entities can't be chained)
-  * - from an entity to itself (no loops are allowed)
-+ *
-+ * Furthermore, the BRS can't be connected to histogram generators, but no
-+ * special check is currently needed as all VSP instances that include a BRS
-+ * have no histogram generator.
-  */
- static int vsp1_create_sink_links(struct vsp1_device *vsp1,
- 				  struct vsp1_entity *sink)
-@@ -261,8 +265,18 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 	}
- 
- 	/* Instantiate all the entities. */
-+	if (vsp1->info->features & VSP1_HAS_BRS) {
-+		vsp1->brs = vsp1_bru_create(vsp1, VSP1_ENTITY_BRS);
-+		if (IS_ERR(vsp1->brs)) {
-+			ret = PTR_ERR(vsp1->brs);
-+			goto done;
-+		}
-+
-+		list_add_tail(&vsp1->brs->entity.list_dev, &vsp1->entities);
-+	}
-+
- 	if (vsp1->info->features & VSP1_HAS_BRU) {
--		vsp1->bru = vsp1_bru_create(vsp1);
-+		vsp1->bru = vsp1_bru_create(vsp1, VSP1_ENTITY_BRU);
- 		if (IS_ERR(vsp1->bru)) {
- 			ret = PTR_ERR(vsp1->bru);
- 			goto done;
-@@ -502,6 +516,9 @@ static int vsp1_device_init(struct vsp1_device *vsp1)
- 	vsp1_write(vsp1, VI6_DPR_HSI_ROUTE, VI6_DPR_NODE_UNUSED);
- 	vsp1_write(vsp1, VI6_DPR_BRU_ROUTE, VI6_DPR_NODE_UNUSED);
- 
-+	if (vsp1->info->features & VSP1_HAS_BRS)
-+		vsp1_write(vsp1, VI6_DPR_ILV_BRS_ROUTE, VI6_DPR_NODE_UNUSED);
-+
- 	vsp1_write(vsp1, VI6_DPR_HGO_SMPPT, (7 << VI6_DPR_SMPPT_TGW_SHIFT) |
- 		   (VI6_DPR_NODE_UNUSED << VI6_DPR_SMPPT_PT_SHIFT));
- 	vsp1_write(vsp1, VI6_DPR_HGT_SMPPT, (7 << VI6_DPR_SMPPT_TGW_SHIFT) |
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index 71dd903263ad..c06f7db093db 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -29,6 +29,7 @@ void vsp1_entity_route_setup(struct vsp1_entity *entity,
- 			     struct vsp1_dl_list *dl)
- {
- 	struct vsp1_entity *source;
-+	u32 route;
- 
- 	if (entity->type == VSP1_ENTITY_HGO) {
- 		u32 smppt;
-@@ -62,8 +63,14 @@ void vsp1_entity_route_setup(struct vsp1_entity *entity,
- 	if (source->route->reg == 0)
- 		return;
- 
--	vsp1_dl_list_write(dl, source->route->reg,
--			   source->sink->route->inputs[source->sink_pad]);
-+	route = source->sink->route->inputs[source->sink_pad];
-+	/*
-+	 * The ILV and BRS share the same data path route. The extra BRSSEL bit
-+	 * selects between the ILV and BRS.
-+	 */
-+	if (source->type == VSP1_ENTITY_BRS)
-+		route |= VI6_DPR_ROUTE_BRSSEL;
-+	vsp1_dl_list_write(dl, source->route->reg, route);
- }
- 
- /* -----------------------------------------------------------------------------
-@@ -450,6 +457,8 @@ struct media_pad *vsp1_entity_remote_pad(struct media_pad *pad)
- 	  { VI6_DPR_NODE_WPF(idx) }, VI6_DPR_NODE_WPF(idx) }
- 
- static const struct vsp1_route vsp1_routes[] = {
-+	{ VSP1_ENTITY_BRS, 0, VI6_DPR_ILV_BRS_ROUTE,
-+	  { VI6_DPR_NODE_BRS_IN(0), VI6_DPR_NODE_BRS_IN(1) }, 0 },
- 	{ VSP1_ENTITY_BRU, 0, VI6_DPR_BRU_ROUTE,
- 	  { VI6_DPR_NODE_BRU_IN(0), VI6_DPR_NODE_BRU_IN(1),
- 	    VI6_DPR_NODE_BRU_IN(2), VI6_DPR_NODE_BRU_IN(3),
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index 4362cd4e90ba..11f8363fa6b0 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -23,6 +23,7 @@ struct vsp1_dl_list;
- struct vsp1_pipeline;
- 
- enum vsp1_entity_type {
-+	VSP1_ENTITY_BRS,
- 	VSP1_ENTITY_BRU,
- 	VSP1_ENTITY_CLU,
- 	VSP1_ENTITY_HGO,
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index e817623b84e0..9bb961298af2 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -373,10 +373,11 @@ void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
- 		return;
- 
- 	/*
--	 * The BRU background color has a fixed alpha value set to 255, the
--	 * output alpha value is thus always equal to 255.
-+	 * The BRU and BRS background color has a fixed alpha value set to 255,
-+	 * the output alpha value is thus always equal to 255.
- 	 */
--	if (pipe->uds_input->type == VSP1_ENTITY_BRU)
-+	if (pipe->uds_input->type == VSP1_ENTITY_BRU ||
-+	    pipe->uds_input->type == VSP1_ENTITY_BRS)
- 		alpha = 255;
- 
- 	vsp1_uds_set_alpha(pipe->uds, dl, alpha);
-diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
-index cd3e32af6e3b..744217e020b9 100644
---- a/drivers/media/platform/vsp1/vsp1_regs.h
-+++ b/drivers/media/platform/vsp1/vsp1_regs.h
-@@ -238,6 +238,10 @@
- #define VI6_WPF_SRCRPF_VIRACT_SUB	(1 << 28)
- #define VI6_WPF_SRCRPF_VIRACT_MST	(2 << 28)
- #define VI6_WPF_SRCRPF_VIRACT_MASK	(3 << 28)
-+#define VI6_WPF_SRCRPF_VIRACT2_DIS	(0 << 24)
-+#define VI6_WPF_SRCRPF_VIRACT2_SUB	(1 << 24)
-+#define VI6_WPF_SRCRPF_VIRACT2_MST	(2 << 24)
-+#define VI6_WPF_SRCRPF_VIRACT2_MASK	(3 << 24)
- #define VI6_WPF_SRCRPF_RPF_ACT_DIS(n)	(0 << ((n) * 2))
- #define VI6_WPF_SRCRPF_RPF_ACT_SUB(n)	(1 << ((n) * 2))
- #define VI6_WPF_SRCRPF_RPF_ACT_MST(n)	(2 << ((n) * 2))
-@@ -321,6 +325,8 @@
- #define VI6_DPR_HST_ROUTE		0x2044
- #define VI6_DPR_HSI_ROUTE		0x2048
- #define VI6_DPR_BRU_ROUTE		0x204c
-+#define VI6_DPR_ILV_BRS_ROUTE		0x2050
-+#define VI6_DPR_ROUTE_BRSSEL		(1 << 28)
- #define VI6_DPR_ROUTE_FXA_MASK		(0xff << 16)
- #define VI6_DPR_ROUTE_FXA_SHIFT		16
- #define VI6_DPR_ROUTE_FP_MASK		(0x3f << 8)
-@@ -344,6 +350,7 @@
- #define VI6_DPR_NODE_CLU		29
- #define VI6_DPR_NODE_HST		30
- #define VI6_DPR_NODE_HSI		31
-+#define VI6_DPR_NODE_BRS_IN(n)		(38 + (n))
- #define VI6_DPR_NODE_LIF		55
- #define VI6_DPR_NODE_WPF(n)		(56 + (n))
- #define VI6_DPR_NODE_UNUSED		63
-@@ -476,7 +483,7 @@
- #define VI6_HSI_CTRL_EN			(1 << 0)
- 
- /* -----------------------------------------------------------------------------
-- * BRU Control Registers
-+ * BRS and BRU Control Registers
-  */
- 
- #define VI6_ROP_NOP			0
-@@ -496,7 +503,10 @@
- #define VI6_ROP_NAND			14
- #define VI6_ROP_SET			15
- 
--#define VI6_BRU_INCTRL			0x2c00
-+#define VI6_BRU_BASE			0x2c00
-+#define VI6_BRS_BASE			0x3900
-+
-+#define VI6_BRU_INCTRL			0x0000
- #define VI6_BRU_INCTRL_NRM		(1 << 28)
- #define VI6_BRU_INCTRL_DnON		(1 << (16 + (n)))
- #define VI6_BRU_INCTRL_DITHn_OFF	(0 << ((n) * 4))
-@@ -508,19 +518,19 @@
- #define VI6_BRU_INCTRL_DITHn_MASK	(7 << ((n) * 4))
- #define VI6_BRU_INCTRL_DITHn_SHIFT	((n) * 4)
- 
--#define VI6_BRU_VIRRPF_SIZE		0x2c04
-+#define VI6_BRU_VIRRPF_SIZE		0x0004
- #define VI6_BRU_VIRRPF_SIZE_HSIZE_MASK	(0x1fff << 16)
- #define VI6_BRU_VIRRPF_SIZE_HSIZE_SHIFT	16
- #define VI6_BRU_VIRRPF_SIZE_VSIZE_MASK	(0x1fff << 0)
- #define VI6_BRU_VIRRPF_SIZE_VSIZE_SHIFT	0
- 
--#define VI6_BRU_VIRRPF_LOC		0x2c08
-+#define VI6_BRU_VIRRPF_LOC		0x0008
- #define VI6_BRU_VIRRPF_LOC_HCOORD_MASK	(0x1fff << 16)
- #define VI6_BRU_VIRRPF_LOC_HCOORD_SHIFT	16
- #define VI6_BRU_VIRRPF_LOC_VCOORD_MASK	(0x1fff << 0)
- #define VI6_BRU_VIRRPF_LOC_VCOORD_SHIFT	0
- 
--#define VI6_BRU_VIRRPF_COL		0x2c0c
-+#define VI6_BRU_VIRRPF_COL		0x000c
- #define VI6_BRU_VIRRPF_COL_A_MASK	(0xff << 24)
- #define VI6_BRU_VIRRPF_COL_A_SHIFT	24
- #define VI6_BRU_VIRRPF_COL_RCR_MASK	(0xff << 16)
-@@ -530,7 +540,7 @@
- #define VI6_BRU_VIRRPF_COL_BCB_MASK	(0xff << 0)
- #define VI6_BRU_VIRRPF_COL_BCB_SHIFT	0
- 
--#define VI6_BRU_CTRL(n)			(0x2c10 + (n) * 8 + ((n) <= 3 ? 0 : 4))
-+#define VI6_BRU_CTRL(n)			(0x0010 + (n) * 8 + ((n) <= 3 ? 0 : 4))
- #define VI6_BRU_CTRL_RBC		(1 << 31)
- #define VI6_BRU_CTRL_DSTSEL_BRUIN(n)	(((n) <= 3 ? (n) : (n)+1) << 20)
- #define VI6_BRU_CTRL_DSTSEL_VRPF	(4 << 20)
-@@ -543,7 +553,7 @@
- #define VI6_BRU_CTRL_AROP(rop)		((rop) << 0)
- #define VI6_BRU_CTRL_AROP_MASK		(0xf << 0)
- 
--#define VI6_BRU_BLD(n)			(0x2c14 + (n) * 8 + ((n) <= 3 ? 0 : 4))
-+#define VI6_BRU_BLD(n)			(0x0014 + (n) * 8 + ((n) <= 3 ? 0 : 4))
- #define VI6_BRU_BLD_CBES		(1 << 31)
- #define VI6_BRU_BLD_CCMDX_DST_A		(0 << 28)
- #define VI6_BRU_BLD_CCMDX_255_DST_A	(1 << 28)
-@@ -576,7 +586,7 @@
- #define VI6_BRU_BLD_COEFY_MASK		(0xff << 0)
- #define VI6_BRU_BLD_COEFY_SHIFT		0
- 
--#define VI6_BRU_ROP			0x2c30
-+#define VI6_BRU_ROP			0x0030	/* Only available on BRU */
- #define VI6_BRU_ROP_DSTSEL_BRUIN(n)	(((n) <= 3 ? (n) : (n)+1) << 20)
- #define VI6_BRU_ROP_DSTSEL_VRPF		(4 << 20)
- #define VI6_BRU_ROP_DSTSEL_MASK		(7 << 20)
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 5af3486afe07..84139affb871 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -481,7 +481,7 @@ static int vsp1_video_pipeline_build_branch(struct vsp1_pipeline *pipe,
- 	struct media_entity_enum ent_enum;
- 	struct vsp1_entity *entity;
- 	struct media_pad *pad;
--	bool bru_found = false;
-+	struct vsp1_bru *bru = NULL;
- 	int ret;
- 
- 	ret = media_entity_enum_init(&ent_enum, &input->entity.vsp1->media_dev);
-@@ -511,16 +511,20 @@ static int vsp1_video_pipeline_build_branch(struct vsp1_pipeline *pipe,
- 			media_entity_to_v4l2_subdev(pad->entity));
- 
- 		/*
--		 * A BRU is present in the pipeline, store the BRU input pad
-+		 * A BRU or BRS is present in the pipeline, store its input pad
- 		 * number in the input RPF for use when configuring the RPF.
- 		 */
--		if (entity->type == VSP1_ENTITY_BRU) {
--			struct vsp1_bru *bru = to_bru(&entity->subdev);
-+		if (entity->type == VSP1_ENTITY_BRU ||
-+		    entity->type == VSP1_ENTITY_BRS) {
-+			/* BRU and BRS can't be chained. */
-+			if (bru) {
-+				ret = -EPIPE;
-+				goto out;
-+			}
- 
-+			bru = to_bru(&entity->subdev);
- 			bru->inputs[pad->index].rpf = input;
- 			input->bru_input = pad->index;
--
--			bru_found = true;
- 		}
- 
- 		/* We've reached the WPF, we're done. */
-@@ -542,8 +546,7 @@ static int vsp1_video_pipeline_build_branch(struct vsp1_pipeline *pipe,
- 			}
- 
- 			pipe->uds = entity;
--			pipe->uds_input = bru_found ? pipe->bru
--					: &input->entity;
-+			pipe->uds_input = bru ? &bru->entity : &input->entity;
- 		}
- 
- 		/* Follow the source link, ignoring any HGO or HGT. */
-@@ -589,30 +592,42 @@ static int vsp1_video_pipeline_build(struct vsp1_pipeline *pipe,
- 		e = to_vsp1_entity(subdev);
- 		list_add_tail(&e->list_pipe, &pipe->entities);
- 
--		if (e->type == VSP1_ENTITY_RPF) {
-+		switch (e->type) {
-+		case VSP1_ENTITY_RPF:
- 			rwpf = to_rwpf(subdev);
- 			pipe->inputs[rwpf->entity.index] = rwpf;
- 			rwpf->video->pipe_index = ++pipe->num_inputs;
- 			rwpf->pipe = pipe;
--		} else if (e->type == VSP1_ENTITY_WPF) {
-+			break;
-+
-+		case VSP1_ENTITY_WPF:
- 			rwpf = to_rwpf(subdev);
- 			pipe->output = rwpf;
- 			rwpf->video->pipe_index = 0;
- 			rwpf->pipe = pipe;
--		} else if (e->type == VSP1_ENTITY_LIF) {
-+			break;
-+
-+		case VSP1_ENTITY_LIF:
- 			pipe->lif = e;
--		} else if (e->type == VSP1_ENTITY_BRU) {
-+			break;
-+
-+		case VSP1_ENTITY_BRU:
-+		case VSP1_ENTITY_BRS:
- 			pipe->bru = e;
--		} else if (e->type == VSP1_ENTITY_HGO) {
--			struct vsp1_hgo *hgo = to_hgo(subdev);
-+			break;
- 
-+		case VSP1_ENTITY_HGO:
- 			pipe->hgo = e;
--			hgo->histo.pipe = pipe;
--		} else if (e->type == VSP1_ENTITY_HGT) {
--			struct vsp1_hgt *hgt = to_hgt(subdev);
-+			to_hgo(subdev)->histo.pipe = pipe;
-+			break;
- 
-+		case VSP1_ENTITY_HGT:
- 			pipe->hgt = e;
--			hgt->histo.pipe = pipe;
-+			to_hgt(subdev)->histo.pipe = pipe;
-+			break;
-+
-+		default:
-+			break;
- 		}
- 	}
- 
-@@ -796,12 +811,14 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- 		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
- 
- 		/*
--		 * If a BRU is present in the pipeline before the UDS, the alpha
--		 * component doesn't need to be scaled as the BRU output alpha
--		 * value is fixed to 255. Otherwise we need to scale the alpha
--		 * component only when available at the input RPF.
-+		 * If a BRU or BRS is present in the pipeline before the UDS,
-+		 * the alpha component doesn't need to be scaled as the BRU and
-+		 * BRS output alpha value is fixed to 255. Otherwise we need to
-+		 * scale the alpha component only when available at the input
-+		 * RPF.
- 		 */
--		if (pipe->uds_input->type == VSP1_ENTITY_BRU) {
-+		if (pipe->uds_input->type == VSP1_ENTITY_BRU ||
-+		    pipe->uds_input->type == VSP1_ENTITY_BRS) {
- 			uds->scale_alpha = false;
- 		} else {
- 			struct vsp1_rwpf *rpf =
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 32df109b119f..b6c902be225b 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -453,7 +453,9 @@ static void wpf_configure(struct vsp1_entity *entity,
- 	}
- 
- 	if (pipe->bru || pipe->num_inputs > 1)
--		srcrpf |= VI6_WPF_SRCRPF_VIRACT_MST;
-+		srcrpf |= pipe->bru->type == VSP1_ENTITY_BRU
-+			? VI6_WPF_SRCRPF_VIRACT_MST
-+			: VI6_WPF_SRCRPF_VIRACT2_MST;
- 
- 	vsp1_wpf_write(wpf, dl, VI6_WPF_SRCRPF, srcrpf);
- 
--- 
-Regards,
+Except for that, the patch looks fine on a quick glance.
 
-Laurent Pinchart
+>  #include <linux/module.h>
+>  #include <linux/init.h>
+>  #include <linux/interrupt.h>
+> @@ -124,10 +126,10 @@ static int ddb_i2c_cmd(struct ddb_i2c *i2c, u32 adr, u32 cmd)
+>  	ddbwritel((adr << 9) | cmd, i2c->regs + I2C_COMMAND);
+>  	stat = wait_event_timeout(i2c->wq, i2c->done == 1, HZ);
+>  	if (stat == 0) {
+> -		printk(KERN_ERR "I2C timeout\n");
+> +		dev_err(&dev->pdev->dev, "I2C timeout\n");
+>  		{ /* MSI debugging*/
+>  			u32 istat = ddbreadl(INTERRUPT_STATUS);
+> -			printk(KERN_ERR "IRS %08x\n", istat);
+> +			dev_err(&dev->pdev->dev, "IRS %08x\n", istat);
+>  			ddbwritel(istat, INTERRUPT_ACK);
+>  		}
+>  		return -EIO;
+> @@ -533,7 +535,7 @@ static u32 ddb_input_avail(struct ddb_input *input)
+>  	off = (stat & 0x7ff) << 7;
+>  
+>  	if (ctrl & 4) {
+> -		printk(KERN_ERR "IA %d %d %08x\n", idx, off, ctrl);
+> +		dev_err(&dev->pdev->dev, "IA %d %d %08x\n", idx, off, ctrl);
+>  		ddbwritel(input->stat, DMA_BUFFER_ACK(input->nr));
+>  		return 0;
+>  	}
+> @@ -611,6 +613,7 @@ static int demod_attach_drxk(struct ddb_input *input)
+>  	struct i2c_adapter *i2c = &input->port->i2c->adap;
+>  	struct dvb_frontend *fe;
+>  	struct drxk_config config;
+> +	struct device *dev = &input->port->dev->pdev->dev;
+>  
+>  	memset(&config, 0, sizeof(config));
+>  	config.microcode_name = "drxk_a3.mc";
+> @@ -619,7 +622,7 @@ static int demod_attach_drxk(struct ddb_input *input)
+>  
+>  	fe = input->fe = dvb_attach(drxk_attach, &config, i2c);
+>  	if (!input->fe) {
+> -		printk(KERN_ERR "No DRXK found!\n");
+> +		dev_err(dev, "No DRXK found!\n");
+>  		return -ENODEV;
+>  	}
+>  	fe->sec_priv = input;
+> @@ -632,12 +635,13 @@ static int tuner_attach_tda18271(struct ddb_input *input)
+>  {
+>  	struct i2c_adapter *i2c = &input->port->i2c->adap;
+>  	struct dvb_frontend *fe;
+> +	struct device *dev = &input->port->dev->pdev->dev;
+>  
+>  	if (input->fe->ops.i2c_gate_ctrl)
+>  		input->fe->ops.i2c_gate_ctrl(input->fe, 1);
+>  	fe = dvb_attach(tda18271c2dd_attach, input->fe, i2c, 0x60);
+>  	if (!fe) {
+> -		printk(KERN_ERR "No TDA18271 found!\n");
+> +		dev_err(dev, "No TDA18271 found!\n");
+>  		return -ENODEV;
+>  	}
+>  	if (input->fe->ops.i2c_gate_ctrl)
+> @@ -670,13 +674,14 @@ static struct stv0367_config ddb_stv0367_config[] = {
+>  static int demod_attach_stv0367(struct ddb_input *input)
+>  {
+>  	struct i2c_adapter *i2c = &input->port->i2c->adap;
+> +	struct device *dev = &input->port->dev->pdev->dev;
+>  
+>  	/* attach frontend */
+>  	input->fe = dvb_attach(stv0367ddb_attach,
+>  		&ddb_stv0367_config[(input->nr & 1)], i2c);
+>  
+>  	if (!input->fe) {
+> -		printk(KERN_ERR "stv0367ddb_attach failed (not found?)\n");
+> +		dev_err(dev, "stv0367ddb_attach failed (not found?)\n");
+>  		return -ENODEV;
+>  	}
+>  
+> @@ -690,17 +695,19 @@ static int demod_attach_stv0367(struct ddb_input *input)
+>  static int tuner_tda18212_ping(struct ddb_input *input, unsigned short adr)
+>  {
+>  	struct i2c_adapter *adapter = &input->port->i2c->adap;
+> +	struct device *dev = &input->port->dev->pdev->dev;
+> +
+>  	u8 tda_id[2];
+>  	u8 subaddr = 0x00;
+>  
+> -	printk(KERN_DEBUG "stv0367-tda18212 tuner ping\n");
+> +	dev_dbg(dev, "stv0367-tda18212 tuner ping\n");
+>  	if (input->fe->ops.i2c_gate_ctrl)
+>  		input->fe->ops.i2c_gate_ctrl(input->fe, 1);
+>  
+>  	if (i2c_read_regs(adapter, adr, subaddr, tda_id, sizeof(tda_id)) < 0)
+> -		printk(KERN_DEBUG "tda18212 ping 1 fail\n");
+> +		dev_dbg(dev, "tda18212 ping 1 fail\n");
+>  	if (i2c_read_regs(adapter, adr, subaddr, tda_id, sizeof(tda_id)) < 0)
+> -		printk(KERN_DEBUG "tda18212 ping 2 fail\n");
+> +		dev_warn(dev, "tda18212 ping failed, expect problems\n");
+>  
+>  	if (input->fe->ops.i2c_gate_ctrl)
+>  		input->fe->ops.i2c_gate_ctrl(input->fe, 0);
+> @@ -711,6 +718,7 @@ static int tuner_tda18212_ping(struct ddb_input *input, unsigned short adr)
+>  static int demod_attach_cxd28xx(struct ddb_input *input, int par, int osc24)
+>  {
+>  	struct i2c_adapter *i2c = &input->port->i2c->adap;
+> +	struct device *dev = &input->port->dev->pdev->dev;
+>  	struct cxd2841er_config cfg;
+>  
+>  	/* the cxd2841er driver expects 8bit/shifted I2C addresses */
+> @@ -728,7 +736,7 @@ static int demod_attach_cxd28xx(struct ddb_input *input, int par, int osc24)
+>  	input->fe = dvb_attach(cxd2841er_attach_t_c, &cfg, i2c);
+>  
+>  	if (!input->fe) {
+> -		printk(KERN_ERR "No Sony CXD28xx found!\n");
+> +		dev_err(dev, "No Sony CXD28xx found!\n");
+>  		return -ENODEV;
+>  	}
+>  
+> @@ -742,6 +750,7 @@ static int demod_attach_cxd28xx(struct ddb_input *input, int par, int osc24)
+>  static int tuner_attach_tda18212(struct ddb_input *input, u32 porttype)
+>  {
+>  	struct i2c_adapter *adapter = &input->port->i2c->adap;
+> +	struct device *dev = &input->port->dev->pdev->dev;
+>  	struct i2c_client *client;
+>  	struct tda18212_config config = {
+>  		.fe = input->fe,
+> @@ -786,7 +795,7 @@ static int tuner_attach_tda18212(struct ddb_input *input, u32 porttype)
+>  
+>  	return 0;
+>  err:
+> -	printk(KERN_INFO "TDA18212 tuner not found. Device is not fully operational.\n");
+> +	dev_warn(dev, "TDA18212 tuner not found. Device is not fully operational.\n");
+>  	return -ENODEV;
+>  }
+>  
+> @@ -847,19 +856,20 @@ static struct stv6110x_config stv6110b = {
+>  static int demod_attach_stv0900(struct ddb_input *input, int type)
+>  {
+>  	struct i2c_adapter *i2c = &input->port->i2c->adap;
+> +	struct device *dev = &input->port->dev->pdev->dev;
+>  	struct stv090x_config *feconf = type ? &stv0900_aa : &stv0900;
+>  
+>  	input->fe = dvb_attach(stv090x_attach, feconf, i2c,
+>  			       (input->nr & 1) ? STV090x_DEMODULATOR_1
+>  			       : STV090x_DEMODULATOR_0);
+>  	if (!input->fe) {
+> -		printk(KERN_ERR "No STV0900 found!\n");
+> +		dev_err(dev, "No STV0900 found!\n");
+>  		return -ENODEV;
+>  	}
+>  	if (!dvb_attach(lnbh24_attach, input->fe, i2c, 0,
+>  			0, (input->nr & 1) ?
+>  			(0x09 - type) : (0x0b - type))) {
+> -		printk(KERN_ERR "No LNBH24 found!\n");
+> +		dev_err(dev, "No LNBH24 found!\n");
+>  		return -ENODEV;
+>  	}
+>  	return 0;
+> @@ -868,6 +878,7 @@ static int demod_attach_stv0900(struct ddb_input *input, int type)
+>  static int tuner_attach_stv6110(struct ddb_input *input, int type)
+>  {
+>  	struct i2c_adapter *i2c = &input->port->i2c->adap;
+> +	struct device *dev = &input->port->dev->pdev->dev;
+>  	struct stv090x_config *feconf = type ? &stv0900_aa : &stv0900;
+>  	struct stv6110x_config *tunerconf = (input->nr & 1) ?
+>  		&stv6110b : &stv6110a;
+> @@ -875,10 +886,10 @@ static int tuner_attach_stv6110(struct ddb_input *input, int type)
+>  
+>  	ctl = dvb_attach(stv6110x_attach, input->fe, tunerconf, i2c);
+>  	if (!ctl) {
+> -		printk(KERN_ERR "No STV6110X found!\n");
+> +		dev_err(dev, "No STV6110X found!\n");
+>  		return -ENODEV;
+>  	}
+> -	printk(KERN_INFO "attach tuner input %d adr %02x\n",
+> +	dev_info(dev, "attach tuner input %d adr %02x\n",
+>  			 input->nr, tunerconf->addr);
+>  
+>  	feconf->tuner_init          = ctl->tuner_init;
+> @@ -1009,13 +1020,14 @@ static int dvb_input_attach(struct ddb_input *input)
+>  	struct ddb_port *port = input->port;
+>  	struct dvb_adapter *adap = &input->adap;
+>  	struct dvb_demux *dvbdemux = &input->demux;
+> +	struct device *dev = &input->port->dev->pdev->dev;
+>  	int sony_osc24 = 0, sony_tspar = 0;
+>  
+>  	ret = dvb_register_adapter(adap, "DDBridge", THIS_MODULE,
+>  				   &input->port->dev->pdev->dev,
+>  				   adapter_nr);
+>  	if (ret < 0) {
+> -		printk(KERN_ERR "ddbridge: Could not register adapter.Check if you enabled enough adapters in dvb-core!\n");
+> +		dev_err(dev, "Could not register adapter. Check if you enabled enough adapters in dvb-core!\n");
+>  		return ret;
+>  	}
+>  	input->attached = 1;
+> @@ -1241,7 +1253,7 @@ static void input_tasklet(unsigned long data)
+>  
+>  	if (input->port->class == DDB_PORT_TUNER) {
+>  		if (4&ddbreadl(DMA_BUFFER_CONTROL(input->nr)))
+> -			printk(KERN_ERR "Overflow input %d\n", input->nr);
+> +			dev_err(&dev->pdev->dev, "Overflow input %d\n", input->nr);
+>  		while (input->cbuf != ((input->stat >> 11) & 0x1f)
+>  		       || (4&ddbreadl(DMA_BUFFER_CONTROL(input->nr)))) {
+>  			dvb_dmx_swfilter_packets(&input->demux,
+> @@ -1310,6 +1322,7 @@ static int ddb_ci_attach(struct ddb_port *port)
+>  
+>  static int ddb_port_attach(struct ddb_port *port)
+>  {
+> +	struct device *dev = &port->dev->pdev->dev;
+>  	int ret = 0;
+>  
+>  	switch (port->class) {
+> @@ -1326,7 +1339,7 @@ static int ddb_port_attach(struct ddb_port *port)
+>  		break;
+>  	}
+>  	if (ret < 0)
+> -		printk(KERN_ERR "port_attach on port %d failed\n", port->nr);
+> +		dev_err(dev, "port_attach on port %d failed\n", port->nr);
+>  	return ret;
+>  }
+>  
+> @@ -1377,6 +1390,7 @@ static void ddb_ports_detach(struct ddb *dev)
+>  static int init_xo2(struct ddb_port *port)
+>  {
+>  	struct i2c_adapter *i2c = &port->i2c->adap;
+> +	struct device *dev = &port->dev->pdev->dev;
+>  	u8 val, data[2];
+>  	int res;
+>  
+> @@ -1385,7 +1399,7 @@ static int init_xo2(struct ddb_port *port)
+>  		return res;
+>  
+>  	if (data[0] != 0x01)  {
+> -		pr_info("Port %d: invalid XO2\n", port->nr);
+> +		dev_info(dev, "Port %d: invalid XO2\n", port->nr);
+>  		return -1;
+>  	}
+>  
+> @@ -1511,7 +1525,7 @@ static void ddb_port_probe(struct ddb_port *port)
+>  		port->class = DDB_PORT_CI;
+>  		ddbwritel(I2C_SPEED_400, port->i2c->regs + I2C_TIMING);
+>  	} else if (port_has_xo2(port, &xo2_type, &xo2_id)) {
+> -		printk(KERN_INFO "Port %d (TAB %d): XO2 type: %d, id: %d\n",
+> +		dev_dbg(&dev->pdev->dev, "Port %d (TAB %d): XO2 type: %d, id: %d\n",
+>  			port->nr, port->nr+1, xo2_type, xo2_id);
+>  
+>  		ddbwritel(I2C_SPEED_400, port->i2c->regs + I2C_TIMING);
+> @@ -1556,10 +1570,10 @@ static void ddb_port_probe(struct ddb_port *port)
+>  			}
+>  			break;
+>  		case DDB_XO2_TYPE_CI:
+> -			printk(KERN_INFO "DuoFlex CI modules not supported\n");
+> +			dev_info(&dev->pdev->dev, "DuoFlex CI modules not supported\n");
+>  			break;
+>  		default:
+> -			printk(KERN_INFO "Unknown XO2 DuoFlex module\n");
+> +			dev_info(&dev->pdev->dev, "Unknown XO2 DuoFlex module\n");
+>  			break;
+>  		}
+>  	} else if (port_has_cxd28xx(port, &cxd_id)) {
+> @@ -1611,7 +1625,7 @@ static void ddb_port_probe(struct ddb_port *port)
+>  		ddbwritel(I2C_SPEED_100, port->i2c->regs + I2C_TIMING);
+>  	}
+>  
+> -	printk(KERN_INFO "Port %d (TAB %d): %s\n",
+> +	dev_info(&dev->pdev->dev, "Port %d (TAB %d): %s\n",
+>  			 port->nr, port->nr+1, modname);
+>  }
+>  
+> @@ -1993,7 +2007,7 @@ static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+>  	dev->pdev = pdev;
+>  	pci_set_drvdata(pdev, dev);
+>  	dev->info = (struct ddb_info *) id->driver_data;
+> -	printk(KERN_INFO "DDBridge driver detected: %s\n", dev->info->name);
+> +	dev_info(&pdev->dev, "Detected %s\n", dev->info->name);
+>  
+>  	dev->regs = ioremap(pci_resource_start(dev->pdev, 0),
+>  			    pci_resource_len(dev->pdev, 0));
+> @@ -2001,13 +2015,13 @@ static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+>  		stat = -ENOMEM;
+>  		goto fail;
+>  	}
+> -	printk(KERN_INFO "HW %08x FW %08x\n", ddbreadl(0), ddbreadl(4));
+> +	dev_info(&pdev->dev, "HW %08x FW %08x\n", ddbreadl(0), ddbreadl(4));
+>  
+>  #ifdef CONFIG_PCI_MSI
+>  	if (pci_msi_enabled())
+>  		stat = pci_enable_msi(dev->pdev);
+>  	if (stat) {
+> -		printk(KERN_INFO ": MSI not available.\n");
+> +		dev_info(&pdev->dev, "MSI not available.\n");
+>  	} else {
+>  		irq_flag = 0;
+>  		dev->msi = 1;
+> @@ -2040,7 +2054,7 @@ static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+>  		goto fail1;
+>  	ddb_ports_init(dev);
+>  	if (ddb_buffers_alloc(dev) < 0) {
+> -		printk(KERN_INFO ": Could not allocate buffer memory\n");
+> +		dev_err(&pdev->dev, "Could not allocate buffer memory\n");
+>  		goto fail2;
+>  	}
+>  	if (ddb_ports_attach(dev) < 0)
+> @@ -2050,19 +2064,19 @@ static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+>  
+>  fail3:
+>  	ddb_ports_detach(dev);
+> -	printk(KERN_ERR "fail3\n");
+> +	dev_err(&pdev->dev, "fail3\n");
+>  	ddb_ports_release(dev);
+>  fail2:
+> -	printk(KERN_ERR "fail2\n");
+> +	dev_err(&pdev->dev, "fail2\n");
+>  	ddb_buffers_free(dev);
+>  fail1:
+> -	printk(KERN_ERR "fail1\n");
+> +	dev_err(&pdev->dev, "fail1\n");
+>  	if (dev->msi)
+>  		pci_disable_msi(dev->pdev);
+>  	if (stat == 0)
+>  		free_irq(dev->pdev->irq, dev);
+>  fail:
+> -	printk(KERN_ERR "fail\n");
+> +	dev_err(&pdev->dev, "fail\n");
+>  	ddb_unmap(dev);
+>  	pci_set_drvdata(pdev, NULL);
+>  	pci_disable_device(pdev);
+> @@ -2242,7 +2256,7 @@ static __init int module_init_ddbridge(void)
+>  {
+>  	int ret;
+>  
+> -	printk(KERN_INFO "Digital Devices PCIE bridge driver, Copyright (C) 2010-11 Digital Devices GmbH\n");
+> +	pr_info("Digital Devices PCIE bridge driver, Copyright (C) 2010-11 Digital Devices GmbH\n");
+>  
+>  	ret = ddb_class_create();
+>  	if (ret < 0)
+
+
+
+Thanks,
+Mauro
