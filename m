@@ -1,50 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.135]:60142 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752871AbdF0PE0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 11:04:26 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 3/3] [media] venus: fix compile-test build on non-qcom ARM platform
-Date: Tue, 27 Jun 2017 17:02:48 +0200
-Message-Id: <20170627150310.719212-3-arnd@arndb.de>
-In-Reply-To: <20170627150310.719212-1-arnd@arndb.de>
-References: <20170627150310.719212-1-arnd@arndb.de>
+Received: from mx2.suse.de ([195.135.220.15]:42223 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752150AbdFUIIe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Jun 2017 04:08:34 -0400
+From: Johannes Thumshirn <jthumshirn@suse.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-fbdev@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Johannes Thumshirn <jthumshirn@suse.de>
+Subject: [PATCH RESEND 4/7] [media] cx25821: use MEDIA_REVISION instead of KERNEL_VERSION
+Date: Wed, 21 Jun 2017 10:08:09 +0200
+Message-Id: <20170621080812.6817-5-jthumshirn@suse.de>
+In-Reply-To: <20170621080812.6817-1-jthumshirn@suse.de>
+References: <20170621080812.6817-1-jthumshirn@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If QCOM_MDT_LOADER is enabled, but ARCH_QCOM is not, we run into
-a build error:
+Use MEDIA_REVISION instead of KERNEL_VERSION to encode the
+CX25821_VERSION_CODE.
 
-ERROR: "qcom_mdt_load" [drivers/media/platform/qcom/venus/venus-core.ko] undefined!
-ERROR: "qcom_mdt_get_size" [drivers/media/platform/qcom/venus/venus-core.ko] undefined!
-
-This changes the 'select' statement again, so we only try to enable
-those symbols when the drivers will actually get built.
-
-Fixes: 76724b30f222 ("[media] media: venus: enable building with COMPILE_TEST")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Johannes Thumshirn <jthumshirn@suse.de>
 ---
- drivers/media/platform/Kconfig | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/pci/cx25821/cx25821.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index cb2f31cd0088..635c53e61f8a 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -475,8 +475,8 @@ config VIDEO_QCOM_VENUS
- 	tristate "Qualcomm Venus V4L2 encoder/decoder driver"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
- 	depends on (ARCH_QCOM && IOMMU_DMA) || COMPILE_TEST
--	select QCOM_MDT_LOADER if (ARM || ARM64)
--	select QCOM_SCM if (ARM || ARM64)
-+	select QCOM_MDT_LOADER if ARCH_QCOM
-+	select QCOM_SCM if ARCH_QCOM
- 	select VIDEOBUF2_DMA_SG
- 	select V4L2_MEM2MEM_DEV
- 	---help---
+diff --git a/drivers/media/pci/cx25821/cx25821.h b/drivers/media/pci/cx25821/cx25821.h
+index 0f20e89b0cde..7fea6b07cf19 100644
+--- a/drivers/media/pci/cx25821/cx25821.h
++++ b/drivers/media/pci/cx25821/cx25821.h
+@@ -41,7 +41,7 @@
+ #include <linux/version.h>
+ #include <linux/mutex.h>
+ 
+-#define CX25821_VERSION_CODE KERNEL_VERSION(0, 0, 106)
++#define CX25821_VERSION_CODE MEDIA_REVISION(0, 0, 106)
+ 
+ #define UNSET (-1U)
+ #define NO_SYNC_LINE (-1U)
 -- 
-2.9.0
+2.12.3
