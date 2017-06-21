@@ -1,79 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:56854 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752920AbdF0KPg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 06:15:36 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        "H. Nikolaus Schaller" <hns@goldelico.com>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre TORGUE <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
-        Yannick FERTRE <yannick.fertre@st.com>
-Subject: Re: [PATCH v1 2/6] [media] ov9650: add device tree support
-Date: Tue, 27 Jun 2017 10:14:46 +0000
-Message-ID: <00c5784a-8e13-be01-5c9e-4747aaa14ae5@st.com>
-References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
- <1498143942-12682-3-git-send-email-hugues.fruchet@st.com>
- <20170626163102.GQ12407@valkosipuli.retiisi.org.uk>
- <D780984B-70A1-4E9C-A887-DD2CBAAC7CCA@goldelico.com>
- <20170627053642.GW12407@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20170627053642.GW12407@valkosipuli.retiisi.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <2B917BC86A1C8248B4FEBDFE843330DF@st.com>
-Content-Transfer-Encoding: base64
+Received: from mail.kapsi.fi ([217.30.184.167]:39383 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751093AbdFUTb1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Jun 2017 15:31:27 -0400
+Subject: Re: [PATCH 3/4] [media] dvb-frontends/stv0367: SNR DVBv5 statistics
+ for DVB-C and T
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com, liplianin@netup.ru, rjkm@metzlerbros.de
+References: <20170620174506.7593-1-d.scheller.oss@gmail.com>
+ <20170620174506.7593-4-d.scheller.oss@gmail.com>
+ <ee554f8e-b533-4b8b-5710-83e7ff40a3c2@iki.fi>
+ <20170621175053.2d1d26f2@audiostation.wuest.de>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <9dfba4e1-bfa6-dbc2-e420-80f4b8e6b580@iki.fi>
+Date: Wed, 21 Jun 2017 22:31:21 +0300
 MIME-Version: 1.0
+In-Reply-To: <20170621175053.2d1d26f2@audiostation.wuest.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQoNCk9uIDA2LzI3LzIwMTcgMDc6MzYgQU0sIFNha2FyaSBBaWx1cyB3cm90ZToNCj4gT24gTW9u
-LCBKdW4gMjYsIDIwMTcgYXQgMDc6NDY6MzRQTSArMDIwMCwgSC4gTmlrb2xhdXMgU2NoYWxsZXIg
-d3JvdGU6DQo+PiBIaSwNCj4+DQo+Pj4gQW0gMjYuMDYuMjAxNyB1bSAxODozMSBzY2hyaWViIFNh
-a2FyaSBBaWx1cyA8c2FrYXJpLmFpbHVzQGlraS5maT46DQo+Pj4NCj4+PiBIaSBIdWd1ZXMsDQo+
-Pj4NCj4+PiBPbiBUaHUsIEp1biAyMiwgMjAxNyBhdCAwNTowNTozOFBNICswMjAwLCBIdWd1ZXMg
-RnJ1Y2hldCB3cm90ZToNCj4+Pj4gQEAgLTE1NDUsMTUgKzE1NzcsMjIgQEAgc3RhdGljIGludCBv
-djk2NXhfcmVtb3ZlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQpDQo+Pj4+IH0NCj4+Pj4NCj4+
-Pj4gc3RhdGljIGNvbnN0IHN0cnVjdCBpMmNfZGV2aWNlX2lkIG92OTY1eF9pZFtdID0gew0KPj4+
-PiAtCXsgIk9WOTY1MCIsIDAgfSwNCj4+Pj4gLQl7ICJPVjk2NTIiLCAwIH0sDQo+Pj4+ICsJeyAi
-T1Y5NjUwIiwgMHg5NjUwIH0sDQo+Pj4+ICsJeyAiT1Y5NjUyIiwgMHg5NjUyIH0sDQo+Pj4NCj4+
-PiBUaGlzIGNoYW5nZSBkb2VzIG5vdCBhcHBlYXIgdG8gbWF0Y2ggd2l0aCB0aGUgcGF0Y2ggZGVz
-Y3JpcHRpb24gbm9yIGl0IHRoZQ0KPj4+IGluZm9ybWF0aW9uIGlzIHVzZWQuIEhvdyBhYm91dCBu
-b3QgY2hhbmdpbmcgaXQsIHVubGVzcyB0aGVyZSdzIGEgcmVhc29uIHRvPw0KPj4+IFRoZSBzYW1l
-IGZvciB0aGUgZGF0YSBmaWVsZCBvZiB0aGUgb2ZfZGV2aWNlX2lkIGFycmF5IGJlbG93Lg0KPj4N
-Cj4+IEkgdGhpbmsgaXQgY291bGQvc2hvdWxkIGJlIHVzZWQgdG8gY2hlY2sgaWYgdGhlIGNhbWVy
-YSBjaGlwIHRoYXQgaXMgZm91bmQNCj4+IGJ5IHJlYWRpbmcgdGhlIHByb2R1Y3QtaWQgYW5kIHZl
-cnNpb24gcmVnaXN0ZXJzIGRvZXMgbWF0Y2ggd2hhdCB0aGUgZGV2aWNlDQo+PiB0cmVlIGV4cGVj
-dHMgYW5kIGFib3J0IHByb2Jpbmcgb24gYSBtaXNtYXRjaC4NCj4gDQo+IE1ha2VzIHNlbnNlLiBC
-dXQgaXQgc2hvdWxkIGJlIGEgc2VwYXJhdGUgcGF0Y2gsIHNob3VsZG4ndCBpdD8NCj4gDQo+IFlv
-dSBjb3VsZCBhbHNvIHB1dCB0aGUgaWQgdG8gdGhlIG9wcyBzdHJ1Y3QsIGFuZCBjaG9vc2UgdGhl
-IG9wcyBzdHJ1Y3QgdGhhdA0KPiB3YXkuIEVudGlyZWx5IHVwIHRvIHlvdS4NCj4gDQoNCkknbGwg
-c3VnZ2VzdCB0byBza2lwIHRoZSBpZCBjaGVjayBiZXR3ZWVuIERUIGNvbXBhdGlibGUgc3RyaW5n
-IGFuZCByZWFsIA0KZGV2aWNlIGlkIHJlYWQgZnJvbSBzZW5zb3IsIHRoaXMgaXMgbm90IHNvbWV0
-aGluZyBJIHNlZSBpbiBvdGhlciBkcml2ZXJzIA0KY3VycmVudGx5Lg0KQnV0IEkgd291bGQgc3Vn
-Z2VzdCB0byBrZWVwIGluIGEgc2VwYXJhdGUgcGF0Y2ggdGhlIHN3aXRjaCBvZiBkZXZpY2UgaWQg
-DQpuYW1lcyB0byBsb3dlciBjYXNlIGluIG9yZGVyIHRvIGFsaWduIHdpdGggb3RoZXIgb21uaXZp
-c2lvbiBjYW1lcmFzIGFuZCANCm5vdCBpbnRyb2R1Y2UgdXBwZXIvbG93ZXIgY2FzZSBwb3RlbnRp
-YWwgYnVncyBpbiBEVCBsYXRlciBvbiAoYXMgdGhlIG9uZSANCmVuY291bnRlcmVkIGJ5IE5pa29s
-YXVzKToNCg0KICBbbWVkaWFdIG92OTY1MDogc3dpdGNoIGkyYyBkZXZpY2UgaWQgdG8gbG93ZXIg
-Y2FzZQ0KDQogIHN0YXRpYyBjb25zdCBzdHJ1Y3QgaTJjX2RldmljZV9pZCBvdjk2NXhfaWRbXSA9
-IHsNCi0JeyAiT1Y5NjUwIiwgMCB9LA0KLQl7ICJPVjk2NTIiLCAwIH0sDQorCXsgIm92OTY1MCIs
-IDAgfSwNCisJeyAib3Y5NjUyIiwgMCB9LA0KDQoNCiAgW21lZGlhXSBvdjk2NTA6IGFkZCBkZXZp
-Y2UgdHJlZSBzdXBwb3J0DQoNCitzdGF0aWMgY29uc3Qgc3RydWN0IG9mX2RldmljZV9pZCBvdjk2
-NXhfb2ZfbWF0Y2hbXSA9IHsNCisJeyAuY29tcGF0aWJsZSA9ICJvdnRpLG92OTY1MCIsIH0sDQor
-CXsgLmNvbXBhdGlibGUgPSAib3Z0aSxvdjk2NTIiLCB9LA0KKwl7IC8qIHNlbnRpbmVsICovIH0N
-Cit9Ow0KK01PRFVMRV9ERVZJQ0VfVEFCTEUob2YsIG92OTY1eF9vZl9tYXRjaCk7DQorDQogIHN0
-YXRpYyBzdHJ1Y3QgaTJjX2RyaXZlciBvdjk2NXhfaTJjX2RyaXZlciA9IHsNCiAgCS5kcml2ZXIg
-PSB7DQogIAkJLm5hbWUJPSBEUklWRVJfTkFNRSwNCisJCS5vZl9tYXRjaF90YWJsZSA9IG9mX21h
-dGNoX3B0cihvdjk2NXhfb2ZfbWF0Y2gpLA0KDQo=
+
+
+On 06/21/2017 06:50 PM, Daniel Scheller wrote:
+> Am Wed, 21 Jun 2017 09:30:27 +0300
+> schrieb Antti Palosaari <crope@iki.fi>:
+> 
+>> On 06/20/2017 08:45 PM, Daniel Scheller wrote:
+>>> From: Daniel Scheller <d.scheller@gmx.net>
+>>>
+>>> Add signal-to-noise-ratio as provided by the demodulator in decibel scale.
+>>> QAM/DVB-C needs some intlog calculation to have usable dB values, OFDM/
+>>> DVB-T values from the demod look alright already and are provided as-is.
+>>>
+>>> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+>>> ---
+>>>    drivers/media/dvb-frontends/stv0367.c | 33 +++++++++++++++++++++++++++++++++
+>>>    1 file changed, 33 insertions(+)
+>>>
+>>> diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+>>> index bb498f942ebd..0b13a407df23 100644
+>>> --- a/drivers/media/dvb-frontends/stv0367.c
+>>> +++ b/drivers/media/dvb-frontends/stv0367.c
+>>> @@ -25,6 +25,8 @@
+>>>    #include <linux/slab.h>
+>>>    #include <linux/i2c.h>
+>>>    
+>>> +#include "dvb_math.h"
+>>> +
+>>>    #include "stv0367.h"
+>>>    #include "stv0367_defs.h"
+>>>    #include "stv0367_regs.h"
+>>> @@ -33,6 +35,9 @@
+>>>    /* Max transfer size done by I2C transfer functions */
+>>>    #define MAX_XFER_SIZE  64
+>>>    
+>>> +/* snr logarithmic calc */
+>>> +#define INTLOG10X100(x) ((u32) (((u64) intlog10(x) * 100) >> 24))
+>>> +
+>>>    static int stvdebug;
+>>>    module_param_named(debug, stvdebug, int, 0644);
+>>>    
+>>> @@ -3013,6 +3018,33 @@ static int stv0367ddb_read_status(struct dvb_frontend *fe,
+>>>    	return -EINVAL;
+>>>    }
+>>>    
+>>> +static void stv0367ddb_read_snr(struct dvb_frontend *fe)
+>>> +{
+>>> +	struct stv0367_state *state = fe->demodulator_priv;
+>>> +	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+>>> +	int cab_pwr;
+>>> +	u32 regval, tmpval, snrval = 0;
+>>> +
+>>> +	switch (state->activedemod) {
+>>> +	case demod_ter:
+>>> +		snrval = stv0367ter_snr_readreg(fe);
+>>> +		break;
+>>> +	case demod_cab:
+>>> +		cab_pwr = stv0367cab_snr_power(fe);
+>>> +		regval = stv0367cab_snr_readreg(fe, 0);
+>>> +
+>>> +		tmpval = (cab_pwr * 320) / regval;
+>>> +		snrval = ((tmpval != 0) ? INTLOG10X100(tmpval) : 0) * 100;
+>>
+>> How much there will be rounding errors due to that signal/noise
+>> division? I would convert it to calculation of sums (tip logarithm
+>> calculation rules).
+> 
+> This is taken from stv0367dd aswell, the reported and calculated values are in 0.1dB precision. This and to not diverge any more from the "source" driver, I'd prefer to keep it how it is. These are just simple tuner cards anyway and by no means professional measurement gear, and should only give a more or less rough estimate on reception quality. E.g. my stv0367 cards report around 36dB SNR, whereas the cxd2841er reports ~37dB, compared to my DOCSIS modem, which reports 34dB on DOCSIS channels (another variant I had earlier even reported 39dB on the same channels), so... Even, we get way more precision than on the relative scale calc on the cab_read_snr functions which is in 10%-steps...
+> 
+>> Also, that INTLOG10X100 is pretty much useless. Use just what
+>> intlog10/intlog2 offers without yet again another conversion.
+> 
+> Will check and experiment. Again, taken from stv0367dd :-)
+
+You should understand that there is no floating points on kernel, thus 
+that kind of divisions needs special attention. It should be written 
+log10(signal) - log10(noise) in order to minimize rounding errors. Lets 
+say as example if you divide 2 by 3 you will get 0, not 0.666... So 
+depending on actual numbers used on calculation, there is more or less 
+rounding errors which are easily avoidable.
+
+
+
+Antti
+
+-- 
+http://palosaari.fi/
