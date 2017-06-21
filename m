@@ -1,143 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:54645 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751951AbdF3OfR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Jun 2017 10:35:17 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Eric Anholt <eric@anholt.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 08/12] cec: add core support for low-level CEC pin monitoring
-Date: Fri, 30 Jun 2017 16:35:05 +0200
-Message-Id: <20170630143509.56029-9-hverkuil@xs4all.nl>
-In-Reply-To: <20170630143509.56029-1-hverkuil@xs4all.nl>
-References: <20170630143509.56029-1-hverkuil@xs4all.nl>
+Received: from mx2.suse.de ([195.135.220.15]:42229 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752247AbdFUIIe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Jun 2017 04:08:34 -0400
+From: Johannes Thumshirn <jthumshirn@suse.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-fbdev@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Johannes Thumshirn <jthumshirn@suse.de>
+Subject: [PATCH RESEND 2/7] video: fbdev: don't use KERNEL_VERSION macro for MEDIA_REVISION
+Date: Wed, 21 Jun 2017 10:08:07 +0200
+Message-Id: <20170621080812.6817-3-jthumshirn@suse.de>
+In-Reply-To: <20170621080812.6817-1-jthumshirn@suse.de>
+References: <20170621080812.6817-1-jthumshirn@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Don't use the KERNEL_VERSION() macro for the v4l2 capabilities, use
+MEDIA_REVISION instead.
 
-Add support for the new MONITOR_PIN mode.
-
-Add the cec_pin_event function that the CEC pin code will call to queue pin
-change events.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Johannes Thumshirn <jthumshirn@suse.de>
 ---
- drivers/media/cec/cec-adap.c | 16 ++++++++++++++++
- drivers/media/cec/cec-api.c  | 15 +++++++++++++--
- include/media/cec.h          | 11 +++++++++++
- 3 files changed, 40 insertions(+), 2 deletions(-)
+ drivers/video/fbdev/matrox/matroxfb_base.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index 58df9e6a4c2d..f468ee32d670 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -153,6 +153,22 @@ static void cec_queue_event(struct cec_adapter *adap,
- 	mutex_unlock(&adap->devnode.lock);
- }
+diff --git a/drivers/video/fbdev/matrox/matroxfb_base.c b/drivers/video/fbdev/matrox/matroxfb_base.c
+index 11eb094396ae..eb92a325033c 100644
+--- a/drivers/video/fbdev/matrox/matroxfb_base.c
++++ b/drivers/video/fbdev/matrox/matroxfb_base.c
+@@ -113,6 +113,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/slab.h>
+ #include <linux/uaccess.h>
++#include <linux/media.h>
  
-+/* Notify userspace that the CEC pin changed state at the given time. */
-+void cec_queue_pin_event(struct cec_adapter *adap, bool is_high, ktime_t ts)
-+{
-+	struct cec_event ev = {
-+		.event = is_high ? CEC_EVENT_PIN_HIGH : CEC_EVENT_PIN_LOW,
-+	};
-+	struct cec_fh *fh;
-+
-+	mutex_lock(&adap->devnode.lock);
-+	list_for_each_entry(fh, &adap->devnode.fhs, list)
-+		if (fh->mode_follower == CEC_MODE_MONITOR_PIN)
-+			cec_queue_event_fh(fh, &ev, ktime_to_ns(ts));
-+	mutex_unlock(&adap->devnode.lock);
-+}
-+EXPORT_SYMBOL_GPL(cec_queue_pin_event);
-+
- /*
-  * Queue a new message for this filehandle.
-  *
-diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
-index 48bef1c718ad..14279958dca1 100644
---- a/drivers/media/cec/cec-api.c
-+++ b/drivers/media/cec/cec-api.c
-@@ -370,6 +370,10 @@ static long cec_s_mode(struct cec_adapter *adap, struct cec_fh *fh,
- 	    !(adap->capabilities & CEC_CAP_MONITOR_ALL))
- 		return -EINVAL;
- 
-+	if (mode_follower == CEC_MODE_MONITOR_PIN &&
-+	    !(adap->capabilities & CEC_CAP_MONITOR_PIN))
-+		return -EINVAL;
-+
- 	/* Follower modes should always be able to send CEC messages */
- 	if ((mode_initiator == CEC_MODE_NO_INITIATOR ||
- 	     !(adap->capabilities & CEC_CAP_TRANSMIT)) &&
-@@ -378,11 +382,11 @@ static long cec_s_mode(struct cec_adapter *adap, struct cec_fh *fh,
- 		return -EINVAL;
- 
- 	/* Monitor modes require CEC_MODE_NO_INITIATOR */
--	if (mode_initiator && mode_follower >= CEC_MODE_MONITOR)
-+	if (mode_initiator && mode_follower >= CEC_MODE_MONITOR_PIN)
- 		return -EINVAL;
- 
- 	/* Monitor modes require CAP_NET_ADMIN */
--	if (mode_follower >= CEC_MODE_MONITOR && !capable(CAP_NET_ADMIN))
-+	if (mode_follower >= CEC_MODE_MONITOR_PIN && !capable(CAP_NET_ADMIN))
- 		return -EPERM;
- 
- 	mutex_lock(&adap->lock);
-@@ -421,8 +425,13 @@ static long cec_s_mode(struct cec_adapter *adap, struct cec_fh *fh,
- 
- 	if (fh->mode_follower == CEC_MODE_FOLLOWER)
- 		adap->follower_cnt--;
-+	if (fh->mode_follower == CEC_MODE_MONITOR_PIN)
-+		adap->monitor_pin_cnt--;
- 	if (mode_follower == CEC_MODE_FOLLOWER)
- 		adap->follower_cnt++;
-+	if (mode_follower == CEC_MODE_MONITOR_PIN) {
-+		adap->monitor_pin_cnt++;
-+	}
- 	if (mode_follower == CEC_MODE_EXCL_FOLLOWER ||
- 	    mode_follower == CEC_MODE_EXCL_FOLLOWER_PASSTHRU) {
- 		adap->passthrough =
-@@ -566,6 +575,8 @@ static int cec_release(struct inode *inode, struct file *filp)
- 	}
- 	if (fh->mode_follower == CEC_MODE_FOLLOWER)
- 		adap->follower_cnt--;
-+	if (fh->mode_follower == CEC_MODE_MONITOR_PIN)
-+		adap->monitor_pin_cnt--;
- 	if (fh->mode_follower == CEC_MODE_MONITOR_ALL)
- 		cec_monitor_all_cnt_dec(adap);
- 	mutex_unlock(&adap->lock);
-diff --git a/include/media/cec.h b/include/media/cec.h
-index 6cc862af74e5..d983960b37ad 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -177,6 +177,7 @@ struct cec_adapter {
- 	bool is_configuring;
- 	bool is_configured;
- 	u32 monitor_all_cnt;
-+	u32 monitor_pin_cnt;
- 	u32 follower_cnt;
- 	struct cec_fh *cec_follower;
- 	struct cec_fh *cec_initiator;
-@@ -272,6 +273,16 @@ static inline void cec_received_msg(struct cec_adapter *adap,
- }
- 
- /**
-+ * cec_queue_pin_event() - queue a pin event with a given timestamp.
-+ *
-+ * @adap:	pointer to the cec adapter
-+ * @is_high:	when true the pin is high, otherwise it is low
-+ * @ts:		the timestamp for this event
-+ *
-+ */
-+void cec_queue_pin_event(struct cec_adapter *adap, bool is_high, ktime_t ts);
-+
-+/**
-  * cec_get_edid_phys_addr() - find and return the physical address
-  *
-  * @edid:	pointer to the EDID data
+ #ifdef CONFIG_PPC_PMAC
+ #include <asm/machdep.h>
+@@ -1091,7 +1092,7 @@ static int matroxfb_ioctl(struct fb_info *info,
+ 				strcpy(r.driver, "matroxfb");
+ 				strcpy(r.card, "Matrox");
+ 				sprintf(r.bus_info, "PCI:%s", pci_name(minfo->pcidev));
+-				r.version = KERNEL_VERSION(1,0,0);
++				r.version = MEDIA_REVISION(1, 0, 0);
+ 				r.capabilities = V4L2_CAP_VIDEO_OUTPUT;
+ 				if (copy_to_user(argp, &r, sizeof(r)))
+ 					return -EFAULT;
 -- 
-2.11.0
+2.12.3
