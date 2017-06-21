@@ -1,72 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:57103 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751704AbdFGThJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Jun 2017 15:37:09 -0400
-Subject: Re: [PATCH 01/11] [media] dvb-core/dvb_ca_en50221.c: Rename
- STATUSREG_??
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <1494192214-20082-1-git-send-email-jasmin@anw.at>
- <1494192214-20082-2-git-send-email-jasmin@anw.at>
- <20170508065545.52b26fc9@vento.lan>
- <3d4c4a10-0c65-9eee-b4e2-b19f1eddb31a@anw.at>
- <20170607134319.6b90c6a4@vento.lan>
-Cc: linux-media@vger.kernel.org, max.kellermann@gmail.com
-From: "Jasmin J." <jasmin@anw.at>
-Message-ID: <b6ce894d-8387-3568-902a-e203cc4f1d7f@anw.at>
-Date: Wed, 7 Jun 2017 21:37:02 +0200
+Received: from mail-wr0-f169.google.com ([209.85.128.169]:36020 "EHLO
+        mail-wr0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752866AbdFUQ5d (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Jun 2017 12:57:33 -0400
+Received: by mail-wr0-f169.google.com with SMTP id c11so87455721wrc.3
+        for <linux-media@vger.kernel.org>; Wed, 21 Jun 2017 09:57:32 -0700 (PDT)
+Date: Wed, 21 Jun 2017 17:50:53 +0200
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com, liplianin@netup.ru, rjkm@metzlerbros.de
+Subject: Re: [PATCH 3/4] [media] dvb-frontends/stv0367: SNR DVBv5 statistics
+ for DVB-C and T
+Message-ID: <20170621175053.2d1d26f2@audiostation.wuest.de>
+In-Reply-To: <ee554f8e-b533-4b8b-5710-83e7ff40a3c2@iki.fi>
+References: <20170620174506.7593-1-d.scheller.oss@gmail.com>
+        <20170620174506.7593-4-d.scheller.oss@gmail.com>
+        <ee554f8e-b533-4b8b-5710-83e7ff40a3c2@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <20170607134319.6b90c6a4@vento.lan>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro!
+Am Wed, 21 Jun 2017 09:30:27 +0300
+schrieb Antti Palosaari <crope@iki.fi>:
 
-> If you want it applied, this is needed anyway, as the patch doesn't apply 
-> cleanly:
-Because you didn't apply the first series!
-In the first series
-   [PATCH 0/7] Add block read/write to en50221 CAM functions
-I wrote:
- There is another patch series coming soon "Fix coding style in en50221 CAM
- functions" which fixes nearly all the style issues in
- dvb-core/dvb_ca_en50221.c/.h, based on this patch series. So please be
- patient, if any of the dvb_ca_en50221.c/.h might be not 100% checkpatch.pl
- compliant.
+> On 06/20/2017 08:45 PM, Daniel Scheller wrote:
+> > From: Daniel Scheller <d.scheller@gmx.net>
+> > 
+> > Add signal-to-noise-ratio as provided by the demodulator in decibel scale.
+> > QAM/DVB-C needs some intlog calculation to have usable dB values, OFDM/
+> > DVB-T values from the demod look alright already and are provided as-is.
+> > 
+> > Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+> > ---
+> >   drivers/media/dvb-frontends/stv0367.c | 33 +++++++++++++++++++++++++++++++++
+> >   1 file changed, 33 insertions(+)
+> > 
+> > diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+> > index bb498f942ebd..0b13a407df23 100644
+> > --- a/drivers/media/dvb-frontends/stv0367.c
+> > +++ b/drivers/media/dvb-frontends/stv0367.c
+> > @@ -25,6 +25,8 @@
+> >   #include <linux/slab.h>
+> >   #include <linux/i2c.h>
+> >   
+> > +#include "dvb_math.h"
+> > +
+> >   #include "stv0367.h"
+> >   #include "stv0367_defs.h"
+> >   #include "stv0367_regs.h"
+> > @@ -33,6 +35,9 @@
+> >   /* Max transfer size done by I2C transfer functions */
+> >   #define MAX_XFER_SIZE  64
+> >   
+> > +/* snr logarithmic calc */
+> > +#define INTLOG10X100(x) ((u32) (((u64) intlog10(x) * 100) >> 24))
+> > +
+> >   static int stvdebug;
+> >   module_param_named(debug, stvdebug, int, 0644);
+> >   
+> > @@ -3013,6 +3018,33 @@ static int stv0367ddb_read_status(struct dvb_frontend *fe,
+> >   	return -EINVAL;
+> >   }
+> >   
+> > +static void stv0367ddb_read_snr(struct dvb_frontend *fe)
+> > +{
+> > +	struct stv0367_state *state = fe->demodulator_priv;
+> > +	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+> > +	int cab_pwr;
+> > +	u32 regval, tmpval, snrval = 0;
+> > +
+> > +	switch (state->activedemod) {
+> > +	case demod_ter:
+> > +		snrval = stv0367ter_snr_readreg(fe);
+> > +		break;
+> > +	case demod_cab:
+> > +		cab_pwr = stv0367cab_snr_power(fe);
+> > +		regval = stv0367cab_snr_readreg(fe, 0);
+> > +
+> > +		tmpval = (cab_pwr * 320) / regval;
+> > +		snrval = ((tmpval != 0) ? INTLOG10X100(tmpval) : 0) * 100;  
+> 
+> How much there will be rounding errors due to that signal/noise 
+> division? I would convert it to calculation of sums (tip logarithm 
+> calculation rules).
 
-It was NOT intended to apply the second series with the code style changes
-before the first series! And now, that you accepted two out of this series
-the first series might not apply also and I need to rework it.
-Sorry for my feelings about this issue, but this is a bit frustrating!
+This is taken from stv0367dd aswell, the reported and calculated values are in 0.1dB precision. This and to not diverge any more from the "source" driver, I'd prefer to keep it how it is. These are just simple tuner cards anyway and by no means professional measurement gear, and should only give a more or less rough estimate on reception quality. E.g. my stv0367 cards report around 36dB SNR, whereas the cxd2841er reports ~37dB, compared to my DOCSIS modem, which reports 34dB on DOCSIS channels (another variant I had earlier even reported 39dB on the same channels), so... Even, we get way more precision than on the relative scale calc on the cab_read_snr functions which is in 10%-steps...
 
-In the preamble of the style fix series I wrote:
- These patch series is a follow up to the series "Add block read/write to
- en50221 CAM functions". It fixed nearly all the style issues reported by
- checkpatch.pl in dvb-core/dvb_ca_en50221.c
+> Also, that INTLOG10X100 is pretty much useless. Use just what 
+> intlog10/intlog2 offers without yet again another conversion.
 
-I can't do more as writing what is the right order!
+Will check and experiment. Again, taken from stv0367dd :-)
 
-> Btw, don't spend time fixing issues pointed by checkpatch on existing
-> code, except if you're rewriting most of the code. We don't want to handle
-> merge conflicts due to checkpatch-only changes.
-I think you are talking about
- [PATCH 04/11] [media] dvb-core/dvb_ca_en50221.c: Refactored dvb_ca_en50221_thread
-This function is a mess and breaking it into smaller pieces helps for the 80cols
-limit and for the complexity. You just wrote:
- > The hole idea when the 80cols warning was introduced is to point places at 
- > the code were there are potentially too much indentation or code complexity,
- > possibly indicating complex functions that could otherwise be split.
-
-But you wrote also:
- > This is useful when new code gets added, but it usually doesn't make
- > much sense to fix it on existing code, except when some function has to 
- > be re-implemented.
-I would like to split the thread to make it more readable, but if you say you won't
-apply it it makes no sense to put effort on this subject.
-
-So what is your decision about this patch?
-
-BR,
-   Jasmin
+-- 
+Best regards,
+Daniel Scheller
+-- 
+https://github.com/herrnst
