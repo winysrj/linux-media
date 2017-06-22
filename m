@@ -1,175 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:47940 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751418AbdFZQm4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 12:42:56 -0400
-Subject: Re: [PATCH v4 4/4] dt-bindings: media: Document Synopsys Designware
- HDMI RX
-To: Rob Herring <robh@kernel.org>, Jose Abreu <Jose.Abreu@synopsys.com>
-References: <cover.1497978962.git.joabreu@synopsys.com>
- <8ebe3dfcd61a1c8cfa99102c376ad26b2bfbd254.1497978963.git.joabreu@synopsys.com>
- <20170623215814.ase6g4lbukaeqak2@rob-hp-laptop>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <devicetree@vger.kernel.org>,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "Sylwester Nawrocki" <snawrocki@kernel.org>
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-Message-ID: <13f2516b-9e2b-4ad6-ecf1-76fc0d744a32@synopsys.com>
-Date: Mon, 26 Jun 2017 17:42:49 +0100
+Received: from vader.hardeman.nu ([95.142.160.32]:52764 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752743AbdFVTX5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Jun 2017 15:23:57 -0400
+Subject: [PATCH 1/2] rc-core: consistent use of rc_repeat()
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, sean@mess.org
+Date: Thu, 22 Jun 2017 21:23:54 +0200
+Message-ID: <149815943494.22167.1097240093419552448.stgit@zeus.hardeman.nu>
+In-Reply-To: <149815927618.22167.7035029052539207589.stgit@zeus.hardeman.nu>
+References: <149815927618.22167.7035029052539207589.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-In-Reply-To: <20170623215814.ase6g4lbukaeqak2@rob-hp-laptop>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+The NEC decoder and the Sanyo decoders check if dev->keypressed is true
+before calling rc_repeat (without holding dev->keylock).
 
+Meanwhile, the XMP and JVC decoders do no such checks.
 
-On 23-06-2017 22:58, Rob Herring wrote:
-> On Tue, Jun 20, 2017 at 06:26:12PM +0100, Jose Abreu wrote:
->> Document the bindings for the Synopsys Designware HDMI RX.
->>
->> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
->> Cc: Carlos Palminha <palminha@synopsys.com>
->> Cc: Rob Herring <robh+dt@kernel.org>
->> Cc: Mark Rutland <mark.rutland@arm.com>
->> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Sylwester Nawrocki <snawrocki@kernel.org>
->>
->> Changes from v3:
->> 	- Document the new DT bindings suggested by Sylwester
->> Changes from v2:
->> 	- Document edid-phandle property
->> ---
->>  .../devicetree/bindings/media/snps,dw-hdmi-rx.txt  | 70 ++++++++++++++++++++++
->>  1 file changed, 70 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
->> new file mode 100644
->> index 0000000..efb0ac3
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
->> @@ -0,0 +1,70 @@
->> +Synopsys DesignWare HDMI RX Decoder
->> +===================================
->> +
->> +This document defines device tree properties for the Synopsys DesignWare HDMI
->> +RX Decoder (DWC HDMI RX). It doesn't constitute a device tree binding
->> +specification by itself but is meant to be referenced by platform-specific
->> +device tree bindings.
->> +
->> +When referenced from platform device tree bindings the properties defined in
->> +this document are defined as follows.
->> +
->> +- compatible: Shall be "snps,dw-hdmi-rx".
->> +
->> +- reg: Memory mapped base address and length of the DWC HDMI RX registers.
->> +
->> +- interrupts: Reference to the DWC HDMI RX interrupt and 5v sense interrupt.
->> +
->> +- clocks: Phandle to the config clock block.
->> +
->> +- clock-names: Shall be "cfg-clk".
-> "-clk" is redundant.
->
-> Seems strange that this is the only clock. The only other clock is the 
-> HDMI clock from the HDMI transmitter.
+This patch makes sure all users of rc_repeat() do so consistently by removing
+extra checks in NEC/Sanyo and modifying the check a bit in rc_repeat() so that
+no input event is generated if the key isn't pressed.
 
-Its a receiver so it gets driven by the transmitter. In my
-implementation I only need to configure this clock in the
-controller so that it knows the timebase. I will change to "cfg"
-only then.
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/ir-nec-decoder.c   |   10 +++-------
+ drivers/media/rc/ir-sanyo-decoder.c |   10 +++-------
+ drivers/media/rc/rc-main.c          |    6 +++---
+ 3 files changed, 9 insertions(+), 17 deletions(-)
 
->
->> +
->> +- edid-phandle: phandle to the EDID handler block.
->> +
->> +- #address-cells: Shall be 1.
->> +
->> +- #size-cells: Shall be 0.
->> +
->> +You also have to create a subnode for phy driver. Phy properties are as follows.
->> +
->> +- compatible: Shall be "snps,dw-hdmi-phy-e405".
->> +
->> +- reg: Shall be JTAG address of phy.
->> +
->> +- clocks: Phandle for cfg clock.
->> +
->> +- clock-names:Shall be "cfg-clk".
->> +
->> +A sample binding is now provided. The compatible string is for a SoC which has
->> +has a Synopsys Designware HDMI RX decoder inside.
->> +
->> +Example:
->> +
->> +dw_hdmi_soc: dw-hdmi-soc@0 {
->> +	compatible = "snps,dw-hdmi-soc";
-> Not documented.
-
-Yes, its a sample binding which reflects a wrapper driver that
-shall instantiate the controller driver (and this wrapper driver
-is not in this patch series), should I remove this?
-
->
->> +	reg = <0x11c00 0x1000>; /* EDIDs */
->> +	#address-cells = <1>;
->> +	#size-cells = <1>;
->> +	ranges;
->> +
->> +	dw_hdmi_rx@0 {
-> hdmi-rx@0
-
-Ok.
-
->
->> +		compatible = "snps,dw-hdmi-rx";
->> +		reg = <0x0 0x10000>;
->> +		interrupts = <1 2>;
->> +		edid-phandle = <&dw_hdmi_soc>;
-> Don't need this if it is the parent node.
-
-Sometimes it will not be the parent node (if edid handling is
-done in a separate driver, for example).
-
->
->> +
->> +		clocks = <&dw_hdmi_refclk>;
->> +		clock-names = "cfg-clk";
->> +
->> +		#address-cells = <1>;
->> +		#size-cells = <0>;
->> +
->> +		dw_hdmi_phy_e405@fc {
-> hdmi-phy@fc
-
-Ok.
-
->
->> +			compatible = "snps,dw-hdmi-phy-e405";
->> +			reg = <0xfc>;
->> +
->> +			clocks = <&dw_hdmi_refclk>;
->> +			clock-names = "cfg-clk";
-
-I will also change this to "cfg" only.
-
-Thanks for the review!
-
-Best regards,
-Jose Miguel Abreu
-
->> +		};
->> +	};
->> +};
->> -- 
->> 1.9.1
->>
->>
+diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
+index 3ce850314dca..75b9137f6faf 100644
+--- a/drivers/media/rc/ir-nec-decoder.c
++++ b/drivers/media/rc/ir-nec-decoder.c
+@@ -88,13 +88,9 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 			data->state = STATE_BIT_PULSE;
+ 			return 0;
+ 		} else if (eq_margin(ev.duration, NEC_REPEAT_SPACE, NEC_UNIT / 2)) {
+-			if (!dev->keypressed) {
+-				IR_dprintk(1, "Discarding last key repeat: event after key up\n");
+-			} else {
+-				rc_repeat(dev);
+-				IR_dprintk(1, "Repeat last key\n");
+-				data->state = STATE_TRAILER_PULSE;
+-			}
++			rc_repeat(dev);
++			IR_dprintk(1, "Repeat last key\n");
++			data->state = STATE_TRAILER_PULSE;
+ 			return 0;
+ 		}
+ 
+diff --git a/drivers/media/rc/ir-sanyo-decoder.c b/drivers/media/rc/ir-sanyo-decoder.c
+index 520bb77dcb62..e6a906a34f90 100644
+--- a/drivers/media/rc/ir-sanyo-decoder.c
++++ b/drivers/media/rc/ir-sanyo-decoder.c
+@@ -110,13 +110,9 @@ static int ir_sanyo_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 			break;
+ 
+ 		if (!data->count && geq_margin(ev.duration, SANYO_REPEAT_SPACE, SANYO_UNIT / 2)) {
+-			if (!dev->keypressed) {
+-				IR_dprintk(1, "SANYO discarding last key repeat: event after key up\n");
+-			} else {
+-				rc_repeat(dev);
+-				IR_dprintk(1, "SANYO repeat last key\n");
+-				data->state = STATE_INACTIVE;
+-			}
++			rc_repeat(dev);
++			IR_dprintk(1, "SANYO repeat last key\n");
++			data->state = STATE_INACTIVE;
+ 			return 0;
+ 		}
+ 
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index a9eba0013525..7387bd4d75b0 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -616,12 +616,12 @@ void rc_repeat(struct rc_dev *dev)
+ 
+ 	spin_lock_irqsave(&dev->keylock, flags);
+ 
+-	input_event(dev->input_dev, EV_MSC, MSC_SCAN, dev->last_scancode);
+-	input_sync(dev->input_dev);
+-
+ 	if (!dev->keypressed)
+ 		goto out;
+ 
++	input_event(dev->input_dev, EV_MSC, MSC_SCAN, dev->last_scancode);
++	input_sync(dev->input_dev);
++
+ 	dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
+ 	mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
+ 
