@@ -1,101 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59203 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751834AbdFMJcU (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38204 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750847AbdFVUxe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 05:32:20 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v4 1/2] media: i2c: adv748x: add adv748x driver
-References: <cover.d0545e32d322ca1b939fa2918694173629e680eb.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
- <865b71d4fcf6ce407a94a10d5dcb06944ddb6dcb.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
- <CAMuHMdXarryPs6Fq1ZxorztbqD15W3+0UYnHVQs4pNNVtV=XNw@mail.gmail.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>,
-        Kieran Bingham <kbingham@kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <c80cbe50-047e-3e54-94ac-5d4fa2a8c6e4@ideasonboard.com>
-Date: Tue, 13 Jun 2017 10:32:15 +0100
+        Thu, 22 Jun 2017 16:53:34 -0400
+Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 997BE600BE
+        for <linux-media@vger.kernel.org>; Thu, 22 Jun 2017 23:53:26 +0300 (EEST)
+Date: Thu, 22 Jun 2017 23:52:55 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.13] Media pipeline stop error handling fix
+Message-ID: <20170622205255.GL12407@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <CAMuHMdXarryPs6Fq1ZxorztbqD15W3+0UYnHVQs4pNNVtV=XNw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
+
+One more patch --- fixing media pipeline stopping sanity checks.
+
+Please pull.
 
 
-On 13/06/17 10:24, Geert Uytterhoeven wrote:
-> Hi Kieran,
-> 
-> On Tue, Jun 13, 2017 at 2:35 AM, Kieran Bingham <kbingham@kernel.org> wrote:
->> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>
->> Provide support for the ADV7481 and ADV7482.
->>
->> The driver is modelled with 4 subdevices to allow simultaneous streaming
->> from the AFE (Analog front end) and HDMI inputs though two CSI TX
->> entities.
->>
->> The HDMI entity is linked to the TXA CSI bus, whilst the AFE is linked
->> to the TXB CSI bus.
->>
->> The driver is based on a prototype by Koji Matsuoka in the Renesas BSP,
->> and an earlier rework by Niklas Söderlund.
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
->> --- /dev/null
->> +++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
-> 
->> +static int adv748x_hdmi_set_pixelrate(struct adv748x_hdmi *hdmi)
->> +{
->> +       struct v4l2_subdev *tx;
->> +       struct v4l2_dv_timings timings;
->> +       struct v4l2_bt_timings *bt = &timings.bt;
->> +       unsigned int fps;
->> +
->> +       tx = adv748x_get_remote_sd(&hdmi->pads[ADV748X_HDMI_SOURCE]);
->> +       if (!tx)
->> +               return -ENOLINK;
->> +
->> +       adv748x_hdmi_query_dv_timings(&hdmi->sd, &timings);
->> +
->> +       fps = DIV_ROUND_CLOSEST(bt->pixelclock,
->> +                               V4L2_DV_BT_FRAME_WIDTH(bt) *
->> +                               V4L2_DV_BT_FRAME_HEIGHT(bt));
-> 
-> On arm32:
-> 
->     drivers/built-in.o: In function `adv748x_hdmi_set_pixelrate':
->     :(.text+0x1b8b1c): undefined reference to `__aeabi_uldivmod'
-> 
-> v4l2_bt_timings.pixelclock is u64, so you should use DIV_ROUND_CLOSEST_ULL()
-> instead.
+The following changes since commit 76724b30f222067faf00874dc277f6c99d03d800:
 
-Aha, thanks.
+  [media] media: venus: enable building with COMPILE_TEST (2017-06-20 10:57:08 -0300)
 
-/me ponders why I didn't get spammed from the bot-builders about this?
+are available in the git repository at:
 
-Fix applied locally ready for v5.
+  ssh://linuxtv.org/git/sailus/media_tree.git for-4.13-3
 
-Would you like the remote updated for renesas-drivers or will you patch locally?
+for you to fetch changes up to 47dbdecd391f58dee3c282f60c066743613378ce:
 
---
-Kieran
+  media: entity: Catch unbalanced media_pipeline_stop calls (2017-06-22 17:35:31 +0300)
 
-> Gr{oetje,eeting}s,
-> 
->                         Geert
-> 
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-> 
-> In personal conversations with technical people, I call myself a hacker. But
-> when I'm talking to journalists I just say "programmer" or something like that.
->                                 -- Linus Torvalds
-> 
+----------------------------------------------------------------
+Kieran Bingham (1):
+      media: entity: Catch unbalanced media_pipeline_stop calls
+
+ drivers/media/media-entity.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
