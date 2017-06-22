@@ -1,69 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:44521 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750948AbdFOJSp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 05:18:45 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v4 1/2] media: entity: Add get_fwnode_pad entity operation
-Date: Thu, 15 Jun 2017 11:17:25 +0200
-Message-Id: <20170615091726.22370-2-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170615091726.22370-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170615091726.22370-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from vader.hardeman.nu ([95.142.160.32]:52761 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752743AbdFVTXw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Jun 2017 15:23:52 -0400
+Subject: [PATCH 0/2] rc-core: consistent rc_repeat() usage
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, sean@mess.org
+Date: Thu, 22 Jun 2017 21:23:49 +0200
+Message-ID: <149815927618.22167.7035029052539207589.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The optional operation can be used by entities to report how it maps its
-fwnode endpoints to media pad numbers. This is useful for devices which
-require advanced mappings of pads.
+These two patches are a reworked version of these two patches:
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg112170.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg112163.html
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+The first patch changes the NEC and Sanyo decoders as discussed in those
+threads, moving the keydown check into rc_repeat() where the proper
+locking is done.
+
+The second patch I'd consider optional, it removes the input events for
+repeat messages which I consider to be rather pointless.
+
 ---
- include/media/media-entity.h | 5 +++++
- 1 file changed, 5 insertions(+)
 
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index c7c254c5bca1761b..46eeb036aa330534 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -21,6 +21,7 @@
- 
- #include <linux/bitmap.h>
- #include <linux/bug.h>
-+#include <linux/fwnode.h>
- #include <linux/kernel.h>
- #include <linux/list.h>
- #include <linux/media.h>
-@@ -171,6 +172,9 @@ struct media_pad {
- 
- /**
-  * struct media_entity_operations - Media entity operations
-+ * @get_fwnode_pad:	Return the pad number based on a fwnode endpoint or
-+ *			a negative value on error. This operation can be used
-+ *			to map a fwnode to a media pad number. Optional.
-  * @link_setup:		Notify the entity of link changes. The operation can
-  *			return an error, in which case link setup will be
-  *			cancelled. Optional.
-@@ -184,6 +188,7 @@ struct media_pad {
-  *    mutex held.
-  */
- struct media_entity_operations {
-+	int (*get_fwnode_pad)(struct fwnode_endpoint *endpoint);
- 	int (*link_setup)(struct media_entity *entity,
- 			  const struct media_pad *local,
- 			  const struct media_pad *remote, u32 flags);
--- 
-2.13.1
+David Härdeman (2):
+      rc-core: consistent use of rc_repeat()
+      rc-main: remove input events for repeat messages
+
+
+ drivers/media/rc/ir-nec-decoder.c   |   10 +++-------
+ drivers/media/rc/ir-sanyo-decoder.c |   10 +++-------
+ drivers/media/rc/rc-main.c          |   13 ++++---------
+ 3 files changed, 10 insertions(+), 23 deletions(-)
+
+--
+David Härdeman
