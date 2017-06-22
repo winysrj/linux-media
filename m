@@ -1,114 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:38187 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751922AbdFJJGB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Jun 2017 05:06:01 -0400
-From: Johannes Thumshirn <jthumshirn@suse.de>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:40386 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752643AbdFVPUC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Jun 2017 11:20:02 -0400
+Subject: Re: [PATCH v1 3/5] [media] stm32-dcmi: crop sensor image to match
+ user resolution
+To: Hugues Fruchet <hugues.fruchet@st.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-fbdev@vger.kernel.org,
-        Johannes Thumshirn <jthumshirn@suse.de>
-Subject: [PATCH 3/7] [media] media: document the use of MEDIA_REVISION instead of KERNEL_VERSION
-Date: Sat, 10 Jun 2017 11:05:32 +0200
-Message-Id: <20170610090536.12472-4-jthumshirn@suse.de>
-In-Reply-To: <20170610090536.12472-1-jthumshirn@suse.de>
-References: <20170610090536.12472-1-jthumshirn@suse.de>
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>
+References: <1498144371-13310-1-git-send-email-hugues.fruchet@st.com>
+ <1498144371-13310-4-git-send-email-hugues.fruchet@st.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <ee46bbd4-9343-7060-3c1b-455486eb7a9c@xs4all.nl>
+Date: Thu, 22 Jun 2017 17:19:55 +0200
+MIME-Version: 1.0
+In-Reply-To: <1498144371-13310-4-git-send-email-hugues.fruchet@st.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update the documentation to introduce the use of MEDIA_REVISON instead
-of KERNEL_VERSION for the verison triplets of a media drivers hardware
-revision or driver version.
+On 06/22/2017 05:12 PM, Hugues Fruchet wrote:
+> Add flexibility on supported resolutions by cropping sensor
+> image to fit user resolution format request.
+> 
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+> ---
+>   drivers/media/platform/stm32/stm32-dcmi.c | 54 ++++++++++++++++++++++++++++++-
+>   1 file changed, 53 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
+> index 75d53aa..bc5e052 100644
+> --- a/drivers/media/platform/stm32/stm32-dcmi.c
+> +++ b/drivers/media/platform/stm32/stm32-dcmi.c
+> @@ -131,6 +131,8 @@ struct stm32_dcmi {
+>   	struct v4l2_async_notifier	notifier;
+>   	struct dcmi_graph_entity	entity;
+>   	struct v4l2_format		fmt;
+> +	struct v4l2_rect		crop;
+> +	bool				do_crop;
+>   
+>   	const struct dcmi_format	**user_formats;
+>   	unsigned int			num_user_formats;
+> @@ -538,6 +540,27 @@ static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
+>   	if (dcmi->bus.flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
+>   		val |= CR_PCKPOL;
+>   
+> +	if (dcmi->do_crop) {
+> +		u32 size, start;
+> +
+> +		/* Crop resolution */
+> +		size = ((dcmi->crop.height - 1) << 16) |
+> +			((dcmi->crop.width << 1) - 1);
+> +		reg_write(dcmi->regs, DCMI_CWSIZE, size);
+> +
+> +		/* Crop start point */
+> +		start = ((dcmi->crop.top) << 16) |
+> +			 ((dcmi->crop.left << 1));
+> +		reg_write(dcmi->regs, DCMI_CWSTRT, start);
+> +
+> +		dev_dbg(dcmi->dev, "Cropping to %ux%u@%u:%u\n",
+> +			dcmi->crop.width, dcmi->crop.height,
+> +			dcmi->crop.left, dcmi->crop.top);
+> +
+> +		/* Enable crop */
+> +		val |= CR_CROP;
+> +	};
+> +
+>   	reg_write(dcmi->regs, DCMI_CR, val);
+>   
+>   	/* Enable dcmi */
+> @@ -707,6 +730,8 @@ static int dcmi_try_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f,
+>   		.which = V4L2_SUBDEV_FORMAT_TRY,
+>   	};
+>   	int ret;
+> +	__u32 width, height;
+> +	struct v4l2_mbus_framefmt *mf = &format.format;
+>   
+>   	dcmi_fmt = find_format_by_fourcc(dcmi, pixfmt->pixelformat);
+>   	if (!dcmi_fmt) {
+> @@ -724,8 +749,18 @@ static int dcmi_try_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f,
+>   	if (ret < 0)
+>   		return ret;
+>   
+> +	/* Align format on what sensor can do */
+> +	width = pixfmt->width;
+> +	height = pixfmt->height;
+>   	v4l2_fill_pix_format(pixfmt, &format.format);
+>   
+> +	/* We can do any resolution thanks to crop */
+> +	if ((mf->width > width) || (mf->height > height)) {
+> +		/* Restore width/height */
+> +		pixfmt->width = width;
+> +		pixfmt->height = height;
+> +	};
+> +
+>   	pixfmt->field = V4L2_FIELD_NONE;
+>   	pixfmt->bytesperline = pixfmt->width * dcmi_fmt->bpp;
+>   	pixfmt->sizeimage = pixfmt->bytesperline * pixfmt->height;
+> @@ -741,6 +776,8 @@ static int dcmi_set_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f)
+>   	struct v4l2_subdev_format format = {
+>   		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+>   	};
+> +	struct v4l2_mbus_framefmt *mf = &format.format;
+> +	struct v4l2_pix_format *pixfmt = &f->fmt.pix;
+>   	const struct dcmi_format *current_fmt;
+>   	int ret;
+>   
+> @@ -748,13 +785,28 @@ static int dcmi_set_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f)
+>   	if (ret)
+>   		return ret;
+>   
+> -	v4l2_fill_mbus_format(&format.format, &f->fmt.pix,
+> +	v4l2_fill_mbus_format(&format.format, pixfmt,
+>   			      current_fmt->mbus_code);
+>   	ret = v4l2_subdev_call(dcmi->entity.subdev, pad,
+>   			       set_fmt, NULL, &format);
+>   	if (ret < 0)
+>   		return ret;
+>   
+> +	/* Enable crop if sensor resolution is larger than request */
+> +	dcmi->do_crop = false;
+> +	if ((mf->width > pixfmt->width) || (mf->height > pixfmt->height)) {
+> +		dcmi->crop.width = pixfmt->width;
+> +		dcmi->crop.height = pixfmt->height;
+> +		dcmi->crop.left = (mf->width - pixfmt->width) / 2;
+> +		dcmi->crop.top = (mf->height - pixfmt->height) / 2;
+> +		dcmi->do_crop = true;
 
-Signed-off-by: Johannes Thumshirn <jthumshirn@suse.de>
----
- Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst        | 2 +-
- Documentation/media/uapi/mediactl/media-ioc-device-info.rst | 4 ++--
- Documentation/media/uapi/v4l/vidioc-querycap.rst            | 6 +++---
- include/media/media-device.h                                | 5 ++---
- 4 files changed, 8 insertions(+), 9 deletions(-)
+Why not implement the selection API instead? I assume that you can crop from any
+region of the sensor, not just the center part.
 
-diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-index a0e961f11017..749054f11c77 100644
---- a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-@@ -56,7 +56,7 @@ returns the information to the application. The ioctl never fails.
- 	:ref:`cec-capabilities`.
-     * - __u32
-       - ``version``
--      - CEC Framework API version, formatted with the ``KERNEL_VERSION()``
-+      - CEC Framework API version, formatted with the ``MEDIA_REVISION()``
- 	macro.
- 
- 
-diff --git a/Documentation/media/uapi/mediactl/media-ioc-device-info.rst b/Documentation/media/uapi/mediactl/media-ioc-device-info.rst
-index f690f9afc470..7a18cb6dbe84 100644
---- a/Documentation/media/uapi/mediactl/media-ioc-device-info.rst
-+++ b/Documentation/media/uapi/mediactl/media-ioc-device-info.rst
-@@ -96,7 +96,7 @@ ioctl never fails.
- 
-        -  ``media_version``
- 
--       -  Media API version, formatted with the ``KERNEL_VERSION()`` macro.
-+       -  Media API version, formatted with the ``MEDIA_REVISION()`` macro.
- 
-     -  .. row 6
- 
-@@ -113,7 +113,7 @@ ioctl never fails.
-        -  ``driver_version``
- 
-        -  Media device driver version, formatted with the
--	  ``KERNEL_VERSION()`` macro. Together with the ``driver`` field
-+	  ``MEDIA_REVISION()`` macro. Together with the ``driver`` field
- 	  this identifies a particular driver.
- 
-     -  .. row 8
-diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-index 12e0d9a63cd8..b66d9caa7211 100644
---- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-@@ -90,13 +90,13 @@ specification the ioctl returns an ``EINVAL`` error code.
- 	example, a stable or distribution-modified kernel uses the V4L2
- 	stack from a newer kernel.
- 
--	The version number is formatted using the ``KERNEL_VERSION()``
-+	The version number is formatted using the ``MEDIA_REVISION()``
- 	macro:
-     * - :cspan:`2`
- 
--	``#define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))``
-+	``#define MEDIA_REVISION(a,b,c) (((a) << 16) + ((b) << 8) + (c))``
- 
--	``__u32 version = KERNEL_VERSION(0, 8, 1);``
-+	``__u32 version = MEDIA_REVISION(0, 8, 1);``
- 
- 	``printf ("Version: %u.%u.%u\\n",``
- 
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 6896266031b9..6b3057266ad1 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -247,9 +247,9 @@ void media_device_cleanup(struct media_device *mdev);
-  *
-  *  - &media_entity.hw_revision is the hardware device revision in a
-  *    driver-specific format. When possible the revision should be formatted
-- *    with the KERNEL_VERSION() macro.
-+ *    with the MEDIA_REVISION() macro.
-  *
-- *  - &media_entity.driver_version is formatted with the KERNEL_VERSION()
-+ *  - &media_entity.driver_version is formatted with the MEDIA_REVISION()
-  *    macro. The version minor must be incremented when new features are added
-  *    to the userspace API without breaking binary compatibility. The version
-  *    major must be incremented when binary compatibility is broken.
-@@ -265,7 +265,6 @@ void media_device_cleanup(struct media_device *mdev);
- int __must_check __media_device_register(struct media_device *mdev,
- 					 struct module *owner);
- 
--
- /**
-  * media_device_register() - Registers a media device element
-  *
--- 
-2.12.3
+Regards,
+
+	Hans
+
+> +
+> +		dev_dbg(dcmi->dev, "%ux%u cropped to %ux%u@(%u,%u)\n",
+> +			mf->width, mf->height,
+> +			dcmi->crop.width, dcmi->crop.height,
+> +			dcmi->crop.left, dcmi->crop.top);
+> +	};
+> +
+>   	dcmi->fmt = *f;
+>   	dcmi->current_fmt = current_fmt;
+>   
+> 
