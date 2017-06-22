@@ -1,64 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34502 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751359AbdFYVW6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Jun 2017 17:22:58 -0400
-Subject: Re: [PATCH v3 2/2] v4l: async: add subnotifier registration for
- subdevices
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20170613143036.533-1-niklas.soderlund+renesas@ragnatech.se>
- <20170613143036.533-3-niklas.soderlund+renesas@ragnatech.se>
-From: Sylwester Nawrocki <snawrocki@kernel.org>
-Message-ID: <78b6c3f2-7b4c-b2ff-aca9-6057b9d60056@kernel.org>
-Date: Sun, 25 Jun 2017 23:22:53 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170613143036.533-3-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:33530 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751147AbdFVUDc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Jun 2017 16:03:32 -0400
+Received: by mail-wr0-f196.google.com with SMTP id x23so7254860wrb.0
+        for <linux-media@vger.kernel.org>; Thu, 22 Jun 2017 13:03:31 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, aospan@netup.ru, serjk@netup.ru
+Cc: mchehab@kernel.org
+Subject: [PATCH] [media] dvb-frontends/cxd2841er: require FE_HAS_SYNC for agc readout
+Date: Thu, 22 Jun 2017 22:03:28 +0200
+Message-Id: <20170622200328.5387-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/13/2017 04:30 PM, Niklas Söderlund wrote:
-> When the registered() callback of v4l2_subdev_internal_ops is called the
-> subdevice has access to the master devices v4l2_dev and it's called with
-> the async frameworks list_lock held. In this context the subdevice can
-> register its own notifiers to allow for incremental discovery of
-> subdevices.
-> 
-> The master device registers the subdevices closest to itself in its
-> notifier while the subdevice(s) register notifiers for their closest
-> neighboring devices when they are registered. Using this incremental
-> approach two problems can be solved:
-> 
-> 1. The master device no longer has to care how many devices exist in
->     the pipeline. It only needs to care about its closest subdevice and
->     arbitrary long pipelines can be created without having to adapt the
->     master device for each case.
-> 
-> 2. Subdevices which are represented as a single DT node but register
->     more than one subdevice can use this to improve the pipeline
->     discovery, since the subdevice driver is the only one who knows which
->     of its subdevices is linked with which subdevice of a neighboring DT
->     node.
-> 
-> To enable subdevices to register/unregister notifiers from the
-> registered()/unregistered() callback v4l2_async_subnotifier_register()
-> and v4l2_async_subnotifier_unregister() are added. These new notifier
-> register functions are similar to the master device equivalent functions
-> but run without taking the v4l2-async list_lock which already is held
-> when the registered()/unregistered() callbacks are called.
-> 
-> Signed-off-by: Niklas Söderlund<niklas.soderlund+renesas@ragnatech.se>
-> Acked-by: Hans Verkuil<hans.verkuil@cisco.com>
-> Acked-by: Sakari Ailus<sakari.ailus@linux.intel.com>
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Acked-by: Sylwester Nawrocki <snawrocki@kernel.org>
+When the demod driver puts the demod into sleep or shutdown state and it's
+status is then polled e.g. via "dvb-fe-tool -m", i2c errors are printed
+to the kernel log. If the last delsys was DVB-T/T2:
+
+  cxd2841er: i2c wr failed=-5 addr=6c reg=00 len=1
+  cxd2841er: i2c rd failed=-5 addr=6c reg=26
+
+and if it was DVB-C:
+
+  cxd2841er: i2c wr failed=-5 addr=6c reg=00 len=1
+  cxd2841er: i2c rd failed=-5 addr=6c reg=49
+
+This happens when read_status unconditionally calls into the
+read_signal_strength() function which triggers the read_agc_gain_*()
+functions, where these registered are polled.
+
+This isn't a critical thing since when the demod is active again, no more
+such errors are logged, however this might make users suspecting defects.
+
+Fix this by requiring fe_status FE_HAS_SYNC to be sure the demod is not
+put asleep or shut down. If FE_HAS_SYNC isn't set, additionally set the
+strength scale to NOT_AVAILABLE.
+
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/dvb-frontends/cxd2841er.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+index 08f67d60a7d9..9fff031436f1 100644
+--- a/drivers/media/dvb-frontends/cxd2841er.c
++++ b/drivers/media/dvb-frontends/cxd2841er.c
+@@ -3279,7 +3279,10 @@ static int cxd2841er_get_frontend(struct dvb_frontend *fe,
+ 	else if (priv->state == STATE_ACTIVE_TC)
+ 		cxd2841er_read_status_tc(fe, &status);
+ 
+-	cxd2841er_read_signal_strength(fe);
++	if (status & FE_HAS_SYNC)
++		cxd2841er_read_signal_strength(fe);
++	else
++		p->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+ 
+ 	if (status & FE_HAS_LOCK) {
+ 		cxd2841er_read_snr(fe);
+-- 
+2.13.0
