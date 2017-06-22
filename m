@@ -1,256 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43576 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752840AbdFPM7J (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Jun 2017 08:59:09 -0400
-Date: Fri, 16 Jun 2017 15:58:27 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [RFC PATCH 1/2] v4l2-ioctl/exynos: fix G/S_SELECTION's type
- handling
-Message-ID: <20170616125827.GQ12407@valkosipuli.retiisi.org.uk>
-References: <20170508143506.16448-1-hverkuil@xs4all.nl>
+Received: from vader.hardeman.nu ([95.142.160.32]:52767 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752743AbdFVTYD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Jun 2017 15:24:03 -0400
+Subject: [PATCH 2/2] rc-main: remove input events for repeat messages
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, sean@mess.org
+Date: Thu, 22 Jun 2017 21:24:00 +0200
+Message-ID: <149815944000.22167.2535987828056972392.stgit@zeus.hardeman.nu>
+In-Reply-To: <149815927618.22167.7035029052539207589.stgit@zeus.hardeman.nu>
+References: <149815927618.22167.7035029052539207589.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170508143506.16448-1-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Protocols like NEC generate around 10 repeat events per second.
 
-Cc Sylwester and Marek as well.
+The input events are not very useful for userspace but still waste power
+by waking up every listener. So let's remove them (MSC_SCAN events
+are still generated for the initial keypress).
 
-On Mon, May 08, 2017 at 04:35:05PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hansverk@cisco.com>
-> 
-> The type field in struct v4l2_selection is supposed to never use the
-> _MPLANE variants. E.g. if the driver supports V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
-> then userspace should still pass V4L2_BUF_TYPE_VIDEO_CAPTURE.
-> 
-> The reasons for this are lost in the mists of time, but it is really
-> annoying. In addition, the exynos drivers didn't follow this rule and
-> instead expected the _MPLANE type.
-> 
-> To fix that code is added to the v4l2 core that maps the _MPLANE buffer
-> types to their regular equivalents before calling the driver.
-> 
-> Effectively this allows for userspace to use either _MPLANE or the regular
-> buffer type. This keeps backwards compatibility while making things easier
-> for userspace.
-> 
-> Since drivers now never see the _MPLANE buffer types the exynos drivers
-> had to be adapted as well.
-> 
-> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-> ---
->  drivers/media/platform/exynos-gsc/gsc-core.c     |  4 +-
->  drivers/media/platform/exynos-gsc/gsc-m2m.c      |  8 ++--
->  drivers/media/platform/exynos4-is/fimc-capture.c |  4 +-
->  drivers/media/platform/exynos4-is/fimc-lite.c    |  4 +-
->  drivers/media/v4l2-core/v4l2-ioctl.c             | 53 +++++++++++++++++++++---
->  5 files changed, 57 insertions(+), 16 deletions(-)
-> 
-> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-> index 59a634201830..107faa04c947 100644
-> --- a/drivers/media/platform/exynos-gsc/gsc-core.c
-> +++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-> @@ -569,9 +569,9 @@ int gsc_try_crop(struct gsc_ctx *ctx, struct v4l2_crop *cr)
->  	}
->  	pr_debug("user put w: %d, h: %d", cr->c.width, cr->c.height);
->  
-> -	if (cr->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-> +	if (cr->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
->  		f = &ctx->d_frame;
-> -	else if (cr->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-> +	else if (cr->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
->  		f = &ctx->s_frame;
->  	else
->  		return -EINVAL;
-> diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-> index 82505025d96c..33611a46ce35 100644
-> --- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-> +++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-> @@ -460,8 +460,8 @@ static int gsc_m2m_g_selection(struct file *file, void *fh,
->  	struct gsc_frame *frame;
->  	struct gsc_ctx *ctx = fh_to_ctx(fh);
->  
-> -	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) &&
-> -	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE))
-> +	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
-> +	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
->  		return -EINVAL;
->  
->  	frame = ctx_get_frame(ctx, s->type);
-> @@ -503,8 +503,8 @@ static int gsc_m2m_s_selection(struct file *file, void *fh,
->  	cr.type = s->type;
->  	cr.c = s->r;
->  
-> -	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) &&
-> -	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE))
-> +	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
-> +	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
->  		return -EINVAL;
->  
->  	ret = gsc_try_crop(ctx, &cr);
-> diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
-> index 8a7cd07dbe28..d876fc3e0ef7 100644
-> --- a/drivers/media/platform/exynos4-is/fimc-capture.c
-> +++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-> @@ -1270,7 +1270,7 @@ static int fimc_cap_g_selection(struct file *file, void *fh,
->  	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
->  	struct fimc_frame *f = &ctx->s_frame;
->  
-> -	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-> +	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->  		return -EINVAL;
->  
->  	switch (s->target) {
-> @@ -1320,7 +1320,7 @@ static int fimc_cap_s_selection(struct file *file, void *fh,
->  	struct fimc_frame *f;
->  	unsigned long flags;
->  
-> -	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-> +	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->  		return -EINVAL;
->  
->  	if (s->target == V4L2_SEL_TGT_COMPOSE)
-> diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-> index b4c4a33784c4..7d3ec5cc6608 100644
-> --- a/drivers/media/platform/exynos4-is/fimc-lite.c
-> +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-> @@ -901,7 +901,7 @@ static int fimc_lite_g_selection(struct file *file, void *fh,
->  	struct fimc_lite *fimc = video_drvdata(file);
->  	struct flite_frame *f = &fimc->out_frame;
->  
-> -	if (sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-> +	if (sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->  		return -EINVAL;
->  
->  	switch (sel->target) {
-> @@ -929,7 +929,7 @@ static int fimc_lite_s_selection(struct file *file, void *fh,
->  	struct v4l2_rect rect = sel->r;
->  	unsigned long flags;
->  
-> -	if (sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE ||
-> +	if (sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
->  	    sel->target != V4L2_SEL_TGT_COMPOSE)
->  		return -EINVAL;
->  
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index e5a2187381db..fe2a677139df 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -2141,6 +2141,47 @@ static int v4l_try_ext_ctrls(const struct v4l2_ioctl_ops *ops,
->  					-EINVAL;
->  }
->  
-> +/*
-> + * The selection API specified originally that the _MPLANE buffer types
-> + * shouldn't be used. The reasons for this are lost in the mists of time
-> + * (or just really crappy memories). Regardless, this is really annoying
-> + * for userspace. So to keep things simple we map _MPLANE buffer types
-> + * to their 'regular' counterparts before calling the driver. And we
-> + * restore it afterwards. This way applications can use either buffer
-> + * type and drivers don't need to check for both.
-> + */
-> +static int v4l_g_selection(const struct v4l2_ioctl_ops *ops,
-> +			   struct file *file, void *fh, void *arg)
-> +{
-> +	struct v4l2_selection *p = arg;
-> +	u32 old_type = p->type;
-> +	int ret;
-> +
-> +	if (p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-> +		p->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +	else if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-> +		p->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-> +	ret = ops->vidioc_g_selection(file, fh, p);
-> +	p->type = old_type;
-> +	return ret;
-> +}
-> +
-> +static int v4l_s_selection(const struct v4l2_ioctl_ops *ops,
-> +			   struct file *file, void *fh, void *arg)
-> +{
-> +	struct v4l2_selection *p = arg;
-> +	u32 old_type = p->type;
-> +	int ret;
-> +
-> +	if (p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-> +		p->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +	else if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-> +		p->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-> +	ret = ops->vidioc_s_selection(file, fh, p);
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/rc-main.c |   13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-Can it be that ops->vidioc_s_selection() is NULL here? I don't think it's
-checked anywhere. Same in v4l_g_selection().
-
-With that fixed,
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-> +	p->type = old_type;
-> +	return ret;
-> +}
-> +
->  static int v4l_g_crop(const struct v4l2_ioctl_ops *ops,
->  				struct file *file, void *fh, void *arg)
->  {
-> @@ -2160,7 +2201,7 @@ static int v4l_g_crop(const struct v4l2_ioctl_ops *ops,
->  	else
->  		s.target = V4L2_SEL_TGT_CROP_ACTIVE;
->  
-> -	ret = ops->vidioc_g_selection(file, fh, &s);
-> +	ret = v4l_g_selection(ops, file, fh, &s);
->  
->  	/* copying results to old structure on success */
->  	if (!ret)
-> @@ -2187,7 +2228,7 @@ static int v4l_s_crop(const struct v4l2_ioctl_ops *ops,
->  	else
->  		s.target = V4L2_SEL_TGT_CROP_ACTIVE;
->  
-> -	return ops->vidioc_s_selection(file, fh, &s);
-> +	return v4l_s_selection(ops, file, fh, &s);
->  }
->  
->  static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
-> @@ -2229,7 +2270,7 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
->  	else
->  		s.target = V4L2_SEL_TGT_CROP_BOUNDS;
->  
-> -	ret = ops->vidioc_g_selection(file, fh, &s);
-> +	ret = v4l_g_selection(ops, file, fh, &s);
->  	if (ret)
->  		return ret;
->  	p->bounds = s.r;
-> @@ -2240,7 +2281,7 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
->  	else
->  		s.target = V4L2_SEL_TGT_CROP_DEFAULT;
->  
-> -	ret = ops->vidioc_g_selection(file, fh, &s);
-> +	ret = v4l_g_selection(ops, file, fh, &s);
->  	if (ret)
->  		return ret;
->  	p->defrect = s.r;
-> @@ -2550,8 +2591,8 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
->  	IOCTL_INFO_FNC(VIDIOC_CROPCAP, v4l_cropcap, v4l_print_cropcap, INFO_FL_CLEAR(v4l2_cropcap, type)),
->  	IOCTL_INFO_FNC(VIDIOC_G_CROP, v4l_g_crop, v4l_print_crop, INFO_FL_CLEAR(v4l2_crop, type)),
->  	IOCTL_INFO_FNC(VIDIOC_S_CROP, v4l_s_crop, v4l_print_crop, INFO_FL_PRIO),
-> -	IOCTL_INFO_STD(VIDIOC_G_SELECTION, vidioc_g_selection, v4l_print_selection, INFO_FL_CLEAR(v4l2_selection, r)),
-> -	IOCTL_INFO_STD(VIDIOC_S_SELECTION, vidioc_s_selection, v4l_print_selection, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_selection, r)),
-> +	IOCTL_INFO_FNC(VIDIOC_G_SELECTION, v4l_g_selection, v4l_print_selection, INFO_FL_CLEAR(v4l2_selection, r)),
-> +	IOCTL_INFO_FNC(VIDIOC_S_SELECTION, v4l_s_selection, v4l_print_selection, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_selection, r)),
->  	IOCTL_INFO_STD(VIDIOC_G_JPEGCOMP, vidioc_g_jpegcomp, v4l_print_jpegcompression, 0),
->  	IOCTL_INFO_STD(VIDIOC_S_JPEGCOMP, vidioc_s_jpegcomp, v4l_print_jpegcompression, INFO_FL_PRIO),
->  	IOCTL_INFO_FNC(VIDIOC_QUERYSTD, v4l_querystd, v4l_print_std, 0),
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 7387bd4d75b0..9f490aa11bc4 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -616,16 +616,11 @@ void rc_repeat(struct rc_dev *dev)
+ 
+ 	spin_lock_irqsave(&dev->keylock, flags);
+ 
+-	if (!dev->keypressed)
+-		goto out;
+-
+-	input_event(dev->input_dev, EV_MSC, MSC_SCAN, dev->last_scancode);
+-	input_sync(dev->input_dev);
+-
+-	dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
+-	mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
++	if (dev->keypressed) {
++		dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
++		mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
++	}
+ 
+-out:
+ 	spin_unlock_irqrestore(&dev->keylock, flags);
+ }
+ EXPORT_SYMBOL_GPL(rc_repeat);
