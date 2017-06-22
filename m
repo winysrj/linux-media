@@ -1,38 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.llwyncelyn.cymru ([82.70.14.225]:54464 "EHLO fuzix.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751186AbdFEUnq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Jun 2017 16:43:46 -0400
-Date: Mon, 5 Jun 2017 21:43:27 +0100
-From: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
-To: Yong Zhi <yong.zhi@intel.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com
-Subject: Re: [PATCH 01/12] videodev2.h, v4l2-ioctl: add IPU3 meta buffer
- format
-Message-ID: <20170605214327.19b26021@lxorguk.ukuu.org.uk>
-In-Reply-To: <1496695157-19926-2-git-send-email-yong.zhi@intel.com>
-References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
-        <1496695157-19926-2-git-send-email-yong.zhi@intel.com>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:40178 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753176AbdFVPNu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Jun 2017 11:13:50 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v1 2/5] [media] stm32-dcmi: revisit control register handling
+Date: Thu, 22 Jun 2017 17:12:48 +0200
+Message-ID: <1498144371-13310-3-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1498144371-13310-1-git-send-email-hugues.fruchet@st.com>
+References: <1498144371-13310-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon,  5 Jun 2017 15:39:06 -0500
-Yong Zhi <yong.zhi@intel.com> wrote:
+Simplify bits handling of DCMI_CR register.
 
-> Add the IPU3 specific processing parameter format
-> V4L2_META_FMT_IPU3_PARAMS and metadata formats
-> for 3A and other statistics:
-> 
->   V4L2_META_FMT_IPU3_PARAMS
->   V4L2_META_FMT_IPU3_STAT_3A
->   V4L2_META_FMT_IPU3_STAT_DVS
->   V4L2_META_FMT_IPU3_STAT_LACE
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/platform/stm32/stm32-dcmi.c | 14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-Are these specific to IPU v3 or do they match other IPU versions ?
-
-Alan
+diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
+index 0dd5d1c..75d53aa 100644
+--- a/drivers/media/platform/stm32/stm32-dcmi.c
++++ b/drivers/media/platform/stm32/stm32-dcmi.c
+@@ -490,7 +490,7 @@ static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct stm32_dcmi *dcmi = vb2_get_drv_priv(vq);
+ 	struct dcmi_buf *buf, *node;
+-	u32 val;
++	u32 val = 0;
+ 	int ret;
+ 
+ 	ret = clk_enable(dcmi->mclk);
+@@ -510,22 +510,16 @@ static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 
+ 	spin_lock_irq(&dcmi->irqlock);
+ 
+-	val = reg_read(dcmi->regs, DCMI_CR);
+-
+-	val &= ~(CR_PCKPOL | CR_HSPOL | CR_VSPOL |
+-		 CR_EDM_0 | CR_EDM_1 | CR_FCRC_0 |
+-		 CR_FCRC_1 | CR_JPEG | CR_ESS);
+-
+ 	/* Set bus width */
+ 	switch (dcmi->bus.bus_width) {
+ 	case 14:
+-		val &= CR_EDM_0 + CR_EDM_1;
++		val |= CR_EDM_0 | CR_EDM_1;
+ 		break;
+ 	case 12:
+-		val &= CR_EDM_1;
++		val |= CR_EDM_1;
+ 		break;
+ 	case 10:
+-		val &= CR_EDM_0;
++		val |= CR_EDM_0;
+ 		break;
+ 	default:
+ 		/* Set bus width to 8 bits by default */
+-- 
+1.9.1
