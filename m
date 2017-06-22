@@ -1,146 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:34026 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751369AbdFXQDK (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:51585 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751185AbdFVPGm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Jun 2017 12:03:10 -0400
-Received: by mail-wr0-f193.google.com with SMTP id k67so19936648wrc.1
-        for <linux-media@vger.kernel.org>; Sat, 24 Jun 2017 09:03:09 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: rjkm@metzlerbros.de, jasmin@anw.at
-Subject: [PATCH 4/9] [media] dvb-frontends/stv0910: Fix signal strength reporting
-Date: Sat, 24 Jun 2017 18:02:56 +0200
-Message-Id: <20170624160301.17710-5-d.scheller.oss@gmail.com>
-In-Reply-To: <20170624160301.17710-1-d.scheller.oss@gmail.com>
-References: <20170624160301.17710-1-d.scheller.oss@gmail.com>
+        Thu, 22 Jun 2017 11:06:42 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        " H. Nikolaus Schaller" <hns@goldelico.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v1 4/6] [media] ov9650: use write_array() for resolution sequences
+Date: Thu, 22 Jun 2017 17:05:40 +0200
+Message-ID: <1498143942-12682-5-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
+References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Align resolution sequences on initialization sequence using
+i2c_rv structure NULL terminated .This add flexibility
+on resolution sequence size.
+Document resolution related registers by using corresponding
+define instead of hexa address/value.
 
-Original code at least has some signed/unsigned issues, resulting in
-values like 32dBm. Change signal strength readout to work without asking
-the attached tuner, and use a lookup table instead of log calc. Values
-reported appear plausible. Obsoletes the INTLOG10X100 calc macro.
-
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/media/dvb-frontends/stv0910.c | 50 ++++++++++++++++++++---------------
- 1 file changed, 29 insertions(+), 21 deletions(-)
+ drivers/media/i2c/ov9650.c | 98 ++++++++++++++++++++++++++++++----------------
+ 1 file changed, 64 insertions(+), 34 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
-index 999ee6a8ea23..c1875be01631 100644
---- a/drivers/media/dvb-frontends/stv0910.c
-+++ b/drivers/media/dvb-frontends/stv0910.c
-@@ -31,8 +31,6 @@
- #include "stv0910.h"
- #include "stv0910_regs.h"
- 
--#define INTLOG10X100(x) ((u32) (((u64) intlog10(x) * 100) >> 24))
--
- #define EXT_CLOCK   30000000
- #define TUNING_DELAY    200
- #define BER_SRC_S    0x20
-@@ -140,7 +138,7 @@ struct SInitTable {
- 
- struct SLookup {
- 	s16  Value;
--	u16  RegValue;
-+	u32  RegValue;
+diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+index 4311da6..8b283c9 100644
+--- a/drivers/media/i2c/ov9650.c
++++ b/drivers/media/i2c/ov9650.c
+@@ -227,11 +227,16 @@ struct ov965x_ctrls {
+ 	u8 update;
  };
  
- static inline int i2c_write(struct i2c_adapter *adap, u8 adr,
-@@ -332,6 +330,25 @@ struct SLookup S2_SN_Lookup[] = {
- 	{  510,    463  },  /*C/N=51.0dB*/
- };
- 
-+struct SLookup padc_lookup[] = {
-+	{    0,  118000 }, /* PADC=+0dBm  */
-+	{ -100,  93600  }, /* PADC=-1dBm  */
-+	{ -200,  74500  }, /* PADC=-2dBm  */
-+	{ -300,  59100  }, /* PADC=-3dBm  */
-+	{ -400,  47000  }, /* PADC=-4dBm  */
-+	{ -500,  37300  }, /* PADC=-5dBm  */
-+	{ -600,  29650  }, /* PADC=-6dBm  */
-+	{ -700,  23520  }, /* PADC=-7dBm  */
-+	{ -900,  14850  }, /* PADC=-9dBm  */
-+	{ -1100, 9380   }, /* PADC=-11dBm */
-+	{ -1300, 5910   }, /* PADC=-13dBm */
-+	{ -1500, 3730   }, /* PADC=-15dBm */
-+	{ -1700, 2354   }, /* PADC=-17dBm */
-+	{ -1900, 1485   }, /* PADC=-19dBm */
-+	{ -2000, 1179   }, /* PADC=-20dBm */
-+	{ -2100, 1000   }, /* PADC=-21dBm */
++struct i2c_rv {
++	u8 addr;
++	u8 value;
 +};
 +
- /*********************************************************************
-  * Tracking carrier loop carrier QPSK 1/4 to 8PSK 9/10 long Frame
-  *********************************************************************/
-@@ -572,7 +589,7 @@ static int TrackingOptimization(struct stv *state)
- }
+ struct ov965x_framesize {
+ 	u16 width;
+ 	u16 height;
+ 	u16 max_exp_lines;
+-	const u8 *regs;
++	const struct i2c_rv *regs;
+ };
  
- static s32 TableLookup(struct SLookup *Table,
--		       int TableSize, u16 RegValue)
-+		       int TableSize, u32 RegValue)
- {
- 	s32 Value;
- 	int imin = 0;
-@@ -1300,17 +1317,18 @@ static int read_ber(struct dvb_frontend *fe, u32 *ber, u32 *n, u32 *d)
- 	return 0;
- }
+ struct ov965x_interval {
+@@ -280,9 +285,11 @@ struct ov965x {
+ 	u8 apply_frame_fmt;
+ };
  
--static int read_signal_strength(struct dvb_frontend *fe, u16 *strength)
-+static int read_signal_strength(struct dvb_frontend *fe, s64 *strength)
- {
- 	struct stv *state = fe->demodulator_priv;
- 	u8 Reg[2];
--	s32 bbgain;
-+	u16 agc;
-+	s32 padc;
- 	s32 Power = 0;
- 	int i;
+-struct i2c_rv {
+-	u8 addr;
+-	u8 value;
++struct ov965x_pixfmt {
++	u32 code;
++	u32 colorspace;
++	/* REG_TSLB value, only bits [3:2] may be set. */
++	u8 tslb_reg;
+ };
  
- 	read_regs(state, RSTV0910_P2_AGCIQIN1 + state->regoff, Reg, 2);
+ static const struct i2c_rv ov965x_init_regs[] = {
+@@ -342,30 +349,59 @@ struct i2c_rv {
+ 	{ REG_NULL, 0 }
+ };
  
--	*strength = (((u32) Reg[0]) << 8) | Reg[1];
-+	agc = (((u32) Reg[0]) << 8) | Reg[1];
- 
- 	for (i = 0; i < 5; i += 1) {
- 		read_regs(state, RSTV0910_P2_POWERI + state->regoff, Reg, 2);
-@@ -1320,20 +1338,9 @@ static int read_signal_strength(struct dvb_frontend *fe, u16 *strength)
- 	}
- 	Power /= 5;
- 
--	bbgain = (465 - INTLOG10X100(Power)) * 10;
+-#define NUM_FMT_REGS 14
+-/*
+- * COM7,  COM3,  COM4, HSTART, HSTOP, HREF, VSTART, VSTOP, VREF,
+- * EXHCH, EXHCL, ADC,  OCOM,   OFON
+- */
+-static const u8 frame_size_reg_addr[NUM_FMT_REGS] = {
+-	0x12, 0x0c, 0x0d, 0x17, 0x18, 0x32, 0x19, 0x1a, 0x03,
+-	0x2a, 0x2b, 0x37, 0x38, 0x39,
+-};
 -
--	if (fe->ops.tuner_ops.get_rf_strength)
--		fe->ops.tuner_ops.get_rf_strength(fe, strength);
--	else
--		*strength = 0;
+-static const u8 ov965x_sxga_regs[NUM_FMT_REGS] = {
+-	0x00, 0x00, 0x00, 0x1e, 0xbe, 0xbf, 0x01, 0x81, 0x12,
+-	0x10, 0x34, 0x81, 0x93, 0x51,
++static const struct i2c_rv ov965x_sxga_regs[] = {
++	{ REG_COM7, 0x00 },
++	{ REG_COM3, 0x00 },
++	{ REG_COM4, 0x00 },
++	{ REG_HSTART, 0x1e },
++	{ REG_HSTOP, 0xbe },
++	{ 0x32, 0xbf },
++	{ REG_VSTART, 0x01 },
++	{ REG_VSTOP, 0x81 },
++	{ REG_VREF, 0x12 },
++	{ REG_EXHCH, 0x10 },
++	{ REG_EXHCL, 0x34 },
++	{ REG_ADC, 0x81 },
++	{ REG_ACOM, 0x93 },
++	{ REG_OFON, 0x51 },
++	{ REG_NULL, 0 },
+ };
+ 
+-static const u8 ov965x_vga_regs[NUM_FMT_REGS] = {
+-	0x40, 0x04, 0x80, 0x26, 0xc6, 0xed, 0x01, 0x3d, 0x00,
+-	0x10, 0x40, 0x91, 0x12, 0x43,
++static const struct i2c_rv ov965x_vga_regs[] = {
++	{ REG_COM7, 0x40 },
++	{ REG_COM3, 0x04 },
++	{ REG_COM4, 0x80 },
++	{ REG_HSTART, 0x26 },
++	{ REG_HSTOP, 0xc6 },
++	{ 0x32, 0xed },
++	{ REG_VSTART, 0x01 },
++	{ REG_VSTOP, 0x3d },
++	{ REG_VREF, 0x00 },
++	{ REG_EXHCH, 0x10 },
++	{ REG_EXHCL, 0x40 },
++	{ REG_ADC, 0x91 },
++	{ REG_ACOM, 0x12 },
++	{ REG_OFON, 0x43 },
++	{ REG_NULL, 0 },
+ };
+ 
+ /* Determined empirically. */
+-static const u8 ov965x_qvga_regs[NUM_FMT_REGS] = {
+-	0x10, 0x04, 0x80, 0x25, 0xc5, 0xbf, 0x00, 0x80, 0x12,
+-	0x10, 0x40, 0x91, 0x12, 0x43,
++static const struct i2c_rv ov965x_qvga_regs[] = {
++	{ REG_COM7, 0x10 },
++	{ REG_COM3, 0x04 },
++	{ REG_COM4, 0x80 },
++	{ REG_HSTART, 0x25 },
++	{ REG_HSTOP, 0xc5 },
++	{ 0x32, 0xbf },
++	{ REG_VSTART, 0x00 },
++	{ REG_VSTOP, 0x80 },
++	{ REG_VREF, 0x12 },
++	{ REG_EXHCH, 0x10 },
++	{ REG_EXHCL, 0x40 },
++	{ REG_ADC, 0x91 },
++	{ REG_ACOM, 0x12 },
++	{ REG_OFON, 0x43 },
++	{ REG_NULL, 0 },
+ };
+ 
+ static const struct ov965x_framesize ov965x_framesizes[] = {
+@@ -387,13 +423,6 @@ struct i2c_rv {
+ 	},
+ };
+ 
+-struct ov965x_pixfmt {
+-	u32 code;
+-	u32 colorspace;
+-	/* REG_TSLB value, only bits [3:2] may be set. */
+-	u8 tslb_reg;
+-};
 -
--	if (bbgain < (s32) *strength)
--		*strength -= bbgain;
--	else
--		*strength = 0;
-+	padc = TableLookup(padc_lookup, ARRAY_SIZE(padc_lookup), Power) + 352;
+ static const struct ov965x_pixfmt ov965x_formats[] = {
+ 	{ MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_JPEG, 0x00},
+ 	{ MEDIA_BUS_FMT_YVYU8_2X8, V4L2_COLORSPACE_JPEG, 0x04},
+@@ -1268,11 +1297,12 @@ static int ov965x_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config
  
--	if (*strength > 0)
--		*strength = 10 * (s64) (s16) *strength - 108750;
-+	*strength = (padc - agc);
- 
- 	return 0;
- }
-@@ -1463,7 +1470,8 @@ static int get_frontend(struct dvb_frontend *fe,
+ static int ov965x_set_frame_size(struct ov965x *ov965x)
  {
- 	struct stv *state = fe->demodulator_priv;
- 	enum fe_status status;
--	u16 snr = 0, strength = 0;
-+	u16 snr = 0;
-+	s64 strength = 0;
- 	u32 ber = 0, bernom = 0, berdenom = 0;
- 	u8 tmp;
+-	int i, ret = 0;
++	int ret = 0;
++
++	v4l2_dbg(1, debug, ov965x->client, "%s\n", __func__);
+ 
+-	for (i = 0; ret == 0 && i < NUM_FMT_REGS; i++)
+-		ret = ov965x_write(ov965x->client, frame_size_reg_addr[i],
+-				   ov965x->frame_size->regs[i]);
++	ret = ov965x_write_array(ov965x->client,
++				 ov965x->frame_size->regs);
+ 	return ret;
+ }
  
 -- 
-2.13.0
+1.9.1
