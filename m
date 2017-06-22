@@ -1,142 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.csie.ntu.edu.tw ([140.112.30.61]:37270 "EHLO
-        smtp.csie.ntu.edu.tw" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751656AbdF3DmP (ORCPT
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.217]:21635 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753649AbdFVVfj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Jun 2017 23:42:15 -0400
+        Thu, 22 Jun 2017 17:35:39 -0400
+From: Ralph Metzler <rjkm@metzlerbros.de>
 MIME-Version: 1.0
-In-Reply-To: <20170629211957.uz7jijkuoxr2vohc@rob-hp-laptop>
-References: <1498561654-14658-1-git-send-email-yong.deng@magewell.com>
- <1498561654-14658-3-git-send-email-yong.deng@magewell.com> <20170629211957.uz7jijkuoxr2vohc@rob-hp-laptop>
-From: Chen-Yu Tsai <wens@csie.org>
-Date: Fri, 30 Jun 2017 11:41:50 +0800
-Message-ID: <CAGb2v66+xHR7xfBX_mPigZE_nvcRQfnpr4QAcKYEUhSGN7h61w@mail.gmail.com>
-Subject: Re: [PATCH RFC 2/2] dt-bindings: add binding documentation for
- Allwinner CSI
-To: Rob Herring <robh@kernel.org>
-Cc: Yong Deng <yong.deng@magewell.com>, mchehab@kernel.org,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Chen-Yu Tsai <wens@csie.org>, hans.verkuil@cisco.com,
-        peter.griffin@linaro.org, hugues.fruchet@st.com,
-        Krzysztof Kozlowski <krzk@kernel.org>, bparrot@ti.com,
-        Arnd Bergmann <arnd@arndb.de>, jean-christophe.trotin@st.com,
-        benjamin.gaignard@linaro.org, tiffany.lin@mediatek.com,
-        kamil@wypas.org, kieran+renesas@ksquared.org.uk,
-        andrew-ct.chen@mediatek.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-sunxi <linux-sunxi@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Message-ID: <22860.14367.464168.657791@morden.metzler>
+Date: Thu, 22 Jun 2017 23:35:27 +0200
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        liplianin@netup.ru, crope@iki.fi, "Jasmin J." <jasmin@anw.at>
+Subject: Re: DD support improvements (was: Re: [PATCH v3 00/13]
+ stv0367/ddbridge: support CTv6/FlexCT hardware)
+In-Reply-To: <20170621225712.426d3a17@audiostation.wuest.de>
+References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
+        <20170412212327.5b75be19@macbox>
+        <20170507174212.2e45ab71@audiostation.wuest.de>
+        <20170528234537.3bed2dde@macbox>
+        <20170619221821.022fc473@macbox>
+        <20170620093645.6f72fd1a@vento.lan>
+        <20170620204121.4cff42d1@macbox>
+        <20170620161043.1e6a1364@vento.lan>
+        <20170621225712.426d3a17@audiostation.wuest.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 30, 2017 at 5:19 AM, Rob Herring <robh@kernel.org> wrote:
-> On Tue, Jun 27, 2017 at 07:07:34PM +0800, Yong Deng wrote:
->> Add binding documentation for Allwinner CSI.
->
-> For the subject:
->
-> dt-bindings: media: Add Allwinner Camera Sensor Interface (CSI)
->
-> "binding documentation" is redundant.
->
->>
->> Signed-off-by: Yong Deng <yong.deng@magewell.com>
->> ---
->>  .../devicetree/bindings/media/sunxi-csi.txt        | 51 ++++++++++++++++++++++
->>  1 file changed, 51 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/media/sunxi-csi.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/sunxi-csi.txt b/Documentation/devicetree/bindings/media/sunxi-csi.txt
->> new file mode 100644
->> index 0000000..770be0e
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/sunxi-csi.txt
->> @@ -0,0 +1,51 @@
->> +Allwinner V3s Camera Sensor Interface
->> +------------------------------
->> +
->> +Required properties:
->> +  - compatible: value must be "allwinner,sun8i-v3s-csi"
->> +  - reg: base address and size of the memory-mapped region.
->> +  - interrupts: interrupt associated to this IP
->> +  - clocks: phandles to the clocks feeding the CSI
->> +    * ahb: the CSI interface clock
->> +    * mod: the CSI module clock
->> +    * ram: the CSI DRAM clock
->> +  - clock-names: the clock names mentioned above
->> +  - resets: phandles to the reset line driving the CSI
->> +
->> +- ports: A ports node with endpoint definitions as defined in
->> +  Documentation/devicetree/bindings/media/video-interfaces.txt. The
->> +  first port should be the input endpoints, the second one the outputs
->
-> Is there more than one endpoint for each port? If so, need to define
-> that numbering too.
+Daniel Scheller writes:
+ > Am Tue, 20 Jun 2017 16:10:43 -0300
+ > schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+ > ...
+ > > > - Maybe for 4.14: Support for the CineS2 V7 and FlexV4 line of
+ > > >   cards/modules. This mainly involves a new demod driver (stv0910) and
+ > > >   a new tuner driver (stv6111). Permissions for this are cleared with
+ > > >   Ralph already. The glue code needed in ddbridge is rather easy, and
+ > > >   as some ground work (mostly the MachXO2 support from the 2841 series)
+ > > >   is now in, the changes are quite small. Patches are ready so far but
+ > > >   need more cleanup (checkpatch fixes, camel case and such things).  
+ > > 
+ > > Please try to sync it with Ralph, in a way that his code won't
+ > > diverge from the upstream one, as this will make easier for both
+ > > sides to keep the Kernel in track with driver improvements.
+ > 
+ > This is not going to work. DD (Ralph and Manfred Voelkel) sort of maintain a shared code base between their Windows driver and the Linux kernel driver sources. While they didn't explicitely stated this, this can be noticed by the remarks and commented code in their OSS code, and the commit messages in their dddvb GIT (e.g. "sync with windows driver"). I've already cleaned up a lot of this (I believe no one wants to see such stuff in the linux kernel tree). If we're additionally going to replace all things camel case, with some more cleaning and maybe code shuffling after like a V4 patch series, those two sources are out of sync in a way that no automatic sync by applying patches will be possible anymore. So, pushing from vendor's upstream to the kernel seems to be the only option, and in fact, if the whole driver/package stack completely lives in the kernel sources, maybe DD even decide to directly commit upstream (kernel) again.
+ > 
+ > Putting Ralph into "To:", really like to hear an opinion from him on this whole subject.
 
-It is possible to have multiple camera sensors connected to the same
-bus. Think front and back cameras on a cell phone or tablet.
+Regarding divergence in the tuner/demod drivers I see some concerns. 
+The TDA18212 driver as they are presently in kernel and Daniel's  github tree still seems to be missing features
+like calibration and spur avoidance. This problem was already discussed here a few years ago.
+I would not want to move to these versions if those features are still missing.
 
-I don't think any kind of numbering makes much sense though. The
-system is free to use just one sensor at a time, or use many with
-some time multiplexing scheme. What might matter to the end user
-is where the camera is placed. But using the position or orientation
-as a numbering scheme might not work well either. Someone may end
-up using two sensors with the same orientation for stereoscopic
-vision.
+I also already told Daniel about our concerns regarding the CXD drivers in private mail.
+Sony did not want us to use their code directly and we had to get our code approved
+before publishing it. I do not know how the arrangement is regarding the in-kernel driver.
+DVB-C2 support also seems to be missing in this.
 
->
->> +
->> +Example:
->> +
->> +     csi1: csi@01cb4000 {
->> +             compatible = "allwinner,sun8i-v3s-csi";
->> +             reg = <0x01cb4000 0x1000>;
 
-Yong, the address range size is 0x4000, including the CCI (I2C)
-controller at offset 0x3000. You should also consider this in
-the device tree binding, and the driver.
+ > > - you'll still need to patch DD tree, as I'm pretty sure there are
+ > >   changes on the upstream driver that will need to be ported there;
+ > 
+ > The same as for the stv0910 code applies here, in addition that it's not sure if DD even wants this. DD even has KERNEL_VERSION_CODE ifdefs in some places. And - most importantly - they carry around an old version of the DVB core API (from what it looks, around linux-3.10, not exactly sure) which even was modified by some IOCTLs, vars, defines and the netstream and modulator support. I managed to remove all core API change deps from everything tuner related (and thats the reason things work in harmony with and in current kernels), but getting all this over to DD or even merge things from DD into the media subsystem will get "interesting".
 
-ChenYu
+We certainly will want to keep supporting older kernels via KERNEL_VERSION.
+But I can change the dvb core version in dddvb to a newer version.
 
->> +             interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
->> +             clocks = <&ccu CLK_BUS_CSI>,
->> +                      <&ccu CLK_CSI1_SCLK>,
->> +                      <&ccu CLK_DRAM_CSI>;
->> +             clock-names = "ahb", "mod", "ram";
->> +             resets = <&ccu RST_BUS_CSI>;
->> +
->> +             port {
->> +                     #address-cells = <1>;
->> +                     #size-cells = <0>;
->> +
->> +                     /* Parallel bus endpoint */
->> +                     csi1_0: endpoint@0 {
->> +                             reg = <0>;
->
-> Don't need this and everything associated with it for a single endpoint.
->
->> +                             remote = <&adv7611_1>;
->> +                             bus-width = <16>;
->> +                             data-shift = <0>;
->> +
->> +                             /* If hsync-active/vsync-active are missing,
->> +                                embedded BT.656 sync is used */
->> +                             hsync-active = <0>; /* Active low */
->> +                             vsync-active = <0>; /* Active low */
->> +                             data-active = <1>;  /* Active high */
->> +                             pclk-sample = <1>;  /* Rising */
->> +                     };
->> +             };
->> +     };
->> +
->> --
->> 1.8.3.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe devicetree" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Also, some of the new tuning defines and properties are generally useful and
+should be added to the kernel.
+
+e.g.:
+
+- adding SYS_DVBC2 to fe_delivery_system 
+
+- DTV_INPUT
+
+  to select an input on cards were demods can choose from several inputs
+
+- DTV_PLS
+
+  to set the gold code used for DVB-S2 physical layer scrambling.
+  (btw. the sometimes used root and combo codes are redundant)
+  Some driver mods misuse the upper bits of DTV_STREAM_ID (which is for MIS in DVB-S2) for this, but
+  PLS and MIS are independent.
+
+
+I know that the netstream and modulator support are proprietary but we will of course also need to keep
+them dddvb package.
+Btw., are there any standard APIs for modulator cards in the kernel now?
+
+
+Regards,
+Ralph
