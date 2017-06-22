@@ -1,68 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48574 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751128AbdFTL3k (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Jun 2017 07:29:40 -0400
-Received: from dyn3-82-128-189-68.psoas.suomi.net ([82.128.189.68] helo=localhost.localdomain)
-        by mail.kapsi.fi with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.84_2)
-        (envelope-from <crope@iki.fi>)
-        id 1dNHLm-00068X-Uz
-        for linux-media@vger.kernel.org; Tue, 20 Jun 2017 14:29:39 +0300
-To: LMML <linux-media@vger.kernel.org>
-From: Antti Palosaari <crope@iki.fi>
-Subject: [GIT PULL 4.13] af9015/af9013 changes
-Message-ID: <ce195769-d354-b21f-b995-b9a989332d93@iki.fi>
-Date: Tue, 20 Jun 2017 14:29:38 +0300
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:40837 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751997AbdFVDkS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Jun 2017 23:40:18 -0400
+Message-ID: <1ecc11b887682e5dad06770c14bf3c05@smtp-cloud2.xs4all.net>
+Date: Thu, 22 Jun 2017 05:40:15 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 3622d3e77ecef090b5111e3c5423313f11711dfa:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-   [media] ov2640: print error if devm_*_optional*() fails (2017-04-25 
-07:08:21 -0300)
+Results of the daily build of media_tree:
 
-are available in the git repository at:
+date:			Thu Jun 22 05:01:01 CEST 2017
+media-tree git hash:	76724b30f222067faf00874dc277f6c99d03d800
+media_build git hash:	a5ec7f00979b6c866911fb42507770727ff5afd4
+v4l-utils git hash:	ce237eefc1f6dafafc0e1fe3a5fd9f075d3fd066
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-   git://linuxtv.org/anttip/media_tree.git af9015_pull
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12-rc1-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12-rc1-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-for you to fetch changes up to 2a32db020ab01e3ac99febad90a42112aa28b2ee:
+Detailed results are available here:
 
-   af9013: refactor power control (2017-06-18 05:42:25 +0300)
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-----------------------------------------------------------------
-Antti Palosaari (15):
-       af9015: use correct 7-bit i2c addresses
-       af9013: move config values directly under driver state
-       af9013: add i2c client bindings
-       af9013: use kernel 64-bit division
-       af9013: fix logging
-       af9013: convert to regmap api
-       af9013: fix error handling
-       af9013: add dvbv5 cnr
-       af9015: fix and refactor i2c adapter algo logic
-       af9015: enable 2nd TS flow control when dual mode
-       af9013: add configurable TS output pin
-       af9013: remove unneeded register writes
-       af9015: move 2nd demod power-up wait different location
-       af9013: refactor firmware download routine
-       af9013: refactor power control
+Full logs are available here:
 
-Gustavo A. R. Silva (1):
-       af9013: add check on af9013_wr_regs() return value
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-  drivers/media/dvb-frontends/Kconfig       |    1 +
-  drivers/media/dvb-frontends/af9013.c      | 1185 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------------------------------------------------------------------
-  drivers/media/dvb-frontends/af9013.h      |   86 +++++------
-  drivers/media/dvb-frontends/af9013_priv.h |    2 +
-  drivers/media/usb/dvb-usb-v2/af9015.c     |  198 +++++++++++++-----------
-  drivers/media/usb/dvb-usb-v2/af9015.h     |    4 +-
-  6 files changed, 752 insertions(+), 724 deletions(-)
+The Media Infrastructure API from this daily build is here:
 
--- 
-http://palosaari.fi/
+http://www.xs4all.nl/~hverkuil/spec/index.html
