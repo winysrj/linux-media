@@ -1,48 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43722 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752796AbdF2OIA (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:51584 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751148AbdFVPGl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Jun 2017 10:08:00 -0400
-Subject: Re: [PATCH v1 2/2] drm: rcar-du: Repair vblank for DRM page flips
- using the VSP1
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, laurent.pinchart@ideasonboard.com
-Cc: David Airlie <airlied@linux.ie>,
+        Thu, 22 Jun 2017 11:06:41 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        " H. Nikolaus Schaller" <hns@goldelico.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
-References: <cover.22236bc88adc598797b31ea82329ec99304fe34d.1498744799.git-series.kieran.bingham+renesas@ideasonboard.com>
- <1f52573cfb6e72b49af7a1071ffe136623fafc75.1498744799.git-series.kieran.bingham+renesas@ideasonboard.com>
-Reply-To: kieran.bingham@ideasonboard.com
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <45eba5b6-d5a2-1007-1af5-2a076dd0630e@ideasonboard.com>
-Date: Thu, 29 Jun 2017 15:07:55 +0100
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v1 3/6] [media] ov9650: select the nearest higher resolution
+Date: Thu, 22 Jun 2017 17:05:39 +0200
+Message-ID: <1498143942-12682-4-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
+References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-In-Reply-To: <1f52573cfb6e72b49af7a1071ffe136623fafc75.1498744799.git-series.kieran.bingham+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> @@ -658,10 +660,14 @@ static irqreturn_t rcar_du_crtc_irq(int irq, void *arg)
->  	rcar_du_crtc_write(rcrtc, DSRCR, status & DSRCR_MASK);
->  
->  	if (status & DSSR_FRM) {
-> -		drm_crtc_handle_vblank(&rcrtc->crtc);
-> -
-> -		if (rcdu->info->gen < 3)
-> +		/*
-> +		 * Gen 3 vblank and page flips are handled through the VSP
-> +		 * completion handler
-> +		 */
-> +		if (rcdu->info->gen < 3) {
+Refine the resolution selection algorithm by selecting
+only the nearest higher resolution (instead of lower and higher).
 
-Of course as is obvious immediately after hitting send, this check was supposed
-to be removed now that the interrupt is not registered.
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/i2c/ov9650.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-Sorry for the noise and pre-released patch!
-
---
-Kieran
+diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+index 8340a45..4311da6 100644
+--- a/drivers/media/i2c/ov9650.c
++++ b/drivers/media/i2c/ov9650.c
+@@ -1196,9 +1196,11 @@ static void __ov965x_try_frame_size(struct v4l2_mbus_framefmt *mf,
+ 	unsigned int min_err = UINT_MAX;
+ 
+ 	while (i--) {
+-		int err = abs(fsize->width - mf->width)
+-				+ abs(fsize->height - mf->height);
+-		if (err < min_err) {
++		int w_err = (fsize->width - mf->width);
++		int h_err = (fsize->height - mf->height);
++		int err = w_err + h_err;
++
++		if ((w_err >= 0) && (h_err >= 0) && (err < min_err)) {
+ 			min_err = err;
+ 			match = fsize;
+ 		}
+-- 
+1.9.1
