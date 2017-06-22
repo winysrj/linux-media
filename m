@@ -1,143 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:35849 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751973AbdFGSe4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:34:56 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v8 11/34] ARM: dts: imx6-sabreauto: create i2cmux for i2c3
-Date: Wed,  7 Jun 2017 11:33:50 -0700
-Message-Id: <1496860453-6282-12-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:23006 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751156AbdFVPGl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Jun 2017 11:06:41 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        " H. Nikolaus Schaller" <hns@goldelico.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v1 0/6] Add support of OV9655 camera
+Date: Thu, 22 Jun 2017 17:05:36 +0200
+Message-ID: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The sabreauto uses a steering pin to select between the SDA signal on
-i2c3 bus, and a data-in pin for an SPI NOR chip. Use i2cmux to control
-this steering pin. Idle state of the i2cmux selects SPI NOR. This is not
-a classic way to use i2cmux, since one side of the mux selects something
-other than an i2c bus, but it works and is probably the cleanest
-solution. Note that if one thread is attempting to access SPI NOR while
-another thread is accessing i2c3, the SPI NOR access will fail since the
-i2cmux has selected the SDA pin rather than SPI NOR data-in. This couldn't
-be avoided in any case, the board is not designed to allow concurrent
-i2c3 and SPI NOR functions (and the default device-tree does not enable
-SPI NOR anyway).
+This patchset enables OV9655 camera support.
 
-Devices hanging off i2c3 should now be defined under i2cmux, so
-that the steering pin can be properly controlled to access those
-devices. The port expanders (MAX7310) are thus moved into i2cmux.
+OV9655 support has been tested using STM32F4DIS-CAM extension board
+plugged on connector P1 of STM32F746G-DISCO board.
+Due to lack of OV9650/52 hardware support, the modified related code
+could not have been checked for non-regression.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 65 +++++++++++++++++++++-----------
- 1 file changed, 44 insertions(+), 21 deletions(-)
+First patches upgrade current support of OV9650/52 to prepare then
+introduction of OV9655 variant patch.
+Because of OV9655 register set slightly different from OV9650/9652,
+not all of the driver features are supported (controls). Supported
+resolutions are limited to VGA, QVGA, QQVGA.
+Supported format is limited to RGB565.
+Controls are limited to color bar test pattern for test purpose.
 
-diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-index a2a714d..c8e35c4 100644
---- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-@@ -108,6 +108,44 @@
- 		default-brightness-level = <7>;
- 		status = "okay";
- 	};
-+
-+	i2cmux {
-+		compatible = "i2c-mux-gpio";
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_i2c3mux>;
-+		mux-gpios = <&gpio5 4 0>;
-+		i2c-parent = <&i2c3>;
-+		idle-state = <0>;
-+
-+		i2c@1 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			reg = <1>;
-+
-+			max7310_a: gpio@30 {
-+				compatible = "maxim,max7310";
-+				reg = <0x30>;
-+				gpio-controller;
-+				#gpio-cells = <2>;
-+			};
-+
-+			max7310_b: gpio@32 {
-+				compatible = "maxim,max7310";
-+				reg = <0x32>;
-+				gpio-controller;
-+				#gpio-cells = <2>;
-+			};
-+
-+			max7310_c: gpio@34 {
-+				compatible = "maxim,max7310";
-+				reg = <0x34>;
-+				gpio-controller;
-+				#gpio-cells = <2>;
-+			};
-+		};
-+	};
- };
- 
- &clks {
-@@ -290,27 +328,6 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_i2c3>;
- 	status = "okay";
--
--	max7310_a: gpio@30 {
--		compatible = "maxim,max7310";
--		reg = <0x30>;
--		gpio-controller;
--		#gpio-cells = <2>;
--	};
--
--	max7310_b: gpio@32 {
--		compatible = "maxim,max7310";
--		reg = <0x32>;
--		gpio-controller;
--		#gpio-cells = <2>;
--	};
--
--	max7310_c: gpio@34 {
--		compatible = "maxim,max7310";
--		reg = <0x34>;
--		gpio-controller;
--		#gpio-cells = <2>;
--	};
- };
- 
- &iomuxc {
-@@ -418,6 +435,12 @@
- 			>;
- 		};
- 
-+		pinctrl_i2c3mux: i2c3muxgrp {
-+			fsl,pins = <
-+				MX6QDL_PAD_EIM_A24__GPIO5_IO04 0x0b0b1
-+			>;
-+		};
-+
- 		pinctrl_pwm3: pwm1grp {
- 			fsl,pins = <
- 				MX6QDL_PAD_SD4_DAT1__PWM3_OUT		0x1b0b1
+OV9655 initial support is based on a driver written by H. Nikolaus Schaller [1].
+OV9655 registers sequences come from STM32CubeF7 embedded software [2].
+
+[1] http://git.goldelico.com/?p=gta04-kernel.git;a=shortlog;h=refs/heads/work/hns/video/ov9655
+[2] https://developer.mbed.org/teams/ST/code/BSP_DISCO_F746NG/file/e1d9da7fe856/Drivers/BSP/Components/ov9655/ov9655.c
+
+===========
+= history =
+===========
+version 1:
+  - Initial submission.
+
+H. Nikolaus Schaller (1):
+  DT bindings: add bindings for ov965x camera module
+
+Hugues Fruchet (5):
+  [media] ov9650: add device tree support
+  [media] ov9650: select the nearest higher resolution
+  [media] ov9650: use write_array() for resolution sequences
+  [media] ov9650: add multiple variant support
+  [media] ov9650: add support of OV9655 variant
+
+ .../devicetree/bindings/media/i2c/ov965x.txt       |  37 +
+ drivers/media/i2c/Kconfig                          |   6 +-
+ drivers/media/i2c/ov9650.c                         | 792 +++++++++++++++++----
+ 3 files changed, 704 insertions(+), 131 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov965x.txt
+
 -- 
-2.7.4
+1.9.1
