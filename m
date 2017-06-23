@@ -1,50 +1,251 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.60.111]:41587 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753399AbdFPKIT (ORCPT
+Received: from mail-io0-f193.google.com ([209.85.223.193]:36555 "EHLO
+        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754936AbdFWUl4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Jun 2017 06:08:19 -0400
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Fri, 23 Jun 2017 16:41:56 -0400
+Date: Fri, 23 Jun 2017 15:41:53 -0500
+From: Rob Herring <robh@kernel.org>
+To: Todor Tomov <todor.tomov@linaro.org>
+Cc: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
         devicetree@vger.kernel.org
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>
-Subject: [PATCH v2 3/4] MAINTAINERS: Add entry for Synopsys Designware HDMI drivers
-Date: Fri, 16 Jun 2017 11:07:42 +0100
-Message-Id: <b18489ee02691d5c3d398ca533a0be1a00293c55.1497607315.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1497607315.git.joabreu@synopsys.com>
-References: <cover.1497607315.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1497607315.git.joabreu@synopsys.com>
-References: <cover.1497607315.git.joabreu@synopsys.com>
+Subject: Re: [PATCH v2 01/19] doc: DT: camss: Binding document for Qualcomm
+ Camera subsystem driver
+Message-ID: <20170623204153.jpjecbzgnaptypbu@rob-hp-laptop>
+References: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
+ <1497883719-12410-2-git-send-email-todor.tomov@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1497883719-12410-2-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a entry for Synopsys Designware HDMI Receivers drivers
-and phys.
+On Mon, Jun 19, 2017 at 05:48:21PM +0300, Todor Tomov wrote:
+> Add DT binding document for Qualcomm Camera subsystem driver.
 
-Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-Cc: Carlos Palminha <palminha@synopsys.com>
----
- MAINTAINERS | 7 +++++++
- 1 file changed, 7 insertions(+)
+"dt-bindings: media: ..." for the subject please.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 053c3bd..e798040 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -11294,6 +11294,13 @@ L:	netdev@vger.kernel.org
- S:	Supported
- F:	drivers/net/ethernet/synopsys/
- 
-+SYNOPSYS DESIGNWARE HDMI RECEIVERS AND PHY DRIVERS
-+M:	Jose Abreu <joabreu@synopsys.com>
-+L:	linux-media@vger.kernel.org
-+S:	Maintained
-+F:	drivers/media/platform/dwc/*
-+F:	include/media/dwc/*
-+
- SYNOPSYS DESIGNWARE I2C DRIVER
- M:	Jarkko Nikula <jarkko.nikula@linux.intel.com>
- R:	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
--- 
-1.9.1
+> 
+> CC: Rob Herring <robh+dt@kernel.org>
+> CC: devicetree@vger.kernel.org
+> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+> ---
+>  .../devicetree/bindings/media/qcom,camss.txt       | 196 +++++++++++++++++++++
+>  1 file changed, 196 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/qcom,camss.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/qcom,camss.txt b/Documentation/devicetree/bindings/media/qcom,camss.txt
+> new file mode 100644
+> index 0000000..5213b03
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/qcom,camss.txt
+> @@ -0,0 +1,196 @@
+> +Qualcomm Camera Subsystem
+> +
+> +* Properties
+> +
+> +- compatible:
+> +	Usage: required
+> +	Value type: <stringlist>
+> +	Definition: Should contain:
+> +		- "qcom,msm8916-camss"
+
+Okay if it is one node, but I'd like to see some agreement from other QC 
+folks that 1 node is appropriate.
+
+> +- reg:
+> +	Usage: required
+> +	Value type: <prop-encoded-array>
+> +	Definition: Register ranges as listed in the reg-names property.
+> +- reg-names:
+> +	Usage: required
+> +	Value type: <stringlist>
+> +	Definition: Should contain the following entries:
+> +		- "csiphy0"
+> +		- "csiphy0_clk_mux"
+> +		- "csiphy1"
+> +		- "csiphy1_clk_mux"
+> +		- "csid0"
+> +		- "csid1"
+> +		- "ispif"
+> +		- "csi_clk_mux"
+> +		- "vfe0"
+> +- interrupts:
+> +	Usage: required
+> +	Value type: <prop-encoded-array>
+> +	Definition: Interrupts as listed in the interrupt-names property.
+> +- interrupt-names:
+> +	Usage: required
+> +	Value type: <stringlist>
+> +	Definition: Should contain the following entries:
+> +		- "csiphy0"
+> +		- "csiphy1"
+> +		- "csid0"
+> +		- "csid1"
+> +		- "ispif"
+> +		- "vfe0"
+> +- power-domains:
+> +	Usage: required
+> +	Value type: <prop-encoded-array>
+> +	Definition: A phandle and power domain specifier pairs to the
+> +		    power domain which is responsible for collapsing
+> +		    and restoring power to the peripheral.
+> +- clocks:
+> +	Usage: required
+> +	Value type: <prop-encoded-array>
+> +	Definition: A list of phandle and clock specifier pairs as listed
+> +		    in clock-names property.
+> +- clock-names:
+> +	Usage: required
+> +	Value type: <stringlist>
+> +	Definition: Should contain the following entries:
+> +		- "camss_top_ahb_clk"
+> +		- "ispif_ahb_clk"
+> +		- "csiphy0_timer_clk"
+> +		- "csiphy1_timer_clk"
+> +		- "csi0_ahb_clk"
+> +		- "csi0_clk"
+> +		- "csi0_phy_clk"
+> +		- "csi0_pix_clk"
+> +		- "csi0_rdi_clk"
+> +		- "csi1_ahb_clk"
+> +		- "csi1_clk"
+> +		- "csi1_phy_clk"
+> +		- "csi1_pix_clk"
+> +		- "csi1_rdi_clk"
+> +		- "camss_ahb_clk"
+> +		- "camss_vfe_vfe_clk"
+> +		- "camss_csi_vfe_clk"
+> +		- "iface_clk"
+> +		- "bus_clk"
+
+"_clk" is redundant.
+
+> +- vdda-supply:
+> +	Usage: required
+> +	Value type: <phandle>
+> +	Definition: A phandle to voltage supply for CSI2.
+> +- iommus:
+> +	Usage: required
+> +	Value type: <prop-encoded-array>
+> +	Definition: A list of phandle and IOMMU specifier pairs.
+> +
+> +* Nodes
+> +
+> +- ports:
+> +	Usage: required
+> +	Definition: As described in video-interfaces.txt in same directory.
+> +	Properties:
+> +		- reg:
+> +			Usage: required
+> +			Value type: <u32>
+> +			Definition: Selects CSI2 PHY interface - PHY0 or PHY1.
+> +	Endpoint node properties:
+> +		- clock-lanes:
+> +			Usage: required
+> +			Value type: <u32>
+> +			Definition: The clock lane.
+> +		- data-lanes:
+> +			Usage: required
+> +			Value type: <prop-encoded-array>
+> +			Definition: An array of data lanes.
+> +		- qcom,settle-cnt:
+> +			Usage: required
+> +			Value type: <u32>
+> +			Definition: The settle count parameter for CSI PHY.
+> +
+> +* An Example
+> +
+> +	camss: camss@1b00000 {
+> +		compatible = "qcom,msm8916-camss";
+> +		reg = <0x1b0ac00 0x200>,
+> +			<0x1b00030 0x4>,
+> +			<0x1b0b000 0x200>,
+> +			<0x1b00038 0x4>,
+> +			<0x1b08000 0x100>,
+> +			<0x1b08400 0x100>,
+> +			<0x1b0a000 0x500>,
+> +			<0x1b00020 0x10>,
+> +			<0x1b10000 0x1000>;
+> +		reg-names = "csiphy0",
+> +			"csiphy0_clk_mux",
+> +			"csiphy1",
+> +			"csiphy1_clk_mux",
+> +			"csid0",
+> +			"csid1",
+> +			"ispif",
+> +			"csi_clk_mux",
+> +			"vfe0";
+> +		interrupts = <GIC_SPI 78 0>,
+> +			<GIC_SPI 79 0>,
+> +			<GIC_SPI 51 0>,
+> +			<GIC_SPI 52 0>,
+> +			<GIC_SPI 55 0>,
+> +			<GIC_SPI 57 0>;
+> +		interrupt-names = "csiphy0",
+> +			"csiphy1",
+> +			"csid0",
+> +			"csid1",
+> +			"ispif",
+> +			"vfe0";
+> +		power-domains = <&gcc VFE_GDSC>;
+> +		clocks = <&gcc GCC_CAMSS_TOP_AHB_CLK>,
+> +			<&gcc GCC_CAMSS_ISPIF_AHB_CLK>,
+> +			<&gcc GCC_CAMSS_CSI0PHYTIMER_CLK>,
+> +			<&gcc GCC_CAMSS_CSI1PHYTIMER_CLK>,
+> +			<&gcc GCC_CAMSS_CSI0_AHB_CLK>,
+> +			<&gcc GCC_CAMSS_CSI0_CLK>,
+> +			<&gcc GCC_CAMSS_CSI0PHY_CLK>,
+> +			<&gcc GCC_CAMSS_CSI0PIX_CLK>,
+> +			<&gcc GCC_CAMSS_CSI0RDI_CLK>,
+> +			<&gcc GCC_CAMSS_CSI1_AHB_CLK>,
+> +			<&gcc GCC_CAMSS_CSI1_CLK>,
+> +			<&gcc GCC_CAMSS_CSI1PHY_CLK>,
+> +			<&gcc GCC_CAMSS_CSI1PIX_CLK>,
+> +			<&gcc GCC_CAMSS_CSI1RDI_CLK>,
+> +			<&gcc GCC_CAMSS_AHB_CLK>,
+> +			<&gcc GCC_CAMSS_VFE0_CLK>,
+> +			<&gcc GCC_CAMSS_CSI_VFE0_CLK>,
+> +			<&gcc GCC_CAMSS_VFE_AHB_CLK>,
+> +			<&gcc GCC_CAMSS_VFE_AXI_CLK>;
+> +		clock-names = "camss_top_ahb_clk",
+> +			"ispif_ahb_clk",
+> +			"csiphy0_timer_clk",
+> +			"csiphy1_timer_clk",
+> +			"csi0_ahb_clk",
+> +			"csi0_clk",
+> +			"csi0_phy_clk",
+> +			"csi0_pix_clk",
+> +			"csi0_rdi_clk",
+> +			"csi1_ahb_clk",
+> +			"csi1_clk",
+> +			"csi1_phy_clk",
+> +			"csi1_pix_clk",
+> +			"csi1_rdi_clk",
+> +			"camss_ahb_clk",
+> +			"camss_vfe_vfe_clk",
+> +			"camss_csi_vfe_clk",
+> +			"iface_clk",
+> +			"bus_clk";
+> +		vdda-supply = <&pm8916_l2>;
+> +		iommus = <&apps_iommu 3>;
+> +		ports {
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+> +			port@0 {
+> +				reg = <0>;
+> +				csiphy0_ep: endpoint {
+> +					clock-lanes = <1>;
+> +					data-lanes = <0 2>;
+> +					qcom,settle-cnt = <0xe>;
+> +					remote-endpoint = <&ov5645_ep>;
+> +				};
+> +			};
+> +		};
+> +	};
+> -- 
+> 1.9.1
+> 
