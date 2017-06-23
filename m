@@ -1,63 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:33942 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751548AbdFIX0s (ORCPT
+Received: from relmlor4.renesas.com ([210.160.252.174]:35787 "EHLO
+        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754457AbdFWJir (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Jun 2017 19:26:48 -0400
-Subject: Re: [PATCH v8 00/34] i.MX Media Driver
-To: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
- <e7e4669c-2963-b9e1-edd7-02731a6e0f9c@xs4all.nl>
- <c0b69c93-b9cd-25e8-ea36-fc0600efdb69@gmail.com>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e4f152de-6e75-7654-178e-e6dcf9ad12f3@xs4all.nl>
-Date: Sat, 10 Jun 2017 01:26:36 +0200
-MIME-Version: 1.0
-In-Reply-To: <c0b69c93-b9cd-25e8-ea36-fc0600efdb69@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Fri, 23 Jun 2017 05:38:47 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl
+Cc: chris.paterson2@renesas.com, geert+renesas@glider.be,
+        horms@verge.net.au, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH] dt-bindings: media: Add r8a7796 DRIF bindings
+Date: Fri, 23 Jun 2017 10:25:02 +0100
+Message-Id: <20170623092502.57818-1-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/06/17 01:16, Steve Longerbeam wrote:
-> 
-> 
-> On 06/07/2017 12:02 PM, Hans Verkuil wrote:
->> We're still waiting for an Ack for patch 02/34, right?
->>
-> 
-> Hi Hans, Rub has provided an Ack for patch 2.
-> 
->> Other than that everything is ready AFAICT.
->>
-> 
-> But as Pavel pointed out, in fact we are missing many
-> Acks still, for all of the dts source changes (patches
-> 4-14), as well as really everything else (imx-media staging
-> driver patches).
+Add r8a7796 DRIF bindings.
 
-No Acks needed for the staging part. It's staging, so not held
-to the same standards as non-staging parts. That doesn't mean
-Acks aren't welcome, of course.
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+---
+Hi DT & Media maintainers, All,
 
-You don't need Greg's Ack for staging/media either, patches there
-go in via us (generally at least) and we handle those, not Greg.
+   This patch adds DRIF bindings for R8A7796 SoC.
+   It is based on media_tree - commit 76724b30f222
 
-Regards,
+Thanks,
+Ramesh.
 
-	Hans
+ Documentation/devicetree/bindings/media/renesas,drif.txt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Documentation/devicetree/bindings/media/renesas,drif.txt b/Documentation/devicetree/bindings/media/renesas,drif.txt
+index 39516b94c28f..0d8974aa8b38 100644
+--- a/Documentation/devicetree/bindings/media/renesas,drif.txt
++++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
+@@ -40,6 +40,7 @@ To summarize,
+ Required properties of an internal channel:
+ -------------------------------------------
+ - compatible:	"renesas,r8a7795-drif" if DRIF controller is a part of R8A7795 SoC.
++		"renesas,r8a7796-drif" if DRIF controller is a part of R8A7796 SoC.
+ 		"renesas,rcar-gen3-drif" for a generic R-Car Gen3 compatible device.
+ 
+ 		When compatible with the generic version, nodes must list the
+-- 
+2.12.2
