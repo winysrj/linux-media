@@ -1,230 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.47.9]:51735 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750757AbdFSJEc (ORCPT
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.162]:17639 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752606AbdFWPXB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 05:04:32 -0400
-Subject: Re: [PATCH v3 4/4] dt-bindings: media: Document Synopsys Designware
- HDMI RX
-To: Sylwester Nawrocki <sylwester.nawrocki@gmail.com>,
-        Jose Abreu <Jose.Abreu@synopsys.com>
-References: <cover.1497630695.git.joabreu@synopsys.com>
- <51851d7b2335cc8a10fba17056314d7fa8ce88d1.1497630695.git.joabreu@synopsys.com>
- <f58aaeaa-3e49-3cbc-0ed8-8c3a6ebd3907@gmail.com>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <devicetree@vger.kernel.org>,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Rob Herring <robh+dt@kernel.org>,
+        Fri, 23 Jun 2017 11:23:01 -0400
+Content-Type: text/plain; charset=utf-8
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Subject: Re: [PATCH v1 1/6] DT bindings: add bindings for ov965x camera module
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+In-Reply-To: <88d0e8ea-74e4-6845-4e0d-8cd0f3a054be@suse.de>
+Date: Fri, 23 Jun 2017 17:22:23 +0200
+Cc: Hugues Fruchet <hugues.fruchet@st.com>, Suman Anna <s-anna@ti.com>,
         Mark Rutland <mark.rutland@arm.com>,
+        devicetree <devicetree@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Discussions about the Letux Kernel
+        <letux-kernel@openphoenux.org>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Rob Herring <robh+dt@kernel.org>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-Message-ID: <28d2ca0e-d9bc-816a-313c-e367aaed166e@synopsys.com>
-Date: Mon, 19 Jun 2017 10:01:09 +0100
-MIME-Version: 1.0
-In-Reply-To: <f58aaeaa-3e49-3cbc-0ed8-8c3a6ebd3907@gmail.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-media@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <05CBF9B8-2297-447B-860D-A89126B46FC9@goldelico.com>
+References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com> <d14b8c6e-b480-36f0-ed0a-684647617dbe@suse.de> <3E7B1344-ECE6-4CCC-9E9D-7521BB566CDE@goldelico.com> <13144955.Kq5qljPvgI@avalon> <24C976BF-52FD-4509-BCE4-9AE41B335482@goldelico.com> <88d0e8ea-74e4-6845-4e0d-8cd0f3a054be@suse.de>
+To: =?utf-8?Q?Andreas_F=C3=A4rber?= <afaerber@suse.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi,
 
+> Am 23.06.2017 um 16:57 schrieb Andreas F=C3=A4rber <afaerber@suse.de>:
+>=20
+> Am 23.06.2017 um 16:53 schrieb H. Nikolaus Schaller:
+>> Hi Laurent,
+>>=20
+>>> Am 23.06.2017 um 13:58 schrieb Laurent Pinchart =
+<laurent.pinchart@ideasonboard.com>:
+>>>=20
+>>> Hi Nikolaus,
+>>>=20
+>>> On Friday 23 Jun 2017 12:59:24 H. Nikolaus Schaller wrote:
+>>>> Am 23.06.2017 um 12:46 schrieb Andreas F=C3=A4rber =
+<afaerber@suse.de>:
+>>>>> Am 23.06.2017 um 12:25 schrieb H. Nikolaus Schaller:
+>>>>>>> diff --git =
+a/Documentation/devicetree/bindings/media/i2c/ov965x.txt
+>>>>>>> b/Documentation/devicetree/bindings/media/i2c/ov965x.txt new =
+file mode
+>>>>>>> 100644
+>>>>>>> index 0000000..0e0de1f
+>>>>>>> --- /dev/null
+>>>>>>> +++ b/Documentation/devicetree/bindings/media/i2c/ov965x.txt
+>>>>>>> @@ -0,0 +1,37 @@
+>>>>>>> +* Omnivision OV9650/9652/9655 CMOS sensor
+>>>>>>> +
+>>>>>>> +The Omnivision OV965x sensor support multiple resolutions =
+output, such
+>>>>>>> as
+>>>>>>> +CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or =
+raw RGB
+>>>>>>> +output format.
+>>>>>>> +
+>>>>>>> +Required Properties:
+>>>>>>> +- compatible: should be one of
+>>>>>>> +	"ovti,ov9650"
+>>>>>>> +	"ovti,ov9652"
+>>>>>>> +	"ovti,ov9655"
+>>>>>>> +- clocks: reference to the mclk input clock.
+>>>>>>=20
+>>>>>> I wonder why you have removed the clock-frequency property?
+>>>>>>=20
+>>>>>> In some situations the camera driver must be able to tell the =
+clock
+>>>>>> source which frequency it wants to see.
+>>>>>=20
+>>>>> That's what assigned-clock-rates property is for:
+>>>>>=20
+>>>>> =
+https://www.kernel.org/doc/Documentation/devicetree/bindings/clock/clock-b=
 
-Thanks for the feedback!
+>>>>> indings.txt
+>>>>>=20
+>>>>> AFAIU clock-frequency on devices is deprecated and equivalent to =
+having
+>>>>> a clocks property pointing to a fixed-clock, which is different =
+from a
+>>>>> clock with varying rate.
+>>>>=20
+>>>> I am not sure if that helps here. The OMAP3-ISP does not have a =
+fixed clock
+>>>> rate so we can only have the driver define what it wants to see.
+>>>>=20
+>>>> And common practise for OMAP3-ISP based camera modules (e.g. N900, =
+N9) is
+>>>> that they do it in the driver.
+>>>>=20
+>>>> Maybe ISP developers can comment?
+>>>=20
+>>> The OMAP3 ISP is a variable-frequency clock provider. The clock =
+frequency is=20
+>>> controlled by the clock consumer. As such, it's up to the consumer =
+to decide=20
+>>> whether to compute and request the clock rate dynamically at =
+runtime, or use=20
+>>> the assigned-clock-rates property in DT.
+>>>=20
+>>> Some ISPs include a clock generator, others don't. It should make no=20=
 
+>>> difference whether the clock is provided by the ISP, by a dedicated =
+clock=20
+>>> source in the SoC or by a discrete on-board adjustable clock source.
+>>=20
+>> Thanks for explaining the background.
+>>=20
+>> Do you have an hint or example how to use the assigned-clock-rates =
+property in
+>> a DT for a camera module connected to the omap3isp?
+>>=20
+>> Or does it just mean that it defines the property name?
+>=20
+> Please read the documentation link I sent - it's in the very bottom =
+and
+> should have an example.
 
-On 18-06-2017 18:34, Sylwester Nawrocki wrote:
-> Hi Jose,
->
-> On 06/16/2017 06:38 PM, Jose Abreu wrote:
->> Document the bindings for the Synopsys Designware HDMI RX.
->>
->> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
->> new file mode 100644
->> index 0000000..d30cc1e
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
->> @@ -0,0 +1,45 @@
->> +Synopsys DesignWare HDMI RX Decoder
->> +===================================
->> +
->> +This document defines device tree properties for the Synopsys DesignWare HDMI
->> +RX Decoder (DWC HDMI RX). It doesn't constitute a device tree binding
->> +specification by itself but is meant to be referenced by platform-specific
->> +device tree bindings.
->> +
->> +When referenced from platform device tree bindings the properties defined in
->> +this document are defined as follows.
->> +
->> +- reg: Memory mapped base address and length of the DWC HDMI RX registers.
->> +
->> +- interrupts: Reference to the DWC HDMI RX interrupt and 5v sense interrupt.
->> +
->> +- snps,hdmi-phy-jtag-addr: JTAG address of the phy to be used.
->> +
->> +- snps,hdmi-phy-version: Version of the phy to be used.
->> +
->> +- snps,hdmi-phy-cfg-clk: Value of the cfg clk that is delivered to phy.
->> +
->> +- snps,hdmi-phy-driver: *Exact* name of the phy driver to be used.
-> I don't think we can put Linux driver name in DT like this, devicetree 
-> is supposed to be describing hardware in OS agnostic way.
+I have seen it but it does not give me a good clue how to translate that =
+into
+correct omap3isp node setup in a specific DT. Rather it raises more =
+questions.
+Maybe because I don't understand completely what it is talking about.
 
-Yeah, I was aware about that, its just that I have a few
-limitations that I need to address. I will highlight them bellow
-but I think that with your proposed DT bindings and using
-of_platform_populate I can address them :)
+The fundamental question is if this "assigned-clock-rates" is already
+handled by ov965x->clk =3D devm_clk_get(&client->dev, NULL); ?
 
->
->> +- snps,hdmi-ctl-cfg-clk: Value of the cfg clk that is delivered to the
->> +controller.
-> How about creating a separate node for the PHY? The binding could then 
-> be something like:
->
->
-> /* Fixed clock needed only if respective clock is not already defined    
->    in the system */
->
-> refclk: clock {
-> 	compatible = "fixed-clock";
-> 	#clock-cells = <0>;
-> 	clock-frequency = <25000000>;
-> };
->
-> hdmi_phy: phy@f3 {
-> 	/* PHY version can be derived from the compatible string */
-> 	compatible = "snps,dw-hdmi-phy-e405"; 	
-> 	/* JTAG address of the PHY */
-> 	reg = <0xf3>
->
-> 	clocks = <&refclk>
-> 	clock-names = "cfg-clk";
-> }
->
-> hdmi-controller@0 {
-> 	compatible = "snps,dw-hdmi-rx-controller-vX.X";
-> 	reg = <0x0 0x10000>;
-> 	interrupts = <1 3>; 	
-> 	phys = <&hdmi_phy>;
->
-> 	clocks = <&refclk>
-> 	clock-names = "cfg-clk";
-> };
->
-> Or it might be better to make the PHY node child node of the RX controller 
-> node, since the RX controller could be considered a controller of the JTAG 
-> bus IIUC:
->
-> refclk: clock {
-> 	compatible = "fixed-clock";
-> 	#clock-cells = <0>;
-> 	clock-frequency = <25000000>;
-> };
->
-> hdmi-controller@0 {
-> 	compatible = "snps,dw-hdmi-rx-controller-xxx";
-> 	reg = <0x0 0x10000>;
-> 	interrupts = <1 3>; 	
-> 	clocks = <&refclk>
-> 	clock-names = "cfg-clk";
-> 	#address-cells = <1>;
-> 	#size-cells = <0>;
->
-> 	phy@f3 {
-> 		/* PHY version can be derived from the compatible string */
-> 		compatible = "snps,dw-hdmi-phy-e405";
->  		/* address of the PHY on the JTAG bus */
-> 		reg = <0xf3>
->
-> 		clocks = <&refclk>
-> 		clock-names = "cfg-clk";
-> 	}
-> };
->
-> Then rather than creating platform device in the RX controller driver 
-> for the PHY just of_platform_populate() could be used.
+Or should we define that for the omap3isp node?
 
-Using fixed-clock was already in my todo list. Regarding phy I
-need to pass pdata so that the callbacks between controller and
-phy are established. I also need to make sure that phy driver
-will be loaded by the controller driver. Hmm, and also address of
-the phy on th JTAG bus is fed to the controller driver not to the
-phy driver. Maybe leave the property as is (the
-"snps,hdmi-phy-jtag-addr") or parse it from the phy node?
+Then of course we need no new code and just use the right property =
+names.
+And N900, N9 camera DTs should be updated.
 
-I also need to pass pdata to the controller driver (the callbacks
-for 5v handling) which are agnostic of the controller. These
-reasons prevented me from adding compatible strings to both
-drivers and just use a wrapper driver instead. This way i do
-"modprobe wrapper_driver" and I get all the drivers loaded via
-request_module(). Still, I like your approach much better. I saw
-that I can pass pdata using of_platform_populate, could you
-please confirm if I can still maintain this architecture (i.e.
-prevent modules from loading until I get all the chain setup)?
-
-Following your approach I could get something like this:
-
-hdmi_system@YYYY {
-    compatible = "snps,dw-hdmi-rx-wrapper";
-    reg = <0xYYYY 0xZZZZ>;
-    interrupts = <3>;
-    #address-cells = <1>;
-    #size-cells = <1>;
-
-    hdmi_controller@0 {
-        compatible = "snps,dw-hdmi-rx-controller";
-        reg = <0x0 0x10000>;
-        interrupts = <1>;
-        edid-phandle = <&hdmi_system>;
-        clocks = <&refclk>;
-        clock-names = "ref-clk";
-        #address-cells = <1>;
-        #size-cells = <0>;
-
-        hdmi_phy@f3 {
-            compatible = "snps,dw-hdmi-phy-e405";
-            reg = <0xf3>;
-            clocks = <&cfgclk>;
-            clock-names = "cfg-clk";
-        }
-    }
-};
-
-And then snps,dw-hdmi-rx-wrapper would call of_platform_populate
-for controller which would instead call of_platform_populate for
-phy. Is this possible, and maintainable? Isn't the controller
-driver get auto loaded because of the compatible string match?
-And one more thing: The reg address of the hdmi_controller: Isn't
-this relative to the parent node? I mean isn't this going to be
-0xYYYY + 0x0? Because I don't want that :/
-
-Best regards,
-Jose Miguel Abreu
-
->
->> +- edid-phandle: phandle to the EDID driver. It can be, for example, the main
->> +wrapper driver.
->> +
->> +A sample binding is now provided. The compatible string is for a wrapper driver
->> +which then instantiates the Synopsys Designware HDMI RX decoder driver.
-> I would avoid talking about drivers in DT binding documentation, we should 
-> rather refer to hardware blocks.
->
->> +Example:
->> +
->> +dw_hdmi_wrapper: dw-hdmi-wrapper@0 {
->> +	compatible = "snps,dw-hdmi-rx-wrapper";
->> +	reg = <0x0 0x10000>; /* controller regbank */
->> +	interrupts = <1 3>; /* controller interrupt + 5v sense interrupt */
->> +	snps,hdmi-phy-driver = "dw-hdmi-phy-e405";
->> +	snps,hdmi-phy-version = <405>;
->> +	snps,hdmi-phy-cfg-clk = <25>; /* MHz */
->> +	snps,hdmi-ctl-cfg-clk = <25>; /* MHz */
->> +	snps,hdmi-phy-jtag-addr = /bits/ 8 <0xfc>;
->> +	edid-phandle = <&dw_hdmi_wrapper>;
->> +};
-> --
-> Regards,
-> Sylwester
->
+BR and thanks,
+Nikolaus
