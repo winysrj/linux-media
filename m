@@ -1,53 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f170.google.com ([209.85.128.170]:33635 "EHLO
-        mail-wr0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752440AbdFOQdT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 12:33:19 -0400
-Received: by mail-wr0-f170.google.com with SMTP id r103so25474943wrb.0
-        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 09:33:18 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v11 16/19] media: venus: venc: fix compile error in venc_close
-Date: Thu, 15 Jun 2017 19:31:57 +0300
-Message-Id: <1497544320-2269-17-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
+Received: from mail-bn3nam01on0089.outbound.protection.outlook.com ([104.47.33.89]:18217
+        "EHLO NAM01-BN3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752066AbdFWN4a (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Jun 2017 09:56:30 -0400
+Received: from unknown-38-66.xilinx.com ([149.199.38.66] helo=xsj-pvapsmtp01)
+        by xsj-pvapsmtpgw01 with esmtp (Exim 4.63)
+        (envelope-from <soren.brinkmann@xilinx.com>)
+        id 1dOP4Q-00071Q-9s
+        for linux-media@vger.kernel.org; Fri, 23 Jun 2017 06:56:22 -0700
+Received: from [127.0.0.1] (helo=localhost)
+        by xsj-pvapsmtp01 with smtp (Exim 4.63)
+        (envelope-from <soren.brinkmann@xilinx.com>)
+        id 1dOP4Q-0004am-6t
+        for linux-media@vger.kernel.org; Fri, 23 Jun 2017 06:56:22 -0700
+From: Soren Brinkmann <soren.brinkmann@xilinx.com>
+To: <linux-media@vger.kernel.org>
+CC: =?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>
+Subject: [PATCH v4l2-utils] v4l2-ctl: Print numerical control ID
+Date: Fri, 23 Jun 2017 06:56:12 -0700
+Message-ID: <20170623135612.23922-1-soren.brinkmann@xilinx.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This fixes the following compile error ocured when building
-with gcc7:
+Print the numerical ID for each control in list commands.
 
-drivers/media/platform/qcom/venus/venc.c:1150
-venc_close() error: dereferencing freed memory 'inst'
-
-by moving kfree as a last call.
-
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Signed-off-by: Soren Brinkmann <soren.brinkmann@xilinx.com>
 ---
- drivers/media/platform/qcom/venus/venc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I was trying to set controls from a userspace application and was hence looking
+for an easy way to find the control IDs to use with VIDIOC_(G|S)_EXT_CTRLS. The
+-l/-L options of v4l2-ctl already provide most information needed, hence I
+thought I'd add the numerical ID too.
 
-diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-index d5b4b5bf10a2..39748e7a08e4 100644
---- a/drivers/media/platform/qcom/venus/venc.c
-+++ b/drivers/media/platform/qcom/venus/venc.c
-@@ -1145,10 +1145,10 @@ static int venc_close(struct file *file)
- 	mutex_destroy(&inst->lock);
- 	v4l2_fh_del(&inst->fh);
- 	v4l2_fh_exit(&inst->fh);
--	kfree(inst);
- 
- 	pm_runtime_put_sync(inst->core->dev_enc);
- 
-+	kfree(inst);
- 	return 0;
- }
- 
+	Sören
+
+ utils/v4l2-ctl/v4l2-ctl-common.cpp | 45 +++++++++++++++++++-------------------
+ 1 file changed, 23 insertions(+), 22 deletions(-)
+
+diff --git a/utils/v4l2-ctl/v4l2-ctl-common.cpp b/utils/v4l2-ctl/v4l2-ctl-common.cpp
+index 6d9371eacbb7..149053bbbd4a 100644
+--- a/utils/v4l2-ctl/v4l2-ctl-common.cpp
++++ b/utils/v4l2-ctl/v4l2-ctl-common.cpp
+@@ -313,67 +313,68 @@ static void print_qctrl(int fd, struct v4l2_query_ext_ctrl *queryctrl,
+ 	qmenu.id = queryctrl->id;
+ 	switch (queryctrl->type) {
+ 	case V4L2_CTRL_TYPE_INTEGER:
+-		printf("%31s (int)    : min=%lld max=%lld step=%lld default=%lld",
+-				s.c_str(),
++		printf("%31s/%#8.8x (int)    : min=%lld max=%lld step=%lld default=%lld",
++				s.c_str(), qmenu.id,
+ 				queryctrl->minimum, queryctrl->maximum,
+ 				queryctrl->step, queryctrl->default_value);
+ 		break;
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+-		printf("%31s (int64)  : min=%lld max=%lld step=%lld default=%lld",
+-				s.c_str(),
++		printf("%31s/%#8.8x (int64)  : min=%lld max=%lld step=%lld default=%lld",
++				s.c_str(), qmenu.id,
+ 				queryctrl->minimum, queryctrl->maximum,
+ 				queryctrl->step, queryctrl->default_value);
+ 		break;
+ 	case V4L2_CTRL_TYPE_STRING:
+-		printf("%31s (str)    : min=%lld max=%lld step=%lld",
+-				s.c_str(),
++		printf("%31s/%#8.8x (str)    : min=%lld max=%lld step=%lld",
++				s.c_str(), qmenu.id,
+ 				queryctrl->minimum, queryctrl->maximum,
+ 				queryctrl->step);
+ 		break;
+ 	case V4L2_CTRL_TYPE_BOOLEAN:
+-		printf("%31s (bool)   : default=%lld",
+-				s.c_str(), queryctrl->default_value);
++		printf("%31s/%#8.8x (bool)   : default=%lld",
++				s.c_str(), qmenu.id, queryctrl->default_value);
+ 		break;
+ 	case V4L2_CTRL_TYPE_MENU:
+-		printf("%31s (menu)   : min=%lld max=%lld default=%lld",
+-				s.c_str(),
++		printf("%31s/%#8.8x (menu)   : min=%lld max=%lld default=%lld",
++				s.c_str(), qmenu.id,
+ 				queryctrl->minimum, queryctrl->maximum,
+ 				queryctrl->default_value);
+ 		break;
+ 	case V4L2_CTRL_TYPE_INTEGER_MENU:
+-		printf("%31s (intmenu): min=%lld max=%lld default=%lld",
+-				s.c_str(),
++		printf("%31s/%#8.8x (intmenu): min=%lld max=%lld default=%lld",
++				s.c_str(), qmenu.id,
+ 				queryctrl->minimum, queryctrl->maximum,
+ 				queryctrl->default_value);
+ 		break;
+ 	case V4L2_CTRL_TYPE_BUTTON:
+-		printf("%31s (button) :", s.c_str());
++		printf("%31s/%#8.8x (button) :", s.c_str(), qmenu.id);
+ 		break;
+ 	case V4L2_CTRL_TYPE_BITMASK:
+-		printf("%31s (bitmask): max=0x%08llx default=0x%08llx",
+-				s.c_str(), queryctrl->maximum,
++		printf("%31s/%#8.8x (bitmask): max=0x%08llx default=0x%08llx",
++				s.c_str(), qmenu.id, queryctrl->maximum,
+ 				queryctrl->default_value);
+ 		break;
+ 	case V4L2_CTRL_TYPE_U8:
+-		printf("%31s (u8)     : min=%lld max=%lld step=%lld default=%lld",
+-				s.c_str(),
++		printf("%31s/%#8.8x (u8)     : min=%lld max=%lld step=%lld default=%lld",
++				s.c_str(), qmenu.id,
+ 				queryctrl->minimum, queryctrl->maximum,
+ 				queryctrl->step, queryctrl->default_value);
+ 		break;
+ 	case V4L2_CTRL_TYPE_U16:
+-		printf("%31s (u16)    : min=%lld max=%lld step=%lld default=%lld",
+-				s.c_str(),
++		printf("%31s/%#8.8x (u16)    : min=%lld max=%lld step=%lld default=%lld",
++				s.c_str(), qmenu.id,
+ 				queryctrl->minimum, queryctrl->maximum,
+ 				queryctrl->step, queryctrl->default_value);
+ 		break;
+ 	case V4L2_CTRL_TYPE_U32:
+-		printf("%31s (u32)    : min=%lld max=%lld step=%lld default=%lld",
+-				s.c_str(),
++		printf("%31s/%#8.8x (u32)    : min=%lld max=%lld step=%lld default=%lld",
++				s.c_str(), qmenu.id,
+ 				queryctrl->minimum, queryctrl->maximum,
+ 				queryctrl->step, queryctrl->default_value);
+ 		break;
+ 	default:
+-		printf("%31s (unknown): type=%x", s.c_str(), queryctrl->type);
++		printf("%31s/%#8.8x (unknown): type=%x",
++				s.c_str(), qmenu.id, queryctrl->type);
+ 		break;
+ 	}
+ 	if (queryctrl->nr_of_dims == 0) {
 -- 
-2.7.4
+2.13.1.3.g25490cb03
