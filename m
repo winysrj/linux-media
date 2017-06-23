@@ -1,46 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:43576 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751290AbdFEK0u (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Jun 2017 06:26:50 -0400
-Subject: Re: [PATCH 7/9] [media] s5p-jpeg: Change sclk_jpeg to 166MHz for
- Exynos5250
-To: Thierry Escande <thierry.escande@collabora.com>
-Cc: Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Marek Szyprowski <m.szyprowski@samsung.com>
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <2b94d31d-7a76-53b7-e8eb-b516cdfea2fc@samsung.com>
-Date: Mon, 05 Jun 2017 12:26:43 +0200
-MIME-version: 1.0
-In-reply-to: <4e77fd32-5805-d1f5-2ddd-3196cc978ef2@gmail.com>
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <1496419376-17099-1-git-send-email-thierry.escande@collabora.com>
-        <1496419376-17099-8-git-send-email-thierry.escande@collabora.com>
-        <CGME20170602215851epcas3p3fa42ac06f8c815020d09a879a6538a68@epcas3p3.samsung.com>
-        <4e77fd32-5805-d1f5-2ddd-3196cc978ef2@gmail.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:43221 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754340AbdFWJW4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Jun 2017 05:22:56 -0400
+Subject: Re: [PATCH] [media] em28xx TerraTec Cinergy Hybrid T USB XS with
+ demodulator MT352 is not detect by em28xx
+To: juvann@caramail.fr, linux-media@vger.kernel.org
+References: <trinity-3ccfe6a4-860f-4c5c-a2cc-d3027dbb4777-1497078814431@3capp-mailcom-bs10>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-ID: <0c26e44d-c317-771e-0faa-2ae637b9ecfe@xs4all.nl>
+Date: Fri, 23 Jun 2017 11:22:50 +0200
+MIME-Version: 1.0
+In-Reply-To: <trinity-3ccfe6a4-860f-4c5c-a2cc-d3027dbb4777-1497078814431@3capp-mailcom-bs10>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/02/2017 11:58 PM, Jacek Anaszewski wrote:
-> On 06/02/2017 06:02 PM, Thierry Escande wrote:
->> From: henryhsu<henryhsu@chromium.org>
->>
->> The default clock parent of jpeg on Exynos5250 is fin_pll, which is
->> 24MHz. We have to change the clock parent to CPLL, which is 333MHz,
->> and set sclk_jpeg to 166MHz.
+Hi Giovanni,
 
-There is no need to patch the driver for these platform specific clock
-settings, it can be specified in the device tree with the "assigned-clocks"
-properties. There is an example in mainline for exynos3250 SoC already [1].
+On 06/10/17 09:13, juvann@caramail.fr wrote:
+> TerraTec Cinergy Hybrid T USB XS with demodulator MT352 stop working with kernel 3.xx and newer.
+> I have already sent this patch without a success reply, I hope this time you can accept it.
+> 
+> --- /usr/src/linux-3.14.3/drivers/media/usb/em28xx/em28xx-cards.c.orig   2014-05-06 16:59:58.000000000 +0200
+> +++ /usr/src/linux-3.14.3/drivers/media/usb/em28xx/em28xx-cards.c   2014-05-07 15:18:31.719524453 +0200
+> @@ -2233,7 +2233,7 @@
+>         { USB_DEVICE(0x0ccd, 0x005e),
+>                         .driver_info = EM2882_BOARD_TERRATEC_HYBRID_XS },
+>         { USB_DEVICE(0x0ccd, 0x0042),
+> -                       .driver_info = EM2882_BOARD_TERRATEC_HYBRID_XS },
+> +                       .driver_info = EM2880_BOARD_TERRATEC_HYBRID_XS },
+>         { USB_DEVICE(0x0ccd, 0x0043),
+>                         .driver_info = EM2870_BOARD_TERRATEC_XS },
+>         { USB_DEVICE(0x0ccd, 0x008e),   /* Cinergy HTC USB XS Rev. 1 */
+> 
+> This patch is working also on kernel 4.xx I have tested kernel 4.3 and 4.9
 
--- 
-Thanks,
-Sylwester
+I checked the commit that changed the original EM2880_BOARD_TERRATEC_HYBRID_XS
+to EM2882_BOARD_TERRATEC_HYBRID_XS and it says this:
 
-[1] 
-http://elixir.free-electrons.com/linux/v4.6/source/arch/arm/boot/dts/exynos3250.dtsi#L263
+commit 9124544320bd36d5aa21769d17a5781ba729aebf
+Author: Philippe Bourdin <richel@AngieBecker.ch>
+Date:   Sun Oct 31 09:57:58 2010 -0300
+
+    [media] Terratec Cinergy Hybrid T USB XS
+
+    I found that the problems people have reported with the USB-TV-stick
+    "Terratec Cinergy Hybrid T USB XS" (USB-ID: 0ccd:0042)
+    are coming from a wrong header file in the v4l-sources.
+
+    Attached is a diff, which fixes the problem (tested successfully here).
+    Obviously the USB-ID has been associated with a wrong chip: EM2880
+    instead of EM2882, which would be correct.
+
+    Reported-by: Philippe Bourdin <richel@AngieBecker.ch>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+So it looks like there are two variants with the same USB ID: one uses
+the EM2880, one uses the EM2882. Since nobody else complained I expect
+that most devices with this USB ID are in fact using the EM2882.
+
+I won't apply this patch, since that would break it for others.
+
+The best solution for you is to explicitly set the card using the
+'card=11' em28xx module option.
+
+I've CC-ed Mauro in case he knows a better solution.
+
+Regards,
+
+	Hans
