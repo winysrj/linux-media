@@ -1,77 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay4.synopsys.com ([198.182.47.9]:40942 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750927AbdFTR0p (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:46568 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754243AbdFWJK5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Jun 2017 13:26:45 -0400
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-Subject: [PATCH v4 0/4] Synopsys Designware HDMI Video Capture Controller + PHY
-Date: Tue, 20 Jun 2017 18:26:08 +0100
-Message-Id: <cover.1497978962.git.joabreu@synopsys.com>
+        Fri, 23 Jun 2017 05:10:57 -0400
+Subject: Re: [PATCH 1/6] v4l: vsp1: Remove WPF vertical flip support on
+ VSP2-B[CD] and VSP2-D
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20170615082409.9523-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20170615082409.9523-2-laurent.pinchart+renesas@ideasonboard.com>
+ <01747c5c-bb5e-77ff-c46d-9589c606cef7@xs4all.nl> <1880337.HyBPYQX1Jb@avalon>
+ <3fc0137d-02ce-c9e4-0c82-5fff803b440d@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e499dfd0-50fd-a45b-6807-a87224d0ddf5@xs4all.nl>
+Date: Fri, 23 Jun 2017 11:10:45 +0200
+MIME-Version: 1.0
+In-Reply-To: <3fc0137d-02ce-c9e4-0c82-5fff803b440d@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Synopsys Designware HDMI RX controller is an HDMI receiver controller that
-is responsible to process digital data that comes from a phy. The final result
-is a stream of raw video data that can then be connected to a video DMA, for
-example, and transfered into RAM so that it can be displayed.
+On 06/19/17 13:18, Hans Verkuil wrote:
+> On 06/19/2017 01:16 PM, Laurent Pinchart wrote:
+>> Hi Hans,
+>>
+>> On Thursday 15 Jun 2017 10:53:33 Hans Verkuil wrote:
+>>> On 06/15/17 10:24, Laurent Pinchart wrote:
+>>>> The WPF vertical flip is only supported on Gen3 SoCs on the VSP2-I.
+>>>> Don't enable it on other VSP2 instances.
+>>>>
+>>>> Signed-off-by: Laurent Pinchart
+>>>> <laurent.pinchart+renesas@ideasonboard.com>
+>>>
+>>> Should this go to older kernels as well? Or is that not needed?
+>>
+>> Now that I have access to the hardware again, after further testing, it looks
+>> like vertical flip is implemented in the VSP2-B[CD] and VSP2-D even though the
+>> datasheet states otherwise. Let's ignore this patch for now, I'll try to
+>> double-check with Renesas.
+> 
+> Patches 2-6 are OK, though? If they are, then I'll pick them up.
 
-The controller + phy available in this series natively support all HDMI 1.4 and
-HDMI 2.0 modes, including deep color. Although, the driver is quite in its
-initial stage and unfortunatelly only non deep color modes are supported. Also,
-audio is not yet supported in the driver (the controller has several audio
-output interfaces).
+Ping! Please let me know if patches 2-6 are OK for me to pick up. I'll make
+a final pull request today, after that they'll be postponed until 4.14.
 
-Version 4 addresses review comments from Sylwester Nawrocki that were mainly
-regarding the phy initialization and bindings in the DT. We switched to V4L2
-async API so that we don't have to wait for phy to be initialized.
+Regards,
 
-This series was tested in a FPGA platform.
-
-Jose Abreu (4):
-  [media] platform: Add Synopsys Designware HDMI RX PHY e405 Driver
-  [media] platform: Add Synopsys Designware HDMI RX Controller Driver
-  MAINTAINERS: Add entry for Synopsys Designware HDMI drivers
-  dt-bindings: media: Document Synopsys Designware HDMI RX
-
-Cc: Carlos Palminha <palminha@synopsys.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Sylwester Nawrocki <snawrocki@kernel.org>
-
- .../devicetree/bindings/media/snps,dw-hdmi-rx.txt  |   70 +
- MAINTAINERS                                        |    7 +
- drivers/media/platform/Kconfig                     |    2 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/dwc/Kconfig                 |   23 +
- drivers/media/platform/dwc/Makefile                |    2 +
- drivers/media/platform/dwc/dw-hdmi-phy-e405.c      |  832 +++++++++
- drivers/media/platform/dwc/dw-hdmi-phy-e405.h      |   63 +
- drivers/media/platform/dwc/dw-hdmi-rx.c            | 1862 ++++++++++++++++++++
- drivers/media/platform/dwc/dw-hdmi-rx.h            |  441 +++++
- include/media/dwc/dw-hdmi-phy-pdata.h              |  128 ++
- include/media/dwc/dw-hdmi-rx-pdata.h               |   97 +
- 12 files changed, 3529 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
- create mode 100644 drivers/media/platform/dwc/Kconfig
- create mode 100644 drivers/media/platform/dwc/Makefile
- create mode 100644 drivers/media/platform/dwc/dw-hdmi-phy-e405.c
- create mode 100644 drivers/media/platform/dwc/dw-hdmi-phy-e405.h
- create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.c
- create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.h
- create mode 100644 include/media/dwc/dw-hdmi-phy-pdata.h
- create mode 100644 include/media/dwc/dw-hdmi-rx-pdata.h
-
--- 
-1.9.1
+	Hans
