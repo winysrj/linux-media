@@ -1,108 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36358 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750914AbdFHQo1 (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:38823 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752878AbdFWL5y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Jun 2017 12:44:27 -0400
-Date: Thu, 8 Jun 2017 19:43:51 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
-        Joerg Roedel <joro@8bytes.org>
-Subject: Re: [PATCH 02/12] intel-ipu3: mmu: implement driver
-Message-ID: <20170608164350.GH1019@valkosipuli.retiisi.org.uk>
-References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
- <1496695157-19926-3-git-send-email-yong.zhi@intel.com>
- <CAAFQd5BZGVBdbN-8L+pvAf4AkBkB9UFy7_mmMpusFUMxDugQDw@mail.gmail.com>
- <CAAFQd5CdV4ZfAYHH7DBBfOY=c4_Lwnuf8COs=JUKRSjp1VTn7Q@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5CdV4ZfAYHH7DBBfOY=c4_Lwnuf8COs=JUKRSjp1VTn7Q@mail.gmail.com>
+        Fri, 23 Jun 2017 07:57:54 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH] [media] coda: do not reassign ctx->tiled_map_type in coda_s_fmt
+Date: Fri, 23 Jun 2017 13:57:27 +0200
+Message-Id: <20170623115727.31390-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+This smatch warning:
 
-On Wed, Jun 07, 2017 at 05:35:13PM +0900, Tomasz Figa wrote:
-> Hi Yong, Tuukka,
-> 
-> Continuing from yesterday. Please see comments inline.
-> 
-> > On Tue, Jun 6, 2017 at 5:39 AM, Yong Zhi <yong.zhi@intel.com> wrote:
-> [snip]
-> >> +       ptr = ipu3_mmu_alloc_page_table(mmu_dom, false);
-> >> +       if (!ptr)
-> >> +               goto fail_page_table;
-> >> +
-> >> +       /*
-> >> +        * We always map the L1 page table (a single page as well as
-> >> +        * the L2 page tables).
-> >> +        */
-> >> +       mmu_dom->dummy_l2_tbl = virt_to_phys(ptr) >> IPU3_MMU_PAGE_SHIFT;
-> >> +       mmu_dom->pgtbl = ipu3_mmu_alloc_page_table(mmu_dom, true);
-> >> +       if (!mmu_dom->pgtbl)
-> >> +               goto fail_page_table;
-> >> +
-> >> +       spin_lock_init(&mmu_dom->lock);
-> >> +       return &mmu_dom->domain;
-> >> +
-> >> +fail_page_table:
-> >> +       free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom->dummy_page));
-> >> +       free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom->dummy_l2_tbl));
-> >> +fail_get_page:
-> >> +       kfree(mmu_dom);
-> >> +       return NULL;
-> >> +}
-> >> +
-> >> +static void ipu3_mmu_domain_free(struct iommu_domain *dom)
-> >> +{
-> >> +       struct ipu3_mmu_domain *mmu_dom =
-> >> +               container_of(dom, struct ipu3_mmu_domain, domain);
-> >> +       uint32_t l1_idx;
-> >> +
-> >> +       for (l1_idx = 0; l1_idx < IPU3_MMU_L1PT_PTES; l1_idx++)
-> >> +               if (mmu_dom->pgtbl[l1_idx] != mmu_dom->dummy_l2_tbl)
-> >> +                       free_page((unsigned long)
-> >> +                                 TBL_VIRT_ADDR(mmu_dom->pgtbl[l1_idx]));
-> >> +
-> >> +       free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom->dummy_page));
-> >> +       free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom->dummy_l2_tbl));
-> 
-> I might be overly paranoid, but reading back kernel virtual pointers
-> from device accessible memory doesn't seem safe to me. Other drivers
-> keep kernel pointers of page tables in a dedicated array (it's only 8K
-> of memory, but much better safety).
+    coda/coda-common.c:706 coda_s_fmt() warn: missing break? reassigning 'ctx->tiled_map_type'
 
-Do you happen to have an example of that?
+can be silenced by moving the ctx->tiled_map_type assignment into the
+breakout condition. That way the field is not reassigned when falling
+through to the next switch statement.
 
-All system memory typically is accessible for devices, I think you wanted to
-say that the device is intended to access that memory. Albeit for reading
-only.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-common.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-...
-
-> >> +static int ipu3_mmu_bus_remove(struct device *dev)
-> >> +{
-> >> +       struct ipu3_mmu *mmu = dev_get_drvdata(dev);
-> >> +
-> >> +       put_iova_domain(&mmu->iova_domain);
-> >> +       iova_cache_put();
-> 
-> Don't we need to set the L1 table address to something invalid and
-> invalidate the TLB, so that the IOMMU doesn't reference the page freed
-> below anymore?
-
-I think the expectation is that if a device gets removed, its memory is
-unmapped by that time. Unmapping that memory will cause explicit TLB flush.
-
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index f92cc7df58fb8..dfceab052a4fa 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -714,9 +714,10 @@ static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f,
+ 		ctx->tiled_map_type = GDI_TILED_FRAME_MB_RASTER_MAP;
+ 		break;
+ 	case V4L2_PIX_FMT_NV12:
+-		ctx->tiled_map_type = GDI_TILED_FRAME_MB_RASTER_MAP;
+-		if (!disable_tiling)
++		if (!disable_tiling) {
++			ctx->tiled_map_type = GDI_TILED_FRAME_MB_RASTER_MAP;
+ 			break;
++		}
+ 		/* else fall through */
+ 	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_YVU420:
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.11.0
