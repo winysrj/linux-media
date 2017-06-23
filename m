@@ -1,272 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:60263 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753946AbdFLRNk (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:46410 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754035AbdFWDkI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Jun 2017 13:13:40 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v2 5/6] [media] s5p-jpeg: Add support for resolution change event
-Date: Mon, 12 Jun 2017 19:13:24 +0200
-Message-Id: <1497287605-20074-6-git-send-email-thierry.escande@collabora.com>
-In-Reply-To: <1497287605-20074-1-git-send-email-thierry.escande@collabora.com>
-References: <1497287605-20074-1-git-send-email-thierry.escande@collabora.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+        Thu, 22 Jun 2017 23:40:08 -0400
+Message-ID: <2e212b1222f4f0a7f99871e879585bec@smtp-cloud2.xs4all.net>
+Date: Fri, 23 Jun 2017 05:40:06 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: henryhsu <henryhsu@chromium.org>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This patch adds support for resolution change event to notify clients so
-they can prepare correct output buffer. When resolution change happened,
-G_FMT for CAPTURE should return old resolution and format before CAPTURE
-queues streamoff.
+Results of the daily build of media_tree:
 
-Signed-off-by: Henry-Ruey Hsu <henryhsu@chromium.org>
-Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c | 125 +++++++++++++++++++---------
- drivers/media/platform/s5p-jpeg/jpeg-core.h |   7 ++
- 2 files changed, 91 insertions(+), 41 deletions(-)
+date:			Fri Jun 23 05:00:18 CEST 2017
+media-tree git hash:	76724b30f222067faf00874dc277f6c99d03d800
+media_build git hash:	a5ec7f00979b6c866911fb42507770727ff5afd4
+v4l-utils git hash:	ce237eefc1f6dafafc0e1fe3a5fd9f075d3fd066
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 7ef7173..3d90a63 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -24,6 +24,7 @@
- #include <linux/slab.h>
- #include <linux/spinlock.h>
- #include <linux/string.h>
-+#include <media/v4l2-event.h>
- #include <media/v4l2-mem2mem.h>
- #include <media/v4l2-ioctl.h>
- #include <media/videobuf2-v4l2.h>
-@@ -1611,8 +1612,6 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
- 			FMT_TYPE_OUTPUT : FMT_TYPE_CAPTURE;
- 
- 	q_data->fmt = s5p_jpeg_find_format(ct, pix->pixelformat, f_type);
--	q_data->w = pix->width;
--	q_data->h = pix->height;
- 	if (q_data->fmt->fourcc != V4L2_PIX_FMT_JPEG) {
- 		/*
- 		 * During encoding Exynos4x12 SoCs access wider memory area
-@@ -1620,6 +1619,8 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
- 		 * the JPEG_IMAGE_SIZE register. In order to avoid sysmmu
- 		 * page fault calculate proper buffer size in such a case.
- 		 */
-+		q_data->w = pix->width;
-+		q_data->h = pix->height;
- 		if (ct->jpeg->variant->hw_ex4_compat &&
- 		    f_type == FMT_TYPE_OUTPUT && ct->mode == S5P_JPEG_ENCODE)
- 			q_data->size = exynos4_jpeg_get_output_buffer_size(ct,
-@@ -1695,6 +1696,15 @@ static int s5p_jpeg_s_fmt_vid_out(struct file *file, void *priv,
- 	return s5p_jpeg_s_fmt(fh_to_ctx(priv), f);
- }
- 
-+static int s5p_jpeg_subscribe_event(struct v4l2_fh *fh,
-+				    const struct v4l2_event_subscription *sub)
-+{
-+	if (sub->type == V4L2_EVENT_SOURCE_CHANGE)
-+		return v4l2_src_change_event_subscribe(fh, sub);
-+
-+	return -EINVAL;
-+}
-+
- static int exynos3250_jpeg_try_downscale(struct s5p_jpeg_ctx *ctx,
- 				   struct v4l2_rect *r)
- {
-@@ -2020,6 +2030,9 @@ static const struct v4l2_ioctl_ops s5p_jpeg_ioctl_ops = {
- 
- 	.vidioc_g_selection		= s5p_jpeg_g_selection,
- 	.vidioc_s_selection		= s5p_jpeg_s_selection,
-+
-+	.vidioc_subscribe_event		= s5p_jpeg_subscribe_event,
-+	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
- };
- 
- /*
-@@ -2412,8 +2425,17 @@ static int s5p_jpeg_job_ready(void *priv)
- {
- 	struct s5p_jpeg_ctx *ctx = priv;
- 
--	if (ctx->mode == S5P_JPEG_DECODE)
-+	if (ctx->mode == S5P_JPEG_DECODE) {
-+		/*
-+		 * We have only one input buffer and one output buffer. If there
-+		 * is a resolution change event, no need to continue decoding.
-+		 */
-+		if (ctx->state == JPEGCTX_RESOLUTION_CHANGE)
-+			return 0;
-+
- 		return ctx->hdr_parsed;
-+	}
-+
- 	return 1;
- }
- 
-@@ -2492,6 +2514,30 @@ static int s5p_jpeg_buf_prepare(struct vb2_buffer *vb)
- 	return 0;
- }
- 
-+static void s5p_jpeg_set_capture_queue_data(struct s5p_jpeg_ctx *ctx)
-+{
-+	struct s5p_jpeg_q_data *q_data = &ctx->cap_q;
-+
-+	q_data->w = ctx->out_q.w;
-+	q_data->h = ctx->out_q.h;
-+
-+	/*
-+	 * This call to jpeg_bound_align_image() takes care of width and
-+	 * height values alignment when user space calls the QBUF of
-+	 * OUTPUT buffer after the S_FMT of CAPTURE buffer.
-+	 * Please note that on Exynos4x12 SoCs, resigning from executing
-+	 * S_FMT on capture buffer for each JPEG image can result in a
-+	 * hardware hangup if subsampling is lower than the one of input
-+	 * JPEG.
-+	 */
-+	jpeg_bound_align_image(ctx, &q_data->w, S5P_JPEG_MIN_WIDTH,
-+			       S5P_JPEG_MAX_WIDTH, q_data->fmt->h_align,
-+			       &q_data->h, S5P_JPEG_MIN_HEIGHT,
-+			       S5P_JPEG_MAX_HEIGHT, q_data->fmt->v_align);
-+
-+	q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
-+}
-+
- static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
- {
- 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-@@ -2499,9 +2545,20 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
- 
- 	if (ctx->mode == S5P_JPEG_DECODE &&
- 	    vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
--		struct s5p_jpeg_q_data tmp, *q_data;
--
--		ctx->hdr_parsed = s5p_jpeg_parse_hdr(&tmp,
-+		static const struct v4l2_event ev_src_ch = {
-+			.type = V4L2_EVENT_SOURCE_CHANGE,
-+			.u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION,
-+		};
-+		struct vb2_queue *dst_vq;
-+		u32 ori_w;
-+		u32 ori_h;
-+
-+		dst_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx,
-+					 V4L2_BUF_TYPE_VIDEO_CAPTURE);
-+		ori_w = ctx->out_q.w;
-+		ori_h = ctx->out_q.h;
-+
-+		ctx->hdr_parsed = s5p_jpeg_parse_hdr(&ctx->out_q,
- 		     (unsigned long)vb2_plane_vaddr(vb, 0),
- 		     min((unsigned long)ctx->out_q.size,
- 			 vb2_get_plane_payload(vb, 0)), ctx);
-@@ -2510,43 +2567,18 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
- 			return;
- 		}
- 
--		q_data = &ctx->out_q;
--		q_data->w = tmp.w;
--		q_data->h = tmp.h;
--		q_data->sos = tmp.sos;
--		memcpy(q_data->dht.marker, tmp.dht.marker,
--		       sizeof(tmp.dht.marker));
--		memcpy(q_data->dht.len, tmp.dht.len, sizeof(tmp.dht.len));
--		q_data->dht.n = tmp.dht.n;
--		memcpy(q_data->dqt.marker, tmp.dqt.marker,
--		       sizeof(tmp.dqt.marker));
--		memcpy(q_data->dqt.len, tmp.dqt.len, sizeof(tmp.dqt.len));
--		q_data->dqt.n = tmp.dqt.n;
--		q_data->sof = tmp.sof;
--		q_data->sof_len = tmp.sof_len;
--
--		q_data = &ctx->cap_q;
--		q_data->w = tmp.w;
--		q_data->h = tmp.h;
--
- 		/*
--		 * This call to jpeg_bound_align_image() takes care of width and
--		 * height values alignment when user space calls the QBUF of
--		 * OUTPUT buffer after the S_FMT of CAPTURE buffer.
--		 * Please note that on Exynos4x12 SoCs, resigning from executing
--		 * S_FMT on capture buffer for each JPEG image can result in a
--		 * hardware hangup if subsampling is lower than the one of input
--		 * JPEG.
-+		 * If there is a resolution change event, only update capture
-+		 * queue when it is not streaming. Otherwise, update it in
-+		 * STREAMOFF. See s5p_jpeg_stop_streaming for detail.
- 		 */
--		jpeg_bound_align_image(ctx,
--				       &q_data->w,
--				       S5P_JPEG_MIN_WIDTH, S5P_JPEG_MAX_WIDTH,
--				       q_data->fmt->h_align,
--				       &q_data->h,
--				       S5P_JPEG_MIN_HEIGHT, S5P_JPEG_MAX_HEIGHT,
--				       q_data->fmt->v_align);
--
--		q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
-+		if (ctx->out_q.w != ori_w || ctx->out_q.h != ori_h) {
-+			v4l2_event_queue_fh(&ctx->fh, &ev_src_ch);
-+			if (vb2_is_streaming(dst_vq))
-+				ctx->state = JPEGCTX_RESOLUTION_CHANGE;
-+			else
-+				s5p_jpeg_set_capture_queue_data(ctx);
-+		}
- 	}
- 
- 	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
-@@ -2566,6 +2598,17 @@ static void s5p_jpeg_stop_streaming(struct vb2_queue *q)
- {
- 	struct s5p_jpeg_ctx *ctx = vb2_get_drv_priv(q);
- 
-+	/*
-+	 * STREAMOFF is an acknowledgment for resolution change event.
-+	 * Before STREAMOFF, we still have to return the old resolution and
-+	 * subsampling. Update capture queue when the stream is off.
-+	 */
-+	if (ctx->state == JPEGCTX_RESOLUTION_CHANGE &&
-+	    q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-+		s5p_jpeg_set_capture_queue_data(ctx);
-+		ctx->state = JPEGCTX_RUNNING;
-+	}
-+
- 	pm_runtime_put(ctx->jpeg->dev);
- }
- 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.h b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-index 4492a35..9aa26bd 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-@@ -98,6 +98,11 @@ enum  exynos4_jpeg_img_quality_level {
- 	QUALITY_LEVEL_4,	/* low */
- };
- 
-+enum s5p_jpeg_ctx_state {
-+	JPEGCTX_RUNNING = 0,
-+	JPEGCTX_RESOLUTION_CHANGE,
-+};
-+
- /**
-  * struct s5p_jpeg - JPEG IP abstraction
-  * @lock:		the mutex protecting this structure
-@@ -220,6 +225,7 @@ struct s5p_jpeg_q_data {
-  * @hdr_parsed:		set if header has been parsed during decompression
-  * @crop_altered:	set if crop rectangle has been altered by the user space
-  * @ctrl_handler:	controls handler
-+ * @state:		state of the context
-  */
- struct s5p_jpeg_ctx {
- 	struct s5p_jpeg		*jpeg;
-@@ -235,6 +241,7 @@ struct s5p_jpeg_ctx {
- 	bool			hdr_parsed;
- 	bool			crop_altered;
- 	struct v4l2_ctrl_handler ctrl_handler;
-+	enum s5p_jpeg_ctx_state	state;
- };
- 
- /**
--- 
-2.7.4
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12-rc1-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12-rc1-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
