@@ -1,75 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39560 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752877AbdFQMRr (ORCPT
+Received: from mail-pf0-f180.google.com ([209.85.192.180]:34702 "EHLO
+        mail-pf0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750932AbdFWOwa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Jun 2017 08:17:47 -0400
-Date: Sat, 17 Jun 2017 14:17:44 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
-        robh@kernel.org
-Subject: Re: [PATCH 7/8] smiapp: Add support for flash, lens and EEPROM
- devices
-Message-ID: <20170617121744.GA419@amd>
-References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
- <1497433639-13101-8-git-send-email-sakari.ailus@linux.intel.com>
+        Fri, 23 Jun 2017 10:52:30 -0400
+Received: by mail-pf0-f180.google.com with SMTP id s66so24446350pfs.1
+        for <linux-media@vger.kernel.org>; Fri, 23 Jun 2017 07:52:30 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="dDRMvlgZJXvWKvBx"
-Content-Disposition: inline
-In-Reply-To: <1497433639-13101-8-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <m34lv715hy.fsf@t19.piap.pl>
+References: <590ADAB1.1040501@suntec.net> <m3h90thwjt.fsf@t19.piap.pl>
+ <m3d1bhhwf3.fsf_-_@t19.piap.pl> <CAAEAJfBVOKBcZBg91EKHBXKMOkM6eRafe8=XnW8E=6vtn2dBmQ@mail.gmail.com>
+ <m38tm3j0wr.fsf@t19.piap.pl> <CAAEAJfAo8-efB-ZopydXFdRZDKsTKcSzx1vkaJwcpDQQ1Eiivw@mail.gmail.com>
+ <m3zieiheng.fsf@t19.piap.pl> <b088a7cd-7585-5235-224d-a90ea9042c24@xs4all.nl> <m34lv715hy.fsf@t19.piap.pl>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Date: Fri, 23 Jun 2017 11:52:29 -0300
+Message-ID: <CAAEAJfBrx-YBjMSfs_YwxuY=iaSYOxWKRYz+FjGUL_CwN6YD+w@mail.gmail.com>
+Subject: Re: [PATCH] TW686x: Fix OOPS on buffer alloc failure
+To: =?UTF-8?Q?Krzysztof_Ha=C5=82asa?= <khalasa@piap.pl>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        linux-media <linux-media@vger.kernel.org>,
+        zhaoxuegang <zhaoxuegang@suntec.net>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 23 June 2017 at 05:18, Krzysztof Ha=C5=82asa <khalasa@piap.pl> wrote:
+> Hans Verkuil <hverkuil@xs4all.nl> writes:
+>
+>> Any progress on this? I gather I can expect a new patch from someone?
+>
+> Well, the issue is trivial and very easy to test, though not present
+> on common x86 hw. That patch I've sent fixes it, but I'm not the one who
+> decides.
 
---dDRMvlgZJXvWKvBx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+If you can re-submit your patch addressing all the comments, I'd be happy
+to Ack it.
 
-Hi!
-
-> These types devices aren't directly related to the sensor, but are
-> nevertheless handled by the smiapp driver due to the relationship of these
-> component to the main part of the camera module --- the sensor.
->=20
-> Additionally, for the async sub-device registration to work, the notifier
-> containing matching fwnodes will need to be registered. This is natural to
-> perform in a sensor driver as well.
->=20
-> This does not yet address providing the user space with information on how
-> to associate the sensor, lens or EEPROM devices but the kernel now has the
-> necessary information to do that.
-
-> -static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
-> +static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev,
-> +						   struct smiapp_sensor *sensor)
->  {
-> +	static const char *props[] =3D { "flash", "lens", "eeprom" };
->  	struct smiapp_hwconfig *hwcfg;
-
-Binding says "lens-focus" but this uses just "lens". I prefer
-lens-focus, because we may also have lens-aperture...
-
-Thanks,
-									Pavel
+As it stands, with the wrong subject style and without a commit log,
+it's a NAK on my side.
 --=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---dDRMvlgZJXvWKvBx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAllFHegACgkQMOfwapXb+vK1mwCfWbnNXbcbXqHDr+9Qb9zJ294F
-flsAnRoU1uDmbmCFepIRdw0lKKgh6aO2
-=vLpH
------END PGP SIGNATURE-----
-
---dDRMvlgZJXvWKvBx--
+Ezequiel Garc=C3=ADa, VanguardiaSur
+www.vanguardiasur.com.ar
