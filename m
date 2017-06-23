@@ -1,61 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:56421 "EHLO hardeman.nu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751050AbdFYMbw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Jun 2017 08:31:52 -0400
-Subject: [PATCH 07/19] lirc_dev: remove kmalloc in lirc_dev_fop_read()
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:56111 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754059AbdFWJzr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Jun 2017 05:55:47 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, sean@mess.org
-Date: Sun, 25 Jun 2017 14:31:50 +0200
-Message-ID: <149839391031.28811.5094791739782133013.stgit@zeus.hardeman.nu>
-In-Reply-To: <149839373103.28811.9486751698665303339.stgit@zeus.hardeman.nu>
-References: <149839373103.28811.9486751698665303339.stgit@zeus.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Cc: kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH] [media] coda: add h264 and mpeg4 profile and level controls
+Date: Fri, 23 Jun 2017 11:55:29 +0200
+Message-Id: <20170623095529.6135-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-lirc_zilog uses a chunk_size of 2 and ir-lirc-codec uses sizeof(int).
+CODA7541 supports H.264 BP level 3/3.1 and MPEG-4 SP level 5/6.
+CODA960 supports H.264 BP level 4.0 and MPEG-4 SP level 5/6.
 
-Therefore, using stack memory should be perfectly fine.
+Implement the necessary profile and level controls to let userspace know
+this.
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/rc/lirc_dev.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ drivers/media/platform/coda/coda-common.c | 47 +++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 1773a2934484..92048d945ba7 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -376,7 +376,7 @@ ssize_t lirc_dev_fop_read(struct file *file,
- 			  loff_t *ppos)
- {
- 	struct irctl *ir = file->private_data;
--	unsigned char *buf;
-+	unsigned char buf[ir->buf->chunk_size];
- 	int ret = 0, written = 0;
- 	DECLARE_WAITQUEUE(wait, current);
- 
-@@ -385,10 +385,6 @@ ssize_t lirc_dev_fop_read(struct file *file,
- 
- 	dev_dbg(ir->d.dev, LOGHEAD "read called\n", ir->d.name, ir->d.minor);
- 
--	buf = kzalloc(ir->buf->chunk_size, GFP_KERNEL);
--	if (!buf)
--		return -ENOMEM;
--
- 	if (mutex_lock_interruptible(&ir->irctl_lock)) {
- 		ret = -ERESTARTSYS;
- 		goto out_unlocked;
-@@ -464,8 +460,6 @@ ssize_t lirc_dev_fop_read(struct file *file,
- 	mutex_unlock(&ir->irctl_lock);
- 
- out_unlocked:
--	kfree(buf);
--
- 	return ret ? ret : written;
- }
- EXPORT_SYMBOL(lirc_dev_fop_read);
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 829c7895a98a2..d119b47773282 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1683,12 +1683,23 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		ctx->params.h264_deblk_enabled = (ctrl->val ==
+ 				V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED);
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
++		/* TODO: switch between baseline and constrained baseline */
++		ctx->params.h264_profile_idc = 66;
++		break;
++	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
++		/* nothing to do, this is set by the encoder */
++		break;
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:
+ 		ctx->params.mpeg4_intra_qp = ctrl->val;
+ 		break;
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:
+ 		ctx->params.mpeg4_inter_qp = ctrl->val;
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
++	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
++		/* nothing to do, these are fixed */
++		break;
+ 	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE:
+ 		ctx->params.slice_mode = ctrl->val;
+ 		break;
+@@ -1756,11 +1767,47 @@ static void coda_encode_ctrls(struct coda_ctx *ctx)
+ 		V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE,
+ 		V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED, 0x0,
+ 		V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED);
++	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
++		V4L2_CID_MPEG_VIDEO_H264_PROFILE,
++		V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE, 0x0,
++		V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE);
++	if (ctx->dev->devtype->product == CODA_7541) {
++		v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
++			V4L2_CID_MPEG_VIDEO_H264_LEVEL,
++			V4L2_MPEG_VIDEO_H264_LEVEL_3_1,
++			~((1 << V4L2_MPEG_VIDEO_H264_LEVEL_2_0) |
++			  (1 << V4L2_MPEG_VIDEO_H264_LEVEL_3_0) |
++			  (1 << V4L2_MPEG_VIDEO_H264_LEVEL_3_1)),
++			V4L2_MPEG_VIDEO_H264_LEVEL_3_1);
++	}
++	if (ctx->dev->devtype->product == CODA_960) {
++		v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
++			V4L2_CID_MPEG_VIDEO_H264_LEVEL,
++			V4L2_MPEG_VIDEO_H264_LEVEL_4_0,
++			~((1 << V4L2_MPEG_VIDEO_H264_LEVEL_2_0) |
++			  (1 << V4L2_MPEG_VIDEO_H264_LEVEL_3_0) |
++			  (1 << V4L2_MPEG_VIDEO_H264_LEVEL_3_1) |
++			  (1 << V4L2_MPEG_VIDEO_H264_LEVEL_3_2) |
++			  (1 << V4L2_MPEG_VIDEO_H264_LEVEL_4_0)),
++			V4L2_MPEG_VIDEO_H264_LEVEL_4_0);
++	}
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP, 1, 31, 1, 2);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP, 1, 31, 1, 2);
+ 	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
++		V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE,
++		V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE, 0x0,
++		V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE);
++	if (ctx->dev->devtype->product == CODA_7541 ||
++	    ctx->dev->devtype->product == CODA_960) {
++		v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
++			V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL,
++			V4L2_MPEG_VIDEO_MPEG4_LEVEL_5,
++			~(1 << V4L2_MPEG_VIDEO_MPEG4_LEVEL_5),
++			V4L2_MPEG_VIDEO_MPEG4_LEVEL_5);
++	}
++	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE,
+ 		V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES, 0x0,
+ 		V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE);
+-- 
+2.11.0
