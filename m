@@ -1,89 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:48553 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753549AbdFMUR3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 16:17:29 -0400
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
-        hyungwoo.yang@intel.com, divagar.mohandass@intel.com,
-        Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH v3 0/3] [PATCH v3 0/3] [media] add IPU3 CIO2 CSI2 driver
-Date: Tue, 13 Jun 2017 15:17:13 -0500
-Message-Id: <1497385036-1002-1-git-send-email-yong.zhi@intel.com>
+Received: from mx2.suse.de ([195.135.220.15]:51444 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1754354AbdFWKqN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Jun 2017 06:46:13 -0400
+Subject: Re: [PATCH v1 1/6] DT bindings: add bindings for ov965x camera module
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Hugues Fruchet <hugues.fruchet@st.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        devicetree <devicetree@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Discussions about the Letux Kernel
+        <letux-kernel@openphoenux.org>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Rob Herring <robh+dt@kernel.org>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-media@vger.kernel.org
+References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
+ <1498143942-12682-2-git-send-email-hugues.fruchet@st.com>
+ <D5629236-95D8-45B6-9719-E8B9796FEC90@goldelico.com>
+From: =?UTF-8?Q?Andreas_F=c3=a4rber?= <afaerber@suse.de>
+Message-ID: <d14b8c6e-b480-36f0-ed0a-684647617dbe@suse.de>
+Date: Fri, 23 Jun 2017 12:46:09 +0200
+MIME-Version: 1.0
+In-Reply-To: <D5629236-95D8-45B6-9719-E8B9796FEC90@goldelico.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the driver for the CIO2 device found in some the Skylake
-and Kaby Kake SoCs. The CIO2 consists of four D-PHY receivers.
+Hi,
 
-The CIO2 driver exposes V4L2, V4L2 sub-device and Media controller
-interfaces to the user space.
+Am 23.06.2017 um 12:25 schrieb H. Nikolaus Schaller:
+>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov965x.txt b/Documentation/devicetree/bindings/media/i2c/ov965x.txt
+>> new file mode 100644
+>> index 0000000..0e0de1f
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/i2c/ov965x.txt
+>> @@ -0,0 +1,37 @@
+>> +* Omnivision OV9650/9652/9655 CMOS sensor
+>> +
+>> +The Omnivision OV965x sensor support multiple resolutions output, such as
+>> +CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
+>> +output format.
+>> +
+>> +Required Properties:
+>> +- compatible: should be one of
+>> +	"ovti,ov9650"
+>> +	"ovti,ov9652"
+>> +	"ovti,ov9655"
+>> +- clocks: reference to the mclk input clock.
+> 
+> I wonder why you have removed the clock-frequency property?
+> 
+> In some situations the camera driver must be able to tell the clock source
+> which frequency it wants to see.
 
-===========
-= history =
-===========
+That's what assigned-clock-rates property is for:
 
-More soon for next version.
+https://www.kernel.org/doc/Documentation/devicetree/bindings/clock/clock-bindings.txt
 
-version 3:
-- remove cio2_set_power().
-- replace dma_alloc_noncoherent() with dma_alloc_coherent().
-- apply ffs tricks at possible places.
-- change sensor_vc to local variable.
-- move ktime_get_ns() a little earlier in the calling order.
-- fix multiple assignments(I.e a = b =c)
-- define CIO2_PAGE_SIZE for CIO2 PAGE_SIZE, SENSOR_VIR_CH_DFLT
-for default sensor virtual ch.
-- rework cio2_csi2_calc_timing().
-- update v4l2 async subdev field name from match.fwnode.fwn
-  to match.fwnode.fwnode.
-- cherry-pick internal fix for triggering different irq on SOF and EOF.
-- return -ENOMEM for vb2_dma_sg_plane_desc() in cio2_vb2_buf_init().
-- add cio2_link_validate() placeholder for vdev.
+AFAIU clock-frequency on devices is deprecated and equivalent to having
+a clocks property pointing to a fixed-clock, which is different from a
+clock with varying rate.
 
-version 2:
-- remove all explicit DMA flush operations
-- change dma_free_noncoherent() to dma_free_coherent()
-- remove cio2_hw_mipi_lanes()
-- replace v4l2_g_ext_ctrls() with v4l2_ctrl_g_ctrl()
-  in cio2_csi2_calc_timing().
-- use ffs() to iterate the port_status in cio2_irq()
-- add static inline file_to_cio2_queue() function
-- comment dma_wmb(), cio2_rx_timing() and few other places
-- use ktime_get_ns() for vb2_buf.timestamp in cio2_buffer_done()
-- use of SET_RUNTIME_PM_OPS() macro for cio2_pm_ops
-- use BIT() macro for bit difinitions
-- remove un-used macros such as CIO2_QUEUE_WIDTH() in ipu3-cio2.h
-- move the MODULE_AUTHOR() to the end of the file
-- change file path to drivers/media/pci/intel/ipu3
-
-version 1:
-- Initial submission
-Yong Zhi (3):
-  videodev2.h, v4l2-ioctl: add IPU3 raw10 color format
-  doc-rst: add IPU3 raw10 bayer pixel format definitions
-  intel-ipu3: cio2: Add new MIPI-CSI2 driver
-
- Documentation/media/uapi/v4l/pixfmt-rgb.rst        |    1 +
- .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         |   62 +
- drivers/media/pci/Kconfig                          |    2 +
- drivers/media/pci/Makefile                         |    3 +-
- drivers/media/pci/intel/Makefile                   |    5 +
- drivers/media/pci/intel/ipu3/Kconfig               |   17 +
- drivers/media/pci/intel/ipu3/Makefile              |    1 +
- drivers/media/pci/intel/ipu3/ipu3-cio2.c           | 1779 ++++++++++++++++++++
- drivers/media/pci/intel/ipu3/ipu3-cio2.h           |  434 +++++
- drivers/media/v4l2-core/v4l2-ioctl.c               |    4 +
- include/uapi/linux/videodev2.h                     |    5 +
- 11 files changed, 2312 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
- create mode 100644 drivers/media/pci/intel/Makefile
- create mode 100644 drivers/media/pci/intel/ipu3/Kconfig
- create mode 100644 drivers/media/pci/intel/ipu3/Makefile
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.h
+Regards,
+Andreas
 
 -- 
-2.7.4
+SUSE Linux GmbH, Maxfeldstr. 5, 90409 Nürnberg, Germany
+GF: Felix Imendörffer, Jane Smithard, Graham Norton
+HRB 21284 (AG Nürnberg)
