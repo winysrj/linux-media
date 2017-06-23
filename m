@@ -1,231 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36247
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751482AbdFXTQV (ORCPT
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.216]:15789 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754587AbdFWKZx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Jun 2017 15:16:21 -0400
-Date: Sat, 24 Jun 2017 16:16:13 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: "Jasmin J." <jasmin@anw.at>
-Cc: linux-media@vger.kernel.org, max.kellermann@gmail.com,
-        rjkm@metzlerbros.de, d.scheller@gmx.net
-Subject: Re: [PATCH 3/7] [media] dvb-core/dvb_ca_en50221.c: Add block
- read/write functions
-Message-ID: <20170624161613.4a08314c@vento.lan>
-In-Reply-To: <1494190313-18557-4-git-send-email-jasmin@anw.at>
-References: <1494190313-18557-1-git-send-email-jasmin@anw.at>
-        <1494190313-18557-4-git-send-email-jasmin@anw.at>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Fri, 23 Jun 2017 06:25:53 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Subject: Re: [PATCH v1 0/6] Add support of OV9655 camera
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+In-Reply-To: <385A82AC-CC23-41BD-9F57-0232F713FED9@goldelico.com>
+Date: Fri, 23 Jun 2017 12:25:09 +0200
+Cc: Mark Rutland <mark.rutland@arm.com>,
+        devicetree <devicetree@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Rob Herring <robh+dt@kernel.org>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-media@vger.kernel.org,
+        Discussions about the Letux Kernel
+        <letux-kernel@openphoenux.org>
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <1E453955-0C1A-414B-BBB2-C64B6D0EF378@goldelico.com>
+References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com> <385A82AC-CC23-41BD-9F57-0232F713FED9@goldelico.com>
+To: Hugues Fruchet <hugues.fruchet@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun,  7 May 2017 22:51:49 +0200
-"Jasmin J." <jasmin@anw.at> escreveu:
+Hi Hugues,
 
-> From: Jasmin Jessich <jasmin@anw.at>
-> 
-> Some lower level drivers may work better when sending blocks of data instead
-> byte per byte. For this we need new function pointers in the dvb_ca_en50221
-> protocol structure (read_data, write_data) and the protocol needs to execute
-> them, if they are defined.
-> Block data transmission is done in all states expect LINKINIT.
-> 
-> Signed-off-by: Ralph Metzler <rjkm@metzlerbros.de>
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+> Am 22.06.2017 um 17:41 schrieb H. Nikolaus Schaller =
+<hns@goldelico.com>:
+>=20
+>=20
+>> Am 22.06.2017 um 17:05 schrieb Hugues Fruchet =
+<hugues.fruchet@st.com>:
+>>=20
+>> This patchset enables OV9655 camera support.
+>>=20
+>> OV9655 support has been tested using STM32F4DIS-CAM extension board
+>> plugged on connector P1 of STM32F746G-DISCO board.
+>> Due to lack of OV9650/52 hardware support, the modified related code
+>> could not have been checked for non-regression.
+>>=20
+>> First patches upgrade current support of OV9650/52 to prepare then
+>> introduction of OV9655 variant patch.
+>> Because of OV9655 register set slightly different from OV9650/9652,
+>> not all of the driver features are supported (controls). Supported
+>> resolutions are limited to VGA, QVGA, QQVGA.
+>> Supported format is limited to RGB565.
+>> Controls are limited to color bar test pattern for test purpose.
+>>=20
+>> OV9655 initial support is based on a driver written by H. Nikolaus =
+Schaller [1].
+>=20
+> Great!
 
-Please check the patch with checkpatch.pl:
+Thanks again for picking up or work and trying to get it upstream.
 
-WARNING: Possible unwrapped commit description (prefer a maximum 75 chars per line)
-#16: 
-Some lower level drivers may work better when sending blocks of data instead
+>=20
+> I will test as soon as possible.
 
-WARNING: line over 80 characters
-#54: FILE: drivers/media/dvb-core/dvb_ca_en50221.c:649:
-+	if (ca->pub->read_data && (ca->slot_info[slot].slot_state != DVB_CA_SLOTSTATE_LINKINIT)) {
+I have tried and had to fix some issues first:
+* gpio properties have a different name than in our approach (but that =
+is something maintainers have to decide and is easy to follow this or =
+that way)
+* there is no clock-frequency property which makes the driver request a =
+clock frequency (something our camera interface expects this way)
+* there is no vana-supply regulator and we need that to power on/off the =
+camera on demand (reset and pwdn isn't enough in our hardware)
+* for some unknown reason the driver does not load automatically from DT =
+compatibility string and needs to be explicitly modprobed
+* unfortunately we still get no image :(
 
-...
+The latter is likely a setup issue of our camera interface (OMAP3 ISP =3D =
+Image Signal Processor) which
+we were not yet able to solve. Oscilloscoping signals on the interface =
+indicated that signals and
+sync are correct. But we do not know since mplayer only shows a green =
+screen.
 
+Therefore we had not submitted anything upstream ourselves, because our =
+driver setup
+isn't finished and completely working.
 
+I have written some more specific comments linked to proposals for =
+patches as answer to your [PATCH v1 1/6]
 
-> ---
->  drivers/media/dvb-core/dvb_ca_en50221.c | 117 ++++++++++++++++++--------------
->  drivers/media/dvb-core/dvb_ca_en50221.h |   7 ++
->  2 files changed, 73 insertions(+), 51 deletions(-)
-> 
-> diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
-> index 1cdd80a..cc709c9 100644
-> --- a/drivers/media/dvb-core/dvb_ca_en50221.c
-> +++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-> @@ -646,66 +646,78 @@ static int dvb_ca_en50221_read_data(struct dvb_ca_private *ca, int slot, u8 * eb
->  		}
->  	}
->  
-> -	/* check if there is data available */
-> -	if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS)) < 0)
-> -		goto exit;
-> -	if (!(status & STATUSREG_DA)) {
-> -		/* no data */
-> -		status = 0;
-> -		goto exit;
-> -	}
-> -
-> -	/* read the amount of data */
-> -	if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_SIZE_HIGH)) < 0)
-> -		goto exit;
-> -	bytes_read = status << 8;
-> -	if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_SIZE_LOW)) < 0)
-> -		goto exit;
-> -	bytes_read |= status;
-> +	if (ca->pub->read_data && (ca->slot_info[slot].slot_state != DVB_CA_SLOTSTATE_LINKINIT)) {
-> +		if (ebuf == NULL)
-> +			status = ca->pub->read_data(ca->pub, slot, buf, sizeof(buf));
-> +		else
-> +			status = ca->pub->read_data(ca->pub, slot, buf, ecount);
-> +		if (status < 0)
-> +			return status;
-> +		bytes_read =  status;
-> +		if (status == 0)
-> +			goto exit;
-> +	} else {
->  
-> -	/* check it will fit */
-> -	if (ebuf == NULL) {
-> -		if (bytes_read > ca->slot_info[slot].link_buf_size) {
-> -			pr_err("dvb_ca adapter %d: CAM tried to send a buffer larger than the link buffer size (%i > %i)!\n",
-> -			       ca->dvbdev->adapter->num, bytes_read,
-> -			       ca->slot_info[slot].link_buf_size);
-> -			ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_LINKINIT;
-> -			status = -EIO;
-> +		/* check if there is data available */
-> +		if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS)) < 0)
->  			goto exit;
-> -		}
-> -		if (bytes_read < 2) {
-> -			pr_err("dvb_ca adapter %d: CAM sent a buffer that was less than 2 bytes!\n",
-> -			       ca->dvbdev->adapter->num);
-> -			ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_LINKINIT;
-> -			status = -EIO;
-> +		if (!(status & STATUSREG_DA)) {
-> +			/* no data */
-> +			status = 0;
->  			goto exit;
->  		}
-> -	} else {
-> -		if (bytes_read > ecount) {
-> -			pr_err("dvb_ca adapter %d: CAM tried to send a buffer larger than the ecount size!\n",
-> -			       ca->dvbdev->adapter->num);
-> -			status = -EIO;
-> +
-> +		/* read the amount of data */
-> +		if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_SIZE_HIGH)) < 0)
-> +			goto exit;
-> +		bytes_read = status << 8;
-> +		if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_SIZE_LOW)) < 0)
->  			goto exit;
-> +		bytes_read |= status;
-> +
-> +		/* check it will fit */
-> +		if (ebuf == NULL) {
-> +			if (bytes_read > ca->slot_info[slot].link_buf_size) {
-> +				pr_err("dvb_ca adapter %d: CAM tried to send a buffer larger than the link buffer size (%i > %i)!\n",
-> +				       ca->dvbdev->adapter->num, bytes_read, ca->slot_info[slot].link_buf_size);
-> +				ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_LINKINIT;
-> +				status = -EIO;
-> +				goto exit;
-> +			}
-> +			if (bytes_read < 2) {
-> +				pr_err("dvb_ca adapter %d: CAM sent a buffer that was less than 2 bytes!\n",
-> +				       ca->dvbdev->adapter->num);
-> +				ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_LINKINIT;
-> +				status = -EIO;
-> +				goto exit;
-> +			}
-> +		} else {
-> +			if (bytes_read > ecount) {
-> +				pr_err("dvb_ca adapter %d: CAM tried to send a buffer larger than the ecount size!\n",
-> +				       ca->dvbdev->adapter->num);
-> +				status = -EIO;
-> +				goto exit;
-> +			}
->  		}
-> -	}
->  
-> -	/* fill the buffer */
-> -	for (i = 0; i < bytes_read; i++) {
-> -		/* read byte and check */
-> -		if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_DATA)) < 0)
-> -			goto exit;
-> +		/* fill the buffer */
-> +		for (i = 0; i < bytes_read; i++) {
-> +			/* read byte and check */
-> +			if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_DATA)) < 0)
-> +				goto exit;
->  
-> -		/* OK, store it in the buffer */
-> -		buf[i] = status;
-> -	}
-> +			/* OK, store it in the buffer */
-> +			buf[i] = status;
-> +		}
->  
-> -	/* check for read error (RE should now be 0) */
-> -	if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS)) < 0)
-> -		goto exit;
-> -	if (status & STATUSREG_RE) {
-> -		ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_LINKINIT;
-> -		status = -EIO;
-> -		goto exit;
-> +		/* check for read error (RE should now be 0) */
-> +		if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS)) < 0)
-> +			goto exit;
-> +		if (status & STATUSREG_RE) {
-> +			ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_LINKINIT;
-> +			status = -EIO;
-> +			goto exit;
-> +		}
->  	}
->  
->  	/* OK, add it to the receive buffer, or copy into external buffer if supplied */
-> @@ -757,6 +769,9 @@ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot, u8 * b
->  	if (bytes_write > ca->slot_info[slot].link_buf_size)
->  		return -EINVAL;
->  
-> +	if (ca->pub->write_data && (ca->slot_info[slot].slot_state != DVB_CA_SLOTSTATE_LINKINIT))
-> +		return ca->pub->write_data(ca->pub, slot, buf, bytes_write);
-> +
->  	/* it is possible we are dealing with a single buffer implementation,
->  	   thus if there is data available for read or if there is even a read
->  	   already in progress, we do nothing but awake the kernel thread to
-> diff --git a/drivers/media/dvb-core/dvb_ca_en50221.h b/drivers/media/dvb-core/dvb_ca_en50221.h
-> index 1e4bbbd..82617ba 100644
-> --- a/drivers/media/dvb-core/dvb_ca_en50221.h
-> +++ b/drivers/media/dvb-core/dvb_ca_en50221.h
-> @@ -41,6 +41,8 @@
->   * @write_attribute_mem: function for writing attribute memory on the CAM
->   * @read_cam_control:	function for reading the control interface on the CAM
->   * @write_cam_control:	function for reading the control interface on the CAM
-> + * @read_data:		function for reading data (block mode)
-> + * @write_data:		function for writing data (block mode)
->   * @slot_reset:		function to reset the CAM slot
->   * @slot_shutdown:	function to shutdown a CAM slot
->   * @slot_ts_enable:	function to enable the Transport Stream on a CAM slot
-> @@ -66,6 +68,11 @@ struct dvb_ca_en50221 {
->  	int (*write_cam_control)(struct dvb_ca_en50221 *ca,
->  				 int slot, u8 address, u8 value);
->  
-> +	int (*read_data)(struct dvb_ca_en50221 *ca,
-> +				int slot, u8 *ebuf, int ecount);
-> +	int (*write_data)(struct dvb_ca_en50221 *ca,
-> +				int slot, u8 *ebuf, int ecount);
-> +
->  	int (*slot_reset)(struct dvb_ca_en50221 *ca, int slot);
->  	int (*slot_shutdown)(struct dvb_ca_en50221 *ca, int slot);
->  	int (*slot_ts_enable)(struct dvb_ca_en50221 *ca, int slot);
-
-
-
-Thanks,
-Mauro
+BR and thanks,
+Nikolaus=
