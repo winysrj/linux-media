@@ -1,51 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:33059 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754378AbdFLQhJ (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36591
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752238AbdFXVpk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Jun 2017 12:37:09 -0400
-Received: by mail-pf0-f195.google.com with SMTP id w12so6918422pfk.0
-        for <linux-media@vger.kernel.org>; Mon, 12 Jun 2017 09:37:04 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH] MAINTAINERS: add entry for Freescale i.MX media driver
-Date: Mon, 12 Jun 2017 09:36:51 -0700
-Message-Id: <1497285411-9082-1-git-send-email-steve_longerbeam@mentor.com>
+        Sat, 24 Jun 2017 17:45:40 -0400
+Date: Sat, 24 Jun 2017 18:45:32 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        liplianin@netup.ru, rjkm@metzlerbros.de, crope@iki.fi
+Subject: Re: [PATCH v2 4/4] [media] dvb-frontends/stv0367: DVB-C signal
+ strength statistics
+Message-ID: <20170624184532.1fc087e7@vento.lan>
+In-Reply-To: <20170621194544.16949-5-d.scheller.oss@gmail.com>
+References: <20170621194544.16949-1-d.scheller.oss@gmail.com>
+        <20170621194544.16949-5-d.scheller.oss@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add maintainer entry for the imx-media driver.
+Em Wed, 21 Jun 2017 21:45:44 +0200
+Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- MAINTAINERS | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+> From: Daniel Scheller <d.scheller@gmx.net>
+> 
+> Provide QAM/DVB-C signal strength in decibel scale. Values returned from
+> stv0367cab_get_rf_lvl() are good but need to be multiplied as they're in
+> 1dBm precision.
+> 
+> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+> ---
+>  drivers/media/dvb-frontends/stv0367.c | 21 +++++++++++++++++++++
+>  1 file changed, 21 insertions(+)
+> 
+> diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+> index d3be25bc1002..bac6707957a3 100644
+> --- a/drivers/media/dvb-frontends/stv0367.c
+> +++ b/drivers/media/dvb-frontends/stv0367.c
+> @@ -2998,6 +2998,25 @@ static int stv0367ddb_set_frontend(struct dvb_frontend *fe)
+>  	return -EINVAL;
+>  }
+>  
+> +static void stv0367ddb_read_signal_strength(struct dvb_frontend *fe)
+> +{
+> +	struct stv0367_state *state = fe->demodulator_priv;
+> +	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+> +	s32 signalstrength;
+> +
+> +	switch (state->activedemod) {
+> +	case demod_cab:
+> +		signalstrength = stv0367cab_get_rf_lvl(state) * 1000;
+> +		break;
+> +	default:
+> +		p->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> +		return;
+> +	}
+> +
+> +	p->strength.stat[0].scale = FE_SCALE_DECIBEL;
+> +	p->strength.stat[0].uvalue = signalstrength;
+> +}
+> +
+>  static void stv0367ddb_read_snr(struct dvb_frontend *fe)
+>  {
+>  	struct stv0367_state *state = fe->demodulator_priv;
+> @@ -3075,12 +3094,14 @@ static int stv0367ddb_read_status(struct dvb_frontend *fe,
+>  
+>  	/* stop if demod isn't locked */
+>  	if (!(*status & FE_HAS_LOCK)) {
+> +		p->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 9c7f663..11adc51 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8111,6 +8111,18 @@ L:	linux-iio@vger.kernel.org
- S:	Maintained
- F:	drivers/iio/dac/cio-dac.c
- 
-+MEDIA DRIVERS FOR FREESCALE IMX
-+M:	Steve Longerbeam <slongerbeam@gmail.com>
-+M:	Philipp Zabel <p.zabel@pengutronix.de>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	Documentation/devicetree/bindings/media/imx.txt
-+F:	Documentation/media/v4l-drivers/imx.rst
-+F:	drivers/staging/media/imx/
-+F:	include/linux/imx-media.h
-+F:	include/media/imx.h
-+
- MEDIA DRIVERS FOR RENESAS - FCP
- M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- L:	linux-media@vger.kernel.org
--- 
-2.7.4
+Requiring full lock for signal strength sounds really wrong.
+
+Are you sure that it won't work without locks?
+
+Regards,
+Mauro
+
+>  		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+>  		p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+>  		return ret;
+>  	}
+>  
+>  	stv0367ddb_read_snr(fe);
+> +	stv0367ddb_read_signal_strength(fe);
+>  	stv0367ddb_read_ucblocks(fe);
+>  
+>  	return 0;
+
+
+
+Thanks,
+Mauro
