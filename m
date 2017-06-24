@@ -1,73 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38115 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751540AbdF1R7P (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:34026 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751369AbdFXQDK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Jun 2017 13:59:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Robb Glasser <rglasser@google.com>
-Subject: Re: [media] uvcvideo: Prevent heap overflow in uvc driver
-Date: Wed, 28 Jun 2017 20:59:17 +0300
-Message-ID: <1797631.lsAEjhpLaU@avalon>
-In-Reply-To: <20170628143643.GA30654@roeck-us.net>
-References: <1495482484-32125-1-git-send-email-linux@roeck-us.net> <20170628143643.GA30654@roeck-us.net>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Sat, 24 Jun 2017 12:03:10 -0400
+Received: by mail-wr0-f193.google.com with SMTP id k67so19936648wrc.1
+        for <linux-media@vger.kernel.org>; Sat, 24 Jun 2017 09:03:09 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: rjkm@metzlerbros.de, jasmin@anw.at
+Subject: [PATCH 4/9] [media] dvb-frontends/stv0910: Fix signal strength reporting
+Date: Sat, 24 Jun 2017 18:02:56 +0200
+Message-Id: <20170624160301.17710-5-d.scheller.oss@gmail.com>
+In-Reply-To: <20170624160301.17710-1-d.scheller.oss@gmail.com>
+References: <20170624160301.17710-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guenter,
+From: Daniel Scheller <d.scheller@gmx.net>
 
-On Wednesday 28 Jun 2017 07:36:43 Guenter Roeck wrote:
-> On Mon, May 22, 2017 at 12:48:04PM -0700, Guenter Roeck wrote:
-> > From: Robb Glasser <rglasser@google.com>
-> > 
-> > The size of uvc_control_mapping is user controlled leading to a
-> > potential heap overflow in the uvc driver. This adds a check to verify
-> > the user provided size fits within the bounds of the defined buffer
-> > size.
-> > 
-> > Signed-off-by: Robb Glasser <rglasser@google.com>
-> > [groeck: cherry picked from
-> > 
-> >  https://source.codeaurora.org/quic/la/kernel/msm-3.10
-> >  commit b7b99e55bc7770187913ed092990852ea52d7892;
-> >  updated subject]
-> > 
-> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > ---
-> > Fixes CVE-2017-0627.
-> 
-> Please do not apply this patch. It is buggy.
+Original code at least has some signed/unsigned issues, resulting in
+values like 32dBm. Change signal strength readout to work without asking
+the attached tuner, and use a lookup table instead of log calc. Values
+reported appear plausible. Obsoletes the INTLOG10X100 calc macro.
 
-I apologize for not noticing the initial patch, even if it looks like it was 
-all for the best. Will you send a new version ?
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/dvb-frontends/stv0910.c | 50 ++++++++++++++++++++---------------
+ 1 file changed, 29 insertions(+), 21 deletions(-)
 
-> >  drivers/media/usb/uvc/uvc_ctrl.c | 3 +++
-> >  1 file changed, 3 insertions(+)
-> > 
-> > diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
-> > b/drivers/media/usb/uvc/uvc_ctrl.c index c2ee6e39fd0c..252ab991396f
-> > 100644
-> > --- a/drivers/media/usb/uvc/uvc_ctrl.c
-> > +++ b/drivers/media/usb/uvc/uvc_ctrl.c
-> > @@ -1992,6 +1992,9 @@ int uvc_ctrl_add_mapping(struct uvc_video_chain
-> > *chain,
-> >  	if (!found)
-> >  		return -ENOENT;
-> > 
-> > +	if (ctrl->info.size < mapping->size)
-> > +		return -EINVAL;
-> > +
-> > 
-> >  	if (mutex_lock_interruptible(&chain->ctrl_mutex))
-> >  		return -ERESTARTSYS;
-
+diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
+index 999ee6a8ea23..c1875be01631 100644
+--- a/drivers/media/dvb-frontends/stv0910.c
++++ b/drivers/media/dvb-frontends/stv0910.c
+@@ -31,8 +31,6 @@
+ #include "stv0910.h"
+ #include "stv0910_regs.h"
+ 
+-#define INTLOG10X100(x) ((u32) (((u64) intlog10(x) * 100) >> 24))
+-
+ #define EXT_CLOCK   30000000
+ #define TUNING_DELAY    200
+ #define BER_SRC_S    0x20
+@@ -140,7 +138,7 @@ struct SInitTable {
+ 
+ struct SLookup {
+ 	s16  Value;
+-	u16  RegValue;
++	u32  RegValue;
+ };
+ 
+ static inline int i2c_write(struct i2c_adapter *adap, u8 adr,
+@@ -332,6 +330,25 @@ struct SLookup S2_SN_Lookup[] = {
+ 	{  510,    463  },  /*C/N=51.0dB*/
+ };
+ 
++struct SLookup padc_lookup[] = {
++	{    0,  118000 }, /* PADC=+0dBm  */
++	{ -100,  93600  }, /* PADC=-1dBm  */
++	{ -200,  74500  }, /* PADC=-2dBm  */
++	{ -300,  59100  }, /* PADC=-3dBm  */
++	{ -400,  47000  }, /* PADC=-4dBm  */
++	{ -500,  37300  }, /* PADC=-5dBm  */
++	{ -600,  29650  }, /* PADC=-6dBm  */
++	{ -700,  23520  }, /* PADC=-7dBm  */
++	{ -900,  14850  }, /* PADC=-9dBm  */
++	{ -1100, 9380   }, /* PADC=-11dBm */
++	{ -1300, 5910   }, /* PADC=-13dBm */
++	{ -1500, 3730   }, /* PADC=-15dBm */
++	{ -1700, 2354   }, /* PADC=-17dBm */
++	{ -1900, 1485   }, /* PADC=-19dBm */
++	{ -2000, 1179   }, /* PADC=-20dBm */
++	{ -2100, 1000   }, /* PADC=-21dBm */
++};
++
+ /*********************************************************************
+  * Tracking carrier loop carrier QPSK 1/4 to 8PSK 9/10 long Frame
+  *********************************************************************/
+@@ -572,7 +589,7 @@ static int TrackingOptimization(struct stv *state)
+ }
+ 
+ static s32 TableLookup(struct SLookup *Table,
+-		       int TableSize, u16 RegValue)
++		       int TableSize, u32 RegValue)
+ {
+ 	s32 Value;
+ 	int imin = 0;
+@@ -1300,17 +1317,18 @@ static int read_ber(struct dvb_frontend *fe, u32 *ber, u32 *n, u32 *d)
+ 	return 0;
+ }
+ 
+-static int read_signal_strength(struct dvb_frontend *fe, u16 *strength)
++static int read_signal_strength(struct dvb_frontend *fe, s64 *strength)
+ {
+ 	struct stv *state = fe->demodulator_priv;
+ 	u8 Reg[2];
+-	s32 bbgain;
++	u16 agc;
++	s32 padc;
+ 	s32 Power = 0;
+ 	int i;
+ 
+ 	read_regs(state, RSTV0910_P2_AGCIQIN1 + state->regoff, Reg, 2);
+ 
+-	*strength = (((u32) Reg[0]) << 8) | Reg[1];
++	agc = (((u32) Reg[0]) << 8) | Reg[1];
+ 
+ 	for (i = 0; i < 5; i += 1) {
+ 		read_regs(state, RSTV0910_P2_POWERI + state->regoff, Reg, 2);
+@@ -1320,20 +1338,9 @@ static int read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+ 	}
+ 	Power /= 5;
+ 
+-	bbgain = (465 - INTLOG10X100(Power)) * 10;
+-
+-	if (fe->ops.tuner_ops.get_rf_strength)
+-		fe->ops.tuner_ops.get_rf_strength(fe, strength);
+-	else
+-		*strength = 0;
+-
+-	if (bbgain < (s32) *strength)
+-		*strength -= bbgain;
+-	else
+-		*strength = 0;
++	padc = TableLookup(padc_lookup, ARRAY_SIZE(padc_lookup), Power) + 352;
+ 
+-	if (*strength > 0)
+-		*strength = 10 * (s64) (s16) *strength - 108750;
++	*strength = (padc - agc);
+ 
+ 	return 0;
+ }
+@@ -1463,7 +1470,8 @@ static int get_frontend(struct dvb_frontend *fe,
+ {
+ 	struct stv *state = fe->demodulator_priv;
+ 	enum fe_status status;
+-	u16 snr = 0, strength = 0;
++	u16 snr = 0;
++	s64 strength = 0;
+ 	u32 ber = 0, bernom = 0, berdenom = 0;
+ 	u8 tmp;
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.13.0
