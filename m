@@ -1,65 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:48553 "EHLO mga02.intel.com"
+Received: from mail.anw.at ([195.234.101.228]:47974 "EHLO mail.anw.at"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753819AbdFMUR3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 16:17:29 -0400
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
-        hyungwoo.yang@intel.com, divagar.mohandass@intel.com,
-        Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH v3 1/3] videodev2.h, v4l2-ioctl: add IPU3 raw10 color format
-Date: Tue, 13 Jun 2017 15:17:14 -0500
-Message-Id: <1497385036-1002-2-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1497385036-1002-1-git-send-email-yong.zhi@intel.com>
-References: <1497385036-1002-1-git-send-email-yong.zhi@intel.com>
+        id S1754804AbdFXTgi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 24 Jun 2017 15:36:38 -0400
+Subject: Re: [PATCH 3/7] [media] dvb-core/dvb_ca_en50221.c: Add block
+ read/write functions
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <1494190313-18557-1-git-send-email-jasmin@anw.at>
+ <1494190313-18557-4-git-send-email-jasmin@anw.at>
+ <20170624161613.4a08314c@vento.lan>
+Cc: linux-media@vger.kernel.org, max.kellermann@gmail.com,
+        rjkm@metzlerbros.de, d.scheller@gmx.net
+From: "Jasmin J." <jasmin@anw.at>
+Message-ID: <b7c58a73-00da-332e-4c6d-3659c5825f3e@anw.at>
+Date: Sat, 24 Jun 2017 21:36:30 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170624161613.4a08314c@vento.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add IPU3 specific formats:
+Hello Mauro!
 
-	V4L2_PIX_FMT_IPU3_SBGGR10
-	V4L2_PIX_FMT_IPU3_SGBRG10
-	V4L2_PIX_FMT_IPU3_SGRBG10
-	V4L2_PIX_FMT_IPU3_SRGGB10
+> Please check the patch with checkpatch.pl:
+I am nearly finished with a V2 series of this set, where I partly changed
+some of this issues.
+We decided to split the monster thread function into a sub function to make it
+more readable and also to overcome the 80 line length limit which gets even
+worse because of the additional indention due to this patch.
+See: https://www.spinics.net/lists/linux-media/msg116599.html
+There you wrote:
+  The idea behind patch 04/11 makes sense to me. I'll review it carefully
+  after having everything applied.
 
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
- include/uapi/linux/videodev2.h       | 5 +++++
- 2 files changed, 9 insertions(+)
+  Please re-send the first series, making sure that the authorship is
+  preserved.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 4f27cfa..9de6ba0 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1202,6 +1202,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_PIX_FMT_SGBRG10P:	descr = "10-bit Bayer GBGB/RGRG Packed"; break;
- 	case V4L2_PIX_FMT_SGRBG10P:	descr = "10-bit Bayer GRGR/BGBG Packed"; break;
- 	case V4L2_PIX_FMT_SRGGB10P:	descr = "10-bit Bayer RGRG/GBGB Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SBGGR10: descr = "10-bit bayer BGGR IPU3 Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SGBRG10: descr = "10-bit bayer GBRG IPU3 Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SGRBG10: descr = "10-bit bayer GRBG IPU3 Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SRGGB10: descr = "10-bit bayer RGGB IPU3 Packed"; break;
- 	case V4L2_PIX_FMT_SBGGR10ALAW8:	descr = "8-bit Bayer BGBG/GRGR (A-law)"; break;
- 	case V4L2_PIX_FMT_SGBRG10ALAW8:	descr = "8-bit Bayer GBGB/RGRG (A-law)"; break;
- 	case V4L2_PIX_FMT_SGRBG10ALAW8:	descr = "8-bit Bayer GRGR/BGBG (A-law)"; break;
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 2b8feb8..7bfa6ad 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -663,6 +663,11 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
- #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
- 
-+#define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
-+#define V4L2_PIX_FMT_IPU3_SGBRG10	v4l2_fourcc('i', 'p', '3', 'g') /* IPU3 packed 10-bit GBRG bayer */
-+#define V4L2_PIX_FMT_IPU3_SGRBG10	v4l2_fourcc('i', 'p', '3', 'G') /* IPU3 packed 10-bit GRBG bayer */
-+#define V4L2_PIX_FMT_IPU3_SRGGB10	v4l2_fourcc('i', 'p', '3', 'r') /* IPU3 packed 10-bit RGGB bayer */
-+
- /* SDR formats - used only for Software Defined Radio devices */
- #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
- #define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
--- 
-2.7.4
+I am nearly finished with the first series and THEN I plan to do parts of the
+second series again including the splitting of the thread function.
+
+BR,
+   Jasmin
