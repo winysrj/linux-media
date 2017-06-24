@@ -1,150 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:33605 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751927AbdFUTpt (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36116
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751081AbdFXSfq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Jun 2017 15:45:49 -0400
-Received: by mail-wr0-f193.google.com with SMTP id x23so29319705wrb.0
-        for <linux-media@vger.kernel.org>; Wed, 21 Jun 2017 12:45:48 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: liplianin@netup.ru, rjkm@metzlerbros.de, crope@iki.fi
-Subject: [PATCH v2 2/4] [media] dvb-frontends/stv0367: split SNR determination into functions
-Date: Wed, 21 Jun 2017 21:45:42 +0200
-Message-Id: <20170621194544.16949-3-d.scheller.oss@gmail.com>
-In-Reply-To: <20170621194544.16949-1-d.scheller.oss@gmail.com>
-References: <20170621194544.16949-1-d.scheller.oss@gmail.com>
+        Sat, 24 Jun 2017 14:35:46 -0400
+Date: Sat, 24 Jun 2017 15:35:38 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: linux-media@vger.kernel.org, aospan@netup.ru, serjk@netup.ru,
+        mchehab@kernel.org
+Subject: Re: [PATCH] [media] dvb-frontends/cxd2841er: require FE_HAS_SYNC
+ for agc readout
+Message-ID: <20170624153538.711af53a@vento.lan>
+In-Reply-To: <20170622200328.5387-1-d.scheller.oss@gmail.com>
+References: <20170622200328.5387-1-d.scheller.oss@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Em Thu, 22 Jun 2017 22:03:28 +0200
+Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
 
-The read_snr() functions currently do some magic to return relative scale
-values when called. Split out register readouts into separate functions
-so the functionality can be reused in some other way.
+> From: Daniel Scheller <d.scheller@gmx.net>
+> 
+> When the demod driver puts the demod into sleep or shutdown state and it's
+> status is then polled e.g. via "dvb-fe-tool -m", i2c errors are printed
+> to the kernel log. If the last delsys was DVB-T/T2:
+> 
+>   cxd2841er: i2c wr failed=-5 addr=6c reg=00 len=1
+>   cxd2841er: i2c rd failed=-5 addr=6c reg=26
+> 
+> and if it was DVB-C:
+> 
+>   cxd2841er: i2c wr failed=-5 addr=6c reg=00 len=1
+>   cxd2841er: i2c rd failed=-5 addr=6c reg=49
+> 
+> This happens when read_status unconditionally calls into the
+> read_signal_strength() function which triggers the read_agc_gain_*()
+> functions, where these registered are polled.
+> 
+> This isn't a critical thing since when the demod is active again, no more
+> such errors are logged, however this might make users suspecting defects.
+> 
+> Fix this by requiring fe_status FE_HAS_SYNC to be sure the demod is not
+> put asleep or shut down. If FE_HAS_SYNC isn't set, additionally set the
+> strength scale to NOT_AVAILABLE.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/dvb-frontends/stv0367.c | 68 +++++++++++++++++++++--------------
- 1 file changed, 42 insertions(+), 26 deletions(-)
+Requiring full lock for signal strength seems too much, as people usually
+rely on signal strength to adjust antenna.
 
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index 8ba15dc339f8..f8e9cceed04e 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -1437,7 +1437,7 @@ static int stv0367ter_get_frontend(struct dvb_frontend *fe,
- 	return 0;
- }
- 
--static int stv0367ter_read_snr(struct dvb_frontend *fe, u16 *snr)
-+static u32 stv0367ter_snr_readreg(struct dvb_frontend *fe)
- {
- 	struct stv0367_state *state = fe->demodulator_priv;
- 	u32 snru32 = 0;
-@@ -1453,10 +1453,16 @@ static int stv0367ter_read_snr(struct dvb_frontend *fe, u16 *snr)
- 
- 		cpt++;
- 	}
--
- 	snru32 /= 10;/*average on 10 values*/
- 
--	*snr = snru32 / 1000;
-+	return snru32;
-+}
-+
-+static int stv0367ter_read_snr(struct dvb_frontend *fe, u16 *snr)
-+{
-+	u32 snrval = stv0367ter_snr_readreg(fe);
-+
-+	*snr = snrval / 1000;
- 
- 	return 0;
- }
-@@ -2702,51 +2708,61 @@ static int stv0367cab_read_strength(struct dvb_frontend *fe, u16 *strength)
- 	return 0;
- }
- 
--static int stv0367cab_read_snr(struct dvb_frontend *fe, u16 *snr)
-+static int stv0367cab_snr_power(struct dvb_frontend *fe)
- {
- 	struct stv0367_state *state = fe->demodulator_priv;
--	u32 noisepercentage;
- 	enum stv0367cab_mod QAMSize;
--	u32 regval = 0, temp = 0;
--	int power, i;
- 
- 	QAMSize = stv0367_readbits(state, F367CAB_QAM_MODE);
- 	switch (QAMSize) {
- 	case FE_CAB_MOD_QAM4:
--		power = 21904;
--		break;
-+		return 21904;
- 	case FE_CAB_MOD_QAM16:
--		power = 20480;
--		break;
-+		return 20480;
- 	case FE_CAB_MOD_QAM32:
--		power = 23040;
--		break;
-+		return 23040;
- 	case FE_CAB_MOD_QAM64:
--		power = 21504;
--		break;
-+		return 21504;
- 	case FE_CAB_MOD_QAM128:
--		power = 23616;
--		break;
-+		return 23616;
- 	case FE_CAB_MOD_QAM256:
--		power = 21760;
--		break;
--	case FE_CAB_MOD_QAM512:
--		power = 1;
--		break;
-+		return 21760;
- 	case FE_CAB_MOD_QAM1024:
--		power = 21280;
--		break;
-+		return 21280;
- 	default:
--		power = 1;
- 		break;
- 	}
- 
-+	return 1;
-+}
-+
-+static int stv0367cab_snr_readreg(struct dvb_frontend *fe, int avgdiv)
-+{
-+	struct stv0367_state *state = fe->demodulator_priv;
-+	u32 regval = 0;
-+	int i;
-+
- 	for (i = 0; i < 10; i++) {
- 		regval += (stv0367_readbits(state, F367CAB_SNR_LO)
- 			+ 256 * stv0367_readbits(state, F367CAB_SNR_HI));
- 	}
- 
--	regval /= 10; /*for average over 10 times in for loop above*/
-+	if (avgdiv)
-+		regval /= 10;
-+
-+	return regval;
-+}
-+
-+static int stv0367cab_read_snr(struct dvb_frontend *fe, u16 *snr)
-+{
-+	struct stv0367_state *state = fe->demodulator_priv;
-+	u32 noisepercentage;
-+	u32 regval = 0, temp = 0;
-+	int power;
-+
-+	power = stv0367cab_snr_power(fe);
-+	regval = stv0367cab_snr_readreg(fe, 1);
-+
- 	if (regval != 0) {
- 		temp = power
- 			* (1 << (3 + stv0367_readbits(state, F367CAB_SNR_PER)));
--- 
-2.13.0
+You should, instead, just check if the demod is shut down.
+
+Regards,
+Mauro
+
+> 
+> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+> ---
+>  drivers/media/dvb-frontends/cxd2841er.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+> index 08f67d60a7d9..9fff031436f1 100644
+> --- a/drivers/media/dvb-frontends/cxd2841er.c
+> +++ b/drivers/media/dvb-frontends/cxd2841er.c
+> @@ -3279,7 +3279,10 @@ static int cxd2841er_get_frontend(struct dvb_frontend *fe,
+>  	else if (priv->state == STATE_ACTIVE_TC)
+>  		cxd2841er_read_status_tc(fe, &status);
+>  
+> -	cxd2841er_read_signal_strength(fe);
+> +	if (status & FE_HAS_SYNC)
+> +		cxd2841er_read_signal_strength(fe);
+> +	else
+> +		p->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+>  
+>  	if (status & FE_HAS_LOCK) {
+>  		cxd2841er_read_snr(fe);
+
+
+
+Thanks,
+Mauro
