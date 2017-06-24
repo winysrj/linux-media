@@ -1,41 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:33614 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751894AbdF2JBe (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36209
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751436AbdFXTHU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Jun 2017 05:01:34 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH] [media] cx23885: add const to v4l2_file_operations structure
-Date: Thu, 29 Jun 2017 14:29:19 +0530
-Message-Id: <1498726759-11552-1-git-send-email-bhumirks@gmail.com>
+        Sat, 24 Jun 2017 15:07:20 -0400
+Date: Sat, 24 Jun 2017 16:07:11 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: "Jasmin J." <jasmin@anw.at>
+Cc: linux-media@vger.kernel.org, max.kellermann@gmail.com,
+        rjkm@metzlerbros.de, d.scheller@gmx.net
+Subject: Re: [PATCH 5/7] [media] ddbridge/ddbridge-core.c: Set maximum
+ cxd2099 block size to 512
+Message-ID: <20170624160711.1733e9f9@vento.lan>
+In-Reply-To: <1494190313-18557-6-git-send-email-jasmin@anw.at>
+References: <1494190313-18557-1-git-send-email-jasmin@anw.at>
+        <1494190313-18557-6-git-send-email-jasmin@anw.at>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Declare v4l2_file_operations structure as const as it is only stored
-in the fops field of video_device structure. This field is of type
-const, so declare v4l2_file_operations structures with similar properties
-as const.
+Em Sun,  7 May 2017 22:51:51 +0200
+"Jasmin J." <jasmin@anw.at> escreveu:
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
----
- drivers/media/pci/cx23885/cx23885-417.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Please add a description. Why is it needed?
 
-diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
-index 2ff1d1e..a71f3c7 100644
---- a/drivers/media/pci/cx23885/cx23885-417.c
-+++ b/drivers/media/pci/cx23885/cx23885-417.c
-@@ -1416,7 +1416,7 @@ static int vidioc_log_status(struct file *file, void *priv)
- 	return 0;
- }
- 
--static struct v4l2_file_operations mpeg_fops = {
-+static const struct v4l2_file_operations mpeg_fops = {
- 	.owner	       = THIS_MODULE,
- 	.open           = v4l2_fh_open,
- 	.release        = vb2_fop_release,
--- 
-2.7.4
+> From: Jasmin Jessich <jasmin@anw.at>
+> 
+> Signed-off-by: Ralph Metzler <rjkm@metzlerbros.de>
+> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+> Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+> ---
+>  drivers/media/pci/ddbridge/ddbridge-core.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+> index 340cff0..c96b7f9 100644
+> --- a/drivers/media/pci/ddbridge/ddbridge-core.c
+> +++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+> @@ -1036,6 +1036,7 @@ static struct cxd2099_cfg cxd_cfg = {
+>  	.adr     =  0x40,
+>  	.polarity = 1,
+>  	.clock_mode = 1,
+> +	.max_i2c = 512,
+>  };
+>  
+>  static int ddb_ci_attach(struct ddb_port *port)
+
+
+
+Thanks,
+Mauro
