@@ -1,57 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:42598 "EHLO
-        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750955AbdFBROs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 13:14:48 -0400
-Date: Fri, 2 Jun 2017 18:14:28 +0100
-From: Mark Brown <broonie@kernel.org>
-To: Takashi Iwai <tiwai@suse.de>
-Cc: alsa-devel@alsa-project.org,
-        Takashi Sakamoto <o-takashi@sakamocchi.jp>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Felipe Balbi <balbi@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-usb@vger.kernel.org
-Message-ID: <20170602171428.6ludtml23vfpcygp@sirena.org.uk>
-References: <20170601205850.24993-1-tiwai@suse.de>
- <20170601205850.24993-3-tiwai@suse.de>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36247
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751482AbdFXTQV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 24 Jun 2017 15:16:21 -0400
+Date: Sat, 24 Jun 2017 16:16:13 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: "Jasmin J." <jasmin@anw.at>
+Cc: linux-media@vger.kernel.org, max.kellermann@gmail.com,
+        rjkm@metzlerbros.de, d.scheller@gmx.net
+Subject: Re: [PATCH 3/7] [media] dvb-core/dvb_ca_en50221.c: Add block
+ read/write functions
+Message-ID: <20170624161613.4a08314c@vento.lan>
+In-Reply-To: <1494190313-18557-4-git-send-email-jasmin@anw.at>
+References: <1494190313-18557-1-git-send-email-jasmin@anw.at>
+        <1494190313-18557-4-git-send-email-jasmin@anw.at>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="tkkk7d7hsv6owojv"
-Content-Disposition: inline
-In-Reply-To: <20170601205850.24993-3-tiwai@suse.de>
-Subject: Re: [PATCH v2 02/27] ALSA: pcm: Introduce copy_user, copy_kernel and
- fill_silence ops
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Sun,  7 May 2017 22:51:49 +0200
+"Jasmin J." <jasmin@anw.at> escreveu:
 
---tkkk7d7hsv6owojv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> From: Jasmin Jessich <jasmin@anw.at>
+> 
+> Some lower level drivers may work better when sending blocks of data instead
+> byte per byte. For this we need new function pointers in the dvb_ca_en50221
+> protocol structure (read_data, write_data) and the protocol needs to execute
+> them, if they are defined.
+> Block data transmission is done in all states expect LINKINIT.
+> 
+> Signed-off-by: Ralph Metzler <rjkm@metzlerbros.de>
+> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+> Signed-off-by: Jasmin Jessich <jasmin@anw.at>
 
-On Thu, Jun 01, 2017 at 10:58:25PM +0200, Takashi Iwai wrote:
-> For supporting the explicit in-kernel copy of PCM buffer data, and
-> also for further code refactoring, three new PCM ops, copy_user,
-> copy_kernel and fill_silence, are introduced.  The old copy and
-> silence ops will be deprecated and removed later once when all callers
-> are converted.
+Please check the patch with checkpatch.pl:
 
-Acked-by: Mark Brown <broonie@kernel.org>
+WARNING: Possible unwrapped commit description (prefer a maximum 75 chars per line)
+#16: 
+Some lower level drivers may work better when sending blocks of data instead
 
---tkkk7d7hsv6owojv
-Content-Type: application/pgp-signature; name="signature.asc"
+WARNING: line over 80 characters
+#54: FILE: drivers/media/dvb-core/dvb_ca_en50221.c:649:
++	if (ca->pub->read_data && (ca->slot_info[slot].slot_state != DVB_CA_SLOTSTATE_LINKINIT)) {
 
------BEGIN PGP SIGNATURE-----
+...
 
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlkxnPQACgkQJNaLcl1U
-h9C1Ygf+Lf9E11DcpSKgUfS/g8SE5RYlcK5oYhJP/IWFBYAhWt2dgmanzHabGW4a
-mWH8IEDT+th1fC4xAempj+Ws58GQWTaEkbThITbV72fcwSL2+6hZKmbUkEm+YTIX
-axirqG88s6wlfvgKw79ImhtoFEs5mv0/gmBjq/fxaLBv1VO0xB1/yNSt4ZDng1RQ
-IG0faFsM4oJrPCbZQmCsXn35tau0mSc9ujx5MIkVi76HV2mzq08FMvlEhUKyu/Yg
-aIR+SUvOU1rKeFqzMtFvk871XYOMJISV5RbM4reNUT6zrjOSansg7i7lka6njLHx
-moxQAJgji9LvdiM157WMostMr2uFpw==
-=OwXh
------END PGP SIGNATURE-----
 
---tkkk7d7hsv6owojv--
+
+> ---
+>  drivers/media/dvb-core/dvb_ca_en50221.c | 117 ++++++++++++++++++--------------
+>  drivers/media/dvb-core/dvb_ca_en50221.h |   7 ++
+>  2 files changed, 73 insertions(+), 51 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+> index 1cdd80a..cc709c9 100644
+> --- a/drivers/media/dvb-core/dvb_ca_en50221.c
+> +++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+> @@ -646,66 +646,78 @@ static int dvb_ca_en50221_read_data(struct dvb_ca_private *ca, int slot, u8 * eb
+>  		}
+>  	}
+>  
+> -	/* check if there is data available */
+> -	if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS)) < 0)
+> -		goto exit;
+> -	if (!(status & STATUSREG_DA)) {
+> -		/* no data */
+> -		status = 0;
+> -		goto exit;
+> -	}
+> -
+> -	/* read the amount of data */
+> -	if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_SIZE_HIGH)) < 0)
+> -		goto exit;
+> -	bytes_read = status << 8;
+> -	if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_SIZE_LOW)) < 0)
+> -		goto exit;
+> -	bytes_read |= status;
+> +	if (ca->pub->read_data && (ca->slot_info[slot].slot_state != DVB_CA_SLOTSTATE_LINKINIT)) {
+> +		if (ebuf == NULL)
+> +			status = ca->pub->read_data(ca->pub, slot, buf, sizeof(buf));
+> +		else
+> +			status = ca->pub->read_data(ca->pub, slot, buf, ecount);
+> +		if (status < 0)
+> +			return status;
+> +		bytes_read =  status;
+> +		if (status == 0)
+> +			goto exit;
+> +	} else {
+>  
+> -	/* check it will fit */
+> -	if (ebuf == NULL) {
+> -		if (bytes_read > ca->slot_info[slot].link_buf_size) {
+> -			pr_err("dvb_ca adapter %d: CAM tried to send a buffer larger than the link buffer size (%i > %i)!\n",
+> -			       ca->dvbdev->adapter->num, bytes_read,
+> -			       ca->slot_info[slot].link_buf_size);
+> -			ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_LINKINIT;
+> -			status = -EIO;
+> +		/* check if there is data available */
+> +		if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS)) < 0)
+>  			goto exit;
+> -		}
+> -		if (bytes_read < 2) {
+> -			pr_err("dvb_ca adapter %d: CAM sent a buffer that was less than 2 bytes!\n",
+> -			       ca->dvbdev->adapter->num);
+> -			ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_LINKINIT;
+> -			status = -EIO;
+> +		if (!(status & STATUSREG_DA)) {
+> +			/* no data */
+> +			status = 0;
+>  			goto exit;
+>  		}
+> -	} else {
+> -		if (bytes_read > ecount) {
+> -			pr_err("dvb_ca adapter %d: CAM tried to send a buffer larger than the ecount size!\n",
+> -			       ca->dvbdev->adapter->num);
+> -			status = -EIO;
+> +
+> +		/* read the amount of data */
+> +		if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_SIZE_HIGH)) < 0)
+> +			goto exit;
+> +		bytes_read = status << 8;
+> +		if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_SIZE_LOW)) < 0)
+>  			goto exit;
+> +		bytes_read |= status;
+> +
+> +		/* check it will fit */
+> +		if (ebuf == NULL) {
+> +			if (bytes_read > ca->slot_info[slot].link_buf_size) {
+> +				pr_err("dvb_ca adapter %d: CAM tried to send a buffer larger than the link buffer size (%i > %i)!\n",
+> +				       ca->dvbdev->adapter->num, bytes_read, ca->slot_info[slot].link_buf_size);
+> +				ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_LINKINIT;
+> +				status = -EIO;
+> +				goto exit;
+> +			}
+> +			if (bytes_read < 2) {
+> +				pr_err("dvb_ca adapter %d: CAM sent a buffer that was less than 2 bytes!\n",
+> +				       ca->dvbdev->adapter->num);
+> +				ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_LINKINIT;
+> +				status = -EIO;
+> +				goto exit;
+> +			}
+> +		} else {
+> +			if (bytes_read > ecount) {
+> +				pr_err("dvb_ca adapter %d: CAM tried to send a buffer larger than the ecount size!\n",
+> +				       ca->dvbdev->adapter->num);
+> +				status = -EIO;
+> +				goto exit;
+> +			}
+>  		}
+> -	}
+>  
+> -	/* fill the buffer */
+> -	for (i = 0; i < bytes_read; i++) {
+> -		/* read byte and check */
+> -		if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_DATA)) < 0)
+> -			goto exit;
+> +		/* fill the buffer */
+> +		for (i = 0; i < bytes_read; i++) {
+> +			/* read byte and check */
+> +			if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_DATA)) < 0)
+> +				goto exit;
+>  
+> -		/* OK, store it in the buffer */
+> -		buf[i] = status;
+> -	}
+> +			/* OK, store it in the buffer */
+> +			buf[i] = status;
+> +		}
+>  
+> -	/* check for read error (RE should now be 0) */
+> -	if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS)) < 0)
+> -		goto exit;
+> -	if (status & STATUSREG_RE) {
+> -		ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_LINKINIT;
+> -		status = -EIO;
+> -		goto exit;
+> +		/* check for read error (RE should now be 0) */
+> +		if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS)) < 0)
+> +			goto exit;
+> +		if (status & STATUSREG_RE) {
+> +			ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_LINKINIT;
+> +			status = -EIO;
+> +			goto exit;
+> +		}
+>  	}
+>  
+>  	/* OK, add it to the receive buffer, or copy into external buffer if supplied */
+> @@ -757,6 +769,9 @@ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot, u8 * b
+>  	if (bytes_write > ca->slot_info[slot].link_buf_size)
+>  		return -EINVAL;
+>  
+> +	if (ca->pub->write_data && (ca->slot_info[slot].slot_state != DVB_CA_SLOTSTATE_LINKINIT))
+> +		return ca->pub->write_data(ca->pub, slot, buf, bytes_write);
+> +
+>  	/* it is possible we are dealing with a single buffer implementation,
+>  	   thus if there is data available for read or if there is even a read
+>  	   already in progress, we do nothing but awake the kernel thread to
+> diff --git a/drivers/media/dvb-core/dvb_ca_en50221.h b/drivers/media/dvb-core/dvb_ca_en50221.h
+> index 1e4bbbd..82617ba 100644
+> --- a/drivers/media/dvb-core/dvb_ca_en50221.h
+> +++ b/drivers/media/dvb-core/dvb_ca_en50221.h
+> @@ -41,6 +41,8 @@
+>   * @write_attribute_mem: function for writing attribute memory on the CAM
+>   * @read_cam_control:	function for reading the control interface on the CAM
+>   * @write_cam_control:	function for reading the control interface on the CAM
+> + * @read_data:		function for reading data (block mode)
+> + * @write_data:		function for writing data (block mode)
+>   * @slot_reset:		function to reset the CAM slot
+>   * @slot_shutdown:	function to shutdown a CAM slot
+>   * @slot_ts_enable:	function to enable the Transport Stream on a CAM slot
+> @@ -66,6 +68,11 @@ struct dvb_ca_en50221 {
+>  	int (*write_cam_control)(struct dvb_ca_en50221 *ca,
+>  				 int slot, u8 address, u8 value);
+>  
+> +	int (*read_data)(struct dvb_ca_en50221 *ca,
+> +				int slot, u8 *ebuf, int ecount);
+> +	int (*write_data)(struct dvb_ca_en50221 *ca,
+> +				int slot, u8 *ebuf, int ecount);
+> +
+>  	int (*slot_reset)(struct dvb_ca_en50221 *ca, int slot);
+>  	int (*slot_shutdown)(struct dvb_ca_en50221 *ca, int slot);
+>  	int (*slot_ts_enable)(struct dvb_ca_en50221 *ca, int slot);
+
+
+
+Thanks,
+Mauro
