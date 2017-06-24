@@ -1,49 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f52.google.com ([209.85.215.52]:33790 "EHLO
-        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751428AbdFGMCz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 08:02:55 -0400
-Received: by mail-lf0-f52.google.com with SMTP id a136so4771680lfa.0
-        for <linux-media@vger.kernel.org>; Wed, 07 Jun 2017 05:02:54 -0700 (PDT)
-Subject: Re: [PATCH v5] media: platform: Renesas IMR driver
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org
-References: <20170309200818.786255823@cogentembedded.com>
- <87be3653-66f0-deda-f862-b52a2de23ecf@xs4all.nl>
-Cc: linux-renesas-soc@vger.kernel.org,
-        Konstantin Kozhevnikov
-        <Konstantin.Kozhevnikov@cogentembedded.com>
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <061fdbb3-1b97-10e3-4306-874b8e093569@cogentembedded.com>
-Date: Wed, 7 Jun 2017 15:02:51 +0300
-MIME-Version: 1.0
-In-Reply-To: <87be3653-66f0-deda-f862-b52a2de23ecf@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36445
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754994AbdFXUlN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 24 Jun 2017 16:41:13 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Johannes Thumshirn <jthumshirn@suse.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Jean-Baptiste Abbadie <jb@abbadie.fr>,
+        Shilpa P <shilpapri@gmail.com>,
+        Rehas Sachdeva <aquannie@gmail.com>,
+        Nikola Jelic <nikola.jelic83@gmail.com>,
+        Bhumika Goyal <bhumirks@gmail.com>, devel@driverdev.osuosl.org
+Subject: [PATCH 3/4] media: radio-bcm2048: get rid of BCM2048_DRIVER_VERSION
+Date: Sat, 24 Jun 2017 17:40:26 -0300
+Message-Id: <6cf7b54fc87bf54d18d9d686165c49c93a19a6db.1498336792.git.mchehab@s-opensource.com>
+In-Reply-To: <73980406b3bb4a6829a1d1bca69a555477234beb.1498336792.git.mchehab@s-opensource.com>
+References: <73980406b3bb4a6829a1d1bca69a555477234beb.1498336792.git.mchehab@s-opensource.com>
+In-Reply-To: <73980406b3bb4a6829a1d1bca69a555477234beb.1498336792.git.mchehab@s-opensource.com>
+References: <73980406b3bb4a6829a1d1bca69a555477234beb.1498336792.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello!
+This macro is never used. Get rid of it.
 
-On 06/07/2017 10:26 AM, Hans Verkuil wrote:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/staging/media/bcm2048/radio-bcm2048.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-> Any progress on this?
-
-    Yes. :-)
-
-> There where a bunch of comments,
-
-    I think I've addresses most of those (except those I didn't quite understand).
-
-> but I haven't seen anything since.
-
-    I'm still busy documenting the driver. :-(
-
-> Regards,
->
-> 	Hans
-
-MBR, Sergei
+diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+index 38f72d069e27..86d7fc20f237 100644
+--- a/drivers/staging/media/bcm2048/radio-bcm2048.c
++++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+@@ -48,7 +48,6 @@
+ /* driver definitions */
+ #define BCM2048_DRIVER_AUTHOR	"Eero Nurkkala <ext-eero.nurkkala@nokia.com>"
+ #define BCM2048_DRIVER_NAME	BCM2048_NAME
+-#define BCM2048_DRIVER_VERSION	KERNEL_VERSION(0, 0, 1)
+ #define BCM2048_DRIVER_CARD	"Broadcom bcm2048 FM Radio Receiver"
+ #define BCM2048_DRIVER_DESC	"I2C driver for BCM2048 FM Radio Receiver"
+ 
+-- 
+2.9.4
