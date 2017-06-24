@@ -1,438 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54016 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751541AbdF1VfI (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36538
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754667AbdFXVRs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Jun 2017 17:35:08 -0400
-Date: Thu, 29 Jun 2017 00:34:33 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Todor Tomov <todor.tomov@linaro.org>
-Cc: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
-Subject: Re: [PATCH v2 04/19] media: camss: Add CSIPHY files
-Message-ID: <20170628213433.7ehkz62rw75t4yxa@valkosipuli.retiisi.org.uk>
-References: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
- <1497883719-12410-5-git-send-email-todor.tomov@linaro.org>
+        Sat, 24 Jun 2017 17:17:48 -0400
+Date: Sat, 24 Jun 2017 18:17:40 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        liplianin@netup.ru, rjkm@metzlerbros.de, crope@iki.fi
+Subject: Re: [PATCH v2 3/4] [media] dvb-frontends/stv0367: SNR DVBv5
+ statistics for DVB-C and T
+Message-ID: <20170624181740.75d69c3b@vento.lan>
+In-Reply-To: <20170621194544.16949-4-d.scheller.oss@gmail.com>
+References: <20170621194544.16949-1-d.scheller.oss@gmail.com>
+        <20170621194544.16949-4-d.scheller.oss@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1497883719-12410-5-git-send-email-todor.tomov@linaro.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Todor,
+Em Wed, 21 Jun 2017 21:45:43 +0200
+Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
 
-It's been a while --- how do you do?
-
-Thanks for the patchset!
-
-On Mon, Jun 19, 2017 at 05:48:24PM +0300, Todor Tomov wrote:
-> These files control the CSIPHY modules which are responsible for the physical
-> layer of the CSI2 receivers.
+> From: Daniel Scheller <d.scheller@gmx.net>
 > 
-> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+> Add signal-to-noise-ratio as provided by the demodulator in decibel scale.
+> QAM/DVB-C needs some intlog calculation to have usable dB values, OFDM/
+> DVB-T values from the demod look alright already and are provided as-is.
+> 
+> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 > ---
->  drivers/media/platform/qcom/camss-8x16/csiphy.c | 686 ++++++++++++++++++++++++
->  drivers/media/platform/qcom/camss-8x16/csiphy.h |  77 +++
->  2 files changed, 763 insertions(+)
->  create mode 100644 drivers/media/platform/qcom/camss-8x16/csiphy.c
->  create mode 100644 drivers/media/platform/qcom/camss-8x16/csiphy.h
+>  drivers/media/dvb-frontends/stv0367.c | 35 +++++++++++++++++++++++++++++++++++
+>  1 file changed, 35 insertions(+)
 > 
-> diff --git a/drivers/media/platform/qcom/camss-8x16/csiphy.c b/drivers/media/platform/qcom/camss-8x16/csiphy.c
-> new file mode 100644
-> index 0000000..b9d47ca
-> --- /dev/null
-> +++ b/drivers/media/platform/qcom/camss-8x16/csiphy.c
-> @@ -0,0 +1,686 @@
-> +/*
-> + * csiphy.c
-> + *
-> + * Qualcomm MSM Camera Subsystem - CSIPHY Module
-> + *
-> + * Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
-> + * Copyright (C) 2016 Linaro Ltd.
-
-How about 2017?
-
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 and
-> + * only version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +#include <linux/clk.h>
-> +#include <linux/delay.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/kernel.h>
-> +#include <linux/of.h>
-> +#include <linux/platform_device.h>
-> +#include <media/media-entity.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-subdev.h>
+> diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+> index f8e9cceed04e..d3be25bc1002 100644
+> --- a/drivers/media/dvb-frontends/stv0367.c
+> +++ b/drivers/media/dvb-frontends/stv0367.c
+> @@ -25,6 +25,8 @@
+>  #include <linux/slab.h>
+>  #include <linux/i2c.h>
+>  
+> +#include "dvb_math.h"
 > +
-
-...
-
-> +/*
-> + * csiphy_init_formats - Initialize formats on all pads
-> + * @sd: CSIPHY V4L2 subdevice
-> + * @fh: V4L2 subdev file handle
-> + *
-> + * Initialize all pad formats with default values.
-> + *
-> + * Return 0 on success or a negative error code otherwise
-> + */
-> +static int csiphy_init_formats(struct v4l2_subdev *sd,
-> +			       struct v4l2_subdev_fh *fh)
+>  #include "stv0367.h"
+>  #include "stv0367_defs.h"
+>  #include "stv0367_regs.h"
+> @@ -2996,6 +2998,37 @@ static int stv0367ddb_set_frontend(struct dvb_frontend *fe)
+>  	return -EINVAL;
+>  }
+>  
+> +static void stv0367ddb_read_snr(struct dvb_frontend *fe)
 > +{
-> +	struct v4l2_subdev_format format;
-
-You can do:
-
-struct v4l2_subdev_format format = { 0 };
-
-And drop the memset. Or even better, assign the fields in declaration.
-
+> +	struct stv0367_state *state = fe->demodulator_priv;
+> +	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+> +	int cab_pwr;
+> +	u32 regval, tmpval, snrval = 0;
 > +
-> +	memset(&format, 0, sizeof(format));
-> +	format.pad = MSM_CSIPHY_PAD_SINK;
-> +	format.which = fh ? V4L2_SUBDEV_FORMAT_TRY : V4L2_SUBDEV_FORMAT_ACTIVE;
-> +	format.format.code = MEDIA_BUS_FMT_UYVY8_2X8;
-> +	format.format.width = 1920;
-> +	format.format.height = 1080;
+> +	switch (state->activedemod) {
+> +	case demod_ter:
+> +		snrval = stv0367ter_snr_readreg(fe);
+> +		break;
+> +	case demod_cab:
+> +		cab_pwr = stv0367cab_snr_power(fe);
+> +		regval = stv0367cab_snr_readreg(fe, 0);
 > +
-> +	return csiphy_set_format(sd, fh ? fh->pad : NULL, &format);
+> +		/* prevent division by zero */
+> +		if (!regval)
+> +			snrval = 0;
+> +
+> +		tmpval = (cab_pwr * 320) / regval;
+> +		snrval = ((tmpval != 0) ? (intlog2(tmpval) / 5581) : 0);
+> +		break;
+> +	default:
+> +		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> +		return;
+> +	}
+> +
+> +	p->cnr.stat[0].scale = FE_SCALE_DECIBEL;
+> +	p->cnr.stat[0].uvalue = snrval;
 > +}
 > +
-> +/*
-> + * msm_csiphy_subdev_init - Initialize CSIPHY device structure and resources
-> + * @csiphy: CSIPHY device
-> + * @res: CSIPHY module resources table
-> + * @id: CSIPHY module id
-> + *
-> + * Return 0 on success or a negative error code otherwise
-> + */
-> +int msm_csiphy_subdev_init(struct csiphy_device *csiphy,
-> +			   struct resources *res, u8 id)
-> +{
-> +	struct device *dev = to_device_index(csiphy, id);
-> +	struct platform_device *pdev = container_of(dev,
-> +						struct platform_device, dev);
+>  static void stv0367ddb_read_ucblocks(struct dvb_frontend *fe)
+>  {
+>  	struct stv0367_state *state = fe->demodulator_priv;
+> @@ -3042,10 +3075,12 @@ static int stv0367ddb_read_status(struct dvb_frontend *fe,
+>  
+>  	/* stop if demod isn't locked */
+>  	if (!(*status & FE_HAS_LOCK)) {
+> +		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
 
-to_platform_device()?
+It sounds weird that CNR is only available with full lock.
 
-> +	struct resource *r;
-> +	int i;
-> +	int ret;
-> +
-> +	csiphy->id = id;
-> +	csiphy->cfg.combo_mode = 0;
-> +
-> +	/* Memory */
-> +
-> +	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, res->reg[0]);
-> +	csiphy->base = devm_ioremap_resource(dev, r);
-> +	if (IS_ERR(csiphy->base)) {
-> +		dev_err(dev, "could not map memory\n");
-> +		return PTR_ERR(csiphy->base);
-> +	}
-> +
-> +	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, res->reg[1]);
-> +	csiphy->base_clk_mux = devm_ioremap_resource(dev, r);
-> +	if (IS_ERR(csiphy->base_clk_mux)) {
-> +		dev_err(dev, "could not map memory\n");
-> +		return PTR_ERR(csiphy->base_clk_mux);
-> +	}
-> +
-> +	/* Interrupt */
-> +
-> +	r = platform_get_resource_byname(pdev, IORESOURCE_IRQ,
-> +					 res->interrupt[0]);
-> +	if (!r) {
-> +		dev_err(dev, "missing IRQ\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	csiphy->irq = r->start;
-> +	snprintf(csiphy->irq_name, sizeof(csiphy->irq_name), "%s_%s%d",
-> +		 dev_name(dev), MSM_CSIPHY_NAME, csiphy->id);
-> +	ret = devm_request_irq(dev, csiphy->irq, csiphy_isr,
-> +			       IRQF_TRIGGER_RISING, csiphy->irq_name, csiphy);
-> +	if (ret < 0) {
-> +		dev_err(dev, "request_irq failed\n");
+On a very quick look at the driver, for SYS_DVBC_ANNEX_A, I suspect that
+you will get CNR earlier. Probably when 
+cab_state->state == FE_CAB_CARRIEROK.
 
-Printing the error code as well might be nice for debugging if ever needed.
+For SYS_DVBT, it seems that the algorithm doesn't have an intermediate
+step. So, only after ter_state->state = FE_TER_LOCKOK you have full
+lock.
 
-> +		return ret;
-> +	}
-> +
-> +	disable_irq(csiphy->irq);
-> +
-> +	/* Clocks */
-> +
-> +	csiphy->nclocks = 0;
-> +	while (res->clock[csiphy->nclocks])
-> +		csiphy->nclocks++;
-> +
-> +	csiphy->clock = devm_kzalloc(dev, csiphy->nclocks *
-> +				     sizeof(*csiphy->clock), GFP_KERNEL);
-> +	if (!csiphy->clock)
-> +		return -ENOMEM;
-> +
-> +	for (i = 0; i < csiphy->nclocks; i++) {
-> +		csiphy->clock[i] = devm_clk_get(dev, res->clock[i]);
-> +		if (IS_ERR(csiphy->clock[i]))
-> +			return PTR_ERR(csiphy->clock[i]);
-> +
-> +		if (res->clock_rate[i]) {
-> +			long clk_rate = clk_round_rate(csiphy->clock[i],
-> +						       res->clock_rate[i]);
-> +			if (clk_rate < 0) {
-> +				dev_err(to_device_index(csiphy, csiphy->id),
-> +					"clk round rate failed\n");
-> +				return -EINVAL;
-> +			}
-> +			ret = clk_set_rate(csiphy->clock[i], clk_rate);
-> +			if (ret < 0) {
-> +				dev_err(to_device_index(csiphy, csiphy->id),
-> +					"clk set rate failed\n");
-> +				return ret;
-> +			}
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * csiphy_link_setup - Setup CSIPHY connections
-> + * @entity: Pointer to media entity structure
-> + * @local: Pointer to local pad
-> + * @remote: Pointer to remote pad
-> + * @flags: Link flags
-> + *
-> + * Rreturn 0 on success
-> + */
-> +static int csiphy_link_setup(struct media_entity *entity,
-> +			     const struct media_pad *local,
-> +			     const struct media_pad *remote, u32 flags)
-> +{
-> +	if ((local->flags & MEDIA_PAD_FL_SOURCE) &&
-> +	    (flags & MEDIA_LNK_FL_ENABLED)) {
-> +		struct v4l2_subdev *sd;
-> +		struct csiphy_device *csiphy;
-> +		struct csid_device *csid;
-> +
-> +		if (media_entity_remote_pad((struct media_pad *)local))
+So, you should likely apply something like the enclosed (untested) patch
+to get more status from the frontend, at least for DVB-C.
 
-This is ugly.
+Thanks,
+Mauro
 
-What do you intend to find with media_entity_remote_pad()? The pad flags
-haven't been assigned to the pad yet, so media_entity_remote_pad() could
-give you something else than remote.
+media: stv0367: Improve DVB-C frontend status
 
-> +			return -EBUSY;
-> +
-> +		sd = container_of(entity, struct v4l2_subdev, entity);
+The stv0367 driver provide a lot of status on its state machine.
+Change the logic to provide more information about frontend locking
+status.
 
-media_entity_to_v4l2_subdev().
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-> +		csiphy = v4l2_get_subdevdata(sd);
-> +
-> +		sd = container_of(remote->entity, struct v4l2_subdev, entity);
-
-Ditto.
-
-> +		csid = v4l2_get_subdevdata(sd);
-> +
-> +		csiphy->cfg.csid_id = csid->id;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_subdev_core_ops csiphy_core_ops = {
-> +	.s_power = csiphy_set_power,
-> +};
-> +
-> +static const struct v4l2_subdev_video_ops csiphy_video_ops = {
-> +	.s_stream = csiphy_set_stream,
-> +};
-> +
-> +static const struct v4l2_subdev_pad_ops csiphy_pad_ops = {
-> +	.enum_mbus_code = csiphy_enum_mbus_code,
-> +	.enum_frame_size = csiphy_enum_frame_size,
-> +	.get_fmt = csiphy_get_format,
-> +	.set_fmt = csiphy_set_format,
-> +};
-> +
-> +static const struct v4l2_subdev_ops csiphy_v4l2_ops = {
-> +	.core = &csiphy_core_ops,
-> +	.video = &csiphy_video_ops,
-> +	.pad = &csiphy_pad_ops,
-> +};
-> +
-> +static const struct v4l2_subdev_internal_ops csiphy_v4l2_internal_ops = {
-> +	.open = csiphy_init_formats,
-> +};
-> +
-> +static const struct media_entity_operations csiphy_media_ops = {
-> +	.link_setup = csiphy_link_setup,
-> +	.link_validate = v4l2_subdev_link_validate,
-> +};
-> +
-> +/*
-> + * msm_csiphy_register_entity - Register subdev node for CSIPHY module
-> + * @csiphy: CSIPHY device
-> + * @v4l2_dev: V4L2 device
-> + *
-> + * Return 0 on success or a negative error code otherwise
-> + */
-> +int msm_csiphy_register_entity(struct csiphy_device *csiphy,
-> +			       struct v4l2_device *v4l2_dev)
-> +{
-> +	struct v4l2_subdev *sd = &csiphy->subdev;
-> +	struct media_pad *pads = csiphy->pads;
-> +	struct device *dev = to_device_index(csiphy, csiphy->id);
-> +	int ret;
-> +
-> +	v4l2_subdev_init(sd, &csiphy_v4l2_ops);
-> +	sd->internal_ops = &csiphy_v4l2_internal_ops;
-> +	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +	snprintf(sd->name, ARRAY_SIZE(sd->name), "%s%d",
-> +		 MSM_CSIPHY_NAME, csiphy->id);
-> +	v4l2_set_subdevdata(sd, csiphy);
-> +
-> +	ret = csiphy_init_formats(sd, NULL);
-> +	if (ret < 0) {
-> +		dev_err(dev, "Failed to init format\n");
-> +		return ret;
-> +	}
-> +
-> +	pads[MSM_CSIPHY_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
-> +	pads[MSM_CSIPHY_PAD_SRC].flags = MEDIA_PAD_FL_SOURCE;
-> +
-> +	sd->entity.function = MEDIA_ENT_F_IO_V4L;
-> +	sd->entity.ops = &csiphy_media_ops;
-> +	ret = media_entity_pads_init(&sd->entity, MSM_CSIPHY_PADS_NUM, pads);
-> +	if (ret < 0) {
-> +		dev_err(dev, "Failed to init media entity\n");
-> +		return ret;
-> +	}
-> +
-> +	ret = v4l2_device_register_subdev(v4l2_dev, sd);
-> +	if (ret < 0) {
-> +		dev_err(dev, "Failed to register subdev\n");
-> +		media_entity_cleanup(&sd->entity);
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +/*
-> + * msm_csiphy_unregister_entity - Unregister CSIPHY module subdev node
-> + * @csiphy: CSIPHY device
-> + */
-> +void msm_csiphy_unregister_entity(struct csiphy_device *csiphy)
-> +{
-> +	v4l2_device_unregister_subdev(&csiphy->subdev);
-> +}
-> diff --git a/drivers/media/platform/qcom/camss-8x16/csiphy.h b/drivers/media/platform/qcom/camss-8x16/csiphy.h
-> new file mode 100644
-> index 0000000..60330a8
-> --- /dev/null
-> +++ b/drivers/media/platform/qcom/camss-8x16/csiphy.h
-> @@ -0,0 +1,77 @@
-> +/*
-> + * csiphy.h
-> + *
-> + * Qualcomm MSM Camera Subsystem - CSIPHY Module
-> + *
-> + * Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
-> + * Copyright (C) 2016 Linaro Ltd.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 and
-> + * only version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +#ifndef QC_MSM_CAMSS_CSIPHY_H
-> +#define QC_MSM_CAMSS_CSIPHY_H
-> +
-> +#include <linux/clk.h>
-> +#include <media/media-entity.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-mediabus.h>
-> +#include <media/v4l2-subdev.h>
-> +
-> +#define MSM_CSIPHY_PAD_SINK 0
-> +#define MSM_CSIPHY_PAD_SRC 1
-> +#define MSM_CSIPHY_PADS_NUM 2
-> +
-> +struct csiphy_lane {
-> +	u8 pos;
-> +	u8 pol;
-> +};
-> +
-> +struct csiphy_lanes_cfg {
-> +	int num_data;
-> +	struct csiphy_lane *data;
-> +	struct csiphy_lane clk;
-> +};
-> +
-> +struct csiphy_csi2_cfg {
-> +	int settle_cnt;
-> +	struct csiphy_lanes_cfg lane_cfg;
-> +};
-> +
-> +struct csiphy_config {
-> +	u8 combo_mode;
-> +	u8 csid_id;
-> +	struct csiphy_csi2_cfg *csi2;
-> +};
-> +
-> +struct csiphy_device {
-> +	u8 id;
-> +	struct v4l2_subdev subdev;
-> +	struct media_pad pads[MSM_CSIPHY_PADS_NUM];
-> +	void __iomem *base;
-> +	void __iomem *base_clk_mux;
-> +	u32 irq;
-> +	char irq_name[30];
-> +	struct clk **clock;
-
-You could add a forward declaration and avoid including the header file for
-struct clk. Up to you I guess --- for a driver specific header it doesn't
-really matter much.
-
-> +	int nclocks;
-> +	struct csiphy_config cfg;
-> +	struct v4l2_mbus_framefmt fmt[MSM_CSIPHY_PADS_NUM];
-> +};
-> +
-> +struct resources;
-> +
-> +int msm_csiphy_subdev_init(struct csiphy_device *csiphy,
-> +			   struct resources *res, u8 id);
-> +
-> +int msm_csiphy_register_entity(struct csiphy_device *csiphy,
-> +			       struct v4l2_device *v4l2_dev);
-> +
-> +void msm_csiphy_unregister_entity(struct csiphy_device *csiphy);
-> +
-> +#endif /* QC_MSM_CAMSS_CSIPHY_H */
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+index f266c18c574c..9e5432b761b5 100644
+--- a/drivers/media/dvb-frontends/stv0367.c
++++ b/drivers/media/dvb-frontends/stv0367.c
+@@ -1507,7 +1507,8 @@ static int stv0367ter_read_status(struct dvb_frontend *fe,
+ 	*status = 0;
+ 
+ 	if (stv0367_readbits(state, F367TER_LK)) {
+-		*status |= FE_HAS_LOCK;
++		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI
++			  | FE_HAS_SYNC | FE_HAS_LOCK;
+ 		dprintk("%s: stv0367 has locked\n", __func__);
+ 	}
+ 
+@@ -2155,6 +2156,18 @@ static int stv0367cab_read_status(struct dvb_frontend *fe,
+ 
+ 	*status = 0;
+ 
++	if (state->cab_state->state > FE_CAB_NOSIGNAL)
++		*status |= FE_HAS_SIGNAL;
++
++	if (state->cab_state->state > FE_CAB_NOCARRIER)
++		*status |= FE_HAS_CARRIER;
++
++	if (state->cab_state->state >= FE_CAB_DEMODOK)
++		*status |= FE_HAS_VITERBI;
++
++	if (state->cab_state->state >= FE_CAB_DATAOK)
++		*status |= FE_HAS_SYNC;
++
+ 	if (stv0367_readbits(state, (state->cab_state->qamfec_status_reg ?
+ 		state->cab_state->qamfec_status_reg : F367CAB_QAMFEC_LOCK))) {
+ 		*status |= FE_HAS_LOCK;
