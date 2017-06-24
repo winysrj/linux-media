@@ -1,284 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:56039 "EHLO extserv.mm-sol.com"
+Received: from mga09.intel.com ([134.134.136.24]:25820 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752159AbdFSO4q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 10:56:46 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
-Cc: Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v2 16/19] camss: vfe: Add interface for cropping
-Date: Mon, 19 Jun 2017 17:48:36 +0300
-Message-Id: <1497883719-12410-17-git-send-email-todor.tomov@linaro.org>
-In-Reply-To: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
-References: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
+        id S1751276AbdFXI7i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 24 Jun 2017 04:59:38 -0400
+Date: Sat, 24 Jun 2017 16:59:32 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: [ragnatech:media-next] BUILD SUCCESS
+ d9c4615854ec5b9717784ad7a3672764c9442ed5
+Message-ID: <594e29f4.aRY0NybviWqd71WQ%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Extend selection ioctls to handle cropping configuration.
+git://git.ragnatech.se/linux  media-next
+d9c4615854ec5b9717784ad7a3672764c9442ed5  [media] dvb uapi docs: enums are passed by value, not reference
 
-Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
----
- drivers/media/platform/qcom/camss-8x16/vfe.c | 191 +++++++++++++++++++++------
- drivers/media/platform/qcom/camss-8x16/vfe.h |   1 +
- 2 files changed, 150 insertions(+), 42 deletions(-)
+elapsed time: 1208m
 
-diff --git a/drivers/media/platform/qcom/camss-8x16/vfe.c b/drivers/media/platform/qcom/camss-8x16/vfe.c
-index a64f158..b97aefa 100644
---- a/drivers/media/platform/qcom/camss-8x16/vfe.c
-+++ b/drivers/media/platform/qcom/camss-8x16/vfe.c
-@@ -1960,6 +1960,26 @@ static int vfe_set_stream(struct v4l2_subdev *sd, int enable)
- }
- 
- /*
-+ * __vfe_get_crop - Get pointer to crop selection structure
-+ * @line: VFE line
-+ * @cfg: V4L2 subdev pad configuration
-+ * @which: TRY or ACTIVE format
-+ *
-+ * Return pointer to TRY or ACTIVE crop rectangle structure
-+ */
-+static struct v4l2_rect *
-+__vfe_get_crop(struct vfe_line *line,
-+	       struct v4l2_subdev_pad_config *cfg,
-+	       enum v4l2_subdev_format_whence which)
-+{
-+	if (which == V4L2_SUBDEV_FORMAT_TRY)
-+		return v4l2_subdev_get_try_crop(&line->subdev, cfg,
-+						MSM_VFE_PAD_SRC);
-+
-+	return &line->crop;
-+}
-+
-+/*
-  * vfe_try_format - Handle try format by pad subdev method
-  * @line: VFE line
-  * @cfg: V4L2 subdev pad configuration
-@@ -2007,7 +2027,7 @@ static void vfe_try_format(struct vfe_line *line,
- 		if (line->id == VFE_LINE_PIX) {
- 			struct v4l2_rect *rect;
- 
--			rect = __vfe_get_compose(line, cfg, which);
-+			rect = __vfe_get_crop(line, cfg, which);
- 
- 			fmt->width = rect->width;
- 			fmt->height = rect->height;
-@@ -2092,6 +2112,49 @@ static void vfe_try_compose(struct vfe_line *line,
- }
- 
- /*
-+ * vfe_try_crop - Handle try crop selection by pad subdev method
-+ * @line: VFE line
-+ * @cfg: V4L2 subdev pad configuration
-+ * @rect: pointer to v4l2 rect structure
-+ * @which: wanted subdev format
-+ */
-+static void vfe_try_crop(struct vfe_line *line,
-+			 struct v4l2_subdev_pad_config *cfg,
-+			 struct v4l2_rect *rect,
-+			 enum v4l2_subdev_format_whence which)
-+{
-+	struct v4l2_rect *compose;
-+
-+	compose = __vfe_get_compose(line, cfg, which);
-+
-+	if (rect->width > compose->width)
-+		rect->width = compose->width;
-+
-+	if (rect->width + rect->left > compose->width)
-+		rect->left = compose->width - rect->width;
-+
-+	if (rect->height > compose->height)
-+		rect->height = compose->height;
-+
-+	if (rect->height + rect->top > compose->height)
-+		rect->top = compose->height - rect->height;
-+
-+	/* wm in line based mode writes multiple of 16 horizontally */
-+	rect->left += (rect->width & 0xf) >> 1;
-+	rect->width &= ~0xf;
-+
-+	if (rect->width < 16) {
-+		rect->left = 0;
-+		rect->width = 16;
-+	}
-+
-+	if (rect->height < 4) {
-+		rect->top = 0;
-+		rect->height = 4;
-+	}
-+}
-+
-+/*
-  * vfe_enum_mbus_code - Handle pixel format enumeration
-  * @sd: VFE V4L2 subdevice
-  * @cfg: V4L2 subdev pad configuration
-@@ -2255,34 +2318,58 @@ static int vfe_get_selection(struct v4l2_subdev *sd,
- {
- 	struct vfe_line *line = v4l2_get_subdevdata(sd);
- 	struct v4l2_subdev_format fmt = { 0 };
--	struct v4l2_rect *compose;
-+	struct v4l2_rect *rect;
- 	int ret;
- 
--	if (line->id != VFE_LINE_PIX || sel->pad != MSM_VFE_PAD_SINK)
-+	if (line->id != VFE_LINE_PIX)
- 		return -EINVAL;
- 
--	switch (sel->target) {
--	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
--		fmt.pad = sel->pad;
--		fmt.which = sel->which;
--		ret = vfe_get_format(sd, cfg, &fmt);
--		if (ret < 0)
--			return ret;
--		sel->r.left = 0;
--		sel->r.top = 0;
--		sel->r.width = fmt.format.width;
--		sel->r.height = fmt.format.height;
--		break;
--	case V4L2_SEL_TGT_COMPOSE:
--		compose = __vfe_get_compose(line, cfg, sel->which);
--		if (compose == NULL)
-+	if (sel->pad == MSM_VFE_PAD_SINK)
-+		switch (sel->target) {
-+		case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-+			fmt.pad = sel->pad;
-+			fmt.which = sel->which;
-+			ret = vfe_get_format(sd, cfg, &fmt);
-+			if (ret < 0)
-+				return ret;
-+
-+			sel->r.left = 0;
-+			sel->r.top = 0;
-+			sel->r.width = fmt.format.width;
-+			sel->r.height = fmt.format.height;
-+			break;
-+		case V4L2_SEL_TGT_COMPOSE:
-+			rect = __vfe_get_compose(line, cfg, sel->which);
-+			if (rect == NULL)
-+				return -EINVAL;
-+
-+			sel->r = *rect;
-+			break;
-+		default:
- 			return -EINVAL;
-+		}
-+	else if (sel->pad == MSM_VFE_PAD_SRC)
-+		switch (sel->target) {
-+		case V4L2_SEL_TGT_CROP_BOUNDS:
-+			rect = __vfe_get_compose(line, cfg, sel->which);
-+			if (rect == NULL)
-+				return -EINVAL;
- 
--		sel->r = *compose;
--		break;
--	default:
--		return -EINVAL;
--	}
-+			sel->r.left = rect->left;
-+			sel->r.top = rect->top;
-+			sel->r.width = rect->width;
-+			sel->r.height = rect->height;
-+			break;
-+		case V4L2_SEL_TGT_CROP:
-+			rect = __vfe_get_crop(line, cfg, sel->which);
-+			if (rect == NULL)
-+				return -EINVAL;
-+
-+			sel->r = *rect;
-+			break;
-+		default:
-+			return -EINVAL;
-+		}
- 
- 	return 0;
- }
-@@ -2300,33 +2387,53 @@ int vfe_set_selection(struct v4l2_subdev *sd,
- 			     struct v4l2_subdev_selection *sel)
- {
- 	struct vfe_line *line = v4l2_get_subdevdata(sd);
--	struct v4l2_rect *compose;
--	struct v4l2_subdev_format fmt = { 0 };
-+	struct v4l2_rect *rect;
- 	int ret;
- 
--	if (line->id != VFE_LINE_PIX || sel->pad != MSM_VFE_PAD_SINK)
-+	if (line->id != VFE_LINE_PIX)
- 		return -EINVAL;
- 
--	if (sel->target != V4L2_SEL_TGT_COMPOSE)
--		return -EINVAL;
-+	if (sel->target == V4L2_SEL_TGT_COMPOSE &&
-+		sel->pad == MSM_VFE_PAD_SINK) {
-+		struct v4l2_subdev_selection crop = { 0 };
- 
--	compose = __vfe_get_compose(line, cfg, sel->which);
--	if (compose == NULL)
--		return -EINVAL;
-+		rect = __vfe_get_compose(line, cfg, sel->which);
-+		if (rect == NULL)
-+			return -EINVAL;
-+
-+		vfe_try_compose(line, cfg, &sel->r, sel->which);
-+		*rect = sel->r;
-+
-+		/* Reset source crop selection */
-+		crop.which = sel->which;
-+		crop.pad = MSM_VFE_PAD_SRC;
-+		crop.target = V4L2_SEL_TGT_CROP;
-+		crop.r = *rect;
-+		ret = vfe_set_selection(sd, cfg, &crop);
-+	} else if (sel->target == V4L2_SEL_TGT_CROP &&
-+		sel->pad == MSM_VFE_PAD_SRC) {
-+		struct v4l2_subdev_format fmt = { 0 };
-+
-+		rect = __vfe_get_crop(line, cfg, sel->which);
-+		if (rect == NULL)
-+			return -EINVAL;
- 
--	vfe_try_compose(line, cfg, &sel->r, sel->which);
--	*compose = sel->r;
-+		vfe_try_crop(line, cfg, &sel->r, sel->which);
-+		*rect = sel->r;
- 
--	/* Reset source pad format width and height */
--	fmt.which = sel->which;
--	fmt.pad = MSM_VFE_PAD_SRC;
--	ret = vfe_get_format(sd, cfg, &fmt);
--	if (ret < 0)
--		return ret;
-+		/* Reset source pad format width and height */
-+		fmt.which = sel->which;
-+		fmt.pad = MSM_VFE_PAD_SRC;
-+		ret = vfe_get_format(sd, cfg, &fmt);
-+		if (ret < 0)
-+			return ret;
- 
--	fmt.format.width = compose->width;
--	fmt.format.height = compose->height;
--	ret = vfe_set_format(sd, cfg, &fmt);
-+		fmt.format.width = rect->width;
-+		fmt.format.height = rect->height;
-+		ret = vfe_set_format(sd, cfg, &fmt);
-+	} else {
-+		ret = -EINVAL;
-+	}
- 
- 	return ret;
- }
-diff --git a/drivers/media/platform/qcom/camss-8x16/vfe.h b/drivers/media/platform/qcom/camss-8x16/vfe.h
-index 1a0dc19..002e289c 100644
---- a/drivers/media/platform/qcom/camss-8x16/vfe.h
-+++ b/drivers/media/platform/qcom/camss-8x16/vfe.h
-@@ -81,6 +81,7 @@ struct vfe_line {
- 	struct media_pad pads[MSM_VFE_PADS_NUM];
- 	struct v4l2_mbus_framefmt fmt[MSM_VFE_PADS_NUM];
- 	struct v4l2_rect compose;
-+	struct v4l2_rect crop;
- 	struct camss_video video_out;
- 	struct vfe_output output;
- };
--- 
-1.9.1
+configs tested: 141
+
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+sh                               allmodconfig
+sh                            titan_defconfig
+sh                          rsk7269_defconfig
+sh                  sh7785lcr_32bit_defconfig
+sh                                allnoconfig
+parisc                        c3000_defconfig
+parisc                         b180_defconfig
+parisc                              defconfig
+alpha                               defconfig
+parisc                            allnoconfig
+cris                 etrax-100lx_v2_defconfig
+blackfin                  TCM-BF537_defconfig
+blackfin            BF561-EZKIT-SMP_defconfig
+blackfin                BF533-EZKIT_defconfig
+blackfin                BF526-EZBRD_defconfig
+x86_64                             acpi-redef
+x86_64                           allyesdebian
+x86_64                                nfsroot
+x86_64                 randconfig-x010-201725
+x86_64                 randconfig-x019-201725
+x86_64                 randconfig-x015-201725
+x86_64                 randconfig-x014-201725
+x86_64                 randconfig-x012-201725
+x86_64                 randconfig-x017-201725
+x86_64                 randconfig-x018-201725
+x86_64                 randconfig-x016-201725
+x86_64                 randconfig-x013-201725
+x86_64                 randconfig-x011-201725
+ia64                              allnoconfig
+ia64                                defconfig
+ia64                             alldefconfig
+i386                   randconfig-a0-06162344
+i386                   randconfig-a1-06162344
+mn10300                     asb2364_defconfig
+openrisc                    or1ksim_defconfig
+um                           x86_64_defconfig
+um                             i386_defconfig
+frv                                 defconfig
+tile                         tilegx_defconfig
+powerpc                             defconfig
+s390                        default_defconfig
+powerpc                       ppc64_defconfig
+powerpc                           allnoconfig
+x86_64                   randconfig-i0-201725
+microblaze                    nommu_defconfig
+i386                     randconfig-i0-201725
+i386                     randconfig-i1-201725
+x86_64                           allmodconfig
+i386                 randconfig-x011-06190614
+i386                 randconfig-x017-06190614
+i386                 randconfig-x012-06190614
+i386                 randconfig-x016-06190614
+i386                 randconfig-x018-06190614
+i386                 randconfig-x014-06190614
+i386                 randconfig-x019-06190614
+i386                 randconfig-x015-06190614
+i386                 randconfig-x010-06190614
+i386                 randconfig-x013-06190614
+x86_64                                    lkp
+i386                               tinyconfig
+i386                 randconfig-x017-06231648
+i386                 randconfig-x010-06231648
+i386                 randconfig-x011-06231648
+i386                 randconfig-x013-06231648
+i386                 randconfig-x018-06231648
+i386                 randconfig-x019-06231648
+i386                 randconfig-x012-06231648
+i386                 randconfig-x014-06231648
+i386                 randconfig-x015-06231648
+i386                 randconfig-x016-06231648
+i386                 randconfig-x079-06190854
+i386                 randconfig-x073-06190854
+i386                 randconfig-x077-06190854
+i386                 randconfig-x075-06190854
+i386                 randconfig-x071-06190854
+i386                 randconfig-x076-06190854
+i386                 randconfig-x078-06190854
+i386                 randconfig-x072-06190854
+i386                 randconfig-x074-06190854
+i386                 randconfig-x070-06190854
+arm                         at91_dt_defconfig
+arm                               allnoconfig
+arm                           efm32_defconfig
+arm64                               defconfig
+arm                        multi_v5_defconfig
+arm                           sunxi_defconfig
+arm64                             allnoconfig
+arm                          exynos_defconfig
+arm                        shmobile_defconfig
+arm                        multi_v7_defconfig
+m68k                           sun3_defconfig
+m68k                          multi_defconfig
+m68k                       m5475evb_defconfig
+sparc                               defconfig
+sparc64                           allnoconfig
+sparc64                             defconfig
+c6x                        evmc6678_defconfig
+i386                 randconfig-x070-06180431
+i386                 randconfig-x074-06180431
+i386                 randconfig-x073-06180431
+i386                 randconfig-x076-06180431
+i386                 randconfig-x071-06180431
+i386                 randconfig-x072-06180431
+i386                 randconfig-x078-06180431
+i386                 randconfig-x077-06180431
+i386                 randconfig-x075-06180431
+i386                 randconfig-x079-06180431
+x86_64                 randconfig-x006-201725
+x86_64                 randconfig-x007-201725
+x86_64                 randconfig-x001-201725
+x86_64                 randconfig-x004-201725
+x86_64                 randconfig-x005-201725
+x86_64                 randconfig-x000-201725
+x86_64                 randconfig-x008-201725
+x86_64                 randconfig-x002-201725
+x86_64                 randconfig-x003-201725
+x86_64                 randconfig-x009-201725
+x86_64                                  kexec
+x86_64                                   rhel
+x86_64                               rhel-7.2
+i386                             allmodconfig
+i386                   randconfig-x009-201725
+i386                   randconfig-x006-201725
+i386                   randconfig-x008-201725
+i386                   randconfig-x002-201725
+i386                   randconfig-x001-201725
+i386                   randconfig-x000-201725
+i386                   randconfig-x005-201725
+i386                   randconfig-x007-201725
+i386                   randconfig-x004-201725
+i386                   randconfig-x003-201725
+i386                              allnoconfig
+i386                                defconfig
+i386                             alldefconfig
+mips                                   jz4740
+mips                      malta_kvm_defconfig
+mips                         64r6el_defconfig
+mips                           32r2_defconfig
+mips                              allnoconfig
+mips                      fuloong2e_defconfig
+mips                                     txx9
+
+Thanks,
+Fengguang
