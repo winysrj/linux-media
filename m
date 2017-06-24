@@ -1,389 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.135]:52639 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752450AbdFNVUf (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:35930
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751369AbdFXQM0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 17:20:35 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: kasan-dev@googlegroups.com, Dmitry Vyukov <dvyukov@google.com>,
-        Alexander Potapenko <glider@google.com>,
-        Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Arend van Spriel <arend.vanspriel@broadcom.com>,
-        Arnd Bergmann <arnd@arndb.de>, Abylay Ospan <aospan@netup.ru>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH v2 06/11] dvb-frontends: reduce stack size in i2c access
-Date: Wed, 14 Jun 2017 23:15:41 +0200
-Message-Id: <20170614211556.2062728-7-arnd@arndb.de>
-In-Reply-To: <20170614211556.2062728-1-arnd@arndb.de>
-References: <20170614211556.2062728-1-arnd@arndb.de>
+        Sat, 24 Jun 2017 12:12:26 -0400
+Date: Sat, 24 Jun 2017 13:12:16 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Daniel Scheller <d.scheller.oss@gmail.com>,
+        Abylay Ospan <aospan@netup.ru>
+Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
+        mchehab@kernel.org, liplianin@netup.ru, rjkm@metzlerbros.de
+Subject: Re: [PATCH 1/4] [media] dvb-frontends/stv0367: initial DDB DVBv5
+ stats, implement ucblocks
+Message-ID: <20170624131216.5762b2aa@vento.lan>
+In-Reply-To: <20170621174504.3f7d57a6@audiostation.wuest.de>
+References: <20170620174506.7593-1-d.scheller.oss@gmail.com>
+        <20170620174506.7593-2-d.scheller.oss@gmail.com>
+        <9bb7bcdd-60ec-c411-ff2c-9fe3a2d751df@iki.fi>
+        <20170621174504.3f7d57a6@audiostation.wuest.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A typical code fragment was copied across many dvb-frontend
-drivers and causes large stack frames when built with
--fsanitize-address-use-after-scope, e.g.
+Em Wed, 21 Jun 2017 17:45:04 +0200
+Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
 
-drivers/media/dvb-frontends/cxd2841er.c:3225:1: error: the frame size of 3992 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
-drivers/media/dvb-frontends/cxd2841er.c:3404:1: error: the frame size of 3136 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
-drivers/media/dvb-frontends/stv0367.c:3143:1: error: the frame size of 4016 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
-drivers/media/dvb-frontends/stv090x.c:3430:1: error: the frame size of 5312 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
-drivers/media/dvb-frontends/stv090x.c:4248:1: error: the frame size of 4872 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+> Am Wed, 21 Jun 2017 09:06:22 +0300
+> schrieb Antti Palosaari <crope@iki.fi>:
+> 
+> > On 06/20/2017 08:45 PM, Daniel Scheller wrote:  
+> > > From: Daniel Scheller <d.scheller@gmx.net>
+> > > 
+> > > This adds the basics to stv0367ddb_get_frontend() to be able to properly
+> > > provide signal statistics in DVBv5 format. Also adds UCB readout and
+> > > provides those values.
+> > > 
+> > > Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+> > > ---
+> > >   drivers/media/dvb-frontends/stv0367.c | 59 ++++++++++++++++++++++++++++++++---
+> > >   1 file changed, 55 insertions(+), 4 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+> > > index e726c2e00460..5374d4eaabd6 100644
+> > > --- a/drivers/media/dvb-frontends/stv0367.c
+> > > +++ b/drivers/media/dvb-frontends/stv0367.c
+> > > @@ -2997,21 +2997,64 @@ static int stv0367ddb_read_status(struct dvb_frontend *fe,
+> > >   	return -EINVAL;
+> > >   }
+> > >   
+> > > +static void stv0367ddb_read_ucblocks(struct dvb_frontend *fe)
+> > > +{
+> > > +	struct stv0367_state *state = fe->demodulator_priv;
+> > > +	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+> > > +	u32 ucblocks = 0;
+> > > +
+> > > +	switch (state->activedemod) {
+> > > +	case demod_ter:
+> > > +		stv0367ter_read_ucblocks(fe, &ucblocks);
+> > > +		break;
+> > > +	case demod_cab:
+> > > +		stv0367cab_read_ucblcks(fe, &ucblocks);
+> > > +		break;
+> > > +	default:
+> > > +		p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> > > +		return;
+> > > +	}
+> > > +
+> > > +	p->block_error.stat[0].scale = FE_SCALE_COUNTER;
+> > > +	p->block_error.stat[0].uvalue = ucblocks;
+> > > +}
+> > > +
+> > >   static int stv0367ddb_get_frontend(struct dvb_frontend *fe,
+> > >   				   struct dtv_frontend_properties *p)
+> > >   {
+> > >   	struct stv0367_state *state = fe->demodulator_priv;
+> > > +	int ret = -EINVAL;
+> > > +	enum fe_status status = 0;
+> > >   
+> > >   	switch (state->activedemod) {
+> > >   	case demod_ter:
+> > > -		return stv0367ter_get_frontend(fe, p);
+> > > +		ret = stv0367ter_get_frontend(fe, p);
+> > > +		break;
+> > >   	case demod_cab:
+> > > -		return stv0367cab_get_frontend(fe, p);
+> > > -	default:
+> > > +		ret = stv0367cab_get_frontend(fe, p);
+> > >   		break;
+> > > +	default:
+> > > +		p->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> > > +		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> > > +		p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> > > +		return ret;
+> > >   	}
+> > >   
+> > > -	return -EINVAL;
+> > > +	/* read fe lock status */
+> > > +	if (!ret)
+> > > +		ret = stv0367ddb_read_status(fe, &status);
+> > > +
+> > > +	/* stop if get_frontend failed or if demod isn't locked */
+> > > +	if (ret || !(status & FE_HAS_LOCK)) {
+> > > +		p->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> > > +		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> > > +		p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> > > +		return ret;
+> > > +	}    
+> > 
+> > Requiring LOCK for strength and cnr sounds wrong. Demod usually 
+> > calculates strength from IF and RF AGC and those are available even 
+> > there is no signal at all (demod set those gains to max on that case). 
+> > CNR is pretty often available when inner FEC (viterbi, LDPC) is on sync.
+> > 
+> > And for ber and per you need outer fec (reed-solomon, bch) too which is 
+> > FE_HAS_SYNC flag on api. ber is error bit and count after inner fec, per 
+> > is error packet and count after outer fec. Usually ber is counted as a 
+> > bits and per is counted as a 204 ts packets.  
+> 
+> Re ber/per, note that I don't have any register documentation available, everything has been gathered from this and from DD's stv0367dd driver. That said, the same applies to FE_HAS_SYNC. This driver currently only reports FE_HAS_LOCK for both OFDM and QAM operation modes, see L1503 (OFDM) and L2152. In stv0367dd, lock state acquisition is a bit more detailed. For the ddb-parts though, I even had to implement a var which carries the register which tells us in QAM mode where to acquire the lockstate from, so I don't want to blindly carry over that code since this will risk breakage of all other consumers of the stv0367 demod driver and thus the card support, neither do I want to additionally port over the read_status code since this will result in unneeded duplication of things. So atm things won't improve unless someone with some other hardware using this demod pops up, willing to experiment.
 
-By marking the register access functions as noinline_if_stackbloat,
-we can completely avoid this problem.
+> Of course I can do snr/cnr readout regardless of FE_HAS_LOCK - no strong opinion on this (needs a quick test though). Depending on if you make this a strong change requirement - please elaborate.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/dvb-frontends/ascot2e.c       |  3 ++-
- drivers/media/dvb-frontends/cxd2841er.c     |  4 ++--
- drivers/media/dvb-frontends/drx39xyj/drxj.c | 14 +++++++-------
- drivers/media/dvb-frontends/helene.c        |  4 ++--
- drivers/media/dvb-frontends/horus3a.c       |  2 +-
- drivers/media/dvb-frontends/itd1000.c       |  2 +-
- drivers/media/dvb-frontends/mt312.c         |  2 +-
- drivers/media/dvb-frontends/si2165.c        | 14 +++++++-------
- drivers/media/dvb-frontends/stb0899_drv.c   |  2 +-
- drivers/media/dvb-frontends/stb6100.c       |  2 +-
- drivers/media/dvb-frontends/stv0367.c       |  2 +-
- drivers/media/dvb-frontends/stv090x.c       |  2 +-
- drivers/media/dvb-frontends/stv6110.c       |  2 +-
- drivers/media/dvb-frontends/stv6110x.c      |  2 +-
- drivers/media/dvb-frontends/tda8083.c       |  2 +-
- drivers/media/dvb-frontends/zl10039.c       |  2 +-
- 16 files changed, 31 insertions(+), 30 deletions(-)
+Daniel,
 
-diff --git a/drivers/media/dvb-frontends/ascot2e.c b/drivers/media/dvb-frontends/ascot2e.c
-index 0ee0df53b91b..da1d1fc03c5e 100644
---- a/drivers/media/dvb-frontends/ascot2e.c
-+++ b/drivers/media/dvb-frontends/ascot2e.c
-@@ -153,7 +153,8 @@ static int ascot2e_write_regs(struct ascot2e_priv *priv,
- 	return 0;
- }
- 
--static int ascot2e_write_reg(struct ascot2e_priv *priv, u8 reg, u8 val)
-+static noinline_if_stackbloat int ascot2e_write_reg(struct ascot2e_priv *priv,
-+						u8 reg, u8 val)
- {
- 	return ascot2e_write_regs(priv, reg, &val, 1);
- }
-diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-index ce37dc2e89c7..6b851a948ce0 100644
---- a/drivers/media/dvb-frontends/cxd2841er.c
-+++ b/drivers/media/dvb-frontends/cxd2841er.c
-@@ -258,7 +258,7 @@ static int cxd2841er_write_regs(struct cxd2841er_priv *priv,
- 	return 0;
- }
- 
--static int cxd2841er_write_reg(struct cxd2841er_priv *priv,
-+static noinline_if_stackbloat int cxd2841er_write_reg(struct cxd2841er_priv *priv,
- 			       u8 addr, u8 reg, u8 val)
- {
- 	return cxd2841er_write_regs(priv, addr, reg, &val, 1);
-@@ -306,7 +306,7 @@ static int cxd2841er_read_regs(struct cxd2841er_priv *priv,
- 	return 0;
- }
- 
--static int cxd2841er_read_reg(struct cxd2841er_priv *priv,
-+static noinline_if_stackbloat int cxd2841er_read_reg(struct cxd2841er_priv *priv,
- 			      u8 addr, u8 reg, u8 *val)
- {
- 	return cxd2841er_read_regs(priv, addr, reg, val, 1);
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index 14040c915dbb..ec5b13ca630b 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -1516,7 +1516,7 @@ static int drxdap_fasi_read_block(struct i2c_device_addr *dev_addr,
- *
- ******************************/
- 
--static int drxdap_fasi_read_reg16(struct i2c_device_addr *dev_addr,
-+static noinline_if_stackbloat int drxdap_fasi_read_reg16(struct i2c_device_addr *dev_addr,
- 					 u32 addr,
- 					 u16 *data, u32 flags)
- {
-@@ -1549,7 +1549,7 @@ static int drxdap_fasi_read_reg16(struct i2c_device_addr *dev_addr,
- *
- ******************************/
- 
--static int drxdap_fasi_read_reg32(struct i2c_device_addr *dev_addr,
-+static noinline_if_stackbloat int drxdap_fasi_read_reg32(struct i2c_device_addr *dev_addr,
- 					 u32 addr,
- 					 u32 *data, u32 flags)
- {
-@@ -1722,7 +1722,7 @@ static int drxdap_fasi_write_block(struct i2c_device_addr *dev_addr,
- *
- ******************************/
- 
--static int drxdap_fasi_write_reg16(struct i2c_device_addr *dev_addr,
-+static noinline_if_stackbloat int drxdap_fasi_write_reg16(struct i2c_device_addr *dev_addr,
- 					  u32 addr,
- 					  u16 data, u32 flags)
- {
-@@ -1795,7 +1795,7 @@ static int drxdap_fasi_read_modify_write_reg16(struct i2c_device_addr *dev_addr,
- *
- ******************************/
- 
--static int drxdap_fasi_write_reg32(struct i2c_device_addr *dev_addr,
-+static noinline_if_stackbloat int drxdap_fasi_write_reg32(struct i2c_device_addr *dev_addr,
- 					  u32 addr,
- 					  u32 data, u32 flags)
- {
-@@ -2172,7 +2172,7 @@ int drxj_dap_atomic_read_write_block(struct i2c_device_addr *dev_addr,
- * \fn int drxj_dap_atomic_read_reg32()
- * \brief Atomic read of 32 bits words
- */
--static
-+static noinline_if_stackbloat
- int drxj_dap_atomic_read_reg32(struct i2c_device_addr *dev_addr,
- 				     u32 addr,
- 				     u32 *data, u32 flags)
-@@ -4192,7 +4192,7 @@ int drxj_dap_scu_atomic_read_write_block(struct i2c_device_addr *dev_addr, u32 a
- * \fn int DRXJ_DAP_AtomicReadReg16()
- * \brief Atomic read of 16 bits words
- */
--static
-+static noinline_if_stackbloat
- int drxj_dap_scu_atomic_read_reg16(struct i2c_device_addr *dev_addr,
- 					 u32 addr,
- 					 u16 *data, u32 flags)
-@@ -4220,7 +4220,7 @@ int drxj_dap_scu_atomic_read_reg16(struct i2c_device_addr *dev_addr,
- * \fn int drxj_dap_scu_atomic_write_reg16()
- * \brief Atomic read of 16 bits words
- */
--static
-+static noinline_if_stackbloat
- int drxj_dap_scu_atomic_write_reg16(struct i2c_device_addr *dev_addr,
- 					  u32 addr,
- 					  u16 data, u32 flags)
-diff --git a/drivers/media/dvb-frontends/helene.c b/drivers/media/dvb-frontends/helene.c
-index 4bf5a551ba40..849a18a837d0 100644
---- a/drivers/media/dvb-frontends/helene.c
-+++ b/drivers/media/dvb-frontends/helene.c
-@@ -329,7 +329,7 @@ static int helene_write_regs(struct helene_priv *priv,
- 	return 0;
- }
- 
--static int helene_write_reg(struct helene_priv *priv, u8 reg, u8 val)
-+static noinline_if_stackbloat int helene_write_reg(struct helene_priv *priv, u8 reg, u8 val)
- {
- 	return helene_write_regs(priv, reg, &val, 1);
- }
-@@ -374,7 +374,7 @@ static int helene_read_regs(struct helene_priv *priv,
- 	return 0;
- }
- 
--static int helene_read_reg(struct helene_priv *priv, u8 reg, u8 *val)
-+static noinline_if_stackbloat int helene_read_reg(struct helene_priv *priv, u8 reg, u8 *val)
- {
- 	return helene_read_regs(priv, reg, val, 1);
- }
-diff --git a/drivers/media/dvb-frontends/horus3a.c b/drivers/media/dvb-frontends/horus3a.c
-index 68d759c4c52e..f879af6c3188 100644
---- a/drivers/media/dvb-frontends/horus3a.c
-+++ b/drivers/media/dvb-frontends/horus3a.c
-@@ -87,7 +87,7 @@ static int horus3a_write_regs(struct horus3a_priv *priv,
- 	return 0;
- }
- 
--static int horus3a_write_reg(struct horus3a_priv *priv, u8 reg, u8 val)
-+static noinline_if_stackbloat int horus3a_write_reg(struct horus3a_priv *priv, u8 reg, u8 val)
- {
- 	return horus3a_write_regs(priv, reg, &val, 1);
- }
-diff --git a/drivers/media/dvb-frontends/itd1000.c b/drivers/media/dvb-frontends/itd1000.c
-index 5bb1e73a10b4..8bd6d04362cc 100644
---- a/drivers/media/dvb-frontends/itd1000.c
-+++ b/drivers/media/dvb-frontends/itd1000.c
-@@ -93,7 +93,7 @@ static int itd1000_read_reg(struct itd1000_state *state, u8 reg)
- 	return val;
- }
- 
--static inline int itd1000_write_reg(struct itd1000_state *state, u8 r, u8 v)
-+static noinline_if_stackbloat int itd1000_write_reg(struct itd1000_state *state, u8 r, u8 v)
- {
- 	int ret = itd1000_write_regs(state, r, &v, 1);
- 	state->shadow[r] = v;
-diff --git a/drivers/media/dvb-frontends/mt312.c b/drivers/media/dvb-frontends/mt312.c
-index 961b9a2508e0..d7a701da598a 100644
---- a/drivers/media/dvb-frontends/mt312.c
-+++ b/drivers/media/dvb-frontends/mt312.c
-@@ -139,7 +139,7 @@ static inline int mt312_readreg(struct mt312_state *state,
- 	return mt312_read(state, reg, val, 1);
- }
- 
--static inline int mt312_writereg(struct mt312_state *state,
-+static noinline_if_stackbloat int mt312_writereg(struct mt312_state *state,
- 				 const enum mt312_reg_addr reg, const u8 val)
- {
- 	return mt312_write(state, reg, &val, 1);
-diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
-index 528b82a5dd46..8b1ac134f9d8 100644
---- a/drivers/media/dvb-frontends/si2165.c
-+++ b/drivers/media/dvb-frontends/si2165.c
-@@ -140,7 +140,7 @@ static int si2165_read(struct si2165_state *state,
- 	return 0;
- }
- 
--static int si2165_readreg8(struct si2165_state *state,
-+static noinline_if_stackbloat int si2165_readreg8(struct si2165_state *state,
- 		       const u16 reg, u8 *val)
- {
- 	unsigned int val_tmp;
-@@ -150,7 +150,7 @@ static int si2165_readreg8(struct si2165_state *state,
- 	return ret;
- }
- 
--static int si2165_readreg16(struct si2165_state *state,
-+static noinline_if_stackbloat int si2165_readreg16(struct si2165_state *state,
- 		       const u16 reg, u16 *val)
- {
- 	u8 buf[2];
-@@ -161,26 +161,26 @@ static int si2165_readreg16(struct si2165_state *state,
- 	return ret;
- }
- 
--static int si2165_writereg8(struct si2165_state *state, const u16 reg, u8 val)
-+static noinline_if_stackbloat int si2165_writereg8(struct si2165_state *state, const u16 reg, u8 val)
- {
- 	return regmap_write(state->regmap, reg, val);
- }
- 
--static int si2165_writereg16(struct si2165_state *state, const u16 reg, u16 val)
-+static noinline_if_stackbloat int si2165_writereg16(struct si2165_state *state, const u16 reg, u16 val)
- {
- 	u8 buf[2] = { val & 0xff, (val >> 8) & 0xff };
- 
- 	return si2165_write(state, reg, buf, 2);
- }
- 
--static int si2165_writereg24(struct si2165_state *state, const u16 reg, u32 val)
-+static noinline_if_stackbloat int si2165_writereg24(struct si2165_state *state, const u16 reg, u32 val)
- {
- 	u8 buf[3] = { val & 0xff, (val >> 8) & 0xff, (val >> 16) & 0xff };
- 
- 	return si2165_write(state, reg, buf, 3);
- }
- 
--static int si2165_writereg32(struct si2165_state *state, const u16 reg, u32 val)
-+static noinline_if_stackbloat int si2165_writereg32(struct si2165_state *state, const u16 reg, u32 val)
- {
- 	u8 buf[4] = {
- 		val & 0xff,
-@@ -191,7 +191,7 @@ static int si2165_writereg32(struct si2165_state *state, const u16 reg, u32 val)
- 	return si2165_write(state, reg, buf, 4);
- }
- 
--static int si2165_writereg_mask8(struct si2165_state *state, const u16 reg,
-+static noinline_if_stackbloat int si2165_writereg_mask8(struct si2165_state *state, const u16 reg,
- 				 u8 val, u8 mask)
- {
- 	if (mask != 0xff) {
-diff --git a/drivers/media/dvb-frontends/stb0899_drv.c b/drivers/media/dvb-frontends/stb0899_drv.c
-index 02347598277a..9258085b8d35 100644
---- a/drivers/media/dvb-frontends/stb0899_drv.c
-+++ b/drivers/media/dvb-frontends/stb0899_drv.c
-@@ -537,7 +537,7 @@ int stb0899_write_regs(struct stb0899_state *state, unsigned int reg, u8 *data,
- 	return 0;
- }
- 
--int stb0899_write_reg(struct stb0899_state *state, unsigned int reg, u8 data)
-+noinline_if_stackbloat int stb0899_write_reg(struct stb0899_state *state, unsigned int reg, u8 data)
- {
- 	return stb0899_write_regs(state, reg, &data, 1);
- }
-diff --git a/drivers/media/dvb-frontends/stb6100.c b/drivers/media/dvb-frontends/stb6100.c
-index 17a955d0031b..675dffe1ef20 100644
---- a/drivers/media/dvb-frontends/stb6100.c
-+++ b/drivers/media/dvb-frontends/stb6100.c
-@@ -224,7 +224,7 @@ static int stb6100_write_reg_range(struct stb6100_state *state, u8 buf[], int st
- 	return 0;
- }
- 
--static int stb6100_write_reg(struct stb6100_state *state, u8 reg, u8 data)
-+static noinline_if_stackbloat int stb6100_write_reg(struct stb6100_state *state, u8 reg, u8 data)
- {
- 	if (unlikely(reg >= STB6100_NUMREGS)) {
- 		dprintk(verbose, FE_ERROR, 1, "Invalid register offset 0x%x", reg);
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index fd49c436a36d..2316c0bb3e21 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -798,7 +798,7 @@ int stv0367_writeregs(struct stv0367_state *state, u16 reg, u8 *data, int len)
- 	return (ret != 1) ? -EREMOTEIO : 0;
- }
- 
--static int stv0367_writereg(struct stv0367_state *state, u16 reg, u8 data)
-+static noinline_if_stackbloat int stv0367_writereg(struct stv0367_state *state, u16 reg, u8 data)
- {
- 	return stv0367_writeregs(state, reg, &data, 1);
- }
-diff --git a/drivers/media/dvb-frontends/stv090x.c b/drivers/media/dvb-frontends/stv090x.c
-index 7ef469c0c866..8afecc2e3637 100644
---- a/drivers/media/dvb-frontends/stv090x.c
-+++ b/drivers/media/dvb-frontends/stv090x.c
-@@ -753,7 +753,7 @@ static int stv090x_write_regs(struct stv090x_state *state, unsigned int reg, u8
- 	return 0;
- }
- 
--static int stv090x_write_reg(struct stv090x_state *state, unsigned int reg, u8 data)
-+static noinline_if_stackbloat int stv090x_write_reg(struct stv090x_state *state, unsigned int reg, u8 data)
- {
- 	return stv090x_write_regs(state, reg, &data, 1);
- }
-diff --git a/drivers/media/dvb-frontends/stv6110.c b/drivers/media/dvb-frontends/stv6110.c
-index e4fd9c1b0560..ddef3a912615 100644
---- a/drivers/media/dvb-frontends/stv6110.c
-+++ b/drivers/media/dvb-frontends/stv6110.c
-@@ -137,7 +137,7 @@ static int stv6110_read_regs(struct dvb_frontend *fe, u8 regs[],
- 	return 0;
- }
- 
--static int stv6110_read_reg(struct dvb_frontend *fe, int start)
-+static noinline_if_stackbloat int stv6110_read_reg(struct dvb_frontend *fe, int start)
- {
- 	u8 buf[] = { 0 };
- 	stv6110_read_regs(fe, buf, start, 1);
-diff --git a/drivers/media/dvb-frontends/stv6110x.c b/drivers/media/dvb-frontends/stv6110x.c
-index 66eba38f1014..80c7024971de 100644
---- a/drivers/media/dvb-frontends/stv6110x.c
-+++ b/drivers/media/dvb-frontends/stv6110x.c
-@@ -95,7 +95,7 @@ static int stv6110x_write_regs(struct stv6110x_state *stv6110x, int start, u8 da
- 	return 0;
- }
- 
--static int stv6110x_write_reg(struct stv6110x_state *stv6110x, u8 reg, u8 data)
-+static noinline_if_stackbloat int stv6110x_write_reg(struct stv6110x_state *stv6110x, u8 reg, u8 data)
- {
- 	return stv6110x_write_regs(stv6110x, reg, &data, 1);
- }
-diff --git a/drivers/media/dvb-frontends/tda8083.c b/drivers/media/dvb-frontends/tda8083.c
-index aa3200d3c352..646f22aab24e 100644
---- a/drivers/media/dvb-frontends/tda8083.c
-+++ b/drivers/media/dvb-frontends/tda8083.c
-@@ -88,7 +88,7 @@ static int tda8083_readregs (struct tda8083_state* state, u8 reg1, u8 *b, u8 len
- 	return ret == 2 ? 0 : -1;
- }
- 
--static inline u8 tda8083_readreg (struct tda8083_state* state, u8 reg)
-+static noinline_if_stackbloat u8 tda8083_readreg (struct tda8083_state* state, u8 reg)
- {
- 	u8 val;
- 
-diff --git a/drivers/media/dvb-frontends/zl10039.c b/drivers/media/dvb-frontends/zl10039.c
-index 623355fc2666..0075725cb161 100644
---- a/drivers/media/dvb-frontends/zl10039.c
-+++ b/drivers/media/dvb-frontends/zl10039.c
-@@ -130,7 +130,7 @@ static inline int zl10039_readreg(struct zl10039_state *state,
- 	return zl10039_read(state, reg, val, 1);
- }
- 
--static inline int zl10039_writereg(struct zl10039_state *state,
-+static noinline_if_stackbloat int zl10039_writereg(struct zl10039_state *state,
- 				const enum zl10039_reg_addr reg,
- 				const u8 val)
- {
--- 
-2.9.0
+You don't need register documentation to know that UCB stats won't be 
+available before locks.
+
+As this is the second time this week a different developer is having
+issues to implement it the right way, I'm, assuming a \mea culpa\, as
+we have almost no documentation about that.
+
+So, I decided to write a patch for the DVB documentation, explaining how
+we expect it to be done and why:
+	https://patchwork.linuxtv.org/patch/42081/
+
+> Of course I can do snr/cnr readout regardless of FE_HAS_LOCK - no strong opinion on this (needs a quick test though). Depending on if you make this a strong change requirement - please elaborate.
+
+> > Also having that statistics stuff updated inside a get_frontend() sounds 
+> > wrong. I think that callback is optional and is not called unless 
+> > userspace polls it.  
+> 
+> I oriented myself on other drivers (cxd2841er for example also does this stuff in get_frontend). In your af9033 I saw you're doing this in read_status though. Would that be preferred?
+
+I guess we pointed this issue to Abylay when I reviewed his 
+patchset adding the cxd2841 driver. I guess I ended merging without
+this fix.
+
+Thanks,
+Mauro
