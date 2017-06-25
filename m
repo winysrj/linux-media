@@ -1,505 +1,427 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f171.google.com ([209.85.161.171]:35071 "EHLO
-        mail-yw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751428AbdFGIfh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 04:35:37 -0400
-Received: by mail-yw0-f171.google.com with SMTP id 141so1791588ywe.2
-        for <linux-media@vger.kernel.org>; Wed, 07 Jun 2017 01:35:36 -0700 (PDT)
-Received: from mail-yw0-f174.google.com (mail-yw0-f174.google.com. [209.85.161.174])
-        by smtp.gmail.com with ESMTPSA id u187sm390328ywd.22.2017.06.07.01.35.34
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 07 Jun 2017 01:35:34 -0700 (PDT)
-Received: by mail-yw0-f174.google.com with SMTP id l14so1798772ywk.1
-        for <linux-media@vger.kernel.org>; Wed, 07 Jun 2017 01:35:34 -0700 (PDT)
+Received: from vader.hardeman.nu ([95.142.160.32]:56442 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751050AbdFYMc2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 25 Jun 2017 08:32:28 -0400
+Subject: [PATCH 14/19] lirc_zilog: add a pointer to the parent device to
+ struct IR
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, sean@mess.org
+Date: Sun, 25 Jun 2017 14:32:25 +0200
+Message-ID: <149839394592.28811.14421406746665015410.stgit@zeus.hardeman.nu>
+In-Reply-To: <149839373103.28811.9486751698665303339.stgit@zeus.hardeman.nu>
+References: <149839373103.28811.9486751698665303339.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-In-Reply-To: <CAAFQd5BZGVBdbN-8L+pvAf4AkBkB9UFy7_mmMpusFUMxDugQDw@mail.gmail.com>
-References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
- <1496695157-19926-3-git-send-email-yong.zhi@intel.com> <CAAFQd5BZGVBdbN-8L+pvAf4AkBkB9UFy7_mmMpusFUMxDugQDw@mail.gmail.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Wed, 7 Jun 2017 17:35:13 +0900
-Message-ID: <CAAFQd5CdV4ZfAYHH7DBBfOY=c4_Lwnuf8COs=JUKRSjp1VTn7Q@mail.gmail.com>
-Subject: Re: [PATCH 02/12] intel-ipu3: mmu: implement driver
-To: Yong Zhi <yong.zhi@intel.com>
-Cc: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
-        Joerg Roedel <joro@8bytes.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong, Tuukka,
+lirc_zilog stashes a pointer to the parent device in struct lirc_dev and uses
+it for logging. It makes more sense to let lirc_zilog keep track of that
+pointer in its own struct (this is in preparation for subsequent patches
+which will remodel struct lirc_dev).
 
-Continuing from yesterday. Please see comments inline.
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/staging/media/lirc/lirc_zilog.c |   98 ++++++++++++++++---------------
+ 1 file changed, 50 insertions(+), 48 deletions(-)
 
-> On Tue, Jun 6, 2017 at 5:39 AM, Yong Zhi <yong.zhi@intel.com> wrote:
-[snip]
->> +       ptr = ipu3_mmu_alloc_page_table(mmu_dom, false);
->> +       if (!ptr)
->> +               goto fail_page_table;
->> +
->> +       /*
->> +        * We always map the L1 page table (a single page as well as
->> +        * the L2 page tables).
->> +        */
->> +       mmu_dom->dummy_l2_tbl = virt_to_phys(ptr) >> IPU3_MMU_PAGE_SHIFT;
->> +       mmu_dom->pgtbl = ipu3_mmu_alloc_page_table(mmu_dom, true);
->> +       if (!mmu_dom->pgtbl)
->> +               goto fail_page_table;
->> +
->> +       spin_lock_init(&mmu_dom->lock);
->> +       return &mmu_dom->domain;
->> +
->> +fail_page_table:
->> +       free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom->dummy_page));
->> +       free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom->dummy_l2_tbl));
->> +fail_get_page:
->> +       kfree(mmu_dom);
->> +       return NULL;
->> +}
->> +
->> +static void ipu3_mmu_domain_free(struct iommu_domain *dom)
->> +{
->> +       struct ipu3_mmu_domain *mmu_dom =
->> +               container_of(dom, struct ipu3_mmu_domain, domain);
->> +       uint32_t l1_idx;
->> +
->> +       for (l1_idx = 0; l1_idx < IPU3_MMU_L1PT_PTES; l1_idx++)
->> +               if (mmu_dom->pgtbl[l1_idx] != mmu_dom->dummy_l2_tbl)
->> +                       free_page((unsigned long)
->> +                                 TBL_VIRT_ADDR(mmu_dom->pgtbl[l1_idx]));
->> +
->> +       free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom->dummy_page));
->> +       free_page((unsigned long)TBL_VIRT_ADDR(mmu_dom->dummy_l2_tbl));
-
-I might be overly paranoid, but reading back kernel virtual pointers
-from device accessible memory doesn't seem safe to me. Other drivers
-keep kernel pointers of page tables in a dedicated array (it's only 8K
-of memory, but much better safety).
-
->> +       free_page((unsigned long)mmu_dom->pgtbl);
->> +       kfree(mmu_dom);
->> +}
->> +
->> +/**
->> + * ipu3_mmu_map - mapping iova allocated cache to phy addr
->> + * @domain: iommu domain
->> + * @iova: virtual address
->> + * @paddr: physical address
->> + * @size: size to be mapped
->> + * Allocate L2 pgt if needed and establish the mapping between
->> + * iova address space and pfn
->> + *
->> + * Return: 0 for success
->> + * or negative on failure.
->> + */
->> +static int ipu3_mmu_map(struct iommu_domain *domain, unsigned long iova,
->> +                       phys_addr_t paddr, size_t size, int prot)
->> +{
->> +       struct ipu3_mmu_domain *mmu_dom =
->> +               container_of(domain, struct ipu3_mmu_domain, domain);
-
-Please add a static inline function for this conversion.
-
->> +       uint32_t iova_start = round_down(iova, IPU3_MMU_PAGE_SIZE);
->> +       uint32_t iova_end = ALIGN(iova + size, IPU3_MMU_PAGE_SIZE);
->> +       uint32_t l1_idx = iova >> IPU3_MMU_L1PT_SHIFT;
->> +       uint32_t l1_entry = mmu_dom->pgtbl[l1_idx];
->> +       uint32_t *l2_pt;
->> +       uint32_t l2_idx;
->> +       unsigned long flags;
->> +
->> +       /* map to single PAGE */
->> +       WARN_ON(size != IPU3_MMU_PAGE_SIZE);
-
-If we already check this, we could fail as well, i.e.
-
-        if (WARN_ON(size != IPU3_MMU_PAGE_SIZE))
-                return -EINVAL;
-
->> +
->> +       dev_dbg(mmu_dom->mmu->dev,
->> +               "mapping iova 0x%8.8x--0x%8.8x, size %zu at paddr 0x%pa\n",
->> +               iova_start, iova_end, size, &paddr);
->> +       dev_dbg(mmu_dom->mmu->dev,
->> +               "mapping l2 page table for l1 index %u (iova 0x%8.8lx)\n",
->> +               l1_idx, iova);
->> +
->> +       if (l1_entry == mmu_dom->dummy_l2_tbl) {
->> +               uint32_t *l2_virt = ipu3_mmu_alloc_page_table(mmu_dom, false);
->> +
->> +               if (!l2_virt)
->> +                       return -ENOMEM;
->> +
->> +               l1_entry = virt_to_phys(l2_virt) >> IPU3_MMU_PAGE_SHIFT;
->> +               dev_dbg(mmu_dom->mmu->dev,
->> +                       "allocated page for l1_idx %u\n", l1_idx);
->> +
->> +               spin_lock_irqsave(&mmu_dom->lock, flags);
->> +               if (mmu_dom->pgtbl[l1_idx] == mmu_dom->dummy_l2_tbl) {
->> +                       mmu_dom->pgtbl[l1_idx] = l1_entry;
->> +                       clflush_cache_range(&mmu_dom->pgtbl[l1_idx],
->> +                                           sizeof(mmu_dom->pgtbl[l1_idx]));
->> +               } else {
->> +                       spin_unlock_irqrestore(&mmu_dom->lock, flags);
->> +                       free_page((unsigned long)TBL_VIRT_ADDR(l1_entry));
->> +                       spin_lock_irqsave(&mmu_dom->lock, flags);
->> +               }
->> +       } else {
->> +               spin_lock_irqsave(&mmu_dom->lock, flags);
->> +       }
->> +
->> +       l2_pt = TBL_VIRT_ADDR(mmu_dom->pgtbl[l1_idx]);
->> +
->> +       dev_dbg(mmu_dom->mmu->dev, "l2_pt at %p\n", l2_pt);
->> +
->> +       paddr = ALIGN(paddr, IPU3_MMU_PAGE_SIZE);
->> +
->> +       l2_idx = (iova_start & IPU3_MMU_L2PT_MASK) >> IPU3_MMU_L2PT_SHIFT;
->> +
->> +       dev_dbg(mmu_dom->mmu->dev,
->> +               "l2_idx %u, phys 0x%8.8x\n", l2_idx, l2_pt[l2_idx]);
->> +       if (l2_pt[l2_idx] != mmu_dom->dummy_page) {
->> +               spin_unlock_irqrestore(&mmu_dom->lock, flags);
->> +               return -EBUSY;
->> +       }
->> +
->> +       /* write 27 bit phy addr to L2 pgt*/
->> +       l2_pt[l2_idx] = paddr >> IPU3_MMU_PAGE_SHIFT;
->> +
->> +       spin_unlock_irqrestore(&mmu_dom->lock, flags);
->> +
->> +       clflush_cache_range(&l2_pt[l2_idx], sizeof(l2_pt[l2_idx]));
->> +
->> +       dev_dbg(mmu_dom->mmu->dev,
->> +               "l2 index %u mapped as 0x%8.8x\n", l2_idx, l2_pt[l2_idx]);
->> +
->> +       ipu3_mmu_tlb_invalidate(mmu_dom->mmu->base);
->> +
->> +       return 0;
->> +}
->> +
->> +static size_t ipu3_mmu_unmap(struct iommu_domain *domain, unsigned long iova,
->> +                            size_t size)
->> +{
->> +       struct ipu3_mmu_domain *mmu_dom =
->> +               container_of(domain, struct ipu3_mmu_domain, domain);
->> +       uint32_t l1_idx = iova >> IPU3_MMU_L1PT_SHIFT;
->> +       uint32_t *l2_pt = TBL_VIRT_ADDR(mmu_dom->pgtbl[l1_idx]);
->> +       uint32_t iova_start = iova;
->> +       unsigned int l2_idx;
->> +       size_t unmapped = 0;
->> +
->> +       dev_dbg(mmu_dom->mmu->dev,
->> +               "unmapping l2 page table for l1 index %u (iova 0x%8.8lx)\n",
->> +               l1_idx, iova);
->> +
->> +       if (mmu_dom->pgtbl[l1_idx] == mmu_dom->dummy_l2_tbl)
->> +               return -EINVAL;
->> +
->> +       dev_dbg(mmu_dom->mmu->dev, "l2_pt at %p\n", l2_pt);
->> +
->> +       for (l2_idx = (iova_start & IPU3_MMU_L2PT_MASK) >> IPU3_MMU_L2PT_SHIFT;
->> +            (iova_start & IPU3_MMU_L1PT_MASK) + (l2_idx << IPU3_MMU_PAGE_SHIFT)
->> +                     < iova_start + size && l2_idx < IPU3_MMU_L2PT_PTES;
-
-Could you define macros for these two calculations?
-
->> +             l2_idx++) {
->> +               unsigned long flags;
->> +
->> +               dev_dbg(mmu_dom->mmu->dev,
->> +                       "l2 index %u unmapped, was 0x%10.10lx\n",
->> +                       l2_idx, (unsigned long)TBL_PHYS_ADDR(l2_pt[l2_idx]));
->> +               spin_lock_irqsave(&mmu_dom->lock, flags);
->> +               l2_pt[l2_idx] = mmu_dom->dummy_page;
->> +               spin_unlock_irqrestore(&mmu_dom->lock, flags);
->> +               clflush_cache_range(&l2_pt[l2_idx], sizeof(l2_pt[l2_idx]));
-
-I think it would make more sense from performance point of view to
-flush the whole range outside the loop. However...
-
->> +               unmapped++;
->> +       }
-
-The core iommu_unmap() already splits the unmap operation into biggest
-valid page sizes
-(http://elixir.free-electrons.com/linux/latest/source/drivers/iommu/iommu.c#L1540)
-and this driver only sets 4K as the allowed page size, so this
-function will always be called with size == 4K and the loop above can
-iterate at most once.
-
->> +
->> +       ipu3_mmu_tlb_invalidate(mmu_dom->mmu->base);
->> +
->> +       return unmapped << IPU3_MMU_PAGE_SHIFT;
->> +}
->> +
->> +static phys_addr_t ipu3_mmu_iova_to_phys(struct iommu_domain *domain,
->> +                                        dma_addr_t iova)
->> +{
->> +       struct ipu3_mmu_domain *d =
->> +               container_of(domain, struct ipu3_mmu_domain, domain);
->> +       uint32_t *l2_pt = TBL_VIRT_ADDR(d->pgtbl[iova >> IPU3_MMU_L1PT_SHIFT]);
->> +
->> +       return (phys_addr_t)l2_pt[(iova & IPU3_MMU_L2PT_MASK)
->> +                               >> IPU3_MMU_L2PT_SHIFT] << IPU3_MMU_PAGE_SHIFT;
-
-Could we avoid this TBL_VIRT_ADDR() here too? The memory cost to store
-the page table CPU pointers is really small, but safety seems much
-better. Moreover, it should make it possible to use the VT-d IOMMU to
-further secure the system.
-
->> +}
->> +
->> +static struct iommu_ops ipu3_mmu_ops = {
->> +       .add_device     = ipu3_mmu_add_device,
->> +       .domain_alloc   = ipu3_mmu_domain_alloc,
->> +       .domain_free    = ipu3_mmu_domain_free,
->> +       .map            = ipu3_mmu_map,
->> +       .unmap          = ipu3_mmu_unmap,
->> +       .iova_to_phys   = ipu3_mmu_iova_to_phys,
->> +       .pgsize_bitmap  = SZ_4K,
->> +};
->> +
->> +static int ipu3_mmu_bus_match(struct device *dev, struct device_driver *drv)
->> +{
->> +       return !strcmp(dev_name(dev), drv->name);
->> +}
->> +
->> +static int ipu3_mmu_bus_probe(struct device *dev)
->> +{
->> +       struct ipu3_mmu *mmu = dev_get_drvdata(dev);
->> +       struct ipu3_mmu_domain *mmu_domain;
->> +       int r;
->> +
->> +       r = bus_set_iommu(dev->bus, &ipu3_mmu_ops);
->> +       if (r)
->> +               return r;
->> +
->> +       /* mmu_domain allocated */
->> +       mmu->domain = iommu_domain_alloc(dev->bus);
->> +       if (!mmu->domain)
->> +               return -ENOMEM;
-
-Something is not right here. Normally the IOMMU core allocates a
-default domain for your iommu_group automatically. Then when
-bus_set_iommu() is called, it goes over all the devices on the bus and
-tries to add them to the group, which also means attaching to the
-default domain.
-
->> +
->> +       /* Write page table address */
->> +       mmu_domain = container_of(mmu->domain, struct ipu3_mmu_domain, domain);
->> +       /* Write L1 pgt addr to config reg*/
->> +       mmu_domain->mmu = mmu;
->> +
->> +       writel((phys_addr_t)virt_to_phys(mmu_domain->pgtbl)
->> +               >> IPU3_MMU_PAGE_SHIFT, mmu->base + REG_L1_PHYS);
->> +       ipu3_mmu_tlb_invalidate(mmu->base);
->> +       /* 4K page granularity, start and end pfn */
->> +       init_iova_domain(&mmu->iova_domain, SZ_4K, 1,
->> +                        dma_get_mask(dev) >> PAGE_SHIFT);
-
-This is typically done in .attach_device() callback.
-
->> +
->> +       r = iova_cache_get();
-
-This is normally not necessary and your DMA mapping code should do it
-(or even better, your DMA mapping code should use the generic DMA
-mapping helpers, which already call this).
-
->> +       if (r)
->> +               goto fail_cache;
->> +
->> +       return 0;
->> +
->> +fail_cache:
->> +       put_iova_domain(&mmu->iova_domain);
->> +       iommu_domain_free(mmu->domain);
->> +       return r;
->> +}
->> +
->> +static void ipu3_mmu_release(struct device *dev)
->> +{
->> +}
->> +
->> +static int ipu3_mmu_bus_remove(struct device *dev)
->> +{
->> +       struct ipu3_mmu *mmu = dev_get_drvdata(dev);
->> +
->> +       put_iova_domain(&mmu->iova_domain);
->> +       iova_cache_put();
-
-Don't we need to set the L1 table address to something invalid and
-invalidate the TLB, so that the IOMMU doesn't reference the page freed
-below anymore?
-
->> +       iommu_domain_free(mmu->domain);
->> +
->> +       return 0;
->> +}
->> +
->> +static struct bus_type ipu3_mmu_bus = {
->> +       .name   = IPU3_MMU_BUS_NAME,
->> +       .match  = ipu3_mmu_bus_match,
->> +       .probe  = ipu3_mmu_bus_probe,
->> +       .remove = ipu3_mmu_bus_remove,
->> +};
->> +
->> +static struct device ipu3_mmu_device = {
->> +       .bus     = &ipu3_mmu_bus,
->> +       .release = ipu3_mmu_release,
->> +};
->> +
->> +static struct device_driver ipu3_mmu_driver = {
->> +       .name  = IPU3_MMU_NAME,
->> +       .owner = THIS_MODULE,
->> +       .bus   = &ipu3_mmu_bus,
->> +};
->> +
->> +int ipu3_mmu_init(struct ipu3_mmu *mmu, void __iomem *base, struct device *dev)
->> +{
->> +       struct ipu3_mmu_domain *mmu_dom;
->> +       int r;
->> +
->> +       mmu->base = base;
->> +       mmu->dev  = &ipu3_mmu_device;
->> +
->> +       r = bus_register(&ipu3_mmu_bus);
->> +       if (r)
->> +               goto fail_bus;
->> +
->> +       r = dev_set_name(mmu->dev, IPU3_MMU_NAME);
-
-Hmm, this device is not the MMU, but rather the master behind the MMU,
-which is subject to the memory mapping.
-
-Also I might have forgotten to mentioned before, but this MMU is a
-part of the PCI device and I believe that it might be subject to
-another memory mapping as well (e.g. VT-d IOMMU). So DMA mapping API
-must be used to obtain DMA addresses of the pages that are supposed to
-be accessed by or over this MMU.
-
->> +       if (r)
->> +               goto fail_device;
->> +       if (dev->dma_mask) {
->> +               mmu->dma_mask = DMA_BIT_MASK(IPU3_MMU_ADDRESS_BITS);
->> +               mmu->dev->dma_mask = &mmu->dma_mask;
->> +       }
->> +       mmu->dev->coherent_dma_mask = mmu->dma_mask;
->> +       dev_set_drvdata(mmu->dev, mmu);
->> +       r = device_register(mmu->dev);
->> +       if (r) {
->> +               put_device(mmu->dev);
->> +               goto fail_device;
->> +       }
->> +
->> +       r = driver_register(&ipu3_mmu_driver);
->> +       if (r)
->> +               goto fail_driver;
->> +
->> +       mmu_dom = container_of(mmu->domain, struct ipu3_mmu_domain, domain);
->> +       mmu->pgtbl = virt_to_phys(mmu_dom->pgtbl);
->> +
->> +       return 0;
->> +
->> +fail_driver:
->> +       device_unregister(mmu->dev);
->> +fail_device:
->> +       bus_unregister(&ipu3_mmu_bus);
->> +fail_bus:
->> +       return r;
->> +}
->> +EXPORT_SYMBOL_GPL(ipu3_mmu_init);
->> +
->> +void ipu3_mmu_exit(struct ipu3_mmu *mmu)
->> +{
->> +       driver_unregister(&ipu3_mmu_driver);
->> +       device_unregister(mmu->dev);
->> +       bus_unregister(&ipu3_mmu_bus);
->> +}
->> +EXPORT_SYMBOL_GPL(ipu3_mmu_exit);
->> +
->> +MODULE_AUTHOR("Tuukka Toivonen <tuukka.toivonen@intel.com>");
->> +MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
->> +MODULE_AUTHOR("Samu Onkalo <samu.onkalo@intel.com>");
->> +MODULE_LICENSE("GPL v2");
->> +MODULE_DESCRIPTION("ipu3 mmu driver");
->> diff --git a/drivers/media/pci/intel/ipu3/ipu3-mmu.h b/drivers/media/pci/intel/ipu3/ipu3-mmu.h
->> new file mode 100644
->> index 0000000..45ad400
->> --- /dev/null
->> +++ b/drivers/media/pci/intel/ipu3/ipu3-mmu.h
->> @@ -0,0 +1,73 @@
->> +/*
->> + * Copyright (c) 2017 Intel Corporation.
->> + *
->> + * This program is free software; you can redistribute it and/or
->> + * modify it under the terms of the GNU General Public License version
->> + * 2 as published by the Free Software Foundation.
->> + *
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
->> + *
->> + */
->> +
->> +#ifndef __IPU3_MMU_H
->> +#define __IPU3_MMU_H
->> +
->> +#include <linux/iova.h>
->> +#include <linux/iommu.h>
->> +
->> +#define to_ipu3_mmu(dev)       dev_get_drvdata(dev)
-
-Please use static inline for proper type checks.
-
->> +
->> +#define IPU3_MMU_NAME          "ipu3-mmu"
->> +#define IPU3_MMU_BUS_NAME      "ipu3-bus"
->> +
->> +#define IPU3_MMU_ADDRESS_BITS  32
->> +
->> +#define IPU3_MMU_PAGE_SHIFT    12
->> +#define IPU3_MMU_PAGE_SIZE     (1U << IPU3_MMU_PAGE_SHIFT)
->> +#define IPU3_MMU_PAGE_MASK     (~(IPU3_MMU_PAGE_SIZE - 1))
->> +
->> +#define IPU3_MMU_L1PT_SHIFT    22
->> +#define IPU3_MMU_L1PT_MASK     (~((1U << IPU3_MMU_L1PT_SHIFT) - 1))
->> +#define IPU3_MMU_L1PT_PTES     1024
->> +
->> +#define IPU3_MMU_L2PT_SHIFT    IPU3_MMU_PAGE_SHIFT
->> +#define IPU3_MMU_L2PT_MASK     (~(IPU3_MMU_L1PT_MASK | \
->> +                                (~(IPU3_MMU_PAGE_MASK))))
->> +#define IPU3_MMU_L2PT_PTES     1024
->> +
->> +#define REG_TLB_INVALIDATE     0x0300
->> +#define TLB_INVALIDATE         1
->> +#define IMGU_REG_BASE          0x4000
->> +#define REG_L1_PHYS            (IMGU_REG_BASE + 0x304) /* 27-bit pfn */
->> +
->> +#define TBL_VIRT_ADDR(a)       ((a) ? phys_to_virt(TBL_PHYS_ADDR(a)) : NULL)
->> +#define TBL_PHYS_ADDR(a)       ((phys_addr_t)(a) << \
->> +                                       IPU3_MMU_PAGE_SHIFT)
-
-We should avoid reading back from the device memory, as I mentioned earlier.
-
->> +
->> +struct ipu3_mmu_domain {
->> +       struct ipu3_mmu *mmu;
->> +       struct iommu_domain domain;
->> +       spinlock_t lock;
-
-Please add a comment explaining what is protected by this spinlock.
-
-(Which also raises a question if this patch was checked with checkpatch.)
-
-Best regards,
-Tomasz
+diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+index f54b66de4a27..51512ba7f5b8 100644
+--- a/drivers/staging/media/lirc/lirc_zilog.c
++++ b/drivers/staging/media/lirc/lirc_zilog.c
+@@ -109,6 +109,7 @@ struct IR {
+ 	struct mutex ir_lock;
+ 	atomic_t open_count;
+ 
++	struct device *dev;
+ 	struct i2c_adapter *adapter;
+ 
+ 	spinlock_t rx_ref_lock; /* struct IR_rx kref get()/put() */
+@@ -322,7 +323,7 @@ static int add_to_buf(struct IR *ir)
+ 	struct IR_tx *tx;
+ 
+ 	if (lirc_buffer_full(rbuf)) {
+-		dev_dbg(ir->l.dev, "buffer overflow\n");
++		dev_dbg(ir->dev, "buffer overflow\n");
+ 		return -EOVERFLOW;
+ 	}
+ 
+@@ -368,17 +369,17 @@ static int add_to_buf(struct IR *ir)
+ 		 */
+ 		ret = i2c_master_send(rx->c, sendbuf, 1);
+ 		if (ret != 1) {
+-			dev_err(ir->l.dev, "i2c_master_send failed with %d\n",
++			dev_err(ir->dev, "i2c_master_send failed with %d\n",
+ 				ret);
+ 			if (failures >= 3) {
+ 				mutex_unlock(&ir->ir_lock);
+-				dev_err(ir->l.dev,
++				dev_err(ir->dev,
+ 					"unable to read from the IR chip after 3 resets, giving up\n");
+ 				break;
+ 			}
+ 
+ 			/* Looks like the chip crashed, reset it */
+-			dev_err(ir->l.dev,
++			dev_err(ir->dev,
+ 				"polling the IR receiver chip failed, trying reset\n");
+ 
+ 			set_current_state(TASK_UNINTERRUPTIBLE);
+@@ -405,14 +406,14 @@ static int add_to_buf(struct IR *ir)
+ 		ret = i2c_master_recv(rx->c, keybuf, sizeof(keybuf));
+ 		mutex_unlock(&ir->ir_lock);
+ 		if (ret != sizeof(keybuf)) {
+-			dev_err(ir->l.dev,
++			dev_err(ir->dev,
+ 				"i2c_master_recv failed with %d -- keeping last read buffer\n",
+ 				ret);
+ 		} else {
+ 			rx->b[0] = keybuf[3];
+ 			rx->b[1] = keybuf[4];
+ 			rx->b[2] = keybuf[5];
+-			dev_dbg(ir->l.dev,
++			dev_dbg(ir->dev,
+ 				"key (0x%02x/0x%02x)\n",
+ 				rx->b[0], rx->b[1]);
+ 		}
+@@ -465,7 +466,7 @@ static int lirc_thread(void *arg)
+ 	struct IR *ir = arg;
+ 	struct lirc_buffer *rbuf = ir->l.rbuf;
+ 
+-	dev_dbg(ir->l.dev, "poll thread started\n");
++	dev_dbg(ir->dev, "poll thread started\n");
+ 
+ 	while (!kthread_should_stop()) {
+ 		set_current_state(TASK_INTERRUPTIBLE);
+@@ -493,7 +494,7 @@ static int lirc_thread(void *arg)
+ 			wake_up_interruptible(&rbuf->wait_poll);
+ 	}
+ 
+-	dev_dbg(ir->l.dev, "poll thread ended\n");
++	dev_dbg(ir->dev, "poll thread ended\n");
+ 	return 0;
+ }
+ 
+@@ -646,10 +647,10 @@ static int send_data_block(struct IR_tx *tx, unsigned char *data_block)
+ 		buf[0] = (unsigned char)(i + 1);
+ 		for (j = 0; j < tosend; ++j)
+ 			buf[1 + j] = data_block[i + j];
+-		dev_dbg(tx->ir->l.dev, "%*ph", 5, buf);
++		dev_dbg(tx->ir->dev, "%*ph", 5, buf);
+ 		ret = i2c_master_send(tx->c, buf, tosend + 1);
+ 		if (ret != tosend + 1) {
+-			dev_err(tx->ir->l.dev,
++			dev_err(tx->ir->dev,
+ 				"i2c_master_send failed with %d\n", ret);
+ 			return ret < 0 ? ret : -EFAULT;
+ 		}
+@@ -674,7 +675,7 @@ static int send_boot_data(struct IR_tx *tx)
+ 	buf[1] = 0x20;
+ 	ret = i2c_master_send(tx->c, buf, 2);
+ 	if (ret != 2) {
+-		dev_err(tx->ir->l.dev, "i2c_master_send failed with %d\n", ret);
++		dev_err(tx->ir->dev, "i2c_master_send failed with %d\n", ret);
+ 		return ret < 0 ? ret : -EFAULT;
+ 	}
+ 
+@@ -691,22 +692,22 @@ static int send_boot_data(struct IR_tx *tx)
+ 	}
+ 
+ 	if (ret != 1) {
+-		dev_err(tx->ir->l.dev, "i2c_master_send failed with %d\n", ret);
++		dev_err(tx->ir->dev, "i2c_master_send failed with %d\n", ret);
+ 		return ret < 0 ? ret : -EFAULT;
+ 	}
+ 
+ 	/* Here comes the firmware version... (hopefully) */
+ 	ret = i2c_master_recv(tx->c, buf, 4);
+ 	if (ret != 4) {
+-		dev_err(tx->ir->l.dev, "i2c_master_recv failed with %d\n", ret);
++		dev_err(tx->ir->dev, "i2c_master_recv failed with %d\n", ret);
+ 		return 0;
+ 	}
+ 	if ((buf[0] != 0x80) && (buf[0] != 0xa0)) {
+-		dev_err(tx->ir->l.dev, "unexpected IR TX init response: %02x\n",
++		dev_err(tx->ir->dev, "unexpected IR TX init response: %02x\n",
+ 			buf[0]);
+ 		return 0;
+ 	}
+-	dev_notice(tx->ir->l.dev,
++	dev_notice(tx->ir->dev,
+ 		   "Zilog/Hauppauge IR blaster firmware version %d.%d.%d loaded\n",
+ 		   buf[1], buf[2], buf[3]);
+ 
+@@ -751,15 +752,15 @@ static int fw_load(struct IR_tx *tx)
+ 	}
+ 
+ 	/* Request codeset data file */
+-	ret = request_firmware(&fw_entry, "haup-ir-blaster.bin", tx->ir->l.dev);
++	ret = request_firmware(&fw_entry, "haup-ir-blaster.bin", tx->ir->dev);
+ 	if (ret != 0) {
+-		dev_err(tx->ir->l.dev,
++		dev_err(tx->ir->dev,
+ 			"firmware haup-ir-blaster.bin not available (%d)\n",
+ 			ret);
+ 		ret = ret < 0 ? ret : -EFAULT;
+ 		goto out;
+ 	}
+-	dev_dbg(tx->ir->l.dev, "firmware of size %zu loaded\n", fw_entry->size);
++	dev_dbg(tx->ir->dev, "firmware of size %zu loaded\n", fw_entry->size);
+ 
+ 	/* Parse the file */
+ 	tx_data = vmalloc(sizeof(*tx_data));
+@@ -787,7 +788,7 @@ static int fw_load(struct IR_tx *tx)
+ 	if (!read_uint8(&data, tx_data->endp, &version))
+ 		goto corrupt;
+ 	if (version != 1) {
+-		dev_err(tx->ir->l.dev,
++		dev_err(tx->ir->dev,
+ 			"unsupported code set file version (%u, expected 1) -- please upgrade to a newer driver\n",
+ 			version);
+ 		fw_unload_locked();
+@@ -804,7 +805,7 @@ static int fw_load(struct IR_tx *tx)
+ 			 &tx_data->num_code_sets))
+ 		goto corrupt;
+ 
+-	dev_dbg(tx->ir->l.dev, "%u IR blaster codesets loaded\n",
++	dev_dbg(tx->ir->dev, "%u IR blaster codesets loaded\n",
+ 		tx_data->num_code_sets);
+ 
+ 	tx_data->code_sets = vmalloc(
+@@ -869,7 +870,7 @@ static int fw_load(struct IR_tx *tx)
+ 	goto out;
+ 
+ corrupt:
+-	dev_err(tx->ir->l.dev, "firmware is corrupt\n");
++	dev_err(tx->ir->dev, "firmware is corrupt\n");
+ 	fw_unload_locked();
+ 	ret = -EFAULT;
+ 
+@@ -889,9 +890,9 @@ static ssize_t read(struct file *filep, char __user *outbuf, size_t n,
+ 	unsigned int m;
+ 	DECLARE_WAITQUEUE(wait, current);
+ 
+-	dev_dbg(ir->l.dev, "read called\n");
++	dev_dbg(ir->dev, "read called\n");
+ 	if (n % rbuf->chunk_size) {
+-		dev_dbg(ir->l.dev, "read result = -EINVAL\n");
++		dev_dbg(ir->dev, "read result = -EINVAL\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -935,7 +936,7 @@ static ssize_t read(struct file *filep, char __user *outbuf, size_t n,
+ 			unsigned char buf[MAX_XFER_SIZE];
+ 
+ 			if (rbuf->chunk_size > sizeof(buf)) {
+-				dev_err(ir->l.dev,
++				dev_err(ir->dev,
+ 					"chunk_size is too big (%d)!\n",
+ 					rbuf->chunk_size);
+ 				ret = -EINVAL;
+@@ -950,7 +951,7 @@ static ssize_t read(struct file *filep, char __user *outbuf, size_t n,
+ 				retries++;
+ 			}
+ 			if (retries >= 5) {
+-				dev_err(ir->l.dev, "Buffer read failed!\n");
++				dev_err(ir->dev, "Buffer read failed!\n");
+ 				ret = -EIO;
+ 			}
+ 		}
+@@ -960,7 +961,7 @@ static ssize_t read(struct file *filep, char __user *outbuf, size_t n,
+ 	put_ir_rx(rx, false);
+ 	set_current_state(TASK_RUNNING);
+ 
+-	dev_dbg(ir->l.dev, "read result = %d (%s)\n", ret,
++	dev_dbg(ir->dev, "read result = %d (%s)\n", ret,
+ 		ret ? "Error" : "OK");
+ 
+ 	return ret ? ret : written;
+@@ -977,7 +978,7 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
+ 	ret = get_key_data(data_block, code, key);
+ 
+ 	if (ret == -EPROTO) {
+-		dev_err(tx->ir->l.dev,
++		dev_err(tx->ir->dev,
+ 			"failed to get data for code %u, key %u -- check lircd.conf entries\n",
+ 			code, key);
+ 		return ret;
+@@ -995,7 +996,7 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
+ 	buf[1] = 0x40;
+ 	ret = i2c_master_send(tx->c, buf, 2);
+ 	if (ret != 2) {
+-		dev_err(tx->ir->l.dev, "i2c_master_send failed with %d\n", ret);
++		dev_err(tx->ir->dev, "i2c_master_send failed with %d\n", ret);
+ 		return ret < 0 ? ret : -EFAULT;
+ 	}
+ 
+@@ -1008,18 +1009,18 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
+ 	}
+ 
+ 	if (ret != 1) {
+-		dev_err(tx->ir->l.dev, "i2c_master_send failed with %d\n", ret);
++		dev_err(tx->ir->dev, "i2c_master_send failed with %d\n", ret);
+ 		return ret < 0 ? ret : -EFAULT;
+ 	}
+ 
+ 	/* Send finished download? */
+ 	ret = i2c_master_recv(tx->c, buf, 1);
+ 	if (ret != 1) {
+-		dev_err(tx->ir->l.dev, "i2c_master_recv failed with %d\n", ret);
++		dev_err(tx->ir->dev, "i2c_master_recv failed with %d\n", ret);
+ 		return ret < 0 ? ret : -EFAULT;
+ 	}
+ 	if (buf[0] != 0xA0) {
+-		dev_err(tx->ir->l.dev, "unexpected IR TX response #1: %02x\n",
++		dev_err(tx->ir->dev, "unexpected IR TX response #1: %02x\n",
+ 			buf[0]);
+ 		return -EFAULT;
+ 	}
+@@ -1029,7 +1030,7 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
+ 	buf[1] = 0x80;
+ 	ret = i2c_master_send(tx->c, buf, 2);
+ 	if (ret != 2) {
+-		dev_err(tx->ir->l.dev, "i2c_master_send failed with %d\n", ret);
++		dev_err(tx->ir->dev, "i2c_master_send failed with %d\n", ret);
+ 		return ret < 0 ? ret : -EFAULT;
+ 	}
+ 
+@@ -1039,7 +1040,7 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
+ 	 * going to skip this whole mess and say we're done on the HD PVR
+ 	 */
+ 	if (!tx->post_tx_ready_poll) {
+-		dev_dbg(tx->ir->l.dev, "sent code %u, key %u\n", code, key);
++		dev_dbg(tx->ir->dev, "sent code %u, key %u\n", code, key);
+ 		return 0;
+ 	}
+ 
+@@ -1055,12 +1056,12 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
+ 		ret = i2c_master_send(tx->c, buf, 1);
+ 		if (ret == 1)
+ 			break;
+-		dev_dbg(tx->ir->l.dev,
++		dev_dbg(tx->ir->dev,
+ 			"NAK expected: i2c_master_send failed with %d (try %d)\n",
+ 			ret, i + 1);
+ 	}
+ 	if (ret != 1) {
+-		dev_err(tx->ir->l.dev,
++		dev_err(tx->ir->dev,
+ 			"IR TX chip never got ready: last i2c_master_send failed with %d\n",
+ 			ret);
+ 		return ret < 0 ? ret : -EFAULT;
+@@ -1069,17 +1070,17 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
+ 	/* Seems to be an 'ok' response */
+ 	i = i2c_master_recv(tx->c, buf, 1);
+ 	if (i != 1) {
+-		dev_err(tx->ir->l.dev, "i2c_master_recv failed with %d\n", ret);
++		dev_err(tx->ir->dev, "i2c_master_recv failed with %d\n", ret);
+ 		return -EFAULT;
+ 	}
+ 	if (buf[0] != 0x80) {
+-		dev_err(tx->ir->l.dev, "unexpected IR TX response #2: %02x\n",
++		dev_err(tx->ir->dev, "unexpected IR TX response #2: %02x\n",
+ 			buf[0]);
+ 		return -EFAULT;
+ 	}
+ 
+ 	/* Oh good, it worked */
+-	dev_dbg(tx->ir->l.dev, "sent code %u, key %u\n", code, key);
++	dev_dbg(tx->ir->dev, "sent code %u, key %u\n", code, key);
+ 	return 0;
+ }
+ 
+@@ -1165,11 +1166,11 @@ static ssize_t write(struct file *filep, const char __user *buf, size_t n,
+ 		 */
+ 		if (ret != 0) {
+ 			/* Looks like the chip crashed, reset it */
+-			dev_err(tx->ir->l.dev,
++			dev_err(tx->ir->dev,
+ 				"sending to the IR transmitter chip failed, trying reset\n");
+ 
+ 			if (failures >= 3) {
+-				dev_err(tx->ir->l.dev,
++				dev_err(tx->ir->dev,
+ 					"unable to send to the IR chip after 3 resets, giving up\n");
+ 				mutex_unlock(&ir->ir_lock);
+ 				mutex_unlock(&tx->client_lock);
+@@ -1205,7 +1206,7 @@ static unsigned int poll(struct file *filep, poll_table *wait)
+ 	struct lirc_buffer *rbuf = ir->l.rbuf;
+ 	unsigned int ret;
+ 
+-	dev_dbg(ir->l.dev, "%s called\n", __func__);
++	dev_dbg(ir->dev, "%s called\n", __func__);
+ 
+ 	rx = get_ir_rx(ir);
+ 	if (!rx) {
+@@ -1213,7 +1214,7 @@ static unsigned int poll(struct file *filep, poll_table *wait)
+ 		 * Revisit this, if our poll function ever reports writeable
+ 		 * status for Tx
+ 		 */
+-		dev_dbg(ir->l.dev, "%s result = POLLERR\n", __func__);
++		dev_dbg(ir->dev, "%s result = POLLERR\n", __func__);
+ 		return POLLERR;
+ 	}
+ 
+@@ -1226,7 +1227,7 @@ static unsigned int poll(struct file *filep, poll_table *wait)
+ 	/* Indicate what ops could happen immediately without blocking */
+ 	ret = lirc_buffer_empty(rbuf) ? 0 : (POLLIN | POLLRDNORM);
+ 
+-	dev_dbg(ir->l.dev, "%s result = %s\n", __func__,
++	dev_dbg(ir->dev, "%s result = %s\n", __func__,
+ 		ret ? "POLLIN|POLLRDNORM" : "none");
+ 	return ret;
+ }
+@@ -1438,6 +1439,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		list_add_tail(&ir->list, &ir_devices_list);
+ 
+ 		ir->adapter = adap;
++		ir->dev = &adap->dev;
+ 		mutex_init(&ir->ir_lock);
+ 		atomic_set(&ir->open_count, 0);
+ 		spin_lock_init(&ir->tx_ref_lock);
+@@ -1501,7 +1503,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 
+ 		/* Proceed only if the Rx client is also ready or not needed */
+ 		if (!rx && !tx_only) {
+-			dev_info(tx->ir->l.dev,
++			dev_info(tx->ir->dev,
+ 				 "probe of IR Tx on %s (i2c-%d) done. Waiting on IR Rx.\n",
+ 				 adap->name, adap->nr);
+ 			goto out_ok;
+@@ -1541,7 +1543,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 				       "zilog-rx-i2c-%d", adap->nr);
+ 		if (IS_ERR(rx->task)) {
+ 			ret = PTR_ERR(rx->task);
+-			dev_err(tx->ir->l.dev,
++			dev_err(tx->ir->dev,
+ 				"%s: could not start IR Rx polling thread\n",
+ 				__func__);
+ 			/* Failed kthread, so put back the ir ref */
+@@ -1564,13 +1566,13 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	/* register with lirc */
+ 	ret = lirc_register_device(&ir->l);
+ 	if (ret < 0) {
+-		dev_err(tx->ir->l.dev,
++		dev_err(tx->ir->dev,
+ 			"%s: lirc_register_device() failed: %i\n",
+ 			__func__, ret);
+ 		goto out_put_xx;
+ 	}
+ 
+-	dev_info(ir->l.dev,
++	dev_info(ir->dev,
+ 		 "IR unit on %s (i2c-%d) registered as lirc%d and ready\n",
+ 		 adap->name, adap->nr, ir->l.minor);
+ 
+@@ -1580,7 +1582,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	if (tx)
+ 		put_ir_tx(tx, true);
+ 	put_ir_device(ir, true);
+-	dev_info(ir->l.dev,
++	dev_info(ir->dev,
+ 		 "probe of IR %s on %s (i2c-%d) done\n",
+ 		 tx_probe ? "Tx" : "Rx", adap->name, adap->nr);
+ 	mutex_unlock(&ir_devices_lock);
