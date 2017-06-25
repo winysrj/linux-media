@@ -1,50 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f194.google.com ([209.85.223.194]:35283 "EHLO
-        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751646AbdF2Jhq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Jun 2017 05:37:46 -0400
-MIME-Version: 1.0
-In-Reply-To: <17f2a43c3500f610f8df2548f51555eb5ae03293.1498575029.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.13d48bb2ba66a5e11c962c62b1a7b5832b0a2344.1498575029.git-series.kieran.bingham+renesas@ideasonboard.com>
- <17f2a43c3500f610f8df2548f51555eb5ae03293.1498575029.git-series.kieran.bingham+renesas@ideasonboard.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Thu, 29 Jun 2017 11:37:43 +0200
-Message-ID: <CAMuHMdUcxU8avfS6s67E9jnorZYC7ouN7erph=3kVoyH_5C39Q@mail.gmail.com>
-Subject: Re: [PATCH v6 1/3] media: adv748x: Add adv7181, adv7182 bindings
-To: Kieran Bingham <kbingham@kernel.org>
-Cc: Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
-        <devicetree@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail.anw.at ([195.234.101.228]:44753 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751363AbdFYVhY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 25 Jun 2017 17:37:24 -0400
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
+        rjkm@metzlerbros.de, d.scheller@gmx.net, jasmin@anw.at
+Subject: [PATCH v2 2/7] [media] dvb-core/dvb_ca_en50221.c: Increase timeout for link init
+Date: Sun, 25 Jun 2017 23:37:06 +0200
+Message-Id: <1498426631-17376-3-git-send-email-jasmin@anw.at>
+In-Reply-To: <1498426631-17376-1-git-send-email-jasmin@anw.at>
+References: <1498426631-17376-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 27, 2017 at 5:03 PM, Kieran Bingham <kbingham@kernel.org> wrote:
-> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->
-> Create device tree bindings documentation for the ADV748x.
-> The ADV748x supports both the ADV7481 and ADV7482 chips which
-> provide analogue decoding and HDMI receiving capabilities
+From: Ralph Metzler <rjkm@metzlerbros.de>
 
-The subject says adv7*1*81, adv7*1*82.
+Some CAMs do a really slow initialization, which requires a longer timeout
+for the first response.
 
-Gr{oetje,eeting}s,
+Original code change by Ralph Metzler, modified by Jasmin Jessich to match
+Kernel code style.
 
-                        Geert
+Signed-off-by: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+---
+ drivers/media/dvb-core/dvb_ca_en50221.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+index 80edbe8..529e7ec 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -349,7 +349,8 @@ static int dvb_ca_en50221_link_init(struct dvb_ca_private *ca, int slot)
+ 	/* read the buffer size from the CAM */
+ 	if ((ret = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_COMMAND, IRQEN | CMDREG_SR)) != 0)
+ 		return ret;
+-	if ((ret = dvb_ca_en50221_wait_if_status(ca, slot, STATUSREG_DA, HZ / 10)) != 0)
++	ret = dvb_ca_en50221_wait_if_status(ca, slot, STATUSREG_DA, HZ);
++	if (ret != 0)
+ 		return ret;
+ 	if ((ret = dvb_ca_en50221_read_data(ca, slot, buf, 2)) != 2)
+ 		return -EIO;
+-- 
+2.7.4
