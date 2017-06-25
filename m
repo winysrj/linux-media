@@ -1,64 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:33158 "EHLO smtp2-g21.free.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750946AbdFUHeC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Jun 2017 03:34:02 -0400
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Wed, 21 Jun 2017 09:34:01 +0200
-From: Thierry Lelegard <thierry.lelegard@free.fr>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: thierry@lelegard.fr, linux-media@vger.kernel.org
-Subject: Re: LinuxTV V3 vs. V4 API doc inconsistency, V4 probably wrong
-Reply-To: thierry@lelegard.fr
-In-Reply-To: <20170619140806.7e92ae66@vento.lan>
-References: <3188f2a2bcba758dccaaa8cdbbd694fb@free.fr>
- <20170619140806.7e92ae66@vento.lan>
-Message-ID: <ce5e9d6a3b4aafdcec9ee672a6d15322@free.fr>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:40836 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750944AbdFYDkK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 24 Jun 2017 23:40:10 -0400
+Message-ID: <9bfec8587345fda155ab11c6303fe3e9@smtp-cloud3.xs4all.net>
+Date: Sun, 25 Jun 2017 05:40:07 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> First of all, there's no Linux DVB API v4. It was skipped, because 
-> there
-> was a proposal for a v4, with was never adopted.
+Results of the daily build of media_tree:
 
-Alright, whatever, you have understood it was the post-V3 API, S2API, 
-you name it.
-You should assign it a version number by the way.
+date:			Sun Jun 25 05:00:18 CEST 2017
+media-tree git hash:	b3d930aaf74f8b248edd7cfe7f35caefeff785bd
+media_build git hash:	a5ec7f00979b6c866911fb42507770727ff5afd4
+v4l-utils git hash:	1ae9a7adea3766879935dfede90d5aefd954c786
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-> Thanks for reviewing it! Yeah, the asterisks there are wrong.
-> The definitions should be, instead:
-> 
-> int ioctl(int fd, FE_SET_TONE, enum fe_sec_tone_mode tone)
-> int ioctl(int fd, FE_SET_VOLTAGE, enum fe_sec_voltage voltage)
-> int ioctl(int fd, FE_DISEQC_SEND_BURST, enum fe_sec_mini_cmd tone)
-> 
-> As they're passing by value, not by reference[1].
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12-rc1-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12-rc1-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-Thanks for the clarification.
+Detailed results are available here:
 
-> Feel free to send us fix patches.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Do you suggest I should locate the repository, clone it, understand the 
-structure,
-locate the documentation files, etc? That would take 20 times the time 
-it takes to
-remove the 3 asterisk characters when you already master the source code 
-as you
-probably do.
+Full logs are available here:
 
-I own a few opensource projects on sourceforge and github. When a user 
-reports
-a problem, whether it is a functional one or a documentation typo, I fix 
-it myself.
-I do not expect users to do it for me. For those projects, I am the 
-developer and
-they are the users. I welcome contributions, but I do not demand or even 
-expect them.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-Cheers
--Thierry
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
