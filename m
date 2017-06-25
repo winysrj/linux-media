@@ -1,486 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay2.synopsys.com ([198.182.60.111]:43763 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752872AbdFPNWA (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:36768 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751134AbdFYKCZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Jun 2017 09:22:00 -0400
-Subject: Re: [PATCH v2 2/4] [media] platform: Add Synopsys Designware HDMI RX
- Controller Driver
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Jose Abreu <Jose.Abreu@synopsys.com>,
-        <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <devicetree@vger.kernel.org>
-References: <cover.1497607315.git.joabreu@synopsys.com>
- <b4e209f41cc25285eb547cbd65f8fc6bf2a039cb.1497607315.git.joabreu@synopsys.com>
- <25d20060-f6b7-3a37-0509-39a734e6660a@xs4all.nl>
-CC: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-Message-ID: <3a1abd40-4503-44f1-7cc5-ad757a7c5572@synopsys.com>
-Date: Fri, 16 Jun 2017 14:21:53 +0100
-MIME-Version: 1.0
-In-Reply-To: <25d20060-f6b7-3a37-0509-39a734e6660a@xs4all.nl>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+        Sun, 25 Jun 2017 06:02:25 -0400
+Received: by mail-wr0-f194.google.com with SMTP id 77so23584334wrb.3
+        for <linux-media@vger.kernel.org>; Sun, 25 Jun 2017 03:02:25 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, aospan@netup.ru, serjk@netup.ru
+Cc: mchehab@kernel.org, mchehab@s-opensource.com
+Subject: [PATCH] [media] dvb-frontends/cxd2841er: require STATE_ACTIVE_* for agc readout
+Date: Sun, 25 Jun 2017 12:02:22 +0200
+Message-Id: <20170625100222.3222-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Daniel Scheller <d.scheller@gmx.net>
 
+When the demod driver puts the demod into sleep or shutdown state and it's
+status is then polled e.g. via "dvb-fe-tool -m", i2c errors are printed
+to the kernel log. If the last delsys was DVB-T/T2:
 
-On 16-06-2017 13:38, Hans Verkuil wrote:
-> Hi Jose,
->
-> Just a quick review of the new CEC code:
+  cxd2841er: i2c wr failed=-5 addr=6c reg=00 len=1
+  cxd2841er: i2c rd failed=-5 addr=6c reg=26
 
-Thanks!
+and if it was DVB-C:
 
->
-> On 06/16/17 12:07, Jose Abreu wrote:
->> This is an initial submission for the Synopsys Designware HDMI RX
->> Controller Driver. This driver interacts with a phy driver so that
->> a communication between them is created and a video pipeline is
->> configured.
->>
->> The controller + phy pipeline can then be integrated into a fully
->> featured system that can be able to receive video up to 4k@60Hz
->> with deep color 48bit RGB, depending on the platform. Although,
->> this initial version does not yet handle deep color modes.
->>
->> This driver was implemented as a standard V4L2 subdevice and its
->> main features are:
->> 	- Internal state machine that reconfigures phy until the
->> 	video is not stable
->> 	- JTAG communication with phy
->> 	- Inter-module communication with phy driver
->> 	- Debug write/read ioctls
->>
->> Some notes:
->> 	- RX sense controller (cable connection/disconnection) must
->> 	be handled by the platform wrapper as this is not integrated
->> 	into the controller RTL
->> 	- The same goes for EDID ROM's
->> 	- ZCAL calibration is needed only in FPGA platforms, in ASIC
->> 	this is not needed
->> 	- The state machine is not an ideal solution as it creates a
->> 	kthread but it is needed because some sources might not be
->> 	very stable at sending the video (i.e. we must react
->> 	accordingly).
->>
->> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
->> Cc: Carlos Palminha <palminha@synopsys.com>
->> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Changes from v1:
->> 	- Added support for CEC
->> 	- Correct typo errors
->> 	- Correctly detect interlaced video modes
->> 	- Correct VIC parsing
->> Changes from RFC:
->> 	- Added support for HDCP 1.4
->> 	- Fixup HDMI_VIC not being parsed (Hans)
->> 	- Send source change signal when powering off (Hans)
->> 	- Added a "wait stable delay"
->> 	- Detect interlaced video modes (Hans)
->> 	- Restrain g/s_register from reading/writing to HDCP regs (Hans)
->>
->> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
->> ---
->>  drivers/media/platform/dwc/Kconfig      |   10 +
->>  drivers/media/platform/dwc/Makefile     |    1 +
->>  drivers/media/platform/dwc/dw-hdmi-rx.c | 1764 +++++++++++++++++++++++++++++++
->>  drivers/media/platform/dwc/dw-hdmi-rx.h |  435 ++++++++
->>  include/media/dwc/dw-hdmi-rx-pdata.h    |   63 ++
->>  5 files changed, 2273 insertions(+)
->>  create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.c
->>  create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.h
->>  create mode 100644 include/media/dwc/dw-hdmi-rx-pdata.h
->> diff --git a/drivers/media/platform/dwc/Kconfig b/drivers/media/platform/dwc/Kconfig
->> index 361d38d..aba18af 100644
->> --- a/drivers/media/platform/dwc/Kconfig
->> +++ b/drivers/media/platform/dwc/Kconfig
->> @@ -6,3 +6,13 @@ config VIDEO_DWC_HDMI_PHY_E405
->>  
->>  	  To compile this driver as a module, choose M here. The module
->>  	  will be called dw-hdmi-phy-e405.
->> +
->> +config VIDEO_DWC_HDMI_RX
->> +	tristate "Synopsys Designware HDMI Receiver driver"
->> +	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
->> +	select CEC_CORE
->> +	help
->> +	  Support for Synopsys Designware HDMI RX controller.
->> +
->> +	  To compile this driver as a module, choose M here. The module
->> +	  will be called dw-hdmi-rx.
-> Add a separate config VIDEO_DWC_HDMI_RX_CEC to explicitly enable
-> CEC. CEC is an optional component of HDMI and supporting CEC should
-> be something you select in the kernel config.
+  cxd2841er: i2c wr failed=-5 addr=6c reg=00 len=1
+  cxd2841er: i2c rd failed=-5 addr=6c reg=49
 
-Ok, will add, but see bellow.
+This happens when read_status unconditionally calls into the
+read_signal_strength() function which triggers the read_agc_gain_*()
+functions, where these registered are polled.
 
->
-> <snip>
->
-> General question: is this CEC IP the same IP as is used in the HDMI
-> transmitter? If so, then it is not a good idea to duplicate the
-> code.
->
-> If they are different, then that should be noted in the source.
+This isn't a critical thing since when the demod is active again, no more
+such errors are logged, however this might make users suspecting defects.
 
-Well, at regbank they are :) I mean, CEC is not a separate IP,
-its directly integrated in the controller so they probably just
-reused the block in TX and in RX. CEC is optional in the
-controller configuration (as well as many other functionalities).
-Unfortunately there is no register in this controller that can be
-used to tell the configuration that was used (i.e. tell if CEC
-interface is present). I could read registers and check against
-default values, but that doesn't seem very nice. Either way I
-think the CEC Kconfig bool in this should be hidden from users
-and just let the wrapper driver activate if needed, because the
-wrapper driver will probably know if the platform has cec support
-or not. Or we could add a node in the DT.
+Fix this by requiring STATE_ACTIVE_* in priv->state. If it isn't in any
+active state, additionally set the strength scale to NOT_AVAILABLE.
 
->
->> +static void dw_hdmi_cec_enable_ints(struct dw_hdmi_dev *dw_dev)
->> +{
->> +	u32 mask = HDMI_AUD_CEC_ISTS_DONE | HDMI_AUD_CEC_ISTS_EOM |
->> +		HDMI_AUD_CEC_ISTS_NACK | HDMI_AUD_CEC_ISTS_ARBLST |
->> +		HDMI_AUD_CEC_ISTS_ERROR_INIT | HDMI_AUD_CEC_ISTS_ERROR_FOLL;
->> +
->> +	hdmi_writel(dw_dev, mask, HDMI_AUD_CEC_IEN_SET);
->> +	hdmi_writel(dw_dev, 0x0, HDMI_CEC_MASK);
->> +}
->> +
->> +static void dw_hdmi_cec_disable_ints(struct dw_hdmi_dev *dw_dev)
->> +{
->> +	hdmi_writel(dw_dev, ~0x0, HDMI_AUD_CEC_IEN_CLR);
->> +	hdmi_writel(dw_dev, ~0x0, HDMI_CEC_MASK);
->> +}
->> +
->> +static void dw_hdmi_cec_clear_ints(struct dw_hdmi_dev *dw_dev)
->> +{
->> +	hdmi_writel(dw_dev, ~0x0, HDMI_AUD_CEC_ICLR);
->> +}
->> +
->> +static void dw_hdmi_cec_tx_raw_status(struct dw_hdmi_dev *dw_dev, u32 stat)
->> +{
->> +	u32 error_mask = HDMI_AUD_CEC_ISTS_NACK |
->> +		HDMI_AUD_CEC_ISTS_ERROR_INIT;
->> +
->> +	if (hdmi_readl(dw_dev, HDMI_CEC_CTRL) & HDMI_CEC_CTRL_SEND_MASK) {
->> +		dev_dbg(dw_dev->dev, "%s: tx is busy\n", __func__);
->> +		return;
->> +	}
->> +
->> +	if (stat & HDMI_AUD_CEC_ISTS_ARBLST) {
->> +		dev_dbg(dw_dev->dev, "%s: arbitration lost\n", __func__);
->> +		cec_transmit_done(dw_dev->cec_adap, CEC_TX_STATUS_ARB_LOST,
->> +				1, 0, 0, 0);
->> +		return;
->> +	}
->> +
->> +	if (stat & HDMI_AUD_CEC_ISTS_DONE) {
->> +		dev_dbg(dw_dev->dev, "%s: transmission done\n", __func__);
->> +		cec_transmit_done(dw_dev->cec_adap, CEC_TX_STATUS_OK, 0, 0, 0, 0);
->> +		return;
->> +	}
->> +
->> +	if (stat & error_mask) {
->> +		/* If we reached here we have an error */
->> +		u8 status = 0, nack_cnt = 0, error_cnt = 0;
->> +
->> +		dev_dbg(dw_dev->dev, "%s: error found (stat=0x%x)\n", __func__,
->> +				stat);
->> +
->> +		if (stat & HDMI_AUD_CEC_ISTS_NACK) {
->> +			status |= CEC_TX_STATUS_NACK;
->> +			nack_cnt++;
->> +		}
->> +
->> +		if (stat & HDMI_AUD_CEC_ISTS_ERROR_INIT) {
->> +			status |= CEC_TX_STATUS_ERROR;
->> +			error_cnt++;
->> +		}
-> What does it mean if you have both NACK and ERROR_INIT flags set? Is that
-> an error or a NACK? You have to chose here which one you pick when calling
-> cec_transmit_done.
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+V2/follow-up to https://patchwork.linuxtv.org/patch/42061/, changed as
+requested. Tested, working fine (ie. no "false" i2c failures).
 
-I don't know if these can happen simultaneously. I remember I
-could provoke NACK's but I never got ERROR_INIT.
+ drivers/media/dvb-frontends/cxd2841er.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
->
->> +
->> +		cec_transmit_done(dw_dev->cec_adap, status, 0, nack_cnt, 0,
->> +				error_cnt);
->> +		return;
->> +	}
->> +}
->> +
->> +static void dw_hdmi_cec_received_msg(struct dw_hdmi_dev *dw_dev)
->> +{
->> +	struct cec_msg msg;
->> +	u8 i;
->> +
->> +	msg.len = hdmi_readl(dw_dev, HDMI_CEC_RX_CNT);
->> +	if (!msg.len || msg.len > HDMI_CEC_RX_DATA_MAX)
->> +		return; /* its an invalid/non-existent message */
-> it's
->
->> +
->> +	for (i = 0; i < msg.len; i++)
->> +		msg.msg[i] = hdmi_readl(dw_dev, HDMI_CEC_RX_DATA(i));
->> +
->> +	hdmi_writel(dw_dev, 0x0, HDMI_CEC_LOCK);
->> +	cec_received_msg(dw_dev->cec_adap, &msg);
->> +}
->> +
->> +static int dw_hdmi_cec_adap_enable(struct cec_adapter *adap, bool enable)
->> +{
->> +	struct dw_hdmi_dev *dw_dev = cec_get_drvdata(adap);
->> +
->> +	if (!dw_dev->cec_enabled_adap && enable) {
->> +		hdmi_writel(dw_dev, 0x0, HDMI_CEC_LOCK);
->> +		dw_hdmi_cec_enable_ints(dw_dev);
->> +	} else if (dw_dev->cec_enabled_adap && !enable) {
->> +		dw_hdmi_cec_disable_ints(dw_dev);
->> +		dw_dev->cec_valid_addrs = 0;
->> +	}
->> +
->> +	dw_dev->cec_enabled_adap = enable;
->> +	return 0;
->> +}
->> +
->> +static int dw_hdmi_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
->> +{
->> +	struct dw_hdmi_dev *dw_dev = cec_get_drvdata(adap);
->> +	int i, free_idx = HDMI_CEC_MAX_LOG_ADDRS;
->> +	u32 tmp;
->> +
->> +	if (!dw_dev->cec_enabled_adap)
->> +		return addr == CEC_LOG_ADDR_INVALID ? 0 : -EIO;
-> This can't be called unless the adapter is enabled. So this check
-> can be removed.
->
->> +
->> +	if (addr == CEC_LOG_ADDR_INVALID) {
->> +		hdmi_writel(dw_dev, 0x0, HDMI_CEC_ADDR_L);
->> +		hdmi_writel(dw_dev, 0x0, HDMI_CEC_ADDR_H);
->> +		dw_dev->cec_valid_addrs = 0;
->> +		return 0;
->> +	}
->> +
->> +	for (i = 0; i < HDMI_CEC_MAX_LOG_ADDRS; i++) {
->> +		bool is_valid = dw_dev->cec_valid_addrs & (1 << i);
->> +
->> +		if (free_idx == HDMI_CEC_MAX_LOG_ADDRS && !is_valid)
->> +			free_idx = i;
->> +		if (is_valid && dw_dev->cec_addr[i] == addr)
->> +			return 0;
->> +	}
->> +
->> +	if (i == HDMI_CEC_MAX_LOG_ADDRS) {
->> +		i = free_idx;
->> +		if (i == HDMI_CEC_MAX_LOG_ADDRS)
->> +			return -ENXIO;
->> +	}
->> +
->> +	dw_dev->cec_addr[i] = addr;
->> +	dw_dev->cec_valid_addrs |= 1 << i;
->> +
->> +	if (i >= 8) {
->> +		tmp = hdmi_readl(dw_dev, HDMI_CEC_ADDR_H);
->> +		tmp |= BIT(i - 8);
->> +		hdmi_writel(dw_dev, tmp, HDMI_CEC_ADDR_H);
->> +	} else {
->> +		tmp = hdmi_readl(dw_dev, HDMI_CEC_ADDR_L);
->> +		tmp |= BIT(i);
->> +		hdmi_writel(dw_dev, tmp, HDMI_CEC_ADDR_L);
->> +	}
-> This seems overengineered. HDMI_CEC_ADDR_H/L is just a bitmask, so just set the
-> bit corresponding to addr. I'm not sure what the point of cec_addr[] and cec_valid_addrs
-> is.
-
-You mean I can only select between these:
-
-ADDR_L:
-Logical address 0 - Device TV
-Logical address 1 - Recording Device 1
-Logical address 2 - Recording Device 2
-Logical address 3 - Tuner 1
-Logical address 4 - Playback Device 1
-Logical address 5 - Audio System
-Logical address 6 - Tuner 2
-Logical address 7 - Tuner 3
-
-ADDR_H:
-Logical address 8 - Playback Device 2
-Logical address 9 - Playback Device 3
-Logical address 10 - Tuner 4
-Logical address 11 - Playback Device 3
-Logical address 12 - Reserved
-Logical address 13 - Reserved
-Logical address 14 - Free use
-Logical address 15 - Unregistered (as initiator address), Broadcast
-(as destination address)
-
-?
-
-But I still need to know if I got exhausted of logical addresses,
-right? (And now I realized this code is not respecting the
-logical addresses allocation :/)
-
->
->> +
->> +	return 0;
->> +}
->> +
->> +static int dw_hdmi_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
->> +		u32 signal_free_time, struct cec_msg *msg)
->> +{
->> +	struct dw_hdmi_dev *dw_dev = cec_get_drvdata(adap);
->> +	u8 len = msg->len;
->> +	u32 reg;
->> +	int i;
->> +
->> +	if (len > HDMI_CEC_TX_DATA_MAX) {
->> +		dev_err(dw_dev->dev, "%s: invalid len (%d)\n", __func__, len);
->> +		return -EINVAL;
->> +	}
-> Can't happen.
->
->> +
->> +	if (hdmi_readl(dw_dev, HDMI_CEC_CTRL) & HDMI_CEC_CTRL_SEND_MASK) {
->> +		dev_err(dw_dev->dev, "%s: tx is busy\n", __func__);
->> +		return -EBUSY;
-> This should never happen, but it doesn't hurt to check.
->
->> +	}
->> +
->> +	for (i = 0; i < HDMI_CEC_TX_DATA_MAX; i++)
->> +		hdmi_writel(dw_dev, 0x0, HDMI_CEC_TX_DATA(i));
-> Why clear this? Is it necessary?
->
->> +	for (i = 0; i < len; i++)
->> +		hdmi_writel(dw_dev, msg->msg[i], HDMI_CEC_TX_DATA(i));
->> +
->> +	switch (signal_free_time) {
->> +	case 3:
->> +		reg = 0x0;
->> +		break;
->> +	case 7:
->> +		reg = 0x2;
->> +		break;
->> +	case 5:
-> Use the defines in media/cec.h instead of hardcoding these values.
->
->> +	default:
->> +		reg = 0x1;
->> +		break;
->> +	}
->> +
->> +	hdmi_writel(dw_dev, len, HDMI_CEC_TX_CNT);
->> +	hdmi_mask_writel(dw_dev, reg, HDMI_CEC_CTRL,
->> +			HDMI_CEC_CTRL_FRAME_TYP_OFFSET,
->> +			HDMI_CEC_CTRL_FRAME_TYP_MASK);
->> +	hdmi_mask_writel(dw_dev, 0x1, HDMI_CEC_CTRL,
->> +			HDMI_CEC_CTRL_SEND_OFFSET,
->> +			HDMI_CEC_CTRL_SEND_MASK);
->> +	return 0;
->> +}
->> +
->> +static const struct cec_adap_ops dw_hdmi_cec_adap_ops = {
->> +	.adap_enable = dw_hdmi_cec_adap_enable,
->> +	.adap_log_addr = dw_hdmi_cec_adap_log_addr,
->> +	.adap_transmit = dw_hdmi_cec_adap_transmit,
->> +};
-> <snip>
->
->> +static int dw_hdmi_log_status(struct v4l2_subdev *sd)
->> +{
->> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
->> +	struct v4l2_dv_timings timings;
->> +
->> +	v4l2_info(sd, "--- Chip configuration ---\n");
->> +	v4l2_info(sd, "cfg_clk=%dMHz\n", dw_dev->cfg_clk);
->> +	v4l2_info(sd, "phy_drv=%s, phy_jtag_addr=0x%x\n", dw_dev->phy_drv,
->> +			dw_dev->phy_jtag_addr);
->> +
->> +	v4l2_info(sd, "--- Chip status ---\n");
->> +	v4l2_info(sd, "selected_input=%d: signal=%d\n", dw_dev->selected_input,
->> +			has_signal(dw_dev, dw_dev->selected_input));
->> +	v4l2_info(sd, "configured_input=%d: signal=%d\n",
->> +			dw_dev->configured_input,
->> +			has_signal(dw_dev, dw_dev->configured_input));
->> +
->> +	v4l2_info(sd, "--- CEC status ---\n");
->> +	if (dw_dev->cec_enabled_adap) {
->> +		int i;
->> +
->> +		for (i = 0; i < HDMI_CEC_MAX_LOG_ADDRS; i++) {
->> +			bool is_valid = dw_dev->cec_valid_addrs & (1 << i);
->> +
->> +			if (is_valid)
->> +				v4l2_info(sd, "cec_logical_address=0x%x\n",
->> +						dw_dev->cec_addr[i]);
->> +		}
->> +	}
-> I'm not sure how useful this is. The same information is available through
-> /sys/kernel/debug/cec/cecX/status.
->
-> And just running cec-ctl gives it as well.
->
-> Up to you, though.
->
->> +
->> +	v4l2_info(sd, "--- Video status ---\n");
->> +	v4l2_info(sd, "type=%s, color_depth=%dbits",
->> +			hdmi_readl(dw_dev, HDMI_PDEC_STS) &
->> +			HDMI_PDEC_STS_DVIDET ? "dvi" : "hdmi",
->> +			dw_hdmi_get_colordepth(dw_dev));
->> +
->> +	v4l2_info(sd, "--- Video timings ---\n");
->> +	if (dw_hdmi_query_dv_timings(sd, &timings))
->> +		v4l2_info(sd, "No video detected\n");
->> +	else
->> +		v4l2_print_dv_timings(sd->name, "Detected format: ",
->> +				&timings, true);
->> +	v4l2_print_dv_timings(sd->name, "Configured format: ",
->> +			&dw_dev->timings, true);
->> +	return 0;
->> +}
->> +
-> <snip>
->
->> +	/* CEC */
->> +	dw_dev->cec_adap = cec_allocate_adapter(&dw_hdmi_cec_adap_ops,
->> +			dw_dev, dev_name(dev), CEC_CAP_TRANSMIT |
->> +			CEC_CAP_PHYS_ADDR | CEC_CAP_LOG_ADDRS,
-> Add CEC_CAP_RC and CEC_CAP_PASSTHROUGH.
->
-> I'm not sure about CEC_CAP_PHYS_ADDR. The problem here is that this driver
-> doesn't handle the EDID, but without that it doesn't know what physical
-> address to use.
->
-> I wonder if the cec-notifier can be used for this, possibly with adaptations.
-> Relying on users to set the physical address is a last resort since it is very
-> painful to do so. cec-notifier was specifically designed to solve this.
-
-Yes, EDID ROM is not integrated into the controller so I can't
-add the code. How exactly can I use cec-notifier here?
-
-Best regards,
-Jose Miguel Abreu
-
->
->> +			HDMI_CEC_MAX_LOG_ADDRS);
->> +	ret = PTR_ERR_OR_ZERO(dw_dev->cec_adap);
->> +	if (ret) {
->> +		dev_err(dev, "failed to allocate CEC adapter\n");
->> +		goto err_phy;
->> +	}
-> Regards,
->
-> 	Hans
+diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+index 08f67d60a7d9..12bff778c97f 100644
+--- a/drivers/media/dvb-frontends/cxd2841er.c
++++ b/drivers/media/dvb-frontends/cxd2841er.c
+@@ -3279,7 +3279,10 @@ static int cxd2841er_get_frontend(struct dvb_frontend *fe,
+ 	else if (priv->state == STATE_ACTIVE_TC)
+ 		cxd2841er_read_status_tc(fe, &status);
+ 
+-	cxd2841er_read_signal_strength(fe);
++	if (priv->state == STATE_ACTIVE_TC || priv->state == STATE_ACTIVE_S)
++		cxd2841er_read_signal_strength(fe);
++	else
++		p->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+ 
+ 	if (status & FE_HAS_LOCK) {
+ 		cxd2841er_read_snr(fe);
+-- 
+2.13.0
