@@ -1,100 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:57978 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751250AbdFBQDR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 12:03:17 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 7/9] [media] s5p-jpeg: Change sclk_jpeg to 166MHz for Exynos5250
-Date: Fri,  2 Jun 2017 18:02:54 +0200
-Message-Id: <1496419376-17099-8-git-send-email-thierry.escande@collabora.com>
-In-Reply-To: <1496419376-17099-1-git-send-email-thierry.escande@collabora.com>
-References: <1496419376-17099-1-git-send-email-thierry.escande@collabora.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:34490 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751050AbdFYL0v (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 25 Jun 2017 07:26:51 -0400
+Received: by mail-wr0-f195.google.com with SMTP id k67so23865324wrc.1
+        for <linux-media@vger.kernel.org>; Sun, 25 Jun 2017 04:26:51 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: liplianin@netup.ru, rjkm@metzlerbros.de, crope@iki.fi
+Subject: [PATCH v3 2/4] [media] dvb-frontends/stv0367: SNR DVBv5 statistics for DVB-C and T
+Date: Sun, 25 Jun 2017 13:26:44 +0200
+Message-Id: <20170625112646.7973-3-d.scheller.oss@gmail.com>
+In-Reply-To: <20170625112646.7973-1-d.scheller.oss@gmail.com>
+References: <20170625112646.7973-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: henryhsu <henryhsu@chromium.org>
+From: Daniel Scheller <d.scheller@gmx.net>
 
-The default clock parent of jpeg on Exynos5250 is fin_pll, which is
-24MHz. We have to change the clock parent to CPLL, which is 333MHz,
-and set sclk_jpeg to 166MHz.
+Add signal-to-noise-ratio as provided by the demodulator in decibel scale.
+QAM/DVB-C needs some intlog calculation to have usable dB values, OFDM/
+DVB-T values from the demod look alright already and are provided as-is.
 
-Signed-off-by: Heng-Ruey Hsu <henryhsu@chromium.org>
-Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c | 47 +++++++++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
+ drivers/media/dvb-frontends/stv0367.c | 39 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 7a7acbc..430e925 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -969,6 +969,44 @@ static void exynos4_jpeg_parse_q_tbl(struct s5p_jpeg_ctx *ctx)
- 	}
+diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+index 9e5432b761b5..138f859d0f25 100644
+--- a/drivers/media/dvb-frontends/stv0367.c
++++ b/drivers/media/dvb-frontends/stv0367.c
+@@ -25,6 +25,8 @@
+ #include <linux/slab.h>
+ #include <linux/i2c.h>
+ 
++#include "dvb_math.h"
++
+ #include "stv0367.h"
+ #include "stv0367_defs.h"
+ #include "stv0367_regs.h"
+@@ -3009,6 +3011,37 @@ static int stv0367ddb_set_frontend(struct dvb_frontend *fe)
+ 	return -EINVAL;
  }
  
-+static int exynos4_jpeg_set_sclk_rate(struct s5p_jpeg *jpeg, struct clk *sclk)
++static void stv0367ddb_read_snr(struct dvb_frontend *fe)
 +{
-+	struct clk *mout_jpeg;
-+	struct clk *sclk_cpll;
-+	int ret;
++	struct stv0367_state *state = fe->demodulator_priv;
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
++	int cab_pwr;
++	u32 regval, tmpval, snrval = 0;
 +
-+	mout_jpeg = clk_get(jpeg->dev, "mout_jpeg");
-+	if (IS_ERR(mout_jpeg)) {
-+		dev_err(jpeg->dev, "mout_jpeg clock not available: %ld\n",
-+			PTR_ERR(mout_jpeg));
-+		return PTR_ERR(mout_jpeg);
++	switch (state->activedemod) {
++	case demod_ter:
++		snrval = stv0367ter_snr_readreg(fe);
++		break;
++	case demod_cab:
++		cab_pwr = stv0367cab_snr_power(fe);
++		regval = stv0367cab_snr_readreg(fe, 0);
++
++		/* prevent division by zero */
++		if (!regval)
++			snrval = 0;
++
++		tmpval = (cab_pwr * 320) / regval;
++		snrval = ((tmpval != 0) ? (intlog2(tmpval) / 5581) : 0);
++		break;
++	default:
++		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		return;
 +	}
 +
-+	sclk_cpll = clk_get(jpeg->dev, "sclk_cpll");
-+	if (IS_ERR(sclk_cpll)) {
-+		dev_err(jpeg->dev, "sclk_cpll clock not available: %ld\n",
-+			PTR_ERR(sclk_cpll));
-+		clk_put(mout_jpeg);
-+		return PTR_ERR(sclk_cpll);
-+	}
-+
-+	ret = clk_set_parent(mout_jpeg, sclk_cpll);
-+	clk_put(sclk_cpll);
-+	clk_put(mout_jpeg);
-+	if (ret) {
-+		dev_err(jpeg->dev, "clk_set_parent failed: %d\n", ret);
-+		return ret;
-+	}
-+
-+	ret = clk_set_rate(sclk, 166500 * 1000);
-+	if (ret) {
-+		dev_err(jpeg->dev, "clk_set_rate failed: %d\n", ret);
-+		return ret;
-+	}
-+
-+	return 0;
++	p->cnr.stat[0].scale = FE_SCALE_DECIBEL;
++	p->cnr.stat[0].uvalue = snrval;
 +}
 +
- #if defined(CONFIG_EXYNOS_IOMMU) && defined(CONFIG_ARM_DMA_USE_IOMMU)
- static int jpeg_iommu_init(struct platform_device *pdev)
+ static void stv0367ddb_read_ucblocks(struct dvb_frontend *fe)
  {
-@@ -2974,6 +3012,15 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
- 				jpeg->variant->clk_names[i]);
- 			return PTR_ERR(jpeg->clocks[i]);
- 		}
-+
-+		if (jpeg->variant->version == SJPEG_EXYNOS4 &&
-+		    !strncmp(jpeg->variant->clk_names[i],
-+			     "sclk", strlen("sclk"))) {
-+			ret = exynos4_jpeg_set_sclk_rate(jpeg,
-+							 jpeg->clocks[i]);
-+			if (ret)
-+				return ret;
-+		}
- 	}
+ 	struct stv0367_state *state = fe->demodulator_priv;
+@@ -3053,6 +3086,12 @@ static int stv0367ddb_read_status(struct dvb_frontend *fe,
+ 	if (ret)
+ 		return ret;
  
- 	/* v4l2 device */
++	/* read carrier/noise when a carrier is detected */
++	if (*status & FE_HAS_CARRIER)
++		stv0367ddb_read_snr(fe);
++	else
++		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++
+ 	/* stop if demod isn't locked */
+ 	if (!(*status & FE_HAS_LOCK)) {
+ 		p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
 -- 
-2.7.4
+2.13.0
