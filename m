@@ -1,125 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45684 "EHLO mail.kernel.org"
+Received: from mail.anw.at ([195.234.101.228]:44755 "EHLO mail.anw.at"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753100AbdFMAfS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Jun 2017 20:35:18 -0400
-From: Kieran Bingham <kbingham@kernel.org>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-        niklas.soderlund@ragnatech.se,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v4 0/2] ADV748x HDMI/Analog video receiver
-Date: Tue, 13 Jun 2017 01:35:06 +0100
-Message-Id: <cover.d0545e32d322ca1b939fa2918694173629e680eb.1497313626.git-series.kieran.bingham+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        id S1751394AbdFYVhY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 25 Jun 2017 17:37:24 -0400
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
+        rjkm@metzlerbros.de, d.scheller@gmx.net, jasmin@anw.at
+Subject: [PATCH v2 6/7] [staging] cxd2099/cxd2099.c: Removed printing in write_block
+Date: Sun, 25 Jun 2017 23:37:10 +0200
+Message-Id: <1498426631-17376-7-git-send-email-jasmin@anw.at>
+In-Reply-To: <1498426631-17376-1-git-send-email-jasmin@anw.at>
+References: <1498426631-17376-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+From: Jasmin Jessich <jasmin@anw.at>
 
-This is a driver for the Analog Devices ADV748x device, and follows on from a
-previous posting by Niklas Söderlund [0] of an earlier incarnation of this
-driver.
+There were remaining debug prints which haven't been found earlier due to
+the disabled buffer mode (see commit "Removed useless printing in cxd2099
+driver" for the already removed printings.
 
-Aside from a few bug fixes, and considerable refactoring this driver:
- - is refactored to multiple object files
- - defines multiple sub devices for the output paths.
- - has independent controls for both HDMI and Analog video paths
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+---
+ drivers/staging/media/cxd2099/cxd2099.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
- - Specifies 'endpoint' matching instead of 'device' in async framework
-
-These patches are based up on Niklas' pending RVin work [1] and Sakari's fwnode
-series [2]
-
-This version is the culmination of large refactoring and development, and I
-believe is ready (or near) for mainline integration.
-
-ADV748x
-=======
-The ADV7481 and ADV7482 support two video pipelines which can run independently
-of each other, with each pipeline terminating in a CSI-2 output: TXA (4-Lane)
-and TXB (1-Lane)
-
-The ADV7480 (Not yet included here), ADV7481, and ADV7482 are all derivatives,
-with the following features
-
-            Analog   HDMI  MHL  4-Lane  1-Lane
-              In      In         CSI     CSI
- ADV7480               X    X     X
- ADV7481      X        X    X     X       X
- ADV7482      X        X          X       X
-
-Implementation
-==============
-
-This RFC creates 4 entities. AFE (CVBS/Analog In), HDMI, TXA and TXB.  At probe
-time, the DT is parsed to identify the endpoints for each of these nodes, and
-those are used for async matching of the CSI2 (TXA/TXB) entities in the master
-driver. The HDMI and AFE entities are then registered after a successful
-registration of both the CSI2 entities.
-
-(Known) Future Todo's
-=====================
-
-Further potential development areas include:
- - ADV7480 Support (No AFE)
- - MHL support (Not present on ADV7482)
- - EDID support
- - CEC Support
- - Configurable I2C addressing
- - Interrupt handling for format changes and hotplug detect.
-
-However, this driver is functional without the above, and these developments
-can be written when required.
-
-References
-==========
-[0] http://www.mail-archive.com/linux-renesas-soc@vger.kernel.org/msg05196.html
-[1] https://git.ragnatech.se/linux rcar-vin-elinux-v7
-[2] https://www.mail-archive.com/linux-media@vger.kernel.org/msg111332.html
-
-v1/RFC:
- - Initial posting
-
-v2:
- - Reworked DT parsing and entities
-
-v3:
- - Refreshed with lots of fixups from Sakari's review comments
-
-v4:
- - Many changes all round, following Laurent's review and extensive development
- - Now uses regmap
- - AFE port numbering has been changed to match the entity pads
- -
-
-Kieran Bingham (2):
-  media: i2c: adv748x: add adv748x driver
-  arm64: dts: renesas: salvator-x: Add ADV7482 support
-
- Documentation/devicetree/bindings/media/i2c/adv748x.txt |  96 +-
- MAINTAINERS                                             |   6 +-
- arch/arm64/boot/dts/renesas/salvator-x.dtsi             | 123 +-
- drivers/media/i2c/Kconfig                               |  11 +-
- drivers/media/i2c/Makefile                              |   1 +-
- drivers/media/i2c/adv748x/Makefile                      |   7 +-
- drivers/media/i2c/adv748x/adv748x-afe.c                 | 571 ++++++-
- drivers/media/i2c/adv748x/adv748x-core.c                | 907 +++++++++-
- drivers/media/i2c/adv748x/adv748x-csi2.c                | 323 +++-
- drivers/media/i2c/adv748x/adv748x-hdmi.c                | 652 ++++++-
- drivers/media/i2c/adv748x/adv748x.h                     | 415 ++++-
- 11 files changed, 3112 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/adv748x.txt
- create mode 100644 drivers/media/i2c/adv748x/Makefile
- create mode 100644 drivers/media/i2c/adv748x/adv748x-afe.c
- create mode 100644 drivers/media/i2c/adv748x/adv748x-core.c
- create mode 100644 drivers/media/i2c/adv748x/adv748x-csi2.c
- create mode 100644 drivers/media/i2c/adv748x/adv748x-hdmi.c
- create mode 100644 drivers/media/i2c/adv748x/adv748x.h
-
-base-commit: 287d20fda775908006c5d64a15cd65244578ed01
+diff --git a/drivers/staging/media/cxd2099/cxd2099.c b/drivers/staging/media/cxd2099/cxd2099.c
+index 6426ff1..3431cf6 100644
+--- a/drivers/staging/media/cxd2099/cxd2099.c
++++ b/drivers/staging/media/cxd2099/cxd2099.c
+@@ -230,7 +230,6 @@ static int write_block(struct cxd *ci, u8 adr, u8 *data, u16 n)
+ 		status = i2c_write_reg(ci->i2c, ci->cfg.adr, 0, adr);
+ 	if (status)
+ 		return status;
+-	dev_info(&ci->i2c->dev, "write_block %d\n", n);
+ 
+ 	ci->lastaddress = adr;
+ 	buf[0] = 1;
+@@ -239,7 +238,6 @@ static int write_block(struct cxd *ci, u8 adr, u8 *data, u16 n)
+ 
+ 		if (ci->cfg.max_i2c && (len + 1 > ci->cfg.max_i2c))
+ 			len = ci->cfg.max_i2c - 1;
+-		dev_info(&ci->i2c->dev, "write %d\n", len);
+ 		memcpy(buf + 1, data, len);
+ 		status = i2c_write(ci->i2c, ci->cfg.adr, buf, len + 1);
+ 		if (status)
+@@ -652,7 +650,6 @@ static int write_data(struct dvb_ca_en50221 *ca, int slot, u8 *ebuf, int ecount)
+ 	if (ci->write_busy)
+ 		return -EAGAIN;
+ 	mutex_lock(&ci->lock);
+-	dev_info(&ci->i2c->dev, "%s %d\n", __func__, ecount);
+ 	write_reg(ci, 0x0d, ecount >> 8);
+ 	write_reg(ci, 0x0e, ecount & 0xff);
+ 	write_block(ci, 0x11, ebuf, ecount);
 -- 
-git-series 0.9.1
+2.7.4
