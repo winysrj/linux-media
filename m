@@ -1,45 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48875
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750993AbdFTLVx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Jun 2017 07:21:53 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH] [media] ov13858: remove duplicated const declaration
-Date: Tue, 20 Jun 2017 08:21:14 -0300
-Message-Id: <6584a77b6ad17a46dba2d39024a148b206f07b8b.1497957671.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from vader.hardeman.nu ([95.142.160.32]:56409 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751050AbdFYMbd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 25 Jun 2017 08:31:33 -0400
+Subject: [PATCH 03/19] lirc_dev: remove min_timeout and max_timeout
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, sean@mess.org
+Date: Sun, 25 Jun 2017 14:31:30 +0200
+Message-ID: <149839388999.28811.3205928557994306883.stgit@zeus.hardeman.nu>
+In-Reply-To: <149839373103.28811.9486751698665303339.stgit@zeus.hardeman.nu>
+References: <149839373103.28811.9486751698665303339.stgit@zeus.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported by gcc:
+There are no users of this functionality (ir-lirc-codec.c has its own
+implementation and lirc_zilog.c doesn't use it) so remove it.
 
-drivers/media/i2c/ov13858.c:953:20: warning: duplicate const
-drivers/media/i2c/ov13858.c:953:14: warning: duplicate 'const' declaration specifier [-Wduplicate-decl-specifier]
- static const const s64 link_freq_menu_items[OV13858_NUM_OF_LINK_FREQS] = {
-              ^~~~~
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
- drivers/media/i2c/ov13858.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/rc/lirc_dev.c |   18 ------------------
+ include/media/lirc_dev.h    |    8 --------
+ 2 files changed, 26 deletions(-)
 
-diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
-index 7ebcf6763866..86550d8ddfee 100644
---- a/drivers/media/i2c/ov13858.c
-+++ b/drivers/media/i2c/ov13858.c
-@@ -950,7 +950,7 @@ static const char * const ov13858_test_pattern_menu[] = {
- #define OV13858_LINK_FREQ_INDEX_1	1
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index c9afaf5e64a9..591dee9f6ba2 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -404,24 +404,6 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 	case LIRC_GET_LENGTH:
+ 		result = put_user(ir->d.code_length, (__u32 __user *)arg);
+ 		break;
+-	case LIRC_GET_MIN_TIMEOUT:
+-		if (!(ir->d.features & LIRC_CAN_SET_REC_TIMEOUT) ||
+-		    ir->d.min_timeout == 0) {
+-			result = -ENOTTY;
+-			break;
+-		}
+-
+-		result = put_user(ir->d.min_timeout, (__u32 __user *)arg);
+-		break;
+-	case LIRC_GET_MAX_TIMEOUT:
+-		if (!(ir->d.features & LIRC_CAN_SET_REC_TIMEOUT) ||
+-		    ir->d.max_timeout == 0) {
+-			result = -ENOTTY;
+-			break;
+-		}
+-
+-		result = put_user(ir->d.max_timeout, (__u32 __user *)arg);
+-		break;
+ 	default:
+ 		result = -ENOTTY;
+ 	}
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index 1419d64e2e59..53eef86e07a0 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -132,12 +132,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
+  * @data:		it may point to any driver data and this pointer will
+  *			be passed to all callback functions.
+  *
+- * @min_timeout:	Minimum timeout for record. Valid only if
+- *			LIRC_CAN_SET_REC_TIMEOUT is defined.
+- *
+- * @max_timeout:	Maximum timeout for record. Valid only if
+- *			LIRC_CAN_SET_REC_TIMEOUT is defined.
+- *
+  * @rbuf:		if not NULL, it will be used as a read buffer, you will
+  *			have to write to the buffer by other means, like irq's
+  *			(see also lirc_serial.c).
+@@ -168,8 +162,6 @@ struct lirc_driver {
+ 	unsigned int chunk_size;
  
- /* Menu items for LINK_FREQ V4L2 control */
--static const s64 const link_freq_menu_items[OV13858_NUM_OF_LINK_FREQS] = {
-+static const s64 link_freq_menu_items[OV13858_NUM_OF_LINK_FREQS] = {
- 	OV13858_LINK_FREQ_1080MBPS,
- 	OV13858_LINK_FREQ_540MBPS
- };
--- 
-2.9.4
+ 	void *data;
+-	int min_timeout;
+-	int max_timeout;
+ 	struct lirc_buffer *rbuf;
+ 	struct rc_dev *rdev;
+ 	const struct file_operations *fops;
