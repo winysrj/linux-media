@@ -1,75 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45812 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751609AbdF1P4q (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Jun 2017 11:56:46 -0400
-Date: Wed, 28 Jun 2017 18:56:07 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Tomasz Figa <tfiga@chromium.org>, Yong Zhi <yong.zhi@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from mail.kernel.org ([198.145.29.99]:34502 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751359AbdFYVW6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 25 Jun 2017 17:22:58 -0400
+Subject: Re: [PATCH v3 2/2] v4l: async: add subnotifier registration for
+ subdevices
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
         Hans Verkuil <hverkuil@xs4all.nl>,
-        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
-Subject: Re: [PATCH v2 3/3] [media] intel-ipu3: cio2: Add new MIPI-CSI2 driver
-Message-ID: <20170628155607.lljvnhzyquzqxloy@valkosipuli.retiisi.org.uk>
-References: <1496799279-8774-1-git-send-email-yong.zhi@intel.com>
- <1496799279-8774-4-git-send-email-yong.zhi@intel.com>
- <CAAFQd5Byemom138duZRpsKOzsb5204NfbFnjEdnDTu6wfLgnrQ@mail.gmail.com>
- <20170626145105.GN12407@valkosipuli.retiisi.org.uk>
- <CAAFQd5AGEYRZye3ShEGLrLTyG67jRzSU2-dN6=wmo5DuVxvGaw@mail.gmail.com>
- <20170628133156.c333lrsauageq3yt@valkosipuli.retiisi.org.uk>
- <CGME20170628154447epcas5p28ba0ff617f6e640185fada0e955e24b0@epcas5p2.samsung.com>
- <b110a35c-7c98-0536-7a99-dca6988c608b@samsung.com>
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20170613143036.533-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170613143036.533-3-niklas.soderlund+renesas@ragnatech.se>
+From: Sylwester Nawrocki <snawrocki@kernel.org>
+Message-ID: <78b6c3f2-7b4c-b2ff-aca9-6057b9d60056@kernel.org>
+Date: Sun, 25 Jun 2017 23:22:53 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <b110a35c-7c98-0536-7a99-dca6988c608b@samsung.com>
+In-Reply-To: <20170613143036.533-3-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
-
-On Wed, Jun 28, 2017 at 05:44:32PM +0200, Sylwester Nawrocki wrote:
-> Hi,
+On 06/13/2017 04:30 PM, Niklas Söderlund wrote:
+> When the registered() callback of v4l2_subdev_internal_ops is called the
+> subdevice has access to the master devices v4l2_dev and it's called with
+> the async frameworks list_lock held. In this context the subdevice can
+> register its own notifiers to allow for incremental discovery of
+> subdevices.
 > 
-> On 06/28/2017 03:31 PM, Sakari Ailus wrote:
-> > IMO VB2/V4L2 could better support conversion between single and
-> > multi-planar buffer types so that the applications could just use any and
-> > drivers could manage with one.
-> > 
-> > I don't have a strong opinion either way, but IMO this could be well
-> > addressed later on by improving the framework when (or if) the support for
-> > formats such as NV12 is added.
+> The master device registers the subdevices closest to itself in its
+> notifier while the subdevice(s) register notifiers for their closest
+> neighboring devices when they are registered. Using this incremental
+> approach two problems can be solved:
 > 
-> We had already conversion between single and multi-planar buffer types
-> in the kernel.  But for some reasons it got removed. [1] The conversion
-> is supposed to be done in libv4l2, which is not mandatory so it cannot
-> be used to ensure backward compatibility while moving driver from one
-> API to the other.
+> 1. The master device no longer has to care how many devices exist in
+>     the pipeline. It only needs to care about its closest subdevice and
+>     arbitrary long pipelines can be created without having to adapt the
+>     master device for each case.
 > 
-> [1]
-> commit 1d0c86cad38678fa42f6d048a7b9e4057c8c16fc
-> [media] media: v4l: remove single to multiplane conversion
+> 2. Subdevices which are represented as a single DT node but register
+>     more than one subdevice can use this to improve the pipeline
+>     discovery, since the subdevice driver is the only one who knows which
+>     of its subdevices is linked with which subdevice of a neighboring DT
+>     node.
+> 
+> To enable subdevices to register/unregister notifiers from the
+> registered()/unregistered() callback v4l2_async_subnotifier_register()
+> and v4l2_async_subnotifier_unregister() are added. These new notifier
+> register functions are similar to the master device equivalent functions
+> but run without taking the v4l2-async list_lock which already is held
+> when the registered()/unregistered() callbacks are called.
+> 
+> Signed-off-by: Niklas Söderlund<niklas.soderlund+renesas@ragnatech.se>
+> Acked-by: Hans Verkuil<hans.verkuil@cisco.com>
+> Acked-by: Sakari Ailus<sakari.ailus@linux.intel.com>
 
-Thanks for the pointer. I had missed this back then.
-
-Not all applications will be using libv4l2. This is something that would
-make sense to do in the kernel IMO. The changes seem pretty minimal to me,
-based on the patch.
-
-There is now at least one difference between single-planar and multi-planar
-cases; the data_offset field is only present in struct v4l2_plane. That
-should be easy to address by adding the field to the single-planar case,
-too. (We'll need new buffer structs in the near future anyway, there's no
-really a way around that.)
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Acked-by: Sylwester Nawrocki <snawrocki@kernel.org>
