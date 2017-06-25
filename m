@@ -1,124 +1,366 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:36520 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751558AbdFJATg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Jun 2017 20:19:36 -0400
-Subject: Re: [PATCH v8 14/34] ARM: dts: imx6-sabreauto: add the ADV7180 video
- decoder
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Tim Harvey <tharvey@gateworks.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        mchehab@kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Nick Dyer <nick@shmanahar.org>, markus.heiser@darmarit.de,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, Arnd Bergmann <arnd@arndb.de>,
-        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-        minghsiu.tsai@mediatek.com, Tiffany Lin <tiffany.lin@mediatek.com>,
-        Jean-Christophe TROTIN <jean-christophe.trotin@st.com>,
-        Simon Horman <horms+renesas@verge.net.au>,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        shuah@kernel.org, sakari.ailus@linux.intel.com,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
- <1496860453-6282-15-git-send-email-steve_longerbeam@mentor.com>
- <CAJ+vNU0C0=4hUq+g1P7yTzLzFPidfauQROPOVr4WQWKNZz_xmQ@mail.gmail.com>
- <dd5b29b7-bf92-5f03-caef-1843a9f32cd3@gmail.com> <20170609213843.GB28596@amd>
- <cb9d79e9-fa36-d0ad-3df6-27f1b8790f78@gmail.com> <20170609232358.GA14181@amd>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <f5cad571-9147-1c72-47d9-4e6f68116f97@gmail.com>
-Date: Fri, 9 Jun 2017 17:19:31 -0700
+Received: from vader.hardeman.nu ([95.142.160.32]:56427 "EHLO hardeman.nu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751050AbdFYMcC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 25 Jun 2017 08:32:02 -0400
+Subject: [PATCH 09/19] lirc_dev: sanitize locking
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, sean@mess.org
+Date: Sun, 25 Jun 2017 14:32:00 +0200
+Message-ID: <149839392047.28811.13336934603429272583.stgit@zeus.hardeman.nu>
+In-Reply-To: <149839373103.28811.9486751698665303339.stgit@zeus.hardeman.nu>
+References: <149839373103.28811.9486751698665303339.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-In-Reply-To: <20170609232358.GA14181@amd>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Use the irctl mutex for all device operations and only use lirc_dev_lock to
+protect the irctls array. Also, make sure that the device is alive early in
+each fops function before doing anything else.
 
+Since this patch touches nearly every line where the irctl mutex is
+taken/released, it also renames the mutex at the same time (the name
+irctl_lock will be misleading once struct irctl goes away in later
+patches).
 
-On 06/09/2017 04:23 PM, Pavel Machek wrote:
-> Hi!
-> 
->>>>> Steve,
->>>>>
->>>>> You need to remove the fim node now that you've moved this to V4L2 controls.
->>>>>
->>>>
->>>> Yep, I caught this just after sending the v8 patchset. I'll send
->>>> a v9 of this patch.
->>>
->>> This needs ack from devicetree people, then it can be merged. Can you
->>> be a bit more forceful getting the ack?
->>
->> OK, I need an Ack please, he said, in a forceful way. :)
-> 
-> I'd tune the force up a tiny bit more. This is not FreeBSD ;-). You
-> can read some emails from Linus for inspiration. Or drink few beers
-> and look at Al Viro's emails.
-> 
->> In fact Ack's are needed for all the changes to dts sources,
->> patches 4-14.
-> 
-> Actually, are they? Those should not need acks from device tree
-> people, just acks from ARM people, and those are easier to get... in
-> fact they should not need any acks, you should just send them to arm
-> people and get them merged.
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/lirc_dev.c |  164 ++++++++++++++++++++++++-------------------
+ 1 file changed, 91 insertions(+), 73 deletions(-)
 
-
-Hans said he prefers to have the dts patches as part of the whole set
-rather than submitted separately. But I did add --to's for the ARM
-people for 4-14.
-
-
-> 
-> 1-4 is just a documentation, and you have acks there. (Except 2?)
-> That's ready to be merged, probably via the media tree? Just make it
-> clear you want it merged.
-
-Yes, 1-3 now have Acks (binding docs).
-
-> 
-> 15,16 should be ready to. Media tree, too, I guess.
-
-Yes, those have Acks (video-mux entity functions and subdev driver).
-
-> 
-> drivers/staging is greg. Advantage is these do _not_ need to go after
-> the dts changes. It is a driver. Actually I'd normally add dts support
-> after the driver. So you can push it now.
-
-Right, Hans agrees, except that for staging drivers we don't really need
-an Ack from Greg.
-
-
-> 
->>> I don't think it makes sense to resubmit v9 before that. This is not a
->>> rocket science.
->>
->> I guess that makes sense, I'll wait for Ack's from all these patches
->> before submitting the entire patchset as v9.
-> 
-> You may want to split the series, according to mainainters, or just
-> ask the maintainers to merge the relevant parts. I believe most of it
-> can be pushed now.
-> 
-> Good luck,
-
-Thanks!
-Steve
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index aece6b619796..6bd21609a719 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -38,7 +38,7 @@ struct irctl {
+ 	bool attached;
+ 	int open;
+ 
+-	struct mutex irctl_lock;
++	struct mutex mutex;
+ 	struct lirc_buffer *buf;
+ 	bool buf_internal;
+ 
+@@ -46,6 +46,7 @@ struct irctl {
+ 	struct cdev cdev;
+ };
+ 
++/* This mutex protects the irctls array */
+ static DEFINE_MUTEX(lirc_dev_lock);
+ 
+ static struct irctl *irctls[MAX_IRCTL_DEVICES];
+@@ -53,18 +54,23 @@ static struct irctl *irctls[MAX_IRCTL_DEVICES];
+ /* Only used for sysfs but defined to void otherwise */
+ static struct class *lirc_class;
+ 
+-static void lirc_release(struct device *ld)
++static void lirc_free_buffer(struct irctl *ir)
+ {
+-	struct irctl *ir = container_of(ld, struct irctl, dev);
+-
+ 	if (ir->buf_internal) {
+ 		lirc_buffer_free(ir->buf);
+ 		kfree(ir->buf);
++		ir->buf = NULL;
+ 	}
++}
++
++static void lirc_release(struct device *ld)
++{
++	struct irctl *ir = container_of(ld, struct irctl, dev);
+ 
+ 	mutex_lock(&lirc_dev_lock);
+ 	irctls[ir->d.minor] = NULL;
+ 	mutex_unlock(&lirc_dev_lock);
++	lirc_free_buffer(ir);
+ 	kfree(ir);
+ }
+ 
+@@ -141,6 +147,28 @@ int lirc_register_driver(struct lirc_driver *d)
+ 		return -EBADRQC;
+ 	}
+ 
++	/* some safety check 8-) */
++	d->name[sizeof(d->name)-1] = '\0';
++
++	if (d->features == 0)
++		d->features = LIRC_CAN_REC_LIRCCODE;
++
++	ir = kzalloc(sizeof(struct irctl), GFP_KERNEL);
++	if (!ir)
++		return -ENOMEM;
++
++	mutex_init(&ir->mutex);
++	ir->d = *d;
++
++	if (LIRC_CAN_REC(d->features)) {
++		err = lirc_allocate_buffer(ir);
++		if (err) {
++			kfree(ir);
++			return err;
++		}
++		d->rbuf = ir->buf;
++	}
++
+ 	mutex_lock(&lirc_dev_lock);
+ 
+ 	/* find first free slot for driver */
+@@ -150,37 +178,17 @@ int lirc_register_driver(struct lirc_driver *d)
+ 
+ 	if (minor == MAX_IRCTL_DEVICES) {
+ 		dev_err(d->dev, "no free slots for drivers!\n");
+-		err = -ENOMEM;
+-		goto out_lock;
+-	}
+-
+-	ir = kzalloc(sizeof(struct irctl), GFP_KERNEL);
+-	if (!ir) {
+-		err = -ENOMEM;
+-		goto out_lock;
++		mutex_unlock(&lirc_dev_lock);
++		lirc_free_buffer(ir);
++		kfree(ir);
++		return -ENOMEM;
+ 	}
+ 
+-	mutex_init(&ir->irctl_lock);
+ 	irctls[minor] = ir;
+ 	d->irctl = ir;
+ 	d->minor = minor;
+ 
+-	/* some safety check 8-) */
+-	d->name[sizeof(d->name)-1] = '\0';
+-
+-	if (d->features == 0)
+-		d->features = LIRC_CAN_REC_LIRCCODE;
+-
+-	ir->d = *d;
+-
+-	if (LIRC_CAN_REC(d->features)) {
+-		err = lirc_allocate_buffer(irctls[minor]);
+-		if (err) {
+-			kfree(ir);
+-			goto out_lock;
+-		}
+-		d->rbuf = ir->buf;
+-	}
++	mutex_unlock(&lirc_dev_lock);
+ 
+ 	device_initialize(&ir->dev);
+ 	ir->dev.devt = MKDEV(MAJOR(lirc_base_dev), ir->d.minor);
+@@ -194,22 +202,15 @@ int lirc_register_driver(struct lirc_driver *d)
+ 	ir->attached = true;
+ 
+ 	err = cdev_device_add(&ir->cdev, &ir->dev);
+-	if (err)
+-		goto out_dev;
+-
+-	mutex_unlock(&lirc_dev_lock);
++	if (err) {
++		put_device(&ir->dev);
++		return err;
++	}
+ 
+ 	dev_info(ir->d.dev, "lirc_dev: driver %s registered at minor = %d\n",
+ 		 ir->d.name, ir->d.minor);
+ 
+ 	return 0;
+-
+-out_dev:
+-	put_device(&ir->dev);
+-out_lock:
+-	mutex_unlock(&lirc_dev_lock);
+-
+-	return err;
+ }
+ EXPORT_SYMBOL(lirc_register_driver);
+ 
+@@ -222,11 +223,13 @@ void lirc_unregister_driver(struct lirc_driver *d)
+ 
+ 	ir = d->irctl;
+ 
+-	mutex_lock(&lirc_dev_lock);
+-
+ 	dev_dbg(ir->d.dev, "lirc_dev: driver %s unregistered from minor = %d\n",
+ 		d->name, d->minor);
+ 
++	cdev_device_del(&ir->cdev, &ir->dev);
++
++	mutex_lock(&ir->mutex);
++
+ 	ir->attached = false;
+ 	if (ir->open) {
+ 		dev_dbg(ir->d.dev, LOGHEAD "releasing opened driver\n",
+@@ -234,9 +237,8 @@ void lirc_unregister_driver(struct lirc_driver *d)
+ 		wake_up_interruptible(&ir->buf->wait_poll);
+ 	}
+ 
+-	mutex_unlock(&lirc_dev_lock);
++	mutex_unlock(&ir->mutex);
+ 
+-	cdev_device_del(&ir->cdev, &ir->dev);
+ 	put_device(&ir->dev);
+ }
+ EXPORT_SYMBOL(lirc_unregister_driver);
+@@ -248,13 +250,24 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
+ 
+ 	dev_dbg(ir->d.dev, LOGHEAD "open called\n", ir->d.name, ir->d.minor);
+ 
+-	if (ir->open)
+-		return -EBUSY;
++	retval = mutex_lock_interruptible(&ir->mutex);
++	if (retval)
++		return retval;
++
++	if (!ir->attached) {
++		retval = -ENODEV;
++		goto out;
++	}
++
++	if (ir->open) {
++		retval = -EBUSY;
++		goto out;
++	}
+ 
+ 	if (ir->d.rdev) {
+ 		retval = rc_open(ir->d.rdev);
+ 		if (retval)
+-			return retval;
++			goto out;
+ 	}
+ 
+ 	if (ir->buf)
+@@ -264,24 +277,26 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
+ 
+ 	lirc_init_pdata(inode, file);
+ 	nonseekable_open(inode, file);
++	mutex_unlock(&ir->mutex);
+ 
+ 	return 0;
++
++out:
++	mutex_unlock(&ir->mutex);
++	return retval;
+ }
+ EXPORT_SYMBOL(lirc_dev_fop_open);
+ 
+ int lirc_dev_fop_close(struct inode *inode, struct file *file)
+ {
+ 	struct irctl *ir = file->private_data;
+-	int ret;
+ 
+-	ret = mutex_lock_killable(&lirc_dev_lock);
+-	WARN_ON(ret);
++	mutex_lock(&ir->mutex);
+ 
+ 	rc_close(ir->d.rdev);
+-
+ 	ir->open--;
+-	if (!ret)
+-		mutex_unlock(&lirc_dev_lock);
++
++	mutex_unlock(&ir->mutex);
+ 
+ 	return 0;
+ }
+@@ -316,19 +331,20 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	struct irctl *ir = file->private_data;
+ 	__u32 mode;
+-	int result = 0;
++	int result;
+ 
+ 	dev_dbg(ir->d.dev, LOGHEAD "ioctl called (0x%x)\n",
+ 		ir->d.name, ir->d.minor, cmd);
+ 
++	result = mutex_lock_interruptible(&ir->mutex);
++	if (result)
++		return result;
++
+ 	if (!ir->attached) {
+-		dev_err(ir->d.dev, LOGHEAD "ioctl result = -ENODEV\n",
+-			ir->d.name, ir->d.minor);
+-		return -ENODEV;
++		result = -ENODEV;
++		goto out;
+ 	}
+ 
+-	mutex_lock(&ir->irctl_lock);
+-
+ 	switch (cmd) {
+ 	case LIRC_GET_FEATURES:
+ 		result = put_user(ir->d.features, (__u32 __user *)arg);
+@@ -364,8 +380,8 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 		result = -ENOTTY;
+ 	}
+ 
+-	mutex_unlock(&ir->irctl_lock);
+-
++out:
++	mutex_unlock(&ir->mutex);
+ 	return result;
+ }
+ EXPORT_SYMBOL(lirc_dev_fop_ioctl);
+@@ -377,23 +393,25 @@ ssize_t lirc_dev_fop_read(struct file *file,
+ {
+ 	struct irctl *ir = file->private_data;
+ 	unsigned char buf[ir->buf->chunk_size];
+-	int ret = 0, written = 0;
++	int ret, written = 0;
+ 	DECLARE_WAITQUEUE(wait, current);
+ 
+-	if (!LIRC_CAN_REC(ir->d.features))
+-		return -EINVAL;
+-
+ 	dev_dbg(ir->d.dev, LOGHEAD "read called\n", ir->d.name, ir->d.minor);
+ 
+-	if (mutex_lock_interruptible(&ir->irctl_lock)) {
+-		ret = -ERESTARTSYS;
+-		goto out_unlocked;
+-	}
++	ret = mutex_lock_interruptible(&ir->mutex);
++	if (ret)
++		return ret;
++
+ 	if (!ir->attached) {
+ 		ret = -ENODEV;
+ 		goto out_locked;
+ 	}
+ 
++	if (!LIRC_CAN_REC(ir->d.features)) {
++		ret = -EINVAL;
++		goto out_locked;
++	}
++
+ 	if (length % ir->buf->chunk_size) {
+ 		ret = -EINVAL;
+ 		goto out_locked;
+@@ -428,13 +446,13 @@ ssize_t lirc_dev_fop_read(struct file *file,
+ 				break;
+ 			}
+ 
+-			mutex_unlock(&ir->irctl_lock);
++			mutex_unlock(&ir->mutex);
+ 			set_current_state(TASK_INTERRUPTIBLE);
+ 			schedule();
+ 			set_current_state(TASK_RUNNING);
+ 
+-			if (mutex_lock_interruptible(&ir->irctl_lock)) {
+-				ret = -ERESTARTSYS;
++			ret = mutex_lock_interruptible(&ir->mutex);
++			if (ret) {
+ 				remove_wait_queue(&ir->buf->wait_poll, &wait);
+ 				goto out_unlocked;
+ 			}
+@@ -457,7 +475,7 @@ ssize_t lirc_dev_fop_read(struct file *file,
+ 	remove_wait_queue(&ir->buf->wait_poll, &wait);
+ 
+ out_locked:
+-	mutex_unlock(&ir->irctl_lock);
++	mutex_unlock(&ir->mutex);
+ 
+ out_unlocked:
+ 	return ret ? ret : written;
