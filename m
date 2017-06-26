@@ -1,63 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f45.google.com ([209.85.214.45]:36467 "EHLO
-        mail-it0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751385AbdFAJnm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Jun 2017 05:43:42 -0400
-Received: by mail-it0-f45.google.com with SMTP id m47so32102128iti.1
-        for <linux-media@vger.kernel.org>; Thu, 01 Jun 2017 02:43:42 -0700 (PDT)
-Received: from ubuntu.windy (c122-106-153-7.carlnfd1.nsw.optusnet.com.au. [122.106.153.7])
-        by smtp.gmail.com with ESMTPSA id 192sm29624809pfb.10.2017.06.01.02.43.34
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 01 Jun 2017 02:43:35 -0700 (PDT)
-Date: Thu, 1 Jun 2017 19:43:45 +1000
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] Small fix to build script
-Message-ID: <20170601094343.GA3212@ubuntu.windy>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:39635
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751464AbdFZKAy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Jun 2017 06:00:54 -0400
+Date: Mon, 26 Jun 2017 07:00:35 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Ralph Metzler <rjkm@metzlerbros.de>
+Cc: Daniel Scheller <d.scheller.oss@gmail.com>,
+        linux-media@vger.kernel.org, mchehab@kernel.org, jasmin@anw.at
+Subject: Re: [PATCH 4/9] [media] dvb-frontends/stv0910: Fix signal strength
+ reporting
+Message-ID: <20170626070035.17f131e3@vento.lan>
+In-Reply-To: <22864.52230.708596.809030@morden.metzler>
+References: <20170624160301.17710-1-d.scheller.oss@gmail.com>
+        <20170624160301.17710-5-d.scheller.oss@gmail.com>
+        <22864.52230.708596.809030@morden.metzler>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Avoid going splat if --depth is not given
+Em Mon, 26 Jun 2017 10:55:34 +0200
+Ralph Metzler <rjkm@metzlerbros.de> escreveu:
 
-Commit 6b4a9c5 indroduced the --depth parameter to limit the commit history
-pulled by when cloning, giving a nice speedup. But in the process it broke
-running without the --depth parameter. The first invocation of
-'./build --main-git' works fine, but the second falls over like so:
+> Daniel Scheller writes:
+>  > From: Daniel Scheller <d.scheller@gmx.net>
+>  > 
+>  > Original code at least has some signed/unsigned issues, resulting in
+>  > values like 32dBm.  
+> 
+> I will look into that.
+> 
+>  > Change signal strength readout to work without asking
+>  > the attached tuner, and use a lookup table instead of log calc. Values  
+> 
+> How can you determine the exact strength without knowing what the tuner did?
+> At least the stv6111 does its own AGC which has to be added.
 
-  fatal: No such remote or remote group: media_tree/master
-  Can't update from the upstream tree at ./build line 430.
+I remember I had to solve this issue on some other driver[1][2][3]. What I
+did was to get the AGC gain from the tuner using a callback,
+then I added it to the main gain.
 
-The fix is to check whether that remote has been defined before trying
-to update from it.
+[1] https://www.spinics.net/lists/linux-media/msg101836.html
+[2] https://www.spinics.net/lists/linux-media/msg101838.html
+[3] https://www.spinics.net/lists/linux-media/msg101842.html
 
-Signed-off-by: Vincent McIntyre <vincent.mcintyre@gmail.com>
----
- build | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+I don't remember why it was not merged upstream, though. Perhaps because
+I was in doubt about reporting it as "rf_attenuation" or as "agc gain".
 
-diff --git a/build b/build
-index a4cd38e..d7f51c2 100755
---- a/build
-+++ b/build
-@@ -427,8 +427,13 @@ if (@git == 2) {
- 			}
- 		}
- 	} elsif ($workdir eq "") {
--		system("git --git-dir media/.git remote update '$rname/$git[1]'") == 0
--			or die "Can't update from the upstream tree";
-+		if (check_git("remote", "$rname/$git[1]")) {
-+			system("git --git-dir media/.git remote update '$rname/$git[1]'") == 0
-+				or die "Can't update from the upstream tree";
-+		} else {
-+			system("git --git-dir media/.git remote update origin") == 0
-+				or die "Can't update from the upstream tree";
-+		}
- 	}
- 
- 	if ($workdir eq "") {
--- 
-2.7.4
+Anyway, with something like that, any demod could check for such
+callback. If defined, add it to its AGC own gain, in order to get
+the total AGC gain.
+
+>  > +struct SLookup padc_lookup[] = {
+>  > +	{    0,  118000 }, /* PADC=+0dBm  */
+>  > +	{ -100,  93600  }, /* PADC=-1dBm  */
+>  > +	{ -200,  74500  }, /* PADC=-2dBm  */
+>  > +	{ -300,  59100  }, /* PADC=-3dBm  */
+>  > +	{ -400,  47000  }, /* PADC=-4dBm  */
+>  > +	{ -500,  37300  }, /* PADC=-5dBm  */
+>  > +	{ -600,  29650  }, /* PADC=-6dBm  */
+>  > +	{ -700,  23520  }, /* PADC=-7dBm  */
+>  > +	{ -900,  14850  }, /* PADC=-9dBm  */
+>  > +	{ -1100, 9380   }, /* PADC=-11dBm */
+>  > +	{ -1300, 5910   }, /* PADC=-13dBm */
+>  > +	{ -1500, 3730   }, /* PADC=-15dBm */
+>  > +	{ -1700, 2354   }, /* PADC=-17dBm */
+>  > +	{ -1900, 1485   }, /* PADC=-19dBm */
+>  > +	{ -2000, 1179   }, /* PADC=-20dBm */
+>  > +	{ -2100, 1000   }, /* PADC=-21dBm */
+>  > +};  
+>  ...
+>  > -	if (bbgain < (s32) *strength)
+>  > -		*strength -= bbgain;
+>  > -	else
+>  > -		*strength = 0;
+>  > +	padc = TableLookup(padc_lookup, ARRAY_SIZE(padc_lookup), Power) + 352;
+>  >    
+> 
+> 
+> Where does the padc_lookup table come from?
+> I saw it before in CrazyCat github tree.
+> Is he or you the original source/author or somebody else?
+> 
+> 
+> Regards,
+> Ralph
+
+
+
+Thanks,
+Mauro
