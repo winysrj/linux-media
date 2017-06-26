@@ -1,43 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58920 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751656AbdFII4a (ORCPT
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.218]:20092 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751101AbdFZRyY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Jun 2017 04:56:30 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.13] Add stm32-cec driver
-Message-ID: <e6f0bb35-4eb7-1a94-3941-378bb92c5583@xs4all.nl>
-Date: Fri, 9 Jun 2017 10:56:21 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+        Mon, 26 Jun 2017 13:54:24 -0400
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>, s-anna@ti.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        letux-kernel@openphoenux.org,
+        "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: [PATCH] media: omap3isp: handle NULL return of omap3isp_video_format_info() in ccdc_is_shiftable().
+Date: Mon, 26 Jun 2017 19:54:19 +0200
+Message-Id: <a601fdb6d224f2e4f1a3c1249ebf8438f4b8b5ce.1498499658.git.hns@goldelico.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 47f910f0e0deb880c2114811f7ea1ec115a19ee4:
+If a camera module driver specifies a format that is not
+supported by omap3isp this ends in a NULL pointer
+dereference instead of a simple fail.
 
-  [media] v4l: subdev: tolerate null in media_entity_to_v4l2_subdev (2017-06-08 16:55:25 -0300)
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+---
+ drivers/media/platform/omap3isp/ispccdc.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git stm32-cec
-
-for you to fetch changes up to bb4b9368c6836c21d76fa53aa425cd48ba0e94fb:
-
-  cec: add STM32 cec driver (2017-06-09 10:35:50 +0200)
-
-----------------------------------------------------------------
-Benjamin Gaignard (2):
-      dt-bindings: media: stm32 cec driver
-      cec: add STM32 cec driver
-
- Documentation/devicetree/bindings/media/st,stm32-cec.txt |  19 +++
- drivers/media/platform/Kconfig                           |  12 ++
- drivers/media/platform/Makefile                          |   2 +
- drivers/media/platform/stm32/Makefile                    |   1 +
- drivers/media/platform/stm32/stm32-cec.c                 | 362 +++++++++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 396 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,stm32-cec.txt
- create mode 100644 drivers/media/platform/stm32/stm32-cec.c
+diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+index 2fb755f20a6b..dcf16ee7c612 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.c
++++ b/drivers/media/platform/omap3isp/ispccdc.c
+@@ -2397,6 +2397,9 @@ static bool ccdc_is_shiftable(u32 in, u32 out, unsigned int additional_shift)
+ 	in_info = omap3isp_video_format_info(in);
+ 	out_info = omap3isp_video_format_info(out);
+ 
++	if (!in_info || !out_info)
++		return false;
++
+ 	if ((in_info->flavor == 0) || (out_info->flavor == 0))
+ 		return false;
+ 
+-- 
+2.12.2
