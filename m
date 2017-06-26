@@ -1,137 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:51501 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752172AbdF2JNx (ORCPT
+Received: from mail-lf0-f52.google.com ([209.85.215.52]:33357 "EHLO
+        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751461AbdFZT4p (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Jun 2017 05:13:53 -0400
-Message-ID: <1498727623.14476.22.camel@pengutronix.de>
-Subject: Re: [PATCH] [media] staging/imx: remove confusing IS_ERR_OR_NULL
- usage
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Mon, 26 Jun 2017 15:56:45 -0400
+Received: by mail-lf0-f52.google.com with SMTP id m77so6426642lfe.0
+        for <linux-media@vger.kernel.org>; Mon, 26 Jun 2017 12:56:44 -0700 (PDT)
+Subject: Re: [PATCH v6] media: platform: Renesas IMR driver
+To: Rob Herring <robh@kernel.org>
+References: <20170623203456.503714406@cogentembedded.com>
+ <20170626194905.zjvdzcdlnv74mnr5@rob-hp-laptop>
+Cc: Mark Rutland <mark.rutland@arm.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Marek Vasut <marex@denx.de>,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Date: Thu, 29 Jun 2017 11:13:43 +0200
-In-Reply-To: <20170628201435.3237712-1-arnd@arndb.de>
-References: <20170628201435.3237712-1-arnd@arndb.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org,
+        Konstantin Kozhevnikov
+        <Konstantin.Kozhevnikov@cogentembedded.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <2c173ca0-533c-babc-dcc7-f265bc3fda5d@cogentembedded.com>
+Date: Mon, 26 Jun 2017 22:56:40 +0300
+MIME-Version: 1.0
+In-Reply-To: <20170626194905.zjvdzcdlnv74mnr5@rob-hp-laptop>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+Hello!
 
-thank you for the cleanup. I see two issues below:
+On 06/26/2017 10:49 PM, Rob Herring wrote:
 
-On Wed, 2017-06-28 at 22:13 +0200, Arnd Bergmann wrote:
-> While looking at a compiler warning, I noticed the use of
-> IS_ERR_OR_NULL, which is generally a sign of a bad API design
-> and should be avoided.
-> 
-> In this driver, this is fairly easy, we can simply stop storing
-> error pointers in persistent structures, and change the one
-> function that might return either a NULL pointer or an error
-> code to consistently return error pointers when failing.
-> 
-> Fixes: e130291212df ("[media] media: Add i.MX media core driver")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
-> I can't reproduce the original warning any more, but this
-> patch still makes sense by itself.
-> ---
->  drivers/staging/media/imx/imx-ic-prpencvf.c | 41 ++++++++++++++++-------------
->  drivers/staging/media/imx/imx-media-csi.c   | 29 +++++++++++---------
->  drivers/staging/media/imx/imx-media-dev.c   |  2 +-
->  drivers/staging/media/imx/imx-media-of.c    |  2 +-
->  drivers/staging/media/imx/imx-media-vdic.c  | 37 ++++++++++++++------------
->  5 files changed, 61 insertions(+), 50 deletions(-)
-> 
-[...]
-> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-> index a2d26693912e..a4b3c305dcc8 100644
-> --- a/drivers/staging/media/imx/imx-media-csi.c
-> +++ b/drivers/staging/media/imx/imx-media-csi.c
-> @@ -122,11 +122,11 @@ static inline struct csi_priv *sd_to_dev(struct v4l2_subdev *sdev)
->  
->  static void csi_idmac_put_ipu_resources(struct csi_priv *priv)
->  {
-> -	if (!IS_ERR_OR_NULL(priv->idmac_ch))
-> +	if (priv->idmac_ch)
->  		ipu_idmac_put(priv->idmac_ch);
->  	priv->idmac_ch = NULL;
->  
-> -	if (!IS_ERR_OR_NULL(priv->smfc))
-> +	if (priv->smfc)
->  		ipu_smfc_put(priv->smfc);
->  	priv->smfc = NULL;
->  }
-> @@ -134,23 +134,26 @@ static void csi_idmac_put_ipu_resources(struct csi_priv *priv)
->  static int csi_idmac_get_ipu_resources(struct csi_priv *priv)
->  {
->  	int ch_num, ret;
-> +	struct ipu_smfc *smfc, *idmac_ch;
+>> From: Konstantin Kozhevnikov <Konstantin.Kozhevnikov@cogentembedded.com>
+>>
+>> The image renderer, or the distortion correction engine, is a drawing
+>> processor with a simple instruction system capable of referencing video
+>> capture data or data in an external memory as the 2D texture data and
+>> performing texture mapping and drawing with respect to any shape that is
+>> split into triangular objects.
+>>
+>> This V4L2 memory-to-memory device driver only supports image renderer light
+>> extended 4 (IMR-LX4) found in the R-Car gen3 SoCs; the R-Car gen2 support
+>> can be added later...
+>>
+>> [Sergei: merged 2 original patches, added  the patch description, removed
+>> unrelated parts,  added the binding document and the UAPI documentation,
+>> ported the driver to the modern kernel, renamed the UAPI header file and
+>> the guard macros to match the driver name, extended the copyrights, fixed
+>> up Kconfig prompt/depends/help, made use of the BIT/GENMASK() macros,
+>> sorted  #include's, replaced 'imr_ctx::crop' array with the 'imr_ctx::rect'
+>> structure, replaced imr_{g|s}_crop() with imr_{g|s}_selection(), completely
+>> rewrote imr_queue_setup(), removed 'imr_format_info::name', moved the
+>> applicable code from imr_buf_queue() to imr_buf_prepare() and moved the
+>> rest of imr_buf_queue() after imr_buf_finish(), assigned 'src_vq->dev' and
+>> 'dst_vq->dev' in imr_queue_init(), removed imr_start_streaming(), assigned
+>> 'src_vq->dev' and 'dst_vq->dev' in imr_queue_init(), clarified the math in
+>> imt_tri_type_{a|b|c}_length(), clarified the pointer math and avoided casts
+>> to 'void *' in imr_tri_set_type_{a|b|c}(), replaced imr_{reqbufs|querybuf|
+>> dqbuf|expbuf|streamon|streamoff}() with the generic helpers, implemented
+>> vidioc_{create_bufs|prepare_buf}() methods, used ALIGN() macro and merged
+>> the matrix size checks and replaced kmalloc()/copy_from_user() calls with
+>> memdup_user() call in imr_ioctl_map(), moved setting device capabilities
+>> from imr_querycap() to imr_probe(), set the valid default queue format in
+>> imr_probe(), removed leading dots and fixed grammar in the comments, fixed
+>> up  the indentation  to use  tabs where possible, renamed DLSR, CMRCR.
+>> DY1{0|2}, and ICR bits to match the manual, changed the prefixes of the
+>> CMRCR[2]/TRI{M|C}R bits/fields to match the manual, removed non-existent
+>> TRIMR.D{Y|U}D{X|V}M bits, added/used the IMR/{UV|CP}DPOR/SUSR bits/fields/
+>> shifts, separated the register offset/bit #define's, sorted instruction
+>> macros by opcode, removed unsupported LINE instruction, masked the register
+>> address in WTL[2]/WTS instruction macros, moved the display list #define's
+>> after the register #define's, removing the redundant comment, avoided
+>> setting reserved bits when writing CMRCCR[2]/TRIMCR, used the SR bits
+>> instead of a bare number, removed *inline* from .c file, fixed lines over
+>> 80 columns, removed useless spaces, comments, parens, operators, casts,
+>> braces, variables, #include's, statements, and even 1 function, added
+>> useful local variable, uppercased and spelled out the abbreviations,
+>> made comment wording more consistent/correct, fixed the comment typos,
+>> reformatted some multiline comments, inserted empty line after declaration,
+>> removed extra empty lines,  reordered some local variable desclarations,
+>> removed calls to 4l2_err() on kmalloc() failure, replaced '*' with 'x'
+>> in some format strings for v4l2_dbg(), fixed the error returned by
+>> imr_default(), avoided code duplication in the IRQ handler, used '__packed'
+>> for the UAPI structures, declared 'imr_map_desc::data' as '__u64' instead
+>> of 'void *', switched to '__u{16|32}' in the UAPI header, enclosed the
+>> macro parameters in parens, exchanged the values of IMR_MAP_AUTO{S|D}G
+>> macros.]
+>
+> TL;DR needed here IMO.
 
-This should be
+    Not sure I understand... stands for "too long; didn't read", right?
 
-+	struct ipuv3_channel *idmac_ch;
-+	struct ipu_smfc *smfc;
+> Not sure anyone really cares every detail you
+> changed in re-writing this. If they did, it should all be separate
+> commits.
 
-instead.
+    AFAIK this is a way that's things are dealt with when you submit somebody 
+else's work with your changes. Sorry if the list is too long...
 
-[...]
-> diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-> index 48cbc7716758..c58ff0831890 100644
-> --- a/drivers/staging/media/imx/imx-media-dev.c
-> +++ b/drivers/staging/media/imx/imx-media-dev.c
-> @@ -91,7 +91,7 @@ imx_media_add_async_subdev(struct imx_media_dev *imxmd,
->  	if (imx_media_find_async_subdev(imxmd, np, devname)) {
->  		dev_dbg(imxmd->md.dev, "%s: already added %s\n",
->  			__func__, np ? np->name : devname);
-> -		imxsd = NULL;
-> +		imxsd = ERR_PTR(-EEXIST);
+>> Signed-off-by: Konstantin Kozhevnikov <Konstantin.Kozhevnikov@cogentembedded.com>
+>> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+>
+> I acked v5 and it doesn't seem the binding changed.
 
-And since this returns -EEXIST now, ...
+    Sorry, I realized that I'd missed to collect you ACK just after sending 
+v6... I believe there'll be v7 yet, so I'll finally collect it.
 
->  		goto out;
->  	}
->  
-> diff --git a/drivers/staging/media/imx/imx-media-of.c b/drivers/staging/media/imx/imx-media-of.c
-> index b026fe66467c..4aac42cb79a4 100644
-> --- a/drivers/staging/media/imx/imx-media-of.c
-> +++ b/drivers/staging/media/imx/imx-media-of.c
-> @@ -115,7 +115,7 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
->  
->  	/* register this subdev with async notifier */
->  	imxsd = imx_media_add_async_subdev(imxmd, sd_np, NULL);
-> -	if (IS_ERR_OR_NULL(imxsd))
-> +	if (IS_ERR(imxsd))
->  		return imxsd;
+> Rob
 
-... this changes behaviour:
-
-    imx-media: imx_media_of_parse failed with -17
-    imx-media: probe of capture-subsystem failed with error -17
-
-We must continue to return NULL here if imxsd == -EEXIST:
-
--		return imxsd;
-+		return PTR_ERR(imxsd) == -EEXIST ? NULL : imxsd;
-
-or change the code where of_parse_subdev is called (from
-imx_media_of_parse, and recursively from of_parse_subdev) to not handle
-the -EEXIST return value as an error.
-
-With those fixed,
-
-Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
-Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-
-regards
-Philipp
+MBR, Sergei
