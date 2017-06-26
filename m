@@ -1,182 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay4.synopsys.com ([198.182.47.9]:55070 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751572AbdF1JZr (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:52935 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751411AbdFZKHP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Jun 2017 05:25:47 -0400
-Subject: Re: [PATCH v4 2/4] [media] platform: Add Synopsys Designware HDMI RX
- Controller Driver
-To: Sylwester Nawrocki <snawrocki@kernel.org>,
-        Jose Abreu <Jose.Abreu@synopsys.com>
-References: <cover.1497978962.git.joabreu@synopsys.com>
- <314b7ae92c9924d0991e14ccad80ca937a2d7b07.1497978962.git.joabreu@synopsys.com>
- <e6f63454-2e87-6e93-50c3-2802e9357c2a@kernel.org>
- <2868c525-3edd-0fe1-cc6f-49a758f8c434@synopsys.com>
- <2153d8da-effc-fedd-a2ce-b1c9ee40a82c@kernel.org>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <devicetree@vger.kernel.org>,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-Message-ID: <31dbb0fb-6256-a609-856c-f92b4245e2e6@synopsys.com>
-Date: Wed, 28 Jun 2017 10:25:40 +0100
+        Mon, 26 Jun 2017 06:07:15 -0400
+Subject: Re: [PATCH v1 3/5] [media] stm32-dcmi: crop sensor image to match
+ user resolution
+To: Hugues FRUCHET <hugues.fruchet@st.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre TORGUE <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1498144371-13310-1-git-send-email-hugues.fruchet@st.com>
+ <1498144371-13310-4-git-send-email-hugues.fruchet@st.com>
+ <ee46bbd4-9343-7060-3c1b-455486eb7a9c@xs4all.nl>
+ <8ae4c160-3137-0fa8-3d78-e4e1284521a4@st.com>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick FERTRE <yannick.fertre@st.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2844ed1a-d310-4381-c4a7-88ab4633f32f@xs4all.nl>
+Date: Mon, 26 Jun 2017 12:07:07 +0200
 MIME-Version: 1.0
-In-Reply-To: <2153d8da-effc-fedd-a2ce-b1c9ee40a82c@kernel.org>
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <8ae4c160-3137-0fa8-3d78-e4e1284521a4@st.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
-
-
-On 27-06-2017 21:34, Sylwester Nawrocki wrote:
-> Hi Jose,
->
-> On 06/27/2017 10:43 AM, Jose Abreu wrote:
->> On 25-06-2017 22:13, Sylwester Nawrocki wrote:
->>> On 06/20/2017 07:26 PM, Jose Abreu wrote:
->>>> This is an initial submission for the Synopsys Designware HDMI RX
->>>> Controller Driver. This driver interacts with a phy driver so that
->>>> a communication between them is created and a video pipeline is
->>>> configured.
->>>> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
->>>> +static int dw_hdmi_phy_init(struct dw_hdmi_dev *dw_dev)
->>>> +{
->>>> +	struct dw_phy_pdata *phy = &dw_dev->phy_config;
->>>> +	const struct of_device_id *of_id;
->>>> +	struct of_dev_auxdata lookup;
->>> 	struct of_dev_auxdata lookup = { };
+On 26/06/17 11:53, Hugues FRUCHET wrote:
+> Hi Hans, thanks for review.
+> 
+> Reply below.
+> 
+> BR
+> Hugues.
+> 
+> On 06/22/2017 05:19 PM, Hans Verkuil wrote:
+>> On 06/22/2017 05:12 PM, Hugues Fruchet wrote:
+>>> Add flexibility on supported resolutions by cropping sensor
+>>> image to fit user resolution format request.
 >>>
->>> You could initialize to 0 here and...
+>>> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+>>> ---
+>>>    drivers/media/platform/stm32/stm32-dcmi.c | 54 ++++++++++++++++++++++++++++++-
+>>>    1 file changed, 53 insertions(+), 1 deletion(-)
 >>>
->>>> +	struct device_node *child;
->>>> +	const char *drvname;
->>>> +	int ret;
->>>> +
->>>> +	child = dw_hdmi_get_phy_of_node(dw_dev, &of_id);
->>>> +	if (!child || !of_id || !of_id->data) {
->>>> +		dev_err(dw_dev->dev, "no supported phy found in DT\n");
->>>> +		return -EINVAL;
->>>> +	}
->>>> +
->>>> +	drvname = of_id->data;
->>>> +	phy->funcs = &dw_hdmi_phy_funcs;
->>>> +	phy->funcs_arg = dw_dev;
->>>> +
->>>> +	lookup.compatible = (char *)of_id->compatible;
->>>> +	lookup.phys_addr = 0x0;
->>>> +	lookup.name = NULL;
->>> ...drop these two assignments.
->> Ok.
+>>> diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
+>>> index 75d53aa..bc5e052 100644
+>>> --- a/drivers/media/platform/stm32/stm32-dcmi.c
+>>> +++ b/drivers/media/platform/stm32/stm32-dcmi.c
+>>> @@ -131,6 +131,8 @@ struct stm32_dcmi {
+>>>    	struct v4l2_async_notifier	notifier;
+>>>    	struct dcmi_graph_entity	entity;
+>>>    	struct v4l2_format		fmt;
+>>> +	struct v4l2_rect		crop;
+>>> +	bool				do_crop;
+>>>    
+>>>    	const struct dcmi_format	**user_formats;
+>>>    	unsigned int			num_user_formats;
+>>> @@ -538,6 +540,27 @@ static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
+>>>    	if (dcmi->bus.flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
+>>>    		val |= CR_PCKPOL;
+>>>    
+>>> +	if (dcmi->do_crop) {
+>>> +		u32 size, start;
+>>> +
+>>> +		/* Crop resolution */
+>>> +		size = ((dcmi->crop.height - 1) << 16) |
+>>> +			((dcmi->crop.width << 1) - 1);
+>>> +		reg_write(dcmi->regs, DCMI_CWSIZE, size);
+>>> +
+>>> +		/* Crop start point */
+>>> +		start = ((dcmi->crop.top) << 16) |
+>>> +			 ((dcmi->crop.left << 1));
+>>> +		reg_write(dcmi->regs, DCMI_CWSTRT, start);
+>>> +
+>>> +		dev_dbg(dcmi->dev, "Cropping to %ux%u@%u:%u\n",
+>>> +			dcmi->crop.width, dcmi->crop.height,
+>>> +			dcmi->crop.left, dcmi->crop.top);
+>>> +
+>>> +		/* Enable crop */
+>>> +		val |= CR_CROP;
+>>> +	};
+>>> +
+>>>    	reg_write(dcmi->regs, DCMI_CR, val);
+>>>    
+>>>    	/* Enable dcmi */
+>>> @@ -707,6 +730,8 @@ static int dcmi_try_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f,
+>>>    		.which = V4L2_SUBDEV_FORMAT_TRY,
+>>>    	};
+>>>    	int ret;
+>>> +	__u32 width, height;
+>>> +	struct v4l2_mbus_framefmt *mf = &format.format;
+>>>    
+>>>    	dcmi_fmt = find_format_by_fourcc(dcmi, pixfmt->pixelformat);
+>>>    	if (!dcmi_fmt) {
+>>> @@ -724,8 +749,18 @@ static int dcmi_try_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f,
+>>>    	if (ret < 0)
+>>>    		return ret;
+>>>    
+>>> +	/* Align format on what sensor can do */
+>>> +	width = pixfmt->width;
+>>> +	height = pixfmt->height;
+>>>    	v4l2_fill_pix_format(pixfmt, &format.format);
+>>>    
+>>> +	/* We can do any resolution thanks to crop */
+>>> +	if ((mf->width > width) || (mf->height > height)) {
+>>> +		/* Restore width/height */
+>>> +		pixfmt->width = width;
+>>> +		pixfmt->height = height;
+>>> +	};
+>>> +
+>>>    	pixfmt->field = V4L2_FIELD_NONE;
+>>>    	pixfmt->bytesperline = pixfmt->width * dcmi_fmt->bpp;
+>>>    	pixfmt->sizeimage = pixfmt->bytesperline * pixfmt->height;
+>>> @@ -741,6 +776,8 @@ static int dcmi_set_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f)
+>>>    	struct v4l2_subdev_format format = {
+>>>    		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+>>>    	};
+>>> +	struct v4l2_mbus_framefmt *mf = &format.format;
+>>> +	struct v4l2_pix_format *pixfmt = &f->fmt.pix;
+>>>    	const struct dcmi_format *current_fmt;
+>>>    	int ret;
+>>>    
+>>> @@ -748,13 +785,28 @@ static int dcmi_set_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f)
+>>>    	if (ret)
+>>>    		return ret;
+>>>    
+>>> -	v4l2_fill_mbus_format(&format.format, &f->fmt.pix,
+>>> +	v4l2_fill_mbus_format(&format.format, pixfmt,
+>>>    			      current_fmt->mbus_code);
+>>>    	ret = v4l2_subdev_call(dcmi->entity.subdev, pad,
+>>>    			       set_fmt, NULL, &format);
+>>>    	if (ret < 0)
+>>>    		return ret;
+>>>    
+>>> +	/* Enable crop if sensor resolution is larger than request */
+>>> +	dcmi->do_crop = false;
+>>> +	if ((mf->width > pixfmt->width) || (mf->height > pixfmt->height)) {
+>>> +		dcmi->crop.width = pixfmt->width;
+>>> +		dcmi->crop.height = pixfmt->height;
+>>> +		dcmi->crop.left = (mf->width - pixfmt->width) / 2;
+>>> +		dcmi->crop.top = (mf->height - pixfmt->height) / 2;
+>>> +		dcmi->do_crop = true;
 >>
->>>> +	lookup.platform_data = phy;
->>>> +
->>>> +	request_module(drvname);
->>> I'd say this request_module() is not needed when you use the v4l2-async
->>> subnotifiers and the modules are properly installed in the file system.
->>> I might be missing something though.
->> Hmm, well I didn't actually test without request_module but I
->> think its needed, otherwise I would have to do:
->>
->> modprobe phy_module
->> modprobe controller_module
->>
->> With request_module I just have to do:
->>
->> modprobe controller_module
-> If you are sure you need it I'm not against that.  But assuming you have udev 
-> in your system it should also work like this, without request_module():
->
-> 1. modprobe controller_module -> phy device is created in the kernel, uevent sent
-> 2. udev receives uevent, finds matching module and does modprobe phy_module
->
-> Remaining part is as before: phy_module registers the driver which gets matched with 
-> phy device; probe() is called which registers v4l2 subdev which then is registered
-> to v4l2_device through the v4l2-async mechanism.
->
-> All this assumes udev is running and modules are installed in /lib/modules/$(uname -r).
-> E.g. there should be your module alias as shown by modinfo phy_module in
-> /lib/modules/$(uname -r)/modules.alias.
+>> Why not implement the selection API instead? I assume that you can crop from any
+>> region of the sensor, not just the center part.
+> 
+> The point here was to add some flexibility for user in term of 
+> resolution and also less memory consumption.
+> For example here I want to make a 480x272 preview:
+> - without this change: S_FMT(480x272) returns VGA (the OV9655 larger 
+> discrete resolution), then app has to capture VGA frames then crop to 
+> fit 480x272 frame buffer.
+> - with this change: S_FMT(480x272) returns 480x272 (crop done by 
+> hardware), app can directly capture 480x272 then copy to framebuffer 
+> without any conversion.
+> 
+> Implementation of V4L2 crop using SELECTION API could also be used,
+> but I need to change app.
+> 
+> More generally, with a given couple ISP+sensor, will S_FMT()
+> return the sensor only supported resolutions ? or the supported 
+> resolutions of the couple ISP+sensor (ISP will downscale/upscale/crop
+> the sensor discrete resolution to fit user request) ?
+> 
+> Hans, what are your recommendations ?
 
-The modules are installed but I think I don't have udev :/ I'm
-running this on an embedded platform called ARC AXS and I'm using
-buildroot with minimal options.
+This is not the way the V4L2 API works.
 
->
->>>> +	ret = of_platform_populate(dw_dev->of_node, NULL, &lookup, dw_dev->dev);
->>>> +	if (ret) {
->>>> +		dev_err(dw_dev->dev, "failed to populate phy driver\n");
->>>> +		return ret;
->>>> +	}
->>>> +
->>>> +	return 0;
->>>> +}
->>>> +
->>>> +static void dw_hdmi_phy_exit(struct dw_hdmi_dev *dw_dev)
->>>> +{
->>>> +	of_platform_depopulate(dw_dev->dev);
->>>> +}
->>>> +static int dw_hdmi_v4l2_notify_complete(struct v4l2_async_notifier *notifier)
->>>> +{
->>>> +	struct dw_hdmi_dev *dw_dev = notifier_to_dw_dev(notifier);
->>>> +	int ret;
->>>> +
->>>> +	ret = v4l2_device_register_subdev_nodes(&dw_dev->v4l2_dev);
->>> There shouldn't be multiple struct v4l2_device instances, instead we should
->>> have only one created by the main driver. AFAIU, in your case it would be
->>> driver associated with the dw-hdmi-soc DT node.  And normally such a top level
->>> driver creates subdev device nodes when its all required sub-devices are
->>> available.
+Sensors report their supported resolutions through the ENUM_FRAMESIZES
+(and the related ENUM_FRAMEINTERVALS) ioctls.
+
+With S_FMT you pick the resolution you want.
+
+If you then want to crop the driver should implement the selection API
+(this will also automatically enable the G/S_CROP/CROPCAP ioctls) so the
+application can select which part of the image should be cropped. Assuming
+there is no scaler then after cropping the format size will be reduced
+to the size of the cropped image.
+
+That's in a nutshell how these ioctls relate to one another.
+
+Regards,
+
+	Hans
+
+> 
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>> +
+>>> +		dev_dbg(dcmi->dev, "%ux%u cropped to %ux%u@(%u,%u)\n",
+>>> +			mf->width, mf->height,
+>>> +			dcmi->crop.width, dcmi->crop.height,
+>>> +			dcmi->crop.left, dcmi->crop.top);
+>>> +	};
+>>> +
+>>>    	dcmi->fmt = *f;
+>>>    	dcmi->current_fmt = current_fmt;
+>>>    
 >>>
->>> I think this patch could be useful for you:
->>> https://urldefense.proofpoint.com/v2/url?u=https-3A__patchwork.linuxtv.org_patch_41834&d=DwICaQ&c=DPL6_X_6JkXFx7AXWqB0tg&r=WHDsc6kcWAl4i96Vm5hJ_19IJiuxx_p_Rzo2g-uHDKw&m=uNHRQkbP_-z8v5d30KFx9pcPEUhlr4ciWY3ZDAVExTA&s=dB9wpgeP7AJg1eDRty0-RKhq3DY-7J5srIzyVoJey5I&e= 
->>>
->>> With that the dw-hdmi-soc driver would have it's v4l2-async notifier's
->>> notify_complete() callback called only when both the hdmi-rx and the
->>> hdmi-phy subdevs are registered.
->> Yeah, I saw the patches. I just implemented this way because they
->> are not merged yet, right?
-> I think these patches will be merged in v4.14-rc1, so together with your driver.
-> You could apply them locally and indicate that your series depends on them in 
-> the cover letter.
-
-Ok, will apply them locally and re-test.
-
->
->>>> +	if (ret) {
->>>> +		dev_err(dw_dev->dev, "failed to register subdev nodes\n");
->>>> +		return ret;
->>>> +	}
->>>> +
->>>> +	return 0;
->>>> +}
->>>> +static int dw_hdmi_rx_probe(struct platform_device *pdev)
->>>> +{
->>>> +	/* V4L2 initialization */
->>>> +	sd = &dw_dev->sd;
->>>> +	v4l2_subdev_init(sd, &dw_hdmi_sd_ops);
->>>> +	strlcpy(sd->name, dev_name(dev), sizeof(sd->name));
->>>> +	sd->dev = dev;
->>>> +	sd->internal_ops = &dw_hdmi_internal_ops;
->>>> +	sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS;
->>> Don't you also need V4L2_SUBDEV_FL_HAS_DEVNODE flag set?
->> Ouch. Yes I need otherwise the subdev will not be associated with
->> the v4l2_device.
-> This flag indicates that the v4l2 subdev device node (/dev/v4l-subdev?)
-> should be created for this subdevice.
-
-Ok, will add for controller driver only then: I think for phy
-this should not be added because controller is responsible to
-manage phy entirely so creating a /dev/ which can be seen by
-userspace can lead to confusion, maybe?
-
-Best regards,
-Jose Miguel Abreu
-
->
-> ---
-> Regards,
-> Sylwester
->  
