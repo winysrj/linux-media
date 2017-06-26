@@ -1,221 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40814 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751555AbdFODbf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 23:31:35 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 02/15] af9013: move config values directly under driver state
-Date: Thu, 15 Jun 2017 06:30:52 +0300
-Message-Id: <20170615033105.13517-2-crope@iki.fi>
-In-Reply-To: <20170615033105.13517-1-crope@iki.fi>
-References: <20170615033105.13517-1-crope@iki.fi>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:13390 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751382AbdFZKgc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Jun 2017 06:36:32 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre TORGUE <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
+        Yannick FERTRE <yannick.fertre@st.com>,
+        Discussions about the Letux Kernel
+        <letux-kernel@openphoenux.org>
+Subject: Re: [PATCH v1 1/6] DT bindings: add bindings for ov965x camera module
+Date: Mon, 26 Jun 2017 10:35:49 +0000
+Message-ID: <64e3005d-31df-71f2-762b-2c1b1152fc2d@st.com>
+References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
+ <1498143942-12682-2-git-send-email-hugues.fruchet@st.com>
+ <D5629236-95D8-45B6-9719-E8B9796FEC90@goldelico.com>
+In-Reply-To: <D5629236-95D8-45B6-9719-E8B9796FEC90@goldelico.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <45E491CEEE9DE443915C1C726EF504C8@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It shorten, as typed chars, access to config values as there is one
-pointer less. Also, when config/platform data is passed to driver there
-could be some values that are not relevant to store state as such or
-not needed to store at all.
-
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/af9013.c | 62 ++++++++++++++++++++++--------------
- 1 file changed, 38 insertions(+), 24 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
-index b978002..7880a63 100644
---- a/drivers/media/dvb-frontends/af9013.c
-+++ b/drivers/media/dvb-frontends/af9013.c
-@@ -26,7 +26,14 @@
- struct af9013_state {
- 	struct i2c_adapter *i2c;
- 	struct dvb_frontend fe;
--	struct af9013_config config;
-+	u8 i2c_addr;
-+	u32 clk;
-+	u8 tuner;
-+	u32 if_frequency;
-+	u8 ts_mode;
-+	bool spec_inv;
-+	u8 api_version[4];
-+	u8 gpio[4];
- 
- 	/* tuner/demod RF and IF AGC limits used for signal strength calc */
- 	u8 signal_strength_en, rf_50, rf_80, if_50, if_80;
-@@ -52,7 +59,7 @@ static int af9013_wr_regs_i2c(struct af9013_state *priv, u8 mbox, u16 reg,
- 	u8 buf[MAX_XFER_SIZE];
- 	struct i2c_msg msg[1] = {
- 		{
--			.addr = priv->config.i2c_addr,
-+			.addr = priv->i2c_addr,
- 			.flags = 0,
- 			.len = 3 + len,
- 			.buf = buf,
-@@ -90,12 +97,12 @@ static int af9013_rd_regs_i2c(struct af9013_state *priv, u8 mbox, u16 reg,
- 	u8 buf[3];
- 	struct i2c_msg msg[2] = {
- 		{
--			.addr = priv->config.i2c_addr,
-+			.addr = priv->i2c_addr,
- 			.flags = 0,
- 			.len = 3,
- 			.buf = buf,
- 		}, {
--			.addr = priv->config.i2c_addr,
-+			.addr = priv->i2c_addr,
- 			.flags = I2C_M_RD,
- 			.len = len,
- 			.buf = val,
-@@ -124,7 +131,7 @@ static int af9013_wr_regs(struct af9013_state *priv, u16 reg, const u8 *val,
- 	int ret, i;
- 	u8 mbox = (0 << 7)|(0 << 6)|(1 << 1)|(1 << 0);
- 
--	if ((priv->config.ts_mode == AF9013_TS_USB) &&
-+	if ((priv->ts_mode == AF9013_TS_USB) &&
- 		((reg & 0xff00) != 0xff00) && ((reg & 0xff00) != 0xae00)) {
- 		mbox |= ((len - 1) << 2);
- 		ret = af9013_wr_regs_i2c(priv, mbox, reg, val, len);
-@@ -146,7 +153,7 @@ static int af9013_rd_regs(struct af9013_state *priv, u16 reg, u8 *val, int len)
- 	int ret, i;
- 	u8 mbox = (0 << 7)|(0 << 6)|(1 << 1)|(0 << 0);
- 
--	if ((priv->config.ts_mode == AF9013_TS_USB) &&
-+	if ((priv->ts_mode == AF9013_TS_USB) &&
- 		((reg & 0xff00) != 0xff00) && ((reg & 0xff00) != 0xae00)) {
- 		mbox |= ((len - 1) << 2);
- 		ret = af9013_rd_regs_i2c(priv, mbox, reg, val, len);
-@@ -595,7 +602,7 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
- 	/* program CFOE coefficients */
- 	if (c->bandwidth_hz != state->bandwidth_hz) {
- 		for (i = 0; i < ARRAY_SIZE(coeff_lut); i++) {
--			if (coeff_lut[i].clock == state->config.clock &&
-+			if (coeff_lut[i].clock == state->clk &&
- 				coeff_lut[i].bandwidth_hz == c->bandwidth_hz) {
- 				break;
- 			}
-@@ -615,24 +622,24 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
- 		if (fe->ops.tuner_ops.get_if_frequency)
- 			fe->ops.tuner_ops.get_if_frequency(fe, &if_frequency);
- 		else
--			if_frequency = state->config.if_frequency;
-+			if_frequency = state->if_frequency;
- 
- 		dev_dbg(&state->i2c->dev, "%s: if_frequency=%d\n",
- 				__func__, if_frequency);
- 
- 		sampling_freq = if_frequency;
- 
--		while (sampling_freq > (state->config.clock / 2))
--			sampling_freq -= state->config.clock;
-+		while (sampling_freq > (state->clk / 2))
-+			sampling_freq -= state->clk;
- 
- 		if (sampling_freq < 0) {
- 			sampling_freq *= -1;
--			spec_inv = state->config.spec_inv;
-+			spec_inv = state->spec_inv;
- 		} else {
--			spec_inv = !state->config.spec_inv;
-+			spec_inv = !state->spec_inv;
- 		}
- 
--		freq_cw = af9013_div(state, sampling_freq, state->config.clock,
-+		freq_cw = af9013_div(state, sampling_freq, state->clk,
- 				23);
- 
- 		if (spec_inv)
-@@ -1078,12 +1085,12 @@ static int af9013_init(struct dvb_frontend *fe)
- 		goto err;
- 
- 	/* write API version to firmware */
--	ret = af9013_wr_regs(state, 0x9bf2, state->config.api_version, 4);
-+	ret = af9013_wr_regs(state, 0x9bf2, state->api_version, 4);
- 	if (ret)
- 		goto err;
- 
- 	/* program ADC control */
--	switch (state->config.clock) {
-+	switch (state->clk) {
- 	case 28800000: /* 28.800 MHz */
- 		tmp = 0;
- 		break;
-@@ -1102,7 +1109,7 @@ static int af9013_init(struct dvb_frontend *fe)
- 		return -EINVAL;
- 	}
- 
--	adc_cw = af9013_div(state, state->config.clock, 1000000ul, 19);
-+	adc_cw = af9013_div(state, state->clk, 1000000ul, 19);
- 	buf[0] = (adc_cw >>  0) & 0xff;
- 	buf[1] = (adc_cw >>  8) & 0xff;
- 	buf[2] = (adc_cw >> 16) & 0xff;
-@@ -1136,7 +1143,7 @@ static int af9013_init(struct dvb_frontend *fe)
- 		goto err;
- 
- 	/* settings for mp2if */
--	if (state->config.ts_mode == AF9013_TS_USB) {
-+	if (state->ts_mode == AF9013_TS_USB) {
- 		/* AF9015 split PSB to 1.5k + 0.5k */
- 		ret = af9013_wr_reg_bits(state, 0xd50b, 2, 1, 1);
- 		if (ret)
-@@ -1171,7 +1178,7 @@ static int af9013_init(struct dvb_frontend *fe)
- 	/* load tuner specific settings */
- 	dev_dbg(&state->i2c->dev, "%s: load tuner specific settings\n",
- 			__func__);
--	switch (state->config.tuner) {
-+	switch (state->tuner) {
- 	case AF9013_TUNER_MXL5003D:
- 		len = ARRAY_SIZE(tuner_init_mxl5003d);
- 		init = tuner_init_mxl5003d;
-@@ -1223,7 +1230,7 @@ static int af9013_init(struct dvb_frontend *fe)
- 	}
- 
- 	/* TS mode */
--	ret = af9013_wr_reg_bits(state, 0xd500, 1, 2, state->config.ts_mode);
-+	ret = af9013_wr_reg_bits(state, 0xd500, 1, 2, state->ts_mode);
- 	if (ret)
- 		goto err;
- 
-@@ -1322,7 +1329,7 @@ static int af9013_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
- 	if (state->i2c_gate_state == enable)
- 		return 0;
- 
--	if (state->config.ts_mode == AF9013_TS_USB)
-+	if (state->ts_mode == AF9013_TS_USB)
- 		ret = af9013_wr_reg_bits(state, 0xd417, 3, 1, enable);
- 	else
- 		ret = af9013_wr_reg_bits(state, 0xd607, 2, 1, enable);
-@@ -1474,10 +1481,17 @@ struct dvb_frontend *af9013_attach(const struct af9013_config *config,
- 
- 	/* setup the state */
- 	state->i2c = i2c;
--	memcpy(&state->config, config, sizeof(struct af9013_config));
-+	state->i2c_addr = config->i2c_addr;
-+	state->clk = config->clock;
-+	state->tuner = config->tuner;
-+	state->if_frequency = config->if_frequency;
-+	state->ts_mode = config->ts_mode;
-+	state->spec_inv = config->spec_inv;
-+	memcpy(&state->api_version, config->api_version, sizeof(state->api_version));
-+	memcpy(&state->gpio, config->gpio, sizeof(state->gpio));
- 
- 	/* download firmware */
--	if (state->config.ts_mode != AF9013_TS_USB) {
-+	if (state->ts_mode != AF9013_TS_USB) {
- 		ret = af9013_download_firmware(state);
- 		if (ret)
- 			goto err;
-@@ -1492,8 +1506,8 @@ struct dvb_frontend *af9013_attach(const struct af9013_config *config,
- 			KBUILD_MODNAME, buf[0], buf[1], buf[2], buf[3]);
- 
- 	/* set GPIOs */
--	for (i = 0; i < sizeof(state->config.gpio); i++) {
--		ret = af9013_set_gpio(state, i, state->config.gpio[i]);
-+	for (i = 0; i < sizeof(state->gpio); i++) {
-+		ret = af9013_set_gpio(state, i, state->gpio[i]);
- 		if (ret)
- 			goto err;
- 	}
--- 
-http://palosaari.fi/
+DQoNCk9uIDA2LzIzLzIwMTcgMTI6MjUgUE0sIEguIE5pa29sYXVzIFNjaGFsbGVyIHdyb3RlOg0K
+PiBIaSBIdWd1ZXMsDQo+IA0KPj4gQW0gMjIuMDYuMjAxNyB1bSAxNzowNSBzY2hyaWViIEh1Z3Vl
+cyBGcnVjaGV0IDxodWd1ZXMuZnJ1Y2hldEBzdC5jb20+Og0KPj4NCj4+IEZyb206ICJILiBOaWtv
+bGF1cyBTY2hhbGxlciIgPGhuc0Bnb2xkZWxpY28uY29tPg0KPj4NCj4+IFRoaXMgYWRkcyBkb2N1
+bWVudGF0aW9uIG9mIGRldmljZSB0cmVlIGJpbmRpbmdzDQo+PiBmb3IgdGhlIE9WOTY1WCBmYW1p
+bHkgY2FtZXJhIHNlbnNvciBtb2R1bGUuDQo+Pg0KPj4gU2lnbmVkLW9mZi1ieTogSC4gTmlrb2xh
+dXMgU2NoYWxsZXIgPGhuc0Bnb2xkZWxpY28uY29tPg0KPj4gU2lnbmVkLW9mZi1ieTogSHVndWVz
+IEZydWNoZXQgPGh1Z3Vlcy5mcnVjaGV0QHN0LmNvbT4NCj4+IC0tLQ0KPj4gLi4uL2RldmljZXRy
+ZWUvYmluZGluZ3MvbWVkaWEvaTJjL292OTY1eC50eHQgICAgICAgfCAzNyArKysrKysrKysrKysr
+KysrKysrKysrDQo+PiAxIGZpbGUgY2hhbmdlZCwgMzcgaW5zZXJ0aW9ucygrKQ0KPj4gY3JlYXRl
+IG1vZGUgMTAwNjQ0IERvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9tZWRpYS9pMmMv
+b3Y5NjV4LnR4dA0KPj4NCj4+IGRpZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUv
+YmluZGluZ3MvbWVkaWEvaTJjL292OTY1eC50eHQgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUv
+YmluZGluZ3MvbWVkaWEvaTJjL292OTY1eC50eHQNCj4+IG5ldyBmaWxlIG1vZGUgMTAwNjQ0DQo+
+PiBpbmRleCAwMDAwMDAwLi4wZTBkZTFmDQo+PiAtLS0gL2Rldi9udWxsDQo+PiArKysgYi9Eb2N1
+bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvaTJjL292OTY1eC50eHQNCj4+IEBA
+IC0wLDAgKzEsMzcgQEANCj4+ICsqIE9tbml2aXNpb24gT1Y5NjUwLzk2NTIvOTY1NSBDTU9TIHNl
+bnNvcg0KPj4gKw0KPj4gK1RoZSBPbW5pdmlzaW9uIE9WOTY1eCBzZW5zb3Igc3VwcG9ydCBtdWx0
+aXBsZSByZXNvbHV0aW9ucyBvdXRwdXQsIHN1Y2ggYXMNCj4+ICtDSUYsIFNWR0EsIFVYR0EuIEl0
+IGFsc28gY2FuIHN1cHBvcnQgWVVWNDIyLzQyMCwgUkdCNTY1LzU1NSBvciByYXcgUkdCDQo+PiAr
+b3V0cHV0IGZvcm1hdC4NCj4+ICsNCj4+ICtSZXF1aXJlZCBQcm9wZXJ0aWVzOg0KPj4gKy0gY29t
+cGF0aWJsZTogc2hvdWxkIGJlIG9uZSBvZg0KPj4gKwkib3Z0aSxvdjk2NTAiDQo+PiArCSJvdnRp
+LG92OTY1MiINCj4+ICsJIm92dGksb3Y5NjU1Ig0KPj4gKy0gY2xvY2tzOiByZWZlcmVuY2UgdG8g
+dGhlIG1jbGsgaW5wdXQgY2xvY2suDQo+IA0KPiBJIHdvbmRlciB3aHkgeW91IGhhdmUgcmVtb3Zl
+ZCB0aGUgY2xvY2stZnJlcXVlbmN5IHByb3BlcnR5Pw0KPiANCj4gSW4gc29tZSBzaXR1YXRpb25z
+IHRoZSBjYW1lcmEgZHJpdmVyIG11c3QgYmUgYWJsZSB0byB0ZWxsIHRoZSBjbG9jayBzb3VyY2UN
+Cj4gd2hpY2ggZnJlcXVlbmN5IGl0IHdhbnRzIHRvIHNlZS4NCj4gDQo+IEZvciBleGFtcGxlIHdl
+IGNvbm5lY3QgdGhlIGNhbWVyYSB0byBhbiBPTUFQMy1JU1AgKGltYWdlIHNpZ25hbCBwcm9jZXNz
+b3IpIGFuZA0KPiB0aGVyZSBpdCBpcyBhc3N1bWVkIHRoYXQgY2FtZXJhIG1vZHVsZXMga25vdyB0
+aGUgZnJlcXVlbmN5IGFuZCBzZXQgdGhlIGNsb2NrLCBlLmcuOg0KPiANCj4gaHR0cDovL2VsaXhp
+ci5mcmVlLWVsZWN0cm9ucy5jb20vbGludXgvdjQuNC9zb3VyY2UvRG9jdW1lbnRhdGlvbi9kZXZp
+Y2V0cmVlL2JpbmRpbmdzL21lZGlhL2kyYy9ub2tpYSxzbWlhLnR4dCNMNTINCj4gaHR0cDovL2Vs
+aXhpci5mcmVlLWVsZWN0cm9ucy5jb20vbGludXgvdjMuMTQvc291cmNlL0RvY3VtZW50YXRpb24v
+ZGV2aWNldHJlZS9iaW5kaW5ncy9tZWRpYS9pMmMvbXQ5cDAzMS50eHQNCj4gDQo+IElmIHlvdXIg
+Y2xvY2sgaXMgY29uc3RhbnQgYW5kIGRlZmluZWQgZWxzZXdoZXJlIHdlIHNob3VsZCBtYWtlIHRo
+aXMNCj4gcHJvcGVydHkgb3B0aW9uYWwgaW5zdGVhZCBvZiByZXF1aXJlZC4gQnV0IGl0IHNob3Vs
+ZCBub3QgYmUgbWlzc2luZy4NCj4gDQo+IEhlcmUgaXMgYSBoYWNrIHRvIGdldCBpdCBpbnRvIHlv
+dXIgY29kZToNCj4gDQo+IGh0dHA6Ly9naXQuZ29sZGVsaWNvLmNvbS8/cD1ndGEwNC1rZXJuZWwu
+Z2l0O2E9YmxvYmRpZmY7Zj1kcml2ZXJzL21lZGlhL2kyYy9vdjk2NTAuYztoPWI3YWI0NmM3NzVi
+OWU0MDA4N2U0MjdhZTA3NzdlOWY3YzI4MzY5NGE7aHA9MTg0NmJjYmIxOWFlNzFjZTY4NmRhZGUz
+MjBhYTA2Y2UyZTQyOWNhNDtoYj1jYTg1MTk2ZjZmZDlhNzdlNWEwZjc5NmFlYWY3YWEyY2RlNjBj
+ZTkxO2hwYj04YTcxZjIxYjc1NTQzYTZkOTkxMDJiZTFhZTQ2NzdiMjhjNDc4YWM5DQo+IA0KDQpI
+ZXJlIGlzIGhvdyBpdCBpcyB1c2VkIG9uIG15IERULCB0aGUgY2FtZXJhIGNsb2NrIGlzIGEgZml4
+ZWQgY3J5c3RhbCAyNE0gDQpjbG9jazoNCg0KKwljbG9ja3Mgew0KKwkJY2xrX2V4dF9jYW1lcmE6
+IGNsay1leHQtY2FtZXJhIHsNCisJCQkjY2xvY2stY2VsbHMgPSA8MD47DQorCQkJY29tcGF0aWJs
+ZSA9ICJmaXhlZC1jbG9jayI7DQorCQkJY2xvY2stZnJlcXVlbmN5ID0gPDI0MDAwMDAwPjsNCisJ
+CX07DQorCX07DQpbLi4uXQ0KKwlvdjk2NTU6IGNhbWVyYUAzMCB7DQorCQljb21wYXRpYmxlID0g
+Im92dGksb3Y5NjU1IjsNCisJCXJlZyA9IDwweDMwPjsNCisJCXB3ZG4tZ3Bpb3MgPSA8JmdwaW9o
+IDEzIEdQSU9fQUNUSVZFX0hJR0g+Ow0KKwkJY2xvY2tzID0gPCZjbGtfZXh0X2NhbWVyYT47DQor
+CQlzdGF0dXMgPSAib2theSI7DQorDQorCQlwb3J0IHsNCisJCQlvdjk2NTVfMDogZW5kcG9pbnQg
+ew0KKwkJCQlyZW1vdGUtZW5kcG9pbnQgPSA8JmRjbWlfMD47DQorCQkJfTsNCisJCX07DQorCX07
+DQoNCg0KPj4gKw0KPj4gK09wdGlvbmFsIFByb3BlcnRpZXM6DQo+PiArLSByZXNldGItZ3Bpb3M6
+IHJlZmVyZW5jZSB0byB0aGUgR1BJTyBjb25uZWN0ZWQgdG8gdGhlIHJlc2V0YiBwaW4sIGlmIGFu
+eS4NCj4+ICstIHB3ZG4tZ3Bpb3M6IHJlZmVyZW5jZSB0byB0aGUgR1BJTyBjb25uZWN0ZWQgdG8g
+dGhlIHB3ZG4gcGluLCBpZiBhbnkuDQo+IA0KPiBIZXJlIEkgd29uZGVyIHdoeSB5b3UgZGlkIHNw
+bGl0IHRoYXQgdXAgaW50byB0d28gZ3Bpb3MuIEVhY2ggIiotZ3Bpb3MiIGNhbiBoYXZlDQo+IG11
+bHRpcGxlIGVudHJpZXMgYW5kIGlmIG9uZSBpcyBub3QgdXNlZCwgYSAwIGNhbiBiZSBzcGVjaWZp
+ZWQgdG8gbWFrZSBpdCBiZWluZyBpZ25vcmVkLg0KPiANCj4gQnV0IGl0IGlzIHVwIHRvIERUIG1h
+aW50YWluZXJzIHdoYXQgdGhleSBwcmVmZXI6IHNlcGFyYXRlIHNpbmdsZSBncGlvcyBvciBhIHNp
+bmdsZSBncGlvIGFycmF5Lg0KDQpJIGhhdmUgZm9sbG93ZWQgdGhlIG92MjY0MCBiaW5kaW5nLCB3
+aGljaCBoYXZlIHRoZSBzYW1lIHBpbnMgbmFtaW5nIA0KKHJlc2V0Yi9wd2RuKS4NCkFzIGZhciBh
+cyBJIHNlZSwgc2VwYXJhdGUgc2luZ2xlIGdwaW9zIGFyZSBjb21tb25seSB1c2VkIGluDQpEb2N1
+bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvaTJjLw0KDQo+IA0KPiANCj4gV2hh
+dCBJIGFtIG1pc3NpbmcgdG8gc3VwcG9ydCB0aGUgR1RBMDQgY2FtZXJhIGlzIHRoZSBjb250cm9s
+IG9mIHRoZSBvcHRpb25hbCAidmFuYS1zdXBwbHkiLg0KPiBTbyB0aGUgZHJpdmVyIGRvZXMgbm90
+IHBvd2VyIHVwIHRoZSBjYW1lcmEgbW9kdWxlIHdoZW4gbmVlZGVkIGFuZCB0aGVyZWZvcmUgcHJv
+YmluZyBmYWlscy4NCj4gDQo+ICAgIC0gdmFuYS1zdXBwbHk6IGEgcmVndWxhdG9yIHRvIHBvd2Vy
+IHVwIHRoZSBjYW1lcmEgbW9kdWxlLg0KPiANCj4gRHJpdmVyIGNvZGUgaXMgbm90IGNvbXBsZXgg
+dG8gYWRkOg0KPiANCj4gaHR0cDovL2dpdC5nb2xkZWxpY28uY29tLz9wPWd0YTA0LWtlcm5lbC5n
+aXQ7YT1ibG9iZGlmZjtmPWRyaXZlcnMvbWVkaWEvaTJjL292OTY1MC5jO2g9MTg0NmJjYmIxOWFl
+NzFjZTY4NmRhZGUzMjBhYTA2Y2UyZTQyOWNhNDtocD1jMDgxOWFmZGNlZmNiMTlkYTM1MTc0MWQ1
+MWRhZDAwYWFmOTA5MjU0O2hiPThhNzFmMjFiNzU1NDNhNmQ5OTEwMmJlMWFlNDY3N2IyOGM0Nzhh
+Yzk7aHBiPTZkYjU1ZmM0NzJlZWEyZWM2ZGIwMzgzM2RmMDI3YWVjZjY2NDlmODgNCg0KWWVzLCBJ
+IHNhdyBpdCBpbiB5b3VyIGNvZGUsIGJ1dCBhcyBJIGRvbid0IGhhdmUgYW55IHByb2dyYW1tYWJs
+ZSBwb3dlciANCnN1cHBseSBvbiBteSBzZXR1cCwgSSBoYXZlIG5vdCBwdXNoZWQgdGhpcyBjb21t
+aXQuDQpBbmQgSSBhbHNvIGRvbid0IGhhdmUgYSBjbG9jayB0byBlbmFibGUvZGlzYWJsZSAtZml4
+ZWQgY2xvY2stLCBJIG5lZWQgdG8gDQpjaGVjayB0aGUgYmVoYXZpb3VyIHdoZW4gZGlzYWJsaW5n
+L2VuYWJsaW5nIGEgZml4ZWQgY2xvY2ssIEkgd2lsbCBnaXZlIA0KaXQgYSB0cnkuDQoNCj4gDQo+
+PiArDQo+PiArVGhlIGRldmljZSBub2RlIG11c3QgY29udGFpbiBvbmUgJ3BvcnQnIGNoaWxkIG5v
+ZGUgZm9yIGl0cyBkaWdpdGFsIG91dHB1dA0KPj4gK3ZpZGVvIHBvcnQsIGluIGFjY29yZGFuY2Ug
+d2l0aCB0aGUgdmlkZW8gaW50ZXJmYWNlIGJpbmRpbmdzIGRlZmluZWQgaW4NCj4+ICtEb2N1bWVu
+dGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvdmlkZW8taW50ZXJmYWNlcy50eHQuDQo+
+PiArDQo+PiArRXhhbXBsZToNCj4+ICsNCj4+ICsmaTJjMiB7DQo+PiArCW92OTY1NTogY2FtZXJh
+QDMwIHsNCj4+ICsJCWNvbXBhdGlibGUgPSAib3Z0aSxvdjk2NTUiOw0KPj4gKwkJcmVnID0gPDB4
+MzA+Ow0KPj4gKwkJcHdkbi1ncGlvcyA9IDwmZ3Bpb2ggMTMgR1BJT19BQ1RJVkVfSElHSD47DQo+
+PiArCQljbG9ja3MgPSA8JmNsa19leHRfY2FtZXJhPjsNCj4+ICsNCj4+ICsJCXBvcnQgew0KPj4g
+KwkJCW92OTY1NTogZW5kcG9pbnQgew0KPj4gKwkJCQlyZW1vdGUtZW5kcG9pbnQgPSA8JmRjbWlf
+MD47DQo+PiArCQkJfTsNCj4+ICsJCX07DQo+PiArCX07DQo+PiArfTsNCj4+IC0tIA0KPj4gMS45
+LjENCj4+DQo+IA0KPiBCUiBhbmQgdGhhbmtzLA0KPiBOaWtvbGF1cw0KPiA=
