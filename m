@@ -1,91 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f177.google.com ([209.85.192.177]:35407 "EHLO
-        mail-pf0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752524AbdFMI7Q (ORCPT
+Received: from mail-qk0-f174.google.com ([209.85.220.174]:35728 "EHLO
+        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751866AbdFZPWt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 04:59:16 -0400
-Received: by mail-pf0-f177.google.com with SMTP id l89so64602532pfi.2
-        for <linux-media@vger.kernel.org>; Tue, 13 Jun 2017 01:59:11 -0700 (PDT)
-From: Binoy Jayan <binoy.jayan@linaro.org>
-To: Binoy Jayan <binoy.jayan@linaro.org>
-Cc: linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
-        Rajendra <rnayak@codeaurora.org>,
-        Mark Brown <broonie@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        "Michael S. Tsirkin" <mst@redhat.com>,
-        Cao jin <caoj.fnst@cn.fujitsu.com>, linux-media@vger.kernel.org
-Subject: [PATCH v2 3/3] media: ngene: Replace semaphore i2c_switch_mutex with mutex
-Date: Tue, 13 Jun 2017 14:28:50 +0530
-Message-Id: <1497344330-13915-4-git-send-email-binoy.jayan@linaro.org>
-In-Reply-To: <1497344330-13915-1-git-send-email-binoy.jayan@linaro.org>
-References: <1497344330-13915-1-git-send-email-binoy.jayan@linaro.org>
+        Mon, 26 Jun 2017 11:22:49 -0400
+Received: by mail-qk0-f174.google.com with SMTP id 16so3961500qkg.2
+        for <linux-media@vger.kernel.org>; Mon, 26 Jun 2017 08:22:43 -0700 (PDT)
+Date: Mon, 26 Jun 2017 12:22:39 -0300
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Nicolas Dufresne <nicolas@ndufresne.ca>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [PATCH 08/12] [media] vb2: add 'ordered' property to queues
+Message-ID: <20170626152239.GA3090@jade>
+References: <20170616073915.5027-1-gustavo@padovan.org>
+ <20170616073915.5027-9-gustavo@padovan.org>
+ <1497632193.6020.19.camel@ndufresne.ca>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <1497632193.6020.19.camel@ndufresne.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The semaphore 'i2c_switch_mutex' is used as a simple mutex, so
-it should be written as one. Semaphores are going away in the future.
+Hi Nicolas,
 
-Signed-off-by: Binoy Jayan <binoy.jayan@linaro.org>
----
- drivers/media/pci/ngene/ngene-core.c | 2 +-
- drivers/media/pci/ngene/ngene-i2c.c  | 6 +++---
- drivers/media/pci/ngene/ngene.h      | 2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+2017-06-16 Nicolas Dufresne <nicolas@ndufresne.ca>:
 
-diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
-index ea64901..8c92cb7 100644
---- a/drivers/media/pci/ngene/ngene-core.c
-+++ b/drivers/media/pci/ngene/ngene-core.c
-@@ -1345,7 +1345,7 @@ static int ngene_start(struct ngene *dev)
- 	mutex_init(&dev->cmd_mutex);
- 	mutex_init(&dev->stream_mutex);
- 	sema_init(&dev->pll_mutex, 1);
--	sema_init(&dev->i2c_switch_mutex, 1);
-+	mutex_init(&dev->i2c_switch_mutex);
- 	spin_lock_init(&dev->cmd_lock);
- 	for (i = 0; i < MAX_STREAM; i++)
- 		spin_lock_init(&dev->channel[i].state_lock);
-diff --git a/drivers/media/pci/ngene/ngene-i2c.c b/drivers/media/pci/ngene/ngene-i2c.c
-index cf39fcf..fbf3635 100644
---- a/drivers/media/pci/ngene/ngene-i2c.c
-+++ b/drivers/media/pci/ngene/ngene-i2c.c
-@@ -118,7 +118,7 @@ static int ngene_i2c_master_xfer(struct i2c_adapter *adapter,
- 		(struct ngene_channel *)i2c_get_adapdata(adapter);
- 	struct ngene *dev = chan->dev;
- 
--	down(&dev->i2c_switch_mutex);
-+	mutex_lock(&dev->i2c_switch_mutex);
- 	ngene_i2c_set_bus(dev, chan->number);
- 
- 	if (num == 2 && msg[1].flags & I2C_M_RD && !(msg[0].flags & I2C_M_RD))
-@@ -136,11 +136,11 @@ static int ngene_i2c_master_xfer(struct i2c_adapter *adapter,
- 					    msg[0].buf, msg[0].len, 0))
- 			goto done;
- 
--	up(&dev->i2c_switch_mutex);
-+	mutex_unlock(&dev->i2c_switch_mutex);
- 	return -EIO;
- 
- done:
--	up(&dev->i2c_switch_mutex);
-+	mutex_unlock(&dev->i2c_switch_mutex);
- 	return num;
- }
- 
-diff --git a/drivers/media/pci/ngene/ngene.h b/drivers/media/pci/ngene/ngene.h
-index 0dd15d6..7c7cd21 100644
---- a/drivers/media/pci/ngene/ngene.h
-+++ b/drivers/media/pci/ngene/ngene.h
-@@ -765,7 +765,7 @@ struct ngene {
- 	struct mutex          cmd_mutex;
- 	struct mutex          stream_mutex;
- 	struct semaphore      pll_mutex;
--	struct semaphore      i2c_switch_mutex;
-+	struct mutex          i2c_switch_mutex;
- 	int                   i2c_current_channel;
- 	int                   i2c_current_bus;
- 	spinlock_t            cmd_lock;
--- 
-Binoy Jayan
+> Le vendredi 16 juin 2017 à 16:39 +0900, Gustavo Padovan a écrit :
+> > > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > 
+> > For explicit synchronization (and soon for HAL3/Request API) we need
+> > the v4l2-driver to guarantee the ordering which the buffer were queued
+> > by userspace. This is already true for many drivers, but we never had
+> > the need to say it.
+> 
+> Phrased this way, that sound like a statement that a m2m decoder
+> handling b-frame will just never be supported. I think decoders are a
+> very important use case for explicit synchronization.
+> 
+> What I believe happens with decoders is simply that the allocation
+> order (the order in which empty buffers are retrieved from the queue)
+> will be different then the actual presentation order. Also, multiple
+> buffers endup being filled at the same time. Some firmware may inform
+> of the new order at the last minute, making indeed the fence useless,
+> but these are firmware and the information can be known earlier. Also,
+> this information would be known by userspace for the case (up-coming,
+> see STM patches and Rockchip comments [0]) or state-less decoder,
+> because it is available while parsing the bitstream. For this last
+> scenarios, the fact that ordering is not the same should disable the
+> fences since userspace can know which fences to wait for first. Those
+> drivers would need to set "ordered" to 0, which would be counter
+> intuitive.
+> 
+> I think this use case is too important to just ignore it. I would
+> expect that we at least have a todo with something sensible as a plan
+> to cover this.
+
+We definitely need to cover these usecases, I sent the patchset in a
+hurry just before going on vacation and forget to lay down any plan for
+other things. But for now, I believe we need refine the implementation
+of the most common case and then look at expanding it.
+
+	Gustavo
