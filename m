@@ -1,57 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:58855 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752647AbdFPNNt (ORCPT
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.221]:9103 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751898AbdFZKAR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Jun 2017 09:13:49 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.13] Various fixes.
-Message-ID: <dc9e9886-a4da-47a3-db8c-66921e1f21e6@xs4all.nl>
-Date: Fri, 16 Jun 2017 15:13:43 +0200
+        Mon, 26 Jun 2017 06:00:17 -0400
+From: Ralph Metzler <rjkm@metzlerbros.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Message-ID: <22864.56056.222371.477817@morden.metzler>
+Date: Mon, 26 Jun 2017 11:59:20 +0200
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Daniel Scheller <d.scheller.oss@gmail.com>,
+        Ralph Metzler <rjkm@metzlerbros.de>,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        liplianin@netup.ru, crope@iki.fi, "Jasmin J." <jasmin@anw.at>,
+        "Takiguchi\, Yasunari" <Yasunari.Takiguchi@sony.com>,
+        "tbird20d\@gmail.com" <tbird20d@gmail.com>
+Subject: Re: DD support improvements (was: Re: [PATCH v3 00/13]
+ stv0367/ddbridge: support CTv6/FlexCT hardware)
+In-Reply-To: <20170626061920.2f0aa781@vento.lan>
+References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
+        <20170412212327.5b75be19@macbox>
+        <20170507174212.2e45ab71@audiostation.wuest.de>
+        <20170528234537.3bed2dde@macbox>
+        <20170619221821.022fc473@macbox>
+        <20170620093645.6f72fd1a@vento.lan>
+        <20170620204121.4cff42d1@macbox>
+        <20170620161043.1e6a1364@vento.lan>
+        <20170621225712.426d3a17@audiostation.wuest.de>
+        <22860.14367.464168.657791@morden.metzler>
+        <20170624135001.5bcafb64@vento.lan>
+        <20170625195259.1623ef71@audiostation.wuest.de>
+        <20170626061920.2f0aa781@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit acec3630155763c170c7ae6508cf973355464508:
+Mauro Carvalho Chehab writes:
+ > Em Sun, 25 Jun 2017 19:52:59 +0200
+ > Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
+ > 
+ > > Am Sat, 24 Jun 2017 13:50:01 -0300
+ > > schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+ > > 
+ > > > Em Thu, 22 Jun 2017 23:35:27 +0200
+ > > > Ralph Metzler <rjkm@metzlerbros.de> escreveu:
+ > > > 
+ > > > Would it be possible to change things at the dddvb tree to make
+ > > > it to use our coding style (for example, replacing CamelCase by the
+ > > > kernel_style), in order to minimize the amount of work to sync from
+ > > > your tree?  
+ > > 
+ > > Note that this mostly (if not only) applies to the demodulator drivers. ddbridge itself is okay in this regard and has only some minors like indent, whitespace and such. There's one bigger thing though I'm not sure of if it needs to be changed: Beginning with the 0.9.9-tarball release, functionality was split from ddbridge-core.c into ddbridge.c, ddbridge-i2c.c, ddbridge-mod.c and ddbridge-ns.c (the two latter being modulator and netstream/octonet related code, which we don't need at this time). The issue is that this wasn't done by updating the build system to build multiple objects, but rather build from ddbridge.c which then does '#include "ddbridge-core.c"', and in that file '#include "ddbridge-i2c.c"'. See [1] for how it actually looks like in the file. Mauro, do you think this is acceptable?
+ > 
+ > Splitting it is OK. Including a *.c file no. It shouldn't be hard to
 
-  [media] s3c-camif: fix arguments position in a function call (2017-06-13 14:21:24 -0300)
+The main reason for using includes at the time were that the OctopusNet driver
+(see https://github.com/DigitalDevices/dddvb/blob/master/ddbridge/octonet.c)
+was using the same files but with different defines set.
+Those differences are pretty much gone now.
 
-are available in the git repository at:
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.13e
+> change the makefile to:
+ > 	obj-ddbridge = ddbridge-main.o ddbridge-core.o ddbridge-i2c.o \
+ > 		       ddbridge-modulator.o and ddbridge-ns.o
+ > 
+ > The only detail is that "ddbridge.c" should be renamed to 
+ > ddbridge-core.c (or something similar) and some *.h files will
+ > be needed.
 
-for you to fetch changes up to fee3ff6aa339c9bea656a93e726ec042a0271eef:
+Hmm, ddbridge -> ddbridge-main would be fine.
+Renaming ddbridge to ddbridge-core and ddbridge-core to something else
+would be confusing.
 
-  i2c: tc358743: remove useless variable assignment in tc358743_isr (2017-06-16 13:04:09 +0200)
 
-----------------------------------------------------------------
-Andrey Utkin (2):
-      MAINTAINERS: solo6x10, tw5864: add Anton Sviridenko
-      MAINTAINERS: solo6x10: update Andrey Utkin email
-
-Christophe JAILLET (1):
-      vb2: Fix error handling in '__vb2_buf_mem_alloc'
-
-Gustavo A. R. Silva (1):
-      i2c: tc358743: remove useless variable assignment in tc358743_isr
-
-Kevin Hilman (1):
-      davinci: vpif: adaptions for DT support
-
-Lucas Stach (3):
-      coda: use correct offset for mvcol buffer
-      coda: first step at error recovery
-      coda/imx-vdoa: always wait for job completion
-
- MAINTAINERS                               |  4 +++-
- drivers/media/i2c/tc358743.c              |  1 -
- drivers/media/platform/coda/coda-bit.c    | 28 ++++++++++++++++++++++++----
- drivers/media/platform/coda/coda-common.c |  3 +++
- drivers/media/platform/coda/coda.h        |  1 +
- drivers/media/platform/coda/imx-vdoa.c    | 49 +++++++++++++++++++++++++++++++++----------------
- drivers/media/platform/davinci/vpif.c     | 57 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
- drivers/media/v4l2-core/videobuf2-core.c  |  2 +-
- 8 files changed, 121 insertions(+), 24 deletions(-)
+Regards,
+Ralph
