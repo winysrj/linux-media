@@ -1,86 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38158 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751492AbdF1SSl (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50658 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751435AbdFZQbh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Jun 2017 14:18:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Robb Glasser <rglasser@google.com>
-Subject: Re: [media] uvcvideo: Prevent heap overflow in uvc driver
-Date: Wed, 28 Jun 2017 21:18:37 +0300
-Message-ID: <1612560.vxfrDdQTFq@avalon>
-In-Reply-To: <1797631.lsAEjhpLaU@avalon>
-References: <1495482484-32125-1-git-send-email-linux@roeck-us.net> <20170628143643.GA30654@roeck-us.net> <1797631.lsAEjhpLaU@avalon>
+        Mon, 26 Jun 2017 12:31:37 -0400
+Date: Mon, 26 Jun 2017 19:31:02 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hugues Fruchet <hugues.fruchet@st.com>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        " H. Nikolaus Schaller" <hns@goldelico.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>
+Subject: Re: [PATCH v1 2/6] [media] ov9650: add device tree support
+Message-ID: <20170626163102.GQ12407@valkosipuli.retiisi.org.uk>
+References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
+ <1498143942-12682-3-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1498143942-12682-3-git-send-email-hugues.fruchet@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guenter,
+Hi Hugues,
 
-On Wednesday 28 Jun 2017 20:59:17 Laurent Pinchart wrote:
-> On Wednesday 28 Jun 2017 07:36:43 Guenter Roeck wrote:
-> > On Mon, May 22, 2017 at 12:48:04PM -0700, Guenter Roeck wrote:
-> >> From: Robb Glasser <rglasser@google.com>
-> >> 
-> >> The size of uvc_control_mapping is user controlled leading to a
-> >> potential heap overflow in the uvc driver. This adds a check to verify
-> >> the user provided size fits within the bounds of the defined buffer
-> >> size.
-> >> 
-> >> Signed-off-by: Robb Glasser <rglasser@google.com>
-> >> [groeck: cherry picked from
-> >> 
-> >>  https://source.codeaurora.org/quic/la/kernel/msm-3.10
-> >>  commit b7b99e55bc7770187913ed092990852ea52d7892;
-> >>  updated subject]
-> >> 
-> >> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> >> ---
-> >> Fixes CVE-2017-0627.
-> > 
-> > Please do not apply this patch. It is buggy.
-> 
-> I apologize for not noticing the initial patch, even if it looks like it was
-> all for the best. Will you send a new version ?
-> 
-> >>  drivers/media/usb/uvc/uvc_ctrl.c | 3 +++
-> >>  1 file changed, 3 insertions(+)
-> >> 
-> >> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
-> >> b/drivers/media/usb/uvc/uvc_ctrl.c index c2ee6e39fd0c..252ab991396f
-> >> 100644
-> >> --- a/drivers/media/usb/uvc/uvc_ctrl.c
-> >> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
-> >> @@ -1992,6 +1992,9 @@ int uvc_ctrl_add_mapping(struct uvc_video_chain
-> >> *chain,
-> >>  	if (!found)
-> >>  		return -ENOENT;
-> >> 
-> >> +	if (ctrl->info.size < mapping->size)
-> >> +		return -EINVAL;
-> >> +
+On Thu, Jun 22, 2017 at 05:05:38PM +0200, Hugues Fruchet wrote:
+> @@ -1545,15 +1577,22 @@ static int ov965x_remove(struct i2c_client *client)
+>  }
+>  
+>  static const struct i2c_device_id ov965x_id[] = {
+> -	{ "OV9650", 0 },
+> -	{ "OV9652", 0 },
+> +	{ "OV9650", 0x9650 },
+> +	{ "OV9652", 0x9652 },
 
-By the way, I believe the right fix should be
+This change does not appear to match with the patch description nor it the
+information is used. How about not changing it, unless there's a reason to?
+The same for the data field of the of_device_id array below.
 
-	if (mapping->offset + mapping->size > ctrl->info.size * 8)
-		return -EINVAL;
-
-Both mapping->offset and mapping->size are 8-bit integers, so there's no risk 
-of overflow in the addition. If we want to safeguard against a possible future 
-bug if the type of the fields change, we could add
-
-	if (mapping->offset + mapping->size < mapping->offset)
-		return -EINVAL;
-
-> >>  	if (mutex_lock_interruptible(&chain->ctrl_mutex))
-> >>  		return -ERESTARTSYS;
+>  	{ /* sentinel */ }
+>  };
+>  MODULE_DEVICE_TABLE(i2c, ov965x_id);
+>  
+> +static const struct of_device_id ov965x_of_match[] = {
+> +	{ .compatible = "ovti,ov9650", .data = (void *)0x9650 },
+> +	{ .compatible = "ovti,ov9652", .data = (void *)0x9652 },
+> +	{ /* sentinel */ }
+> +};
+> +MODULE_DEVICE_TABLE(of, ov965x_of_match);
+>  static struct i2c_driver ov965x_i2c_driver = {
+>  	.driver = {
+>  		.name	= DRIVER_NAME,
+> +		.of_match_table = of_match_ptr(ov965x_of_match),
+>  	},
+>  	.probe		= ov965x_probe,
+>  	.remove		= ov965x_remove,
 
 -- 
 Regards,
 
-Laurent Pinchart
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
