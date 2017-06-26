@@ -1,92 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:44439 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750923AbdFOJVi (ORCPT
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.162]:35599 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751317AbdFZRrF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 05:21:38 -0400
-Date: Thu, 15 Jun 2017 11:21:33 +0200
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org, robh@kernel.org, pavel@ucw.cz
-Subject: Re: [PATCH 1/8] dt: bindings: Add a binding for flash devices
- associated to a sensor
-Message-ID: <20170615092133.edwi7szqowbnktev@earth>
-References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
- <1497433639-13101-2-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="asxt4pmjxf6f757o"
-Content-Disposition: inline
-In-Reply-To: <1497433639-13101-2-git-send-email-sakari.ailus@linux.intel.com>
+        Mon, 26 Jun 2017 13:47:05 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Subject: Re: [PATCH v1 2/6] [media] ov9650: add device tree support
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+In-Reply-To: <20170626163102.GQ12407@valkosipuli.retiisi.org.uk>
+Date: Mon, 26 Jun 2017 19:46:34 +0200
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <D780984B-70A1-4E9C-A887-DD2CBAAC7CCA@goldelico.com>
+References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com> <1498143942-12682-3-git-send-email-hugues.fruchet@st.com> <20170626163102.GQ12407@valkosipuli.retiisi.org.uk>
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Hugues Fruchet <hugues.fruchet@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
---asxt4pmjxf6f757o
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
 Hi,
 
-On Wed, Jun 14, 2017 at 12:47:12PM +0300, Sakari Ailus wrote:
-> Camera flash drivers (and LEDs) are separate from the sensor devices in
-> DT. In order to make an association between the two, provide the
-> association information to the software.
+> Am 26.06.2017 um 18:31 schrieb Sakari Ailus <sakari.ailus@iki.fi>:
 >=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-
--- Sebastian
-
-> ---
->  Documentation/devicetree/bindings/media/video-interfaces.txt | 8 ++++++++
->  1 file changed, 8 insertions(+)
+> Hi Hugues,
 >=20
-> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt=
- b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> index 9cd2a36..9723f7e 100644
-> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> @@ -67,6 +67,14 @@ are required in a relevant parent node:
->  		    identifier, should be 1.
->   - #size-cells    : should be zero.
-> =20
-> +
-> +Optional properties
-> +-------------------
-> +
-> +- flash: phandle referring to the flash driver chip. A flash driver may
-> +  have multiple flashes connected to it.
-> +
-> +
->  Optional endpoint properties
->  ----------------------------
-> =20
-> --=20
-> 2.1.4
+> On Thu, Jun 22, 2017 at 05:05:38PM +0200, Hugues Fruchet wrote:
+>> @@ -1545,15 +1577,22 @@ static int ov965x_remove(struct i2c_client =
+*client)
+>> }
+>>=20
+>> static const struct i2c_device_id ov965x_id[] =3D {
+>> -	{ "OV9650", 0 },
+>> -	{ "OV9652", 0 },
+>> +	{ "OV9650", 0x9650 },
+>> +	{ "OV9652", 0x9652 },
 >=20
+> This change does not appear to match with the patch description nor it =
+the
+> information is used. How about not changing it, unless there's a =
+reason to?
+> The same for the data field of the of_device_id array below.
 
---asxt4pmjxf6f757o
-Content-Type: application/pgp-signature; name="signature.asc"
+I think it could/should be used to check if the camera chip that is =
+found
+by reading the product-id and version registers does match what the =
+device
+tree expects and abort probing on a mismatch.
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAllCUZoACgkQ2O7X88g7
-+ppcgg//bpZhmnLRACd8mVUt9Fs5oBnWSX3nuFakCDnKyNI1bOpdpc3og7Toe5gi
-ig1tTr6nkh4egAlo/U9AvgjPJdJ64/cTa+cO95cESgYHQCxd089HcUwKvfRqkQeg
-brjP3ToaaEIYQ2nixrGiEFWpV6r5ZBr5S2cW286LRg/qVRlWmpY0EHDZnOA3AekG
-rFVmC5iNcukc6Gvp+28X2pu44HpUf66rZ2Wh2wbiJMBjukkC/c0tIX+2dOkwN5An
-wuV3FulbdWHgVRwy4TjTfFzRr+k5y2pkfKcw7E0yKlL5ctOtWCGa0UpGOUI5+YTo
-47sb1lCc4OpNxGwnOMrWRCjApSosn6ABT4lSLWrev/+jqKOckirRg+kDZXvPn24G
-tMUrdmoObbBkkBycxvTJnroIt7tbLrIJsOnBeuiDCQ3QGYthJl1KIU9dlaRDDu0u
-12ELTFtC1NGthFEYwg4noTzUNX5YB3IzvSJ6ppg13dJdrNND2YLH/jCFz9TUf4z+
-Waz5EcklMYzqStXjM8T8xjh3dgWFY+pMUulN9vGAzWh8zFkONrn2BABL/3wfpYaQ
-UDFLxVoh2wAIpcKhEzV+Luv9svAybwPDJnkcuZ3wW3piAHxNFDgmpxj6O0sNTIcP
-BTfiiajlTlw6JHKxhuh4/bRVz39d/vpsH3oVqD9hXck1+VaDxB0=
-=Tsvz
------END PGP SIGNATURE-----
-
---asxt4pmjxf6f757o--
+BR,
+Nikolaus
