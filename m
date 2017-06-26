@@ -1,88 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:36803 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751184AbdFBV2i (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 17:28:38 -0400
-Subject: Re: [PATCH 2/9] [media] s5p-jpeg: Call jpeg_bound_align_image after
- qbuf
-To: Thierry Escande <thierry.escande@collabora.com>,
-        Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1496419376-17099-1-git-send-email-thierry.escande@collabora.com>
- <1496419376-17099-3-git-send-email-thierry.escande@collabora.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Message-ID: <563c5112-93f7-7b05-1601-c3644a2111ce@gmail.com>
-Date: Fri, 2 Jun 2017 23:27:54 +0200
-MIME-Version: 1.0
-In-Reply-To: <1496419376-17099-3-git-send-email-thierry.escande@collabora.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56948 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751403AbdFZSMb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Jun 2017 14:12:31 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 02/14] v4l: vsp1: Don't recycle active list at display start
+Date: Mon, 26 Jun 2017 21:12:14 +0300
+Message-Id: <20170626181226.29575-3-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thierry,
+When the display start interrupt occurs, we know that the hardware has
+finished loading the active display list. The driver then proceeds to
+recycle the list, assuming it won't be needed anymore.
 
-Thanks for the patch.
+This assumption holds true for headerless display lists, as the VSP
+doesn't reload the list for the next frame if it hasn't changed.
+However, this isn't true anymore for header display lists, as they are
+loaded at every frame start regardless of whether they have been
+updated.
 
-On 06/02/2017 06:02 PM, Thierry Escande wrote:
-> From: Tony K Nadackal <tony.kn@samsung.com>
-> 
-> When queuing an OUTPUT buffer for decoder, s5p_jpeg_parse_hdr()
-> function parses the input jpeg file and takes the width and height
-> parameters from its header. These new width/height values will be used
-> for the calculation of stride. HX_JPEG Hardware needs the width and
-> height values aligned on a 16 bits boundary. This width/height alignment
-> is handled in the s5p_jpeg_s_fmt_vid_cap() function during the S_FMT
-> ioctl call.
-> 
-> But if user space calls the QBUF of OUTPUT buffer after the S_FMT of
-> CAPTURE buffer, these aligned values will be replaced by the values in
-> jpeg header.
+To prepare for header display lists usage in display pipelines, we need
+to postpone recycling the list until it gets replaced by a new one
+through a page flip. The driver already does so in the frame end
+interrupt handler, so all we need is to skip list recycling in the
+display start interrupt handler.
 
-I assume that you may want to avoid re-setting the capture buf format
-when decoding a stream of JPEGs and you are certain that all of them
-have the same subsampling. Nonetheless, please keep in mind that in case
-of Exynos4x12 SoCs there is a risk of permanent decoder hangup if you'd
-try to decode to a YUV with lower subsampling than the one of input
-JPEG. s5p_jpeg_try_fmt_vid_cap() does a suitable adjustment to avoid the
-problem.
+While the active list can be recycled at display start for headerless
+display lists, there's no real harm in postponing that to the frame end
+interrupt handler in all cases. This simplifies interrupt handling as we
+don't need to process the display start interrupt anymore.
 
-I'd add a comment over this call to jpeg_bound_align_image() that
-resigning from executing S_FMT on capture buf for each JPEG image
-can result in a hardware hangup if forbidden decoding will be enforced.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_dl.c  | 16 ----------------
+ drivers/media/platform/vsp1/vsp1_dl.h  |  1 -
+ drivers/media/platform/vsp1/vsp1_drm.c | 12 ++++--------
+ drivers/media/platform/vsp1/vsp1_drm.h |  2 --
+ drivers/media/platform/vsp1/vsp1_drv.c |  8 --------
+ 5 files changed, 4 insertions(+), 35 deletions(-)
 
-> If the width/height values of jpeg are not aligned, the
-> decoder output will be corrupted. So in this patch we call
-> jpeg_bound_align_image() to align the width/height values of Capture
-> buffer in s5p_jpeg_buf_queue().
-> 
-> Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
-> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
-> ---
->  drivers/media/platform/s5p-jpeg/jpeg-core.c | 7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> index 52dc794..6fb1ab4 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> @@ -2523,6 +2523,13 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
->  		q_data = &ctx->cap_q;
->  		q_data->w = tmp.w;
->  		q_data->h = tmp.h;
-> +
-> +		jpeg_bound_align_image(ctx, &q_data->w, S5P_JPEG_MIN_WIDTH,
-> +				       S5P_JPEG_MAX_WIDTH, q_data->fmt->h_align,
-> +				       &q_data->h, S5P_JPEG_MIN_HEIGHT,
-> +				       S5P_JPEG_MAX_HEIGHT, q_data->fmt->v_align
-> +				      );
-> +		q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
->  	}
->  
->  	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
-> 
-
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index dc47e236c780..bb92be4fe0f0 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -547,22 +547,6 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
+  * Display List Manager
+  */
+ 
+-/* Interrupt Handling */
+-void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm)
+-{
+-	spin_lock(&dlm->lock);
+-
+-	/*
+-	 * The display start interrupt signals the end of the display list
+-	 * processing by the device. The active display list, if any, won't be
+-	 * accessed anymore and can be reused.
+-	 */
+-	__vsp1_dl_list_put(dlm->active);
+-	dlm->active = NULL;
+-
+-	spin_unlock(&dlm->lock);
+-}
+-
+ /**
+  * vsp1_dlm_irq_frame_end - Display list handler for the frame end interrupt
+  * @dlm: the display list manager
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
+index 6ec1380a10af..ee3508172f0a 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.h
++++ b/drivers/media/platform/vsp1/vsp1_dl.h
+@@ -27,7 +27,6 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+ 					unsigned int prealloc);
+ void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
+ void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
+-void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm);
+ bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
+ 
+ struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 9377aafa8996..bc3fd9bc7126 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -32,11 +32,6 @@
+  * Interrupt Handling
+  */
+ 
+-void vsp1_drm_display_start(struct vsp1_device *vsp1)
+-{
+-	vsp1_dlm_irq_display_start(vsp1->drm->pipe.output->dlm);
+-}
+-
+ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe)
+ {
+ 	struct vsp1_drm *drm = to_vsp1_drm(pipe);
+@@ -224,6 +219,10 @@ int vsp1_du_setup_lif(struct device *dev, const struct vsp1_du_lif_config *cfg)
+ 		return ret;
+ 	}
+ 
++	/* Disable the display interrupts. */
++	vsp1_write(vsp1, VI6_DISP_IRQ_STA, 0);
++	vsp1_write(vsp1, VI6_DISP_IRQ_ENB, 0);
++
+ 	dev_dbg(vsp1->dev, "%s: pipeline enabled\n", __func__);
+ 
+ 	return 0;
+@@ -529,13 +528,10 @@ void vsp1_du_atomic_flush(struct device *dev)
+ 
+ 	/* Start or stop the pipeline if needed. */
+ 	if (!vsp1->drm->num_inputs && pipe->num_inputs) {
+-		vsp1_write(vsp1, VI6_DISP_IRQ_STA, 0);
+-		vsp1_write(vsp1, VI6_DISP_IRQ_ENB, VI6_DISP_IRQ_ENB_DSTE);
+ 		spin_lock_irqsave(&pipe->irqlock, flags);
+ 		vsp1_pipeline_run(pipe);
+ 		spin_unlock_irqrestore(&pipe->irqlock, flags);
+ 	} else if (vsp1->drm->num_inputs && !pipe->num_inputs) {
+-		vsp1_write(vsp1, VI6_DISP_IRQ_ENB, 0);
+ 		vsp1_pipeline_stop(pipe);
+ 	}
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
+index e9f80727ff92..cbdbb8a39883 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.h
++++ b/drivers/media/platform/vsp1/vsp1_drm.h
+@@ -50,6 +50,4 @@ int vsp1_drm_init(struct vsp1_device *vsp1);
+ void vsp1_drm_cleanup(struct vsp1_device *vsp1);
+ int vsp1_drm_create_links(struct vsp1_device *vsp1);
+ 
+-void vsp1_drm_display_start(struct vsp1_device *vsp1);
+-
+ #endif /* __VSP1_DRM_H__ */
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 95c26edead85..6b35e043b554 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -68,14 +68,6 @@ static irqreturn_t vsp1_irq_handler(int irq, void *data)
+ 		}
+ 	}
+ 
+-	status = vsp1_read(vsp1, VI6_DISP_IRQ_STA);
+-	vsp1_write(vsp1, VI6_DISP_IRQ_STA, ~status & VI6_DISP_IRQ_STA_DST);
+-
+-	if (status & VI6_DISP_IRQ_STA_DST) {
+-		vsp1_drm_display_start(vsp1);
+-		ret = IRQ_HANDLED;
+-	}
+-
+ 	return ret;
+ }
+ 
 -- 
-Best regards,
-Jacek Anaszewski
+Regards,
+
+Laurent Pinchart
