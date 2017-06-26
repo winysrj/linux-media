@@ -1,82 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56824 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752353AbdFNNIK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 09:08:10 -0400
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 4AEC123E6CB
-        for <linux-media@vger.kernel.org>; Wed, 14 Jun 2017 13:08:10 +0000 (UTC)
-Received: from colo-mx.corp.redhat.com (colo-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.20])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 4162E949C6
-        for <linux-media@vger.kernel.org>; Wed, 14 Jun 2017 13:08:10 +0000 (UTC)
-Received: from zmail22.collab.prod.int.phx2.redhat.com (zmail22.collab.prod.int.phx2.redhat.com [10.5.83.26])
-        by colo-mx.corp.redhat.com (Postfix) with ESMTP id 37D531841C42
-        for <linux-media@vger.kernel.org>; Wed, 14 Jun 2017 13:08:10 +0000 (UTC)
-Date: Wed, 14 Jun 2017 09:08:10 -0400 (EDT)
-From: Jaroslav Skarvada <jskarvad@redhat.com>
-To: linux-media@vger.kernel.org
-Message-ID: <1544403709.22095603.1497445690011.JavaMail.zimbra@redhat.com>
-In-Reply-To: <ff6c7a4d494155764eb9b8aca0c90eb4@iki.fi>
-References: <20170609174644.8735-1-jskarvad@redhat.com> <ff6c7a4d494155764eb9b8aca0c90eb4@iki.fi>
-Subject: Re: [PATCH] dvb-usb-af9035: load HID table
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36442 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751900AbdFZPWz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Jun 2017 11:22:55 -0400
+Received: by mail-wm0-f66.google.com with SMTP id y5so832995wmh.3
+        for <linux-media@vger.kernel.org>; Mon, 26 Jun 2017 08:22:54 -0700 (PDT)
+Date: Mon, 26 Jun 2017 17:22:51 +0200
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: Ralph Metzler <rjkm@metzlerbros.de>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        liplianin@netup.ru, crope@iki.fi, jasmin@anw.at,
+        Yasunari.Takiguchi@sony.com, tbird20d@gmail.com
+Subject: Re: DD support improvements (was: Re: [PATCH v3 00/13]
+ stv0367/ddbridge: support CTv6/FlexCT hardware)
+Message-ID: <20170626171701.58dac8d0@audiostation.wuest.de>
+In-Reply-To: <22864.56056.222371.477817@morden.metzler>
+References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
+ <20170412212327.5b75be19@macbox>
+ <20170507174212.2e45ab71@audiostation.wuest.de>
+ <20170528234537.3bed2dde@macbox>
+ <20170619221821.022fc473@macbox>
+ <20170620093645.6f72fd1a@vento.lan>
+ <20170620204121.4cff42d1@macbox>
+ <20170620161043.1e6a1364@vento.lan>
+ <20170621225712.426d3a17@audiostation.wuest.de>
+ <22860.14367.464168.657791@morden.metzler>
+ <20170624135001.5bcafb64@vento.lan>
+ <20170625195259.1623ef71@audiostation.wuest.de>
+ <20170626061920.2f0aa781@vento.lan>
+ <22864.56056.222371.477817@morden.metzler>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Resend since I received bad-mail-address bounces, sorry for any
+duplicated email.
 
+Am Mon, 26 Jun 2017 11:59:20 +0200
+schrieb Ralph Metzler <rjkm@metzlerbros.de>:
 
------ Original Message -----
-> Hello
+> Mauro Carvalho Chehab writes:
+>  > 
+>  > Splitting it is OK. Including a *.c file no. It shouldn't be hard
+>  > to  
+> [...]
+> > change the makefile to:
+>  > 	obj-ddbridge = ddbridge-main.o ddbridge-core.o
+>  > ddbridge-i2c.o \ ddbridge-modulator.o and ddbridge-ns.o
+>  > 
+>  > The only detail is that "ddbridge.c" should be renamed to 
+>  > ddbridge-core.c (or something similar) and some *.h files will
+>  > be needed.  
 > 
-> Jaroslav Škarvada kirjoitti 2017-06-09 20:46:
-> > Automatically load sniffed HID table from Windows driver if
-> > USB_VID_ITETECH:USB_PID_ITETECH_IT9135_9006 device is present (e.g.
-> > Evolveo
-> > Mars) or if module parameter force_hid_tab_load is set.
-> 
-> There is few issues I don't like this approach. Mostly that module
-> parameter to select HID table. There is existing solution to select
-> remote controller, it is ir-keytable and it should be used rather than
-> defining device specific module parameter.
-> 
-> If you look that HID table you could see there is 4 bytes NEC code and 3
-> bytes HID code. Remote controller seems to have 34 keys. Remote
-> controller address bytes are 0x02bd, grepping existing remote controller
-> keytables it could be Total Media In Hand remote controller
-> (rc-total-media-in-hand.c). If not, then defining new keytable is
-> needed.
-> 
-> I did some research about issue and found 2 better solutions.
-> 1) Configure HID table dynamically. Remote controller keytable has some
-> needed information, but those KEY_* events needed to be translated to
-> HID codes somehow.
-> 2) Kill HID and then use CMD_IR_GET to get remote controller scancodes
-> by polling.
-> 
-> Solution 1 sounds most correct. No need to poll and decode by sw as hw
-> does all the job. But it is most hardest to implement, I am not aware if
-> anyone has done it yet.
-> 
-> regards
-> Antti
-> 
-> 
-> --
-> http://palosaari.fi/
-> 
+> Hmm, ddbridge -> ddbridge-main would be fine.
 
-Hi,
+Funny, that's exactly the naming I had in mind when thinking about this
+in the past :)
 
-thanks for info. General approach is usually better than device specific
-hacks, but it looks like longer run. Unfortunately I returned the device to
-the original owner, so I will be probably unable to help with it more. But
-the problem needs to be addressed, the state when the remote isn't working
-isn't good
+So, I'll propose a rough todo (commit list) for me (I will do and
+care about this) then:
 
-thanks & regards
+- 1/4: (Step 0) Since dddvb-0.9.9b besides the split also involved
+  reordering the functions in the code, this will be repeated with the
+  current mainline driver (helps keeping the diff with the actual code
+  bump cleaner)
+- 2/4: Do the split like done in 0.9.9 with the mainline driver, but do
+  it by having multiple objects in the makefile, adding header files
+  with prototypes where required
+- 3/4: Bump the driver code with what is already there (means, the
+  pre-cleaned variant w/o modulator and netstream/octonet stuff)
+- 4/4 (or 4/x): Apply any additional patches (like the "enable msi by
+  default Kconf opt, marked EXPERIMENTAL" thing I did to work around
+  the still problematic MSI IRQ stuff to let users have a better
+  experience)
 
-Jaroslav
+When done, I'll post the patches for early review, but they'll have a
+hard dependency on the stv0910/stv6111 demod/tuner drivers (don't feel
+like ripping this out since we want that support anyway).
+
+Additionally,I can do this for dddvb and submit it to the
+DigitalDevices dddvb repository (GitHub Pull Request) so we're at least
+in-sync wrt building the driver.
+
+Ralph, Mauro, are you ok with this?
+
+Mauro, in the meantime a decision should be made if the current
+in-kernel ddbridge should be kept somewhere or not (ie. as legacy
+driver). IMHO this is not absolutely neccessary since both driver
+variants (dddvb directly and the "castrated" one) are in use by people
+all around and besides MSI (which we can workaround until fixed
+finally) I don't know of any complaints at all.
+
+Best regards,
+Daniel Scheller
+-- 
+https://github.com/herrnst
