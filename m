@@ -1,129 +1,237 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:35411 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750882AbdFAEar (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:39833
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751353AbdFZKq4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Jun 2017 00:30:47 -0400
-Message-ID: <078d8a180d70495dc9b11af3542f3218@smtp-cloud3.xs4all.net>
-Date: Thu, 01 Jun 2017 06:30:45 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Mon, 26 Jun 2017 06:46:56 -0400
+Date: Mon, 26 Jun 2017 07:46:47 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Ralph Metzler <rjkm@metzlerbros.de>
+Cc: Daniel Scheller <d.scheller.oss@gmail.com>,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        liplianin@netup.ru, crope@iki.fi,
+        "Jasmin J.\" <jasmin@anw.at>, "@s-opensource.com,
+        Yasunari@s-opensource.com, Takiguchi@s-opensource.com,
+        " <Yasunari.Takiguchi@sony.com>, "@s-opensource.com,
+        Bird@s-opensource.com, Timothy@s-opensource.com,
+        " <Tim.Bird@sony.com>"@s-opensource.com
+Subject: Re: DD support improvements (was: Re: [PATCH v3 00/13]
+ stv0367/ddbridge: support CTv6/FlexCT hardware)
+Message-ID: <20170626073944.1102ceb5@vento.lan>
+In-Reply-To: <22864.55204.841821.456223@morden.metzler>
+References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
+        <20170412212327.5b75be19@macbox>
+        <20170507174212.2e45ab71@audiostation.wuest.de>
+        <20170528234537.3bed2dde@macbox>
+        <20170619221821.022fc473@macbox>
+        <20170620093645.6f72fd1a@vento.lan>
+        <20170620204121.4cff42d1@macbox>
+        <20170620161043.1e6a1364@vento.lan>
+        <20170621225712.426d3a17@audiostation.wuest.de>
+        <22860.14367.464168.657791@morden.metzler>
+        <20170624135001.5bcafb64@vento.lan>
+        <22864.55204.841821.456223@morden.metzler>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Mon, 26 Jun 2017 11:45:08 +0200
+Ralph Metzler <rjkm@metzlerbros.de> escreveu:
 
-Results of the daily build of media_tree:
+> Mauro Carvalho Chehab writes:
+>  > Em Thu, 22 Jun 2017 23:35:27 +0200
+>  > Ralph Metzler <rjkm@metzlerbros.de> escreveu:
+>  >   
+>  > > Daniel Scheller writes:  
+>  > >  > Am Tue, 20 Jun 2017 16:10:43 -0300
+>  > >  > schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+>  > >  > ...    
+>  > >  > > > - Maybe for 4.14: Support for the CineS2 V7 and FlexV4 line of
+>  > >  > > >   cards/modules. This mainly involves a new demod driver (stv0910) and
+>  > >  > > >   a new tuner driver (stv6111). Permissions for this are cleared with
+>  > >  > > >   Ralph already. The glue code needed in ddbridge is rather easy, and
+>  > >  > > >   as some ground work (mostly the MachXO2 support from the 2841 series)
+>  > >  > > >   is now in, the changes are quite small. Patches are ready so far but
+>  > >  > > >   need more cleanup (checkpatch fixes, camel case and such things).      
+>  > >  > > 
+>  > >  > > Please try to sync it with Ralph, in a way that his code won't
+>  > >  > > diverge from the upstream one, as this will make easier for both
+>  > >  > > sides to keep the Kernel in track with driver improvements.    
+>  > >  > 
+>  > >  > This is not going to work. DD (Ralph and Manfred Voelkel) sort of maintain a shared code base between their Windows 
+>  > >  > driver and the Linux kernel driver sources. While they didn't explicitely stated this, this can be noticed by the 
+>  > >  > remarks and commented code in their OSS code, and the commit messages in their dddvb GIT (e.g. "sync with windows driver"). 
+>  > >  > I've already cleaned up a lot of this (I believe no one wants to see such stuff in the linux kernel tree). If we're 
+>  > >  > additionally going to replace all things camel case, with some more cleaning and maybe code shuffling after like a V4 
+>  > >  > patch series, those two sources are out of sync in a way that no automatic sync by applying patches will be possible 
+>  > >  > anymore. So, pushing from vendor's upstream to the kernel seems to be the only option, and in fact, if the whole 
+>  > >  > driver/package stack completely lives in the kernel sources, maybe DD even decide to directly commit upstream (kernel) again.  
+>  > 
+>  > Ralph, do you share Linux code with Windows, or are you just getting
+>  > drivers from the manufacturer and converting them to Linux at dddvb
+>  > tree?  
+> 
+> It differs from case to case.
+> Digital Devices gets drivers and/or documetation from the manufacturer.
+> Sometimes from this a Windows driver is written which we convert
+> to Linux or a Linux driver is written directly.
+> 
+> 
+> 
+>  > Would it be possible to change things at the dddvb tree to make
+>  > it to use our coding style (for example, replacing CamelCase by the
+>  > kernel_style), in order to minimize the amount of work to sync from
+>  > your tree?  
+> 
+> Yes
 
-date:			Thu Jun  1 05:00:16 CEST 2017
-media-tree git hash:	36bcba973ad478042d1ffc6e89afd92e8bd17030
-media_build git hash:	0d8b3274e29b597780719e7ce1b3b460241a5395
-v4l-utils git hash:	ef074cf5500b7dd62e6eb3527ec47a914c7189ca
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Good! With that, it should be easier to keep both versions containing
+the same stuff.
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12-rc1-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+> 
+>  > > I also already told Daniel about our concerns regarding the CXD drivers in private mail.
+>  > > Sony did not want us to use their code directly and we had to get our code approved
+>  > > before publishing it. I do not know how the arrangement is regarding the in-kernel driver.
+>  > > DVB-C2 support also seems to be missing in this.  
+>  > 
+>  > Sony recently started submitting CXD drivers to us directly (for cxd2880).
+>  > 
+>  > The upstream verson for cx2841 came from NetUP. I guess they develop
+>  > the drivers themselves, but not really sure.
+>  > 
+>  > Perhaps we can ask Sony's help to make easier add the features that are 
+>  > missing at the existing driver in a way that DDbridge could also use
+>  > the upstream driver, or to do some other sort of agreement that would 
+>  > make possible for us to use the same driver as you at the upstream Kernel.
+>  > 
+>  > (c/c Takiguchi-san and Tim Bird from Sony)  
+> 
+> 
+> All I know is that they were strict with Digital Devices. We could not use
+> their code directly. That's why I am surprised the Netup code contains
+> Sony code.
 
-Detailed results are available here:
+I didn't say they're using Sony code. I actually suspect that they
+did the same as you (but I have no means to be sure).
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+Yet, as Sony recently approached us for cxd2880, and they're now
+developing an official driver to be upstreamed, I'm wandering if we
+can get a better way to handle the cxd2841 driver in a way that will
+make easier for everyone to use the same code.
 
-Full logs are available here:
+>  > >  > > - you'll still need to patch DD tree, as I'm pretty sure there are
+>  > >  > >   changes on the upstream driver that will need to be ported there;    
+>  > >  > 
+>  > >  > The same as for the stv0910 code applies here, in addition that it's
+>  > >  > not sure if DD even wants this. DD even has KERNEL_VERSION_CODE ifdefs 
+>  > >  > in some places. And - most importantly - they carry around an old 
+>  > >  > version of the DVB core API (from what it looks, around linux-3.10,
+>  > >  >  not exactly sure) which even was modified by some IOCTLs, vars, 
+>  > >  > defines and the netstream and modulator support. I managed to
+>  > >  >  remove all core API change deps from everything tuner related
+>  > >  >  (and thats the reason things work in harmony with and in current
+>  > >  >  kernels), but getting all this over to DD or even merge things
+>  > >  >  from DD into the media subsystem will get "interesting".    
+>  > > 
+>  > > We certainly will want to keep supporting older kernels via KERNEL_VERSION.  
+>  > 
+>  > In the past, we used a script that "solves" KERNEL_VERSION on our Mercurial
+>  > tree (https://linuxtv.org/hg/v4l-dvb) and gets rid of other ifdefs:
+>  > 
+>  > 	https://linuxtv.org/hg/v4l-dvb/file/3724e93f7af5/v4l/scripts/gentree.pl
+>  > 
+>  > I don't use it for ages, but I guess it shouldn't be hard to modify it to
+>  > get rid of KERNEL_VERSION when submitting stuff from DD tree upstream.  
+> 
+> I'll see if that works.
+> 
+>  > > e.g.:
+>  > > 
+>  > > - adding SYS_DVBC2 to fe_delivery_system   
+>  > 
+>  > OK, we can do that, when adding a driver needing such feature.
+>  >   
+>  > > 
+>  > > - DTV_INPUT
+>  > > 
+>  > >   to select an input on cards were demods can choose from several inputs  
+>  > 
+>  > We're actually wanting to use the media controller to change the
+>  > pipeline (selecting inputs and outputs, directing output to a MPEG
+>  > decoding pipeline and descrambler, etc).  
+> 
+> I this also for selecting frontend inputs?
+> It sounds more like switching transport stream data paths after the demod.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+The media controller is generic enough to control all pipelines at
+the hardware level. It can be used to select frontend inputs, to
+dynamically add/remove CAM modules, etc.
 
-The Media Infrastructure API from this daily build is here:
+If I remember well, in the case of the hardware I was working on that
+time, each frontend had 3 inputs (and the hardware had 2 identical
+sets of tuner/demod),  plus 3 MPEG-TS demuxes) and 2 CAM modules.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+With the media controller, any arrangement between input, tuner,
+demod, demux and CAM is possible, as long as supported by
+the hardware.
+
+On your case, as you also have a modulator, you could even
+use the modulator as a frontend input, as a way to test if
+demodulator hardware is OK (again, if your hardware allows
+wiring on such way).
+
+The big advantage of using the media controller is that, as all
+components of the pipeline are visible, you don't need to have
+an enum (or something like that) to identify what each input
+number means at the hardware.
+
+Btw, that's an example of a MC pipeline:
+	https://www.infradead.org/~mchehab/mc-next-gen/cx231xx_hvr930c_hd.png
+
+The graph is automatically generated from the information
+reported by the Kernel.
+
+Unfortunately, the project I was working was shut down before
+I was able to implement the MC bits on it, so I don't have
+any MC pipelines from any advanced hardware.
+
+So, on all pipelines there at
+https://www.infradead.org/~mchehab/mc-next-gen/ have just one input.
+
+
+>  > The needed bits are there already at the DVB core upstream (although
+>  > we don't have, currently, any DVB driver allowing changes at the
+>  > pipeline). My original intention were to upstream some embedded
+>  > drivers with such usage, but, unfortunately, the MC changes took
+>  > too many time to be applied. by the time it got merged, it was too
+>  > late, due to some internal changes that happened about the same time.
+>  >   
+>  > > 
+>  > > - DTV_PLS
+>  > > 
+>  > >   to set the gold code used for DVB-S2 physical layer scrambling.
+>  > >   (btw. the sometimes used root and combo codes are redundant)
+>  > >   Some driver mods misuse the upper bits of DTV_STREAM_ID (which is for MIS in DVB-S2) for this, but
+>  > >   PLS and MIS are independent.  
+>  > 
+>  > In principle, sounds ok, but we need to take some care to avoid
+>  > regressions here.  
+> 
+> I also support this old method in the stv0900 and stv0910 drivers.
+
+OK!
+
+>  > > I know that the netstream and modulator support are proprietary but we will of course also need to keep
+>  > > them dddvb package.
+>  > > Btw., are there any standard APIs for modulator cards in the kernel now?  
+>  > 
+>  > Right now, we don't have. Feel free to propose what you're using at the
+>  > dddvb package as standard, if you think it is generic enough to support
+>  > other modulators in the future.  
+> 
+> OK
+
+Thanks,
+Mauro
