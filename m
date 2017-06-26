@@ -1,251 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f193.google.com ([209.85.223.193]:36555 "EHLO
-        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754936AbdFWUl4 (ORCPT
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:37073 "EHLO
+        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751387AbdFZJUw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Jun 2017 16:41:56 -0400
-Date: Fri, 23 Jun 2017 15:41:53 -0500
-From: Rob Herring <robh@kernel.org>
-To: Todor Tomov <todor.tomov@linaro.org>
-Cc: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v2 01/19] doc: DT: camss: Binding document for Qualcomm
- Camera subsystem driver
-Message-ID: <20170623204153.jpjecbzgnaptypbu@rob-hp-laptop>
-References: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
- <1497883719-12410-2-git-send-email-todor.tomov@linaro.org>
+        Mon, 26 Jun 2017 05:20:52 -0400
+Received: by mail-wm0-f41.google.com with SMTP id i127so2208654wma.0
+        for <linux-media@vger.kernel.org>; Mon, 26 Jun 2017 02:20:51 -0700 (PDT)
+Subject: Re: [PATCH v11 00/19] Qualcomm video decoder/encoder driver
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+References: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <e4ac8371-6474-8371-08ba-72689349f118@linaro.org>
+Date: Mon, 26 Jun 2017 12:20:26 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1497883719-12410-2-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 19, 2017 at 05:48:21PM +0300, Todor Tomov wrote:
-> Add DT binding document for Qualcomm Camera subsystem driver.
+Hi all,
 
-"dt-bindings: media: ..." for the subject please.
+In case someone wants to play with the driver I've pushed a git tree at
+[1] which contains few patches on top of the driver. Those patches are
+on upstreaming phase but doesn't merged yet.
 
+[1] https://github.com/svarbanov/linux/tree/master-venus-v11
+
+On 06/15/2017 07:31 PM, Stanimir Varbanov wrote:
+> Hello,
 > 
-> CC: Rob Herring <robh+dt@kernel.org>
-> CC: devicetree@vger.kernel.org
-> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-> ---
->  .../devicetree/bindings/media/qcom,camss.txt       | 196 +++++++++++++++++++++
->  1 file changed, 196 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/qcom,camss.txt
+> Changes since v10:
+>  * added patch 18/19 which updates firmware path.
 > 
-> diff --git a/Documentation/devicetree/bindings/media/qcom,camss.txt b/Documentation/devicetree/bindings/media/qcom,camss.txt
-> new file mode 100644
-> index 0000000..5213b03
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/qcom,camss.txt
-> @@ -0,0 +1,196 @@
-> +Qualcomm Camera Subsystem
-> +
-> +* Properties
-> +
-> +- compatible:
-> +	Usage: required
-> +	Value type: <stringlist>
-> +	Definition: Should contain:
-> +		- "qcom,msm8916-camss"
-
-Okay if it is one node, but I'd like to see some agreement from other QC 
-folks that 1 node is appropriate.
-
-> +- reg:
-> +	Usage: required
-> +	Value type: <prop-encoded-array>
-> +	Definition: Register ranges as listed in the reg-names property.
-> +- reg-names:
-> +	Usage: required
-> +	Value type: <stringlist>
-> +	Definition: Should contain the following entries:
-> +		- "csiphy0"
-> +		- "csiphy0_clk_mux"
-> +		- "csiphy1"
-> +		- "csiphy1_clk_mux"
-> +		- "csid0"
-> +		- "csid1"
-> +		- "ispif"
-> +		- "csi_clk_mux"
-> +		- "vfe0"
-> +- interrupts:
-> +	Usage: required
-> +	Value type: <prop-encoded-array>
-> +	Definition: Interrupts as listed in the interrupt-names property.
-> +- interrupt-names:
-> +	Usage: required
-> +	Value type: <stringlist>
-> +	Definition: Should contain the following entries:
-> +		- "csiphy0"
-> +		- "csiphy1"
-> +		- "csid0"
-> +		- "csid1"
-> +		- "ispif"
-> +		- "vfe0"
-> +- power-domains:
-> +	Usage: required
-> +	Value type: <prop-encoded-array>
-> +	Definition: A phandle and power domain specifier pairs to the
-> +		    power domain which is responsible for collapsing
-> +		    and restoring power to the peripheral.
-> +- clocks:
-> +	Usage: required
-> +	Value type: <prop-encoded-array>
-> +	Definition: A list of phandle and clock specifier pairs as listed
-> +		    in clock-names property.
-> +- clock-names:
-> +	Usage: required
-> +	Value type: <stringlist>
-> +	Definition: Should contain the following entries:
-> +		- "camss_top_ahb_clk"
-> +		- "ispif_ahb_clk"
-> +		- "csiphy0_timer_clk"
-> +		- "csiphy1_timer_clk"
-> +		- "csi0_ahb_clk"
-> +		- "csi0_clk"
-> +		- "csi0_phy_clk"
-> +		- "csi0_pix_clk"
-> +		- "csi0_rdi_clk"
-> +		- "csi1_ahb_clk"
-> +		- "csi1_clk"
-> +		- "csi1_phy_clk"
-> +		- "csi1_pix_clk"
-> +		- "csi1_rdi_clk"
-> +		- "camss_ahb_clk"
-> +		- "camss_vfe_vfe_clk"
-> +		- "camss_csi_vfe_clk"
-> +		- "iface_clk"
-> +		- "bus_clk"
-
-"_clk" is redundant.
-
-> +- vdda-supply:
-> +	Usage: required
-> +	Value type: <phandle>
-> +	Definition: A phandle to voltage supply for CSI2.
-> +- iommus:
-> +	Usage: required
-> +	Value type: <prop-encoded-array>
-> +	Definition: A list of phandle and IOMMU specifier pairs.
-> +
-> +* Nodes
-> +
-> +- ports:
-> +	Usage: required
-> +	Definition: As described in video-interfaces.txt in same directory.
-> +	Properties:
-> +		- reg:
-> +			Usage: required
-> +			Value type: <u32>
-> +			Definition: Selects CSI2 PHY interface - PHY0 or PHY1.
-> +	Endpoint node properties:
-> +		- clock-lanes:
-> +			Usage: required
-> +			Value type: <u32>
-> +			Definition: The clock lane.
-> +		- data-lanes:
-> +			Usage: required
-> +			Value type: <prop-encoded-array>
-> +			Definition: An array of data lanes.
-> +		- qcom,settle-cnt:
-> +			Usage: required
-> +			Value type: <u32>
-> +			Definition: The settle count parameter for CSI PHY.
-> +
-> +* An Example
-> +
-> +	camss: camss@1b00000 {
-> +		compatible = "qcom,msm8916-camss";
-> +		reg = <0x1b0ac00 0x200>,
-> +			<0x1b00030 0x4>,
-> +			<0x1b0b000 0x200>,
-> +			<0x1b00038 0x4>,
-> +			<0x1b08000 0x100>,
-> +			<0x1b08400 0x100>,
-> +			<0x1b0a000 0x500>,
-> +			<0x1b00020 0x10>,
-> +			<0x1b10000 0x1000>;
-> +		reg-names = "csiphy0",
-> +			"csiphy0_clk_mux",
-> +			"csiphy1",
-> +			"csiphy1_clk_mux",
-> +			"csid0",
-> +			"csid1",
-> +			"ispif",
-> +			"csi_clk_mux",
-> +			"vfe0";
-> +		interrupts = <GIC_SPI 78 0>,
-> +			<GIC_SPI 79 0>,
-> +			<GIC_SPI 51 0>,
-> +			<GIC_SPI 52 0>,
-> +			<GIC_SPI 55 0>,
-> +			<GIC_SPI 57 0>;
-> +		interrupt-names = "csiphy0",
-> +			"csiphy1",
-> +			"csid0",
-> +			"csid1",
-> +			"ispif",
-> +			"vfe0";
-> +		power-domains = <&gcc VFE_GDSC>;
-> +		clocks = <&gcc GCC_CAMSS_TOP_AHB_CLK>,
-> +			<&gcc GCC_CAMSS_ISPIF_AHB_CLK>,
-> +			<&gcc GCC_CAMSS_CSI0PHYTIMER_CLK>,
-> +			<&gcc GCC_CAMSS_CSI1PHYTIMER_CLK>,
-> +			<&gcc GCC_CAMSS_CSI0_AHB_CLK>,
-> +			<&gcc GCC_CAMSS_CSI0_CLK>,
-> +			<&gcc GCC_CAMSS_CSI0PHY_CLK>,
-> +			<&gcc GCC_CAMSS_CSI0PIX_CLK>,
-> +			<&gcc GCC_CAMSS_CSI0RDI_CLK>,
-> +			<&gcc GCC_CAMSS_CSI1_AHB_CLK>,
-> +			<&gcc GCC_CAMSS_CSI1_CLK>,
-> +			<&gcc GCC_CAMSS_CSI1PHY_CLK>,
-> +			<&gcc GCC_CAMSS_CSI1PIX_CLK>,
-> +			<&gcc GCC_CAMSS_CSI1RDI_CLK>,
-> +			<&gcc GCC_CAMSS_AHB_CLK>,
-> +			<&gcc GCC_CAMSS_VFE0_CLK>,
-> +			<&gcc GCC_CAMSS_CSI_VFE0_CLK>,
-> +			<&gcc GCC_CAMSS_VFE_AHB_CLK>,
-> +			<&gcc GCC_CAMSS_VFE_AXI_CLK>;
-> +		clock-names = "camss_top_ahb_clk",
-> +			"ispif_ahb_clk",
-> +			"csiphy0_timer_clk",
-> +			"csiphy1_timer_clk",
-> +			"csi0_ahb_clk",
-> +			"csi0_clk",
-> +			"csi0_phy_clk",
-> +			"csi0_pix_clk",
-> +			"csi0_rdi_clk",
-> +			"csi1_ahb_clk",
-> +			"csi1_clk",
-> +			"csi1_phy_clk",
-> +			"csi1_pix_clk",
-> +			"csi1_rdi_clk",
-> +			"camss_ahb_clk",
-> +			"camss_vfe_vfe_clk",
-> +			"camss_csi_vfe_clk",
-> +			"iface_clk",
-> +			"bus_clk";
-> +		vdda-supply = <&pm8916_l2>;
-> +		iommus = <&apps_iommu 3>;
-> +		ports {
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +			port@0 {
-> +				reg = <0>;
-> +				csiphy0_ep: endpoint {
-> +					clock-lanes = <1>;
-> +					data-lanes = <0 2>;
-> +					qcom,settle-cnt = <0xe>;
-> +					remote-endpoint = <&ov5645_ep>;
-> +				};
-> +			};
-> +		};
-> +	};
-> -- 
-> 1.9.1
+> regards,
+> Stan
 > 
+> Stanimir Varbanov (19):
+>   media: v4l2-mem2mem: extend m2m APIs for more accurate buffer
+>     management
+>   doc: DT: venus: binding document for Qualcomm video driver
+>   MAINTAINERS: Add Qualcomm Venus video accelerator driver
+>   media: venus: adding core part and helper functions
+>   media: venus: vdec: add video decoder files
+>   media: venus: venc: add video encoder files
+>   media: venus: hfi: add Host Firmware Interface (HFI)
+>   media: venus: hfi: add Venus HFI files
+>   media: venus: enable building of Venus video driver
+>   media: venus: hfi: fix mutex unlock
+>   media: venus: hfi_cmds: fix variable dereferenced before check
+>   media: venus: helpers: fix variable dereferenced before check
+>   media: venus: hfi_venus: fix variable dereferenced before check
+>   media: venus: hfi_msgs: fix set but not used variables
+>   media: venus: vdec: fix compile error in vdec_close
+>   media: venus: venc: fix compile error in venc_close
+>   media: venus: vdec: add support for min buffers for capture
+>   media: venus: update firmware path with linux-firmware place
+>   media: venus: enable building with COMPILE_TEST
+> 
+>  .../devicetree/bindings/media/qcom,venus.txt       |  107 ++
+>  MAINTAINERS                                        |    8 +
+>  drivers/media/platform/Kconfig                     |   13 +
+>  drivers/media/platform/Makefile                    |    2 +
+>  drivers/media/platform/qcom/venus/Makefile         |   11 +
+>  drivers/media/platform/qcom/venus/core.c           |  390 +++++
+>  drivers/media/platform/qcom/venus/core.h           |  324 ++++
+>  drivers/media/platform/qcom/venus/firmware.c       |  108 ++
+>  drivers/media/platform/qcom/venus/firmware.h       |   23 +
+>  drivers/media/platform/qcom/venus/helpers.c        |  725 +++++++++
+>  drivers/media/platform/qcom/venus/helpers.h        |   45 +
+>  drivers/media/platform/qcom/venus/hfi.c            |  522 +++++++
+>  drivers/media/platform/qcom/venus/hfi.h            |  175 +++
+>  drivers/media/platform/qcom/venus/hfi_cmds.c       | 1259 ++++++++++++++++
+>  drivers/media/platform/qcom/venus/hfi_cmds.h       |  304 ++++
+>  drivers/media/platform/qcom/venus/hfi_helper.h     | 1050 +++++++++++++
+>  drivers/media/platform/qcom/venus/hfi_msgs.c       | 1052 +++++++++++++
+>  drivers/media/platform/qcom/venus/hfi_msgs.h       |  283 ++++
+>  drivers/media/platform/qcom/venus/hfi_venus.c      | 1572 ++++++++++++++++++++
+>  drivers/media/platform/qcom/venus/hfi_venus.h      |   23 +
+>  drivers/media/platform/qcom/venus/hfi_venus_io.h   |  113 ++
+>  drivers/media/platform/qcom/venus/vdec.c           | 1162 +++++++++++++++
+>  drivers/media/platform/qcom/venus/vdec.h           |   23 +
+>  drivers/media/platform/qcom/venus/vdec_ctrls.c     |  158 ++
+>  drivers/media/platform/qcom/venus/venc.c           | 1283 ++++++++++++++++
+>  drivers/media/platform/qcom/venus/venc.h           |   23 +
+>  drivers/media/platform/qcom/venus/venc_ctrls.c     |  270 ++++
+>  drivers/media/v4l2-core/v4l2-mem2mem.c             |   37 +
+>  include/media/v4l2-mem2mem.h                       |   92 ++
+>  29 files changed, 11157 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
+>  create mode 100644 drivers/media/platform/qcom/venus/Makefile
+>  create mode 100644 drivers/media/platform/qcom/venus/core.c
+>  create mode 100644 drivers/media/platform/qcom/venus/core.h
+>  create mode 100644 drivers/media/platform/qcom/venus/firmware.c
+>  create mode 100644 drivers/media/platform/qcom/venus/firmware.h
+>  create mode 100644 drivers/media/platform/qcom/venus/helpers.c
+>  create mode 100644 drivers/media/platform/qcom/venus/helpers.h
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi.c
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi.h
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.c
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.h
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi_helper.h
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.c
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.h
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.c
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.h
+>  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus_io.h
+>  create mode 100644 drivers/media/platform/qcom/venus/vdec.c
+>  create mode 100644 drivers/media/platform/qcom/venus/vdec.h
+>  create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
+>  create mode 100644 drivers/media/platform/qcom/venus/venc.c
+>  create mode 100644 drivers/media/platform/qcom/venus/venc.h
+>  create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
+> 
+
+-- 
+regards,
+Stan
