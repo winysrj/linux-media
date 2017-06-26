@@ -1,72 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.fireflyinternet.com ([109.228.58.192]:56015 "EHLO
-        fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751574AbdF1QAo (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56945 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751403AbdFZSM3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Jun 2017 12:00:44 -0400
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-To: Sean Paul <seanpaul@chromium.org>, dri-devel@lists.freedesktop.org
-From: Chris Wilson <chris@chris-wilson.co.uk>
-In-Reply-To: <20170628155117.3558-1-seanpaul@chromium.org>
-Cc: marcheu@chromium.org, linux-media@vger.kernel.org
-References: <20170628155117.3558-1-seanpaul@chromium.org>
-Message-ID: <149866562059.23475.15965626912972737879@mail.alporthouse.com>
-Subject: Re: [PATCH] dma-buf/sw_sync: Fix timeline/pt overflow cases
-Date: Wed, 28 Jun 2017 17:00:20 +0100
+        Mon, 26 Jun 2017 14:12:29 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 01/14] v4l: vsp1: Fill display list headers without holding dlm spinlock
+Date: Mon, 26 Jun 2017 21:12:13 +0300
+Message-Id: <20170626181226.29575-2-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Quoting Sean Paul (2017-06-28 16:51:11)
-> Protect against long-running processes from overflowing the timeline
-> and creating fences that go back in time. While we're at it, avoid
-> overflowing while we're incrementing the timeline.
-> 
-> Signed-off-by: Sean Paul <seanpaul@chromium.org>
-> ---
->  drivers/dma-buf/sw_sync.c | 7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/dma-buf/sw_sync.c b/drivers/dma-buf/sw_sync.c
-> index 69c5ff36e2f9..40934619ed88 100644
-> --- a/drivers/dma-buf/sw_sync.c
-> +++ b/drivers/dma-buf/sw_sync.c
-> @@ -142,7 +142,7 @@ static void sync_timeline_signal(struct sync_timeline *obj, unsigned int inc)
->  
->         spin_lock_irqsave(&obj->child_list_lock, flags);
->  
-> -       obj->value += inc;
-> +       obj->value += min(inc, ~0x0U - obj->value);
+The display list headers are filled using information from the display
+list only. Lower the display list manager spinlock contention by filling
+the headers without holding the lock.
 
-The timeline uses u32 seqno, so just obj->value += min(inc, INT_MAX);
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_dl.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-Better of course would be to report the error,
-
-diff --git a/drivers/dma-buf/sw_sync.c b/drivers/dma-buf/sw_sync.c
-index 69c5ff36e2f9..2503cf884018 100644
---- a/drivers/dma-buf/sw_sync.c
-+++ b/drivers/dma-buf/sw_sync.c
-@@ -345,6 +345,9 @@ static long sw_sync_ioctl_inc(struct sync_timeline *obj, unsigned long arg)
-        if (copy_from_user(&value, (void __user *)arg, sizeof(value)))
-                return -EFAULT;
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index aaf17b13fd78..dc47e236c780 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -483,8 +483,6 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
+ 	unsigned long flags;
+ 	bool update;
  
-+       if (value > INT_MAX)
-+               return -EINVAL;
+-	spin_lock_irqsave(&dlm->lock, flags);
+-
+ 	if (dl->dlm->mode == VSP1_DL_MODE_HEADER) {
+ 		struct vsp1_dl_list *dl_child;
+ 
+@@ -501,7 +499,11 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
+ 
+ 			vsp1_dl_list_fill_header(dl_child, last);
+ 		}
++	}
+ 
++	spin_lock_irqsave(&dlm->lock, flags);
 +
-        sync_timeline_signal(obj, value);
++	if (dl->dlm->mode == VSP1_DL_MODE_HEADER) {
+ 		/*
+ 		 * Commit the head display list to hardware. Chained headers
+ 		 * will auto-start.
+-- 
+Regards,
 
->  
->         list_for_each_entry_safe(pt, next, &obj->active_list_head,
->                                  active_list) {
-> @@ -178,6 +178,11 @@ static struct sync_pt *sync_pt_create(struct sync_timeline *obj, int size,
->                 return NULL;
->  
->         spin_lock_irqsave(&obj->child_list_lock, flags);
-> +       if (value < obj->value) {
-> +               spin_unlock_irqrestore(&obj->child_list_lock, flags);
-> +               return NULL;
-> +       }
-
-Needs a u32 check. if ((int)(value - obj->value) < 0) return some_error;
--Chris
+Laurent Pinchart
