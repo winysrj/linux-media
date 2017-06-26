@@ -1,111 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:34016 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751417AbdFXQDJ (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56948 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751404AbdFZSMu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Jun 2017 12:03:09 -0400
-Received: by mail-wr0-f193.google.com with SMTP id k67so19936584wrc.1
-        for <linux-media@vger.kernel.org>; Sat, 24 Jun 2017 09:03:08 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: rjkm@metzlerbros.de, jasmin@anw.at
-Subject: [PATCH 3/9] [media] dvb-frontends/stv0910: add multistream (ISI) and PLS capabilities
-Date: Sat, 24 Jun 2017 18:02:55 +0200
-Message-Id: <20170624160301.17710-4-d.scheller.oss@gmail.com>
-In-Reply-To: <20170624160301.17710-1-d.scheller.oss@gmail.com>
-References: <20170624160301.17710-1-d.scheller.oss@gmail.com>
+        Mon, 26 Jun 2017 14:12:50 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 14/14] drm: rcar-du: Configure DPAD0 routing through last group on Gen3
+Date: Mon, 26 Jun 2017 21:12:26 +0300
+Message-Id: <20170626181226.29575-15-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On Gen3 SoCs DPAD0 routing is configured through the last CRTC group,
+unlike on Gen2 where it is configured through the first CRTC group. Fix
+the driver accordingly.
 
-Implements stream_id filter and scrambling code setup in Start() and also
-sets FE_CAN_MULTISTREAM in frontend_ops. This enables the driver to
-properly receive and handle multistream transponders, functionality has
-been reported working fine by testers with access to such streams, in
-conjunction with VDR on the userspace side.
-
-The code snippet originates from the original vendor's dddvb driver
-package and has been made working properly with the current in-kernel
-DVB core API.
-
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Fixes: 2427b3037710 ("drm: rcar-du: Add R8A7795 device support")
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/dvb-frontends/stv0910.c | 32 ++++++++++++++++++++++++++------
- 1 file changed, 26 insertions(+), 6 deletions(-)
+ drivers/gpu/drm/rcar-du/rcar_du_group.c | 21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
-index a5eac1a3a048..999ee6a8ea23 100644
---- a/drivers/media/dvb-frontends/stv0910.c
-+++ b/drivers/media/dvb-frontends/stv0910.c
-@@ -124,9 +124,7 @@ struct stv {
- 	int   isVCM;
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_group.c b/drivers/gpu/drm/rcar-du/rcar_du_group.c
+index 64738fca96d0..2abb2fdd143e 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_group.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_group.c
+@@ -208,23 +208,30 @@ void rcar_du_group_restart(struct rcar_du_group *rgrp)
  
- 	u32   CurScramblingCode;
--	u32   ForceScramblingCode;
- 	u32   ScramblingCode;
--	u32   DefaultInputStreamID;
+ int rcar_du_set_dpad0_vsp1_routing(struct rcar_du_device *rcdu)
+ {
++	struct rcar_du_group *rgrp;
++	struct rcar_du_crtc *crtc;
+ 	int ret;
  
- 	u32   LastBERNumerator;
- 	u32   LastBERDenominator;
-@@ -972,6 +970,7 @@ static int Start(struct stv *state, struct dtv_frontend_properties *p)
- 	s32 Freq;
- 	u8  regDMDCFGMD;
- 	u16 symb;
-+	u32 ScramblingCode = 1;
+ 	if (!rcar_du_has(rcdu, RCAR_DU_FEATURE_EXT_CTRL_REGS))
+ 		return 0;
  
- 	if (p->symbol_rate < 100000 || p->symbol_rate > 70000000)
- 		return -EINVAL;
-@@ -985,6 +984,28 @@ static int Start(struct stv *state, struct dtv_frontend_properties *p)
- 
- 	init_search_param(state);
- 
-+	if (p->stream_id != NO_STREAM_ID_FILTER) {
-+		/* Backwards compatibility to "crazy" API.
-+		 * PRBS X root cannot be 0, so this should always work.
-+		 */
-+		if (p->stream_id & 0xffffff00)
-+			ScramblingCode = p->stream_id >> 8;
-+		write_reg(state, RSTV0910_P2_ISIENTRY + state->regoff,
-+			  p->stream_id & 0xff);
-+		write_reg(state, RSTV0910_P2_ISIBITENA + state->regoff,
-+			  0xff);
-+	}
+-	/* RGB output routing to DPAD0 and VSP1D routing to DU0/1/2 are
+-	 * configured in the DEFR8 register of the first group. As this function
+-	 * can be called with the DU0 and DU1 CRTCs disabled, we need to enable
+-	 * the first group clock before accessing the register.
++	/*
++	 * RGB output routing to DPAD0 and VSP1D routing to DU0/1/2 are
++	 * configured in the DEFR8 register of the first group on Gen2 and the
++	 * last group on Gen3. As this function can be called with the DU
++	 * channels of the corresponding CRTCs disabled, we need to enable the
++	 * group clock before accessing the register.
+ 	 */
+-	ret = clk_prepare_enable(rcdu->crtcs[0].clock);
++	rgrp = &rcdu->groups[DIV_ROUND_UP(rcdu->num_crtcs, 2) - 1];
++	crtc = &rcdu->crtcs[rgrp->index * 2];
 +
-+	if (ScramblingCode != state->CurScramblingCode) {
-+		write_reg(state, RSTV0910_P2_PLROOT0 + state->regoff,
-+			  ScramblingCode & 0xff);
-+		write_reg(state, RSTV0910_P2_PLROOT1 + state->regoff,
-+			  (ScramblingCode >> 8) & 0xff);
-+		write_reg(state, RSTV0910_P2_PLROOT2 + state->regoff,
-+			  (ScramblingCode >> 16) & 0x07);
-+		state->CurScramblingCode = ScramblingCode;
-+	}
-+
- 	if (p->symbol_rate <= 1000000) {  /* SR <=1Msps */
- 		state->DemodTimeout = 3000;
- 		state->FecTimeout = 2000;
-@@ -1643,7 +1664,8 @@ static struct dvb_frontend_ops stv0910_ops = {
- 		.caps			= FE_CAN_INVERSION_AUTO |
- 					  FE_CAN_FEC_AUTO       |
- 					  FE_CAN_QPSK           |
--					  FE_CAN_2G_MODULATION
-+					  FE_CAN_2G_MODULATION  |
-+					  FE_CAN_MULTISTREAM
- 	},
- 	.sleep				= sleep,
- 	.release                        = release,
-@@ -1687,9 +1709,7 @@ struct dvb_frontend *stv0910_attach(struct i2c_adapter *i2c,
- 	state->SearchRange = 16000000;
- 	state->DEMOD = 0x10;     /* Inversion : Auto with reset to 0 */
- 	state->ReceiveMode   = Mode_None;
--	state->CurScramblingCode = (u32) -1;
--	state->ForceScramblingCode = (u32) -1;
--	state->DefaultInputStreamID = (u32) -1;
-+	state->CurScramblingCode = (~0U);
- 	state->single = cfg->single ? 1 : 0;
++	ret = clk_prepare_enable(crtc->clock);
+ 	if (ret < 0)
+ 		return ret;
  
- 	base = match_base(i2c, cfg->adr);
+-	rcar_du_group_setup_defr8(&rcdu->groups[0]);
++	rcar_du_group_setup_defr8(rgrp);
+ 
+-	clk_disable_unprepare(rcdu->crtcs[0].clock);
++	clk_disable_unprepare(crtc->clock);
+ 
+ 	return 0;
+ }
 -- 
-2.13.0
+Regards,
+
+Laurent Pinchart
