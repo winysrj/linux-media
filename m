@@ -1,69 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f174.google.com ([209.85.220.174]:35728 "EHLO
-        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751866AbdFZPWt (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40136
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751776AbdFZMRN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 11:22:49 -0400
-Received: by mail-qk0-f174.google.com with SMTP id 16so3961500qkg.2
-        for <linux-media@vger.kernel.org>; Mon, 26 Jun 2017 08:22:43 -0700 (PDT)
-Date: Mon, 26 Jun 2017 12:22:39 -0300
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Nicolas Dufresne <nicolas@ndufresne.ca>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [PATCH 08/12] [media] vb2: add 'ordered' property to queues
-Message-ID: <20170626152239.GA3090@jade>
-References: <20170616073915.5027-1-gustavo@padovan.org>
- <20170616073915.5027-9-gustavo@padovan.org>
- <1497632193.6020.19.camel@ndufresne.ca>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <1497632193.6020.19.camel@ndufresne.ca>
+        Mon, 26 Jun 2017 08:17:13 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v2] media: v4l2-fwnode: don't risk go out of array bounds
+Date: Mon, 26 Jun 2017 09:16:17 -0300
+Message-Id: <b150777f4831580d0312d436a5faac9b185547cd.1498479370.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas,
+As warned by gcc:
+	drivers/media/v4l2-core/v4l2-fwnode.c:76 v4l2_fwnode_endpoint_parse_csi_bus() error: buffer overflow 'array' 5 <= u16max
 
-2017-06-16 Nicolas Dufresne <nicolas@ndufresne.ca>:
+That's because, in thesis, the routine might have called with
+some value at bus->num_data_lanes.
 
-> Le vendredi 16 juin 2017 à 16:39 +0900, Gustavo Padovan a écrit :
-> > > From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> > 
-> > For explicit synchronization (and soon for HAL3/Request API) we need
-> > the v4l2-driver to guarantee the ordering which the buffer were queued
-> > by userspace. This is already true for many drivers, but we never had
-> > the need to say it.
-> 
-> Phrased this way, that sound like a statement that a m2m decoder
-> handling b-frame will just never be supported. I think decoders are a
-> very important use case for explicit synchronization.
-> 
-> What I believe happens with decoders is simply that the allocation
-> order (the order in which empty buffers are retrieved from the queue)
-> will be different then the actual presentation order. Also, multiple
-> buffers endup being filled at the same time. Some firmware may inform
-> of the new order at the last minute, making indeed the fence useless,
-> but these are firmware and the information can be known earlier. Also,
-> this information would be known by userspace for the case (up-coming,
-> see STM patches and Rockchip comments [0]) or state-less decoder,
-> because it is available while parsing the bitstream. For this last
-> scenarios, the fact that ordering is not the same should disable the
-> fences since userspace can know which fences to wait for first. Those
-> drivers would need to set "ordered" to 0, which would be counter
-> intuitive.
-> 
-> I think this use case is too important to just ignore it. I would
-> expect that we at least have a todo with something sensible as a plan
-> to cover this.
+While this doesn't happen, in practice, some code change could
+cause crashes, so, better to fix it.
 
-We definitely need to cover these usecases, I sent the patchset in a
-hurry just before going on vacation and forget to lay down any plan for
-other things. But for now, I believe we need refine the implementation
-of the most common case and then look at expanding it.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/v4l2-fwnode.c | 32 +++++++++++++++++---------------
+ 1 file changed, 17 insertions(+), 15 deletions(-)
 
-	Gustavo
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 153c53ca3925..dadffde1c729 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -56,24 +56,26 @@ static int v4l2_fwnode_endpoint_parse_csi_bus(struct fwnode_handle *fwnode,
+ 
+ 			bus->data_lanes[i] = array[i];
+ 		}
+-	}
+ 
+-	rval = fwnode_property_read_u32_array(fwnode, "lane-polarities", NULL,
+-					      0);
+-	if (rval > 0) {
+-		u32 array[ARRAY_SIZE(bus->lane_polarities)];
++		rval = fwnode_property_read_u32_array(fwnode,
++						      "lane-polarities",
++						      NULL, 0);
++		if (rval > 0) {
++			u32 array[ARRAY_SIZE(bus->lane_polarities)];
+ 
+-		if (rval < 1 + bus->num_data_lanes /* clock + data */) {
+-			pr_warn("too few lane-polarities entries (need %u, got %u)\n",
+-				1 + bus->num_data_lanes, rval);
+-			return -EINVAL;
++			if (rval < 1 + bus->num_data_lanes /* clock + data */) {
++				pr_warn("too few lane-polarities entries (need %u, got %u)\n",
++					1 + bus->num_data_lanes, rval);
++				return -EINVAL;
++			}
++
++			fwnode_property_read_u32_array(fwnode,
++						       "lane-polarities", array,
++						       1 + bus->num_data_lanes);
++
++			for (i = 0; i < 1 + bus->num_data_lanes; i++)
++				bus->lane_polarities[i] = array[i];
+ 		}
+-
+-		fwnode_property_read_u32_array(fwnode, "lane-polarities", array,
+-					       1 + bus->num_data_lanes);
+-
+-		for (i = 0; i < 1 + bus->num_data_lanes; i++)
+-			bus->lane_polarities[i] = array[i];
+ 	}
+ 
+ 	if (!fwnode_property_read_u32(fwnode, "clock-lanes", &v)) {
+-- 
+2.9.4
