@@ -1,75 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:49316
-        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751136AbdFYUAb (ORCPT
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.216]:26617 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751353AbdFZKPB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Jun 2017 16:00:31 -0400
-Date: Sun, 25 Jun 2017 16:00:19 -0400 (EDT)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Hugues Fruchet <hugues.fruchet@st.com>
-cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        "H. Nikolaus Schaller" <hns@goldelico.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>, kbuild-all@01.org
-Subject: Re: [PATCH v1 5/6] [media] ov9650: add multiple variant support
- (fwd)
-Message-ID: <alpine.DEB.2.20.1706251559180.3109@hadrien>
+        Mon, 26 Jun 2017 06:15:01 -0400
+From: Ralph Metzler <rjkm@metzlerbros.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Message-ID: <22864.56989.452735.990171@morden.metzler>
+Date: Mon, 26 Jun 2017 12:14:53 +0200
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Ralph Metzler <rjkm@metzlerbros.de>,
+        Daniel Scheller <d.scheller.oss@gmail.com>,
+        linux-media@vger.kernel.org, mchehab@kernel.org, jasmin@anw.at
+Subject: Re: [PATCH 4/9] [media] dvb-frontends/stv0910: Fix signal strength
+ reporting
+In-Reply-To: <20170626070035.17f131e3@vento.lan>
+References: <20170624160301.17710-1-d.scheller.oss@gmail.com>
+        <20170624160301.17710-5-d.scheller.oss@gmail.com>
+        <22864.52230.708596.809030@morden.metzler>
+        <20170626070035.17f131e3@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Braces are probably missing aroud lines 1618-1620.
+Mauro Carvalho Chehab writes:
+ > Em Mon, 26 Jun 2017 10:55:34 +0200
+ > Ralph Metzler <rjkm@metzlerbros.de> escreveu:
+ > 
+ > > Daniel Scheller writes:
+ > >  > From: Daniel Scheller <d.scheller@gmx.net>
+ > >  > 
+ > >  > Original code at least has some signed/unsigned issues, resulting in
+ > >  > values like 32dBm.  
+ > > 
+ > > I will look into that.
+ > > 
+ > >  > Change signal strength readout to work without asking
+ > >  > the attached tuner, and use a lookup table instead of log calc. Values  
+ > > 
+ > > How can you determine the exact strength without knowing what the tuner did?
+ > > At least the stv6111 does its own AGC which has to be added.
+ > 
+ > I remember I had to solve this issue on some other driver[1][2][3]. What I
+ > did was to get the AGC gain from the tuner using a callback,
+ > then I added it to the main gain.
+ > 
+ > [1] https://www.spinics.net/lists/linux-media/msg101836.html
+ > [2] https://www.spinics.net/lists/linux-media/msg101838.html
+ > [3] https://www.spinics.net/lists/linux-media/msg101842.html
+ > 
+ > I don't remember why it was not merged upstream, though. Perhaps because
+ > I was in doubt about reporting it as "rf_attenuation" or as "agc gain".
+ > 
+ > Anyway, with something like that, any demod could check for such
+ > callback. If defined, add it to its AGC own gain, in order to get
+ > the total AGC gain.
 
-julia
+I misused get_rf_strength for this in my versions of stv6111.c/stv0910.c.
+But get_rf_attenuation would be exactly what we need.
 
----------- Forwarded message ----------
-Date: Sun, 25 Jun 2017 23:06:03 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: kbuild@01.org
-Cc: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH v1 5/6] [media] ov9650: add multiple variant support
+Daniel now removed the get_rf_strength() call from stv0910.c and ignores
+the correction from the tuner. That was what I was commenting on.
 
-Hi Hugues,
 
-[auto build test WARNING on linuxtv-media/master]
-[also build test WARNING on v4.12-rc6 next-20170623]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-
-url:    https://github.com/0day-ci/linux/commits/Hugues-Fruchet/Add-support-of-OV9655-camera/20170625-201153
-base:   git://linuxtv.org/media_tree.git master
-:::::: branch date: 3 hours ago
-:::::: commit date: 3 hours ago
-
->> drivers/media/i2c/ov9650.c:1618:2-44: code aligned with following code on line 1619
-
-git remote add linux-review https://github.com/0day-ci/linux
-git remote update linux-review
-git checkout a9fe8c23240a7f8df39c6238d98e41f41fedb641
-vim +1618 drivers/media/i2c/ov9650.c
-
-a9fe8c23 Hugues Fruchet     2017-06-22  1612  	ov965x->set_params = __ov965x_set_params;
-84a15ded Sylwester Nawrocki 2012-12-26  1613
-a9fe8c23 Hugues Fruchet     2017-06-22  1614  	ov965x->frame_size = &ov965x->framesizes[0];
-a9fe8c23 Hugues Fruchet     2017-06-22  1615  	ov965x_get_default_format(ov965x, &ov965x->format);
-a9fe8c23 Hugues Fruchet     2017-06-22  1616
-a9fe8c23 Hugues Fruchet     2017-06-22  1617  	if (ov965x->initialize_controls)
-a9fe8c23 Hugues Fruchet     2017-06-22 @1618  		ret = ov965x->initialize_controls(ov965x);
-84a15ded Sylwester Nawrocki 2012-12-26 @1619  		if (ret < 0)
-84a15ded Sylwester Nawrocki 2012-12-26  1620  			goto err_ctrls;
-84a15ded Sylwester Nawrocki 2012-12-26  1621
-84a15ded Sylwester Nawrocki 2012-12-26  1622  	/* Update exposure time min/max to match frame format */
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+Regards,
+Ralph
