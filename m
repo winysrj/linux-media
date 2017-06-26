@@ -1,220 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47898 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50810 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751411AbdFZOva (ORCPT
+        by vger.kernel.org with ESMTP id S1751426AbdFZQdf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 10:51:30 -0400
-Date: Mon, 26 Jun 2017 17:51:15 +0300
+        Mon, 26 Jun 2017 12:33:35 -0400
+Date: Mon, 26 Jun 2017 19:33:30 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
-Subject: Re: [PATCH v2 3/3] [media] intel-ipu3: cio2: Add new MIPI-CSI2 driver
-Message-ID: <20170626145105.GN12407@valkosipuli.retiisi.org.uk>
-References: <1496799279-8774-1-git-send-email-yong.zhi@intel.com>
- <1496799279-8774-4-git-send-email-yong.zhi@intel.com>
- <CAAFQd5Byemom138duZRpsKOzsb5204NfbFnjEdnDTu6wfLgnrQ@mail.gmail.com>
+To: Hugues Fruchet <hugues.fruchet@st.com>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        " H. Nikolaus Schaller" <hns@goldelico.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>
+Subject: Re: [PATCH v1 4/6] [media] ov9650: use write_array() for resolution
+ sequences
+Message-ID: <20170626163330.GR12407@valkosipuli.retiisi.org.uk>
+References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
+ <1498143942-12682-5-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAAFQd5Byemom138duZRpsKOzsb5204NfbFnjEdnDTu6wfLgnrQ@mail.gmail.com>
+In-Reply-To: <1498143942-12682-5-git-send-email-hugues.fruchet@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+Hi Hugues,
 
-A few more comments, better late than never I guess.
+On Thu, Jun 22, 2017 at 05:05:40PM +0200, Hugues Fruchet wrote:
+> Align resolution sequences on initialization sequence using
+> i2c_rv structure NULL terminated .This add flexibility
+> on resolution sequence size.
+> Document resolution related registers by using corresponding
+> define instead of hexa address/value.
+> 
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+> ---
+>  drivers/media/i2c/ov9650.c | 98 ++++++++++++++++++++++++++++++----------------
+>  1 file changed, 64 insertions(+), 34 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+> index 4311da6..8b283c9 100644
+> --- a/drivers/media/i2c/ov9650.c
+> +++ b/drivers/media/i2c/ov9650.c
+> @@ -227,11 +227,16 @@ struct ov965x_ctrls {
+>  	u8 update;
+>  };
+>  
+> +struct i2c_rv {
+> +	u8 addr;
+> +	u8 value;
+> +};
+> +
+>  struct ov965x_framesize {
+>  	u16 width;
+>  	u16 height;
+>  	u16 max_exp_lines;
+> -	const u8 *regs;
+> +	const struct i2c_rv *regs;
+>  };
+>  
+>  struct ov965x_interval {
+> @@ -280,9 +285,11 @@ struct ov965x {
+>  	u8 apply_frame_fmt;
+>  };
+>  
+> -struct i2c_rv {
+> -	u8 addr;
+> -	u8 value;
+> +struct ov965x_pixfmt {
+> +	u32 code;
+> +	u32 colorspace;
+> +	/* REG_TSLB value, only bits [3:2] may be set. */
+> +	u8 tslb_reg;
+>  };
+>  
+>  static const struct i2c_rv ov965x_init_regs[] = {
+> @@ -342,30 +349,59 @@ struct i2c_rv {
+>  	{ REG_NULL, 0 }
+>  };
+>  
+> -#define NUM_FMT_REGS 14
+> -/*
+> - * COM7,  COM3,  COM4, HSTART, HSTOP, HREF, VSTART, VSTOP, VREF,
+> - * EXHCH, EXHCL, ADC,  OCOM,   OFON
+> - */
+> -static const u8 frame_size_reg_addr[NUM_FMT_REGS] = {
+> -	0x12, 0x0c, 0x0d, 0x17, 0x18, 0x32, 0x19, 0x1a, 0x03,
+> -	0x2a, 0x2b, 0x37, 0x38, 0x39,
+> -};
+> -
+> -static const u8 ov965x_sxga_regs[NUM_FMT_REGS] = {
+> -	0x00, 0x00, 0x00, 0x1e, 0xbe, 0xbf, 0x01, 0x81, 0x12,
+> -	0x10, 0x34, 0x81, 0x93, 0x51,
+> +static const struct i2c_rv ov965x_sxga_regs[] = {
+> +	{ REG_COM7, 0x00 },
+> +	{ REG_COM3, 0x00 },
+> +	{ REG_COM4, 0x00 },
+> +	{ REG_HSTART, 0x1e },
+> +	{ REG_HSTOP, 0xbe },
+> +	{ 0x32, 0xbf },
+> +	{ REG_VSTART, 0x01 },
+> +	{ REG_VSTOP, 0x81 },
+> +	{ REG_VREF, 0x12 },
+> +	{ REG_EXHCH, 0x10 },
+> +	{ REG_EXHCL, 0x34 },
+> +	{ REG_ADC, 0x81 },
+> +	{ REG_ACOM, 0x93 },
+> +	{ REG_OFON, 0x51 },
+> +	{ REG_NULL, 0 },
+>  };
+>  
+> -static const u8 ov965x_vga_regs[NUM_FMT_REGS] = {
+> -	0x40, 0x04, 0x80, 0x26, 0xc6, 0xed, 0x01, 0x3d, 0x00,
+> -	0x10, 0x40, 0x91, 0x12, 0x43,
+> +static const struct i2c_rv ov965x_vga_regs[] = {
+> +	{ REG_COM7, 0x40 },
+> +	{ REG_COM3, 0x04 },
+> +	{ REG_COM4, 0x80 },
+> +	{ REG_HSTART, 0x26 },
+> +	{ REG_HSTOP, 0xc6 },
+> +	{ 0x32, 0xed },
+> +	{ REG_VSTART, 0x01 },
+> +	{ REG_VSTOP, 0x3d },
+> +	{ REG_VREF, 0x00 },
+> +	{ REG_EXHCH, 0x10 },
+> +	{ REG_EXHCL, 0x40 },
+> +	{ REG_ADC, 0x91 },
+> +	{ REG_ACOM, 0x12 },
+> +	{ REG_OFON, 0x43 },
+> +	{ REG_NULL, 0 },
+>  };
+>  
+>  /* Determined empirically. */
+> -static const u8 ov965x_qvga_regs[NUM_FMT_REGS] = {
+> -	0x10, 0x04, 0x80, 0x25, 0xc5, 0xbf, 0x00, 0x80, 0x12,
+> -	0x10, 0x40, 0x91, 0x12, 0x43,
+> +static const struct i2c_rv ov965x_qvga_regs[] = {
+> +	{ REG_COM7, 0x10 },
+> +	{ REG_COM3, 0x04 },
+> +	{ REG_COM4, 0x80 },
+> +	{ REG_HSTART, 0x25 },
+> +	{ REG_HSTOP, 0xc5 },
+> +	{ 0x32, 0xbf },
+> +	{ REG_VSTART, 0x00 },
+> +	{ REG_VSTOP, 0x80 },
+> +	{ REG_VREF, 0x12 },
+> +	{ REG_EXHCH, 0x10 },
+> +	{ REG_EXHCL, 0x40 },
+> +	{ REG_ADC, 0x91 },
+> +	{ REG_ACOM, 0x12 },
+> +	{ REG_OFON, 0x43 },
+> +	{ REG_NULL, 0 },
+>  };
+>  
+>  static const struct ov965x_framesize ov965x_framesizes[] = {
+> @@ -387,13 +423,6 @@ struct i2c_rv {
+>  	},
+>  };
+>  
+> -struct ov965x_pixfmt {
+> -	u32 code;
+> -	u32 colorspace;
+> -	/* REG_TSLB value, only bits [3:2] may be set. */
+> -	u8 tslb_reg;
+> -};
 
-On Mon, Jun 12, 2017 at 06:59:18PM +0900, Tomasz Figa wrote:
-...
-> > +/*
-> > + * The CSI2 receiver has several parameters affecting
-> > + * the receiver timings. These depend on the MIPI bus frequency
-> > + * F in Hz (sensor transmitter rate) as follows:
-> > + *     register value = (A/1e9 + B * UI) / COUNT_ACC
-> > + * where
-> > + *      UI = 1 / (2 * F) in seconds
-> > + *      COUNT_ACC = counter accuracy in seconds
-> > + *      For IPU3 COUNT_ACC = 0.0625
-> > + *
-> > + * A and B are coefficients from the table below,
-> > + * depending whether the register minimum or maximum value is
-> > + * calculated.
-> > + *                                     Minimum     Maximum
-> > + * Clock lane                          A     B     A     B
-> > + * reg_rx_csi_dly_cnt_termen_clane     0     0    38     0
-> > + * reg_rx_csi_dly_cnt_settle_clane    95    -8   300   -16
-> > + * Data lanes
-> > + * reg_rx_csi_dly_cnt_termen_dlane0    0     0    35
-> > + * reg_rx_csi_dly_cnt_settle_dlane0   85    -2   145    -6
-> > + * reg_rx_csi_dly_cnt_termen_dlane1    0     0    35     4
-> > + * reg_rx_csi_dly_cnt_settle_dlane1   85    -2   145    -6
-> > + * reg_rx_csi_dly_cnt_termen_dlane2    0     0    35     4
-> > + * reg_rx_csi_dly_cnt_settle_dlane2   85    -2   145    -6
-> > + * reg_rx_csi_dly_cnt_termen_dlane3    0     0    35     4
-> > + * reg_rx_csi_dly_cnt_settle_dlane3   85    -2   145    -6
-> > + *
-> > + * We use the minimum values of both A and B.
-> 
-> Why?
-> 
-> > + */
-> > +static int cio2_rx_timing(s32 a, s32 b, s64 freq)
-> > +{
-> > +       int r;
-> > +       const u32 accinv = 16;
-> > +       const u32 ds = 8; /* divde shift */
-> 
-> typo: divide
-> 
-> > +
-> > +       freq = (s32)freq >> ds;
-> 
-> Why do we demote freq from 64 to 32 bits here?
+Any particular reason for moving struct ov965x_pixfmt definition?
 
-I don't think there's any reason to. The original purpose of the check has
-likely been to avoid dividing by a 64-bit number but that has been lost
-here. The cast should be elsewhere...
-
-> 
-> > +       if (WARN_ON(freq <= 0))
-> > +               return -EINVAL;
-> 
-> It generally doesn't make sense for the frequency to be negative, so
-> maybe the argument should have been unsigned to start with? (And
-> 32-bit if we don't expect frequencies higher than 4 GHz anyway.)
-
-The value comes from a 64-bit integer V4L2 control so that implies the value
-range of s64 as well.
-
-> 
-> > +
-> > +       /* b could be 0, -2 or -8, so r < 500000000 */
-> 
-> Definitely. Anything <= 0 is also less than 500000000. Let's take a
-> look at the computation below again:
-> 
-> 1) accinv is multiplied by b,
-> 2) 500000000 is divided by 256 (=== shift right by 8 bits) = 1953125,
-> 3) accinv*b is multiplied by 1953125 to form the value of r.
-> 
-> Now let's see at possible maximum absolute values for particular steps:
-> 1) 16 * -8 = -128 (signed 8 bits),
-> 2) 1953125 (unsigned 21 bits),
-> 3) -128 * 1953125 = -249999872 (signed 29 bits).
-> 
-> So I think the important thing to note in the comment is:
-> 
-> /* b could be 0, -2 or -8, so |accinv * b| is always less than (1 <<
-> ds) and thus |r| < 500000000. */
-> 
-> > +       r = accinv * b * (500000000 >> ds);
-> 
-> On the other hand, you lose some precision here. If you used s64
-> instead and did the divide shift at the end ((accinv * b * 500000000)
-> >> ds), for the example above you would get -250007629. (Depending on
-> how big freq is, it might not matter, though.)
-> 
-
-The frequency is typically hundreds of mega-Hertz.
-
-> Also nit: What is 500000000? We have local constants defined above, I
-> think it could also make sense to do the same for this one. The
-> compiler should do constant propagation and simplify respective
-> calculations anyway.
-
-COUNT_ACC in the formula in the comment a few decalines above is in
-nanoseconds. Performing the calculations in integer arithmetics results in
-having 500000000 in the resulting formula.
-
-So this is actually a constant related to the hardware but it does not have
-a pre-determined name because it is derived from COUNT_ACC.
-
-...
-
-> > +static int cio2_vb2_queue_setup(struct vb2_queue *vq,
-> > +                               unsigned int *num_buffers,
-> > +                               unsigned int *num_planes,
-> > +                               unsigned int sizes[],
-> > +                               struct device *alloc_devs[])
-> > +{
-> > +       struct cio2_device *cio2 = vb2_get_drv_priv(vq);
-> > +       struct cio2_queue *q = container_of(vq, struct cio2_queue, vbq);
-> > +       u32 width = q->subdev_fmt.width;
-> > +       u32 height = q->subdev_fmt.height;
-> > +       u32 pixelformat = q->pixelformat;
-> > +       unsigned int i, szimage;
-> > +       int r = 0;
-> > +
-> > +       for (i = 0; i < ARRAY_SIZE(cio2_csi2_fmts); i++) {
-> > +               if (pixelformat == cio2_csi2_fmts[i])
-> > +                       break;
-> > +       }
-> > +
-> > +       /* Use SRGGB10 instead of return err */
-> > +       if (i >= ARRAY_SIZE(cio2_csi2_fmts))
-> 
-> I think this should be impossible, since S_FMT should have already
-> validated (and corrected) the setting.
-> 
-> > +               pixelformat = V4L2_PIX_FMT_IPU3_SRGGB10;
-> > +
-> > +       alloc_devs[0] = &cio2->pci_dev->dev;
-> 
-> Hmm, so it doesn't go through the IPU MMU in the end?
-
-No. The CSI-2 receiver isn't behind the MMU --- it's entirely separate from
-the ISP.
-
-...
-
-> > +static int cio2_v4l2_querycap(struct file *file, void *fh,
-> > +                             struct v4l2_capability *cap)
-> > +{
-> > +       struct cio2_device *cio2 = video_drvdata(file);
-> > +
-> > +       strlcpy(cap->driver, CIO2_NAME, sizeof(cap->driver));
-> > +       strlcpy(cap->card, CIO2_DEVICE_NAME, sizeof(cap->card));
-> > +       snprintf(cap->bus_info, sizeof(cap->bus_info),
-> > +                "PCI:%s", pci_name(cio2->pci_dev));
-> > +       cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-> 
-> Hmm, I thought single plane queue type was deprecated these days and
-> _MPLANE recommended for all new drivers. I'll defer this to other
-> reviewers, though.
-
-If the device supports single plane formats only, I don't see a reason to
-use MPLANE buffer types.
-
-> [snip]
-> > +
-> > +       /* Initialize vbq */
-> > +       vbq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> > +       vbq->io_modes = VB2_USERPTR | VB2_MMAP;
-> 
-> VB2_DMABUF?
-> 
-> > +       vbq->ops = &cio2_vb2_ops;
-> > +       vbq->mem_ops = &vb2_dma_sg_memops;
-> > +       vbq->buf_struct_size = sizeof(struct cio2_buffer);
-> > +       vbq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> > +       vbq->min_buffers_needed = 1;
-> > +       vbq->drv_priv = cio2;
-> > +       vbq->lock = &q->lock;
-> 
-> Does the code take into account queue operations and video device
-> operations being asynchronous regarding each other? Given that in this
-> case there is always one queue per video device, maybe it would just
-> make sense to use the same lock for both? (This happens if you leave
-> vbq->lock with NULL.)
-
-Using the same lock should be fine IMO.
+> -
+>  static const struct ov965x_pixfmt ov965x_formats[] = {
+>  	{ MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_JPEG, 0x00},
+>  	{ MEDIA_BUS_FMT_YVYU8_2X8, V4L2_COLORSPACE_JPEG, 0x04},
+> @@ -1268,11 +1297,12 @@ static int ov965x_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config
+>  
+>  static int ov965x_set_frame_size(struct ov965x *ov965x)
+>  {
+> -	int i, ret = 0;
+> +	int ret = 0;
+> +
+> +	v4l2_dbg(1, debug, ov965x->client, "%s\n", __func__);
+>  
+> -	for (i = 0; ret == 0 && i < NUM_FMT_REGS; i++)
+> -		ret = ov965x_write(ov965x->client, frame_size_reg_addr[i],
+> -				   ov965x->frame_size->regs[i]);
+> +	ret = ov965x_write_array(ov965x->client,
+> +				 ov965x->frame_size->regs);
+>  	return ret;
+>  }
+>  
 
 -- 
+Regards,
+
 Sakari Ailus
 e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
