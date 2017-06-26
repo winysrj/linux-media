@@ -1,215 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor3.renesas.com ([210.160.252.173]:13984 "EHLO
-        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751640AbdFIPVQ (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:39714
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751353AbdFZKOK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Jun 2017 11:21:16 -0400
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [PATCH v7 6/7] dt-bindings: media: Add Renesas R-Car DRIF binding
-Date: Fri,  9 Jun 2017 16:07:37 +0100
-Message-Id: <20170609150738.56294-7-ramesh.shanmugasundaram@bp.renesas.com>
-In-Reply-To: <20170609150738.56294-1-ramesh.shanmugasundaram@bp.renesas.com>
-References: <20170609150738.56294-1-ramesh.shanmugasundaram@bp.renesas.com>
+        Mon, 26 Jun 2017 06:14:10 -0400
+Date: Mon, 26 Jun 2017 07:14:00 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Ralph Metzler <rjkm@metzlerbros.de>
+Cc: Daniel Scheller <d.scheller.oss@gmail.com>,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        liplianin@netup.ru, crope@iki.fi,
+        "Jasmin J.\" <jasmin@anw.at>, "@s-opensource.com,
+        "Takiguchi,"@s-opensource.com, Yasunari@s-opensource.com,
+        " <Yasunari.Takiguchi@sony.com>, "@s-opensource.com,
+        "tbird20d@gmail.com"@s-opensource.com,
+        " <tbird20d@gmail.com>"@s-opensource.com
+Subject: Re: DD support improvements (was: Re: [PATCH v3 00/13]
+ stv0367/ddbridge: support CTv6/FlexCT hardware)
+Message-ID: <20170626071400.0e4d6fc3@vento.lan>
+In-Reply-To: <22864.56056.222371.477817@morden.metzler>
+References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
+        <20170412212327.5b75be19@macbox>
+        <20170507174212.2e45ab71@audiostation.wuest.de>
+        <20170528234537.3bed2dde@macbox>
+        <20170619221821.022fc473@macbox>
+        <20170620093645.6f72fd1a@vento.lan>
+        <20170620204121.4cff42d1@macbox>
+        <20170620161043.1e6a1364@vento.lan>
+        <20170621225712.426d3a17@audiostation.wuest.de>
+        <22860.14367.464168.657791@morden.metzler>
+        <20170624135001.5bcafb64@vento.lan>
+        <20170625195259.1623ef71@audiostation.wuest.de>
+        <20170626061920.2f0aa781@vento.lan>
+        <22864.56056.222371.477817@morden.metzler>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add binding documentation for Renesas R-Car Digital Radio Interface
-(DRIF) controller.
+Em Mon, 26 Jun 2017 11:59:20 +0200
+Ralph Metzler <rjkm@metzlerbros.de> escreveu:
 
-Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Acked-by: Rob Herring <robh@kernel.org>
----
- .../devicetree/bindings/media/renesas,drif.txt     | 176 +++++++++++++++++++++
- 1 file changed, 176 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,drif.txt
+> Mauro Carvalho Chehab writes:
+>  > Em Sun, 25 Jun 2017 19:52:59 +0200
+>  > Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
+>  >   
+>  > > Am Sat, 24 Jun 2017 13:50:01 -0300
+>  > > schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+>  > >   
+>  > > > Em Thu, 22 Jun 2017 23:35:27 +0200
+>  > > > Ralph Metzler <rjkm@metzlerbros.de> escreveu:
+>  > > > 
+>  > > > Would it be possible to change things at the dddvb tree to make
+>  > > > it to use our coding style (for example, replacing CamelCase by the
+>  > > > kernel_style), in order to minimize the amount of work to sync from
+>  > > > your tree?    
+>  > > 
+>  > > Note that this mostly (if not only) applies to the demodulator drivers. ddbridge itself is okay in this regard and has only some minors like indent, whitespace and such. There's one bigger thing though I'm not sure of if it needs to be changed: Beginning with the 0.9.9-tarball release, functionality was split from ddbridge-core.c into ddbridge.c, ddbridge-i2c.c, ddbridge-mod.c and ddbridge-ns.c (the two latter being modulator and netstream/octonet related code, which we don't need at this time). The issue is that this wasn't done by updating the build system to build multiple objects, but rather build from ddbridge.c which then does '#include "ddbridge-core.c"', and in that file '#include "ddbridge-i2c.c"'. See [1] for how it actually looks like in the file. Mauro, do you think this is acceptable?  
+>  > 
+>  > Splitting it is OK. Including a *.c file no. It shouldn't be hard to  
+> 
+> The main reason for using includes at the time were that the OctopusNet driver
+> (see https://github.com/DigitalDevices/dddvb/blob/master/ddbridge/octonet.c)
+> was using the same files but with different defines set.
+> Those differences are pretty much gone now.
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,drif.txt b/Documentation/devicetree/bindings/media/renesas,drif.txt
-new file mode 100644
-index 000000000000..39516b94c28f
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
-@@ -0,0 +1,176 @@
-+Renesas R-Car Gen3 Digital Radio Interface controller (DRIF)
-+------------------------------------------------------------
-+
-+R-Car Gen3 DRIF is a SPI like receive only slave device. A general
-+representation of DRIF interfacing with a master device is shown below.
-+
-++---------------------+                +---------------------+
-+|                     |-----SCK------->|CLK                  |
-+|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-+|                     |-----SD0------->|D0                   |
-+|                     |-----SD1------->|D1                   |
-++---------------------+                +---------------------+
-+
-+As per datasheet, each DRIF channel (drifn) is made up of two internal
-+channels (drifn0 & drifn1). These two internal channels share the common
-+CLK & SYNC. Each internal channel has its own dedicated resources like
-+irq, dma channels, address space & clock. This internal split is not
-+visible to the external master device.
-+
-+The device tree model represents each internal channel as a separate node.
-+The internal channels sharing the CLK & SYNC are tied together by their
-+phandles using a property called "renesas,bonding". For the rest of
-+the documentation, unless explicitly stated, the word channel implies an
-+internal channel.
-+
-+When both internal channels are enabled they need to be managed together
-+as one (i.e.) they cannot operate alone as independent devices. Out of the
-+two, one of them needs to act as a primary device that accepts common
-+properties of both the internal channels. This channel is identified by a
-+property called "renesas,primary-bond".
-+
-+To summarize,
-+   - When both the internal channels that are bonded together are enabled,
-+     the zeroth channel is selected as primary-bond. This channels accepts
-+     properties common to all the members of the bond.
-+   - When only one of the bonded channels need to be enabled, the property
-+     "renesas,bonding" or "renesas,primary-bond" will have no effect. That
-+     enabled channel can act alone as any other independent device.
-+
-+Required properties of an internal channel:
-+-------------------------------------------
-+- compatible:	"renesas,r8a7795-drif" if DRIF controller is a part of R8A7795 SoC.
-+		"renesas,rcar-gen3-drif" for a generic R-Car Gen3 compatible device.
-+
-+		When compatible with the generic version, nodes must list the
-+		SoC-specific version corresponding to the platform first
-+		followed by the generic version.
-+
-+- reg: offset and length of that channel.
-+- interrupts: associated with that channel.
-+- clocks: phandle and clock specifier of that channel.
-+- clock-names: clock input name string: "fck".
-+- dmas: phandles to the DMA channels.
-+- dma-names: names of the DMA channel: "rx".
-+- renesas,bonding: phandle to the other channel.
-+
-+Optional properties of an internal channel:
-+-------------------------------------------
-+- power-domains: phandle to the respective power domain.
-+
-+Required properties of an internal channel when:
-+	- It is the only enabled channel of the bond (or)
-+	- If it acts as primary among enabled bonds
-+--------------------------------------------------------
-+- pinctrl-0: pin control group to be used for this channel.
-+- pinctrl-names: must be "default".
-+- renesas,primary-bond: empty property indicating the channel acts as primary
-+			among the bonded channels.
-+- port: child port node corresponding to the data input, in accordance with
-+	the video interface bindings defined in
-+	Documentation/devicetree/bindings/media/video-interfaces.txt. The port
-+	node must contain at least one endpoint.
-+
-+Optional endpoint property:
-+---------------------------
-+- sync-active: Indicates sync signal polarity, 0/1 for low/high respectively.
-+	       This property maps to SYNCAC bit in the hardware manual. The
-+	       default is 1 (active high).
-+
-+Example:
-+--------
-+
-+(1) Both internal channels enabled:
-+-----------------------------------
-+
-+When interfacing with a third party tuner device with two data pins as shown
-+below.
-+
-++---------------------+                +---------------------+
-+|                     |-----SCK------->|CLK                  |
-+|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-+|                     |-----SD0------->|D0                   |
-+|                     |-----SD1------->|D1                   |
-++---------------------+                +---------------------+
-+
-+	drif00: rif@e6f40000 {
-+		compatible = "renesas,r8a7795-drif",
-+			     "renesas,rcar-gen3-drif";
-+		reg = <0 0xe6f40000 0 0x64>;
-+		interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 515>;
-+		clock-names = "fck";
-+		dmas = <&dmac1 0x20>, <&dmac2 0x20>;
-+		dma-names = "rx", "rx";
-+		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+		renesas,bonding = <&drif01>;
-+		renesas,primary-bond;
-+		pinctrl-0 = <&drif0_pins>;
-+		pinctrl-names = "default";
-+		port {
-+			drif0_ep: endpoint {
-+			     remote-endpoint = <&tuner_ep>;
-+			};
-+		};
-+	};
-+
-+	drif01: rif@e6f50000 {
-+		compatible = "renesas,r8a7795-drif",
-+			     "renesas,rcar-gen3-drif";
-+		reg = <0 0xe6f50000 0 0x64>;
-+		interrupts = <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 514>;
-+		clock-names = "fck";
-+		dmas = <&dmac1 0x22>, <&dmac2 0x22>;
-+		dma-names = "rx", "rx";
-+		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+		renesas,bonding = <&drif00>;
-+	};
-+
-+
-+(2) Internal channel 1 alone is enabled:
-+----------------------------------------
-+
-+When interfacing with a third party tuner device with one data pin as shown
-+below.
-+
-++---------------------+                +---------------------+
-+|                     |-----SCK------->|CLK                  |
-+|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-+|                     |                |D0 (unused)          |
-+|                     |-----SD-------->|D1                   |
-++---------------------+                +---------------------+
-+
-+	drif00: rif@e6f40000 {
-+		compatible = "renesas,r8a7795-drif",
-+			     "renesas,rcar-gen3-drif";
-+		reg = <0 0xe6f40000 0 0x64>;
-+		interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 515>;
-+		clock-names = "fck";
-+		dmas = <&dmac1 0x20>, <&dmac2 0x20>;
-+		dma-names = "rx", "rx";
-+		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+		renesas,bonding = <&drif01>;
-+	};
-+
-+	drif01: rif@e6f50000 {
-+		compatible = "renesas,r8a7795-drif",
-+			     "renesas,rcar-gen3-drif";
-+		reg = <0 0xe6f50000 0 0x64>;
-+		interrupts = <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 514>;
-+		clock-names = "fck";
-+		dmas = <&dmac1 0x22>, <&dmac2 0x22>;
-+		dma-names = "rx", "rx";
-+		power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+		renesas,bonding = <&drif00>;
-+		pinctrl-0 = <&drif0_pins>;
-+		pinctrl-names = "default";
-+		port {
-+			drif0_ep: endpoint {
-+			     remote-endpoint = <&tuner_ep>;
-+			     sync-active = <0>;
-+			};
-+		};
-+	};
--- 
-2.12.2
+I see. If now there's no defines to patch the code included via
+ddbridge-core.c, it should be possible to create a driver with
+the ddbridge "core" on it, and use the exported symbols there for
+both octonet and ddbridge dvb drivers.
+
+> > change the makefile to:
+>  > 	obj-ddbridge = ddbridge-main.o ddbridge-core.o ddbridge-i2c.o \
+>  > 		       ddbridge-modulator.o and ddbridge-ns.o
+>  > 
+>  > The only detail is that "ddbridge.c" should be renamed to 
+>  > ddbridge-core.c (or something similar) and some *.h files will
+>  > be needed.  
+> 
+> Hmm, ddbridge -> ddbridge-main would be fine.
+
+Yeah, that's what I meant to say :-)
+
+I noticed that you have already a ddbridge-core. That's why
+I added a "ddbridge-main" there. I forgot to change it at the
+comment above ;)
+
+> Renaming ddbridge to ddbridge-core and ddbridge-core to something else
+> would be confusing.
+
+Indeed.
+
+Thanks,
+Mauro
