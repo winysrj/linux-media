@@ -1,428 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:36797 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751977AbdFGSew (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:34:52 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v8 06/34] ARM: dts: imx6qdl: Add video multiplexers, mipi_csi, and their connections
-Date: Wed,  7 Jun 2017 11:33:45 -0700
-Message-Id: <1496860453-6282-7-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56943 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751386AbdFZSM3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Jun 2017 14:12:29 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 00/14] Renesas R-Car VSP: Add H3 ES2.0 support
+Date: Mon, 26 Jun 2017 21:12:12 +0300
+Message-Id: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Hello,
 
-This patch adds the device tree graph connecting the input multiplexers
-to the IPU CSIs and the MIPI-CSI2 gasket on i.MX6. The MIPI_IPU
-multiplexers are added as children of the iomuxc-gpr syscon device node.
-On i.MX6Q/D two two-input multiplexers in front of IPU1 CSI0 and IPU2
-CSI1 allow to select between CSI0/1 parallel input pads and the MIPI
-CSI-2 virtual channels 0/3.
-On i.MX6DL/S two five-input multiplexers in front of IPU1 CSI0 and IPU1
-CSI1 allow to select between CSI0/1 parallel input pads and any of the
-four MIPI CSI-2 virtual channels.
+This patch series implements support for the R-Car H3 ES2.0 SoC in the VSP
+and DU drivers.
+ 
+Compared to the H3 ES1.1, the H3 ES2.0 has a new VSP2-DL instance that
+includes two blending units, a BRU and a BRS. The BRS is similar to the BRU
+but has two inputs only, and is used to service a second DU channel from the
+same VSP through a second LIF instances connected to WPF.1.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+The patch series starts with a small fixes and cleanups in patches 01/14 to
+05/14. Patch 06/14 prepares the VSP driver for multiple DU channels support by
+extending the DU-VSP API with an additional argument. Patches 07/14 to 10/14
+gradually build H3 ES2.0 support on top of that by implementing all needed
+features in the VSP driver.
 
-- Removed some dangling/unused endpoints (ipu2_csi0_from_csi2ipu)
-- Renamed the mipi virtual channel endpoint labels, from "mipi_csiX_..."
-  to "mipi_vcX...".
-- Added input endpoint anchors to the video muxes for the connections
-  from parallel sensors.
+So far the VSP driver always used headerless display lists when operating in
+connection with the DU. This mode of operation is only available on WPF.0, so
+support for regular display lists with headers when operating with the DU is
+added in patch 11/14.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- arch/arm/boot/dts/imx6dl.dtsi  | 174 +++++++++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/imx6q.dtsi   | 110 ++++++++++++++++++++++++++
- arch/arm/boot/dts/imx6qdl.dtsi |   6 ++
- 3 files changed, 290 insertions(+)
+The remaining patches finally implement H3 ES2.0 support in the DU driver,
+with support for VSP sharing implemented in patch 12/14, for H3 ES2.0 PLL in
+patch 13/14 (by restricting the ES1.x workaround to ES1.x SoCs) and for RGB
+output routing in patch 14/14.
 
-diff --git a/arch/arm/boot/dts/imx6dl.dtsi b/arch/arm/boot/dts/imx6dl.dtsi
-index 10bc9d1..4049af7 100644
---- a/arch/arm/boot/dts/imx6dl.dtsi
-+++ b/arch/arm/boot/dts/imx6dl.dtsi
-@@ -164,6 +164,116 @@
- 		      <&iomuxc 9 207 1>, <&iomuxc 10 206 1>, <&iomuxc 11 133 3>;
- };
- 
-+&gpr {
-+	ipu1_csi0_mux: ipu1_csi0_mux@34 {
-+		compatible = "video-mux";
-+		mux-controls = <&mux 0>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			ipu1_csi0_mux_from_mipi_vc0: endpoint {
-+				remote-endpoint = <&mipi_vc0_to_ipu1_csi0_mux>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			ipu1_csi0_mux_from_mipi_vc1: endpoint {
-+				remote-endpoint = <&mipi_vc1_to_ipu1_csi0_mux>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			ipu1_csi0_mux_from_mipi_vc2: endpoint {
-+				remote-endpoint = <&mipi_vc2_to_ipu1_csi0_mux>;
-+			};
-+		};
-+
-+		port@3 {
-+			reg = <3>;
-+
-+			ipu1_csi0_mux_from_mipi_vc3: endpoint {
-+				remote-endpoint = <&mipi_vc3_to_ipu1_csi0_mux>;
-+			};
-+		};
-+
-+		port@4 {
-+			reg = <4>;
-+
-+			ipu1_csi0_mux_from_parallel_sensor: endpoint {
-+			};
-+		};
-+
-+		port@5 {
-+			reg = <5>;
-+
-+			ipu1_csi0_mux_to_ipu1_csi0: endpoint {
-+				remote-endpoint = <&ipu1_csi0_from_ipu1_csi0_mux>;
-+			};
-+		};
-+	};
-+
-+	ipu1_csi1_mux: ipu1_csi1_mux@34 {
-+		compatible = "video-mux";
-+		mux-controls = <&mux 1>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			ipu1_csi1_mux_from_mipi_vc0: endpoint {
-+				remote-endpoint = <&mipi_vc0_to_ipu1_csi1_mux>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			ipu1_csi1_mux_from_mipi_vc1: endpoint {
-+				remote-endpoint = <&mipi_vc1_to_ipu1_csi1_mux>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			ipu1_csi1_mux_from_mipi_vc2: endpoint {
-+				remote-endpoint = <&mipi_vc2_to_ipu1_csi1_mux>;
-+			};
-+		};
-+
-+		port@3 {
-+			reg = <3>;
-+
-+			ipu1_csi1_mux_from_mipi_vc3: endpoint {
-+				remote-endpoint = <&mipi_vc3_to_ipu1_csi1_mux>;
-+			};
-+		};
-+
-+		port@4 {
-+			reg = <4>;
-+
-+			ipu1_csi1_mux_from_parallel_sensor: endpoint {
-+			};
-+		};
-+
-+		port@5 {
-+			reg = <5>;
-+
-+			ipu1_csi1_mux_to_ipu1_csi1: endpoint {
-+				remote-endpoint = <&ipu1_csi1_from_ipu1_csi1_mux>;
-+			};
-+		};
-+	};
-+};
-+
- &gpt {
- 	compatible = "fsl,imx6dl-gpt";
- };
-@@ -172,6 +282,12 @@
- 	compatible = "fsl,imx6dl-hdmi";
- };
- 
-+&ipu1_csi1 {
-+	ipu1_csi1_from_ipu1_csi1_mux: endpoint {
-+		remote-endpoint = <&ipu1_csi1_mux_to_ipu1_csi1>;
-+	};
-+};
-+
- &ldb {
- 	clocks = <&clks IMX6QDL_CLK_LDB_DI0_SEL>, <&clks IMX6QDL_CLK_LDB_DI1_SEL>,
- 		 <&clks IMX6QDL_CLK_IPU1_DI0_SEL>, <&clks IMX6QDL_CLK_IPU1_DI1_SEL>,
-@@ -181,6 +297,64 @@
- 		      "di0", "di1";
- };
- 
-+&mipi_csi {
-+	port@1 {
-+		reg = <1>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		mipi_vc0_to_ipu1_csi0_mux: endpoint@0 {
-+			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc0>;
-+		};
-+
-+		mipi_vc0_to_ipu1_csi1_mux: endpoint@1 {
-+			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc0>;
-+		};
-+	};
-+
-+	port@2 {
-+		reg = <2>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		mipi_vc1_to_ipu1_csi0_mux: endpoint@0 {
-+			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc1>;
-+		};
-+
-+		mipi_vc1_to_ipu1_csi1_mux: endpoint@1 {
-+			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc1>;
-+		};
-+	};
-+
-+	port@3 {
-+		reg = <3>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		mipi_vc2_to_ipu1_csi0_mux: endpoint@0 {
-+			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc2>;
-+		};
-+
-+		mipi_vc2_to_ipu1_csi1_mux: endpoint@1 {
-+			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc2>;
-+		};
-+	};
-+
-+	port@4 {
-+		reg = <4>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		mipi_vc3_to_ipu1_csi0_mux: endpoint@0 {
-+			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc3>;
-+		};
-+
-+		mipi_vc3_to_ipu1_csi1_mux: endpoint@1 {
-+			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc3>;
-+		};
-+	};
-+};
-+
- &mux {
- 	mux-reg-masks = <0x34 0x00000007>, /* IPU_CSI0_MUX */
- 			<0x34 0x00000038>, /* IPU_CSI1_MUX */
-diff --git a/arch/arm/boot/dts/imx6q.dtsi b/arch/arm/boot/dts/imx6q.dtsi
-index a6962be..214bbb3 100644
---- a/arch/arm/boot/dts/imx6q.dtsi
-+++ b/arch/arm/boot/dts/imx6q.dtsi
-@@ -143,10 +143,18 @@
- 
- 			ipu2_csi0: port@0 {
- 				reg = <0>;
-+
-+				ipu2_csi0_from_mipi_vc2: endpoint {
-+					remote-endpoint = <&mipi_vc2_to_ipu2_csi0>;
-+				};
- 			};
- 
- 			ipu2_csi1: port@1 {
- 				reg = <1>;
-+
-+				ipu2_csi1_from_ipu2_csi1_mux: endpoint {
-+					remote-endpoint = <&ipu2_csi1_mux_to_ipu2_csi1>;
-+				};
- 			};
- 
- 			ipu2_di0: port@2 {
-@@ -246,6 +254,68 @@
- 	gpio-ranges = <&iomuxc 0 172 9>, <&iomuxc 9 189 2>, <&iomuxc 11 146 3>;
- };
- 
-+&gpr {
-+	ipu1_csi0_mux {
-+		compatible = "video-mux";
-+		mux-controls = <&mux 0>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			ipu1_csi0_mux_from_mipi_vc0: endpoint {
-+				remote-endpoint = <&mipi_vc0_to_ipu1_csi0_mux>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			ipu1_csi0_mux_from_parallel_sensor: endpoint {
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			ipu1_csi0_mux_to_ipu1_csi0: endpoint {
-+				remote-endpoint = <&ipu1_csi0_from_ipu1_csi0_mux>;
-+			};
-+		};
-+	};
-+
-+	ipu2_csi1_mux {
-+		compatible = "video-mux";
-+		mux-controls = <&mux 1>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			ipu2_csi1_mux_from_mipi_vc3: endpoint {
-+				remote-endpoint = <&mipi_vc3_to_ipu2_csi1_mux>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			ipu2_csi1_mux_from_parallel_sensor: endpoint {
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			ipu2_csi1_mux_to_ipu2_csi1: endpoint {
-+				remote-endpoint = <&ipu2_csi1_from_ipu2_csi1_mux>;
-+			};
-+		};
-+	};
-+};
-+
- &hdmi {
- 	compatible = "fsl,imx6q-hdmi";
- 
-@@ -266,6 +336,12 @@
- 	};
- };
- 
-+&ipu1_csi1 {
-+	ipu1_csi1_from_mipi_vc1: endpoint {
-+		remote-endpoint = <&mipi_vc1_to_ipu1_csi1>;
-+	};
-+};
-+
- &ldb {
- 	clocks = <&clks IMX6QDL_CLK_LDB_DI0_SEL>, <&clks IMX6QDL_CLK_LDB_DI1_SEL>,
- 		 <&clks IMX6QDL_CLK_IPU1_DI0_SEL>, <&clks IMX6QDL_CLK_IPU1_DI1_SEL>,
-@@ -312,6 +388,40 @@
- 	};
- };
- 
-+&mipi_csi {
-+	port@1 {
-+		reg = <1>;
-+
-+		mipi_vc0_to_ipu1_csi0_mux: endpoint {
-+			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc0>;
-+		};
-+	};
-+
-+	port@2 {
-+		reg = <2>;
-+
-+		mipi_vc1_to_ipu1_csi1: endpoint {
-+			remote-endpoint = <&ipu1_csi1_from_mipi_vc1>;
-+		};
-+	};
-+
-+	port@3 {
-+		reg = <3>;
-+
-+		mipi_vc2_to_ipu2_csi0: endpoint {
-+			remote-endpoint = <&ipu2_csi0_from_mipi_vc2>;
-+		};
-+	};
-+
-+	port@4 {
-+		reg = <4>;
-+
-+		mipi_vc3_to_ipu2_csi1_mux: endpoint {
-+			remote-endpoint = <&ipu2_csi1_mux_from_mipi_vc3>;
-+		};
-+	};
-+};
-+
- &mipi_dsi {
- 	ports {
- 		port@2 {
-diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
-index dd9917c..d744a5b 100644
---- a/arch/arm/boot/dts/imx6qdl.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl.dtsi
-@@ -1142,6 +1142,8 @@
- 			mipi_csi: mipi@021dc000 {
- 				compatible = "fsl,imx6-mipi-csi2", "snps,dw-mipi-csi2";
- 				reg = <0x021dc000 0x4000>;
-+				#address-cells = <1>;
-+				#size-cells = <0>;
- 				interrupts = <0 100 0x04>, <0 101 0x04>;
- 				clocks = <&clks IMX6QDL_CLK_HSI_TX>,
- 					 <&clks IMX6QDL_CLK_VIDEO_27M>,
-@@ -1249,6 +1251,10 @@
- 
- 			ipu1_csi0: port@0 {
- 				reg = <0>;
-+
-+				ipu1_csi0_from_ipu1_csi0_mux: endpoint {
-+					remote-endpoint = <&ipu1_csi0_mux_to_ipu1_csi0>;
-+				};
- 			};
- 
- 			ipu1_csi1: port@1 {
+Compared to v1, the series has gone under considerable changes. Testing
+locally on H3 ES2.0 uncovered multiple issues in the previous partially tested
+version, which have been fixed in additional patches. The following changes
+can be noted in particular.
+
+- New small cleanups in patches 02/14 to 05/14
+- Pass the pipe index to vsp1_du_atomic_update() explicitly
+- Rebase on top of the VSP-DU flicker fixes, resulting in a major rework of
+  "v4l: vsp1: Add support for header display lists in continuous mode"
+- New patches 09/14, 10/14 and 12/14 to support the previously untested VGA
+  output
+
+The series is based on top of Dave's latest drm-next branch as it depends on
+patches merged by Dave for v4.13. It depends, for testing, on
+
+- the sh-pfc-for-v4.13 branch from Geert's renesas-drivers tree
+- the "[PATCH v2 0/2] R-Car H3 ES2.0 Salvator-X: Enable DU support in DT"
+  patch series
+
+For convenience, a branch merging this series with all dependencies is
+available from
+
+	git://linuxtv.org/pinchartl/media.git drm/next/h3-es2/merged
+
+with the DT and driver series split in two branches respectively tagged
+drm-h3-es2-dt-20170626 and drm-h3-es2-vsp-du-20170626.
+
+The patches have been tested on the Lager, Salvator-X H3 ES1.x, Salvator-X
+M3-W and Salvator-XS boards. All outputs have been tested using modetest
+without any noticeable regression.
+
+Laurent Pinchart (14):
+  v4l: vsp1: Fill display list headers without holding dlm spinlock
+  v4l: vsp1: Don't recycle active list at display start
+  v4l: vsp1: Don't set WPF sink pointer
+  v4l: vsp1: Store source and sink pointers as vsp1_entity
+  v4l: vsp1: Don't create links for DRM pipeline
+  v4l: vsp1: Add pipe index argument to the VSP-DU API
+  v4l: vsp1: Add support for the BRS entity
+  v4l: vsp1: Add support for new VSP2-BS, VSP2-DL and VSP2-D instances
+  v4l: vsp1: Add support for multiple LIF instances
+  v4l: vsp1: Add support for multiple DRM pipelines
+  v4l: vsp1: Add support for header display lists in continuous mode
+  drm: rcar-du: Support multiple sources from the same VSP
+  drm: rcar-du: Restrict DPLL duty cycle workaround to H3 ES1.x
+  drm: rcar-du: Configure DPAD0 routing through last group on Gen3
+
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.c    |  39 ++--
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.h    |   3 +
+ drivers/gpu/drm/rcar-du/rcar_du_group.c   |  21 ++-
+ drivers/gpu/drm/rcar-du/rcar_du_kms.c     |  91 ++++++++--
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c     |  37 ++--
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.h     |  10 +-
+ drivers/media/platform/vsp1/vsp1.h        |   7 +-
+ drivers/media/platform/vsp1/vsp1_bru.c    |  45 +++--
+ drivers/media/platform/vsp1/vsp1_bru.h    |   4 +-
+ drivers/media/platform/vsp1/vsp1_dl.c     | 205 +++++++++++++---------
+ drivers/media/platform/vsp1/vsp1_dl.h     |   1 -
+ drivers/media/platform/vsp1/vsp1_drm.c    | 283 +++++++++++++++---------------
+ drivers/media/platform/vsp1/vsp1_drm.h    |  38 ++--
+ drivers/media/platform/vsp1/vsp1_drv.c    | 115 ++++++++----
+ drivers/media/platform/vsp1/vsp1_entity.c |  40 +++--
+ drivers/media/platform/vsp1/vsp1_entity.h |   5 +-
+ drivers/media/platform/vsp1/vsp1_lif.c    |   5 +-
+ drivers/media/platform/vsp1/vsp1_lif.h    |   2 +-
+ drivers/media/platform/vsp1/vsp1_pipe.c   |   7 +-
+ drivers/media/platform/vsp1/vsp1_regs.h   |  46 +++--
+ drivers/media/platform/vsp1/vsp1_video.c  |  63 ++++---
+ drivers/media/platform/vsp1/vsp1_wpf.c    |   4 +-
+ include/media/vsp1.h                      |  10 +-
+ 23 files changed, 676 insertions(+), 405 deletions(-)
+
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
