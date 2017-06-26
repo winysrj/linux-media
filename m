@@ -1,74 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:63457 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752682AbdF2MEz (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:41606
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751393AbdFZSIo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Jun 2017 08:04:55 -0400
-Subject: Re: [PATCH v3 6/8] [media] s5p-jpeg: Decode 4:1:1 chroma subsampling
- format
-To: Thierry Escande <thierry.escande@collabora.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Message-id: <a037a6df-9a8a-f31a-1c92-6f2cbd3d1a2d@samsung.com>
-Date: Thu, 29 Jun 2017 14:04:40 +0200
-MIME-version: 1.0
-In-reply-to: <1498579734-1594-7-git-send-email-thierry.escande@collabora.com>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-language: en-US
-Content-transfer-encoding: 7bit
-References: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
- <CGME20170627161047epcas2p439c3d90e17402cd06d3c820564cb0e17@epcas2p4.samsung.com>
- <1498579734-1594-7-git-send-email-thierry.escande@collabora.com>
+        Mon, 26 Jun 2017 14:08:44 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v3] media: v4l2-fwnode: suppress a warning at OF parsing logic
+Date: Mon, 26 Jun 2017 15:07:54 -0300
+Message-Id: <00e156a29353d934b42d4fb6a7fab753322518ee.1498500467.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-W dniu 27.06.2017 o 18:08, Thierry Escande pisze:
-> From: Tony K Nadackal <tony.kn@samsung.com>
-> 
-> This patch adds support for decoding 4:1:1 chroma subsampling in the
-> jpeg header parsing function.
-> 
-> Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
-> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
-Acked-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+smatch produce this warning:
+	drivers/media/v4l2-core/v4l2-fwnode.c:76 v4l2_fwnode_endpoint_parse_csi_bus() error: buffer overflow 'array' 5 <= u16max
 
-> ---
->   drivers/media/platform/s5p-jpeg/jpeg-core.c | 15 +++++++++++++++
->   1 file changed, 15 insertions(+)
-> 
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> index 0783809..cca0fb8 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> @@ -1099,6 +1099,8 @@ static void skip(struct s5p_jpeg_buffer *buf, long len)
->   static bool s5p_jpeg_subsampling_decode(struct s5p_jpeg_ctx *ctx,
->   					unsigned int subsampling)
->   {
-> +	unsigned int version;
-> +
->   	switch (subsampling) {
->   	case 0x11:
->   		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_444;
-> @@ -1112,6 +1114,19 @@ static bool s5p_jpeg_subsampling_decode(struct s5p_jpeg_ctx *ctx,
->   	case 0x33:
->   		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
->   		break;
-> +	case 0x41:
-> +		/*
-> +		 * 4:1:1 subsampling only supported by 3250, 5420, and 5433
-> +		 * variants
-> +		 */
-> +		version = ctx->jpeg->variant->version;
-> +		if (version != SJPEG_EXYNOS3250 &&
-> +		    version != SJPEG_EXYNOS5420 &&
-> +		    version != SJPEG_EXYNOS5433)
-> +			return false;
-> +
-> +		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_411;
-> +		break;
->   	default:
->   		return false;
->   	}
-> 
+That's because, in thesis, the routine might have called with
+some value at bus->num_data_lanes. That's not the current
+case.
+
+Yet, better to shut up this warning, and make the code more
+reliable if some future changes might cause a bug.
+
+While here, simplify the code a little bit by reading only
+once from lanes-properties array.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/v4l2-fwnode.c | 32 ++++++++++++++------------------
+ include/media/v4l2-fwnode.h           |  6 ++++--
+ 2 files changed, 18 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 153c53ca3925..042eb67fa7b1 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -40,10 +40,9 @@ static int v4l2_fwnode_endpoint_parse_csi_bus(struct fwnode_handle *fwnode,
+ 
+ 	rval = fwnode_property_read_u32_array(fwnode, "data-lanes", NULL, 0);
+ 	if (rval > 0) {
+-		u32 array[ARRAY_SIZE(bus->data_lanes)];
++		u32 array[MAX_DATA_LANES + 1];
+ 
+-		bus->num_data_lanes =
+-			min_t(int, ARRAY_SIZE(bus->data_lanes), rval);
++		bus->num_data_lanes = min_t(int, MAX_DATA_LANES, rval);
+ 
+ 		fwnode_property_read_u32_array(fwnode, "data-lanes", array,
+ 					       bus->num_data_lanes);
+@@ -56,24 +55,21 @@ static int v4l2_fwnode_endpoint_parse_csi_bus(struct fwnode_handle *fwnode,
+ 
+ 			bus->data_lanes[i] = array[i];
+ 		}
+-	}
+ 
+-	rval = fwnode_property_read_u32_array(fwnode, "lane-polarities", NULL,
+-					      0);
+-	if (rval > 0) {
+-		u32 array[ARRAY_SIZE(bus->lane_polarities)];
++		rval = fwnode_property_read_u32_array(fwnode,
++						      "lane-polarities", array,
++						      1 + bus->num_data_lanes);
++		if (rval > 0) {
++			if (rval != 1 + bus->num_data_lanes /* clock + data */) {
++				pr_warn("invalid number of lane-polarities entries (need %u, got %u)\n",
++					1 + bus->num_data_lanes, rval);
++				return -EINVAL;
++			}
+ 
+-		if (rval < 1 + bus->num_data_lanes /* clock + data */) {
+-			pr_warn("too few lane-polarities entries (need %u, got %u)\n",
+-				1 + bus->num_data_lanes, rval);
+-			return -EINVAL;
++
++			for (i = 0; i < 1 + bus->num_data_lanes; i++)
++				bus->lane_polarities[i] = array[i];
+ 		}
+-
+-		fwnode_property_read_u32_array(fwnode, "lane-polarities", array,
+-					       1 + bus->num_data_lanes);
+-
+-		for (i = 0; i < 1 + bus->num_data_lanes; i++)
+-			bus->lane_polarities[i] = array[i];
+ 	}
+ 
+ 	if (!fwnode_property_read_u32(fwnode, "clock-lanes", &v)) {
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index ecc1233a873e..767099f38df6 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -26,6 +26,8 @@
+ 
+ struct fwnode_handle;
+ 
++#define MAX_DATA_LANES	4
++
+ /**
+  * struct v4l2_fwnode_bus_mipi_csi2 - MIPI CSI-2 bus data structure
+  * @flags: media bus (V4L2_MBUS_*) flags
+@@ -37,10 +39,10 @@ struct fwnode_handle;
+  */
+ struct v4l2_fwnode_bus_mipi_csi2 {
+ 	unsigned int flags;
+-	unsigned char data_lanes[4];
++	unsigned char data_lanes[MAX_DATA_LANES];
+ 	unsigned char clock_lane;
+ 	unsigned short num_data_lanes;
+-	bool lane_polarities[5];
++	bool lane_polarities[MAX_DATA_LANES + 1];
+ };
+ 
+ /**
+-- 
+2.9.4
