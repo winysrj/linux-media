@@ -1,54 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:50071 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750926AbdFSMDZ (ORCPT
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.162]:23040 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751397AbdFZJpX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 08:03:25 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        'Mauro Carvalho Chehab' <mchehab@s-opensource.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] s5p-cec: update MAINTAINERS entry
-Date: Mon, 19 Jun 2017 14:03:02 +0200
-Message-id: <1497873782-25543-1-git-send-email-m.szyprowski@samsung.com>
-References: <CGME20170619120320eucas1p2a84a4472e7d2f1c148e7035ae994c5e1@eucas1p2.samsung.com>
+        Mon, 26 Jun 2017 05:45:23 -0400
+From: Ralph Metzler <rjkm@metzlerbros.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Message-ID: <22864.55204.841821.456223@morden.metzler>
+Date: Mon, 26 Jun 2017 11:45:08 +0200
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Ralph Metzler <rjkm@metzlerbros.de>,
+        Daniel Scheller <d.scheller.oss@gmail.com>,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        liplianin@netup.ru, crope@iki.fi, "Jasmin J." <jasmin@anw.at>,
+        "Takiguchi\, Yasunari" <Yasunari.Takiguchi@sony.com>,
+        "tbird20d\@gmail.com" <tbird20d@gmail.com>
+Subject: Re: DD support improvements (was: Re: [PATCH v3 00/13]
+ stv0367/ddbridge: support CTv6/FlexCT hardware)
+In-Reply-To: <20170624135001.5bcafb64@vento.lan>
+References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
+        <20170412212327.5b75be19@macbox>
+        <20170507174212.2e45ab71@audiostation.wuest.de>
+        <20170528234537.3bed2dde@macbox>
+        <20170619221821.022fc473@macbox>
+        <20170620093645.6f72fd1a@vento.lan>
+        <20170620204121.4cff42d1@macbox>
+        <20170620161043.1e6a1364@vento.lan>
+        <20170621225712.426d3a17@audiostation.wuest.de>
+        <22860.14367.464168.657791@morden.metzler>
+        <20170624135001.5bcafb64@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I would like to replace Kyungmin Park, who is no longer interested in
-maintaining S5P-CEC driver. I have access to various Exynos boards. I also
-already did some tests of this driver and helped enabling it on various
-Exynos boards. The driver itself is no longer in staging, so lets fix the
-path too. Also change the mailing list from ARM generic to Samsung SoC
-specific to get more attention and easier review in the future.
+Mauro Carvalho Chehab writes:
+ > Em Thu, 22 Jun 2017 23:35:27 +0200
+ > Ralph Metzler <rjkm@metzlerbros.de> escreveu:
+ > 
+ > > Daniel Scheller writes:
+ > >  > Am Tue, 20 Jun 2017 16:10:43 -0300
+ > >  > schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+ > >  > ...  
+ > >  > > > - Maybe for 4.14: Support for the CineS2 V7 and FlexV4 line of
+ > >  > > >   cards/modules. This mainly involves a new demod driver (stv0910) and
+ > >  > > >   a new tuner driver (stv6111). Permissions for this are cleared with
+ > >  > > >   Ralph already. The glue code needed in ddbridge is rather easy, and
+ > >  > > >   as some ground work (mostly the MachXO2 support from the 2841 series)
+ > >  > > >   is now in, the changes are quite small. Patches are ready so far but
+ > >  > > >   need more cleanup (checkpatch fixes, camel case and such things).    
+ > >  > > 
+ > >  > > Please try to sync it with Ralph, in a way that his code won't
+ > >  > > diverge from the upstream one, as this will make easier for both
+ > >  > > sides to keep the Kernel in track with driver improvements.  
+ > >  > 
+ > >  > This is not going to work. DD (Ralph and Manfred Voelkel) sort of maintain a shared code base between their Windows driver and the Linux kernel driver sources. While they didn't explicitely stated this, this can be noticed by the remarks and commented code in their OSS code, and the commit messages in their dddvb GIT (e.g. "sync with windows driver"). I've already cleaned up a lot of this (I believe no one wants to see such stuff in the linux kernel tree). If we're additionally going to replace all things camel case, with some more cleaning and maybe code shuffling after like a V4 patch series, those two sources are out of sync in a way that no automatic sync by applying patches will be possible anymore. So, pushing from vendor's upstream to the kernel seems to be the only option, and in fact, if the whole driver/package stack completely lives in the kernel sources, maybe DD even decide to directly commit upstream (kernel) again.
+ > 
+ > Ralph, do you share Linux code with Windows, or are you just getting
+ > drivers from the manufacturer and converting them to Linux at dddvb
+ > tree?
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- MAINTAINERS | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+It differs from case to case.
+Digital Devices gets drivers and/or documetation from the manufacturer.
+Sometimes from this a Windows driver is written which we convert
+to Linux or a Linux driver is written directly.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 053c3bdd1fe5..fbfbc9866fa2 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -1775,11 +1775,11 @@ F:	arch/arm/plat-samsung/s5p-dev-mfc.c
- F:	drivers/media/platform/s5p-mfc/
- 
- ARM/SAMSUNG S5P SERIES HDMI CEC SUBSYSTEM SUPPORT
--M:	Kyungmin Park <kyungmin.park@samsung.com>
--L:	linux-arm-kernel@lists.infradead.org
-+M:	Marek Szyprowski <m.szyprowski@samsung.com>
-+L:	linux-samsung-soc@vger.kernel.org (moderated for non-subscribers)
- L:	linux-media@vger.kernel.org
- S:	Maintained
--F:	drivers/staging/media/platform/s5p-cec/
-+F:	drivers/media/platform/s5p-cec/
- 
- ARM/SAMSUNG S5P SERIES JPEG CODEC SUPPORT
- M:	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
--- 
-1.9.1
+
+
+ > Would it be possible to change things at the dddvb tree to make
+ > it to use our coding style (for example, replacing CamelCase by the
+ > kernel_style), in order to minimize the amount of work to sync from
+ > your tree?
+
+Yes
+
+ > > I also already told Daniel about our concerns regarding the CXD drivers in private mail.
+ > > Sony did not want us to use their code directly and we had to get our code approved
+ > > before publishing it. I do not know how the arrangement is regarding the in-kernel driver.
+ > > DVB-C2 support also seems to be missing in this.
+ > 
+ > Sony recently started submitting CXD drivers to us directly (for cxd2880).
+ > 
+ > The upstream verson for cx2841 came from NetUP. I guess they develop
+ > the drivers themselves, but not really sure.
+ > 
+ > Perhaps we can ask Sony's help to make easier add the features that are 
+ > missing at the existing driver in a way that DDbridge could also use
+ > the upstream driver, or to do some other sort of agreement that would 
+ > make possible for us to use the same driver as you at the upstream Kernel.
+ > 
+ > (c/c Takiguchi-san and Tim Bird from Sony)
+
+
+All I know is that they were strict with Digital Devices. We could not use
+their code directly. That's why I am surprised the Netup code contains
+Sony code.
+
+
+ > >  > > - you'll still need to patch DD tree, as I'm pretty sure there are
+ > >  > >   changes on the upstream driver that will need to be ported there;  
+ > >  > 
+ > >  > The same as for the stv0910 code applies here, in addition that it's not sure if DD even wants this. DD even has KERNEL_VERSION_CODE ifdefs in some places. And - most importantly - they carry around an old version of the DVB core API (from what it looks, around linux-3.10, not exactly sure) which even was modified by some IOCTLs, vars, defines and the netstream and modulator support. I managed to remove all core API change deps from everything tuner related (and thats the reason things work in harmony with and in current kernels), but getting all this over to DD or even merge things from DD into the media subsystem will get "interesting".  
+ > > 
+ > > We certainly will want to keep supporting older kernels via KERNEL_VERSION.
+ > 
+ > In the past, we used a script that "solves" KERNEL_VERSION on our Mercurial
+ > tree (https://linuxtv.org/hg/v4l-dvb) and gets rid of other ifdefs:
+ > 
+ > 	https://linuxtv.org/hg/v4l-dvb/file/3724e93f7af5/v4l/scripts/gentree.pl
+ > 
+ > I don't use it for ages, but I guess it shouldn't be hard to modify it to
+ > get rid of KERNEL_VERSION when submitting stuff from DD tree upstream.
+
+I'll see if that works.
+
+ > > e.g.:
+ > > 
+ > > - adding SYS_DVBC2 to fe_delivery_system 
+ > 
+ > OK, we can do that, when adding a driver needing such feature.
+ > 
+ > > 
+ > > - DTV_INPUT
+ > > 
+ > >   to select an input on cards were demods can choose from several inputs
+ > 
+ > We're actually wanting to use the media controller to change the
+ > pipeline (selecting inputs and outputs, directing output to a MPEG
+ > decoding pipeline and descrambler, etc).
+
+I this also for selecting frontend inputs?
+It sounds more like switching transport stream data paths after the demod.
+
+
+
+ > The needed bits are there already at the DVB core upstream (although
+ > we don't have, currently, any DVB driver allowing changes at the
+ > pipeline). My original intention were to upstream some embedded
+ > drivers with such usage, but, unfortunately, the MC changes took
+ > too many time to be applied. by the time it got merged, it was too
+ > late, due to some internal changes that happened about the same time.
+ > 
+ > > 
+ > > - DTV_PLS
+ > > 
+ > >   to set the gold code used for DVB-S2 physical layer scrambling.
+ > >   (btw. the sometimes used root and combo codes are redundant)
+ > >   Some driver mods misuse the upper bits of DTV_STREAM_ID (which is for MIS in DVB-S2) for this, but
+ > >   PLS and MIS are independent.
+ > 
+ > In principle, sounds ok, but we need to take some care to avoid
+ > regressions here.
+
+I also support this old method in the stv0900 and stv0910 drivers.
+
+
+ > > I know that the netstream and modulator support are proprietary but we will of course also need to keep
+ > > them dddvb package.
+ > > Btw., are there any standard APIs for modulator cards in the kernel now?
+ > 
+ > Right now, we don't have. Feel free to propose what you're using at the
+ > dddvb package as standard, if you think it is generic enough to support
+ > other modulators in the future.
+
+OK
+
+
+Reagards,
+Ralph
