@@ -1,146 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:35351 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754667AbdFWV6m (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:53604 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751579AbdFZOmd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Jun 2017 17:58:42 -0400
-Date: Fri, 23 Jun 2017 16:58:14 -0500
-From: Rob Herring <robh@kernel.org>
-To: Jose Abreu <Jose.Abreu@synopsys.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-Subject: Re: [PATCH v4 4/4] dt-bindings: media: Document Synopsys Designware
- HDMI RX
-Message-ID: <20170623215814.ase6g4lbukaeqak2@rob-hp-laptop>
-References: <cover.1497978962.git.joabreu@synopsys.com>
- <8ebe3dfcd61a1c8cfa99102c376ad26b2bfbd254.1497978963.git.joabreu@synopsys.com>
+        Mon, 26 Jun 2017 10:42:33 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre TORGUE <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick FERTRE <yannick.fertre@st.com>
+Subject: Re: [PATCH v1 3/5] [media] stm32-dcmi: crop sensor image to match
+ user resolution
+Date: Mon, 26 Jun 2017 14:41:58 +0000
+Message-ID: <3f04ca80-28cd-c793-72da-e0ea8efdb8a9@st.com>
+References: <1498144371-13310-1-git-send-email-hugues.fruchet@st.com>
+ <1498144371-13310-4-git-send-email-hugues.fruchet@st.com>
+ <ee46bbd4-9343-7060-3c1b-455486eb7a9c@xs4all.nl>
+ <8ae4c160-3137-0fa8-3d78-e4e1284521a4@st.com>
+ <2844ed1a-d310-4381-c4a7-88ab4633f32f@xs4all.nl>
+In-Reply-To: <2844ed1a-d310-4381-c4a7-88ab4633f32f@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <5C9F957924649841B1B88E4863B07975@st.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8ebe3dfcd61a1c8cfa99102c376ad26b2bfbd254.1497978963.git.joabreu@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 20, 2017 at 06:26:12PM +0100, Jose Abreu wrote:
-> Document the bindings for the Synopsys Designware HDMI RX.
-> 
-> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-> Cc: Carlos Palminha <palminha@synopsys.com>
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Sylwester Nawrocki <snawrocki@kernel.org>
-> 
-> Changes from v3:
-> 	- Document the new DT bindings suggested by Sylwester
-> Changes from v2:
-> 	- Document edid-phandle property
-> ---
->  .../devicetree/bindings/media/snps,dw-hdmi-rx.txt  | 70 ++++++++++++++++++++++
->  1 file changed, 70 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
-> new file mode 100644
-> index 0000000..efb0ac3
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
-> @@ -0,0 +1,70 @@
-> +Synopsys DesignWare HDMI RX Decoder
-> +===================================
-> +
-> +This document defines device tree properties for the Synopsys DesignWare HDMI
-> +RX Decoder (DWC HDMI RX). It doesn't constitute a device tree binding
-> +specification by itself but is meant to be referenced by platform-specific
-> +device tree bindings.
-> +
-> +When referenced from platform device tree bindings the properties defined in
-> +this document are defined as follows.
-> +
-> +- compatible: Shall be "snps,dw-hdmi-rx".
-> +
-> +- reg: Memory mapped base address and length of the DWC HDMI RX registers.
-> +
-> +- interrupts: Reference to the DWC HDMI RX interrupt and 5v sense interrupt.
-> +
-> +- clocks: Phandle to the config clock block.
-> +
-> +- clock-names: Shall be "cfg-clk".
-
-"-clk" is redundant.
-
-Seems strange that this is the only clock. The only other clock is the 
-HDMI clock from the HDMI transmitter.
-
-> +
-> +- edid-phandle: phandle to the EDID handler block.
-> +
-> +- #address-cells: Shall be 1.
-> +
-> +- #size-cells: Shall be 0.
-> +
-> +You also have to create a subnode for phy driver. Phy properties are as follows.
-> +
-> +- compatible: Shall be "snps,dw-hdmi-phy-e405".
-> +
-> +- reg: Shall be JTAG address of phy.
-> +
-> +- clocks: Phandle for cfg clock.
-> +
-> +- clock-names:Shall be "cfg-clk".
-> +
-> +A sample binding is now provided. The compatible string is for a SoC which has
-> +has a Synopsys Designware HDMI RX decoder inside.
-> +
-> +Example:
-> +
-> +dw_hdmi_soc: dw-hdmi-soc@0 {
-> +	compatible = "snps,dw-hdmi-soc";
-
-Not documented.
-
-> +	reg = <0x11c00 0x1000>; /* EDIDs */
-> +	#address-cells = <1>;
-> +	#size-cells = <1>;
-> +	ranges;
-> +
-> +	dw_hdmi_rx@0 {
-
-hdmi-rx@0
-
-> +		compatible = "snps,dw-hdmi-rx";
-> +		reg = <0x0 0x10000>;
-> +		interrupts = <1 2>;
-> +		edid-phandle = <&dw_hdmi_soc>;
-
-Don't need this if it is the parent node.
-
-> +
-> +		clocks = <&dw_hdmi_refclk>;
-> +		clock-names = "cfg-clk";
-> +
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +
-> +		dw_hdmi_phy_e405@fc {
-
-hdmi-phy@fc
-
-> +			compatible = "snps,dw-hdmi-phy-e405";
-> +			reg = <0xfc>;
-> +
-> +			clocks = <&dw_hdmi_refclk>;
-> +			clock-names = "cfg-clk";
-> +		};
-> +	};
-> +};
-> -- 
-> 1.9.1
-> 
-> 
+DQoNCk9uIDA2LzI2LzIwMTcgMTI6MDcgUE0sIEhhbnMgVmVya3VpbCB3cm90ZToNCj4gT24gMjYv
+MDYvMTcgMTE6NTMsIEh1Z3VlcyBGUlVDSEVUIHdyb3RlOg0KPj4gSGkgSGFucywgdGhhbmtzIGZv
+ciByZXZpZXcuDQo+Pg0KPj4gUmVwbHkgYmVsb3cuDQo+Pg0KPj4gQlINCj4+IEh1Z3Vlcy4NCj4+
+DQo+PiBPbiAwNi8yMi8yMDE3IDA1OjE5IFBNLCBIYW5zIFZlcmt1aWwgd3JvdGU6DQo+Pj4gT24g
+MDYvMjIvMjAxNyAwNToxMiBQTSwgSHVndWVzIEZydWNoZXQgd3JvdGU6DQo+Pj4+IEFkZCBmbGV4
+aWJpbGl0eSBvbiBzdXBwb3J0ZWQgcmVzb2x1dGlvbnMgYnkgY3JvcHBpbmcgc2Vuc29yDQo+Pj4+
+IGltYWdlIHRvIGZpdCB1c2VyIHJlc29sdXRpb24gZm9ybWF0IHJlcXVlc3QuDQo+Pj4+DQo+Pj4+
+IFNpZ25lZC1vZmYtYnk6IEh1Z3VlcyBGcnVjaGV0IDxodWd1ZXMuZnJ1Y2hldEBzdC5jb20+DQo+
+Pj4+IC0tLQ0KPj4+PiAgICAgZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdG0zMi9zdG0zMi1kY21p
+LmMgfCA1NCArKysrKysrKysrKysrKysrKysrKysrKysrKysrKystDQo+Pj4+ICAgICAxIGZpbGUg
+Y2hhbmdlZCwgNTMgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQ0KPj4+Pg0KPj4+PiBkaWZm
+IC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdG0zMi9zdG0zMi1kY21pLmMgYi9kcml2
+ZXJzL21lZGlhL3BsYXRmb3JtL3N0bTMyL3N0bTMyLWRjbWkuYw0KPj4+PiBpbmRleCA3NWQ1M2Fh
+Li5iYzVlMDUyIDEwMDY0NA0KPj4+PiAtLS0gYS9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL3N0bTMy
+L3N0bTMyLWRjbWkuYw0KPj4+PiArKysgYi9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL3N0bTMyL3N0
+bTMyLWRjbWkuYw0KPj4+PiBAQCAtMTMxLDYgKzEzMSw4IEBAIHN0cnVjdCBzdG0zMl9kY21pIHsN
+Cj4+Pj4gICAgIAlzdHJ1Y3QgdjRsMl9hc3luY19ub3RpZmllcglub3RpZmllcjsNCj4+Pj4gICAg
+IAlzdHJ1Y3QgZGNtaV9ncmFwaF9lbnRpdHkJZW50aXR5Ow0KPj4+PiAgICAgCXN0cnVjdCB2NGwy
+X2Zvcm1hdAkJZm10Ow0KPj4+PiArCXN0cnVjdCB2NGwyX3JlY3QJCWNyb3A7DQo+Pj4+ICsJYm9v
+bAkJCQlkb19jcm9wOw0KPj4+PiAgICAgDQo+Pj4+ICAgICAJY29uc3Qgc3RydWN0IGRjbWlfZm9y
+bWF0CSoqdXNlcl9mb3JtYXRzOw0KPj4+PiAgICAgCXVuc2lnbmVkIGludAkJCW51bV91c2VyX2Zv
+cm1hdHM7DQo+Pj4+IEBAIC01MzgsNiArNTQwLDI3IEBAIHN0YXRpYyBpbnQgZGNtaV9zdGFydF9z
+dHJlYW1pbmcoc3RydWN0IHZiMl9xdWV1ZSAqdnEsIHVuc2lnbmVkIGludCBjb3VudCkNCj4+Pj4g
+ICAgIAlpZiAoZGNtaS0+YnVzLmZsYWdzICYgVjRMMl9NQlVTX1BDTEtfU0FNUExFX1JJU0lORykN
+Cj4+Pj4gICAgIAkJdmFsIHw9IENSX1BDS1BPTDsNCj4+Pj4gICAgIA0KPj4+PiArCWlmIChkY21p
+LT5kb19jcm9wKSB7DQo+Pj4+ICsJCXUzMiBzaXplLCBzdGFydDsNCj4+Pj4gKw0KPj4+PiArCQkv
+KiBDcm9wIHJlc29sdXRpb24gKi8NCj4+Pj4gKwkJc2l6ZSA9ICgoZGNtaS0+Y3JvcC5oZWlnaHQg
+LSAxKSA8PCAxNikgfA0KPj4+PiArCQkJKChkY21pLT5jcm9wLndpZHRoIDw8IDEpIC0gMSk7DQo+
+Pj4+ICsJCXJlZ193cml0ZShkY21pLT5yZWdzLCBEQ01JX0NXU0laRSwgc2l6ZSk7DQo+Pj4+ICsN
+Cj4+Pj4gKwkJLyogQ3JvcCBzdGFydCBwb2ludCAqLw0KPj4+PiArCQlzdGFydCA9ICgoZGNtaS0+
+Y3JvcC50b3ApIDw8IDE2KSB8DQo+Pj4+ICsJCQkgKChkY21pLT5jcm9wLmxlZnQgPDwgMSkpOw0K
+Pj4+PiArCQlyZWdfd3JpdGUoZGNtaS0+cmVncywgRENNSV9DV1NUUlQsIHN0YXJ0KTsNCj4+Pj4g
+Kw0KPj4+PiArCQlkZXZfZGJnKGRjbWktPmRldiwgIkNyb3BwaW5nIHRvICV1eCV1QCV1OiV1XG4i
+LA0KPj4+PiArCQkJZGNtaS0+Y3JvcC53aWR0aCwgZGNtaS0+Y3JvcC5oZWlnaHQsDQo+Pj4+ICsJ
+CQlkY21pLT5jcm9wLmxlZnQsIGRjbWktPmNyb3AudG9wKTsNCj4+Pj4gKw0KPj4+PiArCQkvKiBF
+bmFibGUgY3JvcCAqLw0KPj4+PiArCQl2YWwgfD0gQ1JfQ1JPUDsNCj4+Pj4gKwl9Ow0KPj4+PiAr
+DQo+Pj4+ICAgICAJcmVnX3dyaXRlKGRjbWktPnJlZ3MsIERDTUlfQ1IsIHZhbCk7DQo+Pj4+ICAg
+ICANCj4+Pj4gICAgIAkvKiBFbmFibGUgZGNtaSAqLw0KPj4+PiBAQCAtNzA3LDYgKzczMCw4IEBA
+IHN0YXRpYyBpbnQgZGNtaV90cnlfZm10KHN0cnVjdCBzdG0zMl9kY21pICpkY21pLCBzdHJ1Y3Qg
+djRsMl9mb3JtYXQgKmYsDQo+Pj4+ICAgICAJCS53aGljaCA9IFY0TDJfU1VCREVWX0ZPUk1BVF9U
+UlksDQo+Pj4+ICAgICAJfTsNCj4+Pj4gICAgIAlpbnQgcmV0Ow0KPj4+PiArCV9fdTMyIHdpZHRo
+LCBoZWlnaHQ7DQo+Pj4+ICsJc3RydWN0IHY0bDJfbWJ1c19mcmFtZWZtdCAqbWYgPSAmZm9ybWF0
+LmZvcm1hdDsNCj4+Pj4gICAgIA0KPj4+PiAgICAgCWRjbWlfZm10ID0gZmluZF9mb3JtYXRfYnlf
+Zm91cmNjKGRjbWksIHBpeGZtdC0+cGl4ZWxmb3JtYXQpOw0KPj4+PiAgICAgCWlmICghZGNtaV9m
+bXQpIHsNCj4+Pj4gQEAgLTcyNCw4ICs3NDksMTggQEAgc3RhdGljIGludCBkY21pX3RyeV9mbXQo
+c3RydWN0IHN0bTMyX2RjbWkgKmRjbWksIHN0cnVjdCB2NGwyX2Zvcm1hdCAqZiwNCj4+Pj4gICAg
+IAlpZiAocmV0IDwgMCkNCj4+Pj4gICAgIAkJcmV0dXJuIHJldDsNCj4+Pj4gICAgIA0KPj4+PiAr
+CS8qIEFsaWduIGZvcm1hdCBvbiB3aGF0IHNlbnNvciBjYW4gZG8gKi8NCj4+Pj4gKwl3aWR0aCA9
+IHBpeGZtdC0+d2lkdGg7DQo+Pj4+ICsJaGVpZ2h0ID0gcGl4Zm10LT5oZWlnaHQ7DQo+Pj4+ICAg
+ICAJdjRsMl9maWxsX3BpeF9mb3JtYXQocGl4Zm10LCAmZm9ybWF0LmZvcm1hdCk7DQo+Pj4+ICAg
+ICANCj4+Pj4gKwkvKiBXZSBjYW4gZG8gYW55IHJlc29sdXRpb24gdGhhbmtzIHRvIGNyb3AgKi8N
+Cj4+Pj4gKwlpZiAoKG1mLT53aWR0aCA+IHdpZHRoKSB8fCAobWYtPmhlaWdodCA+IGhlaWdodCkp
+IHsNCj4+Pj4gKwkJLyogUmVzdG9yZSB3aWR0aC9oZWlnaHQgKi8NCj4+Pj4gKwkJcGl4Zm10LT53
+aWR0aCA9IHdpZHRoOw0KPj4+PiArCQlwaXhmbXQtPmhlaWdodCA9IGhlaWdodDsNCj4+Pj4gKwl9
+Ow0KPj4+PiArDQo+Pj4+ICAgICAJcGl4Zm10LT5maWVsZCA9IFY0TDJfRklFTERfTk9ORTsNCj4+
+Pj4gICAgIAlwaXhmbXQtPmJ5dGVzcGVybGluZSA9IHBpeGZtdC0+d2lkdGggKiBkY21pX2ZtdC0+
+YnBwOw0KPj4+PiAgICAgCXBpeGZtdC0+c2l6ZWltYWdlID0gcGl4Zm10LT5ieXRlc3BlcmxpbmUg
+KiBwaXhmbXQtPmhlaWdodDsNCj4+Pj4gQEAgLTc0MSw2ICs3NzYsOCBAQCBzdGF0aWMgaW50IGRj
+bWlfc2V0X2ZtdChzdHJ1Y3Qgc3RtMzJfZGNtaSAqZGNtaSwgc3RydWN0IHY0bDJfZm9ybWF0ICpm
+KQ0KPj4+PiAgICAgCXN0cnVjdCB2NGwyX3N1YmRldl9mb3JtYXQgZm9ybWF0ID0gew0KPj4+PiAg
+ICAgCQkud2hpY2ggPSBWNEwyX1NVQkRFVl9GT1JNQVRfQUNUSVZFLA0KPj4+PiAgICAgCX07DQo+
+Pj4+ICsJc3RydWN0IHY0bDJfbWJ1c19mcmFtZWZtdCAqbWYgPSAmZm9ybWF0LmZvcm1hdDsNCj4+
+Pj4gKwlzdHJ1Y3QgdjRsMl9waXhfZm9ybWF0ICpwaXhmbXQgPSAmZi0+Zm10LnBpeDsNCj4+Pj4g
+ICAgIAljb25zdCBzdHJ1Y3QgZGNtaV9mb3JtYXQgKmN1cnJlbnRfZm10Ow0KPj4+PiAgICAgCWlu
+dCByZXQ7DQo+Pj4+ICAgICANCj4+Pj4gQEAgLTc0OCwxMyArNzg1LDI4IEBAIHN0YXRpYyBpbnQg
+ZGNtaV9zZXRfZm10KHN0cnVjdCBzdG0zMl9kY21pICpkY21pLCBzdHJ1Y3QgdjRsMl9mb3JtYXQg
+KmYpDQo+Pj4+ICAgICAJaWYgKHJldCkNCj4+Pj4gICAgIAkJcmV0dXJuIHJldDsNCj4+Pj4gICAg
+IA0KPj4+PiAtCXY0bDJfZmlsbF9tYnVzX2Zvcm1hdCgmZm9ybWF0LmZvcm1hdCwgJmYtPmZtdC5w
+aXgsDQo+Pj4+ICsJdjRsMl9maWxsX21idXNfZm9ybWF0KCZmb3JtYXQuZm9ybWF0LCBwaXhmbXQs
+DQo+Pj4+ICAgICAJCQkgICAgICBjdXJyZW50X2ZtdC0+bWJ1c19jb2RlKTsNCj4+Pj4gICAgIAly
+ZXQgPSB2NGwyX3N1YmRldl9jYWxsKGRjbWktPmVudGl0eS5zdWJkZXYsIHBhZCwNCj4+Pj4gICAg
+IAkJCSAgICAgICBzZXRfZm10LCBOVUxMLCAmZm9ybWF0KTsNCj4+Pj4gICAgIAlpZiAocmV0IDwg
+MCkNCj4+Pj4gICAgIAkJcmV0dXJuIHJldDsNCj4+Pj4gICAgIA0KPj4+PiArCS8qIEVuYWJsZSBj
+cm9wIGlmIHNlbnNvciByZXNvbHV0aW9uIGlzIGxhcmdlciB0aGFuIHJlcXVlc3QgKi8NCj4+Pj4g
+KwlkY21pLT5kb19jcm9wID0gZmFsc2U7DQo+Pj4+ICsJaWYgKChtZi0+d2lkdGggPiBwaXhmbXQt
+PndpZHRoKSB8fCAobWYtPmhlaWdodCA+IHBpeGZtdC0+aGVpZ2h0KSkgew0KPj4+PiArCQlkY21p
+LT5jcm9wLndpZHRoID0gcGl4Zm10LT53aWR0aDsNCj4+Pj4gKwkJZGNtaS0+Y3JvcC5oZWlnaHQg
+PSBwaXhmbXQtPmhlaWdodDsNCj4+Pj4gKwkJZGNtaS0+Y3JvcC5sZWZ0ID0gKG1mLT53aWR0aCAt
+IHBpeGZtdC0+d2lkdGgpIC8gMjsNCj4+Pj4gKwkJZGNtaS0+Y3JvcC50b3AgPSAobWYtPmhlaWdo
+dCAtIHBpeGZtdC0+aGVpZ2h0KSAvIDI7DQo+Pj4+ICsJCWRjbWktPmRvX2Nyb3AgPSB0cnVlOw0K
+Pj4+DQo+Pj4gV2h5IG5vdCBpbXBsZW1lbnQgdGhlIHNlbGVjdGlvbiBBUEkgaW5zdGVhZD8gSSBh
+c3N1bWUgdGhhdCB5b3UgY2FuIGNyb3AgZnJvbSBhbnkNCj4+PiByZWdpb24gb2YgdGhlIHNlbnNv
+ciwgbm90IGp1c3QgdGhlIGNlbnRlciBwYXJ0Lg0KPj4NCj4+IFRoZSBwb2ludCBoZXJlIHdhcyB0
+byBhZGQgc29tZSBmbGV4aWJpbGl0eSBmb3IgdXNlciBpbiB0ZXJtIG9mDQo+PiByZXNvbHV0aW9u
+IGFuZCBhbHNvIGxlc3MgbWVtb3J5IGNvbnN1bXB0aW9uLg0KPj4gRm9yIGV4YW1wbGUgaGVyZSBJ
+IHdhbnQgdG8gbWFrZSBhIDQ4MHgyNzIgcHJldmlldzoNCj4+IC0gd2l0aG91dCB0aGlzIGNoYW5n
+ZTogU19GTVQoNDgweDI3MikgcmV0dXJucyBWR0EgKHRoZSBPVjk2NTUgbGFyZ2VyDQo+PiBkaXNj
+cmV0ZSByZXNvbHV0aW9uKSwgdGhlbiBhcHAgaGFzIHRvIGNhcHR1cmUgVkdBIGZyYW1lcyB0aGVu
+IGNyb3AgdG8NCj4+IGZpdCA0ODB4MjcyIGZyYW1lIGJ1ZmZlci4NCj4+IC0gd2l0aCB0aGlzIGNo
+YW5nZTogU19GTVQoNDgweDI3MikgcmV0dXJucyA0ODB4MjcyIChjcm9wIGRvbmUgYnkNCj4+IGhh
+cmR3YXJlKSwgYXBwIGNhbiBkaXJlY3RseSBjYXB0dXJlIDQ4MHgyNzIgdGhlbiBjb3B5IHRvIGZy
+YW1lYnVmZmVyDQo+PiB3aXRob3V0IGFueSBjb252ZXJzaW9uLg0KPj4NCj4+IEltcGxlbWVudGF0
+aW9uIG9mIFY0TDIgY3JvcCB1c2luZyBTRUxFQ1RJT04gQVBJIGNvdWxkIGFsc28gYmUgdXNlZCwN
+Cj4+IGJ1dCBJIG5lZWQgdG8gY2hhbmdlIGFwcC4NCj4+DQo+PiBNb3JlIGdlbmVyYWxseSwgd2l0
+aCBhIGdpdmVuIGNvdXBsZSBJU1Arc2Vuc29yLCB3aWxsIFNfRk1UKCkNCj4+IHJldHVybiB0aGUg
+c2Vuc29yIG9ubHkgc3VwcG9ydGVkIHJlc29sdXRpb25zID8gb3IgdGhlIHN1cHBvcnRlZA0KPj4g
+cmVzb2x1dGlvbnMgb2YgdGhlIGNvdXBsZSBJU1Arc2Vuc29yIChJU1Agd2lsbCBkb3duc2NhbGUv
+dXBzY2FsZS9jcm9wDQo+PiB0aGUgc2Vuc29yIGRpc2NyZXRlIHJlc29sdXRpb24gdG8gZml0IHVz
+ZXIgcmVxdWVzdCkgPw0KPj4NCj4+IEhhbnMsIHdoYXQgYXJlIHlvdXIgcmVjb21tZW5kYXRpb25z
+ID8NCj4gDQo+IFRoaXMgaXMgbm90IHRoZSB3YXkgdGhlIFY0TDIgQVBJIHdvcmtzLg0KPiANCj4g
+U2Vuc29ycyByZXBvcnQgdGhlaXIgc3VwcG9ydGVkIHJlc29sdXRpb25zIHRocm91Z2ggdGhlIEVO
+VU1fRlJBTUVTSVpFUw0KPiAoYW5kIHRoZSByZWxhdGVkIEVOVU1fRlJBTUVJTlRFUlZBTFMpIGlv
+Y3Rscy4NCj4gDQo+IFdpdGggU19GTVQgeW91IHBpY2sgdGhlIHJlc29sdXRpb24geW91IHdhbnQu
+DQo+IA0KPiBJZiB5b3UgdGhlbiB3YW50IHRvIGNyb3AgdGhlIGRyaXZlciBzaG91bGQgaW1wbGVt
+ZW50IHRoZSBzZWxlY3Rpb24gQVBJDQo+ICh0aGlzIHdpbGwgYWxzbyBhdXRvbWF0aWNhbGx5IGVu
+YWJsZSB0aGUgRy9TX0NST1AvQ1JPUENBUCBpb2N0bHMpIHNvIHRoZQ0KPiBhcHBsaWNhdGlvbiBj
+YW4gc2VsZWN0IHdoaWNoIHBhcnQgb2YgdGhlIGltYWdlIHNob3VsZCBiZSBjcm9wcGVkLiBBc3N1
+bWluZw0KPiB0aGVyZSBpcyBubyBzY2FsZXIgdGhlbiBhZnRlciBjcm9wcGluZyB0aGUgZm9ybWF0
+IHNpemUgd2lsbCBiZSByZWR1Y2VkDQo+IHRvIHRoZSBzaXplIG9mIHRoZSBjcm9wcGVkIGltYWdl
+Lg0KPiANCj4gVGhhdCdzIGluIGEgbnV0c2hlbGwgaG93IHRoZXNlIGlvY3RscyByZWxhdGUgdG8g
+b25lIGFub3RoZXIuDQo+IA0KPiBSZWdhcmRzLA0KPiANCj4gCUhhbnMNCj4gDQoNCk9rLCBjcnlz
+dGFsIGNsZWFyLCBJJ2xsIGltcGxlbWVudCBzZWxlY3Rpb24gQVBJIHNvLg0KQlIsDQpIdWd1ZXMu
+DQoNCj4+DQo+Pj4NCj4+PiBSZWdhcmRzLA0KPj4+DQo+Pj4gCUhhbnMNCj4+Pg0KPj4+PiArDQo+
+Pj4+ICsJCWRldl9kYmcoZGNtaS0+ZGV2LCAiJXV4JXUgY3JvcHBlZCB0byAldXgldUAoJXUsJXUp
+XG4iLA0KPj4+PiArCQkJbWYtPndpZHRoLCBtZi0+aGVpZ2h0LA0KPj4+PiArCQkJZGNtaS0+Y3Jv
+cC53aWR0aCwgZGNtaS0+Y3JvcC5oZWlnaHQsDQo+Pj4+ICsJCQlkY21pLT5jcm9wLmxlZnQsIGRj
+bWktPmNyb3AudG9wKTsNCj4+Pj4gKwl9Ow0KPj4+PiArDQo+Pj4+ICAgICAJZGNtaS0+Zm10ID0g
+KmY7DQo+Pj4+ICAgICAJZGNtaS0+Y3VycmVudF9mbXQgPSBjdXJyZW50X2ZtdDsNCj4+Pj4gICAg
+IA0KPj4+Pg0KPiA=
