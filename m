@@ -1,58 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:55870 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750777AbdFOJLm (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40300
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751489AbdFZMeo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 05:11:42 -0400
-Date: Thu, 15 Jun 2017 11:11:39 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
-        robh@kernel.org
-Subject: Re: [PATCH 1/8] dt: bindings: Add a binding for flash devices
- associated to a sensor
-Message-ID: <20170615091139.GA23286@amd>
-References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
- <1497433639-13101-2-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="TB36FDmn/VVEgNH/"
-Content-Disposition: inline
-In-Reply-To: <1497433639-13101-2-git-send-email-sakari.ailus@linux.intel.com>
+        Mon, 26 Jun 2017 08:34:44 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mike Isely <isely@pobox.com>
+Subject: [PATCH] media: pvrusb2: fix the retry logic
+Date: Mon, 26 Jun 2017 09:33:56 -0300
+Message-Id: <acd26dbca893cb72fb481dce3945c2831259c46a.1498480431.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+As reported by this warning:
+	drivers/media/usb/pvrusb2/pvrusb2-encoder.c:263 pvr2_encoder_cmd() warn: continue to end of do { ... } while(0); loop
 
---TB36FDmn/VVEgNH/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+There's an issue at the retry logic there: the current logic is:
 
-On Wed 2017-06-14 12:47:12, Sakari Ailus wrote:
-> Camera flash drivers (and LEDs) are separate from the sensor devices in
-> DT. In order to make an association between the two, provide the
-> association information to the software.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+	do {
+		if (need_to_retry)
+			continue;
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+		some_code();
+	} while (0);
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+Well, that won't work, as continue will make it test for zero, and
+abort the loop. So, change the loop to:
 
---TB36FDmn/VVEgNH/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+	while (1) {
+		if (need_to_retry)
+			continue;
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+		some_code();
+		break;
+	};
 
-iEYEARECAAYFAllCT0sACgkQMOfwapXb+vJ4WACgveYo2tIFdnGozbiR3eDNVU9b
-aFoAoICdeTdZS3/mxxela1TYCxtfoIFC
-=G2S1
------END PGP SIGNATURE-----
+With seems to be what's actually expected there.
 
---TB36FDmn/VVEgNH/--
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/pvrusb2/pvrusb2-encoder.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-encoder.c b/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
+index ca637074fa1f..43e43404095f 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
+@@ -198,7 +198,7 @@ static int pvr2_encoder_cmd(void *ctxt,
+ 	}
+ 
+ 
+-	LOCK_TAKE(hdw->ctl_lock); do {
++	LOCK_TAKE(hdw->ctl_lock); while (1) {
+ 
+ 		if (!hdw->state_encoder_ok) {
+ 			ret = -EIO;
+@@ -293,9 +293,9 @@ rdData[0]);
+ 
+ 		wrData[0] = 0x0;
+ 		ret = pvr2_encoder_write_words(hdw,MBOX_BASE,wrData,1);
+-		if (ret) break;
++		break;
+ 
+-	} while(0); LOCK_GIVE(hdw->ctl_lock);
++	}; LOCK_GIVE(hdw->ctl_lock);
+ 
+ 	return ret;
+ }
+-- 
+2.9.4
