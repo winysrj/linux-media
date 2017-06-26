@@ -1,1120 +1,2522 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36375 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751955AbdFODbf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 23:31:35 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 06/15] af9013: convert to regmap api
-Date: Thu, 15 Jun 2017 06:30:56 +0300
-Message-Id: <20170615033105.13517-6-crope@iki.fi>
-In-Reply-To: <20170615033105.13517-1-crope@iki.fi>
-References: <20170615033105.13517-1-crope@iki.fi>
+Received: from mail-io0-f178.google.com ([209.85.223.178]:34548 "EHLO
+        mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751520AbdFZPtx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Jun 2017 11:49:53 -0400
+Received: by mail-io0-f178.google.com with SMTP id r36so3187115ioi.1
+        for <linux-media@vger.kernel.org>; Mon, 26 Jun 2017 08:49:53 -0700 (PDT)
+Message-ID: <1498492189.3710.4.camel@ndufresne.ca>
+Subject: Re: [PATCH 1/5] [media] rockchip/rga: v4l2 m2m support
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Jacob Chen <jacob-chen@iotwrt.com>, linux-kernel@vger.kernel.org
+Cc: linux-rockchip@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, heiko@sntech.de,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        hans.verkuil@cisco.com
+Date: Mon, 26 Jun 2017 11:49:49 -0400
+In-Reply-To: <1498488673-27900-1-git-send-email-jacob-chen@iotwrt.com>
+References: <1498488673-27900-1-git-send-email-jacob-chen@iotwrt.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-XKjfu5oq0Qjt+9Jy89KE"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use regmap for register access. Own low level i2c read and write
-routines for regmap is still needed because chip uses single command
-byte in addition to typical i2c register access.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/Kconfig       |   1 +
- drivers/media/dvb-frontends/af9013.c      | 598 +++++++++++++++---------------
- drivers/media/dvb-frontends/af9013_priv.h |   1 +
- 3 files changed, 294 insertions(+), 306 deletions(-)
+--=-XKjfu5oq0Qjt+9Jy89KE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index e8c6554..3a260b8 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -436,6 +436,7 @@ config DVB_TDA10048
- config DVB_AF9013
- 	tristate "Afatech AF9013 demodulator"
- 	depends on DVB_CORE && I2C
-+	select REGMAP
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  Say Y when you want to support this frontend.
-diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
-index 781e958..70102c1 100644
---- a/drivers/media/dvb-frontends/af9013.c
-+++ b/drivers/media/dvb-frontends/af9013.c
-@@ -20,11 +20,9 @@
- 
- #include "af9013_priv.h"
- 
--/* Max transfer size done by I2C transfer functions */
--#define MAX_XFER_SIZE  64
--
- struct af9013_state {
- 	struct i2c_client *client;
-+	struct regmap *regmap;
- 	struct dvb_frontend fe;
- 	u32 clk;
- 	u8 tuner;
-@@ -50,181 +48,6 @@ struct af9013_state {
- 	struct delayed_work statistics_work;
- };
- 
--/* write multiple registers */
--static int af9013_wr_regs_i2c(struct af9013_state *state, u8 mbox, u16 reg,
--	const u8 *val, int len)
--{
--	struct i2c_client *client = state->client;
--	int ret;
--	u8 buf[MAX_XFER_SIZE];
--	struct i2c_msg msg[1] = {
--		{
--			.addr = state->client->addr,
--			.flags = 0,
--			.len = 3 + len,
--			.buf = buf,
--		}
--	};
--
--	if (3 + len > sizeof(buf)) {
--		dev_warn(&client->dev, "i2c wr reg %04x, len %d, is too big!\n",
--			 reg, len);
--		return -EINVAL;
--	}
--
--	buf[0] = (reg >> 8) & 0xff;
--	buf[1] = (reg >> 0) & 0xff;
--	buf[2] = mbox;
--	memcpy(&buf[3], val, len);
--
--	ret = i2c_transfer(state->client->adapter, msg, 1);
--	if (ret == 1) {
--		ret = 0;
--	} else {
--		dev_warn(&client->dev, "i2c wr failed %d, reg %04x, len %d\n",
--			 ret, reg, len);
--		ret = -EREMOTEIO;
--	}
--	return ret;
--}
--
--/* read multiple registers */
--static int af9013_rd_regs_i2c(struct af9013_state *state, u8 mbox, u16 reg,
--	u8 *val, int len)
--{
--	struct i2c_client *client = state->client;
--	int ret;
--	u8 buf[3];
--	struct i2c_msg msg[2] = {
--		{
--			.addr = state->client->addr,
--			.flags = 0,
--			.len = 3,
--			.buf = buf,
--		}, {
--			.addr = state->client->addr,
--			.flags = I2C_M_RD,
--			.len = len,
--			.buf = val,
--		}
--	};
--
--	buf[0] = (reg >> 8) & 0xff;
--	buf[1] = (reg >> 0) & 0xff;
--	buf[2] = mbox;
--
--	ret = i2c_transfer(state->client->adapter, msg, 2);
--	if (ret == 2) {
--		ret = 0;
--	} else {
--		dev_warn(&client->dev, "i2c rd failed %d, reg %04x, len %d\n",
--			 ret, reg, len);
--		ret = -EREMOTEIO;
--	}
--	return ret;
--}
--
--/* write multiple registers */
--static int af9013_wr_regs(struct af9013_state *state, u16 reg, const u8 *val,
--	int len)
--{
--	int ret, i;
--	u8 mbox = (0 << 7)|(0 << 6)|(1 << 1)|(1 << 0);
--
--	if ((state->ts_mode == AF9013_TS_USB) &&
--		((reg & 0xff00) != 0xff00) && ((reg & 0xff00) != 0xae00)) {
--		mbox |= ((len - 1) << 2);
--		ret = af9013_wr_regs_i2c(state, mbox, reg, val, len);
--	} else {
--		for (i = 0; i < len; i++) {
--			ret = af9013_wr_regs_i2c(state, mbox, reg+i, val+i, 1);
--			if (ret)
--				goto err;
--		}
--	}
--
--err:
--	return 0;
--}
--
--/* read multiple registers */
--static int af9013_rd_regs(struct af9013_state *state, u16 reg, u8 *val, int len)
--{
--	int ret, i;
--	u8 mbox = (0 << 7)|(0 << 6)|(1 << 1)|(0 << 0);
--
--	if ((state->ts_mode == AF9013_TS_USB) &&
--		((reg & 0xff00) != 0xff00) && ((reg & 0xff00) != 0xae00)) {
--		mbox |= ((len - 1) << 2);
--		ret = af9013_rd_regs_i2c(state, mbox, reg, val, len);
--	} else {
--		for (i = 0; i < len; i++) {
--			ret = af9013_rd_regs_i2c(state, mbox, reg+i, val+i, 1);
--			if (ret)
--				goto err;
--		}
--	}
--
--err:
--	return 0;
--}
--
--/* write single register */
--static int af9013_wr_reg(struct af9013_state *state, u16 reg, u8 val)
--{
--	return af9013_wr_regs(state, reg, &val, 1);
--}
--
--/* read single register */
--static int af9013_rd_reg(struct af9013_state *state, u16 reg, u8 *val)
--{
--	return af9013_rd_regs(state, reg, val, 1);
--}
--
--static int af9013_write_ofsm_regs(struct af9013_state *state, u16 reg, u8 *val,
--	u8 len)
--{
--	u8 mbox = (1 << 7)|(1 << 6)|((len - 1) << 2)|(1 << 1)|(1 << 0);
--	return af9013_wr_regs_i2c(state, mbox, reg, val, len);
--}
--
--static int af9013_wr_reg_bits(struct af9013_state *state, u16 reg, int pos,
--	int len, u8 val)
--{
--	int ret;
--	u8 tmp, mask;
--
--	/* no need for read if whole reg is written */
--	if (len != 8) {
--		ret = af9013_rd_reg(state, reg, &tmp);
--		if (ret)
--			return ret;
--
--		mask = (0xff >> (8 - len)) << pos;
--		val <<= pos;
--		tmp &= ~mask;
--		val |= tmp;
--	}
--
--	return af9013_wr_reg(state, reg, val);
--}
--
--static int af9013_rd_reg_bits(struct af9013_state *state, u16 reg, int pos,
--	int len, u8 *val)
--{
--	int ret;
--	u8 tmp;
--
--	ret = af9013_rd_reg(state, reg, &tmp);
--	if (ret)
--		return ret;
--
--	*val = (tmp >> pos);
--	*val &= (0xff >> (8 - len));
--
--	return 0;
--}
--
- static int af9013_set_gpio(struct af9013_state *state, u8 gpio, u8 gpioval)
- {
- 	struct i2c_client *client = state->client;
-@@ -266,7 +89,8 @@ static int af9013_set_gpio(struct af9013_state *state, u8 gpio, u8 gpioval)
- 		break;
- 	}
- 
--	ret = af9013_wr_reg_bits(state, addr, pos, 4, gpioval);
-+	ret = regmap_update_bits(state->regmap, addr, 0x0f << pos,
-+				 gpioval << pos);
- 	if (ret)
- 		goto err;
- 
-@@ -279,50 +103,48 @@ static int af9013_set_gpio(struct af9013_state *state, u8 gpio, u8 gpioval)
- static int af9013_power_ctrl(struct af9013_state *state, u8 onoff)
- {
- 	struct i2c_client *client = state->client;
--	int ret, i;
--	u8 tmp;
-+	int ret;
-+	unsigned int utmp;
- 
- 	dev_dbg(&client->dev, "onoff %d\n", onoff);
- 
- 	/* enable reset */
--	ret = af9013_wr_reg_bits(state, 0xd417, 4, 1, 1);
-+	ret = regmap_update_bits(state->regmap, 0xd417, 0x10, 0x10);
- 	if (ret)
- 		goto err;
- 
- 	/* start reset mechanism */
--	ret = af9013_wr_reg(state, 0xaeff, 1);
-+	ret = regmap_write(state->regmap, 0xaeff, 0x01);
- 	if (ret)
- 		goto err;
- 
- 	/* wait reset performs */
--	for (i = 0; i < 150; i++) {
--		ret = af9013_rd_reg_bits(state, 0xd417, 1, 1, &tmp);
--		if (ret)
--			goto err;
--
--		if (tmp)
--			break; /* reset done */
--
--		usleep_range(5000, 25000);
--	}
-+	ret = regmap_read_poll_timeout(state->regmap, 0xd417, utmp,
-+				       (utmp >> 1) & 0x01, 5000, 1000000);
-+	if (ret)
-+		goto err;
- 
--	if (!tmp)
-+	if (!((utmp >> 1) & 0x01))
- 		return -ETIMEDOUT;
- 
- 	if (onoff) {
- 		/* clear reset */
--		ret = af9013_wr_reg_bits(state, 0xd417, 1, 1, 0);
-+		ret = regmap_update_bits(state->regmap, 0xd417, 0x02, 0x00);
- 		if (ret)
- 			goto err;
--
- 		/* disable reset */
--		ret = af9013_wr_reg_bits(state, 0xd417, 4, 1, 0);
--
-+		ret = regmap_update_bits(state->regmap, 0xd417, 0x10, 0x00);
-+		if (ret)
-+			goto err;
- 		/* power on */
--		ret = af9013_wr_reg_bits(state, 0xd73a, 3, 1, 0);
-+		ret = regmap_update_bits(state->regmap, 0xd73a, 0x08, 0x00);
-+		if (ret)
-+			goto err;
- 	} else {
- 		/* power off */
--		ret = af9013_wr_reg_bits(state, 0xd73a, 3, 1, 1);
-+		ret = regmap_update_bits(state->regmap, 0xd73a, 0x08, 0x08);
-+		if (ret)
-+			goto err;
- 	}
- 
- 	return ret;
-@@ -340,7 +162,7 @@ static int af9013_statistics_ber_unc_start(struct dvb_frontend *fe)
- 	dev_dbg(&client->dev, "\n");
- 
- 	/* reset and start BER counter */
--	ret = af9013_wr_reg_bits(state, 0xd391, 4, 1, 1);
-+	ret = regmap_update_bits(state->regmap, 0xd391, 0x10, 0x10);
- 	if (ret)
- 		goto err;
- 
-@@ -355,21 +177,22 @@ static int af9013_statistics_ber_unc_result(struct dvb_frontend *fe)
- 	struct af9013_state *state = fe->demodulator_priv;
- 	struct i2c_client *client = state->client;
- 	int ret;
-+	unsigned int utmp;
- 	u8 buf[5];
- 
- 	dev_dbg(&client->dev, "\n");
- 
- 	/* check if error bit count is ready */
--	ret = af9013_rd_reg_bits(state, 0xd391, 4, 1, &buf[0]);
-+	ret = regmap_read(state->regmap, 0xd391, &utmp);
- 	if (ret)
- 		goto err;
- 
--	if (!buf[0]) {
-+	if (!((utmp >> 4) & 0x01)) {
- 		dev_dbg(&client->dev, "not ready\n");
- 		return 0;
- 	}
- 
--	ret = af9013_rd_regs(state, 0xd387, buf, 5);
-+	ret = regmap_bulk_read(state->regmap, 0xd387, buf, 5);
- 	if (ret)
- 		goto err;
- 
-@@ -391,7 +214,7 @@ static int af9013_statistics_snr_start(struct dvb_frontend *fe)
- 	dev_dbg(&client->dev, "\n");
- 
- 	/* start SNR meas */
--	ret = af9013_wr_reg_bits(state, 0xd2e1, 3, 1, 1);
-+	ret = regmap_update_bits(state->regmap, 0xd2e1, 0x08, 0x08);
- 	if (ret)
- 		goto err;
- 
-@@ -406,35 +229,36 @@ static int af9013_statistics_snr_result(struct dvb_frontend *fe)
- 	struct af9013_state *state = fe->demodulator_priv;
- 	struct i2c_client *client = state->client;
- 	int ret, i, len;
--	u8 buf[3], tmp;
-+	unsigned int utmp;
-+	u8 buf[3];
- 	u32 snr_val;
- 	const struct af9013_snr *uninitialized_var(snr_lut);
- 
- 	dev_dbg(&client->dev, "\n");
- 
- 	/* check if SNR ready */
--	ret = af9013_rd_reg_bits(state, 0xd2e1, 3, 1, &tmp);
-+	ret = regmap_read(state->regmap, 0xd2e1, &utmp);
- 	if (ret)
- 		goto err;
- 
--	if (!tmp) {
-+	if (!((utmp >> 3) & 0x01)) {
- 		dev_dbg(&client->dev, "not ready\n");
- 		return 0;
- 	}
- 
- 	/* read value */
--	ret = af9013_rd_regs(state, 0xd2e3, buf, 3);
-+	ret = regmap_bulk_read(state->regmap, 0xd2e3, buf, 3);
- 	if (ret)
- 		goto err;
- 
- 	snr_val = (buf[2] << 16) | (buf[1] << 8) | buf[0];
- 
- 	/* read current modulation */
--	ret = af9013_rd_reg(state, 0xd3c1, &tmp);
-+	ret = regmap_read(state->regmap, 0xd3c1, &utmp);
- 	if (ret)
- 		goto err;
- 
--	switch ((tmp >> 6) & 3) {
-+	switch ((utmp >> 6) & 3) {
- 	case 0:
- 		len = ARRAY_SIZE(qpsk_snr_lut);
- 		snr_lut = qpsk_snr_lut;
-@@ -452,12 +276,12 @@ static int af9013_statistics_snr_result(struct dvb_frontend *fe)
- 	}
- 
- 	for (i = 0; i < len; i++) {
--		tmp = snr_lut[i].snr;
-+		utmp = snr_lut[i].snr;
- 
- 		if (snr_val < snr_lut[i].val)
- 			break;
- 	}
--	state->snr = tmp * 10; /* dB/10 */
-+	state->snr = utmp * 10; /* dB/10 */
- 
- 	return ret;
- err:
-@@ -478,7 +302,7 @@ static int af9013_statistics_signal_strength(struct dvb_frontend *fe)
- 	if (!state->signal_strength_en)
- 		return 0;
- 
--	ret = af9013_rd_regs(state, 0xd07c, buf, 2);
-+	ret = regmap_bulk_read(state->regmap, 0xd07c, buf, 2);
- 	if (ret)
- 		goto err;
- 
-@@ -590,8 +414,8 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
- 		if (i == ARRAY_SIZE(coeff_lut))
- 			return -EINVAL;
- 
--		ret = af9013_wr_regs(state, 0xae00, coeff_lut[i].val,
--			sizeof(coeff_lut[i].val));
-+		ret = regmap_bulk_write(state->regmap, 0xae00, coeff_lut[i].val,
-+					sizeof(coeff_lut[i].val));
- 	}
- 
- 	/* program frequency control */
-@@ -632,32 +456,32 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
- 		buf[4] = (freq_cw >>  8) & 0xff;
- 		buf[5] = (freq_cw >> 16) & 0x7f;
- 
--		ret = af9013_wr_regs(state, 0xd140, buf, 3);
-+		ret = regmap_bulk_write(state->regmap, 0xd140, buf, 3);
- 		if (ret)
- 			goto err;
- 
--		ret = af9013_wr_regs(state, 0x9be7, buf, 6);
-+		ret = regmap_bulk_write(state->regmap, 0x9be7, buf, 6);
- 		if (ret)
- 			goto err;
- 	}
- 
- 	/* clear TPS lock flag */
--	ret = af9013_wr_reg_bits(state, 0xd330, 3, 1, 1);
-+	ret = regmap_update_bits(state->regmap, 0xd330, 0x08, 0x08);
- 	if (ret)
- 		goto err;
- 
- 	/* clear MPEG2 lock flag */
--	ret = af9013_wr_reg_bits(state, 0xd507, 6, 1, 0);
-+	ret = regmap_update_bits(state->regmap, 0xd507, 0x40, 0x00);
- 	if (ret)
- 		goto err;
- 
- 	/* empty channel function */
--	ret = af9013_wr_reg_bits(state, 0x9bfe, 0, 1, 0);
-+	ret = regmap_update_bits(state->regmap, 0x9bfe, 0x01, 0x00);
- 	if (ret)
- 		goto err;
- 
- 	/* empty DVB-T channel function */
--	ret = af9013_wr_reg_bits(state, 0x9bc2, 0, 1, 0);
-+	ret = regmap_update_bits(state->regmap, 0x9bc2, 0x01, 0x00);
- 	if (ret)
- 		goto err;
- 
-@@ -802,32 +626,32 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
- 		goto err;
- 	}
- 
--	ret = af9013_wr_regs(state, 0xd3c0, buf, 3);
-+	ret = regmap_bulk_write(state->regmap, 0xd3c0, buf, 3);
- 	if (ret)
- 		goto err;
- 
- 	if (auto_mode) {
- 		/* clear easy mode flag */
--		ret = af9013_wr_reg(state, 0xaefd, 0);
-+		ret = regmap_write(state->regmap, 0xaefd, 0x00);
- 		if (ret)
- 			goto err;
- 
- 		dev_dbg(&client->dev, "auto params\n");
- 	} else {
- 		/* set easy mode flag */
--		ret = af9013_wr_reg(state, 0xaefd, 1);
-+		ret = regmap_write(state->regmap, 0xaefd, 0x01);
- 		if (ret)
- 			goto err;
- 
--		ret = af9013_wr_reg(state, 0xaefe, 0);
-+		ret = regmap_write(state->regmap, 0xaefe, 0x00);
- 		if (ret)
- 			goto err;
- 
- 		dev_dbg(&client->dev, "manual params\n");
- 	}
- 
--	/* tune */
--	ret = af9013_wr_reg(state, 0xffff, 0);
-+	/* Reset FSM */
-+	ret = regmap_write(state->regmap, 0xffff, 0x00);
- 	if (ret)
- 		goto err;
- 
-@@ -851,7 +675,7 @@ static int af9013_get_frontend(struct dvb_frontend *fe,
- 
- 	dev_dbg(&client->dev, "\n");
- 
--	ret = af9013_rd_regs(state, 0xd3c0, buf, 3);
-+	ret = regmap_bulk_read(state->regmap, 0xd3c0, buf, 3);
- 	if (ret)
- 		goto err;
- 
-@@ -964,7 +788,7 @@ static int af9013_read_status(struct dvb_frontend *fe, enum fe_status *status)
- 	struct af9013_state *state = fe->demodulator_priv;
- 	struct i2c_client *client = state->client;
- 	int ret;
--	u8 tmp;
-+	unsigned int utmp;
- 
- 	/*
- 	 * Return status from the cache if it is younger than 2000ms with the
-@@ -982,21 +806,21 @@ static int af9013_read_status(struct dvb_frontend *fe, enum fe_status *status)
- 	}
- 
- 	/* MPEG2 lock */
--	ret = af9013_rd_reg_bits(state, 0xd507, 6, 1, &tmp);
-+	ret = regmap_read(state->regmap, 0xd507, &utmp);
- 	if (ret)
- 		goto err;
- 
--	if (tmp)
-+	if ((utmp >> 6) & 0x01)
- 		*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI |
- 			FE_HAS_SYNC | FE_HAS_LOCK;
- 
- 	if (!*status) {
- 		/* TPS lock */
--		ret = af9013_rd_reg_bits(state, 0xd330, 3, 1, &tmp);
-+		ret = regmap_read(state->regmap, 0xd330, &utmp);
- 		if (ret)
- 			goto err;
- 
--		if (tmp)
-+		if ((utmp >> 3) & 0x01)
- 			*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER |
- 				FE_HAS_VITERBI;
- 	}
-@@ -1043,8 +867,8 @@ static int af9013_init(struct dvb_frontend *fe)
- 	struct af9013_state *state = fe->demodulator_priv;
- 	struct i2c_client *client = state->client;
- 	int ret, i, len;
--	u8 buf[3], tmp;
--	u32 adc_cw;
-+	unsigned int utmp;
-+	u8 buf[3];
- 	const struct af9013_reg_bit *init;
- 
- 	dev_dbg(&client->dev, "\n");
-@@ -1055,85 +879,85 @@ static int af9013_init(struct dvb_frontend *fe)
- 		goto err;
- 
- 	/* enable ADC */
--	ret = af9013_wr_reg(state, 0xd73a, 0xa4);
-+	ret = regmap_write(state->regmap, 0xd73a, 0xa4);
- 	if (ret)
- 		goto err;
- 
- 	/* write API version to firmware */
--	ret = af9013_wr_regs(state, 0x9bf2, state->api_version, 4);
-+	ret = regmap_bulk_write(state->regmap, 0x9bf2, state->api_version, 4);
- 	if (ret)
- 		goto err;
- 
- 	/* program ADC control */
- 	switch (state->clk) {
- 	case 28800000: /* 28.800 MHz */
--		tmp = 0;
-+		utmp = 0;
- 		break;
- 	case 20480000: /* 20.480 MHz */
--		tmp = 1;
-+		utmp = 1;
- 		break;
- 	case 28000000: /* 28.000 MHz */
--		tmp = 2;
-+		utmp = 2;
- 		break;
- 	case 25000000: /* 25.000 MHz */
--		tmp = 3;
-+		utmp = 3;
- 		break;
- 	default:
- 		ret = -EINVAL;
- 		goto err;
- 	}
- 
--	adc_cw = div_u64((u64)state->clk * 0x80000, 1000000);
--	buf[0] = (adc_cw >>  0) & 0xff;
--	buf[1] = (adc_cw >>  8) & 0xff;
--	buf[2] = (adc_cw >> 16) & 0xff;
--	ret = af9013_wr_regs(state, 0xd180, buf, 3);
-+	ret = regmap_update_bits(state->regmap, 0x9bd2, 0x0f, utmp);
- 	if (ret)
- 		goto err;
- 
--	ret = af9013_wr_reg_bits(state, 0x9bd2, 0, 4, tmp);
-+	utmp = div_u64((u64)state->clk * 0x80000, 1000000);
-+	buf[0] = (utmp >>  0) & 0xff;
-+	buf[1] = (utmp >>  8) & 0xff;
-+	buf[2] = (utmp >> 16) & 0xff;
-+	ret = regmap_bulk_write(state->regmap, 0xd180, buf, 3);
- 	if (ret)
- 		goto err;
- 
- 	/* set I2C master clock */
--	ret = af9013_wr_reg(state, 0xd416, 0x14);
-+	ret = regmap_write(state->regmap, 0xd416, 0x14);
- 	if (ret)
- 		goto err;
- 
- 	/* set 16 embx */
--	ret = af9013_wr_reg_bits(state, 0xd700, 1, 1, 1);
-+	ret = regmap_update_bits(state->regmap, 0xd700, 0x02, 0x02);
- 	if (ret)
- 		goto err;
- 
- 	/* set no trigger */
--	ret = af9013_wr_reg_bits(state, 0xd700, 2, 1, 0);
-+	ret = regmap_update_bits(state->regmap, 0xd700, 0x04, 0x00);
- 	if (ret)
- 		goto err;
- 
- 	/* set read-update bit for constellation */
--	ret = af9013_wr_reg_bits(state, 0xd371, 1, 1, 1);
-+	ret = regmap_update_bits(state->regmap, 0xd371, 0x02, 0x02);
- 	if (ret)
- 		goto err;
- 
- 	/* settings for mp2if */
- 	if (state->ts_mode == AF9013_TS_USB) {
- 		/* AF9015 split PSB to 1.5k + 0.5k */
--		ret = af9013_wr_reg_bits(state, 0xd50b, 2, 1, 1);
-+		ret = regmap_update_bits(state->regmap, 0xd50b, 0x04, 0x04);
- 		if (ret)
- 			goto err;
- 	} else {
- 		/* AF9013 change the output bit to data7 */
--		ret = af9013_wr_reg_bits(state, 0xd500, 3, 1, 1);
-+		ret = regmap_update_bits(state->regmap, 0xd500, 0x08, 0x08);
- 		if (ret)
- 			goto err;
- 
- 		/* AF9013 set mpeg to full speed */
--		ret = af9013_wr_reg_bits(state, 0xd502, 4, 1, 1);
-+		ret = regmap_update_bits(state->regmap, 0xd502, 0x10, 0x10);
- 		if (ret)
- 			goto err;
- 	}
- 
--	ret = af9013_wr_reg_bits(state, 0xd520, 4, 1, 1);
-+	ret = regmap_update_bits(state->regmap, 0xd520, 0x10, 0x10);
- 	if (ret)
- 		goto err;
- 
-@@ -1142,8 +966,11 @@ static int af9013_init(struct dvb_frontend *fe)
- 	len = ARRAY_SIZE(ofsm_init);
- 	init = ofsm_init;
- 	for (i = 0; i < len; i++) {
--		ret = af9013_wr_reg_bits(state, init[i].addr, init[i].pos,
--			init[i].len, init[i].val);
-+		u16 reg = init[i].addr;
-+		u8 mask = GENMASK(init[i].pos + init[i].len - 1, init[i].pos);
-+		u8 val = init[i].val << init[i].pos;
+Le lundi 26 juin 2017 =C3=A0 22:51 +0800, Jacob Chen a =C3=A9crit=C2=A0:
+> Rockchip RGA is a separate 2D raster graphic acceleration unit. It
+> accelerates 2D graphics operations, such as point/line drawing, image
+> scaling, rotation, BitBLT, alpha blending and image blur/sharpness.
+>=20
+> The drvier is mostly based on s5p-g2d v4l2 m2m driver.
+> And supports various operations from the rendering pipeline.
+> =C2=A0- copy
+> =C2=A0- fast solid color fill
+> =C2=A0- rotation
+> =C2=A0- flip
+> =C2=A0- alpha blending
+>=20
+> The code in rga-hw.c is used to configure regs accroding to
+> operations.
+>=20
+> The code in rga-buf.c is used to create private mmu table for RGA.
+> The tables is stored in a list, and be removed when buffer is
+> cleanup.
+>=20
+> Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+> ---
+> =C2=A0drivers/media/platform/Kconfig=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A011=
+ +
+> =C2=A0drivers/media/platform/Makefile=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A0=C2=A02 =
 +
-+		ret = regmap_update_bits(state->regmap, reg, mask, val);
- 		if (ret)
- 			goto err;
- 	}
-@@ -1195,63 +1022,65 @@ static int af9013_init(struct dvb_frontend *fe)
- 	}
- 
- 	for (i = 0; i < len; i++) {
--		ret = af9013_wr_reg_bits(state, init[i].addr, init[i].pos,
--			init[i].len, init[i].val);
-+		u16 reg = init[i].addr;
-+		u8 mask = GENMASK(init[i].pos + init[i].len - 1, init[i].pos);
-+		u8 val = init[i].val << init[i].pos;
-+
-+		ret = regmap_update_bits(state->regmap, reg, mask, val);
- 		if (ret)
- 			goto err;
- 	}
- 
- 	/* TS mode */
--	ret = af9013_wr_reg_bits(state, 0xd500, 1, 2, state->ts_mode);
-+	ret = regmap_update_bits(state->regmap, 0xd500, 0x06,
-+				 state->ts_mode << 1);
- 	if (ret)
- 		goto err;
- 
- 	/* enable lock led */
--	ret = af9013_wr_reg_bits(state, 0xd730, 0, 1, 1);
-+	ret = regmap_update_bits(state->regmap, 0xd730, 0x01, 0x01);
- 	if (ret)
- 		goto err;
- 
- 	/* check if we support signal strength */
- 	if (!state->signal_strength_en) {
--		ret = af9013_rd_reg_bits(state, 0x9bee, 0, 1,
--			&state->signal_strength_en);
-+		ret = regmap_read(state->regmap, 0x9bee, &utmp);
- 		if (ret)
- 			goto err;
-+
-+		state->signal_strength_en = (utmp >> 0) & 0x01;
- 	}
- 
- 	/* read values needed for signal strength calculation */
- 	if (state->signal_strength_en && !state->rf_50) {
--		ret = af9013_rd_reg(state, 0x9bbd, &state->rf_50);
-+		ret = regmap_bulk_read(state->regmap, 0x9bbd, &state->rf_50, 1);
- 		if (ret)
- 			goto err;
--
--		ret = af9013_rd_reg(state, 0x9bd0, &state->rf_80);
-+		ret = regmap_bulk_read(state->regmap, 0x9bd0, &state->rf_80, 1);
- 		if (ret)
- 			goto err;
--
--		ret = af9013_rd_reg(state, 0x9be2, &state->if_50);
-+		ret = regmap_bulk_read(state->regmap, 0x9be2, &state->if_50, 1);
- 		if (ret)
- 			goto err;
--
--		ret = af9013_rd_reg(state, 0x9be4, &state->if_80);
-+		ret = regmap_bulk_read(state->regmap, 0x9be4, &state->if_80, 1);
- 		if (ret)
- 			goto err;
- 	}
- 
- 	/* SNR */
--	ret = af9013_wr_reg(state, 0xd2e2, 1);
-+	ret = regmap_write(state->regmap, 0xd2e2, 0x01);
- 	if (ret)
- 		goto err;
- 
- 	/* BER / UCB */
- 	buf[0] = (10000 >> 0) & 0xff;
- 	buf[1] = (10000 >> 8) & 0xff;
--	ret = af9013_wr_regs(state, 0xd385, buf, 2);
-+	ret = regmap_bulk_write(state->regmap, 0xd385, buf, 2);
- 	if (ret)
- 		goto err;
- 
- 	/* enable FEC monitor */
--	ret = af9013_wr_reg_bits(state, 0xd392, 1, 1, 1);
-+	ret = regmap_update_bits(state->regmap, 0xd392, 0x02, 0x02);
- 	if (ret)
- 		goto err;
- 
-@@ -1276,7 +1105,7 @@ static int af9013_sleep(struct dvb_frontend *fe)
- 	cancel_delayed_work_sync(&state->statistics_work);
- 
- 	/* disable lock led */
--	ret = af9013_wr_reg_bits(state, 0xd730, 0, 1, 0);
-+	ret = regmap_update_bits(state->regmap, 0xd730, 0x01, 0x00);
- 	if (ret)
- 		goto err;
- 
-@@ -1304,9 +1133,11 @@ static int af9013_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
- 		return 0;
- 
- 	if (state->ts_mode == AF9013_TS_USB)
--		ret = af9013_wr_reg_bits(state, 0xd417, 3, 1, enable);
-+		ret = regmap_update_bits(state->regmap, 0xd417, 0x08,
-+					 enable << 3);
- 	else
--		ret = af9013_wr_reg_bits(state, 0xd607, 2, 1, enable);
-+		ret = regmap_update_bits(state->regmap, 0xd607, 0x04,
-+					 enable << 2);
- 	if (ret)
- 		goto err;
- 
-@@ -1334,21 +1165,21 @@ static int af9013_download_firmware(struct af9013_state *state)
- {
- 	struct i2c_client *client = state->client;
- 	int i, len, remaining, ret;
-+	unsigned int utmp;
- 	const struct firmware *fw;
- 	u16 checksum = 0;
--	u8 val;
- 	u8 fw_params[4];
- 	u8 *fw_file = AF9013_FIRMWARE;
- 
- 	msleep(100);
- 	/* check whether firmware is already running */
--	ret = af9013_rd_reg(state, 0x98be, &val);
-+	ret = regmap_read(state->regmap, 0x98be, &utmp);
- 	if (ret)
- 		goto err;
- 	else
--		dev_dbg(&client->dev, "firmware status %02x\n", val);
-+		dev_dbg(&client->dev, "firmware status %02x\n", utmp);
- 
--	if (val == 0x0c) /* fw is running, no need for download */
-+	if (utmp == 0x0c) /* fw is running, no need for download */
- 		goto exit;
- 
- 	dev_info(&client->dev, "found a '%s' in cold state, will try to load a firmware\n",
-@@ -1375,8 +1206,9 @@ static int af9013_download_firmware(struct af9013_state *state)
- 	fw_params[3] = fw->size & 0xff;
- 
- 	/* write fw checksum & size */
--	ret = af9013_write_ofsm_regs(state, 0x50fc,
--		fw_params, sizeof(fw_params));
-+	ret = regmap_bulk_write(state->regmap, 0x50fc, fw_params,
-+				sizeof(fw_params));
-+
- 	if (ret)
- 		goto err_release;
- 
-@@ -1387,9 +1219,9 @@ static int af9013_download_firmware(struct af9013_state *state)
- 		if (len > LEN_MAX)
- 			len = LEN_MAX;
- 
--		ret = af9013_write_ofsm_regs(state,
--			FW_ADDR + fw->size - remaining,
--			(u8 *) &fw->data[fw->size - remaining], len);
-+		ret = regmap_bulk_write(state->regmap,
-+					FW_ADDR + fw->size - remaining,
-+					&fw->data[fw->size - remaining], len);
- 		if (ret) {
- 			dev_err(&client->dev, "firmware download failed %d\n",
- 				ret);
-@@ -1398,28 +1230,23 @@ static int af9013_download_firmware(struct af9013_state *state)
- 	}
- 
- 	/* request boot firmware */
--	ret = af9013_wr_reg(state, 0xe205, 1);
-+	ret = regmap_write(state->regmap, 0xe205, 0x01);
- 	if (ret)
- 		goto err_release;
- 
--	for (i = 0; i < 15; i++) {
--		msleep(100);
--
--		/* check firmware status */
--		ret = af9013_rd_reg(state, 0x98be, &val);
--		if (ret)
--			goto err_release;
--
--		dev_dbg(&client->dev, "firmware status %02x\n", val);
-+	/* Check firmware status. 0c=OK, 04=fail */
-+	ret = regmap_read_poll_timeout(state->regmap, 0x98be, utmp,
-+				       (utmp == 0x0c || utmp == 0x04),
-+				       5000, 1000000);
-+	if (ret)
-+		goto err_release;
- 
--		if (val == 0x0c || val == 0x04) /* success or fail */
--			break;
--	}
-+	dev_dbg(&client->dev, "firmware status %02x\n", utmp);
- 
--	if (val == 0x04) {
-+	if (utmp == 0x04) {
- 		dev_err(&client->dev, "firmware did not run\n");
- 		ret = -ENODEV;
--	} else if (val != 0x0c) {
-+	} else if (utmp != 0x0c) {
- 		dev_err(&client->dev, "firmware boot timeout\n");
- 		ret = -ENODEV;
- 	}
-@@ -1519,6 +1346,147 @@ static struct dvb_frontend *af9013_get_dvb_frontend(struct i2c_client *client)
- 	return &state->fe;
- }
- 
-+/* Own I2C access routines needed for regmap as chip uses extra command byte */
-+static int af9013_wregs(struct i2c_client *client, u8 cmd, u16 reg,
-+			const u8 *val, int len)
-+{
-+	int ret;
-+	u8 buf[21];
-+	struct i2c_msg msg[1] = {
-+		{
-+			.addr = client->addr,
-+			.flags = 0,
-+			.len = 3 + len,
-+			.buf = buf,
-+		}
-+	};
-+
-+	if (3 + len > sizeof(buf)) {
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
-+	buf[0] = (reg >> 8) & 0xff;
-+	buf[1] = (reg >> 0) & 0xff;
-+	buf[2] = cmd;
-+	memcpy(&buf[3], val, len);
-+	ret = i2c_transfer(client->adapter, msg, 1);
-+	if (ret < 0) {
-+		goto err;
-+	} else if (ret != 1) {
-+		ret = -EREMOTEIO;
-+		goto err;
-+	}
-+
-+	return 0;
-+err:
-+	dev_dbg(&client->dev, "failed %d\n", ret);
-+	return ret;
-+}
-+
-+static int af9013_rregs(struct i2c_client *client, u8 cmd, u16 reg,
-+			u8 *val, int len)
-+{
-+	int ret;
-+	u8 buf[3];
-+	struct i2c_msg msg[2] = {
-+		{
-+			.addr = client->addr,
-+			.flags = 0,
-+			.len = 3,
-+			.buf = buf,
-+		}, {
-+			.addr = client->addr,
-+			.flags = I2C_M_RD,
-+			.len = len,
-+			.buf = val,
-+		}
-+	};
-+
-+	buf[0] = (reg >> 8) & 0xff;
-+	buf[1] = (reg >> 0) & 0xff;
-+	buf[2] = cmd;
-+	ret = i2c_transfer(client->adapter, msg, 2);
-+	if (ret < 0) {
-+		goto err;
-+	} else if (ret != 2) {
-+		ret = -EREMOTEIO;
-+		goto err;
-+	}
-+
-+	return 0;
-+err:
-+	dev_dbg(&client->dev, "failed %d\n", ret);
-+	return ret;
-+}
-+
-+static int af9013_regmap_write(void *context, const void *data, size_t count)
-+{
-+	struct i2c_client *client = context;
-+	struct af9013_state *state = i2c_get_clientdata(client);
-+	int ret, i;
-+	u8 cmd;
-+	u16 reg = ((u8 *)data)[0] << 8|((u8 *)data)[1] << 0;
-+	u8 *val = &((u8 *)data)[2];
-+	const unsigned int len = count - 2;
-+
-+	if (state->ts_mode == AF9013_TS_USB && (reg & 0xff00) != 0xae00) {
-+		cmd = 0 << 7|0 << 6|(len - 1) << 2|1 << 1|1 << 0;
-+		ret = af9013_wregs(client, cmd, reg, val, len);
-+		if (ret)
-+			goto err;
-+	} else if (reg >= 0x5100 && reg < 0x8fff) {
-+		/* Firmware download */
-+		cmd = 1 << 7|1 << 6|(len - 1) << 2|1 << 1|1 << 0;
-+		ret = af9013_wregs(client, cmd, reg, val, len);
-+		if (ret)
-+			goto err;
-+	} else {
-+		cmd = 0 << 7|0 << 6|(1 - 1) << 2|1 << 1|1 << 0;
-+		for (i = 0; i < len; i++) {
-+			ret = af9013_wregs(client, cmd, reg + i, val + i, 1);
-+			if (ret)
-+				goto err;
-+		}
-+	}
-+
-+	return 0;
-+err:
-+	dev_dbg(&client->dev, "failed %d\n", ret);
-+	return ret;
-+}
-+
-+static int af9013_regmap_read(void *context, const void *reg_buf,
-+			      size_t reg_size, void *val_buf, size_t val_size)
-+{
-+	struct i2c_client *client = context;
-+	struct af9013_state *state = i2c_get_clientdata(client);
-+	int ret, i;
-+	u8 cmd;
-+	u16 reg = ((u8 *)reg_buf)[0] << 8|((u8 *)reg_buf)[1] << 0;
-+	u8 *val = &((u8 *)val_buf)[0];
-+	const unsigned int len = val_size;
-+
-+	if (state->ts_mode == AF9013_TS_USB && (reg & 0xff00) != 0xae00) {
-+		cmd = 0 << 7|0 << 6|(len - 1) << 2|1 << 1|0 << 0;
-+		ret = af9013_rregs(client, cmd, reg, val_buf, len);
-+		if (ret)
-+			goto err;
-+	} else {
-+		cmd = 0 << 7|0 << 6|(1 - 1) << 2|1 << 1|0 << 0;
-+		for (i = 0; i < len; i++) {
-+			ret = af9013_rregs(client, cmd, reg + i, val + i, 1);
-+			if (ret)
-+				goto err;
-+		}
-+	}
-+
-+	return 0;
-+err:
-+	dev_dbg(&client->dev, "failed %d\n", ret);
-+	return ret;
-+}
-+
- static int af9013_probe(struct i2c_client *client,
- 			const struct i2c_device_id *id)
- {
-@@ -1526,6 +1494,14 @@ static int af9013_probe(struct i2c_client *client,
- 	struct af9013_platform_data *pdata = client->dev.platform_data;
- 	int ret, i;
- 	u8 firmware_version[4];
-+	static const struct regmap_bus regmap_bus = {
-+		.read = af9013_regmap_read,
-+		.write = af9013_regmap_write,
-+	};
-+	static const struct regmap_config regmap_config = {
-+		.reg_bits    =  16,
-+		.val_bits    =  8,
-+	};
- 
- 	state = kzalloc(sizeof(*state), GFP_KERNEL);
- 	if (!state) {
-@@ -1544,25 +1520,31 @@ static int af9013_probe(struct i2c_client *client,
- 	memcpy(&state->api_version, pdata->api_version, sizeof(state->api_version));
- 	memcpy(&state->gpio, pdata->gpio, sizeof(state->gpio));
- 	INIT_DELAYED_WORK(&state->statistics_work, af9013_statistics_work);
-+	state->regmap = regmap_init(&client->dev, &regmap_bus, client,
-+				  &regmap_config);
-+	if (IS_ERR(state->regmap)) {
-+		ret = PTR_ERR(state->regmap);
-+		goto err_kfree;
-+	}
- 
- 	/* Download firmware */
- 	if (state->ts_mode != AF9013_TS_USB) {
- 		ret = af9013_download_firmware(state);
- 		if (ret)
--			goto err_kfree;
-+			goto err_regmap_exit;
- 	}
- 
- 	/* Firmware version */
--	ret = af9013_rd_regs(state, 0x5103, firmware_version,
--			     sizeof(firmware_version));
-+	ret = regmap_bulk_read(state->regmap, 0x5103, firmware_version,
-+			       sizeof(firmware_version));
- 	if (ret)
--		goto err_kfree;
-+		goto err_regmap_exit;
- 
- 	/* Set GPIOs */
- 	for (i = 0; i < sizeof(state->gpio); i++) {
- 		ret = af9013_set_gpio(state, i, state->gpio[i]);
- 		if (ret)
--			goto err_kfree;
-+			goto err_regmap_exit;
- 	}
- 
- 	/* Create dvb frontend */
-@@ -1579,6 +1561,8 @@ static int af9013_probe(struct i2c_client *client,
- 		 firmware_version[0], firmware_version[1],
- 		 firmware_version[2], firmware_version[3]);
- 	return 0;
-+err_regmap_exit:
-+	regmap_exit(state->regmap);
- err_kfree:
- 	kfree(state);
- err:
-@@ -1595,6 +1579,8 @@ static int af9013_remove(struct i2c_client *client)
- 	/* Stop statistics polling */
- 	cancel_delayed_work_sync(&state->statistics_work);
- 
-+	regmap_exit(state->regmap);
-+
- 	kfree(state);
- 
- 	return 0;
-diff --git a/drivers/media/dvb-frontends/af9013_priv.h b/drivers/media/dvb-frontends/af9013_priv.h
-index 97b5b0c..35ca5c9 100644
---- a/drivers/media/dvb-frontends/af9013_priv.h
-+++ b/drivers/media/dvb-frontends/af9013_priv.h
-@@ -25,6 +25,7 @@
- #include "af9013.h"
- #include <linux/firmware.h>
- #include <linux/math64.h>
-+#include <linux/regmap.h>
- 
- #define AF9013_FIRMWARE "dvb-fe-af9013.fw"
- 
--- 
-http://palosaari.fi/
+> =C2=A0drivers/media/platform/rockchip-rga/Makefile=C2=A0=C2=A0|=C2=A0=C2=
+=A0=C2=A03 +
+> =C2=A0drivers/media/platform/rockchip-rga/rga-buf.c | 176 +++++
+> =C2=A0drivers/media/platform/rockchip-rga/rga-hw.c=C2=A0=C2=A0| 456 +++++=
++++++++
+> =C2=A0drivers/media/platform/rockchip-rga/rga-hw.h=C2=A0=C2=A0| 434 +++++=
++++++++
+> =C2=A0drivers/media/platform/rockchip-rga/rga.c=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0| 979
+> ++++++++++++++++++++++++++
+> =C2=A0drivers/media/platform/rockchip-rga/rga.h=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0| 133 ++++
+> =C2=A08 files changed, 2194 insertions(+)
+> =C2=A0create mode 100644 drivers/media/platform/rockchip-rga/Makefile
+> =C2=A0create mode 100644 drivers/media/platform/rockchip-rga/rga-buf.c
+> =C2=A0create mode 100644 drivers/media/platform/rockchip-rga/rga-hw.c
+> =C2=A0create mode 100644 drivers/media/platform/rockchip-rga/rga-hw.h
+> =C2=A0create mode 100644 drivers/media/platform/rockchip-rga/rga.c
+> =C2=A0create mode 100644 drivers/media/platform/rockchip-rga/rga.h
+>=20
+> diff --git a/drivers/media/platform/Kconfig
+> b/drivers/media/platform/Kconfig
+> index c9106e1..8199bcf 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -411,6 +411,17 @@ config VIDEO_RENESAS_VSP1
+> =C2=A0	=C2=A0=C2=A0To compile this driver as a module, choose M here: the
+> module
+> =C2=A0	=C2=A0=C2=A0will be called vsp1.
+> =C2=A0
+> +config VIDEO_ROCKCHIP_RGA
+> +	tristate "Rockchip Raster 2d Grapphic Acceleration Unit"
+> +	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
+> +	depends on ARCH_ROCKCHIP || COMPILE_TEST
+> +	select VIDEOBUF2_DMA_SG
+> +	select V4L2_MEM2MEM_DEV
+> +	default n
+> +	---help---
+> +	=C2=A0=C2=A0This is a v4l2 driver for Rockchip SOC RGA2
+> +	=C2=A0=C2=A02d graphics accelerator.
+> +
+> =C2=A0config VIDEO_TI_VPE
+> =C2=A0	tristate "TI VPE (Video Processing Engine) driver"
+> =C2=A0	depends on VIDEO_DEV && VIDEO_V4L2
+> diff --git a/drivers/media/platform/Makefile
+> b/drivers/media/platform/Makefile
+> index 349ddf6..3bf096f 100644
+> --- a/drivers/media/platform/Makefile
+> +++ b/drivers/media/platform/Makefile
+> @@ -54,6 +54,8 @@ obj-$(CONFIG_VIDEO_RENESAS_FDP1)	+=3D
+> rcar_fdp1.o
+> =C2=A0obj-$(CONFIG_VIDEO_RENESAS_JPU)=C2=A0	+=3D rcar_jpu.o
+> =C2=A0obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+=3D vsp1/
+> =C2=A0
+> +obj-$(CONFIG_VIDEO_ROCKCHIP_RGA)	+=3D rockchip-rga/
+> +
+> =C2=A0obj-y	+=3D omap/
+> =C2=A0
+> =C2=A0obj-$(CONFIG_VIDEO_AM437X_VPFE)		+=3D am437x/
+> diff --git a/drivers/media/platform/rockchip-rga/Makefile
+> b/drivers/media/platform/rockchip-rga/Makefile
+> new file mode 100644
+> index 0000000..92fe254
+> --- /dev/null
+> +++ b/drivers/media/platform/rockchip-rga/Makefile
+> @@ -0,0 +1,3 @@
+> +rockchip-rga-objs :=3D rga.o rga-hw.o rga-buf.o
+> +
+> +obj-$(CONFIG_VIDEO_ROCKCHIP_RGA) +=3D rockchip-rga.o
+> diff --git a/drivers/media/platform/rockchip-rga/rga-buf.c
+> b/drivers/media/platform/rockchip-rga/rga-buf.c
+> new file mode 100644
+> index 0000000..8582092
+> --- /dev/null
+> +++ b/drivers/media/platform/rockchip-rga/rga-buf.c
+> @@ -0,0 +1,176 @@
+> +/*
+> + * Copyright (C) Fuzhou Rockchip Electronics Co.Ltd
+> + * Author: Jacob Chen <jacob-chen@iotwrt.com>
+> + *
+> + * This software is licensed under the terms of the GNU General
+> Public
+> + * License version 2, as published by the Free Software Foundation,
+> and
+> + * may be copied, distributed, and modified under those terms.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.=C2=A0=C2=A0See t=
+he
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/pm_runtime.h>
+> +
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-ioctl.h>
+> +#include <media/v4l2-mem2mem.h>
+> +#include <media/videobuf2-dma-sg.h>
+> +#include <media/videobuf2-v4l2.h>
+> +
+> +#include "rga-hw.h"
+> +#include "rga.h"
+> +
+> +static int
+> +rga_queue_setup(struct vb2_queue *vq,
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0unsigned int *nbuffers, unsigned int *nplanes,
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0unsigned int sizes[], struct device *alloc_devs[])
+> +{
+> +	struct rga_ctx *ctx =3D vb2_get_drv_priv(vq);
+> +	struct rga_frame *f =3D rga_get_frame(ctx, vq->type);
+> +
+> +	if (IS_ERR(f))
+> +		return PTR_ERR(f);
+> +
+> +	sizes[0] =3D f->size;
+> +	*nplanes =3D 1;
+> +
+> +	if (*nbuffers =3D=3D 0)
+> +		*nbuffers =3D 1;
+> +
+> +	return 0;
+> +}
+> +
+> +static int rga_buf_prepare(struct vb2_buffer *vb)
+> +{
+> +	struct rga_ctx *ctx =3D vb2_get_drv_priv(vb->vb2_queue);
+> +	struct rga_frame *f =3D rga_get_frame(ctx, vb->vb2_queue-
+> >type);
+> +
+> +	if (IS_ERR(f))
+> +		return PTR_ERR(f);
+> +
+> +	vb2_set_plane_payload(vb, 0, f->size);
+> +
+> +	return 0;
+> +}
+> +
+> +static void rga_buf_queue(struct vb2_buffer *vb)
+> +{
+> +	struct vb2_v4l2_buffer *vbuf =3D to_vb2_v4l2_buffer(vb);
+> +	struct rga_ctx *ctx =3D vb2_get_drv_priv(vb->vb2_queue);
+> +	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
+> +}
+> +
+> +static int rga_buf_init(struct vb2_buffer *vb)
+> +{
+> +	struct rga_ctx *ctx =3D vb2_get_drv_priv(vb->vb2_queue);
+> +	struct rockchip_rga *rga =3D ctx->rga;
+> +	struct sg_table *sgt;
+> +	struct scatterlist *sgl;
+> +	unsigned int *pages;
+> +	struct rga_buf *buf;
+> +	unsigned int address, len, i, p;
+> +	unsigned int mapped_size =3D 0;
+> +
+> +	/* Create local MMU table for RGA */
+> +	sgt =3D vb2_plane_cookie(vb, 0);
+> +
+> +	/*
+> +	=C2=A0* Alloc (2^3 * 4K) =3D 32K byte for storing pages, those
+> space could
+> +	=C2=A0* cover 32K * 4K =3D 128M ram address.
+> +	=C2=A0*/
+> +	pages =3D (unsigned int *)__get_free_pages(GFP_KERNEL |
+> __GFP_ZERO, 3);
+> +
+> +	for_each_sg(sgt->sgl, sgl, sgt->nents, i) {
+> +		len =3D sg_dma_len(sgl) >> PAGE_SHIFT;
+> +		address =3D sg_phys(sgl);
+> +
+> +		for (p =3D 0; p < len; p++) {
+> +			dma_addr_t phys =3D address + (p <<
+> PAGE_SHIFT);
+> +			pages[mapped_size + p] =3D phys;
+> +		}
+> +
+> +		mapped_size +=3D len;
+> +	}
+> +
+> +	/* sync local MMU table for RGA */
+> +	dma_sync_single_for_device(rga->dev, virt_to_phys(pages),
+> +	=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A08 * PAGE_SIZE,
+> DMA_BIDIRECTIONAL);
+> +
+> +	/* Store the buffer to the RGA private buffers list */
+> +	buf =3D kmalloc(sizeof(struct rga_buf), GFP_KERNEL);
+> +	buf->index =3D vb->index;
+> +	buf->type =3D vb->type;
+> +	buf->mmu_pages =3D pages;
+> +
+> +	list_add_tail(&buf->entry, &ctx->buffers_list);
+> +
+> +	return 0;
+> +}
+> +
+> +static void rga_buf_cleanup(struct vb2_buffer *vb)
+> +{
+> +	struct rga_ctx *ctx =3D vb2_get_drv_priv(vb->vb2_queue);
+> +	struct rga_buf *buf, *tmp;
+> +
+> +	/* Release the RGA private buffers */
+> +	list_for_each_entry_safe(buf, tmp, &ctx->buffers_list,
+> entry) {
+> +		if (buf->index =3D=3D vb->index && buf->type =3D=3D vb-
+> >type) {
+> +			free_pages((unsigned long)buf->mmu_pages,
+> 3);
+> +			list_del(&buf->entry);
+> +			kfree(buf);
+> +		}
+> +	}
+> +}
+> +
+> +static void rga_buf_stop_streaming(struct vb2_queue *q)
+> +{
+> +	struct rga_ctx *ctx =3D vb2_get_drv_priv(q);
+> +	struct vb2_v4l2_buffer *vbuf;
+> +
+> +	for (;;) {
+> +		if (V4L2_TYPE_IS_OUTPUT(q->type))
+> +			vbuf =3D v4l2_m2m_src_buf_remove(ctx-
+> >fh.m2m_ctx);
+> +		else
+> +			vbuf =3D v4l2_m2m_dst_buf_remove(ctx-
+> >fh.m2m_ctx);
+> +		if (vbuf =3D=3D NULL)
+> +			return;
+> +		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
+> +	}
+> +}
+> +
+> +const struct vb2_ops rga_qops =3D {
+> +	.queue_setup =3D rga_queue_setup,
+> +	.buf_prepare =3D rga_buf_prepare,
+> +	.buf_queue =3D rga_buf_queue,
+> +	.buf_init =3D rga_buf_init,
+> +	.buf_cleanup =3D rga_buf_cleanup,
+> +	.stop_streaming =3D rga_buf_stop_streaming,
+> +};
+> +
+> +void *rga_buf_find_page(struct vb2_buffer *vb)
+> +{
+> +	struct rga_ctx *ctx =3D vb2_get_drv_priv(vb->vb2_queue);
+> +	struct rga_buf *buf;
+> +
+> +	list_for_each_entry(buf, &ctx->buffers_list, entry) {
+> +		if (buf->index =3D=3D vb->index && buf->type =3D=3D vb-
+> >type) {
+> +			return buf->mmu_pages;
+> +		}
+> +	}
+> +
+> +	return NULL;
+> +}
+> +
+> +void rga_buf_clean(struct rga_ctx *ctx)
+> +{
+> +	struct rga_buf *buf, *tmp;
+> +
+> +	list_for_each_entry_safe(buf, tmp, &ctx->buffers_list,
+> entry) {
+> +		free_pages((unsigned long)buf->mmu_pages, 3);
+> +		list_del(&buf->entry);
+> +		kfree(buf);
+> +	}
+> +}
+> diff --git a/drivers/media/platform/rockchip-rga/rga-hw.c
+> b/drivers/media/platform/rockchip-rga/rga-hw.c
+> new file mode 100644
+> index 0000000..5c20fc8
+> --- /dev/null
+> +++ b/drivers/media/platform/rockchip-rga/rga-hw.c
+> @@ -0,0 +1,456 @@
+> +/*
+> + * Copyright (C) Fuzhou Rockchip Electronics Co.Ltd
+> + * Author: Jacob Chen <jacob-chen@iotwrt.com>
+> + *
+> + * This software is licensed under the terms of the GNU General
+> Public
+> + * License version 2, as published by the Free Software Foundation,
+> and
+> + * may be copied, distributed, and modified under those terms.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.=C2=A0=C2=A0See t=
+he
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/pm_runtime.h>
+> +
+> +#include "rga-hw.h"
+> +#include "rga.h"
+> +
+> +enum e_rga_start_pos {
+> +	LT =3D 0,
+> +	LB =3D 1,
+> +	RT =3D 2,
+> +	RB =3D 3,
+> +};
+> +
+> +struct rga_addr_offset {
+> +	unsigned int y_off;
+> +	unsigned int u_off;
+> +	unsigned int v_off;
+> +};
+> +
+> +struct rga_corners_addr_offset {
+> +	struct rga_addr_offset left_top;
+> +	struct rga_addr_offset right_top;
+> +	struct rga_addr_offset left_bottom;
+> +	struct rga_addr_offset right_bottom;
+> +};
+> +
+> +static unsigned int rga_get_scaling(unsigned int src, unsigned int
+> dst)
+> +{
+> +	/*
+> +	=C2=A0* The rga hw scaling factor is a normalized inverse of the
+> scaling factor.
+> +	=C2=A0* For example: When source width is 100 and destination
+> width is 200
+> +	=C2=A0* (scaling of 2x), then the hw factor is NC * 100 / 200.
+> +	=C2=A0* The normalization factor (NC) is 2^16 =3D 0x10000.
+> +	=C2=A0*/
+> +
+> +	return (src > dst) ? ((dst << 16) / src) : ((src << 16) /
+> dst);
+> +}
+> +
+> +static struct rga_corners_addr_offset
+> +rga_get_addr_offset(struct rga_frame *frm, unsigned int x, unsigned
+> int y,
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0unsigned int w, unsigned in=
+t h)
+> +{
+> +	struct rga_corners_addr_offset offsets;
+> +	struct rga_addr_offset *lt, *lb, *rt, *rb;
+> +	unsigned int x_div =3D 0,
+> +	=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0y_div =3D 0, uv_stride =3D 0, pixel_width =3D 0,
+> uv_factor =3D 0;
+> +
+> +	lt =3D &offsets.left_top;
+> +	lb =3D &offsets.left_bottom;
+> +	rt =3D &offsets.right_top;
+> +	rb =3D &offsets.right_bottom;
+> +
+> +	x_div =3D frm->fmt->x_div;
+> +	y_div =3D frm->fmt->y_div;
+> +	uv_factor =3D frm->fmt->uv_factor;
+> +	uv_stride =3D frm->stride / x_div;
+> +	pixel_width =3D frm->stride / frm->width;
+> +
+> +	lt->y_off =3D y * frm->stride + x * pixel_width;
+> +	lt->u_off =3D
+> +	=C2=A0=C2=A0=C2=A0=C2=A0frm->width * frm->height + (y / y_div) * uv_str=
+ide + x /
+> x_div;
+> +	lt->v_off =3D lt->u_off + frm->width * frm->height /
+> uv_factor;
+> +
+> +	lb->y_off =3D lt->y_off + (h - 1) * frm->stride;
+> +	lb->u_off =3D lt->u_off + (h / y_div - 1) * uv_stride;
+> +	lb->v_off =3D lt->v_off + (h / y_div - 1) * uv_stride;
+> +
+> +	rt->y_off =3D lt->y_off + (w - 1) * pixel_width;
+> +	rt->u_off =3D lt->u_off + w / x_div - 1;
+> +	rt->v_off =3D lt->v_off + w / x_div - 1;
+> +
+> +	rb->y_off =3D lb->y_off + (w - 1) * pixel_width;
+> +	rb->u_off =3D lb->u_off + w / x_div - 1;
+> +	rb->v_off =3D lb->v_off + w / x_div - 1;
+> +
+> +	return offsets;
+> +}
+> +
+> +static struct rga_addr_offset *rga_lookup_draw_pos(struct
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0rga_corners_addr_offset
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0*offsets, u32 rotate_mod=
+e,
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0u32 mirr_mode)
+> +{
+> +	static enum e_rga_start_pos rot_mir_point_matrix[4][4] =3D {
+> +		{
+> +			LT, RT, LB, RB,
+> +		},
+> +		{
+> +			RT, LT, RB, LB,
+> +		},
+> +		{
+> +			RB, LB, RT, LT,
+> +		},
+> +		{
+> +			LB, RB, LT, RT,
+> +		},
+> +	};
+> +
+> +	if (offsets =3D=3D NULL)
+> +		return NULL;
+> +
+> +	switch (rot_mir_point_matrix[rotate_mode][mirr_mode]) {
+> +	case LT:
+> +		return &offsets->left_top;
+> +	case LB:
+> +		return &offsets->left_bottom;
+> +	case RT:
+> +		return &offsets->right_top;
+> +	case RB:
+> +		return &offsets->right_bottom;
+> +	};
+> +
+> +	return NULL;
+> +}
+> +
+> +static void rga_cmd_set_src_addr(struct rga_ctx *ctx, void
+> *mmu_pages)
+> +{
+> +	u32 *dest =3D ctx->cmdbuf_virt;
+> +	unsigned int reg;
+> +
+> +	reg =3D RGA_MMU_SRC_BASE - RGA_MODE_BASE_REG;
+> +	dest[reg >> 2] =3D virt_to_phys(mmu_pages) >> 4;
+> +
+> +	reg =3D RGA_MMU_CTRL1 - RGA_MODE_BASE_REG;
+> +	dest[reg >> 2] |=3D 0x7;
+> +}
+> +
+> +static void rga_cmd_set_src1_addr(struct rga_ctx *ctx, void
+> *mmu_pages)
+> +{
+> +	u32 *dest =3D ctx->cmdbuf_virt;
+> +	unsigned int reg;
+> +
+> +	reg =3D RGA_MMU_SRC1_BASE - RGA_MODE_BASE_REG;
+> +	dest[reg >> 2] =3D virt_to_phys(mmu_pages) >> 4;
+> +
+> +	reg =3D RGA_MMU_CTRL1 - RGA_MODE_BASE_REG;
+> +	dest[reg >> 2] |=3D 0x7 << 4;
+> +}
+> +
+> +static void rga_cmd_set_dst_addr(struct rga_ctx *ctx, void
+> *mmu_pages)
+> +{
+> +	u32 *dest =3D ctx->cmdbuf_virt;
+> +	unsigned int reg;
+> +
+> +	reg =3D RGA_MMU_DST_BASE - RGA_MODE_BASE_REG;
+> +	dest[reg >> 2] =3D virt_to_phys(mmu_pages) >> 4;
+> +
+> +	reg =3D RGA_MMU_CTRL1 - RGA_MODE_BASE_REG;
+> +	dest[reg >> 2] |=3D 0x7 << 8;
+> +}
+> +
+> +static void rga_cmd_set_trans_info(struct rga_ctx *ctx)
+> +{
+> +	u32 *dest =3D ctx->cmdbuf_virt;
+> +	struct rockchip_rga *rga =3D ctx->rga;
+> +	unsigned int scale_dst_w, scale_dst_h;
+> +	unsigned int src_h, src_w, src_x, src_y, dst_h, dst_w,
+> dst_x, dst_y;
+> +	union rga_src_info src_info;
+> +	union rga_dst_info dst_info;
+> +	union rga_src_x_factor x_factor;
+> +	union rga_src_y_factor y_factor;
+> +	union rga_src_vir_info src_vir_info;
+> +	union rga_src_act_info src_act_info;
+> +	union rga_dst_vir_info dst_vir_info;
+> +	union rga_dst_act_info dst_act_info;
+> +
+> +	struct rga_addr_offset *dst_offset;
+> +	struct rga_corners_addr_offset offsets;
+> +	struct rga_corners_addr_offset src_offsets;
+> +
+> +	src_h =3D ctx->in.crop.height;
+> +	src_w =3D ctx->in.crop.width;
+> +	src_x =3D ctx->in.crop.left;
+> +	src_y =3D ctx->in.crop.top;
+> +	dst_h =3D ctx->out.crop.height;
+> +	dst_w =3D ctx->out.crop.width;
+> +	dst_x =3D ctx->out.crop.left;
+> +	dst_y =3D ctx->out.crop.top;
+> +
+> +	src_info.val =3D dest[(RGA_SRC_INFO - RGA_MODE_BASE_REG) >>
+> 2];
+> +	dst_info.val =3D dest[(RGA_DST_INFO - RGA_MODE_BASE_REG) >>
+> 2];
+> +	x_factor.val =3D dest[(RGA_SRC_X_FACTOR - RGA_MODE_BASE_REG)
+> >> 2];
+> +	y_factor.val =3D dest[(RGA_SRC_Y_FACTOR - RGA_MODE_BASE_REG)
+> >> 2];
+> +	src_vir_info.val =3D dest[(RGA_SRC_VIR_INFO -
+> RGA_MODE_BASE_REG) >> 2];
+> +	src_act_info.val =3D dest[(RGA_SRC_ACT_INFO -
+> RGA_MODE_BASE_REG) >> 2];
+> +	dst_vir_info.val =3D dest[(RGA_DST_VIR_INFO -
+> RGA_MODE_BASE_REG) >> 2];
+> +	dst_act_info.val =3D dest[(RGA_DST_ACT_INFO -
+> RGA_MODE_BASE_REG) >> 2];
+> +
+> +	src_info.data.format =3D ctx->in.fmt->hw_format;
+> +	src_info.data.swap =3D ctx->in.fmt->color_swap;
+> +	dst_info.data.format =3D ctx->out.fmt->hw_format;
+> +	dst_info.data.swap =3D ctx->out.fmt->color_swap;
+> +
+> +	if (ctx->in.fmt->hw_format >=3D RGA_COLOR_FMT_YUV422SP) {
+> +		if (ctx->out.fmt->hw_format <
+> RGA_COLOR_FMT_YUV422SP)
+> +			src_info.data.csc_mode =3D
+> RGA_SRC_CSC_MODE_BT601_R0;
+> +	}
+> +	if (ctx->out.fmt->hw_format >=3D RGA_COLOR_FMT_YUV422SP)
+> +		dst_info.data.csc_mode =3D RGA_DST_CSC_MODE_BT601_R0;
+> +
+> +	if (ctx->op =3D=3D OP_SOLID_FILL) {
+> +
+> +		/*
+> +		=C2=A0* Configure the target color to foreground color.
+> +		=C2=A0*/
+> +		dest[(RGA_SRC_FG_COLOR - RGA_MODE_BASE_REG) >> 2] =3D
+> +		=C2=A0=C2=A0=C2=A0=C2=A0ctx->fill_color;
+> +		dst_vir_info.data.vir_stride =3D ctx->out.stride >> 2;
+> +		dst_act_info.data.act_height =3D dst_h - 1;
+> +		dst_act_info.data.act_width =3D dst_w - 1;
+> +
+> +		offsets =3D
+> +		=C2=A0=C2=A0=C2=A0=C2=A0rga_get_addr_offset(&ctx->out, dst_x, dst_y,
+> dst_w, dst_h);
+> +		dst_offset =3D &offsets.left_top;
+> +
+> +		goto write_dst;
+> +	}
+> +
+> +	if (ctx->vflip) {
+> +		src_info.data.mir_mode |=3D RGA_SRC_MIRR_MODE_X;
+> +	}
+> +
+> +	if (ctx->hflip) {
+> +		src_info.data.mir_mode |=3D RGA_SRC_MIRR_MODE_Y;
+> +	}
+> +
+> +	switch (ctx->rotate) {
+> +	case 90:
+> +		src_info.data.rot_mode =3D RGA_SRC_ROT_MODE_90_DEGREE;
+> +		break;
+> +	case 180:
+> +		src_info.data.rot_mode =3D
+> RGA_SRC_ROT_MODE_180_DEGREE;
+> +		break;
+> +	case 270:
+> +		src_info.data.rot_mode =3D
+> RGA_SRC_ROT_MODE_270_DEGREE;
+> +		break;
+> +	default:
+> +		src_info.data.rot_mode =3D RGA_SRC_ROT_MODE_0_DEGREE;
+> +		break;
+> +	}
+> +
+> +	/*
+> +	=C2=A0* Cacluate the up/down scaling mode/factor.
+> +	=C2=A0*
+> +	=C2=A0* RGA used to scale the picture first, and then rotate
+> second,
+> +	=C2=A0* so we need to swap the w/h when rotate degree is 90/270.
+> +	=C2=A0*/
+> +	if (src_info.data.rot_mode =3D=3D RGA_SRC_ROT_MODE_90_DEGREE
+> +	=C2=A0=C2=A0=C2=A0=C2=A0|| src_info.data.rot_mode =3D=3D
+> RGA_SRC_ROT_MODE_270_DEGREE) {
+> +		if (rga->version.major =3D=3D 0 || rga->version.minor =3D=3D
+> 0) {
+> +			if (dst_w =3D=3D src_h)
+> +				src_h -=3D 8;
+> +			if (abs(src_w - dst_h) < 16)
+> +				src_w -=3D 16;
+> +		}
+> +
+> +		scale_dst_h =3D dst_w;
+> +		scale_dst_w =3D dst_h;
+> +	} else {
+> +		scale_dst_w =3D dst_w;
+> +		scale_dst_h =3D dst_h;
+> +	}
+> +
+> +	if (src_w =3D=3D scale_dst_w) {
+> +		src_info.data.hscl_mode =3D RGA_SRC_HSCL_MODE_NO;
+> +		x_factor.val =3D 0;
+> +	} else if (src_w > scale_dst_w) {
+> +		src_info.data.hscl_mode =3D RGA_SRC_HSCL_MODE_DOWN;
+> +		x_factor.data.down_scale_factor =3D
+> +		=C2=A0=C2=A0=C2=A0=C2=A0rga_get_scaling(src_w, scale_dst_w) + 1;
+> +	} else {
+> +		src_info.data.hscl_mode =3D RGA_SRC_HSCL_MODE_UP;
+> +		x_factor.data.up_scale_factor =3D
+> +		=C2=A0=C2=A0=C2=A0=C2=A0rga_get_scaling(src_w - 1, scale_dst_w - 1);
+> +	}
+> +
+> +	if (src_h =3D=3D scale_dst_h) {
+> +		src_info.data.vscl_mode =3D RGA_SRC_VSCL_MODE_NO;
+> +		y_factor.val =3D 0;
+> +	} else if (src_h > scale_dst_h) {
+> +		src_info.data.vscl_mode =3D RGA_SRC_VSCL_MODE_DOWN;
+> +		y_factor.data.down_scale_factor =3D
+> +		=C2=A0=C2=A0=C2=A0=C2=A0rga_get_scaling(src_h, scale_dst_h) + 1;
+> +	} else {
+> +		src_info.data.vscl_mode =3D RGA_SRC_VSCL_MODE_UP;
+> +		y_factor.data.up_scale_factor =3D
+> +		=C2=A0=C2=A0=C2=A0=C2=A0rga_get_scaling(src_h - 1, scale_dst_h - 1);
+> +	}
+> +
+> +	/*
+> +	=C2=A0* Cacluate the framebuffer virtual strides and active size,
+> +	=C2=A0* note that the step of vir_stride / vir_width is 4 byte
+> words
+> +	=C2=A0*/
+> +	src_vir_info.data.vir_stride =3D ctx->in.stride >> 2;
+> +	src_vir_info.data.vir_width =3D ctx->in.stride >> 2;
+> +
+> +	src_act_info.data.act_height =3D src_h - 1;
+> +	src_act_info.data.act_width =3D src_w - 1;
+> +
+> +	dst_vir_info.data.vir_stride =3D ctx->out.stride >> 2;
+> +	dst_act_info.data.act_height =3D dst_h - 1;
+> +	dst_act_info.data.act_width =3D dst_w - 1;
+> +
+> +	/*
+> +	=C2=A0* Cacluate the source framebuffer base address with offset
+> pixel.
+> +	=C2=A0*/
+> +	src_offsets =3D rga_get_addr_offset(&ctx->in, src_x, src_y,
+> src_w, src_h);
+> +
+> +	/*
+> +	=C2=A0* Configure the dest framebuffer base address with pixel
+> offset.
+> +	=C2=A0*/
+> +	offsets =3D rga_get_addr_offset(&ctx->out, dst_x, dst_y,
+> dst_w, dst_h);
+> +	dst_offset =3D rga_lookup_draw_pos(&offsets,
+> src_info.data.rot_mode,
+> +	=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0src_info.data.mir_mod=
+e);
+> +
+> +	dest[(RGA_SRC_Y_RGB_BASE_ADDR - RGA_MODE_BASE_REG) >> 2] =3D
+> +	=C2=A0=C2=A0=C2=A0=C2=A0src_offsets.left_top.y_off;
+> +	dest[(RGA_SRC_CB_BASE_ADDR - RGA_MODE_BASE_REG) >> 2] =3D
+> +	=C2=A0=C2=A0=C2=A0=C2=A0src_offsets.left_top.u_off;
+> +	dest[(RGA_SRC_CR_BASE_ADDR - RGA_MODE_BASE_REG) >> 2] =3D
+> +	=C2=A0=C2=A0=C2=A0=C2=A0src_offsets.left_top.v_off;
+> +
+> +	dest[(RGA_SRC_X_FACTOR - RGA_MODE_BASE_REG) >> 2] =3D
+> x_factor.val;
+> +	dest[(RGA_SRC_Y_FACTOR - RGA_MODE_BASE_REG) >> 2] =3D
+> y_factor.val;
+> +	dest[(RGA_SRC_VIR_INFO - RGA_MODE_BASE_REG) >> 2] =3D
+> src_vir_info.val;
+> +	dest[(RGA_SRC_ACT_INFO - RGA_MODE_BASE_REG) >> 2] =3D
+> src_act_info.val;
+> +
+> +	dest[(RGA_SRC_INFO - RGA_MODE_BASE_REG) >> 2] =3D
+> src_info.val;
+> +
+> +write_dst:
+> +	dest[(RGA_DST_Y_RGB_BASE_ADDR - RGA_MODE_BASE_REG) >> 2] =3D
+> +	=C2=A0=C2=A0=C2=A0=C2=A0dst_offset->y_off;
+> +	dest[(RGA_DST_CB_BASE_ADDR - RGA_MODE_BASE_REG) >> 2] =3D
+> +	=C2=A0=C2=A0=C2=A0=C2=A0dst_offset->u_off;
+> +	dest[(RGA_DST_CR_BASE_ADDR - RGA_MODE_BASE_REG) >> 2] =3D
+> +	=C2=A0=C2=A0=C2=A0=C2=A0dst_offset->v_off;
+> +
+> +	dest[(RGA_DST_VIR_INFO - RGA_MODE_BASE_REG) >> 2] =3D
+> dst_vir_info.val;
+> +	dest[(RGA_DST_ACT_INFO - RGA_MODE_BASE_REG) >> 2] =3D
+> dst_act_info.val;
+> +
+> +	dest[(RGA_DST_INFO - RGA_MODE_BASE_REG) >> 2] =3D
+> dst_info.val;
+> +}
+> +
+> +static void rga_cmd_set_mode(struct rga_ctx *ctx)
+> +{
+> +	u32 *dest =3D ctx->cmdbuf_virt;
+> +	union rga_mode_ctrl mode;
+> +
+> +	mode.val =3D 0;
+> +
+> +	switch (ctx->op) {
+> +	case OP_ALPHA_BLEND:
+> +	case OP_COPY:
+> +		mode.data.gradient_sat =3D 1;
+> +		mode.data.render =3D RGA_MODE_RENDER_BITBLT;
+> +		mode.data.bitblt =3D RGA_MODE_BITBLT_MODE_SRC_TO_DST;
+> +		break;
+> +	case OP_SOLID_FILL:
+> +		mode.data.gradient_sat =3D 1;
+> +		mode.data.render =3D RGA_MODE_RENDER_RECTANGLE_FILL;
+> +		mode.data.cf_rop4_pat =3D RGA_MODE_CF_ROP4_SOLID;
+> +		mode.data.bitblt =3D RGA_MODE_BITBLT_MODE_SRC_TO_DST;
+> +
+> +		break;
+> +	}
+> +
+> +	dest[(RGA_MODE_CTRL - RGA_MODE_BASE_REG) >> 2] =3D mode.val;
+> +}
+> +
+> +static void rga_cmd_set_alpha_blend(struct rga_ctx *ctx)
+> +{
+> +	u32 *dest =3D ctx->cmdbuf_virt;
+> +	union rga_alpha_ctrl0 alpha_ctrl0;
+> +	union rga_alpha_ctrl1 alpha_ctrl1;
+> +
+> +	/* just expose reg to userspace */
+> +	alpha_ctrl0.val =3D ctx->alpha0;
+> +	alpha_ctrl1.val =3D ctx->alpha1;
+> +
+> +	dest[(RGA_ALPHA_CTRL0 - RGA_MODE_BASE_REG) >> 2] =3D
+> alpha_ctrl0.val;
+> +	dest[(RGA_ALPHA_CTRL1 - RGA_MODE_BASE_REG) >> 2] =3D
+> alpha_ctrl1.val;
+> +}
+> +
+> +void rga_cmd_set(struct rga_ctx *ctx, void *src_mmu_pages, void
+> *dst_mmu_pages)
+> +{
+> +	struct rockchip_rga *rga =3D ctx->rga;
+> +
+> +	memset(ctx->cmdbuf_virt, 0, RGA_CMDBUF_SIZE * 4);
+> +
+> +	if (ctx->op !=3D OP_SOLID_FILL) {
+> +		rga_cmd_set_src_addr(ctx, src_mmu_pages);
+> +	}
+> +	rga_cmd_set_dst_addr(ctx, dst_mmu_pages);
+> +	rga_cmd_set_mode(ctx);
+> +
+> +	if (ctx->op =3D=3D OP_ALPHA_BLEND) {
+> +		/*
+> +		=C2=A0* Due to hardware bug,
+> +		=C2=A0* src1 mmu also should be configured when use alpha
+> blending.
+> +		=C2=A0*/
+> +		rga_cmd_set_src1_addr(ctx, src_mmu_pages);
+> +		rga_cmd_set_alpha_blend(ctx);
+> +	}
+> +
+> +	rga_cmd_set_trans_info(ctx);
+> +
+> +	rga_write(rga, RGA_CMD_BASE, ctx->cmdbuf_phy);
+> +}
+> +
+> +void rga_write(struct rockchip_rga *rga, u32 reg, u32 value)
+> +{
+> +	writel(value, rga->regs + reg);
+> +}
+> +
+> +u32 rga_read(struct rockchip_rga *rga, u32 reg)
+> +{
+> +	return readl(rga->regs + reg);
+> +}
+> +
+> +void rga_mod(struct rockchip_rga *rga, u32 reg, u32 val, u32 mask)
+> +{
+> +	u32 temp =3D rga_read(rga, reg) & ~(mask);
+> +
+> +	temp |=3D val & mask;
+> +	rga_write(rga, reg, temp);
+> +}
+> +
+> +void rga_start(struct rockchip_rga *rga)
+> +{
+> +	struct rga_ctx *ctx =3D rga->curr;
+> +
+> +	/* sync CMD buf for RGA */
+> +	dma_sync_single_for_device(rga->dev, ctx->cmdbuf_phy,
+> +	=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0PAGE_SIZE, DMA_BIDIRECTIONAL);
+> +
+> +	rga_write(rga, RGA_SYS_CTRL, 0x00);
+> +
+> +	rga_write(rga, RGA_SYS_CTRL, 0x22);
+> +
+> +	rga_write(rga, RGA_INT, 0x600);
+> +
+> +	rga_write(rga, RGA_CMD_CTRL, 0x1);
+> +}
+> diff --git a/drivers/media/platform/rockchip-rga/rga-hw.h
+> b/drivers/media/platform/rockchip-rga/rga-hw.h
+> new file mode 100644
+> index 0000000..783ea64e
+> --- /dev/null
+> +++ b/drivers/media/platform/rockchip-rga/rga-hw.h
+> @@ -0,0 +1,434 @@
+> +/*
+> + * Copyright (C) Fuzhou Rockchip Electronics Co.Ltd
+> + * Author: Jacob Chen <jacob-chen@iotwrt.com>
+> + *
+> + * This software is licensed under the terms of the GNU General
+> Public
+> + * License version 2, as published by the Free Software Foundation,
+> and
+> + * may be copied, distributed, and modified under those terms.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.=C2=A0=C2=A0See t=
+he
+> + * GNU General Public License for more details.
+> + */
+> +#ifndef __RGA_HW_H__
+> +#define __RGA_HW_H__
+> +
+> +#define RGA_CMDBUF_SIZE 0x20
+> +
+> +/* Hardware limits */
+> +#define MAX_WIDTH 8192
+> +#define MAX_HEIGHT 8192
+> +
+> +#define MIN_WIDTH 34
+> +#define MIN_HEIGHT 34
+> +
+> +#define DEFAULT_WIDTH 100
+> +#define DEFAULT_HEIGHT 100
+> +
+> +#define RGA_TIMEOUT 500
+> +
+> +/* Registers adress */
+> +#define RGA_SYS_CTRL 0x0000
+> +#define RGA_CMD_CTRL 0x0004
+> +#define RGA_CMD_BASE 0x0008
+> +#define RGA_INT 0x0010
+> +#define RGA_MMU_CTRL0 0x0014
+> +#define RGA_VERSION_INFO 0x0028
+> +
+> +#define RGA_MODE_BASE_REG 0x0100
+> +#define RGA_MODE_MAX_REG 0x017C
+> +
+> +#define RGA_MODE_CTRL 0x0100
+> +#define RGA_SRC_INFO 0x0104
+> +#define RGA_SRC_Y_RGB_BASE_ADDR 0x0108
+> +#define RGA_SRC_CB_BASE_ADDR 0x010c
+> +#define RGA_SRC_CR_BASE_ADDR 0x0110
+> +#define RGA_SRC1_RGB_BASE_ADDR 0x0114
+> +#define RGA_SRC_VIR_INFO 0x0118
+> +#define RGA_SRC_ACT_INFO 0x011c
+> +#define RGA_SRC_X_FACTOR 0x0120
+> +#define RGA_SRC_Y_FACTOR 0x0124
+> +#define RGA_SRC_BG_COLOR 0x0128
+> +#define RGA_SRC_FG_COLOR 0x012c
+> +#define RGA_SRC_TR_COLOR0 0x0130
+> +#define RGA_SRC_TR_COLOR1 0x0134
+> +
+> +#define RGA_DST_INFO 0x0138
+> +#define RGA_DST_Y_RGB_BASE_ADDR 0x013c
+> +#define RGA_DST_CB_BASE_ADDR 0x0140
+> +#define RGA_DST_CR_BASE_ADDR 0x0144
+> +#define RGA_DST_VIR_INFO 0x0148
+> +#define RGA_DST_ACT_INFO 0x014c
+> +
+> +#define RGA_ALPHA_CTRL0 0x0150
+> +#define RGA_ALPHA_CTRL1 0x0154
+> +#define RGA_FADING_CTRL 0x0158
+> +#define RGA_PAT_CON 0x015c
+> +#define RGA_ROP_CON0 0x0160
+> +#define RGA_ROP_CON1 0x0164
+> +#define RGA_MASK_BASE 0x0168
+> +
+> +#define RGA_MMU_CTRL1 0x016C
+> +#define RGA_MMU_SRC_BASE 0x0170
+> +#define RGA_MMU_SRC1_BASE 0x0174
+> +#define RGA_MMU_DST_BASE 0x0178
+> +
+> +/* Registers value */
+> +#define RGA_MODE_RENDER_BITBLT 0
+> +#define RGA_MODE_RENDER_COLOR_PALETTE 1
+> +#define RGA_MODE_RENDER_RECTANGLE_FILL 2
+> +#define RGA_MODE_RENDER_UPDATE_PALETTE_LUT_RAM 3
+> +
+> +#define RGA_MODE_BITBLT_MODE_SRC_TO_DST 0
+> +#define RGA_MODE_BITBLT_MODE_SRC_SRC1_TO_DST 1
+> +
+> +#define RGA_MODE_CF_ROP4_SOLID 0
+> +#define RGA_MODE_CF_ROP4_PATTERN 1
+> +
+> +#define RGA_COLOR_FMT_ABGR8888 0
+> +#define RGA_COLOR_FMT_XBGR8888 1
+> +#define RGA_COLOR_FMT_BGR888 2
+> +#define RGA_COLOR_FMT_BGR565 4
+> +#define RGA_COLOR_FMT_ABGR1555 5
+> +#define RGA_COLOR_FMT_ABGR4444 6
+> +#define RGA_COLOR_FMT_YUV422SP 8
+> +#define RGA_COLOR_FMT_YUV422P 9
+> +#define RGA_COLOR_FMT_YUV420SP 10
+> +#define RGA_COLOR_FMT_YUV420P 11
+> +/* SRC_COLOR Palette */
+> +#define RGA_COLOR_FMT_CP_1BPP 12
+> +#define RGA_COLOR_FMT_CP_2BPP 13
+> +#define RGA_COLOR_FMT_CP_4BPP 14
+> +#define RGA_COLOR_FMT_CP_8BPP 15
+> +#define RGA_COLOR_FMT_MASK 15
+> +
+> +#define RGA_COLOR_NONE_SWAP 0
+> +#define RGA_COLOR_RB_SWAP 1
+> +#define RGA_COLOR_ALPHA_SWAP 2
+> +#define RGA_COLOR_UV_SWAP 4
+> +
+> +#define RGA_SRC_CSC_MODE_BYPASS 0
+> +#define RGA_SRC_CSC_MODE_BT601_R0 1
+> +#define RGA_SRC_CSC_MODE_BT601_R1 2
+> +#define RGA_SRC_CSC_MODE_BT709_R0 3
+> +#define RGA_SRC_CSC_MODE_BT709_R1 4
+> +
+> +#define RGA_SRC_ROT_MODE_0_DEGREE 0
+> +#define RGA_SRC_ROT_MODE_90_DEGREE 1
+> +#define RGA_SRC_ROT_MODE_180_DEGREE 2
+> +#define RGA_SRC_ROT_MODE_270_DEGREE 3
+> +
+> +#define RGA_SRC_MIRR_MODE_NO 0
+> +#define RGA_SRC_MIRR_MODE_X 1
+> +#define RGA_SRC_MIRR_MODE_Y 2
+> +#define RGA_SRC_MIRR_MODE_X_Y 3
+> +
+> +#define RGA_SRC_HSCL_MODE_NO 0
+> +#define RGA_SRC_HSCL_MODE_DOWN 1
+> +#define RGA_SRC_HSCL_MODE_UP 2
+> +
+> +#define RGA_SRC_VSCL_MODE_NO 0
+> +#define RGA_SRC_VSCL_MODE_DOWN 1
+> +#define RGA_SRC_VSCL_MODE_UP 2
+> +
+> +#define RGA_SRC_TRANS_ENABLE_R 1
+> +#define RGA_SRC_TRANS_ENABLE_G 2
+> +#define RGA_SRC_TRANS_ENABLE_B 4
+> +#define RGA_SRC_TRANS_ENABLE_A 8
+> +
+> +#define RGA_SRC_BIC_COE_SELEC_CATROM 0
+> +#define RGA_SRC_BIC_COE_SELEC_MITCHELL 1
+> +#define RGA_SRC_BIC_COE_SELEC_HERMITE 2
+> +#define RGA_SRC_BIC_COE_SELEC_BSPLINE 3
+> +
+> +#define RGA_DST_DITHER_MODE_888_TO_666 0
+> +#define RGA_DST_DITHER_MODE_888_TO_565 1
+> +#define RGA_DST_DITHER_MODE_888_TO_555 2
+> +#define RGA_DST_DITHER_MODE_888_TO_444 3
+> +
+> +#define RGA_DST_CSC_MODE_BYPASS 0
+> +#define RGA_DST_CSC_MODE_BT601_R0 1
+> +#define RGA_DST_CSC_MODE_BT601_R1 2
+> +#define RGA_DST_CSC_MODE_BT709_R0 3
+> +
+> +#define RGA_ALPHA_ROP_MODE_2 0
+> +#define RGA_ALPHA_ROP_MODE_3 1
+> +#define RGA_ALPHA_ROP_MODE_4 2
+> +
+> +#define RGA_ALPHA_SELECT_ALPHA 1
+> +#define RGA_ALPHA_SELECT_ROP 2
+> +
+> +#define RGA_ALPHA_NORMAL 0
+> +#define RGA_ALPHA_REVERSE 1
+> +
+> +#define RGA_ALPHA_BLEND_GLOBAL 0
+> +#define RGA_ALPHA_BLEND_PIXEL 1
+> +#define RGA_ALPHA_BLEND_MULTIPLY 2
+> +
+> +#define RGA_ALPHA_CAL_CUT 0
+> +#define RGA_ALPHA_CAL_NORMAL 1
+> +
+> +#define RGA_ALPHA_FACTOR_ZERO 0
+> +#define RGA_ALPHA_FACTOR_MAX 1
+> +#define RGA_ALPHA_FACTOR_NORMAL 2
+> +#define RGA_ALPHA_FACTOR_REVERSE 3
+> +#define RGA_ALPHA_FACTOR_OTHER 4
+> +
+> +#define RGA_ALPHA_COLOR_PIXEL 0
+> +#define RGA_ALPHA_COLOR_MULTIPLY_CAL 1
+> +
+> +/* Registers union */
+> +union rga_mode_ctrl {
+> +	unsigned int val;
+> +	struct {
+> +		/* [0:2] */
+> +		unsigned int render:3;
+> +		/* [3:6] */
+> +		unsigned int bitblt:1;
+> +		unsigned int cf_rop4_pat:1;
+> +		unsigned int alpha_zero_key:1;
+> +		unsigned int gradient_sat:1;
+> +		/* [7:31] */
+> +		unsigned int reserved:25;
+> +	} data;
+> +};
+> +
+> +union rga_src_info {
+> +	unsigned int val;
+> +	struct {
+> +		/* [0:3] */
+> +		unsigned int format:4;
+> +		/* [4:7] */
+> +		unsigned int swap:3;
+> +		unsigned int cp_endian:1;
+> +		/* [8:17] */
+> +		unsigned int csc_mode:2;
+> +		unsigned int rot_mode:2;
+> +		unsigned int mir_mode:2;
+> +		unsigned int hscl_mode:2;
+> +		unsigned int vscl_mode:2;
+> +		/* [18:22] */
+> +		unsigned int trans_mode:1;
+> +		unsigned int trans_enable:4;
+> +		/* [23:25] */
+> +		unsigned int dither_up_en:1;
+> +		unsigned int bic_coe_sel:2;
+> +		/* [26:31] */
+> +		unsigned int reserved:6;
+> +	} data;
+> +};
+> +
+> +union rga_src_vir_info {
+> +	unsigned int val;
+> +	struct {
+> +		/* [0:15] */
+> +		unsigned int vir_width:15;
+> +		unsigned int reserved:1;
+> +		/* [16:25] */
+> +		unsigned int vir_stride:10;
+> +		/* [26:31] */
+> +		unsigned int reserved1:6;
+> +	} data;
+> +};
+> +
+> +union rga_src_act_info {
+> +	unsigned int val;
+> +	struct {
+> +		/* [0:15] */
+> +		unsigned int act_width:13;
+> +		unsigned int reserved:3;
+> +		/* [16:31] */
+> +		unsigned int act_height:13;
+> +		unsigned int reserved1:3;
+> +	} data;
+> +};
+> +
+> +union rga_src_x_factor {
+> +	unsigned int val;
+> +	struct {
+> +		/* [0:15] */
+> +		unsigned int down_scale_factor:16;
+> +		/* [16:31] */
+> +		unsigned int up_scale_factor:16;
+> +	} data;
+> +};
+> +
+> +union rga_src_y_factor {
+> +	unsigned int val;
+> +	struct {
+> +		/* [0:15] */
+> +		unsigned int down_scale_factor:16;
+> +		/* [16:31] */
+> +		unsigned int up_scale_factor:16;
+> +	} data;
+> +};
+> +
+> +/* Alpha / Red / Green / Blue */
+> +union rga_src_cp_gr_color {
+> +	unsigned int val;
+> +	struct {
+> +		/* [0:15] */
+> +		unsigned int gradient_x:16;
+> +		/* [16:31] */
+> +		unsigned int gradient_y:16;
+> +	} data;
+> +};
+> +
+> +union rga_src_transparency_color0 {
+> +	unsigned int val;
+> +	struct {
+> +		/* [0:7] */
+> +		unsigned int trans_rmin:8;
+> +		/* [8:15] */
+> +		unsigned int trans_gmin:8;
+> +		/* [16:23] */
+> +		unsigned int trans_bmin:8;
+> +		/* [24:31] */
+> +		unsigned int trans_amin:8;
+> +	} data;
+> +};
+> +
+> +union rga_src_transparency_color1 {
+> +	unsigned int val;
+> +	struct {
+> +		/* [0:7] */
+> +		unsigned int trans_rmax:8;
+> +		/* [8:15] */
+> +		unsigned int trans_gmax:8;
+> +		/* [16:23] */
+> +		unsigned int trans_bmax:8;
+> +		/* [24:31] */
+> +		unsigned int trans_amax:8;
+> +	} data;
+> +};
+> +
+> +union rga_dst_info {
+> +	unsigned int val;
+> +	struct {
+> +		/* [0:3] */
+> +		unsigned int format:4;
+> +		/* [4:6] */
+> +		unsigned int swap:3;
+> +		/* [7:9] */
+> +		unsigned int src1_format:3;
+> +		/* [10:11] */
+> +		unsigned int src1_swap:2;
+> +		/* [12:15] */
+> +		unsigned int dither_up_en:1;
+> +		unsigned int dither_down_en:1;
+> +		unsigned int dither_down_mode:2;
+> +		/* [16:18] */
+> +		unsigned int csc_mode:2;
+> +		unsigned int csc_clip:1;
+> +		/* [19:31] */
+> +		unsigned int reserved:13;
+> +	} data;
+> +};
+> +
+> +union rga_dst_vir_info {
+> +	unsigned int val;
+> +	struct {
+> +		/* [0:15] */
+> +		unsigned int vir_stride:15;
+> +		unsigned int reserved:1;
+> +		/* [16:31] */
+> +		unsigned int src1_vir_stride:15;
+> +		unsigned int reserved1:1;
+> +	} data;
+> +};
+> +
+> +union rga_dst_act_info {
+> +	unsigned int val;
+> +	struct {
+> +		/* [0:15] */
+> +		unsigned int act_width:12;
+> +		unsigned int reserved:4;
+> +		/* [16:31] */
+> +		unsigned int act_height:12;
+> +		unsigned int reserved1:4;
+> +	} data;
+> +};
+> +
+> +union rga_alpha_ctrl0 {
+> +	unsigned int val;
+> +	struct {
+> +		/* [0:3] */
+> +		unsigned int rop_en:1;
+> +		unsigned int rop_select:1;
+> +		unsigned int rop_mode:2;
+> +		/* [4:11] */
+> +		unsigned int src_fading_val:8;
+> +		/* [12:20] */
+> +		unsigned int dst_fading_val:8;
+> +		unsigned int mask_endian:1;
+> +		/* [21:31] */
+> +		unsigned int reserved:11;
+> +	} data;
+> +};
+> +
+> +union rga_alpha_ctrl1 {
+> +	unsigned int val;
+> +	struct {
+> +		/* [0:1] */
+> +		unsigned int dst_color_m0:1;
+> +		unsigned int src_color_m0:1;
+> +		/* [2:7] */
+> +		unsigned int dst_factor_m0:3;
+> +		unsigned int src_factor_m0:3;
+> +		/* [8:9] */
+> +		unsigned int dst_alpha_cal_m0:1;
+> +		unsigned int src_alpha_cal_m0:1;
+> +		/* [10:13] */
+> +		unsigned int dst_blend_m0:2;
+> +		unsigned int src_blend_m0:2;
+> +		/* [14:15] */
+> +		unsigned int dst_alpha_m0:1;
+> +		unsigned int src_alpha_m0:1;
+> +		/* [16:21] */
+> +		unsigned int dst_factor_m1:3;
+> +		unsigned int src_factor_m1:3;
+> +		/* [22:23] */
+> +		unsigned int dst_alpha_cal_m1:1;
+> +		unsigned int src_alpha_cal_m1:1;
+> +		/* [24:27] */
+> +		unsigned int dst_blend_m1:2;
+> +		unsigned int src_blend_m1:2;
+> +		/* [28:29] */
+> +		unsigned int dst_alpha_m1:1;
+> +		unsigned int src_alpha_m1:1;
+> +		/* [30:31] */
+> +		unsigned int reserved:2;
+> +	} data;
+> +};
+> +
+> +union rga_fading_ctrl {
+> +	unsigned int val;
+> +	struct {
+> +		/* [0:7] */
+> +		unsigned int fading_offset_r:8;
+> +		/* [8:15] */
+> +		unsigned int fading_offset_g:8;
+> +		/* [16:23] */
+> +		unsigned int fading_offset_b:8;
+> +		/* [24:31] */
+> +		unsigned int fading_en:1;
+> +		unsigned int reserved:7;
+> +	} data;
+> +};
+> +
+> +union rga_pat_con {
+> +	unsigned int val;
+> +	struct {
+> +		/* [0:7] */
+> +		unsigned int width:8;
+> +		/* [8:15] */
+> +		unsigned int height:8;
+> +		/* [16:23] */
+> +		unsigned int offset_x:8;
+> +		/* [24:31] */
+> +		unsigned int offset_y:8;
+> +	} data;
+> +};
+> +
+> +#endif
+> diff --git a/drivers/media/platform/rockchip-rga/rga.c
+> b/drivers/media/platform/rockchip-rga/rga.c
+> new file mode 100644
+> index 0000000..7292007
+> --- /dev/null
+> +++ b/drivers/media/platform/rockchip-rga/rga.c
+> @@ -0,0 +1,979 @@
+> +/*
+> + * Copyright (C) Fuzhou Rockchip Electronics Co.Ltd
+> + * Author: Jacob Chen <jacob-chen@iotwrt.com>
+> + *
+> + * This software is licensed under the terms of the GNU General
+> Public
+> + * License version 2, as published by the Free Software Foundation,
+> and
+> + * may be copied, distributed, and modified under those terms.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.=C2=A0=C2=A0See t=
+he
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/clk.h>
+> +#include <linux/debugfs.h>
+> +#include <linux/delay.h>
+> +#include <linux/fs.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/module.h>
+> +#include <linux/of.h>
+> +#include <linux/pm_runtime.h>
+> +#include <linux/reset.h>
+> +#include <linux/sched.h>
+> +#include <linux/slab.h>
+> +#include <linux/timer.h>
+> +
+> +#include <linux/platform_device.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-ioctl.h>
+> +#include <media/v4l2-mem2mem.h>
+> +#include <media/videobuf2-dma-sg.h>
+> +#include <media/videobuf2-v4l2.h>
+> +
+> +#include "rga-hw.h"
+> +#include "rga.h"
+> +
+> +static void job_abort(void *prv)
+> +{
+> +	struct rga_ctx *ctx =3D prv;
+> +	struct rockchip_rga *rga =3D ctx->rga;
+> +
+> +	if (rga->curr =3D=3D NULL)	/* No job currently running */
+> +		return;
+> +
+> +	wait_event_timeout(rga->irq_queue,
+> +	=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0rga->curr =3D=3D NULL,
+> msecs_to_jiffies(RGA_TIMEOUT));
+> +}
+> +
+> +static void device_run(void *prv)
+> +{
+> +	struct rga_ctx *ctx =3D prv;
+> +	struct rockchip_rga *rga =3D ctx->rga;
+> +	struct vb2_buffer *src, *dst;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&rga->ctrl_lock, flags);
+> +
+> +	rga->curr =3D ctx;
+> +
+> +	src =3D v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+> +	dst =3D v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+> +
+> +	rga_cmd_set(ctx, rga_buf_find_page(src),
+> rga_buf_find_page(dst));
+> +
+> +	rga_start(rga);
+> +
+> +	spin_unlock_irqrestore(&rga->ctrl_lock, flags);
+> +}
+> +
+> +static irqreturn_t rga_isr(int irq, void *prv)
+> +{
+> +	struct rockchip_rga *rga =3D prv;
+> +	int intr;
+> +
+> +	intr =3D rga_read(rga, RGA_INT) & 0xf;
+> +
+> +	rga_mod(rga, RGA_INT, intr << 4, 0xf << 4);
+> +
+> +	if (intr & 0x04) {
+> +		struct vb2_v4l2_buffer *src, *dst;
+> +		struct rga_ctx *ctx =3D rga->curr;
+> +
+> +		BUG_ON(ctx =3D=3D NULL);
+> +
+> +		rga->curr =3D NULL;
+> +
+> +		src =3D v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+> +		dst =3D v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+> +
+> +		BUG_ON(src =3D=3D NULL);
+> +		BUG_ON(dst =3D=3D NULL);
+> +
+> +		dst->timecode =3D src->timecode;
+> +		dst->vb2_buf.timestamp =3D src->vb2_buf.timestamp;
+> +		dst->flags &=3D ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> +		dst->flags |=3D src->flags &
+> V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> +
+> +		v4l2_m2m_buf_done(src, VB2_BUF_STATE_DONE);
+> +		v4l2_m2m_buf_done(dst, VB2_BUF_STATE_DONE);
+> +		v4l2_m2m_job_finish(rga->m2m_dev, ctx->fh.m2m_ctx);
+> +
+> +		wake_up(&rga->irq_queue);
+> +	}
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +static struct v4l2_m2m_ops rga_m2m_ops =3D {
+> +	.device_run =3D device_run,
+> +	.job_abort =3D job_abort,
+> +};
+> +
+> +static int
+> +queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue
+> *dst_vq)
+> +{
+> +	struct rga_ctx *ctx =3D priv;
+> +	int ret;
+> +
+> +	src_vq->type =3D V4L2_BUF_TYPE_VIDEO_OUTPUT;
+> +	src_vq->io_modes =3D VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+> +	src_vq->drv_priv =3D ctx;
+> +	src_vq->ops =3D &rga_qops;
+> +	src_vq->mem_ops =3D &vb2_dma_sg_memops;
+> +	src_vq->buf_struct_size =3D sizeof(struct v4l2_m2m_buffer);
+> +	src_vq->timestamp_flags =3D V4L2_BUF_FLAG_TIMESTAMP_COPY;
+> +	src_vq->lock =3D &ctx->rga->mutex;
+> +	src_vq->dev =3D ctx->rga->v4l2_dev.dev;
+> +
+> +	ret =3D vb2_queue_init(src_vq);
+> +	if (ret)
+> +		return ret;
+> +
+> +	dst_vq->type =3D V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +	dst_vq->io_modes =3D VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+> +	dst_vq->drv_priv =3D ctx;
+> +	dst_vq->ops =3D &rga_qops;
+> +	dst_vq->mem_ops =3D &vb2_dma_sg_memops;
+> +	dst_vq->buf_struct_size =3D sizeof(struct v4l2_m2m_buffer);
+> +	dst_vq->timestamp_flags =3D V4L2_BUF_FLAG_TIMESTAMP_COPY;
+> +	dst_vq->lock =3D &ctx->rga->mutex;
+> +	dst_vq->dev =3D ctx->rga->v4l2_dev.dev;
+> +
+> +	return vb2_queue_init(dst_vq);
+> +}
+> +
+> +static int rga_s_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct rga_ctx *ctx =3D container_of(ctrl->handler, struct
+> rga_ctx,
+> +	=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0ctrl_hand=
+ler);
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&ctx->rga->ctrl_lock, flags);
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_RGA_OP:
+> +		ctx->op =3D ctrl->val;
+> +		break;
+> +	case V4L2_CID_HFLIP:
+> +		ctx->hflip =3D ctrl->val;
+> +		break;
+> +	case V4L2_CID_VFLIP:
+> +		ctx->vflip =3D ctrl->val;
+> +		break;
+> +	case V4L2_CID_ROTATE:
+> +		ctx->rotate =3D ctrl->val;
+> +		break;
+> +	case V4L2_CID_BG_COLOR:
+> +		ctx->fill_color =3D ctrl->val;
+> +		break;
+> +	case V4L2_CID_RGA_ALHPA_REG0:
+> +		ctx->alpha0 =3D ctrl->val;
+> +		break;
+> +	case V4L2_CID_RGA_ALHPA_REG1:
+> +		ctx->alpha1 =3D ctrl->val;
+> +		break;
+> +	}
+> +	spin_unlock_irqrestore(&ctx->rga->ctrl_lock, flags);
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_ctrl_ops rga_ctrl_ops =3D {
+> +	.s_ctrl =3D rga_s_ctrl,
+> +};
+> +
+> +static const struct v4l2_ctrl_config op_control =3D {
+> +	.ops =3D &rga_ctrl_ops,
+> +	.id =3D V4L2_CID_RGA_OP,
+> +	.name =3D "Transform operation",
+> +	.type =3D V4L2_CTRL_TYPE_INTEGER,
+> +	.min =3D 0x0,
+> +	.max =3D 0xf,
+> +	.step =3D 1,
+> +	.def =3D 0,
+> +};
+> +
+> +static const struct v4l2_ctrl_config alpha0_control =3D {
+> +	.ops =3D &rga_ctrl_ops,
+> +	.id =3D V4L2_CID_RGA_ALHPA_REG0,
+> +	.name =3D "Exposed alpha blending register 0",
+> +	.type =3D V4L2_CTRL_TYPE_INTEGER,
+> +	.min =3D 0x0,
+> +	.max =3D 0xffffffff,
+> +	.step =3D 1,
+> +	.def =3D 0,
+> +};
+> +
+> +static const struct v4l2_ctrl_config alpha1_control =3D {
+> +	.ops =3D &rga_ctrl_ops,
+> +	.id =3D V4L2_CID_RGA_ALHPA_REG1,
+> +	.name =3D "Exposed alpha blending register 1",
+> +	.type =3D V4L2_CTRL_TYPE_INTEGER,
+> +	.min =3D 0x0,
+> +	.max =3D 0xffffffff,
+> +	.step =3D 1,
+> +	.def =3D 0,
+> +};
+> +
+> +static int rga_setup_ctrls(struct rga_ctx *ctx)
+> +{
+> +	struct rockchip_rga *rga =3D ctx->rga;
+> +
+> +	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 7);
+> +
+> +	v4l2_ctrl_new_std(&ctx->ctrl_handler, &rga_ctrl_ops,
+> +	=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0V4L2_CID_HFLIP, 0, 1, 1, 0);
+> +
+> +	v4l2_ctrl_new_std(&ctx->ctrl_handler, &rga_ctrl_ops,
+> +	=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0V4L2_CID_VFLIP, 0, 1, 1, 0);
+> +
+> +	v4l2_ctrl_new_std(&ctx->ctrl_handler, &rga_ctrl_ops,
+> +	=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0V4L2_CID_ROTATE, 0, 270, 90, 0);
+> +
+> +	v4l2_ctrl_new_std(&ctx->ctrl_handler, &rga_ctrl_ops,
+> +	=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0V4L2_CID_BG_COLOR, 0, 0xffffffff, 1,=
+ 0);
+> +
+> +	v4l2_ctrl_new_custom(&ctx->ctrl_handler, &op_control, NULL);
+> +	v4l2_ctrl_new_custom(&ctx->ctrl_handler, &alpha0_control,
+> NULL);
+> +	v4l2_ctrl_new_custom(&ctx->ctrl_handler, &alpha1_control,
+> NULL);
+> +
+> +	if (ctx->ctrl_handler.error) {
+> +		int err =3D ctx->ctrl_handler.error;
+> +		v4l2_err(&rga->v4l2_dev, "%s failed\n", __func__);
+> +		v4l2_ctrl_handler_free(&ctx->ctrl_handler);
+> +		return err;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +struct rga_fmt formats[] =3D {
+> +	{
+> +		.name =3D "ARGB_8888",
+> +		.fourcc =3D V4L2_PIX_FMT_ARGB32,
+> +		.color_swap =3D RGA_COLOR_RB_SWAP,
+> +		.hw_format =3D RGA_COLOR_FMT_ABGR8888,
+> +		.depth =3D 32,
+> +		.uv_factor =3D 1,
+> +		.y_div =3D 1,
+> +		.x_div =3D 1,
+> +	},
+> +	{
+> +		.name =3D "XRGB_8888",
+> +		.fourcc =3D V4L2_PIX_FMT_XRGB32,
+> +		.color_swap =3D RGA_COLOR_RB_SWAP,
+> +		.hw_format =3D RGA_COLOR_FMT_XBGR8888,
+> +		.depth =3D 32,
+> +		.uv_factor =3D 1,
+> +		.y_div =3D 1,
+> +		.x_div =3D 1,
+> +	},
+> +	{
+> +		.name =3D "BGRA_8888",
+> +		.fourcc =3D V4L2_PIX_FMT_ABGR32,
+> +		.color_swap =3D RGA_COLOR_ALPHA_SWAP,
+> +		.hw_format =3D RGA_COLOR_FMT_ABGR8888,
+> +		.depth =3D 32,
+> +		.uv_factor =3D 1,
+> +		.y_div =3D 1,
+> +		.x_div =3D 1,
+> +	},
+> +	{
+> +		.name =3D "BGRX_8888",
+> +		.fourcc =3D V4L2_PIX_FMT_XBGR32,
+> +		.color_swap =3D RGA_COLOR_ALPHA_SWAP,
+> +		.hw_format =3D RGA_COLOR_FMT_XBGR8888,
+> +		.depth =3D 32,
+> +		.uv_factor =3D 1,
+> +		.y_div =3D 1,
+> +		.x_div =3D 1,
+> +	},
+> +	{
+> +		.name =3D "RGB_888",
+> +		.fourcc =3D V4L2_PIX_FMT_RGB24,
+> +		.color_swap =3D RGA_COLOR_RB_SWAP,
+> +		.hw_format =3D RGA_COLOR_FMT_BGR888,
+> +		.depth =3D 24,
+> +		.uv_factor =3D 1,
+> +		.y_div =3D 1,
+> +		.x_div =3D 1,
+> +	},
+> +	{
+> +		.name =3D "ARGB_444",
+> +		.fourcc =3D V4L2_PIX_FMT_ARGB444,
+> +		.color_swap =3D RGA_COLOR_RB_SWAP,
+> +		.hw_format =3D RGA_COLOR_FMT_ABGR4444,
+> +		.depth =3D 16,
+> +		.uv_factor =3D 1,
+> +		.y_div =3D 1,
+> +		.x_div =3D 1,
+> +	},
+> +	{
+> +		.name =3D "ARGB_1555",
+> +		.fourcc =3D V4L2_PIX_FMT_ARGB555,
+> +		.color_swap =3D RGA_COLOR_RB_SWAP,
+> +		.hw_format =3D RGA_COLOR_FMT_ABGR1555,
+> +		.depth =3D 16,
+> +		.uv_factor =3D 1,
+> +		.y_div =3D 1,
+> +		.x_div =3D 1,
+> +	},
+> +	{
+> +		.name =3D "RGB_565",
+> +		.fourcc =3D V4L2_PIX_FMT_RGB565,
+> +		.color_swap =3D RGA_COLOR_RB_SWAP,
+> +		.hw_format =3D RGA_COLOR_FMT_BGR565,
+> +		.depth =3D 16,
+> +		.uv_factor =3D 1,
+> +		.y_div =3D 1,
+> +		.x_div =3D 1,
+> +	},
+> +	{
+> +		.name =3D "NV_21",
+> +		.fourcc =3D V4L2_PIX_FMT_NV21,
+> +		.color_swap =3D RGA_COLOR_UV_SWAP,
+> +		.hw_format =3D RGA_COLOR_FMT_YUV420SP,
+> +		.depth =3D 12,
+> +		.uv_factor =3D 4,
+> +		.y_div =3D 2,
+> +		.x_div =3D 1,
+> +	},
+> +	{
+> +		.name =3D "NV_61",
+> +		.fourcc =3D V4L2_PIX_FMT_NV61,
+> +		.color_swap =3D RGA_COLOR_UV_SWAP,
+> +		.hw_format =3D RGA_COLOR_FMT_YUV422SP,
+> +		.depth =3D 16,
+> +		.uv_factor =3D 2,
+> +		.y_div =3D 1,
+> +		.x_div =3D 1,
+> +	},
+> +	{
+> +		.name =3D "NV_12",
+> +		.fourcc =3D V4L2_PIX_FMT_NV12,
+> +		.color_swap =3D RGA_COLOR_NONE_SWAP,
+> +		.hw_format =3D RGA_COLOR_FMT_YUV420SP,
+> +		.depth =3D 12,
+> +		.uv_factor =3D 4,
+> +		.y_div =3D 2,
+> +		.x_div =3D 1,
+> +	},
+> +	{
+> +		.name =3D "NV_16",
+> +		.fourcc =3D V4L2_PIX_FMT_NV16,
+> +		.color_swap =3D RGA_COLOR_NONE_SWAP,
+> +		.hw_format =3D RGA_COLOR_FMT_YUV422SP,
+> +		.depth =3D 16,
+> +		.uv_factor =3D 2,
+> +		.y_div =3D 1,
+> +		.x_div =3D 1,
+> +	},
+> +	{
+> +		.name =3D "YUV_420",
+> +		.fourcc =3D V4L2_PIX_FMT_YUV420,
+> +		.color_swap =3D RGA_COLOR_NONE_SWAP,
+> +		.hw_format =3D RGA_COLOR_FMT_YUV420P,
+> +		.depth =3D 12,
+> +		.uv_factor =3D 4,
+> +		.y_div =3D 2,
+> +		.x_div =3D 2,
+> +	},
+> +	{
+> +		.name =3D "YUV_422",
+> +		.fourcc =3D V4L2_PIX_FMT_YUV422P,
+> +		.color_swap =3D RGA_COLOR_NONE_SWAP,
+> +		.hw_format =3D RGA_COLOR_FMT_YUV422P,
+> +		.depth =3D 16,
+> +		.uv_factor =3D 2,
+> +		.y_div =3D 1,
+> +		.x_div =3D 2,
+> +	},
+> +};
+> +
+> +#define NUM_FORMATS ARRAY_SIZE(formats)
+> +
+> +struct rga_fmt *rga_fmt_find(struct v4l2_format *f)
+> +{
+> +	unsigned int i;
+> +	for (i =3D 0; i < NUM_FORMATS; i++) {
+> +		if (formats[i].fourcc =3D=3D f->fmt.pix.pixelformat)
+> +			return &formats[i];
+> +	}
+> +	return NULL;
+> +}
+> +
+> +static struct rga_frame def_frame =3D {
+> +	.width =3D DEFAULT_WIDTH,
+> +	.height =3D DEFAULT_HEIGHT,
+> +	.crop.left =3D 0,
+> +	.crop.top =3D 0,
+> +	.crop.width =3D DEFAULT_WIDTH,
+> +	.crop.height =3D DEFAULT_HEIGHT,
+> +	.fmt =3D &formats[0],
+> +};
+> +
+> +struct rga_frame *rga_get_frame(struct rga_ctx *ctx, enum
+> v4l2_buf_type type)
+> +{
+> +	switch (type) {
+> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+> +		return &ctx->in;
+> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+> +		return &ctx->out;
+> +	default:
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +}
+> +
+> +static int rga_open(struct file *file)
+> +{
+> +	struct rockchip_rga *rga =3D video_drvdata(file);
+> +	struct rga_ctx *ctx =3D NULL;
+> +	int ret =3D 0;
+> +
+> +	ctx =3D kzalloc(sizeof(*ctx), GFP_KERNEL);
+> +	if (!ctx)
+> +		return -ENOMEM;
+> +	ctx->rga =3D rga;
+> +	/* Set default formats */
+> +	ctx->in =3D def_frame;
+> +	ctx->out =3D def_frame;
+> +
+> +	if (mutex_lock_interruptible(&rga->mutex)) {
+> +		kfree(ctx);
+> +		return -ERESTARTSYS;
+> +	}
+> +	ctx->fh.m2m_ctx =3D v4l2_m2m_ctx_init(rga->m2m_dev, ctx,
+> &queue_init);
+> +	if (IS_ERR(ctx->fh.m2m_ctx)) {
+> +		ret =3D PTR_ERR(ctx->fh.m2m_ctx);
+> +		mutex_unlock(&rga->mutex);
+> +		kfree(ctx);
+> +		return ret;
+> +	}
+> +	v4l2_fh_init(&ctx->fh, video_devdata(file));
+> +	file->private_data =3D &ctx->fh;
+> +	v4l2_fh_add(&ctx->fh);
+> +
+> +	rga_setup_ctrls(ctx);
+> +
+> +	/* Write the default values to the ctx struct */
+> +	v4l2_ctrl_handler_setup(&ctx->ctrl_handler);
+> +
+> +	ctx->fh.ctrl_handler =3D &ctx->ctrl_handler;
+> +	mutex_unlock(&rga->mutex);
+> +
+> +	/* Create CMD buffer */
+> +	ctx->cmdbuf_virt =3D dma_alloc_attrs(rga->dev,
+> RGA_CMDBUF_SIZE,
+> +	=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0&ctx->cmd=
+buf_phy,
+> GFP_KERNEL,
+> +	=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0DMA_ATTR_=
+WRITE_COMBINE);
+> +
+> +	/* Init RGA private buffer list */
+> +	INIT_LIST_HEAD(&ctx->buffers_list);
+> +
+> +	pm_runtime_get_sync(rga->dev);
+> +
+> +	v4l2_info(&rga->v4l2_dev, "instance opened\n");
+> +	return 0;
+> +}
+> +
+> +static int rga_release(struct file *file)
+> +{
+> +	struct rockchip_rga *rga =3D video_drvdata(file);
+> +	struct rga_ctx *ctx =3D
+> +	=C2=A0=C2=A0=C2=A0=C2=A0container_of(file->private_data, struct rga_ctx=
+, fh);
+> +
+> +	pm_runtime_put(rga->dev);
+> +	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
+> +	if (!list_empty(&ctx->buffers_list)) {
+> +		v4l2_info(&rga->v4l2_dev, "close with unreleased
+> buffers\n");
+> +		rga_buf_clean(ctx);
+> +	}
+> +	v4l2_ctrl_handler_free(&ctx->ctrl_handler);
+> +	v4l2_fh_del(&ctx->fh);
+> +	v4l2_fh_exit(&ctx->fh);
+> +	kfree(ctx);
+> +	v4l2_info(&rga->v4l2_dev, "instance closed\n");
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_file_operations rga_fops =3D {
+> +	.owner =3D THIS_MODULE,
+> +	.open =3D rga_open,
+> +	.release =3D rga_release,
+> +	.poll =3D v4l2_m2m_fop_poll,
+> +	.unlocked_ioctl =3D video_ioctl2,
+> +	.mmap =3D v4l2_m2m_fop_mmap,
+> +};
+> +
+> +static int
+> +vidioc_querycap(struct file *file, void *priv, struct
+> v4l2_capability *cap)
+> +{
+> +	strncpy(cap->driver, RGA_NAME, sizeof(cap->driver) - 1);
+> +	strncpy(cap->card, RGA_NAME, sizeof(cap->card) - 1);
+> +	cap->bus_info[0] =3D 0;
+> +	cap->device_caps =3D V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
+> +	cap->capabilities =3D cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+> +	return 0;
+> +}
+> +
+> +static int vidioc_enum_fmt(struct file *file, void *prv, struct
+> v4l2_fmtdesc *f)
+> +{
+> +	struct rga_fmt *fmt;
+> +	if (f->index >=3D NUM_FORMATS)
+> +		return -EINVAL;
+> +	fmt =3D &formats[f->index];
+> +	f->pixelformat =3D fmt->fourcc;
+> +	strncpy(f->description, fmt->name, sizeof(f->description) -
+> 1);
+> +	return 0;
+> +}
+> +
+> +static int vidioc_g_fmt(struct file *file, void *prv, struct
+> v4l2_format *f)
+> +{
+> +	struct rga_ctx *ctx =3D prv;
+> +	struct vb2_queue *vq;
+> +	struct rga_frame *frm;
+> +
+> +	vq =3D v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type);
+> +	if (!vq)
+> +		return -EINVAL;
+> +	frm =3D rga_get_frame(ctx, f->type);
+> +	if (IS_ERR(frm))
+> +		return PTR_ERR(frm);
+> +
+> +	f->fmt.pix.width =3D frm->width;
+> +	f->fmt.pix.height =3D frm->height;
+> +	f->fmt.pix.field =3D V4L2_FIELD_NONE;
+> +	f->fmt.pix.pixelformat =3D frm->fmt->fourcc;
+> +	f->fmt.pix.bytesperline =3D frm->stride;
+> +	f->fmt.pix.sizeimage =3D frm->size;
+> +
+> +	return 0;
+> +}
+> +
+> +static int vidioc_try_fmt(struct file *file, void *prv, struct
+> v4l2_format *f)
+> +{
+> +	struct rga_fmt *fmt;
+> +	enum v4l2_field *field;
+> +
+> +	fmt =3D rga_fmt_find(f);
+> +	if (!fmt)
+> +		return -EINVAL;
+> +
+> +	field =3D &f->fmt.pix.field;
+> +	if (*field =3D=3D V4L2_FIELD_ANY)
+> +		*field =3D V4L2_FIELD_NONE;
+> +	else if (*field !=3D V4L2_FIELD_NONE)
+> +		return -EINVAL;
+> +
+> +	if (f->fmt.pix.width > MAX_WIDTH)
+> +		f->fmt.pix.width =3D MAX_WIDTH;
+> +	if (f->fmt.pix.height > MAX_HEIGHT)
+> +		f->fmt.pix.height =3D MAX_HEIGHT;
+> +
+> +	if (f->fmt.pix.width < MIN_WIDTH)
+> +		f->fmt.pix.width =3D MIN_WIDTH;
+> +	if (f->fmt.pix.height < MIN_HEIGHT)
+> +		f->fmt.pix.height =3D MIN_HEIGHT;
+> +
+> +	if (fmt->hw_format >=3D RGA_COLOR_FMT_YUV422SP)
+> +		f->fmt.pix.bytesperline =3D f->fmt.pix.width;
+> +	else
+> +		f->fmt.pix.bytesperline =3D (f->fmt.pix.width * fmt-
+> >depth) >> 3;
+> +
+> +	f->fmt.pix.sizeimage =3D
+> +	=C2=A0=C2=A0=C2=A0=C2=A0f->fmt.pix.height * (f->fmt.pix.width * fmt->de=
+pth) >>
+> 3;
+> +
+> +	return 0;
+> +}
+> +
+> +static int vidioc_s_fmt(struct file *file, void *prv, struct
+> v4l2_format *f)
+> +{
+> +	struct rga_ctx *ctx =3D prv;
+> +	struct rockchip_rga *rga =3D ctx->rga;
+> +	struct vb2_queue *vq;
+> +	struct rga_frame *frm;
+> +	struct rga_fmt *fmt;
+> +	int ret =3D 0;
+> +
+> +	/* Adjust all values accordingly to the hardware
+> capabilities
+> +	=C2=A0* and chosen format. */
+> +	ret =3D vidioc_try_fmt(file, prv, f);
+> +	if (ret)
+> +		return ret;
+> +	vq =3D v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type);
+> +	if (vb2_is_busy(vq)) {
+> +		v4l2_err(&rga->v4l2_dev, "queue (%d) bust\n", f-
+> >type);
+> +		return -EBUSY;
+> +	}
+> +	frm =3D rga_get_frame(ctx, f->type);
+> +	if (IS_ERR(frm))
+> +		return PTR_ERR(frm);
+> +	fmt =3D rga_fmt_find(f);
+> +	if (!fmt)
+> +		return -EINVAL;
+> +	frm->width =3D f->fmt.pix.width;
+> +	frm->height =3D f->fmt.pix.height;
+> +	frm->size =3D f->fmt.pix.sizeimage;
+> +	frm->fmt =3D fmt;
+> +	frm->stride =3D f->fmt.pix.bytesperline;
+> +
+> +	/* Reset crop settings */
+> +	frm->crop.left =3D 0;
+> +	frm->crop.top =3D 0;
+> +	frm->crop.width =3D frm->width;
+> +	frm->crop.height =3D frm->height;
+> +	return 0;
+> +}
+> +
+> +static int
+> +vidioc_cropcap(struct file *file, void *priv, struct v4l2_cropcap
+> *cr)
+> +{
+> +	struct rga_ctx *ctx =3D priv;
+> +	struct rga_frame *f;
+> +
+> +	f =3D rga_get_frame(ctx, cr->type);
+> +	if (IS_ERR(f))
+> +		return PTR_ERR(f);
+> +
+> +	cr->bounds.left =3D 0;
+> +	cr->bounds.top =3D 0;
+> +	cr->bounds.width =3D f->width;
+> +	cr->bounds.height =3D f->height;
+> +	cr->defrect =3D cr->bounds;
+> +	return 0;
+> +}
+> +
+> +static int vidioc_g_crop(struct file *file, void *prv, struct
+> v4l2_crop *cr)
+> +{
+> +	struct rga_ctx *ctx =3D prv;
+> +	struct rga_frame *f;
+> +
+> +	f =3D rga_get_frame(ctx, cr->type);
+> +	if (IS_ERR(f))
+> +		return PTR_ERR(f);
+> +
+> +	cr->c =3D f->crop;
+> +
+> +	return 0;
+> +}
+> +
+> +static int
+> +vidioc_try_crop(struct file *file, void *prv, const struct v4l2_crop
+> *cr)
+> +{
+> +	struct rga_ctx *ctx =3D prv;
+> +	struct rockchip_rga *rga =3D ctx->rga;
+> +	struct rga_frame *f;
+> +
+> +	f =3D rga_get_frame(ctx, cr->type);
+> +	if (IS_ERR(f))
+> +		return PTR_ERR(f);
+> +
+> +	if (cr->c.top < 0 || cr->c.left < 0) {
+> +		v4l2_err(&rga->v4l2_dev,
+> +		=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0"doesn't support=
+ negative values for top &
+> left. \n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (cr->c.left + cr->c.width > f->width ||
+> +	=C2=A0=C2=A0=C2=A0=C2=A0cr->c.top + cr->c.height > f->height ||
+> +	=C2=A0=C2=A0=C2=A0=C2=A0cr->c.width < MIN_WIDTH || cr->c.height < MIN_H=
+EIGHT) {
+> +		v4l2_err(&rga->v4l2_dev, "unsupport crop value.
+> \n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int
+> +vidioc_s_crop(struct file *file, void *prv, const struct v4l2_crop
+> *cr)
+> +{
+> +	struct rga_ctx *ctx =3D prv;
+> +	struct rga_frame *f;
+> +	int ret;
+> +
+> +	ret =3D vidioc_try_crop(file, prv, cr);
+> +	if (ret)
+> +		return ret;
+> +	f =3D rga_get_frame(ctx, cr->type);
+> +	if (IS_ERR(f))
+> +		return PTR_ERR(f);
+> +
+> +	f->crop =3D cr->c;
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_ioctl_ops rga_ioctl_ops =3D {
+> +	.vidioc_querycap =3D vidioc_querycap,
+> +
+> +	.vidioc_enum_fmt_vid_cap =3D vidioc_enum_fmt,
+> +	.vidioc_g_fmt_vid_cap =3D vidioc_g_fmt,
+> +	.vidioc_try_fmt_vid_cap =3D vidioc_try_fmt,
+> +	.vidioc_s_fmt_vid_cap =3D vidioc_s_fmt,
+> +
+> +	.vidioc_enum_fmt_vid_out =3D vidioc_enum_fmt,
+> +	.vidioc_g_fmt_vid_out =3D vidioc_g_fmt,
+> +	.vidioc_try_fmt_vid_out =3D vidioc_try_fmt,
+> +	.vidioc_s_fmt_vid_out =3D vidioc_s_fmt,
+> +
+> +	.vidioc_reqbufs =3D v4l2_m2m_ioctl_reqbufs,
+> +	.vidioc_querybuf =3D v4l2_m2m_ioctl_querybuf,
+> +	.vidioc_qbuf =3D v4l2_m2m_ioctl_qbuf,
+> +	.vidioc_dqbuf =3D v4l2_m2m_ioctl_dqbuf,
+> +	.vidioc_prepare_buf =3D v4l2_m2m_ioctl_prepare_buf,
+> +	.vidioc_create_bufs =3D v4l2_m2m_ioctl_create_bufs,
+> +	.vidioc_expbuf =3D v4l2_m2m_ioctl_expbuf,
+> +
+> +	.vidioc_streamon =3D v4l2_m2m_ioctl_streamon,
+> +	.vidioc_streamoff =3D v4l2_m2m_ioctl_streamoff,
+> +
+> +	.vidioc_g_crop =3D vidioc_g_crop,
+> +	.vidioc_s_crop =3D vidioc_s_crop,
+> +	.vidioc_cropcap =3D vidioc_cropcap,
+> +};
+> +
+> +static struct video_device rga_videodev =3D {
+> +	.name =3D "rockchip-rga",
+> +	.fops =3D &rga_fops,
+> +	.ioctl_ops =3D &rga_ioctl_ops,
+> +	.minor =3D -1,
+> +	.release =3D video_device_release,
+> +	.vfl_dir =3D VFL_DIR_M2M,
+> +};
+> +
+> +static int rga_enable_clocks(struct rockchip_rga *rga)
+> +{
+> +	int ret;
+> +
+> +	ret =3D clk_prepare_enable(rga->sclk);
+> +	if (ret) {
+> +		dev_err(rga->dev, "Cannot enable rga sclk: %d\n",
+> ret);
+> +		return ret;
+> +	}
+> +
+> +	ret =3D clk_prepare_enable(rga->aclk);
+> +	if (ret) {
+> +		dev_err(rga->dev, "Cannot enable rga aclk: %d\n",
+> ret);
+> +		goto err_disable_sclk;
+> +	}
+> +
+> +	ret =3D clk_prepare_enable(rga->hclk);
+> +	if (ret) {
+> +		dev_err(rga->dev, "Cannot enable rga hclk: %d\n",
+> ret);
+> +		goto err_disable_aclk;
+> +	}
+> +
+> +	return 0;
+> +
+> +err_disable_sclk:
+> +	clk_disable_unprepare(rga->sclk);
+> +err_disable_aclk:
+> +	clk_disable_unprepare(rga->aclk);
+> +
+> +	return ret;
+> +}
+> +
+> +static int rga_parse_dt(struct rockchip_rga *rga)
+> +{
+> +	struct reset_control *core_rst, *axi_rst, *ahb_rst;
+> +
+> +	core_rst =3D devm_reset_control_get(rga->dev, "core");
+> +	if (IS_ERR(core_rst)) {
+> +		dev_err(rga->dev, "failed to get core reset
+> controller\n");
+> +		return PTR_ERR(core_rst);
+> +	}
+> +
+> +	axi_rst =3D devm_reset_control_get(rga->dev, "axi");
+> +	if (IS_ERR(axi_rst)) {
+> +		dev_err(rga->dev, "failed to get axi reset
+> controller\n");
+> +		return PTR_ERR(axi_rst);
+> +	}
+> +
+> +	ahb_rst =3D devm_reset_control_get(rga->dev, "ahb");
+> +	if (IS_ERR(ahb_rst)) {
+> +		dev_err(rga->dev, "failed to get ahb reset
+> controller\n");
+> +		return PTR_ERR(ahb_rst);
+> +	}
+> +
+> +	reset_control_assert(core_rst);
+> +	udelay(1);
+> +	reset_control_deassert(core_rst);
+> +
+> +	reset_control_assert(axi_rst);
+> +	udelay(1);
+> +	reset_control_deassert(axi_rst);
+> +
+> +	reset_control_assert(ahb_rst);
+> +	udelay(1);
+> +	reset_control_deassert(ahb_rst);
+> +
+> +	rga->sclk =3D devm_clk_get(rga->dev, "sclk");
+> +	if (IS_ERR(rga->sclk)) {
+> +		dev_err(rga->dev, "failed to get sclk clock\n");
+> +		return PTR_ERR(rga->sclk);
+> +	}
+> +
+> +	rga->aclk =3D devm_clk_get(rga->dev, "aclk");
+> +	if (IS_ERR(rga->aclk)) {
+> +		dev_err(rga->dev, "failed to get aclk clock\n");
+> +		return PTR_ERR(rga->aclk);
+> +	}
+> +
+> +	rga->hclk =3D devm_clk_get(rga->dev, "hclk");
+> +	if (IS_ERR(rga->hclk)) {
+> +		dev_err(rga->dev, "failed to get hclk clock\n");
+> +		return PTR_ERR(rga->hclk);
+> +	}
+> +
+> +	return rga_enable_clocks(rga);
+> +}
+> +
+> +static int rga_probe(struct platform_device *pdev)
+> +{
+> +	struct rockchip_rga *rga;
+> +	struct video_device *vfd;
+> +	struct resource *res;
+> +	int ret =3D 0;
+> +	int irq;
+> +
+> +	if (!pdev->dev.of_node)
+> +		return -ENODEV;
+> +
+> +	rga =3D devm_kzalloc(&pdev->dev, sizeof(*rga), GFP_KERNEL);
+> +	if (!rga)
+> +		return -ENOMEM;
+> +
+> +	rga->dev =3D &pdev->dev;
+> +	spin_lock_init(&rga->ctrl_lock);
+> +	mutex_init(&rga->mutex);
+> +
+> +	init_waitqueue_head(&rga->irq_queue);
+> +
+> +	ret =3D rga_parse_dt(rga);
+> +	if (ret) {
+> +		dev_err(&pdev->dev, "Unable to parse OF data\n");
+> +	}
+> +
+> +	pm_runtime_enable(rga->dev);
+> +
+> +	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +
+> +	rga->regs =3D devm_ioremap_resource(rga->dev, res);
+> +	if (IS_ERR(rga->regs)) {
+> +		ret =3D PTR_ERR(rga->regs);
+> +		goto err_put_clk;
+> +	}
+> +
+> +	irq =3D platform_get_irq(pdev, 0);
+> +	if (irq < 0) {
+> +		dev_err(rga->dev, "failed to get irq\n");
+> +		ret =3D irq;
+> +		goto err_put_clk;
+> +	}
+> +
+> +	ret =3D devm_request_irq(rga->dev, irq, rga_isr, 0,
+> +	=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0dev_na=
+me(rga->dev), rga);
+> +	if (ret < 0) {
+> +		dev_err(rga->dev, "failed to request irq\n");
+> +		goto err_put_clk;
+> +	}
+> +
+> +	pm_runtime_get_sync(rga->dev);
+> +
+> +	rga->version.major =3D (rga_read(rga, RGA_VERSION_INFO) >> 24)
+> & 0xFF;
+> +	rga->version.minor =3D (rga_read(rga, RGA_VERSION_INFO) >> 20)
+> & 0x0F;
+> +
+> +	pm_runtime_put(rga->dev);
+> +
+> +	ret =3D v4l2_device_register(&pdev->dev, &rga->v4l2_dev);
+> +	if (ret)
+> +		goto err_put_clk;
+> +	vfd =3D video_device_alloc();
+> +	if (!vfd) {
+> +		v4l2_err(&rga->v4l2_dev, "Failed to allocate video
+> device\n");
+> +		ret =3D -ENOMEM;
+> +		goto unreg_v4l2_dev;
+> +	}
+> +	*vfd =3D rga_videodev;
+> +	vfd->lock =3D &rga->mutex;
+> +	vfd->v4l2_dev =3D &rga->v4l2_dev;
+> +	ret =3D video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+> +	if (ret) {
+> +		v4l2_err(&rga->v4l2_dev, "Failed to register video
+> device\n");
+> +		goto rel_vdev;
+> +	}
+> +
+> +	video_set_drvdata(vfd, rga);
+> +	snprintf(vfd->name, sizeof(vfd->name), "%s",
+> rga_videodev.name);
+> +	rga->vfd =3D vfd;
+> +	v4l2_info(&rga->v4l2_dev, "device registered as
+> /dev/video%d\n",
+> +	=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0vfd->num);
+> +	platform_set_drvdata(pdev, rga);
+> +	rga->m2m_dev =3D v4l2_m2m_init(&rga_m2m_ops);
+> +	if (IS_ERR(rga->m2m_dev)) {
+> +		v4l2_err(&rga->v4l2_dev, "Failed to init mem2mem
+> device\n");
+> +		ret =3D PTR_ERR(rga->m2m_dev);
+> +		goto unreg_video_dev;
+> +	}
+> +
+> +	def_frame.stride =3D (def_frame.width * def_frame.fmt->depth)
+> >> 3;
+> +
+> +	return 0;
+> +
+> +unreg_video_dev:
+> +	video_unregister_device(rga->vfd);
+> +rel_vdev:
+> +	video_device_release(vfd);
+> +unreg_v4l2_dev:
+> +	v4l2_device_unregister(&rga->v4l2_dev);
+> +err_put_clk:
+> +	pm_runtime_disable(rga->dev);
+> +
+> +	return ret;
+> +}
+> +
+> +static int rga_remove(struct platform_device *pdev)
+> +{
+> +	struct rockchip_rga *rga =3D platform_get_drvdata(pdev);
+> +
+> +	v4l2_info(&rga->v4l2_dev, "Removing \n");
+> +	v4l2_m2m_release(rga->m2m_dev);
+> +	video_unregister_device(rga->vfd);
+> +	v4l2_device_unregister(&rga->v4l2_dev);
+> +
+> +	pm_runtime_disable(rga->dev);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct of_device_id rockchip_rga_match[] =3D {
+> +	{
+> +		.compatible =3D "rockchip,rk3288-rga",
+> +	},
+> +	{
+> +		.compatible =3D "rockchip,rk3228-rga",
+> +	},
+> +	{
+> +		.compatible =3D "rockchip,rk3328-rga",
+> +	},
+> +	{
+> +		.compatible =3D "rockchip,rk3399-rga",
+> +	},
+> +	{},
+> +};
+> +
+> +MODULE_DEVICE_TABLE(of, rockchip_rga_match);
+> +
+> +static struct platform_driver rga_pdrv =3D {
+> +	.probe =3D rga_probe,
+> +	.remove =3D rga_remove,
+> +	.driver =3D {
+> +		.name =3D "rockchip-rga",
+> +		.of_match_table =3D rockchip_rga_match,
+> +	},
+> +};
+> +
+> +module_platform_driver(rga_pdrv);
+> +
+> +MODULE_AUTHOR("Jacob Chen <jacob-chen@iotwrt.com>");
+> +MODULE_DESCRIPTION("Rockchip Raster 2d Grapphic Acceleration Unit");
+> +MODULE_LICENSE("GPL");
+> diff --git a/drivers/media/platform/rockchip-rga/rga.h
+> b/drivers/media/platform/rockchip-rga/rga.h
+> new file mode 100644
+> index 0000000..272c4d82
+> --- /dev/null
+> +++ b/drivers/media/platform/rockchip-rga/rga.h
+> @@ -0,0 +1,133 @@
+> +/*
+> + * Copyright (C) Fuzhou Rockchip Electronics Co.Ltd
+> + * Author: Jacob Chen <jacob-chen@iotwrt.com>
+> + *
+> + * This software is licensed under the terms of the GNU General
+> Public
+> + * License version 2, as published by the Free Software Foundation,
+> and
+> + * may be copied, distributed, and modified under those terms.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.=C2=A0=C2=A0See t=
+he
+> + * GNU General Public License for more details.
+> + */
+> +#ifndef __RGA_H__
+> +#define __RGA_H__
+> +
+> +#include <linux/platform_device.h>
+> +#include <media/videobuf2-v4l2.h>
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-device.h>
+> +
+> +#define RGA_NAME "rockchip-rga"
+> +
+> +struct rga_fmt {
+> +	char *name;
+> +	u32 fourcc;
+> +	int depth;
+> +	u8 uv_factor;
+> +	u8 y_div;
+> +	u8 x_div;
+> +	u8 color_swap;
+> +	u8 hw_format;
+> +};
+> +
+> +struct rga_frame {
+> +	/* Original dimensions */
+> +	u32 width;
+> +	u32 height;
+> +
+> +	/* Crop */
+> +	struct v4l2_rect crop;
+> +
+> +	/* Image format */
+> +	struct rga_fmt *fmt;
+> +
+> +	/* Variables that can calculated once and reused */
+> +	u32 stride;
+> +	u32 size;
+> +};
+> +
+> +struct rockchip_rga_version {
+> +	u32 major;
+> +	u32 minor;
+> +};
+> +
+> +struct rga_buf {
+> +	u32 index;
+> +	u32 type;
+> +	void *mmu_pages;
+> +	struct list_head entry;
+> +};
+> +
+> +struct rga_ctx {
+> +	struct v4l2_fh fh;
+> +	struct rockchip_rga *rga;
+> +	struct rga_frame in;
+> +	struct rga_frame out;
+> +	struct v4l2_ctrl_handler ctrl_handler;
+> +
+> +	/* Control values */
+> +	u32 op;
+> +	u32 hflip;
+> +	u32 vflip;
+> +	u32 rotate;
+> +	u32 fill_color;
+> +	u32 alpha0;
+> +	u32 alpha1;
+> +
+> +	/* CMD Buffers for RGA reading */
+> +	dma_addr_t cmdbuf_phy;
+> +	void *cmdbuf_virt;
+> +
+> +	/* Buffers queued for RGA */
+> +	struct list_head buffers_list;
+> +};
+> +
+> +struct rockchip_rga {
+> +	struct v4l2_device v4l2_dev;
+> +	struct v4l2_m2m_dev *m2m_dev;
+> +	struct video_device *vfd;
+> +
+> +	struct device *dev;
+> +	struct regmap *grf;
+> +	void __iomem *regs;
+> +	struct clk *sclk;
+> +	struct clk *aclk;
+> +	struct clk *hclk;
+> +	struct rockchip_rga_version version;
+> +
+> +	struct mutex mutex;
+> +	spinlock_t ctrl_lock;
+> +
+> +	wait_queue_head_t irq_queue;
+> +
+> +	struct rga_ctx *curr;
+> +};
+> +
+> +/* Controls */
+> +
+> +#define V4L2_CID_RGA_OP (V4L2_CID_USER_BASE | 0x1001)
+
+Could be nice to generalize. We could setup a control and fill the
+values base on porter duff operations, then drivers can implement a
+subset. Right now, there is no generic way for userspace to know if a
+driver is just doing copies with some transformations, or if it can
+actually do alpha blending hence used for composting streams. Note that
+I haven't looked at all possibilities, Freescale IMX.6 seems to have a
+similar driver, which has been wrapped in GStreamer with this proposed
+elements:
+
+https://bugzilla.gnome.org/show_bug.cgi?id=3D772766
+
+> +#define V4L2_CID_RGA_ALHPA_REG0 (V4L2_CID_USER_BASE | 0x1002)
+> +#define V4L2_CID_RGA_ALHPA_REG1 (V4L2_CID_USER_BASE | 0x1003)
+
+It's not obvious why there is two CID, and how this differ from
+existing V4L2_CID_ALPHA (the global alpha control).
+
+> +
+> +/* Operation values */
+> +#define OP_COPY 0
+> +#define OP_SOLID_FILL 1
+> +#define OP_ALPHA_BLEND 2
+> +
+> +struct rga_frame *rga_get_frame(struct rga_ctx *ctx, enum
+> v4l2_buf_type type);
+> +
+> +/* RGA Buffers Manage Part */
+> +extern const struct vb2_ops rga_qops;
+> +void *rga_buf_find_page(struct vb2_buffer *vb);
+> +void rga_buf_clean(struct rga_ctx *ctx);
+> +
+> +/* RGA Hardware Part */
+> +void rga_write(struct rockchip_rga *rga, u32 reg, u32 value);
+> +u32 rga_read(struct rockchip_rga *rga, u32 reg);
+> +void rga_mod(struct rockchip_rga *rga, u32 reg, u32 val, u32 mask);
+> +void rga_start(struct rockchip_rga *rga);
+> +void rga_cmd_set(struct rga_ctx *ctx, void *src_mmu_pages, void
+> *dst_mmu_pages);
+> +
+> +#endif
+--=-XKjfu5oq0Qjt+9Jy89KE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iEYEABECAAYFAllRLR0ACgkQcVMCLawGqBx3ggCeJ0e8PsuhlbKICn2pmRH6Rn5n
+vvIAnR+/NkoAURr2cHGaG0r5yn0PqW/R
+=h85N
+-----END PGP SIGNATURE-----
+
+--=-XKjfu5oq0Qjt+9Jy89KE--
