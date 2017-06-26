@@ -1,64 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor3.renesas.com ([210.160.252.173]:58570 "EHLO
-        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750828AbdFNHSR (ORCPT
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.221]:17760 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750917AbdFZGFy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 03:18:17 -0400
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: Ian Arkver <ian.arkver.dev@gmail.com>,
-        "broonie@kernel.org" <broonie@kernel.org>,
-        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-        "mattw@codeaurora.org" <mattw@codeaurora.org>,
-        "mitchelh@codeaurora.org" <mitchelh@codeaurora.org>,
-        "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-        "yamada.masahiro@socionext.com" <yamada.masahiro@socionext.com>
-CC: "linux-renesas-soc@vger.kernel.org"
-        <linux-renesas-soc@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Chris Paterson <Chris.Paterson2@renesas.com>
-Subject: RE: [PATCH v2 0/2] Avoid namespace collision within macros & tidyup
-Date: Wed, 14 Jun 2017 07:18:09 +0000
-Message-ID: <KL1PR0601MB20388B133E5E841FF5BF2D4BC3C30@KL1PR0601MB2038.apcprd06.prod.outlook.com>
-References: <20170613133348.48044-1-ramesh.shanmugasundaram@bp.renesas.com>
- <293256b4-2477-e5f6-eca6-e5eaf9b14876@gmail.com>
-In-Reply-To: <293256b4-2477-e5f6-eca6-e5eaf9b14876@gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+        Mon, 26 Jun 2017 02:05:54 -0400
+Subject: Re: omap3isp camera was Re: [PATCH v1 0/6] Add support of OV9655 camera
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: multipart/signed; boundary="Apple-Mail=_995C3AB1-511D-4555-ADFA-B1A4862F4BE8"; protocol="application/pgp-signature"; micalg=pgp-sha256
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+In-Reply-To: <20170625091856.GA22791@amd>
+Date: Mon, 26 Jun 2017 08:05:04 +0200
+Cc: Hugues Fruchet <hugues.fruchet@st.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        devicetree <devicetree@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Rob Herring <robh+dt@kernel.org>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-media@vger.kernel.org,
+        Discussions about the Letux Kernel
+        <letux-kernel@openphoenux.org>
+Message-Id: <EDFD663F-37F9-42C2-92A9-66C2508B361E@goldelico.com>
+References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com> <385A82AC-CC23-41BD-9F57-0232F713FED9@goldelico.com> <1E453955-0C1A-414B-BBB2-C64B6D0EF378@goldelico.com> <20170625091856.GA22791@amd>
+To: Pavel Machek <pavel@ucw.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PiBTdWJqZWN0OiBSZTogW1BBVENIIHYyIDAvMl0gQXZvaWQgbmFtZXNwYWNlIGNvbGxpc2lvbiB3
-aXRoaW4gbWFjcm9zICYNCj4gdGlkeXVwDQo+IA0KPiBPbiAxMy8wNi8xNyAxNDozMywgUmFtZXNo
-IFNoYW5tdWdhc3VuZGFyYW0gd3JvdGU6DQo+ID4gSGkgQWxsLA0KPiA+DQo+ID4gVGhlIHJlYWR4
-X3BvbGxfdGltZW91dCAmIHNpbWlsYXIgbWFjcm9zIGRlZmluZXMgbG9jYWwgdmFyaWFibGUgdGhh
-dA0KPiA+IGNhbiBjYXVzZSBuYW1lIHNwYWNlIGNvbGxpc2lvbiB3aXRoIHRoZSBjYWxsZXIuIEZp
-eGVkIHRoaXMgaXNzdWUgYnkNCj4gPiBwcmVmaXhpbmcgdGhlbSB3aXRoIHVuZGVyc2NvcmVzLg0K
-PiANCj4gVGhlIGNvbXBvdW5kIHN0YXRlbWVudCBoYXMgYSBsb2NhbCB2YXJpYWJsZSBzY29wZSwg
-c28gdGhlc2Ugd29uJ3QgY29sbGlkZQ0KPiB3aXRoIHRoZSBjYWxsZXIgSSBiZWxpZXZlLg0KDQpC
-dXQgeHh4X3BvbGxfdGltZW91dCBpcyBhIG1hY3JvPz8NCg0KVXNhZ2UgcmVnbWFwX3JlYWRfcG9s
-bF90aW1lb3V0KC4uLiwgdGltZW91dCkgd2l0aCB2YXJpYWJsZSBuYW1lICJ0aW1lb3V0IiBpbiB0
-aGUgY2FsbGVyIHJlc3VsdHMgaW4gDQoNCmluY2x1ZGUvbGludXgvcmVnbWFwLmg6MTIzOjIwOiB3
-YXJuaW5nOiAndGltZW91dCcgaXMgdXNlZCB1bmluaXRpYWxpemVkIGluIHRoaXMgZnVuY3Rpb24g
-Wy1XdW5pbml0aWFsaXplZF0NCiAga3RpbWVfdCB0aW1lb3V0ID0ga3RpbWVfYWRkX3VzKGt0aW1l
-X2dldCgpLCB0aW1lb3V0X3VzKTsgXA0KDQo+IA0KPiA+IEFsc28gdGlkaWVkIGNvdXBsZSBvZiBp
-bnN0YW5jZXMgd2hlcmUgdGhlIG1hY3JvIGFyZ3VtZW50cyBhcmUgdXNlZCBpbg0KPiA+IGV4cHJl
-c3Npb25zIHdpdGhvdXQgcGFyYW50aGVzaXMuDQo+ID4NCj4gPiBUaGlzIHBhdGNoc2V0IGlzIGJh
-c2VkIG9uIHRvcCBvZiB0b2RheSdzIGxpbnV4LW5leHQgcmVwby4NCj4gPiBjb21taXQgYmM0Yzc1
-ZjQxYTFjICgiQWRkIGxpbnV4LW5leHQgc3BlY2lmaWMgZmlsZXMgZm9yIDIwMTcwNjEzIikNCj4g
-Pg0KPiA+IENoYW5nZSBoaXN0b3J5Og0KPiA+DQo+ID4gdjI6DQo+ID4gICAtIGlvcG9sbC5oOg0K
-PiA+IAktIEVuY2xvc2VkIHRpbWVvdXRfdXMgJiBzbGVlcF91cyBhcmd1bWVudHMgd2l0aCBwYXJh
-bnRoZXNpcw0KPiA+ICAgLSByZWdtYXAuaDoNCj4gPiAJLSBFbmNsb3NlZCB0aW1lb3V0X3VzICYg
-c2xlZXBfdXMgYXJndW1lbnRzIHdpdGggcGFyYW50aGVzaXMNCj4gPiAJLSBSZW5hbWVkIHBvbGxy
-ZXQgdG8gX19yZXQNCj4gPg0KPiA+IE5vdGU6IHRpbWVvdXRfdXMgY2F1c2Ugc3BhcmUgY2hlY2sg
-d2FybmluZyBhcyBpZGVudGlmaWVkIGhlcmUgWzFdLg0KPiA+DQo+ID4gWzFdDQo+ID4gaHR0cHM6
-Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9saW51eC1yZW5lc2FzLXNvY0B2Z2VyLmtlcm5lbC5vcmcv
-bXNnMTUxMw0KPiA+IDguaHRtbA0KPiA+DQo+ID4gVGhhbmtzLA0KPiA+IFJhbWVzaA0KPiA+DQo+
-ID4gUmFtZXNoIFNoYW5tdWdhc3VuZGFyYW0gKDIpOg0KPiA+ICAgIGlvcG9sbDogQXZvaWQgbmFt
-ZXNwYWNlIGNvbGxpc2lvbiB3aXRoaW4gbWFjcm9zICYgdGlkeXVwDQo+ID4gICAgcmVnbWFwOiBB
-dm9pZCBuYW1lc3BhY2UgY29sbGlzaW9uIHdpdGhpbiBtYWNybyAmIHRpZHl1cA0KPiA+DQo+ID4g
-ICBpbmNsdWRlL2xpbnV4L2lvcG9sbC5oIHwgMTIgKysrKysrKy0tLS0tDQo+ID4gICBpbmNsdWRl
-L2xpbnV4L3JlZ21hcC5oIHwgMTcgKysrKysrKysrLS0tLS0tLS0NCj4gPiAgIDIgZmlsZXMgY2hh
-bmdlZCwgMTYgaW5zZXJ0aW9ucygrKSwgMTMgZGVsZXRpb25zKC0pDQo+ID4NCg==
+
+--Apple-Mail=_995C3AB1-511D-4555-ADFA-B1A4862F4BE8
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=us-ascii
+
+Hi Pavel,
+
+> Am 25.06.2017 um 11:18 schrieb Pavel Machek <pavel@ucw.cz>:
+>=20
+> Hi!
+>=20
+>> * unfortunately we still get no image :(
+>>=20
+>> The latter is likely a setup issue of our camera interface (OMAP3 ISP =
+=3D Image Signal Processor) which
+>> we were not yet able to solve. Oscilloscoping signals on the =
+interface indicated that signals and
+>> sync are correct. But we do not know since mplayer only shows a green =
+screen.
+>=20
+> What mplayer command line do you use? How did you set up the pipeline
+> with media-ctl?
+>=20
+> On kernel.org, I have tree called camera-fw5-6 , where camera works
+> for me on n900. On gitlab, there's modifed fcam-dev, which can be used
+> for testing.
+
+We did have yet another (non-DT) camera driver and media-ctl working in =
+with 3.12.37,
+but had no success yet to update it to work with modern kernels or =
+drivers. It
+is either that the (newer) drivers missing something or the media-ctl =
+has changed.
+
+Here is the log of our scripts with Hugues' driver and our latest setup:
+
+root@letux:~# ./camera-demo sxga
+DISPLAY=3D:0
+XAUTHORITY=3Dtcp
+Camera: /dev/v4l-subdev8
+Setting mode sxga
+media-ctl -r
+media-ctl -l '"ov965x":0 -> "OMAP3 ISP CCDC":0[1]'
+media-ctl -l '"OMAP3 ISP CCDC":1 -> "OMAP3 ISP CCDC output":0[1]'
+media-ctl -V '"ov965x":0 [UYVY2X8 1280x1024]'
+media-ctl -V '"OMAP3 ISP CCDC":0 [UYVY2X8 1280x1024]'
+media-ctl -V '"OMAP3 ISP CCDC":1 [UYVY 1280x1024]'
+### starting mplayer in sxga mode ###
+mplayer tv:// -vf rotate=3D2 -tv =
+driver=3Dv4l2:device=3D/dev/video2:outfmt=3Duyvy:width=3D1280:height=3D102=
+4:fps=3D15 -vo x11
+MPlayer2 2.0-728-g2c378c7-4+b1 (C) 2000-2012 MPlayer Team
+
+Playing tv://.
+Detected file format: TV
+Selected driver: v4l2
+ name: Video 4 Linux 2 input
+ author: Martin Olschewski <olschewski@zpr.uni-koeln.de>
+ comment: first try, more to come ;-)
+v4l2: ioctl get standard failed: Invalid argument
+Selected device: OMAP3 ISP CCDC output
+ Capabilities:  video capture  video output  streaming
+ supported norms:
+ inputs: 0 =3D camera;
+ Current input: 0
+ Current format: unknown (0x0)
+tv.c: norm_from_string(pal): Bogus norm parameter, setting default.
+v4l2: ioctl enum norm failed: Inappropriate ioctl for device
+Error: Cannot set norm!
+Selected input hasn't got a tuner!
+v4l2: ioctl set mute failed: Inappropriate ioctl for device
+v4l2: ioctl query control failed: Inappropriate ioctl for device
+v4l2: ioctl query control failed: Inappropriate ioctl for device
+v4l2: ioctl query control failed: Inappropriate ioctl for device
+v4l2: ioctl query control failed: Inappropriate ioctl for device
+v4l2: ioctl streamon failed: Broken pipe
+[ass] auto-open
+Opening video filter: [rotate=3D2]
+VIDEO:  1280x1024  15.000 fps    0.0 kbps ( 0.0 kB/s)
+Could not find matching colorspace - retrying with -vf scale...
+Opening video filter: [scale]
+[swscaler @ 0xb5ca9980]using unscaled uyvy422 -> yuv420p special =
+converter
+VO: [x11] 1024x1280 =3D> 1024x1280 Planar YV12
+[swscaler @ 0xb5ca9980]No accelerated colorspace conversion found from =
+yuv420p to bgra.
+Colorspace details not fully supported by selected vo.
+Selected video codec: RAW UYVY [raw]
+Audio: no sound
+Starting playback...
+V:   0.0  10/ 10 ??% ??% ??,?% 0 0 $<3>
+
+
+MPlayer interrupted by signal 2 in module: filter_video
+V:   0.0  11/ 11 ??% ??% ??,?% 0 0 $<3>
+v4l2: ioctl set mute failed: Inappropriate ioctl for device
+v4l2: 0 frames successfully processed, 0 frames dropped.
+
+Exiting... (Quit)
+root@letux:~#
+
+BR and thanks,
+Nikolaus
+
+
+--Apple-Mail=_995C3AB1-511D-4555-ADFA-B1A4862F4BE8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename=signature.asc
+Content-Type: application/pgp-signature;
+	name=signature.asc
+Content-Description: Message signed with OpenPGP using GPGMail
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBCAAGBQJZUKQRAAoJEIl79TGLgAm6u9kP/007U9+vnggeC+rtzx1BnsJ8
+mu4lip53LVAk+/VOhdGLmWdgR6IQJt0i2SNQyobtksMA2VYZngFzQwNQuGTDfyPU
+oVLlxULO7SMXAN9RbSxuaBzr2k5v/oXIYTIRtP171P2B5lXE0OaDKBO51KtpYB7T
+bn14SI8vJlXjxZ1XUZ9a9VTZNDB8iqzyOqQ0TaHTKA5wt5HLBy1yVBeVJkL3FuGi
+4FOQN9w8+qT3ycnf7CVUfQq3DnOIJfjVyfaLDpltK8TT0hysxtt7isqdJMqDK/VC
+eJFczPTWGmKD1WSuRygC8UJMaHS5ZGVnDnzEUiPKBPsAMZmi5YcL/wa6Por6mrtb
+FNvoyx6RXlpv0U2R4H22eT37I4aN214aGLbKW5A4x2M9YDA5M/oWeK0X2pXPI/+L
+THl2Ol7kzo7g32TtBXm5nXUkIxSA16p3SBT7v9982XPfH+IcRB1lW1sbayNGaIll
+L7cX0RoyZaW9s+SwS6TLxfd9k/pVPNAUK6kyLUN5t+/AaH03s1VJs1NfiJW8zSvI
+TbSm0vysA7PrqtP5PJWa7qudDbfZZsJ7fKzPPqrJiCcS7KYnxDnH3yrVIGbJu7Dv
+4WTmhyYFXjjegRFwQvE9xCKcCc0HL63ms0qrtE0HOSDW+G5tjeWxG6Vy1kruYGXW
+4AqrbplrTpWptmHtE4f9
+=3YRv
+-----END PGP SIGNATURE-----
+
+--Apple-Mail=_995C3AB1-511D-4555-ADFA-B1A4862F4BE8--
