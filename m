@@ -1,72 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay4.synopsys.com ([198.182.47.9]:51298 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751068AbdFPPxD (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33055 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751366AbdFZPkA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Jun 2017 11:53:03 -0400
-Subject: Re: [PATCH v2 2/4] [media] platform: Add Synopsys Designware HDMI RX
- Controller Driver
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Jose Abreu <Jose.Abreu@synopsys.com>,
-        <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <devicetree@vger.kernel.org>
-References: <cover.1497607315.git.joabreu@synopsys.com>
- <b4e209f41cc25285eb547cbd65f8fc6bf2a039cb.1497607315.git.joabreu@synopsys.com>
- <25d20060-f6b7-3a37-0509-39a734e6660a@xs4all.nl>
- <3a1abd40-4503-44f1-7cc5-ad757a7c5572@synopsys.com>
- <0ebac69e-8de3-e65e-d6f5-dfb4fed3585c@xs4all.nl>
-CC: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-Message-ID: <900bfa50-2cc3-2b33-8531-2c65ebd3a981@synopsys.com>
-Date: Fri, 16 Jun 2017 16:52:57 +0100
+        Mon, 26 Jun 2017 11:40:00 -0400
+Received: by mail-wm0-f65.google.com with SMTP id j85so942776wmj.0
+        for <linux-media@vger.kernel.org>; Mon, 26 Jun 2017 08:39:59 -0700 (PDT)
+Date: Mon, 26 Jun 2017 17:39:56 +0200
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: Ralph Metzler <rjkm@metzlerbros.de>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com, jasmin@anw.at
+Subject: Re: [PATCH 4/9] [media] dvb-frontends/stv0910: Fix signal strength
+ reporting
+Message-ID: <20170626173956.003e6330@audiostation.wuest.de>
+In-Reply-To: <22864.52230.708596.809030@morden.metzler>
+References: <20170624160301.17710-1-d.scheller.oss@gmail.com>
+        <20170624160301.17710-5-d.scheller.oss@gmail.com>
+        <22864.52230.708596.809030@morden.metzler>
 MIME-Version: 1.0
-In-Reply-To: <0ebac69e-8de3-e65e-d6f5-dfb4fed3585c@xs4all.nl>
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Am Mon, 26 Jun 2017 10:55:34 +0200
+schrieb Ralph Metzler <rjkm@metzlerbros.de>:
 
+> Daniel Scheller writes:
+>  > From: Daniel Scheller <d.scheller@gmx.net>
+>  > 
+>  > Original code at least has some signed/unsigned issues, resulting
+>  > in values like 32dBm.  
+> 
+> I will look into that.
+> 
+>  > Change signal strength readout to work without asking
+>  > the attached tuner, and use a lookup table instead of log calc.
+>  > Values  
+> 
+> How can you determine the exact strength without knowing what the
+> tuner did? At least the stv6111 does its own AGC which has to be
+> added.
 
-On 16-06-2017 14:44, Hans Verkuil wrote:
->
->>> <snip>
->>>
->>>> +	/* CEC */
->>>> +	dw_dev->cec_adap = cec_allocate_adapter(&dw_hdmi_cec_adap_ops,
->>>> +			dw_dev, dev_name(dev), CEC_CAP_TRANSMIT |
->>>> +			CEC_CAP_PHYS_ADDR | CEC_CAP_LOG_ADDRS,
->>> Add CEC_CAP_RC and CEC_CAP_PASSTHROUGH.
->>>
->>> I'm not sure about CEC_CAP_PHYS_ADDR. The problem here is that this driver
->>> doesn't handle the EDID, but without that it doesn't know what physical
->>> address to use.
->>>
->>> I wonder if the cec-notifier can be used for this, possibly with adaptations.
->>> Relying on users to set the physical address is a last resort since it is very
->>> painful to do so. cec-notifier was specifically designed to solve this.
->> Yes, EDID ROM is not integrated into the controller so I can't
->> add the code. How exactly can I use cec-notifier here?
-> drivers/media/platform/sti/cec/stih-cec.c is a good example. The notifier is
-> called by drivers/gpu/drm/sti/sti_hdmi.c.
+Good to know. Though, from what I gathered, a lot of demod drivers are
+made this way, e.g. read out the AGC, do some math and have a signal
+strength as result. If there are ways to do this better and/or
+accurately, then by all means lets do this :)
 
-Done! Implemented and working :) I'm wondering if you want me to
-wait some more time for other comments or just send the v3 now? I
-also added support for SCDC read request (its a matter of
-activating a bit).
+Re the 32dBm, this is from a user who reported even four different
+values on the same coax cable (as he claimed). A MaxS8 and some
+measuring gear reported something around -25dBm. With the stv0910, the
+initial port from dddvb to the kernel reported those 32dBm,
+"the other driver" (suspect he meant dddvb but he wasn't exact in what
+that "other driver" was) did report -9dBm, and this changed variant
+reported around -30dBm, which seems plausible wrt the MaxS8 and his
+gauge.
 
-BTW, I used the DT node name "hdmi-phandle" but I don't know if
-it is the best because it can cause confusion about the
-hdmi-phandle that you documented in media/cec.txt
+>  > +struct SLookup padc_lookup[] = {
+>  > +	{    0,  118000 }, /* PADC=+0dBm  */
+>  > +	{ -100,  93600  }, /* PADC=-1dBm  */
+>  > +	{ -200,  74500  }, /* PADC=-2dBm  */
+>  > +	{ -300,  59100  }, /* PADC=-3dBm  */
+>  > +	{ -400,  47000  }, /* PADC=-4dBm  */
+>  > +	{ -500,  37300  }, /* PADC=-5dBm  */
+>  > +	{ -600,  29650  }, /* PADC=-6dBm  */
+>  > +	{ -700,  23520  }, /* PADC=-7dBm  */
+>  > +	{ -900,  14850  }, /* PADC=-9dBm  */
+>  > +	{ -1100, 9380   }, /* PADC=-11dBm */
+>  > +	{ -1300, 5910   }, /* PADC=-13dBm */
+>  > +	{ -1500, 3730   }, /* PADC=-15dBm */
+>  > +	{ -1700, 2354   }, /* PADC=-17dBm */
+>  > +	{ -1900, 1485   }, /* PADC=-19dBm */
+>  > +	{ -2000, 1179   }, /* PADC=-20dBm */
+>  > +	{ -2100, 1000   }, /* PADC=-21dBm */
+>  > +};  
+>  ...
+>  > -	if (bbgain < (s32) *strength)
+>  > -		*strength -= bbgain;
+>  > -	else
+>  > -		*strength = 0;
+>  > +	padc = TableLookup(padc_lookup, ARRAY_SIZE(padc_lookup),
+>  > Power) + 352; 
+> 
+> 
+> Where does the padc_lookup table come from?
+> I saw it before in CrazyCat github tree.
+> Is he or you the original source/author or somebody else?
+
+Yes, this is picked from CrazyCat's GIT [1], more precisely, from the
+commit at [2], which imports an already modified version of your driver
+code, hidden behind the message "STV6120 tuner driver" (stv0910 is part
+of that commit). Honestly, no idea if he is the actual author of the
+table plus the math.
+
+As initially mentioned, if we can fix this and do it the real proper
+way, let's do this and drop this patch, but this needs your help.
 
 Best regards,
-Jose Miguel Abreu
+Daniel Scheller
 
->
-> Regards,
->
-> 	Hans
->
+[1] https://github.com/crazycat69/linux_media
+[2]
+https://github.com/crazycat69/linux_media/commit/9099babc397bb8bd9d0e33f39156643487378768
+-- 
+https://github.com/herrnst
