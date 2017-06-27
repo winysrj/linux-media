@@ -1,130 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:42052 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751498AbdFHDnI (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:53227 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751694AbdF0J1R (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Jun 2017 23:43:08 -0400
-Message-ID: <0d66b37dd7295abe8154c385d13ea3d0@smtp-cloud2.xs4all.net>
-Date: Thu, 08 Jun 2017 05:43:05 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Tue, 27 Jun 2017 05:27:17 -0400
+Subject: Re: [PATCH 1/8] arm: omap4: enable CEC pin for Pandaboard A4 and ES
+To: Tony Lindgren <tony@atomide.com>
+References: <20170414102512.48834-1-hverkuil@xs4all.nl>
+ <20170414102512.48834-2-hverkuil@xs4all.nl>
+ <4355dab4-9c70-77f7-f89b-9a1cf24976cf@ti.com>
+ <20170626110711.GW3730@atomide.com>
+ <701dbbfa-000a-2b93-405b-246aa90b6dd6@xs4all.nl>
+ <20170627091421.GZ3730@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+        Jyri Sarha <jsarha@ti.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <1d970218-d24a-d460-7d95-b31102d735f2@xs4all.nl>
+Date: Tue, 27 Jun 2017 11:27:11 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170627091421.GZ3730@atomide.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 27/06/17 11:14, Tony Lindgren wrote:
+> * Hans Verkuil <hverkuil@xs4all.nl> [170627 01:39]:
+>> On 26/06/17 13:07, Tony Lindgren wrote:
+>>> Tomi,
+>>>
+>>> * Tomi Valkeinen <tomi.valkeinen@ti.com> [170428 04:15]:
+>>>> On 14/04/17 13:25, Hans Verkuil wrote:
+>>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>>
+>>>>> The CEC pin was always pulled up, making it impossible to use it.
+>>> ...
+>>>
+>>>> Tony, can you queue this? It's safe to apply separately from the rest of
+>>>> the HDMI CEC work.
+>>>
+>>> So the dts changes are merged now but what's the status of the CEC driver
+>>> changes? Were there some issues as I don't see them in next?
+>>
+>> Tomi advised me to wait until a 'hotplug-interrupt-handling series' for the
+>> omap driver is merged to prevent conflicts. Last I heard (about 3 weeks ago)
+>> this was still pending review.
+> 
+> OK thanks for the update.
+> 
+> Adding Jyri to Cc, hopefully the CEC support allows also setting the
+> HDMI audio volume level on devices implementing it? Or am I too
+> optimistic? :)
 
-Results of the daily build of media_tree:
+I'm not quite sure what you mean. Do you want CEC to change the volume on the
+TV, or use the TV's remote to change the volume of the HDMI audio output of the
+omap4?
 
-date:			Thu Jun  8 05:00:18 CEST 2017
-media-tree git hash:	47b586f66a9e78c91586b9c363603a52c75840d7
-media_build git hash:	49491c24efe9ae7606d698caee53181293c0bbdb
-v4l-utils git hash:	ef074cf5500b7dd62e6eb3527ec47a914c7189ca
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Anyway, either is supported, but it requires a userspace implementation.
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: ERRORS
-linux-4.12-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: ERRORS
-linux-4.12-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+Although TV remote control messages will be mapped to an input device, and if
+those are hooked up to the alsa audio volume, then this already works.
 
-Detailed results are available here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+	Hans
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> 
+>> Tomi, any updates on this? It would be nice to get this in for 4.14.
+> 
+> Yeah seems like we have real mainline kernel user needs for this one.
+> 
+> Regards,
+> 
+> Tony
+> 
