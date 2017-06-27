@@ -1,59 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34610 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751473AbdF0FUk (ORCPT
+Received: from mail-pg0-f48.google.com ([74.125.83.48]:32953 "EHLO
+        mail-pg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751510AbdF0GnO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 01:20:40 -0400
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 5C7A1600A0
-        for <linux-media@vger.kernel.org>; Tue, 27 Jun 2017 08:20:36 +0300 (EEST)
-Date: Tue, 27 Jun 2017 08:20:35 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL v2 for 4.13] ov6650 V4L2 sub-device conversion
-Message-ID: <20170627052035.GV12407@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+        Tue, 27 Jun 2017 02:43:14 -0400
+Received: by mail-pg0-f48.google.com with SMTP id f127so11199860pgc.0
+        for <linux-media@vger.kernel.org>; Mon, 26 Jun 2017 23:43:13 -0700 (PDT)
+From: Bjorn Andersson <bjorn.andersson@linaro.org>
+To: Ohad Ben-Cohen <ohad@wizery.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Peter Griffin <peter.griffin@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Loic Pallardy <loic.pallardy@st.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-remoteproc@vger.kernel.org
+Subject: [PATCH] rpmsg: Solve circular dependencies involving RPMSG_VIRTIO
+Date: Mon, 26 Jun 2017 23:43:09 -0700
+Message-Id: <20170627064309.16507-1-bjorn.andersson@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+While it's very common to use RPMSG for communicating with firmware
+running on these remoteprocs there is no functional dependency on RPMSG.
+As such RPMSG should be selected by the system integrator and not
+automatically by the remoteproc drivers.
 
-(v2, this time with the appropriate git tags, plus rebased on current media
-tree master. No other changes.)
+This does solve problems reported with circular Kconfig dependencies for
+Davinci and Keystone remoteproc drivers.
 
-This set includes converting the ov6650 driver to V4L2 sub-device driver
-(from SoC camera).
+Signed-off-by: Bjorn Andersson <bjorn.andersson@linaro.org>
+---
+ drivers/media/platform/Kconfig |  2 +-
+ drivers/remoteproc/Kconfig     |  4 ----
+ drivers/rpmsg/Kconfig          | 20 +++++++++-----------
+ 3 files changed, 10 insertions(+), 16 deletions(-)
 
-Rebased w/o conflicts on more recent media tree master.
-
-Please pull.
-
-The following changes since commit 2748e76ddb2967c4030171342ebdd3faa6a5e8e8:
-
-  media: staging: cxd2099: Activate cxd2099 buffer mode (2017-06-26 08:19:13 -0300)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git for-4.13-4-2
-
-for you to fetch changes up to 4519f07fc2b13a2bc0f45ad3aa87c06bd43192ff:
-
-  media: ov6650: convert to standalone v4l2 subdevice (2017-06-27 08:18:02 +0300)
-
-----------------------------------------------------------------
-Janusz Krzysztofik (1):
-      media: ov6650: convert to standalone v4l2 subdevice
-
- drivers/media/i2c/Kconfig                   | 11 +++++
- drivers/media/i2c/Makefile                  |  1 +
- drivers/media/i2c/{soc_camera => }/ov6650.c | 77 +++++++++--------------------
- drivers/media/i2c/soc_camera/Kconfig        |  6 ---
- drivers/media/i2c/soc_camera/Makefile       |  1 -
- 5 files changed, 35 insertions(+), 61 deletions(-)
- rename drivers/media/i2c/{soc_camera => }/ov6650.c (92%)
-
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 1313cd533436..cb2f31cd0088 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -382,10 +382,10 @@ config VIDEO_STI_DELTA_DRIVER
+ 	tristate
+ 	depends on VIDEO_STI_DELTA
+ 	depends on VIDEO_STI_DELTA_MJPEG
++	depends on RPMSG
+ 	default VIDEO_STI_DELTA_MJPEG
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
+-	select RPMSG
+ 
+ endif # VIDEO_STI_DELTA
+ 
+diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
+index b950e6cd4ba2..3b16f422d30c 100644
+--- a/drivers/remoteproc/Kconfig
++++ b/drivers/remoteproc/Kconfig
+@@ -21,7 +21,6 @@ config OMAP_REMOTEPROC
+ 	depends on REMOTEPROC
+ 	select MAILBOX
+ 	select OMAP2PLUS_MBOX
+-	select RPMSG_VIRTIO
+ 	help
+ 	  Say y here to support OMAP's remote processors (dual M3
+ 	  and DSP on OMAP4) via the remote processor framework.
+@@ -53,7 +52,6 @@ config DA8XX_REMOTEPROC
+ 	depends on ARCH_DAVINCI_DA8XX
+ 	depends on REMOTEPROC
+ 	depends on DMA_CMA
+-	select RPMSG_VIRTIO
+ 	help
+ 	  Say y here to support DA8xx/OMAP-L13x remote processors via the
+ 	  remote processor framework.
+@@ -76,7 +74,6 @@ config KEYSTONE_REMOTEPROC
+ 	depends on ARCH_KEYSTONE
+ 	depends on RESET_CONTROLLER
+ 	depends on REMOTEPROC
+-	select RPMSG_VIRTIO
+ 	help
+ 	  Say Y here here to support Keystone remote processors (DSP)
+ 	  via the remote processor framework.
+@@ -133,7 +130,6 @@ config ST_REMOTEPROC
+ 	depends on REMOTEPROC
+ 	select MAILBOX
+ 	select STI_MBOX
+-	select RPMSG_VIRTIO
+ 	help
+ 	  Say y here to support ST's adjunct processors via the remote
+ 	  processor framework.
+diff --git a/drivers/rpmsg/Kconfig b/drivers/rpmsg/Kconfig
+index 2a5d2b446de2..46f3f2431d68 100644
+--- a/drivers/rpmsg/Kconfig
++++ b/drivers/rpmsg/Kconfig
+@@ -1,8 +1,5 @@
+-menu "Rpmsg drivers"
+-
+-# RPMSG always gets selected by whoever wants it
+-config RPMSG
+-	tristate
++menuconfig RPMSG
++	tristate "Rpmsg drivers"
+ 
+ config RPMSG_CHAR
+ 	tristate "RPMSG device interface"
+@@ -15,7 +12,7 @@ config RPMSG_CHAR
+ 
+ config RPMSG_QCOM_GLINK_RPM
+ 	tristate "Qualcomm RPM Glink driver"
+-	select RPMSG
++	depends on RPMSG
+ 	depends on HAS_IOMEM
+ 	depends on MAILBOX
+ 	help
+@@ -26,16 +23,17 @@ config RPMSG_QCOM_GLINK_RPM
+ config RPMSG_QCOM_SMD
+ 	tristate "Qualcomm Shared Memory Driver (SMD)"
+ 	depends on QCOM_SMEM
+-	select RPMSG
++	depends on RPMSG
+ 	help
+ 	  Say y here to enable support for the Qualcomm Shared Memory Driver
+ 	  providing communication channels to remote processors in Qualcomm
+ 	  platforms.
+ 
+ config RPMSG_VIRTIO
+-	tristate
+-	select RPMSG
++	tristate "Virtio remote processor messaging driver (RPMSG)"
++	depends on RPMSG
+ 	select VIRTIO
+ 	select VIRTUALIZATION
+-
+-endmenu
++	help
++	  Say y here to enable support for the Virtio remote processor
++	  messaging protocol (RPMSG).
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.12.0
