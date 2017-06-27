@@ -1,63 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:58430 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752662AbdF0QJI (ORCPT
+Received: from lelnx194.ext.ti.com ([198.47.27.80]:49277 "EHLO
+        lelnx194.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751498AbdF0JXl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 12:09:08 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v3 0/8] [media] s5p-jpeg: Various fixes and improvements
-Date: Tue, 27 Jun 2017 18:08:46 +0200
-Message-Id: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
+        Tue, 27 Jun 2017 05:23:41 -0400
+Subject: Re: [PATCH 1/8] arm: omap4: enable CEC pin for Pandaboard A4 and ES
+To: Tony Lindgren <tony@atomide.com>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        <linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+References: <20170414102512.48834-1-hverkuil@xs4all.nl>
+ <20170414102512.48834-2-hverkuil@xs4all.nl>
+ <4355dab4-9c70-77f7-f89b-9a1cf24976cf@ti.com>
+ <20170626110711.GW3730@atomide.com>
+ <701dbbfa-000a-2b93-405b-246aa90b6dd6@xs4all.nl>
+ <20170627091421.GZ3730@atomide.com>
+From: Jyri Sarha <jsarha@ti.com>
+Message-ID: <0b04a7bc-a969-7cdf-9f98-45d70337cf40@ti.com>
+Date: Tue, 27 Jun 2017 12:23:34 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+In-Reply-To: <20170627091421.GZ3730@atomide.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 06/27/17 12:14, Tony Lindgren wrote:
+> * Hans Verkuil <hverkuil@xs4all.nl> [170627 01:39]:
+>> On 26/06/17 13:07, Tony Lindgren wrote:
+>>> Tomi,
+>>>
+>>> * Tomi Valkeinen <tomi.valkeinen@ti.com> [170428 04:15]:
+>>>> On 14/04/17 13:25, Hans Verkuil wrote:
+>>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>>
+>>>>> The CEC pin was always pulled up, making it impossible to use it.
+>>> ...
+>>>
+>>>> Tony, can you queue this? It's safe to apply separately from the rest of
+>>>> the HDMI CEC work.
+>>>
+>>> So the dts changes are merged now but what's the status of the CEC driver
+>>> changes? Were there some issues as I don't see them in next?
+>>
+>> Tomi advised me to wait until a 'hotplug-interrupt-handling series' for the
+>> omap driver is merged to prevent conflicts. Last I heard (about 3 weeks ago)
+>> this was still pending review.
+> 
+> OK thanks for the update.
+> 
+> Adding Jyri to Cc, hopefully the CEC support allows also setting the
+> HDMI audio volume level on devices implementing it? Or am I too
+> optimistic? :)
+> 
 
-This series contains various fixes and improvements for the Samsung
-s5p-jpeg driver. Most of these patches come from the Chromium v3.8
-kernel tree.
+As long as you do not expect a regular ALSA-volume to work.. But I don't
+see why some CEC application would not work. However, I guess one could
+implement this as feature to ALSA too but AFAIK no such thing exists at
+the moment.
 
-In this v3:
-- Remove codec reset patch (Not needed based on documentation and no
-  use case described in original patch commit message).
-- Check for Exynos5420 variant in stream error handling patch.
-- Add use case for resolution change event support in commit message.
-- Move subsampling value decoding in a separate function.
-- Check Exynos variant for 4:1:1 subsampling support.
+Best regards,
+Jyri
 
-v2:
-- Remove IOMMU support patch (mapping now created automatically for
-  single JPEG CODEC device).
-- Remove "Change sclk_jpeg to 166MHz" patch (can be set through DT
-  properties).
-- Remove support for multi-planar APIs (Not needed).
-- Add comment regarding call to jpeg_bound_align_image() after qbuf.
-- Remove unrelated code from resolution change event support patch.
-
-Thierry Escande (3):
-  [media] s5p-jpeg: Handle parsing error in s5p_jpeg_parse_hdr()
-  [media] s5p-jpeg: Don't use temporary structure in s5p_jpeg_buf_queue
-  [media] s5p-jpeg: Split s5p_jpeg_parse_hdr()
-
-Tony K Nadackal (3):
-  [media] s5p-jpeg: Call jpeg_bound_align_image after qbuf
-  [media] s5p-jpeg: Correct WARN_ON statement for checking subsampling
-  [media] s5p-jpeg: Decode 4:1:1 chroma subsampling format
-
-henryhsu (2):
-  [media] s5p-jpeg: Add support for resolution change event
-  [media] s5p-jpeg: Add stream error handling for Exynos5420
-
- drivers/media/platform/s5p-jpeg/jpeg-core.c | 186 +++++++++++++++++++++-------
- drivers/media/platform/s5p-jpeg/jpeg-core.h |   7 ++
- 2 files changed, 148 insertions(+), 45 deletions(-)
-
--- 
-2.7.4
+>> Tomi, any updates on this? It would be nice to get this in for 4.14.
+> 
+> Yeah seems like we have real mainline kernel user needs for this one.
+> 
+> Regards,
+> 
+> Tony
+> 
