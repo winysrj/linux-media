@@ -1,43 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.218]:20092 "EHLO
-        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751101AbdFZRyY (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:58439 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752165AbdF0QJE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 13:54:24 -0400
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>, s-anna@ti.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        letux-kernel@openphoenux.org,
-        "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH] media: omap3isp: handle NULL return of omap3isp_video_format_info() in ccdc_is_shiftable().
-Date: Mon, 26 Jun 2017 19:54:19 +0200
-Message-Id: <a601fdb6d224f2e4f1a3c1249ebf8438f4b8b5ce.1498499658.git.hns@goldelico.com>
+        Tue, 27 Jun 2017 12:09:04 -0400
+From: Thierry Escande <thierry.escande@collabora.com>
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v3 2/8] [media] s5p-jpeg: Correct WARN_ON statement for checking subsampling
+Date: Tue, 27 Jun 2017 18:08:48 +0200
+Message-Id: <1498579734-1594-3-git-send-email-thierry.escande@collabora.com>
+In-Reply-To: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
+References: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset = "utf-8"
+Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If a camera module driver specifies a format that is not
-supported by omap3isp this ends in a NULL pointer
-dereference instead of a simple fail.
+From: Tony K Nadackal <tony.kn@samsung.com>
 
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+Corrects the WARN_ON statement for subsampling based on the
+JPEG Hardware version.
+
+Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
+Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
 ---
- drivers/media/platform/omap3isp/ispccdc.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index 2fb755f20a6b..dcf16ee7c612 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -2397,6 +2397,9 @@ static bool ccdc_is_shiftable(u32 in, u32 out, unsigned int additional_shift)
- 	in_info = omap3isp_video_format_info(in);
- 	out_info = omap3isp_video_format_info(out);
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 623508d..0d935f5 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -614,24 +614,26 @@ static inline struct s5p_jpeg_ctx *fh_to_ctx(struct v4l2_fh *fh)
  
-+	if (!in_info || !out_info)
-+		return false;
-+
- 	if ((in_info->flavor == 0) || (out_info->flavor == 0))
- 		return false;
- 
+ static int s5p_jpeg_to_user_subsampling(struct s5p_jpeg_ctx *ctx)
+ {
+-	WARN_ON(ctx->subsampling > 3);
+-
+ 	switch (ctx->jpeg->variant->version) {
+ 	case SJPEG_S5P:
++		WARN_ON(ctx->subsampling > 3);
+ 		if (ctx->subsampling > 2)
+ 			return V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
+ 		return ctx->subsampling;
+ 	case SJPEG_EXYNOS3250:
+ 	case SJPEG_EXYNOS5420:
++		WARN_ON(ctx->subsampling > 6);
+ 		if (ctx->subsampling > 3)
+ 			return V4L2_JPEG_CHROMA_SUBSAMPLING_411;
+ 		return exynos3250_decoded_subsampling[ctx->subsampling];
+ 	case SJPEG_EXYNOS4:
+ 	case SJPEG_EXYNOS5433:
++		WARN_ON(ctx->subsampling > 3);
+ 		if (ctx->subsampling > 2)
+ 			return V4L2_JPEG_CHROMA_SUBSAMPLING_420;
+ 		return exynos4x12_decoded_subsampling[ctx->subsampling];
+ 	default:
++		WARN_ON(ctx->subsampling > 3);
+ 		return V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
+ 	}
+ }
 -- 
-2.12.2
+2.7.4
