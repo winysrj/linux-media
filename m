@@ -1,80 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53124
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750831AbdFGQn1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 12:43:27 -0400
-Date: Wed, 7 Jun 2017 13:43:19 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: "Jasmin J." <jasmin@anw.at>
-Cc: linux-media@vger.kernel.org, max.kellermann@gmail.com
-Subject: Re: [PATCH 01/11] [media] dvb-core/dvb_ca_en50221.c: Rename
- STATUSREG_??
-Message-ID: <20170607134319.6b90c6a4@vento.lan>
-In-Reply-To: <3d4c4a10-0c65-9eee-b4e2-b19f1eddb31a@anw.at>
-References: <1494192214-20082-1-git-send-email-jasmin@anw.at>
-        <1494192214-20082-2-git-send-email-jasmin@anw.at>
-        <20170508065545.52b26fc9@vento.lan>
-        <3d4c4a10-0c65-9eee-b4e2-b19f1eddb31a@anw.at>
+Received: from mail.kernel.org ([198.145.29.99]:44048 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752621AbdF0PDv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Jun 2017 11:03:51 -0400
+From: Kieran Bingham <kbingham@kernel.org>
+To: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
+        hans.verkuil@cisco.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v6 0/3] ADV748x HDMI/Analog video receiver
+Date: Tue, 27 Jun 2017 16:03:31 +0100
+Message-Id: <cover.13d48bb2ba66a5e11c962c62b1a7b5832b0a2344.1498575029.git-series.kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 8 May 2017 19:28:48 +0200
-"Jasmin J." <jasmin@anw.at> escreveu:
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-> Hello Mauro!
-> 
->  >> Rename STATUSREG_?? -> STATREG_?? to reduce the line length.  
->  > That sounds a bad idea. We use "stat" on the DVB subsystem as an
->  > alias for statistics.  
-> At the beginning of the style fixes, I thought it is a good idea to reduce
-> as much as possible to get more characters, but at the end this patch
-> doesn't save so much, so we can omit it.
+This is a driver for the Analog Devices ADV748x device, and follows on from a
+previous posting by Niklas Söderlund [0] of an earlier incarnation of this
+driver, and earlier versions posted by myself.
 
-Renaming things is usually not a good idea, specially at core level,
-as it makes a way harder to apply patches from other sources.
+ADV748x
+=======
+The ADV7481 and ADV7482 support two video pipelines which can run independently
+of each other, with each pipeline terminating in a CSI-2 output: TXA (4-Lane)
+and TXB (1-Lane)
 
-Also, if you're doing that just because of the 80cols warning, that's
-the wrong way of doing it ;)
+The ADV7480 (Not included here), ADV7481, and ADV7482 are all derivatives,
+with the following features
 
-The hole idea when the 80cols warning was introduced is to point places at 
-the code were there are potentially too much indentation or code complexity,
-possibly indicating complex functions that could otherwise be split.
-This is useful when new code gets added, but it usually doesn't make
-much sense to fix it on existing code, except when some function has to 
-be re-implemented.
+            Analog   HDMI  MHL  4-Lane  1-Lane
+              In      In         CSI     CSI
+ ADV7480               X    X     X
+ ADV7481      X        X    X     X       X
+ ADV7482      X        X          X       X
 
-So, I please drop patches 1 and 2 from this series.
+Implementation
+==============
 
-> What is then the right procedure now?
-> When I omit it in the first place, I can redo the whole work again and
-> this were a lot of hours. Would it be acceptable to make a patch no. 12 at
-> the end of the sequence, which renames it back?
+This driver creates 4 entities. AFE (CVBS/Analog In), HDMI, TXA and TXB.  At
+probe time, the DT is parsed to identify the endpoints for each of these nodes,
+and those are used for async matching of the CSI2 (TXA/TXB) entities in the
+master driver. The HDMI and AFE entities are then registered after a successful
+registration of both the CSI2 entities.
 
-If you want it applied, this is needed anyway, as the patch doesn't apply 
-cleanly:
+HDMI is statically linked to the TXA entity, while the AFE is statically linked
+to the TXB entity. Routing the AFE through TXA is not supported.
 
-patching file drivers/media/dvb-core/dvb_ca_en50221.c
-Hunk #2 FAILED at 347.
-Hunk #4 succeeded at 649 (offset -12 lines).
-Hunk #5 succeeded at 702 (offset -11 lines).
-Hunk #6 succeeded at 763 (offset -15 lines).
-Hunk #7 succeeded at 779 (offset -15 lines).
-Hunk #8 succeeded at 800 (offset -15 lines).
-Hunk #9 succeeded at 824 (offset -15 lines).
-Hunk #10 succeeded at 937 (offset -15 lines).
-Hunk #11 succeeded at 1151 (offset -15 lines).
-1 out of 11 hunks FAILED -- rejects in file drivers/media/dvb-core/dvb_ca_en50221.c
-Patch patches/lmml_41185_01_11_media_dvb_core_dvb_ca_en50221_c_rename_statusreg.patch does not apply (enforce with -f)
-Patch didn't apply. Aborting
+Support for setting the EDID on HDMI is provided
 
->From this patch series, I was able to apply 2 patches.
+(Known) Future Todo's
+=====================
 
-Btw, don't spend time fixing issues pointed by checkpatch on existing
-code, except if you're rewriting most of the code. We don't want to handle
-merge conflicts due to checkpatch-only changes.
+Further potential development areas include:
+ - ADV7480 Support (No AFE)
+ - MHL support (Not present on ADV7482)
+ - CEC Support
+ - Configurable I2C addressing
+ - Interrupt handling for format changes and hotplug detect.
 
-Thanks,
-Mauro
+However, this driver is functional without the above, and these developments
+can be written when required.
+
+References
+==========
+[0] http://www.mail-archive.com/linux-renesas-soc@vger.kernel.org/msg05196.html
+[1] https://git.ragnatech.se/linux rcar-vin-elinux-v9
+[2] https://www.mail-archive.com/linux-media@vger.kernel.org/msg111332.html
+
+v1/RFC:
+ - Initial posting
+
+v2:
+ - Reworked DT parsing and entities
+
+v3:
+ - Refreshed with lots of fixups from Sakari's review comments
+
+v4:
+ - Many changes all round, following Laurent's review and extensive development
+ - Now uses regmap
+ - AFE port numbering has been changed to match the entity pads
+
+v5:
+ - DT is now based on the latest salvator-common.dtsi
+ - Entities are linked with immutable connections
+
+v6:
+ - EDID support added to HDMI
+ - AFE no longer autodetects input format by default.
+
+Kieran Bingham (3):
+  media: adv748x: Add adv7181, adv7182 bindings
+  media: i2c: adv748x: add adv748x driver
+  MAINTAINERS: Add ADV748x driver
+
+ Documentation/devicetree/bindings/media/i2c/adv748x.txt |  95 +-
+ MAINTAINERS                                             |   6 +-
+ drivers/media/i2c/Kconfig                               |  11 +-
+ drivers/media/i2c/Makefile                              |   1 +-
+ drivers/media/i2c/adv748x/Makefile                      |   7 +-
+ drivers/media/i2c/adv748x/adv748x-afe.c                 | 545 ++++++-
+ drivers/media/i2c/adv748x/adv748x-core.c                | 831 +++++++++-
+ drivers/media/i2c/adv748x/adv748x-csi2.c                | 327 ++++-
+ drivers/media/i2c/adv748x/adv748x-hdmi.c                | 769 ++++++++-
+ drivers/media/i2c/adv748x/adv748x.h                     | 425 +++++-
+ 10 files changed, 3017 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/adv748x.txt
+ create mode 100644 drivers/media/i2c/adv748x/Makefile
+ create mode 100644 drivers/media/i2c/adv748x/adv748x-afe.c
+ create mode 100644 drivers/media/i2c/adv748x/adv748x-core.c
+ create mode 100644 drivers/media/i2c/adv748x/adv748x-csi2.c
+ create mode 100644 drivers/media/i2c/adv748x/adv748x-hdmi.c
+ create mode 100644 drivers/media/i2c/adv748x/adv748x.h
+
+base-commit: 2748e76ddb2967c4030171342ebdd3faa6a5e8e8
+-- 
+git-series 0.9.1
