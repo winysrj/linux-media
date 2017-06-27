@@ -1,36 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:35970 "EHLO
-        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750772AbdFBGhz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Jun 2017 02:37:55 -0400
-Received: by mail-wm0-f43.google.com with SMTP id 7so13599956wmo.1
-        for <linux-media@vger.kernel.org>; Thu, 01 Jun 2017 23:37:50 -0700 (PDT)
-MIME-Version: 1.0
-From: Tim Harvey <tharvey@gateworks.com>
-Date: Thu, 1 Jun 2017 23:37:43 -0700
-Message-ID: <CAJ+vNU1TOOSf-PoXw1oGTVhGNp2w=X2KAmpYtT8c32GRju2kEQ@mail.gmail.com>
-Subject: regmap for i2c pages
-To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Mark Brown <broonie@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:40101 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750742AbdF0EAY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Jun 2017 00:00:24 -0400
+Message-ID: <3970e2e564927a40cc06fff32d62e843@smtp-cloud3.xs4all.net>
+Date: Tue, 27 Jun 2017 06:00:21 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm working on a driver for an i2c based media controller device that
-uses pages. By that I mean there are several pages of 8bit registers
-and a page-select register that holds the current page. Multiple
-accesses to the same page can occur without writing to this page
-register but if you want to access another page you need to update it.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I believe this is a very common i2c register mechanism but I'm not
-clear what the best way to use i2c regmap for this is. I'm reading
-that regmap 'handles register pages' but I'm not clear if that's the
-same thing I'm looking for. If so, are there any examples of this? I
-see several i2c drivers that reference pages but it looks to me that
-each page is a different i2c slave address which is something
-different.
+Results of the daily build of media_tree:
 
-Regards,
+date:			Tue Jun 27 05:00:17 CEST 2017
+media-tree git hash:	2748e76ddb2967c4030171342ebdd3faa6a5e8e8
+media_build git hash:	bf38fb5438c3cfd90a7496e951c6902111b77587
+v4l-utils git hash:	1ae9a7adea3766879935dfede90d5aefd954c786
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-Tim
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12-rc1-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
