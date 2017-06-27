@@ -1,192 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f178.google.com ([209.85.192.178]:33372 "EHLO
-        mail-pf0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751437AbdFFXhr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Jun 2017 19:37:47 -0400
-Received: by mail-pf0-f178.google.com with SMTP id 83so45304466pfr.0
-        for <linux-media@vger.kernel.org>; Tue, 06 Jun 2017 16:37:46 -0700 (PDT)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: Sekhar Nori <nsekhar@ti.com>, David Lechner <david@lechnology.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        Benoit Parrot <bparrot@ti.com>,
-        Prabhakar Lad <prabhakar.csengg@gmail.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: [PATCH v2 3/4] [media] davinci: vpif_capture: cleanup raw camera support
-Date: Tue,  6 Jun 2017 16:37:40 -0700
-Message-Id: <20170606233741.26718-4-khilman@baylibre.com>
-In-Reply-To: <20170606233741.26718-1-khilman@baylibre.com>
-References: <20170606233741.26718-1-khilman@baylibre.com>
+Received: from mail-it0-f67.google.com ([209.85.214.67]:35933 "EHLO
+        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753234AbdF0UPU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Jun 2017 16:15:20 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1d7621d4-b7c6-b21b-f06e-ed6baa1b00ca@linaro.org>
+References: <20170627150310.719212-1-arnd@arndb.de> <20170627150310.719212-2-arnd@arndb.de>
+ <1d7621d4-b7c6-b21b-f06e-ed6baa1b00ca@linaro.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Tue, 27 Jun 2017 22:15:18 +0200
+Message-ID: <CAK8P3a3cNZ8-Jkmnk4tSmXQA6yqsCfxPvJaUY8Zd007w1tRvDQ@mail.gmail.com>
+Subject: Re: [PATCH 2/3] [media] venus: don't abuse dma_alloc for non-DMA allocations
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The current driver has a handful of hard-coded assumptions based on its
-primary use for capture of video signals.  Cleanup those assumptions,
-and also query the subdev for format information and use that if
-available.
+On Tue, Jun 27, 2017 at 9:39 PM, Stanimir Varbanov
+<stanimir.varbanov@linaro.org> wrote:
+> Hi Arnd,
+>
+> On 27.06.2017 18:02, Arnd Bergmann wrote:
+>>
+>> In venus_boot(), we pass a pointer to a phys_addr_t
+>> into dmam_alloc_coherent, which the compiler warns about:
+>>
+>> platform/qcom/venus/firmware.c: In function 'venus_boot':
+>> platform/qcom/venus/firmware.c:63:49: error: passing argument 3 of
+>> 'dmam_alloc_coherent' from incompatible pointer type
+>> [-Werror=incompatible-pointer-types]
+>>
+>> The returned DMA address is later passed on to a function that
+>> takes a phys_addr_t, so it's clearly wrong to use the DMA
+>> mapping interface here: the memory may be uncached, or the
+>> address may be completely wrong if there is an IOMMU connected
+>> to the device.
+>>
+>> My interpretation is that using dmam_alloc_coherent() had two
+>> purposes:
+>>
+>>   a) get a chunk of consecutive memory that may be larger than
+>>      the limit for kmalloc()
+>>
+>>   b) use the devres infrastructure to simplify the unwinding
+>>      in the error case.
+>
+>
+> The intension here is to use per-device memory which is removed from kernel
+> allocator, that memory is used by remote processor (Venus) for its code
+> section and system memory, the memory must not be mapped to kernel to avoid
+> any cache issues.
+>
+> As the memory in subject is reserved per-device memory the only legal way to
+> allocate it is by dmam_alloc_coherent() -> dma_alloc_from_coherent().
+>
+> For me the confusion comes from phys_addr_t which is passed to
+> qcom_mdt_load() and then the address passed to qcom_scm_pas_mem_setup()
+> which probably protects that physical memory. And the tz really expects
+> physical address.
+>
+> The only solution I see is by casting dma_addr_t to phys_addr_t. Yes it is
+> ugly but what is proper solution then?
 
-Tested with 10-bit raw bayer input (SGRBG10) using the aptina,mt9v032
-sensor, and also tested that composite video input still works from
-ti,tvp514x decoder.  Both tests done on the da850-evm board with the
-add-on UI board.
+If you actually have a separate remote processor that accesses this memory,
+then qcom_mdt_load() is the wrong interface, as it takes a physical address,
+and we need to introduce another interface that can take a DMA address
+relative to a particular device.
 
-NOTE: Will need further testing for other sensors with different bus
-formats.
+You cannot cast between the two types because phys_addr_t is an address
+as seen from the CPU, and dma_addr_t is seen by a particular device,
+and can only be used together with that device pointer.
 
-Signed-off-by: Kevin Hilman <khilman@baylibre.com>
----
- drivers/media/platform/davinci/vpif_capture.c | 82 ++++++++++++++++++++++++++-
- 1 file changed, 80 insertions(+), 2 deletions(-)
+It looks like the pointer gets passed down to
+qcom_scm_call(dev, QCOM_SCM_SVC_PIL,
+QCOM_SCM_PAS_MEM_SETUP_CMD, ...), which in turn takes
+a 32-bit address, suggesting that this is indeed a dma address for that
+device (possibly going through an IOMMU), so maybe it just needs to
+all be changed to dma_addr_t.
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index b9d927d1e5a8..67624dbf1272 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -24,6 +24,9 @@
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-of.h>
- #include <media/i2c/tvp514x.h>
-+#include <media/v4l2-mediabus.h>
-+
-+#include <linux/videodev2.h>
- 
- #include "vpif.h"
- #include "vpif_capture.h"
-@@ -387,7 +390,8 @@ static irqreturn_t vpif_channel_isr(int irq, void *dev_id)
- 		common = &ch->common[i];
- 		/* skip If streaming is not started in this channel */
- 		/* Check the field format */
--		if (1 == ch->vpifparams.std_info.frm_fmt) {
-+		if (1 == ch->vpifparams.std_info.frm_fmt ||
-+		    common->fmt.fmt.pix.field == V4L2_FIELD_NONE) {
- 			/* Progressive mode */
- 			spin_lock(&common->irqlock);
- 			if (list_empty(&common->dma_queue)) {
-@@ -468,9 +472,38 @@ static int vpif_update_std_info(struct channel_obj *ch)
- 	struct vpif_channel_config_params *std_info = &vpifparams->std_info;
- 	struct video_obj *vid_ch = &ch->video;
- 	int index;
-+	struct v4l2_pix_format *pixfmt = &common->fmt.fmt.pix;
- 
- 	vpif_dbg(2, debug, "vpif_update_std_info\n");
- 
-+	/*
-+	 * if called after try_fmt or g_fmt, there will already be a size
-+	 * so use that by default.
-+	 */
-+	if (pixfmt->width && pixfmt->height) {
-+		if (pixfmt->field == V4L2_FIELD_ANY ||
-+		    pixfmt->field == V4L2_FIELD_NONE)
-+			pixfmt->field = V4L2_FIELD_NONE;
-+		
-+		vpifparams->iface.if_type = VPIF_IF_BT656;
-+		if (pixfmt->pixelformat == V4L2_PIX_FMT_SGRBG10 ||
-+		    pixfmt->pixelformat == V4L2_PIX_FMT_SBGGR8)
-+			vpifparams->iface.if_type = VPIF_IF_RAW_BAYER;
-+
-+		if (pixfmt->pixelformat == V4L2_PIX_FMT_SGRBG10)
-+			vpifparams->params.data_sz = 1; /* 10 bits/pixel.  */
-+
-+		/* 
-+		 * For raw formats from camera sensors, we don't need 
-+		 * the std_info from table lookup, so nothing else to do here.
-+		 */
-+		if (vpifparams->iface.if_type == VPIF_IF_RAW_BAYER) {
-+			memset(std_info, 0, sizeof(struct vpif_channel_config_params));
-+			vpifparams->std_info.capture_format = 1; /* CCD/raw mode */
-+			return 0;
-+		}
-+	}
-+
- 	for (index = 0; index < vpif_ch_params_count; index++) {
- 		config = &vpif_ch_params[index];
- 		if (config->hd_sd == 0) {
-@@ -939,6 +972,7 @@ static int vpif_try_fmt_vid_cap(struct file *file, void *priv,
- 	struct v4l2_pix_format *pixfmt = &fmt->fmt.pix;
- 	struct common_obj *common = &(ch->common[VPIF_VIDEO_INDEX]);
- 
-+	common->fmt = *fmt;
- 	vpif_update_std_info(ch);
- 
- 	pixfmt->field = common->fmt.fmt.pix.field;
-@@ -947,8 +981,17 @@ static int vpif_try_fmt_vid_cap(struct file *file, void *priv,
- 	pixfmt->width = common->fmt.fmt.pix.width;
- 	pixfmt->height = common->fmt.fmt.pix.height;
- 	pixfmt->sizeimage = pixfmt->bytesperline * pixfmt->height * 2;
-+	if (pixfmt->pixelformat == V4L2_PIX_FMT_SGRBG10) {
-+		pixfmt->bytesperline = common->fmt.fmt.pix.width * 2;
-+		pixfmt->sizeimage = pixfmt->bytesperline * pixfmt->height;
-+	}
- 	pixfmt->priv = 0;
- 
-+	dev_dbg(vpif_dev, "%s: %d x %d; pitch=%d pixelformat=0x%08x, field=%d, size=%d\n", __func__,
-+		pixfmt->width, pixfmt->height,
-+		pixfmt->bytesperline, pixfmt->pixelformat,
-+		pixfmt->field, pixfmt->sizeimage);
-+
- 	return 0;
- }
- 
-@@ -965,13 +1008,47 @@ static int vpif_g_fmt_vid_cap(struct file *file, void *priv,
- 	struct video_device *vdev = video_devdata(file);
- 	struct channel_obj *ch = video_get_drvdata(vdev);
- 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
-+	struct v4l2_pix_format *pix_fmt = &fmt->fmt.pix;
-+	struct v4l2_subdev_format format = {
-+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+	};
-+	struct v4l2_mbus_framefmt *mbus_fmt = &format.format;
-+	int ret;
- 
- 	/* Check the validity of the buffer type */
- 	if (common->fmt.type != fmt->type)
- 		return -EINVAL;
- 
--	/* Fill in the information about format */
-+	/* By default, use currently set fmt */
- 	*fmt = common->fmt;
-+	
-+	/* If subdev has get_fmt, use that to override */
-+	ret = v4l2_subdev_call(ch->sd, pad, get_fmt, NULL, &format);
-+	if (!ret && mbus_fmt->code) {
-+		v4l2_fill_pix_format(pix_fmt, mbus_fmt);
-+		pix_fmt->bytesperline = pix_fmt->width;
-+		if (mbus_fmt->code == MEDIA_BUS_FMT_SGRBG10_1X10) {
-+			/* e.g. mt9v032 */
-+			pix_fmt->pixelformat = V4L2_PIX_FMT_SGRBG10;
-+			pix_fmt->bytesperline = pix_fmt->width * 2;
-+		} else if (mbus_fmt->code == MEDIA_BUS_FMT_UYVY8_2X8) {
-+			/* e.g. tvp514x */
-+			pix_fmt->pixelformat = V4L2_PIX_FMT_NV16;
-+			pix_fmt->bytesperline = pix_fmt->width * 2;
-+		} else {
-+			dev_warn(vpif_dev, "%s: Unhandled media-bus format 0x%x\n",
-+				 __func__, mbus_fmt->code);
-+		}
-+		pix_fmt->sizeimage = pix_fmt->bytesperline * pix_fmt->height;
-+		dev_dbg(vpif_dev, "%s: %d x %d; pitch=%d, pixelformat=0x%08x, code=0x%x, field=%d, size=%d\n", __func__,
-+			pix_fmt->width, pix_fmt->height,
-+			pix_fmt->bytesperline, pix_fmt->pixelformat, 
-+			mbus_fmt->code, pix_fmt->field, pix_fmt->sizeimage);
-+
-+		common->fmt = *fmt;
-+		vpif_update_std_info(ch);
-+	}
-+
- 	return 0;
- }
- 
-@@ -1358,6 +1435,7 @@ static int vpif_probe_complete(void)
- 		/* set initial format */
- 		ch->video.stdid = V4L2_STD_525_60;
- 		memset(&ch->video.dv_timings, 0, sizeof(ch->video.dv_timings));
-+		common->fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 		vpif_update_std_info(ch);
- 
- 		/* Initialize vb2 queue */
--- 
-2.9.3
+Is there any official documentation for qcom_scm_call() that clarifies
+what address space the arguments are in?
+
+        Arnd
