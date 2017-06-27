@@ -1,66 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f43.google.com ([209.85.215.43]:35893 "EHLO
-        mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754194AbdFLQae (ORCPT
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:37722 "EHLO
+        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752814AbdF0TqB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Jun 2017 12:30:34 -0400
-Received: by mail-lf0-f43.google.com with SMTP id o83so53507366lff.3
-        for <linux-media@vger.kernel.org>; Mon, 12 Jun 2017 09:30:34 -0700 (PDT)
-To: linux-firmware@kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>
+        Tue, 27 Jun 2017 15:46:01 -0400
+Received: by mail-wm0-f54.google.com with SMTP id i127so37431268wma.0
+        for <linux-media@vger.kernel.org>; Tue, 27 Jun 2017 12:46:00 -0700 (PDT)
+Subject: Re: [PATCH 3/3] [media] venus: fix compile-test build on non-qcom ARM
+ platform
+To: Arnd Bergmann <arnd@arndb.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20170627150310.719212-1-arnd@arndb.de>
+ <20170627150310.719212-3-arnd@arndb.de>
 From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [GIT PULL] linux-firmware: Add Qualcomm Venus firmware
-Message-ID: <bea5851d-d634-d405-a8f6-6facaca09c03@linaro.org>
-Date: Mon, 12 Jun 2017 19:30:30 +0300
+Message-ID: <f8c63e5a-a650-c564-378a-fbe769f2a26d@linaro.org>
+Date: Tue, 27 Jun 2017 22:45:58 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <20170627150310.719212-3-arnd@arndb.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Arnd,
 
-This pull request adds firmware for venus video codec driver.
+On 27.06.2017 18:02, Arnd Bergmann wrote:
+> If QCOM_MDT_LOADER is enabled, but ARCH_QCOM is not, we run into
+> a build error:
+> 
+> ERROR: "qcom_mdt_load" [drivers/media/platform/qcom/venus/venus-core.ko] undefined!
+> ERROR: "qcom_mdt_get_size" [drivers/media/platform/qcom/venus/venus-core.ko] undefined!
 
-The following changes since commit 37857004a430e96dc837db7f967b6d0279053de8:
+Ahh, thanks for the fix, these two will also pursuing me in my dreams.
 
-  linux-firmware: add firmware image for Redpine 9113 chipset
-(2017-06-01 10:22:17 -0700)
+> 
+> This changes the 'select' statement again, so we only try to enable
+> those symbols when the drivers will actually get built.
+> 
+> Fixes: 76724b30f222 ("[media] media: venus: enable building with COMPILE_TEST")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-are available in the git repository at:
+Reviewed-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 
-  https://github.com/svarbanov/linux-firmware.git
+> ---
+>   drivers/media/platform/Kconfig | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index cb2f31cd0088..635c53e61f8a 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -475,8 +475,8 @@ config VIDEO_QCOM_VENUS
+>   	tristate "Qualcomm Venus V4L2 encoder/decoder driver"
+>   	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
+>   	depends on (ARCH_QCOM && IOMMU_DMA) || COMPILE_TEST
+> -	select QCOM_MDT_LOADER if (ARM || ARM64)
+> -	select QCOM_SCM if (ARM || ARM64)
+> +	select QCOM_MDT_LOADER if ARCH_QCOM
+> +	select QCOM_SCM if ARCH_QCOM
+>   	select VIDEOBUF2_DMA_SG
+>   	select V4L2_MEM2MEM_DEV
+>   	---help---
+> 
 
-for you to fetch changes up to 70c8af0291f81a39b411f7f125ec413f00073e5f:
-
-  qcom: add venus firmware files for v1.8 (2017-06-12 17:09:27 +0300)
-
-----------------------------------------------------------------
-Stanimir Varbanov (1):
-      qcom: add venus firmware files for v1.8
-
- LICENSE.qcom             | 206 +++++++++++++++++++
- WHENCE                   |  18 ++
- qcom/NOTICE.txt          | 506
-+++++++++++++++++++++++++++++++++++++++++++++++
- qcom/venus-1.8/venus.b00 | Bin 0 -> 212 bytes
- qcom/venus-1.8/venus.b01 | Bin 0 -> 6600 bytes
- qcom/venus-1.8/venus.b02 | Bin 0 -> 975088 bytes
- qcom/venus-1.8/venus.b03 | Bin 0 -> 5568 bytes
- qcom/venus-1.8/venus.b04 |   1 +
- qcom/venus-1.8/venus.mdt | Bin 0 -> 6812 bytes
- 9 files changed, 731 insertions(+)
- create mode 100644 LICENSE.qcom
- create mode 100644 qcom/NOTICE.txt
- create mode 100644 qcom/venus-1.8/venus.b00
- create mode 100644 qcom/venus-1.8/venus.b01
- create mode 100644 qcom/venus-1.8/venus.b02
- create mode 100644 qcom/venus-1.8/venus.b03
- create mode 100644 qcom/venus-1.8/venus.b04
- create mode 100644 qcom/venus-1.8/venus.mdt
-
--- 
 regards,
 Stan
