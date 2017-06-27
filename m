@@ -1,100 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58303 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751882AbdFSVZQ (ORCPT
+Received: from fllnx209.ext.ti.com ([198.47.19.16]:14471 "EHLO
+        fllnx209.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752810AbdF0KOt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 17:25:16 -0400
-Subject: Re: [media-build] Can't compile for Kernel 3.13 after recent changes
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Jasmin J." <jasmin@anw.at>, linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <e7955c6a-06d4-1cf4-f776-f0db0bd61f18@anw.at>
- <2d7876e4-5c56-4b48-cdaf-5810f355ba7b@xs4all.nl>
-Message-ID: <916b11cb-6a11-4b7f-2c72-e95ac81cbd9b@xs4all.nl>
-Date: Mon, 19 Jun 2017 23:25:11 +0200
+        Tue, 27 Jun 2017 06:14:49 -0400
+Subject: Re: [PATCH] [media] davinci/dm644x: work around
+ ccdc_update_raw_params trainwreck
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kevin Hilman <khilman@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>
+References: <20170609213616.410415-1-arnd@arndb.de>
+ <CA+V-a8vFYtOc1tARPL1tH3XafXY30p0pAeJjy7qEzF0RkL9cNQ@mail.gmail.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Message-ID: <1b0671fa-fec7-11fa-6b91-0afad904c651@ti.com>
+Date: Tue, 27 Jun 2017 15:43:45 +0530
 MIME-Version: 1.0
-In-Reply-To: <2d7876e4-5c56-4b48-cdaf-5810f355ba7b@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <CA+V-a8vFYtOc1tARPL1tH3XafXY30p0pAeJjy7qEzF0RkL9cNQ@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/19/2017 09:20 PM, Hans Verkuil wrote:
-> On 06/19/2017 08:43 PM, Jasmin J. wrote:
->> Hi!
->>
->> After the recent changes, I can no longer compile for Kernel 3.13
+On Tuesday 20 June 2017 06:36 PM, Lad, Prabhakar wrote:
+> Hi Arnd,
 > 
-> I know. I haven't had time to look at this and fix it. It probably won't be until
-> early next week due to some travel.
+> Thanks for the patch.
+> 
+> On Fri, Jun 9, 2017 at 10:36 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+>> Now that the davinci drivers can be enabled in compile tests on other
+>> architectures, I ran into this warning on a 64-bit build:
+>>
+>> drivers/media/platform/davinci/dm644x_ccdc.c: In function 'ccdc_update_raw_params':
+>> drivers/media/platform/davinci/dm644x_ccdc.c:279:7: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
+>>
+>> While that looks fairly harmless (it would be fine on 32-bit), it was
+>> just the tip of the iceberg:
+>>
+>> - The function constantly mixes up pointers and phys_addr_t numbers
+>> - This is part of a 'VPFE_CMD_S_CCDC_RAW_PARAMS' ioctl command that is
+>>   described as an 'experimental ioctl that will change in future kernels',
+>>   but if we have users that probably won't happen.
+>> - The code to allocate the table never gets called after we copy_from_user
+>>   the user input over the kernel settings, and then compare them
+>>   for inequality.
+>> - We then go on to use an address provided by user space as both the
+>>   __user pointer for input and pass it through phys_to_virt to come up
+>>   with a kernel pointer to copy the data to. This looks like a trivially
+>>   exploitable root hole.
+>>
+>> This patch disables all the obviously broken code, by zeroing out the
+>> sensitive data provided by user space. I also fix the type confusion
+>> here. If we think the ioctl has no stable users, we could consider
+>> just removing it instead.
+>>
+> I suspect there shouldn’t  be possible users of this IOCTL, better of  removing
+> the IOCTL itself.
+> 
+> Sekhar your call, as the latest PSP releases for 644x use the media
+> controller framework.
 
-OK, so I felt a bit guilty and decided to take a quick look. I think it
-will now build again for 3.13.
+I do not have any personal experience with anyone using this support
+with latest kernels. I too am okay with removing the broken support.
 
-Regards,
+Since the header file that defines the ioctl is not in include/uapi/*, I
+guess it cannot be considered stable userspace ABI? Also, there are
+enough warnings about instability thrown in the comments surrounding the
+ioctl in include/media/davinci/vpfe_capture.h.
 
-	Hans
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
->>
->> BR,
->>      Jasmin
->>
->> Here the build Log:
->>
->> Kernel build directory is /lib/modules/3.13.0-117-generic/build
->> make -C ../linux apply_patches
->> make[2]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
->> Patches for 3.13.0-117-generic already applied.
->> make[2]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
->> make -C /lib/modules/3.13.0-117-generic/build SUBDIRS=/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l  modules
->> make[2]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/linux-headers-3.13.0-117-generic'
->>     CC [M]  /mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/altera-lpt.o
->>     CC [M]  /mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/altera-jtag.o
->>     CC [M]  /mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/altera-comp.o
->> In file included from <command-line>:0:0:
->> /mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/compat.h: In function 'dev_fwnode':
->> /mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/compat.h:2017:12: error: 'struct device' has no member named 'fwnode'
->>     return dev->fwnode;
->>               ^
->> /mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/altera-lpt.c: At top level:
->> cc1: warning: unrecognized command line option '-Wno-implicit-fallthrough'
->> cc1: warning: unrecognized command line option '-Wno-unused-const-variable'
->> scripts/Makefile.build:308: recipe for target '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/altera-lpt.o' failed
->> make[3]: *** [/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/altera-lpt.o] Error 1
->> make[3]: *** Waiting for unfinished jobs....
->> In file included from <command-line>:0:0:
->> /mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/compat.h: In function 'dev_fwnode':
->> /mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/compat.h:2017:12: error: 'struct device' has no member named 'fwnode'
->>     return dev->fwnode;
->>               ^
->> /mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/altera-comp.c: At top level:
->> cc1: warning: unrecognized command line option '-Wno-implicit-fallthrough'
->> cc1: warning: unrecognized command line option '-Wno-unused-const-variable'
->> scripts/Makefile.build:308: recipe for target '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/altera-comp.o' failed
->> make[3]: *** [/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/altera-comp.o] Error 1
->> In file included from <command-line>:0:0:
->> /mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/compat.h: In function 'dev_fwnode':
->> /mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/compat.h:2017:12: error: 'struct device' has no member named 'fwnode'
->>     return dev->fwnode;
->>               ^
->> /mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/altera-jtag.c: At top level:
->> cc1: warning: unrecognized command line option '-Wno-implicit-fallthrough'
->> cc1: warning: unrecognized command line option '-Wno-unused-const-variable'
->> scripts/Makefile.build:308: recipe for target '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/altera-jtag.o' failed
->> make[3]: *** [/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/altera-jtag.o] Error 1
->> Makefile:1279: recipe for target '_module_/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l' failed
->> make[2]: *** [_module_/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l] Error 2
->> make[2]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/linux-headers-3.13.0-117-generic'
->> Makefile:51: recipe for target 'default' failed
->> make[1]: *** [default] Error 2
->> make[1]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l'
->> Makefile:26: recipe for target 'all' failed
->>
-> 
+Thanks,
+Sekhar
