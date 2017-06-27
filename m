@@ -1,170 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:56418 "EHLO hardeman.nu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751050AbdFYMbr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Jun 2017 08:31:47 -0400
-Subject: [PATCH 06/19] lirc_dev: make chunk_size and buffer_size mandatory
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, sean@mess.org
-Date: Sun, 25 Jun 2017 14:31:45 +0200
-Message-ID: <149839390523.28811.16125400091891762736.stgit@zeus.hardeman.nu>
-In-Reply-To: <149839373103.28811.9486751698665303339.stgit@zeus.hardeman.nu>
-References: <149839373103.28811.9486751698665303339.stgit@zeus.hardeman.nu>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:58444 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752371AbdF0QJG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Jun 2017 12:09:06 -0400
+From: Thierry Escande <thierry.escande@collabora.com>
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v3 4/8] [media] s5p-jpeg: Don't use temporary structure in s5p_jpeg_buf_queue
+Date: Tue, 27 Jun 2017 18:08:50 +0200
+Message-Id: <1498579734-1594-5-git-send-email-thierry.escande@collabora.com>
+In-Reply-To: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
+References: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset = "utf-8"
+Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make setting chunk_size and buffer_size mandatory for drivers which
-expect lirc_dev to allocate the lirc_buffer (i.e. ir-lirc-codec) and
-don't set them in lirc-zilog (which creates its own buffer).
+If s5p_jpeg_parse_hdr() fails to parse the JPEG header, the passed
+s5p_jpeg_q_data structure is not modify so there is no need to use a
+temporary structure and the field-by-field copy can be avoided.
 
-Also remove an unnecessary copy of chunk_size in struct irctl (the
-same information is already available from struct lirc_buffer).
-
-Signed-off-by: David Härdeman <david@hardeman.nu>
+Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
 ---
- drivers/media/rc/lirc_dev.c             |   26 +++++++++++++-------------
- drivers/staging/media/lirc/lirc_zilog.c |    5 +----
- include/media/lirc_dev.h                |    9 +++++----
- 3 files changed, 19 insertions(+), 21 deletions(-)
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 23 ++++-------------------
+ 1 file changed, 4 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 2de840dd829d..1773a2934484 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -41,7 +41,6 @@ struct irctl {
- 	struct mutex irctl_lock;
- 	struct lirc_buffer *buf;
- 	bool buf_internal;
--	unsigned int chunk_size;
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index df3e5ee..1769744 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -2500,9 +2500,9 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
  
- 	struct device dev;
- 	struct cdev cdev;
-@@ -72,16 +71,8 @@ static void lirc_release(struct device *ld)
- static int lirc_allocate_buffer(struct irctl *ir)
- {
- 	int err = 0;
--	int bytes_in_key;
--	unsigned int chunk_size;
--	unsigned int buffer_size;
- 	struct lirc_driver *d = &ir->d;
+ 	if (ctx->mode == S5P_JPEG_DECODE &&
+ 	    vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+-		struct s5p_jpeg_q_data tmp, *q_data;
++		struct s5p_jpeg_q_data *q_data;
  
--	bytes_in_key = BITS_TO_LONGS(d->code_length) +
--						(d->code_length % 8 ? 1 : 0);
--	buffer_size = d->buffer_size ? d->buffer_size : BUFLEN / bytes_in_key;
--	chunk_size  = d->chunk_size  ? d->chunk_size  : bytes_in_key;
--
- 	if (d->rbuf) {
- 		ir->buf = d->rbuf;
- 		ir->buf_internal = false;
-@@ -92,7 +83,7 @@ static int lirc_allocate_buffer(struct irctl *ir)
- 			goto out;
+-		ctx->hdr_parsed = s5p_jpeg_parse_hdr(&tmp,
++		ctx->hdr_parsed = s5p_jpeg_parse_hdr(&ctx->out_q,
+ 		     (unsigned long)vb2_plane_vaddr(vb, 0),
+ 		     min((unsigned long)ctx->out_q.size,
+ 			 vb2_get_plane_payload(vb, 0)), ctx);
+@@ -2511,24 +2511,9 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
+ 			return;
  		}
  
--		err = lirc_buffer_init(ir->buf, chunk_size, buffer_size);
-+		err = lirc_buffer_init(ir->buf, d->chunk_size, d->buffer_size);
- 		if (err) {
- 			kfree(ir->buf);
- 			ir->buf = NULL;
-@@ -102,7 +93,6 @@ static int lirc_allocate_buffer(struct irctl *ir)
- 		ir->buf_internal = true;
- 		d->rbuf = ir->buf;
- 	}
--	ir->chunk_size = ir->buf->chunk_size;
+-		q_data = &ctx->out_q;
+-		q_data->w = tmp.w;
+-		q_data->h = tmp.h;
+-		q_data->sos = tmp.sos;
+-		memcpy(q_data->dht.marker, tmp.dht.marker,
+-		       sizeof(tmp.dht.marker));
+-		memcpy(q_data->dht.len, tmp.dht.len, sizeof(tmp.dht.len));
+-		q_data->dht.n = tmp.dht.n;
+-		memcpy(q_data->dqt.marker, tmp.dqt.marker,
+-		       sizeof(tmp.dqt.marker));
+-		memcpy(q_data->dqt.len, tmp.dqt.len, sizeof(tmp.dqt.len));
+-		q_data->dqt.n = tmp.dqt.n;
+-		q_data->sof = tmp.sof;
+-		q_data->sof_len = tmp.sof_len;
+-
+ 		q_data = &ctx->cap_q;
+-		q_data->w = tmp.w;
+-		q_data->h = tmp.h;
++		q_data->w = ctx->out_q.w;
++		q_data->h = ctx->out_q.h;
  
- out:
- 	return err;
-@@ -129,6 +119,16 @@ int lirc_register_driver(struct lirc_driver *d)
- 		return -EINVAL;
- 	}
- 
-+	if (!d->rbuf && d->chunk_size < 1) {
-+		pr_err("chunk_size must be set!\n");
-+		return -EINVAL;
-+	}
-+
-+	if (!d->rbuf && d->buffer_size < 1) {
-+		pr_err("buffer_size must be set!\n");
-+		return -EINVAL;
-+	}
-+
- 	if (d->code_length < 1 || d->code_length > (BUFLEN * 8)) {
- 		dev_err(d->dev, "code length must be less than %d bits\n",
- 								BUFLEN * 8);
-@@ -385,7 +385,7 @@ ssize_t lirc_dev_fop_read(struct file *file,
- 
- 	dev_dbg(ir->d.dev, LOGHEAD "read called\n", ir->d.name, ir->d.minor);
- 
--	buf = kzalloc(ir->chunk_size, GFP_KERNEL);
-+	buf = kzalloc(ir->buf->chunk_size, GFP_KERNEL);
- 	if (!buf)
- 		return -ENOMEM;
- 
-@@ -398,7 +398,7 @@ ssize_t lirc_dev_fop_read(struct file *file,
- 		goto out_locked;
- 	}
- 
--	if (length % ir->chunk_size) {
-+	if (length % ir->buf->chunk_size) {
- 		ret = -EINVAL;
- 		goto out_locked;
- 	}
-diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-index 6d4c5a957ab4..c6a2fe2ad210 100644
---- a/drivers/staging/media/lirc/lirc_zilog.c
-+++ b/drivers/staging/media/lirc/lirc_zilog.c
-@@ -1348,8 +1348,6 @@ static const struct file_operations lirc_fops = {
- static struct lirc_driver lirc_template = {
- 	.name		= "lirc_zilog",
- 	.code_length	= 13,
--	.buffer_size	= BUFLEN / 2,
--	.chunk_size	= 2,
- 	.fops		= &lirc_fops,
- 	.owner		= THIS_MODULE,
- };
-@@ -1456,8 +1454,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		ir->l.dev  = &adap->dev;
- 		/* This will be returned by lirc_get_pdata() */
- 		ir->l.data = ir;
--		ret = lirc_buffer_init(ir->l.rbuf,
--				       ir->l.chunk_size, ir->l.buffer_size);
-+		ret = lirc_buffer_init(ir->l.rbuf, 2, BUFLEN / 2);
- 		if (ret)
- 			goto out_put_ir;
- 	}
-diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
-index 20c5c5d6f101..a01fe5433bb7 100644
---- a/include/media/lirc_dev.h
-+++ b/include/media/lirc_dev.h
-@@ -121,13 +121,14 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
-  *
-  * @code_length:	length of the remote control key code expressed in bits.
-  *
-- * @buffer_size:	Number of FIFO buffers with @chunk_size size. If zero,
-- *			creates a buffer with BUFLEN size (16 bytes).
-- *
-  * @features:		lirc compatible hardware features, like LIRC_MODE_RAW,
-  *			LIRC_CAN\_\*, as defined at include/media/lirc.h.
-  *
-+ * @buffer_size:	Number of FIFO buffers with @chunk_size size.
-+ *			Only used if @rbuf is NULL.
-+ *
-  * @chunk_size:		Size of each FIFO buffer.
-+ *			Only used if @rbuf is NULL.
-  *
-  * @data:		it may point to any driver data and this pointer will
-  *			be passed to all callback functions.
-@@ -156,9 +157,9 @@ struct lirc_driver {
- 	char name[40];
- 	unsigned minor;
- 	__u32 code_length;
--	unsigned int buffer_size; /* in chunks holding one code each */
- 	__u32 features;
- 
-+	unsigned int buffer_size; /* in chunks holding one code each */
- 	unsigned int chunk_size;
- 
- 	void *data;
+ 		/*
+ 		 * This call to jpeg_bound_align_image() takes care of width and
+-- 
+2.7.4
