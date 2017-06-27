@@ -1,65 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50674 "EHLO mail.kernel.org"
+Received: from muru.com ([72.249.23.125]:34082 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750819AbdFZUE7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 16:04:59 -0400
-Subject: Re: [PATCH v1 1/6] DT bindings: add bindings for ov965x camera module
-To: Hugues FRUCHET <hugues.fruchet@st.com>,
-        "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre TORGUE <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick FERTRE <yannick.fertre@st.com>,
-        Discussions about the Letux Kernel
-        <letux-kernel@openphoenux.org>
-References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
- <1498143942-12682-2-git-send-email-hugues.fruchet@st.com>
- <D5629236-95D8-45B6-9719-E8B9796FEC90@goldelico.com>
- <64e3005d-31df-71f2-762b-2c1b1152fc2d@st.com>
-From: Sylwester Nawrocki <snawrocki@kernel.org>
-Message-ID: <5cd25a47-f3be-8c40-3940-29f26a245076@kernel.org>
-Date: Mon, 26 Jun 2017 22:04:53 +0200
+        id S1751513AbdF0KG6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Jun 2017 06:06:58 -0400
+Date: Tue, 27 Jun 2017 03:06:54 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+        Jyri Sarha <jsarha@ti.com>
+Subject: Re: [PATCH 1/8] arm: omap4: enable CEC pin for Pandaboard A4 and ES
+Message-ID: <20170627100654.GA3730@atomide.com>
+References: <20170414102512.48834-1-hverkuil@xs4all.nl>
+ <20170414102512.48834-2-hverkuil@xs4all.nl>
+ <4355dab4-9c70-77f7-f89b-9a1cf24976cf@ti.com>
+ <20170626110711.GW3730@atomide.com>
+ <701dbbfa-000a-2b93-405b-246aa90b6dd6@xs4all.nl>
+ <20170627091421.GZ3730@atomide.com>
+ <1d970218-d24a-d460-7d95-b31102d735f2@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <64e3005d-31df-71f2-762b-2c1b1152fc2d@st.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1d970218-d24a-d460-7d95-b31102d735f2@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/26/2017 12:35 PM, Hugues FRUCHET wrote:
->> What I am missing to support the GTA04 camera is the control of the optional "vana-supply".
->> So the driver does not power up the camera module when needed and therefore probing fails.
->>
->>     - vana-supply: a regulator to power up the camera module.
->>
->> Driver code is not complex to add:
+* Hans Verkuil <hverkuil@xs4all.nl> [170627 02:27]:
+> On 27/06/17 11:14, Tony Lindgren wrote:
+> > Adding Jyri to Cc, hopefully the CEC support allows also setting the
+> > HDMI audio volume level on devices implementing it? Or am I too
+> > optimistic? :)
+> 
+> I'm not quite sure what you mean. Do you want CEC to change the volume on the
+> TV, or use the TV's remote to change the volume of the HDMI audio output of the
+> omap4?
 
-> Yes, I saw it in your code, but as I don't have any programmable power
-> supply on my setup, I have not pushed this commit.
+I'm hoping to change audio volume on a USB+HDMI lapdock from omap4.
 
-Since you are about to add voltage supplies to the DT binding I'd suggest
-to include all three voltage supplies of the sensor chip. Looking at the OV9650
-and the OV9655 datasheet there are following names used for the voltage supply
-pins:
+> Anyway, either is supported, but it requires a userspace implementation.
+> 
+> Although TV remote control messages will be mapped to an input device, and if
+> those are hooked up to the alsa audio volume, then this already works.
 
-AVDD - Analog power supply,
-DVDD - Power supply for digital core logic,
-DOVDD - Digital power supply for I/O.
+OK great thanks,
 
-I doubt the sensor can work without any of these voltage supplies, thus
-regulator_get_optional() should not be used. I would just use the regulator
-bulk API to handle all three power supplies.
-
---
-Regards,
-Sylwester
+Tony
