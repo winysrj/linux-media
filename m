@@ -1,54 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:27221 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750952AbdFTK6j (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:40444 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752539AbdF0Iix (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Jun 2017 06:58:39 -0400
-Subject: Re: [PATCH 1/2] v4l2-ioctl/exynos: fix G/S_SELECTION's type
- handling
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hansverk@cisco.com>
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <20324ca5-6b04-4969-9d4a-a4d39a928c1d@samsung.com>
-Date: Tue, 20 Jun 2017 12:58:28 +0200
-MIME-version: 1.0
-In-reply-to: <20170619134910.10138-2-hverkuil@xs4all.nl>
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <20170619134910.10138-1-hverkuil@xs4all.nl>
-        <CGME20170619134933epcas3p34fd7ffaebaac7f9c493517522d8248a5@epcas3p3.samsung.com>
-        <20170619134910.10138-2-hverkuil@xs4all.nl>
+        Tue, 27 Jun 2017 04:38:53 -0400
+Subject: Re: [PATCH 1/8] arm: omap4: enable CEC pin for Pandaboard A4 and ES
+To: Tony Lindgren <tony@atomide.com>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>
+References: <20170414102512.48834-1-hverkuil@xs4all.nl>
+ <20170414102512.48834-2-hverkuil@xs4all.nl>
+ <4355dab4-9c70-77f7-f89b-9a1cf24976cf@ti.com>
+ <20170626110711.GW3730@atomide.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <701dbbfa-000a-2b93-405b-246aa90b6dd6@xs4all.nl>
+Date: Tue, 27 Jun 2017 10:38:45 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170626110711.GW3730@atomide.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/19/2017 03:49 PM, Hans Verkuil wrote:
-> From: Hans Verkuil<hansverk@cisco.com>
+On 26/06/17 13:07, Tony Lindgren wrote:
+> Tomi,
 > 
-> The type field in struct v4l2_selection is supposed to never use the
-> _MPLANE variants. E.g. if the driver supports V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
-> then userspace should still pass V4L2_BUF_TYPE_VIDEO_CAPTURE.
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [170428 04:15]:
+>> On 14/04/17 13:25, Hans Verkuil wrote:
+>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>
+>>> The CEC pin was always pulled up, making it impossible to use it.
+> ...
 > 
-> The reasons for this are lost in the mists of time, but it is really
-> annoying. In addition, the exynos drivers didn't follow this rule and
-> instead expected the _MPLANE type.
+>> Tony, can you queue this? It's safe to apply separately from the rest of
+>> the HDMI CEC work.
 > 
-> To fix that code is added to the v4l2 core that maps the _MPLANE buffer
-> types to their regular equivalents before calling the driver.
-> 
-> Effectively this allows for userspace to use either _MPLANE or the regular
-> buffer type. This keeps backwards compatibility while making things easier
-> for userspace.
-> 
-> Since drivers now never see the _MPLANE buffer types the exynos drivers
-> had to be adapted as well.
-> 
-> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> So the dts changes are merged now but what's the status of the CEC driver
+> changes? Were there some issues as I don't see them in next?
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Tomi advised me to wait until a 'hotplug-interrupt-handling series' for the
+omap driver is merged to prevent conflicts. Last I heard (about 3 weeks ago)
+this was still pending review.
 
--- 
-Thanks,
-Sylwester
+Tomi, any updates on this? It would be nice to get this in for 4.14.
+
+Regards,
+
+	Hans
