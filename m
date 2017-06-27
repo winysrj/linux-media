@@ -1,98 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:50041 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751720AbdFIViq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Jun 2017 17:38:46 -0400
-Date: Fri, 9 Jun 2017 23:38:43 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Tim Harvey <tharvey@gateworks.com>,
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34876 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751312AbdF0FhR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Jun 2017 01:37:17 -0400
+Date: Tue, 27 Jun 2017 08:36:42 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Hugues Fruchet <hugues.fruchet@st.com>,
+        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
         Rob Herring <robh+dt@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        mchehab@kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Nick Dyer <nick@shmanahar.org>, markus.heiser@darmarit.de,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, Arnd Bergmann <arnd@arndb.de>,
-        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-        minghsiu.tsai@mediatek.com, Tiffany Lin <tiffany.lin@mediatek.com>,
-        Jean-Christophe TROTIN <jean-christophe.trotin@st.com>,
-        Simon Horman <horms+renesas@verge.net.au>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        shuah@kernel.org, sakari.ailus@linux.intel.com,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v8 14/34] ARM: dts: imx6-sabreauto: add the ADV7180 video
- decoder
-Message-ID: <20170609213843.GB28596@amd>
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
- <1496860453-6282-15-git-send-email-steve_longerbeam@mentor.com>
- <CAJ+vNU0C0=4hUq+g1P7yTzLzFPidfauQROPOVr4WQWKNZz_xmQ@mail.gmail.com>
- <dd5b29b7-bf92-5f03-caef-1843a9f32cd3@gmail.com>
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>
+Subject: Re: [PATCH v1 2/6] [media] ov9650: add device tree support
+Message-ID: <20170627053642.GW12407@valkosipuli.retiisi.org.uk>
+References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
+ <1498143942-12682-3-git-send-email-hugues.fruchet@st.com>
+ <20170626163102.GQ12407@valkosipuli.retiisi.org.uk>
+ <D780984B-70A1-4E9C-A887-DD2CBAAC7CCA@goldelico.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="V0207lvV8h4k8FAm"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <dd5b29b7-bf92-5f03-caef-1843a9f32cd3@gmail.com>
+In-Reply-To: <D780984B-70A1-4E9C-A887-DD2CBAAC7CCA@goldelico.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, Jun 26, 2017 at 07:46:34PM +0200, H. Nikolaus Schaller wrote:
+> Hi,
+> 
+> > Am 26.06.2017 um 18:31 schrieb Sakari Ailus <sakari.ailus@iki.fi>:
+> > 
+> > Hi Hugues,
+> > 
+> > On Thu, Jun 22, 2017 at 05:05:38PM +0200, Hugues Fruchet wrote:
+> >> @@ -1545,15 +1577,22 @@ static int ov965x_remove(struct i2c_client *client)
+> >> }
+> >> 
+> >> static const struct i2c_device_id ov965x_id[] = {
+> >> -	{ "OV9650", 0 },
+> >> -	{ "OV9652", 0 },
+> >> +	{ "OV9650", 0x9650 },
+> >> +	{ "OV9652", 0x9652 },
+> > 
+> > This change does not appear to match with the patch description nor it the
+> > information is used. How about not changing it, unless there's a reason to?
+> > The same for the data field of the of_device_id array below.
+> 
+> I think it could/should be used to check if the camera chip that is found
+> by reading the product-id and version registers does match what the device
+> tree expects and abort probing on a mismatch.
 
---V0207lvV8h4k8FAm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Makes sense. But it should be a separate patch, shouldn't it?
 
-On Thu 2017-06-08 13:36:12, Steve Longerbeam wrote:
->=20
->=20
-> On 06/08/2017 01:25 PM, Tim Harvey wrote:
-> >
-> >
-> >Steve,
-> >
-> >You need to remove the fim node now that you've moved this to V4L2 contr=
-ols.
-> >
->=20
-> Yep, I caught this just after sending the v8 patchset. I'll send
-> a v9 of this patch.
+You could also put the id to the ops struct, and choose the ops struct that
+way. Entirely up to you.
 
-This needs ack from devicetree people, then it can be merged. Can you
-be a bit more forceful getting the ack?
-
-I don't think it makes sense to resubmit v9 before that. This is not a
-rocket science.
-
-Thanks,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---V0207lvV8h4k8FAm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlk7FWMACgkQMOfwapXb+vLpugCfZjSfwyFRi6w6oDbH6OQOEF1Q
-1mwAoJl9EjiZJjjl+CWmoZxc1Hr/VThw
-=NRlt
------END PGP SIGNATURE-----
-
---V0207lvV8h4k8FAm--
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
