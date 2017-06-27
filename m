@@ -1,51 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:40444 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752539AbdF0Iix (ORCPT
+Received: from mail-wr0-f170.google.com ([209.85.128.170]:34253 "EHLO
+        mail-wr0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753871AbdF0W5D (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 04:38:53 -0400
-Subject: Re: [PATCH 1/8] arm: omap4: enable CEC pin for Pandaboard A4 and ES
-To: Tony Lindgren <tony@atomide.com>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>
-References: <20170414102512.48834-1-hverkuil@xs4all.nl>
- <20170414102512.48834-2-hverkuil@xs4all.nl>
- <4355dab4-9c70-77f7-f89b-9a1cf24976cf@ti.com>
- <20170626110711.GW3730@atomide.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <701dbbfa-000a-2b93-405b-246aa90b6dd6@xs4all.nl>
-Date: Tue, 27 Jun 2017 10:38:45 +0200
+        Tue, 27 Jun 2017 18:57:03 -0400
+Received: by mail-wr0-f170.google.com with SMTP id 77so166209495wrb.1
+        for <linux-media@vger.kernel.org>; Tue, 27 Jun 2017 15:57:02 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20170626110711.GW3730@atomide.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1496900032.1929.9.camel@perches.com>
+References: <20170530094901.1807-1-hiroh@chromium.org> <1496139572.2618.19.camel@perches.com>
+ <CAO5uPHO7GwxCTk2OqQA5NfrL0-Jyt5SB-jVpeUA_eCrqR7u5xA@mail.gmail.com>
+ <1496196991.2618.47.camel@perches.com> <CAO5uPHPWGABuKf3FuAky2BRx+9E=n-QhZ94RPQ7wEuHAwC1qGg@mail.gmail.com>
+ <1496203602.2618.54.camel@perches.com> <0eb529d9-a710-4305-f0e2-e2fcd5d5433a@xs4all.nl>
+ <CAO5uPHOX=++z_YGFoCapH9fvhPwXpC5xr=gCCimAK=ZJ5pp7Hw@mail.gmail.com>
+ <CAAFQd5AnpjwgWkNL1RvOY1C2WR8gqVuCrPQmaRVCwjSvAM2u8Q@mail.gmail.com>
+ <1496898982.1929.7.camel@perches.com> <CAAFQd5A2i+23F1piYbe1zk5Uy0+p+=wN9vyKJX=7JmaXF3Q9BQ@mail.gmail.com>
+ <1496900032.1929.9.camel@perches.com>
+From: Hirokazu Honda <hiroh@chromium.org>
+Date: Wed, 28 Jun 2017 07:57:00 +0900
+Message-ID: <CAO5uPHP7HSpzbO7EhqLjjEsZ+etnqS106Ec98Z7cDvGhKb6dDQ@mail.gmail.com>
+Subject: Re: [PATCH v2] [media] vb2: core: Lower the log level of debug outputs
+To: Joe Perches <joe@perches.com>
+Cc: Tomasz Figa <tfiga@chromium.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Pawel Osciak <pawel@osciak.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26/06/17 13:07, Tony Lindgren wrote:
-> Tomi,
-> 
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [170428 04:15]:
->> On 14/04/17 13:25, Hans Verkuil wrote:
->>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>
->>> The CEC pin was always pulled up, making it impossible to use it.
-> ...
-> 
->> Tony, can you queue this? It's safe to apply separately from the rest of
->> the HDMI CEC work.
-> 
-> So the dts changes are merged now but what's the status of the CEC driver
-> changes? Were there some issues as I don't see them in next?
+Hi,
 
-Tomi advised me to wait until a 'hotplug-interrupt-handling series' for the
-omap driver is merged to prevent conflicts. Last I heard (about 3 weeks ago)
-this was still pending review.
+According to patch work, this patch are not approved yet and its
+status are "Changes Requested."
+What changes are necessary actually?
+If there is no necessary change, can you approve this patch?
 
-Tomi, any updates on this? It would be nice to get this in for 4.14.
+Best,
+Hirokazu Honda
 
-Regards,
-
-	Hans
+On Thu, Jun 8, 2017 at 2:33 PM, Joe Perches <joe@perches.com> wrote:
+> On Thu, 2017-06-08 at 14:24 +0900, Tomasz Figa wrote:
+>> On Thu, Jun 8, 2017 at 2:16 PM, Joe Perches <joe@perches.com> wrote:
+> []
+>> > If there automated systems that rely on specific levels, then
+>> > changing the levels of individual messages could also cause
+>> > those automated systems to fail.
+>>
+>> Well, that might be true for some of them indeed. I was thinking about
+>> our use case, which relies on particular numbers to get expected
+>> verbosity levels not caring about particular messages. I guess the
+>> break all or none rule is going to apply here, so we should do the
+>> bitmap conversion indeed. :)
+>>
+>> On the other hand, I think it would be still preferable to do the
+>> conversion in a separate patch.
+>
+> Right.  No worries.
+>
