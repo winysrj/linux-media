@@ -1,67 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48857
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752781AbdFMOiY (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:58449 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752136AbdF0QJN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 10:38:24 -0400
-Date: Tue, 13 Jun 2017 11:38:14 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
-Cc: "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "tbird20d@gmail.com" <tbird20d@gmail.com>,
-        "frowand.list@gmail.com" <frowand.list@gmail.com>,
-        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
-        "Nozawa, Hideki (STWN)" <Hideki.Nozawa@sony.com>,
-        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
-        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
-        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>
-Subject: Re: [PATCH v2 0/15] [dt-bindings] [media] Add document file and
- driver for Sony CXD2880 DVB-T2/T tuner + demodulator
-Message-ID: <20170613113814.0094536f@vento.lan>
-In-Reply-To: <d7c70c53-3fb0-a045-5e1a-1a736bdeda1f@sony.com>
-References: <20170414015043.16731-1-Yasunari.Takiguchi@sony.com>
-        <5188b958-9a34-4519-5845-a318273592e0@sony.com>
-        <d7c70c53-3fb0-a045-5e1a-1a736bdeda1f@sony.com>
+        Tue, 27 Jun 2017 12:09:13 -0400
+From: Thierry Escande <thierry.escande@collabora.com>
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v3 5/8] [media] s5p-jpeg: Split s5p_jpeg_parse_hdr()
+Date: Tue, 27 Jun 2017 18:08:51 +0200
+Message-Id: <1498579734-1594-6-git-send-email-thierry.escande@collabora.com>
+In-Reply-To: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
+References: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset = "utf-8"
+Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Takiguchi-san,
+This patch moves the subsampling value decoding read from the jpeg
+header into its own function. This new function is called
+s5p_jpeg_subsampling_decode() and returns true if it successfully
+decodes the subsampling value, false otherwise.
 
-Em Thu, 25 May 2017 15:15:39 +0900
-"Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com> escreveu:
+Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 42 ++++++++++++++++-------------
+ 1 file changed, 24 insertions(+), 18 deletions(-)
 
-> Hi, all
-> 
-> I sent the patch series of Sony CXD2880 DVB-T2/T tuner + demodulator driver on Apr/14.
-> Are there any comments, advices and review results for them?
-
-Usually, reviewing drivers takes more time, as one needs to reserve a
-long period of time for reviewing. Sorry for the delay.
-
-> I'd like to get better understanding of current review status for our codes.
-
-Just sent today a review. There are some things that need to be
-changed in order to get it into a better shape and make it easier
-to review. In particular, it should be using some Kernel internal APIs,
-instead of coming with re-implementation of existing core code. That's fine. 
-It is very unusual that the first contributions from a new Kernel
-developer to gets everything the way as it is expected mainstream ;-)
-
-One thing that come into my mind, besides what was already commented,
-is that it seems you added an abstraction layer. We don't like such
-layers very much, as it makes harder to understand the driver, usually
-for very little benefit.
-
-On this first review, I didn't actually try to understand what's
-going on there. As the driver doesn't contain any comments inside,
-it makes harder to understand why some things were coded using
-such approach.
-
-Thanks,
-Mauro
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 1769744..0783809 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1096,6 +1096,29 @@ static void skip(struct s5p_jpeg_buffer *buf, long len)
+ 		get_byte(buf);
+ }
+ 
++static bool s5p_jpeg_subsampling_decode(struct s5p_jpeg_ctx *ctx,
++					unsigned int subsampling)
++{
++	switch (subsampling) {
++	case 0x11:
++		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_444;
++		break;
++	case 0x21:
++		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_422;
++		break;
++	case 0x22:
++		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_420;
++		break;
++	case 0x33:
++		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
++		break;
++	default:
++		return false;
++	}
++
++	return true;
++}
++
+ static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
+ 			       unsigned long buffer, unsigned long size,
+ 			       struct s5p_jpeg_ctx *ctx)
+@@ -1207,26 +1230,9 @@ static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
+ 		}
+ 	}
+ 
+-	if (notfound || !sos)
++	if (notfound || !sos || !s5p_jpeg_subsampling_decode(ctx, subsampling))
+ 		return false;
+ 
+-	switch (subsampling) {
+-	case 0x11:
+-		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_444;
+-		break;
+-	case 0x21:
+-		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_422;
+-		break;
+-	case 0x22:
+-		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_420;
+-		break;
+-	case 0x33:
+-		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
+-		break;
+-	default:
+-		return false;
+-	}
+-
+ 	result->w = width;
+ 	result->h = height;
+ 	result->sos = sos;
+-- 
+2.7.4
