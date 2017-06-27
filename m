@@ -1,84 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f178.google.com ([209.85.216.178]:33588 "EHLO
-        mail-qt0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751515AbdF1VAD (ORCPT
+Received: from out20-75.mail.aliyun.com ([115.124.20.75]:60544 "EHLO
+        out20-75.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752112AbdF0LH4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Jun 2017 17:00:03 -0400
-Received: by mail-qt0-f178.google.com with SMTP id r30so59955840qtc.0
-        for <linux-media@vger.kernel.org>; Wed, 28 Jun 2017 14:00:02 -0700 (PDT)
-Date: Wed, 28 Jun 2017 17:00:02 -0400
-From: Sean Paul <seanpaul@chromium.org>
-To: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Sean Paul <seanpaul@chromium.org>, dri-devel@lists.freedesktop.org,
-        marcheu@chromium.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] dma-buf/sw_sync: Fix timeline/pt overflow cases
-Message-ID: <20170628210002.3d57btig2tvvivli@art_vandelay>
-References: <20170628155117.3558-1-seanpaul@chromium.org>
- <149866562059.23475.15965626912972737879@mail.alporthouse.com>
- <20170628164724.oa7pg2xqthv5y3hk@art_vandelay>
- <149867915512.23475.8288677483419410177@mail.alporthouse.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <149867915512.23475.8288677483419410177@mail.alporthouse.com>
+        Tue, 27 Jun 2017 07:07:56 -0400
+From: Yong Deng <yong.deng@magewell.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
+        hans.verkuil@cisco.com, peter.griffin@linaro.org,
+        hugues.fruchet@st.com, krzk@kernel.org, bparrot@ti.com,
+        arnd@arndb.de, jean-christophe.trotin@st.com,
+        benjamin.gaignard@linaro.org, tiffany.lin@mediatek.com,
+        kamil@wypas.org, kieran+renesas@ksquared.org.uk,
+        andrew-ct.chen@mediatek.com, yong.deng@magewell.com,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: [PATCH RFC 2/2] dt-bindings: add binding documentation for Allwinner CSI
+Date: Tue, 27 Jun 2017 19:07:34 +0800
+Message-Id: <1498561654-14658-3-git-send-email-yong.deng@magewell.com>
+In-Reply-To: <1498561654-14658-1-git-send-email-yong.deng@magewell.com>
+References: <1498561654-14658-1-git-send-email-yong.deng@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 28, 2017 at 08:45:55PM +0100, Chris Wilson wrote:
-> Quoting Sean Paul (2017-06-28 17:47:24)
-> > On Wed, Jun 28, 2017 at 05:00:20PM +0100, Chris Wilson wrote:
-> > > Quoting Sean Paul (2017-06-28 16:51:11)
-> > > > Protect against long-running processes from overflowing the timeline
-> > > > and creating fences that go back in time. While we're at it, avoid
-> > > > overflowing while we're incrementing the timeline.
-> > > > 
-> > > > Signed-off-by: Sean Paul <seanpaul@chromium.org>
-> > > > ---
-> > > >  drivers/dma-buf/sw_sync.c | 7 ++++++-
-> > > >  1 file changed, 6 insertions(+), 1 deletion(-)
-> > > > 
-> > > > diff --git a/drivers/dma-buf/sw_sync.c b/drivers/dma-buf/sw_sync.c
-> > > > index 69c5ff36e2f9..40934619ed88 100644
-> > > > --- a/drivers/dma-buf/sw_sync.c
-> > > > +++ b/drivers/dma-buf/sw_sync.c
-> > > > @@ -142,7 +142,7 @@ static void sync_timeline_signal(struct sync_timeline *obj, unsigned int inc)
-> > > >  
-> > > >         spin_lock_irqsave(&obj->child_list_lock, flags);
-> > > >  
-> > > > -       obj->value += inc;
-> > > > +       obj->value += min(inc, ~0x0U - obj->value);
-> > > 
-> > > The timeline uses u32 seqno, so just obj->value += min(inc, INT_MAX);
-> > > 
-> > Hi Chris,
-> > Thanks for the review.
-> > 
-> > I don't think that solves the same problem I was trying to solve. The issue is
-> > that android userspace increments value by 0x7fffffff twice in order to ensure
-> > all fences have signaled. This is causing value to overflow and is_signaled will
-> > never be true. With your snippet, the possibility of overflow still exists.
-> > 
-> > > Better of course would be to report the error,
-> > 
-> > AFAIK, it's not an error to jump the timeline, perhaps just bad taste. Capping
-> > value at UINT_MAX will ensure all fences are signaled, and the check below ensures
-> > that fences can't be created beyond that (returning an error at that point in
-> > time).
-> 
-> UINT_MAX doesn't imply all fences will be signaled either, the timeline
-> is supposed to wrap.
-> 
-> The issue is timeline_fence_signaled() is using the wrong test, it
-> should be return (int)(fence->seqno - parent->value) <= 0; If it helps
-> extract a little helper from dma_fence_is_later().
+Add binding documentation for Allwinner CSI.
 
-Understood, thank you for clarifying. This still doesn't solve the issue of userspace
-jumping the timeline by INT_MAX multiple times. In that case, value will rollover and
-even the new signaled() will fail to report.
+Signed-off-by: Yong Deng <yong.deng@magewell.com>
+---
+ .../devicetree/bindings/media/sunxi-csi.txt        | 51 ++++++++++++++++++++++
+ 1 file changed, 51 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/sunxi-csi.txt
 
-Sean
-
-> -Chris
-
+diff --git a/Documentation/devicetree/bindings/media/sunxi-csi.txt b/Documentation/devicetree/bindings/media/sunxi-csi.txt
+new file mode 100644
+index 0000000..770be0e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/sunxi-csi.txt
+@@ -0,0 +1,51 @@
++Allwinner V3s Camera Sensor Interface
++------------------------------
++
++Required properties:
++  - compatible: value must be "allwinner,sun8i-v3s-csi"
++  - reg: base address and size of the memory-mapped region.
++  - interrupts: interrupt associated to this IP
++  - clocks: phandles to the clocks feeding the CSI
++    * ahb: the CSI interface clock
++    * mod: the CSI module clock
++    * ram: the CSI DRAM clock
++  - clock-names: the clock names mentioned above
++  - resets: phandles to the reset line driving the CSI
++
++- ports: A ports node with endpoint definitions as defined in
++  Documentation/devicetree/bindings/media/video-interfaces.txt. The
++  first port should be the input endpoints, the second one the outputs
++
++Example:
++
++	csi1: csi@01cb4000 {
++		compatible = "allwinner,sun8i-v3s-csi";
++		reg = <0x01cb4000 0x1000>;
++		interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&ccu CLK_BUS_CSI>,
++			 <&ccu CLK_CSI1_SCLK>,
++			 <&ccu CLK_DRAM_CSI>;
++		clock-names = "ahb", "mod", "ram";
++		resets = <&ccu RST_BUS_CSI>;
++
++		port {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			/* Parallel bus endpoint */
++			csi1_0: endpoint@0 {
++				reg = <0>;
++				remote = <&adv7611_1>;
++				bus-width = <16>;
++				data-shift = <0>;
++
++				/* If hsync-active/vsync-active are missing,
++				   embedded BT.656 sync is used */
++				hsync-active = <0>; /* Active low */
++				vsync-active = <0>; /* Active low */
++				data-active = <1>;  /* Active high */
++				pclk-sample = <1>;  /* Rising */
++			};
++		};
++	};
++
 -- 
-Sean Paul, Software Engineer, Google / Chromium OS
+1.8.3.1
