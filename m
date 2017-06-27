@@ -1,110 +1,321 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:39166 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752444AbdFOIpV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 04:45:21 -0400
-Subject: Re: [PATCH v2] [media] mtk-mdp: Fix g_/s_selection capture/compose
- logic
-To: Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <1494556970-12278-1-git-send-email-minghsiu.tsai@mediatek.com>
- <1497508166.3384.5.camel@mtksdaap41>
-Cc: daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Houlong Wei <houlong.wei@mediatek.com>,
-        srv_heupstream@mediatek.com,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        Wu-Cheng Li <wuchengli@google.com>, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <74fd208e-b3d4-6d39-66b2-4fe1ee28be27@xs4all.nl>
-Date: Thu, 15 Jun 2017 10:45:10 +0200
+Received: from mga04.intel.com ([192.55.52.120]:10432 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752954AbdF0PsM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Jun 2017 11:48:12 -0400
+Date: Tue, 27 Jun 2017 23:47:37 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: [ragnatech:media-tree] BUILD INCOMPLETE
+ 2748e76ddb2967c4030171342ebdd3faa6a5e8e8
+Message-ID: <59527e19.LYRw09J209YzMHTf%fengguang.wu@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <1497508166.3384.5.camel@mtksdaap41>
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/15/17 08:29, Minghsiu Tsai wrote:
-> Hi, Hans,
-> 
-> Would you have time to review this patch v2?
-> The patch v1 violates v4l2 spec. I have fixed it in v2.
+git://git.ragnatech.se/linux  media-tree
+2748e76ddb2967c4030171342ebdd3faa6a5e8e8  media: staging: cxd2099: Activate cxd2099 buffer mode
 
-I plan to review it Friday or Monday.
+TIMEOUT after 1687m
 
-Regards,
 
-	Hans
+Sorry we cannot finish the testset for your branch within a reasonable time.
+It's our fault -- either some build server is down or some build worker is busy
+doing bisects for _other_ trees. The branch will get more complete coverage and
+possible error reports when our build infrastructure is restored or catches up.
+There will be no more build success notification for this branch head, but you
+can expect reasonably good test coverage after waiting for 1 day.
 
-> 
-> 
-> Sincerely,
-> Ming Hsiu
-> 
-> On Fri, 2017-05-12 at 10:42 +0800, Minghsiu Tsai wrote:
->> From: Daniel Kurtz <djkurtz@chromium.org>
->>
->> Experiments show that the:
->>  (1) mtk-mdp uses the _MPLANE form of CAPTURE/OUTPUT
->>  (2) CAPTURE types use CROP targets, and OUTPUT types use COMPOSE targets
->>
->> Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
->> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
->> Signed-off-by: Houlong Wei <houlong.wei@mediatek.com>
->>
->> ---
->> Changes in v2:
->> . Can not use *_MPLANE type in g_/s_selection 
->> ---
->>  drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c | 10 +++++-----
->>  1 file changed, 5 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
->> index 13afe48..e18ac626 100644
->> --- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
->> +++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
->> @@ -838,10 +838,10 @@ static int mtk_mdp_m2m_g_selection(struct file *file, void *fh,
->>  	bool valid = false;
->>  
->>  	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
->> -		if (mtk_mdp_is_target_compose(s->target))
->> +		if (mtk_mdp_is_target_crop(s->target))
->>  			valid = true;
->>  	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
->> -		if (mtk_mdp_is_target_crop(s->target))
->> +		if (mtk_mdp_is_target_compose(s->target))
->>  			valid = true;
->>  	}
->>  	if (!valid) {
->> @@ -908,10 +908,10 @@ static int mtk_mdp_m2m_s_selection(struct file *file, void *fh,
->>  	bool valid = false;
->>  
->>  	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
->> -		if (s->target == V4L2_SEL_TGT_COMPOSE)
->> +		if (s->target == V4L2_SEL_TGT_CROP)
->>  			valid = true;
->>  	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
->> -		if (s->target == V4L2_SEL_TGT_CROP)
->> +		if (s->target == V4L2_SEL_TGT_COMPOSE)
->>  			valid = true;
->>  	}
->>  	if (!valid) {
->> @@ -925,7 +925,7 @@ static int mtk_mdp_m2m_s_selection(struct file *file, void *fh,
->>  	if (ret)
->>  		return ret;
->>  
->> -	if (mtk_mdp_is_target_crop(s->target))
->> +	if (mtk_mdp_is_target_compose(s->target))
->>  		frame = &ctx->s_frame;
->>  	else
->>  		frame = &ctx->d_frame;
-> 
-> 
+configs tested: 286
+
+x86_64                           allmodconfig
+sh                               allmodconfig
+sh                            titan_defconfig
+sh                          rsk7269_defconfig
+sh                  sh7785lcr_32bit_defconfig
+sh                                allnoconfig
+parisc                        c3000_defconfig
+parisc                         b180_defconfig
+parisc                              defconfig
+alpha                               defconfig
+parisc                            allnoconfig
+x86_64                             acpi-redef
+x86_64                           allyesdebian
+x86_64                                nfsroot
+m68k                           sun3_defconfig
+m68k                          multi_defconfig
+m68k                       m5475evb_defconfig
+cris                 etrax-100lx_v2_defconfig
+blackfin                  TCM-BF537_defconfig
+blackfin            BF561-EZKIT-SMP_defconfig
+blackfin                BF533-EZKIT_defconfig
+blackfin                BF526-EZBRD_defconfig
+cris                          dev88_defconfig
+parisc                      default_defconfig
+sh                          urquell_defconfig
+arm                             pxa_defconfig
+ia64                             alldefconfig
+sh                           se7343_defconfig
+i386                   randconfig-c0-06271421
+i386                   randconfig-c0-06271823
+i386                   randconfig-c0-06272017
+powerpc                             defconfig
+powerpc                       ppc64_defconfig
+powerpc                           allnoconfig
+tile                              allnoconfig
+um                               allyesconfig
+x86_64                randconfig-in0-06271113
+mips                         bigsur_defconfig
+mips                           xway_defconfig
+powerpc                     tqm8541_defconfig
+arm                         iop13xx_defconfig
+mips                        bcm63xx_defconfig
+xtensa                    smp_lx200_defconfig
+powerpc                 mpc8313_rdb_defconfig
+powerpc                     pseries_defconfig
+sh                           sh2007_defconfig
+x86_64                randconfig-it0-06271030
+x86_64                randconfig-it0-06271753
+microblaze                       allyesconfig
+sh                          r7785rp_defconfig
+blackfin               BF518F-EZBRD_defconfig
+blackfin                  CM-BF537E_defconfig
+um                               alldefconfig
+s390                        default_defconfig
+x86_64                 randconfig-v0-06271504
+x86_64                 randconfig-v0-06271832
+x86_64                 randconfig-v0-06272127
+arm                         at91_dt_defconfig
+arm                               allnoconfig
+arm                           efm32_defconfig
+arm64                               defconfig
+arm                        multi_v5_defconfig
+arm                           sunxi_defconfig
+arm64                             allnoconfig
+arm                          exynos_defconfig
+arm                        shmobile_defconfig
+arm                        multi_v7_defconfig
+cris                    etrax-100lx_defconfig
+mips                            gpr_defconfig
+mips                       markeins_defconfig
+blackfin                BF609-EZKIT_defconfig
+powerpc                     tqm8560_defconfig
+sparc                            alldefconfig
+arm                           corgi_defconfig
+arm                        raumfeld_defconfig
+mips                         rt305x_defconfig
+x86_64                 randconfig-g0-06271423
+x86_64                 randconfig-g0-06271649
+x86_64                 randconfig-g0-06272052
+i386                             allmodconfig
+x86_64                 randconfig-x010-201726
+x86_64                 randconfig-x019-201726
+x86_64                 randconfig-x015-201726
+x86_64                 randconfig-x012-201726
+x86_64                 randconfig-x014-201726
+x86_64                 randconfig-x016-201726
+x86_64                 randconfig-x018-201726
+x86_64                 randconfig-x017-201726
+x86_64                 randconfig-x013-201726
+x86_64                 randconfig-x011-201726
+ia64                              allnoconfig
+ia64                                defconfig
+arm                              allmodconfig
+arm                                      arm5
+arm                                     arm67
+arm                       imx_v6_v7_defconfig
+arm                          ixp4xx_defconfig
+arm                        mvebu_v7_defconfig
+arm                       omap2plus_defconfig
+arm                                    sa1100
+arm                                   samsung
+arm                                        sh
+arm                           tegra_defconfig
+arm64                            alldefconfig
+arm64                            allmodconfig
+x86_64                                  kexec
+x86_64                                   rhel
+x86_64                               rhel-7.2
+i386                   randconfig-a0-06250447
+i386                   randconfig-a1-06250447
+i386                   randconfig-a0-06262357
+i386                   randconfig-a1-06262357
+x86_64                 randconfig-s0-06271622
+x86_64                 randconfig-s1-06271622
+x86_64                 randconfig-s2-06271622
+x86_64                 randconfig-s0-06271926
+x86_64                 randconfig-s1-06271926
+x86_64                 randconfig-s2-06271926
+x86_64                 randconfig-s0-06272103
+x86_64                 randconfig-s1-06272103
+x86_64                 randconfig-s2-06272103
+frv                                 defconfig
+mn10300                     asb2364_defconfig
+openrisc                    or1ksim_defconfig
+tile                         tilegx_defconfig
+um                             i386_defconfig
+um                           x86_64_defconfig
+c6x                        evmc6678_defconfig
+h8300                    h8300h-sim_defconfig
+m32r                       m32104ut_defconfig
+m32r                     mappi3.smp_defconfig
+m32r                         opsput_defconfig
+m32r                           usrv_defconfig
+nios2                         10m50_defconfig
+score                      spct6600_defconfig
+xtensa                       common_defconfig
+xtensa                          iss_defconfig
+frv                              allyesconfig
+mips                           jazz_defconfig
+mips                         mpc30x_defconfig
+h8300                       h8s-sim_defconfig
+mips                malta_qemu_32r6_defconfig
+microblaze                      mmu_defconfig
+mips                       rbtx49xx_defconfig
+mips                          rm200_defconfig
+sh                             shx3_defconfig
+i386                              allnoconfig
+i386                                defconfig
+i386                             alldefconfig
+i386                   randconfig-s0-06262349
+i386                   randconfig-s1-06262349
+x86_64                 randconfig-s3-06271548
+x86_64                 randconfig-s4-06271548
+x86_64                 randconfig-s5-06271548
+x86_64                 randconfig-s3-06271851
+x86_64                 randconfig-s4-06271851
+x86_64                 randconfig-s5-06271851
+x86_64                 randconfig-s3-06272148
+x86_64                 randconfig-s4-06272148
+x86_64                 randconfig-s5-06272148
+arm                            hisi_defconfig
+arm                           sama5_defconfig
+powerpc               corenet_basic_defconfig
+sh                     magicpanelr2_defconfig
+sh                ecovec24-romimage_defconfig
+sh                         apsh4a3a_defconfig
+tile                             allmodconfig
+mips                                   jz4740
+mips                      malta_kvm_defconfig
+mips                         64r6el_defconfig
+mips                           32r2_defconfig
+mips                              allnoconfig
+mips                      fuloong2e_defconfig
+mips                                     txx9
+x86_64                 randconfig-i0-06260516
+i386                   randconfig-b0-06271428
+i386                   randconfig-b0-06271757
+i386                   randconfig-b0-06272047
+sparc                               defconfig
+sparc64                           allnoconfig
+sparc64                             defconfig
+arm                            pleb_defconfig
+mips                      maltasmvp_defconfig
+arm                            qcom_defconfig
+blackfin                            defconfig
+mips                             allyesconfig
+microblaze                    nommu_defconfig
+i386                   randconfig-i1-06252058
+i386                   randconfig-i0-06252058
+x86_64                 randconfig-b0-06271453
+x86_64                 randconfig-b0-06271600
+x86_64                 randconfig-b0-06271828
+arm                          pxa3xx_defconfig
+powerpc                      ppc6xx_defconfig
+arm                          iop33x_defconfig
+blackfin                   CM-BF527_defconfig
+x86_64                 randconfig-u0-06271420
+x86_64                 randconfig-u0-06271459
+x86_64                 randconfig-u0-06271922
+x86_64                 randconfig-u0-06272102
+i386                 randconfig-x014-06251133
+i386                 randconfig-x016-06251133
+i386                 randconfig-x011-06251133
+i386                 randconfig-x010-06251133
+i386                 randconfig-x013-06251133
+i386                 randconfig-x017-06251133
+i386                 randconfig-x019-06251133
+i386                 randconfig-x018-06251133
+i386                 randconfig-x015-06251133
+i386                 randconfig-x012-06251133
+x86_64                                    lkp
+arm                        vexpress_defconfig
+arm                            zeus_defconfig
+ia64                        generic_defconfig
+mn10300                           allnoconfig
+powerpc                     taishan_defconfig
+sh                        apsh4ad0a_defconfig
+x86_64                randconfig-ne0-06271311
+x86_64                randconfig-ne0-06271822
+h8300                     edosk2674_defconfig
+powerpc                          g5_defconfig
+powerpc                     virtex5_defconfig
+mn10300                          allyesconfig
+powerpc                     ppa8548_defconfig
+blackfin             BF527-TLL6527M_defconfig
+sh                           se7722_defconfig
+x86_64                 randconfig-h0-06271319
+x86_64                 randconfig-h0-06271850
+x86_64                 randconfig-h0-06272159
+x86_64                 randconfig-n0-06272103
+alpha                            allyesconfig
+blackfin              BF561-ACVILON_defconfig
+powerpc                     pq2fads_defconfig
+arm                        mini2440_defconfig
+mips                       bmips_be_defconfig
+m32r                      mappi.smp_defconfig
+i386                  randconfig-sb0-06271221
+i386                  randconfig-sb0-06272106
+arm                       spear13xx_defconfig
+ia64                            zx1_defconfig
+sh                          polaris_defconfig
+mips                             alldefconfig
+powerpc                     asp8347_defconfig
+powerpc                     mpc5200_defconfig
+x86_64                randconfig-ws0-06271611
+x86_64                randconfig-ws0-06272105
+i386                 randconfig-x079-06251032
+i386                 randconfig-x078-06251032
+i386                 randconfig-x073-06251032
+i386                 randconfig-x077-06251032
+i386                 randconfig-x070-06251032
+i386                 randconfig-x072-06251032
+i386                 randconfig-x074-06251032
+i386                 randconfig-x076-06251032
+i386                 randconfig-x071-06251032
+i386                 randconfig-x075-06251032
+x86_64                 randconfig-x006-201726
+x86_64                 randconfig-x001-201726
+x86_64                 randconfig-x007-201726
+x86_64                 randconfig-x005-201726
+x86_64                 randconfig-x004-201726
+x86_64                 randconfig-x000-201726
+x86_64                 randconfig-x002-201726
+x86_64                 randconfig-x008-201726
+x86_64                 randconfig-x003-201726
+x86_64                 randconfig-x009-201726
+arm                          pxa168_defconfig
+mn10300                          allmodconfig
+arm                         lubbock_defconfig
+c6x                        evmc6474_defconfig
+sh                         microdev_defconfig
+xtensa                  cadence_csp_defconfig
+i386                 randconfig-x000-06251247
+i386                 randconfig-x001-06251247
+i386                 randconfig-x002-06251247
+i386                 randconfig-x003-06251247
+i386                 randconfig-x004-06251247
+i386                 randconfig-x005-06251247
+i386                 randconfig-x006-06251247
+i386                 randconfig-x007-06251247
+i386                 randconfig-x008-06251247
+i386                 randconfig-x009-06251247
+i386                   randconfig-x0-06271302
+i386                   randconfig-x0-06271716
+i386                   randconfig-x0-06272104
+
+Thanks,
+Fengguang
