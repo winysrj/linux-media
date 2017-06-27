@@ -1,283 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44595 "EHLO mail.kapsi.fi"
+Received: from mail.kernel.org ([198.145.29.99]:44092 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751956AbdFODbf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 23:31:35 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 07/15] af9013: fix error handling
-Date: Thu, 15 Jun 2017 06:30:57 +0300
-Message-Id: <20170615033105.13517-7-crope@iki.fi>
-In-Reply-To: <20170615033105.13517-1-crope@iki.fi>
-References: <20170615033105.13517-1-crope@iki.fi>
+        id S1752121AbdF0PD4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Jun 2017 11:03:56 -0400
+From: Kieran Bingham <kbingham@kernel.org>
+To: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
+        hans.verkuil@cisco.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        devicetree@vger.kernel.org (open list:OPEN FIRMWARE AND FLATTENED
+        DEVICE TREE BINDINGS)
+Subject: [PATCH v6 1/3] media: adv748x: Add adv7181, adv7182 bindings
+Date: Tue, 27 Jun 2017 16:03:32 +0100
+Message-Id: <17f2a43c3500f610f8df2548f51555eb5ae03293.1498575029.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.13d48bb2ba66a5e11c962c62b1a7b5832b0a2344.1498575029.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.13d48bb2ba66a5e11c962c62b1a7b5832b0a2344.1498575029.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.13d48bb2ba66a5e11c962c62b1a7b5832b0a2344.1498575029.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.13d48bb2ba66a5e11c962c62b1a7b5832b0a2344.1498575029.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use typical (return 0/goto err/return err) error handling everywhere.
-Add missing error handling where missing.
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Create device tree bindings documentation for the ADV748x.
+The ADV748x supports both the ADV7481 and ADV7482 chips which
+provide analogue decoding and HDMI receiving capabilities
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
 ---
- drivers/media/dvb-frontends/af9013.c | 86 +++++++++++++++++++++---------------
- 1 file changed, 51 insertions(+), 35 deletions(-)
+v6:
+ - Clean up description and remove redundant text regarding optional
+   nodes
 
-diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
-index 70102c1..a6b88ae 100644
---- a/drivers/media/dvb-frontends/af9013.c
-+++ b/drivers/media/dvb-frontends/af9013.c
-@@ -94,7 +94,7 @@ static int af9013_set_gpio(struct af9013_state *state, u8 gpio, u8 gpioval)
- 	if (ret)
- 		goto err;
- 
--	return ret;
-+	return 0;
- err:
- 	dev_dbg(&client->dev, "failed %d\n", ret);
- 	return ret;
-@@ -147,7 +147,7 @@ static int af9013_power_ctrl(struct af9013_state *state, u8 onoff)
- 			goto err;
- 	}
- 
--	return ret;
-+	return 0;
- err:
- 	dev_dbg(&client->dev, "failed %d\n", ret);
- 	return ret;
-@@ -166,7 +166,7 @@ static int af9013_statistics_ber_unc_start(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	return ret;
-+	return 0;
- err:
- 	dev_dbg(&client->dev, "failed %d\n", ret);
- 	return ret;
-@@ -199,7 +199,7 @@ static int af9013_statistics_ber_unc_result(struct dvb_frontend *fe)
- 	state->ber = (buf[2] << 16) | (buf[1] << 8) | buf[0];
- 	state->ucblocks += (buf[4] << 8) | buf[3];
- 
--	return ret;
-+	return 0;
- err:
- 	dev_dbg(&client->dev, "failed %d\n", ret);
- 	return ret;
-@@ -218,7 +218,7 @@ static int af9013_statistics_snr_start(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	return ret;
-+	return 0;
- err:
- 	dev_dbg(&client->dev, "failed %d\n", ret);
- 	return ret;
-@@ -283,7 +283,7 @@ static int af9013_statistics_snr_result(struct dvb_frontend *fe)
- 	}
- 	state->snr = utmp * 10; /* dB/10 */
- 
--	return ret;
-+	return 0;
- err:
- 	dev_dbg(&client->dev, "failed %d\n", ret);
- 	return ret;
-@@ -321,7 +321,7 @@ static int af9013_statistics_signal_strength(struct dvb_frontend *fe)
- 
- 	state->signal_strength = signal_strength;
- 
--	return ret;
-+	return 0;
- err:
- 	dev_dbg(&client->dev, "failed %d\n", ret);
- 	return ret;
-@@ -398,8 +398,11 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
- 		c->frequency, c->bandwidth_hz);
- 
- 	/* program tuner */
--	if (fe->ops.tuner_ops.set_params)
--		fe->ops.tuner_ops.set_params(fe);
-+	if (fe->ops.tuner_ops.set_params) {
-+		ret = fe->ops.tuner_ops.set_params(fe);
-+		if (ret)
-+			goto err;
-+	}
- 
- 	/* program CFOE coefficients */
- 	if (c->bandwidth_hz != state->bandwidth_hz) {
-@@ -411,20 +414,28 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
- 		}
- 
- 		/* Return an error if can't find bandwidth or the right clock */
--		if (i == ARRAY_SIZE(coeff_lut))
--			return -EINVAL;
-+		if (i == ARRAY_SIZE(coeff_lut)) {
-+			ret = -EINVAL;
-+			goto err;
-+		}
- 
- 		ret = regmap_bulk_write(state->regmap, 0xae00, coeff_lut[i].val,
- 					sizeof(coeff_lut[i].val));
-+		if (ret)
-+			goto err;
- 	}
- 
- 	/* program frequency control */
- 	if (c->bandwidth_hz != state->bandwidth_hz || state->first_tune) {
- 		/* get used IF frequency */
--		if (fe->ops.tuner_ops.get_if_frequency)
--			fe->ops.tuner_ops.get_if_frequency(fe, &if_frequency);
--		else
-+		if (fe->ops.tuner_ops.get_if_frequency) {
-+			ret = fe->ops.tuner_ops.get_if_frequency(fe,
-+								 &if_frequency);
-+			if (ret)
-+				goto err;
-+		} else {
- 			if_frequency = state->if_frequency;
-+		}
- 
- 		dev_dbg(&client->dev, "if_frequency %u\n", if_frequency);
- 
-@@ -659,7 +670,7 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
- 	state->set_frontend_jiffies = jiffies;
- 	state->first_tune = false;
- 
--	return ret;
-+	return 0;
- err:
- 	dev_dbg(&client->dev, "failed %d\n", ret);
- 	return ret;
-@@ -777,7 +788,7 @@ static int af9013_get_frontend(struct dvb_frontend *fe,
- 		break;
- 	}
- 
--	return ret;
-+	return 0;
- err:
- 	dev_dbg(&client->dev, "failed %d\n", ret);
- 	return ret;
-@@ -828,7 +839,7 @@ static int af9013_read_status(struct dvb_frontend *fe, enum fe_status *status)
- 	state->fe_status = *status;
- 	state->read_status_jiffies = jiffies;
- 
--	return ret;
-+	return 0;
- err:
- 	dev_dbg(&client->dev, "failed %d\n", ret);
- 	return ret;
-@@ -1087,7 +1098,7 @@ static int af9013_init(struct dvb_frontend *fe)
- 	state->first_tune = true;
- 	schedule_delayed_work(&state->statistics_work, msecs_to_jiffies(400));
- 
--	return ret;
-+	return 0;
- err:
- 	dev_dbg(&client->dev, "failed %d\n", ret);
- 	return ret;
-@@ -1114,7 +1125,7 @@ static int af9013_sleep(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	return ret;
-+	return 0;
- err:
- 	dev_dbg(&client->dev, "failed %d\n", ret);
- 	return ret;
-@@ -1143,7 +1154,7 @@ static int af9013_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
- 
- 	state->i2c_gate_state = enable;
- 
--	return ret;
-+	return 0;
- err:
- 	dev_dbg(&client->dev, "failed %d\n", ret);
- 	return ret;
-@@ -1164,7 +1175,7 @@ static const struct dvb_frontend_ops af9013_ops;
- static int af9013_download_firmware(struct af9013_state *state)
- {
- 	struct i2c_client *client = state->client;
--	int i, len, remaining, ret;
-+	int ret, i, len, remaining;
- 	unsigned int utmp;
- 	const struct firmware *fw;
- 	u16 checksum = 0;
-@@ -1176,11 +1187,11 @@ static int af9013_download_firmware(struct af9013_state *state)
- 	ret = regmap_read(state->regmap, 0x98be, &utmp);
- 	if (ret)
- 		goto err;
--	else
--		dev_dbg(&client->dev, "firmware status %02x\n", utmp);
+ Documentation/devicetree/bindings/media/i2c/adv748x.txt | 95 ++++++++++-
+ 1 file changed, 95 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/adv748x.txt
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv748x.txt b/Documentation/devicetree/bindings/media/i2c/adv748x.txt
+new file mode 100644
+index 000000000000..21ffb5ed8183
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/adv748x.txt
+@@ -0,0 +1,95 @@
++* Analog Devices ADV748X video decoder with HDMI receiver
 +
-+	dev_dbg(&client->dev, "firmware status %02x\n", utmp);
- 
- 	if (utmp == 0x0c) /* fw is running, no need for download */
--		goto exit;
-+		return 0;
- 
- 	dev_info(&client->dev, "found a '%s' in cold state, will try to load a firmware\n",
- 		 af9013_ops.info.name);
-@@ -1210,7 +1221,7 @@ static int af9013_download_firmware(struct af9013_state *state)
- 				sizeof(fw_params));
- 
- 	if (ret)
--		goto err_release;
-+		goto err_release_firmware;
- 
- 	#define FW_ADDR 0x5100 /* firmware start address */
- 	#define LEN_MAX 16 /* max packet size */
-@@ -1225,39 +1236,44 @@ static int af9013_download_firmware(struct af9013_state *state)
- 		if (ret) {
- 			dev_err(&client->dev, "firmware download failed %d\n",
- 				ret);
--			goto err_release;
-+			goto err_release_firmware;
- 		}
- 	}
- 
-+	release_firmware(fw);
++The ADV7481 and ADV7482 are multi format video decoders with an integrated
++HDMI receiver. They can output CSI-2 on two independent outputs TXA and TXB
++from three input sources HDMI, analog and TTL.
 +
- 	/* request boot firmware */
- 	ret = regmap_write(state->regmap, 0xe205, 0x01);
- 	if (ret)
--		goto err_release;
-+		goto err;
- 
- 	/* Check firmware status. 0c=OK, 04=fail */
- 	ret = regmap_read_poll_timeout(state->regmap, 0x98be, utmp,
- 				       (utmp == 0x0c || utmp == 0x04),
- 				       5000, 1000000);
- 	if (ret)
--		goto err_release;
-+		goto err;
- 
- 	dev_dbg(&client->dev, "firmware status %02x\n", utmp);
- 
- 	if (utmp == 0x04) {
--		dev_err(&client->dev, "firmware did not run\n");
- 		ret = -ENODEV;
-+		dev_err(&client->dev, "firmware did not run\n");
-+		goto err;
- 	} else if (utmp != 0x0c) {
--		dev_err(&client->dev, "firmware boot timeout\n");
- 		ret = -ENODEV;
-+		dev_err(&client->dev, "firmware boot timeout\n");
-+		goto err;
- 	}
- 
--err_release:
-+	dev_info(&client->dev, "found a '%s' in warm state\n",
-+		 af9013_ops.info.name);
++Required Properties:
 +
-+	return 0;
-+err_release_firmware:
- 	release_firmware(fw);
- err:
--exit:
--	if (!ret)
--		dev_info(&client->dev, "found a '%s' in warm state\n",
--			 af9013_ops.info.name);
-+	dev_dbg(&client->dev, "failed %d\n", ret);
- 	return ret;
- }
- 
++  - compatible: Must contain one of the following
++    - "adi,adv7481" for the ADV7481
++    - "adi,adv7482" for the ADV7482
++
++  - reg: I2C slave address
++
++Optional Properties:
++
++  - interrupt-names: Should specify the interrupts as "intrq1", "intrq2" and/or
++		     "intrq3". All interrupts are optional. The "intrq3" interrupt
++		     is only available on the adv7481
++  - interrupts: Specify the interrupt lines for the ADV748x
++
++The device node must contain one 'port' child node per device input and output
++port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt. The port nodes
++are numbered as follows.
++
++	  Name		Type		Port
++	---------------------------------------
++	  AIN0		sink		0
++	  AIN1		sink		1
++	  AIN2		sink		2
++	  AIN3		sink		3
++	  AIN4		sink		4
++	  AIN5		sink		5
++	  AIN6		sink		6
++	  AIN7		sink		7
++	  HDMI		sink		8
++	  TTL		sink		9
++	  TXA		source		10
++	  TXB		source		11
++
++The digital output port nodes must contain at least one endpoint.
++
++Ports are optional if they are not connected to anything at the hardware level.
++
++Example:
++
++	video-receiver@70 {
++		compatible = "adi,adv7482";
++		reg = <0x70>;
++
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		interrupt-parent = <&gpio6>;
++		interrupt-names = "intrq1", "intrq2";
++		interrupts = <30 IRQ_TYPE_LEVEL_LOW>,
++			     <31 IRQ_TYPE_LEVEL_LOW>;
++
++		port@7 {
++			reg = <7>;
++
++			adv7482_ain7: endpoint {
++				remote-endpoint = <&cvbs_in>;
++			};
++		};
++
++		port@8 {
++			reg = <8>;
++
++			adv7482_hdmi: endpoint {
++				remote-endpoint = <&hdmi_in>;
++			};
++		};
++
++		port@10 {
++			reg = <10>;
++
++			adv7482_txa: endpoint {
++				clock-lanes = <0>;
++				data-lanes = <1 2 3 4>;
++				remote-endpoint = <&csi40_in>;
++			};
++		};
++
++		port@11 {
++			reg = <11>;
++
++			adv7482_txb: endpoint {
++				clock-lanes = <0>;
++				data-lanes = <1>;
++				remote-endpoint = <&csi20_in>;
++			};
++		};
++	};
 -- 
-http://palosaari.fi/
+git-series 0.9.1
