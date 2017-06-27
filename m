@@ -1,128 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:13390 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751382AbdFZKgc (ORCPT
+Received: from lelnx193.ext.ti.com ([198.47.27.77]:49066 "EHLO
+        lelnx193.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752311AbdF0TIV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 06:36:32 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre TORGUE <alexandre.torgue@st.com>,
+        Tue, 27 Jun 2017 15:08:21 -0400
+Subject: Re: [PATCH] rpmsg: Solve circular dependencies involving RPMSG_VIRTIO
+To: Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Ohad Ben-Cohen <ohad@wizery.com>,
+        Peter Griffin <peter.griffin@linaro.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
-        Yannick FERTRE <yannick.fertre@st.com>,
-        Discussions about the Letux Kernel
-        <letux-kernel@openphoenux.org>
-Subject: Re: [PATCH v1 1/6] DT bindings: add bindings for ov965x camera module
-Date: Mon, 26 Jun 2017 10:35:49 +0000
-Message-ID: <64e3005d-31df-71f2-762b-2c1b1152fc2d@st.com>
-References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
- <1498143942-12682-2-git-send-email-hugues.fruchet@st.com>
- <D5629236-95D8-45B6-9719-E8B9796FEC90@goldelico.com>
-In-Reply-To: <D5629236-95D8-45B6-9719-E8B9796FEC90@goldelico.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <45E491CEEE9DE443915C1C726EF504C8@st.com>
-Content-Transfer-Encoding: base64
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Loic Pallardy <loic.pallardy@st.com>
+CC: Arnd Bergmann <arnd@arndb.de>, <linux-media@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-remoteproc@vger.kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>
+References: <20170627064309.16507-1-bjorn.andersson@linaro.org>
+From: Suman Anna <s-anna@ti.com>
+Message-ID: <d5e30779-00c0-6e56-e99e-811afbe28932@ti.com>
+Date: Tue, 27 Jun 2017 14:08:05 -0500
 MIME-Version: 1.0
+In-Reply-To: <20170627064309.16507-1-bjorn.andersson@linaro.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQoNCk9uIDA2LzIzLzIwMTcgMTI6MjUgUE0sIEguIE5pa29sYXVzIFNjaGFsbGVyIHdyb3RlOg0K
-PiBIaSBIdWd1ZXMsDQo+IA0KPj4gQW0gMjIuMDYuMjAxNyB1bSAxNzowNSBzY2hyaWViIEh1Z3Vl
-cyBGcnVjaGV0IDxodWd1ZXMuZnJ1Y2hldEBzdC5jb20+Og0KPj4NCj4+IEZyb206ICJILiBOaWtv
-bGF1cyBTY2hhbGxlciIgPGhuc0Bnb2xkZWxpY28uY29tPg0KPj4NCj4+IFRoaXMgYWRkcyBkb2N1
-bWVudGF0aW9uIG9mIGRldmljZSB0cmVlIGJpbmRpbmdzDQo+PiBmb3IgdGhlIE9WOTY1WCBmYW1p
-bHkgY2FtZXJhIHNlbnNvciBtb2R1bGUuDQo+Pg0KPj4gU2lnbmVkLW9mZi1ieTogSC4gTmlrb2xh
-dXMgU2NoYWxsZXIgPGhuc0Bnb2xkZWxpY28uY29tPg0KPj4gU2lnbmVkLW9mZi1ieTogSHVndWVz
-IEZydWNoZXQgPGh1Z3Vlcy5mcnVjaGV0QHN0LmNvbT4NCj4+IC0tLQ0KPj4gLi4uL2RldmljZXRy
-ZWUvYmluZGluZ3MvbWVkaWEvaTJjL292OTY1eC50eHQgICAgICAgfCAzNyArKysrKysrKysrKysr
-KysrKysrKysrDQo+PiAxIGZpbGUgY2hhbmdlZCwgMzcgaW5zZXJ0aW9ucygrKQ0KPj4gY3JlYXRl
-IG1vZGUgMTAwNjQ0IERvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9tZWRpYS9pMmMv
-b3Y5NjV4LnR4dA0KPj4NCj4+IGRpZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUv
-YmluZGluZ3MvbWVkaWEvaTJjL292OTY1eC50eHQgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUv
-YmluZGluZ3MvbWVkaWEvaTJjL292OTY1eC50eHQNCj4+IG5ldyBmaWxlIG1vZGUgMTAwNjQ0DQo+
-PiBpbmRleCAwMDAwMDAwLi4wZTBkZTFmDQo+PiAtLS0gL2Rldi9udWxsDQo+PiArKysgYi9Eb2N1
-bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvaTJjL292OTY1eC50eHQNCj4+IEBA
-IC0wLDAgKzEsMzcgQEANCj4+ICsqIE9tbml2aXNpb24gT1Y5NjUwLzk2NTIvOTY1NSBDTU9TIHNl
-bnNvcg0KPj4gKw0KPj4gK1RoZSBPbW5pdmlzaW9uIE9WOTY1eCBzZW5zb3Igc3VwcG9ydCBtdWx0
-aXBsZSByZXNvbHV0aW9ucyBvdXRwdXQsIHN1Y2ggYXMNCj4+ICtDSUYsIFNWR0EsIFVYR0EuIEl0
-IGFsc28gY2FuIHN1cHBvcnQgWVVWNDIyLzQyMCwgUkdCNTY1LzU1NSBvciByYXcgUkdCDQo+PiAr
-b3V0cHV0IGZvcm1hdC4NCj4+ICsNCj4+ICtSZXF1aXJlZCBQcm9wZXJ0aWVzOg0KPj4gKy0gY29t
-cGF0aWJsZTogc2hvdWxkIGJlIG9uZSBvZg0KPj4gKwkib3Z0aSxvdjk2NTAiDQo+PiArCSJvdnRp
-LG92OTY1MiINCj4+ICsJIm92dGksb3Y5NjU1Ig0KPj4gKy0gY2xvY2tzOiByZWZlcmVuY2UgdG8g
-dGhlIG1jbGsgaW5wdXQgY2xvY2suDQo+IA0KPiBJIHdvbmRlciB3aHkgeW91IGhhdmUgcmVtb3Zl
-ZCB0aGUgY2xvY2stZnJlcXVlbmN5IHByb3BlcnR5Pw0KPiANCj4gSW4gc29tZSBzaXR1YXRpb25z
-IHRoZSBjYW1lcmEgZHJpdmVyIG11c3QgYmUgYWJsZSB0byB0ZWxsIHRoZSBjbG9jayBzb3VyY2UN
-Cj4gd2hpY2ggZnJlcXVlbmN5IGl0IHdhbnRzIHRvIHNlZS4NCj4gDQo+IEZvciBleGFtcGxlIHdl
-IGNvbm5lY3QgdGhlIGNhbWVyYSB0byBhbiBPTUFQMy1JU1AgKGltYWdlIHNpZ25hbCBwcm9jZXNz
-b3IpIGFuZA0KPiB0aGVyZSBpdCBpcyBhc3N1bWVkIHRoYXQgY2FtZXJhIG1vZHVsZXMga25vdyB0
-aGUgZnJlcXVlbmN5IGFuZCBzZXQgdGhlIGNsb2NrLCBlLmcuOg0KPiANCj4gaHR0cDovL2VsaXhp
-ci5mcmVlLWVsZWN0cm9ucy5jb20vbGludXgvdjQuNC9zb3VyY2UvRG9jdW1lbnRhdGlvbi9kZXZp
-Y2V0cmVlL2JpbmRpbmdzL21lZGlhL2kyYy9ub2tpYSxzbWlhLnR4dCNMNTINCj4gaHR0cDovL2Vs
-aXhpci5mcmVlLWVsZWN0cm9ucy5jb20vbGludXgvdjMuMTQvc291cmNlL0RvY3VtZW50YXRpb24v
-ZGV2aWNldHJlZS9iaW5kaW5ncy9tZWRpYS9pMmMvbXQ5cDAzMS50eHQNCj4gDQo+IElmIHlvdXIg
-Y2xvY2sgaXMgY29uc3RhbnQgYW5kIGRlZmluZWQgZWxzZXdoZXJlIHdlIHNob3VsZCBtYWtlIHRo
-aXMNCj4gcHJvcGVydHkgb3B0aW9uYWwgaW5zdGVhZCBvZiByZXF1aXJlZC4gQnV0IGl0IHNob3Vs
-ZCBub3QgYmUgbWlzc2luZy4NCj4gDQo+IEhlcmUgaXMgYSBoYWNrIHRvIGdldCBpdCBpbnRvIHlv
-dXIgY29kZToNCj4gDQo+IGh0dHA6Ly9naXQuZ29sZGVsaWNvLmNvbS8/cD1ndGEwNC1rZXJuZWwu
-Z2l0O2E9YmxvYmRpZmY7Zj1kcml2ZXJzL21lZGlhL2kyYy9vdjk2NTAuYztoPWI3YWI0NmM3NzVi
-OWU0MDA4N2U0MjdhZTA3NzdlOWY3YzI4MzY5NGE7aHA9MTg0NmJjYmIxOWFlNzFjZTY4NmRhZGUz
-MjBhYTA2Y2UyZTQyOWNhNDtoYj1jYTg1MTk2ZjZmZDlhNzdlNWEwZjc5NmFlYWY3YWEyY2RlNjBj
-ZTkxO2hwYj04YTcxZjIxYjc1NTQzYTZkOTkxMDJiZTFhZTQ2NzdiMjhjNDc4YWM5DQo+IA0KDQpI
-ZXJlIGlzIGhvdyBpdCBpcyB1c2VkIG9uIG15IERULCB0aGUgY2FtZXJhIGNsb2NrIGlzIGEgZml4
-ZWQgY3J5c3RhbCAyNE0gDQpjbG9jazoNCg0KKwljbG9ja3Mgew0KKwkJY2xrX2V4dF9jYW1lcmE6
-IGNsay1leHQtY2FtZXJhIHsNCisJCQkjY2xvY2stY2VsbHMgPSA8MD47DQorCQkJY29tcGF0aWJs
-ZSA9ICJmaXhlZC1jbG9jayI7DQorCQkJY2xvY2stZnJlcXVlbmN5ID0gPDI0MDAwMDAwPjsNCisJ
-CX07DQorCX07DQpbLi4uXQ0KKwlvdjk2NTU6IGNhbWVyYUAzMCB7DQorCQljb21wYXRpYmxlID0g
-Im92dGksb3Y5NjU1IjsNCisJCXJlZyA9IDwweDMwPjsNCisJCXB3ZG4tZ3Bpb3MgPSA8JmdwaW9o
-IDEzIEdQSU9fQUNUSVZFX0hJR0g+Ow0KKwkJY2xvY2tzID0gPCZjbGtfZXh0X2NhbWVyYT47DQor
-CQlzdGF0dXMgPSAib2theSI7DQorDQorCQlwb3J0IHsNCisJCQlvdjk2NTVfMDogZW5kcG9pbnQg
-ew0KKwkJCQlyZW1vdGUtZW5kcG9pbnQgPSA8JmRjbWlfMD47DQorCQkJfTsNCisJCX07DQorCX07
-DQoNCg0KPj4gKw0KPj4gK09wdGlvbmFsIFByb3BlcnRpZXM6DQo+PiArLSByZXNldGItZ3Bpb3M6
-IHJlZmVyZW5jZSB0byB0aGUgR1BJTyBjb25uZWN0ZWQgdG8gdGhlIHJlc2V0YiBwaW4sIGlmIGFu
-eS4NCj4+ICstIHB3ZG4tZ3Bpb3M6IHJlZmVyZW5jZSB0byB0aGUgR1BJTyBjb25uZWN0ZWQgdG8g
-dGhlIHB3ZG4gcGluLCBpZiBhbnkuDQo+IA0KPiBIZXJlIEkgd29uZGVyIHdoeSB5b3UgZGlkIHNw
-bGl0IHRoYXQgdXAgaW50byB0d28gZ3Bpb3MuIEVhY2ggIiotZ3Bpb3MiIGNhbiBoYXZlDQo+IG11
-bHRpcGxlIGVudHJpZXMgYW5kIGlmIG9uZSBpcyBub3QgdXNlZCwgYSAwIGNhbiBiZSBzcGVjaWZp
-ZWQgdG8gbWFrZSBpdCBiZWluZyBpZ25vcmVkLg0KPiANCj4gQnV0IGl0IGlzIHVwIHRvIERUIG1h
-aW50YWluZXJzIHdoYXQgdGhleSBwcmVmZXI6IHNlcGFyYXRlIHNpbmdsZSBncGlvcyBvciBhIHNp
-bmdsZSBncGlvIGFycmF5Lg0KDQpJIGhhdmUgZm9sbG93ZWQgdGhlIG92MjY0MCBiaW5kaW5nLCB3
-aGljaCBoYXZlIHRoZSBzYW1lIHBpbnMgbmFtaW5nIA0KKHJlc2V0Yi9wd2RuKS4NCkFzIGZhciBh
-cyBJIHNlZSwgc2VwYXJhdGUgc2luZ2xlIGdwaW9zIGFyZSBjb21tb25seSB1c2VkIGluDQpEb2N1
-bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvaTJjLw0KDQo+IA0KPiANCj4gV2hh
-dCBJIGFtIG1pc3NpbmcgdG8gc3VwcG9ydCB0aGUgR1RBMDQgY2FtZXJhIGlzIHRoZSBjb250cm9s
-IG9mIHRoZSBvcHRpb25hbCAidmFuYS1zdXBwbHkiLg0KPiBTbyB0aGUgZHJpdmVyIGRvZXMgbm90
-IHBvd2VyIHVwIHRoZSBjYW1lcmEgbW9kdWxlIHdoZW4gbmVlZGVkIGFuZCB0aGVyZWZvcmUgcHJv
-YmluZyBmYWlscy4NCj4gDQo+ICAgIC0gdmFuYS1zdXBwbHk6IGEgcmVndWxhdG9yIHRvIHBvd2Vy
-IHVwIHRoZSBjYW1lcmEgbW9kdWxlLg0KPiANCj4gRHJpdmVyIGNvZGUgaXMgbm90IGNvbXBsZXgg
-dG8gYWRkOg0KPiANCj4gaHR0cDovL2dpdC5nb2xkZWxpY28uY29tLz9wPWd0YTA0LWtlcm5lbC5n
-aXQ7YT1ibG9iZGlmZjtmPWRyaXZlcnMvbWVkaWEvaTJjL292OTY1MC5jO2g9MTg0NmJjYmIxOWFl
-NzFjZTY4NmRhZGUzMjBhYTA2Y2UyZTQyOWNhNDtocD1jMDgxOWFmZGNlZmNiMTlkYTM1MTc0MWQ1
-MWRhZDAwYWFmOTA5MjU0O2hiPThhNzFmMjFiNzU1NDNhNmQ5OTEwMmJlMWFlNDY3N2IyOGM0Nzhh
-Yzk7aHBiPTZkYjU1ZmM0NzJlZWEyZWM2ZGIwMzgzM2RmMDI3YWVjZjY2NDlmODgNCg0KWWVzLCBJ
-IHNhdyBpdCBpbiB5b3VyIGNvZGUsIGJ1dCBhcyBJIGRvbid0IGhhdmUgYW55IHByb2dyYW1tYWJs
-ZSBwb3dlciANCnN1cHBseSBvbiBteSBzZXR1cCwgSSBoYXZlIG5vdCBwdXNoZWQgdGhpcyBjb21t
-aXQuDQpBbmQgSSBhbHNvIGRvbid0IGhhdmUgYSBjbG9jayB0byBlbmFibGUvZGlzYWJsZSAtZml4
-ZWQgY2xvY2stLCBJIG5lZWQgdG8gDQpjaGVjayB0aGUgYmVoYXZpb3VyIHdoZW4gZGlzYWJsaW5n
-L2VuYWJsaW5nIGEgZml4ZWQgY2xvY2ssIEkgd2lsbCBnaXZlIA0KaXQgYSB0cnkuDQoNCj4gDQo+
-PiArDQo+PiArVGhlIGRldmljZSBub2RlIG11c3QgY29udGFpbiBvbmUgJ3BvcnQnIGNoaWxkIG5v
-ZGUgZm9yIGl0cyBkaWdpdGFsIG91dHB1dA0KPj4gK3ZpZGVvIHBvcnQsIGluIGFjY29yZGFuY2Ug
-d2l0aCB0aGUgdmlkZW8gaW50ZXJmYWNlIGJpbmRpbmdzIGRlZmluZWQgaW4NCj4+ICtEb2N1bWVu
-dGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvdmlkZW8taW50ZXJmYWNlcy50eHQuDQo+
-PiArDQo+PiArRXhhbXBsZToNCj4+ICsNCj4+ICsmaTJjMiB7DQo+PiArCW92OTY1NTogY2FtZXJh
-QDMwIHsNCj4+ICsJCWNvbXBhdGlibGUgPSAib3Z0aSxvdjk2NTUiOw0KPj4gKwkJcmVnID0gPDB4
-MzA+Ow0KPj4gKwkJcHdkbi1ncGlvcyA9IDwmZ3Bpb2ggMTMgR1BJT19BQ1RJVkVfSElHSD47DQo+
-PiArCQljbG9ja3MgPSA8JmNsa19leHRfY2FtZXJhPjsNCj4+ICsNCj4+ICsJCXBvcnQgew0KPj4g
-KwkJCW92OTY1NTogZW5kcG9pbnQgew0KPj4gKwkJCQlyZW1vdGUtZW5kcG9pbnQgPSA8JmRjbWlf
-MD47DQo+PiArCQkJfTsNCj4+ICsJCX07DQo+PiArCX07DQo+PiArfTsNCj4+IC0tIA0KPj4gMS45
-LjENCj4+DQo+IA0KPiBCUiBhbmQgdGhhbmtzLA0KPiBOaWtvbGF1cw0KPiA=
+Hi Bjorn,
+
+Thanks for the patch.
+
+On 06/27/2017 01:43 AM, Bjorn Andersson wrote:
+> While it's very common to use RPMSG for communicating with firmware
+> running on these remoteprocs there is no functional dependency on RPMSG.
+
+This is not entirely accurate though. RPMSG is the IPC transport on
+these remoteprocs, you seem to suggest that there are alternatives for
+these remoteprocs. Without RPMSG, you can boot, but you will not be able
+to talk to the remoteprocs, so I would call it a functional dependency.
+
+> As such RPMSG should be selected by the system integrator and not
+> automatically by the remoteproc drivers.
+> 
+> This does solve problems reported with circular Kconfig dependencies for
+> Davinci and Keystone remoteproc drivers.
+
+The Keystone one issue shows up on linux-next (and not on 4.12-rcX) due
+to the differing options on RESET_CONTROLLER on VIDEO_QCOM_VENUS
+(through QCOM_SCOM). This can also be resolved by changing the depends
+on RESET_CONTROLLER to a select RESET_CONTROLLER or dropping the line.
+
+The davinci one is tricky though, as I did change it from using a select
+to a depends on dependency, and obviously ppc64_defconfig is something
+that I would not check.
+
+This patch definitely resolves both issues, but it is not obvious that
+someone would also have to enable RPMSG_VIRTIO to have these remoteprocs
+useful when looking at either of the menuconfig help.
+
+regards
+Suman
+
+> 
+> Signed-off-by: Bjorn Andersson <bjorn.andersson@linaro.org>
+> ---
+>  drivers/media/platform/Kconfig |  2 +-
+>  drivers/remoteproc/Kconfig     |  4 ----
+>  drivers/rpmsg/Kconfig          | 20 +++++++++-----------
+>  3 files changed, 10 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index 1313cd533436..cb2f31cd0088 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -382,10 +382,10 @@ config VIDEO_STI_DELTA_DRIVER
+>  	tristate
+>  	depends on VIDEO_STI_DELTA
+>  	depends on VIDEO_STI_DELTA_MJPEG
+> +	depends on RPMSG
+>  	default VIDEO_STI_DELTA_MJPEG
+>  	select VIDEOBUF2_DMA_CONTIG
+>  	select V4L2_MEM2MEM_DEV
+> -	select RPMSG
+>  
+>  endif # VIDEO_STI_DELTA
+>  
+> diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
+> index b950e6cd4ba2..3b16f422d30c 100644
+> --- a/drivers/remoteproc/Kconfig
+> +++ b/drivers/remoteproc/Kconfig
+> @@ -21,7 +21,6 @@ config OMAP_REMOTEPROC
+>  	depends on REMOTEPROC
+>  	select MAILBOX
+>  	select OMAP2PLUS_MBOX
+> -	select RPMSG_VIRTIO
+>  	help
+>  	  Say y here to support OMAP's remote processors (dual M3
+>  	  and DSP on OMAP4) via the remote processor framework.
+> @@ -53,7 +52,6 @@ config DA8XX_REMOTEPROC
+>  	depends on ARCH_DAVINCI_DA8XX
+>  	depends on REMOTEPROC
+>  	depends on DMA_CMA
+> -	select RPMSG_VIRTIO
+>  	help
+>  	  Say y here to support DA8xx/OMAP-L13x remote processors via the
+>  	  remote processor framework.
+> @@ -76,7 +74,6 @@ config KEYSTONE_REMOTEPROC
+>  	depends on ARCH_KEYSTONE
+>  	depends on RESET_CONTROLLER
+>  	depends on REMOTEPROC
+> -	select RPMSG_VIRTIO
+>  	help
+>  	  Say Y here here to support Keystone remote processors (DSP)
+>  	  via the remote processor framework.
+> @@ -133,7 +130,6 @@ config ST_REMOTEPROC
+>  	depends on REMOTEPROC
+>  	select MAILBOX
+>  	select STI_MBOX
+> -	select RPMSG_VIRTIO
+>  	help
+>  	  Say y here to support ST's adjunct processors via the remote
+>  	  processor framework.
+> diff --git a/drivers/rpmsg/Kconfig b/drivers/rpmsg/Kconfig
+> index 2a5d2b446de2..46f3f2431d68 100644
+> --- a/drivers/rpmsg/Kconfig
+> +++ b/drivers/rpmsg/Kconfig
+> @@ -1,8 +1,5 @@
+> -menu "Rpmsg drivers"
+> -
+> -# RPMSG always gets selected by whoever wants it
+> -config RPMSG
+> -	tristate
+> +menuconfig RPMSG
+> +	tristate "Rpmsg drivers"
+>  
+>  config RPMSG_CHAR
+>  	tristate "RPMSG device interface"
+> @@ -15,7 +12,7 @@ config RPMSG_CHAR
+>  
+>  config RPMSG_QCOM_GLINK_RPM
+>  	tristate "Qualcomm RPM Glink driver"
+> -	select RPMSG
+> +	depends on RPMSG
+>  	depends on HAS_IOMEM
+>  	depends on MAILBOX
+>  	help
+> @@ -26,16 +23,17 @@ config RPMSG_QCOM_GLINK_RPM
+>  config RPMSG_QCOM_SMD
+>  	tristate "Qualcomm Shared Memory Driver (SMD)"
+>  	depends on QCOM_SMEM
+> -	select RPMSG
+> +	depends on RPMSG
+>  	help
+>  	  Say y here to enable support for the Qualcomm Shared Memory Driver
+>  	  providing communication channels to remote processors in Qualcomm
+>  	  platforms.
+>  
+>  config RPMSG_VIRTIO
+> -	tristate
+> -	select RPMSG
+> +	tristate "Virtio remote processor messaging driver (RPMSG)"
+> +	depends on RPMSG
+>  	select VIRTIO
+>  	select VIRTUALIZATION
+> -
+> -endmenu
+> +	help
+> +	  Say y here to enable support for the Virtio remote processor
+> +	  messaging protocol (RPMSG).
+> 
