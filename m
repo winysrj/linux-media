@@ -1,51 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57905
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752106AbdFHPZU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Jun 2017 11:25:20 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Peter Griffin <peter.griffin@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        Songjun Wu <songjun.wu@microchip.com>
-Subject: [PATCH] [media] platform/Makefile: don't depend on arch to include dirs
-Date: Thu,  8 Jun 2017 12:24:52 -0300
-Message-Id: <6c4ae51b700d303165afed802dac81b0e32c0f53.1496935487.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:58462 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752723AbdF0QJL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Jun 2017 12:09:11 -0400
+From: Thierry Escande <thierry.escande@collabora.com>
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v3 8/8] [media] s5p-jpeg: Add stream error handling for Exynos5420
+Date: Tue, 27 Jun 2017 18:08:54 +0200
+Message-Id: <1498579734-1594-9-git-send-email-thierry.escande@collabora.com>
+In-Reply-To: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
+References: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset = "utf-8"
+Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Depending on arch configs to include dirs is evil, and makes
-harder to change drivers to work with COMPILE_TEST.
+From: henryhsu <henryhsu@chromium.org>
 
-Replace them by obj-y.
+On Exynos5420, the STREAM_STAT bit raised on the JPGINTST register means
+there is a syntax error or an unrecoverable error on compressed file
+when ERR_INT_EN is set to 1.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Fix this case and report BUF_STATE_ERROR to videobuf2.
+
+Signed-off-by: Henry-Ruey Hsu <henryhsu@chromium.org>
+Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
 ---
- drivers/media/platform/Makefile | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 231f3c2894c9..c3588d570f5d 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -44,9 +44,9 @@ obj-$(CONFIG_VIDEO_STI_HDMI_CEC) 	+= sti/cec/
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 5ad3d43..c35d169 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -2812,6 +2812,7 @@ static irqreturn_t exynos3250_jpeg_irq(int irq, void *dev_id)
+ 	unsigned long payload_size = 0;
+ 	enum vb2_buffer_state state = VB2_BUF_STATE_DONE;
+ 	bool interrupt_timeout = false;
++	bool stream_error = false;
+ 	u32 irq_status;
  
- obj-$(CONFIG_VIDEO_STI_DELTA)		+= sti/delta/
+ 	spin_lock(&jpeg->slock);
+@@ -2828,6 +2829,12 @@ static irqreturn_t exynos3250_jpeg_irq(int irq, void *dev_id)
  
--obj-$(CONFIG_BLACKFIN)                  += blackfin/
-+obj-y                                   += blackfin/
+ 	jpeg->irq_status |= irq_status;
  
--obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
-+obj-y					+= davinci/
++	if (jpeg->variant->version == SJPEG_EXYNOS5420 &&
++	    irq_status & EXYNOS3250_STREAM_STAT) {
++		stream_error = true;
++		dev_err(jpeg->dev, "Syntax error or unrecoverable error occurred.\n");
++	}
++
+ 	curr_ctx = v4l2_m2m_get_curr_priv(jpeg->m2m_dev);
  
- obj-$(CONFIG_VIDEO_SH_VOU)		+= sh_vou.o
- 
+ 	if (!curr_ctx)
+@@ -2844,7 +2851,7 @@ static irqreturn_t exynos3250_jpeg_irq(int irq, void *dev_id)
+ 				EXYNOS3250_RDMA_DONE |
+ 				EXYNOS3250_RESULT_STAT))
+ 		payload_size = exynos3250_jpeg_compressed_size(jpeg->regs);
+-	else if (interrupt_timeout)
++	else if (interrupt_timeout || stream_error)
+ 		state = VB2_BUF_STATE_ERROR;
+ 	else
+ 		goto exit_unlock;
 -- 
-2.9.4
+2.7.4
