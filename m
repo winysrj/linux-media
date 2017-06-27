@@ -1,222 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:33826 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751169AbdFDXYi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 4 Jun 2017 19:24:38 -0400
-Subject: Re: [RFC PATCH v3 00/11] [media]: vimc: Virtual Media Control VPU's
-To: linux-media@vger.kernel.org
-References: <1491604632-23544-1-git-send-email-helen.koike@collabora.com>
- <1496458714-16834-1-git-send-email-helen.koike@collabora.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, jgebben@codeaurora.org,
-        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-From: Helen Koike <helen.koike@collabora.com>
-Message-ID: <4bdd9af3-4d03-f62f-4ac8-dc8d7cc00570@collabora.com>
-Date: Sun, 4 Jun 2017 20:24:28 -0300
-MIME-Version: 1.0
-In-Reply-To: <1496458714-16834-1-git-send-email-helen.koike@collabora.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.160]:12193 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751672AbdF0FrD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Jun 2017 01:47:03 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Subject: Re: [PATCH] media: omap3isp: handle NULL return of omap3isp_video_format_info() in ccdc_is_shiftable().
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+In-Reply-To: <20170626201253.GU12407@valkosipuli.retiisi.org.uk>
+Date: Tue, 27 Jun 2017 07:46:51 +0200
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>, s-anna@ti.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        letux-kernel@openphoenux.org
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <87FCA101-D678-45E9-BD68-25819B9EF443@goldelico.com>
+References: <a601fdb6d224f2e4f1a3c1249ebf8438f4b8b5ce.1498499658.git.hns@goldelico.com> <20170626201253.GU12407@valkosipuli.retiisi.org.uk>
+To: Sakari Ailus <sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I forgot to mention that this patch series is also available here 
-https://github.com/helen-fornazier/opw-staging/tree/z/sent/vimc/vpu/v3
+Hi,
 
-On 2017-06-02 11:58 PM, Helen Koike wrote:
-> This patch series improves the current video processing units in vimc
-> (by adding more controls to the sensor and capture node, allowing the
-> user to configure different frame formats) and also adds a debayer
-> and a scaler node.
-> The debayer transforms the bayer format image received in its sink pad
-> to a bayer format by averaging the pixels within a mean window.
-> The scaler only scales up the image for now.
->
-> In this version I added an optimization where the image can be generated
-> direct in the capture device instead of being generated in the sensor
-> and processed by each node in the topology.
-> I also changed the approach to implement each node of the topology as a
-> submodule to make the code component oriented, where new components
-> won't need to touch vimc-core and won't need a header file.
-> Please, let me know your view regarding this new approach.
->
-> Changes in v3:
-> [media] vimc: sen: Integrate the tpg on the sensor
-> 	- Declare frame_size as a local variable
-> 	- Set tpg frame format before starting kthread
-> 	- s_stream(sd, 1): return 0 if stream is already enabled
-> 	- s_stream(sd, 0): return 0 if stream is already disabled
-> 	- s_stream: propagate error from kthread_stop
-> 	- coding style when calling tpg_s_bytesperline
-> 	- s/vimc_thread_sen/vimc_sen_tpg_thread
-> 	- fix multiline comment
-> [media] vimc: Move common code from the core
-> 	- This is a new patch in the series
-> [media] vimc: Add vimc_ent_sd_* helper functions
-> 	- add it in vimc-common.c instead in vimc-core.c
-> 	- fix vimc_ent_sd_register, use function parameter to assign
-> 	sd->entity.function instead of using a fixed value
-> 	- rename commit to add the "common" tag
-> [media] vimc: Add vimc_pipeline_s_stream in the core
-> 	- add it in vimc-common instead of vimc-core
-> 	- rename commit with "common" tag
-> [media] vimc: common: Add vimc_link_validate
-> 	- this is a new patch in the series
-> [media] vimc: sen: Support several image formats
-> 	- remove support for V4L2_FIELD_ALTERNATE (left as TODO for now)
-> 	- clamp image size to an even dimension for height and width
-> 	- set default values for colorimetry using _DEFAULT macro
-> 	- reset all values of colorimetry to _DEFAULT if user tries to
-> 	set an invalid colorspace
-> [media] vimc: cap: Support several image formats
-> 	- use *_DEFAULT macros for colorimetry in the default format
-> 	- clamp height and width of the image by an even value
-> 	- is user try to set colorspace to an invalid format, set all
-> 	colorimetry parameters to _DEFAULT
-> 	- remove V4L2_FMT_FLAG_COMPRESSED from vimc_cap_enum_fmt_vid_cap
-> 	- remove V4L2_BUF_TYPE_VIDEO_CAPTURE from vimc_cap_enum_fmt_vid_cap
-> 	- increase step_width and step_height to 2 instead of 1
-> 	- remove link validate function, use the one in vimc-common.c
-> [media] vimc: Optimize frame generation through the pipe
-> 	- This is a new patch in the series
-> [media] vimc: Subdevices as modules
-> 	- This is a new patch in the series
-> [media] vimc: deb: Add debayer filter
-> 	- Declare frame_size as a local variable
-> 	- s_stream(sd, 1): return 0 if stream is already enabled
-> 	- s_stream(sd, 0): return 0 if stream is already disabled
-> 	- s_stream: add ret variable to propagate return errors
-> 	- structure code to be a module, use platform_driver and component system
-> 	- fix multiline comment
-> 	- s/thought/through
-> 	- s/RGB8888/RGB888
-> 	- clamp height and width of the image by an even value
-> 	- if user try to set colorspace to an invalid format, set all
->         colorimetry parameters to _DEFAULT
-> 	- uset _DEFAULT for colorimetry in the default format
-> [media] vimc: sca: Add scaler
-> 	- Declare frame_size as a local variable
-> 	- s_stream(sd, 1): return 0 if stream is already enabled
-> 	- s_stream(sd, 0): return 0 if stream is already disabled
-> 	- s_stream: add ret variable to propagate return errors
-> 	- structure code to be a module, use platform_driver and component system
-> 	- s/thought/through
-> 	- clamp height and width of the image by an even value
-> 	- if user try to set colorspace to an invalid format, set all
-> 	    colorimetry parameters to _DEFAULT
-> 	- uset _DEFAULT for colorimetry in the default format
->
-> Changes in v2:
-> [media] vimc: sen: Integrate the tpg on the sensor
-> 	- Fix include location
-> 	- Select V4L2_TPG in Kconfig
-> 	- configure tpg on streamon only
-> 	- rm BUG_ON
-> 	- coding style
-> 	- remove V4L2_FIELD_ALTERNATE from tpg_s_field
-> 	- remove V4L2_STD_PAL from tpg_fill_plane_buffer
-> [media] vimc: Add vimc_ent_sd_* helper functions
-> 	- Comments in vimc_ent_sd_init
-> 	- Update vimc_ent_sd_init with upstream code as media_entity_pads_init
-> 	(instead of media_entity_init), entity->function intead of entity->type
-> 	- Add missing vimc_pads_cleanup in vimc_ent_sd_cleanup
-> 	- remove subdevice v4l2_dev and dev fields
-> 	- change unregister order in vimc_ent_sd_cleanup
-> 	- rename vimc_ent_sd_{init,cleanup} to vimc_ent_sd_{register,unregister}
-> 	- remove struct vimc_ent_subdevice, use ved and sd directly
-> 	- don't impose struct vimc_sen_device to declare ved and sd struct first
-> 	- add kernel docs
-> [media] vimc: Add vimc_pipeline_s_stream in the core
-> 	- Use is_media_entity_v4l2_subdev instead of comparing with the old
-> 	entity->type
-> 	- Fix comments style
-> 	- add kernel-docs
-> 	- call s_stream across all sink pads
-> [media] vimc: sen: Support several image formats
-> 	- this is a new commit in the serie (the old one was splitted in two)
-> 	- add init_cfg to initialize try_fmt
-> 	- reorder code in vimc_sen_set_fmt
-> 	- allow user space to change all fields from struct v4l2_mbus_framefmt
-> 	  (e.g. colospace, quantization, field, xfer_func, ycbcr_enc)
-> 	- merge with patch for the enum_mbus_code and enum_frame_size
-> 	- change commit message
-> 	- add vimc_pix_map_by_index
-> 	- rename MIN/MAX macros
-> 	- check set_fmt default parameters for quantization, colorspace ...media] vimc: sen: Support several image formats
-> [media] vimc: cap: Support several image formats
-> 	- this is a new commit in the serie (the old one was splitted in two)
-> 	- allow user space to change all fields from struct v4l2_pix_format
-> 	  (e.g. colospace, quantization, field, xfer_func, ycbcr_enc)
-> 	- link_validate and try_fmt: also checks colospace, quantization, field, xfer_func, ycbcr_enc
-> 	- add struct v4l2_pix_format fmt_default
-> 	- add enum_framesizes
-> 	- enum_fmt_vid_cap: enumerate all formats from vimc_pix_map_table
-> 	- add mode dev_dbg
-> [media] vimc: deb: Add debayer filter
-> 	- Using MEDIA_ENT_F_ATV_DECODER in function
-> 	- remove v4l2_dev and dev from vimc_deb_device struct
-> 	- src fmt propagates from the sink
-> 	- coding style
-> 	- remove redundant else if statements
-> 	- check end of enum and remove BUG_ON
-> 	- enum frame size with min and max values
-> 	- set/try fmt
-> 	- remove unecessary include freezer.h
-> 	- check pad types on create
-> 	- return EBUSY when trying to set the format while stream is on
-> 	- remove vsd struct
-> 	- add IS_SRC and IS_SINK macros
-> 	- add deb_mean_win_size as a parameter of the module
-> 	- check set_fmt default parameters for quantization, colorspace ...
-> 	- add more dev_dbg
-> [media] vimc: sca: Add scaler
-> 	- Add function MEDIA_ENT_F_IO_V4L
-> 	- remove v4l2_dev and dev
-> 	- s/sink_mbus_fmt/sink_fmt
-> 	- remove BUG_ON, remove redundant if else, rewrite TODO, check end of enum
-> 	- rm src_width/height, enum fsize with min and max values
-> 	- set/try fmt
-> 	- remove unecessary include freezer.h
-> 	- core: add bayer boolean in pixel table
-> 	- coding style
-> 	- fix bug in enum frame size
-> 	- check pad types on create
-> 	- return EBUSY when trying to set the format while stream is on
-> 	- remove vsd struct
-> 	- add IS_SRC and IS_SINK macros
-> 	- add sca_mult as a parameter of the module
-> 	- check set_fmt default parameters for quantization, colorspace ...
-> 	- add more dev_dbg
->
-> Helen Koike (11):
->   [media] vimc: sen: Integrate the tpg on the sensor
->   [media] vimc: Move common code from the core
->   [media] vimc: common: Add vimc_ent_sd_* helper
->   [media] vimc: common: Add vimc_pipeline_s_stream helper
->   [media] vimc: common: Add vimc_link_validate
->   [media] vimc: sen: Support several image formats
->   [media] vimc: cap: Support several image formats
->   [media] vimc: Optimize frame generation through the pipe
->   [media] vimc: Subdevices as modules
->   [media] vimc: deb: Add debayer filter
->   [media] vimc: sca: Add scaler
->
->  drivers/media/platform/vimc/Kconfig                |   1 +
->  drivers/media/platform/vimc/Makefile               |  10 +-
->  drivers/media/platform/vimc/vimc-capture.c         | 488 ++++++++++------
->  drivers/media/platform/vimc/vimc-capture.h         |  28 -
->  drivers/media/platform/vimc/vimc-common.c          | 475 ++++++++++++++++
->  .../platform/vimc/{vimc-core.h => vimc-common.h}   |  88 ++-
->  drivers/media/platform/vimc/vimc-core.c            | 611 ++++++--------------
->  drivers/media/platform/vimc/vimc-debayer.c         | 615 +++++++++++++++++++++
->  drivers/media/platform/vimc/vimc-scaler.c          | 469 ++++++++++++++++
->  drivers/media/platform/vimc/vimc-sensor.c          | 348 ++++++++----
->  drivers/media/platform/vimc/vimc-sensor.h          |  28 -
->  11 files changed, 2370 insertions(+), 791 deletions(-)
->  delete mode 100644 drivers/media/platform/vimc/vimc-capture.h
->  create mode 100644 drivers/media/platform/vimc/vimc-common.c
->  rename drivers/media/platform/vimc/{vimc-core.h => vimc-common.h} (54%)
->  create mode 100644 drivers/media/platform/vimc/vimc-debayer.c
->  create mode 100644 drivers/media/platform/vimc/vimc-scaler.c
->  delete mode 100644 drivers/media/platform/vimc/vimc-sensor.h
->
+> Am 26.06.2017 um 22:12 schrieb Sakari Ailus <sakari.ailus@iki.fi>:
+>=20
+> Hi Nikolaus,
+>=20
+> On Mon, Jun 26, 2017 at 07:54:19PM +0200, H. Nikolaus Schaller wrote:
+>> If a camera module driver specifies a format that is not
+>> supported by omap3isp this ends in a NULL pointer
+>> dereference instead of a simple fail.
+>=20
+> Has this happened in practice?
+
+Yes. I wouldn't have noticed it otherwise.
+
+It happens with a new ov965x driver just submitted for review.
+It seems to provide some format that the omap3isp does not understand.
+
+I can send you a console stack log if needed.
+
+> If it does, it is probably a driver bug ---
+> the formats on its pads should be recognised by the driver.
+
+>=20
+> WARN_ON() around the condition would be good to avoid silently =
+ignoring such
+> issues.
+>=20
+> I wonder what Laurent thinks.
+>=20
+>>=20
+>> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+>> ---
+>> drivers/media/platform/omap3isp/ispccdc.c | 3 +++
+>> 1 file changed, 3 insertions(+)
+>>=20
+>> diff --git a/drivers/media/platform/omap3isp/ispccdc.c =
+b/drivers/media/platform/omap3isp/ispccdc.c
+>> index 2fb755f20a6b..dcf16ee7c612 100644
+>> --- a/drivers/media/platform/omap3isp/ispccdc.c
+>> +++ b/drivers/media/platform/omap3isp/ispccdc.c
+>> @@ -2397,6 +2397,9 @@ static bool ccdc_is_shiftable(u32 in, u32 out, =
+unsigned int additional_shift)
+>> 	in_info =3D omap3isp_video_format_info(in);
+>> 	out_info =3D omap3isp_video_format_info(out);
+>>=20
+>> +	if (!in_info || !out_info)
+>> +		return false;
+>> +
+>> 	if ((in_info->flavor =3D=3D 0) || (out_info->flavor =3D=3D 0))
+>> 		return false;
+>>=20
+>=20
+> --=20
+> Regards,
+>=20
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+
+BR and thanks,
+Nikolaus
