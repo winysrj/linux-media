@@ -1,47 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:36457 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750881AbdFFIHs (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34610 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751473AbdF0FUk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Jun 2017 04:07:48 -0400
-Subject: Re: [PATCH 02/12] intel-ipu3: mmu: implement driver
-To: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com
-References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
- <1496695157-19926-3-git-send-email-yong.zhi@intel.com>
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8aa29682-4d09-6c4f-f867-9b135ddacb57@xs4all.nl>
-Date: Tue, 6 Jun 2017 10:07:45 +0200
+        Tue, 27 Jun 2017 01:20:40 -0400
+Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 5C7A1600A0
+        for <linux-media@vger.kernel.org>; Tue, 27 Jun 2017 08:20:36 +0300 (EEST)
+Date: Tue, 27 Jun 2017 08:20:35 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL v2 for 4.13] ov6650 V4L2 sub-device conversion
+Message-ID: <20170627052035.GV12407@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <1496695157-19926-3-git-send-email-yong.zhi@intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/06/17 22:39, Yong Zhi wrote:
-> From: Tuukka Toivonen <tuukka.toivonen@intel.com>
-> 
-> This driver translates Intel IPU3 internal virtual
-> address to physical address.
-> 
-> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> ---
->  drivers/media/pci/intel/ipu3/Kconfig    |  11 +
->  drivers/media/pci/intel/ipu3/Makefile   |   1 +
->  drivers/media/pci/intel/ipu3/ipu3-mmu.c | 423 ++++++++++++++++++++++++++++++++
->  drivers/media/pci/intel/ipu3/ipu3-mmu.h |  73 ++++++
->  4 files changed, 508 insertions(+)
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-mmu.c
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-mmu.h
-> 
+Hi Mauro,
 
-Why is this patch and the next patch (03/12) in drivers/media? I wonder
-what the reasoning is behind that since it doesn't seem very media
-specific.
+(v2, this time with the appropriate git tags, plus rebased on current media
+tree master. No other changes.)
 
-Regards,
+This set includes converting the ov6650 driver to V4L2 sub-device driver
+(from SoC camera).
 
-	Hans
+Rebased w/o conflicts on more recent media tree master.
+
+Please pull.
+
+The following changes since commit 2748e76ddb2967c4030171342ebdd3faa6a5e8e8:
+
+  media: staging: cxd2099: Activate cxd2099 buffer mode (2017-06-26 08:19:13 -0300)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git for-4.13-4-2
+
+for you to fetch changes up to 4519f07fc2b13a2bc0f45ad3aa87c06bd43192ff:
+
+  media: ov6650: convert to standalone v4l2 subdevice (2017-06-27 08:18:02 +0300)
+
+----------------------------------------------------------------
+Janusz Krzysztofik (1):
+      media: ov6650: convert to standalone v4l2 subdevice
+
+ drivers/media/i2c/Kconfig                   | 11 +++++
+ drivers/media/i2c/Makefile                  |  1 +
+ drivers/media/i2c/{soc_camera => }/ov6650.c | 77 +++++++++--------------------
+ drivers/media/i2c/soc_camera/Kconfig        |  6 ---
+ drivers/media/i2c/soc_camera/Makefile       |  1 -
+ 5 files changed, 35 insertions(+), 61 deletions(-)
+ rename drivers/media/i2c/{soc_camera => }/ov6650.c (92%)
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
