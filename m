@@ -1,109 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51531
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751670AbdFGJzG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 05:55:06 -0400
-Date: Wed, 7 Jun 2017 06:54:52 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        hverkuil@xs4all.nl
-Subject: Re: [PATCH v3 5/7] docs-rst: media: Sort topic list alphabetically
-Message-ID: <20170607065452.5faeb157@vento.lan>
-In-Reply-To: <4d1b8a9a-af82-c72d-3554-f1844d5a5b08@linux.intel.com>
-References: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
-        <1491829376-14791-6-git-send-email-sakari.ailus@linux.intel.com>
-        <20170606094834.0152cd6f@vento.lan>
-        <4d1b8a9a-af82-c72d-3554-f1844d5a5b08@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.163]:24570 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751510AbdF0Fsp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Jun 2017 01:48:45 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Subject: Re: [PATCH v1 1/6] DT bindings: add bindings for ov965x camera module
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+In-Reply-To: <5cd25a47-f3be-8c40-3940-29f26a245076@kernel.org>
+Date: Tue, 27 Jun 2017 07:48:15 +0200
+Cc: Hugues FRUCHET <hugues.fruchet@st.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre TORGUE <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick FERTRE <yannick.fertre@st.com>,
+        Discussions about the Letux Kernel
+        <letux-kernel@openphoenux.org>
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <39501C78-7B81-4803-94C1-25DFA06EA526@goldelico.com>
+References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com> <1498143942-12682-2-git-send-email-hugues.fruchet@st.com> <D5629236-95D8-45B6-9719-E8B9796FEC90@goldelico.com> <64e3005d-31df-71f2-762b-2c1b1152fc2d@st.com> <5cd25a47-f3be-8c40-3940-29f26a245076@kernel.org>
+To: Sylwester Nawrocki <snawrocki@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 6 Jun 2017 23:57:55 +0300
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
-> Hi Mauro,
-> 
-> Mauro Carvalho Chehab wrote:
-> > Em Mon, 10 Apr 2017 16:02:54 +0300
-> > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> >  
-> >> Bring some order by alphabetically ordering the list of topics.
-> >>
-> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >> ---
-> >>  Documentation/media/kapi/v4l2-core.rst | 18 +++++++++---------
-> >>  1 file changed, 9 insertions(+), 9 deletions(-)
-> >>
-> >> diff --git a/Documentation/media/kapi/v4l2-core.rst b/Documentation/media/kapi/v4l2-core.rst
-> >> index d8f6c46..2fbf532 100644
-> >> --- a/Documentation/media/kapi/v4l2-core.rst
-> >> +++ b/Documentation/media/kapi/v4l2-core.rst
-> >> @@ -4,23 +4,23 @@ Video4Linux devices
-> >>  .. toctree::
-> >>      :maxdepth: 1
-> >>
-> >> -    v4l2-intro  
-> >
-> > NACK.
-> >
-> > The order of the documentation should match what makes sense for the
-> > user that will be reading the docs, and *not* an alphabetical order.  
-> 
-> I wrote the patch to address some of the review comments I got over the 
-> several versions of the patchset. I have no objections to maintaining 
-> the current order.
+> Am 26.06.2017 um 22:04 schrieb Sylwester Nawrocki =
+<snawrocki@kernel.org>:
+>=20
+> On 06/26/2017 12:35 PM, Hugues FRUCHET wrote:
+>>> What I am missing to support the GTA04 camera is the control of the =
+optional "vana-supply".
+>>> So the driver does not power up the camera module when needed and =
+therefore probing fails.
+>>>=20
+>>>    - vana-supply: a regulator to power up the camera module.
+>>>=20
+>>> Driver code is not complex to add:
+>=20
+>> Yes, I saw it in your code, but as I don't have any programmable =
+power
+>> supply on my setup, I have not pushed this commit.
+>=20
+> Since you are about to add voltage supplies to the DT binding I'd =
+suggest
+> to include all three voltage supplies of the sensor chip. Looking at =
+the OV9650
+> and the OV9655 datasheet there are following names used for the =
+voltage supply
+> pins:
+>=20
+> AVDD - Analog power supply,
+> DVDD - Power supply for digital core logic,
+> DOVDD - Digital power supply for I/O.
 
-Yeah, developers love putting things in alphabetical order ;)
+The latter two are usually not independently switchable from the SoC =
+power
+the module is connected to.
 
-I remember I had myself the same doubt when I did conversions to ReST :-)
-See changeset 58759874002a71cbd48a01b615a210bb474e1f2b: there, everything
-but the introduction document (v4l2-framework - on that time) were in
-alphabetical order:
+And sometimes DVDD and DOVDD are connected together.
 
-+.. toctree::
-+    :maxdepth: 1
-+
-+    v4l2-framework
-+    v4l2-async
-+    v4l2-controls
-+    v4l2-device
-+    v4l2-dv-timings
-+    v4l2-event
-+    v4l2-flash-led-class
-+    v4l2-mc
-+    v4l2-mediabus
-+    v4l2-mem2mem
-+    v4l2-of
-+    v4l2-rect
-+    v4l2-subdev
-+    v4l2-tuner
-+    v4l2-tveeprom
-+    v4l2-videobuf2
-+    v4l2-videobuf
+So the driver can't make much use of knowing or requesting them because =
+the
+1.8V supply is always active, even during suspend.
 
-However, after reading the documentation, it became clear to me that this
-was not a good idea, as the first topic out of v4l2-framework was
-V4L2 async framework (with is, IMHO, an "advanced" topic - as not every 
-"citizen" needs it). On the other hand, VB/VB2 were the last ones. 
-Clearly, VB2 were misplaced, and should come before v4l2-async.
+>=20
+> I doubt the sensor can work without any of these voltage supplies, =
+thus
+> regulator_get_optional() should not be used. I would just use the =
+regulator
+> bulk API to handle all three power supplies.
 
-So, the topics were reorganized at changeset f6fa883bb733 to place the
-more commonly used categories of functions at the beginning, and the
-less used ones at the end.
+The digital part works with AVDD turned off. So the LDO supplying AVDD =
+should
+be switchable to save power (&vaux3 on the GTA04 device).
 
-That's said, the current order may not be perfect. IMHO, we should
-some day use multiple TOC trees, adding a description before each
-one.
+But not all designs can switch it off. Hence the idea to define it as an
+/optional/ regulator. If it is not defined by DT, the driver simply =
+assumes
+it is always powered on.
 
-It would also make sense to improve VB2 documentation (currently, it
-has only 256 bytes with just include kernel headers), based on what's
-written at VB book (with is a real framework description), and move VB
-to a legacy section (or remove it, after we get rid of the last driver
-using it).
+So in summary we only need AVDD switched for the GTA04 - but it does not
+matter if the others are optional properties. We would not use them.
 
-Thanks,
-Mauro
+It does matter if they are mandatory because it adds DT complexity (size
+and processing) without added function.
+
+BR and thanks,
+Nikolaus
