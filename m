@@ -1,80 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44842 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751897AbdFSJqg (ORCPT
+Received: from bh-25.webhostbox.net ([208.91.199.152]:38601 "EHLO
+        bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751560AbdF1U0Z (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 05:46:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kbingham@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        geert@glider.be, kieran.bingham@ideasonboard.com,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: Re: [PATCH v2] media: fdp1: Support ES2 platforms
-Date: Mon, 19 Jun 2017 12:47:09 +0300
-Message-ID: <2726594.YBGsFatGlI@avalon>
-In-Reply-To: <1497263416-17930-1-git-send-email-kbingham@kernel.org>
-References: <1497263416-17930-1-git-send-email-kbingham@kernel.org>
+        Wed, 28 Jun 2017 16:26:25 -0400
+Date: Wed, 28 Jun 2017 13:26:21 -0700
+From: Guenter Roeck <linux@roeck-us.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Robb Glasser <rglasser@google.com>,
+        Richard Simmons <rssimmo@amazon.com>
+Subject: Re: [media] uvcvideo: Prevent heap overflow in uvc driver
+Message-ID: <20170628202621.GA19176@roeck-us.net>
+References: <1495482484-32125-1-git-send-email-linux@roeck-us.net>
+ <20170628143643.GA30654@roeck-us.net>
+ <1797631.lsAEjhpLaU@avalon>
+ <1612560.vxfrDdQTFq@avalon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1612560.vxfrDdQTFq@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
-
-Thank you for the patch.
-
-On Monday 12 Jun 2017 11:30:16 Kieran Bingham wrote:
-> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+On Wed, Jun 28, 2017 at 09:18:37PM +0300, Laurent Pinchart wrote:
+> Hi Guenter,
 > 
-> The new Renesas R-Car H3 ES2.0 platforms have a new hw version register.
-> Update the driver accordingly, defaulting to the new hw revision, and
-> differentiating the older revision as ES1
+> On Wednesday 28 Jun 2017 20:59:17 Laurent Pinchart wrote:
+> > On Wednesday 28 Jun 2017 07:36:43 Guenter Roeck wrote:
+> > > On Mon, May 22, 2017 at 12:48:04PM -0700, Guenter Roeck wrote:
+> > >> From: Robb Glasser <rglasser@google.com>
+> > >> 
+> > >> The size of uvc_control_mapping is user controlled leading to a
+> > >> potential heap overflow in the uvc driver. This adds a check to verify
+> > >> the user provided size fits within the bounds of the defined buffer
+> > >> size.
+> > >> 
+> > >> Signed-off-by: Robb Glasser <rglasser@google.com>
+> > >> [groeck: cherry picked from
+> > >> 
+> > >>  https://source.codeaurora.org/quic/la/kernel/msm-3.10
+> > >>  commit b7b99e55bc7770187913ed092990852ea52d7892;
+> > >>  updated subject]
+> > >> 
+> > >> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> > >> ---
+> > >> Fixes CVE-2017-0627.
+> > > 
+> > > Please do not apply this patch. It is buggy.
+> > 
+> > I apologize for not noticing the initial patch, even if it looks like it was
+> > all for the best. Will you send a new version ?
+> > 
+> > >>  drivers/media/usb/uvc/uvc_ctrl.c | 3 +++
+> > >>  1 file changed, 3 insertions(+)
+> > >> 
+> > >> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
+> > >> b/drivers/media/usb/uvc/uvc_ctrl.c index c2ee6e39fd0c..252ab991396f
+> > >> 100644
+> > >> --- a/drivers/media/usb/uvc/uvc_ctrl.c
+> > >> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+> > >> @@ -1992,6 +1992,9 @@ int uvc_ctrl_add_mapping(struct uvc_video_chain
+> > >> *chain,
+> > >>  	if (!found)
+> > >>  		return -ENOENT;
+> > >> 
+> > >> +	if (ctrl->info.size < mapping->size)
+> > >> +		return -EINVAL;
+> > >> +
 > 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> By the way, I believe the right fix should be
+> 
+> 	if (mapping->offset + mapping->size > ctrl->info.size * 8)
+> 		return -EINVAL;
+> 
+> Both mapping->offset and mapping->size are 8-bit integers, so there's no risk 
+> of overflow in the addition. If we want to safeguard against a possible future 
+> bug if the type of the fields change, we could add
+> 
+> 	if (mapping->offset + mapping->size < mapping->offset)
+> 		return -EINVAL;
+> 
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+I currently have this:
 
-> ---
->  drivers/media/platform/rcar_fdp1.c | 10 +++++++---
->  1 file changed, 7 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar_fdp1.c
-> b/drivers/media/platform/rcar_fdp1.c index 42f25d241edd..159786b052f3
-> 100644
-> --- a/drivers/media/platform/rcar_fdp1.c
-> +++ b/drivers/media/platform/rcar_fdp1.c
-> @@ -258,8 +258,9 @@ MODULE_PARM_DESC(debug, "activate debug info");
-> 
->  /* Internal Data (HW Version) */
->  #define FD1_IP_INTDATA			0x0800
-> -#define FD1_IP_H3			0x02010101
-> +#define FD1_IP_H3_ES1			0x02010101
->  #define FD1_IP_M3W			0x02010202
-> +#define FD1_IP_H3			0x02010203
-> 
->  /* LUTs */
->  #define FD1_LUT_DIF_ADJ			0x1000
-> @@ -2359,12 +2360,15 @@ static int fdp1_probe(struct platform_device *pdev)
-> 
->  	hw_version = fdp1_read(fdp1, FD1_IP_INTDATA);
->  	switch (hw_version) {
-> -	case FD1_IP_H3:
-> -		dprintk(fdp1, "FDP1 Version R-Car H3\n");
-> +	case FD1_IP_H3_ES1:
-> +		dprintk(fdp1, "FDP1 Version R-Car H3 ES1\n");
->  		break;
->  	case FD1_IP_M3W:
->  		dprintk(fdp1, "FDP1 Version R-Car M3-W\n");
->  		break;
-> +	case FD1_IP_H3:
-> +		dprintk(fdp1, "FDP1 Version R-Car H3\n");
-> +		break;
->  	default:
->  		dev_err(fdp1->dev, "FDP1 Unidentifiable (0x%08x)\n",
->  				hw_version);
+@@ -2004,6 +2004,13 @@ int uvc_ctrl_add_mapping(struct uvc_video_chain *chain,
+ 		goto done;
+ 	}
+ 
++	/* validate that the user provided bit-size and offset is valid */
++	if ((mapping->size > 32) ||
++	    ((mapping->offset + mapping->size) > (ctrl->info.size * 8))) {
++		ret = -EINVAL;
++		goto done;
++	}
++
+ 	list_for_each_entry(map, &ctrl->info.mappings, list) {
+ 		if (mapping->id == map->id) {
+ 			uvc_trace(UVC_TRACE_CONTROL, "Can't add mapping '%s', "
 
--- 
-Regards,
+This version originates from Richard Simmons. Copying him to see if he wants
+to submit it himself.
 
-Laurent Pinchart
+Guenter
