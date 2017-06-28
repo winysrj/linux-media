@@ -1,58 +1,328 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:33435 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752328AbdFGSgs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:36:48 -0400
-Date: Wed, 7 Jun 2017 20:36:45 +0200
-From: Krzysztof Kozlowski <krzk@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+Received: from mout.kundenserver.de ([217.72.192.75]:57479 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751557AbdF1UPB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Jun 2017 16:15:01 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Andrzej Hajda <a.hajda@samsung.com>, devicetree@vger.kernel.org
-Subject: Re: [PATCH 9/9] ARM: dts: exynos: add needs-hpd to &hdmicec for
- Odroid-U3
-Message-ID: <20170607183645.tsjj3mb2k6fdnoei@kozik-lap>
-References: <20170607144616.15247-1-hverkuil@xs4all.nl>
- <20170607144616.15247-10-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20170607144616.15247-10-hverkuil@xs4all.nl>
+        Marek Vasut <marex@denx.de>,
+        Russell King <rmk+kernel@armlinux.org.uk>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] staging/imx: remove confusing IS_ERR_OR_NULL usage
+Date: Wed, 28 Jun 2017 22:13:25 +0200
+Message-Id: <20170628201435.3237712-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 07, 2017 at 04:46:16PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The Odroid-U3 board has an IP4791CZ12 level shifter that is
-> disabled if the HPD is low, which means that the CEC pin is
-> disabled as well.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Krzysztof Kozlowski <krzk@kernel.org>
-> Cc: Andrzej Hajda <a.hajda@samsung.com>
-> Cc: devicetree@vger.kernel.org
-> ---
->  arch/arm/boot/dts/exynos4412-odroidu3.dts | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/exynos4412-odroidu3.dts b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-> index 7504a5aa538e..7209cb48fc2a 100644
-> --- a/arch/arm/boot/dts/exynos4412-odroidu3.dts
-> +++ b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-> @@ -131,3 +131,7 @@
->  	cs-gpios = <&gpb 5 GPIO_ACTIVE_HIGH>;
->  	status = "okay";
->  };
-> +
-> +&hdmicec {
-> +	needs-hpd;
-> +};
+While looking at a compiler warning, I noticed the use of
+IS_ERR_OR_NULL, which is generally a sign of a bad API design
+and should be avoided.
 
-All good, except we try to keep them sorted alphabetically (helps
-avoiding conflicts and makes things easier to find)... which for this
-particular file will be difficult as it is semi-sorted. :)
-Anyway, how about putting this new node after &buck?
+In this driver, this is fairly easy, we can simply stop storing
+error pointers in persistent structures, and change the one
+function that might return either a NULL pointer or an error
+code to consistently return error pointers when failing.
 
-Best regards,
-Krzysztof
+Fixes: e130291212df ("[media] media: Add i.MX media core driver")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+I can't reproduce the original warning any more, but this
+patch still makes sense by itself.
+---
+ drivers/staging/media/imx/imx-ic-prpencvf.c | 41 ++++++++++++++++-------------
+ drivers/staging/media/imx/imx-media-csi.c   | 29 +++++++++++---------
+ drivers/staging/media/imx/imx-media-dev.c   |  2 +-
+ drivers/staging/media/imx/imx-media-of.c    |  2 +-
+ drivers/staging/media/imx/imx-media-vdic.c  | 37 ++++++++++++++------------
+ 5 files changed, 61 insertions(+), 50 deletions(-)
+
+diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
+index ed363fe3b3d0..7a9d9f32f989 100644
+--- a/drivers/staging/media/imx/imx-ic-prpencvf.c
++++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
+@@ -134,19 +134,19 @@ static inline struct prp_priv *sd_to_priv(struct v4l2_subdev *sd)
+ 
+ static void prp_put_ipu_resources(struct prp_priv *priv)
+ {
+-	if (!IS_ERR_OR_NULL(priv->ic))
++	if (priv->ic)
+ 		ipu_ic_put(priv->ic);
+ 	priv->ic = NULL;
+ 
+-	if (!IS_ERR_OR_NULL(priv->out_ch))
++	if (priv->out_ch)
+ 		ipu_idmac_put(priv->out_ch);
+ 	priv->out_ch = NULL;
+ 
+-	if (!IS_ERR_OR_NULL(priv->rot_in_ch))
++	if (priv->rot_in_ch)
+ 		ipu_idmac_put(priv->rot_in_ch);
+ 	priv->rot_in_ch = NULL;
+ 
+-	if (!IS_ERR_OR_NULL(priv->rot_out_ch))
++	if (priv->rot_out_ch)
+ 		ipu_idmac_put(priv->rot_out_ch);
+ 	priv->rot_out_ch = NULL;
+ }
+@@ -154,43 +154,46 @@ static void prp_put_ipu_resources(struct prp_priv *priv)
+ static int prp_get_ipu_resources(struct prp_priv *priv)
+ {
+ 	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	struct ipu_ic *ic;
++	struct ipuv3_channel *out_ch, *rot_in_ch, *rot_out_ch;
+ 	int ret, task = ic_priv->task_id;
+ 
+ 	priv->ipu = priv->md->ipu[ic_priv->ipu_id];
+ 
+-	priv->ic = ipu_ic_get(priv->ipu, task);
+-	if (IS_ERR(priv->ic)) {
++	ic = ipu_ic_get(priv->ipu, task);
++	if (IS_ERR(ic)) {
+ 		v4l2_err(&ic_priv->sd, "failed to get IC\n");
+-		ret = PTR_ERR(priv->ic);
++		ret = PTR_ERR(ic);
+ 		goto out;
+ 	}
++	priv->ic = ic;
+ 
+-	priv->out_ch = ipu_idmac_get(priv->ipu,
+-				     prp_channel[task].out_ch);
+-	if (IS_ERR(priv->out_ch)) {
++	out_ch = ipu_idmac_get(priv->ipu, prp_channel[task].out_ch);
++	if (IS_ERR(out_ch)) {
+ 		v4l2_err(&ic_priv->sd, "could not get IDMAC channel %u\n",
+ 			 prp_channel[task].out_ch);
+-		ret = PTR_ERR(priv->out_ch);
++		ret = PTR_ERR(out_ch);
+ 		goto out;
+ 	}
++	priv->out_ch = out_ch;
+ 
+-	priv->rot_in_ch = ipu_idmac_get(priv->ipu,
+-					prp_channel[task].rot_in_ch);
+-	if (IS_ERR(priv->rot_in_ch)) {
++	rot_in_ch = ipu_idmac_get(priv->ipu, prp_channel[task].rot_in_ch);
++	if (IS_ERR(rot_in_ch)) {
+ 		v4l2_err(&ic_priv->sd, "could not get IDMAC channel %u\n",
+ 			 prp_channel[task].rot_in_ch);
+-		ret = PTR_ERR(priv->rot_in_ch);
++		ret = PTR_ERR(rot_in_ch);
+ 		goto out;
+ 	}
++	priv->rot_in_ch = rot_in_ch;
+ 
+-	priv->rot_out_ch = ipu_idmac_get(priv->ipu,
+-					 prp_channel[task].rot_out_ch);
+-	if (IS_ERR(priv->rot_out_ch)) {
++	rot_out_ch = ipu_idmac_get(priv->ipu, prp_channel[task].rot_out_ch);
++	if (IS_ERR(rot_out_ch)) {
+ 		v4l2_err(&ic_priv->sd, "could not get IDMAC channel %u\n",
+ 			 prp_channel[task].rot_out_ch);
+-		ret = PTR_ERR(priv->rot_out_ch);
++		ret = PTR_ERR(rot_out_ch);
+ 		goto out;
+ 	}
++	priv->rot_out_ch = rot_out_ch;
+ 
+ 	return 0;
+ out:
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index a2d26693912e..a4b3c305dcc8 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -122,11 +122,11 @@ static inline struct csi_priv *sd_to_dev(struct v4l2_subdev *sdev)
+ 
+ static void csi_idmac_put_ipu_resources(struct csi_priv *priv)
+ {
+-	if (!IS_ERR_OR_NULL(priv->idmac_ch))
++	if (priv->idmac_ch)
+ 		ipu_idmac_put(priv->idmac_ch);
+ 	priv->idmac_ch = NULL;
+ 
+-	if (!IS_ERR_OR_NULL(priv->smfc))
++	if (priv->smfc)
+ 		ipu_smfc_put(priv->smfc);
+ 	priv->smfc = NULL;
+ }
+@@ -134,23 +134,26 @@ static void csi_idmac_put_ipu_resources(struct csi_priv *priv)
+ static int csi_idmac_get_ipu_resources(struct csi_priv *priv)
+ {
+ 	int ch_num, ret;
++	struct ipu_smfc *smfc, *idmac_ch;
+ 
+ 	ch_num = IPUV3_CHANNEL_CSI0 + priv->smfc_id;
+ 
+-	priv->smfc = ipu_smfc_get(priv->ipu, ch_num);
+-	if (IS_ERR(priv->smfc)) {
++	smfc = ipu_smfc_get(priv->ipu, ch_num);
++	if (IS_ERR(smfc)) {
+ 		v4l2_err(&priv->sd, "failed to get SMFC\n");
+-		ret = PTR_ERR(priv->smfc);
++		ret = PTR_ERR(smfc);
+ 		goto out;
+ 	}
++	priv->smfc = smfc;
+ 
+-	priv->idmac_ch = ipu_idmac_get(priv->ipu, ch_num);
+-	if (IS_ERR(priv->idmac_ch)) {
++	idmac_ch = ipu_idmac_get(priv->ipu, ch_num);
++	if (IS_ERR(idmac_ch)) {
+ 		v4l2_err(&priv->sd, "could not get IDMAC channel %u\n",
+ 			 ch_num);
+-		ret = PTR_ERR(priv->idmac_ch);
++		ret = PTR_ERR(idmac_ch);
+ 		goto out;
+ 	}
++	priv->idmac_ch = idmac_ch;
+ 
+ 	return 0;
+ out:
+@@ -1583,6 +1586,7 @@ static int csi_unsubscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
+ static int csi_registered(struct v4l2_subdev *sd)
+ {
+ 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
++	struct ipu_csi *csi;
+ 	int i, ret;
+ 	u32 code;
+ 
+@@ -1590,11 +1594,12 @@ static int csi_registered(struct v4l2_subdev *sd)
+ 	priv->md = dev_get_drvdata(sd->v4l2_dev->dev);
+ 
+ 	/* get handle to IPU CSI */
+-	priv->csi = ipu_csi_get(priv->ipu, priv->csi_id);
+-	if (IS_ERR(priv->csi)) {
++	csi = ipu_csi_get(priv->ipu, priv->csi_id);
++	if (IS_ERR(csi)) {
+ 		v4l2_err(&priv->sd, "failed to get CSI%d\n", priv->csi_id);
+-		return PTR_ERR(priv->csi);
++		return PTR_ERR(csi);
+ 	}
++	priv->csi = csi;
+ 
+ 	for (i = 0; i < CSI_NUM_PADS; i++) {
+ 		priv->pad[i].flags = (i == CSI_SINK_PAD) ?
+@@ -1663,7 +1668,7 @@ static void csi_unregistered(struct v4l2_subdev *sd)
+ 	if (priv->fim)
+ 		imx_media_fim_free(priv->fim);
+ 
+-	if (!IS_ERR_OR_NULL(priv->csi))
++	if (priv->csi)
+ 		ipu_csi_put(priv->csi);
+ }
+ 
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index 48cbc7716758..c58ff0831890 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -91,7 +91,7 @@ imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+ 	if (imx_media_find_async_subdev(imxmd, np, devname)) {
+ 		dev_dbg(imxmd->md.dev, "%s: already added %s\n",
+ 			__func__, np ? np->name : devname);
+-		imxsd = NULL;
++		imxsd = ERR_PTR(-EEXIST);
+ 		goto out;
+ 	}
+ 
+diff --git a/drivers/staging/media/imx/imx-media-of.c b/drivers/staging/media/imx/imx-media-of.c
+index b026fe66467c..4aac42cb79a4 100644
+--- a/drivers/staging/media/imx/imx-media-of.c
++++ b/drivers/staging/media/imx/imx-media-of.c
+@@ -115,7 +115,7 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
+ 
+ 	/* register this subdev with async notifier */
+ 	imxsd = imx_media_add_async_subdev(imxmd, sd_np, NULL);
+-	if (IS_ERR_OR_NULL(imxsd))
++	if (IS_ERR(imxsd))
+ 		return imxsd;
+ 
+ 	if (is_csi_port) {
+diff --git a/drivers/staging/media/imx/imx-media-vdic.c b/drivers/staging/media/imx/imx-media-vdic.c
+index 7eabdc4aa79f..433474d58e3e 100644
+--- a/drivers/staging/media/imx/imx-media-vdic.c
++++ b/drivers/staging/media/imx/imx-media-vdic.c
+@@ -126,15 +126,15 @@ struct vdic_priv {
+ 
+ static void vdic_put_ipu_resources(struct vdic_priv *priv)
+ {
+-	if (!IS_ERR_OR_NULL(priv->vdi_in_ch_p))
++	if (priv->vdi_in_ch_p)
+ 		ipu_idmac_put(priv->vdi_in_ch_p);
+ 	priv->vdi_in_ch_p = NULL;
+ 
+-	if (!IS_ERR_OR_NULL(priv->vdi_in_ch))
++	if (priv->vdi_in_ch)
+ 		ipu_idmac_put(priv->vdi_in_ch);
+ 	priv->vdi_in_ch = NULL;
+ 
+-	if (!IS_ERR_OR_NULL(priv->vdi_in_ch_n))
++	if (priv->vdi_in_ch_n)
+ 		ipu_idmac_put(priv->vdi_in_ch_n);
+ 	priv->vdi_in_ch_n = NULL;
+ 
+@@ -146,40 +146,43 @@ static void vdic_put_ipu_resources(struct vdic_priv *priv)
+ static int vdic_get_ipu_resources(struct vdic_priv *priv)
+ {
+ 	int ret, err_chan;
++	struct ipuv3_channel *ch;
++	struct ipu_vdi *vdi;
+ 
+ 	priv->ipu = priv->md->ipu[priv->ipu_id];
+ 
+-	priv->vdi = ipu_vdi_get(priv->ipu);
+-	if (IS_ERR(priv->vdi)) {
++	vdi = ipu_vdi_get(priv->ipu);
++	if (IS_ERR(vdi)) {
+ 		v4l2_err(&priv->sd, "failed to get VDIC\n");
+-		ret = PTR_ERR(priv->vdi);
++		ret = PTR_ERR(vdi);
+ 		goto out;
+ 	}
++	priv->vdi = vdi;
+ 
+ 	if (!priv->csi_direct) {
+-		priv->vdi_in_ch_p = ipu_idmac_get(priv->ipu,
+-						  IPUV3_CHANNEL_MEM_VDI_PREV);
+-		if (IS_ERR(priv->vdi_in_ch_p)) {
++		ch = ipu_idmac_get(priv->ipu, IPUV3_CHANNEL_MEM_VDI_PREV);
++		if (IS_ERR(ch)) {
+ 			err_chan = IPUV3_CHANNEL_MEM_VDI_PREV;
+-			ret = PTR_ERR(priv->vdi_in_ch_p);
++			ret = PTR_ERR(ch);
+ 			goto out_err_chan;
+ 		}
++		priv->vdi_in_ch_p = ch;
+ 
+-		priv->vdi_in_ch = ipu_idmac_get(priv->ipu,
+-						IPUV3_CHANNEL_MEM_VDI_CUR);
+-		if (IS_ERR(priv->vdi_in_ch)) {
++		ch = ipu_idmac_get(priv->ipu, IPUV3_CHANNEL_MEM_VDI_CUR);
++		if (IS_ERR(ch)) {
+ 			err_chan = IPUV3_CHANNEL_MEM_VDI_CUR;
+-			ret = PTR_ERR(priv->vdi_in_ch);
++			ret = PTR_ERR(ch);
+ 			goto out_err_chan;
+ 		}
++		priv->vdi_in_ch = ch;
+ 
+-		priv->vdi_in_ch_n = ipu_idmac_get(priv->ipu,
+-						  IPUV3_CHANNEL_MEM_VDI_NEXT);
++		ch = ipu_idmac_get(priv->ipu, IPUV3_CHANNEL_MEM_VDI_NEXT);
+ 		if (IS_ERR(priv->vdi_in_ch_n)) {
+ 			err_chan = IPUV3_CHANNEL_MEM_VDI_NEXT;
+-			ret = PTR_ERR(priv->vdi_in_ch_n);
++			ret = PTR_ERR(ch);
+ 			goto out_err_chan;
+ 		}
++		priv->vdi_in_ch_n = ch;
+ 	}
+ 
+ 	return 0;
+-- 
+2.9.0
