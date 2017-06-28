@@ -1,766 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:35919 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751955AbdFGSf2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:35:28 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v8 21/34] media: imx: Add Capture Device Interface
-Date: Wed,  7 Jun 2017 11:34:00 -0700
-Message-Id: <1496860453-6282-22-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:36046 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751509AbdF1M33 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Jun 2017 08:29:29 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre TORGUE <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick FERTRE <yannick.fertre@st.com>,
+        Discussions about the Letux Kernel
+        <letux-kernel@openphoenux.org>
+Subject: Re: [PATCH v1 1/6] DT bindings: add bindings for ov965x camera module
+Date: Wed, 28 Jun 2017 12:28:31 +0000
+Message-ID: <2d916065-fd81-6f52-5d32-a46331e0c5ed@st.com>
+References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
+ <1498143942-12682-2-git-send-email-hugues.fruchet@st.com>
+ <D5629236-95D8-45B6-9719-E8B9796FEC90@goldelico.com>
+ <64e3005d-31df-71f2-762b-2c1b1152fc2d@st.com>
+ <5cd25a47-f3be-8c40-3940-29f26a245076@kernel.org>
+ <39501C78-7B81-4803-94C1-25DFA06EA526@goldelico.com>
+ <e2a9df8b-00f8-ae36-f4f3-63dcc98dea50@kernel.org>
+ <CGME20170628091334epcas5p2071ae52aa3f9312b1099e37ffac20eb1@epcas5p2.samsung.com>
+ <6F68CD33-70E6-47C1-9E89-5E2AA776879F@goldelico.com>
+ <5bcc7ec0-4ae5-3703-3cee-ed644eef710a@samsung.com>
+ <9D51AC4C-6CB7-46A5-B363-2AD6DA6C497F@goldelico.com>
+In-Reply-To: <9D51AC4C-6CB7-46A5-B363-2AD6DA6C497F@goldelico.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <29AEB76E89C20F42BE1AF53C84C02888@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the capture device interface driver that provides the v4l2
-user interface. Frames can be received from various sources:
-
-- directly from CSI for capturing unconverted images directly from
-  camera sensors.
-
-- from the IC pre-process encode task.
-
-- from the IC pre-process viewfinder task.
-
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/Makefile            |   1 +
- drivers/staging/media/imx/imx-media-capture.c | 702 ++++++++++++++++++++++++++
- 2 files changed, 703 insertions(+)
- create mode 100644 drivers/staging/media/imx/imx-media-capture.c
-
-diff --git a/drivers/staging/media/imx/Makefile b/drivers/staging/media/imx/Makefile
-index ddd7d94..4606a3a 100644
---- a/drivers/staging/media/imx/Makefile
-+++ b/drivers/staging/media/imx/Makefile
-@@ -3,3 +3,4 @@ imx-media-common-objs := imx-media-utils.o imx-media-fim.o
- 
- obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media.o
- obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media-common.o
-+obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media-capture.o
-diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
-new file mode 100644
-index 0000000..f07ed9a
---- /dev/null
-+++ b/drivers/staging/media/imx/imx-media-capture.c
-@@ -0,0 +1,702 @@
-+/*
-+ * Video Capture Subdev for Freescale i.MX5/6 SOC
-+ *
-+ * Copyright (c) 2012-2016 Mentor Graphics Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#include <linux/delay.h>
-+#include <linux/fs.h>
-+#include <linux/module.h>
-+#include <linux/of_platform.h>
-+#include <linux/pinctrl/consumer.h>
-+#include <linux/platform_device.h>
-+#include <linux/sched.h>
-+#include <linux/slab.h>
-+#include <linux/spinlock.h>
-+#include <linux/timer.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-event.h>
-+#include <media/v4l2-fwnode.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-mc.h>
-+#include <media/v4l2-subdev.h>
-+#include <media/videobuf2-dma-contig.h>
-+#include <video/imx-ipu-v3.h>
-+#include <media/imx.h>
-+#include "imx-media.h"
-+
-+struct capture_priv {
-+	struct imx_media_video_dev vdev;
-+
-+	struct v4l2_subdev    *src_sd;
-+	int                   src_sd_pad;
-+	struct device         *dev;
-+
-+	struct imx_media_dev  *md;
-+
-+	struct media_pad      vdev_pad;
-+
-+	struct mutex          mutex;       /* capture device mutex */
-+
-+	/* the videobuf2 queue */
-+	struct vb2_queue       q;
-+	/* list of ready imx_media_buffer's from q */
-+	struct list_head       ready_q;
-+	/* protect ready_q */
-+	spinlock_t             q_lock;
-+
-+	/* controls inherited from subdevs */
-+	struct v4l2_ctrl_handler ctrl_hdlr;
-+
-+	/* misc status */
-+	bool                  stop;          /* streaming is stopping */
-+};
-+
-+#define to_capture_priv(v) container_of(v, struct capture_priv, vdev)
-+
-+/* In bytes, per queue */
-+#define VID_MEM_LIMIT	SZ_64M
-+
-+static struct vb2_ops capture_qops;
-+
-+/*
-+ * Video ioctls follow
-+ */
-+
-+static int vidioc_querycap(struct file *file, void *fh,
-+			   struct v4l2_capability *cap)
-+{
-+	struct capture_priv *priv = video_drvdata(file);
-+
-+	strncpy(cap->driver, "imx-media-capture", sizeof(cap->driver) - 1);
-+	strncpy(cap->card, "imx-media-capture", sizeof(cap->card) - 1);
-+	snprintf(cap->bus_info, sizeof(cap->bus_info),
-+		 "platform:%s", priv->src_sd->name);
-+
-+	return 0;
-+}
-+
-+static int capture_enum_fmt_vid_cap(struct file *file, void *fh,
-+				    struct v4l2_fmtdesc *f)
-+{
-+	struct capture_priv *priv = video_drvdata(file);
-+	const struct imx_media_pixfmt *cc_src;
-+	struct v4l2_subdev_format fmt_src;
-+	u32 fourcc;
-+	int ret;
-+
-+	fmt_src.pad = priv->src_sd_pad;
-+	fmt_src.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+	ret = v4l2_subdev_call(priv->src_sd, pad, get_fmt, NULL, &fmt_src);
-+	if (ret) {
-+		v4l2_err(priv->src_sd, "failed to get src_sd format\n");
-+		return ret;
-+	}
-+
-+	cc_src = imx_media_find_ipu_format(fmt_src.format.code, CS_SEL_ANY);
-+	if (!cc_src)
-+		cc_src = imx_media_find_mbus_format(fmt_src.format.code,
-+						    CS_SEL_ANY, true);
-+	if (!cc_src)
-+		return -EINVAL;
-+
-+	if (cc_src->bayer) {
-+		if (f->index != 0)
-+			return -EINVAL;
-+		fourcc = cc_src->fourcc;
-+	} else {
-+		u32 cs_sel = (cc_src->cs == IPUV3_COLORSPACE_YUV) ?
-+			CS_SEL_YUV : CS_SEL_RGB;
-+
-+		ret = imx_media_enum_format(&fourcc, f->index, cs_sel);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	f->pixelformat = fourcc;
-+
-+	return 0;
-+}
-+
-+static int capture_g_fmt_vid_cap(struct file *file, void *fh,
-+				 struct v4l2_format *f)
-+{
-+	struct capture_priv *priv = video_drvdata(file);
-+
-+	*f = priv->vdev.fmt;
-+
-+	return 0;
-+}
-+
-+static int capture_try_fmt_vid_cap(struct file *file, void *fh,
-+				   struct v4l2_format *f)
-+{
-+	struct capture_priv *priv = video_drvdata(file);
-+	struct v4l2_subdev_format fmt_src;
-+	const struct imx_media_pixfmt *cc, *cc_src;
-+	int ret;
-+
-+	fmt_src.pad = priv->src_sd_pad;
-+	fmt_src.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+	ret = v4l2_subdev_call(priv->src_sd, pad, get_fmt, NULL, &fmt_src);
-+	if (ret)
-+		return ret;
-+
-+	cc_src = imx_media_find_ipu_format(fmt_src.format.code, CS_SEL_ANY);
-+	if (!cc_src)
-+		cc_src = imx_media_find_mbus_format(fmt_src.format.code,
-+						    CS_SEL_ANY, true);
-+	if (!cc_src)
-+		return -EINVAL;
-+
-+	if (cc_src->bayer) {
-+		cc = cc_src;
-+	} else {
-+		u32 fourcc, cs_sel;
-+
-+		cs_sel = (cc_src->cs == IPUV3_COLORSPACE_YUV) ?
-+			CS_SEL_YUV : CS_SEL_RGB;
-+		fourcc = f->fmt.pix.pixelformat;
-+
-+		cc = imx_media_find_format(fourcc, cs_sel, false);
-+		if (!cc) {
-+			imx_media_enum_format(&fourcc, 0, cs_sel);
-+			cc = imx_media_find_format(fourcc, cs_sel, false);
-+		}
-+	}
-+
-+	imx_media_mbus_fmt_to_pix_fmt(&f->fmt.pix, &fmt_src.format, cc);
-+
-+	return 0;
-+}
-+
-+static int capture_s_fmt_vid_cap(struct file *file, void *fh,
-+				 struct v4l2_format *f)
-+{
-+	struct capture_priv *priv = video_drvdata(file);
-+	int ret;
-+
-+	if (vb2_is_busy(&priv->q)) {
-+		v4l2_err(priv->src_sd, "%s queue busy\n", __func__);
-+		return -EBUSY;
-+	}
-+
-+	ret = capture_try_fmt_vid_cap(file, priv, f);
-+	if (ret)
-+		return ret;
-+
-+	priv->vdev.fmt.fmt.pix = f->fmt.pix;
-+	priv->vdev.cc = imx_media_find_format(f->fmt.pix.pixelformat,
-+					      CS_SEL_ANY, true);
-+
-+	return 0;
-+}
-+
-+static int capture_querystd(struct file *file, void *fh, v4l2_std_id *std)
-+{
-+	struct capture_priv *priv = video_drvdata(file);
-+
-+	return v4l2_subdev_call(priv->src_sd, video, querystd, std);
-+}
-+
-+static int capture_g_std(struct file *file, void *fh, v4l2_std_id *std)
-+{
-+	struct capture_priv *priv = video_drvdata(file);
-+
-+	return v4l2_subdev_call(priv->src_sd, video, g_std, std);
-+}
-+
-+static int capture_s_std(struct file *file, void *fh, v4l2_std_id std)
-+{
-+	struct capture_priv *priv = video_drvdata(file);
-+
-+	if (vb2_is_busy(&priv->q))
-+		return -EBUSY;
-+
-+	return v4l2_subdev_call(priv->src_sd, video, s_std, std);
-+}
-+
-+static int capture_g_parm(struct file *file, void *fh,
-+			  struct v4l2_streamparm *a)
-+{
-+	struct capture_priv *priv = video_drvdata(file);
-+	struct v4l2_subdev_frame_interval fi;
-+	int ret;
-+
-+	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	memset(&fi, 0, sizeof(fi));
-+	fi.pad = priv->src_sd_pad;
-+	ret = v4l2_subdev_call(priv->src_sd, video, g_frame_interval, &fi);
-+	if (ret < 0)
-+		return ret;
-+
-+	a->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
-+	a->parm.capture.timeperframe = fi.interval;
-+
-+	return 0;
-+}
-+
-+static int capture_s_parm(struct file *file, void *fh,
-+			  struct v4l2_streamparm *a)
-+{
-+	struct capture_priv *priv = video_drvdata(file);
-+	struct v4l2_subdev_frame_interval fi;
-+	int ret;
-+
-+	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	memset(&fi, 0, sizeof(fi));
-+	fi.pad = priv->src_sd_pad;
-+	fi.interval = a->parm.capture.timeperframe;
-+	ret = v4l2_subdev_call(priv->src_sd, video, s_frame_interval, &fi);
-+	if (ret < 0)
-+		return ret;
-+
-+	a->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
-+	a->parm.capture.timeperframe = fi.interval;
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_ioctl_ops capture_ioctl_ops = {
-+	.vidioc_querycap	= vidioc_querycap,
-+
-+	.vidioc_enum_fmt_vid_cap        = capture_enum_fmt_vid_cap,
-+	.vidioc_g_fmt_vid_cap           = capture_g_fmt_vid_cap,
-+	.vidioc_try_fmt_vid_cap         = capture_try_fmt_vid_cap,
-+	.vidioc_s_fmt_vid_cap           = capture_s_fmt_vid_cap,
-+
-+	.vidioc_querystd        = capture_querystd,
-+	.vidioc_g_std           = capture_g_std,
-+	.vidioc_s_std           = capture_s_std,
-+
-+	.vidioc_g_parm          = capture_g_parm,
-+	.vidioc_s_parm          = capture_s_parm,
-+
-+	.vidioc_reqbufs		= vb2_ioctl_reqbufs,
-+	.vidioc_create_bufs     = vb2_ioctl_create_bufs,
-+	.vidioc_prepare_buf     = vb2_ioctl_prepare_buf,
-+	.vidioc_querybuf	= vb2_ioctl_querybuf,
-+	.vidioc_qbuf		= vb2_ioctl_qbuf,
-+	.vidioc_dqbuf		= vb2_ioctl_dqbuf,
-+	.vidioc_expbuf		= vb2_ioctl_expbuf,
-+	.vidioc_streamon	= vb2_ioctl_streamon,
-+	.vidioc_streamoff	= vb2_ioctl_streamoff,
-+};
-+
-+/*
-+ * Queue operations
-+ */
-+
-+static int capture_queue_setup(struct vb2_queue *vq,
-+			       unsigned int *nbuffers,
-+			       unsigned int *nplanes,
-+			       unsigned int sizes[],
-+			       struct device *alloc_devs[])
-+{
-+	struct capture_priv *priv = vb2_get_drv_priv(vq);
-+	struct v4l2_pix_format *pix = &priv->vdev.fmt.fmt.pix;
-+	unsigned int count = *nbuffers;
-+
-+	if (vq->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	if (*nplanes) {
-+		if (*nplanes != 1 || sizes[0] < pix->sizeimage)
-+			return -EINVAL;
-+		count += vq->num_buffers;
-+	}
-+
-+	count = min_t(__u32, VID_MEM_LIMIT / pix->sizeimage, count);
-+
-+	if (*nplanes)
-+		*nbuffers = (count < vq->num_buffers) ? 0 :
-+			count - vq->num_buffers;
-+	else
-+		*nbuffers = count;
-+
-+	*nplanes = 1;
-+	sizes[0] = pix->sizeimage;
-+
-+	return 0;
-+}
-+
-+static int capture_buf_init(struct vb2_buffer *vb)
-+{
-+	struct imx_media_buffer *buf = to_imx_media_vb(vb);
-+
-+	INIT_LIST_HEAD(&buf->list);
-+
-+	return 0;
-+}
-+
-+static int capture_buf_prepare(struct vb2_buffer *vb)
-+{
-+	struct vb2_queue *vq = vb->vb2_queue;
-+	struct capture_priv *priv = vb2_get_drv_priv(vq);
-+	struct v4l2_pix_format *pix = &priv->vdev.fmt.fmt.pix;
-+
-+	if (vb2_plane_size(vb, 0) < pix->sizeimage) {
-+		v4l2_err(priv->src_sd,
-+			 "data will not fit into plane (%lu < %lu)\n",
-+			 vb2_plane_size(vb, 0), (long)pix->sizeimage);
-+		return -EINVAL;
-+	}
-+
-+	vb2_set_plane_payload(vb, 0, pix->sizeimage);
-+
-+	return 0;
-+}
-+
-+static void capture_buf_queue(struct vb2_buffer *vb)
-+{
-+	struct capture_priv *priv = vb2_get_drv_priv(vb->vb2_queue);
-+	struct imx_media_buffer *buf = to_imx_media_vb(vb);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&priv->q_lock, flags);
-+
-+	list_add_tail(&buf->list, &priv->ready_q);
-+
-+	spin_unlock_irqrestore(&priv->q_lock, flags);
-+}
-+
-+static int capture_start_streaming(struct vb2_queue *vq, unsigned int count)
-+{
-+	struct capture_priv *priv = vb2_get_drv_priv(vq);
-+	struct imx_media_buffer *buf, *tmp;
-+	unsigned long flags;
-+	int ret;
-+
-+	if (vb2_is_streaming(vq))
-+		return 0;
-+
-+	ret = imx_media_pipeline_set_stream(priv->md, &priv->src_sd->entity,
-+					    true);
-+	if (ret) {
-+		v4l2_err(priv->src_sd, "pipeline start failed with %d\n", ret);
-+		goto return_bufs;
-+	}
-+
-+	priv->stop = false;
-+
-+	return 0;
-+
-+return_bufs:
-+	spin_lock_irqsave(&priv->q_lock, flags);
-+	list_for_each_entry_safe(buf, tmp, &priv->ready_q, list) {
-+		list_del(&buf->list);
-+		vb2_buffer_done(&buf->vbuf.vb2_buf, VB2_BUF_STATE_QUEUED);
-+	}
-+	spin_unlock_irqrestore(&priv->q_lock, flags);
-+	return ret;
-+}
-+
-+static void capture_stop_streaming(struct vb2_queue *vq)
-+{
-+	struct capture_priv *priv = vb2_get_drv_priv(vq);
-+	struct imx_media_buffer *frame;
-+	unsigned long flags;
-+	int ret;
-+
-+	if (!vb2_is_streaming(vq))
-+		return;
-+
-+	spin_lock_irqsave(&priv->q_lock, flags);
-+	priv->stop = true;
-+	spin_unlock_irqrestore(&priv->q_lock, flags);
-+
-+	ret = imx_media_pipeline_set_stream(priv->md, &priv->src_sd->entity,
-+					    false);
-+	if (ret)
-+		v4l2_warn(priv->src_sd, "pipeline stop failed with %d\n", ret);
-+
-+	/* release all active buffers */
-+	spin_lock_irqsave(&priv->q_lock, flags);
-+	while (!list_empty(&priv->ready_q)) {
-+		frame = list_entry(priv->ready_q.next,
-+				   struct imx_media_buffer, list);
-+		list_del(&frame->list);
-+		vb2_buffer_done(&frame->vbuf.vb2_buf, VB2_BUF_STATE_ERROR);
-+	}
-+	spin_unlock_irqrestore(&priv->q_lock, flags);
-+}
-+
-+static struct vb2_ops capture_qops = {
-+	.queue_setup	 = capture_queue_setup,
-+	.buf_init        = capture_buf_init,
-+	.buf_prepare	 = capture_buf_prepare,
-+	.buf_queue	 = capture_buf_queue,
-+	.wait_prepare	 = vb2_ops_wait_prepare,
-+	.wait_finish	 = vb2_ops_wait_finish,
-+	.start_streaming = capture_start_streaming,
-+	.stop_streaming  = capture_stop_streaming,
-+};
-+
-+/*
-+ * File operations
-+ */
-+static int capture_open(struct file *file)
-+{
-+	struct capture_priv *priv = video_drvdata(file);
-+	struct video_device *vfd = priv->vdev.vfd;
-+	int ret;
-+
-+	if (mutex_lock_interruptible(&priv->mutex))
-+		return -ERESTARTSYS;
-+
-+	ret = v4l2_fh_open(file);
-+	if (ret)
-+		v4l2_err(priv->src_sd, "v4l2_fh_open failed\n");
-+
-+	ret = v4l2_pipeline_pm_use(&vfd->entity, 1);
-+	if (ret)
-+		v4l2_fh_release(file);
-+
-+	mutex_unlock(&priv->mutex);
-+	return ret;
-+}
-+
-+static int capture_release(struct file *file)
-+{
-+	struct capture_priv *priv = video_drvdata(file);
-+	struct video_device *vfd = priv->vdev.vfd;
-+	struct vb2_queue *vq = &priv->q;
-+	int ret = 0;
-+
-+	mutex_lock(&priv->mutex);
-+
-+	if (file->private_data == vq->owner) {
-+		vb2_queue_release(vq);
-+		vq->owner = NULL;
-+	}
-+
-+	v4l2_pipeline_pm_use(&vfd->entity, 0);
-+
-+	v4l2_fh_release(file);
-+	mutex_unlock(&priv->mutex);
-+	return ret;
-+}
-+
-+static const struct v4l2_file_operations capture_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= capture_open,
-+	.release	= capture_release,
-+	.poll		= vb2_fop_poll,
-+	.unlocked_ioctl	= video_ioctl2,
-+	.mmap		= vb2_fop_mmap,
-+};
-+
-+static struct video_device capture_videodev = {
-+	.fops		= &capture_fops,
-+	.ioctl_ops	= &capture_ioctl_ops,
-+	.minor		= -1,
-+	.release	= video_device_release,
-+	.vfl_dir	= VFL_DIR_RX,
-+	.tvnorms	= V4L2_STD_NTSC | V4L2_STD_PAL | V4L2_STD_SECAM,
-+	.device_caps	= V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING,
-+};
-+
-+void imx_media_capture_device_set_format(struct imx_media_video_dev *vdev,
-+					 struct v4l2_pix_format *pix)
-+{
-+	struct capture_priv *priv = to_capture_priv(vdev);
-+
-+	mutex_lock(&priv->mutex);
-+	priv->vdev.fmt.fmt.pix = *pix;
-+	priv->vdev.cc = imx_media_find_format(pix->pixelformat, CS_SEL_ANY,
-+					      true);
-+	mutex_unlock(&priv->mutex);
-+}
-+EXPORT_SYMBOL_GPL(imx_media_capture_device_set_format);
-+
-+struct imx_media_buffer *
-+imx_media_capture_device_next_buf(struct imx_media_video_dev *vdev)
-+{
-+	struct capture_priv *priv = to_capture_priv(vdev);
-+	struct imx_media_buffer *buf = NULL;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&priv->q_lock, flags);
-+
-+	/* get next queued buffer */
-+	if (!list_empty(&priv->ready_q)) {
-+		buf = list_entry(priv->ready_q.next, struct imx_media_buffer,
-+				 list);
-+		list_del(&buf->list);
-+	}
-+
-+	spin_unlock_irqrestore(&priv->q_lock, flags);
-+
-+	return buf;
-+}
-+EXPORT_SYMBOL_GPL(imx_media_capture_device_next_buf);
-+
-+void imx_media_capture_device_error(struct imx_media_video_dev *vdev)
-+{
-+	struct capture_priv *priv = to_capture_priv(vdev);
-+	struct vb2_queue *vq = &priv->q;
-+	unsigned long flags;
-+
-+	if (!vb2_is_streaming(vq))
-+		return;
-+
-+	spin_lock_irqsave(&priv->q_lock, flags);
-+	vb2_queue_error(vq);
-+	spin_unlock_irqrestore(&priv->q_lock, flags);
-+}
-+EXPORT_SYMBOL_GPL(imx_media_capture_device_error);
-+
-+int imx_media_capture_device_register(struct imx_media_video_dev *vdev)
-+{
-+	struct capture_priv *priv = to_capture_priv(vdev);
-+	struct v4l2_subdev *sd = priv->src_sd;
-+	struct video_device *vfd = vdev->vfd;
-+	struct vb2_queue *vq = &priv->q;
-+	struct v4l2_subdev_format fmt_src;
-+	int ret;
-+
-+	/* get media device */
-+	priv->md = dev_get_drvdata(sd->v4l2_dev->dev);
-+
-+	vfd->v4l2_dev = sd->v4l2_dev;
-+
-+	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
-+	if (ret) {
-+		v4l2_err(sd, "Failed to register video device\n");
-+		return ret;
-+	}
-+
-+	vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	vq->io_modes = VB2_MMAP | VB2_DMABUF;
-+	vq->drv_priv = priv;
-+	vq->buf_struct_size = sizeof(struct imx_media_buffer);
-+	vq->ops = &capture_qops;
-+	vq->mem_ops = &vb2_dma_contig_memops;
-+	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	vq->lock = &priv->mutex;
-+	vq->min_buffers_needed = 2;
-+	vq->dev = priv->dev;
-+
-+	ret = vb2_queue_init(vq);
-+	if (ret) {
-+		v4l2_err(sd, "vb2_queue_init failed\n");
-+		goto unreg;
-+	}
-+
-+	INIT_LIST_HEAD(&priv->ready_q);
-+
-+	priv->vdev_pad.flags = MEDIA_PAD_FL_SINK;
-+	ret = media_entity_pads_init(&vfd->entity, 1, &priv->vdev_pad);
-+	if (ret) {
-+		v4l2_err(sd, "failed to init dev pad\n");
-+		goto unreg;
-+	}
-+
-+	/* create the link from the src_sd devnode pad to device node */
-+	ret = media_create_pad_link(&sd->entity, priv->src_sd_pad,
-+				    &vfd->entity, 0, 0);
-+	if (ret) {
-+		v4l2_err(sd, "failed to create link to device node\n");
-+		goto unreg;
-+	}
-+
-+	/* setup default format */
-+	fmt_src.pad = priv->src_sd_pad;
-+	fmt_src.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+	v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt_src);
-+	if (ret) {
-+		v4l2_err(sd, "failed to get src_sd format\n");
-+		goto unreg;
-+	}
-+
-+	vdev->fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	imx_media_mbus_fmt_to_pix_fmt(&vdev->fmt.fmt.pix,
-+				      &fmt_src.format, NULL);
-+	vdev->cc = imx_media_find_format(vdev->fmt.fmt.pix.pixelformat,
-+					 CS_SEL_ANY, false);
-+
-+	v4l2_info(sd, "Registered %s as /dev/%s\n", vfd->name,
-+		  video_device_node_name(vfd));
-+
-+	vfd->ctrl_handler = &priv->ctrl_hdlr;
-+
-+	return 0;
-+unreg:
-+	video_unregister_device(vfd);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(imx_media_capture_device_register);
-+
-+void imx_media_capture_device_unregister(struct imx_media_video_dev *vdev)
-+{
-+	struct capture_priv *priv = to_capture_priv(vdev);
-+	struct video_device *vfd = priv->vdev.vfd;
-+
-+	mutex_lock(&priv->mutex);
-+
-+	if (video_is_registered(vfd)) {
-+		video_unregister_device(vfd);
-+		media_entity_cleanup(&vfd->entity);
-+	}
-+
-+	mutex_unlock(&priv->mutex);
-+}
-+EXPORT_SYMBOL_GPL(imx_media_capture_device_unregister);
-+
-+struct imx_media_video_dev *
-+imx_media_capture_device_init(struct v4l2_subdev *src_sd, int pad)
-+{
-+	struct capture_priv *priv;
-+	struct video_device *vfd;
-+
-+	priv = devm_kzalloc(src_sd->dev, sizeof(*priv), GFP_KERNEL);
-+	if (!priv)
-+		return ERR_PTR(-ENOMEM);
-+
-+	priv->src_sd = src_sd;
-+	priv->src_sd_pad = pad;
-+	priv->dev = src_sd->dev;
-+
-+	mutex_init(&priv->mutex);
-+	spin_lock_init(&priv->q_lock);
-+
-+	snprintf(capture_videodev.name, sizeof(capture_videodev.name),
-+		 "%s capture", src_sd->name);
-+
-+	vfd = video_device_alloc();
-+	if (!vfd)
-+		return ERR_PTR(-ENOMEM);
-+
-+	*vfd = capture_videodev;
-+	vfd->lock = &priv->mutex;
-+	vfd->queue = &priv->q;
-+	priv->vdev.vfd = vfd;
-+
-+	video_set_drvdata(vfd, priv);
-+
-+	v4l2_ctrl_handler_init(&priv->ctrl_hdlr, 0);
-+
-+	return &priv->vdev;
-+}
-+EXPORT_SYMBOL_GPL(imx_media_capture_device_init);
-+
-+void imx_media_capture_device_remove(struct imx_media_video_dev *vdev)
-+{
-+	struct capture_priv *priv = to_capture_priv(vdev);
-+
-+	v4l2_ctrl_handler_free(&priv->ctrl_hdlr);
-+}
-+EXPORT_SYMBOL_GPL(imx_media_capture_device_remove);
-+
-+MODULE_DESCRIPTION("i.MX5/6 v4l2 video capture interface driver");
-+MODULE_AUTHOR("Steve Longerbeam <steve_longerbeam@mentor.com>");
-+MODULE_LICENSE("GPL");
--- 
-2.7.4
+DQoNCk9uIDA2LzI4LzIwMTcgMDE6MjQgUE0sIEguIE5pa29sYXVzIFNjaGFsbGVyIHdyb3RlOg0K
+PiANCj4+IEFtIDI4LjA2LjIwMTcgdW0gMTI6NTAgc2NocmllYiBTeWx3ZXN0ZXIgTmF3cm9ja2kg
+PHMubmF3cm9ja2lAc2Ftc3VuZy5jb20+Og0KPj4NCj4+IE9uIDA2LzI4LzIwMTcgMTE6MTIgQU0s
+IEguIE5pa29sYXVzIFNjaGFsbGVyIHdyb3RlOg0KPj4+PiBBbSAyOC4wNi4yMDE3IHVtIDAwOjU3
+IHNjaHJpZWIgU3lsd2VzdGVyIE5hd3JvY2tpIDxzbmF3cm9ja2lAa2VybmVsLm9yZz46DQo+Pj4+
+IE9uIDA2LzI3LzIwMTcgMDc6NDggQU0sIEguIE5pa29sYXVzIFNjaGFsbGVyIHdyb3RlOg0KPj4+
+Pj4+IEFtIDI2LjA2LjIwMTcgdW0gMjI6MDQgc2NocmllYiBTeWx3ZXN0ZXIgTmF3cm9ja2kgPHNu
+YXdyb2NraUBrZXJuZWwub3JnPjoNCj4+Pj4+PiBPbiAwNi8yNi8yMDE3IDEyOjM1IFBNLCBIdWd1
+ZXMgRlJVQ0hFVCB3cm90ZToNCj4+Pj4+Pj4+IFdoYXQgSSBhbSBtaXNzaW5nIHRvIHN1cHBvcnQg
+dGhlIEdUQTA0IGNhbWVyYSBpcyB0aGUgY29udHJvbCBvZiB0aGUgb3B0aW9uYWwgInZhbmEtc3Vw
+cGx5Ii4NCj4+Pj4+Pj4+IFNvIHRoZSBkcml2ZXIgZG9lcyBub3QgcG93ZXIgdXAgdGhlIGNhbWVy
+YSBtb2R1bGUgd2hlbiBuZWVkZWQgYW5kIHRoZXJlZm9yZSBwcm9iaW5nIGZhaWxzLg0KPj4+Pj4+
+Pj4NCj4+Pj4+Pj4+ICAgICAtIHZhbmEtc3VwcGx5OiBhIHJlZ3VsYXRvciB0byBwb3dlciB1cCB0
+aGUgY2FtZXJhIG1vZHVsZS4NCj4+Pj4+Pj4+DQo+Pj4+Pj4+PiBEcml2ZXIgY29kZSBpcyBub3Qg
+Y29tcGxleCB0byBhZGQ6DQo+Pj4+Pj4NCj4+Pj4+Pj4gWWVzLCBJIHNhdyBpdCBpbiB5b3VyIGNv
+ZGUsIGJ1dCBhcyBJIGRvbid0IGhhdmUgYW55IHByb2dyYW1tYWJsZSBwb3dlcg0KPj4+Pj4+PiBz
+dXBwbHkgb24gbXkgc2V0dXAsIEkgaGF2ZSBub3QgcHVzaGVkIHRoaXMgY29tbWl0Lg0KPj4+Pj4+
+DQo+Pj4+Pj4gU2luY2UgeW91IGFyZSBhYm91dCB0byBhZGQgdm9sdGFnZSBzdXBwbGllcyB0byB0
+aGUgRFQgYmluZGluZyBJJ2Qgc3VnZ2VzdA0KPj4+Pj4+IHRvIGluY2x1ZGUgYWxsIHRocmVlIHZv
+bHRhZ2Ugc3VwcGxpZXMgb2YgdGhlIHNlbnNvciBjaGlwLiBMb29raW5nIGF0IHRoZSBPVjk2NTAN
+Cj4+Pj4+PiBhbmQgdGhlIE9WOTY1NSBkYXRhc2hlZXQgdGhlcmUgYXJlIGZvbGxvd2luZyBuYW1l
+cyB1c2VkIGZvciB0aGUgdm9sdGFnZSBzdXBwbHkNCj4+Pj4+PiBwaW5zOg0KPj4+Pj4+DQo+Pj4+
+Pj4gQVZERCAtIEFuYWxvZyBwb3dlciBzdXBwbHksDQo+Pj4+Pj4gRFZERCAtIFBvd2VyIHN1cHBs
+eSBmb3IgZGlnaXRhbCBjb3JlIGxvZ2ljLA0KPj4+Pj4+IERPVkREIC0gRGlnaXRhbCBwb3dlciBz
+dXBwbHkgZm9yIEkvTy4NCj4+Pj4+DQo+Pj4+PiBUaGUgbGF0dGVyIHR3byBhcmUgdXN1YWxseSBu
+b3QgaW5kZXBlbmRlbnRseSBzd2l0Y2hhYmxlIGZyb20gdGhlIFNvQyBwb3dlcg0KPj4+Pj4gdGhl
+IG1vZHVsZSBpcyBjb25uZWN0ZWQgdG8uDQo+Pj4+Pg0KPj4+Pj4gQW5kIHNvbWV0aW1lcyBEVkRE
+IGFuZCBET1ZERCBhcmUgY29ubmVjdGVkIHRvZ2V0aGVyLg0KPj4+Pj4NCj4+Pj4+IFNvIHRoZSBk
+cml2ZXIgY2FuJ3QgbWFrZSBtdWNoIHVzZSBvZiBrbm93aW5nIG9yIHJlcXVlc3RpbmcgdGhlbSBi
+ZWNhdXNlIHRoZQ0KPj4+Pj4gMS44ViBzdXBwbHkgaXMgYWx3YXlzIGFjdGl2ZSwgZXZlbiBkdXJp
+bmcgc3VzcGVuZC4NCj4+Pj4+DQo+Pj4+Pj4NCj4+Pj4+PiBJIGRvdWJ0IHRoZSBzZW5zb3IgY2Fu
+IHdvcmsgd2l0aG91dCBhbnkgb2YgdGhlc2Ugdm9sdGFnZSBzdXBwbGllcywgdGh1cw0KPj4+Pj4+
+IHJlZ3VsYXRvcl9nZXRfb3B0aW9uYWwoKSBzaG91bGQgbm90IGJlIHVzZWQuIEkgd291bGQganVz
+dCB1c2UgdGhlIHJlZ3VsYXRvcg0KPj4+Pj4+IGJ1bGsgQVBJIHRvIGhhbmRsZSBhbGwgdGhyZWUg
+cG93ZXIgc3VwcGxpZXMuDQo+Pj4+Pg0KPj4+Pj4gVGhlIGRpZ2l0YWwgcGFydCB3b3JrcyB3aXRo
+IEFWREQgdHVybmVkIG9mZi4gU28gdGhlIExETyBzdXBwbHlpbmcgQVZERCBzaG91bGQNCj4+Pj4+
+IGJlIHN3aXRjaGFibGUgdG8gc2F2ZSBwb3dlciAoJnZhdXgzIG9uIHRoZSBHVEEwNCBkZXZpY2Up
+Lj4NCj4+Pj4+IEJ1dCBub3QgYWxsIGRlc2lnbnMgY2FuIHN3aXRjaCBpdCBvZmYuIEhlbmNlIHRo
+ZSBpZGVhIHRvIGRlZmluZSBpdCBhcyBhbg0KPj4+Pj4gL29wdGlvbmFsLyByZWd1bGF0b3IuIElm
+IGl0IGlzIG5vdCBkZWZpbmVkIGJ5IERULCB0aGUgZHJpdmVyIHNpbXBseSBhc3N1bWVzDQo+Pj4+
+PiBpdCBpcyBhbHdheXMgcG93ZXJlZCBvbi4NCj4+Pj4NCj4+Pj4gSSBkaWRuJ3Qgc2F5IHdlIGNh
+bid0IGRlZmluZSByZWd1bGF0b3Igc3VwcGx5IHByb3BlcnRpZXMgYXMgb3B0aW9uYWwgaW4gdGhl
+IERUDQo+Pj4+IGJpbmRpbmcuICBJZiB3ZSBkZWZpbmUgdGhlbSBhcyBzdWNoIGFuZCBhbnkgb2Yg
+dGhlc2UgKi1zdXBwbHkgcHJvcGVydGllcyBpcw0KPj4+PiBtaXNzaW5nIGluIERUIHdpdGggcmVn
+dWxhdG9yX2dldCgpIHRoZSByZWd1bGF0b3IgY29yZSB3aWxsIHVzZSBkdW1teSByZWd1bGF0b3IN
+Cj4+Pj4gZm9yIHRoYXQgcGFydGljdWxhciB2b2x0YWdlIHN1cHBseS4gIFdoaWxlIHdpdGggcmVn
+dWxhdG9yX2dldF9vcHRpb25hbCgpDQo+Pj4+IC1FTk9ERVYgaXMgcmV0dXJuZWQgd2hlbiB0aGUg
+cmVndWxhdG9yIGNhbm5vdCBiZSBmb3VuZC4NCj4+Pg0KPj4+IEFoLCBvay4gSSBzZWUuDQo+Pj4N
+Cj4+PiBJIGhhZCB0aG91Z2h0IHRoYXQgaXQgaXMgdGhlIHJpZ2h0IHRoaW5nIHRvIGRvIGxpa2Ug
+ZGV2bV9ncGlvZF9nZXRfb3B0aW9uYWwoKS4NCj4+Pg0KPj4+IFRoYXQgb25lIGl0IGlzIGRlc2Ny
+aWJlZCBhczoNCj4+Pg0KPj4+ICIqIFRoaXMgaXMgZXF1aXZhbGVudCB0byBncGlvZF9nZXQoKSwg
+ZXhjZXB0IHRoYXQgd2hlbiBubyBHUElPIHdhcyBhc3NpZ25lZCB0bw0KPj4+ICAgKiB0aGUgcmVx
+dWVzdGVkIGZ1bmN0aW9uIGl0IHdpbGwgcmV0dXJuIE5VTEwuIFRoaXMgaXMgY29udmVuaWVudCBm
+b3IgZHJpdmVycw0KPj4+ICAgKiB0aGF0IG5lZWQgdG8gaGFuZGxlIG9wdGlvbmFsIEdQSU9zLiIN
+Cj4+Pg0KPj4+IFNlZW1zIHRvIGJlIGluY29uc2lzdGVudCBkZWZpbml0aW9uIG9mIHdoYXQgIm9w
+dGlvbmFsIiBtZWFucy4NCj4+DQo+PiBJbmRlZWQsIHRoaXMgY29tbWl0IGV4cGxhaW5zIGl0IGZ1
+cnRoZXI6DQo+Pg0KPj4gY29tbWl0IGRlMWRkOWZkMjE1Njg3NGI0NTgwMzI5OWIzYjI3ZTY1ZDVk
+ZWZkZDkNCj4+IHJlZ3VsYXRvcjogY29yZTogUHJvdmlkZSBoaW50cyB0byB0aGUgY29yZSBhYm91
+dCBvcHRpb25hbCBzdXBwbGllcw0KPj4NCj4+PiBTbyB3ZSBpbmRlZWQgc2hvdWxkIHVzZSBkZXZt
+X3JlZ3VsYXRvcl9nZXQoKSBpbiB0aGlzIGNhc2UuIFRoYW5rcyBmb3IgPiBwb2ludGluZyBvdXQh
+DQo+Pg0KPj4+Pj4gU28gaW4gc3VtbWFyeSB3ZSBvbmx5IG5lZWQgQVZERCBzd2l0Y2hlZCBmb3Ig
+dGhlIEdUQTA0IC0gYnV0IGl0IGRvZXMgbm90DQo+Pj4+PiBtYXR0ZXIgaWYgdGhlIG90aGVycyBh
+cmUgb3B0aW9uYWwgcHJvcGVydGllcy4gV2Ugd291bGQgbm90IHVzZSB0aGVtLg0KPj4+Pj4NCj4+
+Pj4+IEl0IGRvZXMgbWF0dGVyIGlmIHRoZXkgYXJlIG1hbmRhdG9yeSBiZWNhdXNlIGl0IGFkZHMg
+RFQgY29tcGxleGl0eSAoc2l6ZQ0KPj4+Pj4gYW5kIHByb2Nlc3NpbmcpIHdpdGhvdXQgYWRkZWQg
+ZnVuY3Rpb24uDQo+Pj4+DQo+Pj4+IFdlIHNob3VsZCBub3QgYmUgZGVmaW5pbmcgRFQgYmluZGlu
+ZyBvbmx5IHdpdGggc2VsZWN0ZWQgdXNlIGNhc2VzL2JvYXJkDQo+Pj4+IGRlc2lnbnMgaW4gbWlu
+ZC4gIElNTyBhbGwgdGhyZWUgdm9sdGFnZSBzdXBwbGllcyBzaG91bGQgYmUgbGlzdGVkIGluIHRo
+ZQ0KPj4+PiBiaW5kaW5nLCBwcmVzdW1hYmx5IGFsbCBjYW4gYmUgbWFkZSBvcHRpb25hbCwgd2l0
+aCBhbiBhc3N1bXB0aW9uIHRoYXQgd2hlbg0KPj4+PiB0aGUgcHJvcGVydHkgaXMgbWlzc2luZyBz
+ZWxlY3RlZCBwaW4gaXMgaG9va2VkIHVwIHRvIGEgZml4ZWQgcmVndWxhdG9yLg0KPj4+DQo+Pj4g
+T2ssIHRoZW4gaXQgc2hvdWxkIGp1c3QgYmUgZGVmaW5lZCBpbiB0aGUgYmluZGluZ3MgYnV0IG5v
+dCB1c2VkIGJ5DQo+Pj4gdGhlIGRyaXZlcj8NCj4+DQo+PiBZZXMsIEkgdGhpbmsgc28uIFNvIHdl
+IGhhdmUgYSBwb3NzaWJseSBjb21wbGV0ZSBiaW5kaW5nIHJpZ2h0IGZyb20gdGhlDQo+PiBiZWdp
+bm5pbmcuIEkgc29tZW9uZSBuZWVkcyBoYW5kbGluZyBvdGhlciBzdXBwbGllcyB0aGFuIEFWREQg
+dGhleSBjb3VsZA0KPj4gdXBkYXRlIHRoZSBkcml2ZXIgaW4gZnV0dXJlLg0KPiANCj4gRmluZSEg
+SSBoYXZlIHNlbnQgc29tZSBwYXRjaGVzIHRvIEh1Z2h1ZXMgc28gdGhhdCBoZSBjYW4gaW50ZWdy
+YXRlIGl0IGluDQo+IGhpcyBuZXh0IHZlcnNpb24gb2YgdGhlIHBhdGNoIHNlcmllcy4NCj4gDQo+
+IEJSIGFuZCB0aGFua3MsDQo+IE5pa29sYXVzDQo+IA0KDQpPSyBnb3QgaXQsIEknbGwgcHVzaCBp
+biB2Mi4=
