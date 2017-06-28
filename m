@@ -1,72 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway21.websitewelcome.com ([192.185.45.228]:34398 "EHLO
-        gateway21.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751126AbdFBDnp (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:36404 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751647AbdF1UEr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Jun 2017 23:43:45 -0400
-Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
-        by gateway21.websitewelcome.com (Postfix) with ESMTP id DF68740105349
-        for <linux-media@vger.kernel.org>; Thu,  1 Jun 2017 22:43:42 -0500 (CDT)
-Date: Thu, 1 Jun 2017 22:43:41 -0500
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] media: platform: s3c-camif: fix arguments position in
- function call
-Message-ID: <20170602034341.GA5349@embeddedgus>
+        Wed, 28 Jun 2017 16:04:47 -0400
+Received: by mail-pf0-f194.google.com with SMTP id z6so10246956pfk.3
+        for <linux-media@vger.kernel.org>; Wed, 28 Jun 2017 13:04:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <da5c5727-628d-1887-368c-970d5308ee72@gmail.com>
+In-Reply-To: <1497849055-26583-13-git-send-email-smitha.t@samsung.com>
+References: <CGME20170619052521epcas5p36a0bc384d10809dcfe775e6da87ed37b@epcas5p3.samsung.com>
+ <1497849055-26583-1-git-send-email-smitha.t@samsung.com> <1497849055-26583-13-git-send-email-smitha.t@samsung.com>
+From: Kamil Debski <kamil@wypas.org>
+Date: Wed, 28 Jun 2017 22:04:05 +0200
+Message-ID: <CAP3TMiG4PtiqeHhCGkHhdX_uvOhPKd=gTyckczyFKDJwnGfwYA@mail.gmail.com>
+Subject: Re: [Patch v5 12/12] Documention: v4l: Documentation for HEVC CIDs
+To: Smitha T Murthy <smitha.t@samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        jtp.park@samsung.com, a.hajda@samsung.com, mchehab@kernel.org,
+        pankaj.dubey@samsung.com, krzk@kernel.org,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi,
 
-Here is another patch in case you decide that it is
-better to apply this one.
+Please find my comments inline.
 
-Thanks
---
-Gustavo A. R. Silva
+On 19 June 2017 at 07:10, Smitha T Murthy <smitha.t@samsung.com> wrote:
+> Added V4l2 controls for HEVC encoder
+>
+> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+> ---
+>  Documentation/media/uapi/v4l/extended-controls.rst | 364 +++++++++++++++++++++
+>  1 file changed, 364 insertions(+)
+>
+> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+> index abb1057..7767c70 100644
+> --- a/Documentation/media/uapi/v4l/extended-controls.rst
+> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
+> @@ -1960,6 +1960,370 @@ enum v4l2_vp8_golden_frame_sel -
+>      1, 2 and 3 corresponding to encoder profiles 0, 1, 2 and 3.
+>
+>
 
+[snip]
 
-==========
+> +
+> +
+> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER (integer)``
+> +    Selects the hierarchical coding layer. In normal encoding
+> +    (non-hierarchial coding), it should be zero. Possible values are 0 ~ 6.
+> +    0 indicates HIERARCHICAL CODING LAYER 0, 1 indicates HIERARCHICAL CODING
+> +    LAYER 1 and so on.
 
-Fix the position of the arguments in function call.
+I would like the above to be more consistent. If HIER is in the name
+then HIER in the description should be used as well. Aside from that,
+I would recommend using full HIERARCHICAL instead of HIER in the name
+of the control. Why? Because it is HIERARCHICAL in controls already
+present in V4L2, such as
+V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP.
 
-Addresses-Coverity-ID: 1248800
-Addresses-Coverity-ID: 1269141
-Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
----
- drivers/media/platform/s3c-camif/camif-capture.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+[snip]
 
-diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
-index 1b30be72..25c7a7d 100644
---- a/drivers/media/platform/s3c-camif/camif-capture.c
-+++ b/drivers/media/platform/s3c-camif/camif-capture.c
-@@ -80,7 +80,7 @@ static int s3c_camif_hw_init(struct camif_dev *camif, struct camif_vp *vp)
- 	camif_hw_set_test_pattern(camif, camif->test_pattern);
- 	if (variant->has_img_effect)
- 		camif_hw_set_effect(camif, camif->colorfx,
--				camif->colorfx_cb, camif->colorfx_cr);
-+				camif->colorfx_cr, camif->colorfx_cb);
- 	if (variant->ip_revision == S3C6410_CAMIF_IP_REV)
- 		camif_hw_set_input_path(vp);
- 	camif_cfg_video_path(vp);
-@@ -364,7 +364,7 @@ irqreturn_t s3c_camif_irq_handler(int irq, void *priv)
- 		camif_hw_set_test_pattern(camif, camif->test_pattern);
- 		if (camif->variant->has_img_effect)
- 			camif_hw_set_effect(camif, camif->colorfx,
--				    camif->colorfx_cb, camif->colorfx_cr);
-+				    camif->colorfx_cr, camif->colorfx_cb);
- 		vp->state &= ~ST_VP_CONFIG;
- 	}
- unlock:
--- 
-2.5.0
+> +
+> +``V4L2_CID_MPEG_VIDEO_HEVC_LF (boolean)``
+> +    Indicates loop filtering. Control value 1 indicates loop filtering
+> +    is enabled and when set to 0 indicates loop filtering is disabled.
+> +
+> +``V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY (boolean)``
+> +    Selects whether to apply the loop filter across the slice boundary or not.
+> +    If the value is 0, loop filter will not be applied across the slice boundary.
+> +    If the value is 1, loop filter will be applied across the slice boundary.
+
+Just a thought. Pretty much the same fucntionality is achieved via the
+V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE control. It's an enum having
+three states: enabled, disabled and disabled at slice boundary. Maybe
+a single control could be introduced? With another legacy define for
+API compatibility. Also, I don't like that controls are not consistent
+between H264 and HEVC. I would opt for the enum option.
+
+> +
+> +``V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2 (integer)``
+> +    Selects HEVC loop filter beta offset. The valid range is [-6, +6].
+> +
+> +``V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2 (integer)``
+> +    Selects HEVC loop filter tc offset. The valid range is [-6, +6].
+> +
+> +.. _v4l2-hevc-refresh-type:
+> +
+> +``V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE``
+> +    (enum)
+> +
+[snip]
+
+Best wishes,
+Kamil
