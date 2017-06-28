@@ -1,227 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:64487 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751235AbdFEUjg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Jun 2017 16:39:36 -0400
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
-        Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH 06/12] intel-ipu3: css: imgu dma buff pool
-Date: Mon,  5 Jun 2017 15:39:11 -0500
-Message-Id: <1496695157-19926-7-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
-References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38158 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751492AbdF1SSl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Jun 2017 14:18:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Robb Glasser <rglasser@google.com>
+Subject: Re: [media] uvcvideo: Prevent heap overflow in uvc driver
+Date: Wed, 28 Jun 2017 21:18:37 +0300
+Message-ID: <1612560.vxfrDdQTFq@avalon>
+In-Reply-To: <1797631.lsAEjhpLaU@avalon>
+References: <1495482484-32125-1-git-send-email-linux@roeck-us.net> <20170628143643.GA30654@roeck-us.net> <1797631.lsAEjhpLaU@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pools are used to store previous parameters set by
-user with the parameter queue. Due to pipelining,
-there needs to be multiple sets (up to four)
-of parameters which are queued in a host-to-sp queue.
+Hi Guenter,
 
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
----
- drivers/media/pci/intel/ipu3/ipu3-css-pool.c | 129 +++++++++++++++++++++++++++
- drivers/media/pci/intel/ipu3/ipu3-css-pool.h |  53 +++++++++++
- 2 files changed, 182 insertions(+)
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.h
+On Wednesday 28 Jun 2017 20:59:17 Laurent Pinchart wrote:
+> On Wednesday 28 Jun 2017 07:36:43 Guenter Roeck wrote:
+> > On Mon, May 22, 2017 at 12:48:04PM -0700, Guenter Roeck wrote:
+> >> From: Robb Glasser <rglasser@google.com>
+> >> 
+> >> The size of uvc_control_mapping is user controlled leading to a
+> >> potential heap overflow in the uvc driver. This adds a check to verify
+> >> the user provided size fits within the bounds of the defined buffer
+> >> size.
+> >> 
+> >> Signed-off-by: Robb Glasser <rglasser@google.com>
+> >> [groeck: cherry picked from
+> >> 
+> >>  https://source.codeaurora.org/quic/la/kernel/msm-3.10
+> >>  commit b7b99e55bc7770187913ed092990852ea52d7892;
+> >>  updated subject]
+> >> 
+> >> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> >> ---
+> >> Fixes CVE-2017-0627.
+> > 
+> > Please do not apply this patch. It is buggy.
+> 
+> I apologize for not noticing the initial patch, even if it looks like it was
+> all for the best. Will you send a new version ?
+> 
+> >>  drivers/media/usb/uvc/uvc_ctrl.c | 3 +++
+> >>  1 file changed, 3 insertions(+)
+> >> 
+> >> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
+> >> b/drivers/media/usb/uvc/uvc_ctrl.c index c2ee6e39fd0c..252ab991396f
+> >> 100644
+> >> --- a/drivers/media/usb/uvc/uvc_ctrl.c
+> >> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+> >> @@ -1992,6 +1992,9 @@ int uvc_ctrl_add_mapping(struct uvc_video_chain
+> >> *chain,
+> >>  	if (!found)
+> >>  		return -ENOENT;
+> >> 
+> >> +	if (ctrl->info.size < mapping->size)
+> >> +		return -EINVAL;
+> >> +
 
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-pool.c b/drivers/media/pci/intel/ipu3/ipu3-css-pool.c
-new file mode 100644
-index 0000000..436ecd8
---- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/ipu3-css-pool.c
-@@ -0,0 +1,129 @@
-+/*
-+ * Copyright (c) 2017 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/types.h>
-+#include <linux/dma-mapping.h>
-+
-+#include "ipu3-css-pool.h"
-+
-+int ipu3_css_dma_alloc(struct device *dev,
-+			struct ipu3_css_map *map, size_t size)
-+{
-+	if (size == 0) {
-+		map->vaddr = NULL;
-+		return 0;
-+	}
-+
-+	map->vaddr = dma_alloc_coherent(dev, size, &map->daddr, GFP_KERNEL);
-+	if (!map->vaddr)
-+		return -ENOMEM;
-+	map->size = size;
-+
-+	return 0;
-+}
-+
-+void ipu3_css_dma_free(struct device *dev, struct ipu3_css_map *map)
-+{
-+	if (map->vaddr)
-+		dma_free_coherent(dev, map->size, map->vaddr, map->daddr);
-+	map->vaddr = NULL;
-+}
-+
-+void ipu3_css_pool_cleanup(struct device *dev, struct ipu3_css_pool *pool)
-+{
-+	int i;
-+
-+	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++)
-+		ipu3_css_dma_free(dev, &pool->entry[i].param);
-+}
-+
-+int ipu3_css_pool_init(struct device *dev, struct ipu3_css_pool *pool, int size)
-+{
-+	int i;
-+
-+	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++) {
-+		pool->entry[i].framenum = INT_MIN;
-+		if (ipu3_css_dma_alloc(dev, &pool->entry[i].param, size))
-+			goto fail;
-+	}
-+
-+	pool->last = IPU3_CSS_POOL_SIZE;
-+
-+	return 0;
-+
-+fail:
-+	ipu3_css_pool_cleanup(dev, pool);
-+	return -ENOMEM;
-+}
-+
-+/*
-+ * Check that the following call to pool_get succeeds.
-+ * Return negative on error.
-+ */
-+static int ipu3_css_pool_check(struct ipu3_css_pool *pool, long framenum)
-+{
-+	/* Get the oldest entry */
-+	int n = (pool->last + 1) % IPU3_CSS_POOL_SIZE;
-+
-+	/*
-+	 * pool->entry[n].framenum stores the frame number where that
-+	 * entry was allocated. If that was allocated more than POOL_SIZE
-+	 * frames back, it is old enough that we know it is no more in
-+	 * use by firmware.
-+	 */
-+	if (pool->entry[n].framenum + IPU3_CSS_POOL_SIZE > framenum)
-+		return -ENOSPC;
-+
-+	return n;
-+}
-+
-+/*
-+ * Allocate a new parameter from pool at frame number `framenum'.
-+ * Release the oldest entry in the pool to make space for the new entry.
-+ * Return negative on error.
-+ */
-+int ipu3_css_pool_get(struct ipu3_css_pool *pool, long framenum)
-+{
-+	int n = ipu3_css_pool_check(pool, framenum);
-+
-+	if (n < 0)
-+		return n;
-+
-+	pool->entry[n].framenum = framenum;
-+	pool->last = n;
-+
-+	return n;
-+}
-+
-+/*
-+ * Undo, for all practical purposes, the effect of pool_get().
-+ */
-+void ipu3_css_pool_put(struct ipu3_css_pool *pool)
-+{
-+	pool->entry[pool->last].framenum = INT_MIN;
-+	pool->last = (pool->last + IPU3_CSS_POOL_SIZE - 1) % IPU3_CSS_POOL_SIZE;
-+}
-+
-+const struct ipu3_css_map *
-+ipu3_css_pool_last(struct ipu3_css_pool *pool, unsigned int n)
-+{
-+	static const struct ipu3_css_map null_map = { 0 };
-+	int i = (pool->last + IPU3_CSS_POOL_SIZE - n) % IPU3_CSS_POOL_SIZE;
-+
-+	WARN_ON(n >= IPU3_CSS_POOL_SIZE);
-+
-+	if (pool->entry[i].framenum < 0)
-+		return &null_map;
-+
-+	return &pool->entry[i].param;
-+}
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-pool.h b/drivers/media/pci/intel/ipu3/ipu3-css-pool.h
-new file mode 100644
-index 0000000..a2d2494
---- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/ipu3-css-pool.h
-@@ -0,0 +1,53 @@
-+/*
-+ * Copyright (c) 2017 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef __IPU3_UTIL_H
-+#define __IPU3_UTIL_H
-+
-+#include <linux/device.h>
-+
-+#define sqr(x)				((x) * (x))
-+#define DIV_ROUND_CLOSEST_DOWN(a, b)	(((a) + (b / 2) - 1) / (b))
-+#define roundclosest_down(a, b)		(DIV_ROUND_CLOSEST_DOWN(a, b) * (b))
-+#define roundclosest(n, di)				\
-+	({ typeof(n) __n = (n); typeof(di) __di = (di); \
-+	DIV_ROUND_CLOSEST(__n, __di) * __di; })
-+
-+#define IPU3_CSS_POOL_SIZE		4
-+
-+struct ipu3_css_map {
-+	size_t size;
-+	void *vaddr;
-+	dma_addr_t daddr;
-+};
-+
-+struct ipu3_css_pool {
-+	struct {
-+		struct ipu3_css_map param;
-+		long framenum;
-+	} entry[IPU3_CSS_POOL_SIZE];
-+	unsigned int last; /* Latest entry */
-+};
-+
-+int ipu3_css_dma_alloc(struct device *dev, struct ipu3_css_map *map,
-+			size_t size);
-+void ipu3_css_dma_free(struct device *dev, struct ipu3_css_map *map);
-+void ipu3_css_pool_cleanup(struct device *dev, struct ipu3_css_pool *pool);
-+int ipu3_css_pool_init(struct device *dev, struct ipu3_css_pool *pool,
-+			int size);
-+int ipu3_css_pool_get(struct ipu3_css_pool *pool, long framenum);
-+void ipu3_css_pool_put(struct ipu3_css_pool *pool);
-+const struct ipu3_css_map *ipu3_css_pool_last(struct ipu3_css_pool *pool,
-+						unsigned int last);
-+
-+#endif
+By the way, I believe the right fix should be
+
+	if (mapping->offset + mapping->size > ctrl->info.size * 8)
+		return -EINVAL;
+
+Both mapping->offset and mapping->size are 8-bit integers, so there's no risk 
+of overflow in the addition. If we want to safeguard against a possible future 
+bug if the type of the fields change, we could add
+
+	if (mapping->offset + mapping->size < mapping->offset)
+		return -EINVAL;
+
+> >>  	if (mutex_lock_interruptible(&chain->ctrl_mutex))
+> >>  		return -ERESTARTSYS;
+
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
