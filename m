@@ -1,84 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f194.google.com ([209.85.223.194]:34614 "EHLO
-        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751834AbdFMJgM (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38115 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751540AbdF1R7P (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 05:36:12 -0400
+        Wed, 28 Jun 2017 13:59:15 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Robb Glasser <rglasser@google.com>
+Subject: Re: [media] uvcvideo: Prevent heap overflow in uvc driver
+Date: Wed, 28 Jun 2017 20:59:17 +0300
+Message-ID: <1797631.lsAEjhpLaU@avalon>
+In-Reply-To: <20170628143643.GA30654@roeck-us.net>
+References: <1495482484-32125-1-git-send-email-linux@roeck-us.net> <20170628143643.GA30654@roeck-us.net>
 MIME-Version: 1.0
-In-Reply-To: <20170613091056.20796-1-ramesh.shanmugasundaram@bp.renesas.com>
-References: <20170612132620.1024-4-ramesh.shanmugasundaram@bp.renesas.com> <20170613091056.20796-1-ramesh.shanmugasundaram@bp.renesas.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 13 Jun 2017 11:36:10 +0200
-Message-ID: <CAMuHMdXbuzQqC4bgTfZ_HJ5wMduvrv4XPdTw_y-VjfrUDj38WA@mail.gmail.com>
-Subject: Re: [PATCH v9] media: i2c: max2175: Add MAX2175 support
-To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Cc: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Antti Palosaari <crope@iki.fi>,
-        Chris Paterson <chris.paterson2@renesas.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ramesh,
+Hi Guenter,
 
-On Tue, Jun 13, 2017 at 11:10 AM, Ramesh Shanmugasundaram
-<ramesh.shanmugasundaram@bp.renesas.com> wrote:
-> This patch adds driver support for the MAX2175 chip. This is Maxim
-> Integrated's RF to Bits tuner front end chip designed for software-defined
-> radio solutions. This driver exposes the tuner as a sub-device instance
-> with standard and custom controls to configure the device.
->
-> Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-> ---
-> Hi Hans,
->
->    As requested, here is the v9 of this patch alone implementing the work
->    around to avoid the sparse warning.
->
->    https://www.mail-archive.com/linux-renesas-soc@vger.kernel.org/msg15138.html
->
->    For some reason, I could not reproduce this warning in my setup :-(
->
-> Thanks,
-> Ramesh.
->
-> v9:
->  - Work around to avoid a sparse warning generated because of
->    regmap_read_poll_timeout macro implementation.
+On Wednesday 28 Jun 2017 07:36:43 Guenter Roeck wrote:
+> On Mon, May 22, 2017 at 12:48:04PM -0700, Guenter Roeck wrote:
+> > From: Robb Glasser <rglasser@google.com>
+> > 
+> > The size of uvc_control_mapping is user controlled leading to a
+> > potential heap overflow in the uvc driver. This adds a check to verify
+> > the user provided size fits within the bounds of the defined buffer
+> > size.
+> > 
+> > Signed-off-by: Robb Glasser <rglasser@google.com>
+> > [groeck: cherry picked from
+> > 
+> >  https://source.codeaurora.org/quic/la/kernel/msm-3.10
+> >  commit b7b99e55bc7770187913ed092990852ea52d7892;
+> >  updated subject]
+> > 
+> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> > ---
+> > Fixes CVE-2017-0627.
+> 
+> Please do not apply this patch. It is buggy.
 
-> +/* Checks expected pattern every msec until timeout */
-> +static int max2175_poll_timeout(struct max2175 *ctx, u8 idx, u8 msb, u8 lsb,
-> +                               u8 exp_bitval, u32 timeout_ms)
-> +{
-> +       unsigned int val;
-> +
-> +       /*
-> +        * The brackets around the last parameter is a work around to avoid
-> +        * the sparse tool warning. The ideal fix is to use brackets for the
-> +        * last parameter of regmap_read_poll_timeout macro.
-> +        */
-> +       return regmap_read_poll_timeout(ctx->regmap, idx, val,
-> +                       (max2175_get_bitval(val, msb, lsb) == exp_bitval),
-> +                       1000, (timeout_ms * 1000));
+I apologize for not noticing the initial patch, even if it looks like it was 
+all for the best. Will you send a new version ?
 
-I don't think that issue should be fixed here, so I prefer v8.
+> >  drivers/media/usb/uvc/uvc_ctrl.c | 3 +++
+> >  1 file changed, 3 insertions(+)
+> > 
+> > diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
+> > b/drivers/media/usb/uvc/uvc_ctrl.c index c2ee6e39fd0c..252ab991396f
+> > 100644
+> > --- a/drivers/media/usb/uvc/uvc_ctrl.c
+> > +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+> > @@ -1992,6 +1992,9 @@ int uvc_ctrl_add_mapping(struct uvc_video_chain
+> > *chain,
+> >  	if (!found)
+> >  		return -ENOENT;
+> > 
+> > +	if (ctrl->info.size < mapping->size)
+> > +		return -EINVAL;
+> > +
+> > 
+> >  	if (mutex_lock_interruptible(&chain->ctrl_mutex))
+> >  		return -ERESTARTSYS;
 
-Gr{oetje,eeting}s,
+-- 
+Regards,
 
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Laurent Pinchart
