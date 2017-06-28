@@ -1,79 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40428 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752647AbdFPLsM (ORCPT
+Received: from bh-25.webhostbox.net ([208.91.199.152]:35925 "EHLO
+        bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751523AbdF1Ogv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Jun 2017 07:48:12 -0400
-Date: Fri, 16 Jun 2017 14:48:07 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
-Subject: Re: [PATCH v2 3/3] [media] intel-ipu3: cio2: Add new MIPI-CSI2 driver
-Message-ID: <20170616114807.GO12407@valkosipuli.retiisi.org.uk>
-References: <1496799279-8774-1-git-send-email-yong.zhi@intel.com>
- <1496799279-8774-4-git-send-email-yong.zhi@intel.com>
- <CAAFQd5Byemom138duZRpsKOzsb5204NfbFnjEdnDTu6wfLgnrQ@mail.gmail.com>
+        Wed, 28 Jun 2017 10:36:51 -0400
+Date: Wed, 28 Jun 2017 07:36:43 -0700
+From: Guenter Roeck <linux@roeck-us.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Robb Glasser <rglasser@google.com>
+Subject: Re: [media] uvcvideo: Prevent heap overflow in uvc driver
+Message-ID: <20170628143643.GA30654@roeck-us.net>
+References: <1495482484-32125-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAAFQd5Byemom138duZRpsKOzsb5204NfbFnjEdnDTu6wfLgnrQ@mail.gmail.com>
+In-Reply-To: <1495482484-32125-1-git-send-email-linux@roeck-us.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
-
-On Mon, Jun 12, 2017 at 06:59:18PM +0900, Tomasz Figa wrote:
-> Hi Yong,
+On Mon, May 22, 2017 at 12:48:04PM -0700, Guenter Roeck wrote:
+> From: Robb Glasser <rglasser@google.com>
 > 
-> Please see my comments inline.
+> The size of uvc_control_mapping is user controlled leading to a
+> potential heap overflow in the uvc driver. This adds a check to verify
+> the user provided size fits within the bounds of the defined buffer
+> size.
 > 
-> On Wed, Jun 7, 2017 at 10:34 AM, Yong Zhi <yong.zhi@intel.com> wrote:
-> > This patch adds CIO2 CSI-2 device driver for
-> > Intel's IPU3 camera sub-system support.
-> >
-> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> > ---
-> >  drivers/media/pci/Kconfig                |    2 +
-> >  drivers/media/pci/Makefile               |    3 +-
-> >  drivers/media/pci/intel/Makefile         |    5 +
-> >  drivers/media/pci/intel/ipu3/Kconfig     |   17 +
-> >  drivers/media/pci/intel/ipu3/Makefile    |    1 +
-> >  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 1788 ++++++++++++++++++++++++++++++
-> >  drivers/media/pci/intel/ipu3/ipu3-cio2.h |  424 +++++++
-> >  7 files changed, 2239 insertions(+), 1 deletion(-)
-> >  create mode 100644 drivers/media/pci/intel/Makefile
-> >  create mode 100644 drivers/media/pci/intel/ipu3/Kconfig
-> >  create mode 100644 drivers/media/pci/intel/ipu3/Makefile
-> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.c
-> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.h
-> [snip]
-> > diff --git a/drivers/media/pci/intel/ipu3/Kconfig b/drivers/media/pci/intel/ipu3/Kconfig
-> > new file mode 100644
-> > index 0000000..2a895d6
-> > --- /dev/null
-> > +++ b/drivers/media/pci/intel/ipu3/Kconfig
-> > @@ -0,0 +1,17 @@
-> > +config VIDEO_IPU3_CIO2
-> > +       tristate "Intel ipu3-cio2 driver"
-> > +       depends on VIDEO_V4L2 && PCI
-> > +       depends on MEDIA_CONTROLLER
-> > +       depends on HAS_DMA
-> > +       depends on ACPI
+> Signed-off-by: Robb Glasser <rglasser@google.com>
+> [groeck: cherry picked from
+>  https://source.codeaurora.org/quic/la/kernel/msm-3.10
+>  commit b7b99e55bc7770187913ed092990852ea52d7892;
+>  updated subject]
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+> Fixes CVE-2017-0627.
 > 
-> I wonder if it wouldn't make sense to make this depend on X86 (||
-> COMPILE_TEST) as well. Are we expecting a standalone PCI(e) card with
-> this device in the future?
+Please do not apply this patch. It is buggy.
 
-All I'm aware of are integrated with the CPU (or the chipset).
+Guenter
 
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+>  drivers/media/usb/uvc/uvc_ctrl.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+> index c2ee6e39fd0c..252ab991396f 100644
+> --- a/drivers/media/usb/uvc/uvc_ctrl.c
+> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+> @@ -1992,6 +1992,9 @@ int uvc_ctrl_add_mapping(struct uvc_video_chain *chain,
+>  	if (!found)
+>  		return -ENOENT;
+>  
+> +	if (ctrl->info.size < mapping->size)
+> +		return -EINVAL;
+> +
+>  	if (mutex_lock_interruptible(&chain->ctrl_mutex))
+>  		return -ERESTARTSYS;
+>  
