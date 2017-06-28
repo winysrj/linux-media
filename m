@@ -1,130 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:35594 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751614AbdFGDjP (ORCPT
+Received: from mail.fireflyinternet.com ([109.228.58.192]:56015 "EHLO
+        fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751574AbdF1QAo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Jun 2017 23:39:15 -0400
-Message-ID: <d6527392254041c327effe5ebe68dc65@smtp-cloud3.xs4all.net>
-Date: Wed, 07 Jun 2017 05:39:13 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Wed, 28 Jun 2017 12:00:44 -0400
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+To: Sean Paul <seanpaul@chromium.org>, dri-devel@lists.freedesktop.org
+From: Chris Wilson <chris@chris-wilson.co.uk>
+In-Reply-To: <20170628155117.3558-1-seanpaul@chromium.org>
+Cc: marcheu@chromium.org, linux-media@vger.kernel.org
+References: <20170628155117.3558-1-seanpaul@chromium.org>
+Message-ID: <149866562059.23475.15965626912972737879@mail.alporthouse.com>
+Subject: Re: [PATCH] dma-buf/sw_sync: Fix timeline/pt overflow cases
+Date: Wed, 28 Jun 2017 17:00:20 +0100
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Quoting Sean Paul (2017-06-28 16:51:11)
+> Protect against long-running processes from overflowing the timeline
+> and creating fences that go back in time. While we're at it, avoid
+> overflowing while we're incrementing the timeline.
+> 
+> Signed-off-by: Sean Paul <seanpaul@chromium.org>
+> ---
+>  drivers/dma-buf/sw_sync.c | 7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/dma-buf/sw_sync.c b/drivers/dma-buf/sw_sync.c
+> index 69c5ff36e2f9..40934619ed88 100644
+> --- a/drivers/dma-buf/sw_sync.c
+> +++ b/drivers/dma-buf/sw_sync.c
+> @@ -142,7 +142,7 @@ static void sync_timeline_signal(struct sync_timeline *obj, unsigned int inc)
+>  
+>         spin_lock_irqsave(&obj->child_list_lock, flags);
+>  
+> -       obj->value += inc;
+> +       obj->value += min(inc, ~0x0U - obj->value);
 
-Results of the daily build of media_tree:
+The timeline uses u32 seqno, so just obj->value += min(inc, INT_MAX);
 
-date:			Wed Jun  7 05:00:17 CEST 2017
-media-tree git hash:	6fb05e0dd32e566facb96ea61a48c7488daa5ac3
-media_build git hash:	0d8b3274e29b597780719e7ce1b3b460241a5395
-v4l-utils git hash:	ef074cf5500b7dd62e6eb3527ec47a914c7189ca
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Better of course would be to report the error,
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: ERRORS
-linux-4.12-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: ERRORS
-linux-4.12-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+diff --git a/drivers/dma-buf/sw_sync.c b/drivers/dma-buf/sw_sync.c
+index 69c5ff36e2f9..2503cf884018 100644
+--- a/drivers/dma-buf/sw_sync.c
++++ b/drivers/dma-buf/sw_sync.c
+@@ -345,6 +345,9 @@ static long sw_sync_ioctl_inc(struct sync_timeline *obj, unsigned long arg)
+        if (copy_from_user(&value, (void __user *)arg, sizeof(value)))
+                return -EFAULT;
+ 
++       if (value > INT_MAX)
++               return -EINVAL;
++
+        sync_timeline_signal(obj, value);
 
-Detailed results are available here:
+>  
+>         list_for_each_entry_safe(pt, next, &obj->active_list_head,
+>                                  active_list) {
+> @@ -178,6 +178,11 @@ static struct sync_pt *sync_pt_create(struct sync_timeline *obj, int size,
+>                 return NULL;
+>  
+>         spin_lock_irqsave(&obj->child_list_lock, flags);
+> +       if (value < obj->value) {
+> +               spin_unlock_irqrestore(&obj->child_list_lock, flags);
+> +               return NULL;
+> +       }
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Needs a u32 check. if ((int)(value - obj->value) < 0) return some_error;
+-Chris
