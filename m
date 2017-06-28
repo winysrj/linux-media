@@ -1,569 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:36892 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753819AbdFMTgg (ORCPT
+Received: from mail-yw0-f180.google.com ([209.85.161.180]:36834 "EHLO
+        mail-yw0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751610AbdF1NhR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 15:36:36 -0400
-From: Helen Koike <helen.koike@collabora.com>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, jgebben@codeaurora.org,
-        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v4 02/11] [media] vimc: Move common code from the core
-Date: Tue, 13 Jun 2017 16:35:30 -0300
-Message-Id: <1497382545-16408-3-git-send-email-helen.koike@collabora.com>
-In-Reply-To: <1497382545-16408-1-git-send-email-helen.koike@collabora.com>
-References: <1497382545-16408-1-git-send-email-helen.koike@collabora.com>
+        Wed, 28 Jun 2017 09:37:17 -0400
+Received: by mail-yw0-f180.google.com with SMTP id t127so24406404ywc.3
+        for <linux-media@vger.kernel.org>; Wed, 28 Jun 2017 06:37:17 -0700 (PDT)
+Received: from mail-yw0-f174.google.com (mail-yw0-f174.google.com. [209.85.161.174])
+        by smtp.gmail.com with ESMTPSA id m30sm860197ywh.29.2017.06.28.06.37.15
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 28 Jun 2017 06:37:15 -0700 (PDT)
+Received: by mail-yw0-f174.google.com with SMTP id 63so24474688ywr.0
+        for <linux-media@vger.kernel.org>; Wed, 28 Jun 2017 06:37:15 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20170628133156.c333lrsauageq3yt@valkosipuli.retiisi.org.uk>
+References: <1496799279-8774-1-git-send-email-yong.zhi@intel.com>
+ <1496799279-8774-4-git-send-email-yong.zhi@intel.com> <CAAFQd5Byemom138duZRpsKOzsb5204NfbFnjEdnDTu6wfLgnrQ@mail.gmail.com>
+ <20170626145105.GN12407@valkosipuli.retiisi.org.uk> <CAAFQd5AGEYRZye3ShEGLrLTyG67jRzSU2-dN6=wmo5DuVxvGaw@mail.gmail.com>
+ <20170628133156.c333lrsauageq3yt@valkosipuli.retiisi.org.uk>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Wed, 28 Jun 2017 22:36:54 +0900
+Message-ID: <CAAFQd5DLt+79tXK0N0SRqdE9H9C4ozX1aL-7AKBzG_oQ4TH3hw@mail.gmail.com>
+Subject: Re: [PATCH v2 3/3] [media] intel-ipu3: cio2: Add new MIPI-CSI2 driver
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Yong Zhi <yong.zhi@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove helper functions from vimc-core and add it in vimc-common to
-clean up the core.
+On Wed, Jun 28, 2017 at 10:31 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> On Tue, Jun 27, 2017 at 06:33:13PM +0900, Tomasz Figa wrote:
+>> On Mon, Jun 26, 2017 at 11:51 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+>> > On Mon, Jun 12, 2017 at 06:59:18PM +0900, Tomasz Figa wrote:
+>> >
+>> >>
+>> >> > +       if (WARN_ON(freq <= 0))
+>> >> > +               return -EINVAL;
+>> >>
+>> >> It generally doesn't make sense for the frequency to be negative, so
+>> >> maybe the argument should have been unsigned to start with? (And
+>> >> 32-bit if we don't expect frequencies higher than 4 GHz anyway.)
+>> >
+>> > The value comes from a 64-bit integer V4L2 control so that implies the value
+>> > range of s64 as well.
+>>
+>> Okay, if there is no way to enforce this at control level, then I
+>> guess we have to keep this here.
+>>
+>> >
+>> >>
+>> >> > +
+>> >> > +       /* b could be 0, -2 or -8, so r < 500000000 */
+>> >>
+>> >> Definitely. Anything <= 0 is also less than 500000000. Let's take a
+>> >> look at the computation below again:
+>> >>
+>> >> 1) accinv is multiplied by b,
+>> >> 2) 500000000 is divided by 256 (=== shift right by 8 bits) = 1953125,
+>> >> 3) accinv*b is multiplied by 1953125 to form the value of r.
+>> >>
+>> >> Now let's see at possible maximum absolute values for particular steps:
+>> >> 1) 16 * -8 = -128 (signed 8 bits),
+>> >> 2) 1953125 (unsigned 21 bits),
+>> >> 3) -128 * 1953125 = -249999872 (signed 29 bits).
+>> >>
+>> >> So I think the important thing to note in the comment is:
+>> >>
+>> >> /* b could be 0, -2 or -8, so |accinv * b| is always less than (1 <<
+>> >> ds) and thus |r| < 500000000. */
+>> >>
+>> >> > +       r = accinv * b * (500000000 >> ds);
+>> >>
+>> >> On the other hand, you lose some precision here. If you used s64
+>> >> instead and did the divide shift at the end ((accinv * b * 500000000)
+>> >> >> ds), for the example above you would get -250007629. (Depending on
+>> >> how big freq is, it might not matter, though.)
+>> >>
+>> >
+>> > The frequency is typically hundreds of mega-Hertz.
+>>
+>> I think it still would make sense to have the calculation a bit more precise.
+>
+> Then the solution is to divide by the 64-bit number, i.e. do_div(). IMO
+> this shouldn't be a big deal either way: the result needs to be in a value
+> range and this is only done once when streaming is started.
+>
+>>
+>> >
+>> >> Also nit: What is 500000000? We have local constants defined above, I
+>> >> think it could also make sense to do the same for this one. The
+>> >> compiler should do constant propagation and simplify respective
+>> >> calculations anyway.
+>> >
+>> > COUNT_ACC in the formula in the comment a few decalines above is in
+>> > nanoseconds. Performing the calculations in integer arithmetics results in
+>> > having 500000000 in the resulting formula.
+>> >
+>> > So this is actually a constant related to the hardware but it does not have
+>> > a pre-determined name because it is derived from COUNT_ACC.
+>>
+>> Which, I believe, doesn't stop us from naming it.
+>
+> No, but the value is derived from another value and used once. There's not
+> much value in adding a macro for IMO.
+>
+> The formula can be perhaps easier written as:
+>
+>         accinv * a + (accinv * b * (500000000 >> ds)
+>                       / (int32_t)(link_freq >> ds));
+>
+> If you insist, how about COUNT_ACC_FACTOR, for it's derived from COUNT_ACC?
+>
+>>
+>> >> > +static int cio2_v4l2_querycap(struct file *file, void *fh,
+>> >> > +                             struct v4l2_capability *cap)
+>> >> > +{
+>> >> > +       struct cio2_device *cio2 = video_drvdata(file);
+>> >> > +
+>> >> > +       strlcpy(cap->driver, CIO2_NAME, sizeof(cap->driver));
+>> >> > +       strlcpy(cap->card, CIO2_DEVICE_NAME, sizeof(cap->card));
+>> >> > +       snprintf(cap->bus_info, sizeof(cap->bus_info),
+>> >> > +                "PCI:%s", pci_name(cio2->pci_dev));
+>> >> > +       cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+>> >>
+>> >> Hmm, I thought single plane queue type was deprecated these days and
+>> >> _MPLANE recommended for all new drivers. I'll defer this to other
+>> >> reviewers, though.
+>> >
+>> > If the device supports single plane formats only, I don't see a reason to
+>> > use MPLANE buffer types.
+>>
+>> On the other hand, if a further new revision of the hardware (or
+>> amendment of supported feature set of current hardware) actually adds
+>> support for multiple planes, changing it to MPLANE will require
+>> keeping a non-MPLANE variant of the code, due to userspace
+>> compatibility concerns...
+>
+> I think I have to correct my earlier statement --- the device supports
+> multi-planar formats as well. They're only useful with SoC cameras though,
+> not with raw Bayer cameras.
+>
+> IMO VB2/V4L2 could better support conversion between single and
+> multi-planar buffer types so that the applications could just use any and
+> drivers could manage with one.
+>
+> I don't have a strong opinion either way, but IMO this could be well
+> addressed later on by improving the framework when (or if) the support for
+> formats such as NV12 is added.
 
-Signed-off-by: Helen Koike <helen.koike@collabora.com>
+The problem is that it couldn't, because it would change the userspace ABI.
 
----
+...and somehow I still recall (voice echoing in my head ;)) someone
+saying (writing) that single plane ABI is deprecated and all new
+drivers should be using MPLANE. Hans, was that you?
 
-Changes in v4: None
-Changes in v3:
-[media] vimc: Move common code from the core
-	- This is a new patch in the series
-
-Changes in v2: None
-
-
----
- drivers/media/platform/vimc/Makefile               |   2 +-
- drivers/media/platform/vimc/vimc-capture.h         |   2 +-
- drivers/media/platform/vimc/vimc-common.c          | 221 +++++++++++++++++++++
- .../platform/vimc/{vimc-core.h => vimc-common.h}   |   7 +-
- drivers/media/platform/vimc/vimc-core.c            | 205 +------------------
- drivers/media/platform/vimc/vimc-sensor.h          |   2 +-
- 6 files changed, 229 insertions(+), 210 deletions(-)
- create mode 100644 drivers/media/platform/vimc/vimc-common.c
- rename drivers/media/platform/vimc/{vimc-core.h => vimc-common.h} (96%)
-
-diff --git a/drivers/media/platform/vimc/Makefile b/drivers/media/platform/vimc/Makefile
-index c45195e..6b6ddf4 100644
---- a/drivers/media/platform/vimc/Makefile
-+++ b/drivers/media/platform/vimc/Makefile
-@@ -1,3 +1,3 @@
--vimc-objs := vimc-core.o vimc-capture.o vimc-sensor.o
-+vimc-objs := vimc-core.o vimc-capture.o vimc-common.o vimc-sensor.o
- 
- obj-$(CONFIG_VIDEO_VIMC) += vimc.o
-diff --git a/drivers/media/platform/vimc/vimc-capture.h b/drivers/media/platform/vimc/vimc-capture.h
-index 581a813..7e5c707 100644
---- a/drivers/media/platform/vimc/vimc-capture.h
-+++ b/drivers/media/platform/vimc/vimc-capture.h
-@@ -18,7 +18,7 @@
- #ifndef _VIMC_CAPTURE_H_
- #define _VIMC_CAPTURE_H_
- 
--#include "vimc-core.h"
-+#include "vimc-common.h"
- 
- struct vimc_ent_device *vimc_cap_create(struct v4l2_device *v4l2_dev,
- 					const char *const name,
-diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
-new file mode 100644
-index 0000000..42f779a
---- /dev/null
-+++ b/drivers/media/platform/vimc/vimc-common.c
-@@ -0,0 +1,221 @@
-+/*
-+ * vimc-common.c Virtual Media Controller Driver
-+ *
-+ * Copyright (C) 2015-2017 Helen Koike <helen.fornazier@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#include "vimc-common.h"
-+
-+static const struct vimc_pix_map vimc_pix_map_list[] = {
-+	/* TODO: add all missing formats */
-+
-+	/* RGB formats */
-+	{
-+		.code = MEDIA_BUS_FMT_BGR888_1X24,
-+		.pixelformat = V4L2_PIX_FMT_BGR24,
-+		.bpp = 3,
-+	},
-+	{
-+		.code = MEDIA_BUS_FMT_RGB888_1X24,
-+		.pixelformat = V4L2_PIX_FMT_RGB24,
-+		.bpp = 3,
-+	},
-+	{
-+		.code = MEDIA_BUS_FMT_ARGB8888_1X32,
-+		.pixelformat = V4L2_PIX_FMT_ARGB32,
-+		.bpp = 4,
-+	},
-+
-+	/* Bayer formats */
-+	{
-+		.code = MEDIA_BUS_FMT_SBGGR8_1X8,
-+		.pixelformat = V4L2_PIX_FMT_SBGGR8,
-+		.bpp = 1,
-+	},
-+	{
-+		.code = MEDIA_BUS_FMT_SGBRG8_1X8,
-+		.pixelformat = V4L2_PIX_FMT_SGBRG8,
-+		.bpp = 1,
-+	},
-+	{
-+		.code = MEDIA_BUS_FMT_SGRBG8_1X8,
-+		.pixelformat = V4L2_PIX_FMT_SGRBG8,
-+		.bpp = 1,
-+	},
-+	{
-+		.code = MEDIA_BUS_FMT_SRGGB8_1X8,
-+		.pixelformat = V4L2_PIX_FMT_SRGGB8,
-+		.bpp = 1,
-+	},
-+	{
-+		.code = MEDIA_BUS_FMT_SBGGR10_1X10,
-+		.pixelformat = V4L2_PIX_FMT_SBGGR10,
-+		.bpp = 2,
-+	},
-+	{
-+		.code = MEDIA_BUS_FMT_SGBRG10_1X10,
-+		.pixelformat = V4L2_PIX_FMT_SGBRG10,
-+		.bpp = 2,
-+	},
-+	{
-+		.code = MEDIA_BUS_FMT_SGRBG10_1X10,
-+		.pixelformat = V4L2_PIX_FMT_SGRBG10,
-+		.bpp = 2,
-+	},
-+	{
-+		.code = MEDIA_BUS_FMT_SRGGB10_1X10,
-+		.pixelformat = V4L2_PIX_FMT_SRGGB10,
-+		.bpp = 2,
-+	},
-+
-+	/* 10bit raw bayer a-law compressed to 8 bits */
-+	{
-+		.code = MEDIA_BUS_FMT_SBGGR10_ALAW8_1X8,
-+		.pixelformat = V4L2_PIX_FMT_SBGGR10ALAW8,
-+		.bpp = 1,
-+	},
-+	{
-+		.code = MEDIA_BUS_FMT_SGBRG10_ALAW8_1X8,
-+		.pixelformat = V4L2_PIX_FMT_SGBRG10ALAW8,
-+		.bpp = 1,
-+	},
-+	{
-+		.code = MEDIA_BUS_FMT_SGRBG10_ALAW8_1X8,
-+		.pixelformat = V4L2_PIX_FMT_SGRBG10ALAW8,
-+		.bpp = 1,
-+	},
-+	{
-+		.code = MEDIA_BUS_FMT_SRGGB10_ALAW8_1X8,
-+		.pixelformat = V4L2_PIX_FMT_SRGGB10ALAW8,
-+		.bpp = 1,
-+	},
-+
-+	/* 10bit raw bayer DPCM compressed to 8 bits */
-+	{
-+		.code = MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8,
-+		.pixelformat = V4L2_PIX_FMT_SBGGR10DPCM8,
-+		.bpp = 1,
-+	},
-+	{
-+		.code = MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8,
-+		.pixelformat = V4L2_PIX_FMT_SGBRG10DPCM8,
-+		.bpp = 1,
-+	},
-+	{
-+		.code = MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8,
-+		.pixelformat = V4L2_PIX_FMT_SGRBG10DPCM8,
-+		.bpp = 1,
-+	},
-+	{
-+		.code = MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8,
-+		.pixelformat = V4L2_PIX_FMT_SRGGB10DPCM8,
-+		.bpp = 1,
-+	},
-+	{
-+		.code = MEDIA_BUS_FMT_SBGGR12_1X12,
-+		.pixelformat = V4L2_PIX_FMT_SBGGR12,
-+		.bpp = 2,
-+	},
-+	{
-+		.code = MEDIA_BUS_FMT_SGBRG12_1X12,
-+		.pixelformat = V4L2_PIX_FMT_SGBRG12,
-+		.bpp = 2,
-+	},
-+	{
-+		.code = MEDIA_BUS_FMT_SGRBG12_1X12,
-+		.pixelformat = V4L2_PIX_FMT_SGRBG12,
-+		.bpp = 2,
-+	},
-+	{
-+		.code = MEDIA_BUS_FMT_SRGGB12_1X12,
-+		.pixelformat = V4L2_PIX_FMT_SRGGB12,
-+		.bpp = 2,
-+	},
-+};
-+
-+const struct vimc_pix_map *vimc_pix_map_by_code(u32 code)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(vimc_pix_map_list); i++) {
-+		if (vimc_pix_map_list[i].code == code)
-+			return &vimc_pix_map_list[i];
-+	}
-+	return NULL;
-+}
-+
-+const struct vimc_pix_map *vimc_pix_map_by_pixelformat(u32 pixelformat)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(vimc_pix_map_list); i++) {
-+		if (vimc_pix_map_list[i].pixelformat == pixelformat)
-+			return &vimc_pix_map_list[i];
-+	}
-+	return NULL;
-+}
-+
-+int vimc_propagate_frame(struct media_pad *src, const void *frame)
-+{
-+	struct media_link *link;
-+
-+	if (!(src->flags & MEDIA_PAD_FL_SOURCE))
-+		return -EINVAL;
-+
-+	/* Send this frame to all sink pads that are direct linked */
-+	list_for_each_entry(link, &src->entity->links, list) {
-+		if (link->source == src &&
-+		    (link->flags & MEDIA_LNK_FL_ENABLED)) {
-+			struct vimc_ent_device *ved = NULL;
-+			struct media_entity *entity = link->sink->entity;
-+
-+			if (is_media_entity_v4l2_subdev(entity)) {
-+				struct v4l2_subdev *sd =
-+					container_of(entity, struct v4l2_subdev,
-+						     entity);
-+				ved = v4l2_get_subdevdata(sd);
-+			} else if (is_media_entity_v4l2_video_device(entity)) {
-+				struct video_device *vdev =
-+					container_of(entity,
-+						     struct video_device,
-+						     entity);
-+				ved = video_get_drvdata(vdev);
-+			}
-+			if (ved && ved->process_frame)
-+				ved->process_frame(ved, link->sink, frame);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+/* Helper function to allocate and initialize pads */
-+struct media_pad *vimc_pads_init(u16 num_pads, const unsigned long *pads_flag)
-+{
-+	struct media_pad *pads;
-+	unsigned int i;
-+
-+	/* Allocate memory for the pads */
-+	pads = kcalloc(num_pads, sizeof(*pads), GFP_KERNEL);
-+	if (!pads)
-+		return ERR_PTR(-ENOMEM);
-+
-+	/* Initialize the pads */
-+	for (i = 0; i < num_pads; i++) {
-+		pads[i].index = i;
-+		pads[i].flags = pads_flag[i];
-+	}
-+
-+	return pads;
-+}
-diff --git a/drivers/media/platform/vimc/vimc-core.h b/drivers/media/platform/vimc/vimc-common.h
-similarity index 96%
-rename from drivers/media/platform/vimc/vimc-core.h
-rename to drivers/media/platform/vimc/vimc-common.h
-index 4525d23..00d3da4 100644
---- a/drivers/media/platform/vimc/vimc-core.h
-+++ b/drivers/media/platform/vimc/vimc-common.h
-@@ -1,5 +1,5 @@
- /*
-- * vimc-core.h Virtual Media Controller Driver
-+ * vimc-ccommon.h Virtual Media Controller Driver
-  *
-  * Copyright (C) 2015-2017 Helen Koike <helen.fornazier@gmail.com>
-  *
-@@ -15,10 +15,11 @@
-  *
-  */
- 
--#ifndef _VIMC_CORE_H_
--#define _VIMC_CORE_H_
-+#ifndef _VIMC_COMMON_H_
-+#define _VIMC_COMMON_H_
- 
- #include <linux/slab.h>
-+#include <media/media-device.h>
- #include <media/v4l2-device.h>
- 
- /**
-diff --git a/drivers/media/platform/vimc/vimc-core.c b/drivers/media/platform/vimc/vimc-core.c
-index bc107da..afc79e2 100644
---- a/drivers/media/platform/vimc/vimc-core.c
-+++ b/drivers/media/platform/vimc/vimc-core.c
-@@ -22,7 +22,7 @@
- #include <media/v4l2-device.h>
- 
- #include "vimc-capture.h"
--#include "vimc-core.h"
-+#include "vimc-common.h"
- #include "vimc-sensor.h"
- 
- #define VIMC_PDEV_NAME "vimc"
-@@ -197,189 +197,6 @@ static const struct vimc_pipeline_config pipe_cfg = {
- 
- /* -------------------------------------------------------------------------- */
- 
--static const struct vimc_pix_map vimc_pix_map_list[] = {
--	/* TODO: add all missing formats */
--
--	/* RGB formats */
--	{
--		.code = MEDIA_BUS_FMT_BGR888_1X24,
--		.pixelformat = V4L2_PIX_FMT_BGR24,
--		.bpp = 3,
--	},
--	{
--		.code = MEDIA_BUS_FMT_RGB888_1X24,
--		.pixelformat = V4L2_PIX_FMT_RGB24,
--		.bpp = 3,
--	},
--	{
--		.code = MEDIA_BUS_FMT_ARGB8888_1X32,
--		.pixelformat = V4L2_PIX_FMT_ARGB32,
--		.bpp = 4,
--	},
--
--	/* Bayer formats */
--	{
--		.code = MEDIA_BUS_FMT_SBGGR8_1X8,
--		.pixelformat = V4L2_PIX_FMT_SBGGR8,
--		.bpp = 1,
--	},
--	{
--		.code = MEDIA_BUS_FMT_SGBRG8_1X8,
--		.pixelformat = V4L2_PIX_FMT_SGBRG8,
--		.bpp = 1,
--	},
--	{
--		.code = MEDIA_BUS_FMT_SGRBG8_1X8,
--		.pixelformat = V4L2_PIX_FMT_SGRBG8,
--		.bpp = 1,
--	},
--	{
--		.code = MEDIA_BUS_FMT_SRGGB8_1X8,
--		.pixelformat = V4L2_PIX_FMT_SRGGB8,
--		.bpp = 1,
--	},
--	{
--		.code = MEDIA_BUS_FMT_SBGGR10_1X10,
--		.pixelformat = V4L2_PIX_FMT_SBGGR10,
--		.bpp = 2,
--	},
--	{
--		.code = MEDIA_BUS_FMT_SGBRG10_1X10,
--		.pixelformat = V4L2_PIX_FMT_SGBRG10,
--		.bpp = 2,
--	},
--	{
--		.code = MEDIA_BUS_FMT_SGRBG10_1X10,
--		.pixelformat = V4L2_PIX_FMT_SGRBG10,
--		.bpp = 2,
--	},
--	{
--		.code = MEDIA_BUS_FMT_SRGGB10_1X10,
--		.pixelformat = V4L2_PIX_FMT_SRGGB10,
--		.bpp = 2,
--	},
--
--	/* 10bit raw bayer a-law compressed to 8 bits */
--	{
--		.code = MEDIA_BUS_FMT_SBGGR10_ALAW8_1X8,
--		.pixelformat = V4L2_PIX_FMT_SBGGR10ALAW8,
--		.bpp = 1,
--	},
--	{
--		.code = MEDIA_BUS_FMT_SGBRG10_ALAW8_1X8,
--		.pixelformat = V4L2_PIX_FMT_SGBRG10ALAW8,
--		.bpp = 1,
--	},
--	{
--		.code = MEDIA_BUS_FMT_SGRBG10_ALAW8_1X8,
--		.pixelformat = V4L2_PIX_FMT_SGRBG10ALAW8,
--		.bpp = 1,
--	},
--	{
--		.code = MEDIA_BUS_FMT_SRGGB10_ALAW8_1X8,
--		.pixelformat = V4L2_PIX_FMT_SRGGB10ALAW8,
--		.bpp = 1,
--	},
--
--	/* 10bit raw bayer DPCM compressed to 8 bits */
--	{
--		.code = MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8,
--		.pixelformat = V4L2_PIX_FMT_SBGGR10DPCM8,
--		.bpp = 1,
--	},
--	{
--		.code = MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8,
--		.pixelformat = V4L2_PIX_FMT_SGBRG10DPCM8,
--		.bpp = 1,
--	},
--	{
--		.code = MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8,
--		.pixelformat = V4L2_PIX_FMT_SGRBG10DPCM8,
--		.bpp = 1,
--	},
--	{
--		.code = MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8,
--		.pixelformat = V4L2_PIX_FMT_SRGGB10DPCM8,
--		.bpp = 1,
--	},
--	{
--		.code = MEDIA_BUS_FMT_SBGGR12_1X12,
--		.pixelformat = V4L2_PIX_FMT_SBGGR12,
--		.bpp = 2,
--	},
--	{
--		.code = MEDIA_BUS_FMT_SGBRG12_1X12,
--		.pixelformat = V4L2_PIX_FMT_SGBRG12,
--		.bpp = 2,
--	},
--	{
--		.code = MEDIA_BUS_FMT_SGRBG12_1X12,
--		.pixelformat = V4L2_PIX_FMT_SGRBG12,
--		.bpp = 2,
--	},
--	{
--		.code = MEDIA_BUS_FMT_SRGGB12_1X12,
--		.pixelformat = V4L2_PIX_FMT_SRGGB12,
--		.bpp = 2,
--	},
--};
--
--const struct vimc_pix_map *vimc_pix_map_by_code(u32 code)
--{
--	unsigned int i;
--
--	for (i = 0; i < ARRAY_SIZE(vimc_pix_map_list); i++) {
--		if (vimc_pix_map_list[i].code == code)
--			return &vimc_pix_map_list[i];
--	}
--	return NULL;
--}
--
--const struct vimc_pix_map *vimc_pix_map_by_pixelformat(u32 pixelformat)
--{
--	unsigned int i;
--
--	for (i = 0; i < ARRAY_SIZE(vimc_pix_map_list); i++) {
--		if (vimc_pix_map_list[i].pixelformat == pixelformat)
--			return &vimc_pix_map_list[i];
--	}
--	return NULL;
--}
--
--int vimc_propagate_frame(struct media_pad *src, const void *frame)
--{
--	struct media_link *link;
--
--	if (!(src->flags & MEDIA_PAD_FL_SOURCE))
--		return -EINVAL;
--
--	/* Send this frame to all sink pads that are direct linked */
--	list_for_each_entry(link, &src->entity->links, list) {
--		if (link->source == src &&
--		    (link->flags & MEDIA_LNK_FL_ENABLED)) {
--			struct vimc_ent_device *ved = NULL;
--			struct media_entity *entity = link->sink->entity;
--
--			if (is_media_entity_v4l2_subdev(entity)) {
--				struct v4l2_subdev *sd =
--					container_of(entity, struct v4l2_subdev,
--						     entity);
--				ved = v4l2_get_subdevdata(sd);
--			} else if (is_media_entity_v4l2_video_device(entity)) {
--				struct video_device *vdev =
--					container_of(entity,
--						     struct video_device,
--						     entity);
--				ved = video_get_drvdata(vdev);
--			}
--			if (ved && ved->process_frame)
--				ved->process_frame(ved, link->sink, frame);
--		}
--	}
--
--	return 0;
--}
--
- static void vimc_device_unregister(struct vimc_device *vimc)
- {
- 	unsigned int i;
-@@ -396,26 +213,6 @@ static void vimc_device_unregister(struct vimc_device *vimc)
- 	media_device_cleanup(&vimc->mdev);
- }
- 
--/* Helper function to allocate and initialize pads */
--struct media_pad *vimc_pads_init(u16 num_pads, const unsigned long *pads_flag)
--{
--	struct media_pad *pads;
--	unsigned int i;
--
--	/* Allocate memory for the pads */
--	pads = kcalloc(num_pads, sizeof(*pads), GFP_KERNEL);
--	if (!pads)
--		return ERR_PTR(-ENOMEM);
--
--	/* Initialize the pads */
--	for (i = 0; i < num_pads; i++) {
--		pads[i].index = i;
--		pads[i].flags = pads_flag[i];
--	}
--
--	return pads;
--}
--
- /*
-  * TODO: remove this function when all the
-  * entities specific code are implemented
-diff --git a/drivers/media/platform/vimc/vimc-sensor.h b/drivers/media/platform/vimc/vimc-sensor.h
-index 505310e..580dcec 100644
---- a/drivers/media/platform/vimc/vimc-sensor.h
-+++ b/drivers/media/platform/vimc/vimc-sensor.h
-@@ -18,7 +18,7 @@
- #ifndef _VIMC_SENSOR_H_
- #define _VIMC_SENSOR_H_
- 
--#include "vimc-core.h"
-+#include "vimc-common.h"
- 
- struct vimc_ent_device *vimc_sen_create(struct v4l2_device *v4l2_dev,
- 					const char *const name,
--- 
-2.7.4
+Best regards,
+Tomasz
