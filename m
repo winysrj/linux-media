@@ -1,67 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:39151 "EHLO hardeman.nu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752762AbdFQLUM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Jun 2017 07:20:12 -0400
-Date: Sat, 17 Jun 2017 13:20:10 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Sean Young <sean@mess.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 6/6] rc-core: add protocol to EVIOC[GS]KEYCODE_V2 ioctl
-Message-ID: <20170617112010.566aun44rbumn6gx@hardeman.nu>
-References: <20170429084458.rwoty4bdce6iqftr@hardeman.nu>
- <20170611161740.GB16107@gofer.mess.org>
+Received: from mail-io0-f193.google.com ([209.85.223.193]:36395 "EHLO
+        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753309AbdF2VUF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Jun 2017 17:20:05 -0400
+Date: Thu, 29 Jun 2017 16:19:57 -0500
+From: Rob Herring <robh@kernel.org>
+To: Yong Deng <yong.deng@magewell.com>
+Cc: mchehab@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
+        hans.verkuil@cisco.com, peter.griffin@linaro.org,
+        hugues.fruchet@st.com, krzk@kernel.org, bparrot@ti.com,
+        arnd@arndb.de, jean-christophe.trotin@st.com,
+        benjamin.gaignard@linaro.org, tiffany.lin@mediatek.com,
+        kamil@wypas.org, kieran+renesas@ksquared.org.uk,
+        andrew-ct.chen@mediatek.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-sunxi@googlegroups.com
+Subject: Re: [PATCH RFC 2/2] dt-bindings: add binding documentation for
+ Allwinner CSI
+Message-ID: <20170629211957.uz7jijkuoxr2vohc@rob-hp-laptop>
+References: <1498561654-14658-1-git-send-email-yong.deng@magewell.com>
+ <1498561654-14658-3-git-send-email-yong.deng@magewell.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170611161740.GB16107@gofer.mess.org>
+In-Reply-To: <1498561654-14658-3-git-send-email-yong.deng@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jun 11, 2017 at 05:17:40PM +0100, Sean Young wrote:
->On Sat, Apr 29, 2017 at 10:44:58AM +0200, David Härdeman wrote:
->> >This can be implemented without breaking userspace.
->> 
->> How?
->
->The current keymaps we have do not specify the protocol variant, only
->the protocol (rc6 vs rc6-mce). So to support this, we have to be able
->to specify multiple protocols at the same time. So I think the protocol
->should be a bitmask.
->
->Also, in your example you re-used RC_TYPE_OTHER to match any protocol;
->I don't think that is a good solution since there are already keymaps
->which use other.
->
->So if we have an "struct rc_scancode" which looks like:
->
->struct rc_scancode {
->	u64 protocol;
->	u64 scancode;
->};
->
->Then if the keymap protocol is rc6, ir-keytable should set the protocol
->to RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | RC_BIT_RC6_6A_32
-> | RC_BIT_RC6_MCE.
->
->If the old ioctl is used, then the protocol should be set to RC_BIT_ALL.
->
->I can't think of anything what would break with this scheme.
+On Tue, Jun 27, 2017 at 07:07:34PM +0800, Yong Deng wrote:
+> Add binding documentation for Allwinner CSI.
 
-I've tried coding up that solution before and the problem is that it'll
-still require heuristics in the presence of a mix of old and new style
-ioctl():s.
+For the subject:
 
-For example:
+dt-bindings: media: Add Allwinner Camera Sensor Interface (CSI)
 
-old_ioctl_set(0x1234 = KEY_A);
-new_ioctl_set(PROTOCOL_NEC, 0x1234 = KEY_B);
-new_ioctl_set(PROTOCOL_JVC, 0x1234 = KEY_C);
-old_ioctl_get(0x1234) = ?
-old_ioctl_set(0x1234 = KEY_D);
-new_ioctl_get(PROTOCOL_NEC, 0x1234) = ?
+"binding documentation" is redundant.
 
--- 
-David Härdeman
+> 
+> Signed-off-by: Yong Deng <yong.deng@magewell.com>
+> ---
+>  .../devicetree/bindings/media/sunxi-csi.txt        | 51 ++++++++++++++++++++++
+>  1 file changed, 51 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/sunxi-csi.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/sunxi-csi.txt b/Documentation/devicetree/bindings/media/sunxi-csi.txt
+> new file mode 100644
+> index 0000000..770be0e
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/sunxi-csi.txt
+> @@ -0,0 +1,51 @@
+> +Allwinner V3s Camera Sensor Interface
+> +------------------------------
+> +
+> +Required properties:
+> +  - compatible: value must be "allwinner,sun8i-v3s-csi"
+> +  - reg: base address and size of the memory-mapped region.
+> +  - interrupts: interrupt associated to this IP
+> +  - clocks: phandles to the clocks feeding the CSI
+> +    * ahb: the CSI interface clock
+> +    * mod: the CSI module clock
+> +    * ram: the CSI DRAM clock
+> +  - clock-names: the clock names mentioned above
+> +  - resets: phandles to the reset line driving the CSI
+> +
+> +- ports: A ports node with endpoint definitions as defined in
+> +  Documentation/devicetree/bindings/media/video-interfaces.txt. The
+> +  first port should be the input endpoints, the second one the outputs
+
+Is there more than one endpoint for each port? If so, need to define 
+that numbering too.
+
+> +
+> +Example:
+> +
+> +	csi1: csi@01cb4000 {
+> +		compatible = "allwinner,sun8i-v3s-csi";
+> +		reg = <0x01cb4000 0x1000>;
+> +		interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
+> +		clocks = <&ccu CLK_BUS_CSI>,
+> +			 <&ccu CLK_CSI1_SCLK>,
+> +			 <&ccu CLK_DRAM_CSI>;
+> +		clock-names = "ahb", "mod", "ram";
+> +		resets = <&ccu RST_BUS_CSI>;
+> +
+> +		port {
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+> +
+> +			/* Parallel bus endpoint */
+> +			csi1_0: endpoint@0 {
+> +				reg = <0>;
+
+Don't need this and everything associated with it for a single endpoint. 
+
+> +				remote = <&adv7611_1>;
+> +				bus-width = <16>;
+> +				data-shift = <0>;
+> +
+> +				/* If hsync-active/vsync-active are missing,
+> +				   embedded BT.656 sync is used */
+> +				hsync-active = <0>; /* Active low */
+> +				vsync-active = <0>; /* Active low */
+> +				data-active = <1>;  /* Active high */
+> +				pclk-sample = <1>;  /* Rising */
+> +			};
+> +		};
+> +	};
+> +
+> -- 
+> 1.8.3.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
