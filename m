@@ -1,112 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34250 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750784AbdFOIhD (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:63457 "EHLO
+        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752682AbdF2MEz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Jun 2017 04:37:03 -0400
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id BFDA3600A3
-        for <linux-media@vger.kernel.org>; Thu, 15 Jun 2017 11:36:59 +0300 (EEST)
-Date: Thu, 15 Jun 2017 11:36:29 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.13] Add ov13858 and dw9714 drivers, digital gain
- control
-Message-ID: <20170615083629.GZ12407@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+        Thu, 29 Jun 2017 08:04:55 -0400
+Subject: Re: [PATCH v3 6/8] [media] s5p-jpeg: Decode 4:1:1 chroma subsampling
+ format
+To: Thierry Escande <thierry.escande@collabora.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Message-id: <a037a6df-9a8a-f31a-1c92-6f2cbd3d1a2d@samsung.com>
+Date: Thu, 29 Jun 2017 14:04:40 +0200
+MIME-version: 1.0
+In-reply-to: <1498579734-1594-7-git-send-email-thierry.escande@collabora.com>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-language: en-US
+Content-transfer-encoding: 7bit
+References: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
+ <CGME20170627161047epcas2p439c3d90e17402cd06d3c820564cb0e17@epcas2p4.samsung.com>
+ <1498579734-1594-7-git-send-email-thierry.escande@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+W dniu 27.06.2017 o 18:08, Thierry Escande pisze:
+> From: Tony K Nadackal <tony.kn@samsung.com>
+> 
+> This patch adds support for decoding 4:1:1 chroma subsampling in the
+> jpeg header parsing function.
+> 
+> Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
+> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+Acked-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 
-Here are new drivers for the ov13858 sensor and the dw9714 lens voice coil
-driver, as well as the new V4L2_CID_DIGITAL_GAIN control. A small cleanup
-for the as3645a driver is included as well.
-
-Compared to the patches reviewed on the list, I've added MAINTAINERS entries
-to the drivers:
-
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 053c3bd..7b5c99d 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4692,6 +4692,13 @@ S:	Maintained
- F:	drivers/media/usb/dvb-usb-v2/dvb_usb*
- F:	drivers/media/usb/dvb-usb-v2/usb_urb.c
- 
-+DONGWOON DW9714 LENS VOICE COIL DRIVER
-+M:	Sakari Ailus <sakari.ailus@linux.intel.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/i2c/dw9714.c
-+
- DYNAMIC DEBUG
- M:	Jason Baron <jbaron@akamai.com>
- S:	Maintained
-@@ -9434,6 +9441,13 @@ S:	Maintained
- F:	drivers/media/i2c/ov7670.c
- F:	Documentation/devicetree/bindings/media/i2c/ov7670.txt
- 
-+OMNIVISION OV13858 SENSOR DRIVER
-+M:	Sakari Ailus <sakari.ailus@linux.intel.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/i2c/ov13858.c
-+
- ONENAND FLASH DRIVER
- M:	Kyungmin Park <kyungmin.park@samsung.com>
- L:	linux-mtd@lists.infradead.org
-
-Please pull.
-
-
-The following changes since commit acec3630155763c170c7ae6508cf973355464508:
-
-  [media] s3c-camif: fix arguments position in a function call (2017-06-13 14:21:24 -0300)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git for-4.13
-
-for you to fetch changes up to d092459a1bd864a24589cee6ed8de8bb9081797a:
-
-  as3645a: Join string literals back (2017-06-15 11:16:48 +0300)
-
-----------------------------------------------------------------
-Andy Shevchenko (1):
-      as3645a: Join string literals back
-
-Hyungwoo Yang (1):
-      ov13858: add support for OV13858 sensor
-
-Rajmohan Mani (1):
-      dw9714: Initial driver for dw9714 VCM
-
-Sakari Ailus (2):
-      v4l: ctrls: Add a control for digital gain
-      v4l: controls: Improve documentation for V4L2_CID_GAIN
-
- Documentation/media/uapi/v4l/control.rst           |    6 +
- Documentation/media/uapi/v4l/extended-controls.rst |    7 +
- MAINTAINERS                                        |   14 +
- drivers/media/i2c/Kconfig                          |   18 +
- drivers/media/i2c/Makefile                         |    2 +
- drivers/media/i2c/as3645a.c                        |   12 +-
- drivers/media/i2c/dw9714.c                         |  291 ++++
- drivers/media/i2c/ov13858.c                        | 1816 ++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c               |    1 +
- include/uapi/linux/v4l2-controls.h                 |    2 +-
- 10 files changed, 2162 insertions(+), 7 deletions(-)
- create mode 100644 drivers/media/i2c/dw9714.c
- create mode 100644 drivers/media/i2c/ov13858.c
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> ---
+>   drivers/media/platform/s5p-jpeg/jpeg-core.c | 15 +++++++++++++++
+>   1 file changed, 15 insertions(+)
+> 
+> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> index 0783809..cca0fb8 100644
+> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> @@ -1099,6 +1099,8 @@ static void skip(struct s5p_jpeg_buffer *buf, long len)
+>   static bool s5p_jpeg_subsampling_decode(struct s5p_jpeg_ctx *ctx,
+>   					unsigned int subsampling)
+>   {
+> +	unsigned int version;
+> +
+>   	switch (subsampling) {
+>   	case 0x11:
+>   		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_444;
+> @@ -1112,6 +1114,19 @@ static bool s5p_jpeg_subsampling_decode(struct s5p_jpeg_ctx *ctx,
+>   	case 0x33:
+>   		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
+>   		break;
+> +	case 0x41:
+> +		/*
+> +		 * 4:1:1 subsampling only supported by 3250, 5420, and 5433
+> +		 * variants
+> +		 */
+> +		version = ctx->jpeg->variant->version;
+> +		if (version != SJPEG_EXYNOS3250 &&
+> +		    version != SJPEG_EXYNOS5420 &&
+> +		    version != SJPEG_EXYNOS5433)
+> +			return false;
+> +
+> +		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_411;
+> +		break;
+>   	default:
+>   		return false;
+>   	}
+> 
