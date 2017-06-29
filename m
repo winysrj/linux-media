@@ -1,73 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f51.google.com ([74.125.82.51]:36504 "EHLO
-        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751433AbdFHDYS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 23:24:18 -0400
-Received: by mail-wm0-f51.google.com with SMTP id 7so129373400wmo.1
-        for <linux-media@vger.kernel.org>; Wed, 07 Jun 2017 20:24:17 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <0eb529d9-a710-4305-f0e2-e2fcd5d5433a@xs4all.nl>
-References: <20170530094901.1807-1-hiroh@chromium.org> <1496139572.2618.19.camel@perches.com>
- <CAO5uPHO7GwxCTk2OqQA5NfrL0-Jyt5SB-jVpeUA_eCrqR7u5xA@mail.gmail.com>
- <1496196991.2618.47.camel@perches.com> <CAO5uPHPWGABuKf3FuAky2BRx+9E=n-QhZ94RPQ7wEuHAwC1qGg@mail.gmail.com>
- <1496203602.2618.54.camel@perches.com> <0eb529d9-a710-4305-f0e2-e2fcd5d5433a@xs4all.nl>
-From: Hirokazu Honda <hiroh@chromium.org>
-Date: Thu, 8 Jun 2017 12:24:16 +0900
-Message-ID: <CAO5uPHOX=++z_YGFoCapH9fvhPwXpC5xr=gCCimAK=ZJ5pp7Hw@mail.gmail.com>
-Subject: Re: [PATCH v2] [media] vb2: core: Lower the log level of debug outputs
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Joe Perches <joe@perches.com>, Pawel Osciak <pawel@osciak.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:57344 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752812AbdF2MEh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Jun 2017 08:04:37 -0400
+Subject: Re: [PATCH v3 5/8] [media] s5p-jpeg: Split s5p_jpeg_parse_hdr()
+To: Thierry Escande <thierry.escande@collabora.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Message-id: <8935217c-8b3e-a9d1-6226-bcab434e2e28@samsung.com>
+Date: Thu, 29 Jun 2017 14:04:26 +0200
+MIME-version: 1.0
+In-reply-to: <1498579734-1594-6-git-send-email-thierry.escande@collabora.com>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-language: en-US
+Content-transfer-encoding: 7bit
+References: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
+ <CGME20170627160933epcas2p43434893aed7c80b51b753a0207d20eab@epcas2p4.samsung.com>
+ <1498579734-1594-6-git-send-email-thierry.escande@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+W dniu 27.06.2017 o 18:08, Thierry Escande pisze:
+> This patch moves the subsampling value decoding read from the jpeg
+> header into its own function. This new function is called
+> s5p_jpeg_subsampling_decode() and returns true if it successfully
+> decodes the subsampling value, false otherwise.
+> 
+> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
 
-I completely understand bitmask method now.
-I agree to the idea, but it is necessary to change the specification of
-a debug parameter.
- (We probably need to change a document about that?)
-For example, there is maybe a user who set a debug parameter 3.
-The user assume that logs whose levels are less than 4 are shown.
-However, after the bitmask method is adopted, someday the logs whose
-level is 1 or 2 are only shown, not 3 level logs are not shown.
-This will be confusing to users.
-The function that users can select a log method is necessary (e.g.
-implement dprintk_bitmask and dprintk_level)
+Acked-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 
-The main purpose of my patch is to not output much log messages.
-I think the current patch is enough to accomplish the purpose.
-
-Changing the method is a related but different task from my patch.
-Therefore, I think it should be done in another patch.
-
-Best,
-Hirokazu Honda
-
-On Wed, Jun 7, 2017 at 6:01 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 31/05/17 06:06, Joe Perches wrote:
->> On Wed, 2017-05-31 at 12:28 +0900, Hirokazu Honda wrote:
->>> If I understand a bitmap correctly, it is necessary to change the log level
->>> for each message.
->>> I didn't mean a bitmap will take a long CPU time.
->>> I mean the work to change so takes a long time.
->>
->> No, none of the messages or levels need change,
->> only the >= test changes to & so that for instance,
->> level 1 and level 3 messages could be emitted
->> without also emitting level 2 messages.
->>
->> The patch suggested is all that would be required.
->>
->
-> I prefer the solution that Joe proposed as well.
->
-> It's more useful, esp. with a complex beast like vb2.
->
-> Regards,
->
->         Hans
+> ---
+>   drivers/media/platform/s5p-jpeg/jpeg-core.c | 42 ++++++++++++++++-------------
+>   1 file changed, 24 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> index 1769744..0783809 100644
+> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> @@ -1096,6 +1096,29 @@ static void skip(struct s5p_jpeg_buffer *buf, long len)
+>   		get_byte(buf);
+>   }
+>   
+> +static bool s5p_jpeg_subsampling_decode(struct s5p_jpeg_ctx *ctx,
+> +					unsigned int subsampling)
+> +{
+> +	switch (subsampling) {
+> +	case 0x11:
+> +		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_444;
+> +		break;
+> +	case 0x21:
+> +		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_422;
+> +		break;
+> +	case 0x22:
+> +		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_420;
+> +		break;
+> +	case 0x33:
+> +		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
+> +		break;
+> +	default:
+> +		return false;
+> +	}
+> +
+> +	return true;
+> +}
+> +
+>   static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
+>   			       unsigned long buffer, unsigned long size,
+>   			       struct s5p_jpeg_ctx *ctx)
+> @@ -1207,26 +1230,9 @@ static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
+>   		}
+>   	}
+>   
+> -	if (notfound || !sos)
+> +	if (notfound || !sos || !s5p_jpeg_subsampling_decode(ctx, subsampling))
+>   		return false;
+>   
+> -	switch (subsampling) {
+> -	case 0x11:
+> -		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_444;
+> -		break;
+> -	case 0x21:
+> -		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_422;
+> -		break;
+> -	case 0x22:
+> -		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_420;
+> -		break;
+> -	case 0x33:
+> -		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
+> -		break;
+> -	default:
+> -		return false;
+> -	}
+> -
+>   	result->w = width;
+>   	result->h = height;
+>   	result->sos = sos;
+> 
