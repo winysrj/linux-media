@@ -1,130 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:53469 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752588AbdFSHeZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 03:34:25 -0400
-Message-ID: <3c38e75c8880c95e88269fec35a218f4@smtp-cloud3.xs4all.net>
-Date: Mon, 19 Jun 2017 09:34:21 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from gofer.mess.org ([88.97.38.141]:36763 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752343AbdF2Ruj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Jun 2017 13:50:39 -0400
+Date: Thu, 29 Jun 2017 18:50:37 +0100
+From: Sean Young <sean@mess.org>
+To: Mason <slash.tmp@free.fr>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>
+Subject: Re: Trying to use IR driver for my SoC
+Message-ID: <20170629175037.GA14390@gofer.mess.org>
+References: <cf82988e-8be2-1ec8-b343-7c3c54110746@free.fr>
+ <20170629155557.GA12980@gofer.mess.org>
+ <276e7aa2-0c98-5556-622a-65aab4b9d373@free.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <276e7aa2-0c98-5556-622a-65aab4b9d373@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Thu, Jun 29, 2017 at 06:25:55PM +0200, Mason wrote:
+> On 29/06/2017 17:55, Sean Young wrote:
+> 
+> > On Thu, Jun 29, 2017 at 05:29:01PM +0200, Mason wrote:
+> > 
+> >> I'm trying to use an IR driver written for my SoC:
+> >> https://github.com/mansr/linux-tangox/blob/master/drivers/media/rc/tangox-ir.c
+> >>
+> >> I added these options to my defconfig:
+> >>
+> >> +CONFIG_MEDIA_SUPPORT=y
+> >> +CONFIG_MEDIA_RC_SUPPORT=y
+> >> +CONFIG_RC_DEVICES=y
+> >> +CONFIG_IR_TANGO=y
+> >>
+> >> (I don't think I need the RC decoders, because the HW is supposed
+> >> to support HW decoding of NEC, RC5, RC6).
+> > 
+> > I haven't seen this driver before, what hardware is this for?
+> 
+> Sigma Designs tango3/tango4 (SMP86xx and SMP87xx)
+> 
+> >> These are the logs printed at boot:
+> >>
+> >> [    1.827842] IR NEC protocol handler initialized
+> >> [    1.832407] IR RC5(x/sz) protocol handler initialized
+> >> [    1.837491] IR RC6 protocol handler initialized
+> >> [    1.842049] IR JVC protocol handler initialized
+> >> [    1.846606] IR Sony protocol handler initialized
+> >> [    1.851248] IR SANYO protocol handler initialized
+> >> [    1.855979] IR Sharp protocol handler initialized
+> >> [    1.860708] IR MCE Keyboard/mouse protocol handler initialized
+> >> [    1.866575] IR XMP protocol handler initialized
+> >> [    1.871232] tango-ir 10518.ir: SMP86xx IR decoder at 0x10518/0x105e0 IRQ 21
+> >> [    1.878241] Registered IR keymap rc-empty
+> >> [    1.882457] input: tango-ir as /devices/platform/soc/10518.ir/rc/rc0/input0
+> >> [    1.889473] tango_ir_open
+> >> [    1.892105] rc rc0: tango-ir as /devices/platform/soc/10518.ir/rc/rc0
+> >>
+> >>
+> >> I was naively expecting some kind of dev/input/event0 node
+> >> I could cat to grab all the remote control key presses.
+> >>
+> >> But I don't see anything relevant in /dev
+> > 
+> > Do you have CONFIG_INPUT_EVDEV set? Is udev setup to create the devices?
+> 
+> I was indeed missing CONFIG_INPUT_EVDEV.
+> 
+> As for udev:
+> [    2.199642] udevd[960]: starting eudev-3.2.1
+> 
+> $ ls -l /dev/input/
+> total 0
+> drwxr-xr-x    2 root     root            60 Jan  1 00:00 by-path
+> crw-rw----    1 root     input      13,  64 Jan  1 00:00 event0
+> 
+> But still no cookie:
+> $ cat /dev/input/event0
+> remains mute :-(
+> 
+> $ ir-keytable -v -t
+> Found device /sys/class/rc/rc0/
+> Input sysfs node is /sys/class/rc/rc0/input0/
+> Event sysfs node is /sys/class/rc/rc0/input0/event0/
+> Parsing uevent /sys/class/rc/rc0/input0/event0/uevent
+> /sys/class/rc/rc0/input0/event0/uevent uevent MAJOR=13
+> /sys/class/rc/rc0/input0/event0/uevent uevent MINOR=64
+> /sys/class/rc/rc0/input0/event0/uevent uevent DEVNAME=input/event0
+> Parsing uevent /sys/class/rc/rc0/uevent
+> /sys/class/rc/rc0/uevent uevent NAME=rc-empty
+> input device is /dev/input/event0
+> /sys/class/rc/rc0/protocols protocol rc-5 (disabled)
+> /sys/class/rc/rc0/protocols protocol nec (disabled)
+> /sys/class/rc/rc0/protocols protocol rc-6 (disabled)
+> Opening /dev/input/event0
+> Input Protocol version: 0x00010001
+> Testing events. Please, press CTRL-C to abort.
+> ^C
+> 
+> Is rc-empty perhaps not the right choice?
 
-Results of the daily build of media_tree:
+rc-empty means there is no mapping from scancode to keycode. When you
+run "ir-keytable -v -t" you should at see scancodes when the driver
+generates them with rc_keydown().
 
-date:			Mon Jun 19 05:00:21 CEST 2017
-media-tree git hash:	acec3630155763c170c7ae6508cf973355464508
-media_build git hash:	dbdc2495ec17a3e71d2ec56778eed10081bb718f
-v4l-utils git hash:	ce237eefc1f6dafafc0e1fe3a5fd9f075d3fd066
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+> > By opening the /dev/input/event0 device, tango_ir_open() gets called which
+> > presumably enables interrupts or IR decoding for the device. It's hard to
+> > say without knowing anything about the soc.
+> 
+> Actually tango_ir_open() is called at boot, before any process
+> has a chance to open /dev/input/event0
+> 
+> [    1.926730] [<c03cd9a4>] (tango_ir_open) from [<c03c8554>] (rc_open+0x44/0x6c)
+> [    1.933994] [<c03c8554>] (rc_open) from [<c03be890>] (input_open_device+0x74/0xac)
+> [    1.941610] [<c03be890>] (input_open_device) from [<c032f96c>] (kbd_connect+0x64/0x80)
+> [    1.949570] [<c032f96c>] (kbd_connect) from [<c03bf0dc>] (input_attach_handler+0x1bc/0x1f4)
+> [    1.957965] [<c03bf0dc>] (input_attach_handler) from [<c03bf58c>] (input_register_device+0x3b4/0x42c)
+> [    1.967234] [<c03bf58c>] (input_register_device) from [<c03c9be8>] (rc_register_device+0x2d8/0x52c)
+> [    1.976327] [<c03c9be8>] (rc_register_device) from [<c03cdcfc>] (tango_ir_probe+0x328/0x3a4)
+> [    1.984815] [<c03cdcfc>] (tango_ir_probe) from [<c03508b0>] (platform_drv_probe+0x34/0x6c)
+> [    1.993124] [<c03508b0>] (platform_drv_probe) from [<c034f360>] (really_probe+0x1c4/0x250)
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+Ah, that's interesting. The vt console taking a feed from the device, that
+makes sense.
 
-Detailed results are available here:
+> But I have a printk in the ISR, and it's obviously not called.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+>From a cursory glance at the driver I can't see anything wrong.
 
-Full logs are available here:
+The only thing that stands out is RC5_TIME_BASE. If that is the bit
+length or shortest pulse/space? In the latter case it should be 888 usec.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+It might be worth trying nec, rc5 and rc6_0 and seeing if any of them decode.
 
-The Media Infrastructure API from this daily build is here:
+Failing that some documentation would be great :)
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> > It would be nice to see this driver merged to mainline.
+> 
+> +1 (especially if I can get it to work)
+
+
+Sean
