@@ -1,73 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:42390 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751154AbdFAU7F (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Jun 2017 16:59:05 -0400
-From: Takashi Iwai <tiwai@suse.de>
-To: alsa-devel@alsa-project.org
-Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
-        Mark Brown <broonie@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Felipe Balbi <balbi@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-usb@vger.kernel.org
-Subject: [PATCH v2 03/27] ALSA: dummy: Convert to new PCM copy ops
-Date: Thu,  1 Jun 2017 22:58:26 +0200
-Message-Id: <20170601205850.24993-4-tiwai@suse.de>
-In-Reply-To: <20170601205850.24993-1-tiwai@suse.de>
-References: <20170601205850.24993-1-tiwai@suse.de>
+Received: from mail-qk0-f196.google.com ([209.85.220.196]:34835 "EHLO
+        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751532AbdF2Xcx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Jun 2017 19:32:53 -0400
+Date: Thu, 29 Jun 2017 19:32:50 -0400
+From: Amitoj Kaur Chawla <amitoj1606@gmail.com>
+To: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] staging: media: atomisp: Remove unnecessary return statement
+ in void function
+Message-ID: <20170629233250.GA16135@amitoj-Inspiron-3542>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It's a dummy ops, so just replacing it.
+Return statement at the end of a void function is useless.
 
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
+The Coccinelle semantic patch used to make this change is as follows:
+//<smpl>
+@@
+identifier f;
+expression e;
+@@
+void f(...) {
+<...
+- return
+  e;
+  ...>
+  }
+//</smpl>
+
+Signed-off-by: Amitoj Kaur Chawla <amitoj1606@gmail.com>
 ---
- sound/drivers/dummy.c | 20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+ drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/sound/drivers/dummy.c b/sound/drivers/dummy.c
-index 172dacd925f5..dd5ed037adf2 100644
---- a/sound/drivers/dummy.c
-+++ b/sound/drivers/dummy.c
-@@ -644,15 +644,22 @@ static int alloc_fake_buffer(void)
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
+index 5729539..22c0342 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
+@@ -636,7 +636,7 @@ void hmm_vunmap(ia_css_ptr virt)
+ 		return;
+ 	}
+ 
+-	return hmm_bo_vunmap(bo);
++	hmm_bo_vunmap(bo);
  }
  
- static int dummy_pcm_copy(struct snd_pcm_substream *substream,
--			  int channel, snd_pcm_uframes_t pos,
--			  void __user *dst, snd_pcm_uframes_t count)
-+			  int channel, unsigned long pos,
-+			  void __user *dst, unsigned long bytes)
-+{
-+	return 0; /* do nothing */
-+}
-+
-+static int dummy_pcm_copy_kernel(struct snd_pcm_substream *substream,
-+				 int channel, unsigned long pos,
-+				 void *dst, unsigned long bytes)
- {
- 	return 0; /* do nothing */
- }
- 
- static int dummy_pcm_silence(struct snd_pcm_substream *substream,
--			     int channel, snd_pcm_uframes_t pos,
--			     snd_pcm_uframes_t count)
-+			     int channel, unsigned long pos,
-+			     unsigned long bytes)
- {
- 	return 0; /* do nothing */
- }
-@@ -683,8 +690,9 @@ static struct snd_pcm_ops dummy_pcm_ops_no_buf = {
- 	.prepare =	dummy_pcm_prepare,
- 	.trigger =	dummy_pcm_trigger,
- 	.pointer =	dummy_pcm_pointer,
--	.copy =		dummy_pcm_copy,
--	.silence =	dummy_pcm_silence,
-+	.copy_user =	dummy_pcm_copy,
-+	.copy_kernel =	dummy_pcm_copy_kernel,
-+	.fill_silence =	dummy_pcm_silence,
- 	.page =		dummy_pcm_page,
- };
- 
+ int hmm_pool_register(unsigned int pool_size,
 -- 
-2.13.0
+2.7.4
