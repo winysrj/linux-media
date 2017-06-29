@@ -1,70 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:35714 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751108AbdFSMMZ (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:63381 "EHLO
+        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752143AbdF2MDt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 08:12:25 -0400
-Date: Mon, 19 Jun 2017 14:12:20 +0200
-From: Krzysztof Kozlowski <krzk@kernel.org>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        'Mauro Carvalho Chehab' <mchehab@s-opensource.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH] s5p-cec: update MAINTAINERS entry
-Message-ID: <20170619121220.GA16269@kozik-book>
-References: <CGME20170619120320eucas1p2a84a4472e7d2f1c148e7035ae994c5e1@eucas1p2.samsung.com>
- <1497873782-25543-1-git-send-email-m.szyprowski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1497873782-25543-1-git-send-email-m.szyprowski@samsung.com>
+        Thu, 29 Jun 2017 08:03:49 -0400
+Subject: Re: [PATCH v3 2/8] [media] s5p-jpeg: Correct WARN_ON statement for
+ checking subsampling
+To: Thierry Escande <thierry.escande@collabora.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Message-id: <22da9d2c-a56b-9d57-33a6-79eb42923041@samsung.com>
+Date: Thu, 29 Jun 2017 14:03:44 +0200
+MIME-version: 1.0
+In-reply-to: <1498579734-1594-3-git-send-email-thierry.escande@collabora.com>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-language: en-US
+Content-transfer-encoding: 7bit
+References: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
+ <CGME20170627161539epcas3p4ba1847e06b04712379d6541bcec41995@epcas3p4.samsung.com>
+ <1498579734-1594-3-git-send-email-thierry.escande@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 19, 2017 at 02:03:02PM +0200, Marek Szyprowski wrote:
-> I would like to replace Kyungmin Park, who is no longer interested in
-> maintaining S5P-CEC driver. I have access to various Exynos boards. I also
-> already did some tests of this driver and helped enabling it on various
-> Exynos boards. The driver itself is no longer in staging, so lets fix the
-> path too. Also change the mailing list from ARM generic to Samsung SoC
-> specific to get more attention and easier review in the future.
+W dniu 27.06.2017 o 18:08, Thierry Escande pisze:
+> From: Tony K Nadackal <tony.kn@samsung.com>
 > 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Corrects the WARN_ON statement for subsampling based on the
+> JPEG Hardware version.
+> 
+> Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
+> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+
+Acked-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+
 > ---
->  MAINTAINERS | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-
-You might also want to add file-match for
-Documentation/devicetree/bindings/media/s5p-cec.txt
-
-Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
-
-Best regards,
-Krzysztof
-
-
+>   drivers/media/platform/s5p-jpeg/jpeg-core.c | 6 ++++--
+>   1 file changed, 4 insertions(+), 2 deletions(-)
 > 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 053c3bdd1fe5..fbfbc9866fa2 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -1775,11 +1775,11 @@ F:	arch/arm/plat-samsung/s5p-dev-mfc.c
->  F:	drivers/media/platform/s5p-mfc/
->  
->  ARM/SAMSUNG S5P SERIES HDMI CEC SUBSYSTEM SUPPORT
-> -M:	Kyungmin Park <kyungmin.park@samsung.com>
-> -L:	linux-arm-kernel@lists.infradead.org
-> +M:	Marek Szyprowski <m.szyprowski@samsung.com>
-> +L:	linux-samsung-soc@vger.kernel.org (moderated for non-subscribers)
->  L:	linux-media@vger.kernel.org
->  S:	Maintained
-> -F:	drivers/staging/media/platform/s5p-cec/
-> +F:	drivers/media/platform/s5p-cec/
->  
->  ARM/SAMSUNG S5P SERIES JPEG CODEC SUPPORT
->  M:	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-> -- 
-> 1.9.1
+> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> index 623508d..0d935f5 100644
+> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> @@ -614,24 +614,26 @@ static inline struct s5p_jpeg_ctx *fh_to_ctx(struct v4l2_fh *fh)
+>   
+>   static int s5p_jpeg_to_user_subsampling(struct s5p_jpeg_ctx *ctx)
+>   {
+> -	WARN_ON(ctx->subsampling > 3);
+> -
+>   	switch (ctx->jpeg->variant->version) {
+>   	case SJPEG_S5P:
+> +		WARN_ON(ctx->subsampling > 3);
+>   		if (ctx->subsampling > 2)
+>   			return V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
+>   		return ctx->subsampling;
+>   	case SJPEG_EXYNOS3250:
+>   	case SJPEG_EXYNOS5420:
+> +		WARN_ON(ctx->subsampling > 6);
+>   		if (ctx->subsampling > 3)
+>   			return V4L2_JPEG_CHROMA_SUBSAMPLING_411;
+>   		return exynos3250_decoded_subsampling[ctx->subsampling];
+>   	case SJPEG_EXYNOS4:
+>   	case SJPEG_EXYNOS5433:
+> +		WARN_ON(ctx->subsampling > 3);
+>   		if (ctx->subsampling > 2)
+>   			return V4L2_JPEG_CHROMA_SUBSAMPLING_420;
+>   		return exynos4x12_decoded_subsampling[ctx->subsampling];
+>   	default:
+> +		WARN_ON(ctx->subsampling > 3);
+>   		return V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
+>   	}
+>   }
 > 
