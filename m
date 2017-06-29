@@ -1,118 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f193.google.com ([209.85.223.193]:36395 "EHLO
-        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753309AbdF2VUF (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:34711 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751612AbdF2G5k (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Jun 2017 17:20:05 -0400
-Date: Thu, 29 Jun 2017 16:19:57 -0500
-From: Rob Herring <robh@kernel.org>
-To: Yong Deng <yong.deng@magewell.com>
-Cc: mchehab@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        hans.verkuil@cisco.com, peter.griffin@linaro.org,
-        hugues.fruchet@st.com, krzk@kernel.org, bparrot@ti.com,
-        arnd@arndb.de, jean-christophe.trotin@st.com,
-        benjamin.gaignard@linaro.org, tiffany.lin@mediatek.com,
-        kamil@wypas.org, kieran+renesas@ksquared.org.uk,
-        andrew-ct.chen@mediatek.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-sunxi@googlegroups.com
-Subject: Re: [PATCH RFC 2/2] dt-bindings: add binding documentation for
- Allwinner CSI
-Message-ID: <20170629211957.uz7jijkuoxr2vohc@rob-hp-laptop>
-References: <1498561654-14658-1-git-send-email-yong.deng@magewell.com>
- <1498561654-14658-3-git-send-email-yong.deng@magewell.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1498561654-14658-3-git-send-email-yong.deng@magewell.com>
+        Thu, 29 Jun 2017 02:57:40 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, mchehab@kernel.org, hans.verkuil@cisco.com,
+        ezequiel@vanguardiasur.com.ar, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH] [media]: usb: add const to v4l2_file_operations structures
+Date: Thu, 29 Jun 2017 12:25:23 +0530
+Message-Id: <1498719323-32586-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 27, 2017 at 07:07:34PM +0800, Yong Deng wrote:
-> Add binding documentation for Allwinner CSI.
+Declare v4l2_file_operations structures as const as they are only stored
+in the fops field of video_device structures. This field is of type
+const, so declare v4l2_file_operations structures with similar properties
+as const.
 
-For the subject:
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/media/usb/au0828/au0828-video.c  | 2 +-
+ drivers/media/usb/cx231xx/cx231xx-417.c  | 2 +-
+ drivers/media/usb/go7007/go7007-v4l2.c   | 2 +-
+ drivers/media/usb/gspca/gspca.c          | 2 +-
+ drivers/media/usb/stk1160/stk1160-v4l.c  | 2 +-
+ drivers/media/usb/stkwebcam/stk-webcam.c | 2 +-
+ drivers/media/usb/tm6000/tm6000-video.c  | 2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
 
-dt-bindings: media: Add Allwinner Camera Sensor Interface (CSI)
-
-"binding documentation" is redundant.
-
-> 
-> Signed-off-by: Yong Deng <yong.deng@magewell.com>
-> ---
->  .../devicetree/bindings/media/sunxi-csi.txt        | 51 ++++++++++++++++++++++
->  1 file changed, 51 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/sunxi-csi.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/sunxi-csi.txt b/Documentation/devicetree/bindings/media/sunxi-csi.txt
-> new file mode 100644
-> index 0000000..770be0e
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/sunxi-csi.txt
-> @@ -0,0 +1,51 @@
-> +Allwinner V3s Camera Sensor Interface
-> +------------------------------
-> +
-> +Required properties:
-> +  - compatible: value must be "allwinner,sun8i-v3s-csi"
-> +  - reg: base address and size of the memory-mapped region.
-> +  - interrupts: interrupt associated to this IP
-> +  - clocks: phandles to the clocks feeding the CSI
-> +    * ahb: the CSI interface clock
-> +    * mod: the CSI module clock
-> +    * ram: the CSI DRAM clock
-> +  - clock-names: the clock names mentioned above
-> +  - resets: phandles to the reset line driving the CSI
-> +
-> +- ports: A ports node with endpoint definitions as defined in
-> +  Documentation/devicetree/bindings/media/video-interfaces.txt. The
-> +  first port should be the input endpoints, the second one the outputs
-
-Is there more than one endpoint for each port? If so, need to define 
-that numbering too.
-
-> +
-> +Example:
-> +
-> +	csi1: csi@01cb4000 {
-> +		compatible = "allwinner,sun8i-v3s-csi";
-> +		reg = <0x01cb4000 0x1000>;
-> +		interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
-> +		clocks = <&ccu CLK_BUS_CSI>,
-> +			 <&ccu CLK_CSI1_SCLK>,
-> +			 <&ccu CLK_DRAM_CSI>;
-> +		clock-names = "ahb", "mod", "ram";
-> +		resets = <&ccu RST_BUS_CSI>;
-> +
-> +		port {
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +
-> +			/* Parallel bus endpoint */
-> +			csi1_0: endpoint@0 {
-> +				reg = <0>;
-
-Don't need this and everything associated with it for a single endpoint. 
-
-> +				remote = <&adv7611_1>;
-> +				bus-width = <16>;
-> +				data-shift = <0>;
-> +
-> +				/* If hsync-active/vsync-active are missing,
-> +				   embedded BT.656 sync is used */
-> +				hsync-active = <0>; /* Active low */
-> +				vsync-active = <0>; /* Active low */
-> +				data-active = <1>;  /* Active high */
-> +				pclk-sample = <1>;  /* Rising */
-> +			};
-> +		};
-> +	};
-> +
-> -- 
-> 1.8.3.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 2a255bd..9342402 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -1740,7 +1740,7 @@ void au0828_v4l2_resume(struct au0828_dev *dev)
+ 	}
+ }
+ 
+-static struct v4l2_file_operations au0828_v4l_fops = {
++static const struct v4l2_file_operations au0828_v4l_fops = {
+ 	.owner      = THIS_MODULE,
+ 	.open       = au0828_v4l2_open,
+ 	.release    = au0828_v4l2_close,
+diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
+index 509d971..8d5eb99 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-417.c
++++ b/drivers/media/usb/cx231xx/cx231xx-417.c
+@@ -1843,7 +1843,7 @@ static int mpeg_mmap(struct file *file, struct vm_area_struct *vma)
+ 	return videobuf_mmap_mapper(&fh->vidq, vma);
+ }
+ 
+-static struct v4l2_file_operations mpeg_fops = {
++static const struct v4l2_file_operations mpeg_fops = {
+ 	.owner	       = THIS_MODULE,
+ 	.open	       = mpeg_open,
+ 	.release       = mpeg_release,
+diff --git a/drivers/media/usb/go7007/go7007-v4l2.c b/drivers/media/usb/go7007/go7007-v4l2.c
+index ed5ec97..445f17b 100644
+--- a/drivers/media/usb/go7007/go7007-v4l2.c
++++ b/drivers/media/usb/go7007/go7007-v4l2.c
+@@ -857,7 +857,7 @@ static int go7007_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	return 0;
+ }
+ 
+-static struct v4l2_file_operations go7007_fops = {
++static const struct v4l2_file_operations go7007_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= v4l2_fh_open,
+ 	.release	= vb2_fop_release,
+diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+index 16bc1dd..0f14176 100644
+--- a/drivers/media/usb/gspca/gspca.c
++++ b/drivers/media/usb/gspca/gspca.c
+@@ -1964,7 +1964,7 @@ static ssize_t dev_read(struct file *file, char __user *data,
+ 	return ret;
+ }
+ 
+-static struct v4l2_file_operations dev_fops = {
++static const struct v4l2_file_operations dev_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = dev_open,
+ 	.release = dev_close,
+diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
+index a005d26..a132faa 100644
+--- a/drivers/media/usb/stk1160/stk1160-v4l.c
++++ b/drivers/media/usb/stk1160/stk1160-v4l.c
+@@ -326,7 +326,7 @@ static int stk1160_stop_streaming(struct stk1160 *dev)
+ 	return 0;
+ }
+ 
+-static struct v4l2_file_operations stk1160_fops = {
++static const struct v4l2_file_operations stk1160_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = v4l2_fh_open,
+ 	.release = vb2_fop_release,
+diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
+index 90d4a08..93330be 100644
+--- a/drivers/media/usb/stkwebcam/stk-webcam.c
++++ b/drivers/media/usb/stkwebcam/stk-webcam.c
+@@ -1202,7 +1202,7 @@ static const struct v4l2_ctrl_ops stk_ctrl_ops = {
+ 	.s_ctrl = stk_s_ctrl,
+ };
+ 
+-static struct v4l2_file_operations v4l_stk_fops = {
++static const struct v4l2_file_operations v4l_stk_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = v4l_stk_open,
+ 	.release = v4l_stk_release,
+diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
+index 7e960d0..cec1321 100644
+--- a/drivers/media/usb/tm6000/tm6000-video.c
++++ b/drivers/media/usb/tm6000/tm6000-video.c
+@@ -1532,7 +1532,7 @@ static int tm6000_mmap(struct file *file, struct vm_area_struct * vma)
+ 	return res;
+ }
+ 
+-static struct v4l2_file_operations tm6000_fops = {
++static const struct v4l2_file_operations tm6000_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = tm6000_open,
+ 	.release = tm6000_release,
+-- 
+2.7.4
