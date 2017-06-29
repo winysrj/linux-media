@@ -1,85 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:6910 "EHLO
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:15598 "EHLO
         mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752607AbdFVPNr (ORCPT
+        by vger.kernel.org with ESMTP id S1753229AbdF2OAk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Jun 2017 11:13:47 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
+        Thu, 29 Jun 2017 10:00:40 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        "H. Nikolaus Schaller" <hns@goldelico.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        "Rob Herring" <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "Maxime Coquelin" <mcoquelin.stm32@gmail.com>,
+        Alexandre TORGUE <alexandre.torgue@st.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
+        "Hans Verkuil" <hverkuil@xs4all.nl>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
         <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
         Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v1 4/5] ARM: dts: stm32: Enable DCMI support on STM32F746 MCU
-Date: Thu, 22 Jun 2017 17:12:50 +0200
-Message-ID: <1498144371-13310-5-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1498144371-13310-1-git-send-email-hugues.fruchet@st.com>
-References: <1498144371-13310-1-git-send-email-hugues.fruchet@st.com>
+        Yannick FERTRE <yannick.fertre@st.com>
+Subject: Re: [PATCH v1 4/6] [media] ov9650: use write_array() for resolution
+ sequences
+Date: Thu, 29 Jun 2017 13:59:31 +0000
+Message-ID: <9ac5d920-b29e-afe3-4413-3e147870a103@st.com>
+References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
+ <1498143942-12682-5-git-send-email-hugues.fruchet@st.com>
+ <20170626163330.GR12407@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20170626163330.GR12407@valkosipuli.retiisi.org.uk>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <DD30F200E8D9FA4E84C4D1BB5C564B68@st.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable DCMI camera interface on STM32F746 MCU.
-
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- arch/arm/boot/dts/stm32f746.dtsi | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
-
-diff --git a/arch/arm/boot/dts/stm32f746.dtsi b/arch/arm/boot/dts/stm32f746.dtsi
-index c2765ce..4bdf37c 100644
---- a/arch/arm/boot/dts/stm32f746.dtsi
-+++ b/arch/arm/boot/dts/stm32f746.dtsi
-@@ -326,6 +326,23 @@
- 					bias-disable;
- 				};
- 			};
-+
-+			dcmi_pins: dcmi_pins@0 {
-+				pins {
-+					pinmux = <STM32F746_PA4_FUNC_DCMI_HSYNC>,
-+						 <STM32F746_PG9_FUNC_DCMI_VSYNC>,
-+						 <STM32F746_PA6_FUNC_DCMI_PIXCLK>,
-+						 <STM32F746_PH9_FUNC_DCMI_D0>,
-+						 <STM32F746_PH10_FUNC_DCMI_D1>,
-+						 <STM32F746_PH11_FUNC_DCMI_D2>,
-+						 <STM32F746_PH12_FUNC_DCMI_D3>,
-+						 <STM32F746_PH14_FUNC_DCMI_D4>,
-+						 <STM32F746_PD3_FUNC_DCMI_D5>,
-+						 <STM32F746_PE5_FUNC_DCMI_D6>,
-+						 <STM32F746_PE6_FUNC_DCMI_D7>;
-+					slew-rate = <3>;
-+				};
-+			};
- 		};
- 
- 		crc: crc@40023000 {
-@@ -344,6 +361,20 @@
- 			assigned-clocks = <&rcc 1 CLK_HSE_RTC>;
- 			assigned-clock-rates = <1000000>;
- 		};
-+
-+		dcmi: dcmi@50050000 {
-+			compatible = "st,stm32-dcmi";
-+			reg = <0x50050000 0x400>;
-+			interrupts = <78>;
-+			resets = <&rcc STM32F7_AHB2_RESET(DCMI)>;
-+			clocks = <&rcc 0 STM32F7_AHB2_CLOCK(DCMI)>;
-+			clock-names = "mclk";
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&dcmi_pins>;
-+			dmas = <&dma2 1 1 0x414 0x3>;
-+			dma-names = "tx";
-+			status = "disabled";
-+		};
- 	};
- };
- 
--- 
-1.9.1
+DQoNCk9uIDA2LzI2LzIwMTcgMDY6MzMgUE0sIFNha2FyaSBBaWx1cyB3cm90ZToNCj4gSGkgSHVn
+dWVzLA0KPiANCj4gT24gVGh1LCBKdW4gMjIsIDIwMTcgYXQgMDU6MDU6NDBQTSArMDIwMCwgSHVn
+dWVzIEZydWNoZXQgd3JvdGU6DQo+PiBBbGlnbiByZXNvbHV0aW9uIHNlcXVlbmNlcyBvbiBpbml0
+aWFsaXphdGlvbiBzZXF1ZW5jZSB1c2luZw0KPj4gaTJjX3J2IHN0cnVjdHVyZSBOVUxMIHRlcm1p
+bmF0ZWQgLlRoaXMgYWRkIGZsZXhpYmlsaXR5DQo+PiBvbiByZXNvbHV0aW9uIHNlcXVlbmNlIHNp
+emUuDQo+PiBEb2N1bWVudCByZXNvbHV0aW9uIHJlbGF0ZWQgcmVnaXN0ZXJzIGJ5IHVzaW5nIGNv
+cnJlc3BvbmRpbmcNCj4+IGRlZmluZSBpbnN0ZWFkIG9mIGhleGEgYWRkcmVzcy92YWx1ZS4NCj4+
+DQo+PiBTaWduZWQtb2ZmLWJ5OiBIdWd1ZXMgRnJ1Y2hldCA8aHVndWVzLmZydWNoZXRAc3QuY29t
+Pg0KPj4gLS0tDQo+PiAgIGRyaXZlcnMvbWVkaWEvaTJjL292OTY1MC5jIHwgOTggKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLQ0KPj4gICAxIGZpbGUgY2hhbmdl
+ZCwgNjQgaW5zZXJ0aW9ucygrKSwgMzQgZGVsZXRpb25zKC0pDQo+Pg0KPj4gZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvbWVkaWEvaTJjL292OTY1MC5jIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y5NjUwLmMN
+Cj4+IGluZGV4IDQzMTFkYTYuLjhiMjgzYzkgMTAwNjQ0DQo+PiAtLS0gYS9kcml2ZXJzL21lZGlh
+L2kyYy9vdjk2NTAuYw0KPj4gKysrIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y5NjUwLmMNCj4+IEBA
+IC0yMjcsMTEgKzIyNywxNiBAQCBzdHJ1Y3Qgb3Y5NjV4X2N0cmxzIHsNCj4+ICAgCXU4IHVwZGF0
+ZTsNCj4+ICAgfTsNCj4+ICAgDQo+PiArc3RydWN0IGkyY19ydiB7DQo+PiArCXU4IGFkZHI7DQo+
+PiArCXU4IHZhbHVlOw0KPj4gK307DQo+PiArDQo+PiAgIHN0cnVjdCBvdjk2NXhfZnJhbWVzaXpl
+IHsNCj4+ICAgCXUxNiB3aWR0aDsNCj4+ICAgCXUxNiBoZWlnaHQ7DQo+PiAgIAl1MTYgbWF4X2V4
+cF9saW5lczsNCj4+IC0JY29uc3QgdTggKnJlZ3M7DQo+PiArCWNvbnN0IHN0cnVjdCBpMmNfcnYg
+KnJlZ3M7DQo+PiAgIH07DQo+PiAgIA0KPj4gICBzdHJ1Y3Qgb3Y5NjV4X2ludGVydmFsIHsNCj4+
+IEBAIC0yODAsOSArMjg1LDExIEBAIHN0cnVjdCBvdjk2NXggew0KPj4gICAJdTggYXBwbHlfZnJh
+bWVfZm10Ow0KPj4gICB9Ow0KPj4gICANCj4+IC1zdHJ1Y3QgaTJjX3J2IHsNCj4+IC0JdTggYWRk
+cjsNCj4+IC0JdTggdmFsdWU7DQo+PiArc3RydWN0IG92OTY1eF9waXhmbXQgew0KPj4gKwl1MzIg
+Y29kZTsNCj4+ICsJdTMyIGNvbG9yc3BhY2U7DQo+PiArCS8qIFJFR19UU0xCIHZhbHVlLCBvbmx5
+IGJpdHMgWzM6Ml0gbWF5IGJlIHNldC4gKi8NCj4+ICsJdTggdHNsYl9yZWc7DQo+PiAgIH07DQo+
+PiAgIA0KPj4gICBzdGF0aWMgY29uc3Qgc3RydWN0IGkyY19ydiBvdjk2NXhfaW5pdF9yZWdzW10g
+PSB7DQo+PiBAQCAtMzQyLDMwICszNDksNTkgQEAgc3RydWN0IGkyY19ydiB7DQo+PiAgIAl7IFJF
+R19OVUxMLCAwIH0NCj4+ICAgfTsNCj4+ICAgDQo+PiAtI2RlZmluZSBOVU1fRk1UX1JFR1MgMTQN
+Cj4+IC0vKg0KPj4gLSAqIENPTTcsICBDT00zLCAgQ09NNCwgSFNUQVJULCBIU1RPUCwgSFJFRiwg
+VlNUQVJULCBWU1RPUCwgVlJFRiwNCj4+IC0gKiBFWEhDSCwgRVhIQ0wsIEFEQywgIE9DT00sICAg
+T0ZPTg0KPj4gLSAqLw0KPj4gLXN0YXRpYyBjb25zdCB1OCBmcmFtZV9zaXplX3JlZ19hZGRyW05V
+TV9GTVRfUkVHU10gPSB7DQo+PiAtCTB4MTIsIDB4MGMsIDB4MGQsIDB4MTcsIDB4MTgsIDB4MzIs
+IDB4MTksIDB4MWEsIDB4MDMsDQo+PiAtCTB4MmEsIDB4MmIsIDB4MzcsIDB4MzgsIDB4MzksDQo+
+PiAtfTsNCj4+IC0NCj4+IC1zdGF0aWMgY29uc3QgdTggb3Y5NjV4X3N4Z2FfcmVnc1tOVU1fRk1U
+X1JFR1NdID0gew0KPj4gLQkweDAwLCAweDAwLCAweDAwLCAweDFlLCAweGJlLCAweGJmLCAweDAx
+LCAweDgxLCAweDEyLA0KPj4gLQkweDEwLCAweDM0LCAweDgxLCAweDkzLCAweDUxLA0KPj4gK3N0
+YXRpYyBjb25zdCBzdHJ1Y3QgaTJjX3J2IG92OTY1eF9zeGdhX3JlZ3NbXSA9IHsNCj4+ICsJeyBS
+RUdfQ09NNywgMHgwMCB9LA0KPj4gKwl7IFJFR19DT00zLCAweDAwIH0sDQo+PiArCXsgUkVHX0NP
+TTQsIDB4MDAgfSwNCj4+ICsJeyBSRUdfSFNUQVJULCAweDFlIH0sDQo+PiArCXsgUkVHX0hTVE9Q
+LCAweGJlIH0sDQo+PiArCXsgMHgzMiwgMHhiZiB9LA0KPj4gKwl7IFJFR19WU1RBUlQsIDB4MDEg
+fSwNCj4+ICsJeyBSRUdfVlNUT1AsIDB4ODEgfSwNCj4+ICsJeyBSRUdfVlJFRiwgMHgxMiB9LA0K
+Pj4gKwl7IFJFR19FWEhDSCwgMHgxMCB9LA0KPj4gKwl7IFJFR19FWEhDTCwgMHgzNCB9LA0KPj4g
+Kwl7IFJFR19BREMsIDB4ODEgfSwNCj4+ICsJeyBSRUdfQUNPTSwgMHg5MyB9LA0KPj4gKwl7IFJF
+R19PRk9OLCAweDUxIH0sDQo+PiArCXsgUkVHX05VTEwsIDAgfSwNCj4+ICAgfTsNCj4+ICAgDQo+
+PiAtc3RhdGljIGNvbnN0IHU4IG92OTY1eF92Z2FfcmVnc1tOVU1fRk1UX1JFR1NdID0gew0KPj4g
+LQkweDQwLCAweDA0LCAweDgwLCAweDI2LCAweGM2LCAweGVkLCAweDAxLCAweDNkLCAweDAwLA0K
+Pj4gLQkweDEwLCAweDQwLCAweDkxLCAweDEyLCAweDQzLA0KPj4gK3N0YXRpYyBjb25zdCBzdHJ1
+Y3QgaTJjX3J2IG92OTY1eF92Z2FfcmVnc1tdID0gew0KPj4gKwl7IFJFR19DT003LCAweDQwIH0s
+DQo+PiArCXsgUkVHX0NPTTMsIDB4MDQgfSwNCj4+ICsJeyBSRUdfQ09NNCwgMHg4MCB9LA0KPj4g
+Kwl7IFJFR19IU1RBUlQsIDB4MjYgfSwNCj4+ICsJeyBSRUdfSFNUT1AsIDB4YzYgfSwNCj4+ICsJ
+eyAweDMyLCAweGVkIH0sDQo+PiArCXsgUkVHX1ZTVEFSVCwgMHgwMSB9LA0KPj4gKwl7IFJFR19W
+U1RPUCwgMHgzZCB9LA0KPj4gKwl7IFJFR19WUkVGLCAweDAwIH0sDQo+PiArCXsgUkVHX0VYSENI
+LCAweDEwIH0sDQo+PiArCXsgUkVHX0VYSENMLCAweDQwIH0sDQo+PiArCXsgUkVHX0FEQywgMHg5
+MSB9LA0KPj4gKwl7IFJFR19BQ09NLCAweDEyIH0sDQo+PiArCXsgUkVHX09GT04sIDB4NDMgfSwN
+Cj4+ICsJeyBSRUdfTlVMTCwgMCB9LA0KPj4gICB9Ow0KPj4gICANCj4+ICAgLyogRGV0ZXJtaW5l
+ZCBlbXBpcmljYWxseS4gKi8NCj4+IC1zdGF0aWMgY29uc3QgdTggb3Y5NjV4X3F2Z2FfcmVnc1tO
+VU1fRk1UX1JFR1NdID0gew0KPj4gLQkweDEwLCAweDA0LCAweDgwLCAweDI1LCAweGM1LCAweGJm
+LCAweDAwLCAweDgwLCAweDEyLA0KPj4gLQkweDEwLCAweDQwLCAweDkxLCAweDEyLCAweDQzLA0K
+Pj4gK3N0YXRpYyBjb25zdCBzdHJ1Y3QgaTJjX3J2IG92OTY1eF9xdmdhX3JlZ3NbXSA9IHsNCj4+
+ICsJeyBSRUdfQ09NNywgMHgxMCB9LA0KPj4gKwl7IFJFR19DT00zLCAweDA0IH0sDQo+PiArCXsg
+UkVHX0NPTTQsIDB4ODAgfSwNCj4+ICsJeyBSRUdfSFNUQVJULCAweDI1IH0sDQo+PiArCXsgUkVH
+X0hTVE9QLCAweGM1IH0sDQo+PiArCXsgMHgzMiwgMHhiZiB9LA0KPj4gKwl7IFJFR19WU1RBUlQs
+IDB4MDAgfSwNCj4+ICsJeyBSRUdfVlNUT1AsIDB4ODAgfSwNCj4+ICsJeyBSRUdfVlJFRiwgMHgx
+MiB9LA0KPj4gKwl7IFJFR19FWEhDSCwgMHgxMCB9LA0KPj4gKwl7IFJFR19FWEhDTCwgMHg0MCB9
+LA0KPj4gKwl7IFJFR19BREMsIDB4OTEgfSwNCj4+ICsJeyBSRUdfQUNPTSwgMHgxMiB9LA0KPj4g
+Kwl7IFJFR19PRk9OLCAweDQzIH0sDQo+PiArCXsgUkVHX05VTEwsIDAgfSwNCj4+ICAgfTsNCj4+
+ICAgDQo+PiAgIHN0YXRpYyBjb25zdCBzdHJ1Y3Qgb3Y5NjV4X2ZyYW1lc2l6ZSBvdjk2NXhfZnJh
+bWVzaXplc1tdID0gew0KPj4gQEAgLTM4NywxMyArNDIzLDYgQEAgc3RydWN0IGkyY19ydiB7DQo+
+PiAgIAl9LA0KPj4gICB9Ow0KPj4gICANCj4+IC1zdHJ1Y3Qgb3Y5NjV4X3BpeGZtdCB7DQo+PiAt
+CXUzMiBjb2RlOw0KPj4gLQl1MzIgY29sb3JzcGFjZTsNCj4+IC0JLyogUkVHX1RTTEIgdmFsdWUs
+IG9ubHkgYml0cyBbMzoyXSBtYXkgYmUgc2V0LiAqLw0KPj4gLQl1OCB0c2xiX3JlZzsNCj4+IC19
+Ow0KPiANCj4gQW55IHBhcnRpY3VsYXIgcmVhc29uIGZvciBtb3Zpbmcgc3RydWN0IG92OTY1eF9w
+aXhmbXQgZGVmaW5pdGlvbj8NCg0KTm90IGluIHRoZSByaWdodCBwYXRjaCwgbXVzdCBiZSBpbiA1
+LzYgW21lZGlhXSBvdjk2NTA6IGFkZCBtdWx0aXBsZSANCnZhcmlhbnQgc3VwcG9ydCwgSSdsbCBm
+aXggaW4gdjIuDQoNCj4gDQo+PiAtDQo+PiAgIHN0YXRpYyBjb25zdCBzdHJ1Y3Qgb3Y5NjV4X3Bp
+eGZtdCBvdjk2NXhfZm9ybWF0c1tdID0gew0KPj4gICAJeyBNRURJQV9CVVNfRk1UX1lVWVY4XzJY
+OCwgVjRMMl9DT0xPUlNQQUNFX0pQRUcsIDB4MDB9LA0KPj4gICAJeyBNRURJQV9CVVNfRk1UX1lW
+WVU4XzJYOCwgVjRMMl9DT0xPUlNQQUNFX0pQRUcsIDB4MDR9LA0KPj4gQEAgLTEyNjgsMTEgKzEy
+OTcsMTIgQEAgc3RhdGljIGludCBvdjk2NXhfc2V0X2ZtdChzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNk
+LCBzdHJ1Y3QgdjRsMl9zdWJkZXZfcGFkX2NvbmZpZw0KPj4gICANCj4+ICAgc3RhdGljIGludCBv
+djk2NXhfc2V0X2ZyYW1lX3NpemUoc3RydWN0IG92OTY1eCAqb3Y5NjV4KQ0KPj4gICB7DQo+PiAt
+CWludCBpLCByZXQgPSAwOw0KPj4gKwlpbnQgcmV0ID0gMDsNCj4+ICsNCj4+ICsJdjRsMl9kYmco
+MSwgZGVidWcsIG92OTY1eC0+Y2xpZW50LCAiJXNcbiIsIF9fZnVuY19fKTsNCj4+ICAgDQo+PiAt
+CWZvciAoaSA9IDA7IHJldCA9PSAwICYmIGkgPCBOVU1fRk1UX1JFR1M7IGkrKykNCj4+IC0JCXJl
+dCA9IG92OTY1eF93cml0ZShvdjk2NXgtPmNsaWVudCwgZnJhbWVfc2l6ZV9yZWdfYWRkcltpXSwN
+Cj4+IC0JCQkJICAgb3Y5NjV4LT5mcmFtZV9zaXplLT5yZWdzW2ldKTsNCj4+ICsJcmV0ID0gb3Y5
+NjV4X3dyaXRlX2FycmF5KG92OTY1eC0+Y2xpZW50LA0KPj4gKwkJCQkgb3Y5NjV4LT5mcmFtZV9z
+aXplLT5yZWdzKTsNCj4+ICAgCXJldHVybiByZXQ7DQo+PiAgIH0NCj4+ICAgDQo+IA==
