@@ -1,79 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:33497 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752772AbdFPHjv (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55336 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751333AbdF2Xxh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Jun 2017 03:39:51 -0400
-Received: by mail-pf0-f195.google.com with SMTP id w12so4720618pfk.0
-        for <linux-media@vger.kernel.org>; Fri, 16 Jun 2017 00:39:45 -0700 (PDT)
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [PATCH 09/12] [media] vivid: mark vivid queues as ordered
-Date: Fri, 16 Jun 2017 16:39:12 +0900
-Message-Id: <20170616073915.5027-10-gustavo@padovan.org>
-In-Reply-To: <20170616073915.5027-1-gustavo@padovan.org>
-References: <20170616073915.5027-1-gustavo@padovan.org>
+        Thu, 29 Jun 2017 19:53:37 -0400
+Date: Fri, 30 Jun 2017 02:53:32 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Todor Tomov <todor.tomov@linaro.org>
+Cc: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
+Subject: Re: [PATCH v2 04/19] media: camss: Add CSIPHY files
+Message-ID: <20170629235332.m6ru4uxvdt6bmsod@valkosipuli.retiisi.org.uk>
+References: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
+ <1497883719-12410-5-git-send-email-todor.tomov@linaro.org>
+ <20170628213433.7ehkz62rw75t4yxa@valkosipuli.retiisi.org.uk>
+ <4b28ce1a-84af-858b-50d1-79fb3e461387@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4b28ce1a-84af-858b-50d1-79fb3e461387@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Hi Todor,
 
-To enable vivid to be used with explicit synchronization we need
-to mark its queues as ordered.
+On Thu, Jun 29, 2017 at 07:36:47PM +0300, Todor Tomov wrote:
+> >> +/*
+> >> + * csiphy_link_setup - Setup CSIPHY connections
+> >> + * @entity: Pointer to media entity structure
+> >> + * @local: Pointer to local pad
+> >> + * @remote: Pointer to remote pad
+> >> + * @flags: Link flags
+> >> + *
+> >> + * Rreturn 0 on success
+> >> + */
+> >> +static int csiphy_link_setup(struct media_entity *entity,
+> >> +			     const struct media_pad *local,
+> >> +			     const struct media_pad *remote, u32 flags)
+> >> +{
+> >> +	if ((local->flags & MEDIA_PAD_FL_SOURCE) &&
+> >> +	    (flags & MEDIA_LNK_FL_ENABLED)) {
+> >> +		struct v4l2_subdev *sd;
+> >> +		struct csiphy_device *csiphy;
+> >> +		struct csid_device *csid;
+> >> +
+> >> +		if (media_entity_remote_pad((struct media_pad *)local))
+> > 
+> > This is ugly.
+> > 
+> > What do you intend to find with media_entity_remote_pad()? The pad flags
+> > haven't been assigned to the pad yet, so media_entity_remote_pad() could
+> > give you something else than remote.
+> 
+> This is an attempt to check whether the pad is already linked - to refuse
+> a second active connection from the same src pad. As far as I can say, it
+> was a successful attempt. Do you see any problem with it?
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
----
- drivers/media/platform/vivid/vivid-core.c | 5 +++++
- 1 file changed, 5 insertions(+)
+Ah. So you have multiple links here only one of which may be active?
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index 8843170..c7bef90 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -1063,6 +1063,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->type = dev->multiplanar ? V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE :
- 			V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
-+		q->ordered = 1;
- 		q->drv_priv = dev;
- 		q->buf_struct_size = sizeof(struct vivid_buffer);
- 		q->ops = &vivid_vid_cap_qops;
-@@ -1083,6 +1084,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->type = dev->multiplanar ? V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE :
- 			V4L2_BUF_TYPE_VIDEO_OUTPUT;
- 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_WRITE;
-+		q->ordered = 1;
- 		q->drv_priv = dev;
- 		q->buf_struct_size = sizeof(struct vivid_buffer);
- 		q->ops = &vivid_vid_out_qops;
-@@ -1103,6 +1105,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->type = dev->has_raw_vbi_cap ? V4L2_BUF_TYPE_VBI_CAPTURE :
- 					      V4L2_BUF_TYPE_SLICED_VBI_CAPTURE;
- 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
-+		q->ordered = 1;
- 		q->drv_priv = dev;
- 		q->buf_struct_size = sizeof(struct vivid_buffer);
- 		q->ops = &vivid_vbi_cap_qops;
-@@ -1123,6 +1126,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->type = dev->has_raw_vbi_out ? V4L2_BUF_TYPE_VBI_OUTPUT :
- 					      V4L2_BUF_TYPE_SLICED_VBI_OUTPUT;
- 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_WRITE;
-+		q->ordered = 1;
- 		q->drv_priv = dev;
- 		q->buf_struct_size = sizeof(struct vivid_buffer);
- 		q->ops = &vivid_vbi_out_qops;
-@@ -1142,6 +1146,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q = &dev->vb_sdr_cap_q;
- 		q->type = V4L2_BUF_TYPE_SDR_CAPTURE;
- 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
-+		q->ordered = 1;
- 		q->drv_priv = dev;
- 		q->buf_struct_size = sizeof(struct vivid_buffer);
- 		q->ops = &vivid_sdr_cap_qops;
+I guess you can well use media_entity_remote_pad(), but then
+media_entity_remote_pad() argument needs to be made const. Feel free to
+spin a patch. I don't think it'd have further implications elsewhere.
+
 -- 
-2.9.4
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
