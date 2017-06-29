@@ -1,154 +1,440 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:37021 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751247AbdFFV1h (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Jun 2017 17:27:37 -0400
-Date: Tue, 6 Jun 2017 22:27:35 +0100
-From: Sean Young <sean@mess.org>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Subject: Re: [PATCH] [media] rc-core: simplify ir_raw_event_store_edge()
-Message-ID: <20170606212735.GB843@gofer.mess.org>
-References: <149365487447.13489.15793446874818182829.stgit@zeus.hardeman.nu>
- <149365501711.13489.17027324920634077369.stgit@zeus.hardeman.nu>
- <20170523092026.GA30040@gofer.mess.org>
- <20170528083150.l3qs5jmkl4smm3vk@hardeman.nu>
- <20170528164927.GC18977@gofer.mess.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36966 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751804AbdF2J57 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Jun 2017 05:57:59 -0400
+Date: Thu, 29 Jun 2017 12:57:55 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        hverkuil@xs4all.nl, devicetree@vger.kernel.org, robh@kernel.org
+Subject: Re: [PATCH 2/2] v4l: fwnode: Support generic parsing of graph
+ endpoints in V4L2
+Message-ID: <20170629095754.uw5v4zbpfwlq7dg4@valkosipuli.retiisi.org.uk>
+References: <1498721410-28199-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1498721410-28199-3-git-send-email-sakari.ailus@linux.intel.com>
+ <20170629090203.GO30481@bigcity.dyn.berto.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20170528164927.GC18977@gofer.mess.org>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170629090203.GO30481@bigcity.dyn.berto.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, May 28, 2017 at 05:49:27PM +0100, Sean Young wrote:
-> There is no need to called ir_raw_event_reset() either after a long
-> space or on startup. Many rc drivers never do this.
+On Thu, Jun 29, 2017 at 11:02:03AM +0200, Niklas Söderlund wrote:
+> Hi Sakari,
 > 
-> Signed-off-by: Sean Young <sean@mess.org>
-> ---
->  drivers/media/pci/saa7134/saa7134-input.c |  2 +-
->  drivers/media/rc/gpio-ir-recv.c           |  6 +++---
->  drivers/media/rc/img-ir/img-ir-raw.c      |  4 ++--
->  drivers/media/rc/rc-core-priv.h           |  1 -
->  drivers/media/rc/rc-ir-raw.c              | 31 +++++--------------------------
->  include/media/rc-core.h                   |  9 +--------
->  6 files changed, 12 insertions(+), 41 deletions(-)
+> Thanks for your patch.
 > 
-> diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
-> index 78849c1..8784bc8 100644
-> --- a/drivers/media/pci/saa7134/saa7134-input.c
-> +++ b/drivers/media/pci/saa7134/saa7134-input.c
-> @@ -1064,7 +1064,7 @@ static int saa7134_raw_decode_irq(struct saa7134_dev *dev)
->  	saa_clearb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
->  	saa_setb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
->  	space = saa_readl(SAA7134_GPIO_GPSTATUS0 >> 2) & ir->mask_keydown;
-> -	ir_raw_event_store_edge(dev->remote->dev, space ? IR_SPACE : IR_PULSE);
-> +	ir_raw_event_store_edge(dev->remote->dev, !space);
->  
->  	/*
->  	 * Wait 15 ms from the start of the first IR event before processing
-> diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
-> index b4f773b..09889d0 100644
-> --- a/drivers/media/rc/gpio-ir-recv.c
-> +++ b/drivers/media/rc/gpio-ir-recv.c
-> @@ -77,7 +77,7 @@ static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
->  	struct gpio_rc_dev *gpio_dev = dev_id;
->  	int gval;
->  	int rc = 0;
-> -	enum raw_event_type type = IR_SPACE;
-> +	bool pulse = false;
->  
->  	gval = gpio_get_value(gpio_dev->gpio_nr);
->  
-> @@ -88,9 +88,9 @@ static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
->  		gval = !gval;
->  
->  	if (gval == 1)
-> -		type = IR_PULSE;
-> +		pulse = true;
->  
-> -	rc = ir_raw_event_store_edge(gpio_dev->rcdev, type);
-> +	rc = ir_raw_event_store_edge(gpio_dev->rcdev, pulse);
->  	if (rc < 0)
->  		goto err_get_value;
->  
-> diff --git a/drivers/media/rc/img-ir/img-ir-raw.c b/drivers/media/rc/img-ir/img-ir-raw.c
-> index 8d2f8e2..ddb7fb4 100644
-> --- a/drivers/media/rc/img-ir/img-ir-raw.c
-> +++ b/drivers/media/rc/img-ir/img-ir-raw.c
-> @@ -40,9 +40,9 @@ static void img_ir_refresh_raw(struct img_ir_priv *priv, u32 irq_status)
->  
->  	/* report the edge to the IR raw decoders */
->  	if (ir_status) /* low */
-> -		ir_raw_event_store_edge(rc_dev, IR_SPACE);
-> +		ir_raw_event_store_edge(rc_dev, false);
->  	else /* high */
-> -		ir_raw_event_store_edge(rc_dev, IR_PULSE);
-> +		ir_raw_event_store_edge(rc_dev, true);
->  	ir_raw_event_handle(rc_dev);
->  }
->  
-> diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-> index 0455b27..d31ad6a 100644
-> --- a/drivers/media/rc/rc-core-priv.h
-> +++ b/drivers/media/rc/rc-core-priv.h
-> @@ -41,7 +41,6 @@ struct ir_raw_event_ctrl {
->  	/* fifo for the pulse/space durations */
->  	DECLARE_KFIFO(kfifo, struct ir_raw_event, MAX_IR_EVENT_SIZE);
->  	ktime_t				last_event;	/* when last event occurred */
-> -	enum raw_event_type		last_type;	/* last event type */
->  	struct rc_dev			*dev;		/* pointer to the parent rc_dev */
->  
->  	/* raw decoder state follows */
-> diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-> index 90f66dc..16ef236 100644
-> --- a/drivers/media/rc/rc-ir-raw.c
-> +++ b/drivers/media/rc/rc-ir-raw.c
-> @@ -88,7 +88,7 @@ EXPORT_SYMBOL_GPL(ir_raw_event_store);
->  /**
->   * ir_raw_event_store_edge() - notify raw ir decoders of the start of a pulse/space
->   * @dev:	the struct rc_dev device descriptor
-> - * @type:	the type of the event that has occurred
-> + * @pulse:	true for pulse, false for space
->   *
->   * This routine (which may be called from an interrupt context) is used to
->   * store the beginning of an ir pulse or space (or the start/end of ir
-> @@ -96,43 +96,22 @@ EXPORT_SYMBOL_GPL(ir_raw_event_store);
->   * hardware which does not provide durations directly but only interrupts
->   * (or similar events) on state change.
->   */
-> -int ir_raw_event_store_edge(struct rc_dev *dev, enum raw_event_type type)
-> +int ir_raw_event_store_edge(struct rc_dev *dev, bool pulse)
->  {
->  	ktime_t			now;
-> -	s64			delta; /* ns */
->  	DEFINE_IR_RAW_EVENT(ev);
->  	int			rc = 0;
-> -	int			delay;
->  
->  	if (!dev->raw)
->  		return -EINVAL;
->  
->  	now = ktime_get();
-> -	delta = ktime_to_ns(ktime_sub(now, dev->raw->last_event));
-> -	delay = MS_TO_NS(dev->input_dev->rep[REP_DELAY]);
-> +	ev.duration = ktime_to_ns(ktime_sub(now, dev->raw->last_event));
-> +	ev.pulse = pulse;
->  
-> -	/* Check for a long duration since last event or if we're
-> -	 * being called for the first time, note that delta can't
-> -	 * possibly be negative.
-> -	 */
-> -	if (delta > delay || !dev->raw->last_type)
-> -		type |= IR_START_EVENT;
-> -	else
-> -		ev.duration = delta;
+> On 2017-06-29 10:30:10 +0300, Sakari Ailus wrote:
+> > The current practice is that drivers iterate over their endpoints and
+> > parse each endpoint separately. This is very similar in a number of
+> > drivers, implement a generic function for the job. Driver specific matters
+> > can be taken into account in the driver specific callback.
+> > 
+> > Convert the omap3isp as an example.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> >  drivers/media/platform/omap3isp/isp.c | 91 ++++++++++-----------------------
+> >  drivers/media/platform/omap3isp/isp.h |  3 --
+> >  drivers/media/v4l2-core/v4l2-fwnode.c | 94 +++++++++++++++++++++++++++++++++++
+> >  include/media/v4l2-async.h            |  4 +-
+> >  include/media/v4l2-fwnode.h           |  9 ++++
+> >  5 files changed, 132 insertions(+), 69 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+> > index 9df64c1..9ccf883 100644
+> > --- a/drivers/media/platform/omap3isp/isp.c
+> > +++ b/drivers/media/platform/omap3isp/isp.c
+> > @@ -2008,43 +2008,42 @@ enum isp_of_phy {
+> >  	ISP_OF_PHY_CSIPHY2,
+> >  };
+> >  
+> > -static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+> > -			    struct isp_async_subdev *isd)
+> > +static int isp_fwnode_parse(struct device *dev,
+> > +			    struct v4l2_fwnode_endpoint *vep,
+> > +			    struct v4l2_async_subdev *asd)
+> >  {
+> > +	struct isp_async_subdev *isd =
+> > +		container_of(asd, struct isp_async_subdev, asd);
+> >  	struct isp_bus_cfg *buscfg = &isd->bus;
+> > -	struct v4l2_fwnode_endpoint vep;
+> >  	unsigned int i;
+> > -	int ret;
+> > -
+> > -	ret = v4l2_fwnode_endpoint_parse(fwnode, &vep);
+> > -	if (ret)
+> > -		return ret;
+> >  
+> >  	dev_dbg(dev, "parsing endpoint %s, interface %u\n",
+> > -		to_of_node(fwnode)->full_name, vep.base.port);
+> > +		to_of_node(vep->base.local_fwnode)->full_name, vep->base.port);
+> >  
+> > -	switch (vep.base.port) {
+> > +	switch (vep->base.port) {
+> >  	case ISP_OF_PHY_PARALLEL:
+> >  		buscfg->interface = ISP_INTERFACE_PARALLEL;
+> >  		buscfg->bus.parallel.data_lane_shift =
+> > -			vep.bus.parallel.data_shift;
+> > +			vep->bus.parallel.data_shift;
+> >  		buscfg->bus.parallel.clk_pol =
+> > -			!!(vep.bus.parallel.flags
+> > +			!!(vep->bus.parallel.flags
+> >  			   & V4L2_MBUS_PCLK_SAMPLE_FALLING);
+> >  		buscfg->bus.parallel.hs_pol =
+> > -			!!(vep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
+> > +			!!(vep->bus.parallel.flags &
+> > +			   V4L2_MBUS_VSYNC_ACTIVE_LOW);
+> >  		buscfg->bus.parallel.vs_pol =
+> > -			!!(vep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
+> > +			!!(vep->bus.parallel.flags &
+> > +			   V4L2_MBUS_HSYNC_ACTIVE_LOW);
+> >  		buscfg->bus.parallel.fld_pol =
+> > -			!!(vep.bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
+> > +			!!(vep->bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
+> >  		buscfg->bus.parallel.data_pol =
+> > -			!!(vep.bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
+> > +			!!(vep->bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
+> >  		break;
+> >  
+> >  	case ISP_OF_PHY_CSIPHY1:
+> >  	case ISP_OF_PHY_CSIPHY2:
+> >  		/* FIXME: always assume CSI-2 for now. */
+> > -		switch (vep.base.port) {
+> > +		switch (vep->base.port) {
+> >  		case ISP_OF_PHY_CSIPHY1:
+> >  			buscfg->interface = ISP_INTERFACE_CSI2C_PHY1;
+> >  			break;
+> > @@ -2052,18 +2051,19 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+> >  			buscfg->interface = ISP_INTERFACE_CSI2A_PHY2;
+> >  			break;
+> >  		}
+> > -		buscfg->bus.csi2.lanecfg.clk.pos = vep.bus.mipi_csi2.clock_lane;
+> > +		buscfg->bus.csi2.lanecfg.clk.pos =
+> > +			vep->bus.mipi_csi2.clock_lane;
+> >  		buscfg->bus.csi2.lanecfg.clk.pol =
+> > -			vep.bus.mipi_csi2.lane_polarities[0];
+> > +			vep->bus.mipi_csi2.lane_polarities[0];
+> >  		dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+> >  			buscfg->bus.csi2.lanecfg.clk.pol,
+> >  			buscfg->bus.csi2.lanecfg.clk.pos);
+> >  
+> >  		for (i = 0; i < ISP_CSIPHY2_NUM_DATA_LANES; i++) {
+> >  			buscfg->bus.csi2.lanecfg.data[i].pos =
+> > -				vep.bus.mipi_csi2.data_lanes[i];
+> > +				vep->bus.mipi_csi2.data_lanes[i];
+> >  			buscfg->bus.csi2.lanecfg.data[i].pol =
+> > -				vep.bus.mipi_csi2.lane_polarities[i + 1];
+> > +				vep->bus.mipi_csi2.lane_polarities[i + 1];
+> >  			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
+> >  				buscfg->bus.csi2.lanecfg.data[i].pol,
+> >  				buscfg->bus.csi2.lanecfg.data[i].pos);
+> > @@ -2079,55 +2079,14 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+> >  
+> >  	default:
+> >  		dev_warn(dev, "%s: invalid interface %u\n",
+> > -			 to_of_node(fwnode)->full_name, vep.base.port);
+> > +			 to_of_node(vep->base.local_fwnode)->full_name,
+> > +			 vep->base.port);
+> >  		break;
+> >  	}
+> >  
+> >  	return 0;
+> >  }
+> >  
+> > -static int isp_fwnodes_parse(struct device *dev,
+> > -			     struct v4l2_async_notifier *notifier)
+> > -{
+> > -	struct fwnode_handle *fwnode = NULL;
+> > -
+> > -	notifier->subdevs = devm_kcalloc(
+> > -		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
+> > -	if (!notifier->subdevs)
+> > -		return -ENOMEM;
+> > -
+> > -	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
+> > -	       (fwnode = fwnode_graph_get_next_endpoint(
+> > -			of_fwnode_handle(dev->of_node), fwnode))) {
+> > -		struct isp_async_subdev *isd;
+> > -
+> > -		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+> > -		if (!isd)
+> > -			goto error;
+> > -
+> > -		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
+> > -
+> > -		if (isp_fwnode_parse(dev, fwnode, isd))
+> > -			goto error;
+> > -
+> > -		isd->asd.match.fwnode.fwnode =
+> > -			fwnode_graph_get_remote_port_parent(fwnode);
+> > -		if (!isd->asd.match.fwnode.fwnode) {
+> > -			dev_warn(dev, "bad remote port parent\n");
+> > -			goto error;
+> > -		}
+> > -
+> > -		isd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+> > -		notifier->num_subdevs++;
+> > -	}
+> > -
+> > -	return notifier->num_subdevs;
+> > -
+> > -error:
+> > -	fwnode_handle_put(fwnode);
+> > -	return -EINVAL;
+> > -}
+> > -
+> >  static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
+> >  				     struct v4l2_subdev *subdev,
+> >  				     struct v4l2_async_subdev *asd)
+> > @@ -2210,7 +2169,9 @@ static int isp_probe(struct platform_device *pdev)
+> >  	if (ret)
+> >  		return ret;
+> >  
+> > -	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
+> > +	ret = v4l2_fwnode_endpoints_parse(
+> > +		&pdev->dev, &isp->notifier, sizeof(struct isp_async_subdev),
+> > +		isp_fwnode_parse);
+> >  	if (ret < 0)
+> >  		return ret;
+> >  
+> > diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+> > index 2f2ae60..a852c11 100644
+> > --- a/drivers/media/platform/omap3isp/isp.h
+> > +++ b/drivers/media/platform/omap3isp/isp.h
+> > @@ -220,9 +220,6 @@ struct isp_device {
+> >  
+> >  	unsigned int sbl_resources;
+> >  	unsigned int subclk_resources;
+> > -
+> > -#define ISP_MAX_SUBDEVS		8
+> > -	struct v4l2_subdev *subdevs[ISP_MAX_SUBDEVS];
+> >  };
+> >  
+> >  struct isp_async_subdev {
+> > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> > index 0ec6c14..b35d525 100644
+> > --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> > @@ -26,6 +26,7 @@
+> >  #include <linux/string.h>
+> >  #include <linux/types.h>
+> >  
+> > +#include <media/v4l2-async.h>
+> >  #include <media/v4l2-fwnode.h>
+> >  
+> >  static int v4l2_fwnode_endpoint_parse_csi_bus(struct fwnode_handle *fwnode,
+> > @@ -339,6 +340,99 @@ void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link)
+> >  }
+> >  EXPORT_SYMBOL_GPL(v4l2_fwnode_put_link);
+> >  
+> > +static int notifier_realloc(struct device *dev,
+> > +			    struct v4l2_async_notifier *notifier,
+> > +			    unsigned int max_subdevs)
+> > +{
+> > +	struct v4l2_async_subdev **subdevs;
+> > +	unsigned int i;
+> > +
+> > +	if (max_subdevs <= notifier->max_subdevs)
+> > +		return 0;
+> > +
+> > +	subdevs = devm_kcalloc(
+> > +		dev, max_subdevs, sizeof(*notifier->subdevs), GFP_KERNEL);
+> > +	if (!subdevs)
+> > +		return -ENOMEM;
+> > +
+> > +	if (notifier->subdevs) {
+> > +		for (i = 0; i < notifier->num_subdevs; i++)
+> > +			subdevs[i] = notifier->subdevs[i];
+> > +
+> > +		devm_kfree(dev, notifier->subdevs);
+> > +	}
+> > +
+> > +	notifier->subdevs = subdevs;
+> > +	notifier->max_subdevs = max_subdevs;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +int v4l2_fwnode_endpoints_parse(
+> > +	struct device *dev, struct v4l2_async_notifier *notifier,
+> > +	size_t asd_struct_size,
+> > +	int (*parse_single)(struct device *dev,
+> > +			    struct v4l2_fwnode_endpoint *vep,
+> > +			    struct v4l2_async_subdev *asd))
+> > +{
+> > +	struct fwnode_handle *fwnode = NULL;
+> > +	unsigned int max_subdevs = notifier->max_subdevs;
+> > +	int ret;
+> > +
+> > +	if (asd_struct_size < sizeof(struct v4l2_async_subdev))
+> > +		return -EINVAL;
+> > +
+> > +	while ((fwnode = fwnode_graph_get_next_endpoint(dev_fwnode(dev),
+> > +							fwnode)))
+> > +		max_subdevs++;
+> > +
+> > +	ret = notifier_realloc(dev, notifier, max_subdevs);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
+> > +				     dev_fwnode(dev), fwnode)) &&
+> > +		     !WARN_ON(notifier->num_subdevs >= notifier->max_subdevs);
+> > +		) {
+> > +		struct v4l2_fwnode_endpoint *vep;
+> > +		struct v4l2_async_subdev *asd;
+> > +
+> > +		asd = devm_kzalloc(dev, asd_struct_size, GFP_KERNEL);
+> > +		if (!asd) {
+> > +			ret = -ENOMEM;
+> > +			goto error;
+> > +		}
+> > +
+> > +		notifier->subdevs[notifier->num_subdevs] = asd;
+> > +
+> > +		/* Ignore endpoints the parsing of which failed. */
+> > +		vep = v4l2_fwnode_endpoint_alloc_parse(fwnode);
+> > +		if (IS_ERR(vep))
+> > +			continue;
+> > +
+> > +		ret = parse_single(dev, vep, asd);
+> > +		v4l2_fwnode_endpoint_free(vep);
+> > +		if (ret)
+> > +			goto error;
+> 
+> First off I think this is a good step in the right direction to create 
+> core functions for this task.
+> 
+> However while reading this I got to think about a use-case I have with 
+> the Renesas R-Car VIN and CSI-2 drivers where I would not be able to use 
+> this helper. I have previously posted a patch-set to introduce 
+> incremental async, see [1]. If that gets picked-up not only the video 
+> device driver can have use of this helper but subdevices drivers.  As 
+> the subdevice driver would also need to pars its DT node to search for 
+> subdevices to add to it's own subnotifier. In this case this helper wont 
+> suffice, I think.
+> 
+> Since the subdevice DT node will contain endpoints pointing to both the 
+> subdevice which the incremental async notifier would like to find and 
+> endpoints pointing back to the root video device node it self.
+> 
+> In my use-case for Renesas R-Car Gen3 VIN and CSI-2 DT (not yet accepted 
+> upstream) I have solved this by having the CSI-2 DT node having two port 
+> nodes, port0 and port1. In port0 endpoints describing the 'upstream' 
+> video source from the CSI-2 point of view are defined (these should be 
+> added to the subnotifier). In port1 endpoints describing connections 
+> back to the VIN video devices are described. Currently the CSI-2 driver 
+> simply only looks for endpoints in the port0 node to add to its 
+> subnotifier, and I don't think this would be possible with this helper?
 
-This change was added in commit 3f5c4c7 ("[media] rc: fix ghost keypresses
-with certain hw"), so we can't just remove it. I've found the hardware
-mentioned in the commit on ebay and try to figure out what is going on
-once I get it.
+What we could also do is to add a variant of this that parses the endpoints
+by the port / endpoint IDs. Then you don't need to have a cumbersome way to
+skip parsing of some ports --- you would have allocated the memory and
+parsed the port for nothing by the time you call the callback anyway.
 
-Thanks
-Sean
+That would seem to be a better approach in general. I remember Rob was
+pushing this for DRM as it greatly simplified driver code there. But then
+the DT bindings have to be written accordingly: in current bindings the
+endpoint IDs are mostly undefined.
+
+We may still need to take extra measures to support cases where there are
+multiple links between two sub-devices.
+
+What do you think?
+
+Cc Rob + devicetree list as well.
+
+> 
+> Perhaps this patch can be modified so that en error code from the 
+> callback parse_single() could be taken in to account when making the 
+> decision if the parsed endpoint should be added to the notifiers list of 
+> subdevices?
+> 
+> > +
+> > +		asd->match.fwnode.fwnode =
+> > +			fwnode_graph_get_remote_port_parent(fwnode);
+> > +		if (!asd->match.fwnode.fwnode) {
+> > +			dev_warn(dev, "bad remote port parent\n");
+> > +			ret = -EINVAL;
+> > +			goto error;
+> > +		}
+> > +
+> > +		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+> > +		notifier->num_subdevs++;
+> > +	}
+> > +
+> > +error:
+> > +	fwnode_handle_put(fwnode);
+> > +	return ret;
+> > +}
+> > +EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoints_parse);
+> > +
+> >  MODULE_LICENSE("GPL");
+> >  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+> >  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+> > diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> > index c69d8c8..067f368 100644
+> > --- a/include/media/v4l2-async.h
+> > +++ b/include/media/v4l2-async.h
+> > @@ -78,7 +78,8 @@ struct v4l2_async_subdev {
+> >  /**
+> >   * struct v4l2_async_notifier - v4l2_device notifier data
+> >   *
+> > - * @num_subdevs: number of subdevices
+> > + * @num_subdevs: number of subdevices used in subdevs array
+> > + * @max_subdevs: number of subdevices allocated in subdevs array
+> >   * @subdevs:	array of pointers to subdevice descriptors
+> >   * @v4l2_dev:	pointer to struct v4l2_device
+> >   * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+> > @@ -90,6 +91,7 @@ struct v4l2_async_subdev {
+> >   */
+> >  struct v4l2_async_notifier {
+> >  	unsigned int num_subdevs;
+> > +	unsigned int max_subdevs;
+> >  	struct v4l2_async_subdev **subdevs;
+> >  	struct v4l2_device *v4l2_dev;
+> >  	struct list_head waiting;
+> > diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+> > index ecc1233..ff489f7 100644
+> > --- a/include/media/v4l2-fwnode.h
+> > +++ b/include/media/v4l2-fwnode.h
+> > @@ -25,6 +25,8 @@
+> >  #include <media/v4l2-mediabus.h>
+> >  
+> >  struct fwnode_handle;
+> > +struct v4l2_async_notifier;
+> > +struct v4l2_async_subdev;
+> >  
+> >  /**
+> >   * struct v4l2_fwnode_bus_mipi_csi2 - MIPI CSI-2 bus data structure
+> > @@ -101,4 +103,11 @@ int v4l2_fwnode_parse_link(struct fwnode_handle *fwnode,
+> >  			   struct v4l2_fwnode_link *link);
+> >  void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
+> >  
+> > +int v4l2_fwnode_endpoints_parse(
+> > +	struct device *dev, struct v4l2_async_notifier *notifier,
+> > +	size_t asd_struct_size,
+> > +	int (*parse_single)(struct device *dev,
+> > +			    struct v4l2_fwnode_endpoint *vep,
+> > +			    struct v4l2_async_subdev *asd));
+> > +
+> >  #endif /* _V4L2_FWNODE_H */
+> > -- 
+> > 2.1.4
+> > 
+> > 
+> 
+> -- 
+> Regards,
+> Niklas Söderlund
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
