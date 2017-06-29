@@ -1,68 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:58454 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752666AbdF0QJJ (ORCPT
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:37281 "EHLO
+        mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752370AbdF2ML0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 12:09:09 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v3 6/8] [media] s5p-jpeg: Decode 4:1:1 chroma subsampling format
-Date: Tue, 27 Jun 2017 18:08:52 +0200
-Message-Id: <1498579734-1594-7-git-send-email-thierry.escande@collabora.com>
-In-Reply-To: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
-References: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
+        Thu, 29 Jun 2017 08:11:26 -0400
+Received: by mail-wm0-f47.google.com with SMTP id i127so12363753wma.0
+        for <linux-media@vger.kernel.org>; Thu, 29 Jun 2017 05:11:25 -0700 (PDT)
+Subject: Re: [PATCH v2 01/19] doc: DT: camss: Binding document for Qualcomm
+ Camera subsystem driver
+To: Rob Herring <robh@kernel.org>
+Cc: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        devicetree@vger.kernel.org
+References: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
+ <1497883719-12410-2-git-send-email-todor.tomov@linaro.org>
+ <20170623204153.jpjecbzgnaptypbu@rob-hp-laptop>
+From: Todor Tomov <todor.tomov@linaro.org>
+Message-ID: <3b349fe9-c11c-199f-50c7-1ddf09494c53@linaro.org>
+Date: Thu, 29 Jun 2017 15:11:21 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+In-Reply-To: <20170623204153.jpjecbzgnaptypbu@rob-hp-laptop>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tony K Nadackal <tony.kn@samsung.com>
+Thank you for review, Rob.
 
-This patch adds support for decoding 4:1:1 chroma subsampling in the
-jpeg header parsing function.
+On 06/23/2017 11:41 PM, Rob Herring wrote:
+> On Mon, Jun 19, 2017 at 05:48:21PM +0300, Todor Tomov wrote:
+>> Add DT binding document for Qualcomm Camera subsystem driver.
+> 
+> "dt-bindings: media: ..." for the subject please.
 
-Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
-Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+I'll change it in the next version.
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 0783809..cca0fb8 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1099,6 +1099,8 @@ static void skip(struct s5p_jpeg_buffer *buf, long len)
- static bool s5p_jpeg_subsampling_decode(struct s5p_jpeg_ctx *ctx,
- 					unsigned int subsampling)
- {
-+	unsigned int version;
-+
- 	switch (subsampling) {
- 	case 0x11:
- 		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_444;
-@@ -1112,6 +1114,19 @@ static bool s5p_jpeg_subsampling_decode(struct s5p_jpeg_ctx *ctx,
- 	case 0x33:
- 		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
- 		break;
-+	case 0x41:
-+		/*
-+		 * 4:1:1 subsampling only supported by 3250, 5420, and 5433
-+		 * variants
-+		 */
-+		version = ctx->jpeg->variant->version;
-+		if (version != SJPEG_EXYNOS3250 &&
-+		    version != SJPEG_EXYNOS5420 &&
-+		    version != SJPEG_EXYNOS5433)
-+			return false;
-+
-+		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_411;
-+		break;
- 	default:
- 		return false;
- 	}
+> 
+>>
+>> CC: Rob Herring <robh+dt@kernel.org>
+>> CC: devicetree@vger.kernel.org
+>> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+>> ---
+>>  .../devicetree/bindings/media/qcom,camss.txt       | 196 +++++++++++++++++++++
+>>  1 file changed, 196 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/qcom,camss.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/qcom,camss.txt b/Documentation/devicetree/bindings/media/qcom,camss.txt
+>> new file mode 100644
+>> index 0000000..5213b03
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/qcom,camss.txt
+>> @@ -0,0 +1,196 @@
+>> +Qualcomm Camera Subsystem
+>> +
+>> +* Properties
+>> +
+>> +- compatible:
+>> +	Usage: required
+>> +	Value type: <stringlist>
+>> +	Definition: Should contain:
+>> +		- "qcom,msm8916-camss"
+> 
+> Okay if it is one node, but I'd like to see some agreement from other QC 
+> folks that 1 node is appropriate.
+
+Ok.
+
+> 
+>> +- reg:
+>> +	Usage: required
+>> +	Value type: <prop-encoded-array>
+>> +	Definition: Register ranges as listed in the reg-names property.
+>> +- reg-names:
+>> +	Usage: required
+>> +	Value type: <stringlist>
+>> +	Definition: Should contain the following entries:
+>> +		- "csiphy0"
+>> +		- "csiphy0_clk_mux"
+>> +		- "csiphy1"
+>> +		- "csiphy1_clk_mux"
+>> +		- "csid0"
+>> +		- "csid1"
+>> +		- "ispif"
+>> +		- "csi_clk_mux"
+>> +		- "vfe0"
+>> +- interrupts:
+>> +	Usage: required
+>> +	Value type: <prop-encoded-array>
+>> +	Definition: Interrupts as listed in the interrupt-names property.
+>> +- interrupt-names:
+>> +	Usage: required
+>> +	Value type: <stringlist>
+>> +	Definition: Should contain the following entries:
+>> +		- "csiphy0"
+>> +		- "csiphy1"
+>> +		- "csid0"
+>> +		- "csid1"
+>> +		- "ispif"
+>> +		- "vfe0"
+>> +- power-domains:
+>> +	Usage: required
+>> +	Value type: <prop-encoded-array>
+>> +	Definition: A phandle and power domain specifier pairs to the
+>> +		    power domain which is responsible for collapsing
+>> +		    and restoring power to the peripheral.
+>> +- clocks:
+>> +	Usage: required
+>> +	Value type: <prop-encoded-array>
+>> +	Definition: A list of phandle and clock specifier pairs as listed
+>> +		    in clock-names property.
+>> +- clock-names:
+>> +	Usage: required
+>> +	Value type: <stringlist>
+>> +	Definition: Should contain the following entries:
+>> +		- "camss_top_ahb_clk"
+>> +		- "ispif_ahb_clk"
+>> +		- "csiphy0_timer_clk"
+>> +		- "csiphy1_timer_clk"
+>> +		- "csi0_ahb_clk"
+>> +		- "csi0_clk"
+>> +		- "csi0_phy_clk"
+>> +		- "csi0_pix_clk"
+>> +		- "csi0_rdi_clk"
+>> +		- "csi1_ahb_clk"
+>> +		- "csi1_clk"
+>> +		- "csi1_phy_clk"
+>> +		- "csi1_pix_clk"
+>> +		- "csi1_rdi_clk"
+>> +		- "camss_ahb_clk"
+>> +		- "camss_vfe_vfe_clk"
+>> +		- "camss_csi_vfe_clk"
+>> +		- "iface_clk"
+>> +		- "bus_clk"
+> 
+> "_clk" is redundant.
+
+Yes, it will be better without it.
+
 -- 
-2.7.4
+Best regards,
+Todor Tomov
