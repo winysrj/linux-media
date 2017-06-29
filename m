@@ -1,41 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:47979 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751554AbdFIRgc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Jun 2017 13:36:32 -0400
-Subject: Re: [Patch v4 00/12] Add MFC v10.10 support
-To: Smitha T Murthy <smitha.t@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
-        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <95f6389c-4535-75c0-dcc9-6076b76777a0@samsung.com>
-Date: Fri, 09 Jun 2017 19:36:22 +0200
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:63329 "EHLO
+        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752143AbdF2MC6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Jun 2017 08:02:58 -0400
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Subject: Re: [PATCH v3 0/8] [media] s5p-jpeg: Various fixes and improvements
+To: Thierry Escande <thierry.escande@collabora.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Message-id: <b72b7a84-a564-941b-a47f-57f4d1c54cbd@samsung.com>
+Date: Thu, 29 Jun 2017 14:02:53 +0200
 MIME-version: 1.0
-In-reply-to: <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Content-language: en-GB
+In-reply-to: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-language: en-US
 Content-transfer-encoding: 7bit
-References: <CGME20170406060957epcas1p36f883512ccfaf24359d1b31a6d199d87@epcas1p3.samsung.com>
-        <1491459105-16641-1-git-send-email-smitha.t@samsung.com>
+References: <CGME20170627160906epcas4p369a67fdb1b8f6898a1f1b4ddb7927995@epcas4p3.samsung.com>
+ <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/06/2017 08:11 AM, Smitha T Murthy wrote:
-> This patch series adds MFC v10.10 support. MFC v10.10 is used in some
-> of Exynos7 variants.
-> 
-> This adds support for following:
-> 
-> * Add support for HEVC encoder and decoder
-> * Add support for VP9 decoder
-> * Update Documentation for control id definitions
-> * Update computation of min scratch buffer size requirement for V8 onwards
-Smitha, do you have any updates on this?  IIRC, there were few things
-which needed corrections but we were rather close to the final version.
+Hi Thierry,
 
---
-Thanks,
-Sylwester
+W dniu 27.06.2017 o 18:08, Thierry Escande pisze:
+> Hi,
+> 
+> This series contains various fixes and improvements for the Samsung
+> s5p-jpeg driver. Most of these patches come from the Chromium v3.8
+> kernel tree.
+> 
+
+Thank you for the series. It looks good to me.
+
+Andrzej
