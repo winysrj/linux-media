@@ -1,81 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:64543 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753262AbdF0PDh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 11:03:37 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 2/3] [media] venus: don't abuse dma_alloc for non-DMA allocations
-Date: Tue, 27 Jun 2017 17:02:47 +0200
-Message-Id: <20170627150310.719212-2-arnd@arndb.de>
-In-Reply-To: <20170627150310.719212-1-arnd@arndb.de>
-References: <20170627150310.719212-1-arnd@arndb.de>
+Received: from mail.kernel.org ([198.145.29.99]:35502 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752953AbdF2ODM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Jun 2017 10:03:12 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, laurent.pinchart@ideasonboard.com
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        David Airlie <airlied@linux.ie>,
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH v1 1/2] drm: rcar-du: Enable the FRM interrupt for vblank
+Date: Thu, 29 Jun 2017 15:02:55 +0100
+Message-Id: <0e5b1635470b06924a0bc00ee1f4791602285ca5.1498744799.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.22236bc88adc598797b31ea82329ec99304fe34d.1498744799.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.22236bc88adc598797b31ea82329ec99304fe34d.1498744799.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.22236bc88adc598797b31ea82329ec99304fe34d.1498744799.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.22236bc88adc598797b31ea82329ec99304fe34d.1498744799.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In venus_boot(), we pass a pointer to a phys_addr_t
-into dmam_alloc_coherent, which the compiler warns about:
+The rcar_du_crtc_{enable,disable}_vblank functions are configured to
+control the VBE interrupt event.
 
-platform/qcom/venus/firmware.c: In function 'venus_boot':
-platform/qcom/venus/firmware.c:63:49: error: passing argument 3 of 'dmam_alloc_coherent' from incompatible pointer type [-Werror=incompatible-pointer-types]
+The implementation of interlaced support in the rcar-du changes the
+required behavior such that vblanks are handled on frame end events, but
+does not update the enable register to reflect this.
 
-The returned DMA address is later passed on to a function that
-takes a phys_addr_t, so it's clearly wrong to use the DMA
-mapping interface here: the memory may be uncached, or the
-address may be completely wrong if there is an IOMMU connected
-to the device.
+Enable the FRM interrupt in the DIER register using the FRE bit.
 
-My interpretation is that using dmam_alloc_coherent() had two
-purposes:
+Fixes: 906eff7fcada ("drm: rcar-du: Implement support for interlaced
+modes")
 
- a) get a chunk of consecutive memory that may be larger than
-    the limit for kmalloc()
-
- b) use the devres infrastructure to simplify the unwinding
-    in the error case.
-
-I think ideally we'd use a devres-based version of
-alloc_pages_exact() here, but since that doesn't exist,
-let's use devm_get_free_pages() instead. This wastes a little
-memory as the size gets rounded up to a power of two, but
-is otherwise harmless. If we want to save memory here, calling
-devm_free_pages() to release the memory once it is no longer
-needed is probably better anyway.
-
-Fixes: af2c3834c8ca ("[media] media: venus: adding core part and helper functions")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 ---
-The same problem exists in the drm driver, as of commit 7c65817e6d38
-("drm/msm: gpu: Enable zap shader for A5XX"), and I submitted the
-same patch for that already.
----
- drivers/media/platform/qcom/venus/firmware.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
-index 1b1a4f355918..76edb9f60311 100644
---- a/drivers/media/platform/qcom/venus/firmware.c
-+++ b/drivers/media/platform/qcom/venus/firmware.c
-@@ -60,11 +60,13 @@ int venus_boot(struct device *parent, struct device *fw_dev, const char *fwname)
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+index 345eff72f581..9f53a8243941 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+@@ -620,7 +620,7 @@ static int rcar_du_crtc_enable_vblank(struct drm_crtc *crtc)
+ 	struct rcar_du_crtc *rcrtc = to_rcar_crtc(crtc);
  
- 	mem_size = VENUS_FW_MEM_SIZE;
+ 	rcar_du_crtc_write(rcrtc, DSRCR, DSRCR_VBCL);
+-	rcar_du_crtc_set(rcrtc, DIER, DIER_VBE);
++	rcar_du_crtc_set(rcrtc, DIER, DIER_FRE);
  
--	mem_va = dmam_alloc_coherent(fw_dev, mem_size, &mem_phys, GFP_KERNEL);
-+	mem_va = (void *)devm_get_free_pages(parent, GFP_KERNEL,
-+					     get_order(mem_size));
- 	if (!mem_va) {
- 		ret = -ENOMEM;
- 		goto err_unreg_device;
- 	}
-+	mem_phys = virt_to_phys(mem_va);
+ 	return 0;
+ }
+@@ -629,7 +629,7 @@ static void rcar_du_crtc_disable_vblank(struct drm_crtc *crtc)
+ {
+ 	struct rcar_du_crtc *rcrtc = to_rcar_crtc(crtc);
  
- 	ret = request_firmware(&mdt, fwname, fw_dev);
- 	if (ret < 0)
+-	rcar_du_crtc_clr(rcrtc, DIER, DIER_VBE);
++	rcar_du_crtc_clr(rcrtc, DIER, DIER_FRE);
+ }
+ 
+ static const struct drm_crtc_funcs crtc_funcs = {
 -- 
-2.9.0
+git-series 0.9.1
