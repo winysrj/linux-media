@@ -1,112 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39383 "EHLO mail.kapsi.fi"
+Received: from gofer.mess.org ([88.97.38.141]:44147 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751093AbdFUTb1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Jun 2017 15:31:27 -0400
-Subject: Re: [PATCH 3/4] [media] dvb-frontends/stv0367: SNR DVBv5 statistics
- for DVB-C and T
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com, liplianin@netup.ru, rjkm@metzlerbros.de
-References: <20170620174506.7593-1-d.scheller.oss@gmail.com>
- <20170620174506.7593-4-d.scheller.oss@gmail.com>
- <ee554f8e-b533-4b8b-5710-83e7ff40a3c2@iki.fi>
- <20170621175053.2d1d26f2@audiostation.wuest.de>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <9dfba4e1-bfa6-dbc2-e420-80f4b8e6b580@iki.fi>
-Date: Wed, 21 Jun 2017 22:31:21 +0300
+        id S1752378AbdF2Pz7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Jun 2017 11:55:59 -0400
+Date: Thu, 29 Jun 2017 16:55:57 +0100
+From: Sean Young <sean@mess.org>
+To: Mason <slash.tmp@free.fr>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>
+Subject: Re: Trying to use IR driver for my SoC
+Message-ID: <20170629155557.GA12980@gofer.mess.org>
+References: <cf82988e-8be2-1ec8-b343-7c3c54110746@free.fr>
 MIME-Version: 1.0
-In-Reply-To: <20170621175053.2d1d26f2@audiostation.wuest.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cf82988e-8be2-1ec8-b343-7c3c54110746@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello,
 
-
-On 06/21/2017 06:50 PM, Daniel Scheller wrote:
-> Am Wed, 21 Jun 2017 09:30:27 +0300
-> schrieb Antti Palosaari <crope@iki.fi>:
+On Thu, Jun 29, 2017 at 05:29:01PM +0200, Mason wrote:
+> I'm trying to use an IR driver written for my SoC:
+> https://github.com/mansr/linux-tangox/blob/master/drivers/media/rc/tangox-ir.c
 > 
->> On 06/20/2017 08:45 PM, Daniel Scheller wrote:
->>> From: Daniel Scheller <d.scheller@gmx.net>
->>>
->>> Add signal-to-noise-ratio as provided by the demodulator in decibel scale.
->>> QAM/DVB-C needs some intlog calculation to have usable dB values, OFDM/
->>> DVB-T values from the demod look alright already and are provided as-is.
->>>
->>> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
->>> ---
->>>    drivers/media/dvb-frontends/stv0367.c | 33 +++++++++++++++++++++++++++++++++
->>>    1 file changed, 33 insertions(+)
->>>
->>> diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
->>> index bb498f942ebd..0b13a407df23 100644
->>> --- a/drivers/media/dvb-frontends/stv0367.c
->>> +++ b/drivers/media/dvb-frontends/stv0367.c
->>> @@ -25,6 +25,8 @@
->>>    #include <linux/slab.h>
->>>    #include <linux/i2c.h>
->>>    
->>> +#include "dvb_math.h"
->>> +
->>>    #include "stv0367.h"
->>>    #include "stv0367_defs.h"
->>>    #include "stv0367_regs.h"
->>> @@ -33,6 +35,9 @@
->>>    /* Max transfer size done by I2C transfer functions */
->>>    #define MAX_XFER_SIZE  64
->>>    
->>> +/* snr logarithmic calc */
->>> +#define INTLOG10X100(x) ((u32) (((u64) intlog10(x) * 100) >> 24))
->>> +
->>>    static int stvdebug;
->>>    module_param_named(debug, stvdebug, int, 0644);
->>>    
->>> @@ -3013,6 +3018,33 @@ static int stv0367ddb_read_status(struct dvb_frontend *fe,
->>>    	return -EINVAL;
->>>    }
->>>    
->>> +static void stv0367ddb_read_snr(struct dvb_frontend *fe)
->>> +{
->>> +	struct stv0367_state *state = fe->demodulator_priv;
->>> +	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
->>> +	int cab_pwr;
->>> +	u32 regval, tmpval, snrval = 0;
->>> +
->>> +	switch (state->activedemod) {
->>> +	case demod_ter:
->>> +		snrval = stv0367ter_snr_readreg(fe);
->>> +		break;
->>> +	case demod_cab:
->>> +		cab_pwr = stv0367cab_snr_power(fe);
->>> +		regval = stv0367cab_snr_readreg(fe, 0);
->>> +
->>> +		tmpval = (cab_pwr * 320) / regval;
->>> +		snrval = ((tmpval != 0) ? INTLOG10X100(tmpval) : 0) * 100;
->>
->> How much there will be rounding errors due to that signal/noise
->> division? I would convert it to calculation of sums (tip logarithm
->> calculation rules).
+> I added these options to my defconfig:
 > 
-> This is taken from stv0367dd aswell, the reported and calculated values are in 0.1dB precision. This and to not diverge any more from the "source" driver, I'd prefer to keep it how it is. These are just simple tuner cards anyway and by no means professional measurement gear, and should only give a more or less rough estimate on reception quality. E.g. my stv0367 cards report around 36dB SNR, whereas the cxd2841er reports ~37dB, compared to my DOCSIS modem, which reports 34dB on DOCSIS channels (another variant I had earlier even reported 39dB on the same channels), so... Even, we get way more precision than on the relative scale calc on the cab_read_snr functions which is in 10%-steps...
+> +CONFIG_MEDIA_SUPPORT=y
+> +CONFIG_MEDIA_RC_SUPPORT=y
+> +CONFIG_RC_DEVICES=y
+> +CONFIG_IR_TANGO=y
 > 
->> Also, that INTLOG10X100 is pretty much useless. Use just what
->> intlog10/intlog2 offers without yet again another conversion.
+> (I don't think I need the RC decoders, because the HW is supposed
+> to support HW decoding of NEC, RC5, RC6).
+
+I haven't seen this driver before, what hardware is this for?
+
+> These are the logs printed at boot:
 > 
-> Will check and experiment. Again, taken from stv0367dd :-)
+> [    1.827842] IR NEC protocol handler initialized
+> [    1.832407] IR RC5(x/sz) protocol handler initialized
+> [    1.837491] IR RC6 protocol handler initialized
+> [    1.842049] IR JVC protocol handler initialized
+> [    1.846606] IR Sony protocol handler initialized
+> [    1.851248] IR SANYO protocol handler initialized
+> [    1.855979] IR Sharp protocol handler initialized
+> [    1.860708] IR MCE Keyboard/mouse protocol handler initialized
+> [    1.866575] IR XMP protocol handler initialized
+> [    1.871232] tango-ir 10518.ir: SMP86xx IR decoder at 0x10518/0x105e0 IRQ 21
+> [    1.878241] Registered IR keymap rc-empty
+> [    1.882457] input: tango-ir as /devices/platform/soc/10518.ir/rc/rc0/input0
+> [    1.889473] tango_ir_open
+> [    1.892105] rc rc0: tango-ir as /devices/platform/soc/10518.ir/rc/rc0
+> 
+> 
+> I was naively expecting some kind of dev/input/event0 node
+> I could cat to grab all the remote control key presses.
+> 
+> But I don't see anything relevant in /dev
 
-You should understand that there is no floating points on kernel, thus 
-that kind of divisions needs special attention. It should be written 
-log10(signal) - log10(noise) in order to minimize rounding errors. Lets 
-say as example if you divide 2 by 3 you will get 0, not 0.666... So 
-depending on actual numbers used on calculation, there is more or less 
-rounding errors which are easily avoidable.
+Do you have CONFIG_INPUT_EVDEV set? Is udev setup to create the devices?
+ 
+> /sys/devices/platform/soc/10518.ir/rc/rc0/input0$ ls -l
+> total 0
+> drwxr-xr-x    2 root     root             0 Jan  1 00:00 capabilities
+> lrwxrwxrwx    1 root     root             0 Jan  1 00:07 device -> ../../rc0
+> drwxr-xr-x    2 root     root             0 Jan  1 00:07 id
+> -r--r--r--    1 root     root          4096 Jan  1 00:07 modalias
+> -r--r--r--    1 root     root          4096 Jan  1 00:00 name
+> -r--r--r--    1 root     root          4096 Jan  1 00:07 phys
+> -r--r--r--    1 root     root          4096 Jan  1 00:00 properties
+> lrwxrwxrwx    1 root     root             0 Jan  1 00:07 subsystem -> ../../../../../../../class/input
+> -rw-r--r--    1 root     root          4096 Jan  1 00:00 uevent
+> -r--r--r--    1 root     root          4096 Jan  1 00:07 uniq
+> 
+> $ cat *
+> cat: read error: Is a directory
+> cat: read error: Is a directory
+> cat: read error: Is a directory
+> input:b0000v0000p0000e0000-e0,1,4,14,k98,ram4,lsfw
+> tango-ir
+> tango-ir/input0
+> 0
+> cat: read error: Is a directory
+> PRODUCT=0/0/0/0
+> NAME="tango-ir"
+> PHYS="tango-ir/input0"
+> PROP=0
+> EV=100013
+> KEY=1000000 0 0 0 0
+> MSC=10
+> MODALIAS=input:b0000v0000p0000e0000-e0,1,4,14,k98,ram4,lsfw
+> 
+> 
+> The IR interrupt count remains at 0, even I use the RC nearby.
+> (It works in a legacy system, using a different driver.)
+
+By opening the /dev/input/event0 device, tango_ir_open() gets called which
+presumably enables interrupts or IR decoding for the device. It's hard to
+say without knowing anything about the soc.
+
+It would be nice to see this driver merged to mainline.
 
 
-
-Antti
-
--- 
-http://palosaari.fi/
+Sean
