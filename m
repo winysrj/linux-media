@@ -1,63 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:33032 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751760AbdFNVO7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Jun 2017 17:14:59 -0400
-Subject: Re: [PATCH 5/8] v4l2-flash: Flash ops aren't mandatory
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-leds@vger.kernel.org
-References: <1497433639-13101-1-git-send-email-sakari.ailus@linux.intel.com>
- <1497433639-13101-6-git-send-email-sakari.ailus@linux.intel.com>
-Cc: devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
-        robh@kernel.org, pavel@ucw.cz
-From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Message-ID: <3e0a8823-a8b4-3f78-25e0-22d8cb8ad090@gmail.com>
-Date: Wed, 14 Jun 2017 23:14:13 +0200
+Received: from mx2.suse.de ([195.135.220.15]:50750 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751758AbdF2JnG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Jun 2017 05:43:06 -0400
+Date: Thu, 29 Jun 2017 11:42:59 +0200
+From: Johannes Thumshirn <jthumshirn@suse.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-fbdev@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH RESEND 0/7] Introduce MEDIA_VERSION to end KENREL_VERSION
+ abuse in media
+Message-ID: <20170629094259.GG3808@linux-x5ow.site>
+References: <20170621080812.6817-1-jthumshirn@suse.de>
+ <20170624171507.38353b10@vento.lan>
 MIME-Version: 1.0
-In-Reply-To: <1497433639-13101-6-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170624171507.38353b10@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Sat, Jun 24, 2017 at 05:15:07PM -0300, Mauro Carvalho Chehab wrote:
+> Sorry, but I can't see any advantage on it. On the downside, it
+> includes the media controller header file (media.h) where it
+> is not needed.
 
-On 06/14/2017 11:47 AM, Sakari Ailus wrote:
-> None of the flash operations are not mandatory and therefore there should
-> be no need for the flash ops structure either. Accept NULL.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/v4l2-core/v4l2-flash-led-class.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-flash-led-class.c b/drivers/media/v4l2-core/v4l2-flash-led-class.c
-> index 6d69119..fdb79da 100644
-> --- a/drivers/media/v4l2-core/v4l2-flash-led-class.c
-> +++ b/drivers/media/v4l2-core/v4l2-flash-led-class.c
-> @@ -18,7 +18,7 @@
->  #include <media/v4l2-flash-led-class.h>
->  
->  #define has_flash_op(v4l2_flash, op)				\
-> -	(v4l2_flash && v4l2_flash->ops->op)
-> +	(v4l2_flash && v4l2_flash->ops && v4l2_flash->ops->op)
+My reasoning was the differences in semantics. KERNEL_VERSION() is for
+encoding the kernel's version triplet not a API or Hardware or whatever
+version. Other subsystems do this as well, for instance in NVMe we have the
+NVME_VS() macro which is used to encode the NVMe Spec compliance from a human
+readable form to the hardware's u32. Also KERNEL_VERISON() shouldn't have
+in-tree users IMHO. Yes there is _one_ other user of it in-tree which is EXT4
+and I already talked to Jan Kara about it and we decided to leave it in until
+4.20.
 
-This change doesn't seem to be related to the patch subject.
-
->  #define call_flash_op(v4l2_flash, op, arg)			\
->  		(has_flash_op(v4l2_flash, op) ?			\
-> @@ -618,7 +618,7 @@ struct v4l2_flash *v4l2_flash_init(
->  	struct v4l2_subdev *sd;
->  	int ret;
->  
-> -	if (!fled_cdev || !ops || !config)
-> +	if (!fled_cdev || !config)
->  		return ERR_PTR(-EINVAL);
->  
->  	led_cdev = &fled_cdev->led_cdev;
-> 
-
+Byte,
+	Johannes
 -- 
-Best regards,
-Jacek Anaszewski
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+GF: Felix Imendörffer, Jane Smithard, Graham Norton
+HRB 21284 (AG Nürnberg)
+Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
