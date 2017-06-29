@@ -1,102 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:57344 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752812AbdF2MEh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Jun 2017 08:04:37 -0400
-Subject: Re: [PATCH v3 5/8] [media] s5p-jpeg: Split s5p_jpeg_parse_hdr()
-To: Thierry Escande <thierry.escande@collabora.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Message-id: <8935217c-8b3e-a9d1-6226-bcab434e2e28@samsung.com>
-Date: Thu, 29 Jun 2017 14:04:26 +0200
-MIME-version: 1.0
-In-reply-to: <1498579734-1594-6-git-send-email-thierry.escande@collabora.com>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-language: en-US
-Content-transfer-encoding: 7bit
-References: <1498579734-1594-1-git-send-email-thierry.escande@collabora.com>
- <CGME20170627160933epcas2p43434893aed7c80b51b753a0207d20eab@epcas2p4.samsung.com>
- <1498579734-1594-6-git-send-email-thierry.escande@collabora.com>
+Received: from mail.anw.at ([195.234.101.228]:42717 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751776AbdF2UKX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Jun 2017 16:10:23 -0400
+Subject: Re: [linux-media] How to handle independent CA devices
+To: linux-media@vger.kernel.org, Ralph Metzler <rjkm@metzlerbros.de>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <19593.22297.612764.560375@valen.metzler>
+ <4C928170.7060808@tvdr.de>
+Cc: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>,
+        Daniel Scheller <d.scheller@gmx.net>,
+        Oliver Endriss <o.endriss@gmx.de>
+From: "Jasmin J." <jasmin@anw.at>
+Message-ID: <1bb6ac49-f82f-84bc-3925-44b52788970d@anw.at>
+Date: Thu, 29 Jun 2017 22:10:12 +0200
+MIME-Version: 1.0
+In-Reply-To: <4C928170.7060808@tvdr.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-W dniu 27.06.2017 o 18:08, Thierry Escande pisze:
-> This patch moves the subsampling value decoding read from the jpeg
-> header into its own function. This new function is called
-> s5p_jpeg_subsampling_decode() and returns true if it successfully
-> decodes the subsampling value, false otherwise.
-> 
-> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+Hello!
 
-Acked-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+It is now 6,5 years since this eMail ir reply to and a lot of things changed
+since then.
 
-> ---
->   drivers/media/platform/s5p-jpeg/jpeg-core.c | 42 ++++++++++++++++-------------
->   1 file changed, 24 insertions(+), 18 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> index 1769744..0783809 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> @@ -1096,6 +1096,29 @@ static void skip(struct s5p_jpeg_buffer *buf, long len)
->   		get_byte(buf);
->   }
->   
-> +static bool s5p_jpeg_subsampling_decode(struct s5p_jpeg_ctx *ctx,
-> +					unsigned int subsampling)
-> +{
-> +	switch (subsampling) {
-> +	case 0x11:
-> +		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_444;
-> +		break;
-> +	case 0x21:
-> +		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_422;
-> +		break;
-> +	case 0x22:
-> +		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_420;
-> +		break;
-> +	case 0x33:
-> +		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
-> +		break;
-> +	default:
-> +		return false;
-> +	}
-> +
-> +	return true;
-> +}
-> +
->   static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
->   			       unsigned long buffer, unsigned long size,
->   			       struct s5p_jpeg_ctx *ctx)
-> @@ -1207,26 +1230,9 @@ static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
->   		}
->   	}
->   
-> -	if (notfound || !sos)
-> +	if (notfound || !sos || !s5p_jpeg_subsampling_decode(ctx, subsampling))
->   		return false;
->   
-> -	switch (subsampling) {
-> -	case 0x11:
-> -		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_444;
-> -		break;
-> -	case 0x21:
-> -		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_422;
-> -		break;
-> -	case 0x22:
-> -		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_420;
-> -		break;
-> -	case 0x33:
-> -		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
-> -		break;
-> -	default:
-> -		return false;
-> -	}
-> -
->   	result->w = width;
->   	result->h = height;
->   	result->sos = sos;
-> 
+As there is currently a lot of effort done to get the newest version of the DD
+(Digital Devices) drivers into the Kernel, I want to bring up this topic again.
+Yes, this eMail is long but it is necessary to explain all very detailed, so
+all people can understand the new concepts.
+
+
+
+a) First a description of the current situation:
+
+> VDR already has mechanisms that allow independent handling of CAMs
+> and receiving devices. Out of the box this currently only works for
+> DVB devices that actually have a frontend and where the 'ca' device
+> is under the same 'adapter' as the frontend.
+This is still the case and it is good so.
+What has been changed is ddbridge. Not in the current Kernel version, but in
+the vendor version. Ralph implemented the ddbridge parameter adapter_alloc,
+which allows to configure where the caX device is allocated. Moreover, he
+implemented a sysFS node (ddbridge?/redirect) to control how the TS stream is
+routed through ddbridge.
+
+With both together you can implement all required combinations an application
+needs. The Default is a complete independent creation of the caX devices into a
+separate adapter$ directory. Also the TS stream is *not* routed through the CI
+interface, but to the reused secX device (the DD version uses a new device node
+ciX for that instead of secX).
+
+In this setup, VDR doesn't see the caX device and therefore doesn't initialize
+it. Which is perfectly OK, because it isn't possible to use it anyway.
+
+> So, the bottom line is: I would appreciate an implementation where,
+> given the configuration you described above, I could, e.g., tune using
+> /dev/dvb/adapter0/frontend0, read the data stream from /dev/dvb/adapter0/dvr0
+> as usual, communicate with the CAM through /dev/dvb/adapter2/ca0 and
+> (which is the tricky part, I guess) "tell" the driver or some library
+> function to "assign the CAM in /dev/dvb/adapter2/ca0 to the frontend|dvr
+> in /dev/dvb/adapter0/frontend0|dvr0).
+I guess Ralph implemented the sysFS node (ddbridge?/redirect) and
+adapter_alloc because of this request from Klaus and of course that the DD
+hardware is usable by any other software, too.
+
+If ddbridge is started with the parameter adapter_alloc=3, then the driver
+creates the caX and the secX(ciX) device in the same directory as the frontendX
+and dvrX devices. Now VDR will recognize the caX device and initialize the CAM.
+Additionally, the user needs to select which caX device shall be used for which
+tuner via the mentioned sysFS node (ddbridge?/redirect). With this combination
+the DD driver behaves like a DVB card which has the CI interface hard wired to
+a tuner. It will route the TS stream through the CAM via the CI hardware before
+it can be read out of the dvrX device.
+Long time this was the only possibility to use the DD CI with a DD tuner.
+
+> As for decrypting data from several frontends through one CAM: I don't
+> see this happening in VDR. Pay tv channels repeat their stuff
+In the meantime VDR is able do MTD (multi tuner decoding) by rewriting
+the PIDs of the TS stream and feed it into the CAM (connected via a DD CI
+hardware) with help of a plugin I wrote.
+
+> However, VDR always assumes that the data to be recorded comes out of
+> the 'dvr' device that's under the same adapter as the 'frontend'.
+> So requiring that VDR would read from the frontend's 'dvr' device,
+> write to the ca-adapter's 'sec' (or whatever) device, and finally read
+> from that same 'sec' device again would be something I'd rather avoid.
+VDR provides a plugin interface for a CI driver since version 2.1.7. With this
+interface it is now possible to connect any CI hardware to VDR, if a plugin
+does the caX/secX(ciX) device communication.
+As mentioned above the DD driver default is creating the caX/secX(ciX) device
+in a dedicated adapter$ directory and the TS stream is available at the dvrX
+device in another adapter$ directory (possibly encrypted).
+
+My VDR plugin will now search for adapter$ directories with only caX/secX(ciX)
+devices and provide them to VDR. VDR itself will not initialize the CAM
+interface, because the caX device is not in the same adapter$ directory as the
+dvrX device, although it still searches for them. So VDR would still use the
+caX device of a DVB card with a hard wired CI interface.
+
+Moreover, VDR is now able to use the DD CI interface together with a DVB device
+from another vendor. It is even possible to use the same CAM for several tuners
+from different vendors.
+
+
+
+b) Things to do:
+
+>From all of the above we see, that a dedicated CI interface (independent from a
+tuner) is a very useful piece of hardware.
+Currently DD provides the Octopus CI, the DuoFlex CI (single) and the DuoFlex
+CI (dual) (if I forget one, I apologize). The cxd2099 driver is used on the
+DuoFlex CI (single) card only (AFAIK). The other cards are handled by ddbrigde
+directly. Moreover, ddbridge provides is re-using the secX device (or
+implementing the ciX device) and not the cxd2099 driver.
+
+1) From that said I really see *no* reason why the cxd2099 driver is in the
+staging directory!
+This driver is an i2c driver used for the transport of the caX device data
+only. Yes, it is for a dedicated CI hardware, but with the new ddbridge core it
+can be used in several modes including a hard wired operation (permanent
+attached to a specific tuner).
+-- So I plan to move this driver from staging/media to the media/i2c directory.
+
+2) When thew DD CI interface is used in the tuner independent mode, the TS
+stream needs to be feed through a device to the CAM and read back. This
+requires a new device. The dedicated device is a must to use the new feature
+MTD implemented by VDR, because only a user space application can rewrite the
+PIDs and CA-PMTs from different TS streams.
+The current Kernel version of ddbridge uses the secX device for that. The
+vendor version of ddbridge renamed secX to ciX. Yes, this breaks the Kernel
+API, but secX is depreciated since really long time and not used anymore.
+Implementing a new ciX device additionally is too much effort, but renaming it
+is not. I would like to hear some comments on this topic.
+-- Is it OK to rename secX to ciX or shall we add a new ciX device and keep the
+   unused depreciated secX?
+
+Please comment on the "--" questions.
+
+BR,
+   Jasmin
