@@ -1,58 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:4879 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751787AbdF3GDV (ORCPT
+Received: from mail-lf0-f41.google.com ([209.85.215.41]:36221 "EHLO
+        mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752103AbdF2IkR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Jun 2017 02:03:21 -0400
-From: <sean.wang@mediatek.com>
-To: <mchehab@osg.samsung.com>, <sean@mess.org>, <hdegoede@redhat.com>,
-        <hkallweit1@gmail.com>, <robh+dt@kernel.org>,
-        <mark.rutland@arm.com>, <matthias.bgg@gmail.com>
-CC: <andi.shyti@samsung.com>, <hverkuil@xs4all.nl>,
-        <ivo.g.dimitrov.75@gmail.com>, <linux-media@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-mediatek@lists.infradead.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, Sean Wang <sean.wang@mediatek.com>
-Subject: [PATCH v1 1/4] dt-bindings: media: mtk-cir: Add support for MT7622 SoC
-Date: Fri, 30 Jun 2017 14:03:04 +0800
-Message-ID: <a778a3a33a273f00d3ff071d62fe672a207d949c.1498794408.git.sean.wang@mediatek.com>
-In-Reply-To: <cover.1498794408.git.sean.wang@mediatek.com>
-References: <cover.1498794408.git.sean.wang@mediatek.com>
+        Thu, 29 Jun 2017 04:40:17 -0400
+Received: by mail-lf0-f41.google.com with SMTP id h22so48529992lfk.3
+        for <linux-media@vger.kernel.org>; Thu, 29 Jun 2017 01:40:16 -0700 (PDT)
+Date: Thu, 29 Jun 2017 10:40:14 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        hverkuil@xs4all.nl
+Subject: Re: [PATCH 1/2] v4l: fwnode: link_frequency is an optional property
+Message-ID: <20170629084014.GN30481@bigcity.dyn.berto.se>
+References: <1498721410-28199-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1498721410-28199-2-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1498721410-28199-2-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sean Wang <sean.wang@mediatek.com>
+Hi Sakari,
 
-Document the devicetree bindings for CIR on MediaTek MT7622
-SoC.
+Thanks for your patch.
 
-Signed-off-by: Sean Wang <sean.wang@mediatek.com>
----
- Documentation/devicetree/bindings/media/mtk-cir.txt | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+On 2017-06-29 10:30:09 +0300, Sakari Ailus wrote:
+> v4l2_fwnode_endpoint_alloc_parse() is intended as a replacement for
+> v4l2_fwnode_endpoint_parse(). It parses the "link-frequency" property and
+> if the property isn't found, it returns an error. However,
+> "link-frequency" is an optional property and if it does not exist is not
+> an error. Instead, the number of link frequencies is simply zero in that
+> case.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-diff --git a/Documentation/devicetree/bindings/media/mtk-cir.txt b/Documentation/devicetree/bindings/media/mtk-cir.txt
-index 2be2005..5e18087 100644
---- a/Documentation/devicetree/bindings/media/mtk-cir.txt
-+++ b/Documentation/devicetree/bindings/media/mtk-cir.txt
-@@ -2,10 +2,14 @@ Device-Tree bindings for Mediatek consumer IR controller
- found in Mediatek SoC family
- 
- Required properties:
--- compatible	    : "mediatek,mt7623-cir"
-+- compatible	    : Should be
-+			"mediatek,mt7623-cir": for MT7623 SoC
-+			"mediatek,mt7622-cir": for MT7622 SoC
- - clocks	    : list of clock specifiers, corresponding to
- 		      entries in clock-names property;
--- clock-names	    : should contain "clk" entries;
-+- clock-names	    : should contain
-+			- "clk" entries: for MT7623 SoC
-+			- "clk", "bus" entries: for MT7622 SoC
- - interrupts	    : should contain IR IRQ number;
- - reg		    : should contain IO map address for IR.
- 
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
+> ---
+>  drivers/media/v4l2-core/v4l2-fwnode.c | 30 +++++++++++++++---------------
+>  1 file changed, 15 insertions(+), 15 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> index 153c53c..0ec6c14 100644
+> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> @@ -247,23 +247,23 @@ struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
+>  
+>  	rval = fwnode_property_read_u64_array(fwnode, "link-frequencies",
+>  					      NULL, 0);
+> -	if (rval < 0)
+> -		goto out_err;
+> -
+> -	vep->link_frequencies =
+> -		kmalloc_array(rval, sizeof(*vep->link_frequencies), GFP_KERNEL);
+> -	if (!vep->link_frequencies) {
+> -		rval = -ENOMEM;
+> -		goto out_err;
+> -	}
+> +	if (rval > 0) {
+> +		vep->link_frequencies =
+> +			kmalloc_array(rval, sizeof(*vep->link_frequencies),
+> +				      GFP_KERNEL);
+> +		if (!vep->link_frequencies) {
+> +			rval = -ENOMEM;
+> +			goto out_err;
+> +		}
+>  
+> -	vep->nr_of_link_frequencies = rval;
+> +		vep->nr_of_link_frequencies = rval;
+>  
+> -	rval = fwnode_property_read_u64_array(fwnode, "link-frequencies",
+> -					      vep->link_frequencies,
+> -					      vep->nr_of_link_frequencies);
+> -	if (rval < 0)
+> -		goto out_err;
+> +		rval = fwnode_property_read_u64_array(
+> +			fwnode, "link-frequencies", vep->link_frequencies,
+> +			vep->nr_of_link_frequencies);
+> +		if (rval < 0)
+> +			goto out_err;
+> +	}
+>  
+>  	return vep;
+>  
+> -- 
+> 2.1.4
+> 
+> 
+
 -- 
-2.7.4
+Regards,
+Niklas Söderlund
