@@ -1,123 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:40068 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753984AbdFWJ3i (ORCPT
+Received: from mail-lf0-f42.google.com ([209.85.215.42]:33461 "EHLO
+        mail-lf0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751878AbdF2HV4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Jun 2017 05:29:38 -0400
-Subject: Re: [PATCH v2 2/3] [media] coda: first step at error recovery
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-References: <20170608085513.26857-1-p.zabel@pengutronix.de>
- <20170608085513.26857-2-p.zabel@pengutronix.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, kernel@pengutronix.de,
-        patchwork-lst@pengutronix.de, Lucas Stach <l.stach@pengutronix.de>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <c294fe89-092f-65fd-9901-6c1b88cb21e0@xs4all.nl>
-Date: Fri, 23 Jun 2017 11:29:32 +0200
+        Thu, 29 Jun 2017 03:21:56 -0400
+Received: by mail-lf0-f42.google.com with SMTP id z78so5825697lff.0
+        for <linux-media@vger.kernel.org>; Thu, 29 Jun 2017 00:21:55 -0700 (PDT)
+Date: Thu, 29 Jun 2017 09:21:53 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 1/1] docs-rst: media: Document s_stream() core op usage
+Message-ID: <20170629072153.GM30481@bigcity.dyn.berto.se>
+References: <1498718333-26287-1-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20170608085513.26857-2-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1498718333-26287-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/08/17 10:55, Philipp Zabel wrote:
-> From: Lucas Stach <l.stach@pengutronix.de>
+Hi Sakari,
+
+Thanks for your patch.
+
+On 2017-06-29 09:38:53 +0300, Sakari Ailus wrote:
+> As we begin to add support for systems with media pipelines controlled by
+> more than one device driver, it is essential that we precisely define the
+> responsibilities of each component in the stream control and common
+> practices.
 > 
-> This implements a simple handler for the case where decode did not finish
-> successfully. This might be helpful during normal streaming, but for now it
-> only handles the case where the context would deadlock with userspace,
-> i.e. userspace issued DEC_CMD_STOP and waits for EOS, but after the failed
-> decode run we would hold the context and wait for userspace to queue more
-> buffers.
+> Specifically, this patch documents two things:
 > 
-> Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-> Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
-> [p.zabel@pengutronix.de: renamed error_decode/run to run/decode_timeout]
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> 1) streaming control is done per sub-device and sub-device drivers
+> themselves are responsible for streaming setup in upstream sub-devices and
+> 
+> 2) broken frames should be tolerated at streaming stop. It is the
+> responsibility of the sub-device driver to stop the transmitter after
+> itself if it cannot handle broken frames (and it should be probably be
+> done anyway).
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > ---
-> Changes since v1 [1]:
-> - Rename error_run/decode callback to run/decode_timeout, as
->   this error handler is called on device_run timeouts only.
+>  Documentation/media/kapi/v4l2-subdev.rst | 36 ++++++++++++++++++++++++++++++++
+>  1 file changed, 36 insertions(+)
 > 
-> [1] https://patchwork.linuxtv.org/patch/40603
-
-It appears the v1 version was merged, not the v2. I'm not sure if the v2 version
-was posted after v1 was already merged, or if I missed this v2 series.
-
-I'm marking this as Obsoleted, and if you want to still get these v2 changes
-in, then please post a new patch.
-
-Sorry for the mix up,
-
-	Hans
-
-> ---
->  drivers/media/platform/coda/coda-bit.c    | 20 ++++++++++++++++++++
->  drivers/media/platform/coda/coda-common.c |  3 +++
->  drivers/media/platform/coda/coda.h        |  1 +
->  3 files changed, 24 insertions(+)
-> 
-> diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-> index 325035bb0a777..795b6d7584320 100644
-> --- a/drivers/media/platform/coda/coda-bit.c
-> +++ b/drivers/media/platform/coda/coda-bit.c
-> @@ -2198,12 +2198,32 @@ static void coda_finish_decode(struct coda_ctx *ctx)
->  	ctx->display_idx = display_idx;
->  }
+> diff --git a/Documentation/media/kapi/v4l2-subdev.rst b/Documentation/media/kapi/v4l2-subdev.rst
+> index e1f0b72..27e371e 100644
+> --- a/Documentation/media/kapi/v4l2-subdev.rst
+> +++ b/Documentation/media/kapi/v4l2-subdev.rst
+> @@ -262,6 +262,42 @@ is called. After all subdevices have been located the .complete() callback is
+>  called. When a subdevice is removed from the system the .unbind() method is
+>  called. All three callbacks are optional.
 >  
-> +static void coda_decode_timeout(struct coda_ctx *ctx)
-> +{
-> +	struct vb2_v4l2_buffer *dst_buf;
+> +Streaming control
+> +^^^^^^^^^^^^^^^^^
 > +
-> +	/*
-> +	 * For now this only handles the case where we would deadlock with
-> +	 * userspace, i.e. userspace issued DEC_CMD_STOP and waits for EOS,
-> +	 * but after a failed decode run we would hold the context and wait for
-> +	 * userspace to queue more buffers.
-> +	 */
-> +	if (!(ctx->bit_stream_param & CODA_BIT_STREAM_END_FLAG))
-> +		return;
+> +Starting and stopping the stream are somewhat complex operations that
+> +often require walking the media graph to enable streaming on
+> +sub-devices which the pipeline consists of. This involves interaction
+> +between multiple drivers, sometimes more than two.
 > +
-> +	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
-> +	dst_buf->sequence = ctx->qsequence - 1;
+> +The ``.s_stream()`` core op is responsible for starting and stopping
+
+.s_stream() is a video or audio op not a core op right? But at the same 
+time it's all part of the v4l2 core :-) Apart from this nit-pick which 
+I'm fine to leave as is at your leisure.
+
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
+> +the stream on the sub-device it is called on. Additionally, if there
+> +are sub-devices further up in the pipeline, i.e. connected to that
+> +sub-device's sink pads through enabled links, the sub-device driver
+> +must call the ``.s_stream()`` core op of all such sub-devices. The
+> +sub-device driver is thus in control of whether the upstream
+> +sub-devices start (or stop) streaming before or after the sub-device
+> +itself is set up for streaming.
 > +
-> +	coda_m2m_buf_done(ctx, dst_buf, VB2_BUF_STATE_ERROR);
-> +}
+> +.. note::
 > +
->  const struct coda_context_ops coda_bit_decode_ops = {
->  	.queue_init = coda_decoder_queue_init,
->  	.reqbufs = coda_decoder_reqbufs,
->  	.start_streaming = coda_start_decoding,
->  	.prepare_run = coda_prepare_decode,
->  	.finish_run = coda_finish_decode,
-> +	.run_timeout = coda_decode_timeout,
->  	.seq_end_work = coda_seq_end_work,
->  	.release = coda_bit_release,
->  };
-> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-> index 78bd9a4ace0e4..829c7895a98a2 100644
-> --- a/drivers/media/platform/coda/coda-common.c
-> +++ b/drivers/media/platform/coda/coda-common.c
-> @@ -1163,6 +1163,9 @@ static void coda_pic_run_work(struct work_struct *work)
->  		ctx->hold = true;
+> +   As the ``.s_stream()`` callback is called recursively through the
+> +   sub-devices along the pipeline, it is important to keep the
+> +   recursion as short as possible. To this end, drivers are encouraged
+> +   not to internally call ``.s_stream()`` recursively in order to make
+> +   only a single additional recursion per driver in the pipeline. This
+> +   greatly reduces stack usage.
+> +
+> +Stopping the transmitter
+> +^^^^^^^^^^^^^^^^^^^^^^^^
+> +
+> +A transmitter stops sending the stream of images as a result of
+> +calling the ``.s_stream()`` callback. Some transmitters may stop the
+> +stream at a frame boundary whereas others stop immediately,
+> +effectively leaving the current frame unfinished. The receiver driver
+> +should not make assumptions either way, but function properly in both
+> +cases.
+> +
+>  V4L2 sub-device userspace API
+>  -----------------------------
 >  
->  		coda_hw_reset(ctx);
-> +
-> +		if (ctx->ops->run_timeout)
-> +			ctx->ops->run_timeout(ctx);
->  	} else if (!ctx->aborting) {
->  		ctx->ops->finish_run(ctx);
->  	}
-> diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
-> index 76d059431ca13..c5f504d8cf67f 100644
-> --- a/drivers/media/platform/coda/coda.h
-> +++ b/drivers/media/platform/coda/coda.h
-> @@ -183,6 +183,7 @@ struct coda_context_ops {
->  	int (*start_streaming)(struct coda_ctx *ctx);
->  	int (*prepare_run)(struct coda_ctx *ctx);
->  	void (*finish_run)(struct coda_ctx *ctx);
-> +	void (*run_timeout)(struct coda_ctx *ctx);
->  	void (*seq_end_work)(struct work_struct *work);
->  	void (*release)(struct coda_ctx *ctx);
->  };
+> -- 
+> 2.7.4
 > 
+
+-- 
+Regards,
+Niklas Söderlund
