@@ -1,148 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f169.google.com ([209.85.220.169]:35598 "EHLO
-        mail-qk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751895AbdFRLzh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Jun 2017 07:55:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60698 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751613AbdF3QGS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Jun 2017 12:06:18 -0400
 MIME-Version: 1.0
-From: CIJOML CIJOMLovic <cijoml@gmail.com>
-Date: Sun, 18 Jun 2017 13:55:35 +0200
-Message-ID: <CAB0z4Npb2ytLTysrtHatQZZa8bJEnCt4ciVEe_KWTjxjm8no0A@mail.gmail.com>
-Subject: LINUX 4.11.6. Leadtek - USB2.0 Winfast DTV dongle does not initialize correctly
-To: linux-media <linux-media@vger.kernel.org>,
-        linux-kernel@vger.kernel.org
+In-Reply-To: <CAGb2v66+xHR7xfBX_mPigZE_nvcRQfnpr4QAcKYEUhSGN7h61w@mail.gmail.com>
+References: <1498561654-14658-1-git-send-email-yong.deng@magewell.com>
+ <1498561654-14658-3-git-send-email-yong.deng@magewell.com>
+ <20170629211957.uz7jijkuoxr2vohc@rob-hp-laptop> <CAGb2v66+xHR7xfBX_mPigZE_nvcRQfnpr4QAcKYEUhSGN7h61w@mail.gmail.com>
+From: Rob Herring <robh@kernel.org>
+Date: Fri, 30 Jun 2017 11:05:55 -0500
+Message-ID: <CAL_JsqK5n966u9dfBiAxphURghetxu5Cfkj03oNafAFT4NO10A@mail.gmail.com>
+Subject: Re: [PATCH RFC 2/2] dt-bindings: add binding documentation for
+ Allwinner CSI
+To: Chen-Yu Tsai <wens@csie.org>
+Cc: Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Peter Griffin <peter.griffin@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Benoit Parrot <bparrot@ti.com>, Arnd Bergmann <arnd@arndb.de>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        tiffany lin <tiffany.lin@mediatek.com>, kamil@wypas.org,
+        kieran+renesas@ksquared.org.uk,
+        =?UTF-8?B?QW5kcmV3LUNUIENoZW4gKOmZs+aZuui/qik=?=
+        <andrew-ct.chen@mediatek.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-sunxi <linux-sunxi@googlegroups.com>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Thu, Jun 29, 2017 at 10:41 PM, Chen-Yu Tsai <wens@csie.org> wrote:
+> On Fri, Jun 30, 2017 at 5:19 AM, Rob Herring <robh@kernel.org> wrote:
+>> On Tue, Jun 27, 2017 at 07:07:34PM +0800, Yong Deng wrote:
+>>> Add binding documentation for Allwinner CSI.
+>>
+>> For the subject:
+>>
+>> dt-bindings: media: Add Allwinner Camera Sensor Interface (CSI)
+>>
+>> "binding documentation" is redundant.
+>>
+>>>
+>>> Signed-off-by: Yong Deng <yong.deng@magewell.com>
+>>> ---
+>>>  .../devicetree/bindings/media/sunxi-csi.txt        | 51 ++++++++++++++++++++++
+>>>  1 file changed, 51 insertions(+)
+>>>  create mode 100644 Documentation/devicetree/bindings/media/sunxi-csi.txt
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/media/sunxi-csi.txt b/Documentation/devicetree/bindings/media/sunxi-csi.txt
+>>> new file mode 100644
+>>> index 0000000..770be0e
+>>> --- /dev/null
+>>> +++ b/Documentation/devicetree/bindings/media/sunxi-csi.txt
+>>> @@ -0,0 +1,51 @@
+>>> +Allwinner V3s Camera Sensor Interface
+>>> +------------------------------
+>>> +
+>>> +Required properties:
+>>> +  - compatible: value must be "allwinner,sun8i-v3s-csi"
+>>> +  - reg: base address and size of the memory-mapped region.
+>>> +  - interrupts: interrupt associated to this IP
+>>> +  - clocks: phandles to the clocks feeding the CSI
+>>> +    * ahb: the CSI interface clock
+>>> +    * mod: the CSI module clock
+>>> +    * ram: the CSI DRAM clock
+>>> +  - clock-names: the clock names mentioned above
+>>> +  - resets: phandles to the reset line driving the CSI
+>>> +
+>>> +- ports: A ports node with endpoint definitions as defined in
+>>> +  Documentation/devicetree/bindings/media/video-interfaces.txt. The
+>>> +  first port should be the input endpoints, the second one the outputs
+>>
+>> Is there more than one endpoint for each port? If so, need to define
+>> that numbering too.
+>
+> It is possible to have multiple camera sensors connected to the same
+> bus. Think front and back cameras on a cell phone or tablet.
+>
+> I don't think any kind of numbering makes much sense though. The
+> system is free to use just one sensor at a time, or use many with
+> some time multiplexing scheme. What might matter to the end user
+> is where the camera is placed. But using the position or orientation
+> as a numbering scheme might not work well either. Someone may end
+> up using two sensors with the same orientation for stereoscopic
+> vision.
 
-after years of not using the dongle I wanted to use it. And I ended up
-like this. Previously dongle worked correctly. It is not broken I
-checked it in Windows.
+Well, for muxing, you need to no which endpoint is which mux input,
+but if the muxing is at the board level, then that's really outside
+this binding. For stereoscopic, don't you need both sensors to work at
+the same time (i.e. not muxed). That would be multiple ports.
 
+When would you have 2 output endpoints though? That could be to
+different processing blocks, but those connections are internal,
+fixed, and known. So you should document the numbering in that case.
 
-
-[   22.050048] usb 3-1: new high-speed USB device number 3 using xhci_hcd
-[   22.190321] usb 3-1: New USB device found, idVendor=0413, idProduct=6025
-[   22.190323] usb 3-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
-[   23.218049] dvb-usb: found a 'Leadtek - USB2.0 Winfast DTV dongle'
-in cold state, will try to load a firmware
-[   23.218287] dvb-usb: downloading firmware from file
-'dvb-usb-dibusb-6.0.0.8.fw'
-[   23.235307] usbcore: registered new interface driver dvb_usb_dibusb_mc
-[   23.237929] usb 3-1: USB disconnect, device number 3
-[   23.237953] dvb-usb: generic DVB-USB module successfully
-deinitialized and disconnected.
-[   25.015530] usb 3-1: new high-speed USB device number 4 using xhci_hcd
-[   25.164366] usb 3-1: New USB device found, idVendor=0413, idProduct=6026
-[   25.164378] usb 3-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-[   25.164380] usb 3-1: Product: MOD3000
-[   25.164380] usb 3-1: Manufacturer: STAE
-[   25.165057] dvb-usb: found a 'Leadtek - USB2.0 Winfast DTV dongle'
-in warm state.
-[   25.165251] dvb-usb: will pass the complete MPEG2 transport stream
-to the software demuxer.
-[   25.169325] dvbdev: DVB: registering new adapter (Leadtek - USB2.0
-Winfast DTV dongle)
-[   25.169784] ------------[ cut here ]------------
-[   25.169791] WARNING: CPU: 3 PID: 29 at
-/home/kernel/COD/linux/drivers/usb/core/hcd.c:1587
-usb_hcd_map_urb_for_dma+0x37f/0x570
-[   25.169791] transfer buffer not dma capable
-[   25.169792] Modules linked in: dvb_usb_dibusb_mc
-dvb_usb_dibusb_mc_common dvb_usb_dibusb_common dib3000mc
-dibx000_common dvb_usb dvb_core rc_core ccm xt_CHECKSUM iptable_mangle
-ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat
-nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack libcrc32c
-ipt_REJECT nf_reject_ipv4 xt_tcpudp bridge stp llc ebtable_filter
-ebtables ip6table_filter ip6_tables iptable_filter ip_tables x_tables
-rfcomm bnep intel_rapl x86_pkg_temp_thermal intel_powerclamp coretemp
-crct10dif_pclmul crc32_pclmul ghash_clmulni_intel pcbc arc4
-snd_hda_codec_hdmi snd_hda_codec_realtek snd_hda_codec_generic
-aesni_intel snd_hda_intel iwldvm aes_x86_64 snd_hda_codec crypto_simd
-glue_helper snd_hda_core cryptd mac80211 snd_seq_midi snd_hwdep
-uvcvideo videobuf2_vmalloc intel_cstate
-[   25.169819]  intel_rapl_perf thinkpad_acpi snd_seq_midi_event
-joydev input_leds videobuf2_memops snd_pcm serio_raw videobuf2_v4l2
-snd_rawmidi videobuf2_core btusb iwlwifi videodev snd_seq cfg80211
-btrtl media nvram mei_me btbcm btintel snd_seq_device bluetooth
-lpc_ich snd_timer shpchp mei snd soundcore mac_hid kvm_intel kvm
-irqbypass parport_pc sunrpc ppdev lp parport autofs4 btrfs xor
-raid6_pq i915 i2c_algo_bit psmouse drm_kms_helper syscopyarea
-sysfillrect sysimgblt fb_sys_fops ahci e1000e drm libahci sdhci_pci
-sdhci ptp pps_core wmi video
-[   25.169854] CPU: 3 PID: 29 Comm: kworker/3:0 Not tainted
-4.11.6-041106-generic #201706170517
-[   25.169855] Hardware name: LENOVO 2325CK9/2325CK9, BIOS G2ETA7WW
-(2.67 ) 09/09/2016
-[   25.169857] Workqueue: usb_hub_wq hub_event
-[   25.169858] Call Trace:
-[   25.169862]  dump_stack+0x63/0x81
-[   25.169864]  __warn+0xcb/0xf0
-[   25.169864]  warn_slowpath_fmt+0x5a/0x80
-[   25.169866]  usb_hcd_map_urb_for_dma+0x37f/0x570
-[   25.169867]  usb_hcd_submit_urb+0x35c/0xb90
-[   25.169869]  ? del_timer_sync+0x48/0x50
-[   25.169871]  ? schedule_timeout+0x184/0x310
-[   25.169872]  ? del_timer_sync+0x50/0x50
-[   25.169874]  usb_submit_urb.part.8+0x30b/0x530
-[   25.169875]  ? wait_for_completion_timeout+0xb8/0x140
-[   25.169876]  usb_submit_urb+0x62/0x70
-[   25.169878]  usb_start_wait_urb+0x6e/0x170
-[   25.169879]  usb_bulk_msg+0xbd/0x160
-[   25.169882]  dvb_usb_generic_rw+0x15f/0x1e0 [dvb_usb]
-[   25.169884]  dibusb_i2c_msg+0xcf/0x130 [dvb_usb_dibusb_common]
-[   25.169886]  dibusb_i2c_xfer+0x13c/0x150 [dvb_usb_dibusb_common]
-[   25.169887]  __i2c_transfer+0x115/0x3f0
-[   25.169889]  ? dvb_usb_fe_sleep+0x60/0x60 [dvb_usb]
-[   25.169890]  i2c_transfer+0x5c/0xc0
-[   25.169892]  dib3000mc_read_word+0x9a/0x100 [dib3000mc]
-[   25.169893]  dib3000mc_identify+0x17/0xc0 [dib3000mc]
-[   25.169895]  ? dib3000mc_identify+0x17/0xc0 [dib3000mc]
-[   25.169896]  dib3000mc_attach+0x6e/0x450 [dib3000mc]
-[   25.169897]  dibusb_dib3000mc_frontend_attach+0x4c/0x160
-[dvb_usb_dibusb_mc_common]
-[   25.169899]  dvb_usb_adapter_frontend_init+0xdf/0x190 [dvb_usb]
-[   25.169900]  dvb_usb_device_init+0x4ca/0x630 [dvb_usb]
-[   25.169902]  dibusb_mc_probe+0x25/0x27 [dvb_usb_dibusb_mc]
-[   25.169903]  usb_probe_interface+0x159/0x2d0
-[   25.169905]  driver_probe_device+0x2bb/0x460
-[   25.169906]  __device_attach_driver+0x8c/0x100
-[   25.169908]  ? __driver_attach+0xf0/0xf0
-[   25.169909]  bus_for_each_drv+0x67/0xb0
-[   25.169910]  __device_attach+0xdd/0x160
-[   25.169912]  device_initial_probe+0x13/0x20
-[   25.169913]  bus_probe_device+0x92/0xa0
-[   25.169914]  device_add+0x373/0x630
-[   25.169916]  usb_set_configuration+0x5d2/0x8c0
-[   25.169918]  generic_probe+0x2e/0x80
-[   25.169919]  usb_probe_device+0x2e/0x70
-[   25.169920]  driver_probe_device+0x2bb/0x460
-[   25.169921]  __device_attach_driver+0x8c/0x100
-[   25.169922]  ? __driver_attach+0xf0/0xf0
-[   25.169923]  bus_for_each_drv+0x67/0xb0
-[   25.169924]  __device_attach+0xdd/0x160
-[   25.169926]  device_initial_probe+0x13/0x20
-[   25.169927]  bus_probe_device+0x92/0xa0
-[   25.169928]  device_add+0x373/0x630
-[   25.169930]  ? random_poll+0x50/0x80
-[   25.169932]  usb_new_device+0x275/0x490
-[   25.169933]  hub_port_connect+0x50e/0x9d0
-[   25.169934]  hub_event+0x958/0xb10
-[   25.169936]  ? pick_next_task_fair+0x319/0x540
-[   25.169938]  process_one_work+0x1fc/0x4b0
-[   25.169939]  worker_thread+0x4b/0x500
-[   25.169941]  kthread+0x109/0x140
-[   25.169942]  ? process_one_work+0x4b0/0x4b0
-[   25.169944]  ? kthread_create_on_node+0x70/0x70
-[   25.169945]  ret_from_fork+0x2c/0x40
-[   25.169946] ---[ end trace 61ae6724a5bf0373 ]---
-[   25.169947] dvb-usb: recv bulk message failed: -11
-[   25.170105] dvb-usb: recv bulk message failed: -11
-[   25.170108] dvb-usb: no frontend was attached by 'Leadtek - USB2.0
-Winfast DTV dongle'
-
-Best regards
-
-Michal
+Rob
