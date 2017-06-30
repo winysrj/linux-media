@@ -1,196 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:9804 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752396AbdF0H57 (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41880 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751796AbdF3OfQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Jun 2017 03:57:59 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: "H. Nikolaus Schaller" <hns@goldelico.com>,
-        Suman Anna <s-anna@ti.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Pavel Machek <pavel@ucw.cz>, Mark Rutland <mark.rutland@arm.com>,
-        devicetree <devicetree@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Alexandre TORGUE <alexandre.torgue@st.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Rob Herring" <robh+dt@kernel.org>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Yannick FERTRE <yannick.fertre@st.com>,
-        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Discussions about the Letux Kernel
-        <letux-kernel@openphoenux.org>
-Subject: Re: omap3isp camera was Re: [PATCH v1 0/6] Add support of OV9655
- camera
-Date: Tue, 27 Jun 2017 07:57:02 +0000
-Message-ID: <658307f3-7abe-5738-7a8a-2eff6e0902a1@st.com>
-References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com>
- <385A82AC-CC23-41BD-9F57-0232F713FED9@goldelico.com>
- <1E453955-0C1A-414B-BBB2-C64B6D0EF378@goldelico.com>
- <20170625091856.GA22791@amd>
- <EDFD663F-37F9-42C2-92A9-66C2508B361E@goldelico.com>
- <20170626083927.GB9621@amd> <e725a457-5efc-22fa-ce97-bb7753185d21@st.com>
- <E4E1E683-9CD0-4F23-AB03-080C52D0D73B@goldelico.com>
-In-Reply-To: <E4E1E683-9CD0-4F23-AB03-080C52D0D73B@goldelico.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-ID: <15ED3E17860D6B469DE4E1A7B49A7C65@st.com>
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+        Fri, 30 Jun 2017 10:35:16 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Eric Anholt <eric@anholt.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 06/12] cec: document the new CEC pin capability, events and mode
+Date: Fri, 30 Jun 2017 16:35:03 +0200
+Message-Id: <20170630143509.56029-7-hverkuil@xs4all.nl>
+In-Reply-To: <20170630143509.56029-1-hverkuil@xs4all.nl>
+References: <20170630143509.56029-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nikolaus,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I would propose to work first on YUV support, so you can test a YUV VGA 
-grabbing using your OMPA3 setup, I will add this support then in patch 
-serie.
+Document CEC_CAP_MONITOR_PIN, CEC_EVENT_PIN_LOW/HIGH and
+CEC_MODE_MONITOR_PIN.
 
-For the co-work, let's continue on IRC (irc.freenode.net), chat #v4l, my 
-pseudo is "hfr".
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst |  7 +++++++
+ Documentation/media/uapi/cec/cec-ioc-dqevent.rst     | 20 ++++++++++++++++++++
+ Documentation/media/uapi/cec/cec-ioc-g-mode.rst      | 19 +++++++++++++++++--
+ 3 files changed, 44 insertions(+), 2 deletions(-)
 
-BR,
-Hugues.
-
-On 06/26/2017 06:28 PM, H. Nikolaus Schaller wrote:
-> Hi Hugues,
-> 
->> Am 26.06.2017 um 15:19 schrieb Hugues FRUCHET <hugues.fruchet@st.com>:
->>
->> Nikolaus,
->> some comments about pixel format/resolution below:
->>
->> On 06/26/2017 10:39 AM, Pavel Machek wrote:
->>> On Mon 2017-06-26 08:05:04, H. Nikolaus Schaller wrote:
->>>> Hi Pavel,
->>>>
->>>>> Am 25.06.2017 um 11:18 schrieb Pavel Machek <pavel@ucw.cz>:
->>>>>
->>>>> Hi!
->>>>>
->>>>>> * unfortunately we still get no image :(
->>>>>>
->>>>>> The latter is likely a setup issue of our camera interface (OMAP3 ISP = Image Signal Processor) which
->>>>>> we were not yet able to solve. Oscilloscoping signals on the interface indicated that signals and
->>>>>> sync are correct. But we do not know since mplayer only shows a green screen.
->>>>>
->>>>> What mplayer command line do you use? How did you set up the pipeline
->>>>> with media-ctl?
->>>>>
->>>>> On kernel.org, I have tree called camera-fw5-6 , where camera works
->>>>> for me on n900. On gitlab, there's modifed fcam-dev, which can be used
->>>>> for testing.
->>>>
->>>> We did have yet another (non-DT) camera driver and media-ctl working in with 3.12.37,
->>>> but had no success yet to update it to work with modern kernels or drivers. It
->>>> is either that the (newer) drivers missing something or the media-ctl has changed.
->>>>
->>>> Here is the log of our scripts with Hugues' driver and our latest setup:
->>>>
->>>> root@letux:~# ./camera-demo sxga
->>>> DISPLAY=:0
->>>> XAUTHORITY=tcp
->>>> Camera: /dev/v4l-subdev8
->>>> Setting mode sxga
->>>> media-ctl -r
->>>> media-ctl -l '"ov965x":0 -> "OMAP3 ISP CCDC":0[1]'
->>>> media-ctl -l '"OMAP3 ISP CCDC":1 -> "OMAP3 ISP CCDC output":0[1]'
->>>> media-ctl -V '"ov965x":0 [UYVY2X8 1280x1024]'
->>>> media-ctl -V '"OMAP3 ISP CCDC":0 [UYVY2X8 1280x1024]'
->>>> media-ctl -V '"OMAP3 ISP CCDC":1 [UYVY 1280x1024]'
->>>
->>> Ok, so you are using capture, not preview.
->>>
->>> You may want to try this one:
->>>
->>> commit 0eae9d2a8f096f703cbc8f9a0ab155cd3cc14cef
->>> Author: Pavel <pavel@ucw.cz>
->>> Date:   Mon Feb 13 21:26:51 2017 +0100
->>>
->>>      omap3isp: fix VP2SDR bit so capture (not preview) works
->>>
->>>      This is neccessary for capture (not preview) to work properly on
->>>          N900. Why is unknown.
->>> 	
->>> 									Pavel
->>>
->>>> ### starting mplayer in sxga mode ###
->>>> mplayer tv:// -vf rotate=2 -tv driver=v4l2:device=/dev/video2:outfmt=uyvy:width=1280:height=1024:fps=15 -vo x11
->>
->> => "outfmt=uyvy:width=1280:height=1024"
->>
->> Nikolaus,
->> Be careful that only VGA/RGB565 is coded in this basic version of OV9655,
->> perhaps this explain partly your troubles ?
-> 
-> Ah, I see. The driver should support SXGA and UYVY2X8 (because our 3.12 compatible driver did).
-> 
-> This very old (but working) non-DT driver for 3.12 kernels
-> was not based on the ov9650.c code but mt9p031.c:
-> 
-> 	http://git.goldelico.com/?p=gta04-kernel.git;a=blob;f=drivers/media/i2c/ov9655.c;hb=refs/heads/3.12.37
-> 
-> We abandoned this independent driver because we felt (like you) that extending the existing
-> ov9650 driver is a better solution for mainline.
-> 
-> 
-> At least in theory. Therefore I assumed your submission supports SXGA and UYVY as well,
-> since your work is based on ours.
-> 
-> Nevertheless, VGA resolution doesn't work either.
-> 
-> root@letux:~# ./camera-demo vga
-> DISPLAY=:0
-> XAUTHORITY=tcp
-> Camera: /dev/v4l-subdev8
-> Setting mode vga
-> media-ctl -r
-> media-ctl -l '"ov965x":0 -> "OMAP3 ISP CCDC":0[1]'
-> media-ctl -l '"OMAP3 ISP CCDC":1 -> "OMAP3 ISP CCDC output":0[1]'
-> media-ctl -V '"ov965x":0 [UYVY2X8 640x480]'
-> media-ctl -V '"OMAP3 ISP CCDC":0 [UYVY2X8 640x480]'
-> media-ctl -V '"OMAP3 ISP CCDC":1 [UYVY 640x480]'
-> ### starting mplayer in vga mode ###
-> mplayer tv:// -vf rotate=2 -tv driver=v4l2:device=/dev/video2:outfmt=uyvy:width=640:height=480:fps=30 -vo x11
-> 
-> 
-> A little later it reports a NULL pointer dereference in ccdc_link_validate() / ccdc_is_shiftable().
-> 
-> It appears as if the input format translates into a NULL pointer by
-> omap3isp_video_format_info(0x00001008).
-> 
-> This NULL pointer is not catched by ccdc_is_shiftable().
-> 
-> And it indicates that the camera driver is doing a format that is not
-> supported by omap3isp...
-> 
-> 
-> So how should we proceed?
-> 
-> It looks as if your driver supports your scenario (STM32F746G-DISCO) in VGA/RGB565
-> and our drivers (basically) support ours (omap3isp) in VGA/SXGA but UYVY.
-> 
-> We certainly need a generic driver that supports all platforms and formats. So
-> we somehow need to get all this stuff into a single driver.
-> 
-> Working on two different patch sets doesn't make sense and would be rejected
-> my maintainers...
-> 
-> Basically I could work on your basis to add what we need, but this requires your
-> basis to be stabilized first. Or I would spend more time rebasing my code than
-> fixing things.
-> 
-> Or you implement the missing formats / features and I test and try to pinpoint
-> and report issues to you for integration.
-> 
-> So we have to agree on some way to coordinate the work, especially who submits
-> patch sets for review here. Since you were faster than us to submit anything,
-> so you should continue with this series.
-> 
-> BR and thanks,
-> Nikolaus
-> 
+diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
+index 6d7bf7bef3eb..882d6e025747 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
+@@ -121,6 +121,13 @@ returns the information to the application. The ioctl never fails.
+         high. This makes it impossible to use CEC to wake up displays that
+ 	set the HPD pin low when in standby mode, but keep the CEC bus
+ 	alive.
++    * .. _`CEC-CAP-MONITOR-PIN`:
++
++      - ``CEC_CAP_MONITOR_PIN``
++      - 0x00000080
++      - The CEC hardware can monitor CEC pin changes from low to high voltage
++        and vice versa. When in pin monitoring mode the application will
++	receive ``CEC_EVENT_PIN_LOW`` and ``CEC_EVENT_PIN_HIGH`` events.
+ 
+ 
+ 
+diff --git a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
+index 4d3570c2e0b3..3e2cd5fefd38 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
+@@ -146,6 +146,20 @@ it is guaranteed that the state did change in between the two events.
+       - 2
+       - Generated if one or more CEC messages were lost because the
+ 	application didn't dequeue CEC messages fast enough.
++    * .. _`CEC-EVENT-PIN-LOW`:
++
++      - ``CEC_EVENT_PIN_LOW``
++      - 3
++      - Generated if the CEC pin goes from a high voltage to a low voltage.
++        Only applies to adapters that have the ``CEC_CAP_MONITOR_PIN``
++	capability set.
++    * .. _`CEC-EVENT-PIN-HIGH`:
++
++      - ``CEC_EVENT_PIN_HIGH``
++      - 4
++      - Generated if the CEC pin goes from a low voltage to a high voltage.
++        Only applies to adapters that have the ``CEC_CAP_MONITOR_PIN``
++	capability set.
+ 
+ 
+ .. tabularcolumns:: |p{6.0cm}|p{0.6cm}|p{10.9cm}|
+@@ -165,6 +179,12 @@ it is guaranteed that the state did change in between the two events.
+ 	opened. See the table above for which events do this. This allows
+ 	applications to learn the initial state of the CEC adapter at
+ 	open() time.
++    * .. _`CEC-EVENT-FL-DROPPED-EVENTS`:
++
++      - ``CEC_EVENT_FL_DROPPED_EVENTS``
++      - 2
++      - Set if one or more events of the given event type have been dropped.
++        This is an indication that the application cannot keep up.
+ 
+ 
+ 
+diff --git a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
+index 664f0d47bbcd..3e907c74338f 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
+@@ -149,13 +149,28 @@ Available follower modes are:
+ 	code. You cannot become a follower if :ref:`CEC_CAP_TRANSMIT <CEC-CAP-TRANSMIT>`
+ 	is not set or if :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>` was specified,
+ 	the ``EINVAL`` error code is returned in that case.
++    * .. _`CEC-MODE-MONITOR-PIN`:
++
++      - ``CEC_MODE_MONITOR_PIN``
++      - 0xd0
++      - Put the file descriptor into pin monitoring mode. Can only be used in
++	combination with :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>`,
++	otherwise the ``EINVAL`` error code will be returned.
++	This mode requires that the :ref:`CEC_CAP_MONITOR_PIN <CEC-CAP-MONITOR-PIN>`
++	capability is set, otherwise the ``EINVAL`` error code is returned.
++	While in pin monitoring mode this file descriptor can receive the
++	``CEC_EVENT_PIN_LOW`` and ``CEC_EVENT_PIN_HIGH`` events to see the
++	low-level CEC pin transitions. This is very useful for debugging.
++	This mode is only allowed if the process has the ``CAP_NET_ADMIN``
++	capability. If that is not set, then the ``EPERM`` error code is returned.
+     * .. _`CEC-MODE-MONITOR`:
+ 
+       - ``CEC_MODE_MONITOR``
+       - 0xe0
+       - Put the file descriptor into monitor mode. Can only be used in
+-	combination with :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>`, otherwise EINVAL error
+-	code will be returned. In monitor mode all messages this CEC
++	combination with :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>`,i
++	otherwise the ``EINVAL`` error code will be returned.
++	In monitor mode all messages this CEC
+ 	device transmits and all messages it receives (both broadcast
+ 	messages and directed messages for one its logical addresses) will
+ 	be reported. This is very useful for debugging. This is only
+-- 
+2.11.0
