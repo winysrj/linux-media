@@ -1,47 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:38220 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752056AbdFJJGP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Jun 2017 05:06:15 -0400
-From: Johannes Thumshirn <jthumshirn@suse.de>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-fbdev@vger.kernel.org,
-        Johannes Thumshirn <jthumshirn@suse.de>
-Subject: [PATCH 7/7] staging/atomisp: use MEDIA_VERSION instead of KERNEL_VERSION
-Date: Sat, 10 Jun 2017 11:05:36 +0200
-Message-Id: <20170610090536.12472-8-jthumshirn@suse.de>
-In-Reply-To: <20170610090536.12472-1-jthumshirn@suse.de>
-References: <20170610090536.12472-1-jthumshirn@suse.de>
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:35217 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751722AbdF3KDe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Jun 2017 06:03:34 -0400
+Received: by mail-oi0-f68.google.com with SMTP id l130so11709083oib.2
+        for <linux-media@vger.kernel.org>; Fri, 30 Jun 2017 03:03:34 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1498815176-16108-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1498815176-16108-1-git-send-email-prabhakar.csengg@gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 30 Jun 2017 12:03:33 +0200
+Message-ID: <CAK8P3a387vRR3ib_tAGw+zrfNWePuoKg8h1CGb4HLY4S8D65Uw@mail.gmail.com>
+Subject: Re: [PATCH] media: platform: davinci: drop VPFE_CMD_S_CCDC_RAW_PARAMS
+To: Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sekhar Nori <nsekhar@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use MEDIA_VERSION instead of KERNEL_VERSION to encode the driver
-version of the Atom ISP driver.
+On Fri, Jun 30, 2017 at 11:32 AM, Prabhakar <prabhakar.csengg@gmail.com> wr=
+ote:
+> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>
+> For dm355 and dm644x the vpfe driver provided a ioctl to
+> configure the raw bayer config using a IOCTL, but since
+> the code was not properly implemented and aswell the
+> IOCTL was marked as 'experimental ioctl that will change
+> in future kernels', dropping this IOCTL.
+>
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> ---
+> As discussed at [1], there wouldn=E2=80=99t be any possible users of
+> the VPFE_CMD_S_CCDC_RAW_PARAMS IOCTL, but if someone complains
+> we might end up reverting the removal and fix it differently.
+>
+> Note: This patch is on top of [1].
+>
+> [1] https://patchwork.kernel.org/patch/9779385/
 
-Signed-off-by: Johannes Thumshirn <jthumshirn@suse.de>
----
- drivers/staging/media/atomisp/include/linux/atomisp.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 
-diff --git a/drivers/staging/media/atomisp/include/linux/atomisp.h b/drivers/staging/media/atomisp/include/linux/atomisp.h
-index 35865462ccf9..0b664ee6f825 100644
---- a/drivers/staging/media/atomisp/include/linux/atomisp.h
-+++ b/drivers/staging/media/atomisp/include/linux/atomisp.h
-@@ -30,9 +30,9 @@
- 
- /* struct media_device_info.driver_version */
- #define ATOMISP_CSS_VERSION_MASK	0x00ffffff
--#define ATOMISP_CSS_VERSION_15		KERNEL_VERSION(1, 5, 0)
--#define ATOMISP_CSS_VERSION_20		KERNEL_VERSION(2, 0, 0)
--#define ATOMISP_CSS_VERSION_21		KERNEL_VERSION(2, 1, 0)
-+#define ATOMISP_CSS_VERSION_15		MEDIA_REVISION(1, 5, 0)
-+#define ATOMISP_CSS_VERSION_20		MEDIA_REVISION(2, 0, 0)
-+#define ATOMISP_CSS_VERSION_21		MEDIA_REVISION(2, 1, 0)
- 
- /* struct media_device_info.hw_revision */
- #define ATOMISP_HW_REVISION_MASK	0x0000ff00
--- 
-2.12.3
+I think it would be good to backport one or both of the patches to
+stable kernels, to close the potential risk of someone abusing the
+ioctl.
