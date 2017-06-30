@@ -1,64 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f50.google.com ([74.125.83.50]:36755 "EHLO
-        mail-pg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751641AbdFJCI2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Jun 2017 22:08:28 -0400
-Received: by mail-pg0-f50.google.com with SMTP id a70so31346875pge.3
-        for <linux-media@vger.kernel.org>; Fri, 09 Jun 2017 19:08:28 -0700 (PDT)
-Received: from ubuntu.windy (c122-106-153-7.carlnfd1.nsw.optusnet.com.au. [122.106.153.7])
-        by smtp.gmail.com with ESMTPSA id a28sm5232845pfl.25.2017.06.09.19.08.25
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 09 Jun 2017 19:08:26 -0700 (PDT)
-Date: Sat, 10 Jun 2017 12:08:40 +1000
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: [patch] [media_build] Small fix to build script (resend)
-Message-ID: <20170610020838.GA12764@ubuntu.windy>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:37967 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751659AbdF3OP5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Jun 2017 10:15:57 -0400
+From: Thierry Escande <thierry.escande@collabora.com>
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v4 2/8] [media] s5p-jpeg: Correct WARN_ON statement for checking subsampling
+Date: Fri, 30 Jun 2017 16:15:41 +0200
+Message-Id: <1498832147-16316-3-git-send-email-thierry.escande@collabora.com>
+In-Reply-To: <1498832147-16316-1-git-send-email-thierry.escande@collabora.com>
+References: <1498832147-16316-1-git-send-email-thierry.escande@collabora.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset = "utf-8"
+Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This seems to have fallen on the floor...
-Original send date: Thu, 1 Jun 2017 19:43:43 +1000
+From: Tony K Nadackal <tony.kn@samsung.com>
 
-Avoid going splat if --depth is not given
+Corrects the WARN_ON statement for subsampling based on the
+JPEG Hardware version.
 
-Commit 6b4a9c5 indroduced the --depth parameter to limit the commit history
-pulled by when cloning, giving a nice speedup. But in the process it broke
-running without the --depth parameter. The first invocation of
-'./build --main-git' works fine, but the second falls over like so:
-
-  fatal: No such remote or remote group: media_tree/master
-  Can't update from the upstream tree at ./build line 430.
-
-The fix is to check whether that remote has been defined before trying
-to update from it.
-
-Signed-off-by: Vincent McIntyre <vincent.mcintyre@gmail.com>
+Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
+Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+Acked-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Acked-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
 ---
- build | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/build b/build
-index a4cd38e..d7f51c2 100755
---- a/build
-+++ b/build
-@@ -427,8 +427,13 @@ if (@git == 2) {
- 			}
- 		}
- 	} elsif ($workdir eq "") {
--		system("git --git-dir media/.git remote update '$rname/$git[1]'") == 0
--			or die "Can't update from the upstream tree";
-+		if (check_git("remote", "$rname/$git[1]")) {
-+			system("git --git-dir media/.git remote update '$rname/$git[1]'") == 0
-+				or die "Can't update from the upstream tree";
-+		} else {
-+			system("git --git-dir media/.git remote update origin") == 0
-+				or die "Can't update from the upstream tree";
-+		}
- 	}
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 623508d..0d935f5 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -614,24 +614,26 @@ static inline struct s5p_jpeg_ctx *fh_to_ctx(struct v4l2_fh *fh)
  
- 	if ($workdir eq "") {
+ static int s5p_jpeg_to_user_subsampling(struct s5p_jpeg_ctx *ctx)
+ {
+-	WARN_ON(ctx->subsampling > 3);
+-
+ 	switch (ctx->jpeg->variant->version) {
+ 	case SJPEG_S5P:
++		WARN_ON(ctx->subsampling > 3);
+ 		if (ctx->subsampling > 2)
+ 			return V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
+ 		return ctx->subsampling;
+ 	case SJPEG_EXYNOS3250:
+ 	case SJPEG_EXYNOS5420:
++		WARN_ON(ctx->subsampling > 6);
+ 		if (ctx->subsampling > 3)
+ 			return V4L2_JPEG_CHROMA_SUBSAMPLING_411;
+ 		return exynos3250_decoded_subsampling[ctx->subsampling];
+ 	case SJPEG_EXYNOS4:
+ 	case SJPEG_EXYNOS5433:
++		WARN_ON(ctx->subsampling > 3);
+ 		if (ctx->subsampling > 2)
+ 			return V4L2_JPEG_CHROMA_SUBSAMPLING_420;
+ 		return exynos4x12_decoded_subsampling[ctx->subsampling];
+ 	default:
++		WARN_ON(ctx->subsampling > 3);
+ 		return V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
+ 	}
+ }
+-- 
+2.7.4
