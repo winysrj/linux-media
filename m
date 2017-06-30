@@ -1,123 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay2.synopsys.com ([198.182.60.111]:38000 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751965AbdFMMcn (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58838
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752076AbdF3MS0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Jun 2017 08:32:43 -0400
-Subject: Re: [PATCH 2/4] [media] platform: Add Synopsys Designware HDMI RX
- Controller Driver
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Jose Abreu <Jose.Abreu@synopsys.com>,
-        <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-References: <cover.1497347657.git.joabreu@synopsys.com>
- <22ea8b160edaef464d7f5ad362b23a68a6e07633.1497347657.git.joabreu@synopsys.com>
- <e1fb1420-28b1-c5ba-230e-3f1c3f9dfee0@synopsys.com>
- <c8d726a6-ebf2-cf05-2c30-62aae1b51304@cisco.com>
- <5d374038-7a10-ebec-9d84-bfa3e07b3fe5@xs4all.nl>
-CC: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-Message-ID: <db07938a-a400-0285-effe-46b6b6893fc4@synopsys.com>
-Date: Tue, 13 Jun 2017 13:32:32 +0100
+        Fri, 30 Jun 2017 08:18:26 -0400
+Date: Fri, 30 Jun 2017 09:18:15 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Gustavo Padovan <gustavo@padovan.org>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [PATCH 00/12] V4L2 explicit synchronization support
+Message-ID: <20170630091815.3682484c@vento.lan>
+In-Reply-To: <20170616073915.5027-1-gustavo@padovan.org>
+References: <20170616073915.5027-1-gustavo@padovan.org>
 MIME-Version: 1.0
-In-Reply-To: <5d374038-7a10-ebec-9d84-bfa3e07b3fe5@xs4all.nl>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Fri, 16 Jun 2017 16:39:03 +0900
+Gustavo Padovan <gustavo@padovan.org> escreveu:
 
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> 
+> Hi,
+> 
+> This adds support for Explicit Synchronization of shared buffers in V4L2.
+> It uses the Sync File Framework[1] as vector to communicate the fences
+> between kernel and userspace.
+> 
+> Explicit Synchronization allows us to control the synchronization of
+> shared buffers from userspace by passing fences to the kernel and/or 
+> receiving them from the the kernel.
+> 
+> Fences passed to the kernel are named in-fences and the kernel should wait
+> them to signal before using the buffer. On the other side, the kernel creates
+> out-fences for every buffer it receives from userspace. This fence is sent back
+> to userspace and it will signal when the capture, for example, has finished.
+> 
+> Signalling an out-fence in V4L2 would mean that the job on the buffer is done
+> and the buffer can be used by other drivers.
+> 
+> The first patch proposes an userspace API for fences, then on patch 2
+> we prepare to the addition of in-fences in patch 3, by introducing the
+> infrastructure on vb2 to wait on an in-fence signal before queueing the buffer
+> in the driver.
+> 
+> Patch 4 fix uvc v4l2 event handling and patch 5 configure q->dev for vivid
+> drivers to enable to subscribe and dequeue events on it.
+> 
+> Patches 6-7 enables support to notify BUF_QUEUED events, i.e., let userspace
+> know that particular buffer was enqueued in the driver. This is needed,
+> because we return the out-fence fd as an out argument in QBUF, but at the time
+> it returns we don't know to which buffer the fence will be attached thus
+> the BUF_QUEUED event tells which buffer is associated to the fence received in
+> QBUF by userspace.
+> 
+> Patches 8-9 add support to mark queues as ordered. Finally patches 10 and 11
+> add more fence infrastructure to support out-fences and finally patch 12 adds
+> support to out-fences.
+> 
+> Changelog are detailed in each patch.
+> 
+> Please review! Thanks.
 
-On 13-06-2017 11:54, Hans Verkuil wrote:
-> On 06/13/17 12:31, Hans Verkuil wrote:
->> On 06/13/17 12:06, Jose Abreu wrote:
->>> Hi Hans,
->>>
->>>
->>> On 13-06-2017 11:01, Jose Abreu wrote:
->>>
->>> [snip]
->>>> Changes from RFC:
->>>> 	- Added support for HDCP 1.4
->>> [snip]
->>>> +
->>>> +/* HDCP 1.4 */
->>>> +#define DW_HDMI_HDCP14_BKSV_SIZE	2
->>>> +#define DW_HDMI_HDCP14_KEYS_SIZE	(2 * 40)
->>>> +
->>>> +struct dw_hdmi_hdcp14_key {
->>>> +	u32 seed;
->>>> +	u32 bksv[DW_HDMI_HDCP14_BKSV_SIZE];
->>>> +	u32 keys[DW_HDMI_HDCP14_KEYS_SIZE];
->>>> +	bool keys_valid;
->>>> +};
->>>> +
->>>> +struct dw_hdmi_rx_pdata {
->>>> +	/* Controller configuration */
->>>> +	unsigned int iref_clk; /* MHz */
->>>> +	struct dw_hdmi_hdcp14_key hdcp14_keys;
->>>> +	/* 5V sense interface */
->>>> +	bool (*dw_5v_status)(void __iomem *regs, int input);
->>>> +	void (*dw_5v_clear)(void __iomem *regs);
->>>> +	void __iomem *dw_5v_arg;
->>>> +	/* Zcal interface */
->>>> +	void (*dw_zcal_reset)(void __iomem *regs);
->>>> +	bool (*dw_zcal_done)(void __iomem *regs);
->>>> +	void __iomem *dw_zcal_arg;
->>>> +};
->>>> +
->>>> +#endif /* __DW_HDMI_RX_PDATA_H__ */
->>> I now have support for HDCP 1.4 in this driver. Can you send me
->>> the patches about HDCP that you mentioned a while ago?
->> This is what I have:
->>
->> https://urldefense.proofpoint.com/v2/url?u=https-3A__git.linuxtv.org_hverkuil_media-5Ftree.git_log_-3Fh-3Dhdcp&d=DwICaQ&c=DPL6_X_6JkXFx7AXWqB0tg&r=WHDsc6kcWAl4i96Vm5hJ_19IJiuxx_p_Rzo2g-uHDKw&m=89GFcWI869VtRcbl-8t_R_cPeWiZlxloSapfdhTf4vg&s=MUyGTv9NeittcGKYdkUd6gfL55UKG3aR6vqx9MDJ-Bw&e= 
->>
->> This is very old and somewhat messy.
->>
->> It uses ioctls for the bksv's, but I wonder if array/compound controls
->> wouldn't be more appropriate (those didn't exist when this was written
->> originally).
->>
->> It also needs to be checked against HDCP 2 so it can support that as well
-> That's HDCP 2.2, of course.
->
->> (or at least be easily extended for that).
-> Just a follow-up: I would really appreciated it if someone (you?) could get
-> this finalized. The code in the branch above worked for us, but was never
-> actually used in any product. It was internal test code only. It also is
-> HDCP 1.4 only.
+Just reviewed the series. Most patches look good.
 
-I saw the code. I can send a RFC but I'm very limited now in
-terms of what I can test with this. The only available setup I
-have is a receiver so I can't test transmitters neither
-repeaters. As for HDCP 2.2 my implementation is *very* custom.
+I have one additional concern: if the changes here won't cause any
+bad behaviors if fences is not available for some VB2 non V4L2 client.
+I'm actually thinking on this:
 
-So, as I only have a receiver we are not very reactive. I mean I
-can send events to userspace saying that auth
-started/finished/failed but thats it because the transmitter
-takes the lead for HDCP 1.4 and 2.2.
+	https://patchwork.linuxtv.org/patch/31613/
 
-Also, as for what I submitted, I think I have to find another way
-to do this because I'm using a "flavor" of the controller where
-HDCP 1.4 keys must be programmed by SW. Right now they are passed
-by pdata but these are secret keys so it doesn't make any sense
-because manufacturers will not share their keys and they are
-mostly embedded directly in the HW. Short story: my hdcp 1.4 code
-does not make much sense.
+>From what I saw, after this patch series, someone could try to 
+inconditionally open an out fences fd for a driver. Maybe this
+should be denied by default, enabling such feature only if the
+VB2 "client" (e. g. videobuf-v4l2) supports it.
 
->
-> For a proper API we should think about HDCP 1.4 and 2.2 support, and also
-> look at how this works for DisplayPort. Hmm, looks like DP supports HDCP 1.3
-> and 2.2. I'm not sure what the differences are (if any) between 1.3 and 1.4.
-
-Never used DP so I don't know if there are differences.
-
->
-> Regards,
->
-> 	Hans
-
-Best regards,
-Jose Miguel Abreu
+Regards,
+Mauro
