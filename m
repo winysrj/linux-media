@@ -1,103 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.163]:18924 "EHLO
-        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754327AbdFWTAO (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:50221 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751668AbdF3OfO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Jun 2017 15:00:14 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Subject: Re: [PATCH v1 1/6] DT bindings: add bindings for ov965x camera module
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-In-Reply-To: <3f0dcd4f-92ef-a79d-b00b-1f348a201bd2@ti.com>
-Date: Fri, 23 Jun 2017 20:59:28 +0200
-Cc: Mark Rutland <mark.rutland@arm.com>,
-        devicetree <devicetree@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Discussions about the Letux Kernel
-        <letux-kernel@openphoenux.org>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Rob Herring <robh+dt@kernel.org>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-media@vger.kernel.org
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <74EE8B20-84A2-4579-ACBE-32E55CECE1C5@goldelico.com>
-References: <1498143942-12682-1-git-send-email-hugues.fruchet@st.com> <d14b8c6e-b480-36f0-ed0a-684647617dbe@suse.de> <3E7B1344-ECE6-4CCC-9E9D-7521BB566CDE@goldelico.com> <13144955.Kq5qljPvgI@avalon> <24C976BF-52FD-4509-BCE4-9AE41B335482@goldelico.com> <88d0e8ea-74e4-6845-4e0d-8cd0f3a054be@suse.de> <05CBF9B8-2297-447B-860D-A89126B46FC9@goldelico.com> <3f0dcd4f-92ef-a79d-b00b-1f348a201bd2@ti.com>
-To: Suman Anna <s-anna@ti.com>,
-        =?utf-8?Q?Andreas_F=C3=A4rber?= <afaerber@suse.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+        Fri, 30 Jun 2017 10:35:14 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Eric Anholt <eric@anholt.net>
+Subject: [RFC PATCH 00/12] cec: add low-level pin driver/monitoring
+Date: Fri, 30 Jun 2017 16:34:57 +0200
+Message-Id: <20170630143509.56029-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Suman,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Am 23.06.2017 um 20:05 schrieb Suman Anna <s-anna@ti.com>:
->=20
->>>>=20
->>>> Or does it just mean that it defines the property name?
->>>=20
->>> Please read the documentation link I sent - it's in the very bottom =
-and
->>> should have an example.
->>=20
->> I have seen it but it does not give me a good clue how to translate =
-that into
->> correct omap3isp node setup in a specific DT. Rather it raises more =
-questions.
->> Maybe because I don't understand completely what it is talking about.
->>=20
->> The fundamental question is if this "assigned-clock-rates" is already
->> handled by ov965x->clk =3D devm_clk_get(&client->dev, NULL); ?
->>=20
->> Or should we define that for the omap3isp node?
->>=20
->> Then of course we need no new code and just use the right property =
-names.
->> And N900, N9 camera DTs should be updated.
->=20
-> Look up of_clk_set_defaults() function in drivers/clk/clk-conf.c. This
-> function gets invoked usually during clock registration, and also gets
-> called in platform_drv_probe(), so the parents and clocks do get
-> configured before your driver gets probed. So, this provides a default
-> configuration if these properties are supplied (in either clock nodes =
-or
-> actual device nodes), and if your driver needs to change the rates at
-> runtime, then you would have to do that in the driver itself.
+This patch series is something I have been working on for some time now.
+The initial use-case was for the Allwinner A10 SoC which supported CEC
+but only by polling the CEC bus. It turned out that being able to
+access the CEC bus at such a low-level was also ideal for debugging CEC
+problems (bad timings etc) and to do error injection.
 
-Ok, now I understand. Thanks!
+Since these old Allwinner SoCs aren't all that easy to get these days
+I decided to try to use the same code but using a GPIO pin on a
+Raspberry Pi (tested with both 2B and 3) since those are widely
+available.
 
-Quite hidden, but nice feature. I would never have thought that it =
-exists.
-Especially as there are no examples around omap3isp cameras...
+Of course, the cec-gpio driver can be used with any pull-up gpio on
+any SoC.
 
-And an fgrep assigned-clock-rates shows not many use cases outside =
-CPU/SoC
-include files.
+This patch series first makes some small changes in the CEC framework
+(patches 1-4) to prepare for this CEC pin support.
 
-But interestingly arch/arm/boot/dts/at91sam9g25ek.dts uses it for an =
-ovti,ov2640 camera...
+Patch 5-6 adds the new API elements and documents it.
 
-So it seems that we just have to write:
+Patch 7 reworks the CEC core event handling.
 
-	ov9655@30 {
-		compatible =3D "ovti,ov9655";
-		reg =3D <0x30>;
-		clocks =3D <&isp 0>;	/* cam_clka */
-		assigned-clocks =3D <&isp 0>;
-		assigned-clock-rates =3D <24000000>;
-	};
+Patch 8 adds pin monitoring support (allows userspace to see all
+CEC pin transitions as they happen).
 
-instead of introducing a new clock-frequency property and code to handle =
-it.
+Patch 9 adds the core cec-pin implementation that translates low-level
+pin transitions into valid CEC messages. Basically this does what any
+SoC with a proper CEC hardware implementation does.
 
-Or do I misinterpret what "parents" and "clocks" are in this context?
+Patch 10-11 add a little cec-gpio driver that sits on top of the cec-pin
+code. Note that patch 10 is not quite complete: I want to add optional
+cec-notifier support as well so the gpio pin can be 'connected' to the
+HDMI controller and be notified when the physical address changes.
 
-BR and thanks,
-Nikolaus
+Patch 12 adds an example dts snippet with support for cec-gpio to the
+Rpi dts. In the final version this should change to a
+Documentation/devicetree/bindings/media/cec-gpio.txt file.
+
+Patches 1-9 are basically ready for 4.14, although I will probably
+clean up a few things in cec-pin.c/h.
+
+Maxime, this series does not contain the A10 support yet. I have that
+in this (somewhat old) branch:
+
+https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=cubie-cec-pin
+
+If you look in sun4i_hdmi_enc.c:
+
+https://git.linuxtv.org/hverkuil/media_tree.git/tree/drivers/gpu/drm/sun4i/sun4i_hdmi_enc.c?h=cubie-cec-pin
+
+and search for 'cec' you'll see that the CEC implementation is now
+tiny since all the work is now done in cec-pin.c. All that this driver
+needs to implement are the pin read/low/high ops which are literally
+one-liners. Once 4.13-rc1 is released I will rebase this patch series
+and add patches for the sun4i CEC driver.
+
+Eric, don't confuse this with the real Rpi CEC driver. As I mentioned
+to you in another email I'm waiting for 4.13-rc1 to be released and
+then I'll clean up my rpi patch series and repost for inclusion in
+4.14.
+
+This gpio driver in combination with a Raspberry Pi is ideal for
+debugging since the rpi is so widely available.
+
+I will post a patch to the cec-ctl utility that supports this new
+pin monitoring API separately. It is able to fully analyze the CEC
+traffic, and esp. when using the GPIO interrupt it is also very
+accurate. And much, much cheaper than a full fledged CEC analyzer.
+
+And for the record, I've used this quite successfully at Cisco while
+debugging CEC issues :-)
+
+For those who are interested: some code for error injection is available
+here:
+
+https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=cec-error-inj
+
+But it needs a lot more work, esp. with regards to the API design. So
+this is not planned for 4.14 but more likely 4.15.
+
+Regards,
+
+	Hans
+
+Hans Verkuil (12):
+  cec: improve transmit timeout logging
+  cec: add *_ts variants for transmit_done/received_msg
+  cec: add adap_free op
+  cec-core.rst: document the adap_free callback
+  linux/cec.h: add pin monitoring API support
+  cec: document the new CEC pin capability, events and mode
+  cec: rework the cec event handling
+  cec: add core support for low-level CEC pin monitoring
+  cec-pin: add low-level pin hardware support
+  cec-gpio: add CEC GPIO driver
+  MAINTAINERS: add cec-gpio entry
+  rpi: add cec-gpio support to dts
+
+ Documentation/media/kapi/cec-core.rst              |  10 +-
+ .../media/uapi/cec/cec-ioc-adap-g-caps.rst         |   7 +
+ Documentation/media/uapi/cec/cec-ioc-dqevent.rst   |  20 +
+ Documentation/media/uapi/cec/cec-ioc-g-mode.rst    |  19 +-
+ MAINTAINERS                                        |   8 +
+ arch/arm/boot/dts/bcm2836-rpi-2-b.dts              |   5 +
+ arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-b.dts   |   5 +
+ drivers/media/Kconfig                              |   3 +
+ drivers/media/cec/Makefile                         |   4 +
+ drivers/media/cec/cec-adap.c                       | 196 ++++--
+ drivers/media/cec/cec-api.c                        |  73 +-
+ drivers/media/cec/cec-core.c                       |   2 +
+ drivers/media/cec/cec-pin.c                        | 784 +++++++++++++++++++++
+ drivers/media/platform/Kconfig                     |  10 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/cec-gpio/Makefile           |   1 +
+ drivers/media/platform/cec-gpio/cec-gpio.c         | 214 ++++++
+ include/media/cec-pin.h                            | 113 +++
+ include/media/cec.h                                |  64 +-
+ include/uapi/linux/cec.h                           |   8 +-
+ 20 files changed, 1449 insertions(+), 99 deletions(-)
+ create mode 100644 drivers/media/cec/cec-pin.c
+ create mode 100644 drivers/media/platform/cec-gpio/Makefile
+ create mode 100644 drivers/media/platform/cec-gpio/cec-gpio.c
+ create mode 100644 include/media/cec-pin.h
+
+-- 
+2.11.0
