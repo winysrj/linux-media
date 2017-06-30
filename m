@@ -1,42 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:44752 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751355AbdFYVhY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Jun 2017 17:37:24 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
-        rjkm@metzlerbros.de, d.scheller@gmx.net, jasmin@anw.at
-Subject: [PATCH v2 7/7] [staging] cxd2099/cxd2099.c: Activate cxd2099 buffer mode
-Date: Sun, 25 Jun 2017 23:37:11 +0200
-Message-Id: <1498426631-17376-8-git-send-email-jasmin@anw.at>
-In-Reply-To: <1498426631-17376-1-git-send-email-jasmin@anw.at>
-References: <1498426631-17376-1-git-send-email-jasmin@anw.at>
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:35471 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752957AbdF3UvN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Jun 2017 16:51:13 -0400
+Received: by mail-wr0-f194.google.com with SMTP id z45so40142203wrb.2
+        for <linux-media@vger.kernel.org>; Fri, 30 Jun 2017 13:51:13 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: rjkm@metzlerbros.de, jasmin@anw.at
+Subject: [PATCH v2 02/10] [media] dvb-frontends/stv0910: Fix possible buffer overflow
+Date: Fri, 30 Jun 2017 22:50:58 +0200
+Message-Id: <20170630205106.1268-3-d.scheller.oss@gmail.com>
+In-Reply-To: <20170630205106.1268-1-d.scheller.oss@gmail.com>
+References: <20170630205106.1268-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Activate the cxd2099 buffer mode.
+Fixes smatch error:
 
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+  drivers/media/dvb-frontends/stv0910.c:715 dvbs2_nbch() error: buffer overflow 'nbch[fectype]' 2 <= 28
+
+Also, fixes the nbch array table by adding the DUMMY_PLF element at the top
+to match the enums (table element order was off by one before).
+
+Patch sent upstream aswell.
+
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- drivers/staging/media/cxd2099/cxd2099.c | 3 ++-
+ drivers/media/dvb-frontends/stv0910.c | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/cxd2099/cxd2099.c b/drivers/staging/media/cxd2099/cxd2099.c
-index 3431cf6..f28916e 100644
---- a/drivers/staging/media/cxd2099/cxd2099.c
-+++ b/drivers/staging/media/cxd2099/cxd2099.c
-@@ -33,7 +33,8 @@
+diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
+index 2f25bad7f7b8..5a5d190298ea 100644
+--- a/drivers/media/dvb-frontends/stv0910.c
++++ b/drivers/media/dvb-frontends/stv0910.c
+@@ -676,6 +676,7 @@ static int get_bit_error_rate_s(struct stv *state, u32 *bernumerator,
+ static u32 dvbs2_nbch(enum dvbs2_mod_cod mod_cod, enum dvbs2_fectype fectype)
+ {
+ 	static u32 nbch[][2] = {
++		{    0,     0}, /* DUMMY_PLF */
+ 		{16200,  3240}, /* QPSK_1_4, */
+ 		{21600,  5400}, /* QPSK_1_3, */
+ 		{25920,  6480}, /* QPSK_2_5, */
+@@ -708,7 +709,7 @@ static u32 dvbs2_nbch(enum dvbs2_mod_cod mod_cod, enum dvbs2_fectype fectype)
  
- #include "cxd2099.h"
- 
--/* #define BUFFER_MODE 1 */
-+/* comment this line to deactivate the cxd2099ar buffer mode */
-+#define BUFFER_MODE 1
- 
- static int read_data(struct dvb_ca_en50221 *ca, int slot, u8 *ebuf, int ecount);
+ 	if (mod_cod >= DVBS2_QPSK_1_4 &&
+ 	    mod_cod <= DVBS2_32APSK_9_10 && fectype <= DVBS2_16K)
+-		return nbch[fectype][mod_cod];
++		return nbch[mod_cod][fectype];
+ 	return 64800;
+ }
  
 -- 
-2.7.4
+2.13.0
