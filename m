@@ -1,208 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:40256 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751535AbdFINFz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Jun 2017 09:05:55 -0400
-Subject: Re: [PATCH 03/12] intel-ipu3: Add DMA API implementation
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        Joerg Roedel <joro@8bytes.org>,
-        "open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>
-References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
- <1496695157-19926-4-git-send-email-yong.zhi@intel.com>
- <CAAFQd5CLXUsDv6H1C22tc4qjG9e7tm5jtxwYBjV5gx9qrDw50A@mail.gmail.com>
- <73992991-65a9-915b-a450-b23aeb3baaed@arm.com>
- <CAAFQd5AWGN_qSXGG32D-eWKZRoRme+XCD9v1r8qJ5bthtS9z9w@mail.gmail.com>
- <949a467a-e711-d746-859d-fc006bf59773@arm.com>
- <CAAFQd5A=PLHXCA60Rv1T1A=kKQRg4AC3hd-NC798dkqQBJZj3Q@mail.gmail.com>
-From: Robin Murphy <robin.murphy@arm.com>
-Message-ID: <c5bc8a22-22cd-6453-2597-f25ed736d5b6@arm.com>
-Date: Fri, 9 Jun 2017 14:05:51 +0100
-MIME-Version: 1.0
-In-Reply-To: <CAAFQd5A=PLHXCA60Rv1T1A=kKQRg4AC3hd-NC798dkqQBJZj3Q@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:33613 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752947AbdF3UvL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Jun 2017 16:51:11 -0400
+Received: by mail-wm0-f67.google.com with SMTP id j85so9870477wmj.0
+        for <linux-media@vger.kernel.org>; Fri, 30 Jun 2017 13:51:10 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: rjkm@metzlerbros.de, jasmin@anw.at
+Subject: [PATCH v2 00/10] STV0910/STV6111 drivers, ddbridge CineS2 V7 support
+Date: Fri, 30 Jun 2017 22:50:56 +0200
+Message-Id: <20170630205106.1268-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/06/17 07:20, Tomasz Figa wrote:
-> On Fri, Jun 9, 2017 at 3:07 AM, Robin Murphy <robin.murphy@arm.com> wrote:
->> On 08/06/17 15:35, Tomasz Figa wrote:
->>> On Thu, Jun 8, 2017 at 10:22 PM, Robin Murphy <robin.murphy@arm.com> wrote:
->>>> On 07/06/17 10:47, Tomasz Figa wrote:
->>>>> Hi Yong,
->>>>>
->>>>> +Robin, Joerg, IOMMU ML
->>>>>
->>>>> Please see my comments inline.
->>>>>
->>>>> On Tue, Jun 6, 2017 at 5:39 AM, Yong Zhi <yong.zhi@intel.com> wrote:
->>> [snip]
->>>>>> +
->>>>>> +/* End of things adapted from arch/arm/mm/dma-mapping.c */
->>>>>> +static void ipu3_dmamap_sync_single_for_cpu(struct device *dev,
->>>>>> +                                           dma_addr_t dma_handle, size_t size,
->>>>>> +                                           enum dma_data_direction dir)
->>>>>> +{
->>>>>> +       struct ipu3_mmu *mmu = to_ipu3_mmu(dev);
->>>>>> +       dma_addr_t daddr = iommu_iova_to_phys(mmu->domain, dma_handle);
->>>>>> +
->>>>>> +       clflush_cache_range(phys_to_virt(daddr), size);
->>>>>
->>>>> You might need to consider another IOMMU on the way here. Generally,
->>>>> given that daddr is your MMU DMA address (not necessarily CPU physical
->>>>> address), you should be able to call
->>>>>
->>>>> dma_sync_single_for_cpu(<your pci device>, daddr, size, dir)
->>>>
->>>> I'd hope that this IPU complex is some kind of embedded endpoint thing
->>>> that bypasses the VT-d IOMMU or is always using its own local RAM,
->>>> because it would be pretty much unworkable otherwise.
->>>
->>> It uses system RAM and, as far as my understanding goes, by default it
->>> operates without the VT-d IOMMU and that's how it's used right now.
->>
->> OK, if it *is* behind a DMAR unit then booting with "iommu=force" (or
->> whatever the exact incantation for intel-iommu is) should be fun...
->>
->>> I'm suggesting VT-d IOMMU as a way to further strengthen the security
->>> and error resilience in future (due to the IPU complex being
->>> non-coherent and also running a closed source firmware).
->>
->> TBH, doing DMA remapping through *two* IOMMUS will add horrible hardware
->> overhead,
-> 
-> Not necessarily, if done right and with right hardware (I lack the
-> details about Intel hardware unfortunately). One can for example
-> notice the fact that the IOVA ranges from the parent IOMMU are going
-> to be contiguous for the child IOMMU, so one could use huge pages in
-> the child IOMMU and essentially make a selective 1:1 mapping.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Note that many IOMMUs don't actually implement TLBs for larger page
-sizes, even if they support them. And that still doesn't really help the
-main issue of the way in which nested table walks blow up exponentially:
-For a n-level pagetable at the first level and an m-level table at the
-second level, a single access by the device can become m * (n + 1)
-memory accesses (and that's generously ignoring additional things like
-source-ID-to-context lookups).
+For Linux 4.14.
 
->> increase the scope for kernel-side bugs, and not much more. If
->> we don't trust this IOMMU to behave, why are we trying to drive it in
->> the first place? If we do, then a second IOMMU behind it won't protect
->> anything that the first one doesn't already.
-> 
-> That's a valid point, right. But on the other hand, I lack the
-> hardware details on whether we can just disable the internal IOMMU and
-> use DMAR alone instead.
-> 
->>
->>>> The whole
->>>> infrastructure isn't really capable of dealing with nested IOMMUs, and
->>>> nested DMA ops would be an equally horrible idea.
->>>
->>> Could you elaborate a bit more on this? I think we should be able to
->>> deal with this in a way I suggested before:
->>>
->>> a) the PCI device would use the system DMA ops,
->>> b) the PCI device would implement a secondary bus for which it would
->>> provide its own DMA and IOMMU ops.
->>> c) a secondary device would be registered on the secondary bus,
->>> d) all memory for the IPU would be managed on behalf of the secondary device.
->>>
->>> In fact, the driver already is designed in a way that all the points
->>> above are true. If I'm not missing something, the only significant
->>> missing point is calling into system DMA ops from IPU DMA ops.
->>
->> I don't believe x86 has any non-coherent DMA ops, therefore the IPU DMA
->> ops would still probably have to do all their own cache maintenance.
-> 
-> I'd argue that it means that we need to add non-coherent DMA ops on
-> x86, as we have on other archs, which can have both coherent and
-> non-coherent devices in the same system.
+This series adds drivers for the ST STV0910 DVB-S/S2 demodulator ICs and
+the ST STV6111 DVB-S/S2 tuners, and utilises them to enable ddbridge to
+support the current line of Digital Devices DVB-S/S2 hardware (e.g. Cine
+S2 V7/V7A adapters, DuoFlex S2 V4 addon modules and maybe more, with
+similar components).
 
-I'd argue that that's what this patch *is* doing - x86 already has DMA
-ops all over the place for special cases, and this is really just
-another special case. I think trying to introduce some notion of
-non-coherent devices to the arch code, plus some generic way to identify
-them, plus some way to make sure everywhere else that overrides DMA ops
-still does the right thing, would be a lot more work for very little gain.
+The two new drivers have been picked up from Digital Devices' vendor-
+provided dddvb driver package, as of release 0.9.29. Permission to reuse
+(and mainline) them was formally granted by Ralph Metzler
+<rjkm@metzlerbros.de>.
 
->> Allocation/mapping, though, would have to be done with the parent DMA
->> ops first (in case DMA address != physical address), *then* mapped at
->> the IPU MMU, which is the real killer - if the PCI DMA ops are from
->> intel-iommu, then there's little need for the IPU MMU mapping to be
->> anything other than 1:1, so you may as well not bother.
-> 
-> Okay, I think I can agree with you on this. It indeed makes little
-> sense to use both MMUs at the same time, if there is a way to disable
-> one of them.
-> 
-> Let's just keep this unaware of DMAR at this point of time, as a
-> starter, and get back to it later whenever someone wants to use DMAR
-> instead. I guess the way to proceed then would be either disabling the
-> internal MMU, if possible, or making it use a 1:1 (huge page, if
-> possible) mapping, if not.
+Drivers have been cleaned up alot (formatting fixes, dead code removal,
+features depending on not-yet-available API changes removed). Checkpatch
+complaints left:
 
-Generally, when you have a device-specific IOMMU like this, that's the
-one you'd want to keep using because it'll be optimised for the device's
-workload (e.g. the fact that it's non-coherent here is very likely the
-appropriate performance choice).
+  WARNING: please write a paragraph that describes the config symbol fully
+  #39: FILE: drivers/media/dvb-frontends/Kconfig:31:
+  +config DVB_STV0910
 
->> If the PCI DMA
->> ops are from SWIOTLB, then the constraints of having to go through that
->> first eliminate all the scatter-gather benefit of the IPU MMU.
-> 
-> Does the SWIOTLB give you a physically contiguous memory? If not, you
-> still need the IPU MMU to actually be able to access the memory.
+Not sure what checkpatch demands, since a module description exists in
+Kconfig... Applies to the stv6111 aswell.
 
-The SWIOTLB itself is really only for streaming mappings - coherent
-allocations come from CMA (although it may fall back to allocating
-directly out of its bounce buffers in certain circumstances). Either
-way, yes, everything's physically contiguous, because it's designed for
-when there is no hardware IOMMU available. I can well imagine video/ISP
-workloads being able to exhaust CMA at the drop of a hat too, which
-makes the idea all the worse.
+  WARNING: added, moved or deleted file(s), does MAINTAINERS need updating?
+  #64:
+  new file mode 100644
 
->>
->> The IOMMU API ops would have to be handled similarly, by checking for
->> ops on the parent bus, calling those first if present, then running the
->> intermediate results through the IPU MMU's own functions. Sure, it's not
->> impossible, but it's really really grim. Not to mention that all the IPU
->> MMU's page tables/control structures/etc. would also have to be
->> DMA-allocated/mapped because it may or may not be operating in physical
->> address space.
-> 
-> DMA-allocation isn't really good for this use case, but is a DMA
-> mapping operation really such a bad thing?
+See below.
 
-Not really, although it's still a bit of extra complication. We do it in
-io-pgtable for the sake of coherency, but we enforce that DMA == phys so
-that we don't have to double the memory overhead to keep track of the
-kernel VAs as well. I think the Tegra IOMMU driver is one that does go
-the whole way. Coming back to the earlier point, though, if you'd end up
-back in your driver's own DMA ops anyway then there seems very little
-justification for going the long way round.
+  WARNING: 'VALIDE' may be misspelled - perhaps 'VALID'?
+  #3314: FILE: drivers/media/dvb-frontends/stv0910_regs.h:1467:
+  +#define FSTV0910_P2_NOSRAM_VALIDE  0xf30e0004
 
->> The reasonable option - assuming the topology really is this way - would
->> seem to be special-casing the IPU in intel-iommu in a similar manner to
->> integrated graphics, to make sure it gets a passthrough domain for DMA
->> ops, but still allowing the whole PCI device to be passed through to a
->> guest VM via VFIO if desired (which is really the only case where nested
->> translation does start to make sense).
-> 
-> Yeah, given that we need some start, it sounds sane to me. We can then
-> revisit different options later. Thanks a lot for your input.
+Picked from upstream. Since I'm not sure if this really is a mistake
+(maybe the hardware vendor really wants to name the reg like this?) so
+kept as-is.
 
-Thankfully, it seems like this will remain a theoretical problem. Phew!
+CamelCase and ALLCAPS are changed into kernel_kase. Patches have been
+proposed to the vendor driver package maintainers to keep things synced
+as much as possible.
 
-Robin.
+Patch 2 is a fix for an issue found while preparing this series for
+posting, and was in parallel submitted to the vendor's GIT repository.
 
-> 
-> Best regards,
-> Tomasz
-> 
+Adding myself to MAINTAINERS for stv0910 and stv6111 as I'll keep track
+of any upstream (vendor provided package) changes and propose them
+for mainline inclusion.
+
+Mauro, I assume you're the one who reviews this (since these are new
+drivers). It'd be very great to have this in for 4.14 to tackle the
+ddbridge bump for 4.15. Of course awaiting review yet, this v2 should
+be a good candidate for merge.
+
+Changes from v1 to v2:
+ - CamelCase and ALLCAPS changed to kernel_case
+ - Signal statistics acquisition refactored to comply with standards
+ - printk* and pr_* changed to dev_*
+ - Add myself to MAINTAINERS for stv0910 and stv6111
+
+Daniel Scheller (10):
+  [media] dvb-frontends: add ST STV0910 DVB-S/S2 demodulator frontend
+    driver
+  [media] dvb-frontends/stv0910: Fix possible buffer overflow
+  [media] dvb-frontends/stv0910: add multistream (ISI) and PLS
+    capabilities
+  [media] dvb-frontends/stv0910: Add demod-only signal strength
+    reporting
+  [media] dvb-frontends/stv0910: Add missing set_frontend fe-op
+  [media] dvb-frontends: add ST STV6111 DVB-S/S2 tuner frontend driver
+  [media] ddbridge: return stv09xx id in port_has_stv0900_aa()
+  [media] ddbridge: support for CineS2 V7(A) and DuoFlex S2 V4 hardware
+  [media] ddbridge: stv0910 single demod mode module option
+  [media] MAINTAINERS: add entries for stv0910 and stv6111
+
+ MAINTAINERS                                |   16 +
+ drivers/media/dvb-frontends/Kconfig        |   18 +
+ drivers/media/dvb-frontends/Makefile       |    2 +
+ drivers/media/dvb-frontends/stv0910.c      | 1773 +++++++++++
+ drivers/media/dvb-frontends/stv0910.h      |   32 +
+ drivers/media/dvb-frontends/stv0910_regs.h | 4759 ++++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/stv6111.c      |  673 ++++
+ drivers/media/dvb-frontends/stv6111.h      |   20 +
+ drivers/media/pci/ddbridge/Kconfig         |    4 +
+ drivers/media/pci/ddbridge/ddbridge-core.c |  151 +-
+ drivers/media/pci/ddbridge/ddbridge.h      |    2 +
+ 11 files changed, 7442 insertions(+), 8 deletions(-)
+ create mode 100644 drivers/media/dvb-frontends/stv0910.c
+ create mode 100644 drivers/media/dvb-frontends/stv0910.h
+ create mode 100644 drivers/media/dvb-frontends/stv0910_regs.h
+ create mode 100644 drivers/media/dvb-frontends/stv6111.c
+ create mode 100644 drivers/media/dvb-frontends/stv6111.h
+
+-- 
+2.13.0
