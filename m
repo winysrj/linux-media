@@ -1,153 +1,258 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:44662 "EHLO
-        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750813AbdFBOgI (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:37984 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751563AbdF3OP7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Jun 2017 10:36:08 -0400
-Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
-        by mx07-00252a01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id v52Ea7Wk026855
-        for <linux-media@vger.kernel.org>; Fri, 2 Jun 2017 15:36:07 +0100
-Received: from mail-pf0-f197.google.com (mail-pf0-f197.google.com [209.85.192.197])
-        by mx07-00252a01.pphosted.com with ESMTP id 2apxuyay0g-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
-        for <linux-media@vger.kernel.org>; Fri, 02 Jun 2017 15:36:07 +0100
-Received: by mail-pf0-f197.google.com with SMTP id h76so75955849pfh.15
-        for <linux-media@vger.kernel.org>; Fri, 02 Jun 2017 07:36:06 -0700 (PDT)
+        Fri, 30 Jun 2017 10:15:59 -0400
+From: Thierry Escande <thierry.escande@collabora.com>
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v4 7/8] [media] s5p-jpeg: Add support for resolution change event
+Date: Fri, 30 Jun 2017 16:15:46 +0200
+Message-Id: <1498832147-16316-8-git-send-email-thierry.escande@collabora.com>
+In-Reply-To: <1498832147-16316-1-git-send-email-thierry.escande@collabora.com>
+References: <1498832147-16316-1-git-send-email-thierry.escande@collabora.com>
 MIME-Version: 1.0
-In-Reply-To: <1496412801.2358.15.camel@pengutronix.de>
-References: <cover.1496397071.git.dave.stevenson@raspberrypi.org>
- <4dd94754-2a3c-532c-f07c-88ac3765efcf@xs4all.nl> <CAAoAYcPWK1bLYSJDwM_Bp8szNkhXN38KRsx9j0xNWXwCH9qk3Q@mail.gmail.com>
- <99d7eba3-c5a8-ade3-54bc-18eb27ef0255@xs4all.nl> <1496412801.2358.15.camel@pengutronix.de>
-From: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Date: Fri, 2 Jun 2017 15:36:03 +0100
-Message-ID: <CAAoAYcNsbKH4Yv9nvvKhX3AGGNcKLUPBdnRzAGRPk+Ep4=pYjA@mail.gmail.com>
-Subject: Re: [PATCH 0/3] tc358743: minor driver fixes
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mats Randgaard <matrandg@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset = "utf-8"
+Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2 June 2017 at 15:13, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> On Fri, 2017-06-02 at 15:27 +0200, Hans Verkuil wrote:
->> On 06/02/17 15:03, Dave Stevenson wrote:
->> > Hi Hans.
->> >
->> > On 2 June 2017 at 13:35, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> >> On 06/02/17 14:18, Dave Stevenson wrote:
->> >>> These 3 patches for TC358743 came out of trying to use the
->> >>> existing driver with a new Raspberry Pi CSI-2 receiver driver.
->> >>
->> >> Nice! Doing that has been on my todo list for ages but I never got
->> >> around to it. I have one of these and using the Raspberry Pi with
->> >> the tc358743 would allow me to add a CEC driver as well.
->> >
->> > It's been on my list for a while too! It's working, but just the final
->> > clean ups needed.
->> > I've got 1 v4l2-compliance failure still outstanding that needs
->> > digging into (subscribe_event), rebasing on top of the fwnode tree,
->> > and a couple of config things to tidy up. RFC hopefully next week.
->> > I'm testing with a demo board designed here at Pi Towers, but there
->> > are others successfully testing it using the auvidea.com B101 board.
->> >
->> > Are you aware of the HDMI modes that the TC358743 driver has been used with?
->> > The comments mention 720P60 at 594MHz, but I have had to modify the
->> > fifo_level value from 16 to 110 to get VGA60 or 576P50 to work. (The
->> > value came out of Toshiba's spreadsheet for computing register
->> > settings). It increases the delay by 2.96usecs at 720P60 on 2 lanes,
->> > so not a huge change.
->> > Is it worth going to the effort of dynamically computing the delay, or
->> > is increasing the default acceptable?
->>
->> I see that the fifo_level value of 16 was supplied by Philipp Zabel, so
->> I have CC-ed him as I am not sure where those values came from.
->
-> I've just chosen a small delay that worked reliably. For 4-lane 1080p60
-> and for 2-lane 720p60 at 594 Mbps lane speed, the Toshiba spreadsheet
-> believes that it is ok to decrease the FIFO delay all the way down to 0
-> (it is not). I think it should be fine to delay transmission for a few
-> microseconds unconditionally, I'll test this next week.
+From: henryhsu <henryhsu@chromium.org>
 
-Thanks Philipp. Were 1080p60 and 720p60 the only modes you were really testing?
+This patch adds support for resolution change event to notify clients so
+they can prepare correct output buffer. When resolution change happened,
+G_FMT for CAPTURE should return old resolution and format before CAPTURE
+queues streamoff.
 
-Did the 594Mbps lane speed come from a specific requirement somewhere?
-The standard Pi only has 2 CSI2 lanes exposed, and 1080P30 RGB3 just
-tips over into needing 3 lanes with the current link frequency. When I
-can find a bit more time I was thinking that an alternate link
-frequency would allow us to squeeze it in to 2 lanes. Obviously the
-timing values need to be checked carefully, but it should all work and
-allow support of multiple link frequencies.
-(My calcs say that 1080p50 UYVY can fit down 2 lanes, but that
-requires more extensive register mods).
+This event is used in the Chromium browser project by the V4L2 JPEG
+Decode Accelerator (V4L2JDA) to allocate output buffer.
 
->> This driver is also used in a Cisco product, but we use platform_data for that.
->> Here are our settings that we use for reference:
->>
->>         static struct tc358743_platform_data tc358743_pdata = {
->>                 .refclk_hz = 27000000,
->>                 .ddc5v_delay = DDC5V_DELAY_100_MS,
->>                 .fifo_level = 300,
->>                 .pll_prd = 4,
->>                 .pll_fbd = 122,
->>                 /* CSI */
->>                 .lineinitcnt = 0x00001770,
->>                 .lptxtimecnt = 0x00000005,
->>                 .tclk_headercnt = 0x00001d04,
->>                 .ths_headercnt = 0x00000505,
->>                 .twakeup = 0x00004650,
->>                 .ths_trailcnt = 0x00000004,
->>                 .hstxvregcnt = 0x00000005,
->>                 /* HDMI PHY */
->>                 .hdmi_phy_auto_reset_tmds_detected = true,
->>                 .hdmi_phy_auto_reset_tmds_in_range = true,
->>                 .hdmi_phy_auto_reset_tmds_valid = true,
->>                 .hdmi_phy_auto_reset_hsync_out_of_range = true,
->>                 .hdmi_phy_auto_reset_vsync_out_of_range = true,
->>                 .hdmi_detection_delay = HDMI_MODE_DELAY_25_MS,
->>         };
->>
->> I believe these are all calculated from the Toshiba spreadsheet.
->>
->> Frankly, I have no idea what they mean :-)
->>
->> I am fine with increasing the default if Philipp is OK as well. Since
->> Cisco uses a value of 300 I would expect that 16 is indeed too low.
->>
->> Regards,
->>
->>       Hans
->>
->> >
->> >>> A couple of the subdevice API calls were not implemented or
->> >>> otherwise gave odd results. Those are fixed.
->> >>>
->> >>> The TC358743 interface board being used didn't have the IRQ
->> >>> line wired up to the SoC. "interrupts" is listed as being
->> >>> optional in the DT binding, but the driver didn't actually
->> >>> function if it wasn't provided.
->> >>>
->> >>> Dave Stevenson (3):
->> >>>   [media] tc358743: Add enum_mbus_code
->> >>>   [media] tc358743: Setup default mbus_fmt before registering
->> >>>   [media] tc358743: Add support for platforms without IRQ line
->> >>
->> >> All looks good, I'll take this for 4.12.
->> >
->> > Thanks.
->> >
->> >> Regards,
->> >>
->> >>         Hans
->> >>
->> >>>
->> >>>  drivers/media/i2c/tc358743.c | 59 +++++++++++++++++++++++++++++++++++++++++++-
->> >>>  1 file changed, 58 insertions(+), 1 deletion(-)
->> >>>
->> >>
->
-> regards
-> Philipp
->
+Signed-off-by: Henry-Ruey Hsu <henryhsu@chromium.org>
+Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+Acked-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Acked-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 106 +++++++++++++++++++++-------
+ drivers/media/platform/s5p-jpeg/jpeg-core.h |   7 ++
+ 2 files changed, 89 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index cca0fb8..5ad3d43 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -24,6 +24,7 @@
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+ #include <linux/string.h>
++#include <media/v4l2-event.h>
+ #include <media/v4l2-mem2mem.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/videobuf2-v4l2.h>
+@@ -1633,8 +1634,6 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
+ 			FMT_TYPE_OUTPUT : FMT_TYPE_CAPTURE;
+ 
+ 	q_data->fmt = s5p_jpeg_find_format(ct, pix->pixelformat, f_type);
+-	q_data->w = pix->width;
+-	q_data->h = pix->height;
+ 	if (q_data->fmt->fourcc != V4L2_PIX_FMT_JPEG) {
+ 		/*
+ 		 * During encoding Exynos4x12 SoCs access wider memory area
+@@ -1642,6 +1641,8 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
+ 		 * the JPEG_IMAGE_SIZE register. In order to avoid sysmmu
+ 		 * page fault calculate proper buffer size in such a case.
+ 		 */
++		q_data->w = pix->width;
++		q_data->h = pix->height;
+ 		if (ct->jpeg->variant->hw_ex4_compat &&
+ 		    f_type == FMT_TYPE_OUTPUT && ct->mode == S5P_JPEG_ENCODE)
+ 			q_data->size = exynos4_jpeg_get_output_buffer_size(ct,
+@@ -1717,6 +1718,15 @@ static int s5p_jpeg_s_fmt_vid_out(struct file *file, void *priv,
+ 	return s5p_jpeg_s_fmt(fh_to_ctx(priv), f);
+ }
+ 
++static int s5p_jpeg_subscribe_event(struct v4l2_fh *fh,
++				    const struct v4l2_event_subscription *sub)
++{
++	if (sub->type == V4L2_EVENT_SOURCE_CHANGE)
++		return v4l2_src_change_event_subscribe(fh, sub);
++
++	return -EINVAL;
++}
++
+ static int exynos3250_jpeg_try_downscale(struct s5p_jpeg_ctx *ctx,
+ 				   struct v4l2_rect *r)
+ {
+@@ -2042,6 +2052,9 @@ static const struct v4l2_ioctl_ops s5p_jpeg_ioctl_ops = {
+ 
+ 	.vidioc_g_selection		= s5p_jpeg_g_selection,
+ 	.vidioc_s_selection		= s5p_jpeg_s_selection,
++
++	.vidioc_subscribe_event		= s5p_jpeg_subscribe_event,
++	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+ };
+ 
+ /*
+@@ -2434,8 +2447,17 @@ static int s5p_jpeg_job_ready(void *priv)
+ {
+ 	struct s5p_jpeg_ctx *ctx = priv;
+ 
+-	if (ctx->mode == S5P_JPEG_DECODE)
++	if (ctx->mode == S5P_JPEG_DECODE) {
++		/*
++		 * We have only one input buffer and one output buffer. If there
++		 * is a resolution change event, no need to continue decoding.
++		 */
++		if (ctx->state == JPEGCTX_RESOLUTION_CHANGE)
++			return 0;
++
+ 		return ctx->hdr_parsed;
++	}
++
+ 	return 1;
+ }
+ 
+@@ -2514,6 +2536,30 @@ static int s5p_jpeg_buf_prepare(struct vb2_buffer *vb)
+ 	return 0;
+ }
+ 
++static void s5p_jpeg_set_capture_queue_data(struct s5p_jpeg_ctx *ctx)
++{
++	struct s5p_jpeg_q_data *q_data = &ctx->cap_q;
++
++	q_data->w = ctx->out_q.w;
++	q_data->h = ctx->out_q.h;
++
++	/*
++	 * This call to jpeg_bound_align_image() takes care of width and
++	 * height values alignment when user space calls the QBUF of
++	 * OUTPUT buffer after the S_FMT of CAPTURE buffer.
++	 * Please note that on Exynos4x12 SoCs, resigning from executing
++	 * S_FMT on capture buffer for each JPEG image can result in a
++	 * hardware hangup if subsampling is lower than the one of input
++	 * JPEG.
++	 */
++	jpeg_bound_align_image(ctx, &q_data->w, S5P_JPEG_MIN_WIDTH,
++			       S5P_JPEG_MAX_WIDTH, q_data->fmt->h_align,
++			       &q_data->h, S5P_JPEG_MIN_HEIGHT,
++			       S5P_JPEG_MAX_HEIGHT, q_data->fmt->v_align);
++
++	q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
++}
++
+ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
+ {
+ 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+@@ -2521,7 +2567,18 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
+ 
+ 	if (ctx->mode == S5P_JPEG_DECODE &&
+ 	    vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+-		struct s5p_jpeg_q_data *q_data;
++		static const struct v4l2_event ev_src_ch = {
++			.type = V4L2_EVENT_SOURCE_CHANGE,
++			.u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION,
++		};
++		struct vb2_queue *dst_vq;
++		u32 ori_w;
++		u32 ori_h;
++
++		dst_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx,
++					 V4L2_BUF_TYPE_VIDEO_CAPTURE);
++		ori_w = ctx->out_q.w;
++		ori_h = ctx->out_q.h;
+ 
+ 		ctx->hdr_parsed = s5p_jpeg_parse_hdr(&ctx->out_q,
+ 		     (unsigned long)vb2_plane_vaddr(vb, 0),
+@@ -2532,28 +2589,18 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
+ 			return;
+ 		}
+ 
+-		q_data = &ctx->cap_q;
+-		q_data->w = ctx->out_q.w;
+-		q_data->h = ctx->out_q.h;
+-
+ 		/*
+-		 * This call to jpeg_bound_align_image() takes care of width and
+-		 * height values alignment when user space calls the QBUF of
+-		 * OUTPUT buffer after the S_FMT of CAPTURE buffer.
+-		 * Please note that on Exynos4x12 SoCs, resigning from executing
+-		 * S_FMT on capture buffer for each JPEG image can result in a
+-		 * hardware hangup if subsampling is lower than the one of input
+-		 * JPEG.
++		 * If there is a resolution change event, only update capture
++		 * queue when it is not streaming. Otherwise, update it in
++		 * STREAMOFF. See s5p_jpeg_stop_streaming for detail.
+ 		 */
+-		jpeg_bound_align_image(ctx,
+-				       &q_data->w,
+-				       S5P_JPEG_MIN_WIDTH, S5P_JPEG_MAX_WIDTH,
+-				       q_data->fmt->h_align,
+-				       &q_data->h,
+-				       S5P_JPEG_MIN_HEIGHT, S5P_JPEG_MAX_HEIGHT,
+-				       q_data->fmt->v_align);
+-
+-		q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
++		if (ctx->out_q.w != ori_w || ctx->out_q.h != ori_h) {
++			v4l2_event_queue_fh(&ctx->fh, &ev_src_ch);
++			if (vb2_is_streaming(dst_vq))
++				ctx->state = JPEGCTX_RESOLUTION_CHANGE;
++			else
++				s5p_jpeg_set_capture_queue_data(ctx);
++		}
+ 	}
+ 
+ 	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
+@@ -2573,6 +2620,17 @@ static void s5p_jpeg_stop_streaming(struct vb2_queue *q)
+ {
+ 	struct s5p_jpeg_ctx *ctx = vb2_get_drv_priv(q);
+ 
++	/*
++	 * STREAMOFF is an acknowledgment for resolution change event.
++	 * Before STREAMOFF, we still have to return the old resolution and
++	 * subsampling. Update capture queue when the stream is off.
++	 */
++	if (ctx->state == JPEGCTX_RESOLUTION_CHANGE &&
++	    q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++		s5p_jpeg_set_capture_queue_data(ctx);
++		ctx->state = JPEGCTX_RUNNING;
++	}
++
+ 	pm_runtime_put(ctx->jpeg->dev);
+ }
+ 
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.h b/drivers/media/platform/s5p-jpeg/jpeg-core.h
+index 4492a35..9aa26bd 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
+@@ -98,6 +98,11 @@ enum  exynos4_jpeg_img_quality_level {
+ 	QUALITY_LEVEL_4,	/* low */
+ };
+ 
++enum s5p_jpeg_ctx_state {
++	JPEGCTX_RUNNING = 0,
++	JPEGCTX_RESOLUTION_CHANGE,
++};
++
+ /**
+  * struct s5p_jpeg - JPEG IP abstraction
+  * @lock:		the mutex protecting this structure
+@@ -220,6 +225,7 @@ struct s5p_jpeg_q_data {
+  * @hdr_parsed:		set if header has been parsed during decompression
+  * @crop_altered:	set if crop rectangle has been altered by the user space
+  * @ctrl_handler:	controls handler
++ * @state:		state of the context
+  */
+ struct s5p_jpeg_ctx {
+ 	struct s5p_jpeg		*jpeg;
+@@ -235,6 +241,7 @@ struct s5p_jpeg_ctx {
+ 	bool			hdr_parsed;
+ 	bool			crop_altered;
+ 	struct v4l2_ctrl_handler ctrl_handler;
++	enum s5p_jpeg_ctx_state	state;
+ };
+ 
+ /**
+-- 
+2.7.4
