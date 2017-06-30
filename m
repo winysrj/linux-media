@@ -1,91 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:37069 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752111AbdF2ToI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Jun 2017 15:44:08 -0400
-Date: Thu, 29 Jun 2017 20:44:05 +0100
-From: Sean Young <sean@mess.org>
-To: Mason <slash.tmp@free.fr>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>
-Subject: Re: Trying to use IR driver for my SoC
-Message-ID: <20170629194405.GA15901@gofer.mess.org>
-References: <cf82988e-8be2-1ec8-b343-7c3c54110746@free.fr>
- <20170629155557.GA12980@gofer.mess.org>
- <276e7aa2-0c98-5556-622a-65aab4b9d373@free.fr>
- <20170629175037.GA14390@gofer.mess.org>
- <204a429c-b886-63a7-4d59-522864f05030@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <204a429c-b886-63a7-4d59-522864f05030@free.fr>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:34185 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752965AbdF3UvS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Jun 2017 16:51:18 -0400
+Received: by mail-wm0-f68.google.com with SMTP id p204so9893407wmg.1
+        for <linux-media@vger.kernel.org>; Fri, 30 Jun 2017 13:51:17 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: rjkm@metzlerbros.de, jasmin@anw.at
+Subject: [PATCH v2 07/10] [media] ddbridge: return stv09xx id in port_has_stv0900_aa()
+Date: Fri, 30 Jun 2017 22:51:03 +0200
+Message-Id: <20170630205106.1268-8-d.scheller.oss@gmail.com>
+In-Reply-To: <20170630205106.1268-1-d.scheller.oss@gmail.com>
+References: <20170630205106.1268-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 29, 2017 at 09:12:48PM +0200, Mason wrote:
-> On 29/06/2017 19:50, Sean Young wrote:
-> 
-> > On Thu, Jun 29, 2017 at 06:25:55PM +0200, Mason wrote:
-> >
-> >> $ ir-keytable -v -t
-> >> Found device /sys/class/rc/rc0/
-> >> Input sysfs node is /sys/class/rc/rc0/input0/
-> >> Event sysfs node is /sys/class/rc/rc0/input0/event0/
-> >> Parsing uevent /sys/class/rc/rc0/input0/event0/uevent
-> >> /sys/class/rc/rc0/input0/event0/uevent uevent MAJOR=13
-> >> /sys/class/rc/rc0/input0/event0/uevent uevent MINOR=64
-> >> /sys/class/rc/rc0/input0/event0/uevent uevent DEVNAME=input/event0
-> >> Parsing uevent /sys/class/rc/rc0/uevent
-> >> /sys/class/rc/rc0/uevent uevent NAME=rc-empty
-> >> input device is /dev/input/event0
-> >> /sys/class/rc/rc0/protocols protocol rc-5 (disabled)
-> >> /sys/class/rc/rc0/protocols protocol nec (disabled)
-> >> /sys/class/rc/rc0/protocols protocol rc-6 (disabled)
-> 
-> I had overlooked this. Is it expected for these protocols
-> to be marked as "disabled"?
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Ah, good point, I forgot about that. :/
+The returned value is required for further evaluation of the exact
+demodulator chip (stv090x or stv0910).
 
-"ir-keytable -p all -t -v" should enable all protocols and test.
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/ddbridge-core.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-> >> Opening /dev/input/event0
-> >> Input Protocol version: 0x00010001
-> >> Testing events. Please, press CTRL-C to abort.
-> >> ^C
-> >>
-> >> Is rc-empty perhaps not the right choice?
-> > 
-> > rc-empty means there is no mapping from scancode to keycode. When you
-> > run "ir-keytable -v -t" you should at see scancodes when the driver
-> > generates them with rc_keydown().
-> 
-> So the mapping can be done either in the kernel, or in
-> user-space by the application consuming the scancodes,
-> right?
-
-That's right, although I do not know of any user-space application that does
-this; scancodes are mostly useful for debugging.
-
-> > From a cursory glance at the driver I can't see anything wrong.
-> > 
-> > The only thing that stands out is RC5_TIME_BASE. If that is the bit
-> > length or shortest pulse/space? In the latter case it should be 888 usec.
-> 
-> Need to locate some docs.
-> 
-> > It might be worth trying nec, rc5 and rc6_0 and seeing if any of them decode.
-> 
-> What do you mean? How do I try them?
-
-Well, presumably you're using a remote control for testing. It would be 
-useful if you had remotes which could do all protocols that the IR 
-receiver supports, so you can try all three of them.
-
-Another way of doing this is using an IR transmitter and using ir-ctl to
-send scancodes.
-
-
-Sean
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index cd1723e79a07..3fbac7bee2d4 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -1480,10 +1480,9 @@ static int port_has_stv0900(struct ddb_port *port)
+ 	return 1;
+ }
+ 
+-static int port_has_stv0900_aa(struct ddb_port *port)
++static int port_has_stv0900_aa(struct ddb_port *port, u8 *id)
+ {
+-	u8 val;
+-	if (i2c_read_reg16(&port->i2c->adap, 0x68, 0xf100, &val) < 0)
++	if (i2c_read_reg16(&port->i2c->adap, 0x68, 0xf100, id) < 0)
+ 		return 0;
+ 	return 1;
+ }
+@@ -1530,7 +1529,7 @@ static void ddb_port_probe(struct ddb_port *port)
+ {
+ 	struct ddb *dev = port->dev;
+ 	char *modname = "NO MODULE";
+-	u8 xo2_type, xo2_id, cxd_id;
++	u8 xo2_type, xo2_id, cxd_id, stv_id;
+ 
+ 	port->class = DDB_PORT_NONE;
+ 
+@@ -1622,7 +1621,7 @@ static void ddb_port_probe(struct ddb_port *port)
+ 		port->class = DDB_PORT_TUNER;
+ 		port->type = DDB_TUNER_DVBS_ST;
+ 		ddbwritel(I2C_SPEED_100, port->i2c->regs + I2C_TIMING);
+-	} else if (port_has_stv0900_aa(port)) {
++	} else if (port_has_stv0900_aa(port, &stv_id)) {
+ 		modname = "DUAL DVB-S2";
+ 		port->class = DDB_PORT_TUNER;
+ 		port->type = DDB_TUNER_DVBS_ST_AA;
+-- 
+2.13.0
