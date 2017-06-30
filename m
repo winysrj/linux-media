@@ -1,123 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:37073 "EHLO
-        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751387AbdFZJUw (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:37980 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752013AbdF3OP7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Jun 2017 05:20:52 -0400
-Received: by mail-wm0-f41.google.com with SMTP id i127so2208654wma.0
-        for <linux-media@vger.kernel.org>; Mon, 26 Jun 2017 02:20:51 -0700 (PDT)
-Subject: Re: [PATCH v11 00/19] Qualcomm video decoder/encoder driver
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-References: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <e4ac8371-6474-8371-08ba-72689349f118@linaro.org>
-Date: Mon, 26 Jun 2017 12:20:26 +0300
+        Fri, 30 Jun 2017 10:15:59 -0400
+From: Thierry Escande <thierry.escande@collabora.com>
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v4 6/8] [media] s5p-jpeg: Decode 4:1:1 chroma subsampling format
+Date: Fri, 30 Jun 2017 16:15:45 +0200
+Message-Id: <1498832147-16316-7-git-send-email-thierry.escande@collabora.com>
+In-Reply-To: <1498832147-16316-1-git-send-email-thierry.escande@collabora.com>
+References: <1498832147-16316-1-git-send-email-thierry.escande@collabora.com>
 MIME-Version: 1.0
-In-Reply-To: <1497544320-2269-1-git-send-email-stanimir.varbanov@linaro.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset = "utf-8"
+Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+From: Tony K Nadackal <tony.kn@samsung.com>
 
-In case someone wants to play with the driver I've pushed a git tree at
-[1] which contains few patches on top of the driver. Those patches are
-on upstreaming phase but doesn't merged yet.
+This patch adds support for decoding 4:1:1 chroma subsampling in the
+jpeg header parsing function.
 
-[1] https://github.com/svarbanov/linux/tree/master-venus-v11
+Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
+Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+Acked-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Acked-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-On 06/15/2017 07:31 PM, Stanimir Varbanov wrote:
-> Hello,
-> 
-> Changes since v10:
->  * added patch 18/19 which updates firmware path.
-> 
-> regards,
-> Stan
-> 
-> Stanimir Varbanov (19):
->   media: v4l2-mem2mem: extend m2m APIs for more accurate buffer
->     management
->   doc: DT: venus: binding document for Qualcomm video driver
->   MAINTAINERS: Add Qualcomm Venus video accelerator driver
->   media: venus: adding core part and helper functions
->   media: venus: vdec: add video decoder files
->   media: venus: venc: add video encoder files
->   media: venus: hfi: add Host Firmware Interface (HFI)
->   media: venus: hfi: add Venus HFI files
->   media: venus: enable building of Venus video driver
->   media: venus: hfi: fix mutex unlock
->   media: venus: hfi_cmds: fix variable dereferenced before check
->   media: venus: helpers: fix variable dereferenced before check
->   media: venus: hfi_venus: fix variable dereferenced before check
->   media: venus: hfi_msgs: fix set but not used variables
->   media: venus: vdec: fix compile error in vdec_close
->   media: venus: venc: fix compile error in venc_close
->   media: venus: vdec: add support for min buffers for capture
->   media: venus: update firmware path with linux-firmware place
->   media: venus: enable building with COMPILE_TEST
-> 
->  .../devicetree/bindings/media/qcom,venus.txt       |  107 ++
->  MAINTAINERS                                        |    8 +
->  drivers/media/platform/Kconfig                     |   13 +
->  drivers/media/platform/Makefile                    |    2 +
->  drivers/media/platform/qcom/venus/Makefile         |   11 +
->  drivers/media/platform/qcom/venus/core.c           |  390 +++++
->  drivers/media/platform/qcom/venus/core.h           |  324 ++++
->  drivers/media/platform/qcom/venus/firmware.c       |  108 ++
->  drivers/media/platform/qcom/venus/firmware.h       |   23 +
->  drivers/media/platform/qcom/venus/helpers.c        |  725 +++++++++
->  drivers/media/platform/qcom/venus/helpers.h        |   45 +
->  drivers/media/platform/qcom/venus/hfi.c            |  522 +++++++
->  drivers/media/platform/qcom/venus/hfi.h            |  175 +++
->  drivers/media/platform/qcom/venus/hfi_cmds.c       | 1259 ++++++++++++++++
->  drivers/media/platform/qcom/venus/hfi_cmds.h       |  304 ++++
->  drivers/media/platform/qcom/venus/hfi_helper.h     | 1050 +++++++++++++
->  drivers/media/platform/qcom/venus/hfi_msgs.c       | 1052 +++++++++++++
->  drivers/media/platform/qcom/venus/hfi_msgs.h       |  283 ++++
->  drivers/media/platform/qcom/venus/hfi_venus.c      | 1572 ++++++++++++++++++++
->  drivers/media/platform/qcom/venus/hfi_venus.h      |   23 +
->  drivers/media/platform/qcom/venus/hfi_venus_io.h   |  113 ++
->  drivers/media/platform/qcom/venus/vdec.c           | 1162 +++++++++++++++
->  drivers/media/platform/qcom/venus/vdec.h           |   23 +
->  drivers/media/platform/qcom/venus/vdec_ctrls.c     |  158 ++
->  drivers/media/platform/qcom/venus/venc.c           | 1283 ++++++++++++++++
->  drivers/media/platform/qcom/venus/venc.h           |   23 +
->  drivers/media/platform/qcom/venus/venc_ctrls.c     |  270 ++++
->  drivers/media/v4l2-core/v4l2-mem2mem.c             |   37 +
->  include/media/v4l2-mem2mem.h                       |   92 ++
->  29 files changed, 11157 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
->  create mode 100644 drivers/media/platform/qcom/venus/Makefile
->  create mode 100644 drivers/media/platform/qcom/venus/core.c
->  create mode 100644 drivers/media/platform/qcom/venus/core.h
->  create mode 100644 drivers/media/platform/qcom/venus/firmware.c
->  create mode 100644 drivers/media/platform/qcom/venus/firmware.h
->  create mode 100644 drivers/media/platform/qcom/venus/helpers.c
->  create mode 100644 drivers/media/platform/qcom/venus/helpers.h
->  create mode 100644 drivers/media/platform/qcom/venus/hfi.c
->  create mode 100644 drivers/media/platform/qcom/venus/hfi.h
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.c
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.h
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_helper.h
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.c
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.h
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.c
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.h
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus_io.h
->  create mode 100644 drivers/media/platform/qcom/venus/vdec.c
->  create mode 100644 drivers/media/platform/qcom/venus/vdec.h
->  create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
->  create mode 100644 drivers/media/platform/qcom/venus/venc.c
->  create mode 100644 drivers/media/platform/qcom/venus/venc.h
->  create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
-> 
-
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 0783809..cca0fb8 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1099,6 +1099,8 @@ static void skip(struct s5p_jpeg_buffer *buf, long len)
+ static bool s5p_jpeg_subsampling_decode(struct s5p_jpeg_ctx *ctx,
+ 					unsigned int subsampling)
+ {
++	unsigned int version;
++
+ 	switch (subsampling) {
+ 	case 0x11:
+ 		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_444;
+@@ -1112,6 +1114,19 @@ static bool s5p_jpeg_subsampling_decode(struct s5p_jpeg_ctx *ctx,
+ 	case 0x33:
+ 		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
+ 		break;
++	case 0x41:
++		/*
++		 * 4:1:1 subsampling only supported by 3250, 5420, and 5433
++		 * variants
++		 */
++		version = ctx->jpeg->variant->version;
++		if (version != SJPEG_EXYNOS3250 &&
++		    version != SJPEG_EXYNOS5420 &&
++		    version != SJPEG_EXYNOS5433)
++			return false;
++
++		ctx->subsampling = V4L2_JPEG_CHROMA_SUBSAMPLING_411;
++		break;
+ 	default:
+ 		return false;
+ 	}
 -- 
-regards,
-Stan
+2.7.4
