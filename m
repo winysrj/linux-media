@@ -1,106 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:33827 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751927AbdFGSei (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Jun 2017 14:34:38 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: [PATCH v8 04/34] ARM: dts: imx6qdl: add multiplexer controls
-Date: Wed,  7 Jun 2017 11:33:43 -0700
-Message-Id: <1496860453-6282-5-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mail-it0-f68.google.com ([209.85.214.68]:32963 "EHLO
+        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751545AbdF3JTD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Jun 2017 05:19:03 -0400
+MIME-Version: 1.0
+In-Reply-To: <1495199224-16337-3-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1495199224-16337-1-git-send-email-ulrich.hecht+renesas@gmail.com> <1495199224-16337-3-git-send-email-ulrich.hecht+renesas@gmail.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Fri, 30 Jun 2017 11:19:01 +0200
+Message-ID: <CAMuHMdU-LcB_Te_SeqkZbji81v82n-NP0VKAAdDQ=DhqE5wBwg@mail.gmail.com>
+Subject: Re: [PATCH v3 2/4] media: adv7180: add adv7180cp, adv7180st
+ compatible strings
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Cc: Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Simon Horman <horms@verge.net.au>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Hi Ulrich,
 
-The IOMUXC General Purpose Register space contains various bitfields
-that control video bus multiplexers. Describe them using a mmio-mux
-node. The placement of the IPU CSI video mux controls differs between
-i.MX6D/Q and i.MX6S/DL.
+On Fri, May 19, 2017 at 3:07 PM, Ulrich Hecht
+<ulrich.hecht+renesas@gmail.com> wrote:
+> Used to differentiate between models with 3 and 6 inputs.
+>
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> ---
+>  drivers/media/i2c/adv7180.c | 2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+> index bdbbf8c..78de7dd 100644
+> --- a/drivers/media/i2c/adv7180.c
+> +++ b/drivers/media/i2c/adv7180.c
+> @@ -1452,6 +1452,8 @@ static SIMPLE_DEV_PM_OPS(adv7180_pm_ops, adv7180_suspend, adv7180_resume);
+>  #ifdef CONFIG_OF
+>  static const struct of_device_id adv7180_of_id[] = {
+>         { .compatible = "adi,adv7180", },
+> +       { .compatible = "adi,adv7180cp", },
+> +       { .compatible = "adi,adv7180st", },
+>         { .compatible = "adi,adv7182", },
+>         { .compatible = "adi,adv7280", },
+>         { .compatible = "adi,adv7280-m", },
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- arch/arm/boot/dts/imx6dl.dtsi  | 10 ++++++++++
- arch/arm/boot/dts/imx6q.dtsi   | 10 ++++++++++
- arch/arm/boot/dts/imx6qdl.dtsi |  7 ++++++-
- 3 files changed, 26 insertions(+), 1 deletion(-)
+Adding compatible entries here is not sufficient, and causes a crash on
+r8a7793/gose with renesas-drivers-2017-06-27-v4.12-rc7:
 
-diff --git a/arch/arm/boot/dts/imx6dl.dtsi b/arch/arm/boot/dts/imx6dl.dtsi
-index 7aa120f..10bc9d1 100644
---- a/arch/arm/boot/dts/imx6dl.dtsi
-+++ b/arch/arm/boot/dts/imx6dl.dtsi
-@@ -181,6 +181,16 @@
- 		      "di0", "di1";
- };
- 
-+&mux {
-+	mux-reg-masks = <0x34 0x00000007>, /* IPU_CSI0_MUX */
-+			<0x34 0x00000038>, /* IPU_CSI1_MUX */
-+			<0x0c 0x0000000c>, /* HDMI_MUX_CTL */
-+			<0x0c 0x000000c0>, /* LVDS0_MUX_CTL */
-+			<0x0c 0x00000300>, /* LVDS1_MUX_CTL */
-+			<0x28 0x00000003>, /* DCIC1_MUX_CTL */
-+			<0x28 0x0000000c>; /* DCIC2_MUX_CTL */
-+};
-+
- &vpu {
- 	compatible = "fsl,imx6dl-vpu", "cnm,coda960";
- };
-diff --git a/arch/arm/boot/dts/imx6q.dtsi b/arch/arm/boot/dts/imx6q.dtsi
-index e9a5d0b..a6962be 100644
---- a/arch/arm/boot/dts/imx6q.dtsi
-+++ b/arch/arm/boot/dts/imx6q.dtsi
-@@ -332,6 +332,16 @@
- 	};
- };
- 
-+&mux {
-+	mux-reg-masks = <0x04 0x00080000>, /* MIPI_IPU1_MUX */
-+			<0x04 0x00100000>, /* MIPI_IPU2_MUX */
-+			<0x0c 0x0000000c>, /* HDMI_MUX_CTL */
-+			<0x0c 0x000000c0>, /* LVDS0_MUX_CTL */
-+			<0x0c 0x00000300>, /* LVDS1_MUX_CTL */
-+			<0x28 0x00000003>, /* DCIC1_MUX_CTL */
-+			<0x28 0x0000000c>; /* DCIC2_MUX_CTL */
-+};
-+
- &vpu {
- 	compatible = "fsl,imx6q-vpu", "cnm,coda960";
- };
-diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
-index e426faa..50534dd 100644
---- a/arch/arm/boot/dts/imx6qdl.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl.dtsi
-@@ -808,8 +808,13 @@
- 			};
- 
- 			gpr: iomuxc-gpr@020e0000 {
--				compatible = "fsl,imx6q-iomuxc-gpr", "syscon";
-+				compatible = "fsl,imx6q-iomuxc-gpr", "syscon", "simple-mfd";
- 				reg = <0x020e0000 0x38>;
-+
-+				mux: mux-controller {
-+					compatible = "mmio-mux";
-+					#mux-control-cells = <1>;
-+				};
- 			};
- 
- 			iomuxc: iomuxc@020e0000 {
--- 
-2.7.4
+    adv7180 2-0020: chip found @ 0x20 (e6530000.i2c)
+    Unable to handle kernel NULL pointer dereference at virtual address 00000014
+    pgd = c0003000
+    [00000014] *pgd=80000040004003, *pmd=00000000
+    Internal error: Oops: 207 [#1] SMP ARM
+    Modules linked in:
+    CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.12.0-rc7-rcar2-initrd #37
+    Hardware name: Generic R-Car Gen2 (Flattened Device Tree)
+    task: df427040 task.stack: df436000
+    PC is at adv7180_probe+0x84/0x3cc
+
+In the absence of an entry in adv7180_id[], the passed i2c_device_id
+pointer is NULL, and thus dereferencing it crashes the system.
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
