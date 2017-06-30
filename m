@@ -1,61 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36360
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751586AbdFXUPP (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:52778 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751905AbdF3OfP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Jun 2017 16:15:15 -0400
-Date: Sat, 24 Jun 2017 17:15:07 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Johannes Thumshirn <jthumshirn@suse.de>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-fbdev@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH RESEND 0/7] Introduce MEDIA_VERSION to end
- KENREL_VERSION abuse in media
-Message-ID: <20170624171507.38353b10@vento.lan>
-In-Reply-To: <20170621080812.6817-1-jthumshirn@suse.de>
-References: <20170621080812.6817-1-jthumshirn@suse.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Fri, 30 Jun 2017 10:35:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Eric Anholt <eric@anholt.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 03/12] cec: add adap_free op
+Date: Fri, 30 Jun 2017 16:35:00 +0200
+Message-Id: <20170630143509.56029-4-hverkuil@xs4all.nl>
+In-Reply-To: <20170630143509.56029-1-hverkuil@xs4all.nl>
+References: <20170630143509.56029-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 21 Jun 2017 10:08:05 +0200
-Johannes Thumshirn <jthumshirn@suse.de> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Currently the media subsystem has a very creative abuse of the
-> KERNEL_VERSION macro to encode an arbitrary version triplet for media
-> drivers and device hardware revisions.
-> 
-> This series introduces a new macro called MEDIA_REVISION which encodes
-> a version triplet like KERNEL_VERSION does, but clearly has media
-> centric semantics and doesn't fool someone into thinking specific
-> parts are defined for a specific kernel version only like in out of
-> tree drivers.
+This is needed for CEC adapters that allocate resources that have
+to be freed before the cec_adapter is deleted.
 
-Sorry, but I can't see any advantage on it. On the downside, it
-includes the media controller header file (media.h) where it
-is not needed.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/cec/cec-core.c | 2 ++
+ include/media/cec.h          | 1 +
+ 2 files changed, 3 insertions(+)
 
-> 
-> Johannes Thumshirn (7):
->   [media] media: introduce MEDIA_REVISION macro
->   video: fbdev: don't use KERNEL_VERSION macro for MEDIA_REVISION
->   [media] media: document the use of MEDIA_REVISION instead of
->     KERNEL_VERSION
->   [media] cx25821: use MEDIA_REVISION instead of KERNEL_VERSION
->   [media] media: s3c-camif: Use MEDIA_REVISON instead of KERNEL_VERSION
->   [media] media: bcm2048: use MEDIA_REVISION isntead of KERNEL_VERSION
->   staging/atomisp: use MEDIA_VERSION instead of KERNEL_VERSION
-
-That's said, some of the above shouldn't be using KERNEL_VERSION
-at all. The V4L2 core sets the version already. So, drivers like
-cx25821, s3c-camif, bcm2048 and atomisp are likely doing the wrong
-thing.
-
-Thanks,
-Mauro
+diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+index b516d599d6c4..2e5765344d07 100644
+--- a/drivers/media/cec/cec-core.c
++++ b/drivers/media/cec/cec-core.c
+@@ -374,6 +374,8 @@ void cec_delete_adapter(struct cec_adapter *adap)
+ 	kthread_stop(adap->kthread);
+ 	if (adap->kthread_config)
+ 		kthread_stop(adap->kthread_config);
++	if (adap->ops->adap_free)
++		adap->ops->adap_free(adap);
+ #ifdef CONFIG_MEDIA_CEC_RC
+ 	rc_free_device(adap->rc);
+ #endif
+diff --git a/include/media/cec.h b/include/media/cec.h
+index e1e60dbb66c3..37768203572d 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -114,6 +114,7 @@ struct cec_adap_ops {
+ 	int (*adap_transmit)(struct cec_adapter *adap, u8 attempts,
+ 			     u32 signal_free_time, struct cec_msg *msg);
+ 	void (*adap_status)(struct cec_adapter *adap, struct seq_file *file);
++	void (*adap_free)(struct cec_adapter *adap);
+ 
+ 	/* High-level CEC message callback */
+ 	int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
+-- 
+2.11.0
