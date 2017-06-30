@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:37960 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:37964 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751563AbdF3OP5 (ORCPT
+        with ESMTP id S1751649AbdF3OP5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Fri, 30 Jun 2017 10:15:57 -0400
 From: Thierry Escande <thierry.escande@collabora.com>
@@ -9,59 +9,71 @@ To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
         Jacek Anaszewski <jacek.anaszewski@gmail.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>
 Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v4 0/8] [media] s5p-jpeg: Various fixes and improvements
-Date: Fri, 30 Jun 2017 16:15:39 +0200
-Message-Id: <1498832147-16316-1-git-send-email-thierry.escande@collabora.com>
+Subject: [PATCH v4 1/8] [media] s5p-jpeg: Call jpeg_bound_align_image after qbuf
+Date: Fri, 30 Jun 2017 16:15:40 +0200
+Message-Id: <1498832147-16316-2-git-send-email-thierry.escande@collabora.com>
+In-Reply-To: <1498832147-16316-1-git-send-email-thierry.escande@collabora.com>
+References: <1498832147-16316-1-git-send-email-thierry.escande@collabora.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset = "utf-8"
 Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Tony K Nadackal <tony.kn@samsung.com>
 
-This series contains various fixes and improvements for the Samsung
-s5p-jpeg driver. Most of these patches come from the Chromium v3.8
-kernel tree.
+When queuing an OUTPUT buffer for decoder, s5p_jpeg_parse_hdr()
+function parses the input jpeg file and takes the width and height
+parameters from its header. These new width/height values will be used
+for the calculation of stride. HX_JPEG Hardware needs the width and
+height values aligned on a 16 bits boundary. This width/height alignment
+is handled in the s5p_jpeg_s_fmt_vid_cap() function during the S_FMT
+ioctl call.
 
-In this v4:
-- Correct a typo in patch #04 commit message (Thanks Jacek)
-- Add Acked-by from Andrzej and Jacek for the whole series	
+But if user space calls the QBUF of OUTPUT buffer after the S_FMT of
+CAPTURE buffer, these aligned values will be replaced by the values in
+jpeg header. If the width/height values of jpeg are not aligned, the
+decoder output will be corrupted. So in this patch we call
+jpeg_bound_align_image() to align the width/height values of Capture
+buffer in s5p_jpeg_buf_queue().
 
-v3:
-- Remove codec reset patch (Not needed based on documentation and no
-  use case described in original patch commit message).
-- Check for Exynos5420 variant in stream error handling patch.
-- Add use case for resolution change event support in commit message.
-- Move subsampling value decoding in a separate function.
-- Check Exynos variant for 4:1:1 subsampling support.
+Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
+Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+Acked-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Acked-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-v2:
-- Remove IOMMU support patch (mapping now created automatically for
-  single JPEG CODEC device).
-- Remove "Change sclk_jpeg to 166MHz" patch (can be set through DT
-  properties).
-- Remove support for multi-planar APIs (Not needed).
-- Add comment regarding call to jpeg_bound_align_image() after qbuf.
-- Remove unrelated code from resolution change event support patch.
-
-Thierry Escande (3):
-  [media] s5p-jpeg: Handle parsing error in s5p_jpeg_parse_hdr()
-  [media] s5p-jpeg: Don't use temporary structure in s5p_jpeg_buf_queue
-  [media] s5p-jpeg: Split s5p_jpeg_parse_hdr()
-
-Tony K Nadackal (3):
-  [media] s5p-jpeg: Call jpeg_bound_align_image after qbuf
-  [media] s5p-jpeg: Correct WARN_ON statement for checking subsampling
-  [media] s5p-jpeg: Decode 4:1:1 chroma subsampling format
-
-henryhsu (2):
-  [media] s5p-jpeg: Add support for resolution change event
-  [media] s5p-jpeg: Add stream error handling for Exynos5420
-
- drivers/media/platform/s5p-jpeg/jpeg-core.c | 186 +++++++++++++++++++++-------
- drivers/media/platform/s5p-jpeg/jpeg-core.h |   7 ++
- 2 files changed, 148 insertions(+), 45 deletions(-)
-
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 52dc794..623508d 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -2523,6 +2523,25 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
+ 		q_data = &ctx->cap_q;
+ 		q_data->w = tmp.w;
+ 		q_data->h = tmp.h;
++
++		/*
++		 * This call to jpeg_bound_align_image() takes care of width and
++		 * height values alignment when user space calls the QBUF of
++		 * OUTPUT buffer after the S_FMT of CAPTURE buffer.
++		 * Please note that on Exynos4x12 SoCs, resigning from executing
++		 * S_FMT on capture buffer for each JPEG image can result in a
++		 * hardware hangup if subsampling is lower than the one of input
++		 * JPEG.
++		 */
++		jpeg_bound_align_image(ctx,
++				       &q_data->w,
++				       S5P_JPEG_MIN_WIDTH, S5P_JPEG_MAX_WIDTH,
++				       q_data->fmt->h_align,
++				       &q_data->h,
++				       S5P_JPEG_MIN_HEIGHT, S5P_JPEG_MAX_HEIGHT,
++				       q_data->fmt->v_align);
++
++		q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
+ 	}
+ 
+ 	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
 -- 
 2.7.4
