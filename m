@@ -1,64 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f52.google.com ([209.85.218.52]:36260 "EHLO
-        mail-oi0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751102AbdFTLFH (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58759
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751649AbdF3MA1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Jun 2017 07:05:07 -0400
+        Fri, 30 Jun 2017 08:00:27 -0400
+Date: Fri, 30 Jun 2017 09:00:18 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Gustavo Padovan <gustavo@padovan.org>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [PATCH 06/12] [media] v4l: add V4L2_EVENT_BUF_QUEUED event
+Message-ID: <20170630090018.3a2f19c1@vento.lan>
+In-Reply-To: <20170616073915.5027-7-gustavo@padovan.org>
+References: <20170616073915.5027-1-gustavo@padovan.org>
+        <20170616073915.5027-7-gustavo@padovan.org>
 MIME-Version: 1.0
-In-Reply-To: <20170620082933.GA31799@amd>
-References: <1496860453-6282-1-git-send-email-steve_longerbeam@mentor.com>
- <e7e4669c-2963-b9e1-edd7-02731a6e0f9c@xs4all.nl> <c0b69c93-b9cd-25e8-ea36-fc0600efdb69@gmail.com>
- <e4f152de-6e75-7654-178e-e6dcf9ad12f3@xs4all.nl> <43887f25-bb73-9020-0909-d275c319aaad@mentor.com>
- <20170620082933.GA31799@amd>
-From: Fabio Estevam <festevam@gmail.com>
-Date: Tue, 20 Jun 2017 08:05:05 -0300
-Message-ID: <CAOMZO5A_LjYzzDTG9KmEHxb2F0=1Pj2Wm8s5maKS8pxce-HX3A@mail.gmail.com>
-Subject: Re: Shawn Guo: your attetion is needed here Re: [PATCH v8 00/34] i.MX
- Media Driver
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        andrew-ct.chen@mediatek.com, minghsiu.tsai@mediatek.com,
-        sakari.ailus@linux.intel.com, Nick Dyer <nick@shmanahar.org>,
-        songjun.wu@microchip.com, Hans Verkuil <hverkuil@xs4all.nl>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        devel@driverdev.osuosl.org, markus.heiser@darmarit.de,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        shuah@kernel.org, Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        linux-media <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>, mchehab@kernel.org,
-        bparrot@ti.com, "robh+dt@kernel.org" <robh+dt@kernel.org>,
-        horms+renesas@verge.net.au, Tiffany Lin <tiffany.lin@mediatek.com>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        niklas.soderlund+renesas@ragnatech.se,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        Jean-Christophe TROTIN <jean-christophe.trotin@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 20, 2017 at 5:29 AM, Pavel Machek <pavel@ucw.cz> wrote:
+Em Fri, 16 Jun 2017 16:39:09 +0900
+Gustavo Padovan <gustavo@padovan.org> escreveu:
 
-> Hmm. I changed the subject to grab Shawn's attetion.
->
-> But his acks should not be needed for forward progress. Yes, it would
-> be good, but he does not react -- so just reorder the series so that
-> dts changes come last, then apply the parts you can apply: driver can
-> go in.
->
-> And actually... if maintainer does not respond at all, there are ways
-> to deal with that, too...
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> 
+> Add a new event the userspace can subscribe to receive notifications
+> when a buffer is queued onto the driver. The event provides the index of
+> the queued buffer.
 
-Shawn has already applied the dts part of the series and they show up
-in linux-next.
+If you're changing uAPI, you need to update media uAPI book as well.
+> 
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+>  include/uapi/linux/videodev2.h | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 750d511..c2eda75 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -2150,6 +2150,7 @@ struct v4l2_streamparm {
+>  #define V4L2_EVENT_FRAME_SYNC			4
+>  #define V4L2_EVENT_SOURCE_CHANGE		5
+>  #define V4L2_EVENT_MOTION_DET			6
+> +#define V4L2_EVENT_BUF_QUEUED			7
+>  #define V4L2_EVENT_PRIVATE_START		0x08000000
+>  
+>  /* Payload for V4L2_EVENT_VSYNC */
+> @@ -2202,6 +2203,10 @@ struct v4l2_event_motion_det {
+>  	__u32 region_mask;
+>  };
+>  
+> +struct v4l2_event_buf_queued {
+> +	__u32 index;
+> +};
+> +
+>  struct v4l2_event {
+>  	__u32				type;
+>  	union {
+> @@ -2210,6 +2215,7 @@ struct v4l2_event {
+>  		struct v4l2_event_frame_sync	frame_sync;
+>  		struct v4l2_event_src_change	src_change;
+>  		struct v4l2_event_motion_det	motion_det;
+> +		struct v4l2_event_buf_queued	buf_queued;
+>  		__u8				data[64];
+>  	} u;
+>  	__u32				pending;
+
+
+-- 
+Thanks,
+Mauro
