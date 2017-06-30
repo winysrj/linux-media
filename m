@@ -1,90 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:39111 "EHLO hardeman.nu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752727AbdFQLOL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Jun 2017 07:14:11 -0400
-Date: Sat, 17 Jun 2017 13:14:05 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Subject: Re: [PATCH 3/7] rc-core: img-nec-decoder - leave the internals of
- rc_dev alone
-Message-ID: <20170617111405.ynf5nledw7e5kfc6@hardeman.nu>
-References: <149365487447.13489.15793446874818182829.stgit@zeus.hardeman.nu>
- <149365500692.13489.9572857464621441673.stgit@zeus.hardeman.nu>
- <20170522204030.GA22650@gofer.mess.org>
- <20170528082844.mba244bxuepuaqh7@hardeman.nu>
- <20170611160223.GA16107@gofer.mess.org>
+Received: from mailgw01.mediatek.com ([210.61.82.183]:39024 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751810AbdF3GD0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Jun 2017 02:03:26 -0400
+From: <sean.wang@mediatek.com>
+To: <mchehab@osg.samsung.com>, <sean@mess.org>, <hdegoede@redhat.com>,
+        <hkallweit1@gmail.com>, <robh+dt@kernel.org>,
+        <mark.rutland@arm.com>, <matthias.bgg@gmail.com>
+CC: <andi.shyti@samsung.com>, <hverkuil@xs4all.nl>,
+        <ivo.g.dimitrov.75@gmail.com>, <linux-media@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-mediatek@lists.infradead.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, Sean Wang <sean.wang@mediatek.com>
+Subject: [PATCH v1 3/4] media: rc: mtk-cir: add support for MediaTek MT7622 SoC
+Date: Fri, 30 Jun 2017 14:03:06 +0800
+Message-ID: <37ff7a2deabfddfd899613caf13209754e9ac68a.1498794408.git.sean.wang@mediatek.com>
+In-Reply-To: <cover.1498794408.git.sean.wang@mediatek.com>
+References: <cover.1498794408.git.sean.wang@mediatek.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170611160223.GA16107@gofer.mess.org>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jun 11, 2017 at 05:02:24PM +0100, Sean Young wrote:
->On Sun, May 28, 2017 at 10:28:44AM +0200, David Härdeman wrote:
->> On Mon, May 22, 2017 at 09:40:30PM +0100, Sean Young wrote:
->> >On Mon, May 01, 2017 at 06:10:06PM +0200, David Härdeman wrote:
->> >> Obvious fix, leave repeat handling to rc-core
->> >> 
->> >> Signed-off-by: David Härdeman <david@hardeman.nu>
->> >> ---
->> >>  drivers/media/rc/ir-nec-decoder.c |   10 +++-------
->> >>  1 file changed, 3 insertions(+), 7 deletions(-)
->> >> 
->> >> diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
->> >> index 3ce850314dca..75b9137f6faf 100644
->> >> --- a/drivers/media/rc/ir-nec-decoder.c
->> >> +++ b/drivers/media/rc/ir-nec-decoder.c
->> >> @@ -88,13 +88,9 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
->> >>  			data->state = STATE_BIT_PULSE;
->> >>  			return 0;
->> >>  		} else if (eq_margin(ev.duration, NEC_REPEAT_SPACE, NEC_UNIT / 2)) {
->> >> -			if (!dev->keypressed) {
->> >> -				IR_dprintk(1, "Discarding last key repeat: event after key up\n");
->> >> -			} else {
->> >> -				rc_repeat(dev);
->> >> -				IR_dprintk(1, "Repeat last key\n");
->> >> -				data->state = STATE_TRAILER_PULSE;
->> >> -			}
->> >> +			rc_repeat(dev);
->> >> +			IR_dprintk(1, "Repeat last key\n");
->> >> +			data->state = STATE_TRAILER_PULSE;
->> >
->> >This is not correct. This means that whenever a nec repeat is received,
->> >the last scancode is sent to the input device, irrespective of whether
->> >there has been no IR for hours. The original code is stricter.
->> 
->> I think that'd be an argument for moving the check to rc_repeat().
->
->It is.
+From: Sean Wang <sean.wang@mediatek.com>
 
-And I just realised that the check is anyway incorrect since
-dev->keylock isn't held when dev->keypressed is checked. rc_repeat() on
-the other hand does the right thing, which is another argument for
-moving the check.
+This patch adds driver for CIR controller on MT7622 SoC. It has similar
+handling logic as the previously MT7623 does, but there are some
+differences in the register and field definition. So for ease portability
+and maintenance, those differences all are being kept inside the platform
+data as other drivers usually do. Currently testing successfully on NEC
+and SONY remote controller.
 
->> But, on the other hand, sending an input scancode for each repeat event
->> seems kind of pointless, doesn't it? If so, it might make more sense to
->> just remove the input event generation from rc_repeat() altogether...
->
->At least there is something visible in user-space saying that a repeat
->has been received.
+Signed-off-by: Sean Wang <sean.wang@mediatek.com>
+---
+ drivers/media/rc/mtk-cir.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-Yes, but I'm not sure what the value of that information is? The
-MSC_SCAN events are mostly useful to create new keymaps for unknown
-controls, additional repeat messages won't really be of any use there.
-
-And generating repeat events has the disadvantage that userspace will be
-woken up (how often is protocol dependent, but once every 110ms for NEC,
-as an example) repeatedly while a button is pressed.
-
-Anyway, I'll spin a new patch in two parts, one which makes the
-behaviour consistent between decoders and one which removes the input
-event altogether, then you can decide whether you want to merge the
-second patch or not.
-
+diff --git a/drivers/media/rc/mtk-cir.c b/drivers/media/rc/mtk-cir.c
+index 32b1031..6672772 100644
+--- a/drivers/media/rc/mtk-cir.c
++++ b/drivers/media/rc/mtk-cir.c
+@@ -84,6 +84,13 @@ static const u32 mt7623_regs[] = {
+ 	[MTK_IRINT_CLR_REG] =	0xd0,
+ };
+ 
++static const u32 mt7622_regs[] = {
++	[MTK_IRCLR_REG] =	0x18,
++	[MTK_CHKDATA_REG] =	0x30,
++	[MTK_IRINT_EN_REG] =	0x1c,
++	[MTK_IRINT_CLR_REG] =	0x20,
++};
++
+ struct mtk_field_type {
+ 	u32 reg;
+ 	u8 offset;
+@@ -113,6 +120,11 @@ static const struct mtk_field_type mt7623_fields[] = {
+ 	[MTK_HW_PERIOD] = {0x10, 0, GENMASK(7, 0)},
+ };
+ 
++static const struct mtk_field_type mt7622_fields[] = {
++	[MTK_CHK_PERIOD] = {0x24, 0, GENMASK(24, 0)},
++	[MTK_HW_PERIOD] = {0x10, 0, GENMASK(24, 0)},
++};
++
+ /*
+  * struct mtk_ir -	This is the main datasructure for holding the state
+  *			of the driver
+@@ -268,8 +280,17 @@ static const struct mtk_ir_data mt7623_data = {
+ 	.div	= 4,
+ };
+ 
++static const struct mtk_ir_data mt7622_data = {
++	.regs = mt7622_regs,
++	.fields = mt7622_fields,
++	.ok_count = 0xf,
++	.hw_period = 0xffff,
++	.div	= 32,
++};
++
+ static const struct of_device_id mtk_ir_match[] = {
+ 	{ .compatible = "mediatek,mt7623-cir", .data = &mt7623_data},
++	{ .compatible = "mediatek,mt7622-cir", .data = &mt7622_data},
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, mtk_ir_match);
 -- 
-David Härdeman
+2.7.4
