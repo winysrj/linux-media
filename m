@@ -1,52 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from m12-18.163.com ([220.181.12.18]:48253 "EHLO m12-18.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751083AbdFADX2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 23:23:28 -0400
-From: Jia-Ju Bai <baijiaju1990@163.com>
-To: awalls@md.metrocast.net, mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Jia-Ju Bai <baijiaju1990@163.com>
-Subject: [PATCH] ivtv: Fix a sleep-in-atomic bug in snd_ivtv_pcm_hw_free
-Date: Thu,  1 Jun 2017 11:25:17 +0800
-Message-Id: <1496287517-20625-1-git-send-email-baijiaju1990@163.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:54645 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751840AbdF3OfP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Jun 2017 10:35:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Eric Anholt <eric@anholt.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 04/12] cec-core.rst: document the adap_free callback
+Date: Fri, 30 Jun 2017 16:35:01 +0200
+Message-Id: <20170630143509.56029-5-hverkuil@xs4all.nl>
+In-Reply-To: <20170630143509.56029-1-hverkuil@xs4all.nl>
+References: <20170630143509.56029-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver may sleep under a spin lock, and the function call path is:
-snd_ivtv_pcm_hw_free (acquire the lock by spin_lock_irqsave)
-  vfree --> may sleep
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-To fix it, the "substream->runtime->dma_area" is passed to a temporary
-value, and mark it NULL when holding the lock. The memory is freed by
-vfree through the temporary value outside the lock holding.
+Document what this callback does.
 
-Signed-off-by: Jia-Ju Bai <baijiaju1990@163.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/ivtv/ivtv-alsa-pcm.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ Documentation/media/kapi/cec-core.rst | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/pci/ivtv/ivtv-alsa-pcm.c b/drivers/media/pci/ivtv/ivtv-alsa-pcm.c
-index 807ead2..92d088c 100644
---- a/drivers/media/pci/ivtv/ivtv-alsa-pcm.c
-+++ b/drivers/media/pci/ivtv/ivtv-alsa-pcm.c
-@@ -262,14 +262,16 @@ static int snd_ivtv_pcm_hw_free(struct snd_pcm_substream *substream)
- {
- 	struct snd_ivtv_card *itvsc = snd_pcm_substream_chip(substream);
- 	unsigned long flags;
-+	unsigned char *dma_area;
+diff --git a/Documentation/media/kapi/cec-core.rst b/Documentation/media/kapi/cec-core.rst
+index 8a65c69ed071..6ea2c9c80182 100644
+--- a/Documentation/media/kapi/cec-core.rst
++++ b/Documentation/media/kapi/cec-core.rst
+@@ -107,6 +107,7 @@ your driver:
+ 		int (*adap_transmit)(struct cec_adapter *adap, u8 attempts,
+ 				      u32 signal_free_time, struct cec_msg *msg);
+ 		void (*adap_status)(struct cec_adapter *adap, struct seq_file *file);
++		void (*adap_free)(struct cec_adapter *adap);
  
- 	spin_lock_irqsave(&itvsc->slock, flags);
- 	if (substream->runtime->dma_area) {
- 		dprintk("freeing pcm capture region\n");
--		vfree(substream->runtime->dma_area);
-+		dma_area = substream->runtime->dma_area;
- 		substream->runtime->dma_area = NULL;
- 	}
- 	spin_unlock_irqrestore(&itvsc->slock, flags);
-+	vfree(dma_area);
+ 		/* High-level callbacks */
+ 		...
+@@ -181,8 +182,13 @@ To log the current CEC hardware status:
+ .. c:function::
+ 	void (*adap_status)(struct cec_adapter *adap, struct seq_file *file);
  
- 	return 0;
- }
+-This optional callback can be used to show the status of the CEC hardware.
+-The status is available through debugfs: cat /sys/kernel/debug/cec/cecX/status
++To free any resources when the adapter is deleted:
++
++.. c:function::
++	void (*adap_free)(struct cec_adapter *adap);
++
++This optional callback can be used to free any resources that might have been
++allocated by the driver. It's called from cec_delete_adapter.
+ 
+ 
+ Your adapter driver will also have to react to events (typically interrupt
 -- 
-1.7.9.5
+2.11.0
