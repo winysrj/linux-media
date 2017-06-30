@@ -1,128 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f52.google.com ([74.125.83.52]:33425 "EHLO
-        mail-pg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751474AbdFFXhs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Jun 2017 19:37:48 -0400
-Received: by mail-pg0-f52.google.com with SMTP id f185so39433655pgc.0
-        for <linux-media@vger.kernel.org>; Tue, 06 Jun 2017 16:37:47 -0700 (PDT)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: Sekhar Nori <nsekhar@ti.com>, David Lechner <david@lechnology.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        Benoit Parrot <bparrot@ti.com>,
-        Prabhakar Lad <prabhakar.csengg@gmail.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: [PATCH v2 4/4] [media] davinci: vpif: adaptions for DT support
-Date: Tue,  6 Jun 2017 16:37:41 -0700
-Message-Id: <20170606233741.26718-5-khilman@baylibre.com>
-In-Reply-To: <20170606233741.26718-1-khilman@baylibre.com>
-References: <20170606233741.26718-1-khilman@baylibre.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33665 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752995AbdF3Uva (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Jun 2017 16:51:30 -0400
+Received: by mail-wm0-f66.google.com with SMTP id j85so9870917wmj.0
+        for <linux-media@vger.kernel.org>; Fri, 30 Jun 2017 13:51:29 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: rjkm@metzlerbros.de, jasmin@anw.at
+Subject: [PATCH v2 09/10] [media] ddbridge: stv0910 single demod mode module option
+Date: Fri, 30 Jun 2017 22:51:05 +0200
+Message-Id: <20170630205106.1268-10-d.scheller.oss@gmail.com>
+In-Reply-To: <20170630205106.1268-1-d.scheller.oss@gmail.com>
+References: <20170630205106.1268-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The davinci VPIF is a single hardware block, but the existing driver
-is broken up into a common library (vpif.c), output (vpif_display.c) and
-intput (vpif_capture.c).
+From: Daniel Scheller <d.scheller@gmx.net>
 
-When migrating to DT, to better model the hardware, and because
-registers, interrupts, etc. are all common,it was decided to
-have a single VPIF hardware node[1].
+Adds a stv0910_single modparm which, when set, configures the stv0910 to
+run in single demodulator mode, currently intended for high bit rate
+testing.
 
-Because davinci uses legacy, non-DT boot on several SoCs still, the
-platform_drivers need to remain.  But they are also needed in DT boot.
-Since there are no DT nodes for the display/capture parts in DT
-boot (there is a single node for the parent/common device) we need to
-create platform_devices somewhere to instansiate the platform_drivers.
-
-When VPIF display/capture are needed for a DT boot, the VPIF node
-will have endpoints defined for its subdevs.  Therefore, vpif_probe()
-checks for the presence of endpoints, and if detected manually creates
-the platform_devices for the display and capture platform_drivers.
-
-[1] Documentation/devicetree/bindings/media/ti,da850-vpif.txt
-
-Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- drivers/media/platform/davinci/vpif.c | 49 ++++++++++++++++++++++++++++++++++-
- 1 file changed, 48 insertions(+), 1 deletion(-)
+ drivers/media/pci/ddbridge/ddbridge-core.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
-index 1b02a6363f77..502917abcb13 100644
---- a/drivers/media/platform/davinci/vpif.c
-+++ b/drivers/media/platform/davinci/vpif.c
-@@ -26,6 +26,7 @@
- #include <linux/pm_runtime.h>
- #include <linux/spinlock.h>
- #include <linux/v4l2-dv-timings.h>
-+#include <linux/of_graph.h>
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index b3fc6a875279..e762396730db 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -53,6 +53,10 @@ static int xo2_speed = 2;
+ module_param(xo2_speed, int, 0444);
+ MODULE_PARM_DESC(xo2_speed, "default transfer speed for xo2 based duoflex, 0=55,1=75,2=90,3=104 MBit/s, default=2, use attribute to change for individual cards");
  
- #include "vpif.h"
- 
-@@ -423,7 +424,9 @@ EXPORT_SYMBOL(vpif_channel_getfid);
- 
- static int vpif_probe(struct platform_device *pdev)
- {
--	static struct resource	*res;
-+	static struct resource	*res, *res_irq;
-+	struct platform_device *pdev_capture, *pdev_display;
-+	struct device_node *endpoint = NULL;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	vpif_base = devm_ioremap_resource(&pdev->dev, res);
-@@ -435,6 +438,50 @@ static int vpif_probe(struct platform_device *pdev)
- 
- 	spin_lock_init(&vpif_lock);
- 	dev_info(&pdev->dev, "vpif probe success\n");
++static int stv0910_single;
++module_param(stv0910_single, int, 0444);
++MODULE_PARM_DESC(stv0910_single, "use stv0910 cards as single demods");
 +
-+	/*
-+	 * If VPIF Node has endpoints, assume "new" DT support,
-+	 * where capture and display drivers don't have DT nodes
-+	 * so their devices need to be registered manually here
-+	 * for their legacy platform_drivers to work.
-+	 */
-+	endpoint = of_graph_get_next_endpoint(pdev->dev.of_node,
-+					      endpoint);
-+	if (!endpoint) 
-+		return 0;
-+
-+	/*
-+	 * For DT platforms, manually create platform_devices for
-+	 * capture/display drivers.
-+	 */
-+	res_irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-+	if (!res_irq) {
-+		dev_warn(&pdev->dev, "Missing IRQ resource.\n");
-+		return -EINVAL;
-+	}
-+
-+	pdev_capture = devm_kzalloc(&pdev->dev, sizeof(*pdev_capture),
-+				    GFP_KERNEL);
-+	pdev_capture->name = "vpif_capture";
-+	pdev_capture->id = -1;
-+	pdev_capture->resource = res_irq;
-+	pdev_capture->num_resources = 1;
-+	pdev_capture->dev.dma_mask = pdev->dev.dma_mask;
-+	pdev_capture->dev.coherent_dma_mask = pdev->dev.coherent_dma_mask;
-+	pdev_capture->dev.parent = &pdev->dev;
-+	platform_device_register(pdev_capture);
-+
-+	pdev_display = devm_kzalloc(&pdev->dev, sizeof(*pdev_display),
-+				    GFP_KERNEL);
-+	pdev_display->name = "vpif_display";
-+	pdev_display->id = -1;
-+	pdev_display->resource = res_irq;
-+	pdev_display->num_resources = 1;
-+	pdev_display->dev.dma_mask = pdev->dev.dma_mask;
-+	pdev_display->dev.coherent_dma_mask = pdev->dev.coherent_dma_mask;
-+	pdev_display->dev.parent = &pdev->dev;
-+	platform_device_register(pdev_display);
-+
- 	return 0;
- }
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
  
+ /* MSI had problems with lost interrupts, fixed but needs testing */
+@@ -942,6 +946,9 @@ static int demod_attach_stv0910(struct ddb_input *input, int type)
+ 	struct stv0910_cfg cfg = stv0910_p;
+ 	struct lnbh25_config lnbcfg = lnbh25_cfg;
+ 
++	if (stv0910_single)
++		cfg.single = 1;
++
+ 	if (type)
+ 		cfg.parallel = 2;
+ 	input->fe = dvb_attach(stv0910_attach, i2c, &cfg, (input->nr & 1));
 -- 
-2.9.3
+2.13.0
