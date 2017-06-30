@@ -1,75 +1,391 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.74]:49624 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751979AbdFUWLC (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58721
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751784AbdF3LyE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Jun 2017 18:11:02 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Colin Ian King <colin.king@canonical.com>,
-        Wei Yongjun <weiyongjun1@huawei.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] rainshadow-cec: avoid -Wmaybe-uninitialized warning again
-Date: Thu, 22 Jun 2017 00:10:32 +0200
-Message-Id: <20170621221047.128705-1-arnd@arndb.de>
+        Fri, 30 Jun 2017 07:54:04 -0400
+Date: Fri, 30 Jun 2017 08:53:54 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Gustavo Padovan <gustavo@padovan.org>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [PATCH 03/12] [media] vb2: add in-fence support to QBUF
+Message-ID: <20170630085354.2a76bb4a@vento.lan>
+In-Reply-To: <20170616073915.5027-4-gustavo@padovan.org>
+References: <20170616073915.5027-1-gustavo@padovan.org>
+        <20170616073915.5027-4-gustavo@padovan.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Back in April I created a patch to address a false-positive warning:
+Em Fri, 16 Jun 2017 16:39:06 +0900
+Gustavo Padovan <gustavo@padovan.org> escreveu:
 
-drivers/media/usb/rainshadow-cec/rainshadow-cec.c: In function 'rain_irq_work_handler':
-drivers/media/usb/rainshadow-cec/rainshadow-cec.c:171:31: error: 'data' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> 
+> Receive in-fence from userspace and add support for waiting on them
+> before queueing the buffer to the driver. Buffers are only queued
+> to the driver once they are ready. A buffer is ready when its
+> in-fence signals.
+> 
+> v2:
+> 	- fix vb2_queue_or_prepare_buf() ret check
+> 	- remove check for VB2_MEMORY_DMABUF only (Javier)
+> 	- check num of ready buffers to start streaming
+> 	- when queueing, start from the first ready buffer
+> 	- handle queue cancel
+> 
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+>  drivers/media/Kconfig                    |  1 +
+>  drivers/media/v4l2-core/videobuf2-core.c | 97 +++++++++++++++++++++++++-------
+>  drivers/media/v4l2-core/videobuf2-v4l2.c | 15 ++++-
+>  include/media/videobuf2-core.h           |  7 ++-
+>  4 files changed, 99 insertions(+), 21 deletions(-)
+> 
+> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+> index 55d9c2b..3cd1d3d 100644
+> --- a/drivers/media/Kconfig
+> +++ b/drivers/media/Kconfig
+> @@ -11,6 +11,7 @@ config CEC_NOTIFIER
+>  menuconfig MEDIA_SUPPORT
+>  	tristate "Multimedia support"
+>  	depends on HAS_IOMEM
+> +	select SYNC_FILE
+>  	help
+>  	  If you want to use Webcams, Video grabber devices and/or TV devices
+>  	  enable this option and other options below.
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index ea83126..29aa9d4 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1279,6 +1279,22 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
+>  	return 0;
+>  }
+>  
+> +static int __get_num_ready_buffers(struct vb2_queue *q)
+> +{
+> +	struct vb2_buffer *vb;
+> +	int ready_count = 0;
+> +
+> +	/* count num of buffers ready in front of the queued_list */
+> +	list_for_each_entry(vb, &q->queued_list, queued_entry) {
+> +		if (vb->in_fence && !dma_fence_is_signaled(vb->in_fence))
+> +			break;
+> +
+> +		ready_count++;
 
-My patch was totally wrong and introduced a real bug, and Colin Ian King thankfully
-noticed it now and fixed my mistake. Unfortunately, fixing the actual uninitialized
-data in this case brought back the original bogus warning.
+Hmm... maybe that's one of the reasons why out of order explicit fences is not
+working. With the current logic, if explicit fences is enabled, this function
+will always return 0 or 1, even if more buffers are ready.
 
-This is a new version of the patch, which simplifies the code to the point where
-gcc notices the behavior is correct.
+IMHO, the correct logic here should be, instead:
 
-Fixes: ca33784ba494 ("[media] rainshadow-cec: ensure exit_loop is intialized")
-Fixes: ea6a69defd3311 ("[media] rainshadow-cec: avoid -Wmaybe-uninitialized warning")
-Cc: Colin Ian King <colin.king@canonical.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/usb/rainshadow-cec/rainshadow-cec.c | 18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+		if (!vb->in_fence || dma_fence_is_signaled(vb->in_fence))
+			ready_count++;
 
-diff --git a/drivers/media/usb/rainshadow-cec/rainshadow-cec.c b/drivers/media/usb/rainshadow-cec/rainshadow-cec.c
-index ad468efc4399..7bc28bb92c35 100644
---- a/drivers/media/usb/rainshadow-cec/rainshadow-cec.c
-+++ b/drivers/media/usb/rainshadow-cec/rainshadow-cec.c
-@@ -119,21 +119,19 @@ static void rain_irq_work_handler(struct work_struct *work)
- 
- 	while (true) {
- 		unsigned long flags;
--		bool exit_loop = false;
- 		char data;
- 
- 		spin_lock_irqsave(&rain->buf_lock, flags);
--		if (rain->buf_len) {
--			data = rain->buf[rain->buf_rd_idx];
--			rain->buf_len--;
--			rain->buf_rd_idx = (rain->buf_rd_idx + 1) & 0xff;
--		} else {
--			exit_loop = true;
-+		if (!rain->buf_len) {
-+			spin_unlock_irqrestore(&rain->buf_lock, flags);
-+			break;
- 		}
--		spin_unlock_irqrestore(&rain->buf_lock, flags);
- 
--		if (exit_loop)
--			break;
-+		data = rain->buf[rain->buf_rd_idx];
-+		rain->buf_len--;
-+		rain->buf_rd_idx = (rain->buf_rd_idx + 1) & 0xff;
-+
-+		spin_unlock_irqrestore(&rain->buf_lock, flags);
- 
- 		if (!rain->cmd_started && data != '?')
- 			continue;
+> +	}
+> +
+> +	return ready_count;
+> +}
+> +
+>  int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
+>  {
+>  	struct vb2_buffer *vb;
+> @@ -1324,8 +1340,15 @@ static int vb2_start_streaming(struct vb2_queue *q)
+>  	 * If any buffers were queued before streamon,
+>  	 * we can now pass them to driver for processing.
+>  	 */
+> -	list_for_each_entry(vb, &q->queued_list, queued_entry)
+> +	list_for_each_entry(vb, &q->queued_list, queued_entry) {
+> +		if (vb->state != VB2_BUF_STATE_QUEUED)
+> +			continue;
+> +
+> +		if (vb->in_fence && !dma_fence_is_signaled(vb->in_fence))
+> +			break;
+> +
+>  		__enqueue_in_driver(vb);
+
+Same as before, the correct logic here seems to be:
+
+		if (!vb->in_fence || dma_fence_is_signaled(vb->in_fence))
+			__enqueue_in_driver(vb);	
+
+> +	}
+>  
+>  	/* Tell the driver to start streaming */
+>  	q->start_streaming_called = 1;
+> @@ -1369,33 +1392,55 @@ static int vb2_start_streaming(struct vb2_queue *q)
+>  
+>  static int __vb2_core_qbuf(struct vb2_buffer *vb, struct vb2_queue *q)
+>  {
+> +	struct vb2_buffer *b;
+>  	int ret;
+>  
+>  	/*
+>  	 * If already streaming, give the buffer to driver for processing.
+>  	 * If not, the buffer will be given to driver on next streamon.
+>  	 */
+> -	if (q->start_streaming_called)
+> -		__enqueue_in_driver(vb);
+>  
+> -	/*
+> -	 * If streamon has been called, and we haven't yet called
+> -	 * start_streaming() since not enough buffers were queued, and
+> -	 * we now have reached the minimum number of queued buffers,
+> -	 * then we can finally call start_streaming().
+> -	 */
+> -	if (q->streaming && !q->start_streaming_called &&
+> -	    q->queued_count >= q->min_buffers_needed) {
+> -		ret = vb2_start_streaming(q);
+> -		if (ret)
+> -			return ret;
+> +	if (q->start_streaming_called) {
+> +		list_for_each_entry(b, &q->queued_list, queued_entry) {
+> +			if (b->state != VB2_BUF_STATE_QUEUED)
+> +				continue;
+> +
+> +			if (b->in_fence && !dma_fence_is_signaled(b->in_fence))
+> +				break;
+> +
+> +			__enqueue_in_driver(b);
+
+Same here:
+
+		if (!vb->in_fence || dma_fence_is_signaled(vb->in_fence))
+			__enqueue_in_driver(vb);	
+
+
+There is, however, a behavior change here (even without the above
+proposal.
+
+Before this patch, if fences is not used (for example, for DVB or
+for some other mechanism at V4L2), the driver would be doing:
+
+	if (q->start_streaming_called)
+		__enqueue_in_driver(vb);
+
+So, __enqueue_in_driver() would be called just once. Now, after
+the change, it will be doing, instead:
+
+	list_for_each_entry(vb, &q->queued_list, queued_entry)
+		__enqueue_in_driver(vb);
+
+With can queue several buffers at once.
+
+I've no idea how this will affect non-fences behavior for V4L2
+and for DVB. More tests are required to check if this badly affect
+drivers, or if it would bring some performance or latency change.
+
+> +		}
+> +	} else {
+
+Why did you add an else here? I guess there was a very strong reason
+to not have an else at the original code - just can't remember why, and
+I' too lazy today to dig into VB2 changeset descriptions :-)
+
+Please don't change the behavior together with a patch that add new
+features as it can cause regressions, and it would be a way harder
+to track if you fold different changes at the same patch.
+
+If this behavior change is due to some bug, it should be submitted
+in a separate, patch, provided with a very detailed description.
+
+If otherwise, this is a requiement just for fences, you should first
+test if fences is enabled before changing the behavior.
+
+> +		/*
+> +		 * If streamon has been called, and we haven't yet called
+> +		 * start_streaming() since not enough buffers were queued, and
+> +		 * we now have reached the minimum number of queued buffers
+> +		 * that are ready, then we can finally call start_streaming().
+> +		 */
+> +		if (q->streaming &&
+> +		    __get_num_ready_buffers(q) >= q->min_buffers_needed) {
+> +			ret = vb2_start_streaming(q);
+> +			if (ret)
+> +				return ret;
+> +		}
+>  	}
+>  
+>  	dprintk(1, "qbuf of buffer %d succeeded\n", vb->index);
+>  	return 0;
+>  }
+>  
+> -int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+> +static void vb2_qbuf_fence_cb(struct dma_fence *f, struct dma_fence_cb *cb)
+> +{
+> +	struct vb2_buffer *vb = container_of(cb, struct vb2_buffer, fence_cb);
+> +
+> +	dma_fence_put(vb->in_fence);
+> +	vb->in_fence = NULL;
+> +
+> +	__vb2_core_qbuf(vb, vb->vb2_queue);
+> +}
+> +
+> +int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
+> +		  struct dma_fence *fence)
+>  {
+>  	struct vb2_buffer *vb;
+>  	int ret;
+> @@ -1436,6 +1481,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+>  	if (pb)
+>  		call_void_bufop(q, fill_user_buffer, vb, pb);
+>  
+> +	vb->in_fence = fence;
+> +	if (fence && !dma_fence_add_callback(fence, &vb->fence_cb,
+> +					     vb2_qbuf_fence_cb))
+> +		return 0;
+
+Maybe we should provide some error or debug log here or a WARN_ON(), if 
+dma_fence_add_callback() fails instead of silently ignore any errors.
+
+> +
+>  	return __vb2_core_qbuf(vb, q);
+>  }
+>  EXPORT_SYMBOL_GPL(vb2_core_qbuf);
+> @@ -1647,6 +1697,7 @@ EXPORT_SYMBOL_GPL(vb2_core_dqbuf);
+>  static void __vb2_queue_cancel(struct vb2_queue *q)
+>  {
+>  	unsigned int i;
+> +	struct vb2_buffer *vb;
+>  
+>  	/*
+>  	 * Tell driver to stop all transactions and release all queued
+> @@ -1669,6 +1720,14 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+>  		WARN_ON(atomic_read(&q->owned_by_drv_count));
+>  	}
+>  
+> +	list_for_each_entry(vb, &q->queued_list, queued_entry) {
+> +		if (vb->in_fence) {
+> +			dma_fence_remove_callback(vb->in_fence, &vb->fence_cb);
+> +			dma_fence_put(vb->in_fence);
+> +			vb->in_fence = NULL;
+> +		}
+> +	}
+> +
+>  	q->streaming = 0;
+>  	q->start_streaming_called = 0;
+>  	q->queued_count = 0;
+> @@ -1735,7 +1794,7 @@ int vb2_core_streamon(struct vb2_queue *q, unsigned int type)
+>  	 * Tell driver to start streaming provided sufficient buffers
+>  	 * are available.
+>  	 */
+> -	if (q->queued_count >= q->min_buffers_needed) {
+> +	if (__get_num_ready_buffers(q) >= q->min_buffers_needed) {
+>  		ret = v4l_vb2q_enable_media_source(q);
+>  		if (ret)
+>  			return ret;
+> @@ -2250,7 +2309,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+>  		 * Queue all buffers.
+>  		 */
+>  		for (i = 0; i < q->num_buffers; i++) {
+> -			ret = vb2_core_qbuf(q, i, NULL);
+> +			ret = vb2_core_qbuf(q, i, NULL, NULL);
+>  			if (ret)
+>  				goto err_reqbufs;
+>  			fileio->bufs[i].queued = 1;
+> @@ -2429,7 +2488,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+>  
+>  		if (copy_timestamp)
+>  			b->timestamp = ktime_get_ns();
+> -		ret = vb2_core_qbuf(q, index, NULL);
+> +		ret = vb2_core_qbuf(q, index, NULL, NULL);
+>  		dprintk(5, "vb2_dbuf result: %d\n", ret);
+>  		if (ret)
+>  			return ret;
+> @@ -2532,7 +2591,7 @@ static int vb2_thread(void *data)
+>  		if (copy_timestamp)
+>  			vb->timestamp = ktime_get_ns();;
+>  		if (!threadio->stop)
+> -			ret = vb2_core_qbuf(q, vb->index, NULL);
+> +			ret = vb2_core_qbuf(q, vb->index, NULL, NULL);
+>  		call_void_qop(q, wait_prepare, q);
+>  		if (ret || threadio->stop)
+>  			break;
+> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> index 110fb45..e6ad77f 100644
+> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
+> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> @@ -23,6 +23,7 @@
+>  #include <linux/sched.h>
+>  #include <linux/freezer.h>
+>  #include <linux/kthread.h>
+> +#include <linux/sync_file.h>
+>  
+>  #include <media/v4l2-dev.h>
+>  #include <media/v4l2-fh.h>
+> @@ -560,6 +561,7 @@ EXPORT_SYMBOL_GPL(vb2_create_bufs);
+>  
+>  int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+>  {
+> +	struct dma_fence *fence = NULL;
+>  	int ret;
+>  
+>  	if (vb2_fileio_is_active(q)) {
+> @@ -568,7 +570,18 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+>  	}
+>  
+>  	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
+> -	return ret ? ret : vb2_core_qbuf(q, b->index, b);
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (b->flags & V4L2_BUF_FLAG_IN_FENCE) {
+> +		fence = sync_file_get_fence(b->fence_fd);
+> +		if (!fence) {
+> +			dprintk(1, "failed to get in-fence from fd\n");
+> +			return -EINVAL;
+> +		}
+> +	}
+> +
+> +	return ret ? ret : vb2_core_qbuf(q, b->index, b, fence);
+
+No need to check for ret again. You could just do:
+
+	return vb2_core_qbuf(q, b->index, b, fence);
+
+>  }
+>  EXPORT_SYMBOL_GPL(vb2_qbuf);
+>  
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index cb97c22..aa43e43 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -16,6 +16,7 @@
+>  #include <linux/mutex.h>
+>  #include <linux/poll.h>
+>  #include <linux/dma-buf.h>
+> +#include <linux/dma-fence.h>
+>  
+>  #define VB2_MAX_FRAME	(32)
+>  #define VB2_MAX_PLANES	(8)
+> @@ -259,6 +260,9 @@ struct vb2_buffer {
+>  
+>  	struct list_head	queued_entry;
+>  	struct list_head	done_entry;
+> +
+> +	struct dma_fence	*in_fence;
+> +	struct dma_fence_cb	fence_cb;
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+>  	/*
+>  	 * Counters for how often these buffer-related ops are
+> @@ -727,7 +731,8 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
+>   * The return values from this function are intended to be directly returned
+>   * from vidioc_qbuf handler in driver.
+>   */
+> -int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
+> +int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
+> +		  struct dma_fence *fence);
+>  
+>  /**
+>   * vb2_core_dqbuf() - Dequeue a buffer to the userspace
+
+
 -- 
-2.9.0
+Thanks,
+Mauro
