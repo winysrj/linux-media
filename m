@@ -1,83 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45022 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753711AbdFSLPj (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:37987 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752059AbdF3OP7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Jun 2017 07:15:39 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 1/6] v4l: vsp1: Remove WPF vertical flip support on VSP2-B[CD] and VSP2-D
-Date: Mon, 19 Jun 2017 14:16:10 +0300
-Message-ID: <1880337.HyBPYQX1Jb@avalon>
-In-Reply-To: <01747c5c-bb5e-77ff-c46d-9589c606cef7@xs4all.nl>
-References: <20170615082409.9523-1-laurent.pinchart+renesas@ideasonboard.com> <20170615082409.9523-2-laurent.pinchart+renesas@ideasonboard.com> <01747c5c-bb5e-77ff-c46d-9589c606cef7@xs4all.nl>
+        Fri, 30 Jun 2017 10:15:59 -0400
+From: Thierry Escande <thierry.escande@collabora.com>
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v4 8/8] [media] s5p-jpeg: Add stream error handling for Exynos5420
+Date: Fri, 30 Jun 2017 16:15:47 +0200
+Message-Id: <1498832147-16316-9-git-send-email-thierry.escande@collabora.com>
+In-Reply-To: <1498832147-16316-1-git-send-email-thierry.escande@collabora.com>
+References: <1498832147-16316-1-git-send-email-thierry.escande@collabora.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset = "utf-8"
+Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: henryhsu <henryhsu@chromium.org>
 
-On Thursday 15 Jun 2017 10:53:33 Hans Verkuil wrote:
-> On 06/15/17 10:24, Laurent Pinchart wrote:
-> > The WPF vertical flip is only supported on Gen3 SoCs on the VSP2-I.
-> > Don't enable it on other VSP2 instances.
-> > 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> 
-> Should this go to older kernels as well? Or is that not needed?
+On Exynos5420, the STREAM_STAT bit raised on the JPGINTST register means
+there is a syntax error or an unrecoverable error on compressed file
+when ERR_INT_EN is set to 1.
 
-Now that I have access to the hardware again, after further testing, it looks 
-like vertical flip is implemented in the VSP2-B[CD] and VSP2-D even though the 
-datasheet states otherwise. Let's ignore this patch for now, I'll try to 
-double-check with Renesas.
+Fix this case and report BUF_STATE_ERROR to videobuf2.
 
-> > ---
-> > 
-> >  drivers/media/platform/vsp1/vsp1_drv.c | 6 +++---
-> >  1 file changed, 3 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/vsp1/vsp1_drv.c
-> > b/drivers/media/platform/vsp1/vsp1_drv.c index 048446af5ae7..239996cf882e
-> > 100644
-> > --- a/drivers/media/platform/vsp1/vsp1_drv.c
-> > +++ b/drivers/media/platform/vsp1/vsp1_drv.c
-> > @@ -690,7 +690,7 @@ static const struct vsp1_device_info
-> > vsp1_device_infos[] = { 
-> >  		.version = VI6_IP_VERSION_MODEL_VSPBD_GEN3,
-> >  		.model = "VSP2-BD",
-> >  		.gen = 3,
-> > -		.features = VSP1_HAS_BRU | VSP1_HAS_WPF_VFLIP,
-> > +		.features = VSP1_HAS_BRU,
-> >  		.rpf_count = 5,
-> >  		.wpf_count = 1,
-> >  		.num_bru_inputs = 5,
-> > @@ -700,7 +700,7 @@ static const struct vsp1_device_info
-> > vsp1_device_infos[] = { 
-> >  		.model = "VSP2-BC",
-> >  		.gen = 3,
-> >  		.features = VSP1_HAS_BRU | VSP1_HAS_CLU | VSP1_HAS_HGO
-> > -			  | VSP1_HAS_LUT | VSP1_HAS_WPF_VFLIP,
-> > +			  | VSP1_HAS_LUT,
-> >  		.rpf_count = 5,
-> >  		.wpf_count = 1,
-> >  		.num_bru_inputs = 5,
-> > @@ -709,7 +709,7 @@ static const struct vsp1_device_info
-> > vsp1_device_infos[] = { 
-> >  		.version = VI6_IP_VERSION_MODEL_VSPD_GEN3,
-> >  		.model = "VSP2-D",
-> >  		.gen = 3,
-> > -		.features = VSP1_HAS_BRU | VSP1_HAS_LIF | VSP1_HAS_WPF_VFLIP,
-> > +		.features = VSP1_HAS_BRU | VSP1_HAS_LIF,
-> >  		.rpf_count = 5,
-> >  		.wpf_count = 2,
-> >  		.num_bru_inputs = 5,
+Signed-off-by: Henry-Ruey Hsu <henryhsu@chromium.org>
+Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+Acked-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Acked-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 5ad3d43..c35d169 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -2812,6 +2812,7 @@ static irqreturn_t exynos3250_jpeg_irq(int irq, void *dev_id)
+ 	unsigned long payload_size = 0;
+ 	enum vb2_buffer_state state = VB2_BUF_STATE_DONE;
+ 	bool interrupt_timeout = false;
++	bool stream_error = false;
+ 	u32 irq_status;
+ 
+ 	spin_lock(&jpeg->slock);
+@@ -2828,6 +2829,12 @@ static irqreturn_t exynos3250_jpeg_irq(int irq, void *dev_id)
+ 
+ 	jpeg->irq_status |= irq_status;
+ 
++	if (jpeg->variant->version == SJPEG_EXYNOS5420 &&
++	    irq_status & EXYNOS3250_STREAM_STAT) {
++		stream_error = true;
++		dev_err(jpeg->dev, "Syntax error or unrecoverable error occurred.\n");
++	}
++
+ 	curr_ctx = v4l2_m2m_get_curr_priv(jpeg->m2m_dev);
+ 
+ 	if (!curr_ctx)
+@@ -2844,7 +2851,7 @@ static irqreturn_t exynos3250_jpeg_irq(int irq, void *dev_id)
+ 				EXYNOS3250_RDMA_DONE |
+ 				EXYNOS3250_RESULT_STAT))
+ 		payload_size = exynos3250_jpeg_compressed_size(jpeg->regs);
+-	else if (interrupt_timeout)
++	else if (interrupt_timeout || stream_error)
+ 		state = VB2_BUF_STATE_ERROR;
+ 	else
+ 		goto exit_unlock;
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
