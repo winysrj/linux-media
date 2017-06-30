@@ -1,52 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from m12-13.163.com ([220.181.12.13]:47939 "EHLO m12-13.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751090AbdFADR2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 May 2017 23:17:28 -0400
-From: Jia-Ju Bai <baijiaju1990@163.com>
-To: awalls@md.metrocast.net, mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Jia-Ju Bai <baijiaju1990@163.com>
-Subject: [PATCH] cx18: Fix a sleep-in-atomic bug in snd_cx18_pcm_hw_free
-Date: Thu,  1 Jun 2017 11:19:21 +0800
-Message-Id: <1496287161-17959-1-git-send-email-baijiaju1990@163.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:51999 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751895AbdF3OfP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Jun 2017 10:35:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Eric Anholt <eric@anholt.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 02/12] cec: add *_ts variants for transmit_done/received_msg
+Date: Fri, 30 Jun 2017 16:34:59 +0200
+Message-Id: <20170630143509.56029-3-hverkuil@xs4all.nl>
+In-Reply-To: <20170630143509.56029-1-hverkuil@xs4all.nl>
+References: <20170630143509.56029-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver may sleep under a spin lock, and the function call path is:
-snd_cx18_pcm_hw_free (acquire the lock by spin_lock_irqsave)
-  vfree --> may sleep
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-To fix it, the "substream->runtime->dma_area" is passed to a temporary 
-value, and mark it NULL when holding the lock. The memory is freed by 
-vfree through the temporary value outside the lock holding.
+Currently the transmit_(attempt_)done and received_msg functions set
+the timestamp themselves. For the upcoming low-level pin API we need
+to pass this as an argument instead. So make _ts variants that allow
+the caller to specify the timestamp.
 
-Signed-off-by: Jia-Ju Bai <baijiaju1990@163.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/cx18/cx18-alsa-pcm.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/media/cec/cec-adap.c | 35 +++++++++++++++++++----------------
+ include/media/cec.h          | 32 ++++++++++++++++++++++++++++----
+ 2 files changed, 47 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/media/pci/cx18/cx18-alsa-pcm.c b/drivers/media/pci/cx18/cx18-alsa-pcm.c
-index 205a98d..ba83147 100644
---- a/drivers/media/pci/cx18/cx18-alsa-pcm.c
-+++ b/drivers/media/pci/cx18/cx18-alsa-pcm.c
-@@ -257,14 +257,16 @@ static int snd_cx18_pcm_hw_free(struct snd_pcm_substream *substream)
+diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
+index 644ce82ea2ed..b3163716d95f 100644
+--- a/drivers/media/cec/cec-adap.c
++++ b/drivers/media/cec/cec-adap.c
+@@ -471,12 +471,12 @@ int cec_thread_func(void *_adap)
+ /*
+  * Called by the CEC adapter if a transmit finished.
+  */
+-void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
+-		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt)
++void cec_transmit_done_ts(struct cec_adapter *adap, u8 status,
++			  u8 arb_lost_cnt, u8 nack_cnt, u8 low_drive_cnt,
++			  u8 error_cnt, ktime_t ts)
  {
- 	struct snd_cx18_card *cxsc = snd_pcm_substream_chip(substream);
- 	unsigned long flags;
-+	unsigned char *dma_area;
+ 	struct cec_data *data;
+ 	struct cec_msg *msg;
+-	u64 ts = ktime_get_ns();
  
- 	spin_lock_irqsave(&cxsc->slock, flags);
- 	if (substream->runtime->dma_area) {
- 		dprintk("freeing pcm capture region\n");
--		vfree(substream->runtime->dma_area);
-+		dma_area = substream->runtime->dma_area;
- 		substream->runtime->dma_area = NULL;
- 	}
- 	spin_unlock_irqrestore(&cxsc->slock, flags);
-+	vfree(dma_area);
+ 	dprintk(2, "%s: status %02x\n", __func__, status);
+ 	mutex_lock(&adap->lock);
+@@ -496,7 +496,7 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
  
- 	return 0;
+ 	/* Drivers must fill in the status! */
+ 	WARN_ON(status == 0);
+-	msg->tx_ts = ts;
++	msg->tx_ts = ktime_to_ns(ts);
+ 	msg->tx_status |= status;
+ 	msg->tx_arb_lost_cnt += arb_lost_cnt;
+ 	msg->tx_nack_cnt += nack_cnt;
+@@ -559,25 +559,26 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
+ unlock:
+ 	mutex_unlock(&adap->lock);
  }
+-EXPORT_SYMBOL_GPL(cec_transmit_done);
++EXPORT_SYMBOL_GPL(cec_transmit_done_ts);
+ 
+-void cec_transmit_attempt_done(struct cec_adapter *adap, u8 status)
++void cec_transmit_attempt_done_ts(struct cec_adapter *adap,
++				  u8 status, ktime_t ts)
+ {
+ 	switch (status) {
+ 	case CEC_TX_STATUS_OK:
+-		cec_transmit_done(adap, status, 0, 0, 0, 0);
++		cec_transmit_done_ts(adap, status, 0, 0, 0, 0, ts);
+ 		return;
+ 	case CEC_TX_STATUS_ARB_LOST:
+-		cec_transmit_done(adap, status, 1, 0, 0, 0);
++		cec_transmit_done_ts(adap, status, 1, 0, 0, 0, ts);
+ 		return;
+ 	case CEC_TX_STATUS_NACK:
+-		cec_transmit_done(adap, status, 0, 1, 0, 0);
++		cec_transmit_done_ts(adap, status, 0, 1, 0, 0, ts);
+ 		return;
+ 	case CEC_TX_STATUS_LOW_DRIVE:
+-		cec_transmit_done(adap, status, 0, 0, 1, 0);
++		cec_transmit_done_ts(adap, status, 0, 0, 1, 0, ts);
+ 		return;
+ 	case CEC_TX_STATUS_ERROR:
+-		cec_transmit_done(adap, status, 0, 0, 0, 1);
++		cec_transmit_done_ts(adap, status, 0, 0, 0, 1, ts);
+ 		return;
+ 	default:
+ 		/* Should never happen */
+@@ -585,7 +586,7 @@ void cec_transmit_attempt_done(struct cec_adapter *adap, u8 status)
+ 		return;
+ 	}
+ }
+-EXPORT_SYMBOL_GPL(cec_transmit_attempt_done);
++EXPORT_SYMBOL_GPL(cec_transmit_attempt_done_ts);
+ 
+ /*
+  * Called when waiting for a reply times out.
+@@ -716,7 +717,8 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
+ 
+ 	if (msg->timeout)
+ 		dprintk(2, "%s: %*ph (wait for 0x%02x%s)\n",
+-			__func__, msg->len, msg->msg, msg->reply, !block ? ", nb" : "");
++			__func__, msg->len, msg->msg, msg->reply,
++			!block ? ", nb" : "");
+ 	else
+ 		dprintk(2, "%s: %*ph%s\n",
+ 			__func__, msg->len, msg->msg, !block ? " (nb)" : "");
+@@ -913,7 +915,8 @@ static const u8 cec_msg_size[256] = {
+ };
+ 
+ /* Called by the CEC adapter if a message is received */
+-void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg)
++void cec_received_msg_ts(struct cec_adapter *adap,
++			 struct cec_msg *msg, ktime_t ts)
+ {
+ 	struct cec_data *data;
+ 	u8 msg_init = cec_msg_initiator(msg);
+@@ -941,7 +944,7 @@ void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg)
+ 	    cec_has_log_addr(adap, msg_init))
+ 		return;
+ 
+-	msg->rx_ts = ktime_get_ns();
++	msg->rx_ts = ktime_to_ns(ts);
+ 	msg->rx_status = CEC_RX_STATUS_OK;
+ 	msg->sequence = msg->reply = msg->timeout = 0;
+ 	msg->tx_status = 0;
+@@ -1106,7 +1109,7 @@ void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg)
+ 	 */
+ 	cec_receive_notify(adap, msg, is_reply);
+ }
+-EXPORT_SYMBOL_GPL(cec_received_msg);
++EXPORT_SYMBOL_GPL(cec_received_msg_ts);
+ 
+ /* Logical Address Handling */
+ 
+diff --git a/include/media/cec.h b/include/media/cec.h
+index e32b0e1a81a4..e1e60dbb66c3 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -228,15 +228,39 @@ int cec_transmit_msg(struct cec_adapter *adap, struct cec_msg *msg,
+ 		     bool block);
+ 
+ /* Called by the adapter */
+-void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
+-		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt);
++void cec_transmit_done_ts(struct cec_adapter *adap, u8 status,
++			  u8 arb_lost_cnt, u8 nack_cnt, u8 low_drive_cnt,
++			  u8 error_cnt, ktime_t ts);
++
++static inline void cec_transmit_done(struct cec_adapter *adap, u8 status,
++				     u8 arb_lost_cnt, u8 nack_cnt,
++				     u8 low_drive_cnt, u8 error_cnt)
++{
++	cec_transmit_done_ts(adap, status, arb_lost_cnt, nack_cnt,
++			     low_drive_cnt, error_cnt, ktime_get());
++}
+ /*
+  * Simplified version of cec_transmit_done for hardware that doesn't retry
+  * failed transmits. So this is always just one attempt in which case
+  * the status is sufficient.
+  */
+-void cec_transmit_attempt_done(struct cec_adapter *adap, u8 status);
+-void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
++void cec_transmit_attempt_done_ts(struct cec_adapter *adap,
++				  u8 status, ktime_t ts);
++
++static inline void cec_transmit_attempt_done(struct cec_adapter *adap,
++					     u8 status)
++{
++	cec_transmit_attempt_done_ts(adap, status, ktime_get());
++}
++
++void cec_received_msg_ts(struct cec_adapter *adap,
++			 struct cec_msg *msg, ktime_t ts);
++
++static inline void cec_received_msg(struct cec_adapter *adap,
++				    struct cec_msg *msg)
++{
++	cec_received_msg_ts(adap, msg, ktime_get());
++}
+ 
+ /**
+  * cec_get_edid_phys_addr() - find and return the physical address
 -- 
-1.7.9.5
+2.11.0
