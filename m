@@ -1,104 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35991 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755491AbdGCPAw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Jul 2017 11:00:52 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v6 2/3] media: i2c: adv748x: add adv748x driver
-To: kieran.bingham@ideasonboard.com, Hans Verkuil <hverkuil@xs4all.nl>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
-        hans.verkuil@cisco.com, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Pavel Machek <pavel@ucw.cz>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        Hyungwoo Yang <hyungwoo.yang@intel.com>
-References: <cover.13d48bb2ba66a5e11c962c62b1a7b5832b0a2344.1498575029.git-series.kieran.bingham+renesas@ideasonboard.com>
- <4c528c1a666f6e9bc8550f70b7c9d84d3c013178.1498575029.git-series.kieran.bingham+renesas@ideasonboard.com>
- <2b6688cb-3e73-815d-e23f-6c44c2e793af@xs4all.nl>
- <3a8aecf8-fbca-d48e-c6c8-ea5122f32e97@ideasonboard.com>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <99be887a-678a-c899-09ea-e9fe83a8efb2@ideasonboard.com>
-Date: Mon, 3 Jul 2017 16:00:46 +0100
-MIME-Version: 1.0
-In-Reply-To: <3a8aecf8-fbca-d48e-c6c8-ea5122f32e97@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:49411 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751581AbdGADsK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Jun 2017 23:48:10 -0400
+Message-ID: <bc27b4cfc4f2e274dd5fc5917d474b3d@smtp-cloud2.xs4all.net>
+Date: Sat, 01 Jul 2017 05:47:58 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 03/07/17 15:45, Kieran Bingham wrote:
-> Hi Hans,
-> 
-> Thanks for your review,
-> 
-> On 03/07/17 14:51, Hans Verkuil wrote:
->> On 06/27/2017 05:03 PM, Kieran Bingham wrote:
->>> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>>
->>> Provide support for the ADV7481 and ADV7482.
+Results of the daily build of media_tree:
 
-...
+date:			Sat Jul  1 05:00:18 CEST 2017
+media-tree git hash:	2748e76ddb2967c4030171342ebdd3faa6a5e8e8
+media_build git hash:	bf38fb5438c3cfd90a7496e951c6902111b77587
+v4l-utils git hash:	2dbbd35740180feaacd5c968a86687ba1bd6c9bb
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
->>> +/* -----------------------------------------------------------------------------
->>> + * HDMI and CP
->>> + */
->>> +
->>> +#define ADV748X_HDMI_MIN_WIDTH        640
->>> +#define ADV748X_HDMI_MAX_WIDTH        1920
->>> +#define ADV748X_HDMI_MIN_HEIGHT        480
->>> +#define ADV748X_HDMI_MAX_HEIGHT        1200
->>> +#define ADV748X_HDMI_MIN_PIXELCLOCK    0        /* unknown */
->>
->> 0 makes no sense. Something like 13000000 would work better (pixelclock rate for
->> V4L2_DV_BT_CEA_720X480I59_94 is 13500000).
-> 
-> This is another one that must have got lost somehow - you'd already told me this
-> and I'm really sure I changed it to the value you suggested ...
-> 
-> /me is confused at code loss - Must have been a rebase gone bad. :-(
-> 
-> 
->>> +#define ADV748X_HDMI_MAX_PIXELCLOCK    162000000
->>
->> You probably based that on the 1600x1200p60 format?
-> 
-> No idea I'm afraid - it's the value that was set when I recieved the driver...
-> 
->>
->> 162MHz is a bit low for an adv receiver. The adv7604 and adv8742 have a max rate
->> of 225 MHz.
->> This should be documented in the datasheet.
-> 
-> Hrm ... haven't found it yet - I'll keep digging....
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12-rc1-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
+Detailed results are available here:
 
-I've found this as the most relevant reference:
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-================================================================================
-The ADV7481 HDMI capable receiver supports a maximum pixel clock frequency of
-162 MHz, allowing HDTV formats up to 1080p, and display resolutions up to UXGA
-(1600 × 1200 at 60 Hz). The device integrates a consumer electronics control
-(CEC) controller that supports the capability discovery and control (CDC)
-feature. The HDMI input port has dedicated 5 V detect and Hot PlugTM assert pins.
-================================================================================
+Full logs are available here:
 
-So that certainly looks like 162 MHz is the correct value.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
->> Besides, you need a bit of margin since detected pixelclock rates can be a bit off.
+The Media Infrastructure API from this daily build is here:
 
-Does that mean you would you recommend adding 0.5 MHz to the 162 MHz in a
-similar way as the minimum, or keep at 162 MHz ?
-
-(I'm assuming stay at 162 MHz, as the 7604 is set at 225MHz)
-
---
-Regards
-
-Kieran
+http://www.xs4all.nl/~hverkuil/spec/index.html
