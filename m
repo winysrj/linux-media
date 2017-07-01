@@ -1,73 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:59755 "EHLO
-        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752944AbdGCJ1i (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Jul 2017 05:27:38 -0400
-Subject: Re: [PATCH v3 0/2] [media] videobuf2-dc: Add support for cacheable MMAP
-To: Thierry Escande <thierry.escande@collabora.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Pawel Osciak <pawel@osciak.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Russell King <rmk+kernel@arm.linux.org.uk>
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <f829886e-4842-a500-6b10-9a46e1b763f5@samsung.com>
-Date: Mon, 03 Jul 2017 11:27:32 +0200
-MIME-version: 1.0
-In-reply-to: <1477471926-15796-1-git-send-email-thierry.escande@collabora.com>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
-Content-language: en-US
-References: <CGME20161026085228epcas3p3895ea279d5538750a3b1c59715ad3761@epcas3p3.samsung.com>
- <1477471926-15796-1-git-send-email-thierry.escande@collabora.com>
+Received: from gofer.mess.org ([88.97.38.141]:38885 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751868AbdGAMUw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 1 Jul 2017 08:20:52 -0400
+Date: Sat, 1 Jul 2017 13:20:50 +0100
+From: Sean Young <sean@mess.org>
+To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
+Subject: Re: [PATCH 2/2] rc-main: remove input events for repeat messages
+Message-ID: <20170701122050.GA7091@gofer.mess.org>
+References: <149815927618.22167.7035029052539207589.stgit@zeus.hardeman.nu>
+ <149815944000.22167.2535987828056972392.stgit@zeus.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <149815944000.22167.2535987828056972392.stgit@zeus.hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+On Thu, Jun 22, 2017 at 09:24:00PM +0200, David Härdeman wrote:
+> Protocols like NEC generate around 10 repeat events per second.
+> 
+> The input events are not very useful for userspace but still waste power
+> by waking up every listener. So let's remove them (MSC_SCAN events
+> are still generated for the initial keypress).
+> 
+> Signed-off-by: David Härdeman <david@hardeman.nu>
+> ---
+>  drivers/media/rc/rc-main.c |   13 ++++---------
+>  1 file changed, 4 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index 7387bd4d75b0..9f490aa11bc4 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -616,16 +616,11 @@ void rc_repeat(struct rc_dev *dev)
+>  
+>  	spin_lock_irqsave(&dev->keylock, flags);
+>  
+> -	if (!dev->keypressed)
+> -		goto out;
+> -
+> -	input_event(dev->input_dev, EV_MSC, MSC_SCAN, dev->last_scancode);
+> -	input_sync(dev->input_dev);
 
-On 2016-10-26 10:52, Thierry Escande wrote:
-> This series adds support for cacheable MMAP in DMA coherent allocator.
->
-> The first patch moves the vb2_dc_get_base_sgt() function above mmap
-> callbacks for calls introduced by the second patch. This avoids a
-> forward declaration.
+I don't agree with this. It's good to see something in user space when
+a repeat received. This is useful for debugging purposes.
 
-I'm sorry for late review. Sylwester kicked me for pending v4l2/vb2 patches
-and I've just found this thread in my TODO folder.
 
-The main question here if we want to merge incomplete solution or not. As
-for now, there is no support in ARM/ARM64 for NON_CONSISTENT attribute.
-Also none of the v4l2 drivers use it. Sadly support for NON_CONSISTENT
-attribute is not fully implemented nor even defined in mainline.
+Sean
 
-I know that it works fine for some vendor kernel trees, but supporting it in
-mainline was a bit controversial. There is no proper way to sync cache 
-for such
-buffers. Calling dma_sync_sg worked so far, but it has to be first agreed as
-a proper DMA API.
-
-> Changes in v2:
-> - Put function move in a separate patch
-> - Added comments
->
-> Changes in v3:
-> - Remove redundant test on NO_KERNEL_MAPPING DMA attribute in mmap()
->
-> Heng-Ruey Hsu (1):
->    [media] videobuf2-dc: Support cacheable MMAP
->
-> Thierry Escande (1):
->    [media] videobuf2-dc: Move vb2_dc_get_base_sgt() above mmap callbacks
->
->   drivers/media/v4l2-core/videobuf2-dma-contig.c | 60 ++++++++++++++++----------
->   1 file changed, 38 insertions(+), 22 deletions(-)
->
-
-Best regards
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+> -
+> -	dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
+> -	mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
+> +	if (dev->keypressed) {
+> +		dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
+> +		mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
+> +	}
+>  
+> -out:
+>  	spin_unlock_irqrestore(&dev->keylock, flags);
+>  }
+>  EXPORT_SYMBOL_GPL(rc_repeat);
