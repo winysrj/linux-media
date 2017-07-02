@@ -1,55 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5.clear.net.nz ([203.97.33.68]:42068 "EHLO
-        smtp5.clear.net.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750818AbdGAEf1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 1 Jul 2017 00:35:27 -0400
-Received: from mxin1-orange.clear.net.nz
- (lb1-srcnat.clear.net.nz [203.97.32.236])
- by smtp5.clear.net.nz (CLEAR Net Mail)
- with ESMTP id <0OSE009KQ9BZHB00@smtp5.clear.net.nz> for
- linux-media@vger.kernel.org; Sat, 01 Jul 2017 16:19:17 +1200 (NZST)
-Date: Sat, 01 Jul 2017 16:19:16 +1200
-From: Richard Scobie <r.scobie@clear.net.nz>
-Subject: Re: [PATCH v2 00/10] STV0910/STV6111 drivers,
- ddbridge CineS2 V7 support
-In-reply-to: <20170630205106.1268-1-d.scheller.oss@gmail.com>
-To: Daniel Scheller <d.scheller.oss@gmail.com>,
-        linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: rjkm@metzlerbros.de, jasmin@anw.at
-Message-id: <3be374d3-b8c5-1e72-9add-9b2813a919bd@clear.net.nz>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
-References: <20170630205106.1268-1-d.scheller.oss@gmail.com>
+Received: from gofer.mess.org ([88.97.38.141]:44631 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751984AbdGBLGL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 2 Jul 2017 07:06:11 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 0/4] Generic Raspberry Pi IR transmitters
+Date: Sun,  2 Jul 2017 12:06:07 +0100
+Message-Id: <cover.1498992850.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Daniel Scheller wrote:
-> From: Daniel Scheller <d.scheller@gmx.net>
->
-> For Linux 4.14.
->
-> This series adds drivers for the ST STV0910 DVB-S/S2 demodulator ICs and
-> the ST STV6111 DVB-S/S2 tuners, and utilises them to enable ddbridge to
-> support the current line of Digital Devices DVB-S/S2 hardware (e.g. Cine
-> S2 V7/V7A adapters, DuoFlex S2 V4 addon modules and maybe more, with
-> similar components).
+These drivers are generic, but they've been tested on Raspberry Pi.
 
--snip
+Note that the gpio-ir-recv is a separate driver, so you will end up
+with two /dev/lircN devices if you want a receiver and a transmitter,
+whilst with the lirc_rpi driver you have one /dev/lircN device. I'm
+not sure this is either a problem or how it could be solved.
 
-Just posting to offer a "tested by", for this particular set of patches.
+With this in place, there is no reason to use the lirc_rpi any more.
 
-I have successfully been running a DD Cine S2 V7A alongside a TT S2 6400 
-since late March, working with Daniel to iron out minor problems during 
-the development of this set.
+Also note that it might be possible for the Nokia N900 to use the
+pwm-ir-tx driver, making ir-rx51 obsolete. The pwm-ir-tx driver is
+shorter and simpler.
 
-Testing has been done on a dedicated PVR system based on VDR 2.3.X, with 
-kernels 4.10 and 4.12, for 3-4 hours daily without issue. Multistream 
-support works fine and STR/CNR stats seem realistic.
+Sean Young (4):
+  [media] rc-core: rename input_name to device_name
+  [media] rc: mce kbd decoder not needed for IR TX drivers
+  [media] rc: gpio-ir-tx: add new driver
+  [media] rc: pwm-ir-tx: add new driver
 
-Many thanks to Daniel and the reviewers.
+ .../devicetree/bindings/leds/irled/gpio-ir-tx.txt  |  11 ++
+ .../devicetree/bindings/leds/irled/pwm-ir-tx.txt   |  13 ++
+ drivers/media/cec/cec-core.c                       |   4 +-
+ drivers/media/common/siano/smsir.c                 |   4 +-
+ drivers/media/i2c/ir-kbd-i2c.c                     |   2 +-
+ drivers/media/pci/bt8xx/bttv-input.c               |   2 +-
+ drivers/media/pci/cx23885/cx23885-input.c          |   2 +-
+ drivers/media/pci/cx88/cx88-input.c                |   2 +-
+ drivers/media/pci/dm1105/dm1105.c                  |   2 +-
+ drivers/media/pci/mantis/mantis_common.h           |   2 +-
+ drivers/media/pci/mantis/mantis_input.c            |   4 +-
+ drivers/media/pci/saa7134/saa7134-input.c          |   2 +-
+ drivers/media/pci/smipcie/smipcie-ir.c             |   4 +-
+ drivers/media/pci/smipcie/smipcie.h                |   2 +-
+ drivers/media/pci/ttpci/budget-ci.c                |   2 +-
+ drivers/media/rc/Kconfig                           |  23 +++
+ drivers/media/rc/Makefile                          |   2 +
+ drivers/media/rc/ati_remote.c                      |   2 +-
+ drivers/media/rc/ene_ir.c                          |   4 +-
+ drivers/media/rc/fintek-cir.c                      |   2 +-
+ drivers/media/rc/gpio-ir-recv.c                    |   2 +-
+ drivers/media/rc/gpio-ir-tx.c                      | 189 +++++++++++++++++++++
+ drivers/media/rc/igorplugusb.c                     |   2 +-
+ drivers/media/rc/iguanair.c                        |   2 +-
+ drivers/media/rc/img-ir/img-ir-hw.c                |   2 +-
+ drivers/media/rc/img-ir/img-ir-raw.c               |   2 +-
+ drivers/media/rc/imon.c                            |   2 +-
+ drivers/media/rc/ir-hix5hd2.c                      |   2 +-
+ drivers/media/rc/ir-mce_kbd-decoder.c              |   3 +
+ drivers/media/rc/ir-spi.c                          |   1 +
+ drivers/media/rc/ite-cir.c                         |   2 +-
+ drivers/media/rc/mceusb.c                          |   2 +-
+ drivers/media/rc/meson-ir.c                        |   2 +-
+ drivers/media/rc/mtk-cir.c                         |   2 +-
+ drivers/media/rc/nuvoton-cir.c                     |   2 +-
+ drivers/media/rc/pwm-ir-tx.c                       | 165 ++++++++++++++++++
+ drivers/media/rc/rc-loopback.c                     |   2 +-
+ drivers/media/rc/rc-main.c                         |   8 +-
+ drivers/media/rc/redrat3.c                         |   2 +-
+ drivers/media/rc/serial_ir.c                       |  10 +-
+ drivers/media/rc/sir_ir.c                          |   2 +-
+ drivers/media/rc/st_rc.c                           |   2 +-
+ drivers/media/rc/streamzap.c                       |   2 +-
+ drivers/media/rc/sunxi-cir.c                       |   2 +-
+ drivers/media/rc/ttusbir.c                         |   2 +-
+ drivers/media/rc/winbond-cir.c                     |   2 +-
+ drivers/media/usb/au0828/au0828-input.c            |   2 +-
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c        |   5 +-
+ drivers/media/usb/dvb-usb/dvb-usb-remote.c         |   2 +-
+ drivers/media/usb/em28xx/em28xx-input.c            |   2 +-
+ drivers/media/usb/tm6000/tm6000-input.c            |   2 +-
+ include/media/cec.h                                |   2 +-
+ include/media/rc-core.h                            |   6 +-
+ 53 files changed, 467 insertions(+), 61 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt
+ create mode 100644 Documentation/devicetree/bindings/leds/irled/pwm-ir-tx.txt
+ create mode 100644 drivers/media/rc/gpio-ir-tx.c
+ create mode 100644 drivers/media/rc/pwm-ir-tx.c
 
-Regards,
-
-Richard
+-- 
+2.9.4
