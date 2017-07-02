@@ -1,77 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f45.google.com ([209.85.214.45]:38528 "EHLO
-        mail-it0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752998AbdGCM7u (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Jul 2017 08:59:50 -0400
-Received: by mail-it0-f45.google.com with SMTP id k192so55860666ith.1
-        for <linux-media@vger.kernel.org>; Mon, 03 Jul 2017 05:59:50 -0700 (PDT)
+Received: from galahad.ideasonboard.com ([185.26.127.97]:60464 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750818AbdGBOXT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 2 Jul 2017 10:23:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v1.1 2/2] drm: rcar-du: Repair vblank for DRM page flips using the VSP1
+Date: Sun, 02 Jul 2017 17:23:24 +0300
+Message-ID: <1681295.5XGp1sIbmj@avalon>
+In-Reply-To: <87mv8pj2z2.wl%kuninori.morimoto.gx@renesas.com>
+References: <cover.22236bc88adc598797b31ea82329ec99304fe34d.1498744799.git-series.kieran.bingham+renesas@ideasonboard.com> <6d71aa0796dd8892510d6911a280eba235398ed4.1498751638.git-series.kieran.bingham+renesas@ideasonboard.com> <87mv8pj2z2.wl%kuninori.morimoto.gx@renesas.com>
 MIME-Version: 1.0
-In-Reply-To: <CAJcDVWMAq6QReuMWgA-X7n7CDqNreAOjdEHwt331gW41eDSo9w@mail.gmail.com>
-References: <CAJcDVWMAq6QReuMWgA-X7n7CDqNreAOjdEHwt331gW41eDSo9w@mail.gmail.com>
-From: Steven Toth <stoth@kernellabs.com>
-Date: Mon, 3 Jul 2017 08:59:44 -0400
-Message-ID: <CALzAhNXCS53oT+H0zrbsU59gizxr88nA6WS9Rqygt-xPqWkYjg@mail.gmail.com>
-Subject: Re: [PATCH] Hauppauge HVR-1975 support
-To: =?UTF-8?Q?Bernhard_Rosenkr=C3=A4nzer?=
-        <bernhard.rosenkranzer@linaro.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(Resending)
+Hi Morimoto-san,
 
-Bernhard, thank you for sharing.
+On Friday 30 Jun 2017 08:32:04 Kuninori Morimoto wrote:
+> Hi Kieran
+> 
+> > -static void rcar_du_vsp_complete(void *private)
+> > +static void rcar_du_vsp_complete(void *private, bool completed)
+> >  {
+> >  	struct rcar_du_crtc *crtc = private;
+> > 
+> > -	rcar_du_crtc_finish_page_flip(crtc);
+> > +	if (crtc->vblank_enable)
+> > +		drm_crtc_handle_vblank(&crtc->crtc);
+> > +
+> > +	if (completed)
+> > +		rcar_du_crtc_finish_page_flip(crtc);
+> >  }
+> 
+> Here, this "vblank_enable" flag, timestamp will be update on
+> drm_crtc_handle_vblank().
+> 
+> For example modetest Flip test, if we stop it by Ctrl+C, then, vblank_enable
+> will be false, Then, vblank timestamp isn't updated on waiting method on
+> drm_atomic_helper_wait_for_vblanks(). Thus we will have timeout error.
 
-Mauro,
+I've noticed this issue as well when testing Kieran's patch, and I will fix 
+it.
 
-I've reviewed this patch, it has a host of problems.
+> And, print complete is now indicated on VSP Frame End,
+> in interlace input case, print complete will be indicated to user
+> on each ODD, EVEN timing.
+> 
+> Before this patch, for example 1080i@60Hz, print complete indication
+> happen in 30Hz.
+> After this patch, in interlace case, indication coming 60Hz
 
-Ignoring the fact it contains patches to all sorts of different cards
-(saa7164, CX231xx, PVR-USB2)... the patch also contains materials that
-I suspect Silicon Labs would consider proprietary and confidential,
-its definitely derived works from proprietary SILABS drivers.
+Isn't this to be expected ? In 1080i@60Hz the frame rate is 60 frames per 
+second, so shouldn't vertical blanking be reported at 60Hz ?
 
-Proceed with caution.
+-- 
+Regards,
 
-- Steve
-
---=20
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
-
-On Mon, Jul 3, 2017 at 5:57 AM, Bernhard Rosenkr=C3=A4nzer
-<bernhard.rosenkranzer@linaro.org> wrote:
-> Hi,
-> Hauppauge HVR-1975 is a USB DVB receiver box,
-> http://www.hauppauge.co.uk/site/products/data_hvr1900.html
->
-> It is currently not supported by v4l; Hauppauge provides a patch for
-> kernel 3.19 at http://www.hauppauge.com/site/support/linux.html
->
-> As expected, the patch doesn't work with more recent kernels, so I've
-> ported it (verified to work on 4.11.8). Due to the size of the patch,
-> I've uploaded my patch to
-> http://lindev.ch/hauppauge-hvr-1975.patch
->
-> While it works well, there's a potential license problem in one of the fi=
-les:
-> From drivers/media/dvb-frontend/silg.c:
->
-> /* MODULE_LICENSE("Proprietary"); */
-> /* GPL discussion for silg not finished. Set to GPL for internal usage on=
-ly. */
-> /* The module uses GPL functions and is rejected by the kernel build if t=
-he */
-> /* license is set to 'Proprietary'. */
-> MODULE_LICENSE("GPL");
->
-> I'm not a lawyer, but my understanding is that by Hauppauge actually
-> releasing that file to the public (and it being so clearly a derivate
-> of GPL code that they even have to acknowledge it), their claim that
-> it is anything but GPL is null and void - but we may have to make
-> sure.
->
-> ttyl
-> bero
+Laurent Pinchart
