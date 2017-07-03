@@ -1,41 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:34307 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752742AbdGCInu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Jul 2017 04:43:50 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-renesas-soc@vger.kernel.org, geert@linux-m68k.org
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        magnus.damm@gmail.com, hans.verkuil@cisco.com,
-        niklas.soderlund@ragnatech.se, sergei.shtylyov@cogentembedded.com,
-        horms@verge.net.au, devicetree@vger.kernel.org,
-        Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH] media: adv7180: add missing adv7180cp, adv7180st i2c device IDs
-Date: Mon,  3 Jul 2017 10:43:33 +0200
-Message-Id: <1499071413-609-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54046 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751713AbdGCM2K (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Jul 2017 08:28:10 -0400
+Date: Mon, 3 Jul 2017 15:28:05 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Todor Tomov <todor.tomov@linaro.org>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] media: Make parameter of
+ media_entity_remote_pad() const
+Message-ID: <20170703122805.lhbtbtivowgjzjhv@valkosipuli.retiisi.org.uk>
+References: <1499083691-30112-1-git-send-email-todor.tomov@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1499083691-30112-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes a crash on Renesas R8A7793 Gose board that uses these "compatible"
-entries.
+On Mon, Jul 03, 2017 at 03:08:11PM +0300, Todor Tomov wrote:
+> The local pad parameter in media_entity_remote_pad() is not modified.
+> Make that explicit by adding a const modifier.
+> 
+> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
- drivers/media/i2c/adv7180.c | 2 ++
- 1 file changed, 2 insertions(+)
+Thanks!
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index 78de7dd..3df28f2 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -1402,6 +1402,8 @@ static int adv7180_remove(struct i2c_client *client)
- 
- static const struct i2c_device_id adv7180_id[] = {
- 	{ "adv7180", (kernel_ulong_t)&adv7180_info },
-+	{ "adv7180cp", (kernel_ulong_t)&adv7180_info },
-+	{ "adv7180st", (kernel_ulong_t)&adv7180_info },
- 	{ "adv7182", (kernel_ulong_t)&adv7182_info },
- 	{ "adv7280", (kernel_ulong_t)&adv7280_info },
- 	{ "adv7280-m", (kernel_ulong_t)&adv7280_m_info },
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
 -- 
-2.7.4
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
