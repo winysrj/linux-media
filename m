@@ -1,68 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:44612 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751734AbdGCMk3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Jul 2017 08:40:29 -0400
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Cyprian Wronka <cwronka@cadence.com>,
-        Neil Webb <neilw@cadence.com>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: [PATCH 0/2] media: v4l: Add support for the Cadence MIPI-CSI2RX
-Date: Mon,  3 Jul 2017 14:40:21 +0200
-Message-Id: <20170703124023.28352-1-maxime.ripard@free-electrons.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:34239 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750961AbdGCKtO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Jul 2017 06:49:14 -0400
+Subject: Re: [PATCH v2 05/19] media: camss: Add CSID files
+To: Todor Tomov <todor.tomov@linaro.org>, mchehab@kernel.org,
+        hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
+References: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
+ <1497883719-12410-6-git-send-email-todor.tomov@linaro.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <abbffc59-d3a5-6abb-51ac-cb04eca292bd@xs4all.nl>
+Date: Mon, 3 Jul 2017 12:49:08 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1497883719-12410-6-git-send-email-todor.tomov@linaro.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 06/19/2017 04:48 PM, Todor Tomov wrote:
+> These files control the CSID modules which handle the protocol and application
+> layer of the CSI2 receivers.
+> 
+> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+> ---
+>   drivers/media/platform/qcom/camss-8x16/csid.c | 1072 +++++++++++++++++++++++++
+>   drivers/media/platform/qcom/camss-8x16/csid.h |   82 ++
+>   2 files changed, 1154 insertions(+)
+>   create mode 100644 drivers/media/platform/qcom/camss-8x16/csid.c
+>   create mode 100644 drivers/media/platform/qcom/camss-8x16/csid.h
+> 
+> diff --git a/drivers/media/platform/qcom/camss-8x16/csid.c b/drivers/media/platform/qcom/camss-8x16/csid.c
+> new file mode 100644
+> index 0000000..c637d78
+> --- /dev/null
+> +++ b/drivers/media/platform/qcom/camss-8x16/csid.c
+> @@ -0,0 +1,1072 @@
+> +/*
+> + * csid.c
+> + *
+> + * Qualcomm MSM Camera Subsystem - CSID Module
+> + *
+> + * Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
+> + * Copyright (C) 2015-2016 Linaro Ltd.
 
-Here is an attempt at supporting the MIPI-CSI2 RX block from Cadence.
+2016 -> 2017
 
-This IP block is able to receive CSI data over up to 4 lanes, and
-split it to over 4 streams. Those streams are basically the interfaces
-to the video grabbers that will perform the capture.
+This should probably be done elsewhere as well.
 
-It is able to map streams to both CSI datatypes and virtual channels,
-dynamically. This is unclear at this point what the right way to
-support it would be, so the driver only uses a static mapping between
-the virtual channels and streams, and ignores the data types.
+Regards,
 
-This serie depends on the patch "v4l: async: add subnotifier
-registration for subdevices" from Niklas Söderlund.
-
-Let me know what you think!
-Maxime
-
-Maxime Ripard (2):
-  dt-bindings: media: Add Cadence MIPI-CSI2RX Device Tree bindings
-  v4l: cadence: Add Cadence MIPI-CSI2 RX driver
-
- .../devicetree/bindings/media/cdns-csi2rx.txt      |  87 ++++
- drivers/media/platform/Kconfig                     |   1 +
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/cadence/Kconfig             |  12 +
- drivers/media/platform/cadence/Makefile            |   1 +
- drivers/media/platform/cadence/cdns-csi2rx.c       | 440 +++++++++++++++++++++
- 6 files changed, 543 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/cdns-csi2rx.txt
- create mode 100644 drivers/media/platform/cadence/Kconfig
- create mode 100644 drivers/media/platform/cadence/Makefile
- create mode 100644 drivers/media/platform/cadence/cdns-csi2rx.c
-
--- 
-2.13.0
+	Hans
