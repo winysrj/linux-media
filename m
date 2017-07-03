@@ -1,98 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.47.9]:38193 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752051AbdGDMeD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Jul 2017 08:34:03 -0400
-Subject: Re: [PATCH v5 2/4] [media] platform: Add Synopsys Designware HDMI RX
- Controller Driver
-To: Hans Verkuil <hansverk@cisco.com>,
-        Jose Abreu <Jose.Abreu@synopsys.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-References: <cover.1498732993.git.joabreu@synopsys.com>
- <52933416f17b8a3408ab94784fa8db56453ff196.1498732993.git.joabreu@synopsys.com>
- <30787ca1-f488-ef29-8997-0a74c70d552f@xs4all.nl>
- <57902dce-e665-8027-1d88-7c447753a5b2@synopsys.com>
- <3a666f71-fb91-5c76-853d-df9de5a9af10@xs4all.nl>
- <749c9b9e-e42b-76ef-36a7-2ea3cbf0ce84@synopsys.com>
- <e79b8482-342d-3300-21b7-073bbad6df36@cisco.com>
-CC: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "Sylwester Nawrocki" <snawrocki@kernel.org>
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-Message-ID: <93a7aa80-52c5-86c4-c264-37849b467dd3@synopsys.com>
-Date: Tue, 4 Jul 2017 13:33:50 +0100
-MIME-Version: 1.0
-In-Reply-To: <e79b8482-342d-3300-21b7-073bbad6df36@cisco.com>
+Received: from relmlor4.renesas.com ([210.160.252.174]:43674 "EHLO
+        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753694AbdGCJ4A (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Jul 2017 05:56:00 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+CC: Mark Brown <broonie@kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>,
+        "mattw@codeaurora.org" <mattw@codeaurora.org>,
+        Mitchel Humpherys <mitchelh@codeaurora.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Chris Paterson <Chris.Paterson2@renesas.com>
+Subject: RE: [PATCH v2 1/2] iopoll: Avoid namespace collision within macros &
+ tidyup
+Date: Mon, 3 Jul 2017 09:55:55 +0000
+Message-ID: <KL1PR0601MB203830EA67621CA20520B03FC3D60@KL1PR0601MB2038.apcprd06.prod.outlook.com>
+References: <20170613133348.48044-1-ramesh.shanmugasundaram@bp.renesas.com>
+ <20170613133348.48044-2-ramesh.shanmugasundaram@bp.renesas.com>
+ <CAMuHMdVSBstPK55-36vJySKc-NAUyWKRMDYGgF4vBce07Pn0Ug@mail.gmail.com>
+In-Reply-To: <CAMuHMdVSBstPK55-36vJySKc-NAUyWKRMDYGgF4vBce07Pn0Ug@mail.gmail.com>
+Content-Language: en-US
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 04-07-2017 10:39, Hans Verkuil wrote:
->
->>>>>> +static const struct v4l2_subdev_video_ops
->>>>>> dw_hdmi_sd_video_ops = {
->>>>>> +    .s_routing = dw_hdmi_s_routing,
->>>>>> +    .g_input_status = dw_hdmi_g_input_status,
->>>>>> +    .g_parm = dw_hdmi_g_parm,
->>>>>> +    .g_dv_timings = dw_hdmi_g_dv_timings,
->>>>>> +    .query_dv_timings = dw_hdmi_query_dv_timings,
->>>>> No s_dv_timings???
->>>> Hmm, yeah, I didn't implement it because the callchain and the
->>>> player I use just use {get/set}_fmt. s_dv_timings can just
->>>> populate the fields and replace them with the detected dv_timings
->>>> ? Just like set_fmt does? Because the controller has no scaler.
->>> No, s_dv_timings is the function that actually sets
->>> dw_dev->timings.
->>> After you check that it is valid of course (call
->>> v4l2_valid_dv_timings).
->>>
->>> set_fmt calls get_fmt which returns the information from
->>> dw_dev->timings.
->>>
->>> But it is s_dv_timings that has to set dw_dev->timings.
->>>
->>> With the current code you can only capture 640x480 (the default
->>> timings).
->>> Have you ever tested this with any other timings? I don't quite
->>> understand
->>> how you test.
->> I use mpv to test with a wrapper driver that just calls the
->> subdev ops and sets up a video dma.
->>
->> Ah, I see now. I failed to port the correct callbacks and in the
->> upstream version I'm using I only tested with 640x480 ...
->>
->> But apart from that this is a capture device without scaling so I
->> can not set timings, I can only return them so that applications
->> know which format I'm receiving, right? So my s_dv_timings will
->> return the same as query_dv_timings ...
-> Well, to be precise: s_dv_timings just accepts what the application
-> gives it (as long as it is within the dv_timings capabilities). But
-> those timings come in practice from a query_dv_timings call from the
-> application.
->
-> The core rule is that receivers cannot randomly change timings since
-> timings are related to buffer sizes. You do not want the application
-> to allocate buffers for 640x480 and when the source changes to 1920x1080
-> have those buffers suddenly overflow.
->
-> Instead the app queries the timings, allocates the buffers, start
-> streaming and when the timings change it will get an event so it can
-> stop streaming, reallocate buffers, and start the process again.
->
-> In other words, the application is in control here.
->
-
-... But this is not true for mpv/mplayer. They first try to set a
-default format (by using s_fmt) and then query the format again
-(by using g_fmt) ... So dv_timings are never used. Are these apps
-broken? Im only using them because of performance, do you
-recommend others?
-
-Best regards,
-Jose Miguel Abreu
+SGkgR2VlcnQsDQoNClRoYW5rcyBmb3IgdGhlIHJldmlldy4gUmVwbHlpbmcgdG8gdGhlIHRocmVh
+ZCB0byB1cGRhdGUgd2hhdCB3ZSBkaXNjdXNzZWQgaW4gSVJDIHNvbWV0aW1lIGJhY2suDQoNCj4g
+T24gVHVlLCBKdW4gMTMsIDIwMTcgYXQgMzozMyBQTSwgUmFtZXNoIFNoYW5tdWdhc3VuZGFyYW0N
+Cj4gPHJhbWVzaC5zaGFubXVnYXN1bmRhcmFtQGJwLnJlbmVzYXMuY29tPiB3cm90ZToNCj4gPiBS
+ZW5hbWVkIHZhcmlhYmxlICJ0aW1lb3V0IiB0byAiX190aW1lb3V0IiB0byBhdm9pZCBuYW1lc3Bh
+Y2UgY29sbGlzaW9uLg0KPiA+IFRpZHkgdXAgbWFjcm8gYXJndW1lbnRzIHdpdGggcGFyYW50aGVz
+aXMuDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBSYW1lc2ggU2hhbm11Z2FzdW5kYXJhbQ0KPiA+
+IDxyYW1lc2guc2hhbm11Z2FzdW5kYXJhbUBicC5yZW5lc2FzLmNvbT4NCj4gDQo+IFRoYW5rcyBm
+b3IgeW91ciBwYXRjaGVzIQ0KPiANCj4gPiAtLS0gYS9pbmNsdWRlL2xpbnV4L2lvcG9sbC5oDQo+
+ID4gKysrIGIvaW5jbHVkZS9saW51eC9pb3BvbGwuaA0KPiA+IEBAIC00MiwxOCArNDIsMTkgQEAN
+Cj4gPiAgICovDQo+ID4gICNkZWZpbmUgcmVhZHhfcG9sbF90aW1lb3V0KG9wLCBhZGRyLCB2YWws
+IGNvbmQsIHNsZWVwX3VzLCB0aW1lb3V0X3VzKQ0KPiA+IFwgICh7IFwNCj4gPiAtICAgICAgIGt0
+aW1lX3QgdGltZW91dCA9IGt0aW1lX2FkZF91cyhrdGltZV9nZXQoKSwgdGltZW91dF91cyk7IFwN
+Cj4gPiArICAgICAgIGt0aW1lX3QgX190aW1lb3V0ID0ga3RpbWVfYWRkX3VzKGt0aW1lX2dldCgp
+LCB0aW1lb3V0X3VzKTsgXA0KPiANCj4gSSB0aGluayB0aW1lb3V0X3VzIHNob3VsZCBiZSB3aXRo
+aW4gcGFyZW50aGVzZXMsIHRvby4NCg0KSXQgaXMgbm90IHJlcXVpcmVkIGFzIGl0IGlzIHBhc3Nl
+ZCBhcyBhbiBmdW5jdGlvbiAoa3RpbWVfYWRkX3VzKSBhcmd1bWVudC4NCg0KPiANCj4gPiAgICAg
+ICAgIG1pZ2h0X3NsZWVwX2lmKHNsZWVwX3VzKTsgXA0KPiA+ICAgICAgICAgZm9yICg7OykgeyBc
+DQo+ID4gICAgICAgICAgICAgICAgICh2YWwpID0gb3AoYWRkcik7IFwNCj4gPiAgICAgICAgICAg
+ICAgICAgaWYgKGNvbmQpIFwNCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICBicmVhazsgXA0K
+PiA+IC0gICAgICAgICAgICAgICBpZiAodGltZW91dF91cyAmJiBrdGltZV9jb21wYXJlKGt0aW1l
+X2dldCgpLCB0aW1lb3V0KSA+DQo+IDApIHsgXA0KPiA+ICsgICAgICAgICAgICAgICBpZiAoKHRp
+bWVvdXRfdXMpICYmIFwNCj4gPiArICAgICAgICAgICAgICAgICAgIGt0aW1lX2NvbXBhcmUoa3Rp
+bWVfZ2V0KCksIF9fdGltZW91dCkgPiAwKSB7IFwNCj4gPiAgICAgICAgICAgICAgICAgICAgICAg
+ICAodmFsKSA9IG9wKGFkZHIpOyBcDQo+ID4gICAgICAgICAgICAgICAgICAgICAgICAgYnJlYWs7
+IFwNCj4gPiAgICAgICAgICAgICAgICAgfSBcDQo+ID4gICAgICAgICAgICAgICAgIGlmIChzbGVl
+cF91cykgXA0KPiA+IC0gICAgICAgICAgICAgICAgICAgICAgIHVzbGVlcF9yYW5nZSgoc2xlZXBf
+dXMgPj4gMikgKyAxLCBzbGVlcF91cyk7IFwNCj4gPiArICAgICAgICAgICAgICAgICAgICAgICB1
+c2xlZXBfcmFuZ2UoKChzbGVlcF91cykgPj4gMikgKyAxLCBzbGVlcF91cyk7DQo+ID4gKyBcDQo+
+IA0KPiBTYW1lIGZvciBzbGVlcF91cy4NCj4gDQo+IEFsc28gaW4gcmVhZHhfcG9sbF90aW1lb3V0
+X2F0b21pYygpLCBhbmQgaW4geW91ciBzZWNvbmQgcGF0Y2guDQoNClNhbWUgYXMgdGhlIGFib3Zl
+IGNvbW1lbnQuDQoNClRoYW5rcywNClJhbWVzaA0K
