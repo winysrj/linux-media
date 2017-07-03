@@ -1,47 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:35406 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751683AbdGAL1Z (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 1 Jul 2017 07:27:25 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: pawel@osciak.com, m.szyprowski@samsung.com,
-        kyungmin.park@samsung.com, mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: vb2 dma-contig: Constify dma_buf_ops structures.
-Date: Sat,  1 Jul 2017 16:57:13 +0530
-Message-Id: <f1403ce121c467e3c6fb33ead41ff665985a431f.1498908191.git.arvind.yadav.cs@gmail.com>
+Received: from relmlor3.renesas.com ([210.160.252.173]:54649 "EHLO
+        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753007AbdGCLSL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Jul 2017 07:18:11 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: broonie@kernel.org
+Cc: hverkuil@xs4all.nl, akpm@linux-foundation.org,
+        yamada.masahiro@socionext.com, linux-renesas-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        chris.paterson2@renesas.com,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v3 1/2] iopoll: Avoid namespace collision within macros & tidy up
+Date: Mon,  3 Jul 2017 12:04:20 +0100
+Message-Id: <20170703110421.3082-2-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <20170703110421.3082-1-ramesh.shanmugasundaram@bp.renesas.com>
+References: <20170703110421.3082-1-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dma_buf_ops are not supposed to change at runtime. All functions
-working with dma_buf_ops provided by <linux/dma-buf.h> work with
-const dma_buf_ops. So mark the non-const structs as const.
+Renamed variable "timeout" to "__timeout" to avoid namespace collision.
+Tidy up macro arguments with parentheses.
 
-File size before:
-   text	   data	    bss	    dec	    hex	filename
-   6035	    272	      0	   6307	   18a3 drivers/media/v4l2-core/videobuf2-dma-contig.o
-
-File size After adding 'const':
-   text	   data	    bss	    dec	    hex	filename
-   6155	    160	      0	   6315	   18ab drivers/media/v4l2-core/videobuf2-dma-contig.o
-
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
 ---
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/iopoll.h | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 4f246d1..5b90a66 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -352,7 +352,7 @@ static int vb2_dc_dmabuf_ops_mmap(struct dma_buf *dbuf,
- 	return vb2_dc_mmap(dbuf->priv, vma);
- }
- 
--static struct dma_buf_ops vb2_dc_dmabuf_ops = {
-+static const struct dma_buf_ops vb2_dc_dmabuf_ops = {
- 	.attach = vb2_dc_dmabuf_ops_attach,
- 	.detach = vb2_dc_dmabuf_ops_detach,
- 	.map_dma_buf = vb2_dc_dmabuf_ops_map,
+diff --git a/include/linux/iopoll.h b/include/linux/iopoll.h
+index d29e1e21bf3f..e000172bee54 100644
+--- a/include/linux/iopoll.h
++++ b/include/linux/iopoll.h
+@@ -42,18 +42,19 @@
+  */
+ #define readx_poll_timeout(op, addr, val, cond, sleep_us, timeout_us)	\
+ ({ \
+-	ktime_t timeout = ktime_add_us(ktime_get(), timeout_us); \
++	ktime_t __timeout = ktime_add_us(ktime_get(), timeout_us); \
+ 	might_sleep_if(sleep_us); \
+ 	for (;;) { \
+ 		(val) = op(addr); \
+ 		if (cond) \
+ 			break; \
+-		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
++		if ((timeout_us) && \
++		    ktime_compare(ktime_get(), __timeout) > 0) { \
+ 			(val) = op(addr); \
+ 			break; \
+ 		} \
+ 		if (sleep_us) \
+-			usleep_range((sleep_us >> 2) + 1, sleep_us); \
++			usleep_range(((sleep_us) >> 2) + 1, sleep_us); \
+ 	} \
+ 	(cond) ? 0 : -ETIMEDOUT; \
+ })
+@@ -77,12 +78,13 @@
+  */
+ #define readx_poll_timeout_atomic(op, addr, val, cond, delay_us, timeout_us) \
+ ({ \
+-	ktime_t timeout = ktime_add_us(ktime_get(), timeout_us); \
++	ktime_t __timeout = ktime_add_us(ktime_get(), timeout_us); \
+ 	for (;;) { \
+ 		(val) = op(addr); \
+ 		if (cond) \
+ 			break; \
+-		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
++		if ((timeout_us) && \
++		    ktime_compare(ktime_get(), __timeout) > 0) { \
+ 			(val) = op(addr); \
+ 			break; \
+ 		} \
 -- 
-2.7.4
+2.12.2
