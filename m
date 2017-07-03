@@ -1,118 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33139 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755472AbdGCRVN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Jul 2017 13:21:13 -0400
-Received: by mail-wm0-f66.google.com with SMTP id j85so21729207wmj.0
-        for <linux-media@vger.kernel.org>; Mon, 03 Jul 2017 10:21:12 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, rjkm@metzlerbros.de
-Subject: [PATCH v3 04/10] [media] dvb-frontends/stv0910: Add demod-only signal strength reporting
-Date: Mon,  3 Jul 2017 19:20:57 +0200
-Message-Id: <20170703172104.27283-5-d.scheller.oss@gmail.com>
-In-Reply-To: <20170703172104.27283-1-d.scheller.oss@gmail.com>
-References: <20170703172104.27283-1-d.scheller.oss@gmail.com>
+Received: from mail-qk0-f196.google.com ([209.85.220.196]:33860 "EHLO
+        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753570AbdGCSkS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Jul 2017 14:40:18 -0400
+Received: by mail-qk0-f196.google.com with SMTP id 91so24989021qkq.1
+        for <linux-media@vger.kernel.org>; Mon, 03 Jul 2017 11:40:17 -0700 (PDT)
+Date: Mon, 3 Jul 2017 15:40:14 -0300
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [PATCH 00/12] V4L2 explicit synchronization support
+Message-ID: <20170703184014.GC3337@jade>
+References: <20170616073915.5027-1-gustavo@padovan.org>
+ <20170630091815.3682484c@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170630091815.3682484c@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Hi Mauro,
 
-Original code at least has some signed/unsigned issues, resulting in
-values like 32dBm. Implement signal strength readout to work without
-asking the attached tuner, and use a lookup table instead of log calc.
-Values reported appear plausible, gathered from feedback from several
-testers.
+2017-06-30 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-Tested-by: Richard Scobie <r.scobie@clear.net.nz>
----
- drivers/media/dvb-frontends/stv0910.c | 48 ++++++++++++++++++++++++++++++++---
- 1 file changed, 44 insertions(+), 4 deletions(-)
+> Em Fri, 16 Jun 2017 16:39:03 +0900
+> Gustavo Padovan <gustavo@padovan.org> escreveu:
+> 
+> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > 
+> > Hi,
+> > 
+> > This adds support for Explicit Synchronization of shared buffers in V4L2.
+> > It uses the Sync File Framework[1] as vector to communicate the fences
+> > between kernel and userspace.
+> > 
+> > Explicit Synchronization allows us to control the synchronization of
+> > shared buffers from userspace by passing fences to the kernel and/or 
+> > receiving them from the the kernel.
+> > 
+> > Fences passed to the kernel are named in-fences and the kernel should wait
+> > them to signal before using the buffer. On the other side, the kernel creates
+> > out-fences for every buffer it receives from userspace. This fence is sent back
+> > to userspace and it will signal when the capture, for example, has finished.
+> > 
+> > Signalling an out-fence in V4L2 would mean that the job on the buffer is done
+> > and the buffer can be used by other drivers.
+> > 
+> > The first patch proposes an userspace API for fences, then on patch 2
+> > we prepare to the addition of in-fences in patch 3, by introducing the
+> > infrastructure on vb2 to wait on an in-fence signal before queueing the buffer
+> > in the driver.
+> > 
+> > Patch 4 fix uvc v4l2 event handling and patch 5 configure q->dev for vivid
+> > drivers to enable to subscribe and dequeue events on it.
+> > 
+> > Patches 6-7 enables support to notify BUF_QUEUED events, i.e., let userspace
+> > know that particular buffer was enqueued in the driver. This is needed,
+> > because we return the out-fence fd as an out argument in QBUF, but at the time
+> > it returns we don't know to which buffer the fence will be attached thus
+> > the BUF_QUEUED event tells which buffer is associated to the fence received in
+> > QBUF by userspace.
+> > 
+> > Patches 8-9 add support to mark queues as ordered. Finally patches 10 and 11
+> > add more fence infrastructure to support out-fences and finally patch 12 adds
+> > support to out-fences.
+> > 
+> > Changelog are detailed in each patch.
+> > 
+> > Please review! Thanks.
+> 
+> Just reviewed the series. Most patches look good.
+> 
+> I have one additional concern: if the changes here won't cause any
+> bad behaviors if fences is not available for some VB2 non V4L2 client.
+> I'm actually thinking on this:
+> 
+> 	https://patchwork.linuxtv.org/patch/31613/
+> 
+> From what I saw, after this patch series, someone could try to 
+> inconditionally open an out fences fd for a driver. Maybe this
+> should be denied by default, enabling such feature only if the
+> VB2 "client" (e. g. videobuf-v4l2) supports it.
 
-diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
-index dc848ebe1a44..dc4d829bb47a 100644
---- a/drivers/media/dvb-frontends/stv0910.c
-+++ b/drivers/media/dvb-frontends/stv0910.c
-@@ -135,7 +135,7 @@ struct sinit_table {
- 
- struct slookup {
- 	s16  value;
--	u16  reg_value;
-+	u32  reg_value;
- };
- 
- static inline int i2c_write(struct i2c_adapter *adap, u8 adr,
-@@ -327,6 +327,25 @@ struct slookup s2_sn_lookup[] = {
- 	{  510,    463  },  /*C/N=51.0dB*/
- };
- 
-+struct slookup padc_lookup[] = {
-+	{    0,  118000 }, /* PADC=+0dBm  */
-+	{ -100,  93600  }, /* PADC=-1dBm  */
-+	{ -200,  74500  }, /* PADC=-2dBm  */
-+	{ -300,  59100  }, /* PADC=-3dBm  */
-+	{ -400,  47000  }, /* PADC=-4dBm  */
-+	{ -500,  37300  }, /* PADC=-5dBm  */
-+	{ -600,  29650  }, /* PADC=-6dBm  */
-+	{ -700,  23520  }, /* PADC=-7dBm  */
-+	{ -900,  14850  }, /* PADC=-9dBm  */
-+	{ -1100, 9380   }, /* PADC=-11dBm */
-+	{ -1300, 5910   }, /* PADC=-13dBm */
-+	{ -1500, 3730   }, /* PADC=-15dBm */
-+	{ -1700, 2354   }, /* PADC=-17dBm */
-+	{ -1900, 1485   }, /* PADC=-19dBm */
-+	{ -2000, 1179   }, /* PADC=-20dBm */
-+	{ -2100, 1000   }, /* PADC=-21dBm */
-+};
-+
- /*********************************************************************
-  * Tracking carrier loop carrier QPSK 1/4 to 8PSK 9/10 long Frame
-  *********************************************************************/
-@@ -567,7 +586,7 @@ static int tracking_optimization(struct stv *state)
- }
- 
- static s32 table_lookup(struct slookup *table,
--		       int table_size, u16 reg_value)
-+		       int table_size, u32 reg_value)
- {
- 	s32 value;
- 	int imin = 0;
-@@ -1300,11 +1319,32 @@ static int read_ber(struct dvb_frontend *fe)
- 
- static void read_signal_strength(struct dvb_frontend *fe)
- {
--	/* FIXME: add signal strength algo */
- 	struct stv *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *p = &state->fe.dtv_property_cache;
-+	s64 strength;
-+	u8 reg[2];
-+	u16 agc;
-+	s32 padc, power = 0;
-+	int i;
- 
--	p->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	read_regs(state, RSTV0910_P2_AGCIQIN1 + state->regoff, reg, 2);
-+
-+	agc = (((u32) reg[0]) << 8) | reg[1];
-+
-+	for (i = 0; i < 5; i += 1) {
-+		read_regs(state, RSTV0910_P2_POWERI + state->regoff, reg, 2);
-+		power += (u32) reg[0] * (u32) reg[0]
-+			+ (u32) reg[1] * (u32) reg[1];
-+		usleep_range(3000, 4000);
-+	}
-+	power /= 5;
-+
-+	padc = table_lookup(padc_lookup, ARRAY_SIZE(padc_lookup), power) + 352;
-+
-+	strength = (padc - agc);
-+
-+	p->strength.stat[0].scale = FE_SCALE_DECIBEL;
-+	p->strength.stat[0].uvalue = strength;
- }
- 
- static int read_status(struct dvb_frontend *fe, enum fe_status *status)
--- 
-2.13.0
+Yes, I think we can just reject the request if this non-VB2 client
+tries to use the arg flags for fences.
+
+Gustavo
