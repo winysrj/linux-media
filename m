@@ -1,792 +1,736 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:53202 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753311AbdGCLcs (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:37029 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753543AbdGCJRF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Jul 2017 07:32:48 -0400
-Subject: Re: [PATCH v2 08/19] media: camss: Add files which handle the video
- device nodes
-To: Todor Tomov <todor.tomov@linaro.org>, mchehab@kernel.org,
-        hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
-References: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
- <1497883719-12410-9-git-send-email-todor.tomov@linaro.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <dfb9643c-9b9d-2792-8f2e-a74652a78f87@xs4all.nl>
-Date: Mon, 3 Jul 2017 13:32:37 +0200
+        Mon, 3 Jul 2017 05:17:05 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        " H. Nikolaus Schaller" <hns@goldelico.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v2 6/7] [media] ov9650: add support of OV9655 variant
+Date: Mon, 3 Jul 2017 11:16:07 +0200
+Message-ID: <1499073368-31905-7-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com>
+References: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-In-Reply-To: <1497883719-12410-9-git-send-email-todor.tomov@linaro.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/19/2017 04:48 PM, Todor Tomov wrote:
-> These files handle the video device nodes of the camss driver.
-> 
-> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-> ---
->   drivers/media/platform/qcom/camss-8x16/video.c | 629 +++++++++++++++++++++++++
->   drivers/media/platform/qcom/camss-8x16/video.h |  64 +++
->   2 files changed, 693 insertions(+)
->   create mode 100644 drivers/media/platform/qcom/camss-8x16/video.c
->   create mode 100644 drivers/media/platform/qcom/camss-8x16/video.h
-> 
-> diff --git a/drivers/media/platform/qcom/camss-8x16/video.c b/drivers/media/platform/qcom/camss-8x16/video.c
-> new file mode 100644
-> index 0000000..07175d3
-> --- /dev/null
-> +++ b/drivers/media/platform/qcom/camss-8x16/video.c
-> @@ -0,0 +1,629 @@
-> +/*
-> + * video.c
-> + *
-> + * Qualcomm MSM Camera Subsystem - V4L2 device node
-> + *
-> + * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
-> + * Copyright (C) 2015-2016 Linaro Ltd.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 and
-> + * only version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +#include <linux/slab.h>
-> +#include <media/media-entity.h>
-> +#include <media/v4l2-dev.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-mc.h>
-> +#include <media/videobuf-core.h>
-> +#include <media/videobuf2-dma-sg.h>
-> +
-> +#include "video.h"
-> +#include "camss.h"
-> +
-> +/*
-> + * struct format_info - ISP media bus format information
-> + * @code: V4L2 media bus format code
-> + * @pixelformat: V4L2 pixel format FCC identifier
-> + * @bpp: Bits per pixel when stored in memory
-> + */
-> +static const struct format_info {
-> +	u32 code;
-> +	u32 pixelformat;
-> +	unsigned int bpp;
-> +} formats[] = {
-> +	{ MEDIA_BUS_FMT_UYVY8_2X8, V4L2_PIX_FMT_UYVY, 16 },
-> +	{ MEDIA_BUS_FMT_VYUY8_2X8, V4L2_PIX_FMT_VYUY, 16 },
-> +	{ MEDIA_BUS_FMT_YUYV8_2X8, V4L2_PIX_FMT_YUYV, 16 },
-> +	{ MEDIA_BUS_FMT_YVYU8_2X8, V4L2_PIX_FMT_YVYU, 16 },
-> +	{ MEDIA_BUS_FMT_SBGGR8_1X8, V4L2_PIX_FMT_SBGGR8, 8 },
-> +	{ MEDIA_BUS_FMT_SGBRG8_1X8, V4L2_PIX_FMT_SGBRG8, 8 },
-> +	{ MEDIA_BUS_FMT_SGRBG8_1X8, V4L2_PIX_FMT_SGRBG8, 8 },
-> +	{ MEDIA_BUS_FMT_SRGGB8_1X8, V4L2_PIX_FMT_SRGGB8, 8 },
-> +	{ MEDIA_BUS_FMT_SBGGR10_1X10, V4L2_PIX_FMT_SBGGR10P, 10 },
-> +	{ MEDIA_BUS_FMT_SGBRG10_1X10, V4L2_PIX_FMT_SGBRG10P, 10 },
-> +	{ MEDIA_BUS_FMT_SGRBG10_1X10, V4L2_PIX_FMT_SGRBG10P, 10 },
-> +	{ MEDIA_BUS_FMT_SRGGB10_1X10, V4L2_PIX_FMT_SRGGB10P, 10 },
-> +	{ MEDIA_BUS_FMT_SBGGR12_1X12, V4L2_PIX_FMT_SRGGB12P, 12 },
-> +	{ MEDIA_BUS_FMT_SGBRG12_1X12, V4L2_PIX_FMT_SGBRG12P, 12 },
-> +	{ MEDIA_BUS_FMT_SGRBG12_1X12, V4L2_PIX_FMT_SGRBG12P, 12 },
-> +	{ MEDIA_BUS_FMT_SRGGB12_1X12, V4L2_PIX_FMT_SRGGB12P, 12 }
-> +};
-> +
-> +/* -----------------------------------------------------------------------------
-> + * Helper functions
-> + */
-> +
-> +/*
-> + * video_mbus_to_pix_mp - Convert v4l2_mbus_framefmt to v4l2_pix_format_mplane
-> + * @mbus: v4l2_mbus_framefmt format (input)
-> + * @pix: v4l2_pix_format_mplane format (output)
-> + *
-> + * Fill the output pix structure with information from the input mbus format.
-> + *
-> + * Return 0 on success or a negative error code otherwise
-> + */
-> +static unsigned int video_mbus_to_pix_mp(const struct v4l2_mbus_framefmt *mbus,
-> +					 struct v4l2_pix_format_mplane *pix)
-> +{
-> +	unsigned int i;
-> +	u32 bytesperline;
-> +
-> +	memset(pix, 0, sizeof(*pix));
-> +	pix->width = mbus->width;
-> +	pix->height = mbus->height;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(formats); ++i) {
-> +		if (formats[i].code == mbus->code)
-> +			break;
-> +	}
-> +
-> +	if (WARN_ON(i == ARRAY_SIZE(formats)))
-> +		return -EINVAL;
-> +
-> +	pix->pixelformat = formats[i].pixelformat;
-> +	pix->num_planes = 1;
-> +	bytesperline = pix->width * formats[i].bpp / 8;
-> +	bytesperline = ALIGN(bytesperline, 8);
-> +	pix->plane_fmt[0].bytesperline = bytesperline;
-> +	pix->plane_fmt[0].sizeimage = bytesperline * pix->height;
-> +	pix->colorspace = mbus->colorspace;
-> +	pix->field = mbus->field;
-> +
-> +	return 0;
-> +}
+Add a first support of OV9655 variant.
+Because of register set slightly different from OV9650/9652,
+not all of the driver features are supported (controls).
+Supported resolutions are limited to VGA, QVGA, QQVGA.
+Supported format is limited to RGB565.
+Controls are limited to color bar test pattern for test purpose.
 
-Can you add a v4l2_fill_pix_format_mplane and a v4l2_fill_mbus_format_mplane
-static inline to media/v4l2-mediabus.h?
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/i2c/Kconfig  |   4 +-
+ drivers/media/i2c/ov9650.c | 487 ++++++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 457 insertions(+), 34 deletions(-)
 
-And use v4l2_fill_pix_format_mplane() here?
-
-> +
-> +static struct v4l2_subdev *video_remote_subdev(struct camss_video *video,
-> +					       u32 *pad)
-> +{
-> +	struct media_pad *remote;
-> +
-> +	remote = media_entity_remote_pad(&video->pad);
-> +
-> +	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
-> +		return NULL;
-> +
-> +	if (pad)
-> +		*pad = remote->index;
-> +
-> +	return media_entity_to_v4l2_subdev(remote->entity);
-> +}
-> +
-> +static int video_get_subdev_format(struct camss_video *video,
-> +				   struct v4l2_format *format)
-> +{
-> +	struct v4l2_subdev_format fmt;
-> +	struct v4l2_subdev *subdev;
-> +	u32 pad;
-> +	int ret;
-> +
-> +	subdev = video_remote_subdev(video, &pad);
-> +	if (subdev == NULL)
-> +		return -EINVAL;
-> +
-> +	fmt.pad = pad;
-> +	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> +
-> +	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
-> +	if (ret)
-> +		return ret;
-> +
-> +	format->type = video->type;
-> +	return video_mbus_to_pix_mp(&fmt.format, &format->fmt.pix_mp);
-> +}
-> +
-> +/* -----------------------------------------------------------------------------
-> + * Video queue operations
-> + */
-> +
-> +static int video_queue_setup(struct vb2_queue *q,
-> +	unsigned int *num_buffers, unsigned int *num_planes,
-> +	unsigned int sizes[], struct device *alloc_devs[])
-> +{
-> +	struct camss_video *video = vb2_get_drv_priv(q);
-> +
-> +	if (*num_planes) {
-> +		if (*num_planes != 1)
-> +			return -EINVAL;
-> +
-> +		if (sizes[0] < video->active_fmt.fmt.pix_mp.plane_fmt[0].sizeimage)
-> +			return -EINVAL;
-> +
-> +		return 0;
-> +	}
-> +
-> +	*num_planes = 1;
-> +
-> +	sizes[0] = video->active_fmt.fmt.pix_mp.plane_fmt[0].sizeimage;
-> +
-> +	return 0;
-> +}
-> +
-> +static int video_buf_prepare(struct vb2_buffer *vb)
-> +{
-> +	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-> +	struct camss_video *video = vb2_get_drv_priv(vb->vb2_queue);
-> +	struct camss_buffer *buffer = container_of(vbuf, struct camss_buffer,
-> +						   vb);
-> +	struct sg_table *sgt;
-> +
-> +	if (video->active_fmt.fmt.pix_mp.plane_fmt[0].sizeimage >
-> +							vb2_plane_size(vb, 0))
-> +		return -EINVAL;
-> +
-> +	vb2_set_plane_payload(vb, 0,
-> +			video->active_fmt.fmt.pix_mp.plane_fmt[0].sizeimage);
-> +
-> +	sgt = vb2_dma_sg_plane_desc(vb, 0);
-> +	if (!sgt)
-> +		return -EFAULT;
-> +
-> +	buffer->addr = sg_dma_address(sgt->sgl);
-> +
-> +	vbuf->field = V4L2_FIELD_NONE;
-> +
-> +	return 0;
-> +}
-> +
-> +static void video_buf_queue(struct vb2_buffer *vb)
-> +{
-> +	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-> +	struct camss_video *video = vb2_get_drv_priv(vb->vb2_queue);
-> +	struct camss_buffer *buffer = container_of(vbuf, struct camss_buffer,
-> +						   vb);
-> +
-> +	video->ops->queue_buffer(video, buffer);
-> +}
-> +
-> +static int video_check_format(struct camss_video *video)
-> +{
-> +	struct v4l2_pix_format_mplane *pix = &video->active_fmt.fmt.pix_mp;
-> +	struct v4l2_pix_format_mplane *sd_pix;
-> +	struct v4l2_format format;
-> +	int ret;
-> +
-> +	ret = video_get_subdev_format(video, &format);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	sd_pix = &format.fmt.pix_mp;
-> +	if (pix->pixelformat != sd_pix->pixelformat ||
-> +	    pix->height != sd_pix->height ||
-> +	    pix->width != sd_pix->width ||
-> +	    pix->num_planes != sd_pix->num_planes ||
-> +	    pix->plane_fmt[0].bytesperline != sd_pix->plane_fmt[0].bytesperline ||
-> +	    pix->plane_fmt[0].sizeimage != sd_pix->plane_fmt[0].sizeimage ||
-> +	    pix->field != format.fmt.pix_mp.field)
-> +		return -EINVAL;
-
-This check is only valid if num_planes == 1.
-
-Either improve the check so it can handle more planes, or add a 'pix->num_planes != 1'
-check.
-
-> +
-> +	return 0;
-> +}
-> +
-> +static int video_start_streaming(struct vb2_queue *q, unsigned int count)
-> +{
-> +	struct camss_video *video = vb2_get_drv_priv(q);
-> +	struct video_device *vdev = &video->vdev;
-> +	struct media_entity *entity;
-> +	struct media_pad *pad;
-> +	struct v4l2_subdev *subdev;
-> +	int ret;
-> +
-> +	ret = media_pipeline_start(&vdev->entity, &video->pipe);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = video_check_format(video);
-> +	if (ret < 0)
-> +		goto error;
-> +
-> +	entity = &vdev->entity;
-> +	while (1) {
-> +		pad = &entity->pads[0];
-> +		if (!(pad->flags & MEDIA_PAD_FL_SINK))
-> +			break;
-> +
-> +		pad = media_entity_remote_pad(pad);
-> +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
-> +			break;
-> +
-> +		entity = pad->entity;
-> +		subdev = media_entity_to_v4l2_subdev(entity);
-> +
-> +		ret = v4l2_subdev_call(subdev, video, s_stream, 1);
-> +		if (ret < 0 && ret != -ENOIOCTLCMD)
-> +			goto error;
-> +	}
-> +
-> +	return 0;
-> +
-> +error:
-> +	media_pipeline_stop(&vdev->entity);
-> +
-> +	video->ops->flush_buffers(video, VB2_BUF_STATE_QUEUED);
-> +
-> +	return ret;
-> +}
-> +
-> +static void video_stop_streaming(struct vb2_queue *q)
-> +{
-> +	struct camss_video *video = vb2_get_drv_priv(q);
-> +	struct video_device *vdev = &video->vdev;
-> +	struct media_entity *entity;
-> +	struct media_pad *pad;
-> +	struct v4l2_subdev *subdev;
-> +	struct v4l2_subdev *subdev_vfe = NULL;
-> +
-> +	entity = &vdev->entity;
-> +	while (1) {
-> +		pad = &entity->pads[0];
-> +		if (!(pad->flags & MEDIA_PAD_FL_SINK))
-> +			break;
-> +
-> +		pad = media_entity_remote_pad(pad);
-> +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
-> +			break;
-> +
-> +		entity = pad->entity;
-> +		subdev = media_entity_to_v4l2_subdev(entity);
-> +
-> +		if (strstr(subdev->name, "vfe")) {
-> +			subdev_vfe = subdev;
-> +		} else if (strstr(subdev->name, "ispif")) {
-> +			v4l2_subdev_call(subdev, video, s_stream, 0);
-> +			v4l2_subdev_call(subdev_vfe, video, s_stream, 0);
-> +		} else {
-> +			v4l2_subdev_call(subdev, video, s_stream, 0);
-> +		}
-> +	}
-> +
-> +	media_pipeline_stop(&vdev->entity);
-> +
-> +	video->ops->flush_buffers(video, VB2_BUF_STATE_ERROR);
-> +}
-> +
-> +static const struct vb2_ops msm_video_vb2_q_ops = {
-> +	.queue_setup     = video_queue_setup,
-> +	.wait_prepare    = vb2_ops_wait_prepare,
-> +	.wait_finish     = vb2_ops_wait_finish,
-> +	.buf_prepare     = video_buf_prepare,
-> +	.buf_queue       = video_buf_queue,
-> +	.start_streaming = video_start_streaming,
-> +	.stop_streaming  = video_stop_streaming,
-> +};
-> +
-> +/* -----------------------------------------------------------------------------
-> + * V4L2 ioctls
-> + */
-> +
-> +static int video_querycap(struct file *file, void *fh,
-> +			  struct v4l2_capability *cap)
-> +{
-> +	struct camss_video *video = video_drvdata(file);
-> +
-> +	strlcpy(cap->driver, "qcom-camss", sizeof(cap->driver));
-> +	strlcpy(cap->card, "Qualcomm Camera Subsystem", sizeof(cap->card));
-> +	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
-> +		 dev_name(video->camss->dev));
-> +
-> +	return 0;
-> +}
-> +
-> +static int video_enum_fmt(struct file *file, void *fh, struct v4l2_fmtdesc *f)
-> +{
-> +	struct camss_video *video = video_drvdata(file);
-> +	struct v4l2_format format;
-> +	int ret;
-> +
-> +	if (f->type != video->type)
-> +		return -EINVAL;
-> +
-> +	if (f->index)
-> +		return -EINVAL;
-> +
-> +	ret = video_get_subdev_format(video, &format);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	f->pixelformat = format.fmt.pix.pixelformat;
-
-Shouldn't this be format.fmt.pix_mp.pixelformat?
-
-> +
-> +	return 0;
-> +}
-> +
-> +static int video_g_fmt(struct file *file, void *fh, struct v4l2_format *f)
-> +{
-> +	struct camss_video *video = video_drvdata(file);
-> +
-> +	if (f->type != video->type)
-> +		return -EINVAL;
-
-I don't think this check is necessary. Same for s/try_fmt.
-f->type will always be VIDEO_CAPTURE_MPLANE.
-
-> +
-> +	*f = video->active_fmt;
-> +
-> +	return 0;
-> +}
-> +
-> +static int video_s_fmt(struct file *file, void *fh, struct v4l2_format *f)
-> +{
-> +	struct camss_video *video = video_drvdata(file);
-> +	int ret;
-> +
-> +	if (f->type != video->type)
-> +		return -EINVAL;
-> +
-
-You need to add:
-
-	if (vb2_is_busy(...))
-		return -EBUSY;
-
-> +	ret = video_get_subdev_format(video, f);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	video->active_fmt = *f;
-> +
-> +	return 0;
-> +}
-> +
-> +static int video_try_fmt(struct file *file, void *fh, struct v4l2_format *f)
-> +{
-> +	struct camss_video *video = video_drvdata(file);
-> +
-> +	if (f->type != video->type)
-> +		return -EINVAL;
-> +
-> +	return video_get_subdev_format(video, f);
-> +}
-> +
-> +static int video_enum_input(struct file *file, void *fh,
-> +			    struct v4l2_input *input)
-> +{
-> +	if (input->index > 0)
-> +		return -EINVAL;
-> +
-> +	strlcpy(input->name, "camera", sizeof(input->name));
-> +	input->type = V4L2_INPUT_TYPE_CAMERA;
-> +
-> +	return 0;
-> +}
-> +
-> +static int video_g_input(struct file *file, void *fh, unsigned int *input)
-> +{
-> +	*input = 0;
-> +
-> +	return 0;
-> +}
-> +
-> +static int video_s_input(struct file *file, void *fh, unsigned int input)
-> +{
-> +	return input == 0 ? 0 : -EINVAL;
-> +}
-> +
-> +static const struct v4l2_ioctl_ops msm_vid_ioctl_ops = {
-> +	.vidioc_querycap		= video_querycap,
-> +	.vidioc_enum_fmt_vid_cap_mplane	= video_enum_fmt,
-> +	.vidioc_g_fmt_vid_cap_mplane	= video_g_fmt,
-> +	.vidioc_s_fmt_vid_cap_mplane	= video_s_fmt,
-> +	.vidioc_try_fmt_vid_cap_mplane	= video_try_fmt,
-> +	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
-> +	.vidioc_querybuf		= vb2_ioctl_querybuf,
-> +	.vidioc_qbuf			= vb2_ioctl_qbuf,
-> +	.vidioc_expbuf			= vb2_ioctl_expbuf,
-> +	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
-> +	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
-> +	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
-> +	.vidioc_streamon		= vb2_ioctl_streamon,
-> +	.vidioc_streamoff		= vb2_ioctl_streamoff,
-> +	.vidioc_enum_input		= video_enum_input,
-> +	.vidioc_g_input			= video_g_input,
-> +	.vidioc_s_input			= video_s_input,
-> +};
-> +
-> +/* -----------------------------------------------------------------------------
-> + * V4L2 file operations
-> + */
-> +
-> +/*
-> + * video_init_format - Helper function to initialize format
-> + *
-> + * Initialize all pad formats with default values.
-> + */
-> +static int video_init_format(struct file *file, void *fh)
-> +{
-> +	struct v4l2_format format;
-> +
-> +	memset(&format, 0, sizeof(format));
-> +	format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-> +
-> +	return video_s_fmt(file, fh, &format);
-> +}
-> +
-> +static int video_open(struct file *file)
-> +{
-> +	struct video_device *vdev = video_devdata(file);
-> +	struct camss_video *video = video_drvdata(file);
-> +	struct v4l2_fh *vfh;
-> +	int ret;
-> +
-> +	mutex_lock(&video->lock);
-> +
-> +	vfh = kzalloc(sizeof(*vfh), GFP_KERNEL);
-> +	if (vfh == NULL) {
-> +		ret = -ENOMEM;
-> +		goto error_alloc;
-> +	}
-> +
-> +	v4l2_fh_init(vfh, vdev);
-> +	v4l2_fh_add(vfh);
-> +
-> +	file->private_data = vfh;
-> +
-> +	ret = v4l2_pipeline_pm_use(&vdev->entity, 1);
-
-
-> +	if (ret < 0) {
-> +		dev_err(video->camss->dev, "Failed to power up pipeline\n");
-> +		goto error_pm_use;
-> +	}
-> +
-> +	ret = video_init_format(file, vfh);
-
-This is wrong. The format is for the video_device, not per filehandle.
-If a capture is in progress on one filehandle, you should still be able to call:
-
-v4l2-ctl --all
-
-to see what the current format etc. is.
-
-With this code the format would be overwritten.
-
-As far as I can tell you can just drop this call. I don't see what purpose it
-serves.
-
-> +	if (ret < 0) {
-> +		dev_err(video->camss->dev, "Failed to init format\n");
-> +		goto error_init_format;
-> +	}
-> +
-> +	mutex_unlock(&video->lock);
-> +
-> +	return 0;
-> +
-> +error_init_format:
-> +	v4l2_pipeline_pm_use(&vdev->entity, 0);
-> +
-> +error_pm_use:
-> +	v4l2_fh_release(file);
-> +
-> +error_alloc:
-> +	mutex_unlock(&video->lock);
-> +
-> +	return ret;
-> +}
-> +
-> +static int video_release(struct file *file)
-> +{
-> +	struct video_device *vdev = video_devdata(file);
-> +
-> +	vb2_fop_release(file);
-> +
-> +	v4l2_pipeline_pm_use(&vdev->entity, 0);
-> +
-> +	file->private_data = NULL;
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_file_operations msm_vid_fops = {
-> +	.owner          = THIS_MODULE,
-> +	.unlocked_ioctl = video_ioctl2,
-> +	.open           = video_open,
-> +	.release        = video_release,
-> +	.poll           = vb2_fop_poll,
-> +	.mmap		= vb2_fop_mmap,
-> +	.read		= vb2_fop_read,
-> +};
-> +
-> +/* -----------------------------------------------------------------------------
-> + * CAMSS video core
-> + */
-> +
-> +static void msm_video_release(struct video_device *vdev)
-> +{
-> +	struct camss_video *video = video_get_drvdata(vdev);
-> +
-> +	media_entity_cleanup(&vdev->entity);
-> +
-> +	mutex_destroy(&video->q_lock);
-> +	mutex_destroy(&video->lock);
-> +
-> +	if (atomic_dec_and_test(&video->camss->ref_count))
-> +		camss_delete(video->camss);
-> +}
-> +
-> +int msm_video_register(struct camss_video *video, struct v4l2_device *v4l2_dev,
-> +		       const char *name)
-> +{
-> +	struct media_pad *pad = &video->pad;
-> +	struct video_device *vdev;
-> +	struct vb2_queue *q;
-> +	int ret;
-> +
-> +	vdev = &video->vdev;
-> +
-> +	mutex_init(&video->q_lock);
-> +
-> +	q = &video->vb2_q;
-> +	q->drv_priv = video;
-> +	q->mem_ops = &vb2_dma_sg_memops;
-> +	q->ops = &msm_video_vb2_q_ops;
-> +	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-> +	q->io_modes = VB2_DMABUF | VB2_MMAP | VB2_READ;
-> +	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> +	q->buf_struct_size = sizeof(struct camss_buffer);
-> +	q->dev = video->camss->dev;
-> +	q->lock = &video->q_lock;
-> +	ret = vb2_queue_init(q);
-> +	if (ret < 0) {
-> +		dev_err(v4l2_dev->dev, "Failed to init vb2 queue\n");
-> +		goto error_vb2_init;
-> +	}
-> +
-> +	pad->flags = MEDIA_PAD_FL_SINK;
-> +	ret = media_entity_pads_init(&vdev->entity, 1, pad);
-> +	if (ret < 0) {
-> +		dev_err(v4l2_dev->dev, "Failed to init video entity\n");
-> +		goto error_media_init;
-> +	}
-> +
-> +	mutex_init(&video->lock);
-> +
-> +	vdev->fops = &msm_vid_fops;
-> +	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE_MPLANE | V4L2_CAP_STREAMING |
-> +							V4L2_CAP_READWRITE;
-> +	vdev->ioctl_ops = &msm_vid_ioctl_ops;
-> +	vdev->release = msm_video_release;
-> +	vdev->v4l2_dev = v4l2_dev;
-> +	vdev->vfl_dir = VFL_DIR_RX;
-> +	vdev->queue = &video->vb2_q;
-> +	vdev->lock = &video->lock;
-> +	strlcpy(vdev->name, name, sizeof(vdev->name));
-> +
-> +	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
-> +	if (ret < 0) {
-> +		dev_err(v4l2_dev->dev, "Failed to register video device\n");
-> +		goto error_video_register;
-> +	}
-> +
-> +	video_set_drvdata(vdev, video);
-> +	atomic_inc(&video->camss->ref_count);
-> +
-> +	return 0;
-> +
-> +error_video_register:
-> +	media_entity_cleanup(&vdev->entity);
-> +	mutex_destroy(&video->lock);
-> +error_media_init:
-> +	vb2_queue_release(&video->vb2_q);
-> +error_vb2_init:
-> +	mutex_destroy(&video->q_lock);
-> +
-> +	return ret;
-> +}
-> +
-> +void msm_video_stop_streaming(struct camss_video *video)
-> +{
-> +	if (vb2_is_streaming(&video->vb2_q))
-> +		vb2_queue_release(&video->vb2_q);
-> +}
-> +
-> +void msm_video_unregister(struct camss_video *video)
-> +{
-> +	atomic_inc(&video->camss->ref_count);
-> +	video_unregister_device(&video->vdev);
-> +	atomic_dec(&video->camss->ref_count);
-> +}
-> diff --git a/drivers/media/platform/qcom/camss-8x16/video.h b/drivers/media/platform/qcom/camss-8x16/video.h
-> new file mode 100644
-> index 0000000..9ad7bbc
-> --- /dev/null
-> +++ b/drivers/media/platform/qcom/camss-8x16/video.h
-> @@ -0,0 +1,64 @@
-> +/*
-> + * video.h
-> + *
-> + * Qualcomm MSM Camera Subsystem - V4L2 device node
-> + *
-> + * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
-> + * Copyright (C) 2015-2016 Linaro Ltd.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 and
-> + * only version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +#ifndef QC_MSM_CAMSS_VIDEO_H
-> +#define QC_MSM_CAMSS_VIDEO_H
-> +
-> +#include <linux/mutex.h>
-> +#include <linux/videodev2.h>
-> +#include <media/media-entity.h>
-> +#include <media/v4l2-dev.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-fh.h>
-> +#include <media/v4l2-mediabus.h>
-> +#include <media/videobuf2-v4l2.h>
-> +
-> +struct camss_buffer {
-> +	struct vb2_v4l2_buffer vb;
-> +	dma_addr_t addr;
-> +	struct list_head queue;
-> +};
-> +
-> +struct camss_video;
-> +
-> +struct camss_video_ops {
-> +	int (*queue_buffer)(struct camss_video *vid, struct camss_buffer *buf);
-> +	int (*flush_buffers)(struct camss_video *vid,
-> +			     enum vb2_buffer_state state);
-> +};
-> +
-> +struct camss_video {
-> +	struct camss *camss;
-> +	struct vb2_queue vb2_q;
-> +	struct video_device vdev;
-> +	struct media_pad pad;
-> +	struct v4l2_format active_fmt;
-> +	enum v4l2_buf_type type;
-> +	struct media_pipeline pipe;
-> +	const struct camss_video_ops *ops;
-> +	struct mutex lock;
-> +	struct mutex q_lock;
-> +};
-> +
-> +void msm_video_stop_streaming(struct camss_video *video);
-> +
-> +int msm_video_register(struct camss_video *video, struct v4l2_device *v4l2_dev,
-> +		       const char *name);
-> +
-> +void msm_video_unregister(struct camss_video *video);
-
-I'm a bit confused who is calling these functions. The relationship between
-the video file and the vfe file is a bit obscure.
-
-Can you add some comments here?
-
-> +
-> +#endif /* QC_MSM_CAMSS_VIDEO_H */
-> 
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 168115c..0f7542f 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -614,11 +614,11 @@ config VIDEO_OV7670
+ 	  controller.
+ 
+ config VIDEO_OV9650
+-	tristate "OmniVision OV9650/OV9652 sensor support"
++	tristate "OmniVision OV9650/OV9652/OV9655 sensor support"
+ 	depends on GPIOLIB && I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+ 	---help---
+ 	  This is a V4L2 sensor-level driver for the Omnivision
+-	  OV9650 and OV9652 camera sensors.
++	  OV9650 and OV9652 and OV9655 camera sensors.
+ 
+ config VIDEO_OV13858
+ 	tristate "OmniVision OV13858 sensor support"
+diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+index 50397e6..9ff0782 100644
+--- a/drivers/media/i2c/ov9650.c
++++ b/drivers/media/i2c/ov9650.c
+@@ -1,5 +1,5 @@
+ /*
+- * Omnivision OV9650/OV9652 CMOS Image Sensor driver
++ * Omnivision OV9650/OV9652/OV9655 CMOS Image Sensor driver
+  *
+  * Copyright (C) 2013, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+  *
+@@ -7,6 +7,15 @@
+  * by Vladimir Fonov.
+  * Copyright (c) 2010, Vladimir Fonov
+  *
++ *
++ * Copyright (C) STMicroelectronics SA 2017
++ * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
++ *
++ * OV9655 initial support based on a driver written by H. Nikolaus Schaller:
++ *   http://git.goldelico.com/?p=gta04-kernel.git;a=shortlog;h=refs/heads/work/hns/video/ov9655
++ * OV9655 registers sequence from STM32CubeF7 embedded software, see:
++ *   https://developer.mbed.org/teams/ST/code/BSP_DISCO_F746NG/file/e1d9da7fe856/Drivers/BSP/Components/ov9655/ov9655.c
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+@@ -58,14 +67,21 @@
+ #define REG_PID			0x0a	/* Product ID MSB */
+ #define REG_VER			0x0b	/* Product ID LSB */
+ #define REG_COM3		0x0c
+-#define  COM3_SWAP		0x40
++#define  COM3_COLORBAR		0x80
++#define  COM3_RGB565		0x00
++#define  COM3_SWAP		0x40	/* Doesn't work in RGB */
++#define  COM3_RESETB		0x08
+ #define  COM3_VARIOPIXEL1	0x04
++#define  OV9655_SINGLEFRAME	0x01
+ #define REG_COM4		0x0d	/* Vario Pixels  */
+ #define  COM4_VARIOPIXEL2	0x80
++#define  OV9655_TRISTATE		/* seems to have a different function */
+ #define REG_COM5		0x0e	/* System clock options */
+ #define  COM5_SLAVE_MODE	0x10
+-#define  COM5_SYSTEMCLOCK48MHZ	0x80
++#define  COM5_SYSTEMCLOCK48MHZ	0x80	/* not on OV9655 */
++#define  OV9655_EXPOSURESTEP	0x01
+ #define REG_COM6		0x0f	/* HREF & ADBLC options */
++#define  COM6_BLC_OPTICAL	0x40	/* Optical black */
+ #define REG_AECH		0x10	/* Exposure value, AEC[9:2] */
+ #define REG_CLKRC		0x11	/* Clock control */
+ #define  CLK_EXT		0x40	/* Use external clock directly */
+@@ -74,13 +90,18 @@
+ #define  COM7_RESET		0x80
+ #define  COM7_FMT_MASK		0x38
+ #define  COM7_FMT_VGA		0x40
+-#define	 COM7_FMT_CIF		0x20
++#define  COM7_FMT_CIF		0x20
+ #define  COM7_FMT_QVGA		0x10
+ #define  COM7_FMT_QCIF		0x08
+-#define	 COM7_RGB		0x04
+-#define	 COM7_YUV		0x00
+-#define	 COM7_BAYER		0x01
+-#define	 COM7_PBAYER		0x05
++#define  COM7_RGB		0x04
++#define  COM7_YUV		0x00
++#define  COM7_BAYER		0x01
++#define  COM7_PBAYER		0x05
++#define  OV9655_COM7_VGA	0x60
++#define  OV9655_COM7_RAWRGB	0x00	/* different format encoding */
++#define  OV9655_COM7_RAWRGBINT	0x01
++#define  OV9655_COM7_YUV	0x02
++#define  OV9655_COM7_RGB	0x03
+ #define REG_COM8		0x13	/* AGC/AEC options */
+ #define  COM8_FASTAEC		0x80	/* Enable fast AGC/AEC */
+ #define  COM8_AECSTEP		0x40	/* Unlimited AEC step size */
+@@ -89,14 +110,23 @@
+ #define  COM8_AWB		0x02	/* White balance enable */
+ #define  COM8_AEC		0x01	/* Auto exposure enable */
+ #define REG_COM9		0x14	/* Gain ceiling */
+-#define  COM9_GAIN_CEIL_MASK	0x70	/* */
++#define  COM9_GAIN_CEIL_MASK	0x70
++#define  COM9_GAIN_CEIL_16X	0x30
++#define  OV9655_COM9_EXPTIMING	0x08
++#define  OV9655_COM9_VSYNCDROP	0x04
++#define  OV9655_COM9_AECDROP	0x02
+ #define REG_COM10		0x15	/* PCLK, HREF, HSYNC signals polarity */
++#define  OV9655_SLAVE_PIN	0x80	/* SLHS/SLVS instead of RESETB/PWDN */
+ #define  COM10_HSYNC		0x40	/* HSYNC instead of HREF */
+ #define  COM10_PCLK_HB		0x20	/* Suppress PCLK on horiz blank */
+-#define  COM10_HREF_REV		0x08	/* Reverse HREF */
++#define  OV9655_COM10_PCLK_REV		0x10	/* PCLK reverse */
++#define  COM10_HREF_REV	0x08	/* Reverse HREF */
+ #define  COM10_VS_LEAD		0x04	/* VSYNC on clock leading edge */
++#define  OV9655_COM10_RESET_OPTION	0x04	/* Reset signal end point */
+ #define  COM10_VS_NEG		0x02	/* VSYNC negative */
+ #define  COM10_HS_NEG		0x01	/* HSYNC negative */
++#define OV9655_REG16		0x16	/* dummy frame and blanking */
++#define   OV9655_REG16_DUMMY_8	0x20	/* dummy frame when gain > 8 */
+ #define REG_HSTART		0x17	/* Horiz start high bits */
+ #define REG_HSTOP		0x18	/* Horiz stop high bits */
+ #define REG_VSTART		0x19	/* Vert start high bits */
+@@ -117,6 +147,7 @@
+ #define REG_BBIAS		0x27	/* B channel output bias */
+ #define REG_GBBIAS		0x28	/* Gb channel output bias */
+ #define REG_GRCOM		0x29	/* Analog BLC & regulator */
++#define OV9655_PREGAIN		0x29
+ #define REG_EXHCH		0x2a	/* Dummy pixel insert MSB */
+ #define REG_EXHCL		0x2b	/* Dummy pixel insert LSB */
+ #define REG_RBIAS		0x2c	/* R channel output bias */
+@@ -127,12 +158,30 @@
+ #define REG_HSYEN		0x31	/* HSYNC falling edge delay LSB*/
+ #define REG_HREF		0x32	/* HREF pieces */
+ #define REG_CHLF		0x33	/* reserved */
++#define OV9655_CLKF		0x33	/* Array current control */
++#define OV9655_AREF1		0x34	/* Array reference control */
++#define OV9655_AREF2		0x35	/* Array reference control */
++#define OV9655_AREF3		0x36	/* Array reference control */
+ #define REG_ADC			0x37	/* reserved */
++#define OV9655_ADC		0x37	/* ADC Control 1 (Range adjustment) */
+ #define REG_ACOM		0x38	/* reserved */
+-#define REG_OFON		0x39	/* Power down register */
++#define OV9655_ADC2		0x38	/* ADC Control 2 (Range adjustment) */
++#define REG_OFON		0x39	/* Power down register (ov9650 only) */
+ #define  OFON_PWRDN		0x08	/* Power down bit */
++#define OV9655_AREF4		0x39	/* Array reference control */
+ #define REG_TSLB		0x3a	/* YUVU format */
++#define  OV9655_PCLKDELAY2NS	0x40
++#define  OV9655_PCLKDELAY4NS	0x80
++#define  OV9655_PCLKDELAY6NS	0xc0
++#define  OV9655_OUTREVERSE	0x20
++#define  OV9655_FIXEDUV	0x10
+ #define  TSLB_YUYV_MASK		0x0c	/* UYVY or VYUY - see com13 */
++#define  TSLB_YUYV		0x00
++#define  TSLB_YVYU		0x04
++#define  TSLB_VYUY		0x08
++#define  TSLB_UYVY		0x0c
++#define  OV9655_BANDINGAUTO	0x02
++
+ #define REG_COM11		0x3b	/* Night mode, banding filter enable */
+ #define  COM11_NIGHT		0x80	/* Night mode enable */
+ #define  COM11_NMFR		0x60	/* Two bit NM frame rate */
+@@ -142,25 +191,38 @@
+ #define  COM12_HREF		0x80	/* HREF always */
+ #define REG_COM13		0x3d	/* Gamma selection, Color matrix en. */
+ #define  COM13_GAMMA		0x80	/* Gamma enable */
+-#define	 COM13_UVSAT		0x40	/* UV saturation auto adjustment */
++#define  COM13_UVSAT		0x40	/* UV saturation auto adjustment */
++#define  COM13_Y_DELAY		0x08	/* Delay Y channel */
+ #define  COM13_UVSWAP		0x01	/* V before U - w/TSLB */
+ #define REG_COM14		0x3e	/* Edge enhancement options */
+ #define  COM14_EDGE_EN		0x02
+ #define  COM14_EEF_X2		0x01
++#define OV9655_REG_COM14	0x3e	/* pixel correction/zoom ON/OFF sel. */
++#define  OV9655_COM14_BLACK_PIX	0x08	/* Black pixel correction */
++#define  OV9655_COM14_WHITE_PIX	0x04	/* White pixel correction */
++#define  OV9655_COM14_ZOOM	0x02	/* Zoom function ON */
+ #define REG_EDGE		0x3f	/* Edge enhancement factor */
+ #define  EDGE_FACTOR_MASK	0x0f
+ #define REG_COM15		0x40	/* Output range, RGB 555/565 */
+ #define  COM15_R10F0		0x00	/* Data range 10 to F0 */
+-#define	 COM15_R01FE		0x80	/* 01 to FE */
++#define  COM15_R01FE		0x80	/* 01 to FE */
+ #define  COM15_R00FF		0xc0	/* 00 to FF */
+ #define  COM15_RGB565		0x10	/* RGB565 output */
+ #define  COM15_RGB555		0x30	/* RGB555 output */
+ #define  COM15_SWAPRB		0x04	/* Swap R&B */
+ #define REG_COM16		0x41	/* Color matrix coeff options */
+ #define REG_COM17		0x42	/* Single frame out, banding filter */
++#define OV9655_REG_COM17	0x42	/* Denoise, edge, auto gain, ... */
++#define   OV9655_COM17_EDGE_AUTO	0x40	/* Edge auto */
++#define   OV9655_COM17_DENOISE_AUTO	0x80	/* Denoise auto */
++#define OV9655_REG_RSVD(__n)	(0x43 + (__n) - 1) /* reserved but used... */
+ /* n = 1...9, 0x4f..0x57 */
+-#define	REG_MTX(__n)		(0x4f + (__n) - 1)
++#define REG_MTX(__n)		(0x4f + (__n) - 1)
+ #define REG_MTXS		0x58
++#define REG_AWBOP(__n)		(0x59 + (__n) - 1) /* AWB control options */
++#define REG_BLMT		0x5F	/* AWB Blue Component Gain Limit */
++#define REG_RLMT		0x60	/* AWB Red Component Gain Limit */
++#define REG_GLMT		0x61	/* AWB Green Component Gain Limit */
+ /* Lens Correction Option 1...5, __n = 0...5 */
+ #define REG_LCC(__n)		(0x62 + (__n) - 1)
+ #define  LCC5_LCC_ENABLE	0x01	/* LCC5, enable lens correction */
+@@ -170,10 +232,26 @@
+ #define REG_HV			0x69	/* Manual banding filter MSB */
+ #define REG_MBD			0x6a	/* Manual banding filter value */
+ #define REG_DBLV		0x6b	/* reserved */
++#define OV9655_REG_DBLV		0x6b	/* PLL, DVDD regu bypass, bandgap */
++#define  OV9655_DBLV_BANDGAP	0x0a	/* default value */
++#define  OV9655_DBLV_LDO_BYPASS	0x10
++#define  OV9655_DBLV_PLL_BYPASS	0x00
++#define  OV9655_DBLV_PLL_4X	0x40
++#define  OV9655_DBLV_PLL_6X	0x80
++#define  OV9655_DBLV_PLL_8X	0xc0
+ #define REG_GSP			0x6c	/* Gamma curve */
+ #define  GSP_LEN		15
++#define OV9655_REG_DNSTH	0x70	/* De-noise Function Threshold Adj. */
++#define OV9655_REG_POIDX	0x72	/* Pixel output index */
++#define OV9655_REG_PCKDV	0x73	/* Pixel Clock Output Selection */
++#define OV9655_REG_XINDX	0x74	/* Horizontal Scaling Down Coeff. */
++#define OV9655_REG_YINDX	0x75	/* Vertical Scaling Down Coeff. */
++#define OV9655_REG_SLOP		0x7A	/* Gamma Curve Highest Segment Slope */
++#define OV9655_REG_GAM(__n)	(0x7B + (__n) - 1)	/* Gamma curve */
+ #define REG_GST			0x7c	/* Gamma curve */
+ #define  GST_LEN		15
++#define OV9655_REG_COM18	0x8b	/* Zoom mode in VGA */
++#define OV9655_REG_COM19	0x8c	/* UV adjustment */
+ #define REG_COM21		0x8b
+ #define REG_COM22		0x8c	/* Edge enhancement, denoising */
+ #define  COM22_WHTPCOR		0x02	/* White pixel correction enable */
+@@ -181,6 +259,8 @@
+ #define  COM22_DENOISE		0x10	/* White pixel correction option */
+ #define REG_COM23		0x8d	/* Color bar test, color gain */
+ #define  COM23_TEST_MODE	0x10
++#define OV9655_REG_COM20	0x8d
++#define  OV9655_COM20_TEST_MODE	0x10
+ #define REG_DBLC1		0x8f	/* Digital BLC */
+ #define REG_DBLC_B		0x90	/* Digital BLC B channel offset */
+ #define REG_DBLC_R		0x91	/* Digital BLC R channel offset */
+@@ -193,6 +273,17 @@
+ #define REG_AECHM		0xa1	/* Exposure value - bits AEC[15:10] */
+ #define REG_BD50ST		0xa2	/* Banding filter value for 50Hz */
+ #define REG_BD60ST		0xa3	/* Banding filter value for 60Hz */
++#define OV9655_REG_COM21	0xa4	/* Digital gain */
++#define OV9655_REG_AWB_GREEN	0xa6	/* AWB green */
++#define OV9655_REG_REF_A8	0xa8	/* Analog Reference Control */
++#define OV9655_REG_REF_A9	0xa9	/* Analog Reference Control */
++#define OV9655_REG_BLC(__n)	(0xac + (__n) - 1) /* Black Level Control */
++#define OV9655_REG_CTRLB4	0xb4	/* UV adjustment */
++#define OV9655_REG_ADBOFF	0xbc	/* ADC B channel offset setting */
++#define OV9655_REG_ADROFF	0xbd	/* ADC R channel offset setting */
++#define OV9655_REG_ADGBOFF	0xbe	/* ADC Gb channel offset setting */
++#define OV9655_REG_ADGEOFF	0xbf	/* ADC Gr channel offset setting */
++#define OV9655_REG_COM24	0xc7	/* Pixel clock frequency selection */
+ #define REG_NULL		0xff	/* Array end token */
+ 
+ #define DEF_CLKRC		0x80
+@@ -200,6 +291,7 @@
+ #define OV965X_ID(_msb, _lsb)	((_msb) << 8 | (_lsb))
+ #define OV9650_ID		0x9650
+ #define OV9652_ID		0x9652
++#define OV9655V5_ID		0x9657
+ 
+ struct ov965x_ctrls {
+ 	struct v4l2_ctrl_handler handler;
+@@ -458,6 +550,291 @@ struct ov965x {
+ 	{{ 1,   25  }, { QVGA_WIDTH, QVGA_HEIGHT }, 1 },  /* 25 fps */
+ };
+ 
++/* OV9655 */
++static const struct i2c_rv ov9655_init_regs[] = {
++	{ REG_GAIN, 0x00 },
++	{ REG_BLUE, 0x80 },
++	{ REG_RED, 0x80 },
++	{ REG_VREF, 0x02 },
++	{ REG_COM1, 0x03 },
++	{ REG_COM2, 0x01 },/* Output drive x2 */
++	{ REG_COM3, COM3_RGB565 },/* Output drive x2, RGB565 */
++	{ REG_COM5, 0x60 | OV9655_EXPOSURESTEP },/* 0x60 ? */
++	{ REG_COM6, COM6_BLC_OPTICAL },
++	{ REG_CLKRC, 0x01 },/* F(internal clk) = F(input clk) / 2 */
++	{ REG_COM7, OV9655_COM7_VGA | OV9655_COM7_YUV },
++	{ REG_COM8, COM8_FASTAEC | COM8_AECSTEP |
++			COM8_AGC | COM8_AWB | COM8_AEC },
++	{ REG_COM9, COM9_GAIN_CEIL_16X | OV9655_COM9_EXPTIMING |
++			OV9655_COM9_AECDROP },
++	{ OV9655_REG16, OV9655_REG16_DUMMY_8 | 0x4 },
++	{ REG_HSTART, 0x18 },
++	{ REG_HSTOP, 0x04 },
++	{ REG_VSTART, 0x01 },
++	{ REG_VSTOP, 0x81 },
++	{ REG_MVFP, 0x00 },/* No mirror/flip */
++	{ REG_AEW, 0x3c },
++	{ REG_AEB, 0x36 },
++	{ REG_VPT, 0x72 },
++	{ REG_BBIAS, 0x08 },
++	{ REG_GBBIAS, 0x08 },
++	{ OV9655_PREGAIN, 0x15 },
++	{ REG_EXHCH, 0x00 },
++	{ REG_EXHCL, 0x00 },
++	{ REG_RBIAS, 0x08 },
++	{ REG_HREF, 0x12 },/* QVGA */
++	{ REG_CHLF, 0x00 },
++	{ OV9655_AREF1, 0x3f },
++	{ OV9655_AREF2, 0x00 },
++	{ OV9655_AREF3, 0x3a },
++	{ OV9655_ADC2, 0x72 },
++	{ OV9655_AREF4, 0x57 },
++	{ REG_TSLB, OV9655_PCLKDELAY6NS | TSLB_UYVY },
++	{ REG_COM11, 0x04 },/* 0x04 ? */
++	{ REG_COM13, COM13_GAMMA | 0x10 |
++			COM13_Y_DELAY | COM13_UVSWAP },/* 0x10 ? */
++	{OV9655_REG_COM14, OV9655_COM14_ZOOM }, /* QVGA */
++	{ REG_EDGE, 0xc1 },
++	{ REG_COM15, COM15_R00FF },/* Full range output */
++	{ REG_COM16, 0x41 },/* 0x41 ? */
++	{ OV9655_REG_COM17, OV9655_COM17_EDGE_AUTO |
++			OV9655_COM17_DENOISE_AUTO },
++	{ OV9655_REG_RSVD(1), 0x0a },
++	{ OV9655_REG_RSVD(2), 0xf0 },
++	{ OV9655_REG_RSVD(3), 0x46 },
++	{ OV9655_REG_RSVD(4), 0x62 },
++	{ OV9655_REG_RSVD(5), 0x2a },
++	{ OV9655_REG_RSVD(6), 0x3c },
++	{ OV9655_REG_RSVD(7), 0xfc },
++	{ OV9655_REG_RSVD(8), 0xfc },
++	{ OV9655_REG_RSVD(9), 0x7f },
++	{ OV9655_REG_RSVD(10), 0x7f },
++	{ OV9655_REG_RSVD(11), 0x7f },
++	{ REG_MTX(1), 0x98 },
++	{ REG_MTX(2), 0x98 },
++	{ REG_MTX(3), 0x00 },
++	{ REG_MTX(4), 0x28 },
++	{ REG_MTX(5), 0x70 },
++	{ REG_MTX(6), 0x98 },
++	{ REG_MTXS, 0x1a },
++	{ REG_AWBOP(1), 0x85 },
++	{ REG_AWBOP(2), 0xa9 },
++	{ REG_AWBOP(3), 0x64 },
++	{ REG_AWBOP(4), 0x84 },
++	{ REG_AWBOP(5), 0x53 },
++	{ REG_AWBOP(6), 0x0e },
++	{ REG_BLMT, 0xf0 },
++	{ REG_RLMT, 0xf0 },
++	{ REG_GLMT, 0xf0 },
++	{ REG_LCC(1), 0x00 },
++	{ REG_LCC(2), 0x00 },
++	{ REG_LCC(3), 0x02 },
++	{ REG_LCC(4), 0x20 },
++	{ REG_LCC(5), 0x00 },
++	{ 0x69, 0x0a },/* Reserved... */
++	{ OV9655_REG_DBLV, OV9655_DBLV_PLL_4X | OV9655_DBLV_LDO_BYPASS |
++			OV9655_DBLV_BANDGAP },
++	{ 0x6c, 0x04 },/* Reserved... */
++	{ 0x6d, 0x55 },/* Reserved... */
++	{ 0x6e, 0x00 },/* Reserved... */
++	{ 0x6f, 0x9d },/* Reserved... */
++	{ OV9655_REG_DNSTH, 0x21 },
++	{ 0x71, 0x78 },/* Reserved... */
++	{ OV9655_REG_POIDX, 0x11 },/* QVGA */
++	{ OV9655_REG_PCKDV, 0x01 },/* QVGA */
++	{ OV9655_REG_XINDX, 0x10 },
++	{ OV9655_REG_YINDX, 0x10 },
++	{ 0x76, 0x01 },/* Reserved... */
++	{ 0x77, 0x02 },/* Reserved... */
++	{ 0x7A, 0x12 },/* Reserved... */
++	{ OV9655_REG_GAM(1), 0x08 },
++	{ OV9655_REG_GAM(2), 0x16 },
++	{ OV9655_REG_GAM(3), 0x30 },
++	{ OV9655_REG_GAM(4), 0x5e },
++	{ OV9655_REG_GAM(5), 0x72 },
++	{ OV9655_REG_GAM(6), 0x82 },
++	{ OV9655_REG_GAM(7), 0x8e },
++	{ OV9655_REG_GAM(8), 0x9a },
++	{ OV9655_REG_GAM(9), 0xa4 },
++	{ OV9655_REG_GAM(10), 0xac },
++	{ OV9655_REG_GAM(11), 0xb8 },
++	{ OV9655_REG_GAM(12), 0xc3 },
++	{ OV9655_REG_GAM(13), 0xd6 },
++	{ OV9655_REG_GAM(14), 0xe6 },
++	{ OV9655_REG_GAM(15), 0xf2 },
++	{ 0x8a, 0x24 },/* Reserved... */
++	{ OV9655_REG_COM19, 0x80 },
++	{ 0x90, 0x7d },/* Reserved... */
++	{ 0x91, 0x7b },/* Reserved... */
++	{ REG_LCCFB, 0x02 },
++	{ REG_LCCFR, 0x02 },
++	{ REG_DBLC_GB, 0x7a },
++	{ REG_DBLC_GR, 0x79 },
++	{ REG_AECHM, 0x40 },
++	{ OV9655_REG_COM21, 0x50 },
++	{ 0xa5, 0x68 },/* Reserved... */
++	{ OV9655_REG_AWB_GREEN, 0x4a },
++	{ OV9655_REG_REF_A8, 0xc1 },
++	{ OV9655_REG_REF_A9, 0xef },
++	{ 0xaa, 0x92 },/* Reserved... */
++	{ 0xab, 0x04 },/* Reserved... */
++	{ OV9655_REG_BLC(1), 0x80 },
++	{ OV9655_REG_BLC(2), 0x80 },
++	{ OV9655_REG_BLC(3), 0x80 },
++	{ OV9655_REG_BLC(4), 0x80 },
++	{ OV9655_REG_BLC(7), 0xf2 },
++	{ OV9655_REG_BLC(8), 0x20 },
++	{ OV9655_REG_CTRLB4, 0x20 },
++	{ 0xb5, 0x00 },/* Reserved... */
++	{ 0xb6, 0xaf },/* Reserved... */
++	{ 0xb6, 0xaf },/* Reserved... */
++	{ 0xbb, 0xae },/* Reserved... */
++	{ OV9655_REG_ADBOFF, 0x7f },
++	{ OV9655_REG_ADROFF, 0x7f },
++	{ OV9655_REG_ADGBOFF, 0x7f },
++	{ OV9655_REG_ADGEOFF, 0x7f },
++	{ OV9655_REG_ADGEOFF, 0x7f },
++	{ 0xc0, 0xaa },/* Reserved... */
++	{ 0xc1, 0xc0 },/* Reserved... */
++	{ 0xc2, 0x01 },/* Reserved... */
++	{ 0xc3, 0x4e },/* Reserved... */
++	{ 0xc6, 0x05 },/* Reserved... */
++	{ OV9655_REG_COM24, 0x81 },/* QVGA */
++	{ 0xc9, 0xe0 },/* Reserved... */
++	{ 0xca, 0xe8 },/* Reserved... */
++	{ 0xcb, 0xf0 },/* Reserved... */
++	{ 0xcc, 0xd8 },/* Reserved... */
++	{ 0xcd, 0x93 },/* Reserved... */
++	{ REG_COM7, OV9655_COM7_VGA | OV9655_COM7_RGB },
++	{ REG_COM15, COM15_RGB565 },
++	{ REG_NULL, 0}
++};
++
++static const struct i2c_rv ov9655_qvga_regs[] = {
++	{ REG_HREF, 0x12 },
++	{ OV9655_REG_COM14, OV9655_COM14_ZOOM },
++	{ OV9655_REG_POIDX, 0x11 },
++	{ OV9655_REG_PCKDV, 0x01 },
++	{ OV9655_REG_COM24, 0x81 },
++	{ REG_NULL, 0}
++};
++
++static const struct i2c_rv ov9655_qqvga_regs[] = {
++	{ REG_HREF, 0xa4 },
++	{ REG_COM14, OV9655_COM14_BLACK_PIX | OV9655_COM14_WHITE_PIX |
++			OV9655_COM14_ZOOM },
++	{ OV9655_REG_POIDX, 0x22 },
++	{ OV9655_REG_PCKDV, 0x02 },
++	{ OV9655_REG_COM24, 0x82 },
++	{ REG_NULL, 0}
++};
++
++static const struct i2c_rv ov9655_vga_regs[] = {
++	{ REG_GAIN, 0x11 },
++	{ REG_VREF, 0x12 },
++	{ REG_B_AVE, 0x2e },
++	{ REG_GB_AVE, 0x2e },
++	{ REG_GR_AVE, 0x2e },
++	{ REG_R_AVE, 0x2e },
++	{ REG_COM6, 0x48 },
++	{ REG_AECH, 0x7b },
++	{ REG_CLKRC, 0x03 },
++	{ REG_COM8, COM8_FASTAEC | COM8_AECSTEP | COM8_BFILT |
++			COM8_AGC | COM8_AWB | COM8_AEC },
++	{ REG_HSTART, 0x16 },
++	{ REG_HSTOP, 0x02 },
++	{ REG_VSTART, 0x01 },
++	{ REG_VSTOP, 0x3d },
++	{ REG_MVFP, 0x04 },
++	{ REG_YAVE, 0x2e },
++	{ REG_HREF, 0xff },
++	{ OV9655_AREF1, 0x3d },
++	{ OV9655_AREF3, 0xfa },
++	{ REG_TSLB, 0xcc },
++	{ REG_COM11, 0xcc },
++	{ REG_COM14, 0x0c },
++	{ REG_EDGE, 0x82 },
++	{ REG_COM15, COM15_R00FF | COM15_RGB565 },/* full range */
++	{ REG_COM16, 0x40 },
++	{ OV9655_REG_RSVD(1), 0x14 },
++	{ OV9655_REG_RSVD(2), 0xf0 },
++	{ OV9655_REG_RSVD(3), 0x46 },
++	{ OV9655_REG_RSVD(4), 0x62 },
++	{ OV9655_REG_RSVD(5), 0x2a },
++	{ OV9655_REG_RSVD(6), 0x3c },
++	{ OV9655_REG_RSVD(8), 0xe9 },
++	{ OV9655_REG_RSVD(9), 0xdd },
++	{ OV9655_REG_RSVD(10), 0xdd },
++	{ OV9655_REG_RSVD(11), 0xdd },
++	{ OV9655_REG_RSVD(12), 0xdd },
++	{ REG_LCC(1), 0x00 },
++	{ REG_LCC(2), 0x00 },
++	{ REG_LCC(3), 0x02 },
++	{ REG_LCC(4), 0x20 },
++	{ REG_LCC(5), 0x01 },
++	{ REG_GSP, 0x0c },
++	{ 0x6f, 0x9e },/* Reserved... */
++	{ OV9655_REG_DNSTH, 0x06 },
++	{ OV9655_REG_POIDX, 0x00 },
++	{ OV9655_REG_PCKDV, 0x00 },
++	{ OV9655_REG_XINDX, 0x3a },
++	{ OV9655_REG_YINDX, 0x35 },
++	{ OV9655_REG_SLOP, 0x20 },
++	{ OV9655_REG_GAM(1), 0x1c },
++	{ OV9655_REG_GAM(2), 0x28 },
++	{ OV9655_REG_GAM(3), 0x3c },
++	{ OV9655_REG_GAM(4), 0x5a },
++	{ OV9655_REG_GAM(5), 0x68 },
++	{ OV9655_REG_GAM(6), 0x76 },
++	{ OV9655_REG_GAM(7), 0x80 },
++	{ OV9655_REG_GAM(8), 0x88 },
++	{ OV9655_REG_GAM(9), 0x8f },
++	{ OV9655_REG_GAM(10), 0x96 },
++	{ OV9655_REG_GAM(11), 0xa3 },
++	{ OV9655_REG_GAM(12), 0xaf },
++	{ OV9655_REG_GAM(13), 0xc4 },
++	{ OV9655_REG_GAM(14), 0xd7 },
++	{ OV9655_REG_GAM(15), 0xe8 },
++	{ 0x8a, 0x23 },/* Reserved... */
++	{ OV9655_REG_COM19, 0x8d },
++	{ 0x90, 0x92 },/* Reserved... */
++	{ 0x91, 0x92 },/* Reserved... */
++	{ REG_DBLC_GB, 0x90 },
++	{ REG_DBLC_GR, 0x90 },
++	{ OV9655_REG_AWB_GREEN, 0x40 },
++	{ OV9655_REG_ADBOFF, 0x02 },
++	{ OV9655_REG_ADROFF, 0x01 },
++	{ OV9655_REG_ADGBOFF, 0x02 },
++	{ OV9655_REG_ADGEOFF, 0x01 },
++	{ 0xc1, 0xc8 },/* Reserved... */
++	{ 0xc6, 0x85 },/* Reserved... */
++	{ OV9655_REG_COM24, 0x80 },
++	{ REG_NULL, 0}
++};
++
++static const struct ov965x_framesize ov9655_framesizes[] = {
++	{
++		.width		= VGA_WIDTH,
++		.height		= VGA_HEIGHT,
++		.regs		= ov9655_vga_regs,
++		.max_exp_lines	= 498,
++	}, {
++		.width		= QVGA_WIDTH,
++		.height		= QVGA_HEIGHT,
++		.regs		= ov9655_qvga_regs,
++		.max_exp_lines	= 248,
++	}, {
++		.width		= QQVGA_WIDTH,
++		.height		= QQVGA_HEIGHT,
++		.regs		= ov9655_qqvga_regs,
++		.max_exp_lines	= 124,
++	},
++};
++
++static const struct ov965x_pixfmt ov9655_formats[] = {
++	{ MEDIA_BUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB, 0x08},
++};
++
+ static inline struct v4l2_subdev *ctrl_to_sd(struct v4l2_ctrl *ctrl)
+ {
+ 	return &container_of(ctrl->handler, struct ov965x, ctrls.handler)->sd;
+@@ -894,12 +1271,16 @@ static int ov965x_set_test_pattern(struct ov965x *ov965x, int value)
+ {
+ 	int ret;
+ 	u8 reg;
++	u8 addr = (ov965x->id == OV9655V5_ID) ?
++			REG_COM3 : REG_COM23;
++	u8 mask = (ov965x->id == OV9655V5_ID) ?
++			COM3_COLORBAR : COM23_TEST_MODE;
+ 
+-	ret = ov965x_read(ov965x->client, REG_COM23, &reg);
++	ret = ov965x_read(ov965x->client, addr, &reg);
+ 	if (ret < 0)
+ 		return ret;
+-	reg = value ? reg | COM23_TEST_MODE : reg & ~COM23_TEST_MODE;
+-	return ov965x_write(ov965x->client, REG_COM23, reg);
++	reg = value ? reg | mask : reg & ~mask;
++	return ov965x_write(ov965x->client, addr, reg);
+ }
+ 
+ static int __g_volatile_ctrl(struct ov965x *ov965x, struct v4l2_ctrl *ctrl)
+@@ -1102,6 +1483,30 @@ static int ov965x_initialize_controls(struct ov965x *ov965x)
+ 	return 0;
+ }
+ 
++static int ov9655_initialize_controls(struct ov965x *ov965x)
++{
++	const struct v4l2_ctrl_ops *ops = &ov965x_ctrl_ops;
++	struct ov965x_ctrls *ctrls = &ov965x->ctrls;
++	struct v4l2_ctrl_handler *hdl = &ctrls->handler;
++	int ret;
++
++	ret = v4l2_ctrl_handler_init(hdl, 16);
++	if (ret < 0)
++		return ret;
++
++	v4l2_ctrl_new_std_menu_items(hdl, ops, V4L2_CID_TEST_PATTERN,
++				     ARRAY_SIZE(test_pattern_menu) - 1, 0, 0,
++				     test_pattern_menu);
++	if (hdl->error) {
++		ret = hdl->error;
++		v4l2_ctrl_handler_free(hdl);
++		return ret;
++	}
++
++	ov965x->sd.ctrl_handler = hdl;
++	return 0;
++}
++
+ /*
+  * V4L2 subdev video and pad level operations
+  */
+@@ -1516,9 +1921,15 @@ static int ov965x_detect_sensor(struct v4l2_subdev *sd)
+ 
+ 	if (!ret) {
+ 		ov965x->id = OV965X_ID(pid, ver);
+-		if (ov965x->id == OV9650_ID || ov965x->id == OV9652_ID) {
++		switch (ov965x->id) {
++		case OV9650_ID:
++		case OV9652_ID:
+ 			v4l2_info(sd, "Found OV%04X sensor\n", ov965x->id);
+-		} else {
++			break;
++		case OV9655V5_ID:
++			v4l2_info(sd, "Found OV%04X sensor\n", ov965x->id - 2);
++			break;
++		default:
+ 			v4l2_err(sd, "Sensor detection failed (%04X, %d)\n",
+ 				 ov965x->id, ret);
+ 			ret = -ENODEV;
+@@ -1595,18 +2006,28 @@ static int ov965x_probe(struct i2c_client *client,
+ 	if (ret < 0)
+ 		goto err_me;
+ 
+-	ov965x->init_regs = ov965x_init_regs;
+-	ov965x->initialize_controls = ov965x_initialize_controls;
+-	ov965x->framesizes = ov965x_framesizes;
+-	ov965x->nb_of_framesizes = ARRAY_SIZE(ov965x_framesizes);
+-	ov965x->formats = ov965x_formats;
+-	ov965x->nb_of_formats = ARRAY_SIZE(ov965x_formats);
+-	ov965x->intervals = ov965x_intervals;
+-	ov965x->nb_of_intervals = ARRAY_SIZE(ov965x_intervals);
+-	ov965x->fiv = &ov965x_intervals[0];
+-	ov965x->set_frame_interval = __ov965x_set_frame_interval;
+-	ov965x->update_exposure_ctrl = ov965x_update_exposure_ctrl;
+-	ov965x->set_params = __ov965x_set_params;
++	if (ov965x->id != OV9655V5_ID) {
++		ov965x->init_regs = ov965x_init_regs;
++		ov965x->initialize_controls = ov965x_initialize_controls;
++		ov965x->framesizes = ov965x_framesizes;
++		ov965x->nb_of_framesizes = ARRAY_SIZE(ov965x_framesizes);
++		ov965x->formats = ov965x_formats;
++		ov965x->nb_of_formats = ARRAY_SIZE(ov965x_formats);
++		ov965x->intervals = ov965x_intervals;
++		ov965x->nb_of_intervals = ARRAY_SIZE(ov965x_intervals);
++		ov965x->fiv = &ov965x_intervals[0];
++		ov965x->set_frame_interval = __ov965x_set_frame_interval;
++		ov965x->update_exposure_ctrl = ov965x_update_exposure_ctrl;
++		ov965x->set_params = __ov965x_set_params;
++	} else {
++		ov965x->init_regs = ov9655_init_regs;
++		ov965x->initialize_controls = ov9655_initialize_controls;
++		ov965x->framesizes = ov9655_framesizes;
++		ov965x->nb_of_framesizes = ARRAY_SIZE(ov9655_framesizes);
++		ov965x->formats = ov9655_formats;
++		ov965x->nb_of_formats = ARRAY_SIZE(ov9655_formats);
++		ov965x->set_params = ov965x_set_frame_size;
++	}
+ 
+ 	ov965x->frame_size = &ov965x->framesizes[0];
+ 	ov965x_get_default_format(ov965x, &ov965x->format);
+@@ -1650,6 +2071,7 @@ static int ov965x_remove(struct i2c_client *client)
+ static const struct i2c_device_id ov965x_id[] = {
+ 	{ "ov9650", 0 },
+ 	{ "ov9652", 0 },
++	{ "ov9655", 0 },
+ 	{ /* sentinel */ }
+ };
+ MODULE_DEVICE_TABLE(i2c, ov965x_id);
+@@ -1657,6 +2079,7 @@ static int ov965x_remove(struct i2c_client *client)
+ static const struct of_device_id ov965x_of_match[] = {
+ 	{ .compatible = "ovti,ov9650", },
+ 	{ .compatible = "ovti,ov9652", },
++	{ .compatible = "ovti,ov9655", },
+ 	{ /* sentinel */ }
+ };
+ MODULE_DEVICE_TABLE(of, ov965x_of_match);
+@@ -1674,5 +2097,5 @@ static int ov965x_remove(struct i2c_client *client)
+ module_i2c_driver(ov965x_i2c_driver);
+ 
+ MODULE_AUTHOR("Sylwester Nawrocki <sylvester.nawrocki@gmail.com>");
+-MODULE_DESCRIPTION("OV9650/OV9652 CMOS Image Sensor driver");
++MODULE_DESCRIPTION("OV9650/OV9652/OV9655 CMOS Image Sensor driver");
+ MODULE_LICENSE("GPL");
+-- 
+1.9.1
