@@ -1,64 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor4.renesas.com ([210.160.252.174]:43674 "EHLO
-        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753694AbdGCJ4A (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Jul 2017 05:56:00 -0400
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-CC: Mark Brown <broonie@kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>,
-        "mattw@codeaurora.org" <mattw@codeaurora.org>,
-        Mitchel Humpherys <mitchelh@codeaurora.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Chris Paterson <Chris.Paterson2@renesas.com>
-Subject: RE: [PATCH v2 1/2] iopoll: Avoid namespace collision within macros &
- tidyup
-Date: Mon, 3 Jul 2017 09:55:55 +0000
-Message-ID: <KL1PR0601MB203830EA67621CA20520B03FC3D60@KL1PR0601MB2038.apcprd06.prod.outlook.com>
-References: <20170613133348.48044-1-ramesh.shanmugasundaram@bp.renesas.com>
- <20170613133348.48044-2-ramesh.shanmugasundaram@bp.renesas.com>
- <CAMuHMdVSBstPK55-36vJySKc-NAUyWKRMDYGgF4vBce07Pn0Ug@mail.gmail.com>
-In-Reply-To: <CAMuHMdVSBstPK55-36vJySKc-NAUyWKRMDYGgF4vBce07Pn0Ug@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:34112 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751658AbdGCSgf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Jul 2017 14:36:35 -0400
+Received: by mail-qt0-f195.google.com with SMTP id m54so21935251qtb.1
+        for <linux-media@vger.kernel.org>; Mon, 03 Jul 2017 11:36:35 -0700 (PDT)
+Date: Mon, 3 Jul 2017 15:36:31 -0300
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [PATCH 07/12] [media] v4l: add support to BUF_QUEUED event
+Message-ID: <20170703183631.GB3337@jade>
+References: <20170616073915.5027-1-gustavo@padovan.org>
+ <20170616073915.5027-8-gustavo@padovan.org>
+ <20170630090450.1f390658@vento.lan>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170630090450.1f390658@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgR2VlcnQsDQoNClRoYW5rcyBmb3IgdGhlIHJldmlldy4gUmVwbHlpbmcgdG8gdGhlIHRocmVh
-ZCB0byB1cGRhdGUgd2hhdCB3ZSBkaXNjdXNzZWQgaW4gSVJDIHNvbWV0aW1lIGJhY2suDQoNCj4g
-T24gVHVlLCBKdW4gMTMsIDIwMTcgYXQgMzozMyBQTSwgUmFtZXNoIFNoYW5tdWdhc3VuZGFyYW0N
-Cj4gPHJhbWVzaC5zaGFubXVnYXN1bmRhcmFtQGJwLnJlbmVzYXMuY29tPiB3cm90ZToNCj4gPiBS
-ZW5hbWVkIHZhcmlhYmxlICJ0aW1lb3V0IiB0byAiX190aW1lb3V0IiB0byBhdm9pZCBuYW1lc3Bh
-Y2UgY29sbGlzaW9uLg0KPiA+IFRpZHkgdXAgbWFjcm8gYXJndW1lbnRzIHdpdGggcGFyYW50aGVz
-aXMuDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBSYW1lc2ggU2hhbm11Z2FzdW5kYXJhbQ0KPiA+
-IDxyYW1lc2guc2hhbm11Z2FzdW5kYXJhbUBicC5yZW5lc2FzLmNvbT4NCj4gDQo+IFRoYW5rcyBm
-b3IgeW91ciBwYXRjaGVzIQ0KPiANCj4gPiAtLS0gYS9pbmNsdWRlL2xpbnV4L2lvcG9sbC5oDQo+
-ID4gKysrIGIvaW5jbHVkZS9saW51eC9pb3BvbGwuaA0KPiA+IEBAIC00MiwxOCArNDIsMTkgQEAN
-Cj4gPiAgICovDQo+ID4gICNkZWZpbmUgcmVhZHhfcG9sbF90aW1lb3V0KG9wLCBhZGRyLCB2YWws
-IGNvbmQsIHNsZWVwX3VzLCB0aW1lb3V0X3VzKQ0KPiA+IFwgICh7IFwNCj4gPiAtICAgICAgIGt0
-aW1lX3QgdGltZW91dCA9IGt0aW1lX2FkZF91cyhrdGltZV9nZXQoKSwgdGltZW91dF91cyk7IFwN
-Cj4gPiArICAgICAgIGt0aW1lX3QgX190aW1lb3V0ID0ga3RpbWVfYWRkX3VzKGt0aW1lX2dldCgp
-LCB0aW1lb3V0X3VzKTsgXA0KPiANCj4gSSB0aGluayB0aW1lb3V0X3VzIHNob3VsZCBiZSB3aXRo
-aW4gcGFyZW50aGVzZXMsIHRvby4NCg0KSXQgaXMgbm90IHJlcXVpcmVkIGFzIGl0IGlzIHBhc3Nl
-ZCBhcyBhbiBmdW5jdGlvbiAoa3RpbWVfYWRkX3VzKSBhcmd1bWVudC4NCg0KPiANCj4gPiAgICAg
-ICAgIG1pZ2h0X3NsZWVwX2lmKHNsZWVwX3VzKTsgXA0KPiA+ICAgICAgICAgZm9yICg7OykgeyBc
-DQo+ID4gICAgICAgICAgICAgICAgICh2YWwpID0gb3AoYWRkcik7IFwNCj4gPiAgICAgICAgICAg
-ICAgICAgaWYgKGNvbmQpIFwNCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICBicmVhazsgXA0K
-PiA+IC0gICAgICAgICAgICAgICBpZiAodGltZW91dF91cyAmJiBrdGltZV9jb21wYXJlKGt0aW1l
-X2dldCgpLCB0aW1lb3V0KSA+DQo+IDApIHsgXA0KPiA+ICsgICAgICAgICAgICAgICBpZiAoKHRp
-bWVvdXRfdXMpICYmIFwNCj4gPiArICAgICAgICAgICAgICAgICAgIGt0aW1lX2NvbXBhcmUoa3Rp
-bWVfZ2V0KCksIF9fdGltZW91dCkgPiAwKSB7IFwNCj4gPiAgICAgICAgICAgICAgICAgICAgICAg
-ICAodmFsKSA9IG9wKGFkZHIpOyBcDQo+ID4gICAgICAgICAgICAgICAgICAgICAgICAgYnJlYWs7
-IFwNCj4gPiAgICAgICAgICAgICAgICAgfSBcDQo+ID4gICAgICAgICAgICAgICAgIGlmIChzbGVl
-cF91cykgXA0KPiA+IC0gICAgICAgICAgICAgICAgICAgICAgIHVzbGVlcF9yYW5nZSgoc2xlZXBf
-dXMgPj4gMikgKyAxLCBzbGVlcF91cyk7IFwNCj4gPiArICAgICAgICAgICAgICAgICAgICAgICB1
-c2xlZXBfcmFuZ2UoKChzbGVlcF91cykgPj4gMikgKyAxLCBzbGVlcF91cyk7DQo+ID4gKyBcDQo+
-IA0KPiBTYW1lIGZvciBzbGVlcF91cy4NCj4gDQo+IEFsc28gaW4gcmVhZHhfcG9sbF90aW1lb3V0
-X2F0b21pYygpLCBhbmQgaW4geW91ciBzZWNvbmQgcGF0Y2guDQoNClNhbWUgYXMgdGhlIGFib3Zl
-IGNvbW1lbnQuDQoNClRoYW5rcywNClJhbWVzaA0K
+Hi Mauro,
+
+2017-06-30 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
+
+> Em Fri, 16 Jun 2017 16:39:10 +0900
+> Gustavo Padovan <gustavo@padovan.org> escreveu:
+> 
+> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > 
+> > Implement the needed pieces to let userspace subscribe for
+> > V4L2_EVENT_BUF_QUEUED events. Videobuf2 will queue the event for the
+> > DQEVENT ioctl.
+> > 
+> > Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-ctrls.c     |  6 +++++-
+> >  drivers/media/v4l2-core/videobuf2-core.c | 15 +++++++++++++++
+> >  2 files changed, 20 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> > index 5aed7bd..f55b5da 100644
+> > --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> > +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> > @@ -3435,8 +3435,12 @@ EXPORT_SYMBOL(v4l2_ctrl_log_status);
+> >  int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
+> >  				const struct v4l2_event_subscription *sub)
+> >  {
+> > -	if (sub->type == V4L2_EVENT_CTRL)
+> > +	switch (sub->type) {
+> > +	case V4L2_EVENT_CTRL:
+> >  		return v4l2_event_subscribe(fh, sub, 0, &v4l2_ctrl_sub_ev_ops);
+> > +	case V4L2_EVENT_BUF_QUEUED:
+> > +		return v4l2_event_subscribe(fh, sub, 0, NULL);
+> > +	}
+> >  	return -EINVAL;
+> >  }
+> >  EXPORT_SYMBOL(v4l2_ctrl_subscribe_event);
+> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> > index 29aa9d4..00d9c35 100644
+> > --- a/drivers/media/v4l2-core/videobuf2-core.c
+> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> > @@ -25,6 +25,7 @@
+> >  #include <linux/kthread.h>
+> >  
+> >  #include <media/videobuf2-core.h>
+> > +#include <media/v4l2-event.h>
+> >  #include <media/v4l2-mc.h>
+> >  
+> >  #include <trace/events/vb2.h>
+> > @@ -1221,6 +1222,18 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
+> >  	return ret;
+> >  }
+> >  
+> > +static void vb2_buffer_queued_event(struct vb2_buffer *vb)
+> > +{
+> > +	struct video_device *vdev = to_video_device(vb->vb2_queue->dev);
+> > +	struct v4l2_event event;
+> > +
+> > +	memset(&event, 0, sizeof(event));
+> > +	event.type = V4L2_EVENT_BUF_QUEUED;
+> > +	event.u.buf_queued.index = vb->index;
+> > +
+> > +	v4l2_event_queue(vdev, &event);
+> > +}
+> > +
+> 
+> It doesn't sound right to add a V4L2 event to VB2 core. The hole point
+> of splitting the core from V4L2 specific stuff is to allow VB2 to be
+> used by non-V4L2 APIs[1]. Please move this to videobuf2-v4l2.
+
+Yes, that makes sense.  My lack of understanding of v4l2 core didn't me
+allow realize that. I'll move it to videobuf2-v4l2.
+
+Gustavo
