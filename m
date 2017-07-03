@@ -1,153 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:55051 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752247AbdGCMnK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Jul 2017 08:43:10 -0400
-Subject: Re: [PATCH v6] media: platform: Renesas IMR driver
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Konstantin Kozhevnikov
-        <Konstantin.Kozhevnikov@cogentembedded.com>
-References: <20170623203456.503714406@cogentembedded.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <589c2ca4-d1e7-86c3-1ef5-8831a54856ed@xs4all.nl>
-Date: Mon, 3 Jul 2017 14:43:04 +0200
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:36221 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752901AbdGCIoK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Jul 2017 04:44:10 -0400
 MIME-Version: 1.0
-In-Reply-To: <20170623203456.503714406@cogentembedded.com>
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAMuHMdU-LcB_Te_SeqkZbji81v82n-NP0VKAAdDQ=DhqE5wBwg@mail.gmail.com>
+References: <1495199224-16337-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+ <1495199224-16337-3-git-send-email-ulrich.hecht+renesas@gmail.com> <CAMuHMdU-LcB_Te_SeqkZbji81v82n-NP0VKAAdDQ=DhqE5wBwg@mail.gmail.com>
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Date: Mon, 3 Jul 2017 10:44:08 +0200
+Message-ID: <CAO3366zk4eULzWXFhFX39egJc3G7eWdDm5-4gjmW7jdomnVRMA@mail.gmail.com>
+Subject: Re: [PATCH v3 2/4] media: adv7180: add adv7180cp, adv7180st
+ compatible strings
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Simon Horman <horms@verge.net.au>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/23/2017 10:34 PM, Sergei Shtylyov wrote:
-> Index: media_tree/Documentation/media/v4l-drivers/rcar_imr.rst
-> ===================================================================
-> --- /dev/null
-> +++ media_tree/Documentation/media/v4l-drivers/rcar_imr.rst
-> @@ -0,0 +1,86 @@
-> +Renesas R-Car Image Rendeder (IMR) Driver
+On Fri, Jun 30, 2017 at 11:19 AM, Geert Uytterhoeven
+<geert@linux-m68k.org> wrote:
+> Hi Ulrich,
+>
+> On Fri, May 19, 2017 at 3:07 PM, Ulrich Hecht
+> <ulrich.hecht+renesas@gmail.com> wrote:
+>> Used to differentiate between models with 3 and 6 inputs.
+>>
+>> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+>> ---
+>>  drivers/media/i2c/adv7180.c | 2 ++
+>>  1 file changed, 2 insertions(+)
+>>
+>> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+>> index bdbbf8c..78de7dd 100644
+>> --- a/drivers/media/i2c/adv7180.c
+>> +++ b/drivers/media/i2c/adv7180.c
+>> @@ -1452,6 +1452,8 @@ static SIMPLE_DEV_PM_OPS(adv7180_pm_ops, adv7180_suspend, adv7180_resume);
+>>  #ifdef CONFIG_OF
+>>  static const struct of_device_id adv7180_of_id[] = {
+>>         { .compatible = "adi,adv7180", },
+>> +       { .compatible = "adi,adv7180cp", },
+>> +       { .compatible = "adi,adv7180st", },
+>>         { .compatible = "adi,adv7182", },
+>>         { .compatible = "adi,adv7280", },
+>>         { .compatible = "adi,adv7280-m", },
+>
+> Adding compatible entries here is not sufficient, and causes a crash on
+> r8a7793/gose with renesas-drivers-2017-06-27-v4.12-rc7:
+>
+>     adv7180 2-0020: chip found @ 0x20 (e6530000.i2c)
+>     Unable to handle kernel NULL pointer dereference at virtual address 00000014
+>     pgd = c0003000
+>     [00000014] *pgd=80000040004003, *pmd=00000000
+>     Internal error: Oops: 207 [#1] SMP ARM
+>     Modules linked in:
+>     CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.12.0-rc7-rcar2-initrd #37
+>     Hardware name: Generic R-Car Gen2 (Flattened Device Tree)
+>     task: df427040 task.stack: df436000
+>     PC is at adv7180_probe+0x84/0x3cc
+>
+> In the absence of an entry in adv7180_id[], the passed i2c_device_id
+> pointer is NULL, and thus dereferencing it crashes the system.
 
-Rendeder -> Renderer
+Thank you for testing this. I have sent a fix (" media: adv7180: add
+missing adv7180cp, adv7180st i2c device IDs"), could you please check
+if it unbreaks things for you?
 
-> +=========================================
-> +
-> +This file documents some driver-specific aspects of the IMR driver, such as
-> +driver-specific ioctls.
-> +
-> +The ioctl reference
-> +~~~~~~~~~~~~~~~~~~~
-> +
-> +VIDIOC_IMR_MESH - Set mapping data
-> +^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> +
-> +Argument: struct imr_map_desc
-> +
-> +**Description**:
-> +
-> +	This ioctl sets up the mesh using which the input frames will be
-
-s/using/through/
-
-> +	transformed into the output frames. The mesh can be strictly rectangular
-> +	(when IMR_MAP_MESH bit is set in imr_map_desc::type) or arbitrary (when
-> +	that bit is not set).
-> +
-> +	A rectangular mesh consists of the imr_mesh structure followed by M*N
-> +	vertex objects (where M is imr_mesh::rows and N is imr_mesh::columns).
-> +	In case either IMR_MAP_AUTOSG or IMR_MAP_AUTODG bits were set in
-> +	imr_map_desc::type, imr_mesh::{x|y}0 specify the coordinates of the top
-> +	left corner of the auto-generated mesh and imr_mesh::d{x|y} specify the
-> +	mesh's X/Y steps.
-
-What if any of the other types are used like IMR_MAP_LUCE?
-
-Is this documented in a Renesas datasheet? If so, add a reference to that in this
-documentation.
-
-> +
-> +	An arbitrary mesh consists of the imr_vbo structure followed by N
-> +	triangle objects (where N is imr_vbo::num), consisting of 3 vertex
-> +	objects each.
-> +
-> +	A vertex object has a complex structure:
-> +
-> +.. code-block:: none
-> +
-> +	__u16	v		vertical   \ source coordinates (only present
-> +	__u16	u		horizontal / if IMR_MAP_AUTOSG isn't set)
-> +	__u16	Y		vertical   \ destination coordinates (only here
-> +	__u16	X		horizontal / if IMR_MAP_AUTODG isn't set)
-> +	__s8	lofst		offset \  luminance correction parameters
-> +	__u8	lscal		scale   > (only present if IMR_MAP_LUCE
-> +	__u16	reserved	       /  is set)
-> +	__s8	vrofs		V value offset \  hue correction parameters
-> +	__u8	vrscl		V value scale   \ (only present if IMR_MAP_CLCE
-> +	__s8	ubofs		U value offset  / is set)
-> +	__u8	ubscl		U value scale  /
-
-Is this the internal structure? Or something that userspace has to fill in?
-It's not clear at all.
-
-I recommend giving a few code examples of how this should be used.
-
-> +
-> +**Return value**:
-> +
-> +	On success 0 is returned. On error -1 is returned and errno is set
-> +	appropriately.
-> +
-> +**Data types**:
-> +
-> +.. code-block:: none
-> +
-> +	* struct imr_map_desc
-> +
-> +	__u32	type		mapping types
-
-This is a bitmask? If so, what combination of bits are allowed?
-
-> +	__u32	size		total size of the mesh structure
-> +	__u64	data		map-specific user-pointer
-> +
-> +	IMR_MAP_MESH		regular mesh specification
-> +	IMR_MAP_AUTOSG		auto-generated source coordinates
-> +	IMR_MAP_AUTODG		auto-generated destination coordinates
-> +	IMR_MAP_LUCE		luminance correction flag
-> +	IMR_MAP_CLCE		chromacity correction flag
-
-You probably mean 'chroma'. 'chromacity' isn't a word.
-
-> +	IMR_MAP_TCM		vertex clockwise-mode order
-> +	IMR_MAP_UVDPOR(n)	source coordinate decimal point position
-> +	IMR_MAP_DDP		destination coordinate sub-pixel mode
-> +	IMR_MAP_YLDPO(n)	luminance correction offset decimal point
-> +				position
-> +	IMR_MAP_UBDPO(n)	chromacity (U) correction offset decimal point
-> +				position
-> +	IMR_MAP_VRDPO(n)	chromacity (V) correction offset decimal point
-> +				position
-
-There is no documentation what how these types relate to IMR_MAP_MESH and
-IMR_MAP_AUTOS/DG.
-
-> +
-> +	* struct imr_mesh	regular mesh specification
-> +
-> +	__u16	rows, columns	rectangular mesh sizes
-> +	__u16	x0, y0, dx, dy	auto-generated mesh parameters
-> +
-> +	* struct imr_vbo	vertex-buffer-object (VBO) descriptor
-> +
-> +	__u16	num		number of triangles
-
-Sorry, this needs more work.
-
-Regards,
-
-	Hans
+CU
+Uli
