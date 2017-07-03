@@ -1,45 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f182.google.com ([209.85.128.182]:36652 "EHLO
-        mail-wr0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751734AbdGDFok (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Jul 2017 01:44:40 -0400
-Received: by mail-wr0-f182.google.com with SMTP id c11so243241143wrc.3
-        for <linux-media@vger.kernel.org>; Mon, 03 Jul 2017 22:44:39 -0700 (PDT)
-Date: Tue, 4 Jul 2017 07:44:34 +0200
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: kbuild test robot <lkp@intel.com>
-Cc: kbuild-all@01.org, linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com, rjkm@metzlerbros.de, jasmin@anw.at
-Subject: Re: [PATCH v2 01/10] [media] dvb-frontends: add ST STV0910 DVB-S/S2
- demodulator frontend driver
-Message-ID: <20170704074434.690e3070@audiostation.wuest.de>
-In-Reply-To: <201707040532.u5fUKFTH%fengguang.wu@intel.com>
-References: <20170630205106.1268-2-d.scheller.oss@gmail.com>
-        <201707040532.u5fUKFTH%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from relmlor3.renesas.com ([210.160.252.173]:54649 "EHLO
+        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753102AbdGCLSN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Jul 2017 07:18:13 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: broonie@kernel.org
+Cc: hverkuil@xs4all.nl, akpm@linux-foundation.org,
+        yamada.masahiro@socionext.com, linux-renesas-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        chris.paterson2@renesas.com,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v3 2/2] regmap: Avoid namespace collision within macro & tidy up
+Date: Mon,  3 Jul 2017 12:04:21 +0100
+Message-Id: <20170703110421.3082-3-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <20170703110421.3082-1-ramesh.shanmugasundaram@bp.renesas.com>
+References: <20170703110421.3082-1-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Tue, 4 Jul 2017 06:01:32 +0800
-schrieb kbuild test robot <lkp@intel.com>:
+Renamed variable "timeout" to "__timeout" & "pollret" to "__ret" to
+avoid namespace collision. Tidy up macro arguments with parentheses.
 
-> All errors (new ones prefixed by >>):
-> 
->    drivers/media/dvb-frontends/stv0910.c: In function
-> 'read_signal_strength':
-> >> drivers/media/dvb-frontends/stv0910.c:1284: error: 'p' undeclared
-> >> (first use in this function)  
->    drivers/media/dvb-frontends/stv0910.c:1284: error: (Each
-> undeclared identifier is reported only once
-> drivers/media/dvb-frontends/stv0910.c:1284: error: for each function
-> it appears in.)
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+---
+ include/linux/regmap.h | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-Fixed in v3 (by "Add required fe.dtv_propcache vars/references to the
-dummy STR function, fixes bisect" in v3-1/10).
-
-Best regards,
-Daniel Scheller
+diff --git a/include/linux/regmap.h b/include/linux/regmap.h
+index 978abfbac617..1474ab0a3922 100644
+--- a/include/linux/regmap.h
++++ b/include/linux/regmap.h
+@@ -120,23 +120,24 @@ struct reg_sequence {
+  */
+ #define regmap_read_poll_timeout(map, addr, val, cond, sleep_us, timeout_us) \
+ ({ \
+-	ktime_t timeout = ktime_add_us(ktime_get(), timeout_us); \
+-	int pollret; \
++	ktime_t __timeout = ktime_add_us(ktime_get(), timeout_us); \
++	int __ret; \
+ 	might_sleep_if(sleep_us); \
+ 	for (;;) { \
+-		pollret = regmap_read((map), (addr), &(val)); \
+-		if (pollret) \
++		__ret = regmap_read((map), (addr), &(val)); \
++		if (__ret) \
+ 			break; \
+ 		if (cond) \
+ 			break; \
+-		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
+-			pollret = regmap_read((map), (addr), &(val)); \
++		if ((timeout_us) && \
++		    ktime_compare(ktime_get(), __timeout) > 0) { \
++			__ret = regmap_read((map), (addr), &(val)); \
+ 			break; \
+ 		} \
+ 		if (sleep_us) \
+-			usleep_range((sleep_us >> 2) + 1, sleep_us); \
++			usleep_range(((sleep_us) >> 2) + 1, sleep_us); \
+ 	} \
+-	pollret ?: ((cond) ? 0 : -ETIMEDOUT); \
++	__ret ?: ((cond) ? 0 : -ETIMEDOUT); \
+ })
+ 
+ #ifdef CONFIG_REGMAP
 -- 
-https://github.com/herrnst
+2.12.2
