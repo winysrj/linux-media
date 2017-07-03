@@ -1,165 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:49319 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751863AbdGBTiA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 2 Jul 2017 15:38:00 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] [media] rc-core: do not depend on MEDIA_SUPPORT
-Date: Sun,  2 Jul 2017 20:37:58 +0100
-Message-Id: <1499024278-809-1-git-send-email-sean@mess.org>
+Received: from mail-it0-f45.google.com ([209.85.214.45]:38528 "EHLO
+        mail-it0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752998AbdGCM7u (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Jul 2017 08:59:50 -0400
+Received: by mail-it0-f45.google.com with SMTP id k192so55860666ith.1
+        for <linux-media@vger.kernel.org>; Mon, 03 Jul 2017 05:59:50 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAJcDVWMAq6QReuMWgA-X7n7CDqNreAOjdEHwt331gW41eDSo9w@mail.gmail.com>
+References: <CAJcDVWMAq6QReuMWgA-X7n7CDqNreAOjdEHwt331gW41eDSo9w@mail.gmail.com>
+From: Steven Toth <stoth@kernellabs.com>
+Date: Mon, 3 Jul 2017 08:59:44 -0400
+Message-ID: <CALzAhNXCS53oT+H0zrbsU59gizxr88nA6WS9Rqygt-xPqWkYjg@mail.gmail.com>
+Subject: Re: [PATCH] Hauppauge HVR-1975 support
+To: =?UTF-8?Q?Bernhard_Rosenkr=C3=A4nzer?=
+        <bernhard.rosenkranzer@linaro.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no dependency between the two, so remove the dependency in
-Kconfig files.
+(Resending)
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- arch/arm/configs/imx_v6_v7_defconfig  |  2 +-
- arch/arm/configs/omap2plus_defconfig  |  2 +-
- arch/arm/configs/sunxi_defconfig      |  2 +-
- arch/mips/configs/pistachio_defconfig |  4 ++--
- drivers/media/Kconfig                 | 17 ++---------------
- drivers/media/rc/Kconfig              | 19 ++++++++++++++++---
- 6 files changed, 23 insertions(+), 23 deletions(-)
+Bernhard, thank you for sharing.
 
-diff --git a/arch/arm/configs/imx_v6_v7_defconfig b/arch/arm/configs/imx_v6_v7_defconfig
-index bb6fa56..2392824 100644
---- a/arch/arm/configs/imx_v6_v7_defconfig
-+++ b/arch/arm/configs/imx_v6_v7_defconfig
-@@ -222,7 +222,7 @@ CONFIG_REGULATOR_MC13892=y
- CONFIG_REGULATOR_PFUZE100=y
- CONFIG_MEDIA_SUPPORT=y
- CONFIG_MEDIA_CAMERA_SUPPORT=y
--CONFIG_MEDIA_RC_SUPPORT=y
-+CONFIG_RC_CORE=y
- CONFIG_RC_DEVICES=y
- CONFIG_IR_GPIO_CIR=y
- CONFIG_MEDIA_USB_SUPPORT=y
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index a120ae8..0414acf 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -304,7 +304,7 @@ CONFIG_REGULATOR_TPS65910=y
- CONFIG_REGULATOR_TWL4030=y
- CONFIG_MEDIA_SUPPORT=m
- CONFIG_MEDIA_CAMERA_SUPPORT=y
--CONFIG_MEDIA_RC_SUPPORT=y
-+CONFIG_RC_CORE=m
- CONFIG_MEDIA_CONTROLLER=y
- CONFIG_VIDEO_V4L2_SUBDEV_API=y
- CONFIG_LIRC=m
-diff --git a/arch/arm/configs/sunxi_defconfig b/arch/arm/configs/sunxi_defconfig
-index 5cd5dd70..6a0920c 100644
---- a/arch/arm/configs/sunxi_defconfig
-+++ b/arch/arm/configs/sunxi_defconfig
-@@ -96,7 +96,7 @@ CONFIG_REGULATOR_FIXED_VOLTAGE=y
- CONFIG_REGULATOR_AXP20X=y
- CONFIG_REGULATOR_GPIO=y
- CONFIG_MEDIA_SUPPORT=y
--CONFIG_MEDIA_RC_SUPPORT=y
-+CONFIG_RC_CORE=y
- CONFIG_RC_DEVICES=y
- CONFIG_IR_SUNXI=y
- CONFIG_DRM=y
-diff --git a/arch/mips/configs/pistachio_defconfig b/arch/mips/configs/pistachio_defconfig
-index 7d32fbb..f4c57d1 100644
---- a/arch/mips/configs/pistachio_defconfig
-+++ b/arch/mips/configs/pistachio_defconfig
-@@ -11,7 +11,7 @@ CONFIG_DEFAULT_HOSTNAME="localhost"
- CONFIG_SYSVIPC=y
- CONFIG_NO_HZ=y
- CONFIG_HIGH_RES_TIMERS=y
--CONFIG_IKCONFIG=m
-+CONFIG_IKCONFIGRC_CORE=m
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=18
- CONFIG_CGROUPS=y
-@@ -207,7 +207,7 @@ CONFIG_IMGPDC_WDT=y
- CONFIG_REGULATOR_FIXED_VOLTAGE=y
- CONFIG_REGULATOR_GPIO=y
- CONFIG_MEDIA_SUPPORT=y
--CONFIG_MEDIA_RC_SUPPORT=y
-+CONFIG_RC_CORE=y
- # CONFIG_RC_DECODERS is not set
- CONFIG_RC_DEVICES=y
- CONFIG_IR_IMG=y
-diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index 55d9c2b..421999b 100644
---- a/drivers/media/Kconfig
-+++ b/drivers/media/Kconfig
-@@ -8,6 +8,8 @@ config CEC_CORE
- config CEC_NOTIFIER
- 	bool
- 
-+source "drivers/media/rc/Kconfig"
-+
- menuconfig MEDIA_SUPPORT
- 	tristate "Multimedia support"
- 	depends on HAS_IOMEM
-@@ -72,20 +74,6 @@ config MEDIA_SDR_SUPPORT
- 
- 	  Say Y when you have a software defined radio device.
- 
--config MEDIA_RC_SUPPORT
--	bool "Remote Controller support"
--	depends on INPUT
--	---help---
--	  Enable support for Remote Controllers on Linux. This is
--	  needed in order to support several video capture adapters,
--	  standalone IR receivers/transmitters, and RF receivers.
--
--	  Enable this option if you have a video capture board even
--	  if you don't need IR, as otherwise, you may not be able to
--	  compile the driver for your adapter.
--
--	  Say Y when you have a TV or an IR device.
--
- config MEDIA_CEC_SUPPORT
-        bool "HDMI CEC support"
-        ---help---
-@@ -175,7 +163,6 @@ config TTPCI_EEPROM
- source "drivers/media/dvb-core/Kconfig"
- 
- comment "Media drivers"
--source "drivers/media/rc/Kconfig"
- 
- #
- # V4L platform/mem2mem drivers
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index c5338e3..bca77f0 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -1,9 +1,20 @@
--config RC_CORE
--	tristate
--	depends on MEDIA_RC_SUPPORT
-+
-+menuconfig RC_CORE
-+	tristate "Remote Controller support"
- 	depends on INPUT
- 	default y
-+	---help---
-+	  Enable support for Remote Controllers on Linux. This is
-+	  needed in order to support several video capture adapters,
-+	  standalone IR receivers/transmitters, and RF receivers.
-+
-+	  Enable this option if you have a video capture board even
-+	  if you don't need IR, as otherwise, you may not be able to
-+	  compile the driver for your adapter.
- 
-+	  Say Y when you have a TV or an IR device.
-+
-+if RC_CORE
- source "drivers/media/rc/keymaps/Kconfig"
- 
- menuconfig RC_DECODERS
-@@ -459,3 +470,5 @@ config IR_SIR
- 	   be called sir-ir.
- 
- endif #RC_DEVICES
-+
-+endif #RC_CORE
--- 
-2.9.4
+Mauro,
+
+I've reviewed this patch, it has a host of problems.
+
+Ignoring the fact it contains patches to all sorts of different cards
+(saa7164, CX231xx, PVR-USB2)... the patch also contains materials that
+I suspect Silicon Labs would consider proprietary and confidential,
+its definitely derived works from proprietary SILABS drivers.
+
+Proceed with caution.
+
+- Steve
+
+--=20
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
+
+On Mon, Jul 3, 2017 at 5:57 AM, Bernhard Rosenkr=C3=A4nzer
+<bernhard.rosenkranzer@linaro.org> wrote:
+> Hi,
+> Hauppauge HVR-1975 is a USB DVB receiver box,
+> http://www.hauppauge.co.uk/site/products/data_hvr1900.html
+>
+> It is currently not supported by v4l; Hauppauge provides a patch for
+> kernel 3.19 at http://www.hauppauge.com/site/support/linux.html
+>
+> As expected, the patch doesn't work with more recent kernels, so I've
+> ported it (verified to work on 4.11.8). Due to the size of the patch,
+> I've uploaded my patch to
+> http://lindev.ch/hauppauge-hvr-1975.patch
+>
+> While it works well, there's a potential license problem in one of the fi=
+les:
+> From drivers/media/dvb-frontend/silg.c:
+>
+> /* MODULE_LICENSE("Proprietary"); */
+> /* GPL discussion for silg not finished. Set to GPL for internal usage on=
+ly. */
+> /* The module uses GPL functions and is rejected by the kernel build if t=
+he */
+> /* license is set to 'Proprietary'. */
+> MODULE_LICENSE("GPL");
+>
+> I'm not a lawyer, but my understanding is that by Hauppauge actually
+> releasing that file to the public (and it being so clearly a derivate
+> of GPL code that they even have to acknowledge it), their claim that
+> it is anything but GPL is null and void - but we may have to make
+> sure.
+>
+> ttyl
+> bero
