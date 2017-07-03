@@ -1,46 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:46729 "EHLO
-        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751952AbdGAPSE (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:39595 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752987AbdGCJRB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 1 Jul 2017 11:18:04 -0400
-Date: Sat, 1 Jul 2017 16:18:15 +0100
-From: Andrey Utkin <andrey_utkin@fastmail.com>
-To: Anton Sviridenko <anton@corp.bluecherry.net>
-Cc: Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        Ismael Luceno <ismael@iodev.co.uk>,
+        Mon, 3 Jul 2017 05:17:01 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        " H. Nikolaus Schaller" <hns@goldelico.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] solo6x10: fix detection of TW2864B chips
-Message-ID: <20170701151814.GA31746@dell-m4800>
-References: <20170701112558.GA18352@magpie-gentoo>
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v2 2/7] [media] ov9650: switch i2c device id to lower case
+Date: Mon, 3 Jul 2017 11:16:03 +0200
+Message-ID: <1499073368-31905-3-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com>
+References: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170701112558.GA18352@magpie-gentoo>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 01, 2017 at 03:26:01PM +0400, Anton Sviridenko wrote:
-> This patch enables support for non-Bluecherry labeled solo6110
-> based PCI cards which have 3 x TW2864B chips and one TW2865.
-> These cards are displayed by lspci -nn as
-> 
-> "Softlogic Co., Ltd. SOLO6110 H.264 Video encoder/decoder [9413:6110]"
-> 
-> Bluecherry cards have 4 x TW2864A. According to datasheet register 0xFF
-> of TW2864B chips contains value 0x6A or 0x6B depending on revision 
-> which being shifted 3 bits right gives value 0x0d.
-> Existing version of solo6x10 fails on these cards with
-> 
-> [276582.344942] solo6x10 0000:07:00.0: Probing Softlogic 6110
-> [276582.402151] solo6x10 0000:07:00.0: Could not initialize any techwell chips
-> [276582.402781] solo6x10: probe of 0000:07:00.0 failed with error -22
-> 
-> Signed-off-by: Anton Sviridenko <anton@corp.bluecherry.net>
+Switch i2c device id to lower case as it is
+done for other omnivision cameras.
 
-Acked-by: Andrey Utkin <andrey_utkin@fastmail.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/i2c/ov9650.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-I have looked into same case long time ago, just haven't managed to
-conclude.
+diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+index 2de2fbb..1e4e99e 100644
+--- a/drivers/media/i2c/ov9650.c
++++ b/drivers/media/i2c/ov9650.c
+@@ -1545,8 +1545,8 @@ static int ov965x_remove(struct i2c_client *client)
+ }
+ 
+ static const struct i2c_device_id ov965x_id[] = {
+-	{ "OV9650", 0 },
+-	{ "OV9652", 0 },
++	{ "ov9650", 0 },
++	{ "ov9652", 0 },
+ 	{ /* sentinel */ }
+ };
+ MODULE_DEVICE_TABLE(i2c, ov965x_id);
+-- 
+1.9.1
