@@ -1,57 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:39595 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752987AbdGCJRB (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34802 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752312AbdGCLY7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Jul 2017 05:17:01 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        " H. Nikolaus Schaller" <hns@goldelico.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v2 2/7] [media] ov9650: switch i2c device id to lower case
-Date: Mon, 3 Jul 2017 11:16:03 +0200
-Message-ID: <1499073368-31905-3-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com>
-References: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com>
+        Mon, 3 Jul 2017 07:24:59 -0400
+Subject: Re: [PATCH v2 09/19] media: camms: Add core files
+To: Todor Tomov <todor.tomov@linaro.org>, mchehab@kernel.org,
+        hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
+References: <1497883719-12410-1-git-send-email-todor.tomov@linaro.org>
+ <1497883719-12410-10-git-send-email-todor.tomov@linaro.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <20c81ca2-09f4-b0c9-a72a-1e39f861cfb5@xs4all.nl>
+Date: Mon, 3 Jul 2017 13:24:54 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1497883719-12410-10-git-send-email-todor.tomov@linaro.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch i2c device id to lower case as it is
-done for other omnivision cameras.
+On 06/19/2017 04:48 PM, Todor Tomov wrote:
+> These files implement the platform driver code.
+> 
+> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+> ---
+>   drivers/media/platform/qcom/camss-8x16/camss.c | 630 +++++++++++++++++++++++++
+>   drivers/media/platform/qcom/camss-8x16/camss.h |  96 ++++
+>   2 files changed, 726 insertions(+)
+>   create mode 100644 drivers/media/platform/qcom/camss-8x16/camss.c
+>   create mode 100644 drivers/media/platform/qcom/camss-8x16/camss.h
+> 
+> diff --git a/drivers/media/platform/qcom/camss-8x16/camss.c b/drivers/media/platform/qcom/camss-8x16/camss.c
+> new file mode 100644
+> index 0000000..a8798d1
+> --- /dev/null
+> +++ b/drivers/media/platform/qcom/camss-8x16/camss.c
+> @@ -0,0 +1,630 @@
+> +/*
+> + * camss.c
+> + *
+> + * Qualcomm MSM Camera Subsystem - Core
+> + *
+> + * Copyright (c) 2015, The Linux Foundation. All rights reserved.
+> + * Copyright (C) 2015-2016 Linaro Ltd.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 and
+> + * only version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +#include <linux/clk.h>
+> +#include <linux/media-bus-format.h>
+> +#include <linux/module.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/of.h>
+> +#include <linux/slab.h>
+> +
+> +#include <media/media-device.h>
+> +#include <media/v4l2-async.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-mc.h>
+> +#include <media/v4l2-of.h>
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- drivers/media/i2c/ov9650.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+v4l2-of.h has been replaced by v4l2-fwnode.h. You need to rebase.
 
-diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
-index 2de2fbb..1e4e99e 100644
---- a/drivers/media/i2c/ov9650.c
-+++ b/drivers/media/i2c/ov9650.c
-@@ -1545,8 +1545,8 @@ static int ov965x_remove(struct i2c_client *client)
- }
- 
- static const struct i2c_device_id ov965x_id[] = {
--	{ "OV9650", 0 },
--	{ "OV9652", 0 },
-+	{ "ov9650", 0 },
-+	{ "ov9652", 0 },
- 	{ /* sentinel */ }
- };
- MODULE_DEVICE_TABLE(i2c, ov965x_id);
--- 
-1.9.1
+Regards,
+
+	Hans
