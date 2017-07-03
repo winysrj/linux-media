@@ -1,65 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-51.mail.aliyun.com ([115.124.20.51]:33221 "EHLO
-        out20-51.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751879AbdGDH0J (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Jul 2017 03:26:09 -0400
-Date: Tue, 4 Jul 2017 15:25:45 +0800
-From: Yong <yong.deng@magewell.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@kernel.org,
-        robh+dt@kernel.org, mark.rutland@arm.com, wens@csie.org,
-        hans.verkuil@cisco.com, peter.griffin@linaro.org,
-        hugues.fruchet@st.com, krzk@kernel.org, bparrot@ti.com,
-        arnd@arndb.de, jean-christophe.trotin@st.com,
-        benjamin.gaignard@linaro.org, tiffany.lin@mediatek.com,
-        kamil@wypas.org, kieran+renesas@ksquared.org.uk,
-        andrew-ct.chen@mediatek.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-sunxi@googlegroups.com
-Subject: Re: [PATCH RFC 1/2] media: V3s: Add support for Allwinner CSI.
-Message-Id: <20170704152545.4a70f04db2c984d4d54bf9dd@magewell.com>
-In-Reply-To: <20170703112521.ca253erguut5v7se@flea>
-References: <1498561654-14658-1-git-send-email-yong.deng@magewell.com>
-        <1498561654-14658-2-git-send-email-yong.deng@magewell.com>
-        <667c858b-2655-88c5-6bbc-9d70d06c1ff1@xs4all.nl>
-        <20170703185952.18a97e9b7b05cbe321cb1268@magewell.com>
-        <20170703112521.ca253erguut5v7se@flea>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33191 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755529AbdGCRVT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Jul 2017 13:21:19 -0400
+Received: by mail-wm0-f68.google.com with SMTP id j85so21729677wmj.0
+        for <linux-media@vger.kernel.org>; Mon, 03 Jul 2017 10:21:18 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at, rjkm@metzlerbros.de
+Subject: [PATCH v3 10/10] [media] MAINTAINERS: add entries for stv0910 and stv6111
+Date: Mon,  3 Jul 2017 19:21:03 +0200
+Message-Id: <20170703172104.27283-11-d.scheller.oss@gmail.com>
+In-Reply-To: <20170703172104.27283-1-d.scheller.oss@gmail.com>
+References: <20170703172104.27283-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 3 Jul 2017 13:25:21 +0200
-Maxime Ripard <maxime.ripard@free-electrons.com> wrote:
+From: Daniel Scheller <d.scheller@gmx.net>
 
-> Hi,
-> 
-> On Mon, Jul 03, 2017 at 06:59:52PM +0800, Yong wrote:
-> > > > +	select VIDEOBUF2_DMA_CONTIG
-> > > > +	select REGMAP_MMIO
-> > > > +	---help---
-> > > > +	   Support for the Allwinner Camera Sensor Interface Controller.
-> > > 
-> > > This controller is the same for all Allwinner SoC models?
-> > 
-> > No.
-> > I will change the Kconfig and Makefile.
-> 
-> This is basically a design that has been introduced in the A31 (sun6i
-> family). I guess we should just call the driver and Kconfig symbols
-> sun6i_csi (even though we don't support it yet). It also used on the
-> A23, A33, A80, A83T, H3, and probably the H5 and A64.
-> 
-> Maxime
-> 
-> -- 
-> Maxime Ripard, Free Electrons
-> Embedded Linux and Kernel engineering
-> http://free-electrons.com
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ MAINTAINERS | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-Thanks for the advice. That's good.
-My purpose is to make the code reusable. People working on other
-Allwinner SoC could easily make their CSI working by just filling the
-SoC specific code. But I'm not familiar with other Allwinner SoCs 
-except V3s. I hope to get more advice.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index c4be6d4af7d2..7b85e578d238 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8246,6 +8246,22 @@ T:	git git://linuxtv.org/media_tree.git
+ S:	Supported
+ F:	drivers/media/pci/netup_unidvb/*
+ 
++MEDIA DRIVERS FOR ST STV0910 DEMODULATOR ICs
++M:	Daniel Scheller <d.scheller.oss@gmail.com>
++L:	linux-media@vger.kernel.org
++W:	https://linuxtv.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/dvb-frontends/stv0910*
++
++MEDIA DRIVERS FOR ST STV6111 TUNER ICs
++M:	Daniel Scheller <d.scheller.oss@gmail.com>
++L:	linux-media@vger.kernel.org
++W:	https://linuxtv.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/dvb-frontends/stv6111*
++
+ MEDIA INPUT INFRASTRUCTURE (V4L/DVB)
+ M:	Mauro Carvalho Chehab <mchehab@s-opensource.com>
+ M:	Mauro Carvalho Chehab <mchehab@kernel.org>
+-- 
+2.13.0
