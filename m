@@ -1,47 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f174.google.com ([209.85.217.174]:35872 "EHLO
-        mail-ua0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753804AbdGCJ54 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Jul 2017 05:57:56 -0400
-Received: by mail-ua0-f174.google.com with SMTP id g40so106378084uaa.3
-        for <linux-media@vger.kernel.org>; Mon, 03 Jul 2017 02:57:56 -0700 (PDT)
-MIME-Version: 1.0
-From: =?UTF-8?Q?Bernhard_Rosenkr=C3=A4nzer?=
-        <bernhard.rosenkranzer@linaro.org>
-Date: Mon, 3 Jul 2017 11:57:35 +0200
-Message-ID: <CAJcDVWMAq6QReuMWgA-X7n7CDqNreAOjdEHwt331gW41eDSo9w@mail.gmail.com>
-Subject: [PATCH] Hauppauge HVR-1975 support
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Received: from relmlor1.renesas.com ([210.160.252.171]:49417 "EHLO
+        relmlie4.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752472AbdGCLSJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Jul 2017 07:18:09 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: broonie@kernel.org
+Cc: hverkuil@xs4all.nl, akpm@linux-foundation.org,
+        yamada.masahiro@socionext.com, linux-renesas-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        chris.paterson2@renesas.com,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v3 0/2] Avoid namespace collision within macros & tidy up
+Date: Mon,  3 Jul 2017 12:04:19 +0100
+Message-Id: <20170703110421.3082-1-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-Hauppauge HVR-1975 is a USB DVB receiver box,
-http://www.hauppauge.co.uk/site/products/data_hvr1900.html
+Hi Mark,
 
-It is currently not supported by v4l; Hauppauge provides a patch for
-kernel 3.19 at http://www.hauppauge.com/site/support/linux.html
+The readx_poll_timeout & similar macros defines local variable that can
+cause name space collision with the caller. Fixed this issue by prefixing
+them with underscores. Also tidied couple of instances where the macro
+arguments are used in expressions without parentheses.
 
-As expected, the patch doesn't work with more recent kernels, so I've
-ported it (verified to work on 4.11.8). Due to the size of the patch,
-I've uploaded my patch to
-http://lindev.ch/hauppauge-hvr-1975.patch
+This patchset is based on top of today's linux-next repo.
+commit b18ea5c46031 ("Add linux-next specific files for 20170703")
 
-While it works well, there's a potential license problem in one of the files:
->From drivers/media/dvb-frontend/silg.c:
+Change history:
 
-/* MODULE_LICENSE("Proprietary"); */
-/* GPL discussion for silg not finished. Set to GPL for internal usage only. */
-/* The module uses GPL functions and is rejected by the kernel build if the */
-/* license is set to 'Proprietary'. */
-MODULE_LICENSE("GPL");
+v3:
+ - Rebased
+ - Corrected parentheses spelling
 
-I'm not a lawyer, but my understanding is that by Hauppauge actually
-releasing that file to the public (and it being so clearly a derivate
-of GPL code that they even have to acknowledge it), their claim that
-it is anything but GPL is null and void - but we may have to make
-sure.
+v2:
+ - iopoll.h:
+	- Enclosed timeout_us & sleep_us arguments with parentheses
+ - regmap.h:
+	- Enclosed timeout_us & sleep_us arguments with parentheses
+	- Renamed pollret to __ret
 
-ttyl
-bero
+Note: timeout_us causes a spare check warning as identified here [1].
+
+[1] https://www.mail-archive.com/linux-renesas-soc@vger.kernel.org/msg15138.html
+
+Thanks,
+Ramesh
+
+Ramesh Shanmugasundaram (2):
+  iopoll: Avoid namespace collision within macros & tidy up
+  regmap: Avoid namespace collision within macro & tidy up
+
+ include/linux/iopoll.h | 12 +++++++-----
+ include/linux/regmap.h | 17 +++++++++--------
+ 2 files changed, 16 insertions(+), 13 deletions(-)
+
+-- 
+2.12.2
