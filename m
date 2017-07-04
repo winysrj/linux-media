@@ -1,66 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60464 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750818AbdGBOXT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 2 Jul 2017 10:23:19 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v1.1 2/2] drm: rcar-du: Repair vblank for DRM page flips using the VSP1
-Date: Sun, 02 Jul 2017 17:23:24 +0300
-Message-ID: <1681295.5XGp1sIbmj@avalon>
-In-Reply-To: <87mv8pj2z2.wl%kuninori.morimoto.gx@renesas.com>
-References: <cover.22236bc88adc598797b31ea82329ec99304fe34d.1498744799.git-series.kieran.bingham+renesas@ideasonboard.com> <6d71aa0796dd8892510d6911a280eba235398ed4.1498751638.git-series.kieran.bingham+renesas@ideasonboard.com> <87mv8pj2z2.wl%kuninori.morimoto.gx@renesas.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:15949 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751986AbdGDFXP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Jul 2017 01:23:15 -0400
+Subject: Re: [PATCH] media: vb2 vmalloc: Constify dma_buf_ops structures.
+To: Arvind Yadav <arvind.yadav.cs@gmail.com>, pawel@osciak.com,
+        kyungmin.park@samsung.com, mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <5208880e-b283-d9d0-ee6b-cd4b3dcef504@samsung.com>
+Date: Tue, 04 Jul 2017 07:23:09 +0200
+MIME-version: 1.0
+In-reply-to: <bb06167b83b6241201c2adc12b2b18b212078762.1498908989.git.arvind.yadav.cs@gmail.com>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
+Content-language: en-US
+References: <CGME20170701113746epcas3p3f76bbf5988c9d31e3a781c6b0efd8e08@epcas3p3.samsung.com>
+ <bb06167b83b6241201c2adc12b2b18b212078762.1498908989.git.arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Morimoto-san,
+Hi Arvind,
 
-On Friday 30 Jun 2017 08:32:04 Kuninori Morimoto wrote:
-> Hi Kieran
-> 
-> > -static void rcar_du_vsp_complete(void *private)
-> > +static void rcar_du_vsp_complete(void *private, bool completed)
-> >  {
-> >  	struct rcar_du_crtc *crtc = private;
-> > 
-> > -	rcar_du_crtc_finish_page_flip(crtc);
-> > +	if (crtc->vblank_enable)
-> > +		drm_crtc_handle_vblank(&crtc->crtc);
-> > +
-> > +	if (completed)
-> > +		rcar_du_crtc_finish_page_flip(crtc);
-> >  }
-> 
-> Here, this "vblank_enable" flag, timestamp will be update on
-> drm_crtc_handle_vblank().
-> 
-> For example modetest Flip test, if we stop it by Ctrl+C, then, vblank_enable
-> will be false, Then, vblank timestamp isn't updated on waiting method on
-> drm_atomic_helper_wait_for_vblanks(). Thus we will have timeout error.
+On 2017-07-01 13:37, Arvind Yadav wrote:
+> dma_buf_ops are not supposed to change at runtime. All functions
+> working with dma_buf_ops provided by <linux/dma-buf.h> work with
+> const dma_buf_ops. So mark the non-const structs as const.
+>
+> File size before:
+>     text	   data	    bss	    dec	    hex	filename
+>     3171	    192	      0	   3363	    d23 drivers/media/v4l2-core/videobuf2-vmalloc.o
+>
+> File size After adding 'const':
+>     text	   data	    bss	    dec	    hex	filename
+>     3291	     80	      0	   3371	    d2b drivers/media/v4l2-core/videobuf2-vmalloc.o
+>
+> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 
-I've noticed this issue as well when testing Kieran's patch, and I will fix 
-it.
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-> And, print complete is now indicated on VSP Frame End,
-> in interlace input case, print complete will be indicated to user
-> on each ODD, EVEN timing.
-> 
-> Before this patch, for example 1080i@60Hz, print complete indication
-> happen in 30Hz.
-> After this patch, in interlace case, indication coming 60Hz
+> ---
+>   drivers/media/v4l2-core/videobuf2-vmalloc.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> index b337d78..6bc130f 100644
+> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> @@ -338,7 +338,7 @@ static int vb2_vmalloc_dmabuf_ops_mmap(struct dma_buf *dbuf,
+>   	return vb2_vmalloc_mmap(dbuf->priv, vma);
+>   }
+>   
+> -static struct dma_buf_ops vb2_vmalloc_dmabuf_ops = {
+> +static const struct dma_buf_ops vb2_vmalloc_dmabuf_ops = {
+>   	.attach = vb2_vmalloc_dmabuf_ops_attach,
+>   	.detach = vb2_vmalloc_dmabuf_ops_detach,
+>   	.map_dma_buf = vb2_vmalloc_dmabuf_ops_map,
 
-Isn't this to be expected ? In 1080i@60Hz the frame rate is 60 frames per 
-second, so shouldn't vertical blanking be reported at 60Hz ?
-
+Best regards
 -- 
-Regards,
-
-Laurent Pinchart
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
