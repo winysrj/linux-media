@@ -1,50 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:34059 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752550AbdGCImU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Jul 2017 04:42:20 -0400
-Subject: Re: Null Pointer Dereference in mceusb
-To: Johan Hovold <johan@kernel.org>, Sebastian <sebastian@iseclab.org>
-Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org
-References: <CAL8_TH8JTPd5ki-v-+T-Z+VGRg-vfsx=rYMjKq_vbUfTBPff3w@mail.gmail.com>
- <20170601072023.GM6735@localhost>
- <CAL8_TH8xEd0i2VDgZwsh_Jcpt3f4D=xitbKSR_3YYRxek=denA@mail.gmail.com>
- <20170703081019.GA7084@localhost>
-From: Lars Melin <larsm17@gmail.com>
-Message-ID: <c7dbd628-6176-3a0b-eaec-b8e2549ca50f@gmail.com>
-Date: Mon, 3 Jul 2017 15:41:59 +0700
+Received: from mail-ua0-f181.google.com ([209.85.217.181]:36680 "EHLO
+        mail-ua0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751141AbdGDG2W (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Jul 2017 02:28:22 -0400
+Received: by mail-ua0-f181.google.com with SMTP id g40so120992095uaa.3
+        for <linux-media@vger.kernel.org>; Mon, 03 Jul 2017 23:28:17 -0700 (PDT)
+Received: from mail-ua0-f177.google.com (mail-ua0-f177.google.com. [209.85.217.177])
+        by smtp.gmail.com with ESMTPSA id r18sm2099992uag.7.2017.07.03.23.28.15
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 03 Jul 2017 23:28:16 -0700 (PDT)
+Received: by mail-ua0-f177.google.com with SMTP id z22so121010447uah.1
+        for <linux-media@vger.kernel.org>; Mon, 03 Jul 2017 23:28:15 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20170703081019.GA7084@localhost>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAAFQd5Ay_gN0pa8Q_Qk-UL_H3j-ana-uOySSSQL=7h5Vx=4SFQ@mail.gmail.com>
+References: <20170616073915.5027-2-gustavo@padovan.org> <201706182254.xqhcA9D6%fengguang.wu@intel.com>
+ <20170626153936.GB3090@jade> <CAAFQd5Ay_gN0pa8Q_Qk-UL_H3j-ana-uOySSSQL=7h5Vx=4SFQ@mail.gmail.com>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Tue, 4 Jul 2017 15:27:54 +0900
+Message-ID: <CAPBb6MWwfViN-v1wTGM5cNjB8hLYmC1JF=tY5ZPuee8bj6QVMw@mail.gmail.com>
+Subject: Re: [PATCH 01/12] [media] vb2: add explicit fence user API
+To: Tomasz Figa <tfiga@google.com>
+Cc: Gustavo Padovan <gustavo@padovan.org>,
+        kbuild test robot <lkp@intel.com>, kbuild-all@01.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2017-07-03 15:10, Johan Hovold wrote:
-> On Thu, Jun 29, 2017 at 07:41:24PM +0200, Sebastian wrote:
->> Sorry for the long delay, Johan.
+On Tue, Jul 4, 2017 at 2:57 PM, Tomasz Figa <tfiga@google.com> wrote:
+> Hi Gustavo,
+>
+> On Tue, Jun 27, 2017 at 12:39 AM, Gustavo Padovan <gustavo@padovan.org> wrote:
+>> 2017-06-18 kbuild test robot <lkp@intel.com>:
 >>
->> 2017-06-01 9:20 GMT+02:00 Johan Hovold <johan@kernel.org>:
->>> [ +CC: media list ]
+>>> Hi Gustavo,
 >>>
->>> On Wed, May 31, 2017 at 08:25:42PM +0200, Sebastian wrote:
+>>> [auto build test ERROR on linuxtv-media/master]
+>>> [also build test ERROR on v4.12-rc5 next-20170616]
+>>> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 >>>
->>> What is the lsusb -v output for your device? And have you successfully
->>> used this device with this driver before?
+>>> url:    https://github.com/0day-ci/linux/commits/Gustavo-Padovan/vb2-add-explicit-fence-user-API/20170618-210740
+>>> base:   git://linuxtv.org/media_tree.git master
+>>> config: x86_64-allmodconfig (attached as .config)
+>>> compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
+>>> reproduce:
+>>>         # save the attached .config to linux build tree
+>>>         make ARCH=x86_64
 >>>
+>>> All error/warnings (new ones prefixed by >>):
+>>>
+>>>    drivers/staging/media//atomisp/pci/atomisp2/atomisp_ioctl.c: In function 'atomisp_qbuf':
+>>> >> drivers/staging/media//atomisp/pci/atomisp2/atomisp_ioctl.c:1297:10: error: 'struct v4l2_buffer' has no member named 'reserved2'; did you mean 'reserved'?
+>>>          (buf->reserved2 & ATOMISP_BUFFER_HAS_PER_FRAME_SETTING)) {
+>>>              ^~
+>>>    drivers/staging/media//atomisp/pci/atomisp2/atomisp_ioctl.c:1299:50: error: 'struct v4l2_buffer' has no member named 'reserved2'; did you mean 'reserved'?
+>>>       pipe->frame_request_config_id[buf->index] = buf->reserved2 &
+>>>                                                      ^~
+>>>    drivers/staging/media//atomisp/pci/atomisp2/atomisp_ioctl.c: In function 'atomisp_dqbuf':
+>>>    drivers/staging/media//atomisp/pci/atomisp2/atomisp_ioctl.c:1483:5: error: 'struct v4l2_buffer' has no member named 'reserved2'; did you mean 'reserved'?
+>>>      buf->reserved2 = pipe->frame_config_id[buf->index];
+>>>         ^~
+>>>    In file included from include/linux/printk.h:329:0,
+>>>                     from include/linux/kernel.h:13,
+>>>                     from include/linux/delay.h:21,
+>>>                     from drivers/staging/media//atomisp/pci/atomisp2/atomisp_ioctl.c:24:
+>>>    drivers/staging/media//atomisp/pci/atomisp2/atomisp_ioctl.c:1488:6: error: 'struct v4l2_buffer' has no member named 'reserved2'; did you mean 'reserved'?
+>>>       buf->reserved2);
+>>>          ^
 >>
->> No, the device wasn't successfully used before that- it crashed every time,
->> so I threw away the usb receiver. This is also the reason why I cannot give
->> you the lsusb output. But I can give you the VID:PID -> 03ee:2501 if that
->> is of any help?
-> 
-> Ok, so it's not necessarily a (recent) regression at least. I can't seem
-> to find anyone else posting lsusb -v output for that device
-> unfortunately.
-> 
+>> Ouch! Seems the reserved2 was burned down by 2 drivers accessing it
+>> without any care for the uAPI. I'll change my patches to use the
+>> 'reserved' field instead.
+>
+> Given that a reserved field has a clear meaning of being reserved and
+> the driver in question is in staging. I'd rather vote for fixing the
+> driver.
 
-Googling "03ee:2501 bDescriptorType" leads us to:
-https://sourceforge.net/p/lirc/mailman/message/12852102/
-
-/Lars
+Same here. It seems like this use of reserved2 should not have been
+merged in the first place, thankfully it's only in staging.
