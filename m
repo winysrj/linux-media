@@ -1,781 +1,407 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34208 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755511AbdGCRVP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Jul 2017 13:21:15 -0400
-Received: by mail-wm0-f66.google.com with SMTP id p204so21786611wmg.1
-        for <linux-media@vger.kernel.org>; Mon, 03 Jul 2017 10:21:15 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, rjkm@metzlerbros.de
-Subject: [PATCH v3 06/10] [media] dvb-frontends: add ST STV6111 DVB-S/S2 tuner frontend driver
-Date: Mon,  3 Jul 2017 19:20:59 +0200
-Message-Id: <20170703172104.27283-7-d.scheller.oss@gmail.com>
-In-Reply-To: <20170703172104.27283-1-d.scheller.oss@gmail.com>
-References: <20170703172104.27283-1-d.scheller.oss@gmail.com>
+Received: from smtprelay.synopsys.com ([198.182.47.9]:36070 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751631AbdGDJ2e (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Jul 2017 05:28:34 -0400
+Subject: Re: [PATCH v5 2/4] [media] platform: Add Synopsys Designware HDMI RX
+ Controller Driver
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Jose Abreu <Jose.Abreu@synopsys.com>,
+        <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+References: <cover.1498732993.git.joabreu@synopsys.com>
+ <52933416f17b8a3408ab94784fa8db56453ff196.1498732993.git.joabreu@synopsys.com>
+ <30787ca1-f488-ef29-8997-0a74c70d552f@xs4all.nl>
+ <57902dce-e665-8027-1d88-7c447753a5b2@synopsys.com>
+ <3a666f71-fb91-5c76-853d-df9de5a9af10@xs4all.nl>
+CC: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "Sylwester Nawrocki" <snawrocki@kernel.org>
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+Message-ID: <749c9b9e-e42b-76ef-36a7-2ea3cbf0ce84@synopsys.com>
+Date: Tue, 4 Jul 2017 10:28:27 +0100
+MIME-Version: 1.0
+In-Reply-To: <3a666f71-fb91-5c76-853d-df9de5a9af10@xs4all.nl>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Hi Hans,
 
-This adds a frontend driver for the ST STV6111 DVB-S/S2 tuners. Like the
-stv0910 demod frontend driver, this driver originates from the Digital
-Devices' dddvb vendor driver package as of version 0.9.29, and was cleaned
-up aswell. No functionality had to be removed though. Any camel case has
-been converted to kernel_case, fixup patch has been proposed upstream.
 
-Permission to reuse and mainline the driver code was formally granted by
-Ralph Metzler <rjkm@metzlerbros.de>.
+On 03-07-2017 11:33, Hans Verkuil wrote:
+> On 07/03/2017 11:53 AM, Jose Abreu wrote:
+>> Hi Hans,
+>>
+>>
+>> On 03-07-2017 10:27, Hans Verkuil wrote:
+>>> On 06/29/2017 12:46 PM, Jose Abreu wrote:
+>>>> This is an initial submission for the Synopsys Designware
+>>>> HDMI RX
+>>>> Controller Driver. This driver interacts with a phy driver so
+>>>> that
+>>>> a communication between them is created and a video pipeline is
+>>>> configured.
+>>>>
+>>>> The controller + phy pipeline can then be integrated into a
+>>>> fully
+>>>> featured system that can be able to receive video up to 4k@60Hz
+>>>> with deep color 48bit RGB, depending on the platform. Although,
+>>>> this initial version does not yet handle deep color modes.
+>>>>
+>>>> This driver was implemented as a standard V4L2 subdevice and
+>>>> its
+>>>> main features are:
+>>>>      - Internal state machine that reconfigures phy until the
+>>>>      video is not stable
+>>>>      - JTAG communication with phy
+>>>>      - Inter-module communication with phy driver
+>>>>      - Debug write/read ioctls
+>>>>
+>>>> Some notes:
+>>>>      - RX sense controller (cable connection/disconnection)
+>>>> must
+>>>>      be handled by the platform wrapper as this is not
+>>>> integrated
+>>>>      into the controller RTL
+>>>>      - The same goes for EDID ROM's
+>>>>      - ZCAL calibration is needed only in FPGA platforms, in
+>>>> ASIC
+>>>>      this is not needed
+>>>>      - The state machine is not an ideal solution as it
+>>>> creates a
+>>>>      kthread but it is needed because some sources might not be
+>>>>      very stable at sending the video (i.e. we must react
+>>>>      accordingly).
+>>>>
+>>>> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+>>>> Cc: Carlos Palminha <palminha@synopsys.com>
+>>>> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+>>>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>>>> Cc: Sylwester Nawrocki <snawrocki@kernel.org>
+>>>>
+>>>> Changes from v4:
+>>>>      - Add flag V4L2_SUBDEV_FL_HAS_DEVNODE (Sylwester)
+>>>>      - Remove some comments and change some messages to dev_dbg
+>>>> (Sylwester)
+>>>>      - Use v4l2_async_subnotifier_register() (Sylwester)
+>>>> Changes from v3:
+>>>>      - Use v4l2 async API (Sylwester)
+>>>>      - Do not block waiting for phy
+>>>>      - Do not use busy waiting delays (Sylwester)
+>>>>      - Simplify dw_hdmi_power_on (Sylwester)
+>>>>      - Use clock API (Sylwester)
+>>>>      - Use compatible string (Sylwester)
+>>>>      - Minor fixes (Sylwester)
+>>>> Changes from v2:
+>>>>      - Address review comments from Hans regarding CEC
+>>>>      - Use CEC notifier
+>>>>      - Enable SCDC
+>>>> Changes from v1:
+>>>>      - Add support for CEC
+>>>>      - Correct typo errors
+>>>>      - Correctly detect interlaced video modes
+>>>>      - Correct VIC parsing
+>>>> Changes from RFC:
+>>>>      - Add support for HDCP 1.4
+>>>>      - Fixup HDMI_VIC not being parsed (Hans)
+>>>>      - Send source change signal when powering off (Hans)
+>>>>      - Add a "wait stable delay"
+>>>>      - Detect interlaced video modes (Hans)
+>>>>      - Restrain g/s_register from reading/writing to HDCP regs
+>>>> (Hans)
+>>>> ---
+>>>>    drivers/media/platform/dwc/Kconfig      |   15 +
+>>>>    drivers/media/platform/dwc/Makefile     |    1 +
+>>>>    drivers/media/platform/dwc/dw-hdmi-rx.c | 1824
+>>>> +++++++++++++++++++++++++++++++
+>>>>    drivers/media/platform/dwc/dw-hdmi-rx.h |  441 ++++++++
+>>>>    include/media/dwc/dw-hdmi-rx-pdata.h    |   97 ++
+>>>>    5 files changed, 2378 insertions(+)
+>>>>    create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.c
+>>>>    create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.h
+>>>>    create mode 100644 include/media/dwc/dw-hdmi-rx-pdata.h
+>>>>
+>>>> diff --git a/drivers/media/platform/dwc/Kconfig
+>>>> b/drivers/media/platform/dwc/Kconfig
+>>>> index 361d38d..3ddccde 100644
+>>>> --- a/drivers/media/platform/dwc/Kconfig
+>>>> +++ b/drivers/media/platform/dwc/Kconfig
+>>>> @@ -6,3 +6,18 @@ config VIDEO_DWC_HDMI_PHY_E405
+>>>>            To compile this driver as a module, choose M here.
+>>>> The module
+>>>>          will be called dw-hdmi-phy-e405.
+>>>> +
+>>>> +config VIDEO_DWC_HDMI_RX
+>>>> +    tristate "Synopsys Designware HDMI Receiver driver"
+>>>> +    depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+>>>> +    help
+>>>> +      Support for Synopsys Designware HDMI RX controller.
+>>>> +
+>>>> +      To compile this driver as a module, choose M here. The
+>>>> module
+>>>> +      will be called dw-hdmi-rx.
+>>>> +
+>>>> +config VIDEO_DWC_HDMI_RX_CEC
+>>>> +    bool
+>>>> +    depends on VIDEO_DWC_HDMI_RX
+>>>> +    select CEC_CORE
+>>>> +    select CEC_NOTIFIER
+>>>> diff --git a/drivers/media/platform/dwc/Makefile
+>>>> b/drivers/media/platform/dwc/Makefile
+>>>> index fc3b62c..cd04ca9 100644
+>>>> --- a/drivers/media/platform/dwc/Makefile
+>>>> +++ b/drivers/media/platform/dwc/Makefile
+>>>> @@ -1 +1,2 @@
+>>>>    obj-$(CONFIG_VIDEO_DWC_HDMI_PHY_E405) += dw-hdmi-phy-e405.o
+>>>> +obj-$(CONFIG_VIDEO_DWC_HDMI_RX) += dw-hdmi-rx.o
+>>>> diff --git a/drivers/media/platform/dwc/dw-hdmi-rx.c
+>>>> b/drivers/media/platform/dwc/dw-hdmi-rx.c
+>>>> new file mode 100644
+>>>> index 0000000..4a7b8fc
+>>>> --- /dev/null
+>>>> +++ b/drivers/media/platform/dwc/dw-hdmi-rx.c
+>>>
+>>> <snip>
+>
+>>>> +static int dw_hdmi_g_register(struct v4l2_subdev *sd,
+>>>> +        struct v4l2_dbg_register *reg)
+>>>> +{
+>>>> +    struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
+>>>> +
+>>>> +    switch (reg->reg >> 15) {
+>>>> +    case 0: /* Controller core read */
+>>>> +        if (dw_hdmi_is_reserved_register(dw_dev, reg->reg &
+>>>> 0x7fff))
+>>>> +            return -EINVAL;
+>>>
+>>> Is this necessary? Obviously you shouldn't be able to set it,
+>>> but I think it
+>>> should be fine to read it. Up to you, though.
+>>
+>> Actually some of the HDCP 1.4 registers are write only and if
+>> someone tries to read the controller will not respond and will
+>> block the bus. This is no problem for x86, but for some archs it
+>> can block the system entirely.
+>
+> Worth a comment in that case.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-Tested-by: Richard Scobie <r.scobie@clear.net.nz>
----
- drivers/media/dvb-frontends/Kconfig   |   9 +
- drivers/media/dvb-frontends/Makefile  |   1 +
- drivers/media/dvb-frontends/stv6111.c | 674 ++++++++++++++++++++++++++++++++++
- drivers/media/dvb-frontends/stv6111.h |  20 +
- 4 files changed, 704 insertions(+)
- create mode 100644 drivers/media/dvb-frontends/stv6111.c
- create mode 100644 drivers/media/dvb-frontends/stv6111.h
+Ok.
 
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index 773de5e264e3..d2d3160abdf7 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -44,6 +44,15 @@ config DVB_STV6110x
- 	help
- 	  A Silicon tuner that supports DVB-S and DVB-S2 modes
- 
-+config DVB_STV6111
-+	tristate "STV6111 based tuners"
-+	depends on DVB_CORE && I2C
-+	default m if !MEDIA_SUBDRV_AUTOSELECT
-+	help
-+	  A Silicon tuner that supports DVB-S and DVB-S2 modes
-+
-+	  Say Y when you want to support these frontends.
-+
- config DVB_M88DS3103
- 	tristate "Montage Technology M88DS3103"
- 	depends on DVB_CORE && I2C && I2C_MUX
-diff --git a/drivers/media/dvb-frontends/Makefile b/drivers/media/dvb-frontends/Makefile
-index c302b2d07499..e8bf1d873485 100644
---- a/drivers/media/dvb-frontends/Makefile
-+++ b/drivers/media/dvb-frontends/Makefile
-@@ -111,6 +111,7 @@ obj-$(CONFIG_DVB_CXD2841ER) += cxd2841er.o
- obj-$(CONFIG_DVB_DRXK) += drxk.o
- obj-$(CONFIG_DVB_TDA18271C2DD) += tda18271c2dd.o
- obj-$(CONFIG_DVB_STV0910) += stv0910.o
-+obj-$(CONFIG_DVB_STV6111) += stv6111.o
- obj-$(CONFIG_DVB_SI2165) += si2165.o
- obj-$(CONFIG_DVB_A8293) += a8293.o
- obj-$(CONFIG_DVB_SP2) += sp2.o
-diff --git a/drivers/media/dvb-frontends/stv6111.c b/drivers/media/dvb-frontends/stv6111.c
-new file mode 100644
-index 000000000000..ce5b5ff936d5
---- /dev/null
-+++ b/drivers/media/dvb-frontends/stv6111.c
-@@ -0,0 +1,674 @@
-+/*
-+ * Driver for the ST STV6111 tuner
-+ *
-+ * Copyright (C) 2014 Digital Devices GmbH
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 only, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/moduleparam.h>
-+#include <linux/init.h>
-+#include <linux/delay.h>
-+#include <linux/firmware.h>
-+#include <linux/i2c.h>
-+#include <asm/div64.h>
-+
-+#include "stv6111.h"
-+
-+#include "dvb_frontend.h"
-+
-+struct stv {
-+	struct i2c_adapter *i2c;
-+	u8 adr;
-+
-+	u8 reg[11];
-+	u32 ref_freq;
-+	u32 frequency;
-+};
-+
-+struct slookup {
-+	s16 value;
-+	u16 reg_value;
-+};
-+
-+static struct slookup lnagain_nf_lookup[] = {
-+	/*Gain *100dB*/      /*Reg*/
-+	{ 2572,	0 },
-+	{ 2575, 1 },
-+	{ 2580, 2 },
-+	{ 2588, 3 },
-+	{ 2596, 4 },
-+	{ 2611, 5 },
-+	{ 2633, 6 },
-+	{ 2664, 7 },
-+	{ 2701, 8 },
-+	{ 2753, 9 },
-+	{ 2816, 10 },
-+	{ 2902, 11 },
-+	{ 2995, 12 },
-+	{ 3104, 13 },
-+	{ 3215, 14 },
-+	{ 3337, 15 },
-+	{ 3492, 16 },
-+	{ 3614, 17 },
-+	{ 3731, 18 },
-+	{ 3861, 19 },
-+	{ 3988, 20 },
-+	{ 4124, 21 },
-+	{ 4253, 22 },
-+	{ 4386,	23 },
-+	{ 4505,	24 },
-+	{ 4623,	25 },
-+	{ 4726,	26 },
-+	{ 4821,	27 },
-+	{ 4903,	28 },
-+	{ 4979,	29 },
-+	{ 5045,	30 },
-+	{ 5102,	31 }
-+};
-+
-+static struct slookup lnagain_iip3_lookup[] = {
-+	/*Gain *100dB*/   /*reg*/
-+	{ 1548,	0 },
-+	{ 1552,	1 },
-+	{ 1569,	2 },
-+	{ 1565,	3 },
-+	{ 1577,	4 },
-+	{ 1594,	5 },
-+	{ 1627,	6 },
-+	{ 1656,	7 },
-+	{ 1700,	8 },
-+	{ 1748,	9 },
-+	{ 1805,	10 },
-+	{ 1896,	11 },
-+	{ 1995,	12 },
-+	{ 2113,	13 },
-+	{ 2233,	14 },
-+	{ 2366,	15 },
-+	{ 2543,	16 },
-+	{ 2687,	17 },
-+	{ 2842,	18 },
-+	{ 2999,	19 },
-+	{ 3167,	20 },
-+	{ 3342,	21 },
-+	{ 3507,	22 },
-+	{ 3679,	23 },
-+	{ 3827,	24 },
-+	{ 3970,	25 },
-+	{ 4094,	26 },
-+	{ 4210,	27 },
-+	{ 4308,	28 },
-+	{ 4396,	29 },
-+	{ 4468,	30 },
-+	{ 4535,	31 }
-+};
-+
-+static struct slookup gain_rfagc_lookup[] = {
-+	/*Gain *100dB*/   /*reg*/
-+	{ 4870,	0x3000 },
-+	{ 4850,	0x3C00 },
-+	{ 4800,	0x4500 },
-+	{ 4750,	0x4800 },
-+	{ 4700,	0x4B00 },
-+	{ 4650,	0x4D00 },
-+	{ 4600,	0x4F00 },
-+	{ 4550,	0x5100 },
-+	{ 4500,	0x5200 },
-+	{ 4420,	0x5500 },
-+	{ 4316,	0x5800 },
-+	{ 4200,	0x5B00 },
-+	{ 4119,	0x5D00 },
-+	{ 3999,	0x6000 },
-+	{ 3950,	0x6100 },
-+	{ 3876,	0x6300 },
-+	{ 3755,	0x6600 },
-+	{ 3641,	0x6900 },
-+	{ 3567,	0x6B00 },
-+	{ 3425,	0x6F00 },
-+	{ 3350,	0x7100 },
-+	{ 3236,	0x7400 },
-+	{ 3118,	0x7700 },
-+	{ 3004,	0x7A00 },
-+	{ 2917,	0x7C00 },
-+	{ 2776,	0x7F00 },
-+	{ 2635,	0x8200 },
-+	{ 2516,	0x8500 },
-+	{ 2406,	0x8800 },
-+	{ 2290,	0x8B00 },
-+	{ 2170,	0x8E00 },
-+	{ 2073,	0x9100 },
-+	{ 1949,	0x9400 },
-+	{ 1836,	0x9700 },
-+	{ 1712,	0x9A00 },
-+	{ 1631,	0x9C00 },
-+	{ 1515,	0x9F00 },
-+	{ 1400,	0xA200 },
-+	{ 1323,	0xA400 },
-+	{ 1203,	0xA700 },
-+	{ 1091,	0xAA00 },
-+	{ 1011,	0xAC00 },
-+	{ 904,	0xAF00 },
-+	{ 787,	0xB200 },
-+	{ 685,	0xB500 },
-+	{ 571,	0xB800 },
-+	{ 464,	0xBB00 },
-+	{ 374,	0xBE00 },
-+	{ 275,	0xC200 },
-+	{ 181,	0xC600 },
-+	{ 102,	0xCC00 },
-+	{ 49,	0xD900 }
-+};
-+
-+/*
-+ * This table is 6 dB too low comapred to the others (probably created with
-+ * a different BB_MAG setting)
-+ */
-+static struct slookup gain_channel_agc_nf_lookup[] = {
-+	/*Gain *100dB*/   /*reg*/
-+	{ 7082,	0x3000 },
-+	{ 7052,	0x4000 },
-+	{ 7007,	0x4600 },
-+	{ 6954,	0x4A00 },
-+	{ 6909,	0x4D00 },
-+	{ 6833,	0x5100 },
-+	{ 6753,	0x5400 },
-+	{ 6659,	0x5700 },
-+	{ 6561,	0x5A00 },
-+	{ 6472,	0x5C00 },
-+	{ 6366,	0x5F00 },
-+	{ 6259,	0x6100 },
-+	{ 6151,	0x6400 },
-+	{ 6026,	0x6700 },
-+	{ 5920,	0x6900 },
-+	{ 5835,	0x6B00 },
-+	{ 5770,	0x6C00 },
-+	{ 5681,	0x6E00 },
-+	{ 5596,	0x7000 },
-+	{ 5503,	0x7200 },
-+	{ 5429,	0x7300 },
-+	{ 5319,	0x7500 },
-+	{ 5220,	0x7700 },
-+	{ 5111,	0x7900 },
-+	{ 4983,	0x7B00 },
-+	{ 4876,	0x7D00 },
-+	{ 4755,	0x7F00 },
-+	{ 4635,	0x8100 },
-+	{ 4499,	0x8300 },
-+	{ 4405,	0x8500 },
-+	{ 4323,	0x8600 },
-+	{ 4233,	0x8800 },
-+	{ 4156,	0x8A00 },
-+	{ 4038,	0x8C00 },
-+	{ 3935,	0x8E00 },
-+	{ 3823,	0x9000 },
-+	{ 3712,	0x9200 },
-+	{ 3601,	0x9500 },
-+	{ 3511,	0x9700 },
-+	{ 3413,	0x9900 },
-+	{ 3309,	0x9B00 },
-+	{ 3213,	0x9D00 },
-+	{ 3088,	0x9F00 },
-+	{ 2992,	0xA100 },
-+	{ 2878,	0xA400 },
-+	{ 2769,	0xA700 },
-+	{ 2645,	0xAA00 },
-+	{ 2538,	0xAD00 },
-+	{ 2441,	0xB000 },
-+	{ 2350,	0xB600 },
-+	{ 2237,	0xBA00 },
-+	{ 2137,	0xBF00 },
-+	{ 2039,	0xC500 },
-+	{ 1938,	0xDF00 },
-+	{ 1927,	0xFF00 }
-+};
-+
-+static struct slookup gain_channel_agc_iip3_lookup[] = {
-+	/*Gain *100dB*/   /*reg*/
-+	{ 7070,	0x3000 },
-+	{ 7028,	0x4000 },
-+	{ 7019,	0x4600 },
-+	{ 6900,	0x4A00 },
-+	{ 6811,	0x4D00 },
-+	{ 6763,	0x5100 },
-+	{ 6690,	0x5400 },
-+	{ 6644,	0x5700 },
-+	{ 6617,	0x5A00 },
-+	{ 6598,	0x5C00 },
-+	{ 6462,	0x5F00 },
-+	{ 6348,	0x6100 },
-+	{ 6197,	0x6400 },
-+	{ 6154,	0x6700 },
-+	{ 6098,	0x6900 },
-+	{ 5893,	0x6B00 },
-+	{ 5812,	0x6C00 },
-+	{ 5773,	0x6E00 },
-+	{ 5723,	0x7000 },
-+	{ 5661,	0x7200 },
-+	{ 5579,	0x7300 },
-+	{ 5460,	0x7500 },
-+	{ 5308,	0x7700 },
-+	{ 5099,	0x7900 },
-+	{ 4910,	0x7B00 },
-+	{ 4800,	0x7D00 },
-+	{ 4785,	0x7F00 },
-+	{ 4635,	0x8100 },
-+	{ 4466,	0x8300 },
-+	{ 4314,	0x8500 },
-+	{ 4295,	0x8600 },
-+	{ 4144,	0x8800 },
-+	{ 3920,	0x8A00 },
-+	{ 3889,	0x8C00 },
-+	{ 3771,	0x8E00 },
-+	{ 3655,	0x9000 },
-+	{ 3446,	0x9200 },
-+	{ 3298,	0x9500 },
-+	{ 3083,	0x9700 },
-+	{ 3015,	0x9900 },
-+	{ 2833,	0x9B00 },
-+	{ 2746,	0x9D00 },
-+	{ 2632,	0x9F00 },
-+	{ 2598,	0xA100 },
-+	{ 2480,	0xA400 },
-+	{ 2236,	0xA700 },
-+	{ 2171,	0xAA00 },
-+	{ 2060,	0xAD00 },
-+	{ 1999,	0xB000 },
-+	{ 1974,	0xB600 },
-+	{ 1820,	0xBA00 },
-+	{ 1741,	0xBF00 },
-+	{ 1655,	0xC500 },
-+	{ 1444,	0xDF00 },
-+	{ 1325,	0xFF00 },
-+};
-+
-+static inline u32 muldiv32(u32 a, u32 b, u32 c)
-+{
-+	u64 tmp64;
-+
-+	tmp64 = (u64)a * (u64)b;
-+	do_div(tmp64, c);
-+
-+	return (u32) tmp64;
-+}
-+
-+static int i2c_read(struct i2c_adapter *adap,
-+		    u8 adr, u8 *msg, int len, u8 *answ, int alen)
-+{
-+	struct i2c_msg msgs[2] = { { .addr = adr, .flags = 0,
-+				     .buf = msg, .len = len},
-+				   { .addr = adr, .flags = I2C_M_RD,
-+				     .buf = answ, .len = alen } };
-+	if (i2c_transfer(adap, msgs, 2) != 2) {
-+		dev_err(&adap->dev, "i2c read error\n");
-+		return -EIO;
-+	}
-+	return 0;
-+}
-+
-+static int i2c_write(struct i2c_adapter *adap, u8 adr, u8 *data, int len)
-+{
-+	struct i2c_msg msg = {.addr = adr, .flags = 0,
-+			      .buf = data, .len = len};
-+
-+	if (i2c_transfer(adap, &msg, 1) != 1) {
-+		dev_err(&adap->dev, "i2c write error\n");
-+		return -EIO;
-+	}
-+	return 0;
-+}
-+
-+static int write_regs(struct stv *state, int reg, int len)
-+{
-+	u8 d[12];
-+
-+	memcpy(&d[1], &state->reg[reg], len);
-+	d[0] = reg;
-+	return i2c_write(state->i2c, state->adr, d, len + 1);
-+}
-+
-+static int write_reg(struct stv *state, u8 reg, u8 val)
-+{
-+	u8 d[2] = {reg, val};
-+
-+	return i2c_write(state->i2c, state->adr, d, 2);
-+}
-+
-+static int read_reg(struct stv *state, u8 reg, u8 *val)
-+{
-+	return i2c_read(state->i2c, state->adr, &reg, 1, val, 1);
-+}
-+
-+static int wait_for_call_done(struct stv *state, u8 mask)
-+{
-+	int status = 0;
-+	u32 lock_retry_count = 10;
-+
-+	while (lock_retry_count > 0) {
-+		u8 regval;
-+
-+		status = read_reg(state, 9, &regval);
-+		if (status < 0)
-+			return status;
-+
-+		if ((regval & mask) == 0)
-+			break;
-+		usleep_range(4000, 6000);
-+		lock_retry_count -= 1;
-+
-+		status = -EIO;
-+	}
-+	return status;
-+}
-+
-+static void init_state(struct stv *state)
-+{
-+	u32 clkdiv = 0;
-+	u32 agcmode = 0;
-+	u32 agcref = 2;
-+	u32 agcset = 0xffffffff;
-+	u32 bbmode = 0xffffffff;
-+
-+	state->reg[0] = 0x08;
-+	state->reg[1] = 0x41;
-+	state->reg[2] = 0x8f;
-+	state->reg[3] = 0x00;
-+	state->reg[4] = 0xce;
-+	state->reg[5] = 0x54;
-+	state->reg[6] = 0x55;
-+	state->reg[7] = 0x45;
-+	state->reg[8] = 0x46;
-+	state->reg[9] = 0xbd;
-+	state->reg[10] = 0x11;
-+
-+	state->ref_freq = 16000;
-+
-+	if (clkdiv <= 3)
-+		state->reg[0x00] |= (clkdiv & 0x03);
-+	if (agcmode <= 3) {
-+		state->reg[0x03] |= (agcmode << 5);
-+		if (agcmode == 0x01)
-+			state->reg[0x01] |= 0x30;
-+	}
-+	if (bbmode <= 3)
-+		state->reg[0x01] = (state->reg[0x01] & ~0x30) | (bbmode << 4);
-+	if (agcref <= 7)
-+		state->reg[0x03] |= agcref;
-+	if (agcset <= 31)
-+		state->reg[0x02] = (state->reg[0x02] & ~0x1F) | agcset | 0x40;
-+}
-+
-+static int attach_init(struct stv *state)
-+{
-+	if (write_regs(state, 0, 11))
-+		return -ENODEV;
-+	return 0;
-+}
-+
-+static void release(struct dvb_frontend *fe)
-+{
-+	kfree(fe->tuner_priv);
-+	fe->tuner_priv = NULL;
-+}
-+
-+static int set_bandwidth(struct dvb_frontend *fe, u32 cutoff_frequency)
-+{
-+	struct stv *state = fe->tuner_priv;
-+	u32 index = (cutoff_frequency + 999999) / 1000000;
-+
-+	if (index < 6)
-+		index = 6;
-+	if (index > 50)
-+		index = 50;
-+	if ((state->reg[0x08] & ~0xFC) == ((index-6) << 2))
-+		return 0;
-+
-+	state->reg[0x08] = (state->reg[0x08] & ~0xFC) | ((index-6) << 2);
-+	state->reg[0x09] = (state->reg[0x09] & ~0x0C) | 0x08;
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+	write_regs(state, 0x08, 2);
-+	wait_for_call_done(state, 0x08);
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+	return 0;
-+}
-+
-+static int set_lof(struct stv *state, u32 local_frequency, u32 cutoff_frequency)
-+{
-+	u32 index = (cutoff_frequency + 999999) / 1000000;
-+	u32 frequency = (local_frequency + 500) / 1000;
-+	u32 p = 1, psel = 0, fvco, div, frac;
-+	u8 icp, tmp;
-+
-+	if (index < 6)
-+		index = 6;
-+	if (index > 50)
-+		index = 50;
-+
-+	if (frequency <= 1300000) {
-+		p =  4;
-+		psel = 1;
-+	} else {
-+		p =  2;
-+		psel = 0;
-+	}
-+	fvco = frequency * p;
-+	div = fvco / state->ref_freq;
-+	frac = fvco % state->ref_freq;
-+	frac = muldiv32(frac, 0x40000, state->ref_freq);
-+
-+	icp = 0;
-+	if (fvco < 2700000)
-+		icp = 0;
-+	else if (fvco < 2950000)
-+		icp = 1;
-+	else if (fvco < 3300000)
-+		icp = 2;
-+	else if (fvco < 3700000)
-+		icp = 3;
-+	else if (fvco < 4200000)
-+		icp = 5;
-+	else if (fvco < 4800000)
-+		icp = 6;
-+	else
-+		icp = 7;
-+
-+	state->reg[0x02] |= 0x80;   /* LNA IIP3 Mode */
-+
-+	state->reg[0x03] = (state->reg[0x03] & ~0x80) | (psel << 7);
-+	state->reg[0x04] = (div & 0xFF);
-+	state->reg[0x05] = (((div >> 8) & 0x01) | ((frac & 0x7F) << 1)) & 0xff;
-+	state->reg[0x06] = ((frac >> 7) & 0xFF);
-+	state->reg[0x07] = (state->reg[0x07] & ~0x07) | ((frac >> 15) & 0x07);
-+	state->reg[0x07] = (state->reg[0x07] & ~0xE0) | (icp << 5);
-+
-+	state->reg[0x08] = (state->reg[0x08] & ~0xFC) | ((index - 6) << 2);
-+	/* Start cal vco,CF */
-+	state->reg[0x09] = (state->reg[0x09] & ~0x0C) | 0x0C;
-+	write_regs(state, 2, 8);
-+
-+	wait_for_call_done(state, 0x0C);
-+
-+	usleep_range(10000, 12000);
-+
-+	read_reg(state, 0x03, &tmp);
-+	if (tmp & 0x10)	{
-+		state->reg[0x02] &= ~0x80;   /* LNA NF Mode */
-+		write_regs(state, 2, 1);
-+	}
-+	read_reg(state, 0x08, &tmp);
-+
-+	state->frequency = frequency;
-+
-+	return 0;
-+}
-+
-+static int set_params(struct dvb_frontend *fe)
-+{
-+	struct stv *state = fe->tuner_priv;
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-+	u32 freq, cutoff;
-+
-+	if (p->delivery_system != SYS_DVBS && p->delivery_system != SYS_DVBS2)
-+		return -EINVAL;
-+
-+	freq = p->frequency * 1000;
-+	cutoff = 5000000 + muldiv32(p->symbol_rate, 135, 200);
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+	set_lof(state, freq, cutoff);
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+	return 0;
-+}
-+
-+static s32 table_lookup(struct slookup *table, int table_size, u16 reg_value)
-+{
-+	s32 gain;
-+	s32 reg_diff;
-+	int imin = 0;
-+	int imax = table_size - 1;
-+	int i;
-+
-+	/* Assumes Table[0].RegValue < Table[imax].RegValue */
-+	if (reg_value <= table[0].reg_value)
-+		gain = table[0].value;
-+	else if (reg_value >= table[imax].reg_value)
-+		gain = table[imax].value;
-+	else {
-+		while (imax-imin > 1) {
-+			i = (imax + imin) / 2;
-+			if ((table[imin].reg_value <= reg_value) &&
-+			    (reg_value <= table[i].reg_value))
-+				imax = i;
-+			else
-+				imin = i;
-+		}
-+		reg_diff = table[imax].reg_value - table[imin].reg_value;
-+		gain = table[imin].value;
-+		if (reg_diff != 0)
-+			gain += ((s32) (reg_value - table[imin].reg_value) *
-+				(s32)(table[imax].value
-+				- table[imin].value))/(reg_diff);
-+	}
-+	return gain;
-+}
-+
-+static int get_rf_strength(struct dvb_frontend *fe, u16 *st)
-+{
-+	struct stv *state = fe->tuner_priv;
-+	u16 rfagc = *st;
-+	s32 gain;
-+
-+	if ((state->reg[0x03] & 0x60) == 0) {
-+		/* RF Mode, Read AGC ADC */
-+		u8 reg = 0;
-+
-+		if (fe->ops.i2c_gate_ctrl)
-+			fe->ops.i2c_gate_ctrl(fe, 1);
-+		write_reg(state, 0x02, state->reg[0x02] | 0x20);
-+		read_reg(state, 2, &reg);
-+		if (reg & 0x20)
-+			read_reg(state, 2, &reg);
-+		if (fe->ops.i2c_gate_ctrl)
-+			fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+		if ((state->reg[0x02] & 0x80) == 0)
-+			/* NF */
-+			gain = table_lookup(lnagain_nf_lookup,
-+				ARRAY_SIZE(lnagain_nf_lookup), reg & 0x1F);
-+		else
-+			/* IIP3 */
-+			gain = table_lookup(lnagain_iip3_lookup,
-+				ARRAY_SIZE(lnagain_iip3_lookup), reg & 0x1F);
-+
-+		gain += table_lookup(gain_rfagc_lookup,
-+				ARRAY_SIZE(gain_rfagc_lookup), rfagc);
-+		gain -= 2400;
-+	} else {
-+		/* Channel Mode */
-+		if ((state->reg[0x02] & 0x80) == 0) {
-+			/* NF */
-+			gain = table_lookup(gain_channel_agc_nf_lookup,
-+				ARRAY_SIZE(gain_channel_agc_nf_lookup), rfagc);
-+			gain += 600;
-+		} else {
-+			/* IIP3 */
-+			gain = table_lookup(gain_channel_agc_iip3_lookup,
-+				ARRAY_SIZE(gain_channel_agc_iip3_lookup),
-+					rfagc);
-+		}
-+	}
-+
-+	if (state->frequency > 0)
-+		/* Tilt correction ( 0.00016 dB/MHz ) */
-+		gain -= ((((s32)(state->frequency / 1000) - 1550) * 2) / 12);
-+
-+	/* + (BBGain * 10); */
-+	gain +=  (s32)((state->reg[0x01] & 0xC0) >> 6) * 600 - 1300;
-+
-+	if (gain < 0)
-+		gain = 0;
-+	else if (gain > 10000)
-+		gain = 10000;
-+
-+	*st = 10000 - gain;
-+
-+	return 0;
-+}
-+
-+static struct dvb_tuner_ops tuner_ops = {
-+	.info = {
-+		.name = "STV6111",
-+		.frequency_min  =  950000,
-+		.frequency_max  = 2150000,
-+		.frequency_step =       0
-+	},
-+	.set_params        = set_params,
-+	.release           = release,
-+	.get_rf_strength   = get_rf_strength,
-+	.set_bandwidth     = set_bandwidth,
-+};
-+
-+struct dvb_frontend *stv6111_attach(struct dvb_frontend *fe,
-+				    struct i2c_adapter *i2c, u8 adr)
-+{
-+	struct stv *state;
-+	int stat;
-+
-+	state = kzalloc(sizeof(struct stv), GFP_KERNEL);
-+	if (!state)
-+		return NULL;
-+	state->adr = adr;
-+	state->i2c = i2c;
-+	memcpy(&fe->ops.tuner_ops, &tuner_ops, sizeof(struct dvb_tuner_ops));
-+	init_state(state);
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+	stat = attach_init(state);
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+	if (stat < 0) {
-+		kfree(state);
-+		return 0;
-+	}
-+	fe->tuner_priv = state;
-+	return fe;
-+}
-+EXPORT_SYMBOL_GPL(stv6111_attach);
-+
-+MODULE_DESCRIPTION("STV6111 driver");
-+MODULE_AUTHOR("Ralph Metzler, Manfred Voelkel");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/dvb-frontends/stv6111.h b/drivers/media/dvb-frontends/stv6111.h
-new file mode 100644
-index 000000000000..066dd70c9426
---- /dev/null
-+++ b/drivers/media/dvb-frontends/stv6111.h
-@@ -0,0 +1,20 @@
-+#ifndef _STV6111_H_
-+#define _STV6111_H_
-+
-+#if IS_REACHABLE(CONFIG_DVB_STV6111)
-+
-+extern struct dvb_frontend *stv6111_attach(struct dvb_frontend *fe,
-+				struct i2c_adapter *i2c, u8 adr);
-+
-+#else
-+
-+static inline struct dvb_frontend *stv6111_attach(struct dvb_frontend *fe,
-+				struct i2c_adapter *i2c, u8 adr)
-+{
-+	pr_warn("%s: Driver disabled by Kconfig\n", __func__);
-+	return NULL;
-+}
-+
-+#endif /* CONFIG_DVB_STV6111 */
-+
-+#endif /* _STV6111_H_ */
--- 
-2.13.0
+>
+>>>> +static const struct v4l2_subdev_video_ops
+>>>> dw_hdmi_sd_video_ops = {
+>>>> +    .s_routing = dw_hdmi_s_routing,
+>>>> +    .g_input_status = dw_hdmi_g_input_status,
+>>>> +    .g_parm = dw_hdmi_g_parm,
+>>>> +    .g_dv_timings = dw_hdmi_g_dv_timings,
+>>>> +    .query_dv_timings = dw_hdmi_query_dv_timings,
+>>>
+>>> No s_dv_timings???
+>>
+>> Hmm, yeah, I didn't implement it because the callchain and the
+>> player I use just use {get/set}_fmt. s_dv_timings can just
+>> populate the fields and replace them with the detected dv_timings
+>> ? Just like set_fmt does? Because the controller has no scaler.
+>
+> No, s_dv_timings is the function that actually sets
+> dw_dev->timings.
+> After you check that it is valid of course (call
+> v4l2_valid_dv_timings).
+>
+> set_fmt calls get_fmt which returns the information from
+> dw_dev->timings.
+>
+> But it is s_dv_timings that has to set dw_dev->timings.
+>
+> With the current code you can only capture 640x480 (the default
+> timings).
+> Have you ever tested this with any other timings? I don't quite
+> understand
+> how you test.
+
+I use mpv to test with a wrapper driver that just calls the
+subdev ops and sets up a video dma.
+
+Ah, I see now. I failed to port the correct callbacks and in the
+upstream version I'm using I only tested with 640x480 ...
+
+But apart from that this is a capture device without scaling so I
+can not set timings, I can only return them so that applications
+know which format I'm receiving, right? So my s_dv_timings will
+return the same as query_dv_timings ...
+
+<snip>
+
+>>>> +
+>>>> +    /* V4L2 initialization */
+>>>> +    sd = &dw_dev->sd;
+>>>> +    v4l2_subdev_init(sd, &dw_hdmi_sd_ops);
+>>>> +    strlcpy(sd->name, dev_name(dev), sizeof(sd->name));
+>>>> +    sd->dev = dev;
+>>>> +    sd->internal_ops = &dw_hdmi_internal_ops;
+>>>> +    sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS |
+>>>> V4L2_SUBDEV_FL_HAS_DEVNODE;
+>>>
+>>> You need to add at this control: V4L2_CID_DV_RX_POWER_PRESENT.
+>>> This is a
+>>> read-only control that reports the 5V status. Important for
+>>> applications to have.
+>>
+>> Ok.
+>>
+>>>
+>>> I gather that this IP doesn't handle InfoFrames? If it does,
+>>> then let me know.
+>>
+>> Yes, it handles but I didn't implement the parsing yet (I just
+>> parse the VIC for now).
+>
+> Ah, OK. When you add that, then I strongly recommend that you
+> also add
+> support for the V4L2_CID_DV_RX_RGB_RANGE control, provided this
+> IP can
+> do quantization range conversion. If quantization range
+> conversion is not
+> part of this IP, then just ignore this comment.
+
+Hmm, I don't think it can. I mean the controller basically just
+outputs what comes from phy in the correct order (it doesn't
+touch the bytes, just reorders them and packs them).
+
+<snip>
+
+>>>
+>>>> + *
+>>>> + * @bksv: BKSV value for HDCP 1.4 engine (40 bits).
+>>>> + *
+>>>> + * @keys: Keys value for HDCP 1.4 engine (80 * 56 bits).
+>>>> + *
+>>>> + * @keys_valid: Must be set to true if the keys in this
+>>>> structure are valid
+>>>> + * and can be used by the HDMI receiver controller.
+>>>> + */
+>>>> +struct dw_hdmi_hdcp14_key {
+>>>> +    u32 seed;
+>>>> +    u32 bksv[DW_HDMI_HDCP14_BKSV_SIZE];
+>>>> +    u32 keys[DW_HDMI_HDCP14_KEYS_SIZE];
+>>>> +    bool keys_valid;
+>>>> +};
+>>>> +
+>>>> +/**
+>>>> + * struct dw_hdmi_rx_pdata - Platform Data configuration for
+>>>> HDMI receiver.
+>>>> + *
+>>>> + * @hdcp14_keys: Keys for HDCP 1.4 engine. See
+>>>> @dw_hdmi_hdcp14_key.
+>>>
+>>> Was this for debugging only? These are the Device Private Keys
+>>> you're talking about?
+>>>
+>>> If this is indeed the case, then this doesn't belong here. You
+>>> should never rely on
+>>> software to set these keys. It should be fused in the hardware,
+>>> or read from an
+>>> encrypted eeprom or something like that. None of this
+>>> (including the bksv) should
+>>> be settable from the driver. You can read the bksv since that's
+>>> public.
+>>>
+>>> This can't be in a kernel driver, nor can it be set or read
+>>> through the s_register API.
+>>>
+>>> Instead there should be a big fat disclaimer that how you
+>>> program these keys is up to
+>>> the hardware designer and that it should be in accordance to
+>>> the HDCP requirements.
+>>>
+>>> I would drop this completely from the pdata. My recommendation
+>>> would be to not include
+>>> HDCP support at all for this first version. Add it in follow-up
+>>> patches which include
+>>> a new V4L2 API for handling HDCP. This needs to be handled
+>>> carefully.
+>>
+>> Yes, in real HW these keys will not be handled this way. I'm
+>> using a prototyping system so its easier to debug. I will remove
+>> this entirely and drop HDCP 1.4 support for now.
+>>
+>> Hmm, I'm seeing the configuration flow for keys written in HW and
+>> it actually just needs a seed (for encrypted keys, for decrypted
+>> ones it just doesn't need anything). Shall I drop the support or
+>> change the code? I've no way to test this right now though...
+>
+> Drop the support. I don't want to mix this in with the other
+> code. HDCP
+> support should be done in a separate patch series once this is
+> merged.
+> That way I can give it the attention it deserves.
+
+Ok.
+
+Best regards,
+Jose Miguel Abreu
+
+>
+> Regards,
+>
+>     Hans
+>
+>>
+>> Best regards,
+>> Jose Miguel Abreu
+>>
+>>>
+>>>> + *
+>>>> + * @dw_5v_status: 5v status callback. Shall return the status
+>>>> of the given
+>>>> + * input, i.e. shall be true if a cable is connected to the
+>>>> specified input.
+>>>> + *
+>>>> + * @dw_5v_clear: 5v clear callback. Shall clear the interrupt
+>>>> associated with
+>>>> + * the 5v sense controller.
+>>>> + *
+>>>> + * @dw_5v_arg: Argument to be used with the 5v sense
+>>>> callbacks.
+>>>> + *
+>>>> + * @dw_zcal_reset: Impedance calibration reset callback.
+>>>> Shall be called when
+>>>> + * the impedance calibration needs to be restarted. This is
+>>>> used by phy driver
+>>>> + * only.
+>>>> + *
+>>>> + * @dw_zcal_done: Impendace calibration status callback.
+>>>> Shall return true if
+>>>
+>>> Typo: Impendace -> Impedance
+>>>
+>>>> + * the impedance calibration procedure has ended. This is
+>>>> used by phy driver
+>>>> + * only.
+>>>> + *
+>>>> + * @dw_zcal_arg: Argument to be used with the ZCAL
+>>>> calibration callbacks.
+>>>> + */
+>>>> +struct dw_hdmi_rx_pdata {
+>>>> +    /* Controller configuration */
+>>>> +    struct dw_hdmi_hdcp14_key hdcp14_keys;
+>>>> +    /* 5V sense interface */
+>>>> +    bool (*dw_5v_status)(void __iomem *regs, int input);
+>>>> +    void (*dw_5v_clear)(void __iomem *regs);
+>>>> +    void __iomem *dw_5v_arg;
+>>>> +    /* Zcal interface */
+>>>> +    void (*dw_zcal_reset)(void __iomem *regs);
+>>>> +    bool (*dw_zcal_done)(void __iomem *regs);
+>>>> +    void __iomem *dw_zcal_arg;
+>>>> +};
+>>>> +
+>>>> +#endif /* __DW_HDMI_RX_PDATA_H__ */
+>>>>
+>>>
+>>> Regards,
+>>>
+>>>      Hans
+>>
+>
