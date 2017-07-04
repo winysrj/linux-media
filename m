@@ -1,92 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:33860 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753570AbdGCSkS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Jul 2017 14:40:18 -0400
-Received: by mail-qk0-f196.google.com with SMTP id 91so24989021qkq.1
-        for <linux-media@vger.kernel.org>; Mon, 03 Jul 2017 11:40:17 -0700 (PDT)
-Date: Mon, 3 Jul 2017 15:40:14 -0300
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [PATCH 00/12] V4L2 explicit synchronization support
-Message-ID: <20170703184014.GC3337@jade>
-References: <20170616073915.5027-1-gustavo@padovan.org>
- <20170630091815.3682484c@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170630091815.3682484c@vento.lan>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:34314 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751734AbdGDFXj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Jul 2017 01:23:39 -0400
+Subject: Re: [PATCH] media: vb2 dma-sg: Constify dma_buf_ops structures.
+To: Arvind Yadav <arvind.yadav.cs@gmail.com>, pawel@osciak.com,
+        kyungmin.park@samsung.com, mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <4d31db73-824e-6ddd-ac01-eaa1be8b327f@samsung.com>
+Date: Tue, 04 Jul 2017 07:23:30 +0200
+MIME-version: 1.0
+In-reply-to: <568fa73b15a4fead5ee803b9c38b47c374c91314.1498909383.git.arvind.yadav.cs@gmail.com>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
+Content-language: en-US
+References: <CGME20170701121836epcas4p10697c89a407bd22152d3e31a967b5b90@epcas4p1.samsung.com>
+ <568fa73b15a4fead5ee803b9c38b47c374c91314.1498909383.git.arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Arvind,
 
-2017-06-30 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
+On 2017-07-01 14:18, Arvind Yadav wrote:
+> dma_buf_ops are not supposed to change at runtime. All functions
+> working with dma_buf_ops provided by <linux/dma-buf.h> work with
+> const dma_buf_ops. So mark the non-const structs as const.
+>
+> File size before:
+>     text	   data	    bss	    dec	    hex	filename
+>     5238	    112	      4	   5354	   14ea drivers/media/v4l2-core/videobuf2-dma-sg.o
+>
+> File size After adding 'const':
+>     text	   data	    bss	    dec	    hex	filename
+>     5358	      0	      4	   5362	   14f2 drivers/media/v4l2-core/videobuf2-dma-sg.o
+>
+> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 
-> Em Fri, 16 Jun 2017 16:39:03 +0900
-> Gustavo Padovan <gustavo@padovan.org> escreveu:
-> 
-> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> > 
-> > Hi,
-> > 
-> > This adds support for Explicit Synchronization of shared buffers in V4L2.
-> > It uses the Sync File Framework[1] as vector to communicate the fences
-> > between kernel and userspace.
-> > 
-> > Explicit Synchronization allows us to control the synchronization of
-> > shared buffers from userspace by passing fences to the kernel and/or 
-> > receiving them from the the kernel.
-> > 
-> > Fences passed to the kernel are named in-fences and the kernel should wait
-> > them to signal before using the buffer. On the other side, the kernel creates
-> > out-fences for every buffer it receives from userspace. This fence is sent back
-> > to userspace and it will signal when the capture, for example, has finished.
-> > 
-> > Signalling an out-fence in V4L2 would mean that the job on the buffer is done
-> > and the buffer can be used by other drivers.
-> > 
-> > The first patch proposes an userspace API for fences, then on patch 2
-> > we prepare to the addition of in-fences in patch 3, by introducing the
-> > infrastructure on vb2 to wait on an in-fence signal before queueing the buffer
-> > in the driver.
-> > 
-> > Patch 4 fix uvc v4l2 event handling and patch 5 configure q->dev for vivid
-> > drivers to enable to subscribe and dequeue events on it.
-> > 
-> > Patches 6-7 enables support to notify BUF_QUEUED events, i.e., let userspace
-> > know that particular buffer was enqueued in the driver. This is needed,
-> > because we return the out-fence fd as an out argument in QBUF, but at the time
-> > it returns we don't know to which buffer the fence will be attached thus
-> > the BUF_QUEUED event tells which buffer is associated to the fence received in
-> > QBUF by userspace.
-> > 
-> > Patches 8-9 add support to mark queues as ordered. Finally patches 10 and 11
-> > add more fence infrastructure to support out-fences and finally patch 12 adds
-> > support to out-fences.
-> > 
-> > Changelog are detailed in each patch.
-> > 
-> > Please review! Thanks.
-> 
-> Just reviewed the series. Most patches look good.
-> 
-> I have one additional concern: if the changes here won't cause any
-> bad behaviors if fences is not available for some VB2 non V4L2 client.
-> I'm actually thinking on this:
-> 
-> 	https://patchwork.linuxtv.org/patch/31613/
-> 
-> From what I saw, after this patch series, someone could try to 
-> inconditionally open an out fences fd for a driver. Maybe this
-> should be denied by default, enabling such feature only if the
-> VB2 "client" (e. g. videobuf-v4l2) supports it.
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Yes, I think we can just reject the request if this non-VB2 client
-tries to use the arg flags for fences.
+> ---
+>   drivers/media/v4l2-core/videobuf2-dma-sg.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> index 8e8798a..f8b4643 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> @@ -500,7 +500,7 @@ static int vb2_dma_sg_dmabuf_ops_mmap(struct dma_buf *dbuf,
+>   	return vb2_dma_sg_mmap(dbuf->priv, vma);
+>   }
+>   
+> -static struct dma_buf_ops vb2_dma_sg_dmabuf_ops = {
+> +static const struct dma_buf_ops vb2_dma_sg_dmabuf_ops = {
+>   	.attach = vb2_dma_sg_dmabuf_ops_attach,
+>   	.detach = vb2_dma_sg_dmabuf_ops_detach,
+>   	.map_dma_buf = vb2_dma_sg_dmabuf_ops_map,
 
-Gustavo
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
