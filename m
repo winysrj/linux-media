@@ -1,72 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.73]:56742 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753552AbdGNJdO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Jul 2017 05:33:14 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-kernel@vger.kernel.org, Doug Ledford <dledford@redhat.com>,
-        Sean Hefty <sean.hefty@intel.com>,
-        Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
-        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
-        akpm@linux-foundation.org, dri-devel@lists.freedesktop.org,
+Received: from sci-ig2.spreadtrum.com ([222.66.158.135]:13704 "EHLO
+        SHSQR01.spreadtrum.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S1752553AbdGEK20 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Jul 2017 06:28:26 -0400
+From: Chunyan Zhang <chunyan.zhang@spreadtrum.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Arnd Bergmann <arnd@arndb.de>,
-        Matan Barak <matanb@mellanox.com>,
-        Yishai Hadas <yishaih@mellanox.com>,
-        Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH 11/14] IB/uverbs: fix gcc-7 type warning
-Date: Fri, 14 Jul 2017 11:31:04 +0200
-Message-Id: <20170714093129.1366900-2-arnd@arndb.de>
-In-Reply-To: <20170714092540.1217397-1-arnd@arndb.de>
-References: <20170714092540.1217397-1-arnd@arndb.de>
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>,
+        Songhe Wei <songhe.wei@spreadtrum.com>,
+        Zhongping Tan <zhongping.tan@spreadtrum.com>,
+        Orson Zhai <orson.zhai@spreadtrum.com>,
+        Chunyan Zhang <zhang.lyra@gmail.com>,
+        Chunyan Zhang <chunyan.zhang@spreadtrum.com>
+Subject: [PATCH 0/2] add support for Spreadtrum's FM driver
+Date: Wed, 5 Jul 2017 18:25:02 +0800
+Message-ID: <20170705102502.2295-1-chunyan.zhang@spreadtrum.com>
+In-Reply-To: <20170704101508.30946-1-chunyan.zhang@spreadtrum.com>
+References: <20170704101508.30946-1-chunyan.zhang@spreadtrum.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When using ccache, we get a harmless warning about the fact that
-we use the result of a multiplication as a condition:
+[add linux-media list and Mauro Carvalho Chehab]
 
-drivers/infiniband/core/uverbs_main.c: In function 'ib_uverbs_write':
-drivers/infiniband/core/uverbs_main.c:787:40: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
-drivers/infiniband/core/uverbs_main.c:787:117: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
-drivers/infiniband/core/uverbs_main.c:790:50: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
-drivers/infiniband/core/uverbs_main.c:790:151: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
+According to GregKH's suggestion [1], we tried to simply sort out the
+FM driver source code which has been using in the internal projects.
 
-This changes the macro to explicitly check the number for a positive
-length, which avoids the warning.
+Hopes it can help for fixing the problem raised in [1].
 
-Fixes: a96e4e2ffe43 ("IB/uverbs: New macro to set pointers to NULL if length is 0 in INIT_UDATA()")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/infiniband/core/uverbs.h | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+[1] https://lkml.org/lkml/2017/6/28/222
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index 64d494a64daf..364d7de05721 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -55,12 +55,14 @@
- 		(udata)->outlen = (olen);				\
- 	} while (0)
- 
--#define INIT_UDATA_BUF_OR_NULL(udata, ibuf, obuf, ilen, olen)			\
--	do {									\
--		(udata)->inbuf  = (ilen) ? (const void __user *) (ibuf) : NULL;	\
--		(udata)->outbuf = (olen) ? (void __user *) (obuf) : NULL;	\
--		(udata)->inlen  = (ilen);					\
--		(udata)->outlen = (olen);					\
-+#define INIT_UDATA_BUF_OR_NULL(udata, ibuf, obuf, ilen, olen)		\
-+	do {								\
-+		(udata)->inbuf  = (ilen) > 0 ?				\
-+				  (const void __user *) (ibuf) : NULL;	\
-+		(udata)->outbuf = (olen) > 0 ?				\
-+				  (void __user *) (obuf) : NULL;	\
-+		(udata)->inlen  = (ilen);				\
-+		(udata)->outlen = (olen);				\
- 	} while (0)
- 
- /*
+Chunyan Zhang (2):
+  arm64: dts: add Spreadtrum's fm support
+  misc: added Spreadtrum's radio driver
+
+ arch/arm64/boot/dts/sprd/sp9860g-1h10.dts      |    4 +
+ drivers/misc/Kconfig                           |    1 +
+ drivers/misc/Makefile                          |    1 +
+ drivers/misc/sprd-wcn/Kconfig                  |   14 +
+ drivers/misc/sprd-wcn/Makefile                 |    1 +
+ drivers/misc/sprd-wcn/radio/Kconfig            |    8 +
+ drivers/misc/sprd-wcn/radio/Makefile           |    2 +
+ drivers/misc/sprd-wcn/radio/fmdrv.h            |  595 +++++++++++
+ drivers/misc/sprd-wcn/radio/fmdrv_main.c       | 1245 ++++++++++++++++++++++++
+ drivers/misc/sprd-wcn/radio/fmdrv_main.h       |  117 +++
+ drivers/misc/sprd-wcn/radio/fmdrv_ops.c        |  447 +++++++++
+ drivers/misc/sprd-wcn/radio/fmdrv_ops.h        |   17 +
+ drivers/misc/sprd-wcn/radio/fmdrv_rds_parser.c |  753 ++++++++++++++
+ drivers/misc/sprd-wcn/radio/fmdrv_rds_parser.h |  103 ++
+ 14 files changed, 3308 insertions(+)
+ create mode 100644 drivers/misc/sprd-wcn/Kconfig
+ create mode 100644 drivers/misc/sprd-wcn/Makefile
+ create mode 100644 drivers/misc/sprd-wcn/radio/Kconfig
+ create mode 100644 drivers/misc/sprd-wcn/radio/Makefile
+ create mode 100644 drivers/misc/sprd-wcn/radio/fmdrv.h
+ create mode 100644 drivers/misc/sprd-wcn/radio/fmdrv_main.c
+ create mode 100644 drivers/misc/sprd-wcn/radio/fmdrv_main.h
+ create mode 100644 drivers/misc/sprd-wcn/radio/fmdrv_ops.c
+ create mode 100644 drivers/misc/sprd-wcn/radio/fmdrv_ops.h
+ create mode 100644 drivers/misc/sprd-wcn/radio/fmdrv_rds_parser.c
+ create mode 100644 drivers/misc/sprd-wcn/radio/fmdrv_rds_parser.h
+
 -- 
-2.9.0
+2.7.4
