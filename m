@@ -1,54 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:40794 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750738AbdGLUHM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Jul 2017 16:07:12 -0400
-Subject: [PATCH for 4.13] cec: cec_transmit_attempt_done: ignore
- CEC_TX_STATUS_MAX_RETRIES
-To: linux-media@vger.kernel.org
-References: <20170711133011.41139-1-hverkuil@xs4all.nl>
- <20170711133011.41139-4-hverkuil@xs4all.nl>
-Cc: dri-devel <dri-devel@lists.freedesktop.org>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <106e748e-afe5-027b-0284-80e2928d1661@xs4all.nl>
-Date: Wed, 12 Jul 2017 22:07:08 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170711133011.41139-4-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:33203 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752246AbdGEKIE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Jul 2017 06:08:04 -0400
+Received: by mail-lf0-f68.google.com with SMTP id t72so20333399lff.0
+        for <linux-media@vger.kernel.org>; Wed, 05 Jul 2017 03:08:04 -0700 (PDT)
+From: Ivan Menshykov <ivan.menshykov@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        Ivan Menshykov <ivan.menshykov@gmail.com>
+Subject: [PATCH] staging: media: atomisp: i2c: ov5693: Fix style a coding style issue
+Date: Wed,  5 Jul 2017 12:07:45 +0200
+Message-Id: <20170705100745.17166-1-ivan.menshykov@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The switch in cec_transmit_attempt_done() should ignore the
-CEC_TX_STATUS_MAX_RETRIES status bit.
+Fix checkpath errors
 
-Calling this function with e.g. CEC_TX_STATUS_NACK | CEC_TX_STATUS_MAX_RETRIES
-is perfectly legal and should not trigger the WARN(1).
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Ivan Menshykov <ivan.menshykov@gmail.com>
 ---
-After testing the DisplayPort CEC-Tunneling-over-AUX support with an adapter
-that didn't hook up the CEC pin correctly I found a bug in this CEC core function
-that is corrected with this patch.
----
- drivers/media/cec/cec-adap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/media/atomisp/i2c/ov5693/ov5693.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index bf45977b2823..d596b601ff42 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -559,7 +559,7 @@ EXPORT_SYMBOL_GPL(cec_transmit_done);
-
- void cec_transmit_attempt_done(struct cec_adapter *adap, u8 status)
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
+index 5e9dafe7cc32..0616ff044f1e 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
++++ b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
+@@ -146,7 +146,7 @@ static int ov5693_read_reg(struct i2c_client *client,
+ 		return -EINVAL;
+ 	}
+ 
+-	memset(msg, 0 , sizeof(msg));
++	memset(msg, 0, sizeof(msg));
+ 
+ 	msg[0].addr = client->addr;
+ 	msg[0].flags = 0;
+@@ -702,7 +702,7 @@ static long ov5693_s_exposure(struct v4l2_subdev *sd,
+ }
+ 
+ static int ov5693_read_otp_reg_array(struct i2c_client *client, u16 size,
+-				     u16 addr, u8 * buf)
++				     u16 addr, u8 *buf)
  {
--	switch (status) {
-+	switch (status & ~CEC_TX_STATUS_MAX_RETRIES) {
- 	case CEC_TX_STATUS_OK:
- 		cec_transmit_done(adap, status, 0, 0, 0, 0);
- 		return;
+ 	u16 index;
+ 	int ret;
+@@ -720,7 +720,7 @@ static int ov5693_read_otp_reg_array(struct i2c_client *client, u16 size,
+ 	return 0;
+ }
+ 
+-static int __ov5693_otp_read(struct v4l2_subdev *sd, u8 * buf)
++static int __ov5693_otp_read(struct v4l2_subdev *sd, u8 *buf)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct ov5693_device *dev = to_ov5693_sensor(sd);
 -- 
-2.11.0
+2.13.0
