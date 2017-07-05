@@ -1,130 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:33972 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750836AbdG0JFN (ORCPT
+Received: from gateway30.websitewelcome.com ([192.185.192.34]:18005 "EHLO
+        gateway30.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751680AbdGEScP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Jul 2017 05:05:13 -0400
-Received: by mail-wr0-f193.google.com with SMTP id o33so16385094wrb.1
-        for <linux-media@vger.kernel.org>; Thu, 27 Jul 2017 02:05:12 -0700 (PDT)
-From: Tvrtko Ursulin <tursulin@ursulin.net>
-To: Intel-gfx@lists.freedesktop.org
-Cc: Ben Widawsky <benjamin.widawsky@intel.com>,
-        Jason Ekstrand <jason@jlekstrand.net>,
-        Tvrtko Ursulin <tvrtko.ursulin@intel.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Tomasz Stanislawski <t.stanislaws@samsung.com>,
-        Matt Porter <mporter@kernel.crashing.org>,
-        Alexandre Bounine <alexandre.bounine@idt.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/4] lib/scatterlist: Fix offset type in sg_alloc_table_from_pages
-Date: Thu, 27 Jul 2017 10:05:01 +0100
-Message-Id: <20170727090504.15812-2-tvrtko.ursulin@linux.intel.com>
-In-Reply-To: <20170727090504.15812-1-tvrtko.ursulin@linux.intel.com>
-References: <20170727090504.15812-1-tvrtko.ursulin@linux.intel.com>
+        Wed, 5 Jul 2017 14:32:15 -0400
+Received: from cm17.websitewelcome.com (cm17.websitewelcome.com [100.42.49.20])
+        by gateway30.websitewelcome.com (Postfix) with ESMTP id 3F6C7253E6
+        for <linux-media@vger.kernel.org>; Wed,  5 Jul 2017 13:07:30 -0500 (CDT)
+Date: Wed, 5 Jul 2017 13:07:29 -0500
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Kyungmin Park <kyungmin.park@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH] s5k5baf: remove unnecessary static in s5k5baf_get_selection()
+Message-ID: <20170705180729.GA10314@embeddedgus>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
+Remove unnecessary static on local variable rtype.
+Such variable is initialized before being used,
+on every execution path throughout the function.
+The static has no benefit and, removing it reduces
+the code size.
 
-Scatterlist entries have an unsigned int for the offset so
-correct the sg_alloc_table_from_pages function accordingly.
+This issue was detected using Coccinelle and the following semantic patch:
 
-Since these are offsets withing a page, unsigned int is
-wide enough.
+@bad exists@
+position p;
+identifier x;
+type T;
+@@
 
-Also converts callers which were using unsigned long locally
-with the lower_32_bits annotation to make it explicitly
-clear what is happening.
+static T x@p;
+...
+x = <+...x...+>
 
-v2: Use offset_in_page. (Chris Wilson)
+@@
+identifier x;
+expression e;
+type T;
+position p != bad.p;
+@@
 
-Signed-off-by: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Pawel Osciak <pawel@osciak.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com> (v1)
-Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
-Reviewed-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+-static
+ T x@p;
+ ... when != x
+     when strict
+?x = e;
+
+In the following log you can see the difference in the code size. Also,
+there is a significant difference in the bss segment. This log is the
+output of the size command, before and after the code change:
+
+before:
+   text    data     bss     dec     hex filename
+  27765    5656     320   33741    83cd drivers/media/i2c/s5k5baf.o
+
+after:
+   text    data     bss     dec     hex filename
+  27733    5600     256   33589    8335 drivers/media/i2c/s5k5baf.o
+
+
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
 ---
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 4 ++--
- drivers/rapidio/devices/rio_mport_cdev.c       | 4 ++--
- include/linux/scatterlist.h                    | 2 +-
- lib/scatterlist.c                              | 2 +-
- 4 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/media/i2c/s5k5baf.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 4f246d166111..2405077fdc71 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -479,7 +479,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
+index 962051b..f01722d 100644
+--- a/drivers/media/i2c/s5k5baf.c
++++ b/drivers/media/i2c/s5k5baf.c
+@@ -1374,7 +1374,7 @@ static int s5k5baf_get_selection(struct v4l2_subdev *sd,
+ 				 struct v4l2_subdev_pad_config *cfg,
+ 				 struct v4l2_subdev_selection *sel)
  {
- 	struct vb2_dc_buf *buf;
- 	struct frame_vector *vec;
--	unsigned long offset;
-+	unsigned int offset;
- 	int n_pages, i;
- 	int ret = 0;
- 	struct sg_table *sgt;
-@@ -507,7 +507,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
- 	buf->dev = dev;
- 	buf->dma_dir = dma_dir;
+-	static enum selection_rect rtype;
++	enum selection_rect rtype;
+ 	struct s5k5baf *state = to_s5k5baf(sd);
  
--	offset = vaddr & ~PAGE_MASK;
-+	offset = lower_32_bits(offset_in_page(vaddr));
- 	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
- 	if (IS_ERR(vec)) {
- 		ret = PTR_ERR(vec);
-diff --git a/drivers/rapidio/devices/rio_mport_cdev.c b/drivers/rapidio/devices/rio_mport_cdev.c
-index 5beb0c361076..5c1b6388122a 100644
---- a/drivers/rapidio/devices/rio_mport_cdev.c
-+++ b/drivers/rapidio/devices/rio_mport_cdev.c
-@@ -876,10 +876,10 @@ rio_dma_transfer(struct file *filp, u32 transfer_mode,
- 	 * offset within the internal buffer specified by handle parameter.
- 	 */
- 	if (xfer->loc_addr) {
--		unsigned long offset;
-+		unsigned int offset;
- 		long pinned;
- 
--		offset = (unsigned long)(uintptr_t)xfer->loc_addr & ~PAGE_MASK;
-+		offset = lower_32_bits(offset_in_page(xfer->loc_addr));
- 		nr_pages = PAGE_ALIGN(xfer->length + offset) >> PAGE_SHIFT;
- 
- 		page_list = kmalloc_array(nr_pages,
-diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
-index 4b3286ac60c8..205aefb4ed93 100644
---- a/include/linux/scatterlist.h
-+++ b/include/linux/scatterlist.h
-@@ -263,7 +263,7 @@ int __sg_alloc_table(struct sg_table *, unsigned int, unsigned int,
- int sg_alloc_table(struct sg_table *, unsigned int, gfp_t);
- int sg_alloc_table_from_pages(struct sg_table *sgt,
- 	struct page **pages, unsigned int n_pages,
--	unsigned long offset, unsigned long size,
-+	unsigned int offset, unsigned long size,
- 	gfp_t gfp_mask);
- 
- size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents, void *buf,
-diff --git a/lib/scatterlist.c b/lib/scatterlist.c
-index be7b4dd6b68d..dee0c5004e2f 100644
---- a/lib/scatterlist.c
-+++ b/lib/scatterlist.c
-@@ -391,7 +391,7 @@ EXPORT_SYMBOL(sg_alloc_table);
-  */
- int sg_alloc_table_from_pages(struct sg_table *sgt,
- 	struct page **pages, unsigned int n_pages,
--	unsigned long offset, unsigned long size,
-+	unsigned int offset, unsigned long size,
- 	gfp_t gfp_mask)
- {
- 	unsigned int chunks;
+ 	rtype = s5k5baf_get_sel_rect(sel->pad, sel->target);
 -- 
-2.9.4
+2.5.0
