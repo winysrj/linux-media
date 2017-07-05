@@ -1,176 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:34503 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751487AbdGWUmS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Jul 2017 16:42:18 -0400
-Received: by mail-wr0-f195.google.com with SMTP id o33so8527822wrb.1
-        for <linux-media@vger.kernel.org>; Sun, 23 Jul 2017 13:42:17 -0700 (PDT)
-Date: Sun, 23 Jul 2017 22:42:13 +0200
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Manfred.Knick@T-Online.de
-Subject: Fw: [PATCH RESEND 00/14] ddbridge: bump to ddbridge-0.9.29
-Message-ID: <20170723224213.44ec2ed8@macbox>
+Received: from mail.kernel.org ([198.145.29.99]:53996 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752470AbdGEUwJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 5 Jul 2017 16:52:09 -0400
+Subject: Re: [PATCH v6 4/4] dt-bindings: media: Document Synopsys Designware
+ HDMI RX
+To: Jose Abreu <Jose.Abreu@synopsys.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        devicetree@vger.kernel.org
+References: <cover.1499176790.git.joabreu@synopsys.com>
+ <d6da0a3ec47a46d30b74e9d41fb4bf9ef392d969.1499176790.git.joabreu@synopsys.com>
+From: Sylwester Nawrocki <snawrocki@kernel.org>
+Message-ID: <4dc8f06f-b9cf-6d3d-da88-51abb24c1724@kernel.org>
+Date: Wed, 5 Jul 2017 22:52:03 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <d6da0a3ec47a46d30b74e9d41fb4bf9ef392d969.1499176790.git.joabreu@synopsys.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Manfred kindly asked me to forward his message to the list as he received a bounce from vger.kernel.org on this.
-
-Beginn der weitergeleiteten Nachricht:
-
-Datum: Sun, 23 Jul 2017 22:10:02 +0200
-Von: Manfred_Knick <Manfred.Knick@T-Online.de>
-An: Daniel Scheller <d.scheller.oss@gmail.com>, linux-media@vger.kernel.org, mchehab@kernel.org, mchehab@s-opensource.com
-Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de, rjkm@metzlerbros.de
-Betreff: Re: [PATCH RESEND 00/14] ddbridge: bump to ddbridge-0.9.29
-
-
-Am 23.07.2017 um 20:16 schrieb Daniel Scheller:
-
-> From: Daniel Scheller <d.scheller@gmx.net>
+On 07/04/2017 04:11 PM, Jose Abreu wrote:
+> Document the bindings for the Synopsys Designware HDMI RX.
 > 
-> Preferrably for Linux 4.14 (to get things done).
-> 
-> Resend reasons (resend since no real changes went in):
-> * rebased on latest mediatree-master wrt
->     commit 618e8aac3d7c ("media: ddbridge: constify i2c_algorithm structure")
-> * build error in ddbridge-core.c fixed wrt
->     commit dcda9b04713c ("mm, tree wide: replace __GFP_REPEAT by __GFP_RETRY_MAYFAIL with more useful semantic")
-> * useless return removed from void calc_con()
-> * UTF8 in ddbridge-regs.h removed
-> * Tested-by's added to commit messages
-> 
-> ...  
+> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
 
-####################################################
-Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
-####################################################
+> ---
+>   .../devicetree/bindings/media/snps,dw-hdmi-rx.txt  | 70 ++++++++++++++++++++++
+>   1 file changed, 70 insertions(+)
+>   create mode 100644 Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
 
-I initially got involved into this by finding out about Daniel's
-Gentoo overlay carrying ddbridge-sources, which installs the gentoo
-kernel sources with these exact patches ontop. The first version I
-tried was with kernel 4.9 which had an older revision of the patchset,
-and am now up at version 4.12.3, having the patches posted here ontop
-of a stable kernel version.
+Could you make the DT binding documentation patch first patch in the series?
+Now checkpatch will complain about undocumented compatible string when 
+the driver patches are applied alone.
 
-Air-borne TV in Munich, Germany is DVB-T2 _only_ since March 29, 2017.
+> diff --git a/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt 
+>b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
+> new file mode 100644
+> index 0000000..449b8a2
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
+> @@ -0,0 +1,70 @@
+> +Synopsys DesignWare HDMI RX Decoder
+> +===================================
+> +
+> +This document defines device tree properties for the Synopsys DesignWare HDMI
+> +RX Decoder (DWC HDMI RX). It doesn't constitute a device tree binding
+> +specification by itself but is meant to be referenced by platform-specific
+> +device tree bindings.
+> +
+> +When referenced from platform device tree bindings the properties defined in
+> +this document are defined as follows.
 
-+1:     The pach set is working to my perfect satisfaction:
+It would be good to make it clear which properties are required and which are
+optional. And also to mention the properties below belong to the HDMI RX node.
 
-Displaying channels works flawlessly with VLC and Kaffeine.
-For recording I exploit Kaffeine's comfortable graphical user interface.
+> +- compatible: Shall be "snps,dw-hdmi-rx".
+> +
+> +- reg: Memory mapped base address and length of the DWC HDMI RX registers.
+> +
+> +- interrupts: Reference to the DWC HDMI RX interrupt and 5v sense interrupt.
 
-        media-video/kaffeine-9999:5         (latest git)
-        media-video/vlc-2.2.6-r1:0/5-8
+s/5v/HDMI 5V ?
 
-I am grateful for Daniels support, always quick and friendly,
-to help me get up and running in the beginning,
-as well as his cooperation and very fast reaction lately:
+> +
+> +- clocks: Phandle to the config clock block.
+> +
+> +- clock-names: Shall be "cfg".
+> +
+> +- edid-phandle: phandle to the EDID handler block.
 
-Integrating into cxd2841er in
+Could you make this property optional and when it is missing assume that device
+corresponding to the parent node of this node handles EDID? This way we could
+avoid having property pointing to the parent node.
 
-. . . sys-kernel/ddbridge-sources-4.12.0   ( CONFIG_DVB_CXD2841ER )
+> +- #address-cells: Shall be 1.
+> +
+> +- #size-cells: Shall be 0.
+> +
+> +You also have to create a subnode for phy driver. Phy properties are as follows.
 
-resulted in failure of scanning for channels within Kaffeine.
-Daniel's patch [1] fixed the underlying deeper problem:
-. . . changing from DVB-T to DVB-T2 without stopping the frontend,
-. . . the demod operation mode isn't re-setup
-(Mauro <mchehab> was on CC).
+s/phy driver. Phy/the PHY device. PHY ?
 
-It was immediately integrated (amongst other improvements) by Daniel into
+Might be also worth to make it explicit these are all required properties.
 
-. . . sys-kernel/ddbridge-sources-4.12.{1,2,3}
+> +- compatible: Shall be "snps,dw-hdmi-phy-e405".
+> +
+> +- reg: Shall be JTAG address of phy.
 
-delivering the services mentioned above as solid as expected.
+s/phy/the PHY ?
 
-Many "Thanks!" to Daniel - and to the reviewers.
+> +- clocks: Phandle for cfg clock.
+> +
+> +- clock-names:Shall be "cfg".
+> +
+> +A sample binding is now provided. The compatible string is for a SoC which has
+> +has a Synopsys DesignWare HDMI RX decoder inside.
+> +
+> +Example:
+> +
+> +dw_hdmi_soc: dw-hdmi-soc@0 {
+> +	compatible = "snps,dw-hdmi-soc";
 
-+1:     for integrating this cleaned-up structure into mainline
+Perhaps just make it
 
-This rescues users of DD HW from being enslaved by DD's
-   "one big undocumented blob for everything"
-   "only our HW counts" "exclude all other media hw"
-attitude.
+	compatible = "...";
+?
 
-Personally, I want a clean HW driver *only*,
-and disgust being forced into installing an inscrutable "Octopus" network
-compulsorily just for being able to use a tiny bit of HW locally.
+> +	reg = <0x11c00 0x1000>; /* EDIDs */
 
+This is not relevant and undocumented, will likely be part of documentation 
+of other binding thus I'd suggest dropping this reg property.
+
+> +	#address-cells = <1>;
+> +	#size-cells = <1>;
+> +	ranges;
+> +
+> +	hdmi-rx@0 {
+> +		compatible = "snps,dw-hdmi-rx";
+> +		reg = <0x0 0x10000>;
+> +		interrupts = <1 2>;
+> +		edid-phandle = <&dw_hdmi_soc>;
+> +
+> +		clocks = <&dw_hdmi_refclk>;
+> +		clock-names = "cfg";
+> +
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +
+> +		hdmi-phy@fc {
+> +			compatible = "snps,dw-hdmi-phy-e405";
+> +			reg = <0xfc>;
+> +
+> +			clocks = <&dw_hdmi_refclk>;
+> +			clock-names = "cfg";
+> +		};
+> +	};
+> +};
+
+Otherwise looks good. I'll likely not have comments to the other patches.
+
+--
 Regards,
-
-Manfred
-
-[1] . . . [ https://github.com/herrnst/dddvb-linux-kernel/commit/
-    . . .                        ca17298941f3a6aafa1f625535cc2eab041187be ]
-
-#############
-POSTSCRIPTUM:
-#############
-
-I would be happy tp provide any additional information as needed.
-
-# uname -a
-   Linux sid 4.12.3-ddbridge #1 SMP Sun Jul 23 00:12:41 CEST 2017
-   x86_64 Intel(R) Xeon(R) CPU E3-1276 v3 @ 3.60GHz GenuineIntel GNU/Linux
-
-#  grep -i cxd2841er /usr/src/linux/.config
-CONFIG_DVB_CXD2841ER=y
-
-#  dmesg | grep -i cxd284
-[    2.343582] ddbridge 0000:03:00.0: Port 0: Link 0, Link Port 0 (TAB 1): DUAL DVB-C2T2 CXD2843
-[    2.361510] i2c i2c-8: cxd2841er_attach(): I2C adapter ffffc9000cf05800 SLVX addr 6e SLVT addr 6c
-[    2.362781] i2c i2c-8: cxd2841er_attach(): attaching CXD2843ER DVB-C/C2/T/T2 frontend
-[    2.363818] i2c i2c-8: cxd2841er_attach(): chip ID 0xa4 OK.
-[    2.366675] ddbridge 0000:03:00.0: DVB: registering adapter 0 frontend 0 (Sony CXD2843ER DVB-T/T2/C/C2 demodulator)...
-[    2.367928] i2c i2c-8: cxd2841er_attach(): I2C adapter ffffc9000cf05800 SLVX addr 6f SLVT addr 6d
-[    2.369280] i2c i2c-8: cxd2841er_attach(): attaching CXD2843ER DVB-C/C2/T/T2 frontend
-[    2.370364] i2c i2c-8: cxd2841er_attach(): chip ID 0xa4 OK.
-[    2.373132] ddbridge 0000:03:00.0: DVB: registering adapter 1 frontend 0 (Sony CXD2843ER DVB-T/T2/C/C2 demodulator)...
-[    2.374416] i2c i2c-9: cxd2841er_attach(): I2C adapter ffffc9000cf05c30 SLVX addr 6e SLVT addr 6c
-[    2.376374] i2c i2c-9: cxd2841er_attach(): attaching CXD2843ER DVB-C/C2/T/T2 frontend
-[    2.377481] i2c i2c-9: cxd2841er_attach(): chip ID 0xa4 OK.
-[    2.381931] ddbridge 0000:03:00.0: DVB: registering adapter 2 frontend 0 (Sony CXD2843ER DVB-T/T2/C/C2 demodulator)...
-[    2.383230] i2c i2c-9: cxd2841er_attach(): I2C adapter ffffc9000cf05c30 SLVX addr 6f SLVT addr 6d
-[    2.385216] i2c i2c-9: cxd2841er_attach(): attaching CXD2843ER DVB-C/C2/T/T2 frontend
-[    2.386336] i2c i2c-9: cxd2841er_attach(): chip ID 0xa4 OK.
-[    2.390885] ddbridge 0000:03:00.0: DVB: registering adapter 3 frontend 0 (Sony CXD2843ER DVB-T/T2/C/C2 demodulator)...
-
-$  grep -i -R "CXD28" ~/.local/share/kaffeine/ | sort -u
-      .../config.dvb:frontendName=Sony CXD2843ER DVB-T/T2/C/C2 demodulator
-
-# lspci      [ ASUS P9D-WS | 32 GB ]
-
-00:00.0 Host bridge: Intel Corporation Xeon E3-1200 v3 Processor DRAM Controller (rev 06)
-00:01.0 PCI bridge: Intel Corporation Xeon E3-1200 v3/4th Gen Core Processor PCI Express x16 Controller (rev 06)
-00:01.1 PCI bridge: Intel Corporation Xeon E3-1200 v3/4th Gen Core Processor PCI Express x8 Controller (rev 06)
-00:02.0 VGA compatible controller: Intel Corporation Xeon E3-1200 v3 Processor Integrated Graphics Controller (rev 06)     <---
-00:03.0 Audio device: Intel Corporation Xeon E3-1200 v3/4th Gen Core Processor HD Audio Controller (rev 06)                <---
-00:14.0 USB controller: Intel Corporation 8 Series/C220 Series Chipset Family USB xHCI (rev 05)
-00:16.0 Communication controller: Intel Corporation 8 Series/C220 Series Chipset Family MEI Controller #1 (rev 04)
-00:1a.0 USB controller: Intel Corporation 8 Series/C220 Series Chipset Family USB EHCI #2 (rev 05)
-00:1b.0 Audio device: Intel Corporation 8 Series/C220 Series Chipset High Definition Audio Controller (rev 05)
-00:1c.0 PCI bridge: Intel Corporation 8 Series/C220 Series Chipset Family PCI Express Root Port #1 (rev d5)
-00:1c.1 PCI bridge: Intel Corporation 82801 PCI Bridge (rev d5)
-00:1c.2 PCI bridge: Intel Corporation 8 Series/C220 Series Chipset Family PCI Express Root Port #3 (rev d5)
-00:1c.3 PCI bridge: Intel Corporation 8 Series/C220 Series Chipset Family PCI Express Root Port #4 (rev d5)
-00:1c.4 PCI bridge: Intel Corporation 8 Series/C220 Series Chipset Family PCI Express Root Port #5 (rev d5)
-00:1d.0 USB controller: Intel Corporation 8 Series/C220 Series Chipset Family USB EHCI #1 (rev 05)
-00:1f.0 ISA bridge: Intel Corporation C226 Series Chipset Family Server Advanced SKU LPC Controller (rev 05)
-00:1f.2 SATA controller: Intel Corporation 8 Series/C220 Series Chipset Family 6-port SATA Controller 1 [AHCI mode] (rev 05)
-00:1f.3 SMBus: Intel Corporation 8 Series/C220 Series Chipset Family SMBus Controller (rev 05)
-01:00.0 Ethernet controller: Intel Corporation Ethernet Controller 10-Gigabit X540-AT2 (rev 01)
-02:00.0 VGA compatible controller: NVIDIA Corporation GK104 [GeForce GTX 660 Ti] (rev a1)                                  <---
-02:00.1 Audio device: NVIDIA Corporation GK104 HDMI Audio Controller (rev a1)
-03:00.0 Multimedia controller: Digital Devices GmbH Cine V7                                                                <---
-04:00.0 PCI bridge: ASMedia Technology Inc. ASM1083/1085 PCIe to PCI Bridge (rev 03)
-05:01.0 Multimedia video controller: Brooktree Corporation Bt878 Video Capture (rev 11)                                    <---
-05:01.1 Multimedia controller: Brooktree Corporation Bt878 Audio Capture (rev 11)                                          <---
-06:00.0 Ethernet controller: Intel Corporation I210 Gigabit Network Connection (rev 03)
-07:00.0 Ethernet controller: Intel Corporation I210 Gigabit Network Connection (rev 03)
-08:00.0 RAID bus controller: Adaptec Series 6 - 6G SAS/PCIe 2 (rev 01)
-
-I'm exploiting Intel _and_ NVida VGA combined into a classical Multiple-separate-X11-Screen (ZapHod mode) setup.
+Sylwester
+ 
