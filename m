@@ -1,58 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.73]:52310 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753574AbdGNJcm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Jul 2017 05:32:42 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-kernel@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>,
-        Michael Hennerich <Michael.Hennerich@analog.com>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
-        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
-        akpm@linux-foundation.org, dri-devel@lists.freedesktop.org,
-        Arnd Bergmann <arnd@arndb.de>, stable@vger.kernel.org,
-        Hartmut Knaack <knaack.h@gmx.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        linux-iio@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: [PATCH 10/14] staging:iio:resolver:ad2s1210 fix negative IIO_ANGL_VEL read
-Date: Fri, 14 Jul 2017 11:31:03 +0200
-Message-Id: <20170714093129.1366900-1-arnd@arndb.de>
-In-Reply-To: <20170714092540.1217397-1-arnd@arndb.de>
-References: <20170714092540.1217397-1-arnd@arndb.de>
+Received: from ns.mm-sol.com ([37.157.136.199]:45673 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750841AbdGEIpJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 5 Jul 2017 04:45:09 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hansverk@cisco.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH 2/3] [media] ov5645: Add control to export pixel clock frequency
+Date: Wed,  5 Jul 2017 11:44:48 +0300
+Message-Id: <1499244289-7791-2-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1499244289-7791-1-git-send-email-todor.tomov@linaro.org>
+References: <1499244289-7791-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-gcc-7 points out an older regression:
+Add suport for standard V4L2_CID_PIXEL_RATE control. The pixel clock
+frequency value is specific for each sensor mode so the sensor mode
+structure is extended to add this. The control is read-only and its
+value is updated when the sensor mode is changed - on set_format.
 
-drivers/staging/iio/resolver/ad2s1210.c: In function 'ad2s1210_read_raw':
-drivers/staging/iio/resolver/ad2s1210.c:515:42: error: '<<' in boolean context, did you mean '<' ? [-Werror=int-in-bool-context]
-
-The original code had 'unsigned short' here, but incorrectly got
-converted to 'bool'. This reverts the regression and uses a normal
-type instead.
-
-Fixes: 29148543c521 ("staging:iio:resolver:ad2s1210 minimal chan spec conversion.")
-Cc: stable@vger.kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- drivers/staging/iio/resolver/ad2s1210.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/i2c/ov5645.c | 26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/staging/iio/resolver/ad2s1210.c b/drivers/staging/iio/resolver/ad2s1210.c
-index a6a8393d6664..3e00df74b18c 100644
---- a/drivers/staging/iio/resolver/ad2s1210.c
-+++ b/drivers/staging/iio/resolver/ad2s1210.c
-@@ -472,7 +472,7 @@ static int ad2s1210_read_raw(struct iio_dev *indio_dev,
- 			     long m)
- {
- 	struct ad2s1210_state *st = iio_priv(indio_dev);
--	bool negative;
-+	u16 negative;
- 	int ret = 0;
- 	u16 pos;
- 	s16 vel;
+diff --git a/drivers/media/i2c/ov5645.c b/drivers/media/i2c/ov5645.c
+index bb3dd0d..4583f66 100644
+--- a/drivers/media/i2c/ov5645.c
++++ b/drivers/media/i2c/ov5645.c
+@@ -80,6 +80,7 @@ struct ov5645_mode_info {
+ 	u32 height;
+ 	const struct reg_value *data;
+ 	u32 data_size;
++	u32 pixel_clock;
+ };
+ 
+ struct ov5645 {
+@@ -99,6 +100,7 @@ struct ov5645 {
+ 	const struct ov5645_mode_info *current_mode;
+ 
+ 	struct v4l2_ctrl_handler ctrls;
++	struct v4l2_ctrl *pixel_clock;
+ 
+ 	/* Cached register values */
+ 	u8 aec_pk_manual;
+@@ -510,19 +512,22 @@ static inline struct ov5645 *to_ov5645(struct v4l2_subdev *sd)
+ 		.width = 1280,
+ 		.height = 960,
+ 		.data = ov5645_setting_sxga,
+-		.data_size = ARRAY_SIZE(ov5645_setting_sxga)
++		.data_size = ARRAY_SIZE(ov5645_setting_sxga),
++		.pixel_clock = 111440000
+ 	},
+ 	{
+ 		.width = 1920,
+ 		.height = 1080,
+ 		.data = ov5645_setting_1080p,
+-		.data_size = ARRAY_SIZE(ov5645_setting_1080p)
++		.data_size = ARRAY_SIZE(ov5645_setting_1080p),
++		.pixel_clock = 167160000
+ 	},
+ 	{
+ 		.width = 2592,
+ 		.height = 1944,
+ 		.data = ov5645_setting_full,
+-		.data_size = ARRAY_SIZE(ov5645_setting_full)
++		.data_size = ARRAY_SIZE(ov5645_setting_full),
++		.pixel_clock = 167160000
+ 	},
+ };
+ 
+@@ -969,6 +974,7 @@ static int ov5645_set_format(struct v4l2_subdev *sd,
+ 	struct v4l2_mbus_framefmt *__format;
+ 	struct v4l2_rect *__crop;
+ 	const struct ov5645_mode_info *new_mode;
++	int ret;
+ 
+ 	__crop = __ov5645_get_pad_crop(ov5645, cfg, format->pad,
+ 			format->which);
+@@ -978,8 +984,14 @@ static int ov5645_set_format(struct v4l2_subdev *sd,
+ 	__crop->width = new_mode->width;
+ 	__crop->height = new_mode->height;
+ 
+-	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
++	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
++		ret = v4l2_ctrl_s_ctrl_int64(ov5645->pixel_clock,
++					     new_mode->pixel_clock);
++		if (ret < 0)
++			return ret;
++
+ 		ov5645->current_mode = new_mode;
++	}
+ 
+ 	__format = __ov5645_get_pad_format(ov5645, cfg, format->pad,
+ 			format->which);
+@@ -1197,7 +1209,7 @@ static int ov5645_probe(struct i2c_client *client,
+ 
+ 	mutex_init(&ov5645->power_lock);
+ 
+-	v4l2_ctrl_handler_init(&ov5645->ctrls, 7);
++	v4l2_ctrl_handler_init(&ov5645->ctrls, 8);
+ 	v4l2_ctrl_new_std(&ov5645->ctrls, &ov5645_ctrl_ops,
+ 			  V4L2_CID_SATURATION, -4, 4, 1, 0);
+ 	v4l2_ctrl_new_std(&ov5645->ctrls, &ov5645_ctrl_ops,
+@@ -1215,6 +1227,10 @@ static int ov5645_probe(struct i2c_client *client,
+ 				     V4L2_CID_TEST_PATTERN,
+ 				     ARRAY_SIZE(ov5645_test_pattern_menu) - 1,
+ 				     0, 0, ov5645_test_pattern_menu);
++	ov5645->pixel_clock = v4l2_ctrl_new_std(&ov5645->ctrls,
++						&ov5645_ctrl_ops,
++						V4L2_CID_PIXEL_RATE,
++						1, INT_MAX, 1, 1);
+ 
+ 	ov5645->sd.ctrl_handler = &ov5645->ctrls;
+ 
 -- 
-2.9.0
+1.9.1
