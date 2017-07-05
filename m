@@ -1,62 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:36908 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751294AbdGOMr5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Jul 2017 08:47:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/4] dt-bindings: document the tegra CEC bindings
-Date: Sat, 15 Jul 2017 14:47:50 +0200
-Message-Id: <20170715124753.43714-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170715124753.43714-1-hverkuil@xs4all.nl>
-References: <20170715124753.43714-1-hverkuil@xs4all.nl>
+Received: from mail-it0-f68.google.com ([209.85.214.68]:34757 "EHLO
+        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751626AbdGEODK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Jul 2017 10:03:10 -0400
+Date: Wed, 5 Jul 2017 09:03:05 -0500
+From: Rob Herring <robh@kernel.org>
+To: Hugues Fruchet <hugues.fruchet@st.com>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        " H. Nikolaus Schaller" <hns@goldelico.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>
+Subject: Re: [PATCH v2 1/7] DT bindings: add bindings for ov965x camera module
+Message-ID: <20170705140305.pixlhd65xu6g3nlf@rob-hp-laptop>
+References: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com>
+ <1499073368-31905-2-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1499073368-31905-2-git-send-email-hugues.fruchet@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, Jul 03, 2017 at 11:16:02AM +0200, Hugues Fruchet wrote:
+> From: "H. Nikolaus Schaller" <hns@goldelico.com>
+> 
+> This adds documentation of device tree bindings
+> for the OV965X family camera sensor module.
+> 
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+> ---
+>  .../devicetree/bindings/media/i2c/ov965x.txt       | 45 ++++++++++++++++++++++
+>  1 file changed, 45 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov965x.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov965x.txt b/Documentation/devicetree/bindings/media/i2c/ov965x.txt
+> new file mode 100644
+> index 0000000..4ceb727
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov965x.txt
+> @@ -0,0 +1,45 @@
+> +* Omnivision OV9650/9652/9655 CMOS sensor
+> +
+> +The Omnivision OV965x sensor support multiple resolutions output, such as
+> +CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
+> +output format.
+> +
+> +Required Properties:
+> +- compatible: should be one of
+> +	"ovti,ov9650"
+> +	"ovti,ov9652"
+> +	"ovti,ov9655"
+> +- clocks: reference to the mclk input clock.
+> +
+> +Optional Properties:
+> +- resetb-gpios: reference to the GPIO connected to the RESETB pin, if any,
+> +		polarity is active low.
 
-This documents the binding for the Tegra CEC module.
+reset-gpios
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../devicetree/bindings/media/tegra-cec.txt        | 26 ++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/tegra-cec.txt
+> +- pwdn-gpios: reference to the GPIO connected to the PWDN pin, if any,
+> +		polarity is active high.
 
-diff --git a/Documentation/devicetree/bindings/media/tegra-cec.txt b/Documentation/devicetree/bindings/media/tegra-cec.txt
-new file mode 100644
-index 000000000000..ba0b6071acaa
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/tegra-cec.txt
-@@ -0,0 +1,26 @@
-+* Tegra HDMI CEC driver
-+
-+The HDMI CEC module is present in Tegra SoCs and its purpose is to
-+handle communication between HDMI connected devices over the CEC bus.
-+
-+Required properties:
-+  - compatible : value should be one of the following:
-+	"nvidia,tegra114-cec"
-+	"nvidia,tegra124-cec"
-+	"nvidia,tegra210-cec"
-+  - reg : Physical base address of the IP registers and length of memory
-+	  mapped region.
-+  - interrupts : HDMI CEC interrupt number to the CPU.
-+  - clocks : from common clock binding: handle to HDMI CEC clock.
-+  - clock-names : from common clock binding: must contain "cec",
-+		  corresponding to ithe entry in the clocks property.
-+  - hdmi-phandle : phandle to the HDMI controller, see also cec.txt.
-+
-+Example:
-+
-+tegra_cec {
-+	compatible = "nvidia,tegra124-cec";
-+	reg = <0x0 0x70015000 0x0 0x00001000>;
-+	interrupts = <GIC_SPI 3 IRQ_TYPE_LEVEL_HIGH>;
-+	clocks = <&tegra_car TEGRA124_CLK_CEC>;
-+	clock-names = "cec";
--- 
-2.11.0
+powerdown-gpios
+
+Both are standardish names for such signals.
+
+Rob
