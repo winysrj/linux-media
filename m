@@ -1,108 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34865
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751299AbdGSTiB (ORCPT
+Received: from gateway20.websitewelcome.com ([192.185.61.9]:43404 "EHLO
+        gateway20.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752040AbdGETKa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Jul 2017 15:38:01 -0400
-Date: Wed, 19 Jul 2017 16:37:51 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, pavel@ucw.cz,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 5/8] v4l: Add support for CSI-1 and CCP2 busses
-Message-ID: <20170719163751.3fd7c891@vento.lan>
-In-Reply-To: <20170705230019.5461-6-sakari.ailus@linux.intel.com>
-References: <20170705230019.5461-1-sakari.ailus@linux.intel.com>
-        <20170705230019.5461-6-sakari.ailus@linux.intel.com>
+        Wed, 5 Jul 2017 15:10:30 -0400
+Received: from cm14.websitewelcome.com (cm14.websitewelcome.com [100.42.49.7])
+        by gateway20.websitewelcome.com (Postfix) with ESMTP id 3230A400FF923
+        for <linux-media@vger.kernel.org>; Wed,  5 Jul 2017 13:23:56 -0500 (CDT)
+Date: Wed, 5 Jul 2017 13:23:55 -0500
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH] tuners: remove unnecessary static in simple_dvb_configure()
+Message-ID: <20170705182355.GA13493@embeddedgus>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu,  6 Jul 2017 02:00:16 +0300
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+Remove unnecessary static on local variable t_params.
+Such variable is initialized before being used,
+on every execution path throughout the function.
+The static has no benefit and, removing it reduces
+the code size.
 
-> From: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> CCP2 and CSI-1, are older single data lane serial busses.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> ---
->  drivers/media/platform/pxa_camera.c              |  3 ++
->  drivers/media/platform/soc_camera/soc_mediabus.c |  3 ++
->  drivers/media/v4l2-core/v4l2-fwnode.c            | 58 +++++++++++++++++++-----
->  include/media/v4l2-fwnode.h                      | 19 ++++++++
->  include/media/v4l2-mediabus.h                    |  4 ++
->  5 files changed, 76 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
-> index 399095170b6e..17e797c9559f 100644
-> --- a/drivers/media/platform/pxa_camera.c
-> +++ b/drivers/media/platform/pxa_camera.c
-> @@ -638,6 +638,9 @@ static unsigned int pxa_mbus_config_compatible(const struct v4l2_mbus_config *cf
->  		mipi_clock = common_flags & (V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK |
->  					     V4L2_MBUS_CSI2_CONTINUOUS_CLOCK);
->  		return (!mipi_lanes || !mipi_clock) ? 0 : common_flags;
-> +	default:
-> +		__WARN();
-> +		return -EINVAL;
->  	}
->  	return 0;
->  }
-> diff --git a/drivers/media/platform/soc_camera/soc_mediabus.c b/drivers/media/platform/soc_camera/soc_mediabus.c
-> index 57581f626f4c..43192d80beef 100644
-> --- a/drivers/media/platform/soc_camera/soc_mediabus.c
-> +++ b/drivers/media/platform/soc_camera/soc_mediabus.c
-> @@ -508,6 +508,9 @@ unsigned int soc_mbus_config_compatible(const struct v4l2_mbus_config *cfg,
->  		mipi_clock = common_flags & (V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK |
->  					     V4L2_MBUS_CSI2_CONTINUOUS_CLOCK);
->  		return (!mipi_lanes || !mipi_clock) ? 0 : common_flags;
-> +	default:
-> +		__WARN();
-> +		return -EINVAL;
->  	}
->  	return 0;
->  }
-> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> index d71dd3913cd9..76a88f210cb6 100644
-> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> @@ -154,6 +154,31 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
->  
->  }
->  
-> +void v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_handle *fwnode,
-> +					 struct v4l2_fwnode_endpoint *vep,
-> +					 u32 bus_type)
-> +{
-> +       struct v4l2_fwnode_bus_mipi_csi1 *bus = &vep->bus.mipi_csi1;
-> +       u32 v;
-> +
-> +       if (!fwnode_property_read_u32(fwnode, "clock-inv", &v))
-> +               bus->clock_inv = v;
-> +
-> +       if (!fwnode_property_read_u32(fwnode, "strobe", &v))
-> +               bus->strobe = v;
-> +
-> +       if (!fwnode_property_read_u32(fwnode, "data-lanes", &v))
-> +               bus->data_lane = v;
-> +
-> +       if (!fwnode_property_read_u32(fwnode, "clock-lanes", &v))
-> +               bus->clock_lane = v;
-> +
-> +       if (bus_type == V4L2_FWNODE_BUS_TYPE_CCP2)
-> +	       vep->bus_type = V4L2_MBUS_CCP2;
-> +       else
-> +	       vep->bus_type = V4L2_MBUS_CSI1;
-> +}
-> +
+This issue was detected using Coccinelle and the following semantic patch:
 
-This function is indented with whitespaces! Next time, please check with
-checkpatch.
+@bad exists@
+position p;
+identifier x;
+type T;
+@@
 
-I fixed when merging it upstream.
+static T x@p;
+...
+x = <+...x...+>
 
-Thanks,
-Mauro
+@@
+identifier x;
+expression e;
+type T;
+position p != bad.p;
+@@
+
+-static
+ T x@p;
+ ... when != x
+     when strict
+?x = e;
+
+In the following log you can see the difference in the code size. Also,
+there is a significant difference in the bss segment. This log is the
+output of the size command, before and after the code change:
+
+before:
+   text    data     bss     dec     hex filename
+  23314    3640     832   27786    6c8a drivers/media/tuners/tuner-simple.o
+
+after:
+   text    data     bss     dec     hex filename
+  23257    3552     768   27577    6bb9 drivers/media/tuners/tuner-simple.o
+
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+---
+ drivers/media/tuners/tuner-simple.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/tuners/tuner-simple.c b/drivers/media/tuners/tuner-simple.c
+index 3339b13..cf44d36 100644
+--- a/drivers/media/tuners/tuner-simple.c
++++ b/drivers/media/tuners/tuner-simple.c
+@@ -846,7 +846,7 @@ static u32 simple_dvb_configure(struct dvb_frontend *fe, u8 *buf,
+ 	/* This function returns the tuned frequency on success, 0 on error */
+ 	struct tuner_simple_priv *priv = fe->tuner_priv;
+ 	struct tunertype *tun = priv->tun;
+-	static struct tuner_params *t_params;
++	struct tuner_params *t_params;
+ 	u8 config, cb;
+ 	u32 div;
+ 	int ret;
+-- 
+2.5.0
