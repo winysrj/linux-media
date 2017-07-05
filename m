@@ -1,48 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:56794 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751257AbdGQHaO (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41980 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752100AbdGEXAX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 03:30:14 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.13] Three cec patches for 4.13.
-Message-ID: <b20d6a4a-61d1-90b9-cf30-09e4078bfc55@xs4all.nl>
-Date: Mon, 17 Jul 2017 09:30:12 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+        Wed, 5 Jul 2017 19:00:23 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: pavel@ucw.cz
+Subject: [PATCH 3/8] v4l: fwnode: Call CSI2 bus csi2, not csi
+Date: Thu,  6 Jul 2017 02:00:14 +0300
+Message-Id: <20170705230019.5461-4-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170705230019.5461-1-sakari.ailus@linux.intel.com>
+References: <20170705230019.5461-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+The function to parse CSI2 bus parameters was called
+v4l2_fwnode_endpoint_parse_csi_bus(), rename it as
+v4l2_fwnode_endpoint_parse_csi2_bus() in anticipation of CSI1/CCP2
+support.
 
-Here are three small CEC patches that should go to 4.13.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/v4l2-fwnode.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Regards,
-
-	Hans
-
-The following changes since commit 2748e76ddb2967c4030171342ebdd3faa6a5e8e8:
-
-  media: staging: cxd2099: Activate cxd2099 buffer mode (2017-06-26 08:19:13 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git cec-fix
-
-for you to fetch changes up to 839865a4345ffbf1f23e701ab9c51372bcbec436:
-
-  cec-notifier: small improvements (2017-07-17 09:27:24 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (3):
-      cec: cec_transmit_attempt_done: ignore CEC_TX_STATUS_MAX_RETRIES
-      pulse8-cec: persistent_config should be off by default
-      cec-notifier: small improvements
-
- drivers/media/cec/cec-adap.c              |  2 +-
- drivers/media/cec/cec-notifier.c          |  6 ++++++
- drivers/media/usb/pulse8-cec/pulse8-cec.c |  2 +-
- include/media/cec-notifier.h              | 15 +++++++++++++++
- 4 files changed, 23 insertions(+), 2 deletions(-)
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 153c53ca3925..8df26010d006 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -28,8 +28,8 @@
+ 
+ #include <media/v4l2-fwnode.h>
+ 
+-static int v4l2_fwnode_endpoint_parse_csi_bus(struct fwnode_handle *fwnode,
+-					      struct v4l2_fwnode_endpoint *vep)
++static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
++					       struct v4l2_fwnode_endpoint *vep)
+ {
+ 	struct v4l2_fwnode_bus_mipi_csi2 *bus = &vep->bus.mipi_csi2;
+ 	bool have_clk_lane = false;
+@@ -176,7 +176,7 @@ int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+ 	memset(&vep->bus_type, 0, sizeof(*vep) -
+ 	       offsetof(typeof(*vep), bus_type));
+ 
+-	rval = v4l2_fwnode_endpoint_parse_csi_bus(fwnode, vep);
++	rval = v4l2_fwnode_endpoint_parse_csi2_bus(fwnode, vep);
+ 	if (rval)
+ 		return rval;
+ 	/*
+-- 
+2.11.0
