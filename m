@@ -1,174 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44154 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751342AbdGQWBT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 18:01:19 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: pavel@ucw.cz, linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [PATCH 2/7] omap3isp: Parse CSI1 configuration from the device tree
-Date: Tue, 18 Jul 2017 01:01:11 +0300
-Message-Id: <20170717220116.17886-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170717220116.17886-1-sakari.ailus@linux.intel.com>
-References: <20170717220116.17886-1-sakari.ailus@linux.intel.com>
+Received: from smtp5-g21.free.fr ([212.27.42.5]:48920 "EHLO smtp5-g21.free.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752261AbdGEM4I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 5 Jul 2017 08:56:08 -0400
+Subject: Re: Trying to use IR driver for my SoC
+To: Sean Young <sean@mess.org>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>
+References: <cf82988e-8be2-1ec8-b343-7c3c54110746@free.fr>
+ <20170629155557.GA12980@gofer.mess.org>
+ <276e7aa2-0c98-5556-622a-65aab4b9d373@free.fr>
+ <20170629175037.GA14390@gofer.mess.org>
+From: Mason <slash.tmp@free.fr>
+Message-ID: <6b1405be-7980-bc19-71b7-8186180c58a9@free.fr>
+Date: Wed, 5 Jul 2017 14:55:55 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170629175037.GA14390@gofer.mess.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pavel Machek <pavel@ucw.cz>
+On 29/06/2017 19:50, Sean Young wrote:
 
-Add support for parsing CSI1 configuration.
+> The only thing that stands out is RC5_TIME_BASE. If that is the bit
+> length or shortest pulse/space? In the latter case it should be 888 usec.
 
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/platform/omap3isp/isp.c      | 106 +++++++++++++++++++++--------
- drivers/media/platform/omap3isp/omap3isp.h |   1 +
- 2 files changed, 80 insertions(+), 27 deletions(-)
+IR_RC5_DECODER_CLK_DIV
+Length of 1 bit of the RC5 code in units of 27 MHz clks
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 441eba1e02eb..80ed5a5f862a 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2017,6 +2017,7 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
- 	struct v4l2_fwnode_endpoint vep;
- 	unsigned int i;
- 	int ret;
-+	bool csi1 = false;
- 
- 	ret = v4l2_fwnode_endpoint_parse(fwnode, &vep);
- 	if (ret)
-@@ -2045,41 +2046,92 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
- 
- 	case ISP_OF_PHY_CSIPHY1:
- 	case ISP_OF_PHY_CSIPHY2:
--		/* FIXME: always assume CSI-2 for now. */
-+		switch (vep.bus_type) {
-+		case V4L2_MBUS_CCP2:
-+		case V4L2_MBUS_CSI1:
-+			dev_dbg(dev, "csi1/ccp2 configuration\n");
-+			csi1 = true;
-+			break;
-+		case V4L2_MBUS_CSI2:
-+			dev_dbg(dev, "csi2 configuration\n");
-+			csi1 = false;
-+			break;
-+		default:
-+			dev_err(dev, "unsupported bus type %u\n",
-+				vep.bus_type);
-+			return -EINVAL;
-+		}
-+
- 		switch (vep.base.port) {
- 		case ISP_OF_PHY_CSIPHY1:
--			buscfg->interface = ISP_INTERFACE_CSI2C_PHY1;
-+			if (csi1)
-+				buscfg->interface = ISP_INTERFACE_CCP2B_PHY1;
-+			else
-+				buscfg->interface = ISP_INTERFACE_CSI2C_PHY1;
- 			break;
- 		case ISP_OF_PHY_CSIPHY2:
--			buscfg->interface = ISP_INTERFACE_CSI2A_PHY2;
-+			if (csi1)
-+				buscfg->interface = ISP_INTERFACE_CCP2B_PHY2;
-+			else
-+				buscfg->interface = ISP_INTERFACE_CSI2A_PHY2;
- 			break;
- 		}
--		buscfg->bus.csi2.lanecfg.clk.pos = vep.bus.mipi_csi2.clock_lane;
--		buscfg->bus.csi2.lanecfg.clk.pol =
--			vep.bus.mipi_csi2.lane_polarities[0];
--		dev_dbg(dev, "clock lane polarity %u, pos %u\n",
--			buscfg->bus.csi2.lanecfg.clk.pol,
--			buscfg->bus.csi2.lanecfg.clk.pos);
--
--		buscfg->bus.csi2.num_data_lanes =
--			vep.bus.mipi_csi2.num_data_lanes;
--
--		for (i = 0; i < buscfg->bus.csi2.num_data_lanes; i++) {
--			buscfg->bus.csi2.lanecfg.data[i].pos =
--				vep.bus.mipi_csi2.data_lanes[i];
--			buscfg->bus.csi2.lanecfg.data[i].pol =
--				vep.bus.mipi_csi2.lane_polarities[i + 1];
-+		if (csi1) {
-+			buscfg->bus.ccp2.lanecfg.clk.pos =
-+				vep.bus.mipi_csi1.clock_lane;
-+			buscfg->bus.ccp2.lanecfg.clk.pol =
-+				vep.bus.mipi_csi1.lane_polarity[0];
-+			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
-+				buscfg->bus.ccp2.lanecfg.clk.pol,
-+				buscfg->bus.ccp2.lanecfg.clk.pos);
-+
-+			buscfg->bus.ccp2.lanecfg.data[0].pos =
-+				vep.bus.mipi_csi1.data_lane;
-+			buscfg->bus.ccp2.lanecfg.data[0].pol =
-+				vep.bus.mipi_csi1.lane_polarity[1];
-+
- 			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
--				buscfg->bus.csi2.lanecfg.data[i].pol,
--				buscfg->bus.csi2.lanecfg.data[i].pos);
-+				buscfg->bus.ccp2.lanecfg.data[0].pol,
-+				buscfg->bus.ccp2.lanecfg.data[0].pos);
-+
-+			buscfg->bus.ccp2.strobe_clk_pol =
-+				vep.bus.mipi_csi1.clock_inv;
-+			buscfg->bus.ccp2.phy_layer = vep.bus.mipi_csi1.strobe;
-+			buscfg->bus.ccp2.ccp2_mode =
-+				vep.bus_type == V4L2_MBUS_CCP2;
-+			buscfg->bus.ccp2.vp_clk_pol = 1;
-+
-+			buscfg->bus.ccp2.crc = 1;
-+		} else {
-+			buscfg->bus.csi2.lanecfg.clk.pos =
-+				vep.bus.mipi_csi2.clock_lane;
-+			buscfg->bus.csi2.lanecfg.clk.pol =
-+				vep.bus.mipi_csi2.lane_polarities[0];
-+			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
-+				buscfg->bus.csi2.lanecfg.clk.pol,
-+				buscfg->bus.csi2.lanecfg.clk.pos);
-+
-+			buscfg->bus.csi2.num_data_lanes =
-+				vep.bus.mipi_csi2.num_data_lanes;
-+
-+			for (i = 0; i < buscfg->bus.csi2.num_data_lanes; i++) {
-+				buscfg->bus.csi2.lanecfg.data[i].pos =
-+					vep.bus.mipi_csi2.data_lanes[i];
-+				buscfg->bus.csi2.lanecfg.data[i].pol =
-+					vep.bus.mipi_csi2.lane_polarities[i + 1];
-+				dev_dbg(dev,
-+					"data lane %u polarity %u, pos %u\n", i,
-+					buscfg->bus.csi2.lanecfg.data[i].pol,
-+					buscfg->bus.csi2.lanecfg.data[i].pos);
-+			}
-+			/*
-+			 * FIXME: now we assume the CRC is always there.
-+			 * Implement a way to obtain this information from the
-+			 * sensor. Frame descriptors, perhaps?
-+			 */
-+
-+			buscfg->bus.csi2.crc = 1;
- 		}
--
--		/*
--		 * FIXME: now we assume the CRC is always there.
--		 * Implement a way to obtain this information from the
--		 * sensor. Frame descriptors, perhaps?
--		 */
--		buscfg->bus.csi2.crc = 1;
- 		break;
- 
- 	default:
-diff --git a/drivers/media/platform/omap3isp/omap3isp.h b/drivers/media/platform/omap3isp/omap3isp.h
-index 3c26f9a3f508..672a9cf5aa4d 100644
---- a/drivers/media/platform/omap3isp/omap3isp.h
-+++ b/drivers/media/platform/omap3isp/omap3isp.h
-@@ -108,6 +108,7 @@ struct isp_ccp2_cfg {
- 	unsigned int ccp2_mode:1;
- 	unsigned int phy_layer:1;
- 	unsigned int vpclk_div:2;
-+	unsigned int vp_clk_pol:1;
- 	struct isp_csiphy_lanes_cfg lanecfg;
- };
- 
--- 
-2.11.0
+Default value = 0xbb86  => 1.778 ms
+
+#define RC5_TIME_BASE	1778
+(time in microseconds apparently)
+
+clkdiv = clkrate * RC5_TIME_BASE / 1e6 = 48006 = 0xbb86
+
+I don't really see the point of reprogramming the
+default value, though...
+
+I'm thinking GPIO directions might be misconfigured, which
+could explain why no IRQs are firing. Back to basics.
+
+Regards.
