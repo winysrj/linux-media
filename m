@@ -1,78 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33818 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751153AbdGMViI (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42002 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752307AbdGEXAZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Jul 2017 17:38:08 -0400
-Date: Thu, 13 Jul 2017 23:38:06 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/2] OMAP3ISP CCP2 support
-Message-ID: <20170713213805.GA1229@amd>
-References: <20170713161903.9974-1-sakari.ailus@linux.intel.com>
- <20170713211335.GA13502@amd>
- <20170713212651.so5aqqp5k325pb4w@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="1yeeQ81UyVL57Vl7"
-Content-Disposition: inline
-In-Reply-To: <20170713212651.so5aqqp5k325pb4w@valkosipuli.retiisi.org.uk>
+        Wed, 5 Jul 2017 19:00:25 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: pavel@ucw.cz
+Subject: [PATCH 8/8] omap3isp: Destroy CSI-2 phy mutexes in error and module removal
+Date: Thu,  6 Jul 2017 02:00:19 +0300
+Message-Id: <20170705230019.5461-9-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170705230019.5461-1-sakari.ailus@linux.intel.com>
+References: <20170705230019.5461-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The CSI-2 phy driver did initialise mutexes in its init function but there
+was no corresponding cleanup function destroying them. Fix that. Also
+clean up ISP module initialisation a little.
 
---1yeeQ81UyVL57Vl7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/platform/omap3isp/isp.c       | 6 ++++--
+ drivers/media/platform/omap3isp/ispcsiphy.c | 6 ++++++
+ drivers/media/platform/omap3isp/ispcsiphy.h | 1 +
+ 3 files changed, 11 insertions(+), 2 deletions(-)
 
-On Fri 2017-07-14 00:26:52, Sakari Ailus wrote:
-> On Thu, Jul 13, 2017 at 11:13:35PM +0200, Pavel Machek wrote:
-> > Hi!
-> >=20
-> > > I took the liberty of changing your patch a bit. I added another to e=
-xtract
-> > > the number of lanes from the endpoint instead as it's not really a pr=
-operty
-> > > of the PHY. (Not tested yet, will check with N9.)
-> >=20
-> > No problem.
-> >=20
-> > Notice that the 1/2 does not apply on top of ccp2 branch; my merge
-> > resolution was this:
->=20
-> The two patches are for the ccp2-prepare branches, not for ccp2; it's
-> somewhat out of date right now and needs a rebase.
-
-Yes, and 1/2 will need merge resolution when you do that. Fortunately
-it is easy.
-
-> The patches work fine on N9.
-
-I was able to fix the userspace, and they work for me, too. For both:
-
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Tested-by: Pavel Machek <pavel@ucw.cz>
-
-Thanks,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---1yeeQ81UyVL57Vl7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlln6D0ACgkQMOfwapXb+vKSeQCdFISZCIiuZX3brp/wSNblVrOq
-gHUAoIAQyFb2KVK092ntEDgu0lEZdO4e
-=iUWI
------END PGP SIGNATURE-----
-
---1yeeQ81UyVL57Vl7--
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 0676be725d7c..7028bbe13b69 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -1859,6 +1859,7 @@ static void isp_cleanup_modules(struct isp_device *isp)
+ 	omap3isp_ccdc_cleanup(isp);
+ 	omap3isp_ccp2_cleanup(isp);
+ 	omap3isp_csi2_cleanup(isp);
++	omap3isp_csiphy_cleanup(isp);
+ }
+ 
+ static int isp_initialize_modules(struct isp_device *isp)
+@@ -1868,7 +1869,7 @@ static int isp_initialize_modules(struct isp_device *isp)
+ 	ret = omap3isp_csiphy_init(isp);
+ 	if (ret < 0) {
+ 		dev_err(isp->dev, "CSI PHY initialization failed\n");
+-		goto error_csiphy;
++		return ret;
+ 	}
+ 
+ 	ret = omap3isp_csi2_init(isp);
+@@ -1937,7 +1938,8 @@ static int isp_initialize_modules(struct isp_device *isp)
+ error_ccp2:
+ 	omap3isp_csi2_cleanup(isp);
+ error_csi2:
+-error_csiphy:
++	omap3isp_csiphy_cleanup(isp);
++
+ 	return ret;
+ }
+ 
+diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
+index 871d4fe09c7f..83940e9d8291 100644
+--- a/drivers/media/platform/omap3isp/ispcsiphy.c
++++ b/drivers/media/platform/omap3isp/ispcsiphy.c
+@@ -345,3 +345,9 @@ int omap3isp_csiphy_init(struct isp_device *isp)
+ 
+ 	return 0;
+ }
++
++void omap3isp_csiphy_cleanup(struct isp_device *isp)
++{
++	mutex_destroy(&isp->isp_csiphy1.mutex);
++	mutex_destroy(&isp->isp_csiphy2.mutex);
++}
+diff --git a/drivers/media/platform/omap3isp/ispcsiphy.h b/drivers/media/platform/omap3isp/ispcsiphy.h
+index 28b63b28f9f7..978ca5c80a6c 100644
+--- a/drivers/media/platform/omap3isp/ispcsiphy.h
++++ b/drivers/media/platform/omap3isp/ispcsiphy.h
+@@ -39,5 +39,6 @@ struct isp_csiphy {
+ int omap3isp_csiphy_acquire(struct isp_csiphy *phy);
+ void omap3isp_csiphy_release(struct isp_csiphy *phy);
+ int omap3isp_csiphy_init(struct isp_device *isp);
++void omap3isp_csiphy_cleanup(struct isp_device *isp);
+ 
+ #endif	/* OMAP3_ISP_CSI_PHY_H */
+-- 
+2.11.0
