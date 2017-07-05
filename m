@@ -1,84 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:52666 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753365AbdGSKuS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Jul 2017 06:50:18 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v5 2/4] v4l: async: abort if memory allocation fails when unregistering notifiers
-Date: Wed, 19 Jul 2017 12:49:44 +0200
-Message-Id: <20170719104946.7322-3-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170719104946.7322-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170719104946.7322-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-qk0-f174.google.com ([209.85.220.174]:35844 "EHLO
+        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751696AbdGEKS5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Jul 2017 06:18:57 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAK8P3a0i-H=uU=9DNJbtK2EMX2GJ5cL_TW0roSHpa6tHTcZ2sg@mail.gmail.com>
+References: <20170704101508.30946-1-chunyan.zhang@spreadtrum.com>
+ <20170704101508.30946-3-chunyan.zhang@spreadtrum.com> <CAK8P3a0i-H=uU=9DNJbtK2EMX2GJ5cL_TW0roSHpa6tHTcZ2sg@mail.gmail.com>
+From: Chunyan Zhang <zhang.lyra@gmail.com>
+Date: Wed, 5 Jul 2017 18:18:56 +0800
+Message-ID: <CAAfSe-vj76psYw2uzC2w0pASRT-FGHqXph0zWE_3tmMVzMHKvg@mail.gmail.com>
+Subject: Re: [PATCH 2/2] misc: added Spreadtrum's radio driver
+To: Arnd Bergmann <arnd@arndb.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Chunyan Zhang <chunyan.zhang@spreadtrum.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        Songhe Wei <songhe.wei@spreadtrum.com>,
+        Zhongping Tan <zhongping.tan@spreadtrum.com>,
+        Orson Zhai <orson.zhai@spreadtrum.com>,
+        linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of trying to cope with the failed memory allocation and still
-leaving the kernel in a semi-broken state (the subdevices will be
-released but never re-probed) simply abort. The kernel have already
-printed a warning about allocation failure but keep the error printout
-to ease pinpointing the problem if it happens.
+On 4 July 2017 at 18:51, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Tue, Jul 4, 2017 at 12:15 PM, Chunyan Zhang
+> <chunyan.zhang@spreadtrum.com> wrote:
+>> This patch added FM radio driver for Spreadtrum's SC2342, which's
+>> a WCN SoC, also added a new directory for Spreadtrum's WCN SoCs.
+>>
+>> Signed-off-by: Songhe Wei <songhe.wei@spreadtrum.com>
+>> Signed-off-by: Chunyan Zhang <chunyan.zhang@spreadtrum.com>
+>
+> (adding linux-media folks to Cc)
 
-By doing this we can increase the readability of this complex function
-which puts it in a better state to separate the v4l2 housekeeping tasks
-from the re-probing of devices. It also serves to prepare for adding
-subnotifers.
+(You forgot to add them in :))
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/v4l2-core/v4l2-async.c | 13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+>
+> Hi Chunyan,
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 0acf288d7227ba97..67852f0f2d3000c9 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -215,6 +215,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 	if (!dev) {
- 		dev_err(notifier->v4l2_dev->dev,
- 			"Failed to allocate device cache!\n");
-+		return;
- 	}
- 
- 	mutex_lock(&list_lock);
-@@ -234,23 +235,13 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 		/* If we handled USB devices, we'd have to lock the parent too */
- 		device_release_driver(d);
- 
--		/*
--		 * Store device at the device cache, in order to call
--		 * put_device() on the final step
--		 */
--		if (dev)
--			dev[i++] = d;
--		else
--			put_device(d);
-+		dev[i++] = d;
- 	}
- 
- 	mutex_unlock(&list_lock);
- 
- 	/*
- 	 * Call device_attach() to reprobe devices
--	 *
--	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
--	 * executed.
- 	 */
- 	while (i--) {
- 		struct device *d = dev[i];
--- 
-2.13.1
+Hi Arnd,
+
+>
+> Thanks for posting this for inclusion as Greg asked for. I'm not sure what
+> the policy is for new radio drivers, but I assume this would have to go
+> to drivers/staging/media/ as it is a driver for hardware that fits into
+> drivers/media/radio but doesn't use the respective APIs.
+
+Ok, I agree to let it go to drivers/staging/media/.
+
+Like I mentioned, SC2342 includes many functions, this patch is only
+adding FM radio function included in SC2342 to the kernel tree.  So I
+figure that its lifetime probably will not be too long, will remove it
+from the kernel tree when we have a clean enough version of the whole
+SC2342 drivers for the official upstreaming.
+
+Thanks,
+Chunyan
+
+>
+>         Arnd
+> ---
+> end of message, full patch quoted for reference below
+>
