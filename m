@@ -1,24 +1,21 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway32.websitewelcome.com ([192.185.145.182]:21362 "EHLO
-        gateway32.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752458AbdGFUqV (ORCPT
+Received: from gateway36.websitewelcome.com ([192.185.186.5]:21925 "EHLO
+        gateway36.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751878AbdGFUZf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Jul 2017 16:46:21 -0400
-Received: from cm17.websitewelcome.com (cm17.websitewelcome.com [100.42.49.20])
-        by gateway32.websitewelcome.com (Postfix) with ESMTP id CF2026D0ECF
-        for <linux-media@vger.kernel.org>; Thu,  6 Jul 2017 15:46:03 -0500 (CDT)
-Date: Thu, 6 Jul 2017 15:46:00 -0500
+        Thu, 6 Jul 2017 16:25:35 -0400
+Received: from cm16.websitewelcome.com (cm16.websitewelcome.com [100.42.49.19])
+        by gateway36.websitewelcome.com (Postfix) with ESMTP id 258A04012F959
+        for <linux-media@vger.kernel.org>; Thu,  6 Jul 2017 15:25:33 -0500 (CDT)
+Date: Thu, 6 Jul 2017 15:25:32 -0500
 From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Houlong Wei <houlong.wei@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org,
+To: Kieran Bingham <kieran@ksquared.org.uk>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
         "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] mtk-mdp: constify vb2_ops structure
-Message-ID: <20170706204600.GA18061@embeddedgus>
+Subject: [PATCH] rcar_fdp1: constify vb2_ops structure
+Message-ID: <20170706202532.GA12160@embeddedgus>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
@@ -60,21 +57,21 @@ struct vb2_ops i = { ... };
 
 Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
 ---
- drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c | 2 +-
+ drivers/media/platform/rcar_fdp1.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-index 13afe48..3038d62 100644
---- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-+++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-@@ -621,7 +621,7 @@ static void mtk_mdp_m2m_buf_queue(struct vb2_buffer *vb)
- 	v4l2_m2m_buf_queue(ctx->m2m_ctx, to_vb2_v4l2_buffer(vb));
+diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
+index 3ee51fc..3245bc4 100644
+--- a/drivers/media/platform/rcar_fdp1.c
++++ b/drivers/media/platform/rcar_fdp1.c
+@@ -2032,7 +2032,7 @@ static void fdp1_stop_streaming(struct vb2_queue *q)
+ 	}
  }
  
--static struct vb2_ops mtk_mdp_m2m_qops = {
-+static const struct vb2_ops mtk_mdp_m2m_qops = {
- 	.queue_setup	 = mtk_mdp_m2m_queue_setup,
- 	.buf_prepare	 = mtk_mdp_m2m_buf_prepare,
- 	.buf_queue	 = mtk_mdp_m2m_buf_queue,
+-static struct vb2_ops fdp1_qops = {
++static const struct vb2_ops fdp1_qops = {
+ 	.queue_setup	 = fdp1_queue_setup,
+ 	.buf_prepare	 = fdp1_buf_prepare,
+ 	.buf_queue	 = fdp1_buf_queue,
 -- 
 2.5.0
