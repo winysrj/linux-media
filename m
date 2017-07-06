@@ -1,57 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33862 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751332AbdGWKNU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Jul 2017 06:13:20 -0400
-Received: by mail-wm0-f66.google.com with SMTP id 79so1683931wmg.1
-        for <linux-media@vger.kernel.org>; Sun, 23 Jul 2017 03:13:19 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, r.scobie@clear.net.nz
-Subject: [PATCH 1/7] [media] dvb-frontends/stv0910: fix STR assignment, remove unneeded var
-Date: Sun, 23 Jul 2017 12:13:09 +0200
-Message-Id: <20170723101315.12523-2-d.scheller.oss@gmail.com>
-In-Reply-To: <20170723101315.12523-1-d.scheller.oss@gmail.com>
-References: <20170723101315.12523-1-d.scheller.oss@gmail.com>
+Received: from bh-25.webhostbox.net ([208.91.199.152]:48166 "EHLO
+        bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752351AbdGFSji (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 14:39:38 -0400
+Date: Thu, 6 Jul 2017 11:39:35 -0700
+From: Guenter Roeck <linux@roeck-us.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Richard Simmons <rssimmo@amazon.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Robb Glasser <rglasser@google.com>
+Subject: Re: [PATCH v2] [media] uvcvideo: Prevent heap overflow in uvc driver
+Message-ID: <20170706183935.GA13082@roeck-us.net>
+References: <1498839716-31918-1-git-send-email-linux@roeck-us.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1498839716-31918-1-git-send-email-linux@roeck-us.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On Fri, Jun 30, 2017 at 09:21:56AM -0700, Guenter Roeck wrote:
+> The size of uvc_control_mapping is user controlled leading to a
+> potential heap overflow in the uvc driver. This adds a check to verify
+> the user provided size fits within the bounds of the defined buffer
+> size.
+> 
+> Originally-from: Richard Simmons <rssimmo@amazon.com>
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 
-According to the documentation, FE_SCALE_DECIBEL values should be assigned
-to .svalue and not .uvalue, so let's do this. While at it, remove the
-unneeded strength var from read_signal_strength().
+Any comments ?
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/dvb-frontends/stv0910.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+Thanks,
+Guenter
 
-diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
-index bae1da3fdb2d..4084c142f1e4 100644
---- a/drivers/media/dvb-frontends/stv0910.c
-+++ b/drivers/media/dvb-frontends/stv0910.c
-@@ -1321,7 +1321,6 @@ static void read_signal_strength(struct dvb_frontend *fe)
- {
- 	struct stv *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *p = &state->fe.dtv_property_cache;
--	s64 strength;
- 	u8 reg[2];
- 	u16 agc;
- 	s32 padc, power = 0;
-@@ -1341,10 +1340,8 @@ static void read_signal_strength(struct dvb_frontend *fe)
- 
- 	padc = table_lookup(padc_lookup, ARRAY_SIZE(padc_lookup), power) + 352;
- 
--	strength = (padc - agc);
--
- 	p->strength.stat[0].scale = FE_SCALE_DECIBEL;
--	p->strength.stat[0].uvalue = strength;
-+	p->strength.stat[0].svalue = (padc - agc);
- }
- 
- static int read_status(struct dvb_frontend *fe, enum fe_status *status)
--- 
-2.13.0
+> ---
+> Fixes CVE-2017-0627.
+> 
+> v2: Combination of v1 with the fix suggested by Richard Simmons
+>     Perform validation after uvc_ctrl_fill_xu_info()
+>     Take into account that ctrl->info.size is in bytes
+>     Also validate mapping->size
+> 
+>  drivers/media/usb/uvc/uvc_ctrl.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+> index c2ee6e39fd0c..d3e3164f43fd 100644
+> --- a/drivers/media/usb/uvc/uvc_ctrl.c
+> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+> @@ -2002,6 +2002,13 @@ int uvc_ctrl_add_mapping(struct uvc_video_chain *chain,
+>  		goto done;
+>  	}
+>  
+> +	/* validate that the user provided bit-size and offset is valid */
+> +	if (mapping->size > 32 ||
+> +	    mapping->offset + mapping->size > ctrl->info.size * 8) {
+> +		ret = -EINVAL;
+> +		goto done;
+> +	}
+> +
+>  	list_for_each_entry(map, &ctrl->info.mappings, list) {
+>  		if (mapping->id == map->id) {
+>  			uvc_trace(UVC_TRACE_CONTROL, "Can't add mapping '%s', "
+> -- 
+> 2.7.4
+> 
