@@ -1,65 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56552 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751322AbdGRKI1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 06:08:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/7] omap3isp: Return -EPROBE_DEFER if the required regulators can't be obtained
-Date: Tue, 18 Jul 2017 13:08:34 +0300
-Message-ID: <3294296.B0HR3QnnsQ@avalon>
-In-Reply-To: <20170718100352.GA28481@amd>
-References: <20170717220116.17886-1-sakari.ailus@linux.intel.com> <1652763.9EYemjAvaH@avalon> <20170718100352.GA28481@amd>
+Received: from us01smtprelay-2.synopsys.com ([198.182.60.111]:38742 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752514AbdGFKYz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 06:24:55 -0400
+Subject: Re: [PATCH v6 4/4] dt-bindings: media: Document Synopsys Designware
+ HDMI RX
+To: Sylwester Nawrocki <snawrocki@kernel.org>,
+        Jose Abreu <Jose.Abreu@synopsys.com>
+References: <cover.1499176790.git.joabreu@synopsys.com>
+ <d6da0a3ec47a46d30b74e9d41fb4bf9ef392d969.1499176790.git.joabreu@synopsys.com>
+ <4dc8f06f-b9cf-6d3d-da88-51abb24c1724@kernel.org>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        "Carlos Palminha" <CARLOS.PALMINHA@synopsys.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        <devicetree@vger.kernel.org>
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+Message-ID: <e87124d0-d523-5dcd-5ace-6b5896ad585c@synopsys.com>
+Date: Thu, 6 Jul 2017 11:24:36 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <4dc8f06f-b9cf-6d3d-da88-51abb24c1724@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+Hi Sylwester,
 
-On Tuesday 18 Jul 2017 12:03:52 Pavel Machek wrote:
-> Hi!
-> 
-> >> diff --git a/drivers/media/platform/omap3isp/ispccp2.c
-> >> b/drivers/media/platform/omap3isp/ispccp2.c index
-> >> 4f8fd0c00748..47210b102bcb 100644
-> >> --- a/drivers/media/platform/omap3isp/ispccp2.c
-> >> +++ b/drivers/media/platform/omap3isp/ispccp2.c
-> >> @@ -1140,6 +1140,11 @@ int omap3isp_ccp2_init(struct isp_device *isp)
-> >>  	if (isp->revision == ISP_REVISION_2_0) {
-> >>  		ccp2->vdds_csib = devm_regulator_get(isp->dev, "vdds_csib");
-> >>  		if (IS_ERR(ccp2->vdds_csib)) {
-> >> +			if (PTR_ERR(ccp2->vdds_csib) == -EPROBE_DEFER) {
-> >> +				dev_dbg(isp->dev,
-> >> +					"Can't get regulator vdds_csib,
-> >> deferring probing\n");
-> >> +				return -EPROBE_DEFER;
-> >> +			}
-> >> 
-> >>  			dev_dbg(isp->dev,
-> >>  				"Could not get regulator vdds_csib\n");
-> > 
-> > I would just move this message above the -EPROBE_DEFER check and remove
-> > the one inside the check. Probe deferral debug information can be obtained
-> > by enabling the debug messages in the driver core.
-> 
-> Actually, in such case perhaps the message in -EPROBE_DEFER could be
-> removed. Deferred probing happens all the time. OTOH "Could not get
-> regulator" probably should be dev_err(), as it will make device
-> unusable?
 
-Messages along the lines of "I'm deferring probe" are in my opinion not 
-valuable, as we can get that from the driver core. Debug messages that tell 
-why probe is being deferred can however be useful for debugging. That's why I 
-proposed to move the regulator get error debug message above the probe 
-deferral check, as it would then always be printed. Turning it into an error 
-makes sense, but only when not deferring probe then.
+On 05-07-2017 21:52, Sylwester Nawrocki wrote:
+> On 07/04/2017 04:11 PM, Jose Abreu wrote:
+>> Document the bindings for the Synopsys Designware HDMI RX.
+>>
+>> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+>> ---
+>>   .../devicetree/bindings/media/snps,dw-hdmi-rx.txt  | 70 ++++++++++++++++++++++
+>>   1 file changed, 70 insertions(+)
+>>   create mode 100644 Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
+> Could you make the DT binding documentation patch first patch in the series?
+> Now checkpatch will complain about undocumented compatible string when 
+> the driver patches are applied alone.
 
--- 
-Regards,
+Sure.
 
-Laurent Pinchart
+>
+>> diff --git a/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt 
+>> b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
+>> new file mode 100644
+>> index 0000000..449b8a2
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
+>> @@ -0,0 +1,70 @@
+>> +Synopsys DesignWare HDMI RX Decoder
+>> +===================================
+>> +
+>> +This document defines device tree properties for the Synopsys DesignWare HDMI
+>> +RX Decoder (DWC HDMI RX). It doesn't constitute a device tree binding
+>> +specification by itself but is meant to be referenced by platform-specific
+>> +device tree bindings.
+>> +
+>> +When referenced from platform device tree bindings the properties defined in
+>> +this document are defined as follows.
+> It would be good to make it clear which properties are required and which are
+> optional. And also to mention the properties below belong to the HDMI RX node.
+
+Ok.
+
+>
+>> +- compatible: Shall be "snps,dw-hdmi-rx".
+>> +
+>> +- reg: Memory mapped base address and length of the DWC HDMI RX registers.
+>> +
+>> +- interrupts: Reference to the DWC HDMI RX interrupt and 5v sense interrupt.
+> s/5v/HDMI 5V ?
+
+Ok.
+
+>
+>> +
+>> +- clocks: Phandle to the config clock block.
+>> +
+>> +- clock-names: Shall be "cfg".
+>> +
+>> +- edid-phandle: phandle to the EDID handler block.
+> Could you make this property optional and when it is missing assume that device
+> corresponding to the parent node of this node handles EDID? This way we could
+> avoid having property pointing to the parent node.
+
+Hmm, this is for the CEC notifier. Do you mean I should grab the
+parent device for the notifier? This property is already optional
+if cec is not enabled though.
+
+>
+>> +- #address-cells: Shall be 1.
+>> +
+>> +- #size-cells: Shall be 0.
+>> +
+>> +You also have to create a subnode for phy driver. Phy properties are as follows.
+> s/phy driver. Phy/the PHY device. PHY ?
+>
+> Might be also worth to make it explicit these are all required properties.
+
+Ok.
+
+>
+>> +- compatible: Shall be "snps,dw-hdmi-phy-e405".
+>> +
+>> +- reg: Shall be JTAG address of phy.
+> s/phy/the PHY ?
+
+Ok.
+
+>
+>> +- clocks: Phandle for cfg clock.
+>> +
+>> +- clock-names:Shall be "cfg".
+>> +
+>> +A sample binding is now provided. The compatible string is for a SoC which has
+>> +has a Synopsys DesignWare HDMI RX decoder inside.
+>> +
+>> +Example:
+>> +
+>> +dw_hdmi_soc: dw-hdmi-soc@0 {
+>> +	compatible = "snps,dw-hdmi-soc";
+> Perhaps just make it
+>
+> 	compatible = "...";
+> ?
+
+Yeah, probably its better.
+
+>
+>> +	reg = <0x11c00 0x1000>; /* EDIDs */
+> This is not relevant and undocumented, will likely be part of documentation 
+> of other binding thus I'd suggest dropping this reg property.
+
+Ok.
+
+>
+>> +	#address-cells = <1>;
+>> +	#size-cells = <1>;
+>> +	ranges;
+>> +
+>> +	hdmi-rx@0 {
+>> +		compatible = "snps,dw-hdmi-rx";
+>> +		reg = <0x0 0x10000>;
+>> +		interrupts = <1 2>;
+>> +		edid-phandle = <&dw_hdmi_soc>;
+>> +
+>> +		clocks = <&dw_hdmi_refclk>;
+>> +		clock-names = "cfg";
+>> +
+>> +		#address-cells = <1>;
+>> +		#size-cells = <0>;
+>> +
+>> +		hdmi-phy@fc {
+>> +			compatible = "snps,dw-hdmi-phy-e405";
+>> +			reg = <0xfc>;
+>> +
+>> +			clocks = <&dw_hdmi_refclk>;
+>> +			clock-names = "cfg";
+>> +		};
+>> +	};
+>> +};
+> Otherwise looks good. I'll likely not have comments to the other patches.
+
+Thanks for the review!
+
+Best regards,
+Jose Miguel Abreu
+
+>
+> --
+> Regards,
+> Sylwester
+>  
