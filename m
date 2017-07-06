@@ -1,58 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:32877 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935041AbdGTLqh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 07:46:37 -0400
-MIME-Version: 1.0
-In-Reply-To: <dc27b259-437d-177f-4e9c-73830b6656e2@xs4all.nl>
-References: <20170719115137.2756-1-stanimir.varbanov@linaro.org> <dc27b259-437d-177f-4e9c-73830b6656e2@xs4all.nl>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 20 Jul 2017 13:46:36 +0200
-Message-ID: <CAK8P3a324F5GffbwNRmhEM-zTFM+tAqyJ-5oEjetR2ZfhPzYtw@mail.gmail.com>
-Subject: Re: [PATCH v2] media: venus: don't abuse dma_alloc for non-DMA allocations
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:33355 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751734AbdGFQOs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 12:14:48 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        alan@linux.intel.com
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] staging: atomisp: ov8858: constify acpi_device_id.
+Date: Thu,  6 Jul 2017 21:44:36 +0530
+Message-Id: <df00971f50ee87bd0ce0fb9ee23c00e3846e5265.1499357476.git.arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 20, 2017 at 1:26 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 19/07/17 13:51, Stanimir Varbanov wrote:
->> In venus_boot(), we pass a pointer to a phys_addr_t
->> into dmam_alloc_coherent, which the compiler warns about:
->>
->> platform/qcom/venus/firmware.c: In function 'venus_boot':
->> platform/qcom/venus/firmware.c:63:49: error: passing argument 3 of 'dmam_alloc_coherent' from incompatible pointer type [-Werror=incompatible-pointer-types]
->>
->> To avoid the error refactor venus_boot function by discard
->> dma_alloc_coherent invocation because we don't want to map the
->> memory for the device.  Something more, the usage of
->> DMA mapping API is actually wrong and the current
->> implementation relies on several bugs in DMA mapping code.
->> When these bugs are fixed that will break firmware loading,
->> so fix this now to avoid future troubles.
->>
->> The meaning of venus_boot is to copy the content of the
->> firmware buffer into reserved (and memblock removed)
->> block of memory and pass that physical address to the
->> trusted zone for authentication and mapping through iommu
->> form the secure world. After iommu mapping is done the iova
->> is passed as ane entry point to the remote processor.
->>
->> After this change memory-region property is parsed manually
->> and the physical address is memremap to CPU, call mdt_load to
->> load firmware segments into proper places and unmap
->> reserved memory.
->>
->> Fixes: af2c3834c8ca ("[media] media: venus: adding core part and helper functions")
->> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
->
-> Arnd, is this OK for you?
+acpi_device_id are not supposed to change at runtime. All functions
+working with acpi_device_id provided by <acpi/acpi_bus.h> work with
+const acpi_device_id. So mark the non-const structs as const.
 
-Looks good
+File size before:
+   text	   data	    bss	    dec	    hex	filename
+  23804	   8448	      0	  32252	   7dfc drivers/staging/media/atomisp/i2c/ov8858.o
 
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+File size After adding 'const':
+   text	   data	    bss	    dec	    hex	filename
+  23868	   8384	      0	  32252	   7dfc drivers/staging/media/atomisp/i2c/ov8858.o
+
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ drivers/staging/media/atomisp/i2c/ov8858.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/media/atomisp/i2c/ov8858.c b/drivers/staging/media/atomisp/i2c/ov8858.c
+index 9574bc4..43e1638 100644
+--- a/drivers/staging/media/atomisp/i2c/ov8858.c
++++ b/drivers/staging/media/atomisp/i2c/ov8858.c
+@@ -2189,7 +2189,7 @@ static const struct i2c_device_id ov8858_id[] = {
+ 
+ MODULE_DEVICE_TABLE(i2c, ov8858_id);
+ 
+-static struct acpi_device_id ov8858_acpi_match[] = {
++static const struct acpi_device_id ov8858_acpi_match[] = {
+ 	{"INT3477"},
+ 	{},
+ };
+-- 
+2.7.4
