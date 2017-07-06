@@ -1,91 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44696 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750966AbdGMH5I (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Jul 2017 03:57:08 -0400
-Date: Thu, 13 Jul 2017 09:57:06 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        pali.rohar@gmail.com, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-        aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-        abcloriens@gmail.com, Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [patch] autogain support for bayer10 format (was Re: [patch]
- propagating controls in libv4l2)
-Message-ID: <20170713075706.GB1363@amd>
-References: <20170424093059.GA20427@amd>
- <20170424103802.00d3b554@vento.lan>
- <20170424212914.GA20780@amd>
- <20170424224724.5bb52382@vento.lan>
- <20170426105300.GA857@amd>
- <20170426081330.6ca10e42@vento.lan>
- <20170426132337.GA6482@amd>
- <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com>
- <20170426225150.GA4188@amd>
- <8a129dca-69c2-366f-1a81-c64dbabc1983@gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="l76fUT7nc3MelDdI"
-Content-Disposition: inline
-In-Reply-To: <8a129dca-69c2-366f-1a81-c64dbabc1983@gmail.com>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:36184 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750970AbdGFQVJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 12:21:09 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        alan@linux.intel.com
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] staging: atomisp: gc0310: constify acpi_device_id.
+Date: Thu,  6 Jul 2017 21:50:56 +0530
+Message-Id: <7d7e1a0d6e7f90a9f8b4545fec2077ea3b351cb6.1499357881.git.arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+acpi_device_id are not supposed to change at runtime. All functions
+working with acpi_device_id provided by <acpi/acpi_bus.h> work with
+const acpi_device_id. So mark the non-const structs as const.
 
---l76fUT7nc3MelDdI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+File size before:
+   text	   data	    bss	    dec	    hex	filename
+  10297	   1888	      0	  12185	   2f99 drivers/staging/media/atomisp/i2c/gc0310.o
 
-Hi!
+File size After adding 'const':
+   text	   data	    bss	    dec	    hex	filename
+  10361	   1824	      0	  12185	   2f99 drivers/staging/media/atomisp/i2c/gc0310.o
 
-> Oh, somehow I got confused that this is kernel code :)
->=20
-> >But I'd say NEON conversion is not neccessary anytime soon. First,
-> >this is just trying to get average luminosity. We can easily skip
-> >quite a lot of pixels, and still get reasonable answer.
-> >
-> >Second, omap3isp actually has a hardware block computing statistics
-> >for us. We just don't use it for simplicity.
-> >
->=20
-> Right, I forgot about that.
->=20
-> >(But if you want to play with camera, I'll get you patches; there's
-> >ton of work to be done, both kernel and userspace :-).
->=20
-> Well, I saw a low hanging fruit I thought I can convert to NEON in a day =
-or
-> two, while having some rest from the huge "project" I am devoting all my
-> spare time recently (rebasing hildon/maemo 5 on top of devuan Jessie).
-> Still, if there is something relatively small to be done, just email me a=
-nd
-> I'll have a look.
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ drivers/staging/media/atomisp/i2c/gc0310.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Well, there's a ton of work on camera, and some work on
-libcmtspeechdata. The later is rather self-contained.
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---l76fUT7nc3MelDdI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAllnJ9IACgkQMOfwapXb+vLwLACeKB6N8oWUnTUjQgZaJ94QkMic
-CNgAn177IBqBxeyO0DDHUAGGUrZdoWvx
-=IlMZ
------END PGP SIGNATURE-----
-
---l76fUT7nc3MelDdI--
+diff --git a/drivers/staging/media/atomisp/i2c/gc0310.c b/drivers/staging/media/atomisp/i2c/gc0310.c
+index 1ec616a..c8162bb 100644
+--- a/drivers/staging/media/atomisp/i2c/gc0310.c
++++ b/drivers/staging/media/atomisp/i2c/gc0310.c
+@@ -1453,7 +1453,7 @@ static int gc0310_probe(struct i2c_client *client,
+ 	return ret;
+ }
+ 
+-static struct acpi_device_id gc0310_acpi_match[] = {
++static const struct acpi_device_id gc0310_acpi_match[] = {
+ 	{"XXGC0310"},
+ 	{},
+ };
+-- 
+2.7.4
