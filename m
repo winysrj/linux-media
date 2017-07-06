@@ -1,68 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:34323 "EHLO
-        mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751593AbdG0PUi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Jul 2017 11:20:38 -0400
-Received: by mail-wm0-f42.google.com with SMTP id t138so3581279wmt.1
-        for <linux-media@vger.kernel.org>; Thu, 27 Jul 2017 08:20:37 -0700 (PDT)
+Received: from mail-wr0-f173.google.com ([209.85.128.173]:34515 "EHLO
+        mail-wr0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751850AbdGFK2H (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 06:28:07 -0400
+Received: by mail-wr0-f173.google.com with SMTP id 77so22787118wrb.1
+        for <linux-media@vger.kernel.org>; Thu, 06 Jul 2017 03:28:07 -0700 (PDT)
 From: Neil Armstrong <narmstrong@baylibre.com>
 To: mchehab@kernel.org, hans.verkuil@cisco.com
 Cc: Neil Armstrong <narmstrong@baylibre.com>,
         linux-media@vger.kernel.org, linux-amlogic@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: [PATCH v3 2/2] dt-bindings: media: Add Amlogic Meson AO-CEC bindings
-Date: Thu, 27 Jul 2017 17:20:30 +0200
-Message-Id: <1501168830-5308-3-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1501168830-5308-1-git-send-email-narmstrong@baylibre.com>
-References: <1501168830-5308-1-git-send-email-narmstrong@baylibre.com>
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 0/2] media: Add Amlogic Meson AO CEC Controller support
+Date: Thu,  6 Jul 2017 12:27:48 +0200
+Message-Id: <1499336870-24118-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Amlogic SoCs embeds a standalone CEC Controller, this patch adds this
-device bindings.
+The Amlogic SoC embeds a standalone CEC controller, this patch adds a driver
+for such controller.
+The controller does not need HPD to be active, and could support up to max
+5 logical addresses, but only 1 is handled since the Suspend firmware can
+make use of this unique logical address to wake up the device.
 
-Acked-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
----
- .../devicetree/bindings/media/meson-ao-cec.txt     | 28 ++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+The Suspend firmware configuration will be added in an other patchset.
+
+Neil Armstrong (2):
+  platform: Add Amlogic Meson AO CEC Controller driver
+  dt-bindings: media: Add Amlogic Meson AO-CEC bindings
+
+ .../devicetree/bindings/media/meson-ao-cec.txt     |  28 +
+ drivers/media/platform/Kconfig                     |  11 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/meson/Makefile              |   1 +
+ drivers/media/platform/meson/ao-cec.c              | 653 +++++++++++++++++++++
+ 5 files changed, 695 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/media/meson-ao-cec.txt
+ create mode 100644 drivers/media/platform/meson/Makefile
+ create mode 100644 drivers/media/platform/meson/ao-cec.c
 
-diff --git a/Documentation/devicetree/bindings/media/meson-ao-cec.txt b/Documentation/devicetree/bindings/media/meson-ao-cec.txt
-new file mode 100644
-index 0000000..8671bdb
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/meson-ao-cec.txt
-@@ -0,0 +1,28 @@
-+* Amlogic Meson AO-CEC driver
-+
-+The Amlogic Meson AO-CEC module is present is Amlogic SoCs and its purpose is
-+to handle communication between HDMI connected devices over the CEC bus.
-+
-+Required properties:
-+  - compatible : value should be following
-+	"amlogic,meson-gx-ao-cec"
-+
-+  - reg : Physical base address of the IP registers and length of memory
-+	  mapped region.
-+
-+  - interrupts : AO-CEC interrupt number to the CPU.
-+  - clocks : from common clock binding: handle to AO-CEC clock.
-+  - clock-names : from common clock binding: must contain "core",
-+		  corresponding to entry in the clocks property.
-+  - hdmi-phandle: phandle to the HDMI controller
-+
-+Example:
-+
-+cec_AO: cec@100 {
-+	compatible = "amlogic,meson-gx-ao-cec";
-+	reg = <0x0 0x00100 0x0 0x14>;
-+	interrupts = <GIC_SPI 199 IRQ_TYPE_EDGE_RISING>;
-+	clocks = <&clkc_AO CLKID_AO_CEC_32K>;
-+	clock-names = "core";
-+	hdmi-phandle = <&hdmi_tx>;
-+};
 -- 
 1.9.1
