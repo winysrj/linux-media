@@ -1,60 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:20802 "EHLO
-        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753948AbdGSJ4g (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:45124 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752050AbdGFIgc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Jul 2017 05:56:36 -0400
-Date: Wed, 19 Jul 2017 12:56:18 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-Subject: [PATCH] [media] atomisp2: array underflow in ap1302_enum_frame_size()
-Message-ID: <20170719095618.g36egw4t4t5h4tzh@mwanda>
+        Thu, 6 Jul 2017 04:36:32 -0400
+Subject: Re: [PATCH 05/12] [media] vivid: assign the specific device to the
+ vb2_queue->dev
+To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
+References: <20170616073915.5027-1-gustavo@padovan.org>
+ <20170616073915.5027-6-gustavo@padovan.org>
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <94a8f4db-9043-9809-d85d-7868aab1e667@xs4all.nl>
+Date: Thu, 6 Jul 2017 10:36:21 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <20170616073915.5027-6-gustavo@padovan.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The problem is this code from ap1302_enum_frame_size():
+On 06/16/17 09:39, Gustavo Padovan wrote:
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> 
+> Instead of assigning the global v4l2 device, assign the specific device.
+> This was causing trouble when using using V4L2 events with vivid
+> devices. The device's queue should be the same we opened in userspace.
+> 
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-   738          int index = fse->index;
-   739  
-   740          mutex_lock(&dev->input_lock);
-   741          context = ap1302_get_context(sd);
-   742          if (index >= dev->cntx_res[context].res_num) {
-   743                  mutex_unlock(&dev->input_lock);
-   744                  return -EINVAL;
-   745          }
-   746  
-   747          res_table = dev->cntx_res[context].res_table;
-   748          fse->min_width = res_table[index].width;
+Can you add a line to the commit log that says that this is needed for
+the upcoming V4L2_EVENT_BUF_QUEUED support? This log message suggests that
+the current vivid code is wrong, which it isn't. It just needs to be changed
+so V4L2_EVENT_BUF_QUEUED can be supported.
 
-"fse->index" is a u32 that come from the user.  We want negative values
-of "index" to be treated as -EINVAL but they're not so we can read from
-before the start of the res_table[] array.
+After making that change:
 
-I've fixed this by making "res_num" a u32.  I made "cur_res" a u32 as
-well, just for consistency.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Regards,
 
-diff --git a/drivers/staging/media/atomisp/i2c/ap1302.h b/drivers/staging/media/atomisp/i2c/ap1302.h
-index 9341232c580d..4d0b181a9671 100644
---- a/drivers/staging/media/atomisp/i2c/ap1302.h
-+++ b/drivers/staging/media/atomisp/i2c/ap1302.h
-@@ -158,8 +158,8 @@ struct ap1302_res_struct {
- };
- 
- struct ap1302_context_res {
--	s32 res_num;
--	s32 cur_res;
-+	u32 res_num;
-+	u32 cur_res;
- 	struct ap1302_res_struct *res_table;
- };
- 
+	Hans
+
+> ---
+>  drivers/media/platform/vivid/vivid-core.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+> index ef344b9..8843170 100644
+> --- a/drivers/media/platform/vivid/vivid-core.c
+> +++ b/drivers/media/platform/vivid/vivid-core.c
+> @@ -1070,7 +1070,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+>  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+>  		q->min_buffers_needed = 2;
+>  		q->lock = &dev->mutex;
+> -		q->dev = dev->v4l2_dev.dev;
+> +		q->dev = &dev->vid_cap_dev.dev;
+>  
+>  		ret = vb2_queue_init(q);
+>  		if (ret)
+> @@ -1090,7 +1090,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+>  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+>  		q->min_buffers_needed = 2;
+>  		q->lock = &dev->mutex;
+> -		q->dev = dev->v4l2_dev.dev;
+> +		q->dev = &dev->vid_out_dev.dev;
+>  
+>  		ret = vb2_queue_init(q);
+>  		if (ret)
+> @@ -1110,7 +1110,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+>  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+>  		q->min_buffers_needed = 2;
+>  		q->lock = &dev->mutex;
+> -		q->dev = dev->v4l2_dev.dev;
+> +		q->dev = &dev->vbi_cap_dev.dev;
+>  
+>  		ret = vb2_queue_init(q);
+>  		if (ret)
+> @@ -1130,7 +1130,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+>  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+>  		q->min_buffers_needed = 2;
+>  		q->lock = &dev->mutex;
+> -		q->dev = dev->v4l2_dev.dev;
+> +		q->dev = &dev->vbi_out_dev.dev;
+>  
+>  		ret = vb2_queue_init(q);
+>  		if (ret)
+> @@ -1149,7 +1149,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+>  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+>  		q->min_buffers_needed = 8;
+>  		q->lock = &dev->mutex;
+> -		q->dev = dev->v4l2_dev.dev;
+> +		q->dev = &dev->sdr_cap_dev.dev;
+>  
+>  		ret = vb2_queue_init(q);
+>  		if (ret)
+> 
