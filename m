@@ -1,88 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52731
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750848AbdGGRbY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 13:31:24 -0400
-Subject: Re: [PATCH 09/12] [media] vivid: mark vivid queues as ordered
-To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>
-References: <20170616073915.5027-1-gustavo@padovan.org>
- <20170616073915.5027-10-gustavo@padovan.org>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <f8f17191-6217-ef1b-3b55-0dfdb485a7fc@osg.samsung.com>
-Date: Fri, 7 Jul 2017 11:31:21 -0600
+Received: from gateway32.websitewelcome.com ([192.185.145.182]:41111 "EHLO
+        gateway32.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751935AbdGFUaV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Jul 2017 16:30:21 -0400
+Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
+        by gateway32.websitewelcome.com (Postfix) with ESMTP id 5613054F327
+        for <linux-media@vger.kernel.org>; Thu,  6 Jul 2017 15:30:18 -0500 (CDT)
+Date: Thu, 6 Jul 2017 15:30:16 -0500
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Songjun Wu <songjun.wu@microchip.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH] atmel-isc: constify vb2_ops structure
+Message-ID: <20170706203016.GA13611@embeddedgus>
 MIME-Version: 1.0
-In-Reply-To: <20170616073915.5027-10-gustavo@padovan.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/16/2017 01:39 AM, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> To enable vivid to be used with explicit synchronization we need
-> to mark its queues as ordered.
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  drivers/media/platform/vivid/vivid-core.c | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-> index 8843170..c7bef90 100644
-> --- a/drivers/media/platform/vivid/vivid-core.c
-> +++ b/drivers/media/platform/vivid/vivid-core.c
-> @@ -1063,6 +1063,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->  		q->type = dev->multiplanar ? V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE :
->  			V4L2_BUF_TYPE_VIDEO_CAPTURE;
->  		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
-> +		q->ordered = 1;
+Check for vb2_ops structures that are only stored in the ops field of a
+vb2_queue structure. That field is declared const, so vb2_ops structures
+that have this property can be declared as const also.
 
-How will the driver ensure ordered buffers? Are there more changes needed
-in this driver?
+This issue was detected using Coccinelle and the following semantic patch:
 
->  		q->drv_priv = dev;
->  		q->buf_struct_size = sizeof(struct vivid_buffer);
->  		q->ops = &vivid_vid_cap_qops;
-> @@ -1083,6 +1084,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->  		q->type = dev->multiplanar ? V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE :
->  			V4L2_BUF_TYPE_VIDEO_OUTPUT;
->  		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_WRITE;
-> +		q->ordered = 1;
->  		q->drv_priv = dev;
->  		q->buf_struct_size = sizeof(struct vivid_buffer);
->  		q->ops = &vivid_vid_out_qops;
-> @@ -1103,6 +1105,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->  		q->type = dev->has_raw_vbi_cap ? V4L2_BUF_TYPE_VBI_CAPTURE :
->  					      V4L2_BUF_TYPE_SLICED_VBI_CAPTURE;
->  		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
-> +		q->ordered = 1;
->  		q->drv_priv = dev;
->  		q->buf_struct_size = sizeof(struct vivid_buffer);
->  		q->ops = &vivid_vbi_cap_qops;
-> @@ -1123,6 +1126,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->  		q->type = dev->has_raw_vbi_out ? V4L2_BUF_TYPE_VBI_OUTPUT :
->  					      V4L2_BUF_TYPE_SLICED_VBI_OUTPUT;
->  		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_WRITE;
-> +		q->ordered = 1;
->  		q->drv_priv = dev;
->  		q->buf_struct_size = sizeof(struct vivid_buffer);
->  		q->ops = &vivid_vbi_out_qops;
-> @@ -1142,6 +1146,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->  		q = &dev->vb_sdr_cap_q;
->  		q->type = V4L2_BUF_TYPE_SDR_CAPTURE;
->  		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
-> +		q->ordered = 1;
->  		q->drv_priv = dev;
->  		q->buf_struct_size = sizeof(struct vivid_buffer);
->  		q->ops = &vivid_sdr_cap_qops;
-> 
+@r disable optional_qualifier@
+identifier i;
+position p;
+@@
+static struct vb2_ops i@p = { ... };
 
-thanks,
--- Shuah
+@ok@
+identifier r.i;
+struct vb2_queue e;
+position p;
+@@
+e.ops = &i@p;
+
+@bad@
+position p != {r.p,ok.p};
+identifier r.i;
+struct vb2_ops e;
+@@
+e@i@p
+
+@depends on !bad disable optional_qualifier@
+identifier r.i;
+@@
+static
++const
+struct vb2_ops i = { ... };
+
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+---
+ drivers/media/platform/atmel/atmel-isc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index d653425..d4df3d4 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -873,7 +873,7 @@ static void isc_buffer_queue(struct vb2_buffer *vb)
+ 	spin_unlock_irqrestore(&isc->dma_queue_lock, flags);
+ }
+ 
+-static struct vb2_ops isc_vb2_ops = {
++static const struct vb2_ops isc_vb2_ops = {
+ 	.queue_setup		= isc_queue_setup,
+ 	.wait_prepare		= vb2_ops_wait_prepare,
+ 	.wait_finish		= vb2_ops_wait_finish,
+-- 
+2.5.0
