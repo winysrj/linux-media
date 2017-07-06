@@ -1,74 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:35353 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750917AbdGNURL (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:31158 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750778AbdGFIA0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Jul 2017 16:17:11 -0400
+        Thu, 6 Jul 2017 04:00:26 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+CC: "H. Nikolaus Schaller" <hns@goldelico.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre TORGUE <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick FERTRE <yannick.fertre@st.com>
+Subject: Re: [PATCH v2 0/7] [PATCH v2 0/7] Add support of OV9655 camera
+Date: Thu, 6 Jul 2017 07:51:28 +0000
+Message-ID: <26a55285-509c-b7f4-7806-db537a582631@st.com>
+References: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <415F1E55B17EAC40A4EBEE19A8753DEF@st.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-In-Reply-To: <CA+55aFw076kkn_NS1K+nSHDLoajhviHUsnCOmJOpz5YajpEtFw@mail.gmail.com>
-References: <20170714092540.1217397-1-arnd@arndb.de> <20170714092540.1217397-9-arnd@arndb.de>
- <CA+55aFw076kkn_NS1K+nSHDLoajhviHUsnCOmJOpz5YajpEtFw@mail.gmail.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Fri, 14 Jul 2017 22:17:10 +0200
-Message-ID: <CAK8P3a0nZsqWtFX84FTHmm=aVFevrU5ZATnaLVSA39PZeG=6UQ@mail.gmail.com>
-Subject: Re: [PATCH 08/14] Input: adxl34x - fix gcc-7 -Wint-in-bool-context warning
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Michael Hennerich <michael.hennerich@analog.com>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
-        IDE-ML <linux-ide@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        DRI <dri-devel@lists.freedesktop.org>,
-        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 14, 2017 at 9:24 PM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> On Fri, Jul 14, 2017 at 2:25 AM, Arnd Bergmann <arnd@arndb.de> wrote:
->> FIFO_MODE is an macro expression with a '<<' operator, which
->> gcc points out could be misread as a '<':
->
-> Yeah, no, NAK again.
->
-> We don't make the code look worse just because gcc is being a f*cking
-> moron about things.
->
-> This warning is clearly pure garbage.
->
-
-I looked at this one again and found a better approach, matching the
-check that is done a few lines later. Unless you find something wrong
-with that one, I'd resubmit it with the fixup below.
-
-      Arnd
-
---- a/drivers/input/misc/adxl34x.c
-+++ b/drivers/input/misc/adxl34x.c
-@@ -789,21 +789,21 @@ struct adxl34x *adxl34x_probe(struct device *dev, int irq,
-                __set_bit(pdata->ev_code_ff, input_dev->keybit);
-        }
-
-        if (pdata->ev_code_act_inactivity)
-                __set_bit(pdata->ev_code_act_inactivity, input_dev->keybit);
-
-        ac->int_mask |= ACTIVITY | INACTIVITY;
-
-        if (pdata->watermark) {
-                ac->int_mask |= WATERMARK;
--               if (FIFO_MODE(pdata->fifo_mode) == 0)
-+               if (FIFO_MODE(pdata->fifo_mode) == FIFO_BYPASS)
-                        ac->pdata.fifo_mode |= FIFO_STREAM;
-        } else {
-                ac->int_mask |= DATA_READY;
-        }
-
-        if (pdata->tap_axis_control & (TAP_X_EN | TAP_Y_EN | TAP_Z_EN))
-                ac->int_mask |= SINGLE_TAP | DOUBLE_TAP;
-
-        if (FIFO_MODE(pdata->fifo_mode) == FIFO_BYPASS)
-                ac->fifo_delay = false;
+SGkgU3lsd2VzdGVyLA0KDQpEbyB5b3UgaGF2ZSB0aGUgcG9zc2liaWxpdHkgdG8gY2hlY2sgZm9y
+IG5vbi1yZWdyZXNzaW9uIG9mIHRoaXMgcGF0Y2hzZXQgDQpvbiA5NjUwLzUyIGNhbWVyYSA/DQoN
+CkJlc3QgcmVnYXJkcywNCkh1Z3Vlcy4NCg0KT24gMDcvMDMvMjAxNyAxMToxNiBBTSwgSHVndWVz
+IEZydWNoZXQgd3JvdGU6DQo+IFRoaXMgcGF0Y2hzZXQgZW5hYmxlcyBPVjk2NTUgY2FtZXJhIHN1
+cHBvcnQuDQo+IA0KPiBPVjk2NTUgc3VwcG9ydCBoYXMgYmVlbiB0ZXN0ZWQgdXNpbmcgU1RNMzJG
+NERJUy1DQU0gZXh0ZW5zaW9uIGJvYXJkDQo+IHBsdWdnZWQgb24gY29ubmVjdG9yIFAxIG9mIFNU
+TTMyRjc0NkctRElTQ08gYm9hcmQuDQo+IER1ZSB0byBsYWNrIG9mIE9WOTY1MC81MiBoYXJkd2Fy
+ZSBzdXBwb3J0LCB0aGUgbW9kaWZpZWQgcmVsYXRlZCBjb2RlDQo+IGNvdWxkIG5vdCBoYXZlIGJl
+ZW4gY2hlY2tlZCBmb3Igbm9uLXJlZ3Jlc3Npb24uDQo+IA0KPiBGaXJzdCBwYXRjaGVzIHVwZ3Jh
+ZGUgY3VycmVudCBzdXBwb3J0IG9mIE9WOTY1MC81MiB0byBwcmVwYXJlIHRoZW4NCj4gaW50cm9k
+dWN0aW9uIG9mIE9WOTY1NSB2YXJpYW50IHBhdGNoLg0KPiBCZWNhdXNlIG9mIE9WOTY1NSByZWdp
+c3RlciBzZXQgc2xpZ2h0bHkgZGlmZmVyZW50IGZyb20gT1Y5NjUwLzk2NTIsDQo+IG5vdCBhbGwg
+b2YgdGhlIGRyaXZlciBmZWF0dXJlcyBhcmUgc3VwcG9ydGVkIChjb250cm9scykuIFN1cHBvcnRl
+ZA0KPiByZXNvbHV0aW9ucyBhcmUgbGltaXRlZCB0byBWR0EsIFFWR0EsIFFRVkdBLg0KPiBTdXBw
+b3J0ZWQgZm9ybWF0IGlzIGxpbWl0ZWQgdG8gUkdCNTY1Lg0KPiBDb250cm9scyBhcmUgbGltaXRl
+ZCB0byBjb2xvciBiYXIgdGVzdCBwYXR0ZXJuIGZvciB0ZXN0IHB1cnBvc2UuDQo+IA0KPiBPVjk2
+NTUgaW5pdGlhbCBzdXBwb3J0IGlzIGJhc2VkIG9uIGEgZHJpdmVyIHdyaXR0ZW4gYnkgSC4gTmlr
+b2xhdXMgU2NoYWxsZXIgWzFdLg0KPiBPVjk2NTUgcmVnaXN0ZXJzIHNlcXVlbmNlcyBjb21lIGZy
+b20gU1RNMzJDdWJlRjcgZW1iZWRkZWQgc29mdHdhcmUgWzJdLg0KPiANCj4gWzFdIGh0dHA6Ly9n
+aXQuZ29sZGVsaWNvLmNvbS8/cD1ndGEwNC1rZXJuZWwuZ2l0O2E9c2hvcnRsb2c7aD1yZWZzL2hl
+YWRzL3dvcmsvaG5zL3ZpZGVvL292OTY1NQ0KPiBbMl0gaHR0cHM6Ly9kZXZlbG9wZXIubWJlZC5v
+cmcvdGVhbXMvU1QvY29kZS9CU1BfRElTQ09fRjc0Nk5HL2ZpbGUvZTFkOWRhN2ZlODU2L0RyaXZl
+cnMvQlNQL0NvbXBvbmVudHMvb3Y5NjU1L292OTY1NS5jDQo+IA0KPiA9PT09PT09PT09PQ0KPiA9
+IGhpc3RvcnkgPQ0KPiA9PT09PT09PT09PQ0KPiB2ZXJzaW9uIDI6DQo+ICAgIC0gUmVtb3ZlIHNv
+bWUgdW5uZWVkZWQgc2VtaWNvbG9ucyAoa2J1aWxkIHRlc3Qgcm9ib3QpOg0KPiAgICAgICAgaHR0
+cDovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZy9tc2cx
+MTQ2MTYuaHRtbA0KPiAgICAtIFJlbW92ZSBwYXRjaCBbbWVkaWFdIG92OTY1MDogc2VsZWN0IHRo
+ZSBuZWFyZXN0IGhpZ2hlciByZXNvbHV0aW9uOg0KPiAgICAgIGl0IGlzIHVwIHRvIHRoZSBhcHBs
+aWNhdGlvbiB0byBmaW5kIHRoZSBiZXN0IG1hdGNoaW5nIHJlc29sdXRpb24NCj4gICAgICB1c2lu
+ZyBFTlVNX0ZSQU1FU0laRVMvU19GTVQvU19TRUxFQ1RJT04gKFNfQ1JPUCksIHNlZQ0KPiAgICAg
+ICAgaHR0cDovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9y
+Zy9tc2cxMTQ2NjcuaHRtbA0KPiAgICAtIGR0LWJpbmRpbmdzOiBGaXggcmVtYXJrcyBmcm9tIFJv
+YiBIZXJyaW5nIGFib3V0IHBvbGFyaXR5Og0KPiAgICAgICAgaHR0cDovL3d3dy5tYWlsLWFyY2hp
+dmUuY29tL2xpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZy9tc2cxMTQ3MDUuaHRtbA0KPiAgICAt
+IGR0LWJpbmRpbmdzOiBBZGQgb3B0aW9uYWwgcmVndWxhdG9ycyBhdmRkLCBkdmRkLCBkb3ZkZDoN
+Cj4gICAgICAgIGh0dHA6Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9saW51eC1tZWRpYUB2Z2VyLmtl
+cm5lbC5vcmcvbXNnMTE0Nzg1Lmh0bWwNCj4gICAgLSBmaXggbWlzc2luZyBzZW1pY29sb25zIGlu
+IGlmIGNvbmRpdGlvbjoNCj4gICAgICAgIGh0dHA6Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9saW51
+eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcvbXNnMTE0NjExLmh0bWwNCj4gICAgLSBtb3ZlIG92OTY1
+eF9waXhmbXQgcmVsb2NhdGlvbiBpbiByaWdodCBwYXRjaDoNCj4gICAgICAgIGh0dHA6Ly93d3cu
+bWFpbC1hcmNoaXZlLmNvbS9saW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcvbXNnMTE0ODQ5Lmh0
+bWwNCj4gICAgLSByZXZpc2l0IE9WOTY1eCByZW5hbWluZyB0byBvdjk2NXggZm9yIGRldmljZSBp
+ZCBuYW1lcyBhbmQgRFQgY29tcGF0aWJsZSBzdHJpbmdzLA0KPiAgICAgIGRyb3Agb2ZfZGV2aWNl
+X2lkIC5kYXRhIGRldmljZSBpZGVudGlmaWNhdGlvbg0KPiAgICAgICAgaHR0cDovL3d3dy5tYWls
+LWFyY2hpdmUuY29tL2xpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZy9tc2cxMTQ2MzUuaHRtbA0K
+PiAgICAgICAgaHR0cDovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4LW1lZGlhQHZnZXIua2Vy
+bmVsLm9yZy9tc2cxMTQ3MzguaHRtbA0KPiAgICAtIEFkZCBhbmFsb2cgcG93ZXIgc3VwcGx5IGFu
+ZCBjbG9jayBnYXRpbmcsIG5lZWRlZCBmb3IgR1RBMDQgcGxhdGZvcm06DQo+ICAgICAgICBodHRw
+Oi8vd3d3Lm1haWwtYXJjaGl2ZS5jb20vbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnL21zZzEx
+NDUxOS5odG1sDQo+IA0KPiB2ZXJzaW9uIDE6DQo+ICAgIC0gSW5pdGlhbCBzdWJtaXNzaW9uLg0K
+PiANCj4gSC4gTmlrb2xhdXMgU2NoYWxsZXIgKDEpOg0KPiAgICBEVCBiaW5kaW5nczogYWRkIGJp
+bmRpbmdzIGZvciBvdjk2NXggY2FtZXJhIG1vZHVsZQ0KPiANCj4gSHVndWVzIEZydWNoZXQgKDYp
+Og0KPiAgICBbbWVkaWFdIG92OTY1MDogc3dpdGNoIGkyYyBkZXZpY2UgaWQgdG8gbG93ZXIgY2Fz
+ZQ0KPiAgICBbbWVkaWFdIG92OTY1MDogYWRkIGRldmljZSB0cmVlIHN1cHBvcnQNCj4gICAgW21l
+ZGlhXSBvdjk2NTA6IHVzZSB3cml0ZV9hcnJheSgpIGZvciByZXNvbHV0aW9uIHNlcXVlbmNlcw0K
+PiAgICBbbWVkaWFdIG92OTY1MDogYWRkIG11bHRpcGxlIHZhcmlhbnQgc3VwcG9ydA0KPiAgICBb
+bWVkaWFdIG92OTY1MDogYWRkIHN1cHBvcnQgb2YgT1Y5NjU1IHZhcmlhbnQNCj4gICAgW21lZGlh
+XSBvdjk2NTA6IGFkZCBhbmFsb2cgcG93ZXIgc3VwcGx5IGFuZCBjbG9jayBnYXRpbmcNCj4gDQo+
+ICAgLi4uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvaTJjL292OTY1eC50eHQgICAgICAgfCAg
+NDUgKysNCj4gICBkcml2ZXJzL21lZGlhL2kyYy9LY29uZmlnICAgICAgICAgICAgICAgICAgICAg
+ICAgICB8ICAgNiArLQ0KPiAgIGRyaXZlcnMvbWVkaWEvaTJjL292OTY1MC5jICAgICAgICAgICAg
+ICAgICAgICAgICAgIHwgODE2ICsrKysrKysrKysrKysrKysrLS0tLQ0KPiAgIDMgZmlsZXMgY2hh
+bmdlZCwgNzM2IGluc2VydGlvbnMoKyksIDEzMSBkZWxldGlvbnMoLSkNCj4gICBjcmVhdGUgbW9k
+ZSAxMDA2NDQgRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL21lZGlhL2kyYy9vdjk2
+NXgudHh0DQo+IA==
