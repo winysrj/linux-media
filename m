@@ -1,97 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60444 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751451AbdGRTQJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 15:16:09 -0400
-Date: Tue, 18 Jul 2017 22:16:04 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
-        hverkuil@xs4all.nl
-Subject: Re: [RFC 08/19] arm: dts: omap3: N9/N950: Add AS3645A camera flash
-Message-ID: <20170718191603.4rako3k4ii77imxd@valkosipuli.retiisi.org.uk>
-References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
- <20170718190401.14797-9-sakari.ailus@linux.intel.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59273 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752068AbdGFWlX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 18:41:23 -0400
+Subject: Re: [PATCH] rcar_fdp1: constify vb2_ops structure
+To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <20170706202532.GA12160@embeddedgus>
+Reply-To: kieran.bingham@ideasonboard.com
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <76532629-9ab3-117a-d849-46c7ade8688c@ideasonboard.com>
+Date: Thu, 6 Jul 2017 23:41:12 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170718190401.14797-9-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170706202532.GA12160@embeddedgus>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 18, 2017 at 10:03:50PM +0300, Sakari Ailus wrote:
-> From: Sakari Ailus <sakari.ailus@iki.fi>
+Hi Gustavo,
+
+Thank you for the patch.
+
+On 06/07/17 21:25, Gustavo A. R. Silva wrote:
+> Check for vb2_ops structures that are only stored in the ops field of a
+> vb2_queue structure. That field is declared const, so vb2_ops structures
+> that have this property can be declared as const also.
 > 
-> Add the as3645a flash controller to the DT source as well as the flash
-> property with the as3645a device phandle to the sensor DT node.
+> This issue was detected using Coccinelle and the following semantic patch:
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> @r disable optional_qualifier@
+> identifier i;
+> position p;
+> @@
+> static struct vb2_ops i@p = { ... };
+> 
+> @ok@
+> identifier r.i;
+> struct vb2_queue e;
+> position p;
+> @@
+> e.ops = &i@p;
+> 
+> @bad@
+> position p != {r.p,ok.p};
+> identifier r.i;
+> struct vb2_ops e;
+> @@
+> e@i@p
+> 
+> @depends on !bad disable optional_qualifier@
+> identifier r.i;
+> @@
+> static
+> +const
+> struct vb2_ops i = { ... };
+> 
+> Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
 > ---
->  arch/arm/boot/dts/omap3-n9.dts       |  1 +
->  arch/arm/boot/dts/omap3-n950-n9.dtsi | 14 ++++++++++++++
->  arch/arm/boot/dts/omap3-n950.dts     |  1 +
->  3 files changed, 16 insertions(+)
+>  drivers/media/platform/rcar_fdp1.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
-> index b9e58c536afd..a2944010f62f 100644
-> --- a/arch/arm/boot/dts/omap3-n9.dts
-> +++ b/arch/arm/boot/dts/omap3-n9.dts
-> @@ -26,6 +26,7 @@
->  		clocks = <&isp 0>;
->  		clock-frequency = <9600000>;
->  		nokia,nvm-size = <(16 * 64)>;
-> +		flash = <&as3645a_flash &as3645a_indicator>;
->  		port {
->  			smia_1_1: endpoint {
->  				link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
-> diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-> index df3366fa5409..e15722b83a70 100644
-> --- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-> +++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-> @@ -265,6 +265,20 @@
+> diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
+> index 3ee51fc..3245bc4 100644
+> --- a/drivers/media/platform/rcar_fdp1.c
+> +++ b/drivers/media/platform/rcar_fdp1.c
+> @@ -2032,7 +2032,7 @@ static void fdp1_stop_streaming(struct vb2_queue *q)
+>  	}
+>  }
 >  
->  &i2c2 {
->  	clock-frequency = <400000>;
-> +
-> +	as3645a: flash@30 {
-> +		reg = <0x30>;
-> +		compatible = "ams,as3645a";
-> +		as3645a_flash: flash {
-> +			flash-timeout-us = <150000>;
-> +			flash-max-microamp = <320000>;
-> +			led-max-microamp = <60000>;
-> +			peak-current-limit = <1750000>;
-> +		};
-> +		as3645a_indicator: indicator {
-> +			led-max-microamp = <10000>;
-> +		};
-> +	};
->  };
->  
->  &i2c3 {
-> diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
-> index 646601a3ebd8..8fca0384d2df 100644
-> --- a/arch/arm/boot/dts/omap3-n950.dts
-> +++ b/arch/arm/boot/dts/omap3-n950.dts
-> @@ -60,6 +60,7 @@
->  		clocks = <&isp 0>;
->  		clock-frequency = <9600000>;
->  		nokia,nvm-size = <(16 * 64)>;
-> +		flash = <&as3645a>;
-
-This one should have mirrored the N9 configuration; I'll fix that for the
-next version.
-
->  		port {
->  			smia_1_1: endpoint {
->  				link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
-> -- 
-> 2.11.0
+> -static struct vb2_ops fdp1_qops = {
+> +static const struct vb2_ops fdp1_qops = {
+>  	.queue_setup	 = fdp1_queue_setup,
+>  	.buf_prepare	 = fdp1_buf_prepare,
+>  	.buf_queue	 = fdp1_buf_queue,
 > 
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
