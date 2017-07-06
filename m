@@ -1,68 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:33165 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754370AbdGJTmp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Jul 2017 15:42:45 -0400
-Received: by mail-qt0-f195.google.com with SMTP id c20so13976799qte.0
-        for <linux-media@vger.kernel.org>; Mon, 10 Jul 2017 12:42:45 -0700 (PDT)
-Date: Mon, 10 Jul 2017 16:42:40 -0300
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [PATCH 05/12] [media] vivid: assign the specific device to the
- vb2_queue->dev
-Message-ID: <20170710194240.GI10284@jade>
-References: <20170616073915.5027-1-gustavo@padovan.org>
- <20170616073915.5027-6-gustavo@padovan.org>
- <c34cc77a-740f-3955-d6e6-2c04a778c190@osg.samsung.com>
+Received: from mail-io0-f193.google.com ([209.85.223.193]:34771 "EHLO
+        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751751AbdGFS4a (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 14:56:30 -0400
+Date: Thu, 6 Jul 2017 13:56:27 -0500
+From: Rob Herring <robh@kernel.org>
+To: sean.wang@mediatek.com
+Cc: mchehab@osg.samsung.com, sean@mess.org, hdegoede@redhat.com,
+        hkallweit1@gmail.com, mark.rutland@arm.com, matthias.bgg@gmail.com,
+        andi.shyti@samsung.com, hverkuil@xs4all.nl,
+        ivo.g.dimitrov.75@gmail.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v1 1/4] dt-bindings: media: mtk-cir: Add support for
+ MT7622 SoC
+Message-ID: <20170706185627.zqhgwtc7m7buf3kg@rob-hp-laptop>
+References: <cover.1498794408.git.sean.wang@mediatek.com>
+ <a778a3a33a273f00d3ff071d62fe672a207d949c.1498794408.git.sean.wang@mediatek.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <c34cc77a-740f-3955-d6e6-2c04a778c190@osg.samsung.com>
+In-Reply-To: <a778a3a33a273f00d3ff071d62fe672a207d949c.1498794408.git.sean.wang@mediatek.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-07-07 Shuah Khan <shuahkh@osg.samsung.com>:
+On Fri, Jun 30, 2017 at 02:03:04PM +0800, sean.wang@mediatek.com wrote:
+> From: Sean Wang <sean.wang@mediatek.com>
+> 
+> Document the devicetree bindings for CIR on MediaTek MT7622
+> SoC.
+> 
+> Signed-off-by: Sean Wang <sean.wang@mediatek.com>
+> ---
+>  Documentation/devicetree/bindings/media/mtk-cir.txt | 8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
 
-> On 06/16/2017 01:39 AM, Gustavo Padovan wrote:
-> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> > 
-> > Instead of assigning the global v4l2 device, assign the specific device.
-> > This was causing trouble when using using V4L2 events with vivid
-> > devices. The device's queue should be the same we opened in userspace.
-> > 
-> > Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> > ---
-> >  drivers/media/platform/vivid/vivid-core.c | 10 +++++-----
-> >  1 file changed, 5 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-> > index ef344b9..8843170 100644
-> > --- a/drivers/media/platform/vivid/vivid-core.c
-> > +++ b/drivers/media/platform/vivid/vivid-core.c
-> > @@ -1070,7 +1070,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
-> >  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> >  		q->min_buffers_needed = 2;
-> >  		q->lock = &dev->mutex;
-> > -		q->dev = dev->v4l2_dev.dev;
-> > +		q->dev = &dev->vid_cap_dev.dev;
-> 
-> Does this work in all cases? My concern is that in some code paths
-> q->dev might be used to initiate release perhaps.
-> 
-> Fore example v4l2_dev.release is vivid_dev_release()
-> dev->v4l2_dev.release = vivid_dev_release;
-> 
-> vid_cap_dev release is video_device_release_empty
-> 
-> This is one difference, but there might be others and the code paths
-> that might depend on q->dev being the v4l2_dev.dev which is the global
-> dev.
-
-Sure, I'll check this again.
-
-	Gustavo
+Acked-by: Rob Herring <robh@kernel.org>
