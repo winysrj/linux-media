@@ -1,55 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:44866 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750933AbdGMHaH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Jul 2017 03:30:07 -0400
-Subject: Re: [PATCH V2 4/9] [media] dvb-core/dvb_ca_en50221.c: Fixed block
- comments
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
-        rjkm@metzlerbros.de, d.scheller@gmx.net
-References: <1499900458-2339-1-git-send-email-jasmin@anw.at>
- <1499900458-2339-5-git-send-email-jasmin@anw.at>
- <c8c9b074-32fe-96b8-6635-842898dfc956@iki.fi>
- <080f360c-a6cb-0f5c-b2ca-f380a78a2cf9@anw.at>
- <ffcb064e-3b82-fbae-ab32-d9a4a56f6716@iki.fi>
- <345e0587-b0a8-8fed-0bdb-4313093cf56d@anw.at>
- <f003e6db-95e0-dcc4-88fe-e895a0d3b59d@iki.fi>
- <ab35758a-5769-73c3-ab63-34c34b483eab@iki.fi>
-From: "Jasmin J." <jasmin@anw.at>
-Message-ID: <cb9a36a6-95c9-ace8-5f39-e36b2b406971@anw.at>
-Date: Thu, 13 Jul 2017 09:29:54 +0200
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:35590 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752783AbdGFHqt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Jul 2017 03:46:49 -0400
+Subject: Re: [PATCH 02/12] [media] vb2: split out queueing from vb_core_qbuf()
+To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
+References: <20170616073915.5027-1-gustavo@padovan.org>
+ <20170616073915.5027-3-gustavo@padovan.org>
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <8969cb24-95cc-3056-e6ad-8990801f326d@xs4all.nl>
+Date: Thu, 6 Jul 2017 09:46:37 +0200
 MIME-Version: 1.0
-In-Reply-To: <ab35758a-5769-73c3-ab63-34c34b483eab@iki.fi>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170616073915.5027-3-gustavo@padovan.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Antti!
+On 06/16/17 09:39, Gustavo Padovan wrote:
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> 
+> In order to support explicit synchronization we need to divide
+> vb2_core_qbuf() in two parts, one to be executed before the fence
+> signals and another one to do the actual queueing of the buffer.
+> 
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 51 ++++++++++++++++++--------------
+>  1 file changed, 29 insertions(+), 22 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 3107e21..ea83126 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1367,6 +1367,34 @@ static int vb2_start_streaming(struct vb2_queue *q)
+>  	return ret;
+>  }
+>  
+> +static int __vb2_core_qbuf(struct vb2_buffer *vb, struct vb2_queue *q)
+> +{
+> +	int ret;
+> +
+> +	/*
+> +	 * If already streaming, give the buffer to driver for processing.
+> +	 * If not, the buffer will be given to driver on next streamon.
+> +	 */
+> +	if (q->start_streaming_called)
+> +		__enqueue_in_driver(vb);
+> +
+> +	/*
+> +	 * If streamon has been called, and we haven't yet called
+> +	 * start_streaming() since not enough buffers were queued, and
+> +	 * we now have reached the minimum number of queued buffers,
+> +	 * then we can finally call start_streaming().
+> +	 */
+> +	if (q->streaming && !q->start_streaming_called &&
+> +	    q->queued_count >= q->min_buffers_needed) {
+> +		ret = vb2_start_streaming(q);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+> +	dprintk(1, "qbuf of buffer %d succeeded\n", vb->index);
+> +	return 0;
+> +}
+> +
+>  int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+>  {
+>  	struct vb2_buffer *vb;
+> @@ -1404,32 +1432,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+>  
+>  	trace_vb2_qbuf(q, vb);
+>  
+> -	/*
+> -	 * If already streaming, give the buffer to driver for processing.
+> -	 * If not, the buffer will be given to driver on next streamon.
+> -	 */
+> -	if (q->start_streaming_called)
+> -		__enqueue_in_driver(vb);
+> -
+>  	/* Fill buffer information for the userspace */
+>  	if (pb)
+>  		call_void_bufop(q, fill_user_buffer, vb, pb);
 
-> actually it reports, when run --strict mode
-I checked this once, but I thought this would be too aggressive changes.
+This should be called *after* the __vb2_core_qbuf call. That call changes
+vb->state which is used by buffer to fill in v4l2_buffer. So the order
+should be swapped here to ensure we return the latest state of the buffer.
 
->> * many cases where if (ret != 0), which generally should be written as if
->> (ret). If you expect it is just error ret value, then prefer if (ret), but
->> if> ret has some other meaning like it returns number of bytes then if you
->> expect 0-bytes returned (ret != 0) is also valid.
-In fact I did no real code changes to keep the impact as little as possible.
-But I agree fully with you and in my drivers I used always (ret) or (!ret).
-Although this has been changed in my new company when it comes to certified
-software ... .
+>  
+> -	/*
+> -	 * If streamon has been called, and we haven't yet called
+> -	 * start_streaming() since not enough buffers were queued, and
+> -	 * we now have reached the minimum number of queued buffers,
+> -	 * then we can finally call start_streaming().
+> -	 */
+> -	if (q->streaming && !q->start_streaming_called &&
+> -	    q->queued_count >= q->min_buffers_needed) {
+> -		ret = vb2_start_streaming(q);
+> -		if (ret)
+> -			return ret;
+> -	}
+> -
+> -	dprintk(1, "qbuf of buffer %d succeeded\n", vb->index);
+> -	return 0;
+> +	return __vb2_core_qbuf(vb, q);
+>  }
+>  EXPORT_SYMBOL_GPL(vb2_core_qbuf);
+>  
+> 
 
-I will try also to compile with GCC 7.1.1, if I get one for my system.
+Regards,
 
->> * unnecessary looking line split like that:
->> if (a
->>        & b)
-I am sure I did this because of the 80 col limit, but I will look again.
-
-THX for your review and the valuable input. I will add you the receiver list
-next time.
-
-BR,
-   Jasmin
+	Hans
