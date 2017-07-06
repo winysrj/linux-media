@@ -1,317 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:36159 "EHLO extserv.mm-sol.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751401AbdGQKfG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 06:35:06 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Cc: Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v3 16/23] camss: vfe: Support for frame padding
-Date: Mon, 17 Jul 2017 13:33:42 +0300
-Message-Id: <1500287629-23703-17-git-send-email-todor.tomov@linaro.org>
-In-Reply-To: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
-References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
+Received: from gateway36.websitewelcome.com ([192.185.186.5]:49552 "EHLO
+        gateway36.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751887AbdGFU2O (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Jul 2017 16:28:14 -0400
+Received: from cm15.websitewelcome.com (cm15.websitewelcome.com [100.42.49.9])
+        by gateway36.websitewelcome.com (Postfix) with ESMTP id 63FA74359A329
+        for <linux-media@vger.kernel.org>; Thu,  6 Jul 2017 15:05:20 -0500 (CDT)
+Date: Thu, 6 Jul 2017 15:05:17 -0500
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH] stm32-dcmi: constify vb2_ops structure
+Message-ID: <20170706200517.GA5886@embeddedgus>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for horizontal and vertical frame padding.
+Check for vb2_ops structures that are only stored in the ops field of a
+vb2_queue structure. That field is declared const, so vb2_ops structures
+that have this property can be declared as const also.
 
-Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+This issue was detected using Coccinelle and the following semantic patch:
+
+@r disable optional_qualifier@
+identifier i;
+position p;
+@@
+static struct vb2_ops i@p = { ... };
+
+@ok@
+identifier r.i;
+struct vb2_queue e;
+position p;
+@@
+e.ops = &i@p;
+
+@bad@
+position p != {r.p,ok.p};
+identifier r.i;
+struct vb2_ops e;
+@@
+e@i@p
+
+@depends on !bad disable optional_qualifier@
+identifier r.i;
+@@
+static
++const
+struct vb2_ops i = { ... };
+
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
 ---
- drivers/media/platform/qcom/camss-8x16/camss-vfe.c | 86 +++++++++++++++++-----
- .../media/platform/qcom/camss-8x16/camss-video.c   | 69 ++++++++++++-----
- .../media/platform/qcom/camss-8x16/camss-video.h   |  2 +
- 3 files changed, 121 insertions(+), 36 deletions(-)
+ drivers/media/platform/stm32/stm32-dcmi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
-index bef0209..327f158 100644
---- a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
-+++ b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
-@@ -279,21 +279,75 @@ static void vfe_wm_frame_based(struct vfe_device *vfe, u8 wm, u8 enable)
- 			1 << VFE_0_BUS_IMAGE_MASTER_n_WR_CFG_FRM_BASED_SHIFT);
+diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
+index 83d32a5..24ef888 100644
+--- a/drivers/media/platform/stm32/stm32-dcmi.c
++++ b/drivers/media/platform/stm32/stm32-dcmi.c
+@@ -662,7 +662,7 @@ static void dcmi_stop_streaming(struct vb2_queue *vq)
+ 		dcmi->errors_count, dcmi->buffers_count);
  }
  
-+#define CALC_WORD(width, M, N) (((width) * (M) + (N) - 1) / (N))
-+
-+static int vfe_word_per_line(uint32_t format, uint32_t pixel_per_line)
-+{
-+	int val = 0;
-+
-+	switch (format) {
-+	case V4L2_PIX_FMT_NV12:
-+	case V4L2_PIX_FMT_NV21:
-+	case V4L2_PIX_FMT_NV16:
-+	case V4L2_PIX_FMT_NV61:
-+		val = CALC_WORD(pixel_per_line, 1, 8);
-+		break;
-+	case V4L2_PIX_FMT_YUYV:
-+	case V4L2_PIX_FMT_YVYU:
-+	case V4L2_PIX_FMT_UYVY:
-+	case V4L2_PIX_FMT_VYUY:
-+		val = CALC_WORD(pixel_per_line, 2, 8);
-+		break;
-+	}
-+
-+	return val;
-+}
-+
-+static void vfe_get_wm_sizes(struct v4l2_pix_format_mplane *pix, u8 plane,
-+			     u16 *width, u16 *height, u16 *bytesperline)
-+{
-+	switch (pix->pixelformat) {
-+	case V4L2_PIX_FMT_NV12:
-+	case V4L2_PIX_FMT_NV21:
-+		*width = pix->width;
-+		*height = pix->height;
-+		*bytesperline = pix->plane_fmt[0].bytesperline;
-+		if (plane == 1)
-+			*height /= 2;
-+		break;
-+	case V4L2_PIX_FMT_NV16:
-+	case V4L2_PIX_FMT_NV61:
-+		*width = pix->width;
-+		*height = pix->height;
-+		*bytesperline = pix->plane_fmt[0].bytesperline;
-+		break;
-+	}
-+}
-+
- static void vfe_wm_line_based(struct vfe_device *vfe, u32 wm,
--			      u16 width, u16 height, u32 enable)
-+			      struct v4l2_pix_format_mplane *pix,
-+			      u8 plane, u32 enable)
- {
- 	u32 reg;
- 
- 	if (enable) {
-+		u16 width = 0, height = 0, bytesperline = 0, wpl;
-+
-+		vfe_get_wm_sizes(pix, plane, &width, &height, &bytesperline);
-+
-+		wpl = vfe_word_per_line(pix->pixelformat, width);
-+
- 		reg = height - 1;
--		reg |= (width / 16 - 1) << 16;
-+		reg |= ((wpl + 1) / 2 - 1) << 16;
- 
- 		writel_relaxed(reg, vfe->base +
- 			       VFE_0_BUS_IMAGE_MASTER_n_WR_IMAGE_SIZE(wm));
- 
-+		wpl = vfe_word_per_line(pix->pixelformat, bytesperline);
-+
- 		reg = 0x3;
- 		reg |= (height - 1) << 4;
--		reg |= (width / 8) << 16;
-+		reg |= wpl << 16;
- 
- 		writel_relaxed(reg, vfe->base +
- 			       VFE_0_BUS_IMAGE_MASTER_n_WR_BUFFER_CFG(wm));
-@@ -1198,25 +1252,14 @@ static int vfe_enable_output(struct vfe_line *line)
- 	} else {
- 		ub_size /= output->wm_num;
- 		for (i = 0; i < output->wm_num; i++) {
--			u32 p = line->video_out.active_fmt.fmt.pix_mp.pixelformat;
--
- 			vfe_set_cgc_override(vfe, output->wm_idx[i], 1);
- 			vfe_wm_set_subsample(vfe, output->wm_idx[i]);
- 			vfe_wm_set_ub_cfg(vfe, output->wm_idx[i],
- 					  (ub_size + 1) * output->wm_idx[i],
- 					  ub_size);
--			if ((i == 1) &&	(p == V4L2_PIX_FMT_NV12 ||
--						p == V4L2_PIX_FMT_NV21))
--				vfe_wm_line_based(vfe, output->wm_idx[i],
--						  line->fmt[MSM_VFE_PAD_SRC].width,
--						  line->fmt[MSM_VFE_PAD_SRC].height / 2,
--						  1);
--			else
--				vfe_wm_line_based(vfe, output->wm_idx[i],
--						  line->fmt[MSM_VFE_PAD_SRC].width,
--						  line->fmt[MSM_VFE_PAD_SRC].height,
--						  1);
--
-+			vfe_wm_line_based(vfe, output->wm_idx[i],
-+					&line->video_out.active_fmt.fmt.pix_mp,
-+					i, 1);
- 			vfe_wm_enable(vfe, output->wm_idx[i], 1);
- 			vfe_bus_reload_wm(vfe, output->wm_idx[i]);
- 		}
-@@ -1278,7 +1321,7 @@ static int vfe_disable_output(struct vfe_line *line)
- 		spin_unlock_irqrestore(&vfe->output_lock, flags);
- 	} else {
- 		for (i = 0; i < output->wm_num; i++) {
--			vfe_wm_line_based(vfe, output->wm_idx[i], 0, 0, 0);
-+			vfe_wm_line_based(vfe, output->wm_idx[i], NULL, i, 0);
- 			vfe_set_cgc_override(vfe, output->wm_idx[i], 0);
- 		}
- 
-@@ -2363,9 +2406,14 @@ int msm_vfe_register_entities(struct vfe_device *vfe,
- 		}
- 
- 		video_out->ops = &camss_vfe_video_ops;
-+		video_out->bpl_alignment = 8;
-+		video_out->line_based = 0;
- 		video_out->fmt_tag = CAMSS_FMT_TAG_RDI;
--		if (i == VFE_LINE_PIX)
-+		if (i == VFE_LINE_PIX) {
-+			video_out->bpl_alignment = 16;
-+			video_out->line_based = 1;
- 			video_out->fmt_tag = CAMSS_FMT_TAG_PIX;
-+		}
- 		snprintf(name, ARRAY_SIZE(name), "%s%d_%s%d",
- 			 MSM_VFE_NAME, vfe->id, "video", i);
- 		ret = msm_video_register(video_out, v4l2_dev, name);
-diff --git a/drivers/media/platform/qcom/camss-8x16/camss-video.c b/drivers/media/platform/qcom/camss-8x16/camss-video.c
-index c5ebf5c..5a2bf18 100644
---- a/drivers/media/platform/qcom/camss-8x16/camss-video.c
-+++ b/drivers/media/platform/qcom/camss-8x16/camss-video.c
-@@ -194,13 +194,15 @@ static int video_find_format_n(u32 code, u32 index, enum camss_fmt_tag tag)
-  * @mbus: v4l2_mbus_framefmt format
-  * @pix: v4l2_pix_format_mplane format (output)
-  * @index: index of an entry in formats array to be used for the conversion
-+ * @alignment: bytesperline alignment value
-  *
-  * Fill the output pix structure with information from the input mbus format.
-  *
-  * Return 0 on success or a negative error code otherwise
-  */
- static int video_mbus_to_pix_mp(const struct v4l2_mbus_framefmt *mbus,
--				struct v4l2_pix_format_mplane *pix, int index)
-+				struct v4l2_pix_format_mplane *pix, int index,
-+				unsigned int alignment)
- {
- 	const struct format_info *f;
- 	unsigned int i;
-@@ -214,7 +216,7 @@ static int video_mbus_to_pix_mp(const struct v4l2_mbus_framefmt *mbus,
- 	for (i = 0; i < pix->num_planes; i++) {
- 		bytesperline = pix->width / f->hsub[i].numerator *
- 			f->hsub[i].denominator * f->bpp[i] / 8;
--		bytesperline = ALIGN(bytesperline, 8);
-+		bytesperline = ALIGN(bytesperline, alignment);
- 		pix->plane_fmt[i].bytesperline = bytesperline;
- 		pix->plane_fmt[i].sizeimage = pix->height /
- 				f->vsub[i].numerator * f->vsub[i].denominator *
-@@ -267,7 +269,8 @@ static int video_get_subdev_format(struct camss_video *video,
- 	if (ret < 0)
- 		return ret;
- 
--	return video_mbus_to_pix_mp(&fmt.format, &format->fmt.pix_mp, ret);
-+	return video_mbus_to_pix_mp(&fmt.format, &format->fmt.pix_mp, ret,
-+				    video->bpl_alignment);
- }
- 
- static int video_get_pixelformat(struct camss_video *video, u32 *pixelformat,
-@@ -395,7 +398,6 @@ static int video_check_format(struct camss_video *video)
- 	struct v4l2_pix_format_mplane *pix = &video->active_fmt.fmt.pix_mp;
- 	struct v4l2_pix_format_mplane *sd_pix;
- 	struct v4l2_format format;
--	unsigned int i;
- 	int ret;
- 
- 	sd_pix = &format.fmt.pix_mp;
-@@ -411,13 +413,6 @@ static int video_check_format(struct camss_video *video)
- 	    pix->field != format.fmt.pix_mp.field)
- 		return -EINVAL;
- 
--	for (i = 0; i < pix->num_planes; i++)
--		if (pix->plane_fmt[i].bytesperline !=
--				sd_pix->plane_fmt[i].bytesperline ||
--		    pix->plane_fmt[i].sizeimage !=
--				sd_pix->plane_fmt[i].sizeimage)
--			return -EINVAL;
--
- 	return 0;
- }
- 
-@@ -542,28 +537,68 @@ static int video_g_fmt(struct file *file, void *fh, struct v4l2_format *f)
- 	return 0;
- }
- 
--static int video_s_fmt(struct file *file, void *fh, struct v4l2_format *f)
-+static int video_try_fmt(struct file *file, void *fh, struct v4l2_format *f)
- {
- 	struct camss_video *video = video_drvdata(file);
-+	struct v4l2_plane_pix_format *p;
-+	u32 bytesperline[3] = { 0 };
-+	u32 sizeimage[3] = { 0 };
-+	u32 lines;
- 	int ret;
-+	int i;
- 
--	if (vb2_is_busy(&video->vb2_q))
--		return -EBUSY;
-+	if (video->line_based)
-+		for (i = 0; i < f->fmt.pix_mp.num_planes && i < 3; i++) {
-+			p = &f->fmt.pix_mp.plane_fmt[i];
-+			bytesperline[i] = clamp_t(u32, p->bytesperline,
-+						  1, 65528);
-+			sizeimage[i] = clamp_t(u32, p->sizeimage,
-+					       bytesperline[i],
-+					       bytesperline[i] * 4096);
-+		}
- 
- 	ret = video_get_subdev_format(video, f);
- 	if (ret < 0)
- 		return ret;
- 
--	video->active_fmt = *f;
-+	if (video->line_based)
-+		for (i = 0; i < f->fmt.pix_mp.num_planes; i++) {
-+			p = &f->fmt.pix_mp.plane_fmt[i];
-+			p->bytesperline = clamp_t(u32, p->bytesperline,
-+						  1, 65528);
-+			p->sizeimage = clamp_t(u32, p->sizeimage,
-+					       p->bytesperline,
-+					       p->bytesperline * 4096);
-+			lines = p->sizeimage / p->bytesperline;
-+
-+			if (p->bytesperline < bytesperline[i])
-+				p->bytesperline = ALIGN(bytesperline[i], 8);
-+
-+			if (p->sizeimage < p->bytesperline * lines)
-+				p->sizeimage = p->bytesperline * lines;
-+
-+			if (p->sizeimage < sizeimage[i])
-+				p->sizeimage = sizeimage[i];
-+		}
- 
- 	return 0;
- }
- 
--static int video_try_fmt(struct file *file, void *fh, struct v4l2_format *f)
-+static int video_s_fmt(struct file *file, void *fh, struct v4l2_format *f)
- {
- 	struct camss_video *video = video_drvdata(file);
-+	int ret;
-+
-+	if (vb2_is_busy(&video->vb2_q))
-+		return -EBUSY;
- 
--	return video_get_subdev_format(video, f);
-+	ret = video_try_fmt(file, fh, f);
-+	if (ret < 0)
-+		return ret;
-+
-+	video->active_fmt = *f;
-+
-+	return 0;
- }
- 
- static int video_enum_input(struct file *file, void *fh,
-diff --git a/drivers/media/platform/qcom/camss-8x16/camss-video.h b/drivers/media/platform/qcom/camss-8x16/camss-video.h
-index eff6b3d..e36a75b 100644
---- a/drivers/media/platform/qcom/camss-8x16/camss-video.h
-+++ b/drivers/media/platform/qcom/camss-8x16/camss-video.h
-@@ -57,6 +57,8 @@ struct camss_video {
- 	const struct camss_video_ops *ops;
- 	struct mutex lock;
- 	struct mutex q_lock;
-+	unsigned int bpl_alignment;
-+	unsigned int line_based;
- 	enum camss_fmt_tag fmt_tag;
- };
- 
+-static struct vb2_ops dcmi_video_qops = {
++static const struct vb2_ops dcmi_video_qops = {
+ 	.queue_setup		= dcmi_queue_setup,
+ 	.buf_init		= dcmi_buf_init,
+ 	.buf_prepare		= dcmi_buf_prepare,
 -- 
-2.7.4
+2.5.0
