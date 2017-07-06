@@ -1,197 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47430 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932486AbdGKQMu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 12:12:50 -0400
-Date: Tue, 11 Jul 2017 19:12:45 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: v4l2-fwnode: status, plans for merge, any branch to merge
- against?
-Message-ID: <20170711161245.5ftg6jgomudzlosz@valkosipuli.retiisi.org.uk>
-References: <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
- <20170306072323.GA23509@amd>
- <20170310225418.GJ3220@valkosipuli.retiisi.org.uk>
- <20170613122240.GA2803@amd>
- <20170613124748.GD12407@valkosipuli.retiisi.org.uk>
- <20170613210900.GA31456@amd>
- <20170614110634.GP12407@valkosipuli.retiisi.org.uk>
- <20170704150819.GA10703@localhost>
- <20170705093248.hndchnamibhqczfr@valkosipuli.retiisi.org.uk>
- <20170706103851.GA9555@amd>
+Received: from mail-lf0-f47.google.com ([209.85.215.47]:32804 "EHLO
+        mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751751AbdGFSQk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 14:16:40 -0400
+Received: by mail-lf0-f47.google.com with SMTP id z78so9372686lff.0
+        for <linux-media@vger.kernel.org>; Thu, 06 Jul 2017 11:16:39 -0700 (PDT)
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH v6] media: platform: Renesas IMR driver
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org
+References: <20170623203456.503714406@cogentembedded.com>
+ <589c2ca4-d1e7-86c3-1ef5-8831a54856ed@xs4all.nl>
+Cc: linux-renesas-soc@vger.kernel.org,
+        Konstantin Kozhevnikov
+        <Konstantin.Kozhevnikov@cogentembedded.com>
+Message-ID: <45854c21-f355-37e4-b677-dddb8222e719@cogentembedded.com>
+Date: Thu, 6 Jul 2017 21:16:35 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170706103851.GA9555@amd>
+In-Reply-To: <589c2ca4-d1e7-86c3-1ef5-8831a54856ed@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+Hello!
 
-On Thu, Jul 06, 2017 at 12:38:51PM +0200, Pavel Machek wrote:
-> Hi!
-> 
-> > > > > > I expect to have most of them in during the next merge window.
-> > > > > 
-> > > > > So git://linuxtv.org/media_tree.git branch master is the right one to
-> > > > > work one?
-> > > > 
-> > > > I also pushed the rebased ccp2 branch there:
-> > > > 
-> > > > <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=ccp2>
-> > > > 
-> > > > It's now right on the top of media-tree master.
-> > > 
-> > > Is ccp2 branch expected to go into 4.13, too?
-> > 
-> > Hi Pavel,
-> > 
-> > What I've done is just rebased the ccp2 branch. In other words, the patches
-> > in that branch are no more ready than they were.
-> 
-> I thought they were ready even back then :-).
-> 
-> > To get these merged we should ideally
-> > 
-> > 1) Make sure there will be no regressions,
-> 
-> Well, all I have running recent kernels is N900. If ccp branch works
-> for you on N9, that's probably as much testing as we can get.
-> 
-> > 2) clean things up in the omap3isp; which resources are needed and when
-> > (e.g. regulators, PHY configuration) isn't clear at the moment and
-> > 
-> > 2) have one driver using the implementation.
-> > 
-> > At least 1) is needed. I think a number of framework patches could be
-> > mergeable before 2) and 3) are done. I can prepare a set later this week.
-> > But even that'd be likely for 4.14, not 4.13.
-> 
-> Yep, it is too late for v4.13 now. But getting stuff ready for v4.14
-> would be good.
-> 
-> I started looking through the patches; I believe they are safe, but it
-> is probably better to review the series you've just mailed.
-> 
-> The driver using the implementation -- yes, I have it all working on
-> n900 (incuding userland, I can actually take photos.) I can post the
-> series, or better link to kernel.org.
-> 
-> Right now, my goal would be to get sensor working on N900 with
-> mainline (without flash and focus).
-> 
-> I'd very much like any comment on patch attached below.
-> 
-> Age   Commit message (Expand)	Author	Files	Lines
-> 2017-06-16   omap3isp: Destroy CSI-2 phy mutexes in error and module
-> 2017-06-16	omap3isp: Skip CSI-2 receiver initialisation in CCP2
-> 2017-06-16	omap3isp: Correctly put the last iterated endpoint
-> 2017-06-16	omap3isp: Always initialise isp and mutex for csiphy1
-> 2017-06-16	omap3isp: Return -EPROBE_DEFER if the required
-> 2017-06-16 omap3isp: Correctly set IO_OUT_SEL and VP_CLK_POL for CCP2
-> 2017-06-16    omap3isp: Make external sub-device bus configuration a
-> 2017-06-15    omap3isp: Parse CSI1 configuration from the device tree
-> 2017-06-15    omap3isp: Check for valid port in endpoints	Sakari
-> 2017-06-15	omap3isp: Ignore endpoints with invalid configuration
-> 
-> # Nothing changes for bus_type == V4L2_MBUS_CSI2. FIXME: Is bus_type
->   set correctly?
-> 
-> 2017-06-15	smiapp: add CCP2 support	Pavel Machek	1
-> 
-> # bus_type will be guess, so no code changes on existing system:
-> 
-> 2017-06-15	v4l: Add support for CSI-1 and CCP2 busses	Sakari
-> 
-> # Reads unused value -> can't break anything:
-> 
-> 2017-06-13	v4l: fwnode: Obtain data bus type from FW	Sakari
-> 
-> # No code changes -> totally safe:
-> 
-> 2017-06-13	v4l: fwnode: Call CSI2 bus csi2, not csi	Sakari
-> 2017-06-13	dt: bindings: Add strobe property for CCP2	Sakari
-> 2017-06-13	dt: bindings: Explicitly specify bus type
-> 
-> Best regards,
-> 								Pavel
-> 
-> commit 1220492dd4c1872c8036caa573680f95aabc69bc
-> Author: Pavel <pavel@ucw.cz>
-> Date:   Tue Feb 28 12:02:26 2017 +0100
-> 
->     omap3isp: add CSI1 support
->     
->     Use proper code path for csi1/ccp2 support.
->     
->     Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
-> index 24a9fc5..47210b1 100644
-> --- a/drivers/media/platform/omap3isp/ispccp2.c
-> +++ b/drivers/media/platform/omap3isp/ispccp2.c
-> @@ -1149,6 +1149,7 @@ int omap3isp_ccp2_init(struct isp_device *isp)
->  				"Could not get regulator vdds_csib\n");
->  			ccp2->vdds_csib = NULL;
->  		}
-> +		ccp2->phy = &isp->isp_csiphy2;
->  	} else if (isp->revision == ISP_REVISION_15_0) {
->  		ccp2->phy = &isp->isp_csiphy1;
->  	}
-> diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
-> index 50c0f64..862fdd3 100644
-> --- a/drivers/media/platform/omap3isp/ispcsiphy.c
-> +++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-> @@ -197,9 +197,10 @@ static int omap3isp_csiphy_config(struct isp_csiphy *phy)
->  	}
->  
->  	if (buscfg->interface == ISP_INTERFACE_CCP2B_PHY1
-> -	    || buscfg->interface == ISP_INTERFACE_CCP2B_PHY2)
-> +	    || buscfg->interface == ISP_INTERFACE_CCP2B_PHY2) {
->  		lanes = &buscfg->bus.ccp2.lanecfg;
-> -	else
-> +		phy->num_data_lanes = 1;
-> +	} else
->  		lanes = &buscfg->bus.csi2.lanecfg;
->  
->  	/* Clock and data lanes verification */
-> @@ -302,13 +303,16 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
->  	if (rval < 0)
->  		goto done;
->  
-> -	rval = csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_ON);
-> -	if (rval) {
-> -		regulator_disable(phy->vdd);
-> -		goto done;
-> +	if (phy->isp->revision == ISP_REVISION_15_0) {
+On 07/03/2017 03:43 PM, Hans Verkuil wrote:
 
-Shouldn't you make the related changes to omap3isp_csiphy_release() as
-well?
+>> Index: media_tree/Documentation/media/v4l-drivers/rcar_imr.rst
+>> ===================================================================
+>> --- /dev/null
+>> +++ media_tree/Documentation/media/v4l-drivers/rcar_imr.rst
+>> @@ -0,0 +1,86 @@
+>> +Renesas R-Car Image Rendeder (IMR) Driver
+>
+> Rendeder -> Renderer
 
-Other than that the patch looks good to me.
+    Oops, sorry. :-)
 
-> +		rval = csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_ON);
-> +		if (rval) {
-> +			regulator_disable(phy->vdd);
-> +			goto done;
-> +		}
-> +
-> +		csiphy_power_autoswitch_enable(phy, true);
->  	}
->  
-> -	csiphy_power_autoswitch_enable(phy, true);
->  	phy->phy_in_use = 1;
->  
->  done:
-> 
+>> +=========================================
+>> +
+>> +This file documents some driver-specific aspects of the IMR driver, such as
+>> +driver-specific ioctls.
+>> +
+>> +The ioctl reference
+>> +~~~~~~~~~~~~~~~~~~~
+>> +
+>> +VIDIOC_IMR_MESH - Set mapping data
+>> +^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>> +
+>> +Argument: struct imr_map_desc
+>> +
+>> +**Description**:
+>> +
+>> +    This ioctl sets up the mesh using which the input frames will be
+>
+> s/using/through/
+>
+>> +    transformed into the output frames. The mesh can be strictly rectangular
+>> +    (when IMR_MAP_MESH bit is set in imr_map_desc::type) or arbitrary (when
+>> +    that bit is not set).
+>> +
+>> +    A rectangular mesh consists of the imr_mesh structure followed by M*N
+>> +    vertex objects (where M is imr_mesh::rows and N is imr_mesh::columns).
+>> +    In case either IMR_MAP_AUTOSG or IMR_MAP_AUTODG bits were set in
+>> +    imr_map_desc::type, imr_mesh::{x|y}0 specify the coordinates of the top
+>> +    left corner of the auto-generated mesh and imr_mesh::d{x|y} specify the
+>> +    mesh's X/Y steps.
+>
+> What if any of the other types are used like IMR_MAP_LUCE?
 
--- 
-Kind regards,
+    IMR_MAP_LUCE only affects the vertex object.
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> Is this documented in a Renesas datasheet?
+
+    Yes.
+
+> If so, add a reference to that in this
+> documentation.
+
+    Unfortunately it's not publicly available.
+
+>> +
+>> +    An arbitrary mesh consists of the imr_vbo structure followed by N
+>> +    triangle objects (where N is imr_vbo::num), consisting of 3 vertex
+>> +    objects each.
+>> +
+>> +    A vertex object has a complex structure:
+>> +
+>> +.. code-block:: none
+>> +
+>> +    __u16    v        vertical   \ source coordinates (only present
+>> +    __u16    u        horizontal / if IMR_MAP_AUTOSG isn't set)
+>> +    __u16    Y        vertical   \ destination coordinates (only here
+>> +    __u16    X        horizontal / if IMR_MAP_AUTODG isn't set)
+>> +    __s8    lofst        offset \  luminance correction parameters
+>> +    __u8    lscal        scale   > (only present if IMR_MAP_LUCE
+>> +    __u16    reserved           /  is set)
+>> +    __s8    vrofs        V value offset \  hue correction parameters
+>> +    __u8    vrscl        V value scale   \ (only present if IMR_MAP_CLCE
+>> +    __s8    ubofs        U value offset  / is set)
+>> +    __u8    ubscl        U value scale  /
+>
+> Is this the internal structure? Or something that userspace has to fill in?
+
+    Yes, the user space have to pass that to the driver which constructs the 
+display lists using these data.
+
+> It's not clear at all.
+>
+> I recommend giving a few code examples of how this should be used.
+
+    Konstantin, can we give some examples?
+
+>> +
+>> +**Return value**:
+>> +
+>> +    On success 0 is returned. On error -1 is returned and errno is set
+>> +    appropriately.
+>> +
+>> +**Data types**:
+>> +
+>> +.. code-block:: none
+>> +
+>> +    * struct imr_map_desc
+>> +
+>> +    __u32    type        mapping types
+>
+> This is a bitmask? If so, what combination of bits are allowed?
+
+    Yes, bitmask.
+
+>> +    __u32    size        total size of the mesh structure
+>> +    __u64    data        map-specific user-pointer
+>> +
+>> +    IMR_MAP_MESH        regular mesh specification
+>> +    IMR_MAP_AUTOSG        auto-generated source coordinates
+>> +    IMR_MAP_AUTODG        auto-generated destination coordinates
+>> +    IMR_MAP_LUCE        luminance correction flag
+>> +    IMR_MAP_CLCE        chromacity correction flag
+>
+> You probably mean 'chroma'. 'chromacity' isn't a word.
+
+    But it's recognized by all online translators I've tried. :-)
+
+>> +    IMR_MAP_TCM        vertex clockwise-mode order
+>> +    IMR_MAP_UVDPOR(n)    source coordinate decimal point position
+>> +    IMR_MAP_DDP        destination coordinate sub-pixel mode
+>> +    IMR_MAP_YLDPO(n)    luminance correction offset decimal point
+>> +                position
+>> +    IMR_MAP_UBDPO(n)    chromacity (U) correction offset decimal point
+>> +                position
+>> +    IMR_MAP_VRDPO(n)    chromacity (V) correction offset decimal point
+>> +                position
+>
+> There is no documentation what how these types relate to IMR_MAP_MESH and
+> IMR_MAP_AUTOS/DG.
+
+    They are basically orthogonal, IIRC.
+
+>> +
+>> +    * struct imr_mesh    regular mesh specification
+>> +
+>> +    __u16    rows, columns    rectangular mesh sizes
+>> +    __u16    x0, y0, dx, dy    auto-generated mesh parameters
+>> +
+>> +    * struct imr_vbo    vertex-buffer-object (VBO) descriptor
+>> +
+>> +    __u16    num        number of triangles
+>
+> Sorry, this needs more work.
+
+    Sigh, everybody hates writing docs, I guess... :-)
+
+> Regards,
+>
+>     Hans
+
+MBR, Sergei
