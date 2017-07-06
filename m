@@ -1,109 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f180.google.com ([209.85.128.180]:38692 "EHLO
-        mail-wr0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934862AbdGTSZx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 14:25:53 -0400
-Received: by mail-wr0-f180.google.com with SMTP id f21so17586157wrf.5
-        for <linux-media@vger.kernel.org>; Thu, 20 Jul 2017 11:25:53 -0700 (PDT)
-Date: Thu, 20 Jul 2017 20:25:49 +0200
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Ralph Metzler <rjkm@metzlerbros.de>, linux-media@vger.kernel.org,
-        mchehab@kernel.org, jasmin@anw.at, d_spingler@gmx.de
-Subject: Re: [PATCH 00/14] ddbridge: bump to ddbridge-0.9.29
-Message-ID: <20170720202549.6d77b8d2@audiostation.wuest.de>
-In-Reply-To: <20170720122412.0aaefcfe@vento.lan>
-References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
-        <22883.13973.46880.749847@morden.metzler>
-        <20170710173124.653286e7@audiostation.wuest.de>
-        <22884.38463.374508.270284@morden.metzler>
-        <20170711173013.25741b86@audiostation.wuest.de>
-        <20170720122412.0aaefcfe@vento.lan>
+Received: from mail-yb0-f175.google.com ([209.85.213.175]:34674 "EHLO
+        mail-yb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751859AbdGFIet (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 04:34:49 -0400
+Received: by mail-yb0-f175.google.com with SMTP id e201so3854979ybb.1
+        for <linux-media@vger.kernel.org>; Thu, 06 Jul 2017 01:34:48 -0700 (PDT)
+Received: from mail-yw0-f181.google.com (mail-yw0-f181.google.com. [209.85.161.181])
+        by smtp.gmail.com with ESMTPSA id x78sm407095ywg.70.2017.07.06.01.34.46
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 06 Jul 2017 01:34:47 -0700 (PDT)
+Received: by mail-yw0-f181.google.com with SMTP id x125so5109143ywa.0
+        for <linux-media@vger.kernel.org>; Thu, 06 Jul 2017 01:34:46 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAK8P3a2htZ7q=npfwJVW7Lr90O78Ey+OR5e0ivaR7GwV4YBs=A@mail.gmail.com>
+References: <20170705071215.17603-1-tfiga@chromium.org> <20170705071215.17603-2-tfiga@chromium.org>
+ <20170705151728.GA2479@lst.de> <CAAFQd5DijKbNJ-8wHh=+2Z2y1nSF-LC8R+d+NktTRF4iQqPsrA@mail.gmail.com>
+ <20170705172019.GB5246@lst.de> <CAAFQd5CkVYd6uyoFP_15N8ZaZp8jivJ-4S=CAvrTynRU2ShFYg@mail.gmail.com>
+ <CAK8P3a2htZ7q=npfwJVW7Lr90O78Ey+OR5e0ivaR7GwV4YBs=A@mail.gmail.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 6 Jul 2017 17:34:25 +0900
+Message-ID: <CAAFQd5BMorNa8CD+cEap2=boD2-=jr+DFF9cXTNXzSSfe7FnLg@mail.gmail.com>
+Subject: Re: [RFC PATCH 1/5] base: dma-mapping: Export commonly used symbols
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Christoph Hellwig <hch@lst.de>,
+        "open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Joerg Roedel <joro@8bytes.org>,
+        Will Deacon <will.deacon@arm.com>,
+        Vineet Gupta <vgupta@synopsys.com>,
+        Hans-Christian Noren Egtvedt <egtvedt@samfundet.no>,
+        Mitchel Humpherys <mitchelh@codeaurora.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Pawel Osciak <posciak@chromium.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Thu, Jul 6, 2017 at 5:26 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Thu, Jul 6, 2017 at 3:44 AM, Tomasz Figa <tfiga@chromium.org> wrote:
+>> On Thu, Jul 6, 2017 at 2:20 AM, Christoph Hellwig <hch@lst.de> wrote:
+>>> On Thu, Jul 06, 2017 at 12:22:35AM +0900, Tomasz Figa wrote:
+>
+>>> In general I think moving dma
+>>> ops and iommu implementations into modules is a bad idea
+>>
+>> Could you elaborate on this? I'd be interested in seeing the reasoning
+>> behind this.
+>>
+>>> but I
+>>> don't want to reject the idea before seeing the code.  Or maybe
+>>> by looking at the user we can come up with an even better idea
+>>> to solve the original issue you're trying to solve, so please also
+>>> explain your rationale.
+>
+> I had pretty much the same thoughts here.
+>
+>> Basically we have an x86 platform with a camera subsystem that is a
+>> PCI device, has its own MMU and needs cache maintenance. Moreover, the
+>> V4L2 subsystem, which is the right place for camera drivers, heavily
+>> relies on DMA mapping as a way to abstract memory allocation, mapping
+>> and cache maintenance. So it feels natural to me to hide the hardware
+>> details (additional cache maintenance, mapping into the built-in
+>> IOMMU) in the DMA mapping ops for this camera subsystem and simply
+>> make V4L2 just work without knowing those details.
+>
+> I can understand your reasoning here, but I'm also not convinced
+> that this is the best approach. There may be a middle ground somewhere
+> though.
+>
+> Generally speaking I don't want to have to deal with the horrors of
+> deciding whether an IOMMU is going to be there eventually or not
+> at probe() time. At some point, we had decided that IOMMUs need to
+> be initialized (almost) as early as irqchips and clocksources so we can
+> rely on them to be there at device discovery time. That got pushed
+> back already, and now we may have to deal with -EPROBE_DEFER
+> when an IOMMU has not been fully initialized at device probe time,
+> but at least we can reliably see if one is there or not. Making IOMMUs
+> modular will add further uncertainty here. Obviously we cannot attach
+> an IOMMU to a device once we have started using DMA mapping
+> calls on it.
 
-Am Thu, 20 Jul 2017 12:24:12 -0300
-schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+The hardware can only work with IOMMU and so the main module is highly
+tied with the IOMMU module and it initialized it directly. There is no
+separate struct driver or device associated with the IOMMU, as it's a
+part of the one and only one PCI device (as visible from the system
+PCI bus point of view) and technically handled by one pci_driver.
 
-> Em Tue, 11 Jul 2017 17:30:13 +0200
-> Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
-> 
-> > Am Tue, 11 Jul 2017 11:11:27 +0200
-> > schrieb Ralph Metzler <rjkm@metzlerbros.de>:
-> >   
-> > > Daniel Scheller writes:    
-> > >  > 
-> > >  > IIRC this was -main.c, and basically the code split, but no
-> > >  > specific file. However, each of the additionals (hw, io, irq)
-> > >  > were done with a reason (please also see their commit messages
-> > >  > at patches 4-6):
-> > >  > [...]    
-> > > 
-> > > As I wrote before, changes like this will break other things like
-> > > the OctopusNet build tree. So, I cannot use them like this or
-> > > without changes at other places. And even if I wanted to, I
-> > > cannot pull anything into the public dddvb repository.    
-> > 
-> > Ok, you probably have seen the PRs I created against dddvb, as they
-> > apply basically the same as is contained in this patchset, and even
-> > fixes a few minors. Thus, lets not declare this as merge-blocker for
-> > this patches, please.  
-> 
-> I would prefer if we could spend more time trying to find a way where
-> we can proceed without increasing the discrepancies between upstream
-> and DD tree, but, instead to reduce. 
-> 
-> I mean, if we know that some change won't be accepted at DD tree,
-> better to change our approach to another one that it is acceptable
-> on both upstream and DD trees.
+>
+> For your particular use case, I would instead leave the knowledge
+> about the IOMMU in the driver itself, like we do for the IOMMUs
+> that are integrated in desktop GPUs, and have the code use the
+> DMA mapping API with the system-provided dma_map_ops to
+> get dma_addr_t tokens which you then program into the device
+> IOMMU.
+>
+> An open question however would be whether to use the IOMMU
+> API without the DMA mapping API here, or whether to completely
+> leave the knowledge of the IOMMU inside of the driver itself.
+> I don't have a strong opinion on that part, and I guess this mostly
+> depends on what the hardware looks like.
 
-(hopefully not too much language barrier coming up...)
++ linux-media and some media folks
 
-First and foremost (to everyone involved) - I appeal at you all, in
-the name of all DD hardware owners, for like six approaches to get the
-patches in shape and over 1.5 years of spare time spent, to not make
-this a reason to block the patches. And yes, Mauro, I understand
-what you're up to.
+I'd say that this is something that has been consistently tried to be
+avoided by V4L2 and that's why it's so tightly integrated with DMA
+mapping. IMHO re-implementing the code that's already there in
+videobuf2 again in the driver, only because, for no good reason
+mentioned as for now, having a loadable module providing DMA ops was
+disliked.
 
-Rather, this closes the gap between the current dddvb drivers and what
-we have in mainline by at least 24 (!!) (plus some minor revisions and
-other intermediate versions I couldn't get tar archives for) software
-releases. Plus, the only real difference we have after these patches is
-support for the DVB-C modulator cards and the OctoNET box support (with
-that, support for the aforementioned GTL links, which I even already
-have a patch for to add that back), and both are features that are
-removed *for now* only due to the API changes involved, which simply is
-a tad too much for me right now to add them in and provide reasoning
-why they're needed and what exactly they do. Speaking of the modulator
-card support, things are even quite simple, see [1] and [2] what I
-gathered from the package to have all things API in place. In
-addition, the parts in ddbridge can be added back quite easily (some
-output-dma things, PCI IDs plus ddbridge-mod[ulator].c). If these two
-simple things are acceptable in DVB core, I can even prepare patches
-for getting the modulator support back in.
+Similarly with IOMMU API. It provides a lot of help in managing the
+mappings and re-implementing this would be IMHO backwards.
 
-As Ralph mentioned the three additional files -irq, -io and -hw, I do
-not insist on them, but rather thought it'd be a good way to further
-make things cleaner, by separating things more.
-
-So, again, please do not make this a blocker, but lets rather make this
-a start to get things closer to each other, and continue in doing so by
-finding agreements in parallel. And: I _WILL_ care about keeping the
-mainline version in sync with upstream and NOT diverge further; this is
-what the MAINTAINERS entry is meant for at last!
-
-[1]
-https://github.com/herrnst/dddvb-linux-kernel/commit/c586db283ef51f43ecb1d1c9e49230184ea02714
-[2]
-https://github.com/herrnst/dddvb-linux-kernel/commit/f448a8485a24acec7b44ac418ef57b59eb8369cd
-
-All the best,
-Daniel Scheller
--- 
-https://github.com/herrnst
+Best regards,
+Tomasz
