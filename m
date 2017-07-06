@@ -1,75 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46545 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750849AbdGUSUB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Jul 2017 14:20:01 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sylwester Nawrocki <snawrocki@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv2 1/5] media-device: set driver_version directly
-Date: Fri, 21 Jul 2017 21:20:07 +0300
-Message-ID: <10142845.4VLkRYsldJ@avalon>
-In-Reply-To: <aba5357e-5039-ed75-1ea1-1da76bfb6590@xs4all.nl>
-References: <20170721105706.40703-1-hverkuil@xs4all.nl> <20170721105706.40703-2-hverkuil@xs4all.nl> <aba5357e-5039-ed75-1ea1-1da76bfb6590@xs4all.nl>
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:35687 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751070AbdGFN42 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 09:56:28 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CAAFQd5DS1NxKh4OJ52T2AJNTHg6K2fnuDm5-GHzmUk-kjowf2w@mail.gmail.com>
+References: <20170705071215.17603-1-tfiga@chromium.org> <20170705071215.17603-2-tfiga@chromium.org>
+ <20170705151728.GA2479@lst.de> <CAAFQd5DijKbNJ-8wHh=+2Z2y1nSF-LC8R+d+NktTRF4iQqPsrA@mail.gmail.com>
+ <20170705172019.GB5246@lst.de> <CAAFQd5CkVYd6uyoFP_15N8ZaZp8jivJ-4S=CAvrTynRU2ShFYg@mail.gmail.com>
+ <CAK8P3a2htZ7q=npfwJVW7Lr90O78Ey+OR5e0ivaR7GwV4YBs=A@mail.gmail.com>
+ <CAAFQd5BMorNa8CD+cEap2=boD2-=jr+DFF9cXTNXzSSfe7FnLg@mail.gmail.com>
+ <CAAFQd5BFLvWS5n8owm053GNC5VniMq-8Gh0BHo43B-TYShpsnA@mail.gmail.com>
+ <CAK8P3a2JyQ-qLgh+ig4yWMJvB0AGjspMu8P8fNrPHgm3NMCGNw@mail.gmail.com> <CAAFQd5DS1NxKh4OJ52T2AJNTHg6K2fnuDm5-GHzmUk-kjowf2w@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Thu, 6 Jul 2017 15:56:26 +0200
+Message-ID: <CAK8P3a2HS4O9fr2iWK6SjuZ7eiUL37y4SegsLGrf=z6DHtUb2w@mail.gmail.com>
+Subject: Re: [RFC PATCH 1/5] base: dma-mapping: Export commonly used symbols
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Christoph Hellwig <hch@lst.de>,
+        "open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Joerg Roedel <joro@8bytes.org>,
+        Will Deacon <will.deacon@arm.com>,
+        Vineet Gupta <vgupta@synopsys.com>,
+        Hans-Christian Noren Egtvedt <egtvedt@samfundet.no>,
+        Mitchel Humpherys <mitchelh@codeaurora.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Pawel Osciak <posciak@chromium.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Thu, Jul 6, 2017 at 3:31 PM, Tomasz Figa <tfiga@chromium.org> wrote:
+> On Thu, Jul 6, 2017 at 9:23 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+>> On Thu, Jul 6, 2017 at 10:36 AM, Tomasz Figa <tfiga@chromium.org> wrote:
+>>> On Thu, Jul 6, 2017 at 5:34 PM, Tomasz Figa <tfiga@chromium.org> wrote:
+>>>
+>>> Sorry, I intended to mean:
+>>>
+>>> IMHO re-implementing the code that's already there in videobuf2 again
+>>> in the driver, only because, for no good reason mentioned as for now,
+>>> having a loadable module providing DMA ops was disliked, would make no
+>>> sense.
+>>
+>> Why would we need to duplicate that code? I would expect that the videobuf2
+>> core can simply call the regular dma_mapping interfaces, and you handle the
+>> IOPTE generation at the point when the buffer is handed off from the core
+>> code to the device driver. Am I missing something?
+>
+> Well, for example, the iommu-dma helpers already implement all the
+> IOVA management, SG iterations, IOMMU API calls, sanity checks and so
+> on. There is a significant amount of common code.
+>
+> On the other hand, if it's strictly about base/dma-mapping, we might
+> not need it indeed. The driver could call iommu-dma helpers directly,
+> without the need to provide its own DMA ops.
 
-On Friday 21 Jul 2017 13:06:38 Hans Verkuil wrote:
-> On 21/07/17 12:57, Hans Verkuil wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > Don't use driver_version from struct media_device, just return
-> > LINUX_VERSION_CODE as the other media subsystems do.
-> > 
-> > The driver_version field in struct media_device will be removed
-> > in the following patches.
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> > 
-> >  drivers/media/media-device.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > index fce91b543c14..7ff8e2d5bb07 100644
-> > --- a/drivers/media/media-device.c
-> > +++ b/drivers/media/media-device.c
-> > @@ -71,7 +71,7 @@ static int media_device_get_info(struct media_device
-> > *dev,> 
-> >  	info->media_version = MEDIA_API_VERSION;
-> 
-> Related question about media_version: would it make sense to change this to
-> LINUX_VERSION_CODE as well? This too has never been changed from when it was
-> first introduced, making it pointless as a way for applications to detect
-> when features were added.
+Yes, that's what I meant: if using the IOMMU interface helps, I don't
+see anything wrong with that, but using the iommu based
+dma_map_ops seems like it may introduce more problems than
+it solves.
 
-Yes, I think it would make sense to do so.
-
-> Unfortunately MEDIA_API_VERSION is defined in the public media.h header, but
-> we can mark it unused. This define isn't documented in the spec, BTW.
-
-We really went a long way since the first days of the media controller when it 
-comes to API design. That being said, we still have a long way to go :-)
-
-> >  	info->hw_revision = dev->hw_revision;
-> > 
-> > -	info->driver_version = dev->driver_version;
-> > +	info->driver_version = LINUX_VERSION_CODE;
-> > 
-> >  	return 0;
-> >  }
-
--- 
-Regards,
-
-Laurent Pinchart
+        Arnd
