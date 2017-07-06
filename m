@@ -1,67 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43544 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752751AbdGHLCB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 8 Jul 2017 07:02:01 -0400
-Date: Sat, 8 Jul 2017 14:01:58 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hari Prasath <gehariprasath@gmail.com>
-Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        alan@linux.intel.com, rvarsha016@gmail.com, julia.lawall@lip6.fr,
-        singhalsimran0@gmail.com, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] staging: atomisp: use kstrdup to replace kmalloc and
- memcpy
-Message-ID: <20170708110157.jkpg6foz35lckdqu@ihha.localdomain>
-References: <20170707144521.4520-1-gehariprasath@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170707144521.4520-1-gehariprasath@gmail.com>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:34536 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750970AbdGFQHW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 12:07:22 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        alan@linux.intel.com, arnd@arndb.de
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] staging: atomisp: ov2680: constify acpi_device_id.
+Date: Thu,  6 Jul 2017 21:37:08 +0530
+Message-Id: <07863716c1b563e4bff9c82721b50973843b9059.1499356911.git.arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hari,
+acpi_device_id are not supposed to change at runtime. All functions
+working with acpi_device_id provided by <acpi/acpi_bus.h> work with
+const acpi_device_id. So mark the non-const structs as const.
 
-On Fri, Jul 07, 2017 at 08:15:21PM +0530, Hari Prasath wrote:
-> kstrdup kernel primitive can be used to replace kmalloc followed by
-> string copy. This was reported by coccinelle tool
-> 
-> Signed-off-by: Hari Prasath <gehariprasath@gmail.com>
-> ---
->  .../media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c       | 10 +++-------
->  1 file changed, 3 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-> index 34cc56f..68db87b 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-> @@ -144,14 +144,10 @@ sh_css_load_blob_info(const char *fw, const struct ia_css_fw_info *bi, struct ia
->  	)
->  	{
->  		char *namebuffer;
-> -		int namelength = (int)strlen(name);
-> -
-> -		namebuffer = (char *) kmalloc(namelength + 1, GFP_KERNEL);
-> -		if (namebuffer == NULL)
-> -			return IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
-> -
-> -		memcpy(namebuffer, name, namelength + 1);
->  
-> +		namebuffer = kstrdup(name, GFP_KERNEL);
-> +		if (!namebuffer)
-> +			return -ENOMEM;
+File size before:
+   text	   data	    bss	    dec	    hex	filename
+  12466	   3120	      8	  15594	   3cea drivers/staging/media/atomisp/i2c/ov2680.o
 
-The patch also changes the return value in error cases. I believe the
-caller(s) expect to get errors in the IA_CCS_ERR_* range.
+File size After adding 'const':
+   text	   data	    bss	    dec	    hex	filename
+  12530	   3056	      8	  15594	   3cea drivers/staging/media/atomisp/i2c/ov2680.o
 
->  		bd->name = fw_minibuffer[index].name = namebuffer;
->  	} else {
->  		bd->name = name;
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ drivers/staging/media/atomisp/i2c/ov2680.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/staging/media/atomisp/i2c/ov2680.c b/drivers/staging/media/atomisp/i2c/ov2680.c
+index 5660910..9671876 100644
+--- a/drivers/staging/media/atomisp/i2c/ov2680.c
++++ b/drivers/staging/media/atomisp/i2c/ov2680.c
+@@ -1519,7 +1519,7 @@ static int ov2680_probe(struct i2c_client *client,
+ 	return ret;
+ }
+ 
+-static struct acpi_device_id ov2680_acpi_match[] = {
++static const struct acpi_device_id ov2680_acpi_match[] = {
+ 	{"XXOV2680"},
+ 	{},
+ };
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.7.4
