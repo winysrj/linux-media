@@ -1,53 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:32822 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750786AbdGNTc1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Jul 2017 15:32:27 -0400
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:34820 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750922AbdGFO1I (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 10:27:08 -0400
 MIME-Version: 1.0
-In-Reply-To: <20170714130955.zqe26g6zpixr3xj2@mwanda>
-References: <20170714092540.1217397-1-arnd@arndb.de> <20170714093938.1469319-1-arnd@arndb.de>
- <20170714120512.ioe67nnloqivtbr7@mwanda> <CAK8P3a0f84OPcCK1r3P9inGYDJC2KaAO4mjE2vn+vCws-oo_bw@mail.gmail.com>
- <20170714125525.kjemhcn4poon6r3i@mwanda> <20170714130955.zqe26g6zpixr3xj2@mwanda>
+In-Reply-To: <CAAFQd5BgVRaEym9fXt3sMSafFPK1cXwTdMgSiB87w8QVeXzzVw@mail.gmail.com>
+References: <20170705071215.17603-1-tfiga@chromium.org> <20170705071215.17603-2-tfiga@chromium.org>
+ <20170705151728.GA2479@lst.de> <CAAFQd5DijKbNJ-8wHh=+2Z2y1nSF-LC8R+d+NktTRF4iQqPsrA@mail.gmail.com>
+ <20170705172019.GB5246@lst.de> <CAAFQd5CkVYd6uyoFP_15N8ZaZp8jivJ-4S=CAvrTynRU2ShFYg@mail.gmail.com>
+ <CAK8P3a2htZ7q=npfwJVW7Lr90O78Ey+OR5e0ivaR7GwV4YBs=A@mail.gmail.com>
+ <CAAFQd5BMorNa8CD+cEap2=boD2-=jr+DFF9cXTNXzSSfe7FnLg@mail.gmail.com>
+ <CAAFQd5BFLvWS5n8owm053GNC5VniMq-8Gh0BHo43B-TYShpsnA@mail.gmail.com>
+ <CAK8P3a2JyQ-qLgh+ig4yWMJvB0AGjspMu8P8fNrPHgm3NMCGNw@mail.gmail.com>
+ <CAAFQd5DS1NxKh4OJ52T2AJNTHg6K2fnuDm5-GHzmUk-kjowf2w@mail.gmail.com>
+ <CAAFQd5Axz2yMnOo4rtP3jgEBJxUVOW0RLmFEGFejBHkYjq0s5A@mail.gmail.com>
+ <CAK8P3a0xVjgD-w-uVDc54Mx0s6b1Bd3tRYt9rpetjNoMwDXvCA@mail.gmail.com> <CAAFQd5BgVRaEym9fXt3sMSafFPK1cXwTdMgSiB87w8QVeXzzVw@mail.gmail.com>
 From: Arnd Bergmann <arnd@arndb.de>
-Date: Fri, 14 Jul 2017 21:32:25 +0200
-Message-ID: <CAK8P3a1ckDk2VEhK9EWXU7ZWqh1UoZVMac9j3-1KGioj8EE+kw@mail.gmail.com>
-Subject: Re: [PATCH 14/14] [media] fix warning on v4l2_subdev_call() result
- interpreted as bool
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: devel@driverdev.osuosl.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Alan Cox <alan@linux.intel.com>,
+Date: Thu, 6 Jul 2017 16:27:06 +0200
+Message-ID: <CAK8P3a0_S=ONcnfD0qrt61iu4N_2WQHbGTtED-WXHov-30gK=w@mail.gmail.com>
+Subject: Re: [RFC PATCH 1/5] base: dma-mapping: Export commonly used symbols
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, Christoph Hellwig <hch@lst.de>,
+        "open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Daeseok Youn <daeseok.youn@gmail.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        adi-buildroot-devel@lists.sourceforge.net,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        IDE-ML <linux-ide@vger.kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Tejun Heo <tj@kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
+        Joerg Roedel <joro@8bytes.org>,
+        Will Deacon <will.deacon@arm.com>,
+        Vineet Gupta <vgupta@synopsys.com>,
+        Hans-Christian Noren Egtvedt <egtvedt@samfundet.no>,
+        Mitchel Humpherys <mitchelh@codeaurora.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Pawel Osciak <posciak@chromium.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 14, 2017 at 3:09 PM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> On Fri, Jul 14, 2017 at 03:55:26PM +0300, Dan Carpenter wrote:
->> I don't agree with it as a static analysis dev...
+On Thu, Jul 6, 2017 at 4:06 PM, Tomasz Figa <tfiga@chromium.org> wrote:
+> On Thu, Jul 6, 2017 at 11:02 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+>> On Thu, Jul 6, 2017 at 3:49 PM, Tomasz Figa <tfiga@chromium.org> wrote:
+>>> On Thu, Jul 6, 2017 at 10:31 PM, Tomasz Figa <tfiga@chromium.org> wrote:
+>>
+>>>> On the other hand, if it's strictly about base/dma-mapping, we might
+>>>> not need it indeed. The driver could call iommu-dma helpers directly,
+>>>> without the need to provide its own DMA ops. One caveat, though, we
+>>>> are not able to obtain coherent (i.e. uncached) memory with this
+>>>> approach, which might have some performance effects and complicates
+>>>> the code, that would now need to flush caches even for some small
+>>>> internal buffers.
+>>>
+>>> I think I should add a bit of explanation here:
+>>>  1) the device is non-coherent with CPU caches, even on x86,
+>>>  2) it looks like x86 does not have non-coherent DMA ops, (but it
+>>> might be something that could be fixed)
+>>
+>> I don't understand what this means here. The PCI on x86 is always
+>> cache-coherent, so why is the device not?
+>>
+>> Do you mean that the device has its own caches that may need
+>> flushing to make the device cache coherent with the CPU cache,
+>> rather than flushing the CPU caches?
 >
-> What I mean is if it's a macro that returns -ENODEV or a function that
-> returns -ENODEV, they should both be treated the same.  The other
-> warnings this check prints are quite clever.
+> Sakari might be able to explain this with more technical details, but
+> generally the device is not a standard PCI device one might find on
+> existing x86 systems.
+>
+> It is some kind of embedded subsystem that behaves mostly like a PCI
+> device, with certain exceptions, one being the lack of coherency with
+> CPU caches, at least for certain parts of the subsystem. The reference
+> vendor code disables the coherency completely, for reasons not known
+> to me, but AFAICT this is the preferred operating mode, possibly due
+> to performance effects (this is a memory-heavy image processing
 
-I think this is what gcc tries to do, and it should work normally, but it
-fails when using ccache. I know I had cases like that, not entirely sure
-if this is one of them. Maybe it just means I should give up on using
-ccache in preprocessor mode.
+Ok, got it. I think something similar happens on integrated GPUs for
+a certain CPU family. The DRM code has its own ways of dealing with
+this kind of device. If you find that the hardware to be closely
+related (either the implementation, or the location on the internal
+buses) to the GPU on this machine, I'd recommend having a look
+in drivers/gpu/drm to see how it's handled there, and if that code could
+be shared.
 
-       Arnd
+        Arnd
