@@ -1,174 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:51811 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751528AbdGROuS (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:38579 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751936AbdGFIrk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 10:50:18 -0400
-Subject: Re: [PATCH v4 2/3] v4l: async: do not hold list_lock when reprobing
- devices
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
-References: <20170717165917.24851-1-niklas.soderlund+renesas@ragnatech.se>
- <20170717165917.24851-3-niklas.soderlund+renesas@ragnatech.se>
- <5a184e14-b429-fd7d-fc0c-d0520e1cc3fa@xs4all.nl>
- <20170718143936.GC28538@bigcity.dyn.berto.se>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
+        Thu, 6 Jul 2017 04:47:40 -0400
+Subject: Re: [PATCH 07/12] [media] v4l: add support to BUF_QUEUED event
+To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
+References: <20170616073915.5027-1-gustavo@padovan.org>
+ <20170616073915.5027-8-gustavo@padovan.org>
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <eab3d6ad-c90a-310a-a9fb-29e19e6ebb69@xs4all.nl>
-Date: Tue, 18 Jul 2017 16:50:15 +0200
+Message-ID: <0bda4b2f-dac7-88ae-1b03-dff106b87444@xs4all.nl>
+Date: Thu, 6 Jul 2017 10:47:33 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170718143936.GC28538@bigcity.dyn.berto.se>
+In-Reply-To: <20170616073915.5027-8-gustavo@padovan.org>
 Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18/07/17 16:39, Niklas Söderlund wrote:
-> Hi Hans,
+On 06/16/17 09:39, Gustavo Padovan wrote:
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
 > 
-> Thanks for your feedback.
+> Implement the needed pieces to let userspace subscribe for
+> V4L2_EVENT_BUF_QUEUED events. Videobuf2 will queue the event for the
+> DQEVENT ioctl.
 > 
-> On 2017-07-18 16:22:14 +0200, Hans Verkuil wrote:
->> On 17/07/17 18:59, Niklas Söderlund wrote:
->>> There is no good reason to hold the list_lock when reprobing the devices
->>> and it prevents a clean implementation of subdevice notifiers. Move the
->>> actual release of the devices outside of the loop which requires the
->>> lock to be held.
->>>
->>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
->>> ---
->>>  drivers/media/v4l2-core/v4l2-async.c | 29 ++++++++++-------------------
->>>  1 file changed, 10 insertions(+), 19 deletions(-)
->>>
->>> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
->>> index 0acf288d7227ba97..8fc84f7962386ddd 100644
->>> --- a/drivers/media/v4l2-core/v4l2-async.c
->>> +++ b/drivers/media/v4l2-core/v4l2-async.c
->>> @@ -206,7 +206,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->>>  	unsigned int notif_n_subdev = notifier->num_subdevs;
->>>  	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
->>>  	struct device **dev;
->>> -	int i = 0;
->>> +	int i, count = 0;
->>>  
->>>  	if (!notifier->v4l2_dev)
->>>  		return;
->>> @@ -222,37 +222,28 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->>>  	list_del(&notifier->list);
->>>  
->>>  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
->>> -		struct device *d;
->>> -
->>> -		d = get_device(sd->dev);
->>> +		if (dev)
->>> +			dev[count] = get_device(sd->dev);
->>> +		count++;
->>>  
->>>  		if (notifier->unbind)
->>>  			notifier->unbind(notifier, sd, sd->asd);
->>>  
->>>  		v4l2_async_cleanup(sd);
->>> +	}
->>>  
->>> -		/* If we handled USB devices, we'd have to lock the parent too */
->>> -		device_release_driver(d);
->>> +	mutex_unlock(&list_lock);
->>>  
->>> -		/*
->>> -		 * Store device at the device cache, in order to call
->>> -		 * put_device() on the final step
->>> -		 */
->>> +	for (i = 0; i < count; i++) {
->>> +		/* If we handled USB devices, we'd have to lock the parent too */
->>>  		if (dev)
->>> -			dev[i++] = d;
->>> -		else
->>> -			put_device(d);
->>> +			device_release_driver(dev[i]);
->>
->> This changes the behavior. If the alloc failed, then at least put_device was still called.
->> Now that no longer happens.
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c     |  6 +++++-
+>  drivers/media/v4l2-core/videobuf2-core.c | 15 +++++++++++++++
+>  2 files changed, 20 insertions(+), 1 deletion(-)
 > 
-> Yes, but also changes the behavior to also only call get_device() if the 
-> allocation was successful. So the behavior is kept the same as far as I 
-> understands it.
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 5aed7bd..f55b5da 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -3435,8 +3435,12 @@ EXPORT_SYMBOL(v4l2_ctrl_log_status);
+>  int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
+>  				const struct v4l2_event_subscription *sub)
+>  {
+> -	if (sub->type == V4L2_EVENT_CTRL)
+> +	switch (sub->type) {
+> +	case V4L2_EVENT_CTRL:
+>  		return v4l2_event_subscribe(fh, sub, 0, &v4l2_ctrl_sub_ev_ops);
+> +	case V4L2_EVENT_BUF_QUEUED:
+> +		return v4l2_event_subscribe(fh, sub, 0, NULL);
 
-Ah, I missed that. Sorry about that.
+This is dangerous. The '0' argument will only allocate room for a single
+BUF_QUEUED event. So if two such events are triggered without the application
+reading the first event, then the first event will be lost.
 
-But regardless of that the device_release_driver(d) isn't called anymore.
-It's not clear at all to me whether that is a problem or not.
+I recommend VIDEO_MAX_FRAME instead. I.e. have room for up to the maximum number
+of buffers.
 
+> +	}
+>  	return -EINVAL;
+>  }
+>  EXPORT_SYMBOL(v4l2_ctrl_subscribe_event);
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 29aa9d4..00d9c35 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -25,6 +25,7 @@
+>  #include <linux/kthread.h>
+>  
+>  #include <media/videobuf2-core.h>
+> +#include <media/v4l2-event.h>
+>  #include <media/v4l2-mc.h>
+>  
+>  #include <trace/events/vb2.h>
+> @@ -1221,6 +1222,18 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
+>  	return ret;
+>  }
+>  
+> +static void vb2_buffer_queued_event(struct vb2_buffer *vb)
+> +{
+> +	struct video_device *vdev = to_video_device(vb->vb2_queue->dev);
+> +	struct v4l2_event event;
+> +
+> +	memset(&event, 0, sizeof(event));
+> +	event.type = V4L2_EVENT_BUF_QUEUED;
+> +	event.u.buf_queued.index = vb->index;
+> +
+> +	v4l2_event_queue(vdev, &event);
+> +}
+> +
+>  /**
+>   * __enqueue_in_driver() - enqueue a vb2_buffer in driver for processing
+>   */
+> @@ -1234,6 +1247,8 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+>  	trace_vb2_buf_queue(q, vb);
+>  
+>  	call_void_vb_qop(vb, buf_queue, vb);
+> +
+> +	vb2_buffer_queued_event(vb);
+>  }
+>  
+>  static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
 > 
->>
->> Frankly I don't understand this code, it is in desperate need of some comments explaining
->> this whole reprobing thing.
-> 
-> I agree that the code is in need of comments, but I feel a patch that 
-> separates the v4l2-async work from the re-probing work is a step in the 
-> right direction :-)
-
-Would it help to simplify this function to:
-
-        dev = kvmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
-        if (!dev) {
-                dev_err(notifier->v4l2_dev->dev,
-                        "Failed to allocate device cache!\n");
-
-	        mutex_lock(&list_lock);
-
-	        list_del(&notifier->list);
-
-		/* this assumes device_release_driver(d) isn't necessary */
-        	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-	                if (notifier->unbind)
-        	                notifier->unbind(notifier, sd, sd->asd);
-
-               	        v4l2_async_cleanup(sd);
-	        }
-
-        	mutex_unlock(&list_lock);
-		return;
-	}
-
-	...and here the code where dev is non-NULL...
-
-Yes, there is some code duplication, but it is a lot easier to understand.
 
 Regards,
 
 	Hans
-
-> 
->>
->> I have this strong feeling that this function needs to be reworked.
-> 
-> I also strongly agree with this.
-> 
->>
->> Regards,
->>
->> 	Hans
->>
->>>  	}
->>>  
->>> -	mutex_unlock(&list_lock);
->>> -
->>>  	/*
->>>  	 * Call device_attach() to reprobe devices
->>> -	 *
->>> -	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
->>> -	 * executed.
->>>  	 */
->>> -	while (i--) {
->>> +	for (i = 0; dev && i < count; i++) {
->>>  		struct device *d = dev[i];
->>>  
->>>  		if (d && device_attach(d) < 0) {
->>>
->>
-> 
