@@ -1,51 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47186 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751946AbdGIQSM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 9 Jul 2017 12:18:12 -0400
-From: Sylwester Nawrocki <snawrocki@kernel.org>
-Subject: Re: [PATCH v2 0/7] [PATCH v2 0/7] Add support of OV9655 camera
-To: Hugues FRUCHET <hugues.fruchet@st.com>
-Cc: "H. Nikolaus Schaller" <hns@goldelico.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre TORGUE <alexandre.torgue@st.com>,
+Received: from gateway32.websitewelcome.com ([192.185.145.182]:17971 "EHLO
+        gateway32.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752771AbdGFUva (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Jul 2017 16:51:30 -0400
+Received: from cm16.websitewelcome.com (cm16.websitewelcome.com [100.42.49.19])
+        by gateway32.websitewelcome.com (Postfix) with ESMTP id F23F776582D
+        for <linux-media@vger.kernel.org>; Thu,  6 Jul 2017 15:51:27 -0500 (CDT)
+Date: Thu, 6 Jul 2017 15:51:27 -0500
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Rick Chang <rick.chang@mediatek.com>,
+        Bin Liu <bin.liu@mediatek.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick FERTRE <yannick.fertre@st.com>
-References: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com>
- <26a55285-509c-b7f4-7806-db537a582631@st.com>
-Message-ID: <24ce3de1-5994-1687-ad97-c0d15c85aff5@kernel.org>
-Date: Sun, 9 Jul 2017 18:18:05 +0200
+        Matthias Brugger <matthias.bgg@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH] mediatek: constify vb2_ops structure
+Message-ID: <20170706205127.GA20926@embeddedgus>
 MIME-Version: 1.0
-In-Reply-To: <26a55285-509c-b7f4-7806-db537a582631@st.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hugues,
+Check for vb2_ops structures that are only stored in the ops field of a
+vb2_queue structure. That field is declared const, so vb2_ops structures
+that have this property can be declared as const also.
 
-On 07/06/2017 09:51 AM, Hugues FRUCHET wrote:
-> Hi Sylwester,
-> 
-> Do you have the possibility to check for non-regression of this patchset
-> on 9650/52 camera ?
+This issue was detected using Coccinelle and the following semantic patch:
 
-I will try to test your patch set once I find the camera module for
-my Micro2440SDK board. I've spent already a day on setting up everything 
-and fixing multiple regressions in the kernel. I will likely try your 
-patch series in coming week.
+@r disable optional_qualifier@
+identifier i;
+position p;
+@@
+static struct vb2_ops i@p = { ... };
 
---
-Thanks,
-Sylwester
+@ok@
+identifier r.i;
+struct vb2_queue e;
+position p;
+@@
+e.ops = &i@p;
+
+@bad@
+position p != {r.p,ok.p};
+identifier r.i;
+struct vb2_ops e;
+@@
+e@i@p
+
+@depends on !bad disable optional_qualifier@
+identifier r.i;
+@@
+static
++const
+struct vb2_ops i = { ... };
+
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+---
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+index 451a540..f17a86b 100644
+--- a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
++++ b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+@@ -756,7 +756,7 @@ static void mtk_jpeg_stop_streaming(struct vb2_queue *q)
+ 	pm_runtime_put_sync(ctx->jpeg->dev);
+ }
+ 
+-static struct vb2_ops mtk_jpeg_qops = {
++static const struct vb2_ops mtk_jpeg_qops = {
+ 	.queue_setup        = mtk_jpeg_queue_setup,
+ 	.buf_prepare        = mtk_jpeg_buf_prepare,
+ 	.buf_queue          = mtk_jpeg_buf_queue,
+-- 
+2.5.0
