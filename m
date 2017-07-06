@@ -1,140 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:43224 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751774AbdG1Kby (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Jul 2017 06:31:54 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] cec: documentation fixes
-Message-ID: <25dbe283-09e6-1448-3d6f-1a2917ebfe22@xs4all.nl>
-Date: Fri, 28 Jul 2017 12:31:50 +0200
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:33796 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751865AbdGFLLw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 07:11:52 -0400
+Date: Thu, 6 Jul 2017 13:11:49 +0200
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, pavel@ucw.cz
+Subject: Re: [PATCH 7/8] omap3isp: Check for valid port in endpoints
+Message-ID: <20170706111149.ws6olipu7ph4tcyd@earth>
+References: <20170705230019.5461-1-sakari.ailus@linux.intel.com>
+ <20170705230019.5461-8-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="wzsqfnmbtaiucm67"
+Content-Disposition: inline
+In-Reply-To: <20170705230019.5461-8-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Various references to open() et al were wrong. Fix this so following
-the link will get you to the correct place.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/media/uapi/cec/cec-func-close.rst      | 2 +-
- Documentation/media/uapi/cec/cec-func-ioctl.rst      | 2 +-
- Documentation/media/uapi/cec/cec-func-open.rst       | 4 ++--
- Documentation/media/uapi/cec/cec-func-poll.rst       | 8 ++++----
- Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst | 2 +-
- Documentation/media/uapi/cec/cec-ioc-dqevent.rst     | 2 +-
- 6 files changed, 10 insertions(+), 10 deletions(-)
+--wzsqfnmbtaiucm67
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/Documentation/media/uapi/cec/cec-func-close.rst b/Documentation/media/uapi/cec/cec-func-close.rst
-index 895d9c2d1c04..334358dfa72e 100644
---- a/Documentation/media/uapi/cec/cec-func-close.rst
-+++ b/Documentation/media/uapi/cec/cec-func-close.rst
-@@ -40,7 +40,7 @@ freed. The device configuration remain unchanged.
- Return Value
- ============
+Hi,
 
--:c:func:`close()` returns 0 on success. On error, -1 is returned, and
-+:c:func:`close() <cec-close>` returns 0 on success. On error, -1 is returned, and
- ``errno`` is set appropriately. Possible error codes are:
+On Thu, Jul 06, 2017 at 02:00:18AM +0300, Sakari Ailus wrote:
+> Check that we do have a valid port in an endpoint, return an error if not.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
- ``EBADF``
-diff --git a/Documentation/media/uapi/cec/cec-func-ioctl.rst b/Documentation/media/uapi/cec/cec-func-ioctl.rst
-index 22fb6304a2df..e2b6260b0086 100644
---- a/Documentation/media/uapi/cec/cec-func-ioctl.rst
-+++ b/Documentation/media/uapi/cec/cec-func-ioctl.rst
-@@ -39,7 +39,7 @@ Arguments
- Description
- ===========
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 
--The :c:func:`ioctl()` function manipulates cec device parameters. The
-+The :c:func:`ioctl() <cec-ioctl>` function manipulates cec device parameters. The
- argument ``fd`` must be an open file descriptor.
+-- Sebastian
 
- The ioctl ``request`` code specifies the cec function to be called. It
-diff --git a/Documentation/media/uapi/cec/cec-func-open.rst b/Documentation/media/uapi/cec/cec-func-open.rst
-index 18dfb62f2efe..5d6663a649bd 100644
---- a/Documentation/media/uapi/cec/cec-func-open.rst
-+++ b/Documentation/media/uapi/cec/cec-func-open.rst
-@@ -46,7 +46,7 @@ Arguments
- Description
- ===========
+> ---
+>  drivers/media/platform/omap3isp/isp.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platfo=
+rm/omap3isp/isp.c
+> index 2d45bf471c82..0676be725d7c 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -2081,7 +2081,7 @@ static int isp_fwnode_parse(struct device *dev, str=
+uct fwnode_handle *fwnode,
+>  	default:
+>  		dev_warn(dev, "%s: invalid interface %u\n",
+>  			 to_of_node(fwnode)->full_name, vep.base.port);
+> -		break;
+> +		return -EINVAL;
+>  	}
+> =20
+>  	return 0;
+> --=20
+> 2.11.0
+>=20
 
--To open a cec device applications call :c:func:`open()` with the
-+To open a cec device applications call :c:func:`open() <cec-open>` with the
- desired device name. The function has no side effects; the device
- configuration remain unchanged.
+--wzsqfnmbtaiucm67
+Content-Type: application/pgp-signature; name="signature.asc"
 
-@@ -58,7 +58,7 @@ EBADF.
- Return Value
- ============
+-----BEGIN PGP SIGNATURE-----
 
--:c:func:`open()` returns the new file descriptor on success. On error,
-+:c:func:`open() <cec-open>` returns the new file descriptor on success. On error,
- -1 is returned, and ``errno`` is set appropriately. Possible error codes
- include:
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlleGvUACgkQ2O7X88g7
++pqHVw//efogOFA/4h/zMNsdtz3KFPiOSUOvfvmCHJVOPqH2YA9RVWpjcDADmyIn
+Bv63w6s7ArNLDkCVVT82ymX7TKQyG8lFul0C+zF7S2XaaVjQwW6nQzTdxSrcCE/d
+DNc1Ns4oFeSkbuAkB6D0jRHpcOr/56JKLxxwX+HewWXPAagOgwRSEJ1CFSarG01c
+sFQTA9G8Kix5iI1vbVSK3ne744HPvxF670scoweblJYrOmT01Yna9wiic5LJR/gQ
+YSL6JyKaA0VEL43xQz7fMDiQz7hyQQ01auFJQkZC5a3XQc0RCduw7ZYUE902FYG6
+kpPvA6jtkIbVsbTDlfPH9vZYPwThzgIddZ95yLEqPvyL1EpgYRx/lsl0K2ARWJfM
+RoHEKX6x1QpYMjpDpz2kfuMdGhYzTULW5Lc8eO2+w6n7eFIdjgZVOu4pXcmkR9ri
+BBjB1TTVs1wNheKF56UueWToC8Oz/Ensy3DJq586FDSfNtLz4HYBgrcPB6oAqtpg
+R7RrQ6805yU3Z1TzTb9z7g5kW3IRVo76iOaXxA+ljgbbeA4qa0E/Se8ifj+8o1qn
+cmzA4tyQfYxnR6LfRL3W0P1S69Cw/NLFqLhPxmzSFVammGf+vNwstkz72OBGoGhF
+2JeuL1m9e0CKlcKmcSNUIG5Rm/Fj3SEGgUuKMYr5QMCOy1tHecs=
+=d4Yu
+-----END PGP SIGNATURE-----
 
-diff --git a/Documentation/media/uapi/cec/cec-func-poll.rst b/Documentation/media/uapi/cec/cec-func-poll.rst
-index fa0abd8fb160..d49f1ee0742d 100644
---- a/Documentation/media/uapi/cec/cec-func-poll.rst
-+++ b/Documentation/media/uapi/cec/cec-func-poll.rst
-@@ -39,10 +39,10 @@ Arguments
- Description
- ===========
-
--With the :c:func:`poll()` function applications can wait for CEC
-+With the :c:func:`poll() <cec-poll>` function applications can wait for CEC
- events.
-
--On success :c:func:`poll()` returns the number of file descriptors
-+On success :c:func:`poll() <cec-poll>` returns the number of file descriptors
- that have been selected (that is, file descriptors for which the
- ``revents`` field of the respective struct :c:type:`pollfd`
- is non-zero). CEC devices set the ``POLLIN`` and ``POLLRDNORM`` flags in
-@@ -53,13 +53,13 @@ then the ``POLLPRI`` flag is set. When the function times out it returns
- a value of zero, on failure it returns -1 and the ``errno`` variable is
- set appropriately.
-
--For more details see the :c:func:`poll()` manual page.
-+For more details see the :c:func:`poll() <cec-poll>` manual page.
-
-
- Return Value
- ============
-
--On success, :c:func:`poll()` returns the number structures which have
-+On success, :c:func:`poll() <cec-poll>` returns the number structures which have
- non-zero ``revents`` fields, or zero if the call timed out. On error -1
- is returned, and the ``errno`` variable is set appropriately:
-
-diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-index 882d6e025747..0a7aa21f24f4 100644
---- a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-@@ -21,7 +21,7 @@ Arguments
- =========
-
- ``fd``
--    File descriptor returned by :ref:`open() <cec-func-open>`.
-+    File descriptor returned by :c:func:`open() <cec-open>`.
-
- ``argp``
-
-diff --git a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-index 3e2cd5fefd38..766d8b0ce431 100644
---- a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-@@ -22,7 +22,7 @@ Arguments
- =========
-
- ``fd``
--    File descriptor returned by :ref:`open() <cec-func-open>`.
-+    File descriptor returned by :c:func:`open() <cec-open>`.
-
- ``argp``
-
--- 
-2.13.1
+--wzsqfnmbtaiucm67--
