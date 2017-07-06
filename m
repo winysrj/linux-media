@@ -1,110 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:37509 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750732AbdGYMah (ORCPT
+Received: from gateway20.websitewelcome.com ([192.185.58.11]:32967 "EHLO
+        gateway20.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751873AbdGFU4y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Jul 2017 08:30:37 -0400
-Date: Tue, 25 Jul 2017 14:30:31 +0200
-From: Johan Hovold <johan@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        jacek.anaszewski@gmail.com, laurent.pinchart@ideasonboard.com,
-        Rui Miguel Silva <rmfrfs@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH 1/2] staging: greybus: light: Don't leak memory for no
- gain
-Message-ID: <20170725123031.GB27516@localhost>
-References: <20170718184107.10598-1-sakari.ailus@linux.intel.com>
- <20170718184107.10598-2-sakari.ailus@linux.intel.com>
+        Thu, 6 Jul 2017 16:56:54 -0400
+Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
+        by gateway20.websitewelcome.com (Postfix) with ESMTP id 20429400F2CD8
+        for <linux-media@vger.kernel.org>; Thu,  6 Jul 2017 15:35:54 -0500 (CDT)
+Date: Thu, 6 Jul 2017 15:35:53 -0500
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH] davinci: vpif_display: constify vb2_ops structure
+Message-ID: <20170706203553.GA15159@embeddedgus>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170718184107.10598-2-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[ +CC: Rui and Greg ]
+Check for vb2_ops structures that are only stored in the ops field of a
+vb2_queue structure. That field is declared const, so vb2_ops structures
+that have this property can be declared as const also.
 
-On Tue, Jul 18, 2017 at 09:41:06PM +0300, Sakari Ailus wrote:
-> Memory for struct v4l2_flash_config is allocated in
-> gb_lights_light_v4l2_register() for no gain and yet the allocated memory is
-> leaked; the struct isn't used outside the function. Fix this.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/staging/greybus/light.c | 17 ++++++-----------
->  1 file changed, 6 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/staging/greybus/light.c b/drivers/staging/greybus/light.c
-> index 129ceed39829..b25c117ec41a 100644
-> --- a/drivers/staging/greybus/light.c
-> +++ b/drivers/staging/greybus/light.c
-> @@ -534,25 +534,21 @@ static int gb_lights_light_v4l2_register(struct gb_light *light)
->  {
->  	struct gb_connection *connection = get_conn_from_light(light);
->  	struct device *dev = &connection->bundle->dev;
-> -	struct v4l2_flash_config *sd_cfg;
-> +	struct v4l2_flash_config sd_cfg = { 0 };
->  	struct led_classdev_flash *fled;
->  	struct led_classdev *iled = NULL;
->  	struct gb_channel *channel_torch, *channel_ind, *channel_flash;
->  	int ret = 0;
->  
-> -	sd_cfg = kcalloc(1, sizeof(*sd_cfg), GFP_KERNEL);
-> -	if (!sd_cfg)
-> -		return -ENOMEM;
-> -
->  	channel_torch = get_channel_from_mode(light, GB_CHANNEL_MODE_TORCH);
->  	if (channel_torch)
->  		__gb_lights_channel_v4l2_config(&channel_torch->intensity_uA,
-> -						&sd_cfg->torch_intensity);
-> +						&sd_cfg.torch_intensity);
->  
->  	channel_ind = get_channel_from_mode(light, GB_CHANNEL_MODE_INDICATOR);
->  	if (channel_ind) {
->  		__gb_lights_channel_v4l2_config(&channel_ind->intensity_uA,
-> -						&sd_cfg->indicator_intensity);
-> +						&sd_cfg.indicator_intensity);
->  		iled = &channel_ind->fled.led_cdev;
->  	}
->  
-> @@ -561,17 +557,17 @@ static int gb_lights_light_v4l2_register(struct gb_light *light)
->  
->  	fled = &channel_flash->fled;
->  
-> -	snprintf(sd_cfg->dev_name, sizeof(sd_cfg->dev_name), "%s", light->name);
-> +	snprintf(sd_cfg.dev_name, sizeof(sd_cfg.dev_name), "%s", light->name);
->  
->  	/* Set the possible values to faults, in our case all faults */
-> -	sd_cfg->flash_faults = LED_FAULT_OVER_VOLTAGE | LED_FAULT_TIMEOUT |
-> +	sd_cfg.flash_faults = LED_FAULT_OVER_VOLTAGE | LED_FAULT_TIMEOUT |
->  		LED_FAULT_OVER_TEMPERATURE | LED_FAULT_SHORT_CIRCUIT |
->  		LED_FAULT_OVER_CURRENT | LED_FAULT_INDICATOR |
->  		LED_FAULT_UNDER_VOLTAGE | LED_FAULT_INPUT_VOLTAGE |
->  		LED_FAULT_LED_OVER_TEMPERATURE;
->  
->  	light->v4l2_flash = v4l2_flash_init(dev, NULL, fled, iled,
-> -					    &v4l2_flash_ops, sd_cfg);
-> +					    &v4l2_flash_ops, &sd_cfg);
->  	if (IS_ERR_OR_NULL(light->v4l2_flash)) {
->  		ret = PTR_ERR(light->v4l2_flash);
->  		goto out_free;
-> @@ -580,7 +576,6 @@ static int gb_lights_light_v4l2_register(struct gb_light *light)
->  	return ret;
->  
->  out_free:
-> -	kfree(sd_cfg);
+This issue was detected using Coccinelle and the following semantic patch:
 
-This looks a bit lazy, even if I just noticed that you repurpose this
-error label (without renaming it) in you second patch.
+@r disable optional_qualifier@
+identifier i;
+position p;
+@@
+static struct vb2_ops i@p = { ... };
 
+@ok@
+identifier r.i;
+struct vb2_queue e;
+position p;
+@@
+e.ops = &i@p;
 
->  	return ret;
->  }
+@bad@
+position p != {r.p,ok.p};
+identifier r.i;
+struct vb2_ops e;
+@@
+e@i@p
 
-And while it's fine to take this through linux-media, it would still be
-good to keep the maintainers on CC.
+@depends on !bad disable optional_qualifier@
+identifier r.i;
+@@
+static
++const
+struct vb2_ops i = { ... };
 
-Thanks,
-Johan
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+---
+ drivers/media/platform/davinci/vpif_display.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index b5ac6ce..1a494d3 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -290,7 +290,7 @@ static void vpif_stop_streaming(struct vb2_queue *vq)
+ 	spin_unlock_irqrestore(&common->irqlock, flags);
+ }
+ 
+-static struct vb2_ops video_qops = {
++static const struct vb2_ops video_qops = {
+ 	.queue_setup		= vpif_buffer_queue_setup,
+ 	.wait_prepare		= vb2_ops_wait_prepare,
+ 	.wait_finish		= vb2_ops_wait_finish,
+-- 
+2.5.0
