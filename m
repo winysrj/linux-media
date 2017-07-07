@@ -1,33 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:50895 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751127AbdGWHlf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Jul 2017 03:41:35 -0400
-Date: Sat, 22 Jul 2017 11:40:06 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se,
-        hverkuil@xs4all.nl, Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC 08/19] arm: dts: omap3: N9/N950: Add AS3645A camera flash
-Message-ID: <20170722094006.GB8064@xo-6d-61-c0.localdomain>
-References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
- <20170718190401.14797-9-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170718190401.14797-9-sakari.ailus@linux.intel.com>
+Received: from gofer.mess.org ([88.97.38.141]:34265 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751853AbdGGJwG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 7 Jul 2017 05:52:06 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org, robh+dt@kernel.org,
+        devicetree@vger.kernel.org
+Subject: [PATCH v2 5/6] [media] dt-bindings: gpio-ir-tx: add support for GPIO IR Transmitter
+Date: Fri,  7 Jul 2017 10:52:03 +0100
+Message-Id: <580c648de65344e9316ff153ba316efd4d527f12.1499419624.git.sean@mess.org>
+In-Reply-To: <cover.1499419624.git.sean@mess.org>
+References: <cover.1499419624.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 2017-07-18 22:03:50, Sakari Ailus wrote:
-> From: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> Add the as3645a flash controller to the DT source as well as the flash
-> property with the as3645a device phandle to the sensor DT node.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Document the device tree bindings for the GPIO Bit Banging IR
+Transmitter.
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt
+
+diff --git a/Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt b/Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt
+new file mode 100644
+index 0000000..bc08d89
+--- /dev/null
++++ b/Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt
+@@ -0,0 +1,11 @@
++Device tree bindings for IR LED connected through gpio pin which is used as
++remote controller transmitter.
++
++Required properties:
++	- compatible: should be "gpio-ir-tx".
++
++Example:
++	irled@0 {
++		compatible = "gpio-ir-tx";
++		gpios = <&gpio1 2 GPIO_ACTIVE_HIGH>;
++	};
+-- 
+2.9.4
