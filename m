@@ -1,62 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:60900 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754256AbdGNMMc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Jul 2017 08:12:32 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-kernel@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Guenter Roeck <linux@roeck-us.net>, akpm@linux-foundation.org,
-        netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>,
-        "James E . J . Bottomley" <jejb@linux.vnet.ibm.com>,
-        "Martin K . Petersen" <martin.petersen@oracle.com>,
-        linux-scsi@vger.kernel.org, x86@kernel.org,
-        Arnd Bergmann <arnd@arndb.de>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 14/22] [media] usbvision-i2c: fix format overflow warning
-Date: Fri, 14 Jul 2017 14:07:06 +0200
-Message-Id: <20170714120720.906842-15-arnd@arndb.de>
-In-Reply-To: <20170714120720.906842-1-arnd@arndb.de>
-References: <20170714120720.906842-1-arnd@arndb.de>
+Received: from us01smtprelay-2.synopsys.com ([198.182.60.111]:46991 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750848AbdGGJbG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 05:31:06 -0400
+Subject: Re: [PATCH v6 4/4] dt-bindings: media: Document Synopsys Designware
+ HDMI RX
+To: Sylwester Nawrocki <snawrocki@kernel.org>,
+        Jose Abreu <Jose.Abreu@synopsys.com>
+References: <cover.1499176790.git.joabreu@synopsys.com>
+ <d6da0a3ec47a46d30b74e9d41fb4bf9ef392d969.1499176790.git.joabreu@synopsys.com>
+ <4dc8f06f-b9cf-6d3d-da88-51abb24c1724@kernel.org>
+ <e87124d0-d523-5dcd-5ace-6b5896ad585c@synopsys.com>
+ <b0ba8226-972e-a997-e456-c342603b2ffd@kernel.org>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        "Carlos Palminha" <CARLOS.PALMINHA@synopsys.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        <devicetree@vger.kernel.org>
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+Message-ID: <258a880c-8b4d-8201-b90a-44ed4d351daa@synopsys.com>
+Date: Fri, 7 Jul 2017 10:31:00 +0100
+MIME-Version: 1.0
+In-Reply-To: <b0ba8226-972e-a997-e456-c342603b2ffd@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-gcc-7 notices that we copy a fixed length string into another
-string of the same size, with additional characters:
+On 06-07-2017 21:30, Sylwester Nawrocki wrote:
+> On 07/06/2017 12:24 PM, Jose Abreu wrote:
+>>>> +- edid-phandle: phandle to the EDID handler block.
+>>> Could you make this property optional and when it is missing assume that device
+>>> corresponding to the parent node of this node handles EDID? This way we could
+>>> avoid having property pointing to the parent node.
+>> Hmm, this is for the CEC notifier. Do you mean I should grab the
+>> parent device for the notifier? This property is already optional
+>> if cec is not enabled though.
+>  
+> Yes, device associated with the parent node. Something like:
+>
+>  - edid-phandle - phandle to the EDID handler block; if this property is
+>   not specified it is assumed that EDID is handled by device described 
+>   by parent node of the HDMI RX node
+>
+> Not sure if it is any better than always requiring edid-phandle property,
+> even when it is pointing to the parent node. We would need a DT maintainer's
+> opinion on that.
 
-drivers/media/usb/usbvision/usbvision-i2c.c: In function 'usbvision_i2c_register':
-drivers/media/usb/usbvision/usbvision-i2c.c:190:36: error: '%d' directive writing between 1 and 11 bytes into a region of size between 0 and 47 [-Werror=format-overflow=]
-  sprintf(usbvision->i2c_adap.name, "%s-%d-%s", i2c_adap_template.name,
-                                    ^~~~~~~~~~
-drivers/media/usb/usbvision/usbvision-i2c.c:190:2: note: 'sprintf' output between 4 and 76 bytes into a destination of size 48
+I will change and resend. I also have to fix a kbuild error when
+cec is not enabled.
 
-We know this is fine as the template name is always "usbvision", so
-we can easily avoid the warning by using this as the format string
-directly.
+Best regards,
+Jose Miguel Abreu
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/usb/usbvision/usbvision-i2c.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/usb/usbvision/usbvision-i2c.c b/drivers/media/usb/usbvision/usbvision-i2c.c
-index fdf6b6e285da..aae9f69884da 100644
---- a/drivers/media/usb/usbvision/usbvision-i2c.c
-+++ b/drivers/media/usb/usbvision/usbvision-i2c.c
-@@ -187,8 +187,8 @@ int usbvision_i2c_register(struct usb_usbvision *usbvision)
- 
- 	usbvision->i2c_adap = i2c_adap_template;
- 
--	sprintf(usbvision->i2c_adap.name, "%s-%d-%s", i2c_adap_template.name,
--		usbvision->dev->bus->busnum, usbvision->dev->devpath);
-+	sprintf(usbvision->i2c_adap.name, "usbvision-%d-%s",
-+		 usbvision->dev->bus->busnum, usbvision->dev->devpath);
- 	PDEBUG(DBG_I2C, "Adaptername: %s", usbvision->i2c_adap.name);
- 	usbvision->i2c_adap.dev.parent = &usbvision->dev->dev;
- 
--- 
-2.9.0
+>
+> --
+> Thanks,
+> Sylwester
