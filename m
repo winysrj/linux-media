@@ -1,75 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.73]:57234 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932714AbdGSTYH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Jul 2017 15:24:07 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v2] [media] fix warning on v4l2_subdev_call() result interpreted as bool
-Date: Wed, 19 Jul 2017 21:23:27 +0200
-Message-Id: <20170719192338.2671881-1-arnd@arndb.de>
+Received: from mail-vk0-f47.google.com ([209.85.213.47]:34370 "EHLO
+        mail-vk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752378AbdGGNik (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 09:38:40 -0400
+MIME-Version: 1.0
+In-Reply-To: <CAD6G_RQ-7uwTVLr27UTSvA50rLq-yRRTYKMmYQf7K1O8wf6HOA@mail.gmail.com>
+References: <CAD6G_RQ-7uwTVLr27UTSvA50rLq-yRRTYKMmYQf7K1O8wf6HOA@mail.gmail.com>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Fri, 7 Jul 2017 10:38:38 -0300
+Message-ID: <CAOMZO5DTgtgcG_e+Z56fOwAiK4bqmPfBesgZwqUHWzCGZhAZSg@mail.gmail.com>
+Subject: Re: coda 2040000.vpu: firmware request failed
+To: Jagan Teki <jagannadh.teki@gmail.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Michael Trimarchi <michael@amarulasolutions.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_subdev_call is a macro returning whatever the callback return
-type is, usually 'int'. With gcc-7 and ccache, this can lead to
-many wanings like:
+Hi Jagan,
 
-media/platform/pxa_camera.c: In function 'pxa_mbus_build_fmts_xlate':
-media/platform/pxa_camera.c:766:27: error: ?: using integer constants in boolean context [-Werror=int-in-bool-context]
-  while (!v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL, &code)) {
-media/atomisp/pci/atomisp2/atomisp_cmd.c: In function 'atomisp_s_ae_window':
-media/atomisp/pci/atomisp2/atomisp_cmd.c:6414:52: error: ?: using integer constants in boolean context [-Werror=int-in-bool-context]
-  if (v4l2_subdev_call(isp->inputs[asd->input_curr].camera,
+On Fri, Jul 7, 2017 at 9:45 AM, Jagan Teki <jagannadh.teki@gmail.com> wrote:
+> Hi,
+>
+> I'm observing firmware request failure with i.MX6Q board, This is with
+> latest linux-next (4.12) with firmware from, [1] and converted
+> v4l-coda960-imx6q.bin using [2].
 
-The problem here is that after preprocessing, we the compiler
-sees a variation of
-
-	if (a ? 0 : 2)
-
-that it thinks is suspicious.
-
-This replaces the ?: operator with an different expression that
-does the same thing in a more easily readable way that cannot
-tigger the warning
-
-Link: https://lkml.org/lkml/2017/7/14/156
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
-v2: replace large patch touching all the users with a simpler
-    change to the macro itself.
----
- include/media/v4l2-subdev.h | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
-
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 0f92ebd2d710..e83872078376 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -982,8 +982,16 @@ void v4l2_subdev_init(struct v4l2_subdev *sd,
-  * Example: err = v4l2_subdev_call(sd, video, s_std, norm);
-  */
- #define v4l2_subdev_call(sd, o, f, args...)				\
--	(!(sd) ? -ENODEV : (((sd)->ops->o && (sd)->ops->o->f) ?	\
--		(sd)->ops->o->f((sd), ##args) : -ENOIOCTLCMD))
-+	({								\
-+		int __result;						\
-+		if (!(sd))						\
-+			__result = -ENODEV;				\
-+		else if (!((sd)->ops->o && (sd)->ops->o->f))		\
-+			__result = -ENOIOCTLCMD;			\
-+		else							\
-+			__result = (sd)->ops->o->f((sd), ##args);	\
-+		__result;						\
-+	})
- 
- #define v4l2_subdev_has_op(sd, o, f) \
- 	((sd)->ops->o && (sd)->ops->o->f)
--- 
-2.9.0
+There is no need to do the conversion with current code.
