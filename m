@@ -1,56 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:63172 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751628AbdG1Mda (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Jul 2017 08:33:30 -0400
-Received: from axis700.grange ([87.78.105.5]) by mail.gmx.com (mrgmx001
- [212.227.17.190]) with ESMTPSA (Nemesis) id 0MAQXq-1dPTc22aVe-00BblH for
- <linux-media@vger.kernel.org>; Fri, 28 Jul 2017 14:33:28 +0200
-Received: from 200r.grange (200r.grange [192.168.1.16])
-        by axis700.grange (Postfix) with ESMTP id 186CA8B104
-        for <linux-media@vger.kernel.org>; Fri, 28 Jul 2017 14:30:58 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 0/6 v5] uvcvideo: metadata nodes and controls
-Date: Fri, 28 Jul 2017 14:33:19 +0200
-Message-Id: <1501245205-15802-1-git-send-email-g.liakhovetski@gmx.de>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:48637 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750904AbdGGOdV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 7 Jul 2017 10:33:21 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] st-delta: constify vb2_ops structures
+Date: Fri, 7 Jul 2017 14:33:02 +0000
+Message-ID: <c5f76510-00e6-2a41-2ce3-b3836f2be9e6@st.com>
+References: <20170706201423.GA7477@embeddedgus>
+In-Reply-To: <20170706201423.GA7477@embeddedgus>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <FA3A77D618D11949A2FD87072C3D6883@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The first four patches are for UVC metadata nodes, the last two patches
-are for asynchronous controls and control error reporting.
-
-Thanks
-Guennadi
-
-Guennadi Liakhovetski (6):
-  UVC: fix .queue_setup() to check the number of planes
-  V4L: Add a UVC Metadata format
-  uvcvideo: convert from using an atomic variable to a reference count
-  uvcvideo: add a metadata device node
-  uvcvideo: send a control event when a Control Change interrupt arrives
-  uvcvideo: handle control pipe protocol STALLs
-
- Documentation/media/uapi/v4l/meta-formats.rst    |   1 +
- Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst |  39 +++++
- drivers/media/usb/uvc/Makefile                   |   2 +-
- drivers/media/usb/uvc/uvc_ctrl.c                 | 150 +++++++++++++++++--
- drivers/media/usb/uvc/uvc_driver.c               |  43 ++++--
- drivers/media/usb/uvc/uvc_isight.c               |   2 +-
- drivers/media/usb/uvc/uvc_metadata.c             | 139 ++++++++++++++++++
- drivers/media/usb/uvc/uvc_queue.c                |  43 +++++-
- drivers/media/usb/uvc/uvc_status.c               | 112 ++++++++++++--
- drivers/media/usb/uvc/uvc_v4l2.c                 |   4 +-
- drivers/media/usb/uvc/uvc_video.c                | 178 +++++++++++++++++++++--
- drivers/media/usb/uvc/uvcvideo.h                 |  33 ++++-
- drivers/media/v4l2-core/v4l2-ioctl.c             |   1 +
- include/uapi/linux/uvcvideo.h                    |  28 ++++
- include/uapi/linux/videodev2.h                   |   1 +
- 15 files changed, 705 insertions(+), 71 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
- create mode 100644 drivers/media/usb/uvc/uvc_metadata.c
-
--- 
-1.9.3
+QWNrZWQtYnk6IEh1Z3VlcyBGcnVjaGV0IDxodWd1ZXMuZnJ1Y2hldEBzdC5jb20+DQoNCk9uIDA3
+LzA2LzIwMTcgMTA6MTQgUE0sIEd1c3Rhdm8gQS4gUi4gU2lsdmEgd3JvdGU6DQo+IENoZWNrIGZv
+ciB2YjJfb3BzIHN0cnVjdHVyZXMgdGhhdCBhcmUgb25seSBzdG9yZWQgaW4gdGhlIG9wcyBmaWVs
+ZCBvZiBhDQo+IHZiMl9xdWV1ZSBzdHJ1Y3R1cmUuIFRoYXQgZmllbGQgaXMgZGVjbGFyZWQgY29u
+c3QsIHNvIHZiMl9vcHMgc3RydWN0dXJlcw0KPiB0aGF0IGhhdmUgdGhpcyBwcm9wZXJ0eSBjYW4g
+YmUgZGVjbGFyZWQgYXMgY29uc3QgYWxzby4NCj4gDQo+IFRoaXMgaXNzdWUgd2FzIGRldGVjdGVk
+IHVzaW5nIENvY2NpbmVsbGUgYW5kIHRoZSBmb2xsb3dpbmcgc2VtYW50aWMgcGF0Y2g6DQo+IA0K
+PiBAciBkaXNhYmxlIG9wdGlvbmFsX3F1YWxpZmllckANCj4gaWRlbnRpZmllciBpOw0KPiBwb3Np
+dGlvbiBwOw0KPiBAQA0KPiBzdGF0aWMgc3RydWN0IHZiMl9vcHMgaUBwID0geyAuLi4gfTsNCj4g
+DQo+IEBva0ANCj4gaWRlbnRpZmllciByLmk7DQo+IHN0cnVjdCB2YjJfcXVldWUgZTsNCj4gcG9z
+aXRpb24gcDsNCj4gQEANCj4gZS5vcHMgPSAmaUBwOw0KPiANCj4gQGJhZEANCj4gcG9zaXRpb24g
+cCAhPSB7ci5wLG9rLnB9Ow0KPiBpZGVudGlmaWVyIHIuaTsNCj4gc3RydWN0IHZiMl9vcHMgZTsN
+Cj4gQEANCj4gZUBpQHANCj4gDQo+IEBkZXBlbmRzIG9uICFiYWQgZGlzYWJsZSBvcHRpb25hbF9x
+dWFsaWZpZXJADQo+IGlkZW50aWZpZXIgci5pOw0KPiBAQA0KPiBzdGF0aWMNCj4gK2NvbnN0DQo+
+IHN0cnVjdCB2YjJfb3BzIGkgPSB7IC4uLiB9Ow0KPiANCj4gU2lnbmVkLW9mZi1ieTogR3VzdGF2
+byBBLiBSLiBTaWx2YSA8Z2Fyc2lsdmFAZW1iZWRkZWRvci5jb20+DQo+IC0tLQ0KPiAgIGRyaXZl
+cnMvbWVkaWEvcGxhdGZvcm0vc3RpL2RlbHRhL2RlbHRhLXY0bDIuYyB8IDQgKystLQ0KPiAgIDEg
+ZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZm
+IC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdGkvZGVsdGEvZGVsdGEtdjRsMi5jIGIv
+ZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdGkvZGVsdGEvZGVsdGEtdjRsMi5jDQo+IGluZGV4IGM2
+ZjJlMjQuLmZmOTg1MGUgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vc3Rp
+L2RlbHRhL2RlbHRhLXY0bDIuYw0KPiArKysgYi9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL3N0aS9k
+ZWx0YS9kZWx0YS12NGwyLmMNCj4gQEAgLTE1NzQsNyArMTU3NCw3IEBAIHN0YXRpYyB2b2lkIGRl
+bHRhX3ZiMl9mcmFtZV9zdG9wX3N0cmVhbWluZyhzdHJ1Y3QgdmIyX3F1ZXVlICpxKQ0KPiAgIH0N
+Cj4gICANCj4gICAvKiBWQjIgcXVldWUgb3BzICovDQo+IC1zdGF0aWMgc3RydWN0IHZiMl9vcHMg
+ZGVsdGFfdmIyX2F1X29wcyA9IHsNCj4gK3N0YXRpYyBjb25zdCBzdHJ1Y3QgdmIyX29wcyBkZWx0
+YV92YjJfYXVfb3BzID0gew0KPiAgIAkucXVldWVfc2V0dXAgPSBkZWx0YV92YjJfYXVfcXVldWVf
+c2V0dXAsDQo+ICAgCS5idWZfcHJlcGFyZSA9IGRlbHRhX3ZiMl9hdV9wcmVwYXJlLA0KPiAgIAku
+YnVmX3F1ZXVlID0gZGVsdGFfdmIyX2F1X3F1ZXVlLA0KPiBAQCAtMTU4NCw3ICsxNTg0LDcgQEAg
+c3RhdGljIHN0cnVjdCB2YjJfb3BzIGRlbHRhX3ZiMl9hdV9vcHMgPSB7DQo+ICAgCS5zdG9wX3N0
+cmVhbWluZyA9IGRlbHRhX3ZiMl9hdV9zdG9wX3N0cmVhbWluZywNCj4gICB9Ow0KPiAgIA0KPiAt
+c3RhdGljIHN0cnVjdCB2YjJfb3BzIGRlbHRhX3ZiMl9mcmFtZV9vcHMgPSB7DQo+ICtzdGF0aWMg
+Y29uc3Qgc3RydWN0IHZiMl9vcHMgZGVsdGFfdmIyX2ZyYW1lX29wcyA9IHsNCj4gICAJLnF1ZXVl
+X3NldHVwID0gZGVsdGFfdmIyX2ZyYW1lX3F1ZXVlX3NldHVwLA0KPiAgIAkuYnVmX3ByZXBhcmUg
+PSBkZWx0YV92YjJfZnJhbWVfcHJlcGFyZSwNCj4gICAJLmJ1Zl9maW5pc2ggPSBkZWx0YV92YjJf
+ZnJhbWVfZmluaXNoLA0KPiA=
