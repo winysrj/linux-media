@@ -1,124 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:54595 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750775AbdGLXBm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Jul 2017 19:01:42 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
-        rjkm@metzlerbros.de, d.scheller@gmx.net, jasmin@anw.at
-Subject: [PATCH V2 2/9] [media] dvb-core/dvb_ca_en50221.c: New function dvb_ca_en50221_poll_cam_gone
-Date: Thu, 13 Jul 2017 01:00:51 +0200
-Message-Id: <1499900458-2339-3-git-send-email-jasmin@anw.at>
-In-Reply-To: <1499900458-2339-1-git-send-email-jasmin@anw.at>
-References: <1499900458-2339-1-git-send-email-jasmin@anw.at>
+Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:52822 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751757AbdGGLh3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 07:37:29 -0400
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
+        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v7.1 1/5] [media] cec.h: Add stub function for cec_register_cec_notifier()
+Date: Fri,  7 Jul 2017 12:37:16 +0100
+Message-Id: <bcf671fd7de56db2a224394e21766eae01d0ad02.1499427365.git.joabreu@synopsys.com>
+In-Reply-To: <cover.1499427365.git.joabreu@synopsys.com>
+References: <cover.1499427365.git.joabreu@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+Add a new stub function for cec_register_cec_notifier() so that
+we can still call this function when CONFIG_CEC_NOTIFIER and
+CONFIG_CEC_CORE are not set.
 
-The CAM poll code for the budget-av is exactly the same on several
-places. Extracting the code to a new function improves maintainability.
-
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+Cc: Carlos Palminha <palminha@synopsys.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-core/dvb_ca_en50221.c | 63 ++++++++++++++++++---------------
- 1 file changed, 34 insertions(+), 29 deletions(-)
+ include/media/cec.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
-index 19d0e9a..66a58ed 100644
---- a/drivers/media/dvb-core/dvb_ca_en50221.c
-+++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-@@ -1064,6 +1064,36 @@ static void dvb_ca_en50221_thread_update_delay(struct dvb_ca_private *ca)
+diff --git a/include/media/cec.h b/include/media/cec.h
+index 56643b2..8357f60 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -365,6 +365,14 @@ static inline int cec_phys_addr_validate(u16 phys_addr, u16 *parent, u16 *port)
+ 	return 0;
  }
  
- /**
-+ * Poll if the CAM is gone.
-+ *
-+ * @ca: CA instance.
-+ * @slot: Slot to process.
-+ * @return: 0 .. no change
-+ *          1 .. CAM state changed
-+ */
-+
-+static int dvb_ca_en50221_poll_cam_gone(struct dvb_ca_private *ca, int slot)
++#ifndef CONFIG_CEC_NOTIFIER
++struct cec_notifier;
++static inline void cec_register_cec_notifier(struct cec_adapter *adap,
++					     struct cec_notifier *notifier)
 +{
-+	int changed = 0;
-+	int status;
-+
-+	/* we need this extra check for annoying interfaces like the
-+	 * budget-av
-+	 */
-+	if ((!(ca->flags & DVB_CA_EN50221_FLAG_IRQ_CAMCHANGE))
-+	    && (ca->pub->poll_slot_status)) {
-+		status = ca->pub->poll_slot_status(ca->pub, slot, 0);
-+		if (!(status &
-+			DVB_CA_EN50221_POLL_CAM_PRESENT)) {
-+			ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_NONE;
-+			dvb_ca_en50221_thread_update_delay(ca);
-+			changed = 1;
-+		}
-+	}
-+	return changed;
 +}
++#endif
 +
-+/**
-  * Thread state machine for one CA slot to perform the data transfer.
-  *
-  * @ca: CA instance.
-@@ -1074,7 +1104,6 @@ static void dvb_ca_en50221_thread_state_machine(struct dvb_ca_private *ca,
- {
- 	struct dvb_ca_slot *sl = &ca->slot_info[slot];
- 	int flags;
--	int status;
- 	int pktcount;
- 	void *rxbuf;
+ #endif
  
-@@ -1123,20 +1152,8 @@ static void dvb_ca_en50221_thread_state_machine(struct dvb_ca_private *ca,
- 
- 	case DVB_CA_SLOTSTATE_VALIDATE:
- 		if (dvb_ca_en50221_parse_attributes(ca, slot) != 0) {
--			/* we need this extra check for annoying interfaces like
--			 * the budget-av
--			 */
--			if ((!(ca->flags & DVB_CA_EN50221_FLAG_IRQ_CAMCHANGE))
--			    && (ca->pub->poll_slot_status)) {
--				status = ca->pub->poll_slot_status(ca->pub,
--								   slot, 0);
--				if (!(status &
--				      DVB_CA_EN50221_POLL_CAM_PRESENT)) {
--					sl->slot_state = DVB_CA_SLOTSTATE_NONE;
--					dvb_ca_en50221_thread_update_delay(ca);
--					break;
--				}
--			}
-+			if (dvb_ca_en50221_poll_cam_gone(ca, slot))
-+				break;
- 
- 			pr_err("dvb_ca adapter %d: Invalid PC card inserted :(\n",
- 			       ca->dvbdev->adapter->num);
-@@ -1185,20 +1202,8 @@ static void dvb_ca_en50221_thread_state_machine(struct dvb_ca_private *ca,
- 
- 	case DVB_CA_SLOTSTATE_LINKINIT:
- 		if (dvb_ca_en50221_link_init(ca, slot) != 0) {
--			/* we need this extra check for annoying interfaces like
--			 * the budget-av
--			 */
--			if ((!(ca->flags & DVB_CA_EN50221_FLAG_IRQ_CAMCHANGE))
--			    && (ca->pub->poll_slot_status)) {
--				status = ca->pub->poll_slot_status(ca->pub,
--								   slot, 0);
--				if (!(status &
--					DVB_CA_EN50221_POLL_CAM_PRESENT)) {
--					sl->slot_state = DVB_CA_SLOTSTATE_NONE;
--					dvb_ca_en50221_thread_update_delay(ca);
--					break;
--				}
--			}
-+			if (dvb_ca_en50221_poll_cam_gone(ca, slot))
-+				break;
- 
- 			pr_err("dvb_ca adapter %d: DVB CAM link initialisation failed :(\n",
- 			       ca->dvbdev->adapter->num);
+ /**
 -- 
-2.7.4
+1.9.1
