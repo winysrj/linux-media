@@ -1,57 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:46241 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751257AbdGPAnj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Jul 2017 20:43:39 -0400
-From: "Jasmin J." <jasmin@anw.at>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:57215 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751862AbdGGJ6p (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 7 Jul 2017 05:58:45 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
-        rjkm@metzlerbros.de, d.scheller@gmx.net, crope@iki.fi,
-        jasmin@anw.at
-Subject: [PATCH V3 13/16] [media] dvb-core/dvb_ca_en50221.c: Fix again wrong EXPORT_SYMBOL order
-Date: Sun, 16 Jul 2017 02:43:14 +0200
-Message-Id: <1500165797-16987-14-git-send-email-jasmin@anw.at>
-In-Reply-To: <1500165797-16987-1-git-send-email-jasmin@anw.at>
-References: <1500165797-16987-1-git-send-email-jasmin@anw.at>
+Cc: kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 2/5] [media] coda: set field of destination buffers
+Date: Fri,  7 Jul 2017 11:58:28 +0200
+Message-Id: <20170707095831.9852-2-p.zabel@pengutronix.de>
+In-Reply-To: <20170707095831.9852-1-p.zabel@pengutronix.de>
+References: <20170707095831.9852-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+Set the field of destination buffers properly.
 
-Some EXPORT_SYMBOL() on this file don't match the name of functions
-that precedes them.
-
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/dvb-core/dvb_ca_en50221.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/media/platform/coda/coda-bit.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
-index aba80d8..2619822 100644
---- a/drivers/media/dvb-core/dvb_ca_en50221.c
-+++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-@@ -1849,7 +1849,6 @@ static unsigned int dvb_ca_en50221_io_poll(struct file *file, poll_table *wait)
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index 50eed636830f8..a4abeabfa5377 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -1412,6 +1412,7 @@ static void coda_finish_encode(struct coda_ctx *ctx)
+ 	}
  
- 	return mask;
- }
--EXPORT_SYMBOL(dvb_ca_en50221_init);
+ 	dst_buf->vb2_buf.timestamp = src_buf->vb2_buf.timestamp;
++	dst_buf->field = src_buf->field;
+ 	dst_buf->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+ 	dst_buf->flags |=
+ 		src_buf->flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+@@ -2154,6 +2155,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 		dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+ 		dst_buf->sequence = ctx->osequence++;
  
- 
- static const struct file_operations dvb_ca_fops = {
-@@ -1968,8 +1967,7 @@ int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
- 	pubca->private = NULL;
- 	return ret;
- }
--EXPORT_SYMBOL(dvb_ca_en50221_release);
--
-+EXPORT_SYMBOL(dvb_ca_en50221_init);
- 
- 
- /**
-@@ -1995,3 +1993,4 @@ void dvb_ca_en50221_release(struct dvb_ca_en50221 *pubca)
- 	dvb_ca_private_put(ca);
- 	pubca->private = NULL;
- }
-+EXPORT_SYMBOL(dvb_ca_en50221_release);
++		dst_buf->field = V4L2_FIELD_NONE;
+ 		dst_buf->flags &= ~(V4L2_BUF_FLAG_KEYFRAME |
+ 					     V4L2_BUF_FLAG_PFRAME |
+ 					     V4L2_BUF_FLAG_BFRAME);
 -- 
-2.7.4
+2.11.0
