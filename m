@@ -1,75 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:36517 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751371AbdGRKYS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 06:24:18 -0400
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-To: linux-i2c@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-iio@vger.kernel.org,
-        alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org,
-        Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: [PATCH v3 2/4] i2c: add docs to clarify DMA handling
-Date: Tue, 18 Jul 2017 12:23:37 +0200
-Message-Id: <20170718102339.28726-3-wsa+renesas@sang-engineering.com>
-In-Reply-To: <20170718102339.28726-1-wsa+renesas@sang-engineering.com>
-References: <20170718102339.28726-1-wsa+renesas@sang-engineering.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:47326 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751865AbdGGJDM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 7 Jul 2017 05:03:12 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hugues FRUCHET <hugues.fruchet@st.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: RFC: Selecting which sensor discrete frame size to use
+Message-ID: <8ef53598-842b-227b-aae6-e437d9c1886a@xs4all.nl>
+Date: Fri, 7 Jul 2017 11:03:07 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
----
-Changes since v2:
+Hi all,
 
-* documentation updates. Hopefully better wording now
+Hugues wants to add cropping support to the stm32-dcmi driver. The problem he
+encountered is that the sensor driver has a list of discrete framesizes and
+that causes problems with the API.
 
- Documentation/i2c/DMA-considerations | 38 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
- create mode 100644 Documentation/i2c/DMA-considerations
+Currently S_FMT is used to select which framesize to use. Which works fine as
+long as there is no crop or compose support. With that in the mix it is no
+longer clear whether S_FMT should change the crop rectangle or select the
+framesize.
 
-diff --git a/Documentation/i2c/DMA-considerations b/Documentation/i2c/DMA-considerations
-new file mode 100644
-index 00000000000000..e46c24d65c8556
---- /dev/null
-+++ b/Documentation/i2c/DMA-considerations
-@@ -0,0 +1,38 @@
-+Linux I2C and DMA
-+-----------------
-+
-+Given that I2C is a low-speed bus where largely small messages are transferred,
-+it is not considered a prime user of DMA access. At this time of writing, only
-+10% of I2C bus master drivers have DMA support implemented. And the vast
-+majority of transactions are so small that setting up DMA for it will likely
-+add more overhead than a plain PIO transfer.
-+
-+Therefore, it is *not* mandatory that the buffer of an I2C message is DMA safe.
-+It does not seem reasonable to apply additional burdens when the feature is so
-+rarely used. However, it is recommended to use a DMA-safe buffer if your
-+message size is likely applicable for DMA. Most drivers have this threshold
-+around 8 bytes. As of today, this is mostly an educated guess, however.
-+
-+To support this scenario, drivers wishing to implement DMA can use helper
-+functions from the I2C core. One checks if a message is DMA capable in terms of
-+size and memory type. It can optionally also create a bounce buffer:
-+
-+	i2c_check_msg_for_dma(msg, threshold, &bounce_buf);
-+
-+The bounce buffer handling from the core is generic and simple. It will always
-+allocate a new bounce buffer. If you want a more sophisticated handling (e.g.
-+reusing pre-allocated buffers), you can leave the pointer to the bounce buffer
-+empty and implement your own handling based on the return value of the above
-+function.
-+
-+The other helper function releases the bounce buffer. It ensures data is copied
-+back to the message:
-+
-+	i2c_release_dma_bounce_buf(msg, bounce_buf);
-+
-+Please check the in-kernel documentation for details. The i2c-sh_mobile driver
-+can be used as a reference example.
-+
-+If you plan to use DMA with I2C (or with any other bus, actually) make sure you
-+have CONFIG_DMA_API_DEBUG enabled during development. It can help you find
-+various issues which can be complex to debug otherwise.
--- 
-2.11.0
+This is not a new problem, it's been discussed before 4 years (!) ago:
+
+http://www.spinics.net/lists/linux-media/msg65381.html
+
+But apparently it has never been an issue until now.
+
+Note that v4l2-compliance detects this specific case and complains about it.
+
+I propose that we close this API hole by requiring that such sensors support
+the V4L2_SEL_TGT_NATIVE_SIZE selection target:
+
+https://hverkuil.home.xs4all.nl/spec/uapi/v4l/v4l2-selection-targets.html
+
+and set the V4L2_IN_CAP_NATIVE_SIZE input capability:
+
+https://hverkuil.home.xs4all.nl/spec/uapi/v4l/vidioc-enuminput.html
+
+The application called S_SELECTION(V4L2_SEL_TGT_NATIVE_SIZE) to select
+which frame size to use. It will act the same as S_STD and S_DV_TIMINGS
+for video receivers: it resets the format and crop/compose rectangles to
+the native size. After that everything works normally.
+
+This is only needed for sensors that have multiple frame sizes and support
+cropping, composing and/or scaling. If it doesn't support any of this,
+then there is no need for this selection target since S_FMT is unambiguous
+in that case.
+
+All the ingredients are already in place, all that is needed is to update
+the documentation and v4l2-compliance.
+
+I looked at some of the sensors that appear to support both multiple framesizes
+and cropping and those that I looked at are at best dubious implementations.
+It is totally unclear which rectangle is cropped.
+
+Comments are welcome.
+
+Regards,
+
+	Hans
