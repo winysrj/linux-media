@@ -1,152 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53996 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752470AbdGEUwJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 5 Jul 2017 16:52:09 -0400
-Subject: Re: [PATCH v6 4/4] dt-bindings: media: Document Synopsys Designware
- HDMI RX
-To: Jose Abreu <Jose.Abreu@synopsys.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        devicetree@vger.kernel.org
-References: <cover.1499176790.git.joabreu@synopsys.com>
- <d6da0a3ec47a46d30b74e9d41fb4bf9ef392d969.1499176790.git.joabreu@synopsys.com>
-From: Sylwester Nawrocki <snawrocki@kernel.org>
-Message-ID: <4dc8f06f-b9cf-6d3d-da88-51abb24c1724@kernel.org>
-Date: Wed, 5 Jul 2017 22:52:03 +0200
-MIME-Version: 1.0
-In-Reply-To: <d6da0a3ec47a46d30b74e9d41fb4bf9ef392d969.1499176790.git.joabreu@synopsys.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:35585 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751782AbdGGIYP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 04:24:15 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: mchehab@kernel.org, sean@mess.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] rc: constify attribute_group structures.
+Date: Fri,  7 Jul 2017 13:53:54 +0530
+Message-Id: <1e1e463f79d831a77eb1d57c6f677979bb01d9d7.1499415668.git.arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/04/2017 04:11 PM, Jose Abreu wrote:
-> Document the bindings for the Synopsys Designware HDMI RX.
-> 
-> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+attribute_groups are not supposed to change at runtime. All functions
+working with attribute_groups provided by <linux/sysfs.h> work with const
+attribute_group. So mark the non-const structs as const.
 
-> ---
->   .../devicetree/bindings/media/snps,dw-hdmi-rx.txt  | 70 ++++++++++++++++++++++
->   1 file changed, 70 insertions(+)
->   create mode 100644 Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
+File size before:
+   text	   data	    bss	    dec	    hex	filename
+  11605	    880	     20	  12505	   30d9	drivers/media/rc/rc-main.o
 
-Could you make the DT binding documentation patch first patch in the series?
-Now checkpatch will complain about undocumented compatible string when 
-the driver patches are applied alone.
+File size After adding 'const':
+   text	   data	    bss	    dec	    hex	filename
+  11797	    720	     20	  12537	   30f9	drivers/media/rc/rc-main.o
 
-> diff --git a/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt 
->b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
-> new file mode 100644
-> index 0000000..449b8a2
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
-> @@ -0,0 +1,70 @@
-> +Synopsys DesignWare HDMI RX Decoder
-> +===================================
-> +
-> +This document defines device tree properties for the Synopsys DesignWare HDMI
-> +RX Decoder (DWC HDMI RX). It doesn't constitute a device tree binding
-> +specification by itself but is meant to be referenced by platform-specific
-> +device tree bindings.
-> +
-> +When referenced from platform device tree bindings the properties defined in
-> +this document are defined as follows.
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ drivers/media/rc/rc-main.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-It would be good to make it clear which properties are required and which are
-optional. And also to mention the properties below belong to the HDMI RX node.
-
-> +- compatible: Shall be "snps,dw-hdmi-rx".
-> +
-> +- reg: Memory mapped base address and length of the DWC HDMI RX registers.
-> +
-> +- interrupts: Reference to the DWC HDMI RX interrupt and 5v sense interrupt.
-
-s/5v/HDMI 5V ?
-
-> +
-> +- clocks: Phandle to the config clock block.
-> +
-> +- clock-names: Shall be "cfg".
-> +
-> +- edid-phandle: phandle to the EDID handler block.
-
-Could you make this property optional and when it is missing assume that device
-corresponding to the parent node of this node handles EDID? This way we could
-avoid having property pointing to the parent node.
-
-> +- #address-cells: Shall be 1.
-> +
-> +- #size-cells: Shall be 0.
-> +
-> +You also have to create a subnode for phy driver. Phy properties are as follows.
-
-s/phy driver. Phy/the PHY device. PHY ?
-
-Might be also worth to make it explicit these are all required properties.
-
-> +- compatible: Shall be "snps,dw-hdmi-phy-e405".
-> +
-> +- reg: Shall be JTAG address of phy.
-
-s/phy/the PHY ?
-
-> +- clocks: Phandle for cfg clock.
-> +
-> +- clock-names:Shall be "cfg".
-> +
-> +A sample binding is now provided. The compatible string is for a SoC which has
-> +has a Synopsys DesignWare HDMI RX decoder inside.
-> +
-> +Example:
-> +
-> +dw_hdmi_soc: dw-hdmi-soc@0 {
-> +	compatible = "snps,dw-hdmi-soc";
-
-Perhaps just make it
-
-	compatible = "...";
-?
-
-> +	reg = <0x11c00 0x1000>; /* EDIDs */
-
-This is not relevant and undocumented, will likely be part of documentation 
-of other binding thus I'd suggest dropping this reg property.
-
-> +	#address-cells = <1>;
-> +	#size-cells = <1>;
-> +	ranges;
-> +
-> +	hdmi-rx@0 {
-> +		compatible = "snps,dw-hdmi-rx";
-> +		reg = <0x0 0x10000>;
-> +		interrupts = <1 2>;
-> +		edid-phandle = <&dw_hdmi_soc>;
-> +
-> +		clocks = <&dw_hdmi_refclk>;
-> +		clock-names = "cfg";
-> +
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +
-> +		hdmi-phy@fc {
-> +			compatible = "snps,dw-hdmi-phy-e405";
-> +			reg = <0xfc>;
-> +
-> +			clocks = <&dw_hdmi_refclk>;
-> +			clock-names = "cfg";
-> +		};
-> +	};
-> +};
-
-Otherwise looks good. I'll likely not have comments to the other patches.
-
---
-Regards,
-Sylwester
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 6ec7335..61d3e1c 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1550,7 +1550,7 @@ static RC_FILTER_ATTR(wakeup_filter_mask, S_IRUGO|S_IWUSR,
+ 	NULL,
+ };
  
+-static struct attribute_group rc_dev_protocol_attr_grp = {
++static const struct attribute_group rc_dev_protocol_attr_grp = {
+ 	.attrs	= rc_dev_protocol_attrs,
+ };
+ 
+@@ -1560,7 +1560,7 @@ static RC_FILTER_ATTR(wakeup_filter_mask, S_IRUGO|S_IWUSR,
+ 	NULL,
+ };
+ 
+-static struct attribute_group rc_dev_filter_attr_grp = {
++static const struct attribute_group rc_dev_filter_attr_grp = {
+ 	.attrs	= rc_dev_filter_attrs,
+ };
+ 
+@@ -1571,7 +1571,7 @@ static RC_FILTER_ATTR(wakeup_filter_mask, S_IRUGO|S_IWUSR,
+ 	NULL,
+ };
+ 
+-static struct attribute_group rc_dev_wakeup_filter_attr_grp = {
++static const struct attribute_group rc_dev_wakeup_filter_attr_grp = {
+ 	.attrs	= rc_dev_wakeup_filter_attrs,
+ };
+ 
+-- 
+1.9.1
