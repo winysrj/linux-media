@@ -1,66 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f173.google.com ([209.85.217.173]:35747 "EHLO
-        mail-ua0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751674AbdGJJOK (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:58385 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750883AbdGGJ6l (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Jul 2017 05:14:10 -0400
-Received: by mail-ua0-f173.google.com with SMTP id j53so50136553uaa.2
-        for <linux-media@vger.kernel.org>; Mon, 10 Jul 2017 02:14:10 -0700 (PDT)
-MIME-Version: 1.0
-From: =?UTF-8?B?7LWc7Yq56rec?= <heartily0421@gmail.com>
-Date: Mon, 10 Jul 2017 18:13:29 +0900
-Message-ID: <CAL4ntm9X1k4eXiEM4YE74zs46bqNhG0xS=dYcymW4sGbzCX=1A@mail.gmail.com>
-Subject: Support for Linux driver for GENIATECH Mygica ATSC USB TV Stick A681
+        Fri, 7 Jul 2017 05:58:41 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Cc: kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 1/5] [media] coda: extend GOP size range
+Date: Fri,  7 Jul 2017 11:58:27 +0200
+Message-Id: <20170707095831.9852-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear all
+CodaDx6 only accepts GOP sizes up to 60 frames, but CODA960 can handle
+up to 99 frames. If we disable automatic I frame generation altogether
+by setting GOP size to 0, we can let an application produce arbitrarily
+large I frame intervals using the V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME
+control.
 
-(I have no experience in mailing list and linux programming, so please
-be patient of my first request mail.)
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-bit.c    | 5 +++--
+ drivers/media/platform/coda/coda-common.c | 4 +++-
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-By chance I (may) got linux driver for GENIATECH Mygica A681.
-Can any one verify it and include it to LinuxTV project?
-
-I saw http://mygicasupport.com/index.php?/topic/2484-linux-support/
-It said no linux driver for A681.
-
-But I saw A681's specification document
-(http://file.geniatech.com/thcdownloads/geniatech/specification/A681.pdf
-)
-It says linux driver is supported.
-
-So I request it to Geniatech.
-Their respond as follow:
-************************************************************
-Hi sir,
-Please try this driver:
-https://mega.nz/#!utlmUA4L!A_AA-obMjiVJA3fOTLe_kZuml1tYPDGHtaQCuMv6bpQ
-
-
-Thanks & Best regards
-************************************************************
-Claire
-Geniatech Anhui LLC
-Tel: +86-551-65553836
-Mob:+86-18226641675
-Email.: claire.chen@geniatech.com
-Website: www.geniatech.com
-Skype: claire.chen@geniatech.com
-
-Office address:Room 906,Building F5,Innovation Industrial Park,NO.2800
-InnovationRoad,High Tech Zone,Hefei,Anhui,China
-
-Factory address: 2~3 Floor, Block A, Yinghaosheng Industrial Park,
-Dayang Street, Fuyong, Bao=E2=80=99an District, Shenzhen, China
-************************************************************
-
-Maybe this person(Claire) cannot know prior technical issue
-(http://mygicasupport.com/index.php?/topic/2484-linux-support/).
-But I surely have no proper programming skill for verify or develop
-this driver, Please help.
-
-Sincerely
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index bba1eb43b5d83..50eed636830f8 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -1006,7 +1006,7 @@ static int coda_start_encoding(struct coda_ctx *ctx)
+ 			break;
+ 		}
+ 		coda_write(dev, value, CODA_CMD_ENC_SEQ_SLICE_MODE);
+-		value = ctx->params.gop_size & CODA_GOP_SIZE_MASK;
++		value = ctx->params.gop_size;
+ 		coda_write(dev, value, CODA_CMD_ENC_SEQ_GOP_SIZE);
+ 	}
+ 
+@@ -1250,7 +1250,8 @@ static int coda_prepare_encode(struct coda_ctx *ctx)
+ 	force_ipicture = ctx->params.force_ipicture;
+ 	if (force_ipicture)
+ 		ctx->params.force_ipicture = false;
+-	else if ((src_buf->sequence % ctx->params.gop_size) == 0)
++	else if (ctx->params.gop_size != 0 &&
++		 (src_buf->sequence % ctx->params.gop_size) == 0)
+ 		force_ipicture = 1;
+ 
+ 	/*
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 829c7895a98a2..218d778a9c45a 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1734,10 +1734,12 @@ static const struct v4l2_ctrl_ops coda_ctrl_ops = {
+ 
+ static void coda_encode_ctrls(struct coda_ctx *ctx)
+ {
++	int max_gop_size = (ctx->dev->devtype->product == CODA_DX6) ? 60 : 99;
++
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_BITRATE, 0, 32767000, 1000, 0);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+-		V4L2_CID_MPEG_VIDEO_GOP_SIZE, 1, 60, 1, 16);
++		V4L2_CID_MPEG_VIDEO_GOP_SIZE, 0, max_gop_size, 1, 16);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP, 0, 51, 1, 25);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+-- 
+2.11.0
