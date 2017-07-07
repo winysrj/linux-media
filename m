@@ -1,63 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:34078 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752654AbdGHAlB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 20:41:01 -0400
-Date: Fri, 7 Jul 2017 20:41:02 -0400
-From: Amitoj Kaur Chawla <amitoj1606@gmail.com>
-To: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 2/2] staging: media: atomisp2: Replace kfree()/vfree() with
- kvfree()
-Message-ID: <20170708004102.GA27161@amitoj-Inspiron-3542>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52731
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750848AbdGGRbY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 13:31:24 -0400
+Subject: Re: [PATCH 09/12] [media] vivid: mark vivid queues as ordered
+To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>
+References: <20170616073915.5027-1-gustavo@padovan.org>
+ <20170616073915.5027-10-gustavo@padovan.org>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <f8f17191-6217-ef1b-3b55-0dfdb485a7fc@osg.samsung.com>
+Date: Fri, 7 Jul 2017 11:31:21 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <20170616073915.5027-10-gustavo@padovan.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Conditionally calling kfree()/vfree() can be replaced by a call to 
-kvfree() which handles both kmalloced memory and vmalloced memory. 
-Consequently removed an unnecessary comment.
+On 06/16/2017 01:39 AM, Gustavo Padovan wrote:
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> 
+> To enable vivid to be used with explicit synchronization we need
+> to mark its queues as ordered.
+> 
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+>  drivers/media/platform/vivid/vivid-core.c | 5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+> index 8843170..c7bef90 100644
+> --- a/drivers/media/platform/vivid/vivid-core.c
+> +++ b/drivers/media/platform/vivid/vivid-core.c
+> @@ -1063,6 +1063,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+>  		q->type = dev->multiplanar ? V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE :
+>  			V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>  		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
+> +		q->ordered = 1;
 
-The Coccinelle semantic patch used to make the change is as follows:
-//<smpl>
-@@
-expression a;
-@@
-- if(...) { vfree(a); }	
-- else { kfree(a); }
-+ kvfree(a);
-@@
-expression a;
-@@
-- if(...) { kfree(a); }	
-- else { vfree(a); }
-+ kvfree(a);
-// </smpl>
+How will the driver ensure ordered buffers? Are there more changes needed
+in this driver?
 
-Signed-off-by: Amitoj Kaur Chawla <amitoj1606@gmail.com>
----
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+>  		q->drv_priv = dev;
+>  		q->buf_struct_size = sizeof(struct vivid_buffer);
+>  		q->ops = &vivid_vid_cap_qops;
+> @@ -1083,6 +1084,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+>  		q->type = dev->multiplanar ? V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE :
+>  			V4L2_BUF_TYPE_VIDEO_OUTPUT;
+>  		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_WRITE;
+> +		q->ordered = 1;
+>  		q->drv_priv = dev;
+>  		q->buf_struct_size = sizeof(struct vivid_buffer);
+>  		q->ops = &vivid_vid_out_qops;
+> @@ -1103,6 +1105,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+>  		q->type = dev->has_raw_vbi_cap ? V4L2_BUF_TYPE_VBI_CAPTURE :
+>  					      V4L2_BUF_TYPE_SLICED_VBI_CAPTURE;
+>  		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
+> +		q->ordered = 1;
+>  		q->drv_priv = dev;
+>  		q->buf_struct_size = sizeof(struct vivid_buffer);
+>  		q->ops = &vivid_vbi_cap_qops;
+> @@ -1123,6 +1126,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+>  		q->type = dev->has_raw_vbi_out ? V4L2_BUF_TYPE_VBI_OUTPUT :
+>  					      V4L2_BUF_TYPE_SLICED_VBI_OUTPUT;
+>  		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_WRITE;
+> +		q->ordered = 1;
+>  		q->drv_priv = dev;
+>  		q->buf_struct_size = sizeof(struct vivid_buffer);
+>  		q->ops = &vivid_vbi_out_qops;
+> @@ -1142,6 +1146,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+>  		q = &dev->vb_sdr_cap_q;
+>  		q->type = V4L2_BUF_TYPE_SDR_CAPTURE;
+>  		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
+> +		q->ordered = 1;
+>  		q->drv_priv = dev;
+>  		q->buf_struct_size = sizeof(struct vivid_buffer);
+>  		q->ops = &vivid_sdr_cap_qops;
+> 
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-index 97093ba..a156dd424 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-@@ -117,11 +117,7 @@ void *atomisp_kernel_zalloc(size_t bytes, bool zero_mem)
-  */
- void atomisp_kernel_free(void *ptr)
- {
--	/* Verify if buffer was allocated by vmalloc() or kmalloc() */
--	if (is_vmalloc_addr(ptr))
--		vfree(ptr);
--	else
--		kfree(ptr);
-+	kvfree(ptr);
- }
- 
- /*
--- 
-2.7.4
+thanks,
+-- Shuah
