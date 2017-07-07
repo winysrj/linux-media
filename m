@@ -1,43 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51251 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753700AbdGUJCh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Jul 2017 05:02:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sylwester Nawrocki <snawrocki@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/4] s3c-camif: don't set driver_version anymore
-Date: Fri, 21 Jul 2017 11:02:32 +0200
-Message-Id: <20170721090234.6501-3-hverkuil@xs4all.nl>
-In-Reply-To: <20170721090234.6501-1-hverkuil@xs4all.nl>
-References: <20170721090234.6501-1-hverkuil@xs4all.nl>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:32839 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750905AbdGGOq1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 10:46:27 -0400
+From: Hari Prasath <gehariprasath@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, alan@linux.intel.com,
+        rvarsha016@gmail.com, julia.lawall@lip6.fr,
+        singhalsimran0@gmail.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v2] staging: atomisp: use kstrdup to replace kmalloc and memcpy
+Date: Fri,  7 Jul 2017 20:15:21 +0530
+Message-Id: <20170707144521.4520-1-gehariprasath@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+kstrdup kernel primitive can be used to replace kmalloc followed by
+string copy. This was reported by coccinelle tool
 
-This is now set by media_device_init.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hari Prasath <gehariprasath@gmail.com>
 ---
- drivers/media/platform/s3c-camif/camif-core.c | 1 -
- 1 file changed, 1 deletion(-)
+ .../media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c       | 10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/platform/s3c-camif/camif-core.c b/drivers/media/platform/s3c-camif/camif-core.c
-index 8f0414041e81..c4ab63986c8f 100644
---- a/drivers/media/platform/s3c-camif/camif-core.c
-+++ b/drivers/media/platform/s3c-camif/camif-core.c
-@@ -317,7 +317,6 @@ static int camif_media_dev_init(struct camif_dev *camif)
- 		 ip_rev == S3C6410_CAMIF_IP_REV ? "6410" : "244X");
- 	strlcpy(md->bus_info, "platform", sizeof(md->bus_info));
- 	md->hw_revision = ip_rev;
--	md->driver_version = LINUX_VERSION_CODE;
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+index 34cc56f..68db87b 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+@@ -144,14 +144,10 @@ sh_css_load_blob_info(const char *fw, const struct ia_css_fw_info *bi, struct ia
+ 	)
+ 	{
+ 		char *namebuffer;
+-		int namelength = (int)strlen(name);
+-
+-		namebuffer = (char *) kmalloc(namelength + 1, GFP_KERNEL);
+-		if (namebuffer == NULL)
+-			return IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+-
+-		memcpy(namebuffer, name, namelength + 1);
  
- 	md->dev = camif->dev;
- 
++		namebuffer = kstrdup(name, GFP_KERNEL);
++		if (!namebuffer)
++			return -ENOMEM;
+ 		bd->name = fw_minibuffer[index].name = namebuffer;
+ 	} else {
+ 		bd->name = name;
 -- 
-2.13.2
+2.10.0.GIT
