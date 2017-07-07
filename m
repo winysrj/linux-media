@@ -1,74 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42657 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751054AbdGaN6W (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Jul 2017 09:58:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-Subject: Re: [PATCH 1/6 v5]  UVC: fix .queue_setup() to check the number of planes
-Date: Mon, 31 Jul 2017 16:58:32 +0300
-Message-ID: <3019704.5MRAhF8ULK@avalon>
-In-Reply-To: <1773002.W70q46i2MF@avalon>
-References: <1501245205-15802-1-git-send-email-g.liakhovetski@gmx.de> <1501245205-15802-2-git-send-email-g.liakhovetski@gmx.de> <1773002.W70q46i2MF@avalon>
+Received: from mail-wr0-f178.google.com ([209.85.128.178]:35264 "EHLO
+        mail-wr0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750726AbdGGO40 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 10:56:26 -0400
+Received: by mail-wr0-f178.google.com with SMTP id k67so50310127wrc.2
+        for <linux-media@vger.kernel.org>; Fri, 07 Jul 2017 07:56:26 -0700 (PDT)
+Subject: Re: [Patch v5 05/12] [media] videodev2.h: Add v4l2 definition for
+ HEVC
+To: Smitha T Murthy <smitha.t@samsung.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
+ <CGME20170619052505epcas5p33a78ee709263cc9ae33cd9383794ca06@epcas5p3.samsung.com>
+ <1497849055-26583-6-git-send-email-smitha.t@samsung.com>
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <12b890e0-b955-4d64-6b6b-2847f693ee57@linaro.org>
+Date: Fri, 7 Jul 2017 17:56:22 +0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1497849055-26583-6-git-send-email-smitha.t@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-And I forgot to mention, the usual prefix for the subject line is "uvcvideo:" 
-followed by a capitalized word.
+Hi Smitha,
 
-On Monday 31 Jul 2017 16:57:23 Laurent Pinchart wrote:
-> On Friday 28 Jul 2017 14:33:20 Guennadi Liakhovetski wrote:
-> > According to documentation of struct vb2_ops the .queue_setup() callback
-> > should return an error if the number of planes parameter contains an
-> > invalid value on input. Fix this instead of ignoring the value.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> > ---
-> > 
-> >  drivers/media/usb/uvc/uvc_queue.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/usb/uvc/uvc_queue.c
-> > b/drivers/media/usb/uvc/uvc_queue.c index aa21997..371a4ad 100644
-> > --- a/drivers/media/usb/uvc/uvc_queue.c
-> > +++ b/drivers/media/usb/uvc/uvc_queue.c
-> > @@ -84,7 +84,7 @@ static int uvc_queue_setup(struct vb2_queue *vq,
-> > 
-> >  	/* Make sure the image size is large enough. */
+On 06/19/2017 08:10 AM, Smitha T Murthy wrote:
+> Add V4L2 definition for HEVC compressed format
 > 
-> Nitpicking, I'd update the comment as well.
+> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+> Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+> ---
+>  include/uapi/linux/videodev2.h | 1 +
+>  1 file changed, 1 insertion(+)
 > 
->         /*
-> 	 * When called with plane sizes, validate them. The driver supports
-> 	 * single planar formats only, and requires buffers to be large enough
-> 	 * to store a complete frame.
-> 	 */
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 2b8feb8..488de3d 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -629,6 +629,7 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
+>  #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
+>  #define V4L2_PIX_FMT_VP9      v4l2_fourcc('V', 'P', '9', '0') /* VP9 */
+> +#define V4L2_PIX_FMT_HEVC     v4l2_fourcc('H', 'E', 'V', 'C') /* HEVC */
+>  
+>  /*  Vendor-specific formats   */
+>  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
 > 
-> >  	if (*nplanes)
-> > 
-> > -		return sizes[0] < size ? -EINVAL : 0;
-> > +		return sizes[0] < size || *nplanes != 1 ? -EINVAL : 0;
-> 
-> Nitpicking again, I'd test *nplanes first, as it conditions which entries of
-> the sizes array are valid. If course the if (*nplanes) test ensures that
-> entry 0 is valid, so it won't make a difference at runtime, it's just about
-> code readability.
-> 
-> The patch looks good otherwise,
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> >  	*nplanes = 1;
-> >  	sizes[0] = size;
-> >  	return 0;
+
+Hans wanted the name to be H265, not sure is that valid yet.
+
+I have tested 5/12, 6/12, and 7/12 on venus codec driver, and in case
+you need it, you have my
+
+Reviewed-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 
 -- 
-Regards,
-
-Laurent Pinchart
+regards,
+Stan
