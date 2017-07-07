@@ -1,56 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:60849 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751744AbdG1LFe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Jul 2017 07:05:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from gofer.mess.org ([88.97.38.141]:49181 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751853AbdGGJwC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 7 Jul 2017 05:52:02 -0400
+From: Sean Young <sean@mess.org>
 To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [RFCv2 PATCH 0/2] add VIDIOC_SUBDEV_QUERYCAP ioctl
-Date: Fri, 28 Jul 2017 13:05:27 +0200
-Message-Id: <20170728110529.4057-1-hverkuil@xs4all.nl>
+Subject: [PATCH v2 2/6] [media] rc: mce kbd decoder not needed for IR TX drivers
+Date: Fri,  7 Jul 2017 10:51:58 +0100
+Message-Id: <691acda575c3a0d87f5de4ab33b8018956caf990.1499419624.git.sean@mess.org>
+In-Reply-To: <cover.1499419624.git.sean@mess.org>
+References: <cover.1499419624.git.sean@mess.org>
+In-Reply-To: <cover.1499419624.git.sean@mess.org>
+References: <cover.1499419624.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Without this patch, an input device is created which is not necessary.
 
-I tried to get this in back in 2015, but that effort stalled.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/ir-mce_kbd-decoder.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Trying again, since I really need this in order to add proper v4l-subdev
-support to v4l2-ctl and v4l2-compliance. There currently is no way of
-unique identifying that the device really is a v4l-subdev device other
-than the device name (which can be changed by udev).
-
-So this patch series adds a VIDIOC_SUBDEV_QUERYCAP ioctl that is in
-the core so it's guaranteed to be there.
-
-If the subdev is part of an MC then it also gives the corresponding
-entity ID of the subdev and the major/minor numbers of the MC device
-so v4l2-compliance can relate the subdev device directly to the right
-MC device. The reserved array has room enough for more strings should
-we need them later, although I think what we have here is sufficient.
-
-Regards,
-
-	Hans
-
-Changes since v1:
-- Add name field. Without that it is hard to figure out which subdev
-  it is since the entity ID is not very human readable.
-
-Hans Verkuil (2):
-  v4l2-subdev: add VIDIOC_SUBDEV_QUERYCAP ioctl
-  v4l: document VIDIOC_SUBDEV_QUERYCAP
-
- Documentation/media/uapi/v4l/user-func.rst         |   1 +
- .../media/uapi/v4l/vidioc-subdev-querycap.rst      | 121 +++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-subdev.c              |  27 +++++
- include/uapi/linux/v4l2-subdev.h                   |  31 ++++++
- 4 files changed, 180 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/vidioc-subdev-querycap.rst
-
+diff --git a/drivers/media/rc/ir-mce_kbd-decoder.c b/drivers/media/rc/ir-mce_kbd-decoder.c
+index 6a4d58b..0e07442 100644
+--- a/drivers/media/rc/ir-mce_kbd-decoder.c
++++ b/drivers/media/rc/ir-mce_kbd-decoder.c
+@@ -358,6 +358,9 @@ static int ir_mce_kbd_register(struct rc_dev *dev)
+ 	struct input_dev *idev;
+ 	int i, ret;
+ 
++	if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
++		return 0;
++
+ 	idev = input_allocate_device();
+ 	if (!idev)
+ 		return -ENOMEM;
 -- 
-2.13.1
+2.9.4
