@@ -1,183 +1,2720 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:53707 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751991AbdG1O7Z (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39826 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752777AbdGGWYn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Jul 2017 10:59:25 -0400
-Subject: Re: [RFCv2 PATCH 0/2] add VIDIOC_SUBDEV_QUERYCAP ioctl
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-References: <20170728110529.4057-1-hverkuil@xs4all.nl>
- <1925879.q3PoFGT7lz@avalon> <625cbe4e-7ebd-c995-b4f3-4e1bf892aac9@xs4all.nl>
- <5652381.J6V3Mkh0f4@avalon>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4801ccb7-5022-ecff-c81e-6115f9b2f29a@xs4all.nl>
-Date: Fri, 28 Jul 2017 16:59:20 +0200
+        Fri, 7 Jul 2017 18:24:43 -0400
+Date: Sat, 8 Jul 2017 01:24:37 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: chiranjeevi.rapolu@intel.com
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        tfiga@chromium.org, jian.xu.zheng@intel.com,
+        rajmohan.mani@intel.com, hyungwoo.yang@intel.com
+Subject: Re: [PATCH v4 1/1] i2c: Add Omnivision OV5670 5M sensor support
+Message-ID: <20170707222436.ehoa5kr5ozzes24q@valkosipuli.retiisi.org.uk>
+References: <1497404348-16255-1-git-send-email-chiranjeevi.rapolu@intel.com>
+ <4720ac4f89b26f2509ee3788c63f65adf093871a.1498941658.git.chiranjeevi.rapolu@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <5652381.J6V3Mkh0f4@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4720ac4f89b26f2509ee3788c63f65adf093871a.1498941658.git.chiranjeevi.rapolu@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/28/2017 04:28 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Friday 28 Jul 2017 16:04:48 Hans Verkuil wrote:
->> On 07/28/2017 03:25 PM, Laurent Pinchart wrote:
->>> On Friday 28 Jul 2017 13:05:27 Hans Verkuil wrote:
->>>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>>
->>>> I tried to get this in back in 2015, but that effort stalled.
->>>>
->>>> Trying again, since I really need this in order to add proper v4l-subdev
->>>> support to v4l2-ctl and v4l2-compliance. There currently is no way of
->>>> unique identifying that the device really is a v4l-subdev device other
->>>> than the device name (which can be changed by udev).
->>>>
->>>> So this patch series adds a VIDIOC_SUBDEV_QUERYCAP ioctl that is in
->>>> the core so it's guaranteed to be there.
->>>>
->>>> If the subdev is part of an MC then it also gives the corresponding
->>>> entity ID of the subdev and the major/minor numbers of the MC device
->>>> so v4l2-compliance can relate the subdev device directly to the right
->>>> MC device. The reserved array has room enough for more strings should
->>>> we need them later, although I think what we have here is sufficient.
->>>
->>> I still think this is not correct for two reasons.
->>>
->>> First of all, the new querycap ioctl uses the same ioctl number as
->>> VIDIOC_QUERYCAP. The full 32-bit number is different as the structures
->>> used for the two ioctls currently have different sizes, but that's not
->>> guaranteed going forward when we'll extend the structures used by the two
->>> ioctls with new fields.
->>
->> I think it is extraordinarily unlikely that these two will ever become
->> identical. And anyway, we control that ourselves.
->>
->>> To solve this, if you really want to identify the type of device node at
->>> runtime, we should have a single ioctl supported by the two device nodes.
->>> Given that we"re running out of capabilities bits for VIDIOC_QUERYCAP,
->>> this could be a good occasion to introduce a new ioctl to query
->>> capabilities.
->>
->> This makes more sense :-)
->>
->>> The second reason is that I don't think we should report the media device
->>> node associated with the subdev. Userspace really needs to become
->>> MC-centric, starting with the MC device, and going to the video nodes and
->>> subdev nodes. The other way around just doesn't make sense to me.
->>
->> It's not for 'regular' applications. It's to easily find out to which media
->> device a /dev/v4l-subdevX belongs. Primarily for applications like
->> v4l2-compliance.
->>
->> We have the information, and right now there is no way to take a v4l-subdevX
->> device and determine of which media device it is part other than scanning
->> the topologies of all media devices. That's nuts. This is cheap and makes
->> life for a certain class of applications much easier. Creating good
->> compliance tests is critical and this is a small but important contribution
->> to that.
-> 
-> I fully agree with the need for compliance tools, but I believe they should go 
-> from MC to subdev, not the other way around. Let's discuss this below.
-> 
->>> For MC-enabled devices, specifying subdev or video nodes by /dev node name
->>> is painful. When you have multiple video devices on the system, or even
->>> when you're modifying initialization order in a driver, the devnode names
->>> will not be stable across boots. I used to type them out manually in the
->>> very beginning and very quickly switched to retrieving them from the
->>> subdev entity name in my test scripts.
->>>
->>> What I'd like the compliance tools to do is to test all video nodes and
->>> subdev nodes for a given MC device, with an option to restrict the tests
->>> to a subset of the video devices and subdevs specified by media entity
->>> name. We obviously need to keep support for addressing video nodes
->>> manually as not all devices are MC-enabled, but for subdev we don't have
->>> to care about such a backward compatibility issue as there's currently no
->>> compliance tool.
->>
->> I want two things:
->>
->> 1) v4l2-compliance to be able to test a v4l-subdevX, just in isolation. And
->> to be able to find the corresponding media device and make sure that what
->> the v4l-subdev does is compatible with the entity/link information from the
->> MC.
-> 
-> Why do you want to test /dev/v4l-subdev$(random) instead of /dev/mediaX + 
-> "subdev entity name" ?
-> 
-> Furthermore, if you want to test a subdev in complete isolation, why do you 
-> need to know which media device it belongs to ?
-> 
-> By the way, I'd like Sakari to join the discussion, but he won't be back 
-> before the end of next week.
-> 
->> 2) make a media-compliance to look at the media topology as a whole.
->>
->> Having the major/minor numbers are specifically for 1.
->>
->> Actually, I really want to have the major/minor numbers of the media device
->> for /dev/videoX as well, but entity ID +  major + minor number would use up
->> the available space in struct v4l2_capability, so your suggestion of making
->> a new VIDIOC_EXT_QUERYCAP has merit.
->>
->>> On a side note, I believe subdev nodes should depend on MC. It has been a
->>> historical mistake not to do so, and as far as I can see only three
->>> drivers register subdev nodes without registering a media device. They
->>> should be fixed if they want to benefit from the compliance tool.
->>
->> Which ones?
-> 
-> atmel-isc, cobalt and rcar_drif.
+Hi Chiranjeevi,
 
-Huh, I thought I added media device support to cobalt. I probably started
-that but never finished it. I can certainly take care of that one, it should
-not be hard.
+A few relatively minor comments below.
 
+On Sat, Jul 01, 2017 at 01:49:06PM -0700, chiranjeevi.rapolu@intel.com wrote:
+> From: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
 > 
->> I'm not opposed to that. It would simplify matters quite a bit.
->>
->> But I very, very strongly believe that a VIDIOC_EXT_QUERYCAP should return
->> the corresponding entity ID and /dev/mediaX major and minor numbers. It's
->> very useful information for a certain class of applications.
+> Provides single source pad with up to 2592x1944 pixels at 10-bit raw
+> bayer format over MIPI CSI2 two lanes at 840Mbps/lane.
+> The driver supports following features:
+> - up to  30fps at 5M pixels
+> - manual exposure
+> - digital/analog gain
+> - V-blank/H-blank
+> - test pattern
+> - media controller
+> - runtime pm
 > 
-> Do you have any application in mind other than the compliance tools ?
+> Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+> ---
+>  drivers/media/i2c/Kconfig  |   12 +
+>  drivers/media/i2c/Makefile |    1 +
+>  drivers/media/i2c/ov5670.c | 2591 ++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 2604 insertions(+)
+>  create mode 100644 drivers/media/i2c/ov5670.c
+> 
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index 121b3b5..e0f2411 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -593,6 +593,18 @@ config VIDEO_OV5647
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called ov5647.
+>  
+> +config VIDEO_OV5670
+> +	tristate "OmniVision OV5670 sensor support"
+> +	depends on I2C && VIDEO_V4L2
+> +	depends on MEDIA_CAMERA_SUPPORT
+> +	select V4L2_FWNODE
+> +	---help---
+> +	  This is a Video4Linux2 sensor-level driver for the OmniVision
+> +	  OV5670 camera.
+> +
+> +	  To compile this driver as a module, choose M here: the
+> +	  module will be called ov5670.
+> +
+>  config VIDEO_OV7640
+>  	tristate "OmniVision OV7640 sensor support"
+>  	depends on I2C && VIDEO_V4L2
+> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+> index 2c0868f..1fb3a1f 100644
+> --- a/drivers/media/i2c/Makefile
+> +++ b/drivers/media/i2c/Makefile
+> @@ -62,6 +62,7 @@ obj-$(CONFIG_VIDEO_OV2640) += ov2640.o
+>  obj-$(CONFIG_VIDEO_OV5640) += ov5640.o
+>  obj-$(CONFIG_VIDEO_OV5645) += ov5645.o
+>  obj-$(CONFIG_VIDEO_OV5647) += ov5647.o
+> +obj-$(CONFIG_VIDEO_OV5670) += ov5670.o
+>  obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
+>  obj-$(CONFIG_VIDEO_OV7670) += ov7670.o
+>  obj-$(CONFIG_VIDEO_OV9650) += ov9650.o
+> diff --git a/drivers/media/i2c/ov5670.c b/drivers/media/i2c/ov5670.c
+> new file mode 100644
+> index 0000000..9f1dcb0
+> --- /dev/null
+> +++ b/drivers/media/i2c/ov5670.c
+> @@ -0,0 +1,2591 @@
+> +/*
+> + * Copyright (c) 2017 Intel Corporation.
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License version
+> + * 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+> + * GNU General Public License for more details.
+> + *
+> + */
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/i2c.h>
+> +#include <linux/module.h>
+> +#include <linux/pm_runtime.h>
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-device.h>
+> +
+> +#define OV5670_REG_CHIP_ID		0x300a
+> +#define OV5670_CHIP_ID			0x005670
+> +
+> +#define OV5670_REG_MODE_SELECT		0x0100
+> +#define OV5670_MODE_STANDBY		0x00
+> +#define OV5670_MODE_STREAMING		0x01
+> +
+> +#define OV5670_REG_SOFTWARE_RST		0x0103
+> +#define OV5670_SOFTWARE_RST		0x01
+> +
+> +/* vertical-timings from sensor */
+> +#define OV5670_REG_VTS			0x380e
+> +#define OV5670_VTS_30FPS		0x0808 /* default for 30 fps */
+> +#define OV5670_VTS_MAX			0xffff
+> +#define OV5670_VBLANK_MIN		56
+> +
+> +/* horizontal-timings from sensor */
+> +#define OV5670_REG_HTS			0x380c
+> +#define OV5670_DEF_PPL			3360	/* Default pixels per line */
+> +
+> +/* Exposure controls from sensor */
+> +#define OV5670_REG_EXPOSURE		0x3500
+> +#define	OV5670_EXPOSURE_MIN		4
+> +#define	OV5670_EXPOSURE_STEP		1
+> +#define	OV5670_EXPOSURE_DEFAULT		1992
+> +
+> +/* Analog gain controls from sensor */
+> +#define OV5670_REG_ANALOG_GAIN		0x3508
+> +#define	ANALOG_GAIN_MIN			0
+> +#define	ANALOG_GAIN_MAX			8191
+> +#define	ANALOG_GAIN_STEP		1
+> +#define	ANALOG_GAIN_DEFAULT		128
+> +
+> +/* Digital gain controls from sensor */
+> +#define OV5670_REG_R_DGTL_GAIN		0x5032
+> +#define OV5670_REG_G_DGTL_GAIN		0x5034
+> +#define OV5670_REG_B_DGTL_GAIN		0x5036
+> +#define OV5670_DGTL_GAIN_MIN		0
+> +#define OV5670_DGTL_GAIN_MAX		4095
+> +#define OV5670_DGTL_GAIN_STEP		1
+> +#define OV5670_DGTL_GAIN_DEFAULT	1024
+> +
+> +/* Test Pattern Control */
+> +#define OV5670_REG_TEST_PATTERN		0x4303
+> +#define OV5670_TEST_PATTERN_ENABLE	BIT(3)
+> +#define OV5670_REG_TEST_PATTERN_CTRL	0x4320
+> +
+> +#define OV5670_REG_VALUE_08BIT		1
+> +#define OV5670_REG_VALUE_16BIT		2
+> +#define OV5670_REG_VALUE_24BIT		3
+> +
+> +/* Initial number of frames to skip to avoid possible garbage */
+> +#define OV5670_NUM_OF_SKIP_FRAMES	2
+> +
+> +struct ov5670_reg {
+> +	u16 address;
+> +	u8 val;
+> +};
+> +
+> +struct ov5670_reg_list {
+> +	u32 num_of_regs;
+> +	const struct ov5670_reg *regs;
+> +};
+> +
+> +struct ov5670_link_freq_config {
+> +	u32 pixel_rate;
+> +	const struct ov5670_reg_list reg_list;
+> +};
+> +
+> +struct ov5670_mode {
+> +	/* Frame width in pixels */
+> +	u32 width;
+> +
+> +	/* Frame height in pixels */
+> +	u32 height;
+> +
+> +	/* Vertical timining size */
+> +	u32 vts;
+> +
+> +	/* Link frequency needed for this resolution */
+> +	u32 link_freq_index;
+> +
+> +	/* Sensor register settings for this resolution */
+> +	const struct ov5670_reg_list reg_list;
+> +};
+> +
+> +static const struct ov5670_reg mipi_data_rate_840mbps[] = {
+> +	{0x0300, 0x04},
+> +	{0x0301, 0x00},
+> +	{0x0302, 0x84},
+> +	{0x0303, 0x00},
+> +	{0x0304, 0x03},
+> +	{0x0305, 0x01},
+> +	{0x0306, 0x01},
+> +	{0x030a, 0x00},
+> +	{0x030b, 0x00},
+> +	{0x030c, 0x00},
+> +	{0x030d, 0x26},
+> +	{0x030e, 0x00},
+> +	{0x030f, 0x06},
+> +	{0x0312, 0x01},
+> +	{0x3031, 0x0a},
+> +};
+> +
+> +static const struct ov5670_reg mode_2592x1944_regs[] = {
+> +	{0x3000, 0x00},
+> +	{0x3002, 0x21},
+> +	{0x3005, 0xf0},
+> +	{0x3007, 0x00},
+> +	{0x3015, 0x0f},
+> +	{0x3018, 0x32},
+> +	{0x301a, 0xf0},
+> +	{0x301b, 0xf0},
+> +	{0x301c, 0xf0},
+> +	{0x301d, 0xf0},
+> +	{0x301e, 0xf0},
+> +	{0x3030, 0x00},
+> +	{0x3031, 0x0a},
+> +	{0x303c, 0xff},
+> +	{0x303e, 0xff},
+> +	{0x3040, 0xf0},
+> +	{0x3041, 0x00},
+> +	{0x3042, 0xf0},
+> +	{0x3106, 0x11},
+> +	{0x3500, 0x00},
+> +	{0x3501, 0x7c},
+> +	{0x3502, 0x80},
+> +	{0x3503, 0x04},
+> +	{0x3504, 0x03},
+> +	{0x3505, 0x83},
+> +	{0x3508, 0x04},
+> +	{0x3509, 0x00},
+> +	{0x350e, 0x04},
+> +	{0x350f, 0x00},
+> +	{0x3510, 0x00},
+> +	{0x3511, 0x02},
+> +	{0x3512, 0x00},
+> +	{0x3601, 0xc8},
+> +	{0x3610, 0x88},
+> +	{0x3612, 0x48},
+> +	{0x3614, 0x5b},
+> +	{0x3615, 0x96},
+> +	{0x3621, 0xd0},
+> +	{0x3622, 0x00},
+> +	{0x3623, 0x00},
+> +	{0x3633, 0x13},
+> +	{0x3634, 0x13},
+> +	{0x3635, 0x13},
+> +	{0x3636, 0x13},
+> +	{0x3645, 0x13},
+> +	{0x3646, 0x82},
+> +	{0x3650, 0x00},
+> +	{0x3652, 0xff},
+> +	{0x3655, 0x20},
+> +	{0x3656, 0xff},
+> +	{0x365a, 0xff},
+> +	{0x365e, 0xff},
+> +	{0x3668, 0x00},
+> +	{0x366a, 0x07},
+> +	{0x366e, 0x10},
+> +	{0x366d, 0x00},
+> +	{0x366f, 0x80},
+> +	{0x3700, 0x28},
+> +	{0x3701, 0x10},
+> +	{0x3702, 0x3a},
+> +	{0x3703, 0x19},
+> +	{0x3704, 0x10},
+> +	{0x3705, 0x00},
+> +	{0x3706, 0x66},
+> +	{0x3707, 0x08},
+> +	{0x3708, 0x34},
+> +	{0x3709, 0x40},
+> +	{0x370a, 0x01},
+> +	{0x370b, 0x1b},
+> +	{0x3714, 0x24},
+> +	{0x371a, 0x3e},
+> +	{0x3733, 0x00},
+> +	{0x3734, 0x00},
+> +	{0x373a, 0x05},
+> +	{0x373b, 0x06},
+> +	{0x373c, 0x0a},
+> +	{0x373f, 0xa0},
+> +	{0x3755, 0x00},
+> +	{0x3758, 0x00},
+> +	{0x375b, 0x0e},
+> +	{0x3766, 0x5f},
+> +	{0x3768, 0x00},
+> +	{0x3769, 0x22},
+> +	{0x3773, 0x08},
+> +	{0x3774, 0x1f},
+> +	{0x3776, 0x06},
+> +	{0x37a0, 0x88},
+> +	{0x37a1, 0x5c},
+> +	{0x37a7, 0x88},
+> +	{0x37a8, 0x70},
+> +	{0x37aa, 0x88},
+> +	{0x37ab, 0x48},
+> +	{0x37b3, 0x66},
+> +	{0x37c2, 0x04},
+> +	{0x37c5, 0x00},
+> +	{0x37c8, 0x00},
+> +	{0x3800, 0x00},
+> +	{0x3801, 0x0c},
+> +	{0x3802, 0x00},
+> +	{0x3803, 0x04},
+> +	{0x3804, 0x0a},
+> +	{0x3805, 0x33},
+> +	{0x3806, 0x07},
+> +	{0x3807, 0xa3},
+> +	{0x3808, 0x0a},
+> +	{0x3809, 0x20},
+> +	{0x380a, 0x07},
+> +	{0x380b, 0x98},
+> +	{0x380c, 0x06},
+> +	{0x380d, 0x90},
+> +	{0x380e, 0x08},
+> +	{0x380f, 0x08},
+> +	{0x3811, 0x04},
+> +	{0x3813, 0x02},
+> +	{0x3814, 0x01},
+> +	{0x3815, 0x01},
+> +	{0x3816, 0x00},
+> +	{0x3817, 0x00},
+> +	{0x3818, 0x00},
+> +	{0x3819, 0x00},
+> +	{0x3820, 0x84},
+> +	{0x3821, 0x46},
+> +	{0x3822, 0x48},
+> +	{0x3826, 0x00},
+> +	{0x3827, 0x08},
+> +	{0x382a, 0x01},
+> +	{0x382b, 0x01},
+> +	{0x3830, 0x08},
+> +	{0x3836, 0x02},
+> +	{0x3837, 0x00},
+> +	{0x3838, 0x10},
+> +	{0x3841, 0xff},
+> +	{0x3846, 0x48},
+> +	{0x3861, 0x00},
+> +	{0x3862, 0x04},
+> +	{0x3863, 0x06},
+> +	{0x3a11, 0x01},
+> +	{0x3a12, 0x78},
+> +	{0x3b00, 0x00},
+> +	{0x3b02, 0x00},
+> +	{0x3b03, 0x00},
+> +	{0x3b04, 0x00},
+> +	{0x3b05, 0x00},
+> +	{0x3c00, 0x89},
+> +	{0x3c01, 0xab},
+> +	{0x3c02, 0x01},
+> +	{0x3c03, 0x00},
+> +	{0x3c04, 0x00},
+> +	{0x3c05, 0x03},
+> +	{0x3c06, 0x00},
+> +	{0x3c07, 0x05},
+> +	{0x3c0c, 0x00},
+> +	{0x3c0d, 0x00},
+> +	{0x3c0e, 0x00},
+> +	{0x3c0f, 0x00},
+> +	{0x3c40, 0x00},
+> +	{0x3c41, 0xa3},
+> +	{0x3c43, 0x7d},
+> +	{0x3c45, 0xd7},
+> +	{0x3c47, 0xfc},
+> +	{0x3c50, 0x05},
+> +	{0x3c52, 0xaa},
+> +	{0x3c54, 0x71},
+> +	{0x3c56, 0x80},
+> +	{0x3d85, 0x17},
+> +	{0x3f03, 0x00},
+> +	{0x3f0a, 0x00},
+> +	{0x3f0b, 0x00},
+> +	{0x4001, 0x60},
+> +	{0x4009, 0x0d},
+> +	{0x4020, 0x00},
+> +	{0x4021, 0x00},
+> +	{0x4022, 0x00},
+> +	{0x4023, 0x00},
+> +	{0x4024, 0x00},
+> +	{0x4025, 0x00},
+> +	{0x4026, 0x00},
+> +	{0x4027, 0x00},
+> +	{0x4028, 0x00},
+> +	{0x4029, 0x00},
+> +	{0x402a, 0x00},
+> +	{0x402b, 0x00},
+> +	{0x402c, 0x00},
+> +	{0x402d, 0x00},
+> +	{0x402e, 0x00},
+> +	{0x402f, 0x00},
+> +	{0x4040, 0x00},
+> +	{0x4041, 0x03},
+> +	{0x4042, 0x00},
+> +	{0x4043, 0x7A},
+> +	{0x4044, 0x00},
+> +	{0x4045, 0x7A},
+> +	{0x4046, 0x00},
+> +	{0x4047, 0x7A},
+> +	{0x4048, 0x00},
+> +	{0x4049, 0x7A},
+> +	{0x4307, 0x30},
+> +	{0x4500, 0x58},
+> +	{0x4501, 0x04},
+> +	{0x4502, 0x40},
+> +	{0x4503, 0x10},
+> +	{0x4508, 0xaa},
+> +	{0x4509, 0xaa},
+> +	{0x450a, 0x00},
+> +	{0x450b, 0x00},
+> +	{0x4600, 0x01},
+> +	{0x4601, 0x03},
+> +	{0x4700, 0xa4},
+> +	{0x4800, 0x4c},
+> +	{0x4816, 0x53},
+> +	{0x481f, 0x40},
+> +	{0x4837, 0x13},
+> +	{0x5000, 0x56},
+> +	{0x5001, 0x01},
+> +	{0x5002, 0x28},
+> +	{0x5004, 0x0c},
+> +	{0x5006, 0x0c},
+> +	{0x5007, 0xe0},
+> +	{0x5008, 0x01},
+> +	{0x5009, 0xb0},
+> +	{0x5901, 0x00},
+> +	{0x5a01, 0x00},
+> +	{0x5a03, 0x00},
+> +	{0x5a04, 0x0c},
+> +	{0x5a05, 0xe0},
+> +	{0x5a06, 0x09},
+> +	{0x5a07, 0xb0},
+> +	{0x5a08, 0x06},
+> +	{0x5e00, 0x00},
+> +	{0x3734, 0x40},
+> +	{0x5b00, 0x01},
+> +	{0x5b01, 0x10},
+> +	{0x5b02, 0x01},
+> +	{0x5b03, 0xdb},
+> +	{0x3d8c, 0x71},
+> +	{0x3d8d, 0xea},
+> +	{0x4017, 0x08},
+> +	{0x3618, 0x2a},
+> +	{0x5780, 0x3e},
+> +	{0x5781, 0x0f},
+> +	{0x5782, 0x44},
+> +	{0x5783, 0x02},
+> +	{0x5784, 0x01},
+> +	{0x5785, 0x01},
+> +	{0x5786, 0x00},
+> +	{0x5787, 0x04},
+> +	{0x5788, 0x02},
+> +	{0x5789, 0x0f},
+> +	{0x578a, 0xfd},
+> +	{0x578b, 0xf5},
+> +	{0x578c, 0xf5},
+> +	{0x578d, 0x03},
+> +	{0x578e, 0x08},
+> +	{0x578f, 0x0c},
+> +	{0x5790, 0x08},
+> +	{0x5791, 0x06},
+> +	{0x5792, 0x00},
+> +	{0x5793, 0x52},
+> +	{0x5794, 0xa3},
+> +	{0x3503, 0x00}
+> +};
+> +
+> +static const struct ov5670_reg mode_1296x972_regs[] = {
+> +	{0x3000, 0x00},
+> +	{0x3002, 0x21},
+> +	{0x3005, 0xf0},
+> +	{0x3007, 0x00},
+> +	{0x3015, 0x0f},
+> +	{0x3018, 0x32},
+> +	{0x301a, 0xf0},
+> +	{0x301b, 0xf0},
+> +	{0x301c, 0xf0},
+> +	{0x301d, 0xf0},
+> +	{0x301e, 0xf0},
+> +	{0x3030, 0x00},
+> +	{0x3031, 0x0a},
+> +	{0x303c, 0xff},
+> +	{0x303e, 0xff},
+> +	{0x3040, 0xf0},
+> +	{0x3041, 0x00},
+> +	{0x3042, 0xf0},
+> +	{0x3106, 0x11},
+> +	{0x3500, 0x00},
+> +	{0x3501, 0x7c},
+> +	{0x3502, 0x80},
+> +	{0x3503, 0x04},
+> +	{0x3504, 0x03},
+> +	{0x3505, 0x83},
+> +	{0x3508, 0x07},
+> +	{0x3509, 0x80},
+> +	{0x350e, 0x04},
+> +	{0x350f, 0x00},
+> +	{0x3510, 0x00},
+> +	{0x3511, 0x02},
+> +	{0x3512, 0x00},
+> +	{0x3601, 0xc8},
+> +	{0x3610, 0x88},
+> +	{0x3612, 0x48},
+> +	{0x3614, 0x5b},
+> +	{0x3615, 0x96},
+> +	{0x3621, 0xd0},
+> +	{0x3622, 0x00},
+> +	{0x3623, 0x00},
+> +	{0x3633, 0x13},
+> +	{0x3634, 0x13},
+> +	{0x3635, 0x13},
+> +	{0x3636, 0x13},
+> +	{0x3645, 0x13},
+> +	{0x3646, 0x82},
+> +	{0x3650, 0x00},
+> +	{0x3652, 0xff},
+> +	{0x3655, 0x20},
+> +	{0x3656, 0xff},
+> +	{0x365a, 0xff},
+> +	{0x365e, 0xff},
+> +	{0x3668, 0x00},
+> +	{0x366a, 0x07},
+> +	{0x366e, 0x08},
+> +	{0x366d, 0x00},
+> +	{0x366f, 0x80},
+> +	{0x3700, 0x28},
+> +	{0x3701, 0x10},
+> +	{0x3702, 0x3a},
+> +	{0x3703, 0x19},
+> +	{0x3704, 0x10},
+> +	{0x3705, 0x00},
+> +	{0x3706, 0x66},
+> +	{0x3707, 0x08},
+> +	{0x3708, 0x34},
+> +	{0x3709, 0x40},
+> +	{0x370a, 0x01},
+> +	{0x370b, 0x1b},
+> +	{0x3714, 0x24},
+> +	{0x371a, 0x3e},
+> +	{0x3733, 0x00},
+> +	{0x3734, 0x00},
+> +	{0x373a, 0x05},
+> +	{0x373b, 0x06},
+> +	{0x373c, 0x0a},
+> +	{0x373f, 0xa0},
+> +	{0x3755, 0x00},
+> +	{0x3758, 0x00},
+> +	{0x375b, 0x0e},
+> +	{0x3766, 0x5f},
+> +	{0x3768, 0x00},
+> +	{0x3769, 0x22},
+> +	{0x3773, 0x08},
+> +	{0x3774, 0x1f},
+> +	{0x3776, 0x06},
+> +	{0x37a0, 0x88},
+> +	{0x37a1, 0x5c},
+> +	{0x37a7, 0x88},
+> +	{0x37a8, 0x70},
+> +	{0x37aa, 0x88},
+> +	{0x37ab, 0x48},
+> +	{0x37b3, 0x66},
+> +	{0x37c2, 0x04},
+> +	{0x37c5, 0x00},
+> +	{0x37c8, 0x00},
+> +	{0x3800, 0x00},
+> +	{0x3801, 0x0c},
+> +	{0x3802, 0x00},
+> +	{0x3803, 0x04},
+> +	{0x3804, 0x0a},
+> +	{0x3805, 0x33},
+> +	{0x3806, 0x07},
+> +	{0x3807, 0xa3},
+> +	{0x3808, 0x05},
+> +	{0x3809, 0x10},
+> +	{0x380a, 0x03},
+> +	{0x380b, 0xcc},
+> +	{0x380c, 0x06},
+> +	{0x380d, 0x90},
+> +	{0x380e, 0x08},
+> +	{0x380f, 0x08},
+> +	{0x3811, 0x04},
+> +	{0x3813, 0x04},
+> +	{0x3814, 0x03},
+> +	{0x3815, 0x01},
+> +	{0x3816, 0x00},
+> +	{0x3817, 0x00},
+> +	{0x3818, 0x00},
+> +	{0x3819, 0x00},
+> +	{0x3820, 0x94},
+> +	{0x3821, 0x47},
+> +	{0x3822, 0x48},
+> +	{0x3826, 0x00},
+> +	{0x3827, 0x08},
+> +	{0x382a, 0x03},
+> +	{0x382b, 0x01},
+> +	{0x3830, 0x08},
+> +	{0x3836, 0x02},
+> +	{0x3837, 0x00},
+> +	{0x3838, 0x10},
+> +	{0x3841, 0xff},
+> +	{0x3846, 0x48},
+> +	{0x3861, 0x00},
+> +	{0x3862, 0x04},
+> +	{0x3863, 0x06},
+> +	{0x3a11, 0x01},
+> +	{0x3a12, 0x78},
+> +	{0x3b00, 0x00},
+> +	{0x3b02, 0x00},
+> +	{0x3b03, 0x00},
+> +	{0x3b04, 0x00},
+> +	{0x3b05, 0x00},
+> +	{0x3c00, 0x89},
+> +	{0x3c01, 0xab},
+> +	{0x3c02, 0x01},
+> +	{0x3c03, 0x00},
+> +	{0x3c04, 0x00},
+> +	{0x3c05, 0x03},
+> +	{0x3c06, 0x00},
+> +	{0x3c07, 0x05},
+> +	{0x3c0c, 0x00},
+> +	{0x3c0d, 0x00},
+> +	{0x3c0e, 0x00},
+> +	{0x3c0f, 0x00},
+> +	{0x3c40, 0x00},
+> +	{0x3c41, 0xa3},
+> +	{0x3c43, 0x7d},
+> +	{0x3c45, 0xd7},
+> +	{0x3c47, 0xfc},
+> +	{0x3c50, 0x05},
+> +	{0x3c52, 0xaa},
+> +	{0x3c54, 0x71},
+> +	{0x3c56, 0x80},
+> +	{0x3d85, 0x17},
+> +	{0x3f03, 0x00},
+> +	{0x3f0a, 0x00},
+> +	{0x3f0b, 0x00},
+> +	{0x4001, 0x60},
+> +	{0x4009, 0x05},
+> +	{0x4020, 0x00},
+> +	{0x4021, 0x00},
+> +	{0x4022, 0x00},
+> +	{0x4023, 0x00},
+> +	{0x4024, 0x00},
+> +	{0x4025, 0x00},
+> +	{0x4026, 0x00},
+> +	{0x4027, 0x00},
+> +	{0x4028, 0x00},
+> +	{0x4029, 0x00},
+> +	{0x402a, 0x00},
+> +	{0x402b, 0x00},
+> +	{0x402c, 0x00},
+> +	{0x402d, 0x00},
+> +	{0x402e, 0x00},
+> +	{0x402f, 0x00},
+> +	{0x4040, 0x00},
+> +	{0x4041, 0x03},
+> +	{0x4042, 0x00},
+> +	{0x4043, 0x7A},
+> +	{0x4044, 0x00},
+> +	{0x4045, 0x7A},
+> +	{0x4046, 0x00},
+> +	{0x4047, 0x7A},
+> +	{0x4048, 0x00},
+> +	{0x4049, 0x7A},
+> +	{0x4307, 0x30},
+> +	{0x4500, 0x58},
+> +	{0x4501, 0x04},
+> +	{0x4502, 0x48},
+> +	{0x4503, 0x10},
+> +	{0x4508, 0x55},
+> +	{0x4509, 0x55},
+> +	{0x450a, 0x00},
+> +	{0x450b, 0x00},
+> +	{0x4600, 0x00},
+> +	{0x4601, 0x81},
+> +	{0x4700, 0xa4},
+> +	{0x4800, 0x4c},
+> +	{0x4816, 0x53},
+> +	{0x481f, 0x40},
+> +	{0x4837, 0x13},
+> +	{0x5000, 0x56},
+> +	{0x5001, 0x01},
+> +	{0x5002, 0x28},
+> +	{0x5004, 0x0c},
+> +	{0x5006, 0x0c},
+> +	{0x5007, 0xe0},
+> +	{0x5008, 0x01},
+> +	{0x5009, 0xb0},
+> +	{0x5901, 0x00},
+> +	{0x5a01, 0x00},
+> +	{0x5a03, 0x00},
+> +	{0x5a04, 0x0c},
+> +	{0x5a05, 0xe0},
+> +	{0x5a06, 0x09},
+> +	{0x5a07, 0xb0},
+> +	{0x5a08, 0x06},
+> +	{0x5e00, 0x00},
+> +	{0x3734, 0x40},
+> +	{0x5b00, 0x01},
+> +	{0x5b01, 0x10},
+> +	{0x5b02, 0x01},
+> +	{0x5b03, 0xdb},
+> +	{0x3d8c, 0x71},
+> +	{0x3d8d, 0xea},
+> +	{0x4017, 0x10},
+> +	{0x3618, 0x2a},
+> +	{0x5780, 0x3e},
+> +	{0x5781, 0x0f},
+> +	{0x5782, 0x44},
+> +	{0x5783, 0x02},
+> +	{0x5784, 0x01},
+> +	{0x5785, 0x01},
+> +	{0x5786, 0x00},
+> +	{0x5787, 0x04},
+> +	{0x5788, 0x02},
+> +	{0x5789, 0x0f},
+> +	{0x578a, 0xfd},
+> +	{0x578b, 0xf5},
+> +	{0x578c, 0xf5},
+> +	{0x578d, 0x03},
+> +	{0x578e, 0x08},
+> +	{0x578f, 0x0c},
+> +	{0x5790, 0x08},
+> +	{0x5791, 0x04},
+> +	{0x5792, 0x00},
+> +	{0x5793, 0x52},
+> +	{0x5794, 0xa3},
+> +	{0x3503, 0x00}
+> +};
+> +
+> +static const struct ov5670_reg mode_648x486_regs[] = {
+> +	{0x3000, 0x00},
+> +	{0x3002, 0x21},
+> +	{0x3005, 0xf0},
+> +	{0x3007, 0x00},
+> +	{0x3015, 0x0f},
+> +	{0x3018, 0x32},
+> +	{0x301a, 0xf0},
+> +	{0x301b, 0xf0},
+> +	{0x301c, 0xf0},
+> +	{0x301d, 0xf0},
+> +	{0x301e, 0xf0},
+> +	{0x3030, 0x00},
+> +	{0x3031, 0x0a},
+> +	{0x303c, 0xff},
+> +	{0x303e, 0xff},
+> +	{0x3040, 0xf0},
+> +	{0x3041, 0x00},
+> +	{0x3042, 0xf0},
+> +	{0x3106, 0x11},
+> +	{0x3500, 0x00},
+> +	{0x3501, 0x7c},
+> +	{0x3502, 0x80},
+> +	{0x3503, 0x04},
+> +	{0x3504, 0x03},
+> +	{0x3505, 0x83},
+> +	{0x3508, 0x04},
+> +	{0x3509, 0x00},
+> +	{0x350e, 0x04},
+> +	{0x350f, 0x00},
+> +	{0x3510, 0x00},
+> +	{0x3511, 0x02},
+> +	{0x3512, 0x00},
+> +	{0x3601, 0xc8},
+> +	{0x3610, 0x88},
+> +	{0x3612, 0x48},
+> +	{0x3614, 0x5b},
+> +	{0x3615, 0x96},
+> +	{0x3621, 0xd0},
+> +	{0x3622, 0x00},
+> +	{0x3623, 0x04},
+> +	{0x3633, 0x13},
+> +	{0x3634, 0x13},
+> +	{0x3635, 0x13},
+> +	{0x3636, 0x13},
+> +	{0x3645, 0x13},
+> +	{0x3646, 0x82},
+> +	{0x3650, 0x00},
+> +	{0x3652, 0xff},
+> +	{0x3655, 0x20},
+> +	{0x3656, 0xff},
+> +	{0x365a, 0xff},
+> +	{0x365e, 0xff},
+> +	{0x3668, 0x00},
+> +	{0x366a, 0x07},
+> +	{0x366e, 0x08},
+> +	{0x366d, 0x00},
+> +	{0x366f, 0x80},
+> +	{0x3700, 0x28},
+> +	{0x3701, 0x10},
+> +	{0x3702, 0x3a},
+> +	{0x3703, 0x19},
+> +	{0x3704, 0x10},
+> +	{0x3705, 0x00},
+> +	{0x3706, 0x66},
+> +	{0x3707, 0x08},
+> +	{0x3708, 0x34},
+> +	{0x3709, 0x40},
+> +	{0x370a, 0x01},
+> +	{0x370b, 0x1b},
+> +	{0x3714, 0x24},
+> +	{0x371a, 0x3e},
+> +	{0x3733, 0x00},
+> +	{0x3734, 0x00},
+> +	{0x373a, 0x05},
+> +	{0x373b, 0x06},
+> +	{0x373c, 0x0a},
+> +	{0x373f, 0xa0},
+> +	{0x3755, 0x00},
+> +	{0x3758, 0x00},
+> +	{0x375b, 0x0e},
+> +	{0x3766, 0x5f},
+> +	{0x3768, 0x00},
+> +	{0x3769, 0x22},
+> +	{0x3773, 0x08},
+> +	{0x3774, 0x1f},
+> +	{0x3776, 0x06},
+> +	{0x37a0, 0x88},
+> +	{0x37a1, 0x5c},
+> +	{0x37a7, 0x88},
+> +	{0x37a8, 0x70},
+> +	{0x37aa, 0x88},
+> +	{0x37ab, 0x48},
+> +	{0x37b3, 0x66},
+> +	{0x37c2, 0x04},
+> +	{0x37c5, 0x00},
+> +	{0x37c8, 0x00},
+> +	{0x3800, 0x00},
+> +	{0x3801, 0x0c},
+> +	{0x3802, 0x00},
+> +	{0x3803, 0x04},
+> +	{0x3804, 0x0a},
+> +	{0x3805, 0x33},
+> +	{0x3806, 0x07},
+> +	{0x3807, 0xa3},
+> +	{0x3808, 0x02},
+> +	{0x3809, 0x88},
+> +	{0x380a, 0x01},
+> +	{0x380b, 0xe6},
+> +	{0x380c, 0x06},
+> +	{0x380d, 0x90},
+> +	{0x380e, 0x08},
+> +	{0x380f, 0x08},
+> +	{0x3811, 0x04},
+> +	{0x3813, 0x02},
+> +	{0x3814, 0x07},
+> +	{0x3815, 0x01},
+> +	{0x3816, 0x00},
+> +	{0x3817, 0x00},
+> +	{0x3818, 0x00},
+> +	{0x3819, 0x00},
+> +	{0x3820, 0x94},
+> +	{0x3821, 0xc6},
+> +	{0x3822, 0x48},
+> +	{0x3826, 0x00},
+> +	{0x3827, 0x08},
+> +	{0x382a, 0x07},
+> +	{0x382b, 0x01},
+> +	{0x3830, 0x08},
+> +	{0x3836, 0x02},
+> +	{0x3837, 0x00},
+> +	{0x3838, 0x10},
+> +	{0x3841, 0xff},
+> +	{0x3846, 0x48},
+> +	{0x3861, 0x00},
+> +	{0x3862, 0x04},
+> +	{0x3863, 0x06},
+> +	{0x3a11, 0x01},
+> +	{0x3a12, 0x78},
+> +	{0x3b00, 0x00},
+> +	{0x3b02, 0x00},
+> +	{0x3b03, 0x00},
+> +	{0x3b04, 0x00},
+> +	{0x3b05, 0x00},
+> +	{0x3c00, 0x89},
+> +	{0x3c01, 0xab},
+> +	{0x3c02, 0x01},
+> +	{0x3c03, 0x00},
+> +	{0x3c04, 0x00},
+> +	{0x3c05, 0x03},
+> +	{0x3c06, 0x00},
+> +	{0x3c07, 0x05},
+> +	{0x3c0c, 0x00},
+> +	{0x3c0d, 0x00},
+> +	{0x3c0e, 0x00},
+> +	{0x3c0f, 0x00},
+> +	{0x3c40, 0x00},
+> +	{0x3c41, 0xa3},
+> +	{0x3c43, 0x7d},
+> +	{0x3c45, 0xd7},
+> +	{0x3c47, 0xfc},
+> +	{0x3c50, 0x05},
+> +	{0x3c52, 0xaa},
+> +	{0x3c54, 0x71},
+> +	{0x3c56, 0x80},
+> +	{0x3d85, 0x17},
+> +	{0x3f03, 0x00},
+> +	{0x3f0a, 0x00},
+> +	{0x3f0b, 0x00},
+> +	{0x4001, 0x60},
+> +	{0x4009, 0x05},
+> +	{0x4020, 0x00},
+> +	{0x4021, 0x00},
+> +	{0x4022, 0x00},
+> +	{0x4023, 0x00},
+> +	{0x4024, 0x00},
+> +	{0x4025, 0x00},
+> +	{0x4026, 0x00},
+> +	{0x4027, 0x00},
+> +	{0x4028, 0x00},
+> +	{0x4029, 0x00},
+> +	{0x402a, 0x00},
+> +	{0x402b, 0x00},
+> +	{0x402c, 0x00},
+> +	{0x402d, 0x00},
+> +	{0x402e, 0x00},
+> +	{0x402f, 0x00},
+> +	{0x4040, 0x00},
+> +	{0x4041, 0x03},
+> +	{0x4042, 0x00},
+> +	{0x4043, 0x7A},
+> +	{0x4044, 0x00},
+> +	{0x4045, 0x7A},
+> +	{0x4046, 0x00},
+> +	{0x4047, 0x7A},
+> +	{0x4048, 0x00},
+> +	{0x4049, 0x7A},
+> +	{0x4307, 0x30},
+> +	{0x4500, 0x58},
+> +	{0x4501, 0x04},
+> +	{0x4502, 0x40},
+> +	{0x4503, 0x10},
+> +	{0x4508, 0x55},
+> +	{0x4509, 0x55},
+> +	{0x450a, 0x02},
+> +	{0x450b, 0x00},
+> +	{0x4600, 0x00},
+> +	{0x4601, 0x40},
+> +	{0x4700, 0xa4},
+> +	{0x4800, 0x4c},
+> +	{0x4816, 0x53},
+> +	{0x481f, 0x40},
+> +	{0x4837, 0x13},
+> +	{0x5000, 0x56},
+> +	{0x5001, 0x01},
+> +	{0x5002, 0x28},
+> +	{0x5004, 0x0c},
+> +	{0x5006, 0x0c},
+> +	{0x5007, 0xe0},
+> +	{0x5008, 0x01},
+> +	{0x5009, 0xb0},
+> +	{0x5901, 0x00},
+> +	{0x5a01, 0x00},
+> +	{0x5a03, 0x00},
+> +	{0x5a04, 0x0c},
+> +	{0x5a05, 0xe0},
+> +	{0x5a06, 0x09},
+> +	{0x5a07, 0xb0},
+> +	{0x5a08, 0x06},
+> +	{0x5e00, 0x00},
+> +	{0x3734, 0x40},
+> +	{0x5b00, 0x01},
+> +	{0x5b01, 0x10},
+> +	{0x5b02, 0x01},
+> +	{0x5b03, 0xdb},
+> +	{0x3d8c, 0x71},
+> +	{0x3d8d, 0xea},
+> +	{0x4017, 0x10},
+> +	{0x3618, 0x2a},
+> +	{0x5780, 0x3e},
+> +	{0x5781, 0x0f},
+> +	{0x5782, 0x44},
+> +	{0x5783, 0x02},
+> +	{0x5784, 0x01},
+> +	{0x5785, 0x01},
+> +	{0x5786, 0x00},
+> +	{0x5787, 0x04},
+> +	{0x5788, 0x02},
+> +	{0x5789, 0x0f},
+> +	{0x578a, 0xfd},
+> +	{0x578b, 0xf5},
+> +	{0x578c, 0xf5},
+> +	{0x578d, 0x03},
+> +	{0x578e, 0x08},
+> +	{0x578f, 0x0c},
+> +	{0x5790, 0x08},
+> +	{0x5791, 0x06},
+> +	{0x5792, 0x00},
+> +	{0x5793, 0x52},
+> +	{0x5794, 0xa3},
+> +	{0x3503, 0x00}
+> +};
+> +
+> +static const struct ov5670_reg mode_2560x1440_regs[] = {
+> +	{0x3000, 0x00},
+> +	{0x3002, 0x21},
+> +	{0x3005, 0xf0},
+> +	{0x3007, 0x00},
+> +	{0x3015, 0x0f},
+> +	{0x3018, 0x32},
+> +	{0x301a, 0xf0},
+> +	{0x301b, 0xf0},
+> +	{0x301c, 0xf0},
+> +	{0x301d, 0xf0},
+> +	{0x301e, 0xf0},
+> +	{0x3030, 0x00},
+> +	{0x3031, 0x0a},
+> +	{0x303c, 0xff},
+> +	{0x303e, 0xff},
+> +	{0x3040, 0xf0},
+> +	{0x3041, 0x00},
+> +	{0x3042, 0xf0},
+> +	{0x3106, 0x11},
+> +	{0x3500, 0x00},
+> +	{0x3501, 0x7c},
+> +	{0x3502, 0x80},
+> +	{0x3503, 0x04},
+> +	{0x3504, 0x03},
+> +	{0x3505, 0x83},
+> +	{0x3508, 0x04},
+> +	{0x3509, 0x00},
+> +	{0x350e, 0x04},
+> +	{0x350f, 0x00},
+> +	{0x3510, 0x00},
+> +	{0x3511, 0x02},
+> +	{0x3512, 0x00},
+> +	{0x3601, 0xc8},
+> +	{0x3610, 0x88},
+> +	{0x3612, 0x48},
+> +	{0x3614, 0x5b},
+> +	{0x3615, 0x96},
+> +	{0x3621, 0xd0},
+> +	{0x3622, 0x00},
+> +	{0x3623, 0x00},
+> +	{0x3633, 0x13},
+> +	{0x3634, 0x13},
+> +	{0x3635, 0x13},
+> +	{0x3636, 0x13},
+> +	{0x3645, 0x13},
+> +	{0x3646, 0x82},
+> +	{0x3650, 0x00},
+> +	{0x3652, 0xff},
+> +	{0x3655, 0x20},
+> +	{0x3656, 0xff},
+> +	{0x365a, 0xff},
+> +	{0x365e, 0xff},
+> +	{0x3668, 0x00},
+> +	{0x366a, 0x07},
+> +	{0x366e, 0x10},
+> +	{0x366d, 0x00},
+> +	{0x366f, 0x80},
+> +	{0x3700, 0x28},
+> +	{0x3701, 0x10},
+> +	{0x3702, 0x3a},
+> +	{0x3703, 0x19},
+> +	{0x3704, 0x10},
+> +	{0x3705, 0x00},
+> +	{0x3706, 0x66},
+> +	{0x3707, 0x08},
+> +	{0x3708, 0x34},
+> +	{0x3709, 0x40},
+> +	{0x370a, 0x01},
+> +	{0x370b, 0x1b},
+> +	{0x3714, 0x24},
+> +	{0x371a, 0x3e},
+> +	{0x3733, 0x00},
+> +	{0x3734, 0x00},
+> +	{0x373a, 0x05},
+> +	{0x373b, 0x06},
+> +	{0x373c, 0x0a},
+> +	{0x373f, 0xa0},
+> +	{0x3755, 0x00},
+> +	{0x3758, 0x00},
+> +	{0x375b, 0x0e},
+> +	{0x3766, 0x5f},
+> +	{0x3768, 0x00},
+> +	{0x3769, 0x22},
+> +	{0x3773, 0x08},
+> +	{0x3774, 0x1f},
+> +	{0x3776, 0x06},
+> +	{0x37a0, 0x88},
+> +	{0x37a1, 0x5c},
+> +	{0x37a7, 0x88},
+> +	{0x37a8, 0x70},
+> +	{0x37aa, 0x88},
+> +	{0x37ab, 0x48},
+> +	{0x37b3, 0x66},
+> +	{0x37c2, 0x04},
+> +	{0x37c5, 0x00},
+> +	{0x37c8, 0x00},
+> +	{0x3800, 0x00},
+> +	{0x3801, 0x0c},
+> +	{0x3802, 0x00},
+> +	{0x3803, 0x04},
+> +	{0x3804, 0x0a},
+> +	{0x3805, 0x33},
+> +	{0x3806, 0x07},
+> +	{0x3807, 0xa3},
+> +	{0x3808, 0x0a},
+> +	{0x3809, 0x00},
+> +	{0x380a, 0x05},
+> +	{0x380b, 0xa0},
+> +	{0x380c, 0x06},
+> +	{0x380d, 0x90},
+> +	{0x380e, 0x08},
+> +	{0x380f, 0x08},
+> +	{0x3811, 0x04},
+> +	{0x3813, 0x02},
+> +	{0x3814, 0x01},
+> +	{0x3815, 0x01},
+> +	{0x3816, 0x00},
+> +	{0x3817, 0x00},
+> +	{0x3818, 0x00},
+> +	{0x3819, 0x00},
+> +	{0x3820, 0x84},
+> +	{0x3821, 0x46},
+> +	{0x3822, 0x48},
+> +	{0x3826, 0x00},
+> +	{0x3827, 0x08},
+> +	{0x382a, 0x01},
+> +	{0x382b, 0x01},
+> +	{0x3830, 0x08},
+> +	{0x3836, 0x02},
+> +	{0x3837, 0x00},
+> +	{0x3838, 0x10},
+> +	{0x3841, 0xff},
+> +	{0x3846, 0x48},
+> +	{0x3861, 0x00},
+> +	{0x3862, 0x04},
+> +	{0x3863, 0x06},
+> +	{0x3a11, 0x01},
+> +	{0x3a12, 0x78},
+> +	{0x3b00, 0x00},
+> +	{0x3b02, 0x00},
+> +	{0x3b03, 0x00},
+> +	{0x3b04, 0x00},
+> +	{0x3b05, 0x00},
+> +	{0x3c00, 0x89},
+> +	{0x3c01, 0xab},
+> +	{0x3c02, 0x01},
+> +	{0x3c03, 0x00},
+> +	{0x3c04, 0x00},
+> +	{0x3c05, 0x03},
+> +	{0x3c06, 0x00},
+> +	{0x3c07, 0x05},
+> +	{0x3c0c, 0x00},
+> +	{0x3c0d, 0x00},
+> +	{0x3c0e, 0x00},
+> +	{0x3c0f, 0x00},
+> +	{0x3c40, 0x00},
+> +	{0x3c41, 0xa3},
+> +	{0x3c43, 0x7d},
+> +	{0x3c45, 0xd7},
+> +	{0x3c47, 0xfc},
+> +	{0x3c50, 0x05},
+> +	{0x3c52, 0xaa},
+> +	{0x3c54, 0x71},
+> +	{0x3c56, 0x80},
+> +	{0x3d85, 0x17},
+> +	{0x3f03, 0x00},
+> +	{0x3f0a, 0x00},
+> +	{0x3f0b, 0x00},
+> +	{0x4001, 0x60},
+> +	{0x4009, 0x0d},
+> +	{0x4020, 0x00},
+> +	{0x4021, 0x00},
+> +	{0x4022, 0x00},
+> +	{0x4023, 0x00},
+> +	{0x4024, 0x00},
+> +	{0x4025, 0x00},
+> +	{0x4026, 0x00},
+> +	{0x4027, 0x00},
+> +	{0x4028, 0x00},
+> +	{0x4029, 0x00},
+> +	{0x402a, 0x00},
+> +	{0x402b, 0x00},
+> +	{0x402c, 0x00},
+> +	{0x402d, 0x00},
+> +	{0x402e, 0x00},
+> +	{0x402f, 0x00},
+> +	{0x4040, 0x00},
+> +	{0x4041, 0x03},
+> +	{0x4042, 0x00},
+> +	{0x4043, 0x7A},
+> +	{0x4044, 0x00},
+> +	{0x4045, 0x7A},
+> +	{0x4046, 0x00},
+> +	{0x4047, 0x7A},
+> +	{0x4048, 0x00},
+> +	{0x4049, 0x7A},
+> +	{0x4307, 0x30},
+> +	{0x4500, 0x58},
+> +	{0x4501, 0x04},
+> +	{0x4502, 0x40},
+> +	{0x4503, 0x10},
+> +	{0x4508, 0xaa},
+> +	{0x4509, 0xaa},
+> +	{0x450a, 0x00},
+> +	{0x450b, 0x00},
+> +	{0x4600, 0x01},
+> +	{0x4601, 0x00},
+> +	{0x4700, 0xa4},
+> +	{0x4800, 0x4c},
+> +	{0x4816, 0x53},
+> +	{0x481f, 0x40},
+> +	{0x4837, 0x13},
+> +	{0x5000, 0x56},
+> +	{0x5001, 0x01},
+> +	{0x5002, 0x28},
+> +	{0x5004, 0x0c},
+> +	{0x5006, 0x0c},
+> +	{0x5007, 0xe0},
+> +	{0x5008, 0x01},
+> +	{0x5009, 0xb0},
+> +	{0x5901, 0x00},
+> +	{0x5a01, 0x00},
+> +	{0x5a03, 0x00},
+> +	{0x5a04, 0x0c},
+> +	{0x5a05, 0xe0},
+> +	{0x5a06, 0x09},
+> +	{0x5a07, 0xb0},
+> +	{0x5a08, 0x06},
+> +	{0x5e00, 0x00},
+> +	{0x3734, 0x40},
+> +	{0x5b00, 0x01},
+> +	{0x5b01, 0x10},
+> +	{0x5b02, 0x01},
+> +	{0x5b03, 0xdb},
+> +	{0x3d8c, 0x71},
+> +	{0x3d8d, 0xea},
+> +	{0x4017, 0x08},
+> +	{0x3618, 0x2a},
+> +	{0x5780, 0x3e},
+> +	{0x5781, 0x0f},
+> +	{0x5782, 0x44},
+> +	{0x5783, 0x02},
+> +	{0x5784, 0x01},
+> +	{0x5785, 0x01},
+> +	{0x5786, 0x00},
+> +	{0x5787, 0x04},
+> +	{0x5788, 0x02},
+> +	{0x5789, 0x0f},
+> +	{0x578a, 0xfd},
+> +	{0x578b, 0xf5},
+> +	{0x578c, 0xf5},
+> +	{0x578d, 0x03},
+> +	{0x578e, 0x08},
+> +	{0x578f, 0x0c},
+> +	{0x5790, 0x08},
+> +	{0x5791, 0x06},
+> +	{0x5792, 0x00},
+> +	{0x5793, 0x52},
+> +	{0x5794, 0xa3}
+> +};
+> +
+> +static const struct ov5670_reg mode_1280x720_regs[] = {
+> +	{0x3000, 0x00},
+> +	{0x3002, 0x21},
+> +	{0x3005, 0xf0},
+> +	{0x3007, 0x00},
+> +	{0x3015, 0x0f},
+> +	{0x3018, 0x32},
+> +	{0x301a, 0xf0},
+> +	{0x301b, 0xf0},
+> +	{0x301c, 0xf0},
+> +	{0x301d, 0xf0},
+> +	{0x301e, 0xf0},
+> +	{0x3030, 0x00},
+> +	{0x3031, 0x0a},
+> +	{0x303c, 0xff},
+> +	{0x303e, 0xff},
+> +	{0x3040, 0xf0},
+> +	{0x3041, 0x00},
+> +	{0x3042, 0xf0},
+> +	{0x3106, 0x11},
+> +	{0x3500, 0x00},
+> +	{0x3501, 0x7c},
+> +	{0x3502, 0x80},
+> +	{0x3503, 0x04},
+> +	{0x3504, 0x03},
+> +	{0x3505, 0x83},
+> +	{0x3508, 0x04},
+> +	{0x3509, 0x00},
+> +	{0x350e, 0x04},
+> +	{0x350f, 0x00},
+> +	{0x3510, 0x00},
+> +	{0x3511, 0x02},
+> +	{0x3512, 0x00},
+> +	{0x3601, 0xc8},
+> +	{0x3610, 0x88},
+> +	{0x3612, 0x48},
+> +	{0x3614, 0x5b},
+> +	{0x3615, 0x96},
+> +	{0x3621, 0xd0},
+> +	{0x3622, 0x00},
+> +	{0x3623, 0x00},
+> +	{0x3633, 0x13},
+> +	{0x3634, 0x13},
+> +	{0x3635, 0x13},
+> +	{0x3636, 0x13},
+> +	{0x3645, 0x13},
+> +	{0x3646, 0x82},
+> +	{0x3650, 0x00},
+> +	{0x3652, 0xff},
+> +	{0x3655, 0x20},
+> +	{0x3656, 0xff},
+> +	{0x365a, 0xff},
+> +	{0x365e, 0xff},
+> +	{0x3668, 0x00},
+> +	{0x366a, 0x07},
+> +	{0x366e, 0x08},
+> +	{0x366d, 0x00},
+> +	{0x366f, 0x80},
+> +	{0x3700, 0x28},
+> +	{0x3701, 0x10},
+> +	{0x3702, 0x3a},
+> +	{0x3703, 0x19},
+> +	{0x3704, 0x10},
+> +	{0x3705, 0x00},
+> +	{0x3706, 0x66},
+> +	{0x3707, 0x08},
+> +	{0x3708, 0x34},
+> +	{0x3709, 0x40},
+> +	{0x370a, 0x01},
+> +	{0x370b, 0x1b},
+> +	{0x3714, 0x24},
+> +	{0x371a, 0x3e},
+> +	{0x3733, 0x00},
+> +	{0x3734, 0x00},
+> +	{0x373a, 0x05},
+> +	{0x373b, 0x06},
+> +	{0x373c, 0x0a},
+> +	{0x373f, 0xa0},
+> +	{0x3755, 0x00},
+> +	{0x3758, 0x00},
+> +	{0x375b, 0x0e},
+> +	{0x3766, 0x5f},
+> +	{0x3768, 0x00},
+> +	{0x3769, 0x22},
+> +	{0x3773, 0x08},
+> +	{0x3774, 0x1f},
+> +	{0x3776, 0x06},
+> +	{0x37a0, 0x88},
+> +	{0x37a1, 0x5c},
+> +	{0x37a7, 0x88},
+> +	{0x37a8, 0x70},
+> +	{0x37aa, 0x88},
+> +	{0x37ab, 0x48},
+> +	{0x37b3, 0x66},
+> +	{0x37c2, 0x04},
+> +	{0x37c5, 0x00},
+> +	{0x37c8, 0x00},
+> +	{0x3800, 0x00},
+> +	{0x3801, 0x0c},
+> +	{0x3802, 0x00},
+> +	{0x3803, 0x04},
+> +	{0x3804, 0x0a},
+> +	{0x3805, 0x33},
+> +	{0x3806, 0x07},
+> +	{0x3807, 0xa3},
+> +	{0x3808, 0x05},
+> +	{0x3809, 0x00},
+> +	{0x380a, 0x02},
+> +	{0x380b, 0xd0},
+> +	{0x380c, 0x06},
+> +	{0x380d, 0x90},
+> +	{0x380e, 0x08},
+> +	{0x380f, 0x08},
+> +	{0x3811, 0x04},
+> +	{0x3813, 0x02},
+> +	{0x3814, 0x03},
+> +	{0x3815, 0x01},
+> +	{0x3816, 0x00},
+> +	{0x3817, 0x00},
+> +	{0x3818, 0x00},
+> +	{0x3819, 0x00},
+> +	{0x3820, 0x94},
+> +	{0x3821, 0x47},
+> +	{0x3822, 0x48},
+> +	{0x3826, 0x00},
+> +	{0x3827, 0x08},
+> +	{0x382a, 0x03},
+> +	{0x382b, 0x01},
+> +	{0x3830, 0x08},
+> +	{0x3836, 0x02},
+> +	{0x3837, 0x00},
+> +	{0x3838, 0x10},
+> +	{0x3841, 0xff},
+> +	{0x3846, 0x48},
+> +	{0x3861, 0x00},
+> +	{0x3862, 0x04},
+> +	{0x3863, 0x06},
+> +	{0x3a11, 0x01},
+> +	{0x3a12, 0x78},
+> +	{0x3b00, 0x00},
+> +	{0x3b02, 0x00},
+> +	{0x3b03, 0x00},
+> +	{0x3b04, 0x00},
+> +	{0x3b05, 0x00},
+> +	{0x3c00, 0x89},
+> +	{0x3c01, 0xab},
+> +	{0x3c02, 0x01},
+> +	{0x3c03, 0x00},
+> +	{0x3c04, 0x00},
+> +	{0x3c05, 0x03},
+> +	{0x3c06, 0x00},
+> +	{0x3c07, 0x05},
+> +	{0x3c0c, 0x00},
+> +	{0x3c0d, 0x00},
+> +	{0x3c0e, 0x00},
+> +	{0x3c0f, 0x00},
+> +	{0x3c40, 0x00},
+> +	{0x3c41, 0xa3},
+> +	{0x3c43, 0x7d},
+> +	{0x3c45, 0xd7},
+> +	{0x3c47, 0xfc},
+> +	{0x3c50, 0x05},
+> +	{0x3c52, 0xaa},
+> +	{0x3c54, 0x71},
+> +	{0x3c56, 0x80},
+> +	{0x3d85, 0x17},
+> +	{0x3f03, 0x00},
+> +	{0x3f0a, 0x00},
+> +	{0x3f0b, 0x00},
+> +	{0x4001, 0x60},
+> +	{0x4009, 0x05},
+> +	{0x4020, 0x00},
+> +	{0x4021, 0x00},
+> +	{0x4022, 0x00},
+> +	{0x4023, 0x00},
+> +	{0x4024, 0x00},
+> +	{0x4025, 0x00},
+> +	{0x4026, 0x00},
+> +	{0x4027, 0x00},
+> +	{0x4028, 0x00},
+> +	{0x4029, 0x00},
+> +	{0x402a, 0x00},
+> +	{0x402b, 0x00},
+> +	{0x402c, 0x00},
+> +	{0x402d, 0x00},
+> +	{0x402e, 0x00},
+> +	{0x402f, 0x00},
+> +	{0x4040, 0x00},
+> +	{0x4041, 0x03},
+> +	{0x4042, 0x00},
+> +	{0x4043, 0x7A},
+> +	{0x4044, 0x00},
+> +	{0x4045, 0x7A},
+> +	{0x4046, 0x00},
+> +	{0x4047, 0x7A},
+> +	{0x4048, 0x00},
+> +	{0x4049, 0x7A},
+> +	{0x4307, 0x30},
+> +	{0x4500, 0x58},
+> +	{0x4501, 0x04},
+> +	{0x4502, 0x48},
+> +	{0x4503, 0x10},
+> +	{0x4508, 0x55},
+> +	{0x4509, 0x55},
+> +	{0x450a, 0x00},
+> +	{0x450b, 0x00},
+> +	{0x4600, 0x00},
+> +	{0x4601, 0x80},
+> +	{0x4700, 0xa4},
+> +	{0x4800, 0x4c},
+> +	{0x4816, 0x53},
+> +	{0x481f, 0x40},
+> +	{0x4837, 0x13},
+> +	{0x5000, 0x56},
+> +	{0x5001, 0x01},
+> +	{0x5002, 0x28},
+> +	{0x5004, 0x0c},
+> +	{0x5006, 0x0c},
+> +	{0x5007, 0xe0},
+> +	{0x5008, 0x01},
+> +	{0x5009, 0xb0},
+> +	{0x5901, 0x00},
+> +	{0x5a01, 0x00},
+> +	{0x5a03, 0x00},
+> +	{0x5a04, 0x0c},
+> +	{0x5a05, 0xe0},
+> +	{0x5a06, 0x09},
+> +	{0x5a07, 0xb0},
+> +	{0x5a08, 0x06},
+> +	{0x5e00, 0x00},
+> +	{0x3734, 0x40},
+> +	{0x5b00, 0x01},
+> +	{0x5b01, 0x10},
+> +	{0x5b02, 0x01},
+> +	{0x5b03, 0xdb},
+> +	{0x3d8c, 0x71},
+> +	{0x3d8d, 0xea},
+> +	{0x4017, 0x10},
+> +	{0x3618, 0x2a},
+> +	{0x5780, 0x3e},
+> +	{0x5781, 0x0f},
+> +	{0x5782, 0x44},
+> +	{0x5783, 0x02},
+> +	{0x5784, 0x01},
+> +	{0x5785, 0x01},
+> +	{0x5786, 0x00},
+> +	{0x5787, 0x04},
+> +	{0x5788, 0x02},
+> +	{0x5789, 0x0f},
+> +	{0x578a, 0xfd},
+> +	{0x578b, 0xf5},
+> +	{0x578c, 0xf5},
+> +	{0x578d, 0x03},
+> +	{0x578e, 0x08},
+> +	{0x578f, 0x0c},
+> +	{0x5790, 0x08},
+> +	{0x5791, 0x06},
+> +	{0x5792, 0x00},
+> +	{0x5793, 0x52},
+> +	{0x5794, 0xa3},
+> +	{0x3503, 0x00}
+> +};
+> +
+> +static const struct ov5670_reg mode_640x360_regs[] = {
+> +	{0x3000, 0x00},
+> +	{0x3002, 0x21},
+> +	{0x3005, 0xf0},
+> +	{0x3007, 0x00},
+> +	{0x3015, 0x0f},
+> +	{0x3018, 0x32},
+> +	{0x301a, 0xf0},
+> +	{0x301b, 0xf0},
+> +	{0x301c, 0xf0},
+> +	{0x301d, 0xf0},
+> +	{0x301e, 0xf0},
+> +	{0x3030, 0x00},
+> +	{0x3031, 0x0a},
+> +	{0x303c, 0xff},
+> +	{0x303e, 0xff},
+> +	{0x3040, 0xf0},
+> +	{0x3041, 0x00},
+> +	{0x3042, 0xf0},
+> +	{0x3106, 0x11},
+> +	{0x3500, 0x00},
+> +	{0x3501, 0x7c},
+> +	{0x3502, 0x80},
+> +	{0x3503, 0x04},
+> +	{0x3504, 0x03},
+> +	{0x3505, 0x83},
+> +	{0x3508, 0x04},
+> +	{0x3509, 0x00},
+> +	{0x350e, 0x04},
+> +	{0x350f, 0x00},
+> +	{0x3510, 0x00},
+> +	{0x3511, 0x02},
+> +	{0x3512, 0x00},
+> +	{0x3601, 0xc8},
+> +	{0x3610, 0x88},
+> +	{0x3612, 0x48},
+> +	{0x3614, 0x5b},
+> +	{0x3615, 0x96},
+> +	{0x3621, 0xd0},
+> +	{0x3622, 0x00},
+> +	{0x3623, 0x04},
+> +	{0x3633, 0x13},
+> +	{0x3634, 0x13},
+> +	{0x3635, 0x13},
+> +	{0x3636, 0x13},
+> +	{0x3645, 0x13},
+> +	{0x3646, 0x82},
+> +	{0x3650, 0x00},
+> +	{0x3652, 0xff},
+> +	{0x3655, 0x20},
+> +	{0x3656, 0xff},
+> +	{0x365a, 0xff},
+> +	{0x365e, 0xff},
+> +	{0x3668, 0x00},
+> +	{0x366a, 0x07},
+> +	{0x366e, 0x08},
+> +	{0x366d, 0x00},
+> +	{0x366f, 0x80},
+> +	{0x3700, 0x28},
+> +	{0x3701, 0x10},
+> +	{0x3702, 0x3a},
+> +	{0x3703, 0x19},
+> +	{0x3704, 0x10},
+> +	{0x3705, 0x00},
+> +	{0x3706, 0x66},
+> +	{0x3707, 0x08},
+> +	{0x3708, 0x34},
+> +	{0x3709, 0x40},
+> +	{0x370a, 0x01},
+> +	{0x370b, 0x1b},
+> +	{0x3714, 0x24},
+> +	{0x371a, 0x3e},
+> +	{0x3733, 0x00},
+> +	{0x3734, 0x00},
+> +	{0x373a, 0x05},
+> +	{0x373b, 0x06},
+> +	{0x373c, 0x0a},
+> +	{0x373f, 0xa0},
+> +	{0x3755, 0x00},
+> +	{0x3758, 0x00},
+> +	{0x375b, 0x0e},
+> +	{0x3766, 0x5f},
+> +	{0x3768, 0x00},
+> +	{0x3769, 0x22},
+> +	{0x3773, 0x08},
+> +	{0x3774, 0x1f},
+> +	{0x3776, 0x06},
+> +	{0x37a0, 0x88},
+> +	{0x37a1, 0x5c},
+> +	{0x37a7, 0x88},
+> +	{0x37a8, 0x70},
+> +	{0x37aa, 0x88},
+> +	{0x37ab, 0x48},
+> +	{0x37b3, 0x66},
+> +	{0x37c2, 0x04},
+> +	{0x37c5, 0x00},
+> +	{0x37c8, 0x00},
+> +	{0x3800, 0x00},
+> +	{0x3801, 0x0c},
+> +	{0x3802, 0x00},
+> +	{0x3803, 0x04},
+> +	{0x3804, 0x0a},
+> +	{0x3805, 0x33},
+> +	{0x3806, 0x07},
+> +	{0x3807, 0xa3},
+> +	{0x3808, 0x02},
+> +	{0x3809, 0x80},
+> +	{0x380a, 0x01},
+> +	{0x380b, 0x68},
+> +	{0x380c, 0x06},
+> +	{0x380d, 0x90},
+> +	{0x380e, 0x08},
+> +	{0x380f, 0x08},
+> +	{0x3811, 0x04},
+> +	{0x3813, 0x02},
+> +	{0x3814, 0x07},
+> +	{0x3815, 0x01},
+> +	{0x3816, 0x00},
+> +	{0x3817, 0x00},
+> +	{0x3818, 0x00},
+> +	{0x3819, 0x00},
+> +	{0x3820, 0x94},
+> +	{0x3821, 0xc6},
+> +	{0x3822, 0x48},
+> +	{0x3826, 0x00},
+> +	{0x3827, 0x08},
+> +	{0x382a, 0x07},
+> +	{0x382b, 0x01},
+> +	{0x3830, 0x08},
+> +	{0x3836, 0x02},
+> +	{0x3837, 0x00},
+> +	{0x3838, 0x10},
+> +	{0x3841, 0xff},
+> +	{0x3846, 0x48},
+> +	{0x3861, 0x00},
+> +	{0x3862, 0x04},
+> +	{0x3863, 0x06},
+> +	{0x3a11, 0x01},
+> +	{0x3a12, 0x78},
+> +	{0x3b00, 0x00},
+> +	{0x3b02, 0x00},
+> +	{0x3b03, 0x00},
+> +	{0x3b04, 0x00},
+> +	{0x3b05, 0x00},
+> +	{0x3c00, 0x89},
+> +	{0x3c01, 0xab},
+> +	{0x3c02, 0x01},
+> +	{0x3c03, 0x00},
+> +	{0x3c04, 0x00},
+> +	{0x3c05, 0x03},
+> +	{0x3c06, 0x00},
+> +	{0x3c07, 0x05},
+> +	{0x3c0c, 0x00},
+> +	{0x3c0d, 0x00},
+> +	{0x3c0e, 0x00},
+> +	{0x3c0f, 0x00},
+> +	{0x3c40, 0x00},
+> +	{0x3c41, 0xa3},
+> +	{0x3c43, 0x7d},
+> +	{0x3c45, 0xd7},
+> +	{0x3c47, 0xfc},
+> +	{0x3c50, 0x05},
+> +	{0x3c52, 0xaa},
+> +	{0x3c54, 0x71},
+> +	{0x3c56, 0x80},
+> +	{0x3d85, 0x17},
+> +	{0x3f03, 0x00},
+> +	{0x3f0a, 0x00},
+> +	{0x3f0b, 0x00},
+> +	{0x4001, 0x60},
+> +	{0x4009, 0x05},
+> +	{0x4020, 0x00},
+> +	{0x4021, 0x00},
+> +	{0x4022, 0x00},
+> +	{0x4023, 0x00},
+> +	{0x4024, 0x00},
+> +	{0x4025, 0x00},
+> +	{0x4026, 0x00},
+> +	{0x4027, 0x00},
+> +	{0x4028, 0x00},
+> +	{0x4029, 0x00},
+> +	{0x402a, 0x00},
+> +	{0x402b, 0x00},
+> +	{0x402c, 0x00},
+> +	{0x402d, 0x00},
+> +	{0x402e, 0x00},
+> +	{0x402f, 0x00},
+> +	{0x4040, 0x00},
+> +	{0x4041, 0x03},
+> +	{0x4042, 0x00},
+> +	{0x4043, 0x7A},
+> +	{0x4044, 0x00},
+> +	{0x4045, 0x7A},
+> +	{0x4046, 0x00},
+> +	{0x4047, 0x7A},
+> +	{0x4048, 0x00},
+> +	{0x4049, 0x7A},
+> +	{0x4307, 0x30},
+> +	{0x4500, 0x58},
+> +	{0x4501, 0x04},
+> +	{0x4502, 0x40},
+> +	{0x4503, 0x10},
+> +	{0x4508, 0x55},
+> +	{0x4509, 0x55},
+> +	{0x450a, 0x02},
+> +	{0x450b, 0x00},
+> +	{0x4600, 0x00},
+> +	{0x4601, 0x40},
+> +	{0x4700, 0xa4},
+> +	{0x4800, 0x4c},
+> +	{0x4816, 0x53},
+> +	{0x481f, 0x40},
+> +	{0x4837, 0x13},
+> +	{0x5000, 0x56},
+> +	{0x5001, 0x01},
+> +	{0x5002, 0x28},
+> +	{0x5004, 0x0c},
+> +	{0x5006, 0x0c},
+> +	{0x5007, 0xe0},
+> +	{0x5008, 0x01},
+> +	{0x5009, 0xb0},
+> +	{0x5901, 0x00},
+> +	{0x5a01, 0x00},
+> +	{0x5a03, 0x00},
+> +	{0x5a04, 0x0c},
+> +	{0x5a05, 0xe0},
+> +	{0x5a06, 0x09},
+> +	{0x5a07, 0xb0},
+> +	{0x5a08, 0x06},
+> +	{0x5e00, 0x00},
+> +	{0x3734, 0x40},
+> +	{0x5b00, 0x01},
+> +	{0x5b01, 0x10},
+> +	{0x5b02, 0x01},
+> +	{0x5b03, 0xdb},
+> +	{0x3d8c, 0x71},
+> +	{0x3d8d, 0xea},
+> +	{0x4017, 0x10},
+> +	{0x3618, 0x2a},
+> +	{0x5780, 0x3e},
+> +	{0x5781, 0x0f},
+> +	{0x5782, 0x44},
+> +	{0x5783, 0x02},
+> +	{0x5784, 0x01},
+> +	{0x5785, 0x01},
+> +	{0x5786, 0x00},
+> +	{0x5787, 0x04},
+> +	{0x5788, 0x02},
+> +	{0x5789, 0x0f},
+> +	{0x578a, 0xfd},
+> +	{0x578b, 0xf5},
+> +	{0x578c, 0xf5},
+> +	{0x578d, 0x03},
+> +	{0x578e, 0x08},
+> +	{0x578f, 0x0c},
+> +	{0x5790, 0x08},
+> +	{0x5791, 0x06},
+> +	{0x5792, 0x00},
+> +	{0x5793, 0x52},
+> +	{0x5794, 0xa3},
+> +	{0x3503, 0x00}
+> +};
+> +
+> +static const char * const ov5670_test_pattern_menu[] = {
+> +	"Disabled",
+> +	"Vertical Color Bar Type 1",
+> +};
+> +
+> +/* Supported link frequencies */
+> +#define OV5670_LINK_FREQ_840MBPS	840000000
+> +#define OV5670_LINK_FREQ_840MBPS_INDEX	0
+> +static const struct ov5670_link_freq_config link_freq_configs[] = {
+> +	{
+> +		.pixel_rate = 336000000,
+> +		.reg_list = {
+> +			.num_of_regs = ARRAY_SIZE(mipi_data_rate_840mbps),
+> +			.regs = mipi_data_rate_840mbps,
+> +		}
+> +	}
+> +};
+> +
+> +static const const s64 link_freq_menu_items[] = {
+> +	OV5670_LINK_FREQ_840MBPS
+> +};
+> +
+> +/*
+> + * OV5670 sensor supports following resolutions with full FOV:
+> + * 4:3  ==> {2592x1944, 1296x972, 648x486}
+> + * 16:9 ==> {2560x1440, 1280x720, 640x360}
+> + */
+> +static const struct ov5670_mode supported_modes[] = {
+> +	{
+> +		.width = 2592,
+> +		.height = 1944,
+> +		.vts = OV5670_VTS_30FPS,
+> +		.reg_list = {
+> +			.num_of_regs = ARRAY_SIZE(mode_2592x1944_regs),
+> +			.regs = mode_2592x1944_regs,
+> +		},
+> +		.link_freq_index = OV5670_LINK_FREQ_840MBPS_INDEX,
+> +	},
+> +	{
+> +		.width = 1296,
+> +		.height = 972,
+> +		.vts = OV5670_VTS_30FPS,
+> +		.reg_list = {
+> +			.num_of_regs = ARRAY_SIZE(mode_1296x972_regs),
+> +			.regs = mode_1296x972_regs,
+> +		},
+> +		.link_freq_index = OV5670_LINK_FREQ_840MBPS_INDEX,
+> +	},
+> +	{
+> +		.width = 648,
+> +		.height = 486,
+> +		.vts = OV5670_VTS_30FPS,
+> +		.reg_list = {
+> +			.num_of_regs = ARRAY_SIZE(mode_648x486_regs),
+> +			.regs = mode_648x486_regs,
+> +		},
+> +		.link_freq_index = OV5670_LINK_FREQ_840MBPS_INDEX,
+> +	},
+> +	{
+> +		.width = 2560,
+> +		.height = 1440,
+> +		.vts = OV5670_VTS_30FPS,
+> +		.reg_list = {
+> +			.num_of_regs = ARRAY_SIZE(mode_2560x1440_regs),
+> +			.regs = mode_2560x1440_regs,
+> +		},
+> +		.link_freq_index = OV5670_LINK_FREQ_840MBPS_INDEX,
+> +	},
+> +	{
+> +		.width = 1280,
+> +		.height = 720,
+> +		.vts = OV5670_VTS_30FPS,
+> +		.reg_list = {
+> +			.num_of_regs = ARRAY_SIZE(mode_1280x720_regs),
+> +			.regs = mode_1280x720_regs,
+> +		},
+> +		.link_freq_index = OV5670_LINK_FREQ_840MBPS_INDEX,
+> +	},
+> +	{
+> +		.width = 640,
+> +		.height = 360,
+> +		.vts = OV5670_VTS_30FPS,
+> +		.reg_list = {
+> +			.num_of_regs = ARRAY_SIZE(mode_640x360_regs),
+> +			.regs = mode_640x360_regs,
+> +		},
+> +		.link_freq_index = OV5670_LINK_FREQ_840MBPS_INDEX,
+> +	}
+> +};
+> +
+> +struct ov5670 {
+> +	struct v4l2_subdev sd;
+> +	struct media_pad pad;
+> +
+> +	struct v4l2_ctrl_handler ctrl_handler;
+> +	/* V4L2 Controls */
+> +	struct v4l2_ctrl *link_freq;
+> +	struct v4l2_ctrl *pixel_rate;
+> +	struct v4l2_ctrl *vblank;
+> +	struct v4l2_ctrl *hblank;
+> +	struct v4l2_ctrl *exposure;
+> +
+> +	/* Current mode */
+> +	const struct ov5670_mode *cur_mode;
+> +
+> +	/* To serialize asynchronus callbacks */
+> +	struct mutex mutex;
+> +
+> +	/* Streaming on/off */
+> +	bool streaming;
+> +};
+> +
+> +#define to_ov5670(_sd)	container_of(_sd, struct ov5670, sd)
+> +
+> +/* Read registers up to 4 at a time */
+> +static int ov5670_read_reg(struct ov5670 *ov5670, u16 reg, unsigned int len,
+> +			   u32 *val)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&ov5670->sd);
+> +	struct i2c_msg msgs[2];
+> +	u8 *data_be_p;
+> +	u32 data_be = 0;
+> +	u16 reg_addr_be = cpu_to_be16(reg);
+> +	int ret;
+> +
+> +	if (len > 4)
+> +		return -EINVAL;
+> +
+> +	data_be_p = (u8 *)&data_be;
+> +	/* Write register address */
+> +	msgs[0].addr = client->addr;
+> +	msgs[0].flags = 0;
+> +	msgs[0].len = 2;
+> +	msgs[0].buf = (u8 *)&reg_addr_be;
+> +
+> +	/* Read data from register */
+> +	msgs[1].addr = client->addr;
+> +	msgs[1].flags = I2C_M_RD;
+> +	msgs[1].len = len;
+> +	msgs[1].buf = &data_be_p[4 - len];
+> +
+> +	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
+> +	if (ret != ARRAY_SIZE(msgs))
+> +		return -EIO;
+> +
+> +	*val = be32_to_cpu(data_be);
+> +
+> +	return 0;
+> +}
+> +
+> +/* Write registers up to 4 at a time */
+> +static int ov5670_write_reg(struct ov5670 *ov5670, u16 reg, unsigned int len,
+> +			    u32 val)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&ov5670->sd);
+> +	int buf_i;
+> +	int val_i;
+> +	u8 buf[6];
+> +	u8 *val_p;
+> +
+> +	if (len > 4)
+> +		return -EINVAL;
+> +
+> +	buf[0] = reg >> 8;
+> +	buf[1] = reg & 0xff;
+> +
+> +	val = cpu_to_be32(val);
+> +	val_p = (u8 *)&val;
+> +	buf_i = 2;
+> +	val_i = 4 - len;
+> +
+> +	while (val_i < 4)
+> +		buf[buf_i++] = val_p[val_i++];
+> +
+> +	if (i2c_master_send(client, buf, len + 2) != len + 2)
+> +		return -EIO;
+> +
+> +	return 0;
+> +}
+> +
+> +/* Write a list of registers */
+> +static int ov5670_write_regs(struct ov5670 *ov5670,
+> +			     const struct ov5670_reg *regs, unsigned int len)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&ov5670->sd);
+> +	unsigned int i;
+> +	int ret;
+> +
+> +	for (i = 0; i < len; i++) {
+> +		ret = ov5670_write_reg(ov5670, regs[i].address, 1, regs[i].val);
+> +		if (ret) {
+> +			dev_err_ratelimited(
+> +				&client->dev,
+> +				"Failed to write reg 0x%4.4x. error = %d\n",
+> +				regs[i].address, ret);
+> +
+> +			return ret;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int ov5670_write_reg_list(struct ov5670 *ov5670,
+> +				 const struct ov5670_reg_list *r_list)
+> +{
+> +	return ov5670_write_regs(ov5670, r_list->regs, r_list->num_of_regs);
+> +}
+> +
+> +/* Open sub-device */
+> +static int ov5670_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+> +{
+> +	struct ov5670 *ov5670 = to_ov5670(sd);
+> +	struct v4l2_mbus_framefmt *try_fmt = v4l2_subdev_get_try_format(sd,
+> +									fh->pad,
+> +									0);
 
-No. v4l2-ctl, v4l2-compliance and perhaps a future media-compliance. Those
-are the primary use-cases.
+This would look more reasonable if you wrap after '='.
 
-But even more important it is against all my 'good API sense' that I can't
-find the corresponding media device from a v4l-subdev/video device. If I
-can get to them from the media device through major/minor numbers then
-consistent API design requires that I can also go through the other
-direction. Especially since I see no downside to this.
+> +
+> +	mutex_lock(&ov5670->mutex);
+> +
+> +	/* Initialize try_fmt */
+> +	try_fmt->width = ov5670->cur_mode->width;
+> +	try_fmt->height = ov5670->cur_mode->height;
+> +	try_fmt->code = MEDIA_BUS_FMT_SGRBG10_1X10;
+> +	try_fmt->field = V4L2_FIELD_NONE;
+> +
+> +	/* No crop or compose */
+> +	mutex_unlock(&ov5670->mutex);
+> +
+> +	return 0;
+> +}
+> +
+> +static int ov5670_update_digital_gain(struct ov5670 *ov5670, u32 d_gain)
+> +{
+> +	int ret;
+> +
+> +	ret = ov5670_write_reg(ov5670, OV5670_REG_R_DGTL_GAIN,
+> +			       OV5670_REG_VALUE_16BIT, d_gain);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = ov5670_write_reg(ov5670, OV5670_REG_G_DGTL_GAIN,
+> +			       OV5670_REG_VALUE_16BIT, d_gain);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return ov5670_write_reg(ov5670, OV5670_REG_B_DGTL_GAIN,
+> +				OV5670_REG_VALUE_16BIT, d_gain);
+> +}
+> +
+> +static int ov5670_enable_test_pattern(struct ov5670 *ov5670, u32 pattern)
+> +{
+> +	u32 val;
+> +	int ret;
+> +
+> +	/* Set the bayer order that we support */
+> +	ret = ov5670_write_reg(ov5670, OV5670_REG_TEST_PATTERN_CTRL,
+> +			       OV5670_REG_VALUE_08BIT, 0);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = ov5670_read_reg(ov5670, OV5670_REG_TEST_PATTERN,
+> +			      OV5670_REG_VALUE_08BIT, &val);
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (pattern)
+> +		val |= OV5670_TEST_PATTERN_ENABLE;
+> +	else
+> +		val &= ~OV5670_TEST_PATTERN_ENABLE;
+> +
+> +	return ov5670_write_reg(ov5670, OV5670_REG_TEST_PATTERN,
+> +				OV5670_REG_VALUE_08BIT, val);
+> +}
+> +
+> +/* Initialize control handlers */
+> +static int ov5670_set_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct ov5670 *ov5670 = container_of(ctrl->handler,
+> +					     struct ov5670, ctrl_handler);
+> +	struct i2c_client *client = v4l2_get_subdevdata(&ov5670->sd);
+> +	s64 max;
+> +	int ret = 0;
+> +
+> +	/* Propagate change of current control to all related controls */
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_VBLANK:
+> +		/* Update max exposure while meeting expected vblanking */
+> +		max = ov5670->cur_mode->height + ctrl->val - 8;
+> +		__v4l2_ctrl_modify_range(ov5670->exposure,
+> +					 ov5670->exposure->minimum, max,
+> +					 ov5670->exposure->step, max);
+> +		break;
+> +	}
+> +
+> +	/* V4L2 controls values will be applied only when power is already up */
+> +	if (pm_runtime_get_if_in_use(&client->dev) <= 0)
+> +		return 0;
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_ANALOGUE_GAIN:
+> +		ret = ov5670_write_reg(ov5670, OV5670_REG_ANALOG_GAIN,
+> +				       OV5670_REG_VALUE_16BIT, ctrl->val);
+> +		break;
+> +	case V4L2_CID_DIGITAL_GAIN:
+> +		ret = ov5670_update_digital_gain(ov5670, ctrl->val);
+> +		break;
+> +	case V4L2_CID_EXPOSURE:
+> +		/* 4 least significant bits of expsoure are fractional part */
+> +		ret = ov5670_write_reg(ov5670, OV5670_REG_EXPOSURE,
+> +				       OV5670_REG_VALUE_24BIT, ctrl->val << 4);
+> +		break;
+> +	case V4L2_CID_VBLANK:
+> +		/* Update VTS that meets expected vertical blanking */
+> +		ret = ov5670_write_reg(ov5670, OV5670_REG_VTS,
+> +				       OV5670_REG_VALUE_16BIT,
+> +				       ov5670->cur_mode->height + ctrl->val);
+> +		break;
+> +	case V4L2_CID_HBLANK:
+> +		/* Update HTS that meets expected horizontal blanking */
+> +		ret = ov5670_write_reg(ov5670, OV5670_REG_HTS,
+> +				       OV5670_REG_VALUE_16BIT,
+> +				       (ov5670->cur_mode->width +
+> +					ctrl->val) / 2);
+> +		break;
+> +	case V4L2_CID_TEST_PATTERN:
+> +		ret = ov5670_enable_test_pattern(ov5670, ctrl->val);
+> +		break;
+> +	default:
+> +		dev_info(&client->dev, "%s Unhandled id:0x%x, val:0x%x\n",
+> +			 __func__, ctrl->id, ctrl->val);
+> +		break;
+> +	};
+> +
+> +	pm_runtime_put(&client->dev);
+> +
+> +	return ret;
+> +}
+> +
+> +static const struct v4l2_ctrl_ops ov5670_ctrl_ops = {
+> +	.s_ctrl = ov5670_set_ctrl,
+> +};
+> +
+> +/* Initialize control handlers */
+> +static int ov5670_init_controls(struct ov5670 *ov5670)
+> +{
+> +	struct v4l2_ctrl_handler *ctrl_hdlr;
+> +	s64 vblank_max;
+> +	s64 vblank_def;
+> +	int ret;
+> +
+> +	ctrl_hdlr = &ov5670->ctrl_handler;
+> +	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 8);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ctrl_hdlr->lock = &ov5670->mutex;
+> +	ov5670->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr,
+> +						   &ov5670_ctrl_ops,
+> +						   V4L2_CID_LINK_FREQ,
+> +						   0, 0, link_freq_menu_items);
+> +	ov5670->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+> +
+> +	/* By default, V4L2_CID_PIXEL_RATE is read only */
+> +	ov5670->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &ov5670_ctrl_ops,
+> +					       V4L2_CID_PIXEL_RATE, 0,
+> +					       link_freq_configs[0].pixel_rate,
+> +					       1,
+> +					       link_freq_configs[0].pixel_rate);
+> +
+> +	vblank_max = OV5670_VTS_MAX - ov5670->cur_mode->height;
+> +	vblank_def = ov5670->cur_mode->vts - ov5670->cur_mode->height;
+> +	ov5670->vblank = v4l2_ctrl_new_std(ctrl_hdlr, &ov5670_ctrl_ops,
+> +					   V4L2_CID_VBLANK, OV5670_VBLANK_MIN,
+> +					   vblank_max, 1, vblank_def);
+> +
+> +	ov5670->hblank = v4l2_ctrl_new_std(
+> +				ctrl_hdlr, &ov5670_ctrl_ops, V4L2_CID_HBLANK,
+> +				OV5670_DEF_PPL - ov5670->cur_mode->width,
+> +				OV5670_DEF_PPL - ov5670->cur_mode->width, 1,
+> +				OV5670_DEF_PPL - ov5670->cur_mode->width);
+> +
+> +	/* Get min, max, step, default from sensor */
+> +	v4l2_ctrl_new_std(ctrl_hdlr, &ov5670_ctrl_ops, V4L2_CID_ANALOGUE_GAIN,
+> +			  ANALOG_GAIN_MIN, ANALOG_GAIN_MAX, ANALOG_GAIN_STEP,
+> +			  ANALOG_GAIN_DEFAULT);
+> +
+> +	/* Digital gain */
+> +	v4l2_ctrl_new_std(ctrl_hdlr, &ov5670_ctrl_ops, V4L2_CID_DIGITAL_GAIN,
+> +			  OV5670_DGTL_GAIN_MIN, OV5670_DGTL_GAIN_MAX,
+> +			  OV5670_DGTL_GAIN_STEP, OV5670_DGTL_GAIN_DEFAULT);
+> +
+> +	/* Get min, max, step, default from sensor */
+> +	ov5670->exposure = v4l2_ctrl_new_std(ctrl_hdlr, &ov5670_ctrl_ops,
+> +					     V4L2_CID_EXPOSURE,
+> +					     OV5670_EXPOSURE_MIN,
+> +					     ov5670->cur_mode->vts - 8,
+> +					     OV5670_EXPOSURE_STEP,
+> +					     OV5670_EXPOSURE_DEFAULT);
 
-It's nuts that I can't just pass /dev/v4l-subdevX to v4l2-ctl/compliance
-and have it find out everything about it automatically.
+Does something guarantee that OV5670_EXPOSURE_DEFAULT is between min and
+max values? How about using the maximum instead?
 
-It's all about self-discovery in an API.
+> +
+> +	v4l2_ctrl_new_std_menu_items(ctrl_hdlr, &ov5670_ctrl_ops,
+> +				     V4L2_CID_TEST_PATTERN,
+> +				     ARRAY_SIZE(ov5670_test_pattern_menu) - 1,
+> +				     0, 0, ov5670_test_pattern_menu);
+> +
+> +	if (ctrl_hdlr->error) {
+> +		ret = ctrl_hdlr->error;
+> +		goto error;
+> +	}
+> +
+> +	ov5670->sd.ctrl_handler = ctrl_hdlr;
+> +
+> +	return 0;
+> +
+> +error:
+> +	v4l2_ctrl_handler_free(ctrl_hdlr);
+> +
+> +	return ret;
+> +}
+> +
+> +static int ov5670_enum_mbus_code(struct v4l2_subdev *sd,
+> +				 struct v4l2_subdev_pad_config *cfg,
+> +				 struct v4l2_subdev_mbus_code_enum *code)
+> +{
+> +	/* Only one bayer order GRBG is supported */
+> +	if (code->index > 0)
+> +		return -EINVAL;
+> +
+> +	code->code = MEDIA_BUS_FMT_SGRBG10_1X10;
+> +
+> +	return 0;
+> +}
+> +
+> +static int ov5670_enum_frame_size(struct v4l2_subdev *sd,
+> +				  struct v4l2_subdev_pad_config *cfg,
+> +				  struct v4l2_subdev_frame_size_enum *fse)
+> +{
+> +	if (fse->index >= ARRAY_SIZE(supported_modes))
+> +		return -EINVAL;
+> +
+> +	if (fse->code != MEDIA_BUS_FMT_SGRBG10_1X10)
+> +		return -EINVAL;
+> +
+> +	fse->min_width = supported_modes[fse->index].width;
+> +	fse->max_width = fse->min_width;
+> +	fse->min_height = supported_modes[fse->index].height;
+> +	fse->max_height = fse->min_height;
+> +
+> +	return 0;
+> +}
+> +
+> +/* Calculate resolution distance */
+> +static int ov5670_get_reso_dist(const struct ov5670_mode *mode,
+> +				struct v4l2_mbus_framefmt *framefmt)
+> +{
+> +	return abs(mode->width - framefmt->width) +
+> +	       abs(mode->height - framefmt->height);
+> +}
+> +
+> +/* Find the closest supported resolution to the requested resolution */
+> +static const struct ov5670_mode *ov5670_find_best_fit(
+> +						struct ov5670 *ov5670,
+> +						struct v4l2_subdev_format *fmt)
+> +{
+> +	struct v4l2_mbus_framefmt *framefmt = &fmt->format;
+> +	int dist;
+> +	int cur_best_fit = 0;
+> +	int cur_best_fit_dist = -1;
+> +	int i;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(supported_modes); i++) {
+> +		dist = ov5670_get_reso_dist(&supported_modes[i], framefmt);
+> +		if (cur_best_fit_dist == -1 || dist < cur_best_fit_dist) {
+> +			cur_best_fit_dist = dist;
+> +			cur_best_fit = i;
+> +		}
+> +	}
+> +
+> +	return &supported_modes[cur_best_fit];
+> +}
+> +
+> +static void ov5670_update_pad_format(const struct ov5670_mode *mode,
+> +				     struct v4l2_subdev_format *fmt)
+> +{
+> +	fmt->format.width = mode->width;
+> +	fmt->format.height = mode->height;
+> +	fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
+> +	fmt->format.field = V4L2_FIELD_NONE;
+> +}
+> +
+> +static int ov5670_do_get_pad_format(struct ov5670 *ov5670,
+> +				    struct v4l2_subdev_pad_config *cfg,
+> +				    struct v4l2_subdev_format *fmt)
+> +{
+> +	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
+> +		fmt->format = *v4l2_subdev_get_try_format(&ov5670->sd, cfg,
+> +							  fmt->pad);
+> +	else
+> +		ov5670_update_pad_format(ov5670->cur_mode, fmt);
+> +
+> +	return 0;
+> +}
+> +
+> +static int ov5670_get_pad_format(struct v4l2_subdev *sd,
+> +				 struct v4l2_subdev_pad_config *cfg,
+> +				 struct v4l2_subdev_format *fmt)
+> +{
+> +	struct ov5670 *ov5670 = to_ov5670(sd);
+> +	int ret;
+> +
+> +	mutex_lock(&ov5670->mutex);
+> +	ret = ov5670_do_get_pad_format(ov5670, cfg, fmt);
+> +	mutex_unlock(&ov5670->mutex);
+> +
+> +	return ret;
+> +}
+> +
+> +static int ov5670_set_pad_format(struct v4l2_subdev *sd,
+> +				 struct v4l2_subdev_pad_config *cfg,
+> +				 struct v4l2_subdev_format *fmt)
+> +{
+> +	struct ov5670 *ov5670 = to_ov5670(sd);
+> +	const struct ov5670_mode *mode;
+> +	s64 h_blank;
 
-Sorry, I feel very strongly about this.
+s32; integer controls are 32-bit signed values. modify_range() uses s64 for
+it must work for 64-bit controls, too.
 
+> +
+> +	mutex_lock(&ov5670->mutex);
+> +
+> +	fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
+> +
+> +	mode = ov5670_find_best_fit(ov5670, fmt);
+> +	ov5670_update_pad_format(mode, fmt);
+> +	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
+> +		*v4l2_subdev_get_try_format(sd, cfg, fmt->pad) = fmt->format;
+> +	} else {
+> +		ov5670->cur_mode = mode;
+> +		__v4l2_ctrl_s_ctrl(ov5670->link_freq, mode->link_freq_index);
+> +		__v4l2_ctrl_s_ctrl_int64(
+> +			ov5670->pixel_rate,
+> +			link_freq_configs[mode->link_freq_index].pixel_rate);
+> +		/* Update limits and set FPS to default */
+> +		__v4l2_ctrl_modify_range(
+> +			ov5670->vblank, OV5670_VBLANK_MIN,
+> +			OV5670_VTS_MAX - ov5670->cur_mode->height, 1,
+> +			ov5670->cur_mode->vts - ov5670->cur_mode->height);
+> +		h_blank = OV5670_DEF_PPL - ov5670->cur_mode->width;
+> +		__v4l2_ctrl_modify_range(ov5670->hblank, h_blank, h_blank, 1,
+> +					 h_blank);
+> +	}
+> +
+> +	mutex_unlock(&ov5670->mutex);
+> +
+> +	return 0;
+> +}
+> +
+> +static int ov5670_get_skip_frames(struct v4l2_subdev *sd, u32 *frames)
+> +{
+> +	*frames = OV5670_NUM_OF_SKIP_FRAMES;
+> +
+> +	return 0;
+> +}
+> +
+> +/* Prepare streaming by writing default values and customized values */
+> +static int ov5670_start_streaming(struct ov5670 *ov5670)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&ov5670->sd);
+> +	const struct ov5670_reg_list *reg_list;
+> +	int link_freq_index;
+> +	int ret;
+> +
+> +	/* Get out of from software reset */
+> +	ret = ov5670_write_reg(ov5670, OV5670_REG_SOFTWARE_RST,
+> +			       OV5670_REG_VALUE_08BIT, OV5670_SOFTWARE_RST);
+> +	if (ret) {
+> +		dev_err(&client->dev, "%s failed to set powerup registers\n",
+> +			__func__);
+> +		return ret;
+> +	}
+> +
+> +	/* Setup PLL */
+> +	link_freq_index = ov5670->cur_mode->link_freq_index;
+> +	reg_list = &link_freq_configs[link_freq_index].reg_list;
+> +	ret = ov5670_write_reg_list(ov5670, reg_list);
+> +	if (ret) {
+> +		dev_err(&client->dev, "%s failed to set plls\n", __func__);
+> +		return ret;
+> +	}
+> +
+> +	/* Apply default values of current mode */
+> +	reg_list = &ov5670->cur_mode->reg_list;
+> +	ret = ov5670_write_reg_list(ov5670, reg_list);
+> +	if (ret) {
+> +		dev_err(&client->dev, "%s failed to set mode\n", __func__);
+> +		return ret;
+> +	}
+> +
+> +	ret = __v4l2_ctrl_handler_setup(ov5670->sd.ctrl_handler);
+> +	if (ret)
+> +		return ret;
+> +
+> +	/* Write stream on list */
+> +	ret = ov5670_write_reg(ov5670, OV5670_REG_MODE_SELECT,
+> +			       OV5670_REG_VALUE_08BIT, OV5670_MODE_STREAMING);
+> +	if (ret) {
+> +		dev_err(&client->dev, "%s failed to set stream\n", __func__);
+> +		return ret;
+> +	}
+> +
+> +	ov5670->streaming = 1;
+> +
+> +	return 0;
+> +}
+> +
+> +static int ov5670_stop_streaming(struct ov5670 *ov5670)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&ov5670->sd);
+> +	int ret;
+> +
+> +	ret = ov5670_write_reg(ov5670, OV5670_REG_MODE_SELECT,
+> +			       OV5670_REG_VALUE_08BIT, OV5670_MODE_STANDBY);
+> +	if (ret) {
+> +		dev_err(&client->dev, "%s failed to set stream\n", __func__);
+> +		return ret;
+> +	}
+> +	ov5670->streaming = 0;
+> +
+> +	return ret;
+
+I think you can just return zero but printing the error message is
+essential: what can you do if you find that you can't stop streaming?
+
+> +}
+> +
+> +static int ov5670_set_stream(struct v4l2_subdev *sd, int enable)
+> +{
+> +	struct ov5670 *ov5670 = to_ov5670(sd);
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +	int ret = 0;
+> +
+> +	mutex_lock(&ov5670->mutex);
+> +	if (ov5670->streaming == enable)
+> +		goto unlock_and_return;
+> +
+> +	if (enable) {
+> +		ret = pm_runtime_get_sync(&client->dev);
+> +		if (ret < 0) {
+> +			pm_runtime_put_noidle(&client->dev);
+> +			goto unlock_and_return;
+> +		}
+> +
+> +		ret = ov5670_start_streaming(ov5670);
+> +		if (ret)
+> +			goto error;
+> +	} else {
+> +		ret = ov5670_stop_streaming(ov5670);
+> +		pm_runtime_put(&client->dev);
+> +	}
+> +	goto unlock_and_return;
+> +
+> +error:
+> +	pm_runtime_put(&client->dev);
+> +
+> +unlock_and_return:
+> +	mutex_unlock(&ov5670->mutex);
+> +
+> +	return ret;
+> +}
+> +
+> +static int __maybe_unused ov5670_suspend(struct device *dev)
+> +{
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +	struct ov5670 *ov5670 = to_ov5670(sd);
+> +
+> +	if (ov5670->streaming)
+> +		ov5670_stop_streaming(ov5670);
+> +
+> +	return 0;
+> +}
+> +
+> +static int __maybe_unused ov5670_resume(struct device *dev)
+> +{
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +	struct ov5670 *ov5670 = to_ov5670(sd);
+> +	int ret;
+> +
+> +	if (ov5670->streaming) {
+> +		ret = ov5670_start_streaming(ov5670);
+> +		if (ret) {
+> +			ov5670_stop_streaming(ov5670);
+> +			return ret;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +/* Verify chip ID */
+> +static int ov5670_identify_module(struct ov5670 *ov5670)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&ov5670->sd);
+> +	int ret;
+> +	u32 val;
+> +
+> +	ret = ov5670_read_reg(ov5670, OV5670_REG_CHIP_ID,
+> +			      OV5670_REG_VALUE_24BIT, &val);
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (val != OV5670_CHIP_ID) {
+> +		dev_err(&client->dev, "chip id mismatch: %x!=%x\n",
+> +			OV5670_CHIP_ID, val);
+> +		return -ENXIO;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_subdev_video_ops ov5670_video_ops = {
+> +	.s_stream = ov5670_set_stream,
+> +};
+> +
+> +static const struct v4l2_subdev_pad_ops ov5670_pad_ops = {
+> +	.enum_mbus_code = ov5670_enum_mbus_code,
+> +	.get_fmt = ov5670_get_pad_format,
+> +	.set_fmt = ov5670_set_pad_format,
+> +	.enum_frame_size = ov5670_enum_frame_size,
+> +};
+> +
+> +static const struct v4l2_subdev_sensor_ops ov5670_sensor_ops = {
+> +	.g_skip_frames = ov5670_get_skip_frames,
+> +};
+> +
+> +static const struct v4l2_subdev_ops ov5670_subdev_ops = {
+> +	.video = &ov5670_video_ops,
+> +	.pad = &ov5670_pad_ops,
+> +	.sensor = &ov5670_sensor_ops,
+> +};
+> +
+> +static const struct media_entity_operations ov5670_subdev_entity_ops = {
+> +	.link_validate = v4l2_subdev_link_validate,
+> +};
+> +
+> +static const struct v4l2_subdev_internal_ops ov5670_internal_ops = {
+> +	.open = ov5670_open,
+> +};
+> +
+> +static int ov5670_probe(struct i2c_client *client,
+> +			const struct i2c_device_id *devid)
+> +{
+> +	struct ov5670 *ov5670;
+> +	const char *err_msg;
+> +	u32 input_clk = 0;
+> +	int ret;
+> +
+> +	device_property_read_u32(&client->dev, "clock-frequency", &input_clk);
+> +	if (input_clk != 19200000)
+> +		return -EINVAL;
+> +
+> +	ov5670 = devm_kzalloc(&client->dev, sizeof(*ov5670), GFP_KERNEL);
+> +	if (!ov5670) {
+> +		ret = -ENOMEM;
+> +		err_msg = "devm_kzalloc() error";
+> +		goto error_print;
+> +	}
+> +
+> +	/* Initialize subdev */
+> +	v4l2_i2c_subdev_init(&ov5670->sd, client, &ov5670_subdev_ops);
+> +
+> +	/* Check module identity */
+> +	ret = ov5670_identify_module(ov5670);
+> +	if (ret) {
+> +		err_msg = "ov5670_identify_module() error";
+> +		goto error_print;
+> +	}
+> +
+> +	mutex_init(&ov5670->mutex);
+> +
+> +	/* Set default mode to max resolution */
+> +	ov5670->cur_mode = &supported_modes[0];
+> +
+> +	ret = ov5670_init_controls(ov5670);
+> +	if (ret) {
+> +		err_msg = "ov5670_init_controls() error";
+> +		goto error_mutex_destroy;
+> +	}
+> +
+> +	ov5670->sd.internal_ops = &ov5670_internal_ops;
+> +	ov5670->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +	ov5670->sd.entity.ops = &ov5670_subdev_entity_ops;
+> +	ov5670->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
+> +
+> +	/* Source pad initialization */
+> +	ov5670->pad.flags = MEDIA_PAD_FL_SOURCE;
+> +	ret = media_entity_pads_init(&ov5670->sd.entity, 1, &ov5670->pad);
+> +	if (ret) {
+> +		err_msg = "media_entity_pads_init() error";
+> +		goto error_handler_free;
+> +	}
+> +
+> +	/* Async register for subdev */
+> +	ret = v4l2_async_register_subdev(&ov5670->sd);
+> +	if (ret < 0) {
+> +		err_msg = "v4l2_async_register_subdev() error";
+> +		goto error_entity_cleanup;
+> +	}
+> +
+> +	ov5670->streaming = 0;
+
+Please use true and false for boolean values; same for enabling and
+disabling streaming. As the memory is zeroed this line doesn't do anything
+and can be removed.
+
+> +
+> +	/*
+> +	 * Device is already turned on by i2c-core with ACPI domain PM.
+> +	 * Enable runtime PM and turn off the device.
+> +	 */
+> +	pm_runtime_get_noresume(&client->dev);
+> +	pm_runtime_set_active(&client->dev);
+> +	pm_runtime_enable(&client->dev);
+> +	pm_runtime_put(&client->dev);
+
+Do you really need get_noresume() and put() here? Wouldn't set_active() and
+enable() be enough?
+
+> +
+> +	return 0;
+> +
+> +error_entity_cleanup:
+> +	media_entity_cleanup(&ov5670->sd.entity);
+> +
+> +error_handler_free:
+> +	v4l2_ctrl_handler_free(ov5670->sd.ctrl_handler);
+> +
+> +error_mutex_destroy:
+> +	mutex_destroy(&ov5670->mutex);
+> +
+> +error_print:
+> +	dev_err(&client->dev, "%s: %s %d\n", __func__, err_msg, ret);
+> +
+> +	return ret;
+> +}
+> +
+> +static int ov5670_remove(struct i2c_client *client)
+> +{
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +	struct ov5670 *ov5670 = to_ov5670(sd);
+> +
+> +	v4l2_async_unregister_subdev(sd);
+> +	media_entity_cleanup(&sd->entity);
+> +	v4l2_ctrl_handler_free(sd->ctrl_handler);
+> +	mutex_destroy(&ov5670->mutex);
+> +
+> +	/*
+> +	 * Disable runtime PM but keep the device turned on.
+> +	 * i2c-core with ACPI domain PM will turn off the device.
+> +	 */
+> +	pm_runtime_get_sync(&client->dev);
+> +	pm_runtime_disable(&client->dev);
+> +	pm_runtime_set_suspended(&client->dev);
+> +	pm_runtime_put_noidle(&client->dev);
+
+Similar comment here --- the I²C core will turn the device off on ACPI
+systems unless I'm mistaken. I.e. AFAIU, get_sync() and put_noidle() are
+extra here.
+
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct i2c_device_id ov5670_id_table[] = {
+> +	{"ov5670", 0},
+> +	{},
+> +};
+> +
+> +MODULE_DEVICE_TABLE(i2c, ov5670_id_table);
+> +
+> +static const struct dev_pm_ops ov5670_pm_ops = {
+> +	SET_SYSTEM_SLEEP_PM_OPS(ov5670_suspend, ov5670_resume)
+> +};
+> +
+> +#ifdef CONFIG_ACPI
+> +static const struct acpi_device_id ov5670_acpi_ids[] = {
+> +	{"INT3479"},
+> +	{ /* sentinel */ }
+> +};
+> +
+> +MODULE_DEVICE_TABLE(acpi, ov5670_acpi_ids);
+> +#endif
+> +
+> +static struct i2c_driver ov5670_i2c_driver = {
+> +	.driver = {
+> +		.name = "ov5670",
+> +		.pm = &ov5670_pm_ops,
+> +		.acpi_match_table = ACPI_PTR(ov5670_acpi_ids),
+> +	},
+> +	.probe = ov5670_probe,
+
+.probe_new, and you can remove ov5670_id_table.
+
+> +	.remove = ov5670_remove,
+> +	.id_table = ov5670_id_table,
+> +};
+> +
+> +module_i2c_driver(ov5670_i2c_driver);
+> +
+> +MODULE_AUTHOR("Rapolu, Chiranjeevi <chiranjeevi.rapolu@intel.com>");
+> +MODULE_AUTHOR("Yang, Hyungwoo <hyungwoo.yang@intel.com>");
+> +MODULE_DESCRIPTION("Omnivision ov5670 sensor driver");
+> +MODULE_LICENSE("GPL v2");
+
+-- 
 Regards,
 
-	Hans
-
-> 
->> Heck, I want to do 'v4l2-ctl -d /dev/video0 -D' or 'v4l2-ctl -d
->> /dev/v4l-subdev0' and see not only the device capabilities, but also the
->> corresponding entity information. Without having to scan through all
->> /dev/media devices or requiring the user to pass the /dev/mediaX device
->> separately.
->>
->> This information is very cheap and I see no reason whatsoever not to
->> implement this. It also feels much more symmetrical if I have what is
->> effectively a backlink to the media device to which the subdev belongs.
->>
->> And yes, normally applications will never need this since they use the media
->> device and never reference a /dev/v4l-subdevX by name. But for v4l2-ctl and
->> v4l2-compliance it is very useful indeed.
-> 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
