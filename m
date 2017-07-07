@@ -1,55 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36347 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751487AbdGWSQp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Jul 2017 14:16:45 -0400
-Received: by mail-wm0-f68.google.com with SMTP id 184so10070700wmo.3
-        for <linux-media@vger.kernel.org>; Sun, 23 Jul 2017 11:16:44 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
-        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
-Subject: [PATCH RESEND 09/14] [media] ddbridge: fix possible buffer overflow in ddb_ports_init()
-Date: Sun, 23 Jul 2017 20:16:25 +0200
-Message-Id: <20170723181630.19526-10-d.scheller.oss@gmail.com>
-In-Reply-To: <20170723181630.19526-1-d.scheller.oss@gmail.com>
-References: <20170723181630.19526-1-d.scheller.oss@gmail.com>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:33244 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751059AbdGGIPf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 04:15:35 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: mchehab@kernel.org, hans.verkuil@cisco.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] imon: constify attribute_group structures.
+Date: Fri,  7 Jul 2017 13:45:12 +0530
+Message-Id: <6832741975a38cd1fe35e2bd36fc510f74ffde54.1499415018.git.arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+attribute_groups are not supposed to change at runtime. All functions
+working with attribute_groups provided by <linux/sysfs.h> work with const
+attribute_group. So mark the non-const structs as const.
 
-Report from smatch:
+File size before:
+   text	   data	    bss	    dec	    hex	filename
+  18551	   2256	     77	  20884	   5194	drivers/media/rc/imon.o
 
-  drivers/media/pci/ddbridge/ddbridge-core.c:2659 ddb_ports_init() error: buffer overflow 'dev->port' 32 <= u32max
+File size After adding 'const':
+   text	   data	    bss	    dec	    hex	filename
+  18679	   2160	     77	  20916	   51b4	drivers/media/rc/imon.o
 
-Fix by making sure "p" is greater than zero before checking for
-"dev->port[].type == DDB_CI_EXTERNAL_XO2".
-
-Cc: Ralph Metzler <rjkm@metzlerbros.de>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-Tested-by: Richard Scobie <r.scobie@clear.net.nz>
-Tested-by: Jasmin Jessich <jasmin@anw.at>
-Tested-by: Dietmar Spingler <d_spingler@freenet.de>
-Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 ---
- drivers/media/pci/ddbridge/ddbridge-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/rc/imon.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 1e5c420e4717..5f8f77c74339 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -2550,7 +2550,7 @@ void ddb_ports_init(struct ddb *dev)
- 			port->dvb[0].adap = &dev->adap[2 * p];
- 			port->dvb[1].adap = &dev->adap[2 * p + 1];
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index 3489010..e9cbfccd 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -911,7 +911,7 @@ static DEVICE_ATTR(associate_remote, S_IWUSR | S_IRUGO, show_associate_remote,
+ 	NULL
+ };
  
--			if ((port->class == DDB_PORT_NONE) && i &&
-+			if ((port->class == DDB_PORT_NONE) && i && p > 0 &&
- 			    dev->port[p - 1].type == DDB_CI_EXTERNAL_XO2) {
- 				port->class = DDB_PORT_CI;
- 				port->type = DDB_CI_EXTERNAL_XO2_B;
+-static struct attribute_group imon_display_attr_group = {
++static const struct attribute_group imon_display_attr_group = {
+ 	.attrs = imon_display_sysfs_entries
+ };
+ 
+@@ -920,7 +920,7 @@ static DEVICE_ATTR(associate_remote, S_IWUSR | S_IRUGO, show_associate_remote,
+ 	NULL
+ };
+ 
+-static struct attribute_group imon_rf_attr_group = {
++static const struct attribute_group imon_rf_attr_group = {
+ 	.attrs = imon_rf_sysfs_entries
+ };
+ 
 -- 
-2.13.0
+1.9.1
