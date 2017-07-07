@@ -1,303 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:36070 "EHLO extserv.mm-sol.com"
+Received: from gofer.mess.org ([88.97.38.141]:60475 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751397AbdGQKfG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 06:35:06 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Cc: Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v3 17/23] camss: vfe: Add interface for scaling
-Date: Mon, 17 Jul 2017 13:33:43 +0300
-Message-Id: <1500287629-23703-18-git-send-email-todor.tomov@linaro.org>
-In-Reply-To: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
-References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
+        id S1751659AbdGGJwB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 7 Jul 2017 05:52:01 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 0/6] Generic Raspberry Pi IR transmitters
+Date: Fri,  7 Jul 2017 10:51:56 +0100
+Message-Id: <cover.1499419624.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add compose selection ioctls to handle scaling configuration.
+These drivers are generic, but they've been tested on Raspberry Pi.
 
-Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
----
- drivers/media/platform/qcom/camss-8x16/camss-vfe.c | 189 ++++++++++++++++++++-
- drivers/media/platform/qcom/camss-8x16/camss-vfe.h |   1 +
- 2 files changed, 188 insertions(+), 2 deletions(-)
+Note that the gpio-ir-recv is a separate driver, so you will end up
+with two /dev/lircN devices if you want a receiver and a transmitter,
+whilst with the lirc_rpi driver you have one /dev/lircN device.
 
-diff --git a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
-index 327f158..8ec6ce7 100644
---- a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
-+++ b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
-@@ -211,6 +211,8 @@
- #define CAMIF_TIMEOUT_SLEEP_US 1000
- #define CAMIF_TIMEOUT_ALL_US 1000000
- 
-+#define SCALER_RATIO_MAX 16
-+
- static const u32 vfe_formats[] = {
- 	MEDIA_BUS_FMT_UYVY8_2X8,
- 	MEDIA_BUS_FMT_VYUY8_2X8,
-@@ -1905,6 +1907,25 @@ __vfe_get_format(struct vfe_line *line,
- 	return &line->fmt[pad];
- }
- 
-+/*
-+ * __vfe_get_compose - Get pointer to compose selection structure
-+ * @line: VFE line
-+ * @cfg: V4L2 subdev pad configuration
-+ * @which: TRY or ACTIVE format
-+ *
-+ * Return pointer to TRY or ACTIVE compose rectangle structure
-+ */
-+static struct v4l2_rect *
-+__vfe_get_compose(struct vfe_line *line,
-+		  struct v4l2_subdev_pad_config *cfg,
-+		  enum v4l2_subdev_format_whence which)
-+{
-+	if (which == V4L2_SUBDEV_FORMAT_TRY)
-+		return v4l2_subdev_get_try_compose(&line->subdev, cfg,
-+						   MSM_VFE_PAD_SINK);
-+
-+	return &line->compose;
-+}
- 
- /*
-  * vfe_try_format - Handle try format by pad subdev method
-@@ -1951,7 +1972,14 @@ static void vfe_try_format(struct vfe_line *line,
- 		*fmt = *__vfe_get_format(line, cfg, MSM_VFE_PAD_SINK,
- 					 which);
- 
--		if (line->id == VFE_LINE_PIX)
-+		if (line->id == VFE_LINE_PIX) {
-+			struct v4l2_rect *rect;
-+
-+			rect = __vfe_get_compose(line, cfg, which);
-+
-+			fmt->width = rect->width;
-+			fmt->height = rect->height;
-+
- 			switch (fmt->code) {
- 			case MEDIA_BUS_FMT_YUYV8_2X8:
- 				if (code == MEDIA_BUS_FMT_YUYV8_1_5X8)
-@@ -1979,6 +2007,7 @@ static void vfe_try_format(struct vfe_line *line,
- 					fmt->code = MEDIA_BUS_FMT_VYUY8_2X8;
- 				break;
- 			}
-+		}
- 
- 		break;
- 	}
-@@ -1987,6 +2016,50 @@ static void vfe_try_format(struct vfe_line *line,
- }
- 
- /*
-+ * vfe_try_compose - Handle try compose selection by pad subdev method
-+ * @line: VFE line
-+ * @cfg: V4L2 subdev pad configuration
-+ * @rect: pointer to v4l2 rect structure
-+ * @which: wanted subdev format
-+ */
-+static void vfe_try_compose(struct vfe_line *line,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_rect *rect,
-+			    enum v4l2_subdev_format_whence which)
-+{
-+	struct v4l2_mbus_framefmt *fmt;
-+
-+	rect->width = rect->width - rect->left;
-+	rect->left = 0;
-+	rect->height = rect->height - rect->top;
-+	rect->top = 0;
-+
-+	fmt = __vfe_get_format(line, cfg, MSM_VFE_PAD_SINK, which);
-+
-+	if (rect->width > fmt->width)
-+		rect->width = fmt->width;
-+
-+	if (rect->height > fmt->height)
-+		rect->height = fmt->height;
-+
-+	if (fmt->width > rect->width * SCALER_RATIO_MAX)
-+		rect->width = (fmt->width + SCALER_RATIO_MAX - 1) /
-+							SCALER_RATIO_MAX;
-+
-+	rect->width &= ~0x1;
-+
-+	if (fmt->height > rect->height * SCALER_RATIO_MAX)
-+		rect->height = (fmt->height + SCALER_RATIO_MAX - 1) /
-+							SCALER_RATIO_MAX;
-+
-+	if (rect->width < 16)
-+		rect->width = 16;
-+
-+	if (rect->height < 4)
-+		rect->height = 4;
-+}
-+
-+/*
-  * vfe_enum_mbus_code - Handle pixel format enumeration
-  * @sd: VFE V4L2 subdevice
-  * @cfg: V4L2 subdev pad configuration
-@@ -2081,6 +2154,10 @@ static int vfe_get_format(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
-+static int vfe_set_selection(struct v4l2_subdev *sd,
-+			     struct v4l2_subdev_pad_config *cfg,
-+			     struct v4l2_subdev_selection *sel);
-+
- /*
-  * vfe_set_format - Handle set format by pads subdev method
-  * @sd: VFE V4L2 subdevice
-@@ -2103,20 +2180,126 @@ static int vfe_set_format(struct v4l2_subdev *sd,
- 	vfe_try_format(line, cfg, fmt->pad, &fmt->format, fmt->which);
- 	*format = fmt->format;
- 
--	/* Propagate the format from sink to source */
- 	if (fmt->pad == MSM_VFE_PAD_SINK) {
-+		struct v4l2_subdev_selection sel = { 0 };
-+		int ret;
-+
-+		/* Propagate the format from sink to source */
- 		format = __vfe_get_format(line, cfg, MSM_VFE_PAD_SRC,
- 					  fmt->which);
- 
- 		*format = fmt->format;
- 		vfe_try_format(line, cfg, MSM_VFE_PAD_SRC, format,
- 			       fmt->which);
-+
-+		if (line->id != VFE_LINE_PIX)
-+			return 0;
-+
-+		/* Reset sink pad compose selection */
-+		sel.which = fmt->which;
-+		sel.pad = MSM_VFE_PAD_SINK;
-+		sel.target = V4L2_SEL_TGT_COMPOSE;
-+		sel.r.width = fmt->format.width;
-+		sel.r.height = fmt->format.height;
-+		ret = vfe_set_selection(sd, cfg, &sel);
-+		if (ret < 0)
-+			return ret;
- 	}
- 
- 	return 0;
- }
- 
- /*
-+ * vfe_get_selection - Handle get selection by pads subdev method
-+ * @sd: VFE V4L2 subdevice
-+ * @cfg: V4L2 subdev pad configuration
-+ * @sel: pointer to v4l2 subdev selection structure
-+ *
-+ * Return -EINVAL or zero on success
-+ */
-+static int vfe_get_selection(struct v4l2_subdev *sd,
-+			     struct v4l2_subdev_pad_config *cfg,
-+			     struct v4l2_subdev_selection *sel)
-+{
-+	struct vfe_line *line = v4l2_get_subdevdata(sd);
-+	struct v4l2_subdev_format fmt = { 0 };
-+	struct v4l2_rect *compose;
-+	int ret;
-+
-+	if (line->id != VFE_LINE_PIX || sel->pad != MSM_VFE_PAD_SINK)
-+		return -EINVAL;
-+
-+	switch (sel->target) {
-+	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-+		fmt.pad = sel->pad;
-+		fmt.which = sel->which;
-+		ret = vfe_get_format(sd, cfg, &fmt);
-+		if (ret < 0)
-+			return ret;
-+		sel->r.left = 0;
-+		sel->r.top = 0;
-+		sel->r.width = fmt.format.width;
-+		sel->r.height = fmt.format.height;
-+		break;
-+	case V4L2_SEL_TGT_COMPOSE:
-+		compose = __vfe_get_compose(line, cfg, sel->which);
-+		if (compose == NULL)
-+			return -EINVAL;
-+
-+		sel->r = *compose;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * vfe_set_selection - Handle set selection by pads subdev method
-+ * @sd: VFE V4L2 subdevice
-+ * @cfg: V4L2 subdev pad configuration
-+ * @sel: pointer to v4l2 subdev selection structure
-+ *
-+ * Return -EINVAL or zero on success
-+ */
-+int vfe_set_selection(struct v4l2_subdev *sd,
-+			     struct v4l2_subdev_pad_config *cfg,
-+			     struct v4l2_subdev_selection *sel)
-+{
-+	struct vfe_line *line = v4l2_get_subdevdata(sd);
-+	struct v4l2_rect *compose;
-+	struct v4l2_subdev_format fmt = { 0 };
-+	int ret;
-+
-+	if (line->id != VFE_LINE_PIX || sel->pad != MSM_VFE_PAD_SINK)
-+		return -EINVAL;
-+
-+	if (sel->target != V4L2_SEL_TGT_COMPOSE)
-+		return -EINVAL;
-+
-+	compose = __vfe_get_compose(line, cfg, sel->which);
-+	if (compose == NULL)
-+		return -EINVAL;
-+
-+	vfe_try_compose(line, cfg, &sel->r, sel->which);
-+	*compose = sel->r;
-+
-+	/* Reset source pad format width and height */
-+	fmt.which = sel->which;
-+	fmt.pad = MSM_VFE_PAD_SRC;
-+	ret = vfe_get_format(sd, cfg, &fmt);
-+	if (ret < 0)
-+		return ret;
-+
-+	fmt.format.width = compose->width;
-+	fmt.format.height = compose->height;
-+	ret = vfe_set_format(sd, cfg, &fmt);
-+
-+	return ret;
-+}
-+
-+/*
-  * vfe_init_formats - Initialize formats on all pads
-  * @sd: VFE V4L2 subdevice
-  * @fh: V4L2 subdev file handle
-@@ -2310,6 +2493,8 @@ static const struct v4l2_subdev_pad_ops vfe_pad_ops = {
- 	.enum_frame_size = vfe_enum_frame_size,
- 	.get_fmt = vfe_get_format,
- 	.set_fmt = vfe_set_format,
-+	.get_selection = vfe_get_selection,
-+	.set_selection = vfe_set_selection,
- };
- 
- static const struct v4l2_subdev_ops vfe_v4l2_ops = {
-diff --git a/drivers/media/platform/qcom/camss-8x16/camss-vfe.h b/drivers/media/platform/qcom/camss-8x16/camss-vfe.h
-index b0598e4..6518c7a 100644
---- a/drivers/media/platform/qcom/camss-8x16/camss-vfe.h
-+++ b/drivers/media/platform/qcom/camss-8x16/camss-vfe.h
-@@ -80,6 +80,7 @@ struct vfe_line {
- 	struct v4l2_subdev subdev;
- 	struct media_pad pads[MSM_VFE_PADS_NUM];
- 	struct v4l2_mbus_framefmt fmt[MSM_VFE_PADS_NUM];
-+	struct v4l2_rect compose;
- 	struct camss_video video_out;
- 	struct vfe_output output;
- };
+Also note that it might be possible for the Nokia N900 to use the
+pwm-ir-tx driver, making ir-rx51 obsolete. The pwm-ir-tx driver is
+shorter and simpler.
+
+Changes since v2:
+ - Removed pointless suspend handling from pwm-ir-tx
+ - Split out device tree bindings to separate commits
+
+Sean Young (6):
+  [media] rc-core: rename input_name to device_name
+  [media] rc: mce kbd decoder not needed for IR TX drivers
+  [media] rc: gpio-ir-tx: add new driver
+  [media] rc: pwm-ir-tx: add new driver
+  [media] dt-bindings: gpio-ir-tx: add support for GPIO IR Transmitter
+  [media] dt-bindings: pwm-ir-tx: Add support for PWM IR Transmitter
+
+ .../devicetree/bindings/leds/irled/gpio-ir-tx.txt  |  11 ++
+ .../devicetree/bindings/leds/irled/pwm-ir-tx.txt   |  13 ++
+ MAINTAINERS                                        |  12 ++
+ drivers/hid/hid-picolcd_cir.c                      |   2 +-
+ drivers/media/cec/cec-core.c                       |   4 +-
+ drivers/media/common/siano/smsir.c                 |   4 +-
+ drivers/media/i2c/ir-kbd-i2c.c                     |   2 +-
+ drivers/media/pci/bt8xx/bttv-input.c               |   2 +-
+ drivers/media/pci/cx23885/cx23885-input.c          |   2 +-
+ drivers/media/pci/cx88/cx88-input.c                |   2 +-
+ drivers/media/pci/dm1105/dm1105.c                  |   2 +-
+ drivers/media/pci/mantis/mantis_common.h           |   2 +-
+ drivers/media/pci/mantis/mantis_input.c            |   4 +-
+ drivers/media/pci/saa7134/saa7134-input.c          |   2 +-
+ drivers/media/pci/smipcie/smipcie-ir.c             |   4 +-
+ drivers/media/pci/smipcie/smipcie.h                |   2 +-
+ drivers/media/pci/ttpci/budget-ci.c                |   2 +-
+ drivers/media/rc/Kconfig                           |  23 +++
+ drivers/media/rc/Makefile                          |   2 +
+ drivers/media/rc/ati_remote.c                      |   2 +-
+ drivers/media/rc/ene_ir.c                          |   4 +-
+ drivers/media/rc/fintek-cir.c                      |   2 +-
+ drivers/media/rc/gpio-ir-recv.c                    |   2 +-
+ drivers/media/rc/gpio-ir-tx.c                      | 189 +++++++++++++++++++++
+ drivers/media/rc/igorplugusb.c                     |   2 +-
+ drivers/media/rc/iguanair.c                        |   2 +-
+ drivers/media/rc/img-ir/img-ir-hw.c                |   2 +-
+ drivers/media/rc/img-ir/img-ir-raw.c               |   2 +-
+ drivers/media/rc/imon.c                            |   2 +-
+ drivers/media/rc/ir-hix5hd2.c                      |   2 +-
+ drivers/media/rc/ir-mce_kbd-decoder.c              |   3 +
+ drivers/media/rc/ir-spi.c                          |   1 +
+ drivers/media/rc/ite-cir.c                         |   2 +-
+ drivers/media/rc/mceusb.c                          |   2 +-
+ drivers/media/rc/meson-ir.c                        |   2 +-
+ drivers/media/rc/mtk-cir.c                         |   2 +-
+ drivers/media/rc/nuvoton-cir.c                     |   2 +-
+ drivers/media/rc/pwm-ir-tx.c                       | 138 +++++++++++++++
+ drivers/media/rc/rc-loopback.c                     |   2 +-
+ drivers/media/rc/rc-main.c                         |   8 +-
+ drivers/media/rc/redrat3.c                         |   2 +-
+ drivers/media/rc/serial_ir.c                       |  10 +-
+ drivers/media/rc/sir_ir.c                          |   2 +-
+ drivers/media/rc/st_rc.c                           |   2 +-
+ drivers/media/rc/streamzap.c                       |   2 +-
+ drivers/media/rc/sunxi-cir.c                       |   2 +-
+ drivers/media/rc/ttusbir.c                         |   2 +-
+ drivers/media/rc/winbond-cir.c                     |   2 +-
+ drivers/media/usb/au0828/au0828-input.c            |   2 +-
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c        |   5 +-
+ drivers/media/usb/dvb-usb/dvb-usb-remote.c         |   2 +-
+ drivers/media/usb/em28xx/em28xx-input.c            |   2 +-
+ drivers/media/usb/tm6000/tm6000-input.c            |   2 +-
+ include/media/cec.h                                |   2 +-
+ include/media/rc-core.h                            |   6 +-
+ 55 files changed, 453 insertions(+), 62 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt
+ create mode 100644 Documentation/devicetree/bindings/leds/irled/pwm-ir-tx.txt
+ create mode 100644 drivers/media/rc/gpio-ir-tx.c
+ create mode 100644 drivers/media/rc/pwm-ir-tx.c
+
 -- 
-2.7.4
+2.9.4
