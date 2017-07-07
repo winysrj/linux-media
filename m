@@ -1,81 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:58045 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S934974AbdGTOCP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 10:02:15 -0400
-Message-ID: <1500559330.26680.10.camel@pengutronix.de>
-Subject: Re: [Linaro-mm-sig] [PATCH] dma-fence: Don't BUG_ON when not
- absolutely needed
-From: Lucas Stach <l.stach@pengutronix.de>
-To: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: DRI Development <dri-devel@lists.freedesktop.org>,
-        Gustavo Padovan <gustavo@padovan.org>,
-        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
-        linaro-mm-sig@lists.linaro.org,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        linux-media@vger.kernel.org
-Date: Thu, 20 Jul 2017 16:02:10 +0200
-In-Reply-To: <20170720125107.26693-1-daniel.vetter@ffwll.ch>
-References: <20170720125107.26693-1-daniel.vetter@ffwll.ch>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from mail-wr0-f172.google.com ([209.85.128.172]:36485 "EHLO
+        mail-wr0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751059AbdGGO70 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 10:59:26 -0400
+Received: by mail-wr0-f172.google.com with SMTP id c11so50582802wrc.3
+        for <linux-media@vger.kernel.org>; Fri, 07 Jul 2017 07:59:25 -0700 (PDT)
+Subject: Re: [Patch v5 12/12] Documention: v4l: Documentation for HEVC CIDs
+To: Smitha T Murthy <smitha.t@samsung.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
+ <CGME20170619052521epcas5p36a0bc384d10809dcfe775e6da87ed37b@epcas5p3.samsung.com>
+ <1497849055-26583-13-git-send-email-smitha.t@samsung.com>
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <617cb1c5-074c-3f47-0096-fe7568dab8be@linaro.org>
+Date: Fri, 7 Jul 2017 17:59:21 +0300
+MIME-Version: 1.0
+In-Reply-To: <1497849055-26583-13-git-send-email-smitha.t@samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Donnerstag, den 20.07.2017, 14:51 +0200 schrieb Daniel Vetter:
-> It makes debugging a massive pain.
+Hi,
 
-It is also considered very bad style to BUG the kernel on anything other
-than filesystem eating catastrophic failures.
-
-Reviewed-by: Lucas Stach <l.stach@pengutronix.de>
-
-> Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
-> Cc: Sumit Semwal <sumit.semwal@linaro.org>
-> Cc: Gustavo Padovan <gustavo@padovan.org>
-> Cc: linux-media@vger.kernel.org
-> Cc: linaro-mm-sig@lists.linaro.org
-> ---
->  drivers/dma-buf/dma-fence.c | 4 ++--
->  include/linux/dma-fence.h   | 4 ++--
->  2 files changed, 4 insertions(+), 4 deletions(-)
+On 06/19/2017 08:10 AM, Smitha T Murthy wrote:
+> Added V4l2 controls for HEVC encoder
 > 
-> diff --git a/drivers/dma-buf/dma-fence.c b/drivers/dma-buf/dma-fence.c
-> index 56e0a0e1b600..9a302799040e 100644
-> --- a/drivers/dma-buf/dma-fence.c
-> +++ b/drivers/dma-buf/dma-fence.c
-> @@ -48,7 +48,7 @@ static atomic64_t dma_fence_context_counter = ATOMIC64_INIT(0);
->   */
->  u64 dma_fence_context_alloc(unsigned num)
->  {
-> -	BUG_ON(!num);
-> +	WARN_ON(!num);
->  	return atomic64_add_return(num, &dma_fence_context_counter) - num;
->  }
->  EXPORT_SYMBOL(dma_fence_context_alloc);
-> @@ -172,7 +172,7 @@ void dma_fence_release(struct kref *kref)
+> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+> ---
+>  Documentation/media/uapi/v4l/extended-controls.rst | 364 +++++++++++++++++++++
+>  1 file changed, 364 insertions(+)
+> 
+> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+> index abb1057..7767c70 100644
+> --- a/Documentation/media/uapi/v4l/extended-controls.rst
+> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
+> @@ -1960,6 +1960,370 @@ enum v4l2_vp8_golden_frame_sel -
+>      1, 2 and 3 corresponding to encoder profiles 0, 1, 2 and 3.
 >  
->  	trace_dma_fence_destroy(fence);
 >  
-> -	BUG_ON(!list_empty(&fence->cb_list));
-> +	WARN_ON(!list_empty(&fence->cb_list));
+
+<cut>
+
+> +``V4L2_CID_MPEG_VIDEO_HEVC_PROFILE``
+> +    (enum)
+> +
+> +enum v4l2_mpeg_video_hevc_profile -
+> +    Select the desired profile for HEVC encoder.
+> +
+> +.. raw:: latex
+> +
+> +    \begin{adjustbox}{width=\columnwidth}
+> +
+> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
+> +
+> +.. flat-table::
+> +    :header-rows:  0
+> +    :stub-columns: 0
+> +
+> +    * - ``V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN``
+> +      - Main profile.
+
+MAIN10?
+
+> +    * - ``V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE``
+> +      - Main still picture profile.
+> +
+> +.. raw:: latex
+> +
+> +    \end{adjustbox}
+> +
+> +
+
+<cut>
+
+> +MFC 10.10 MPEG Controls
+> +-----------------------
+> +
+> +The following MPEG class controls deal with MPEG decoding and encoding
+> +settings that are specific to the Multi Format Codec 10.10 device present
+> +in the S5P and Exynos family of SoCs by Samsung.
+> +
+> +
+> +.. _mfc1010-control-id:
+> +
+> +MFC 10.10 Control IDs
+> +^^^^^^^^^^^^^^^^^^^^^
+> +
+> +``V4L2_CID_MPEG_MFC10_VIDEO_HEVC_REF_NUMBER_FOR_PFRAMES (integer)``
+> +    Selects number of P reference pictures required for HEVC encoder.
+> +    P-Frame can use 1 or 2 frames for reference.
+> +
+> +``V4L2_CID_MPEG_MFC10_VIDEO_HEVC_PREPEND_SPSPPS_TO_IDR (integer)``
+> +    Indicates whether to generate SPS and PPS at every IDR. Setting it to 0
+> +    disables generating SPS and PPS at every IDR. Setting it to one enables
+> +    generating SPS and PPS at every IDR.
+> +
+
+I'm not sure those two should be driver specific, have to check does
+venus driver has similar controls.
+
+> +
+>  .. _camera-controls:
 >  
->  	if (fence->ops->release)
->  		fence->ops->release(fence);
-> diff --git a/include/linux/dma-fence.h b/include/linux/dma-fence.h
-> index 9342cf0dada4..171895072435 100644
-> --- a/include/linux/dma-fence.h
-> +++ b/include/linux/dma-fence.h
-> @@ -431,8 +431,8 @@ int dma_fence_get_status(struct dma_fence *fence);
->  static inline void dma_fence_set_error(struct dma_fence *fence,
->  				       int error)
->  {
-> -	BUG_ON(test_bit(DMA_FENCE_FLAG_SIGNALED_BIT, &fence->flags));
-> -	BUG_ON(error >= 0 || error < -MAX_ERRNO);
-> +	WARN_ON(test_bit(DMA_FENCE_FLAG_SIGNALED_BIT, &fence->flags));
-> +	WARN_ON(error >= 0 || error < -MAX_ERRNO);
->  
->  	fence->error = error;
->  }
+>  Camera Control Reference
+> 
+
+-- 
+regards,
+Stan
