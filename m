@@ -1,76 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:35228 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752618AbdGITme (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 15:42:34 -0400
-Received: by mail-wr0-f194.google.com with SMTP id z45so20513294wrb.2
-        for <linux-media@vger.kernel.org>; Sun, 09 Jul 2017 12:42:33 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, d_spingler@gmx.de, rjkm@metzlerbros.de
-Subject: [PATCH 08/14] [media] ddbridge: only register frontends in fe2 if fe is not NULL
-Date: Sun,  9 Jul 2017 21:42:15 +0200
-Message-Id: <20170709194221.10255-9-d.scheller.oss@gmail.com>
-In-Reply-To: <20170709194221.10255-1-d.scheller.oss@gmail.com>
-References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
+Received: from smtprelay.synopsys.com ([198.182.60.111]:48520 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750938AbdGGLZt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 07:25:49 -0400
+Subject: Re: [PATCH v7 2/6] [media] cec-notifier.h: Prevent build warnings
+ using forward declaration
+To: Hans Verkuil <hansverk@cisco.com>,
+        Jose Abreu <Jose.Abreu@synopsys.com>,
+        <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+References: <cover.1499425271.git.joabreu@synopsys.com>
+ <e0e455ac3f40b3dd0344127bbb8773cea579620e.1499425271.git.joabreu@synopsys.com>
+ <4e42b0be-fdef-b4d6-be92-ccce71dda49d@cisco.com>
+CC: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+Message-ID: <ebaee90a-7448-207d-4d54-3e83ea51cc86@synopsys.com>
+Date: Fri, 7 Jul 2017 12:25:43 +0100
+MIME-Version: 1.0
+In-Reply-To: <4e42b0be-fdef-b4d6-be92-ccce71dda49d@cisco.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Hi Hans,
 
-Smatch reported:
 
-  drivers/media/pci/ddbridge/ddbridge-core.c:1602 dvb_input_attach() error: we previously assumed 'dvb->fe' could be null (see line 1595)
+On 07-07-2017 12:16, Hans Verkuil wrote:
+> On 07/07/17 13:08, Jose Abreu wrote:
+>> When CONFIC_CEC_NOTIFIER is not set and we only include cec-notifier.h
+>> we can get build warnings like these ones:
+>>
+>> "warning: ‘struct cec_notifier’ declared inside parameter list will
+>> not be visible outside of this definition or declaration"
+>>
+>> Prevent these warnings by using forward declaration of notifier
+>> structure.
+>>
+>> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+>> Cc: Carlos Palminha <palminha@synopsys.com>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  include/media/cec-notifier.h | 6 +++---
+>>  1 file changed, 3 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
+>> index 298f996..84f9376 100644
+>> --- a/include/media/cec-notifier.h
+>> +++ b/include/media/cec-notifier.h
+>> @@ -21,14 +21,14 @@
+>>  #ifndef LINUX_CEC_NOTIFIER_H
+>>  #define LINUX_CEC_NOTIFIER_H
+>>  
+>> -#include <linux/types.h>
+>> -#include <media/cec.h>
+>> -
+>>  struct device;
+>>  struct edid;
+>>  struct cec_adapter;
+>>  struct cec_notifier;
+>>  
+>> +#include <linux/types.h>
+>> +#include <media/cec.h>
+>> +
+>>  #if IS_REACHABLE(CONFIG_CEC_CORE) && IS_ENABLED(CONFIG_CEC_NOTIFIER)
+>>  
+>>  /**
+>>
+> Isn't it enough to add a forward declaration of cec_notifier in the previous
+> patch? E.g.:
+>
+> +#ifndef CONFIG_CEC_NOTIFIER
+> +struct cec_notifier;
+> +static inline void cec_register_cec_notifier(struct cec_adapter *adap,
+> +					     struct cec_notifier *notifier)
+> +{
+> +}
+> +#endif
+>
+> Then this header doesn't need to change.
 
-dvb->fe2 will ever only be populated when dvb->fe is set. So only handle
-registration of dvb->fe2 when dvb->fe got set beforehand by moving the
-registration into the "if (dvb->fe)" conditional.
+Yeah, it should also work :) I will add to the previous patch and
+drop this one then.
 
-Cc: Ralph Metzler <rjkm@metzlerbros.de>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ddbridge/ddbridge-core.c | 20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+Best regards,
+Jose Miguel Abreu
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 175f173d3e86..aba53fd27f3e 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -1506,23 +1506,25 @@ static int dvb_input_attach(struct ddb_input *input)
- 		return 0;
- 	}
- 	dvb->attached = 0x30;
-+
- 	if (dvb->fe) {
- 		if (dvb_register_frontend(adap, dvb->fe) < 0)
- 			return -ENODEV;
-+
-+		if (dvb->fe2) {
-+			if (dvb_register_frontend(adap, dvb->fe2) < 0)
-+				return -ENODEV;
-+			dvb->fe2->tuner_priv = dvb->fe->tuner_priv;
-+			memcpy(&dvb->fe2->ops.tuner_ops,
-+			       &dvb->fe->ops.tuner_ops,
-+			       sizeof(struct dvb_tuner_ops));
-+		}
- 	}
--	if (dvb->fe2) {
--		if (dvb_register_frontend(adap, dvb->fe2) < 0)
--			return -ENODEV;
--		dvb->fe2->tuner_priv = dvb->fe->tuner_priv;
--		memcpy(&dvb->fe2->ops.tuner_ops,
--		       &dvb->fe->ops.tuner_ops,
--		       sizeof(struct dvb_tuner_ops));
--	}
-+
- 	dvb->attached = 0x31;
- 	return 0;
- }
- 
--
- static int port_has_encti(struct ddb_port *port)
- {
- 	struct device *dev = port->dev->dev;
--- 
-2.13.0
+>
+> Regards,
+>
+> 	Hans
