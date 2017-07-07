@@ -1,57 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:46243 "EHLO mail.anw.at"
+Received: from ns.mm-sol.com ([37.157.136.199]:45720 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751250AbdGPAni (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Jul 2017 20:43:38 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
-        rjkm@metzlerbros.de, d.scheller@gmx.net, crope@iki.fi,
-        jasmin@anw.at
-Subject: [PATCH V3 07/16] [media] dvb-core/dvb_ca_en50221.c: Added line breaks
-Date: Sun, 16 Jul 2017 02:43:08 +0200
-Message-Id: <1500165797-16987-8-git-send-email-jasmin@anw.at>
-In-Reply-To: <1500165797-16987-1-git-send-email-jasmin@anw.at>
-References: <1500165797-16987-1-git-send-email-jasmin@anw.at>
+        id S1750977AbdGGIS2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 7 Jul 2017 04:18:28 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: hansverk@cisco.com, mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH] [media] v4l2-mediabus: Add helper functions
+Date: Fri,  7 Jul 2017 11:18:07 +0300
+Message-Id: <1499415487-15785-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+Add helper functions for mbus to/from mplane pixel format conversion.
 
-Fixed all:
-  WARNING: Missing a blank line after declarations
-
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- drivers/media/dvb-core/dvb_ca_en50221.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ include/media/v4l2-mediabus.h | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
-index 7207ff5..678bd6a 100644
---- a/drivers/media/dvb-core/dvb_ca_en50221.c
-+++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-@@ -178,7 +178,9 @@ static void dvb_ca_private_free(struct dvb_ca_private *ca)
- 
- static void dvb_ca_private_release(struct kref *ref)
- {
--	struct dvb_ca_private *ca = container_of(ref, struct dvb_ca_private, refcount);
-+	struct dvb_ca_private *ca;
-+
-+	ca = container_of(ref, struct dvb_ca_private, refcount);
- 	dvb_ca_private_free(ca);
+diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+index 34cc99e..f97fd4a 100644
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -113,4 +113,30 @@ static inline void v4l2_fill_mbus_format(struct v4l2_mbus_framefmt *mbus_fmt,
+ 	mbus_fmt->code = code;
  }
  
-@@ -297,8 +299,10 @@ static int dvb_ca_en50221_wait_if_status(struct dvb_ca_private *ca, int slot,
- 	start = jiffies;
- 	timeout = jiffies + timeout_hz;
- 	while (1) {
-+		int res;
++static inline void v4l2_fill_pix_format_mplane(
++				struct v4l2_pix_format_mplane *pix_fmt,
++				const struct v4l2_mbus_framefmt *mbus_fmt)
++{
++	pix_fmt->width = mbus_fmt->width;
++	pix_fmt->height = mbus_fmt->height;
++	pix_fmt->field = mbus_fmt->field;
++	pix_fmt->colorspace = mbus_fmt->colorspace;
++	pix_fmt->ycbcr_enc = mbus_fmt->ycbcr_enc;
++	pix_fmt->quantization = mbus_fmt->quantization;
++	pix_fmt->xfer_func = mbus_fmt->xfer_func;
++}
 +
- 		/* read the status and check for error */
--		int res = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS);
-+		res = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS);
- 		if (res < 0)
- 			return -EIO;
- 
++static inline void v4l2_fill_mbus_format_mplane(
++				struct v4l2_mbus_framefmt *mbus_fmt,
++				const struct v4l2_pix_format_mplane *pix_fmt)
++{
++	mbus_fmt->width = pix_fmt->width;
++	mbus_fmt->height = pix_fmt->height;
++	mbus_fmt->field = pix_fmt->field;
++	mbus_fmt->colorspace = pix_fmt->colorspace;
++	mbus_fmt->ycbcr_enc = pix_fmt->ycbcr_enc;
++	mbus_fmt->quantization = pix_fmt->quantization;
++	mbus_fmt->xfer_func = pix_fmt->xfer_func;
++}
++
+ #endif
 -- 
-2.7.4
+1.9.1
