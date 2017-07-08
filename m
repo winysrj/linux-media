@@ -1,48 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:35970 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751719AbdG1Kwg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Jul 2017 06:52:36 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [RFC PATCH 0/2] add VIDIOC_SUBDEV_QUERYCAP ioctl
-Date: Fri, 28 Jul 2017 12:52:29 +0200
-Message-Id: <20170728105231.12043-1-hverkuil@xs4all.nl>
+Received: from esgaroth.petrovitsch.at ([78.47.184.11]:3998 "EHLO
+        esgaroth.tuxoid.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752636AbdGHJ4H (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 8 Jul 2017 05:56:07 -0400
+Message-ID: <1499504311.3472.13.camel@petrovitsch.priv.at>
+Subject: Re: [PATCH 2/2] staging: media: atomisp2: Replace kfree()/vfree()
+ with kvfree()
+From: Bernd Petrovitsch <bernd@petrovitsch.priv.at>
+To: Amitoj Kaur Chawla <amitoj1606@gmail.com>, mchehab@kernel.org,
+        gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Date: Sat, 08 Jul 2017 10:58:31 +0200
+In-Reply-To: <20170708004102.GA27161@amitoj-Inspiron-3542>
+References: <20170708004102.GA27161@amitoj-Inspiron-3542>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Fri, 2017-07-07 at 20:41 -0400, Amitoj Kaur Chawla wrote:
+[...]
+> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+> @@ -117,11 +117,7 @@ void *atomisp_kernel_zalloc(size_t bytes, bool
+> zero_mem)
+>   */
+>  void atomisp_kernel_free(void *ptr)
+>  {
+> -	/* Verify if buffer was allocated by vmalloc() or kmalloc()
+> */
+> -	if (is_vmalloc_addr(ptr))
+> -		vfree(ptr);
+> -	else
+> -		kfree(ptr);
+> +	kvfree(ptr);
+>  }
+>  
+>  /*
 
-I tried to get this in back in 2015, but that effort stalled.
+Why not get rid of the trivial wrapper function completely?
 
-Trying again, since I really need this in order to add proper v4l-subdev
-support to v4l2-ctl and v4l2-compliance. There currently is no way of
-unique identifying that the device really is a v4l-subdev device other
-than the device name (which can be changed by udev).
-
-So this patch series adds a VIDIOC_SUBDEV_QUERYCAP ioctl that is in
-the core so it's guaranteed to be there.
-
-If the subdev is part of an MC then it also gives the corresponding
-entity ID of the subdev and the major/minor numbers of the MC device
-so v4l2-compliance can relate the subdev device directly to the right
-MC device. The reserved array has room enough for strings should we
-need them later. 
-
-Hans Verkuil (2):
-  v4l2-subdev: add VIDIOC_SUBDEV_QUERYCAP ioctl
-  v4l: document VIDIOC_SUBDEV_QUERYCAP
-
- Documentation/media/uapi/v4l/user-func.rst         |   1 +
- .../media/uapi/v4l/vidioc-subdev-querycap.rst      | 118 +++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-subdev.c              |  26 +++++
- include/uapi/linux/v4l2-subdev.h                   |  29 +++++
- 4 files changed, 174 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/vidioc-subdev-querycap.rst
-
+MfG,
+	Bernd
 -- 
-2.13.1
+Bernd Petrovitsch                  Email : bernd@petrovitsch.priv.at
+                     LUGA : http://www.luga.at
