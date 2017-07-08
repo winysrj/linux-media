@@ -1,36 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:35348 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751441AbdG0PjU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Jul 2017 11:39:20 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] v4l2-tpg-core.c: fix typo in bt2020_full matrix
-Message-ID: <cdee9afa-6824-aaf5-e0e3-c724d00ee107@xs4all.nl>
-Date: Thu, 27 Jul 2017 17:39:14 +0200
+Received: from mail-wr0-f170.google.com ([209.85.128.170]:36089 "EHLO
+        mail-wr0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752956AbdGHRNS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 8 Jul 2017 13:13:18 -0400
+Received: by mail-wr0-f170.google.com with SMTP id c11so85730819wrc.3
+        for <linux-media@vger.kernel.org>; Sat, 08 Jul 2017 10:13:17 -0700 (PDT)
+Subject: Re: Kaffeine with VLC backend.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <6a28b31a-1b67-f113-9456-19b910674a6a@gmail.com>
+Message-ID: <a94b59bd-0cdc-2856-a022-7190a7b3f6d5@gmail.com>
+Date: Sat, 8 Jul 2017 18:13:14 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <6a28b31a-1b67-f113-9456-19b910674a6a@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-My eye fell on this wrong coefficient in the bt2020_full matrix.
-The bt2020 matrix (limited range) is OK.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-index 3dd22da7e17d..a772976cfe26 100644
---- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-+++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-@@ -615,7 +615,7 @@ static void color_to_ycbcr(struct tpg_data *tpg, int r, int g, int b,
- 	static const int bt2020_full[3][3] = {
- 		{ COEFF(0.2627, 255),  COEFF(0.6780, 255),  COEFF(0.0593, 255)  },
- 		{ COEFF(-0.1396, 255), COEFF(-0.3604, 255), COEFF(0.5, 255)     },
--		{ COEFF(0.5, 255),     COEFF(-0.4698, 255), COEFF(-0.0402, 255) },
-+		{ COEFF(0.5, 255),     COEFF(-0.4598, 255), COEFF(-0.0402, 255) },
- 	};
- 	static const int bt2020c[4] = {
- 		COEFF(1.0 / 1.9404, 224), COEFF(1.0 / 1.5816, 224),
+
+On 08/07/17 08:17, Malcolm Priestley wrote:
+> Hi Mauro
+> 
+> Have you encountered a strange bug with Kaffeine with VLC backend.
+> 
+> Certain channels will not play correctly, the recordings will also not 
+> play in VLC.
+> 
+> However, they will play fine with xine player. Only some channels are 
+> affected of those provided by SKY such as 12207 V on Astra 28.2.
+> 
+> These channels will play fine with Kaffeine with xine backend they also 
+> play with VLC's dvb-s interface.
+> 
+> Any ideas what could be wrong with the TS format?
+> 
+> I am wondering if SKY are inserting something into the format.
+
+Just a follow up it appears that the PCR is missing from the stream 
+which is transmitted on a different PID.
+
+In the case of the above channel manually adding PID 8190 the backend 
+plays normally.
