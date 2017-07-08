@@ -1,86 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42002 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752307AbdGEXAZ (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:45758 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750971AbdGHVqH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 5 Jul 2017 19:00:25 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: pavel@ucw.cz
-Subject: [PATCH 8/8] omap3isp: Destroy CSI-2 phy mutexes in error and module removal
-Date: Thu,  6 Jul 2017 02:00:19 +0300
-Message-Id: <20170705230019.5461-9-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170705230019.5461-1-sakari.ailus@linux.intel.com>
-References: <20170705230019.5461-1-sakari.ailus@linux.intel.com>
+        Sat, 8 Jul 2017 17:46:07 -0400
+Subject: Re: media-build breaks for Kernel 3.13
+To: "Jasmin J." <jasmin@anw.at>, linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <ff9884c5-b5b2-b7bd-9a60-e499e480b9eb@anw.at>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <3d62ed23-0ef7-0a1d-0132-9d2e0b45a3a4@xs4all.nl>
+Date: Sat, 8 Jul 2017 23:45:54 +0200
+MIME-Version: 1.0
+In-Reply-To: <ff9884c5-b5b2-b7bd-9a60-e499e480b9eb@anw.at>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The CSI-2 phy driver did initialise mutexes in its init function but there
-was no corresponding cleanup function destroying them. Fix that. Also
-clean up ISP module initialisation a little.
+On 08/07/17 22:41, Jasmin J. wrote:
+> Hello!
+> 
+> I tried to compile the last media master for Kernel 3.13 (Ubuntu 14.04) and get
+> errors during the patch step:
+> tar xfj linux-media.tar.bz2
+>  rm -f .patches_applied .linked_dir .git_log.md5
+>  make -C /mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l stagingconfig
+>  make[1]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l'
+>  make[2]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
+>  Applying patches for kernel 3.13.0-117-generic
+>  patch -s -f -N -p1 -i ../backports/api_version.patch
+>  patch -s -f -N -p1 -i ../backports/pr_fmt.patch
+>  1 out of 1 hunk FAILED
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/platform/omap3isp/isp.c       | 6 ++++--
- drivers/media/platform/omap3isp/ispcsiphy.c | 6 ++++++
- drivers/media/platform/omap3isp/ispcsiphy.h | 1 +
- 3 files changed, 11 insertions(+), 2 deletions(-)
+Hmm, works fine for me. It still failed to build for 3.13 for other reasons, which I've now
+fixed, but the patch step is working fine for me.
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 0676be725d7c..7028bbe13b69 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1859,6 +1859,7 @@ static void isp_cleanup_modules(struct isp_device *isp)
- 	omap3isp_ccdc_cleanup(isp);
- 	omap3isp_ccp2_cleanup(isp);
- 	omap3isp_csi2_cleanup(isp);
-+	omap3isp_csiphy_cleanup(isp);
- }
- 
- static int isp_initialize_modules(struct isp_device *isp)
-@@ -1868,7 +1869,7 @@ static int isp_initialize_modules(struct isp_device *isp)
- 	ret = omap3isp_csiphy_init(isp);
- 	if (ret < 0) {
- 		dev_err(isp->dev, "CSI PHY initialization failed\n");
--		goto error_csiphy;
-+		return ret;
- 	}
- 
- 	ret = omap3isp_csi2_init(isp);
-@@ -1937,7 +1938,8 @@ static int isp_initialize_modules(struct isp_device *isp)
- error_ccp2:
- 	omap3isp_csi2_cleanup(isp);
- error_csi2:
--error_csiphy:
-+	omap3isp_csiphy_cleanup(isp);
-+
- 	return ret;
- }
- 
-diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
-index 871d4fe09c7f..83940e9d8291 100644
---- a/drivers/media/platform/omap3isp/ispcsiphy.c
-+++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-@@ -345,3 +345,9 @@ int omap3isp_csiphy_init(struct isp_device *isp)
- 
- 	return 0;
- }
-+
-+void omap3isp_csiphy_cleanup(struct isp_device *isp)
-+{
-+	mutex_destroy(&isp->isp_csiphy1.mutex);
-+	mutex_destroy(&isp->isp_csiphy2.mutex);
-+}
-diff --git a/drivers/media/platform/omap3isp/ispcsiphy.h b/drivers/media/platform/omap3isp/ispcsiphy.h
-index 28b63b28f9f7..978ca5c80a6c 100644
---- a/drivers/media/platform/omap3isp/ispcsiphy.h
-+++ b/drivers/media/platform/omap3isp/ispcsiphy.h
-@@ -39,5 +39,6 @@ struct isp_csiphy {
- int omap3isp_csiphy_acquire(struct isp_csiphy *phy);
- void omap3isp_csiphy_release(struct isp_csiphy *phy);
- int omap3isp_csiphy_init(struct isp_device *isp);
-+void omap3isp_csiphy_cleanup(struct isp_device *isp);
- 
- #endif	/* OMAP3_ISP_CSI_PHY_H */
--- 
-2.11.0
+It suggests you are using an old media_build. Make sure you do a git pull.
+
+Regards,
+
+	Hans
+
+>  Makefile:138: recipe for target 'apply_patches' failed
+>  make[2]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
+>  Makefile:388: recipe for target 'stagingconfig' failed
+>  make[1]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l'
+>  Makefile:26: recipe for target 'stagingconfig' failed
+>  Disabling CONFIG_DVB_DEMUX_SECTION_LOSS_LOG
+>  Disabling CONFIG_DVB_DDBRIDGE_MSIENABLE
+>  Disabling CONFIG_VIDEOBUF2_MEMOPS
+>  Disabling CONFIG_FRAME_VECTOR
+>  Disabling CONFIG_DVB_AF9033
+>  Disabling CONFIG_VIDEO_ET8EK8
+>  Disabling CONFIG_VIDEO_DW9714
+>  Disabling CONFIG_SDR_MAX2175
+>  Disabling CONFIG_VIDEO_VIMC
+>  Setting CONFIG_DVB_MAX_ADAPTERS to 32
+>  make -C /mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l
+>  make[1]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l'
+>  scripts/make_makefile.pl
+>  Updating/Creating .config
+>  make[2]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
+>  make[2]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
+>  make[3]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
+>  make[3]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
+>  Unapplying patches
+>  Unapplying patches
+>  patch -s -f -R -p1 -i ../backports/api_version.patch
+>  patch -s -f -R -p1 -i ../backports/api_version.patch
+>  make[3]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
+>  Applying patches for kernel 3.13.0-117-generic
+>  make[3]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
+>  Applying patches for kernel 3.13.0-117-generic
+>  Applying patches for kernel 3.13.0-117-generic
+>  make[3]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
+>  Applying patches for kernel 3.13.0-117-generic
+>  patch -s -f -N -p1 -i ../backports/api_version.patch
+>  patch -s -f -N -p1 -i ../backports/api_version.patch
+>  1 out of 1 hunk FAILED -- saving rejects to file drivers/media/cec/cec-api.c.rej
+>  2 out of 2 hunks FAILED -- saving rejects to file drivers/media/media-device.c.rej
+>  1 out of 1 hunk FAILED -- saving rejects to file drivers/media/usb/uvc/uvc_driver.c.rej
+>  1 out of 1 hunk FAILED -- saving rejects to file drivers/media/v4l2-core/v4l2-ioctl.c.rej
+>  patch -s -f -N -p1 -i ../backports/pr_fmt.patch
+>  patch -s -f -N -p1 -i ../backports/pr_fmt.patch
+>  1 out of 1 hunk FAILED
+>  1 out of 1 hunk FAILED
+>  Makefile:138: recipe for target 'apply_patches' failed
+>  Makefile:138: recipe for target 'apply_patches' failed
+>  make[2]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
+>  make[2]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
+>  Preparing to compile for kernel version 3.13.0
+>  WARNING: This is the V4L/DVB backport tree, with experimental drivers
+>       backported to run on legacy kernels from the development tree at:
+>          http://git.linuxtv.org/media-tree.git.
+>       It is generally safe to use it for testing a new driver or
+>       feature, but its usage on production environments is risky.
+>       Don't use it in production. You've been warned.
+>  CEC_CORE: Requires at least kernel 3.19.0
+>  MEDIA_CEC_SUPPORT: Requires at least kernel 3.19.0
+>  V4L2_FLASH_LED_CLASS: Requires at least kernel 4.2.0
+>  RC_ST: Requires at least kernel 3.15.0
+> Created default (all yes) .config file
+>  ./scripts/make_myconfig.pl
+>  perl scripts/make_config_compat.pl /lib/modules/3.13.0-117-generic/build ./.myconfig ./config-compat.h
+>  make -C firmware prep
+>  creating symbolic links...
+>  make[2]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/firmware'
+>  make[2]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/firmware'
+>  make -C firmware
+>  make[2]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/firmware'
+>    CC  ihex2fw
+>  Generating ttusb-budget/dspbootcode.bin
+>  Generating vicam/firmware.fw
+>  Generating cpia2/stv0672_vp4.bin
+>  Generating av7110/bootcode.bin
+>  make[2]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/firmware'
+>  Kernel build directory is /lib/modules/3.13.0-117-generic/build
+>  make -C ../linux apply_patches
+>  make[2]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
+>  make[3]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
+>  Unapplying patches
+>  patch -s -f -R -p1 -i ../backports/api_version.patch
+>  patch -s -f -R -p1 -i ../backports/api_version.patch
+>  1 out of 1 hunk FAILED -- saving rejects to file drivers/media/cec/cec-api.c.rej
+>  2 out of 2 hunks FAILED -- saving rejects to file drivers/media/media-device.c.rej
+>  1 out of 1 hunk FAILED -- saving rejects to file drivers/media/usb/uvc/uvc_driver.c.rej
+>  1 out of 1 hunk FAILED -- saving rejects to file drivers/media/v4l2-core/v4l2-ioctl.c.rej
+>  make[3]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
+>  Applying patches for kernel 3.13.0-117-generic
+>  patch -s -f -N -p1 -i ../backports/api_version.patch
+>  patch -s -f -N -p1 -i ../backports/pr_fmt.patch
+>  1 out of 1 hunk FAILED
+>  Makefile:138: recipe for target 'apply_patches' failed
+>  make[2]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
+>  Makefile:51: recipe for target 'default' failed
+>  make[1]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l'
+>  Makefile:26: recipe for target 'all' failed
+> 
+> May I ask when I can expect this get fixed?
+> I mean, is someone working on that already?
+> 
+> BR,
+>    Jasmin
+> 
