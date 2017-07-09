@@ -1,98 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:42175 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754210AbdG3SA3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 30 Jul 2017 14:00:29 -0400
-Date: Sun, 30 Jul 2017 19:00:27 +0100
-From: Sean Young <sean@mess.org>
-To: Matthias Reichl <hias@horus.com>
-Cc: Szabolcs Andrasi <andrasi.szabolcs@gmail.com>,
-        linux-media@vger.kernel.org
-Subject: Re: ir-keytable question [Ubuntu 17.04]
-Message-ID: <20170730180026.2bdup5v7kk5pgurx@gofer.mess.org>
-References: <CAM1CkLU6gTj2zDS-9cu_POOVpByitEyi26XhKZ1W3j9AbTTK-Q@mail.gmail.com>
- <20170729102322.7p6ipsszmvryqubs@gofer.mess.org>
- <20170729114607.2536ekbn6wzhbzpn@camel2.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170729114607.2536ekbn6wzhbzpn@camel2.lan>
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:34330 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752596AbdGITmf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 15:42:35 -0400
+Received: by mail-wr0-f195.google.com with SMTP id k67so20345343wrc.1
+        for <linux-media@vger.kernel.org>; Sun, 09 Jul 2017 12:42:34 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at, d_spingler@gmx.de, rjkm@metzlerbros.de
+Subject: [PATCH 09/14] [media] ddbridge: fix possible buffer overflow in ddb_ports_init()
+Date: Sun,  9 Jul 2017 21:42:16 +0200
+Message-Id: <20170709194221.10255-10-d.scheller.oss@gmail.com>
+In-Reply-To: <20170709194221.10255-1-d.scheller.oss@gmail.com>
+References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 29, 2017 at 01:46:07PM +0200, Matthias Reichl wrote:
-> On Sat, Jul 29, 2017 at 11:23:22AM +0100, Sean Young wrote:
-> > Hi,
-> > 
-> > On Sun, Jul 16, 2017 at 10:26:14PM -0700, Szabolcs Andrasi wrote:
-> > > Hi,
-> > > 
-> > > I'm using Ubuntu 17.04 and I installed the ir-keytable tool. The
-> > > output of the ir-keytable command is as follows:
-> > > 
-> > > 
-> > > 
-> > > Found /sys/class/rc/rc0/ (/dev/input/event5) with:
-> > > Driver ite-cir, table rc-rc6-mce
-> > > Supported protocols: unknown other lirc rc-5 rc-5-sz jvc sony nec
-> > > sanyo mce_kbd rc-6 sharp xmp
-> > > Enabled protocols: lirc rc-6
-> > > Name: ITE8708 CIR transceiver
-> > > bus: 25, vendor/product: 1283:0000, version: 0x0000
-> > > Repeat delay = 500 ms, repeat period = 125 ms
-> > > 
-> > > 
-> > > 
-> > > I'm trying to enable the supported mce_kbd protocol in addition to the
-> > > lirc and rc-6 protocols with the
-> > > 
-> > > $ sudo ir-keytable -p lirc -p rc-6 -p mce_kbd
-> > > 
-> > > command which works as expected. If, however, I reboot my computer,
-> > > ir-keytable forgets this change and only the lirc and rc-6 protocols
-> > > are enabled. Is there a configuration file I can edit so that after
-> > > the boot my IR remote still works? Or is that so that the only way to
-> > > make it work is to write a start-up script that runs the above command
-> > > to enable the needed protocol?
-> > 
-> > So what we have today is /etc/rc_maps.cfg, where you can select the default
-> > keymap for a particular driver; unfortunately, you can only select one
-> > keymap and one keymap can only have one protocol.
-> >
-> > Ideally we could either have more than one protocol per keymap, which
-> > would be helpful for the MCE Keyboard, or we could allow multiple keymaps
-> > which would be great for supporting different remotes at the same time.
-> 
-> Having more than one protocol in the keymap file works fine here,
-> we have been using that feature in LibreELEC for a long time now.
-> Maybe it was just forgotten to document it?
-> 
-> $ git show 42511eb505
-> commit 42511eb505b46b125652d37e764e5c8d1eb99e6b
-> Author: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Date:   Sat Apr 10 21:55:28 2010 -0300
-> 
->     ir-keytable: add support for more than one protocol in a table
-> 
->     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> Quick test with ir-keytable 1.12.3 from Debian Stretch:
+From: Daniel Scheller <d.scheller@gmx.net>
 
--snip-
+Report from smatch:
 
-Yes, you're right. I was wrong.
+  drivers/media/pci/ddbridge/ddbridge-core.c:2659 ddb_ports_init() error: buffer overflow 'dev->port' 32 <= u32max
 
-So, first of all, in recent kernels the "lirc" protocol is always enabled
-and cannot be disabled. So there is no reason to explicitly enable it.
+Fix by making sure "p" is greater than zero before checking for
+"dev->port[].type == DDB_CI_EXTERNAL_XO2".
 
-Now if you want to enable both rc-6 and mce_kbd, is that because you want
-to use the Microsoft MCE IR keyboard? It uses both rc-6 and mce_kbd
-protocol.
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/ddbridge-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-We should really have a keymap for this device; the only difference
-with the rc6_mce keyboard is that mce_kbd protocol is also used.
-
-Would that work?
-
-
-Sean
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index aba53fd27f3e..8981795b0819 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -2551,7 +2551,7 @@ void ddb_ports_init(struct ddb *dev)
+ 			port->dvb[0].adap = &dev->adap[2 * p];
+ 			port->dvb[1].adap = &dev->adap[2 * p + 1];
+ 
+-			if ((port->class == DDB_PORT_NONE) && i &&
++			if ((port->class == DDB_PORT_NONE) && i && p > 0 &&
+ 			    dev->port[p - 1].type == DDB_CI_EXTERNAL_XO2) {
+ 				port->class = DDB_PORT_CI;
+ 				port->type = DDB_CI_EXTERNAL_XO2_B;
+-- 
+2.13.0
