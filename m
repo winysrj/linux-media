@@ -1,268 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46462 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751267AbdGMPXw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Jul 2017 11:23:52 -0400
-Received: from lanttu.localdomain (unknown [IPv6:2001:1bc8:1a6:d3d5::e1:1001])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 99530600C7
-        for <linux-media@vger.kernel.org>; Thu, 13 Jul 2017 18:23:48 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 1/6] omap3isp: Don't rely on devm for memory resource management
-Date: Thu, 13 Jul 2017 18:23:44 +0300
-Message-Id: <20170713152349.14480-2-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170713152349.14480-1-sakari.ailus@linux.intel.com>
-References: <20170713152349.14480-1-sakari.ailus@linux.intel.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55992
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751774AbdGILPE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 07:15:04 -0400
+Date: Sun, 9 Jul 2017 08:14:55 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Malcolm Priestley <tvboxspy@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFC 1/2] app: kaffeine: Fix missing PCR on live streams.
+Message-ID: <20170709081455.024e4c0d@vento.lan>
+In-Reply-To: <20170709094351.14642-1-tvboxspy@gmail.com>
+References: <20170709094351.14642-1-tvboxspy@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-devm functions are fine for managing resources that are directly related
-to the device at hand and that have no other dependencies. However, a
-process holding a file handle to a device created by a driver for a device
-may result in the file handle left behind after the device is long gone.
-This will result in accessing released (and potentially reallocated)
-memory.
+Hi Malcolm,
 
-Instead, manage the memory resources in the driver. Releasing the
-resources can be later on bound to e.g. by releasing a reference.
+Em Sun,  9 Jul 2017 10:43:50 +0100
+Malcolm Priestley <tvboxspy@gmail.com> escreveu:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/isp.c         | 18 ++++++++++++------
- drivers/media/platform/omap3isp/isph3a_aewb.c | 24 +++++++++++++++++-------
- drivers/media/platform/omap3isp/isph3a_af.c   | 24 +++++++++++++++++-------
- drivers/media/platform/omap3isp/isphist.c     | 11 +++++++----
- drivers/media/platform/omap3isp/ispstat.c     |  2 ++
- 5 files changed, 55 insertions(+), 24 deletions(-)
+> The ISO/IEC standard 13818-1 or ITU-T Rec. H.222.0 standard allow transport
+> vendors to place PCR (Program Clock Reference) on a different PID.
+> 
+> If the PCR is unset the value is 0x1fff, most vendors appear to set it the
+> same as video pid in which case it need not be set.
+> 
+> The PCR PID is at an offset of 8 in pmtSection structure.
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 9df64c189883..a03f8b9f8763 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1999,6 +1999,8 @@ static int isp_remove(struct platform_device *pdev)
- 
- 	media_entity_enum_cleanup(&isp->crashed);
- 
-+	kfree(isp);
-+
- 	return 0;
- }
- 
-@@ -2189,7 +2191,7 @@ static int isp_probe(struct platform_device *pdev)
- 	int ret;
- 	int i, m;
- 
--	isp = devm_kzalloc(&pdev->dev, sizeof(*isp), GFP_KERNEL);
-+	isp = kzalloc(sizeof(*isp), GFP_KERNEL);
- 	if (!isp) {
- 		dev_err(&pdev->dev, "could not allocate memory\n");
- 		return -ENOMEM;
-@@ -2198,21 +2200,23 @@ static int isp_probe(struct platform_device *pdev)
- 	ret = fwnode_property_read_u32(of_fwnode_handle(pdev->dev.of_node),
- 				       "ti,phy-type", &isp->phy_type);
- 	if (ret)
--		return ret;
-+		goto error_release_isp;
- 
- 	isp->syscon = syscon_regmap_lookup_by_phandle(pdev->dev.of_node,
- 						      "syscon");
--	if (IS_ERR(isp->syscon))
--		return PTR_ERR(isp->syscon);
-+	if (IS_ERR(isp->syscon)) {
-+		ret = PTR_ERR(isp->syscon);
-+		goto error_release_isp;
-+	}
- 
- 	ret = of_property_read_u32_index(pdev->dev.of_node,
- 					 "syscon", 1, &isp->syscon_offset);
- 	if (ret)
--		return ret;
-+		goto error_release_isp;
- 
- 	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
- 	if (ret < 0)
--		return ret;
-+		goto error_release_isp;
- 
- 	isp->autoidle = autoidle;
- 
-@@ -2362,6 +2366,8 @@ static int isp_probe(struct platform_device *pdev)
- 	__omap3isp_put(isp, false);
- error:
- 	mutex_destroy(&isp->isp_mutex);
-+error_release_isp:
-+	kfree(isp);
- 
- 	return ret;
- }
-diff --git a/drivers/media/platform/omap3isp/isph3a_aewb.c b/drivers/media/platform/omap3isp/isph3a_aewb.c
-index d44626f20ac6..efddafdb999d 100644
---- a/drivers/media/platform/omap3isp/isph3a_aewb.c
-+++ b/drivers/media/platform/omap3isp/isph3a_aewb.c
-@@ -289,9 +289,10 @@ int omap3isp_h3a_aewb_init(struct isp_device *isp)
- {
- 	struct ispstat *aewb = &isp->isp_aewb;
- 	struct omap3isp_h3a_aewb_config *aewb_cfg;
--	struct omap3isp_h3a_aewb_config *aewb_recover_cfg;
-+	struct omap3isp_h3a_aewb_config *aewb_recover_cfg = NULL;
-+	int ret;
- 
--	aewb_cfg = devm_kzalloc(isp->dev, sizeof(*aewb_cfg), GFP_KERNEL);
-+	aewb_cfg = kzalloc(sizeof(*aewb_cfg), GFP_KERNEL);
- 	if (!aewb_cfg)
- 		return -ENOMEM;
- 
-@@ -301,12 +302,12 @@ int omap3isp_h3a_aewb_init(struct isp_device *isp)
- 	aewb->isp = isp;
- 
- 	/* Set recover state configuration */
--	aewb_recover_cfg = devm_kzalloc(isp->dev, sizeof(*aewb_recover_cfg),
--					GFP_KERNEL);
-+	aewb_recover_cfg = kzalloc(sizeof(*aewb_recover_cfg), GFP_KERNEL);
- 	if (!aewb_recover_cfg) {
- 		dev_err(aewb->isp->dev,
- 			"AEWB: cannot allocate memory for recover configuration.\n");
--		return -ENOMEM;
-+		ret = -ENOMEM;
-+		goto err;
- 	}
- 
- 	aewb_recover_cfg->saturation_limit = OMAP3ISP_AEWB_MAX_SATURATION_LIM;
-@@ -323,13 +324,22 @@ int omap3isp_h3a_aewb_init(struct isp_device *isp)
- 	if (h3a_aewb_validate_params(aewb, aewb_recover_cfg)) {
- 		dev_err(aewb->isp->dev,
- 			"AEWB: recover configuration is invalid.\n");
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto err;
- 	}
- 
- 	aewb_recover_cfg->buf_size = h3a_aewb_get_buf_size(aewb_recover_cfg);
- 	aewb->recover_priv = aewb_recover_cfg;
- 
--	return omap3isp_stat_init(aewb, "AEWB", &h3a_aewb_subdev_ops);
-+	ret = omap3isp_stat_init(aewb, "AEWB", &h3a_aewb_subdev_ops);
-+
-+err:
-+	if (ret) {
-+		kfree(aewb_cfg);
-+		kfree(aewb_recover_cfg);
-+	}
-+
-+	return ret;
- }
- 
- /*
-diff --git a/drivers/media/platform/omap3isp/isph3a_af.c b/drivers/media/platform/omap3isp/isph3a_af.c
-index 99bd6cc21d86..fee3d19f94f8 100644
---- a/drivers/media/platform/omap3isp/isph3a_af.c
-+++ b/drivers/media/platform/omap3isp/isph3a_af.c
-@@ -352,9 +352,10 @@ int omap3isp_h3a_af_init(struct isp_device *isp)
- {
- 	struct ispstat *af = &isp->isp_af;
- 	struct omap3isp_h3a_af_config *af_cfg;
--	struct omap3isp_h3a_af_config *af_recover_cfg;
-+	struct omap3isp_h3a_af_config *af_recover_cfg = NULL;
-+	int ret;
- 
--	af_cfg = devm_kzalloc(isp->dev, sizeof(*af_cfg), GFP_KERNEL);
-+	af_cfg = kzalloc(sizeof(*af_cfg), GFP_KERNEL);
- 	if (af_cfg == NULL)
- 		return -ENOMEM;
- 
-@@ -364,12 +365,12 @@ int omap3isp_h3a_af_init(struct isp_device *isp)
- 	af->isp = isp;
- 
- 	/* Set recover state configuration */
--	af_recover_cfg = devm_kzalloc(isp->dev, sizeof(*af_recover_cfg),
--				      GFP_KERNEL);
-+	af_recover_cfg = kzalloc(sizeof(*af_recover_cfg), GFP_KERNEL);
- 	if (!af_recover_cfg) {
- 		dev_err(af->isp->dev,
- 			"AF: cannot allocate memory for recover configuration.\n");
--		return -ENOMEM;
-+		ret = -ENOMEM;
-+		goto err;
- 	}
- 
- 	af_recover_cfg->paxel.h_start = OMAP3ISP_AF_PAXEL_HZSTART_MIN;
-@@ -381,13 +382,22 @@ int omap3isp_h3a_af_init(struct isp_device *isp)
- 	if (h3a_af_validate_params(af, af_recover_cfg)) {
- 		dev_err(af->isp->dev,
- 			"AF: recover configuration is invalid.\n");
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto err;
- 	}
- 
- 	af_recover_cfg->buf_size = h3a_af_get_buf_size(af_recover_cfg);
- 	af->recover_priv = af_recover_cfg;
- 
--	return omap3isp_stat_init(af, "AF", &h3a_af_subdev_ops);
-+	ret = omap3isp_stat_init(af, "AF", &h3a_af_subdev_ops);
-+
-+err:
-+	if (ret) {
-+		kfree(af_cfg);
-+		kfree(af_recover_cfg);
-+	}
-+
-+	return ret;
- }
- 
- void omap3isp_h3a_af_cleanup(struct isp_device *isp)
-diff --git a/drivers/media/platform/omap3isp/isphist.c b/drivers/media/platform/omap3isp/isphist.c
-index a4ed5d140d48..9df15ad75f71 100644
---- a/drivers/media/platform/omap3isp/isphist.c
-+++ b/drivers/media/platform/omap3isp/isphist.c
-@@ -476,9 +476,9 @@ int omap3isp_hist_init(struct isp_device *isp)
- {
- 	struct ispstat *hist = &isp->isp_hist;
- 	struct omap3isp_hist_config *hist_cfg;
--	int ret = -1;
-+	int ret;
- 
--	hist_cfg = devm_kzalloc(isp->dev, sizeof(*hist_cfg), GFP_KERNEL);
-+	hist_cfg = kzalloc(sizeof(*hist_cfg), GFP_KERNEL);
- 	if (hist_cfg == NULL)
- 		return -ENOMEM;
- 
-@@ -500,7 +500,7 @@ int omap3isp_hist_init(struct isp_device *isp)
- 		if (IS_ERR(hist->dma_ch)) {
- 			ret = PTR_ERR(hist->dma_ch);
- 			if (ret == -EPROBE_DEFER)
--				return ret;
-+				goto err;
- 
- 			hist->dma_ch = NULL;
- 			dev_warn(isp->dev,
-@@ -516,9 +516,12 @@ int omap3isp_hist_init(struct isp_device *isp)
- 	hist->event_type = V4L2_EVENT_OMAP3ISP_HIST;
- 
- 	ret = omap3isp_stat_init(hist, "histogram", &hist_subdev_ops);
-+
-+err:
- 	if (ret) {
--		if (hist->dma_ch)
-+		if (!IS_ERR_OR_NULL(hist->dma_ch))
- 			dma_release_channel(hist->dma_ch);
-+		kfree(hist_cfg);
- 	}
- 
- 	return ret;
-diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
-index 47cbc7e3d825..aad0bc30762c 100644
---- a/drivers/media/platform/omap3isp/ispstat.c
-+++ b/drivers/media/platform/omap3isp/ispstat.c
-@@ -1067,4 +1067,6 @@ void omap3isp_stat_cleanup(struct ispstat *stat)
- 	mutex_destroy(&stat->ioctl_lock);
- 	isp_stat_bufs_free(stat);
- 	kfree(stat->buf);
-+	kfree(stat->priv);
-+	kfree(stat->recover_priv);
- }
--- 
-2.11.0
+Thanks for the patches!
+
+Patches look good, except for two things:
+
+- we use camelCase at Kaffeine. So, the new field should be pcrPid ;)
+
+- you didn't use dvbsi.xml. The way we usually update dvbsi.h and part of
+  dvbsi.cpp is to add a field at dvbsi.xml and then run:
+
+	$ tools/update_dvbsi.sh
+
+  Kaffeine should be built with the optional BUILD_TOOLS feature, in order
+  for it to build the tool that parses dvbsi.xml.
+
+Anyway, I applied your patchset and added a few pathes afterwards 
+adjusting it.
+
+Regards,
+Mauro
+
+> 
+> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+> ---
+>  src/dvb/dvbliveview.cpp | 8 ++++++++
+>  src/dvb/dvbsi.h         | 5 +++++
+>  2 files changed, 13 insertions(+)
+> 
+> diff --git a/src/dvb/dvbliveview.cpp b/src/dvb/dvbliveview.cpp
+> index cfad892..3e92fa6 100644
+> --- a/src/dvb/dvbliveview.cpp
+> +++ b/src/dvb/dvbliveview.cpp
+> @@ -518,6 +518,7 @@ void DvbLiveView::updatePids(bool forcePatPmtUpdate)
+>  	DvbPmtSection pmtSection(internal->pmtSectionData);
+>  	DvbPmtParser pmtParser(pmtSection);
+>  	QSet<int> newPids;
+> +	int pcr_pid = pmtSection.pcr_pid();
+>  	bool updatePatPmt = forcePatPmtUpdate;
+>  	bool isTimeShifting = internal->timeShiftFile.isOpen();
+>  
+> @@ -543,6 +544,13 @@ void DvbLiveView::updatePids(bool forcePatPmtUpdate)
+>  		newPids.insert(pmtParser.teletextPid);
+>  	}
+>  
+> +	/* check PCR PID is set */
+> +	if (pcr_pid != 0x1fff) {
+> +		/* Check not already in list */
+> +		if (!newPids.contains(pcr_pid))
+> +			newPids.insert(pcr_pid);
+> +	}
+> +
+>  	for (int i = 0; i < pids.size(); ++i) {
+>  		int pid = pids.at(i);
+>  
+> diff --git a/src/dvb/dvbsi.h b/src/dvb/dvbsi.h
+> index 4d27252..9b4bbe0 100644
+> --- a/src/dvb/dvbsi.h
+> +++ b/src/dvb/dvbsi.h
+> @@ -1098,6 +1098,11 @@ public:
+>  		return (at(3) << 8) | at(4);
+>  	}
+>  
+> +	int pcr_pid() const
+> +	{
+> +		return ((at(8) & 0x1f) << 8) | at(9);
+> +	}
+> +
+>  	DvbDescriptor descriptors() const
+>  	{
+>  		return DvbDescriptor(getData() + 12, descriptorsLength);
+
+
+
+Thanks,
+Mauro
