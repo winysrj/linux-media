@@ -1,97 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:33584 "EHLO
-        mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751740AbdG1MvC (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:60499 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751773AbdGIDti (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Jul 2017 08:51:02 -0400
-Received: by mail-wm0-f47.google.com with SMTP id e199so5724032wmd.0
-        for <linux-media@vger.kernel.org>; Fri, 28 Jul 2017 05:51:02 -0700 (PDT)
-Subject: Re: [PATCH v3 0/2] media: Add Amlogic Meson AO CEC Controller support
-To: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@kernel.org,
-        hans.verkuil@cisco.com
-Cc: linux-media@vger.kernel.org, linux-amlogic@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-References: <1501168830-5308-1-git-send-email-narmstrong@baylibre.com>
- <d9aecd99-47d7-6a72-8d07-d64e185ea60e@xs4all.nl>
- <36cab0eb-0986-58d6-9cec-9bf4ab099495@xs4all.nl>
-From: Neil Armstrong <narmstrong@baylibre.com>
-Message-ID: <c1a9518c-88e7-cc20-e64a-d8056fad448f@baylibre.com>
-Date: Fri, 28 Jul 2017 14:50:57 +0200
-MIME-Version: 1.0
-In-Reply-To: <36cab0eb-0986-58d6-9cec-9bf4ab099495@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Sat, 8 Jul 2017 23:49:38 -0400
+Message-ID: <e7cb6c16df25ba03e6a9f50c2825517f@smtp-cloud2.xs4all.net>
+Date: Sun, 09 Jul 2017 05:49:34 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/28/2017 02:37 PM, Hans Verkuil wrote:
-> On 07/28/2017 02:35 PM, Hans Verkuil wrote:
->> Hi Neil,
->>
->> On 07/27/2017 05:20 PM, Neil Armstrong wrote:
->>> The Amlogic SoC embeds a standalone CEC controller, this patch adds a driver
->>> for such controller.
->>> The controller does not need HPD to be active, and could support up to max
->>> 5 logical addresses, but only 1 is handled since the Suspend firmware can
->>> make use of this unique logical address to wake up the device.
->>>
->>> The Suspend firmware configuration will be added in an other patchset.
->>
->> Note that to get the right module dependencies you will also need to add
->> this line:
->>
->> 	select CEC_CORE if CEC_NOTIFIER
->>
->> to DRM_MESON_DW_HDMI in drivers/gpu/drm/meson/Kconfig.
->>
->> This ensures that if DRM_MESON_DW_HDMI is 'y' but VIDEO_MESON_AO_CEC is 'm'
->> the CEC_CORE config is set to 'y'.
->>
->> Obviously this is a patch for dri-devel.
-> 
-> I was too quick sending this: I expect this line to appear in DRM_DW_HDMI,
-> not DRM_MESON_DW_HDMI. Sorry about the noise.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Indeed, I will respin russell's notifier patch with this.
+Results of the daily build of media_tree:
 
-Thanks,
-Neil
+date:			Sun Jul  9 05:00:16 CEST 2017
+media-tree git hash:	2748e76ddb2967c4030171342ebdd3faa6a5e8e8
+media_build git hash:	bc1db0a204a87da86349ea5e64ae0d65e945609d
+v4l-utils git hash:	8e68406dae2233e811032dc8e7714c09c818e893
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-> 
-> 	Hans
-> 
->>
->> Regards,
->>
->> 	Hans
->>
->>>
->>> Changes since v2 at [2] :
->>>  - change meson_ao_cec_read/write prototype to simplify error handling
->>>
->>> Changes since v1 at [1] :
->>>  - add timeout to wait busy, with error return
->>>  - handle busy error in all read/write operations
->>>  - add CEC_CAP_PASSTHROUGH
->>>  - add bindings ack
->>>
->>> [1] https://lkml.kernel.org/r/1499336870-24118-1-git-send-email-narmstrong@baylibre.com
->>> [2] https://lkml.kernel.org/r/1499673696-21372-1-git-send-email-narmstrong@baylibre.com
->>>
->>> Neil Armstrong (2):
->>>   platform: Add Amlogic Meson AO CEC Controller driver
->>>   dt-bindings: media: Add Amlogic Meson AO-CEC bindings
->>>
->>>  .../devicetree/bindings/media/meson-ao-cec.txt     |  28 +
->>>  drivers/media/platform/Kconfig                     |  11 +
->>>  drivers/media/platform/Makefile                    |   2 +
->>>  drivers/media/platform/meson/Makefile              |   1 +
->>>  drivers/media/platform/meson/ao-cec.c              | 744 +++++++++++++++++++++
->>>  5 files changed, 786 insertions(+)
->>>  create mode 100644 Documentation/devicetree/bindings/media/meson-ao-cec.txt
->>>  create mode 100644 drivers/media/platform/meson/Makefile
->>>  create mode 100644 drivers/media/platform/meson/ao-cec.c
->>>
->>
-> 
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12-rc1-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
