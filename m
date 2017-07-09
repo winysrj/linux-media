@@ -1,46 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from postfix.ufvjm.edu.br ([200.131.252.14]:33303 "EHLO
-        postfix.ufvjm.edu.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752533AbdGKNUT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 09:20:19 -0400
-From: "PostMaster" <valdir.cordeiro@ufvjm.edu.br>
-To: "PostMaster" <valdir.cordeiro@ufvjm.edu.br>
-Subject: Aviso de conta
-Date: Tue, 11 Jul 2017 16:09:40 +0400
-Message-ID: <0f4301d2fa44$1010c3e0$30324ba0$@ufvjm.edu.br>
+Received: from mail-it0-f68.google.com ([209.85.214.68]:32818 "EHLO
+        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752218AbdGIM0R (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 08:26:17 -0400
 MIME-Version: 1.0
-Content-Type: text/plain;
-        charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Language: en-us
+In-Reply-To: <20170708110157.jkpg6foz35lckdqu@ihha.localdomain>
+References: <20170707144521.4520-1-gehariprasath@gmail.com> <20170708110157.jkpg6foz35lckdqu@ihha.localdomain>
+From: hari prasath <gehariprasath@gmail.com>
+Date: Sun, 9 Jul 2017 17:56:15 +0530
+Message-ID: <CAHHWPbfxGxJ6_N=rx1ZFW-DnTTAui0qYcbCjrY=ke3mGJF_kkA@mail.gmail.com>
+Subject: Re: [PATCH v2] staging: atomisp: use kstrdup to replace kmalloc and memcpy
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: mchehab@kernel.org,
+        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>, rvarsha016@gmail.com,
+        Julia Lawall <julia.lawall@lip6.fr>,
+        SIMRAN SINGHAL <singhalsimran0@gmail.com>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Algu=E9m tentou acessar sua conta webmail / zimbra da =C1frica do Sul com I=
-P no:
-87.228.204.106. Ignore esta mensagem se voc=EA =E9 o =FAnico, mas se voc=EA=
- n=E3o =E9 o
-=FAnico, clique no link seguro da conta abaixo e fa=E7a login nos detalhes =
-do
-seu webmail / zimbra e clique em cimeira para proteger e proteger sua conta=
+On 8 July 2017 at 16:31, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Hari,
+>
+> On Fri, Jul 07, 2017 at 08:15:21PM +0530, Hari Prasath wrote:
+>> kstrdup kernel primitive can be used to replace kmalloc followed by
+>> string copy. This was reported by coccinelle tool
+>>
+>> Signed-off-by: Hari Prasath <gehariprasath@gmail.com>
+>> ---
+>>  .../media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c       | 10 +++-------
+>>  1 file changed, 3 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+>> index 34cc56f..68db87b 100644
+>> --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+>> +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+>> @@ -144,14 +144,10 @@ sh_css_load_blob_info(const char *fw, const struct ia_css_fw_info *bi, struct ia
+>>       )
+>>       {
+>>               char *namebuffer;
+>> -             int namelength = (int)strlen(name);
+>> -
+>> -             namebuffer = (char *) kmalloc(namelength + 1, GFP_KERNEL);
+>> -             if (namebuffer == NULL)
+>> -                     return IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>> -
+>> -             memcpy(namebuffer, name, namelength + 1);
+>>
+>> +             namebuffer = kstrdup(name, GFP_KERNEL);
+>> +             if (!namebuffer)
+>> +                     return -ENOMEM;
+>
+> The patch also changes the return value in error cases. I believe the
+> caller(s) expect to get errors in the IA_CCS_ERR_* range.
 
-de ser um hack.
+Hi,
 
- 
+In this particular case, the calling function just checks if it's not
+success defined by a enum. I think returning -ENOMEM would not effect,
+at least in this case.
 
-http://corriouedeskl.tripod.com/
-
- 
-
-A partir de,
-
-Suporte =E0 conta do Webmaster.
-
- 
+- Hari Prasath
 
 
+>
+>>               bd->name = fw_minibuffer[index].name = namebuffer;
+>>       } else {
+>>               bd->name = name;
+>
+> --
+> Regards,
+>
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
 
----
-This email has been checked for viruses by Avast antivirus software.
-https://www.avast.com/antivirus
+
+
+-- 
+Regards,
+G.E.Hari Prasath
