@@ -1,69 +1,742 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lelnx193.ext.ti.com ([198.47.27.77]:31029 "EHLO
-        lelnx193.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751275AbdGQKWg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 06:22:36 -0400
-Subject: Re: [PATCH] [BUGREPORT] media: v4l: omap_vout: vrfb: initialize DMA
- flags
-To: Arnd Bergmann <arnd@arndb.de>
-References: <20170710111912.887188-1-arnd@arndb.de>
-CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Message-ID: <e236a458-b89b-2ce1-0eee-7a26ea343647@ti.com>
-Date: Mon, 17 Jul 2017 13:23:22 +0300
-MIME-Version: 1.0
-In-Reply-To: <20170710111912.887188-1-arnd@arndb.de>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:36572 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752470AbdGITmc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 15:42:32 -0400
+Received: by mail-wr0-f194.google.com with SMTP id 77so20374770wrb.3
+        for <linux-media@vger.kernel.org>; Sun, 09 Jul 2017 12:42:31 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at, d_spingler@gmx.de, rjkm@metzlerbros.de
+Subject: [PATCH 06/14] [media] ddbridge: split off hardware definitions and mappings
+Date: Sun,  9 Jul 2017 21:42:13 +0200
+Message-Id: <20170709194221.10255-7-d.scheller.oss@gmail.com>
+In-Reply-To: <20170709194221.10255-1-d.scheller.oss@gmail.com>
+References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Arnd,
+From: Daniel Scheller <d.scheller@gmx.net>
 
-sorry for the delayed response, I was away w/o internet connection for
-the past weeks.
+Further cleanup of ddbridge-core and ddbridge-main, and moves all such
+hw definitions into one single place, making things easier to maintain.
 
-On 2017-07-10 14:18, Arnd Bergmann wrote:
-> Passing uninitialized flags into device_prep_interleaved_dma is clearly
-> a bad idea, and we get a compiler warning for it:
-> 
-> drivers/media/platform/omap/omap_vout_vrfb.c: In function 'omap_vout_prepare_vrfb':
-> drivers/media/platform/omap/omap_vout_vrfb.c:273:5: error: 'flags' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/Makefile        |   4 +-
+ drivers/media/pci/ddbridge/ddbridge-core.c |  68 -------
+ drivers/media/pci/ddbridge/ddbridge-hw.c   | 299 +++++++++++++++++++++++++++++
+ drivers/media/pci/ddbridge/ddbridge-hw.h   |  52 +++++
+ drivers/media/pci/ddbridge/ddbridge-main.c | 217 +--------------------
+ drivers/media/pci/ddbridge/ddbridge.h      |   1 -
+ 6 files changed, 354 insertions(+), 287 deletions(-)
+ create mode 100644 drivers/media/pci/ddbridge/ddbridge-hw.c
+ create mode 100644 drivers/media/pci/ddbridge/ddbridge-hw.h
 
-I can not explain why I have missed this.
-
-> It seems that the OMAP dmaengine ignores the flags, but we should
-> pick the right ones anyway. Unfortunately I don't know what they
-> should be, so I just picked the most common flags. Please set the
-> right flags here and fold the modified patch.
-
-The flags are fine.
-
-> 
-> Fixes: 6a1560ecaa8c ("media: v4l: omap_vout: vrfb: Convert to dmaengine")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-
-> ---
->  drivers/media/platform/omap/omap_vout_vrfb.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/omap/omap_vout_vrfb.c b/drivers/media/platform/omap/omap_vout_vrfb.c
-> index 45a553d4f5b2..fed28b6bbbc0 100644
-> --- a/drivers/media/platform/omap/omap_vout_vrfb.c
-> +++ b/drivers/media/platform/omap/omap_vout_vrfb.c
-> @@ -233,7 +233,7 @@ int omap_vout_prepare_vrfb(struct omap_vout_device *vout,
->  			   struct videobuf_buffer *vb)
->  {
->  	struct dma_async_tx_descriptor *tx;
-> -	enum dma_ctrl_flags flags;
-> +	enum dma_ctrl_flags flags = DMA_PREP_INTERRUPT | DMA_CTRL_ACK;
->  	struct dma_chan *chan = vout->vrfb_dma_tx.chan;
->  	struct dma_device *dmadev = chan->device;
->  	struct dma_interleaved_template *xt = vout->vrfb_dma_tx.xt;
-> 
-
-- Péter
+diff --git a/drivers/media/pci/ddbridge/Makefile b/drivers/media/pci/ddbridge/Makefile
+index 0a7caa95a3b6..c4d8d6261243 100644
+--- a/drivers/media/pci/ddbridge/Makefile
++++ b/drivers/media/pci/ddbridge/Makefile
+@@ -2,8 +2,8 @@
+ # Makefile for the ddbridge device driver
+ #
+ 
+-ddbridge-objs := ddbridge-main.o ddbridge-core.o ddbridge-i2c.o \
+-		ddbridge-irq.o
++ddbridge-objs := ddbridge-main.o ddbridge-core.o ddbridge-hw.o \
++		ddbridge-i2c.o ddbridge-irq.o
+ 
+ obj-$(CONFIG_DVB_DDBRIDGE) += ddbridge.o
+ 
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index e488a3f82ca2..cf45a5ad9853 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -66,74 +66,6 @@ static struct ddb *ddbs[DDB_MAX_ADAPTER];
+ /****************************************************************************/
+ /****************************************************************************/
+ 
+-static struct ddb_regset octopus_input = {
+-	.base = 0x200,
+-	.num  = 0x08,
+-	.size = 0x10,
+-};
+-
+-static struct ddb_regset octopus_output = {
+-	.base = 0x280,
+-	.num  = 0x08,
+-	.size = 0x10,
+-};
+-
+-static struct ddb_regset octopus_idma = {
+-	.base = 0x300,
+-	.num  = 0x08,
+-	.size = 0x10,
+-};
+-
+-static struct ddb_regset octopus_idma_buf = {
+-	.base = 0x2000,
+-	.num  = 0x08,
+-	.size = 0x100,
+-};
+-
+-static struct ddb_regset octopus_odma = {
+-	.base = 0x380,
+-	.num  = 0x04,
+-	.size = 0x10,
+-};
+-
+-static struct ddb_regset octopus_odma_buf = {
+-	.base = 0x2800,
+-	.num  = 0x04,
+-	.size = 0x100,
+-};
+-
+-static struct ddb_regset octopus_i2c = {
+-	.base = 0x80,
+-	.num  = 0x04,
+-	.size = 0x20,
+-};
+-
+-static struct ddb_regset octopus_i2c_buf = {
+-	.base = 0x1000,
+-	.num  = 0x04,
+-	.size = 0x200,
+-};
+-
+-/****************************************************************************/
+-
+-struct ddb_regmap octopus_map = {
+-	.irq_base_i2c = 0,
+-	.irq_base_idma = 8,
+-	.irq_base_odma = 16,
+-	.i2c = &octopus_i2c,
+-	.i2c_buf = &octopus_i2c_buf,
+-	.idma = &octopus_idma,
+-	.idma_buf = &octopus_idma_buf,
+-	.odma = &octopus_odma,
+-	.odma_buf = &octopus_odma_buf,
+-	.input = &octopus_input,
+-	.output = &octopus_output,
+-};
+-
+-/****************************************************************************/
+-/****************************************************************************/
+-/****************************************************************************/
+-
+ static void ddb_set_dma_table(struct ddb_io *io)
+ {
+ 	struct ddb *dev = io->port->dev;
+diff --git a/drivers/media/pci/ddbridge/ddbridge-hw.c b/drivers/media/pci/ddbridge/ddbridge-hw.c
+new file mode 100644
+index 000000000000..e35b41e8d860
+--- /dev/null
++++ b/drivers/media/pci/ddbridge/ddbridge-hw.c
+@@ -0,0 +1,299 @@
++/*
++ * ddbridge-hw.c: Digital Devices bridge hardware maps
++ *
++ * Copyright (C) 2010-2017 Digital Devices GmbH
++ *                         Ralph Metzler <rjkm@metzlerbros.de>
++ *                         Marcus Metzler <mocm@metzlerbros.de>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 only, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#include "ddbridge.h"
++
++/******************************************************************************/
++
++static struct ddb_regset octopus_input = {
++	.base = 0x200,
++	.num  = 0x08,
++	.size = 0x10,
++};
++
++static struct ddb_regset octopus_output = {
++	.base = 0x280,
++	.num  = 0x08,
++	.size = 0x10,
++};
++
++static struct ddb_regset octopus_idma = {
++	.base = 0x300,
++	.num  = 0x08,
++	.size = 0x10,
++};
++
++static struct ddb_regset octopus_idma_buf = {
++	.base = 0x2000,
++	.num  = 0x08,
++	.size = 0x100,
++};
++
++static struct ddb_regset octopus_odma = {
++	.base = 0x380,
++	.num  = 0x04,
++	.size = 0x10,
++};
++
++static struct ddb_regset octopus_odma_buf = {
++	.base = 0x2800,
++	.num  = 0x04,
++	.size = 0x100,
++};
++
++static struct ddb_regset octopus_i2c = {
++	.base = 0x80,
++	.num  = 0x04,
++	.size = 0x20,
++};
++
++static struct ddb_regset octopus_i2c_buf = {
++	.base = 0x1000,
++	.num  = 0x04,
++	.size = 0x200,
++};
++
++/****************************************************************************/
++
++static struct ddb_regmap octopus_map = {
++	.irq_base_i2c = 0,
++	.irq_base_idma = 8,
++	.irq_base_odma = 16,
++	.i2c = &octopus_i2c,
++	.i2c_buf = &octopus_i2c_buf,
++	.idma = &octopus_idma,
++	.idma_buf = &octopus_idma_buf,
++	.odma = &octopus_odma,
++	.odma_buf = &octopus_odma_buf,
++	.input = &octopus_input,
++	.output = &octopus_output,
++};
++
++/****************************************************************************/
++
++const struct ddb_info ddb_none = {
++	.type     = DDB_NONE,
++	.name     = "unknown Digital Devices PCIe card, install newer driver",
++	.regmap   = &octopus_map,
++};
++
++const struct ddb_info ddb_octopus = {
++	.type     = DDB_OCTOPUS,
++	.name     = "Digital Devices Octopus DVB adapter",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x0f,
++};
++
++const struct ddb_info ddb_octopusv3 = {
++	.type     = DDB_OCTOPUS,
++	.name     = "Digital Devices Octopus V3 DVB adapter",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x0f,
++};
++
++const struct ddb_info ddb_octopus_le = {
++	.type     = DDB_OCTOPUS,
++	.name     = "Digital Devices Octopus LE DVB adapter",
++	.regmap   = &octopus_map,
++	.port_num = 2,
++	.i2c_mask = 0x03,
++};
++
++const struct ddb_info ddb_octopus_oem = {
++	.type     = DDB_OCTOPUS,
++	.name     = "Digital Devices Octopus OEM",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x0f,
++	.led_num  = 1,
++	.fan_num  = 1,
++	.temp_num = 1,
++	.temp_bus = 0,
++};
++
++const struct ddb_info ddb_octopus_mini = {
++	.type     = DDB_OCTOPUS,
++	.name     = "Digital Devices Octopus Mini",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x0f,
++};
++
++const struct ddb_info ddb_v6 = {
++	.type     = DDB_OCTOPUS,
++	.name     = "Digital Devices Cine S2 V6 DVB adapter",
++	.regmap   = &octopus_map,
++	.port_num = 3,
++	.i2c_mask = 0x07,
++};
++
++const struct ddb_info ddb_v6_5 = {
++	.type     = DDB_OCTOPUS,
++	.name     = "Digital Devices Cine S2 V6.5 DVB adapter",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x0f,
++};
++
++const struct ddb_info ddb_v7 = {
++	.type     = DDB_OCTOPUS,
++	.name     = "Digital Devices Cine S2 V7 DVB adapter",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x0f,
++	.board_control   = 2,
++	.board_control_2 = 4,
++	.ts_quirks = TS_QUIRK_REVERSED,
++};
++
++const struct ddb_info ddb_v7a = {
++	.type     = DDB_OCTOPUS,
++	.name     = "Digital Devices Cine S2 V7 Advanced DVB adapter",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x0f,
++	.board_control   = 2,
++	.board_control_2 = 4,
++	.ts_quirks = TS_QUIRK_REVERSED,
++};
++
++const struct ddb_info ddb_ctv7 = {
++	.type     = DDB_OCTOPUS,
++	.name     = "Digital Devices Cine CT V7 DVB adapter",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x0f,
++	.board_control   = 3,
++	.board_control_2 = 4,
++};
++
++const struct ddb_info ddb_satixS2v3 = {
++	.type     = DDB_OCTOPUS,
++	.name     = "Mystique SaTiX-S2 V3 DVB adapter",
++	.regmap   = &octopus_map,
++	.port_num = 3,
++	.i2c_mask = 0x07,
++};
++
++const struct ddb_info ddb_ci = {
++	.type     = DDB_OCTOPUS_CI,
++	.name     = "Digital Devices Octopus CI",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x03,
++};
++
++const struct ddb_info ddb_cis = {
++	.type     = DDB_OCTOPUS_CI,
++	.name     = "Digital Devices Octopus CI single",
++	.regmap   = &octopus_map,
++	.port_num = 3,
++	.i2c_mask = 0x03,
++};
++
++const struct ddb_info ddb_ci_s2_pro = {
++	.type     = DDB_OCTOPUS_CI,
++	.name     = "Digital Devices Octopus CI S2 Pro",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x01,
++	.board_control   = 2,
++	.board_control_2 = 4,
++};
++
++const struct ddb_info ddb_ci_s2_pro_a = {
++	.type     = DDB_OCTOPUS_CI,
++	.name     = "Digital Devices Octopus CI S2 Pro Advanced",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x01,
++	.board_control   = 2,
++	.board_control_2 = 4,
++};
++
++const struct ddb_info ddb_dvbct = {
++	.type     = DDB_OCTOPUS,
++	.name     = "Digital Devices DVBCT V6.1 DVB adapter",
++	.regmap   = &octopus_map,
++	.port_num = 3,
++	.i2c_mask = 0x07,
++};
++
++/****************************************************************************/
++
++const struct ddb_info ddb_ct2_8 = {
++	.type     = DDB_OCTOPUS_MAX_CT,
++	.name     = "Digital Devices MAX A8 CT2",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x0f,
++	.board_control   = 0x0ff,
++	.board_control_2 = 0xf00,
++	.ts_quirks = TS_QUIRK_SERIAL,
++	.tempmon_irq = 24,
++};
++
++const struct ddb_info ddb_c2t2_8 = {
++	.type     = DDB_OCTOPUS_MAX_CT,
++	.name     = "Digital Devices MAX A8 C2T2",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x0f,
++	.board_control   = 0x0ff,
++	.board_control_2 = 0xf00,
++	.ts_quirks = TS_QUIRK_SERIAL,
++	.tempmon_irq = 24,
++};
++
++const struct ddb_info ddb_isdbt_8 = {
++	.type     = DDB_OCTOPUS_MAX_CT,
++	.name     = "Digital Devices MAX A8 ISDBT",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x0f,
++	.board_control   = 0x0ff,
++	.board_control_2 = 0xf00,
++	.ts_quirks = TS_QUIRK_SERIAL,
++	.tempmon_irq = 24,
++};
++
++const struct ddb_info ddb_c2t2i_v0_8 = {
++	.type     = DDB_OCTOPUS_MAX_CT,
++	.name     = "Digital Devices MAX A8 C2T2I V0",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x0f,
++	.board_control   = 0x0ff,
++	.board_control_2 = 0xf00,
++	.ts_quirks = TS_QUIRK_SERIAL | TS_QUIRK_ALT_OSC,
++	.tempmon_irq = 24,
++};
++
++const struct ddb_info ddb_c2t2i_8 = {
++	.type     = DDB_OCTOPUS_MAX_CT,
++	.name     = "Digital Devices MAX A8 C2T2I",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x0f,
++	.board_control   = 0x0ff,
++	.board_control_2 = 0xf00,
++	.ts_quirks = TS_QUIRK_SERIAL,
++	.tempmon_irq = 24,
++};
+diff --git a/drivers/media/pci/ddbridge/ddbridge-hw.h b/drivers/media/pci/ddbridge/ddbridge-hw.h
+new file mode 100644
+index 000000000000..bd52c083c4a5
+--- /dev/null
++++ b/drivers/media/pci/ddbridge/ddbridge-hw.h
+@@ -0,0 +1,52 @@
++/*
++ * ddbridge-hw.h: Digital Devices bridge hardware maps
++ *
++ * Copyright (C) 2010-2017 Digital Devices GmbH
++ *                         Ralph Metzler <rjkm@metzlerbros.de>
++ *                         Marcus Metzler <mocm@metzlerbros.de>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 only, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#ifndef _DDBRIDGE_HW_H_
++#define _DDBRIDGE_HW_H_
++
++#include "ddbridge.h"
++
++/******************************************************************************/
++
++extern const struct ddb_info ddb_none;
++extern const struct ddb_info ddb_octopus;
++extern const struct ddb_info ddb_octopusv3;
++extern const struct ddb_info ddb_octopus_le;
++extern const struct ddb_info ddb_octopus_oem;
++extern const struct ddb_info ddb_octopus_mini;
++extern const struct ddb_info ddb_v6;
++extern const struct ddb_info ddb_v6_5;
++extern const struct ddb_info ddb_v7;
++extern const struct ddb_info ddb_v7a;
++extern const struct ddb_info ddb_ctv7;
++extern const struct ddb_info ddb_satixS2v3;
++extern const struct ddb_info ddb_ci;
++extern const struct ddb_info ddb_cis;
++extern const struct ddb_info ddb_ci_s2_pro;
++extern const struct ddb_info ddb_ci_s2_pro_a;
++extern const struct ddb_info ddb_dvbct;
++
++/****************************************************************************/
++
++extern const struct ddb_info ddb_ct2_8;
++extern const struct ddb_info ddb_c2t2_8;
++extern const struct ddb_info ddb_isdbt_8;
++extern const struct ddb_info ddb_c2t2i_v0_8;
++extern const struct ddb_info ddb_c2t2i_8;
++
++#endif /* _DDBRIDGE_HW_H */
+diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
+index de9da6077ec6..fa4f663c5acb 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-main.c
++++ b/drivers/media/pci/ddbridge/ddbridge-main.c
+@@ -34,6 +34,7 @@
+ 
+ #include "ddbridge.h"
+ #include "ddbridge-regs.h"
++#include "ddbridge-hw.h"
+ #include "ddbridge-io.h"
+ 
+ /****************************************************************************/
+@@ -277,222 +278,6 @@ static int ddb_probe(struct pci_dev *pdev,
+ /****************************************************************************/
+ /****************************************************************************/
+ 
+-static const struct ddb_info ddb_none = {
+-	.type     = DDB_NONE,
+-	.name     = "unknown Digital Devices PCIe card, install newer driver",
+-	.regmap   = &octopus_map,
+-};
+-
+-static const struct ddb_info ddb_octopus = {
+-	.type     = DDB_OCTOPUS,
+-	.name     = "Digital Devices Octopus DVB adapter",
+-	.regmap   = &octopus_map,
+-	.port_num = 4,
+-	.i2c_mask = 0x0f,
+-};
+-
+-static const struct ddb_info ddb_octopusv3 = {
+-	.type     = DDB_OCTOPUS,
+-	.name     = "Digital Devices Octopus V3 DVB adapter",
+-	.regmap   = &octopus_map,
+-	.port_num = 4,
+-	.i2c_mask = 0x0f,
+-};
+-
+-static const struct ddb_info ddb_octopus_le = {
+-	.type     = DDB_OCTOPUS,
+-	.name     = "Digital Devices Octopus LE DVB adapter",
+-	.regmap   = &octopus_map,
+-	.port_num = 2,
+-	.i2c_mask = 0x03,
+-};
+-
+-static const struct ddb_info ddb_octopus_oem = {
+-	.type     = DDB_OCTOPUS,
+-	.name     = "Digital Devices Octopus OEM",
+-	.regmap   = &octopus_map,
+-	.port_num = 4,
+-	.i2c_mask = 0x0f,
+-	.led_num  = 1,
+-	.fan_num  = 1,
+-	.temp_num = 1,
+-	.temp_bus = 0,
+-};
+-
+-static const struct ddb_info ddb_octopus_mini = {
+-	.type     = DDB_OCTOPUS,
+-	.name     = "Digital Devices Octopus Mini",
+-	.regmap   = &octopus_map,
+-	.port_num = 4,
+-	.i2c_mask = 0x0f,
+-};
+-
+-static const struct ddb_info ddb_v6 = {
+-	.type     = DDB_OCTOPUS,
+-	.name     = "Digital Devices Cine S2 V6 DVB adapter",
+-	.regmap   = &octopus_map,
+-	.port_num = 3,
+-	.i2c_mask = 0x07,
+-};
+-
+-static const struct ddb_info ddb_v6_5 = {
+-	.type     = DDB_OCTOPUS,
+-	.name     = "Digital Devices Cine S2 V6.5 DVB adapter",
+-	.regmap   = &octopus_map,
+-	.port_num = 4,
+-	.i2c_mask = 0x0f,
+-};
+-
+-static const struct ddb_info ddb_v7 = {
+-	.type     = DDB_OCTOPUS,
+-	.name     = "Digital Devices Cine S2 V7 DVB adapter",
+-	.regmap   = &octopus_map,
+-	.port_num = 4,
+-	.i2c_mask = 0x0f,
+-	.board_control   = 2,
+-	.board_control_2 = 4,
+-	.ts_quirks = TS_QUIRK_REVERSED,
+-};
+-
+-static const struct ddb_info ddb_v7a = {
+-	.type     = DDB_OCTOPUS,
+-	.name     = "Digital Devices Cine S2 V7 Advanced DVB adapter",
+-	.regmap   = &octopus_map,
+-	.port_num = 4,
+-	.i2c_mask = 0x0f,
+-	.board_control   = 2,
+-	.board_control_2 = 4,
+-	.ts_quirks = TS_QUIRK_REVERSED,
+-};
+-
+-static const struct ddb_info ddb_ctv7 = {
+-	.type     = DDB_OCTOPUS,
+-	.name     = "Digital Devices Cine CT V7 DVB adapter",
+-	.regmap   = &octopus_map,
+-	.port_num = 4,
+-	.i2c_mask = 0x0f,
+-	.board_control   = 3,
+-	.board_control_2 = 4,
+-};
+-
+-static const struct ddb_info ddb_satixS2v3 = {
+-	.type     = DDB_OCTOPUS,
+-	.name     = "Mystique SaTiX-S2 V3 DVB adapter",
+-	.regmap   = &octopus_map,
+-	.port_num = 3,
+-	.i2c_mask = 0x07,
+-};
+-
+-static const struct ddb_info ddb_ci = {
+-	.type     = DDB_OCTOPUS_CI,
+-	.name     = "Digital Devices Octopus CI",
+-	.regmap   = &octopus_map,
+-	.port_num = 4,
+-	.i2c_mask = 0x03,
+-};
+-
+-static const struct ddb_info ddb_cis = {
+-	.type     = DDB_OCTOPUS_CI,
+-	.name     = "Digital Devices Octopus CI single",
+-	.regmap   = &octopus_map,
+-	.port_num = 3,
+-	.i2c_mask = 0x03,
+-};
+-
+-static const struct ddb_info ddb_ci_s2_pro = {
+-	.type     = DDB_OCTOPUS_CI,
+-	.name     = "Digital Devices Octopus CI S2 Pro",
+-	.regmap   = &octopus_map,
+-	.port_num = 4,
+-	.i2c_mask = 0x01,
+-	.board_control   = 2,
+-	.board_control_2 = 4,
+-};
+-
+-static const struct ddb_info ddb_ci_s2_pro_a = {
+-	.type     = DDB_OCTOPUS_CI,
+-	.name     = "Digital Devices Octopus CI S2 Pro Advanced",
+-	.regmap   = &octopus_map,
+-	.port_num = 4,
+-	.i2c_mask = 0x01,
+-	.board_control   = 2,
+-	.board_control_2 = 4,
+-};
+-
+-static const struct ddb_info ddb_dvbct = {
+-	.type     = DDB_OCTOPUS,
+-	.name     = "Digital Devices DVBCT V6.1 DVB adapter",
+-	.regmap   = &octopus_map,
+-	.port_num = 3,
+-	.i2c_mask = 0x07,
+-};
+-
+-/****************************************************************************/
+-
+-static struct ddb_info ddb_ct2_8 = {
+-	.type     = DDB_OCTOPUS_MAX_CT,
+-	.name     = "Digital Devices MAX A8 CT2",
+-	.regmap   = &octopus_map,
+-	.port_num = 4,
+-	.i2c_mask = 0x0f,
+-	.board_control   = 0x0ff,
+-	.board_control_2 = 0xf00,
+-	.ts_quirks = TS_QUIRK_SERIAL,
+-	.tempmon_irq = 24,
+-};
+-
+-static struct ddb_info ddb_c2t2_8 = {
+-	.type     = DDB_OCTOPUS_MAX_CT,
+-	.name     = "Digital Devices MAX A8 C2T2",
+-	.regmap   = &octopus_map,
+-	.port_num = 4,
+-	.i2c_mask = 0x0f,
+-	.board_control   = 0x0ff,
+-	.board_control_2 = 0xf00,
+-	.ts_quirks = TS_QUIRK_SERIAL,
+-	.tempmon_irq = 24,
+-};
+-
+-static struct ddb_info ddb_isdbt_8 = {
+-	.type     = DDB_OCTOPUS_MAX_CT,
+-	.name     = "Digital Devices MAX A8 ISDBT",
+-	.regmap   = &octopus_map,
+-	.port_num = 4,
+-	.i2c_mask = 0x0f,
+-	.board_control   = 0x0ff,
+-	.board_control_2 = 0xf00,
+-	.ts_quirks = TS_QUIRK_SERIAL,
+-	.tempmon_irq = 24,
+-};
+-
+-static struct ddb_info ddb_c2t2i_v0_8 = {
+-	.type     = DDB_OCTOPUS_MAX_CT,
+-	.name     = "Digital Devices MAX A8 C2T2I V0",
+-	.regmap   = &octopus_map,
+-	.port_num = 4,
+-	.i2c_mask = 0x0f,
+-	.board_control   = 0x0ff,
+-	.board_control_2 = 0xf00,
+-	.ts_quirks = TS_QUIRK_SERIAL | TS_QUIRK_ALT_OSC,
+-	.tempmon_irq = 24,
+-};
+-
+-static struct ddb_info ddb_c2t2i_8 = {
+-	.type     = DDB_OCTOPUS_MAX_CT,
+-	.name     = "Digital Devices MAX A8 C2T2I",
+-	.regmap   = &octopus_map,
+-	.port_num = 4,
+-	.i2c_mask = 0x0f,
+-	.board_control   = 0x0ff,
+-	.board_control_2 = 0xf00,
+-	.ts_quirks = TS_QUIRK_SERIAL,
+-	.tempmon_irq = 24,
+-};
+-
+-/****************************************************************************/
+-/****************************************************************************/
+-/****************************************************************************/
+-
+ #define DDVID 0xdd01 /* Digital Devices Vendor ID */
+ 
+ #define DDB_DEVICE(_device, _subdevice, _driver_data) { \
+diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
+index b0064fa7aadf..96a904516627 100644
+--- a/drivers/media/pci/ddbridge/ddbridge.h
++++ b/drivers/media/pci/ddbridge/ddbridge.h
+@@ -369,7 +369,6 @@ extern int stv0910_single;
+ extern struct workqueue_struct *ddb_wq;
+ 
+ /* ddbridge-core.c */
+-extern struct ddb_regmap octopus_map;
+ void ddb_ports_detach(struct ddb *dev);
+ void ddb_ports_release(struct ddb *dev);
+ void ddb_buffers_free(struct ddb *dev);
+-- 
+2.13.0
