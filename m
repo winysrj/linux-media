@@ -1,35 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:53481 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751910AbdGVGw6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Jul 2017 02:52:58 -0400
-Subject: Re: [PATCHv2 5/5] media-device: remove driver_version
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sylwester Nawrocki <snawrocki@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <a6221283-0928-38ba-31bf-de6e6ff6fbdf@samsung.com>
-Date: Sat, 22 Jul 2017 08:52:52 +0200
-MIME-version: 1.0
-In-reply-to: <20170721105706.40703-6-hverkuil@xs4all.nl>
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <20170721105706.40703-1-hverkuil@xs4all.nl>
-        <20170721105706.40703-6-hverkuil@xs4all.nl>
-        <CGME20170722065256epcas5p46009c853615835492c5ed35ec9fe7bf4@epcas5p4.samsung.com>
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:36635 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752640AbdGITmj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 15:42:39 -0400
+Received: by mail-wr0-f194.google.com with SMTP id 77so20375322wrb.3
+        for <linux-media@vger.kernel.org>; Sun, 09 Jul 2017 12:42:38 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at, d_spingler@gmx.de, rjkm@metzlerbros.de
+Subject: [PATCH 13/14] [media] ddbridge: Kconfig option to control the MSI modparam default
+Date: Sun,  9 Jul 2017 21:42:20 +0200
+Message-Id: <20170709194221.10255-14-d.scheller.oss@gmail.com>
+In-Reply-To: <20170709194221.10255-1-d.scheller.oss@gmail.com>
+References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/21/2017 12:57 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Since the driver_version field in struct media_device is no longer
-> used, just remove it.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+It is known that MSI interrupts - while working quite well so far - can
+still cause issues on some hardware platforms (causing I2C timeouts due
+to unhandled interrupts). The msi variable/option is set to 1 by default.
+So, add a Kconfig option prefixed with "EXPERIMENTAL" that will control
+the default value of that modparam, defaulting to off for a better
+user experience and (guaranteed) stable operation "per default".
+
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/Kconfig         | 15 +++++++++++++++
+ drivers/media/pci/ddbridge/ddbridge-main.c | 11 +++++++++--
+ 2 files changed, 24 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/pci/ddbridge/Kconfig b/drivers/media/pci/ddbridge/Kconfig
+index c79a58fa5fc3..1330b2ecc72a 100644
+--- a/drivers/media/pci/ddbridge/Kconfig
++++ b/drivers/media/pci/ddbridge/Kconfig
+@@ -26,3 +26,18 @@ config DVB_DDBRIDGE
+ 	  - CineS2 V7/V7A and DuoFlex S2 V4 (ST STV0910-based)
+ 
+ 	  Say Y if you own such a card and want to use it.
++
++config DVB_DDBRIDGE_MSIENABLE
++	bool "Enable Message Signaled Interrupts (MSI) per default (EXPERIMENTAL)"
++	depends on DVB_DDBRIDGE
++	depends on PCI_MSI
++	default n
++	---help---
++	  Use PCI MSI (Message Signaled Interrupts) per default. Enabling this
++	  might lead to I2C errors originating from the bridge in conjunction
++	  with certain SATA controllers, requiring a reload of the ddbridge
++	  module. MSI can still be disabled by passing msi=0 as option, as
++	  this will just change the msi option default value.
++
++	  If you're unsure, concerned about stability and don't want to pass
++	  module options in case of troubles, say N.
+diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
+index fa4f663c5acb..83643bc21d09 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-main.c
++++ b/drivers/media/pci/ddbridge/ddbridge-main.c
+@@ -46,10 +46,17 @@ MODULE_PARM_DESC(adapter_alloc,
+ 		 "0-one adapter per io, 1-one per tab with io, 2-one per tab, 3-one for all");
+ 
+ #ifdef CONFIG_PCI_MSI
++#ifdef CONFIG_DVB_DDBRIDGE_MSIENABLE
+ int msi = 1;
++#else
++int msi;
++#endif
+ module_param(msi, int, 0444);
+-MODULE_PARM_DESC(msi,
+-		 " Control MSI interrupts: 0-disable, 1-enable (default)");
++#ifdef CONFIG_DVB_DDBRIDGE_MSIENABLE
++MODULE_PARM_DESC(msi, "Control MSI interrupts: 0-disable, 1-enable (default)");
++#else
++MODULE_PARM_DESC(msi, "Control MSI interrupts: 0-disable (default), 1-enable");
++#endif
+ #endif
+ 
+ int ci_bitrate = 70000;
+-- 
+2.13.0
