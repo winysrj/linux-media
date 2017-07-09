@@ -1,61 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.73]:49181 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753522AbdGNJda (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Jul 2017 05:33:30 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-kernel@vger.kernel.org, Ben Skeggs <bskeggs@redhat.com>,
-        David Airlie <airlied@linux.ie>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
-        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
-        akpm@linux-foundation.org, dri-devel@lists.freedesktop.org,
-        Arnd Bergmann <arnd@arndb.de>, nouveau@lists.freedesktop.org
-Subject: [PATCH 12/14] drm/nouveau/clk: fix gcc-7 -Wint-in-bool-context warning
-Date: Fri, 14 Jul 2017 11:31:05 +0200
-Message-Id: <20170714093129.1366900-3-arnd@arndb.de>
-In-Reply-To: <20170714092540.1217397-1-arnd@arndb.de>
-References: <20170714092540.1217397-1-arnd@arndb.de>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:35692 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751763AbdGIJqT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 05:46:19 -0400
+Received: by mail-wr0-f196.google.com with SMTP id z45so18012307wrb.2
+        for <linux-media@vger.kernel.org>; Sun, 09 Jul 2017 02:46:18 -0700 (PDT)
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Malcolm Priestley <tvboxspy@gmail.com>
+Subject: [PATCH RFC 2/2] app: kaffeine: Fix missing PCR on stream recordings.
+Date: Sun,  9 Jul 2017 10:43:51 +0100
+Message-Id: <20170709094351.14642-2-tvboxspy@gmail.com>
+In-Reply-To: <20170709094351.14642-1-tvboxspy@gmail.com>
+References: <20170709094351.14642-1-tvboxspy@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-gcc thinks that interpreting a multiplication result as a bool
-is confusing:
+The ISO/IEC standard 13818-1 or ITU-T Rec. H.222.0 standard allow transport
+vendors to place PCR (Program Clock Reference) on a different PID.
 
-drivers/gpu/drm/nouveau/nvkm/subdev/clk/gt215.c: In function 'read_pll':
-drivers/gpu/drm/nouveau/nvkm/subdev/clk/gt215.c:133:8: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
+This patch adds it recording to file.
 
-In this instance, I think using multiplication is more intuitive
-than '&&', so I'm adding a comparison to zero instead to shut up
-the warning. To further improve readability, I also make the
-error case indented and leave the normal case as the final 'return'
-statement.
-
-Fixes: 7632b30e4b8b ("drm/nouveau/clk: namespace + nvidia gpu names (no binary change)")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
 ---
- drivers/gpu/drm/nouveau/nvkm/subdev/clk/gt215.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ src/dvb/dvbrecording.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/gpu/drm/nouveau/nvkm/subdev/clk/gt215.c b/drivers/gpu/drm/nouveau/nvkm/subdev/clk/gt215.c
-index 96e0941c8edd..04b4f4ccf186 100644
---- a/drivers/gpu/drm/nouveau/nvkm/subdev/clk/gt215.c
-+++ b/drivers/gpu/drm/nouveau/nvkm/subdev/clk/gt215.c
-@@ -130,10 +130,10 @@ read_pll(struct gt215_clk *clk, int idx, u32 pll)
- 		sclk = read_clk(clk, 0x10 + idx, false);
+diff --git a/src/dvb/dvbrecording.cpp b/src/dvb/dvbrecording.cpp
+index ecb4777..12a57dc 100644
+--- a/src/dvb/dvbrecording.cpp
++++ b/src/dvb/dvbrecording.cpp
+@@ -961,6 +961,7 @@ void DvbRecordingFile::pmtSectionChanged(const QByteArray &pmtSectionData_)
+ 	pmtSectionData = pmtSectionData_;
+ 	DvbPmtSection pmtSection(pmtSectionData);
+ 	DvbPmtParser pmtParser(pmtSection);
++	int pcr_pid = pmtSection.pcr_pid();
+ 	QSet<int> newPids;
+ 
+ 	if (pmtParser.videoPid != -1) {
+@@ -979,6 +980,13 @@ void DvbRecordingFile::pmtSectionChanged(const QByteArray &pmtSectionData_)
+ 		newPids.insert(pmtParser.teletextPid);
  	}
  
--	if (M * P)
--		return sclk * N / (M * P);
-+	if (M * P == 0)
-+		return 0;
++	/* check PCR PID is set */
++	if (pcr_pid != 0x1fff) {
++		/* Check not already in list */
++		if (!newPids.contains(pcr_pid))
++			newPids.insert(pcr_pid);
++	}
++
+ 	for (int i = 0; i < pids.size(); ++i) {
+ 		int pid = pids.at(i);
  
--	return 0;
-+	return sclk * N / (M * P);
- }
- 
- static int
 -- 
-2.9.0
+2.13.2
