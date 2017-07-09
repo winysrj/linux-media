@@ -1,96 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-39.mail.aliyun.com ([115.124.20.39]:56703 "EHLO
-        out20-39.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751641AbdGaAsD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 30 Jul 2017 20:48:03 -0400
-Date: Mon, 31 Jul 2017 08:47:44 +0800
-From: Yong <yong.deng@magewell.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Baruch Siach <baruch@tkos.co.il>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benoit Parrot <bparrot@ti.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
-Message-Id: <20170731084744.3d8d9f632858241c54efd185@magewell.com>
-In-Reply-To: <20170727122551.qca4atjeet6whfrs@flea.lan>
-References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
-        <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
-        <20170727121644.jtpge4x432gfxhvw@tarshish>
-        <20170727122551.qca4atjeet6whfrs@flea.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-wr0-f170.google.com ([209.85.128.170]:34637 "EHLO
+        mail-wr0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752470AbdGITt2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 15:49:28 -0400
+Received: by mail-wr0-f170.google.com with SMTP id 77so112006912wrb.1
+        for <linux-media@vger.kernel.org>; Sun, 09 Jul 2017 12:49:27 -0700 (PDT)
+Subject: Re: [PATCH] media: venus: hfi: fix error handling in
+ hfi_sys_init_done()
+To: Rob Clark <robdclark@gmail.com>, linux-media@vger.kernel.org
+Cc: linux-arm-msm@vger.kernel.org
+References: <20170709131916.11643-1-robdclark@gmail.com>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <4339e5cc-ecf0-be0a-8299-becec5e2c41b@linaro.org>
+Date: Sun, 9 Jul 2017 22:49:25 +0300
+MIME-Version: 1.0
+In-Reply-To: <20170709131916.11643-1-robdclark@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 27 Jul 2017 14:25:51 +0200
-Maxime Ripard <maxime.ripard@free-electrons.com> wrote:
+Hi Rob,
 
-> On Thu, Jul 27, 2017 at 03:16:44PM +0300, Baruch Siach wrote:
-> > Hi Yong,
-> > 
-> > I managed to get the Frame Done interrupt with the previous version of this 
-> > driver on the A33 OLinuXino. No data yet (all zeros). I'm still working on it.
-> > 
-> > One comment below.
-> > 
-> > On Thu, Jul 27, 2017 at 01:01:35PM +0800, Yong Deng wrote:
-> > > Allwinner V3s SoC have two CSI module. CSI0 is used for MIPI interface
-> > > and CSI1 is used for parallel interface. This is not documented in
-> > > datasheet but by testing and guess.
-> > > 
-> > > This patch implement a v4l2 framework driver for it.
-> > > 
-> > > Currently, the driver only support the parallel interface. MIPI-CSI2,
-> > > ISP's support are not included in this patch.
-> > > 
-> > > Signed-off-by: Yong Deng <yong.deng@magewell.com>
-> > > ---
-> > 
-> > [...]
-> > 
-> > > +static int update_buf_addr(struct sun6i_csi *csi, dma_addr_t addr)
-> > > +{
-> > > +	struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
-> > > +	/* transform physical address to bus address */
-> > > +	dma_addr_t bus_addr = addr - 0x40000000;
-> > 
-> > What is the source of this magic number? Is it platform dependent? Are there 
-> > other devices doing DMA that need this adjustment?
-> 
-> This is the RAM base address in most (but not all) Allwinner
-> SoCs. You'll want to use PHYS_OFFSET instead.
+On 07/09/2017 04:19 PM, Rob Clark wrote:
+> Not entirely sure what triggers it, but with venus build as kernel
+> module and in initrd, we hit this crash:
 
-I have try to use PHYS_OFFSET. But I found it is not 0x40000000. I will
-try it again.
+Is it happens occasionally or everytime in the initrd? And also with
+your patch it will bail out on venus_probe, does it crash again on next
+venus_probe?
 
 > 
-> Maxime
+>   Unable to handle kernel paging request at virtual address ffff80003c039000
+>   pgd = ffff00000a14f000
+>   [ffff80003c039000] *pgd=00000000bd9f7003, *pud=00000000bd9f6003, *pmd=00000000bd9f0003, *pte=0000000000000000
+>   Internal error: Oops: 96000007 [#1] SMP
+>   Modules linked in: qcom_wcnss_pil(E+) crc32_ce(E) qcom_common(E) venus_core(E+) remoteproc(E) snd_soc_msm8916_digital(E) virtio_ring(E) cdc_ether(E) snd_soc_lpass_apq8016(E) snd_soc_lpass_cpu(E) snd_soc_apq8016_sbc(E) snd_soc_lpass_platform(E) v4l2_mem2mem(E) virtio(E) snd_soc_core(E) ac97_bus(E) snd_pcm_dmaengine(E) snd_seq(E) leds_gpio(E) videobuf2_v4l2(E) videobuf2_core(E) snd_seq_device(E) sndi_pcm(E) videodev(E) media(E) nvmem_qfprom(E) msm(E) snd_timer(E) snd(E) soundcore(E) spi_qup(E) mdt_loader(E) qcom_tsens(E) qcom_spmi_temp_alarm(E) nvmem_core(E) msm_rng(E) uas(E) usb_storage(E) dm9601(E) usbnet(E) mii(E) mmc_block(E) adv7511(E) drm_kms_helper(E) syscopyarea(E) sysfillrect(E) sysimgblt(E) fb_sys_fops(E) qcom_spmi_vadc(E) qcom_vadc_common(PE) industrialio(E) pinctrl_spmi_mpp(E)
+>    pinctrl_spmi_gpio(E) rtc_pm8xxx(E) clk_smd_rpm(E) sdhci_msm(E) sdhci_pltfm(E) qcom_smd_regulator(E) drm(E) smd_rpm(E) qcom_spmi_pmic(E) regmap_spmi(E) ci_hdrc_msm(E) ci_hdrc(E) usb3503(E) extcon_usb_gpio(E) phy_msm_usb(E) udc_core(E) qcom_hwspinlock(E) extcon_core(E) ehci_msm(E) i2c_qup(E) sdhci(E) mmc_core(E) spmi_pmic_arb(E) spmi(E) qcom_smd(E) smsm(E) rpmsg_core(E) smp2p(E) smem(E) hwspinlock_core(E) gpio_keys(E)
+>   CPU: 2 PID: 551 Comm: irq/150-venus Tainted: P            E   4.12.0+ #1625
+>   Hardware name: qualcomm dragonboard410c/dragonboard410c, BIOS 2017.07-rc2-00144-ga97bdbdf72-dirty 07/08/2017
+>   task: ffff800037338000 task.stack: ffff800038e00000
+>   PC is at hfi_sys_init_done+0x64/0x140 [venus_core]
+>   LR is at hfi_process_msg_packet+0xcc/0x1e8 [venus_core]
+>   pc : [<ffff00000118b384>] lr : [<ffff00000118c11c>] pstate: 20400145
+>   sp : ffff800038e03c60
+>   x29: ffff800038e03c60 x28: 0000000000000000
+>   x27: 00000000000df018 x26: ffff00000118f4d0
+>   x25: 0000000000020003 x24: ffff80003a8d3010
+>   x23: ffff00000118f760 x22: ffff800037b40028
+>   x21: ffff8000382981f0 x20: ffff800037b40028
+>   x19: ffff80003c039000 x18: 0000000000000020
+>   x17: 0000000000000000 x16: ffff800037338000
+>   x15: ffffffffffffffff x14: 0000001000000014
+>   x13: 0000000100001007 x12: 0000000100000020
+>   x11: 0000100e00000000 x10: 0000000000000001
+>   x9 : 0000000200000000 x8 : 0000001400000001
+>   x7 : 0000000000001010 x6 : 0000000000000148
+>   x5 : 0000000000001009 x4 : ffff80003c039000
+>   x3 : 00000000cd770abb x2 : 0000000000000042
+>   x1 : 0000000000000788 x0 : 0000000000000002
+>   Process irq/150-venus (pid: 551, stack limit = 0xffff800038e00000)
+>   Call trace:
+>   [<ffff00000118b384>] hfi_sys_init_done+0x64/0x140 [venus_core]
+>   [<ffff00000118c11c>] hfi_process_msg_packet+0xcc/0x1e8 [venus_core]
+>   [<ffff00000118a2b4>] venus_isr_thread+0x1b4/0x208 [venus_core]
+>   [<ffff00000118e750>] hfi_isr_thread+0x28/0x38 [venus_core]
+>   [<ffff000008161550>] irq_thread_fn+0x30/0x70
+>   [<ffff0000081617fc>] irq_thread+0x14c/0x1c8
+>   [<ffff000008105e68>] kthread+0x138/0x140
+>   [<ffff000008083590>] ret_from_fork+0x10/0x40
+>   Code: 52820125 52820207 7a431820 54000249 (b9400263)
+>   ---[ end trace c963460f20a984b6 ]---
 > 
-> -- 
-> Maxime Ripard, Free Electrons
-> Embedded Linux and Kernel engineering
-> http://free-electrons.com
+> The problem is that in the error case, we've incremented the data ptr
+> but not decremented rem_bytes, and keep reading (presumably garbage)
+> until eventually we go beyond the end of the buffer.
+> 
+> Instead, on first error, we should probably just bail out.  Other
+> option is to increment read_bytes by sizeof(u32) before the switch,
+> rather than only accounting for the ptype header in the non-error
+> case.  Note that in this case it is HFI_ERR_SYS_INVALID_PARAMETER,
+> ie. an unrecognized/unsupported parameter, so interpreting the next
+> word as a property type would be bogus.  The other error cases are
+> due to truncated buffer, so there isn't likely to be anything valid
+> to interpret in the remainder of the buffer.  So just bailing seems
+> like a reasonable solution.
 
+I have a WIP patch which rewrite the message parsing, it would be nice
+if I can reproduce this crash.
 
-Thanks,
-Yong
+> 
+> Signed-off-by: Rob Clark <robdclark@gmail.com>
+> ---
+>  drivers/media/platform/qcom/venus/hfi_msgs.c | 11 ++++++-----
+>  1 file changed, 6 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/platform/qcom/venus/hfi_msgs.c b/drivers/media/platform/qcom/venus/hfi_msgs.c
+> index debf80a92797..4190825b20a1 100644
+> --- a/drivers/media/platform/qcom/venus/hfi_msgs.c
+> +++ b/drivers/media/platform/qcom/venus/hfi_msgs.c
+> @@ -239,11 +239,12 @@ static void hfi_sys_init_done(struct venus_core *core, struct venus_inst *inst,
+>  			break;
+>  		}
+>  
+> -		if (!error) {
+> -			rem_bytes -= read_bytes;
+> -			data += read_bytes;
+> -			num_properties--;
+> -		}
+> +		if (error)
+> +			break;
+> +
+> +		rem_bytes -= read_bytes;
+> +		data += read_bytes;
+> +		num_properties--;
+>  	}
+>  
+>  err_no_prop:
+> 
+
+-- 
+regards,
+Stan
