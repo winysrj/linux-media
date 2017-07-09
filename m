@@ -1,103 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:36179 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755843AbdGKNaY (ORCPT
+Received: from gateway32.websitewelcome.com ([192.185.145.119]:12962 "EHLO
+        gateway32.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752623AbdGIWYa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 09:30:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel <dri-devel@lists.freedesktop.org>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
-Date: Tue, 11 Jul 2017 15:30:11 +0200
-Message-Id: <20170711133011.41139-4-hverkuil@xs4all.nl>
-In-Reply-To: <20170711133011.41139-1-hverkuil@xs4all.nl>
-References: <20170711133011.41139-1-hverkuil@xs4all.nl>
+        Sun, 9 Jul 2017 18:24:30 -0400
+Received: from cm15.websitewelcome.com (cm15.websitewelcome.com [100.42.49.9])
+        by gateway32.websitewelcome.com (Postfix) with ESMTP id 61A341C0471
+        for <linux-media@vger.kernel.org>; Sun,  9 Jul 2017 17:24:27 -0500 (CDT)
+Date: Sun, 9 Jul 2017 17:24:19 -0500
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH] dib9000: constify i2c_algorithm structure
+Message-ID: <20170709222419.GA11009@embeddedgus>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Check for i2c_algorithm structures that are only stored in
+the algo field of an i2c_adapter structure. This field is
+declared const, so i2c_algorithm structures that have this
+property can be declared as const also.
 
-Implement support for this DisplayPort feature.
+This issue was identified using Coccinelle and the following
+semantic patch:
 
-The cec device is created whenever it detects an adapter that
-has this feature. It is only removed when a new adapter is connected
-that does not support this. If a new adapter is connected that has
-different properties than the previous one, then the old cec device is
-unregistered and a new one is registered to replace the old one.
+@r disable optional_qualifier@
+identifier i;
+position p;
+@@
+static struct i2c_algorithm i@p = { ... };
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+@ok@
+identifier r.i;
+struct i2c_adapter e;
+position p;
+@@
+e.algo = &i@p;
+
+@bad@
+position p != {r.p,ok.p};
+identifier r.i;
+@@
+i@p
+
+@depends on !bad disable optional_qualifier@
+identifier r.i;
+@@
+static
++const
+ struct i2c_algorithm i = { ... };
+
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
 ---
- drivers/gpu/drm/i915/intel_dp.c | 18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ drivers/media/dvb-frontends/dib9000.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
-index 64fa774c855b..fdb853d2c458 100644
---- a/drivers/gpu/drm/i915/intel_dp.c
-+++ b/drivers/gpu/drm/i915/intel_dp.c
-@@ -32,6 +32,7 @@
- #include <linux/notifier.h>
- #include <linux/reboot.h>
- #include <asm/byteorder.h>
-+#include <media/cec.h>
- #include <drm/drmP.h>
- #include <drm/drm_atomic_helper.h>
- #include <drm/drm_crtc.h>
-@@ -1449,6 +1450,7 @@ static void intel_aux_reg_init(struct intel_dp *intel_dp)
- static void
- intel_dp_aux_fini(struct intel_dp *intel_dp)
- {
-+	cec_unregister_adapter(intel_dp->aux.cec_adap);
- 	kfree(intel_dp->aux.name);
+diff --git a/drivers/media/dvb-frontends/dib9000.c b/drivers/media/dvb-frontends/dib9000.c
+index c95fff4..17c6f15 100644
+--- a/drivers/media/dvb-frontends/dib9000.c
++++ b/drivers/media/dvb-frontends/dib9000.c
+@@ -1714,12 +1714,12 @@ static u32 dib9000_i2c_func(struct i2c_adapter *adapter)
+ 	return I2C_FUNC_I2C;
  }
  
-@@ -4587,6 +4589,7 @@ intel_dp_set_edid(struct intel_dp *intel_dp)
- 	intel_connector->detect_edid = edid;
+-static struct i2c_algorithm dib9000_tuner_algo = {
++static const struct i2c_algorithm dib9000_tuner_algo = {
+ 	.master_xfer = dib9000_tuner_xfer,
+ 	.functionality = dib9000_i2c_func,
+ };
  
- 	intel_dp->has_audio = drm_detect_monitor_audio(edid);
-+	cec_s_phys_addr_from_edid(intel_dp->aux.cec_adap, edid);
- }
- 
- static void
-@@ -4596,6 +4599,7 @@ intel_dp_unset_edid(struct intel_dp *intel_dp)
- 
- 	kfree(intel_connector->detect_edid);
- 	intel_connector->detect_edid = NULL;
-+	cec_phys_addr_invalidate(intel_dp->aux.cec_adap);
- 
- 	intel_dp->has_audio = false;
- }
-@@ -4616,13 +4620,17 @@ intel_dp_long_pulse(struct intel_connector *intel_connector)
- 	intel_display_power_get(to_i915(dev), intel_dp->aux_power_domain);
- 
- 	/* Can't disconnect eDP, but you can close the lid... */
--	if (is_edp(intel_dp))
-+	if (is_edp(intel_dp)) {
- 		status = edp_detect(intel_dp);
--	else if (intel_digital_port_connected(to_i915(dev),
--					      dp_to_dig_port(intel_dp)))
-+	} else if (intel_digital_port_connected(to_i915(dev),
-+						dp_to_dig_port(intel_dp))) {
- 		status = intel_dp_detect_dpcd(intel_dp);
--	else
-+		if (status == connector_status_connected)
-+			drm_dp_cec_configure_adapter(&intel_dp->aux,
-+				     intel_dp->aux.name, dev->dev);
-+	} else {
- 		status = connector_status_disconnected;
-+	}
- 
- 	if (status == connector_status_disconnected) {
- 		memset(&intel_dp->compliance, 0, sizeof(intel_dp->compliance));
-@@ -5011,6 +5019,8 @@ intel_dp_hpd_pulse(struct intel_digital_port *intel_dig_port, bool long_hpd)
- 
- 	intel_display_power_get(dev_priv, intel_dp->aux_power_domain);
- 
-+	drm_dp_cec_irq(&intel_dp->aux);
-+
- 	if (intel_dp->is_mst) {
- 		if (intel_dp_check_mst_status(intel_dp) == -EINVAL) {
- 			/*
+-static struct i2c_algorithm dib9000_component_bus_algo = {
++static const struct i2c_algorithm dib9000_component_bus_algo = {
+ 	.master_xfer = dib9000_fw_component_bus_xfer,
+ 	.functionality = dib9000_i2c_func,
+ };
 -- 
-2.11.0
+2.5.0
