@@ -1,2493 +1,6290 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay2.synopsys.com ([198.182.60.111]:57634 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754428AbdGJPrf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Jul 2017 11:47:35 -0400
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-Subject: [PATCH v8 5/5] [media] platform: Add Synopsys Designware HDMI RX Controller Driver
-Date: Mon, 10 Jul 2017 16:46:55 +0100
-Message-Id: <0f11f460d16eaf6bb535852ed943d2a7ad731e1e.1499701282.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1499701281.git.joabreu@synopsys.com>
-References: <cover.1499701281.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1499701281.git.joabreu@synopsys.com>
-References: <cover.1499701281.git.joabreu@synopsys.com>
+Received: from mail-wr0-f169.google.com ([209.85.128.169]:34459 "EHLO
+        mail-wr0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752579AbdGITmc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 15:42:32 -0400
+Received: by mail-wr0-f169.google.com with SMTP id 77so111877580wrb.1
+        for <linux-media@vger.kernel.org>; Sun, 09 Jul 2017 12:42:30 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at, d_spingler@gmx.de, rjkm@metzlerbros.de
+Subject: [PATCH 03/14] [media] ddbridge: bump ddbridge code to version 0.9.29
+Date: Sun,  9 Jul 2017 21:42:10 +0200
+Message-Id: <20170709194221.10255-4-d.scheller.oss@gmail.com>
+In-Reply-To: <20170709194221.10255-1-d.scheller.oss@gmail.com>
+References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an initial submission for the Synopsys Designware HDMI RX
-Controller Driver. This driver interacts with a phy driver so that
-a communication between them is created and a video pipeline is
-configured.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-The controller + phy pipeline can then be integrated into a fully
-featured system that can be able to receive video up to 4k@60Hz
-with deep color 48bit RGB, depending on the platform. Although,
-this initial version does not yet handle deep color modes.
+This huge patch bumps the ddbridge driver to version 0.9.29. Compared to
+the vendor driver package, DD OctoNET including GTL link support, and all
+DVB-C Modulator card support has been removed since this requires large
+changes to the underlying DVB core API, which should eventually be done
+separately, and, after that, the functionality/device support can be added
+back rather easy.
 
-This driver was implemented as a standard V4L2 subdevice and its
-main features are:
-	- Internal state machine that reconfigures phy until the
-	video is not stable
-	- JTAG communication with phy
-	- Inter-module communication with phy driver
-	- Debug write/read ioctls
+While the diff is rather large, the bump is mostly a big refactor of all
+data structures. Yet, the MSI support (message signaled interrupts) is
+greatly improved, also all currently available CI single/duo bridge cards
+are fully supported.
 
-Some notes:
-	- RX sense controller (cable connection/disconnection) must
-	be handled by the platform wrapper as this is not integrated
-	into the controller RTL
-	- The same goes for EDID ROM's
-	- ZCAL calibration is needed only in FPGA platforms, in ASIC
-	this is not needed
-	- The state machine is not an ideal solution as it creates a
-	kthread but it is needed because some sources might not be
-	very stable at sending the video (i.e. we must react
-	accordingly).
+More changes compared to the upstream driver:
+ - the DDB_USE_WORKER flag/define was removed, kernel worker functionality
+   will be used.
+ - coding style is properly fixed (zero complaints from checkpatch)
+ - all (not much though) CamelCase has been fixed to kernel_case
 
-Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-Cc: Carlos Palminha <palminha@synopsys.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sylwester Nawrocki <snawrocki@kernel.org>
+Great care has been taken to keep all previous changes and fixes (e.g.
+kernel logging via dev_*(), pointer annotations and such) intact.
 
-Changes from v6:
-	- edid-phandle now also looks for parent node (Sylwester)
-	- Fix kbuild build warnings
-Changes from v5:
-	- Removed HDCP 1.4 support (Hans)
-	- Removed some CEC debug messages (Hans)
-	- Add s_dv_timings callback (Hans)
-	- Add V4L2_CID_DV_RX_POWER_PRESENT ctrl (Hans)
-Changes from v4:
-	- Add flag V4L2_SUBDEV_FL_HAS_DEVNODE (Sylwester)
-	- Remove some comments and change some messages to dev_dbg (Sylwester)
-	- Use v4l2_async_subnotifier_register() (Sylwester)
-Changes from v3:
-	- Use v4l2 async API (Sylwester)
-	- Do not block waiting for phy
-	- Do not use busy waiting delays (Sylwester)
-	- Simplify dw_hdmi_power_on (Sylwester)
-	- Use clock API (Sylwester)
-	- Use compatible string (Sylwester)
-	- Minor fixes (Sylwester)
-Changes from v2:
-	- Address review comments from Hans regarding CEC
-	- Use CEC notifier
-	- Enable SCDC
-Changes from v1:
-	- Add support for CEC
-	- Correct typo errors
-	- Correctly detect interlaced video modes
-	- Correct VIC parsing
-Changes from RFC:
-	- Add support for HDCP 1.4
-	- Fixup HDMI_VIC not being parsed (Hans)
-	- Send source change signal when powering off (Hans)
-	- Add a "wait stable delay"
-	- Detect interlaced video modes (Hans)
-	- Restrain g/s_register from reading/writing to HDCP regs (Hans)
+Permission to reuse and mainline the driver code was formally granted by
+Ralph Metzler <rjkm@metzlerbros.de>.
+
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- drivers/media/platform/dwc/Kconfig      |   15 +
- drivers/media/platform/dwc/Makefile     |    1 +
- drivers/media/platform/dwc/dw-hdmi-rx.c | 1823 +++++++++++++++++++++++++++++++
- drivers/media/platform/dwc/dw-hdmi-rx.h |  441 ++++++++
- include/media/dwc/dw-hdmi-rx-pdata.h    |   70 ++
- 5 files changed, 2350 insertions(+)
- create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.c
- create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.h
- create mode 100644 include/media/dwc/dw-hdmi-rx-pdata.h
+ drivers/media/pci/ddbridge/ddbridge-core.c | 3510 ++++++++++++++++++++++------
+ drivers/media/pci/ddbridge/ddbridge-i2c.c  |  248 +-
+ drivers/media/pci/ddbridge/ddbridge-main.c |  490 ++--
+ drivers/media/pci/ddbridge/ddbridge-regs.h |  138 +-
+ drivers/media/pci/ddbridge/ddbridge.h      |  372 ++-
+ 5 files changed, 3633 insertions(+), 1125 deletions(-)
 
-diff --git a/drivers/media/platform/dwc/Kconfig b/drivers/media/platform/dwc/Kconfig
-index 361d38d..3ddccde 100644
---- a/drivers/media/platform/dwc/Kconfig
-+++ b/drivers/media/platform/dwc/Kconfig
-@@ -6,3 +6,18 @@ config VIDEO_DWC_HDMI_PHY_E405
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index ccbc9f41b10e..37c6eadba02b 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -1,7 +1,10 @@
+ /*
+- * ddbridge.c: Digital Devices PCIe bridge driver
++ * ddbridge-core.c: Digital Devices bridge core functions
++ *
++ * Copyright (C) 2010-2017 Digital Devices GmbH
++ *                         Marcus Metzler <mocm@metzlerbros.de>
++ *                         Ralph Metzler <rjkm@metzlerbros.de>
+  *
+- * Copyright (C) 2010-2011 Digital Devices GmbH
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+@@ -17,8 +20,6 @@
+  * http://www.gnu.org/copyleft/gpl.html
+  */
  
- 	  To compile this driver as a module, choose M here. The module
- 	  will be called dw-hdmi-phy-e405.
+-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+-
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+@@ -48,77 +49,290 @@
+ #include "stv0910.h"
+ #include "stv6111.h"
+ #include "lnbh25.h"
++#include "cxd2099.h"
 +
-+config VIDEO_DWC_HDMI_RX
-+	tristate "Synopsys Designware HDMI Receiver driver"
-+	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-+	help
-+	  Support for Synopsys Designware HDMI RX controller.
++/****************************************************************************/
 +
-+	  To compile this driver as a module, choose M here. The module
-+	  will be called dw-hdmi-rx.
++#define DDB_MAX_ADAPTER 64
+ 
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
+-/******************************************************************************/
+-/******************************************************************************/
+-/******************************************************************************/
++DEFINE_MUTEX(redirect_lock);
 +
-+config VIDEO_DWC_HDMI_RX_CEC
-+	bool
-+	depends on VIDEO_DWC_HDMI_RX
-+	select CEC_CORE
-+	select CEC_NOTIFIER
-diff --git a/drivers/media/platform/dwc/Makefile b/drivers/media/platform/dwc/Makefile
-index fc3b62c..cd04ca9 100644
---- a/drivers/media/platform/dwc/Makefile
-+++ b/drivers/media/platform/dwc/Makefile
-@@ -1 +1,2 @@
- obj-$(CONFIG_VIDEO_DWC_HDMI_PHY_E405) += dw-hdmi-phy-e405.o
-+obj-$(CONFIG_VIDEO_DWC_HDMI_RX) += dw-hdmi-rx.o
-diff --git a/drivers/media/platform/dwc/dw-hdmi-rx.c b/drivers/media/platform/dwc/dw-hdmi-rx.c
-new file mode 100644
-index 0000000..d434bed
---- /dev/null
-+++ b/drivers/media/platform/dwc/dw-hdmi-rx.c
-@@ -0,0 +1,1823 @@
-+/*
-+ * Synopsys Designware HDMI Receiver controller driver
-+ *
-+ * This Synopsys dw-hdmi-rx software and associated documentation
-+ * (hereinafter the "Software") is an unsupported proprietary work of
-+ * Synopsys, Inc. unless otherwise expressly agreed to in writing between
-+ * Synopsys and you. The Software IS NOT an item of Licensed Software or a
-+ * Licensed Product under any End User Software License Agreement or
-+ * Agreement for Licensed Products with Synopsys or any supplement thereto.
-+ * Synopsys is a registered trademark of Synopsys, Inc. Other names included
-+ * in the SOFTWARE may be the trademarks of their respective owners.
-+ *
-+ * The contents of this file are dual-licensed; you may select either version 2
-+ * of the GNU General Public License (“GPL”) or the MIT license (“MIT”).
-+ *
-+ * Copyright (c) 2017 Synopsys, Inc. and/or its affiliates.
-+ *
-+ * THIS SOFTWARE IS PROVIDED "AS IS"  WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-+ * IMPLIED, INCLUDING, BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-+ * FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE
-+ * ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE THE USE OR
-+ * OTHER DEALINGS IN THE SOFTWARE.
-+ */
++static struct ddb *ddbs[DDB_MAX_ADAPTER];
 +
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/interrupt.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
-+#include <linux/platform_device.h>
-+#include <linux/v4l2-dv-timings.h>
-+#include <linux/workqueue.h>
-+#include <media/cec.h>
-+#include <media/cec-notifier.h>
-+#include <media/v4l2-async.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-dv-timings.h>
-+#include <media/v4l2-event.h>
-+#include <media/v4l2-subdev.h>
-+#include <media/dwc/dw-hdmi-phy-pdata.h>
-+#include <media/dwc/dw-hdmi-rx-pdata.h>
-+#include "dw-hdmi-rx.h"
++/****************************************************************************/
++/****************************************************************************/
++/****************************************************************************/
 +
-+#define HDMI_DEFAULT_TIMING		V4L2_DV_BT_CEA_640X480P59_94
-+#define HDMI_CEC_MAX_LOG_ADDRS		CEC_MAX_LOG_ADDRS
-+
-+MODULE_AUTHOR("Carlos Palminha <palminha@synopsys.com>");
-+MODULE_AUTHOR("Jose Abreu <joabreu@synopsys.com>");
-+MODULE_DESCRIPTION("Designware HDMI Receiver driver");
-+MODULE_LICENSE("Dual MIT/GPL");
-+
-+static const struct v4l2_dv_timings_cap dw_hdmi_timings_cap = {
-+	.type = V4L2_DV_BT_656_1120,
-+	.reserved = { 0 },
-+	V4L2_INIT_BT_TIMINGS(
-+			640, 4096,		/* min/max width */
-+			480, 4455,		/* min/max height */
-+			20000000, 600000000,	/* min/max pixelclock */
-+			V4L2_DV_BT_STD_CEA861,	/* standards */
-+			/* capabilities */
-+			V4L2_DV_BT_CAP_PROGRESSIVE
-+	)
++static struct ddb_regset octopus_input = {
++	.base = 0x200,
++	.num  = 0x08,
++	.size = 0x10,
 +};
 +
-+static const struct v4l2_event dw_hdmi_event_fmt = {
-+	.type = V4L2_EVENT_SOURCE_CHANGE,
-+	.u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION,
++static struct ddb_regset octopus_output = {
++	.base = 0x280,
++	.num  = 0x08,
++	.size = 0x10,
 +};
 +
-+enum dw_hdmi_state {
-+	HDMI_STATE_NO_INIT = 0,
-+	HDMI_STATE_POWER_OFF,
-+	HDMI_STATE_PHY_CONFIG,
-+	HDMI_STATE_EQUALIZER,
-+	HDMI_STATE_VIDEO_UNSTABLE,
-+	HDMI_STATE_POWER_ON,
++static struct ddb_regset octopus_idma = {
++	.base = 0x300,
++	.num  = 0x08,
++	.size = 0x10,
 +};
 +
-+struct dw_hdmi_dev {
-+	struct v4l2_async_notifier v4l2_notifier;
-+	struct v4l2_async_subdev phy_async_sd;
-+	struct dw_hdmi_rx_pdata *config;
-+	struct workqueue_struct *wq;
-+	struct work_struct work;
-+	enum dw_hdmi_state state;
-+	bool registered;
-+	bool pending_config;
-+	bool force_off;
-+	spinlock_t lock;
-+	void __iomem *regs;
-+	struct device_node *of_node;
-+	struct v4l2_subdev sd;
-+	struct v4l2_dv_timings timings;
-+	struct dw_phy_pdata phy_config;
-+	struct platform_device *notifier_pdev;
-+	struct v4l2_subdev *phy_sd;
-+	bool phy_eq_force;
-+	u8 phy_jtag_addr;
-+	const char *phy_drv;
-+	struct device *dev;
-+	u32 mbus_code;
-+	unsigned int selected_input;
-+	unsigned int configured_input;
-+	struct clk *clk;
-+	u32 cfg_clk;
-+	struct cec_adapter *cec_adap;
-+	struct cec_notifier *cec_notifier;
-+	struct v4l2_ctrl_handler hdl;
-+	struct v4l2_ctrl *detect_tx_5v_ctrl;
++static struct ddb_regset octopus_idma_buf = {
++	.base = 0x2000,
++	.num  = 0x08,
++	.size = 0x100,
 +};
 +
-+static const char *get_state_name(enum dw_hdmi_state state)
++static struct ddb_regset octopus_odma = {
++	.base = 0x380,
++	.num  = 0x04,
++	.size = 0x10,
++};
++
++static struct ddb_regset octopus_odma_buf = {
++	.base = 0x2800,
++	.num  = 0x04,
++	.size = 0x100,
++};
++
++static struct ddb_regset octopus_i2c = {
++	.base = 0x80,
++	.num  = 0x04,
++	.size = 0x20,
++};
++
++static struct ddb_regset octopus_i2c_buf = {
++	.base = 0x1000,
++	.num  = 0x04,
++	.size = 0x200,
++};
++
++/****************************************************************************/
++
++struct ddb_regmap octopus_map = {
++	.irq_base_i2c = 0,
++	.irq_base_idma = 8,
++	.irq_base_odma = 16,
++	.i2c = &octopus_i2c,
++	.i2c_buf = &octopus_i2c_buf,
++	.idma = &octopus_idma,
++	.idma_buf = &octopus_idma_buf,
++	.odma = &octopus_odma,
++	.odma_buf = &octopus_odma_buf,
++	.input = &octopus_input,
++	.output = &octopus_output,
++};
++
++/****************************************************************************/
++/****************************************************************************/
++/****************************************************************************/
+ 
+-#if 0
+-static void set_table(struct ddb *dev, u32 off,
+-		      dma_addr_t *pbuf, u32 num)
++static void ddb_set_dma_table(struct ddb_io *io)
+ {
+-	u32 i, base;
++	struct ddb *dev = io->port->dev;
++	struct ddb_dma *dma = io->dma;
++	u32 i;
+ 	u64 mem;
+ 
+-	base = DMA_BASE_ADDRESS_TABLE + off;
+-	for (i = 0; i < num; i++) {
+-		mem = pbuf[i];
+-		ddbwritel(mem & 0xffffffff, base + i * 8);
+-		ddbwritel(mem >> 32, base + i * 8 + 4);
++	if (!dma)
++		return;
++	for (i = 0; i < dma->num; i++) {
++		mem = dma->pbuf[i];
++		ddbwritel(dev, mem & 0xffffffff, dma->bufregs + i * 8);
++		ddbwritel(dev, mem >> 32, dma->bufregs + i * 8 + 4);
+ 	}
++	dma->bufval = ((dma->div & 0x0f) << 16) |
++		((dma->num & 0x1f) << 11) |
++		((dma->size >> 7) & 0x7ff);
+ }
+-#endif
+ 
+-static void ddb_address_table(struct ddb *dev)
++static void ddb_set_dma_tables(struct ddb *dev)
 +{
-+	switch (state) {
-+	case HDMI_STATE_NO_INIT:
-+		return "NO_INIT";
-+	case HDMI_STATE_POWER_OFF:
-+		return "POWER_OFF";
-+	case HDMI_STATE_PHY_CONFIG:
-+		return "PHY_CONFIG";
-+	case HDMI_STATE_EQUALIZER:
-+		return "EQUALIZER";
-+	case HDMI_STATE_VIDEO_UNSTABLE:
-+		return "VIDEO_UNSTABLE";
-+	case HDMI_STATE_POWER_ON:
-+		return "POWER_ON";
++	u32 i;
++
++	for (i = 0; i < DDB_MAX_PORT; i++) {
++		if (dev->port[i].input[0])
++			ddb_set_dma_table(dev->port[i].input[0]);
++		if (dev->port[i].input[1])
++			ddb_set_dma_table(dev->port[i].input[1]);
++		if (dev->port[i].output)
++			ddb_set_dma_table(dev->port[i].output);
++	}
++}
++
++
++/****************************************************************************/
++/****************************************************************************/
++/****************************************************************************/
++
++static void ddb_redirect_dma(struct ddb *dev,
++			     struct ddb_dma *sdma,
++			     struct ddb_dma *ddma)
+ {
+-	u32 i, j, base;
++	u32 i, base;
+ 	u64 mem;
+-	dma_addr_t *pbuf;
+-
+-	for (i = 0; i < dev->info->port_num * 2; i++) {
+-		base = DMA_BASE_ADDRESS_TABLE + i * 0x100;
+-		pbuf = dev->input[i].pbuf;
+-		for (j = 0; j < dev->input[i].dma_buf_num; j++) {
+-			mem = pbuf[j];
+-			ddbwritel(mem & 0xffffffff, base + j * 8);
+-			ddbwritel(mem >> 32, base + j * 8 + 4);
+-		}
++
++	sdma->bufval = ddma->bufval;
++	base = sdma->bufregs;
++	for (i = 0; i < ddma->num; i++) {
++		mem = ddma->pbuf[i];
++		ddbwritel(dev, mem & 0xffffffff, base + i * 8);
++		ddbwritel(dev, mem >> 32, base + i * 8 + 4);
++	}
++}
++
++static int ddb_unredirect(struct ddb_port *port)
++{
++	struct ddb_input *oredi, *iredi = 0;
++	struct ddb_output *iredo = 0;
++
++	/* dev_info(port->dev->dev,
++	 * "unredirect %d.%d\n", port->dev->nr, port->nr);
++	 */
++	mutex_lock(&redirect_lock);
++	if (port->output->dma->running) {
++		mutex_unlock(&redirect_lock);
++		return -EBUSY;
+ 	}
+-	for (i = 0; i < dev->info->port_num; i++) {
+-		base = DMA_BASE_ADDRESS_TABLE + 0x800 + i * 0x100;
+-		pbuf = dev->output[i].pbuf;
+-		for (j = 0; j < dev->output[i].dma_buf_num; j++) {
+-			mem = pbuf[j];
+-			ddbwritel(mem & 0xffffffff, base + j * 8);
+-			ddbwritel(mem >> 32, base + j * 8 + 4);
++	oredi = port->output->redi;
++	if (!oredi)
++		goto done;
++	if (port->input[0]) {
++		iredi = port->input[0]->redi;
++		iredo = port->input[0]->redo;
++
++		if (iredo) {
++			iredo->port->output->redi = oredi;
++			if (iredo->port->input[0]) {
++				iredo->port->input[0]->redi = iredi;
++				ddb_redirect_dma(oredi->port->dev,
++						 oredi->dma, iredo->dma);
++			}
++			port->input[0]->redo = 0;
++			ddb_set_dma_table(port->input[0]);
+ 		}
++		oredi->redi = iredi;
++		port->input[0]->redi = 0;
++	}
++	oredi->redo = 0;
++	port->output->redi = 0;
++
++	ddb_set_dma_table(oredi);
++done:
++	mutex_unlock(&redirect_lock);
++	return 0;
++}
++
++static int ddb_redirect(u32 i, u32 p)
++{
++	struct ddb *idev = ddbs[(i >> 4) & 0x3f];
++	struct ddb_input *input, *input2;
++	struct ddb *pdev = ddbs[(p >> 4) & 0x3f];
++	struct ddb_port *port;
++
++	if (!idev->has_dma || !pdev->has_dma)
++		return -EINVAL;
++	if (!idev || !pdev)
++		return -EINVAL;
++
++	port = &pdev->port[p & 0x0f];
++	if (!port->output)
++		return -EINVAL;
++	if (ddb_unredirect(port))
++		return -EBUSY;
++
++	if (i == 8)
++		return 0;
++
++	input = &idev->input[i & 7];
++	if (!input)
++		return -EINVAL;
++
++	mutex_lock(&redirect_lock);
++	if (port->output->dma->running || input->dma->running) {
++		mutex_unlock(&redirect_lock);
++		return -EBUSY;
++	}
++	input2 = port->input[0];
++	if (input2) {
++		if (input->redi) {
++			input2->redi = input->redi;
++			input->redi = 0;
++		} else
++			input2->redi = input;
+ 	}
++	input->redo = port->output;
++	port->output->redi = input;
++
++	ddb_redirect_dma(input->port->dev, input->dma, port->output->dma);
++	mutex_unlock(&redirect_lock);
++	return 0;
+ }
+ 
+-static void io_free(struct pci_dev *pdev, u8 **vbuf,
+-		    dma_addr_t *pbuf, u32 size, int num)
++/****************************************************************************/
++/****************************************************************************/
++/****************************************************************************/
++
++static void dma_free(struct pci_dev *pdev, struct ddb_dma *dma, int dir)
+ {
+ 	int i;
+ 
+-	for (i = 0; i < num; i++) {
+-		if (vbuf[i]) {
+-			pci_free_consistent(pdev, size, vbuf[i], pbuf[i]);
+-			vbuf[i] = NULL;
++	if (!dma)
++		return;
++	for (i = 0; i < dma->num; i++) {
++		if (dma->vbuf[i]) {
++			if (alt_dma) {
++				dma_unmap_single(&pdev->dev, dma->pbuf[i],
++						 dma->size,
++						 dir ? DMA_TO_DEVICE :
++						 DMA_FROM_DEVICE);
++				kfree(dma->vbuf[i]);
++				dma->vbuf[i] = NULL;
++			} else {
++				dma_free_coherent(&pdev->dev, dma->size,
++						  dma->vbuf[i], dma->pbuf[i]);
++			}
++
++			dma->vbuf[i] = NULL;
+ 		}
+ 	}
+ }
+ 
+-static int io_alloc(struct pci_dev *pdev, u8 **vbuf,
+-		    dma_addr_t *pbuf, u32 size, int num)
++static int dma_alloc(struct pci_dev *pdev, struct ddb_dma *dma, int dir)
+ {
+ 	int i;
+ 
+-	for (i = 0; i < num; i++) {
+-		vbuf[i] = pci_alloc_consistent(pdev, size, &pbuf[i]);
+-		if (!vbuf[i])
+-			return -ENOMEM;
++	if (!dma)
++		return 0;
++	for (i = 0; i < dma->num; i++) {
++		if (alt_dma) {
++			dma->vbuf[i] = kmalloc(dma->size, __GFP_REPEAT);
++			if (!dma->vbuf[i])
++				return -ENOMEM;
++			dma->pbuf[i] = dma_map_single(&pdev->dev,
++						      dma->vbuf[i],
++						      dma->size,
++						      dir ? DMA_TO_DEVICE :
++						      DMA_FROM_DEVICE);
++			if (dma_mapping_error(&pdev->dev, dma->pbuf[i])) {
++				kfree(dma->vbuf[i]);
++				dma->vbuf[i] = NULL;
++				return -ENOMEM;
++			}
++		} else {
++			dma->vbuf[i] = dma_alloc_coherent(&pdev->dev,
++							  dma->size,
++							  &dma->pbuf[i],
++							  GFP_KERNEL);
++			if (!dma->vbuf[i])
++				return -ENOMEM;
++		}
+ 	}
+ 	return 0;
+ }
+@@ -128,38 +342,35 @@ int ddb_buffers_alloc(struct ddb *dev)
+ 	int i;
+ 	struct ddb_port *port;
+ 
+-	for (i = 0; i < dev->info->port_num; i++) {
++	for (i = 0; i < dev->port_num; i++) {
+ 		port = &dev->port[i];
+ 		switch (port->class) {
+ 		case DDB_PORT_TUNER:
+-			if (io_alloc(dev->pdev, port->input[0]->vbuf,
+-				     port->input[0]->pbuf,
+-				     port->input[0]->dma_buf_size,
+-				     port->input[0]->dma_buf_num) < 0)
+-				return -1;
+-			if (io_alloc(dev->pdev, port->input[1]->vbuf,
+-				     port->input[1]->pbuf,
+-				     port->input[1]->dma_buf_size,
+-				     port->input[1]->dma_buf_num) < 0)
+-				return -1;
++			if (port->input[0]->dma)
++				if (dma_alloc(dev->pdev, port->input[0]->dma, 0)
++					< 0)
++					return -1;
++			if (port->input[1]->dma)
++				if (dma_alloc(dev->pdev, port->input[1]->dma, 0)
++					< 0)
++					return -1;
+ 			break;
+ 		case DDB_PORT_CI:
+-			if (io_alloc(dev->pdev, port->input[0]->vbuf,
+-				     port->input[0]->pbuf,
+-				     port->input[0]->dma_buf_size,
+-				     port->input[0]->dma_buf_num) < 0)
+-				return -1;
+-			if (io_alloc(dev->pdev, port->output->vbuf,
+-				     port->output->pbuf,
+-				     port->output->dma_buf_size,
+-				     port->output->dma_buf_num) < 0)
+-				return -1;
++		case DDB_PORT_LOOP:
++			if (port->input[0]->dma)
++				if (dma_alloc(dev->pdev, port->input[0]->dma, 0)
++					< 0)
++					return -1;
++			if (port->output->dma)
++				if (dma_alloc(dev->pdev, port->output->dma, 1)
++					< 0)
++					return -1;
+ 			break;
+ 		default:
+ 			break;
+ 		}
+ 	}
+-	ddb_address_table(dev);
++	ddb_set_dma_tables(dev);
+ 	return 0;
+ }
+ 
+@@ -168,111 +379,234 @@ void ddb_buffers_free(struct ddb *dev)
+ 	int i;
+ 	struct ddb_port *port;
+ 
+-	for (i = 0; i < dev->info->port_num; i++) {
++	for (i = 0; i < dev->port_num; i++) {
+ 		port = &dev->port[i];
+-		io_free(dev->pdev, port->input[0]->vbuf,
+-			port->input[0]->pbuf,
+-			port->input[0]->dma_buf_size,
+-			port->input[0]->dma_buf_num);
+-		io_free(dev->pdev, port->input[1]->vbuf,
+-			port->input[1]->pbuf,
+-			port->input[1]->dma_buf_size,
+-			port->input[1]->dma_buf_num);
+-		io_free(dev->pdev, port->output->vbuf,
+-			port->output->pbuf,
+-			port->output->dma_buf_size,
+-			port->output->dma_buf_num);
++
++		if (port->input[0] && port->input[0]->dma)
++			dma_free(dev->pdev, port->input[0]->dma, 0);
++		if (port->input[1] && port->input[1]->dma)
++			dma_free(dev->pdev, port->input[1]->dma, 0);
++		if (port->output && port->output->dma)
++			dma_free(dev->pdev, port->output->dma, 1);
++	}
++}
++
++static void calc_con(struct ddb_output *output, u32 *con, u32 *con2, u32 flags)
++{
++	struct ddb *dev = output->port->dev;
++	u32 bitrate = output->port->obr, max_bitrate = 72000;
++	u32 gap = 4, nco = 0;
++
++	*con = 0x1c;
++	if (output->port->gap != 0xffffffff) {
++		flags |= 1;
++		gap = output->port->gap;
++	}
++	if (dev->link[0].info->type == DDB_OCTOPUS_CI && output->port->nr > 1) {
++		*con = 0x10c;
++		if (dev->link[0].ids.regmapid >= 0x10003 && !(flags & 1)) {
++			if (!(flags & 2)) {
++				/* NCO */
++				max_bitrate = 0;
++				gap = 0;
++				if (bitrate != 72000) {
++					if (bitrate >= 96000)
++						*con |= 0x800;
++					else {
++						*con |= 0x1000;
++						nco = (bitrate * 8192 + 71999)
++							/ 72000;
++					}
++				}
++			} else {
++				/* Divider and gap */
++				*con |= 0x1810;
++				if (bitrate <= 64000) {
++					max_bitrate = 64000;
++					nco = 8;
++				} else if (bitrate <= 72000) {
++					max_bitrate = 72000;
++					nco = 7;
++				} else {
++					max_bitrate = 96000;
++					nco = 5;
++				}
++			}
++		} else {
++			if (bitrate > 72000) {
++				*con |= 0x810; /* 96 MBit/s and gap */
++				max_bitrate = 96000;
++			}
++		}
++	}
++	if (max_bitrate > 0) {
++		if (bitrate > max_bitrate)
++			bitrate = max_bitrate;
++		if (bitrate < 31000)
++			bitrate = 31000;
++		gap = ((max_bitrate - bitrate) * 94) / bitrate;
++		if (gap < 2)
++			*con &= ~0x10; /* Disable gap */
++		else
++			gap -= 2;
++		if (gap > 127)
++			gap = 127;
+ 	}
++
++	*con2 = (nco << 16) | gap;
++	return;
+ }
+ 
+ static void ddb_output_start(struct ddb_output *output)
+ {
+ 	struct ddb *dev = output->port->dev;
++	u32 con = 0x11c, con2 = 0;
++
++	if (output->dma) {
++		spin_lock_irq(&output->dma->lock);
++		output->dma->cbuf = 0;
++		output->dma->coff = 0;
++		output->dma->stat = 0;
++		ddbwritel(dev, 0, DMA_BUFFER_CONTROL(output->dma));
++	}
++
++	if (output->port->input[0]->port->class == DDB_PORT_LOOP)
++		con = (1UL << 13) | 0x14;
++	else
++		calc_con(output, &con, &con2, 0);
++
++	ddbwritel(dev, 0, TS_CONTROL(output));
++	ddbwritel(dev, 2, TS_CONTROL(output));
++	ddbwritel(dev, 0, TS_CONTROL(output));
++	ddbwritel(dev, con, TS_CONTROL(output));
++	ddbwritel(dev, con2, TS_CONTROL2(output));
++
++	if (output->dma) {
++		ddbwritel(dev, output->dma->bufval,
++			  DMA_BUFFER_SIZE(output->dma));
++		ddbwritel(dev, 0, DMA_BUFFER_ACK(output->dma));
++		ddbwritel(dev, 1, DMA_BASE_READ);
++		ddbwritel(dev, 7, DMA_BUFFER_CONTROL(output->dma));
++	}
+ 
+-	spin_lock_irq(&output->lock);
+-	output->cbuf = 0;
+-	output->coff = 0;
+-	ddbwritel(0, TS_OUTPUT_CONTROL(output->nr));
+-	ddbwritel(2, TS_OUTPUT_CONTROL(output->nr));
+-	ddbwritel(0, TS_OUTPUT_CONTROL(output->nr));
+-	ddbwritel(0x3c, TS_OUTPUT_CONTROL(output->nr));
+-	ddbwritel((1 << 16) |
+-		  (output->dma_buf_num << 11) |
+-		  (output->dma_buf_size >> 7),
+-		  DMA_BUFFER_SIZE(output->nr + 8));
+-	ddbwritel(0, DMA_BUFFER_ACK(output->nr + 8));
+-
+-	ddbwritel(1, DMA_BASE_READ);
+-	ddbwritel(3, DMA_BUFFER_CONTROL(output->nr + 8));
+-	/* ddbwritel(0xbd, TS_OUTPUT_CONTROL(output->nr)); */
+-	ddbwritel(0x1d, TS_OUTPUT_CONTROL(output->nr));
+-	output->running = 1;
+-	spin_unlock_irq(&output->lock);
++	ddbwritel(dev, con | 1, TS_CONTROL(output));
++
++	if (output->dma) {
++		output->dma->running = 1;
++		spin_unlock_irq(&output->dma->lock);
++	}
+ }
+ 
+ static void ddb_output_stop(struct ddb_output *output)
+ {
+ 	struct ddb *dev = output->port->dev;
+ 
+-	spin_lock_irq(&output->lock);
+-	ddbwritel(0, TS_OUTPUT_CONTROL(output->nr));
+-	ddbwritel(0, DMA_BUFFER_CONTROL(output->nr + 8));
+-	output->running = 0;
+-	spin_unlock_irq(&output->lock);
++	if (output->dma)
++		spin_lock_irq(&output->dma->lock);
++
++	ddbwritel(dev, 0, TS_CONTROL(output));
++
++	if (output->dma) {
++		ddbwritel(dev, 0, DMA_BUFFER_CONTROL(output->dma));
++		output->dma->running = 0;
++		spin_unlock_irq(&output->dma->lock);
++	}
+ }
+ 
+ static void ddb_input_stop(struct ddb_input *input)
+ {
+ 	struct ddb *dev = input->port->dev;
+-
+-	spin_lock_irq(&input->lock);
+-	ddbwritel(0, TS_INPUT_CONTROL(input->nr));
+-	ddbwritel(0, DMA_BUFFER_CONTROL(input->nr));
+-	input->running = 0;
+-	spin_unlock_irq(&input->lock);
++	u32 tag = DDB_LINK_TAG(input->port->lnr);
++
++	if (input->dma)
++		spin_lock_irq(&input->dma->lock);
++	ddbwritel(dev, 0, tag | TS_CONTROL(input));
++	if (input->dma) {
++		ddbwritel(dev, 0, DMA_BUFFER_CONTROL(input->dma));
++		input->dma->running = 0;
++		spin_unlock_irq(&input->dma->lock);
++	}
+ }
+ 
+ static void ddb_input_start(struct ddb_input *input)
+ {
+ 	struct ddb *dev = input->port->dev;
+ 
+-	spin_lock_irq(&input->lock);
+-	input->cbuf = 0;
+-	input->coff = 0;
++	if (input->dma) {
++		spin_lock_irq(&input->dma->lock);
++		input->dma->cbuf = 0;
++		input->dma->coff = 0;
++		input->dma->stat = 0;
++		ddbwritel(dev, 0, DMA_BUFFER_CONTROL(input->dma));
++	}
++	ddbwritel(dev, 0, TS_CONTROL(input));
++	ddbwritel(dev, 2, TS_CONTROL(input));
++	ddbwritel(dev, 0, TS_CONTROL(input));
++
++	if (input->dma) {
++		ddbwritel(dev, input->dma->bufval,
++			  DMA_BUFFER_SIZE(input->dma));
++		ddbwritel(dev, 0, DMA_BUFFER_ACK(input->dma));
++		ddbwritel(dev, 1, DMA_BASE_WRITE);
++		ddbwritel(dev, 3, DMA_BUFFER_CONTROL(input->dma));
++	}
++
++	ddbwritel(dev, 0x09, TS_CONTROL(input));
++
++	if (input->dma) {
++		input->dma->running = 1;
++		spin_unlock_irq(&input->dma->lock);
++	}
++}
++
++
++static void ddb_input_start_all(struct ddb_input *input)
++{
++	struct ddb_input *i = input;
++	struct ddb_output *o;
+ 
+-	/* reset */
+-	ddbwritel(0, TS_INPUT_CONTROL(input->nr));
+-	ddbwritel(2, TS_INPUT_CONTROL(input->nr));
+-	ddbwritel(0, TS_INPUT_CONTROL(input->nr));
++	mutex_lock(&redirect_lock);
++	while (i && (o = i->redo)) {
++		ddb_output_start(o);
++		i = o->port->input[0];
++		if (i)
++			ddb_input_start(i);
++	}
++	ddb_input_start(input);
++	mutex_unlock(&redirect_lock);
++}
+ 
+-	ddbwritel((1 << 16) |
+-		  (input->dma_buf_num << 11) |
+-		  (input->dma_buf_size >> 7),
+-		  DMA_BUFFER_SIZE(input->nr));
+-	ddbwritel(0, DMA_BUFFER_ACK(input->nr));
++static void ddb_input_stop_all(struct ddb_input *input)
++{
++	struct ddb_input *i = input;
++	struct ddb_output *o;
+ 
+-	ddbwritel(1, DMA_BASE_WRITE);
+-	ddbwritel(3, DMA_BUFFER_CONTROL(input->nr));
+-	ddbwritel(9, TS_INPUT_CONTROL(input->nr));
+-	input->running = 1;
+-	spin_unlock_irq(&input->lock);
++	mutex_lock(&redirect_lock);
++	ddb_input_stop(input);
++	while (i && (o = i->redo)) {
++		ddb_output_stop(o);
++		i = o->port->input[0];
++		if (i)
++			ddb_input_stop(i);
++	}
++	mutex_unlock(&redirect_lock);
+ }
+ 
+ static u32 ddb_output_free(struct ddb_output *output)
+ {
+-	u32 idx, off, stat = output->stat;
++	u32 idx, off, stat = output->dma->stat;
+ 	s32 diff;
+ 
+ 	idx = (stat >> 11) & 0x1f;
+ 	off = (stat & 0x7ff) << 7;
+ 
+-	if (output->cbuf != idx) {
+-		if ((((output->cbuf + 1) % output->dma_buf_num) == idx) &&
+-		    (output->dma_buf_size - output->coff <= 188))
++	if (output->dma->cbuf != idx) {
++		if ((((output->dma->cbuf + 1) % output->dma->num) == idx) &&
++		    (output->dma->size - output->dma->coff <= 188))
+ 			return 0;
+ 		return 188;
+ 	}
+-	diff = off - output->coff;
++	diff = off - output->dma->coff;
+ 	if (diff <= 0 || diff > 188)
+ 		return 188;
+ 	return 0;
+@@ -282,46 +616,51 @@ static ssize_t ddb_output_write(struct ddb_output *output,
+ 				const __user u8 *buf, size_t count)
+ {
+ 	struct ddb *dev = output->port->dev;
+-	u32 idx, off, stat = output->stat;
++	u32 idx, off, stat = output->dma->stat;
+ 	u32 left = count, len;
+ 
+ 	idx = (stat >> 11) & 0x1f;
+ 	off = (stat & 0x7ff) << 7;
+ 
+ 	while (left) {
+-		len = output->dma_buf_size - output->coff;
+-		if ((((output->cbuf + 1) % output->dma_buf_num) == idx) &&
++		len = output->dma->size - output->dma->coff;
++		if ((((output->dma->cbuf + 1) % output->dma->num) == idx) &&
+ 		    (off == 0)) {
+ 			if (len <= 188)
+ 				break;
+ 			len -= 188;
+ 		}
+-		if (output->cbuf == idx) {
+-			if (off > output->coff) {
+-#if 1
+-				len = off - output->coff;
++		if (output->dma->cbuf == idx) {
++			if (off > output->dma->coff) {
++				len = off - output->dma->coff;
+ 				len -= (len % 188);
+ 				if (len <= 188)
+-
+-#endif
+ 					break;
+ 				len -= 188;
+ 			}
+ 		}
+ 		if (len > left)
+ 			len = left;
+-		if (copy_from_user(output->vbuf[output->cbuf] + output->coff,
++		if (copy_from_user(output->dma->vbuf[output->dma->cbuf] +
++				   output->dma->coff,
+ 				   buf, len))
+ 			return -EIO;
++		if (alt_dma)
++			dma_sync_single_for_device(dev->dev,
++				output->dma->pbuf[output->dma->cbuf],
++				output->dma->size, DMA_TO_DEVICE);
+ 		left -= len;
+ 		buf += len;
+-		output->coff += len;
+-		if (output->coff == output->dma_buf_size) {
+-			output->coff = 0;
+-			output->cbuf = ((output->cbuf + 1) % output->dma_buf_num);
++		output->dma->coff += len;
++		if (output->dma->coff == output->dma->size) {
++			output->dma->coff = 0;
++			output->dma->cbuf = ((output->dma->cbuf + 1) %
++					     output->dma->num);
+ 		}
+-		ddbwritel((output->cbuf << 11) | (output->coff >> 7),
+-			  DMA_BUFFER_ACK(output->nr + 8));
++		ddbwritel(dev,
++			  (output->dma->cbuf << 11) |
++			  (output->dma->coff >> 7),
++			  DMA_BUFFER_ACK(output->dma));
+ 	}
+ 	return count - left;
+ }
+@@ -329,49 +668,57 @@ static ssize_t ddb_output_write(struct ddb_output *output,
+ static u32 ddb_input_avail(struct ddb_input *input)
+ {
+ 	struct ddb *dev = input->port->dev;
+-	u32 idx, off, stat = input->stat;
+-	u32 ctrl = ddbreadl(DMA_BUFFER_CONTROL(input->nr));
++	u32 idx, off, stat = input->dma->stat;
++	u32 ctrl = ddbreadl(dev, DMA_BUFFER_CONTROL(input->dma));
+ 
+ 	idx = (stat >> 11) & 0x1f;
+ 	off = (stat & 0x7ff) << 7;
+ 
+ 	if (ctrl & 4) {
+-		dev_err(&dev->pdev->dev, "IA %d %d %08x\n", idx, off, ctrl);
+-		ddbwritel(input->stat, DMA_BUFFER_ACK(input->nr));
++		dev_err(dev->dev, "IA %d %d %08x\n", idx, off, ctrl);
++		ddbwritel(dev, stat, DMA_BUFFER_ACK(input->dma));
+ 		return 0;
+ 	}
+-	if (input->cbuf != idx)
++	if (input->dma->cbuf != idx)
+ 		return 188;
+ 	return 0;
+ }
+ 
+-static ssize_t ddb_input_read(struct ddb_input *input, __user u8 *buf, size_t count)
++static ssize_t ddb_input_read(struct ddb_input *input,
++		__user u8 *buf, size_t count)
+ {
+ 	struct ddb *dev = input->port->dev;
+ 	u32 left = count;
+-	u32 idx, free, stat = input->stat;
++	u32 idx, free, stat = input->dma->stat;
+ 	int ret;
+ 
+ 	idx = (stat >> 11) & 0x1f;
+ 
+ 	while (left) {
+-		if (input->cbuf == idx)
++		if (input->dma->cbuf == idx)
+ 			return count - left;
+-		free = input->dma_buf_size - input->coff;
++		free = input->dma->size - input->dma->coff;
+ 		if (free > left)
+ 			free = left;
+-		ret = copy_to_user(buf, input->vbuf[input->cbuf] +
+-				   input->coff, free);
++		if (alt_dma)
++			dma_sync_single_for_cpu(dev->dev,
++				input->dma->pbuf[input->dma->cbuf],
++				input->dma->size, DMA_FROM_DEVICE);
++		ret = copy_to_user(buf, input->dma->vbuf[input->dma->cbuf] +
++				   input->dma->coff, free);
+ 		if (ret)
+ 			return -EFAULT;
+-		input->coff += free;
+-		if (input->coff == input->dma_buf_size) {
+-			input->coff = 0;
+-			input->cbuf = (input->cbuf+1) % input->dma_buf_num;
++		input->dma->coff += free;
++		if (input->dma->coff == input->dma->size) {
++			input->dma->coff = 0;
++			input->dma->cbuf = (input->dma->cbuf + 1) %
++				input->dma->num;
+ 		}
+ 		left -= free;
+-		ddbwritel((input->cbuf << 11) | (input->coff >> 7),
+-			  DMA_BUFFER_ACK(input->nr));
++		buf += free;
++		ddbwritel(dev,
++			  (input->dma->cbuf << 11) | (input->dma->coff >> 7),
++			  DMA_BUFFER_ACK(input->dma));
+ 	}
+ 	return count;
+ }
+@@ -384,20 +731,24 @@ static ssize_t ts_write(struct file *file, const __user char *buf,
+ {
+ 	struct dvb_device *dvbdev = file->private_data;
+ 	struct ddb_output *output = dvbdev->priv;
++	struct ddb *dev = output->port->dev;
+ 	size_t left = count;
+ 	int stat;
+ 
++	if (!dev->has_dma)
++		return -EINVAL;
+ 	while (left) {
+ 		if (ddb_output_free(output) < 188) {
+ 			if (file->f_flags & O_NONBLOCK)
+ 				break;
+ 			if (wait_event_interruptible(
+-				    output->wq, ddb_output_free(output) >= 188) < 0)
++				    output->dma->wq,
++				    ddb_output_free(output) >= 188) < 0)
+ 				break;
+ 		}
+ 		stat = ddb_output_write(output, buf, left);
+ 		if (stat < 0)
+-			break;
++			return stat;
+ 		buf += stat;
+ 		left -= stat;
+ 	}
+@@ -410,91 +761,126 @@ static ssize_t ts_read(struct file *file, __user char *buf,
+ 	struct dvb_device *dvbdev = file->private_data;
+ 	struct ddb_output *output = dvbdev->priv;
+ 	struct ddb_input *input = output->port->input[0];
+-	int left, read;
++	struct ddb *dev = output->port->dev;
++	size_t left = count;
++	int stat;
+ 
+-	count -= count % 188;
+-	left = count;
++	if (!dev->has_dma)
++		return -EINVAL;
+ 	while (left) {
+ 		if (ddb_input_avail(input) < 188) {
+ 			if (file->f_flags & O_NONBLOCK)
+ 				break;
+ 			if (wait_event_interruptible(
+-				    input->wq, ddb_input_avail(input) >= 188) < 0)
++				    input->dma->wq,
++				    ddb_input_avail(input) >= 188) < 0)
+ 				break;
+ 		}
+-		read = ddb_input_read(input, buf, left);
+-		if (read < 0)
+-			return read;
+-		left -= read;
+-		buf += read;
++		stat = ddb_input_read(input, buf, left);
++		if (stat < 0)
++			return stat;
++		left -= stat;
++		buf += stat;
+ 	}
+-	return (left == count) ? -EAGAIN : (count - left);
++	return (count && (left == count)) ? -EAGAIN : (count - left);
+ }
+ 
+ static unsigned int ts_poll(struct file *file, poll_table *wait)
+ {
+-	/*
+ 	struct dvb_device *dvbdev = file->private_data;
+ 	struct ddb_output *output = dvbdev->priv;
+ 	struct ddb_input *input = output->port->input[0];
+-	*/
++
+ 	unsigned int mask = 0;
+ 
+-#if 0
+-	if (data_avail_to_read)
++	poll_wait(file, &input->dma->wq, wait);
++	poll_wait(file, &output->dma->wq, wait);
++	if (ddb_input_avail(input) >= 188)
+ 		mask |= POLLIN | POLLRDNORM;
+-	if (data_avail_to_write)
++	if (ddb_output_free(output) >= 188)
+ 		mask |= POLLOUT | POLLWRNORM;
+-
+-	poll_wait(file, &read_queue, wait);
+-	poll_wait(file, &write_queue, wait);
+-#endif
+ 	return mask;
+ }
+ 
++static int ts_release(struct inode *inode, struct file *file)
++{
++	struct dvb_device *dvbdev = file->private_data;
++	struct ddb_output *output = dvbdev->priv;
++	struct ddb_input *input = output->port->input[0];
++
++	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
++		if (!input)
++			return -EINVAL;
++		ddb_input_stop(input);
++	} else if ((file->f_flags & O_ACCMODE) == O_WRONLY) {
++		if (!output)
++			return -EINVAL;
++		ddb_output_stop(output);
++	}
++	return dvb_generic_release(inode, file);
++}
++
++static int ts_open(struct inode *inode, struct file *file)
++{
++	int err;
++	struct dvb_device *dvbdev = file->private_data;
++	struct ddb_output *output = dvbdev->priv;
++	struct ddb_input *input = output->port->input[0];
++
++	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
++		if (!input)
++			return -EINVAL;
++		if (input->redo || input->redi)
++			return -EBUSY;
++	} else if ((file->f_flags & O_ACCMODE) == O_WRONLY) {
++		if (!output)
++			return -EINVAL;
++	} else
++		return -EINVAL;
++	err = dvb_generic_open(inode, file);
++	if (err < 0)
++		return err;
++	if ((file->f_flags & O_ACCMODE) == O_RDONLY)
++		ddb_input_start(input);
++	else if ((file->f_flags & O_ACCMODE) == O_WRONLY)
++		ddb_output_start(output);
++	return err;
++}
++
+ static const struct file_operations ci_fops = {
+ 	.owner   = THIS_MODULE,
+ 	.read    = ts_read,
+ 	.write   = ts_write,
+-	.open    = dvb_generic_open,
+-	.release = dvb_generic_release,
++	.open    = ts_open,
++	.release = ts_release,
+ 	.poll    = ts_poll,
++	.mmap    = 0,
+ };
+ 
+ static struct dvb_device dvbdev_ci = {
+-	.readers = -1,
+-	.writers = -1,
+-	.users   = -1,
++	.priv    = 0,
++	.readers = 1,
++	.writers = 1,
++	.users   = 2,
+ 	.fops    = &ci_fops,
+ };
+ 
+-/******************************************************************************/
+-/******************************************************************************/
+-
+-#if 0
+-static struct ddb_input *fe2input(struct ddb *dev, struct dvb_frontend *fe)
+-{
+-	int i;
+ 
+-	for (i = 0; i < dev->info->port_num * 2; i++) {
+-		if (dev->input[i].fe == fe)
+-			return &dev->input[i];
+-	}
+-	return NULL;
+-}
+-#endif
++/****************************************************************************/
++/****************************************************************************/
+ 
+-static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
++static int locked_gate_ctrl(struct dvb_frontend *fe, int enable)
+ {
+ 	struct ddb_input *input = fe->sec_priv;
+ 	struct ddb_port *port = input->port;
++	struct ddb_dvb *dvb = &port->dvb[input->nr & 1];
+ 	int status;
+ 
+ 	if (enable) {
+ 		mutex_lock(&port->i2c_gate_lock);
+-		status = input->gate_ctrl(fe, 1);
++		status = dvb->i2c_gate_ctrl(fe, 1);
+ 	} else {
+-		status = input->gate_ctrl(fe, 0);
++		status = dvb->i2c_gate_ctrl(fe, 0);
+ 		mutex_unlock(&port->i2c_gate_lock);
+ 	}
+ 	return status;
+@@ -503,41 +889,42 @@ static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
+ static int demod_attach_drxk(struct ddb_input *input)
+ {
+ 	struct i2c_adapter *i2c = &input->port->i2c->adap;
++	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
++	struct device *dev = input->port->dev->dev;
+ 	struct dvb_frontend *fe;
+ 	struct drxk_config config;
+-	struct device *dev = &input->port->dev->pdev->dev;
+ 
+ 	memset(&config, 0, sizeof(config));
+-	config.microcode_name = "drxk_a3.mc";
+-	config.qam_demod_parameter_count = 4;
+ 	config.adr = 0x29 + (input->nr & 1);
++	config.microcode_name = "drxk_a3.mc";
+ 
+-	fe = input->fe = dvb_attach(drxk_attach, &config, i2c);
+-	if (!input->fe) {
++	fe = dvb->fe = dvb_attach(drxk_attach, &config, i2c);
++	if (!fe) {
+ 		dev_err(dev, "No DRXK found!\n");
+ 		return -ENODEV;
+ 	}
+ 	fe->sec_priv = input;
+-	input->gate_ctrl = fe->ops.i2c_gate_ctrl;
+-	fe->ops.i2c_gate_ctrl = drxk_gate_ctrl;
++	dvb->i2c_gate_ctrl = fe->ops.i2c_gate_ctrl;
++	fe->ops.i2c_gate_ctrl = locked_gate_ctrl;
+ 	return 0;
+ }
+ 
+ static int tuner_attach_tda18271(struct ddb_input *input)
+ {
+ 	struct i2c_adapter *i2c = &input->port->i2c->adap;
++	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
++	struct device *dev = input->port->dev->dev;
+ 	struct dvb_frontend *fe;
+-	struct device *dev = &input->port->dev->pdev->dev;
+ 
+-	if (input->fe->ops.i2c_gate_ctrl)
+-		input->fe->ops.i2c_gate_ctrl(input->fe, 1);
+-	fe = dvb_attach(tda18271c2dd_attach, input->fe, i2c, 0x60);
++	if (dvb->fe->ops.i2c_gate_ctrl)
++		dvb->fe->ops.i2c_gate_ctrl(dvb->fe, 1);
++	fe = dvb_attach(tda18271c2dd_attach, dvb->fe, i2c, 0x60);
++	if (dvb->fe->ops.i2c_gate_ctrl)
++		dvb->fe->ops.i2c_gate_ctrl(dvb->fe, 0);
+ 	if (!fe) {
+ 		dev_err(dev, "No TDA18271 found!\n");
+ 		return -ENODEV;
+ 	}
+-	if (input->fe->ops.i2c_gate_ctrl)
+-		input->fe->ops.i2c_gate_ctrl(input->fe, 0);
+ 	return 0;
+ }
+ 
+@@ -566,43 +953,43 @@ static struct stv0367_config ddb_stv0367_config[] = {
+ static int demod_attach_stv0367(struct ddb_input *input)
+ {
+ 	struct i2c_adapter *i2c = &input->port->i2c->adap;
+-	struct device *dev = &input->port->dev->pdev->dev;
++	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
++	struct device *dev = input->port->dev->dev;
++	struct dvb_frontend *fe;
+ 
+ 	/* attach frontend */
+-	input->fe = dvb_attach(stv0367ddb_attach,
++	fe = dvb->fe = dvb_attach(stv0367ddb_attach,
+ 		&ddb_stv0367_config[(input->nr & 1)], i2c);
+ 
+-	if (!input->fe) {
+-		dev_err(dev, "stv0367ddb_attach failed (not found?)\n");
++	if (!dvb->fe) {
++		dev_err(dev, "No stv0367 found!\n");
+ 		return -ENODEV;
+ 	}
+-
+-	input->fe->sec_priv = input;
+-	input->gate_ctrl = input->fe->ops.i2c_gate_ctrl;
+-	input->fe->ops.i2c_gate_ctrl = drxk_gate_ctrl;
+-
++	fe->sec_priv = input;
++	dvb->i2c_gate_ctrl = fe->ops.i2c_gate_ctrl;
++	fe->ops.i2c_gate_ctrl = locked_gate_ctrl;
+ 	return 0;
+ }
+ 
+ static int tuner_tda18212_ping(struct ddb_input *input, unsigned short adr)
+ {
+ 	struct i2c_adapter *adapter = &input->port->i2c->adap;
+-	struct device *dev = &input->port->dev->pdev->dev;
+-
++	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
++	struct device *dev = input->port->dev->dev;
+ 	u8 tda_id[2];
+ 	u8 subaddr = 0x00;
+ 
+ 	dev_dbg(dev, "stv0367-tda18212 tuner ping\n");
+-	if (input->fe->ops.i2c_gate_ctrl)
+-		input->fe->ops.i2c_gate_ctrl(input->fe, 1);
++	if (dvb->fe->ops.i2c_gate_ctrl)
++		dvb->fe->ops.i2c_gate_ctrl(dvb->fe, 1);
+ 
+ 	if (i2c_read_regs(adapter, adr, subaddr, tda_id, sizeof(tda_id)) < 0)
+ 		dev_dbg(dev, "tda18212 ping 1 fail\n");
+ 	if (i2c_read_regs(adapter, adr, subaddr, tda_id, sizeof(tda_id)) < 0)
+ 		dev_warn(dev, "tda18212 ping failed, expect problems\n");
+ 
+-	if (input->fe->ops.i2c_gate_ctrl)
+-		input->fe->ops.i2c_gate_ctrl(input->fe, 0);
++	if (dvb->fe->ops.i2c_gate_ctrl)
++		dvb->fe->ops.i2c_gate_ctrl(dvb->fe, 0);
+ 
+ 	return 0;
+ }
+@@ -610,7 +997,9 @@ static int tuner_tda18212_ping(struct ddb_input *input, unsigned short adr)
+ static int demod_attach_cxd28xx(struct ddb_input *input, int par, int osc24)
+ {
+ 	struct i2c_adapter *i2c = &input->port->i2c->adap;
+-	struct device *dev = &input->port->dev->pdev->dev;
++	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
++	struct device *dev = input->port->dev->dev;
++	struct dvb_frontend *fe;
+ 	struct cxd2841er_config cfg;
+ 
+ 	/* the cxd2841er driver expects 8bit/shifted I2C addresses */
+@@ -625,27 +1014,26 @@ static int demod_attach_cxd28xx(struct ddb_input *input, int par, int osc24)
+ 		cfg.flags |= CXD2841ER_TS_SERIAL;
+ 
+ 	/* attach frontend */
+-	input->fe = dvb_attach(cxd2841er_attach_t_c, &cfg, i2c);
++	fe = dvb->fe = dvb_attach(cxd2841er_attach_t_c, &cfg, i2c);
+ 
+-	if (!input->fe) {
+-		dev_err(dev, "No Sony CXD28xx found!\n");
++	if (!dvb->fe) {
++		dev_err(dev, "No cxd2837/38/43/54 found!\n");
+ 		return -ENODEV;
+ 	}
+-
+-	input->fe->sec_priv = input;
+-	input->gate_ctrl = input->fe->ops.i2c_gate_ctrl;
+-	input->fe->ops.i2c_gate_ctrl = drxk_gate_ctrl;
+-
++	fe->sec_priv = input;
++	dvb->i2c_gate_ctrl = fe->ops.i2c_gate_ctrl;
++	fe->ops.i2c_gate_ctrl = locked_gate_ctrl;
+ 	return 0;
+ }
+ 
+ static int tuner_attach_tda18212(struct ddb_input *input, u32 porttype)
+ {
+ 	struct i2c_adapter *adapter = &input->port->i2c->adap;
+-	struct device *dev = &input->port->dev->pdev->dev;
++	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
++	struct device *dev = input->port->dev->dev;
+ 	struct i2c_client *client;
+ 	struct tda18212_config config = {
+-		.fe = input->fe,
++		.fe = dvb->fe,
+ 		.if_dvbt_6 = 3550,
+ 		.if_dvbt_7 = 3700,
+ 		.if_dvbt_8 = 4150,
+@@ -683,17 +1071,17 @@ static int tuner_attach_tda18212(struct ddb_input *input, u32 porttype)
+ 		goto err;
+ 	}
+ 
+-	input->i2c_client[0] = client;
++	dvb->i2c_client[0] = client;
+ 
+ 	return 0;
+ err:
+-	dev_warn(dev, "TDA18212 tuner not found. Device is not fully operational.\n");
++	dev_notice(dev, "TDA18212 tuner not found. Device is not fully operational.\n");
+ 	return -ENODEV;
+ }
+ 
+-/******************************************************************************/
+-/******************************************************************************/
+-/******************************************************************************/
++/****************************************************************************/
++/****************************************************************************/
++/****************************************************************************/
+ 
+ static struct stv090x_config stv0900 = {
+ 	.device         = STV0900,
+@@ -706,6 +1094,9 @@ static struct stv090x_config stv0900 = {
+ 	.ts1_mode       = STV090x_TSMODE_SERIAL_PUNCTURED,
+ 	.ts2_mode       = STV090x_TSMODE_SERIAL_PUNCTURED,
+ 
++	.ts1_tei        = 1,
++	.ts2_tei        = 1,
++
+ 	.repeater_level = STV090x_RPTLEVEL_16,
+ 
+ 	.adc1_range	= STV090x_ADC_1Vpp,
+@@ -725,6 +1116,9 @@ static struct stv090x_config stv0900_aa = {
+ 	.ts1_mode       = STV090x_TSMODE_SERIAL_PUNCTURED,
+ 	.ts2_mode       = STV090x_TSMODE_SERIAL_PUNCTURED,
+ 
++	.ts1_tei        = 1,
++	.ts2_tei        = 1,
++
+ 	.repeater_level = STV090x_RPTLEVEL_16,
+ 
+ 	.adc1_range	= STV090x_ADC_1Vpp,
+@@ -748,17 +1142,18 @@ static struct stv6110x_config stv6110b = {
+ static int demod_attach_stv0900(struct ddb_input *input, int type)
+ {
+ 	struct i2c_adapter *i2c = &input->port->i2c->adap;
+-	struct device *dev = &input->port->dev->pdev->dev;
+ 	struct stv090x_config *feconf = type ? &stv0900_aa : &stv0900;
++	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
++	struct device *dev = input->port->dev->dev;
+ 
+-	input->fe = dvb_attach(stv090x_attach, feconf, i2c,
+-			       (input->nr & 1) ? STV090x_DEMODULATOR_1
+-			       : STV090x_DEMODULATOR_0);
+-	if (!input->fe) {
++	dvb->fe = dvb_attach(stv090x_attach, feconf, i2c,
++			     (input->nr & 1) ? STV090x_DEMODULATOR_1
++			     : STV090x_DEMODULATOR_0);
++	if (!dvb->fe) {
+ 		dev_err(dev, "No STV0900 found!\n");
+ 		return -ENODEV;
+ 	}
+-	if (!dvb_attach(lnbh24_attach, input->fe, i2c, 0,
++	if (!dvb_attach(lnbh24_attach, dvb->fe, i2c, 0,
+ 			0, (input->nr & 1) ?
+ 			(0x09 - type) : (0x0b - type))) {
+ 		dev_err(dev, "No LNBH24 found!\n");
+@@ -770,19 +1165,20 @@ static int demod_attach_stv0900(struct ddb_input *input, int type)
+ static int tuner_attach_stv6110(struct ddb_input *input, int type)
+ {
+ 	struct i2c_adapter *i2c = &input->port->i2c->adap;
+-	struct device *dev = &input->port->dev->pdev->dev;
++	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
++	struct device *dev = input->port->dev->dev;
+ 	struct stv090x_config *feconf = type ? &stv0900_aa : &stv0900;
+ 	struct stv6110x_config *tunerconf = (input->nr & 1) ?
+ 		&stv6110b : &stv6110a;
+ 	const struct stv6110x_devctl *ctl;
+ 
+-	ctl = dvb_attach(stv6110x_attach, input->fe, tunerconf, i2c);
++	ctl = dvb_attach(stv6110x_attach, dvb->fe, tunerconf, i2c);
+ 	if (!ctl) {
+ 		dev_err(dev, "No STV6110X found!\n");
+ 		return -ENODEV;
+ 	}
+ 	dev_info(dev, "attach tuner input %d adr %02x\n",
+-			 input->nr, tunerconf->addr);
++		input->nr, tunerconf->addr);
+ 
+ 	feconf->tuner_init          = ctl->tuner_init;
+ 	feconf->tuner_sleep         = ctl->tuner_sleep;
+@@ -814,7 +1210,8 @@ static struct lnbh25_config lnbh25_cfg = {
+ static int demod_attach_stv0910(struct ddb_input *input, int type)
+ {
+ 	struct i2c_adapter *i2c = &input->port->i2c->adap;
+-	struct device *dev = &input->port->dev->pdev->dev;
++	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
++	struct device *dev = input->port->dev->dev;
+ 	struct stv0910_cfg cfg = stv0910_p;
+ 	struct lnbh25_config lnbcfg = lnbh25_cfg;
+ 
+@@ -823,13 +1220,13 @@ static int demod_attach_stv0910(struct ddb_input *input, int type)
+ 
+ 	if (type)
+ 		cfg.parallel = 2;
+-	input->fe = dvb_attach(stv0910_attach, i2c, &cfg, (input->nr & 1));
+-	if (!input->fe) {
++	dvb->fe = dvb_attach(stv0910_attach, i2c, &cfg, (input->nr & 1));
++	if (!dvb->fe) {
+ 		cfg.adr = 0x6c;
+-		input->fe = dvb_attach(stv0910_attach, i2c,
+-					&cfg, (input->nr & 1));
++		dvb->fe = dvb_attach(stv0910_attach, i2c,
++				     &cfg, (input->nr & 1));
+ 	}
+-	if (!input->fe) {
++	if (!dvb->fe) {
+ 		dev_err(dev, "No STV0910 found!\n");
+ 		return -ENODEV;
+ 	}
+@@ -838,9 +1235,9 @@ static int demod_attach_stv0910(struct ddb_input *input, int type)
+ 	 * i2c addresses
+ 	 */
+ 	lnbcfg.i2c_address = (((input->nr & 1) ? 0x0d : 0x0c) << 1);
+-	if (!dvb_attach(lnbh25_attach, input->fe, &lnbcfg, i2c)) {
++	if (!dvb_attach(lnbh25_attach, dvb->fe, &lnbcfg, i2c)) {
+ 		lnbcfg.i2c_address = (((input->nr & 1) ? 0x09 : 0x08) << 1);
+-		if (!dvb_attach(lnbh25_attach, input->fe, &lnbcfg, i2c)) {
++		if (!dvb_attach(lnbh25_attach, dvb->fe, &lnbcfg, i2c)) {
+ 			dev_err(dev, "No LNBH25 found!\n");
+ 			return -ENODEV;
+ 		}
+@@ -852,13 +1249,14 @@ static int demod_attach_stv0910(struct ddb_input *input, int type)
+ static int tuner_attach_stv6111(struct ddb_input *input, int type)
+ {
+ 	struct i2c_adapter *i2c = &input->port->i2c->adap;
+-	struct device *dev = &input->port->dev->pdev->dev;
++	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
++	struct device *dev = input->port->dev->dev;
+ 	struct dvb_frontend *fe;
+ 	u8 adr = (type ? 0 : 4) + ((input->nr & 1) ? 0x63 : 0x60);
+ 
+-	fe = dvb_attach(stv6111_attach, input->fe, i2c, adr);
++	fe = dvb_attach(stv6111_attach, dvb->fe, i2c, adr);
+ 	if (!fe) {
+-		fe = dvb_attach(stv6111_attach, input->fe, i2c, adr & ~4);
++		fe = dvb_attach(stv6111_attach, dvb->fe, i2c, adr & ~4);
+ 		if (!fe) {
+ 			dev_err(dev, "No STV6111 found at 0x%02x!\n", adr);
+ 			return -ENODEV;
+@@ -867,294 +1265,375 @@ static int tuner_attach_stv6111(struct ddb_input *input, int type)
+ 	return 0;
+ }
+ 
+-static int my_dvb_dmx_ts_card_init(struct dvb_demux *dvbdemux, char *id,
+-			    int (*start_feed)(struct dvb_demux_feed *),
+-			    int (*stop_feed)(struct dvb_demux_feed *),
+-			    void *priv)
+-{
+-	dvbdemux->priv = priv;
+-
+-	dvbdemux->filternum = 256;
+-	dvbdemux->feednum = 256;
+-	dvbdemux->start_feed = start_feed;
+-	dvbdemux->stop_feed = stop_feed;
+-	dvbdemux->write_to_decoder = NULL;
+-	dvbdemux->dmx.capabilities = (DMX_TS_FILTERING |
+-				      DMX_SECTION_FILTERING |
+-				      DMX_MEMORY_BASED_FILTERING);
+-	return dvb_dmx_init(dvbdemux);
+-}
+-
+-static int my_dvb_dmxdev_ts_card_init(struct dmxdev *dmxdev,
+-			       struct dvb_demux *dvbdemux,
+-			       struct dmx_frontend *hw_frontend,
+-			       struct dmx_frontend *mem_frontend,
+-			       struct dvb_adapter *dvb_adapter)
+-{
+-	int ret;
+-
+-	dmxdev->filternum = 256;
+-	dmxdev->demux = &dvbdemux->dmx;
+-	dmxdev->capabilities = 0;
+-	ret = dvb_dmxdev_init(dmxdev, dvb_adapter);
+-	if (ret < 0)
+-		return ret;
+-
+-	hw_frontend->source = DMX_FRONTEND_0;
+-	dvbdemux->dmx.add_frontend(&dvbdemux->dmx, hw_frontend);
+-	mem_frontend->source = DMX_MEMORY_FE;
+-	dvbdemux->dmx.add_frontend(&dvbdemux->dmx, mem_frontend);
+-	return dvbdemux->dmx.connect_frontend(&dvbdemux->dmx, hw_frontend);
+-}
+-
+ static int start_feed(struct dvb_demux_feed *dvbdmxfeed)
+ {
+ 	struct dvb_demux *dvbdmx = dvbdmxfeed->demux;
+ 	struct ddb_input *input = dvbdmx->priv;
++	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
+ 
+-	if (!input->users)
+-		ddb_input_start(input);
++	if (!dvb->users)
++		ddb_input_start_all(input);
+ 
+-	return ++input->users;
++	return ++dvb->users;
+ }
+ 
+ static int stop_feed(struct dvb_demux_feed *dvbdmxfeed)
+ {
+ 	struct dvb_demux *dvbdmx = dvbdmxfeed->demux;
+ 	struct ddb_input *input = dvbdmx->priv;
++	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
+ 
+-	if (--input->users)
+-		return input->users;
++	if (--dvb->users)
++		return dvb->users;
+ 
+-	ddb_input_stop(input);
++	ddb_input_stop_all(input);
+ 	return 0;
+ }
+ 
+-
+ static void dvb_input_detach(struct ddb_input *input)
+ {
+-	struct dvb_adapter *adap = &input->adap;
+-	struct dvb_demux *dvbdemux = &input->demux;
++	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
++	struct dvb_demux *dvbdemux = &dvb->demux;
+ 	struct i2c_client *client;
+ 
+-	switch (input->attached) {
+-	case 5:
+-		client = input->i2c_client[0];
++	switch (dvb->attached) {
++	case 0x31:
++		client = dvb->i2c_client[0];
+ 		if (client) {
+ 			module_put(client->dev.driver->owner);
+ 			i2c_unregister_device(client);
+ 		}
+-		if (input->fe2) {
+-			dvb_unregister_frontend(input->fe2);
+-			input->fe2 = NULL;
+-		}
+-		if (input->fe) {
+-			dvb_unregister_frontend(input->fe);
+-			dvb_frontend_detach(input->fe);
+-			input->fe = NULL;
+-		}
+-		/* fall-through */
+-	case 4:
+-		dvb_net_release(&input->dvbnet);
+-		/* fall-through */
+-	case 3:
+-		dvbdemux->dmx.close(&dvbdemux->dmx);
++		if (dvb->fe2)
++			dvb_unregister_frontend(dvb->fe2);
++		if (dvb->fe)
++			dvb_unregister_frontend(dvb->fe);
++		/* fallthrough */
++	case 0x30:
++		if (dvb->fe2)
++			dvb_frontend_detach(dvb->fe2);
++		if (dvb->fe)
++			dvb_frontend_detach(dvb->fe);
++		dvb->fe = dvb->fe2 = NULL;
++		/* fallthrough */
++	case 0x20:
++		dvb_net_release(&dvb->dvbnet);
++		/* fallthrough */
++	case 0x12:
+ 		dvbdemux->dmx.remove_frontend(&dvbdemux->dmx,
+-					      &input->hw_frontend);
++					      &dvb->hw_frontend);
+ 		dvbdemux->dmx.remove_frontend(&dvbdemux->dmx,
+-					      &input->mem_frontend);
+-		dvb_dmxdev_release(&input->dmxdev);
+-		/* fall-through */
+-	case 2:
+-		dvb_dmx_release(&input->demux);
+-		/* fall-through */
+-	case 1:
+-		dvb_unregister_adapter(adap);
++					      &dvb->mem_frontend);
++		/* fallthrough */
++	case 0x11:
++		dvb_dmxdev_release(&dvb->dmxdev);
++		/* fallthrough */
++	case 0x10:
++		dvb_dmx_release(&dvb->demux);
++		/* fallthrough */
++	case 0x01:
++		break;
++	}
++	dvb->attached = 0x00;
++}
++
++static int dvb_register_adapters(struct ddb *dev)
++{
++	int i, ret = 0;
++	struct ddb_port *port;
++	struct dvb_adapter *adap;
++
++	if (adapter_alloc == 3) {
++		port = &dev->port[0];
++		adap = port->dvb[0].adap;
++		ret = dvb_register_adapter(adap, "DDBridge", THIS_MODULE,
++					   port->dev->dev,
++					   adapter_nr);
++		if (ret < 0)
++			return ret;
++		port->dvb[0].adap_registered = 1;
++		for (i = 0; i < dev->port_num; i++) {
++			port = &dev->port[i];
++			port->dvb[0].adap = adap;
++			port->dvb[1].adap = adap;
++		}
++		return 0;
++	}
++
++	for (i = 0; i < dev->port_num; i++) {
++		port = &dev->port[i];
++		switch (port->class) {
++		case DDB_PORT_TUNER:
++			adap = port->dvb[0].adap;
++			ret = dvb_register_adapter(adap, "DDBridge",
++						   THIS_MODULE,
++						   port->dev->dev,
++						   adapter_nr);
++			if (ret < 0)
++				return ret;
++			port->dvb[0].adap_registered = 1;
++
++			if (adapter_alloc > 0) {
++				port->dvb[1].adap = port->dvb[0].adap;
++				break;
++			}
++			adap = port->dvb[1].adap;
++			ret = dvb_register_adapter(adap, "DDBridge",
++						   THIS_MODULE,
++						   port->dev->dev,
++						   adapter_nr);
++			if (ret < 0)
++				return ret;
++			port->dvb[1].adap_registered = 1;
++			break;
++
++		case DDB_PORT_CI:
++		case DDB_PORT_LOOP:
++			adap = port->dvb[0].adap;
++			ret = dvb_register_adapter(adap, "DDBridge",
++						   THIS_MODULE,
++						   port->dev->dev,
++						   adapter_nr);
++			if (ret < 0)
++				return ret;
++			port->dvb[0].adap_registered = 1;
++			break;
++		default:
++			if (adapter_alloc < 2)
++				break;
++			adap = port->dvb[0].adap;
++			ret = dvb_register_adapter(adap, "DDBridge",
++						   THIS_MODULE,
++						   port->dev->dev,
++						   adapter_nr);
++			if (ret < 0)
++				return ret;
++			port->dvb[0].adap_registered = 1;
++			break;
++		}
++	}
++	return ret;
++}
++
++static void dvb_unregister_adapters(struct ddb *dev)
++{
++	int i;
++	struct ddb_port *port;
++	struct ddb_dvb *dvb;
++
++	for (i = 0; i < dev->link[0].info->port_num; i++) {
++		port = &dev->port[i];
++
++		dvb = &port->dvb[0];
++		if (dvb->adap_registered)
++			dvb_unregister_adapter(dvb->adap);
++		dvb->adap_registered = 0;
++
++		dvb = &port->dvb[1];
++		if (dvb->adap_registered)
++			dvb_unregister_adapter(dvb->adap);
++		dvb->adap_registered = 0;
+ 	}
+-	input->attached = 0;
+ }
+ 
+ static int dvb_input_attach(struct ddb_input *input)
+ {
+-	int ret;
++	int ret = 0;
++	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
+ 	struct ddb_port *port = input->port;
+-	struct dvb_adapter *adap = &input->adap;
+-	struct dvb_demux *dvbdemux = &input->demux;
+-	struct device *dev = &input->port->dev->pdev->dev;
+-	int sony_osc24 = 0, sony_tspar = 0;
+-
+-	ret = dvb_register_adapter(adap, "DDBridge", THIS_MODULE,
+-				   &input->port->dev->pdev->dev,
+-				   adapter_nr);
+-	if (ret < 0) {
+-		dev_err(dev, "Could not register adapter. Check if you enabled enough adapters in dvb-core!\n");
++	struct dvb_adapter *adap = dvb->adap;
++	struct dvb_demux *dvbdemux = &dvb->demux;
++	int par = 0, osc24 = 0;
++
++	dvb->attached = 0x01;
++
++	dvbdemux->priv = input;
++	dvbdemux->dmx.capabilities = DMX_TS_FILTERING |
++		DMX_SECTION_FILTERING | DMX_MEMORY_BASED_FILTERING;
++	dvbdemux->start_feed = start_feed;
++	dvbdemux->stop_feed = stop_feed;
++	dvbdemux->filternum = dvbdemux->feednum = 256;
++	ret = dvb_dmx_init(dvbdemux);
++	if (ret < 0)
+ 		return ret;
+-	}
+-	input->attached = 1;
++	dvb->attached = 0x10;
+ 
+-	ret = my_dvb_dmx_ts_card_init(dvbdemux, "SW demux",
+-				      start_feed,
+-				      stop_feed, input);
++	dvb->dmxdev.filternum = 256;
++	dvb->dmxdev.demux = &dvbdemux->dmx;
++	ret = dvb_dmxdev_init(&dvb->dmxdev, adap);
+ 	if (ret < 0)
+ 		return ret;
+-	input->attached = 2;
++	dvb->attached = 0x11;
+ 
+-	ret = my_dvb_dmxdev_ts_card_init(&input->dmxdev, &input->demux,
+-					 &input->hw_frontend,
+-					 &input->mem_frontend, adap);
++	dvb->mem_frontend.source = DMX_MEMORY_FE;
++	dvb->demux.dmx.add_frontend(&dvb->demux.dmx, &dvb->mem_frontend);
++	dvb->hw_frontend.source = DMX_FRONTEND_0;
++	dvb->demux.dmx.add_frontend(&dvb->demux.dmx, &dvb->hw_frontend);
++	ret = dvbdemux->dmx.connect_frontend(&dvbdemux->dmx, &dvb->hw_frontend);
+ 	if (ret < 0)
+ 		return ret;
+-	input->attached = 3;
++	dvb->attached = 0x12;
+ 
+-	ret = dvb_net_init(adap, &input->dvbnet, input->dmxdev.demux);
++	ret = dvb_net_init(adap, &dvb->dvbnet, dvb->dmxdev.demux);
+ 	if (ret < 0)
+ 		return ret;
+-	input->attached = 4;
++	dvb->attached = 0x20;
+ 
+-	input->fe = NULL;
++	dvb->fe = dvb->fe2 = NULL;
+ 	switch (port->type) {
++	case DDB_TUNER_MXL5XX:
++		dev_notice(port->dev->dev, "MaxLinear MxL5xx not supported\n");
++		return -ENODEV;
+ 	case DDB_TUNER_DVBS_ST:
+ 		if (demod_attach_stv0900(input, 0) < 0)
+ 			return -ENODEV;
+ 		if (tuner_attach_stv6110(input, 0) < 0)
+ 			return -ENODEV;
+-		if (input->fe) {
+-			if (dvb_register_frontend(adap, input->fe) < 0)
+-				return -ENODEV;
+-		}
+ 		break;
+ 	case DDB_TUNER_DVBS_ST_AA:
+ 		if (demod_attach_stv0900(input, 1) < 0)
+ 			return -ENODEV;
+ 		if (tuner_attach_stv6110(input, 1) < 0)
+ 			return -ENODEV;
+-		if (input->fe) {
+-			if (dvb_register_frontend(adap, input->fe) < 0)
+-				return -ENODEV;
+-		}
+ 		break;
+-	case DDB_TUNER_XO2_DVBS_STV0910:
++	case DDB_TUNER_DVBS_STV0910:
+ 		if (demod_attach_stv0910(input, 0) < 0)
+ 			return -ENODEV;
+ 		if (tuner_attach_stv6111(input, 0) < 0)
+ 			return -ENODEV;
+-		if (input->fe) {
+-			if (dvb_register_frontend(adap, input->fe) < 0)
+-				return -ENODEV;
+-		}
+ 		break;
+ 	case DDB_TUNER_DVBS_STV0910_PR:
+ 		if (demod_attach_stv0910(input, 1) < 0)
+ 			return -ENODEV;
+ 		if (tuner_attach_stv6111(input, 1) < 0)
+ 			return -ENODEV;
+-		if (input->fe) {
+-			if (dvb_register_frontend(adap, input->fe) < 0)
+-				return -ENODEV;
+-		}
+ 		break;
+ 	case DDB_TUNER_DVBS_STV0910_P:
+ 		if (demod_attach_stv0910(input, 0) < 0)
+ 			return -ENODEV;
+ 		if (tuner_attach_stv6111(input, 1) < 0)
+ 			return -ENODEV;
+-		if (input->fe) {
+-			if (dvb_register_frontend(adap, input->fe) < 0)
+-				return -ENODEV;
+-		}
+ 		break;
+ 	case DDB_TUNER_DVBCT_TR:
+ 		if (demod_attach_drxk(input) < 0)
+ 			return -ENODEV;
+ 		if (tuner_attach_tda18271(input) < 0)
+ 			return -ENODEV;
+-		if (dvb_register_frontend(adap, input->fe) < 0)
+-			return -ENODEV;
+-		if (input->fe2) {
+-			if (dvb_register_frontend(adap, input->fe2) < 0)
+-				return -ENODEV;
+-			input->fe2->tuner_priv = input->fe->tuner_priv;
+-			memcpy(&input->fe2->ops.tuner_ops,
+-			       &input->fe->ops.tuner_ops,
+-			       sizeof(struct dvb_tuner_ops));
+-		}
+ 		break;
+ 	case DDB_TUNER_DVBCT_ST:
+ 		if (demod_attach_stv0367(input) < 0)
+ 			return -ENODEV;
+-		if (tuner_attach_tda18212(input, port->type) < 0)
++		if (tuner_attach_tda18212(input, port->type) < 0) {
++			if (dvb->fe2)
++				dvb_frontend_detach(dvb->fe2);
++			if (dvb->fe)
++				dvb_frontend_detach(dvb->fe);
+ 			return -ENODEV;
+-		if (input->fe) {
+-			if (dvb_register_frontend(adap, input->fe) < 0)
+-				return -ENODEV;
+ 		}
+ 		break;
+ 	case DDB_TUNER_DVBC2T2I_SONY_P:
++		if (input->port->dev->link[input->port->lnr].info->ts_quirks &
++		    TS_QUIRK_ALT_OSC)
++			osc24 = 0;
++		else
++			osc24 = 1;
+ 	case DDB_TUNER_DVBCT2_SONY_P:
+ 	case DDB_TUNER_DVBC2T2_SONY_P:
+ 	case DDB_TUNER_ISDBT_SONY_P:
+-		if (port->type == DDB_TUNER_DVBC2T2I_SONY_P)
+-			sony_osc24 = 1;
+-		if (input->port->dev->info->ts_quirks & TS_QUIRK_ALT_OSC)
+-			sony_osc24 = 0;
+-		if (input->port->dev->info->ts_quirks & TS_QUIRK_SERIAL)
+-			sony_tspar = 0;
++		if (input->port->dev->link[input->port->lnr].info->ts_quirks
++			& TS_QUIRK_SERIAL)
++			par = 0;
+ 		else
+-			sony_tspar = 1;
+-
+-		if (demod_attach_cxd28xx(input, sony_tspar, sony_osc24) < 0)
++			par = 1;
++		if (demod_attach_cxd28xx(input, par, osc24) < 0)
+ 			return -ENODEV;
+-		if (tuner_attach_tda18212(input, port->type) < 0)
++		if (tuner_attach_tda18212(input, port->type) < 0) {
++			if (dvb->fe2)
++				dvb_frontend_detach(dvb->fe2);
++			if (dvb->fe)
++				dvb_frontend_detach(dvb->fe);
+ 			return -ENODEV;
+-		if (input->fe) {
+-			if (dvb_register_frontend(adap, input->fe) < 0)
+-				return -ENODEV;
+ 		}
+ 		break;
+-	case DDB_TUNER_XO2_DVBC2T2I_SONY:
+-	case DDB_TUNER_XO2_DVBCT2_SONY:
+-	case DDB_TUNER_XO2_DVBC2T2_SONY:
+-	case DDB_TUNER_XO2_ISDBT_SONY:
+-		if (port->type == DDB_TUNER_XO2_DVBC2T2I_SONY)
+-			sony_osc24 = 1;
+-
+-		if (demod_attach_cxd28xx(input, 0, sony_osc24) < 0)
++	case DDB_TUNER_DVBC2T2I_SONY:
++		osc24 = 1;
++	case DDB_TUNER_DVBCT2_SONY:
++	case DDB_TUNER_DVBC2T2_SONY:
++	case DDB_TUNER_ISDBT_SONY:
++		if (demod_attach_cxd28xx(input, 0, osc24) < 0)
+ 			return -ENODEV;
+-		if (tuner_attach_tda18212(input, port->type) < 0)
++		if (tuner_attach_tda18212(input, port->type) < 0) {
++			if (dvb->fe2)
++				dvb_frontend_detach(dvb->fe2);
++			if (dvb->fe)
++				dvb_frontend_detach(dvb->fe);
+ 			return -ENODEV;
+-		if (input->fe) {
+-			if (dvb_register_frontend(adap, input->fe) < 0)
+-				return -ENODEV;
+ 		}
+ 		break;
 +	default:
-+		return "UNKNOWN";
++		return 0;
+ 	}
+-
+-	input->attached = 5;
++	dvb->attached = 0x30;
++	if (dvb->fe) {
++		if (dvb_register_frontend(adap, dvb->fe) < 0)
++			return -ENODEV;
 +	}
-+}
++	if (dvb->fe2) {
++		if (dvb_register_frontend(adap, dvb->fe2) < 0)
++			return -ENODEV;
++		dvb->fe2->tuner_priv = dvb->fe->tuner_priv;
++		memcpy(&dvb->fe2->ops.tuner_ops,
++		       &dvb->fe->ops.tuner_ops,
++		       sizeof(struct dvb_tuner_ops));
++	}
++	dvb->attached = 0x31;
+ 	return 0;
+ }
+ 
+-static int port_has_ci(struct ddb_port *port)
 +
-+static inline void dw_hdmi_set_state(struct dw_hdmi_dev *dw_dev,
-+		enum dw_hdmi_state new_state)
++static int port_has_encti(struct ddb_port *port)
 +{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&dw_dev->lock, flags);
-+	dev_dbg(dw_dev->dev, "old_state=%s, new_state=%s\n",
-+			get_state_name(dw_dev->state),
-+			get_state_name(new_state));
-+	dw_dev->state = new_state;
-+	spin_unlock_irqrestore(&dw_dev->lock, flags);
-+}
-+
-+static inline struct dw_hdmi_dev *to_dw_dev(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct dw_hdmi_dev, sd);
-+}
-+
-+static inline struct dw_hdmi_dev *notifier_to_dw_dev(
-+		struct v4l2_async_notifier *notifier)
-+{
-+	return container_of(notifier, struct dw_hdmi_dev, v4l2_notifier);
-+}
-+
-+static inline void hdmi_writel(struct dw_hdmi_dev *dw_dev, u32 val, int reg)
-+{
-+	writel(val, dw_dev->regs + reg);
-+}
-+
-+static inline u32 hdmi_readl(struct dw_hdmi_dev *dw_dev, int reg)
-+{
-+	return readl(dw_dev->regs + reg);
-+}
-+
-+static void hdmi_modl(struct dw_hdmi_dev *dw_dev, u32 data, u32 mask, int reg)
-+{
-+	u32 val = hdmi_readl(dw_dev, reg) & ~mask;
-+
-+	val |= data & mask;
-+	hdmi_writel(dw_dev, val, reg);
-+}
-+
-+static void hdmi_mask_writel(struct dw_hdmi_dev *dw_dev, u32 data, int reg,
-+		u32 shift, u32 mask)
-+{
-+	hdmi_modl(dw_dev, data << shift, mask, reg);
-+}
-+
-+static u32 hdmi_mask_readl(struct dw_hdmi_dev *dw_dev, int reg, u32 shift,
-+		u32 mask)
-+{
-+	return (hdmi_readl(dw_dev, reg) & mask) >> shift;
-+}
-+
-+static bool dw_hdmi_5v_status(struct dw_hdmi_dev *dw_dev, int input)
-+{
-+	void __iomem *arg = dw_dev->config->dw_5v_arg;
-+
-+	if (dw_dev->config->dw_5v_status)
-+		return dw_dev->config->dw_5v_status(arg, input);
-+	return false;
-+}
-+
-+static void dw_hdmi_5v_clear(struct dw_hdmi_dev *dw_dev)
-+{
-+	void __iomem *arg = dw_dev->config->dw_5v_arg;
-+
-+	if (dw_dev->config->dw_5v_clear)
-+		dw_dev->config->dw_5v_clear(arg);
-+}
-+
-+static inline bool is_off(struct dw_hdmi_dev *dw_dev)
-+{
-+	return dw_dev->state <= HDMI_STATE_POWER_OFF;
-+}
-+
-+static bool has_signal(struct dw_hdmi_dev *dw_dev, unsigned int input)
-+{
-+	return dw_hdmi_5v_status(dw_dev, input);
-+}
-+
-+#define HDMI_JTAG_TAP_ADDR_CMD		0
-+#define HDMI_JTAG_TAP_WRITE_CMD		1
-+#define HDMI_JTAG_TAP_READ_CMD		3
-+
-+static void hdmi_phy_jtag_send_pulse(struct dw_hdmi_dev *dw_dev, u8 tms, u8 tdi)
-+{
++	struct device *dev = port->dev->dev;
 +	u8 val;
++	int ret = i2c_read_reg(&port->i2c->adap, 0x20, 0, &val);
 +
-+	val = tms ? HDMI_PHY_JTAG_TAP_IN_TMS : 0;
-+	val |= tdi ? HDMI_PHY_JTAG_TAP_IN_TDI : 0;
-+
-+	hdmi_writel(dw_dev, 0, HDMI_PHY_JTAG_TAP_TCLK);
-+	hdmi_writel(dw_dev, val, HDMI_PHY_JTAG_TAP_IN);
-+	hdmi_writel(dw_dev, 1, HDMI_PHY_JTAG_TAP_TCLK);
++	if (!ret)
++		dev_info(dev, "[0x20]=0x%02x\n", val);
++	return ret ? 0 : 1;
 +}
 +
-+static void hdmi_phy_jtag_shift_dr(struct dw_hdmi_dev *dw_dev)
++static int port_has_cxd(struct ddb_port *port, u8 *type)
+ {
+ 	u8 val;
+-	return i2c_read_reg(&port->i2c->adap, 0x40, 0, &val) ? 0 : 1;
++	u8 probe[4] = { 0xe0, 0x00, 0x00, 0x00 }, data[4];
++	struct i2c_msg msgs[2] = {{ .addr = 0x40,  .flags = 0,
++				    .buf  = probe, .len   = 4 },
++				  { .addr = 0x40,  .flags = I2C_M_RD,
++				    .buf  = data,  .len   = 4 } };
++	val = i2c_transfer(&port->i2c->adap, msgs, 2);
++	if (val != 2)
++		return 0;
++
++	if (data[0] == 0x02 && data[1] == 0x2b && data[3] == 0x43)
++		*type = 2;
++	else
++		*type = 1;
++	return 1;
+ }
+ 
+ static int port_has_xo2(struct ddb_port *port, u8 *type, u8 *id)
+ {
+ 	u8 probe[1] = { 0x00 }, data[4];
+ 
+-	*type = DDB_XO2_TYPE_NONE;
+-
+ 	if (i2c_io(&port->i2c->adap, 0x10, probe, 1, data, 4))
+ 		return 0;
+ 	if (data[0] == 'D' && data[1] == 'F') {
+ 		*id = data[2];
+-		*type = DDB_XO2_TYPE_DUOFLEX;
++		*type = 1;
+ 		return 1;
+ 	}
+ 	if (data[0] == 'C' && data[1] == 'I') {
+ 		*id = data[2];
+-		*type = DDB_XO2_TYPE_CI;
++		*type = 2;
+ 		return 1;
+ 	}
+ 	return 0;
+@@ -1163,6 +1642,7 @@ static int port_has_xo2(struct ddb_port *port, u8 *type, u8 *id)
+ static int port_has_stv0900(struct ddb_port *port)
+ {
+ 	u8 val;
++
+ 	if (i2c_read_reg16(&port->i2c->adap, 0x69, 0xf100, &val) < 0)
+ 		return 0;
+ 	return 1;
+@@ -1178,6 +1658,7 @@ static int port_has_stv0900_aa(struct ddb_port *port, u8 *id)
+ static int port_has_drxks(struct ddb_port *port)
+ {
+ 	u8 val;
++
+ 	if (i2c_read(&port->i2c->adap, 0x29, &val) < 0)
+ 		return 0;
+ 	if (i2c_read(&port->i2c->adap, 0x2a, &val) < 0)
+@@ -1188,6 +1669,7 @@ static int port_has_drxks(struct ddb_port *port)
+ static int port_has_stv0367(struct ddb_port *port)
+ {
+ 	u8 val;
++
+ 	if (i2c_read_reg16(&port->i2c->adap, 0x1e, 0xf000, &val) < 0)
+ 		return 0;
+ 	if (val != 0x60)
+@@ -1202,7 +1684,7 @@ static int port_has_stv0367(struct ddb_port *port)
+ static int init_xo2(struct ddb_port *port)
+ {
+ 	struct i2c_adapter *i2c = &port->i2c->adap;
+-	struct device *dev = &port->dev->pdev->dev;
++	struct ddb *dev = port->dev;
+ 	u8 val, data[2];
+ 	int res;
+ 
+@@ -1211,7 +1693,7 @@ static int init_xo2(struct ddb_port *port)
+ 		return res;
+ 
+ 	if (data[0] != 0x01)  {
+-		dev_info(dev, "Port %d: invalid XO2\n", port->nr);
++		dev_info(dev->dev, "Port %d: invalid XO2\n", port->nr);
+ 		return -1;
+ 	}
+ 
+@@ -1227,11 +1709,16 @@ static int init_xo2(struct ddb_port *port)
+ 	i2c_write_reg(i2c, 0x10, 0x08, 0x07);
+ 
+ 	/* speed: 0=55,1=75,2=90,3=104 MBit/s */
+-	i2c_write_reg(i2c, 0x10, 0x09,
+-		((xo2_speed >= 0 && xo2_speed <= 3) ? xo2_speed : 2));
++	i2c_write_reg(i2c, 0x10, 0x09, xo2_speed);
+ 
+-	i2c_write_reg(i2c, 0x10, 0x0a, 0x01);
+-	i2c_write_reg(i2c, 0x10, 0x0b, 0x01);
++	if (dev->link[port->lnr].info->con_clock) {
++		dev_info(dev->dev, "Setting continuous clock for XO2\n");
++		i2c_write_reg(i2c, 0x10, 0x0a, 0x03);
++		i2c_write_reg(i2c, 0x10, 0x0b, 0x03);
++	} else {
++		i2c_write_reg(i2c, 0x10, 0x0a, 0x01);
++		i2c_write_reg(i2c, 0x10, 0x0b, 0x01);
++	}
+ 
+ 	usleep_range(2000, 3000);
+ 	/* Start XO2 PLL */
+@@ -1240,6 +1727,52 @@ static int init_xo2(struct ddb_port *port)
+ 	return 0;
+ }
+ 
++static int init_xo2_ci(struct ddb_port *port)
 +{
-+	hdmi_phy_jtag_send_pulse(dw_dev, 1, 0);
-+	hdmi_phy_jtag_send_pulse(dw_dev, 0, 0);
-+	hdmi_phy_jtag_send_pulse(dw_dev, 0, 0);
++	struct i2c_adapter *i2c = &port->i2c->adap;
++	struct ddb *dev = port->dev;
++	u8 val, data[2];
++	int res;
++
++	res = i2c_read_regs(i2c, 0x10, 0x04, data, 2);
++	if (res < 0)
++		return res;
++
++	if (data[0] > 1)  {
++		dev_info(dev->dev, "Port %d: invalid XO2 CI %02x\n",
++			port->nr, data[0]);
++		return -1;
++	}
++	dev_info(dev->dev, "Port %d: DuoFlex CI %u.%u\n",
++		port->nr, data[0], data[1]);
++
++	i2c_read_reg(i2c, 0x10, 0x08, &val);
++	if (val != 0) {
++		i2c_write_reg(i2c, 0x10, 0x08, 0x00);
++		msleep(100);
++	}
++	/* Enable both CI */
++	i2c_write_reg(i2c, 0x10, 0x08, 3);
++	usleep_range(2000, 3000);
++
++
++	/* speed: 0=55,1=75,2=90,3=104 MBit/s */
++	i2c_write_reg(i2c, 0x10, 0x09, 1);
++
++	i2c_write_reg(i2c, 0x10, 0x08, 0x83);
++	usleep_range(2000, 3000);
++
++	if (dev->link[port->lnr].info->con_clock) {
++		dev_info(dev->dev, "Setting continuous clock for DuoFlex CI\n");
++		i2c_write_reg(i2c, 0x10, 0x0a, 0x03);
++		i2c_write_reg(i2c, 0x10, 0x0b, 0x03);
++	} else {
++		i2c_write_reg(i2c, 0x10, 0x0a, 0x01);
++		i2c_write_reg(i2c, 0x10, 0x0b, 0x01);
++	}
++	return 0;
 +}
 +
-+static void hdmi_phy_jtag_shift_ir(struct dw_hdmi_dev *dw_dev)
-+{
-+	hdmi_phy_jtag_send_pulse(dw_dev, 1, 0);
-+	hdmi_phy_jtag_send_pulse(dw_dev, 1, 0);
-+	hdmi_phy_jtag_send_pulse(dw_dev, 0, 0);
-+	hdmi_phy_jtag_send_pulse(dw_dev, 0, 0);
-+}
+ static int port_has_cxd28xx(struct ddb_port *port, u8 *id)
+ {
+ 	struct i2c_adapter *i2c = &port->i2c->adap;
+@@ -1254,140 +1787,453 @@ static int port_has_cxd28xx(struct ddb_port *port, u8 *id)
+ 	return 1;
+ }
+ 
++static char *xo2names[] = {
++	"DUAL DVB-S2", "DUAL DVB-C/T/T2",
++	"DUAL DVB-ISDBT", "DUAL DVB-C/C2/T/T2",
++	"DUAL ATSC", "DUAL DVB-C/C2/T/T2,ISDB-T",
++	"", ""
++};
 +
-+static u16 hdmi_phy_jtag_send(struct dw_hdmi_dev *dw_dev, u8 cmd, u16 val)
-+{
-+	u32 in = (cmd << 16) | val;
-+	u16 out = 0;
-+	int i;
++static char *xo2types[] = {
++	"DVBS_ST", "DVBCT2_SONY",
++	"ISDBT_SONY", "DVBC2T2_SONY",
++	"ATSC_ST", "DVBC2T2I_SONY"
++};
 +
-+	for (i = 0; i < 16; i++) {
-+		hdmi_phy_jtag_send_pulse(dw_dev, 0, in & 0x1);
-+		out |= (hdmi_readl(dw_dev, HDMI_PHY_JTAG_TAP_OUT) & 0x1) << i;
-+		in >>= 1;
+ static void ddb_port_probe(struct ddb_port *port)
+ {
+ 	struct ddb *dev = port->dev;
+-	char *modname = "NO MODULE";
+-	u8 xo2_type, xo2_id, cxd_id, stv_id;
++	u32 l = port->lnr;
++	u8 id, type;
+ 
++	port->name = "NO MODULE";
++	port->type_name = "NONE";
+ 	port->class = DDB_PORT_NONE;
+ 
+-	if (port_has_ci(port)) {
+-		modname = "CI";
++	/* Handle missing ports and ports without I2C */
++
++	if (port->nr == ts_loop) {
++		port->name = "TS LOOP";
++		port->class = DDB_PORT_LOOP;
++		return;
 +	}
 +
-+	hdmi_phy_jtag_send_pulse(dw_dev, 0, in & 0x1);
-+	in >>= 1;
-+	hdmi_phy_jtag_send_pulse(dw_dev, 1, in & 0x1);
-+
-+	out |= (hdmi_readl(dw_dev, HDMI_PHY_JTAG_TAP_OUT) & 0x1) << ++i;
-+	return out;
-+}
-+
-+static void hdmi_phy_jtag_idle(struct dw_hdmi_dev *dw_dev)
-+{
-+	hdmi_phy_jtag_send_pulse(dw_dev, 1, 0);
-+	hdmi_phy_jtag_send_pulse(dw_dev, 0, 0);
-+}
-+
-+static void hdmi_phy_jtag_init(struct dw_hdmi_dev *dw_dev, u8 addr)
-+{
-+	int i;
-+
-+	hdmi_writel(dw_dev, addr, HDMI_PHY_JTAG_ADDR);
-+	/* reset */
-+	hdmi_writel(dw_dev, 0x10, HDMI_PHY_JTAG_TAP_IN);
-+	hdmi_writel(dw_dev, 0x0, HDMI_PHY_JTAG_CONF);
-+	hdmi_writel(dw_dev, 0x1, HDMI_PHY_JTAG_CONF);
-+	hdmi_phy_jtag_send_pulse(dw_dev, 0, 0);
-+	/* soft reset */
-+	for (i = 0; i < 5; i++)
-+		hdmi_phy_jtag_send_pulse(dw_dev, 1, 0);
-+	hdmi_phy_jtag_send_pulse(dw_dev, 0, 0);
-+	/* set slave address */
-+	hdmi_phy_jtag_shift_ir(dw_dev);
-+	for (i = 0; i < 7; i++) {
-+		hdmi_phy_jtag_send_pulse(dw_dev, 0, addr & 0x1);
-+		addr >>= 1;
++	if (port->nr == 1 && dev->link[l].info->type == DDB_OCTOPUS_CI &&
++	    dev->link[l].info->i2c_mask == 1) {
++		port->name = "NO TAB";
++		port->class = DDB_PORT_NONE;
++		return;
 +	}
-+	hdmi_phy_jtag_send_pulse(dw_dev, 1, addr & 0x1);
-+	hdmi_phy_jtag_idle(dw_dev);
++
++	if (port->nr > 1 && dev->link[l].info->type == DDB_OCTOPUS_CI) {
++		port->name = "CI internal";
++		port->type_name = "INTERNAL";
+ 		port->class = DDB_PORT_CI;
+-		ddbwritel(I2C_SPEED_400, port->i2c->regs + I2C_TIMING);
+-	} else if (port_has_xo2(port, &xo2_type, &xo2_id)) {
+-		dev_dbg(&dev->pdev->dev, "Port %d (TAB %d): XO2 type: %d, id: %d\n",
+-			port->nr, port->nr+1, xo2_type, xo2_id);
++		port->type = DDB_CI_INTERNAL;
++	}
+ 
+-		ddbwritel(I2C_SPEED_400, port->i2c->regs + I2C_TIMING);
++	if (!port->i2c)
++		return;
+ 
+-		switch (xo2_type) {
+-		case DDB_XO2_TYPE_DUOFLEX:
++	/* Probe ports with I2C */
++
++	if (port_has_cxd(port, &id)) {
++		if (id == 1) {
++			port->name = "CI";
++			port->type_name = "CXD2099";
++			port->class = DDB_PORT_CI;
++			port->type = DDB_CI_EXTERNAL_SONY;
++			ddbwritel(dev, I2C_SPEED_400,
++				  port->i2c->regs + I2C_TIMING);
++		} else {
++			dev_info(dev->dev, "Port %d: Uninitialized DuoFlex\n",
++			       port->nr);
++			return;
++		}
++	} else if (port_has_xo2(port, &type, &id)) {
++		ddbwritel(dev, I2C_SPEED_400, port->i2c->regs + I2C_TIMING);
++		/*dev_info(dev->dev, "XO2 ID %02x\n", id);*/
++		if (type == 2) {
++			port->name = "DuoFlex CI";
++			port->class = DDB_PORT_CI;
++			port->type = DDB_CI_EXTERNAL_XO2;
++			port->type_name = "CI_XO2";
++			init_xo2_ci(port);
++			return;
++		}
++		id >>= 2;
++		if (id > 5) {
++			port->name = "unknown XO2 DuoFlex";
++			port->type_name = "UNKNOWN";
++		} else {
++			port->name = xo2names[id];
++			port->class = DDB_PORT_TUNER;
++			port->type = DDB_TUNER_XO2 + id;
++			port->type_name = xo2types[id];
+ 			init_xo2(port);
+-			switch (xo2_id >> 2) {
+-			case 0:
+-				modname = "DUAL DVB-S2";
+-				port->class = DDB_PORT_TUNER;
+-				port->type = DDB_TUNER_XO2_DVBS_STV0910;
+-				break;
+-			case 1:
+-				modname = "DUAL DVB-C/T/T2";
+-				port->class = DDB_PORT_TUNER;
+-				port->type = DDB_TUNER_XO2_DVBCT2_SONY;
+-				break;
+-			case 2:
+-				modname = "DUAL DVB-ISDBT";
+-				port->class = DDB_PORT_TUNER;
+-				port->type = DDB_TUNER_XO2_ISDBT_SONY;
+-				break;
+-			case 3:
+-				modname = "DUAL DVB-C/C2/T/T2";
+-				port->class = DDB_PORT_TUNER;
+-				port->type = DDB_TUNER_XO2_DVBC2T2_SONY;
+-				break;
+-			case 4:
+-				modname = "DUAL ATSC (unsupported)";
+-				port->class = DDB_PORT_NONE;
+-				port->type = DDB_TUNER_XO2_ATSC_ST;
+-				break;
+-			case 5:
+-				modname = "DUAL DVB-C/C2/T/T2/ISDBT";
+-				port->class = DDB_PORT_TUNER;
+-				port->type = DDB_TUNER_XO2_DVBC2T2I_SONY;
+-				break;
+-			default:
+-				modname = "Unknown XO2 DuoFlex module\n";
+-				break;
+-			}
+-			break;
+-		case DDB_XO2_TYPE_CI:
+-			dev_info(&dev->pdev->dev, "DuoFlex CI modules not supported\n");
+-			break;
+-		default:
+-			dev_info(&dev->pdev->dev, "Unknown XO2 DuoFlex module\n");
+-			break;
+ 		}
+-	} else if (port_has_cxd28xx(port, &cxd_id)) {
+-		switch (cxd_id) {
++	} else if (port_has_cxd28xx(port, &id)) {
++		switch (id) {
+ 		case 0xa4:
+-			modname = "DUAL DVB-C2T2 CXD2843";
+-			port->class = DDB_PORT_TUNER;
++			port->name = "DUAL DVB-C2T2 CXD2843";
+ 			port->type = DDB_TUNER_DVBC2T2_SONY_P;
++			port->type_name = "DVBC2T2_SONY";
+ 			break;
+ 		case 0xb1:
+-			modname = "DUAL DVB-CT2 CXD2837";
+-			port->class = DDB_PORT_TUNER;
++			port->name = "DUAL DVB-CT2 CXD2837";
+ 			port->type = DDB_TUNER_DVBCT2_SONY_P;
++			port->type_name = "DVBCT2_SONY";
+ 			break;
+ 		case 0xb0:
+-			modname = "DUAL ISDB-T CXD2838";
+-			port->class = DDB_PORT_TUNER;
++			port->name = "DUAL ISDB-T CXD2838";
+ 			port->type = DDB_TUNER_ISDBT_SONY_P;
++			port->type_name = "ISDBT_SONY";
+ 			break;
+ 		case 0xc1:
+-			modname = "DUAL DVB-C2T2 ISDB-T CXD2854";
+-			port->class = DDB_PORT_TUNER;
++			port->name = "DUAL DVB-C2T2 ISDB-T CXD2854";
+ 			port->type = DDB_TUNER_DVBC2T2I_SONY_P;
++			port->type_name = "DVBC2T2I_ISDBT_SONY";
+ 			break;
+ 		default:
+-			modname = "Unknown CXD28xx tuner";
+-			break;
++			return;
+ 		}
+-		ddbwritel(I2C_SPEED_400, port->i2c->regs + I2C_TIMING);
++		port->class = DDB_PORT_TUNER;
++		ddbwritel(dev, I2C_SPEED_400, port->i2c->regs + I2C_TIMING);
+ 	} else if (port_has_stv0900(port)) {
+-		modname = "DUAL DVB-S2";
++		port->name = "DUAL DVB-S2";
+ 		port->class = DDB_PORT_TUNER;
+ 		port->type = DDB_TUNER_DVBS_ST;
+-		ddbwritel(I2C_SPEED_100, port->i2c->regs + I2C_TIMING);
+-	} else if (port_has_stv0900_aa(port, &stv_id)) {
+-		modname = "DUAL DVB-S2";
++		port->type_name = "DVBS_ST";
++		ddbwritel(dev, I2C_SPEED_100, port->i2c->regs + I2C_TIMING);
++	} else if (port_has_stv0900_aa(port, &id)) {
++		port->name = "DUAL DVB-S2";
+ 		port->class = DDB_PORT_TUNER;
+-		switch (stv_id) {
+-		case 0x51:
+-			if (dev->info->ts_quirks & TS_QUIRK_REVERSED &&
+-					port->nr == 0)
++		if (id == 0x51) {
++			if (port->nr == 0 &&
++			    dev->link[l].info->ts_quirks & TS_QUIRK_REVERSED)
+ 				port->type = DDB_TUNER_DVBS_STV0910_PR;
+ 			else
+ 				port->type = DDB_TUNER_DVBS_STV0910_P;
+-			break;
+-		default:
++			port->type_name = "DVBS_ST_0910";
++		} else {
+ 			port->type = DDB_TUNER_DVBS_ST_AA;
+-			break;
++			port->type_name = "DVBS_ST_AA";
+ 		}
+-		ddbwritel(I2C_SPEED_100, port->i2c->regs + I2C_TIMING);
++		ddbwritel(dev, I2C_SPEED_100, port->i2c->regs + I2C_TIMING);
+ 	} else if (port_has_drxks(port)) {
+-		modname = "DUAL DVB-C/T";
++		port->name = "DUAL DVB-C/T";
+ 		port->class = DDB_PORT_TUNER;
+ 		port->type = DDB_TUNER_DVBCT_TR;
+-		ddbwritel(I2C_SPEED_400, port->i2c->regs + I2C_TIMING);
++		port->type_name = "DVBCT_TR";
++		ddbwritel(dev, I2C_SPEED_400, port->i2c->regs + I2C_TIMING);
+ 	} else if (port_has_stv0367(port)) {
+-		modname = "DUAL DVB-C/T";
++		port->name = "DUAL DVB-C/T";
+ 		port->class = DDB_PORT_TUNER;
+ 		port->type = DDB_TUNER_DVBCT_ST;
+-		ddbwritel(I2C_SPEED_100, port->i2c->regs + I2C_TIMING);
++		port->type_name = "DVBCT_ST";
++		ddbwritel(dev, I2C_SPEED_100, port->i2c->regs + I2C_TIMING);
++	} else if (port_has_encti(port)) {
++		port->name = "ENCTI";
++		port->class = DDB_PORT_LOOP;
+ 	}
 +}
 +
-+static void hdmi_phy_jtag_write(struct dw_hdmi_dev *dw_dev, u16 val, u16 addr)
++
++/****************************************************************************/
++/****************************************************************************/
++/****************************************************************************/
++
++static int wait_ci_ready(struct ddb_ci *ci)
 +{
-+	hdmi_phy_jtag_shift_dr(dw_dev);
-+	hdmi_phy_jtag_send(dw_dev, HDMI_JTAG_TAP_ADDR_CMD, addr << 8);
-+	hdmi_phy_jtag_idle(dw_dev);
-+	hdmi_phy_jtag_shift_dr(dw_dev);
-+	hdmi_phy_jtag_send(dw_dev, HDMI_JTAG_TAP_WRITE_CMD, val);
-+	hdmi_phy_jtag_idle(dw_dev);
++	u32 count = 10;
++
++	ndelay(500);
++	do {
++		if (ddbreadl(ci->port->dev,
++			     CI_CONTROL(ci->nr)) & CI_READY)
++			break;
++		usleep_range(1, 2);
++		if ((--count) == 0)
++			return -1;
++	} while (1);
++	return 0;
 +}
 +
-+static u16 hdmi_phy_jtag_read(struct dw_hdmi_dev *dw_dev, u16 addr)
++static int read_attribute_mem(struct dvb_ca_en50221 *ca,
++			      int slot, int address)
 +{
-+	u16 val;
++	struct ddb_ci *ci = ca->data;
++	u32 val, off = (address >> 1) & (CI_BUFFER_SIZE - 1);
 +
-+	hdmi_phy_jtag_shift_dr(dw_dev);
-+	hdmi_phy_jtag_send(dw_dev, HDMI_JTAG_TAP_ADDR_CMD, addr << 8);
-+	hdmi_phy_jtag_idle(dw_dev);
-+	hdmi_phy_jtag_shift_dr(dw_dev);
-+	val = hdmi_phy_jtag_send(dw_dev, HDMI_JTAG_TAP_READ_CMD, 0xFFFF);
-+	hdmi_phy_jtag_idle(dw_dev);
-+	
++	if (address > CI_BUFFER_SIZE)
++		return -1;
++	ddbwritel(ci->port->dev, CI_READ_CMD | (1 << 16) | address,
++		  CI_DO_READ_ATTRIBUTES(ci->nr));
++	wait_ci_ready(ci);
++	val = 0xff & ddbreadl(ci->port->dev, CI_BUFFER(ci->nr) + off);
 +	return val;
 +}
 +
-+static void dw_hdmi_phy_write(void *arg, u16 val, u16 addr)
++static int write_attribute_mem(struct dvb_ca_en50221 *ca, int slot,
++			       int address, u8 value)
 +{
-+	struct dw_hdmi_dev *dw_dev = arg;
-+	u16 rval;
++	struct ddb_ci *ci = ca->data;
 +
-+	hdmi_phy_jtag_init(dw_dev, dw_dev->phy_jtag_addr);
-+	hdmi_phy_jtag_write(dw_dev, val, addr);
-+	rval = hdmi_phy_jtag_read(dw_dev, addr);
-+
-+	if (rval != val) {
-+		dev_err(dw_dev->dev,
-+			"JTAG read-back failed: expected=0x%x, got=0x%x\n",
-+			val, rval);
-+	}
++	ddbwritel(ci->port->dev, CI_WRITE_CMD | (value << 16) | address,
++		  CI_DO_ATTRIBUTE_RW(ci->nr));
++	wait_ci_ready(ci);
++	return 0;
 +}
 +
-+static u16 dw_hdmi_phy_read(void *arg, u16 addr)
++static int read_cam_control(struct dvb_ca_en50221 *ca,
++			    int slot, u8 address)
 +{
-+	struct dw_hdmi_dev *dw_dev = arg;
++	u32 count = 100;
++	struct ddb_ci *ci = ca->data;
++	u32 res;
 +
-+	hdmi_phy_jtag_init(dw_dev, dw_dev->phy_jtag_addr);
-+	return hdmi_phy_jtag_read(dw_dev, addr);
-+}
-+
-+static void dw_hdmi_phy_reset(void *arg, int enable)
-+{
-+	struct dw_hdmi_dev *dw_dev = arg;
-+
-+	hdmi_mask_writel(dw_dev, enable, HDMI_PHY_CTRL,
-+			HDMI_PHY_CTRL_RESET_OFFSET,
-+			HDMI_PHY_CTRL_RESET_MASK);
-+}
-+
-+static void dw_hdmi_phy_pddq(void *arg, int enable)
-+{
-+	struct dw_hdmi_dev *dw_dev = arg;
-+
-+	hdmi_mask_writel(dw_dev, enable, HDMI_PHY_CTRL,
-+			HDMI_PHY_CTRL_PDDQ_OFFSET,
-+			HDMI_PHY_CTRL_PDDQ_MASK);
-+}
-+
-+static void dw_hdmi_phy_svsmode(void *arg, int enable)
-+{
-+	struct dw_hdmi_dev *dw_dev = arg;
-+
-+	hdmi_mask_writel(dw_dev, enable, HDMI_PHY_CTRL,
-+			HDMI_PHY_CTRL_SVSRETMODEZ_OFFSET,
-+			HDMI_PHY_CTRL_SVSRETMODEZ_MASK);
-+}
-+
-+static void dw_hdmi_zcal_reset(void *arg)
-+{
-+	struct dw_hdmi_dev *dw_dev = arg;
-+
-+	if (dw_dev->config->dw_zcal_reset)
-+		dw_dev->config->dw_zcal_reset(dw_dev->config->dw_zcal_arg);
-+}
-+
-+static bool dw_hdmi_zcal_done(void *arg)
-+{
-+	struct dw_hdmi_dev *dw_dev = arg;
-+
-+	if (dw_dev->config->dw_zcal_done)
-+		return dw_dev->config->dw_zcal_done(dw_dev->config->dw_zcal_arg);
-+	return true;
-+}
-+
-+static bool dw_hdmi_tmds_valid(void *arg)
-+{
-+	struct dw_hdmi_dev *dw_dev = arg;
-+
-+	return hdmi_readl(dw_dev, HDMI_PLL_LCK_STS) & HDMI_PLL_LCK_STS_PLL_LOCKED;
-+}
-+
-+static const struct dw_phy_funcs dw_hdmi_phy_funcs = {
-+	.write = dw_hdmi_phy_write,
-+	.read = dw_hdmi_phy_read,
-+	.reset = dw_hdmi_phy_reset,
-+	.pddq = dw_hdmi_phy_pddq,
-+	.svsmode = dw_hdmi_phy_svsmode,
-+	.zcal_reset = dw_hdmi_zcal_reset,
-+	.zcal_done = dw_hdmi_zcal_done,
-+	.tmds_valid = dw_hdmi_tmds_valid,
-+};
-+
-+static const struct of_device_id dw_hdmi_supported_phys[] = {
-+	{ .compatible = "snps,dw-hdmi-phy-e405", .data = DW_PHY_E405_DRVNAME, },
-+	{ },
-+};
-+
-+static struct device_node *dw_hdmi_get_phy_of_node(struct dw_hdmi_dev *dw_dev,
-+		const struct of_device_id **found_id)
-+{
-+	struct device_node *child = NULL;
-+	const struct of_device_id *id;
-+
-+	for_each_child_of_node(dw_dev->of_node, child) {
-+		id = of_match_node(dw_hdmi_supported_phys, child);
-+		if (id)
++	ddbwritel(ci->port->dev, CI_READ_CMD | address,
++		  CI_DO_IO_RW(ci->nr));
++	ndelay(500);
++	do {
++		res = ddbreadl(ci->port->dev, CI_READDATA(ci->nr));
++		if (res & CI_READY)
 +			break;
-+	}
-+
-+	if (!id)
-+		return NULL;
-+	if (found_id)
-+		*found_id = id;
-+
-+	return child;
++		usleep_range(1, 2);
++		if ((--count) == 0)
++			return -1;
++	} while (1);
++	return 0xff & res;
 +}
 +
-+static int dw_hdmi_phy_init(struct dw_hdmi_dev *dw_dev)
++static int write_cam_control(struct dvb_ca_en50221 *ca, int slot,
++			     u8 address, u8 value)
 +{
-+	struct dw_phy_pdata *phy = &dw_dev->phy_config;
-+	struct of_dev_auxdata lookup = { };
-+	const struct of_device_id *of_id;
-+	struct device_node *child;
-+	const char *drvname;
-+	int ret;
++	struct ddb_ci *ci = ca->data;
 +
-+	child = dw_hdmi_get_phy_of_node(dw_dev, &of_id);
-+	if (!child || !of_id || !of_id->data) {
-+		dev_err(dw_dev->dev, "no supported phy found in DT\n");
-+		return -EINVAL;
-+	}
-+
-+	drvname = of_id->data;
-+	phy->funcs = &dw_hdmi_phy_funcs;
-+	phy->funcs_arg = dw_dev;
-+
-+	lookup.compatible = (char *)of_id->compatible;
-+	lookup.platform_data = phy;
-+
-+	request_module(drvname);
-+
-+	ret = of_platform_populate(dw_dev->of_node, NULL, &lookup, dw_dev->dev);
-+	if (ret) {
-+		dev_err(dw_dev->dev, "failed to populate phy driver\n");
-+		return ret;
-+	}
-+
++	ddbwritel(ci->port->dev, CI_WRITE_CMD | (value << 16) | address,
++		  CI_DO_IO_RW(ci->nr));
++	wait_ci_ready(ci);
 +	return 0;
 +}
 +
-+static void dw_hdmi_phy_exit(struct dw_hdmi_dev *dw_dev)
++static int slot_reset(struct dvb_ca_en50221 *ca, int slot)
 +{
-+	of_platform_depopulate(dw_dev->dev);
-+}
++	struct ddb_ci *ci = ca->data;
 +
-+static int dw_hdmi_phy_eq_init(struct dw_hdmi_dev *dw_dev, u16 acq, bool force)
-+{
-+	struct dw_phy_eq_command cmd = {
-+		.result = 0,
-+		.nacq = acq,
-+		.force = force,
-+	};
-+	int ret;
-+
-+	ret = v4l2_subdev_call(dw_dev->phy_sd, core, ioctl,
-+			DW_PHY_IOCTL_EQ_INIT, &cmd);
-+	if (ret)
-+		return ret;
-+	return cmd.result;
-+}
-+
-+static int dw_hdmi_phy_config(struct dw_hdmi_dev *dw_dev,
-+		unsigned char color_depth, bool hdmi2, bool scrambling)
-+{
-+	struct dw_phy_config_command cmd = {
-+		.result = 0,
-+		.color_depth = color_depth,
-+		.hdmi2 = hdmi2,
-+		.scrambling = scrambling,
-+	};
-+	int ret;
-+
-+	hdmi_mask_writel(dw_dev, 0x1, HDMI_CBUSIOCTRL,
-+			HDMI_CBUSIOCTRL_DATAPATH_CBUSZ_OFFSET,
-+			HDMI_CBUSIOCTRL_DATAPATH_CBUSZ_MASK);
-+	hdmi_mask_writel(dw_dev, 0x1, HDMI_CBUSIOCTRL,
-+			HDMI_CBUSIOCTRL_SVSRETMODEZ_OFFSET,
-+			HDMI_CBUSIOCTRL_SVSRETMODEZ_MASK);
-+	hdmi_mask_writel(dw_dev, 0x1, HDMI_CBUSIOCTRL,
-+			HDMI_CBUSIOCTRL_PDDQ_OFFSET,
-+			HDMI_CBUSIOCTRL_PDDQ_MASK);
-+	hdmi_mask_writel(dw_dev, 0x1, HDMI_CBUSIOCTRL,
-+			HDMI_CBUSIOCTRL_RESET_OFFSET,
-+			HDMI_CBUSIOCTRL_RESET_MASK);
-+
-+	ret = v4l2_subdev_call(dw_dev->phy_sd, core, ioctl,
-+			DW_PHY_IOCTL_CONFIG, &cmd);
-+	if (ret)
-+		return ret;
-+	return cmd.result;
-+}
-+
-+static void dw_hdmi_phy_s_power(struct dw_hdmi_dev *dw_dev, bool on)
-+{
-+	v4l2_subdev_call(dw_dev->phy_sd, core, s_power, on);
-+}
-+
-+static void dw_hdmi_event_source_change(struct dw_hdmi_dev *dw_dev)
-+{
-+	if (dw_dev->registered)
-+		v4l2_subdev_notify_event(&dw_dev->sd, &dw_hdmi_event_fmt);
-+}
-+
-+static int dw_hdmi_wait_phy_lock_poll(struct dw_hdmi_dev *dw_dev)
-+{
-+	int timeout = 10;
-+
-+	while (!dw_hdmi_tmds_valid(dw_dev) && timeout-- && !dw_dev->force_off)
-+		usleep_range(5000, 10000);
-+
-+	if (!dw_hdmi_tmds_valid(dw_dev))
-+		return -ETIMEDOUT;
++	ddbwritel(ci->port->dev, CI_POWER_ON,
++		  CI_CONTROL(ci->nr));
++	msleep(100);
++	ddbwritel(ci->port->dev, CI_POWER_ON | CI_RESET_CAM,
++		  CI_CONTROL(ci->nr));
++	ddbwritel(ci->port->dev, CI_ENABLE | CI_POWER_ON | CI_RESET_CAM,
++		  CI_CONTROL(ci->nr));
++	udelay(20);
++	ddbwritel(ci->port->dev, CI_ENABLE | CI_POWER_ON,
++		  CI_CONTROL(ci->nr));
 +	return 0;
 +}
 +
-+static void dw_hdmi_reset_datapath(struct dw_hdmi_dev *dw_dev)
++static int slot_shutdown(struct dvb_ca_en50221 *ca, int slot)
 +{
-+	u32 val = HDMI_DMI_SW_RST_TMDS |
-+		HDMI_DMI_SW_RST_HDCP |
-+		HDMI_DMI_SW_RST_VID |
-+		HDMI_DMI_SW_RST_PIXEL |
-+		HDMI_DMI_SW_RST_CEC |
-+		HDMI_DMI_SW_RST_AUD |
-+		HDMI_DMI_SW_RST_BUS |
-+		HDMI_DMI_SW_RST_HDMI |
-+		HDMI_DMI_SW_RST_MODET;
++	struct ddb_ci *ci = ca->data;
 +
-+	hdmi_writel(dw_dev, val, HDMI_DMI_SW_RST);
++	ddbwritel(ci->port->dev, 0, CI_CONTROL(ci->nr));
++	msleep(300);
++	return 0;
 +}
 +
-+static void dw_hdmi_wait_video_stable(struct dw_hdmi_dev *dw_dev)
++static int slot_ts_enable(struct dvb_ca_en50221 *ca, int slot)
 +{
-+	/*
-+	 * Empiric value. Video should be stable way longer before the
-+	 * end of this sleep time. Though, we can have some video change
-+	 * interrupts before the video is stable so filter them by sleeping.
++	struct ddb_ci *ci = ca->data;
++	u32 val = ddbreadl(ci->port->dev, CI_CONTROL(ci->nr));
++
++	ddbwritel(ci->port->dev, val | CI_BYPASS_DISABLE,
++		  CI_CONTROL(ci->nr));
++	return 0;
++}
++
++static int poll_slot_status(struct dvb_ca_en50221 *ca, int slot, int open)
++{
++	struct ddb_ci *ci = ca->data;
++	u32 val = ddbreadl(ci->port->dev, CI_CONTROL(ci->nr));
++	int stat = 0;
++
++	if (val & CI_CAM_DETECT)
++		stat |= DVB_CA_EN50221_POLL_CAM_PRESENT;
++	if (val & CI_CAM_READY)
++		stat |= DVB_CA_EN50221_POLL_CAM_READY;
++	return stat;
++}
++
++static struct dvb_ca_en50221 en_templ = {
++	.read_attribute_mem  = read_attribute_mem,
++	.write_attribute_mem = write_attribute_mem,
++	.read_cam_control    = read_cam_control,
++	.write_cam_control   = write_cam_control,
++	.slot_reset          = slot_reset,
++	.slot_shutdown       = slot_shutdown,
++	.slot_ts_enable      = slot_ts_enable,
++	.poll_slot_status    = poll_slot_status,
++};
++
++static void ci_attach(struct ddb_port *port)
++{
++	struct ddb_ci *ci = 0;
++
++	ci = kzalloc(sizeof(*ci), GFP_KERNEL);
++	if (!ci)
++		return;
++	memcpy(&ci->en, &en_templ, sizeof(en_templ));
++	ci->en.data = ci;
++	port->en = &ci->en;
++	ci->port = port;
++	ci->nr = port->nr - 2;
++}
++
++/****************************************************************************/
++/****************************************************************************/
++/****************************************************************************/
++
++static int write_creg(struct ddb_ci *ci, u8 data, u8 mask)
++{
++	struct i2c_adapter *i2c = &ci->port->i2c->adap;
++	u8 adr = (ci->port->type == DDB_CI_EXTERNAL_XO2) ? 0x12 : 0x13;
++
++	ci->port->creg = (ci->port->creg & ~mask) | data;
++	return i2c_write_reg(i2c, adr, 0x02, ci->port->creg);
++}
++
++static int read_attribute_mem_xo2(struct dvb_ca_en50221 *ca,
++				  int slot, int address)
++{
++	struct ddb_ci *ci = ca->data;
++	struct i2c_adapter *i2c = &ci->port->i2c->adap;
++	u8 adr = (ci->port->type == DDB_CI_EXTERNAL_XO2) ? 0x12 : 0x13;
++	int res;
++	u8 val;
++
++	res = i2c_read_reg16(i2c, adr, 0x8000 | address, &val);
++	return res ? res : val;
++}
++
++static int write_attribute_mem_xo2(struct dvb_ca_en50221 *ca, int slot,
++				   int address, u8 value)
++{
++	struct ddb_ci *ci = ca->data;
++	struct i2c_adapter *i2c = &ci->port->i2c->adap;
++	u8 adr = (ci->port->type == DDB_CI_EXTERNAL_XO2) ? 0x12 : 0x13;
++
++	return i2c_write_reg16(i2c, adr, 0x8000 | address, value);
++}
++
++static int read_cam_control_xo2(struct dvb_ca_en50221 *ca,
++				int slot, u8 address)
++{
++	struct ddb_ci *ci = ca->data;
++	struct i2c_adapter *i2c = &ci->port->i2c->adap;
++	u8 adr = (ci->port->type == DDB_CI_EXTERNAL_XO2) ? 0x12 : 0x13;
++	u8 val;
++	int res;
++
++	res = i2c_read_reg(i2c, adr, 0x20 | (address & 3), &val);
++	return res ? res : val;
++}
++
++static int write_cam_control_xo2(struct dvb_ca_en50221 *ca, int slot,
++				 u8 address, u8 value)
++{
++	struct ddb_ci *ci = ca->data;
++	struct i2c_adapter *i2c = &ci->port->i2c->adap;
++	u8 adr = (ci->port->type == DDB_CI_EXTERNAL_XO2) ? 0x12 : 0x13;
++
++	return i2c_write_reg(i2c, adr, 0x20 | (address & 3), value);
++}
++
++static int slot_reset_xo2(struct dvb_ca_en50221 *ca, int slot)
++{
++	struct ddb_ci *ci = ca->data;
++
++	dev_dbg(ci->port->dev->dev, "%s\n", __func__);
++	write_creg(ci, 0x01, 0x01);
++	write_creg(ci, 0x04, 0x04);
++	msleep(20);
++	write_creg(ci, 0x02, 0x02);
++	write_creg(ci, 0x00, 0x04);
++	write_creg(ci, 0x18, 0x18);
++	return 0;
++}
++
++static int slot_shutdown_xo2(struct dvb_ca_en50221 *ca, int slot)
++{
++	struct ddb_ci *ci = ca->data;
++
++	dev_dbg(ci->port->dev->dev, "%s\n", __func__);
++	write_creg(ci, 0x10, 0xff);
++	write_creg(ci, 0x08, 0x08);
++	return 0;
++}
++
++static int slot_ts_enable_xo2(struct dvb_ca_en50221 *ca, int slot)
++{
++	struct ddb_ci *ci = ca->data;
++
++	dev_info(ci->port->dev->dev, "%s\n", __func__);
++	write_creg(ci, 0x00, 0x10);
++	return 0;
++}
++
++static int poll_slot_status_xo2(struct dvb_ca_en50221 *ca, int slot, int open)
++{
++	struct ddb_ci *ci = ca->data;
++	struct i2c_adapter *i2c = &ci->port->i2c->adap;
++	u8 adr = (ci->port->type == DDB_CI_EXTERNAL_XO2) ? 0x12 : 0x13;
++	u8 val = 0;
++	int stat = 0;
++
++	i2c_read_reg(i2c, adr, 0x01, &val);
++
++	if (val & 2)
++		stat |= DVB_CA_EN50221_POLL_CAM_PRESENT;
++	if (val & 1)
++		stat |= DVB_CA_EN50221_POLL_CAM_READY;
++	return stat;
++}
++
++static struct dvb_ca_en50221 en_xo2_templ = {
++	.read_attribute_mem  = read_attribute_mem_xo2,
++	.write_attribute_mem = write_attribute_mem_xo2,
++	.read_cam_control    = read_cam_control_xo2,
++	.write_cam_control   = write_cam_control_xo2,
++	.slot_reset          = slot_reset_xo2,
++	.slot_shutdown       = slot_shutdown_xo2,
++	.slot_ts_enable      = slot_ts_enable_xo2,
++	.poll_slot_status    = poll_slot_status_xo2,
++};
+ 
+-	dev_info(&dev->pdev->dev, "Port %d (TAB %d): %s\n",
+-			 port->nr, port->nr+1, modname);
++static void ci_xo2_attach(struct ddb_port *port)
++{
++	struct ddb_ci *ci;
++
++	ci = kzalloc(sizeof(*ci), GFP_KERNEL);
++	if (!ci)
++		return;
++	memcpy(&ci->en, &en_xo2_templ, sizeof(en_xo2_templ));
++	ci->en.data = ci;
++	port->en = &ci->en;
++	ci->port = port;
++	ci->nr = port->nr - 2;
++	ci->port->creg = 0;
++	write_creg(ci, 0x10, 0xff);
++	write_creg(ci, 0x08, 0x08);
+ }
+ 
+ /****************************************************************************/
+ /****************************************************************************/
+ /****************************************************************************/
+ 
+-static struct cxd2099_cfg cxd_cfg = {
+-	.bitrate =  62000,
++struct cxd2099_cfg cxd_cfg = {
++	.bitrate =  72000,
+ 	.adr     =  0x40,
+ 	.polarity = 1,
+ 	.clock_mode = 1,
+@@ -1396,33 +2242,36 @@ static struct cxd2099_cfg cxd_cfg = {
+ 
+ static int ddb_ci_attach(struct ddb_port *port)
+ {
+-	int ret;
++	switch (port->type) {
++	case DDB_CI_EXTERNAL_SONY:
++		cxd_cfg.bitrate = ci_bitrate;
++		port->en = cxd2099_attach(&cxd_cfg, port, &port->i2c->adap);
++		if (!port->en)
++			return -ENODEV;
++		dvb_ca_en50221_init(port->dvb[0].adap,
++				    port->en, 0, 1);
++		break;
+ 
+-	ret = dvb_register_adapter(&port->output->adap,
+-				   "DDBridge",
+-				   THIS_MODULE,
+-				   &port->dev->pdev->dev,
+-				   adapter_nr);
+-	if (ret < 0)
+-		return ret;
+-	port->en = cxd2099_attach(&cxd_cfg, port, &port->i2c->adap);
+-	if (!port->en) {
+-		dvb_unregister_adapter(&port->output->adap);
+-		return -ENODEV;
++	case DDB_CI_EXTERNAL_XO2:
++	case DDB_CI_EXTERNAL_XO2_B:
++		ci_xo2_attach(port);
++		if (!port->en)
++			return -ENODEV;
++		dvb_ca_en50221_init(port->dvb[0].adap, port->en, 0, 1);
++		break;
++
++	case DDB_CI_INTERNAL:
++		ci_attach(port);
++		if (!port->en)
++			return -ENODEV;
++		dvb_ca_en50221_init(port->dvb[0].adap, port->en, 0, 1);
++		break;
+ 	}
+-	ddb_input_start(port->input[0]);
+-	ddb_output_start(port->output);
+-	dvb_ca_en50221_init(&port->output->adap,
+-			    port->en, 0, 1);
+-	ret = dvb_register_device(&port->output->adap, &port->output->dev,
+-				  &dvbdev_ci, (void *) port->output,
+-				  DVB_DEVICE_SEC, 0);
+-	return ret;
++	return 0;
+ }
+ 
+ static int ddb_port_attach(struct ddb_port *port)
+ {
+-	struct device *dev = &port->dev->pdev->dev;
+ 	int ret = 0;
+ 
+ 	switch (port->class) {
+@@ -1431,15 +2280,27 @@ static int ddb_port_attach(struct ddb_port *port)
+ 		if (ret < 0)
+ 			break;
+ 		ret = dvb_input_attach(port->input[1]);
++		if (ret < 0)
++			break;
++		port->input[0]->redi = port->input[0];
++		port->input[1]->redi = port->input[1];
+ 		break;
+ 	case DDB_PORT_CI:
+ 		ret = ddb_ci_attach(port);
++		if (ret < 0)
++			break;
++	case DDB_PORT_LOOP:
++		ret = dvb_register_device(port->dvb[0].adap,
++					  &port->dvb[0].dev,
++					  &dvbdev_ci, (void *) port->output,
++					  DVB_DEVICE_SEC, 0);
+ 		break;
+ 	default:
+ 		break;
+ 	}
+ 	if (ret < 0)
+-		dev_err(dev, "port_attach on port %d failed\n", port->nr);
++		dev_err(port->dev->dev, "port_attach on port %d failed\n",
++			port->nr);
+ 	return ret;
+ }
+ 
+@@ -1448,11 +2309,16 @@ int ddb_ports_attach(struct ddb *dev)
+ 	int i, ret = 0;
+ 	struct ddb_port *port;
+ 
+-	for (i = 0; i < dev->info->port_num; i++) {
++	if (dev->port_num) {
++		ret = dvb_register_adapters(dev);
++		if (ret < 0) {
++			dev_err(dev->dev, "Registering adapters failed. Check DVB_MAX_ADAPTERS in config.\n");
++			return ret;
++		}
++	}
++	for (i = 0; i < dev->port_num; i++) {
+ 		port = &dev->port[i];
+ 		ret = ddb_port_attach(port);
+-		if (ret < 0)
+-			break;
+ 	}
+ 	return ret;
+ }
+@@ -1462,132 +2328,346 @@ void ddb_ports_detach(struct ddb *dev)
+ 	int i;
+ 	struct ddb_port *port;
+ 
+-	for (i = 0; i < dev->info->port_num; i++) {
++	for (i = 0; i < dev->port_num; i++) {
+ 		port = &dev->port[i];
++
+ 		switch (port->class) {
+ 		case DDB_PORT_TUNER:
+ 			dvb_input_detach(port->input[0]);
+ 			dvb_input_detach(port->input[1]);
+ 			break;
+ 		case DDB_PORT_CI:
+-			dvb_unregister_device(port->output->dev);
++		case DDB_PORT_LOOP:
++			if (port->dvb[0].dev)
++				dvb_unregister_device(port->dvb[0].dev);
+ 			if (port->en) {
+-				ddb_input_stop(port->input[0]);
+-				ddb_output_stop(port->output);
+ 				dvb_ca_en50221_release(port->en);
+ 				kfree(port->en);
+ 				port->en = NULL;
+-				dvb_unregister_adapter(&port->output->adap);
+ 			}
+ 			break;
+ 		}
+ 	}
++	dvb_unregister_adapters(dev);
+ }
+ 
+-static void input_tasklet(unsigned long data)
++
++/* Copy input DMA pointers to output DMA and ACK. */
++
++static void input_write_output(struct ddb_input *input,
++			       struct ddb_output *output)
+ {
+-	struct ddb_input *input = (struct ddb_input *) data;
+-	struct ddb *dev = input->port->dev;
++	ddbwritel(output->port->dev,
++		  input->dma->stat, DMA_BUFFER_ACK(output->dma));
++	output->dma->cbuf = (input->dma->stat >> 11) & 0x1f;
++	output->dma->coff = (input->dma->stat & 0x7ff) << 7;
++}
+ 
+-	spin_lock(&input->lock);
+-	if (!input->running) {
+-		spin_unlock(&input->lock);
+-		return;
+-	}
+-	input->stat = ddbreadl(DMA_BUFFER_CURRENT(input->nr));
++static void output_ack_input(struct ddb_output *output,
++			     struct ddb_input *input)
++{
++	ddbwritel(input->port->dev,
++		  output->dma->stat, DMA_BUFFER_ACK(input->dma));
++}
+ 
+-	if (input->port->class == DDB_PORT_TUNER) {
+-		if (4&ddbreadl(DMA_BUFFER_CONTROL(input->nr)))
+-			dev_err(&dev->pdev->dev, "Overflow input %d\n", input->nr);
+-		while (input->cbuf != ((input->stat >> 11) & 0x1f)
+-		       || (4 & safe_ddbreadl(dev, DMA_BUFFER_CONTROL(input->nr)))) {
+-			dvb_dmx_swfilter_packets(&input->demux,
+-						 input->vbuf[input->cbuf],
+-						 input->dma_buf_size / 188);
++static void input_write_dvb(struct ddb_input *input,
++			    struct ddb_input *input2)
++{
++	struct ddb_dvb *dvb = &input2->port->dvb[input2->nr & 1];
++	struct ddb_dma *dma, *dma2;
++	struct ddb *dev = input->port->dev;
++	int ack = 1;
+ 
+-			input->cbuf = (input->cbuf + 1) % input->dma_buf_num;
+-			ddbwritel((input->cbuf << 11),
+-				  DMA_BUFFER_ACK(input->nr));
+-			input->stat = ddbreadl(DMA_BUFFER_CURRENT(input->nr));
+-		       }
++	dma = dma2 = input->dma;
++	/* if there also is an output connected, do not ACK.
++	 * input_write_output will ACK.
 +	 */
-+	msleep(200);
-+}
-+
-+static void dw_hdmi_enable_ints(struct dw_hdmi_dev *dw_dev)
-+{
-+	hdmi_writel(dw_dev, HDMI_ISTS_CLK_CHANGE | HDMI_ISTS_PLL_LCK_CHG,
-+			HDMI_IEN_SET);
-+	hdmi_writel(dw_dev, (~0x0) & (~HDMI_MD_ISTS_VOFS_LIN), HDMI_MD_IEN_SET);
-+}
-+
-+static void dw_hdmi_disable_ints(struct dw_hdmi_dev *dw_dev)
-+{
-+	hdmi_writel(dw_dev, ~0x0, HDMI_IEN_CLR);
-+	hdmi_writel(dw_dev, ~0x0, HDMI_MD_IEN_CLR);
-+}
-+
-+static void dw_hdmi_clear_ints(struct dw_hdmi_dev *dw_dev)
-+{
-+	hdmi_writel(dw_dev, ~0x0, HDMI_ICLR);
-+	hdmi_writel(dw_dev, ~0x0, HDMI_MD_ICLR);
-+}
-+
-+static u32 dw_hdmi_get_int_val(struct dw_hdmi_dev *dw_dev, u32 ists, u32 ien)
-+{
-+	return hdmi_readl(dw_dev, ists) & hdmi_readl(dw_dev, ien);
-+}
-+
-+#if IS_ENABLED(CONFIG_VIDEO_DWC_HDMI_RX_CEC)
-+static void dw_hdmi_cec_enable_ints(struct dw_hdmi_dev *dw_dev)
-+{
-+	u32 mask = HDMI_AUD_CEC_ISTS_DONE | HDMI_AUD_CEC_ISTS_EOM |
-+		HDMI_AUD_CEC_ISTS_NACK | HDMI_AUD_CEC_ISTS_ARBLST |
-+		HDMI_AUD_CEC_ISTS_ERROR_INIT | HDMI_AUD_CEC_ISTS_ERROR_FOLL;
-+
-+	hdmi_writel(dw_dev, mask, HDMI_AUD_CEC_IEN_SET);
-+	hdmi_writel(dw_dev, 0x0, HDMI_CEC_MASK);
-+}
-+
-+static void dw_hdmi_cec_disable_ints(struct dw_hdmi_dev *dw_dev)
-+{
-+	hdmi_writel(dw_dev, ~0x0, HDMI_AUD_CEC_IEN_CLR);
-+	hdmi_writel(dw_dev, ~0x0, HDMI_CEC_MASK);
-+}
-+
-+static void dw_hdmi_cec_clear_ints(struct dw_hdmi_dev *dw_dev)
-+{
-+	hdmi_writel(dw_dev, ~0x0, HDMI_AUD_CEC_ICLR);
-+}
-+
-+static void dw_hdmi_cec_tx_raw_status(struct dw_hdmi_dev *dw_dev, u32 stat)
-+{
-+	if (hdmi_readl(dw_dev, HDMI_CEC_CTRL) & HDMI_CEC_CTRL_SEND_MASK) {
-+		dev_dbg(dw_dev->dev, "%s: tx is busy\n", __func__);
-+		return;
++	if (input->redo) {
++		dma2 = input->redo->dma;
++		ack = 0;
 +	}
-+
-+	if (stat & HDMI_AUD_CEC_ISTS_ARBLST) {
-+		cec_transmit_attempt_done(dw_dev->cec_adap,
-+				CEC_TX_STATUS_ARB_LOST);
-+		return;
-+	}
-+
-+	if (stat & HDMI_AUD_CEC_ISTS_NACK) {
-+		cec_transmit_attempt_done(dw_dev->cec_adap, CEC_TX_STATUS_NACK);
-+		return;
-+	}
-+
-+	if (stat & HDMI_AUD_CEC_ISTS_ERROR_INIT) {
-+		dev_dbg(dw_dev->dev, "%s: got initiator error\n", __func__);
-+		cec_transmit_attempt_done(dw_dev->cec_adap, CEC_TX_STATUS_ERROR);
-+		return;
-+	}
-+
-+	if (stat & HDMI_AUD_CEC_ISTS_DONE) {
-+		cec_transmit_attempt_done(dw_dev->cec_adap, CEC_TX_STATUS_OK);
-+		return;
-+	}
-+}
-+
-+static void dw_hdmi_cec_received_msg(struct dw_hdmi_dev *dw_dev)
-+{
-+	struct cec_msg msg;
-+	u8 i;
-+
-+	msg.len = hdmi_readl(dw_dev, HDMI_CEC_RX_CNT);
-+	if (!msg.len || msg.len > HDMI_CEC_RX_DATA_MAX)
-+		return; /* it's an invalid/non-existent message */
-+
-+	for (i = 0; i < msg.len; i++)
-+		msg.msg[i] = hdmi_readl(dw_dev, HDMI_CEC_RX_DATA(i));
-+
-+	hdmi_writel(dw_dev, 0x0, HDMI_CEC_LOCK);
-+	cec_received_msg(dw_dev->cec_adap, &msg);
-+}
-+
-+static int dw_hdmi_cec_adap_enable(struct cec_adapter *adap, bool enable)
-+{
-+	struct dw_hdmi_dev *dw_dev = cec_get_drvdata(adap);
-+
-+	if (enable) {
-+		hdmi_writel(dw_dev, 0x0, HDMI_CEC_ADDR_L);
-+		hdmi_writel(dw_dev, 0x0, HDMI_CEC_ADDR_H);
-+		hdmi_writel(dw_dev, 0x0, HDMI_CEC_LOCK);
-+		dw_hdmi_cec_clear_ints(dw_dev);
-+		dw_hdmi_cec_enable_ints(dw_dev);
-+	} else {
-+		hdmi_writel(dw_dev, 0x0, HDMI_CEC_ADDR_L);
-+		hdmi_writel(dw_dev, 0x0, HDMI_CEC_ADDR_H);
-+		dw_hdmi_cec_disable_ints(dw_dev);
-+		dw_hdmi_cec_clear_ints(dw_dev);
-+	}
-+
-+	return 0;
-+}
-+
-+static int dw_hdmi_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
-+{
-+	struct dw_hdmi_dev *dw_dev = cec_get_drvdata(adap);
-+	u32 tmp;
-+
-+	if (addr == CEC_LOG_ADDR_INVALID) {
-+		hdmi_writel(dw_dev, 0x0, HDMI_CEC_ADDR_L);
-+		hdmi_writel(dw_dev, 0x0, HDMI_CEC_ADDR_H);
-+		return 0;
-+	}
-+
-+	if (addr >= 8) {
-+		tmp = hdmi_readl(dw_dev, HDMI_CEC_ADDR_H);
-+		tmp |= BIT(addr - 8);
-+		hdmi_writel(dw_dev, tmp, HDMI_CEC_ADDR_H);
-+	} else {
-+		tmp = hdmi_readl(dw_dev, HDMI_CEC_ADDR_L);
-+		tmp |= BIT(addr);
-+		hdmi_writel(dw_dev, tmp, HDMI_CEC_ADDR_L);
-+	}
-+
-+	return 0;
-+}
-+
-+static int dw_hdmi_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
-+		u32 signal_free_time, struct cec_msg *msg)
-+{
-+	struct dw_hdmi_dev *dw_dev = cec_get_drvdata(adap);
-+	u8 len = msg->len;
-+	u32 reg;
-+	int i;
-+
-+	if (hdmi_readl(dw_dev, HDMI_CEC_CTRL) & HDMI_CEC_CTRL_SEND_MASK) {
-+		dev_err(dw_dev->dev, "%s: tx is busy\n", __func__);
-+		return -EBUSY;
-+	}
-+
-+	for (i = 0; i < len; i++)
-+		hdmi_writel(dw_dev, msg->msg[i], HDMI_CEC_TX_DATA(i));
-+
-+	switch (signal_free_time) {
-+	case CEC_SIGNAL_FREE_TIME_RETRY:
-+		reg = 0x0;
-+		break;
-+	case CEC_SIGNAL_FREE_TIME_NEXT_XFER:
-+		reg = 0x2;
-+		break;
-+	case CEC_SIGNAL_FREE_TIME_NEW_INITIATOR:
-+	default:
-+		reg = 0x1;
-+		break;
-+	}
-+
-+	hdmi_writel(dw_dev, len, HDMI_CEC_TX_CNT);
-+	hdmi_mask_writel(dw_dev, reg, HDMI_CEC_CTRL,
-+			HDMI_CEC_CTRL_FRAME_TYP_OFFSET,
-+			HDMI_CEC_CTRL_FRAME_TYP_MASK);
-+	hdmi_mask_writel(dw_dev, 0x1, HDMI_CEC_CTRL,
-+			HDMI_CEC_CTRL_SEND_OFFSET,
-+			HDMI_CEC_CTRL_SEND_MASK);
-+	return 0;
-+}
-+
-+static const struct cec_adap_ops dw_hdmi_cec_adap_ops = {
-+	.adap_enable = dw_hdmi_cec_adap_enable,
-+	.adap_log_addr = dw_hdmi_cec_adap_log_addr,
-+	.adap_transmit = dw_hdmi_cec_adap_transmit,
-+};
-+
-+static void dw_hdmi_cec_irq_handler(struct dw_hdmi_dev *dw_dev)
-+{
-+	u32 cec_ists = dw_hdmi_get_int_val(dw_dev, HDMI_AUD_CEC_ISTS,
-+			HDMI_AUD_CEC_IEN);
-+
-+	dw_hdmi_cec_clear_ints(dw_dev);
-+
-+	if (cec_ists) {
-+		dw_hdmi_cec_tx_raw_status(dw_dev, cec_ists);
-+		if (cec_ists & HDMI_AUD_CEC_ISTS_EOM)
-+			dw_hdmi_cec_received_msg(dw_dev);
-+	}
-+}
-+#endif
-+
-+static u8 dw_hdmi_get_curr_vic(struct dw_hdmi_dev *dw_dev, bool *is_hdmi_vic)
-+{
-+	u8 vic = hdmi_mask_readl(dw_dev, HDMI_PDEC_AVI_PB,
-+			HDMI_PDEC_AVI_PB_VID_IDENT_CODE_OFFSET,
-+			HDMI_PDEC_AVI_PB_VID_IDENT_CODE_MASK) & 0xff;
-+
-+	if (!vic) {
-+		vic = hdmi_mask_readl(dw_dev, HDMI_PDEC_VSI_PAYLOAD0,
-+				HDMI_PDEC_VSI_PAYLOAD0_HDMI_VIC_OFFSET,
-+				HDMI_PDEC_VSI_PAYLOAD0_HDMI_VIC_MASK) & 0xff;
-+		if (is_hdmi_vic)
-+			*is_hdmi_vic = true;
-+	} else {
-+		if (is_hdmi_vic)
-+			*is_hdmi_vic = false;
-+	}
-+
-+	return vic;
-+}
-+
-+static u64 dw_hdmi_get_pixelclk(struct dw_hdmi_dev *dw_dev)
-+{
-+	u32 rate = hdmi_mask_readl(dw_dev, HDMI_CKM_RESULT,
-+			HDMI_CKM_RESULT_CLKRATE_OFFSET,
-+			HDMI_CKM_RESULT_CLKRATE_MASK);
-+	u32 evaltime = hdmi_mask_readl(dw_dev, HDMI_CKM_EVLTM,
-+			HDMI_CKM_EVLTM_EVAL_TIME_OFFSET,
-+			HDMI_CKM_EVLTM_EVAL_TIME_MASK);
-+	u64 tmp = (u64)rate * (u64)dw_dev->cfg_clk * 1000000;
-+
-+	do_div(tmp, evaltime);
-+	return tmp;
-+}
-+
-+static u32 dw_hdmi_get_colordepth(struct dw_hdmi_dev *dw_dev)
-+{
-+	u32 dcm = hdmi_mask_readl(dw_dev, HDMI_STS,
-+			HDMI_STS_DCM_CURRENT_MODE_OFFSET,
-+			HDMI_STS_DCM_CURRENT_MODE_MASK);
-+
-+	switch (dcm) {
-+	case 0x4:
-+		return 24;
-+	case 0x5:
-+		return 30;
-+	case 0x6:
-+		return 36;
-+	case 0x7:
-+		return 48;
-+	default:
-+		return 24;
-+	}
-+}
-+
-+static void dw_hdmi_set_input(struct dw_hdmi_dev *dw_dev, u32 input)
-+{
-+	hdmi_mask_writel(dw_dev, input, HDMI_PHY_CTRL,
-+			HDMI_PHY_CTRL_PORTSELECT_OFFSET,
-+			HDMI_PHY_CTRL_PORTSELECT_MASK);
-+}
-+
-+static void dw_hdmi_enable_hpd(struct dw_hdmi_dev *dw_dev, u32 input_mask)
-+{
-+	hdmi_mask_writel(dw_dev, input_mask, HDMI_SETUP_CTRL,
-+			HDMI_SETUP_CTRL_HOT_PLUG_DETECT_INPUT_X_OFFSET,
-+			HDMI_SETUP_CTRL_HOT_PLUG_DETECT_INPUT_X_MASK);
-+	hdmi_mask_writel(dw_dev, 0x1, HDMI_SETUP_CTRL,
-+			HDMI_SETUP_CTRL_HOT_PLUG_DETECT_OFFSET,
-+			HDMI_SETUP_CTRL_HOT_PLUG_DETECT_MASK);
-+}
-+
-+static void dw_hdmi_disable_hpd(struct dw_hdmi_dev *dw_dev)
-+{
-+	hdmi_mask_writel(dw_dev, 0x0, HDMI_SETUP_CTRL,
-+			HDMI_SETUP_CTRL_HOT_PLUG_DETECT_INPUT_X_OFFSET,
-+			HDMI_SETUP_CTRL_HOT_PLUG_DETECT_INPUT_X_MASK);
-+	hdmi_mask_writel(dw_dev, 0x0, HDMI_SETUP_CTRL,
-+			HDMI_SETUP_CTRL_HOT_PLUG_DETECT_OFFSET,
-+			HDMI_SETUP_CTRL_HOT_PLUG_DETECT_MASK);
-+}
-+
-+static void dw_hdmi_enable_scdc(struct dw_hdmi_dev *dw_dev)
-+{
-+	hdmi_mask_writel(dw_dev, 0x1, HDMI_SCDC_CONFIG,
-+			HDMI_SCDC_CONFIG_POWERPROVIDED_OFFSET,
-+			HDMI_SCDC_CONFIG_POWERPROVIDED_MASK);
-+}
-+
-+static void dw_hdmi_disable_scdc(struct dw_hdmi_dev *dw_dev)
-+{
-+	hdmi_mask_writel(dw_dev, 0x0, HDMI_SCDC_CONFIG,
-+			HDMI_SCDC_CONFIG_POWERPROVIDED_OFFSET,
-+			HDMI_SCDC_CONFIG_POWERPROVIDED_MASK);
-+}
-+
-+static int dw_hdmi_config(struct dw_hdmi_dev *dw_dev, u32 input)
-+{
-+	int eqret, ret = 0;
-+
-+	while (1) {
-+		/* Give up silently if we are forcing off */
-+		if (dw_dev->force_off) {
-+			ret = 0;
-+			goto out;
++	while (dma->cbuf != ((dma->stat >> 11) & 0x1f)
++	       || (4 & dma->ctrl)) {
++		if (4 & dma->ctrl) {
++			/* dev_err(dev->dev, "Overflow dma %d\n", dma->nr); */
++			ack = 1;
 +		}
-+		/* Give up silently if input has disconnected */
-+		if (!has_signal(dw_dev, input)) {
-+			ret = 0;
-+			goto out;
++		if (alt_dma)
++			dma_sync_single_for_cpu(dev->dev, dma2->pbuf[dma->cbuf],
++						dma2->size, DMA_FROM_DEVICE);
++		dvb_dmx_swfilter_packets(&dvb->demux,
++					 dma2->vbuf[dma->cbuf],
++					 dma2->size / 188);
++		dma->cbuf = (dma->cbuf + 1) % dma2->num;
++		if (ack)
++			ddbwritel(dev, (dma->cbuf << 11),
++				  DMA_BUFFER_ACK(dma));
++		dma->stat = safe_ddbreadl(dev, DMA_BUFFER_CURRENT(dma));
++		dma->ctrl = safe_ddbreadl(dev, DMA_BUFFER_CONTROL(dma));
+ 	}
+-	if (input->port->class == DDB_PORT_CI)
+-		wake_up(&input->wq);
+-	spin_unlock(&input->lock);
+ }
+ 
+-static void output_tasklet(unsigned long data)
++static void input_work(struct work_struct *work)
+ {
+-	struct ddb_output *output = (struct ddb_output *) data;
+-	struct ddb *dev = output->port->dev;
++	struct ddb_dma *dma = container_of(work, struct ddb_dma, work);
++	struct ddb_input *input = (struct ddb_input *) dma->io;
++	struct ddb *dev = input->port->dev;
++	unsigned long flags;
+ 
+-	spin_lock(&output->lock);
+-	if (!output->running) {
+-		spin_unlock(&output->lock);
++	spin_lock_irqsave(&dma->lock, flags);
++	if (!dma->running) {
++		spin_unlock_irqrestore(&dma->lock, flags);
+ 		return;
+ 	}
+-	output->stat = ddbreadl(DMA_BUFFER_CURRENT(output->nr + 8));
+-	wake_up(&output->wq);
+-	spin_unlock(&output->lock);
+-}
++	dma->stat = ddbreadl(dev, DMA_BUFFER_CURRENT(dma));
++	dma->ctrl = ddbreadl(dev, DMA_BUFFER_CONTROL(dma));
+ 
+-/****************************************************************************/
+-/****************************************************************************/
++	if (input->redi)
++		input_write_dvb(input, input->redi);
++	if (input->redo)
++		input_write_output(input, input->redo);
++	wake_up(&dma->wq);
++	spin_unlock_irqrestore(&dma->lock, flags);
++}
+ 
+-static void ddb_input_init(struct ddb_port *port, int nr)
++static void input_handler(unsigned long data)
+ {
+-	struct ddb *dev = port->dev;
+-	struct ddb_input *input = &dev->input[nr];
++	struct ddb_input *input = (struct ddb_input *) data;
++	struct ddb_dma *dma = input->dma;
++
++
++	/* If there is no input connected, input_tasklet() will
++	 * just copy pointers and ACK. So, there is no need to go
++	 * through the tasklet scheduler.
++	 */
++	if (input->redi)
++		queue_work(ddb_wq, &dma->work);
++	else
++		input_work(&dma->work);
++}
++
++static void output_handler(unsigned long data)
++{
++	struct ddb_output *output = (struct ddb_output *) data;
++	struct ddb_dma *dma = output->dma;
++	struct ddb *dev = output->port->dev;
++
++	spin_lock(&dma->lock);
++	if (!dma->running) {
++		spin_unlock(&dma->lock);
++		return;
++	}
++	dma->stat = ddbreadl(dev, DMA_BUFFER_CURRENT(dma));
++	dma->ctrl = ddbreadl(dev, DMA_BUFFER_CONTROL(dma));
++	if (output->redi)
++		output_ack_input(output, output->redi);
++	wake_up(&dma->wq);
++	spin_unlock(&dma->lock);
++}
+ 
++/****************************************************************************/
++/****************************************************************************/
++
++static struct ddb_regmap *io_regmap(struct ddb_io *io, int link)
++{
++	struct ddb_info *info;
++
++	if (link)
++		info = io->port->dev->link[io->port->lnr].info;
++	else
++		info = io->port->dev->link[0].info;
++
++	if (!info)
++		return NULL;
++
++	return info->regmap;
++}
++
++static void ddb_dma_init(struct ddb_io *io, int nr, int out)
++{
++	struct ddb_dma *dma;
++	struct ddb_regmap *rm = io_regmap(io, 0);
++
++	dma = out ? &io->port->dev->odma[nr] : &io->port->dev->idma[nr];
++	io->dma = dma;
++	dma->io = io;
++
++	spin_lock_init(&dma->lock);
++	init_waitqueue_head(&dma->wq);
++	if (out) {
++		dma->regs = rm->odma->base + rm->odma->size * nr;
++		dma->bufregs = rm->odma_buf->base + rm->odma_buf->size * nr;
++		dma->num = OUTPUT_DMA_BUFS;
++		dma->size = OUTPUT_DMA_SIZE;
++		dma->div = OUTPUT_DMA_IRQ_DIV;
++	} else {
++		INIT_WORK(&dma->work, input_work);
++		dma->regs = rm->idma->base + rm->idma->size * nr;
++		dma->bufregs = rm->idma_buf->base + rm->idma_buf->size * nr;
++		dma->num = INPUT_DMA_BUFS;
++		dma->size = INPUT_DMA_SIZE;
++		dma->div = INPUT_DMA_IRQ_DIV;
++	}
++	ddbwritel(io->port->dev, 0, DMA_BUFFER_ACK(dma));
++	dev_dbg(io->port->dev->dev, "init link %u, io %u, dma %u, dmaregs %08x bufregs %08x\n",
++		io->port->lnr, io->nr, nr, dma->regs, dma->bufregs);
++}
++
++static void ddb_input_init(struct ddb_port *port, int nr, int pnr, int anr)
++{
++	struct ddb *dev = port->dev;
++	struct ddb_input *input = &dev->input[anr];
++	struct ddb_regmap *rm;
++
++	port->input[pnr] = input;
+ 	input->nr = nr;
+ 	input->port = port;
+-	input->dma_buf_num = INPUT_DMA_BUFS;
+-	input->dma_buf_size = INPUT_DMA_SIZE;
+-	ddbwritel(0, TS_INPUT_CONTROL(nr));
+-	ddbwritel(2, TS_INPUT_CONTROL(nr));
+-	ddbwritel(0, TS_INPUT_CONTROL(nr));
+-	ddbwritel(0, DMA_BUFFER_ACK(nr));
+-	tasklet_init(&input->tasklet, input_tasklet, (unsigned long) input);
+-	spin_lock_init(&input->lock);
+-	init_waitqueue_head(&input->wq);
++	rm = io_regmap(input, 1);
++	input->regs = DDB_LINK_TAG(port->lnr) |
++		(rm->input->base + rm->input->size * nr);
++	dev_dbg(dev->dev, "init link %u, input %u, regs %08x\n",
++		port->lnr, nr, input->regs);
++
++	if (dev->has_dma) {
++		struct ddb_regmap *rm0 = io_regmap(input, 0);
++		u32 base = rm0->irq_base_idma;
++		u32 dma_nr = nr;
++
++		if (port->lnr)
++			dma_nr += 32 + (port->lnr - 1) * 8;
++
++		dev_dbg(dev->dev, "init link %u, input %u, handler %u\n",
++			 port->lnr, nr, dma_nr + base);
++
++		dev->handler[0][dma_nr + base] = input_handler;
++		dev->handler_data[0][dma_nr + base] = (unsigned long) input;
++		ddb_dma_init(input, dma_nr, 0);
++	}
+ }
+ 
+ static void ddb_output_init(struct ddb_port *port, int nr)
+ {
+ 	struct ddb *dev = port->dev;
+ 	struct ddb_output *output = &dev->output[nr];
++	struct ddb_regmap *rm;
++
++	port->output = output;
+ 	output->nr = nr;
+ 	output->port = port;
+-	output->dma_buf_num = OUTPUT_DMA_BUFS;
+-	output->dma_buf_size = OUTPUT_DMA_SIZE;
++	rm = io_regmap(output, 1);
++	output->regs = DDB_LINK_TAG(port->lnr) |
++		(rm->output->base + rm->output->size * nr);
++
++	dev_dbg(dev->dev, "init link %u, output %u, regs %08x\n",
++		 port->lnr, nr, output->regs);
+ 
+-	ddbwritel(0, TS_OUTPUT_CONTROL(nr));
+-	ddbwritel(2, TS_OUTPUT_CONTROL(nr));
+-	ddbwritel(0, TS_OUTPUT_CONTROL(nr));
+-	tasklet_init(&output->tasklet, output_tasklet, (unsigned long) output);
+-	init_waitqueue_head(&output->wq);
++	if (dev->has_dma) {
++		struct ddb_regmap *rm0 = io_regmap(output, 0);
++		u32 base = rm0->irq_base_odma;
++
++		dev->handler[0][nr + base] = output_handler;
++		dev->handler_data[0][nr + base] = (unsigned long) output;
++		ddb_dma_init(output, nr, 1);
++	}
++}
++
++static int ddb_port_match_i2c(struct ddb_port *port)
++{
++	struct ddb *dev = port->dev;
++	u32 i;
++
++	for (i = 0; i < dev->i2c_num; i++) {
++		if (dev->i2c[i].link == port->lnr &&
++		    dev->i2c[i].nr == port->nr) {
++			port->i2c = &dev->i2c[i];
++			return 1;
 +		}
++	}
++	return 0;
+ }
+ 
+ void ddb_ports_init(struct ddb *dev)
+ {
+-	int i;
++	u32 i, l, p;
+ 	struct ddb_port *port;
++	struct ddb_info *info;
++	struct ddb_regmap *rm;
 +
-+		switch (dw_dev->state) {
-+		case HDMI_STATE_POWER_OFF:
-+			dw_hdmi_disable_ints(dw_dev);
-+			dw_hdmi_set_state(dw_dev, HDMI_STATE_PHY_CONFIG);
-+			break;
-+		case HDMI_STATE_PHY_CONFIG:
-+			dw_hdmi_phy_s_power(dw_dev, true);
-+			dw_hdmi_phy_config(dw_dev, 8, false, false);
-+			dw_hdmi_set_state(dw_dev, HDMI_STATE_EQUALIZER);
-+			break;
-+		case HDMI_STATE_EQUALIZER:
-+			eqret = dw_hdmi_phy_eq_init(dw_dev, 5,
-+					dw_dev->phy_eq_force);
-+			ret = dw_hdmi_wait_phy_lock_poll(dw_dev);
++	for (p = l = 0; l < DDB_MAX_LINK; l++) {
++		info = dev->link[l].info;
++		if (!info)
++			continue;
++		rm = info->regmap;
++		if (!rm)
++			continue;
++		for (i = 0; i < info->port_num; i++, p++) {
++			port = &dev->port[p];
++			port->dev = dev;
++			port->nr = i;
++			port->lnr = l;
++			port->pnr = p;
++			port->gap = 0xffffffff;
++			port->obr = ci_bitrate;
++			mutex_init(&port->i2c_gate_lock);
 +
-+			/* Do not force equalizer */
-+			dw_dev->phy_eq_force = false;
++			ddb_port_match_i2c(port);
++			ddb_port_probe(port);
 +
-+			if (ret || eqret) {
-+				if (ret || eqret == -ETIMEDOUT) {
-+					/* No TMDSVALID signal:
-+					 * 	- force equalizer */
-+					dw_dev->phy_eq_force = true;
-+				}
-+				break;
++			port->dvb[0].adap = &dev->adap[2 * p];
++			port->dvb[1].adap = &dev->adap[2 * p + 1];
++
++			if ((port->class == DDB_PORT_NONE) && i &&
++			    dev->port[p - 1].type == DDB_CI_EXTERNAL_XO2) {
++				port->class = DDB_PORT_CI;
++				port->type = DDB_CI_EXTERNAL_XO2_B;
++				port->name = "DuoFlex CI_B";
++				port->i2c = dev->port[p - 1].i2c;
++			}
+ 
+-	for (i = 0; i < dev->info->port_num; i++) {
+-		port = &dev->port[i];
+-		port->dev = dev;
+-		port->nr = i;
+-		port->i2c = &dev->i2c[i];
+-		port->input[0] = &dev->input[2 * i];
+-		port->input[1] = &dev->input[2 * i + 1];
+-		port->output = &dev->output[i];
++			dev_info(dev->dev, "Port %u: Link %u, Link Port %u (TAB %u): %s\n",
++				port->pnr, port->lnr, port->nr, port->nr + 1,
++				port->name);
++
++			if (port->class == DDB_PORT_CI &&
++			    port->type == DDB_CI_EXTERNAL_XO2) {
++				ddb_input_init(port, 2 * i, 0, 2 * i);
++				ddb_output_init(port, i);
++				continue;
 +			}
 +
-+			dw_hdmi_set_state(dw_dev, HDMI_STATE_VIDEO_UNSTABLE);
-+			break;
-+		case HDMI_STATE_VIDEO_UNSTABLE:
-+			dw_hdmi_reset_datapath(dw_dev);
-+			dw_hdmi_wait_video_stable(dw_dev);
-+			dw_hdmi_clear_ints(dw_dev);
-+			dw_hdmi_enable_ints(dw_dev);
-+			dw_hdmi_set_state(dw_dev, HDMI_STATE_POWER_ON);
-+			break;
-+		case HDMI_STATE_POWER_ON:
-+			break;
-+		default:
-+			dev_err(dw_dev->dev, "%s called with state (%d)\n",
-+					__func__, dw_dev->state);
-+			ret = -EINVAL;
-+			goto out;
++			if (port->class == DDB_PORT_CI &&
++			    port->type == DDB_CI_EXTERNAL_XO2_B) {
++				ddb_input_init(port, 2 * i - 1, 0, 2 * i - 1);
++				ddb_output_init(port, i);
++				continue;
++			}
++
++			if (port->class == DDB_PORT_NONE)
++				continue;
+ 
+-		mutex_init(&port->i2c_gate_lock);
+-		ddb_port_probe(port);
+-		ddb_input_init(port, 2 * i);
+-		ddb_input_init(port, 2 * i + 1);
+-		ddb_output_init(port, i);
++			switch (dev->link[l].info->type) {
++			case DDB_OCTOPUS_CI:
++				if (i >= 2) {
++					ddb_input_init(port, 2 + i, 0, 2 + i);
++					ddb_input_init(port, 4 + i, 1, 4 + i);
++					ddb_output_init(port, i);
++					break;
++				} /* fallthrough */
++			case DDB_OCTOPUS:
++				ddb_input_init(port, 2 * i, 0, 2 * i);
++				ddb_input_init(port, 2 * i + 1, 1, 2 * i + 1);
++				ddb_output_init(port, i);
++				break;
++			case DDB_OCTOPUS_MAX_CT:
++				ddb_input_init(port, 2 * i, 0, 2 * p);
++				ddb_input_init(port, 2 * i + 1, 1, 2 * p + 1);
++				break;
++			default:
++				break;
++			}
 +		}
+ 	}
++	dev->port_num = p;
+ }
+ 
+ void ddb_ports_release(struct ddb *dev)
+@@ -1595,12 +2675,14 @@ void ddb_ports_release(struct ddb *dev)
+ 	int i;
+ 	struct ddb_port *port;
+ 
+-	for (i = 0; i < dev->info->port_num; i++) {
++	for (i = 0; i < dev->port_num; i++) {
+ 		port = &dev->port[i];
+-		port->dev = dev;
+-		tasklet_kill(&port->input[0]->tasklet);
+-		tasklet_kill(&port->input[1]->tasklet);
+-		tasklet_kill(&port->output->tasklet);
++		if (port->input[0] && port->input[0]->dma)
++			cancel_work_sync(&port->input[0]->dma->work);
++		if (port->input[1] && port->input[1]->dma)
++			cancel_work_sync(&port->input[1]->dma->work);
++		if (port->output && port->output->dma)
++			cancel_work_sync(&port->output->dma->work);
+ 	}
+ }
+ 
+@@ -1608,90 +2690,173 @@ void ddb_ports_release(struct ddb *dev)
+ /****************************************************************************/
+ /****************************************************************************/
+ 
+-static void irq_handle_i2c(struct ddb *dev, int n)
++#define IRQ_HANDLE(_nr) \
++	do { if ((s & (1UL << ((_nr) & 0x1f))) && dev->handler[0][_nr]) \
++		dev->handler[0][_nr](dev->handler_data[0][_nr]); } \
++	while (0)
 +
-+		if (dw_dev->state == HDMI_STATE_POWER_ON) {
-+			dev_info(dw_dev->dev, "HDMI-RX configured\n");
-+			dw_hdmi_event_source_change(dw_dev);
-+			return 0;
-+		}
++#define IRQ_HANDLE_BYTE(_n) { \
++	if (s & (0x000000ff << ((_n) & 0x1f))) { \
++		IRQ_HANDLE(0 + (_n)); \
++		IRQ_HANDLE(1 + (_n)); \
++		IRQ_HANDLE(2 + (_n)); \
++		IRQ_HANDLE(3 + (_n)); \
++		IRQ_HANDLE(4 + (_n)); \
++		IRQ_HANDLE(5 + (_n)); \
++		IRQ_HANDLE(6 + (_n)); \
++		IRQ_HANDLE(7 + (_n)); \
++	} \
 +	}
 +
-+out:
-+	dw_hdmi_set_state(dw_dev, HDMI_STATE_POWER_OFF);
-+	return ret;
++static void irq_handle_msg(struct ddb *dev, u32 s)
++{
++	dev->i2c_irq++;
++	IRQ_HANDLE(0);
++	IRQ_HANDLE(1);
++	IRQ_HANDLE(2);
++	IRQ_HANDLE(3);
 +}
 +
-+static void dw_hdmi_config_hdcp(struct dw_hdmi_dev *dw_dev)
++static void irq_handle_io(struct ddb *dev, u32 s)
 +{
-+	hdmi_mask_writel(dw_dev, 0x0, HDMI_HDCP22_CONTROL,
-+			HDMI_HDCP22_CONTROL_OVR_VAL_OFFSET,
-+			HDMI_HDCP22_CONTROL_OVR_VAL_MASK);
-+	hdmi_mask_writel(dw_dev, 0x1, HDMI_HDCP22_CONTROL,
-+			HDMI_HDCP22_CONTROL_OVR_EN_OFFSET,
-+			HDMI_HDCP22_CONTROL_OVR_EN_MASK);
-+}
-+
-+static int __dw_hdmi_power_on(struct dw_hdmi_dev *dw_dev, u32 input)
-+{
-+	unsigned long flags;
-+	int ret;
-+
-+	ret = dw_hdmi_config(dw_dev, input);
-+
-+	spin_lock_irqsave(&dw_dev->lock, flags);
-+	dw_dev->pending_config = false;
-+	spin_unlock_irqrestore(&dw_dev->lock, flags);
-+
-+	return ret;
-+}
-+
-+static void dw_hdmi_work_handler(struct work_struct *work)
-+{
-+	struct dw_hdmi_dev *dw_dev = container_of(work, struct dw_hdmi_dev, work);
-+
-+	__dw_hdmi_power_on(dw_dev, dw_dev->configured_input);
-+}
-+
-+static int dw_hdmi_power_on(struct dw_hdmi_dev *dw_dev, u32 input)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&dw_dev->lock, flags);
-+	if (dw_dev->pending_config) {
-+		spin_unlock_irqrestore(&dw_dev->lock, flags);
-+		return 0;
++	dev->ts_irq++;
++	if ((s & 0x000000f0)) {
++		IRQ_HANDLE(4);
++		IRQ_HANDLE(5);
++		IRQ_HANDLE(6);
++		IRQ_HANDLE(7);
 +	}
-+
-+	INIT_WORK(&dw_dev->work, dw_hdmi_work_handler);
-+	dw_dev->configured_input = input;
-+	dw_dev->pending_config = true;
-+	queue_work(dw_dev->wq, &dw_dev->work);
-+	spin_unlock_irqrestore(&dw_dev->lock, flags);
-+	return 0;
-+}
-+
-+static void dw_hdmi_power_off(struct dw_hdmi_dev *dw_dev)
-+{
-+	unsigned long flags;
-+
-+	dw_dev->force_off = true;
-+	flush_workqueue(dw_dev->wq);
-+	dw_dev->force_off = false;
-+
-+	spin_lock_irqsave(&dw_dev->lock, flags);
-+	dw_dev->pending_config = false;
-+	dw_dev->state = HDMI_STATE_POWER_OFF;
-+	spin_unlock_irqrestore(&dw_dev->lock, flags);
-+
-+	/* Reset variables */
-+	dw_dev->phy_eq_force = true;
-+
-+	/* Send source change event to userspace */
-+	dw_hdmi_event_source_change(dw_dev);
-+}
-+
-+static irqreturn_t dw_hdmi_irq_handler(int irq, void *dev_data)
-+{
-+	struct dw_hdmi_dev *dw_dev = dev_data;
-+	u32 hdmi_ists = dw_hdmi_get_int_val(dw_dev, HDMI_ISTS, HDMI_IEN);
-+	u32 md_ists = dw_hdmi_get_int_val(dw_dev, HDMI_MD_ISTS, HDMI_MD_IEN);
-+
-+	dw_hdmi_clear_ints(dw_dev);
-+
-+	if ((hdmi_ists & HDMI_ISTS_CLK_CHANGE) ||
-+	    (hdmi_ists & HDMI_ISTS_PLL_LCK_CHG) || md_ists) {
-+		dw_hdmi_power_off(dw_dev);
-+		if (has_signal(dw_dev, dw_dev->configured_input))
-+			dw_hdmi_power_on(dw_dev, dw_dev->configured_input);
++	if ((s & 0x0000ff00)) {
++		IRQ_HANDLE(8);
++		IRQ_HANDLE(9);
++		IRQ_HANDLE(10);
++		IRQ_HANDLE(11);
++		IRQ_HANDLE(12);
++		IRQ_HANDLE(13);
++		IRQ_HANDLE(14);
++		IRQ_HANDLE(15);
 +	}
++	if ((s & 0x00ff0000)) {
++		IRQ_HANDLE(16);
++		IRQ_HANDLE(17);
++		IRQ_HANDLE(18);
++		IRQ_HANDLE(19);
++		IRQ_HANDLE(20);
++		IRQ_HANDLE(21);
++		IRQ_HANDLE(22);
++		IRQ_HANDLE(23);
++	}
++	if ((s & 0xff000000)) {
++		IRQ_HANDLE(24);
++		IRQ_HANDLE(25);
++		IRQ_HANDLE(26);
++		IRQ_HANDLE(27);
++		IRQ_HANDLE(28);
++		IRQ_HANDLE(29);
++		IRQ_HANDLE(30);
++		IRQ_HANDLE(31);
++	}
++}
 +
-+#if IS_ENABLED(CONFIG_VIDEO_DWC_HDMI_RX_CEC)
-+	dw_hdmi_cec_irq_handler(dw_dev);
-+#endif
++#ifdef DDB_USE_MSI_IRQHANDLERS
++irqreturn_t irq_handler0(int irq, void *dev_id)
+ {
+-	struct ddb_i2c *i2c = &dev->i2c[n];
++	struct ddb *dev = (struct ddb *) dev_id;
++	u32 s = ddbreadl(dev, INTERRUPT_STATUS);
++
++	do {
++		if (s & 0x80000000)
++			return IRQ_NONE;
++		if (!(s & 0xfffff00))
++			return IRQ_NONE;
++		ddbwritel(dev, s & 0xfffff00, INTERRUPT_ACK);
++		irq_handle_io(dev, s);
++	} while ((s = ddbreadl(dev, INTERRUPT_STATUS)));
+ 
+-	i2c->done = 1;
+-	wake_up(&i2c->wq);
++	return IRQ_HANDLED;
+ }
+ 
++irqreturn_t irq_handler1(int irq, void *dev_id)
++{
++	struct ddb *dev = (struct ddb *) dev_id;
++	u32 s = ddbreadl(dev, INTERRUPT_STATUS);
++
++	do {
++		if (s & 0x80000000)
++			return IRQ_NONE;
++		if (!(s & 0x0000f))
++			return IRQ_NONE;
++		ddbwritel(dev, s & 0x0000f, INTERRUPT_ACK);
++		irq_handle_msg(dev, s);
++	} while ((s = ddbreadl(dev, INTERRUPT_STATUS)));
 +
 +	return IRQ_HANDLED;
 +}
++#endif
 +
-+static void dw_hdmi_detect_tx_5v(struct dw_hdmi_dev *dw_dev)
+ irqreturn_t irq_handler(int irq, void *dev_id)
+ {
+ 	struct ddb *dev = (struct ddb *) dev_id;
+-	u32 s = ddbreadl(INTERRUPT_STATUS);
++	u32 s = ddbreadl(dev, INTERRUPT_STATUS);
++	int ret = IRQ_HANDLED;
+ 
+ 	if (!s)
+ 		return IRQ_NONE;
+-
+ 	do {
+-		ddbwritel(s, INTERRUPT_ACK);
+-
+-		if (s & 0x00000001)
+-			irq_handle_i2c(dev, 0);
+-		if (s & 0x00000002)
+-			irq_handle_i2c(dev, 1);
+-		if (s & 0x00000004)
+-			irq_handle_i2c(dev, 2);
+-		if (s & 0x00000008)
+-			irq_handle_i2c(dev, 3);
+-
+-		if (s & 0x00000100)
+-			tasklet_schedule(&dev->input[0].tasklet);
+-		if (s & 0x00000200)
+-			tasklet_schedule(&dev->input[1].tasklet);
+-		if (s & 0x00000400)
+-			tasklet_schedule(&dev->input[2].tasklet);
+-		if (s & 0x00000800)
+-			tasklet_schedule(&dev->input[3].tasklet);
+-		if (s & 0x00001000)
+-			tasklet_schedule(&dev->input[4].tasklet);
+-		if (s & 0x00002000)
+-			tasklet_schedule(&dev->input[5].tasklet);
+-		if (s & 0x00004000)
+-			tasklet_schedule(&dev->input[6].tasklet);
+-		if (s & 0x00008000)
+-			tasklet_schedule(&dev->input[7].tasklet);
+-
+-		if (s & 0x00010000)
+-			tasklet_schedule(&dev->output[0].tasklet);
+-		if (s & 0x00020000)
+-			tasklet_schedule(&dev->output[1].tasklet);
+-		if (s & 0x00040000)
+-			tasklet_schedule(&dev->output[2].tasklet);
+-		if (s & 0x00080000)
+-			tasklet_schedule(&dev->output[3].tasklet);
+-
+-		/* if (s & 0x000f0000)	printk(KERN_DEBUG "%08x\n", istat); */
+-	} while ((s = ddbreadl(INTERRUPT_STATUS)));
++		if (s & 0x80000000)
++			return IRQ_NONE;
++		ddbwritel(dev, s, INTERRUPT_ACK);
+ 
+-	return IRQ_HANDLED;
++		if (s & 0x0000000f)
++			irq_handle_msg(dev, s);
++		if (s & 0x0fffff00)
++			irq_handle_io(dev, s);
++	} while ((s = ddbreadl(dev, INTERRUPT_STATUS)));
++
++	return ret;
+ }
+ 
+-/******************************************************************************/
+-/******************************************************************************/
+-/******************************************************************************/
++/****************************************************************************/
++/****************************************************************************/
++/****************************************************************************/
+ 
+-static int flashio(struct ddb *dev, u8 *wbuf, u32 wlen, u8 *rbuf, u32 rlen)
++static int reg_wait(struct ddb *dev, u32 reg, u32 bit)
 +{
-+	unsigned int input_count = 4; /* TODO: Get from DT node this value */
-+	unsigned int old_input = dw_dev->configured_input;
-+	unsigned int new_input = old_input;
-+	bool pending_config = false, current_on = true;
-+	u32 stat = 0;
++	u32 count = 0;
++
++	while (safe_ddbreadl(dev, reg) & bit) {
++		ndelay(10);
++		if (++count == 100)
++			return -1;
++	}
++	return 0;
++}
++
++static int flashio(struct ddb *dev, u32 lnr, u8 *wbuf, u32 wlen, u8 *rbuf,
++	u32 rlen)
+ {
+ 	u32 data, shift;
++	u32 tag = DDB_LINK_TAG(lnr);
++	struct ddb_link *link = &dev->link[lnr];
+ 
++	mutex_lock(&link->flash_mutex);
+ 	if (wlen > 4)
+-		ddbwritel(1, SPI_CONTROL);
++		ddbwritel(dev, 1, tag | SPI_CONTROL);
+ 	while (wlen > 4) {
+ 		/* FIXME: check for big-endian */
+-		data = swab32(*(u32 *)wbuf);
++		data = swab32(*(u32 *) wbuf);
+ 		wbuf += 4;
+ 		wlen -= 4;
+-		ddbwritel(data, SPI_DATA);
+-		while (safe_ddbreadl(dev, SPI_CONTROL) & 0x0004)
+-			;
++		ddbwritel(dev, data, tag | SPI_DATA);
++		if (reg_wait(dev, tag | SPI_CONTROL, 4))
++			goto fail;
+ 	}
+-
+ 	if (rlen)
+-		ddbwritel(0x0001 | ((wlen << (8 + 3)) & 0x1f00), SPI_CONTROL);
++		ddbwritel(dev, 0x0001 | ((wlen << (8 + 3)) & 0x1f00),
++			  tag | SPI_CONTROL);
+ 	else
+-		ddbwritel(0x0003 | ((wlen << (8 + 3)) & 0x1f00), SPI_CONTROL);
++		ddbwritel(dev, 0x0003 | ((wlen << (8 + 3)) & 0x1f00),
++			  tag | SPI_CONTROL);
+ 
+ 	data = 0;
+ 	shift = ((4 - wlen) * 8);
+@@ -1703,33 +2868,34 @@ static int flashio(struct ddb *dev, u8 *wbuf, u32 wlen, u8 *rbuf, u32 rlen)
+ 	}
+ 	if (shift)
+ 		data <<= shift;
+-	ddbwritel(data, SPI_DATA);
+-	while (safe_ddbreadl(dev, SPI_CONTROL) & 0x0004)
+-		;
++	ddbwritel(dev, data, tag | SPI_DATA);
++	if (reg_wait(dev, tag | SPI_CONTROL, 4))
++		goto fail;
+ 
+ 	if (!rlen) {
+-		ddbwritel(0, SPI_CONTROL);
+-		return 0;
++		ddbwritel(dev, 0, tag | SPI_CONTROL);
++		goto exit;
+ 	}
+ 	if (rlen > 4)
+-		ddbwritel(1, SPI_CONTROL);
++		ddbwritel(dev, 1, tag | SPI_CONTROL);
+ 
+ 	while (rlen > 4) {
+-		ddbwritel(0xffffffff, SPI_DATA);
+-		while (safe_ddbreadl(dev, SPI_CONTROL) & 0x0004)
+-			;
+-		data = ddbreadl(SPI_DATA);
++		ddbwritel(dev, 0xffffffff, tag | SPI_DATA);
++		if (reg_wait(dev, tag | SPI_CONTROL, 4))
++			goto fail;
++		data = ddbreadl(dev, tag | SPI_DATA);
+ 		*(u32 *) rbuf = swab32(data);
+ 		rbuf += 4;
+ 		rlen -= 4;
+ 	}
+-	ddbwritel(0x0003 | ((rlen << (8 + 3)) & 0x1F00), SPI_CONTROL);
+-	ddbwritel(0xffffffff, SPI_DATA);
+-	while (safe_ddbreadl(dev, SPI_CONTROL) & 0x0004)
+-		;
++	ddbwritel(dev, 0x0003 | ((rlen << (8 + 3)) & 0x1F00),
++		tag | SPI_CONTROL);
++	ddbwritel(dev, 0xffffffff, tag | SPI_DATA);
++	if (reg_wait(dev, tag | SPI_CONTROL, 4))
++		goto fail;
+ 
+-	data = ddbreadl(SPI_DATA);
+-	ddbwritel(0, SPI_CONTROL);
++	data = ddbreadl(dev, tag | SPI_DATA);
++	ddbwritel(dev, 0, tag | SPI_CONTROL);
+ 
+ 	if (rlen < 4)
+ 		data <<= ((4 - rlen) * 8);
+@@ -1740,9 +2906,43 @@ static int flashio(struct ddb *dev, u8 *wbuf, u32 wlen, u8 *rbuf, u32 rlen)
+ 		rbuf++;
+ 		rlen--;
+ 	}
++exit:
++	mutex_unlock(&link->flash_mutex);
++	return 0;
++fail:
++	mutex_unlock(&link->flash_mutex);
++	return -1;
++}
++
++int ddbridge_flashread(struct ddb *dev, u32 link, u8 *buf, u32 addr, u32 len)
++{
++	u8 cmd[4] = {0x03, (addr >> 16) & 0xff,
++		     (addr >> 8) & 0xff, addr & 0xff};
++
++	return flashio(dev, link, cmd, 4, buf, len);
++}
++
++static int mdio_write(struct ddb *dev, u8 adr, u8 reg, u16 val)
++{
++	ddbwritel(dev, adr, MDIO_ADR);
++	ddbwritel(dev, reg, MDIO_REG);
++	ddbwritel(dev, val, MDIO_VAL);
++	ddbwritel(dev, 0x03, MDIO_CTRL);
++	while (ddbreadl(dev, MDIO_CTRL) & 0x02)
++		ndelay(500);
+ 	return 0;
+ }
+ 
++static u16 mdio_read(struct ddb *dev, u8 adr, u8 reg)
++{
++	ddbwritel(dev, adr, MDIO_ADR);
++	ddbwritel(dev, reg, MDIO_REG);
++	ddbwritel(dev, 0x07, MDIO_CTRL);
++	while (ddbreadl(dev, MDIO_CTRL) & 0x02)
++		ndelay(500);
++	return ddbreadl(dev, MDIO_VAL);
++}
++
+ #define DDB_MAGIC 'd'
+ 
+ struct ddb_flashio {
+@@ -1750,21 +2950,83 @@ struct ddb_flashio {
+ 	__u32 write_len;
+ 	__user __u8 *read_buf;
+ 	__u32 read_len;
++	__u32 link;
++};
++
++struct ddb_gpio {
++	__u32 mask;
++	__u32 data;
++};
++
++struct ddb_id {
++	__u16 vendor;
++	__u16 device;
++	__u16 subvendor;
++	__u16 subdevice;
++	__u32 hw;
++	__u32 regmap;
++};
++
++struct ddb_reg {
++	__u32 reg;
++	__u32 val;
++};
++
++struct ddb_mem {
++	__u32  off;
++	__user __u8  *buf;
++	__u32  len;
+ };
+ 
+-#define IOCTL_DDB_FLASHIO  _IOWR(DDB_MAGIC, 0x00, struct ddb_flashio)
++struct ddb_mdio {
++	__u8   adr;
++	__u8   reg;
++	__u16  val;
++};
++
++struct ddb_i2c_msg {
++	__u8   bus;
++	__u8   adr;
++	__u8  *hdr;
++	__u32  hlen;
++	__u8  *msg;
++	__u32  mlen;
++};
++
++#define IOCTL_DDB_FLASHIO    _IOWR(DDB_MAGIC, 0x00, struct ddb_flashio)
++#define IOCTL_DDB_GPIO_IN    _IOWR(DDB_MAGIC, 0x01, struct ddb_gpio)
++#define IOCTL_DDB_GPIO_OUT   _IOWR(DDB_MAGIC, 0x02, struct ddb_gpio)
++#define IOCTL_DDB_ID         _IOR(DDB_MAGIC, 0x03, struct ddb_id)
++#define IOCTL_DDB_READ_REG   _IOWR(DDB_MAGIC, 0x04, struct ddb_reg)
++#define IOCTL_DDB_WRITE_REG  _IOW(DDB_MAGIC, 0x05, struct ddb_reg)
++#define IOCTL_DDB_READ_MEM   _IOWR(DDB_MAGIC, 0x06, struct ddb_mem)
++#define IOCTL_DDB_WRITE_MEM  _IOR(DDB_MAGIC, 0x07, struct ddb_mem)
++#define IOCTL_DDB_READ_MDIO  _IOWR(DDB_MAGIC, 0x08, struct ddb_mdio)
++#define IOCTL_DDB_WRITE_MDIO _IOR(DDB_MAGIC, 0x09, struct ddb_mdio)
++#define IOCTL_DDB_READ_I2C   _IOWR(DDB_MAGIC, 0x0a, struct ddb_i2c_msg)
++#define IOCTL_DDB_WRITE_I2C  _IOR(DDB_MAGIC, 0x0b, struct ddb_i2c_msg)
+ 
+ #define DDB_NAME "ddbridge"
+ 
+ static u32 ddb_num;
+-static struct ddb *ddbs[32];
+-static struct class *ddb_class;
+ static int ddb_major;
++static DEFINE_MUTEX(ddb_mutex);
++
++static int ddb_release(struct inode *inode, struct file *file)
++{
++	struct ddb *dev = file->private_data;
++
++	dev->ddb_dev_users--;
++	return 0;
++}
+ 
+ static int ddb_open(struct inode *inode, struct file *file)
+ {
+ 	struct ddb *dev = ddbs[iminor(inode)];
+ 
++	if (dev->ddb_dev_users)
++		return -EBUSY;
++	dev->ddb_dev_users++;
+ 	file->private_data = dev;
+ 	return 0;
+ }
+@@ -1772,7 +3034,7 @@ static int ddb_open(struct inode *inode, struct file *file)
+ static long ddb_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	struct ddb *dev = file->private_data;
+-	__user void *parg = (__user void *)arg;
++	__user void *parg = (__user void *) arg;
+ 	int res;
+ 
+ 	switch (cmd) {
+@@ -1783,24 +3045,175 @@ static long ddb_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 
+ 		if (copy_from_user(&fio, parg, sizeof(fio)))
+ 			return -EFAULT;
+-
+ 		if (fio.write_len > 1028 || fio.read_len > 1028)
+ 			return -EINVAL;
+ 		if (fio.write_len + fio.read_len > 1028)
+ 			return -EINVAL;
++		if (fio.link > 3)
++			return -EINVAL;
+ 
+ 		wbuf = &dev->iobuf[0];
+ 		rbuf = wbuf + fio.write_len;
+ 
+ 		if (copy_from_user(wbuf, fio.write_buf, fio.write_len))
+ 			return -EFAULT;
+-		res = flashio(dev, wbuf, fio.write_len, rbuf, fio.read_len);
++		res = flashio(dev, fio.link, wbuf, fio.write_len, rbuf,
++			fio.read_len);
+ 		if (res)
+ 			return res;
+ 		if (copy_to_user(fio.read_buf, rbuf, fio.read_len))
+ 			return -EFAULT;
+ 		break;
+ 	}
++	case IOCTL_DDB_GPIO_OUT:
++	{
++		struct ddb_gpio gpio;
++
++		if (copy_from_user(&gpio, parg, sizeof(gpio)))
++			return -EFAULT;
++		ddbwritel(dev, gpio.mask, GPIO_DIRECTION);
++		ddbwritel(dev, gpio.data, GPIO_OUTPUT);
++		break;
++	}
++	case IOCTL_DDB_ID:
++	{
++		struct ddb_id ddbid;
++
++		ddbid.vendor = dev->link[0].ids.vendor;
++		ddbid.device = dev->link[0].ids.device;
++		ddbid.subvendor = dev->link[0].ids.subvendor;
++		ddbid.subdevice = dev->link[0].ids.subdevice;
++		ddbid.hw = ddbreadl(dev, 0);
++		ddbid.regmap = ddbreadl(dev, 4);
++		if (copy_to_user(parg, &ddbid, sizeof(ddbid)))
++			return -EFAULT;
++		break;
++	}
++	case IOCTL_DDB_READ_REG:
++	{
++		struct ddb_reg reg;
++
++		if (copy_from_user(&reg, parg, sizeof(reg)))
++			return -EFAULT;
++		if ((reg.reg & 0xfffffff) >= dev->regs_len)
++			return -EINVAL;
++		reg.val = ddbreadl(dev, reg.reg);
++		if (copy_to_user(parg, &reg, sizeof(reg)))
++			return -EFAULT;
++		break;
++	}
++	case IOCTL_DDB_WRITE_REG:
++	{
++		struct ddb_reg reg;
++
++		if (copy_from_user(&reg, parg, sizeof(reg)))
++			return -EFAULT;
++		if ((reg.reg & 0xfffffff) >= dev->regs_len)
++			return -EINVAL;
++		ddbwritel(dev, reg.val, reg.reg);
++		break;
++	}
++	case IOCTL_DDB_READ_MDIO:
++	{
++		struct ddb_mdio mdio;
++
++		if (!dev->link[0].info->mdio_num)
++			return -EIO;
++		if (copy_from_user(&mdio, parg, sizeof(mdio)))
++			return -EFAULT;
++		mdio.val = mdio_read(dev, mdio.adr, mdio.reg);
++		if (copy_to_user(parg, &mdio, sizeof(mdio)))
++			return -EFAULT;
++		break;
++	}
++	case IOCTL_DDB_WRITE_MDIO:
++	{
++		struct ddb_mdio mdio;
++
++		if (!dev->link[0].info->mdio_num)
++			return -EIO;
++		if (copy_from_user(&mdio, parg, sizeof(mdio)))
++			return -EFAULT;
++		mdio_write(dev, mdio.adr, mdio.reg, mdio.val);
++		break;
++	}
++	case IOCTL_DDB_READ_MEM:
++	{
++		struct ddb_mem mem;
++		u8 *buf = &dev->iobuf[0];
++
++		if (copy_from_user(&mem, parg, sizeof(mem)))
++			return -EFAULT;
++		if ((((mem.len + mem.off) & 0xfffffff) > dev->regs_len) ||
++		    mem.len > 1024)
++			return -EINVAL;
++		ddbcpyfrom(dev, buf, mem.off, mem.len);
++		if (copy_to_user(mem.buf, buf, mem.len))
++			return -EFAULT;
++		break;
++	}
++	case IOCTL_DDB_WRITE_MEM:
++	{
++		struct ddb_mem mem;
++		u8 *buf = &dev->iobuf[0];
++
++		if (copy_from_user(&mem, parg, sizeof(mem)))
++			return -EFAULT;
++		if ((((mem.len + mem.off) & 0xfffffff) > dev->regs_len) ||
++		    mem.len > 1024)
++			return -EINVAL;
++		if (copy_from_user(buf, mem.buf, mem.len))
++			return -EFAULT;
++		ddbcpyto(dev, mem.off, buf, mem.len);
++		break;
++	}
++	case IOCTL_DDB_READ_I2C:
++	{
++		struct ddb_i2c_msg i2c;
++		struct i2c_adapter *adap;
++		u8 *mbuf, *hbuf = &dev->iobuf[0];
++
++		if (copy_from_user(&i2c, parg, sizeof(i2c)))
++			return -EFAULT;
++		if (i2c.bus > dev->link[0].info->regmap->i2c->num)
++			return -EINVAL;
++		if (i2c.mlen + i2c.hlen > 512)
++			return -EINVAL;
++
++		adap = &dev->i2c[i2c.bus].adap;
++		mbuf = hbuf + i2c.hlen;
++
++
++		if (copy_from_user(hbuf, i2c.hdr, i2c.hlen))
++			return -EFAULT;
++		if (i2c_io(adap, i2c.adr, hbuf, i2c.hlen, mbuf, i2c.mlen) < 0)
++			return -EIO;
++		if (copy_to_user(i2c.msg, mbuf, i2c.mlen))
++			return -EFAULT;
++		break;
++	}
++	case IOCTL_DDB_WRITE_I2C:
++	{
++		struct ddb_i2c_msg i2c;
++		struct i2c_adapter *adap;
++		u8 *buf = &dev->iobuf[0];
++
++		if (copy_from_user(&i2c, parg, sizeof(i2c)))
++			return -EFAULT;
++		if (i2c.bus > dev->link[0].info->regmap->i2c->num)
++			return -EINVAL;
++		if (i2c.mlen + i2c.hlen > 250)
++			return -EINVAL;
++
++		adap = &dev->i2c[i2c.bus].adap;
++		if (copy_from_user(buf, i2c.hdr, i2c.hlen))
++			return -EFAULT;
++		if (copy_from_user(buf + i2c.hlen, i2c.msg, i2c.mlen))
++			return -EFAULT;
++		if (i2c_write(adap, i2c.adr, buf, i2c.hlen + i2c.mlen) < 0)
++			return -EIO;
++		break;
++	}
+ 	default:
+ 		return -ENOTTY;
+ 	}
+@@ -1810,6 +3223,7 @@ static long ddb_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ static const struct file_operations ddb_fops = {
+ 	.unlocked_ioctl = ddb_ioctl,
+ 	.open           = ddb_open,
++	.release        = ddb_release,
+ };
+ 
+ static char *ddb_devnode(struct device *device, umode_t *mode)
+@@ -1819,43 +3233,665 @@ static char *ddb_devnode(struct device *device, umode_t *mode)
+ 	return kasprintf(GFP_KERNEL, "ddbridge/card%d", dev->nr);
+ }
+ 
++#define __ATTR_MRO(_name, _show) {				\
++	.attr	= { .name = __stringify(_name), .mode = 0444 },	\
++	.show	= _show,					\
++}
++
++#define __ATTR_MWO(_name, _store) {				\
++	.attr	= { .name = __stringify(_name), .mode = 0222 },	\
++	.store	= _store,					\
++}
++
++static ssize_t ports_show(struct device *device,
++			  struct device_attribute *attr, char *buf)
++{
++	struct ddb *dev = dev_get_drvdata(device);
++
++	return sprintf(buf, "%d\n", dev->port_num);
++}
++
++static ssize_t ts_irq_show(struct device *device,
++			   struct device_attribute *attr, char *buf)
++{
++	struct ddb *dev = dev_get_drvdata(device);
++
++	return sprintf(buf, "%d\n", dev->ts_irq);
++}
++
++static ssize_t i2c_irq_show(struct device *device,
++			    struct device_attribute *attr, char *buf)
++{
++	struct ddb *dev = dev_get_drvdata(device);
++
++	return sprintf(buf, "%d\n", dev->i2c_irq);
++}
++
++static ssize_t fan_show(struct device *device,
++			struct device_attribute *attr, char *buf)
++{
++	struct ddb *dev = dev_get_drvdata(device);
++	u32 val;
++
++	val = ddbreadl(dev, GPIO_OUTPUT) & 1;
++	return sprintf(buf, "%d\n", val);
++}
++
++static ssize_t fan_store(struct device *device, struct device_attribute *d,
++			 const char *buf, size_t count)
++{
++	struct ddb *dev = dev_get_drvdata(device);
++	u32 val;
++
++	if (sscanf(buf, "%u\n", &val) != 1)
++		return -EINVAL;
++	ddbwritel(dev, 1, GPIO_DIRECTION);
++	ddbwritel(dev, val & 1, GPIO_OUTPUT);
++	return count;
++}
++
++static ssize_t fanspeed_show(struct device *device,
++			struct device_attribute *attr, char *buf)
++{
++	struct ddb *dev = dev_get_drvdata(device);
++	int num = attr->attr.name[8] - 0x30;
++	struct ddb_link *link = &dev->link[num];
++	u32 spd;
++
++	spd = ddblreadl(link, TEMPMON_FANCONTROL) & 0xff;
++	return sprintf(buf, "%u\n", spd * 100);
++}
++
++static ssize_t temp_show(struct device *device,
++			 struct device_attribute *attr, char *buf)
++{
++	struct ddb *dev = dev_get_drvdata(device);
++	struct ddb_link *link = &dev->link[0];
++	struct i2c_adapter *adap;
++	int temp, temp2;
++	u8 tmp[2];
++
++	if (!link->info->temp_num)
++		return sprintf(buf, "no sensor\n");
++	adap = &dev->i2c[link->info->temp_bus].adap;
++	if (i2c_read_regs(adap, 0x48, 0, tmp, 2) < 0)
++		return sprintf(buf, "read_error\n");
++	temp = (tmp[0] << 3) | (tmp[1] >> 5);
++	temp *= 125;
++	if (link->info->temp_num == 2) {
++		if (i2c_read_regs(adap, 0x49, 0, tmp, 2) < 0)
++			return sprintf(buf, "read_error\n");
++		temp2 = (tmp[0] << 3) | (tmp[1] >> 5);
++		temp2 *= 125;
++		return sprintf(buf, "%d %d\n", temp, temp2);
++	}
++	return sprintf(buf, "%d\n", temp);
++}
++
++static ssize_t ctemp_show(struct device *device,
++		struct device_attribute *attr, char *buf)
++{
++	struct ddb *dev = dev_get_drvdata(device);
++	struct i2c_adapter *adap;
++	int temp;
++	u8 tmp[2];
++	int num = attr->attr.name[4] - 0x30;
++
++	adap = &dev->i2c[num].adap;
++	if (!adap)
++		return 0;
++	if (i2c_read_regs(adap, 0x49, 0, tmp, 2) < 0)
++		if (i2c_read_regs(adap, 0x4d, 0, tmp, 2) < 0)
++			return sprintf(buf, "no sensor\n");
++	temp = tmp[0] * 1000;
++	return sprintf(buf, "%d\n", temp);
++}
++
++static ssize_t led_show(struct device *device,
++			struct device_attribute *attr, char *buf)
++{
++	struct ddb *dev = dev_get_drvdata(device);
++	int num = attr->attr.name[3] - 0x30;
++
++	return sprintf(buf, "%d\n", dev->leds & (1 << num) ? 1 : 0);
++}
++
++
++static void ddb_set_led(struct ddb *dev, int num, int val)
++{
++	if (!dev->link[0].info->led_num)
++		return;
++	switch (dev->port[num].class) {
++	case DDB_PORT_TUNER:
++		switch (dev->port[num].type) {
++		case DDB_TUNER_DVBS_ST:
++			i2c_write_reg16(&dev->i2c[num].adap,
++					0x69, 0xf14c, val ? 2 : 0);
++			break;
++		case DDB_TUNER_DVBCT_ST:
++			i2c_write_reg16(&dev->i2c[num].adap,
++					0x1f, 0xf00e, 0);
++			i2c_write_reg16(&dev->i2c[num].adap,
++					0x1f, 0xf00f, val ? 1 : 0);
++			break;
++		case DDB_TUNER_XO2 ... DDB_TUNER_DVBC2T2I_SONY:
++		{
++			u8 v;
++
++			i2c_read_reg(&dev->i2c[num].adap, 0x10, 0x08, &v);
++			v = (v & ~0x10) | (val ? 0x10 : 0);
++			i2c_write_reg(&dev->i2c[num].adap, 0x10, 0x08, v);
++			break;
++		}
++		default:
++			break;
++		}
++		break;
++	}
++}
++
++static ssize_t led_store(struct device *device,
++			 struct device_attribute *attr,
++			 const char *buf, size_t count)
++{
++	struct ddb *dev = dev_get_drvdata(device);
++	int num = attr->attr.name[3] - 0x30;
++	u32 val;
++
++	if (sscanf(buf, "%u\n", &val) != 1)
++		return -EINVAL;
++	if (val)
++		dev->leds |= (1 << num);
++	else
++		dev->leds &= ~(1 << num);
++	ddb_set_led(dev, num, val);
++	return count;
++}
++
++static ssize_t snr_show(struct device *device,
++			struct device_attribute *attr, char *buf)
++{
++	struct ddb *dev = dev_get_drvdata(device);
++	char snr[32];
++	int num = attr->attr.name[3] - 0x30;
++
++	if (dev->port[num].type >= DDB_TUNER_XO2) {
++		if (i2c_read_regs(&dev->i2c[num].adap, 0x10, 0x10, snr, 16) < 0)
++			return sprintf(buf, "NO SNR\n");
++		snr[16] = 0;
++	} else {
++		/* serial number at 0x100-0x11f */
++		if (i2c_read_regs16(&dev->i2c[num].adap,
++				    0x57, 0x100, snr, 32) < 0)
++			if (i2c_read_regs16(&dev->i2c[num].adap,
++					    0x50, 0x100, snr, 32) < 0)
++				return sprintf(buf, "NO SNR\n");
++		snr[31] = 0; /* in case it is not terminated on EEPROM */
++	}
++	return sprintf(buf, "%s\n", snr);
++}
++
++
++static ssize_t snr_store(struct device *device, struct device_attribute *attr,
++			 const char *buf, size_t count)
++{
++	struct ddb *dev = dev_get_drvdata(device);
++	int num = attr->attr.name[3] - 0x30;
++	u8 snr[34] = { 0x01, 0x00 };
++
++	return 0; /* NOE: remove completely? */
++	if (count > 31)
++		return -EINVAL;
++	if (dev->port[num].type >= DDB_TUNER_XO2)
++		return -EINVAL;
++	memcpy(snr + 2, buf, count);
++	i2c_write(&dev->i2c[num].adap, 0x57, snr, 34);
++	i2c_write(&dev->i2c[num].adap, 0x50, snr, 34);
++	return count;
++}
++
++static ssize_t bsnr_show(struct device *device,
++			 struct device_attribute *attr, char *buf)
++{
++	struct ddb *dev = dev_get_drvdata(device);
++	char snr[16];
++
++	ddbridge_flashread(dev, 0, snr, 0x10, 15);
++	snr[15] = 0; /* in case it is not terminated on EEPROM */
++	return sprintf(buf, "%s\n", snr);
++}
++
++static ssize_t bpsnr_show(struct device *device,
++			 struct device_attribute *attr, char *buf)
++{
++	struct ddb *dev = dev_get_drvdata(device);
++	char snr[32];
++
++	if (!dev->i2c_num)
++		return 0;
++
++	if (i2c_read_regs16(&dev->i2c[0].adap,
++			    0x50, 0x0000, snr, 32) < 0 ||
++	    snr[0] == 0xff)
++		return sprintf(buf, "NO SNR\n");
++	snr[31] = 0; /* in case it is not terminated on EEPROM */
++	return sprintf(buf, "%s\n", snr);
++}
++
++static ssize_t redirect_show(struct device *device,
++			     struct device_attribute *attr, char *buf)
++{
++	return 0;
++}
++
++static ssize_t redirect_store(struct device *device,
++			      struct device_attribute *attr,
++			      const char *buf, size_t count)
++{
++	unsigned int i, p;
++	int res;
++
++	if (sscanf(buf, "%x %x\n", &i, &p) != 2)
++		return -EINVAL;
++	res = ddb_redirect(i, p);
++	if (res < 0)
++		return res;
++	dev_info(device, "redirect: %02x, %02x\n", i, p);
++	return count;
++}
++
++static ssize_t gap_show(struct device *device,
++			struct device_attribute *attr, char *buf)
++{
++	struct ddb *dev = dev_get_drvdata(device);
++	int num = attr->attr.name[3] - 0x30;
++
++	return sprintf(buf, "%d\n", dev->port[num].gap);
++
++}
++
++static ssize_t gap_store(struct device *device, struct device_attribute *attr,
++			 const char *buf, size_t count)
++{
++	struct ddb *dev = dev_get_drvdata(device);
++	int num = attr->attr.name[3] - 0x30;
++	unsigned int val;
++
++	if (sscanf(buf, "%u\n", &val) != 1)
++		return -EINVAL;
++	if (val > 20)
++		return -EINVAL;
++	dev->port[num].gap = val;
++	return count;
++}
++
++static ssize_t version_show(struct device *device,
++			    struct device_attribute *attr, char *buf)
++{
++	struct ddb *dev = dev_get_drvdata(device);
++
++	return sprintf(buf, "%08x %08x\n",
++		       dev->link[0].ids.hwid, dev->link[0].ids.regmapid);
++}
++
++static ssize_t hwid_show(struct device *device,
++			 struct device_attribute *attr, char *buf)
++{
++	struct ddb *dev = dev_get_drvdata(device);
++
++	return sprintf(buf, "0x%08X\n", dev->link[0].ids.hwid);
++}
++
++static ssize_t regmap_show(struct device *device,
++			   struct device_attribute *attr, char *buf)
++{
++	struct ddb *dev = dev_get_drvdata(device);
++
++	return sprintf(buf, "0x%08X\n", dev->link[0].ids.regmapid);
++}
++
++static ssize_t devid_show(struct device *device,
++			  struct device_attribute *attr, char *buf)
++{
++	int num = attr->attr.name[5] - 0x30;
++	struct ddb *dev = dev_get_drvdata(device);
++
++	return sprintf(buf, "%08x\n", dev->link[num].ids.devid);
++}
++
++static struct device_attribute ddb_attrs[] = {
++	__ATTR_RO(version),
++	__ATTR_RO(ports),
++	__ATTR_RO(ts_irq),
++	__ATTR_RO(i2c_irq),
++	__ATTR(gap0, 0664, gap_show, gap_store),
++	__ATTR(gap1, 0664, gap_show, gap_store),
++	__ATTR(gap2, 0664, gap_show, gap_store),
++	__ATTR(gap3, 0664, gap_show, gap_store),
++	__ATTR_MRO(devid0, devid_show),
++	__ATTR_MRO(devid1, devid_show),
++	__ATTR_MRO(devid2, devid_show),
++	__ATTR_MRO(devid3, devid_show),
++	__ATTR_RO(hwid),
++	__ATTR_RO(regmap),
++	__ATTR(redirect, 0664, redirect_show, redirect_store),
++	__ATTR_MRO(snr,  bsnr_show),
++	__ATTR_RO(bpsnr),
++	__ATTR_NULL,
++};
++
++static struct device_attribute ddb_attrs_temp[] = {
++	__ATTR_RO(temp),
++};
++
++static struct device_attribute ddb_attrs_fan[] = {
++	__ATTR(fan, 0664, fan_show, fan_store),
++};
++
++static struct device_attribute ddb_attrs_snr[] = {
++	__ATTR(snr0, 0664, snr_show, snr_store),
++	__ATTR(snr1, 0664, snr_show, snr_store),
++	__ATTR(snr2, 0664, snr_show, snr_store),
++	__ATTR(snr3, 0664, snr_show, snr_store),
++};
++
++static struct device_attribute ddb_attrs_ctemp[] = {
++	__ATTR_MRO(temp0, ctemp_show),
++	__ATTR_MRO(temp1, ctemp_show),
++	__ATTR_MRO(temp2, ctemp_show),
++	__ATTR_MRO(temp3, ctemp_show),
++};
++
++static struct device_attribute ddb_attrs_led[] = {
++	__ATTR(led0, 0664, led_show, led_store),
++	__ATTR(led1, 0664, led_show, led_store),
++	__ATTR(led2, 0664, led_show, led_store),
++	__ATTR(led3, 0664, led_show, led_store),
++};
++
++static struct device_attribute ddb_attrs_fanspeed[] = {
++	__ATTR_MRO(fanspeed0, fanspeed_show),
++	__ATTR_MRO(fanspeed1, fanspeed_show),
++	__ATTR_MRO(fanspeed2, fanspeed_show),
++	__ATTR_MRO(fanspeed3, fanspeed_show),
++};
++
++static struct class ddb_class = {
++	.name		= "ddbridge",
++	.owner          = THIS_MODULE,
++	.devnode        = ddb_devnode,
++};
++
+ int ddb_class_create(void)
+ {
+ 	ddb_major = register_chrdev(0, DDB_NAME, &ddb_fops);
+ 	if (ddb_major < 0)
+ 		return ddb_major;
+-
+-	ddb_class = class_create(THIS_MODULE, DDB_NAME);
+-	if (IS_ERR(ddb_class)) {
+-		unregister_chrdev(ddb_major, DDB_NAME);
+-		return PTR_ERR(ddb_class);
+-	}
+-	ddb_class->devnode = ddb_devnode;
++	if (class_register(&ddb_class) < 0)
++		return -1;
+ 	return 0;
+ }
+ 
+ void ddb_class_destroy(void)
+ {
+-	class_destroy(ddb_class);
++	class_unregister(&ddb_class);
+ 	unregister_chrdev(ddb_major, DDB_NAME);
+ }
+ 
++static void ddb_device_attrs_del(struct ddb *dev)
++{
 +	int i;
 +
-+	if (!has_signal(dw_dev, old_input)) {
-+		dw_hdmi_disable_ints(dw_dev);
-+		dw_hdmi_power_off(dw_dev);
-+		current_on = false;
++	for (i = 0; i < 4; i++)
++		if (dev->link[i].info && dev->link[i].info->tempmon_irq)
++			device_remove_file(dev->ddb_dev,
++					   &ddb_attrs_fanspeed[i]);
++	for (i = 0; i < dev->link[0].info->temp_num; i++)
++		device_remove_file(dev->ddb_dev, &ddb_attrs_temp[i]);
++	for (i = 0; i < dev->link[0].info->fan_num; i++)
++		device_remove_file(dev->ddb_dev, &ddb_attrs_fan[i]);
++	for (i = 0; i < dev->i2c_num && i < 4; i++) {
++		if (dev->link[0].info->led_num)
++			device_remove_file(dev->ddb_dev, &ddb_attrs_led[i]);
++		device_remove_file(dev->ddb_dev, &ddb_attrs_snr[i]);
++		device_remove_file(dev->ddb_dev, &ddb_attrs_ctemp[i]);
 +	}
++	for (i = 0; ddb_attrs[i].attr.name != NULL; i++)
++		device_remove_file(dev->ddb_dev, &ddb_attrs[i]);
++}
 +
-+	for (i = 0; i < input_count; i++) {
-+		bool on = has_signal(dw_dev, i);
-+		stat |= on << i;
++static int ddb_device_attrs_add(struct ddb *dev)
++{
++	int i;
 +
-+		if (is_off(dw_dev) && on && !pending_config) {
-+			dw_hdmi_power_on(dw_dev, i);
-+			dw_hdmi_set_input(dw_dev, i);
-+			new_input = i;
-+			pending_config = true;
-+		}
++	for (i = 0; ddb_attrs[i].attr.name != NULL; i++)
++		if (device_create_file(dev->ddb_dev, &ddb_attrs[i]))
++			goto fail;
++	for (i = 0; i < dev->link[0].info->temp_num; i++)
++		if (device_create_file(dev->ddb_dev, &ddb_attrs_temp[i]))
++			goto fail;
++	for (i = 0; i < dev->link[0].info->fan_num; i++)
++		if (device_create_file(dev->ddb_dev, &ddb_attrs_fan[i]))
++			goto fail;
++	for (i = 0; (i < dev->i2c_num) && (i < 4); i++) {
++		if (device_create_file(dev->ddb_dev, &ddb_attrs_snr[i]))
++			goto fail;
++		if (device_create_file(dev->ddb_dev, &ddb_attrs_ctemp[i]))
++			goto fail;
++		if (dev->link[0].info->led_num)
++			if (device_create_file(dev->ddb_dev,
++					       &ddb_attrs_led[i]))
++				goto fail;
 +	}
++	for (i = 0; i < 4; i++)
++		if (dev->link[i].info && dev->link[i].info->tempmon_irq)
++			if (device_create_file(dev->ddb_dev,
++					       &ddb_attrs_fanspeed[i]))
++				goto fail;
++	return 0;
++fail:
++	return -1;
++}
 +
-+	if ((new_input == old_input) && !pending_config && !current_on)
-+		dw_hdmi_phy_s_power(dw_dev, false);
+ int ddb_device_create(struct ddb *dev)
+ {
+-	dev->nr = ddb_num++;
+-	dev->ddb_dev = device_create(ddb_class, NULL,
++	int res = 0;
 +
-+	if (stat) {
-+		/*
-+		 * If there are any connected ports enable the HPD and the SCDC
-+		 * for these ports.
-+		 */
-+		dw_hdmi_enable_scdc(dw_dev);
-+		dw_hdmi_enable_hpd(dw_dev, stat);
++	if (ddb_num == DDB_MAX_ADAPTER)
++		return -ENOMEM;
++	mutex_lock(&ddb_mutex);
++	dev->nr = ddb_num;
++	ddbs[dev->nr] = dev;
++	dev->ddb_dev = device_create(&ddb_class, dev->dev,
+ 				     MKDEV(ddb_major, dev->nr),
+ 				     dev, "ddbridge%d", dev->nr);
+-	ddbs[dev->nr] = dev;
+-	if (IS_ERR(dev->ddb_dev))
+-		return -1;
+-	return 0;
++	if (IS_ERR(dev->ddb_dev)) {
++		res = PTR_ERR(dev->ddb_dev);
++		dev_info(dev->dev, "Could not create ddbridge%d\n", dev->nr);
++		goto fail;
++	}
++	res = ddb_device_attrs_add(dev);
++	if (res) {
++		ddb_device_attrs_del(dev);
++		device_destroy(&ddb_class, MKDEV(ddb_major, dev->nr));
++		ddbs[dev->nr] = 0;
++		dev->ddb_dev = ERR_PTR(-ENODEV);
++	} else
++		ddb_num++;
++fail:
++	mutex_unlock(&ddb_mutex);
++	return res;
+ }
+ 
+ void ddb_device_destroy(struct ddb *dev)
+ {
+-	ddb_num--;
+ 	if (IS_ERR(dev->ddb_dev))
+ 		return;
+-	device_destroy(ddb_class, MKDEV(ddb_major, 0));
++	ddb_device_attrs_del(dev);
++	device_destroy(&ddb_class, MKDEV(ddb_major, dev->nr));
++}
++
++/****************************************************************************/
++/****************************************************************************/
++/****************************************************************************/
++
++static void tempmon_setfan(struct ddb_link *link)
++{
++	u32 temp, temp2, pwm;
++
++	if ((ddblreadl(link, TEMPMON_CONTROL) &
++	    TEMPMON_CONTROL_OVERTEMP) != 0) {
++		dev_info(link->dev->dev, "Over temperature condition\n");
++		link->overtemperature_error = 1;
++	}
++	temp  = (ddblreadl(link, TEMPMON_SENSOR0) >> 8) & 0xFF;
++	if (temp & 0x80)
++		temp = 0;
++	temp2  = (ddblreadl(link, TEMPMON_SENSOR1) >> 8) & 0xFF;
++	if (temp2 & 0x80)
++		temp2 = 0;
++	if (temp2 > temp)
++		temp = temp2;
++
++	pwm = (ddblreadl(link, TEMPMON_FANCONTROL) >> 8) & 0x0F;
++	if (pwm > 10)
++		pwm = 10;
++
++	if (temp >= link->temp_tab[pwm]) {
++		while (pwm < 10 && temp >= link->temp_tab[pwm + 1])
++			pwm += 1;
 +	} else {
-+		/*
-+		 * If there are no connected ports disable whole HPD and SCDC
-+		 * also.
-+		 */
-+		dw_hdmi_disable_hpd(dw_dev);
-+		dw_hdmi_disable_scdc(dw_dev);
++		while (pwm > 1 && temp < link->temp_tab[pwm - 2])
++			pwm -= 1;
 +	}
-+
-+	v4l2_ctrl_s_ctrl(dw_dev->detect_tx_5v_ctrl, stat);
-+	dev_dbg(dw_dev->dev, "%s: stat=0x%x\n", __func__, stat);
++	ddblwritel(link, (pwm << 8), TEMPMON_FANCONTROL);
 +}
 +
-+static irqreturn_t dw_hdmi_5v_irq_handler(int irq, void *dev_data)
++static void temp_handler(unsigned long data)
 +{
-+	struct dw_hdmi_dev *dw_dev = dev_data;
++	struct ddb_link *link = (struct ddb_link *) data;
 +
-+	dw_hdmi_detect_tx_5v(dw_dev);
-+	return IRQ_HANDLED;
++	spin_lock(&link->temp_lock);
++	tempmon_setfan(link);
++	spin_unlock(&link->temp_lock);
 +}
 +
-+static irqreturn_t dw_hdmi_5v_hard_irq_handler(int irq, void *dev_data)
++static int tempmon_init(struct ddb_link *link, int first_time)
 +{
-+	struct dw_hdmi_dev *dw_dev = dev_data;
++	struct ddb *dev = link->dev;
++	int status = 0;
++	u32 l = link->nr;
 +
-+	dev_dbg(dw_dev->dev, "%s\n", __func__);
-+	dw_hdmi_5v_clear(dw_dev);
-+	return IRQ_WAKE_THREAD;
++	spin_lock_irq(&link->temp_lock);
++	if (first_time) {
++		static u8 temperature_table[11] = {
++			30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80 };
++
++		memcpy(link->temp_tab, temperature_table,
++			sizeof(temperature_table));
++	}
++	dev->handler[l][link->info->tempmon_irq] = temp_handler;
++	dev->handler_data[l][link->info->tempmon_irq] = (unsigned long) link;
++	ddblwritel(link, (TEMPMON_CONTROL_OVERTEMP | TEMPMON_CONTROL_AUTOSCAN |
++			  TEMPMON_CONTROL_INTENABLE),
++		   TEMPMON_CONTROL);
++	ddblwritel(link, (3 << 8), TEMPMON_FANCONTROL);
++
++	link->overtemperature_error =
++		((ddblreadl(link, TEMPMON_CONTROL) &
++			TEMPMON_CONTROL_OVERTEMP) != 0);
++	if (link->overtemperature_error) {
++		dev_info(link->dev->dev, "Over temperature condition\n");
++		status = -1;
++	}
++	tempmon_setfan(link);
++	spin_unlock_irq(&link->temp_lock);
++	return status;
 +}
 +
-+static int dw_hdmi_s_routing(struct v4l2_subdev *sd, u32 input, u32 output,
-+		u32 config)
++static int ddb_init_tempmon(struct ddb_link *link)
 +{
-+	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
++	struct ddb_info *info = link->info;
 +
-+	if (!has_signal(dw_dev, input))
-+		return -EINVAL;
-+
-+	dw_dev->selected_input = input;
-+	if (input == dw_dev->configured_input)
++	if (!info->tempmon_irq)
 +		return 0;
-+
-+	dw_hdmi_power_off(dw_dev);
-+	return dw_hdmi_power_on(dw_dev, input);
++	if (info->type == DDB_OCTOPUS_MAX_CT)
++		if (link->ids.regmapid < 0x00010002)
++			return 0;
++	spin_lock_init(&link->temp_lock);
++	dev_dbg(link->dev->dev, "init_tempmon\n");
++	return tempmon_init(link, 1);
 +}
 +
-+static int dw_hdmi_g_input_status(struct v4l2_subdev *sd, u32 *status)
++/****************************************************************************/
++/****************************************************************************/
++/****************************************************************************/
++
++static int ddb_init_boards(struct ddb *dev)
 +{
-+	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
++	struct ddb_info *info;
++	struct ddb_link *link;
++	u32 l;
 +
-+	*status = 0;
-+	if (!has_signal(dw_dev, dw_dev->selected_input))
-+		*status |= V4L2_IN_ST_NO_POWER;
-+	if (is_off(dw_dev))
-+		*status |= V4L2_IN_ST_NO_SIGNAL;
++	for (l = 0; l < DDB_MAX_LINK; l++) {
++		link = &dev->link[l];
++		info = link->info;
 +
-+	dev_dbg(dw_dev->dev, "%s: status=0x%x\n", __func__, *status);
-+	return 0;
-+}
-+
-+static int dw_hdmi_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parm)
-+{
-+	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
-+
-+	dev_dbg(dw_dev->dev, "%s\n", __func__);
-+
-+	/* TODO: Use helper to compute timeperframe */
-+	parm->parm.capture.timeperframe.numerator = 1;
-+	parm->parm.capture.timeperframe.denominator = 60;
-+	return 0;
-+}
-+
-+static int dw_hdmi_s_dv_timings(struct v4l2_subdev *sd,
-+		struct v4l2_dv_timings *timings)
-+{
-+	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
-+
-+	dev_dbg(dw_dev->dev, "%s\n", __func__);
-+	if (!v4l2_valid_dv_timings(timings, &dw_hdmi_timings_cap, NULL, NULL))
-+		return -EINVAL;
-+	if (v4l2_match_dv_timings(timings, &dw_dev->timings, 0, false))
-+		return 0;
-+
-+	dw_dev->timings = *timings;
-+	return 0;
-+}
-+
-+static int dw_hdmi_g_dv_timings(struct v4l2_subdev *sd,
-+		struct v4l2_dv_timings *timings)
-+{
-+	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
-+
-+	dev_dbg(dw_dev->dev, "%s\n", __func__);
-+
-+	*timings = dw_dev->timings;
-+	return 0;
-+}
-+
-+static int dw_hdmi_query_dv_timings(struct v4l2_subdev *sd,
-+		struct v4l2_dv_timings *timings)
-+{
-+	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
-+	struct v4l2_bt_timings *bt = &timings->bt;
-+	bool is_hdmi_vic;
-+	u32 htot, hofs;
-+	u32 vtot;
-+	u8 vic;
-+
-+	dev_dbg(dw_dev->dev, "%s\n", __func__);
-+
-+	memset(timings, 0, sizeof(*timings));
-+
-+	timings->type = V4L2_DV_BT_656_1120;
-+	bt->width = hdmi_readl(dw_dev, HDMI_MD_HACT_PX);
-+	bt->height = hdmi_readl(dw_dev, HDMI_MD_VAL);
-+	bt->interlaced = hdmi_readl(dw_dev, HDMI_MD_STS) & HDMI_MD_STS_ILACE;
-+
-+	if (hdmi_readl(dw_dev, HDMI_ISTS) & HDMI_ISTS_VS_POL_ADJ)
-+		bt->polarities |= V4L2_DV_VSYNC_POS_POL;
-+	if (hdmi_readl(dw_dev, HDMI_ISTS) & HDMI_ISTS_HS_POL_ADJ)
-+		bt->polarities |= V4L2_DV_HSYNC_POS_POL;
-+
-+	bt->pixelclock = dw_hdmi_get_pixelclk(dw_dev);
-+
-+	/* HTOT = HACT + HFRONT + HSYNC + HBACK */
-+	htot = hdmi_mask_readl(dw_dev, HDMI_MD_HT1,
-+			HDMI_MD_HT1_HTOT_PIX_OFFSET,
-+			HDMI_MD_HT1_HTOT_PIX_MASK);
-+	/* HOFS = HSYNC + HBACK */
-+	hofs = hdmi_mask_readl(dw_dev, HDMI_MD_HT1,
-+			HDMI_MD_HT1_HOFS_PIX_OFFSET,
-+			HDMI_MD_HT1_HOFS_PIX_MASK);
-+
-+	bt->hfrontporch = htot - hofs - bt->width;
-+	bt->hsync = hdmi_mask_readl(dw_dev, HDMI_MD_HT0,
-+			HDMI_MD_HT0_HS_CLK_OFFSET,
-+			HDMI_MD_HT0_HS_CLK_MASK);
-+	bt->hbackporch = hofs - bt->hsync;
-+
-+	/* VTOT = VACT + VFRONT + VSYNC + VBACK */
-+	vtot = hdmi_readl(dw_dev, HDMI_MD_VTL);
-+
-+	hdmi_mask_writel(dw_dev, 0x1, HDMI_MD_VCTRL,
-+			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET,
-+			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK);
-+	msleep(50);
-+	bt->vsync = hdmi_readl(dw_dev, HDMI_MD_VOL);
-+
-+	hdmi_mask_writel(dw_dev, 0x0, HDMI_MD_VCTRL,
-+			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET,
-+			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK);
-+	msleep(50);
-+	bt->vbackporch = hdmi_readl(dw_dev, HDMI_MD_VOL);
-+	bt->vfrontporch = vtot - bt->height - bt->vsync - bt->vbackporch;
-+	bt->standards = V4L2_DV_BT_STD_CEA861;
-+
-+	vic = dw_hdmi_get_curr_vic(dw_dev, &is_hdmi_vic);
-+	if (vic) {
-+		if (is_hdmi_vic) {
-+			bt->flags |= V4L2_DV_FL_HAS_HDMI_VIC;
-+			bt->hdmi_vic = vic;
-+			bt->cea861_vic = 0;
-+		} else {
-+			bt->flags |= V4L2_DV_FL_HAS_CEA861_VIC;
-+			bt->hdmi_vic = 0;
-+			bt->cea861_vic = vic;
++		if (!info)
++			continue;
++		if (info->board_control) {
++			ddbwritel(dev, 0, DDB_LINK_TAG(l) | BOARD_CONTROL);
++			msleep(100);
++			ddbwritel(dev, info->board_control_2,
++				DDB_LINK_TAG(l) | BOARD_CONTROL);
++			usleep_range(2000, 3000);
++			ddbwritel(dev,
++				info->board_control_2 | info->board_control,
++				DDB_LINK_TAG(l) | BOARD_CONTROL);
++			usleep_range(2000, 3000);
 +		}
++		ddb_init_tempmon(link);
 +	}
-+
 +	return 0;
 +}
 +
-+static int dw_hdmi_enum_mbus_code(struct v4l2_subdev *sd,
-+		struct v4l2_subdev_pad_config *cfg,
-+		struct v4l2_subdev_mbus_code_enum *code)
++int ddb_init(struct ddb *dev)
 +{
-+	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
-+
-+	dev_dbg(dw_dev->dev, "%s\n", __func__);
-+	if (code->index != 0)
-+		return -EINVAL;
-+
-+	code->code = dw_dev->mbus_code;
-+	return 0;
-+}
-+
-+static int dw_hdmi_fill_format(struct dw_hdmi_dev *dw_dev,
-+		struct v4l2_mbus_framefmt *format)
-+{
-+	memset(format, 0, sizeof(*format));
-+
-+	format->width = dw_dev->timings.bt.width;
-+	format->height = dw_dev->timings.bt.height;
-+	format->colorspace = V4L2_COLORSPACE_SRGB;
-+	format->code = dw_dev->mbus_code;
-+	if (dw_dev->timings.bt.interlaced)
-+		format->field = V4L2_FIELD_ALTERNATE;
-+	else
-+		format->field = V4L2_FIELD_NONE;
-+
-+	return 0;
-+}
-+
-+static int dw_hdmi_get_fmt(struct v4l2_subdev *sd,
-+		struct v4l2_subdev_pad_config *cfg,
-+		struct v4l2_subdev_format *format)
-+{
-+	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
-+
-+	dev_dbg(dw_dev->dev, "%s\n", __func__);
-+	return dw_hdmi_fill_format(dw_dev, &format->format);
-+}
-+
-+static int dw_hdmi_set_fmt(struct v4l2_subdev *sd,
-+		struct v4l2_subdev_pad_config *cfg,
-+		struct v4l2_subdev_format *format)
-+{
-+	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
-+
-+	dev_dbg(dw_dev->dev, "%s\n", __func__);
-+
-+	if (format->format.code != dw_dev->mbus_code) {
-+		dev_dbg(dw_dev->dev, "invalid format\n");
-+		return -EINVAL;
-+	}
-+
-+	return dw_hdmi_get_fmt(sd, cfg, format);
-+}
-+
-+static int dw_hdmi_dv_timings_cap(struct v4l2_subdev *sd,
-+		struct v4l2_dv_timings_cap *cap)
-+{
-+	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
-+	unsigned int pad = cap->pad;
-+
-+	dev_dbg(dw_dev->dev, "%s\n", __func__);
-+
-+	*cap = dw_hdmi_timings_cap;
-+	cap->pad = pad;
-+	return 0;
-+}
-+
-+static int dw_hdmi_enum_dv_timings(struct v4l2_subdev *sd,
-+		struct v4l2_enum_dv_timings *timings)
-+{
-+	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
-+
-+	dev_dbg(dw_dev->dev, "%s\n", __func__);
-+	return v4l2_enum_dv_timings_cap(timings, &dw_hdmi_timings_cap,
-+			NULL, NULL);
-+}
-+
-+static int dw_hdmi_log_status(struct v4l2_subdev *sd)
-+{
-+	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
-+	struct v4l2_dv_timings timings;
-+
-+	v4l2_info(sd, "--- Chip configuration ---\n");
-+	v4l2_info(sd, "cfg_clk=%dMHz\n", dw_dev->cfg_clk);
-+	v4l2_info(sd, "phy_drv=%s, phy_jtag_addr=0x%x\n", dw_dev->phy_drv,
-+			dw_dev->phy_jtag_addr);
-+
-+	v4l2_info(sd, "--- Chip status ---\n");
-+	v4l2_info(sd, "selected_input=%d: signal=%d\n", dw_dev->selected_input,
-+			has_signal(dw_dev, dw_dev->selected_input));
-+	v4l2_info(sd, "configured_input=%d: signal=%d\n",
-+			dw_dev->configured_input,
-+			has_signal(dw_dev, dw_dev->configured_input));
-+
-+	v4l2_info(sd, "--- Video status ---\n");
-+	v4l2_info(sd, "type=%s, color_depth=%dbits",
-+			hdmi_readl(dw_dev, HDMI_PDEC_STS) &
-+			HDMI_PDEC_STS_DVIDET ? "dvi" : "hdmi",
-+			dw_hdmi_get_colordepth(dw_dev));
-+
-+	v4l2_info(sd, "--- Video timings ---\n");
-+	if (dw_hdmi_query_dv_timings(sd, &timings))
-+		v4l2_info(sd, "No video detected\n");
-+	else
-+		v4l2_print_dv_timings(sd->name, "Detected format: ",
-+				&timings, true);
-+	v4l2_print_dv_timings(sd->name, "Configured format: ",
-+			&dw_dev->timings, true);
-+
-+	v4l2_ctrl_subdev_log_status(sd);
-+	return 0;
-+}
-+
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+static void dw_hdmi_invalid_register(struct dw_hdmi_dev *dw_dev, u64 reg)
-+{
-+	dev_err(dw_dev->dev, "register 0x%llx not supported\n", reg);
-+	dev_err(dw_dev->dev, "0x0000-0x7fff: Main controller map\n");
-+	dev_err(dw_dev->dev, "0x8000-0x80ff: PHY map\n");
-+}
-+
-+static bool dw_hdmi_is_reserved_register(struct dw_hdmi_dev *dw_dev, u32 reg)
-+{
-+	/*
-+	 * NOTE: Some of the HDCP registers are write only. This means that
-+	 * a read from these registers will never return and can block the bus
-+	 * in some architectures. Disable the read to these registers and also
-+	 * disable the write as a safety measure because userspace should not
-+	 * be able to set HDCP registers.
-+	 */
-+	if (reg >= HDMI_HDCP_CTRL && reg <= HDMI_HDCP_STS)
-+		return true;
-+	if (reg == HDMI_HDCP22_CONTROL)
-+		return true;
-+	if (reg == HDMI_HDCP22_STATUS)
-+		return true;
-+	return false;
-+}
-+
-+static int dw_hdmi_g_register(struct v4l2_subdev *sd,
-+		struct v4l2_dbg_register *reg)
-+{
-+	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
-+
-+	switch (reg->reg >> 15) {
-+	case 0: /* Controller core read */
-+		if (dw_hdmi_is_reserved_register(dw_dev, reg->reg & 0x7fff))
-+			return -EINVAL;
-+
-+		reg->size = 4;
-+		reg->val = hdmi_readl(dw_dev, reg->reg & 0x7fff);
++	mutex_init(&dev->link[0].flash_mutex);
++	if (no_init) {
++		ddb_device_create(dev);
 +		return 0;
-+	case 1: /* PHY read */
-+		if ((reg->reg & ~0xff) != BIT(15))
++	}
++
++	ddb_init_boards(dev);
++
++	if (ddb_i2c_init(dev) < 0)
++		goto fail;
++	ddb_ports_init(dev);
++	if (ddb_buffers_alloc(dev) < 0) {
++		dev_info(dev->dev, "Could not allocate buffer memory\n");
++		goto fail2;
++	}
++	if (ddb_ports_attach(dev) < 0)
++		goto fail3;
++
++	ddb_device_create(dev);
++
++	if (dev->link[0].info->fan_num)	{
++		ddbwritel(dev, 1, GPIO_DIRECTION);
++		ddbwritel(dev, 1, GPIO_OUTPUT);
++	}
++	return 0;
++
++fail3:
++	ddb_ports_detach(dev);
++	dev_err(dev->dev, "fail3\n");
++	ddb_ports_release(dev);
++fail2:
++	dev_err(dev->dev, "fail2\n");
++	ddb_buffers_free(dev);
++	ddb_i2c_release(dev);
++fail:
++	dev_err(dev->dev, "fail1\n");
++	return -1;
+ }
+diff --git a/drivers/media/pci/ddbridge/ddbridge-i2c.c b/drivers/media/pci/ddbridge/ddbridge-i2c.c
+index ea3565efdd3b..e83c7af77087 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-i2c.c
++++ b/drivers/media/pci/ddbridge/ddbridge-i2c.c
+@@ -1,24 +1,21 @@
+ /*
+- * ddbridge.c: Digital Devices PCIe bridge driver
++ * ddbridge-i2c.c: Digital Devices bridge i2c driver
+  *
+- * Copyright (C) 2010-2011 Digital Devices GmbH
++ * Copyright (C) 2010-2017 Digital Devices GmbH
++ *                         Ralph Metzler <rjkm@metzlerbros.de>
++ *                         Marcus Metzler <mocm@metzlerbros.de>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * version 2 only, as published by the Free Software Foundation.
+  *
+- *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * To obtain the license, point your browser to
+- * http://www.gnu.org/copyleft/gpl.html
+  */
+ 
+-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+-
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+@@ -48,7 +45,7 @@ int i2c_io(struct i2c_adapter *adapter, u8 adr,
+ 	return (i2c_transfer(adapter, msgs, 2) == 2) ? 0 : -1;
+ }
+ 
+-static int i2c_write(struct i2c_adapter *adap, u8 adr, u8 *data, int len)
++int i2c_write(struct i2c_adapter *adap, u8 adr, u8 *data, int len)
+ {
+ 	struct i2c_msg msg = {.addr = adr, .flags = 0,
+ 			      .buf = data, .len = len};
+@@ -73,22 +70,45 @@ int i2c_read_regs(struct i2c_adapter *adapter,
+ 	return (i2c_transfer(adapter, msgs, 2) == 2) ? 0 : -1;
+ }
+ 
++int i2c_read_regs16(struct i2c_adapter *adapter,
++			   u8 adr, u16 reg, u8 *val, u8 len)
++{
++	u8 reg16[2] = { reg >> 8, reg };
++	struct i2c_msg msgs[2] = {{.addr = adr,  .flags = 0,
++				   .buf  = reg16, .len   = 2 },
++				  {.addr = adr,  .flags = I2C_M_RD,
++				   .buf  = val,  .len   = len } };
++	return (i2c_transfer(adapter, msgs, 2) == 2) ? 0 : -1;
++}
++
+ int i2c_read_reg(struct i2c_adapter *adapter, u8 adr, u8 reg, u8 *val)
+ {
+-	return i2c_read_regs(adapter, adr, reg, val, 1);
++	struct i2c_msg msgs[2] = {{.addr = adr,  .flags = 0,
++				   .buf  = &reg, .len   = 1},
++				  {.addr = adr,  .flags = I2C_M_RD,
++				   .buf  = val,  .len   = 1 } };
++	return (i2c_transfer(adapter, msgs, 2) == 2) ? 0 : -1;
+ }
+ 
+ int i2c_read_reg16(struct i2c_adapter *adapter, u8 adr,
+ 			  u16 reg, u8 *val)
+ {
+-	u8 msg[2] = {reg>>8, reg&0xff};
++	u8 msg[2] = {reg >> 8, reg & 0xff};
+ 	struct i2c_msg msgs[2] = {{.addr = adr, .flags = 0,
+ 				   .buf  = msg, .len   = 2},
+ 				  {.addr = adr, .flags = I2C_M_RD,
+-				   .buf  = val, .len   = 1} };
++				   .buf  = val, .len   = 1 } };
+ 	return (i2c_transfer(adapter, msgs, 2) == 2) ? 0 : -1;
+ }
+ 
++int i2c_write_reg16(struct i2c_adapter *adap, u8 adr,
++			   u16 reg, u8 val)
++{
++	u8 msg[3] = {reg >> 8, reg & 0xff, val};
++
++	return i2c_write(adap, adr, msg, 3);
++}
++
+ int i2c_write_reg(struct i2c_adapter *adap, u8 adr,
+ 			 u8 reg, u8 val)
+ {
+@@ -100,22 +120,39 @@ int i2c_write_reg(struct i2c_adapter *adap, u8 adr,
+ static int ddb_i2c_cmd(struct ddb_i2c *i2c, u32 adr, u32 cmd)
+ {
+ 	struct ddb *dev = i2c->dev;
+-	long stat;
++	unsigned long stat;
+ 	u32 val;
+ 
+-	i2c->done = 0;
+-	ddbwritel((adr << 9) | cmd, i2c->regs + I2C_COMMAND);
+-	stat = wait_event_timeout(i2c->wq, i2c->done == 1, HZ);
++	ddbwritel(dev, (adr << 9) | cmd, i2c->regs + I2C_COMMAND);
++	stat = wait_for_completion_timeout(&i2c->completion, HZ);
++	val = ddbreadl(dev, i2c->regs + I2C_COMMAND);
+ 	if (stat == 0) {
+-		dev_err(&dev->pdev->dev, "I2C timeout\n");
+-		{ /* MSI debugging*/
+-			u32 istat = ddbreadl(INTERRUPT_STATUS);
+-			dev_err(&dev->pdev->dev, "IRS %08x\n", istat);
+-			ddbwritel(istat, INTERRUPT_ACK);
++		dev_err(dev->dev, "I2C timeout, card %d, port %d, link %u\n",
++		       dev->nr, i2c->nr, i2c->link);
++		{
++			u32 istat = ddbreadl(dev, INTERRUPT_STATUS);
++
++			dev_err(dev->dev, "DDBridge IRS %08x\n", istat);
++			if (i2c->link) {
++				u32 listat = ddbreadl(dev,
++					DDB_LINK_TAG(i2c->link) |
++					INTERRUPT_STATUS);
++
++				dev_err(dev->dev, "DDBridge link %u IRS %08x\n",
++					i2c->link, listat);
++			}
++			if (istat & 1) {
++				ddbwritel(dev, istat & 1, INTERRUPT_ACK);
++			} else {
++				u32 mon = ddbreadl(dev,
++					i2c->regs + I2C_MONITOR);
++
++				dev_err(dev->dev, "I2C cmd=%08x mon=%08x\n",
++					val, mon);
++			}
+ 		}
+ 		return -EIO;
+ 	}
+-	val = ddbreadl(i2c->regs+I2C_COMMAND);
+ 	if (val & 0x70000)
+ 		return -EIO;
+ 	return 0;
+@@ -124,51 +161,57 @@ static int ddb_i2c_cmd(struct ddb_i2c *i2c, u32 adr, u32 cmd)
+ static int ddb_i2c_master_xfer(struct i2c_adapter *adapter,
+ 			       struct i2c_msg msg[], int num)
+ {
+-	struct ddb_i2c *i2c = (struct ddb_i2c *)i2c_get_adapdata(adapter);
++	struct ddb_i2c *i2c = (struct ddb_i2c *) i2c_get_adapdata(adapter);
+ 	struct ddb *dev = i2c->dev;
+ 	u8 addr = 0;
+ 
+-	if (num)
+-		addr = msg[0].addr;
+-
+-	if (num == 2 && msg[1].flags & I2C_M_RD &&
+-	    !(msg[0].flags & I2C_M_RD)) {
+-		memcpy_toio(dev->regs + I2C_TASKMEM_BASE + i2c->wbuf,
+-			    msg[0].buf, msg[0].len);
+-		ddbwritel(msg[0].len|(msg[1].len << 16),
+-			  i2c->regs+I2C_TASKLENGTH);
+-		if (!ddb_i2c_cmd(i2c, addr, 1)) {
+-			memcpy_fromio(msg[1].buf,
+-				      dev->regs + I2C_TASKMEM_BASE + i2c->rbuf,
+-				      msg[1].len);
+-			return num;
+-		}
+-	}
+-
+-	if (num == 1 && !(msg[0].flags & I2C_M_RD)) {
+-		ddbcpyto(I2C_TASKMEM_BASE + i2c->wbuf, msg[0].buf, msg[0].len);
+-		ddbwritel(msg[0].len, i2c->regs + I2C_TASKLENGTH);
+-		if (!ddb_i2c_cmd(i2c, addr, 2))
+-			return num;
+-	}
+-	if (num == 1 && (msg[0].flags & I2C_M_RD)) {
+-		ddbwritel(msg[0].len << 16, i2c->regs + I2C_TASKLENGTH);
+-		if (!ddb_i2c_cmd(i2c, addr, 3)) {
+-			ddbcpyfrom(msg[0].buf,
+-				   I2C_TASKMEM_BASE + i2c->rbuf, msg[0].len);
++	addr = msg[0].addr;
++	if (msg[0].len > i2c->bsize)
++		return -EIO;
++	switch (num) {
++	case 1:
++		if (msg[0].flags & I2C_M_RD) {
++			ddbwritel(dev, msg[0].len << 16,
++				  i2c->regs + I2C_TASKLENGTH);
++			if (ddb_i2c_cmd(i2c, addr, 3))
++				break;
++			ddbcpyfrom(dev, msg[0].buf,
++				   i2c->rbuf, msg[0].len);
+ 			return num;
+ 		}
++		ddbcpyto(dev, i2c->wbuf, msg[0].buf, msg[0].len);
++		ddbwritel(dev, msg[0].len, i2c->regs + I2C_TASKLENGTH);
++		if (ddb_i2c_cmd(i2c, addr, 2))
 +			break;
-+
-+		reg->size = 2;
-+		reg->val = dw_hdmi_phy_read(dw_dev, reg->reg & 0xff);
-+		return 0;
++		return num;
++	case 2:
++		if ((msg[0].flags & I2C_M_RD) == I2C_M_RD)
++			break;
++		if ((msg[1].flags & I2C_M_RD) != I2C_M_RD)
++			break;
++		if (msg[1].len > i2c->bsize)
++			break;
++		ddbcpyto(dev, i2c->wbuf, msg[0].buf, msg[0].len);
++		ddbwritel(dev, msg[0].len | (msg[1].len << 16),
++			  i2c->regs + I2C_TASKLENGTH);
++		if (ddb_i2c_cmd(i2c, addr, 1))
++			break;
++		ddbcpyfrom(dev, msg[1].buf,
++			   i2c->rbuf,
++			   msg[1].len);
++		return num;
 +	default:
 +		break;
-+	}
-+
-+	dw_hdmi_invalid_register(dw_dev, reg->reg);
-+	return 0;
-+}
-+
-+static int dw_hdmi_s_register(struct v4l2_subdev *sd,
-+		const struct v4l2_dbg_register *reg)
+ 	}
+ 	return -EIO;
+ }
+ 
+-
+ static u32 ddb_i2c_functionality(struct i2c_adapter *adap)
+ {
+-	return I2C_FUNC_SMBUS_EMUL;
++	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
+ }
+ 
+-static struct i2c_algorithm ddb_i2c_algo = {
++struct i2c_algorithm ddb_i2c_algo = {
+ 	.master_xfer   = ddb_i2c_master_xfer,
+ 	.functionality = ddb_i2c_functionality,
+ };
+@@ -177,55 +220,90 @@ void ddb_i2c_release(struct ddb *dev)
+ {
+ 	int i;
+ 	struct ddb_i2c *i2c;
+-	struct i2c_adapter *adap;
+ 
+-	for (i = 0; i < dev->info->port_num; i++) {
++	for (i = 0; i < dev->i2c_num; i++) {
+ 		i2c = &dev->i2c[i];
+-		adap = &i2c->adap;
+-		i2c_del_adapter(adap);
++		i2c_del_adapter(&i2c->adap);
+ 	}
+ }
+ 
+-int ddb_i2c_init(struct ddb *dev)
++static void i2c_handler(unsigned long priv)
 +{
-+	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
++	struct ddb_i2c *i2c = (struct ddb_i2c *) priv;
 +
-+	switch (reg->reg >> 15) {
-+	case 0: /* Controller core write */
-+		if (dw_hdmi_is_reserved_register(dw_dev, reg->reg & 0x7fff))
-+			return -EINVAL;
-+
-+		hdmi_writel(dw_dev, reg->val & GENMASK(31,0), reg->reg & 0x7fff);
-+		return 0;
-+	case 1: /* PHY write */
-+		if ((reg->reg & ~0xff) != BIT(15))
-+			break;
-+		dw_hdmi_phy_write(dw_dev, reg->val & 0xffff, reg->reg & 0xff);
-+		return 0;
-+	default:
-+		break;
-+	}
-+
-+	dw_hdmi_invalid_register(dw_dev, reg->reg);
-+	return 0;
++	complete(&i2c->completion);
 +}
++
++static int ddb_i2c_add(struct ddb *dev, struct ddb_i2c *i2c,
++		       struct ddb_regmap *regmap, int link, int i, int num)
+ {
+-	int i, j, stat = 0;
+-	struct ddb_i2c *i2c;
+ 	struct i2c_adapter *adap;
+ 
+-	for (i = 0; i < dev->info->port_num; i++) {
+-		i2c = &dev->i2c[i];
+-		i2c->dev = dev;
+-		i2c->nr = i;
+-		i2c->wbuf = i * (I2C_TASKMEM_SIZE / 4);
+-		i2c->rbuf = i2c->wbuf + (I2C_TASKMEM_SIZE / 8);
+-		i2c->regs = 0x80 + i * 0x20;
+-		ddbwritel(I2C_SPEED_100, i2c->regs + I2C_TIMING);
+-		ddbwritel((i2c->rbuf << 16) | i2c->wbuf,
+-			  i2c->regs + I2C_TASKADDRESS);
+-		init_waitqueue_head(&i2c->wq);
+-
+-		adap = &i2c->adap;
+-		i2c_set_adapdata(adap, i2c);
++	i2c->nr = i;
++	i2c->dev = dev;
++	i2c->link = link;
++	i2c->bsize = regmap->i2c_buf->size;
++	i2c->wbuf = DDB_LINK_TAG(link) |
++		(regmap->i2c_buf->base + i2c->bsize * i);
++	i2c->rbuf = i2c->wbuf; /* + i2c->bsize / 2 */
++	i2c->regs = DDB_LINK_TAG(link) |
++		(regmap->i2c->base + regmap->i2c->size * i);
++	ddbwritel(dev, I2C_SPEED_100, i2c->regs + I2C_TIMING);
++	ddbwritel(dev, ((i2c->rbuf & 0xffff) << 16) | (i2c->wbuf & 0xffff),
++		i2c->regs + I2C_TASKADDRESS);
++	init_completion(&i2c->completion);
++
++	adap = &i2c->adap;
++	i2c_set_adapdata(adap, i2c);
+ #ifdef I2C_ADAP_CLASS_TV_DIGITAL
+-		adap->class = I2C_ADAP_CLASS_TV_DIGITAL|I2C_CLASS_TV_ANALOG;
++	adap->class = I2C_ADAP_CLASS_TV_DIGITAL|I2C_CLASS_TV_ANALOG;
+ #else
+ #ifdef I2C_CLASS_TV_ANALOG
+-		adap->class = I2C_CLASS_TV_ANALOG;
++	adap->class = I2C_CLASS_TV_ANALOG;
+ #endif
+ #endif
+-		strcpy(adap->name, "ddbridge");
+-		adap->algo = &ddb_i2c_algo;
+-		adap->algo_data = (void *)i2c;
+-		adap->dev.parent = &dev->pdev->dev;
+-		stat = i2c_add_adapter(adap);
+-		if (stat)
+-			break;
++	snprintf(adap->name, I2C_NAME_SIZE, "ddbridge_%02x.%x.%x",
++		dev->nr, i2c->link, i);
++	adap->algo = &ddb_i2c_algo;
++	adap->algo_data = (void *)i2c;
++	adap->dev.parent = dev->dev;
++	return i2c_add_adapter(adap);
++}
++
++int ddb_i2c_init(struct ddb *dev)
++{
++	int stat = 0;
++	u32 i, j, num = 0, l, base;
++	struct ddb_i2c *i2c;
++	struct i2c_adapter *adap;
++	struct ddb_regmap *regmap;
++
++	for (l = 0; l < DDB_MAX_LINK; l++) {
++		if (!dev->link[l].info)
++			continue;
++		regmap = dev->link[l].info->regmap;
++		if (!regmap || !regmap->i2c)
++			continue;
++		base = regmap->irq_base_i2c;
++		for (i = 0; i < regmap->i2c->num; i++) {
++			if (!(dev->link[l].info->i2c_mask & (1 << i)))
++				continue;
++			i2c = &dev->i2c[num];
++			dev->handler_data[l][i + base] = (unsigned long) i2c;
++			dev->handler[l][i + base] = i2c_handler;
++			stat = ddb_i2c_add(dev, i2c, regmap, l, i, num);
++			if (stat)
++				break;
++			num++;
++		}
+ 	}
+-	if (stat)
+-		for (j = 0; j < i; j++) {
++	if (stat) {
++		for (j = 0; j < num; j++) {
+ 			i2c = &dev->i2c[j];
+ 			adap = &i2c->adap;
+ 			i2c_del_adapter(adap);
+ 		}
++	} else
++		dev->i2c_num = num;
+ 	return stat;
+ }
+diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
+index 917fd116d92f..8262979b6257 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-main.c
++++ b/drivers/media/pci/ddbridge/ddbridge-main.c
+@@ -1,20 +1,19 @@
+ /*
+  * ddbridge.c: Digital Devices PCIe bridge driver
+  *
+- * Copyright (C) 2010-2011 Digital Devices GmbH
++ * Copyright (C) 2010-2017 Digital Devices GmbH
++ *                         Ralph Metzler <rjkm@metzlerbros.de>
++ *                         Marcus Metzler <mocm@metzlerbros.de>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * version 2 only, as published by the Free Software Foundation.
+  *
+- *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * To obtain the license, point your browser to
+- * http://www.gnu.org/copyleft/gpl.html
+  */
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+@@ -36,15 +35,56 @@
+ #include "ddbridge.h"
+ #include "ddbridge-regs.h"
+ 
++/****************************************************************************/
++/* module parameters */
++
++int adapter_alloc;
++module_param(adapter_alloc, int, 0444);
++MODULE_PARM_DESC(adapter_alloc,
++		 "0-one adapter per io, 1-one per tab with io, 2-one per tab, 3-one for all");
++
++#ifdef CONFIG_PCI_MSI
++int msi = 1;
++module_param(msi, int, 0444);
++MODULE_PARM_DESC(msi,
++		 " Control MSI interrupts: 0-disable, 1-enable (default)");
 +#endif
 +
-+static int dw_hdmi_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
-+		struct v4l2_event_subscription *sub)
-+{
-+	switch (sub->type) {
-+	case V4L2_EVENT_SOURCE_CHANGE:
-+		return v4l2_src_change_event_subdev_subscribe(sd, fh, sub);
-+	default:
-+		return v4l2_ctrl_subdev_subscribe_event(sd, fh, sub);
-+	}
-+}
++int ci_bitrate = 70000;
++module_param(ci_bitrate, int, 0444);
++MODULE_PARM_DESC(ci_bitrate, " Bitrate in KHz for output to CI.");
 +
-+static int dw_hdmi_registered(struct v4l2_subdev *sd)
-+{
-+	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
-+	int ret;
++int ts_loop = -1;
++module_param(ts_loop, int, 0444);
++MODULE_PARM_DESC(ts_loop, "TS in/out test loop on port ts_loop");
 +
-+	ret = cec_register_adapter(dw_dev->cec_adap, dw_dev->dev);
-+	if (ret) {
-+		dev_err(dw_dev->dev, "failed to register CEC adapter\n");
-+		cec_delete_adapter(dw_dev->cec_adap);
-+		return ret;
-+	}
-+
-+	cec_register_cec_notifier(dw_dev->cec_adap, dw_dev->cec_notifier);
-+	dw_dev->registered = true;
-+
-+	return v4l2_async_subnotifier_register(&dw_dev->sd,
-+			&dw_dev->v4l2_notifier);
-+}
-+
-+static void dw_hdmi_unregistered(struct v4l2_subdev *sd)
-+{
-+	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
-+
-+	cec_unregister_adapter(dw_dev->cec_adap);
-+	cec_notifier_put(dw_dev->cec_notifier);
-+	v4l2_async_subnotifier_unregister(&dw_dev->v4l2_notifier);
-+}
-+
-+static const struct v4l2_subdev_core_ops dw_hdmi_sd_core_ops = {
-+	.log_status = dw_hdmi_log_status,
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+	.g_register = dw_hdmi_g_register,
-+	.s_register = dw_hdmi_s_register,
-+#endif
-+	.subscribe_event = dw_hdmi_subscribe_event,
-+};
-+
-+static const struct v4l2_subdev_video_ops dw_hdmi_sd_video_ops = {
-+	.s_routing = dw_hdmi_s_routing,
-+	.g_input_status = dw_hdmi_g_input_status,
-+	.g_parm = dw_hdmi_g_parm,
-+	.s_dv_timings = dw_hdmi_s_dv_timings,
-+	.g_dv_timings = dw_hdmi_g_dv_timings,
-+	.query_dv_timings = dw_hdmi_query_dv_timings,
-+};
-+
-+static const struct v4l2_subdev_pad_ops dw_hdmi_sd_pad_ops = {
-+	.enum_mbus_code = dw_hdmi_enum_mbus_code,
-+	.get_fmt = dw_hdmi_get_fmt,
-+	.set_fmt = dw_hdmi_set_fmt,
-+	.dv_timings_cap = dw_hdmi_dv_timings_cap,
-+	.enum_dv_timings = dw_hdmi_enum_dv_timings,
-+};
-+
-+static const struct v4l2_subdev_ops dw_hdmi_sd_ops = {
-+	.core = &dw_hdmi_sd_core_ops,
-+	.video = &dw_hdmi_sd_video_ops,
-+	.pad = &dw_hdmi_sd_pad_ops,
-+};
-+
-+static const struct v4l2_subdev_internal_ops dw_hdmi_internal_ops = {
-+	.registered = dw_hdmi_registered,
-+	.unregistered = dw_hdmi_unregistered,
-+};
-+
-+static int dw_hdmi_v4l2_notify_bound(struct v4l2_async_notifier *notifier,
-+		struct v4l2_subdev *subdev, struct v4l2_async_subdev *asd)
-+{
-+	struct dw_hdmi_dev *dw_dev = notifier_to_dw_dev(notifier);
-+
-+	if (dw_dev->phy_async_sd.match.fwnode.fwnode ==
-+			of_fwnode_handle(subdev->dev->of_node)) {
-+		dev_dbg(dw_dev->dev, "found new subdev '%s'\n", subdev->name);
-+		dw_dev->phy_sd = subdev;
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static void dw_hdmi_v4l2_notify_unbind(struct v4l2_async_notifier *notifier,
-+		struct v4l2_subdev *subdev, struct v4l2_async_subdev *asd)
-+{
-+	struct dw_hdmi_dev *dw_dev = notifier_to_dw_dev(notifier);
-+
-+	if (dw_dev->phy_sd == subdev) {
-+		dev_dbg(dw_dev->dev, "unbinding '%s'\n", subdev->name);
-+		dw_dev->phy_sd = NULL;
-+	}
-+}
-+
-+static int dw_hdmi_v4l2_init_notifier(struct dw_hdmi_dev *dw_dev)
-+{
-+	struct v4l2_async_subdev **subdevs = NULL;
-+	struct device_node *child = NULL;
-+
-+	subdevs = devm_kzalloc(dw_dev->dev, sizeof(*subdevs), GFP_KERNEL);
-+	if (!subdevs)
-+		return -ENOMEM;
-+
-+	child = dw_hdmi_get_phy_of_node(dw_dev, NULL);
-+	if (!child)
-+		return -EINVAL;
-+
-+	dw_dev->phy_async_sd.match.fwnode.fwnode = of_fwnode_handle(child);
-+	dw_dev->phy_async_sd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-+
-+	subdevs[0] = &dw_dev->phy_async_sd;
-+	dw_dev->v4l2_notifier.num_subdevs = 1;
-+	dw_dev->v4l2_notifier.subdevs = subdevs;
-+	dw_dev->v4l2_notifier.bound = dw_hdmi_v4l2_notify_bound;
-+	dw_dev->v4l2_notifier.unbind = dw_hdmi_v4l2_notify_unbind;
-+
-+	return 0;
-+}
-+
-+static int dw_hdmi_parse_notifier(struct dw_hdmi_dev *dw_dev)
-+{
-+#if IS_ENABLED(CONFIG_VIDEO_DWC_HDMI_RX_CEC)
-+	struct device_node *notifier, *np = dw_dev->of_node;
-+
-+	/* Notifier device parsing */
-+	notifier = of_parse_phandle(np, "edid-phandle", 0);
-+	if (!notifier && dw_dev->dev->parent)
-+		notifier = dw_dev->dev->parent->of_node;
-+
-+	if (!notifier) {
-+		dev_err(dw_dev->dev, "missing edid-phandle in DT\n");
-+		return -EINVAL;
-+	}
-+
-+	dw_dev->notifier_pdev = of_find_device_by_node(notifier);
-+	if (!dw_dev->notifier_pdev)
-+		return -EPROBE_DEFER;
-+
-+	return 0;
+ int xo2_speed = 2;
+ module_param(xo2_speed, int, 0444);
+ MODULE_PARM_DESC(xo2_speed, "default transfer speed for xo2 based duoflex, 0=55,1=75,2=90,3=104 MBit/s, default=2, use attribute to change for individual cards");
+ 
++#ifdef __arm__
++int alt_dma = 1;
 +#else
-+	return 0;
++int alt_dma;
 +#endif
++module_param(alt_dma, int, 0444);
++MODULE_PARM_DESC(alt_dma, "use alternative DMA buffer handling");
++
++int no_init;
++module_param(no_init, int, 0444);
++MODULE_PARM_DESC(no_init, "do not initialize most devices");
++
+ int stv0910_single;
+ module_param(stv0910_single, int, 0444);
+ MODULE_PARM_DESC(stv0910_single, "use stv0910 cards as single demods");
+ 
+-/******************************************************************************/
++/****************************************************************************/
++
++struct workqueue_struct *ddb_wq;
++
++/****************************************************************************/
++/****************************************************************************/
++/****************************************************************************/
+ 
+ static void ddb_unmap(struct ddb *dev)
+ {
+@@ -53,170 +93,261 @@ static void ddb_unmap(struct ddb *dev)
+ 	vfree(dev);
+ }
+ 
+-
+-static void ddb_remove(struct pci_dev *pdev)
++static void ddb_irq_disable(struct ddb *dev)
+ {
+-	struct ddb *dev = pci_get_drvdata(pdev);
+-
+-	ddb_ports_detach(dev);
+-	ddb_i2c_release(dev);
++	ddbwritel(dev, 0, INTERRUPT_ENABLE);
++	ddbwritel(dev, 0, MSI1_ENABLE);
++}
+ 
+-	ddbwritel(0, INTERRUPT_ENABLE);
++static void ddb_irq_exit(struct ddb *dev)
++{
++	ddb_irq_disable(dev);
++	if (dev->msi == 2)
++		free_irq(dev->pdev->irq + 1, dev);
+ 	free_irq(dev->pdev->irq, dev);
+ #ifdef CONFIG_PCI_MSI
+ 	if (dev->msi)
+ 		pci_disable_msi(dev->pdev);
+ #endif
 +}
 +
-+static int dw_hdmi_parse_dt(struct dw_hdmi_dev *dw_dev)
++static void ddb_remove(struct pci_dev *pdev)
 +{
-+	struct device_node *phy_node, *np = dw_dev->of_node;
-+	u32 tmp;
-+	int ret;
++	struct ddb *dev = (struct ddb *) pci_get_drvdata(pdev);
 +
-+	if (!np) {
-+		dev_err(dw_dev->dev, "missing DT node\n");
-+		return -EINVAL;
++	ddb_device_destroy(dev);
++	ddb_ports_detach(dev);
++	ddb_i2c_release(dev);
++
++	ddb_irq_exit(dev);
+ 	ddb_ports_release(dev);
+ 	ddb_buffers_free(dev);
+-	ddb_device_destroy(dev);
+ 
+ 	ddb_unmap(dev);
+ 	pci_set_drvdata(pdev, NULL);
+ 	pci_disable_device(pdev);
+ }
+ 
++#ifdef CONFIG_PCI_MSI
++static void ddb_irq_msi(struct ddb *dev, int nr)
++{
++	int stat;
++
++	if (msi && pci_msi_enabled()) {
++		stat = pci_alloc_irq_vectors(dev->pdev, 1, nr, PCI_IRQ_MSI);
++		if (stat >= 1) {
++			dev->msi = stat;
++			dev_info(dev->dev, "using %d MSI interrupt(s)\n",
++				dev->msi);
++		} else
++			dev_info(dev->dev, "MSI not available.\n");
 +	}
++}
++#endif
+ 
+-static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
++static int ddb_irq_init(struct ddb *dev)
++{
++	int stat;
++	int irq_flag = IRQF_SHARED;
 +
-+	/* PHY properties parsing */
-+	phy_node = dw_hdmi_get_phy_of_node(dw_dev, NULL);
-+	of_property_read_u32(phy_node, "reg", &tmp);
++	ddbwritel(dev, 0x00000000, INTERRUPT_ENABLE);
++	ddbwritel(dev, 0x00000000, MSI1_ENABLE);
++	ddbwritel(dev, 0x00000000, MSI2_ENABLE);
++	ddbwritel(dev, 0x00000000, MSI3_ENABLE);
++	ddbwritel(dev, 0x00000000, MSI4_ENABLE);
++	ddbwritel(dev, 0x00000000, MSI5_ENABLE);
++	ddbwritel(dev, 0x00000000, MSI6_ENABLE);
++	ddbwritel(dev, 0x00000000, MSI7_ENABLE);
 +
-+	dw_dev->phy_jtag_addr = tmp & 0xff;
-+	if (!dw_dev->phy_jtag_addr) {
-+		dev_err(dw_dev->dev, "missing phy jtag address in DT\n");
-+		return -EINVAL;
++#ifdef CONFIG_PCI_MSI
++	ddb_irq_msi(dev, 2);
++
++	if (dev->msi)
++		irq_flag = 0;
++	if (dev->msi == 2) {
++		stat = request_irq(dev->pdev->irq, irq_handler0,
++				   irq_flag, "ddbridge", (void *) dev);
++		if (stat < 0)
++			return stat;
++		stat = request_irq(dev->pdev->irq + 1, irq_handler1,
++				   irq_flag, "ddbridge", (void *) dev);
++		if (stat < 0) {
++			free_irq(dev->pdev->irq, dev);
++			return stat;
++		}
++	} else
++#endif
++	{
++		stat = request_irq(dev->pdev->irq, irq_handler,
++				   irq_flag, "ddbridge", (void *) dev);
++		if (stat < 0)
++			return stat;
 +	}
-+
-+	/* Get config clock value */
-+	dw_dev->clk = devm_clk_get(dw_dev->dev, "cfg");
-+	if (IS_ERR(dw_dev->clk)) {
-+		dev_err(dw_dev->dev, "failed to get cfg clock\n");
-+		return PTR_ERR(dw_dev->clk);
++	if (dev->msi == 2) {
++		ddbwritel(dev, 0x0fffff00, INTERRUPT_ENABLE);
++		ddbwritel(dev, 0x0000000f, MSI1_ENABLE);
++	} else {
++		ddbwritel(dev, 0x0fffff0f, INTERRUPT_ENABLE);
++		ddbwritel(dev, 0x00000000, MSI1_ENABLE);
 +	}
-+
-+	ret = clk_prepare_enable(dw_dev->clk);
-+	if (ret) {
-+		dev_err(dw_dev->dev, "failed to enable cfg clock\n");
-+		return ret;
-+	}
-+
-+	dw_dev->cfg_clk = clk_get_rate(dw_dev->clk) / 1000000U;
-+	if (!dw_dev->cfg_clk) {
-+		dev_err(dw_dev->dev, "invalid cfg clock frequency\n");
-+		ret = -EINVAL;
-+		goto err_clk;
-+	}
-+
-+	ret = dw_hdmi_parse_notifier(dw_dev);
-+	if (ret)
-+		goto err_clk;
-+
-+	return 0;
-+
-+err_clk:
-+	clk_disable_unprepare(dw_dev->clk);
-+	return ret;
++	return stat;
 +}
 +
-+static int dw_hdmi_rx_probe(struct platform_device *pdev)
-+{
-+	const struct v4l2_dv_timings timings_def = HDMI_DEFAULT_TIMING;
-+	struct dw_hdmi_rx_pdata *pdata = pdev->dev.platform_data;
-+	struct device *dev = &pdev->dev;
-+	struct v4l2_ctrl_handler *hdl;
-+	struct dw_hdmi_dev *dw_dev;
-+	struct v4l2_subdev *sd;
-+	struct resource *res;
-+	int ret, irq;
++static int ddb_probe(struct pci_dev *pdev,
++			       const struct pci_device_id *id)
+ {
+ 	struct ddb *dev;
+ 	int stat = 0;
+-	int irq_flag = IRQF_SHARED;
+ 
+ 	if (pci_enable_device(pdev) < 0)
+ 		return -ENODEV;
+ 
++	pci_set_master(pdev);
 +
-+	dev_dbg(dev, "%s\n", __func__);
++	if (pci_set_dma_mask(pdev, DMA_BIT_MASK(64)))
++		if (pci_set_dma_mask(pdev, DMA_BIT_MASK(32)))
++			return -ENODEV;
 +
-+	dw_dev = devm_kzalloc(dev, sizeof(*dw_dev), GFP_KERNEL);
-+	if (!dw_dev)
-+		return -ENOMEM;
+ 	dev = vzalloc(sizeof(struct ddb));
+ 	if (dev == NULL)
+ 		return -ENOMEM;
+ 
++	mutex_init(&dev->mutex);
++	dev->has_dma = 1;
+ 	dev->pdev = pdev;
++	dev->dev = &pdev->dev;
+ 	pci_set_drvdata(pdev, dev);
+-	dev->info = (struct ddb_info *) id->driver_data;
+-	dev_info(&pdev->dev, "Detected %s\n", dev->info->name);
+ 
++	dev->link[0].ids.vendor = id->vendor;
++	dev->link[0].ids.device = id->device;
++	dev->link[0].ids.subvendor = id->subvendor;
++	dev->link[0].ids.subdevice = id->subdevice;
 +
-+	if (!pdata) {
-+		dev_err(dev, "missing platform data\n");
-+		return -EINVAL;
-+	}
++	dev->link[0].dev = dev;
++	dev->link[0].info = (struct ddb_info *) id->driver_data;
++	dev_info(&pdev->dev, "detected %s\n", dev->link[0].info->name);
 +
-+	dw_dev->dev = dev;
-+	dw_dev->config = pdata;
-+	dw_dev->state = HDMI_STATE_NO_INIT;
-+	dw_dev->of_node = dev->of_node;
-+	spin_lock_init(&dw_dev->lock);
++	dev->regs_len = pci_resource_len(dev->pdev, 0);
+ 	dev->regs = ioremap(pci_resource_start(dev->pdev, 0),
+ 			    pci_resource_len(dev->pdev, 0));
 +
-+	ret = dw_hdmi_parse_dt(dw_dev);
-+	if (ret)
-+		return ret;
+ 	if (!dev->regs) {
++		dev_err(&pdev->dev, "not enough memory for register map\n");
+ 		stat = -ENOMEM;
+ 		goto fail;
+ 	}
+-	dev_info(&pdev->dev, "HW %08x FW %08x\n", ddbreadl(0), ddbreadl(4));
+-
+-#ifdef CONFIG_PCI_MSI
+-	if (pci_msi_enabled())
+-		stat = pci_enable_msi(dev->pdev);
+-	if (stat) {
+-		dev_info(&pdev->dev, "MSI not available.\n");
+-	} else {
+-		irq_flag = 0;
+-		dev->msi = 1;
++	if (ddbreadl(dev, 0) == 0xffffffff) {
++		dev_err(&pdev->dev, "cannot read registers\n");
++		stat = -ENODEV;
++		goto fail;
+ 	}
+-#endif
+-	stat = request_irq(dev->pdev->irq, irq_handler,
+-			   irq_flag, "DDBridge", (void *) dev);
 +
-+	/* Deferred work */
-+	dw_dev->wq = create_singlethread_workqueue(DW_HDMI_RX_DRVNAME);
-+	if (!dw_dev->wq) {
-+		dev_err(dev, "failed to create workqueue\n");
-+		return -ENOMEM;
-+	}
++	dev->link[0].ids.hwid = ddbreadl(dev, 0);
++	dev->link[0].ids.regmapid = ddbreadl(dev, 4);
 +
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	dw_dev->regs = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(dw_dev->regs)) {
-+		dev_err(dev, "failed to remap resource\n");
-+		ret = PTR_ERR(dw_dev->regs);
-+		goto err_wq;
-+	}
++	dev_info(&pdev->dev, "HW %08x REGMAP %08x\n",
++		dev->link[0].ids.hwid, dev->link[0].ids.regmapid);
 +
-+	/* Disable HPD as soon as posssible */
-+	dw_hdmi_disable_hpd(dw_dev);
-+	/* Prevent HDCP from tampering video */
-+	dw_hdmi_config_hdcp(dw_dev);
++	ddbwritel(dev, 0, DMA_BASE_READ);
++	ddbwritel(dev, 0, DMA_BASE_WRITE);
 +
-+	irq = platform_get_irq(pdev, 0);
-+	if (irq < 0) {
-+		ret = irq;
-+		goto err_wq;
-+	}
++	stat = ddb_irq_init(dev);
+ 	if (stat < 0)
+-		goto fail1;
+-	ddbwritel(0, DMA_BASE_WRITE);
+-	ddbwritel(0, DMA_BASE_READ);
+-	ddbwritel(0xffffffff, INTERRUPT_ACK);
+-	ddbwritel(0xfff0f, INTERRUPT_ENABLE);
+-	ddbwritel(0, MSI1_ENABLE);
+-
+-	/* board control */
+-	if (dev->info->board_control) {
+-		ddbwritel(0, DDB_LINK_TAG(0) | BOARD_CONTROL);
+-		msleep(100);
+-		ddbwritel(dev->info->board_control_2,
+-			DDB_LINK_TAG(0) | BOARD_CONTROL);
+-		usleep_range(2000, 3000);
+-		ddbwritel(dev->info->board_control_2
+-			| dev->info->board_control,
+-			DDB_LINK_TAG(0) | BOARD_CONTROL);
+-		usleep_range(2000, 3000);
+-	}
++		goto fail0;
+ 
+-	if (ddb_i2c_init(dev) < 0)
+-		goto fail1;
+-	ddb_ports_init(dev);
+-	if (ddb_buffers_alloc(dev) < 0) {
+-		dev_err(&pdev->dev, "Could not allocate buffer memory\n");
+-		goto fail2;
+-	}
+-	if (ddb_ports_attach(dev) < 0)
+-		goto fail3;
+-	ddb_device_create(dev);
+-	return 0;
++	if (ddb_init(dev) == 0)
++		return 0;
+ 
+-fail3:
+-	ddb_ports_detach(dev);
+-	dev_err(&pdev->dev, "fail3\n");
+-	ddb_ports_release(dev);
+-fail2:
+-	dev_err(&pdev->dev, "fail2\n");
+-	ddb_buffers_free(dev);
+-fail1:
+-	dev_err(&pdev->dev, "fail1\n");
++	ddb_irq_exit(dev);
++fail0:
++	dev_err(&pdev->dev, "fail0\n");
+ 	if (dev->msi)
+ 		pci_disable_msi(dev->pdev);
+-	if (stat == 0)
+-		free_irq(dev->pdev->irq, dev);
+ fail:
+ 	dev_err(&pdev->dev, "fail\n");
 +
-+	ret = devm_request_threaded_irq(dev, irq, NULL, dw_hdmi_irq_handler,
-+			IRQF_ONESHOT, DW_HDMI_RX_DRVNAME, dw_dev);
-+	if (ret)
-+		goto err_wq;
+ 	ddb_unmap(dev);
+ 	pci_set_drvdata(pdev, NULL);
+ 	pci_disable_device(pdev);
+ 	return -1;
+ }
+ 
+-/******************************************************************************/
+-/******************************************************************************/
+-/******************************************************************************/
++/****************************************************************************/
++/****************************************************************************/
++/****************************************************************************/
+ 
+ static const struct ddb_info ddb_none = {
+ 	.type     = DDB_NONE,
+-	.name     = "Digital Devices PCIe bridge",
++	.name     = "unknown Digital Devices PCIe card, install newer driver",
++	.regmap   = &octopus_map,
+ };
+ 
+ static const struct ddb_info ddb_octopus = {
+ 	.type     = DDB_OCTOPUS,
+ 	.name     = "Digital Devices Octopus DVB adapter",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x0f,
++};
 +
-+	/* V4L2 initialization */
-+	sd = &dw_dev->sd;
-+	v4l2_subdev_init(sd, &dw_hdmi_sd_ops);
-+	strlcpy(sd->name, dev_name(dev), sizeof(sd->name));
-+	sd->dev = dev;
-+	sd->internal_ops = &dw_hdmi_internal_ops;
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
++static const struct ddb_info ddb_octopusv3 = {
++	.type     = DDB_OCTOPUS,
++	.name     = "Digital Devices Octopus V3 DVB adapter",
++	.regmap   = &octopus_map,
+ 	.port_num = 4,
++	.i2c_mask = 0x0f,
+ };
+ 
+ static const struct ddb_info ddb_octopus_le = {
+ 	.type     = DDB_OCTOPUS,
+ 	.name     = "Digital Devices Octopus LE DVB adapter",
++	.regmap   = &octopus_map,
+ 	.port_num = 2,
++	.i2c_mask = 0x03,
+ };
+ 
+ static const struct ddb_info ddb_octopus_oem = {
+ 	.type     = DDB_OCTOPUS,
+ 	.name     = "Digital Devices Octopus OEM",
++	.regmap   = &octopus_map,
+ 	.port_num = 4,
++	.i2c_mask = 0x0f,
++	.led_num  = 1,
++	.fan_num  = 1,
++	.temp_num = 1,
++	.temp_bus = 0,
+ };
+ 
+ static const struct ddb_info ddb_octopus_mini = {
+ 	.type     = DDB_OCTOPUS,
+ 	.name     = "Digital Devices Octopus Mini",
++	.regmap   = &octopus_map,
+ 	.port_num = 4,
++	.i2c_mask = 0x0f,
+ };
+ 
+ static const struct ddb_info ddb_v6 = {
+ 	.type     = DDB_OCTOPUS,
+ 	.name     = "Digital Devices Cine S2 V6 DVB adapter",
++	.regmap   = &octopus_map,
+ 	.port_num = 3,
++	.i2c_mask = 0x07,
+ };
 +
-+	/* Control handlers */
-+	hdl = &dw_dev->hdl;
-+	v4l2_ctrl_handler_init(hdl, 1);
-+	dw_dev->detect_tx_5v_ctrl = v4l2_ctrl_new_std(hdl, NULL,
-+			V4L2_CID_DV_RX_POWER_PRESENT, 0, BIT(4) - 1, 0, 0);
+ static const struct ddb_info ddb_v6_5 = {
+ 	.type     = DDB_OCTOPUS,
+ 	.name     = "Digital Devices Cine S2 V6.5 DVB adapter",
++	.regmap   = &octopus_map,
+ 	.port_num = 4,
++	.i2c_mask = 0x0f,
+ };
+ 
+ static const struct ddb_info ddb_v7 = {
+ 	.type     = DDB_OCTOPUS,
+ 	.name     = "Digital Devices Cine S2 V7 DVB adapter",
++	.regmap   = &octopus_map,
+ 	.port_num = 4,
++	.i2c_mask = 0x0f,
+ 	.board_control   = 2,
+ 	.board_control_2 = 4,
+ 	.ts_quirks = TS_QUIRK_REVERSED,
+@@ -225,22 +356,20 @@ static const struct ddb_info ddb_v7 = {
+ static const struct ddb_info ddb_v7a = {
+ 	.type     = DDB_OCTOPUS,
+ 	.name     = "Digital Devices Cine S2 V7 Advanced DVB adapter",
++	.regmap   = &octopus_map,
+ 	.port_num = 4,
++	.i2c_mask = 0x0f,
+ 	.board_control   = 2,
+ 	.board_control_2 = 4,
+ 	.ts_quirks = TS_QUIRK_REVERSED,
+ };
+ 
+-static const struct ddb_info ddb_dvbct = {
+-	.type     = DDB_OCTOPUS,
+-	.name     = "Digital Devices DVBCT V6.1 DVB adapter",
+-	.port_num = 3,
+-};
+-
+ static const struct ddb_info ddb_ctv7 = {
+ 	.type     = DDB_OCTOPUS,
+ 	.name     = "Digital Devices Cine CT V7 DVB adapter",
++	.regmap   = &octopus_map,
+ 	.port_num = 4,
++	.i2c_mask = 0x0f,
+ 	.board_control   = 3,
+ 	.board_control_2 = 4,
+ };
+@@ -248,134 +377,217 @@ static const struct ddb_info ddb_ctv7 = {
+ static const struct ddb_info ddb_satixS2v3 = {
+ 	.type     = DDB_OCTOPUS,
+ 	.name     = "Mystique SaTiX-S2 V3 DVB adapter",
++	.regmap   = &octopus_map,
+ 	.port_num = 3,
++	.i2c_mask = 0x07,
+ };
+ 
+-static const struct ddb_info ddb_octopusv3 = {
+-	.type     = DDB_OCTOPUS,
+-	.name     = "Digital Devices Octopus V3 DVB adapter",
++static const struct ddb_info ddb_ci = {
++	.type     = DDB_OCTOPUS_CI,
++	.name     = "Digital Devices Octopus CI",
++	.regmap   = &octopus_map,
+ 	.port_num = 4,
++	.i2c_mask = 0x03,
++};
 +
-+	sd->ctrl_handler = hdl;
-+	if (hdl->error) {
-+		ret = hdl->error;
-+		goto err_hdl;
-+	}
++static const struct ddb_info ddb_cis = {
++	.type     = DDB_OCTOPUS_CI,
++	.name     = "Digital Devices Octopus CI single",
++	.regmap   = &octopus_map,
++	.port_num = 3,
++	.i2c_mask = 0x03,
+ };
+ 
+-/*** MaxA8 adapters ***********************************************************/
++static const struct ddb_info ddb_ci_s2_pro = {
++	.type     = DDB_OCTOPUS_CI,
++	.name     = "Digital Devices Octopus CI S2 Pro",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x01,
++	.board_control   = 2,
++	.board_control_2 = 4,
++};
 +
-+	/* Wait for ctrl handler register before requesting 5v interrupt */
-+	irq = platform_get_irq(pdev, 1);
-+	if (irq < 0) {
-+		ret = irq;
-+		goto err_hdl;
-+	}
++static const struct ddb_info ddb_ci_s2_pro_a = {
++	.type     = DDB_OCTOPUS_CI,
++	.name     = "Digital Devices Octopus CI S2 Pro Advanced",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x01,
++	.board_control   = 2,
++	.board_control_2 = 4,
++};
 +
-+	ret = devm_request_threaded_irq(dev, irq, dw_hdmi_5v_hard_irq_handler,
-+			dw_hdmi_5v_irq_handler, IRQF_ONESHOT,
-+			DW_HDMI_RX_DRVNAME "-5v-handler", dw_dev);
-+	if (ret)
-+		goto err_hdl;
++static const struct ddb_info ddb_dvbct = {
++	.type     = DDB_OCTOPUS,
++	.name     = "Digital Devices DVBCT V6.1 DVB adapter",
++	.regmap   = &octopus_map,
++	.port_num = 3,
++	.i2c_mask = 0x07,
++};
 +
-+	/* Notifier for subdev binding */
-+	ret = dw_hdmi_v4l2_init_notifier(dw_dev);
-+	if (ret) {
-+		dev_err(dev, "failed to init v4l2 notifier\n");
-+		goto err_hdl;
-+	}
++/****************************************************************************/
+ 
+ static struct ddb_info ddb_ct2_8 = {
+ 	.type     = DDB_OCTOPUS_MAX_CT,
+ 	.name     = "Digital Devices MAX A8 CT2",
++	.regmap   = &octopus_map,
+ 	.port_num = 4,
++	.i2c_mask = 0x0f,
+ 	.board_control   = 0x0ff,
+ 	.board_control_2 = 0xf00,
+ 	.ts_quirks = TS_QUIRK_SERIAL,
++	.tempmon_irq = 24,
+ };
+ 
+ static struct ddb_info ddb_c2t2_8 = {
+ 	.type     = DDB_OCTOPUS_MAX_CT,
+ 	.name     = "Digital Devices MAX A8 C2T2",
++	.regmap   = &octopus_map,
+ 	.port_num = 4,
++	.i2c_mask = 0x0f,
+ 	.board_control   = 0x0ff,
+ 	.board_control_2 = 0xf00,
+ 	.ts_quirks = TS_QUIRK_SERIAL,
++	.tempmon_irq = 24,
+ };
+ 
+ static struct ddb_info ddb_isdbt_8 = {
+ 	.type     = DDB_OCTOPUS_MAX_CT,
+ 	.name     = "Digital Devices MAX A8 ISDBT",
++	.regmap   = &octopus_map,
+ 	.port_num = 4,
++	.i2c_mask = 0x0f,
+ 	.board_control   = 0x0ff,
+ 	.board_control_2 = 0xf00,
+ 	.ts_quirks = TS_QUIRK_SERIAL,
++	.tempmon_irq = 24,
+ };
+ 
+ static struct ddb_info ddb_c2t2i_v0_8 = {
+ 	.type     = DDB_OCTOPUS_MAX_CT,
+ 	.name     = "Digital Devices MAX A8 C2T2I V0",
++	.regmap   = &octopus_map,
+ 	.port_num = 4,
++	.i2c_mask = 0x0f,
+ 	.board_control   = 0x0ff,
+ 	.board_control_2 = 0xf00,
+ 	.ts_quirks = TS_QUIRK_SERIAL | TS_QUIRK_ALT_OSC,
++	.tempmon_irq = 24,
+ };
+ 
+ static struct ddb_info ddb_c2t2i_8 = {
+ 	.type     = DDB_OCTOPUS_MAX_CT,
+ 	.name     = "Digital Devices MAX A8 C2T2I",
++	.regmap   = &octopus_map,
+ 	.port_num = 4,
++	.i2c_mask = 0x0f,
+ 	.board_control   = 0x0ff,
+ 	.board_control_2 = 0xf00,
+ 	.ts_quirks = TS_QUIRK_SERIAL,
++	.tempmon_irq = 24,
+ };
+ 
+-/******************************************************************************/
++/****************************************************************************/
++/****************************************************************************/
++/****************************************************************************/
+ 
+ #define DDVID 0xdd01 /* Digital Devices Vendor ID */
+ 
+-#define DDB_ID(_vend, _dev, _subvend, _subdev, _driverdata) {	\
+-	.vendor      = _vend,    .device    = _dev, \
+-	.subvendor   = _subvend, .subdevice = _subdev, \
+-	.driver_data = (unsigned long)&_driverdata }
+-
+-static const struct pci_device_id ddb_id_tbl[] = {
+-	DDB_ID(DDVID, 0x0002, DDVID, 0x0001, ddb_octopus),
+-	DDB_ID(DDVID, 0x0003, DDVID, 0x0001, ddb_octopus),
+-	DDB_ID(DDVID, 0x0005, DDVID, 0x0004, ddb_octopusv3),
+-	DDB_ID(DDVID, 0x0003, DDVID, 0x0002, ddb_octopus_le),
+-	DDB_ID(DDVID, 0x0003, DDVID, 0x0003, ddb_octopus_oem),
+-	DDB_ID(DDVID, 0x0003, DDVID, 0x0010, ddb_octopus_mini),
+-	DDB_ID(DDVID, 0x0005, DDVID, 0x0011, ddb_octopus_mini),
+-	DDB_ID(DDVID, 0x0003, DDVID, 0x0020, ddb_v6),
+-	DDB_ID(DDVID, 0x0003, DDVID, 0x0021, ddb_v6_5),
+-	DDB_ID(DDVID, 0x0006, DDVID, 0x0022, ddb_v7),
+-	DDB_ID(DDVID, 0x0006, DDVID, 0x0024, ddb_v7a),
+-	DDB_ID(DDVID, 0x0003, DDVID, 0x0030, ddb_dvbct),
+-	DDB_ID(DDVID, 0x0003, DDVID, 0xdb03, ddb_satixS2v3),
+-	DDB_ID(DDVID, 0x0006, DDVID, 0x0031, ddb_ctv7),
+-	DDB_ID(DDVID, 0x0006, DDVID, 0x0032, ddb_ctv7),
+-	DDB_ID(DDVID, 0x0006, DDVID, 0x0033, ddb_ctv7),
+-	DDB_ID(DDVID, 0x0008, DDVID, 0x0034, ddb_ct2_8),
+-	DDB_ID(DDVID, 0x0008, DDVID, 0x0035, ddb_c2t2_8),
+-	DDB_ID(DDVID, 0x0008, DDVID, 0x0036, ddb_isdbt_8),
+-	DDB_ID(DDVID, 0x0008, DDVID, 0x0037, ddb_c2t2i_v0_8),
+-	DDB_ID(DDVID, 0x0008, DDVID, 0x0038, ddb_c2t2i_8),
+-	DDB_ID(DDVID, 0x0006, DDVID, 0x0039, ddb_ctv7),
++#define DDB_DEVICE(_device, _subdevice, _driver_data) { \
++		PCI_DEVICE_SUB(DDVID, _device, DDVID, _subdevice), \
++			.driver_data = (kernel_ulong_t) &_driver_data }
 +
-+	/* PHY loading */
-+	ret = dw_hdmi_phy_init(dw_dev);
-+	if (ret)
-+		goto err_hdl;
++#define DDB_DEVICE_ANY(_device) { \
++		PCI_DEVICE_SUB(DDVID, _device, DDVID, PCI_ANY_ID), \
++			.driver_data = (kernel_ulong_t) &ddb_none }
 +
-+	/* CEC */
-+#if IS_ENABLED(CONFIG_VIDEO_DWC_HDMI_RX_CEC)
-+	dw_dev->cec_adap = cec_allocate_adapter(&dw_hdmi_cec_adap_ops,
-+			dw_dev, dev_name(dev), CEC_CAP_TRANSMIT |
-+			CEC_CAP_LOG_ADDRS | CEC_CAP_RC | CEC_CAP_PASSTHROUGH,
-+			HDMI_CEC_MAX_LOG_ADDRS);
-+	ret = PTR_ERR_OR_ZERO(dw_dev->cec_adap);
-+	if (ret) {
-+		dev_err(dev, "failed to allocate CEC adapter\n");
-+		goto err_cec;
-+	}
++static const struct pci_device_id ddb_id_table[] = {
++	DDB_DEVICE(0x0002, 0x0001, ddb_octopus),
++	DDB_DEVICE(0x0003, 0x0001, ddb_octopus),
++	DDB_DEVICE(0x0005, 0x0004, ddb_octopusv3),
++	DDB_DEVICE(0x0003, 0x0002, ddb_octopus_le),
++	DDB_DEVICE(0x0003, 0x0003, ddb_octopus_oem),
++	DDB_DEVICE(0x0003, 0x0010, ddb_octopus_mini),
++	DDB_DEVICE(0x0005, 0x0011, ddb_octopus_mini),
++	DDB_DEVICE(0x0003, 0x0020, ddb_v6),
++	DDB_DEVICE(0x0003, 0x0021, ddb_v6_5),
++	DDB_DEVICE(0x0006, 0x0022, ddb_v7),
++	DDB_DEVICE(0x0006, 0x0024, ddb_v7a),
++	DDB_DEVICE(0x0003, 0x0030, ddb_dvbct),
++	DDB_DEVICE(0x0003, 0xdb03, ddb_satixS2v3),
++	DDB_DEVICE(0x0006, 0x0031, ddb_ctv7),
++	DDB_DEVICE(0x0006, 0x0032, ddb_ctv7),
++	DDB_DEVICE(0x0006, 0x0033, ddb_ctv7),
++	DDB_DEVICE(0x0008, 0x0034, ddb_ct2_8),
++	DDB_DEVICE(0x0008, 0x0035, ddb_c2t2_8),
++	DDB_DEVICE(0x0008, 0x0036, ddb_isdbt_8),
++	DDB_DEVICE(0x0008, 0x0037, ddb_c2t2i_v0_8),
++	DDB_DEVICE(0x0008, 0x0038, ddb_c2t2i_8),
++	DDB_DEVICE(0x0006, 0x0039, ddb_ctv7),
++	DDB_DEVICE(0x0011, 0x0040, ddb_ci),
++	DDB_DEVICE(0x0011, 0x0041, ddb_cis),
++	DDB_DEVICE(0x0012, 0x0042, ddb_ci),
++	DDB_DEVICE(0x0013, 0x0043, ddb_ci_s2_pro),
++	DDB_DEVICE(0x0013, 0x0044, ddb_ci_s2_pro_a),
+ 	/* in case sub-ids got deleted in flash */
+-	DDB_ID(DDVID, 0x0003, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
+-	DDB_ID(DDVID, 0x0005, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
+-	DDB_ID(DDVID, 0x0006, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
+-	DDB_ID(DDVID, 0x0007, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
+-	DDB_ID(DDVID, 0x0008, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
+-	DDB_ID(DDVID, 0x0011, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
+-	DDB_ID(DDVID, 0x0013, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
+-	DDB_ID(DDVID, 0x0201, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
+-	DDB_ID(DDVID, 0x0320, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
++	DDB_DEVICE_ANY(0x0003),
++	DDB_DEVICE_ANY(0x0005),
++	DDB_DEVICE_ANY(0x0006),
++	DDB_DEVICE_ANY(0x0007),
++	DDB_DEVICE_ANY(0x0008),
++	DDB_DEVICE_ANY(0x0011),
++	DDB_DEVICE_ANY(0x0012),
++	DDB_DEVICE_ANY(0x0013),
++	DDB_DEVICE_ANY(0x0201),
++	DDB_DEVICE_ANY(0x0203),
++	DDB_DEVICE_ANY(0x0210),
++	DDB_DEVICE_ANY(0x0220),
++	DDB_DEVICE_ANY(0x0320),
++	DDB_DEVICE_ANY(0x0321),
++	DDB_DEVICE_ANY(0x0322),
++	DDB_DEVICE_ANY(0x0323),
++	DDB_DEVICE_ANY(0x0328),
++	DDB_DEVICE_ANY(0x0329),
+ 	{0}
+ };
+-MODULE_DEVICE_TABLE(pci, ddb_id_tbl);
+ 
++MODULE_DEVICE_TABLE(pci, ddb_id_table);
+ 
+ static struct pci_driver ddb_pci_driver = {
+-	.name        = "DDBridge",
+-	.id_table    = ddb_id_tbl,
++	.name        = "ddbridge",
++	.id_table    = ddb_id_table,
+ 	.probe       = ddb_probe,
+ 	.remove      = ddb_remove,
+ };
+ 
+ static __init int module_init_ddbridge(void)
+ {
+-	int ret;
+-
+-	pr_info("Digital Devices PCIE bridge driver, Copyright (C) 2010-11 Digital Devices GmbH\n");
+-
+-	ret = ddb_class_create();
+-	if (ret < 0)
+-		return ret;
+-	ret = pci_register_driver(&ddb_pci_driver);
+-	if (ret < 0)
+-		ddb_class_destroy();
+-	return ret;
++	int stat = -1;
 +
-+	dw_dev->cec_notifier = cec_notifier_get(&dw_dev->notifier_pdev->dev);
-+	if (!dw_dev->cec_notifier) {
-+		dev_err(dev, "failed to allocate CEC notifier\n");
-+		ret = -ENOMEM;
-+		goto err_cec;
-+	}
++	pr_info("Digital Devices PCIE bridge driver "
++		DDBRIDGE_VERSION
++		", Copyright (C) 2010-17 Digital Devices GmbH\n");
++	if (ddb_class_create() < 0)
++		return -1;
++	ddb_wq = create_workqueue("ddbridge");
++	if (ddb_wq == NULL)
++		goto exit1;
++	stat = pci_register_driver(&ddb_pci_driver);
++	if (stat < 0)
++		goto exit2;
++	return stat;
++exit2:
++	destroy_workqueue(ddb_wq);
++exit1:
++	ddb_class_destroy();
++	return stat;
+ }
+ 
+ static __exit void module_exit_ddbridge(void)
+ {
+ 	pci_unregister_driver(&ddb_pci_driver);
++	destroy_workqueue(ddb_wq);
+ 	ddb_class_destroy();
+ }
+ 
+@@ -383,6 +595,6 @@ module_init(module_init_ddbridge);
+ module_exit(module_exit_ddbridge);
+ 
+ MODULE_DESCRIPTION("Digital Devices PCIe Bridge");
+-MODULE_AUTHOR("Ralph Metzler");
++MODULE_AUTHOR("Ralph and Marcus Metzler, Metzler Brothers Systementwicklung GbR");
+ MODULE_LICENSE("GPL");
+-MODULE_VERSION("0.5");
++MODULE_VERSION(DDBRIDGE_VERSION);
+diff --git a/drivers/media/pci/ddbridge/ddbridge-regs.h b/drivers/media/pci/ddbridge/ddbridge-regs.h
+index 98cebb97d64f..73a40f847318 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-regs.h
++++ b/drivers/media/pci/ddbridge/ddbridge-regs.h
+@@ -1,7 +1,7 @@
+ /*
+  * ddbridge-regs.h: Digital Devices PCIe bridge driver
+  *
+- * Copyright (C) 2010-2011 Digital Devices GmbH
++ * Copyright (C) 2010-2017 Digital Devices GmbH
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+@@ -17,20 +17,26 @@
+  * http://www.gnu.org/copyleft/gpl.html
+  */
+ 
+-/* DD-DVBBridgeV1.h 273 2010-09-17 05:03:16Z manfred */
++/* ------------------------------------------------------------------------- */
++/* SPI Controller */
+ 
+-/* Register Definitions */
++#define SPI_CONTROL     0x10
++#define SPI_DATA        0x14
+ 
+-#define CUR_REGISTERMAP_VERSION 0x10000
++/* ------------------------------------------------------------------------- */
++/* GPIO */
+ 
+-#define HARDWARE_VERSION       0x00
+-#define REGISTERMAP_VERSION    0x04
++#define GPIO_OUTPUT      0x20
++#define GPIO_INPUT       0x24
++#define GPIO_DIRECTION   0x28
+ 
+ /* ------------------------------------------------------------------------- */
+-/* SPI Controller */
++/* MDIO */
+ 
+-#define SPI_CONTROL     0x10
+-#define SPI_DATA        0x14
++#define MDIO_CTRL        0x20
++#define MDIO_ADR         0x24
++#define MDIO_REG         0x28
++#define MDIO_VAL         0x2C
+ 
+ /* ------------------------------------------------------------------------- */
+ 
+@@ -38,14 +44,14 @@
+ 
+ /* ------------------------------------------------------------------------- */
+ 
+-/* Interrupt controller                                     */
+-/* How many MSI's are available depends on HW (Min 2 max 8) */
+-/* How many are usable also depends on Host platform        */
++/* Interrupt controller
++ * How many MSI's are available depends on HW (Min 2 max 8)
++ * How many are usable also depends on Host platform
++ */
+ 
+ #define INTERRUPT_BASE   (0x40)
+ 
+ #define INTERRUPT_ENABLE (INTERRUPT_BASE + 0x00)
+-#define MSI0_ENABLE      (INTERRUPT_BASE + 0x00)
+ #define MSI1_ENABLE      (INTERRUPT_BASE + 0x04)
+ #define MSI2_ENABLE      (INTERRUPT_BASE + 0x08)
+ #define MSI3_ENABLE      (INTERRUPT_BASE + 0x0C)
+@@ -57,59 +63,31 @@
+ #define INTERRUPT_STATUS (INTERRUPT_BASE + 0x20)
+ #define INTERRUPT_ACK    (INTERRUPT_BASE + 0x20)
+ 
+-#define INTMASK_I2C1        (0x00000001)
+-#define INTMASK_I2C2        (0x00000002)
+-#define INTMASK_I2C3        (0x00000004)
+-#define INTMASK_I2C4        (0x00000008)
+-
+-#define INTMASK_CIRQ1       (0x00000010)
+-#define INTMASK_CIRQ2       (0x00000020)
+-#define INTMASK_CIRQ3       (0x00000040)
+-#define INTMASK_CIRQ4       (0x00000080)
+-
+-#define INTMASK_TSINPUT1    (0x00000100)
+-#define INTMASK_TSINPUT2    (0x00000200)
+-#define INTMASK_TSINPUT3    (0x00000400)
+-#define INTMASK_TSINPUT4    (0x00000800)
+-#define INTMASK_TSINPUT5    (0x00001000)
+-#define INTMASK_TSINPUT6    (0x00002000)
+-#define INTMASK_TSINPUT7    (0x00004000)
+-#define INTMASK_TSINPUT8    (0x00008000)
+-
+-#define INTMASK_TSOUTPUT1   (0x00010000)
+-#define INTMASK_TSOUTPUT2   (0x00020000)
+-#define INTMASK_TSOUTPUT3   (0x00040000)
+-#define INTMASK_TSOUTPUT4   (0x00080000)
++/* Temperature Monitor ( 2x LM75A @ 0x90,0x92 I2c ) */
++#define TEMPMON_BASE			(0x1c0)
++#define TEMPMON_CONTROL			(TEMPMON_BASE + 0x00)
 +
-+	dev_info(dev, "CEC is enabled\n");
-+#else
-+	dev_info(dev, "CEC is disabled\n");
++#define TEMPMON_CONTROL_AUTOSCAN	(0x00000002)
++#define TEMPMON_CONTROL_INTENABLE	(0x00000004)
++#define TEMPMON_CONTROL_OVERTEMP	(0x00008000)
++
++/* SHORT Temperature in °C x 256 */
++#define TEMPMON_SENSOR0			(TEMPMON_BASE + 0x04)
++#define TEMPMON_SENSOR1			(TEMPMON_BASE + 0x08)
++
++#define TEMPMON_FANCONTROL		(TEMPMON_BASE + 0x10)
+ 
+ /* ------------------------------------------------------------------------- */
+ /* I2C Master Controller */
+ 
+-#define I2C_BASE        (0x80)  /* Byte offset */
+-
+ #define I2C_COMMAND     (0x00)
+ #define I2C_TIMING      (0x04)
+ #define I2C_TASKLENGTH  (0x08)     /* High read, low write */
+ #define I2C_TASKADDRESS (0x0C)     /* High read, low write */
+-
+ #define I2C_MONITOR     (0x1C)
+ 
+-#define I2C_BASE_1      (I2C_BASE + 0x00)
+-#define I2C_BASE_2      (I2C_BASE + 0x20)
+-#define I2C_BASE_3      (I2C_BASE + 0x40)
+-#define I2C_BASE_4      (I2C_BASE + 0x60)
+-
+-#define I2C_BASE_N(i)   (I2C_BASE + (i) * 0x20)
+-
+-#define I2C_TASKMEM_BASE    (0x1000)    /* Byte offset */
+-#define I2C_TASKMEM_SIZE    (0x1000)
+-
+ #define I2C_SPEED_400   (0x04030404)
+-#define I2C_SPEED_200   (0x09080909)
+-#define I2C_SPEED_154   (0x0C0B0C0C)
+ #define I2C_SPEED_100   (0x13121313)
+-#define I2C_SPEED_77    (0x19181919)
+-#define I2C_SPEED_50    (0x27262727)
+-
+ 
+ /* ------------------------------------------------------------------------- */
+ /* DMA  Controller */
+@@ -117,35 +95,41 @@
+ #define DMA_BASE_WRITE        (0x100)
+ #define DMA_BASE_READ         (0x140)
+ 
+-#define DMA_CONTROL     (0x00)                  /* 64 */
+-#define DMA_ERROR       (0x04)                  /* 65 ( only read instance ) */
+-
+-#define DMA_DIAG_CONTROL                (0x1C)  /* 71 */
+-#define DMA_DIAG_PACKETCOUNTER_LOW      (0x20)  /* 72 */
+-#define DMA_DIAG_PACKETCOUNTER_HIGH     (0x24)  /* 73 */
+-#define DMA_DIAG_TIMECOUNTER_LOW        (0x28)  /* 74 */
+-#define DMA_DIAG_TIMECOUNTER_HIGH       (0x2C)  /* 75 */
+-#define DMA_DIAG_RECHECKCOUNTER         (0x30)  /* 76  ( Split completions on read ) */
+-#define DMA_DIAG_WAITTIMEOUTINIT        (0x34)  /* 77 */
+-#define DMA_DIAG_WAITOVERFLOWCOUNTER    (0x38)  /* 78 */
+-#define DMA_DIAG_WAITCOUNTER            (0x3C)  /* 79 */
++#define TS_CONTROL(_io)         (_io->regs + 0x00)
++#define TS_CONTROL2(_io)        (_io->regs + 0x04)
+ 
+ /* ------------------------------------------------------------------------- */
+ /* DMA  Buffer */
+ 
+-#define TS_INPUT_BASE       (0x200)
+-#define TS_INPUT_CONTROL(i)         (TS_INPUT_BASE + (i) * 16 + 0x00)
++#define DMA_BUFFER_CONTROL(_dma)       (_dma->regs + 0x00)
++#define DMA_BUFFER_ACK(_dma)           (_dma->regs + 0x04)
++#define DMA_BUFFER_CURRENT(_dma)       (_dma->regs + 0x08)
++#define DMA_BUFFER_SIZE(_dma)          (_dma->regs + 0x0c)
++
++/* ------------------------------------------------------------------------- */
++/* CI Interface (only CI-Bridge) */
++
++#define CI_BASE                     (0x400)
++#define CI_CONTROL(i)               (CI_BASE + (i) * 32 + 0x00)
++
++#define CI_DO_ATTRIBUTE_RW(i)       (CI_BASE + (i) * 32 + 0x04)
++#define CI_DO_IO_RW(i)              (CI_BASE + (i) * 32 + 0x08)
++#define CI_READDATA(i)              (CI_BASE + (i) * 32 + 0x0c)
++#define CI_DO_READ_ATTRIBUTES(i)    (CI_BASE + (i) * 32 + 0x10)
+ 
+-#define TS_OUTPUT_BASE       (0x280)
+-#define TS_OUTPUT_CONTROL(i)         (TS_OUTPUT_BASE + (i) * 16 + 0x00)
++#define CI_RESET_CAM                    (0x00000001)
++#define CI_POWER_ON                     (0x00000002)
++#define CI_ENABLE                       (0x00000004)
++#define CI_BYPASS_DISABLE               (0x00000010)
+ 
+-#define DMA_BUFFER_BASE     (0x300)
++#define CI_CAM_READY                    (0x00010000)
++#define CI_CAM_DETECT                   (0x00020000)
++#define CI_READY                        (0x80000000)
+ 
+-#define DMA_BUFFER_CONTROL(i)       (DMA_BUFFER_BASE + (i) * 16 + 0x00)
+-#define DMA_BUFFER_ACK(i)           (DMA_BUFFER_BASE + (i) * 16 + 0x04)
+-#define DMA_BUFFER_CURRENT(i)       (DMA_BUFFER_BASE + (i) * 16 + 0x08)
+-#define DMA_BUFFER_SIZE(i)          (DMA_BUFFER_BASE + (i) * 16 + 0x0c)
++#define CI_READ_CMD                     (0x40000000)
++#define CI_WRITE_CMD                    (0x80000000)
+ 
+-#define DMA_BASE_ADDRESS_TABLE  (0x2000)
+-#define DMA_BASE_ADDRESS_TABLE_ENTRIES (512)
++#define CI_BUFFER_BASE                  (0x3000)
++#define CI_BUFFER_SIZE                  (0x0800)
+ 
++#define CI_BUFFER(i)                  (CI_BUFFER_BASE + (i) * CI_BUFFER_SIZE)
+diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
+index 810a4da1c10e..7fe5820a78ff 100644
+--- a/drivers/media/pci/ddbridge/ddbridge.h
++++ b/drivers/media/pci/ddbridge/ddbridge.h
+@@ -1,7 +1,8 @@
+ /*
+  * ddbridge.h: Digital Devices PCIe bridge driver
+  *
+- * Copyright (C) 2010-2011 Digital Devices GmbH
++ * Copyright (C) 2010-2017 Digital Devices GmbH
++ *                         Ralph Metzler <rmetzler@digitaldevices.de>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+@@ -20,15 +21,39 @@
+ #ifndef _DDBRIDGE_H_
+ #define _DDBRIDGE_H_
+ 
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/delay.h>
++#include <linux/slab.h>
++#include <linux/poll.h>
++#include <linux/io.h>
++#include <linux/pci.h>
++#include <linux/timer.h>
++#include <linux/i2c.h>
++#include <linux/swab.h>
++#include <linux/vmalloc.h>
++#include <linux/workqueue.h>
++#include <linux/kthread.h>
++#include <linux/platform_device.h>
++#include <linux/clk.h>
++#include <linux/spi/spi.h>
++#include <linux/gpio.h>
++#include <linux/completion.h>
++
+ #include <linux/types.h>
+ #include <linux/sched.h>
+ #include <linux/interrupt.h>
+-#include <linux/i2c.h>
+ #include <linux/mutex.h>
+ #include <asm/dma.h>
+-#include <linux/dvb/frontend.h>
++#include <asm/irq.h>
++#include <linux/io.h>
++#include <linux/uaccess.h>
++
+ #include <linux/dvb/ca.h>
+ #include <linux/socket.h>
++#include <linux/device.h>
++#include <linux/io.h>
+ 
+ #include "dmxdev.h"
+ #include "dvbdev.h"
+@@ -37,72 +62,125 @@
+ #include "dvb_ringbuffer.h"
+ #include "dvb_ca_en50221.h"
+ #include "dvb_net.h"
+-#include "cxd2099.h"
+ 
+-/* MSI had problems with lost interrupts, fixed but needs testing */
+-#undef CONFIG_PCI_MSI
++#define DDBRIDGE_VERSION "0.9.29-integrated"
+ 
+-#define DDB_MAX_I2C     4
+-#define DDB_MAX_PORT    4
+-#define DDB_MAX_INPUT   8
+-#define DDB_MAX_OUTPUT  4
++#ifdef CONFIG_PCI_MSI
++#define DDB_USE_MSI_IRQHANDLERS
 +#endif
 +
-+	ret = v4l2_async_register_subdev(sd);
-+	if (ret) {
-+		dev_err(dev, "failed to register subdev\n");
-+		goto err_cec;
-+	}
++#define DDB_MAX_I2C    32
++#define DDB_MAX_PORT   32
++#define DDB_MAX_INPUT  64
++#define DDB_MAX_OUTPUT 32
+ #define DDB_MAX_LINK    4
+ #define DDB_LINK_SHIFT 28
+ 
+ #define DDB_LINK_TAG(_x) (_x << DDB_LINK_SHIFT)
+ 
+-#define DDB_XO2_TYPE_NONE	0
+-#define DDB_XO2_TYPE_DUOFLEX	1
+-#define DDB_XO2_TYPE_CI		2
++struct ddb_regset {
++	u32 base;
++	u32 num;
++	u32 size;
++};
 +
-+	/* Fill initial format settings */
-+	dw_dev->timings = timings_def;
-+	dw_dev->mbus_code = MEDIA_BUS_FMT_BGR888_1X24;
++struct ddb_regmap {
++	u32 irq_base_i2c;
++	u32 irq_base_idma;
++	u32 irq_base_odma;
 +
-+	dev_set_drvdata(dev, sd);
-+	dw_dev->state = HDMI_STATE_POWER_OFF;
-+	dw_hdmi_detect_tx_5v(dw_dev);
-+	dev_dbg(dev, "driver probed\n");
-+	return 0;
++	struct ddb_regset *i2c;
++	struct ddb_regset *i2c_buf;
++	struct ddb_regset *idma;
++	struct ddb_regset *idma_buf;
++	struct ddb_regset *odma;
++	struct ddb_regset *odma_buf;
 +
-+err_cec:
-+	cec_delete_adapter(dw_dev->cec_adap);
-+	dw_hdmi_phy_exit(dw_dev);
-+err_hdl:
-+	v4l2_ctrl_handler_free(hdl);
-+err_wq:
-+	destroy_workqueue(dw_dev->wq);
-+	return ret;
-+}
++	struct ddb_regset *input;
++	struct ddb_regset *output;
 +
-+static int dw_hdmi_rx_remove(struct platform_device *pdev)
++	struct ddb_regset *channel;
++};
++
++struct ddb_ids {
++	u16 vendor;
++	u16 device;
++	u16 subvendor;
++	u16 subdevice;
++
++	u32 hwid;
++	u32 regmapid;
++	u32 devid;
++	u32 mac;
++};
+ 
+ struct ddb_info {
+ 	int   type;
+-#define DDB_NONE		0
+-#define DDB_OCTOPUS		1
+-#define DDB_OCTOPUS_MAX_CT	6
++#define DDB_NONE         0
++#define DDB_OCTOPUS      1
++#define DDB_OCTOPUS_CI   2
++#define DDB_OCTOPUS_MAX_CT  6
+ 	char *name;
+-	int   port_num;
+-	u32   port_type[DDB_MAX_PORT];
++	u32   i2c_mask;
++	u8    port_num;
++	u8    led_num;
++	u8    fan_num;
++	u8    temp_num;
++	u8    temp_bus;
+ 	u32   board_control;
+ 	u32   board_control_2;
++	u8    mdio_num;
++	u8    con_clock; /* use a continuous clock */
+ 	u8    ts_quirks;
+ #define TS_QUIRK_SERIAL   1
+ #define TS_QUIRK_REVERSED 2
+ #define TS_QUIRK_ALT_OSC  8
++	u32   tempmon_irq;
++	struct ddb_regmap *regmap;
+ };
+ 
+-/* DMA_SIZE MUST be divisible by 188 and 128 !!! */
++/* DMA_SIZE MUST be smaller than 256k and
++ * MUST be divisible by 188 and 128 !!!
++ */
++
++#define DMA_MAX_BUFS 32      /* hardware table limit */
+ 
+-#define INPUT_DMA_MAX_BUFS 32      /* hardware table limit */
+ #define INPUT_DMA_BUFS 8
+ #define INPUT_DMA_SIZE (128*47*21)
++#define INPUT_DMA_IRQ_DIV 1
+ 
+-#define OUTPUT_DMA_MAX_BUFS 32
+ #define OUTPUT_DMA_BUFS 8
+ #define OUTPUT_DMA_SIZE (128*47*21)
++#define OUTPUT_DMA_IRQ_DIV 1
+ 
+ struct ddb;
+ struct ddb_port;
+ 
+-struct ddb_input {
+-	struct ddb_port       *port;
+-	u32                    nr;
+-	int                    attached;
++struct ddb_dma {
++	void                  *io;
++	u32                    regs;
++	u32                    bufregs;
+ 
+-	dma_addr_t             pbuf[INPUT_DMA_MAX_BUFS];
+-	u8                    *vbuf[INPUT_DMA_MAX_BUFS];
+-	u32                    dma_buf_num;
+-	u32                    dma_buf_size;
++	dma_addr_t             pbuf[DMA_MAX_BUFS];
++	u8                    *vbuf[DMA_MAX_BUFS];
++	u32                    num;
++	u32                    size;
++	u32                    div;
++	u32                    bufval;
+ 
+-	struct tasklet_struct  tasklet;
++	struct work_struct     work;
+ 	spinlock_t             lock;
+ 	wait_queue_head_t      wq;
+ 	int                    running;
+ 	u32                    stat;
++	u32                    ctrl;
+ 	u32                    cbuf;
+ 	u32                    coff;
++};
+ 
+-	struct dvb_adapter     adap;
++struct ddb_dvb {
++	struct dvb_adapter    *adap;
++	int                    adap_registered;
+ 	struct dvb_device     *dev;
+ 	struct i2c_client     *i2c_client[1];
+ 	struct dvb_frontend   *fe;
+@@ -113,125 +191,238 @@ struct ddb_input {
+ 	struct dmx_frontend    hw_frontend;
+ 	struct dmx_frontend    mem_frontend;
+ 	int                    users;
+-	int (*gate_ctrl)(struct dvb_frontend *, int);
++	u32                    attached;
++	u8                     input;
++
++	enum fe_sec_tone_mode  tone;
++	enum fe_sec_voltage    voltage;
++
++	int (*i2c_gate_ctrl)(struct dvb_frontend *, int);
++	int (*set_voltage)(struct dvb_frontend *fe,
++		enum fe_sec_voltage voltage);
++	int (*set_input)(struct dvb_frontend *fe, int input);
++	int (*diseqc_send_master_cmd)(struct dvb_frontend *fe,
++		struct dvb_diseqc_master_cmd *cmd);
+ };
+ 
+-struct ddb_output {
++struct ddb_ci {
++	struct dvb_ca_en50221  en;
+ 	struct ddb_port       *port;
+ 	u32                    nr;
+-	dma_addr_t             pbuf[OUTPUT_DMA_MAX_BUFS];
+-	u8                    *vbuf[OUTPUT_DMA_MAX_BUFS];
+-	u32                    dma_buf_num;
+-	u32                    dma_buf_size;
+-	struct tasklet_struct  tasklet;
+-	spinlock_t             lock;
+-	wait_queue_head_t      wq;
+-	int                    running;
+-	u32                    stat;
+-	u32                    cbuf;
+-	u32                    coff;
++	struct mutex           lock;
++};
+ 
+-	struct dvb_adapter     adap;
+-	struct dvb_device     *dev;
++struct ddb_io {
++	struct ddb_port       *port;
++	u32                    nr;
++	u32                    regs;
++	struct ddb_dma        *dma;
++	struct ddb_io         *redo;
++	struct ddb_io         *redi;
+ };
+ 
++#define ddb_output ddb_io
++#define ddb_input ddb_io
++
+ struct ddb_i2c {
+ 	struct ddb            *dev;
+ 	u32                    nr;
+-	struct i2c_adapter     adap;
+-	struct i2c_adapter     adap2;
+ 	u32                    regs;
++	u32                    link;
++	struct i2c_adapter     adap;
+ 	u32                    rbuf;
+ 	u32                    wbuf;
+-	int                    done;
+-	wait_queue_head_t      wq;
++	u32                    bsize;
++	struct completion      completion;
+ };
+ 
+ struct ddb_port {
+ 	struct ddb            *dev;
+ 	u32                    nr;
++	u32                    pnr;
++	u32                    regs;
++	u32                    lnr;
+ 	struct ddb_i2c        *i2c;
+ 	struct mutex           i2c_gate_lock;
+ 	u32                    class;
+ #define DDB_PORT_NONE           0
+ #define DDB_PORT_CI             1
+ #define DDB_PORT_TUNER          2
+-	u32                    type;
+-#define DDB_TUNER_NONE			0
+-#define DDB_TUNER_DVBS_ST		1
+-#define DDB_TUNER_DVBS_ST_AA		2
+-#define DDB_TUNER_DVBCT2_SONY_P		7
+-#define DDB_TUNER_DVBC2T2_SONY_P	8
+-#define DDB_TUNER_ISDBT_SONY_P		9
+-#define DDB_TUNER_DVBS_STV0910_P	10
+-#define DDB_TUNER_DVBS_STV0910_PR	14
+-#define DDB_TUNER_DVBC2T2I_SONY_P	15
+-#define DDB_TUNER_DVBCT_TR		16
+-#define DDB_TUNER_DVBCT_ST		17
+-#define DDB_TUNER_XO2_DVBS_STV0910	32
+-#define DDB_TUNER_XO2_DVBCT2_SONY	33
+-#define DDB_TUNER_XO2_ISDBT_SONY	34
+-#define DDB_TUNER_XO2_DVBC2T2_SONY	35
+-#define DDB_TUNER_XO2_ATSC_ST		36
+-#define DDB_TUNER_XO2_DVBC2T2I_SONY	37
+-
+-	u32                    adr;
++#define DDB_PORT_LOOP           3
++	char                   *name;
++	char                   *type_name;
++	u32                     type;
++#define DDB_TUNER_NONE           0
++#define DDB_TUNER_DVBS_ST        1
++#define DDB_TUNER_DVBS_ST_AA     2
++#define DDB_TUNER_DVBCT_TR       3
++#define DDB_TUNER_DVBCT_ST       4
++#define DDB_CI_INTERNAL          5
++#define DDB_CI_EXTERNAL_SONY     6
++#define DDB_TUNER_DVBCT2_SONY_P  7
++#define DDB_TUNER_DVBC2T2_SONY_P 8
++#define DDB_TUNER_ISDBT_SONY_P   9
++#define DDB_TUNER_DVBS_STV0910_P 10
++#define DDB_TUNER_MXL5XX         11
++#define DDB_CI_EXTERNAL_XO2      12
++#define DDB_CI_EXTERNAL_XO2_B    13
++#define DDB_TUNER_DVBS_STV0910_PR 14
++#define DDB_TUNER_DVBC2T2I_SONY_P 15
++
++#define DDB_TUNER_XO2            32
++#define DDB_TUNER_DVBS_STV0910   (DDB_TUNER_XO2 + 0)
++#define DDB_TUNER_DVBCT2_SONY    (DDB_TUNER_XO2 + 1)
++#define DDB_TUNER_ISDBT_SONY     (DDB_TUNER_XO2 + 2)
++#define DDB_TUNER_DVBC2T2_SONY   (DDB_TUNER_XO2 + 3)
++#define DDB_TUNER_ATSC_ST        (DDB_TUNER_XO2 + 4)
++#define DDB_TUNER_DVBC2T2I_SONY  (DDB_TUNER_XO2 + 5)
+ 
+ 	struct ddb_input      *input[2];
+ 	struct ddb_output     *output;
+ 	struct dvb_ca_en50221 *en;
++	struct ddb_dvb         dvb[2];
++	u32                    gap;
++	u32                    obr;
++	u8                     creg;
++};
++
++#define CM_STARTUP_DELAY 2
++#define CM_AVERAGE  20
++#define CM_GAIN     10
++
++#define HW_LSB_SHIFT    12
++#define HW_LSB_MASK     0x1000
++
++#define CM_IDLE    0
++#define CM_STARTUP 1
++#define CM_ADJUST  2
++
++#define TS_CAPTURE_LEN  (4096)
++
++struct ddb_link {
++	struct ddb            *dev;
++	struct ddb_info       *info;
++	u32                    nr;
++	u32                    regs;
++	spinlock_t             lock;
++	struct mutex           flash_mutex;
++	struct tasklet_struct  tasklet;
++	struct ddb_ids         ids;
++
++	spinlock_t             temp_lock;
++	int                    overtemperature_error;
++	u8                     temp_tab[11];
+ };
+ 
+ struct ddb {
+ 	struct pci_dev        *pdev;
++	struct platform_device *pfdev;
++	struct device         *dev;
++
++	int                    msi;
++	struct workqueue_struct *wq;
++	u32                    has_dma;
++
++	struct ddb_link        link[DDB_MAX_LINK];
+ 	unsigned char __iomem *regs;
++	u32                    regs_len;
++	u32                    port_num;
+ 	struct ddb_port        port[DDB_MAX_PORT];
++	u32                    i2c_num;
+ 	struct ddb_i2c         i2c[DDB_MAX_I2C];
+ 	struct ddb_input       input[DDB_MAX_INPUT];
+ 	struct ddb_output      output[DDB_MAX_OUTPUT];
++	struct dvb_adapter     adap[DDB_MAX_INPUT];
++	struct ddb_dma         idma[DDB_MAX_INPUT];
++	struct ddb_dma         odma[DDB_MAX_OUTPUT];
++
++	void                   (*handler[4][256])(unsigned long);
++	unsigned long          handler_data[4][256];
+ 
+ 	struct device         *ddb_dev;
+-	int                    nr;
++	u32                    ddb_dev_users;
++	u32                    nr;
+ 	u8                     iobuf[1028];
+ 
+-	struct ddb_info       *info;
+-	int                    msi;
++	u8                     leds;
++	u32                    ts_irq;
++	u32                    i2c_irq;
++
++	struct mutex           mutex;
++
++	u8                     tsbuf[TS_CAPTURE_LEN];
+ };
+ 
+-/****************************************************************************/
++static inline u32 ddblreadl(struct ddb_link *link, u32 adr)
 +{
-+	struct device *dev = &pdev->dev;
-+	struct v4l2_subdev *sd = dev_get_drvdata(dev);
-+	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
-+
-+	dw_hdmi_disable_ints(dw_dev);
-+	dw_hdmi_disable_hpd(dw_dev);
-+	dw_hdmi_disable_scdc(dw_dev);
-+	dw_hdmi_power_off(dw_dev);
-+	dw_hdmi_phy_s_power(dw_dev, false);
-+	flush_workqueue(dw_dev->wq);
-+	destroy_workqueue(dw_dev->wq);
-+	dw_hdmi_phy_exit(dw_dev);
-+	v4l2_async_unregister_subdev(sd);
-+	v4l2_ctrl_handler_free(sd->ctrl_handler);
-+	clk_disable_unprepare(dw_dev->clk);
-+	dev_dbg(dev, "driver removed\n");
-+	return 0;
++	return readl((char *) (link->dev->regs + (adr)));
++}
+ 
+-#define ddbwritel(_val, _adr)        writel((_val), \
+-				     dev->regs+(_adr))
+-#define ddbreadl(_adr)               readl(dev->regs+(_adr))
+-#define ddbcpyto(_adr, _src, _count) memcpy_toio(dev->regs+(_adr), (_src), (_count))
+-#define ddbcpyfrom(_dst, _adr, _count) memcpy_fromio((_dst), dev->regs+(_adr), (_count))
++static inline void ddblwritel(struct ddb_link *link, u32 val, u32 adr)
++{
++	writel(val, (char *) (link->dev->regs + (adr)));
++}
+ 
+-/****************************************************************************/
++static inline u32 ddbreadl(struct ddb *dev, u32 adr)
++{
++	return readl((char *) (dev->regs + (adr)));
 +}
 +
-+static const struct of_device_id dw_hdmi_rx_id[] = {
-+	{ .compatible = "snps,dw-hdmi-rx" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, dw_hdmi_rx_id);
++static inline void ddbwritel(struct ddb *dev, u32 val, u32 adr)
++{
++	writel(val, (char *) (dev->regs + (adr)));
++}
 +
-+static struct platform_driver dw_hdmi_rx_driver = {
-+	.probe = dw_hdmi_rx_probe,
-+	.remove = dw_hdmi_rx_remove,
-+	.driver = {
-+		.name = DW_HDMI_RX_DRVNAME,
-+		.of_match_table = dw_hdmi_rx_id,
++static inline void ddbcpyto(struct ddb *dev, u32 adr, void *src, long count)
++{
++	return memcpy_toio((char *) (dev->regs + adr), src, count);
++}
++
++static inline void ddbcpyfrom(struct ddb *dev, void *dst, u32 adr, long count)
++{
++	return memcpy_fromio(dst, (char *) (dev->regs + adr), count);
++}
+ 
+ static inline u32 safe_ddbreadl(struct ddb *dev, u32 adr)
+ {
+-        u32 val = ddbreadl(adr);
++	u32 val = ddbreadl(dev, adr);
+ 
+-        /* (ddb)readl returns (uint)-1 (all bits set) on failure, catch that */
+-        if (val == ~0) {
+-                dev_err(&dev->pdev->dev, "ddbreadl failure, adr=%08x\n", adr);
+-                return 0;
+-        }
++	/* (ddb)readl returns (uint)-1 (all bits set) on failure, catch that */
++	if (val == ~0) {
++		dev_err(&dev->pdev->dev, "ddbreadl failure, adr=%08x\n", adr);
++		return 0;
 +	}
-+};
-+module_platform_driver(dw_hdmi_rx_driver);
-diff --git a/drivers/media/platform/dwc/dw-hdmi-rx.h b/drivers/media/platform/dwc/dw-hdmi-rx.h
-new file mode 100644
-index 0000000..14ec5a6
---- /dev/null
-+++ b/drivers/media/platform/dwc/dw-hdmi-rx.h
-@@ -0,0 +1,441 @@
-+/*
-+ * Synopsys Designware HDMI Receiver controller driver
-+ *
-+ * This Synopsys dw-hdmi-rx software and associated documentation
-+ * (hereinafter the "Software") is an unsupported proprietary work of
-+ * Synopsys, Inc. unless otherwise expressly agreed to in writing between
-+ * Synopsys and you. The Software IS NOT an item of Licensed Software or a
-+ * Licensed Product under any End User Software License Agreement or
-+ * Agreement for Licensed Products with Synopsys or any supplement thereto.
-+ * Synopsys is a registered trademark of Synopsys, Inc. Other names included
-+ * in the SOFTWARE may be the trademarks of their respective owners.
-+ *
-+ * The contents of this file are dual-licensed; you may select either version 2
-+ * of the GNU General Public License (“GPL”) or the MIT license (“MIT”).
-+ *
-+ * Copyright (c) 2017 Synopsys, Inc. and/or its affiliates.
-+ *
-+ * THIS SOFTWARE IS PROVIDED "AS IS"  WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-+ * IMPLIED, INCLUDING, BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-+ * FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE
-+ * ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE THE USE OR
-+ * OTHER DEALINGS IN THE SOFTWARE.
-+ */
+ 
+ 	return val;
+ }
+ 
+ /****************************************************************************/
++/****************************************************************************/
++/****************************************************************************/
 +
-+#ifndef __DW_HDMI_RX_H__
-+#define __DW_HDMI_RX_H__
++int ddbridge_flashread(struct ddb *dev, u32 link, u8 *buf, u32 addr, u32 len);
 +
-+#include <linux/bitops.h>
++/****************************************************************************/
+ 
+ /* ddbridge-main.c (modparams) */
++extern int adapter_alloc;
++extern int msi;
++extern int ci_bitrate;
++extern int ts_loop;
+ extern int xo2_speed;
++extern int alt_dma;
++extern int no_init;
+ extern int stv0910_single;
++extern struct workqueue_struct *ddb_wq;
+ 
+ /* ddbridge-core.c */
++extern struct ddb_regmap octopus_map;
+ void ddb_ports_detach(struct ddb *dev);
+ void ddb_ports_release(struct ddb *dev);
+ void ddb_buffers_free(struct ddb *dev);
+ void ddb_device_destroy(struct ddb *dev);
++irqreturn_t irq_handler0(int irq, void *dev_id);
++irqreturn_t irq_handler1(int irq, void *dev_id);
+ irqreturn_t irq_handler(int irq, void *dev_id);
+ void ddb_ports_init(struct ddb *dev);
+ int ddb_buffers_alloc(struct ddb *dev);
+@@ -239,19 +430,26 @@ int ddb_ports_attach(struct ddb *dev);
+ int ddb_device_create(struct ddb *dev);
+ int ddb_class_create(void);
+ void ddb_class_destroy(void);
++int ddb_init(struct ddb *dev);
+ 
+ /* ddbridge-i2c.c */
+ int i2c_io(struct i2c_adapter *adapter, u8 adr,
+ 	   u8 *wbuf, u32 wlen, u8 *rbuf, u32 rlen);
++int i2c_write(struct i2c_adapter *adap, u8 adr, u8 *data, int len);
+ int i2c_read(struct i2c_adapter *adapter, u8 adr, u8 *val);
+ int i2c_read_regs(struct i2c_adapter *adapter,
+ 		  u8 adr, u8 reg, u8 *val, u8 len);
++int i2c_read_regs16(struct i2c_adapter *adapter,
++		    u8 adr, u16 reg, u8 *val, u8 len);
+ int i2c_read_reg(struct i2c_adapter *adapter, u8 adr, u8 reg, u8 *val);
+ int i2c_read_reg16(struct i2c_adapter *adapter, u8 adr,
+ 		   u16 reg, u8 *val);
++int i2c_write_reg16(struct i2c_adapter *adap, u8 adr,
++		    u16 reg, u8 val);
+ int i2c_write_reg(struct i2c_adapter *adap, u8 adr,
+ 		  u8 reg, u8 val);
 +
-+/* id_hdmi Registers */
-+#define HDMI_SETUP_CTRL				0x0000
-+#define HDMI_PLL_LCK_STS			0x0030
-+#define HDMI_CKM_EVLTM				0x0094
-+#define HDMI_CKM_RESULT				0x009c
-+#define HDMI_STS				0x00bc
-+
-+/* id_hdcp_1_4 Registers */
-+#define HDMI_HDCP_CTRL				0x00c0
-+#define HDMI_HDCP_SETTINGS			0x00c4
-+#define HDMI_HDCP_SEED				0x00c8
-+#define HDMI_HDCP_BKSV1				0x00cc
-+#define HDMI_HDCP_BKSV0				0x00d0
-+#define HDMI_HDCP_KIDX				0x00d4
-+#define HDMI_HDCP_KEY1				0x00d8
-+#define HDMI_HDCP_KEY0				0x00dc
-+#define HDMI_HDCP_DBG				0x00e0
-+#define HDMI_HDCP_AKSV1				0x00e4
-+#define HDMI_HDCP_AKSV0				0x00e8
-+#define HDMI_HDCP_AN1				0x00ec
-+#define HDMI_HDCP_AN0				0x00f0
-+#define HDMI_HDCP_EESS_WOO			0x00f4
-+#define HDMI_HDCP_I2C_TIMEOUT			0x00f8
-+#define HDMI_HDCP_STS				0x00fc
-+
-+/* id_mode_detection Registers */
-+#define HDMI_MD_HT0				0x0148
-+#define HDMI_MD_HT1				0x014c
-+#define HDMI_MD_HACT_PX				0x0150
-+#define HDMI_MD_VCTRL				0x0158
-+#define HDMI_MD_VOL				0x0164
-+#define HDMI_MD_VAL				0x0168
-+#define HDMI_MD_VTL				0x0170
-+#define HDMI_MD_STS				0x0180
-+
-+/* id_phy_configuration Registers */
-+#define HDMI_PHY_CTRL				0x02c0
-+#define HDMI_PHY_JTAG_CONF			0x02ec
-+#define HDMI_PHY_JTAG_TAP_TCLK			0x02f0
-+#define HDMI_PHY_JTAG_TAP_IN			0x02f4
-+#define HDMI_PHY_JTAG_TAP_OUT			0x02f8
-+#define HDMI_PHY_JTAG_ADDR			0x02fc
-+
-+/* id_packet_decoder Registers */
-+#define HDMI_PDEC_STS				0x0360
-+#define HDMI_PDEC_VSI_PAYLOAD0			0x0368
-+#define HDMI_PDEC_AVI_PB			0x03a4
-+
-+/* id_hdmi_2_0 Registers */
-+#define HDMI_SCDC_CONFIG			0x0808
-+#define HDMI_HDCP22_CONTROL			0x081c
-+#define HDMI_HDCP22_STATUS			0x08fc
-+
-+/* id_audio_and_cec_interrupt Registers */
-+#define HDMI_AUD_CEC_IEN_CLR			0x0f90
-+#define HDMI_AUD_CEC_IEN_SET			0x0f94
-+#define HDMI_AUD_CEC_ISTS			0x0f98
-+#define HDMI_AUD_CEC_IEN			0x0f9c
-+#define HDMI_AUD_CEC_ICLR			0x0fa0
-+#define HDMI_AUD_CEC_ISET			0x0fa4
-+
-+/* id_mode_detection_interrupt Registers */
-+#define HDMI_MD_IEN_CLR				0x0fc0
-+#define HDMI_MD_IEN_SET				0x0fc4
-+#define HDMI_MD_ISTS				0x0fc8
-+#define HDMI_MD_IEN				0x0fcc
-+#define HDMI_MD_ICLR				0x0fd0
-+#define HDMI_MD_ISET				0x0fd4
-+
-+/* id_hdmi_interrupt Registers */
-+#define HDMI_IEN_CLR				0x0fd8
-+#define HDMI_IEN_SET				0x0fdc
-+#define HDMI_ISTS				0x0fe0
-+#define HDMI_IEN				0x0fe4
-+#define HDMI_ICLR				0x0fe8
-+#define HDMI_ISET				0x0fec
-+
-+/* id_dmi Registers */
-+#define HDMI_DMI_SW_RST				0x0ff0
-+
-+/* id_cec Registers */
-+#define HDMI_CEC_CTRL				0x1f00
-+#define HDMI_CEC_MASK				0x1f08
-+#define HDMI_CEC_ADDR_L				0x1f14
-+#define HDMI_CEC_ADDR_H				0x1f18
-+#define HDMI_CEC_TX_CNT				0x1f1c
-+#define HDMI_CEC_RX_CNT				0x1f20
-+#define HDMI_CEC_TX_DATA(i)			(0x1f40 + ((i) * 4))
-+#define HDMI_CEC_TX_DATA_MAX			16
-+#define HDMI_CEC_RX_DATA(i)			(0x1f80 + ((i) * 4))
-+#define HDMI_CEC_RX_DATA_MAX			16
-+#define HDMI_CEC_LOCK				0x1fc0
-+#define HDMI_CEC_WAKEUPCTRL			0x1fc4
-+
-+/* id_cbus Registers */
-+#define HDMI_CBUSIOCTRL				0x3020
-+
-+enum {
-+	/* SETUP_CTRL field values */
-+	HDMI_SETUP_CTRL_HOT_PLUG_DETECT_INPUT_X_MASK = GENMASK(27,24),
-+	HDMI_SETUP_CTRL_HOT_PLUG_DETECT_INPUT_X_OFFSET = 24,
-+	HDMI_SETUP_CTRL_HDMIBUS_RESET_OVR_EN_MASK = BIT(21),
-+	HDMI_SETUP_CTRL_HDMIBUS_RESET_OVR_EN_OFFSET = 21,
-+	HDMI_SETUP_CTRL_BUS_RESET_OVR_MASK = BIT(20),
-+	HDMI_SETUP_CTRL_BUS_RESET_OVR_OFFSET = 20,
-+	HDMI_SETUP_CTRL_HDMI_RESET_OVR_MASK = BIT(19),
-+	HDMI_SETUP_CTRL_HDMI_RESET_OVR_OFFSET = 19,
-+	HDMI_SETUP_CTRL_PON_RESET_OVR_MASK = BIT(18),
-+	HDMI_SETUP_CTRL_PON_RESET_OVR_OFFSET = 18,
-+	HDMI_SETUP_CTRL_RESET_OVR_MASK = BIT(17),
-+	HDMI_SETUP_CTRL_RESET_OVR_OFFSET = 17,
-+	HDMI_SETUP_CTRL_RESET_OVR_EN_MASK = BIT(16),
-+	HDMI_SETUP_CTRL_RESET_OVR_EN_OFFSET = 16,
-+	HDMI_SETUP_CTRL_EQ_OSM_OVR_MASK = BIT(15),
-+	HDMI_SETUP_CTRL_EQ_OSM_OVR_OFFSET = 15,
-+	HDMI_SETUP_CTRL_EQ_OSM_OVR_EN_MASK = BIT(14),
-+	HDMI_SETUP_CTRL_EQ_OSM_OVR_EN_OFFSET = 14,
-+	HDMI_SETUP_CTRL_NOWAIT_ACTIVITY_MASK = BIT(13),
-+	HDMI_SETUP_CTRL_NOWAIT_ACTIVITY_OFFSET = 13,
-+	HDMI_SETUP_CTRL_EQ_CAL_TIME_MASK = GENMASK(12,7),
-+	HDMI_SETUP_CTRL_EQ_CAL_TIME_OFFSET = 7,
-+	HDMI_SETUP_CTRL_USE_PLL_LOCK_MASK = BIT(6),
-+	HDMI_SETUP_CTRL_USE_PLL_LOCK_OFFSET = 6,
-+	HDMI_SETUP_CTRL_FORCE_STATE_MASK = BIT(5),
-+	HDMI_SETUP_CTRL_FORCE_STATE_OFFSET = 5,
-+	HDMI_SETUP_CTRL_TARGET_STATE_MASK = GENMASK(4,1),
-+	HDMI_SETUP_CTRL_TARGET_STATE_OFFSET = 1,
-+	HDMI_SETUP_CTRL_HOT_PLUG_DETECT_MASK = BIT(0),
-+	HDMI_SETUP_CTRL_HOT_PLUG_DETECT_OFFSET = 0,
-+	/* PLL_LCK_STS field values */
-+	HDMI_PLL_LCK_STS_PLL_LOCKED = BIT(0),
-+	/* CKM_EVLTM field values */
-+	HDMI_CKM_EVLTM_LOCK_HYST_MASK = GENMASK(21,20),
-+	HDMI_CKM_EVLTM_LOCK_HYST_OFFSET = 20,
-+	HDMI_CKM_EVLTM_CLK_HYST_MASK = GENMASK(18,16),
-+	HDMI_CKM_EVLTM_CLK_HYST_OFFSET = 16,
-+	HDMI_CKM_EVLTM_EVAL_TIME_MASK = GENMASK(15,4),
-+	HDMI_CKM_EVLTM_EVAL_TIME_OFFSET = 4,
-+	HDMI_CKM_EVLTM_CLK_MEAS_INPUT_SRC_MASK = BIT(0),
-+	HDMI_CKM_EVLTM_CLK_MEAS_INPUT_SRC_OFFSET = 0,
-+	/* CKM_RESULT field values */
-+	HDMI_CKM_RESULT_CLOCK_IN_RANGE = BIT(17),
-+	HDMI_CKM_RESULT_FREQ_LOCKED = BIT(16),
-+	HDMI_CKM_RESULT_CLKRATE_MASK = GENMASK(15,0),
-+	HDMI_CKM_RESULT_CLKRATE_OFFSET = 0,
-+	/* STS field values */
-+	HDMI_STS_DCM_CURRENT_MODE_MASK = GENMASK(31,28),
-+	HDMI_STS_DCM_CURRENT_MODE_OFFSET = 28,
-+	HDMI_STS_DCM_LAST_PIXEL_PHASE_STS_MASK = GENMASK(27,24),
-+	HDMI_STS_DCM_LAST_PIXEL_PHASE_STS_OFFSET = 24,
-+	HDMI_STS_DCM_PHASE_DIFF_CNT_MASK = GENMASK(23,16),
-+	HDMI_STS_DCM_PH_DIFF_CNT_OVERFL = BIT(15),
-+	HDMI_STS_DCM_GCP_ZERO_FIELDS_PASS = BIT(14),
-+	HDMI_STS_CTL3_STS = BIT(13),
-+	HDMI_STS_CTL2_STS = BIT(12),
-+	HDMI_STS_CTL1_STS = BIT(11),
-+	HDMI_STS_CTL0_STS = BIT(10),
-+	HDMI_STS_VS_POL_ADJ_STS = BIT(9),
-+	HDMI_STS_HS_POL_ADJ_STS = BIT(8),
-+	HDMI_STS_RES_OVERLOAD_STS = BIT(7),
-+	HDMI_STS_DCM_CURRENT_PP_MASK = GENMASK(3,0),
-+	HDMI_STS_DCM_CURRENT_PP_OFFSET = 0,
-+	/* HDCP_CTRL field values */
-+	HDMI_HDCP_CTRL_ENDISLOCK_MASK = BIT(25),
-+	HDMI_HDCP_CTRL_ENDISLOCK_OFFSET = 25,
-+	HDMI_HDCP_CTRL_ENABLE_MASK = BIT(24),
-+	HDMI_HDCP_CTRL_ENABLE_OFFSET = 24,
-+	HDMI_HDCP_CTRL_FREEZE_HDCP_FSM_MASK = BIT(21),
-+	HDMI_HDCP_CTRL_FREEZE_HDCP_FSM_OFFSET = 21,
-+	HDMI_HDCP_CTRL_FREEZE_HDCP_STATE_MASK = GENMASK(20,15),
-+	HDMI_HDCP_CTRL_FREEZE_HDCP_STATE_OFFSET = 15,
-+	HDMI_HDCP_CTRL_VID_DE_MASK = BIT(14),
-+	HDMI_HDCP_CTRL_VID_DE_OFFSET = 14,
-+	HDMI_HDCP_CTRL_SEL_AVMUTE_MASK = GENMASK(11,10),
-+	HDMI_HDCP_CTRL_SEL_AVMUTE_OFFSET = 10,
-+	HDMI_HDCP_CTRL_CTL_MASK = GENMASK(9,8),
-+	HDMI_HDCP_CTRL_CTL_OFFSET = 8,
-+	HDMI_HDCP_CTRL_RI_RATE_MASK = GENMASK(7,6),
-+	HDMI_HDCP_CTRL_RI_RATE_OFFSET = 6,
-+	HDMI_HDCP_CTRL_HDMI_MODE_ENABLE_MASK = BIT(2),
-+	HDMI_HDCP_CTRL_HDMI_MODE_ENABLE_OFFSET = 2,
-+	HDMI_HDCP_CTRL_KEY_DECRYPT_ENABLE_MASK = BIT(1),
-+	HDMI_HDCP_CTRL_KEY_DECRYPT_ENABLE_OFFSET = 1,
-+	HDMI_HDCP_CTRL_ENC_EN_MASK = BIT(0),
-+	HDMI_HDCP_CTRL_ENC_EN_OFFSET = 0,
-+	/* HDCP_SEED field values */
-+	HDMI_HDCP_SEED_KEY_DECRYPT_SEED_MASK = GENMASK(15,0),
-+	HDMI_HDCP_SEED_KEY_DECRYPT_SEED_OFFSET = 0,
-+	/* HDCP_STS field values */
-+	HDMI_HDCP_STS_ENC_STATE = BIT(9),
-+	HDMI_HDCP_STS_AUTH_START = BIT(8),
-+	HDMI_HDCP_STS_KEY_WR_OK = BIT(0),
-+	/* MD_HT0 field values */
-+	HDMI_MD_HT0_HTOT32_CLK_MASK = GENMASK(31,16),
-+	HDMI_MD_HT0_HTOT32_CLK_OFFSET = 16,
-+	HDMI_MD_HT0_HS_CLK_MASK = GENMASK(15,0),
-+	HDMI_MD_HT0_HS_CLK_OFFSET = 0,
-+	/* MD_HT1 field values */
-+	HDMI_MD_HT1_HTOT_PIX_MASK = GENMASK(31,16),
-+	HDMI_MD_HT1_HTOT_PIX_OFFSET = 16,
-+	HDMI_MD_HT1_HOFS_PIX_MASK = GENMASK(15,0),
-+	HDMI_MD_HT1_HOFS_PIX_OFFSET = 0,
-+	/* MD_VCTRL field values */
-+	HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK = BIT(4),
-+	HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET = 4,
-+	HDMI_MD_VCTRL_V_EDGE_MASK = BIT(1),
-+	HDMI_MD_VCTRL_V_EDGE_OFFSET = 1,
-+	HDMI_MD_VCTRL_V_MODE_MASK = BIT(0),
-+	HDMI_MD_VCTRL_V_MODE_OFFSET = 0,
-+	/* MD_STS field values */
-+	HDMI_MD_STS_ILACE = BIT(3),
-+	HDMI_MD_STS_DE_ACTIVITY = BIT(2),
-+	HDMI_MD_STS_VS_ACT = BIT(1),
-+	HDMI_MD_STS_HS_ACT = BIT(0),
-+	/* PHY_CTRL field values */
-+	HDMI_PHY_CTRL_SVSRETMODEZ_MASK = BIT(6),
-+	HDMI_PHY_CTRL_SVSRETMODEZ_OFFSET = 6,
-+	HDMI_PHY_CTRL_CFGCLKFREQ_MASK = GENMASK(5,4),
-+	HDMI_PHY_CTRL_CFGCLKFREQ_OFFSET = 4,
-+	HDMI_PHY_CTRL_PORTSELECT_MASK = GENMASK(3,2),
-+	HDMI_PHY_CTRL_PORTSELECT_OFFSET = 2,
-+	HDMI_PHY_CTRL_PDDQ_MASK = BIT(1),
-+	HDMI_PHY_CTRL_PDDQ_OFFSET = 1,
-+	HDMI_PHY_CTRL_RESET_MASK = BIT(0),
-+	HDMI_PHY_CTRL_RESET_OFFSET = 0,
-+	/* PHY_JTAG_TAP_IN field values */
-+	HDMI_PHY_JTAG_TAP_IN_TMS = BIT(4),
-+	HDMI_PHY_JTAG_TAP_IN_TDI = BIT(0),
-+	/* PDEC_STS field values */
-+	HDMI_PDEC_STS_DRM_CKS_CHG = BIT(31),
-+	HDMI_PDEC_STS_DRM_RCV = BIT(30),
-+	HDMI_PDEC_STS_NTSCVBI_CKS_CHG = BIT(29),
-+	HDMI_PDEC_STS_DVIDET = BIT(28),
-+	HDMI_PDEC_STS_VSI_CKS_CHG = BIT(27),
-+	HDMI_PDEC_STS_GMD_CKS_CHG = BIT(26),
-+	HDMI_PDEC_STS_AIF_CKS_CHG = BIT(25),
-+	HDMI_PDEC_STS_AVI_CKS_CHG = BIT(24),
-+	HDMI_PDEC_STS_ACR_N_CHG = BIT(23),
-+	HDMI_PDEC_STS_ACR_CTS_CHG = BIT(22),
-+	HDMI_PDEC_STS_GCP_AV_MUTE_CHG = BIT(21),
-+	HDMI_PDEC_STS_GMD_RCV = BIT(20),
-+	HDMI_PDEC_STS_AIF_RCV = BIT(19),
-+	HDMI_PDEC_STS_AVI_RCV = BIT(18),
-+	HDMI_PDEC_STS_ACR_RCV = BIT(17),
-+	HDMI_PDEC_STS_GCP_RCV = BIT(16),
-+	HDMI_PDEC_STS_VSI_RCV = BIT(15),
-+	HDMI_PDEC_STS_AMP_RCV = BIT(14),
-+	HDMI_PDEC_STS_NTSCVBI_RCV = BIT(13),
-+	HDMI_PDEC_STS_OBA_LAYOUT = BIT(12),
-+	HDMI_PDEC_STS_AUDS_LAYOUT = BIT(11),
-+	HDMI_PDEC_STS_PD_FIFO_NEW_ENTRY = BIT(8),
-+	HDMI_PDEC_STS_PD_FIFO_OVERFL = BIT(4),
-+	HDMI_PDEC_STS_PD_FIFO_UNDERFL = BIT(3),
-+	HDMI_PDEC_STS_PD_FIFO_TH_START_PASS = BIT(2),
-+	HDMI_PDEC_STS_PD_FIFO_TH_MAX_PASS = BIT(1),
-+	HDMI_PDEC_STS_PD_FIFO_TH_MIN_PASS = BIT(0),
-+	/* PDEC_VSI_PAYLOAD0 field values */
-+	HDMI_PDEC_VSI_PAYLOAD0_HDMI_VIC_MASK = GENMASK(15,8),
-+	HDMI_PDEC_VSI_PAYLOAD0_HDMI_VIC_OFFSET = 8,
-+	/* PDEC_AVI_PB field values */
-+	HDMI_PDEC_AVI_PB_VID_IDENT_CODE_MASK = GENMASK(31,24),
-+	HDMI_PDEC_AVI_PB_VID_IDENT_CODE_OFFSET = 24,
-+	HDMI_PDEC_AVI_PB_IT_CONTENT = BIT(23),
-+	HDMI_PDEC_AVI_PB_EXT_COLORIMETRY_MASK = GENMASK(22,20),
-+	HDMI_PDEC_AVI_PB_EXT_COLORIMETRY_OFFSET = 20,
-+	HDMI_PDEC_AVI_PB_RGB_QUANT_RANGE_MASK = GENMASK(19,18),
-+	HDMI_PDEC_AVI_PB_RGB_QUANT_RANGE_OFFSET = 18,
-+	HDMI_PDEC_AVI_PB_NON_UNIF_SCALE_MASK = GENMASK(17,16),
-+	HDMI_PDEC_AVI_PB_NON_UNIF_SCALE_OFFSET = 16,
-+	HDMI_PDEC_AVI_PB_COLORIMETRY_MASK = GENMASK(15,14),
-+	HDMI_PDEC_AVI_PB_COLORIMETRY_OFFSET = 14,
-+	HDMI_PDEC_AVI_PB_PIC_ASPECT_RAT_MASK = GENMASK(13,12),
-+	HDMI_PDEC_AVI_PB_PIC_ASPECT_RAT_OFFSET = 12,
-+	HDMI_PDEC_AVI_PB_ACT_ASPECT_RAT_MASK = GENMASK(11,8),
-+	HDMI_PDEC_AVI_PB_ACT_ASPECT_RAT_OFFSET = 8,
-+	HDMI_PDEC_AVI_PB_VIDEO_FORMAT_MASK = GENMASK(7,5),
-+	HDMI_PDEC_AVI_PB_VIDEO_FORMAT_OFFSET = 5,
-+	HDMI_PDEC_AVI_PB_ACT_INFO_PRESENT = BIT(4),
-+	HDMI_PDEC_AVI_PB_BAR_INFO_VALID_MASK = GENMASK(3,2),
-+	HDMI_PDEC_AVI_PB_BAR_INFO_VALID_OFFSET = 2,
-+	HDMI_PDEC_AVI_PB_SCAN_INFO_MASK = GENMASK(1,0),
-+	HDMI_PDEC_AVI_PB_SCAN_INFO_OFFSET = 0,
-+	/* SCDC_CONFIG field values */
-+	HDMI_SCDC_CONFIG_HPDLOW_MASK = BIT(1),
-+	HDMI_SCDC_CONFIG_HPDLOW_OFFSET = 1,
-+	HDMI_SCDC_CONFIG_POWERPROVIDED_MASK = BIT(0),
-+	HDMI_SCDC_CONFIG_POWERPROVIDED_OFFSET = 0,
-+	/* HDCP22_CONTROL field values */
-+	HDMI_HDCP22_CONTROL_CD_OVR_VAL_MASK = GENMASK(23,20),
-+	HDMI_HDCP22_CONTROL_CD_OVR_VAL_OFFSET = 20,
-+	HDMI_HDCP22_CONTROL_CD_OVR_EN_MASK = BIT(16),
-+	HDMI_HDCP22_CONTROL_CD_OVR_EN_OFFSET = 16,
-+	HDMI_HDCP22_CONTROL_HPD_MASK = BIT(12),
-+	HDMI_HDCP22_CONTROL_HPD_OFFSET = 12,
-+	HDMI_HDCP22_CONTROL_PKT_ERR_OVR_VAL_MASK = BIT(9),
-+	HDMI_HDCP22_CONTROL_PKT_ERR_OVR_VAL_OFFSET= 9,
-+	HDMI_HDCP22_CONTROL_PKT_ERR_OVR_EN_MASK = BIT(8),
-+	HDMI_HDCP22_CONTROL_PKT_ERR_OVR_EN_OFFSET = 8,
-+	HDMI_HDCP22_CONTROL_AVMUTE_OVR_VAL_MASK = BIT(5),
-+	HDMI_HDCP22_CONTROL_AVMUTE_OVR_VAL_OFFSET = 5,
-+	HDMI_HDCP22_CONTROL_AVMUTE_OVR_EN_MASK = BIT(4),
-+	HDMI_HDCP22_CONTROL_AVMUTE_OVR_EN_OFFSET = 4,
-+	HDMI_HDCP22_CONTROL_OVR_VAL_MASK = BIT(2),
-+	HDMI_HDCP22_CONTROL_OVR_VAL_OFFSET = 2,
-+	HDMI_HDCP22_CONTROL_OVR_EN_MASK = BIT(1),
-+	HDMI_HDCP22_CONTROL_OVR_EN_OFFSET = 1,
-+	HDMI_HDCP22_CONTROL_SWITCH_LCK_MASK = BIT(0),
-+	HDMI_HDCP22_CONTROL_SWITCH_LCK_OFFSET = 0,
-+	/* AUD_CEC_ISTS field values */
-+	HDMI_AUD_CEC_ISTS_WAKEUPCTRL = BIT(22),
-+	HDMI_AUD_CEC_ISTS_ERROR_FOLL = BIT(21),
-+	HDMI_AUD_CEC_ISTS_ERROR_INIT = BIT(20),
-+	HDMI_AUD_CEC_ISTS_ARBLST = BIT(19),
-+	HDMI_AUD_CEC_ISTS_NACK = BIT(18),
-+	HDMI_AUD_CEC_ISTS_EOM = BIT(17),
-+	HDMI_AUD_CEC_ISTS_DONE = BIT(16),
-+	HDMI_AUD_CEC_ISTS_SCK_STABLE = BIT(1),
-+	HDMI_AUD_CEC_ISTS_CTSN_CNT = BIT(0),
-+	/* MD_ISTS field values */
-+	HDMI_MD_ISTS_VOFS_LIN = BIT(11),
-+	HDMI_MD_ISTS_VTOT_LIN = BIT(10),
-+	HDMI_MD_ISTS_VACT_LIN = BIT(9),
-+	HDMI_MD_ISTS_VS_CLK = BIT(8),
-+	HDMI_MD_ISTS_VTOT_CLK = BIT(7),
-+	HDMI_MD_ISTS_HACT_PIX = BIT(6),
-+	HDMI_MD_ISTS_HS_CLK = BIT(5),
-+	HDMI_MD_ISTS_HTOT32_CLK = BIT(4),
-+	HDMI_MD_ISTS_ILACE = BIT(3),
-+	HDMI_MD_ISTS_DE_ACTIVITY = BIT(2),
-+	HDMI_MD_ISTS_VS_ACT = BIT(1),
-+	HDMI_MD_ISTS_HS_ACT = BIT(0),
-+	/* ISTS field values */
-+	HDMI_ISTS_I2CMP_ARBLOST = BIT(30),
-+	HDMI_ISTS_I2CMPNACK = BIT(29),
-+	HDMI_ISTS_I2CMPDONE = BIT(28),
-+	HDMI_ISTS_VS_THR_REACHED = BIT(27),
-+	HDMI_ISTS_VSYNC_ACT_EDGE = BIT(26),
-+	HDMI_ISTS_AKSV_RCV = BIT(25),
-+	HDMI_ISTS_PLL_CLOCK_GATED = BIT(24),
-+	HDMI_ISTS_DESER_MISAL = BIT(23),
-+	HDMI_ISTS_CDSENSE_CHG = BIT(22),
-+	HDMI_ISTS_CEAVID_EMPTY = BIT(21),
-+	HDMI_ISTS_CEAVID_FULL = BIT(20),
-+	HDMI_ISTS_SCDCTMDSCFGCHANGE = BIT(19),
-+	HDMI_ISTS_SCDCSCSTATUSCHANGE = BIT(18),
-+	HDMI_ISTS_SCDCCFGCHANGE = BIT(17),
-+	HDMI_ISTS_DCM_CURRENT_MODE_CHG = BIT(16),
-+	HDMI_ISTS_DCM_PH_DIFF_CNT_OVERFL = BIT(15),
-+	HDMI_ISTS_DCM_GCP_ZERO_FIELDS_PASS = BIT(14),
-+	HDMI_ISTS_CTL3_CHANGE = BIT(13),
-+	HDMI_ISTS_CTL2_CHANGE = BIT(12),
-+	HDMI_ISTS_CTL1_CHANGE = BIT(11),
-+	HDMI_ISTS_CTL0_CHANGE = BIT(10),
-+	HDMI_ISTS_VS_POL_ADJ = BIT(9),
-+	HDMI_ISTS_HS_POL_ADJ = BIT(8),
-+	HDMI_ISTS_RES_OVERLOAD = BIT(7),
-+	HDMI_ISTS_CLK_CHANGE = BIT(6),
-+	HDMI_ISTS_PLL_LCK_CHG = BIT(5),
-+	HDMI_ISTS_EQGAIN_DONE = BIT(4),
-+	HDMI_ISTS_OFFSCAL_DONE = BIT(3),
-+	HDMI_ISTS_RESCAL_DONE = BIT(2),
-+	HDMI_ISTS_ACT_CHANGE = BIT(1),
-+	HDMI_ISTS_STATE_REACHED = BIT(0),
-+	/* DMI_SW_RST field values */
-+	HDMI_DMI_SW_RST_TMDS = BIT(16),
-+	HDMI_DMI_SW_RST_HDCP = BIT(8),
-+	HDMI_DMI_SW_RST_VID = BIT(7),
-+	HDMI_DMI_SW_RST_PIXEL = BIT(6),
-+	HDMI_DMI_SW_RST_CEC = BIT(5),
-+	HDMI_DMI_SW_RST_AUD = BIT(4),
-+	HDMI_DMI_SW_RST_BUS = BIT(3),
-+	HDMI_DMI_SW_RST_HDMI = BIT(2),
-+	HDMI_DMI_SW_RST_MODET = BIT(1),
-+	HDMI_DMI_SW_RST_MAIN = BIT(0),
-+	/* CEC_CTRL field values */
-+	HDMI_CEC_CTRL_STANDBY_MASK = BIT(4),
-+	HDMI_CEC_CTRL_STANDBY_OFFSET = 4,
-+	HDMI_CEC_CTRL_BC_NACK_MASK = BIT(3),
-+	HDMI_CEC_CTRL_BC_NACK_OFFSET = 3,
-+	HDMI_CEC_CTRL_FRAME_TYP_MASK = GENMASK(2,1),
-+	HDMI_CEC_CTRL_FRAME_TYP_OFFSET = 1,
-+	HDMI_CEC_CTRL_SEND_MASK = BIT(0),
-+	HDMI_CEC_CTRL_SEND_OFFSET = 0,
-+	/* CEC_MASK field values */
-+	HDMI_CEC_MASK_WAKEUP_MASK = BIT(6),
-+	HDMI_CEC_MASK_WAKEUP_OFFSET = 6,
-+	HDMI_CEC_MASK_ERROR_FLOW_MASK = BIT(5),
-+	HDMI_CEC_MASK_ERROR_FLOW_OFFSET = 5,
-+	HDMI_CEC_MASK_ERROR_INITITATOR_MASK = BIT(4),
-+	HDMI_CEC_MASK_ERROR_INITITATOR_OFFSET = 4,
-+	HDMI_CEC_MASK_ARB_LOST_MASK = BIT(3),
-+	HDMI_CEC_MASK_ARB_LOST_OFFSET = 3,
-+	HDMI_CEC_MASK_NACK_MASK = BIT(2),
-+	HDMI_CEC_MASK_NACK_OFFSET = 2,
-+	HDMI_CEC_MASK_EOM_MASK = BIT(1),
-+	HDMI_CEC_MASK_EOM_OFFSET = 1,
-+	HDMI_CEC_MASK_DONE_MASK = BIT(0),
-+	HDMI_CEC_MASK_DONE_OFFSET = 0,
-+	/* CBUSIOCTRL field values */
-+	HDMI_CBUSIOCTRL_DATAPATH_CBUSZ_MASK = BIT(24),
-+	HDMI_CBUSIOCTRL_DATAPATH_CBUSZ_OFFSET = 24,
-+	HDMI_CBUSIOCTRL_SVSRETMODEZ_MASK = BIT(16),
-+	HDMI_CBUSIOCTRL_SVSRETMODEZ_OFFSET = 16,
-+	HDMI_CBUSIOCTRL_PDDQ_MASK = BIT(8),
-+	HDMI_CBUSIOCTRL_PDDQ_OFFSET = 8,
-+	HDMI_CBUSIOCTRL_RESET_MASK = BIT(0),
-+	HDMI_CBUSIOCTRL_RESET_OFFSET = 0,
-+};
-+
-+#endif /* __DW_HDMI_RX_H__ */
-diff --git a/include/media/dwc/dw-hdmi-rx-pdata.h b/include/media/dwc/dw-hdmi-rx-pdata.h
-new file mode 100644
-index 0000000..41d5c8d
---- /dev/null
-+++ b/include/media/dwc/dw-hdmi-rx-pdata.h
-@@ -0,0 +1,70 @@
-+/*
-+ * Synopsys Designware HDMI Receiver controller platform data
-+ *
-+ * This Synopsys dw-hdmi-rx software and associated documentation
-+ * (hereinafter the "Software") is an unsupported proprietary work of
-+ * Synopsys, Inc. unless otherwise expressly agreed to in writing between
-+ * Synopsys and you. The Software IS NOT an item of Licensed Software or a
-+ * Licensed Product under any End User Software License Agreement or
-+ * Agreement for Licensed Products with Synopsys or any supplement thereto.
-+ * Synopsys is a registered trademark of Synopsys, Inc. Other names included
-+ * in the SOFTWARE may be the trademarks of their respective owners.
-+ *
-+ * The contents of this file are dual-licensed; you may select either version 2
-+ * of the GNU General Public License (“GPL”) or the MIT license (“MIT”).
-+ *
-+ * Copyright (c) 2017 Synopsys, Inc. and/or its affiliates.
-+ *
-+ * THIS SOFTWARE IS PROVIDED "AS IS"  WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-+ * IMPLIED, INCLUDING, BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-+ * FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE
-+ * ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE THE USE OR
-+ * OTHER DEALINGS IN THE SOFTWARE.
-+ */
-+
-+#ifndef __DW_HDMI_RX_PDATA_H__
-+#define __DW_HDMI_RX_PDATA_H__
-+
-+#define DW_HDMI_RX_DRVNAME			"dw-hdmi-rx"
-+
-+/* Notify events */
-+#define DW_HDMI_NOTIFY_IS_OFF		1
-+#define DW_HDMI_NOTIFY_INPUT_CHANGED	2
-+#define DW_HDMI_NOTIFY_AUDIO_CHANGED	3
-+#define DW_HDMI_NOTIFY_IS_STABLE	4
-+
-+/**
-+ * struct dw_hdmi_rx_pdata - Platform Data configuration for HDMI receiver.
-+ *
-+ * @dw_5v_status: 5v status callback. Shall return the status of the given
-+ * input, i.e. shall be true if a cable is connected to the specified input.
-+ *
-+ * @dw_5v_clear: 5v clear callback. Shall clear the interrupt associated with
-+ * the 5v sense controller.
-+ *
-+ * @dw_5v_arg: Argument to be used with the 5v sense callbacks.
-+ *
-+ * @dw_zcal_reset: Impedance calibration reset callback. Shall be called when
-+ * the impedance calibration needs to be restarted. This is used by phy driver
-+ * only.
-+ *
-+ * @dw_zcal_done: Impedance calibration status callback. Shall return true if
-+ * the impedance calibration procedure has ended. This is used by phy driver
-+ * only.
-+ *
-+ * @dw_zcal_arg: Argument to be used with the ZCAL calibration callbacks.
-+ */
-+struct dw_hdmi_rx_pdata {
-+	/* 5V sense interface */
-+	bool (*dw_5v_status)(void __iomem *regs, int input);
-+	void (*dw_5v_clear)(void __iomem *regs);
-+	void __iomem *dw_5v_arg;
-+	/* Zcal interface */
-+	void (*dw_zcal_reset)(void __iomem *regs);
-+	bool (*dw_zcal_done)(void __iomem *regs);
-+	void __iomem *dw_zcal_arg;
-+};
-+
-+#endif /* __DW_HDMI_RX_PDATA_H__ */
+ void ddb_i2c_release(struct ddb *dev);
+ int ddb_i2c_init(struct ddb *dev);
+ 
+-#endif
++#endif /* DDBRIDGE_H */
 -- 
-1.9.1
+2.13.0
