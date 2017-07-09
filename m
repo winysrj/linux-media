@@ -1,51 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:34150 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750796AbdGXT4C (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Jul 2017 15:56:02 -0400
-Date: Mon, 24 Jul 2017 14:56:00 -0500
-From: Rob Herring <robh@kernel.org>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Cyprian Wronka <cwronka@cadence.com>,
-        Neil Webb <neilw@cadence.com>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v2 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 RX
- Device Tree bindings
-Message-ID: <20170724195600.33wazjx7sdhpu5ho@rob-hp-laptop>
-References: <20170720092302.2982-1-maxime.ripard@free-electrons.com>
- <20170720092302.2982-2-maxime.ripard@free-electrons.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170720092302.2982-2-maxime.ripard@free-electrons.com>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:35403 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752663AbdGITmx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 15:42:53 -0400
+Received: by mail-wr0-f196.google.com with SMTP id z45so20514924wrb.2
+        for <linux-media@vger.kernel.org>; Sun, 09 Jul 2017 12:42:53 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at, d_spingler@gmx.de, rjkm@metzlerbros.de
+Subject: [PATCH 4/4] [media] MAINTAINERS: add entry for mxl5xx
+Date: Sun,  9 Jul 2017 21:42:46 +0200
+Message-Id: <20170709194246.10334-5-d.scheller.oss@gmail.com>
+In-Reply-To: <20170709194246.10334-1-d.scheller.oss@gmail.com>
+References: <20170709194246.10334-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 20, 2017 at 11:23:01AM +0200, Maxime Ripard wrote:
-> The Cadence MIPI-CSI2 RX controller is a CSI2RX bridge that supports up to
-> 4 CSI-2 lanes, and can route the frames to up to 4 streams, depending on
-> the hardware implementation.
-> 
-> It can operate with an external D-PHY, an internal one or no D-PHY at all
-> in some configurations.
-> 
-> Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
-> ---
->  .../devicetree/bindings/media/cdns-csi2rx.txt      | 87 ++++++++++++++++++++++
->  1 file changed, 87 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/cdns-csi2rx.txt
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 6abb534c69c7..685886472d8a 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8236,6 +8236,14 @@ T:	git git://linuxtv.org/media_tree.git
+ S:	Supported
+ F:	drivers/media/dvb-frontends/lnbh25*
+ 
++MEDIA DRIVERS FOR MXL5XX TUNER DEMODULATORS
++M:	Daniel Scheller <d.scheller.oss@gmail.com>
++L:	linux-media@vger.kernel.org
++W:	https://linuxtv.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/dvb-frontends/mxl5xx*
++
+ MEDIA DRIVERS FOR NETUP PCI UNIVERSAL DVB devices
+ M:	Sergey Kozlov <serjk@netup.ru>
+ M:	Abylay Ospan <aospan@netup.ru>
+-- 
+2.13.0
