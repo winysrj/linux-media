@@ -1,96 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41522 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S934768AbdGTTX7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 15:23:59 -0400
-Date: Thu, 20 Jul 2017 22:23:54 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se
-Subject: Re: [RFC 11/19] v4l2-async: Register sub-devices before calling
- bound callback
-Message-ID: <20170720192354.hpxwpmmwquscwelb@valkosipuli.retiisi.org.uk>
-References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
- <20170718190401.14797-12-sakari.ailus@linux.intel.com>
- <03f4a632-30b8-bdc8-2b03-fa7c3eb811a1@xs4all.nl>
- <20170720160954.47rbdwpxx6d4ezvq@valkosipuli.retiisi.org.uk>
- <84bdb8a9-389b-1fe9-f050-4d4452f5aebd@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <84bdb8a9-389b-1fe9-f050-4d4452f5aebd@xs4all.nl>
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:33756 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752630AbdGITmi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 15:42:38 -0400
+Received: by mail-wr0-f194.google.com with SMTP id x23so20430659wrb.0
+        for <linux-media@vger.kernel.org>; Sun, 09 Jul 2017 12:42:37 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at, d_spingler@gmx.de, rjkm@metzlerbros.de
+Subject: [PATCH 12/14] [media] ddbridge: fix dereference before check
+Date: Sun,  9 Jul 2017 21:42:19 +0200
+Message-Id: <20170709194221.10255-13-d.scheller.oss@gmail.com>
+In-Reply-To: <20170709194221.10255-1-d.scheller.oss@gmail.com>
+References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Daniel Scheller <d.scheller@gmx.net>
 
-On Thu, Jul 20, 2017 at 06:23:38PM +0200, Hans Verkuil wrote:
-> On 20/07/17 18:09, Sakari Ailus wrote:
-> > Hi Hans,
-> > 
-> > On Wed, Jul 19, 2017 at 01:24:54PM +0200, Hans Verkuil wrote:
-> >> On 18/07/17 21:03, Sakari Ailus wrote:
-> >>> The async notifier supports three callbacks to the notifier: bound, unbound
-> >>> and complete. The complete callback has been traditionally used for
-> >>> creating the sub-device nodes.
-> >>>
-> >>> This approach has an inherent weakness: if registration of a single
-> >>> sub-device fails for whatever reason, it renders the entire media device
-> >>> unusable even if only that piece of hardware is not working. This is a
-> >>> problem in particular in systems with multiple independent image pipelines
-> >>> on a single device. We have had such devices (e.g. omap3isp) supported for
-> >>> a number of years and the problem is growing more pressing as time passes
-> >>> so there is an incentive to resolve this.
-> >>
-> >> I don't think this is a good reason. If one of the subdevices fail, then your
-> >> hardware is messed up and there is no point in continuing.
-> > 
-> > That's entirely untrue in general case.
-> > 
-> > If you have e.g. a mobile phone with a single camera, yes, you're right.
-> > But most mobile phones have two cameras these days. Embedded systems may
-> > have many, think of automotive use cases: you could have five or ten
-> > cameras there.
-> 
-> These are all very recent developments. Today userspace can safely assume
-> that either everything would be up and running, or nothing at all.
-> 
-> > It is not feasible to prevent the entire system from working if a single
-> > component is at fault --- this is really any component such as a lens
-> > controller.
-> 
-> All I am saying is that there should be a way to indicate that you accept
-> that parts are faulty, and that you (i.e. userspace) are able to detect
-> and handle that.
-> 
-> You can't just change the current behavior and expect existing applications
-> to work. E.g. says a sensor failed. Today the application might detect that
-> the video node didn't come up, so something is seriously wrong with the hardware
-> and it shows a message on the display. If this would change and the video node
-> *would* come up, even though there is no sensor the behavior of the application
-> would almost certainly change unexpectedly.
-> 
-> How to select which behavior you want isn't easy. The only thing I can come up
-> with is a module option. Not very elegant, unfortunately. But it doesn't
-> belong in the DT, and when userspace gets involved it is already too late.
+Both ts_release() and ts_open() can use "output" before check (smatch):
 
-Module options don't scale if you want to change kernel interface
-behaviour. Adding a Kconfig option would. We can neither make this
-application specific since the application isn't known by the time the
-nodes are created.
+  drivers/media/pci/ddbridge/ddbridge-core.c:816 ts_release() warn: variable dereferenced before check 'output' (see line 809)
+  drivers/media/pci/ddbridge/ddbridge-core.c:836 ts_open() warn: variable dereferenced before check 'output' (see line 828)
 
-Kconfig option (that defaults to no) with the events and media device
-status info amended with documentation change would achieve the goal,
-although it'd take a lot of time to adjust all the applications before the
-Kconfig option can be safely removed. This approach does have the benefit
-of being able to provide the feature to those systems that really depend on
-it.
+Fix by performing checks on those pointers.
 
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/ddbridge-core.c | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 6896cd1f3a96..ff87e0462c7e 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -738,8 +738,13 @@ static unsigned int ts_poll(struct file *file, poll_table *wait)
+ static int ts_release(struct inode *inode, struct file *file)
+ {
+ 	struct dvb_device *dvbdev = file->private_data;
+-	struct ddb_output *output = dvbdev->priv;
+-	struct ddb_input *input = output->port->input[0];
++	struct ddb_output *output = NULL;
++	struct ddb_input *input = NULL;
++
++	if (dvbdev) {
++		output = dvbdev->priv;
++		input = output->port->input[0];
++	}
+ 
+ 	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
+ 		if (!input)
+@@ -757,8 +762,13 @@ static int ts_open(struct inode *inode, struct file *file)
+ {
+ 	int err;
+ 	struct dvb_device *dvbdev = file->private_data;
+-	struct ddb_output *output = dvbdev->priv;
+-	struct ddb_input *input = output->port->input[0];
++	struct ddb_output *output = NULL;
++	struct ddb_input *input = NULL;
++
++	if (dvbdev) {
++		output = dvbdev->priv;
++		input = output->port->input[0];
++	}
+ 
+ 	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
+ 		if (!input)
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.13.0
