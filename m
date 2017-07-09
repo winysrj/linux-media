@@ -1,285 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:36083 "EHLO extserv.mm-sol.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751300AbdGQKfH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 06:35:07 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Cc: Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v3 19/23] camss: vfe: Add interface for cropping
-Date: Mon, 17 Jul 2017 13:33:45 +0300
-Message-Id: <1500287629-23703-20-git-send-email-todor.tomov@linaro.org>
-In-Reply-To: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
-References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
+Received: from gateway24.websitewelcome.com ([192.185.51.162]:12348 "EHLO
+        gateway24.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752600AbdGIWig (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 9 Jul 2017 18:38:36 -0400
+Received: from cm10.websitewelcome.com (cm10.websitewelcome.com [100.42.49.4])
+        by gateway24.websitewelcome.com (Postfix) with ESMTP id E7FDD9812
+        for <linux-media@vger.kernel.org>; Sun,  9 Jul 2017 17:14:39 -0500 (CDT)
+Date: Sun, 9 Jul 2017 17:14:38 -0500
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH] marvell-ccic: constify i2c_algorithm structure
+Message-ID: <20170709221438.GA7634@embeddedgus>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Extend selection ioctls to handle cropping configuration.
+Check for i2c_algorithm structures that are only stored in
+the algo field of an i2c_adapter structure. This field is
+declared const, so i2c_algorithm structures that have this
+property can be declared as const also.
 
-Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+This issue was identified using Coccinelle and the following
+semantic patch:
+
+@r disable optional_qualifier@
+identifier i;
+position p;
+@@
+static struct i2c_algorithm i@p = { ... };
+
+@ok@
+identifier r.i;
+struct i2c_adapter e;
+position p;
+@@
+e.algo = &i@p;
+
+@bad@
+position p != {r.p,ok.p};
+identifier r.i;
+@@
+i@p
+
+@depends on !bad disable optional_qualifier@
+identifier r.i;
+@@
+static
++const
+ struct i2c_algorithm i = { ... };
+
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
 ---
- drivers/media/platform/qcom/camss-8x16/camss-vfe.c | 191 ++++++++++++++++-----
- drivers/media/platform/qcom/camss-8x16/camss-vfe.h |   1 +
- 2 files changed, 150 insertions(+), 42 deletions(-)
+ drivers/media/platform/marvell-ccic/cafe-driver.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
-index f994b35..17617c0 100644
---- a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
-+++ b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
-@@ -1961,6 +1961,26 @@ __vfe_get_compose(struct vfe_line *line,
+diff --git a/drivers/media/platform/marvell-ccic/cafe-driver.c b/drivers/media/platform/marvell-ccic/cafe-driver.c
+index 77890bd..063fd43 100644
+--- a/drivers/media/platform/marvell-ccic/cafe-driver.c
++++ b/drivers/media/platform/marvell-ccic/cafe-driver.c
+@@ -326,7 +326,7 @@ static u32 cafe_smbus_func(struct i2c_adapter *adapter)
+ 	       I2C_FUNC_SMBUS_WRITE_BYTE_DATA;
  }
  
- /*
-+ * __vfe_get_crop - Get pointer to crop selection structure
-+ * @line: VFE line
-+ * @cfg: V4L2 subdev pad configuration
-+ * @which: TRY or ACTIVE format
-+ *
-+ * Return pointer to TRY or ACTIVE crop rectangle structure
-+ */
-+static struct v4l2_rect *
-+__vfe_get_crop(struct vfe_line *line,
-+	       struct v4l2_subdev_pad_config *cfg,
-+	       enum v4l2_subdev_format_whence which)
-+{
-+	if (which == V4L2_SUBDEV_FORMAT_TRY)
-+		return v4l2_subdev_get_try_crop(&line->subdev, cfg,
-+						MSM_VFE_PAD_SRC);
-+
-+	return &line->crop;
-+}
-+
-+/*
-  * vfe_try_format - Handle try format by pad subdev method
-  * @line: VFE line
-  * @cfg: V4L2 subdev pad configuration
-@@ -2008,7 +2028,7 @@ static void vfe_try_format(struct vfe_line *line,
- 		if (line->id == VFE_LINE_PIX) {
- 			struct v4l2_rect *rect;
- 
--			rect = __vfe_get_compose(line, cfg, which);
-+			rect = __vfe_get_crop(line, cfg, which);
- 
- 			fmt->width = rect->width;
- 			fmt->height = rect->height;
-@@ -2093,6 +2113,49 @@ static void vfe_try_compose(struct vfe_line *line,
- }
- 
- /*
-+ * vfe_try_crop - Handle try crop selection by pad subdev method
-+ * @line: VFE line
-+ * @cfg: V4L2 subdev pad configuration
-+ * @rect: pointer to v4l2 rect structure
-+ * @which: wanted subdev format
-+ */
-+static void vfe_try_crop(struct vfe_line *line,
-+			 struct v4l2_subdev_pad_config *cfg,
-+			 struct v4l2_rect *rect,
-+			 enum v4l2_subdev_format_whence which)
-+{
-+	struct v4l2_rect *compose;
-+
-+	compose = __vfe_get_compose(line, cfg, which);
-+
-+	if (rect->width > compose->width)
-+		rect->width = compose->width;
-+
-+	if (rect->width + rect->left > compose->width)
-+		rect->left = compose->width - rect->width;
-+
-+	if (rect->height > compose->height)
-+		rect->height = compose->height;
-+
-+	if (rect->height + rect->top > compose->height)
-+		rect->top = compose->height - rect->height;
-+
-+	/* wm in line based mode writes multiple of 16 horizontally */
-+	rect->left += (rect->width & 0xf) >> 1;
-+	rect->width &= ~0xf;
-+
-+	if (rect->width < 16) {
-+		rect->left = 0;
-+		rect->width = 16;
-+	}
-+
-+	if (rect->height < 4) {
-+		rect->top = 0;
-+		rect->height = 4;
-+	}
-+}
-+
-+/*
-  * vfe_enum_mbus_code - Handle pixel format enumeration
-  * @sd: VFE V4L2 subdevice
-  * @cfg: V4L2 subdev pad configuration
-@@ -2256,34 +2319,58 @@ static int vfe_get_selection(struct v4l2_subdev *sd,
- {
- 	struct vfe_line *line = v4l2_get_subdevdata(sd);
- 	struct v4l2_subdev_format fmt = { 0 };
--	struct v4l2_rect *compose;
-+	struct v4l2_rect *rect;
- 	int ret;
- 
--	if (line->id != VFE_LINE_PIX || sel->pad != MSM_VFE_PAD_SINK)
-+	if (line->id != VFE_LINE_PIX)
- 		return -EINVAL;
- 
--	switch (sel->target) {
--	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
--		fmt.pad = sel->pad;
--		fmt.which = sel->which;
--		ret = vfe_get_format(sd, cfg, &fmt);
--		if (ret < 0)
--			return ret;
--		sel->r.left = 0;
--		sel->r.top = 0;
--		sel->r.width = fmt.format.width;
--		sel->r.height = fmt.format.height;
--		break;
--	case V4L2_SEL_TGT_COMPOSE:
--		compose = __vfe_get_compose(line, cfg, sel->which);
--		if (compose == NULL)
-+	if (sel->pad == MSM_VFE_PAD_SINK)
-+		switch (sel->target) {
-+		case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-+			fmt.pad = sel->pad;
-+			fmt.which = sel->which;
-+			ret = vfe_get_format(sd, cfg, &fmt);
-+			if (ret < 0)
-+				return ret;
-+
-+			sel->r.left = 0;
-+			sel->r.top = 0;
-+			sel->r.width = fmt.format.width;
-+			sel->r.height = fmt.format.height;
-+			break;
-+		case V4L2_SEL_TGT_COMPOSE:
-+			rect = __vfe_get_compose(line, cfg, sel->which);
-+			if (rect == NULL)
-+				return -EINVAL;
-+
-+			sel->r = *rect;
-+			break;
-+		default:
- 			return -EINVAL;
-+		}
-+	else if (sel->pad == MSM_VFE_PAD_SRC)
-+		switch (sel->target) {
-+		case V4L2_SEL_TGT_CROP_BOUNDS:
-+			rect = __vfe_get_compose(line, cfg, sel->which);
-+			if (rect == NULL)
-+				return -EINVAL;
- 
--		sel->r = *compose;
--		break;
--	default:
--		return -EINVAL;
--	}
-+			sel->r.left = rect->left;
-+			sel->r.top = rect->top;
-+			sel->r.width = rect->width;
-+			sel->r.height = rect->height;
-+			break;
-+		case V4L2_SEL_TGT_CROP:
-+			rect = __vfe_get_crop(line, cfg, sel->which);
-+			if (rect == NULL)
-+				return -EINVAL;
-+
-+			sel->r = *rect;
-+			break;
-+		default:
-+			return -EINVAL;
-+		}
- 
- 	return 0;
- }
-@@ -2301,33 +2388,53 @@ int vfe_set_selection(struct v4l2_subdev *sd,
- 			     struct v4l2_subdev_selection *sel)
- {
- 	struct vfe_line *line = v4l2_get_subdevdata(sd);
--	struct v4l2_rect *compose;
--	struct v4l2_subdev_format fmt = { 0 };
-+	struct v4l2_rect *rect;
- 	int ret;
- 
--	if (line->id != VFE_LINE_PIX || sel->pad != MSM_VFE_PAD_SINK)
-+	if (line->id != VFE_LINE_PIX)
- 		return -EINVAL;
- 
--	if (sel->target != V4L2_SEL_TGT_COMPOSE)
--		return -EINVAL;
-+	if (sel->target == V4L2_SEL_TGT_COMPOSE &&
-+		sel->pad == MSM_VFE_PAD_SINK) {
-+		struct v4l2_subdev_selection crop = { 0 };
- 
--	compose = __vfe_get_compose(line, cfg, sel->which);
--	if (compose == NULL)
--		return -EINVAL;
-+		rect = __vfe_get_compose(line, cfg, sel->which);
-+		if (rect == NULL)
-+			return -EINVAL;
-+
-+		vfe_try_compose(line, cfg, &sel->r, sel->which);
-+		*rect = sel->r;
-+
-+		/* Reset source crop selection */
-+		crop.which = sel->which;
-+		crop.pad = MSM_VFE_PAD_SRC;
-+		crop.target = V4L2_SEL_TGT_CROP;
-+		crop.r = *rect;
-+		ret = vfe_set_selection(sd, cfg, &crop);
-+	} else if (sel->target == V4L2_SEL_TGT_CROP &&
-+		sel->pad == MSM_VFE_PAD_SRC) {
-+		struct v4l2_subdev_format fmt = { 0 };
-+
-+		rect = __vfe_get_crop(line, cfg, sel->which);
-+		if (rect == NULL)
-+			return -EINVAL;
- 
--	vfe_try_compose(line, cfg, &sel->r, sel->which);
--	*compose = sel->r;
-+		vfe_try_crop(line, cfg, &sel->r, sel->which);
-+		*rect = sel->r;
- 
--	/* Reset source pad format width and height */
--	fmt.which = sel->which;
--	fmt.pad = MSM_VFE_PAD_SRC;
--	ret = vfe_get_format(sd, cfg, &fmt);
--	if (ret < 0)
--		return ret;
-+		/* Reset source pad format width and height */
-+		fmt.which = sel->which;
-+		fmt.pad = MSM_VFE_PAD_SRC;
-+		ret = vfe_get_format(sd, cfg, &fmt);
-+		if (ret < 0)
-+			return ret;
- 
--	fmt.format.width = compose->width;
--	fmt.format.height = compose->height;
--	ret = vfe_set_format(sd, cfg, &fmt);
-+		fmt.format.width = rect->width;
-+		fmt.format.height = rect->height;
-+		ret = vfe_set_format(sd, cfg, &fmt);
-+	} else {
-+		ret = -EINVAL;
-+	}
- 
- 	return ret;
- }
-diff --git a/drivers/media/platform/qcom/camss-8x16/camss-vfe.h b/drivers/media/platform/qcom/camss-8x16/camss-vfe.h
-index 6518c7a..3651ece 100644
---- a/drivers/media/platform/qcom/camss-8x16/camss-vfe.h
-+++ b/drivers/media/platform/qcom/camss-8x16/camss-vfe.h
-@@ -81,6 +81,7 @@ struct vfe_line {
- 	struct media_pad pads[MSM_VFE_PADS_NUM];
- 	struct v4l2_mbus_framefmt fmt[MSM_VFE_PADS_NUM];
- 	struct v4l2_rect compose;
-+	struct v4l2_rect crop;
- 	struct camss_video video_out;
- 	struct vfe_output output;
+-static struct i2c_algorithm cafe_smbus_algo = {
++static const struct i2c_algorithm cafe_smbus_algo = {
+ 	.smbus_xfer = cafe_smbus_xfer,
+ 	.functionality = cafe_smbus_func
  };
 -- 
-2.7.4
+2.5.0
