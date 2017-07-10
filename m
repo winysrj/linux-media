@@ -1,205 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60042 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752019AbdGRTEJ (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53904 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753497AbdGJUdp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 15:04:09 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: linux-leds@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        niklas.soderlund@ragnatech.se, hverkuil@xs4all.nl
-Subject: [RFC 18/19] v4l2-fwnode: Add abstracted sub-device notifiers
-Date: Tue, 18 Jul 2017 22:04:00 +0300
-Message-Id: <20170718190401.14797-19-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
-References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
+        Mon, 10 Jul 2017 16:33:45 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hugues FRUCHET <hugues.fruchet@st.com>
+Subject: Re: RFC: Selecting which sensor discrete frame size to use
+Date: Mon, 10 Jul 2017 23:33:47 +0300
+Message-ID: <2704939.3NU0AUPruZ@avalon>
+In-Reply-To: <8ef53598-842b-227b-aae6-e437d9c1886a@xs4all.nl>
+References: <8ef53598-842b-227b-aae6-e437d9c1886a@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add notifiers for sub-devices. The notifiers themselves are not visible for
-the sub-device drivers but instead are accessed through interface functions
-v4l2_subdev_fwnode_endpoints_parse() and
-v4l2_subdev_fwnode_reference_parse_sensor_common().
+Hi Hans,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-async.c  | 27 +++++++++++++++++----
- drivers/media/v4l2-core/v4l2-subdev.c | 44 +++++++++++++++++++++++++++++++++--
- include/media/v4l2-fwnode.h           |  1 +
- include/media/v4l2-subdev.h           | 11 +++++++++
- 4 files changed, 77 insertions(+), 6 deletions(-)
+On Friday 07 Jul 2017 11:03:07 Hans Verkuil wrote:
+> Hi all,
+> 
+> Hugues wants to add cropping support to the stm32-dcmi driver. The problem
+> he encountered is that the sensor driver has a list of discrete framesizes
+> and that causes problems with the API.
+> 
+> Currently S_FMT is used to select which framesize to use. Which works fine
+> as long as there is no crop or compose support. With that in the mix it is
+> no longer clear whether S_FMT should change the crop rectangle or select
+> the framesize.
+> 
+> This is not a new problem, it's been discussed before 4 years (!) ago:
+> 
+> http://www.spinics.net/lists/linux-media/msg65381.html
+> 
+> But apparently it has never been an issue until now.
+> 
+> Note that v4l2-compliance detects this specific case and complains about it.
+> 
+> I propose that we close this API hole by requiring that such sensors support
+> the V4L2_SEL_TGT_NATIVE_SIZE selection target:
+> 
+> https://hverkuil.home.xs4all.nl/spec/uapi/v4l/v4l2-selection-targets.html
+> 
+> and set the V4L2_IN_CAP_NATIVE_SIZE input capability:
+> 
+> https://hverkuil.home.xs4all.nl/spec/uapi/v4l/vidioc-enuminput.html
+> 
+> The application called S_SELECTION(V4L2_SEL_TGT_NATIVE_SIZE) to select
+> which frame size to use. It will act the same as S_STD and S_DV_TIMINGS
+> for video receivers: it resets the format and crop/compose rectangles to
+> the native size. After that everything works normally.
+> 
+> This is only needed for sensors that have multiple frame sizes and support
+> cropping, composing and/or scaling. If it doesn't support any of this,
+> then there is no need for this selection target since S_FMT is unambiguous
+> in that case.
+> 
+> All the ingredients are already in place, all that is needed is to update
+> the documentation and v4l2-compliance.
+> 
+> I looked at some of the sensors that appear to support both multiple
+> framesizes and cropping and those that I looked at are at best dubious
+> implementations. It is totally unclear which rectangle is cropped.
+> 
+> Comments are welcome.
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 55fa7106345c..411deadf5d85 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -134,10 +134,14 @@ static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
- 
- 	if (notifier->bound) {
- 		ret = notifier->bound(notifier, sd, asd);
--		if (ret < 0) {
--			v4l2_device_unregister_subdev(sd);
--			return ret;
--		}
-+		if (ret < 0)
-+			goto err_unregister;
-+	}
-+
-+	if (sd->subnotifier) {
-+		ret = v4l2_async_subnotifier_register(sd, sd->subnotifier);
-+		if (ret < 0)
-+			goto err_unbind;
- 	}
- 
- 	/* Remove from the waiting list */
-@@ -152,6 +156,15 @@ static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
- 		return notifier->complete(notifier);
- 
- 	return 0;
-+
-+err_unbind:
-+	if (notifier->unbind)
-+		notifier->unbind(notifier, sd, asd);
-+
-+err_unregister:
-+	v4l2_device_unregister_subdev(sd);
-+
-+	return ret;
- }
- 
- static void v4l2_async_cleanup(struct v4l2_subdev *sd)
-@@ -283,6 +296,9 @@ v4l2_async_do_notifier_unregister(struct v4l2_async_notifier *notifier,
- 		/* If we handled USB devices, we'd have to lock the parent too */
- 		device_release_driver(d);
- 
-+		if (sd->subnotifier)
-+			v4l2_async_subnotifier_unregister(sd->subnotifier);
-+
- 		if (notifier->unbind)
- 			notifier->unbind(notifier, sd, sd->asd);
- 
-@@ -396,6 +412,9 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
- 
- 	v4l2_async_cleanup(sd);
- 
-+	if (sd->subnotifier)
-+		v4l2_async_subnotifier_unregister(sd->subnotifier);
-+
- 	if (notifier->unbind)
- 		notifier->unbind(notifier, sd, sd->asd);
- 
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 43fefa73e0a3..a6976d4a52ac 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -25,9 +25,10 @@
- 
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
--#include <media/v4l2-ioctl.h>
--#include <media/v4l2-fh.h>
- #include <media/v4l2-event.h>
-+#include <media/v4l2-fh.h>
-+#include <media/v4l2-fwnode.h>
-+#include <media/v4l2-ioctl.h>
- 
- static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
- {
-@@ -626,3 +627,42 @@ void v4l2_subdev_notify_event(struct v4l2_subdev *sd,
- 	v4l2_subdev_notify(sd, V4L2_DEVICE_NOTIFY_EVENT, (void *)ev);
- }
- EXPORT_SYMBOL_GPL(v4l2_subdev_notify_event);
-+
-+static struct v4l2_async_notifier *v4l2_subdev_get_subnotifier(
-+	struct v4l2_subdev *sd)
-+{
-+	if (sd->subnotifier)
-+		return sd->subnotifier;
-+
-+	return (sd->subnotifier = devm_kzalloc(
-+			sd->dev, sizeof(*sd->subnotifier), GFP_KERNEL));
-+}
-+
-+int v4l2_subdev_fwnode_endpoints_parse(
-+	struct v4l2_subdev *sd,	size_t asd_struct_size,
-+	int (*parse_single)(struct device *dev,
-+			    struct v4l2_fwnode_endpoint *vep,
-+			    struct v4l2_async_subdev *asd))
-+{
-+	struct v4l2_async_notifier *subnotifier =
-+		v4l2_subdev_get_subnotifier(sd);
-+
-+	if (!subnotifier)
-+		return -ENOMEM;
-+
-+	return v4l2_fwnode_endpoints_parse(sd->dev, subnotifier,
-+					   asd_struct_size, parse_single);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_subdev_fwnode_endpoints_parse);
-+
-+int v4l2_subdev_fwnode_reference_parse_sensor_common(struct v4l2_subdev *sd)
-+{
-+	struct v4l2_async_notifier *subnotifier =
-+		v4l2_subdev_get_subnotifier(sd);
-+
-+	if (!subnotifier)
-+		return -ENOMEM;
-+
-+	return v4l2_fwnode_reference_parse_sensor_common(sd->dev, subnotifier);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_subdev_fwnode_reference_parse_sensor_common);
-diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-index 8cd4f8a75c3d..0a3f869ead52 100644
---- a/include/media/v4l2-fwnode.h
-+++ b/include/media/v4l2-fwnode.h
-@@ -27,6 +27,7 @@
- struct fwnode_handle;
- struct v4l2_async_notifier;
- struct v4l2_async_subdev;
-+struct v4l2_subdev;
- 
- /**
-  * struct v4l2_fwnode_bus_mipi_csi2 - MIPI CSI-2 bus data structure
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 0f92ebd2d710..e309a2e2030b 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -43,6 +43,7 @@ struct v4l2_ctrl_handler;
- struct v4l2_event;
- struct v4l2_event_subscription;
- struct v4l2_fh;
-+struct v4l2_fwnode_endpoint;
- struct v4l2_subdev;
- struct v4l2_subdev_fh;
- struct tuner_setup;
-@@ -793,6 +794,7 @@ struct v4l2_subdev_platform_data {
-  *	list.
-  * @asd: Pointer to respective &struct v4l2_async_subdev.
-  * @notifier: Pointer to the managing notifier.
-+ * @subnotifier: Pointer to the async sub-device notifier.
-  * @pdata: common part of subdevice platform data
-  *
-  * Each instance of a subdev driver should create this struct, either
-@@ -823,6 +825,7 @@ struct v4l2_subdev {
- 	struct list_head async_list;
- 	struct v4l2_async_subdev *asd;
- 	struct v4l2_async_notifier *notifier;
-+	struct v4l2_async_notifier *subnotifier;
- 	struct v4l2_subdev_platform_data *pdata;
- };
- 
-@@ -1001,4 +1004,12 @@ void v4l2_subdev_init(struct v4l2_subdev *sd,
- void v4l2_subdev_notify_event(struct v4l2_subdev *sd,
- 			      const struct v4l2_event *ev);
- 
-+int v4l2_subdev_fwnode_endpoints_parse(
-+	struct v4l2_subdev *sd,	size_t asd_struct_size,
-+	int (*parse_single)(struct device *dev,
-+			    struct v4l2_fwnode_endpoint *vep,
-+			    struct v4l2_async_subdev *asd));
-+
-+int v4l2_subdev_fwnode_reference_parse_sensor_common(struct v4l2_subdev *sd);
-+
- #endif
+We've discussed this on IRC on Friday, here's a summary of (my understanding 
+of) the solution we agreed with.
+
+First of all, I believe there was a general consensus that sensor drivers 
+supporting a restricted list of discrete resolutions (also known as "register 
+lists" for the large list of register address and value pairs hardcoded in the 
+driver for each resolution) are suboptimal. A sensor driver should expose the 
+full extent of the sensor cropping and scaling capabilities. The most common 
+excuse for not doing so is lack of documentation from the sensor vendor, but 
+in many cases that's hardly more than an excuse.
+
+Then, the behaviour of the frame size enumeration, selection and format 
+operations is not well-defined in the V4L2 specification. For subdevs with 
+sink and source pads, section 4.15.3.4 (https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/dev-subdev.html) defines how the selection rectangles and 
+formats relate to each other and how they can be used to configure cropping, 
+composing and scaling. For subdevs with source pads only (such as sensors), 
+the specification isn't that clear.
+
+Sensor drivers have historically applied cropping,through the selection API, 
+before scaling, through the format API. This behaviour is not aligned with 
+section 4.15.3.4, but can't be changed at the moment and should thus be 
+implemented by all sensor drivers. This means that the crop rectangle set 
+through S_SELECTION(V4L2_SEL_TGT_CROP) is applied on the full pixel array 
+(reported through V4L2_SEL_TGT_NATIVE_SIZE) first, and then scaling is 
+performed from the cropped size to the output size set with S_FMT.
+
+The V4L2 subdev API also includes an operation (enum_frame_size) to enumerate 
+possible frame sizes. This is aimed at supporting drivers that hardcode a 
+discrete list of resolutions, but is also used by other drivers to report 
+discrete scaling ratios. The operation should be replaced by a cleaner way to 
+report scaling capabilities (assuming userspace needs to query scaling 
+capabilities at all, which we're not sure of). In the meantime, drivers can 
+keep using the operation to report scaling ratios, and the frame sizes should 
+correspond to the scaled full pixel array without any cropping applied. Other 
+uses of the operation should not be allowed.
+
+(On a personal side note, we also have a enum_frame_interval operation which 
+is even worse)
+
 -- 
-2.11.0
+Regards,
+
+Laurent Pinchart
