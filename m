@@ -1,61 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f174.google.com ([209.85.216.174]:36623 "EHLO
-        mail-qt0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753093AbdGGBMi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 21:12:38 -0400
-Received: by mail-qt0-f174.google.com with SMTP id i2so16393147qta.3
-        for <linux-media@vger.kernel.org>; Thu, 06 Jul 2017 18:12:38 -0700 (PDT)
-Date: Thu, 6 Jul 2017 22:12:34 -0300
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        linux-media@vger.kernel.org,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [PATCH 03/12] [media] vb2: add in-fence support to QBUF
-Message-ID: <20170707011234.GC10284@jade>
-References: <20170616073915.5027-1-gustavo@padovan.org>
- <20170616073915.5027-4-gustavo@padovan.org>
- <20170630085354.2a76bb4a@vento.lan>
- <20170703181627.GA3337@jade>
- <3e403e98-c9f0-1020-87c3-36aff44d5354@xs4all.nl>
+Received: from gateway31.websitewelcome.com ([192.185.143.39]:47912 "EHLO
+        gateway31.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752982AbdGJBTp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 9 Jul 2017 21:19:45 -0400
+Received: from cm12.websitewelcome.com (cm12.websitewelcome.com [100.42.49.8])
+        by gateway31.websitewelcome.com (Postfix) with ESMTP id B28F41BC74
+        for <linux-media@vger.kernel.org>; Sun,  9 Jul 2017 20:19:37 -0500 (CDT)
+Date: Sun, 9 Jul 2017 20:19:36 -0500
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH] dm1105: constify i2c_algorithm structure
+Message-ID: <20170710011936.GA25720@embeddedgus>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <3e403e98-c9f0-1020-87c3-36aff44d5354@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-07-06 Hans Verkuil <hverkuil@xs4all.nl>:
+Check for i2c_algorithm structures that are only stored in
+the algo field of an i2c_adapter structure. This field is
+declared const, so i2c_algorithm structures that have this
+property can be declared as const also.
 
-> On 07/03/17 20:16, Gustavo Padovan wrote:
-> >>> @@ -1436,6 +1481,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
-> >>>  	if (pb)
-> >>>  		call_void_bufop(q, fill_user_buffer, vb, pb);
-> >>>  
-> >>> +	vb->in_fence = fence;
-> >>> +	if (fence && !dma_fence_add_callback(fence, &vb->fence_cb,
-> >>> +					     vb2_qbuf_fence_cb))
-> >>> +		return 0;
-> >>
-> >> Maybe we should provide some error or debug log here or a WARN_ON(), if 
-> >> dma_fence_add_callback() fails instead of silently ignore any errors.
-> > 
-> > This is not an error. If the if succeeds it mean we have installed a
-> > callback for the fence. If not, it means the fence signaled already and
-> > we don't can call __vb2_core_qbuf right away.
-> 
-> I had the same question as Mauro. After looking at the dma_fence_add_callback
-> code I see what you mean, but a comment would certainly be helpful.
+This issue was identified using Coccinelle and the following
+semantic patch:
 
-Sure, I'll add a comment explaining it.
+@r disable optional_qualifier@
+identifier i;
+position p;
+@@
+static struct i2c_algorithm i@p = { ... };
 
-> 
-> Also, should you set vb->in_fence to NULL if the fence signaled already?
-> I'm not sure if you need to call 'dma_fence_put(vb->in_fence);' as well.
-> You would know that better than I do.
+@ok@
+identifier r.i;
+struct i2c_adapter e;
+position p;
+@@
+e.algo = &i@p;
 
-You got it right. I should be doing that.
+@bad@
+position p != {r.p,ok.p};
+identifier r.i;
+@@
+i@p
 
-Gustavo
+@depends on !bad disable optional_qualifier@
+identifier r.i;
+@@
+static
++const
+ struct i2c_algorithm i = { ... };
+
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+---
+ drivers/media/pci/dm1105/dm1105.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/pci/dm1105/dm1105.c b/drivers/media/pci/dm1105/dm1105.c
+index 1d41934..36e94f8 100644
+--- a/drivers/media/pci/dm1105/dm1105.c
++++ b/drivers/media/pci/dm1105/dm1105.c
+@@ -571,7 +571,7 @@ static u32 functionality(struct i2c_adapter *adap)
+ 	return I2C_FUNC_I2C;
+ }
+ 
+-static struct i2c_algorithm dm1105_algo = {
++static const struct i2c_algorithm dm1105_algo = {
+ 	.master_xfer   = dm1105_i2c_xfer,
+ 	.functionality = functionality,
+ };
+-- 
+2.5.0
