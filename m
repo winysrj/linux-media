@@ -1,141 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47844 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751146AbdGOJQv (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:33846 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753173AbdGJPMb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Jul 2017 05:16:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jacob Chen <jacob-chen@iotwrt.com>
-Cc: linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        heiko@sntech.de, robh+dt@kernel.org, mchehab@kernel.org,
-        linux-media@vger.kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        s.nawrocki@samsung.com, tfiga@chromium.org, nicolas@ndufresne.ca
-Subject: Re: [PATCH v2 5/6] ARM: dts: rockchip: enable RGA for rk3288 devices
-Date: Sat, 15 Jul 2017 12:16:55 +0300
-Message-ID: <2238838.k7NpPUxaC0@avalon>
-In-Reply-To: <1500101920-24039-6-git-send-email-jacob-chen@iotwrt.com>
-References: <1500101920-24039-1-git-send-email-jacob-chen@iotwrt.com> <1500101920-24039-6-git-send-email-jacob-chen@iotwrt.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Mon, 10 Jul 2017 11:12:31 -0400
+Received: by mail-wr0-f194.google.com with SMTP id k67so25523889wrc.1
+        for <linux-media@vger.kernel.org>; Mon, 10 Jul 2017 08:12:30 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at, garsilva@embeddedor.com
+Subject: [PATCH] [media] ddbridge: constify i2c_algorithm structure
+Date: Mon, 10 Jul 2017 17:12:27 +0200
+Message-Id: <20170710151227.15616-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacob,
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Thank you for the patch.
+Original patch and issue identified by Gustavo A. R. Silva
+<garsilva@embeddedor.com> via [1] using Coccinelle. While at it, even
+mark the struct static again since it isn't referenced anywhere else.
 
-On Saturday 15 Jul 2017 14:58:39 Jacob Chen wrote:
-> Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
-> ---
->  arch/arm/boot/dts/rk3288-evb.dtsi                 | 4 ++++
->  arch/arm/boot/dts/rk3288-firefly-reload-core.dtsi | 4 ++++
->  arch/arm/boot/dts/rk3288-firefly.dtsi             | 4 ++++
->  arch/arm/boot/dts/rk3288-miqi.dts                 | 4 ++++
->  arch/arm/boot/dts/rk3288-popmetal.dts             | 4 ++++
->  arch/arm/boot/dts/rk3288-tinker.dts               | 4 ++++
+[1] http://www.spinics.net/lists/linux-media/msg118221.html
 
-Some boards are missing from this list (Fennec, Phycore, ...) What criteria 
-have you used to decide on which ones to enable the RGA ? That should be 
-explained in the commit message.
+Cc: Gustavo A. R. Silva <garsilva@embeddedor.com>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/ddbridge-i2c.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
->  6 files changed, 24 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/rk3288-evb.dtsi
-> b/arch/arm/boot/dts/rk3288-evb.dtsi index 4905760..ec12162 100644
-> --- a/arch/arm/boot/dts/rk3288-evb.dtsi
-> +++ b/arch/arm/boot/dts/rk3288-evb.dtsi
-> @@ -379,6 +379,10 @@
->  	};
->  };
-> 
-> +&rga {
-> +	status = "okay";
-> +};
-> +
->  &usbphy {
->  	status = "okay";
->  };
-> diff --git a/arch/arm/boot/dts/rk3288-firefly-reload-core.dtsi
-> b/arch/arm/boot/dts/rk3288-firefly-reload-core.dtsi index 8134966..fffa92e2
-> 100644
-> --- a/arch/arm/boot/dts/rk3288-firefly-reload-core.dtsi
-> +++ b/arch/arm/boot/dts/rk3288-firefly-reload-core.dtsi
-> @@ -283,6 +283,10 @@
->  	};
->  };
-> 
-> +&rga {
-> +	status = "okay";
-> +};
-> +
->  &tsadc {
->  	rockchip,hw-tshut-mode = <0>;
->  	rockchip,hw-tshut-polarity = <0>;
-> diff --git a/arch/arm/boot/dts/rk3288-firefly.dtsi
-> b/arch/arm/boot/dts/rk3288-firefly.dtsi index f520589..74a6ce5 100644
-> --- a/arch/arm/boot/dts/rk3288-firefly.dtsi
-> +++ b/arch/arm/boot/dts/rk3288-firefly.dtsi
-> @@ -500,6 +500,10 @@
->  	};
->  };
-> 
-> +&rga {
-> +	status = "okay";
-> +};
-> +
->  &saradc {
->  	vref-supply = <&vcc_18>;
->  	status = "okay";
-> diff --git a/arch/arm/boot/dts/rk3288-miqi.dts
-> b/arch/arm/boot/dts/rk3288-miqi.dts index 21326f3..dc5e6bd 100644
-> --- a/arch/arm/boot/dts/rk3288-miqi.dts
-> +++ b/arch/arm/boot/dts/rk3288-miqi.dts
-> @@ -401,6 +401,10 @@
->  	};
->  };
-> 
-> +&rga {
-> +	status = "okay";
-> +};
-> +
->  &saradc {
->  	vref-supply = <&vcc_18>;
->  	status = "okay";
-> diff --git a/arch/arm/boot/dts/rk3288-popmetal.dts
-> b/arch/arm/boot/dts/rk3288-popmetal.dts index aa1f9ec..362e5aa 100644
-> --- a/arch/arm/boot/dts/rk3288-popmetal.dts
-> +++ b/arch/arm/boot/dts/rk3288-popmetal.dts
-> @@ -490,6 +490,10 @@
->  	};
->  };
-> 
-> +&rga {
-> +	status = "okay";
-> +};
-> +
->  &tsadc {
->  	rockchip,hw-tshut-mode = <0>;
->  	rockchip,hw-tshut-polarity = <0>;
-> diff --git a/arch/arm/boot/dts/rk3288-tinker.dts
-> b/arch/arm/boot/dts/rk3288-tinker.dts index 525b0e5..1a8c149 100644
-> --- a/arch/arm/boot/dts/rk3288-tinker.dts
-> +++ b/arch/arm/boot/dts/rk3288-tinker.dts
-> @@ -460,6 +460,10 @@
->  	status = "okay";
->  };
-> 
-> +&rga {
-> +	status = "okay";
-> +};
-> +
->  &saradc {
->  	vref-supply = <&vcc18_ldo1>;
->  	status ="okay";
-
+diff --git a/drivers/media/pci/ddbridge/ddbridge-i2c.c b/drivers/media/pci/ddbridge/ddbridge-i2c.c
+index 22b2543da4ca..3d0aefe05cec 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-i2c.c
++++ b/drivers/media/pci/ddbridge/ddbridge-i2c.c
+@@ -212,7 +212,7 @@ static u32 ddb_i2c_functionality(struct i2c_adapter *adap)
+ 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
+ }
+ 
+-struct i2c_algorithm ddb_i2c_algo = {
++static const struct i2c_algorithm ddb_i2c_algo = {
+ 	.master_xfer   = ddb_i2c_master_xfer,
+ 	.functionality = ddb_i2c_functionality,
+ };
 -- 
-Regards,
-
-Laurent Pinchart
+2.13.0
