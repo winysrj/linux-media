@@ -1,64 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:40243 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751659AbdGFJ3t (ORCPT
+Received: from mail-it0-f66.google.com ([209.85.214.66]:34291 "EHLO
+        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751148AbdGJGW1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Jul 2017 05:29:49 -0400
-Subject: Re: [PATCH 12/12] [media] vb2: add out-fence support to QBUF
-To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
-References: <20170616073915.5027-1-gustavo@padovan.org>
- <20170616073915.5027-13-gustavo@padovan.org>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <aee01ccd-530b-4c93-6510-6b6acca7e7c0@xs4all.nl>
-Date: Thu, 6 Jul 2017 11:29:43 +0200
+        Mon, 10 Jul 2017 02:22:27 -0400
 MIME-Version: 1.0
-In-Reply-To: <20170616073915.5027-13-gustavo@padovan.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20170709195250.hu3psedjrvjkhivv@valkosipuli.retiisi.org.uk>
+References: <20170707144521.4520-1-gehariprasath@gmail.com>
+ <20170708110157.jkpg6foz35lckdqu@ihha.localdomain> <CAHHWPbfxGxJ6_N=rx1ZFW-DnTTAui0qYcbCjrY=ke3mGJF_kkA@mail.gmail.com>
+ <20170709195250.hu3psedjrvjkhivv@valkosipuli.retiisi.org.uk>
+From: hari prasath <gehariprasath@gmail.com>
+Date: Mon, 10 Jul 2017 11:52:26 +0530
+Message-ID: <CAHHWPbfobni1dCVR4771a+hkHyJO6s4GENeaj2XU_=un4mioFA@mail.gmail.com>
+Subject: Re: [PATCH v2] staging: atomisp: use kstrdup to replace kmalloc and memcpy
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: mchehab@kernel.org,
+        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>,
+        Varsha Rao <rvarsha016@gmail.com>,
+        Julia Lawall <julia.lawall@lip6.fr>,
+        SIMRAN SINGHAL <singhalsimran0@gmail.com>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/16/17 09:39, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> If V4L2_BUF_FLAG_OUT_FENCE flag is present on the QBUF call we create
-> an out_fence for the buffer and return it to userspace on the fence_fd
-> field. It only works with ordered queues.
-> 
-> The fence is signaled on buffer_done(), when the job on the buffer is
-> finished.
-> 
-> v2: check if the queue is ordered.
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c |  6 ++++++
->  drivers/media/v4l2-core/videobuf2-v4l2.c | 22 +++++++++++++++++++++-
->  2 files changed, 27 insertions(+), 1 deletion(-)
-> 
+On 10 July 2017 at 01:22, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> On Sun, Jul 09, 2017 at 05:56:15PM +0530, hari prasath wrote:
+>> On 8 July 2017 at 16:31, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+>> > Hi Hari,
+>> >
+>> > On Fri, Jul 07, 2017 at 08:15:21PM +0530, Hari Prasath wrote:
+>> >> kstrdup kernel primitive can be used to replace kmalloc followed by
+>> >> string copy. This was reported by coccinelle tool
+>> >>
+>> >> Signed-off-by: Hari Prasath <gehariprasath@gmail.com>
+>> >> ---
+>> >>  .../media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c       | 10 +++-------
+>> >>  1 file changed, 3 insertions(+), 7 deletions(-)
+>> >>
+>> >> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+>> >> index 34cc56f..68db87b 100644
+>> >> --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+>> >> +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+>> >> @@ -144,14 +144,10 @@ sh_css_load_blob_info(const char *fw, const struct ia_css_fw_info *bi, struct ia
+>> >>       )
+>> >>       {
+>> >>               char *namebuffer;
+>> >> -             int namelength = (int)strlen(name);
+>> >> -
+>> >> -             namebuffer = (char *) kmalloc(namelength + 1, GFP_KERNEL);
+>> >> -             if (namebuffer == NULL)
+>> >> -                     return IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>> >> -
+>> >> -             memcpy(namebuffer, name, namelength + 1);
+>> >>
+>> >> +             namebuffer = kstrdup(name, GFP_KERNEL);
+>> >> +             if (!namebuffer)
+>> >> +                     return -ENOMEM;
+>> >
+>> > The patch also changes the return value in error cases. I believe the
+>> > caller(s) expect to get errors in the IA_CCS_ERR_* range.
+>>
+>> Hi,
+>>
+>> In this particular case, the calling function just checks if it's not
+>> success defined by a enum. I think returning -ENOMEM would not effect,
+>> at least in this case.
+>
+> It might not, but the function now returns both negative Posix and positive
+> CSS error codes. The CSS error codes could well be converted to Posix but
+> it should be done consistently and preferrably in a separate patch.
 
-<snip>
 
-> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> index e6ad77f..e2733dd 100644
-> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> @@ -204,9 +204,14 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
->  	b->timestamp = ns_to_timeval(vb->timestamp);
->  	b->timecode = vbuf->timecode;
->  	b->sequence = vbuf->sequence;
-> -	b->fence_fd = -1;
-> +	b->fence_fd = vb->out_fence_fd;
-
-I forgot to ask: can a buffer have both an in and an out fence? If so, then we
-have a problem here since we can report only one fence fd.
-
-If it is not allowed, then we need a check for that somewhere.
+Hi Sakari, Thanks for your comments. I will stick with just replacing
+with kstrdup and retain the original error return value. I will send a
+v3.
 
 Regards,
+Hari
 
-	Hans
+>
+> --
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
+
+
+
+-- 
+Regards,
+G.E.Hari Prasath
