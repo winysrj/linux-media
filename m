@@ -1,118 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43922 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965372AbdGTXxX (ORCPT
+Received: from mail-wr0-f170.google.com ([209.85.128.170]:34727 "EHLO
+        mail-wr0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753544AbdGJIB5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 19:53:23 -0400
-Subject: Re: [RFC 11/19] v4l2-async: Register sub-devices before calling bound
- callback
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se
-References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
- <20170718190401.14797-12-sakari.ailus@linux.intel.com>
- <03f4a632-30b8-bdc8-2b03-fa7c3eb811a1@xs4all.nl>
- <20170720160954.47rbdwpxx6d4ezvq@valkosipuli.retiisi.org.uk>
- <84bdb8a9-389b-1fe9-f050-4d4452f5aebd@xs4all.nl>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <e0c00e6c-0457-305e-cd20-27478131cad0@ideasonboard.com>
-Date: Fri, 21 Jul 2017 00:53:18 +0100
-MIME-Version: 1.0
-In-Reply-To: <84bdb8a9-389b-1fe9-f050-4d4452f5aebd@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+        Mon, 10 Jul 2017 04:01:57 -0400
+Received: by mail-wr0-f170.google.com with SMTP id 77so127216286wrb.1
+        for <linux-media@vger.kernel.org>; Mon, 10 Jul 2017 01:01:56 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: mchehab@kernel.org, hans.verkuil@cisco.com
+Cc: Neil Armstrong <narmstrong@baylibre.com>,
+        linux-media@vger.kernel.org, linux-amlogic@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: [PATCH v2 2/2] dt-bindings: media: Add Amlogic Meson AO-CEC bindings
+Date: Mon, 10 Jul 2017 10:01:36 +0200
+Message-Id: <1499673696-21372-3-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1499673696-21372-1-git-send-email-narmstrong@baylibre.com>
+References: <1499673696-21372-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+The Amlogic SoCs embeds a standalone CEC Controller, this patch adds this
+device bindings.
 
-On 20/07/17 17:23, Hans Verkuil wrote:
-> On 20/07/17 18:09, Sakari Ailus wrote:
->> Hi Hans,
->>
->> On Wed, Jul 19, 2017 at 01:24:54PM +0200, Hans Verkuil wrote:
->>> On 18/07/17 21:03, Sakari Ailus wrote:
->>>> The async notifier supports three callbacks to the notifier: bound, unbound
->>>> and complete. The complete callback has been traditionally used for
->>>> creating the sub-device nodes.
->>>>
->>>> This approach has an inherent weakness: if registration of a single
->>>> sub-device fails for whatever reason, it renders the entire media device
->>>> unusable even if only that piece of hardware is not working. This is a
->>>> problem in particular in systems with multiple independent image pipelines
->>>> on a single device. We have had such devices (e.g. omap3isp) supported for
->>>> a number of years and the problem is growing more pressing as time passes
->>>> so there is an incentive to resolve this.
->>>
->>> I don't think this is a good reason. If one of the subdevices fail, then your
->>> hardware is messed up and there is no point in continuing.
->>
->> That's entirely untrue in general case.
+Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+---
+ .../devicetree/bindings/media/meson-ao-cec.txt     | 28 ++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/meson-ao-cec.txt
 
-Adding my 2 cents ... because I'm hitting this ... right now.
-
->>
->> If you have e.g. a mobile phone with a single camera, yes, you're right.
->> But most mobile phones have two cameras these days. Embedded systems may
->> have many, think of automotive use cases: you could have five or ten
->> cameras there.
-I have a MAX9286 which has 4 camera subdevices connected.
-
-Right now, if *ONE* fails - they all fail. - This is very much undesirable
-behaviour.
-
-In this instance, when one fails (perhaps I have not connected one camera) then
-the remaining camera subdevices all probe successfully, but the complete
-callback is never called. Therefore the rest of my pipeline is dead, - But that
-could now mean my reversing camera is not working because my wing mirror camera
-was 'knocked' off... :-(
-
-
-> These are all very recent developments. Today userspace can safely assume
-> that either everything would be up and running, or nothing at all.
-
-This is a strong point, and I'm struggling to decide if I agree or not :D
-
-There are so many use cases, it's hard to make one statement fit all.
-
-For example - currently - an analogue input source might not be connected - but
-userspace may not know that, and would instead capture a black screen.
-
-Maybe that doesn't even match ... I'm tired ;)
-
-
->> It is not feasible to prevent the entire system from working if a single
->> component is at fault --- this is really any component such as a lens
->> controller.
-> 
-> All I am saying is that there should be a way to indicate that you accept
-> that parts are faulty, and that you (i.e. userspace) are able to detect
-> and handle that.
->
-> You can't just change the current behavior and expect existing applications
-> to work. E.g. says a sensor failed. Today the application might detect that
-> the video node didn't come up, so something is seriously wrong with the hardware
-> and it shows a message on the display. If this would change and the video node
-> *would* come up, even though there is no sensor the behavior of the application
-> would almost certainly change unexpectedly.
-> 
-> How to select which behavior you want isn't easy. The only thing I can come up
-> with is a module option. Not very elegant, unfortunately. But it doesn't
-> belong in the DT, and when userspace gets involved it is already too late.
-
-Yes, this sounds nasty - but 3 out of 4 working cameras being disabled / not
-coming up because one failed sounds worse to me currently (I would say that ...
-my cameras didn't come up) ... :-(
-
-<thinking cap on ... going to bed>
-
---
-Kieran
-
-> Regards,
-> 
-> 	Hans
-> 
+diff --git a/Documentation/devicetree/bindings/media/meson-ao-cec.txt b/Documentation/devicetree/bindings/media/meson-ao-cec.txt
+new file mode 100644
+index 0000000..8671bdb
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/meson-ao-cec.txt
+@@ -0,0 +1,28 @@
++* Amlogic Meson AO-CEC driver
++
++The Amlogic Meson AO-CEC module is present is Amlogic SoCs and its purpose is
++to handle communication between HDMI connected devices over the CEC bus.
++
++Required properties:
++  - compatible : value should be following
++	"amlogic,meson-gx-ao-cec"
++
++  - reg : Physical base address of the IP registers and length of memory
++	  mapped region.
++
++  - interrupts : AO-CEC interrupt number to the CPU.
++  - clocks : from common clock binding: handle to AO-CEC clock.
++  - clock-names : from common clock binding: must contain "core",
++		  corresponding to entry in the clocks property.
++  - hdmi-phandle: phandle to the HDMI controller
++
++Example:
++
++cec_AO: cec@100 {
++	compatible = "amlogic,meson-gx-ao-cec";
++	reg = <0x0 0x00100 0x0 0x14>;
++	interrupts = <GIC_SPI 199 IRQ_TYPE_EDGE_RISING>;
++	clocks = <&clkc_AO CLKID_AO_CEC_32K>;
++	clock-names = "core";
++	hdmi-phandle = <&hdmi_tx>;
++};
+-- 
+1.9.1
