@@ -1,78 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:57062 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751353AbdGNJeM (ORCPT
+Received: from mail-wr0-f171.google.com ([209.85.128.171]:35605 "EHLO
+        mail-wr0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753436AbdGJIBy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Jul 2017 05:34:12 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
-        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, Arnd Bergmann <arnd@arndb.de>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
-Subject: [PATCH 13/14] iopoll: avoid -Wint-in-bool-context warning
-Date: Fri, 14 Jul 2017 11:31:06 +0200
-Message-Id: <20170714093129.1366900-4-arnd@arndb.de>
-In-Reply-To: <20170714092540.1217397-1-arnd@arndb.de>
-References: <20170714092540.1217397-1-arnd@arndb.de>
+        Mon, 10 Jul 2017 04:01:54 -0400
+Received: by mail-wr0-f171.google.com with SMTP id k67so126920125wrc.2
+        for <linux-media@vger.kernel.org>; Mon, 10 Jul 2017 01:01:54 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: mchehab@kernel.org, hans.verkuil@cisco.com
+Cc: Neil Armstrong <narmstrong@baylibre.com>,
+        linux-media@vger.kernel.org, linux-amlogic@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v2 0/2] media: Add Amlogic Meson AO CEC Controller support
+Date: Mon, 10 Jul 2017 10:01:34 +0200
+Message-Id: <1499673696-21372-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When we pass the result of a multiplication as the timeout, we
-can get a warning:
+The Amlogic SoC embeds a standalone CEC controller, this patch adds a driver
+for such controller.
+The controller does not need HPD to be active, and could support up to max
+5 logical addresses, but only 1 is handled since the Suspend firmware can
+make use of this unique logical address to wake up the device.
 
-drivers/mmc/host/bcm2835.c:596:149: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
-drivers/mfd/arizona-core.c:247:195: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
+The Suspend firmware configuration will be added in an other patchset.
 
-This is easy to avoid by comparing the timeout to zero instead,
-making it a boolean expression.
+Changes since v1 at [1] :
+ - add timeout to wait busy, with error return
+ - handle busy error in all read/write operations
+ - add CEC_CAP_PASSTHROUGH
+ - add bindings ack
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- include/linux/iopoll.h | 6 ++++--
- include/linux/regmap.h | 2 +-
- 2 files changed, 5 insertions(+), 3 deletions(-)
+[1] https://lkml.kernel.org/r/1499336870-24118-1-git-send-email-narmstrong@baylibre.com
 
-diff --git a/include/linux/iopoll.h b/include/linux/iopoll.h
-index d29e1e21bf3f..7a17ba02253b 100644
---- a/include/linux/iopoll.h
-+++ b/include/linux/iopoll.h
-@@ -48,7 +48,8 @@
- 		(val) = op(addr); \
- 		if (cond) \
- 			break; \
--		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
-+		if ((timeout_us) > 0 && \
-+		    ktime_compare(ktime_get(), timeout) > 0) { \
- 			(val) = op(addr); \
- 			break; \
- 		} \
-@@ -82,7 +83,8 @@
- 		(val) = op(addr); \
- 		if (cond) \
- 			break; \
--		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
-+		if ((timeout_us) > 0 && \
-+		    ktime_compare(ktime_get(), timeout) > 0) { \
- 			(val) = op(addr); \
- 			break; \
- 		} \
-diff --git a/include/linux/regmap.h b/include/linux/regmap.h
-index 1474ab0a3922..0889dbf37161 100644
---- a/include/linux/regmap.h
-+++ b/include/linux/regmap.h
-@@ -129,7 +129,7 @@ struct reg_sequence {
- 			break; \
- 		if (cond) \
- 			break; \
--		if ((timeout_us) && \
-+		if ((timeout_us) > 0 && \
- 		    ktime_compare(ktime_get(), __timeout) > 0) { \
- 			__ret = regmap_read((map), (addr), &(val)); \
- 			break; \
+Neil Armstrong (2):
+  platform: Add Amlogic Meson AO CEC Controller driver
+  dt-bindings: media: Add Amlogic Meson AO-CEC bindings
+
+ .../devicetree/bindings/media/meson-ao-cec.txt     |  28 +
+ drivers/media/platform/Kconfig                     |  11 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/meson/Makefile              |   1 +
+ drivers/media/platform/meson/ao-cec.c              | 781 +++++++++++++++++++++
+ 5 files changed, 823 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/meson-ao-cec.txt
+ create mode 100644 drivers/media/platform/meson/Makefile
+ create mode 100644 drivers/media/platform/meson/ao-cec.c
+
 -- 
-2.9.0
+1.9.1
