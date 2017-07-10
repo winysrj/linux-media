@@ -1,58 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:33714 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753185AbdGTNHN (ORCPT
+Received: from gateway24.websitewelcome.com ([192.185.50.93]:39975 "EHLO
+        gateway24.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752749AbdGJBav (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 09:07:13 -0400
-Subject: Re: [Patch v5 06/12] [media] v4l2-ioctl: add HEVC format description
-To: Smitha T Murthy <smitha.t@samsung.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
- <CGME20170619052507epcas1p406fa9f6d84baa9c11050b1998021788a@epcas1p4.samsung.com>
- <1497849055-26583-7-git-send-email-smitha.t@samsung.com>
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e6e75cae-f195-af56-652e-37c3e51ad70f@xs4all.nl>
-Date: Thu, 20 Jul 2017 15:07:09 +0200
+        Sun, 9 Jul 2017 21:30:51 -0400
+Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
+        by gateway24.websitewelcome.com (Postfix) with ESMTP id B1C746438
+        for <linux-media@vger.kernel.org>; Sun,  9 Jul 2017 20:10:01 -0500 (CDT)
+Date: Sun, 9 Jul 2017 20:10:00 -0500
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH] mantis: constify i2c_algorithm structure
+Message-ID: <20170710011000.GA21364@embeddedgus>
 MIME-Version: 1.0
-In-Reply-To: <1497849055-26583-7-git-send-email-smitha.t@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 19/06/17 07:10, Smitha T Murthy wrote:
-> HEVC is a video coding format
-> 
-> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> ---
->  drivers/media/v4l2-core/v4l2-ioctl.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index e5a2187..4f6f8d9 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1257,6 +1257,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
->  		case V4L2_PIX_FMT_VC1_ANNEX_L:	descr = "VC-1 (SMPTE 412M Annex L)"; break;
->  		case V4L2_PIX_FMT_VP8:		descr = "VP8"; break;
->  		case V4L2_PIX_FMT_VP9:		descr = "VP9"; break;
-> +		case V4L2_PIX_FMT_HEVC:		descr = "HEVC"; break;
+Check for i2c_algorithm structures that are only stored in
+the algo field of an i2c_adapter structure. This field is
+declared const, so i2c_algorithm structures that have this
+property can be declared as const also.
 
-Add a little comment at the end of the line: /* aka H.265 */
+This issue was identified using Coccinelle and the following
+semantic patch:
 
-After that you can add my:
+@r disable optional_qualifier@
+identifier i;
+position p;
+@@
+static struct i2c_algorithm i@p = { ... };
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+@ok@
+identifier r.i;
+struct i2c_adapter e;
+position p;
+@@
+e.algo = &i@p;
 
-Regards,
+@bad@
+position p != {r.p,ok.p};
+identifier r.i;
+@@
+i@p
 
-	Hans
+@depends on !bad disable optional_qualifier@
+identifier r.i;
+@@
+static
++const
+ struct i2c_algorithm i = { ... };
 
->  		case V4L2_PIX_FMT_CPIA1:	descr = "GSPCA CPiA YUV"; break;
->  		case V4L2_PIX_FMT_WNVA:		descr = "WNVA"; break;
->  		case V4L2_PIX_FMT_SN9C10X:	descr = "GSPCA SN9C10X"; break;
-> 
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+---
+ drivers/media/pci/mantis/mantis_i2c.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/pci/mantis/mantis_i2c.c b/drivers/media/pci/mantis/mantis_i2c.c
+index d72ee47..496c10d 100644
+--- a/drivers/media/pci/mantis/mantis_i2c.c
++++ b/drivers/media/pci/mantis/mantis_i2c.c
+@@ -212,7 +212,7 @@ static u32 mantis_i2c_func(struct i2c_adapter *adapter)
+ 	return I2C_FUNC_SMBUS_EMUL;
+ }
+ 
+-static struct i2c_algorithm mantis_algo = {
++static const struct i2c_algorithm mantis_algo = {
+ 	.master_xfer		= mantis_i2c_xfer,
+ 	.functionality		= mantis_i2c_func,
+ };
+-- 
+2.5.0
