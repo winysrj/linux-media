@@ -1,114 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39074 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751017AbdGMXED (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Jul 2017 19:04:03 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieranbingham@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2 06/14] v4l: vsp1: Add pipe index argument to the VSP-DU API
-Date: Fri, 14 Jul 2017 02:04:06 +0300
-Message-ID: <3451025.QtdIjcAE8v@avalon>
-In-Reply-To: <915884a5-e69d-b821-4a53-afa73a03c233@gmail.com>
-References: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com> <20170626181226.29575-7-laurent.pinchart+renesas@ideasonboard.com> <915884a5-e69d-b821-4a53-afa73a03c233@gmail.com>
+Received: from smtp5-g21.free.fr ([212.27.42.5]:39619 "EHLO smtp5-g21.free.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752618AbdGJJo1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Jul 2017 05:44:27 -0400
+From: Mason <slash.tmp@free.fr>
+Subject: Infrared support on tango boards
+To: linux-media <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sean Young <sean@mess.org>,
+        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>
+Message-ID: <e5063c2c-52db-7d75-e090-fbc49ab76deb@free.fr>
+Date: Mon, 10 Jul 2017 11:44:08 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Hello,
 
-On Thursday 13 Jul 2017 14:16:03 Kieran Bingham wrote:
-> On 26/06/17 19:12, Laurent Pinchart wrote:
-> > In the H3 ES2.0 SoC the VSP2-DL instance has two connections to DU
-> > channels that need to be configured independently. Extend the VSP-DU API
-> > with a pipeline index to identify which pipeline the caller wants to
-> > operate on.
-> > 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> 
-> A bit of comment merge between this and the next patch but it's minor and
-> not worth the effort to change that ... so I'll happily ignore it if you do
-> :)
-> 
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> > ---
-> > 
-> >  drivers/gpu/drm/rcar-du/rcar_du_vsp.c  | 12 ++++++------
-> >  drivers/media/platform/vsp1/vsp1_drm.c | 32 +++++++++++++++++++--------
-> >  include/media/vsp1.h                   | 10 ++++++----
-> >  3 files changed, 34 insertions(+), 20 deletions(-)
+First of all, let's see if I got this right.
 
-[snip]
+An infrared remote control emits IR pulses to send a bitstream.
+This is the "raw" data. The bit sequence depends on the button
+being pressed (or released), and the protocol being used, right?
 
-> > diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
-> > b/drivers/media/platform/vsp1/vsp1_drm.c index c72d021ff820..daaafe7885fa
-> > 100644
-> > --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> > +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> > @@ -58,21 +58,26 @@ EXPORT_SYMBOL_GPL(vsp1_du_init);
-> >  /**
-> >   * vsp1_du_setup_lif - Setup the output part of the VSP pipeline
-> >   * @dev: the VSP device
-> > + * @pipe_index: the DRM pipeline index
-> >   * @cfg: the LIF configuration
-> >   *
-> >   * Configure the output part of VSP DRM pipeline for the given frame
-> >   @cfg.width
-> > - * and @cfg.height. This sets up formats on the BRU source pad, the WPF0
-> > sink
-> > - * and source pads, and the LIF sink pad.
-> > + * and @cfg.height. This sets up formats on the blend unit (BRU or BRS)
-> > source
-> > + * pad, the WPF sink and source pads, and the LIF sink pad.
-> >   *
-> > - * As the media bus code on the BRU source pad is conditioned by the
-> > - * configuration of the BRU sink 0 pad, we also set up the formats on all
-> > BRU
-> > + * The @pipe_index argument selects which DRM pipeline to setup. The
-> > number of
-> > + * available pipelines depend on the VSP instance.
-> > + *
-> > + * As the media bus code on the blend unit source pad is conditioned by
-> > the
-> > + * configuration of its sink 0 pad, we also set up the formats on all
-> > blend unit
-> >   * sinks, even if the configuration will be overwritten later by
-> > - * vsp1_du_setup_rpf(). This ensures that the BRU configuration is set to
-> > a well
-> > - * defined state.
-> > + * vsp1_du_setup_rpf(). This ensures that the blend unit configuration is
-> > set to
-> > + * a well defined state.
-> 
-> I presume those comment updates for the BRU/ blend-unit configuration are
-> actually for the next patch - but I don't think it matters here - and isn't
-> worth the effort to move the hunks.
+An infrared receiver "captures" this bitstream, which is then
+translated to a "scancode" using the appropriate (protocol)
+decoder, IIUC. How does one know which decoder to use, out of
+the dozen protocols available? Are there ambiguities such that
+a bitstream may be valid under two different protocols?
 
-Too late, I've fixed it already :-) Thanks for pointing it out.
+Hmmm, I'm missing a step for going from
+00000000  a9 07 00 00 2e 72 0e 00  04 00 04 00 41 cb 04 00  |.....r......A...|
+00000010  a9 07 00 00 2e 72 0e 00  00 00 00 00 00 00 00 00  |.....r..........|
+to
+2589.901611: event type EV_MSC(0x04): scancode = 0x4cb41
+2589.901611: event type EV_SYN(0x00).
+(not the same IR frame, BTW)
 
-> It all reads OK.
-> 
-> >   *
-> >   * Return 0 on success or a negative error code on failure.
-> >   */
-> > -int vsp1_du_setup_lif(struct device *dev, const struct vsp1_du_lif_config
-> > *cfg)
-> > +int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
-> > +		      const struct vsp1_du_lif_config *cfg)
-> >  {
-> >  	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
-> >  	struct vsp1_pipeline *pipe = &vsp1->drm->pipe;
+Once we have a scancode, there is another translation pass,
+to the higher-level concept of an actual key, such as "1",
+which all applications can agree on.
 
-[snip]
 
--- 
-Regards,
+On the board I'm working on (Sigma SMP8758) there are two distinct
+infrared hardware blocks.
 
-Laurent Pinchart
+A) the first block supports 3 protocols in HW (NEC, RC-5, RC-6A)
+Documentation states:
+"supports NEC format, RC5 format, RC5 extended format, RC6A format,
+interrupt driven, contains error detection"
+
+B) the second block doesn't understand protocols and only captures
+raw bitstreams AFAIU.
+Documentation states:
+"Support for up to 2 IR sources
+Contains debounce and noise filter
+Contains Timestamp mode or Delta mode
+Scancodes are timestamped
+Freely user programmable
+May support any IR protocol or format
+May support any scan code length
+Timebase either variable system clock or fixed 27MHz clock
+Interrupt driven
+GPIO pin user selectable"
+
+Tangent: it seems complicated to use two IR sources concurrently...
+Wouldn't both receivers capture both sources?
+
+Back on topic: it seems to me that Linux supports many protocol
+decoders, including the 3 supported by block A. I am also assuming
+that IR signals are pretty low bandwidth? Thus, it would appear
+to make sense to only use block B, to have the widest support.
+
+What do you think?
+
+Regards.
