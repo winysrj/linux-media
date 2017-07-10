@@ -1,198 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f54.google.com ([209.85.215.54]:33810 "EHLO
-        mail-lf0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751576AbdGRPGk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 11:06:40 -0400
-Received: by mail-lf0-f54.google.com with SMTP id t72so16686380lff.1
-        for <linux-media@vger.kernel.org>; Tue, 18 Jul 2017 08:06:40 -0700 (PDT)
-Date: Tue, 18 Jul 2017 17:06:37 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-Subject: Re: [PATCH v4 2/3] v4l: async: do not hold list_lock when reprobing
- devices
-Message-ID: <20170718150637.GE28538@bigcity.dyn.berto.se>
-References: <20170717165917.24851-1-niklas.soderlund+renesas@ragnatech.se>
- <20170717165917.24851-3-niklas.soderlund+renesas@ragnatech.se>
- <5a184e14-b429-fd7d-fc0c-d0520e1cc3fa@xs4all.nl>
- <20170718143936.GC28538@bigcity.dyn.berto.se>
- <eab3d6ad-c90a-310a-a9fb-29e19e6ebb69@xs4all.nl>
+Received: from gofer.mess.org ([88.97.38.141]:59899 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753298AbdGJPKS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Jul 2017 11:10:18 -0400
+Date: Mon, 10 Jul 2017 16:10:16 +0100
+From: Sean Young <sean@mess.org>
+To: Rob Herring <robh@kernel.org>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH v2 5/6] [media] dt-bindings: gpio-ir-tx: add support for
+ GPIO IR Transmitter
+Message-ID: <20170710151016.5iaokchdejxozrte@gofer.mess.org>
+References: <cover.1499419624.git.sean@mess.org>
+ <580c648de65344e9316ff153ba316efd4d527f12.1499419624.git.sean@mess.org>
+ <20170710150538.ql26gswdf2obch6o@rob-hp-laptop>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <eab3d6ad-c90a-310a-a9fb-29e19e6ebb69@xs4all.nl>
+In-Reply-To: <20170710150538.ql26gswdf2obch6o@rob-hp-laptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2017-07-18 16:50:15 +0200, Hans Verkuil wrote:
-> On 18/07/17 16:39, Niklas Söderlund wrote:
-> > Hi Hans,
+On Mon, Jul 10, 2017 at 10:05:38AM -0500, Rob Herring wrote:
+> On Fri, Jul 07, 2017 at 10:52:03AM +0100, Sean Young wrote:
+> > Document the device tree bindings for the GPIO Bit Banging IR
+> > Transmitter.
 > > 
-> > Thanks for your feedback.
+> > Signed-off-by: Sean Young <sean@mess.org>
+> > ---
+> >  Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt | 11 +++++++++++
+> >  1 file changed, 11 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt
 > > 
-> > On 2017-07-18 16:22:14 +0200, Hans Verkuil wrote:
-> >> On 17/07/17 18:59, Niklas Söderlund wrote:
-> >>> There is no good reason to hold the list_lock when reprobing the devices
-> >>> and it prevents a clean implementation of subdevice notifiers. Move the
-> >>> actual release of the devices outside of the loop which requires the
-> >>> lock to be held.
-> >>>
-> >>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> >>> ---
-> >>>  drivers/media/v4l2-core/v4l2-async.c | 29 ++++++++++-------------------
-> >>>  1 file changed, 10 insertions(+), 19 deletions(-)
-> >>>
-> >>> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> >>> index 0acf288d7227ba97..8fc84f7962386ddd 100644
-> >>> --- a/drivers/media/v4l2-core/v4l2-async.c
-> >>> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> >>> @@ -206,7 +206,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> >>>  	unsigned int notif_n_subdev = notifier->num_subdevs;
-> >>>  	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
-> >>>  	struct device **dev;
-> >>> -	int i = 0;
-> >>> +	int i, count = 0;
-> >>>  
-> >>>  	if (!notifier->v4l2_dev)
-> >>>  		return;
-> >>> @@ -222,37 +222,28 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> >>>  	list_del(&notifier->list);
-> >>>  
-> >>>  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-> >>> -		struct device *d;
-> >>> -
-> >>> -		d = get_device(sd->dev);
-> >>> +		if (dev)
-> >>> +			dev[count] = get_device(sd->dev);
-> >>> +		count++;
-> >>>  
-> >>>  		if (notifier->unbind)
-> >>>  			notifier->unbind(notifier, sd, sd->asd);
-> >>>  
-> >>>  		v4l2_async_cleanup(sd);
-> >>> +	}
-> >>>  
-> >>> -		/* If we handled USB devices, we'd have to lock the parent too */
-> >>> -		device_release_driver(d);
-> >>> +	mutex_unlock(&list_lock);
-> >>>  
-> >>> -		/*
-> >>> -		 * Store device at the device cache, in order to call
-> >>> -		 * put_device() on the final step
-> >>> -		 */
-> >>> +	for (i = 0; i < count; i++) {
-> >>> +		/* If we handled USB devices, we'd have to lock the parent too */
-> >>>  		if (dev)
-> >>> -			dev[i++] = d;
-> >>> -		else
-> >>> -			put_device(d);
-> >>> +			device_release_driver(dev[i]);
-> >>
-> >> This changes the behavior. If the alloc failed, then at least put_device was still called.
-> >> Now that no longer happens.
-> > 
-> > Yes, but also changes the behavior to also only call get_device() if the 
-> > allocation was successful. So the behavior is kept the same as far as I 
-> > understands it.
+> > diff --git a/Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt b/Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt
+> > new file mode 100644
+> > index 0000000..bc08d89
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt
+> > @@ -0,0 +1,11 @@
+> > +Device tree bindings for IR LED connected through gpio pin which is used as
+> > +remote controller transmitter.
+> > +
+> > +Required properties:
+> > +	- compatible: should be "gpio-ir-tx".
 > 
-> Ah, I missed that. Sorry about that.
-> 
-> But regardless of that the device_release_driver(d) isn't called anymore.
-> It's not clear at all to me whether that is a problem or not.
+> As I mentioned in the prior version, missing the "gpios" property.
 
-You are right I missed that, thanks for pointing it out, please see 
-bellow.
+Absolutely right. I hadn't gotten round to sending out a new version
+yet, I'll do that soon.
 
-> 
-> > 
-> >>
-> >> Frankly I don't understand this code, it is in desperate need of some comments explaining
-> >> this whole reprobing thing.
-> > 
-> > I agree that the code is in need of comments, but I feel a patch that 
-> > separates the v4l2-async work from the re-probing work is a step in the 
-> > right direction :-)
-> 
-> Would it help to simplify this function to:
-> 
->         dev = kvmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
->         if (!dev) {
->                 dev_err(notifier->v4l2_dev->dev,
->                         "Failed to allocate device cache!\n");
-> 
-> 	        mutex_lock(&list_lock);
-> 
-> 	        list_del(&notifier->list);
-> 
-> 		/* this assumes device_release_driver(d) isn't necessary */
->         	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-> 	                if (notifier->unbind)
->         	                notifier->unbind(notifier, sd, sd->asd);
-> 
->                	        v4l2_async_cleanup(sd);
-> 	        }
-> 
->         	mutex_unlock(&list_lock);
-> 		return;
-> 	}
-> 
-> 	...and here the code where dev is non-NULL...
-> 
-> Yes, there is some code duplication, but it is a lot easier to understand.
 
-I be fine with this, or simply aborting with -ENOMEM if the allocation 
-fails. If the allocation fails I say we are in a lot of trouble anyhow, 
-as Geert pointed out the kernel would already printed a warning and 
-invoked the OOM-killer.
+Thanks,
 
-If you are OK with it I will rework the next version of this series to 
-introduce this behavior. Let me know what you think.
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> >>
-> >> I have this strong feeling that this function needs to be reworked.
-> > 
-> > I also strongly agree with this.
-> > 
-> >>
-> >> Regards,
-> >>
-> >> 	Hans
-> >>
-> >>>  	}
-> >>>  
-> >>> -	mutex_unlock(&list_lock);
-> >>> -
-> >>>  	/*
-> >>>  	 * Call device_attach() to reprobe devices
-> >>> -	 *
-> >>> -	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
-> >>> -	 * executed.
-> >>>  	 */
-> >>> -	while (i--) {
-> >>> +	for (i = 0; dev && i < count; i++) {
-> >>>  		struct device *d = dev[i];
-> >>>  
-> >>>  		if (d && device_attach(d) < 0) {
-> >>>
-> >>
-> > 
-> 
-
--- 
-Regards,
-Niklas Söderlund
+Sean
