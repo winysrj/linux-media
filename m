@@ -1,43 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60483 "EHLO mail.kapsi.fi"
+Received: from mga09.intel.com ([134.134.136.24]:34036 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750704AbdGLXRU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Jul 2017 19:17:20 -0400
-Subject: Re: [PATCH V2 4/9] [media] dvb-core/dvb_ca_en50221.c: Fixed block
- comments
-To: "Jasmin J." <jasmin@anw.at>, linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
-        rjkm@metzlerbros.de, d.scheller@gmx.net
-References: <1499900458-2339-1-git-send-email-jasmin@anw.at>
- <1499900458-2339-5-git-send-email-jasmin@anw.at>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <c8c9b074-32fe-96b8-6635-842898dfc956@iki.fi>
-Date: Thu, 13 Jul 2017 02:17:15 +0300
-MIME-Version: 1.0
-In-Reply-To: <1499900458-2339-5-git-send-email-jasmin@anw.at>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        id S1755147AbdGJXoG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Jul 2017 19:44:06 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: hans.verkuil@cisco.com, jian.xu.zheng@intel.com,
+        tfiga@chromium.org, rajmohan.mani@intel.com,
+        tuukka.toivonen@intel.com, hyungwoo.yang@intel.com,
+        ramya.vijaykumar@intel.com, Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH v4 2/3] doc-rst: add IPU3 raw10 bayer pixel format definitions
+Date: Mon, 10 Jul 2017 18:43:33 -0500
+Message-Id: <1499730214-9005-3-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1499730214-9005-1-git-send-email-yong.zhi@intel.com>
+References: <1499730214-9005-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/13/2017 02:00 AM, Jasmin J. wrote:
-> From: Jasmin Jessich <jasmin@anw.at>
-> 
-> Fixed all:
->    WARNING: Block comments use * on subsequent lines
+The formats added by this patch are:
 
-Also multiline comments should be written like this:
-/*
-  * Comment.
-  */
+    V4L2_PIX_FMT_IPU3_SBGGR10
+    V4L2_PIX_FMT_IPU3_SGBRG10
+    V4L2_PIX_FMT_IPU3_SGRBG10
+    V4L2_PIX_FMT_IPU3_SRGGB10
 
-Quickly looking this patch serie I noticed few other coding style 
-mistakes. You should read kernel coding style documentation first, and 
-then make changes according to doc.
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+Signed-off-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
+---
+ Documentation/media/uapi/v4l/pixfmt-rgb.rst        |  1 +
+ .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         | 62 ++++++++++++++++++++++
+ 2 files changed, 63 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
 
-regards
-Antti
-
--- 
-http://palosaari.fi/
+diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+index b0f3513..6900d5c 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+@@ -16,5 +16,6 @@ RGB Formats
+     pixfmt-srggb10p
+     pixfmt-srggb10alaw8
+     pixfmt-srggb10dpcm8
++    pixfmt-srggb10-ipu3
+     pixfmt-srggb12
+     pixfmt-srggb16
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+new file mode 100644
+index 0000000..618e24a
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+@@ -0,0 +1,62 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _V4L2_PIX_FMT_IPU3_SBGGR10:
++.. _V4L2_PIX_FMT_IPU3_SGBRG10:
++.. _V4L2_PIX_FMT_IPU3_SGRBG10:
++.. _V4L2_PIX_FMT_IPU3_SRGGB10:
++
++**********************************************************************************************************************************************
++V4L2_PIX_FMT_IPU3_SBGGR10 ('ip3b'), V4L2_PIX_FMT_IPU3_SGBRG10 ('ip3g'), V4L2_PIX_FMT_IPU3_SGRBG10 ('ip3G'), V4L2_PIX_FMT_IPU3_SRGGB10 ('ip3r')
++**********************************************************************************************************************************************
++
++10-bit Bayer formats
++
++Description
++===========
++
++These four pixel formats are used by Intel IPU3 driver, they are raw
++sRGB / Bayer formats with 10 bits per sample with every 25 pixels packed
++to 32 bytes leaving 6 most significant bits padding in the last byte.
++The format is little endian.
++
++In other respects this format is similar to :ref:`V4L2-PIX-FMT-SRGGB10`.
++
++**Byte Order.**
++Each cell is one byte.
++
++.. raw:: latex
++
++    \newline\newline\begin{adjustbox}{width=\columnwidth}
++
++.. tabularcolumns:: |p{1.3cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|
++
++.. flat-table::
++
++    * - start + 0:
++      - B\ :sub:`00low`
++      - G\ :sub:`01low` \ (bits 7--2) B\ :sub:`00high`\ (bits 1--0)
++      - B\ :sub:`02low` \ (bits 7--4) G\ :sub:`01high`\ (bits 3--0)
++      - G\ :sub:`03low` \ (bits 7--6) B\ :sub:`02high`\ (bits 5--0)
++      - G\ :sub:`03high`
++    * - start + 5:
++      - G\ :sub:`10low`
++      - R\ :sub:`11low` \ (bits 7--2) G\ :sub:`10high`\ (bits 1--0)
++      - G\ :sub:`12low` \ (bits 7--4) R\ :sub:`11high`\ (bits 3--0)
++      - R\ :sub:`13low` \ (bits 7--6) G\ :sub:`12high`\ (bits 5--0)
++      - R\ :sub:`13high`
++    * - start + 10:
++      - B\ :sub:`20low`
++      - G\ :sub:`21low` \ (bits 7--2) B\ :sub:`20high`\ (bits 1--0)
++      - B\ :sub:`22low` \ (bits 7--4) G\ :sub:`21high`\ (bits 3--0)
++      - G\ :sub:`23low` \ (bits 7--6) B\ :sub:`22high`\ (bits 5--0)
++      - G\ :sub:`23high`
++    * - start + 15:
++      - G\ :sub:`30low`
++      - R\ :sub:`31low` \ (bits 7--2) G\ :sub:`30high`\ (bits 1--0)
++      - G\ :sub:`32low` \ (bits 7--4) R\ :sub:`31high`\ (bits 3--0)
++      - R\ :sub:`33low` \ (bits 7--6) G\ :sub:`32high`\ (bits 5--0)
++      - R\ :sub:`33high`
++
++.. raw:: latex
++
++    \end{adjustbox}\newline\newline
+--
+2.7.4
