@@ -1,43 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:33838 "EHLO
-        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751638AbdGEOWs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Jul 2017 10:22:48 -0400
-Date: Wed, 5 Jul 2017 09:22:38 -0500
-From: Rob Herring <robh@kernel.org>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2] media: platform: rcar_imr: add IMR-LX3 support
-Message-ID: <20170705142238.dopk2gsd7nt7jek4@rob-hp-laptop>
-References: <20170628195909.167061456@cogentembedded.com>
+Received: from smtprelay.synopsys.com ([198.182.60.111]:57739 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932178AbdGJPyP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Jul 2017 11:54:15 -0400
+Subject: Re: [PATCH v4 4/4] dt-bindings: media: Document Synopsys Designware
+ HDMI RX
+To: Rob Herring <robh@kernel.org>, Jose Abreu <Jose.Abreu@synopsys.com>
+References: <cover.1497978962.git.joabreu@synopsys.com>
+ <8ebe3dfcd61a1c8cfa99102c376ad26b2bfbd254.1497978963.git.joabreu@synopsys.com>
+ <20170623215814.ase6g4lbukaeqak2@rob-hp-laptop>
+ <13f2516b-9e2b-4ad6-ecf1-76fc0d744a32@synopsys.com>
+ <CAL_JsqKoW=VJ=QmLeztYJSnWEhq+KetsZY9xtoyOa8bf0BA=uw@mail.gmail.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+Message-ID: <c38bba94-f050-5738-d955-a1d75aad333e@synopsys.com>
+Date: Mon, 10 Jul 2017 16:54:09 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170628195909.167061456@cogentembedded.com>
+In-Reply-To: <CAL_JsqKoW=VJ=QmLeztYJSnWEhq+KetsZY9xtoyOa8bf0BA=uw@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 28, 2017 at 10:58:44PM +0300, Sergei Shtylyov wrote:
-> Add support for the image renderer light extended 3 (IMR-LX3) found only in
-> the R-Car V2H (R8A7792) SoC. It's mostly the same as IMR-LSX3 but doesn't
-> support video capture data as a source of 2D textures.
-> 
-> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> 
-> ---
-> This patch  is against the 'media_tree.git' repo's 'master' branch plus the
-> latest version of  the Renesas IMR driver and the patch adding IMR-LSX3 support.
-> 
-> Changes in version 2:
-> - refreshed the patch atop of the IMR driver patch (version 6) and IMR-LSX3
->   patch (version 3).
-> 
->  Documentation/devicetree/bindings/media/rcar_imr.txt |    4 ++
+Hi Rob,
 
-Acked-by: Rob Herring <robh@kernel.org>
 
->  drivers/media/platform/rcar_imr.c                    |   27 ++++++++++++-------
->  2 files changed, 22 insertions(+), 9 deletions(-)
+On 10-07-2017 16:24, Rob Herring wrote:
+> On Mon, Jun 26, 2017 at 11:42 AM, Jose Abreu <Jose.Abreu@synopsys.com> wrote:
+>> Hi Rob,
+>>
+>>
+>> On 23-06-2017 22:58, Rob Herring wrote:
+>>> On Tue, Jun 20, 2017 at 06:26:12PM +0100, Jose Abreu wrote:
+>>>> Document the bindings for the Synopsys Designware HDMI RX.
+>>>>
+> [...]
+>
+>>>> +A sample binding is now provided. The compatible string is for a SoC which has
+>>>> +has a Synopsys Designware HDMI RX decoder inside.
+>>>> +
+>>>> +Example:
+>>>> +
+>>>> +dw_hdmi_soc: dw-hdmi-soc@0 {
+>>>> +    compatible = "snps,dw-hdmi-soc";
+>>> Not documented.
+>> Yes, its a sample binding which reflects a wrapper driver that
+>> shall instantiate the controller driver (and this wrapper driver
+>> is not in this patch series), should I remove this?
+> Ah, I see. Please don't do this wrapper node like what was done on
+> DWC3. It should be all one node with the SoC specific part being a new
+> compatible string (and maybe additional properties). If there's really
+> some custom logic around the IP block, then maybe it makes sense, but
+> if it is just different clock connections, phys, resets, etc. those
+> don't need a separate node.
+
+Ok. I guess I can just drop the SoC specific bindings as this was
+more of a sample as how the EDID handle can be specified. I just
+sent v8 now with the new bindings :) Thanks!
+
+Best regards,
+Jose Miguel Abreu
+
+>
+> Rob
