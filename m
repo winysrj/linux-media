@@ -1,124 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:54784 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756325AbdGXPRH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Jul 2017 11:17:07 -0400
-Received: from [10.10.0.58] ([213.191.34.238]) by mail.gmx.com (mrgmx001
- [212.227.17.190]) with ESMTPSA (Nemesis) id 0MfF6I-1dFO823xxy-00OsOY for
- <linux-media@vger.kernel.org>; Mon, 24 Jul 2017 17:17:05 +0200
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-From: Stephan Bauroth <der_steffi@gmx.de>
-Subject: [Question] adv7180 and media-imx
-Message-ID: <beaf01a7-ea18-b407-3542-3034f5cb2d89@gmx.de>
-Date: Mon, 24 Jul 2017 17:17:04 +0200
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:35445 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752158AbdGJU1B (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Jul 2017 16:27:01 -0400
+Received: by mail-qt0-f195.google.com with SMTP id w12so14120562qta.2
+        for <linux-media@vger.kernel.org>; Mon, 10 Jul 2017 13:27:01 -0700 (PDT)
+Date: Mon, 10 Jul 2017 17:26:56 -0300
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [PATCH 03/12] [media] vb2: add in-fence support to QBUF
+Message-ID: <20170710202656.GM10284@jade>
+References: <20170616073915.5027-1-gustavo@padovan.org>
+ <20170616073915.5027-4-gustavo@padovan.org>
+ <ae203289-11cc-d5a5-0ce6-a8fbbc4742af@xs4all.nl>
+ <20170707020028.GE10284@jade>
+ <25827205-94f3-3a2f-c65a-4ae120288f00@xs4all.nl>
+ <20170710190244.GF10284@jade>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170710190244.GF10284@jade>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear linux-media,
+2017-07-10 Gustavo Padovan <gustavo@padovan.org>:
 
-I'm having troubles setting up a video input on a custom board using the 
-staging imx-media driver and an i2c-connected video codec. The codec is 
-a tw9990, but I use the driver for the adv7180 which is quite compatible 
-and there is not much to configure within the codec anyway up until now. 
-Also the driver detects my two codecs and does not complain about anything:
+> 2017-07-07 Hans Verkuil <hverkuil@xs4all.nl>:
+> 
+> > On 07/07/2017 04:00 AM, Gustavo Padovan wrote:
+> > > 2017-07-06 Hans Verkuil <hverkuil@xs4all.nl>:
+> > > 
+> > > > On 06/16/17 09:39, Gustavo Padovan wrote:
+> > > > > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > > > > 
+> > > > > Receive in-fence from userspace and add support for waiting on them
+> > > > > before queueing the buffer to the driver. Buffers are only queued
+> > > > > to the driver once they are ready. A buffer is ready when its
+> > > > > in-fence signals.
+> > > > > 
+> > > > > v2:
+> > > > > 	- fix vb2_queue_or_prepare_buf() ret check
+> > > > > 	- remove check for VB2_MEMORY_DMABUF only (Javier)
+> > > > > 	- check num of ready buffers to start streaming
+> > > > > 	- when queueing, start from the first ready buffer
+> > > > > 	- handle queue cancel
+> > > > > 
+> > > > > Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > > > > ---
+> > > > >   drivers/media/Kconfig                    |  1 +
+> > > > >   drivers/media/v4l2-core/videobuf2-core.c | 97 +++++++++++++++++++++++++-------
+> > > > >   drivers/media/v4l2-core/videobuf2-v4l2.c | 15 ++++-
+> > > > >   include/media/videobuf2-core.h           |  7 ++-
+> > > > >   4 files changed, 99 insertions(+), 21 deletions(-)
+> > > > > 
+> > > > 
+> > > > <snip>
+> > > > 
+> > > > > diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> > > > > index 110fb45..e6ad77f 100644
+> > > > > --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
+> > > > > +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> > > > > @@ -23,6 +23,7 @@
+> > > > >   #include <linux/sched.h>
+> > > > >   #include <linux/freezer.h>
+> > > > >   #include <linux/kthread.h>
+> > > > > +#include <linux/sync_file.h>
+> > > > >   #include <media/v4l2-dev.h>
+> > > > >   #include <media/v4l2-fh.h>
+> > > > > @@ -560,6 +561,7 @@ EXPORT_SYMBOL_GPL(vb2_create_bufs);
+> > > > >   int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+> > > > >   {
+> > > > > +	struct dma_fence *fence = NULL;
+> > > > >   	int ret;
+> > > > >   	if (vb2_fileio_is_active(q)) {
+> > > > > @@ -568,7 +570,18 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+> > > > >   	}
+> > > > >   	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
+> > > > > -	return ret ? ret : vb2_core_qbuf(q, b->index, b);
+> > > > > +	if (ret)
+> > > > > +		return ret;
+> > > > > +
+> > > > > +	if (b->flags & V4L2_BUF_FLAG_IN_FENCE) {
+> > > > > +		fence = sync_file_get_fence(b->fence_fd);
+> > > > > +		if (!fence) {
+> > > > > +			dprintk(1, "failed to get in-fence from fd\n");
+> > > > > +			return -EINVAL;
+> > > > > +		}
+> > > > > +	}
+> > > > > +
+> > > > > +	return ret ? ret : vb2_core_qbuf(q, b->index, b, fence);
+> > > > >   }
+> > > > >   EXPORT_SYMBOL_GPL(vb2_qbuf);
+> > > > 
+> > > > You need to adapt __fill_v4l2_buffer so it sets the IN_FENCE buffer flag
+> > > > if there is a fence pending. It should also fill in fence_fd.
+> > > 
+> > > It was userspace who sent the fence_fd in the first place. Why do we
+> > > need to send it back? The initial plan was - from a userspace point of view
+> > > - to send the in-fence in the fence_fd field and receive the out-fence
+> > >   in the same field.
+> > > 
+> > > As per setting the IN_FENCE flag, that is racy, as the fence can signal
+> > > just after we called __fill_v4l2_buffer. Why is it important to set it?
+> > 
+> > Because when running VIDIOC_QUERYBUF it should return the current state of
+> > the buffer, including whether it has a fence. You can do something like
+> > v4l2-ctl --list-buffers to see how many buffers are queued up and the state
+> > of each buffer. Can be useful to e.g. figure out why a video capture seems
+> > to stall. Knowing that all queued buffers are all waiting for a fence is
+> > very useful information. Whether the fence_fd should also be set here or
+> > only in dqbuf is something I don't know (not enough knowledge about how
+> > fences are supposed to work). The IN/OUT_FENCE flags should definitely be
+> > reported though.
+> 
+> I didn't know about this usecase. Thanks for explaining. It certainly
+> makes sense to set the IN/OUT_FENCE flags here. Regarding the fence_fd
+> I would expect the application to know the fence fd associated to than
+> buffer. If we expect an application other than the one which issued
+> QBUF than I'd say we also need to provide the fd on VIDIOC_QUERYBUF
+> for inspection purposes. Is that the case?
 
-# dmesg | grep adv
-[    2.912422] adv7180 2-0044: chip found @ 0x44 (21a8000.i2c)
-[    2.938790] adv7180 2-0045: chip found @ 0x45 (21a8000.i2c)
+I just realized that if we want to also set the in-fence fd here we
+actually need to get a new unused fd, as either it is a different pid or
+the app already closed the fd it was using previously. Given this extra
+complication I'd say we shouldn't set fence fd unless someone has an
+usecase in mind.
 
-The media-imx driver works fine regarding finding and probing all parts 
-of the IPUs:
-
-[    3.072253] imx-media: Registered subdev ipu2_csi1_mux
-[    3.077409] imx-media: Registered subdev ipu1_csi0_mux
-[    3.082780] imx-media: Registered subdev ipu1_vdic
-[    3.087664] imx-media: Registered subdev ipu2_vdic
-[    3.092670] imx-media: Registered subdev ipu1_ic_prp
-[    3.097730] imx-media: Registered subdev ipu1_ic_prpenc
-[    3.103187] ipu1_ic_prpenc: Registered ipu1_ic_prpenc capture as 
-/dev/video0
-[    3.110372] imx-media: Registered subdev ipu1_ic_prpvf
-[    3.117725] ipu1_ic_prpvf: Registered ipu1_ic_prpvf capture as 
-/dev/video1
-[    3.127718] imx-media: Registered subdev ipu2_ic_prp
-[    3.132877] imx-media: Registered subdev ipu2_ic_prpenc
-[    3.138339] ipu2_ic_prpenc: Registered ipu2_ic_prpenc capture as 
-/dev/video2
-[    3.145494] imx-media: Registered subdev ipu2_ic_prpvf
-[    3.150869] ipu2_ic_prpvf: Registered ipu2_ic_prpvf capture as 
-/dev/video3
-[    3.158027] imx-media: Registered subdev ipu1_csi0
-[    3.163035] ipu1_csi0: Registered ipu1_csi0 capture as /dev/video4
-[    3.169327] imx-media: Registered subdev ipu1_csi1
-[    3.174335] ipu1_csi1: Registered ipu1_csi1 capture as /dev/video5
-[    3.180631] imx-media: Registered subdev ipu2_csi0
-[    3.185649] ipu2_csi0: Registered ipu2_csi0 capture as /dev/video6
-[    3.191944] imx-media: Registered subdev ipu2_csi1
-[    3.203244] ipu2_csi1: Registered ipu2_csi1 capture as /dev/video7
-
-So, at this point I have /dev/video[0-7] and have no idea how to 
-interact with that.
-v4l2grab fails:
-# v4l2grab -d /dev/video5 -o temp.jpeg
-[ 9966.884286] ipu1_csi1: pipeline start failed with -32
-libv4l2: error turning on stream: Broken pipe
-VIDIOC_STREAMON error 32, Broken pipe
-
-media-ctl fails:
-# media-ctl -p -d /dev/video5
-Failed to enumerate /dev/video5 (-25)
-
-I traced the dmesg error message from v4l2grab down in the kernel 
-sources and found that in 
-drivers/staging/media/imx/imx-media-csi.c:csi_s_stream, the check
-     if (!priv->src_sd || !priv->sink) {
-         ret = -EPIPE;
-         goto out;
-     }
-fails because priv->src_sd is NULL. This 'looks' like the links between 
-the subdevices are not set up, but I have no idea how to correct that.
-
-Can anybody help me track this down/correctly set up the desired links? 
-Thanks in advance!
-
-For Reference: I'm using Linux 4.13-rc2 and my device tree snippets look 
-like this:
-The codec itself:
-     video_codec_a: tw9990@44 {
-         compatible = "adi,adv7180";
-         reg = <0x44>;
-         pinctrl-names = "default";
-         pinctrl-0 = <&pinctrl_tw9990_a>;
-         powerdown-gpios = <&gpio3 1 GPIO_ACTIVE_HIGH>;
-         interrupt-parent = <&gpio6>;
-         interrupts = <6 IRQ_TYPE_LEVEL_LOW>;
-         ipu_id = <1>;
-         csi_id = <1>;
-         port {
-             tw9990_to_ipu2_csi1_mux: endpoint {
-                 remote-endpoint = <&ipu2_csi1_mux_from_parallel_sensor>;
-                 bus-width = <8>;
-             };
-         };
-     };
-
-The remaining IPU nodes:
-&ipu2_csi1_from_ipu2_csi1_mux {
-     bus-width = <8>;
-};
-
-&ipu2_csi1_mux_from_parallel_sensor {
-     remote-endpoint = <&tw9990_to_ipu2_csi1_mux>;
-     bus-width = <8>;
-};
-
-&ipu2_csi1 {
-     /* enable frame interval monitor on this port */
-     fim {
-         status = "okay";
-     };
-};
+	Gustavo
