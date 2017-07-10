@@ -1,68 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from guitar.tcltek.co.il ([192.115.133.116]:44055 "EHLO
-        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752785AbdGSGdx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Jul 2017 02:33:53 -0400
-Date: Wed, 19 Jul 2017 09:33:49 +0300
-From: Baruch Siach <baruch@tkos.co.il>
-To: Yong <yong.deng@magewell.com>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        hans.verkuil@cisco.com, peter.griffin@linaro.org,
-        hugues.fruchet@st.com, krzk@kernel.org, bparrot@ti.com,
-        arnd@arndb.de, jean-christophe.trotin@st.com,
-        benjamin.gaignard@linaro.org, tiffany.lin@mediatek.com,
-        kamil@wypas.org, kieran+renesas@ksquared.org.uk,
-        andrew-ct.chen@mediatek.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH RFC 2/2] dt-bindings: add binding documentation for
- Allwinner CSI
-Message-ID: <20170719063349.m5yg4n2radkvy74r@sapphire.tkos.co.il>
-References: <1498561654-14658-1-git-send-email-yong.deng@magewell.com>
- <1498561654-14658-3-git-send-email-yong.deng@magewell.com>
- <20170718115530.ssy7g5vv4siqnfpo@tarshish>
- <20170719092249.2fb6ec720ba1b194cea320c8@magewell.com>
- <20170719044923.yae2ye4slvrmtyfe@sapphire.tkos.co.il>
- <20170719142120.d00469cf9fce844d40b9988e@magewell.com>
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:34015 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754455AbdGJT1T (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Jul 2017 15:27:19 -0400
+Received: by mail-qt0-f196.google.com with SMTP id m54so13920411qtb.1
+        for <linux-media@vger.kernel.org>; Mon, 10 Jul 2017 12:27:18 -0700 (PDT)
+Date: Mon, 10 Jul 2017 16:27:14 -0300
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [PATCH 03/12] [media] vb2: add in-fence support to QBUF
+Message-ID: <20170710192714.GG10284@jade>
+References: <20170616073915.5027-1-gustavo@padovan.org>
+ <20170616073915.5027-4-gustavo@padovan.org>
+ <396bc2f8-eea6-82d5-c3b5-b8c2514af853@xs4all.nl>
+ <20170707015346.GD10284@jade>
+ <71e2f26a-37c8-de40-67e6-b9971e9fae37@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170719142120.d00469cf9fce844d40b9988e@magewell.com>
+In-Reply-To: <71e2f26a-37c8-de40-67e6-b9971e9fae37@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
+2017-07-07 Hans Verkuil <hverkuil@xs4all.nl>:
 
-On Wed, Jul 19, 2017 at 02:21:20PM +0800, Yong wrote:
-> On Wed, 19 Jul 2017 07:49:23 +0300
-> Baruch Siach <baruch@tkos.co.il> wrote:
-> > On Wed, Jul 19, 2017 at 09:22:49AM +0800, Yong wrote:
-> > > I am waiting for more comments for the sunxi-csi.h. It's pleasure if
-> > > you have any suggestions about it.
+> On 07/07/2017 03:53 AM, Gustavo Padovan wrote:
+> > > 
+> > > >   	help
+> > > >   	  If you want to use Webcams, Video grabber devices and/or TV devices
+> > > >   	  enable this option and other options below.
+> > > > diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> > > > index ea83126..29aa9d4 100644
 > > 
-> > You mean sunxi_csi.h, right?
+> > > > --- a/drivers/media/v4l2-core/videobuf2-core.c
+> > > > +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> > > > @@ -1279,6 +1279,22 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
+> > > >   	return 0;
+> > > >   }
+> > > > +static int __get_num_ready_buffers(struct vb2_queue *q)
+> > > > +{
+> > > > +	struct vb2_buffer *vb;
+> > > > +	int ready_count = 0;
+> > > > +
+> > > > +	/* count num of buffers ready in front of the queued_list */
+> > > > +	list_for_each_entry(vb, &q->queued_list, queued_entry) {
+> > > > +		if (vb->in_fence && !dma_fence_is_signaled(vb->in_fence))
+> > > > +			break;
+> > > 
+> > > Obviously the break is wrong as Mauro mentioned.
+> > 
+> > I replied this in the other email to Mauro, if a fence is not signaled
+> > it is not ready te be queued by the driver nor is all buffers following
+> > it. Hence the break. They need all to be in order and in front of the
+> > queue.
+> > 
+> > In any case I'll check this again as now there is two people saying I'm
+> > wrong! :)
 > 
-> Yes. My spelling mistake.
+> I think this comes back to the 'ordered' requirement and what that means
+> exactly. In this particular case if I have buffers queued up in vb2 without
+> a fence (or the fence was signaled), why shouldn't it possible to queue them
+> up to the driver right away?
 > 
-> > Why do you need the sunxi_csi_ops indirection? Do you expect to add 
-> > alternative implementations of these ops at some point?
+> Of course, if all buffers are waiting for a fence, then __get_num_ready_buffers
+> returns 0 and nothing happens.
 > 
-> I want to seperate the sunxi_video.c and sunxi_csi_v3s.c. 
-> sunxi_csi_v3s.c is Soc specific. Maybe there will be sunxi_csi_r40.c
-> in the futrue. But the sunxi_video.c and sunxi_csi.c are common.
+> My understanding is that the ordered requirement is for the hardware,
+> i.e. queueing buffers A, B, C to ordered hardware requires that they come
+> out in the same order.
 
-I'd say it is a premature optimization. The file separation is fine, IMO, but 
-the added csi_ops indirection makes the code less readable. Someone with 
-access to R40 hardware with CSI setup would be a better position to abstract 
-the platform specific code.
+That is correct. I thought I had to queue to the hardware in the order we
+receive from userspace. So that makes that loop indeed wrong, as we
+should queue the buffers right away.
 
-But I'd defer to the media maintainers on that.
+The ordered requirement is for the OUT_FENCE side because after we queue
+the buffer to the hardware and send the BUF_QUEUED event out userspace
+might just go ahead and issue an DRM Atomic Request containing that
+buffer and the out-fence fd received. DRM then needs to wait on that
+fence before any scanout, but it may wait after the scanout is not
+allowed to fail anymore.
 
-Thanks,
-baruch
+Thus if a buffer requeuing happens at buffer_done() the fence won't
+signal and DRM/KMS won't have a buffer to display. That is reason behind
+it.
 
--- 
-     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
-=}------------------------------------------------ooO--U--Ooo------------{=
-   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
+Alternatively we can ignore this and live with the fact that sometimes a
+requeuing may affect the scanout pipeline.
+
+	Gustavo
