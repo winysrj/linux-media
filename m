@@ -1,116 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44482 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751336AbdGQWUz (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:36374 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753426AbdGJPb3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 18:20:55 -0400
-Date: Tue, 18 Jul 2017 01:20:51 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: Re: [RFC 11/13] gpio-switch is for some reason neccessary for camera
- to work.
-Message-ID: <20170717222051.byilkg3x7lljlyja@valkosipuli.retiisi.org.uk>
-References: <20170214134019.GA8631@amd>
+        Mon, 10 Jul 2017 11:31:29 -0400
+Received: by mail-wr0-f195.google.com with SMTP id 77so25671177wrb.3
+        for <linux-media@vger.kernel.org>; Mon, 10 Jul 2017 08:31:28 -0700 (PDT)
+Date: Mon, 10 Jul 2017 17:31:24 +0200
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: Ralph Metzler <rjkm@metzlerbros.de>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com, jasmin@anw.at, d_spingler@gmx.de
+Subject: Re: [PATCH 00/14] ddbridge: bump to ddbridge-0.9.29
+Message-ID: <20170710173124.653286e7@audiostation.wuest.de>
+In-Reply-To: <22883.13973.46880.749847@morden.metzler>
+References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
+        <22883.13973.46880.749847@morden.metzler>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170214134019.GA8631@amd>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+Am Mon, 10 Jul 2017 10:11:01 +0200
+schrieb Ralph Metzler <rjkm@metzlerbros.de>:
 
-On Tue, Feb 14, 2017 at 02:40:19PM +0100, Pavel Machek wrote:
-> Probably something fun happening in userspace.
-
-What's the status of this one?
-
-I don't think it has a chance to be merged in the foreseeable future. Why
-is it needed?
-
-> ---
->  arch/arm/mach-omap2/Makefile                 |  1 +
->  arch/arm/mach-omap2/board-rx51-peripherals.c | 51 ++++++++++++++++++++++++++++
->  2 files changed, 52 insertions(+)
->  create mode 100644 arch/arm/mach-omap2/board-rx51-peripherals.c
+> Daniel Scheller writes:
+>  > Stripped functionality compared to dddvb:
+>  > 
+>  >  - DVB-C modulator card support removed (requires DVB core API)  
 > 
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index 4698940..d536b1a 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -229,6 +229,7 @@ obj-$(CONFIG_SOC_OMAP2420)		+= msdi.o
->  # Specific board support
->  obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o pdata-quirks.o
->  obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
-> +obj-y					+= board-rx51-peripherals.o
->  
->  # Platform specific device init code
->  
-> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> new file mode 100644
-> index 0000000..641c2be
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> @@ -0,0 +1,51 @@
-> +/*
-> + * linux/arch/arm/mach-omap2/board-rx51-peripherals.c
-> + *
-> + * Copyright (C) 2008-2009 Nokia
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/init.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/gpio.h>
-> +#include <linux/gpio_keys.h>
-> +#include <linux/gpio/machine.h>
-> +#include <linux/module.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/timer.h>
-> +
-> +static struct platform_driver gpio_sw_driver = {
-> +	.driver		= {
-> +		.name	= "gpio-switch",
-> +	},
-> +};
-> +
-> +static int __init gpio_sw_init(void)
-> +{
-> +	int r;
-> +
-> +	printk(KERN_INFO "OMAP GPIO switch handler initializing\n");
-> +
-> +	r = platform_driver_register(&gpio_sw_driver);
-> +	if (r)
-> +		return r;
-> +
-> +	platform_device_register_simple("gpio-switch",
-> +							       -1, NULL, 0);
-> +	return 0;
-> +}
-> +
-> +static void __exit gpio_sw_exit(void)
-> +{
-> +}
-> +
-> +#ifndef MODULE
-> +late_initcall(gpio_sw_init);
-> +#else
-> +module_init(gpio_sw_init);
-> +#endif
-> +module_exit(gpio_sw_exit);
-> -- 
-> 2.1.4
+> not really besides one device name entry.
 
+... and a header :-) Maybe we should start another thread on this for a
+probable follow-up project.
+
+>  >  - OctoNET SAT>IP server/box support removed (requires API aswell)
+>  >  - with this, GT link support was removed (only on OctoNET
+>  > hardware)  
+> 
+> There is other PCIe based hardware which uses/will use this.
+
+Umm, good to know - thus better shouldn't (even accidentally)
+throw away the remove-revert of the GTL support for future cards.
+
+>  >  drivers/media/pci/ddbridge/ddbridge-core.c | 4242
+>  > ++++++++++++++++++----------
+>  > drivers/media/pci/ddbridge/ddbridge-hw.c   |  299 ++
+>  > drivers/media/pci/ddbridge/ddbridge-hw.h   |   52 +
+>  > drivers/media/pci/ddbridge/ddbridge-i2c.c  |  310 ++
+>  > drivers/media/pci/ddbridge/ddbridge-io.h   |   71 +
+>  > drivers/media/pci/ddbridge/ddbridge-irq.c  |  161 ++
+>  > drivers/media/pci/ddbridge/ddbridge-main.c |  393 +++
+>  > drivers/media/pci/ddbridge/ddbridge-regs.h |  138 +-
+>  > drivers/media/pci/ddbridge/ddbridge.h      |  355 ++-  
+> 
+> I thought we settled on core, i2c, main, (and mod, ns, which you do
+> not include). This will diverge then from my code.
+
+IIRC this was -main.c, and basically the code split, but no specific
+file. However, each of the additionals (hw, io, irq) were done with a
+reason (please also see their commit messages at patches 4-6):
+
+-io.h is there since the comparably complex functions in the original
+ddbridge.h sort of scared me off and IMHO shouldn't live together with
+struct definitions and such, so I moved them to a separate object
+first. With the GTL things removed, the remainder was rather small, and
+Jasmin pointed me in the "make it static inline in a header instead"
+direction. When eventually GTL gets added back, it should go into it's
+own object/module.
+
+-hw.c/h moves all things hardware-definition/info related like regmaps
+into one single place, currently it's spread out into -main and -core,
+which might make things difficult to find.
+
+-irq.c gets rid of the need of additional ifdefs related to
+CONFIG_PCI_MSI, in that "defined but unused function" warnings are
+generated if this isn't defined. Again, also makes it easier to find,
+rather than search through ~3800 lines of -core :)
+
+If you're comfortable with this, I will propose it via a GitHub PR as
+well (alongside the other things I'd like to push out to you). For the
+in-kernel code, I'd prefer to keep it like this.
+
+Best regards,
+Daniel Scheller
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+https://github.com/herrnst
