@@ -1,56 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam03on0064.outbound.protection.outlook.com ([104.47.42.64]:36054
-        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751543AbdGXIet (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Jul 2017 04:34:49 -0400
-Message-ID: <5975B0FD.5070908@amd.com>
-Date: Mon, 24 Jul 2017 16:34:05 +0800
-From: zhoucm1 <david1.zhou@amd.com>
-MIME-Version: 1.0
-To: =?UTF-8?B?Q2hyaXN0aWFuIEvDtm5pZw==?= <deathsimple@vodafone.de>,
-        <linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
-        <linaro-mm-sig@lists.linaro.org>
-Subject: Re: [PATCH] dma-buf: fix reservation_object_wait_timeout_rcu to wait
- correctly
-References: <1500654001-20899-1-git-send-email-deathsimple@vodafone.de>
-In-Reply-To: <1500654001-20899-1-git-send-email-deathsimple@vodafone.de>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mga09.intel.com ([134.134.136.24]:34036 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755145AbdGJXoF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Jul 2017 19:44:05 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: hans.verkuil@cisco.com, jian.xu.zheng@intel.com,
+        tfiga@chromium.org, rajmohan.mani@intel.com,
+        tuukka.toivonen@intel.com, hyungwoo.yang@intel.com,
+        ramya.vijaykumar@intel.com, Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH v4 1/3] videodev2.h, v4l2-ioctl: add IPU3 raw10 color format
+Date: Mon, 10 Jul 2017 18:43:32 -0500
+Message-Id: <1499730214-9005-2-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1499730214-9005-1-git-send-email-yong.zhi@intel.com>
+References: <1499730214-9005-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add IPU3 specific formats:
 
+	V4L2_PIX_FMT_IPU3_SBGGR10
+	V4L2_PIX_FMT_IPU3_SGBRG10
+	V4L2_PIX_FMT_IPU3_SGRBG10
+	V4L2_PIX_FMT_IPU3_SRGGB10
 
-On 2017年07月22日 00:20, Christian König wrote:
-> From: Christian König <christian.koenig@amd.com>
->
-> With hardware resets in mind it is possible that all shared fences are
-> signaled, but the exlusive isn't. Fix waiting for everything in this situation.
->
-> Signed-off-by: Christian König <christian.koenig@amd.com>
-> ---
->   drivers/dma-buf/reservation.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
-> index e2eff86..ce3f9c1 100644
-> --- a/drivers/dma-buf/reservation.c
-> +++ b/drivers/dma-buf/reservation.c
-> @@ -461,7 +461,7 @@ long reservation_object_wait_timeout_rcu(struct reservation_object *obj,
->   		}
->   	}
->   
-> -	if (!shared_count) {
-> +	if (!fence) {
-previous code seems be a bug, the exclusive fence isn't be waited at all 
-if shared_count != 0.
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
+ include/uapi/linux/videodev2.h       | 5 +++++
+ 2 files changed, 9 insertions(+)
 
-With your fix, there still is a case the exclusive fence could be 
-skipped, that when fobj->shared[shared_count-1] isn't signalled.
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index cab63bb..5e68455 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1203,6 +1203,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_PIX_FMT_SGBRG10P:	descr = "10-bit Bayer GBGB/RGRG Packed"; break;
+ 	case V4L2_PIX_FMT_SGRBG10P:	descr = "10-bit Bayer GRGR/BGBG Packed"; break;
+ 	case V4L2_PIX_FMT_SRGGB10P:	descr = "10-bit Bayer RGRG/GBGB Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SBGGR10: descr = "10-bit bayer BGGR IPU3 Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SGBRG10: descr = "10-bit bayer GBRG IPU3 Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SGRBG10: descr = "10-bit bayer GRBG IPU3 Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SRGGB10: descr = "10-bit bayer RGGB IPU3 Packed"; break;
+ 	case V4L2_PIX_FMT_SBGGR10ALAW8:	descr = "8-bit Bayer BGBG/GRGR (A-law)"; break;
+ 	case V4L2_PIX_FMT_SGBRG10ALAW8:	descr = "8-bit Bayer GBGB/RGRG (A-law)"; break;
+ 	case V4L2_PIX_FMT_SGRBG10ALAW8:	descr = "8-bit Bayer GRGR/BGBG (A-law)"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 45cf735..0c38fc6 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -663,6 +663,11 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
+ #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
 
-Regards,
-David Zhou
->   		struct dma_fence *fence_excl = rcu_dereference(obj->fence_excl);
->   
->   		if (fence_excl &&
++#define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
++#define V4L2_PIX_FMT_IPU3_SGBRG10	v4l2_fourcc('i', 'p', '3', 'g') /* IPU3 packed 10-bit GBRG bayer */
++#define V4L2_PIX_FMT_IPU3_SGRBG10	v4l2_fourcc('i', 'p', '3', 'G') /* IPU3 packed 10-bit GRBG bayer */
++#define V4L2_PIX_FMT_IPU3_SRGGB10	v4l2_fourcc('i', 'p', '3', 'r') /* IPU3 packed 10-bit RGGB bayer */
++
+ /* SDR formats - used only for Software Defined Radio devices */
+ #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
+ #define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
+--
+2.7.4
