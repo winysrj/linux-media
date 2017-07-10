@@ -1,30 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f51.google.com ([74.125.82.51]:37508 "EHLO
-        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935106AbdGTRUW (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.133]:56236 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753703AbdGJLTW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 13:20:22 -0400
-Received: by mail-wm0-f51.google.com with SMTP id g127so32956554wmd.0
-        for <linux-media@vger.kernel.org>; Thu, 20 Jul 2017 10:20:22 -0700 (PDT)
-MIME-Version: 1.0
-From: Naman Jain <nsahula.photo.sharing@gmail.com>
-Date: Thu, 20 Jul 2017 22:50:21 +0530
-Message-ID: <CAPD8ABV6hve8kJ1wPncy2cGn3C_82enHVZKo3nzn9+8L2ZjtZg@mail.gmail.com>
-Subject: Adv7180 driver configuration problem
-To: lars@metafoo.de
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        Mon, 10 Jul 2017 07:19:22 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [BUGREPORT] media: v4l: omap_vout: vrfb: initialize DMA flags
+Date: Mon, 10 Jul 2017 13:18:48 +0200
+Message-Id: <20170710111912.887188-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I need to configure adv7281m in renesas SOC which uses rcar-csi as
-bridge(csi receiver) and rcar- vin as dma engine.
+Passing uninitialized flags into device_prep_interleaved_dma is clearly
+a bad idea, and we get a compiler warning for it:
 
-I have done the configuration in device tree as mention in DT bindings.
+drivers/media/platform/omap/omap_vout_vrfb.c: In function 'omap_vout_prepare_vrfb':
+drivers/media/platform/omap/omap_vout_vrfb.c:273:5: error: 'flags' may be used uninitialized in this function [-Werror=maybe-uninitialized]
 
-When i start the streaming (continuous capture), i am getting
+It seems that the OMAP dmaengine ignores the flags, but we should
+pick the right ones anyway. Unfortunately I don't know what they
+should be, so I just picked the most common flags. Please set the
+right flags here and fold the modified patch.
 
-rcar.csi2: timeout reading the PHY clock lane
+Fixes: 6a1560ecaa8c ("media: v4l: omap_vout: vrfb: Convert to dmaengine")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/platform/omap/omap_vout_vrfb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-further probing the data lanes on adv7281m, i am seeing incorrect
-voltages in HS mode.
+diff --git a/drivers/media/platform/omap/omap_vout_vrfb.c b/drivers/media/platform/omap/omap_vout_vrfb.c
+index 45a553d4f5b2..fed28b6bbbc0 100644
+--- a/drivers/media/platform/omap/omap_vout_vrfb.c
++++ b/drivers/media/platform/omap/omap_vout_vrfb.c
+@@ -233,7 +233,7 @@ int omap_vout_prepare_vrfb(struct omap_vout_device *vout,
+ 			   struct videobuf_buffer *vb)
+ {
+ 	struct dma_async_tx_descriptor *tx;
+-	enum dma_ctrl_flags flags;
++	enum dma_ctrl_flags flags = DMA_PREP_INTERRUPT | DMA_CTRL_ACK;
+ 	struct dma_chan *chan = vout->vrfb_dma_tx.chan;
+ 	struct dma_device *dmadev = chan->device;
+ 	struct dma_interleaved_template *xt = vout->vrfb_dma_tx.xt;
+-- 
+2.9.0
