@@ -1,43 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:36494 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754299AbdGXUxo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Jul 2017 16:53:44 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, d.scheller@gmx.net, jasmin@anw.at
-Subject: [PATCH V2 2/3] build: CEC_PIN and the VIDEO_OV5670 driver both require kernel 4.10 to compile
-Date: Mon, 24 Jul 2017 22:53:36 +0200
-Message-Id: <1500929617-13623-3-git-send-email-jasmin@anw.at>
-In-Reply-To: <1500929617-13623-1-git-send-email-jasmin@anw.at>
-References: <1500929617-13623-1-git-send-email-jasmin@anw.at>
+Received: from mail-yb0-f195.google.com ([209.85.213.195]:35225 "EHLO
+        mail-yb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753233AbdGJPFl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Jul 2017 11:05:41 -0400
+Date: Mon, 10 Jul 2017 10:05:38 -0500
+From: Rob Herring <robh@kernel.org>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH v2 5/6] [media] dt-bindings: gpio-ir-tx: add support for
+ GPIO IR Transmitter
+Message-ID: <20170710150538.ql26gswdf2obch6o@rob-hp-laptop>
+References: <cover.1499419624.git.sean@mess.org>
+ <580c648de65344e9316ff153ba316efd4d527f12.1499419624.git.sean@mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <580c648de65344e9316ff153ba316efd4d527f12.1499419624.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On Fri, Jul 07, 2017 at 10:52:03AM +0100, Sean Young wrote:
+> Document the device tree bindings for the GPIO Bit Banging IR
+> Transmitter.
+> 
+> Signed-off-by: Sean Young <sean@mess.org>
+> ---
+>  Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt b/Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt
+> new file mode 100644
+> index 0000000..bc08d89
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt
+> @@ -0,0 +1,11 @@
+> +Device tree bindings for IR LED connected through gpio pin which is used as
+> +remote controller transmitter.
+> +
+> +Required properties:
+> +	- compatible: should be "gpio-ir-tx".
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
----
- v4l/versions.txt | 6 ++++++
- 1 file changed, 6 insertions(+)
+As I mentioned in the prior version, missing the "gpios" property.
 
-diff --git a/v4l/versions.txt b/v4l/versions.txt
-index ae4a14f..7d786da 100644
---- a/v4l/versions.txt
-+++ b/v4l/versions.txt
-@@ -28,6 +28,12 @@ VIDEO_S5P_MIPI_CSIS
- VIDEO_RCAR_VIN
- VIDEO_XILINX
- 
-+[4.10.0]
-+# needs *probe_new in struct i2c_driver
-+VIDEO_OV5670
-+# needs ktime_t as s64
-+CEC_PIN
-+
- [4.7.0]
- # needs i2c_mux_alloc
- VIDEO_CX231XX
--- 
-2.7.4
+> +
+> +Example:
+> +	irled@0 {
+> +		compatible = "gpio-ir-tx";
+> +		gpios = <&gpio1 2 GPIO_ACTIVE_HIGH>;
+> +	};
+> -- 
+> 2.9.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
