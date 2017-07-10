@@ -1,57 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f176.google.com ([209.85.128.176]:35259 "EHLO
-        mail-wr0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932895AbdGKPaS (ORCPT
+Received: from gateway34.websitewelcome.com ([192.185.150.114]:48473 "EHLO
+        gateway34.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752276AbdGJBAh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 11:30:18 -0400
-Received: by mail-wr0-f176.google.com with SMTP id k67so3867804wrc.2
-        for <linux-media@vger.kernel.org>; Tue, 11 Jul 2017 08:30:17 -0700 (PDT)
-Date: Tue, 11 Jul 2017 17:30:13 +0200
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: Ralph Metzler <rjkm@metzlerbros.de>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com, jasmin@anw.at, d_spingler@gmx.de
-Subject: Re: [PATCH 00/14] ddbridge: bump to ddbridge-0.9.29
-Message-ID: <20170711173013.25741b86@audiostation.wuest.de>
-In-Reply-To: <22884.38463.374508.270284@morden.metzler>
-References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
-        <22883.13973.46880.749847@morden.metzler>
-        <20170710173124.653286e7@audiostation.wuest.de>
-        <22884.38463.374508.270284@morden.metzler>
+        Sun, 9 Jul 2017 21:00:37 -0400
+Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
+        by gateway34.websitewelcome.com (Postfix) with ESMTP id 15A30338F0
+        for <linux-media@vger.kernel.org>; Sun,  9 Jul 2017 20:00:35 -0500 (CDT)
+Date: Sun, 9 Jul 2017 20:00:33 -0500
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH] dib8000: constify i2c_algorithm structure
+Message-ID: <20170710010033.GA16990@embeddedgus>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Tue, 11 Jul 2017 11:11:27 +0200
-schrieb Ralph Metzler <rjkm@metzlerbros.de>:
+Check for i2c_algorithm structures that are only stored in
+the algo field of an i2c_adapter structure. This field is
+declared const, so i2c_algorithm structures that have this
+property can be declared as const also.
 
-> Daniel Scheller writes:
->  > 
->  > IIRC this was -main.c, and basically the code split, but no
->  > specific file. However, each of the additionals (hw, io, irq) were
->  > done with a reason (please also see their commit messages at
->  > patches 4-6):
->  > [...]
-> 
-> As I wrote before, changes like this will break other things like the
-> OctopusNet build tree. So, I cannot use them like this or without
-> changes at other places. And even if I wanted to, I cannot pull
-> anything into the public dddvb repository.
+This issue was identified using Coccinelle and the following
+semantic patch:
 
-Ok, you probably have seen the PRs I created against dddvb, as they
-apply basically the same as is contained in this patchset, and even
-fixes a few minors. Thus, lets not declare this as merge-blocker for
-this patches, please.
+@r disable optional_qualifier@
+identifier i;
+position p;
+@@
+static struct i2c_algorithm i@p = { ... };
 
-It'd of course be very valuable if you continue to commit incremental
-changes to your drivers, so we can move on with the plan to keep the
-in-kernel-driver (if merged) uptodate in a timely manner. After
-over 1.5years I believe I know the driver quite well now so I won't get
-troubles picking up things by hand.
+@ok@
+identifier r.i;
+struct i2c_adapter e;
+position p;
+@@
+e.algo = &i@p;
 
-Best regards,
-Daniel Scheller
+@bad@
+position p != {r.p,ok.p};
+identifier r.i;
+@@
+i@p
+
+@depends on !bad disable optional_qualifier@
+identifier r.i;
+@@
+static
++const
+ struct i2c_algorithm i = { ... };
+
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+---
+ drivers/media/dvb-frontends/dib8000.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
+index e501ec9..a179a3f 100644
+--- a/drivers/media/dvb-frontends/dib8000.c
++++ b/drivers/media/dvb-frontends/dib8000.c
+@@ -1880,7 +1880,7 @@ static u32 dib8096p_i2c_func(struct i2c_adapter *adapter)
+ 	return I2C_FUNC_I2C;
+ }
+ 
+-static struct i2c_algorithm dib8096p_tuner_xfer_algo = {
++static const struct i2c_algorithm dib8096p_tuner_xfer_algo = {
+ 	.master_xfer = dib8096p_tuner_xfer,
+ 	.functionality = dib8096p_i2c_func,
+ };
 -- 
-https://github.com/herrnst
+2.5.0
