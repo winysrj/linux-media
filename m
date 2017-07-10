@@ -1,49 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.60.111]:57632 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754394AbdGJPrb (ORCPT
+Received: from mail-qt0-f181.google.com ([209.85.216.181]:34176 "EHLO
+        mail-qt0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752457AbdGJJrS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Jul 2017 11:47:31 -0400
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>
-Subject: [PATCH v8 3/5] MAINTAINERS: Add entry for Synopsys Designware HDMI drivers
-Date: Mon, 10 Jul 2017 16:46:53 +0100
-Message-Id: <fe6796c67991673592f1334ff375e8d57abc1c2d.1499701282.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1499701281.git.joabreu@synopsys.com>
-References: <cover.1499701281.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1499701281.git.joabreu@synopsys.com>
-References: <cover.1499701281.git.joabreu@synopsys.com>
+        Mon, 10 Jul 2017 05:47:18 -0400
+Received: by mail-qt0-f181.google.com with SMTP id 32so67924667qtv.1
+        for <linux-media@vger.kernel.org>; Mon, 10 Jul 2017 02:47:17 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAL4ntm9X1k4eXiEM4YE74zs46bqNhG0xS=dYcymW4sGbzCX=1A@mail.gmail.com>
+References: <CAL4ntm9X1k4eXiEM4YE74zs46bqNhG0xS=dYcymW4sGbzCX=1A@mail.gmail.com>
+From: Kumar Vivek <kv2000inn@gmail.com>
+Date: Mon, 10 Jul 2017 05:47:16 -0400
+Message-ID: <CACEBzGSYP5_P9LoeX_Rh=K142iaS1F7QwjvY6nyGTy0chFO6Dw@mail.gmail.com>
+Subject: Re: Support for Linux driver for GENIATECH Mygica ATSC USB TV Stick A681
+To: =?UTF-8?B?7LWc7Yq56rec?= <heartily0421@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a entry for Synopsys Designware HDMI Receivers drivers
-and phys.
+Could you provide us the details of the following:
+1) After attaching the device to your usb port - output of lsusb and
+dmesg commands. (name@computer$ lsusb ) and (name@computer$ dmesg)
+2) Information regarding the chips present on this board - USB bridge,
+Demodulator and Tuner chips.
 
-Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-Cc: Carlos Palminha <palminha@synopsys.com>
----
- MAINTAINERS | 7 +++++++
- 1 file changed, 7 insertions(+)
+I have a device from Mygica - A680 with usb id 05e1:0480 with Au0828
+usb bridge, au8522 demodulator and tda18271hdc2 tuner and it is fully
+supported.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index c4be6d4..7ebc6dd 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -11354,6 +11354,13 @@ L:	netdev@vger.kernel.org
- S:	Supported
- F:	drivers/net/ethernet/synopsys/
- 
-+SYNOPSYS DESIGNWARE HDMI RECEIVERS AND PHY DRIVERS
-+M:	Jose Abreu <joabreu@synopsys.com>
-+L:	linux-media@vger.kernel.org
-+S:	Maintained
-+F:	drivers/media/platform/dwc/*
-+F:	include/media/dwc/*
-+
- SYNOPSYS DESIGNWARE I2C DRIVER
- M:	Jarkko Nikula <jarkko.nikula@linux.intel.com>
- R:	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
--- 
-1.9.1
+On Mon, Jul 10, 2017 at 5:13 AM, =EC=B5=9C=ED=8A=B9=EA=B7=9C <heartily0421@=
+gmail.com> wrote:
+> Dear all
+>
+> (I have no experience in mailing list and linux programming, so please
+> be patient of my first request mail.)
+>
+> By chance I (may) got linux driver for GENIATECH Mygica A681.
+> Can any one verify it and include it to LinuxTV project?
+>
+> I saw http://mygicasupport.com/index.php?/topic/2484-linux-support/
+> It said no linux driver for A681.
+>
+> But I saw A681's specification document
+> (http://file.geniatech.com/thcdownloads/geniatech/specification/A681.pdf
+> )
+> It says linux driver is supported.
+>
+> So I request it to Geniatech.
+> Their respond as follow:
+> ************************************************************
+> Hi sir,
+> Please try this driver:
+> https://mega.nz/#!utlmUA4L!A_AA-obMjiVJA3fOTLe_kZuml1tYPDGHtaQCuMv6bpQ
+>
+>
+> Thanks & Best regards
+> ************************************************************
+> Claire
+> Geniatech Anhui LLC
+> Tel: +86-551-65553836
+> Mob:+86-18226641675
+> Email.: claire.chen@geniatech.com
+> Website: www.geniatech.com
+> Skype: claire.chen@geniatech.com
+>
+> Office address:Room 906,Building F5,Innovation Industrial Park,NO.2800
+> InnovationRoad,High Tech Zone,Hefei,Anhui,China
+>
+> Factory address: 2~3 Floor, Block A, Yinghaosheng Industrial Park,
+> Dayang Street, Fuyong, Bao=E2=80=99an District, Shenzhen, China
+> ************************************************************
+>
+> Maybe this person(Claire) cannot know prior technical issue
+> (http://mygicasupport.com/index.php?/topic/2484-linux-support/).
+> But I surely have no proper programming skill for verify or develop
+> this driver, Please help.
+>
+> Sincerely
