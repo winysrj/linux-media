@@ -1,65 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:35284 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751812AbdGGQsp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 12:48:45 -0400
-Date: Fri, 7 Jul 2017 18:48:43 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org,
-        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Subject: Re: [PATCH v2 4/6] [media] rc: pwm-ir-tx: add new driver
-Message-ID: <20170707164843.GA13592@amd>
-References: <cover.1499419624.git.sean@mess.org>
- <ae8550faaabeb0d1c9f3b65f29ea32bd8c259146.1499419624.git.sean@mess.org>
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:33858 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754057AbdGKR5H (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Jul 2017 13:57:07 -0400
+Date: Tue, 11 Jul 2017 19:57:05 +0200
+From: Yves =?iso-8859-1?Q?Lem=E9e?= <yves.lemee.kernel@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] Clean up lirc zilog error codes
+Message-ID: <20170711175704.p2ssblkm7lkincfx@yves>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="opJtzjQTFsWo+cga"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <ae8550faaabeb0d1c9f3b65f29ea32bd8c259146.1499419624.git.sean@mess.org>
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+According the coding style guidelines, the ENOSYS error code must be returned
+in case of a non existent system call. This code has been replaced with
+the ENOTTY error code indicating, a missing functionality.
 
---opJtzjQTFsWo+cga
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Yves Lemée <yves.lemee.kernel@gmail.com>
+---
+ drivers/staging/media/lirc/lirc_zilog.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-On Fri 2017-07-07 10:52:02, Sean Young wrote:
-> This is new driver which uses pwm, so it is more power-efficient
-> than the bit banging gpio-ir-tx driver.
->=20
-> Signed-off-by: Sean Young <sean@mess.org>
-> ---
->  MAINTAINERS                  |   6 ++
->  drivers/media/rc/Kconfig     |  12 ++++
->  drivers/media/rc/Makefile    |   1 +
->  drivers/media/rc/pwm-ir-tx.c | 138 +++++++++++++++++++++++++++++++++++++=
-++++++
->  4 files changed, 157 insertions(+)
->  create mode 100644 drivers/media/rc/pwm-ir-tx.c
-
-nothing apparently wrong.
-
-Reviewed-by: Pavel Machek <pavel@ucw.cz>
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---opJtzjQTFsWo+cga
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAllfu2sACgkQMOfwapXb+vJt/ACgs496ZAuWjPgykiTEqJOtG9NB
-1/cAoMEruz7Z/rsiDh5FdyVHJ9JMoF2U
-=Jz0d
------END PGP SIGNATURE-----
-
---opJtzjQTFsWo+cga--
+diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+index 015e41bd036e..26dd32d5b5b2 100644
+--- a/drivers/staging/media/lirc/lirc_zilog.c
++++ b/drivers/staging/media/lirc/lirc_zilog.c
+@@ -1249,7 +1249,7 @@ static long ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
+ 		break;
+ 	case LIRC_GET_REC_MODE:
+ 		if (!(features & LIRC_CAN_REC_MASK))
+-			return -ENOSYS;
++			return -ENOTTY;
+ 
+ 		result = put_user(LIRC_REC2MODE
+ 				  (features & LIRC_CAN_REC_MASK),
+@@ -1257,21 +1257,21 @@ static long ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
+ 		break;
+ 	case LIRC_SET_REC_MODE:
+ 		if (!(features & LIRC_CAN_REC_MASK))
+-			return -ENOSYS;
++			return -ENOTTY;
+ 
+ 		result = get_user(mode, uptr);
+ 		if (!result && !(LIRC_MODE2REC(mode) & features))
+-			result = -EINVAL;
++			result = -ENOTTY;
+ 		break;
+ 	case LIRC_GET_SEND_MODE:
+ 		if (!(features & LIRC_CAN_SEND_MASK))
+-			return -ENOSYS;
++			return -ENOTTY;
+ 
+ 		result = put_user(LIRC_MODE_PULSE, uptr);
+ 		break;
+ 	case LIRC_SET_SEND_MODE:
+ 		if (!(features & LIRC_CAN_SEND_MASK))
+-			return -ENOSYS;
++			return -ENOTTY;
+ 
+ 		result = get_user(mode, uptr);
+ 		if (!result && mode != LIRC_MODE_PULSE)
+-- 
+2.13.2
