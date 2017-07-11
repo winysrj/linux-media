@@ -1,61 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:46274 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750989AbdGVGmX (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:32947 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753358AbdGKLUZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Jul 2017 02:42:23 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Subject: Re: [PATCH v2] media: Convert to using %pOF instead of full_name
-To: Rob Herring <robh@kernel.org>, linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Houlong Wei <houlong.wei@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Hyun Kwon <hyun.kwon@xilinx.com>,
-        Michal Simek <michal.simek@xilinx.com>,
-        =?UTF-8?Q?S=c3=b6ren_Brinkmann?= <soren.brinkmann@xilinx.com>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org,
-        linux-mediatek@lists.infradead.org,
-        linux-renesas-soc@vger.kernel.org
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <97f42d10-d2ed-c5bb-9562-5515d5f13f7d@samsung.com>
-Date: Sat, 22 Jul 2017 08:42:11 +0200
-In-reply-to: <20170721192835.25555-2-robh@kernel.org>
-Content-language: en-GB
-Content-transfer-encoding: 8bit
-References: <20170721192835.25555-1-robh@kernel.org>
-        <CGME20170721192855epcas5p40919807b161c8dee900b5661ea5128aa@epcas5p4.samsung.com>
-        <20170721192835.25555-2-robh@kernel.org>
+        Tue, 11 Jul 2017 07:20:25 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Eric Anholt <eric@anholt.net>, dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/4] cec: be smarter about detecting the number of attempts made
+Date: Tue, 11 Jul 2017 13:20:18 +0200
+Message-Id: <20170711112021.38525-2-hverkuil@xs4all.nl>
+In-Reply-To: <20170711112021.38525-1-hverkuil@xs4all.nl>
+References: <20170711112021.38525-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/21/2017 09:28 PM, Rob Herring wrote:
-> Now that we have a custom printf format specifier, convert users of
-> full_name to use %pOF instead. This is preparation to remove storing
-> of the full path string for each node.
-> 
-> Signed-off-by: Rob Herring<robh@kernel.org>
-> Acked-by: Niklas Söderlund<niklas.soderlund+renesas@ragnatech.se>
-> Acked-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
-> Reviewed-by: Matthias Brugger<matthias.bgg@gmail.com>
-> Acked-by: Nicolas Ferre<nicolas.ferre@microchip.com>
-> Acked-by: Lad, Prabhakar<prabhakar.csengg@gmail.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> ---
-> v2:
-> - Fix missing to_of_node() in xilinx-vipp.c
-> - Drop v4l2-async.c changes. Doing as revert instead.
-> - Add acks
+Some hardware does more than one attempt. So when it calls
+cec_transmit_done when an error occurred it will e.g. use an error count
+of 2 instead of 1.
 
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+The framework always assumed a single attempt, but now it is smarter
+and will sum the counters to detect how many attempts were made.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/cec/cec-adap.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
+index bf45977b2823..e9284dbdc880 100644
+--- a/drivers/media/cec/cec-adap.c
++++ b/drivers/media/cec/cec-adap.c
+@@ -472,9 +472,14 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
+ {
+ 	struct cec_data *data;
+ 	struct cec_msg *msg;
++	unsigned int attempts_made = arb_lost_cnt + nack_cnt +
++				     low_drive_cnt + error_cnt;
+ 	u64 ts = ktime_get_ns();
+ 
+ 	dprintk(2, "%s: status %02x\n", __func__, status);
++	if (attempts_made < 1)
++		attempts_made = 1;
++
+ 	mutex_lock(&adap->lock);
+ 	data = adap->transmitting;
+ 	if (!data) {
+@@ -507,10 +512,10 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
+ 	 * the hardware didn't signal that it retried itself (by setting
+ 	 * CEC_TX_STATUS_MAX_RETRIES), then we will retry ourselves.
+ 	 */
+-	if (data->attempts > 1 &&
++	if (data->attempts > attempts_made &&
+ 	    !(status & (CEC_TX_STATUS_MAX_RETRIES | CEC_TX_STATUS_OK))) {
+ 		/* Retry this message */
+-		data->attempts--;
++		data->attempts -= attempts_made;
+ 		if (msg->timeout)
+ 			dprintk(2, "retransmit: %*ph (attempts: %d, wait for 0x%02x)\n",
+ 				msg->len, msg->msg, data->attempts, msg->reply);
+-- 
+2.11.0
