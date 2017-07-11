@@ -1,130 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:42673 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751346AbdGRDqP (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:54588 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755262AbdGKGav (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 23:46:15 -0400
-Message-ID: <3f111889fa1b7c7e12e176797ac7a2e1@smtp-cloud3.xs4all.net>
-Date: Tue, 18 Jul 2017 05:46:13 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Tue, 11 Jul 2017 02:30:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
+        dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 07/11] cec: document the new CEC pin capability, events and mode
+Date: Tue, 11 Jul 2017 08:30:40 +0200
+Message-Id: <20170711063044.29849-8-hverkuil@xs4all.nl>
+In-Reply-To: <20170711063044.29849-1-hverkuil@xs4all.nl>
+References: <20170711063044.29849-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+Document CEC_CAP_MONITOR_PIN, CEC_EVENT_PIN_LOW/HIGH,
+CEC_EVENT_FL_DROPPED_EVENTS and CEC_MODE_MONITOR_PIN.
 
-date:			Tue Jul 18 05:00:28 CEST 2017
-media-tree git hash:	a3db9d60a118571e696b684a6e8c692a2b064941
-media_build git hash:	bc1db0a204a87da86349ea5e64ae0d65e945609d
-v4l-utils git hash:	8e68406dae2233e811032dc8e7714c09c818e893
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.11.0-164
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst |  7 +++++++
+ Documentation/media/uapi/cec/cec-ioc-dqevent.rst     | 20 ++++++++++++++++++++
+ Documentation/media/uapi/cec/cec-ioc-g-mode.rst      | 19 +++++++++++++++++--
+ 3 files changed, 44 insertions(+), 2 deletions(-)
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-multi: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-arm-stm32: ERRORS
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: WARNINGS
-linux-git-m32r: WARNINGS
-linux-git-mips: ERRORS
-linux-git-powerpc64: WARNINGS
-linux-git-sh: ERRORS
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: ERRORS
-linux-4.12.1-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: ERRORS
-linux-4.12.1-x86_64: ERRORS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
+index 6d7bf7bef3eb..882d6e025747 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
+@@ -121,6 +121,13 @@ returns the information to the application. The ioctl never fails.
+         high. This makes it impossible to use CEC to wake up displays that
+ 	set the HPD pin low when in standby mode, but keep the CEC bus
+ 	alive.
++    * .. _`CEC-CAP-MONITOR-PIN`:
++
++      - ``CEC_CAP_MONITOR_PIN``
++      - 0x00000080
++      - The CEC hardware can monitor CEC pin changes from low to high voltage
++        and vice versa. When in pin monitoring mode the application will
++	receive ``CEC_EVENT_PIN_LOW`` and ``CEC_EVENT_PIN_HIGH`` events.
+ 
+ 
+ 
+diff --git a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
+index 4d3570c2e0b3..3e2cd5fefd38 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
+@@ -146,6 +146,20 @@ it is guaranteed that the state did change in between the two events.
+       - 2
+       - Generated if one or more CEC messages were lost because the
+ 	application didn't dequeue CEC messages fast enough.
++    * .. _`CEC-EVENT-PIN-LOW`:
++
++      - ``CEC_EVENT_PIN_LOW``
++      - 3
++      - Generated if the CEC pin goes from a high voltage to a low voltage.
++        Only applies to adapters that have the ``CEC_CAP_MONITOR_PIN``
++	capability set.
++    * .. _`CEC-EVENT-PIN-HIGH`:
++
++      - ``CEC_EVENT_PIN_HIGH``
++      - 4
++      - Generated if the CEC pin goes from a low voltage to a high voltage.
++        Only applies to adapters that have the ``CEC_CAP_MONITOR_PIN``
++	capability set.
+ 
+ 
+ .. tabularcolumns:: |p{6.0cm}|p{0.6cm}|p{10.9cm}|
+@@ -165,6 +179,12 @@ it is guaranteed that the state did change in between the two events.
+ 	opened. See the table above for which events do this. This allows
+ 	applications to learn the initial state of the CEC adapter at
+ 	open() time.
++    * .. _`CEC-EVENT-FL-DROPPED-EVENTS`:
++
++      - ``CEC_EVENT_FL_DROPPED_EVENTS``
++      - 2
++      - Set if one or more events of the given event type have been dropped.
++        This is an indication that the application cannot keep up.
+ 
+ 
+ 
+diff --git a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
+index 664f0d47bbcd..3e907c74338f 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
+@@ -149,13 +149,28 @@ Available follower modes are:
+ 	code. You cannot become a follower if :ref:`CEC_CAP_TRANSMIT <CEC-CAP-TRANSMIT>`
+ 	is not set or if :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>` was specified,
+ 	the ``EINVAL`` error code is returned in that case.
++    * .. _`CEC-MODE-MONITOR-PIN`:
++
++      - ``CEC_MODE_MONITOR_PIN``
++      - 0xd0
++      - Put the file descriptor into pin monitoring mode. Can only be used in
++	combination with :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>`,
++	otherwise the ``EINVAL`` error code will be returned.
++	This mode requires that the :ref:`CEC_CAP_MONITOR_PIN <CEC-CAP-MONITOR-PIN>`
++	capability is set, otherwise the ``EINVAL`` error code is returned.
++	While in pin monitoring mode this file descriptor can receive the
++	``CEC_EVENT_PIN_LOW`` and ``CEC_EVENT_PIN_HIGH`` events to see the
++	low-level CEC pin transitions. This is very useful for debugging.
++	This mode is only allowed if the process has the ``CAP_NET_ADMIN``
++	capability. If that is not set, then the ``EPERM`` error code is returned.
+     * .. _`CEC-MODE-MONITOR`:
+ 
+       - ``CEC_MODE_MONITOR``
+       - 0xe0
+       - Put the file descriptor into monitor mode. Can only be used in
+-	combination with :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>`, otherwise EINVAL error
+-	code will be returned. In monitor mode all messages this CEC
++	combination with :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>`,i
++	otherwise the ``EINVAL`` error code will be returned.
++	In monitor mode all messages this CEC
+ 	device transmits and all messages it receives (both broadcast
+ 	messages and directed messages for one its logical addresses) will
+ 	be reported. This is very useful for debugging. This is only
+-- 
+2.11.0
