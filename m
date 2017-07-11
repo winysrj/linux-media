@@ -1,183 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:53027 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756468AbdGKSgB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 14:36:01 -0400
-Date: Tue, 11 Jul 2017 19:35:58 +0100
-From: Sean Young <sean@mess.org>
-To: Mason <slash.tmp@free.fr>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>
-Subject: Re: Trying to use IR driver for my SoC
-Message-ID: <20170711183557.ir4h7nqx2rrr3mbf@gofer.mess.org>
-References: <cf82988e-8be2-1ec8-b343-7c3c54110746@free.fr>
- <20170629155557.GA12980@gofer.mess.org>
- <276e7aa2-0c98-5556-622a-65aab4b9d373@free.fr>
- <20170629175037.GA14390@gofer.mess.org>
- <204a429c-b886-63a7-4d59-522864f05030@free.fr>
- <20170629194405.GA15901@gofer.mess.org>
- <0e2089ae-23cf-33fc-7c3d-68b7ab43ef57@free.fr>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:41234 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752607AbdGKUKv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Jul 2017 16:10:51 -0400
+Subject: Re: [PATCH 00/11] drm/sun4i: add CEC support
+To: linux-media@vger.kernel.org
+References: <20170711063044.29849-1-hverkuil@xs4all.nl>
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
+        dri-devel@lists.freedesktop.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <8221b85d-d50a-5f99-0128-c48a23b6f569@xs4all.nl>
+Date: Tue, 11 Jul 2017 22:10:46 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0e2089ae-23cf-33fc-7c3d-68b7ab43ef57@free.fr>
+In-Reply-To: <20170711063044.29849-1-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 10, 2017 at 10:40:04AM +0200, Mason wrote:
-> On 29/06/2017 21:44, Sean Young wrote:
+On 11/07/17 08:30, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> > On Thu, Jun 29, 2017 at 09:12:48PM +0200, Mason wrote:
-> >
-> >> On 29/06/2017 19:50, Sean Young wrote:
-> >>
-> >>> On Thu, Jun 29, 2017 at 06:25:55PM +0200, Mason wrote:
-> >>>
-> >>>> $ ir-keytable -v -t
-> >>>> Found device /sys/class/rc/rc0/
-> >>>> Input sysfs node is /sys/class/rc/rc0/input0/
-> >>>> Event sysfs node is /sys/class/rc/rc0/input0/event0/
-> >>>> Parsing uevent /sys/class/rc/rc0/input0/event0/uevent
-> >>>> /sys/class/rc/rc0/input0/event0/uevent uevent MAJOR=13
-> >>>> /sys/class/rc/rc0/input0/event0/uevent uevent MINOR=64
-> >>>> /sys/class/rc/rc0/input0/event0/uevent uevent DEVNAME=input/event0
-> >>>> Parsing uevent /sys/class/rc/rc0/uevent
-> >>>> /sys/class/rc/rc0/uevent uevent NAME=rc-empty
-> >>>> input device is /dev/input/event0
-> >>>> /sys/class/rc/rc0/protocols protocol rc-5 (disabled)
-> >>>> /sys/class/rc/rc0/protocols protocol nec (disabled)
-> >>>> /sys/class/rc/rc0/protocols protocol rc-6 (disabled)
-> >>
-> >> I had overlooked this. Is it expected for these protocols
-> >> to be marked as "disabled"?
-> > 
-> > Ah, good point, I forgot about that. :/
-> > 
-> > "ir-keytable -p all -t -v" should enable all protocols and test.
+> This patch series adds CEC support for the sun4i HDMI controller.
 > 
-> After hours of thrashing around, I finally figured out that
-> the IRQ was misconfigured... Doh!
+> The CEC hardware support for the A10 is very low-level as it just
+> controls the CEC pin. Since I also wanted to support GPIO-based CEC
+> hardware most of this patch series is in the CEC framework to
+> add a generic low-level CEC pin framework. It is only the final patch
+> that adds the sun4i support.
 > 
-> Here's the output from pressing '1' for one second on the RC:
+> This patch series first makes some small changes in the CEC framework
+> (patches 1-4) to prepare for this CEC pin support.
 > 
-> # cat /dev/input/event0 | hexdump -vC
-> 00000000  04 04 00 00 7a 08 07 00  04 00 04 00 41 cb 04 00  |....z.......A...|
--snip-
-
-It might be easier to use "ir-keytable -t" for this, or evtest. 
-
-> I'm not sure what these mean. There seems to be some kind of
-> timestamp? And something else?
-
-You're reading "struct input_event" here, see the input api.
-
-> How do I tell which protocol
-> this RC is using?
-
-That's an awkward question to answer. This is not passed to user space
-at the moment, that's one of addition I want to make to the lirc user
-space api in the near future.
-
-For the moment I would suggest just putting printk() in your code when
-you call rc_keydown().
-
-> Repeating the test (pressing '1' for one second) with ir-keytable:
+> Patch 5-7 adds the new API elements and documents it. Patch 6 reworks
+> the CEC core event handling.
 > 
-> # ir-keytable -p all -t -v
-> Found device /sys/class/rc/rc0/
-> Input sysfs node is /sys/class/rc/rc0/input0/
-> Event sysfs node is /sys/class/rc/rc0/input0/event0/
-> Parsing uevent /sys/class/rc/rc0/input0/event0/uevent
-> /sys/class/rc/rc0/input0/event0/uevent uevent MAJOR=13
-> /sys/class/rc/rc0/input0/event0/uevent uevent MINOR=64
-> /sys/class/rc/rc0/input0/event0/uevent uevent DEVNAME=input/event0
-> Parsing uevent /sys/class/rc/rc0/uevent
-> /sys/class/rc/rc0/uevent uevent NAME=rc-empty
-> input device is /dev/input/event0
-> /sys/class/rc/rc0/protocols protocol rc-5 (disabled)
-> /sys/class/rc/rc0/protocols protocol nec (disabled)
-> /sys/class/rc/rc0/protocols protocol rc-6 (disabled)
-> Opening /dev/input/event0
-> Input Protocol version: 0x00010001
-> /sys/class/rc/rc0//protocols: Invalid argument
-> Couldn't change the IR protocols
-> Testing events. Please, press CTRL-C to abort.
-> 1296.124872: event type EV_MSC(0x04): scancode = 0x4cb41
-> 1296.124872: event type EV_SYN(0x00).
-> 1296.178753: event type EV_MSC(0x04): scancode = 0x00
-> 1296.178753: event type EV_SYN(0x00).
-> 1296.286526: event type EV_MSC(0x04): scancode = 0x00
-> 1296.286526: event type EV_SYN(0x00).
-> 1296.394303: event type EV_MSC(0x04): scancode = 0x00
-> 1296.394303: event type EV_SYN(0x00).
-> 1296.502081: event type EV_MSC(0x04): scancode = 0x00
-> 1296.502081: event type EV_SYN(0x00).
-> 1296.609857: event type EV_MSC(0x04): scancode = 0x00
-> 1296.609857: event type EV_SYN(0x00).
-> 1296.717635: event type EV_MSC(0x04): scancode = 0x00
-> 1296.717635: event type EV_SYN(0x00).
-> 1296.825412: event type EV_MSC(0x04): scancode = 0x00
-> 1296.825412: event type EV_SYN(0x00).
-> 1296.933189: event type EV_MSC(0x04): scancode = 0x00
-> 1296.933189: event type EV_SYN(0x00).
-> 1297.040967: event type EV_MSC(0x04): scancode = 0x00
-> 1297.040967: event type EV_SYN(0x00).
-> 1297.148745: event type EV_MSC(0x04): scancode = 0x00
-> 1297.148745: event type EV_SYN(0x00).
-> 1297.256522: event type EV_MSC(0x04): scancode = 0x00
-> 1297.256522: event type EV_SYN(0x00).
+> Patch 8 adds pin monitoring support (allows userspace to see all
+> CEC pin transitions as they happen).
 > 
-> It looks like scancode 0x00 means "REPEAT" ?
-
-This looks like nec repeat to me; nec repeats are sent every 110ms;
-however when a repeat occurs, the driver should call rc_repeat(),
-sending a scancode of 0 won't work.
-
-> And 0x4cb41 would be '1' then?
+> Patch 9 adds the core cec-pin implementation that translates low-level
+> pin transitions into valid CEC messages. Basically this does what any
+> SoC with a proper CEC hardware implementation does.
 > 
-> If I compile the legacy driver (which is much more cryptic)
-> it outputs 04 cb 41 be
-
-~0xbe = 0x41. The code in tangox_ir_handle_nec() has decoded this
-into extended nec (so the driver should send RC_TYPE_NECX), see
-https://github.com/mansr/linux-tangox/blob/master/drivers/media/rc/tangox-ir.c#L68
-
-> So 0x4cb41 in common - plus a trailing 0xbe (what is that?
-> Some kind of checksum perhaps?)
-
-That's part of the nec protocol.
-
-> (For '2', I get 04 cb 03 fc)
-
-See http://www.sbprojects.com/knowledge/ir/nec.php
-
-> I'm a bit confused between "protocols", "decoders", "scancodes",
-> "keys", "keymaps". Is there some high-level doc somewhere?
-
-I don't think there is. The infrared led is either on or off[1], so an 
-IR message is a series of pulses and spaces (pulse for IR on, space for
-IR absent). There are different protocols for encoding these IR messages,
-e.g. nec, rc5. When they are decoded, you end up with a scancode 
-(32 bit number). The keymap maps scancodes to keys, so in your case we
-would want a keymap with:
-scancode 0x4cb41 = KEY_1
-scancode 0x4cb03 = KEY_2
-etc.
-Then KEY_1 will be reported to the input layer and you can use the
-remote as you would expect.
-
-The decoder can either be done in hardware (firmware?) and in software; 
-in your case it is done in hardware.
-
-[1] Ignoring the carrier for simplicity, that rarely matters.
-
-> I found this, but it seems to dive straight into API details:
-> https://www.linuxtv.org/downloads/v4l-dvb-apis-new/uapi/rc/remote_controllers.html
+> Patch 10 documents the cec-pin kAPI (and also the cec-notifier kAPI
+> which was missing).
 > 
-> I'll start a separate thread to discuss the available IR hardware
-> on the board I'm using.
+> Finally patch 11 adds the actual sun4i_hdmi CEC implementation.
+> 
+> I tested this on my cubieboard. There were no errors at all
+> after 126264 calls of 'cec-ctl --give-device-vendor-id' while at the
+> same time running a 'make -j4' of the v4l-utils git repository and
+> doing a continuous scp to create network traffic.
+> 
+> This patch series is based on top of the mainline kernel as of
+> yesterday (so with all the sun4i and cec patches for 4.13 merged).
+> 
+> Maxime, patches 1-10 will go through the media subsystem. How do you
+> want to handle the final patch? It can either go through the media
+> subsystem as well, or you can sit on it and handle this yourself during
+> the 4.14 merge window. Another option is to separate the Kconfig change
+> into its own patch. That way you can merge the code changes and only
+> have to handle the Kconfig patch as a final change during the merge
+> window.
 
+I forgot to mention that if you want to use pin monitoring, then the
+updated cec-ctl is found here:
 
-Sean
+https://git.linuxtv.org/hverkuil/v4l-utils.git/log/?h=cec-mon-pin2
+
+To start pin monitoring run:
+
+sudo cec-ctl --monitor-pin
+
+Add the -v flag to see each bit transition.
+
+When in pin monitoring mode it will analyze the low-level protocol and
+warn for incorrect bit periods, etc. To be really accurate the CPU should
+be lightly loaded.
+
+Regards,
+
+	Hans
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> Hans Verkuil (11):
+>   cec: improve transmit timeout logging
+>   cec: add *_ts variants for transmit_done/received_msg
+>   cec: add adap_free op
+>   cec-core.rst: document the adap_free callback
+>   linux/cec.h: add pin monitoring API support
+>   cec: rework the cec event handling
+>   cec: document the new CEC pin capability, events and mode
+>   cec: add core support for low-level CEC pin monitoring
+>   cec-pin: add low-level pin hardware support
+>   cec-core.rst: include cec-pin.h and cec-notifier.h
+>   sun4i_hdmi: add CEC support
+> 
+>  Documentation/media/kapi/cec-core.rst              |  40 ++
+>  .../media/uapi/cec/cec-ioc-adap-g-caps.rst         |   7 +
+>  Documentation/media/uapi/cec/cec-ioc-dqevent.rst   |  20 +
+>  Documentation/media/uapi/cec/cec-ioc-g-mode.rst    |  19 +-
+>  drivers/gpu/drm/sun4i/Kconfig                      |   9 +
+>  drivers/gpu/drm/sun4i/sun4i_hdmi.h                 |   8 +
+>  drivers/gpu/drm/sun4i/sun4i_hdmi_enc.c             |  57 +-
+>  drivers/media/Kconfig                              |   3 +
+>  drivers/media/cec/Makefile                         |   4 +
+>  drivers/media/cec/cec-adap.c                       | 196 +++--
+>  drivers/media/cec/cec-api.c                        |  73 +-
+>  drivers/media/cec/cec-core.c                       |   2 +
+>  drivers/media/cec/cec-pin.c                        | 794 +++++++++++++++++++++
+>  include/media/cec-pin.h                            | 183 +++++
+>  include/media/cec.h                                |  64 +-
+>  include/uapi/linux/cec.h                           |   8 +-
+>  16 files changed, 1389 insertions(+), 98 deletions(-)
+>  create mode 100644 drivers/media/cec/cec-pin.c
+>  create mode 100644 include/media/cec-pin.h
+> 
