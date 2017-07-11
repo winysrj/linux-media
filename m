@@ -1,44 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:35083 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751200AbdGOMau (ORCPT
+Received: from mail-wr0-f176.google.com ([209.85.128.176]:35259 "EHLO
+        mail-wr0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932895AbdGKPaS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Jul 2017 08:30:50 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] cec: drop senseless message
-Message-ID: <64ff00d3-7a61-36b5-1615-327f03e4c0f9@xs4all.nl>
-Date: Sat, 15 Jul 2017 14:30:37 +0200
+        Tue, 11 Jul 2017 11:30:18 -0400
+Received: by mail-wr0-f176.google.com with SMTP id k67so3867804wrc.2
+        for <linux-media@vger.kernel.org>; Tue, 11 Jul 2017 08:30:17 -0700 (PDT)
+Date: Tue, 11 Jul 2017 17:30:13 +0200
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: Ralph Metzler <rjkm@metzlerbros.de>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com, jasmin@anw.at, d_spingler@gmx.de
+Subject: Re: [PATCH 00/14] ddbridge: bump to ddbridge-0.9.29
+Message-ID: <20170711173013.25741b86@audiostation.wuest.de>
+In-Reply-To: <22884.38463.374508.270284@morden.metzler>
+References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
+        <22883.13973.46880.749847@morden.metzler>
+        <20170710173124.653286e7@audiostation.wuest.de>
+        <22884.38463.374508.270284@morden.metzler>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Especially the '0.10' version number is confusing since CEC_ADAP_G_CAPS
-returns a completely different version number.
+Am Tue, 11 Jul 2017 11:11:27 +0200
+schrieb Ralph Metzler <rjkm@metzlerbros.de>:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/cec/cec-core.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+> Daniel Scheller writes:
+>  > 
+>  > IIRC this was -main.c, and basically the code split, but no
+>  > specific file. However, each of the additionals (hw, io, irq) were
+>  > done with a reason (please also see their commit messages at
+>  > patches 4-6):
+>  > [...]
+> 
+> As I wrote before, changes like this will break other things like the
+> OctopusNet build tree. So, I cannot use them like this or without
+> changes at other places. And even if I wanted to, I cannot pull
+> anything into the public dddvb repository.
 
-diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-index b516d599d6c4..57f171161db7 100644
---- a/drivers/media/cec/cec-core.c
-+++ b/drivers/media/cec/cec-core.c
-@@ -386,11 +386,8 @@ EXPORT_SYMBOL_GPL(cec_delete_adapter);
-  */
- static int __init cec_devnode_init(void)
- {
--	int ret;
-+	int ret = alloc_chrdev_region(&cec_dev_t, 0, CEC_NUM_DEVICES, CEC_NAME);
+Ok, you probably have seen the PRs I created against dddvb, as they
+apply basically the same as is contained in this patchset, and even
+fixes a few minors. Thus, lets not declare this as merge-blocker for
+this patches, please.
 
--	pr_info("Linux cec interface: v0.10\n");
--	ret = alloc_chrdev_region(&cec_dev_t, 0, CEC_NUM_DEVICES,
--				  CEC_NAME);
- 	if (ret < 0) {
- 		pr_warn("cec: unable to allocate major\n");
- 		return ret;
+It'd of course be very valuable if you continue to commit incremental
+changes to your drivers, so we can move on with the plan to keep the
+in-kernel-driver (if merged) uptodate in a timely manner. After
+over 1.5years I believe I know the driver quite well now so I won't get
+troubles picking up things by hand.
+
+Best regards,
+Daniel Scheller
 -- 
-2.11.0
+https://github.com/herrnst
