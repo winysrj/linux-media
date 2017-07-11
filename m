@@ -1,105 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:56989 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753784AbdGLQci (ORCPT
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:33995 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752533AbdGKNXh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Jul 2017 12:32:38 -0400
-Date: Wed, 12 Jul 2017 18:32:36 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: v4l2-fwnode: status, plans for merge, any branch to merge
- against?
-Message-ID: <20170712163235.GA11892@amd>
-References: <20170306072323.GA23509@amd>
- <20170310225418.GJ3220@valkosipuli.retiisi.org.uk>
- <20170613122240.GA2803@amd>
- <20170613124748.GD12407@valkosipuli.retiisi.org.uk>
- <20170613210900.GA31456@amd>
- <20170614110634.GP12407@valkosipuli.retiisi.org.uk>
- <20170704150819.GA10703@localhost>
- <20170705093248.hndchnamibhqczfr@valkosipuli.retiisi.org.uk>
- <20170706103851.GA9555@amd>
- <20170711161245.5ftg6jgomudzlosz@valkosipuli.retiisi.org.uk>
+        Tue, 11 Jul 2017 09:23:37 -0400
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="9jxsPFA5p3P2qPhR"
-Content-Disposition: inline
-In-Reply-To: <20170711161245.5ftg6jgomudzlosz@valkosipuli.retiisi.org.uk>
+In-Reply-To: <1498727623.14476.22.camel@pengutronix.de>
+References: <20170628201435.3237712-1-arnd@arndb.de> <1498727623.14476.22.camel@pengutronix.de>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Tue, 11 Jul 2017 15:23:36 +0200
+Message-ID: <CAK8P3a10SRhDPmqbWFrd_T2LGZGS3-EFJs4reRs5zMXf9aZdaA@mail.gmail.com>
+Subject: Re: [PATCH] [media] staging/imx: remove confusing IS_ERR_OR_NULL usage
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Marek Vasut <marex@denx.de>,
+        Russell King <rmk+kernel@armlinux.org.uk>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devel@driverdev.osuosl.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, Jun 29, 2017 at 11:13 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
 
---9jxsPFA5p3P2qPhR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>> @@ -134,23 +134,26 @@ static void csi_idmac_put_ipu_resources(struct csi_priv *priv)
+>>  static int csi_idmac_get_ipu_resources(struct csi_priv *priv)
+>>  {
+>>       int ch_num, ret;
+>> +     struct ipu_smfc *smfc, *idmac_ch;
+>
+> This should be
+>
+> +       struct ipuv3_channel *idmac_ch;
+> +       struct ipu_smfc *smfc;
+>
+> instead.
 
-Hi!
+Fixed in v2 now.
 
+>
+> ... this changes behaviour:
+>
+>     imx-media: imx_media_of_parse failed with -17
+>     imx-media: probe of capture-subsystem failed with error -17
+>
+> We must continue to return NULL here if imxsd == -EEXIST:
+>
+> -               return imxsd;
+> +               return PTR_ERR(imxsd) == -EEXIST ? NULL : imxsd;
+>
+> or change the code where of_parse_subdev is called (from
+> imx_media_of_parse, and recursively from of_parse_subdev) to not handle
+> the -EEXIST return value as an error.
+>
+> With those fixed,
+>
+> Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-> > > 1) Make sure there will be no regressions,
-> >=20
-> > Well, all I have running recent kernels is N900. If ccp branch works
-> > for you on N9, that's probably as much testing as we can get.
-> >=20
-> > > 2) clean things up in the omap3isp; which resources are needed and wh=
-en
-> > > (e.g. regulators, PHY configuration) isn't clear at the moment and
-> > >=20
-> > > 2) have one driver using the implementation.
-> > >=20
-> > > At least 1) is needed. I think a number of framework patches could be
-> > > mergeable before 2) and 3) are done. I can prepare a set later this w=
-eek.
-> > > But even that'd be likely for 4.14, not 4.13.
-> >=20
-> > Yep, it is too late for v4.13 now. But getting stuff ready for v4.14
-> > would be good.
-=2E..
-> > @@ -302,13 +303,16 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *ph=
-y)
-> >  	if (rval < 0)
-> >  		goto done;
-> > =20
-> > -	rval =3D csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_ON);
-> > -	if (rval) {
-> > -		regulator_disable(phy->vdd);
-> > -		goto done;
-> > +	if (phy->isp->revision =3D=3D ISP_REVISION_15_0) {
->=20
-> Shouldn't you make the related changes to omap3isp_csiphy_release() as
-> well?
->=20
-> Other than that the patch looks good to me.
+I thought about it some more and tried to find a better solution for this
+function, which is now a bit different, so I did not add your tags.
 
-Ah, yes, that needs to be fixed. Thanks for review.
+Can you have another look at v2? This time, of_parse_subdev separates
+the return code from the pointer, which seems less confusing in a function
+like that. There are in fact two cases where we return NULL and it's
+not clear if the caller should treat that as success or failure. I've left
+the current behavior the same but added comments there.
 
-I'll refresh the series. I believe we now have everything neccessary
-to have useful driver for 4.14. Series is still based on 4.12-rc3, I
-can rebase it when there's better base.
-
-Best regards,
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---9jxsPFA5p3P2qPhR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAllmTyMACgkQMOfwapXb+vIvTwCfep7gKn4wlxyFb/eJSDM/yxSr
-EkcAn2sdtBTAcwoN22LuyUFyFuRRQMCt
-=++4y
------END PGP SIGNATURE-----
-
---9jxsPFA5p3P2qPhR--
+     Arnd
