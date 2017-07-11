@@ -1,54 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:60265 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753909AbdGKLwo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 07:52:44 -0400
-Date: Tue, 11 Jul 2017 12:52:41 +0100
-From: Sean Young <sean@mess.org>
-To: Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Subject: [PATCH v3] [media] dt-bindings: gpio-ir-tx: add support for GPIO IR
- Transmitter
-Message-ID: <20170711115241.cprjvqirp7pyuhye@gofer.mess.org>
-References: <cover.1499419624.git.sean@mess.org>
- <580c648de65344e9316ff153ba316efd4d527f12.1499419624.git.sean@mess.org>
- <20170710150538.ql26gswdf2obch6o@rob-hp-laptop>
- <20170710151016.5iaokchdejxozrte@gofer.mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170710151016.5iaokchdejxozrte@gofer.mess.org>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:54588 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755234AbdGKGas (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Jul 2017 02:30:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
+        dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 03/11] cec: add adap_free op
+Date: Tue, 11 Jul 2017 08:30:36 +0200
+Message-Id: <20170711063044.29849-4-hverkuil@xs4all.nl>
+In-Reply-To: <20170711063044.29849-1-hverkuil@xs4all.nl>
+References: <20170711063044.29849-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document the device tree bindings for the GPIO Bit Banging IR
-Transmitter.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sean Young <sean@mess.org>
+This is needed for CEC adapters that allocate resources that have
+to be freed before the cec_adapter is deleted.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../devicetree/bindings/leds/irled/gpio-ir-tx.txt          | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt
+ drivers/media/cec/cec-core.c | 2 ++
+ include/media/cec.h          | 1 +
+ 2 files changed, 3 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt b/Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt
-new file mode 100644
-index 0000000..cbe8dfd
---- /dev/null
-+++ b/Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt
-@@ -0,0 +1,14 @@
-+Device tree bindings for IR LED connected through gpio pin which is used as
-+remote controller transmitter.
-+
-+Required properties:
-+	- compatible: should be "gpio-ir-tx".
-+	- gpios :  Should specify the IR LED GPIO, see "gpios property" in
-+	  Documentation/devicetree/bindings/gpio/gpio.txt.  Active low LEDs
-+	  should be indicated using flags in the GPIO specifier.
-+
-+Example:
-+	irled@0 {
-+		compatible = "gpio-ir-tx";
-+		gpios = <&gpio1 2 GPIO_ACTIVE_HIGH>;
-+	};
+diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+index b516d599d6c4..2e5765344d07 100644
+--- a/drivers/media/cec/cec-core.c
++++ b/drivers/media/cec/cec-core.c
+@@ -374,6 +374,8 @@ void cec_delete_adapter(struct cec_adapter *adap)
+ 	kthread_stop(adap->kthread);
+ 	if (adap->kthread_config)
+ 		kthread_stop(adap->kthread_config);
++	if (adap->ops->adap_free)
++		adap->ops->adap_free(adap);
+ #ifdef CONFIG_MEDIA_CEC_RC
+ 	rc_free_device(adap->rc);
+ #endif
+diff --git a/include/media/cec.h b/include/media/cec.h
+index e1e60dbb66c3..37768203572d 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -114,6 +114,7 @@ struct cec_adap_ops {
+ 	int (*adap_transmit)(struct cec_adapter *adap, u8 attempts,
+ 			     u32 signal_free_time, struct cec_msg *msg);
+ 	void (*adap_status)(struct cec_adapter *adap, struct seq_file *file);
++	void (*adap_free)(struct cec_adapter *adap);
+ 
+ 	/* High-level CEC message callback */
+ 	int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
 -- 
-2.9.4
+2.11.0
