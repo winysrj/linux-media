@@ -1,76 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58623 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752619AbdGKLUZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 07:20:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Eric Anholt <eric@anholt.net>, dri-devel@lists.freedesktop.org
-Subject: [PATCH 0/4] drm/vc4: add HDMI CEC support
-Date: Tue, 11 Jul 2017 13:20:17 +0200
-Message-Id: <20170711112021.38525-1-hverkuil@xs4all.nl>
+Received: from gofer.mess.org ([88.97.38.141]:39875 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932645AbdGKTvG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Jul 2017 15:51:06 -0400
+Date: Tue, 11 Jul 2017 20:50:58 +0100
+From: Sean Young <sean@mess.org>
+To: Mason <slash.tmp@free.fr>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>
+Subject: Re: Infrared support on tango boards
+Message-ID: <20170711195058.y425mohdbzjeihgy@gofer.mess.org>
+References: <e5063c2c-52db-7d75-e090-fbc49ab76deb@free.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e5063c2c-52db-7d75-e090-fbc49ab76deb@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, Jul 10, 2017 at 11:44:08AM +0200, Mason wrote:
+> Hello,
+> 
+> First of all, let's see if I got this right.
+> 
+> An infrared remote control emits IR pulses to send a bitstream.
+> This is the "raw" data. The bit sequence depends on the button
+> being pressed (or released), and the protocol being used, right?
+> 
+> An infrared receiver "captures" this bitstream, which is then
+> translated to a "scancode" using the appropriate (protocol)
+> decoder, IIUC.
 
-This patch series adds support for HDMI CEC to the vc4 drm driver.
-This series is based on the mainline kernel as of yesterday since
-both the vc4 and cec patches for the 4.13 merge window are now merged
-in that kernel.
+That's right.
 
-Note: the first cec patch is independent of the vc4 patches and will be
-merged via the media subsystem for 4.14. Without that patch everything
-will still work, but it will attempt to retry messages twice as many
-times as it should.
+> How does one know which decoder to use, out of
+> the dozen protocols available?
 
-This has been tested with the Raspberry Pi 2B and 3B. I don't have older
-rpi's, so I can't test those.
+Well, that depends on the protocol the remote uses to send.
 
-Many thanks to Eric Anholt for his help with this driver!
+> Are there ambiguities such that
+> a bitstream may be valid under two different protocols?
 
-There is one open issue: when booting the rpi without an HDMI cable 
-connected, then CEC won't work. But neither apparently does HDMI since
-reconnecting it will not bring back any display.
+Not really. If you send 0x75460 with protocol rc6-6a-20, the sony protocol
+will decode it as 0. There are a few more like that, but not many.
 
-If you boot with the HDMI cable connected, then all is well and 
-disconnecting and reconnecting the cable will do the right thing.
+Now also consider that when you load a keymap, only the protocol used by
+the keymap is enabled so this shouldn't be a problem anyway.
 
-I don't understand what is going on here, but it does not appear to
-be CEC related and the same problem occurs without this patch series.
+> 
+> Hmmm, I'm missing a step for going from
+> 00000000  a9 07 00 00 2e 72 0e 00  04 00 04 00 41 cb 04 00  |.....r......A...|
+> 00000010  a9 07 00 00 2e 72 0e 00  00 00 00 00 00 00 00 00  |.....r..........|
+> to
+> 2589.901611: event type EV_MSC(0x04): scancode = 0x4cb41
+> 2589.901611: event type EV_SYN(0x00).
+> (not the same IR frame, BTW)
 
-You also need to update your config.txt with this line to prevent the
-firmware from eating the CEC interrupts:
+The first is a hexdump of struct input_event, the second is a pretty
+print of it.
 
-mask_gpu_interrupt1=0x100
+> Once we have a scancode, there is another translation pass,
+> to the higher-level concept of an actual key, such as "1",
+> which all applications can agree on.
 
-Eric, I've experimented with setting hdmi_ignore_cec=1 but that simply
-doesn't work. Instead that disables CEC completely. With this
-mask_gpu_interrupt1 setting everything works perfectly. This also
-prevents the firmware from sending the initial Active Source CEC
-message so the CPU has full control over the CEC bus, as it should.
+Yep, that's what the keymaps in drivers/media/rc/keymaps/ are for.
 
-My main concern is that this is rather magical, but it is not
-something I have any control over.
+> On the board I'm working on (Sigma SMP8758) there are two distinct
+> infrared hardware blocks.
+> 
+> A) the first block supports 3 protocols in HW (NEC, RC-5, RC-6A)
+> Documentation states:
+> "supports NEC format, RC5 format, RC5 extended format, RC6A format,
+> interrupt driven, contains error detection"
+> 
+> B) the second block doesn't understand protocols and only captures
+> raw bitstreams AFAIU.
+> Documentation states:
+> "Support for up to 2 IR sources
+> Contains debounce and noise filter
+> Contains Timestamp mode or Delta mode
+> Scancodes are timestamped
+> Freely user programmable
+> May support any IR protocol or format
+> May support any scan code length
+> Timebase either variable system clock or fixed 27MHz clock
+> Interrupt driven
+> GPIO pin user selectable"
+> 
+> Tangent: it seems complicated to use two IR sources concurrently...
+> Wouldn't both receivers capture both sources?
 
-Regards,
+Yes, it would. 
+ 
+> Back on topic: it seems to me that Linux supports many protocol
+> decoders, including the 3 supported by block A. I am also assuming
+> that IR signals are pretty low bandwidth? Thus, it would appear
+> to make sense to only use block B, to have the widest support.
 
-	Hans
+Absolutely right. That's what the winbond-cir driver does too. However,
+for wakeup from suspend the winbond-cir uses the hardware decoder.
 
-Eric Anholt (1):
-  drm/vc4: Add register defines for CEC.
 
-Hans Verkuil (3):
-  cec: be smarter about detecting the number of attempts made
-  drm/vc4: prepare for CEC support
-  drm/vc4: add HDMI CEC support
-
- drivers/gpu/drm/vc4/Kconfig    |   8 ++
- drivers/gpu/drm/vc4/vc4_hdmi.c | 278 +++++++++++++++++++++++++++++++++++------
- drivers/gpu/drm/vc4/vc4_regs.h | 113 +++++++++++++++++
- drivers/media/cec/cec-adap.c   |   9 +-
- 4 files changed, 371 insertions(+), 37 deletions(-)
-
--- 
-2.11.0
+Sean
