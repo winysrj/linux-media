@@ -1,84 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:54275 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751674AbdG3WcV (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:36067 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754928AbdGKLUZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 30 Jul 2017 18:32:21 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 2/4] v4l: async: abort if memory allocation fails when unregistering notifiers
-Date: Mon, 31 Jul 2017 00:31:56 +0200
-Message-Id: <20170730223158.14405-3-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170730223158.14405-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170730223158.14405-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Tue, 11 Jul 2017 07:20:25 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Eric Anholt <eric@anholt.net>, dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/4] drm/vc4: prepare for CEC support
+Date: Tue, 11 Jul 2017 13:20:19 +0200
+Message-Id: <20170711112021.38525-3-hverkuil@xs4all.nl>
+In-Reply-To: <20170711112021.38525-1-hverkuil@xs4all.nl>
+References: <20170711112021.38525-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of trying to cope with the failed memory allocation and still
-leaving the kernel in a semi-broken state (the subdevices will be
-released but never re-probed) simply abort. The kernel have already
-printed a warning about allocation failure but keep the error printout
-to ease pinpointing the problem if it happens.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-By doing this we can increase the readability of this complex function
-which puts it in a better state to separate the v4l2 housekeeping tasks
-from the re-probing of devices. It also serves to prepare for adding
-subnotifers.
+In order to support CEC the hsm clock needs to be enabled in
+vc4_hdmi_bind(), not in vc4_hdmi_encoder_enable(). Otherwise you wouldn't
+be able to support CEC when there is no hotplug detect signal, which is
+required by some monitors that turn off the HPD when in standby, but keep
+the CEC bus alive so they can be woken up.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+The HDMI core also has to be enabled in vc4_hdmi_bind() for the same
+reason.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ drivers/gpu/drm/vc4/vc4_hdmi.c | 59 +++++++++++++++++++++---------------------
+ 1 file changed, 29 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 0acf288d7227ba97..67852f0f2d3000c9 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -215,6 +215,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 	if (!dev) {
- 		dev_err(notifier->v4l2_dev->dev,
- 			"Failed to allocate device cache!\n");
-+		return;
+diff --git a/drivers/gpu/drm/vc4/vc4_hdmi.c b/drivers/gpu/drm/vc4/vc4_hdmi.c
+index ed63d4e85762..e0104f96011e 100644
+--- a/drivers/gpu/drm/vc4/vc4_hdmi.c
++++ b/drivers/gpu/drm/vc4/vc4_hdmi.c
+@@ -463,11 +463,6 @@ static void vc4_hdmi_encoder_disable(struct drm_encoder *encoder)
+ 	HD_WRITE(VC4_HD_VID_CTL,
+ 		 HD_READ(VC4_HD_VID_CTL) & ~VC4_HD_VID_CTL_ENABLE);
+ 
+-	HD_WRITE(VC4_HD_M_CTL, VC4_HD_M_SW_RST);
+-	udelay(1);
+-	HD_WRITE(VC4_HD_M_CTL, 0);
+-
+-	clk_disable_unprepare(hdmi->hsm_clock);
+ 	clk_disable_unprepare(hdmi->pixel_clock);
+ 
+ 	ret = pm_runtime_put(&hdmi->pdev->dev);
+@@ -509,16 +504,6 @@ static void vc4_hdmi_encoder_enable(struct drm_encoder *encoder)
+ 		return;
  	}
  
- 	mutex_lock(&list_lock);
-@@ -234,23 +235,13 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 		/* If we handled USB devices, we'd have to lock the parent too */
- 		device_release_driver(d);
- 
--		/*
--		 * Store device at the device cache, in order to call
--		 * put_device() on the final step
--		 */
--		if (dev)
--			dev[i++] = d;
--		else
--			put_device(d);
-+		dev[i++] = d;
+-	/* This is the rate that is set by the firmware.  The number
+-	 * needs to be a bit higher than the pixel clock rate
+-	 * (generally 148.5Mhz).
+-	 */
+-	ret = clk_set_rate(hdmi->hsm_clock, 163682864);
+-	if (ret) {
+-		DRM_ERROR("Failed to set HSM clock rate: %d\n", ret);
+-		return;
+-	}
+-
+ 	ret = clk_set_rate(hdmi->pixel_clock,
+ 			   mode->clock * 1000 *
+ 			   ((mode->flags & DRM_MODE_FLAG_DBLCLK) ? 2 : 1));
+@@ -533,20 +518,6 @@ static void vc4_hdmi_encoder_enable(struct drm_encoder *encoder)
+ 		return;
  	}
  
- 	mutex_unlock(&list_lock);
+-	ret = clk_prepare_enable(hdmi->hsm_clock);
+-	if (ret) {
+-		DRM_ERROR("Failed to turn on HDMI state machine clock: %d\n",
+-			  ret);
+-		clk_disable_unprepare(hdmi->pixel_clock);
+-		return;
+-	}
+-
+-	HD_WRITE(VC4_HD_M_CTL, VC4_HD_M_SW_RST);
+-	udelay(1);
+-	HD_WRITE(VC4_HD_M_CTL, 0);
+-
+-	HD_WRITE(VC4_HD_M_CTL, VC4_HD_M_ENABLE);
+-
+ 	HDMI_WRITE(VC4_HDMI_SW_RESET_CONTROL,
+ 		   VC4_HDMI_SW_RESET_HDMI |
+ 		   VC4_HDMI_SW_RESET_FORMAT_DETECT);
+@@ -1205,6 +1176,23 @@ static int vc4_hdmi_bind(struct device *dev, struct device *master, void *data)
+ 		return -EPROBE_DEFER;
+ 	}
  
- 	/*
- 	 * Call device_attach() to reprobe devices
--	 *
--	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
--	 * executed.
++	/* This is the rate that is set by the firmware.  The number
++	 * needs to be a bit higher than the pixel clock rate
++	 * (generally 148.5Mhz).
++	 */
++	ret = clk_set_rate(hdmi->hsm_clock, 163682864);
++	if (ret) {
++		DRM_ERROR("Failed to set HSM clock rate: %d\n", ret);
++		goto err_put_i2c;
++	}
++
++	ret = clk_prepare_enable(hdmi->hsm_clock);
++	if (ret) {
++		DRM_ERROR("Failed to turn on HDMI state machine clock: %d\n",
++			  ret);
++		goto err_put_i2c;
++	}
++
+ 	/* Only use the GPIO HPD pin if present in the DT, otherwise
+ 	 * we'll use the HDMI core's register.
  	 */
- 	while (i--) {
- 		struct device *d = dev[i];
+@@ -1216,7 +1204,7 @@ static int vc4_hdmi_bind(struct device *dev, struct device *master, void *data)
+ 							 &hpd_gpio_flags);
+ 		if (hdmi->hpd_gpio < 0) {
+ 			ret = hdmi->hpd_gpio;
+-			goto err_put_i2c;
++			goto err_unprepare_hsm;
+ 		}
+ 
+ 		hdmi->hpd_active_low = hpd_gpio_flags & OF_GPIO_ACTIVE_LOW;
+@@ -1224,6 +1212,14 @@ static int vc4_hdmi_bind(struct device *dev, struct device *master, void *data)
+ 
+ 	vc4->hdmi = hdmi;
+ 
++	/* HDMI core must be enabled. */
++	if (!(HD_READ(VC4_HD_M_CTL) & VC4_HD_M_ENABLE)) {
++		HD_WRITE(VC4_HD_M_CTL, VC4_HD_M_SW_RST);
++		udelay(1);
++		HD_WRITE(VC4_HD_M_CTL, 0);
++
++		HD_WRITE(VC4_HD_M_CTL, VC4_HD_M_ENABLE);
++	}
+ 	pm_runtime_enable(dev);
+ 
+ 	drm_encoder_init(drm, hdmi->encoder, &vc4_hdmi_encoder_funcs,
+@@ -1244,6 +1240,8 @@ static int vc4_hdmi_bind(struct device *dev, struct device *master, void *data)
+ 
+ err_destroy_encoder:
+ 	vc4_hdmi_encoder_destroy(hdmi->encoder);
++err_unprepare_hsm:
++	clk_disable_unprepare(hdmi->hsm_clock);
+ 	pm_runtime_disable(dev);
+ err_put_i2c:
+ 	put_device(&hdmi->ddc->dev);
+@@ -1263,6 +1261,7 @@ static void vc4_hdmi_unbind(struct device *dev, struct device *master,
+ 	vc4_hdmi_connector_destroy(hdmi->connector);
+ 	vc4_hdmi_encoder_destroy(hdmi->encoder);
+ 
++	clk_disable_unprepare(hdmi->hsm_clock);
+ 	pm_runtime_disable(dev);
+ 
+ 	put_device(&hdmi->ddc->dev);
 -- 
-2.13.3
+2.11.0
