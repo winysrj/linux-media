@@ -1,164 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:38523 "EHLO
-        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753110AbdG2L2x (ORCPT
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.219]:13912 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932643AbdGKSNC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Jul 2017 07:28:53 -0400
-Received: by mail-wm0-f43.google.com with SMTP id m85so134948156wma.1
-        for <linux-media@vger.kernel.org>; Sat, 29 Jul 2017 04:28:52 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
-        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
-Subject: [PATCH v2 00/14] ddbridge: bump to ddbridge-0.9.29
-Date: Sat, 29 Jul 2017 13:28:34 +0200
-Message-Id: <20170729112848.707-1-d.scheller.oss@gmail.com>
+        Tue, 11 Jul 2017 14:13:02 -0400
+From: Ralph Metzler <rjkm@metzlerbros.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Message-ID: <22885.5395.942193.897565@morden.metzler>
+Date: Tue, 11 Jul 2017 20:12:35 +0200
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Ralph Metzler <rjkm@metzlerbros.de>,
+        Daniel Scheller <d.scheller.oss@gmail.com>,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        liplianin@netup.ru, crope@iki.fi,
+        "Jasmin J.\" \<jasmin\@anw.at\>\, "@s-opensource.com,
+        Yasunari@s-opensource.com, Takiguchi@s-opensource.com,
+        " \<Yasunari.Takiguchi\@sony.com\>\, "@s-opensource.com,
+        Bird@s-opensource.com, Timothy@s-opensource.com,
+        " \<Tim.Bird\@sony.com\>"@s-opensource.com
+Subject: Re: DD support improvements (was: Re: [PATCH v3 00/13]
+ stv0367/ddbridge: support CTv6/FlexCT hardware)
+In-Reply-To: <20170626073944.1102ceb5@vento.lan>
+References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
+        <20170412212327.5b75be19@macbox>
+        <20170507174212.2e45ab71@audiostation.wuest.de>
+        <20170528234537.3bed2dde@macbox>
+        <20170619221821.022fc473@macbox>
+        <20170620093645.6f72fd1a@vento.lan>
+        <20170620204121.4cff42d1@macbox>
+        <20170620161043.1e6a1364@vento.lan>
+        <20170621225712.426d3a17@audiostation.wuest.de>
+        <22860.14367.464168.657791@morden.metzler>
+        <20170624135001.5bcafb64@vento.lan>
+        <22864.55204.841821.456223@morden.metzler>
+        <20170626073944.1102ceb5@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Mauro Carvalho Chehab writes:
+ > Em Mon, 26 Jun 2017 11:45:08 +0200
+ > Ralph Metzler <rjkm@metzlerbros.de> escreveu:
+ > 
+ > > Mauro Carvalho Chehab writes:
+ > >  > Em Thu, 22 Jun 2017 23:35:27 +0200
+ > >  > Ralph Metzler <rjkm@metzlerbros.de> escreveu:
+ > >  >   
+ > >  > > Daniel Scheller writes:  
+ > >  > >  > Am Tue, 20 Jun 2017 16:10:43 -0300
+ > >  > >  > schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+ > >  > >  > ...    
+ > >  > >  > > > - Maybe for 4.14: Support for the CineS2 V7 and FlexV4 line of
+ > >  > >  > > >   cards/modules. This mainly involves a new demod driver (stv0910) and
+ > >  > >  > > >   a new tuner driver (stv6111). Permissions for this are cleared with
+ > >  > >  > > >   Ralph already. The glue code needed in ddbridge is rather easy, and
+ > >  > >  > > >   as some ground work (mostly the MachXO2 support from the 2841 series)
+ > >  > >  > > >   is now in, the changes are quite small. Patches are ready so far but
+ > >  > >  > > >   need more cleanup (checkpatch fixes, camel case and such things).      
+ > >  > >  > > 
+ > >  > >  > > Please try to sync it with Ralph, in a way that his code won't
+ > >  > >  > > diverge from the upstream one, as this will make easier for both
+ > >  > >  > > sides to keep the Kernel in track with driver improvements.    
+ > >  > >  > 
+ > >  > >  > This is not going to work. DD (Ralph and Manfred Voelkel) sort of maintain a shared code base between their Windows 
+ > >  > >  > driver and the Linux kernel driver sources. While they didn't explicitely stated this, this can be noticed by the 
+ > >  > >  > remarks and commented code in their OSS code, and the commit messages in their dddvb GIT (e.g. "sync with windows driver"). 
+ > >  > >  > I've already cleaned up a lot of this (I believe no one wants to see such stuff in the linux kernel tree). If we're 
+ > >  > >  > additionally going to replace all things camel case, with some more cleaning and maybe code shuffling after like a V4 
+ > >  > >  > patch series, those two sources are out of sync in a way that no automatic sync by applying patches will be possible 
+ > >  > >  > anymore. So, pushing from vendor's upstream to the kernel seems to be the only option, and in fact, if the whole 
+ > >  > >  > driver/package stack completely lives in the kernel sources, maybe DD even decide to directly commit upstream (kernel) again.  
+ > >  > 
+ > >  > Ralph, do you share Linux code with Windows, or are you just getting
+ > >  > drivers from the manufacturer and converting them to Linux at dddvb
+ > >  > tree?  
+ > > 
+ > > It differs from case to case.
+ > > Digital Devices gets drivers and/or documetation from the manufacturer.
+ > > Sometimes from this a Windows driver is written which we convert
+ > > to Linux or a Linux driver is written directly.
+ > > 
+ > > 
+ > > 
+ > >  > Would it be possible to change things at the dddvb tree to make
+ > >  > it to use our coding style (for example, replacing CamelCase by the
+ > >  > kernel_style), in order to minimize the amount of work to sync from
+ > >  > your tree?  
+ > > 
+ > > Yes
+ > 
+ > Good! With that, it should be easier to keep both versions containing
+ > the same stuff.
+ > 
+ > > 
+ > >  > > I also already told Daniel about our concerns regarding the CXD drivers in private mail.
+ > >  > > Sony did not want us to use their code directly and we had to get our code approved
+ > >  > > before publishing it. I do not know how the arrangement is regarding the in-kernel driver.
+ > >  > > DVB-C2 support also seems to be missing in this.  
+ > >  > 
+ > >  > Sony recently started submitting CXD drivers to us directly (for cxd2880).
+ > >  > 
+ > >  > The upstream verson for cx2841 came from NetUP. I guess they develop
+ > >  > the drivers themselves, but not really sure.
+ > >  > 
+ > >  > Perhaps we can ask Sony's help to make easier add the features that are 
+ > >  > missing at the existing driver in a way that DDbridge could also use
+ > >  > the upstream driver, or to do some other sort of agreement that would 
+ > >  > make possible for us to use the same driver as you at the upstream Kernel.
+ > >  > 
+ > >  > (c/c Takiguchi-san and Tim Bird from Sony)  
+ > > 
+ > > 
+ > > All I know is that they were strict with Digital Devices. We could not use
+ > > their code directly. That's why I am surprised the Netup code contains
+ > > Sony code.
+ > 
+ > I didn't say they're using Sony code. I actually suspect that they
+ > did the same as you (but I have no means to be sure).
 
-Still prefered for and made for Linux 4.14.
+The code contains a Sony copyright header.
+That's why we were surprised. We did not get any GPLed code from Sony.
 
-Changes from v1 to v2:
-* I2C access functions (ie. i2c_read() et al) refactored from
-  ddbridge-i2c.c into ddbridge-i2c.h and declared static, and needed
-  include added to all .c files making use of them. This fixes symbol
-  conflicts in the global namespace with other drivers (kbuild test
-  robot reported a conflict with an infiniband driver) when compiling
-  into the kernel blob. While at it, code style has been made proper
-  (in ddbridge-i2c.h) and the 0.9.29 code bump patch was updated to
-  re-use the "plural" functions from their "singular" equivalents.
-* The IRQ_HANDLE_BYTE() macro was removed. It is used nowhere, even
-  in the unmodified/unstripped upstream driver.
-* Shortened the buffer overflow fix in ddb_ports_init() from checking
-  "p > 0" to only check "p".
 
-Changes from original series to the resend:
-* rebased on latest mediatree-master wrt
-    commit 618e8aac3d7c ("media: ddbridge: constify i2c_algorithm structure")
-* build error in ddbridge-core.c fixed wrt
-    commit dcda9b04713c ("mm, tree wide: replace __GFP_REPEAT by __GFP_RETRY_MAYFAIL with more useful semantic")
-* useless return removed from void calc_con()
-* UTF8 in ddbridge-regs.h removed
-* Tested-by's added to commit messages
+ > Yet, as Sony recently approached us for cxd2880, and they're now
+ > developing an official driver to be upstreamed, I'm wandering if we
+ > can get a better way to handle the cxd2841 driver in a way that will
+ > make easier for everyone to use the same code.
 
-Since the STV0910 patches are merged, the dependency is resolved.
+Yes, that would be nice.
 
-Previous Tested-by testimonials still apply.
 
-Mauro/Media maintainers, this updates drivers/media/pci/ddbridge to the
-very latest code that DD carry in their vendor driver package as of
-version 0.9.29, in the "once, the big-bang-way is ok" way as discussed at
-[2] (compared to the incremental, awkward to do variant since that
-involves dissecting all available release archives and having to - try
-to - build proper commits out of this, which will always be inaccurate;
-a start was done at [3], however - and please understand - I definitely
-don't want to continue doing that...)
+> The media controller is generic enough to control all pipelines at
+ > the hardware level. It can be used to select frontend inputs, to
+ > dynamically add/remove CAM modules, etc.
+ > 
+ > If I remember well, in the case of the hardware I was working on that
+ > time, each frontend had 3 inputs (and the hardware had 2 identical
+ > sets of tuner/demod),  plus 3 MPEG-TS demuxes) and 2 CAM modules.
+ > 
+ > With the media controller, any arrangement between input, tuner,
+ > demod, demux and CAM is possible, as long as supported by
+ > the hardware.
 
-In patch 14, I add myself to MAINTAINERS. This means I will care about
-getting driver updates as they're released by DD into mainline,  starting
-from this (0.9.29) version, which is definitely doable in an incremental
-way. So, I'll make sure the in-kernel driver won't bit-rot again, and it
-will receive new hardware support as it becomes available in a timely
-manner.
+OK, for such complex arrangements it makes sense.
+I just thought it to be overkill for just the input selection
+and it also has to run on older kernels where th MC stuff is
+not yet in the DVB core.
 
-While the driver code bump looks massive, judging from the diff, there's
-mostly a whole lot of refactoring and restructuring of variables, port/
-link management and all such stuff in it. Feature-wise, this is most
-notable:
 
- - Support for all (PCIe) CI (single/duo) cards and Flex addons
- - Support for MSI (Message Signaled Interrupts), though disabled by
-   default since there were still reports of problems with this
- - TS Loopback support (set up ports to behave as if a CI is connected,
-   without decryption of course)
- - As mentioned: Heavy code reordering, and split up into multiple files
+ > On your case, as you also have a modulator, you could even
+ > use the modulator as a frontend input, as a way to test if
+ > demodulator hardware is OK (again, if your hardware allows
+ > wiring on such way).
 
-Stripped functionality compared to dddvb:
+Hmm, no, it cannot do that. 
 
- - DVB-C modulator card support removed (requires DVB core API)
- - OctoNET SAT>IP server/box support removed (requires API aswell)
- - with this, GT link support was removed (only on OctoNET hardware)
- - MaxS8 4/8 DVB-S/S2 card support (temporarily) removed (requires an
-   additional Demod driver; subject for another, later, series)
 
-A note on the patches:
 
-The bump starts by aligning the code "order-wise" to the updated driver,
-to keep the diff a bit cleaner. Next, the code split is applied, without
-actually changing any functionality. Compared to upstream, this isn't done
-by moving functions into different C files and then do an include on them,
-but we're handling them with the Makefile, building separate objects, and
-having proper prototypes in ddbridge.h. After the code bump, further split
-up is applied to increase readability and maintainability (also, for the
-MaxS8 support, there will be another object with another ~400 LoC, which
-originally lives in ddbridge-core aswell). Then, all issues found by W=1
-and smatch are resolved, one by one. This is kept separate since those
-fixes will be proposed for upstream inclusion. The last thing is the
-addition of the MSI default Kconfig options which will mainly inform users
-that there's something that might(!) cause issues but is still being
-worked on - the default is "off" to provide a proper OotB experience.
-
-To distinguish from the original unchanged vendor driver, "-integrated" is
-suffixed to the version code.
-
-Note on checkpatch:
-
-First two patches are solely code-moving, so checkpatch will complain on
-them. With the ddbridge code bump, all non-strict style issues are
-resolved. "--strict" checking will receive another round of patches
-afterwards.
-
-Yes, you will hate me for this large code drop, but at least we sort-of
-discussed this beforehand, and we have to start *somewhere*.
-
-Thanks in advance for reviewing and (optimally) getting this merged and
-getting the DD driver dilemma solved hopefully once and for all.
-
-[1] http://www.spinics.net/lists/linux-media/msg117946.html
-[2] http://www.spinics.net/lists/linux-media/msg117358.html
-[3] https://github.com/herrnst/dddvb-linux-kernel/compare/4226861...mediatree/master-ddbupdate
-
-Daniel Scheller (14):
-  [media] ddbridge: move/reorder functions
-  [media] ddbridge: split code into multiple files
-  [media] ddbridge: bump ddbridge code to version 0.9.29
-  [media] ddbridge: split I/O related functions off from ddbridge.h
-  [media] ddbridge: split off IRQ handling
-  [media] ddbridge: split off hardware definitions and mappings
-  [media] ddbridge: check pointers before dereferencing
-  [media] ddbridge: only register frontends in fe2 if fe is not NULL
-  [media] ddbridge: fix possible buffer overflow in ddb_ports_init()
-  [media] ddbridge: remove unreachable code
-  [media] ddbridge: fix impossible condition warning
-  [media] ddbridge: fix dereference before check
-  [media] ddbridge: Kconfig option to control the MSI modparam default
-  [media] MAINTAINERS: add entry for ddbridge
-
- MAINTAINERS                                |    8 +
- drivers/media/pci/ddbridge/Kconfig         |   15 +
- drivers/media/pci/ddbridge/Makefile        |    3 +-
- drivers/media/pci/ddbridge/ddbridge-core.c | 4241 ++++++++++++++++++----------
- drivers/media/pci/ddbridge/ddbridge-hw.c   |  299 ++
- drivers/media/pci/ddbridge/ddbridge-hw.h   |   52 +
- drivers/media/pci/ddbridge/ddbridge-i2c.c  |  310 ++
- drivers/media/pci/ddbridge/ddbridge-io.h   |   71 +
- drivers/media/pci/ddbridge/ddbridge-irq.c  |  161 ++
- drivers/media/pci/ddbridge/ddbridge-main.c |  393 +++
- drivers/media/pci/ddbridge/ddbridge-regs.h |  138 +-
- drivers/media/pci/ddbridge/ddbridge.h      |  355 ++-
- 12 files changed, 4401 insertions(+), 1645 deletions(-)
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-hw.c
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-hw.h
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-i2c.c
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-io.h
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-irq.c
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-main.c
-
--- 
-2.13.0
+Regards,
+Ralph
