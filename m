@@ -1,69 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f172.google.com ([209.85.128.172]:32785 "EHLO
-        mail-wr0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751774AbdGIMLk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 08:11:40 -0400
-Received: by mail-wr0-f172.google.com with SMTP id r103so103465724wrb.0
-        for <linux-media@vger.kernel.org>; Sun, 09 Jul 2017 05:11:39 -0700 (PDT)
-Subject: Re: [PATCH RFC 1/2] app: kaffeine: Fix missing PCR on live streams.
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20170709094351.14642-1-tvboxspy@gmail.com>
- <20170709081455.024e4c0d@vento.lan>
-From: Malcolm Priestley <tvboxspy@gmail.com>
-Message-ID: <179d3ac3-673f-7671-e2cc-6dd0262a14d3@gmail.com>
-Date: Sun, 9 Jul 2017 13:11:36 +0100
-MIME-Version: 1.0
-In-Reply-To: <20170709081455.024e4c0d@vento.lan>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:35311 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932536AbdGKVGK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Jul 2017 17:06:10 -0400
+Received: by mail-wr0-f196.google.com with SMTP id z45so1066929wrb.2
+        for <linux-media@vger.kernel.org>; Tue, 11 Jul 2017 14:06:09 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, aospan@netup.ru, serjk@netup.ru
+Cc: mchehab@kernel.org, mchehab@s-opensource.com
+Subject: [PATCH] [media] dvb-frontends/cxd2841er: do sleep on delivery system change
+Date: Tue, 11 Jul 2017 23:06:05 +0200
+Message-Id: <20170711210605.408-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Daniel Scheller <d.scheller@gmx.net>
 
+Discovered using w_scan when scanning DVB-T/T2: When w_scan goes from -T
+to -T2, it does so without stopping the frontend using .sleep. Due to
+this, the demod operation mode isn't re-setup, but as it still is in
+STATE_ACTIVE_TC, PLP and T2 Profile are set up, but only retune_active()
+is called, leaving the demod in T mode, thus not operable on any T2
+frequency.
 
-On 09/07/17 12:14, Mauro Carvalho Chehab wrote:
-> Hi Malcolm,
-> 
-> Em Sun,  9 Jul 2017 10:43:50 +0100
-> Malcolm Priestley <tvboxspy@gmail.com> escreveu:
-> 
->> The ISO/IEC standard 13818-1 or ITU-T Rec. H.222.0 standard allow transport
->> vendors to place PCR (Program Clock Reference) on a different PID.
->>
->> If the PCR is unset the value is 0x1fff, most vendors appear to set it the
->> same as video pid in which case it need not be set.
->>
->> The PCR PID is at an offset of 8 in pmtSection structure.
-> 
-> Thanks for the patches!
-> 
-> Patches look good, except for two things:
-> 
-> - we use camelCase at Kaffeine. So, the new field should be pcrPid ;)
-Ok, Wasn't sure
+Fix this by putting the demod to sleep if priv->system isn't equal to
+p->delsys. To properly accomplish this, sleep_tc() is split into
+sleep_tc() and shutdown_tc(), where sleep_tc() will only perform the
+sleep operation, while shutdown_tc() additionally performs the full
+demod shutdown (to keep the behaviour when the .sleep FE_OP is called).
 
-> 
-> - you didn't use dvbsi.xml. The way we usually update dvbsi.h and part of
->    dvbsi.cpp is to add a field at dvbsi.xml and then run:
-> 
-> 	$ tools/update_dvbsi.sh
-Oh I see.
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/dvb-frontends/cxd2841er.c | 25 +++++++++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
 
-
-> 
->    Kaffeine should be built with the optional BUILD_TOOLS feature, in order
->    for it to build the tool that parses dvbsi.xml.
-> 
-> Anyway, I applied your patchset and added a few pathes afterwards
-> adjusting it.
-
-Thanks
-
-How do you turn off debug the spam from epg is horrendous.
-
-Regards
-
-
-Malcolm
+diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+index 12bff778c97f..f663f5c4a7a8 100644
+--- a/drivers/media/dvb-frontends/cxd2841er.c
++++ b/drivers/media/dvb-frontends/cxd2841er.c
+@@ -487,6 +487,8 @@ static int cxd2841er_sleep_tc_to_shutdown(struct cxd2841er_priv *priv);
+ 
+ static int cxd2841er_shutdown_to_sleep_tc(struct cxd2841er_priv *priv);
+ 
++static int cxd2841er_sleep_tc(struct dvb_frontend *fe);
++
+ static int cxd2841er_retune_active(struct cxd2841er_priv *priv,
+ 				   struct dtv_frontend_properties *p)
+ {
+@@ -3378,6 +3380,14 @@ static int cxd2841er_set_frontend_tc(struct dvb_frontend *fe)
+ 	if (priv->flags & CXD2841ER_EARLY_TUNE)
+ 		cxd2841er_tuner_set(fe);
+ 
++	/* deconfigure/put demod to sleep on delsys switch if active */
++	if (priv->state == STATE_ACTIVE_TC &&
++	    priv->system != p->delivery_system) {
++		dev_dbg(&priv->i2c->dev, "%s(): old_delsys=%d, new_delsys=%d -> sleep\n",
++			 __func__, priv->system, p->delivery_system);
++		cxd2841er_sleep_tc(fe);
++	}
++
+ 	if (p->delivery_system == SYS_DVBT) {
+ 		priv->system = SYS_DVBT;
+ 		switch (priv->state) {
+@@ -3594,6 +3604,7 @@ static int cxd2841er_sleep_tc(struct dvb_frontend *fe)
+ 	struct cxd2841er_priv *priv = fe->demodulator_priv;
+ 
+ 	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
++
+ 	if (priv->state == STATE_ACTIVE_TC) {
+ 		switch (priv->system) {
+ 		case SYS_DVBT:
+@@ -3619,7 +3630,17 @@ static int cxd2841er_sleep_tc(struct dvb_frontend *fe)
+ 			__func__, priv->state);
+ 		return -EINVAL;
+ 	}
+-	cxd2841er_sleep_tc_to_shutdown(priv);
++	return 0;
++}
++
++static int cxd2841er_shutdown_tc(struct dvb_frontend *fe)
++{
++	struct cxd2841er_priv *priv = fe->demodulator_priv;
++
++	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
++
++	if (!cxd2841er_sleep_tc(fe))
++		cxd2841er_sleep_tc_to_shutdown(priv);
+ 	return 0;
+ }
+ 
+@@ -3968,7 +3989,7 @@ static struct dvb_frontend_ops cxd2841er_t_c_ops = {
+ 		.symbol_rate_max = 11700000
+ 	},
+ 	.init = cxd2841er_init_tc,
+-	.sleep = cxd2841er_sleep_tc,
++	.sleep = cxd2841er_shutdown_tc,
+ 	.release = cxd2841er_release,
+ 	.set_frontend = cxd2841er_set_frontend_tc,
+ 	.get_frontend = cxd2841er_get_frontend,
+-- 
+2.13.0
