@@ -1,51 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:36084 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751341AbdGQWD6 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58379 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932658AbdGKW3w (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 18:03:58 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH] v4l2-compliance: fix warning in buffer::check
-Date: Tue, 18 Jul 2017 00:03:47 +0200
-Message-Id: <20170717220347.11312-1-niklas.soderlund@ragnatech.se>
+        Tue, 11 Jul 2017 18:29:52 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v2 0/2] drm: rcar-du: Repair vblank event handling
+Date: Wed, 12 Jul 2017 01:29:39 +0300
+Message-Id: <20170711222942.27735-1-laurent.pinchart+renesas@ideasonboard.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Hello,
 
-The warning don't match the condition which triggers it, fix that.
+The recent changes to the rcar-du driver to fix a page flip handling race
+condition changed the order of which vblanks and page flips are handled,
+resulting in incorrect timestamps being reported in the vblan events.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
+Correct this by handling vblank events in the same completion handler as page
+flips. This removes the need for the IRQ handler on DU instances which are
+sourced by a VSP.
 
-Hi Hans,
+Compared to v1,
 
-Found this typo when investigating ALTERNATE support on R-Car VIN 
-driver. Turns out that field format is a bit tricker then I first 
-thought to support :-)
+- Patch 1/3 replaces patch 1/2 to use the VBK interrupt instead of the FRM
+  interrupt when not using the VSP
+- The new patch 2/3 simplifies plane to CRTC assignment when using the VSP to
+  prepare for patch 3/3
+- Patch 3/3 doesn't enable the VBK interrupt when using the VSP
 
- utils/v4l2-compliance/v4l2-test-buffers.cpp | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Kieran Bingham (1):
+  drm: rcar-du: Repair vblank for DRM page flips using the VSP
 
-diff --git a/utils/v4l2-compliance/v4l2-test-buffers.cpp b/utils/v4l2-compliance/v4l2-test-buffers.cpp
-index 62baad76be455a86..2eeacdad31339e81 100644
---- a/utils/v4l2-compliance/v4l2-test-buffers.cpp
-+++ b/utils/v4l2-compliance/v4l2-test-buffers.cpp
-@@ -303,7 +303,7 @@ int buffer::check(unsigned type, unsigned memory, unsigned index,
- 				if (seq.field_nr) {
- 					if ((int)g_sequence() != seq.last_seq)
- 						warn("got sequence number %u, expected %u\n",
--							g_sequence(), seq.last_seq + 1);
-+							g_sequence(), seq.last_seq);
- 				} else {
- 					fail_on_test((int)g_sequence() == seq.last_seq + 1);
- 					if ((int)g_sequence() != seq.last_seq + 1)
+Laurent Pinchart (2):
+  drm: rcar-du: Use the VBK interrupt for vblank events
+  drm: rcar-du: Fix planes to CRTC assignment when using the VSP
+
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.c   | 58 +++++++++++++++++++-------------
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.h   |  2 ++
+ drivers/gpu/drm/rcar-du/rcar_du_group.c  | 12 +++++++
+ drivers/gpu/drm/rcar-du/rcar_du_kms.c    | 28 +++++++++------
+ drivers/gpu/drm/rcar-du/rcar_du_plane.c  | 10 +-----
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c    | 17 ++++------
+ drivers/media/platform/vsp1/vsp1_drm.c   |  5 +--
+ drivers/media/platform/vsp1/vsp1_drm.h   |  2 +-
+ drivers/media/platform/vsp1/vsp1_pipe.c  | 20 +++++------
+ drivers/media/platform/vsp1/vsp1_pipe.h  |  2 +-
+ drivers/media/platform/vsp1/vsp1_video.c |  6 +++-
+ include/media/vsp1.h                     |  2 +-
+ 12 files changed, 94 insertions(+), 70 deletions(-)
+
 -- 
-2.13.0
+Regards,
+
+Laurent Pinchart
