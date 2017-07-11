@@ -1,75 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-cys01nam02on0066.outbound.protection.outlook.com ([104.47.37.66]:3616
-        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752348AbdGaPjf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Jul 2017 11:39:35 -0400
-From: "Deucher, Alexander" <Alexander.Deucher@amd.com>
-To: =?utf-8?B?J0NocmlzdGlhbiBLw7ZuaWcn?= <deathsimple@vodafone.de>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-        "Zhou, David(ChunMing)" <David1.Zhou@amd.com>
-Subject: RE: [PATCH] dma-buf: fix reservation_object_wait_timeout_rcu to wait
- correctly v2
-Date: Mon, 31 Jul 2017 15:39:29 +0000
-Message-ID: <BN6PR12MB1652632DCFB7F2E9DEEDD6EBF7B20@BN6PR12MB1652.namprd12.prod.outlook.com>
-References: <1500989710-12982-1-git-send-email-deathsimple@vodafone.de>
- <abc22720-7c84-05a7-a71f-f04453bd4df4@vodafone.de>
-In-Reply-To: <abc22720-7c84-05a7-a71f-f04453bd4df4@vodafone.de>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mail.free-electrons.com ([62.4.15.54]:40590 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753498AbdGKUkD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Jul 2017 16:40:03 -0400
+Date: Tue, 11 Jul 2017 22:39:17 +0200
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Subject: Re: [PATCH 00/11] drm/sun4i: add CEC support
+Message-ID: <20170711203917.gcpod5gcsy6zbkyx@flea>
+References: <20170711063044.29849-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="ek23d4iy5gnm3uen"
+Content-Disposition: inline
+In-Reply-To: <20170711063044.29849-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBDaHJpc3RpYW4gS8O2bmlnIFtt
-YWlsdG86ZGVhdGhzaW1wbGVAdm9kYWZvbmUuZGVdDQo+IFNlbnQ6IE1vbmRheSwgSnVseSAzMSwg
-MjAxNyAxMDoxMyBBTQ0KPiBUbzogbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnOyBkcmktZGV2
-ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnOyBsaW5hcm8tDQo+IG1tLXNpZ0BsaXN0cy5saW5hcm8u
-b3JnOyBaaG91LCBEYXZpZChDaHVuTWluZyk7IERldWNoZXIsIEFsZXhhbmRlcg0KPiBTdWJqZWN0
-OiBSZTogW1BBVENIXSBkbWEtYnVmOiBmaXggcmVzZXJ2YXRpb25fb2JqZWN0X3dhaXRfdGltZW91
-dF9yY3UgdG8NCj4gd2FpdCBjb3JyZWN0bHkgdjINCj4gDQo+IFBpbmcsIHdoYXQgZG8geW91IGd1
-eXMgdGhpbmsgb2YgdGhhdD8NCg0KU2VlbXMgcmVhc29uYWJsZSB0byBtZS4NClJldmlld2VkLWJ5
-OiBBbGV4IERldWNoZXIgPGFsZXhhbmRlci5kZXVjaGVyQGFtZC5jb20+DQoNCj4gDQo+IEFtIDI1
-LjA3LjIwMTcgdW0gMTU6MzUgc2NocmllYiBDaHJpc3RpYW4gS8O2bmlnOg0KPiA+IEZyb206IENo
-cmlzdGlhbiBLw7ZuaWcgPGNocmlzdGlhbi5rb2VuaWdAYW1kLmNvbT4NCj4gPg0KPiA+IFdpdGgg
-aGFyZHdhcmUgcmVzZXRzIGluIG1pbmQgaXQgaXMgcG9zc2libGUgdGhhdCBhbGwgc2hhcmVkIGZl
-bmNlcyBhcmUNCj4gPiBzaWduYWxlZCwgYnV0IHRoZSBleGx1c2l2ZSBpc24ndC4gRml4IHdhaXRp
-bmcgZm9yIGV2ZXJ5dGhpbmcgaW4gdGhpcyBzaXR1YXRpb24uDQo+ID4NCj4gPiB2MjogbWFrZSBz
-dXJlIHdlIGFsd2F5cyB3YWl0IGZvciB0aGUgZXhjbHVzaXZlIGZlbmNlDQo+ID4NCj4gPiBTaWdu
-ZWQtb2ZmLWJ5OiBDaHJpc3RpYW4gS8O2bmlnIDxjaHJpc3RpYW4ua29lbmlnQGFtZC5jb20+DQo+
-ID4gLS0tDQo+ID4gICBkcml2ZXJzL2RtYS1idWYvcmVzZXJ2YXRpb24uYyB8IDMzICsrKysrKysr
-KysrKysrKy0tLS0tLS0tLS0tLS0tLS0tLQ0KPiA+ICAgMSBmaWxlIGNoYW5nZWQsIDE1IGluc2Vy
-dGlvbnMoKyksIDE4IGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMv
-ZG1hLWJ1Zi9yZXNlcnZhdGlvbi5jIGIvZHJpdmVycy9kbWEtYnVmL3Jlc2VydmF0aW9uLmMNCj4g
-PiBpbmRleCAzOTM4MTdlLi45ZDQzMTZkIDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvZG1hLWJ1
-Zi9yZXNlcnZhdGlvbi5jDQo+ID4gKysrIGIvZHJpdmVycy9kbWEtYnVmL3Jlc2VydmF0aW9uLmMN
-Cj4gPiBAQCAtMzczLDEyICszNzMsMjUgQEAgbG9uZyByZXNlcnZhdGlvbl9vYmplY3Rfd2FpdF90
-aW1lb3V0X3JjdShzdHJ1Y3QNCj4gcmVzZXJ2YXRpb25fb2JqZWN0ICpvYmosDQo+ID4gICAJbG9u
-ZyByZXQgPSB0aW1lb3V0ID8gdGltZW91dCA6IDE7DQo+ID4NCj4gPiAgIHJldHJ5Og0KPiA+IC0J
-ZmVuY2UgPSBOVUxMOw0KPiA+ICAgCXNoYXJlZF9jb3VudCA9IDA7DQo+ID4gICAJc2VxID0gcmVh
-ZF9zZXFjb3VudF9iZWdpbigmb2JqLT5zZXEpOw0KPiA+ICAgCXJjdV9yZWFkX2xvY2soKTsNCj4g
-Pg0KPiA+IC0JaWYgKHdhaXRfYWxsKSB7DQo+ID4gKwlmZW5jZSA9IHJjdV9kZXJlZmVyZW5jZShv
-YmotPmZlbmNlX2V4Y2wpOw0KPiA+ICsJaWYgKGZlbmNlICYmICF0ZXN0X2JpdChETUFfRkVOQ0Vf
-RkxBR19TSUdOQUxFRF9CSVQsICZmZW5jZS0NCj4gPmZsYWdzKSkgew0KPiA+ICsJCWlmICghZG1h
-X2ZlbmNlX2dldF9yY3UoZmVuY2UpKQ0KPiA+ICsJCQlnb3RvIHVubG9ja19yZXRyeTsNCj4gPiAr
-DQo+ID4gKwkJaWYgKGRtYV9mZW5jZV9pc19zaWduYWxlZChmZW5jZSkpIHsNCj4gPiArCQkJZG1h
-X2ZlbmNlX3B1dChmZW5jZSk7DQo+ID4gKwkJCWZlbmNlID0gTlVMTDsNCj4gPiArCQl9DQo+ID4g
-Kw0KPiA+ICsJfSBlbHNlIHsNCj4gPiArCQlmZW5jZSA9IE5VTEw7DQo+ID4gKwl9DQo+ID4gKw0K
-PiA+ICsJaWYgKCFmZW5jZSAmJiB3YWl0X2FsbCkgew0KPiA+ICAgCQlzdHJ1Y3QgcmVzZXJ2YXRp
-b25fb2JqZWN0X2xpc3QgKmZvYmogPQ0KPiA+ICAgCQkJCQkJcmN1X2RlcmVmZXJlbmNlKG9iai0N
-Cj4gPmZlbmNlKTsNCj4gPg0KPiA+IEBAIC00MDUsMjIgKzQxOCw2IEBAIGxvbmcgcmVzZXJ2YXRp
-b25fb2JqZWN0X3dhaXRfdGltZW91dF9yY3Uoc3RydWN0DQo+IHJlc2VydmF0aW9uX29iamVjdCAq
-b2JqLA0KPiA+ICAgCQl9DQo+ID4gICAJfQ0KPiA+DQo+ID4gLQlpZiAoIXNoYXJlZF9jb3VudCkg
-ew0KPiA+IC0JCXN0cnVjdCBkbWFfZmVuY2UgKmZlbmNlX2V4Y2wgPSByY3VfZGVyZWZlcmVuY2Uo
-b2JqLQ0KPiA+ZmVuY2VfZXhjbCk7DQo+ID4gLQ0KPiA+IC0JCWlmIChmZW5jZV9leGNsICYmDQo+
-ID4gLQkJICAgICF0ZXN0X2JpdChETUFfRkVOQ0VfRkxBR19TSUdOQUxFRF9CSVQsDQo+ID4gLQkJ
-CSAgICAgICZmZW5jZV9leGNsLT5mbGFncykpIHsNCj4gPiAtCQkJaWYgKCFkbWFfZmVuY2VfZ2V0
-X3JjdShmZW5jZV9leGNsKSkNCj4gPiAtCQkJCWdvdG8gdW5sb2NrX3JldHJ5Ow0KPiA+IC0NCj4g
-PiAtCQkJaWYgKGRtYV9mZW5jZV9pc19zaWduYWxlZChmZW5jZV9leGNsKSkNCj4gPiAtCQkJCWRt
-YV9mZW5jZV9wdXQoZmVuY2VfZXhjbCk7DQo+ID4gLQkJCWVsc2UNCj4gPiAtCQkJCWZlbmNlID0g
-ZmVuY2VfZXhjbDsNCj4gPiAtCQl9DQo+ID4gLQl9DQo+ID4gLQ0KPiA+ICAgCXJjdV9yZWFkX3Vu
-bG9jaygpOw0KPiA+ICAgCWlmIChmZW5jZSkgew0KPiA+ICAgCQlpZiAocmVhZF9zZXFjb3VudF9y
-ZXRyeSgmb2JqLT5zZXEsIHNlcSkpIHsNCj4gDQoNCg==
+
+--ek23d4iy5gnm3uen
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Jul 11, 2017 at 08:30:33AM +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>=20
+> This patch series adds CEC support for the sun4i HDMI controller.
+>=20
+> The CEC hardware support for the A10 is very low-level as it just
+> controls the CEC pin. Since I also wanted to support GPIO-based CEC
+> hardware most of this patch series is in the CEC framework to
+> add a generic low-level CEC pin framework. It is only the final patch
+> that adds the sun4i support.
+>=20
+> This patch series first makes some small changes in the CEC framework
+> (patches 1-4) to prepare for this CEC pin support.
+>=20
+> Patch 5-7 adds the new API elements and documents it. Patch 6 reworks
+> the CEC core event handling.
+>=20
+> Patch 8 adds pin monitoring support (allows userspace to see all
+> CEC pin transitions as they happen).
+>=20
+> Patch 9 adds the core cec-pin implementation that translates low-level
+> pin transitions into valid CEC messages. Basically this does what any
+> SoC with a proper CEC hardware implementation does.
+>=20
+> Patch 10 documents the cec-pin kAPI (and also the cec-notifier kAPI
+> which was missing).
+>=20
+> Finally patch 11 adds the actual sun4i_hdmi CEC implementation.
+>=20
+> I tested this on my cubieboard. There were no errors at all
+> after 126264 calls of 'cec-ctl --give-device-vendor-id' while at the
+> same time running a 'make -j4' of the v4l-utils git repository and
+> doing a continuous scp to create network traffic.
+>=20
+> This patch series is based on top of the mainline kernel as of
+> yesterday (so with all the sun4i and cec patches for 4.13 merged).
+
+For the whole serie:
+Reviewed-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+
+> Maxime, patches 1-10 will go through the media subsystem. How do you
+> want to handle the final patch? It can either go through the media
+> subsystem as well, or you can sit on it and handle this yourself during
+> the 4.14 merge window. Another option is to separate the Kconfig change
+> into its own patch. That way you can merge the code changes and only
+> have to handle the Kconfig patch as a final change during the merge
+> window.
+
+We'll probably have a number of reworks for 4.14, so it would be
+better if I merged it.
+
+However, I guess if we just switch to a depends on CEC_PIN instead of
+a select, everything would just work even if we merge your patches in
+a separate tree, right?
+
+Thanks!
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
+
+--ek23d4iy5gnm3uen
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJZZTd1AAoJEBx+YmzsjxAgqO4P/3KsMeBqwzvGRkfZgF5xPEFS
+CvuzJfN4a7dDsmppgcPVR9R6XGGJ8Atvmo2FJAyCNhpkKX7oEkDjgaVLM1LFflqf
+coCZHhUAFGjBMhdiurksGJd1162ZKpEUXgBIfVYWjcX+b/6+SlRRVuNaUIYamCvf
+gogdOaq07PHU8/DKe7LeZIkZidhct/u85ChsJ6vBU5W9QtfC5RwxKxeaL71/jM27
+oYh5bO2k35nmsSNLGCZb1Rm4R3uWWaUMVYBFCws2T1Z52MEFEfYioeMxWvcHrUcb
+2dLhsixrH8rZMexHVvOqfLvkbGhjqfRO/c19eEBHMLqTZ20qyGjWxsRkpk+edfJJ
+Gp5109NeQhGihc1IDFgT8gFghXdcafLejweVvVxV5ZTk+rOOnq9ifEKI8x3y03JG
+2if1CiP9Cq02yOnpHLtr3GdmK31OaHP1WmD/mKnnlN4K7EajAcOoYn607Hb6aUZF
+ZZUuP0QeRDH3OIR6fRV6MqCfTt0R8913V/vQXjX20XaJfFUixylQZv4xkVbb+TJV
+KqvacERIU14O9yJ+vmgGsIFIX4oTr4aNqNJKTpAbU7NetEIUJFQf/L/ip/IdE2uz
+iTjeuAfQXuB3mrPzlHboGNxjCcal0gYOF6zDYuQAvJyff6GhU1Mh/EvuJ/Q8UG14
+EqVYHocm8YJEaaXvMCqf
+=tZT8
+-----END PGP SIGNATURE-----
+
+--ek23d4iy5gnm3uen--
