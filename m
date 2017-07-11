@@ -1,77 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:32867 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750881AbdGMQ71 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Jul 2017 12:59:27 -0400
-Received: by mail-wm0-f68.google.com with SMTP id j85so6277541wmj.0
-        for <linux-media@vger.kernel.org>; Thu, 13 Jul 2017 09:59:26 -0700 (PDT)
-Date: Thu, 13 Jul 2017 18:59:24 +0200
-From: Yves =?iso-8859-1?Q?Lem=E9e?= <yves.lemee.kernel@gmail.com>
-To: mchehab@kernel.org
-Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: [PATCH v3] staging: lirc_zilog: Clean up lirc zilog error codes
-Message-ID: <20170713165923.jpzynd3q6e62vfxd@yves>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+Received: from gofer.mess.org ([88.97.38.141]:45801 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755529AbdGKJrj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Jul 2017 05:47:39 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Cc: Derek <user.vdr@gmail.com>,
+        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+        "# v2 . 6 . 36+" <stable@vger.kernel.org>
+Subject: [PATCH] [media] lirc: LIRC_GET_REC_RESOLUTION should return microseconds
+Date: Tue, 11 Jul 2017 10:47:37 +0100
+Message-Id: <20170711094737.8410-1-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-According the coding style guidelines, the ENOSYS error code must be returned
-in case of a non existent system call. This code has been replaced with
-the ENOTTY error code indicating a missing functionality.
+Since commit e8f4818895b3 ("[media] lirc: advertise
+LIRC_CAN_GET_REC_RESOLUTION and improve") lircd uses the ioctl
+LIRC_GET_REC_RESOLUTION to determine the shortest pulse or space that
+the hardware can detect. This breaks decoding in lirc because lircd
+expects the answer in microseconds, but nanoseconds is returned.
 
-Signed-off-by: Yves Lemée <yves.lemee.kernel@gmail.com>
+Cc: <stable@vger.kernel.org> # v2.6.36+
+Reported-by: Derek <user.vdr@gmail.com>
+Tested-by: Derek <user.vdr@gmail.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
-v3: Fixed patch subject
-    Fixed patch revision description
+ drivers/media/rc/ir-lirc-codec.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-v2: Improved punctuation
-
- drivers/staging/media/lirc/lirc_zilog.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-index 015e41bd036e..26dd32d5b5b2 100644
---- a/drivers/staging/media/lirc/lirc_zilog.c
-+++ b/drivers/staging/media/lirc/lirc_zilog.c
-@@ -1249,7 +1249,7 @@ static long ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
- 		break;
- 	case LIRC_GET_REC_MODE:
- 		if (!(features & LIRC_CAN_REC_MASK))
--			return -ENOSYS;
-+			return -ENOTTY;
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index a30af91..d2223c0 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -266,7 +266,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 		if (!dev->rx_resolution)
+ 			return -ENOTTY;
  
- 		result = put_user(LIRC_REC2MODE
- 				  (features & LIRC_CAN_REC_MASK),
-@@ -1257,21 +1257,21 @@ static long ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
+-		val = dev->rx_resolution;
++		val = dev->rx_resolution / 1000;
  		break;
- 	case LIRC_SET_REC_MODE:
- 		if (!(features & LIRC_CAN_REC_MASK))
--			return -ENOSYS;
-+			return -ENOTTY;
  
- 		result = get_user(mode, uptr);
- 		if (!result && !(LIRC_MODE2REC(mode) & features))
--			result = -EINVAL;
-+			result = -ENOTTY;
- 		break;
- 	case LIRC_GET_SEND_MODE:
- 		if (!(features & LIRC_CAN_SEND_MASK))
--			return -ENOSYS;
-+			return -ENOTTY;
- 
- 		result = put_user(LIRC_MODE_PULSE, uptr);
- 		break;
- 	case LIRC_SET_SEND_MODE:
- 		if (!(features & LIRC_CAN_SEND_MASK))
--			return -ENOSYS;
-+			return -ENOTTY;
- 
- 		result = get_user(mode, uptr);
- 		if (!result && mode != LIRC_MODE_PULSE)
+ 	case LIRC_SET_WIDEBAND_RECEIVER:
 -- 
-2.13.2
+2.9.4
