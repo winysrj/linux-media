@@ -1,57 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:50141 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753247AbdGLPuP (ORCPT
+Received: from postfix.ufvjm.edu.br ([200.131.252.14]:33303 "EHLO
+        postfix.ufvjm.edu.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752533AbdGKNUT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Jul 2017 11:50:15 -0400
-Message-ID: <1499874605.6374.56.camel@pengutronix.de>
-Subject: Re: [PATCH v2] [media] staging/imx: remove confusing IS_ERR_OR_NULL
- usage
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Marek Vasut <marex@denx.de>,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Date: Wed, 12 Jul 2017 17:50:05 +0200
-In-Reply-To: <20170711132001.2266388-1-arnd@arndb.de>
-References: <20170711132001.2266388-1-arnd@arndb.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Tue, 11 Jul 2017 09:20:19 -0400
+From: "PostMaster" <valdir.cordeiro@ufvjm.edu.br>
+To: "PostMaster" <valdir.cordeiro@ufvjm.edu.br>
+Subject: Aviso de conta
+Date: Tue, 11 Jul 2017 16:09:40 +0400
+Message-ID: <0f4301d2fa44$1010c3e0$30324ba0$@ufvjm.edu.br>
+MIME-Version: 1.0
+Content-Type: text/plain;
+        charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Language: en-us
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2017-07-11 at 15:18 +0200, Arnd Bergmann wrote:
-> While looking at a compiler warning, I noticed the use of
-> IS_ERR_OR_NULL, which is generally a sign of a bad API design
-> and should be avoided.
-> 
-> In this driver, this is fairly easy, we can simply stop storing
-> error pointers in persistent structures, and change the two
-> functions that might return either a NULL pointer or an error
-> code to consistently return error pointers when failing.
-> 
-> of_parse_subdev() now separates the error code and the pointer
-> it looks up, to clarify the interface. There are two cases
-> where this function originally returns 'NULL', and I have
-> changed that to '0' for success to keep the current behavior,
-> though returning an error would also make sense there.
-> 
-> Fixes: e130291212df ("[media] media: Add i.MX media core driver")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
-> v2: fix type mismatch
-> v3: rework of_parse_subdev() as well.
+Algu=E9m tentou acessar sua conta webmail / zimbra da =C1frica do Sul com I=
+P no:
+87.228.204.106. Ignore esta mensagem se voc=EA =E9 o =FAnico, mas se voc=EA=
+ n=E3o =E9 o
+=FAnico, clique no link seguro da conta abaixo e fa=E7a login nos detalhes =
+do
+seu webmail / zimbra e clique em cimeira para proteger e proteger sua conta=
 
-Thanks!
+de ser um hack.
 
-Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
-Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+ 
 
-regards
-Philipp
+http://corriouedeskl.tripod.com/
+
+ 
+
+A partir de,
+
+Suporte =E0 conta do Webmaster.
+
+ 
+
+
+
+---
+This email has been checked for viruses by Avast antivirus software.
+https://www.avast.com/antivirus
