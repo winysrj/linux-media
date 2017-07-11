@@ -1,53 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57396 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750912AbdG2Gco (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Jul 2017 02:32:44 -0400
-From: Shawn Guo <shawnguo@kernel.org>
-To: Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>
-Cc: Baoyou Xie <xie.baoyou@sanechips.com.cn>,
-        Xin Zhou <zhou.xin8@sanechips.com.cn>,
-        Jun Nie <jun.nie@linaro.org>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Shawn Guo <shawn.guo@linaro.org>
-Subject: [PATCH 1/2] dt-bindings: add bindings document for zx-irdec
-Date: Sat, 29 Jul 2017 14:31:41 +0800
-Message-Id: <1501309902-7559-2-git-send-email-shawnguo@kernel.org>
-In-Reply-To: <1501309902-7559-1-git-send-email-shawnguo@kernel.org>
-References: <1501309902-7559-1-git-send-email-shawnguo@kernel.org>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:36460 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755146AbdGKGav (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Jul 2017 02:30:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
+        dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 05/11] linux/cec.h: add pin monitoring API support
+Date: Tue, 11 Jul 2017 08:30:38 +0200
+Message-Id: <20170711063044.29849-6-hverkuil@xs4all.nl>
+In-Reply-To: <20170711063044.29849-1-hverkuil@xs4all.nl>
+References: <20170711063044.29849-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Shawn Guo <shawn.guo@linaro.org>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-It adds the dt-bindings document for ZTE ZX IRDEC remote control
-block.
+Add support for low-level CEC pin monitoring. This adds a new monitor
+mode, a new capability and two new events.
 
-Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/devicetree/bindings/media/zx-irdec.txt | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/zx-irdec.txt
+ include/uapi/linux/cec.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/zx-irdec.txt b/Documentation/devicetree/bindings/media/zx-irdec.txt
-new file mode 100644
-index 000000000000..295b9fab593e
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/zx-irdec.txt
-@@ -0,0 +1,14 @@
-+IR Decoder (IRDEC) on ZTE ZX family SoCs
-+
-+Required properties:
-+ - compatible: Should be "zte,zx296718-irdec".
-+ - reg: Physical base address and length of IRDEC registers.
-+ - interrupts: Interrupt number of IRDEC.
-+
-+Exmaples:
-+
-+	irdec: ir-decoder@111000 {
-+		compatible = "zte,zx296718-irdec";
-+		reg = <0x111000 0x1000>;
-+		interrupts = <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
-+	};
+diff --git a/include/uapi/linux/cec.h b/include/uapi/linux/cec.h
+index 44579a24f95d..bba73f33c8aa 100644
+--- a/include/uapi/linux/cec.h
++++ b/include/uapi/linux/cec.h
+@@ -318,6 +318,7 @@ static inline int cec_is_unconfigured(__u16 log_addr_mask)
+ #define CEC_MODE_FOLLOWER		(0x1 << 4)
+ #define CEC_MODE_EXCL_FOLLOWER		(0x2 << 4)
+ #define CEC_MODE_EXCL_FOLLOWER_PASSTHRU	(0x3 << 4)
++#define CEC_MODE_MONITOR_PIN		(0xd << 4)
+ #define CEC_MODE_MONITOR		(0xe << 4)
+ #define CEC_MODE_MONITOR_ALL		(0xf << 4)
+ #define CEC_MODE_FOLLOWER_MSK		0xf0
+@@ -338,6 +339,8 @@ static inline int cec_is_unconfigured(__u16 log_addr_mask)
+ #define CEC_CAP_MONITOR_ALL	(1 << 5)
+ /* Hardware can use CEC only if the HDMI HPD pin is high. */
+ #define CEC_CAP_NEEDS_HPD	(1 << 6)
++/* Hardware can monitor CEC pin transitions */
++#define CEC_CAP_MONITOR_PIN	(1 << 7)
+ 
+ /**
+  * struct cec_caps - CEC capabilities structure.
+@@ -405,6 +408,8 @@ struct cec_log_addrs {
+  * didn't empty the message queue in time
+  */
+ #define CEC_EVENT_LOST_MSGS		2
++#define CEC_EVENT_PIN_LOW		3
++#define CEC_EVENT_PIN_HIGH		4
+ 
+ #define CEC_EVENT_FL_INITIAL_STATE	(1 << 0)
+ 
 -- 
-1.9.1
+2.11.0
