@@ -1,41 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:29764 "EHLO mga02.intel.com"
+Received: from mail.anw.at ([195.234.101.228]:55321 "EHLO mail.anw.at"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751266AbdG3GcE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 30 Jul 2017 02:32:04 -0400
-Date: Sun, 30 Jul 2017 14:31:51 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: kbuild-all@01.org, linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-Subject: Re: [PATCH 5/6 v5] uvcvideo: send a control event when a Control
- Change interrupt arrives
-Message-ID: <201707301426.vKSguE4n%fengguang.wu@intel.com>
+        id S1750821AbdGLXp7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Jul 2017 19:45:59 -0400
+Subject: Re: [PATCH V2 4/9] [media] dvb-core/dvb_ca_en50221.c: Fixed block
+ comments
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
+        rjkm@metzlerbros.de, d.scheller@gmx.net
+References: <1499900458-2339-1-git-send-email-jasmin@anw.at>
+ <1499900458-2339-5-git-send-email-jasmin@anw.at>
+ <c8c9b074-32fe-96b8-6635-842898dfc956@iki.fi>
+ <080f360c-a6cb-0f5c-b2ca-f380a78a2cf9@anw.at>
+ <ffcb064e-3b82-fbae-ab32-d9a4a56f6716@iki.fi>
+From: "Jasmin J." <jasmin@anw.at>
+Message-ID: <345e0587-b0a8-8fed-0bdb-4313093cf56d@anw.at>
+Date: Thu, 13 Jul 2017 01:45:48 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1501245205-15802-6-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <ffcb064e-3b82-fbae-ab32-d9a4a56f6716@iki.fi>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hello Antti!
 
-[auto build test WARNING on linuxtv-media/master]
-[also build test WARNING on v4.13-rc2 next-20170728]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+> Have you ever looked that coding style doc?
+Yes I read it several times already and used it in my daily work in my
+previous company.
 
-url:    https://github.com/0day-ci/linux/commits/Guennadi-Liakhovetski/UVC-fix-queue_setup-to-check-the-number-of-planes/20170730-123108
-base:   git://linuxtv.org/media_tree.git master
+Beside the Multi-line comment style, which I will fix in a follow up,
+you mentioned other issues.
+Please can you tell me which one you mean, so that I can check the series
+for those things.
 
-
-coccinelle warnings: (new ones prefixed by >>)
-
->> drivers/media/usb/uvc/uvc_ctrl.c:1327:2-7: WARNING: NULL check before freeing functions like kfree, debugfs_remove, debugfs_remove_recursive or usb_free_urb is not needed. Maybe consider reorganizing relevant code to avoid passing NULL values.
-
-Please review and possibly fold the followup patch.
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+BR,
+   Jasmin
