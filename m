@@ -1,157 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52827 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751245AbdGQChg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 16 Jul 2017 22:37:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Personnel <nicolas@ndufresne.ca>
-Cc: Jacob Chen <jacob-chen@iotwrt.com>,
-        linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        heiko@sntech.de, robh+dt@kernel.org, mchehab@kernel.org,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com,
-        s.nawrocki@samsung.com, tfiga@chromium.org
-Subject: Re: [PATCH v2 2/6] [media] rockchip/rga: v4l2 m2m support
-Date: Mon, 17 Jul 2017 05:37:42 +0300
-Message-ID: <11368407.z8bSoa2YAE@avalon>
-In-Reply-To: <1500137353.2353.1.camel@ndufresne.ca>
-References: <1500101920-24039-1-git-send-email-jacob-chen@iotwrt.com> <2363665.x6z9MR1vqI@avalon> <1500137353.2353.1.camel@ndufresne.ca>
+Received: from mx4.wp.pl ([212.77.101.12]:38343 "EHLO mx4.wp.pl"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755347AbdGLE0X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Jul 2017 00:26:23 -0400
+Date: Tue, 11 Jul 2017 21:19:33 -0700
+From: Jakub Kicinski <kubakici@wp.pl>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Tejun Heo <tj@kernel.org>, Jean Delvare <jdelvare@suse.com>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Sathya Prakash <sathya.prakash@broadcom.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "the arch/x86 maintainers" <x86@kernel.org>,
+        xen-devel <xen-devel@lists.xenproject.org>,
+        linux-block <linux-block@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        IDE-ML <linux-ide@vger.kernel.org>,
+        "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+        Network Development <netdev@vger.kernel.org>
+Subject: Re: Lots of new warnings with gcc-7.1.1
+Message-ID: <20170711211933.388e2816@cakuba.netronome.com>
+In-Reply-To: <CA+55aFzXz-PxKSJP=hfHD+mfCX4M6+HMacWMkDz7KB8-3y55qw@mail.gmail.com>
+References: <CA+55aFzXz-PxKSJP=hfHD+mfCX4M6+HMacWMkDz7KB8-3y55qw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas,
+On Tue, 11 Jul 2017 15:35:15 -0700, Linus Torvalds wrote:
+> I do suspect I'll make "-Wformat-truncation" (as opposed to
+> "-Wformat-overflow") be a "V=1" kind of warning.  But let's see how
+> many of these we can fix, ok?
 
-On Saturday 15 Jul 2017 12:49:13 Personnel wrote:
+Somehow related - what's the stand on -Wimplicit-fallthrough?  I run
+into the jump tables in jhash.h generating lots of warnings.  Is it OK
+to do this?
 
-You might want to fix your mailer to use your name :-)
+--->8------
 
-> Le samedi 15 juillet 2017 =E0 12:42 +0300, Laurent Pinchart a =E9crit=
- :
-> > On Saturday 15 Jul 2017 14:58:36 Jacob Chen wrote:
-> >> Rockchip RGA is a separate 2D raster graphic acceleration unit. It=
-
-> >> accelerates 2D graphics operations, such as point/line drawing, im=
-age
-> >> scaling, rotation, BitBLT, alpha blending and image blur/sharpness=
-.
-> >>=20
-> >> The drvier is mostly based on s5p-g2d v4l2 m2m driver.
-> >> And supports various operations from the rendering pipeline.
-> >>=20
-> >>  - copy
-> >>  - fast solid color fill
-> >>  - rotation
-> >>  - flip
-> >>  - alpha blending
-> >
-> > I notice that you don't support the drawing operations. How do you =
-plan to
-> > support them later through the V4L2 M2M API ? I hate stating the ob=
-vious,
-> > but wouldn't the DRM API be better fit for a graphic accelerator ?
->=20
-> It could fit, maybe, but it really lacks some framework. Also, DRM is=
-
-> not really meant for M2M operation, and it's also not great for multi=
--
-> process.
-
-GPUs on embedded devices are mem-to-mem, and they're definitely shared =
-between=20
-multiple processes :-)
-
-> Until recently, there was competing drivers for Exynos, both
-> implemented in V4L2 and DRM, for similar rational, all DRM ones are
-> being deprecated/removed.
->=20
-> I think 2D blitters in V4L2 are fine, but they terribly lack somethin=
-g
-> to differentiate them from converters/scalers when looking up the HW
-> list. Could be as simple as a capability flag, if I can suggest. For
-> the reference, the 2D blitter on IMX6 has been used to implement a li=
-ve
-> video mixer in GStreamer.
->=20
-> https://bugzilla.gnome.org/show_bug.cgi?id=3D772766
-
-If we decide that 2D blitters should be supported by V4L2 (and I'm open=
- to get=20
-convinced about that), we really need to define a proper API before mer=
-ging a=20
-bunch of drivers that will implement things in slightly different ways,=
-=20
-otherwise the future will be very painful.
-
-Among the issues that need to be solved are
-
-- stateful vs. stateless operation (as mentioned by Jacob in this mail=20=
-
-thread), a.k.a. the request API
-
-- exposing capabilities to userspace (a single capability flag would be=
- enough=20
-only if all blitters expose the same API, which I'm not sure we can ass=
-ume)
-
-- single input (a.k.a. in-place blitters as you mentioned below) vs. mu=
-ltiple=20
-inputs
-
-- API for 2D-accelerated operations other than blitting (filling, point=
- and=20
-line drawing, ...)
-
-> > Additionally, V4L2 M2M has one source and one destination. How do y=
-ou
-> > implement alpha blending in that case, which by definition requires=
- at
-> > least two sources ?
->=20
-> This type of HW only do in-place blits. When using such a node, the
-> buffer queued on the V4L2_CAPTURE contains the destination image, and=
-
-> the buffer queued on the V4L2_OUTPUT is the source image.
->=20
-> >> The code in rga-hw.c is used to configure regs accroding to operat=
-ions.
-> >>=20
-> >> The code in rga-buf.c is used to create private mmu table for RGA.=
-
-> >> The tables is stored in a list, and be removed when buffer is clea=
-nup.
-> >=20
-> > Looking at the implementation it seems to be a scatter-gather list,=
- not an
-> > MMU. Is that right ? Does the hardware documentation refer to it as=
- an MMU
-> > ?
-> >
-> >> Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
-> >> ---
-> >>=20
-> >>  drivers/media/platform/Kconfig                |  11 +
-> >>  drivers/media/platform/Makefile               |   2 +
-> >>  drivers/media/platform/rockchip-rga/Makefile  |   3 +
-> >>  drivers/media/platform/rockchip-rga/rga-buf.c | 122 ++++
-> >>  drivers/media/platform/rockchip-rga/rga-hw.c  | 652 +++++++++++++=
-+++++
-> >>  drivers/media/platform/rockchip-rga/rga-hw.h  | 437 ++++++++++++
-> >>  drivers/media/platform/rockchip-rga/rga.c     | 958 +++++++++++++=
-++++++
-> >>  drivers/media/platform/rockchip-rga/rga.h     | 111 +++
-> >>  8 files changed, 2296 insertions(+)
-> >>  create mode 100644 drivers/media/platform/rockchip-rga/Makefile
-> >>  create mode 100644 drivers/media/platform/rockchip-rga/rga-buf.c
-> >>  create mode 100644 drivers/media/platform/rockchip-rga/rga-hw.c
-> >>  create mode 100644 drivers/media/platform/rockchip-rga/rga-hw.h
-> >>  create mode 100644 drivers/media/platform/rockchip-rga/rga.c
-> >>  create mode 100644 drivers/media/platform/rockchip-rga/rga.h
-
---=20
-Regards,
-
-Laurent Pinchart
+diff --git a/include/linux/jhash.h b/include/linux/jhash.h
+index 348c6f47e4cc..f6d6513a4c03 100644
+--- a/include/linux/jhash.h
++++ b/include/linux/jhash.h
+@@ -85,20 +85,19 @@ static inline u32 jhash(const void *key, u32 length, u32 initval)
+ 		k += 12;
+ 	}
+ 	/* Last block: affect all 32 bits of (c) */
+-	/* All the case statements fall through */
+ 	switch (length) {
+-	case 12: c += (u32)k[11]<<24;
+-	case 11: c += (u32)k[10]<<16;
+-	case 10: c += (u32)k[9]<<8;
+-	case 9:  c += k[8];
+-	case 8:  b += (u32)k[7]<<24;
+-	case 7:  b += (u32)k[6]<<16;
+-	case 6:  b += (u32)k[5]<<8;
+-	case 5:  b += k[4];
+-	case 4:  a += (u32)k[3]<<24;
+-	case 3:  a += (u32)k[2]<<16;
+-	case 2:  a += (u32)k[1]<<8;
+-	case 1:  a += k[0];
++	case 12: c += (u32)k[11]<<24;	/* fall through */
++	case 11: c += (u32)k[10]<<16;	/* fall through */
++	case 10: c += (u32)k[9]<<8;	/* fall through */
++	case 9:  c += k[8];		/* fall through */
++	case 8:  b += (u32)k[7]<<24;	/* fall through */
++	case 7:  b += (u32)k[6]<<16;	/* fall through */
++	case 6:  b += (u32)k[5]<<8;	/* fall through */
++	case 5:  b += k[4];		/* fall through */
++	case 4:  a += (u32)k[3]<<24;	/* fall through */
++	case 3:  a += (u32)k[2]<<16;	/* fall through */
++	case 2:  a += (u32)k[1]<<8;	/* fall through */
++	case 1:  a += k[0];		/* fall through */
+ 		 __jhash_final(a, b, c);
+ 	case 0: /* Nothing left to add */
+ 		break;
+@@ -131,11 +130,11 @@ static inline u32 jhash2(const u32 *k, u32 length, u32 initval)
+ 		k += 3;
+ 	}
+ 
+-	/* Handle the last 3 u32's: all the case statements fall through */
++	/* Handle the last 3 u32's */
+ 	switch (length) {
+-	case 3: c += k[2];
+-	case 2: b += k[1];
+-	case 1: a += k[0];
++	case 3: c += k[2];	/* fall through */
++	case 2: b += k[1];	/* fall through */
++	case 1: a += k[0];	/* fall through */
+ 		__jhash_final(a, b, c);
+ 	case 0:	/* Nothing left to add */
+ 		break;
