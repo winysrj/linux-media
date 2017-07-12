@@ -1,65 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:54810 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753272AbdGNJ2D (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Jul 2017 05:28:03 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-kernel@vger.kernel.org,
-        VMware Graphics <linux-graphics-maintainer@vmware.com>,
-        Sinclair Yeh <syeh@vmware.com>,
-        Thomas Hellstrom <thellstrom@vmware.com>,
-        David Airlie <airlied@linux.ie>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
-        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
-        akpm@linux-foundation.org, dri-devel@lists.freedesktop.org,
-        Arnd Bergmann <arnd@arndb.de>, Brian Paul <brianp@vmware.com>
-Subject: [PATCH, RESEND 03/14] drm/vmwgfx: avoid gcc-7 parentheses warning
-Date: Fri, 14 Jul 2017 11:25:15 +0200
-Message-Id: <20170714092540.1217397-4-arnd@arndb.de>
-In-Reply-To: <20170714092540.1217397-1-arnd@arndb.de>
-References: <20170714092540.1217397-1-arnd@arndb.de>
+Received: from mail.anw.at ([195.234.101.228]:54594 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750800AbdGLXBm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Jul 2017 19:01:42 -0400
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
+        rjkm@metzlerbros.de, d.scheller@gmx.net, jasmin@anw.at
+Subject: [PATCH V2 8/9] [media] dvb-core/dvb_ca_en50221.c: Removed useless braces
+Date: Thu, 13 Jul 2017 01:00:57 +0200
+Message-Id: <1499900458-2339-9-git-send-email-jasmin@anw.at>
+In-Reply-To: <1499900458-2339-1-git-send-email-jasmin@anw.at>
+References: <1499900458-2339-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-gcc-7 warns about slightly suspicious code in vmw_cmd_invalid:
+From: Jasmin Jessich <jasmin@anw.at>
 
-drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c: In function 'vmw_cmd_invalid':
-drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c:522:23: error: the omitted middle operand in ?: will always be 'true', suggest explicit middle operand [-Werror=parentheses]
+Fixed all:
+  WARNING: braces {} are not necessary for single statement blocks
 
-The problem is that it is mixing boolean and integer values here.
-I assume that the code actually works correctly, so making it use
-a literal '1' instead of the implied 'true' makes it more readable
-and avoids the warning.
-
-The code has been in this file since the start, but it could
-make sense to backport this patch to stable to make it build cleanly
-with gcc-7.
-
-Fixes: fb1d9738ca05 ("drm/vmwgfx: Add DRM driver for VMware Virtual GPU")
-Reviewed-by: Sinclair Yeh <syeh@vmware.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
 ---
-Originally submitted on Nov 16, but for some reason it never appeared
-upstream. The patch is still needed as of v4.11-rc2
----
- drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/dvb-core/dvb_ca_en50221.c | 30 ++++++++++++------------------
+ 1 file changed, 12 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c b/drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c
-index c7b53d987f06..3f343e55972a 100644
---- a/drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c
-+++ b/drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c
-@@ -519,7 +519,7 @@ static int vmw_cmd_invalid(struct vmw_private *dev_priv,
- 			   struct vmw_sw_context *sw_context,
- 			   SVGA3dCmdHeader *header)
- {
--	return capable(CAP_SYS_ADMIN) ? : -EINVAL;
-+	return capable(CAP_SYS_ADMIN) ? 1 : -EINVAL;
- }
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+index 5a0b35d..3e390a4 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -242,9 +242,8 @@ static int dvb_ca_en50221_check_camstatus(struct dvb_ca_private *ca, int slot)
+ 	int cam_changed;
  
- static int vmw_cmd_ok(struct vmw_private *dev_priv,
+ 	/* IRQ mode */
+-	if (ca->flags & DVB_CA_EN50221_FLAG_IRQ_CAMCHANGE) {
++	if (ca->flags & DVB_CA_EN50221_FLAG_IRQ_CAMCHANGE)
+ 		return (atomic_read(&sl->camchange_count) != 0);
+-	}
+ 
+ 	/* poll mode */
+ 	slot_status = ca->pub->poll_slot_status(ca->pub, slot, ca->open);
+@@ -258,11 +257,10 @@ static int dvb_ca_en50221_check_camstatus(struct dvb_ca_private *ca, int slot)
+ 	}
+ 
+ 	if (cam_changed) {
+-		if (!cam_present_now) {
++		if (!cam_present_now)
+ 			sl->camchange_type = DVB_CA_EN50221_CAMCHANGE_REMOVED;
+-		} else {
++		else
+ 			sl->camchange_type = DVB_CA_EN50221_CAMCHANGE_INSERTED;
+-		}
+ 		atomic_set(&sl->camchange_count, 1);
+ 	} else {
+ 		if ((sl->slot_state == DVB_CA_SLOTSTATE_WAITREADY) &&
+@@ -314,9 +312,8 @@ static int dvb_ca_en50221_wait_if_status(struct dvb_ca_private *ca, int slot,
+ 		}
+ 
+ 		/* check for timeout */
+-		if (time_after(jiffies, timeout)) {
++		if (time_after(jiffies, timeout))
+ 			break;
+-		}
+ 
+ 		/* wait for a bit */
+ 		usleep_range(1000, 1100);
+@@ -782,9 +779,9 @@ static int dvb_ca_en50221_read_data(struct dvb_ca_private *ca, int slot,
+ 		buf[0], (buf[1] & 0x80) == 0, bytes_read);
+ 
+ 	/* wake up readers when a last_fragment is received */
+-	if ((buf[1] & 0x80) == 0x00) {
++	if ((buf[1] & 0x80) == 0x00)
+ 		wake_up_interruptible(&ca->wait_queue);
+-	}
++
+ 	status = bytes_read;
+ 
+ exit:
+@@ -1665,11 +1662,10 @@ static ssize_t dvb_ca_en50221_io_read(struct file *file, char __user *buf,
+ 			connection_id = hdr[0];
+ 		if (hdr[0] == connection_id) {
+ 			if (pktlen < count) {
+-				if ((pktlen + fraglen - 2) > count) {
++				if ((pktlen + fraglen - 2) > count)
+ 					fraglen = count - pktlen;
+-				} else {
++				else
+ 					fraglen -= 2;
+-				}
+ 
+ 				status =
+ 				   dvb_ringbuffer_pkt_read_user(&sl->rx_buffer,
+@@ -1806,9 +1802,8 @@ static unsigned int dvb_ca_en50221_io_poll(struct file *file, poll_table *wait)
+ 
+ 	dprintk("%s\n", __func__);
+ 
+-	if (dvb_ca_en50221_io_read_condition(ca, &result, &slot) == 1) {
++	if (dvb_ca_en50221_io_read_condition(ca, &result, &slot) == 1)
+ 		mask |= POLLIN;
+-	}
+ 
+ 	/* if there is something, return now */
+ 	if (mask)
+@@ -1817,9 +1812,8 @@ static unsigned int dvb_ca_en50221_io_poll(struct file *file, poll_table *wait)
+ 	/* wait for something to happen */
+ 	poll_wait(file, &ca->wait_queue, wait);
+ 
+-	if (dvb_ca_en50221_io_read_condition(ca, &result, &slot) == 1) {
++	if (dvb_ca_en50221_io_read_condition(ca, &result, &slot) == 1)
+ 		mask |= POLLIN;
+-	}
+ 
+ 	return mask;
+ }
+@@ -1961,9 +1955,9 @@ void dvb_ca_en50221_release(struct dvb_ca_en50221 *pubca)
+ 	/* shutdown the thread if there was one */
+ 	kthread_stop(ca->thread);
+ 
+-	for (i = 0; i < ca->slot_count; i++) {
++	for (i = 0; i < ca->slot_count; i++)
+ 		dvb_ca_en50221_slot_shutdown(ca, i);
+-	}
++
+ 	dvb_remove_device(ca->dvbdev);
+ 	dvb_ca_private_put(ca);
+ 	pubca->private = NULL;
 -- 
-2.9.0
+2.7.4
