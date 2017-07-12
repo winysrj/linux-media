@@ -1,76 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway20.websitewelcome.com ([192.185.58.11]:32967 "EHLO
-        gateway20.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751873AbdGFU4y (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Jul 2017 16:56:54 -0400
-Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
-        by gateway20.websitewelcome.com (Postfix) with ESMTP id 20429400F2CD8
-        for <linux-media@vger.kernel.org>; Thu,  6 Jul 2017 15:35:54 -0500 (CDT)
-Date: Thu, 6 Jul 2017 15:35:53 -0500
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] davinci: vpif_display: constify vb2_ops structure
-Message-ID: <20170706203553.GA15159@embeddedgus>
+Received: from mail.kernel.org ([198.145.29.99]:57780 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752021AbdGLTS6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Jul 2017 15:18:58 -0400
+Subject: Re: [PATCH v2 2/7] [media] ov9650: switch i2c device id to lower case
+To: Hugues Fruchet <hugues.fruchet@st.com>
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+References: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com>
+ <1499073368-31905-3-git-send-email-hugues.fruchet@st.com>
+From: Sylwester Nawrocki <snawrocki@kernel.org>
+Message-ID: <8b84296e-b3c7-f5d1-5e90-5890b1b0ed48@kernel.org>
+Date: Wed, 12 Jul 2017 21:18:52 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <1499073368-31905-3-git-send-email-hugues.fruchet@st.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Check for vb2_ops structures that are only stored in the ops field of a
-vb2_queue structure. That field is declared const, so vb2_ops structures
-that have this property can be declared as const also.
+On 07/03/2017 11:16 AM, Hugues Fruchet wrote:
+> Switch i2c device id to lower case as it is
 
-This issue was detected using Coccinelle and the following semantic patch:
+s/i2c/I2C ?
 
-@r disable optional_qualifier@
-identifier i;
-position p;
-@@
-static struct vb2_ops i@p = { ... };
+> done for other omnivision cameras.
 
-@ok@
-identifier r.i;
-struct vb2_queue e;
-position p;
-@@
-e.ops = &i@p;
+s/omnivision/Omnivision
 
-@bad@
-position p != {r.p,ok.p};
-identifier r.i;
-struct vb2_ops e;
-@@
-e@i@p
+This is required for properly matching driver with device on DT platforms,
+right? It might be worth to mention that so it is clear why we break any
+non-dt platform that could be already using this driver. There seem to be 
+none in the mainline kernel tree though.
 
-@depends on !bad disable optional_qualifier@
-identifier r.i;
-@@
-static
-+const
-struct vb2_ops i = { ... };
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 
-Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
----
- drivers/media/platform/davinci/vpif_display.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Reviewed-by: Sylwester Nawrocki <snawrocki@kernel.org>
 
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index b5ac6ce..1a494d3 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -290,7 +290,7 @@ static void vpif_stop_streaming(struct vb2_queue *vq)
- 	spin_unlock_irqrestore(&common->irqlock, flags);
- }
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+> ---
+>   drivers/media/i2c/ov9650.c | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+> index 2de2fbb..1e4e99e 100644
+> --- a/drivers/media/i2c/ov9650.c
+> +++ b/drivers/media/i2c/ov9650.c
+> @@ -1545,8 +1545,8 @@ static int ov965x_remove(struct i2c_client *client)
+>   }
+>   
+>   static const struct i2c_device_id ov965x_id[] = {
+> -	{ "OV9650", 0 },
+> -	{ "OV9652", 0 },
+> +	{ "ov9650", 0 },
+> +	{ "ov9652", 0 },
+>   	{ /* sentinel */ }
+>   };
+>   MODULE_DEVICE_TABLE(i2c, ov965x_id);
  
--static struct vb2_ops video_qops = {
-+static const struct vb2_ops video_qops = {
- 	.queue_setup		= vpif_buffer_queue_setup,
- 	.wait_prepare		= vb2_ops_wait_prepare,
- 	.wait_finish		= vb2_ops_wait_finish,
--- 
-2.5.0
