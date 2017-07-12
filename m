@@ -1,68 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:41707 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751584AbdG1HTs (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33940 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750738AbdGLMNJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Jul 2017 03:19:48 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.14] Use LINUX_VERSION_CODE for media versioning
-Message-ID: <63ca669a-1399-3cfd-a153-b8c127772af2@xs4all.nl>
-Date: Fri, 28 Jul 2017 09:19:43 +0200
+        Wed, 12 Jul 2017 08:13:09 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: kieran.bingham@ideasonboard.com
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 2/3] drm: rcar-du: Fix planes to CRTC assignment when using the VSP
+Date: Wed, 12 Jul 2017 15:13:09 +0300
+Message-ID: <9618964.U0u9UE4uZN@avalon>
+In-Reply-To: <23b0037c-defe-4e95-771b-ad99b86d5c26@ideasonboard.com>
+References: <20170711222942.27735-1-laurent.pinchart+renesas@ideasonboard.com> <20170711222942.27735-3-laurent.pinchart+renesas@ideasonboard.com> <23b0037c-defe-4e95-771b-ad99b86d5c26@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just a little thing that always annoyed me: the driver_version shouldn't
-be set in drivers.
+Hi Kieran,
 
-The version number never, ever gets updated in drivers. We saw that in
-the other media subsystems and now the core always sets it, not drivers.
+On Wednesday 12 Jul 2017 11:30:19 Kieran Bingham wrote:
+> On 11/07/17 23:29, Laurent Pinchart wrote:
+> > The DU can compose the output of a VSP with other planes on Gen2
+> > hardware, and of two VSPs on Gen3 hardware. Neither of these features
+> > are supported by the driver, and the current implementation always
+> > assigns planes to CRTCs the same way.
+> > 
+> > Simplify the implementation by configuring plane assignment when setting
+> > up DU groups, instead of recomputing it for every atomic plane update.
+> > This allows skipping the wait for vertical blanking when stopping a
+> > CRTC, as there's no need to reconfigure plane assignment at that point.
+> > 
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> 
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> > ---
+> > 
+> >  drivers/gpu/drm/rcar-du/rcar_du_crtc.c  | 31 ++++++++++++++-------------
+> >  drivers/gpu/drm/rcar-du/rcar_du_group.c | 12 ++++++++++++
+> >  drivers/gpu/drm/rcar-du/rcar_du_kms.c   | 28 +++++++++++++++++-----------
+> >  drivers/gpu/drm/rcar-du/rcar_du_plane.c | 10 +---------
+> >  drivers/gpu/drm/rcar-du/rcar_du_vsp.c   |  9 ---------
+> >  5 files changed, 46 insertions(+), 44 deletions(-)
 
-This works much better, and also works well when backporting the media
-code to an older kernel using the media_build system, where the driver
-version is set to the kernel version you are backporting from.
+[snip]
 
-So just set the driver_version in media_device_get_info() to
-LINUX_VERSION_CODE and drop the driver_version field from struct
-media_device.
+> > diff --git a/drivers/gpu/drm/rcar-du/rcar_du_group.c
+> > b/drivers/gpu/drm/rcar-du/rcar_du_group.c index
+> > 00d5f470d377..d26b647207b8 100644
+> > --- a/drivers/gpu/drm/rcar-du/rcar_du_group.c
+> > +++ b/drivers/gpu/drm/rcar-du/rcar_du_group.c
+> > @@ -126,6 +126,18 @@ static void rcar_du_group_setup(struct rcar_du_group
+> > *rgrp)> 
+> >  	if (rcdu->info->gen >= 3)
+> >  		rcar_du_group_write(rgrp, DEFR10, DEFR10_CODE | 
+DEFR10_DEFE10);
+> > 
+> > +	if (rcar_du_has(rcdu, RCAR_DU_FEATURE_VSP1_SOURCE)) {
+> > +		/*
+> > +		 * The CRTCs can compose the output of a VSP with other planes
+> > +		 * on Gen2 hardware, and of two VSPs on Gen3 hardware. Neither
+> > +		 * of these features are supported by the driver, so we 
+hardcode
+> > +		 * plane assignment to CRTCs when setting the group up to 
+avoid
+> > +		 * the need to restart then group when setting planes up.
+> 
+> Minor nits in comment:
+> 
+>   /restart then group/restart the group/
+> 
+> I would also possibly swap the final 'planes up' as 'up planes' if you
+> update here anyway:
+> 
+> * so we hardcode plane assignment to CRTCs when setting the group up to
+> avoid
+> * the need to restart the group when setting up planes.
+> 
+> Up to you of course :)
 
-In addition do the same with media_version, that too is never updated
-when it should.
+Thanks, I've fixed both, and also replaced "setting the group up" with 
+"setting up the group".
 
+> > +		 */
+> > +		rcar_du_group_write(rgrp, DS1PR, 1);
+> > +		rcar_du_group_write(rgrp, DS2PR, rcdu->info->gen >= 3 ? 3 : 
+2);
+> 
+> whew ... that DS2PR indexing change from g2 to g3 looks annoying ... I had
+> to write out the logic tables on paper to verify the change here from the
+> previous code.
+
+That's also how I wrote the code :-)
+
+> > +	}
+> > +
+> > 
+> >  	/*
+> >  	
+> >  	 * Use DS1PR and DS2PR to configure planes priorities and connects the
+> >  	 * superposition 0 to DU0 pins. DU1 pins will be configured 
+dynamically.
+
+-- 
 Regards,
 
-	Hans
-
-The following changes since commit da48c948c263c9d87dfc64566b3373a858cc8aa2:
-
-   media: fix warning on v4l2_subdev_call() result interpreted as bool (2017-07-26 13:43:17 -0400)
-
-are available in the git repository at:
-
-   git://linuxtv.org/hverkuil/media_tree.git mc-version
-
-for you to fetch changes up to 590a9c978c0fd8a58580e58245f1187d676a6f54:
-
-   media: drop use of MEDIA_API_VERSION (2017-07-28 09:16:51 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (6):
-       media-device: set driver_version directly
-       s3c-camif: don't set driver_version
-       uvc: don't set driver_version
-       atomisp2: don't set driver_version
-       media-device: remove driver_version
-       media: drop use of MEDIA_API_VERSION
-
-  Documentation/media/uapi/v4l/extended-controls.rst        | 26 +++++++++++++-------------
-  drivers/media/media-device.c                              |  7 ++-----
-  drivers/media/platform/s3c-camif/camif-core.c             |  1 -
-  drivers/media/usb/uvc/uvc_driver.c                        |  1 -
-  drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c |  6 +-----
-  include/media/media-device.h                              |  7 -------
-  include/uapi/linux/media.h                                |  5 +++--
-  7 files changed, 19 insertions(+), 34 deletions(-)
+Laurent Pinchart
