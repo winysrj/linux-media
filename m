@@ -1,232 +1,262 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60050 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752000AbdGRTEI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 15:04:08 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from mail.anw.at ([195.234.101.228]:54585 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750808AbdGLXBm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Jul 2017 19:01:42 -0400
+From: "Jasmin J." <jasmin@anw.at>
 To: linux-media@vger.kernel.org
-Cc: linux-leds@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        niklas.soderlund@ragnatech.se, hverkuil@xs4all.nl
-Subject: [RFC 13/19] v4l2-device: Register sub-device nodes at sub-device registration time
-Date: Tue, 18 Jul 2017 22:03:55 +0300
-Message-Id: <20170718190401.14797-14-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
-References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
+Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
+        rjkm@metzlerbros.de, d.scheller@gmx.net, jasmin@anw.at
+Subject: [PATCH V2 5/9] [media] dvb-core/dvb_ca_en50221.c: Avoid assignments in ifs
+Date: Thu, 13 Jul 2017 01:00:54 +0200
+Message-Id: <1499900458-2339-6-git-send-email-jasmin@anw.at>
+In-Reply-To: <1499900458-2339-1-git-send-email-jasmin@anw.at>
+References: <1499900458-2339-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-device.c | 146 ++++++++++++++++------------------
- include/media/v4l2-device.h           |  12 ---
- 2 files changed, 67 insertions(+), 91 deletions(-)
+From: Jasmin Jessich <jasmin@anw.at>
 
-diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-index 0c0c4772c00a..4da8f07fc373 100644
---- a/drivers/media/v4l2-core/v4l2-device.c
-+++ b/drivers/media/v4l2-core/v4l2-device.c
-@@ -151,70 +151,6 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
- }
- EXPORT_SYMBOL_GPL(v4l2_device_unregister);
+Fixed all:
+  ERROR: do not use assignment in if condition
+
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+---
+ drivers/media/dvb-core/dvb_ca_en50221.c | 97 ++++++++++++++++++++++-----------
+ 1 file changed, 64 insertions(+), 33 deletions(-)
+
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+index 317968b..02b8785 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -348,14 +348,18 @@ static int dvb_ca_en50221_link_init(struct dvb_ca_private *ca, int slot)
+ 	ca->slot_info[slot].link_buf_size = 2;
  
--int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
--				struct v4l2_subdev *sd)
--{
--#if defined(CONFIG_MEDIA_CONTROLLER)
--	struct media_entity *entity = &sd->entity;
--#endif
--	int err;
--
--	/* Check for valid input */
--	if (!v4l2_dev || !sd || sd->v4l2_dev || !sd->name[0])
--		return -EINVAL;
--
--	/*
--	 * The reason to acquire the module here is to avoid unloading
--	 * a module of sub-device which is registered to a media
--	 * device. To make it possible to unload modules for media
--	 * devices that also register sub-devices, do not
--	 * try_module_get() such sub-device owners.
--	 */
--	sd->owner_v4l2_dev = v4l2_dev->dev && v4l2_dev->dev->driver &&
--		sd->owner == v4l2_dev->dev->driver->owner;
--
--	if (!sd->owner_v4l2_dev && !try_module_get(sd->owner))
--		return -ENODEV;
--
--	sd->v4l2_dev = v4l2_dev;
--	/* This just returns 0 if either of the two args is NULL */
--	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler, NULL);
--	if (err)
--		goto error_module;
--
--#if defined(CONFIG_MEDIA_CONTROLLER)
--	/* Register the entity. */
--	if (v4l2_dev->mdev) {
--		err = media_device_register_entity(v4l2_dev->mdev, entity);
--		if (err < 0)
--			goto error_module;
--	}
--#endif
--
--	if (sd->internal_ops && sd->internal_ops->registered) {
--		err = sd->internal_ops->registered(sd);
--		if (err)
--			goto error_unregister;
--	}
--
--	spin_lock(&v4l2_dev->lock);
--	list_add_tail(&sd->list, &v4l2_dev->subdevs);
--	spin_unlock(&v4l2_dev->lock);
--
--	return 0;
--
--error_unregister:
--#if defined(CONFIG_MEDIA_CONTROLLER)
--	media_device_unregister_entity(entity);
--#endif
--error_module:
--	if (!sd->owner_v4l2_dev)
--		module_put(sd->owner);
--	sd->v4l2_dev = NULL;
--	return err;
--}
--EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
--
- static void v4l2_device_release_subdev_node(struct video_device *vdev)
- {
- 	struct v4l2_subdev *sd = video_get_drvdata(vdev);
-@@ -222,8 +158,8 @@ static void v4l2_device_release_subdev_node(struct video_device *vdev)
- 	kfree(vdev);
- }
+ 	/* read the buffer size from the CAM */
+-	if ((ret = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_COMMAND, IRQEN | CMDREG_SR)) != 0)
++	ret = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_COMMAND,
++					 IRQEN | CMDREG_SR);
++	if (ret != 0)
+ 		return ret;
+ 	ret = dvb_ca_en50221_wait_if_status(ca, slot, STATUSREG_DA, HZ);
+ 	if (ret != 0)
+ 		return ret;
+-	if ((ret = dvb_ca_en50221_read_data(ca, slot, buf, 2)) != 2)
++	ret = dvb_ca_en50221_read_data(ca, slot, buf, 2);
++	if (ret != 2)
+ 		return -EIO;
+-	if ((ret = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_COMMAND, IRQEN)) != 0)
++	ret = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_COMMAND, IRQEN);
++	if (ret != 0)
+ 		return ret;
  
--int v4l2_device_register_subdev_node(struct v4l2_device *v4l2_dev,
--				     struct v4l2_subdev *sd)
-+static int v4l2_device_register_subdev_node(struct v4l2_device *v4l2_dev,
-+					    struct v4l2_subdev *sd)
- {
- 	struct video_device *vdev;
- 	int err;
-@@ -278,31 +214,83 @@ int v4l2_device_register_subdev_node(struct v4l2_device *v4l2_dev,
+ 	/* store it, and choose the minimum of our buffer and the CAM's buffer size */
+@@ -368,13 +372,18 @@ static int dvb_ca_en50221_link_init(struct dvb_ca_private *ca, int slot)
+ 	dprintk("Chosen link buffer size of %i\n", buf_size);
  
- 	return err;
- }
--EXPORT_SYMBOL_GPL(v4l2_device_register_subdev_node);
+ 	/* write the buffer size to the CAM */
+-	if ((ret = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_COMMAND, IRQEN | CMDREG_SW)) != 0)
++	ret = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_COMMAND,
++					 IRQEN | CMDREG_SW);
++	if (ret != 0)
+ 		return ret;
+-	if ((ret = dvb_ca_en50221_wait_if_status(ca, slot, STATUSREG_FR, HZ / 10)) != 0)
++	ret = dvb_ca_en50221_wait_if_status(ca, slot, STATUSREG_FR, HZ / 10);
++	if (ret != 0)
+ 		return ret;
+-	if ((ret = dvb_ca_en50221_write_data(ca, slot, buf, 2)) != 2)
++	ret = dvb_ca_en50221_write_data(ca, slot, buf, 2);
++	if (ret != 2)
+ 		return -EIO;
+-	if ((ret = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_COMMAND, IRQEN)) != 0)
++	ret = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_COMMAND, IRQEN);
++	if (ret != 0)
+ 		return ret;
  
--int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
-+int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
-+				struct v4l2_subdev *sd)
- {
--	struct v4l2_subdev *sd;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	struct media_entity *entity = &sd->entity;
-+#endif
- 	int err;
+ 	/* success */
+@@ -403,7 +412,8 @@ static int dvb_ca_en50221_read_tuple(struct dvb_ca_private *ca, int slot,
+ 	int _address = *address;
  
--	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
--		int err;
-+	/* Check for valid input */
-+	if (!v4l2_dev || !sd || sd->v4l2_dev || !sd->name[0])
-+		return -EINVAL;
- 
--		err = v4l2_device_register_subdev_node(v4l2_dev, sd);
-+	/*
-+	 * The reason to acquire the module here is to avoid unloading
-+	 * a module of sub-device which is registered to a media
-+	 * device. To make it possible to unload modules for media
-+	 * devices that also register sub-devices, do not
-+	 * try_module_get() such sub-device owners.
-+	 */
-+	sd->owner_v4l2_dev = v4l2_dev->dev && v4l2_dev->dev->driver &&
-+		sd->owner == v4l2_dev->dev->driver->owner;
-+
-+	if (!sd->owner_v4l2_dev && !try_module_get(sd->owner))
-+		return -ENODEV;
-+
-+	sd->v4l2_dev = v4l2_dev;
-+	/* This just returns 0 if either of the two args is NULL */
-+	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler, NULL);
-+	if (err)
-+		goto error_module;
-+
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	/* Register the entity. */
-+	if (v4l2_dev->mdev) {
-+		err = media_device_register_entity(v4l2_dev->mdev, entity);
- 		if (err < 0)
--			goto clean_up;
-+			goto error_module;
+ 	/* grab the next tuple length and type */
+-	if ((_tupleType = ca->pub->read_attribute_mem(ca->pub, slot, _address)) < 0)
++	_tupleType = ca->pub->read_attribute_mem(ca->pub, slot, _address);
++	if (_tupleType < 0)
+ 		return _tupleType;
+ 	if (_tupleType == 0xff) {
+ 		dprintk("END OF CHAIN TUPLE type:0x%x\n", _tupleType);
+@@ -412,7 +422,8 @@ static int dvb_ca_en50221_read_tuple(struct dvb_ca_private *ca, int slot,
+ 		*tupleLength = 0;
+ 		return 0;
  	}
--	return 0;
-+#endif
+-	if ((_tupleLength = ca->pub->read_attribute_mem(ca->pub, slot, _address + 2)) < 0)
++	_tupleLength = ca->pub->read_attribute_mem(ca->pub, slot, _address + 2);
++	if (_tupleLength < 0)
+ 		return _tupleLength;
+ 	_address += 4;
  
--clean_up:
--	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
--		if (!sd->devnode)
--			break;
--		video_unregister_device(sd->devnode);
-+	if (sd->internal_ops && sd->internal_ops->registered) {
-+		err = sd->internal_ops->registered(sd);
-+		if (err)
-+			goto error_unregister;
+@@ -461,8 +472,9 @@ static int dvb_ca_en50221_parse_attributes(struct dvb_ca_private *ca, int slot)
+ 
+ 
+ 	// CISTPL_DEVICE_0A
+-	if ((status =
+-	     dvb_ca_en50221_read_tuple(ca, slot, &address, &tupleType, &tupleLength, tuple)) < 0)
++	status = dvb_ca_en50221_read_tuple(ca, slot, &address, &tupleType,
++					   &tupleLength, tuple);
++	if (status < 0)
+ 		return status;
+ 	if (tupleType != 0x1D)
+ 		return -EINVAL;
+@@ -470,8 +482,9 @@ static int dvb_ca_en50221_parse_attributes(struct dvb_ca_private *ca, int slot)
+ 
+ 
+ 	// CISTPL_DEVICE_0C
+-	if ((status =
+-	     dvb_ca_en50221_read_tuple(ca, slot, &address, &tupleType, &tupleLength, tuple)) < 0)
++	status = dvb_ca_en50221_read_tuple(ca, slot, &address, &tupleType,
++					   &tupleLength, tuple);
++	if (status < 0)
+ 		return status;
+ 	if (tupleType != 0x1C)
+ 		return -EINVAL;
+@@ -479,8 +492,9 @@ static int dvb_ca_en50221_parse_attributes(struct dvb_ca_private *ca, int slot)
+ 
+ 
+ 	// CISTPL_VERS_1
+-	if ((status =
+-	     dvb_ca_en50221_read_tuple(ca, slot, &address, &tupleType, &tupleLength, tuple)) < 0)
++	status = dvb_ca_en50221_read_tuple(ca, slot, &address, &tupleType,
++					   &tupleLength, tuple);
++	if (status < 0)
+ 		return status;
+ 	if (tupleType != 0x15)
+ 		return -EINVAL;
+@@ -488,8 +502,9 @@ static int dvb_ca_en50221_parse_attributes(struct dvb_ca_private *ca, int slot)
+ 
+ 
+ 	// CISTPL_MANFID
+-	if ((status = dvb_ca_en50221_read_tuple(ca, slot, &address, &tupleType,
+-						&tupleLength, tuple)) < 0)
++	status = dvb_ca_en50221_read_tuple(ca, slot, &address, &tupleType,
++							&tupleLength, tuple);
++	if (status < 0)
+ 		return status;
+ 	if (tupleType != 0x20)
+ 		return -EINVAL;
+@@ -501,8 +516,9 @@ static int dvb_ca_en50221_parse_attributes(struct dvb_ca_private *ca, int slot)
+ 
+ 
+ 	// CISTPL_CONFIG
+-	if ((status = dvb_ca_en50221_read_tuple(ca, slot, &address, &tupleType,
+-						&tupleLength, tuple)) < 0)
++	status = dvb_ca_en50221_read_tuple(ca, slot, &address, &tupleType,
++					   &tupleLength, tuple);
++	if (status < 0)
+ 		return status;
+ 	if (tupleType != 0x1A)
+ 		return -EINVAL;
+@@ -535,8 +551,10 @@ static int dvb_ca_en50221_parse_attributes(struct dvb_ca_private *ca, int slot)
+ 
+ 	/* process the CFTABLE_ENTRY tuples, and any after those */
+ 	while ((!end_chain) && (address < 0x1000)) {
+-		if ((status = dvb_ca_en50221_read_tuple(ca, slot, &address, &tupleType,
+-							&tupleLength, tuple)) < 0)
++		status = dvb_ca_en50221_read_tuple(ca, slot, &address,
++						   &tupleType, &tupleLength,
++						   tuple);
++		if (status < 0)
+ 			return status;
+ 		switch (tupleType) {
+ 		case 0x1B:	// CISTPL_CFTABLE_ENTRY
+@@ -802,7 +820,8 @@ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot,
+ 	 * already in progress, we do nothing but awake the kernel thread to
+ 	 * process the data if necessary.
+ 	 */
+-	if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS)) < 0)
++	status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS);
++	if (status < 0)
+ 		goto exitnowrite;
+ 	if (status & (STATUSREG_DA | STATUSREG_RE)) {
+ 		if (status & STATUSREG_DA)
+@@ -813,12 +832,14 @@ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot,
  	}
  
-+	err = v4l2_device_register_subdev_node(v4l2_dev, sd);
-+	if (err)
-+		goto error_subdev_node;
-+
-+	spin_lock(&v4l2_dev->lock);
-+	list_add_tail(&sd->list, &v4l2_dev->subdevs);
-+	spin_unlock(&v4l2_dev->lock);
-+
-+	return 0;
-+
-+error_subdev_node:
-+	if (sd->internal_ops && sd->internal_ops->unregistered)
-+		sd->internal_ops->unregistered(sd);
-+
-+error_unregister:
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	media_device_unregister_entity(entity);
-+#endif
-+error_module:
-+	if (!sd->owner_v4l2_dev)
-+		module_put(sd->owner);
-+	sd->v4l2_dev = NULL;
- 	return err;
- }
-+EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
-+
-+int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
-+{
-+	return 0;
-+}
- EXPORT_SYMBOL_GPL(v4l2_device_register_subdev_nodes);
+ 	/* OK, set HC bit */
+-	if ((status = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_COMMAND,
+-						 IRQEN | CMDREG_HC)) != 0)
++	status = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_COMMAND,
++					    IRQEN | CMDREG_HC);
++	if (status != 0)
+ 		goto exit;
  
- void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index 8b19c1f5bacd..8ffa94009d1a 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -189,18 +189,6 @@ int __must_check v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- void v4l2_device_unregister_subdev(struct v4l2_subdev *sd);
+ 	/* check if interface is still free */
+-	if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS)) < 0)
++	status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS);
++	if (status < 0)
+ 		goto exit;
+ 	if (!(status & STATUSREG_FR)) {
+ 		/* it wasn't free => try again later */
+@@ -850,20 +871,26 @@ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot,
+ 	}
  
- /**
-- * v4l2_device_register_subdev_node - Registers device nodes for a subdev
-- *	of the v4l2 device. The call is a no-op unless the
-- *	%V4L2_SUBDEV_FL_HAS_DEVNODE subdev flag is set.
-- *
-- * @v4l2_dev: pointer to struct v4l2_device
-- * @sd: pointer to struct v4l2_subdev
-- */
--int __must_check
--v4l2_device_register_subdev_node(struct v4l2_device *v4l2_dev,
--				 struct v4l2_subdev *sd);
--
--/**
-  * v4l2_device_register_subdev_nodes - Registers device nodes for all subdevs
-  *	of the v4l2 device that are marked with
-  *	the %V4L2_SUBDEV_FL_HAS_DEVNODE flag.
+ 	/* send the amount of data */
+-	if ((status = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_SIZE_HIGH, bytes_write >> 8)) != 0)
++	status = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_SIZE_HIGH,
++					    bytes_write >> 8);
++	if (status != 0)
+ 		goto exit;
+-	if ((status = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_SIZE_LOW,
+-						 bytes_write & 0xff)) != 0)
++	status = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_SIZE_LOW,
++					    bytes_write & 0xff);
++	if (status != 0)
+ 		goto exit;
+ 
+ 	/* send the buffer */
+ 	for (i = 0; i < bytes_write; i++) {
+-		if ((status = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_DATA, buf[i])) != 0)
++		status = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_DATA,
++						    buf[i]);
++		if (status != 0)
+ 			goto exit;
+ 	}
+ 
+ 	/* check for write error (WE should now be 0) */
+-	if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS)) < 0)
++	status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS);
++	if (status < 0)
+ 		goto exit;
+ 	if (status & STATUSREG_WE) {
+ 		ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_LINKINIT;
+@@ -1583,7 +1610,8 @@ static ssize_t dvb_ca_en50221_io_read(struct file *file, char __user *buf,
+ 		return -EINVAL;
+ 
+ 	/* wait for some data */
+-	if ((status = dvb_ca_en50221_io_read_condition(ca, &result, &slot)) == 0) {
++	status = dvb_ca_en50221_io_read_condition(ca, &result, &slot);
++	if (status == 0) {
+ 
+ 		/* if we're in nonblocking mode, exit immediately */
+ 		if (file->f_flags & O_NONBLOCK)
+@@ -1820,7 +1848,8 @@ int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
+ 		return -EINVAL;
+ 
+ 	/* initialise the system data */
+-	if ((ca = kzalloc(sizeof(struct dvb_ca_private), GFP_KERNEL)) == NULL) {
++	ca = kzalloc(sizeof(struct dvb_ca_private), GFP_KERNEL);
++	if (ca == NULL) {
+ 		ret = -ENOMEM;
+ 		goto exit;
+ 	}
+@@ -1828,7 +1857,9 @@ int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
+ 	ca->pub = pubca;
+ 	ca->flags = flags;
+ 	ca->slot_count = slot_count;
+-	if ((ca->slot_info = kcalloc(slot_count, sizeof(struct dvb_ca_slot), GFP_KERNEL)) == NULL) {
++	ca->slot_info = kcalloc(slot_count, sizeof(struct dvb_ca_slot),
++				GFP_KERNEL);
++	if (ca->slot_info == NULL) {
+ 		ret = -ENOMEM;
+ 		goto free_ca;
+ 	}
 -- 
-2.11.0
+2.7.4
