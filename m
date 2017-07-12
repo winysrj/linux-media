@@ -1,110 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:37087
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S934348AbdGTKtq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 06:49:46 -0400
-Date: Thu, 20 Jul 2017 07:49:36 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Soeren Moch <smoch@web.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andreas Regel <andreas.regel@gmx.de>,
-        Manu Abraham <manu@linuxtv.org>,
-        Oliver Endriss <o.endriss@gmx.de>, linux-media@vger.kernel.org
-Subject: Re: [GIT PULL] SAA716x DVB driver
-Message-ID: <20170720074936.1a89f304@vento.lan>
-In-Reply-To: <50e5ba3c-4e32-f2e4-7844-150eefdf71b5@web.de>
-References: <50e5ba3c-4e32-f2e4-7844-150eefdf71b5@web.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:43366 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750766AbdGLXYu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Jul 2017 19:24:50 -0400
+Subject: Re: [PATCH] Added support for the TerraTec T1 DVB-T USB tuner [IT9135
+ chipset]
+To: Nuno Henriques <nuno.amhenriques@gmail.com>,
+        linux-media@vger.kernel.org
+References: <20170629175554.19099-1-nuno.amhenriques@gmail.com>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <13ab44fb-cd6e-d7c6-4f2f-de03e7eb170d@iki.fi>
+Date: Thu, 13 Jul 2017 02:24:47 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20170629175554.19099-1-nuno.amhenriques@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Soeren,
-
-Em Sun, 16 Jul 2017 20:34:23 +0200
-Soeren Moch <smoch@web.de> escreveu:
-
-> This is a driver for DVB cards based on the SAA7160/62 PCIe bridges from
-> Philips/NXP. The most important of these cards, at least for me, is the
-> TechnoTrend S2-6400, a high-definition full-featured DVB-S2 card, the
-> successor of the famous ttpci decoder cards. Other supported cards are:
-> Avermedia H788
-> Avermedia HC82 Express-54
-> KNC One Dual S2
-> KWorld DVB-T PE310
-> Technisat SkyStar 2 eXpress HD
-> Twinhan/Azurewave VP-1028
-> Twinhan/Azurewave VP-3071
-> Twinhan/Azurewave VP-6002
-> Twinhan/Azurewave VP-6090
+On 06/29/2017 08:55 PM, Nuno Henriques wrote:
+> Signed-off-by: Nuno Henriques <nuno.amhenriques@gmail.com>
+> ---
+>   drivers/media/dvb-core/dvb-usb-ids.h  | 1 +
+>   drivers/media/usb/dvb-usb-v2/af9035.c | 2 ++
+>   2 files changed, 3 insertions(+)
 > 
-> The driver is taken from [1] with adaptations for current mainline,
-> converted to git and moved to drivers/staging/media. See TODO for
-> required cleanups (from my point of view, maybe more to come from
-> additional code review by other developers). I added myself as driver
-> maintainer to document my commitment to further development to get this
-> out of staging, help from others welcome.
+> diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
+> index e200aa6f2d2f..5b6041d462bc 100644
+> --- a/drivers/media/dvb-core/dvb-usb-ids.h
+> +++ b/drivers/media/dvb-core/dvb-usb-ids.h
+> @@ -279,6 +279,7 @@
+>   #define USB_PID_TERRATEC_H7				0x10b4
+>   #define USB_PID_TERRATEC_H7_2				0x10a3
+>   #define USB_PID_TERRATEC_H7_3				0x10a5
+> +#define USB_PID_TERRATEC_T1				0x10ae
+>   #define USB_PID_TERRATEC_T3				0x10a0
+>   #define USB_PID_TERRATEC_T5				0x10a1
+>   #define USB_PID_NOXON_DAB_STICK				0x00b3
+> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+> index 4df9486e19b9..ccf4a5c68877 100644
+> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
+> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+> @@ -2108,6 +2108,8 @@ static const struct usb_device_id af9035_id_table[] = {
+>   	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_CTVDIGDUAL_V2,
+>   		&af9035_props, "Digital Dual TV Receiver CTVDIGDUAL_V2",
+>   							RC_MAP_IT913X_V1) },
+> +	{ DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_T1,
+> +		&af9035_props, "TerraTec T1", RC_MAP_IT913X_V1) },
+>   	/* XXX: that same ID [0ccd:0099] is used by af9015 driver too */
+>   	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x0099,
+>   		&af9035_props, "TerraTec Cinergy T Stick Dual RC (rev. 2)",
 > 
-> This driver was licensed "GPL" from the beginning. S2-6400 firmware is
-> available at [2].
-> 
-> I want to preserve the development history of the driver, since this
-> is mainly work of Andreas Regel, Manu Abraham, and Oliver Endriss.
-> Unfortunately Andreas seems not to take care of this driver anymore, he
-> also did not answer my requests to integrate patches for newer kernel
-> versions. So I send this upstream.
-> 
-> With all the history this is a 280 part patch series, so I send this as
-> pull request. Of course I can also send this as 'git send-email' series
-> if desired.
-
-Even on staging, reviewing a 280 patch series take a while ;)
-
-As the patches that make it build with current upstream are at the
-end of the series, you need to be sure that the saa716x Makefile
-won't be included until those fixes get applied. It seems you took
-care of it already, with is good!
 
 
-The hole idea of adding a driver to staging is that it will be moved
-some day out of staging. That's why a TODO and an entry at MAINTAINERS
-is required.
+Does this stick has a remote? I see always red when I see someone adds 
+RC_MAP_IT913X_V1 remote controller as there is now too many simply 
+totally wrongly defined remote controllers on that driver.
 
-By looking at the saa716x_ff_main:
+Commit message is missing, even it is very trivial patch there should be 
+something like It is IT9135BX device having USB ID xxxx:yyyy and remote 
+controller model is xxxxx.xxxx.
 
-	https://github.com/s-moch/linux-saa716x/blob/for-media/drivers/staging/media/saa716x/saa716x_ff_main.c
+Use git log to see other commit messages where new usb id is added.
 
-I'm seeing that the main problem of this driver is that it still use
-the API from the legacy ttpci driver, e. g. DVB audio, video and osd APIs.
+regards
+Antti
 
-Those APIs were deprecated because they duplicate a functionality
-provided by the V4L2 API, and are obscure, because they're not
-properly documented. Also, no other driver uses it upstream.
-
-So, it was agreed several years ago that new full featured drivers
-should use the V4L2 API for audio/video codecs.
-
-We have a some drivers that use V4L2 for MPEG audio/video decoding
-and encoding. The best examples are ivtv and cx18 (as both are for
-PCI devices). Currently, none of those drivers support the DVB
-API, though, as they're used only on analog TV devices.
-
-It was also agreed that setup pipelines on more complex DVB
-devices should use the media controller API (MC API).
-
-Yet, we don't have, currently, any full featured drivers upstream
-(except for the legacy one).
-
-So, if we're willing to apply this driver, you should be committed
-to do implement the media APIs properly, porting from DVB
-audio/video/osd to V4L2 and MC APIs.
-
-That should also reflect its TODO:
-
-	https://github.com/s-moch/linux-saa716x/blob/for-media/drivers/staging/media/saa716x/TODO
-
-Regards,
-Mauro
+-- 
+http://palosaari.fi/
