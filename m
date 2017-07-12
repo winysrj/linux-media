@@ -1,93 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:48982 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751187AbdGOMr5 (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:35248 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753485AbdGLRMs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Jul 2017 08:47:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        devicetree@vger.kernel.org
-Subject: [PATCH 0/4] tegra-cec: add Tegra HDMI CEC support
-Date: Sat, 15 Jul 2017 14:47:49 +0200
-Message-Id: <20170715124753.43714-1-hverkuil@xs4all.nl>
+        Wed, 12 Jul 2017 13:12:48 -0400
+Subject: Re: [PATCH v2] [media] staging/imx: remove confusing IS_ERR_OR_NULL
+ usage
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Marek Vasut <marex@denx.de>,
+        Russell King <rmk+kernel@armlinux.org.uk>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+References: <20170711132001.2266388-1-arnd@arndb.de>
+ <1499874605.6374.56.camel@pengutronix.de>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <0470fa74-dfbd-e512-295c-4ba64c483aac@gmail.com>
+Date: Wed, 12 Jul 2017 10:12:45 -0700
+MIME-Version: 1.0
+In-Reply-To: <1499874605.6374.56.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This patch series adds support for the Tegra CEC functionality.
 
-It has two prerequisites:
+On 07/12/2017 08:50 AM, Philipp Zabel wrote:
+> On Tue, 2017-07-11 at 15:18 +0200, Arnd Bergmann wrote:
+>> While looking at a compiler warning, I noticed the use of
+>> IS_ERR_OR_NULL, which is generally a sign of a bad API design
+>> and should be avoided.
+>>
+>> In this driver, this is fairly easy, we can simply stop storing
+>> error pointers in persistent structures, and change the two
+>> functions that might return either a NULL pointer or an error
+>> code to consistently return error pointers when failing.
+>>
+>> of_parse_subdev() now separates the error code and the pointer
+>> it looks up, to clarify the interface. There are two cases
+>> where this function originally returns 'NULL', and I have
+>> changed that to '0' for success to keep the current behavior,
+>> though returning an error would also make sense there.
+>>
+>> Fixes: e130291212df ("[media] media: Add i.MX media core driver")
+>> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>> ---
+>> v2: fix type mismatch
+>> v3: rework of_parse_subdev() as well.
+> 
+> Thanks!
+> 
+> Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+> 
 
-this cec-notifier patch: https://patchwork.linuxtv.org/patch/42521/
+Looks fine to me. Tested on SabreAuto with affected pipelines.
 
-and this workaround: http://www.spinics.net/lists/dri-devel/msg147038.html
-
-A proper fix needs to be found for that workaround, but it is good
-enough for testing this patch series.
-
-The first patch documents the CEC bindings, the second adds support
-for this to tegra124.dtsi and enables it for the Jetson TK1.
-
-The third patch adds the CEC driver itself and the final patch adds
-the cec notifier support to the drm/tegra driver in order to notify
-the CEC driver whenever the physical address changes.
-
-I expect that the dts changes apply as well to the Tegra X1/X2 and possibly
-other Tegra SoCs, but I can only test this with my Jetson TK1 board.
-
-The dt-bindings and the tegra-cec driver would go in through the media
-subsystem, the drm/tegra part through the drm subsystem and the dts
-changes through (I guess) the linux-tegra developers. Luckily they are
-all independent of one another.
-
-To test this you need the CEC utilities from git://linuxtv.org/v4l-utils.git.
-
-To build this:
-
-git clone git://linuxtv.org/v4l-utils.git
-cd v4l-utils
-./bootstrap.sh; ./configure
-make
-sudo make install	# optional, you really only need utils/cec*
-
-To test:
-
-cec-ctl --playback	# configure as playback device
-cec-ctl -S		# detect all connected CEC devices
-
-See here for the public CEC API:
-
-https://hverkuil.home.xs4all.nl/spec/uapi/cec/cec-api.html
-
-Regards,
-
-	Hans
-
-Hans Verkuil (4):
-  dt-bindings: document the tegra CEC bindings
-  ARM: tegra: add CEC support to tegra124.dtsi
-  tegra-cec: add Tegra HDMI CEC driver
-  drm/tegra: add cec-notifier support
-
- .../devicetree/bindings/media/tegra-cec.txt        |  26 ++
- MAINTAINERS                                        |   8 +
- arch/arm/boot/dts/tegra124-jetson-tk1.dts          |   4 +
- arch/arm/boot/dts/tegra124.dtsi                    |  12 +-
- drivers/gpu/drm/tegra/drm.h                        |   3 +
- drivers/gpu/drm/tegra/hdmi.c                       |   9 +
- drivers/gpu/drm/tegra/output.c                     |   6 +
- drivers/media/platform/Kconfig                     |  11 +
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/tegra-cec/Makefile          |   1 +
- drivers/media/platform/tegra-cec/tegra_cec.c       | 506 +++++++++++++++++++++
- drivers/media/platform/tegra-cec/tegra_cec.h       | 127 ++++++
- 12 files changed, 714 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/devicetree/bindings/media/tegra-cec.txt
- create mode 100644 drivers/media/platform/tegra-cec/Makefile
- create mode 100644 drivers/media/platform/tegra-cec/tegra_cec.c
- create mode 100644 drivers/media/platform/tegra-cec/tegra_cec.h
-
--- 
-2.11.0
+Reviewed-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Tested-by: Steve Longerbeam <steve_longerbeam@mentor.com>
