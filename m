@@ -1,70 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:36554 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755265AbdGKGaw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 02:30:52 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 10/11] cec-core.rst: include cec-pin.h and cec-notifier.h
-Date: Tue, 11 Jul 2017 08:30:43 +0200
-Message-Id: <20170711063044.29849-11-hverkuil@xs4all.nl>
-In-Reply-To: <20170711063044.29849-1-hverkuil@xs4all.nl>
-References: <20170711063044.29849-1-hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:60483 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750704AbdGLXRU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Jul 2017 19:17:20 -0400
+Subject: Re: [PATCH V2 4/9] [media] dvb-core/dvb_ca_en50221.c: Fixed block
+ comments
+To: "Jasmin J." <jasmin@anw.at>, linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
+        rjkm@metzlerbros.de, d.scheller@gmx.net
+References: <1499900458-2339-1-git-send-email-jasmin@anw.at>
+ <1499900458-2339-5-git-send-email-jasmin@anw.at>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <c8c9b074-32fe-96b8-6635-842898dfc956@iki.fi>
+Date: Thu, 13 Jul 2017 02:17:15 +0300
+MIME-Version: 1.0
+In-Reply-To: <1499900458-2339-5-git-send-email-jasmin@anw.at>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 07/13/2017 02:00 AM, Jasmin J. wrote:
+> From: Jasmin Jessich <jasmin@anw.at>
+> 
+> Fixed all:
+>    WARNING: Block comments use * on subsequent lines
 
-Include the CEC pin framework documentation by reading cec-pin.h.
-Include the CEC notifier framework documentation by reading cec-notifier.h.
+Also multiline comments should be written like this:
+/*
+  * Comment.
+  */
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/media/kapi/cec-core.rst | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+Quickly looking this patch serie I noticed few other coding style 
+mistakes. You should read kernel coding style documentation first, and 
+then make changes according to doc.
 
-diff --git a/Documentation/media/kapi/cec-core.rst b/Documentation/media/kapi/cec-core.rst
-index bb066b2b26f8..dc512bdd43c0 100644
---- a/Documentation/media/kapi/cec-core.rst
-+++ b/Documentation/media/kapi/cec-core.rst
-@@ -345,3 +345,34 @@ log_addrs->num_log_addrs set to 0. The block argument is ignored when
- unconfiguring. This function will just return if the physical address is
- invalid. Once the physical address becomes valid, then the framework will
- attempt to claim these logical addresses.
-+
-+CEC Pin framework
-+-----------------
-+
-+Most CEC hardware operates on full CEC messages where the software provides
-+the message and the hardware handles the low-level CEC protocol. But some
-+hardware only drives the CEC pin and software has to handle the low-level
-+CEC protocol. The CEC pin framework was created to handle such devices.
-+
-+Note that due to the close-to-realtime requirements it can never be guaranteed
-+to work 100%. This framework uses highres timers internally, but if a
-+timer goes off too late by more than 300 microseconds wrong results can
-+occur. In reality it appears to be fairly reliable.
-+
-+One advantage of this low-level implementation is that it can be used as
-+a cheap CEC analyser, especially if interrupts can be used to detect
-+CEC pin transitions from low to high or vice versa.
-+
-+.. kernel-doc:: include/media/cec-pin.h
-+
-+CEC Notifier framework
-+-----------------
-+
-+Most drm HDMI implementations have an integrated CEC implementation and no
-+notifier support is needed. But some have independent CEC implementations
-+that have their own driver. This could be an IP block for an SoC or a
-+completely separate chip that deals with the CEC pin. For those cases a
-+drm driver can install a notifier and use the notifier to inform the
-+CEC driver about changes in the physical address.
-+
-+.. kernel-doc:: include/media/cec-notifier.h
+regards
+Antti
+
 -- 
-2.11.0
+http://palosaari.fi/
