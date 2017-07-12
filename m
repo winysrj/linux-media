@@ -1,110 +1,224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.horus.com ([78.46.148.228]:57087 "EHLO mail.horus.com"
+Received: from mail.kernel.org ([198.145.29.99]:58598 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751496AbdG2LqK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Jul 2017 07:46:10 -0400
-Date: Sat, 29 Jul 2017 13:46:07 +0200
-From: Matthias Reichl <hias@horus.com>
-To: Sean Young <sean@mess.org>
-Cc: Szabolcs Andrasi <andrasi.szabolcs@gmail.com>,
-        linux-media@vger.kernel.org
-Subject: Re: ir-keytable question [Ubuntu 17.04]
-Message-ID: <20170729114607.2536ekbn6wzhbzpn@camel2.lan>
-References: <CAM1CkLU6gTj2zDS-9cu_POOVpByitEyi26XhKZ1W3j9AbTTK-Q@mail.gmail.com>
- <20170729102322.7p6ipsszmvryqubs@gofer.mess.org>
+        id S1751099AbdGLTdM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Jul 2017 15:33:12 -0400
+From: Sylwester Nawrocki <snawrocki@kernel.org>
+Subject: Re: [PATCH v2 3/7] [media] ov9650: add device tree support
+To: Hugues Fruchet <hugues.fruchet@st.com>
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>
+References: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com>
+ <1499073368-31905-4-git-send-email-hugues.fruchet@st.com>
+Message-ID: <a1ba8a73-ac6e-4f5d-1f41-6aefb0f5018f@kernel.org>
+Date: Wed, 12 Jul 2017 21:33:06 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170729102322.7p6ipsszmvryqubs@gofer.mess.org>
+In-Reply-To: <1499073368-31905-4-git-send-email-hugues.fruchet@st.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 29, 2017 at 11:23:22AM +0100, Sean Young wrote:
-> Hi,
+On 07/03/2017 11:16 AM, Hugues Fruchet wrote:
+> Allows use of device tree configuration data.
+> If no device tree data is there, configuration is taken from platform data.
+> In order to keep GPIOs configuration compatible between both way of doing,
+> GPIOs are switched to descriptor-based interface.
 > 
-> On Sun, Jul 16, 2017 at 10:26:14PM -0700, Szabolcs Andrasi wrote:
-> > Hi,
-> > 
-> > I'm using Ubuntu 17.04 and I installed the ir-keytable tool. The
-> > output of the ir-keytable command is as follows:
-> > 
-> > 
-> > 
-> > Found /sys/class/rc/rc0/ (/dev/input/event5) with:
-> > Driver ite-cir, table rc-rc6-mce
-> > Supported protocols: unknown other lirc rc-5 rc-5-sz jvc sony nec
-> > sanyo mce_kbd rc-6 sharp xmp
-> > Enabled protocols: lirc rc-6
-> > Name: ITE8708 CIR transceiver
-> > bus: 25, vendor/product: 1283:0000, version: 0x0000
-> > Repeat delay = 500 ms, repeat period = 125 ms
-> > 
-> > 
-> > 
-> > I'm trying to enable the supported mce_kbd protocol in addition to the
-> > lirc and rc-6 protocols with the
-> > 
-> > $ sudo ir-keytable -p lirc -p rc-6 -p mce_kbd
-> > 
-> > command which works as expected. If, however, I reboot my computer,
-> > ir-keytable forgets this change and only the lirc and rc-6 protocols
-> > are enabled. Is there a configuration file I can edit so that after
-> > the boot my IR remote still works? Or is that so that the only way to
-> > make it work is to write a start-up script that runs the above command
-> > to enable the needed protocol?
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+> ---
+>   drivers/media/i2c/Kconfig  |  2 +-
+>   drivers/media/i2c/ov9650.c | 77 ++++++++++++++++++++++++++++++++++------------
+>   2 files changed, 59 insertions(+), 20 deletions(-)
 > 
-> So what we have today is /etc/rc_maps.cfg, where you can select the default
-> keymap for a particular driver; unfortunately, you can only select one
-> keymap and one keymap can only have one protocol.
->
-> Ideally we could either have more than one protocol per keymap, which
-> would be helpful for the MCE Keyboard, or we could allow multiple keymaps
-> which would be great for supporting different remotes at the same time.
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index 121b3b5..168115c 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -615,7 +615,7 @@ config VIDEO_OV7670
+>   
+>   config VIDEO_OV9650
+>   	tristate "OmniVision OV9650/OV9652 sensor support"
+> -	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+> +	depends on GPIOLIB && I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+>   	---help---
+>   	  This is a V4L2 sensor-level driver for the Omnivision
+>   	  OV9650 and OV9652 camera sensors.
+> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+> index 1e4e99e..7e9a902 100644
+> --- a/drivers/media/i2c/ov9650.c
+> +++ b/drivers/media/i2c/ov9650.c
+> @@ -11,12 +11,14 @@
+>    * it under the terms of the GNU General Public License version 2 as
+>    * published by the Free Software Foundation.
+>    */
+> +#include <linux/clk.h>
+>   #include <linux/delay.h>
+>   #include <linux/gpio.h>
+>   #include <linux/i2c.h>
+>   #include <linux/kernel.h>
+>   #include <linux/media.h>
+>   #include <linux/module.h>
+> +#include <linux/of_gpio.h>
+>   #include <linux/ratelimit.h>
+>   #include <linux/slab.h>
+>   #include <linux/string.h>
+> @@ -249,9 +251,10 @@ struct ov965x {
+>   	struct v4l2_subdev sd;
+>   	struct media_pad pad;
+>   	enum v4l2_mbus_type bus_type;
+> -	int gpios[NUM_GPIOS];
+> +	struct gpio_desc *gpios[NUM_GPIOS];
+>   	/* External master clock frequency */
+>   	unsigned long mclk_frequency;
+> +	struct clk *clk;
+>   
+>   	/* Protects the struct fields below */
+>   	struct mutex lock;
+> @@ -511,10 +514,10 @@ static int ov965x_set_color_matrix(struct ov965x *ov965x)
+>   	return 0;
+>   }
+>   
+> -static void ov965x_gpio_set(int gpio, int val)
+> +static void ov965x_gpio_set(struct gpio_desc *gpio, int val)
+>   {
+> -	if (gpio_is_valid(gpio))
+> -		gpio_set_value(gpio, val);
+> +	if (gpio)
+> +		gpiod_set_value_cansleep(gpio, val);
+>   }
+>   
+>   static void __ov965x_set_power(struct ov965x *ov965x, int on)
+> @@ -1406,24 +1409,28 @@ static int ov965x_configure_gpios(struct ov965x *ov965x,
+>   				  const struct ov9650_platform_data *pdata)
+>   {
+>   	int ret, i;
+> +	int gpios[NUM_GPIOS];
+>   
+> -	ov965x->gpios[GPIO_PWDN] = pdata->gpio_pwdn;
+> -	ov965x->gpios[GPIO_RST]  = pdata->gpio_reset;
+> +	gpios[GPIO_PWDN] = pdata->gpio_pwdn;
+> +	gpios[GPIO_RST]  = pdata->gpio_reset;
+>   
+> -	for (i = 0; i < ARRAY_SIZE(ov965x->gpios); i++) {
+> -		int gpio = ov965x->gpios[i];
+> +	for (i = 0; i < ARRAY_SIZE(gpios); i++) {
+> +		int gpio = gpios[i];
+>   
+>   		if (!gpio_is_valid(gpio))
+>   			continue;
+>   		ret = devm_gpio_request_one(&ov965x->client->dev, gpio,
+> -					    GPIOF_OUT_INIT_HIGH, "OV965X");
+> -		if (ret < 0)
+> +					    GPIOF_OUT_INIT_HIGH, DRIVER_NAME);
+> +		if (ret < 0) {
+> +			dev_err(&ov965x->client->dev,
+> +				"Failed to request gpio%d (%d)\n", gpio, ret);
+>   			return ret;
+> +		}
+>   		v4l2_dbg(1, debug, &ov965x->sd, "set gpio %d to 1\n", gpio);
+>   
+>   		gpio_set_value(gpio, 1);
+>   		gpio_export(gpio, 0);
+> -		ov965x->gpios[i] = gpio;
+> +		ov965x->gpios[i] = gpio_to_desc(gpio);
+>   	}
+>   
+>   	return 0;
+> @@ -1469,14 +1476,10 @@ static int ov965x_probe(struct i2c_client *client,
+>   	struct v4l2_subdev *sd;
+>   	struct ov965x *ov965x;
+>   	int ret;
+> +	struct device_node *np = client->dev.of_node;
+>   
+> -	if (pdata == NULL) {
+> -		dev_err(&client->dev, "platform data not specified\n");
+> -		return -EINVAL;
+> -	}
+> -
+> -	if (pdata->mclk_frequency == 0) {
+> -		dev_err(&client->dev, "MCLK frequency not specified\n");
+> +	if (!pdata && !np) {
+> +		dev_err(&client->dev, "Platform data or device tree data must be provided\n");
+>   		return -EINVAL;
+>   	}
+>   
+> @@ -1486,7 +1489,35 @@ static int ov965x_probe(struct i2c_client *client,
+>   
+>   	mutex_init(&ov965x->lock);
+>   	ov965x->client = client;
+> -	ov965x->mclk_frequency = pdata->mclk_frequency;
+> +	mutex_init(&ov965x->lock);
 
-Having more than one protocol in the keymap file works fine here,
-we have been using that feature in LibreELEC for a long time now.
-Maybe it was just forgotten to document it?
+Are you initializing the mutex twice?
 
-$ git show 42511eb505
-commit 42511eb505b46b125652d37e764e5c8d1eb99e6b
-Author: Mauro Carvalho Chehab <mchehab@redhat.com>
-Date:   Sat Apr 10 21:55:28 2010 -0300
+> +	if (np) {
+> +		/* Device tree */
+> +		ov965x->gpios[GPIO_RST] =
+> +			devm_gpiod_get_optional(&client->dev, "resetb",
+> +						GPIOD_OUT_LOW);
+> +		ov965x->gpios[GPIO_PWDN] =
+> +			devm_gpiod_get_optional(&client->dev, "pwdn",
+> +						GPIOD_OUT_HIGH);
+> +
+> +		ov965x->clk = devm_clk_get(&client->dev, NULL);
+> +		if (IS_ERR(ov965x->clk)) {
+> +			dev_err(&client->dev, "Could not get clock\n");
+> +			return PTR_ERR(ov965x->clk);
+> +		}
+> +		ov965x->mclk_frequency = clk_get_rate(ov965x->clk);
+> +	} else {
+> +		/* Platform data */
+> +		ret = ov965x_configure_gpios(ov965x, pdata);
+> +		if (ret < 0)
+> +			return ret;
+> +
+> +		if (pdata->mclk_frequency == 0) {
+> +			dev_err(&client->dev, "MCLK frequency is mandatory\n");
 
-    ir-keytable: add support for more than one protocol in a table
+I think the original message ("MCLK frequency not specified\n") was more
+helpful.
 
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Why you don't need this check in DT case? The clock is defined as mandatory 
+in the DT binding.
 
-Quick test with ir-keytable 1.12.3 from Debian Stretch:
+> +			return -EINVAL;
+> +		}
+> +		ov965x->mclk_frequency = pdata->mclk_frequency;
+> +	}
+>   
+>   	sd = &ov965x->sd;
+>   	v4l2_i2c_subdev_init(sd, client, &ov965x_subdev_ops);
+> @@ -1551,9 +1582,17 @@ static int ov965x_remove(struct i2c_client *client)
+>   };
+>   MODULE_DEVICE_TABLE(i2c, ov965x_id);
+>   
+> +static const struct of_device_id ov965x_of_match[] = {
+> +	{ .compatible = "ovti,ov9650", },
+> +	{ .compatible = "ovti,ov9652", },
+> +	{ /* sentinel */ }
+> +};
+> +MODULE_DEVICE_TABLE(of, ov965x_of_match);
+> +
+>   static struct i2c_driver ov965x_i2c_driver = {
+>   	.driver = {
+>   		.name	= DRIVER_NAME,
+> +		.of_match_table = of_match_ptr(ov965x_of_match),
 
-$ sudo ir-keytable -c -p lirc,rc-6 -s rc1
-Old keytable cleared
-Protocols changed to lirc rc-6
+You don't need of_match_ptr() as ov965x_of_match table is always built in.
 
-$ sudo ir-keytable -r -s rc1
-Enabled protocols: lirc rc-6
+>   	},
 
-$ cat /etc/rc_keymaps/rc6_mce_kbd_test
-# table test, type:rc-6,mce_kbd
-0x01    KEY_1
-
-$ cat test-map.cfg
-* * rc6_mce_kbd_test
-
-$ sudo ir-keytable -a test-map.cfg -s rc1
-Old keytable cleared
-Wrote 1 keycode(s) to driver
-Protocols changed to mce_kbd rc-6
-
-$ sudo ir-keytable -r -s rc1
-scancode 0x0001 = KEY_1 (0x02)
-Enabled protocols: lirc mce_kbd rc-6
-
-so long,
-
-Hias
-
-> 
-> For now, you could add a udev rule to also enable the mce_kbd protocol.
-> 
-> 
-> Sean
+Otherwise looks good.
