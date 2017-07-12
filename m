@@ -1,74 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:35625 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752292AbdGJUTy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Jul 2017 16:19:54 -0400
-Received: by mail-qk0-f194.google.com with SMTP id 16so14313509qkg.2
-        for <linux-media@vger.kernel.org>; Mon, 10 Jul 2017 13:19:54 -0700 (PDT)
-Date: Mon, 10 Jul 2017 17:19:49 -0300
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [PATCH 12/12] [media] vb2: add out-fence support to QBUF
-Message-ID: <20170710201949.GL10284@jade>
-References: <20170616073915.5027-1-gustavo@padovan.org>
- <20170616073915.5027-13-gustavo@padovan.org>
- <aee01ccd-530b-4c93-6510-6b6acca7e7c0@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:37208 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750755AbdGLX2q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Jul 2017 19:28:46 -0400
+Subject: Re: [PATCH V2 4/9] [media] dvb-core/dvb_ca_en50221.c: Fixed block
+ comments
+To: "Jasmin J." <jasmin@anw.at>, linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
+        rjkm@metzlerbros.de, d.scheller@gmx.net
+References: <1499900458-2339-1-git-send-email-jasmin@anw.at>
+ <1499900458-2339-5-git-send-email-jasmin@anw.at>
+ <c8c9b074-32fe-96b8-6635-842898dfc956@iki.fi>
+ <080f360c-a6cb-0f5c-b2ca-f380a78a2cf9@anw.at>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <ffcb064e-3b82-fbae-ab32-d9a4a56f6716@iki.fi>
+Date: Thu, 13 Jul 2017 02:28:42 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aee01ccd-530b-4c93-6510-6b6acca7e7c0@xs4all.nl>
+In-Reply-To: <080f360c-a6cb-0f5c-b2ca-f380a78a2cf9@anw.at>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-07-06 Hans Verkuil <hverkuil@xs4all.nl>:
+On 07/13/2017 02:23 AM, Jasmin J. wrote:
+> Hello Antti!
+> 
+>> Quickly looking this patch serie I noticed few other coding style mistakes.
+>> You should read kernel coding style documentation first, and then make
+>> changes according to doc.
+> In fact I used checkpatch.pl to find the issues and fixed them. All the patches
+> are 100% checkpatch.pl tested and did not have one single error or warning.
+> 
+> So please can you point me to those issues you mean.
 
-> On 06/16/17 09:39, Gustavo Padovan wrote:
-> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> > 
-> > If V4L2_BUF_FLAG_OUT_FENCE flag is present on the QBUF call we create
-> > an out_fence for the buffer and return it to userspace on the fence_fd
-> > field. It only works with ordered queues.
-> > 
-> > The fence is signaled on buffer_done(), when the job on the buffer is
-> > finished.
-> > 
-> > v2: check if the queue is ordered.
-> > 
-> > Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> > ---
-> >  drivers/media/v4l2-core/videobuf2-core.c |  6 ++++++
-> >  drivers/media/v4l2-core/videobuf2-v4l2.c | 22 +++++++++++++++++++++-
-> >  2 files changed, 27 insertions(+), 1 deletion(-)
-> > 
-> 
-> <snip>
-> 
-> > diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> > index e6ad77f..e2733dd 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> > @@ -204,9 +204,14 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
-> >  	b->timestamp = ns_to_timeval(vb->timestamp);
-> >  	b->timecode = vbuf->timecode;
-> >  	b->sequence = vbuf->sequence;
-> > -	b->fence_fd = -1;
-> > +	b->fence_fd = vb->out_fence_fd;
-> 
-> I forgot to ask: can a buffer have both an in and an out fence? If so, then we
-> have a problem here since we can report only one fence fd.
-> 
-> If it is not allowed, then we need a check for that somewhere.
+Have you ever looked that coding style doc? Maybe better to start 
+reading it first. Checkpatch is only a tool, it is nothing which makes 
+100% decision which is correct or not.
 
-It is perfect fine to have both, I just wasn't expecting to get them out
-from the kernel at the same time. In-fence is set by userspace in the
-fence_fd field and then sent to the kernel, the field is then reused to
-send the out-fence created in the kernel to userspace. That is how GPU
-drivers do it.
+Multi-line comment style is explained on section 8 on kernel coding 
+style doc.
 
-	Gustavo
+Antti
+
+
+-- 
+http://palosaari.fi/
