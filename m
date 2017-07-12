@@ -1,49 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:8053 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751059AbdGGWsu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Jul 2017 18:48:50 -0400
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-To: "Rapolu, Chiranjeevi" <chiranjeevi.rapolu@intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "tfiga@chromium.org" <tfiga@chromium.org>
-CC: "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
-Subject: RE: [PATCH v4 1/1] i2c: Add Omnivision OV5670 5M sensor support
-Date: Fri, 7 Jul 2017 22:48:49 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A59725D6C3C@FMSMSX114.amr.corp.intel.com>
-References: <1497404348-16255-1-git-send-email-chiranjeevi.rapolu@intel.com>
- <4720ac4f89b26f2509ee3788c63f65adf093871a.1498941658.git.chiranjeevi.rapolu@intel.com>
-In-Reply-To: <4720ac4f89b26f2509ee3788c63f65adf093871a.1498941658.git.chiranjeevi.rapolu@intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:38760
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750738AbdGLMcG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Jul 2017 08:32:06 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@llwyncelyn.cymru>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        devel@driverdev.osuosl.org
+Subject: [PATCH] media: staging: atomisp: disable warnings with cc-disable-warning
+Date: Wed, 12 Jul 2017 09:31:05 -0300
+Message-Id: <5e7dbe75f7db3f47e1ed49bba6833dd81d6ce870.1499862654.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Chiran,
+Instead of directly using -Wno-foo, use cc-disable-warning, as it
+checks if the compiler has the warnings we want to disable.
 
-> +
-> +/* Supported link frequencies */
-> +#define OV5670_LINK_FREQ_840MBPS	840000000
-> +#define OV5670_LINK_FREQ_840MBPS_INDEX	0
-> +static const struct ov5670_link_freq_config link_freq_configs[] = {
-> +	{
-> +		.pixel_rate = 336000000,
-> +		.reg_list = {
-> +			.num_of_regs =
-> ARRAY_SIZE(mipi_data_rate_840mbps),
-> +			.regs = mipi_data_rate_840mbps,
-> +		}
-> +	}
-> +};
-> +
-> +static const const s64 link_freq_menu_items[] = {
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/staging/media/atomisp/pci/atomisp2/Makefile | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-	 ^ duplicated const declaration
-
-> +	OV5670_LINK_FREQ_840MBPS
-> +};
-> +
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/Makefile b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
+index 726eaa293c55..2bd98f0667ec 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/Makefile
++++ b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
+@@ -354,7 +354,9 @@ ccflags-y += $(INCLUDES) $(DEFINES) -fno-common
+ 
+ # HACK! While this driver is in bad shape, don't enable several warnings
+ #       that would be otherwise enabled with W=1
+-ccflags-y += -Wno-unused-const-variable -Wno-missing-prototypes \
+-	     -Wno-unused-but-set-variable -Wno-missing-declarations \
+-	     -Wno-suggest-attribute=format -Wno-missing-prototypes \
+-	     -Wno-implicit-fallthrough
++ccflags-y += $(call cc-disable-warning, implicit-fallthrough)
++ccflags-y += $(call cc-disable-warning, missing-prototypes)
++ccflags-y += $(call cc-disable-warning, missing-declarations)
++ccflags-y += $(call cc-disable-warning, suggest-attribute=format)
++ccflags-y += $(call cc-disable-warning, unused-const-variable)
++ccflags-y += $(call cc-disable-warning, unused-but-set-variable)
+-- 
+2.13.0
