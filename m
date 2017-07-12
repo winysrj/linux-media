@@ -1,66 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f51.google.com ([209.85.215.51]:38568 "EHLO
-        mail-lf0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753419AbdGSLy3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Jul 2017 07:54:29 -0400
-Received: by mail-lf0-f51.google.com with SMTP id y15so1127559lfd.5
-        for <linux-media@vger.kernel.org>; Wed, 19 Jul 2017 04:54:28 -0700 (PDT)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Wed, 19 Jul 2017 13:54:26 +0200
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-Subject: Re: [PATCH v5 0/4] v4l2-async: add subnotifier registration for
- subdevices
-Message-ID: <20170719115426.GA20077@bigcity.dyn.berto.se>
-References: <20170719104946.7322-1-niklas.soderlund+renesas@ragnatech.se>
- <5e25930e-b249-6d92-1c7e-36266754f3cb@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <5e25930e-b249-6d92-1c7e-36266754f3cb@xs4all.nl>
+Received: from mail.anw.at ([195.234.101.228]:54590 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750812AbdGLXBm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Jul 2017 19:01:42 -0400
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
+        rjkm@metzlerbros.de, d.scheller@gmx.net, jasmin@anw.at
+Subject: [PATCH V2 3/9] [media] dvb-core/dvb_ca_en50221.c: use usleep_range
+Date: Thu, 13 Jul 2017 01:00:52 +0200
+Message-Id: <1499900458-2339-4-git-send-email-jasmin@anw.at>
+In-Reply-To: <1499900458-2339-1-git-send-email-jasmin@anw.at>
+References: <1499900458-2339-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Jasmin Jessich <jasmin@anw.at>
 
-Thanks for your feedback.
+Fixed all:
+  WARNING: msleep < 20ms can sleep for up to 20ms
+by using usleep_range.
 
-On 2017-07-19 13:02:14 +0200, Hans Verkuil wrote:
-> On 19/07/17 12:49, Niklas Söderlund wrote:
-> > * Changes since v4
-> > - Add patch which aborts v4l2_async_notifier_unregister() if the memory 
-> >   allocation for the device cache fails instead of trying to do as much 
-> >   as possible but still leave the system in a semi good state.
-> 
-> Since you are working with this code I would very much appreciate it if you
-> can make another patch that adds comments to this reprobing stuff, including
-> why device_reprobe() cannot be used here.
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+---
+ drivers/media/dvb-core/dvb_ca_en50221.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-I could do that.
-
-I think it makes most sens to break out patch 1-3 plus this new patch to 
-a new series 'v4l2-async: clean up v4l2_async_notifier_unregister()' or 
-something similar and post separate from the subnotifer work as me and 
-Sakari are still bashing out a common solution to that.
-
-Do this make sens to you or do you wish for me to keep these patches 
-together in this series?
-
-> 
-> That will help in the future.
-> 
-> Regards,
-> 
-> 	Hans
-
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+index 66a58ed..c0fd63a 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -313,7 +313,7 @@ static int dvb_ca_en50221_wait_if_status(struct dvb_ca_private *ca, int slot,
+ 		}
+ 
+ 		/* wait for a bit */
+-		msleep(1);
++		usleep_range(1000, 1100);
+ 	}
+ 
+ 	dprintk("%s failed timeout:%lu\n", __func__, jiffies - start);
+@@ -1484,7 +1484,7 @@ static ssize_t dvb_ca_en50221_io_write(struct file *file,
+ 			if (status != -EAGAIN)
+ 				goto exit;
+ 
+-			msleep(1);
++			usleep_range(1000, 1100);
+ 		}
+ 		if (!written) {
+ 			status = -EIO;
 -- 
-Regards,
-Niklas Söderlund
+2.7.4
