@@ -1,58 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:33708 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39074 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751215AbdGLKfB (ORCPT
+        with ESMTP id S1751017AbdGMXED (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Jul 2017 06:35:01 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v2 1/3] drm: rcar-du: Use the VBK interrupt for vblank
- events
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        dri-devel@lists.freedesktop.org
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-References: <20170711222942.27735-1-laurent.pinchart+renesas@ideasonboard.com>
- <20170711222942.27735-2-laurent.pinchart+renesas@ideasonboard.com>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <6e787da2-e438-5cfb-b623-992289410d90@ideasonboard.com>
-Date: Wed, 12 Jul 2017 11:34:56 +0100
+        Thu, 13 Jul 2017 19:04:03 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieranbingham@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 06/14] v4l: vsp1: Add pipe index argument to the VSP-DU API
+Date: Fri, 14 Jul 2017 02:04:06 +0300
+Message-ID: <3451025.QtdIjcAE8v@avalon>
+In-Reply-To: <915884a5-e69d-b821-4a53-afa73a03c233@gmail.com>
+References: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com> <20170626181226.29575-7-laurent.pinchart+renesas@ideasonboard.com> <915884a5-e69d-b821-4a53-afa73a03c233@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20170711222942.27735-2-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Kieran,
 
-On 11/07/17 23:29, Laurent Pinchart wrote:
-> When implementing support for interlaced modes, the driver switched from
-> reporting vblank events on the vertical blanking (VBK) interrupt to the
-> frame end interrupt (FRM). This incorrectly divided the reported refresh
-> rate by two. Fix it by moving back to the VBK interrupt.
+On Thursday 13 Jul 2017 14:16:03 Kieran Bingham wrote:
+> On 26/06/17 19:12, Laurent Pinchart wrote:
+> > In the H3 ES2.0 SoC the VSP2-DL instance has two connections to DU
+> > channels that need to be configured independently. Extend the VSP-DU API
+> > with a pipeline index to identify which pipeline the caller wants to
+> > operate on.
+> > 
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
 > 
-> Fixes: 906eff7fcada ("drm: rcar-du: Implement support for interlaced modes")
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-
-Of course, this looks much more correct than the patch I submitted :-)
-
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-> ---
->  drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> A bit of comment merge between this and the next patch but it's minor and
+> not worth the effort to change that ... so I'll happily ignore it if you do
+> :)
 > 
-> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-> index 98cf446391dc..17fd1cd5212c 100644
-> --- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-> +++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-> @@ -698,7 +698,7 @@ static irqreturn_t rcar_du_crtc_irq(int irq, void *arg)
->  	status = rcar_du_crtc_read(rcrtc, DSSR);
->  	rcar_du_crtc_write(rcrtc, DSRCR, status & DSRCR_MASK);
->  
-> -	if (status & DSSR_FRM) {
-> +	if (status & DSSR_VBK) {
->  		drm_crtc_handle_vblank(&rcrtc->crtc);
->  
->  		if (rcdu->info->gen < 3)
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 > 
+> > ---
+> > 
+> >  drivers/gpu/drm/rcar-du/rcar_du_vsp.c  | 12 ++++++------
+> >  drivers/media/platform/vsp1/vsp1_drm.c | 32 +++++++++++++++++++--------
+> >  include/media/vsp1.h                   | 10 ++++++----
+> >  3 files changed, 34 insertions(+), 20 deletions(-)
+
+[snip]
+
+> > diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
+> > b/drivers/media/platform/vsp1/vsp1_drm.c index c72d021ff820..daaafe7885fa
+> > 100644
+> > --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> > +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> > @@ -58,21 +58,26 @@ EXPORT_SYMBOL_GPL(vsp1_du_init);
+> >  /**
+> >   * vsp1_du_setup_lif - Setup the output part of the VSP pipeline
+> >   * @dev: the VSP device
+> > + * @pipe_index: the DRM pipeline index
+> >   * @cfg: the LIF configuration
+> >   *
+> >   * Configure the output part of VSP DRM pipeline for the given frame
+> >   @cfg.width
+> > - * and @cfg.height. This sets up formats on the BRU source pad, the WPF0
+> > sink
+> > - * and source pads, and the LIF sink pad.
+> > + * and @cfg.height. This sets up formats on the blend unit (BRU or BRS)
+> > source
+> > + * pad, the WPF sink and source pads, and the LIF sink pad.
+> >   *
+> > - * As the media bus code on the BRU source pad is conditioned by the
+> > - * configuration of the BRU sink 0 pad, we also set up the formats on all
+> > BRU
+> > + * The @pipe_index argument selects which DRM pipeline to setup. The
+> > number of
+> > + * available pipelines depend on the VSP instance.
+> > + *
+> > + * As the media bus code on the blend unit source pad is conditioned by
+> > the
+> > + * configuration of its sink 0 pad, we also set up the formats on all
+> > blend unit
+> >   * sinks, even if the configuration will be overwritten later by
+> > - * vsp1_du_setup_rpf(). This ensures that the BRU configuration is set to
+> > a well
+> > - * defined state.
+> > + * vsp1_du_setup_rpf(). This ensures that the blend unit configuration is
+> > set to
+> > + * a well defined state.
+> 
+> I presume those comment updates for the BRU/ blend-unit configuration are
+> actually for the next patch - but I don't think it matters here - and isn't
+> worth the effort to move the hunks.
+
+Too late, I've fixed it already :-) Thanks for pointing it out.
+
+> It all reads OK.
+> 
+> >   *
+> >   * Return 0 on success or a negative error code on failure.
+> >   */
+> > -int vsp1_du_setup_lif(struct device *dev, const struct vsp1_du_lif_config
+> > *cfg)
+> > +int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+> > +		      const struct vsp1_du_lif_config *cfg)
+> >  {
+> >  	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+> >  	struct vsp1_pipeline *pipe = &vsp1->drm->pipe;
+
+[snip]
+
+-- 
+Regards,
+
+Laurent Pinchart
