@@ -1,72 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:60527 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750942AbdGXEwR (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46990 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753873AbdGMPpU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Jul 2017 00:52:17 -0400
-Received: from epcas5p2.samsung.com (unknown [182.195.41.40])
-        by mailout3.samsung.com (KnoxPortal) with ESMTP id 20170724045215epoutp03e76fde58ef07dc711e9a6429d192923a~UKxLaMTrx2838328383epoutp03V
-        for <linux-media@vger.kernel.org>; Mon, 24 Jul 2017 04:52:15 +0000 (GMT)
-Subject: Re: [Patch v5 06/12] [media] v4l2-ioctl: add HEVC format
- description
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
-        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com, s.nawrocki@samsung.com
-In-Reply-To: <e6e75cae-f195-af56-652e-37c3e51ad70f@xs4all.nl>
-Date: Mon, 24 Jul 2017 09:58:45 +0530
-Message-ID: <1500870525.16819.1817.camel@smitha-fedora>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="utf-8"
-References: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
-        <CGME20170619052507epcas1p406fa9f6d84baa9c11050b1998021788a@epcas1p4.samsung.com>
-        <1497849055-26583-7-git-send-email-smitha.t@samsung.com>
-        <e6e75cae-f195-af56-652e-37c3e51ad70f@xs4all.nl>
+        Thu, 13 Jul 2017 11:45:20 -0400
+Date: Thu, 13 Jul 2017 18:45:10 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Philipp Guendisch <philipp.guendisch@fau.de>
+Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        alan@linux.intel.com, jeremy.lefaure@lse.epita.fr, fabf@skynet.be,
+        rvarsha016@gmail.com, chris.baller@gmx.de, robsonde@gmail.com,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org, linux-kernel@i4.cs.fau.de
+Subject: Re: [PATCH v2 2/2] staging: atomisp2: hmm: Alignment code (rebased)
+Message-ID: <20170713154510.qtbeuhw3lsw55zod@valkosipuli.retiisi.org.uk>
+References: <20170711152758.3azqdhfyeiyagtv7@valkosipuli.retiisi.org.uk>
+ <1499928943-9133-1-git-send-email-philipp.guendisch@fau.de>
+ <1499928943-9133-2-git-send-email-philipp.guendisch@fau.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1499928943-9133-2-git-send-email-philipp.guendisch@fau.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2017-07-20 at 15:07 +0200, Hans Verkuil wrote:
-> On 19/06/17 07:10, Smitha T Murthy wrote:
-> > HEVC is a video coding format
-> > 
-> > Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-ioctl.c | 1 +
-> >  1 file changed, 1 insertion(+)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> > index e5a2187..4f6f8d9 100644
-> > --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> > +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> > @@ -1257,6 +1257,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
-> >  		case V4L2_PIX_FMT_VC1_ANNEX_L:	descr = "VC-1 (SMPTE 412M Annex L)"; break;
-> >  		case V4L2_PIX_FMT_VP8:		descr = "VP8"; break;
-> >  		case V4L2_PIX_FMT_VP9:		descr = "VP9"; break;
-> > +		case V4L2_PIX_FMT_HEVC:		descr = "HEVC"; break;
+On Thu, Jul 13, 2017 at 08:55:43AM +0200, Philipp Guendisch wrote:
+> This patch fixed code alignment to open paranthesis.
+> Semantic should not be affected by this patch.
 > 
-> Add a little comment at the end of the line: /* aka H.265 */
+> It has been rebased on top of media_tree atomisp branch
 > 
-> After that you can add my:
-> 
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Regards,
-> 
-> 	Hans
-> 
-Ok I will make the change. Thanks for the review.
+> Signed-off-by: Philipp Guendisch <philipp.guendisch@fau.de>
+> Signed-off-by: Chris Baller <chris.baller@gmx.de>
 
+Hi Philipp,
+
+Neither of the patches still applies?
+
+Are you sure you rebased them on the atomisp branch?
+
+-- 
 Regards,
-Smitha
 
-> >  		case V4L2_PIX_FMT_CPIA1:	descr = "GSPCA CPiA YUV"; break;
-> >  		case V4L2_PIX_FMT_WNVA:		descr = "WNVA"; break;
-> >  		case V4L2_PIX_FMT_SN9C10X:	descr = "GSPCA SN9C10X"; break;
-> > 
-> 
-> 
-> 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
