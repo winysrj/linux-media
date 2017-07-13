@@ -1,148 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.162]:34289 "EHLO
-        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933179AbdGTIir (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33303 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751271AbdGMVNh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 04:38:47 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Subject: Re: [PATCH v2 0/7] Add support of OV9655 camera
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-In-Reply-To: <20170718195223.zrqfrefxxzqfsojd@valkosipuli.retiisi.org.uk>
-Date: Thu, 20 Jul 2017 10:37:58 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre TORGUE <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Yannick FERTRE <yannick.fertre@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <AB91B71D-E34B-4645-BD70-A87226BA34C5@goldelico.com>
-References: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com> <8157da84-1484-8375-1f2b-9831973915b4@kernel.org> <956f17e6-36dd-6733-0d35-9b801ed4244d@xs4all.nl> <BCD1BD18-96E3-4638-8935-B5C832D8EE52@goldelico.com> <2dd3402e-55b0-231d-878f-5ba95ee8cb36@st.com> <20170718195223.zrqfrefxxzqfsojd@valkosipuli.retiisi.org.uk>
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        Hugues FRUCHET <hugues.fruchet@st.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
+        Thu, 13 Jul 2017 17:13:37 -0400
+Date: Thu, 13 Jul 2017 23:13:35 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/2] OMAP3ISP CCP2 support
+Message-ID: <20170713211335.GA13502@amd>
+References: <20170713161903.9974-1-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="AhhlLboLdkugWU4S"
+Content-Disposition: inline
+In-Reply-To: <20170713161903.9974-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-> Am 18.07.2017 um 21:52 schrieb Sakari Ailus <sakari.ailus@iki.fi>:
->=20
-> On Tue, Jul 18, 2017 at 12:53:12PM +0000, Hugues FRUCHET wrote:
->>=20
->>=20
->> On 07/18/2017 02:17 PM, H. Nikolaus Schaller wrote:
->>> Hi,
->>>=20
->>>> Am 18.07.2017 um 13:59 schrieb Hans Verkuil <hverkuil@xs4all.nl>:
->>>>=20
->>>> On 12/07/17 22:01, Sylwester Nawrocki wrote:
->>>>> Hi Hugues,
->>>>>=20
->>>>> On 07/03/2017 11:16 AM, Hugues Fruchet wrote:
->>>>>> This patchset enables OV9655 camera support.
->>>>>>=20
->>>>>> OV9655 support has been tested using STM32F4DIS-CAM extension =
-board
->>>>>> plugged on connector P1 of STM32F746G-DISCO board.
->>>>>> Due to lack of OV9650/52 hardware support, the modified related =
-code
->>>>>> could not have been checked for non-regression.
->>>>>>=20
->>>>>> First patches upgrade current support of OV9650/52 to prepare =
-then
->>>>>> introduction of OV9655 variant patch.
->>>>>> Because of OV9655 register set slightly different from =
-OV9650/9652,
->>>>>> not all of the driver features are supported (controls). =
-Supported
->>>>>> resolutions are limited to VGA, QVGA, QQVGA.
->>>>>> Supported format is limited to RGB565.
->>>>>> Controls are limited to color bar test pattern for test purpose.
->>>>>=20
->>>>> I appreciate your efforts towards making a common driver but IMO =
-it would be
->>>>> better to create a separate driver for the OV9655 sensor.  The =
-original driver
->>>>> is 1576 lines of code, your patch set adds half of that (816).  =
-There are
->>>>> significant differences in the feature set of both sensors, there =
-are
->>>>> differences in the register layout.  I would go for a separate =
-driver, we
->>>>> would then have code easier to follow and wouldn't need to worry =
-about possible
->>>>> regressions.  I'm afraid I have lost the camera module and won't =
-be able
->>>>> to test the patch set against regressions.
->>>>>=20
->>>>> IMHO from maintenance POV it's better to make a separate driver. =
-In the end
->>>>> of the day we wouldn't be adding much more code than it is being =
-done now.
->>>>=20
->>>> I agree. We do not have great experiences in the past with trying =
-to support
->>>> multiple variants in a single driver (unless the diffs are truly =
-small).
->>>=20
->>> Well,
->>> IMHO the diffs in ov965x are smaller (but untestable because nobody =
-seems
->>> to have an ov9650/52 board) than within the bq27xxx chips, but I can =
-dig out
->>> an old pdata based separate ov9655 driver and extend that to become =
-DT compatible.
->>>=20
->>> I had abandoned that separate approach in favour of extending the =
-ov965x driver.
->>>=20
->>> Have to discuss with Hugues how to proceed.
->>>=20
->>> BR and thanks,
->>> Nikolaus
->>>=20
->>=20
->> As Sylwester and Hans, I'm also in flavour of a separate driver, the=20=
+--AhhlLboLdkugWU4S
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->> fact that register set seems similar but in fact is not and that we=20=
+Hi!
 
->> cannot test for non-regression of 9650/52 are killer for me to =
-continue=20
->> on a single driver.
->> We can now restart from a new fresh state of the art sensor driver=20
->> getting rid of legacy (pdata, old gpio, etc...).
->=20
-> Agreed. I bet the result will look cleaner indeed although this wasn't =
-one
-> of the complex drivers.
+> I took the liberty of changing your patch a bit. I added another to extra=
+ct
+> the number of lanes from the endpoint instead as it's not really a proper=
+ty
+> of the PHY. (Not tested yet, will check with N9.)
 
-I finally managed to find the bug why mplayer did select-timeout on the =
-GTA04.
-Was a bug in pinmux setup of the GTA04 for the omap3isp.
+No problem.
 
-And I have resurrected our years old 3.12 camera driver, which was based =
-on the
-MT9P031 code. It was already separate from ov9650/52.
+Notice that the 1/2 does not apply on top of ccp2 branch; my merge
+resolution was this:
 
-I have extended it to support DT by including some parts of Hugues' =
-work.
+I broke something in my userspace; I'll continue testing tommorow.
 
-It still needs some cleanup and discussion but will be a simple patch =
-(one
-for ov9655.c + Kconfig + Makefile) and one for bindings (I hope it =
-includes
-all your comments).
+Thanks,
+								Pavel
 
-I will post v1 in the next days.
+commit 895f4f28972942d1ee77d98dd38dc3d59afaa5c4
+Author: Sakari Ailus <sakari.ailus@linux.intel.com>
+Date:   Thu Jul 13 19:19:02 2017 +0300
 
-BR,
-Nikolaus
+    omap3isp: Explicitly set the number of CSI-2 lanes used in lane cfg
+   =20
+    The omap3isp driver extracts the CSI-2 lane configuration from the V4L2
+    fwnode endpoint but misses the number of lanes itself. Get this informa=
+tion
+    and use it in PHY configuration.
+   =20
+    Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform=
+/omap3isp/isp.c
+index b80debf..776f708 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2118,7 +2118,10 @@ static int isp_fwnode_parse(struct device *dev, stru=
+ct fwnode_handle *fwnode,
+ 				buscfg->bus.csi2.lanecfg.clk.pol,
+ 				buscfg->bus.csi2.lanecfg.clk.pos);
+=20
+-			for (i =3D 0; i < ISP_CSIPHY2_NUM_DATA_LANES; i++) {
++			buscfg->bus.csi2.num_data_lanes =3D
++				vep.bus.mipi_csi2.num_data_lanes;
++
++			for (i =3D 0; i < buscfg->bus.csi2.num_data_lanes; i++) {
+ 				buscfg->bus.csi2.lanecfg.data[i].pos =3D
+ 					vep.bus.mipi_csi2.data_lanes[i];
+ 				buscfg->bus.csi2.lanecfg.data[i].pol =3D
+diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/pl=
+atform/omap3isp/ispcsiphy.c
+index 50c0f64..958ac7b 100644
+--- a/drivers/media/platform/omap3isp/ispcsiphy.c
++++ b/drivers/media/platform/omap3isp/ispcsiphy.c
+@@ -181,7 +181,7 @@ static int omap3isp_csiphy_config(struct isp_csiphy *ph=
+y)
+ 	struct isp_bus_cfg *buscfg;
+ 	struct isp_csiphy_lanes_cfg *lanes;
+ 	int csi2_ddrclk_khz;
+-	unsigned int used_lanes =3D 0;
++	unsigned int num_data_lanes, used_lanes =3D 0;
+ 	unsigned int i;
+ 	u32 reg;
+=20
+@@ -197,13 +197,19 @@ static int omap3isp_csiphy_config(struct isp_csiphy *=
+phy)
+ 	}
+=20
+ 	if (buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY1
+-	    || buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY2)
++	    || buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY2) {
+ 		lanes =3D &buscfg->bus.ccp2.lanecfg;
+-	else
++		num_data_lanes =3D 1;
++	} else {
+ 		lanes =3D &buscfg->bus.csi2.lanecfg;
++		num_data_lanes =3D buscfg->bus.csi2.num_data_lanes;
++	}
++
++	if (num_data_lanes > phy->num_data_lanes)
++		return -EINVAL;
+=20
+ 	/* Clock and data lanes verification */
+-	for (i =3D 0; i < phy->num_data_lanes; i++) {
++	for (i =3D 0; i < num_data_lanes; i++) {
+ 		if (lanes->data[i].pol > 1 || lanes->data[i].pos > 3)
+ 			return -EINVAL;
+=20
+@@ -259,7 +265,7 @@ static int omap3isp_csiphy_config(struct isp_csiphy *ph=
+y)
+ 	/* DPHY lane configuration */
+ 	reg =3D isp_reg_readl(phy->isp, phy->cfg_regs, ISPCSI2_PHY_CFG);
+=20
+-	for (i =3D 0; i < phy->num_data_lanes; i++) {
++	for (i =3D 0; i < num_data_lanes; i++) {
+ 		reg &=3D ~(ISPCSI2_PHY_CFG_DATA_POL_MASK(i + 1) |
+ 			 ISPCSI2_PHY_CFG_DATA_POSITION_MASK(i + 1));
+ 		reg |=3D (lanes->data[i].pol <<
+diff --git a/drivers/media/platform/omap3isp/omap3isp.h b/drivers/media/pla=
+tform/omap3isp/omap3isp.h
+index f6d1d0d..672a9cf 100644
+--- a/drivers/media/platform/omap3isp/omap3isp.h
++++ b/drivers/media/platform/omap3isp/omap3isp.h
+@@ -115,10 +115,13 @@ struct isp_ccp2_cfg {
+ /**
+  * struct isp_csi2_cfg - CSI2 interface configuration
+  * @crc: Enable the cyclic redundancy check
++ * @lanecfg: CSI-2 lane configuration
++ * @num_data_lanes: The number of data lanes in use
+  */
+ struct isp_csi2_cfg {
+ 	unsigned crc:1;
+ 	struct isp_csiphy_lanes_cfg lanecfg;
++	u8 num_data_lanes;
+ };
+=20
+ struct isp_bus_cfg {
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--AhhlLboLdkugWU4S
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlln4n8ACgkQMOfwapXb+vLvrQCfYbeDGQQ4at5/zGkvA+9DNYB9
+G3wAnjSr9gx3vdqF6jffw2bDyPMK+SMl
+=HYzU
+-----END PGP SIGNATURE-----
+
+--AhhlLboLdkugWU4S--
