@@ -1,79 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from guitar.tcltek.co.il ([192.115.133.116]:44035 "EHLO
-        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751111AbdGSEt1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Jul 2017 00:49:27 -0400
-Date: Wed, 19 Jul 2017 07:49:23 +0300
-From: Baruch Siach <baruch@tkos.co.il>
-To: Yong <yong.deng@magewell.com>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        hans.verkuil@cisco.com, peter.griffin@linaro.org,
-        hugues.fruchet@st.com, krzk@kernel.org, bparrot@ti.com,
-        arnd@arndb.de, jean-christophe.trotin@st.com,
-        benjamin.gaignard@linaro.org, tiffany.lin@mediatek.com,
-        kamil@wypas.org, kieran+renesas@ksquared.org.uk,
-        andrew-ct.chen@mediatek.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH RFC 2/2] dt-bindings: add binding documentation for
- Allwinner CSI
-Message-ID: <20170719044923.yae2ye4slvrmtyfe@sapphire.tkos.co.il>
-References: <1498561654-14658-1-git-send-email-yong.deng@magewell.com>
- <1498561654-14658-3-git-send-email-yong.deng@magewell.com>
- <20170718115530.ssy7g5vv4siqnfpo@tarshish>
- <20170719092249.2fb6ec720ba1b194cea320c8@magewell.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37717 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751176AbdGMMuY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Jul 2017 08:50:24 -0400
+Subject: Re: [PATCH v2 03/14] v4l: vsp1: Don't set WPF sink pointer
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20170626181226.29575-4-laurent.pinchart+renesas@ideasonboard.com>
+Reply-To: kieran.bingham@ideasonboard.com
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <61e7fb65-9f7a-7f36-12dd-02fd709cec52@ideasonboard.com>
+Date: Thu, 13 Jul 2017 13:50:20 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170719092249.2fb6ec720ba1b194cea320c8@magewell.com>
+In-Reply-To: <20170626181226.29575-4-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
-
-On Wed, Jul 19, 2017 at 09:22:49AM +0800, Yong wrote:
-> On Tue, 18 Jul 2017 14:55:30 +0300
-> Baruch Siach <baruch@tkos.co.il> wrote:
-> > I am trying to get this driver working on the Olimex A33 OLinuXino. I 
-> > didn't get it working yet, but I had some progress. See the comment below 
-> > on one issue I encountered.
-> > 
-> > On Tue, Jun 27, 2017 at 07:07:34PM +0800, Yong Deng wrote:
-> > > Add binding documentation for Allwinner CSI.
-> > > 
-> > > Signed-off-by: Yong Deng <yong.deng@magewell.com>
-> > > ---
-
-[...]
-
-> > > +Example:
-> > > +
-> > > +	csi1: csi@01cb4000 {
-> > > +		compatible = "allwinner,sun8i-v3s-csi";
-> > > +		reg = <0x01cb4000 0x1000>;
-> > 
-> > You use platform_get_resource_byname() to get this IO resource. This requires 
-> > adding mandatory
-> > 
-> >   reg-names = "csi";
-> > 
-> > But is it actually needed? Wouldn't a simple platform_get_resource() be 
-> > enough?
+On 26/06/17 19:12, Laurent Pinchart wrote:
+> The sink pointer is used to configure routing inside the VSP, and as
+> such must point to the next VSP entity in the pipeline. The WPF being a
+> pipeline terminal sink, its output route can't be configured. The
+> routing configuration code already handles this correctly without
+> referring to the sink pointer, which thus doesn't need to be set.
 > 
-> You are right.
-> This will be fixed in the next version.
-> I am waiting for more comments for the sunxi-csi.h. It's pleasure if
-> you have any suggestions about it.
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-You mean sunxi_csi.h, right?
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Why do you need the sunxi_csi_ops indirection? Do you expect to add 
-alternative implementations of these ops at some point?
-
-baruch
-
--- 
-     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
-=}------------------------------------------------ooO--U--Ooo------------{=
-   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
+> ---
+>  drivers/media/platform/vsp1/vsp1_drv.c | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+> index 6b35e043b554..35087d5573ce 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drv.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
+> @@ -412,7 +412,6 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+>  			}
+>  
+>  			list_add_tail(&video->list, &vsp1->videos);
+> -			wpf->entity.sink = &video->video.entity;
+>  		}
+>  	}
+>  
+> 
