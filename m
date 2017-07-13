@@ -1,77 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway34.websitewelcome.com ([192.185.150.114]:35669 "EHLO
-        gateway34.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752623AbdGIWcI (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47668 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752396AbdGMQTH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 9 Jul 2017 18:32:08 -0400
-Received: from cm16.websitewelcome.com (cm16.websitewelcome.com [100.42.49.19])
-        by gateway34.websitewelcome.com (Postfix) with ESMTP id C9C9A4C389
-        for <linux-media@vger.kernel.org>; Sun,  9 Jul 2017 17:09:17 -0500 (CDT)
-Date: Sun, 9 Jul 2017 17:09:16 -0500
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] saa7146: constify i2c_algorithm structure
-Message-ID: <20170709220916.GA5222@embeddedgus>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+        Thu, 13 Jul 2017 12:19:07 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: pavel@ucw.cz
+Subject: [PATCH 0/2] OMAP3ISP CCP2 support
+Date: Thu, 13 Jul 2017 19:19:01 +0300
+Message-Id: <20170713161903.9974-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Check for i2c_algorithm structures that are only stored in
-the algo field of an i2c_adapter structure. This field is
-declared const, so i2c_algorithm structures that have this
-property can be declared as const also.
+Hi Pavel,
 
-This issue was identified using Coccinelle and the following
-semantic patch:
+I took the liberty of changing your patch a bit. I added another to extract
+the number of lanes from the endpoint instead as it's not really a property
+of the PHY. (Not tested yet, will check with N9.)
 
-@r disable optional_qualifier@
-identifier i;
-position p;
-@@
-static struct i2c_algorithm i@p = { ... };
+Pavel Machek (1):
+  omap3isp: add CSI1 support
 
-@ok@
-identifier r.i;
-struct i2c_adapter e;
-position p;
-@@
-e.algo = &i@p;
+Sakari Ailus (1):
+  omap3isp: Explicitly set the number of CSI-2 lanes used in lane cfg
 
-@bad@
-position p != {r.p,ok.p};
-identifier r.i;
-@@
-i@p
+ drivers/media/platform/omap3isp/isp.c       |  5 ++++-
+ drivers/media/platform/omap3isp/ispccp2.c   |  1 +
+ drivers/media/platform/omap3isp/ispcsiphy.c | 35 +++++++++++++++++++----------
+ drivers/media/platform/omap3isp/omap3isp.h  |  3 +++
+ 4 files changed, 31 insertions(+), 13 deletions(-)
 
-@depends on !bad disable optional_qualifier@
-identifier r.i;
-@@
-static
-+const
- struct i2c_algorithm i = { ... };
-
-Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
----
- drivers/media/common/saa7146/saa7146_i2c.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/common/saa7146/saa7146_i2c.c b/drivers/media/common/saa7146/saa7146_i2c.c
-index 239a2db..75897f9 100644
---- a/drivers/media/common/saa7146/saa7146_i2c.c
-+++ b/drivers/media/common/saa7146/saa7146_i2c.c
-@@ -395,7 +395,7 @@ static int saa7146_i2c_xfer(struct i2c_adapter* adapter, struct i2c_msg *msg, in
- /* i2c-adapter helper functions                                              */
- 
- /* exported algorithm data */
--static struct i2c_algorithm saa7146_algo = {
-+static const struct i2c_algorithm saa7146_algo = {
- 	.master_xfer	= saa7146_i2c_xfer,
- 	.functionality	= saa7146_i2c_func,
- };
 -- 
-2.5.0
+2.11.0
