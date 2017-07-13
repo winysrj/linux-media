@@ -1,116 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:36098 "EHLO extserv.mm-sol.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751408AbdGQKfI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 06:35:08 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Cc: Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v3 23/23] doc: media/v4l-drivers: Qualcomm Camera Subsystem - Media graph
-Date: Mon, 17 Jul 2017 13:33:49 +0300
-Message-Id: <1500287629-23703-24-git-send-email-todor.tomov@linaro.org>
-In-Reply-To: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
-References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:36658 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751200AbdGMPGa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Jul 2017 11:06:30 -0400
+From: smklearn <smklearn@gmail.com>
+To: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        alan@linux.intel.com
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org, smklearn@gmail.com
+Subject: [PATCH] [media] staging/atomisp: fix minor coding style warnings
+Date: Thu, 13 Jul 2017 08:06:21 -0700
+Message-Id: <1499958381-11361-1-git-send-email-smklearn@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update the Qualcomm Camera Subsystem driver document with a media
-controller pipeline graph diagram.
+Below were the minor issues flagged by checkpatch.pl:
+- WARNING: Block comments use * on subsequent lines
+- ERROR: space prohibited after that open parenthesis '('
 
-Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+Signed-off-by: Shy More <smklearn@gmail.com>
 ---
- Documentation/media/v4l-drivers/qcom_camss.rst     | 27 ++++++--------
- .../media/v4l-drivers/qcom_camss_graph.dot         | 41 ++++++++++++++++++++++
- 2 files changed, 51 insertions(+), 17 deletions(-)
- create mode 100644 Documentation/media/v4l-drivers/qcom_camss_graph.dot
+ .../css2400/runtime/isys/src/ibuf_ctrl_rmgr.c      | 26 +++++++++++-----------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/Documentation/media/v4l-drivers/qcom_camss.rst b/Documentation/media/v4l-drivers/qcom_camss.rst
-index 7e4ab6e..7ae4a45 100644
---- a/Documentation/media/v4l-drivers/qcom_camss.rst
-+++ b/Documentation/media/v4l-drivers/qcom_camss.rst
-@@ -109,23 +109,16 @@ The considerations to split the driver in this particular way are as follows:
- 
- Each VFE sub-device is linked to a separate video device node.
- 
--The complete list of the media entities (V4L2 sub-devices and video device
--nodes) is as follows:
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isys/src/ibuf_ctrl_rmgr.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isys/src/ibuf_ctrl_rmgr.c
+index 76d9142..856fb6e 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isys/src/ibuf_ctrl_rmgr.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isys/src/ibuf_ctrl_rmgr.c
+@@ -14,18 +14,18 @@
+  */
+ #else
+ /**
+-Support for Intel Camera Imaging ISP subsystem.
+-Copyright (c) 2010 - 2015, Intel Corporation.
 -
--- msm_csiphy0
--- msm_csiphy1
--- msm_csid0
--- msm_csid1
--- msm_ispif0
--- msm_ispif1
--- msm_vfe0_rdi0
--- msm_vfe0_video0
--- msm_vfe0_rdi1
--- msm_vfe0_video1
--- msm_vfe0_rdi2
--- msm_vfe0_video2
--- msm_vfe0_pix
--- msm_vfe0_video3
-+The media controller pipeline graph is as follows (with connected two OV5645
-+camera sensors):
+-This program is free software; you can redistribute it and/or modify it
+-under the terms and conditions of the GNU General Public License,
+-version 2, as published by the Free Software Foundation.
+-
+-This program is distributed in the hope it will be useful, but WITHOUT
+-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+-more details.
+-*/
++ * Support for Intel Camera Imaging ISP subsystem.
++ * Copyright (c) 2010 - 2015, Intel Corporation.
 +
-+.. _qcom_camss_graph:
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
 +
-+.. kernel-figure:: qcom_camss_graph.dot
-+    :alt:   qcom_camss_graph.dot
-+    :align: center
-+
-+    Media pipeline graph
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
+ #endif
  
- 
- Implementation
-diff --git a/Documentation/media/v4l-drivers/qcom_camss_graph.dot b/Documentation/media/v4l-drivers/qcom_camss_graph.dot
-new file mode 100644
-index 0000000..827fc71
---- /dev/null
-+++ b/Documentation/media/v4l-drivers/qcom_camss_graph.dot
-@@ -0,0 +1,41 @@
-+digraph board {
-+	rankdir=TB
-+	n00000001 [label="{{<port0> 0} | msm_csiphy0\n/dev/v4l-subdev0 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
-+	n00000001:port1 -> n00000007:port0 [style=dashed]
-+	n00000001:port1 -> n0000000a:port0 [style=dashed]
-+	n00000004 [label="{{<port0> 0} | msm_csiphy1\n/dev/v4l-subdev1 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
-+	n00000004:port1 -> n00000007:port0 [style=dashed]
-+	n00000004:port1 -> n0000000a:port0 [style=dashed]
-+	n00000007 [label="{{<port0> 0} | msm_csid0\n/dev/v4l-subdev2 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
-+	n00000007:port1 -> n0000000d:port0 [style=dashed]
-+	n00000007:port1 -> n00000010:port0 [style=dashed]
-+	n0000000a [label="{{<port0> 0} | msm_csid1\n/dev/v4l-subdev3 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
-+	n0000000a:port1 -> n0000000d:port0 [style=dashed]
-+	n0000000a:port1 -> n00000010:port0 [style=dashed]
-+	n0000000d [label="{{<port0> 0} | msm_ispif0\n/dev/v4l-subdev4 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
-+	n0000000d:port1 -> n00000013:port0 [style=dashed]
-+	n0000000d:port1 -> n0000001c:port0 [style=dashed]
-+	n0000000d:port1 -> n00000025:port0 [style=dashed]
-+	n0000000d:port1 -> n0000002e:port0 [style=dashed]
-+	n00000010 [label="{{<port0> 0} | msm_ispif1\n/dev/v4l-subdev5 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
-+	n00000010:port1 -> n00000013:port0 [style=dashed]
-+	n00000010:port1 -> n0000001c:port0 [style=dashed]
-+	n00000010:port1 -> n00000025:port0 [style=dashed]
-+	n00000010:port1 -> n0000002e:port0 [style=dashed]
-+	n00000013 [label="{{<port0> 0} | msm_vfe0_rdi0\n/dev/v4l-subdev6 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
-+	n00000013:port1 -> n00000016 [style=bold]
-+	n00000016 [label="msm_vfe0_video0\n/dev/video0", shape=box, style=filled, fillcolor=yellow]
-+	n0000001c [label="{{<port0> 0} | msm_vfe0_rdi1\n/dev/v4l-subdev7 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
-+	n0000001c:port1 -> n0000001f [style=bold]
-+	n0000001f [label="msm_vfe0_video1\n/dev/video1", shape=box, style=filled, fillcolor=yellow]
-+	n00000025 [label="{{<port0> 0} | msm_vfe0_rdi2\n/dev/v4l-subdev8 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
-+	n00000025:port1 -> n00000028 [style=bold]
-+	n00000028 [label="msm_vfe0_video2\n/dev/video2", shape=box, style=filled, fillcolor=yellow]
-+	n0000002e [label="{{<port0> 0} | msm_vfe0_pix\n/dev/v4l-subdev9 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
-+	n0000002e:port1 -> n00000031 [style=bold]
-+	n00000031 [label="msm_vfe0_video3\n/dev/video3", shape=box, style=filled, fillcolor=yellow]
-+	n00000057 [label="{{} | ov5645 1-0076\n/dev/v4l-subdev10 | {<port0> 0}}", shape=Mrecord, style=filled, fillcolor=green]
-+	n00000057:port0 -> n00000001:port0 [style=bold]
-+	n00000059 [label="{{} | ov5645 1-0074\n/dev/v4l-subdev11 | {<port0> 0}}", shape=Mrecord, style=filled, fillcolor=green]
-+	n00000059:port0 -> n00000004:port0 [style=bold]
-+}
+ #include "system_global.h"
+@@ -131,7 +131,7 @@ void ia_css_isys_ibuf_rmgr_release(
+ 	for (i = 0; i < ibuf_rsrc.num_allocated; i++) {
+ 		handle = getHandle(i);
+ 		if ((handle->start_addr == *start_addr)
+-		    && ( true == handle->active)) {
++		    && (true == handle->active)) {
+ 			handle->active = false;
+ 			ibuf_rsrc.num_active--;
+ 			break;
 -- 
-2.7.4
+1.9.1
