@@ -1,143 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:41705 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755234AbdGKGav (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39128 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751375AbdGMXbE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 02:30:51 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 08/11] cec: add core support for low-level CEC pin monitoring
-Date: Tue, 11 Jul 2017 08:30:41 +0200
-Message-Id: <20170711063044.29849-9-hverkuil@xs4all.nl>
-In-Reply-To: <20170711063044.29849-1-hverkuil@xs4all.nl>
-References: <20170711063044.29849-1-hverkuil@xs4all.nl>
+        Thu, 13 Jul 2017 19:31:04 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 08/14] v4l: vsp1: Add support for new VSP2-BS, VSP2-DL and VSP2-D instances
+Date: Fri, 14 Jul 2017 02:31:07 +0300
+Message-ID: <27780346.YnnMpKiiFZ@avalon>
+In-Reply-To: <22c14966-67d6-82b2-e305-d371efde0d23@ideasonboard.com>
+References: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com> <20170626181226.29575-9-laurent.pinchart+renesas@ideasonboard.com> <22c14966-67d6-82b2-e305-d371efde0d23@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Kieran,
 
-Add support for the new MONITOR_PIN mode.
+On Thursday 13 Jul 2017 18:49:19 Kieran Bingham wrote:
+> On 26/06/17 19:12, Laurent Pinchart wrote:
+> > New Gen3 SoCs come with two new VSP2 variants names VSP2-BS and VSP=
+2-DL,
+> > as well as a new VSP2-D variant on V3M and V3H SoCs. Add new entrie=
+s for
+> > them in the VSP device info table.
+> >=20
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+>=20
+> Code in the patch looks OK - but I can't see where the difference bet=
+ween
+> the horizontal widths are supported between VSPD H3/VC
+>=20
+> I see this in the datasheet: (32.1.1.6 in this particular part)
+>=20
+> Direct connection to display module
+> =E2=80=94 Supporting 4096 pixels in horizontal direction [R-Car H3/R-=
+Car M3-W/ R-Car
+> M3-N]
+> =E2=80=94 Supporting 2048 pixels in horizontal direction [R-Car V3M/R=
+-Car V3H/R-Car
+> D3/R-Car E3]
+>=20
+> Do we have this information encoded anywhere? or are they just talkin=
+g about
+> maximum performance capability there?
 
-Add the cec_pin_event function that the CEC pin code will call to queue pin
-change events.
+No, we don't. It's a limit that we should have. I think we should fix t=
+hat in=20
+a separate patch, as the 4096 pixels limit isn't implemented either.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/cec/cec-adap.c | 16 ++++++++++++++++
- drivers/media/cec/cec-api.c  | 15 +++++++++++++--
- include/media/cec.h          | 11 +++++++++++
- 3 files changed, 40 insertions(+), 2 deletions(-)
+> Also some features that are implied as supported aren't mentioned - b=
+ut
+> that's not a blocker to adding in the initial devices at all.
+>=20
+> Therefore:
+>=20
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>=
 
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index 67ec66c7c4ff..cbde6b015ff5 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -153,6 +153,22 @@ static void cec_queue_event(struct cec_adapter *adap,
- 	mutex_unlock(&adap->devnode.lock);
- }
- 
-+/* Notify userspace that the CEC pin changed state at the given time. */
-+void cec_queue_pin_event(struct cec_adapter *adap, bool is_high, ktime_t ts)
-+{
-+	struct cec_event ev = {
-+		.event = is_high ? CEC_EVENT_PIN_HIGH : CEC_EVENT_PIN_LOW,
-+	};
-+	struct cec_fh *fh;
-+
-+	mutex_lock(&adap->devnode.lock);
-+	list_for_each_entry(fh, &adap->devnode.fhs, list)
-+		if (fh->mode_follower == CEC_MODE_MONITOR_PIN)
-+			cec_queue_event_fh(fh, &ev, ktime_to_ns(ts));
-+	mutex_unlock(&adap->devnode.lock);
-+}
-+EXPORT_SYMBOL_GPL(cec_queue_pin_event);
-+
- /*
-  * Queue a new message for this filehandle.
-  *
-diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
-index 48bef1c718ad..14279958dca1 100644
---- a/drivers/media/cec/cec-api.c
-+++ b/drivers/media/cec/cec-api.c
-@@ -370,6 +370,10 @@ static long cec_s_mode(struct cec_adapter *adap, struct cec_fh *fh,
- 	    !(adap->capabilities & CEC_CAP_MONITOR_ALL))
- 		return -EINVAL;
- 
-+	if (mode_follower == CEC_MODE_MONITOR_PIN &&
-+	    !(adap->capabilities & CEC_CAP_MONITOR_PIN))
-+		return -EINVAL;
-+
- 	/* Follower modes should always be able to send CEC messages */
- 	if ((mode_initiator == CEC_MODE_NO_INITIATOR ||
- 	     !(adap->capabilities & CEC_CAP_TRANSMIT)) &&
-@@ -378,11 +382,11 @@ static long cec_s_mode(struct cec_adapter *adap, struct cec_fh *fh,
- 		return -EINVAL;
- 
- 	/* Monitor modes require CEC_MODE_NO_INITIATOR */
--	if (mode_initiator && mode_follower >= CEC_MODE_MONITOR)
-+	if (mode_initiator && mode_follower >= CEC_MODE_MONITOR_PIN)
- 		return -EINVAL;
- 
- 	/* Monitor modes require CAP_NET_ADMIN */
--	if (mode_follower >= CEC_MODE_MONITOR && !capable(CAP_NET_ADMIN))
-+	if (mode_follower >= CEC_MODE_MONITOR_PIN && !capable(CAP_NET_ADMIN))
- 		return -EPERM;
- 
- 	mutex_lock(&adap->lock);
-@@ -421,8 +425,13 @@ static long cec_s_mode(struct cec_adapter *adap, struct cec_fh *fh,
- 
- 	if (fh->mode_follower == CEC_MODE_FOLLOWER)
- 		adap->follower_cnt--;
-+	if (fh->mode_follower == CEC_MODE_MONITOR_PIN)
-+		adap->monitor_pin_cnt--;
- 	if (mode_follower == CEC_MODE_FOLLOWER)
- 		adap->follower_cnt++;
-+	if (mode_follower == CEC_MODE_MONITOR_PIN) {
-+		adap->monitor_pin_cnt++;
-+	}
- 	if (mode_follower == CEC_MODE_EXCL_FOLLOWER ||
- 	    mode_follower == CEC_MODE_EXCL_FOLLOWER_PASSTHRU) {
- 		adap->passthrough =
-@@ -566,6 +575,8 @@ static int cec_release(struct inode *inode, struct file *filp)
- 	}
- 	if (fh->mode_follower == CEC_MODE_FOLLOWER)
- 		adap->follower_cnt--;
-+	if (fh->mode_follower == CEC_MODE_MONITOR_PIN)
-+		adap->monitor_pin_cnt--;
- 	if (fh->mode_follower == CEC_MODE_MONITOR_ALL)
- 		cec_monitor_all_cnt_dec(adap);
- 	mutex_unlock(&adap->lock);
-diff --git a/include/media/cec.h b/include/media/cec.h
-index 6cc862af74e5..d983960b37ad 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -177,6 +177,7 @@ struct cec_adapter {
- 	bool is_configuring;
- 	bool is_configured;
- 	u32 monitor_all_cnt;
-+	u32 monitor_pin_cnt;
- 	u32 follower_cnt;
- 	struct cec_fh *cec_follower;
- 	struct cec_fh *cec_initiator;
-@@ -272,6 +273,16 @@ static inline void cec_received_msg(struct cec_adapter *adap,
- }
- 
- /**
-+ * cec_queue_pin_event() - queue a pin event with a given timestamp.
-+ *
-+ * @adap:	pointer to the cec adapter
-+ * @is_high:	when true the pin is high, otherwise it is low
-+ * @ts:		the timestamp for this event
-+ *
-+ */
-+void cec_queue_pin_event(struct cec_adapter *adap, bool is_high, ktime_t ts);
-+
-+/**
-  * cec_get_edid_phys_addr() - find and return the physical address
-  *
-  * @edid:	pointer to the EDID data
--- 
-2.11.0
+>=20
+> > ---
+> >=20
+> >  drivers/media/platform/vsp1/vsp1_drv.c  | 24 +++++++++++++++++++++=
++++
+> >  drivers/media/platform/vsp1/vsp1_regs.h | 15 +++++++++++++--
+> >  2 files changed, 37 insertions(+), 2 deletions(-)
+> >=20
+> > diff --git a/drivers/media/platform/vsp1/vsp1_drv.c
+> > b/drivers/media/platform/vsp1/vsp1_drv.c index 6a9aeb71aedf..c4f2ac=
+61f7d2
+> > 100644
+> > --- a/drivers/media/platform/vsp1/vsp1_drv.c
+> > +++ b/drivers/media/platform/vsp1/vsp1_drv.c
+> > @@ -710,6 +710,14 @@ static const struct vsp1_device_info
+> > vsp1_device_infos[] =3D {>=20
+> >  =09=09.num_bru_inputs =3D 5,
+> >  =09=09.uapi =3D true,
+> >  =09}, {
+> > +=09=09.version =3D VI6_IP_VERSION_MODEL_VSPBS_GEN3,
+> > +=09=09.model =3D "VSP2-BS",
+> > +=09=09.gen =3D 3,
+> > +=09=09.features =3D VSP1_HAS_BRS,
+>=20
+> 32.1.1.5 implies:
+> | VSP1_HAS_WPF_VFLIP
+>=20
+> But Figure 32.5 implies that it doesn't ...
+
+The figures only tell whether the full combination of rotation and H/V =
+flip is=20
+available. I think you're right, I'll add VSP1_HAS_WPF_VFLIP.
+
+> Figure 32.5 also implies that | VSP1_HAS_CLU is there too on both RPF=
+0, and
+> RPF1
+
+Note that CLUT !=3D CLU. I know it's confusing :-)
+
+> > +=09=09.rpf_count =3D 2,
+> > +=09=09.wpf_count =3D 1,
+> > +=09=09.uapi =3D true,
+> > +=09}, {
+> >  =09=09.version =3D VI6_IP_VERSION_MODEL_VSPD_GEN3,
+> >  =09=09.model =3D "VSP2-D",
+> >  =09=09.gen =3D 3,
+> > @@ -717,6 +725,22 @@ static const struct vsp1_device_info
+> > vsp1_device_infos[] =3D {>=20
+> >  =09=09.rpf_count =3D 5,
+> >  =09=09.wpf_count =3D 2,
+> >  =09=09.num_bru_inputs =3D 5,
+> > +=09}, {
+> > +=09=09.version =3D VI6_IP_VERSION_MODEL_VSPD_V3,
+> > +=09=09.model =3D "VSP2-D",
+> > +=09=09.gen =3D 3,
+> > +=09=09.features =3D VSP1_HAS_BRS | VSP1_HAS_BRU | VSP1_HAS_LIF,
+> > +=09=09.rpf_count =3D 5,
+> > +=09=09.wpf_count =3D 1,
+> > +=09=09.num_bru_inputs =3D 5,
+> > +=09}, {
+> > +=09=09.version =3D VI6_IP_VERSION_MODEL_VSPDL_GEN3,
+> > +=09=09.model =3D "VSP2-DL",
+> > +=09=09.gen =3D 3,
+> > +=09=09.features =3D VSP1_HAS_BRS | VSP1_HAS_BRU | VSP1_HAS_LIF,
+>=20
+> Hrm. 32.1.1.7 says:
+> =E2=80=94 Vertical flipping in case of output to memory.
+> So thats some sort of a conditional : | VSP1_HAS_WPF_VFLIP
+>=20
+> So looking at this and the settings of the existing models, I guess i=
+t looks
+> like we don't support flip if we have an LIF output (as that would th=
+en be
+> unsupported)
+
+On Gen3 vertical flipping seems to always be supported, unlike on Gen2 =
+where=20
+VSPD is specifically documented as not supporting vertical flipping. We=
+ could=20
+add the WFLIP on all VSP2-D* instances. This would create a correspondi=
+ng=20
+control, which wouldn't do much harm as the VSPD instances on Gen3 are =
+not=20
+exposed to userspace, but that would waste a bit of memory for no good =
+purpose=20
+(beside correctness I suppose). I wonder if that's worth it, what do yo=
+u think=20
+? If so, VSP2-D should be fixed too, so I'd prefer doing that in a sepa=
+rate=20
+patch.
+
+> > +=09=09.rpf_count =3D 5,
+> > +=09=09.wpf_count =3D 2,
+> > +=09=09.num_bru_inputs =3D 5,
+> >  =09},
+> >  };
+> >=20
+
+[snip]
+
+--=20
+Regards,
+
+Laurent Pinchart
