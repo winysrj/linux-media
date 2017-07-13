@@ -1,104 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:38066
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S965158AbdGTPgt (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:38125 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751050AbdGMLoH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 11:36:49 -0400
-Date: Thu, 20 Jul 2017 12:36:41 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Ralph Metzler <rjkm@metzlerbros.de>
-Cc: Daniel Scheller <d.scheller.oss@gmail.com>,
-        linux-media@vger.kernel.org, mchehab@kernel.org,
-        liplianin@netup.ru, crope@iki.fi,
-        "Jasmin J.\" <jasmin@anw.at>"@s-opensource.com
-Subject: Re: DD support improvements (was: Re: [PATCH v3 00/13]
- stv0367/ddbridge: support CTv6/FlexCT hardware)
-Message-ID: <20170720123641.0395b0ac@vento.lan>
-In-Reply-To: <22885.5395.942193.897565@morden.metzler>
-References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
-        <20170412212327.5b75be19@macbox>
-        <20170507174212.2e45ab71@audiostation.wuest.de>
-        <20170528234537.3bed2dde@macbox>
-        <20170619221821.022fc473@macbox>
-        <20170620093645.6f72fd1a@vento.lan>
-        <20170620204121.4cff42d1@macbox>
-        <20170620161043.1e6a1364@vento.lan>
-        <20170621225712.426d3a17@audiostation.wuest.de>
-        <22860.14367.464168.657791@morden.metzler>
-        <20170624135001.5bcafb64@vento.lan>
-        <22864.55204.841821.456223@morden.metzler>
-        <20170626073944.1102ceb5@vento.lan>
-        <22885.5395.942193.897565@morden.metzler>
+        Thu, 13 Jul 2017 07:44:07 -0400
+From: Colin King <colin.king@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        linux-media@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] drxj: make several const arrays static
+Date: Thu, 13 Jul 2017 12:44:03 +0100
+Message-Id: <20170713114403.32168-1-colin.king@canonical.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 11 Jul 2017 20:12:35 +0200
-Ralph Metzler <rjkm@metzlerbros.de> escreveu:
+From: Colin Ian King <colin.king@canonical.com>
 
-> Mauro Carvalho Chehab writes:
->  > Em Mon, 26 Jun 2017 11:45:08 +0200
->  > Ralph Metzler <rjkm@metzlerbros.de> escreveu:
->  >   
+Don't populate const arrays on the stack but instead make them static.
+Makes the object code smaller by over 1800 bytes:
 
-> > The media controller is generic enough to control all pipelines at
->  > the hardware level. It can be used to select frontend inputs, to
->  > dynamically add/remove CAM modules, etc.
->  > 
->  > If I remember well, in the case of the hardware I was working on that
->  > time, each frontend had 3 inputs (and the hardware had 2 identical
->  > sets of tuner/demod),  plus 3 MPEG-TS demuxes) and 2 CAM modules.
->  > 
->  > With the media controller, any arrangement between input, tuner,
->  > demod, demux and CAM is possible, as long as supported by
->  > the hardware.  
-> 
-> OK, for such complex arrangements it makes sense.
-> I just thought it to be overkill for just the input selection
+Before:
+   text	   data	    bss	    dec	    hex	filename
+  94100	   9160	      0	 103260	  1935c	drxj.o
 
-The media controller support is handled by the DVB core for the
-general case. The needed bits that would give the flexibility that
-ddbridge require shouldn't be hard to add.
+After:
+   text	   data	    bss	    dec	    hex	filename
+  91044	  10400	      0	 101444	  18c44	drxj.o
 
-> and it also has to run on older kernels where th MC stuff is
-> not yet in the DVB core.
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/dvb-frontends/drx39xyj/drxj.c | 35 +++++++++++++++--------------
+ 1 file changed, 18 insertions(+), 17 deletions(-)
 
-The MC DVB support is there since jan/2015 (Kernel 3.20):
-
-commit a0246e02f466482a34c8ad94bedbe4efa498662d
-Author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Date:   Fri Jan 2 12:19:51 2015 -0300
-
-    [media] dvbdev: add support for media controller
-    
-    Provide a way to register media controller device nodes
-    at the DVB core.
-    
-    Please notice that the dvbdev callers also require changes
-    for the devices to be registered via the media controller.
-    
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-$ git describe a0246e02f4664
-media/v3.20-1-9-ga0246e02f466
-
-
-For older Kernels, there are a few ways to proceed:
-
-1) use an approach like media_build for the DD tree, where the
-   DVB core is replaced by a newer one. I guess it has support
-   since v2.6.30, at least for the core.
-
-2) Keep use the solution you have already, using ifdefs on your
-   tree to keep it supported with legacy Kernels.
-
-3) you could base DD trees at the backport tree:
-	https://backports.wiki.kernel.org/index.php/Main_Page
-   I never used it myself, but it should be covering the
-   media drivers there too.
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index 14040c915dbb..499ccff557bf 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -5489,7 +5489,7 @@ static int set_vsb_leak_n_gain(struct drx_demod_instance *demod)
+ 	struct i2c_device_addr *dev_addr = NULL;
+ 	int rc;
+ 
+-	const u8 vsb_ffe_leak_gain_ram0[] = {
++	static const u8 vsb_ffe_leak_gain_ram0[] = {
+ 		DRXJ_16TO8(0x8),	/* FFETRAINLKRATIO1  */
+ 		DRXJ_16TO8(0x8),	/* FFETRAINLKRATIO2  */
+ 		DRXJ_16TO8(0x8),	/* FFETRAINLKRATIO3  */
+@@ -5620,7 +5620,7 @@ static int set_vsb_leak_n_gain(struct drx_demod_instance *demod)
+ 		DRXJ_16TO8(0x1010)	/* FIRRCA1GAIN8 */
+ 	};
+ 
+-	const u8 vsb_ffe_leak_gain_ram1[] = {
++	static const u8 vsb_ffe_leak_gain_ram1[] = {
+ 		DRXJ_16TO8(0x1010),	/* FIRRCA1GAIN9 */
+ 		DRXJ_16TO8(0x0808),	/* FIRRCA1GAIN10 */
+ 		DRXJ_16TO8(0x0808),	/* FIRRCA1GAIN11 */
+@@ -5710,7 +5710,7 @@ static int set_vsb(struct drx_demod_instance *demod)
+ 	struct drxj_data *ext_attr = NULL;
+ 	u16 cmd_result = 0;
+ 	u16 cmd_param = 0;
+-	const u8 vsb_taps_re[] = {
++	static const u8 vsb_taps_re[] = {
+ 		DRXJ_16TO8(-2),	/* re0  */
+ 		DRXJ_16TO8(4),	/* re1  */
+ 		DRXJ_16TO8(1),	/* re2  */
+@@ -6666,7 +6666,7 @@ static int set_qam16(struct drx_demod_instance *demod)
+ {
+ 	struct i2c_device_addr *dev_addr = demod->my_i2c_dev_addr;
+ 	int rc;
+-	const u8 qam_dq_qual_fun[] = {
++	static const u8 qam_dq_qual_fun[] = {
+ 		DRXJ_16TO8(2),	/* fun0  */
+ 		DRXJ_16TO8(2),	/* fun1  */
+ 		DRXJ_16TO8(2),	/* fun2  */
+@@ -6674,7 +6674,7 @@ static int set_qam16(struct drx_demod_instance *demod)
+ 		DRXJ_16TO8(3),	/* fun4  */
+ 		DRXJ_16TO8(3),	/* fun5  */
+ 	};
+-	const u8 qam_eq_cma_rad[] = {
++	static const u8 qam_eq_cma_rad[] = {
+ 		DRXJ_16TO8(13517),	/* RAD0  */
+ 		DRXJ_16TO8(13517),	/* RAD1  */
+ 		DRXJ_16TO8(13517),	/* RAD2  */
+@@ -6901,7 +6901,7 @@ static int set_qam32(struct drx_demod_instance *demod)
+ {
+ 	struct i2c_device_addr *dev_addr = demod->my_i2c_dev_addr;
+ 	int rc;
+-	const u8 qam_dq_qual_fun[] = {
++	static const u8 qam_dq_qual_fun[] = {
+ 		DRXJ_16TO8(3),	/* fun0  */
+ 		DRXJ_16TO8(3),	/* fun1  */
+ 		DRXJ_16TO8(3),	/* fun2  */
+@@ -6909,7 +6909,7 @@ static int set_qam32(struct drx_demod_instance *demod)
+ 		DRXJ_16TO8(4),	/* fun4  */
+ 		DRXJ_16TO8(4),	/* fun5  */
+ 	};
+-	const u8 qam_eq_cma_rad[] = {
++	static const u8 qam_eq_cma_rad[] = {
+ 		DRXJ_16TO8(6707),	/* RAD0  */
+ 		DRXJ_16TO8(6707),	/* RAD1  */
+ 		DRXJ_16TO8(6707),	/* RAD2  */
+@@ -7136,7 +7136,8 @@ static int set_qam64(struct drx_demod_instance *demod)
+ {
+ 	struct i2c_device_addr *dev_addr = demod->my_i2c_dev_addr;
+ 	int rc;
+-	const u8 qam_dq_qual_fun[] = {	/* this is hw reset value. no necessary to re-write */
++	static const u8 qam_dq_qual_fun[] = {
++		/* this is hw reset value. no necessary to re-write */
+ 		DRXJ_16TO8(4),	/* fun0  */
+ 		DRXJ_16TO8(4),	/* fun1  */
+ 		DRXJ_16TO8(4),	/* fun2  */
+@@ -7144,7 +7145,7 @@ static int set_qam64(struct drx_demod_instance *demod)
+ 		DRXJ_16TO8(6),	/* fun4  */
+ 		DRXJ_16TO8(6),	/* fun5  */
+ 	};
+-	const u8 qam_eq_cma_rad[] = {
++	static const u8 qam_eq_cma_rad[] = {
+ 		DRXJ_16TO8(13336),	/* RAD0  */
+ 		DRXJ_16TO8(12618),	/* RAD1  */
+ 		DRXJ_16TO8(11988),	/* RAD2  */
+@@ -7371,7 +7372,7 @@ static int set_qam128(struct drx_demod_instance *demod)
+ {
+ 	struct i2c_device_addr *dev_addr = demod->my_i2c_dev_addr;
+ 	int rc;
+-	const u8 qam_dq_qual_fun[] = {
++	static const u8 qam_dq_qual_fun[] = {
+ 		DRXJ_16TO8(6),	/* fun0  */
+ 		DRXJ_16TO8(6),	/* fun1  */
+ 		DRXJ_16TO8(6),	/* fun2  */
+@@ -7379,7 +7380,7 @@ static int set_qam128(struct drx_demod_instance *demod)
+ 		DRXJ_16TO8(9),	/* fun4  */
+ 		DRXJ_16TO8(9),	/* fun5  */
+ 	};
+-	const u8 qam_eq_cma_rad[] = {
++	static const u8 qam_eq_cma_rad[] = {
+ 		DRXJ_16TO8(6164),	/* RAD0  */
+ 		DRXJ_16TO8(6598),	/* RAD1  */
+ 		DRXJ_16TO8(6394),	/* RAD2  */
+@@ -7606,7 +7607,7 @@ static int set_qam256(struct drx_demod_instance *demod)
+ {
+ 	struct i2c_device_addr *dev_addr = demod->my_i2c_dev_addr;
+ 	int rc;
+-	const u8 qam_dq_qual_fun[] = {
++	static const u8 qam_dq_qual_fun[] = {
+ 		DRXJ_16TO8(8),	/* fun0  */
+ 		DRXJ_16TO8(8),	/* fun1  */
+ 		DRXJ_16TO8(8),	/* fun2  */
+@@ -7614,7 +7615,7 @@ static int set_qam256(struct drx_demod_instance *demod)
+ 		DRXJ_16TO8(12),	/* fun4  */
+ 		DRXJ_16TO8(12),	/* fun5  */
+ 	};
+-	const u8 qam_eq_cma_rad[] = {
++	static const u8 qam_eq_cma_rad[] = {
+ 		DRXJ_16TO8(12345),	/* RAD0  */
+ 		DRXJ_16TO8(12345),	/* RAD1  */
+ 		DRXJ_16TO8(13626),	/* RAD2  */
+@@ -7862,7 +7863,7 @@ set_qam(struct drx_demod_instance *demod,
+ 		/* parameter    */ NULL,
+ 		/* result       */ NULL
+ 	};
+-	const u8 qam_a_taps[] = {
++	static const u8 qam_a_taps[] = {
+ 		DRXJ_16TO8(-1),	/* re0  */
+ 		DRXJ_16TO8(1),	/* re1  */
+ 		DRXJ_16TO8(1),	/* re2  */
+@@ -7892,7 +7893,7 @@ set_qam(struct drx_demod_instance *demod,
+ 		DRXJ_16TO8(-40),	/* re26 */
+ 		DRXJ_16TO8(619)	/* re27 */
+ 	};
+-	const u8 qam_b64_taps[] = {
++	static const u8 qam_b64_taps[] = {
+ 		DRXJ_16TO8(0),	/* re0  */
+ 		DRXJ_16TO8(-2),	/* re1  */
+ 		DRXJ_16TO8(1),	/* re2  */
+@@ -7922,7 +7923,7 @@ set_qam(struct drx_demod_instance *demod,
+ 		DRXJ_16TO8(-46),	/* re26 */
+ 		DRXJ_16TO8(614)	/* re27 */
+ 	};
+-	const u8 qam_b256_taps[] = {
++	static const u8 qam_b256_taps[] = {
+ 		DRXJ_16TO8(-2),	/* re0  */
+ 		DRXJ_16TO8(4),	/* re1  */
+ 		DRXJ_16TO8(1),	/* re2  */
+@@ -7952,7 +7953,7 @@ set_qam(struct drx_demod_instance *demod,
+ 		DRXJ_16TO8(-32),	/* re26 */
+ 		DRXJ_16TO8(628)	/* re27 */
+ 	};
+-	const u8 qam_c_taps[] = {
++	static const u8 qam_c_taps[] = {
+ 		DRXJ_16TO8(-3),	/* re0  */
+ 		DRXJ_16TO8(3),	/* re1  */
+ 		DRXJ_16TO8(2),	/* re2  */
+-- 
+2.11.0
