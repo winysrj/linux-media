@@ -1,62 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59370 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754184AbdGUOrM (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:49200 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751193AbdGMNWO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Jul 2017 10:47:12 -0400
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id A1FA7600D1
-        for <linux-media@vger.kernel.org>; Fri, 21 Jul 2017 15:07:25 +0300 (EEST)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakke@valkosipuli.retiisi.org.uk>)
-        id 1dYWiK-00016x-Uu
-        for linux-media@vger.kernel.org; Fri, 21 Jul 2017 15:07:25 +0300
-Date: Fri, 21 Jul 2017 15:07:24 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT FIXES for 4.13] More atomisp fixes
-Message-ID: <20170721120724.edjpp2i6hb67ckkj@valkosipuli.retiisi.org.uk>
+        Thu, 13 Jul 2017 09:22:14 -0400
+Date: Thu, 13 Jul 2017 14:21:53 +0100
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Christoph Hellwig <hch@lst.de>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Pawel Osciak <pawel@osciak.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Shuah Khan <shuahkh@osg.samsung.com>
+Subject: Re: [PATCH v3 0/2] [media] videobuf2-dc: Add support for cacheable
+ MMAP
+Message-ID: <20170713132153.GD31807@n2100.armlinux.org.uk>
+References: <CGME20161026085228epcas3p3895ea279d5538750a3b1c59715ad3761@epcas3p3.samsung.com>
+ <1477471926-15796-1-git-send-email-thierry.escande@collabora.com>
+ <f829886e-4842-a500-6b10-9a46e1b763f5@samsung.com>
+ <20170705173327.GD5417@lst.de>
+ <7505cb31-6bd1-7f76-f975-aa5e61e567f0@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <7505cb31-6bd1-7f76-f975-aa5e61e567f0@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Thu, Jul 13, 2017 at 01:13:28PM +0200, Marek Szyprowski wrote:
+> Hi Christoph,
+> 
+> On 2017-07-05 19:33, Christoph Hellwig wrote:
+> >On Mon, Jul 03, 2017 at 11:27:32AM +0200, Marek Szyprowski wrote:
+> >>The main question here if we want to merge incomplete solution or not. As
+> >>for now, there is no support in ARM/ARM64 for NON_CONSISTENT attribute.
+> >>Also none of the v4l2 drivers use it. Sadly support for NON_CONSISTENT
+> >>attribute is not fully implemented nor even defined in mainline.
+> >>
+> >DMA_ATTR_NON_CONSISTENT is the way to get the dma_alloc_noncoherent
+> >semantics through the dma_alloc_attr API, and as such I think it is
+> >pretty well defined, although the documentation in
+> >Documentation/DMA-attributes.txt is really bad and we need to improve
+> >it, by merging it with the dma_alloc_noncoherent description in
+> >Documentation/DMA-API.txt. My series to remove dma_alloc_noncoherent
+> >updates the latter to mention DMA_ATTR_NON_CONSISTENT, but
+> >we should probably merge Documentation/DMA-API.txt,
+> >Documentation/DMA-attributes.txt and Documentation/DMA-API-HOWTO.txt
+> >into a single coherent document.
+> 
+> Right. I started conversion of dma_alloc_noncoherent to NON_CONSISTENT
+> DMA attribute, but later I got stuck at the details of cache
+> synchronization.
+> 
+> >>I know that it works fine for some vendor kernel trees, but supporting it in
+> >>mainline was a bit controversial. There is no proper way to sync cache for
+> >>such
+> >>buffers. Calling dma_sync_sg worked so far, but it has to be first agreed as
+> >>a proper DMA API.
+> >As documented in Documentation/DMA-API.txt the proper way to sync
+> >noncoherent/nonconsistent regions is to call dma_cache_sync.  It seems
+> >like it generally is the same as dma_sync_range/sg so if we could
+> >eventually merge these APIs that should reduce the confusion further.
+> 
+> Original dma_alloc_noncoherent utilized dma_cache_sync() function, which had
+> some flaws, which prevented me to continue that task and introduce it to ARM
+> architecture. The dma_alloc_noncoherent() and dma_cache_sync() API lacks
+> buffer ownership and imprecisely defines how and when the caches has to be
+> synchronized. dma_cache_sync() also lacks DMA address argument, what also
+> complicates potential lightweight implementation.
 
-A few more atomisp fixes here.
+My conclusion of the dma_alloc_noncoherent() and dma_cache_sync() API
+when it was introduced is that it's basically a completely broken
+interface, and I've never seen any point to it.  Maybe some of that is
+because it's badly documented - which in turn makes it badly designed
+(because there's no specification detailing what it's supposed to be
+doing.)
 
-Please pull.
-
-The following changes since commit 6538b02d210f52ef2a2e67d59fcb58be98451fbd:
-
-  media: Make parameter of media_entity_remote_pad() const (2017-07-20 16:54:04 -0400)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git atomisp-fix
-
-for you to fetch changes up to 6f304e954aea736d86c2b1d8ba0571c655827b86:
-
-  atomisp2: array underflow in imx_enum_frame_size() (2017-07-21 14:54:45 +0300)
-
-----------------------------------------------------------------
-Dan Carpenter (3):
-      atomisp2: Array underflow in atomisp_enum_input()
-      atomisp2: array underflow in ap1302_enum_frame_size()
-      atomisp2: array underflow in imx_enum_frame_size()
-
- drivers/staging/media/atomisp/i2c/ap1302.h                    | 4 ++--
- drivers/staging/media/atomisp/i2c/imx/imx.h                   | 2 +-
- drivers/staging/media/atomisp/i2c/ov8858.h                    | 2 +-
- drivers/staging/media/atomisp/i2c/ov8858_btns.h               | 2 +-
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h | 2 +-
- 5 files changed, 6 insertions(+), 6 deletions(-)
+I'd like to see that thing die...
 
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
