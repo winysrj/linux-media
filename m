@@ -1,67 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:34879 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751221AbdGPXgy (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52006 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751375AbdGMWJw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 16 Jul 2017 19:36:54 -0400
-From: Shy More <smklearn@gmail.com>
-Cc: Shy More <smklearn@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jiri Kosina <trivial@kernel.org>,
-        Alan Cox <alan@linux.intel.com>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/2] [media] staging/atomisp: fixed trivial coding style warning
-Date: Sun, 16 Jul 2017 16:35:34 -0700
-Message-Id: <1500248138-15043-1-git-send-email-smklearn@gmail.com>
-In-Reply-To: <20170713151249.GA1451@kroah.com>
-References: <20170713151249.GA1451@kroah.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Thu, 13 Jul 2017 18:09:52 -0400
+Date: Fri, 14 Jul 2017 01:09:47 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/2] OMAP3ISP CCP2 support
+Message-ID: <20170713220947.ntfpwkoitfadshnt@valkosipuli.retiisi.org.uk>
+References: <20170713161903.9974-1-sakari.ailus@linux.intel.com>
+ <20170713211335.GA13502@amd>
+ <20170713212651.so5aqqp5k325pb4w@valkosipuli.retiisi.org.uk>
+ <20170713213805.GA1229@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170713213805.GA1229@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Below was the trivial wanrning flagged by checkpatch.pl
-WARNING: Block comments use * on subsequent lines
+On Thu, Jul 13, 2017 at 11:38:06PM +0200, Pavel Machek wrote:
+> On Fri 2017-07-14 00:26:52, Sakari Ailus wrote:
+> > On Thu, Jul 13, 2017 at 11:13:35PM +0200, Pavel Machek wrote:
+> > > Hi!
+> > > 
+> > > > I took the liberty of changing your patch a bit. I added another to extract
+> > > > the number of lanes from the endpoint instead as it's not really a property
+> > > > of the PHY. (Not tested yet, will check with N9.)
+> > > 
+> > > No problem.
+> > > 
+> > > Notice that the 1/2 does not apply on top of ccp2 branch; my merge
+> > > resolution was this:
+> > 
+> > The two patches are for the ccp2-prepare branches, not for ccp2; it's
+> > somewhat out of date right now and needs a rebase.
+> 
+> Yes, and 1/2 will need merge resolution when you do that. Fortunately
+> it is easy.
 
-Signed-off-by: Shy More <smklearn@gmail.com>
----
- .../css2400/runtime/isys/src/ibuf_ctrl_rmgr.c      | 24 +++++++++++-----------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+Well... the other patches go on top of this. The end result is still the
+same.
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isys/src/ibuf_ctrl_rmgr.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isys/src/ibuf_ctrl_rmgr.c
-index 76d9142..bb9f5cd 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isys/src/ibuf_ctrl_rmgr.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isys/src/ibuf_ctrl_rmgr.c
-@@ -14,18 +14,18 @@
-  */
- #else
- /**
--Support for Intel Camera Imaging ISP subsystem.
--Copyright (c) 2010 - 2015, Intel Corporation.
--
--This program is free software; you can redistribute it and/or modify it
--under the terms and conditions of the GNU General Public License,
--version 2, as published by the Free Software Foundation.
--
--This program is distributed in the hope it will be useful, but WITHOUT
--ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
--FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
--more details.
--*/
-+ * Support for Intel Camera Imaging ISP subsystem.
-+ * Copyright (c) 2010 - 2015, Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ */
- #endif
- 
- #include "system_global.h"
+> 
+> > The patches work fine on N9.
+> 
+> I was able to fix the userspace, and they work for me, too. For both:
+> 
+> Acked-by: Pavel Machek <pavel@ucw.cz>
+> Tested-by: Pavel Machek <pavel@ucw.cz>
+
+Thanks! I've applied these on ccp2-prepare. ccp2 branch is rebased, too.
+
 -- 
-1.9.1
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
