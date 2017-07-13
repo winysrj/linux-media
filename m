@@ -1,146 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:45758 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750971AbdGHVqH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 8 Jul 2017 17:46:07 -0400
-Subject: Re: media-build breaks for Kernel 3.13
-To: "Jasmin J." <jasmin@anw.at>, linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <ff9884c5-b5b2-b7bd-9a60-e499e480b9eb@anw.at>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3d62ed23-0ef7-0a1d-0132-9d2e0b45a3a4@xs4all.nl>
-Date: Sat, 8 Jul 2017 23:45:54 +0200
+Received: from mail.kapsi.fi ([217.30.184.167]:36919 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751265AbdGMAE0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Jul 2017 20:04:26 -0400
+Subject: Re: [PATCH V2 4/9] [media] dvb-core/dvb_ca_en50221.c: Fixed block
+ comments
+To: "Jasmin J." <jasmin@anw.at>, linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
+        rjkm@metzlerbros.de, d.scheller@gmx.net
+References: <1499900458-2339-1-git-send-email-jasmin@anw.at>
+ <1499900458-2339-5-git-send-email-jasmin@anw.at>
+ <c8c9b074-32fe-96b8-6635-842898dfc956@iki.fi>
+ <080f360c-a6cb-0f5c-b2ca-f380a78a2cf9@anw.at>
+ <ffcb064e-3b82-fbae-ab32-d9a4a56f6716@iki.fi>
+ <345e0587-b0a8-8fed-0bdb-4313093cf56d@anw.at>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <f003e6db-95e0-dcc4-88fe-e895a0d3b59d@iki.fi>
+Date: Thu, 13 Jul 2017 03:04:17 +0300
 MIME-Version: 1.0
-In-Reply-To: <ff9884c5-b5b2-b7bd-9a60-e499e480b9eb@anw.at>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <345e0587-b0a8-8fed-0bdb-4313093cf56d@anw.at>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/07/17 22:41, Jasmin J. wrote:
-> Hello!
+On 07/13/2017 02:45 AM, Jasmin J. wrote:
+> Hello Antti!
 > 
-> I tried to compile the last media master for Kernel 3.13 (Ubuntu 14.04) and get
-> errors during the patch step:
-> tar xfj linux-media.tar.bz2
->  rm -f .patches_applied .linked_dir .git_log.md5
->  make -C /mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l stagingconfig
->  make[1]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l'
->  make[2]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
->  Applying patches for kernel 3.13.0-117-generic
->  patch -s -f -N -p1 -i ../backports/api_version.patch
->  patch -s -f -N -p1 -i ../backports/pr_fmt.patch
->  1 out of 1 hunk FAILED
-
-Hmm, works fine for me. It still failed to build for 3.13 for other reasons, which I've now
-fixed, but the patch step is working fine for me.
-
-It suggests you are using an old media_build. Make sure you do a git pull.
-
-Regards,
-
-	Hans
-
->  Makefile:138: recipe for target 'apply_patches' failed
->  make[2]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
->  Makefile:388: recipe for target 'stagingconfig' failed
->  make[1]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l'
->  Makefile:26: recipe for target 'stagingconfig' failed
->  Disabling CONFIG_DVB_DEMUX_SECTION_LOSS_LOG
->  Disabling CONFIG_DVB_DDBRIDGE_MSIENABLE
->  Disabling CONFIG_VIDEOBUF2_MEMOPS
->  Disabling CONFIG_FRAME_VECTOR
->  Disabling CONFIG_DVB_AF9033
->  Disabling CONFIG_VIDEO_ET8EK8
->  Disabling CONFIG_VIDEO_DW9714
->  Disabling CONFIG_SDR_MAX2175
->  Disabling CONFIG_VIDEO_VIMC
->  Setting CONFIG_DVB_MAX_ADAPTERS to 32
->  make -C /mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l
->  make[1]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l'
->  scripts/make_makefile.pl
->  Updating/Creating .config
->  make[2]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
->  make[2]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
->  make[3]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
->  make[3]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
->  Unapplying patches
->  Unapplying patches
->  patch -s -f -R -p1 -i ../backports/api_version.patch
->  patch -s -f -R -p1 -i ../backports/api_version.patch
->  make[3]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
->  Applying patches for kernel 3.13.0-117-generic
->  make[3]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
->  Applying patches for kernel 3.13.0-117-generic
->  Applying patches for kernel 3.13.0-117-generic
->  make[3]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
->  Applying patches for kernel 3.13.0-117-generic
->  patch -s -f -N -p1 -i ../backports/api_version.patch
->  patch -s -f -N -p1 -i ../backports/api_version.patch
->  1 out of 1 hunk FAILED -- saving rejects to file drivers/media/cec/cec-api.c.rej
->  2 out of 2 hunks FAILED -- saving rejects to file drivers/media/media-device.c.rej
->  1 out of 1 hunk FAILED -- saving rejects to file drivers/media/usb/uvc/uvc_driver.c.rej
->  1 out of 1 hunk FAILED -- saving rejects to file drivers/media/v4l2-core/v4l2-ioctl.c.rej
->  patch -s -f -N -p1 -i ../backports/pr_fmt.patch
->  patch -s -f -N -p1 -i ../backports/pr_fmt.patch
->  1 out of 1 hunk FAILED
->  1 out of 1 hunk FAILED
->  Makefile:138: recipe for target 'apply_patches' failed
->  Makefile:138: recipe for target 'apply_patches' failed
->  make[2]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
->  make[2]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
->  Preparing to compile for kernel version 3.13.0
->  WARNING: This is the V4L/DVB backport tree, with experimental drivers
->       backported to run on legacy kernels from the development tree at:
->          http://git.linuxtv.org/media-tree.git.
->       It is generally safe to use it for testing a new driver or
->       feature, but its usage on production environments is risky.
->       Don't use it in production. You've been warned.
->  CEC_CORE: Requires at least kernel 3.19.0
->  MEDIA_CEC_SUPPORT: Requires at least kernel 3.19.0
->  V4L2_FLASH_LED_CLASS: Requires at least kernel 4.2.0
->  RC_ST: Requires at least kernel 3.15.0
-> Created default (all yes) .config file
->  ./scripts/make_myconfig.pl
->  perl scripts/make_config_compat.pl /lib/modules/3.13.0-117-generic/build ./.myconfig ./config-compat.h
->  make -C firmware prep
->  creating symbolic links...
->  make[2]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/firmware'
->  make[2]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/firmware'
->  make -C firmware
->  make[2]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/firmware'
->    CC  ihex2fw
->  Generating ttusb-budget/dspbootcode.bin
->  Generating vicam/firmware.fw
->  Generating cpia2/stv0672_vp4.bin
->  Generating av7110/bootcode.bin
->  make[2]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l/firmware'
->  Kernel build directory is /lib/modules/3.13.0-117-generic/build
->  make -C ../linux apply_patches
->  make[2]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
->  make[3]: Entering directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
->  Unapplying patches
->  patch -s -f -R -p1 -i ../backports/api_version.patch
->  patch -s -f -R -p1 -i ../backports/api_version.patch
->  1 out of 1 hunk FAILED -- saving rejects to file drivers/media/cec/cec-api.c.rej
->  2 out of 2 hunks FAILED -- saving rejects to file drivers/media/media-device.c.rej
->  1 out of 1 hunk FAILED -- saving rejects to file drivers/media/usb/uvc/uvc_driver.c.rej
->  1 out of 1 hunk FAILED -- saving rejects to file drivers/media/v4l2-core/v4l2-ioctl.c.rej
->  make[3]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
->  Applying patches for kernel 3.13.0-117-generic
->  patch -s -f -N -p1 -i ../backports/api_version.patch
->  patch -s -f -N -p1 -i ../backports/pr_fmt.patch
->  1 out of 1 hunk FAILED
->  Makefile:138: recipe for target 'apply_patches' failed
->  make[2]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/linux'
->  Makefile:51: recipe for target 'default' failed
->  make[1]: Leaving directory '/mnt/home_hdd/jasmin/vdr/dd_driver/git/media_build/v4l'
->  Makefile:26: recipe for target 'all' failed
+>> Have you ever looked that coding style doc?
+> Yes I read it several times already and used it in my daily work in my
+> previous company.
 > 
-> May I ask when I can expect this get fixed?
-> I mean, is someone working on that already?
-> 
-> BR,
->    Jasmin
-> 
+> Beside the Multi-line comment style, which I will fix in a follow up,
+> you mentioned other issues.
+> Please can you tell me which one you mean, so that I can check the series
+> for those things.
+
+eh, OK, here short list from my head:
+* you fixed comments, but left //-comments
+
+* many cases where if (ret != 0), which generally should be written as 
+if (ret). If you expect it is just error ret value, then prefer if 
+(ret), but if ret has some other meaning like it returns number of bytes 
+then if you expect 0-bytes returned (ret != 0) is also valid.
+
+* unnecessary looking line split like that:
+if (a
+       & b)
+
+* logical continuous line split wrong (I think I have seen checkpatch 
+reported that kind of mistakes, dunno why not now)
+if (a
+     && b)
+== >
+if (a &&
+     b)
+
+
+Antti
+
+-- 
+http://palosaari.fi/
