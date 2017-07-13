@@ -1,125 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37058 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750991AbdG3NYm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 30 Jul 2017 09:24:42 -0400
-From: Shawn Guo <shawnguo@kernel.org>
-To: Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>
-Cc: Baoyou Xie <xie.baoyou@sanechips.com.cn>,
-        Xin Zhou <zhou.xin8@sanechips.com.cn>,
-        Jun Nie <jun.nie@linaro.org>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Shawn Guo <shawn.guo@linaro.org>
-Subject: [PATCH v2 1/3] rc: ir-nec-decoder: move scancode composing code into a shared function
-Date: Sun, 30 Jul 2017 21:23:11 +0800
-Message-Id: <1501420993-21977-2-git-send-email-shawnguo@kernel.org>
-In-Reply-To: <1501420993-21977-1-git-send-email-shawnguo@kernel.org>
-References: <1501420993-21977-1-git-send-email-shawnguo@kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47672 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752442AbdGMQTH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Jul 2017 12:19:07 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: pavel@ucw.cz
+Subject: [PATCH 1/2] omap3isp: Explicitly set the number of CSI-2 lanes used in lane cfg
+Date: Thu, 13 Jul 2017 19:19:02 +0300
+Message-Id: <20170713161903.9974-2-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170713161903.9974-1-sakari.ailus@linux.intel.com>
+References: <20170713161903.9974-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Shawn Guo <shawn.guo@linaro.org>
+The omap3isp driver extracts the CSI-2 lane configuration from the V4L2
+fwnode endpoint but misses the number of lanes itself. Get this information
+and use it in PHY configuration.
 
-The NEC scancode composing and protocol type detection in
-ir_nec_decode() is generic enough to be a shared function.  Let's create
-an inline function in rc-core.h, so that other remote control drivers
-can reuse this function to save some code.
-
-Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/rc/ir-nec-decoder.c | 32 +++-----------------------------
- include/media/rc-core.h           | 31 +++++++++++++++++++++++++++++++
- 2 files changed, 34 insertions(+), 29 deletions(-)
+ drivers/media/platform/omap3isp/isp.c       |  5 ++++-
+ drivers/media/platform/omap3isp/ispcsiphy.c | 16 +++++++++++-----
+ drivers/media/platform/omap3isp/omap3isp.h  |  3 +++
+ 3 files changed, 18 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
-index 3ce850314dca..b578c1e27c04 100644
---- a/drivers/media/rc/ir-nec-decoder.c
-+++ b/drivers/media/rc/ir-nec-decoder.c
-@@ -51,7 +51,6 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 	u32 scancode;
- 	enum rc_type rc_type;
- 	u8 address, not_address, command, not_command;
--	bool send_32bits = false;
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 088dc8b1b78a..db2cccb57ceb 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2061,7 +2061,10 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+ 			buscfg->bus.csi2.lanecfg.clk.pol,
+ 			buscfg->bus.csi2.lanecfg.clk.pos);
  
- 	if (!is_timing_event(ev)) {
- 		if (ev.reset)
-@@ -161,34 +160,9 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		command	    = bitrev8((data->bits >>  8) & 0xff);
- 		not_command = bitrev8((data->bits >>  0) & 0xff);
- 
--		if ((command ^ not_command) != 0xff) {
--			IR_dprintk(1, "NEC checksum error: received 0x%08x\n",
--				   data->bits);
--			send_32bits = true;
--		}
--
--		if (send_32bits) {
--			/* NEC transport, but modified protocol, used by at
--			 * least Apple and TiVo remotes */
--			scancode = not_address << 24 |
--				address     << 16 |
--				not_command <<  8 |
--				command;
--			IR_dprintk(1, "NEC (modified) scancode 0x%08x\n", scancode);
--			rc_type = RC_TYPE_NEC32;
--		} else if ((address ^ not_address) != 0xff) {
--			/* Extended NEC */
--			scancode = address     << 16 |
--				   not_address <<  8 |
--				   command;
--			IR_dprintk(1, "NEC (Ext) scancode 0x%06x\n", scancode);
--			rc_type = RC_TYPE_NECX;
--		} else {
--			/* Normal NEC */
--			scancode = address << 8 | command;
--			IR_dprintk(1, "NEC scancode 0x%04x\n", scancode);
--			rc_type = RC_TYPE_NEC;
--		}
-+		scancode = ir_nec_bytes_to_scancode(address, not_address,
-+						    command, not_command,
-+						    &rc_type);
- 
- 		if (data->is_nec_x)
- 			data->necx_repeat = true;
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 78dea39a9b39..204f7785b8e7 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -340,4 +340,35 @@ static inline u32 ir_extract_bits(u32 data, u32 mask)
- 	return value;
- }
- 
-+/* Get NEC scancode and protocol type from address and command bytes */
-+static inline u32 ir_nec_bytes_to_scancode(u8 address, u8 not_address,
-+					   u8 command, u8 not_command,
-+					   enum rc_type *protocol)
-+{
-+	u32 scancode;
+-		for (i = 0; i < ISP_CSIPHY2_NUM_DATA_LANES; i++) {
++		buscfg->bus.csi2.num_data_lanes =
++			vep.bus.mipi_csi2.num_data_lanes;
 +
-+	if ((command ^ not_command) != 0xff) {
-+		/* NEC transport, but modified protocol, used by at
-+		 * least Apple and TiVo remotes
-+		 */
-+		scancode = not_address << 24 |
-+			address     << 16 |
-+			not_command <<  8 |
-+			command;
-+		*protocol = RC_TYPE_NEC32;
-+	} else if ((address ^ not_address) != 0xff) {
-+		/* Extended NEC */
-+		scancode = address     << 16 |
-+			   not_address <<  8 |
-+			   command;
-+		*protocol = RC_TYPE_NECX;
++		for (i = 0; i < buscfg->bus.csi2.num_data_lanes; i++) {
+ 			buscfg->bus.csi2.lanecfg.data[i].pos =
+ 				vep.bus.mipi_csi2.data_lanes[i];
+ 			buscfg->bus.csi2.lanecfg.data[i].pol =
+diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
+index 83940e9d8291..3efa71396aae 100644
+--- a/drivers/media/platform/omap3isp/ispcsiphy.c
++++ b/drivers/media/platform/omap3isp/ispcsiphy.c
+@@ -169,7 +169,7 @@ static int omap3isp_csiphy_config(struct isp_csiphy *phy)
+ 	struct isp_bus_cfg *buscfg = pipe->external->host_priv;
+ 	struct isp_csiphy_lanes_cfg *lanes;
+ 	int csi2_ddrclk_khz;
+-	unsigned int used_lanes = 0;
++	unsigned int num_data_lanes, used_lanes = 0;
+ 	unsigned int i;
+ 	u32 reg;
+ 
+@@ -181,13 +181,19 @@ static int omap3isp_csiphy_config(struct isp_csiphy *phy)
+ 	}
+ 
+ 	if (buscfg->interface == ISP_INTERFACE_CCP2B_PHY1
+-	    || buscfg->interface == ISP_INTERFACE_CCP2B_PHY2)
++	    || buscfg->interface == ISP_INTERFACE_CCP2B_PHY2) {
+ 		lanes = &buscfg->bus.ccp2.lanecfg;
+-	else
++		num_data_lanes = 1;
 +	} else {
-+		/* Normal NEC */
-+		scancode = address << 8 | command;
-+		*protocol = RC_TYPE_NEC;
+ 		lanes = &buscfg->bus.csi2.lanecfg;
++		num_data_lanes = buscfg->bus.csi2.num_data_lanes;
 +	}
 +
-+	return scancode;
-+}
-+
- #endif /* _RC_CORE */
++	if (num_data_lanes > phy->num_data_lanes)
++		return -EINVAL;
+ 
+ 	/* Clock and data lanes verification */
+-	for (i = 0; i < phy->num_data_lanes; i++) {
++	for (i = 0; i < num_data_lanes; i++) {
+ 		if (lanes->data[i].pol > 1 || lanes->data[i].pos > 3)
+ 			return -EINVAL;
+ 
+@@ -243,7 +249,7 @@ static int omap3isp_csiphy_config(struct isp_csiphy *phy)
+ 	/* DPHY lane configuration */
+ 	reg = isp_reg_readl(csi2->isp, phy->cfg_regs, ISPCSI2_PHY_CFG);
+ 
+-	for (i = 0; i < phy->num_data_lanes; i++) {
++	for (i = 0; i < num_data_lanes; i++) {
+ 		reg &= ~(ISPCSI2_PHY_CFG_DATA_POL_MASK(i + 1) |
+ 			 ISPCSI2_PHY_CFG_DATA_POSITION_MASK(i + 1));
+ 		reg |= (lanes->data[i].pol <<
+diff --git a/drivers/media/platform/omap3isp/omap3isp.h b/drivers/media/platform/omap3isp/omap3isp.h
+index 443e8f7673e2..3c26f9a3f508 100644
+--- a/drivers/media/platform/omap3isp/omap3isp.h
++++ b/drivers/media/platform/omap3isp/omap3isp.h
+@@ -114,10 +114,13 @@ struct isp_ccp2_cfg {
+ /**
+  * struct isp_csi2_cfg - CSI2 interface configuration
+  * @crc: Enable the cyclic redundancy check
++ * @lanecfg: CSI-2 lane configuration
++ * @num_data_lanes: The number of data lanes in use
+  */
+ struct isp_csi2_cfg {
+ 	unsigned crc:1;
+ 	struct isp_csiphy_lanes_cfg lanecfg;
++	u8 num_data_lanes;
+ };
+ 
+ struct isp_bus_cfg {
 -- 
-1.9.1
+2.11.0
