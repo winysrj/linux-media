@@ -1,59 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54531 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933473AbdGTGu2 (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51692 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751193AbdGMOZ0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 02:50:28 -0400
-Date: Thu, 20 Jul 2017 08:50:25 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        jacek.anaszewski@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 1/1] v4l2-flash-led-class: Document v4l2_flash_init()
- references
-Message-ID: <20170720065024.GA25904@amd>
-References: <20170719115934.GA23510@amd>
- <20170719224031.12133-1-sakari.ailus@linux.intel.com>
+        Thu, 13 Jul 2017 10:25:26 -0400
+Date: Thu, 13 Jul 2017 16:25:22 +0200
+From: Greg KH <gregkh@linuxfoundation.org>
+To: smklearn <smklearn@gmail.com>
+Cc: mchehab@kernel.org, alan@linux.intel.com,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] staging drivers fixed coding style error
+Message-ID: <20170713142522.GB25779@kroah.com>
+References: <1499955476-10445-1-git-send-email-smklearn@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="nFreZHaLTZJo0R7j"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170719224031.12133-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <1499955476-10445-1-git-send-email-smklearn@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, Jul 13, 2017 at 07:17:56AM -0700, smklearn wrote:
+> Fixed coding style error flagged checkpatch.pl:
+> 	- ERROR: space prohibited after that open parenthesis '('
+> 	- WARNING: Block comments use * on subsequent lines
+> 
+> Signed-off-by: Shy More <smklearn@gmail.com>
+> 
+> Output after fixing coding style issues:
+> 
+> $KERN/scripts/checkpatch.pl -f
+> 	./media/atomisp/pci/atomisp2/css2400/runtime/isys/src/ibuf_ctrl_rmgr.c
+> 
+> total: 0 errors, 0 warnings, 141 lines checked
 
---nFreZHaLTZJo0R7j
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Please don't put anything below the Signed-off-by: line, you will note
+that all other commits are written that way.
 
-On Thu 2017-07-20 01:40:31, Sakari Ailus wrote:
-> The v4l2_flash_init() keeps a reference to the ops struct but not to the
-> config struct (nor anything it contains). Document this.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Also, your subject: needs a lot of work, again, look at other commits
+for the driver you are modifying to get it right.
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+good luck!
 
-Thanks!
-							Pavel
-						=09
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---nFreZHaLTZJo0R7j
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAllwUrAACgkQMOfwapXb+vK4UgCgorvKo4tZOMU2FKiD7yHSkV4M
-Wr4AoJLuoCjOYhkAOQmlBSMAPkGyTQ6l
-=9A+7
------END PGP SIGNATURE-----
-
---nFreZHaLTZJo0R7j--
+greg k-h
