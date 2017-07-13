@@ -1,242 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:33659 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750959AbdGLKac (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:51001 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750807AbdGMHH0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Jul 2017 06:30:32 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v2 2/3] drm: rcar-du: Fix planes to CRTC assignment when
- using the VSP
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        dri-devel@lists.freedesktop.org
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-References: <20170711222942.27735-1-laurent.pinchart+renesas@ideasonboard.com>
- <20170711222942.27735-3-laurent.pinchart+renesas@ideasonboard.com>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <23b0037c-defe-4e95-771b-ad99b86d5c26@ideasonboard.com>
-Date: Wed, 12 Jul 2017 11:30:19 +0100
+        Thu, 13 Jul 2017 03:07:26 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Jose Abreu <Jose.Abreu@synopsys.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] cec: move cec_register_cec_notifier to cec-notifier.h
+Message-ID: <a3cf3b44-2c77-0386-b71c-b25e2104b830@xs4all.nl>
+Date: Thu, 13 Jul 2017 09:07:23 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170711222942.27735-3-laurent.pinchart+renesas@ideasonboard.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+The cec_register_cec_notifier function was in media/cec.h, but it
+has to be in cec-notifier.h.
 
-Thanks for the patch
+While we are at it, also document it and add a stub function for when
+the notifier is disabled or the CEC core code is unreachable.
 
-Only a minor nit on one comment, but aside from that,
+Based on an earlier patch from Jose Abreu <Jose.Abreu@synopsys.com>.
 
-On 11/07/17 23:29, Laurent Pinchart wrote:
-> The DU can compose the output of a VSP with other planes on Gen2
-> hardware, and of two VSPs on Gen3 hardware. Neither of these features
-> are supported by the driver, and the current implementation always
-> assigns planes to CRTCs the same way.
-> 
-> Simplify the implementation by configuring plane assignment when setting
-> up DU groups, instead of recomputing it for every atomic plane update.
-> This allows skipping the wait for vertical blanking when stopping a
-> CRTC, as there's no need to reconfigure plane assignment at that point.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/media/cec-notifier.h | 12 ++++++++++++
+ include/media/cec.h          |  5 -----
+ 2 files changed, 12 insertions(+), 5 deletions(-)
 
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
+index 298f996969df..73bc98b90afc 100644
+--- a/include/media/cec-notifier.h
++++ b/include/media/cec-notifier.h
+@@ -86,6 +86,14 @@ void cec_notifier_register(struct cec_notifier *n,
+  */
+ void cec_notifier_unregister(struct cec_notifier *n);
 
-> ---
->  drivers/gpu/drm/rcar-du/rcar_du_crtc.c  | 31 ++++++++++++++++---------------
->  drivers/gpu/drm/rcar-du/rcar_du_group.c | 12 ++++++++++++
->  drivers/gpu/drm/rcar-du/rcar_du_kms.c   | 28 +++++++++++++++++-----------
->  drivers/gpu/drm/rcar-du/rcar_du_plane.c | 10 +---------
->  drivers/gpu/drm/rcar-du/rcar_du_vsp.c   |  9 ---------
->  5 files changed, 46 insertions(+), 44 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-> index 17fd1cd5212c..413ab032afed 100644
-> --- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-> +++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-> @@ -315,6 +315,10 @@ static void rcar_du_crtc_update_planes(struct rcar_du_crtc *rcrtc)
->  	unsigned int i;
->  	u32 dspr = 0;
->  
-> +	/* Plane assignment is fixed when using the VSP. */
-> +	if (rcar_du_has(rcdu, RCAR_DU_FEATURE_VSP1_SOURCE))
-> +		return;
-> +
->  	for (i = 0; i < rcrtc->group->num_planes; ++i) {
->  		struct rcar_du_plane *plane = &rcrtc->group->planes[i];
->  		unsigned int j;
-> @@ -351,17 +355,6 @@ static void rcar_du_crtc_update_planes(struct rcar_du_crtc *rcrtc)
->  		}
->  	}
->  
-> -	/* If VSP+DU integration is enabled the plane assignment is fixed. */
-> -	if (rcar_du_has(rcdu, RCAR_DU_FEATURE_VSP1_SOURCE)) {
-> -		if (rcdu->info->gen < 3) {
-> -			dspr = (rcrtc->index % 2) + 1;
-> -			hwplanes = 1 << (rcrtc->index % 2);
-> -		} else {
-> -			dspr = (rcrtc->index % 2) ? 3 : 1;
-> -			hwplanes = 1 << ((rcrtc->index % 2) ? 2 : 0);
-> -		}
-> -	}
-> -
->  	/*
->  	 * Update the planes to display timing and dot clock generator
->  	 * associations.
-> @@ -462,8 +455,13 @@ static void rcar_du_crtc_setup(struct rcar_du_crtc *rcrtc)
->  	rcar_du_crtc_set_display_timing(rcrtc);
->  	rcar_du_group_set_routing(rcrtc->group);
->  
-> -	/* Start with all planes disabled. */
-> -	rcar_du_group_write(rcrtc->group, rcrtc->index % 2 ? DS2PR : DS1PR, 0);
-> +	/*
-> +	 * Start with all planes disabled, except when using the VSP in which
-> +	 * case the fixed plane assignment must not be modified.
-> +	 */
-> +	if (!rcar_du_has(rcrtc->group->dev, RCAR_DU_FEATURE_VSP1_SOURCE))
-> +		rcar_du_group_write(rcrtc->group,
-> +				    rcrtc->index % 2 ? DS2PR : DS1PR, 0);
->  
->  	/* Enable the VSP compositor. */
->  	if (rcar_du_has(rcrtc->group->dev, RCAR_DU_FEATURE_VSP1_SOURCE))
-> @@ -505,8 +503,11 @@ static void rcar_du_crtc_stop(struct rcar_du_crtc *rcrtc)
->  	 * are stopped in one operation as we now wait for one vblank per CRTC.
->  	 * Whether this can be improved needs to be researched.
->  	 */
-> -	rcar_du_group_write(rcrtc->group, rcrtc->index % 2 ? DS2PR : DS1PR, 0);
-> -	drm_crtc_wait_one_vblank(crtc);
-> +	if (!rcar_du_has(rcrtc->group->dev, RCAR_DU_FEATURE_VSP1_SOURCE)) {
-> +		rcar_du_group_write(rcrtc->group,
-> +				    rcrtc->index % 2 ? DS2PR : DS1PR, 0);
-> +		drm_crtc_wait_one_vblank(crtc);
-> +	}
->  
->  	/*
->  	 * Disable vertical blanking interrupt reporting. We first need to wait
-> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_group.c b/drivers/gpu/drm/rcar-du/rcar_du_group.c
-> index 00d5f470d377..d26b647207b8 100644
-> --- a/drivers/gpu/drm/rcar-du/rcar_du_group.c
-> +++ b/drivers/gpu/drm/rcar-du/rcar_du_group.c
-> @@ -126,6 +126,18 @@ static void rcar_du_group_setup(struct rcar_du_group *rgrp)
->  	if (rcdu->info->gen >= 3)
->  		rcar_du_group_write(rgrp, DEFR10, DEFR10_CODE | DEFR10_DEFE10);
->  
-> +	if (rcar_du_has(rcdu, RCAR_DU_FEATURE_VSP1_SOURCE)) {
-> +		/*
-> +		 * The CRTCs can compose the output of a VSP with other planes
-> +		 * on Gen2 hardware, and of two VSPs on Gen3 hardware. Neither
-> +		 * of these features are supported by the driver, so we hardcode
-> +		 * plane assignment to CRTCs when setting the group up to avoid
-> +		 * the need to restart then group when setting planes up.
++/**
++ * cec_register_cec_notifier - register the notifier with the cec adapter.
++ * @adap: the CEC adapter
++ * @notifier: the CEC notifier
++ */
++void cec_register_cec_notifier(struct cec_adapter *adap,
++			       struct cec_notifier *notifier);
++
+ #else
+ static inline struct cec_notifier *cec_notifier_get(struct device *dev)
+ {
+@@ -116,6 +124,10 @@ static inline void cec_notifier_unregister(struct cec_notifier *n)
+ {
+ }
 
-Minor nits in comment:
++static inline void cec_register_cec_notifier(struct cec_adapter *adap,
++					     struct cec_notifier *notifier)
++{
++}
+ #endif
 
-  /restart then group/restart the group/
+ #endif
+diff --git a/include/media/cec.h b/include/media/cec.h
+index 56643b27e4b8..6a1c2515bb91 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -311,11 +311,6 @@ u16 cec_phys_addr_for_input(u16 phys_addr, u8 input);
+  */
+ int cec_phys_addr_validate(u16 phys_addr, u16 *parent, u16 *port);
 
-I would also possibly swap the final 'planes up' as 'up planes' if you update
-here anyway:
+-#ifdef CONFIG_CEC_NOTIFIER
+-void cec_register_cec_notifier(struct cec_adapter *adap,
+-			       struct cec_notifier *notifier);
+-#endif
+-
+ #else
 
-* so we hardcode plane assignment to CRTCs when setting the group up to avoid
-* the need to restart the group when setting up planes.
-
-Up to you of course :)
-
-
-> +		 */
-> +		rcar_du_group_write(rgrp, DS1PR, 1);
-> +		rcar_du_group_write(rgrp, DS2PR, rcdu->info->gen >= 3 ? 3 : 2);
-
-whew ... that DS2PR indexing change from g2 to g3 looks annoying ... I had to
-write out the logic tables on paper to verify the change here from the previous
-code.
-
-> +	}
-> +
->  	/*
->  	 * Use DS1PR and DS2PR to configure planes priorities and connects the
->  	 * superposition 0 to DU0 pins. DU1 pins will be configured dynamically.
-> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_kms.c b/drivers/gpu/drm/rcar-du/rcar_du_kms.c
-> index 0e4e839afc97..13186a5684f1 100644
-> --- a/drivers/gpu/drm/rcar-du/rcar_du_kms.c
-> +++ b/drivers/gpu/drm/rcar-du/rcar_du_kms.c
-> @@ -562,17 +562,23 @@ int rcar_du_modeset_init(struct rcar_du_device *rcdu)
->  		rgrp->index = i;
->  		rgrp->num_crtcs = min(rcdu->num_crtcs - 2 * i, 2U);
->  
-> -		/*
-> -		 * If we have more than one CRTCs in this group pre-associate
-> -		 * the low-order planes with CRTC 0 and the high-order planes
-> -		 * with CRTC 1 to minimize flicker occurring when the
-> -		 * association is changed.
-> -		 */
-> -		rgrp->dptsr_planes = rgrp->num_crtcs > 1
-> -				   ? (rcdu->info->gen >= 3 ? 0x04 : 0xf0)
-> -				   : 0;
-> -
-> -		if (!rcar_du_has(rcdu, RCAR_DU_FEATURE_VSP1_SOURCE)) {
-> +		if (rcar_du_has(rcdu, RCAR_DU_FEATURE_VSP1_SOURCE)) {
-> +			/*
-> +			 * When using the VSP plane assignment to CRTCs is
-> +			 * fixed. The first VSP is connected to plane 1, and the
-> +			 * second VSP to plane 2 on Gen2 hardware and to plane 3
-> +			 * on Gen3 hardware.
-> +			 */
-> +			rgrp->dptsr_planes = rgrp->num_crtcs > 1
-> +					   ? (rcdu->info->gen >= 3 ? 4 : 2)
-> +					   : 0;
-> +		} else {
-> +			/*
-> +			 * Pre-associate the planes with the CRTCs if we have
-> +			 * more than one CRTC in this group to minimize flicker
-> +			 * when plane association is changed.
-> +			 */
-> +			rgrp->dptsr_planes = rgrp->num_crtcs > 1 ? 0xf0 : 0x00;
->  			ret = rcar_du_planes_init(rgrp);
->  			if (ret < 0)
->  				return ret;
-> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_plane.c b/drivers/gpu/drm/rcar-du/rcar_du_plane.c
-> index b0040478a3db..787f036b18fb 100644
-> --- a/drivers/gpu/drm/rcar-du/rcar_du_plane.c
-> +++ b/drivers/gpu/drm/rcar-du/rcar_du_plane.c
-> @@ -548,17 +548,9 @@ void __rcar_du_plane_setup(struct rcar_du_group *rgrp,
->  		rcar_du_plane_setup_format(rgrp, (state->hwindex + 1) % 8,
->  					   state);
->  
-> +	/* On Gen3 planes have no scanout data. */
->  	if (rcdu->info->gen < 3)
->  		rcar_du_plane_setup_scanout(rgrp, state);
-> -
-> -	if (state->source == RCAR_DU_PLANE_VSPD1) {
-> -		unsigned int vspd1_sink = rgrp->index ? 2 : 0;
-> -
-> -		if (rcdu->vspd1_sink != vspd1_sink) {
-> -			rcdu->vspd1_sink = vspd1_sink;
-> -			rcar_du_set_dpad0_vsp1_routing(rcdu);
-> -		}
-> -	}
->  }
->  
->  static int rcar_du_plane_atomic_check(struct drm_plane *plane,
-> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-> index e43b065e141a..dba150a20f3d 100644
-> --- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-> +++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-> @@ -74,15 +74,6 @@ void rcar_du_vsp_enable(struct rcar_du_crtc *crtc)
->  
->  	__rcar_du_plane_setup(crtc->group, &state);
->  
-> -	/*
-> -	 * Ensure that the plane source configuration takes effect by requesting
-> -	 * a restart of the group. See rcar_du_plane_atomic_update() for a more
-> -	 * detailed explanation.
-> -	 *
-> -	 * TODO: Check whether this is still needed on Gen3.
-> -	 */
-> -	crtc->group->need_restart = true;
-> -
->  	vsp1_du_setup_lif(crtc->vsp->vsp, crtc->vsp_pipe, &cfg);
->  }
->  
-> 
+ static inline int cec_register_adapter(struct cec_adapter *adap,
+-- 
+2.11.0
