@@ -1,211 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:35196 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752470AbdGITma (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 15:42:30 -0400
-Received: by mail-wr0-f193.google.com with SMTP id z45so20513023wrb.2
-        for <linux-media@vger.kernel.org>; Sun, 09 Jul 2017 12:42:29 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, d_spingler@gmx.de, rjkm@metzlerbros.de
-Subject: [PATCH 04/14] [media] ddbridge: split I/O related functions off from ddbridge.h
-Date: Sun,  9 Jul 2017 21:42:11 +0200
-Message-Id: <20170709194221.10255-5-d.scheller.oss@gmail.com>
-In-Reply-To: <20170709194221.10255-1-d.scheller.oss@gmail.com>
-References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:36316 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751180AbdGMHB6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Jul 2017 03:01:58 -0400
+Subject: Re: [PATCH v8 1/5] [media] cec.h: Add stub function for
+ cec_register_cec_notifier()
+To: Jose Abreu <Jose.Abreu@synopsys.com>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <cover.1499701281.git.joabreu@synopsys.com>
+ <bcf671fd7de56db2a224394e21766eae01d0ad02.1499701282.git.joabreu@synopsys.com>
+Cc: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <ff7de557-d023-4ca6-d2f0-df13886ab7fc@xs4all.nl>
+Date: Thu, 13 Jul 2017 09:01:51 +0200
+MIME-Version: 1.0
+In-Reply-To: <bcf671fd7de56db2a224394e21766eae01d0ad02.1499701282.git.joabreu@synopsys.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On 10/07/17 17:46, Jose Abreu wrote:
+> Add a new stub function for cec_register_cec_notifier() so that
+> we can still call this function when CONFIG_CEC_NOTIFIER and
+> CONFIG_CEC_CORE are not set.
+> 
+> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+> Cc: Carlos Palminha <palminha@synopsys.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  include/media/cec.h | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/include/media/cec.h b/include/media/cec.h
+> index 56643b2..8357f60 100644
+> --- a/include/media/cec.h
+> +++ b/include/media/cec.h
+> @@ -365,6 +365,14 @@ static inline int cec_phys_addr_validate(u16 phys_addr, u16 *parent, u16 *port)
+>  	return 0;
+>  }
+>  
+> +#ifndef CONFIG_CEC_NOTIFIER
+> +struct cec_notifier;
+> +static inline void cec_register_cec_notifier(struct cec_adapter *adap,
+> +					     struct cec_notifier *notifier)
+> +{
+> +}
+> +#endif
+> +
+>  #endif
+>  
+>  /**
+> 
 
-While it seems valid that headers can carry simple oneline static inline
-annotated functions, move them into their own header file to have the
-overall code more readable. Also, keep them as header (and don't put in
-a separate object) and static inline to help the compiler avoid
-generating function calls.
+This isn't quite right. This function prototype needs to be moved to cec-notifier.h.
 
-(Thanks to Jasmin J. <jasmin@anw.at> for valuable input on this!)
+I also saw that it isn't documented. I'll make a patch for this which will also include
+documentation.
 
-Cc: Jasmin J. <jasmin@anw.at>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Regards,
 
-ddbridge: put io stuff into a header and use static inline
----
- drivers/media/pci/ddbridge/ddbridge-core.c |  1 +
- drivers/media/pci/ddbridge/ddbridge-i2c.c  |  1 +
- drivers/media/pci/ddbridge/ddbridge-io.h   | 71 ++++++++++++++++++++++++++++++
- drivers/media/pci/ddbridge/ddbridge-main.c |  1 +
- drivers/media/pci/ddbridge/ddbridge.h      | 43 ------------------
- 5 files changed, 74 insertions(+), 43 deletions(-)
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-io.h
-
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 37c6eadba02b..f3bd371634f1 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -36,6 +36,7 @@
- 
- #include "ddbridge.h"
- #include "ddbridge-regs.h"
-+#include "ddbridge-io.h"
- 
- #include "tda18271c2dd.h"
- #include "stv6110x.h"
-diff --git a/drivers/media/pci/ddbridge/ddbridge-i2c.c b/drivers/media/pci/ddbridge/ddbridge-i2c.c
-index e83c7af77087..22b2543da4ca 100644
---- a/drivers/media/pci/ddbridge/ddbridge-i2c.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-i2c.c
-@@ -32,6 +32,7 @@
- 
- #include "ddbridge.h"
- #include "ddbridge-regs.h"
-+#include "ddbridge-io.h"
- 
- /******************************************************************************/
- 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-io.h b/drivers/media/pci/ddbridge/ddbridge-io.h
-new file mode 100644
-index 000000000000..ce92e9484075
---- /dev/null
-+++ b/drivers/media/pci/ddbridge/ddbridge-io.h
-@@ -0,0 +1,71 @@
-+/*
-+ * ddbridge-io.h: Digital Devices bridge I/O inline functions
-+ *
-+ * Copyright (C) 2010-2017 Digital Devices GmbH
-+ *                         Ralph Metzler <rjkm@metzlerbros.de>
-+ *                         Marcus Metzler <mocm@metzlerbros.de>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 only, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#ifndef __DDBRIDGE_IO_H__
-+#define __DDBRIDGE_IO_H__
-+
-+#include <linux/io.h>
-+
-+#include "ddbridge.h"
-+
-+/******************************************************************************/
-+
-+static inline u32 ddblreadl(struct ddb_link *link, u32 adr)
-+{
-+	return readl((char *) (link->dev->regs + (adr)));
-+}
-+
-+static inline void ddblwritel(struct ddb_link *link, u32 val, u32 adr)
-+{
-+	writel(val, (char *) (link->dev->regs + (adr)));
-+}
-+
-+static inline u32 ddbreadl(struct ddb *dev, u32 adr)
-+{
-+	return readl((char *) (dev->regs + (adr)));
-+}
-+
-+static inline void ddbwritel(struct ddb *dev, u32 val, u32 adr)
-+{
-+	writel(val, (char *) (dev->regs + (adr)));
-+}
-+
-+static inline void ddbcpyto(struct ddb *dev, u32 adr, void *src, long count)
-+{
-+	return memcpy_toio((char *) (dev->regs + adr), src, count);
-+}
-+
-+static inline void ddbcpyfrom(struct ddb *dev, void *dst, u32 adr, long count)
-+{
-+	return memcpy_fromio(dst, (char *) (dev->regs + adr), count);
-+}
-+
-+static inline u32 safe_ddbreadl(struct ddb *dev, u32 adr)
-+{
-+	u32 val = ddbreadl(dev, adr);
-+
-+	/* (ddb)readl returns (uint)-1 (all bits set) on failure, catch that */
-+	if (val == ~0) {
-+		dev_err(&dev->pdev->dev, "ddbreadl failure, adr=%08x\n", adr);
-+		return 0;
-+	}
-+
-+	return val;
-+}
-+
-+#endif /* __DDBRIDGE_IO_H__ */
-diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
-index 8262979b6257..de9da6077ec6 100644
---- a/drivers/media/pci/ddbridge/ddbridge-main.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-main.c
-@@ -34,6 +34,7 @@
- 
- #include "ddbridge.h"
- #include "ddbridge-regs.h"
-+#include "ddbridge-io.h"
- 
- /****************************************************************************/
- /* module parameters */
-diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
-index 7fe5820a78ff..fa471481a572 100644
---- a/drivers/media/pci/ddbridge/ddbridge.h
-+++ b/drivers/media/pci/ddbridge/ddbridge.h
-@@ -353,49 +353,6 @@ struct ddb {
- 	u8                     tsbuf[TS_CAPTURE_LEN];
- };
- 
--static inline u32 ddblreadl(struct ddb_link *link, u32 adr)
--{
--	return readl((char *) (link->dev->regs + (adr)));
--}
--
--static inline void ddblwritel(struct ddb_link *link, u32 val, u32 adr)
--{
--	writel(val, (char *) (link->dev->regs + (adr)));
--}
--
--static inline u32 ddbreadl(struct ddb *dev, u32 adr)
--{
--	return readl((char *) (dev->regs + (adr)));
--}
--
--static inline void ddbwritel(struct ddb *dev, u32 val, u32 adr)
--{
--	writel(val, (char *) (dev->regs + (adr)));
--}
--
--static inline void ddbcpyto(struct ddb *dev, u32 adr, void *src, long count)
--{
--	return memcpy_toio((char *) (dev->regs + adr), src, count);
--}
--
--static inline void ddbcpyfrom(struct ddb *dev, void *dst, u32 adr, long count)
--{
--	return memcpy_fromio(dst, (char *) (dev->regs + adr), count);
--}
--
--static inline u32 safe_ddbreadl(struct ddb *dev, u32 adr)
--{
--	u32 val = ddbreadl(dev, adr);
--
--	/* (ddb)readl returns (uint)-1 (all bits set) on failure, catch that */
--	if (val == ~0) {
--		dev_err(&dev->pdev->dev, "ddbreadl failure, adr=%08x\n", adr);
--		return 0;
--	}
--
--	return val;
--}
--
- /****************************************************************************/
- /****************************************************************************/
- /****************************************************************************/
--- 
-2.13.0
+	Hans
