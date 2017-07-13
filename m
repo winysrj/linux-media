@@ -1,55 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:34597 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753612AbdG2L3C (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Jul 2017 07:29:02 -0400
-Received: by mail-wr0-f195.google.com with SMTP id o33so20716050wrb.1
-        for <linux-media@vger.kernel.org>; Sat, 29 Jul 2017 04:29:02 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
-        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
-Subject: [PATCH v2 09/14] [media] ddbridge: fix possible buffer overflow in ddb_ports_init()
-Date: Sat, 29 Jul 2017 13:28:43 +0200
-Message-Id: <20170729112848.707-10-d.scheller.oss@gmail.com>
-In-Reply-To: <20170729112848.707-1-d.scheller.oss@gmail.com>
-References: <20170729112848.707-1-d.scheller.oss@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:37055 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750805AbdGMAHJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Jul 2017 20:07:09 -0400
+Subject: Re: [PATCH V2 4/9] [media] dvb-core/dvb_ca_en50221.c: Fixed block
+ comments
+From: Antti Palosaari <crope@iki.fi>
+To: "Jasmin J." <jasmin@anw.at>, linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
+        rjkm@metzlerbros.de, d.scheller@gmx.net
+References: <1499900458-2339-1-git-send-email-jasmin@anw.at>
+ <1499900458-2339-5-git-send-email-jasmin@anw.at>
+ <c8c9b074-32fe-96b8-6635-842898dfc956@iki.fi>
+ <080f360c-a6cb-0f5c-b2ca-f380a78a2cf9@anw.at>
+ <ffcb064e-3b82-fbae-ab32-d9a4a56f6716@iki.fi>
+ <345e0587-b0a8-8fed-0bdb-4313093cf56d@anw.at>
+ <f003e6db-95e0-dcc4-88fe-e895a0d3b59d@iki.fi>
+Message-ID: <ab35758a-5769-73c3-ab63-34c34b483eab@iki.fi>
+Date: Thu, 13 Jul 2017 03:07:04 +0300
+MIME-Version: 1.0
+In-Reply-To: <f003e6db-95e0-dcc4-88fe-e895a0d3b59d@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
 
-Report from smatch:
 
-  drivers/media/pci/ddbridge/ddbridge-core.c:2659 ddb_ports_init() error: buffer overflow 'dev->port' 32 <= u32max
+On 07/13/2017 03:04 AM, Antti Palosaari wrote:
+> On 07/13/2017 02:45 AM, Jasmin J. wrote:
+>> Hello Antti!
+>>
+>>> Have you ever looked that coding style doc?
+>> Yes I read it several times already and used it in my daily work in my
+>> previous company.
+>>
+>> Beside the Multi-line comment style, which I will fix in a follow up,
+>> you mentioned other issues.
+>> Please can you tell me which one you mean, so that I can check the series
+>> for those things.
+> 
+> eh, OK, here short list from my head:
+> * you fixed comments, but left //-comments
+> 
+> * many cases where if (ret != 0), which generally should be written as 
+> if (ret). If you expect it is just error ret value, then prefer if 
+> (ret), but if ret has some other meaning like it returns number of bytes 
+> then if you expect 0-bytes returned (ret != 0) is also valid.
+> 
+> * unnecessary looking line split like that:
+> if (a
+>        & b)
+> 
+> * logical continuous line split wrong (I think I have seen checkpatch 
+> reported that kind of mistakes, dunno why not now)
+> if (a
+>      && b)
+> == >
+> if (a &&
+>      b)
 
-Fix by making sure "p" is greater than zero before checking for
-"dev->port[].type == DDB_CI_EXTERNAL_XO2".
+actually it reports, when run --strict mode:
 
-Cc: Ralph Metzler <rjkm@metzlerbros.de>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-Tested-by: Richard Scobie <r.scobie@clear.net.nz>
-Tested-by: Jasmin Jessich <jasmin@anw.at>
-Tested-by: Dietmar Spingler <d_spingler@freenet.de>
-Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
----
- drivers/media/pci/ddbridge/ddbridge-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
++       if (a
++           && b) {
++               foo(a);
++               foo(b);
++       }
++
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 9aee112c0d88..06bd37f8b95d 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -2551,7 +2551,7 @@ void ddb_ports_init(struct ddb *dev)
- 			port->dvb[0].adap = &dev->adap[2 * p];
- 			port->dvb[1].adap = &dev->adap[2 * p + 1];
- 
--			if ((port->class == DDB_PORT_NONE) && i &&
-+			if ((port->class == DDB_PORT_NONE) && i && p &&
- 			    dev->port[p - 1].type == DDB_CI_EXTERNAL_XO2) {
- 				port->class = DDB_PORT_CI;
- 				port->type = DDB_CI_EXTERNAL_XO2_B;
+CHECK: Logical continuations should be on the previous line
+#11: FILE: drivers/media/usb/dvb-usb-v2/af9035.c:2135:
++	if (a
++	    && b) {
+
+
+Antti
 -- 
-2.13.0
+http://palosaari.fi/
