@@ -1,45 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51692 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751193AbdGMOZ0 (ORCPT
+Received: from mail-it0-f67.google.com ([209.85.214.67]:34265 "EHLO
+        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751340AbdGNJAk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Jul 2017 10:25:26 -0400
-Date: Thu, 13 Jul 2017 16:25:22 +0200
-From: Greg KH <gregkh@linuxfoundation.org>
-To: smklearn <smklearn@gmail.com>
-Cc: mchehab@kernel.org, alan@linux.intel.com,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] staging drivers fixed coding style error
-Message-ID: <20170713142522.GB25779@kroah.com>
-References: <1499955476-10445-1-git-send-email-smklearn@gmail.com>
+        Fri, 14 Jul 2017 05:00:40 -0400
+Received: by mail-it0-f67.google.com with SMTP id o202so11470799itc.1
+        for <linux-media@vger.kernel.org>; Fri, 14 Jul 2017 02:00:39 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1499955476-10445-1-git-send-email-smklearn@gmail.com>
+In-Reply-To: <CABxcv=nKHs6nFvbNdwMxsGjbj-JpHAOXd1Lt8FCXk3RHjCZgwA@mail.gmail.com>
+References: <ea42b2bdf113f7c2533c83986657647934b4e839.1499859983.git.mchehab@s-opensource.com>
+ <20170713153842.xupjvsf2nfkvtkyy@valkosipuli.retiisi.org.uk> <CABxcv=nKHs6nFvbNdwMxsGjbj-JpHAOXd1Lt8FCXk3RHjCZgwA@mail.gmail.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Date: Fri, 14 Jul 2017 11:00:38 +0200
+Message-ID: <CABxcv=kThAbvFnNRBZJgVABr1YpS9qQpfVgcmUBtDMYFBTUx4w@mail.gmail.com>
+Subject: Re: [PATCH] media: vimc: cleanup a few warnings
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Helen Koike <helen.koike@collabora.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 13, 2017 at 07:17:56AM -0700, smklearn wrote:
-> Fixed coding style error flagged checkpatch.pl:
-> 	- ERROR: space prohibited after that open parenthesis '('
-> 	- WARNING: Block comments use * on subsequent lines
-> 
-> Signed-off-by: Shy More <smklearn@gmail.com>
-> 
-> Output after fixing coding style issues:
-> 
-> $KERN/scripts/checkpatch.pl -f
-> 	./media/atomisp/pci/atomisp2/css2400/runtime/isys/src/ibuf_ctrl_rmgr.c
-> 
-> total: 0 errors, 0 warnings, 141 lines checked
+On Thu, Jul 13, 2017 at 5:47 PM, Javier Martinez Canillas
+<javier@dowhile0.org> wrote:
+> On Thu, Jul 13, 2017 at 5:38 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
 
-Please don't put anything below the Signed-off-by: line, you will note
-that all other commits are written that way.
+[snip]
 
-Also, your subject: needs a lot of work, again, look at other commits
-for the driver you are modifying to get it right.
+>>
+>> Shouldn't these be set to the corresponding driver structs' id_table
+>> fields? Or do I miss something...?
+>>
+>
+> Agreed, the real problem is that the .id_table is not set for these
+> drivers. The match only works because the platform subsystem fallbacks
+> to the driver's name if an .id_table isn't defined:
+>
 
-good luck!
+I just posted a patch fixing the build warning in the driver as
+suggested by Sakari:
 
-greg k-h
+https://patchwork.linuxtv.org/patch/42480/
+
+Best regards,
+Javier
