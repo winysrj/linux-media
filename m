@@ -1,120 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35708 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751807AbdGWKN0 (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.135]:59663 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751190AbdGNJbQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Jul 2017 06:13:26 -0400
-Received: by mail-wm0-f68.google.com with SMTP id m75so5412400wmb.2
-        for <linux-media@vger.kernel.org>; Sun, 23 Jul 2017 03:13:25 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, r.scobie@clear.net.nz
-Subject: [PATCH 6/7] [media] dvb-frontends/stv6111: cosmetics: comments fixup, misc
-Date: Sun, 23 Jul 2017 12:13:14 +0200
-Message-Id: <20170723101315.12523-7-d.scheller.oss@gmail.com>
-In-Reply-To: <20170723101315.12523-1-d.scheller.oss@gmail.com>
-References: <20170723101315.12523-1-d.scheller.oss@gmail.com>
+        Fri, 14 Jul 2017 05:31:16 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
+        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
+        akpm@linux-foundation.org, dri-devel@lists.freedesktop.org,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 09/14] SFI: fix tautological-compare warning
+Date: Fri, 14 Jul 2017 11:30:12 +0200
+Message-Id: <20170714093021.1341005-1-arnd@arndb.de>
+In-Reply-To: <20170714092540.1217397-1-arnd@arndb.de>
+References: <20170714092540.1217397-1-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+With ccache in combination with gcc-6, we get a harmless warning for the sfi subsystem,
+as ccache only sees the preprocessed source:
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+drivers/sfi/sfi_core.c: In function ‘sfi_map_table’:
+drivers/sfi/sfi_core.c:175:53: error: self-comparison always evaluates to true [-Werror=tautological-compare]
+
+Using an inline function to do the comparison tells the compiler what is
+going on even for preprocessed files, and avoids the warning.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/dvb-frontends/stv6111.c | 30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ drivers/sfi/sfi_core.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/stv6111.c b/drivers/media/dvb-frontends/stv6111.c
-index 91e24ba44c30..c4db5e6c18af 100644
---- a/drivers/media/dvb-frontends/stv6111.c
-+++ b/drivers/media/dvb-frontends/stv6111.c
-@@ -42,7 +42,7 @@ struct slookup {
- };
+diff --git a/drivers/sfi/sfi_core.c b/drivers/sfi/sfi_core.c
+index 296db7a69c27..a8f2313a2613 100644
+--- a/drivers/sfi/sfi_core.c
++++ b/drivers/sfi/sfi_core.c
+@@ -71,9 +71,12 @@
  
- static struct slookup lnagain_nf_lookup[] = {
--	/*Gain *100dB*/      /*Reg*/
-+	/* Gain *100dB // Reg */
- 	{ 2572,	0 },
- 	{ 2575, 1 },
- 	{ 2580, 2 },
-@@ -78,7 +78,7 @@ static struct slookup lnagain_nf_lookup[] = {
- };
+ #include "sfi_core.h"
  
- static struct slookup lnagain_iip3_lookup[] = {
--	/*Gain *100dB*/   /*reg*/
-+	/* Gain *100dB // reg */
- 	{ 1548,	0 },
- 	{ 1552,	1 },
- 	{ 1569,	2 },
-@@ -114,7 +114,7 @@ static struct slookup lnagain_iip3_lookup[] = {
- };
+-#define ON_SAME_PAGE(addr1, addr2) \
+-	(((unsigned long)(addr1) & PAGE_MASK) == \
+-	((unsigned long)(addr2) & PAGE_MASK))
++static inline bool on_same_page(unsigned long addr1, unsigned long addr2)
++{
++	return (addr1 & PAGE_MASK) == (addr2 & PAGE_MASK);
++}
++
++#define ON_SAME_PAGE(addr1, addr2) on_same_page((unsigned long)addr1, (unsigned long)addr2)
+ #define TABLE_ON_PAGE(page, table, size) (ON_SAME_PAGE(page, table) && \
+ 				ON_SAME_PAGE(page, table + size))
  
- static struct slookup gain_rfagc_lookup[] = {
--	/*Gain *100dB*/   /*reg*/
-+	/* Gain *100dB // reg */
- 	{ 4870,	0x3000 },
- 	{ 4850,	0x3C00 },
- 	{ 4800,	0x4500 },
-@@ -174,7 +174,7 @@ static struct slookup gain_rfagc_lookup[] = {
-  * a different BB_MAG setting)
-  */
- static struct slookup gain_channel_agc_nf_lookup[] = {
--	/*Gain *100dB*/   /*reg*/
-+	/* Gain *100dB // reg */
- 	{ 7082,	0x3000 },
- 	{ 7052,	0x4000 },
- 	{ 7007,	0x4600 },
-@@ -233,7 +233,7 @@ static struct slookup gain_channel_agc_nf_lookup[] = {
- };
- 
- static struct slookup gain_channel_agc_iip3_lookup[] = {
--	/*Gain *100dB*/   /*reg*/
-+	/* Gain *100dB // reg */
- 	{ 7070,	0x3000 },
- 	{ 7028,	0x4000 },
- 	{ 7019,	0x4600 },
-@@ -483,7 +483,7 @@ static int set_lof(struct stv *state, u32 local_frequency, u32 cutoff_frequency)
- 	else
- 		icp = 7;
- 
--	state->reg[0x02] |= 0x80;   /* LNA IIP3 Mode */
-+	state->reg[0x02] |= 0x80; /* LNA IIP3 Mode */
- 
- 	state->reg[0x03] = (state->reg[0x03] & ~0x80) | (psel << 7);
- 	state->reg[0x04] = (div & 0xFF);
-@@ -503,7 +503,7 @@ static int set_lof(struct stv *state, u32 local_frequency, u32 cutoff_frequency)
- 
- 	read_reg(state, 0x03, &tmp);
- 	if (tmp & 0x10)	{
--		state->reg[0x02] &= ~0x80;   /* LNA NF Mode */
-+		state->reg[0x02] &= ~0x80; /* LNA NF Mode */
- 		write_regs(state, 2, 1);
- 	}
- 	read_reg(state, 0x08, &tmp);
-@@ -636,15 +636,15 @@ static int get_rf_strength(struct dvb_frontend *fe, u16 *st)
- 
- static struct dvb_tuner_ops tuner_ops = {
- 	.info = {
--		.name = "STV6111",
--		.frequency_min  =  950000,
--		.frequency_max  = 2150000,
--		.frequency_step =       0
-+		.name		= "STV6111",
-+		.frequency_min	= 950000,
-+		.frequency_max	= 2150000,
-+		.frequency_step	= 0
- 	},
--	.set_params        = set_params,
--	.release           = release,
--	.get_rf_strength   = get_rf_strength,
--	.set_bandwidth     = set_bandwidth,
-+	.set_params		= set_params,
-+	.release		= release,
-+	.get_rf_strength	= get_rf_strength,
-+	.set_bandwidth		= set_bandwidth,
- };
- 
- struct dvb_frontend *stv6111_attach(struct dvb_frontend *fe,
 -- 
-2.13.0
+2.9.0
