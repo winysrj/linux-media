@@ -1,147 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:36512 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751357AbdGRKYS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 06:24:18 -0400
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-To: linux-i2c@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-iio@vger.kernel.org,
-        alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org,
-        Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: [PATCH v3 1/4] i2c: add helpers to ease DMA handling
-Date: Tue, 18 Jul 2017 12:23:36 +0200
-Message-Id: <20170718102339.28726-2-wsa+renesas@sang-engineering.com>
-In-Reply-To: <20170718102339.28726-1-wsa+renesas@sang-engineering.com>
-References: <20170718102339.28726-1-wsa+renesas@sang-engineering.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42757 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751478AbdGNG4O (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Jul 2017 02:56:14 -0400
+Date: Fri, 14 Jul 2017 08:56:11 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/2] OMAP3ISP CCP2 support
+Message-ID: <20170714065611.GA14652@amd>
+References: <20170713161903.9974-1-sakari.ailus@linux.intel.com>
+ <20170713211335.GA13502@amd>
+ <20170713212651.so5aqqp5k325pb4w@valkosipuli.retiisi.org.uk>
+ <20170713213805.GA1229@amd>
+ <20170713220947.ntfpwkoitfadshnt@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="SUOF0GtieIMvvwua"
+Content-Disposition: inline
+In-Reply-To: <20170713220947.ntfpwkoitfadshnt@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-One helper checks if DMA is suitable and optionally creates a bounce
-buffer, if not. The other function returns the bounce buffer and makes
-sure the data is properly copied back to the message.
 
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
----
-Changes since v2:
+--SUOF0GtieIMvvwua
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-* rebased to v4.13-rc1
-* helper functions are not inlined anymore but moved to i2c core
-* __must_check has been added to the buffer check helper
-* the release function has been renamed to contain 'dma' as well
+Hi!
 
- drivers/i2c/i2c-core-base.c | 68 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/i2c.h         |  5 ++++
- 2 files changed, 73 insertions(+)
+> > > The patches work fine on N9.
+> >=20
+> > I was able to fix the userspace, and they work for me, too. For both:
+> >=20
+> > Acked-by: Pavel Machek <pavel@ucw.cz>
+> > Tested-by: Pavel Machek <pavel@ucw.cz>
+>=20
+> Thanks! I've applied these on ccp2-prepare. ccp2 branch is rebased, too.
 
-diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-index c89dac7fd2e7b7..7326a9d2e4eb69 100644
---- a/drivers/i2c/i2c-core-base.c
-+++ b/drivers/i2c/i2c-core-base.c
-@@ -34,6 +34,7 @@
- #include <linux/irqflags.h>
- #include <linux/jump_label.h>
- #include <linux/kernel.h>
-+#include <linux/mm.h>
- #include <linux/module.h>
- #include <linux/mutex.h>
- #include <linux/of_device.h>
-@@ -44,6 +45,7 @@
- #include <linux/pm_wakeirq.h>
- #include <linux/property.h>
- #include <linux/rwsem.h>
-+#include <linux/sched/task_stack.h>
- #include <linux/slab.h>
- 
- #include "i2c-core.h"
-@@ -2240,6 +2242,72 @@ void i2c_put_adapter(struct i2c_adapter *adap)
- }
- EXPORT_SYMBOL(i2c_put_adapter);
- 
-+/**
-+ * i2c_check_msg_for_dma() - check if a message is suitable for DMA
-+ * @msg: the message to be checked
-+ * @threshold: the amount of byte from which using DMA makes sense
-+ * @ptr_for_bounce_buf: if not NULL, a bounce buffer will be attached to this
-+ *			ptr, if needed. The bounce buffer must be freed by the
-+ *			caller using i2c_release_dma_bounce_buf().
-+ *
-+ * Return: -ERANGE if message is smaller than threshold
-+ *	   -EFAULT if message buffer is not DMA capable and no bounce buffer
-+ *		   was requested
-+ *	   -ENOMEM if a bounce buffer could not be created
-+ *	   0 if message is suitable for DMA
-+ *
-+ * The return value must be checked.
-+ *
-+ * Note: This function should only be called from process context! It uses
-+ * helper functions which work on the 'current' task.
-+ */
-+int i2c_check_msg_for_dma(struct i2c_msg *msg, unsigned int threshold,
-+					u8 **ptr_for_bounce_buf)
-+{
-+	if (ptr_for_bounce_buf)
-+		*ptr_for_bounce_buf = NULL;
-+
-+	if (msg->len < threshold)
-+		return -ERANGE;
-+
-+	if (!virt_addr_valid(msg->buf) || object_is_on_stack(msg->buf)) {
-+		pr_debug("msg buffer to 0x%04x is not DMA safe%s\n", msg->addr,
-+			 ptr_for_bounce_buf ? ", trying bounce buffer" : "");
-+		if (ptr_for_bounce_buf) {
-+			if (msg->flags & I2C_M_RD)
-+				*ptr_for_bounce_buf = kzalloc(msg->len, GFP_KERNEL);
-+			else
-+				*ptr_for_bounce_buf = kmemdup(msg->buf, msg->len,
-+							      GFP_KERNEL);
-+			if (!*ptr_for_bounce_buf)
-+				return -ENOMEM;
-+		} else {
-+			return -EFAULT;
-+		}
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(i2c_check_msg_for_dma);
-+
-+/**
-+ * i2c_release_bounce_buf - copy data back from bounce buffer and release it
-+ * @msg: the message to be copied back to
-+ * @bounce_buf: the bounce buffer obtained from i2c_check_msg_for_dma().
-+ *		May be NULL.
-+ */
-+void i2c_release_dma_bounce_buf(struct i2c_msg *msg, u8 *bounce_buf)
-+{
-+	if (!bounce_buf)
-+		return;
-+
-+	if (msg->flags & I2C_M_RD)
-+		memcpy(msg->buf, bounce_buf, msg->len);
-+
-+	kfree(bounce_buf);
-+}
-+EXPORT_SYMBOL_GPL(i2c_release_bounce_buf);
-+
- MODULE_AUTHOR("Simon G. Vogl <simon@tk.uni-linz.ac.at>");
- MODULE_DESCRIPTION("I2C-Bus main module");
- MODULE_LICENSE("GPL");
-diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-index 00ca5b86a753f8..ac02287b6c0d8f 100644
---- a/include/linux/i2c.h
-+++ b/include/linux/i2c.h
-@@ -766,6 +766,11 @@ static inline u8 i2c_8bit_addr_from_msg(const struct i2c_msg *msg)
- 	return (msg->addr << 1) | (msg->flags & I2C_M_RD ? 1 : 0);
- }
- 
-+int __must_check i2c_check_msg_for_dma(struct i2c_msg *msg, unsigned int threshold,
-+					u8 **ptr_for_bounce_buf);
-+
-+void i2c_release_dma_bounce_buf(struct i2c_msg *msg, u8 *bounce_buf);
-+
- int i2c_handle_smbus_host_notify(struct i2c_adapter *adap, unsigned short addr);
- /**
-  * module_i2c_driver() - Helper macro for registering a modular I2C driver
--- 
-2.11.0
+Thanks!
+
+I rebased my patches on top of it, and pushed result to camera-fw6-2
+branch.
+
+Can you drop this patch from ccp2 branch?
+
+https://git.linuxtv.org/sailus/media_tree.git/commit/?h=3Dccp2&id=3D27be6eb=
+1f66389632a5d9dbaf0426a83f1b99b54
+
+It is preparation for subdevices support on isp; but those will not be
+needed there as we decided to move subdevices to et8ek8.
+
+Thanks and best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--SUOF0GtieIMvvwua
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlloawsACgkQMOfwapXb+vIVhACfUZDgebo3URXJTIPju2bMBXUT
+dXEAn2wHJTSvd4ZWr7Bc0kt+CmUcf7KT
+=GAlr
+-----END PGP SIGNATURE-----
+
+--SUOF0GtieIMvvwua--
