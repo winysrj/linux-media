@@ -1,58 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:55229 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751278AbdGQOai (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:39914 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753635AbdGNNLl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 10:30:38 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [v2] [media] usbvision-i2c: fix format overflow warning
-Date: Mon, 17 Jul 2017 16:29:58 +0200
-Message-Id: <20170717143024.862161-1-arnd@arndb.de>
+        Fri, 14 Jul 2017 09:11:41 -0400
+Date: Fri, 14 Jul 2017 16:09:55 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: devel@driverdev.osuosl.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Alan Cox <alan@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Daeseok Youn <daeseok.youn@gmail.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        adi-buildroot-devel@lists.sourceforge.net,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        IDE-ML <linux-ide@vger.kernel.org>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>, Tejun Heo <tj@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 14/14] [media] fix warning on v4l2_subdev_call() result
+ interpreted as bool
+Message-ID: <20170714130955.zqe26g6zpixr3xj2@mwanda>
+References: <20170714092540.1217397-1-arnd@arndb.de>
+ <20170714093938.1469319-1-arnd@arndb.de>
+ <20170714120512.ioe67nnloqivtbr7@mwanda>
+ <CAK8P3a0f84OPcCK1r3P9inGYDJC2KaAO4mjE2vn+vCws-oo_bw@mail.gmail.com>
+ <20170714125525.kjemhcn4poon6r3i@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170714125525.kjemhcn4poon6r3i@mwanda>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-gcc-7 notices that we copy a fixed length string into another
-string of the same size, with additional characters:
+On Fri, Jul 14, 2017 at 03:55:26PM +0300, Dan Carpenter wrote:
+> I don't agree with it as a static analysis dev...
 
-drivers/media/usb/usbvision/usbvision-i2c.c: In function 'usbvision_i2c_register':
-drivers/media/usb/usbvision/usbvision-i2c.c:190:36: error: '%d' directive writing between 1 and 11 bytes into a region of size between 0 and 47 [-Werror=format-overflow=]
-  sprintf(usbvision->i2c_adap.name, "%s-%d-%s", i2c_adap_template.name,
-                                    ^~~~~~~~~~
-drivers/media/usb/usbvision/usbvision-i2c.c:190:2: note: 'sprintf' output between 4 and 76 bytes into a destination of size 48
+What I mean is if it's a macro that returns -ENODEV or a function that
+returns -ENODEV, they should both be treated the same.  The other
+warnings this check prints are quite clever.
 
-Using snprintf() makes the code more robust in general, but will still
-trigger a possible warning about truncation in the string.
-We know this won't happen as the template name is always "usbvision", so
-we can easily avoid the warning as well by using this as the format string
-directly.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
-v2: use snprintf()
----
- drivers/media/usb/usbvision/usbvision-i2c.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/usb/usbvision/usbvision-i2c.c b/drivers/media/usb/usbvision/usbvision-i2c.c
-index fdf6b6e285da..38749331e7df 100644
---- a/drivers/media/usb/usbvision/usbvision-i2c.c
-+++ b/drivers/media/usb/usbvision/usbvision-i2c.c
-@@ -187,8 +187,9 @@ int usbvision_i2c_register(struct usb_usbvision *usbvision)
- 
- 	usbvision->i2c_adap = i2c_adap_template;
- 
--	sprintf(usbvision->i2c_adap.name, "%s-%d-%s", i2c_adap_template.name,
--		usbvision->dev->bus->busnum, usbvision->dev->devpath);
-+	snprintf(usbvision->i2c_adap.name, sizeof(usbvision->i2c_adap.name),
-+		 "usbvision-%d-%s",
-+		 usbvision->dev->bus->busnum, usbvision->dev->devpath);
- 	PDEBUG(DBG_I2C, "Adaptername: %s", usbvision->i2c_adap.name);
- 	usbvision->i2c_adap.dev.parent = &usbvision->dev->dev;
- 
--- 
-2.9.0
+regards,
+dan carpenter
