@@ -1,61 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:36460 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755146AbdGKGav (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.10]:64994 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753561AbdGNJ3l (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 02:30:51 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 05/11] linux/cec.h: add pin monitoring API support
-Date: Tue, 11 Jul 2017 08:30:38 +0200
-Message-Id: <20170711063044.29849-6-hverkuil@xs4all.nl>
-In-Reply-To: <20170711063044.29849-1-hverkuil@xs4all.nl>
-References: <20170711063044.29849-1-hverkuil@xs4all.nl>
+        Fri, 14 Jul 2017 05:29:41 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-kernel@vger.kernel.org,
+        Michael Hennerich <michael.hennerich@analog.com>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
+        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
+        akpm@linux-foundation.org, dri-devel@lists.freedesktop.org,
+        Arnd Bergmann <arnd@arndb.de>, linux-input@vger.kernel.org
+Subject: [PATCH 08/14] Input: adxl34x - fix gcc-7 -Wint-in-bool-context warning
+Date: Fri, 14 Jul 2017 11:25:20 +0200
+Message-Id: <20170714092540.1217397-9-arnd@arndb.de>
+In-Reply-To: <20170714092540.1217397-1-arnd@arndb.de>
+References: <20170714092540.1217397-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+FIFO_MODE is an macro expression with a '<<' operator, which
+gcc points out could be misread as a '<':
 
-Add support for low-level CEC pin monitoring. This adds a new monitor
-mode, a new capability and two new events.
+drivers/input/misc/adxl34x.c: In function 'adxl34x_probe':
+drivers/input/misc/adxl34x.c:799:36: error: '<<' in boolean context, did you mean '<' ? [-Werror=int-in-bool-context]
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+This converts the test to an explicit comparison with zero,
+making it clearer to gcc and the reader what is intended.
+
+Fixes: e27c729219ad ("Input: add driver for ADXL345/346 Digital Accelerometers")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- include/uapi/linux/cec.h | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/input/misc/adxl34x.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/cec.h b/include/uapi/linux/cec.h
-index 44579a24f95d..bba73f33c8aa 100644
---- a/include/uapi/linux/cec.h
-+++ b/include/uapi/linux/cec.h
-@@ -318,6 +318,7 @@ static inline int cec_is_unconfigured(__u16 log_addr_mask)
- #define CEC_MODE_FOLLOWER		(0x1 << 4)
- #define CEC_MODE_EXCL_FOLLOWER		(0x2 << 4)
- #define CEC_MODE_EXCL_FOLLOWER_PASSTHRU	(0x3 << 4)
-+#define CEC_MODE_MONITOR_PIN		(0xd << 4)
- #define CEC_MODE_MONITOR		(0xe << 4)
- #define CEC_MODE_MONITOR_ALL		(0xf << 4)
- #define CEC_MODE_FOLLOWER_MSK		0xf0
-@@ -338,6 +339,8 @@ static inline int cec_is_unconfigured(__u16 log_addr_mask)
- #define CEC_CAP_MONITOR_ALL	(1 << 5)
- /* Hardware can use CEC only if the HDMI HPD pin is high. */
- #define CEC_CAP_NEEDS_HPD	(1 << 6)
-+/* Hardware can monitor CEC pin transitions */
-+#define CEC_CAP_MONITOR_PIN	(1 << 7)
+diff --git a/drivers/input/misc/adxl34x.c b/drivers/input/misc/adxl34x.c
+index 2b2d02f408bb..e0caaa0de454 100644
+--- a/drivers/input/misc/adxl34x.c
++++ b/drivers/input/misc/adxl34x.c
+@@ -796,7 +796,7 @@ struct adxl34x *adxl34x_probe(struct device *dev, int irq,
  
- /**
-  * struct cec_caps - CEC capabilities structure.
-@@ -405,6 +408,8 @@ struct cec_log_addrs {
-  * didn't empty the message queue in time
-  */
- #define CEC_EVENT_LOST_MSGS		2
-+#define CEC_EVENT_PIN_LOW		3
-+#define CEC_EVENT_PIN_HIGH		4
- 
- #define CEC_EVENT_FL_INITIAL_STATE	(1 << 0)
- 
+ 	if (pdata->watermark) {
+ 		ac->int_mask |= WATERMARK;
+-		if (!FIFO_MODE(pdata->fifo_mode))
++		if (FIFO_MODE(pdata->fifo_mode) == 0)
+ 			ac->pdata.fifo_mode |= FIFO_STREAM;
+ 	} else {
+ 		ac->int_mask |= DATA_READY;
 -- 
-2.11.0
+2.9.0
