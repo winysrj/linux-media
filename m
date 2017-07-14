@@ -1,68 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:38039 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965416AbdGTWMO (ORCPT
+Received: from mout.kundenserver.de ([217.72.192.74]:62117 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753492AbdGNJ3T (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 18:12:14 -0400
-From: Colin King <colin.king@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Markus Elfring <elfring@users.sourceforge.net>,
+        Fri, 14 Jul 2017 05:29:19 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-kernel@vger.kernel.org, Jiri Olsa <jolsa@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
+        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
+        akpm@linux-foundation.org, dri-devel@lists.freedesktop.org,
+        Arnd Bergmann <arnd@arndb.de>,
+        Kees Cook <keescook@chromium.org>,
         Ingo Molnar <mingo@kernel.org>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Shuah Khan <shuah@kernel.org>, linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH][V2] dvb_frontend: ensure that inital front end status initialized
-Date: Thu, 20 Jul 2017 23:12:07 +0100
-Message-Id: <20170720221207.7505-1-colin.king@canonical.com>
+        Laura Abbott <labbott@redhat.com>,
+        Pratyush Anand <panand@redhat.com>,
+        Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: [PATCH 07/14] proc/kcore: hide a harmless warning
+Date: Fri, 14 Jul 2017 11:25:19 +0200
+Message-Id: <20170714092540.1217397-8-arnd@arndb.de>
+In-Reply-To: <20170714092540.1217397-1-arnd@arndb.de>
+References: <20170714092540.1217397-1-arnd@arndb.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+gcc warns when MODULES_VADDR/END is defined to the same value as
+VMALLOC_START/VMALLOC_END, e.g. on x86-32:
 
-The fe_status variable s is not initialized meaning it can have any
-random garbage status.  This could be problematic if fe->ops.tune is
-false as s is not updated by the call to fe->ops.tune() and a
-subsequent check on the change status will using a garbage value.
-Fix this by adding FE_NONE to the enum fe_status and initializing
-s to this.
+fs/proc/kcore.c: In function ‘add_modules_range’:
+fs/proc/kcore.c:622:161: error: self-comparison always evaluates to false [-Werror=tautological-compare]
+  if (/*MODULES_VADDR != VMALLOC_START && */MODULES_END != VMALLOC_END) {
 
-Detected by CoverityScan, CID#112887 ("Uninitialized scalar variable")
+The code is correct as it is required for most other configurations.
+The best workaround I found for shutting up that warning is to make
+it a little more complex by adding a temporary variable. The compiler
+will still optimize away the code as it finds the two to be identical,
+but it no longer warns because it doesn't condider the comparison
+"tautological" any more.
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/dvb-core/dvb_frontend.c | 2 +-
- include/uapi/linux/dvb/frontend.h     | 1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ fs/proc/kcore.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index e3fff8f64d37..18cc3bbc699c 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -631,7 +631,7 @@ static int dvb_frontend_thread(void *data)
- 	struct dvb_frontend *fe = data;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
--	enum fe_status s;
-+	enum fe_status s = FE_NONE;
- 	enum dvbfe_algo algo;
- 	bool re_tune = false;
- 	bool semheld = false;
-diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
-index 00a20cd21ee2..afc3972b0879 100644
---- a/include/uapi/linux/dvb/frontend.h
-+++ b/include/uapi/linux/dvb/frontend.h
-@@ -127,6 +127,7 @@ enum fe_sec_mini_cmd {
-  *			to reset DiSEqC, tone and parameters
+diff --git a/fs/proc/kcore.c b/fs/proc/kcore.c
+index 45629f4b5402..c503ad657c46 100644
+--- a/fs/proc/kcore.c
++++ b/fs/proc/kcore.c
+@@ -620,12 +620,14 @@ static void __init proc_kcore_text_init(void)
+ /*
+  * MODULES_VADDR has no intersection with VMALLOC_ADDR.
   */
- enum fe_status {
-+	FE_NONE			= 0x00,
- 	FE_HAS_SIGNAL		= 0x01,
- 	FE_HAS_CARRIER		= 0x02,
- 	FE_HAS_VITERBI		= 0x04,
+-struct kcore_list kcore_modules;
++static struct kcore_list kcore_modules;
+ static void __init add_modules_range(void)
+ {
+-	if (MODULES_VADDR != VMALLOC_START && MODULES_END != VMALLOC_END) {
+-		kclist_add(&kcore_modules, (void *)MODULES_VADDR,
+-			MODULES_END - MODULES_VADDR, KCORE_VMALLOC);
++	void *start = (void *)MODULES_VADDR;
++	size_t len = MODULES_END - MODULES_VADDR;
++
++	if (start != (void *)VMALLOC_START && len != VMALLOC_END - VMALLOC_START) {
++		kclist_add(&kcore_modules, start, len, KCORE_VMALLOC);
+ 	}
+ }
+ #else
 -- 
-2.11.0
+2.9.0
