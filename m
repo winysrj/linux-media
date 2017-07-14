@@ -1,43 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:59131 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751893AbdGGJ6z (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.10]:57062 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751353AbdGNJeM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Jul 2017 05:58:55 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 5/5] [media] coda: mark CODA960 firmware versions 2.3.10 and 3.1.1 as supported
-Date: Fri,  7 Jul 2017 11:58:31 +0200
-Message-Id: <20170707095831.9852-5-p.zabel@pengutronix.de>
-In-Reply-To: <20170707095831.9852-1-p.zabel@pengutronix.de>
-References: <20170707095831.9852-1-p.zabel@pengutronix.de>
+        Fri, 14 Jul 2017 05:34:12 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
+        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, Arnd Bergmann <arnd@arndb.de>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
+Subject: [PATCH 13/14] iopoll: avoid -Wint-in-bool-context warning
+Date: Fri, 14 Jul 2017 11:31:06 +0200
+Message-Id: <20170714093129.1366900-4-arnd@arndb.de>
+In-Reply-To: <20170714092540.1217397-1-arnd@arndb.de>
+References: <20170714092540.1217397-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Firmware versions 2.3.10 revision 40778 and 3.1.1 revision 46072 are
-contained in the i.MX firmware download archives provided by NXP at
-http://www.nxp.com/lgfiles/NMG/MAD/YOCTO/firmware-imx-3.5.7-1.0.0.bin
-and http://www.nxp.com/lgfiles/NMG/MAD/YOCTO/firmware-imx-5.4.bin,
-respectively.
+When we pass the result of a multiplication as the timeout, we
+can get a warning:
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+drivers/mmc/host/bcm2835.c:596:149: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
+drivers/mfd/arizona-core.c:247:195: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
+
+This is easy to avoid by comparing the timeout to zero instead,
+making it a boolean expression.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/platform/coda/coda-bit.c | 2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/iopoll.h | 6 ++++--
+ include/linux/regmap.h | 2 +-
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 2a8e13c53f2e1..95e4b74d5dd01 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -703,6 +703,8 @@ static u32 coda_supported_firmwares[] = {
- 	CODA_FIRMWARE_VERNUM(CODA_DX6, 2, 2, 5),
- 	CODA_FIRMWARE_VERNUM(CODA_7541, 1, 4, 50),
- 	CODA_FIRMWARE_VERNUM(CODA_960, 2, 1, 5),
-+	CODA_FIRMWARE_VERNUM(CODA_960, 2, 3, 10),
-+	CODA_FIRMWARE_VERNUM(CODA_960, 3, 1, 1),
- };
- 
- static bool coda_firmware_supported(u32 vernum)
+diff --git a/include/linux/iopoll.h b/include/linux/iopoll.h
+index d29e1e21bf3f..7a17ba02253b 100644
+--- a/include/linux/iopoll.h
++++ b/include/linux/iopoll.h
+@@ -48,7 +48,8 @@
+ 		(val) = op(addr); \
+ 		if (cond) \
+ 			break; \
+-		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
++		if ((timeout_us) > 0 && \
++		    ktime_compare(ktime_get(), timeout) > 0) { \
+ 			(val) = op(addr); \
+ 			break; \
+ 		} \
+@@ -82,7 +83,8 @@
+ 		(val) = op(addr); \
+ 		if (cond) \
+ 			break; \
+-		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
++		if ((timeout_us) > 0 && \
++		    ktime_compare(ktime_get(), timeout) > 0) { \
+ 			(val) = op(addr); \
+ 			break; \
+ 		} \
+diff --git a/include/linux/regmap.h b/include/linux/regmap.h
+index 1474ab0a3922..0889dbf37161 100644
+--- a/include/linux/regmap.h
++++ b/include/linux/regmap.h
+@@ -129,7 +129,7 @@ struct reg_sequence {
+ 			break; \
+ 		if (cond) \
+ 			break; \
+-		if ((timeout_us) && \
++		if ((timeout_us) > 0 && \
+ 		    ktime_compare(ktime_get(), __timeout) > 0) { \
+ 			__ret = regmap_read((map), (addr), &(val)); \
+ 			break; \
 -- 
-2.11.0
+2.9.0
