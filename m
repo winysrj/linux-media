@@ -1,64 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:36505 "EHLO pokefinder.org"
+Received: from mail.kernel.org ([198.145.29.99]:37422 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751365AbdGRKYS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 06:24:18 -0400
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-To: linux-i2c@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-iio@vger.kernel.org,
-        alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org,
-        Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: [PATCH v3 0/4] i2c: document DMA handling and add helpers for it
-Date: Tue, 18 Jul 2017 12:23:35 +0200
-Message-Id: <20170718102339.28726-1-wsa+renesas@sang-engineering.com>
+        id S1753446AbdGNQOa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Jul 2017 12:14:30 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH 4/6] v4l: vsp1: Convert CLU to use a fragment pool
+Date: Fri, 14 Jul 2017 17:14:13 +0100
+Message-Id: <efd134fda974a976acf47c220984243eaf4b1317.1500047489.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.6756808fb978882ae2db0cde7745c7e12b177713.1500047489.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.6756808fb978882ae2db0cde7745c7e12b177713.1500047489.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.6756808fb978882ae2db0cde7745c7e12b177713.1500047489.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.6756808fb978882ae2db0cde7745c7e12b177713.1500047489.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-So, after revisiting old mail threads and taking part in a similar discussion
-on the USB list, here is what I cooked up to document and ease DMA handling for
-I2C within Linux. Please have a look at the documentation introduced in patch 2
-for further details.
+Adapt the CLU to allocate a fragment pool for passing the table updates
+to hardware.
 
-All patches have been tested with a Renesas Salvator-X board (r8a7796/M3-W) and
-a Renesas Lager board (r8a7790/H2). A more detailed test description can be
-found here: http://elinux.org/Tests:I2C-core-DMA
+Two bodies are pre-allocated in the pool to manage a userspace update
+before the hardware has taken a previous set of tables.
 
-The branch can be found here:
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_clu.c | 18 ++++++++++++++++--
+ drivers/media/platform/vsp1/vsp1_clu.h |  1 +
+ 2 files changed, 17 insertions(+), 2 deletions(-)
 
-git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git renesas/topic/i2c-core-dma-v3
-
-And big kudos to Renesas Electronics for funding this work, thank you very much!
-
-Regards,
-
-   Wolfram
-
-
-Changes since v2:
-
-* rebased to v4.13-rc1
-* helper functions are not inlined anymore but moved to i2c core
-* __must_check has been added to the buffer check helper
-* the release function has been renamed to contain 'dma' as well
-* documentation updates. Hopefully better wording now
-* removed the doubled Signed-offs
-* adding more potentially interested parties to CC
-
-
-Wolfram Sang (4):
-  i2c: add helpers to ease DMA handling
-  i2c: add docs to clarify DMA handling
-  i2c: sh_mobile: use helper to decide if DMA is useful
-  i2c: rcar: check for DMA-capable buffers
-
- Documentation/i2c/DMA-considerations | 38 ++++++++++++++++++++
- drivers/i2c/busses/i2c-rcar.c        | 18 +++++++---
- drivers/i2c/busses/i2c-sh_mobile.c   |  8 +++--
- drivers/i2c/i2c-core-base.c          | 68 ++++++++++++++++++++++++++++++++++++
- include/linux/i2c.h                  |  5 +++
- 5 files changed, 130 insertions(+), 7 deletions(-)
- create mode 100644 Documentation/i2c/DMA-considerations
-
+diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
+index f2fb26e5ab4e..6079c6465435 100644
+--- a/drivers/media/platform/vsp1/vsp1_clu.c
++++ b/drivers/media/platform/vsp1/vsp1_clu.c
+@@ -47,7 +47,7 @@ static int clu_set_table(struct vsp1_clu *clu, struct v4l2_ctrl *ctrl)
+ 	struct vsp1_dl_body *dlb;
+ 	unsigned int i;
+ 
+-	dlb = vsp1_dl_fragment_alloc(clu->entity.vsp1, 1 + 17 * 17 * 17);
++	dlb = vsp1_dl_fragment_get(clu->pool);
+ 	if (!dlb)
+ 		return -ENOMEM;
+ 
+@@ -59,7 +59,7 @@ static int clu_set_table(struct vsp1_clu *clu, struct v4l2_ctrl *ctrl)
+ 	swap(clu->clu, dlb);
+ 	spin_unlock_irq(&clu->lock);
+ 
+-	vsp1_dl_fragment_free(dlb);
++	vsp1_dl_fragment_put(dlb);
+ 	return 0;
+ }
+ 
+@@ -261,8 +261,16 @@ static void clu_configure(struct vsp1_entity *entity,
+ 	}
+ }
+ 
++static void clu_destroy(struct vsp1_entity *entity)
++{
++	struct vsp1_clu *clu = to_clu(&entity->subdev);
++
++	vsp1_dl_fragment_pool_free(clu->pool);
++}
++
+ static const struct vsp1_entity_operations clu_entity_ops = {
+ 	.configure = clu_configure,
++	.destroy = clu_destroy,
+ };
+ 
+ /* -----------------------------------------------------------------------------
+@@ -288,6 +296,12 @@ struct vsp1_clu *vsp1_clu_create(struct vsp1_device *vsp1)
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
++	/* Allocate a fragment pool */
++	clu->pool = vsp1_dl_fragment_pool_alloc(clu->entity.vsp1, 2,
++			1 + 17 * 17 * 17, 0);
++	if (!clu->pool)
++		return ERR_PTR(-ENOMEM);
++
+ 	/* Initialize the control handler. */
+ 	v4l2_ctrl_handler_init(&clu->ctrls, 2);
+ 	v4l2_ctrl_new_custom(&clu->ctrls, &clu_table_control, NULL);
+diff --git a/drivers/media/platform/vsp1/vsp1_clu.h b/drivers/media/platform/vsp1/vsp1_clu.h
+index 036e0a2f1a42..601ffb558e30 100644
+--- a/drivers/media/platform/vsp1/vsp1_clu.h
++++ b/drivers/media/platform/vsp1/vsp1_clu.h
+@@ -36,6 +36,7 @@ struct vsp1_clu {
+ 	spinlock_t lock;
+ 	unsigned int mode;
+ 	struct vsp1_dl_body *clu;
++	struct vsp1_dl_fragment_pool *pool;
+ };
+ 
+ static inline struct vsp1_clu *to_clu(struct v4l2_subdev *subdev)
 -- 
-2.11.0
+git-series 0.9.1
