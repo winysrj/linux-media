@@ -1,37 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:35677 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932413AbdGXQnR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Jul 2017 12:43:17 -0400
-Date: Mon, 24 Jul 2017 11:43:15 -0500
-From: Rob Herring <robh@kernel.org>
-To: Todor Tomov <todor.tomov@linaro.org>
-Cc: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH v3 04/23] dt-bindings: media: Binding document for
- Qualcomm Camera subsystem driver
-Message-ID: <20170724164315.axenfak62hu57rdd@rob-hp-laptop>
-References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
- <1500287629-23703-5-git-send-email-todor.tomov@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1500287629-23703-5-git-send-email-todor.tomov@linaro.org>
+Received: from mail.kernel.org ([198.145.29.99]:37402 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753510AbdGNQOV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Jul 2017 12:14:21 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH 1/6] v4l: vsp1: Protect fragments against overflow
+Date: Fri, 14 Jul 2017 17:14:10 +0100
+Message-Id: <950a1680506ee05bbe0b974d10c938a4e5e2acd0.1500047489.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.6756808fb978882ae2db0cde7745c7e12b177713.1500047489.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.6756808fb978882ae2db0cde7745c7e12b177713.1500047489.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.6756808fb978882ae2db0cde7745c7e12b177713.1500047489.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.6756808fb978882ae2db0cde7745c7e12b177713.1500047489.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 17, 2017 at 01:33:30PM +0300, Todor Tomov wrote:
-> Add DT binding document for Qualcomm Camera subsystem driver.
-> 
-> CC: Rob Herring <robh+dt@kernel.org>
-> CC: devicetree@vger.kernel.org
-> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-> ---
->  .../devicetree/bindings/media/qcom,camss.txt       | 191 +++++++++++++++++++++
->  1 file changed, 191 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/qcom,camss.txt
+The fragment write function relies on the code never asking it to
+write more than the entries available in the list.
 
-Acked-by: Rob Herring <robh@kernel.org>
+Currently with each list body containing 256 entries, this is fine,
+but we can reduce this number greatly saving memory.
+
+In preparation of this - add a level of protection to catch any
+buffer overflows
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_dl.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 8b5cbb6b7a70..1311e7cf2733 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -60,6 +60,7 @@ struct vsp1_dl_body {
+ 	size_t size;
+ 
+ 	unsigned int num_entries;
++	unsigned int max_entries;
+ };
+ 
+ /**
+@@ -138,6 +139,7 @@ static int vsp1_dl_body_init(struct vsp1_device *vsp1,
+ 
+ 	dlb->vsp1 = vsp1;
+ 	dlb->size = size;
++	dlb->max_entries = num_entries;
+ 
+ 	dlb->entries = dma_alloc_wc(vsp1->bus_master, dlb->size, &dlb->dma,
+ 				    GFP_KERNEL);
+@@ -220,6 +222,11 @@ void vsp1_dl_fragment_free(struct vsp1_dl_body *dlb)
+  */
+ void vsp1_dl_fragment_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
+ {
++	if (unlikely(dlb->num_entries >= dlb->max_entries)) {
++		WARN_ONCE(true, "DLB size exceeded");
++		return;
++	}
++
+ 	dlb->entries[dlb->num_entries].addr = reg;
+ 	dlb->entries[dlb->num_entries].data = data;
+ 	dlb->num_entries++;
+-- 
+git-series 0.9.1
