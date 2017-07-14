@@ -1,45 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:52197 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751668AbdG1N0x (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.10]:60898 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751190AbdGNJ13 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Jul 2017 09:26:53 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, Jan Luebbe <jlu@pengutronix.de>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] [media] coda: reduce iram size to leave space for suspend to ram
-Date: Fri, 28 Jul 2017 15:26:47 +0200
-Message-Id: <20170728132647.27173-1-p.zabel@pengutronix.de>
+        Fri, 14 Jul 2017 05:27:29 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-kernel@vger.kernel.org,
+        "David S. Miller" <davem@davemloft.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
+        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
+        akpm@linux-foundation.org, dri-devel@lists.freedesktop.org,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH, RESEND 01/14] ide: avoid warning for timings calculation
+Date: Fri, 14 Jul 2017 11:25:13 +0200
+Message-Id: <20170714092540.1217397-2-arnd@arndb.de>
+In-Reply-To: <20170714092540.1217397-1-arnd@arndb.de>
+References: <20170714092540.1217397-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jan Luebbe <jlu@pengutronix.de>
+gcc-7 warns about the result of a constant multiplication used as
+a boolean:
 
-The on-chip SRAM of i.MX6S is only 128 KiB. 4 KiB of that are allocated
-for suspend to RAM since commit df595746fa69 ("ARM: imx: add suspend in
-ocram support for i.mx6q"). Reduce the requested IRAM size to 124 KiB to
-avoid an allocation failure that causes the coda driver to not use the
-SRAM at all.
+drivers/ide/ide-timings.c: In function 'ide_timing_quantize':
+drivers/ide/ide-timings.c:112:24: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
+  q->setup   = EZ(t->setup   * 1000,  T);
 
-Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+This slightly rearranges the macro to simplify the code and avoid
+the warning at the same time.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/platform/coda/coda-common.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ide/ide-timings.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 40f31038249d9..27c613752fbf7 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -2443,7 +2443,7 @@ static const struct coda_devtype coda_devdata[] = {
- 		.num_vdevs    = ARRAY_SIZE(coda9_video_devices),
- 		.workbuf_size = 80 * 1024,
- 		.tempbuf_size = 204 * 1024,
--		.iram_size    = 0x20000,
-+		.iram_size    = 0x1f000, /* leave 4k for suspend code */
- 	},
- };
+diff --git a/drivers/ide/ide-timings.c b/drivers/ide/ide-timings.c
+index 0e05f75934c9..1858e3ce3993 100644
+--- a/drivers/ide/ide-timings.c
++++ b/drivers/ide/ide-timings.c
+@@ -104,19 +104,19 @@ u16 ide_pio_cycle_time(ide_drive_t *drive, u8 pio)
+ EXPORT_SYMBOL_GPL(ide_pio_cycle_time);
  
+ #define ENOUGH(v, unit)		(((v) - 1) / (unit) + 1)
+-#define EZ(v, unit)		((v) ? ENOUGH(v, unit) : 0)
++#define EZ(v, unit)		((v) ? ENOUGH((v) * 1000, unit) : 0)
+ 
+ static void ide_timing_quantize(struct ide_timing *t, struct ide_timing *q,
+ 				int T, int UT)
+ {
+-	q->setup   = EZ(t->setup   * 1000,  T);
+-	q->act8b   = EZ(t->act8b   * 1000,  T);
+-	q->rec8b   = EZ(t->rec8b   * 1000,  T);
+-	q->cyc8b   = EZ(t->cyc8b   * 1000,  T);
+-	q->active  = EZ(t->active  * 1000,  T);
+-	q->recover = EZ(t->recover * 1000,  T);
+-	q->cycle   = EZ(t->cycle   * 1000,  T);
+-	q->udma    = EZ(t->udma    * 1000, UT);
++	q->setup   = EZ(t->setup,   T);
++	q->act8b   = EZ(t->act8b,   T);
++	q->rec8b   = EZ(t->rec8b,   T);
++	q->cyc8b   = EZ(t->cyc8b,   T);
++	q->active  = EZ(t->active,  T);
++	q->recover = EZ(t->recover, T);
++	q->cycle   = EZ(t->cycle,   T);
++	q->udma    = EZ(t->udma,    UT);
+ }
+ 
+ void ide_timing_merge(struct ide_timing *a, struct ide_timing *b,
 -- 
-2.11.0
+2.9.0
