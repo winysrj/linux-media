@@ -1,75 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from guitar.tcltek.co.il ([192.115.133.116]:44935 "EHLO
-        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750764AbdGaFNP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Jul 2017 01:13:15 -0400
-Date: Mon, 31 Jul 2017 08:13:10 +0300
-From: Baruch Siach <baruch@tkos.co.il>
-To: Yong <yong.deng@magewell.com>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benoit Parrot <bparrot@ti.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
-Message-ID: <20170731051310.jp45cj7lugcueztc@tarshish>
-References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
- <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
- <20170728160233.xooevio4hoqkgfaq@flea.lan>
- <20170730060801.bkc2kvm72ktixy74@tarshish>
- <20170731094806.88c3188576d7e2c14b5e3e33@magewell.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170731094806.88c3188576d7e2c14b5e3e33@magewell.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33483 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751115AbdGNUOg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Jul 2017 16:14:36 -0400
+Received: by mail-wm0-f68.google.com with SMTP id j85so12565695wmj.0
+        for <linux-media@vger.kernel.org>; Fri, 14 Jul 2017 13:14:36 -0700 (PDT)
+From: Philipp Zabel <philipp.zabel@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Philipp Zabel <philipp.zabel@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 2/3] [media] uvcvideo: flag variable length control on Oculus Rift CV1 Sensor
+Date: Fri, 14 Jul 2017 22:14:23 +0200
+Message-Id: <20170714201424.23592-2-philipp.zabel@gmail.com>
+In-Reply-To: <20170714201424.23592-1-philipp.zabel@gmail.com>
+References: <20170714201424.23592-1-philipp.zabel@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
+The extension unit controls with selectors 11 and 12 are used to make the
+eSP770u webcam controller issue SPI transfers to configure the nRF51288
+radio or to read the flash storage. Depending on internal state controlled
+by selector 11, selector 12 reports different lengths.
 
-On Mon, Jul 31, 2017 at 09:48:06AM +0800, Yong wrote:
-> On Sun, 30 Jul 2017 09:08:01 +0300
-> Baruch Siach <baruch@tkos.co.il> wrote:
-> > On Fri, Jul 28, 2017 at 06:02:33PM +0200, Maxime Ripard wrote:
-> > > On Thu, Jul 27, 2017 at 01:01:35PM +0800, Yong Deng wrote:
-> > > > +	regmap_write(sdev->regmap, CSI_CH_F0_BUFA_REG,
-> > > > +		     (bus_addr + sdev->planar_offset[0]) >> 2);
-> > 
-> > Why do you need the bit shift? Does that work for you?
-> > 
-> > The User Manuals of both the V3s and the and the A33 (AKA R16) state that the 
-> > BUFA field size in this register is 31:00, that is 32bit. I have found no 
-> > indication of this bit shift in the Olimex provided sunxi-vfe[1] driver. On 
-> > the A33 I have found that only after removing the bit-shift, (some sort of) 
-> > data started to appear in the buffer.
-> > 
-> > [1] https://github.com/hehopmajieh/a33_linux/tree/master/drivers/media/video/sunxi-vfe
-> 
-> The Users Manuals do not document this bit shift. You should see line 10 to
-> 32 in https://github.com/hehopmajieh/a33_linux/blob/master/drivers/media/video/sunxi-vfe/csi/csi_reg.c
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/usb/uvc/uvc_ctrl.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Thanks. So for my reference, the SoCs that don't need bit shift are A31, A23, 
-and A33. SoCs that need bit shift are A80, A83, H3, and V3s (AKA V30).
-
-baruch
-
+diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+index ce69e2c6937d..86cb16a2e7f4 100644
+--- a/drivers/media/usb/uvc/uvc_ctrl.c
++++ b/drivers/media/usb/uvc/uvc_ctrl.c
+@@ -1613,6 +1613,9 @@ static void uvc_ctrl_fixup_xu_info(struct uvc_device *dev,
+ 			UVC_CTRL_FLAG_GET_MIN | UVC_CTRL_FLAG_GET_MAX |
+ 			UVC_CTRL_FLAG_GET_DEF | UVC_CTRL_FLAG_SET_CUR |
+ 			UVC_CTRL_FLAG_AUTO_UPDATE },
++		{ { USB_DEVICE(0x2833, 0x0211) }, 4, 12,
++			UVC_CTRL_FLAG_GET_RANGE | UVC_CTRL_FLAG_SET_CUR |
++			UVC_CTRL_FLAG_VARIABLE_LEN },
+ 	};
+ 
+ 	unsigned int i;
 -- 
-     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
-=}------------------------------------------------ooO--U--Ooo------------{=
-   - baruch@tkos.co.il - tel: +972.52.368.4656, http://www.tkos.co.il -
+2.13.2
