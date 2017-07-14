@@ -1,114 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:50149 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751492AbdGROWX (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:36753 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751115AbdGNUOj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 10:22:23 -0400
-Subject: Re: [PATCH v4 2/3] v4l: async: do not hold list_lock when reprobing
- devices
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-References: <20170717165917.24851-1-niklas.soderlund+renesas@ragnatech.se>
- <20170717165917.24851-3-niklas.soderlund+renesas@ragnatech.se>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5a184e14-b429-fd7d-fc0c-d0520e1cc3fa@xs4all.nl>
-Date: Tue, 18 Jul 2017 16:22:14 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170717165917.24851-3-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+        Fri, 14 Jul 2017 16:14:39 -0400
+Received: by mail-wm0-f67.google.com with SMTP id 15so739026wmm.3
+        for <linux-media@vger.kernel.org>; Fri, 14 Jul 2017 13:14:39 -0700 (PDT)
+From: Philipp Zabel <philipp.zabel@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Philipp Zabel <philipp.zabel@gmail.com>
+Subject: [PATCH 3/3] [media] uvcvideo: skip non-extension unit controls on Oculus Rift Sensors
+Date: Fri, 14 Jul 2017 22:14:24 +0200
+Message-Id: <20170714201424.23592-3-philipp.zabel@gmail.com>
+In-Reply-To: <20170714201424.23592-1-philipp.zabel@gmail.com>
+References: <20170714201424.23592-1-philipp.zabel@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17/07/17 18:59, Niklas Söderlund wrote:
-> There is no good reason to hold the list_lock when reprobing the devices
-> and it prevents a clean implementation of subdevice notifiers. Move the
-> actual release of the devices outside of the loop which requires the
-> lock to be held.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 29 ++++++++++-------------------
->  1 file changed, 10 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index 0acf288d7227ba97..8fc84f7962386ddd 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -206,7 +206,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->  	unsigned int notif_n_subdev = notifier->num_subdevs;
->  	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
->  	struct device **dev;
-> -	int i = 0;
-> +	int i, count = 0;
->  
->  	if (!notifier->v4l2_dev)
->  		return;
-> @@ -222,37 +222,28 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->  	list_del(&notifier->list);
->  
->  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-> -		struct device *d;
-> -
-> -		d = get_device(sd->dev);
-> +		if (dev)
-> +			dev[count] = get_device(sd->dev);
-> +		count++;
->  
->  		if (notifier->unbind)
->  			notifier->unbind(notifier, sd, sd->asd);
->  
->  		v4l2_async_cleanup(sd);
-> +	}
->  
-> -		/* If we handled USB devices, we'd have to lock the parent too */
-> -		device_release_driver(d);
-> +	mutex_unlock(&list_lock);
->  
-> -		/*
-> -		 * Store device at the device cache, in order to call
-> -		 * put_device() on the final step
-> -		 */
-> +	for (i = 0; i < count; i++) {
-> +		/* If we handled USB devices, we'd have to lock the parent too */
->  		if (dev)
-> -			dev[i++] = d;
-> -		else
-> -			put_device(d);
-> +			device_release_driver(dev[i]);
+The Oculus Rift Sensors (DK2 and CV1) allow to configure their sensor chips
+directly via I2C commands using extension unit controls. The processing and
+camera unit controls do not function at all.
 
-This changes the behavior. If the alloc failed, then at least put_device was still called.
-Now that no longer happens.
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+---
+ drivers/media/usb/uvc/uvc_ctrl.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-Frankly I don't understand this code, it is in desperate need of some comments explaining
-this whole reprobing thing.
-
-I have this strong feeling that this function needs to be reworked.
-
-Regards,
-
-	Hans
-
->  	}
->  
-> -	mutex_unlock(&list_lock);
-> -
->  	/*
->  	 * Call device_attach() to reprobe devices
-> -	 *
-> -	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
-> -	 * executed.
->  	 */
-> -	while (i--) {
-> +	for (i = 0; dev && i < count; i++) {
->  		struct device *d = dev[i];
->  
->  		if (d && device_attach(d) < 0) {
-> 
+diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+index 86cb16a2e7f4..573e1f8735bf 100644
+--- a/drivers/media/usb/uvc/uvc_ctrl.c
++++ b/drivers/media/usb/uvc/uvc_ctrl.c
+@@ -2165,6 +2165,10 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
+ {
+ 	struct uvc_entity *entity;
+ 	unsigned int i;
++	const struct usb_device_id xu_only[] = {
++		{ USB_DEVICE(0x2833, 0x0201) },
++		{ USB_DEVICE(0x2833, 0x0211) },
++	};
+ 
+ 	/* Walk the entities list and instantiate controls */
+ 	list_for_each_entry(entity, &dev->entities, list) {
+@@ -2172,6 +2176,16 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
+ 		unsigned int bControlSize = 0, ncontrols;
+ 		__u8 *bmControls = NULL;
+ 
++		/* Oculus Sensors only handle extension unit controls */
++		if (UVC_ENTITY_TYPE(entity) != UVC_VC_EXTENSION_UNIT) {
++			for (i = 0; i < ARRAY_SIZE(xu_only); i++) {
++				if (usb_match_one_id(dev->intf, &xu_only[i]))
++					break;
++			}
++			if (i != ARRAY_SIZE(xu_only))
++				continue;
++		}
++
+ 		if (UVC_ENTITY_TYPE(entity) == UVC_VC_EXTENSION_UNIT) {
+ 			bmControls = entity->extension.bmControls;
+ 			bControlSize = entity->extension.bControlSize;
+-- 
+2.13.2
