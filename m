@@ -1,101 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:35440 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751314AbdGQRAZ (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.24]:63044 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753471AbdGNJ3T (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 13:00:25 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v4 2/3] v4l: async: do not hold list_lock when reprobing devices
-Date: Mon, 17 Jul 2017 18:59:16 +0200
-Message-Id: <20170717165917.24851-3-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170717165917.24851-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170717165917.24851-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Fri, 14 Jul 2017 05:29:19 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-kernel@vger.kernel.org,
+        Bill Metzenthen <billm@melbpc.org.au>, x86@kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
+        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
+        akpm@linux-foundation.org, dri-devel@lists.freedesktop.org,
+        Arnd Bergmann <arnd@arndb.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>,
+        "H. Peter Anvin" <hpa@zytor.com>
+Subject: [PATCH 04/14] x86: math-emu: avoid -Wint-in-bool-context warning
+Date: Fri, 14 Jul 2017 11:25:16 +0200
+Message-Id: <20170714092540.1217397-5-arnd@arndb.de>
+In-Reply-To: <20170714092540.1217397-1-arnd@arndb.de>
+References: <20170714092540.1217397-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no good reason to hold the list_lock when reprobing the devices
-and it prevents a clean implementation of subdevice notifiers. Move the
-actual release of the devices outside of the loop which requires the
-lock to be held.
+The setsign() macro gets called with an integer argument in a
+few places, leading to a harmless warning in gcc-7:
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+arch/x86/math-emu/reg_add_sub.c: In function 'FPU_add':
+arch/x86/math-emu/reg_add_sub.c:80:48: error: ?: using integer constants in boolean context [-Werror=int-in-bool-context]
+
+This turns the integer into a boolean expression by comparing it
+to zero.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 29 ++++++++++-------------------
- 1 file changed, 10 insertions(+), 19 deletions(-)
+ arch/x86/math-emu/fpu_emu.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 0acf288d7227ba97..8fc84f7962386ddd 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -206,7 +206,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 	unsigned int notif_n_subdev = notifier->num_subdevs;
- 	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
- 	struct device **dev;
--	int i = 0;
-+	int i, count = 0;
+diff --git a/arch/x86/math-emu/fpu_emu.h b/arch/x86/math-emu/fpu_emu.h
+index afbc4d805d66..c9c320dccca1 100644
+--- a/arch/x86/math-emu/fpu_emu.h
++++ b/arch/x86/math-emu/fpu_emu.h
+@@ -157,7 +157,7 @@ extern u_char const data_sizes_16[32];
  
- 	if (!notifier->v4l2_dev)
- 		return;
-@@ -222,37 +222,28 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 	list_del(&notifier->list);
- 
- 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
--		struct device *d;
--
--		d = get_device(sd->dev);
-+		if (dev)
-+			dev[count] = get_device(sd->dev);
-+		count++;
- 
- 		if (notifier->unbind)
- 			notifier->unbind(notifier, sd, sd->asd);
- 
- 		v4l2_async_cleanup(sd);
-+	}
- 
--		/* If we handled USB devices, we'd have to lock the parent too */
--		device_release_driver(d);
-+	mutex_unlock(&list_lock);
- 
--		/*
--		 * Store device at the device cache, in order to call
--		 * put_device() on the final step
--		 */
-+	for (i = 0; i < count; i++) {
-+		/* If we handled USB devices, we'd have to lock the parent too */
- 		if (dev)
--			dev[i++] = d;
--		else
--			put_device(d);
-+			device_release_driver(dev[i]);
- 	}
- 
--	mutex_unlock(&list_lock);
--
- 	/*
- 	 * Call device_attach() to reprobe devices
--	 *
--	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
--	 * executed.
- 	 */
--	while (i--) {
-+	for (i = 0; dev && i < count; i++) {
- 		struct device *d = dev[i];
- 
- 		if (d && device_attach(d) < 0) {
+ #define signbyte(a) (((u_char *)(a))[9])
+ #define getsign(a) (signbyte(a) & 0x80)
+-#define setsign(a,b) { if (b) signbyte(a) |= 0x80; else signbyte(a) &= 0x7f; }
++#define setsign(a,b) { if ((b) != 0) signbyte(a) |= 0x80; else signbyte(a) &= 0x7f; }
+ #define copysign(a,b) { if (getsign(a)) signbyte(b) |= 0x80; \
+                         else signbyte(b) &= 0x7f; }
+ #define changesign(a) { signbyte(a) ^= 0x80; }
 -- 
-2.13.1
+2.9.0
