@@ -1,44 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:44009 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751893AbdGGJ6r (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Jul 2017 05:58:47 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 3/5] [media] coda: align internal mpeg4 framebuffers to 16x16 macroblocks
-Date: Fri,  7 Jul 2017 11:58:29 +0200
-Message-Id: <20170707095831.9852-3-p.zabel@pengutronix.de>
-In-Reply-To: <20170707095831.9852-1-p.zabel@pengutronix.de>
-References: <20170707095831.9852-1-p.zabel@pengutronix.de>
+Received: from mail.kernel.org ([198.145.29.99]:36960 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753124AbdGNQIr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Jul 2017 12:08:47 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v2 1/6] v4l: vsp1: Move vsp1_video_pipeline_setup_partitions() function
+Date: Fri, 14 Jul 2017 17:08:32 +0100
+Message-Id: <61f81081718e2e50d45e6fff3d448547589178a1.1500048373.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.525a94c41c3857a3f4bb8b8bbbccf78cf0c1dc78.1500048373.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.525a94c41c3857a3f4bb8b8bbbccf78cf0c1dc78.1500048373.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.525a94c41c3857a3f4bb8b8bbbccf78cf0c1dc78.1500048373.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.525a94c41c3857a3f4bb8b8bbbccf78cf0c1dc78.1500048373.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This fixes visual artifacts in the first macroblock row of encoded
-MPEG-4 video output caused by 8 additional lines of luma data leaking
-into the chroma planes of the internal reference framebuffers: the
-buffer size is rounded up to a multiple of 16x16 macroblock size, same
-as for the h.264 encoder.
+Separate the code change from the function move so that code changes can
+be clearly identified. This commit has no functional change.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+The partition algorithm functions will be changed, and
+vsp1_video_pipeline_setup_partitions() will call vsp1_video_partition().
+To prepare for that, move the function without any code change.
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/coda/coda-bit.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/platform/vsp1/vsp1_video.c | 73 ++++++++++++-------------
+ 1 file changed, 36 insertions(+), 37 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index a4abeabfa5377..2f31c672aba04 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -394,7 +394,8 @@ static int coda_alloc_framebuffers(struct coda_ctx *ctx,
- 	int i;
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index e9f5dcb8fae5..03e139f40dcf 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -182,43 +182,6 @@ static int __vsp1_video_try_format(struct vsp1_video *video,
+  * VSP1 Partition Algorithm support
+  */
  
- 	if (ctx->codec->src_fourcc == V4L2_PIX_FMT_H264 ||
--	    ctx->codec->dst_fourcc == V4L2_PIX_FMT_H264) {
-+	    ctx->codec->dst_fourcc == V4L2_PIX_FMT_H264 ||
-+	    ctx->codec->dst_fourcc == V4L2_PIX_FMT_MPEG4) {
- 		width = round_up(q_data->width, 16);
- 		height = round_up(q_data->height, 16);
- 	} else {
+-static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
+-{
+-	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
+-	const struct v4l2_mbus_framefmt *format;
+-	struct vsp1_entity *entity;
+-	unsigned int div_size;
+-
+-	/*
+-	 * Partitions are computed on the size before rotation, use the format
+-	 * at the WPF sink.
+-	 */
+-	format = vsp1_entity_get_pad_format(&pipe->output->entity,
+-					    pipe->output->entity.config,
+-					    RWPF_PAD_SINK);
+-	div_size = format->width;
+-
+-	/* Gen2 hardware doesn't require image partitioning. */
+-	if (vsp1->info->gen == 2) {
+-		pipe->div_size = div_size;
+-		pipe->partitions = 1;
+-		return;
+-	}
+-
+-	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+-		unsigned int entity_max = VSP1_VIDEO_MAX_WIDTH;
+-
+-		if (entity->ops->max_width) {
+-			entity_max = entity->ops->max_width(entity, pipe);
+-			if (entity_max)
+-				div_size = min(div_size, entity_max);
+-		}
+-	}
+-
+-	pipe->div_size = div_size;
+-	pipe->partitions = DIV_ROUND_UP(format->width, div_size);
+-}
+-
+ /**
+  * vsp1_video_partition - Calculate the active partition output window
+  *
+@@ -293,6 +256,42 @@ static struct v4l2_rect vsp1_video_partition(struct vsp1_pipeline *pipe,
+ 	return partition;
+ }
+ 
++static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
++{
++	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
++	const struct v4l2_mbus_framefmt *format;
++	struct vsp1_entity *entity;
++	unsigned int div_size;
++
++	/*
++	 * Partitions are computed on the size before rotation, use the format
++	 * at the WPF sink.
++	 */
++	format = vsp1_entity_get_pad_format(&pipe->output->entity,
++					    pipe->output->entity.config,
++					    RWPF_PAD_SINK);
++	div_size = format->width;
++
++	/* Gen2 hardware doesn't require image partitioning. */
++	if (vsp1->info->gen == 2) {
++		pipe->div_size = div_size;
++		pipe->partitions = 1;
++		return;
++	}
++
++	list_for_each_entry(entity, &pipe->entities, list_pipe) {
++		unsigned int entity_max = VSP1_VIDEO_MAX_WIDTH;
++
++		if (entity->ops->max_width) {
++			entity_max = entity->ops->max_width(entity, pipe);
++			if (entity_max)
++				div_size = min(div_size, entity_max);
++		}
++	}
++
++	pipe->div_size = div_size;
++	pipe->partitions = DIV_ROUND_UP(format->width, div_size);
++}
+ /* -----------------------------------------------------------------------------
+  * Pipeline Management
+  */
 -- 
-2.11.0
+git-series 0.9.1
