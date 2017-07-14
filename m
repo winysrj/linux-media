@@ -1,77 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:36522 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751372AbdGRKYS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 06:24:18 -0400
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-To: linux-i2c@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-iio@vger.kernel.org,
-        alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org,
-        Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: [PATCH v3 3/4] i2c: sh_mobile: use helper to decide if DMA is useful
-Date: Tue, 18 Jul 2017 12:23:38 +0200
-Message-Id: <20170718102339.28726-4-wsa+renesas@sang-engineering.com>
-In-Reply-To: <20170718102339.28726-1-wsa+renesas@sang-engineering.com>
-References: <20170718102339.28726-1-wsa+renesas@sang-engineering.com>
+Received: from mout.kundenserver.de ([217.72.192.74]:53924 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753175AbdGNJ3V (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Jul 2017 05:29:21 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
+        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
+        akpm@linux-foundation.org, dri-devel@lists.freedesktop.org,
+        Arnd Bergmann <arnd@arndb.de>, linux-acpi@vger.kernel.org
+Subject: [PATCH 06/14] acpi: thermal: fix gcc-6/ccache warning
+Date: Fri, 14 Jul 2017 11:25:18 +0200
+Message-Id: <20170714092540.1217397-7-arnd@arndb.de>
+In-Reply-To: <20170714092540.1217397-1-arnd@arndb.de>
+References: <20170714092540.1217397-1-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This ensures that we fall back to PIO if the buffer is too small for DMA
-being useful. Otherwise, we use DMA. A bounce buffer might be applied if
-the original message buffer is not DMA safe
+In some configurations, topology_physical_package_id() is trivially
+defined as '-1' for any input, resulting a comparison that is
+always true:
 
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+drivers/acpi/processor_thermal.c: In function ‘cpufreq_set_cur_state’:
+drivers/acpi/processor_thermal.c:137:36: error: self-comparison always evaluates to true [-Werror=tautological-compare]
+
+By introducing a temporary variable, we can tell gcc that this is
+intentional.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/i2c/busses/i2c-sh_mobile.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/acpi/processor_thermal.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-sh_mobile.c b/drivers/i2c/busses/i2c-sh_mobile.c
-index 2e097d97d258bc..19f45bcd9b35ca 100644
---- a/drivers/i2c/busses/i2c-sh_mobile.c
-+++ b/drivers/i2c/busses/i2c-sh_mobile.c
-@@ -145,6 +145,7 @@ struct sh_mobile_i2c_data {
- 	struct dma_chan *dma_rx;
- 	struct scatterlist sg;
- 	enum dma_data_direction dma_direction;
-+	u8 *bounce_buf;
- };
+diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
+index 59c3a5d1e600..411f3a7f4a7c 100644
+--- a/drivers/acpi/processor_thermal.c
++++ b/drivers/acpi/processor_thermal.c
+@@ -122,20 +122,22 @@ static int cpufreq_get_cur_state(unsigned int cpu)
+ static int cpufreq_set_cur_state(unsigned int cpu, int state)
+ {
+ 	int i;
++	int id;
  
- struct sh_mobile_dt_config {
-@@ -548,6 +549,8 @@ static void sh_mobile_i2c_dma_callback(void *data)
- 	pd->pos = pd->msg->len;
- 	pd->stop_after_dma = true;
+ 	if (!cpu_has_cpufreq(cpu))
+ 		return 0;
  
-+	i2c_release_dma_bounce_buf(pd->msg, pd->bounce_buf);
+ 	reduction_pctg(cpu) = state;
+ 
++	id = topology_physical_package_id(cpu);
 +
- 	iic_set_clr(pd, ICIC, 0, ICIC_TDMAE | ICIC_RDMAE);
- }
- 
-@@ -595,6 +598,7 @@ static void sh_mobile_i2c_xfer_dma(struct sh_mobile_i2c_data *pd)
- 	struct dma_async_tx_descriptor *txdesc;
- 	dma_addr_t dma_addr;
- 	dma_cookie_t cookie;
-+	u8 *dma_buf = pd->bounce_buf ?: pd->msg->buf;
- 
- 	if (PTR_ERR(chan) == -EPROBE_DEFER) {
- 		if (read)
-@@ -608,7 +612,7 @@ static void sh_mobile_i2c_xfer_dma(struct sh_mobile_i2c_data *pd)
- 	if (IS_ERR(chan))
- 		return;
- 
--	dma_addr = dma_map_single(chan->device->dev, pd->msg->buf, pd->msg->len, dir);
-+	dma_addr = dma_map_single(chan->device->dev, dma_buf, pd->msg->len, dir);
- 	if (dma_mapping_error(chan->device->dev, dma_addr)) {
- 		dev_dbg(pd->dev, "dma map failed, using PIO\n");
- 		return;
-@@ -665,7 +669,7 @@ static int start_ch(struct sh_mobile_i2c_data *pd, struct i2c_msg *usr_msg,
- 	pd->pos = -1;
- 	pd->sr = 0;
- 
--	if (pd->msg->len > 8)
-+	if (i2c_check_msg_for_dma(pd->msg, 8, &pd->bounce_buf) == 0)
- 		sh_mobile_i2c_xfer_dma(pd);
- 
- 	/* Enable all interrupts to begin with */
+ 	/*
+ 	 * Update all the CPUs in the same package because they all
+ 	 * contribute to the temperature and often share the same
+ 	 * frequency.
+ 	 */
+ 	for_each_online_cpu(i) {
+-		if (topology_physical_package_id(i) ==
+-		    topology_physical_package_id(cpu))
++		if (topology_physical_package_id(i) == id)
+ 			cpufreq_update_policy(i);
+ 	}
+ 	return 0;
 -- 
-2.11.0
+2.9.0
