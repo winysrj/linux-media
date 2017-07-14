@@ -1,78 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:52351 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750794AbdGULGi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Jul 2017 07:06:38 -0400
-From: Colin King <colin.king@canonical.com>
-To: Daniel Scheller <d.scheller.oss@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH][media-next] media: dvb-frontends/stv0910: make various local variables static
-Date: Fri, 21 Jul 2017 12:06:35 +0100
-Message-Id: <20170721110635.23610-1-colin.king@canonical.com>
+Received: from mga05.intel.com ([192.55.52.43]:28375 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750860AbdGNEgb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Jul 2017 00:36:31 -0400
+From: "Rapolu, Chiranjeevi" <chiranjeevi.rapolu@intel.com>
+To: "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "tfiga@chromium.org" <tfiga@chromium.org>
+CC: "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
+Subject: RE: [PATCH v4 1/1] i2c: Add Omnivision OV5670 5M sensor support
+Date: Fri, 14 Jul 2017 04:36:27 +0000
+Message-ID: <8408A4B5C50F354EA5F62D9FC805153D2C451AA6@ORSMSX115.amr.corp.intel.com>
+References: <1497404348-16255-1-git-send-email-chiranjeevi.rapolu@intel.com>
+ <4720ac4f89b26f2509ee3788c63f65adf093871a.1498941658.git.chiranjeevi.rapolu@intel.com>
+ <6F87890CF0F5204F892DEA1EF0D77A59725D6C3C@FMSMSX114.amr.corp.intel.com>
+In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A59725D6C3C@FMSMSX114.amr.corp.intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+Raj,
 
-The list stvlist and arrays padc_lookup, s1_sn_lookup and s2_sn_lookup
-do not need to be in global scope, so make them all static.
+Removed duplicate const.
 
-Cleans up a bunch of smatch warnings:
-symbol 'padc_lookup' was not declared. Should it be static?
-symbol 's1_sn_lookup' was not declared. Should it be static?
-symbol 's2_sn_lookup' was not declared. Should it be static?
-symbol 'stvlist' was not declared. Should it be static?
+Thanks,
+Chiran
+-----Original Message-----
+From: Mani, Rajmohan 
+Sent: Friday, July 7, 2017 3:49 PM
+To: Rapolu, Chiranjeevi <chiranjeevi.rapolu@intel.com>; linux-media@vger.kernel.org; sakari.ailus@linux.intel.com; tfiga@chromium.org
+Cc: Zheng, Jian Xu <jian.xu.zheng@intel.com>; Yang, Hyungwoo <hyungwoo.yang@intel.com>
+Subject: RE: [PATCH v4 1/1] i2c: Add Omnivision OV5670 5M sensor support
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/media/dvb-frontends/stv0910.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Hi Chiran,
 
-diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
-index 7e8a460449c5..bae1da3fdb2d 100644
---- a/drivers/media/dvb-frontends/stv0910.c
-+++ b/drivers/media/dvb-frontends/stv0910.c
-@@ -34,7 +34,7 @@
- #define BER_SRC_S    0x20
- #define BER_SRC_S2   0x20
- 
--LIST_HEAD(stvlist);
-+static LIST_HEAD(stvlist);
- 
- enum receive_mode { RCVMODE_NONE, RCVMODE_DVBS, RCVMODE_DVBS2, RCVMODE_AUTO };
- 
-@@ -207,7 +207,7 @@ static int write_shared_reg(struct stv *state, u16 reg, u8 mask, u8 val)
- 	return status;
- }
- 
--struct slookup s1_sn_lookup[] = {
-+static struct slookup s1_sn_lookup[] = {
- 	{   0,    9242  },  /*C/N=  0dB*/
- 	{   5,    9105  },  /*C/N=0.5dB*/
- 	{  10,    8950  },  /*C/N=1.0dB*/
-@@ -264,7 +264,7 @@ struct slookup s1_sn_lookup[] = {
- 	{  510,    425  }   /*C/N=51.0dB*/
- };
- 
--struct slookup s2_sn_lookup[] = {
-+static struct slookup s2_sn_lookup[] = {
- 	{  -30,  13950  },  /*C/N=-2.5dB*/
- 	{  -25,  13580  },  /*C/N=-2.5dB*/
- 	{  -20,  13150  },  /*C/N=-2.0dB*/
-@@ -327,7 +327,7 @@ struct slookup s2_sn_lookup[] = {
- 	{  510,    463  },  /*C/N=51.0dB*/
- };
- 
--struct slookup padc_lookup[] = {
-+static struct slookup padc_lookup[] = {
- 	{    0,  118000 }, /* PADC=+0dBm  */
- 	{ -100,  93600  }, /* PADC=-1dBm  */
- 	{ -200,  74500  }, /* PADC=-2dBm  */
--- 
-2.11.0
+> +
+> +/* Supported link frequencies */
+> +#define OV5670_LINK_FREQ_840MBPS	840000000
+> +#define OV5670_LINK_FREQ_840MBPS_INDEX	0
+> +static const struct ov5670_link_freq_config link_freq_configs[] = {
+> +	{
+> +		.pixel_rate = 336000000,
+> +		.reg_list = {
+> +			.num_of_regs =
+> ARRAY_SIZE(mipi_data_rate_840mbps),
+> +			.regs = mipi_data_rate_840mbps,
+> +		}
+> +	}
+> +};
+> +
+> +static const const s64 link_freq_menu_items[] = {
+
+	 ^ duplicated const declaration
+
+> +	OV5670_LINK_FREQ_840MBPS
+> +};
+> +
