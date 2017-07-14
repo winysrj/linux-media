@@ -1,76 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway31.websitewelcome.com ([192.185.143.39]:34730 "EHLO
-        gateway31.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752276AbdGJBPl (ORCPT
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:34674 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751012AbdGNU2a (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 9 Jul 2017 21:15:41 -0400
-Received: from cm16.websitewelcome.com (cm16.websitewelcome.com [100.42.49.19])
-        by gateway31.websitewelcome.com (Postfix) with ESMTP id 6944819153
-        for <linux-media@vger.kernel.org>; Sun,  9 Jul 2017 20:15:39 -0500 (CDT)
-Date: Sun, 9 Jul 2017 20:15:36 -0500
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] ddbridge: constify i2c_algorithm structure
-Message-ID: <20170710011536.GA24235@embeddedgus>
+        Fri, 14 Jul 2017 16:28:30 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <CA+55aFw+DTc_czppqfbqY+7kq6Uej=Nf1Wxf1HutRw4tRxC85Q@mail.gmail.com>
+References: <20170714092540.1217397-1-arnd@arndb.de> <20170714092540.1217397-4-arnd@arndb.de>
+ <CA+55aFw9xE_+qnx1=6FbU8HJ23+Go1iS5bxDLOHefETgn5Wx6w@mail.gmail.com> <CA+55aFw+DTc_czppqfbqY+7kq6Uej=Nf1Wxf1HutRw4tRxC85Q@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 14 Jul 2017 22:28:29 +0200
+Message-ID: <CAK8P3a2QEOuQXy51q-EqzTh3STKTDHy2V-twi5nFPbuzOSEDkQ@mail.gmail.com>
+Subject: Re: [PATCH, RESEND 03/14] drm/vmwgfx: avoid gcc-7 parentheses warning
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        VMware Graphics <linux-graphics-maintainer@vmware.com>,
+        Sinclair Yeh <syeh@vmware.com>,
+        Thomas Hellstrom <thellstrom@vmware.com>,
+        David Airlie <airlied@linux.ie>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
+        IDE-ML <linux-ide@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        DRI <dri-devel@lists.freedesktop.org>,
+        Brian Paul <brianp@vmware.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Check for i2c_algorithm structures that are only stored in
-the algo field of an i2c_adapter structure. This field is
-declared const, so i2c_algorithm structures that have this
-property can be declared as const also.
+On Fri, Jul 14, 2017 at 9:23 PM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+> On Fri, Jul 14, 2017 at 12:21 PM, Linus Torvalds
+> <torvalds@linux-foundation.org> wrote:
+>>
+>> NAK. This takes unintentionally insane code and turns it intentionally
+>> insane. Any non-zero return is considered an error.
+>>
+>> The right fix is almost certainly to just return -EINVAL unconditionally.
+>
+> Btw, this is why I hate compiler warning fix patch series. Even when
+> they don't actually break the code (and sometimes they do that too),
+> they can actually end up making the code worse.
 
-This issue was identified using Coccinelle and the following
-semantic patch:
+I generally agree, and this is also why I held up sending patches for the
+-Wformat warnings until you brought those up. I also frequently send
+patches for recently introduced warnings, which tend to have a better
+chance of getting reviewed by the person that just introduced the code,
+to catch this kind of mistake in my patches.
 
-@r disable optional_qualifier@
-identifier i;
-position p;
-@@
-static struct i2c_algorithm i@p = { ... };
+I also regularly run into cases where I send a correct patch and find
+that another broken patch has been applied the following day ;-)
 
-@ok@
-identifier r.i;
-struct i2c_adapter e;
-position p;
-@@
-e.algo = &i@p;
+> The *intent* of that code was to return zero for the CAP_SYS_ADMIN.
+> But the code has never done that in its lifetime and nobody ever
+> noticed, so clearly the code shouldn't even have tried.
 
-@bad@
-position p != {r.p,ok.p};
-identifier r.i;
-@@
-i@p
+Makes sense, yes. In this case, the review process has failed as
+well, as one of the maintainers even gave an Ack on the wrong patch,
+and then the patch got dropped without any feedback.
 
-@depends on !bad disable optional_qualifier@
-identifier r.i;
-@@
-static
-+const
- struct i2c_algorithm i = { ... };
-
-Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
----
- drivers/media/pci/ddbridge/ddbridge-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index cd1723e..9663a4c 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -200,7 +200,7 @@ static u32 ddb_i2c_functionality(struct i2c_adapter *adap)
- 	return I2C_FUNC_SMBUS_EMUL;
- }
- 
--static struct i2c_algorithm ddb_i2c_algo = {
-+static const struct i2c_algorithm ddb_i2c_algo = {
- 	.master_xfer   = ddb_i2c_master_xfer,
- 	.functionality = ddb_i2c_functionality,
- };
--- 
-2.5.0
+        Arnd
