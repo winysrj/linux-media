@@ -1,47 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49540 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751632AbdG2VIt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Jul 2017 17:08:49 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v3 1/4] drm: rcar-du: Use the VBK interrupt for vblank events
-Date: Sun, 30 Jul 2017 00:08:52 +0300
-Message-Id: <20170729210855.9187-2-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20170729210855.9187-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20170729210855.9187-1-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail.kernel.org ([198.145.29.99]:39338 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751366AbdGNJqg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Jul 2017 05:46:36 -0400
+Date: Fri, 14 Jul 2017 12:46:31 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-kernel@vger.kernel.org, Doug Ledford <dledford@redhat.com>,
+        Sean Hefty <sean.hefty@intel.com>,
+        Hal Rosenstock <hal.rosenstock@gmail.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
+        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
+        akpm@linux-foundation.org, dri-devel@lists.freedesktop.org,
+        Matan Barak <matanb@mellanox.com>,
+        Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH 11/14] IB/uverbs: fix gcc-7 type warning
+Message-ID: <20170714094631.GX1528@mtr-leonro.local>
+References: <20170714092540.1217397-1-arnd@arndb.de>
+ <20170714093129.1366900-2-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="Ee0603b/+xKyHz99"
+Content-Disposition: inline
+In-Reply-To: <20170714093129.1366900-2-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When implementing support for interlaced modes, the driver switched from
-reporting vblank events on the vertical blanking (VBK) interrupt to the
-frame end interrupt (FRM). This incorrectly divided the reported refresh
-rate by two. Fix it by moving back to the VBK interrupt.
 
-Fixes: 906eff7fcada ("drm: rcar-du: Implement support for interlaced modes")
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+--Ee0603b/+xKyHz99
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-index 98cf446391dc..17fd1cd5212c 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-@@ -698,7 +698,7 @@ static irqreturn_t rcar_du_crtc_irq(int irq, void *arg)
- 	status = rcar_du_crtc_read(rcrtc, DSSR);
- 	rcar_du_crtc_write(rcrtc, DSRCR, status & DSRCR_MASK);
- 
--	if (status & DSSR_FRM) {
-+	if (status & DSSR_VBK) {
- 		drm_crtc_handle_vblank(&rcrtc->crtc);
- 
- 		if (rcdu->info->gen < 3)
--- 
-Regards,
+On Fri, Jul 14, 2017 at 11:31:04AM +0200, Arnd Bergmann wrote:
+> When using ccache, we get a harmless warning about the fact that
+> we use the result of a multiplication as a condition:
+>
+> drivers/infiniband/core/uverbs_main.c: In function 'ib_uverbs_write':
+> drivers/infiniband/core/uverbs_main.c:787:40: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
+> drivers/infiniband/core/uverbs_main.c:787:117: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
+> drivers/infiniband/core/uverbs_main.c:790:50: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
+> drivers/infiniband/core/uverbs_main.c:790:151: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
+>
+> This changes the macro to explicitly check the number for a positive
+> length, which avoids the warning.
+>
+> Fixes: a96e4e2ffe43 ("IB/uverbs: New macro to set pointers to NULL if length is 0 in INIT_UDATA()")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  drivers/infiniband/core/uverbs.h | 14 ++++++++------
+>  1 file changed, 8 insertions(+), 6 deletions(-)
+>
 
-Laurent Pinchart
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+
+--Ee0603b/+xKyHz99
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllokvcACgkQ5GN7iDZy
+WKdunw/+LLcL3bFxt6Jb1Xg/2r0CxgcYf5oO8ehOVaPYHBnLsI3zheWbrOARxAQO
++ACWy3W/t6cjKTgdme2GsPpFxUk/vhEDa6d0r0YwVomStSnA6QCKgn1SZpbnszZ4
+LrMB+2HK34GA835xlJkVYgYV8sG1Ncbbv7OuvojsfFqBonOJ5deob4LWdP5IHoxG
+uHZthMD3MlF2aail5faoUm0CyocXPvnB3oR1Wop74xrcAeiRghRICtRgXICKNKl0
+3CKpneP+7MtoCpDemKwhjWeiH0FGseP44L1183zrVU5u61R4YV6Lixx/t2lz2Imw
+kuMAONs3QbP+xxcvK99wqX0JTKrFqbTD7eVYNQEt9kZI/eviAvHkq51iRkZ0nA+b
+h46iuvs//jshbPn9gLT1rUFNOiXfoUss+hNzeN1jAW07h+zNTdvQprKdqcKAxxKM
+sDsKX3MQfbc4yKSdP9cVG4N+b8P/QZP3Imq6k5UQltrXsnwNi+twVUVVWV14nJbl
+cIgC8PP/DRJziklsZzqTQuxXuBjvrQkZB0zYyw0iQTpDEm+zfhnsr+PKe43p4M51
+DO2f8rKzqauj6/bsb8IwicjTbXnvdlSDwejl8HvsiihDuD9fMOEmPAMa19/lhCH5
+4Emn+YSH7F05w1VwSrs7gLynvQLycuz7PnFD+xBWNWBZ7iuxlow=
+=79Js
+-----END PGP SIGNATURE-----
+
+--Ee0603b/+xKyHz99--
