@@ -1,81 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-cys01nam02on0040.outbound.protection.outlook.com ([104.47.37.40]:56640
-        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750744AbdGYGTC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Jul 2017 02:19:02 -0400
-Message-ID: <5976E257.4080701@amd.com>
-Date: Tue, 25 Jul 2017 14:16:55 +0800
-From: zhoucm1 <david1.zhou@amd.com>
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:35344 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751061AbdGNTXQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Jul 2017 15:23:16 -0400
 MIME-Version: 1.0
-To: Daniel Vetter <daniel@ffwll.ch>,
-        =?UTF-8?B?Q2hyaXN0aWFuIEvDtm5pZw==?= <deathsimple@vodafone.de>
-CC: "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] dma-buf: fix reservation_object_wait_timeout_rcu to wait
- correctly
-References: <1500654001-20899-1-git-send-email-deathsimple@vodafone.de> <20170724083359.j6wo5icln3faajn6@phenom.ffwll.local> <b3cb04f6-07c8-f5dd-3d7b-7f41f1d0dd81@vodafone.de> <CAKMK7uEC6BpYZeWZENk=Kt01yQuJXW=kgpp3acAMEdQBmD84FQ@mail.gmail.com>
-In-Reply-To: <CAKMK7uEC6BpYZeWZENk=Kt01yQuJXW=kgpp3acAMEdQBmD84FQ@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CA+55aFw9xE_+qnx1=6FbU8HJ23+Go1iS5bxDLOHefETgn5Wx6w@mail.gmail.com>
+References: <20170714092540.1217397-1-arnd@arndb.de> <20170714092540.1217397-4-arnd@arndb.de>
+ <CA+55aFw9xE_+qnx1=6FbU8HJ23+Go1iS5bxDLOHefETgn5Wx6w@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Fri, 14 Jul 2017 12:23:15 -0700
+Message-ID: <CA+55aFw+DTc_czppqfbqY+7kq6Uej=Nf1Wxf1HutRw4tRxC85Q@mail.gmail.com>
+Subject: Re: [PATCH, RESEND 03/14] drm/vmwgfx: avoid gcc-7 parentheses warning
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        VMware Graphics <linux-graphics-maintainer@vmware.com>,
+        Sinclair Yeh <syeh@vmware.com>,
+        Thomas Hellstrom <thellstrom@vmware.com>,
+        David Airlie <airlied@linux.ie>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
+        IDE-ML <linux-ide@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        DRI <dri-devel@lists.freedesktop.org>,
+        Brian Paul <brianp@vmware.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 2017年07月24日 19:57, Daniel Vetter wrote:
-> On Mon, Jul 24, 2017 at 11:51 AM, Christian König
-> <deathsimple@vodafone.de> wrote:
->> Am 24.07.2017 um 10:33 schrieb Daniel Vetter:
->>> On Fri, Jul 21, 2017 at 06:20:01PM +0200, Christian König wrote:
->>>> From: Christian König <christian.koenig@amd.com>
->>>>
->>>> With hardware resets in mind it is possible that all shared fences are
->>>> signaled, but the exlusive isn't. Fix waiting for everything in this
->>>> situation.
->>> How did you end up with both shared and exclusive fences on the same
->>> reservation object? At least I thought the point of exclusive was that
->>> it's exclusive (and has an implicit barrier on all previous shared
->>> fences). Same for shared fences, they need to wait for the exclusive one
->>> (and replace it).
->>>
->>> Is this fallout from the amdgpu trickery where by default you do all
->>> shared fences? I thought we've aligned semantics a while back ...
->>
->> No, that is perfectly normal even for other drivers. Take a look at the
->> reservation code.
->>
->> The exclusive fence replaces all shared fences, but adding a shared fence
->> doesn't replace the exclusive fence. That actually makes sense, cause when
->> you want to add move shared fences those need to wait for the last exclusive
->> fence as well.
-> Hm right.
+On Fri, Jul 14, 2017 at 12:21 PM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
 >
->> Now normally I would agree that when you have shared fences it is sufficient
->> to wait for all of them cause those operations can't start before the
->> exclusive one finishes. But with GPU reset and/or the ability to abort
->> already submitted operations it is perfectly possible that you end up with
->> an exclusive fence which isn't signaled and a shared fence which is signaled
->> in the same reservation object.
-> How does that work? The batch(es) with the shared fence are all
-> supposed to wait for the exclusive fence before they start, which
-> means even if you gpu reset and restart/cancel certain things, they
-> shouldn't be able to complete out of order.
-Hi Daniel,
-
-Do you mean exclusive fence must be signalled before any shared fence? 
-Where could I find this restriction?
-
-Thanks,
-David Zhou
+> NAK. This takes unintentionally insane code and turns it intentionally
+> insane. Any non-zero return is considered an error.
 >
-> If you outright cancel a fence then you're supposed to first call
-> dma_fence_set_error(-EIO) and then complete it. Note that atm that
-> part might be slightly overengineered and I'm not sure about how we
-> expose stuff to userspace, e.g. dma_fence_set_error(-EAGAIN) is (or
-> soon, has been) used by i915 for it's internal book-keeping, which
-> might not be the best to leak to other consumers. But completing
-> fences (at least exported ones, where userspace or other drivers can
-> get at them) shouldn't be possible.
-> -Daniel
+> The right fix is almost certainly to just return -EINVAL unconditionally.
+
+Btw, this is why I hate compiler warning fix patch series. Even when
+they don't actually break the code (and sometimes they do that too),
+they can actually end up making the code worse.
+
+The *intent* of that code was to return zero for the CAP_SYS_ADMIN.
+But the code has never done that in its lifetime and nobody ever
+noticed, so clearly the code shouldn't even have tried.
+
+                    Linus
