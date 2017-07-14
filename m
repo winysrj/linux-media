@@ -1,109 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:48471 "EHLO gofer.mess.org"
+Received: from mx1.redhat.com ([209.132.183.28]:11071 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755861AbdGLJq6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Jul 2017 05:46:58 -0400
-Date: Wed, 12 Jul 2017 10:46:50 +0100
-From: Sean Young <sean@mess.org>
-To: "Sharma, Jitendra" <shajit@codeaurora.org>
-Cc: linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org
-Subject: Re: Query: IR remote over android
-Message-ID: <20170712094650.mxupx7iyf4evoxwx@gofer.mess.org>
-References: <1d5d2467-05ca-3245-7843-95a4087aeb55@codeaurora.org>
+        id S1751388AbdGNI64 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Jul 2017 04:58:56 -0400
+From: Javier Martinez Canillas <javierm@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Javier Martinez Canillas <javierm@redhat.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org,
+        Helen Koike <helen.koike@collabora.com>
+Subject: [PATCH] [media] vimc: set id_table for platform drivers
+Date: Fri, 14 Jul 2017 10:58:39 +0200
+Message-Id: <20170714085839.4322-1-javierm@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1d5d2467-05ca-3245-7843-95a4087aeb55@codeaurora.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 12, 2017 at 02:40:20PM +0530, Sharma, Jitendra wrote:
-> Hi,
-> 
-> I am working on a android project. Here, I want to enable Remote control
-> support on one of our custom msm chipset based board.
-> 
-> The idea is, once board boot up, then via HDMI over HDMI monitor we will see
-> android UI, and we want to browse through that UI using any standard
-> protocol(like RC6 or nec) based remote
-> 
-> For enabling remote control support, I followed below steps:
-> 
-> 1) Enabled RC support for driver compilation in our defconfig file like:
-> 
-> +CONFIG_MEDIA_RC_SUPPORT=y
-> +CONFIG_RC_DEVICES=y
-> +CONFIG_IR_GPIO_CIR=y
-> 
-> 2) We have one RC6 philips remote. So, we created keycode file using
-> scancodes and used that keycode file for device node mentioned below.
-> 
-> 3) As IR receiver is connected via gpio over our custom board, so we add a
-> device tree entry like:
-> 
-> +       ir: ir-receiver {
-> +               compatible = "gpio-ir-receiver";
-> +               gpios = <&tlmm 120 1>;
-> +               linux,rc-map-name = "rc-rc6-philips"; /*rc-rc6-philips is
-> the keycode file for one RC6 protocol based file*/
-> +       };
-> 4) Finally create boot.img and flash it onto board
-> 
-> Now our observation with above created boot.img is as follows:
-> 
-> 1) We boot up without HDMI connected (For our case till we not connect HDMI,
-> android userspace won't come up).
-> 
-> 2) Via getevent tool, we could see remote events coming up proper . This is
-> Good case
-> 
-> 3) Now we connect HDMI (after connecting HDMI, android userspace gets up).
-> We observed that via getevent tool, no event is coming up even after
-> multiple remote key presses. This is bad case
-> 
-> I enabled IR_dprintk and for this bad case, I observed that for each key
-> press, below logs appear continously:
-> 
-> [  128.208417] sample: (00000us space)
-> [  128.211341] sample: (00000us space)
-> [  128.211683] sample: (00000us space)
-> [  128.212180] sample: (00000us space)
-> 
-> And then eventually RC6 decoder function fails in very early stage.
+The vimc platform drivers define a platform device ID table but these
+are not set to the .id_table field in the platform driver structure.
 
-Looking at that, I would guess that the edge trigger on the gpio pin
-is firing at the right time, but gpio_get_value() is not returning
-the correct value, so a space get passed every time rather than pulse
-and space.
+So the platform device ID table is only used to fill the aliases in
+the module but are not used for matching (works because the platform
+subsystem fallbacks to the driver's name if no .id_table is set).
 
-> 4) After more debugging, I observed that, if I apply below change in
-> rc-main.c file and create and flash new boot.img in our board and boot it
-> 
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index 3f0f71a..1acdd09 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -1347,7 +1349,6 @@ int rc_register_device(struct rc_dev *dev)
->                 return -EINVAL;
-> 
->         set_bit(EV_KEY, dev->input_dev->evbit);
-> -       set_bit(EV_REP, dev->input_dev->evbit);
->         set_bit(EV_MSC, dev->input_dev->evbit);
->         set_bit(MSC_SCAN, dev->input_dev->mscbit);
->         if (dev->open)
-> 
-> then, after connecting HDMI, I could see remote working over android .
-> 
-> 
-> So, my query is, does EV_REP in rc-main.c causing remote decoder function to
-> fail. Is it some kind of bug. Or am i missing something.
+But this also means that the platform device ID table isn't used if
+the driver is built-in, which leads to the following build warning:
 
-This just tells the input layer to handle autorepeat and is entirely
-unrelated; if the rc driver is not reporting pulse/space information
-correctly then the input layer never gets any key presses anyway.
+This causes the following build warnings when the driver is built-in:
 
-I would suspect that the connecting hdmi somehow does a few tricks with
-your gpio ports or there is a heisenbug. 
+drivers/media/platform/vimc//vimc-capture.c:528:40: warning: ‘vimc_cap_driver_ids’ defined but not used [-Wunused-const-variable=]
+ static const struct platform_device_id vimc_cap_driver_ids[] = {
+                                        ^~~~~~~~~~~~~~~~~~~
+drivers/media/platform/vimc//vimc-debayer.c:588:40: warning: ‘vimc_deb_driver_ids’ defined but not used [-Wunused-const-variable=]
+ static const struct platform_device_id vimc_deb_driver_ids[] = {
+                                        ^~~~~~~~~~~~~~~~~~~
+drivers/media/platform/vimc//vimc-scaler.c:442:40: warning: ‘vimc_sca_driver_ids’ defined but not used [-Wunused-const-variable=]
+ static const struct platform_device_id vimc_sca_driver_ids[] = {
+                                        ^~~~~~~~~~~~~~~~~~~
+drivers/media/platform/vimc//vimc-sensor.c:376:40: warning: ‘vimc_sen_driver_ids’ defined but not used [-Wunused-const-variable=]
+ static const struct platform_device_id vimc_sen_driver_ids[] = {
+                                        ^~~~~~~~~~~~~~~~~~~
 
+Reported-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Suggested-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
 
-Sean
+---
+
+ drivers/media/platform/vimc/vimc-capture.c | 15 ++++++++-------
+ drivers/media/platform/vimc/vimc-debayer.c | 15 ++++++++-------
+ drivers/media/platform/vimc/vimc-scaler.c  | 15 ++++++++-------
+ drivers/media/platform/vimc/vimc-sensor.c  | 15 ++++++++-------
+ 4 files changed, 32 insertions(+), 28 deletions(-)
+
+diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
+index 14cb32e21130..88a1e5670c72 100644
+--- a/drivers/media/platform/vimc/vimc-capture.c
++++ b/drivers/media/platform/vimc/vimc-capture.c
+@@ -517,21 +517,22 @@ static int vimc_cap_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static const struct platform_device_id vimc_cap_driver_ids[] = {
++	{
++		.name           = VIMC_CAP_DRV_NAME,
++	},
++	{ }
++};
++
+ static struct platform_driver vimc_cap_pdrv = {
+ 	.probe		= vimc_cap_probe,
+ 	.remove		= vimc_cap_remove,
++	.id_table	= vimc_cap_driver_ids,
+ 	.driver		= {
+ 		.name	= VIMC_CAP_DRV_NAME,
+ 	},
+ };
+ 
+-static const struct platform_device_id vimc_cap_driver_ids[] = {
+-	{
+-		.name           = VIMC_CAP_DRV_NAME,
+-	},
+-	{ }
+-};
+-
+ module_platform_driver(vimc_cap_pdrv);
+ 
+ MODULE_DEVICE_TABLE(platform, vimc_cap_driver_ids);
+diff --git a/drivers/media/platform/vimc/vimc-debayer.c b/drivers/media/platform/vimc/vimc-debayer.c
+index 35b15bd4d61d..033a131f67af 100644
+--- a/drivers/media/platform/vimc/vimc-debayer.c
++++ b/drivers/media/platform/vimc/vimc-debayer.c
+@@ -577,21 +577,22 @@ static int vimc_deb_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static const struct platform_device_id vimc_deb_driver_ids[] = {
++	{
++		.name           = VIMC_DEB_DRV_NAME,
++	},
++	{ }
++};
++
+ static struct platform_driver vimc_deb_pdrv = {
+ 	.probe		= vimc_deb_probe,
+ 	.remove		= vimc_deb_remove,
++	.id_table	= vimc_deb_driver_ids,
+ 	.driver		= {
+ 		.name	= VIMC_DEB_DRV_NAME,
+ 	},
+ };
+ 
+-static const struct platform_device_id vimc_deb_driver_ids[] = {
+-	{
+-		.name           = VIMC_DEB_DRV_NAME,
+-	},
+-	{ }
+-};
+-
+ module_platform_driver(vimc_deb_pdrv);
+ 
+ MODULE_DEVICE_TABLE(platform, vimc_deb_driver_ids);
+diff --git a/drivers/media/platform/vimc/vimc-scaler.c b/drivers/media/platform/vimc/vimc-scaler.c
+index fe77505d2679..0a3e086e12f3 100644
+--- a/drivers/media/platform/vimc/vimc-scaler.c
++++ b/drivers/media/platform/vimc/vimc-scaler.c
+@@ -431,21 +431,22 @@ static int vimc_sca_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static const struct platform_device_id vimc_sca_driver_ids[] = {
++	{
++		.name           = VIMC_SCA_DRV_NAME,
++	},
++	{ }
++};
++
+ static struct platform_driver vimc_sca_pdrv = {
+ 	.probe		= vimc_sca_probe,
+ 	.remove		= vimc_sca_remove,
++	.id_table	= vimc_sca_driver_ids,
+ 	.driver		= {
+ 		.name	= VIMC_SCA_DRV_NAME,
+ 	},
+ };
+ 
+-static const struct platform_device_id vimc_sca_driver_ids[] = {
+-	{
+-		.name           = VIMC_SCA_DRV_NAME,
+-	},
+-	{ }
+-};
+-
+ module_platform_driver(vimc_sca_pdrv);
+ 
+ MODULE_DEVICE_TABLE(platform, vimc_sca_driver_ids);
+diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+index ebdbbe8c05ed..615c2b18dcfc 100644
+--- a/drivers/media/platform/vimc/vimc-sensor.c
++++ b/drivers/media/platform/vimc/vimc-sensor.c
+@@ -365,21 +365,22 @@ static int vimc_sen_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static const struct platform_device_id vimc_sen_driver_ids[] = {
++	{
++		.name           = VIMC_SEN_DRV_NAME,
++	},
++	{ }
++};
++
+ static struct platform_driver vimc_sen_pdrv = {
+ 	.probe		= vimc_sen_probe,
+ 	.remove		= vimc_sen_remove,
++	.id_table	= vimc_sen_driver_ids,
+ 	.driver		= {
+ 		.name	= VIMC_SEN_DRV_NAME,
+ 	},
+ };
+ 
+-static const struct platform_device_id vimc_sen_driver_ids[] = {
+-	{
+-		.name           = VIMC_SEN_DRV_NAME,
+-	},
+-	{ }
+-};
+-
+ module_platform_driver(vimc_sen_pdrv);
+ 
+ MODULE_DEVICE_TABLE(platform, vimc_sen_driver_ids);
+-- 
+2.13.0
