@@ -1,73 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59368 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753940AbdGUOrM (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:36908 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751294AbdGOMr5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Jul 2017 10:47:12 -0400
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 75473600CF
-        for <linux-media@vger.kernel.org>; Fri, 21 Jul 2017 15:06:33 +0300 (EEST)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakke@valkosipuli.retiisi.org.uk>)
-        id 1dYWhU-00016r-TY
-        for linux-media@vger.kernel.org; Fri, 21 Jul 2017 15:06:32 +0300
-Date: Fri, 21 Jul 2017 15:06:32 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+        Sat, 15 Jul 2017 08:47:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL for 4.14] V4L2 flash class and misc patches
-Message-ID: <20170721120632.6cdmsxmsvryx77ud@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Cc: linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/4] dt-bindings: document the tegra CEC bindings
+Date: Sat, 15 Jul 2017 14:47:50 +0200
+Message-Id: <20170715124753.43714-2-hverkuil@xs4all.nl>
+In-Reply-To: <20170715124753.43714-1-hverkuil@xs4all.nl>
+References: <20170715124753.43714-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-More patches for 4.14. Flash fixes and improvements plus other
-miscellaneous patches.
+This documents the binding for the Tegra CEC module.
 
-Please pull.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../devicetree/bindings/media/tegra-cec.txt        | 26 ++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/tegra-cec.txt
 
-
-The following changes since commit 6538b02d210f52ef2a2e67d59fcb58be98451fbd:
-
-  media: Make parameter of media_entity_remote_pad() const (2017-07-20 16:54:04 -0400)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git for-4.14-2
-
-for you to fetch changes up to c8c62ce6f725078ec3cf8a3b1945417f0d8e6706:
-
-  ov5640: Remove unneeded gpiod NULL check (2017-07-21 14:56:06 +0300)
-
-----------------------------------------------------------------
-Fabio Estevam (1):
-      ov5640: Remove unneeded gpiod NULL check
-
-Laurent Pinchart (1):
-      v4l: omap3isp: Get the parallel bus type from DT
-
-Sakari Ailus (3):
-      v4l2-fwnode: link_frequency is an optional property
-      v4l2-flash: Use led_classdev instead of led_classdev_flash for indicator
-      v4l2-flash: Flash ops aren't mandatory
-
- drivers/media/i2c/ov5640.c                     |  3 +--
- drivers/media/platform/omap3isp/isp.c          |  1 +
- drivers/media/platform/omap3isp/ispccdc.c      |  8 +------
- drivers/media/platform/omap3isp/omap3isp.h     |  2 ++
- drivers/media/v4l2-core/v4l2-flash-led-class.c | 30 +++++++++++---------------
- drivers/media/v4l2-core/v4l2-fwnode.c          | 30 +++++++++++++-------------
- drivers/staging/greybus/light.c                |  4 ++--
- include/media/v4l2-flash-led-class.h           |  6 +++---
- 8 files changed, 37 insertions(+), 47 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/media/tegra-cec.txt b/Documentation/devicetree/bindings/media/tegra-cec.txt
+new file mode 100644
+index 000000000000..ba0b6071acaa
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/tegra-cec.txt
+@@ -0,0 +1,26 @@
++* Tegra HDMI CEC driver
++
++The HDMI CEC module is present in Tegra SoCs and its purpose is to
++handle communication between HDMI connected devices over the CEC bus.
++
++Required properties:
++  - compatible : value should be one of the following:
++	"nvidia,tegra114-cec"
++	"nvidia,tegra124-cec"
++	"nvidia,tegra210-cec"
++  - reg : Physical base address of the IP registers and length of memory
++	  mapped region.
++  - interrupts : HDMI CEC interrupt number to the CPU.
++  - clocks : from common clock binding: handle to HDMI CEC clock.
++  - clock-names : from common clock binding: must contain "cec",
++		  corresponding to ithe entry in the clocks property.
++  - hdmi-phandle : phandle to the HDMI controller, see also cec.txt.
++
++Example:
++
++tegra_cec {
++	compatible = "nvidia,tegra124-cec";
++	reg = <0x0 0x70015000 0x0 0x00001000>;
++	interrupts = <GIC_SPI 3 IRQ_TYPE_LEVEL_HIGH>;
++	clocks = <&tegra_car TEGRA124_CLK_CEC>;
++	clock-names = "cec";
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.11.0
