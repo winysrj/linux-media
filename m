@@ -1,76 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway33.websitewelcome.com ([192.185.145.190]:28382 "EHLO
-        gateway33.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752622AbdGIVlN (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47957 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751156AbdGOJyK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 9 Jul 2017 17:41:13 -0400
-Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
-        by gateway33.websitewelcome.com (Postfix) with ESMTP id B847317A1ED
-        for <linux-media@vger.kernel.org>; Sun,  9 Jul 2017 16:41:10 -0500 (CDT)
-Date: Sun, 9 Jul 2017 16:41:08 -0500
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] dvb-ttusb-budget: constify i2c_algorithm structure
-Message-ID: <20170709214108.GA1882@embeddedgus>
+        Sat, 15 Jul 2017 05:54:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <philipp.zabel@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/3] [media] uvcvideo: skip non-extension unit controls on Oculus Rift Sensors
+Date: Sat, 15 Jul 2017 12:54:15 +0300
+Message-ID: <1988392.8ZGCFRfgf9@avalon>
+In-Reply-To: <20170714201424.23592-3-philipp.zabel@gmail.com>
+References: <20170714201424.23592-1-philipp.zabel@gmail.com> <20170714201424.23592-3-philipp.zabel@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Check for i2c_algorithm structures that are only stored in
-the algo field of an i2c_adapter structure. This field is
-declared const, so i2c_algorithm structures that have this
-property can be declared as const also.
+Hi Philipp,
 
-This issue was identified using Coccinelle and the following
-semantic patch:
+Thank you for the patch.
 
-@r disable optional_qualifier@
-identifier i;
-position p;
-@@
-static struct i2c_algorithm i@p = { ... };
+On Friday 14 Jul 2017 22:14:24 Philipp Zabel wrote:
+> The Oculus Rift Sensors (DK2 and CV1) allow to configure their sensor chips
+> directly via I2C commands using extension unit controls. The processing and
+> camera unit controls do not function at all.
 
-@ok@
-identifier r.i;
-struct i2c_adapter e;
-position p;
-@@
-e.algo = &i@p;
+Do the processing and camera units they report controls that don't work when 
+exercised ? Who in a sane state of mind could have designed such a terrible 
+product ?
 
-@bad@
-position p != {r.p,ok.p};
-identifier r.i;
-@@
-i@p
+If I understand you correctly, this device requires userspace code that knows 
+how to program the sensor (and possibly other chips). If that's the case, is 
+there an open-source implementation of that code publicly available ?
 
-@depends on !bad disable optional_qualifier@
-identifier r.i;
-@@
-static
-+const
- struct i2c_algorithm i = { ... };
+> Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+> ---
+>  drivers/media/usb/uvc/uvc_ctrl.c | 14 ++++++++++++++
+>  1 file changed, 14 insertions(+)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
+> b/drivers/media/usb/uvc/uvc_ctrl.c index 86cb16a2e7f4..573e1f8735bf 100644
+> --- a/drivers/media/usb/uvc/uvc_ctrl.c
+> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+> @@ -2165,6 +2165,10 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
+>  {
+>  	struct uvc_entity *entity;
+>  	unsigned int i;
+> +	const struct usb_device_id xu_only[] = {
+> +		{ USB_DEVICE(0x2833, 0x0201) },
+> +		{ USB_DEVICE(0x2833, 0x0211) },
+> +	};
+> 
+>  	/* Walk the entities list and instantiate controls */
+>  	list_for_each_entry(entity, &dev->entities, list) {
+> @@ -2172,6 +2176,16 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
+>  		unsigned int bControlSize = 0, ncontrols;
+>  		__u8 *bmControls = NULL;
+> 
+> +		/* Oculus Sensors only handle extension unit controls */
+> +		if (UVC_ENTITY_TYPE(entity) != UVC_VC_EXTENSION_UNIT) {
+> +			for (i = 0; i < ARRAY_SIZE(xu_only); i++) {
+> +				if (usb_match_one_id(dev->intf, &xu_only[i]))
+> +					break;
+> +			}
+> +			if (i != ARRAY_SIZE(xu_only))
+> +				continue;
+> +		}
+> +
+>  		if (UVC_ENTITY_TYPE(entity) == UVC_VC_EXTENSION_UNIT) {
+>  			bmControls = entity->extension.bmControls;
+>  			bControlSize = entity->extension.bControlSize;
 
-Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
----
- drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
-index 361e40b..22a488d 100644
---- a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
-+++ b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
-@@ -1640,7 +1640,7 @@ static void frontend_init(struct ttusb* ttusb)
- 
- 
- 
--static struct i2c_algorithm ttusb_dec_algo = {
-+static const struct i2c_algorithm ttusb_dec_algo = {
- 	.master_xfer	= master_xfer,
- 	.functionality	= functionality,
- };
 -- 
-2.5.0
+Regards,
+
+Laurent Pinchart
