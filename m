@@ -1,145 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f53.google.com ([209.85.215.53]:35860 "EHLO
-        mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751472AbdGZIim (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Jul 2017 04:38:42 -0400
-Received: by mail-lf0-f53.google.com with SMTP id o85so6097651lff.3
-        for <linux-media@vger.kernel.org>; Wed, 26 Jul 2017 01:38:41 -0700 (PDT)
-Date: Wed, 26 Jul 2017 10:38:39 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Naman Jain <nsahula.photo.sharing@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: adv7281m and rcar-vin problem
-Message-ID: <20170726083838.GC22320@bigcity.dyn.berto.se>
-References: <CAPD8ABUMQgL88WdTHLsVuGRqJR46TJuJ4jHzPm7bgdBJp9k_sw@mail.gmail.com>
- <20170724094158.GA22320@bigcity.dyn.berto.se>
- <CAPD8ABWD7wqQiYLKiX4AV88Wzjcsc8aH6GgybWiawcAufiQx-g@mail.gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:34539 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751156AbdGOJy3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 15 Jul 2017 05:54:29 -0400
+Subject: Re: rc-core: how to use hid (hardware) decoder?
+To: Sean Young <sean@mess.org>
+Cc: LMML <linux-media@vger.kernel.org>
+References: <a45b045a-e476-9967-db28-4bd9d7359696@iki.fi>
+ <20170715090525.rp473q3m7wrhgcgf@gofer.mess.org>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <be1344ee-fcb1-9a4c-22d0-e07c57bdd755@iki.fi>
+Date: Sat, 15 Jul 2017 12:54:26 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAPD8ABWD7wqQiYLKiX4AV88Wzjcsc8aH6GgybWiawcAufiQx-g@mail.gmail.com>
+In-Reply-To: <20170715090525.rp473q3m7wrhgcgf@gofer.mess.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Naman,
+On 07/15/2017 12:05 PM, Sean Young wrote:
+> Hello,
+> 
+> On Fri, Jul 14, 2017 at 04:14:05AM +0300, Antti Palosaari wrote:
+>> Moikka!
+>> Some remote controller receivers uses HID interface. I looked rc-core
+>> implementation, but failed to find how it could be used for hid. I need
+>> somehow get scancodes and keycodes out from rc-core and write those to
+>> hardware which then generate hid events. Also, I am not sure if kernel
+>> keycodes are same than HID codes, but if not then those should be translated
+>> somehow.
+>>
+>> There is rc_g_keycode_from_table() function, which could be used to dump
+>> current scancode:keycode mapping, but calling it in a loop millions of times
+>> is not surely correctly :]
+> 
+> Possibly you could use rc_map_get() to get the entire array. However you
+> would be limited to rc keymaps which are compiled into the kernel.
+> 
+> It be good to expose an interface to userspace which allows you to read and
+> write the mapping from IR protocol + scancode to hid usage codes; you could
+> then have an ir-keytable-like tool to change the keymap.
 
-On 2017-07-24 22:43:06 +0530, Naman Jain wrote:
-> On Mon, Jul 24, 2017 at 3:11 PM, Niklas Söderlund
-> <niklas.soderlund@ragnatech.se> wrote:
-> > Hi Naman,
-> >
-> > On 2017-07-24 14:30:52 +0530, Naman Jain wrote:
-> >> i am using renesas soc with video decoder adv7281m
-> >> i have done thr device tree configuration by following dt bindings
-> >> i am getting timeout of reading the phy clock lane, after i start streaming
-> >> and nothing is displayed on the screen
-> >> kindly help me in configuration
-> >
-> > To be able to try and help you I would need a lot more information. For
-> > starters:
-> >
-> > - Which kernel version are you using?
-> >
-> > - How dose the device tree nodes for VIN and ADV7281m look like?
-> >
-> > --
-> > Regards,
-> > Niklas Söderlund
-> 
-> Hi Niklas,
-> 
-> I am using kernel version  - 4.9
+That was just the plan. I added callback to ir_update_mapping() in order 
+to get info and new rc_map every-time when it was changed. Then driver 
+configures hid table accordingly.
 
-The VIN driver which supports CSI-2 and the R-Car CSI-2 driver is not a 
-part of the upstream kernel yet, and the latest patches with contains 
-the most fixes are based on newer kernels then v4.9. So I assume you are 
-using a BSP of some sort, if possible could you tell me which one?
+I ran some issues:
+* HID has very limited set of keys used for remote controllers compared 
+to linux. So mapping from Linux remote controller to HID went hard.
 
-If you want to try with later increments of the VIN and CSI-2 patches 
-please see:
+* NEC 16/24/32 mess. rc_map used by rc-core was typed as NEC16, even 
+there was NEC24 scancodes. So more self-made heuristics as hw wants NEC32.
 
-http://elinux.org/R-Car/Tests:rcar-vin
+So I given it up. I can configure that remote both polling mode via 
+rc-core and HID. rc-core gives much more flexibility, mainly due to 
+limited keymap of HID (hw supports only HID page 7, keyboard).
 
-
-> 
-> following is the device tree configuration :
-> 
-> &i2c6 {
-> status = "okay";
-> clock-frequency = <400000>;
-> adv7281m@21{
->                    compatible = "adi,adv7281-m";
->                    reg = <0x20>;
->                    interrupt-parent = <&gpio6>;
->                    interrupts = <4 IRQ_TYPE_LEVEL_LOW>
->                    adv7281m_out: endpoint {
->                                 clock-lanes = <0>;
->                                 data-lanes = <1>;
->                                 remote-endpoint = <&csi20_in>;
->                                  };
->                };
-> 
-> }
-> 
-> &csi20 {
->   status = "okay";
->   ports {
->          #address-cells = <1>;
->          #size-cells = <0>;
-> 
->          port@0 {
->                         reg = <0>;
->                         csi20_in: endpoint {
->                                                    clock-lanes = <0>;
->                                                    data-lanes = <1>;
->                                                     virtual-channel-number=<0>;
-
-This is interesting for me, I have not worked with any driver for the 
-R-Car CSI-2 driver which understands the virtual-channel-number 
-property.
-
->                                                    remote-endpoint =
-> <&adv7281m_out>;
->                                             };
->                        };
->             };
-> };
-> 
-> &vin0 {
-> status = "okay";
-> };
-> 
-> &vin1 {
-> status = "okay";
-> };
-> 
-> &vin2 {
-> status = "okay";
-> };
-> 
-> &vin3 {
-> status = "okay";
-> };
-> 
-> &vin4 {
-> status = "okay";
-> };
-> 
-> &vin5 {
-> status = "okay";
-> };
-> 
-> &vin6 {
-> status = "okay";
-> };
-> 
-> &vin7 {
-> status = "okay";
-> };
+regards
+Antti
 
 -- 
-Regards,
-Niklas Söderlund
+http://palosaari.fi/
