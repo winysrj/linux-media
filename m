@@ -1,53 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44138 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751318AbdGQWBS (ORCPT
+Received: from smtp4.clear.net.nz ([203.97.37.64]:42962 "EHLO
+        smtp4.clear.net.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751185AbdGOUwq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 18:01:18 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: pavel@ucw.cz, linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [PATCH 0/7] Omap3isp CCP2 support
-Date: Tue, 18 Jul 2017 01:01:09 +0300
-Message-Id: <20170717220116.17886-1-sakari.ailus@linux.intel.com>
+        Sat, 15 Jul 2017 16:52:46 -0400
+Received: from mxin3-orange.clear.net.nz
+ (lb1-srcnat.clear.net.nz [203.97.32.236])
+ by smtp4.clear.net.nz (CLEAR Net Mail)
+ with ESMTP id <0OT5003ALFXJX720@smtp4.clear.net.nz> for
+ linux-media@vger.kernel.org; Sun, 16 Jul 2017 08:37:09 +1200 (NZST)
+Date: Sun, 16 Jul 2017 08:37:05 +1200
+From: Richard Scobie <r.scobie@clear.net.nz>
+Subject: Re: [PATCH 00/14] ddbridge: bump to ddbridge-0.9.29
+In-reply-to: <20170709194221.10255-1-d.scheller.oss@gmail.com>
+To: Daniel Scheller <d.scheller.oss@gmail.com>,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at, d_spingler@gmx.de, rjkm@metzlerbros.de
+Message-id: <962a5ae5-60bc-22bd-534d-fe05705322b4@clear.net.nz>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
+References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+Daniel Scheller wrote:
+> From: Daniel Scheller <d.scheller@gmx.net>
+>
+> Preferrably for Linux 4.14 (to get things done).
+>
+> Hard-depends on the STV0910/STV6111 driver patchset as the diff and the
+> updated code depends on the driver and the changes involved with the
+> glue code of the STV/DDCineS2V7 series [1].
+>
+> Mauro/Media maintainers, this updates drivers/media/pci/ddbridge to the
+> very latest code that DD carry in their vendor driver package as of
+> version 0.9.29, in the "once, the big-bang-way is ok" way as discussed at
+> [2] (compared to the incremental, awkward to do variant since that
+> involves dissecting all available release archives and having to - try
+> to - build proper commits out of this, which will always be inaccurate;
+> a start was done at [3], however - and please understand - I definitely
+> don't want to continue doing that...)
 
-I rebased the ccp2 branch and went through the patches. I didn't find
-anything really alarming there; I changed one commit description of
-"omap3isp: Correctly set IO_OUT_SEL and VP_CLK_POL for CCP2 mode" that had
-some junk in it as well as in the last patch changed the condition in
-omap3isp_csiphy_release() that was obviously wrong.
+-snip
 
-Let me know what you think.
+Posting another "tested by" for this patch series, in conjunction with 
+the recently posted STV0910/STV6111 set that I've been testing longer term
 
-If we merge these, is there anything still missing from plain ccp2 support?
+Have been running this series, since it was posted here, several hours 
+daily on a dedicated vdr based PVR with a Digital Devices Cine S2 V7A, 
+kernel 4.12 and vdr 2.3.8.
 
-I'd like to get Laurent's comment on these, too, plus a confirmation
-nothing is broken by these on the OMAP 3 boards he uses.
+MSI interrupts are enabled and no issues to date.
 
+Thanks to Daniel and the reviewers.
 
-Pavel Machek (3):
-  omap3isp: Parse CSI1 configuration from the device tree
-  omap3isp: Correctly set IO_OUT_SEL and VP_CLK_POL for CCP2 mode
-  omap3isp: Return -EPROBE_DEFER if the required regulators can't be
-    obtained
+Regards,
 
-Sakari Ailus (4):
-  omap3isp: Ignore endpoints with invalid configuration
-  omap3isp: Always initialise isp and mutex for csiphy1
-  omap3isp: Correctly put the last iterated endpoint fwnode always
-  omap3isp: Skip CSI-2 receiver initialisation in CCP2 configuration
-
- drivers/media/platform/omap3isp/isp.c       | 128 ++++++++++++++++++++--------
- drivers/media/platform/omap3isp/ispccp2.c   |  12 ++-
- drivers/media/platform/omap3isp/ispcsiphy.c |  46 ++++++----
- drivers/media/platform/omap3isp/ispreg.h    |   4 +
- drivers/media/platform/omap3isp/omap3isp.h  |   1 +
- 5 files changed, 140 insertions(+), 51 deletions(-)
-
--- 
-Kind regards,
-Sakari
+Richard
