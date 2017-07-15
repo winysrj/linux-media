@@ -1,123 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:41234 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752607AbdGKUKv (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47844 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751146AbdGOJQv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 16:10:51 -0400
-Subject: Re: [PATCH 00/11] drm/sun4i: add CEC support
-To: linux-media@vger.kernel.org
-References: <20170711063044.29849-1-hverkuil@xs4all.nl>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        dri-devel@lists.freedesktop.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8221b85d-d50a-5f99-0128-c48a23b6f569@xs4all.nl>
-Date: Tue, 11 Jul 2017 22:10:46 +0200
+        Sat, 15 Jul 2017 05:16:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jacob Chen <jacob-chen@iotwrt.com>
+Cc: linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        heiko@sntech.de, robh+dt@kernel.org, mchehab@kernel.org,
+        linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        s.nawrocki@samsung.com, tfiga@chromium.org, nicolas@ndufresne.ca
+Subject: Re: [PATCH v2 5/6] ARM: dts: rockchip: enable RGA for rk3288 devices
+Date: Sat, 15 Jul 2017 12:16:55 +0300
+Message-ID: <2238838.k7NpPUxaC0@avalon>
+In-Reply-To: <1500101920-24039-6-git-send-email-jacob-chen@iotwrt.com>
+References: <1500101920-24039-1-git-send-email-jacob-chen@iotwrt.com> <1500101920-24039-6-git-send-email-jacob-chen@iotwrt.com>
 MIME-Version: 1.0
-In-Reply-To: <20170711063044.29849-1-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/07/17 08:30, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This patch series adds CEC support for the sun4i HDMI controller.
-> 
-> The CEC hardware support for the A10 is very low-level as it just
-> controls the CEC pin. Since I also wanted to support GPIO-based CEC
-> hardware most of this patch series is in the CEC framework to
-> add a generic low-level CEC pin framework. It is only the final patch
-> that adds the sun4i support.
-> 
-> This patch series first makes some small changes in the CEC framework
-> (patches 1-4) to prepare for this CEC pin support.
-> 
-> Patch 5-7 adds the new API elements and documents it. Patch 6 reworks
-> the CEC core event handling.
-> 
-> Patch 8 adds pin monitoring support (allows userspace to see all
-> CEC pin transitions as they happen).
-> 
-> Patch 9 adds the core cec-pin implementation that translates low-level
-> pin transitions into valid CEC messages. Basically this does what any
-> SoC with a proper CEC hardware implementation does.
-> 
-> Patch 10 documents the cec-pin kAPI (and also the cec-notifier kAPI
-> which was missing).
-> 
-> Finally patch 11 adds the actual sun4i_hdmi CEC implementation.
-> 
-> I tested this on my cubieboard. There were no errors at all
-> after 126264 calls of 'cec-ctl --give-device-vendor-id' while at the
-> same time running a 'make -j4' of the v4l-utils git repository and
-> doing a continuous scp to create network traffic.
-> 
-> This patch series is based on top of the mainline kernel as of
-> yesterday (so with all the sun4i and cec patches for 4.13 merged).
-> 
-> Maxime, patches 1-10 will go through the media subsystem. How do you
-> want to handle the final patch? It can either go through the media
-> subsystem as well, or you can sit on it and handle this yourself during
-> the 4.14 merge window. Another option is to separate the Kconfig change
-> into its own patch. That way you can merge the code changes and only
-> have to handle the Kconfig patch as a final change during the merge
-> window.
+Hi Jacob,
 
-I forgot to mention that if you want to use pin monitoring, then the
-updated cec-ctl is found here:
+Thank you for the patch.
 
-https://git.linuxtv.org/hverkuil/v4l-utils.git/log/?h=cec-mon-pin2
+On Saturday 15 Jul 2017 14:58:39 Jacob Chen wrote:
+> Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+> ---
+>  arch/arm/boot/dts/rk3288-evb.dtsi                 | 4 ++++
+>  arch/arm/boot/dts/rk3288-firefly-reload-core.dtsi | 4 ++++
+>  arch/arm/boot/dts/rk3288-firefly.dtsi             | 4 ++++
+>  arch/arm/boot/dts/rk3288-miqi.dts                 | 4 ++++
+>  arch/arm/boot/dts/rk3288-popmetal.dts             | 4 ++++
+>  arch/arm/boot/dts/rk3288-tinker.dts               | 4 ++++
 
-To start pin monitoring run:
+Some boards are missing from this list (Fennec, Phycore, ...) What criteria 
+have you used to decide on which ones to enable the RGA ? That should be 
+explained in the commit message.
 
-sudo cec-ctl --monitor-pin
+>  6 files changed, 24 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/rk3288-evb.dtsi
+> b/arch/arm/boot/dts/rk3288-evb.dtsi index 4905760..ec12162 100644
+> --- a/arch/arm/boot/dts/rk3288-evb.dtsi
+> +++ b/arch/arm/boot/dts/rk3288-evb.dtsi
+> @@ -379,6 +379,10 @@
+>  	};
+>  };
+> 
+> +&rga {
+> +	status = "okay";
+> +};
+> +
+>  &usbphy {
+>  	status = "okay";
+>  };
+> diff --git a/arch/arm/boot/dts/rk3288-firefly-reload-core.dtsi
+> b/arch/arm/boot/dts/rk3288-firefly-reload-core.dtsi index 8134966..fffa92e2
+> 100644
+> --- a/arch/arm/boot/dts/rk3288-firefly-reload-core.dtsi
+> +++ b/arch/arm/boot/dts/rk3288-firefly-reload-core.dtsi
+> @@ -283,6 +283,10 @@
+>  	};
+>  };
+> 
+> +&rga {
+> +	status = "okay";
+> +};
+> +
+>  &tsadc {
+>  	rockchip,hw-tshut-mode = <0>;
+>  	rockchip,hw-tshut-polarity = <0>;
+> diff --git a/arch/arm/boot/dts/rk3288-firefly.dtsi
+> b/arch/arm/boot/dts/rk3288-firefly.dtsi index f520589..74a6ce5 100644
+> --- a/arch/arm/boot/dts/rk3288-firefly.dtsi
+> +++ b/arch/arm/boot/dts/rk3288-firefly.dtsi
+> @@ -500,6 +500,10 @@
+>  	};
+>  };
+> 
+> +&rga {
+> +	status = "okay";
+> +};
+> +
+>  &saradc {
+>  	vref-supply = <&vcc_18>;
+>  	status = "okay";
+> diff --git a/arch/arm/boot/dts/rk3288-miqi.dts
+> b/arch/arm/boot/dts/rk3288-miqi.dts index 21326f3..dc5e6bd 100644
+> --- a/arch/arm/boot/dts/rk3288-miqi.dts
+> +++ b/arch/arm/boot/dts/rk3288-miqi.dts
+> @@ -401,6 +401,10 @@
+>  	};
+>  };
+> 
+> +&rga {
+> +	status = "okay";
+> +};
+> +
+>  &saradc {
+>  	vref-supply = <&vcc_18>;
+>  	status = "okay";
+> diff --git a/arch/arm/boot/dts/rk3288-popmetal.dts
+> b/arch/arm/boot/dts/rk3288-popmetal.dts index aa1f9ec..362e5aa 100644
+> --- a/arch/arm/boot/dts/rk3288-popmetal.dts
+> +++ b/arch/arm/boot/dts/rk3288-popmetal.dts
+> @@ -490,6 +490,10 @@
+>  	};
+>  };
+> 
+> +&rga {
+> +	status = "okay";
+> +};
+> +
+>  &tsadc {
+>  	rockchip,hw-tshut-mode = <0>;
+>  	rockchip,hw-tshut-polarity = <0>;
+> diff --git a/arch/arm/boot/dts/rk3288-tinker.dts
+> b/arch/arm/boot/dts/rk3288-tinker.dts index 525b0e5..1a8c149 100644
+> --- a/arch/arm/boot/dts/rk3288-tinker.dts
+> +++ b/arch/arm/boot/dts/rk3288-tinker.dts
+> @@ -460,6 +460,10 @@
+>  	status = "okay";
+>  };
+> 
+> +&rga {
+> +	status = "okay";
+> +};
+> +
+>  &saradc {
+>  	vref-supply = <&vcc18_ldo1>;
+>  	status ="okay";
 
-Add the -v flag to see each bit transition.
-
-When in pin monitoring mode it will analyze the low-level protocol and
-warn for incorrect bit periods, etc. To be really accurate the CPU should
-be lightly loaded.
-
+-- 
 Regards,
 
-	Hans
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> Hans Verkuil (11):
->   cec: improve transmit timeout logging
->   cec: add *_ts variants for transmit_done/received_msg
->   cec: add adap_free op
->   cec-core.rst: document the adap_free callback
->   linux/cec.h: add pin monitoring API support
->   cec: rework the cec event handling
->   cec: document the new CEC pin capability, events and mode
->   cec: add core support for low-level CEC pin monitoring
->   cec-pin: add low-level pin hardware support
->   cec-core.rst: include cec-pin.h and cec-notifier.h
->   sun4i_hdmi: add CEC support
-> 
->  Documentation/media/kapi/cec-core.rst              |  40 ++
->  .../media/uapi/cec/cec-ioc-adap-g-caps.rst         |   7 +
->  Documentation/media/uapi/cec/cec-ioc-dqevent.rst   |  20 +
->  Documentation/media/uapi/cec/cec-ioc-g-mode.rst    |  19 +-
->  drivers/gpu/drm/sun4i/Kconfig                      |   9 +
->  drivers/gpu/drm/sun4i/sun4i_hdmi.h                 |   8 +
->  drivers/gpu/drm/sun4i/sun4i_hdmi_enc.c             |  57 +-
->  drivers/media/Kconfig                              |   3 +
->  drivers/media/cec/Makefile                         |   4 +
->  drivers/media/cec/cec-adap.c                       | 196 +++--
->  drivers/media/cec/cec-api.c                        |  73 +-
->  drivers/media/cec/cec-core.c                       |   2 +
->  drivers/media/cec/cec-pin.c                        | 794 +++++++++++++++++++++
->  include/media/cec-pin.h                            | 183 +++++
->  include/media/cec.h                                |  64 +-
->  include/uapi/linux/cec.h                           |   8 +-
->  16 files changed, 1389 insertions(+), 98 deletions(-)
->  create mode 100644 drivers/media/cec/cec-pin.c
->  create mode 100644 include/media/cec-pin.h
-> 
+Laurent Pinchart
