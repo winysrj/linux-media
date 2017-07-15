@@ -1,63 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f178.google.com ([209.85.128.178]:35264 "EHLO
-        mail-wr0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750726AbdGGO40 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 10:56:26 -0400
-Received: by mail-wr0-f178.google.com with SMTP id k67so50310127wrc.2
-        for <linux-media@vger.kernel.org>; Fri, 07 Jul 2017 07:56:26 -0700 (PDT)
-Subject: Re: [Patch v5 05/12] [media] videodev2.h: Add v4l2 definition for
- HEVC
-To: Smitha T Murthy <smitha.t@samsung.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
- <CGME20170619052505epcas5p33a78ee709263cc9ae33cd9383794ca06@epcas5p3.samsung.com>
- <1497849055-26583-6-git-send-email-smitha.t@samsung.com>
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <12b890e0-b955-4d64-6b6b-2847f693ee57@linaro.org>
-Date: Fri, 7 Jul 2017 17:56:22 +0300
-MIME-Version: 1.0
-In-Reply-To: <1497849055-26583-6-git-send-email-smitha.t@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:34887 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751083AbdGOG7P (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 15 Jul 2017 02:59:15 -0400
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        s.nawrocki@samsung.com, tfiga@chromium.org, nicolas@ndufresne.ca,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Yakir Yang <ykk@rock-chips.com>
+Subject: [PATCH v2 3/6] ARM: dts: rockchip: add RGA device node for RK3288
+Date: Sat, 15 Jul 2017 14:58:37 +0800
+Message-Id: <1500101920-24039-4-git-send-email-jacob-chen@iotwrt.com>
+In-Reply-To: <1500101920-24039-1-git-send-email-jacob-chen@iotwrt.com>
+References: <1500101920-24039-1-git-send-email-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Smitha,
+This patch add the RGA dt config of rk3288 SoC.
 
-On 06/19/2017 08:10 AM, Smitha T Murthy wrote:
-> Add V4L2 definition for HEVC compressed format
-> 
-> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
-> ---
->  include/uapi/linux/videodev2.h | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 2b8feb8..488de3d 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -629,6 +629,7 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
->  #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
->  #define V4L2_PIX_FMT_VP9      v4l2_fourcc('V', 'P', '9', '0') /* VP9 */
-> +#define V4L2_PIX_FMT_HEVC     v4l2_fourcc('H', 'E', 'V', 'C') /* HEVC */
->  
->  /*  Vendor-specific formats   */
->  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
-> 
+Signed-off-by: Yakir Yang <ykk@rock-chips.com>
+Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+---
+ arch/arm/boot/dts/rk3288.dtsi | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-Hans wanted the name to be H265, not sure is that valid yet.
-
-I have tested 5/12, 6/12, and 7/12 on venus codec driver, and in case
-you need it, you have my
-
-Reviewed-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-
+diff --git a/arch/arm/boot/dts/rk3288.dtsi b/arch/arm/boot/dts/rk3288.dtsi
+index 1efc2f2..83d025d 100644
+--- a/arch/arm/boot/dts/rk3288.dtsi
++++ b/arch/arm/boot/dts/rk3288.dtsi
+@@ -945,6 +945,19 @@
+ 		status = "okay";
+ 	};
+ 
++	rga: rga@ff920000 {
++		compatible = "rockchip,rk3288-rga";
++		reg = <0xff920000 0x180>;
++		interrupts = <GIC_SPI 18 IRQ_TYPE_LEVEL_HIGH>;
++		interrupt-names = "rga";
++		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA>;
++		clock-names = "aclk", "hclk", "sclk";
++		power-domains = <&power RK3288_PD_VIO>;
++		resets = <&cru SRST_RGA_CORE>, <&cru SRST_RGA_AXI>, <&cru SRST_RGA_AHB>;
++		reset-names = "core", "axi", "ahb";
++		status = "disabled";
++	};
++
+ 	vopb: vop@ff930000 {
+ 		compatible = "rockchip,rk3288-vop";
+ 		reg = <0xff930000 0x19c>;
 -- 
-regards,
-Stan
+2.7.4
