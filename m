@@ -1,83 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-08v.sys.comcast.net ([96.114.154.167]:45928 "EHLO
-        resqmta-po-08v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S936197AbdGTX21 (ORCPT
+Received: from mail-qk0-f180.google.com ([209.85.220.180]:36730 "EHLO
+        mail-qk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751184AbdGOLDU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 19:28:27 -0400
-Reply-To: shuah@kernel.org
-Subject: Re: [PATCH][V2] dvb_frontend: ensure that inital front end status
- initialized
-To: Colin King <colin.king@canonical.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Markus Elfring <elfring@users.sourceforge.net>,
-        Ingo Molnar <mingo@kernel.org>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Shuah Khan <shuah@kernel.org>
-References: <20170720221207.7505-1-colin.king@canonical.com>
-From: Shuah Khan <shuah@kernel.org>
-Message-ID: <95b98539-0db4-c877-35af-fd82dd78a8c1@kernel.org>
-Date: Thu, 20 Jul 2017 17:28:25 -0600
+        Sat, 15 Jul 2017 07:03:20 -0400
+Date: Sat, 15 Jul 2017 07:03:16 -0400
+From: Tejun Heo <tj@kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Jean Delvare <jdelvare@suse.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Sathya Prakash <sathya.prakash@broadcom.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        the arch/x86 maintainers <x86@kernel.org>,
+        xen-devel <xen-devel@lists.xenproject.org>,
+        linux-block <linux-block@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        IDE-ML <linux-ide@vger.kernel.org>,
+        "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+        Network Development <netdev@vger.kernel.org>
+Subject: Re: Lots of new warnings with gcc-7.1.1
+Message-ID: <20170715110316.GD2969123@devbig577.frc2.facebook.com>
+References: <CA+55aFzXz-PxKSJP=hfHD+mfCX4M6+HMacWMkDz7KB8-3y55qw@mail.gmail.com>
+ <848b3f21-9516-8a66-e4b3-9056ce38d6f6@roeck-us.net>
+ <CA+55aFyKpezj3oHwtBShyf9x-DJNAGQhrq55iVGM42eWKQtP3w@mail.gmail.com>
+ <CA+55aFx5mCk+nzDG+gGzDUqE4gzJVERL_oO+PN-PA6oKaUhCpg@mail.gmail.com>
+ <CAK8P3a2itguODKUNtw8m-7RReUkyEqk8fHYRLa-ZjJYjwwhYdg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20170720221207.7505-1-colin.king@canonical.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAK8P3a2itguODKUNtw8m-7RReUkyEqk8fHYRLa-ZjJYjwwhYdg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/20/2017 04:12 PM, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> The fe_status variable s is not initialized meaning it can have any
-> random garbage status.  This could be problematic if fe->ops.tune is
-> false as s is not updated by the call to fe->ops.tune() and a
-> subsequent check on the change status will using a garbage value.
-> Fix this by adding FE_NONE to the enum fe_status and initializing
-> s to this.
-> 
-> Detected by CoverityScan, CID#112887 ("Uninitialized scalar variable")
-> 
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Hello,
 
-Reviewed-by: Shuah Khan <shuahkh@osg.samsung.com>
-
-
-Looks good to me. Do you mind fixing dvb_frontend_swzigzag() as well.
-It currently initializes enum fe_status s = 0; in a separate patch.
-
-> ---
->  drivers/media/dvb-core/dvb_frontend.c | 2 +-
->  include/uapi/linux/dvb/frontend.h     | 1 +
->  2 files changed, 2 insertions(+), 1 deletion(-)
+On Wed, Jul 12, 2017 at 03:31:02PM +0200, Arnd Bergmann wrote:
+> > We also have about a bazillion
+> >
+> >     warning: ‘*’ in boolean context, suggest ‘&&’ instead
+> >
+> > warnings in drivers/ata/libata-core.c, all due to a single macro that
+> > uses a pattern that gcc-7.1.1 doesn't like. The warning looks a bit
+> > debatable, but I suspect the macro could easily be changed too.
+> >
+> > Tejun, would you hate just moving the "multiply by 1000" part _into_
+> > that EZ() macro? Something like the attached (UNTESTED!) patch?
 > 
-> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-> index e3fff8f64d37..18cc3bbc699c 100644
-> --- a/drivers/media/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb-core/dvb_frontend.c
-> @@ -631,7 +631,7 @@ static int dvb_frontend_thread(void *data)
->  	struct dvb_frontend *fe = data;
->  	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
-> -	enum fe_status s;
-> +	enum fe_status s = FE_NONE;
->  	enum dvbfe_algo algo;
->  	bool re_tune = false;
->  	bool semheld = false;
-> diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
-> index 00a20cd21ee2..afc3972b0879 100644
-> --- a/include/uapi/linux/dvb/frontend.h
-> +++ b/include/uapi/linux/dvb/frontend.h
-> @@ -127,6 +127,7 @@ enum fe_sec_mini_cmd {
->   *			to reset DiSEqC, tone and parameters
->   */
->  enum fe_status {
-> +	FE_NONE			= 0x00,
->  	FE_HAS_SIGNAL		= 0x01,
->  	FE_HAS_CARRIER		= 0x02,
->  	FE_HAS_VITERBI		= 0x04,
+> Tejun applied an almost identical patch of mine a while ago, but it seems to
+> have gotten lost in the meantime in some rebase:
+
+Yeah, I was scratching my head remembering your patch.  Sorry about
+that.  It should have been routed through for-4.12-fixes.
+
+> https://patchwork.kernel.org/patch/9721397/
+> https://patchwork.kernel.org/patch/9721399/
 > 
+> I guess I should have resubmitted the second patch with the suggested
+> improvement.
+
+The new one looks good to me.
+
+Thanks.
+
+-- 
+tejun
