@@ -1,169 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f180.google.com ([209.85.128.180]:36678 "EHLO
-        mail-wr0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752505AbdGYPgl (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47879 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751146AbdGOJXH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Jul 2017 11:36:41 -0400
-Received: by mail-wr0-f180.google.com with SMTP id y43so120687922wrd.3
-        for <linux-media@vger.kernel.org>; Tue, 25 Jul 2017 08:36:40 -0700 (PDT)
-Subject: Re: [PATCH v3 17/23] camss: vfe: Add interface for scaling
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
-References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
- <1500287629-23703-18-git-send-email-todor.tomov@linaro.org>
- <20170720152003.34jm4hwhgejy2rsy@valkosipuli.retiisi.org.uk>
-From: Todor Tomov <todor.tomov@linaro.org>
-Message-ID: <1025d572-a7cd-727e-4bf4-330a2b1fc7b8@linaro.org>
-Date: Tue, 25 Jul 2017 18:36:36 +0300
+        Sat, 15 Jul 2017 05:23:07 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jacob Chen <jacob-chen@iotwrt.com>
+Cc: linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        heiko@sntech.de, robh+dt@kernel.org, mchehab@kernel.org,
+        linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        s.nawrocki@samsung.com, tfiga@chromium.org, nicolas@ndufresne.ca,
+        Yakir Yang <ykk@rock-chips.com>
+Subject: Re: [PATCH v2 6/6] dt-bindings: Document the Rockchip RGA bindings
+Date: Sat, 15 Jul 2017 12:23:12 +0300
+Message-ID: <1918615.rEp9U5BAbC@avalon>
+In-Reply-To: <1500101920-24039-7-git-send-email-jacob-chen@iotwrt.com>
+References: <1500101920-24039-1-git-send-email-jacob-chen@iotwrt.com> <1500101920-24039-7-git-send-email-jacob-chen@iotwrt.com>
 MIME-Version: 1.0
-In-Reply-To: <20170720152003.34jm4hwhgejy2rsy@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Jacob,
 
-Thank you for review.
+Thank you for the patch.
 
-On 20.07.2017 18:20, Sakari Ailus wrote:
-> Hi Todor,
+On Saturday 15 Jul 2017 14:58:40 Jacob Chen wrote:
+> Add DT bindings documentation for Rockchip RGA
 > 
-> On Mon, Jul 17, 2017 at 01:33:43PM +0300, Todor Tomov wrote:
->> Add compose selection ioctls to handle scaling configuration.
->>
->> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
->> ---
->>  drivers/media/platform/qcom/camss-8x16/camss-vfe.c | 189 ++++++++++++++++++++-
->>  drivers/media/platform/qcom/camss-8x16/camss-vfe.h |   1 +
->>  2 files changed, 188 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
->> index 327f158..8ec6ce7 100644
->> --- a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
->> +++ b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
->> @@ -211,6 +211,8 @@
->>  #define CAMIF_TIMEOUT_SLEEP_US 1000
->>  #define CAMIF_TIMEOUT_ALL_US 1000000
->>  
->> +#define SCALER_RATIO_MAX 16
->> +
->>  static const u32 vfe_formats[] = {
->>  	MEDIA_BUS_FMT_UYVY8_2X8,
->>  	MEDIA_BUS_FMT_VYUY8_2X8,
->> @@ -1905,6 +1907,25 @@ __vfe_get_format(struct vfe_line *line,
->>  	return &line->fmt[pad];
->>  }
->>  
->> +/*
->> + * __vfe_get_compose - Get pointer to compose selection structure
->> + * @line: VFE line
->> + * @cfg: V4L2 subdev pad configuration
->> + * @which: TRY or ACTIVE format
->> + *
->> + * Return pointer to TRY or ACTIVE compose rectangle structure
->> + */
->> +static struct v4l2_rect *
->> +__vfe_get_compose(struct vfe_line *line,
->> +		  struct v4l2_subdev_pad_config *cfg,
->> +		  enum v4l2_subdev_format_whence which)
->> +{
->> +	if (which == V4L2_SUBDEV_FORMAT_TRY)
->> +		return v4l2_subdev_get_try_compose(&line->subdev, cfg,
->> +						   MSM_VFE_PAD_SINK);
->> +
->> +	return &line->compose;
->> +}
->>  
->>  /*
->>   * vfe_try_format - Handle try format by pad subdev method
->> @@ -1951,7 +1972,14 @@ static void vfe_try_format(struct vfe_line *line,
->>  		*fmt = *__vfe_get_format(line, cfg, MSM_VFE_PAD_SINK,
->>  					 which);
->>  
->> -		if (line->id == VFE_LINE_PIX)
->> +		if (line->id == VFE_LINE_PIX) {
->> +			struct v4l2_rect *rect;
->> +
->> +			rect = __vfe_get_compose(line, cfg, which);
->> +
->> +			fmt->width = rect->width;
->> +			fmt->height = rect->height;
->> +
->>  			switch (fmt->code) {
->>  			case MEDIA_BUS_FMT_YUYV8_2X8:
->>  				if (code == MEDIA_BUS_FMT_YUYV8_1_5X8)
->> @@ -1979,6 +2007,7 @@ static void vfe_try_format(struct vfe_line *line,
->>  					fmt->code = MEDIA_BUS_FMT_VYUY8_2X8;
->>  				break;
->>  			}
->> +		}
->>  
->>  		break;
->>  	}
->> @@ -1987,6 +2016,50 @@ static void vfe_try_format(struct vfe_line *line,
->>  }
->>  
->>  /*
->> + * vfe_try_compose - Handle try compose selection by pad subdev method
->> + * @line: VFE line
->> + * @cfg: V4L2 subdev pad configuration
->> + * @rect: pointer to v4l2 rect structure
->> + * @which: wanted subdev format
->> + */
->> +static void vfe_try_compose(struct vfe_line *line,
->> +			    struct v4l2_subdev_pad_config *cfg,
->> +			    struct v4l2_rect *rect,
->> +			    enum v4l2_subdev_format_whence which)
->> +{
->> +	struct v4l2_mbus_framefmt *fmt;
->> +
->> +	rect->width = rect->width - rect->left;
->> +	rect->left = 0;
+> Signed-off-by: Yakir Yang <ykk@rock-chips.com>
+> Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+> ---
+>  .../devicetree/bindings/media/rockchip-rga.txt     | 35 +++++++++++++++++++
+>  1 file changed, 35 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
 > 
-> This is the compose rectangle i.e. left and top should be zero (unless it's
-> about composing on e.g. a frame buffer). No need to decrement from width;
-> similarly for height below.
+> diff --git a/Documentation/devicetree/bindings/media/rockchip-rga.txt
+> b/Documentation/devicetree/bindings/media/rockchip-rga.txt new file mode
+> 100644
+> index 0000000..966eba0
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/rockchip-rga.txt
+> @@ -0,0 +1,35 @@
+> +device-tree bindings for rockchip 2D raster graphic acceleration controller
+> (RGA)
+> +
+> +RGA is a separate 2D raster graphic acceleration unit. It accelerates 2D
 
-Yes, it is not composing, but does the user know that? If left and top are
-set, it makes sense to keep the rectangle size unchanged I think - actually
-decrement width and height (and then clear left and top).
+"Separate" from what ? Do you mean "standalone" ?
 
-> 
->> +	rect->height = rect->height - rect->top;
->> +	rect->top = 0;
->> +
->> +	fmt = __vfe_get_format(line, cfg, MSM_VFE_PAD_SINK, which);
->> +
->> +	if (rect->width > fmt->width)
->> +		rect->width = fmt->width;
->> +
->> +	if (rect->height > fmt->height)
->> +		rect->height = fmt->height;
->> +
->> +	if (fmt->width > rect->width * SCALER_RATIO_MAX)
->> +		rect->width = (fmt->width + SCALER_RATIO_MAX - 1) /
->> +							SCALER_RATIO_MAX;
->> +
->> +	rect->width &= ~0x1;
->> +
->> +	if (fmt->height > rect->height * SCALER_RATIO_MAX)
->> +		rect->height = (fmt->height + SCALER_RATIO_MAX - 1) /
->> +							SCALER_RATIO_MAX;
->> +
->> +	if (rect->width < 16)
->> +		rect->width = 16;
->> +
->> +	if (rect->height < 4)
->> +		rect->height = 4;
->> +}
->> +
+> +graphics operations, such as point/line drawing, image scaling, rotation,
+> +BitBLT, alpha blending and image blur/sharpness.
+> +
+> +Required properties:
+> +- compatible: value should be one of the following
+> +		"rockchip,rk3228-rga";
+> +		"rockchip,rk3288-rga";
+> +		"rockchip,rk3399-rga";
 
-<snip>
+The driver in patch 2/6 has match entry for rk3328, which is missing from this 
+list.
+
+As the implementation of the driver doesn't seem to discriminate between the 
+four SoCs, wouldn't it make sense to create a generic compatible string on 
+which the driver would match ? You can have both the generic and SoC-specific 
+compatible strings in DT if there are differences between the IP core in those 
+SoCs that might need to be handled later by the driver.
+
+> +- interrupts: RGA interrupt number.
+
+This is an "interrupt specifier", not just an "interrupt number" (as you can 
+see in the example below there are three numbers)
+
+> +
+> +- clocks: phandle to RGA sclk/hclk/aclk clocks
+> +
+> +- clock-names: should be "aclk" "hclk" and "sclk"
+
+Nitpicking, there should be a comma after "aclk".
+
+> +
+> +- resets: Must contain an entry for each entry in reset-names.
+> +  See ../reset/reset.txt for details.
+> +- reset-names: should be "core" "axi" and "ahb"
+
+And a comma after "core".
+
+> +
+> +Example:
+> +SoC specific DT entry:
+
+s/SoC specific/SoC-specific/
+
+> +	rga: rga@ff680000 {
+> +		compatible = "rockchip,rk3399-rga";
+> +		reg = <0xff680000 0x10000>;
+> +		interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
+> +		interrupt-names = "rga";
+
+The interrupt-names property is not described above. Do you really need it ?
+
+> +		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru 
+SCLK_RGA_CORE>;
+> +		clock-names = "aclk", "hclk", "sclk";
+> +
+> +		resets = <&cru SRST_RGA_CORE>, <&cru SRST_A_RGA>, <&cru 
+SRST_H_RGA>;
+> +		reset-names = "core, "axi", "ahb";
+> +	};
 
 -- 
-Best regards,
-Todor Tomov
+Regards,
+
+Laurent Pinchart
