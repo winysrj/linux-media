@@ -1,75 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:33891 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751240AbdGOG7g (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:53731 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751313AbdGOMr6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Jul 2017 02:59:36 -0400
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        s.nawrocki@samsung.com, tfiga@chromium.org, nicolas@ndufresne.ca,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Yakir Yang <ykk@rock-chips.com>
-Subject: [PATCH v2 6/6] dt-bindings: Document the Rockchip RGA bindings
-Date: Sat, 15 Jul 2017 14:58:40 +0800
-Message-Id: <1500101920-24039-7-git-send-email-jacob-chen@iotwrt.com>
-In-Reply-To: <1500101920-24039-1-git-send-email-jacob-chen@iotwrt.com>
-References: <1500101920-24039-1-git-send-email-jacob-chen@iotwrt.com>
+        Sat, 15 Jul 2017 08:47:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 4/4] drm/tegra: add cec-notifier support
+Date: Sat, 15 Jul 2017 14:47:53 +0200
+Message-Id: <20170715124753.43714-5-hverkuil@xs4all.nl>
+In-Reply-To: <20170715124753.43714-1-hverkuil@xs4all.nl>
+References: <20170715124753.43714-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add DT bindings documentation for Rockchip RGA
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Yakir Yang <ykk@rock-chips.com>
-Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+In order to support CEC the HDMI driver has to inform the CEC driver
+whenever the physical address changes. So when the EDID is read the
+CEC driver has to be informed and whenever the hotplug detect goes
+away.
+
+This is done through the cec-notifier framework.
+
+The link between the HDMI driver and the CEC driver is done through
+the hdmi_phandle in the tegra-cec node in the device tree.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../devicetree/bindings/media/rockchip-rga.txt     | 35 ++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
+ drivers/gpu/drm/tegra/drm.h    | 3 +++
+ drivers/gpu/drm/tegra/hdmi.c   | 9 +++++++++
+ drivers/gpu/drm/tegra/output.c | 6 ++++++
+ 3 files changed, 18 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/rockchip-rga.txt b/Documentation/devicetree/bindings/media/rockchip-rga.txt
-new file mode 100644
-index 0000000..966eba0
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/rockchip-rga.txt
-@@ -0,0 +1,35 @@
-+device-tree bindings for rockchip 2D raster graphic acceleration controller (RGA)
+diff --git a/drivers/gpu/drm/tegra/drm.h b/drivers/gpu/drm/tegra/drm.h
+index 6d6da01282f3..c0a18b60caf1 100644
+--- a/drivers/gpu/drm/tegra/drm.h
++++ b/drivers/gpu/drm/tegra/drm.h
+@@ -212,6 +212,8 @@ int tegra_dc_state_setup_clock(struct tegra_dc *dc,
+ 			       struct clk *clk, unsigned long pclk,
+ 			       unsigned int div);
+ 
++struct cec_notifier;
 +
-+RGA is a separate 2D raster graphic acceleration unit. It accelerates 2D
-+graphics operations, such as point/line drawing, image scaling, rotation,
-+BitBLT, alpha blending and image blur/sharpness.
+ struct tegra_output {
+ 	struct device_node *of_node;
+ 	struct device *dev;
+@@ -219,6 +221,7 @@ struct tegra_output {
+ 	struct drm_panel *panel;
+ 	struct i2c_adapter *ddc;
+ 	const struct edid *edid;
++	struct cec_notifier *notifier;
+ 	unsigned int hpd_irq;
+ 	int hpd_gpio;
+ 	enum of_gpio_flags hpd_gpio_flags;
+diff --git a/drivers/gpu/drm/tegra/hdmi.c b/drivers/gpu/drm/tegra/hdmi.c
+index cda0491ed6bf..fbf14e1efd0e 100644
+--- a/drivers/gpu/drm/tegra/hdmi.c
++++ b/drivers/gpu/drm/tegra/hdmi.c
+@@ -21,6 +21,8 @@
+ 
+ #include <sound/hda_verbs.h>
+ 
++#include <media/cec-notifier.h>
 +
-+Required properties:
-+- compatible: value should be one of the following
-+		"rockchip,rk3228-rga";
-+		"rockchip,rk3288-rga";
-+		"rockchip,rk3399-rga";
+ #include "hdmi.h"
+ #include "drm.h"
+ #include "dc.h"
+@@ -1720,6 +1722,10 @@ static int tegra_hdmi_probe(struct platform_device *pdev)
+ 		return PTR_ERR(hdmi->vdd);
+ 	}
+ 
++	hdmi->output.notifier = cec_notifier_get(&pdev->dev);
++	if (hdmi->output.notifier == NULL)
++		return -ENOMEM;
 +
-+- interrupts: RGA interrupt number.
+ 	hdmi->output.dev = &pdev->dev;
+ 
+ 	err = tegra_output_probe(&hdmi->output);
+@@ -1778,6 +1784,9 @@ static int tegra_hdmi_remove(struct platform_device *pdev)
+ 
+ 	tegra_output_remove(&hdmi->output);
+ 
++	if (hdmi->output.notifier)
++		cec_notifier_put(hdmi->output.notifier);
 +
-+- clocks: phandle to RGA sclk/hclk/aclk clocks
+ 	return 0;
+ }
+ 
+diff --git a/drivers/gpu/drm/tegra/output.c b/drivers/gpu/drm/tegra/output.c
+index 595d1ec3e02e..57c052521a44 100644
+--- a/drivers/gpu/drm/tegra/output.c
++++ b/drivers/gpu/drm/tegra/output.c
+@@ -11,6 +11,8 @@
+ #include <drm/drm_panel.h>
+ #include "drm.h"
+ 
++#include <media/cec-notifier.h>
 +
-+- clock-names: should be "aclk" "hclk" and "sclk"
+ int tegra_output_connector_get_modes(struct drm_connector *connector)
+ {
+ 	struct tegra_output *output = connector_to_output(connector);
+@@ -33,6 +35,7 @@ int tegra_output_connector_get_modes(struct drm_connector *connector)
+ 		edid = drm_get_edid(connector, output->ddc);
+ 
+ 	drm_mode_connector_update_edid_property(connector, edid);
++	cec_notifier_set_phys_addr_from_edid(output->notifier, edid);
+ 
+ 	if (edid) {
+ 		err = drm_add_edid_modes(connector, edid);
+@@ -68,6 +71,9 @@ tegra_output_connector_detect(struct drm_connector *connector, bool force)
+ 			status = connector_status_connected;
+ 	}
+ 
++	if (status != connector_status_connected)
++		cec_notifier_phys_addr_invalidate(output->notifier);
 +
-+- resets: Must contain an entry for each entry in reset-names.
-+  See ../reset/reset.txt for details.
-+- reset-names: should be "core" "axi" and "ahb"
-+
-+Example:
-+SoC specific DT entry:
-+	rga: rga@ff680000 {
-+		compatible = "rockchip,rk3399-rga";
-+		reg = <0xff680000 0x10000>;
-+		interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
-+		interrupt-names = "rga";
-+		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA_CORE>;
-+		clock-names = "aclk", "hclk", "sclk";
-+
-+		resets = <&cru SRST_RGA_CORE>, <&cru SRST_A_RGA>, <&cru SRST_H_RGA>;
-+		reset-names = "core, "axi", "ahb";
-+	};
+ 	return status;
+ }
+ 
 -- 
-2.7.4
+2.11.0
