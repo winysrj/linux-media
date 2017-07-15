@@ -1,450 +1,759 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:63458 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932158AbdGKNUa (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:35986 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751306AbdGOMr6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 09:20:30 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Marek Vasut <marex@denx.de>,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v2] [media] staging/imx: remove confusing IS_ERR_OR_NULL usage
-Date: Tue, 11 Jul 2017 15:18:35 +0200
-Message-Id: <20170711132001.2266388-1-arnd@arndb.de>
+        Sat, 15 Jul 2017 08:47:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/4] tegra-cec: add Tegra HDMI CEC driver
+Date: Sat, 15 Jul 2017 14:47:52 +0200
+Message-Id: <20170715124753.43714-4-hverkuil@xs4all.nl>
+In-Reply-To: <20170715124753.43714-1-hverkuil@xs4all.nl>
+References: <20170715124753.43714-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While looking at a compiler warning, I noticed the use of
-IS_ERR_OR_NULL, which is generally a sign of a bad API design
-and should be avoided.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-In this driver, this is fairly easy, we can simply stop storing
-error pointers in persistent structures, and change the two
-functions that might return either a NULL pointer or an error
-code to consistently return error pointers when failing.
+This driver adds support for the Tegra CEC IP. It is based on the
+NVIDIA drivers/misc/tegra-cec driver in their 3.10 kernel.
 
-of_parse_subdev() now separates the error code and the pointer
-it looks up, to clarify the interface. There are two cases
-where this function originally returns 'NULL', and I have
-changed that to '0' for success to keep the current behavior,
-though returning an error would also make sense there.
+This has been converted to the CEC framework and cleaned up.
 
-Fixes: e130291212df ("[media] media: Add i.MX media core driver")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Tested with my Jetson TK1 board. It has also been tested with the
+Tegra X1 in an embedded product.
+
+Note of warning for the Tegra X2: this SoC supports two HDMI outputs,
+but only one CEC adapter and the CEC bus is shared between the
+two outputs. This is a design mistake and the CEC adapter can
+control only one HDMI output. Never hook up both HDMI outputs
+to the CEC bus in a hardware design: this is illegal as per the
+CEC specification.
+
+The CEC bus can be shared between multiple inputs and zero or one
+outputs, but not between multiple outputs.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-v2: fix type mismatch
-v3: rework of_parse_subdev() as well.
----
- drivers/staging/media/imx/imx-ic-prpencvf.c | 41 ++++++++++++-----------
- drivers/staging/media/imx/imx-media-csi.c   | 30 ++++++++++-------
- drivers/staging/media/imx/imx-media-dev.c   |  4 +--
- drivers/staging/media/imx/imx-media-of.c    | 50 ++++++++++++++++-------------
- drivers/staging/media/imx/imx-media-vdic.c  | 37 +++++++++++----------
- 5 files changed, 90 insertions(+), 72 deletions(-)
+ MAINTAINERS                                  |   8 +
+ drivers/media/platform/Kconfig               |  11 +
+ drivers/media/platform/Makefile              |   2 +
+ drivers/media/platform/tegra-cec/Makefile    |   1 +
+ drivers/media/platform/tegra-cec/tegra_cec.c | 506 +++++++++++++++++++++++++++
+ drivers/media/platform/tegra-cec/tegra_cec.h | 127 +++++++
+ 6 files changed, 655 insertions(+)
+ create mode 100644 drivers/media/platform/tegra-cec/Makefile
+ create mode 100644 drivers/media/platform/tegra-cec/tegra_cec.c
+ create mode 100644 drivers/media/platform/tegra-cec/tegra_cec.h
 
-diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
-index ed363fe3b3d0..7a9d9f32f989 100644
---- a/drivers/staging/media/imx/imx-ic-prpencvf.c
-+++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
-@@ -134,19 +134,19 @@ static inline struct prp_priv *sd_to_priv(struct v4l2_subdev *sd)
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 7d9bd4a041af..35b393feac52 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -1917,6 +1917,14 @@ M:	Lennert Buytenhek <kernel@wantstofly.org>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Maintained
  
- static void prp_put_ipu_resources(struct prp_priv *priv)
- {
--	if (!IS_ERR_OR_NULL(priv->ic))
-+	if (priv->ic)
- 		ipu_ic_put(priv->ic);
- 	priv->ic = NULL;
- 
--	if (!IS_ERR_OR_NULL(priv->out_ch))
-+	if (priv->out_ch)
- 		ipu_idmac_put(priv->out_ch);
- 	priv->out_ch = NULL;
- 
--	if (!IS_ERR_OR_NULL(priv->rot_in_ch))
-+	if (priv->rot_in_ch)
- 		ipu_idmac_put(priv->rot_in_ch);
- 	priv->rot_in_ch = NULL;
- 
--	if (!IS_ERR_OR_NULL(priv->rot_out_ch))
-+	if (priv->rot_out_ch)
- 		ipu_idmac_put(priv->rot_out_ch);
- 	priv->rot_out_ch = NULL;
- }
-@@ -154,43 +154,46 @@ static void prp_put_ipu_resources(struct prp_priv *priv)
- static int prp_get_ipu_resources(struct prp_priv *priv)
- {
- 	struct imx_ic_priv *ic_priv = priv->ic_priv;
-+	struct ipu_ic *ic;
-+	struct ipuv3_channel *out_ch, *rot_in_ch, *rot_out_ch;
- 	int ret, task = ic_priv->task_id;
- 
- 	priv->ipu = priv->md->ipu[ic_priv->ipu_id];
- 
--	priv->ic = ipu_ic_get(priv->ipu, task);
--	if (IS_ERR(priv->ic)) {
-+	ic = ipu_ic_get(priv->ipu, task);
-+	if (IS_ERR(ic)) {
- 		v4l2_err(&ic_priv->sd, "failed to get IC\n");
--		ret = PTR_ERR(priv->ic);
-+		ret = PTR_ERR(ic);
- 		goto out;
- 	}
-+	priv->ic = ic;
- 
--	priv->out_ch = ipu_idmac_get(priv->ipu,
--				     prp_channel[task].out_ch);
--	if (IS_ERR(priv->out_ch)) {
-+	out_ch = ipu_idmac_get(priv->ipu, prp_channel[task].out_ch);
-+	if (IS_ERR(out_ch)) {
- 		v4l2_err(&ic_priv->sd, "could not get IDMAC channel %u\n",
- 			 prp_channel[task].out_ch);
--		ret = PTR_ERR(priv->out_ch);
-+		ret = PTR_ERR(out_ch);
- 		goto out;
- 	}
-+	priv->out_ch = out_ch;
- 
--	priv->rot_in_ch = ipu_idmac_get(priv->ipu,
--					prp_channel[task].rot_in_ch);
--	if (IS_ERR(priv->rot_in_ch)) {
-+	rot_in_ch = ipu_idmac_get(priv->ipu, prp_channel[task].rot_in_ch);
-+	if (IS_ERR(rot_in_ch)) {
- 		v4l2_err(&ic_priv->sd, "could not get IDMAC channel %u\n",
- 			 prp_channel[task].rot_in_ch);
--		ret = PTR_ERR(priv->rot_in_ch);
-+		ret = PTR_ERR(rot_in_ch);
- 		goto out;
- 	}
-+	priv->rot_in_ch = rot_in_ch;
- 
--	priv->rot_out_ch = ipu_idmac_get(priv->ipu,
--					 prp_channel[task].rot_out_ch);
--	if (IS_ERR(priv->rot_out_ch)) {
-+	rot_out_ch = ipu_idmac_get(priv->ipu, prp_channel[task].rot_out_ch);
-+	if (IS_ERR(rot_out_ch)) {
- 		v4l2_err(&ic_priv->sd, "could not get IDMAC channel %u\n",
- 			 prp_channel[task].rot_out_ch);
--		ret = PTR_ERR(priv->rot_out_ch);
-+		ret = PTR_ERR(rot_out_ch);
- 		goto out;
- 	}
-+	priv->rot_out_ch = rot_out_ch;
- 
- 	return 0;
- out:
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index a2d26693912e..17fd1e61dd5d 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -122,11 +122,11 @@ static inline struct csi_priv *sd_to_dev(struct v4l2_subdev *sdev)
- 
- static void csi_idmac_put_ipu_resources(struct csi_priv *priv)
- {
--	if (!IS_ERR_OR_NULL(priv->idmac_ch))
-+	if (priv->idmac_ch)
- 		ipu_idmac_put(priv->idmac_ch);
- 	priv->idmac_ch = NULL;
- 
--	if (!IS_ERR_OR_NULL(priv->smfc))
-+	if (priv->smfc)
- 		ipu_smfc_put(priv->smfc);
- 	priv->smfc = NULL;
- }
-@@ -134,23 +134,27 @@ static void csi_idmac_put_ipu_resources(struct csi_priv *priv)
- static int csi_idmac_get_ipu_resources(struct csi_priv *priv)
- {
- 	int ch_num, ret;
-+	struct ipu_smfc *smfc;
-+	struct ipuv3_channel *idmac_ch;
- 
- 	ch_num = IPUV3_CHANNEL_CSI0 + priv->smfc_id;
- 
--	priv->smfc = ipu_smfc_get(priv->ipu, ch_num);
--	if (IS_ERR(priv->smfc)) {
-+	smfc = ipu_smfc_get(priv->ipu, ch_num);
-+	if (IS_ERR(smfc)) {
- 		v4l2_err(&priv->sd, "failed to get SMFC\n");
--		ret = PTR_ERR(priv->smfc);
-+		ret = PTR_ERR(smfc);
- 		goto out;
- 	}
-+	priv->smfc = smfc;
- 
--	priv->idmac_ch = ipu_idmac_get(priv->ipu, ch_num);
--	if (IS_ERR(priv->idmac_ch)) {
-+	idmac_ch = ipu_idmac_get(priv->ipu, ch_num);
-+	if (IS_ERR(idmac_ch)) {
- 		v4l2_err(&priv->sd, "could not get IDMAC channel %u\n",
- 			 ch_num);
--		ret = PTR_ERR(priv->idmac_ch);
-+		ret = PTR_ERR(idmac_ch);
- 		goto out;
- 	}
-+	priv->idmac_ch = idmac_ch;
- 
- 	return 0;
- out:
-@@ -1583,6 +1587,7 @@ static int csi_unsubscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
- static int csi_registered(struct v4l2_subdev *sd)
- {
- 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct ipu_csi *csi;
- 	int i, ret;
- 	u32 code;
- 
-@@ -1590,11 +1595,12 @@ static int csi_registered(struct v4l2_subdev *sd)
- 	priv->md = dev_get_drvdata(sd->v4l2_dev->dev);
- 
- 	/* get handle to IPU CSI */
--	priv->csi = ipu_csi_get(priv->ipu, priv->csi_id);
--	if (IS_ERR(priv->csi)) {
-+	csi = ipu_csi_get(priv->ipu, priv->csi_id);
-+	if (IS_ERR(csi)) {
- 		v4l2_err(&priv->sd, "failed to get CSI%d\n", priv->csi_id);
--		return PTR_ERR(priv->csi);
-+		return PTR_ERR(csi);
- 	}
-+	priv->csi = csi;
- 
- 	for (i = 0; i < CSI_NUM_PADS; i++) {
- 		priv->pad[i].flags = (i == CSI_SINK_PAD) ?
-@@ -1663,7 +1669,7 @@ static void csi_unregistered(struct v4l2_subdev *sd)
- 	if (priv->fim)
- 		imx_media_fim_free(priv->fim);
- 
--	if (!IS_ERR_OR_NULL(priv->csi))
-+	if (priv->csi)
- 		ipu_csi_put(priv->csi);
- }
- 
-diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-index 48cbc7716758..d96f4512224f 100644
---- a/drivers/staging/media/imx/imx-media-dev.c
-+++ b/drivers/staging/media/imx/imx-media-dev.c
-@@ -87,11 +87,11 @@ imx_media_add_async_subdev(struct imx_media_dev *imxmd,
- 	if (pdev)
- 		devname = dev_name(&pdev->dev);
- 
--	/* return NULL if this subdev already added */
-+	/* return -EEXIST if this subdev already added */
- 	if (imx_media_find_async_subdev(imxmd, np, devname)) {
- 		dev_dbg(imxmd->md.dev, "%s: already added %s\n",
- 			__func__, np ? np->name : devname);
--		imxsd = NULL;
-+		imxsd = ERR_PTR(-EEXIST);
- 		goto out;
- 	}
- 
-diff --git a/drivers/staging/media/imx/imx-media-of.c b/drivers/staging/media/imx/imx-media-of.c
-index b026fe66467c..12df09f52490 100644
---- a/drivers/staging/media/imx/imx-media-of.c
-+++ b/drivers/staging/media/imx/imx-media-of.c
-@@ -100,9 +100,9 @@ static void of_get_remote_pad(struct device_node *epnode,
- 	}
- }
- 
--static struct imx_media_subdev *
-+static int
- of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
--		bool is_csi_port)
-+		bool is_csi_port, struct imx_media_subdev **subdev)
- {
- 	struct imx_media_subdev *imxsd;
- 	int i, num_pads, ret;
-@@ -110,13 +110,25 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
- 	if (!of_device_is_available(sd_np)) {
- 		dev_dbg(imxmd->md.dev, "%s: %s not enabled\n", __func__,
- 			sd_np->name);
--		return NULL;
-+		*subdev = NULL;
-+		/* unavailable is not an error */
-+		return 0;
- 	}
- 
- 	/* register this subdev with async notifier */
- 	imxsd = imx_media_add_async_subdev(imxmd, sd_np, NULL);
--	if (IS_ERR_OR_NULL(imxsd))
--		return imxsd;
-+	ret = PTR_ERR_OR_ZERO(imxsd);
-+	if (ret) {
-+		if (ret == -EEXIST) {
-+			/* already added, everything is fine */
-+			*subdev = NULL;
-+			return 0;
-+		}
++ARM/TEGRA HDMI CEC SUBSYSTEM SUPPORT
++M:	Hans Verkuil <hans.verkuil@cisco.com>
++L:	linux-tegra@vger.kernel.org
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	drivers/media/platform/tegra-cec/
++F:	Documentation/devicetree/bindings/media/tegra-cec.txt
 +
-+		/* other error, can't continue */
-+		return ret;
+ ARM/TETON BGA MACHINE SUPPORT
+ M:	"Mark F. Brown" <mark.brown314@gmail.com>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 1313cd533436..31f54cbdf2e2 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -570,6 +570,17 @@ config VIDEO_STM32_HDMI_CEC
+          CEC bus is present in the HDMI connector and enables communication
+          between compatible devices.
+ 
++config VIDEO_TEGRA_HDMI_CEC
++       tristate "Tegra HDMI CEC driver"
++       depends on ARCH_TEGRA || COMPILE_TEST
++       select CEC_CORE
++       select CEC_NOTIFIER
++       ---help---
++         This is a driver for the Tegra HDMI CEC interface. It uses the
++         generic CEC framework interface.
++         The CEC bus is present in the HDMI connector and enables communication
++         between compatible devices.
++
+ endif #CEC_PLATFORM_DRIVERS
+ 
+ menuconfig SDR_PLATFORM_DRIVERS
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 9beadc760467..9da73532e556 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -46,6 +46,8 @@ obj-$(CONFIG_VIDEO_STI_HDMI_CEC) 	+= sti/cec/
+ 
+ obj-$(CONFIG_VIDEO_STI_DELTA)		+= sti/delta/
+ 
++obj-$(CONFIG_VIDEO_TEGRA_HDMI_CEC)	+= tegra-cec/
++
+ obj-y 					+= stm32/
+ 
+ obj-y                                   += blackfin/
+diff --git a/drivers/media/platform/tegra-cec/Makefile b/drivers/media/platform/tegra-cec/Makefile
+new file mode 100644
+index 000000000000..f3d81127589f
+--- /dev/null
++++ b/drivers/media/platform/tegra-cec/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_VIDEO_TEGRA_HDMI_CEC)	+= tegra_cec.o
+diff --git a/drivers/media/platform/tegra-cec/tegra_cec.c b/drivers/media/platform/tegra-cec/tegra_cec.c
+new file mode 100644
+index 000000000000..346586c3ad6d
+--- /dev/null
++++ b/drivers/media/platform/tegra-cec/tegra_cec.c
+@@ -0,0 +1,506 @@
++/*
++ * Tegra CEC implementation
++ *
++ * The original 3.10 CEC driver using a custom API:
++ *
++ * Copyright (c) 2012-2015, NVIDIA CORPORATION.  All rights reserved.
++ *
++ * Conversion to the CEC framework and to the mainline kernel:
++ *
++ * Copyright 2016-2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/err.h>
++#include <linux/errno.h>
++#include <linux/interrupt.h>
++#include <linux/slab.h>
++#include <linux/io.h>
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/pm.h>
++#include <linux/of.h>
++#include <linux/of_platform.h>
++#include <linux/platform_device.h>
++#include <linux/clk/tegra.h>
++
++#include <media/cec-notifier.h>
++
++#include "tegra_cec.h"
++
++#define TEGRA_CEC_NAME "tegra-cec"
++
++struct tegra_cec {
++	struct cec_adapter	*adap;
++	struct device		*dev;
++	struct clk		*clk;
++	void __iomem		*cec_base;
++	struct cec_notifier	*notifier;
++	int			tegra_cec_irq;
++	bool			rx_done;
++	bool			tx_done;
++	int			tx_status;
++	u8			rx_buf[CEC_MAX_MSG_SIZE];
++	u8			rx_buf_cnt;
++	u32			tx_buf[CEC_MAX_MSG_SIZE];
++	u8			tx_buf_cur;
++	u8			tx_buf_cnt;
++};
++
++static inline u32 cec_read(struct tegra_cec *cec, u32 reg)
++{
++	return readl(cec->cec_base + reg);
++}
++
++static inline void cec_write(struct tegra_cec *cec, u32 reg, u32 val)
++{
++	writel(val, cec->cec_base + reg);
++}
++
++static void tegra_cec_error_recovery(struct tegra_cec *cec)
++{
++	u32 hw_ctrl;
++
++	hw_ctrl = cec_read(cec, TEGRA_CEC_HW_CONTROL);
++	cec_write(cec, TEGRA_CEC_HW_CONTROL, 0);
++	cec_write(cec, TEGRA_CEC_INT_STAT, 0xffffffff);
++	cec_write(cec, TEGRA_CEC_HW_CONTROL, hw_ctrl);
++}
++
++static irqreturn_t tegra_cec_irq_thread_handler(int irq, void *data)
++{
++	struct device *dev = data;
++	struct tegra_cec *cec = dev_get_drvdata(dev);
++
++	if (cec->tx_done) {
++		cec_transmit_attempt_done(cec->adap, cec->tx_status);
++		cec->tx_done = false;
 +	}
-+	*subdev = imxsd;
- 
- 	if (is_csi_port) {
- 		/*
-@@ -137,10 +149,11 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
- 	} else {
- 		num_pads = of_get_port_count(sd_np);
- 		if (num_pads != 1) {
-+			/* confused, but no reason to give up here */
- 			dev_warn(imxmd->md.dev,
- 				 "%s: unknown device %s with %d ports\n",
- 				 __func__, sd_np->name, num_pads);
--			return NULL;
-+			return 0;
- 		}
- 
- 		/*
-@@ -151,7 +164,7 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
- 	}
- 
- 	if (imxsd->num_sink_pads >= num_pads)
--		return ERR_PTR(-EINVAL);
-+		return -EINVAL;
- 
- 	imxsd->num_src_pads = num_pads - imxsd->num_sink_pads;
- 
-@@ -191,20 +204,15 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
- 
- 			ret = of_add_pad_link(imxmd, pad, sd_np, remote_np,
- 					      i, remote_pad);
--			if (ret) {
--				imxsd = ERR_PTR(ret);
-+			if (ret)
- 				break;
--			}
- 
- 			if (i < imxsd->num_sink_pads) {
- 				/* follow sink endpoints upstream */
--				remote_imxsd = of_parse_subdev(imxmd,
--							       remote_np,
--							       false);
--				if (IS_ERR(remote_imxsd)) {
--					imxsd = remote_imxsd;
-+				ret = of_parse_subdev(imxmd, remote_np,
-+						      false, &remote_imxsd);
-+				if (ret)
- 					break;
--				}
- 			}
- 
- 			of_node_put(remote_np);
-@@ -212,14 +220,14 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
- 
- 		if (port != sd_np)
- 			of_node_put(port);
--		if (IS_ERR(imxsd)) {
-+		if (ret) {
- 			of_node_put(remote_np);
- 			of_node_put(epnode);
- 			break;
- 		}
- 	}
- 
--	return imxsd;
++	if (cec->rx_done) {
++		struct cec_msg msg = {};
++
++		msg.len = cec->rx_buf_cnt;
++		memcpy(msg.msg, cec->rx_buf, msg.len);
++		cec_received_msg(cec->adap, &msg);
++		cec->rx_done = false;
++		cec->rx_buf_cnt = 0;
++	}
++	return IRQ_HANDLED;
++}
++
++static irqreturn_t tegra_cec_irq_handler(int irq, void *data)
++{
++	struct device *dev = data;
++	struct tegra_cec *cec = dev_get_drvdata(dev);
++	u32 status, mask;
++
++	status = cec_read(cec, TEGRA_CEC_INT_STAT);
++	mask = cec_read(cec, TEGRA_CEC_INT_MASK);
++
++	status &= mask;
++
++	if (!status)
++		return IRQ_HANDLED;
++
++	if (status & TEGRA_CEC_INT_STAT_TX_REGISTER_UNDERRUN) {
++		dev_err(dev, "TX underrun, interrupt timing issue!\n");
++
++		tegra_cec_error_recovery(cec);
++		cec_write(cec, TEGRA_CEC_INT_MASK,
++			  mask & ~TEGRA_CEC_INT_MASK_TX_REGISTER_EMPTY);
++
++		cec->tx_done = true;
++		cec->tx_status = CEC_TX_STATUS_ERROR;
++		return IRQ_WAKE_THREAD;
++	}
++
++	if ((status & TEGRA_CEC_INT_STAT_TX_ARBITRATION_FAILED) ||
++		   (status & TEGRA_CEC_INT_STAT_TX_BUS_ANOMALY_DETECTED)) {
++		tegra_cec_error_recovery(cec);
++		cec_write(cec, TEGRA_CEC_INT_MASK,
++			  mask & ~TEGRA_CEC_INT_MASK_TX_REGISTER_EMPTY);
++
++		cec->tx_done = true;
++		if (status & TEGRA_CEC_INT_STAT_TX_BUS_ANOMALY_DETECTED)
++			cec->tx_status = CEC_TX_STATUS_LOW_DRIVE;
++		else
++			cec->tx_status = CEC_TX_STATUS_ARB_LOST;
++		return IRQ_WAKE_THREAD;
++	}
++
++	if (status & TEGRA_CEC_INT_STAT_TX_FRAME_TRANSMITTED) {
++		cec_write(cec, TEGRA_CEC_INT_STAT,
++			  TEGRA_CEC_INT_STAT_TX_FRAME_TRANSMITTED);
++
++		if (status & TEGRA_CEC_INT_STAT_TX_FRAME_OR_BLOCK_NAKD) {
++			tegra_cec_error_recovery(cec);
++
++			cec->tx_done = true;
++			cec->tx_status = CEC_TX_STATUS_NACK;
++		} else {
++			cec->tx_done = true;
++			cec->tx_status = CEC_TX_STATUS_OK;
++		}
++		return IRQ_WAKE_THREAD;
++	}
++
++	if (status & TEGRA_CEC_INT_STAT_TX_FRAME_OR_BLOCK_NAKD)
++		dev_warn(dev, "TX NAKed on the fly!\n");
++
++	if (status & TEGRA_CEC_INT_STAT_TX_REGISTER_EMPTY) {
++		if (cec->tx_buf_cur == cec->tx_buf_cnt) {
++			cec_write(cec, TEGRA_CEC_INT_MASK,
++				  mask & ~TEGRA_CEC_INT_MASK_TX_REGISTER_EMPTY);
++		} else {
++			cec_write(cec, TEGRA_CEC_TX_REGISTER,
++				  cec->tx_buf[cec->tx_buf_cur++]);
++			cec_write(cec, TEGRA_CEC_INT_STAT,
++				  TEGRA_CEC_INT_STAT_TX_REGISTER_EMPTY);
++		}
++	}
++
++	if (status & (TEGRA_CEC_INT_STAT_RX_REGISTER_OVERRUN |
++		      TEGRA_CEC_INT_STAT_RX_BUS_ANOMALY_DETECTED |
++		      TEGRA_CEC_INT_STAT_RX_START_BIT_DETECTED |
++		      TEGRA_CEC_INT_STAT_RX_BUS_ERROR_DETECTED)) {
++		cec_write(cec, TEGRA_CEC_INT_STAT,
++			  (TEGRA_CEC_INT_STAT_RX_REGISTER_OVERRUN |
++			   TEGRA_CEC_INT_STAT_RX_BUS_ANOMALY_DETECTED |
++			   TEGRA_CEC_INT_STAT_RX_START_BIT_DETECTED |
++			   TEGRA_CEC_INT_STAT_RX_BUS_ERROR_DETECTED));
++	} else if (status & TEGRA_CEC_INT_STAT_RX_REGISTER_FULL) {
++		u32 v;
++
++		cec_write(cec, TEGRA_CEC_INT_STAT,
++			  TEGRA_CEC_INT_STAT_RX_REGISTER_FULL);
++		v = cec_read(cec, TEGRA_CEC_RX_REGISTER);
++		if (cec->rx_buf_cnt < CEC_MAX_MSG_SIZE)
++			cec->rx_buf[cec->rx_buf_cnt++] = v & 0xff;
++		if (v & TEGRA_CEC_RX_REGISTER_EOM) {
++			cec->rx_done = true;
++			return IRQ_WAKE_THREAD;
++		}
++	}
++
++	return IRQ_HANDLED;
++}
++
++static int tegra_cec_adap_enable(struct cec_adapter *adap, bool enable)
++{
++	struct tegra_cec *cec = adap->priv;
++
++	cec->rx_buf_cnt = 0;
++	cec->tx_buf_cnt = 0;
++	cec->tx_buf_cur = 0;
++
++	cec_write(cec, TEGRA_CEC_HW_CONTROL, 0);
++	cec_write(cec, TEGRA_CEC_INT_MASK, 0);
++	cec_write(cec, TEGRA_CEC_INT_STAT, 0xffffffff);
++	cec_write(cec, TEGRA_CEC_SW_CONTROL, 0);
++
++	if (!enable)
++		return 0;
++
++	cec_write(cec, TEGRA_CEC_INPUT_FILTER, (1U << 31) | 0x20);
++
++	cec_write(cec, TEGRA_CEC_RX_TIMING_0,
++		  (0x7a << TEGRA_CEC_RX_TIM0_START_BIT_MAX_LO_TIME_SHIFT) |
++		  (0x6d << TEGRA_CEC_RX_TIM0_START_BIT_MIN_LO_TIME_SHIFT) |
++		  (0x93 << TEGRA_CEC_RX_TIM0_START_BIT_MAX_DURATION_SHIFT) |
++		  (0x86 << TEGRA_CEC_RX_TIM0_START_BIT_MIN_DURATION_SHIFT));
++
++	cec_write(cec, TEGRA_CEC_RX_TIMING_1,
++		  (0x35 << TEGRA_CEC_RX_TIM1_DATA_BIT_MAX_LO_TIME_SHIFT) |
++		  (0x21 << TEGRA_CEC_RX_TIM1_DATA_BIT_SAMPLE_TIME_SHIFT) |
++		  (0x56 << TEGRA_CEC_RX_TIM1_DATA_BIT_MAX_DURATION_SHIFT) |
++		  (0x40 << TEGRA_CEC_RX_TIM1_DATA_BIT_MIN_DURATION_SHIFT));
++
++	cec_write(cec, TEGRA_CEC_RX_TIMING_2,
++		  (0x50 << TEGRA_CEC_RX_TIM2_END_OF_BLOCK_TIME_SHIFT));
++
++	cec_write(cec, TEGRA_CEC_TX_TIMING_0,
++		  (0x74 << TEGRA_CEC_TX_TIM0_START_BIT_LO_TIME_SHIFT) |
++		  (0x8d << TEGRA_CEC_TX_TIM0_START_BIT_DURATION_SHIFT) |
++		  (0x08 << TEGRA_CEC_TX_TIM0_BUS_XITION_TIME_SHIFT) |
++		  (0x71 << TEGRA_CEC_TX_TIM0_BUS_ERROR_LO_TIME_SHIFT));
++
++	cec_write(cec, TEGRA_CEC_TX_TIMING_1,
++		  (0x2f << TEGRA_CEC_TX_TIM1_LO_DATA_BIT_LO_TIME_SHIFT) |
++		  (0x13 << TEGRA_CEC_TX_TIM1_HI_DATA_BIT_LO_TIME_SHIFT) |
++		  (0x4b << TEGRA_CEC_TX_TIM1_DATA_BIT_DURATION_SHIFT) |
++		  (0x21 << TEGRA_CEC_TX_TIM1_ACK_NAK_BIT_SAMPLE_TIME_SHIFT));
++
++	cec_write(cec, TEGRA_CEC_TX_TIMING_2,
++		  (0x07 << TEGRA_CEC_TX_TIM2_BUS_IDLE_TIME_ADDITIONAL_FRAME_SHIFT) |
++		  (0x05 << TEGRA_CEC_TX_TIM2_BUS_IDLE_TIME_NEW_FRAME_SHIFT) |
++		  (0x03 << TEGRA_CEC_TX_TIM2_BUS_IDLE_TIME_RETRY_FRAME_SHIFT));
++
++	cec_write(cec, TEGRA_CEC_INT_MASK,
++		  TEGRA_CEC_INT_MASK_TX_REGISTER_UNDERRUN |
++		  TEGRA_CEC_INT_MASK_TX_FRAME_OR_BLOCK_NAKD |
++		  TEGRA_CEC_INT_MASK_TX_ARBITRATION_FAILED |
++		  TEGRA_CEC_INT_MASK_TX_BUS_ANOMALY_DETECTED |
++		  TEGRA_CEC_INT_MASK_TX_FRAME_TRANSMITTED |
++		  TEGRA_CEC_INT_MASK_RX_REGISTER_FULL |
++		  TEGRA_CEC_INT_MASK_RX_REGISTER_OVERRUN);
++
++	cec_write(cec, TEGRA_CEC_HW_CONTROL, TEGRA_CEC_HWCTRL_TX_RX_MODE);
++	return 0;
++}
++
++static int tegra_cec_adap_log_addr(struct cec_adapter *adap, u8 logical_addr)
++{
++	struct tegra_cec *cec = adap->priv;
++	u32 state = cec_read(cec, TEGRA_CEC_HW_CONTROL);
++
++	if (logical_addr == CEC_LOG_ADDR_INVALID)
++		state &= ~TEGRA_CEC_HWCTRL_RX_LADDR_MASK;
++	else
++		state |= TEGRA_CEC_HWCTRL_RX_LADDR((1 << logical_addr));
++
++	cec_write(cec, TEGRA_CEC_HW_CONTROL, state);
++	return 0;
++}
++
++static int tegra_cec_adap_monitor_all_enable(struct cec_adapter *adap,
++					     bool enable)
++{
++	struct tegra_cec *cec = adap->priv;
++	u32 reg = cec_read(cec, TEGRA_CEC_HW_CONTROL);
++
++	if (enable)
++		reg |= TEGRA_CEC_HWCTRL_RX_SNOOP;
++	else
++		reg &= ~TEGRA_CEC_HWCTRL_RX_SNOOP;
++	cec_write(cec, TEGRA_CEC_HW_CONTROL, reg);
++	return 0;
++}
++
++static int tegra_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
++				   u32 signal_free_time_ms, struct cec_msg *msg)
++{
++	bool retry_xfer = signal_free_time_ms == CEC_SIGNAL_FREE_TIME_RETRY;
++	struct tegra_cec *cec = adap->priv;
++	unsigned int i;
++	u32 mode = 0;
++	u32 mask;
++
++	if (cec_msg_is_broadcast(msg))
++		mode = TEGRA_CEC_TX_REG_BCAST;
++
++	cec->tx_buf_cur = 0;
++	cec->tx_buf_cnt = msg->len;
++
++	for (i = 0; i < msg->len; i++) {
++		cec->tx_buf[i] = mode | msg->msg[i];
++		if (i == 0)
++			cec->tx_buf[i] |= TEGRA_CEC_TX_REG_START_BIT;
++		if (i == msg->len - 1)
++			cec->tx_buf[i] |= TEGRA_CEC_TX_REG_EOM;
++		if (i == 0 && retry_xfer)
++			cec->tx_buf[i] |= TEGRA_CEC_TX_REG_RETRY;
++	}
++
++	mask = cec_read(cec, TEGRA_CEC_INT_MASK);
++	cec_write(cec, TEGRA_CEC_INT_MASK,
++		  mask | TEGRA_CEC_INT_MASK_TX_REGISTER_EMPTY);
++
++	return 0;
++}
++
++static const struct cec_adap_ops tegra_cec_ops = {
++	.adap_enable = tegra_cec_adap_enable,
++	.adap_log_addr = tegra_cec_adap_log_addr,
++	.adap_transmit = tegra_cec_adap_transmit,
++	.adap_monitor_all_enable = tegra_cec_adap_monitor_all_enable,
++};
++
++static int tegra_cec_probe(struct platform_device *pdev)
++{
++	struct platform_device *hdmi_dev;
++	struct device_node *np;
++	struct tegra_cec *cec;
++	struct resource *res;
++	int ret = 0;
++
++	np = of_parse_phandle(pdev->dev.of_node, "hdmi-phandle", 0);
++
++	if (!np) {
++		dev_err(&pdev->dev, "Failed to find hdmi node in device tree\n");
++		return -ENODEV;
++	}
++	hdmi_dev = of_find_device_by_node(np);
++	if (hdmi_dev == NULL)
++		return -EPROBE_DEFER;
++
++	cec = devm_kzalloc(&pdev->dev, sizeof(struct tegra_cec), GFP_KERNEL);
++
++	if (!cec)
++		return -ENOMEM;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++
++	if (!res) {
++		dev_err(&pdev->dev,
++			"Unable to allocate resources for device\n");
++		ret = -EBUSY;
++		goto cec_error;
++	}
++
++	if (!devm_request_mem_region(&pdev->dev, res->start, resource_size(res),
++		pdev->name)) {
++		dev_err(&pdev->dev,
++			"Unable to request mem region for device\n");
++		ret = -EBUSY;
++		goto cec_error;
++	}
++
++	cec->tegra_cec_irq = platform_get_irq(pdev, 0);
++
++	if (cec->tegra_cec_irq <= 0) {
++		ret = -EBUSY;
++		goto cec_error;
++	}
++
++	cec->cec_base = devm_ioremap_nocache(&pdev->dev, res->start,
++		resource_size(res));
++
++	if (!cec->cec_base) {
++		dev_err(&pdev->dev, "Unable to grab IOs for device\n");
++		ret = -EBUSY;
++		goto cec_error;
++	}
++
++	cec->clk = devm_clk_get(&pdev->dev, "cec");
++
++	if (IS_ERR_OR_NULL(cec->clk)) {
++		dev_err(&pdev->dev, "Can't get clock for CEC\n");
++		ret = -ENOENT;
++		goto clk_error;
++	}
++
++	clk_prepare_enable(cec->clk);
++
++	/* set context info. */
++	cec->dev = &pdev->dev;
++
++	platform_set_drvdata(pdev, cec);
++	/* clear out the hardware. */
++
++	device_init_wakeup(&pdev->dev, 1);
++
++	ret = devm_request_threaded_irq(&pdev->dev, cec->tegra_cec_irq,
++		tegra_cec_irq_handler, tegra_cec_irq_thread_handler,
++		0, "cec_irq", &pdev->dev);
++
++	if (ret) {
++		dev_err(&pdev->dev,
++			"Unable to request interrupt for device\n");
++		goto cec_error;
++	}
++
++	cec->notifier = cec_notifier_get(&hdmi_dev->dev);
++	if (!cec->notifier) {
++		ret = -ENOMEM;
++		goto cec_error;
++	}
++
++	cec->adap = cec_allocate_adapter(&tegra_cec_ops, cec, TEGRA_CEC_NAME,
++			CEC_CAP_LOG_ADDRS | CEC_CAP_TRANSMIT |
++			CEC_CAP_MONITOR_ALL | CEC_CAP_PASSTHROUGH | CEC_CAP_RC,
++			CEC_MAX_LOG_ADDRS);
++	if (IS_ERR_OR_NULL(cec->adap)) {
++		ret = -ENOMEM;
++		dev_err(&pdev->dev, "Couldn't create cec adapter\n");
++		goto cec_error;
++	}
++	ret = cec_register_adapter(cec->adap, &pdev->dev);
++	if (ret) {
++		dev_err(&pdev->dev, "Couldn't register device\n");
++		goto cec_error;
++	}
++
++	cec_register_cec_notifier(cec->adap, cec->notifier);
++
++	return 0;
++
++cec_error:
++	if (cec->notifier)
++		cec_notifier_put(cec->notifier);
++	if (!IS_ERR_OR_NULL(cec->adap))
++		cec_delete_adapter(cec->adap);
++	clk_disable_unprepare(cec->clk);
++clk_error:
 +	return ret;
- }
- 
- int imx_media_of_parse(struct imx_media_dev *imxmd,
-@@ -236,11 +244,9 @@ int imx_media_of_parse(struct imx_media_dev *imxmd,
- 		if (!csi_np)
- 			break;
- 
--		lcsi = of_parse_subdev(imxmd, csi_np, true);
--		if (IS_ERR(lcsi)) {
--			ret = PTR_ERR(lcsi);
-+		ret = of_parse_subdev(imxmd, csi_np, true, &lcsi);
-+		if (ret)
- 			goto err_put;
--		}
- 
- 		ret = of_property_read_u32(csi_np, "reg", &csi_id);
- 		if (ret) {
-diff --git a/drivers/staging/media/imx/imx-media-vdic.c b/drivers/staging/media/imx/imx-media-vdic.c
-index 7eabdc4aa79f..433474d58e3e 100644
---- a/drivers/staging/media/imx/imx-media-vdic.c
-+++ b/drivers/staging/media/imx/imx-media-vdic.c
-@@ -126,15 +126,15 @@ struct vdic_priv {
- 
- static void vdic_put_ipu_resources(struct vdic_priv *priv)
- {
--	if (!IS_ERR_OR_NULL(priv->vdi_in_ch_p))
-+	if (priv->vdi_in_ch_p)
- 		ipu_idmac_put(priv->vdi_in_ch_p);
- 	priv->vdi_in_ch_p = NULL;
- 
--	if (!IS_ERR_OR_NULL(priv->vdi_in_ch))
-+	if (priv->vdi_in_ch)
- 		ipu_idmac_put(priv->vdi_in_ch);
- 	priv->vdi_in_ch = NULL;
- 
--	if (!IS_ERR_OR_NULL(priv->vdi_in_ch_n))
-+	if (priv->vdi_in_ch_n)
- 		ipu_idmac_put(priv->vdi_in_ch_n);
- 	priv->vdi_in_ch_n = NULL;
- 
-@@ -146,40 +146,43 @@ static void vdic_put_ipu_resources(struct vdic_priv *priv)
- static int vdic_get_ipu_resources(struct vdic_priv *priv)
- {
- 	int ret, err_chan;
-+	struct ipuv3_channel *ch;
-+	struct ipu_vdi *vdi;
- 
- 	priv->ipu = priv->md->ipu[priv->ipu_id];
- 
--	priv->vdi = ipu_vdi_get(priv->ipu);
--	if (IS_ERR(priv->vdi)) {
-+	vdi = ipu_vdi_get(priv->ipu);
-+	if (IS_ERR(vdi)) {
- 		v4l2_err(&priv->sd, "failed to get VDIC\n");
--		ret = PTR_ERR(priv->vdi);
-+		ret = PTR_ERR(vdi);
- 		goto out;
- 	}
-+	priv->vdi = vdi;
- 
- 	if (!priv->csi_direct) {
--		priv->vdi_in_ch_p = ipu_idmac_get(priv->ipu,
--						  IPUV3_CHANNEL_MEM_VDI_PREV);
--		if (IS_ERR(priv->vdi_in_ch_p)) {
-+		ch = ipu_idmac_get(priv->ipu, IPUV3_CHANNEL_MEM_VDI_PREV);
-+		if (IS_ERR(ch)) {
- 			err_chan = IPUV3_CHANNEL_MEM_VDI_PREV;
--			ret = PTR_ERR(priv->vdi_in_ch_p);
-+			ret = PTR_ERR(ch);
- 			goto out_err_chan;
- 		}
-+		priv->vdi_in_ch_p = ch;
- 
--		priv->vdi_in_ch = ipu_idmac_get(priv->ipu,
--						IPUV3_CHANNEL_MEM_VDI_CUR);
--		if (IS_ERR(priv->vdi_in_ch)) {
-+		ch = ipu_idmac_get(priv->ipu, IPUV3_CHANNEL_MEM_VDI_CUR);
-+		if (IS_ERR(ch)) {
- 			err_chan = IPUV3_CHANNEL_MEM_VDI_CUR;
--			ret = PTR_ERR(priv->vdi_in_ch);
-+			ret = PTR_ERR(ch);
- 			goto out_err_chan;
- 		}
-+		priv->vdi_in_ch = ch;
- 
--		priv->vdi_in_ch_n = ipu_idmac_get(priv->ipu,
--						  IPUV3_CHANNEL_MEM_VDI_NEXT);
-+		ch = ipu_idmac_get(priv->ipu, IPUV3_CHANNEL_MEM_VDI_NEXT);
- 		if (IS_ERR(priv->vdi_in_ch_n)) {
- 			err_chan = IPUV3_CHANNEL_MEM_VDI_NEXT;
--			ret = PTR_ERR(priv->vdi_in_ch_n);
-+			ret = PTR_ERR(ch);
- 			goto out_err_chan;
- 		}
-+		priv->vdi_in_ch_n = ch;
- 	}
- 
- 	return 0;
++}
++
++static int tegra_cec_remove(struct platform_device *pdev)
++{
++	struct tegra_cec *cec = platform_get_drvdata(pdev);
++
++	clk_disable_unprepare(cec->clk);
++
++	cec_unregister_adapter(cec->adap);
++	cec_notifier_put(cec->notifier);
++
++	return 0;
++}
++
++#ifdef CONFIG_PM
++static int tegra_cec_suspend(struct platform_device *pdev, pm_message_t state)
++{
++	struct tegra_cec *cec = platform_get_drvdata(pdev);
++
++	clk_disable_unprepare(cec->clk);
++
++	dev_notice(&pdev->dev, "suspended\n");
++	return 0;
++}
++
++static int tegra_cec_resume(struct platform_device *pdev)
++{
++	struct tegra_cec *cec = platform_get_drvdata(pdev);
++
++	dev_notice(&pdev->dev, "Resuming\n");
++
++	clk_prepare_enable(cec->clk);
++
++	return 0;
++}
++#endif
++
++static const struct of_device_id tegra_cec_of_match[] = {
++	{ .compatible = "nvidia,tegra114-cec", },
++	{ .compatible = "nvidia,tegra124-cec", },
++	{ .compatible = "nvidia,tegra210-cec", },
++	{},
++};
++
++static struct platform_driver tegra_cec_driver = {
++	.driver = {
++		.name = TEGRA_CEC_NAME,
++		.of_match_table = of_match_ptr(tegra_cec_of_match),
++	},
++	.probe = tegra_cec_probe,
++	.remove = tegra_cec_remove,
++
++#ifdef CONFIG_PM
++	.suspend = tegra_cec_suspend,
++	.resume = tegra_cec_resume,
++#endif
++};
++
++module_platform_driver(tegra_cec_driver);
+diff --git a/drivers/media/platform/tegra-cec/tegra_cec.h b/drivers/media/platform/tegra-cec/tegra_cec.h
+new file mode 100644
+index 000000000000..e301513daa87
+--- /dev/null
++++ b/drivers/media/platform/tegra-cec/tegra_cec.h
+@@ -0,0 +1,127 @@
++/*
++ * Tegra CEC register definitions
++ *
++ * The original 3.10 CEC driver using a custom API:
++ *
++ * Copyright (c) 2012-2015, NVIDIA CORPORATION.  All rights reserved.
++ *
++ * Conversion to the CEC framework and to the mainline kernel:
++ *
++ * Copyright 2016-2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef TEGRA_CEC_H
++#define TEGRA_CEC_H
++
++/* CEC registers */
++#define TEGRA_CEC_SW_CONTROL	0x000
++#define TEGRA_CEC_HW_CONTROL	0x004
++#define TEGRA_CEC_INPUT_FILTER	0x008
++#define TEGRA_CEC_TX_REGISTER	0x010
++#define TEGRA_CEC_RX_REGISTER	0x014
++#define TEGRA_CEC_RX_TIMING_0	0x018
++#define TEGRA_CEC_RX_TIMING_1	0x01c
++#define TEGRA_CEC_RX_TIMING_2	0x020
++#define TEGRA_CEC_TX_TIMING_0	0x024
++#define TEGRA_CEC_TX_TIMING_1	0x028
++#define TEGRA_CEC_TX_TIMING_2	0x02c
++#define TEGRA_CEC_INT_STAT	0x030
++#define TEGRA_CEC_INT_MASK	0x034
++#define TEGRA_CEC_HW_DEBUG_RX	0x038
++#define TEGRA_CEC_HW_DEBUG_TX	0x03c
++
++#define TEGRA_CEC_HWCTRL_RX_LADDR_MASK				0x7fff
++#define TEGRA_CEC_HWCTRL_RX_LADDR(x)	\
++	((x) & TEGRA_CEC_HWCTRL_RX_LADDR_MASK)
++#define TEGRA_CEC_HWCTRL_RX_SNOOP				(1 << 15)
++#define TEGRA_CEC_HWCTRL_RX_NAK_MODE				(1 << 16)
++#define TEGRA_CEC_HWCTRL_TX_NAK_MODE				(1 << 24)
++#define TEGRA_CEC_HWCTRL_FAST_SIM_MODE				(1 << 30)
++#define TEGRA_CEC_HWCTRL_TX_RX_MODE				(1 << 31)
++
++#define TEGRA_CEC_INPUT_FILTER_MODE				(1 << 31)
++#define TEGRA_CEC_INPUT_FILTER_FIFO_LENGTH_SHIFT		0
++
++#define TEGRA_CEC_TX_REG_DATA_SHIFT				0
++#define TEGRA_CEC_TX_REG_EOM					(1 << 8)
++#define TEGRA_CEC_TX_REG_BCAST					(1 << 12)
++#define TEGRA_CEC_TX_REG_START_BIT				(1 << 16)
++#define TEGRA_CEC_TX_REG_RETRY					(1 << 17)
++
++#define TEGRA_CEC_RX_REGISTER_SHIFT				0
++#define TEGRA_CEC_RX_REGISTER_EOM				(1 << 8)
++#define TEGRA_CEC_RX_REGISTER_ACK				(1 << 9)
++
++#define TEGRA_CEC_RX_TIM0_START_BIT_MAX_LO_TIME_SHIFT		0
++#define TEGRA_CEC_RX_TIM0_START_BIT_MIN_LO_TIME_SHIFT		8
++#define TEGRA_CEC_RX_TIM0_START_BIT_MAX_DURATION_SHIFT		16
++#define TEGRA_CEC_RX_TIM0_START_BIT_MIN_DURATION_SHIFT		24
++
++#define TEGRA_CEC_RX_TIM1_DATA_BIT_MAX_LO_TIME_SHIFT		0
++#define TEGRA_CEC_RX_TIM1_DATA_BIT_SAMPLE_TIME_SHIFT		8
++#define TEGRA_CEC_RX_TIM1_DATA_BIT_MAX_DURATION_SHIFT		16
++#define TEGRA_CEC_RX_TIM1_DATA_BIT_MIN_DURATION_SHIFT		24
++
++#define TEGRA_CEC_RX_TIM2_END_OF_BLOCK_TIME_SHIFT		0
++
++#define TEGRA_CEC_TX_TIM0_START_BIT_LO_TIME_SHIFT		0
++#define TEGRA_CEC_TX_TIM0_START_BIT_DURATION_SHIFT		8
++#define TEGRA_CEC_TX_TIM0_BUS_XITION_TIME_SHIFT			16
++#define TEGRA_CEC_TX_TIM0_BUS_ERROR_LO_TIME_SHIFT		24
++
++#define TEGRA_CEC_TX_TIM1_LO_DATA_BIT_LO_TIME_SHIFT		0
++#define TEGRA_CEC_TX_TIM1_HI_DATA_BIT_LO_TIME_SHIFT		8
++#define TEGRA_CEC_TX_TIM1_DATA_BIT_DURATION_SHIFT		16
++#define TEGRA_CEC_TX_TIM1_ACK_NAK_BIT_SAMPLE_TIME_SHIFT		24
++
++#define TEGRA_CEC_TX_TIM2_BUS_IDLE_TIME_ADDITIONAL_FRAME_SHIFT	0
++#define TEGRA_CEC_TX_TIM2_BUS_IDLE_TIME_NEW_FRAME_SHIFT		4
++#define TEGRA_CEC_TX_TIM2_BUS_IDLE_TIME_RETRY_FRAME_SHIFT	8
++
++#define TEGRA_CEC_INT_STAT_TX_REGISTER_EMPTY			(1 << 0)
++#define TEGRA_CEC_INT_STAT_TX_REGISTER_UNDERRUN			(1 << 1)
++#define TEGRA_CEC_INT_STAT_TX_FRAME_OR_BLOCK_NAKD		(1 << 2)
++#define TEGRA_CEC_INT_STAT_TX_ARBITRATION_FAILED		(1 << 3)
++#define TEGRA_CEC_INT_STAT_TX_BUS_ANOMALY_DETECTED		(1 << 4)
++#define TEGRA_CEC_INT_STAT_TX_FRAME_TRANSMITTED			(1 << 5)
++#define TEGRA_CEC_INT_STAT_RX_REGISTER_FULL			(1 << 8)
++#define TEGRA_CEC_INT_STAT_RX_REGISTER_OVERRUN			(1 << 9)
++#define TEGRA_CEC_INT_STAT_RX_START_BIT_DETECTED		(1 << 10)
++#define TEGRA_CEC_INT_STAT_RX_BUS_ANOMALY_DETECTED		(1 << 11)
++#define TEGRA_CEC_INT_STAT_RX_BUS_ERROR_DETECTED		(1 << 12)
++#define TEGRA_CEC_INT_STAT_FILTERED_RX_DATA_PIN_TRANSITION_H2L	(1 << 13)
++#define TEGRA_CEC_INT_STAT_FILTERED_RX_DATA_PIN_TRANSITION_L2H	(1 << 14)
++
++#define TEGRA_CEC_INT_MASK_TX_REGISTER_EMPTY			(1 << 0)
++#define TEGRA_CEC_INT_MASK_TX_REGISTER_UNDERRUN			(1 << 1)
++#define TEGRA_CEC_INT_MASK_TX_FRAME_OR_BLOCK_NAKD		(1 << 2)
++#define TEGRA_CEC_INT_MASK_TX_ARBITRATION_FAILED		(1 << 3)
++#define TEGRA_CEC_INT_MASK_TX_BUS_ANOMALY_DETECTED		(1 << 4)
++#define TEGRA_CEC_INT_MASK_TX_FRAME_TRANSMITTED			(1 << 5)
++#define TEGRA_CEC_INT_MASK_RX_REGISTER_FULL			(1 << 8)
++#define TEGRA_CEC_INT_MASK_RX_REGISTER_OVERRUN			(1 << 9)
++#define TEGRA_CEC_INT_MASK_RX_START_BIT_DETECTED		(1 << 10)
++#define TEGRA_CEC_INT_MASK_RX_BUS_ANOMALY_DETECTED		(1 << 11)
++#define TEGRA_CEC_INT_MASK_RX_BUS_ERROR_DETECTED		(1 << 12)
++#define TEGRA_CEC_INT_MASK_FILTERED_RX_DATA_PIN_TRANSITION_H2L	(1 << 13)
++#define TEGRA_CEC_INT_MASK_FILTERED_RX_DATA_PIN_TRANSITION_L2H	(1 << 14)
++
++#define TEGRA_CEC_HW_DEBUG_TX_DURATION_COUNT_SHIFT		0
++#define TEGRA_CEC_HW_DEBUG_TX_TXBIT_COUNT_SHIFT			17
++#define TEGRA_CEC_HW_DEBUG_TX_STATE_SHIFT			21
++#define TEGRA_CEC_HW_DEBUG_TX_FORCELOOUT			(1 << 25)
++#define TEGRA_CEC_HW_DEBUG_TX_TXDATABIT_SAMPLE_TIMER		(1 << 26)
++
++#endif /* TEGRA_CEC_H */
 -- 
-2.9.0
+2.11.0
