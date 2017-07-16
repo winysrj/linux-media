@@ -1,52 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54660 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754052AbdGSWkd (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:34879 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751221AbdGPXgy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Jul 2017 18:40:33 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: pavel@ucw.cz
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        jacek.anaszewski@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: [PATCH 1/1] v4l2-flash-led-class: Document v4l2_flash_init() references
-Date: Thu, 20 Jul 2017 01:40:31 +0300
-Message-Id: <20170719224031.12133-1-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170719115934.GA23510@amd>
-References: <20170719115934.GA23510@amd>
+        Sun, 16 Jul 2017 19:36:54 -0400
+From: Shy More <smklearn@gmail.com>
+Cc: Shy More <smklearn@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jiri Kosina <trivial@kernel.org>,
+        Alan Cox <alan@linux.intel.com>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 1/2] [media] staging/atomisp: fixed trivial coding style warning
+Date: Sun, 16 Jul 2017 16:35:34 -0700
+Message-Id: <1500248138-15043-1-git-send-email-smklearn@gmail.com>
+In-Reply-To: <20170713151249.GA1451@kroah.com>
+References: <20170713151249.GA1451@kroah.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2_flash_init() keeps a reference to the ops struct but not to the
-config struct (nor anything it contains). Document this.
+Below was the trivial wanrning flagged by checkpatch.pl
+WARNING: Block comments use * on subsequent lines
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Shy More <smklearn@gmail.com>
 ---
- include/media/v4l2-flash-led-class.h | 6 ++++++
- 1 file changed, 6 insertions(+)
+ .../css2400/runtime/isys/src/ibuf_ctrl_rmgr.c      | 24 +++++++++++-----------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/include/media/v4l2-flash-led-class.h b/include/media/v4l2-flash-led-class.h
-index c3f39992f3fa..6f4825b6a352 100644
---- a/include/media/v4l2-flash-led-class.h
-+++ b/include/media/v4l2-flash-led-class.h
-@@ -112,6 +112,9 @@ static inline struct v4l2_flash *v4l2_ctrl_to_v4l2_flash(struct v4l2_ctrl *c)
-  * @config:	initialization data for V4L2 Flash sub-device
-  *
-  * Create V4L2 Flash sub-device wrapping given LED subsystem device.
-+ * The ops pointer is stored by the V4L2 flash framework. No
-+ * references are held to config nor its contents once this function
-+ * has returned.
-  *
-  * Returns: A valid pointer, or, when an error occurs, the return
-  * value is encoded using ERR_PTR(). Use IS_ERR() to check and
-@@ -130,6 +133,9 @@ struct v4l2_flash *v4l2_flash_init(
-  * @config:	initialization data for V4L2 Flash sub-device
-  *
-  * Create V4L2 Flash sub-device wrapping given LED subsystem device.
-+ * The ops pointer is stored by the V4L2 flash framework. No
-+ * references are held to config nor its contents once this function
-+ * has returned.
-  *
-  * Returns: A valid pointer, or, when an error occurs, the return
-  * value is encoded using ERR_PTR(). Use IS_ERR() to check and
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isys/src/ibuf_ctrl_rmgr.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isys/src/ibuf_ctrl_rmgr.c
+index 76d9142..bb9f5cd 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isys/src/ibuf_ctrl_rmgr.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isys/src/ibuf_ctrl_rmgr.c
+@@ -14,18 +14,18 @@
+  */
+ #else
+ /**
+-Support for Intel Camera Imaging ISP subsystem.
+-Copyright (c) 2010 - 2015, Intel Corporation.
+-
+-This program is free software; you can redistribute it and/or modify it
+-under the terms and conditions of the GNU General Public License,
+-version 2, as published by the Free Software Foundation.
+-
+-This program is distributed in the hope it will be useful, but WITHOUT
+-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+-more details.
+-*/
++ * Support for Intel Camera Imaging ISP subsystem.
++ * Copyright (c) 2010 - 2015, Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
+ #endif
+ 
+ #include "system_global.h"
 -- 
-2.11.0
+1.9.1
