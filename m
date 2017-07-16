@@ -1,57 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0175.hostedemail.com ([216.40.44.175]:45760 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753422AbdGNKJB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Jul 2017 06:09:01 -0400
-Message-ID: <1500026936.4457.68.camel@perches.com>
-Subject: Re: [PATCH 05/14] isdn: isdnloop: suppress a gcc-7 warning
-From: Joe Perches <joe@perches.com>
-To: Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org,
-        Karsten Keil <isdn@linux-pingi.de>,
-        "David S. Miller" <davem@davemloft.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
-        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
-        akpm@linux-foundation.org, dri-devel@lists.freedesktop.org,
-        netdev@vger.kernel.org
-Date: Fri, 14 Jul 2017 03:08:56 -0700
-In-Reply-To: <20170714092540.1217397-6-arnd@arndb.de>
-References: <20170714092540.1217397-1-arnd@arndb.de>
-         <20170714092540.1217397-6-arnd@arndb.de>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail.anw.at ([195.234.101.228]:46246 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751255AbdGPAnj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 15 Jul 2017 20:43:39 -0400
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
+        rjkm@metzlerbros.de, d.scheller@gmx.net, crope@iki.fi,
+        jasmin@anw.at
+Subject: [PATCH V3 00/16] Fix coding style in en50221 CAM functions
+Date: Sun, 16 Jul 2017 02:43:01 +0200
+Message-Id: <1500165797-16987-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2017-07-14 at 11:25 +0200, Arnd Bergmann wrote:
-> We test whether a bit is set in a mask here, which is correct
-> but gcc warns about it as it thinks it might be confusing:
-> 
-> drivers/isdn/isdnloop/isdnloop.c:412:37: error: ?: using integer constants in boolean context, the expression will always evaluate to 'true' [-Werror=int-in-bool-context]
-> 
-> This replaces the negation of an integer with an equivalent
-> comparison to zero, which gets rid of the warning.
-[]
-> diff --git a/drivers/isdn/isdnloop/isdnloop.c b/drivers/isdn/isdnloop/isdnloop.c
-[]
-> @@ -409,7 +409,7 @@ isdnloop_sendbuf(int channel, struct sk_buff *skb, isdnloop_card *card)
->  		return -EINVAL;
->  	}
->  	if (len) {
-> -		if (!(card->flags & (channel) ? ISDNLOOP_FLAGS_B2ACTIVE : ISDNLOOP_FLAGS_B1ACTIVE))
-> +		if ((card->flags & (channel) ? ISDNLOOP_FLAGS_B2ACTIVE : ISDNLOOP_FLAGS_B1ACTIVE) == 0)
->  			return 0;
->  		if (card->sndcount[channel] > ISDNLOOP_MAX_SQUEUE)
->  			return 0;
+From: Jasmin Jessich <jasmin@anw.at>
 
-The if as written can not be zero.
+Changes V2 to V3:
+Fixed the remarks from Antti Polosaari.
+Checked the code with checkpatch.pl -strict and fixed all the findings.
 
-drivers/isdn/isdnloop/isdnloop.h:#define ISDNLOOP_FLAGS_B1ACTIVE 1      /* B-Channel-1 is open           */
-drivers/isdn/isdnloop/isdnloop.h:#define ISDNLOOP_FLAGS_B2ACTIVE 2      /* B-Channel-2 is open           */
+These patch series is the V3 version adapted to the already merged patches
+from V1 and other merged patches. It does no longer rename constants (see
+V1 of this series), as stated by Mauro as a no-go. It still fixed nearly
+all the style issues reported by checkpatch.pl in
+dvb-core/dvb_ca_en50221.c. In addtion also the checks have been fixed. I
+also renamed the patch title, because "Make checkpatch happy ?" is a bad
+title and checkpatch complained about it. I also refactored the state
+machine a bit more and added the new function dvb_ca_en50221_poll_cam_gone
+in a new patch.
+ 
+Two of the remaining warnings are "WARNING: memory barrier without
+comment". I have really no clue why there is a call to "mb()" in that file,
+so I can't fill in a good comment.
+ 
+I kept some of the "WARNING: line over 80 characters" findings, which are 
+strings for debugging, which shouldn't be split in several lines (will 
+give other warning). And some lines, where a change would decrease the
+readability. There it would be better to split the functions in new
+subroutines, which I currently didn't.
+ 
+And finally one "WARNING: Prefer [subsystem eg: netdev]_dbg", complaining
+about the "dprintk" macro. In my opinion it is correctly used and it is
+normally disabled anyway.
+ 
+The main problem of the original code was the size of the lines and the
+structural complexity of some functions. Beside refactoring of the thread
+state machine, I used in nearly every function a helper pointer "sl" (for
+"slot" structure) instead the whole structure path. This saved also a lot
+of characters in long lines and made the code more readable in my opinion.
+ 
+I split the patch set is small pieces for easier review, compiled each
+step and tested the resulting driver on my hardware with the DD DuoFlex CI
+(single) card. I took a lot of care in the first two patches to really
+keep the code as is without loosing any line during refactoring.
 
-Perhaps this is a logic defect and should be:
+Each patch has been tested for compiling and is therefore bisect save.
+I also tested the complete patch set with two CAMs and did several plug-
+unplug cycles. And the CAM did decode the program as expected.
 
-		if (!(card->flags & ((channel) ? ISDNLOOP_FLAGS_B2ACTIVE : ISDNLOOP_FLAGS_B1ACTIVE)))
+Additional note:
+In the first patch there are two checks "Logical continuations should be
+on the previous line" which can't be fixed easily without braking the 80
+col limit. Both of them will be resolved automatically with the 2nd patch
+"New function dvb_ca_en50221_poll_cam_gone".
+
+Jasmin Jessich (16):
+  [media] dvb-core/dvb_ca_en50221.c: Refactored dvb_ca_en50221_thread
+  [media] dvb-core/dvb_ca_en50221.c: New function dvb_ca_en50221_poll_cam_gone
+  [media] dvb-core/dvb_ca_en50221.c: use usleep_range
+  [media] dvb-core/dvb_ca_en50221.c: Fixed block comments
+  [media] dvb-core/dvb_ca_en50221.c: Avoid assignments in ifs
+  [media] dvb-core/dvb_ca_en50221.c: Used a helper variable
+  [media] dvb-core/dvb_ca_en50221.c: Added line breaks
+  [media] dvb-core/dvb_ca_en50221.c: Removed useless braces
+  [media] dvb-core/dvb_ca_en50221.c: Removed unused symbol
+  [media] dvb-core/dvb_ca_en50221.c: Fixed C++ comments
+  [media] dvb-core/dvb_ca_en50221.c: Fixed 80 char limit
+  [media] dvb-core/dvb_ca_en50221.c: Fixed typo
+  [media] dvb-core/dvb_ca_en50221.c: Fix again wrong EXPORT_SYMBOL order
+  [media] dvb-core/dvb_ca_en50221.c: Fixed remaining block comments
+  [media] dvb-core/dvb_ca_en50221.c: Fixed style issues on the whole file
+  [media] dvb-core/dvb_ca_en50221.c: Fixed multiple blank lines
+
+ drivers/media/dvb-core/dvb_ca_en50221.c | 945 +++++++++++++++++---------------
+ 1 file changed, 512 insertions(+), 433 deletions(-)
+
+-- 
+2.7.4
