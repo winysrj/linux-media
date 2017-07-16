@@ -1,207 +1,501 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:46785 "EHLO
-        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751032AbdGOPQc (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:46712 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751234AbdGPKsH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Jul 2017 11:16:32 -0400
-Date: Sat, 15 Jul 2017 17:16:29 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Philipp Zabel <philipp.zabel@gmail.com>
-cc: linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Philipp Zabel <philipp.zabel@gmail.com>, kbuild-all@01.org
-Subject: Re: [PATCH 1/3] [media] uvcvideo: variable size controls (fwd)
-Message-ID: <alpine.DEB.2.20.1707151714530.2468@hadrien>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        Sun, 16 Jul 2017 06:48:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, Eric Anholt <eric@anholt.net>,
+        boris.brezillon@free-electrons.com,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 3/3] drm/vc4: add HDMI CEC support
+Date: Sun, 16 Jul 2017 12:48:04 +0200
+Message-Id: <20170716104804.48308-4-hverkuil@xs4all.nl>
+In-Reply-To: <20170716104804.48308-1-hverkuil@xs4all.nl>
+References: <20170716104804.48308-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is a double free on data if the goto is taken on line 1815.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-julia
+This patch adds support to VC4 for CEC.
 
----------- Forwarded message ----------
-Date: Sat, 15 Jul 2017 21:07:03 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: kbuild@01.org
-Cc: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH 1/3] [media] uvcvideo: variable size controls
+Thanks to Eric Anholt for providing me with the CEC register information.
 
-CC: kbuild-all@01.org
-In-Reply-To: <20170714201424.23592-1-philipp.zabel@gmail.com>
-TO: Philipp Zabel <philipp.zabel@gmail.com>
-CC: linux-media@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Philipp Zabel <philipp.zabel@gmail.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Philipp Zabel <philipp.zabel@gmail.com>
+To prevent the firmware from eating the CEC interrupts you need to add this to
+your config.txt:
 
-Hi Philipp,
+mask_gpu_interrupt1=0x100
 
-[auto build test WARNING on linuxtv-media/master]
-[also build test WARNING on v4.12 next-20170714]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-
-url:    https://github.com/0day-ci/linux/commits/Philipp-Zabel/uvcvideo-variable-size-controls/20170715-193137
-base:   git://linuxtv.org/media_tree.git master
-:::::: branch date: 2 hours ago
-:::::: commit date: 2 hours ago
-
->> drivers/media/usb/uvc/uvc_ctrl.c:1857:7-11: ERROR: reference preceded by free on line 1809
-
-git remote add linux-review https://github.com/0day-ci/linux
-git remote update linux-review
-git checkout f06e94cde314fba5859cd6c999dde48e94156c7a
-vim +1857 drivers/media/usb/uvc/uvc_ctrl.c
-
-52c58ad6f drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-09-29  1719
-8e113595e drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2009-07-01  1720  int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1721  	struct uvc_xu_control_query *xqry)
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1722  {
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1723  	struct uvc_entity *entity;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1724  	struct uvc_control *ctrl;
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1725  	unsigned int i, found = 0;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1726  	__u32 reqflags;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1727  	__u16 size;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1728  	__u8 *data = NULL;
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1729  	int ret;
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1730
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1731  	/* Find the extension unit. */
-6241d8ca1 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2009-11-25  1732  	list_for_each_entry(entity, &chain->entities, chain) {
-6241d8ca1 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2009-11-25  1733  		if (UVC_ENTITY_TYPE(entity) == UVC_VC_EXTENSION_UNIT &&
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1734  		    entity->id == xqry->unit)
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1735  			break;
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1736  	}
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1737
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1738  	if (entity->id != xqry->unit) {
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1739  		uvc_trace(UVC_TRACE_CONTROL, "Extension unit %u not found.\n",
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1740  			xqry->unit);
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1741  		return -ENOENT;
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1742  	}
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1743
-52c58ad6f drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-09-29  1744  	/* Find the control and perform delayed initialization if needed. */
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1745  	for (i = 0; i < entity->ncontrols; ++i) {
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1746  		ctrl = &entity->controls[i];
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1747  		if (ctrl->index == xqry->selector - 1) {
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1748  			found = 1;
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1749  			break;
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1750  		}
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1751  	}
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1752
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1753  	if (!found) {
-36bd883ef drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-01-19  1754  		uvc_trace(UVC_TRACE_CONTROL, "Control %pUl/%u not found.\n",
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1755  			entity->extension.guidExtensionCode, xqry->selector);
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1756  		return -ENOENT;
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1757  	}
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1758
-27a61c13e drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-10-02  1759  	if (mutex_lock_interruptible(&chain->ctrl_mutex))
-27a61c13e drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-10-02  1760  		return -ERESTARTSYS;
-27a61c13e drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-10-02  1761
-52c58ad6f drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-09-29  1762  	ret = uvc_ctrl_init_xu_ctrl(chain->dev, ctrl);
-27a61c13e drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-10-02  1763  	if (ret < 0) {
-27a61c13e drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-10-02  1764  		ret = -ENOENT;
-27a61c13e drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-10-02  1765  		goto done;
-27a61c13e drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-10-02  1766  	}
-52c58ad6f drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-09-29  1767
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1768  	/* Validate the required buffer size and flags for the request */
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1769  	reqflags = 0;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1770  	size = ctrl->info.size;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1771
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1772  	switch (xqry->query) {
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1773  	case UVC_GET_CUR:
-9eb30d2fa drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-11-21  1774  		reqflags = UVC_CTRL_FLAG_GET_CUR;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1775  		break;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1776  	case UVC_GET_MIN:
-9eb30d2fa drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-11-21  1777  		reqflags = UVC_CTRL_FLAG_GET_MIN;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1778  		break;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1779  	case UVC_GET_MAX:
-9eb30d2fa drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-11-21  1780  		reqflags = UVC_CTRL_FLAG_GET_MAX;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1781  		break;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1782  	case UVC_GET_DEF:
-9eb30d2fa drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-11-21  1783  		reqflags = UVC_CTRL_FLAG_GET_DEF;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1784  		break;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1785  	case UVC_GET_RES:
-9eb30d2fa drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-11-21  1786  		reqflags = UVC_CTRL_FLAG_GET_RES;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1787  		break;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1788  	case UVC_SET_CUR:
-9eb30d2fa drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-11-21  1789  		reqflags = UVC_CTRL_FLAG_SET_CUR;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1790  		break;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1791  	case UVC_GET_LEN:
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1792  		size = 2;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1793  		break;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1794  	case UVC_GET_INFO:
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1795  		size = 1;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1796  		break;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1797  	default:
-27a61c13e drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-10-02  1798  		ret = -EINVAL;
-27a61c13e drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-10-02  1799  		goto done;
-27a61c13e drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-10-02  1800  	}
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1801
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1802  	if ((ctrl->info.flags & UVC_CTRL_FLAG_VARIABLE_LEN) && reqflags) {
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1803  		data = kmalloc(2, GFP_KERNEL);
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1804  		/* Check if the control length has changed */
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1805  		ret = uvc_query_ctrl(chain->dev, UVC_GET_LEN, xqry->unit,
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1806  				     chain->dev->intfnum, xqry->selector, data,
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1807  				     2);
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1808  		size = le16_to_cpup((__le16 *)data);
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14 @1809  		kfree(data);
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1810  		if (ret < 0) {
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1811  			uvc_trace(UVC_TRACE_CONTROL,
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1812  				  "GET_LEN failed on control %pUl/%u (%d).\n",
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1813  				  entity->extension.guidExtensionCode,
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1814  				  xqry->selector, ret);
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1815  			goto done;
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1816  		}
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1817  		if (ctrl->info.size != size) {
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1818  			uvc_trace(UVC_TRACE_CONTROL,
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1819  				  "XU control %pUl/%u queried: len %u -> %u\n",
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1820  				  entity->extension.guidExtensionCode,
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1821  				  xqry->selector, ctrl->info.size, size);
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1822  			ctrl->info.size = size;
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1823  		}
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1824  	}
-f06e94cde drivers/media/usb/uvc/uvc_ctrl.c   Philipp Zabel    2017-07-14  1825
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1826  	if (size != xqry->size) {
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1827  		ret = -ENOBUFS;
-27a61c13e drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-10-02  1828  		goto done;
-27a61c13e drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-10-02  1829  	}
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1830
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1831  	if (reqflags && !(ctrl->info.flags & reqflags)) {
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1832  		ret = -EBADRQC;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1833  		goto done;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1834  	}
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1835
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1836  	data = kmalloc(size, GFP_KERNEL);
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1837  	if (data == NULL) {
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1838  		ret = -ENOMEM;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1839  		goto done;
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1840  	}
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1841
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1842  	if (xqry->query == UVC_SET_CUR &&
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1843  	    copy_from_user(data, xqry->data, size)) {
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1844  		ret = -EFAULT;
-27a61c13e drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-10-02  1845  		goto done;
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1846  	}
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1847
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1848  	ret = uvc_query_ctrl(chain->dev, xqry->query, xqry->unit,
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1849  			     chain->dev->intfnum, xqry->selector, data, size);
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1850  	if (ret < 0)
-27a61c13e drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-10-02  1851  		goto done;
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1852
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1853  	if (xqry->query != UVC_SET_CUR &&
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02  1854  	    copy_to_user(xqry->data, data, size))
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1855  		ret = -EFAULT;
-27a61c13e drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2010-10-02  1856  done:
-fe78d187f drivers/media/video/uvc/uvc_ctrl.c Martin Rubli     2010-10-02 @1857  	kfree(data);
-8e113595e drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2009-07-01  1858  	mutex_unlock(&chain->ctrl_mutex);
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1859  	return ret;
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1860  }
-c0efd2329 drivers/media/video/uvc/uvc_ctrl.c Laurent Pinchart 2008-06-30  1861
-
-:::::: The code at line 1857 was first introduced by commit
-:::::: fe78d187fe792fac5d190b19a2806c23df28891e [media] uvcvideo: Add UVCIOC_CTRL_QUERY ioctl
-
-:::::: TO: Martin Rubli <martin_rubli@logitech.com>
-:::::: CC: Mauro Carvalho Chehab <mchehab@redhat.com>
-
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Eric Anholt <eric@anholt.net>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ drivers/gpu/drm/vc4/Kconfig    |   8 ++
+ drivers/gpu/drm/vc4/vc4_hdmi.c | 227 +++++++++++++++++++++++++++++++++++++++--
+ drivers/gpu/drm/vc4/vc4_regs.h | 113 ++++++++++++++++++++
+ 3 files changed, 342 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/gpu/drm/vc4/Kconfig b/drivers/gpu/drm/vc4/Kconfig
+index 4361bdcfd28a..fdae18aeab4f 100644
+--- a/drivers/gpu/drm/vc4/Kconfig
++++ b/drivers/gpu/drm/vc4/Kconfig
+@@ -19,3 +19,11 @@ config DRM_VC4
+ 	  This driver requires that "avoid_warnings=2" be present in
+ 	  the config.txt for the firmware, to keep it from smashing
+ 	  our display setup.
++
++config DRM_VC4_HDMI_CEC
++       bool "Broadcom VC4 HDMI CEC Support"
++       depends on DRM_VC4
++       select CEC_CORE
++       help
++	  Choose this option if you have a Broadcom VC4 GPU
++	  and want to use CEC.
+diff --git a/drivers/gpu/drm/vc4/vc4_hdmi.c b/drivers/gpu/drm/vc4/vc4_hdmi.c
+index e0104f96011e..761b95f5deed 100644
+--- a/drivers/gpu/drm/vc4/vc4_hdmi.c
++++ b/drivers/gpu/drm/vc4/vc4_hdmi.c
+@@ -57,9 +57,14 @@
+ #include <sound/pcm_drm_eld.h>
+ #include <sound/pcm_params.h>
+ #include <sound/soc.h>
++#include "media/cec.h"
+ #include "vc4_drv.h"
+ #include "vc4_regs.h"
+ 
++#define HSM_CLOCK_FREQ 163682864
++#define CEC_CLOCK_FREQ 40000
++#define CEC_CLOCK_DIV  (HSM_CLOCK_FREQ / CEC_CLOCK_FREQ)
++
+ /* HDMI audio information */
+ struct vc4_hdmi_audio {
+ 	struct snd_soc_card card;
+@@ -85,6 +90,11 @@ struct vc4_hdmi {
+ 	int hpd_gpio;
+ 	bool hpd_active_low;
+ 
++	struct cec_adapter *cec_adap;
++	struct cec_msg cec_rx_msg;
++	bool cec_tx_ok;
++	bool cec_irq_was_rx;
++
+ 	struct clk *pixel_clock;
+ 	struct clk *hsm_clock;
+ };
+@@ -149,6 +159,23 @@ static const struct {
+ 	HDMI_REG(VC4_HDMI_VERTB1),
+ 	HDMI_REG(VC4_HDMI_TX_PHY_RESET_CTL),
+ 	HDMI_REG(VC4_HDMI_TX_PHY_CTL0),
++
++	HDMI_REG(VC4_HDMI_CEC_CNTRL_1),
++	HDMI_REG(VC4_HDMI_CEC_CNTRL_2),
++	HDMI_REG(VC4_HDMI_CEC_CNTRL_3),
++	HDMI_REG(VC4_HDMI_CEC_CNTRL_4),
++	HDMI_REG(VC4_HDMI_CEC_CNTRL_5),
++	HDMI_REG(VC4_HDMI_CPU_STATUS),
++	HDMI_REG(VC4_HDMI_CPU_MASK_STATUS),
++
++	HDMI_REG(VC4_HDMI_CEC_RX_DATA_1),
++	HDMI_REG(VC4_HDMI_CEC_RX_DATA_2),
++	HDMI_REG(VC4_HDMI_CEC_RX_DATA_3),
++	HDMI_REG(VC4_HDMI_CEC_RX_DATA_4),
++	HDMI_REG(VC4_HDMI_CEC_TX_DATA_1),
++	HDMI_REG(VC4_HDMI_CEC_TX_DATA_2),
++	HDMI_REG(VC4_HDMI_CEC_TX_DATA_3),
++	HDMI_REG(VC4_HDMI_CEC_TX_DATA_4),
+ };
+ 
+ static const struct {
+@@ -216,8 +243,8 @@ vc4_hdmi_connector_detect(struct drm_connector *connector, bool force)
+ 		if (gpio_get_value_cansleep(vc4->hdmi->hpd_gpio) ^
+ 		    vc4->hdmi->hpd_active_low)
+ 			return connector_status_connected;
+-		else
+-			return connector_status_disconnected;
++		cec_phys_addr_invalidate(vc4->hdmi->cec_adap);
++		return connector_status_disconnected;
+ 	}
+ 
+ 	if (drm_probe_ddc(vc4->hdmi->ddc))
+@@ -225,8 +252,8 @@ vc4_hdmi_connector_detect(struct drm_connector *connector, bool force)
+ 
+ 	if (HDMI_READ(VC4_HDMI_HOTPLUG) & VC4_HDMI_HOTPLUG_CONNECTED)
+ 		return connector_status_connected;
+-	else
+-		return connector_status_disconnected;
++	cec_phys_addr_invalidate(vc4->hdmi->cec_adap);
++	return connector_status_disconnected;
+ }
+ 
+ static void vc4_hdmi_connector_destroy(struct drm_connector *connector)
+@@ -247,6 +274,7 @@ static int vc4_hdmi_connector_get_modes(struct drm_connector *connector)
+ 	struct edid *edid;
+ 
+ 	edid = drm_get_edid(connector, vc4->hdmi->ddc);
++	cec_s_phys_addr_from_edid(vc4->hdmi->cec_adap, edid);
+ 	if (!edid)
+ 		return -ENODEV;
+ 
+@@ -1121,6 +1149,159 @@ static void vc4_hdmi_audio_cleanup(struct vc4_hdmi *hdmi)
+ 		snd_soc_unregister_codec(dev);
+ }
+ 
++#ifdef CONFIG_DRM_VC4_HDMI_CEC
++static irqreturn_t vc4_cec_irq_handler_thread(int irq, void *priv)
++{
++	struct vc4_dev *vc4 = priv;
++	struct vc4_hdmi *hdmi = vc4->hdmi;
++
++	if (hdmi->cec_irq_was_rx) {
++		if (hdmi->cec_rx_msg.len)
++			cec_received_msg(hdmi->cec_adap, &hdmi->cec_rx_msg);
++	} else if (hdmi->cec_tx_ok) {
++		cec_transmit_done(hdmi->cec_adap, CEC_TX_STATUS_OK,
++				  0, 0, 0, 0);
++	} else {
++		/*
++		 * This CEC implementation makes 1 retry, so if we
++		 * get a NACK, then that means it made 2 attempts.
++		 */
++		cec_transmit_done(hdmi->cec_adap, CEC_TX_STATUS_NACK,
++				  0, 2, 0, 0);
++	}
++	return IRQ_HANDLED;
++}
++
++static void vc4_cec_read_msg(struct vc4_dev *vc4, u32 cntrl1)
++{
++	struct cec_msg *msg = &vc4->hdmi->cec_rx_msg;
++	unsigned int i;
++
++	msg->len = 1 + ((cntrl1 & VC4_HDMI_CEC_REC_WRD_CNT_MASK) >>
++					VC4_HDMI_CEC_REC_WRD_CNT_SHIFT);
++	for (i = 0; i < msg->len; i += 4) {
++		u32 val = HDMI_READ(VC4_HDMI_CEC_RX_DATA_1 + i);
++
++		msg->msg[i] = val & 0xff;
++		msg->msg[i + 1] = (val >> 8) & 0xff;
++		msg->msg[i + 2] = (val >> 16) & 0xff;
++		msg->msg[i + 3] = (val >> 24) & 0xff;
++	}
++}
++
++static irqreturn_t vc4_cec_irq_handler(int irq, void *priv)
++{
++	struct vc4_dev *vc4 = priv;
++	struct vc4_hdmi *hdmi = vc4->hdmi;
++	u32 stat = HDMI_READ(VC4_HDMI_CPU_STATUS);
++	u32 cntrl1, cntrl5;
++
++	if (!(stat & VC4_HDMI_CPU_CEC))
++		return IRQ_NONE;
++	hdmi->cec_rx_msg.len = 0;
++	cntrl1 = HDMI_READ(VC4_HDMI_CEC_CNTRL_1);
++	cntrl5 = HDMI_READ(VC4_HDMI_CEC_CNTRL_5);
++	hdmi->cec_irq_was_rx = cntrl5 & VC4_HDMI_CEC_RX_CEC_INT;
++	if (hdmi->cec_irq_was_rx) {
++		vc4_cec_read_msg(vc4, cntrl1);
++		cntrl1 |= VC4_HDMI_CEC_CLEAR_RECEIVE_OFF;
++		HDMI_WRITE(VC4_HDMI_CEC_CNTRL_1, cntrl1);
++		cntrl1 &= ~VC4_HDMI_CEC_CLEAR_RECEIVE_OFF;
++	} else {
++		hdmi->cec_tx_ok = cntrl1 & VC4_HDMI_CEC_TX_STATUS_GOOD;
++		cntrl1 &= ~VC4_HDMI_CEC_START_XMIT_BEGIN;
++	}
++	HDMI_WRITE(VC4_HDMI_CEC_CNTRL_1, cntrl1);
++	HDMI_WRITE(VC4_HDMI_CPU_CLEAR, VC4_HDMI_CPU_CEC);
++
++	return IRQ_WAKE_THREAD;
++}
++
++static int vc4_hdmi_cec_adap_enable(struct cec_adapter *adap, bool enable)
++{
++	struct vc4_dev *vc4 = cec_get_drvdata(adap);
++	/* clock period in microseconds */
++	const u32 usecs = 1000000 / CEC_CLOCK_FREQ;
++	u32 val = HDMI_READ(VC4_HDMI_CEC_CNTRL_5);
++
++	val &= ~(VC4_HDMI_CEC_TX_SW_RESET | VC4_HDMI_CEC_RX_SW_RESET |
++		 VC4_HDMI_CEC_CNT_TO_4700_US_MASK |
++		 VC4_HDMI_CEC_CNT_TO_4500_US_MASK);
++	val |= ((4700 / usecs) << VC4_HDMI_CEC_CNT_TO_4700_US_SHIFT) |
++	       ((4500 / usecs) << VC4_HDMI_CEC_CNT_TO_4500_US_SHIFT);
++
++	if (enable) {
++		HDMI_WRITE(VC4_HDMI_CEC_CNTRL_5, val |
++			   VC4_HDMI_CEC_TX_SW_RESET | VC4_HDMI_CEC_RX_SW_RESET);
++		HDMI_WRITE(VC4_HDMI_CEC_CNTRL_5, val);
++		HDMI_WRITE(VC4_HDMI_CEC_CNTRL_2,
++			 ((1500 / usecs) << VC4_HDMI_CEC_CNT_TO_1500_US_SHIFT) |
++			 ((1300 / usecs) << VC4_HDMI_CEC_CNT_TO_1300_US_SHIFT) |
++			 ((800 / usecs) << VC4_HDMI_CEC_CNT_TO_800_US_SHIFT) |
++			 ((600 / usecs) << VC4_HDMI_CEC_CNT_TO_600_US_SHIFT) |
++			 ((400 / usecs) << VC4_HDMI_CEC_CNT_TO_400_US_SHIFT));
++		HDMI_WRITE(VC4_HDMI_CEC_CNTRL_3,
++			 ((2750 / usecs) << VC4_HDMI_CEC_CNT_TO_2750_US_SHIFT) |
++			 ((2400 / usecs) << VC4_HDMI_CEC_CNT_TO_2400_US_SHIFT) |
++			 ((2050 / usecs) << VC4_HDMI_CEC_CNT_TO_2050_US_SHIFT) |
++			 ((1700 / usecs) << VC4_HDMI_CEC_CNT_TO_1700_US_SHIFT));
++		HDMI_WRITE(VC4_HDMI_CEC_CNTRL_4,
++			 ((4300 / usecs) << VC4_HDMI_CEC_CNT_TO_4300_US_SHIFT) |
++			 ((3900 / usecs) << VC4_HDMI_CEC_CNT_TO_3900_US_SHIFT) |
++			 ((3600 / usecs) << VC4_HDMI_CEC_CNT_TO_3600_US_SHIFT) |
++			 ((3500 / usecs) << VC4_HDMI_CEC_CNT_TO_3500_US_SHIFT));
++
++		HDMI_WRITE(VC4_HDMI_CPU_MASK_CLEAR, VC4_HDMI_CPU_CEC);
++	} else {
++		HDMI_WRITE(VC4_HDMI_CPU_MASK_SET, VC4_HDMI_CPU_CEC);
++		HDMI_WRITE(VC4_HDMI_CEC_CNTRL_5, val |
++			   VC4_HDMI_CEC_TX_SW_RESET | VC4_HDMI_CEC_RX_SW_RESET);
++	}
++	return 0;
++}
++
++static int vc4_hdmi_cec_adap_log_addr(struct cec_adapter *adap, u8 log_addr)
++{
++	struct vc4_dev *vc4 = cec_get_drvdata(adap);
++
++	HDMI_WRITE(VC4_HDMI_CEC_CNTRL_1,
++		   (HDMI_READ(VC4_HDMI_CEC_CNTRL_1) & ~VC4_HDMI_CEC_ADDR_MASK) |
++		   (log_addr & 0xf) << VC4_HDMI_CEC_ADDR_SHIFT);
++	return 0;
++}
++
++static int vc4_hdmi_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
++				      u32 signal_free_time, struct cec_msg *msg)
++{
++	struct vc4_dev *vc4 = cec_get_drvdata(adap);
++	u32 val;
++	unsigned int i;
++
++	for (i = 0; i < msg->len; i += 4)
++		HDMI_WRITE(VC4_HDMI_CEC_TX_DATA_1 + i,
++			   (msg->msg[i]) |
++			   (msg->msg[i + 1] << 8) |
++			   (msg->msg[i + 2] << 16) |
++			   (msg->msg[i + 3] << 24));
++
++	val = HDMI_READ(VC4_HDMI_CEC_CNTRL_1);
++	val &= ~VC4_HDMI_CEC_START_XMIT_BEGIN;
++	HDMI_WRITE(VC4_HDMI_CEC_CNTRL_1, val);
++	val &= ~VC4_HDMI_CEC_MESSAGE_LENGTH_MASK;
++	val |= (msg->len - 1) << VC4_HDMI_CEC_MESSAGE_LENGTH_SHIFT;
++	val |= VC4_HDMI_CEC_START_XMIT_BEGIN;
++
++	HDMI_WRITE(VC4_HDMI_CEC_CNTRL_1, val);
++	return 0;
++}
++
++static const struct cec_adap_ops vc4_hdmi_cec_adap_ops = {
++	.adap_enable = vc4_hdmi_cec_adap_enable,
++	.adap_log_addr = vc4_hdmi_cec_adap_log_addr,
++	.adap_transmit = vc4_hdmi_cec_adap_transmit,
++};
++#endif
++
+ static int vc4_hdmi_bind(struct device *dev, struct device *master, void *data)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+@@ -1180,7 +1361,7 @@ static int vc4_hdmi_bind(struct device *dev, struct device *master, void *data)
+ 	 * needs to be a bit higher than the pixel clock rate
+ 	 * (generally 148.5Mhz).
+ 	 */
+-	ret = clk_set_rate(hdmi->hsm_clock, 163682864);
++	ret = clk_set_rate(hdmi->hsm_clock, HSM_CLOCK_FREQ);
+ 	if (ret) {
+ 		DRM_ERROR("Failed to set HSM clock rate: %d\n", ret);
+ 		goto err_put_i2c;
+@@ -1231,6 +1412,34 @@ static int vc4_hdmi_bind(struct device *dev, struct device *master, void *data)
+ 		ret = PTR_ERR(hdmi->connector);
+ 		goto err_destroy_encoder;
+ 	}
++#ifdef CONFIG_DRM_VC4_HDMI_CEC
++	hdmi->cec_adap = cec_allocate_adapter(&vc4_hdmi_cec_adap_ops,
++		vc4, "vc4", CEC_CAP_TRANSMIT | CEC_CAP_LOG_ADDRS |
++		CEC_CAP_PASSTHROUGH | CEC_CAP_RC, 1);
++	ret = PTR_ERR_OR_ZERO(hdmi->cec_adap);
++	if (ret < 0)
++		goto err_destroy_conn;
++	HDMI_WRITE(VC4_HDMI_CPU_MASK_SET, 0xffffffff);
++	value = HDMI_READ(VC4_HDMI_CEC_CNTRL_1);
++	value &= ~VC4_HDMI_CEC_DIV_CLK_CNT_MASK;
++	/*
++	 * Set the logical address to Unregistered and set the clock
++	 * divider: the hsm_clock rate and this divider setting will
++	 * give a 40 kHz CEC clock.
++	 */
++	value |= VC4_HDMI_CEC_ADDR_MASK |
++		 (4091 << VC4_HDMI_CEC_DIV_CLK_CNT_SHIFT);
++	HDMI_WRITE(VC4_HDMI_CEC_CNTRL_1, value);
++	ret = devm_request_threaded_irq(dev, platform_get_irq(pdev, 0),
++					vc4_cec_irq_handler,
++					vc4_cec_irq_handler_thread, 0,
++					"vc4 hdmi cec", vc4);
++	if (ret)
++		goto err_delete_cec_adap;
++	ret = cec_register_adapter(hdmi->cec_adap, dev);
++	if (ret < 0)
++		goto err_delete_cec_adap;
++#endif
+ 
+ 	ret = vc4_hdmi_audio_init(hdmi);
+ 	if (ret)
+@@ -1238,6 +1447,12 @@ static int vc4_hdmi_bind(struct device *dev, struct device *master, void *data)
+ 
+ 	return 0;
+ 
++#ifdef CONFIG_DRM_VC4_HDMI_CEC
++err_delete_cec_adap:
++	cec_delete_adapter(hdmi->cec_adap);
++err_destroy_conn:
++	vc4_hdmi_connector_destroy(hdmi->connector);
++#endif
+ err_destroy_encoder:
+ 	vc4_hdmi_encoder_destroy(hdmi->encoder);
+ err_unprepare_hsm:
+@@ -1257,7 +1472,7 @@ static void vc4_hdmi_unbind(struct device *dev, struct device *master,
+ 	struct vc4_hdmi *hdmi = vc4->hdmi;
+ 
+ 	vc4_hdmi_audio_cleanup(hdmi);
+-
++	cec_unregister_adapter(hdmi->cec_adap);
+ 	vc4_hdmi_connector_destroy(hdmi->connector);
+ 	vc4_hdmi_encoder_destroy(hdmi->encoder);
+ 
+diff --git a/drivers/gpu/drm/vc4/vc4_regs.h b/drivers/gpu/drm/vc4/vc4_regs.h
+index d382c34c1b9e..55677bd50f66 100644
+--- a/drivers/gpu/drm/vc4/vc4_regs.h
++++ b/drivers/gpu/drm/vc4/vc4_regs.h
+@@ -561,16 +561,129 @@
+ # define VC4_HDMI_VERTB_VBP_MASK		VC4_MASK(8, 0)
+ # define VC4_HDMI_VERTB_VBP_SHIFT		0
+ 
++#define VC4_HDMI_CEC_CNTRL_1			0x0e8
++/* Set when the transmission has ended. */
++# define VC4_HDMI_CEC_TX_EOM			BIT(31)
++/* If set, transmission was acked on the 1st or 2nd attempt (only one
++ * retry is attempted).  If in continuous mode, this means TX needs to
++ * be filled if !TX_EOM.
++ */
++# define VC4_HDMI_CEC_TX_STATUS_GOOD		BIT(30)
++# define VC4_HDMI_CEC_RX_EOM			BIT(29)
++# define VC4_HDMI_CEC_RX_STATUS_GOOD		BIT(28)
++/* Number of bytes received for the message. */
++# define VC4_HDMI_CEC_REC_WRD_CNT_MASK		VC4_MASK(27, 24)
++# define VC4_HDMI_CEC_REC_WRD_CNT_SHIFT		24
++/* Sets continuous receive mode.  Generates interrupt after each 8
++ * bytes to signal that RX_DATA should be consumed, and at RX_EOM.
++ *
++ * If disabled, maximum 16 bytes will be received (including header),
++ * and interrupt at RX_EOM.  Later bytes will be acked but not put
++ * into the RX_DATA.
++ */
++# define VC4_HDMI_CEC_RX_CONTINUE		BIT(23)
++# define VC4_HDMI_CEC_TX_CONTINUE		BIT(22)
++/* Set this after a CEC interrupt. */
++# define VC4_HDMI_CEC_CLEAR_RECEIVE_OFF		BIT(21)
++/* Starts a TX.  Will wait for appropriate idel time before CEC
++ * activity. Must be cleared in between transmits.
++ */
++# define VC4_HDMI_CEC_START_XMIT_BEGIN		BIT(20)
++# define VC4_HDMI_CEC_MESSAGE_LENGTH_MASK	VC4_MASK(19, 16)
++# define VC4_HDMI_CEC_MESSAGE_LENGTH_SHIFT	16
++/* Device's CEC address */
++# define VC4_HDMI_CEC_ADDR_MASK			VC4_MASK(15, 12)
++# define VC4_HDMI_CEC_ADDR_SHIFT		12
++/* Divides off of HSM clock to generate CEC bit clock. */
++/* With the current defaults the CEC bit clock is 40 kHz = 25 usec */
++# define VC4_HDMI_CEC_DIV_CLK_CNT_MASK		VC4_MASK(11, 0)
++# define VC4_HDMI_CEC_DIV_CLK_CNT_SHIFT		0
++
++/* Set these fields to how many bit clock cycles get to that many
++ * microseconds.
++ */
++#define VC4_HDMI_CEC_CNTRL_2			0x0ec
++# define VC4_HDMI_CEC_CNT_TO_1500_US_MASK	VC4_MASK(30, 24)
++# define VC4_HDMI_CEC_CNT_TO_1500_US_SHIFT	24
++# define VC4_HDMI_CEC_CNT_TO_1300_US_MASK	VC4_MASK(23, 17)
++# define VC4_HDMI_CEC_CNT_TO_1300_US_SHIFT	17
++# define VC4_HDMI_CEC_CNT_TO_800_US_MASK	VC4_MASK(16, 11)
++# define VC4_HDMI_CEC_CNT_TO_800_US_SHIFT	11
++# define VC4_HDMI_CEC_CNT_TO_600_US_MASK	VC4_MASK(10, 5)
++# define VC4_HDMI_CEC_CNT_TO_600_US_SHIFT	5
++# define VC4_HDMI_CEC_CNT_TO_400_US_MASK	VC4_MASK(4, 0)
++# define VC4_HDMI_CEC_CNT_TO_400_US_SHIFT	0
++
++#define VC4_HDMI_CEC_CNTRL_3			0x0f0
++# define VC4_HDMI_CEC_CNT_TO_2750_US_MASK	VC4_MASK(31, 24)
++# define VC4_HDMI_CEC_CNT_TO_2750_US_SHIFT	24
++# define VC4_HDMI_CEC_CNT_TO_2400_US_MASK	VC4_MASK(23, 16)
++# define VC4_HDMI_CEC_CNT_TO_2400_US_SHIFT	16
++# define VC4_HDMI_CEC_CNT_TO_2050_US_MASK	VC4_MASK(15, 8)
++# define VC4_HDMI_CEC_CNT_TO_2050_US_SHIFT	8
++# define VC4_HDMI_CEC_CNT_TO_1700_US_MASK	VC4_MASK(7, 0)
++# define VC4_HDMI_CEC_CNT_TO_1700_US_SHIFT	0
++
++#define VC4_HDMI_CEC_CNTRL_4			0x0f4
++# define VC4_HDMI_CEC_CNT_TO_4300_US_MASK	VC4_MASK(31, 24)
++# define VC4_HDMI_CEC_CNT_TO_4300_US_SHIFT	24
++# define VC4_HDMI_CEC_CNT_TO_3900_US_MASK	VC4_MASK(23, 16)
++# define VC4_HDMI_CEC_CNT_TO_3900_US_SHIFT	16
++# define VC4_HDMI_CEC_CNT_TO_3600_US_MASK	VC4_MASK(15, 8)
++# define VC4_HDMI_CEC_CNT_TO_3600_US_SHIFT	8
++# define VC4_HDMI_CEC_CNT_TO_3500_US_MASK	VC4_MASK(7, 0)
++# define VC4_HDMI_CEC_CNT_TO_3500_US_SHIFT	0
++
++#define VC4_HDMI_CEC_CNTRL_5			0x0f8
++# define VC4_HDMI_CEC_TX_SW_RESET		BIT(27)
++# define VC4_HDMI_CEC_RX_SW_RESET		BIT(26)
++# define VC4_HDMI_CEC_PAD_SW_RESET		BIT(25)
++# define VC4_HDMI_CEC_MUX_TP_OUT_CEC		BIT(24)
++# define VC4_HDMI_CEC_RX_CEC_INT		BIT(23)
++# define VC4_HDMI_CEC_CLK_PRELOAD_MASK		VC4_MASK(22, 16)
++# define VC4_HDMI_CEC_CLK_PRELOAD_SHIFT		16
++# define VC4_HDMI_CEC_CNT_TO_4700_US_MASK	VC4_MASK(15, 8)
++# define VC4_HDMI_CEC_CNT_TO_4700_US_SHIFT	8
++# define VC4_HDMI_CEC_CNT_TO_4500_US_MASK	VC4_MASK(7, 0)
++# define VC4_HDMI_CEC_CNT_TO_4500_US_SHIFT	0
++
++/* Transmit data, first byte is low byte of the 32-bit reg.  MSB of
++ * each byte transmitted first.
++ */
++#define VC4_HDMI_CEC_TX_DATA_1			0x0fc
++#define VC4_HDMI_CEC_TX_DATA_2			0x100
++#define VC4_HDMI_CEC_TX_DATA_3			0x104
++#define VC4_HDMI_CEC_TX_DATA_4			0x108
++#define VC4_HDMI_CEC_RX_DATA_1			0x10c
++#define VC4_HDMI_CEC_RX_DATA_2			0x110
++#define VC4_HDMI_CEC_RX_DATA_3			0x114
++#define VC4_HDMI_CEC_RX_DATA_4			0x118
++
+ #define VC4_HDMI_TX_PHY_RESET_CTL		0x2c0
+ 
+ #define VC4_HDMI_TX_PHY_CTL0			0x2c4
+ # define VC4_HDMI_TX_PHY_RNG_PWRDN		BIT(25)
+ 
++/* Interrupt status bits */
++#define VC4_HDMI_CPU_STATUS			0x340
++#define VC4_HDMI_CPU_SET			0x344
++#define VC4_HDMI_CPU_CLEAR			0x348
++# define VC4_HDMI_CPU_CEC			BIT(6)
++# define VC4_HDMI_CPU_HOTPLUG			BIT(0)
++
++#define VC4_HDMI_CPU_MASK_STATUS		0x34c
++#define VC4_HDMI_CPU_MASK_SET			0x350
++#define VC4_HDMI_CPU_MASK_CLEAR			0x354
++
+ #define VC4_HDMI_GCP(x)				(0x400 + ((x) * 0x4))
+ #define VC4_HDMI_RAM_PACKET(x)			(0x400 + ((x) * 0x24))
+ #define VC4_HDMI_PACKET_STRIDE			0x24
+ 
+ #define VC4_HD_M_CTL				0x00c
++/* Debug: Current receive value on the CEC pad. */
++# define VC4_HD_CECRXD				BIT(9)
++/* Debug: Override CEC output to 0. */
++# define VC4_HD_CECOVR				BIT(8)
+ # define VC4_HD_M_REGISTER_FILE_STANDBY		(3 << 6)
+ # define VC4_HD_M_RAM_STANDBY			(3 << 4)
+ # define VC4_HD_M_SW_RST			BIT(2)
+-- 
+2.13.2
