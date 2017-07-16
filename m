@@ -1,188 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:53552 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750836AbdG0Jam (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58254 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751010AbdGPISw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Jul 2017 05:30:42 -0400
+        Sun, 16 Jul 2017 04:18:52 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCH 1/3] media/doc: rename and reorder pixfmt files
-Date: Thu, 27 Jul 2017 11:30:30 +0200
-Message-Id: <20170727093032.12663-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170727093032.12663-1-hverkuil@xs4all.nl>
-References: <20170727093032.12663-1-hverkuil@xs4all.nl>
+Subject: [PATCH] pulse8-cec.rst: add documentation for the pulse8-cec driver
+Message-ID: <51c64d0a-1725-041f-0f70-5c5ff88a2250@xs4all.nl>
+Date: Sun, 16 Jul 2017 10:18:50 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+Document the persistent_config module option.
 
-After the DocBook conversion a number of pixfmt description files just had
-a number in the filename (pix-fmt-004, 006, etc) which was not very descriptive.
-
-Rename them.
-
-Note that pixfmt-008.rst was folded into colorspaces-details.rst, so that
-file is deleted. It's easier to maintain that way.
-
-Also moved the colorspace sections to the end of the chapter. The old order
-was weird: the "Standard Image Formats" section (an intro into pixel formats)
-was followed by the colorspace sections instead of the pixel format descriptions.
-
-Moving it to the end resolved that issue.
-
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../v4l/{pixfmt-006.rst => colorspaces-defs.rst}   |  0
- .../{pixfmt-007.rst => colorspaces-details.rst}    | 30 ++++++++++++++++++++
- Documentation/media/uapi/v4l/pixfmt-008.rst        | 32 ----------------------
- .../v4l/{pixfmt-013.rst => pixfmt-compressed.rst}  |  0
- .../uapi/v4l/{pixfmt-004.rst => pixfmt-intro.rst}  |  0
- .../v4l/{pixfmt-003.rst => pixfmt-v4l2-mplane.rst} |  0
- .../uapi/v4l/{pixfmt-002.rst => pixfmt-v4l2.rst}   |  0
- Documentation/media/uapi/v4l/pixfmt.rst            | 15 +++++-----
- 8 files changed, 37 insertions(+), 40 deletions(-)
- rename Documentation/media/uapi/v4l/{pixfmt-006.rst => colorspaces-defs.rst} (100%)
- rename Documentation/media/uapi/v4l/{pixfmt-007.rst => colorspaces-details.rst} (96%)
- delete mode 100644 Documentation/media/uapi/v4l/pixfmt-008.rst
- rename Documentation/media/uapi/v4l/{pixfmt-013.rst => pixfmt-compressed.rst} (100%)
- rename Documentation/media/uapi/v4l/{pixfmt-004.rst => pixfmt-intro.rst} (100%)
- rename Documentation/media/uapi/v4l/{pixfmt-003.rst => pixfmt-v4l2-mplane.rst} (100%)
- rename Documentation/media/uapi/v4l/{pixfmt-002.rst => pixfmt-v4l2.rst} (100%)
+ Documentation/media/cec-drivers/index.rst      | 32 ++++++++++++++++++++++++++
+ Documentation/media/cec-drivers/pulse8-cec.rst | 11 +++++++++
+ Documentation/media/index.rst                  |  1 +
+ MAINTAINERS                                    |  1 +
+ 4 files changed, 45 insertions(+)
+ create mode 100644 Documentation/media/cec-drivers/index.rst
+ create mode 100644 Documentation/media/cec-drivers/pulse8-cec.rst
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-006.rst b/Documentation/media/uapi/v4l/colorspaces-defs.rst
-similarity index 100%
-rename from Documentation/media/uapi/v4l/pixfmt-006.rst
-rename to Documentation/media/uapi/v4l/colorspaces-defs.rst
-diff --git a/Documentation/media/uapi/v4l/pixfmt-007.rst b/Documentation/media/uapi/v4l/colorspaces-details.rst
-similarity index 96%
-rename from Documentation/media/uapi/v4l/pixfmt-007.rst
-rename to Documentation/media/uapi/v4l/colorspaces-details.rst
-index 0c30ee2577d3..128b2acbe824 100644
---- a/Documentation/media/uapi/v4l/pixfmt-007.rst
-+++ b/Documentation/media/uapi/v4l/colorspaces-details.rst
-@@ -758,3 +758,33 @@ scaled to [-128…128] and then clipped to [-128…127].
-    ``V4L2_COLORSPACE_JPEG`` can be considered to be an abbreviation for
-    ``V4L2_COLORSPACE_SRGB``, ``V4L2_YCBCR_ENC_601`` and
-    ``V4L2_QUANTIZATION_FULL_RANGE``.
+diff --git a/Documentation/media/cec-drivers/index.rst b/Documentation/media/cec-drivers/index.rst
+new file mode 100644
+index 000000000000..1c817aa10bb6
+--- /dev/null
++++ b/Documentation/media/cec-drivers/index.rst
+@@ -0,0 +1,32 @@
++.. -*- coding: utf-8; mode: rst -*-
 +
-+***************************************
-+Detailed Transfer Function Descriptions
-+***************************************
++.. include:: <isonum.txt>
 +
-+.. _xf-smpte-2084:
++.. _cec-drivers:
 +
-+Transfer Function SMPTE 2084 (V4L2_XFER_FUNC_SMPTE2084)
-+=======================================================
++#################################
++CEC driver-specific documentation
++#################################
 +
-+The :ref:`smpte2084` standard defines the transfer function used by
-+High Dynamic Range content.
++**Copyright** |copy| 2017 : LinuxTV Developers
 +
-+Constants:
-+    m1 = (2610 / 4096) / 4
++This documentation is free software; you can redistribute it and/or modify it
++under the terms of the GNU General Public License as published by the Free
++Software Foundation version 2 of the License.
 +
-+    m2 = (2523 / 4096) * 128
++This program is distributed in the hope that it will be useful, but WITHOUT
++ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
++more details.
 +
-+    c1 = 3424 / 4096
++For more details see the file COPYING in the source distribution of Linux.
 +
-+    c2 = (2413 / 4096) * 32
++.. class:: toc-title
 +
-+    c3 = (2392 / 4096) * 32
++        Table of Contents
 +
-+Transfer function:
-+    L' = ((c1 + c2 * L\ :sup:`m1`) / (1 + c3 * L\ :sup:`m1`))\ :sup:`m2`
++.. toctree::
++	:maxdepth: 5
++	:numbered:
 +
-+Inverse Transfer function:
-+    L = (max(L':sup:`1/m2` - c1, 0) / (c2 - c3 *
-+    L'\ :sup:`1/m2`))\ :sup:`1/m1`
-diff --git a/Documentation/media/uapi/v4l/pixfmt-008.rst b/Documentation/media/uapi/v4l/pixfmt-008.rst
-deleted file mode 100644
-index 4bec79784bdd..000000000000
---- a/Documentation/media/uapi/v4l/pixfmt-008.rst
-+++ /dev/null
-@@ -1,32 +0,0 @@
--.. -*- coding: utf-8; mode: rst -*-
--
--***************************************
--Detailed Transfer Function Descriptions
--***************************************
--
--
--.. _xf-smpte-2084:
--
--Transfer Function SMPTE 2084 (V4L2_XFER_FUNC_SMPTE2084)
--=======================================================
--
--The :ref:`smpte2084` standard defines the transfer function used by
--High Dynamic Range content.
--
--Constants:
--    m1 = (2610 / 4096) / 4
--
--    m2 = (2523 / 4096) * 128
--
--    c1 = 3424 / 4096
--
--    c2 = (2413 / 4096) * 32
--
--    c3 = (2392 / 4096) * 32
--
--Transfer function:
--    L' = ((c1 + c2 * L\ :sup:`m1`) / (1 + c3 * L\ :sup:`m1`))\ :sup:`m2`
--
--Inverse Transfer function:
--    L = (max(L':sup:`1/m2` - c1, 0) / (c2 - c3 *
--    L'\ :sup:`1/m2`))\ :sup:`1/m1`
-diff --git a/Documentation/media/uapi/v4l/pixfmt-013.rst b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-similarity index 100%
-rename from Documentation/media/uapi/v4l/pixfmt-013.rst
-rename to Documentation/media/uapi/v4l/pixfmt-compressed.rst
-diff --git a/Documentation/media/uapi/v4l/pixfmt-004.rst b/Documentation/media/uapi/v4l/pixfmt-intro.rst
-similarity index 100%
-rename from Documentation/media/uapi/v4l/pixfmt-004.rst
-rename to Documentation/media/uapi/v4l/pixfmt-intro.rst
-diff --git a/Documentation/media/uapi/v4l/pixfmt-003.rst b/Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst
-similarity index 100%
-rename from Documentation/media/uapi/v4l/pixfmt-003.rst
-rename to Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst
-diff --git a/Documentation/media/uapi/v4l/pixfmt-002.rst b/Documentation/media/uapi/v4l/pixfmt-v4l2.rst
-similarity index 100%
-rename from Documentation/media/uapi/v4l/pixfmt-002.rst
-rename to Documentation/media/uapi/v4l/pixfmt-v4l2.rst
-diff --git a/Documentation/media/uapi/v4l/pixfmt.rst b/Documentation/media/uapi/v4l/pixfmt.rst
-index 00737152497b..2aa449e2da67 100644
---- a/Documentation/media/uapi/v4l/pixfmt.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt.rst
-@@ -19,20 +19,19 @@ see also :ref:`VIDIOC_G_FBUF <VIDIOC_G_FBUF>`.)
- .. toctree::
-     :maxdepth: 1
- 
--    pixfmt-002
--    pixfmt-003
--    pixfmt-004
--    colorspaces
--    pixfmt-006
--    pixfmt-007
--    pixfmt-008
-+    pixfmt-v4l2
-+    pixfmt-v4l2-mplane
-+    pixfmt-intro
-     pixfmt-indexed
-     pixfmt-rgb
-     yuv-formats
-     hsv-formats
-     depth-formats
--    pixfmt-013
-+    pixfmt-compressed
-     sdr-formats
-     tch-formats
-     meta-formats
-     pixfmt-reserved
-+    colorspaces
-+    colorspaces-defs
-+    colorspaces-details
++	pulse8-cec
+diff --git a/Documentation/media/cec-drivers/pulse8-cec.rst b/Documentation/media/cec-drivers/pulse8-cec.rst
+new file mode 100644
+index 000000000000..99551c6a9bc5
+--- /dev/null
++++ b/Documentation/media/cec-drivers/pulse8-cec.rst
+@@ -0,0 +1,11 @@
++Pulse-Eight CEC Adapter driver
++==============================
++
++The pulse8-cec driver implements the following module option:
++
++``persistent_config``
++---------------------
++
++By default this is off, but when set to 1 the driver will store the current
++settings to the device's internal eeprom and restore it the next time the
++device is connected to the USB port.
+diff --git a/Documentation/media/index.rst b/Documentation/media/index.rst
+index 7f8f0af620ce..7d2907d4f8d7 100644
+--- a/Documentation/media/index.rst
++++ b/Documentation/media/index.rst
+@@ -10,6 +10,7 @@ Contents:
+    media_kapi
+    dvb-drivers/index
+    v4l-drivers/index
++   cec-drivers/index
+
+ .. only::  subproject
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index c4be6d4af7d2..dd50b91aa81c 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10416,6 +10416,7 @@ L:	linux-media@vger.kernel.org
+ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
+ F:	drivers/media/usb/pulse8-cec/*
++F:	Documentation/media/cec-drivers/pulse8-cec.rst
+
+ PVRUSB2 VIDEO4LINUX DRIVER
+ M:	Mike Isely <isely@pobox.com>
 -- 
-2.13.1
+2.11.0
