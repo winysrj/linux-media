@@ -1,229 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:36039 "EHLO extserv.mm-sol.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751310AbdGQKfA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 06:35:00 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Cc: Todor Tomov <todor.tomov@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-Subject: [PATCH v3 04/23] dt-bindings: media: Binding document for Qualcomm Camera subsystem driver
-Date: Mon, 17 Jul 2017 13:33:30 +0300
-Message-Id: <1500287629-23703-5-git-send-email-todor.tomov@linaro.org>
-In-Reply-To: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
-References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:36088 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750829AbdGPETm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 16 Jul 2017 00:19:42 -0400
+MIME-Version: 1.0
+In-Reply-To: <1500137353.2353.1.camel@ndufresne.ca>
+References: <1500101920-24039-1-git-send-email-jacob-chen@iotwrt.com>
+ <1500101920-24039-3-git-send-email-jacob-chen@iotwrt.com> <2363665.x6z9MR1vqI@avalon>
+ <1500137353.2353.1.camel@ndufresne.ca>
+From: Jacob Chen <jacobchen110@gmail.com>
+Date: Sun, 16 Jul 2017 12:19:41 +0800
+Message-ID: <CAFLEztQZKqDwOyRCYLapa=730mWs80SOi6RuXwq5VR6m+RjO5w@mail.gmail.com>
+Subject: Re: [PATCH v2 2/6] [media] rockchip/rga: v4l2 m2m support
+To: Personnel <nicolas@ndufresne.ca>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>,
+        robh+dt@kernel.org, Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        laurent.pinchart+renesas@ideasonboard.com,
+        Hans Verkuil <hans.verkuil@cisco.com>, s.nawrocki@samsung.com,
+        Tomasz Figa <tfiga@chromium.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add DT binding document for Qualcomm Camera subsystem driver.
+Hi all,
 
-CC: Rob Herring <robh+dt@kernel.org>
-CC: devicetree@vger.kernel.org
-Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
----
- .../devicetree/bindings/media/qcom,camss.txt       | 191 +++++++++++++++++++++
- 1 file changed, 191 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/qcom,camss.txt
+2017-07-16 0:49 GMT+08:00 Personnel <nicolas@ndufresne.ca>:
+> Le samedi 15 juillet 2017 =C3=A0 12:42 +0300, Laurent Pinchart a =C3=A9cr=
+it :
+>> Hi Jacob,
+>>
+>> Thank you for the patch.
+>>
+>> On Saturday 15 Jul 2017 14:58:36 Jacob Chen wrote:
+>> > Rockchip RGA is a separate 2D raster graphic acceleration unit. It
+>> > accelerates 2D graphics operations, such as point/line drawing, image
+>> > scaling, rotation, BitBLT, alpha blending and image blur/sharpness.
+>> >
+>> > The drvier is mostly based on s5p-g2d v4l2 m2m driver.
+>> > And supports various operations from the rendering pipeline.
+>> >  - copy
+>> >  - fast solid color fill
+>> >  - rotation
+>> >  - flip
+>> >  - alpha blending
+>>
+>> I notice that you don't support the drawing operations. How do you plan =
+to
+>> support them later through the V4L2 M2M API ? I hate stating the obvious=
+, but
+>> wouldn't the DRM API be better fit for a graphic accelerator ?
+>
+> It could fit, maybe, but it really lacks some framework. Also, DRM is
+> not really meant for M2M operation, and it's also not great for multi-
+> process. Until recently, there was competing drivers for Exynos, both
+> implemented in V4L2 and DRM, for similar rational, all DRM ones are
+> being deprecated/removed.
+>
+> I think 2D blitters in V4L2 are fine, but they terribly lack something
+> to differentiate them from converters/scalers when looking up the HW
+> list. Could be as simple as a capability flag, if I can suggest. For
+> the reference, the 2D blitter on IMX6 has been used to implement a live
+> video mixer in GStreamer.
+>
+> https://bugzilla.gnome.org/show_bug.cgi?id=3D772766
+>
 
-diff --git a/Documentation/devicetree/bindings/media/qcom,camss.txt b/Documentation/devicetree/bindings/media/qcom,camss.txt
-new file mode 100644
-index 0000000..f698498
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/qcom,camss.txt
-@@ -0,0 +1,191 @@
-+Qualcomm Camera Subsystem
+We have write a drm RGA driver.
+https://patchwork.kernel.org/patch/8630841/
+
+Here are the reasons that why i rewrite it to V4l2 M2M.
+1. V4l2 have a better buffer framework. If it use DRM-GEM to handle buffers=
+,
+there will be much redundant cache flush, and we have to add much hack code
+to workaround.
+2. This driver will be used in rockchip linux project. We mostly use it to
+scale/colorconvert/rotate/mix video/camera stream.
+A V4L2 M2M drvier can be directly used in gstreamer.
+
+The disadvantages of V4l2 M2M API is that it's not stateless.
+It's inconvenient if user change size frequently, but it's OK,
+we have not yet need this and I think it's possible to extend. ; )
+
+
+>>
+>> Additionally, V4L2 M2M has one source and one destination. How do you
+>> implement alpha blending in that case, which by definition requires at l=
+east
+>> two sources ?
+>
+> This type of HW only do in-place blits. When using such a node, the
+> buffer queued on the V4L2_CAPTURE contains the destination image, and
+> the buffer queued on the V4L2_OUTPUT is the source image.
+>
+
+Yep.
+
+>>
+>> > The code in rga-hw.c is used to configure regs accroding to operations=
+.
+>> >
+>> > The code in rga-buf.c is used to create private mmu table for RGA.
+>> > The tables is stored in a list, and be removed when buffer is cleanup.
+>>
+>> Looking at the implementation it seems to be a scatter-gather list, not =
+an
+>> MMU. Is that right ? Does the hardware documentation refer to it as an M=
+MU ?
+>>
+
+It's a 1-level MMU... We use it like a scatter-gather list,
+It's also the reason why we don't use RGA with DRM API.
+
+
+>> > Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+>> > ---
+>> >  drivers/media/platform/Kconfig                |  11 +
+>> >  drivers/media/platform/Makefile               |   2 +
+>> >  drivers/media/platform/rockchip-rga/Makefile  |   3 +
+>> >  drivers/media/platform/rockchip-rga/rga-buf.c | 122 ++++
+>> >  drivers/media/platform/rockchip-rga/rga-hw.c  | 652 +++++++++++++++++=
 +
-+* Properties
-+
-+- compatible:
-+	Usage: required
-+	Value type: <stringlist>
-+	Definition: Should contain:
-+		- "qcom,msm8916-camss"
-+- reg:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: Register ranges as listed in the reg-names property.
-+- reg-names:
-+	Usage: required
-+	Value type: <stringlist>
-+	Definition: Should contain the following entries:
-+		- "csiphy0"
-+		- "csiphy0_clk_mux"
-+		- "csiphy1"
-+		- "csiphy1_clk_mux"
-+		- "csid0"
-+		- "csid1"
-+		- "ispif"
-+		- "csi_clk_mux"
-+		- "vfe0"
-+- interrupts:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: Interrupts as listed in the interrupt-names property.
-+- interrupt-names:
-+	Usage: required
-+	Value type: <stringlist>
-+	Definition: Should contain the following entries:
-+		- "csiphy0"
-+		- "csiphy1"
-+		- "csid0"
-+		- "csid1"
-+		- "ispif"
-+		- "vfe0"
-+- power-domains:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: A phandle and power domain specifier pairs to the
-+		    power domain which is responsible for collapsing
-+		    and restoring power to the peripheral.
-+- clocks:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: A list of phandle and clock specifier pairs as listed
-+		    in clock-names property.
-+- clock-names:
-+	Usage: required
-+	Value type: <stringlist>
-+	Definition: Should contain the following entries:
-+                - "camss_top_ahb"
-+                - "ispif_ahb"
-+                - "csiphy0_timer"
-+                - "csiphy1_timer"
-+                - "csi0_ahb"
-+                - "csi0"
-+                - "csi0_phy"
-+                - "csi0_pix"
-+                - "csi0_rdi"
-+                - "csi1_ahb"
-+                - "csi1"
-+                - "csi1_phy"
-+                - "csi1_pix"
-+                - "csi1_rdi"
-+                - "camss_ahb"
-+                - "camss_vfe_vfe"
-+                - "camss_csi_vfe"
-+                - "iface"
-+                - "bus"
-+- vdda-supply:
-+	Usage: required
-+	Value type: <phandle>
-+	Definition: A phandle to voltage supply for CSI2.
-+- iommus:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: A list of phandle and IOMMU specifier pairs.
-+
-+* Nodes
-+
-+- ports:
-+	Usage: required
-+	Definition: As described in video-interfaces.txt in same directory.
-+	Properties:
-+		- reg:
-+			Usage: required
-+			Value type: <u32>
-+			Definition: Selects CSI2 PHY interface - PHY0 or PHY1.
-+	Endpoint node properties:
-+		- clock-lanes:
-+			Usage: required
-+			Value type: <u32>
-+			Definition: The clock lane.
-+		- data-lanes:
-+			Usage: required
-+			Value type: <prop-encoded-array>
-+			Definition: An array of data lanes.
-+
-+* An Example
-+
-+	camss: camss@1b00000 {
-+		compatible = "qcom,msm8916-camss";
-+		reg = <0x1b0ac00 0x200>,
-+			<0x1b00030 0x4>,
-+			<0x1b0b000 0x200>,
-+			<0x1b00038 0x4>,
-+			<0x1b08000 0x100>,
-+			<0x1b08400 0x100>,
-+			<0x1b0a000 0x500>,
-+			<0x1b00020 0x10>,
-+			<0x1b10000 0x1000>;
-+		reg-names = "csiphy0",
-+			"csiphy0_clk_mux",
-+			"csiphy1",
-+			"csiphy1_clk_mux",
-+			"csid0",
-+			"csid1",
-+			"ispif",
-+			"csi_clk_mux",
-+			"vfe0";
-+		interrupts = <GIC_SPI 78 0>,
-+			<GIC_SPI 79 0>,
-+			<GIC_SPI 51 0>,
-+			<GIC_SPI 52 0>,
-+			<GIC_SPI 55 0>,
-+			<GIC_SPI 57 0>;
-+		interrupt-names = "csiphy0",
-+			"csiphy1",
-+			"csid0",
-+			"csid1",
-+			"ispif",
-+			"vfe0";
-+		power-domains = <&gcc VFE_GDSC>;
-+		clocks = <&gcc GCC_CAMSS_TOP_AHB_CLK>,
-+			<&gcc GCC_CAMSS_ISPIF_AHB_CLK>,
-+			<&gcc GCC_CAMSS_CSI0PHYTIMER_CLK>,
-+			<&gcc GCC_CAMSS_CSI1PHYTIMER_CLK>,
-+			<&gcc GCC_CAMSS_CSI0_AHB_CLK>,
-+			<&gcc GCC_CAMSS_CSI0_CLK>,
-+			<&gcc GCC_CAMSS_CSI0PHY_CLK>,
-+			<&gcc GCC_CAMSS_CSI0PIX_CLK>,
-+			<&gcc GCC_CAMSS_CSI0RDI_CLK>,
-+			<&gcc GCC_CAMSS_CSI1_AHB_CLK>,
-+			<&gcc GCC_CAMSS_CSI1_CLK>,
-+			<&gcc GCC_CAMSS_CSI1PHY_CLK>,
-+			<&gcc GCC_CAMSS_CSI1PIX_CLK>,
-+			<&gcc GCC_CAMSS_CSI1RDI_CLK>,
-+			<&gcc GCC_CAMSS_AHB_CLK>,
-+			<&gcc GCC_CAMSS_VFE0_CLK>,
-+			<&gcc GCC_CAMSS_CSI_VFE0_CLK>,
-+			<&gcc GCC_CAMSS_VFE_AHB_CLK>,
-+			<&gcc GCC_CAMSS_VFE_AXI_CLK>;
-+                clock-names = "camss_top_ahb",
-+                        "ispif_ahb",
-+                        "csiphy0_timer",
-+                        "csiphy1_timer",
-+                        "csi0_ahb",
-+                        "csi0",
-+                        "csi0_phy",
-+                        "csi0_pix",
-+                        "csi0_rdi",
-+                        "csi1_ahb",
-+                        "csi1",
-+                        "csi1_phy",
-+                        "csi1_pix",
-+                        "csi1_rdi",
-+                        "camss_ahb",
-+                        "camss_vfe_vfe",
-+                        "camss_csi_vfe",
-+                        "iface",
-+                        "bus";
-+		vdda-supply = <&pm8916_l2>;
-+		iommus = <&apps_iommu 3>;
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			port@0 {
-+				reg = <0>;
-+				csiphy0_ep: endpoint {
-+					clock-lanes = <1>;
-+					data-lanes = <0 2>;
-+					remote-endpoint = <&ov5645_ep>;
-+				};
-+			};
-+		};
-+	};
--- 
-2.7.4
+>> >  drivers/media/platform/rockchip-rga/rga-hw.h  | 437 ++++++++++++
+>> >  drivers/media/platform/rockchip-rga/rga.c     | 958 +++++++++++++++++=
+++++++
+>> >  drivers/media/platform/rockchip-rga/rga.h     | 111 +++
+>> >  8 files changed, 2296 insertions(+)
+>> >  create mode 100644 drivers/media/platform/rockchip-rga/Makefile
+>> >  create mode 100644 drivers/media/platform/rockchip-rga/rga-buf.c
+>> >  create mode 100644 drivers/media/platform/rockchip-rga/rga-hw.c
+>> >  create mode 100644 drivers/media/platform/rockchip-rga/rga-hw.h
+>> >  create mode 100644 drivers/media/platform/rockchip-rga/rga.c
+>> >  create mode 100644 drivers/media/platform/rockchip-rga/rga.h
+>>
+>>
