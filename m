@@ -1,73 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:34810 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751596AbdGaDI5 (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:35318 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751306AbdGPOxQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 30 Jul 2017 23:08:57 -0400
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        s.nawrocki@samsung.com, tfiga@chromium.org, nicolas@ndufresne.ca,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Yakir Yang <ykk@rock-chips.com>
-Subject: [PATCH v3 5/5] dt-bindings: Document the Rockchip RGA bindings
-Date: Mon, 31 Jul 2017 11:07:40 +0800
-Message-Id: <1501470460-12014-6-git-send-email-jacob-chen@iotwrt.com>
-In-Reply-To: <1501470460-12014-1-git-send-email-jacob-chen@iotwrt.com>
-References: <1501470460-12014-1-git-send-email-jacob-chen@iotwrt.com>
+        Sun, 16 Jul 2017 10:53:16 -0400
+Received: by mail-wm0-f65.google.com with SMTP id u23so18845146wma.2
+        for <linux-media@vger.kernel.org>; Sun, 16 Jul 2017 07:53:15 -0700 (PDT)
+From: Philipp Zabel <philipp.zabel@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Philipp Zabel <philipp.zabel@gmail.com>
+Subject: [PATCH v2 3/3] [media] uvcvideo: skip non-extension unit controls on Oculus Rift Sensors
+Date: Sun, 16 Jul 2017 16:53:05 +0200
+Message-Id: <20170716145305.19934-3-philipp.zabel@gmail.com>
+In-Reply-To: <20170716145305.19934-1-philipp.zabel@gmail.com>
+References: <20170716145305.19934-1-philipp.zabel@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add DT bindings documentation for Rockchip RGA
+The Oculus Rift Sensors (DK2 and CV1) allow to configure their sensor chips
+directly via I2C commands using extension unit controls. The processing and
+camera unit controls do not function at all.
 
-Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
-Signed-off-by: Yakir Yang <ykk@rock-chips.com>
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
 ---
- .../devicetree/bindings/media/rockchip-rga.txt     | 33 ++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
+ drivers/media/usb/uvc/uvc_ctrl.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/rockchip-rga.txt b/Documentation/devicetree/bindings/media/rockchip-rga.txt
-new file mode 100644
-index 0000000..fd5276a
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/rockchip-rga.txt
-@@ -0,0 +1,33 @@
-+device-tree bindings for rockchip 2D raster graphic acceleration controller (RGA)
-+
-+RGA is a standalone 2D raster graphic acceleration unit. It accelerates 2D
-+graphics operations, such as point/line drawing, image scaling, rotation,
-+BitBLT, alpha blending and image blur/sharpness.
-+
-+Required properties:
-+- compatible: value should be one of the following
-+		"rockchip,rk3288-rga";
-+		"rockchip,rk3399-rga";
-+
-+- interrupts: RGA interrupt specifier.
-+
-+- clocks: phandle to RGA sclk/hclk/aclk clocks
-+
-+- clock-names: should be "aclk", "hclk" and "sclk"
-+
-+- resets: Must contain an entry for each entry in reset-names.
-+  See ../reset/reset.txt for details.
-+- reset-names: should be "core", "axi" and "ahb"
-+
-+Example:
-+SoC-specific DT entry:
-+	rga: rga@ff680000 {
-+		compatible = "rockchip,rk3399-rga";
-+		reg = <0xff680000 0x10000>;
-+		interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA_CORE>;
-+		clock-names = "aclk", "hclk", "sclk";
-+
-+		resets = <&cru SRST_RGA_CORE>, <&cru SRST_A_RGA>, <&cru SRST_H_RGA>;
-+		reset-names = "core, "axi", "ahb";
+diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+index 1d60321a6777..738edb81bc0a 100644
+--- a/drivers/media/usb/uvc/uvc_ctrl.c
++++ b/drivers/media/usb/uvc/uvc_ctrl.c
+@@ -2213,6 +2213,10 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
+ {
+ 	struct uvc_entity *entity;
+ 	unsigned int i;
++	const struct usb_device_id xu_only[] = {
++		{ USB_DEVICE(0x2833, 0x0201) },
++		{ USB_DEVICE(0x2833, 0x0211) },
 +	};
+ 
+ 	/* Walk the entities list and instantiate controls */
+ 	list_for_each_entry(entity, &dev->entities, list) {
+@@ -2220,6 +2224,16 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
+ 		unsigned int bControlSize = 0, ncontrols;
+ 		__u8 *bmControls = NULL;
+ 
++		/* Oculus Sensors only handle extension unit controls */
++		if (UVC_ENTITY_TYPE(entity) != UVC_VC_EXTENSION_UNIT) {
++			for (i = 0; i < ARRAY_SIZE(xu_only); i++) {
++				if (usb_match_one_id(dev->intf, &xu_only[i]))
++					break;
++			}
++			if (i != ARRAY_SIZE(xu_only))
++				continue;
++		}
++
+ 		if (UVC_ENTITY_TYPE(entity) == UVC_VC_EXTENSION_UNIT) {
+ 			bmControls = entity->extension.bmControls;
+ 			bControlSize = entity->extension.bControlSize;
 -- 
-2.7.4
+2.13.2
