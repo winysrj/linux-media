@@ -1,53 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:46193 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752019AbdGFJnl (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:35313 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751268AbdGPOxP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Jul 2017 05:43:41 -0400
-Subject: Re: [PATCH 03/12] [media] vb2: add in-fence support to QBUF
-To: Gustavo Padovan <gustavo@padovan.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <20170616073915.5027-1-gustavo@padovan.org>
- <20170616073915.5027-4-gustavo@padovan.org>
- <20170630085354.2a76bb4a@vento.lan> <20170703181627.GA3337@jade>
-Cc: linux-media@vger.kernel.org,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3e403e98-c9f0-1020-87c3-36aff44d5354@xs4all.nl>
-Date: Thu, 6 Jul 2017 11:43:20 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170703181627.GA3337@jade>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Sun, 16 Jul 2017 10:53:15 -0400
+Received: by mail-wm0-f67.google.com with SMTP id u23so18845112wma.2
+        for <linux-media@vger.kernel.org>; Sun, 16 Jul 2017 07:53:14 -0700 (PDT)
+From: Philipp Zabel <philipp.zabel@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Philipp Zabel <philipp.zabel@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 2/3] [media] uvcvideo: flag variable length control on Oculus Rift CV1 Sensor
+Date: Sun, 16 Jul 2017 16:53:04 +0200
+Message-Id: <20170716145305.19934-2-philipp.zabel@gmail.com>
+In-Reply-To: <20170716145305.19934-1-philipp.zabel@gmail.com>
+References: <20170716145305.19934-1-philipp.zabel@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/03/17 20:16, Gustavo Padovan wrote:
->>> @@ -1436,6 +1481,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
->>>  	if (pb)
->>>  		call_void_bufop(q, fill_user_buffer, vb, pb);
->>>  
->>> +	vb->in_fence = fence;
->>> +	if (fence && !dma_fence_add_callback(fence, &vb->fence_cb,
->>> +					     vb2_qbuf_fence_cb))
->>> +		return 0;
->>
->> Maybe we should provide some error or debug log here or a WARN_ON(), if 
->> dma_fence_add_callback() fails instead of silently ignore any errors.
-> 
-> This is not an error. If the if succeeds it mean we have installed a
-> callback for the fence. If not, it means the fence signaled already and
-> we don't can call __vb2_core_qbuf right away.
+The extension unit controls with selectors 11 and 12 are used to make the
+eSP770u webcam controller issue SPI transfers to configure the nRF51288
+radio or to read the flash storage. Depending on internal state controlled
+by selector 11, selector 12 reports different lengths.
 
-I had the same question as Mauro. After looking at the dma_fence_add_callback
-code I see what you mean, but a comment would certainly be helpful.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/usb/uvc/uvc_ctrl.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Also, should you set vb->in_fence to NULL if the fence signaled already?
-I'm not sure if you need to call 'dma_fence_put(vb->in_fence);' as well.
-You would know that better than I do.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+index 43e8851cc381..1d60321a6777 100644
+--- a/drivers/media/usb/uvc/uvc_ctrl.c
++++ b/drivers/media/usb/uvc/uvc_ctrl.c
+@@ -1613,6 +1613,9 @@ static void uvc_ctrl_fixup_xu_info(struct uvc_device *dev,
+ 			UVC_CTRL_FLAG_GET_MIN | UVC_CTRL_FLAG_GET_MAX |
+ 			UVC_CTRL_FLAG_GET_DEF | UVC_CTRL_FLAG_SET_CUR |
+ 			UVC_CTRL_FLAG_AUTO_UPDATE },
++		{ { USB_DEVICE(0x2833, 0x0211) }, 4, 12,
++			UVC_CTRL_FLAG_GET_RANGE | UVC_CTRL_FLAG_SET_CUR |
++			UVC_CTRL_FLAG_VARIABLE_LEN },
+ 	};
+ 
+ 	unsigned int i;
+-- 
+2.13.2
