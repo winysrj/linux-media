@@ -1,94 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsmx011.vodafonemail.xion.oxcs.net ([153.92.174.89]:58765 "EHLO
-        vsmx011.vodafonemail.xion.oxcs.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751619AbdGYJLt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Jul 2017 05:11:49 -0400
-Subject: Re: [PATCH] dma-buf: fix reservation_object_wait_timeout_rcu to wait
- correctly
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>
-References: <1500654001-20899-1-git-send-email-deathsimple@vodafone.de>
- <20170724083359.j6wo5icln3faajn6@phenom.ffwll.local>
- <b3cb04f6-07c8-f5dd-3d7b-7f41f1d0dd81@vodafone.de>
- <CAKMK7uEC6BpYZeWZENk=Kt01yQuJXW=kgpp3acAMEdQBmD84FQ@mail.gmail.com>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <deathsimple@vodafone.de>
-Message-ID: <dd129079-91d3-7afe-0368-a267c2472484@vodafone.de>
-Date: Tue, 25 Jul 2017 11:11:35 +0200
-MIME-Version: 1.0
-In-Reply-To: <CAKMK7uEC6BpYZeWZENk=Kt01yQuJXW=kgpp3acAMEdQBmD84FQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Received: from mail.anw.at ([195.234.101.228]:46247 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751251AbdGPAni (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 15 Jul 2017 20:43:38 -0400
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
+        rjkm@metzlerbros.de, d.scheller@gmx.net, crope@iki.fi,
+        jasmin@anw.at
+Subject: [PATCH V3 15/16] [media] dvb-core/dvb_ca_en50221.c: Fixed style issues on the whole file
+Date: Sun, 16 Jul 2017 02:43:16 +0200
+Message-Id: <1500165797-16987-16-git-send-email-jasmin@anw.at>
+In-Reply-To: <1500165797-16987-1-git-send-email-jasmin@anw.at>
+References: <1500165797-16987-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 24.07.2017 um 13:57 schrieb Daniel Vetter:
-> On Mon, Jul 24, 2017 at 11:51 AM, Christian König
-> <deathsimple@vodafone.de> wrote:
->> Am 24.07.2017 um 10:33 schrieb Daniel Vetter:
->>> On Fri, Jul 21, 2017 at 06:20:01PM +0200, Christian König wrote:
->>>> From: Christian König <christian.koenig@amd.com>
->>>>
->>>> With hardware resets in mind it is possible that all shared fences are
->>>> signaled, but the exlusive isn't. Fix waiting for everything in this
->>>> situation.
->>> How did you end up with both shared and exclusive fences on the same
->>> reservation object? At least I thought the point of exclusive was that
->>> it's exclusive (and has an implicit barrier on all previous shared
->>> fences). Same for shared fences, they need to wait for the exclusive one
->>> (and replace it).
->>>
->>> Is this fallout from the amdgpu trickery where by default you do all
->>> shared fences? I thought we've aligned semantics a while back ...
->>
->> No, that is perfectly normal even for other drivers. Take a look at the
->> reservation code.
->>
->> The exclusive fence replaces all shared fences, but adding a shared fence
->> doesn't replace the exclusive fence. That actually makes sense, cause when
->> you want to add move shared fences those need to wait for the last exclusive
->> fence as well.
-> Hm right.
->
->> Now normally I would agree that when you have shared fences it is sufficient
->> to wait for all of them cause those operations can't start before the
->> exclusive one finishes. But with GPU reset and/or the ability to abort
->> already submitted operations it is perfectly possible that you end up with
->> an exclusive fence which isn't signaled and a shared fence which is signaled
->> in the same reservation object.
-> How does that work? The batch(es) with the shared fence are all
-> supposed to wait for the exclusive fence before they start, which
-> means even if you gpu reset and restart/cancel certain things, they
-> shouldn't be able to complete out of order.
+From: Jasmin Jessich <jasmin@anw.at>
 
-Assume the following:
-1. The exclusive fence is some move operation by the kernel which 
-executes on a DMA engine.
-2. The shared fence is a 3D operation submitted by userspace which 
-executes on the 3D engine.
+- Running "checkpatch.pl -strict -f ..." gave more checks to fix.
+  * Blank lines aren't necessary after an open brace '{'
+  * Comparison to NULL written as "!<var>"
+  * CHECK: Blank lines aren't necessary before a close brace '}'
 
-Now we found the 3D engine to be hung and needs a reset, all currently 
-submitted jobs are aborted, marked with an error code and their fences 
-put into the signaled state.
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+---
+ drivers/media/dvb-core/dvb_ca_en50221.c | 15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-Since we only reset the 3D engine, the move operation (fortunately) 
-isn't affected by this.
-
-I think this applies to all drivers and isn't something amdgpu specific.
-
-Regards,
-Christian.
-
->
-> If you outright cancel a fence then you're supposed to first call
-> dma_fence_set_error(-EIO) and then complete it. Note that atm that
-> part might be slightly overengineered and I'm not sure about how we
-> expose stuff to userspace, e.g. dma_fence_set_error(-EAGAIN) is (or
-> soon, has been) used by i915 for it's internal book-keeping, which
-> might not be the best to leak to other consumers. But completing
-> fences (at least exported ones, where userspace or other drivers can
-> get at them) shouldn't be possible.
-> -Daniel
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+index 24e2b0c..fa5f5ef 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -89,7 +89,6 @@ MODULE_PARM_DESC(cam_debug, "enable verbose debug messages");
+ 
+ /* Information on a CA slot */
+ struct dvb_ca_slot {
+-
+ 	/* current state of the CAM */
+ 	int slot_state;
+ 
+@@ -548,7 +547,7 @@ static int dvb_ca_en50221_parse_attributes(struct dvb_ca_private *ca, int slot)
+ 
+ 	/* check it contains the correct DVB string */
+ 	dvb_str = findstr((char *)tuple, tuple_length, "DVB_CI_V", 8);
+-	if (dvb_str == NULL)
++	if (!dvb_str)
+ 		return -EINVAL;
+ 	if (tuple_length < ((dvb_str - (char *)tuple) + 12))
+ 		return -EINVAL;
+@@ -640,7 +639,6 @@ static int dvb_ca_en50221_set_configoption(struct dvb_ca_private *ca, int slot)
+ 
+ 	/* fine! */
+ 	return 0;
+-
+ }
+ 
+ 
+@@ -670,7 +668,7 @@ static int dvb_ca_en50221_read_data(struct dvb_ca_private *ca, int slot,
+ 	dprintk("%s\n", __func__);
+ 
+ 	/* check if we have space for a link buf in the rx_buffer */
+-	if (ebuf == NULL) {
++	if (!ebuf) {
+ 		int buf_free;
+ 
+ 		if (!sl->rx_buffer.data) {
+@@ -688,7 +686,7 @@ static int dvb_ca_en50221_read_data(struct dvb_ca_private *ca, int slot,
+ 
+ 	if (ca->pub->read_data &&
+ 	    (sl->slot_state != DVB_CA_SLOTSTATE_LINKINIT)) {
+-		if (ebuf == NULL)
++		if (!ebuf)
+ 			status = ca->pub->read_data(ca->pub, slot, buf,
+ 						    sizeof(buf));
+ 		else
+@@ -699,7 +697,6 @@ static int dvb_ca_en50221_read_data(struct dvb_ca_private *ca, int slot,
+ 		if (status == 0)
+ 			goto exit;
+ 	} else {
+-
+ 		/* check if there is data available */
+ 		status = ca->pub->read_cam_control(ca->pub, slot,
+ 						   CTRLIF_STATUS);
+@@ -724,7 +721,7 @@ static int dvb_ca_en50221_read_data(struct dvb_ca_private *ca, int slot,
+ 		bytes_read |= status;
+ 
+ 		/* check it will fit */
+-		if (ebuf == NULL) {
++		if (!ebuf) {
+ 			if (bytes_read > sl->link_buf_size) {
+ 				pr_err("dvb_ca adapter %d: CAM tried to send a buffer larger than the link buffer size (%i > %i)!\n",
+ 				       ca->dvbdev->adapter->num, bytes_read,
+@@ -777,7 +774,7 @@ static int dvb_ca_en50221_read_data(struct dvb_ca_private *ca, int slot,
+ 	 * OK, add it to the receive buffer, or copy into external buffer if
+ 	 * supplied
+ 	 */
+-	if (ebuf == NULL) {
++	if (!ebuf) {
+ 		if (!sl->rx_buffer.data) {
+ 			status = -EIO;
+ 			goto exit;
+@@ -1052,7 +1049,6 @@ EXPORT_SYMBOL(dvb_ca_en50221_frda_irq);
+  */
+ static void dvb_ca_en50221_thread_wakeup(struct dvb_ca_private *ca)
+ {
+-
+ 	dprintk("%s\n", __func__);
+ 
+ 	ca->wakeup = 1;
+@@ -1662,7 +1658,6 @@ static ssize_t dvb_ca_en50221_io_read(struct file *file, char __user *buf,
+ 	/* wait for some data */
+ 	status = dvb_ca_en50221_io_read_condition(ca, &result, &slot);
+ 	if (status == 0) {
+-
+ 		/* if we're in nonblocking mode, exit immediately */
+ 		if (file->f_flags & O_NONBLOCK)
+ 			return -EWOULDBLOCK;
+-- 
+2.7.4
