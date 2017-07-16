@@ -1,62 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44438 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751351AbdGQWOg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 18:14:36 -0400
-Received: from lanttu.localdomain (lanttu-e.localdomain [192.168.1.64])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 4B9DB600C0
-        for <linux-media@vger.kernel.org>; Tue, 18 Jul 2017 01:14:33 +0300 (EEST)
-Received: from sailus by lanttu.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@iki.fi>)
-        id 1dXEHi-00050D-Kt
-        for linux-media@vger.kernel.org; Tue, 18 Jul 2017 01:14:34 +0300
-Date: Tue, 18 Jul 2017 01:14:34 +0300
-From: sakari.ailus@iki.fi
+Received: from mail.anw.at ([195.234.101.228]:46239 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751249AbdGPAni (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 15 Jul 2017 20:43:38 -0400
+From: "Jasmin J." <jasmin@anw.at>
 To: linux-media@vger.kernel.org
-Subject: [GIT FIXES for 4.13] Atomisp array underflow fix
-Message-ID: <20170717221434.wgbd7ijemad4mj6n@lanttu.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
+        rjkm@metzlerbros.de, d.scheller@gmx.net, crope@iki.fi,
+        jasmin@anw.at
+Subject: [PATCH V3 02/16] [media] dvb-core/dvb_ca_en50221.c: New function dvb_ca_en50221_poll_cam_gone
+Date: Sun, 16 Jul 2017 02:43:03 +0200
+Message-Id: <1500165797-16987-3-git-send-email-jasmin@anw.at>
+In-Reply-To: <1500165797-16987-1-git-send-email-jasmin@anw.at>
+References: <1500165797-16987-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Jasmin Jessich <jasmin@anw.at>
 
-One atomisp fix patch here...
+The CAM poll code for the budget-av is exactly the same on several
+places. Extracting the code to a new function improves maintainability.
 
-Please pull.
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+---
+ drivers/media/dvb-core/dvb_ca_en50221.c | 66 +++++++++++++++++----------------
+ 1 file changed, 35 insertions(+), 31 deletions(-)
 
-
-The following changes since commit 2a2599c663684a1142dae0bff7737e125891ae6d:
-
-  [media] media: entity: Catch unbalanced media_pipeline_stop calls (2017-06-23 09:23:36 -0300)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git atomisp-fix
-
-for you to fetch changes up to aaa2809c75f4bf76771adf3252a864668c21841a:
-
-  staging: atomisp: array underflow in ioctl (2017-07-18 00:36:48 +0300)
-
-----------------------------------------------------------------
-Dan Carpenter (1):
-      staging: atomisp: array underflow in ioctl
-
- drivers/staging/media/atomisp/i2c/gc0310.h        | 2 +-
- drivers/staging/media/atomisp/i2c/gc2235.h        | 2 +-
- drivers/staging/media/atomisp/i2c/ov2680.h        | 3 +--
- drivers/staging/media/atomisp/i2c/ov2722.h        | 2 +-
- drivers/staging/media/atomisp/i2c/ov5693/ov5693.h | 2 +-
- 5 files changed, 5 insertions(+), 6 deletions(-)
-
-
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+index e2f35b7..bb6aa0f 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -1064,6 +1064,37 @@ static void dvb_ca_en50221_thread_update_delay(struct dvb_ca_private *ca)
+ }
+ 
+ /**
++ * Poll if the CAM is gone.
++ *
++ * @ca: CA instance.
++ * @slot: Slot to process.
++ * @return: 0 .. no change
++ *          1 .. CAM state changed
++ */
++
++static int dvb_ca_en50221_poll_cam_gone(struct dvb_ca_private *ca, int slot)
++{
++	int changed = 0;
++	int status;
++
++	/*
++	 * we need this extra check for annoying interfaces like the
++	 * budget-av
++	 */
++	if ((!(ca->flags & DVB_CA_EN50221_FLAG_IRQ_CAMCHANGE)) &&
++	    (ca->pub->poll_slot_status)) {
++		status = ca->pub->poll_slot_status(ca->pub, slot, 0);
++		if (!(status &
++			DVB_CA_EN50221_POLL_CAM_PRESENT)) {
++			ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_NONE;
++			dvb_ca_en50221_thread_update_delay(ca);
++			changed = 1;
++		}
++	}
++	return changed;
++}
++
++/**
+  * Thread state machine for one CA slot to perform the data transfer.
+  *
+  * @ca: CA instance.
+@@ -1074,7 +1105,6 @@ static void dvb_ca_en50221_thread_state_machine(struct dvb_ca_private *ca,
+ {
+ 	struct dvb_ca_slot *sl = &ca->slot_info[slot];
+ 	int flags;
+-	int status;
+ 	int pktcount;
+ 	void *rxbuf;
+ 
+@@ -1124,21 +1154,8 @@ static void dvb_ca_en50221_thread_state_machine(struct dvb_ca_private *ca,
+ 
+ 	case DVB_CA_SLOTSTATE_VALIDATE:
+ 		if (dvb_ca_en50221_parse_attributes(ca, slot) != 0) {
+-			/*
+-			 * we need this extra check for annoying interfaces like
+-			 * the budget-av
+-			 */
+-			if ((!(ca->flags & DVB_CA_EN50221_FLAG_IRQ_CAMCHANGE))
+-			    && (ca->pub->poll_slot_status)) {
+-				status = ca->pub->poll_slot_status(ca->pub,
+-								   slot, 0);
+-				if (!(status &
+-				      DVB_CA_EN50221_POLL_CAM_PRESENT)) {
+-					sl->slot_state = DVB_CA_SLOTSTATE_NONE;
+-					dvb_ca_en50221_thread_update_delay(ca);
+-					break;
+-				}
+-			}
++			if (dvb_ca_en50221_poll_cam_gone(ca, slot))
++				break;
+ 
+ 			pr_err("dvb_ca adapter %d: Invalid PC card inserted :(\n",
+ 			       ca->dvbdev->adapter->num);
+@@ -1187,21 +1204,8 @@ static void dvb_ca_en50221_thread_state_machine(struct dvb_ca_private *ca,
+ 
+ 	case DVB_CA_SLOTSTATE_LINKINIT:
+ 		if (dvb_ca_en50221_link_init(ca, slot) != 0) {
+-			/*
+-			 * we need this extra check for annoying interfaces like
+-			 * the budget-av
+-			 */
+-			if ((!(ca->flags & DVB_CA_EN50221_FLAG_IRQ_CAMCHANGE))
+-			    && (ca->pub->poll_slot_status)) {
+-				status = ca->pub->poll_slot_status(ca->pub,
+-								   slot, 0);
+-				if (!(status &
+-					DVB_CA_EN50221_POLL_CAM_PRESENT)) {
+-					sl->slot_state = DVB_CA_SLOTSTATE_NONE;
+-					dvb_ca_en50221_thread_update_delay(ca);
+-					break;
+-				}
+-			}
++			if (dvb_ca_en50221_poll_cam_gone(ca, slot))
++				break;
+ 
+ 			pr_err("dvb_ca adapter %d: DVB CAM link initialisation failed :(\n",
+ 			       ca->dvbdev->adapter->num);
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.7.4
