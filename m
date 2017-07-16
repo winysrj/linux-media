@@ -1,57 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:35692 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751763AbdGIJqT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 05:46:19 -0400
-Received: by mail-wr0-f196.google.com with SMTP id z45so18012307wrb.2
-        for <linux-media@vger.kernel.org>; Sun, 09 Jul 2017 02:46:18 -0700 (PDT)
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Malcolm Priestley <tvboxspy@gmail.com>
-Subject: [PATCH RFC 2/2] app: kaffeine: Fix missing PCR on stream recordings.
-Date: Sun,  9 Jul 2017 10:43:51 +0100
-Message-Id: <20170709094351.14642-2-tvboxspy@gmail.com>
-In-Reply-To: <20170709094351.14642-1-tvboxspy@gmail.com>
-References: <20170709094351.14642-1-tvboxspy@gmail.com>
+Received: from mail.anw.at ([195.234.101.228]:46231 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751244AbdGPAni (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 15 Jul 2017 20:43:38 -0400
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
+        rjkm@metzlerbros.de, d.scheller@gmx.net, crope@iki.fi,
+        jasmin@anw.at
+Subject: [PATCH V3 12/16] [media] dvb-core/dvb_ca_en50221.c: Fixed typo
+Date: Sun, 16 Jul 2017 02:43:13 +0200
+Message-Id: <1500165797-16987-13-git-send-email-jasmin@anw.at>
+In-Reply-To: <1500165797-16987-1-git-send-email-jasmin@anw.at>
+References: <1500165797-16987-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ISO/IEC standard 13818-1 or ITU-T Rec. H.222.0 standard allow transport
-vendors to place PCR (Program Clock Reference) on a different PID.
+From: Jasmin Jessich <jasmin@anw.at>
 
-This patch adds it recording to file.
+- "dont" -> "don't"
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
 ---
- src/dvb/dvbrecording.cpp | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/media/dvb-core/dvb_ca_en50221.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/src/dvb/dvbrecording.cpp b/src/dvb/dvbrecording.cpp
-index ecb4777..12a57dc 100644
---- a/src/dvb/dvbrecording.cpp
-+++ b/src/dvb/dvbrecording.cpp
-@@ -961,6 +961,7 @@ void DvbRecordingFile::pmtSectionChanged(const QByteArray &pmtSectionData_)
- 	pmtSectionData = pmtSectionData_;
- 	DvbPmtSection pmtSection(pmtSectionData);
- 	DvbPmtParser pmtParser(pmtSection);
-+	int pcr_pid = pmtSection.pcr_pid();
- 	QSet<int> newPids;
- 
- 	if (pmtParser.videoPid != -1) {
-@@ -979,6 +980,13 @@ void DvbRecordingFile::pmtSectionChanged(const QByteArray &pmtSectionData_)
- 		newPids.insert(pmtParser.teletextPid);
- 	}
- 
-+	/* check PCR PID is set */
-+	if (pcr_pid != 0x1fff) {
-+		/* Check not already in list */
-+		if (!newPids.contains(pcr_pid))
-+			newPids.insert(pcr_pid);
-+	}
-+
- 	for (int i = 0; i < pids.size(); ++i) {
- 		int pid = pids.at(i);
- 
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+index 8c0c730..aba80d8 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -1304,7 +1304,7 @@ static void dvb_ca_en50221_thread_state_machine(struct dvb_ca_private *ca,
+ 			 */
+ 			if (dvb_ca_en50221_check_camstatus(ca, slot)) {
+ 				/*
+-				 * we dont want to sleep on the next iteration
++				 * we don't want to sleep on the next iteration
+ 				 * so we can handle the cam change
+ 				 */
+ 				ca->wakeup = 1;
+@@ -1314,7 +1314,7 @@ static void dvb_ca_en50221_thread_state_machine(struct dvb_ca_private *ca,
+ 			/* check if we've hit our limit this time */
+ 			if (++pktcount >= MAX_RX_PACKETS_PER_ITERATION) {
+ 				/*
+-				 * dont sleep; there is likely to be more data
++				 * don't sleep; there is likely to be more data
+ 				 * to read
+ 				 */
+ 				ca->wakeup = 1;
 -- 
-2.13.2
+2.7.4
