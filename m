@@ -1,119 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47946 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751172AbdGOJth (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:35415 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751313AbdGQRAZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Jul 2017 05:49:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <philipp.zabel@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/3] [media] uvcvideo: variable size controls
-Date: Sat, 15 Jul 2017 12:49:43 +0300
-Message-ID: <4593253.3XROVtGbEB@avalon>
-In-Reply-To: <20170714201424.23592-1-philipp.zabel@gmail.com>
-References: <20170714201424.23592-1-philipp.zabel@gmail.com>
+        Mon, 17 Jul 2017 13:00:25 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v4 0/3] v4l2-async: add subnotifier registration for subdevices
+Date: Mon, 17 Jul 2017 18:59:14 +0200
+Message-Id: <20170717165917.24851-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+Hi,
 
-Thank you for the patch.
+This is a rewrite of the feature since v3, maybe it should have been 
+posted as a new series?
 
-On Friday 14 Jul 2017 22:14:22 Philipp Zabel wrote:
-> Some USB webcam controllers have extension unit controls that report
-> different lengths via GET_LEN, depending on internal state.
+This series enables incremental async find and bind of subdevices,
+please se patch 3/3 for a more detailed description of the new behavior, 
+changelog in this cover letter for the differences to v3. The two 
+primary reasons for a new implementation where:
 
-If I ever need to hire a hardware designer, I'll make sure to reject any 
-candidate who thinks that creativity is an asset :-(
+1. Hans expressed an interest having the async complete() callbacks to 
+   happen only once all notifiers in the pipeline where complete. To do 
+   this a stronger connection between the notifiers where needed, hence 
+   the subnotifier is now embedded in struct v4l2_subdev.
 
-If the size changes, could the flags change as well ? Should you issue a 
-GET_INFO too ?
+   Whit this change it is possible to check all notifiers in a pipeline 
+   is complete before calling any of them.
 
-> Add a flag to mark these controls as variable length and issue GET_LEN
-> before GET/SET_CUR transfers to verify the current length.
+2. There where concerns that the v3 solution was a bit to complex and 
+   hard to refactor in the future if other issues in the v4l2-async 
+   framework where to be addressed. By hiding the notifier in the struct 
+   v4l2_subdev and adding a new function to set that structure the 
+   interface towards drivers are minimized while everything else happens 
+   in the v4l2-async framework. This leaves the interface in a good 
+   position for possible changes in v4l2-async.
 
-What happens if the internal state changes between the GET_LEN and the 
-GET/SET_CUR ?
+This is tested on Renesas H3 and M3-W together with the Renesas CSI-2
+and VIN Gen3 driver (posted separately). It is based on top of the media-tree.
 
-> Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
-> ---
->  drivers/media/usb/uvc/uvc_ctrl.c | 26 +++++++++++++++++++++++++-
->  include/uapi/linux/uvcvideo.h    |  2 ++
->  2 files changed, 27 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
-> b/drivers/media/usb/uvc/uvc_ctrl.c index c2ee6e39fd0c..ce69e2c6937d 100644
-> --- a/drivers/media/usb/uvc/uvc_ctrl.c
-> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
-> @@ -1597,7 +1597,7 @@ static void uvc_ctrl_fixup_xu_info(struct uvc_device
-> *dev, struct usb_device_id id;
->  		u8 entity;
->  		u8 selector;
-> -		u8 flags;
-> +		u16 flags;
->  	};
-> 
->  	static const struct uvc_ctrl_fixup fixups[] = {
-> @@ -1799,6 +1799,30 @@ int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
->  		goto done;
->  	}
-> 
-> +	if ((ctrl->info.flags & UVC_CTRL_FLAG_VARIABLE_LEN) && reqflags) {
-> +		data = kmalloc(2, GFP_KERNEL);
-> +		/* Check if the control length has changed */
-> +		ret = uvc_query_ctrl(chain->dev, UVC_GET_LEN, xqry->unit,
-> +				     chain->dev->intfnum, xqry->selector, 
-data,
-> +				     2);
-> +		size = le16_to_cpup((__le16 *)data);
-> +		kfree(data);
+* Changes since v3
+- Almost a complete rewrite, so drop all Ack-ed by tags.
+- Do not add new functions to register/unregister subnotifiers from 
+  callbacks. Instead have have the subdevice drivers populate the 
+  subnotifer list at probe time and have the v4l2-async framework handle 
+  the (un)registration of the notifiers.
+- Synchronize the call off the complete() callbacks. They will now all 
+  happens once all notifiers in a pipeline are all complete and from the 
+  edge towards the root device.
+- Add a new function v4l2_async_subdev_register_notifier() to hide the 
+  setup of the subnotifier internals to ease improvements later.
 
-Now data is not NULL.
+* Changes since v2
+- Fixed lots of spelling mistakes, thanks Hans!
+- Used a goto instead if state variable when restarting iteration over
+  subdev list as suggested by Sakari. Thank you it's much easier read
+  now.
+- Added Acked-by from Sakari and Hans, thanks!
+- Rebased to latest media-tree.
 
-> +		if (ret < 0) {
-> +			uvc_trace(UVC_TRACE_CONTROL,
-> +				  "GET_LEN failed on control %pUl/%u (%d).\n",
-> +				  entity->extension.guidExtensionCode,
-> +				  xqry->selector, ret);
-> +			goto done;
+* Changes since v1:
+- Added a pre-patch which adds an error check which was previously in
+  the new incremental async code but is more useful on its own.
+- Added documentation to Documentation/media/kapi/v4l2-subdev.rst.
+- Fixed data type of bool variable.
+- Added call to lockdep_assert_held(), thanks Sakari.
+- Fixed commit messages typo, thanks Sakari.
 
-And the kfree(data) at the done label will cause a double free.
+Niklas Söderlund (3):
+  v4l: async: fix unbind error in v4l2_async_notifier_unregister()
+  v4l: async: do not hold list_lock when reprobing devices
+  v4l: async: add subnotifier to subdevices
 
-> +		}
-> +		if (ctrl->info.size != size) {
-> +			uvc_trace(UVC_TRACE_CONTROL,
-> +				  "XU control %pUl/%u queried: len %u -> 
-%u\n",
-> +				  entity->extension.guidExtensionCode,
-> +				  xqry->selector, ctrl->info.size, size);
-> +			ctrl->info.size = size;
-> +		}
-> +	}
-
-How about moving this code (or part of it at least) to a function that could 
-be shared with uvc_ctrl_fill_xu_info() ?
-
->  	if (size != xqry->size) {
->  		ret = -ENOBUFS;
->  		goto done;
-> diff --git a/include/uapi/linux/uvcvideo.h b/include/uapi/linux/uvcvideo.h
-> index 3b081862b9e8..0f0d63e79045 100644
-> --- a/include/uapi/linux/uvcvideo.h
-> +++ b/include/uapi/linux/uvcvideo.h
-> @@ -27,6 +27,8 @@
->  #define UVC_CTRL_FLAG_RESTORE		(1 << 6)
->  /* Control can be updated by the camera. */
->  #define UVC_CTRL_FLAG_AUTO_UPDATE	(1 << 7)
-> +/* Control can change LEN */
-> +#define UVC_CTRL_FLAG_VARIABLE_LEN	(1 << 8)
-> 
->  #define UVC_CTRL_FLAG_GET_RANGE \
->  	(UVC_CTRL_FLAG_GET_CUR | UVC_CTRL_FLAG_GET_MIN | \
+ Documentation/media/kapi/v4l2-subdev.rst |  12 +++
+ drivers/media/v4l2-core/v4l2-async.c     | 165 +++++++++++++++++++++++++------
+ include/media/v4l2-async.h               |  25 +++++
+ include/media/v4l2-subdev.h              |   5 +
+ 4 files changed, 179 insertions(+), 28 deletions(-)
 
 -- 
-Regards,
-
-Laurent Pinchart
+2.13.1
