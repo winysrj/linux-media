@@ -1,215 +1,303 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:34587 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753612AbdG2L26 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Jul 2017 07:28:58 -0400
-Received: by mail-wr0-f196.google.com with SMTP id o33so20715945wrb.1
-        for <linux-media@vger.kernel.org>; Sat, 29 Jul 2017 04:28:57 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
-        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
-Subject: [PATCH v2 04/14] [media] ddbridge: split I/O related functions off from ddbridge.h
-Date: Sat, 29 Jul 2017 13:28:38 +0200
-Message-Id: <20170729112848.707-5-d.scheller.oss@gmail.com>
-In-Reply-To: <20170729112848.707-1-d.scheller.oss@gmail.com>
-References: <20170729112848.707-1-d.scheller.oss@gmail.com>
+Received: from ns.mm-sol.com ([37.157.136.199]:36070 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751397AbdGQKfG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Jul 2017 06:35:06 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v3 17/23] camss: vfe: Add interface for scaling
+Date: Mon, 17 Jul 2017 13:33:43 +0300
+Message-Id: <1500287629-23703-18-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
+References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Add compose selection ioctls to handle scaling configuration.
 
-While it seems valid that headers can carry simple oneline static inline
-annotated functions, move them into their own header file to have the
-overall code more readable. Also, keep them as header (and don't put in
-a separate object) and static inline to help the compiler avoid
-generating function calls.
-
-(Thanks to Jasmin J. <jasmin@anw.at> for valuable input on this!)
-
-Cc: Jasmin J. <jasmin@anw.at>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-Tested-by: Richard Scobie <r.scobie@clear.net.nz>
-Tested-by: Jasmin Jessich <jasmin@anw.at>
-Tested-by: Dietmar Spingler <d_spingler@freenet.de>
-Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- drivers/media/pci/ddbridge/ddbridge-core.c |  1 +
- drivers/media/pci/ddbridge/ddbridge-i2c.c  |  1 +
- drivers/media/pci/ddbridge/ddbridge-io.h   | 71 ++++++++++++++++++++++++++++++
- drivers/media/pci/ddbridge/ddbridge-main.c |  1 +
- drivers/media/pci/ddbridge/ddbridge.h      | 43 ------------------
- 5 files changed, 74 insertions(+), 43 deletions(-)
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-io.h
+ drivers/media/platform/qcom/camss-8x16/camss-vfe.c | 189 ++++++++++++++++++++-
+ drivers/media/platform/qcom/camss-8x16/camss-vfe.h |   1 +
+ 2 files changed, 188 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 5045ad6c36fe..658f8e0f6163 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -37,6 +37,7 @@
- #include "ddbridge.h"
- #include "ddbridge-i2c.h"
- #include "ddbridge-regs.h"
-+#include "ddbridge-io.h"
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
+index 327f158..8ec6ce7 100644
+--- a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
++++ b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
+@@ -211,6 +211,8 @@
+ #define CAMIF_TIMEOUT_SLEEP_US 1000
+ #define CAMIF_TIMEOUT_ALL_US 1000000
  
- #include "tda18271c2dd.h"
- #include "stv6110x.h"
-diff --git a/drivers/media/pci/ddbridge/ddbridge-i2c.c b/drivers/media/pci/ddbridge/ddbridge-i2c.c
-index 376d8a7ca0b9..3d4fafb5db27 100644
---- a/drivers/media/pci/ddbridge/ddbridge-i2c.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-i2c.c
-@@ -33,6 +33,7 @@
- #include "ddbridge.h"
- #include "ddbridge-i2c.h"
- #include "ddbridge-regs.h"
-+#include "ddbridge-io.h"
++#define SCALER_RATIO_MAX 16
++
+ static const u32 vfe_formats[] = {
+ 	MEDIA_BUS_FMT_UYVY8_2X8,
+ 	MEDIA_BUS_FMT_VYUY8_2X8,
+@@ -1905,6 +1907,25 @@ __vfe_get_format(struct vfe_line *line,
+ 	return &line->fmt[pad];
+ }
  
- /******************************************************************************/
- 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-io.h b/drivers/media/pci/ddbridge/ddbridge-io.h
-new file mode 100644
-index 000000000000..ce92e9484075
---- /dev/null
-+++ b/drivers/media/pci/ddbridge/ddbridge-io.h
-@@ -0,0 +1,71 @@
 +/*
-+ * ddbridge-io.h: Digital Devices bridge I/O inline functions
++ * __vfe_get_compose - Get pointer to compose selection structure
++ * @line: VFE line
++ * @cfg: V4L2 subdev pad configuration
++ * @which: TRY or ACTIVE format
 + *
-+ * Copyright (C) 2010-2017 Digital Devices GmbH
-+ *                         Ralph Metzler <rjkm@metzlerbros.de>
-+ *                         Marcus Metzler <mocm@metzlerbros.de>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 only, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
++ * Return pointer to TRY or ACTIVE compose rectangle structure
 + */
-+
-+#ifndef __DDBRIDGE_IO_H__
-+#define __DDBRIDGE_IO_H__
-+
-+#include <linux/io.h>
-+
-+#include "ddbridge.h"
-+
-+/******************************************************************************/
-+
-+static inline u32 ddblreadl(struct ddb_link *link, u32 adr)
++static struct v4l2_rect *
++__vfe_get_compose(struct vfe_line *line,
++		  struct v4l2_subdev_pad_config *cfg,
++		  enum v4l2_subdev_format_whence which)
 +{
-+	return readl((char *) (link->dev->regs + (adr)));
++	if (which == V4L2_SUBDEV_FORMAT_TRY)
++		return v4l2_subdev_get_try_compose(&line->subdev, cfg,
++						   MSM_VFE_PAD_SINK);
++
++	return &line->compose;
++}
+ 
+ /*
+  * vfe_try_format - Handle try format by pad subdev method
+@@ -1951,7 +1972,14 @@ static void vfe_try_format(struct vfe_line *line,
+ 		*fmt = *__vfe_get_format(line, cfg, MSM_VFE_PAD_SINK,
+ 					 which);
+ 
+-		if (line->id == VFE_LINE_PIX)
++		if (line->id == VFE_LINE_PIX) {
++			struct v4l2_rect *rect;
++
++			rect = __vfe_get_compose(line, cfg, which);
++
++			fmt->width = rect->width;
++			fmt->height = rect->height;
++
+ 			switch (fmt->code) {
+ 			case MEDIA_BUS_FMT_YUYV8_2X8:
+ 				if (code == MEDIA_BUS_FMT_YUYV8_1_5X8)
+@@ -1979,6 +2007,7 @@ static void vfe_try_format(struct vfe_line *line,
+ 					fmt->code = MEDIA_BUS_FMT_VYUY8_2X8;
+ 				break;
+ 			}
++		}
+ 
+ 		break;
+ 	}
+@@ -1987,6 +2016,50 @@ static void vfe_try_format(struct vfe_line *line,
+ }
+ 
+ /*
++ * vfe_try_compose - Handle try compose selection by pad subdev method
++ * @line: VFE line
++ * @cfg: V4L2 subdev pad configuration
++ * @rect: pointer to v4l2 rect structure
++ * @which: wanted subdev format
++ */
++static void vfe_try_compose(struct vfe_line *line,
++			    struct v4l2_subdev_pad_config *cfg,
++			    struct v4l2_rect *rect,
++			    enum v4l2_subdev_format_whence which)
++{
++	struct v4l2_mbus_framefmt *fmt;
++
++	rect->width = rect->width - rect->left;
++	rect->left = 0;
++	rect->height = rect->height - rect->top;
++	rect->top = 0;
++
++	fmt = __vfe_get_format(line, cfg, MSM_VFE_PAD_SINK, which);
++
++	if (rect->width > fmt->width)
++		rect->width = fmt->width;
++
++	if (rect->height > fmt->height)
++		rect->height = fmt->height;
++
++	if (fmt->width > rect->width * SCALER_RATIO_MAX)
++		rect->width = (fmt->width + SCALER_RATIO_MAX - 1) /
++							SCALER_RATIO_MAX;
++
++	rect->width &= ~0x1;
++
++	if (fmt->height > rect->height * SCALER_RATIO_MAX)
++		rect->height = (fmt->height + SCALER_RATIO_MAX - 1) /
++							SCALER_RATIO_MAX;
++
++	if (rect->width < 16)
++		rect->width = 16;
++
++	if (rect->height < 4)
++		rect->height = 4;
 +}
 +
-+static inline void ddblwritel(struct ddb_link *link, u32 val, u32 adr)
-+{
-+	writel(val, (char *) (link->dev->regs + (adr)));
-+}
++/*
+  * vfe_enum_mbus_code - Handle pixel format enumeration
+  * @sd: VFE V4L2 subdevice
+  * @cfg: V4L2 subdev pad configuration
+@@ -2081,6 +2154,10 @@ static int vfe_get_format(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
++static int vfe_set_selection(struct v4l2_subdev *sd,
++			     struct v4l2_subdev_pad_config *cfg,
++			     struct v4l2_subdev_selection *sel);
 +
-+static inline u32 ddbreadl(struct ddb *dev, u32 adr)
-+{
-+	return readl((char *) (dev->regs + (adr)));
-+}
+ /*
+  * vfe_set_format - Handle set format by pads subdev method
+  * @sd: VFE V4L2 subdevice
+@@ -2103,20 +2180,126 @@ static int vfe_set_format(struct v4l2_subdev *sd,
+ 	vfe_try_format(line, cfg, fmt->pad, &fmt->format, fmt->which);
+ 	*format = fmt->format;
+ 
+-	/* Propagate the format from sink to source */
+ 	if (fmt->pad == MSM_VFE_PAD_SINK) {
++		struct v4l2_subdev_selection sel = { 0 };
++		int ret;
 +
-+static inline void ddbwritel(struct ddb *dev, u32 val, u32 adr)
-+{
-+	writel(val, (char *) (dev->regs + (adr)));
-+}
++		/* Propagate the format from sink to source */
+ 		format = __vfe_get_format(line, cfg, MSM_VFE_PAD_SRC,
+ 					  fmt->which);
+ 
+ 		*format = fmt->format;
+ 		vfe_try_format(line, cfg, MSM_VFE_PAD_SRC, format,
+ 			       fmt->which);
 +
-+static inline void ddbcpyto(struct ddb *dev, u32 adr, void *src, long count)
-+{
-+	return memcpy_toio((char *) (dev->regs + adr), src, count);
-+}
++		if (line->id != VFE_LINE_PIX)
++			return 0;
 +
-+static inline void ddbcpyfrom(struct ddb *dev, void *dst, u32 adr, long count)
++		/* Reset sink pad compose selection */
++		sel.which = fmt->which;
++		sel.pad = MSM_VFE_PAD_SINK;
++		sel.target = V4L2_SEL_TGT_COMPOSE;
++		sel.r.width = fmt->format.width;
++		sel.r.height = fmt->format.height;
++		ret = vfe_set_selection(sd, cfg, &sel);
++		if (ret < 0)
++			return ret;
+ 	}
+ 
+ 	return 0;
+ }
+ 
+ /*
++ * vfe_get_selection - Handle get selection by pads subdev method
++ * @sd: VFE V4L2 subdevice
++ * @cfg: V4L2 subdev pad configuration
++ * @sel: pointer to v4l2 subdev selection structure
++ *
++ * Return -EINVAL or zero on success
++ */
++static int vfe_get_selection(struct v4l2_subdev *sd,
++			     struct v4l2_subdev_pad_config *cfg,
++			     struct v4l2_subdev_selection *sel)
 +{
-+	return memcpy_fromio(dst, (char *) (dev->regs + adr), count);
-+}
++	struct vfe_line *line = v4l2_get_subdevdata(sd);
++	struct v4l2_subdev_format fmt = { 0 };
++	struct v4l2_rect *compose;
++	int ret;
 +
-+static inline u32 safe_ddbreadl(struct ddb *dev, u32 adr)
-+{
-+	u32 val = ddbreadl(dev, adr);
++	if (line->id != VFE_LINE_PIX || sel->pad != MSM_VFE_PAD_SINK)
++		return -EINVAL;
 +
-+	/* (ddb)readl returns (uint)-1 (all bits set) on failure, catch that */
-+	if (val == ~0) {
-+		dev_err(&dev->pdev->dev, "ddbreadl failure, adr=%08x\n", adr);
-+		return 0;
++	switch (sel->target) {
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
++		fmt.pad = sel->pad;
++		fmt.which = sel->which;
++		ret = vfe_get_format(sd, cfg, &fmt);
++		if (ret < 0)
++			return ret;
++		sel->r.left = 0;
++		sel->r.top = 0;
++		sel->r.width = fmt.format.width;
++		sel->r.height = fmt.format.height;
++		break;
++	case V4L2_SEL_TGT_COMPOSE:
++		compose = __vfe_get_compose(line, cfg, sel->which);
++		if (compose == NULL)
++			return -EINVAL;
++
++		sel->r = *compose;
++		break;
++	default:
++		return -EINVAL;
 +	}
 +
-+	return val;
++	return 0;
 +}
 +
-+#endif /* __DDBRIDGE_IO_H__ */
-diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
-index dde938ad1247..5332fd89f359 100644
---- a/drivers/media/pci/ddbridge/ddbridge-main.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-main.c
-@@ -35,6 +35,7 @@
- #include "ddbridge.h"
- #include "ddbridge-i2c.h"
- #include "ddbridge-regs.h"
-+#include "ddbridge-io.h"
- 
- /****************************************************************************/
- /* module parameters */
-diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
-index ab6364ae0711..3790fd8465a4 100644
---- a/drivers/media/pci/ddbridge/ddbridge.h
-+++ b/drivers/media/pci/ddbridge/ddbridge.h
-@@ -353,49 +353,6 @@ struct ddb {
- 	u8                     tsbuf[TS_CAPTURE_LEN];
++/*
++ * vfe_set_selection - Handle set selection by pads subdev method
++ * @sd: VFE V4L2 subdevice
++ * @cfg: V4L2 subdev pad configuration
++ * @sel: pointer to v4l2 subdev selection structure
++ *
++ * Return -EINVAL or zero on success
++ */
++int vfe_set_selection(struct v4l2_subdev *sd,
++			     struct v4l2_subdev_pad_config *cfg,
++			     struct v4l2_subdev_selection *sel)
++{
++	struct vfe_line *line = v4l2_get_subdevdata(sd);
++	struct v4l2_rect *compose;
++	struct v4l2_subdev_format fmt = { 0 };
++	int ret;
++
++	if (line->id != VFE_LINE_PIX || sel->pad != MSM_VFE_PAD_SINK)
++		return -EINVAL;
++
++	if (sel->target != V4L2_SEL_TGT_COMPOSE)
++		return -EINVAL;
++
++	compose = __vfe_get_compose(line, cfg, sel->which);
++	if (compose == NULL)
++		return -EINVAL;
++
++	vfe_try_compose(line, cfg, &sel->r, sel->which);
++	*compose = sel->r;
++
++	/* Reset source pad format width and height */
++	fmt.which = sel->which;
++	fmt.pad = MSM_VFE_PAD_SRC;
++	ret = vfe_get_format(sd, cfg, &fmt);
++	if (ret < 0)
++		return ret;
++
++	fmt.format.width = compose->width;
++	fmt.format.height = compose->height;
++	ret = vfe_set_format(sd, cfg, &fmt);
++
++	return ret;
++}
++
++/*
+  * vfe_init_formats - Initialize formats on all pads
+  * @sd: VFE V4L2 subdevice
+  * @fh: V4L2 subdev file handle
+@@ -2310,6 +2493,8 @@ static const struct v4l2_subdev_pad_ops vfe_pad_ops = {
+ 	.enum_frame_size = vfe_enum_frame_size,
+ 	.get_fmt = vfe_get_format,
+ 	.set_fmt = vfe_set_format,
++	.get_selection = vfe_get_selection,
++	.set_selection = vfe_set_selection,
  };
  
--static inline u32 ddblreadl(struct ddb_link *link, u32 adr)
--{
--	return readl((char *) (link->dev->regs + (adr)));
--}
--
--static inline void ddblwritel(struct ddb_link *link, u32 val, u32 adr)
--{
--	writel(val, (char *) (link->dev->regs + (adr)));
--}
--
--static inline u32 ddbreadl(struct ddb *dev, u32 adr)
--{
--	return readl((char *) (dev->regs + (adr)));
--}
--
--static inline void ddbwritel(struct ddb *dev, u32 val, u32 adr)
--{
--	writel(val, (char *) (dev->regs + (adr)));
--}
--
--static inline void ddbcpyto(struct ddb *dev, u32 adr, void *src, long count)
--{
--	return memcpy_toio((char *) (dev->regs + adr), src, count);
--}
--
--static inline void ddbcpyfrom(struct ddb *dev, void *dst, u32 adr, long count)
--{
--	return memcpy_fromio(dst, (char *) (dev->regs + adr), count);
--}
--
--static inline u32 safe_ddbreadl(struct ddb *dev, u32 adr)
--{
--	u32 val = ddbreadl(dev, adr);
--
--	/* (ddb)readl returns (uint)-1 (all bits set) on failure, catch that */
--	if (val == ~0) {
--		dev_err(&dev->pdev->dev, "ddbreadl failure, adr=%08x\n", adr);
--		return 0;
--	}
--
--	return val;
--}
--
- /****************************************************************************/
- /****************************************************************************/
- /****************************************************************************/
+ static const struct v4l2_subdev_ops vfe_v4l2_ops = {
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss-vfe.h b/drivers/media/platform/qcom/camss-8x16/camss-vfe.h
+index b0598e4..6518c7a 100644
+--- a/drivers/media/platform/qcom/camss-8x16/camss-vfe.h
++++ b/drivers/media/platform/qcom/camss-8x16/camss-vfe.h
+@@ -80,6 +80,7 @@ struct vfe_line {
+ 	struct v4l2_subdev subdev;
+ 	struct media_pad pads[MSM_VFE_PADS_NUM];
+ 	struct v4l2_mbus_framefmt fmt[MSM_VFE_PADS_NUM];
++	struct v4l2_rect compose;
+ 	struct camss_video video_out;
+ 	struct vfe_output output;
+ };
 -- 
-2.13.0
+2.7.4
