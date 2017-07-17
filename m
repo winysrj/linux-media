@@ -1,228 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:59671 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751965AbdGGJwF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Jul 2017 05:52:05 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Cc: Pavel Machek <pavel@ucw.cz>,
-        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Subject: [PATCH v2 4/6] [media] rc: pwm-ir-tx: add new driver
-Date: Fri,  7 Jul 2017 10:52:02 +0100
-Message-Id: <ae8550faaabeb0d1c9f3b65f29ea32bd8c259146.1499419624.git.sean@mess.org>
-In-Reply-To: <cover.1499419624.git.sean@mess.org>
-References: <cover.1499419624.git.sean@mess.org>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:35155 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751435AbdGQXDo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Jul 2017 19:03:44 -0400
+Date: Tue, 18 Jul 2017 01:03:33 +0200
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: pavel@ucw.cz, linux-media@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 1/7] omap3isp: Ignore endpoints with invalid configuration
+Message-ID: <20170717230333.mauiskmeeq2khkt7@earth>
+References: <20170717220116.17886-1-sakari.ailus@linux.intel.com>
+ <20170717220116.17886-2-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="hifcdnx2vw3kwc4e"
+Content-Disposition: inline
+In-Reply-To: <20170717220116.17886-2-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is new driver which uses pwm, so it is more power-efficient
-than the bit banging gpio-ir-tx driver.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- MAINTAINERS                  |   6 ++
- drivers/media/rc/Kconfig     |  12 ++++
- drivers/media/rc/Makefile    |   1 +
- drivers/media/rc/pwm-ir-tx.c | 138 +++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 157 insertions(+)
- create mode 100644 drivers/media/rc/pwm-ir-tx.c
+--hifcdnx2vw3kwc4e
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 8a37c2f..446a528 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -10449,6 +10449,12 @@ F:	Documentation/devicetree/bindings/hwmon/pwm-fan.txt
- F:	Documentation/hwmon/pwm-fan
- F:	drivers/hwmon/pwm-fan.c
- 
-+PWM IR Transmitter
-+M:	Sean Young <sean@mess.org>
-+L:	linux-media@vger.kernel.org
-+S:	Maintained
-+F:	drivers/media/rc/pwm-ir-tx.c
-+
- PWM SUBSYSTEM
- M:	Thierry Reding <thierry.reding@gmail.com>
- L:	linux-pwm@vger.kernel.org
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index ef767d1..bca77f0 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -410,6 +410,18 @@ config IR_GPIO_TX
- 	   To compile this driver as a module, choose M here: the module will
- 	   be called gpio-ir-tx.
- 
-+config IR_PWM_TX
-+	tristate "PWM IR transmitter"
-+	depends on RC_CORE
-+	depends on LIRC
-+	depends on PWM
-+	---help---
-+	   Say Y if you want to use a PWM based IR transmitter. This is
-+	   more power efficient than the bit banging gpio driver.
-+
-+	   To compile this driver as a module, choose M here: the module will
-+	   be called pwm-ir-tx.
-+
- config RC_ST
- 	tristate "ST remote control receiver"
- 	depends on RC_CORE
-diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-index 3e64a4e..466c402 100644
---- a/drivers/media/rc/Makefile
-+++ b/drivers/media/rc/Makefile
-@@ -33,6 +33,7 @@ obj-$(CONFIG_IR_WINBOND_CIR) += winbond-cir.o
- obj-$(CONFIG_RC_LOOPBACK) += rc-loopback.o
- obj-$(CONFIG_IR_GPIO_CIR) += gpio-ir-recv.o
- obj-$(CONFIG_IR_GPIO_TX) += gpio-ir-tx.o
-+obj-$(CONFIG_IR_PWM_TX) += pwm-ir-tx.o
- obj-$(CONFIG_IR_IGORPLUGUSB) += igorplugusb.o
- obj-$(CONFIG_IR_IGUANA) += iguanair.o
- obj-$(CONFIG_IR_TTUSBIR) += ttusbir.o
-diff --git a/drivers/media/rc/pwm-ir-tx.c b/drivers/media/rc/pwm-ir-tx.c
-new file mode 100644
-index 0000000..27d0f58
---- /dev/null
-+++ b/drivers/media/rc/pwm-ir-tx.c
-@@ -0,0 +1,138 @@
-+/*
-+ * Copyright (C) 2017 Sean Young <sean@mess.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/pwm.h>
-+#include <linux/delay.h>
-+#include <linux/slab.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
-+#include <media/rc-core.h>
-+
-+#define DRIVER_NAME	"pwm-ir-tx"
-+#define DEVICE_NAME	"PWM IR Transmitter"
-+
-+struct pwm_ir {
-+	struct pwm_device *pwm;
-+	unsigned int carrier;
-+	unsigned int duty_cycle;
-+};
-+
-+static const struct of_device_id pwm_ir_of_match[] = {
-+	{ .compatible = "pwm-ir-tx", },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, pwm_ir_of_match);
-+
-+static int pwm_ir_set_duty_cycle(struct rc_dev *dev, u32 duty_cycle)
-+{
-+	struct pwm_ir *pwm_ir = dev->priv;
-+
-+	pwm_ir->duty_cycle = duty_cycle;
-+
-+	return 0;
-+}
-+
-+static int pwm_ir_set_carrier(struct rc_dev *dev, u32 carrier)
-+{
-+	struct pwm_ir *pwm_ir = dev->priv;
-+
-+	if (!carrier)
-+		return -EINVAL;
-+
-+	pwm_ir->carrier = carrier;
-+
-+	return 0;
-+}
-+
-+static int pwm_ir_tx(struct rc_dev *dev, unsigned int *txbuf,
-+		     unsigned int count)
-+{
-+	struct pwm_ir *pwm_ir = dev->priv;
-+	struct pwm_device *pwm = pwm_ir->pwm;
-+	int i, duty, period;
-+	ktime_t edge;
-+	long delta;
-+
-+	period = DIV_ROUND_CLOSEST(NSEC_PER_SEC, pwm_ir->carrier);
-+	duty = DIV_ROUND_CLOSEST(pwm_ir->duty_cycle * period, 100);
-+
-+	pwm_config(pwm, duty, period);
-+
-+	edge = ktime_get();
-+
-+	for (i = 0; i < count; i++) {
-+		if (i % 2) // space
-+			pwm_disable(pwm);
-+		else
-+			pwm_enable(pwm);
-+
-+		edge = ktime_add_us(edge, txbuf[i]);
-+		delta = ktime_us_delta(edge, ktime_get());
-+		if (delta > 0)
-+			usleep_range(delta, delta + 10);
-+	}
-+
-+	pwm_disable(pwm);
-+
-+	return count;
-+}
-+
-+static int pwm_ir_probe(struct platform_device *pdev)
-+{
-+	struct pwm_ir *pwm_ir;
-+	struct rc_dev *rcdev;
-+	int rc;
-+
-+	pwm_ir = devm_kmalloc(&pdev->dev, sizeof(*pwm_ir), GFP_KERNEL);
-+	if (!pwm_ir)
-+		return -ENOMEM;
-+
-+	pwm_ir->pwm = devm_pwm_get(&pdev->dev, NULL);
-+	if (IS_ERR(pwm_ir->pwm))
-+		return PTR_ERR(pwm_ir->pwm);
-+
-+	pwm_ir->carrier = 38000;
-+	pwm_ir->duty_cycle = 50;
-+
-+	rcdev = devm_rc_allocate_device(&pdev->dev, RC_DRIVER_IR_RAW_TX);
-+	if (!rcdev)
-+		return -ENOMEM;
-+
-+	rcdev->priv = pwm_ir;
-+	rcdev->driver_name = DRIVER_NAME;
-+	rcdev->device_name = DEVICE_NAME;
-+	rcdev->tx_ir = pwm_ir_tx;
-+	rcdev->s_tx_duty_cycle = pwm_ir_set_duty_cycle;
-+	rcdev->s_tx_carrier = pwm_ir_set_carrier;
-+
-+	rc = devm_rc_register_device(&pdev->dev, rcdev);
-+	if (rc < 0)
-+		dev_err(&pdev->dev, "failed to register rc device\n");
-+
-+	return rc;
-+}
-+
-+static struct platform_driver pwm_ir_driver = {
-+	.probe = pwm_ir_probe,
-+	.driver = {
-+		.name	= DRIVER_NAME,
-+		.of_match_table = of_match_ptr(pwm_ir_of_match),
-+	},
-+};
-+module_platform_driver(pwm_ir_driver);
-+
-+MODULE_DESCRIPTION("PWM IR Transmitter");
-+MODULE_AUTHOR("Sean Young <sean@mess.org>");
-+MODULE_LICENSE("GPL");
--- 
-2.9.4
+Hi,
+
+On Tue, Jul 18, 2017 at 01:01:10AM +0300, Sakari Ailus wrote:
+> If endpoint has an invalid configuration, ignore it instead of happily
+> proceeding to use it nonetheless. Ignoring such an endpoint is better than
+> failing since there could be multiple endpoints, only some of which are
+> bad.
+
+I would expect a dev_warn(dev, "Ignore endpoint (broken configuration)!");
+
+-- Sebastian
+
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Tested-by: Pavel Machek <pavel@ucw.cz>
+> ---
+>  drivers/media/platform/omap3isp/isp.c | 8 +++++---
+>  1 file changed, 5 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platfo=
+rm/omap3isp/isp.c
+> index db2cccb57ceb..441eba1e02eb 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -2110,10 +2110,12 @@ static int isp_fwnodes_parse(struct device *dev,
+>  		if (!isd)
+>  			goto error;
+> =20
+> -		notifier->subdevs[notifier->num_subdevs] =3D &isd->asd;
+> +		if (isp_fwnode_parse(dev, fwnode, isd)) {
+> +			devm_kfree(dev, isd);
+> +			continue;
+> +		}
+> =20
+> -		if (isp_fwnode_parse(dev, fwnode, isd))
+> -			goto error;
+> +		notifier->subdevs[notifier->num_subdevs] =3D &isd->asd;
+> =20
+>  		isd->asd.match.fwnode.fwnode =3D
+>  			fwnode_graph_get_remote_port_parent(fwnode);
+> --=20
+> 2.11.0
+>=20
+
+--hifcdnx2vw3kwc4e
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlltQj8ACgkQ2O7X88g7
++pq56A//bxUGSMXzbgdnxiuua3UA6Cr10IVaU0wzHbqPpagG9kJLwCjv3WdZTgiS
+gW8e13R7z98t/blqauOFO9mfFZHq/c1ZzJXKPIuzTu3YhLyckk1ha7ulghlwOf+N
+VG1BNjEO+EXllr0ISJ2x3ylIe8ky7CW5LyjyC+F4L8QsNrWzY/X7pFmwA4LLM+46
+olJjv5okBZP4Bglaw48r1lD0ck2QxFsvEmiHoBfqmThQCR1J1DEg8jpbmK3bLmqn
+FX7q1omMqBrRvCNjS4xNO0L5lHLe9Nw/HJ71TED6anak+vntYZR0s3/fr3JsbXOZ
+gTLdC9WOK+bKMN5M6ErUwTuw+QeV/Zr7o1fzN1v3hzWpQhC/Uz8uUpQmr4MNvdv+
+AXyUm/0H/lKnGHEyIN0OIp33LHjMQKg4cC/2JoF0Kzxg6UchJeqY28JXiW2NtBZL
+i1gQpSkIrf5gs/CNbdOK8vZMMoRjw6VMXEAGfLcUxLusPYWJjnjrTt47RCrNQVEY
+BDHBzjAHOyF26INLDv0m8gQvb9Jt7dNf0Raym6teGyn3gWNcW0x63eBIwh8b3+9w
+DjjaerBIu38NLieQ+IRMzi8d39MpnjkTUl2q67ZtAg2M9DJdZRoTreDVDnj2GOP6
+NdiKp+uUQdCfNfkRbZUeQIEGfWzr8XCqpVqKsmCs9Kc+b16AfZY=
+=f4J4
+-----END PGP SIGNATURE-----
+
+--hifcdnx2vw3kwc4e--
