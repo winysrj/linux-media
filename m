@@ -1,118 +1,229 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38687 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751639AbdGQOcV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 10:32:21 -0400
-Subject: Re: [PATCH 14/14] [media] fix warning on v4l2_subdev_call() result
- interpreted as bool
-To: Arnd Bergmann <arnd@arndb.de>
-References: <20170714092540.1217397-1-arnd@arndb.de>
- <20170714093938.1469319-1-arnd@arndb.de>
- <f57e08d9-0984-b67c-c64b-c7e0542d0361@xs4all.nl>
- <CAK8P3a1zBW_QuPtRFNwuVyE_ziySoV9_ebz4sD7Bya3eRoo8SA@mail.gmail.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
-        IDE-ML <linux-ide@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Daeseok Youn <daeseok.youn@gmail.com>,
-        Alan Cox <alan@linux.intel.com>,
-        adi-buildroot-devel@lists.sourceforge.net,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        devel@driverdev.osuosl.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <9624c37a-1118-7d4f-888e-f0de196e4c15@xs4all.nl>
-Date: Mon, 17 Jul 2017 16:32:18 +0200
-MIME-Version: 1.0
-In-Reply-To: <CAK8P3a1zBW_QuPtRFNwuVyE_ziySoV9_ebz4sD7Bya3eRoo8SA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from ns.mm-sol.com ([37.157.136.199]:36039 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751310AbdGQKfA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Jul 2017 06:35:00 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Subject: [PATCH v3 04/23] dt-bindings: media: Binding document for Qualcomm Camera subsystem driver
+Date: Mon, 17 Jul 2017 13:33:30 +0300
+Message-Id: <1500287629-23703-5-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
+References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17/07/17 16:26, Arnd Bergmann wrote:
-> On Mon, Jul 17, 2017 at 3:45 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On 14/07/17 11:36, Arnd Bergmann wrote:
->>> @@ -201,8 +202,9 @@ static int cx18_g_fmt_sliced_vbi_cap(struct file *file, void *fh,
->>>        * digitizer/slicer.  Note, cx18_av_vbi() wipes the passed in
->>>        * fmt->fmt.sliced under valid calling conditions
->>>        */
->>> -     if (v4l2_subdev_call(cx->sd_av, vbi, g_sliced_fmt, &fmt->fmt.sliced))
->>> -             return -EINVAL;
->>> +     ret = v4l2_subdev_call(cx->sd_av, vbi, g_sliced_fmt, &fmt->fmt.sliced);
->>> +     if (ret)
->>> +             return ret;
->>
->> Please keep the -EINVAL here. I can't be 100% certain that returning 'ret' wouldn't
->> break something.
-> 
-> I think Dan was recommending the opposite here, if I understood you
-> both correctly:
-> he said we should propagate the error code unless we know it's wrong, while you
-> want to keep the current behavior to avoid introducing changes ;-)
-> 
-> I guess in either case, looking at the callers more carefully would be
-> a good idea.
+Add DT binding document for Qualcomm Camera subsystem driver.
 
-The subtle problem here is that v4l2_subdev_call will return -ENOIOCTLCMD if
-ops->vbi->g_sliced_fmt == NULL, which typically is not returned to userspace
-but either ignored or replaced by another error. It indicates that the
-sub device doesn't implement this operation, and it depends on the context
-and the operation whether or not that is to be considered an error.
+CC: Rob Herring <robh+dt@kernel.org>
+CC: devicetree@vger.kernel.org
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+---
+ .../devicetree/bindings/media/qcom,camss.txt       | 191 +++++++++++++++++++++
+ 1 file changed, 191 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/qcom,camss.txt
 
-I have no clue what is expected here, without digging deep in the code.
-
-Better to keep it as-is. It really isn't important to waste time on this.
-
-> 
->>> -     return 0;
->>> +     return ret;
->>>  }
->>>
->>>  int atomisp_flash_enable(struct atomisp_sub_device *asd, int num_frames)
->>>
->>
->> This is all very hackish, though. I'm not terribly keen on this patch. It's not
->> clear to me *why* these warnings appear in your setup.
-> 
-> it's possible that this only happened with 'ccache', which first preprocesses
-> the source and the passes it with v4l2_subdev_call expanded into the
-> compiler. This means the line looks like
-> 
->         if ((!(cx->sd_av) ? -ENODEV :
->             (((cx->sd_av)->ops->vbi && (cx->sd_av)->ops->vbi->g_sliced_fmt) ?
->                (cx->sd_av)->ops->vbi->g_sliced_fmt(cx->sd_av)),
-> &fmt->fmt.sliced) :
->                -ENOIOCTLCMD))
-> 
-> The compiler now complains about the sub-expression that it sees for
-> cx->sd_av==NULL:
-> 
->    if (-ENODEV)
-> 
-> which it considers nonsense because it is always true and the value gets
-> ignored.
-> 
-> Let me try again without ccache for now and see what warnings remain.
-> We can find a solution for those first, and then decide how to deal with
-> ccache.
-
-Sounds good.
-
-I'm OK with applying this if there is no other way to prevent these warnings.
-
-Regards,
-
-	Hans
-
-> 
->         Arnd
-> 
+diff --git a/Documentation/devicetree/bindings/media/qcom,camss.txt b/Documentation/devicetree/bindings/media/qcom,camss.txt
+new file mode 100644
+index 0000000..f698498
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/qcom,camss.txt
+@@ -0,0 +1,191 @@
++Qualcomm Camera Subsystem
++
++* Properties
++
++- compatible:
++	Usage: required
++	Value type: <stringlist>
++	Definition: Should contain:
++		- "qcom,msm8916-camss"
++- reg:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: Register ranges as listed in the reg-names property.
++- reg-names:
++	Usage: required
++	Value type: <stringlist>
++	Definition: Should contain the following entries:
++		- "csiphy0"
++		- "csiphy0_clk_mux"
++		- "csiphy1"
++		- "csiphy1_clk_mux"
++		- "csid0"
++		- "csid1"
++		- "ispif"
++		- "csi_clk_mux"
++		- "vfe0"
++- interrupts:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: Interrupts as listed in the interrupt-names property.
++- interrupt-names:
++	Usage: required
++	Value type: <stringlist>
++	Definition: Should contain the following entries:
++		- "csiphy0"
++		- "csiphy1"
++		- "csid0"
++		- "csid1"
++		- "ispif"
++		- "vfe0"
++- power-domains:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A phandle and power domain specifier pairs to the
++		    power domain which is responsible for collapsing
++		    and restoring power to the peripheral.
++- clocks:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A list of phandle and clock specifier pairs as listed
++		    in clock-names property.
++- clock-names:
++	Usage: required
++	Value type: <stringlist>
++	Definition: Should contain the following entries:
++                - "camss_top_ahb"
++                - "ispif_ahb"
++                - "csiphy0_timer"
++                - "csiphy1_timer"
++                - "csi0_ahb"
++                - "csi0"
++                - "csi0_phy"
++                - "csi0_pix"
++                - "csi0_rdi"
++                - "csi1_ahb"
++                - "csi1"
++                - "csi1_phy"
++                - "csi1_pix"
++                - "csi1_rdi"
++                - "camss_ahb"
++                - "camss_vfe_vfe"
++                - "camss_csi_vfe"
++                - "iface"
++                - "bus"
++- vdda-supply:
++	Usage: required
++	Value type: <phandle>
++	Definition: A phandle to voltage supply for CSI2.
++- iommus:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A list of phandle and IOMMU specifier pairs.
++
++* Nodes
++
++- ports:
++	Usage: required
++	Definition: As described in video-interfaces.txt in same directory.
++	Properties:
++		- reg:
++			Usage: required
++			Value type: <u32>
++			Definition: Selects CSI2 PHY interface - PHY0 or PHY1.
++	Endpoint node properties:
++		- clock-lanes:
++			Usage: required
++			Value type: <u32>
++			Definition: The clock lane.
++		- data-lanes:
++			Usage: required
++			Value type: <prop-encoded-array>
++			Definition: An array of data lanes.
++
++* An Example
++
++	camss: camss@1b00000 {
++		compatible = "qcom,msm8916-camss";
++		reg = <0x1b0ac00 0x200>,
++			<0x1b00030 0x4>,
++			<0x1b0b000 0x200>,
++			<0x1b00038 0x4>,
++			<0x1b08000 0x100>,
++			<0x1b08400 0x100>,
++			<0x1b0a000 0x500>,
++			<0x1b00020 0x10>,
++			<0x1b10000 0x1000>;
++		reg-names = "csiphy0",
++			"csiphy0_clk_mux",
++			"csiphy1",
++			"csiphy1_clk_mux",
++			"csid0",
++			"csid1",
++			"ispif",
++			"csi_clk_mux",
++			"vfe0";
++		interrupts = <GIC_SPI 78 0>,
++			<GIC_SPI 79 0>,
++			<GIC_SPI 51 0>,
++			<GIC_SPI 52 0>,
++			<GIC_SPI 55 0>,
++			<GIC_SPI 57 0>;
++		interrupt-names = "csiphy0",
++			"csiphy1",
++			"csid0",
++			"csid1",
++			"ispif",
++			"vfe0";
++		power-domains = <&gcc VFE_GDSC>;
++		clocks = <&gcc GCC_CAMSS_TOP_AHB_CLK>,
++			<&gcc GCC_CAMSS_ISPIF_AHB_CLK>,
++			<&gcc GCC_CAMSS_CSI0PHYTIMER_CLK>,
++			<&gcc GCC_CAMSS_CSI1PHYTIMER_CLK>,
++			<&gcc GCC_CAMSS_CSI0_AHB_CLK>,
++			<&gcc GCC_CAMSS_CSI0_CLK>,
++			<&gcc GCC_CAMSS_CSI0PHY_CLK>,
++			<&gcc GCC_CAMSS_CSI0PIX_CLK>,
++			<&gcc GCC_CAMSS_CSI0RDI_CLK>,
++			<&gcc GCC_CAMSS_CSI1_AHB_CLK>,
++			<&gcc GCC_CAMSS_CSI1_CLK>,
++			<&gcc GCC_CAMSS_CSI1PHY_CLK>,
++			<&gcc GCC_CAMSS_CSI1PIX_CLK>,
++			<&gcc GCC_CAMSS_CSI1RDI_CLK>,
++			<&gcc GCC_CAMSS_AHB_CLK>,
++			<&gcc GCC_CAMSS_VFE0_CLK>,
++			<&gcc GCC_CAMSS_CSI_VFE0_CLK>,
++			<&gcc GCC_CAMSS_VFE_AHB_CLK>,
++			<&gcc GCC_CAMSS_VFE_AXI_CLK>;
++                clock-names = "camss_top_ahb",
++                        "ispif_ahb",
++                        "csiphy0_timer",
++                        "csiphy1_timer",
++                        "csi0_ahb",
++                        "csi0",
++                        "csi0_phy",
++                        "csi0_pix",
++                        "csi0_rdi",
++                        "csi1_ahb",
++                        "csi1",
++                        "csi1_phy",
++                        "csi1_pix",
++                        "csi1_rdi",
++                        "camss_ahb",
++                        "camss_vfe_vfe",
++                        "camss_csi_vfe",
++                        "iface",
++                        "bus";
++		vdda-supply = <&pm8916_l2>;
++		iommus = <&apps_iommu 3>;
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			port@0 {
++				reg = <0>;
++				csiphy0_ep: endpoint {
++					clock-lanes = <1>;
++					data-lanes = <0 2>;
++					remote-endpoint = <&ov5645_ep>;
++				};
++			};
++		};
++	};
+-- 
+2.7.4
