@@ -1,55 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:39242 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755233AbdGVLbB (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44138 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751318AbdGQWBS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Jul 2017 07:31:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sylwester Nawrocki <snawrocki@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 4/6] atomisp2: don't set driver_version
-Date: Sat, 22 Jul 2017 13:30:55 +0200
-Message-Id: <20170722113057.45202-5-hverkuil@xs4all.nl>
-In-Reply-To: <20170722113057.45202-1-hverkuil@xs4all.nl>
-References: <20170722113057.45202-1-hverkuil@xs4all.nl>
+        Mon, 17 Jul 2017 18:01:18 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: pavel@ucw.cz, linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH 0/7] Omap3isp CCP2 support
+Date: Tue, 18 Jul 2017 01:01:09 +0300
+Message-Id: <20170717220116.17886-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Pavel,
 
-This field will be removed as it is not needed anymore.
+I rebased the ccp2 branch and went through the patches. I didn't find
+anything really alarming there; I changed one commit description of
+"omap3isp: Correctly set IO_OUT_SEL and VP_CLK_POL for CCP2 mode" that had
+some junk in it as well as in the last patch changed the condition in
+omap3isp_csiphy_release() that was obviously wrong.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+Let me know what you think.
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-index 2f49562377e6..663aa916e3ca 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-@@ -1099,9 +1099,7 @@ atomisp_load_firmware(struct atomisp_device *isp)
- 		fw_path = "shisp_2400b0_v21.bin";
- 
- 	if (!fw_path) {
--		dev_err(isp->dev,
--			"Unsupported driver_version 0x%x, hw_revision 0x%x\n",
--			isp->media_dev.driver_version,
-+		dev_err(isp->dev, "Unsupported hw_revision 0x%x\n",
- 			isp->media_dev.hw_revision);
- 		return NULL;
- 	}
-@@ -1249,8 +1247,6 @@ static int atomisp_pci_probe(struct pci_dev *dev,
- 	/* This is not a true PCI device on SoC, so the delay is not needed. */
- 	isp->pdev->d3_delay = 0;
- 
--	isp->media_dev.driver_version = LINUX_VERSION_CODE;
--
- 	switch (id->device & ATOMISP_PCI_DEVICE_SOC_MASK) {
- 	case ATOMISP_PCI_DEVICE_SOC_MRFLD:
- 		isp->media_dev.hw_revision =
+If we merge these, is there anything still missing from plain ccp2 support?
+
+I'd like to get Laurent's comment on these, too, plus a confirmation
+nothing is broken by these on the OMAP 3 boards he uses.
+
+
+Pavel Machek (3):
+  omap3isp: Parse CSI1 configuration from the device tree
+  omap3isp: Correctly set IO_OUT_SEL and VP_CLK_POL for CCP2 mode
+  omap3isp: Return -EPROBE_DEFER if the required regulators can't be
+    obtained
+
+Sakari Ailus (4):
+  omap3isp: Ignore endpoints with invalid configuration
+  omap3isp: Always initialise isp and mutex for csiphy1
+  omap3isp: Correctly put the last iterated endpoint fwnode always
+  omap3isp: Skip CSI-2 receiver initialisation in CCP2 configuration
+
+ drivers/media/platform/omap3isp/isp.c       | 128 ++++++++++++++++++++--------
+ drivers/media/platform/omap3isp/ispccp2.c   |  12 ++-
+ drivers/media/platform/omap3isp/ispcsiphy.c |  46 ++++++----
+ drivers/media/platform/omap3isp/ispreg.h    |   4 +
+ drivers/media/platform/omap3isp/omap3isp.h  |   1 +
+ 5 files changed, 140 insertions(+), 51 deletions(-)
+
 -- 
-2.13.2
+Kind regards,
+Sakari
