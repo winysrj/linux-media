@@ -1,48 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:35187 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751742AbdGFQa7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 12:30:59 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        alan@linux.intel.com
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] staging: atomisp: ov2722: constify acpi_device_id.
-Date: Thu,  6 Jul 2017 22:00:47 +0530
-Message-Id: <ade471de35e2d7509e5a344b63133126a566dee0.1499358240.git.arvind.yadav.cs@gmail.com>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:36390 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751316AbdGQThJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Jul 2017 15:37:09 -0400
+Date: Mon, 17 Jul 2017 14:37:06 -0500
+From: Rob Herring <robh@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
+        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        dri-devel@lists.freedesktop.org
+Subject: Re: [PATCH 1/4] dt-bindings: document the tegra CEC bindings
+Message-ID: <20170717193706.2vjxqvyuuewlimqh@rob-hp-laptop>
+References: <20170715124753.43714-1-hverkuil@xs4all.nl>
+ <20170715124753.43714-2-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170715124753.43714-2-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-acpi_device_id are not supposed to change at runtime. All functions
-working with acpi_device_id provided by <acpi/acpi_bus.h> work with
-const acpi_device_id. So mark the non-const structs as const.
+On Sat, Jul 15, 2017 at 02:47:50PM +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> This documents the binding for the Tegra CEC module.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  .../devicetree/bindings/media/tegra-cec.txt        | 26 ++++++++++++++++++++++
+>  1 file changed, 26 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/tegra-cec.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/tegra-cec.txt b/Documentation/devicetree/bindings/media/tegra-cec.txt
+> new file mode 100644
+> index 000000000000..ba0b6071acaa
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/tegra-cec.txt
+> @@ -0,0 +1,26 @@
+> +* Tegra HDMI CEC driver
 
-File size before:
-   text	   data	    bss	    dec	    hex	filename
-  14771	   1880	      0	  16651	   410b drivers/staging/media/atomisp/i2c/ov2722.o
+Bindings are for h/w, not drivers...
 
-File size After adding 'const':
-   text	   data	    bss	    dec	    hex	filename
-  14835	   1816	      0	  16651	   410b drivers/staging/media/atomisp/i2c/ov2722.o
+> +The HDMI CEC module is present in Tegra SoCs and its purpose is to
+> +handle communication between HDMI connected devices over the CEC bus.
+> +
+> +Required properties:
+> +  - compatible : value should be one of the following:
+> +	"nvidia,tegra114-cec"
+> +	"nvidia,tegra124-cec"
+> +	"nvidia,tegra210-cec"
+> +  - reg : Physical base address of the IP registers and length of memory
+> +	  mapped region.
+> +  - interrupts : HDMI CEC interrupt number to the CPU.
+> +  - clocks : from common clock binding: handle to HDMI CEC clock.
+> +  - clock-names : from common clock binding: must contain "cec",
+> +		  corresponding to ithe entry in the clocks property.
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
----
- drivers/staging/media/atomisp/i2c/ov2722.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+s/ithe/the/
 
-diff --git a/drivers/staging/media/atomisp/i2c/ov2722.c b/drivers/staging/media/atomisp/i2c/ov2722.c
-index b7afade..10094ac 100644
---- a/drivers/staging/media/atomisp/i2c/ov2722.c
-+++ b/drivers/staging/media/atomisp/i2c/ov2722.c
-@@ -1337,7 +1337,7 @@ static int ov2722_probe(struct i2c_client *client,
- 
- MODULE_DEVICE_TABLE(i2c, ov2722_id);
- 
--static struct acpi_device_id ov2722_acpi_match[] = {
-+static const struct acpi_device_id ov2722_acpi_match[] = {
- 	{ "INT33FB" },
- 	{},
- };
--- 
-2.7.4
+> +  - hdmi-phandle : phandle to the HDMI controller, see also cec.txt.
+> +
+> +Example:
+> +
+> +tegra_cec {
+
+cec@70015000
+
+> +	compatible = "nvidia,tegra124-cec";
+> +	reg = <0x0 0x70015000 0x0 0x00001000>;
+> +	interrupts = <GIC_SPI 3 IRQ_TYPE_LEVEL_HIGH>;
+> +	clocks = <&tegra_car TEGRA124_CLK_CEC>;
+> +	clock-names = "cec";
+> -- 
+> 2.11.0
+> 
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
