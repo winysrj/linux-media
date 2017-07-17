@@ -1,60 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:50091 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753119AbdGMWe0 (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:31955 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751279AbdGQLeJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Jul 2017 18:34:26 -0400
-From: Colin King <colin.king@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Saatvik Arya <aryasaatvik@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Derek Robson <robsonde@gmail.com>,
-        Elizabeth Ferdman <gnudevliz@gmail.com>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Cc: linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] staging: media: davinci_vpfe: fix spelling mistake in variable
-Date: Thu, 13 Jul 2017 23:34:16 +0100
-Message-Id: <20170713223416.15077-1-colin.king@canonical.com>
-MIME-Version: 1.0
+        Mon, 17 Jul 2017 07:34:09 -0400
+Received: from epcas5p2.samsung.com (unknown [182.195.41.40])
+        by mailout3.samsung.com (KnoxPortal) with ESMTP id 20170717113407epoutp03183149812b687fdce51ea8227409aff5~SGvDY_wkq0895608956epoutp03X
+        for <linux-media@vger.kernel.org>; Mon, 17 Jul 2017 11:34:07 +0000 (GMT)
+Subject: Re: [Patch v5 05/12] [media] videodev2.h: Add v4l2 definition for
+ HEVC
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
+        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
+        m.szyprowski@samsung.com, s.nawrocki@samsung.com
+In-Reply-To: <12b890e0-b955-4d64-6b6b-2847f693ee57@linaro.org>
+Date: Mon, 17 Jul 2017 16:42:39 +0530
+Message-ID: <1500289959.16819.0.camel@smitha-fedora>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+References: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
+        <CGME20170619052505epcas5p33a78ee709263cc9ae33cd9383794ca06@epcas5p3.samsung.com>
+        <1497849055-26583-6-git-send-email-smitha.t@samsung.com>
+        <12b890e0-b955-4d64-6b6b-2847f693ee57@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+On Fri, 2017-07-07 at 17:56 +0300, Stanimir Varbanov wrote:
+> Hi Smitha,
+> 
+> On 06/19/2017 08:10 AM, Smitha T Murthy wrote:
+> > Add V4L2 definition for HEVC compressed format
+> > 
+> > Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+> > Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+> > ---
+> >  include/uapi/linux/videodev2.h | 1 +
+> >  1 file changed, 1 insertion(+)
+> > 
+> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> > index 2b8feb8..488de3d 100644
+> > --- a/include/uapi/linux/videodev2.h
+> > +++ b/include/uapi/linux/videodev2.h
+> > @@ -629,6 +629,7 @@ struct v4l2_pix_format {
+> >  #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
+> >  #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
+> >  #define V4L2_PIX_FMT_VP9      v4l2_fourcc('V', 'P', '9', '0') /* VP9 */
+> > +#define V4L2_PIX_FMT_HEVC     v4l2_fourcc('H', 'E', 'V', 'C') /* HEVC */
+> >  
+> >  /*  Vendor-specific formats   */
+> >  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
+> > 
+> 
+> Hans wanted the name to be H265, not sure is that valid yet.
+> 
+> I have tested 5/12, 6/12, and 7/12 on venus codec driver, and in case
+> you need it, you have my
+> 
+> Reviewed-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> 
+Thank you for the review.
 
-Trivial fix to spelling mistake, rename the function name
-resizer_configure_in_continious_mode to
-resizer_configure_in_continuous_mode and also remove an extraneous space.
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/staging/media/davinci_vpfe/dm365_resizer.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-index 857b0e847c5e..d751d590a894 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-@@ -480,7 +480,7 @@ resizer_configure_common_in_params(struct vpfe_resizer_device *resizer)
- 	return 0;
- }
- static int
--resizer_configure_in_continious_mode(struct vpfe_resizer_device *resizer)
-+resizer_configure_in_continuous_mode(struct vpfe_resizer_device *resizer)
- {
- 	struct device *dev = resizer->crop_resizer.subdev.v4l2_dev->dev;
- 	struct resizer_params *param = &resizer->config;
-@@ -1242,7 +1242,7 @@ static int resizer_do_hw_setup(struct vpfe_resizer_device *resizer)
- 		    ipipeif_source == IPIPEIF_OUTPUT_RESIZER)
- 			ret = resizer_configure_in_single_shot_mode(resizer);
- 		else
--			ret =  resizer_configure_in_continious_mode(resizer);
-+			ret = resizer_configure_in_continuous_mode(resizer);
- 		if (ret)
- 			return ret;
- 		ret = config_rsz_hw(resizer, param);
--- 
-2.11.0
+Regards,
+Smitha
