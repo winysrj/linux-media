@@ -1,51 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:58977 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932742AbdGSP2q (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52811 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751245AbdGQC2O (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Jul 2017 11:28:46 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-kernel@vger.kernel.org
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 036/102] stm32-dcmi: explicitly request exclusive reset control
-Date: Wed, 19 Jul 2017 17:25:40 +0200
-Message-Id: <20170719152646.25903-37-p.zabel@pengutronix.de>
-In-Reply-To: <20170719152646.25903-1-p.zabel@pengutronix.de>
-References: <20170719152646.25903-1-p.zabel@pengutronix.de>
+        Sun, 16 Jul 2017 22:28:14 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jacob Chen <jacobchen110@gmail.com>
+Cc: "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>,
+        robh+dt@kernel.org, Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        laurent.pinchart+renesas@ideasonboard.com,
+        Hans Verkuil <hans.verkuil@cisco.com>, s.nawrocki@samsung.com,
+        Tomasz Figa <tfiga@chromium.org>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>
+Subject: Re: [PATCH v2 5/6] ARM: dts: rockchip: enable RGA for rk3288 devices
+Date: Mon, 17 Jul 2017 05:28:20 +0300
+Message-ID: <3257165.sao50mFgxX@avalon>
+In-Reply-To: <CAFLEztRwuzkAn_QrgRNv_yrNixuicfr99PEpR2SDyRROqe=b7w@mail.gmail.com>
+References: <1500101920-24039-1-git-send-email-jacob-chen@iotwrt.com> <2238838.k7NpPUxaC0@avalon> <CAFLEztRwuzkAn_QrgRNv_yrNixuicfr99PEpR2SDyRROqe=b7w@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit a53e35db70d1 ("reset: Ensure drivers are explicit when requesting
-reset lines") started to transition the reset control request API calls
-to explicitly state whether the driver needs exclusive or shared reset
-control behavior. Convert all drivers requesting exclusive resets to the
-explicit API call so the temporary transition helpers can be removed.
+Hi Jacob,
 
-No functional changes.
+On Sunday 16 Jul 2017 12:23:02 Jacob Chen wrote:
+> 2017-07-15 17:16 GMT+08:00 Laurent Pinchart:
+> > On Saturday 15 Jul 2017 14:58:39 Jacob Chen wrote:
+> >> Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+> >> ---
+> >> 
+> >>  arch/arm/boot/dts/rk3288-evb.dtsi                 | 4 ++++
+> >>  arch/arm/boot/dts/rk3288-firefly-reload-core.dtsi | 4 ++++
+> >>  arch/arm/boot/dts/rk3288-firefly.dtsi             | 4 ++++
+> >>  arch/arm/boot/dts/rk3288-miqi.dts                 | 4 ++++
+> >>  arch/arm/boot/dts/rk3288-popmetal.dts             | 4 ++++
+> >>  arch/arm/boot/dts/rk3288-tinker.dts               | 4 ++++
+> > 
+> > Some boards are missing from this list (Fennec, Phycore, ...) What
+> > criteria have you used to decide on which ones to enable the RGA ? That
+> > should be explained in the commit message.
+> 
+> Ok.
+> 
+> I just enable the boards i have tested, because i can't make sure it
+> won't break the other board because of clocks or power-domains.
 
-Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
-Cc: Alexandre Torgue <alexandre.torgue@st.com>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/stm32/stm32-dcmi.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Given the clocks and power domains shouldn't be board-specific, would it make 
+sense to try and get the change tested on the remaining boards ? You could 
+then enable the device in the SoC .dtsi file, which would be much simpler.
 
-diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-index 83d32a5d0f408..a2d883dcf32b9 100644
---- a/drivers/media/platform/stm32/stm32-dcmi.c
-+++ b/drivers/media/platform/stm32/stm32-dcmi.c
-@@ -1209,7 +1209,7 @@ static int dcmi_probe(struct platform_device *pdev)
- 	if (!dcmi)
- 		return -ENOMEM;
- 
--	dcmi->rstc = devm_reset_control_get(&pdev->dev, NULL);
-+	dcmi->rstc = devm_reset_control_get_exclusive(&pdev->dev, NULL);
- 	if (IS_ERR(dcmi->rstc)) {
- 		dev_err(&pdev->dev, "Could not get reset control\n");
- 		return -ENODEV;
+> >>  6 files changed, 24 insertions(+)
+
 -- 
-2.11.0
+Regards,
+
+Laurent Pinchart
