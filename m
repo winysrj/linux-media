@@ -1,45 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:39117 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751992AbdG1NFM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Jul 2017 09:05:12 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Neil Armstrong <narmstrong@baylibre.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.14] Add meson-ao-cec driver
-Message-ID: <77ba4a16-c11e-bf65-b2c9-943dddcab0f7@xs4all.nl>
-Date: Fri, 28 Jul 2017 15:05:07 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from ns.mm-sol.com ([37.157.136.199]:36069 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751319AbdGQKfB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Jul 2017 06:35:01 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v3 05/23] MAINTAINERS: Add Qualcomm Camera subsystem driver
+Date: Mon, 17 Jul 2017 13:33:31 +0300
+Message-Id: <1500287629-23703-6-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
+References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit da48c948c263c9d87dfc64566b3373a858cc8aa2:
+Add an entry for Qualcomm Camera subsystem driver.
 
-  media: fix warning on v4l2_subdev_call() result interpreted as bool (2017-07-26 13:43:17 -0400)
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+---
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git meson-cec
-
-for you to fetch changes up to 098b47db51270f6e671773160411e3d285ea0d66:
-
-  dt-bindings: media: Add Amlogic Meson AO-CEC bindings (2017-07-28 14:58:38 +0200)
-
-----------------------------------------------------------------
-Neil Armstrong (2):
-      platform: Add Amlogic Meson AO CEC Controller driver
-      dt-bindings: media: Add Amlogic Meson AO-CEC bindings
-
- Documentation/devicetree/bindings/media/meson-ao-cec.txt |  28 ++
- drivers/media/platform/Kconfig                           |  11 +
- drivers/media/platform/Makefile                          |   2 +
- drivers/media/platform/meson/Makefile                    |   1 +
- drivers/media/platform/meson/ao-cec.c                    | 744 +++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 786 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/meson-ao-cec.txt
- create mode 100644 drivers/media/platform/meson/Makefile
- create mode 100644 drivers/media/platform/meson/ao-cec.c
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 5a9f0f6..4cb978a 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10887,6 +10887,14 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kvalo/ath.git
+ S:	Supported
+ F:	drivers/net/wireless/ath/ath10k/
+ 
++QUALCOMM CAMERA SUBSYSTEM DRIVER
++M:	Todor Tomov <todor.tomov@linaro.org>
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	Documentation/devicetree/bindings/media/qcom,camss.txt
++F:	Documentation/media/v4l-drivers/qcom_camss.rst
++F:	drivers/media/platform/qcom/camss-8x16/
++
+ QUALCOMM EMAC GIGABIT ETHERNET DRIVER
+ M:	Timur Tabi <timur@codeaurora.org>
+ L:	netdev@vger.kernel.org
+-- 
+2.7.4
