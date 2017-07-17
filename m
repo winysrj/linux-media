@@ -1,55 +1,845 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37578 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751038AbdGNWCR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Jul 2017 18:02:17 -0400
-Date: Sat, 15 Jul 2017 01:02:11 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/2] OMAP3ISP CCP2 support
-Message-ID: <20170714220211.vuyi5v4k4ortei6k@valkosipuli.retiisi.org.uk>
-References: <20170713161903.9974-1-sakari.ailus@linux.intel.com>
- <20170713211335.GA13502@amd>
- <20170713212651.so5aqqp5k325pb4w@valkosipuli.retiisi.org.uk>
- <20170713213805.GA1229@amd>
- <20170713220947.ntfpwkoitfadshnt@valkosipuli.retiisi.org.uk>
- <20170714065611.GA14652@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170714065611.GA14652@amd>
+Received: from ns.mm-sol.com ([37.157.136.199]:36112 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751380AbdGQKfE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Jul 2017 06:35:04 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v3 12/23] media: camms: Add core files
+Date: Mon, 17 Jul 2017 13:33:38 +0300
+Message-Id: <1500287629-23703-13-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
+References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 14, 2017 at 08:56:11AM +0200, Pavel Machek wrote:
-> Hi!
-> 
-> > > > The patches work fine on N9.
-> > > 
-> > > I was able to fix the userspace, and they work for me, too. For both:
-> > > 
-> > > Acked-by: Pavel Machek <pavel@ucw.cz>
-> > > Tested-by: Pavel Machek <pavel@ucw.cz>
-> > 
-> > Thanks! I've applied these on ccp2-prepare. ccp2 branch is rebased, too.
-> 
-> Thanks!
-> 
-> I rebased my patches on top of it, and pushed result to camera-fw6-2
-> branch.
-> 
-> Can you drop this patch from ccp2 branch?
-> 
-> https://git.linuxtv.org/sailus/media_tree.git/commit/?h=ccp2&id=27be6eb1f66389632a5d9dbaf0426a83f1b99b54
-> 
-> It is preparation for subdevices support on isp; but those will not be
-> needed there as we decided to move subdevices to et8ek8.
+These files implement the platform driver code.
 
-Indeed; I've dropped the patch.
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+---
+ drivers/media/platform/qcom/camss-8x16/camss.c | 705 +++++++++++++++++++++++++
+ drivers/media/platform/qcom/camss-8x16/camss.h |  97 ++++
+ 2 files changed, 802 insertions(+)
+ create mode 100644 drivers/media/platform/qcom/camss-8x16/camss.c
+ create mode 100644 drivers/media/platform/qcom/camss-8x16/camss.h
 
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss.c b/drivers/media/platform/qcom/camss-8x16/camss.c
+new file mode 100644
+index 0000000..097d4ec
+--- /dev/null
++++ b/drivers/media/platform/qcom/camss-8x16/camss.c
+@@ -0,0 +1,705 @@
++/*
++ * camss.c
++ *
++ * Qualcomm MSM Camera Subsystem - Core
++ *
++ * Copyright (c) 2015, The Linux Foundation. All rights reserved.
++ * Copyright (C) 2015-2017 Linaro Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#include <linux/clk.h>
++#include <linux/media-bus-format.h>
++#include <linux/media.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/of.h>
++#include <linux/of_graph.h>
++#include <linux/slab.h>
++#include <linux/videodev2.h>
++
++#include <media/media-device.h>
++#include <media/v4l2-async.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-mc.h>
++#include <media/v4l2-fwnode.h>
++
++#include "camss.h"
++
++static const struct resources csiphy_res[] = {
++	/* CSIPHY0 */
++	{
++		.regulator = { NULL },
++		.clock = { "camss_top_ahb", "ispif_ahb",
++			   "camss_ahb", "csiphy0_timer" },
++		.clock_rate = { 0, 0, 0, 200000000 },
++		.reg = { "csiphy0", "csiphy0_clk_mux" },
++		.interrupt = { "csiphy0" }
++	},
++
++	/* CSIPHY1 */
++	{
++		.regulator = { NULL },
++		.clock = { "camss_top_ahb", "ispif_ahb",
++			   "camss_ahb", "csiphy1_timer" },
++		.clock_rate = { 0, 0, 0, 200000000 },
++		.reg = { "csiphy1", "csiphy1_clk_mux" },
++		.interrupt = { "csiphy1" }
++	}
++};
++
++static const struct resources csid_res[] = {
++	/* CSID0 */
++	{
++		.regulator = { "vdda" },
++		.clock = { "camss_top_ahb", "ispif_ahb",
++			   "csi0_ahb", "camss_ahb",
++			   "csi0", "csi0_phy", "csi0_pix", "csi0_rdi" },
++		.clock_rate = { 0, 0, 0, 0, 200000000, 0, 0, 0 },
++		.reg = { "csid0" },
++		.interrupt = { "csid0" }
++	},
++
++	/* CSID1 */
++	{
++		.regulator = { "vdda" },
++		.clock = { "camss_top_ahb", "ispif_ahb",
++			   "csi1_ahb", "camss_ahb",
++			   "csi1", "csi1_phy", "csi1_pix", "csi1_rdi" },
++		.clock_rate = { 0, 0, 0, 0, 200000000, 0, 0, 0 },
++		.reg = { "csid1" },
++		.interrupt = { "csid1" }
++	},
++};
++
++static const struct resources_ispif ispif_res = {
++	/* ISPIF */
++	.clock = { "camss_top_ahb", "camss_ahb", "ispif_ahb",
++		   "csi0", "csi0_pix", "csi0_rdi",
++		   "csi1", "csi1_pix", "csi1_rdi" },
++	.clock_for_reset = { "camss_vfe_vfe", "camss_csi_vfe" },
++	.reg = { "ispif", "csi_clk_mux" },
++	.interrupt = "ispif"
++
++};
++
++static const struct resources vfe_res = {
++	/* VFE0 */
++	.regulator = { NULL },
++	.clock = { "camss_top_ahb", "camss_vfe_vfe", "camss_csi_vfe",
++		   "iface", "bus", "camss_ahb" },
++	.clock_rate = { 0, 320000000, 0, 0, 0, 0, 0, 0 },
++	.reg = { "vfe0" },
++	.interrupt = { "vfe0" }
++};
++
++/*
++ * camss_enable_clocks - Enable multiple clocks
++ * @nclocks: Number of clocks in clock array
++ * @clock: Clock array
++ * @dev: Device
++ *
++ * Return 0 on success or a negative error code otherwise
++ */
++int camss_enable_clocks(int nclocks, struct clk **clock, struct device *dev)
++{
++	int ret;
++	int i;
++
++	for (i = 0; i < nclocks; i++) {
++		ret = clk_prepare_enable(clock[i]);
++		if (ret) {
++			dev_err(dev, "clock enable failed: %d\n", ret);
++			goto error;
++		}
++	}
++
++	return 0;
++
++error:
++	for (i--; i >= 0; i--)
++		clk_disable_unprepare(clock[i]);
++
++	return ret;
++}
++
++/*
++ * camss_disable_clocks - Disable multiple clocks
++ * @nclocks: Number of clocks in clock array
++ * @clock: Clock array
++ */
++void camss_disable_clocks(int nclocks, struct clk **clock)
++{
++	int i;
++
++	for (i = nclocks - 1; i >= 0; i--)
++		clk_disable_unprepare(clock[i]);
++}
++
++/*
++ * camss_find_sensor - Find a linked media entity which represents a sensor
++ * @entity: Media entity to start searching from
++ *
++ * Return a pointer to sensor media entity or NULL if not found
++ */
++static struct media_entity *camss_find_sensor(struct media_entity *entity)
++{
++	struct media_pad *pad;
++
++	while (1) {
++		pad = &entity->pads[0];
++		if (!(pad->flags & MEDIA_PAD_FL_SINK))
++			return NULL;
++
++		pad = media_entity_remote_pad(pad);
++		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
++			return NULL;
++
++		entity = pad->entity;
++
++		if (entity->function == MEDIA_ENT_F_CAM_SENSOR)
++			return entity;
++	}
++}
++
++/*
++ * camss_get_pixel_clock - Get pixel clock rate from sensor
++ * @entity: Media entity in the current pipeline
++ * @pixel_clock: Received pixel clock value
++ *
++ * Return 0 on success or a negative error code otherwise
++ */
++int camss_get_pixel_clock(struct media_entity *entity, u32 *pixel_clock)
++{
++	struct media_entity *sensor;
++	struct v4l2_subdev *subdev;
++	struct v4l2_ext_controls ctrls = { { 0 } };
++	struct v4l2_ext_control ctrl = { 0 };
++	int ret;
++
++	sensor = camss_find_sensor(entity);
++	if (!sensor)
++		return -ENODEV;
++
++	subdev = media_entity_to_v4l2_subdev(sensor);
++
++	ctrl.id = V4L2_CID_PIXEL_RATE;
++
++	ctrls.count = 1;
++	ctrls.controls = &ctrl;
++
++	ret = v4l2_g_ext_ctrls(subdev->ctrl_handler, &ctrls);
++	if (ret < 0)
++		return ret;
++
++	*pixel_clock = ctrl.value64;
++
++	return 0;
++}
++
++/*
++ * camss_of_parse_endpoint_node - Parse port endpoint node
++ * @dev: Device
++ * @node: Device node to be parsed
++ * @csd: Parsed data from port endpoint node
++ *
++ * Return 0 on success or a negative error code on failure
++ */
++static int camss_of_parse_endpoint_node(struct device *dev,
++					struct device_node *node,
++					struct camss_async_subdev *csd)
++{
++	struct csiphy_lanes_cfg *lncfg = &csd->interface.csi2.lane_cfg;
++	struct v4l2_fwnode_bus_mipi_csi2 *mipi_csi2;
++	struct v4l2_fwnode_endpoint vep = { { 0 } };
++	unsigned int i;
++
++	v4l2_fwnode_endpoint_parse(of_fwnode_handle(node), &vep);
++
++	csd->interface.csiphy_id = vep.base.port;
++
++	mipi_csi2 = &vep.bus.mipi_csi2;
++	lncfg->clk.pos = mipi_csi2->clock_lane;
++	lncfg->clk.pol = mipi_csi2->lane_polarities[0];
++	lncfg->num_data = mipi_csi2->num_data_lanes;
++
++	lncfg->data = devm_kzalloc(dev, lncfg->num_data * sizeof(*lncfg->data),
++				   GFP_KERNEL);
++	if (!lncfg->data)
++		return -ENOMEM;
++
++	for (i = 0; i < lncfg->num_data; i++) {
++		lncfg->data[i].pos = mipi_csi2->data_lanes[i];
++		lncfg->data[i].pol = mipi_csi2->lane_polarities[i + 1];
++	}
++
++	return 0;
++}
++
++/*
++ * camss_of_parse_ports - Parse ports node
++ * @dev: Device
++ * @notifier: v4l2_device notifier data
++ *
++ * Return number of "port" nodes found in "ports" node
++ */
++static int camss_of_parse_ports(struct device *dev,
++				struct v4l2_async_notifier *notifier)
++{
++	struct device_node *node = NULL;
++	struct device_node *remote = NULL;
++	unsigned int size, i;
++	int ret;
++
++	while ((node = of_graph_get_next_endpoint(dev->of_node, node)))
++		if (of_device_is_available(node))
++			notifier->num_subdevs++;
++
++	size = sizeof(*notifier->subdevs) * notifier->num_subdevs;
++	notifier->subdevs = devm_kzalloc(dev, size, GFP_KERNEL);
++	if (!notifier->subdevs) {
++		dev_err(dev, "Failed to allocate memory\n");
++		return -ENOMEM;
++	}
++
++	i = 0;
++	while ((node = of_graph_get_next_endpoint(dev->of_node, node))) {
++		struct camss_async_subdev *csd;
++
++		if (!of_device_is_available(node))
++			continue;
++
++		csd = devm_kzalloc(dev, sizeof(*csd), GFP_KERNEL);
++		if (!csd) {
++			of_node_put(node);
++			dev_err(dev, "Failed to allocate memory\n");
++			return -ENOMEM;
++		}
++
++		notifier->subdevs[i++] = &csd->asd;
++
++		ret = camss_of_parse_endpoint_node(dev, node, csd);
++		if (ret < 0) {
++			of_node_put(node);
++			return ret;
++		}
++
++		remote = of_graph_get_remote_port_parent(node);
++		of_node_put(node);
++
++		if (!remote) {
++			dev_err(dev, "Cannot get remote parent\n");
++			return -EINVAL;
++		}
++
++		csd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
++		csd->asd.match.fwnode.fwnode = of_fwnode_handle(remote);
++	}
++
++	return notifier->num_subdevs;
++}
++
++/*
++ * camss_init_subdevices - Initialize subdev structures and resources
++ * @camss: CAMSS device
++ *
++ * Return 0 on success or a negative error code on failure
++ */
++static int camss_init_subdevices(struct camss *camss)
++{
++	unsigned int i;
++	int ret;
++
++	for (i = 0; i < ARRAY_SIZE(camss->csiphy); i++) {
++		ret = msm_csiphy_subdev_init(&camss->csiphy[i],
++					     &csiphy_res[i], i);
++		if (ret < 0) {
++			dev_err(camss->dev,
++				"Failed to init csiphy%d sub-device: %d\n",
++				i, ret);
++			return ret;
++		}
++	}
++
++	for (i = 0; i < ARRAY_SIZE(camss->csid); i++) {
++		ret = msm_csid_subdev_init(&camss->csid[i],
++					   &csid_res[i], i);
++		if (ret < 0) {
++			dev_err(camss->dev,
++				"Failed to init csid%d sub-device: %d\n",
++				i, ret);
++			return ret;
++		}
++	}
++
++	ret = msm_ispif_subdev_init(&camss->ispif, &ispif_res);
++	if (ret < 0) {
++		dev_err(camss->dev, "Failed to init ispif sub-device: %d\n",
++			ret);
++		return ret;
++	}
++
++	ret = msm_vfe_subdev_init(&camss->vfe, &vfe_res);
++	if (ret < 0) {
++		dev_err(camss->dev, "Fail to init vfe sub-device: %d\n", ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++/*
++ * camss_register_entities - Register subdev nodes and create links
++ * @camss: CAMSS device
++ *
++ * Return 0 on success or a negative error code on failure
++ */
++static int camss_register_entities(struct camss *camss)
++{
++	int i, j;
++	int ret;
++
++	for (i = 0; i < ARRAY_SIZE(camss->csiphy); i++) {
++		ret = msm_csiphy_register_entity(&camss->csiphy[i],
++						 &camss->v4l2_dev);
++		if (ret < 0) {
++			dev_err(camss->dev,
++				"Failed to register csiphy%d entity: %d\n",
++				i, ret);
++			goto err_reg_csiphy;
++		}
++	}
++
++	for (i = 0; i < ARRAY_SIZE(camss->csid); i++) {
++		ret = msm_csid_register_entity(&camss->csid[i],
++					       &camss->v4l2_dev);
++		if (ret < 0) {
++			dev_err(camss->dev,
++				"Failed to register csid%d entity: %d\n",
++				i, ret);
++			goto err_reg_csid;
++		}
++	}
++
++	ret = msm_ispif_register_entities(&camss->ispif, &camss->v4l2_dev);
++	if (ret < 0) {
++		dev_err(camss->dev, "Failed to register ispif entities: %d\n",
++			ret);
++		goto err_reg_ispif;
++	}
++
++	ret = msm_vfe_register_entities(&camss->vfe, &camss->v4l2_dev);
++	if (ret < 0) {
++		dev_err(camss->dev, "Failed to register vfe entities: %d\n",
++			ret);
++		goto err_reg_vfe;
++	}
++
++	for (i = 0; i < ARRAY_SIZE(camss->csiphy); i++) {
++		for (j = 0; j < ARRAY_SIZE(camss->csid); j++) {
++			ret = media_create_pad_link(
++				&camss->csiphy[i].subdev.entity,
++				MSM_CSIPHY_PAD_SRC,
++				&camss->csid[j].subdev.entity,
++				MSM_CSID_PAD_SINK,
++				0);
++			if (ret < 0) {
++				dev_err(camss->dev,
++					"Failed to link %s->%s entities: %d\n",
++					camss->csiphy[i].subdev.entity.name,
++					camss->csid[j].subdev.entity.name,
++					ret);
++				goto err_link;
++			}
++		}
++	}
++
++	for (i = 0; i < ARRAY_SIZE(camss->csid); i++) {
++		for (j = 0; j < ARRAY_SIZE(camss->ispif.line); j++) {
++			ret = media_create_pad_link(
++				&camss->csid[i].subdev.entity,
++				MSM_CSID_PAD_SRC,
++				&camss->ispif.line[j].subdev.entity,
++				MSM_ISPIF_PAD_SINK,
++				0);
++			if (ret < 0) {
++				dev_err(camss->dev,
++					"Failed to link %s->%s entities: %d\n",
++					camss->csid[i].subdev.entity.name,
++					camss->ispif.line[j].subdev.entity.name,
++					ret);
++				goto err_link;
++			}
++		}
++	}
++
++	for (i = 0; i < ARRAY_SIZE(camss->ispif.line); i++) {
++		for (j = 0; j < ARRAY_SIZE(camss->vfe.line); j++) {
++			ret = media_create_pad_link(
++				&camss->ispif.line[i].subdev.entity,
++				MSM_ISPIF_PAD_SRC,
++				&camss->vfe.line[j].subdev.entity,
++				MSM_VFE_PAD_SINK,
++				0);
++			if (ret < 0) {
++				dev_err(camss->dev,
++					"Failed to link %s->%s entities: %d\n",
++					camss->ispif.line[i].subdev.entity.name,
++					camss->vfe.line[j].subdev.entity.name,
++					ret);
++				goto err_link;
++			}
++		}
++	}
++
++	return 0;
++
++err_link:
++	msm_vfe_unregister_entities(&camss->vfe);
++err_reg_vfe:
++	msm_ispif_unregister_entities(&camss->ispif);
++err_reg_ispif:
++
++	i = ARRAY_SIZE(camss->csid);
++err_reg_csid:
++	for (i--; i >= 0; i--)
++		msm_csid_unregister_entity(&camss->csid[i]);
++
++	i = ARRAY_SIZE(camss->csiphy);
++err_reg_csiphy:
++	for (i--; i >= 0; i--)
++		msm_csiphy_unregister_entity(&camss->csiphy[i]);
++
++	return ret;
++}
++
++/*
++ * camss_unregister_entities - Unregister subdev nodes
++ * @camss: CAMSS device
++ *
++ * Return 0 on success or a negative error code on failure
++ */
++static void camss_unregister_entities(struct camss *camss)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(camss->csiphy); i++)
++		msm_csiphy_unregister_entity(&camss->csiphy[i]);
++
++	for (i = 0; i < ARRAY_SIZE(camss->csid); i++)
++		msm_csid_unregister_entity(&camss->csid[i]);
++
++	msm_ispif_unregister_entities(&camss->ispif);
++	msm_vfe_unregister_entities(&camss->vfe);
++}
++
++static int camss_subdev_notifier_bound(struct v4l2_async_notifier *async,
++				       struct v4l2_subdev *subdev,
++				       struct v4l2_async_subdev *asd)
++{
++	struct camss *camss = container_of(async, struct camss, notifier);
++	struct camss_async_subdev *csd =
++		container_of(asd, struct camss_async_subdev, asd);
++	u8 id = csd->interface.csiphy_id;
++	struct csiphy_device *csiphy = &camss->csiphy[id];
++
++	csiphy->cfg.csi2 = &csd->interface.csi2;
++	subdev->host_priv = csiphy;
++
++	return 0;
++}
++
++static int camss_subdev_notifier_complete(struct v4l2_async_notifier *async)
++{
++	struct camss *camss = container_of(async, struct camss, notifier);
++	struct v4l2_device *v4l2_dev = &camss->v4l2_dev;
++	struct v4l2_subdev *sd;
++	int ret;
++
++	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
++		if (sd->host_priv) {
++			struct media_entity *sensor = &sd->entity;
++			struct csiphy_device *csiphy =
++					(struct csiphy_device *) sd->host_priv;
++			struct media_entity *input = &csiphy->subdev.entity;
++			unsigned int i;
++
++			for (i = 0; i < sensor->num_pads; i++) {
++				if (sensor->pads[i].flags & MEDIA_PAD_FL_SOURCE)
++					break;
++			}
++			if (i == sensor->num_pads) {
++				dev_err(camss->dev,
++					"No source pad in external entity\n");
++				return -EINVAL;
++			}
++
++			ret = media_create_pad_link(sensor, i,
++				input, MSM_CSIPHY_PAD_SINK,
++				MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
++			if (ret < 0) {
++				dev_err(camss->dev,
++					"Failed to link %s->%s entities: %d\n",
++					sensor->name, input->name, ret);
++				return ret;
++			}
++		}
++	}
++
++	ret = v4l2_device_register_subdev_nodes(&camss->v4l2_dev);
++	if (ret < 0)
++		return ret;
++
++	return media_device_register(&camss->media_dev);
++}
++
++static const struct media_device_ops camss_media_ops = {
++	.link_notify = v4l2_pipeline_link_notify,
++};
++
++/*
++ * camss_probe - Probe CAMSS platform device
++ * @pdev: Pointer to CAMSS platform device
++ *
++ * Return 0 on success or a negative error code on failure
++ */
++static int camss_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct camss *camss;
++	int ret;
++
++	camss = kzalloc(sizeof(*camss), GFP_KERNEL);
++	if (!camss)
++		return -ENOMEM;
++
++	atomic_set(&camss->ref_count, 0);
++	camss->dev = dev;
++	platform_set_drvdata(pdev, camss);
++
++	ret = camss_of_parse_ports(dev, &camss->notifier);
++	if (ret < 0)
++		return ret;
++
++	ret = camss_init_subdevices(camss);
++	if (ret < 0)
++		return ret;
++
++	ret = dma_set_mask_and_coherent(dev, 0xffffffff);
++	if (ret)
++		return ret;
++
++	camss->media_dev.dev = camss->dev;
++	strlcpy(camss->media_dev.model, "Qualcomm Camera Subsystem",
++		sizeof(camss->media_dev.model));
++	camss->media_dev.ops = &camss_media_ops;
++	media_device_init(&camss->media_dev);
++
++	camss->v4l2_dev.mdev = &camss->media_dev;
++	ret = v4l2_device_register(camss->dev, &camss->v4l2_dev);
++	if (ret < 0) {
++		dev_err(dev, "Failed to register V4L2 device: %d\n", ret);
++		return ret;
++	}
++
++	ret = camss_register_entities(camss);
++	if (ret < 0)
++		goto err_register_entities;
++
++	if (camss->notifier.num_subdevs) {
++		camss->notifier.bound = camss_subdev_notifier_bound;
++		camss->notifier.complete = camss_subdev_notifier_complete;
++
++		ret = v4l2_async_notifier_register(&camss->v4l2_dev,
++						   &camss->notifier);
++		if (ret) {
++			dev_err(dev,
++				"Failed to register async subdev nodes: %d\n",
++				ret);
++			goto err_register_subdevs;
++		}
++	} else {
++		ret = v4l2_device_register_subdev_nodes(&camss->v4l2_dev);
++		if (ret < 0) {
++			dev_err(dev, "Failed to register subdev nodes: %d\n",
++				ret);
++			goto err_register_subdevs;
++		}
++
++		ret = media_device_register(&camss->media_dev);
++		if (ret < 0) {
++			dev_err(dev, "Failed to register media device: %d\n",
++				ret);
++			goto err_register_subdevs;
++		}
++	}
++
++	return 0;
++
++err_register_subdevs:
++	camss_unregister_entities(camss);
++err_register_entities:
++	v4l2_device_unregister(&camss->v4l2_dev);
++
++	return ret;
++}
++
++void camss_delete(struct camss *camss)
++{
++	v4l2_device_unregister(&camss->v4l2_dev);
++	media_device_unregister(&camss->media_dev);
++	media_device_cleanup(&camss->media_dev);
++
++	kfree(camss);
++}
++
++/*
++ * camss_remove - Remove CAMSS platform device
++ * @pdev: Pointer to CAMSS platform device
++ *
++ * Always returns 0.
++ */
++static int camss_remove(struct platform_device *pdev)
++{
++	struct camss *camss = platform_get_drvdata(pdev);
++
++	msm_vfe_stop_streaming(&camss->vfe);
++
++	v4l2_async_notifier_unregister(&camss->notifier);
++	camss_unregister_entities(camss);
++
++	if (atomic_read(&camss->ref_count) == 0)
++		camss_delete(camss);
++
++	return 0;
++}
++
++static const struct of_device_id camss_dt_match[] = {
++	{ .compatible = "qcom,msm8916-camss" },
++	{ }
++};
++
++MODULE_DEVICE_TABLE(of, camss_dt_match);
++
++static struct platform_driver qcom_camss_driver = {
++	.probe = camss_probe,
++	.remove = camss_remove,
++	.driver = {
++		.name = "qcom-camss",
++		.of_match_table = camss_dt_match,
++	},
++};
++
++module_platform_driver(qcom_camss_driver);
++
++MODULE_ALIAS("platform:qcom-camss");
++MODULE_DESCRIPTION("Qualcomm Camera Subsystem driver");
++MODULE_AUTHOR("Todor Tomov <todor.tomov@linaro.org>");
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss.h b/drivers/media/platform/qcom/camss-8x16/camss.h
+new file mode 100644
+index 0000000..4619d7634
+--- /dev/null
++++ b/drivers/media/platform/qcom/camss-8x16/camss.h
+@@ -0,0 +1,97 @@
++/*
++ * camss.h
++ *
++ * Qualcomm MSM Camera Subsystem - Core
++ *
++ * Copyright (c) 2015, The Linux Foundation. All rights reserved.
++ * Copyright (C) 2015-2017 Linaro Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#ifndef QC_MSM_CAMSS_H
++#define QC_MSM_CAMSS_H
++
++#include <linux/types.h>
++#include <media/v4l2-async.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-subdev.h>
++#include <media/media-device.h>
++#include <media/media-entity.h>
++#include <linux/device.h>
++
++#include "camss-csid.h"
++#include "camss-csiphy.h"
++#include "camss-ispif.h"
++#include "camss-vfe.h"
++
++#define CAMSS_CSID_NUM 2
++#define CAMSS_CSIPHY_NUM 2
++
++#define to_camss(ptr_module)	\
++	container_of(ptr_module, struct camss, ptr_module)
++
++#define to_device(ptr_module)	\
++	(to_camss(ptr_module)->dev)
++
++#define module_pointer(ptr_module, index)	\
++	((const struct ptr_module##_device (*)[]) &(ptr_module[-(index)]))
++
++#define to_camss_index(ptr_module, index)	\
++	container_of(module_pointer(ptr_module, index),	\
++		     struct camss, ptr_module)
++
++#define to_device_index(ptr_module, index)	\
++	(to_camss_index(ptr_module, index)->dev)
++
++#define CAMSS_RES_MAX 15
++
++struct resources {
++	char *regulator[CAMSS_RES_MAX];
++	char *clock[CAMSS_RES_MAX];
++	s32 clock_rate[CAMSS_RES_MAX];
++	char *reg[CAMSS_RES_MAX];
++	char *interrupt[CAMSS_RES_MAX];
++};
++
++struct resources_ispif {
++	char *clock[CAMSS_RES_MAX];
++	char *clock_for_reset[CAMSS_RES_MAX];
++	char *reg[CAMSS_RES_MAX];
++	char *interrupt;
++};
++
++struct camss {
++	struct v4l2_device v4l2_dev;
++	struct v4l2_async_notifier notifier;
++	struct media_device media_dev;
++	struct device *dev;
++	struct csiphy_device csiphy[CAMSS_CSIPHY_NUM];
++	struct csid_device csid[CAMSS_CSID_NUM];
++	struct ispif_device ispif;
++	struct vfe_device vfe;
++	atomic_t ref_count;
++};
++
++struct camss_camera_interface {
++	u8 csiphy_id;
++	struct csiphy_csi2_cfg csi2;
++};
++
++struct camss_async_subdev {
++	struct camss_camera_interface interface;
++	struct v4l2_async_subdev asd;
++};
++
++int camss_enable_clocks(int nclocks, struct clk **clock, struct device *dev);
++void camss_disable_clocks(int nclocks, struct clk **clock);
++int camss_get_pixel_clock(struct media_entity *entity, u32 *pixel_clock);
++void camss_delete(struct camss *camss);
++
++#endif /* QC_MSM_CAMSS_H */
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.7.4
