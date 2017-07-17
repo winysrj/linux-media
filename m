@@ -1,137 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f177.google.com ([209.85.128.177]:35968 "EHLO
-        mail-wr0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752470AbdGITmZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 15:42:25 -0400
-Received: by mail-wr0-f177.google.com with SMTP id c11so111934604wrc.3
-        for <linux-media@vger.kernel.org>; Sun, 09 Jul 2017 12:42:24 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, d_spingler@gmx.de, rjkm@metzlerbros.de
-Subject: [PATCH 00/14] ddbridge: bump to ddbridge-0.9.29
-Date: Sun,  9 Jul 2017 21:42:07 +0200
-Message-Id: <20170709194221.10255-1-d.scheller.oss@gmail.com>
+Received: from mail-oi0-f48.google.com ([209.85.218.48]:34045 "EHLO
+        mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751503AbdGQVXM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Jul 2017 17:23:12 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <3a927e60-332a-f01d-f1af-98649e9f51b5@xs4all.nl>
+References: <20170714092540.1217397-1-arnd@arndb.de> <20170714093938.1469319-1-arnd@arndb.de>
+ <f57e08d9-0984-b67c-c64b-c7e0542d0361@xs4all.nl> <CAK8P3a1zBW_QuPtRFNwuVyE_ziySoV9_ebz4sD7Bya3eRoo8SA@mail.gmail.com>
+ <3a927e60-332a-f01d-f1af-98649e9f51b5@xs4all.nl>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Mon, 17 Jul 2017 23:23:11 +0200
+Message-ID: <CAK8P3a3rc-7mXsPosXG7jWBDf9D31816eRpTP266cC94B5jfWw@mail.gmail.com>
+Subject: Re: [PATCH 14/14] [media] fix warning on v4l2_subdev_call() result
+ interpreted as bool
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
+        IDE-ML <linux-ide@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Daeseok Youn <daeseok.youn@gmail.com>,
+        Alan Cox <alan@linux.intel.com>,
+        adi-buildroot-devel@lists.sourceforge.net,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        devel@driverdev.osuosl.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On Mon, Jul 17, 2017 at 4:35 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 17/07/17 16:26, Arnd Bergmann wrote:
 
-Preferrably for Linux 4.14 (to get things done).
+>> Let me try again without ccache for now and see what warnings remain.
+>> We can find a solution for those first, and then decide how to deal with
+>> ccache.
+>
+> Sounds good.
+>
+> I'm OK with applying this if there is no other way to prevent these warnings.
 
-Hard-depends on the STV0910/STV6111 driver patchset as the diff and the
-updated code depends on the driver and the changes involved with the
-glue code of the STV/DDCineS2V7 series [1].
+Small update: I noticed that having ccache being the default compiler
+even with CCACHE_DISABLE=1 causes a lot of these warnings. Completely
+taking ccache out of the picture however seems to have eliminated the
+warnings about v4l2_subdev_call() and other silly warnings, but not
+the interesting ones in the -Wint-in-bool-context category.
 
-Mauro/Media maintainers, this updates drivers/media/pci/ddbridge to the
-very latest code that DD carry in their vendor driver package as of
-version 0.9.29, in the "once, the big-bang-way is ok" way as discussed at
-[2] (compared to the incremental, awkward to do variant since that
-involves dissecting all available release archives and having to - try
-to - build proper commits out of this, which will always be inaccurate;
-a start was done at [3], however - and please understand - I definitely
-don't want to continue doing that...)
-
-In patch 14, I add myself to MAINTAINERS. This means I will care about
-getting driver updates as they're released by DD into mainline,  starting
-from this (0.9.29) version, which is definitely doable in an incremental
-way. So, I'll make sure the in-kernel driver won't bit-rot again, and it
-will receive new hardware support as it becomes available in a timely
-manner.
-
-While the driver code bump looks massive, judging from the diff, there's
-mostly a whole lot of refactoring and restructuring of variables, port/
-link management and all such stuff in it. Feature-wise, this is most
-notable:
-
- - Support for all (PCIe) CI (single/duo) cards and Flex addons
- - Support for MSI (Message Signaled Interrupts), though disabled by
-   default since there were still reports of problems with this
- - TS Loopback support (set up ports to behave as if a CI is connected,
-   without decryption of course)
- - As mentioned: Heavy code reordering, and split up into multiple files
-
-Stripped functionality compared to dddvb:
-
- - DVB-C modulator card support removed (requires DVB core API)
- - OctoNET SAT>IP server/box support removed (requires API aswell)
- - with this, GT link support was removed (only on OctoNET hardware)
- - MaxS8 4/8 DVB-S/S2 card support (temporarily) removed (requires an
-   additional Demod driver; subject for another series)
-
-A note on the patches:
-
-The bump starts by aligning the code "order-wise" to the updated driver,
-to keep the diff a bit cleaner. Next, the code split is applied, without
-actually changing any functionality. Compared to upstream, this isn't done
-by moving functions into different C files and then do an include on them,
-but we're handling them with the Makefile, building separate objects, and
-having proper prototypes in ddbridge.h. After the code bump, further split
-up is applied to increase readability and maintainability (also, for the
-MaxS8 support, there will be another object with another ~400 LoC, which
-originally lives in ddbridge-core aswell). Then, all issues found by W=1
-and smatch are resolved, one by one. This is kept separate since those
-fixes will be proposed for upstream inclusion. The last thing is the
-addition of the MSI default Kconfig options which will mainly inform users
-that there's something that might(!) cause issues but is still being
-worked on - the default is "off" to provide a proper OotB experience.
-
-To distinguish from the original unchanged vendor driver, "-integrated" is
-suffixed to the version code.
-
-Note on checkpatch:
-
-First two patches are solely code-moving, so checkpatch will complain on
-them. With the ddbridge code bump, all style issues are resolved.
-
-Yes, you will hate me for this large code drop, but at least we sort-of
-discussed this beforehand, and we have to start *somewhere*.
-
-Thanks in advance for reviewing and (optimally) getting this merged and
-getting the DD driver dilemma solved hopefully once and for all.
-
-[1] http://www.spinics.net/lists/linux-media/msg117946.html
-[2] http://www.spinics.net/lists/linux-media/msg117358.html
-[3] https://github.com/herrnst/dddvb-linux-kernel/compare/4226861...mediatree/master-ddbupdate
-
-Daniel Scheller (14):
-  [media] ddbridge: move/reorder functions
-  [media] ddbridge: split code into multiple files
-  [media] ddbridge: bump ddbridge code to version 0.9.29
-  [media] ddbridge: split I/O related functions off from ddbridge.h
-  [media] ddbridge: split off IRQ handling
-  [media] ddbridge: split off hardware definitions and mappings
-  [media] ddbridge: check pointers before dereferencing
-  [media] ddbridge: only register frontends in fe2 if fe is not NULL
-  [media] ddbridge: fix possible buffer overflow in ddb_ports_init()
-  [media] ddbridge: remove unreachable code
-  [media] ddbridge: fix impossible condition warning
-  [media] ddbridge: fix dereference before check
-  [media] ddbridge: Kconfig option to control the MSI modparam default
-  [media] MAINTAINERS: add entry for ddbridge
-
- MAINTAINERS                                |    8 +
- drivers/media/pci/ddbridge/Kconfig         |   15 +
- drivers/media/pci/ddbridge/Makefile        |    3 +-
- drivers/media/pci/ddbridge/ddbridge-core.c | 4242 ++++++++++++++++++----------
- drivers/media/pci/ddbridge/ddbridge-hw.c   |  299 ++
- drivers/media/pci/ddbridge/ddbridge-hw.h   |   52 +
- drivers/media/pci/ddbridge/ddbridge-i2c.c  |  310 ++
- drivers/media/pci/ddbridge/ddbridge-io.h   |   71 +
- drivers/media/pci/ddbridge/ddbridge-irq.c  |  161 ++
- drivers/media/pci/ddbridge/ddbridge-main.c |  393 +++
- drivers/media/pci/ddbridge/ddbridge-regs.h |  138 +-
- drivers/media/pci/ddbridge/ddbridge.h      |  355 ++-
- 12 files changed, 4402 insertions(+), 1645 deletions(-)
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-hw.c
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-hw.h
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-i2c.c
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-io.h
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-irq.c
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-main.c
-
--- 
-2.13.0
+       Arnd
