@@ -1,51 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:51341 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751622AbdG1KFv (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58530 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750715AbdGQEFf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Jul 2017 06:05:51 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Hans Verkuil" <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v1 1/5] [media] stm32-dcmi: catch dma submission error
-Date: Fri, 28 Jul 2017 12:04:58 +0200
-Message-ID: <1501236302-18097-2-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1501236302-18097-1-git-send-email-hugues.fruchet@st.com>
-References: <1501236302-18097-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Mon, 17 Jul 2017 00:05:35 -0400
+Message-ID: <83040c63492cf7f041d5b66033dfd134@smtp-cloud2.xs4all.net>
+Date: Mon, 17 Jul 2017 06:05:33 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Test cookie return by dmaengine_submit() and return error if any.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- drivers/media/platform/stm32/stm32-dcmi.c | 4 ++++
- 1 file changed, 4 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-index 24ef888..716b3db 100644
---- a/drivers/media/platform/stm32/stm32-dcmi.c
-+++ b/drivers/media/platform/stm32/stm32-dcmi.c
-@@ -295,6 +295,10 @@ static int dcmi_start_dma(struct stm32_dcmi *dcmi,
- 
- 	/* Push current DMA transaction in the pending queue */
- 	dcmi->dma_cookie = dmaengine_submit(desc);
-+	if (dma_submit_error(dcmi->dma_cookie)) {
-+		dev_err(dcmi->dev, "%s: DMA submission failed\n", __func__);
-+		return -ENXIO;
-+	}
- 
- 	dma_async_issue_pending(dcmi->dma_chan);
- 
--- 
-1.9.1
+date:			Mon Jul 17 05:00:21 CEST 2017
+media-tree git hash:	2748e76ddb2967c4030171342ebdd3faa6a5e8e8
+media_build git hash:	bc1db0a204a87da86349ea5e64ae0d65e945609d
+v4l-utils git hash:	8e68406dae2233e811032dc8e7714c09c818e893
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.11.0-164
+
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
