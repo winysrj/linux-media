@@ -1,125 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f170.google.com ([209.85.128.170]:34637 "EHLO
-        mail-wr0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752470AbdGITt2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 15:49:28 -0400
-Received: by mail-wr0-f170.google.com with SMTP id 77so112006912wrb.1
-        for <linux-media@vger.kernel.org>; Sun, 09 Jul 2017 12:49:27 -0700 (PDT)
-Subject: Re: [PATCH] media: venus: hfi: fix error handling in
- hfi_sys_init_done()
-To: Rob Clark <robdclark@gmail.com>, linux-media@vger.kernel.org
-Cc: linux-arm-msm@vger.kernel.org
-References: <20170709131916.11643-1-robdclark@gmail.com>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <4339e5cc-ecf0-be0a-8299-becec5e2c41b@linaro.org>
-Date: Sun, 9 Jul 2017 22:49:25 +0300
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:36168 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751435AbdGQMxJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Jul 2017 08:53:09 -0400
+Subject: Re: [PATCH 14/22] [media] usbvision-i2c: fix format overflow warning
+To: Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <20170714120720.906842-1-arnd@arndb.de>
+ <20170714120720.906842-15-arnd@arndb.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Guenter Roeck <linux@roeck-us.net>, akpm@linux-foundation.org,
+        netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>,
+        "James E . J . Bottomley" <jejb@linux.vnet.ibm.com>,
+        "Martin K . Petersen" <martin.petersen@oracle.com>,
+        linux-scsi@vger.kernel.org, x86@kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f44cbc53-8c95-9fad-04d4-1fbf3708191c@xs4all.nl>
+Date: Mon, 17 Jul 2017 14:53:01 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170709131916.11643-1-robdclark@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+In-Reply-To: <20170714120720.906842-15-arnd@arndb.de>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+On 14/07/17 14:07, Arnd Bergmann wrote:
+> gcc-7 notices that we copy a fixed length string into another
+> string of the same size, with additional characters:
+> 
+> drivers/media/usb/usbvision/usbvision-i2c.c: In function 'usbvision_i2c_register':
+> drivers/media/usb/usbvision/usbvision-i2c.c:190:36: error: '%d' directive writing between 1 and 11 bytes into a region of size between 0 and 47 [-Werror=format-overflow=]
+>   sprintf(usbvision->i2c_adap.name, "%s-%d-%s", i2c_adap_template.name,
+>                                     ^~~~~~~~~~
+> drivers/media/usb/usbvision/usbvision-i2c.c:190:2: note: 'sprintf' output between 4 and 76 bytes into a destination of size 48
+> 
+> We know this is fine as the template name is always "usbvision", so
+> we can easily avoid the warning by using this as the format string
+> directly.
 
-On 07/09/2017 04:19 PM, Rob Clark wrote:
-> Not entirely sure what triggers it, but with venus build as kernel
-> module and in initrd, we hit this crash:
+Hmm, how about replacing sprintf by snprintf? That feels a lot safer (this is very
+old code, it's not surprising it is still using sprintf).
 
-Is it happens occasionally or everytime in the initrd? And also with
-your patch it will bail out on venus_probe, does it crash again on next
-venus_probe?
+Regards,
+
+	Hans
 
 > 
->   Unable to handle kernel paging request at virtual address ffff80003c039000
->   pgd = ffff00000a14f000
->   [ffff80003c039000] *pgd=00000000bd9f7003, *pud=00000000bd9f6003, *pmd=00000000bd9f0003, *pte=0000000000000000
->   Internal error: Oops: 96000007 [#1] SMP
->   Modules linked in: qcom_wcnss_pil(E+) crc32_ce(E) qcom_common(E) venus_core(E+) remoteproc(E) snd_soc_msm8916_digital(E) virtio_ring(E) cdc_ether(E) snd_soc_lpass_apq8016(E) snd_soc_lpass_cpu(E) snd_soc_apq8016_sbc(E) snd_soc_lpass_platform(E) v4l2_mem2mem(E) virtio(E) snd_soc_core(E) ac97_bus(E) snd_pcm_dmaengine(E) snd_seq(E) leds_gpio(E) videobuf2_v4l2(E) videobuf2_core(E) snd_seq_device(E) sndi_pcm(E) videodev(E) media(E) nvmem_qfprom(E) msm(E) snd_timer(E) snd(E) soundcore(E) spi_qup(E) mdt_loader(E) qcom_tsens(E) qcom_spmi_temp_alarm(E) nvmem_core(E) msm_rng(E) uas(E) usb_storage(E) dm9601(E) usbnet(E) mii(E) mmc_block(E) adv7511(E) drm_kms_helper(E) syscopyarea(E) sysfillrect(E) sysimgblt(E) fb_sys_fops(E) qcom_spmi_vadc(E) qcom_vadc_common(PE) industrialio(E) pinctrl_spmi_mpp(E)
->    pinctrl_spmi_gpio(E) rtc_pm8xxx(E) clk_smd_rpm(E) sdhci_msm(E) sdhci_pltfm(E) qcom_smd_regulator(E) drm(E) smd_rpm(E) qcom_spmi_pmic(E) regmap_spmi(E) ci_hdrc_msm(E) ci_hdrc(E) usb3503(E) extcon_usb_gpio(E) phy_msm_usb(E) udc_core(E) qcom_hwspinlock(E) extcon_core(E) ehci_msm(E) i2c_qup(E) sdhci(E) mmc_core(E) spmi_pmic_arb(E) spmi(E) qcom_smd(E) smsm(E) rpmsg_core(E) smp2p(E) smem(E) hwspinlock_core(E) gpio_keys(E)
->   CPU: 2 PID: 551 Comm: irq/150-venus Tainted: P            E   4.12.0+ #1625
->   Hardware name: qualcomm dragonboard410c/dragonboard410c, BIOS 2017.07-rc2-00144-ga97bdbdf72-dirty 07/08/2017
->   task: ffff800037338000 task.stack: ffff800038e00000
->   PC is at hfi_sys_init_done+0x64/0x140 [venus_core]
->   LR is at hfi_process_msg_packet+0xcc/0x1e8 [venus_core]
->   pc : [<ffff00000118b384>] lr : [<ffff00000118c11c>] pstate: 20400145
->   sp : ffff800038e03c60
->   x29: ffff800038e03c60 x28: 0000000000000000
->   x27: 00000000000df018 x26: ffff00000118f4d0
->   x25: 0000000000020003 x24: ffff80003a8d3010
->   x23: ffff00000118f760 x22: ffff800037b40028
->   x21: ffff8000382981f0 x20: ffff800037b40028
->   x19: ffff80003c039000 x18: 0000000000000020
->   x17: 0000000000000000 x16: ffff800037338000
->   x15: ffffffffffffffff x14: 0000001000000014
->   x13: 0000000100001007 x12: 0000000100000020
->   x11: 0000100e00000000 x10: 0000000000000001
->   x9 : 0000000200000000 x8 : 0000001400000001
->   x7 : 0000000000001010 x6 : 0000000000000148
->   x5 : 0000000000001009 x4 : ffff80003c039000
->   x3 : 00000000cd770abb x2 : 0000000000000042
->   x1 : 0000000000000788 x0 : 0000000000000002
->   Process irq/150-venus (pid: 551, stack limit = 0xffff800038e00000)
->   Call trace:
->   [<ffff00000118b384>] hfi_sys_init_done+0x64/0x140 [venus_core]
->   [<ffff00000118c11c>] hfi_process_msg_packet+0xcc/0x1e8 [venus_core]
->   [<ffff00000118a2b4>] venus_isr_thread+0x1b4/0x208 [venus_core]
->   [<ffff00000118e750>] hfi_isr_thread+0x28/0x38 [venus_core]
->   [<ffff000008161550>] irq_thread_fn+0x30/0x70
->   [<ffff0000081617fc>] irq_thread+0x14c/0x1c8
->   [<ffff000008105e68>] kthread+0x138/0x140
->   [<ffff000008083590>] ret_from_fork+0x10/0x40
->   Code: 52820125 52820207 7a431820 54000249 (b9400263)
->   ---[ end trace c963460f20a984b6 ]---
-> 
-> The problem is that in the error case, we've incremented the data ptr
-> but not decremented rem_bytes, and keep reading (presumably garbage)
-> until eventually we go beyond the end of the buffer.
-> 
-> Instead, on first error, we should probably just bail out.  Other
-> option is to increment read_bytes by sizeof(u32) before the switch,
-> rather than only accounting for the ptype header in the non-error
-> case.  Note that in this case it is HFI_ERR_SYS_INVALID_PARAMETER,
-> ie. an unrecognized/unsupported parameter, so interpreting the next
-> word as a property type would be bogus.  The other error cases are
-> due to truncated buffer, so there isn't likely to be anything valid
-> to interpret in the remainder of the buffer.  So just bailing seems
-> like a reasonable solution.
-
-I have a WIP patch which rewrite the message parsing, it would be nice
-if I can reproduce this crash.
-
-> 
-> Signed-off-by: Rob Clark <robdclark@gmail.com>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 > ---
->  drivers/media/platform/qcom/venus/hfi_msgs.c | 11 ++++++-----
->  1 file changed, 6 insertions(+), 5 deletions(-)
+>  drivers/media/usb/usbvision/usbvision-i2c.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/media/platform/qcom/venus/hfi_msgs.c b/drivers/media/platform/qcom/venus/hfi_msgs.c
-> index debf80a92797..4190825b20a1 100644
-> --- a/drivers/media/platform/qcom/venus/hfi_msgs.c
-> +++ b/drivers/media/platform/qcom/venus/hfi_msgs.c
-> @@ -239,11 +239,12 @@ static void hfi_sys_init_done(struct venus_core *core, struct venus_inst *inst,
->  			break;
->  		}
+> diff --git a/drivers/media/usb/usbvision/usbvision-i2c.c b/drivers/media/usb/usbvision/usbvision-i2c.c
+> index fdf6b6e285da..aae9f69884da 100644
+> --- a/drivers/media/usb/usbvision/usbvision-i2c.c
+> +++ b/drivers/media/usb/usbvision/usbvision-i2c.c
+> @@ -187,8 +187,8 @@ int usbvision_i2c_register(struct usb_usbvision *usbvision)
 >  
-> -		if (!error) {
-> -			rem_bytes -= read_bytes;
-> -			data += read_bytes;
-> -			num_properties--;
-> -		}
-> +		if (error)
-> +			break;
-> +
-> +		rem_bytes -= read_bytes;
-> +		data += read_bytes;
-> +		num_properties--;
->  	}
+>  	usbvision->i2c_adap = i2c_adap_template;
 >  
->  err_no_prop:
+> -	sprintf(usbvision->i2c_adap.name, "%s-%d-%s", i2c_adap_template.name,
+> -		usbvision->dev->bus->busnum, usbvision->dev->devpath);
+> +	sprintf(usbvision->i2c_adap.name, "usbvision-%d-%s",
+> +		 usbvision->dev->bus->busnum, usbvision->dev->devpath);
+>  	PDEBUG(DBG_I2C, "Adaptername: %s", usbvision->i2c_adap.name);
+>  	usbvision->i2c_adap.dev.parent = &usbvision->dev->dev;
+>  
 > 
-
--- 
-regards,
-Stan
