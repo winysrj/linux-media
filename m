@@ -1,106 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39373 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751198AbdGNAf6 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:58606 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751286AbdGQOJF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Jul 2017 20:35:58 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v2.1 08/14] v4l: vsp1: Add support for new VSP2-BS, VSP2-DL and VSP2-D instances
-Date: Fri, 14 Jul 2017 03:35:57 +0300
-Message-Id: <20170714003557.4057-1-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20170626181226.29575-9-laurent.pinchart+renesas@ideasonboard.com>
-References: <20170626181226.29575-9-laurent.pinchart+renesas@ideasonboard.com>
+        Mon, 17 Jul 2017 10:09:05 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.14] Coda driver fixes
+Message-ID: <b281a151-f4c5-4176-b5a7-ea1aadac6bcf@xs4all.nl>
+Date: Mon, 17 Jul 2017 16:09:02 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-New Gen3 SoCs come with two new VSP2 variants names VSP2-BS and VSP2-DL,
-as well as a new VSP2-D variant on V3M and V3H SoCs. Add new entries for
-them in the VSP device info table.
+The following changes since commit 2748e76ddb2967c4030171342ebdd3faa6a5e8e8:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
-Changes since v2:
+  media: staging: cxd2099: Activate cxd2099 buffer mode (2017-06-26 08:19:13 -0300)
 
-- Added VSP1_HAS_WPF_VFLIP to VSP2-BS
----
- drivers/media/platform/vsp1/vsp1_drv.c  | 24 ++++++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_regs.h | 15 +++++++++++++--
- 2 files changed, 37 insertions(+), 2 deletions(-)
+are available in the git repository at:
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 6a9aeb71aedf..d1682a9719af 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -710,6 +710,14 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
- 		.num_bru_inputs = 5,
- 		.uapi = true,
- 	}, {
-+		.version = VI6_IP_VERSION_MODEL_VSPBS_GEN3,
-+		.model = "VSP2-BS",
-+		.gen = 3,
-+		.features = VSP1_HAS_BRS | VSP1_HAS_WPF_VFLIP,
-+		.rpf_count = 2,
-+		.wpf_count = 1,
-+		.uapi = true,
-+	}, {
- 		.version = VI6_IP_VERSION_MODEL_VSPD_GEN3,
- 		.model = "VSP2-D",
- 		.gen = 3,
-@@ -717,6 +725,22 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
- 		.rpf_count = 5,
- 		.wpf_count = 2,
- 		.num_bru_inputs = 5,
-+	}, {
-+		.version = VI6_IP_VERSION_MODEL_VSPD_V3,
-+		.model = "VSP2-D",
-+		.gen = 3,
-+		.features = VSP1_HAS_BRS | VSP1_HAS_BRU | VSP1_HAS_LIF,
-+		.rpf_count = 5,
-+		.wpf_count = 1,
-+		.num_bru_inputs = 5,
-+	}, {
-+		.version = VI6_IP_VERSION_MODEL_VSPDL_GEN3,
-+		.model = "VSP2-DL",
-+		.gen = 3,
-+		.features = VSP1_HAS_BRS | VSP1_HAS_BRU | VSP1_HAS_LIF,
-+		.rpf_count = 5,
-+		.wpf_count = 2,
-+		.num_bru_inputs = 5,
- 	},
- };
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
-index 744217e020b9..ab439a60a100 100644
---- a/drivers/media/platform/vsp1/vsp1_regs.h
-+++ b/drivers/media/platform/vsp1/vsp1_regs.h
-@@ -699,9 +699,20 @@
- #define VI6_IP_VERSION_MODEL_VSPBD_GEN3	(0x15 << 8)
- #define VI6_IP_VERSION_MODEL_VSPBC_GEN3	(0x16 << 8)
- #define VI6_IP_VERSION_MODEL_VSPD_GEN3	(0x17 << 8)
-+#define VI6_IP_VERSION_MODEL_VSPD_V3	(0x18 << 8)
-+#define VI6_IP_VERSION_MODEL_VSPDL_GEN3	(0x19 << 8)
-+#define VI6_IP_VERSION_MODEL_VSPBS_GEN3	(0x1a << 8)
- #define VI6_IP_VERSION_SOC_MASK		(0xff << 0)
--#define VI6_IP_VERSION_SOC_H		(0x01 << 0)
--#define VI6_IP_VERSION_SOC_M		(0x02 << 0)
-+#define VI6_IP_VERSION_SOC_H2		(0x01 << 0)
-+#define VI6_IP_VERSION_SOC_V2H		(0x01 << 0)
-+#define VI6_IP_VERSION_SOC_V3M		(0x01 << 0)
-+#define VI6_IP_VERSION_SOC_M2		(0x02 << 0)
-+#define VI6_IP_VERSION_SOC_M3W		(0x02 << 0)
-+#define VI6_IP_VERSION_SOC_V3H		(0x02 << 0)
-+#define VI6_IP_VERSION_SOC_H3		(0x03 << 0)
-+#define VI6_IP_VERSION_SOC_D3		(0x04 << 0)
-+#define VI6_IP_VERSION_SOC_M3N		(0x04 << 0)
-+#define VI6_IP_VERSION_SOC_E3		(0x04 << 0)
- 
- /* -----------------------------------------------------------------------------
-  * RPF CLUT Registers
--- 
-Regards,
+  git://linuxtv.org/hverkuil/media_tree.git coda
 
-Laurent Pinchart
+for you to fetch changes up to b3c669248a03eca02984813f96681f6dbfc1ec0b:
+
+  coda: wake up capture queue on encoder stop after output streamoff (2017-07-17 15:56:53 +0200)
+
+----------------------------------------------------------------
+Philipp Zabel (8):
+      coda: add h264 and mpeg4 profile and level controls
+      coda: do not reassign ctx->tiled_map_type in coda_s_fmt
+      coda: extend GOP size range
+      coda: set field of destination buffers
+      coda: align internal mpeg4 framebuffers to 16x16 macroblocks
+      coda: set MPEG-4 encoder class register
+      coda: mark CODA960 firmware versions 2.3.10 and 3.1.1 as supported
+      coda: wake up capture queue on encoder stop after output streamoff
+
+ drivers/media/platform/coda/coda-bit.c    | 16 +++++++++++++---
+ drivers/media/platform/coda/coda-common.c | 58 ++++++++++++++++++++++++++++++++++++++++++++++++++++++----
+ drivers/media/platform/coda/coda_regs.h   |  1 +
+ 3 files changed, 68 insertions(+), 7 deletions(-)
