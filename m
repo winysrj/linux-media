@@ -1,156 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:38468 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751087AbdGPKsH (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52781 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751245AbdGQCVs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 16 Jul 2017 06:48:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, Eric Anholt <eric@anholt.net>,
-        boris.brezillon@free-electrons.com,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 2/3] drm/vc4: prepare for CEC support
-Date: Sun, 16 Jul 2017 12:48:03 +0200
-Message-Id: <20170716104804.48308-3-hverkuil@xs4all.nl>
-In-Reply-To: <20170716104804.48308-1-hverkuil@xs4all.nl>
-References: <20170716104804.48308-1-hverkuil@xs4all.nl>
+        Sun, 16 Jul 2017 22:21:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Heiko Stuebner <heiko@sntech.de>
+Cc: robh+dt@kernel.org, Jacob Chen <jacob-chen@iotwrt.com>,
+        linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        s.nawrocki@samsung.com, tfiga@chromium.org, nicolas@ndufresne.ca,
+        Yakir Yang <ykk@rock-chips.com>
+Subject: Re: [PATCH v2 6/6] dt-bindings: Document the Rockchip RGA bindings
+Date: Mon, 17 Jul 2017 05:21:53 +0300
+Message-ID: <68196359.W3MbNaIOVC@avalon>
+In-Reply-To: <1882912.vhlUDqklbZ@phil>
+References: <1500101920-24039-1-git-send-email-jacob-chen@iotwrt.com> <1918615.rEp9U5BAbC@avalon> <1882912.vhlUDqklbZ@phil>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Heiko,
 
-In order to support CEC the hsm clock needs to be enabled in
-vc4_hdmi_bind(), not in vc4_hdmi_encoder_enable(). Otherwise you wouldn't
-be able to support CEC when there is no hotplug detect signal, which is
-required by some monitors that turn off the HPD when in standby, but keep
-the CEC bus alive so they can be woken up.
+On Sunday 16 Jul 2017 18:07:58 Heiko Stuebner wrote:
+> Am Samstag, 15. Juli 2017, 12:23:12 CEST schrieb Laurent Pinchart:
+> > On Saturday 15 Jul 2017 14:58:40 Jacob Chen wrote:
+> >> Add DT bindings documentation for Rockchip RGA
+> >> 
+> >> Signed-off-by: Yakir Yang <ykk@rock-chips.com>
+> >> Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+> >> ---
+> >> 
+> >>  .../devicetree/bindings/media/rockchip-rga.txt     | 35 +++++++++++++++
+> >>  1 file changed, 35 insertions(+)
+> >>  create mode 100644
+> >>  Documentation/devicetree/bindings/media/rockchip-rga.txt
+> >> 
+> >> diff --git a/Documentation/devicetree/bindings/media/rockchip-rga.txt
+> >> b/Documentation/devicetree/bindings/media/rockchip-rga.txt new file mode
+> >> 100644
+> >> index 0000000..966eba0
+> >> --- /dev/null
+> >> +++ b/Documentation/devicetree/bindings/media/rockchip-rga.txt
+> >> @@ -0,0 +1,35 @@
+> >> +device-tree bindings for rockchip 2D raster graphic acceleration
+> >> controller (RGA)
+> >> +
+> >> +RGA is a separate 2D raster graphic acceleration unit. It accelerates
+> >> 2D
+> > 
+> > "Separate" from what ? Do you mean "standalone" ?
+> > 
+> >> +graphics operations, such as point/line drawing, image scaling,
+> >> rotation,
+> >> +BitBLT, alpha blending and image blur/sharpness.
+> >> +
+> >> +Required properties:
+> >> +- compatible: value should be one of the following
+> >> +		"rockchip,rk3228-rga";
+> >> +		"rockchip,rk3288-rga";
+> >> +		"rockchip,rk3399-rga";
+> > 
+> > The driver in patch 2/6 has match entry for rk3328, which is missing from
+> > this list.
+> > 
+> > As the implementation of the driver doesn't seem to discriminate between
+> > the four SoCs, wouldn't it make sense to create a generic compatible
+> > string on which the driver would match ? You can have both the generic
+> > and SoC-specific compatible strings in DT if there are differences
+> > between the IP core in those SoCs that might need to be handled later by
+> > the driver.
+> 
+> I think the block is named something like RGA2 in some kernel trees, but
+> am not sure if that is an actual name, or someone just added a number.
+> From short glances at vendor rga-code in the past, it looks like there are
+> currently 2 basic versions of the in existence I.e. older Rockchip socs
+> (like the rk3188 or so) use something older.
+> 
+> I think everywhere else we do have only (or at least mostly) soc-specifc
+> compatibles, but I guess that is more a question what Rob prefers.
 
-The HDMI core also has to be enabled in vc4_hdmi_bind() for the same
-reason.
+Many SoC vendors use SoC-specific compatible string, often in addition to more 
+generic ones. When a more generic compatible string is available, drivers can 
+match against it, which avoid having to update drivers every time a new SoC 
+integrates the same version of the IP core. The SoC-specific compatible string 
+is still specified in DT, "just in case" we later realize that the IP core 
+integrated in the SoC is slightly different than the other ones and requires 
+specific handling in the driver.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/gpu/drm/vc4/vc4_hdmi.c | 59 +++++++++++++++++++++---------------------
- 1 file changed, 29 insertions(+), 30 deletions(-)
+I'm not completely happy with that scheme, as it's really a workaround for 
+defective communication with the hardware team (or possibly defective hardware 
+development...), but that's the best compromise we have so far.
 
-diff --git a/drivers/gpu/drm/vc4/vc4_hdmi.c b/drivers/gpu/drm/vc4/vc4_hdmi.c
-index ed63d4e85762..e0104f96011e 100644
---- a/drivers/gpu/drm/vc4/vc4_hdmi.c
-+++ b/drivers/gpu/drm/vc4/vc4_hdmi.c
-@@ -463,11 +463,6 @@ static void vc4_hdmi_encoder_disable(struct drm_encoder *encoder)
- 	HD_WRITE(VC4_HD_VID_CTL,
- 		 HD_READ(VC4_HD_VID_CTL) & ~VC4_HD_VID_CTL_ENABLE);
- 
--	HD_WRITE(VC4_HD_M_CTL, VC4_HD_M_SW_RST);
--	udelay(1);
--	HD_WRITE(VC4_HD_M_CTL, 0);
--
--	clk_disable_unprepare(hdmi->hsm_clock);
- 	clk_disable_unprepare(hdmi->pixel_clock);
- 
- 	ret = pm_runtime_put(&hdmi->pdev->dev);
-@@ -509,16 +504,6 @@ static void vc4_hdmi_encoder_enable(struct drm_encoder *encoder)
- 		return;
- 	}
- 
--	/* This is the rate that is set by the firmware.  The number
--	 * needs to be a bit higher than the pixel clock rate
--	 * (generally 148.5Mhz).
--	 */
--	ret = clk_set_rate(hdmi->hsm_clock, 163682864);
--	if (ret) {
--		DRM_ERROR("Failed to set HSM clock rate: %d\n", ret);
--		return;
--	}
--
- 	ret = clk_set_rate(hdmi->pixel_clock,
- 			   mode->clock * 1000 *
- 			   ((mode->flags & DRM_MODE_FLAG_DBLCLK) ? 2 : 1));
-@@ -533,20 +518,6 @@ static void vc4_hdmi_encoder_enable(struct drm_encoder *encoder)
- 		return;
- 	}
- 
--	ret = clk_prepare_enable(hdmi->hsm_clock);
--	if (ret) {
--		DRM_ERROR("Failed to turn on HDMI state machine clock: %d\n",
--			  ret);
--		clk_disable_unprepare(hdmi->pixel_clock);
--		return;
--	}
--
--	HD_WRITE(VC4_HD_M_CTL, VC4_HD_M_SW_RST);
--	udelay(1);
--	HD_WRITE(VC4_HD_M_CTL, 0);
--
--	HD_WRITE(VC4_HD_M_CTL, VC4_HD_M_ENABLE);
--
- 	HDMI_WRITE(VC4_HDMI_SW_RESET_CONTROL,
- 		   VC4_HDMI_SW_RESET_HDMI |
- 		   VC4_HDMI_SW_RESET_FORMAT_DETECT);
-@@ -1205,6 +1176,23 @@ static int vc4_hdmi_bind(struct device *dev, struct device *master, void *data)
- 		return -EPROBE_DEFER;
- 	}
- 
-+	/* This is the rate that is set by the firmware.  The number
-+	 * needs to be a bit higher than the pixel clock rate
-+	 * (generally 148.5Mhz).
-+	 */
-+	ret = clk_set_rate(hdmi->hsm_clock, 163682864);
-+	if (ret) {
-+		DRM_ERROR("Failed to set HSM clock rate: %d\n", ret);
-+		goto err_put_i2c;
-+	}
-+
-+	ret = clk_prepare_enable(hdmi->hsm_clock);
-+	if (ret) {
-+		DRM_ERROR("Failed to turn on HDMI state machine clock: %d\n",
-+			  ret);
-+		goto err_put_i2c;
-+	}
-+
- 	/* Only use the GPIO HPD pin if present in the DT, otherwise
- 	 * we'll use the HDMI core's register.
- 	 */
-@@ -1216,7 +1204,7 @@ static int vc4_hdmi_bind(struct device *dev, struct device *master, void *data)
- 							 &hpd_gpio_flags);
- 		if (hdmi->hpd_gpio < 0) {
- 			ret = hdmi->hpd_gpio;
--			goto err_put_i2c;
-+			goto err_unprepare_hsm;
- 		}
- 
- 		hdmi->hpd_active_low = hpd_gpio_flags & OF_GPIO_ACTIVE_LOW;
-@@ -1224,6 +1212,14 @@ static int vc4_hdmi_bind(struct device *dev, struct device *master, void *data)
- 
- 	vc4->hdmi = hdmi;
- 
-+	/* HDMI core must be enabled. */
-+	if (!(HD_READ(VC4_HD_M_CTL) & VC4_HD_M_ENABLE)) {
-+		HD_WRITE(VC4_HD_M_CTL, VC4_HD_M_SW_RST);
-+		udelay(1);
-+		HD_WRITE(VC4_HD_M_CTL, 0);
-+
-+		HD_WRITE(VC4_HD_M_CTL, VC4_HD_M_ENABLE);
-+	}
- 	pm_runtime_enable(dev);
- 
- 	drm_encoder_init(drm, hdmi->encoder, &vc4_hdmi_encoder_funcs,
-@@ -1244,6 +1240,8 @@ static int vc4_hdmi_bind(struct device *dev, struct device *master, void *data)
- 
- err_destroy_encoder:
- 	vc4_hdmi_encoder_destroy(hdmi->encoder);
-+err_unprepare_hsm:
-+	clk_disable_unprepare(hdmi->hsm_clock);
- 	pm_runtime_disable(dev);
- err_put_i2c:
- 	put_device(&hdmi->ddc->dev);
-@@ -1263,6 +1261,7 @@ static void vc4_hdmi_unbind(struct device *dev, struct device *master,
- 	vc4_hdmi_connector_destroy(hdmi->connector);
- 	vc4_hdmi_encoder_destroy(hdmi->encoder);
- 
-+	clk_disable_unprepare(hdmi->hsm_clock);
- 	pm_runtime_disable(dev);
- 
- 	put_device(&hdmi->ddc->dev);
+> >> +- interrupts: RGA interrupt number.
+> > 
+> > This is an "interrupt specifier", not just an "interrupt number" (as you
+> > can see in the example below there are three numbers)
+> > 
+> >> +
+> >> +- clocks: phandle to RGA sclk/hclk/aclk clocks
+> >> +
+> >> +- clock-names: should be "aclk" "hclk" and "sclk"
+> > 
+> > Nitpicking, there should be a comma after "aclk".
+> > 
+> >> +
+> >> +- resets: Must contain an entry for each entry in reset-names.
+> >> +  See ../reset/reset.txt for details.
+> >> +- reset-names: should be "core" "axi" and "ahb"
+> > 
+> > And a comma after "core".
+> > 
+> >> +
+> >> +Example:
+> >> +SoC specific DT entry:
+> >
+> > s/SoC specific/SoC-specific/
+> > 
+> >> +	rga: rga@ff680000 {
+> >> +		compatible = "rockchip,rk3399-rga";
+> >> +		reg = <0xff680000 0x10000>;
+> >> +		interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
+> >> +		interrupt-names = "rga";
+> > 
+> > The interrupt-names property is not described above. Do you really need it
+> > ?
+> >
+> >> +		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru
+> >> SCLK_RGA_CORE>;
+> >> +		clock-names = "aclk", "hclk", "sclk";
+> >> +
+> >> +		resets = <&cru SRST_RGA_CORE>, <&cru SRST_A_RGA>, <&cru
+> >> SRST_H_RGA>;
+> >> +		reset-names = "core, "axi", "ahb";
+> >> +	};
+
 -- 
-2.13.2
+Regards,
+
+Laurent Pinchart
