@@ -1,169 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:35970 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751816AbdG1Kwl (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44176 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751435AbdGQWBU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Jul 2017 06:52:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 2/2] v4l: document VIDIOC_SUBDEV_QUERYCAP
-Date: Fri, 28 Jul 2017 12:52:31 +0200
-Message-Id: <20170728105231.12043-3-hverkuil@xs4all.nl>
-In-Reply-To: <20170728105231.12043-1-hverkuil@xs4all.nl>
-References: <20170728105231.12043-1-hverkuil@xs4all.nl>
+        Mon, 17 Jul 2017 18:01:20 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: pavel@ucw.cz, linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH 7/7] omap3isp: Skip CSI-2 receiver initialisation in CCP2 configuration
+Date: Tue, 18 Jul 2017 01:01:16 +0300
+Message-Id: <20170717220116.17886-8-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170717220116.17886-1-sakari.ailus@linux.intel.com>
+References: <20170717220116.17886-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+If the CSI-2 receiver isn't part of the pipeline (or isn't there to begin
+with), skip its initialisation.
 
-Add documentation for the new VIDIOC_SUBDEV_QUERYCAP ioctl.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/media/uapi/v4l/user-func.rst         |   1 +
- .../media/uapi/v4l/vidioc-subdev-querycap.rst      | 118 +++++++++++++++++++++
- 2 files changed, 119 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/vidioc-subdev-querycap.rst
+ drivers/media/platform/omap3isp/ispcsiphy.c | 41 ++++++++++++++++++++---------
+ 1 file changed, 28 insertions(+), 13 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/user-func.rst b/Documentation/media/uapi/v4l/user-func.rst
-index 3e0413b83a33..eda5a01b5228 100644
---- a/Documentation/media/uapi/v4l/user-func.rst
-+++ b/Documentation/media/uapi/v4l/user-func.rst
-@@ -71,6 +71,7 @@ Function Reference
-     vidioc-subdev-g-fmt
-     vidioc-subdev-g-frame-interval
-     vidioc-subdev-g-selection
-+    vidioc-subdev-querycap
-     vidioc-subscribe-event
-     func-mmap
-     func-munmap
-diff --git a/Documentation/media/uapi/v4l/vidioc-subdev-querycap.rst b/Documentation/media/uapi/v4l/vidioc-subdev-querycap.rst
-new file mode 100644
-index 000000000000..e43cdf34bc55
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/vidioc-subdev-querycap.rst
-@@ -0,0 +1,118 @@
-+.. -*- coding: utf-8; mode: rst -*-
+diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
+index 2028bb519108..bb2906061884 100644
+--- a/drivers/media/platform/omap3isp/ispcsiphy.c
++++ b/drivers/media/platform/omap3isp/ispcsiphy.c
+@@ -155,6 +155,19 @@ static int csiphy_set_power(struct isp_csiphy *phy, u32 power)
+ 	return 0;
+ }
+ 
++static struct isp_pipeline *phy_to_isp_pipeline(struct isp_csiphy *phy)
++{
++	if (phy->csi2 && phy->csi2->subdev.entity.pipe)
++		return to_isp_pipeline(&phy->csi2->subdev.entity);
 +
-+.. _VIDIOC_SUBDEV_QUERYCAP:
++	if (phy->isp->isp_ccp2.subdev.entity.pipe)
++		return to_isp_pipeline(&phy->isp->isp_ccp2.subdev.entity);
 +
-+****************************
-+ioctl VIDIOC_SUBDEV_QUERYCAP
-+****************************
++	__WARN();
 +
-+Name
-+====
++	return NULL;
++}
 +
-+VIDIOC_SUBDEV_QUERYCAP - Query sub-device capabilities
+ /*
+  * TCLK values are OK at their reset values
+  */
+@@ -164,15 +177,18 @@ static int csiphy_set_power(struct isp_csiphy *phy, u32 power)
+ 
+ static int omap3isp_csiphy_config(struct isp_csiphy *phy)
+ {
+-	struct isp_csi2_device *csi2 = phy->csi2;
+-	struct isp_pipeline *pipe = to_isp_pipeline(&csi2->subdev.entity);
+-	struct isp_bus_cfg *buscfg = pipe->external->host_priv;
++	struct isp_pipeline *pipe = phy_to_isp_pipeline(phy);
++	struct isp_bus_cfg *buscfg;
+ 	struct isp_csiphy_lanes_cfg *lanes;
+ 	int csi2_ddrclk_khz;
+ 	unsigned int num_data_lanes, used_lanes = 0;
+ 	unsigned int i;
+ 	u32 reg;
+ 
++	if (!pipe)
++		return -EBUSY;
 +
++	buscfg = pipe->external->host_priv;
+ 	if (!buscfg) {
+ 		struct isp_async_subdev *isd =
+ 			container_of(pipe->external->asd,
+@@ -222,7 +238,7 @@ static int omap3isp_csiphy_config(struct isp_csiphy *phy)
+ 	csi2_ddrclk_khz = pipe->external_rate / 1000
+ 		/ (2 * hweight32(used_lanes)) * pipe->external_width;
+ 
+-	reg = isp_reg_readl(csi2->isp, phy->phy_regs, ISPCSIPHY_REG0);
++	reg = isp_reg_readl(phy->isp, phy->phy_regs, ISPCSIPHY_REG0);
+ 
+ 	reg &= ~(ISPCSIPHY_REG0_THS_TERM_MASK |
+ 		 ISPCSIPHY_REG0_THS_SETTLE_MASK);
+@@ -233,9 +249,9 @@ static int omap3isp_csiphy_config(struct isp_csiphy *phy)
+ 	reg |= (DIV_ROUND_UP(90 * csi2_ddrclk_khz, 1000000) + 3)
+ 		<< ISPCSIPHY_REG0_THS_SETTLE_SHIFT;
+ 
+-	isp_reg_writel(csi2->isp, reg, phy->phy_regs, ISPCSIPHY_REG0);
++	isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG0);
+ 
+-	reg = isp_reg_readl(csi2->isp, phy->phy_regs, ISPCSIPHY_REG1);
++	reg = isp_reg_readl(phy->isp, phy->phy_regs, ISPCSIPHY_REG1);
+ 
+ 	reg &= ~(ISPCSIPHY_REG1_TCLK_TERM_MASK |
+ 		 ISPCSIPHY_REG1_TCLK_MISS_MASK |
+@@ -244,10 +260,10 @@ static int omap3isp_csiphy_config(struct isp_csiphy *phy)
+ 	reg |= TCLK_MISS << ISPCSIPHY_REG1_TCLK_MISS_SHIFT;
+ 	reg |= TCLK_SETTLE << ISPCSIPHY_REG1_TCLK_SETTLE_SHIFT;
+ 
+-	isp_reg_writel(csi2->isp, reg, phy->phy_regs, ISPCSIPHY_REG1);
++	isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG1);
+ 
+ 	/* DPHY lane configuration */
+-	reg = isp_reg_readl(csi2->isp, phy->cfg_regs, ISPCSI2_PHY_CFG);
++	reg = isp_reg_readl(phy->isp, phy->cfg_regs, ISPCSI2_PHY_CFG);
+ 
+ 	for (i = 0; i < num_data_lanes; i++) {
+ 		reg &= ~(ISPCSI2_PHY_CFG_DATA_POL_MASK(i + 1) |
+@@ -263,7 +279,7 @@ static int omap3isp_csiphy_config(struct isp_csiphy *phy)
+ 	reg |= lanes->clk.pol << ISPCSI2_PHY_CFG_CLOCK_POL_SHIFT;
+ 	reg |= lanes->clk.pos << ISPCSI2_PHY_CFG_CLOCK_POSITION_SHIFT;
+ 
+-	isp_reg_writel(csi2->isp, reg, phy->cfg_regs, ISPCSI2_PHY_CFG);
++	isp_reg_writel(phy->isp, reg, phy->cfg_regs, ISPCSI2_PHY_CFG);
+ 
+ 	return 0;
+ }
+@@ -311,11 +327,10 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
+ 
+ void omap3isp_csiphy_release(struct isp_csiphy *phy)
+ {
++	struct isp_pipeline *pipe = phy_to_isp_pipeline(phy);
 +
-+Synopsis
-+========
-+
-+.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_QUERYCAP, struct v4l2_subdev_capability *argp )
-+    :name: VIDIOC_SUBDEV_QUERYCAP
-+
-+
-+Arguments
-+=========
-+
-+``fd``
-+    File descriptor returned by :ref:`open() <func-open>`.
-+
-+``argp``
-+
-+
-+Description
-+===========
-+
-+All V4L2 sub-devices support the
-+``VIDIOC_SUBDEV_QUERYCAP`` ioctl. It is used to identify
-+kernel devices compatible with this specification and to obtain
-+information about driver and hardware capabilities. The ioctl takes a
-+pointer to a struct :c:type:`v4l2_subdev_capability` which is filled by the
-+driver. When the driver is not compatible with this specification the ioctl
-+returns ``ENOTTY`` error code.
-+
-+.. tabularcolumns:: |p{1.5cm}|p{2.5cm}|p{13cm}|
-+
-+.. c:type:: v4l2_subdev_capability
-+
-+.. flat-table:: struct v4l2_subdev_capability
-+    :header-rows:  0
-+    :stub-columns: 0
-+    :widths:       3 4 20
-+
-+    * - __u32
-+      - ``version``
-+      - Version number of the driver.
-+
-+	The version reported is provided by the
-+	V4L2 subsystem following the kernel numbering scheme. However, it
-+	may not always return the same version as the kernel if, for
-+	example, a stable or distribution-modified kernel uses the V4L2
-+	stack from a newer kernel.
-+
-+	The version number is formatted using the ``KERNEL_VERSION()``
-+	macro:
-+    * - :cspan:`2`
-+
-+	``#define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))``
-+
-+	``__u32 version = KERNEL_VERSION(0, 8, 1);``
-+
-+	``printf ("Version: %u.%u.%u\\n",``
-+
-+	``(version >> 16) & 0xFF, (version >> 8) & 0xFF, version & 0xFF);``
-+    * - __u32
-+      - ``device_caps``
-+      - Sub-device capabilities of the opened device, see
-+	:ref:`subdevice-capabilities`.
-+    * - __u32
-+      - ``entity_id``
-+      - The media controller entity ID of the sub-device. This is only valid if
-+        the ``V4L2_SUBDEV_CAP_ENTITY`` capability is set, it is 0 otherwise.
-+    * - __u32
-+      - ``media_node_major``
-+      - The major number of the media controller device node corresponding sub-device.
-+        This is only valid if the ``V4L2_SUBDEV_CAP_ENTITY`` capability is set, it is
-+	0 otherwise.
-+    * - __u32
-+      - ``media_node_minor``
-+      - The minor number of the media controller device node corresponding sub-device.
-+        This is only valid if the ``V4L2_SUBDEV_CAP_ENTITY`` capability is set, it is
-+	0 otherwise.
-+    * - __u32
-+      - ``reserved``\ [27]
-+      - Reserved for future extensions. Applications and drivers must set
-+	the array to zero.
-+
-+.. tabularcolumns:: |p{6cm}|p{2.2cm}|p{8.8cm}|
-+
-+.. _subdevice-capabilities:
-+
-+.. cssclass:: longtable
-+
-+.. flat-table:: Sub-Device Capabilities Flags
-+    :header-rows:  0
-+    :stub-columns: 0
-+    :widths:       3 1 4
-+
-+    * - ``V4L2_SUBDEV_CAP_ENTITY``
-+      - 0x00000001
-+      - The sub-device is a media controller entity and the ``entity_id``,
-+        ``media_node_major`` and ``media_node_minor`` fields of
-+        struct :c:type:`v4l2_subdev_capability` are valid. These fields
-+	are 0 if this capability is not set.
-+
-+Return Value
-+============
-+
-+On success 0 is returned, on error -1 and the ``errno`` variable is set
-+appropriately. The generic error codes are described at the
-+:ref:`Generic Error Codes <gen-errors>` chapter.
+ 	mutex_lock(&phy->mutex);
+-	if (phy->phy_in_use) {
+-		struct isp_csi2_device *csi2 = phy->csi2;
+-		struct isp_pipeline *pipe =
+-			to_isp_pipeline(&csi2->subdev.entity);
++	if (phy->phy_in_use && pipe) {
+ 		struct isp_bus_cfg *buscfg = pipe->external->host_priv;
+ 
+ 		csiphy_routing_cfg(phy, buscfg->interface, false,
 -- 
-2.13.1
+2.11.0
