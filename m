@@ -1,48 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esgaroth.petrovitsch.at ([78.47.184.11]:3998 "EHLO
-        esgaroth.tuxoid.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752636AbdGHJ4H (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 8 Jul 2017 05:56:07 -0400
-Message-ID: <1499504311.3472.13.camel@petrovitsch.priv.at>
-Subject: Re: [PATCH 2/2] staging: media: atomisp2: Replace kfree()/vfree()
- with kvfree()
-From: Bernd Petrovitsch <bernd@petrovitsch.priv.at>
-To: Amitoj Kaur Chawla <amitoj1606@gmail.com>, mchehab@kernel.org,
-        gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Date: Sat, 08 Jul 2017 10:58:31 +0200
-In-Reply-To: <20170708004102.GA27161@amitoj-Inspiron-3542>
-References: <20170708004102.GA27161@amitoj-Inspiron-3542>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44160 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751384AbdGQWBT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Jul 2017 18:01:19 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: pavel@ucw.cz, linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH 3/7] omap3isp: Correctly set IO_OUT_SEL and VP_CLK_POL for CCP2 mode
+Date: Tue, 18 Jul 2017 01:01:12 +0300
+Message-Id: <20170717220116.17886-4-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170717220116.17886-1-sakari.ailus@linux.intel.com>
+References: <20170717220116.17886-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2017-07-07 at 20:41 -0400, Amitoj Kaur Chawla wrote:
-[...]
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-> @@ -117,11 +117,7 @@ void *atomisp_kernel_zalloc(size_t bytes, bool
-> zero_mem)
->   */
->  void atomisp_kernel_free(void *ptr)
->  {
-> -	/* Verify if buffer was allocated by vmalloc() or kmalloc()
-> */
-> -	if (is_vmalloc_addr(ptr))
-> -		vfree(ptr);
-> -	else
-> -		kfree(ptr);
-> +	kvfree(ptr);
->  }
->  
->  /*
+From: Pavel Machek <pavel@ucw.cz>
 
-Why not get rid of the trivial wrapper function completely?
+ISP CSI1 module needs all the bits correctly set to work.
 
-MfG,
-	Bernd
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/platform/omap3isp/ispccp2.c | 7 +++++--
+ drivers/media/platform/omap3isp/ispreg.h  | 4 ++++
+ 2 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
+index 588f67a89f79..4f8fd0c00748 100644
+--- a/drivers/media/platform/omap3isp/ispccp2.c
++++ b/drivers/media/platform/omap3isp/ispccp2.c
+@@ -213,14 +213,17 @@ static int ccp2_phyif_config(struct isp_ccp2_device *ccp2,
+ 	struct isp_device *isp = to_isp_device(ccp2);
+ 	u32 val;
+ 
+-	/* CCP2B mode */
+ 	val = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_CTRL) |
+-			    ISPCCP2_CTRL_IO_OUT_SEL | ISPCCP2_CTRL_MODE;
++			    ISPCCP2_CTRL_MODE;
+ 	/* Data/strobe physical layer */
+ 	BIT_SET(val, ISPCCP2_CTRL_PHY_SEL_SHIFT, ISPCCP2_CTRL_PHY_SEL_MASK,
+ 		buscfg->phy_layer);
++	BIT_SET(val, ISPCCP2_CTRL_IO_OUT_SEL_SHIFT,
++		ISPCCP2_CTRL_IO_OUT_SEL_MASK, buscfg->ccp2_mode);
+ 	BIT_SET(val, ISPCCP2_CTRL_INV_SHIFT, ISPCCP2_CTRL_INV_MASK,
+ 		buscfg->strobe_clk_pol);
++	BIT_SET(val, ISPCCP2_CTRL_VP_CLK_POL_SHIFT,
++		ISPCCP2_CTRL_VP_CLK_POL_MASK, buscfg->vp_clk_pol);
+ 	isp_reg_writel(isp, val, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_CTRL);
+ 
+ 	val = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_CTRL);
+diff --git a/drivers/media/platform/omap3isp/ispreg.h b/drivers/media/platform/omap3isp/ispreg.h
+index b5ea8da0b904..d08483919a77 100644
+--- a/drivers/media/platform/omap3isp/ispreg.h
++++ b/drivers/media/platform/omap3isp/ispreg.h
+@@ -87,6 +87,8 @@
+ #define ISPCCP2_CTRL_PHY_SEL_MASK	0x1
+ #define ISPCCP2_CTRL_PHY_SEL_SHIFT	1
+ #define ISPCCP2_CTRL_IO_OUT_SEL		(1 << 2)
++#define ISPCCP2_CTRL_IO_OUT_SEL_MASK	0x1
++#define ISPCCP2_CTRL_IO_OUT_SEL_SHIFT	2
+ #define ISPCCP2_CTRL_MODE		(1 << 4)
+ #define ISPCCP2_CTRL_VP_CLK_FORCE_ON	(1 << 9)
+ #define ISPCCP2_CTRL_INV		(1 << 10)
+@@ -94,6 +96,8 @@
+ #define ISPCCP2_CTRL_INV_SHIFT		10
+ #define ISPCCP2_CTRL_VP_ONLY_EN		(1 << 11)
+ #define ISPCCP2_CTRL_VP_CLK_POL		(1 << 12)
++#define ISPCCP2_CTRL_VP_CLK_POL_MASK	0x1
++#define ISPCCP2_CTRL_VP_CLK_POL_SHIFT	12
+ #define ISPCCP2_CTRL_VPCLK_DIV_SHIFT	15
+ #define ISPCCP2_CTRL_VPCLK_DIV_MASK	0x1ffff /* [31:15] */
+ #define ISPCCP2_CTRL_VP_OUT_CTRL_SHIFT	8 /* 3430 bits */
 -- 
-Bernd Petrovitsch                  Email : bernd@petrovitsch.priv.at
-                     LUGA : http://www.luga.at
+2.11.0
