@@ -1,60 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:48637 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750904AbdGGOdV (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58208 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751320AbdGQOfb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Jul 2017 10:33:21 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] st-delta: constify vb2_ops structures
-Date: Fri, 7 Jul 2017 14:33:02 +0000
-Message-ID: <c5f76510-00e6-2a41-2ce3-b3836f2be9e6@st.com>
-References: <20170706201423.GA7477@embeddedgus>
-In-Reply-To: <20170706201423.GA7477@embeddedgus>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <FA3A77D618D11949A2FD87072C3D6883@st.com>
-Content-Transfer-Encoding: base64
+        Mon, 17 Jul 2017 10:35:31 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 14/14] [media] fix warning on v4l2_subdev_call() result
+ interpreted as bool
+To: Arnd Bergmann <arnd@arndb.de>
+References: <20170714092540.1217397-1-arnd@arndb.de>
+ <20170714093938.1469319-1-arnd@arndb.de>
+ <f57e08d9-0984-b67c-c64b-c7e0542d0361@xs4all.nl>
+ <CAK8P3a1zBW_QuPtRFNwuVyE_ziySoV9_ebz4sD7Bya3eRoo8SA@mail.gmail.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
+        IDE-ML <linux-ide@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Daeseok Youn <daeseok.youn@gmail.com>,
+        Alan Cox <alan@linux.intel.com>,
+        adi-buildroot-devel@lists.sourceforge.net,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        devel@driverdev.osuosl.org
+Message-ID: <3a927e60-332a-f01d-f1af-98649e9f51b5@xs4all.nl>
+Date: Mon, 17 Jul 2017 16:35:27 +0200
 MIME-Version: 1.0
+In-Reply-To: <CAK8P3a1zBW_QuPtRFNwuVyE_ziySoV9_ebz4sD7Bya3eRoo8SA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-QWNrZWQtYnk6IEh1Z3VlcyBGcnVjaGV0IDxodWd1ZXMuZnJ1Y2hldEBzdC5jb20+DQoNCk9uIDA3
-LzA2LzIwMTcgMTA6MTQgUE0sIEd1c3Rhdm8gQS4gUi4gU2lsdmEgd3JvdGU6DQo+IENoZWNrIGZv
-ciB2YjJfb3BzIHN0cnVjdHVyZXMgdGhhdCBhcmUgb25seSBzdG9yZWQgaW4gdGhlIG9wcyBmaWVs
-ZCBvZiBhDQo+IHZiMl9xdWV1ZSBzdHJ1Y3R1cmUuIFRoYXQgZmllbGQgaXMgZGVjbGFyZWQgY29u
-c3QsIHNvIHZiMl9vcHMgc3RydWN0dXJlcw0KPiB0aGF0IGhhdmUgdGhpcyBwcm9wZXJ0eSBjYW4g
-YmUgZGVjbGFyZWQgYXMgY29uc3QgYWxzby4NCj4gDQo+IFRoaXMgaXNzdWUgd2FzIGRldGVjdGVk
-IHVzaW5nIENvY2NpbmVsbGUgYW5kIHRoZSBmb2xsb3dpbmcgc2VtYW50aWMgcGF0Y2g6DQo+IA0K
-PiBAciBkaXNhYmxlIG9wdGlvbmFsX3F1YWxpZmllckANCj4gaWRlbnRpZmllciBpOw0KPiBwb3Np
-dGlvbiBwOw0KPiBAQA0KPiBzdGF0aWMgc3RydWN0IHZiMl9vcHMgaUBwID0geyAuLi4gfTsNCj4g
-DQo+IEBva0ANCj4gaWRlbnRpZmllciByLmk7DQo+IHN0cnVjdCB2YjJfcXVldWUgZTsNCj4gcG9z
-aXRpb24gcDsNCj4gQEANCj4gZS5vcHMgPSAmaUBwOw0KPiANCj4gQGJhZEANCj4gcG9zaXRpb24g
-cCAhPSB7ci5wLG9rLnB9Ow0KPiBpZGVudGlmaWVyIHIuaTsNCj4gc3RydWN0IHZiMl9vcHMgZTsN
-Cj4gQEANCj4gZUBpQHANCj4gDQo+IEBkZXBlbmRzIG9uICFiYWQgZGlzYWJsZSBvcHRpb25hbF9x
-dWFsaWZpZXJADQo+IGlkZW50aWZpZXIgci5pOw0KPiBAQA0KPiBzdGF0aWMNCj4gK2NvbnN0DQo+
-IHN0cnVjdCB2YjJfb3BzIGkgPSB7IC4uLiB9Ow0KPiANCj4gU2lnbmVkLW9mZi1ieTogR3VzdGF2
-byBBLiBSLiBTaWx2YSA8Z2Fyc2lsdmFAZW1iZWRkZWRvci5jb20+DQo+IC0tLQ0KPiAgIGRyaXZl
-cnMvbWVkaWEvcGxhdGZvcm0vc3RpL2RlbHRhL2RlbHRhLXY0bDIuYyB8IDQgKystLQ0KPiAgIDEg
-ZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZm
-IC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdGkvZGVsdGEvZGVsdGEtdjRsMi5jIGIv
-ZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdGkvZGVsdGEvZGVsdGEtdjRsMi5jDQo+IGluZGV4IGM2
-ZjJlMjQuLmZmOTg1MGUgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vc3Rp
-L2RlbHRhL2RlbHRhLXY0bDIuYw0KPiArKysgYi9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL3N0aS9k
-ZWx0YS9kZWx0YS12NGwyLmMNCj4gQEAgLTE1NzQsNyArMTU3NCw3IEBAIHN0YXRpYyB2b2lkIGRl
-bHRhX3ZiMl9mcmFtZV9zdG9wX3N0cmVhbWluZyhzdHJ1Y3QgdmIyX3F1ZXVlICpxKQ0KPiAgIH0N
-Cj4gICANCj4gICAvKiBWQjIgcXVldWUgb3BzICovDQo+IC1zdGF0aWMgc3RydWN0IHZiMl9vcHMg
-ZGVsdGFfdmIyX2F1X29wcyA9IHsNCj4gK3N0YXRpYyBjb25zdCBzdHJ1Y3QgdmIyX29wcyBkZWx0
-YV92YjJfYXVfb3BzID0gew0KPiAgIAkucXVldWVfc2V0dXAgPSBkZWx0YV92YjJfYXVfcXVldWVf
-c2V0dXAsDQo+ICAgCS5idWZfcHJlcGFyZSA9IGRlbHRhX3ZiMl9hdV9wcmVwYXJlLA0KPiAgIAku
-YnVmX3F1ZXVlID0gZGVsdGFfdmIyX2F1X3F1ZXVlLA0KPiBAQCAtMTU4NCw3ICsxNTg0LDcgQEAg
-c3RhdGljIHN0cnVjdCB2YjJfb3BzIGRlbHRhX3ZiMl9hdV9vcHMgPSB7DQo+ICAgCS5zdG9wX3N0
-cmVhbWluZyA9IGRlbHRhX3ZiMl9hdV9zdG9wX3N0cmVhbWluZywNCj4gICB9Ow0KPiAgIA0KPiAt
-c3RhdGljIHN0cnVjdCB2YjJfb3BzIGRlbHRhX3ZiMl9mcmFtZV9vcHMgPSB7DQo+ICtzdGF0aWMg
-Y29uc3Qgc3RydWN0IHZiMl9vcHMgZGVsdGFfdmIyX2ZyYW1lX29wcyA9IHsNCj4gICAJLnF1ZXVl
-X3NldHVwID0gZGVsdGFfdmIyX2ZyYW1lX3F1ZXVlX3NldHVwLA0KPiAgIAkuYnVmX3ByZXBhcmUg
-PSBkZWx0YV92YjJfZnJhbWVfcHJlcGFyZSwNCj4gICAJLmJ1Zl9maW5pc2ggPSBkZWx0YV92YjJf
-ZnJhbWVfZmluaXNoLA0KPiA=
+On 17/07/17 16:26, Arnd Bergmann wrote:
+> On Mon, Jul 17, 2017 at 3:45 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 14/07/17 11:36, Arnd Bergmann wrote:
+>>> @@ -201,8 +202,9 @@ static int cx18_g_fmt_sliced_vbi_cap(struct file *file, void *fh,
+>>>        * digitizer/slicer.  Note, cx18_av_vbi() wipes the passed in
+>>>        * fmt->fmt.sliced under valid calling conditions
+>>>        */
+>>> -     if (v4l2_subdev_call(cx->sd_av, vbi, g_sliced_fmt, &fmt->fmt.sliced))
+>>> -             return -EINVAL;
+>>> +     ret = v4l2_subdev_call(cx->sd_av, vbi, g_sliced_fmt, &fmt->fmt.sliced);
+>>> +     if (ret)
+>>> +             return ret;
+>>
+>> Please keep the -EINVAL here. I can't be 100% certain that returning 'ret' wouldn't
+>> break something.
+> 
+> I think Dan was recommending the opposite here, if I understood you
+> both correctly:
+> he said we should propagate the error code unless we know it's wrong, while you
+> want to keep the current behavior to avoid introducing changes ;-)
+> 
+> I guess in either case, looking at the callers more carefully would be
+> a good idea.
+
+The subtle problem here is that v4l2_subdev_call will return -ENOIOCTLCMD if
+ops->vbi->g_sliced_fmt == NULL, which typically is not returned to userspace
+but either ignored or replaced by another error. It indicates that the
+sub device doesn't implement this operation, and it depends on the context
+and the operation whether or not that is to be considered an error.
+
+I have no clue what is expected here, without digging deep in the code.
+
+Better to keep it as-is. It really isn't important to waste time on this.
+
+> 
+>>> -     return 0;
+>>> +     return ret;
+>>>  }
+>>>
+>>>  int atomisp_flash_enable(struct atomisp_sub_device *asd, int num_frames)
+>>>
+>>
+>> This is all very hackish, though. I'm not terribly keen on this patch. It's not
+>> clear to me *why* these warnings appear in your setup.
+> 
+> it's possible that this only happened with 'ccache', which first preprocesses
+> the source and the passes it with v4l2_subdev_call expanded into the
+> compiler. This means the line looks like
+> 
+>         if ((!(cx->sd_av) ? -ENODEV :
+>             (((cx->sd_av)->ops->vbi && (cx->sd_av)->ops->vbi->g_sliced_fmt) ?
+>                (cx->sd_av)->ops->vbi->g_sliced_fmt(cx->sd_av)),
+> &fmt->fmt.sliced) :
+>                -ENOIOCTLCMD))
+> 
+> The compiler now complains about the sub-expression that it sees for
+> cx->sd_av==NULL:
+> 
+>    if (-ENODEV)
+> 
+> which it considers nonsense because it is always true and the value gets
+> ignored.
+> 
+> Let me try again without ccache for now and see what warnings remain.
+> We can find a solution for those first, and then decide how to deal with
+> ccache.
+
+Sounds good.
+
+I'm OK with applying this if there is no other way to prevent these warnings.
+
+Regards,
+
+	Hans
+
+> 
+>         Arnd
+> 
