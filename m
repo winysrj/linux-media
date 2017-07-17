@@ -1,67 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52250 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751172AbdGOLmI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Jul 2017 07:42:08 -0400
-Date: Sat, 15 Jul 2017 12:42:04 +0100
-From: Jonathan Cameron <jic23@kernel.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-kernel@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>,
-        Michael Hennerich <Michael.Hennerich@analog.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
-        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
-        akpm@linux-foundation.org, dri-devel@lists.freedesktop.org,
-        stable@vger.kernel.org, Hartmut Knaack <knaack.h@gmx.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        linux-iio@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: Re: [PATCH 10/14] staging:iio:resolver:ad2s1210 fix negative
- IIO_ANGL_VEL read
-Message-ID: <20170715124204.0508d7f2@kernel.org>
-In-Reply-To: <20170714093129.1366900-1-arnd@arndb.de>
-References: <20170714092540.1217397-1-arnd@arndb.de>
-        <20170714093129.1366900-1-arnd@arndb.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mout.kundenserver.de ([212.227.126.130]:55229 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751278AbdGQOai (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Jul 2017 10:30:38 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [v2] [media] usbvision-i2c: fix format overflow warning
+Date: Mon, 17 Jul 2017 16:29:58 +0200
+Message-Id: <20170717143024.862161-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 14 Jul 2017 11:31:03 +0200
-Arnd Bergmann <arnd@arndb.de> wrote:
+gcc-7 notices that we copy a fixed length string into another
+string of the same size, with additional characters:
 
-> gcc-7 points out an older regression:
-> 
-> drivers/staging/iio/resolver/ad2s1210.c: In function 'ad2s1210_read_raw':
-> drivers/staging/iio/resolver/ad2s1210.c:515:42: error: '<<' in boolean context, did you mean '<' ? [-Werror=int-in-bool-context]
-> 
-> The original code had 'unsigned short' here, but incorrectly got
-> converted to 'bool'. This reverts the regression and uses a normal
-> type instead.
-> 
-> Fixes: 29148543c521 ("staging:iio:resolver:ad2s1210 minimal chan spec conversion.")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Thanks Arnd,
+drivers/media/usb/usbvision/usbvision-i2c.c: In function 'usbvision_i2c_register':
+drivers/media/usb/usbvision/usbvision-i2c.c:190:36: error: '%d' directive writing between 1 and 11 bytes into a region of size between 0 and 47 [-Werror=format-overflow=]
+  sprintf(usbvision->i2c_adap.name, "%s-%d-%s", i2c_adap_template.name,
+                                    ^~~~~~~~~~
+drivers/media/usb/usbvision/usbvision-i2c.c:190:2: note: 'sprintf' output between 4 and 76 bytes into a destination of size 48
 
-Applied to the fixes-togreg branch of iio.git.
+Using snprintf() makes the code more robust in general, but will still
+trigger a possible warning about truncation in the string.
+We know this won't happen as the template name is always "usbvision", so
+we can easily avoid the warning as well by using this as the format string
+directly.
 
-Jonathan
-> ---
->  drivers/staging/iio/resolver/ad2s1210.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/iio/resolver/ad2s1210.c b/drivers/staging/iio/resolver/ad2s1210.c
-> index a6a8393d6664..3e00df74b18c 100644
-> --- a/drivers/staging/iio/resolver/ad2s1210.c
-> +++ b/drivers/staging/iio/resolver/ad2s1210.c
-> @@ -472,7 +472,7 @@ static int ad2s1210_read_raw(struct iio_dev *indio_dev,
->  			     long m)
->  {
->  	struct ad2s1210_state *st = iio_priv(indio_dev);
-> -	bool negative;
-> +	u16 negative;
->  	int ret = 0;
->  	u16 pos;
->  	s16 vel;
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+v2: use snprintf()
+---
+ drivers/media/usb/usbvision/usbvision-i2c.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/usb/usbvision/usbvision-i2c.c b/drivers/media/usb/usbvision/usbvision-i2c.c
+index fdf6b6e285da..38749331e7df 100644
+--- a/drivers/media/usb/usbvision/usbvision-i2c.c
++++ b/drivers/media/usb/usbvision/usbvision-i2c.c
+@@ -187,8 +187,9 @@ int usbvision_i2c_register(struct usb_usbvision *usbvision)
+ 
+ 	usbvision->i2c_adap = i2c_adap_template;
+ 
+-	sprintf(usbvision->i2c_adap.name, "%s-%d-%s", i2c_adap_template.name,
+-		usbvision->dev->bus->busnum, usbvision->dev->devpath);
++	snprintf(usbvision->i2c_adap.name, sizeof(usbvision->i2c_adap.name),
++		 "usbvision-%d-%s",
++		 usbvision->dev->bus->busnum, usbvision->dev->devpath);
+ 	PDEBUG(DBG_I2C, "Adaptername: %s", usbvision->i2c_adap.name);
+ 	usbvision->i2c_adap.dev.parent = &usbvision->dev->dev;
+ 
+-- 
+2.9.0
