@@ -1,91 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:60206 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751932AbdGRPGS (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43848 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751317AbdGQVb7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 11:06:18 -0400
-Subject: Re: [PATCH v4 3/3] v4l: async: add subnotifier to subdevices
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
-References: <20170717165917.24851-1-niklas.soderlund+renesas@ragnatech.se>
- <20170717165917.24851-4-niklas.soderlund+renesas@ragnatech.se>
- <1da4fac1-3bf4-e66a-2341-b1f71f0f917d@xs4all.nl>
- <20170718144715.GD28538@bigcity.dyn.berto.se>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <236d014c-ce8c-cd50-9500-c26e3f05991f@xs4all.nl>
-Date: Tue, 18 Jul 2017 17:06:15 +0200
+        Mon, 17 Jul 2017 17:31:59 -0400
+Date: Tue, 18 Jul 2017 00:31:53 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Philipp <philipp.guendisch@fau.de>
+Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        alan@linux.intel.com, jeremy.lefaure@lse.epita.fr, fabf@skynet.be,
+        rvarsha016@gmail.com, chris.baller@gmx.de, robsonde@gmail.com,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org, linux-kernel@i4.cs.fau.de
+Subject: Re: [PATCH v2 2/2] staging: atomisp2: hmm: Alignment code (rebased)
+Message-ID: <20170717213153.jxaxi2awd32ip43j@valkosipuli.retiisi.org.uk>
+References: <20170711152758.3azqdhfyeiyagtv7@valkosipuli.retiisi.org.uk>
+ <1499928943-9133-1-git-send-email-philipp.guendisch@fau.de>
+ <1499928943-9133-2-git-send-email-philipp.guendisch@fau.de>
+ <20170713154510.qtbeuhw3lsw55zod@valkosipuli.retiisi.org.uk>
+ <43B470FF-66D0-49D5-9944-01799E48805E@fau.de>
 MIME-Version: 1.0
-In-Reply-To: <20170718144715.GD28538@bigcity.dyn.berto.se>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <43B470FF-66D0-49D5-9944-01799E48805E@fau.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18/07/17 16:47, Niklas S�derlund wrote:
->>>  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->>>  {
->>> -	struct v4l2_subdev *sd, *tmp;
->>> +	struct v4l2_subdev *sd, *tmp, **subdev;
->>>  	unsigned int notif_n_subdev = notifier->num_subdevs;
->>>  	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
->>>  	struct device **dev;
->>> @@ -217,6 +293,12 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->>>  			"Failed to allocate device cache!\n");
->>>  	}
->>>  
->>> +	subdev = kvmalloc_array(n_subdev, sizeof(*subdev), GFP_KERNEL);
->>> +	if (!dev) {
->>> +		dev_err(notifier->v4l2_dev->dev,
->>> +			"Failed to allocate subdevice cache!\n");
->>> +	}
->>> +
->>
->> How about making a little struct:
->>
->> 	struct whatever {
->> 		struct device *dev;
->> 		struct v4l2_subdev *sd;
->> 	};
->>
->> and allocate an array of that. Only need to call kvmalloc_array once.
+On Thu, Jul 13, 2017 at 09:26:50PM +0200, Philipp wrote:
 > 
-> Neat idea, will do so for next version.
+> > On 13. Jul 2017, at 17:45, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> > 
+> > On Thu, Jul 13, 2017 at 08:55:43AM +0200, Philipp Guendisch wrote:
+> >> This patch fixed code alignment to open paranthesis.
+> >> Semantic should not be affected by this patch.
+> >> 
+> >> It has been rebased on top of media_tree atomisp branch
+> >> 
+> >> Signed-off-by: Philipp Guendisch <philipp.guendisch@fau.de>
+> >> Signed-off-by: Chris Baller <chris.baller@gmx.de>
+> > 
+> > Hi Philipp,
+> > 
+> > Neither of the patches still applies?
+> > 
+> > Are you sure you rebased them on the atomisp branch?
+> > 
+> > -- 
+> > Regards,
+> > 
+> > Sakari Ailus
+> > e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
 > 
->>
->> Some comments after the dev_err of why you ignore the failed memory allocation
->> and what the consequences of that are would be helpful. It is unexpected code,
->> and that needs documentation.
+> Hi Ailus,
 > 
-> I agree that it's unexpected and I don't know the reason for it, I was 
-> just mimic the existing behavior. If you are OK with it I be more then 
-> happy to add patch to this series returning -ENOMEM if the allocation 
-> failed as Geert pointed out if this allocation fails I think we are in a 
-> lot of trouble anyhow...
+> Unfortunately I dont know exactly why the patches did not apply.
 > 
-> Let me know what you think, but I don't think I can add a comment 
-> explaining why the function don't simply abort on failure since I don't 
-> understand it myself.
+> I tried a rebase with:
+> 
+> "git remote add sailus-mediatree git://linuxtv.org/sailus/media_tree.git <git://linuxtv.org/sailus/media_tree.git>
+> git fetch sailus-mediatree
+> git checkout atomisp”
+> 
+> Maybe I took too much time for rebasing and some patches were accepted between my ‘git pull’ and 'git send-email'
+> 
+> I did another git pull right now and have seen the pathches are already in the commit history.
+> 
+> So I think it's time to give you a huge THANK YOU!
 
-So you don't understand the device_release_driver/device_attach reprobing bit either?
+You're welcome, and thank you for the cleanup patches!
 
-I did some digging and found this thread:
+This was my mistake actually; I thought the patches didn't apply but I
+ended up trying to apply them... twice. That's what you get when you have
+too many atomisp patches. :-o
 
-http://lkml.iu.edu/hypermail/linux/kernel/1210.2/00713.html
+> 
+> If I got it wrong and threre is still some work to do for the two patches please let me know 
+> and I will try to fix it.
+> 
+> PS: I am totally new to kernel development yet.
 
-It explains the reason for this.
+Cleanup patches are a really good way to start, besides fixing small issues
+here and there. :-)
 
-I'm pretty sure Greg K-H never saw this code :-)
+-- 
+Kind regards,
 
-Looking in drivers/base/bus.c I see this function: device_reprobe().
-
-I think we need to use that instead.
-
-Regards,
-
-	Hans
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
