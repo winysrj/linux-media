@@ -1,68 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f170.google.com ([209.85.128.170]:34727 "EHLO
-        mail-wr0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753544AbdGJIB5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Jul 2017 04:01:57 -0400
-Received: by mail-wr0-f170.google.com with SMTP id 77so127216286wrb.1
-        for <linux-media@vger.kernel.org>; Mon, 10 Jul 2017 01:01:56 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: mchehab@kernel.org, hans.verkuil@cisco.com
-Cc: Neil Armstrong <narmstrong@baylibre.com>,
-        linux-media@vger.kernel.org, linux-amlogic@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: [PATCH v2 2/2] dt-bindings: media: Add Amlogic Meson AO-CEC bindings
-Date: Mon, 10 Jul 2017 10:01:36 +0200
-Message-Id: <1499673696-21372-3-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1499673696-21372-1-git-send-email-narmstrong@baylibre.com>
-References: <1499673696-21372-1-git-send-email-narmstrong@baylibre.com>
+Received: from ns.mm-sol.com ([37.157.136.199]:36098 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751408AbdGQKfI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Jul 2017 06:35:08 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v3 23/23] doc: media/v4l-drivers: Qualcomm Camera Subsystem - Media graph
+Date: Mon, 17 Jul 2017 13:33:49 +0300
+Message-Id: <1500287629-23703-24-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
+References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Amlogic SoCs embeds a standalone CEC Controller, this patch adds this
-device bindings.
+Update the Qualcomm Camera Subsystem driver document with a media
+controller pipeline graph diagram.
 
-Acked-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- .../devicetree/bindings/media/meson-ao-cec.txt     | 28 ++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/meson-ao-cec.txt
+ Documentation/media/v4l-drivers/qcom_camss.rst     | 27 ++++++--------
+ .../media/v4l-drivers/qcom_camss_graph.dot         | 41 ++++++++++++++++++++++
+ 2 files changed, 51 insertions(+), 17 deletions(-)
+ create mode 100644 Documentation/media/v4l-drivers/qcom_camss_graph.dot
 
-diff --git a/Documentation/devicetree/bindings/media/meson-ao-cec.txt b/Documentation/devicetree/bindings/media/meson-ao-cec.txt
+diff --git a/Documentation/media/v4l-drivers/qcom_camss.rst b/Documentation/media/v4l-drivers/qcom_camss.rst
+index 7e4ab6e..7ae4a45 100644
+--- a/Documentation/media/v4l-drivers/qcom_camss.rst
++++ b/Documentation/media/v4l-drivers/qcom_camss.rst
+@@ -109,23 +109,16 @@ The considerations to split the driver in this particular way are as follows:
+ 
+ Each VFE sub-device is linked to a separate video device node.
+ 
+-The complete list of the media entities (V4L2 sub-devices and video device
+-nodes) is as follows:
+-
+-- msm_csiphy0
+-- msm_csiphy1
+-- msm_csid0
+-- msm_csid1
+-- msm_ispif0
+-- msm_ispif1
+-- msm_vfe0_rdi0
+-- msm_vfe0_video0
+-- msm_vfe0_rdi1
+-- msm_vfe0_video1
+-- msm_vfe0_rdi2
+-- msm_vfe0_video2
+-- msm_vfe0_pix
+-- msm_vfe0_video3
++The media controller pipeline graph is as follows (with connected two OV5645
++camera sensors):
++
++.. _qcom_camss_graph:
++
++.. kernel-figure:: qcom_camss_graph.dot
++    :alt:   qcom_camss_graph.dot
++    :align: center
++
++    Media pipeline graph
+ 
+ 
+ Implementation
+diff --git a/Documentation/media/v4l-drivers/qcom_camss_graph.dot b/Documentation/media/v4l-drivers/qcom_camss_graph.dot
 new file mode 100644
-index 0000000..8671bdb
+index 0000000..827fc71
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/media/meson-ao-cec.txt
-@@ -0,0 +1,28 @@
-+* Amlogic Meson AO-CEC driver
-+
-+The Amlogic Meson AO-CEC module is present is Amlogic SoCs and its purpose is
-+to handle communication between HDMI connected devices over the CEC bus.
-+
-+Required properties:
-+  - compatible : value should be following
-+	"amlogic,meson-gx-ao-cec"
-+
-+  - reg : Physical base address of the IP registers and length of memory
-+	  mapped region.
-+
-+  - interrupts : AO-CEC interrupt number to the CPU.
-+  - clocks : from common clock binding: handle to AO-CEC clock.
-+  - clock-names : from common clock binding: must contain "core",
-+		  corresponding to entry in the clocks property.
-+  - hdmi-phandle: phandle to the HDMI controller
-+
-+Example:
-+
-+cec_AO: cec@100 {
-+	compatible = "amlogic,meson-gx-ao-cec";
-+	reg = <0x0 0x00100 0x0 0x14>;
-+	interrupts = <GIC_SPI 199 IRQ_TYPE_EDGE_RISING>;
-+	clocks = <&clkc_AO CLKID_AO_CEC_32K>;
-+	clock-names = "core";
-+	hdmi-phandle = <&hdmi_tx>;
-+};
++++ b/Documentation/media/v4l-drivers/qcom_camss_graph.dot
+@@ -0,0 +1,41 @@
++digraph board {
++	rankdir=TB
++	n00000001 [label="{{<port0> 0} | msm_csiphy0\n/dev/v4l-subdev0 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000001:port1 -> n00000007:port0 [style=dashed]
++	n00000001:port1 -> n0000000a:port0 [style=dashed]
++	n00000004 [label="{{<port0> 0} | msm_csiphy1\n/dev/v4l-subdev1 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000004:port1 -> n00000007:port0 [style=dashed]
++	n00000004:port1 -> n0000000a:port0 [style=dashed]
++	n00000007 [label="{{<port0> 0} | msm_csid0\n/dev/v4l-subdev2 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000007:port1 -> n0000000d:port0 [style=dashed]
++	n00000007:port1 -> n00000010:port0 [style=dashed]
++	n0000000a [label="{{<port0> 0} | msm_csid1\n/dev/v4l-subdev3 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000000a:port1 -> n0000000d:port0 [style=dashed]
++	n0000000a:port1 -> n00000010:port0 [style=dashed]
++	n0000000d [label="{{<port0> 0} | msm_ispif0\n/dev/v4l-subdev4 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000000d:port1 -> n00000013:port0 [style=dashed]
++	n0000000d:port1 -> n0000001c:port0 [style=dashed]
++	n0000000d:port1 -> n00000025:port0 [style=dashed]
++	n0000000d:port1 -> n0000002e:port0 [style=dashed]
++	n00000010 [label="{{<port0> 0} | msm_ispif1\n/dev/v4l-subdev5 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000010:port1 -> n00000013:port0 [style=dashed]
++	n00000010:port1 -> n0000001c:port0 [style=dashed]
++	n00000010:port1 -> n00000025:port0 [style=dashed]
++	n00000010:port1 -> n0000002e:port0 [style=dashed]
++	n00000013 [label="{{<port0> 0} | msm_vfe0_rdi0\n/dev/v4l-subdev6 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000013:port1 -> n00000016 [style=bold]
++	n00000016 [label="msm_vfe0_video0\n/dev/video0", shape=box, style=filled, fillcolor=yellow]
++	n0000001c [label="{{<port0> 0} | msm_vfe0_rdi1\n/dev/v4l-subdev7 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000001c:port1 -> n0000001f [style=bold]
++	n0000001f [label="msm_vfe0_video1\n/dev/video1", shape=box, style=filled, fillcolor=yellow]
++	n00000025 [label="{{<port0> 0} | msm_vfe0_rdi2\n/dev/v4l-subdev8 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000025:port1 -> n00000028 [style=bold]
++	n00000028 [label="msm_vfe0_video2\n/dev/video2", shape=box, style=filled, fillcolor=yellow]
++	n0000002e [label="{{<port0> 0} | msm_vfe0_pix\n/dev/v4l-subdev9 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000002e:port1 -> n00000031 [style=bold]
++	n00000031 [label="msm_vfe0_video3\n/dev/video3", shape=box, style=filled, fillcolor=yellow]
++	n00000057 [label="{{} | ov5645 1-0076\n/dev/v4l-subdev10 | {<port0> 0}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000057:port0 -> n00000001:port0 [style=bold]
++	n00000059 [label="{{} | ov5645 1-0074\n/dev/v4l-subdev11 | {<port0> 0}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000059:port0 -> n00000004:port0 [style=bold]
++}
 -- 
-1.9.1
+2.7.4
