@@ -1,48 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:41053 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751754AbdGSKyt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Jul 2017 06:54:49 -0400
-Subject: Re: [PATCH v3 00/23] Qualcomm 8x16 Camera Subsystem driver
-To: Todor Tomov <todor.tomov@linaro.org>, mchehab@kernel.org,
-        hans.verkuil@cisco.com, javier@osg.samsung.com,
+Received: from ns.mm-sol.com ([37.157.136.199]:36144 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751383AbdGQKfE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Jul 2017 06:35:04 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
         s.nawrocki@samsung.com, sakari.ailus@iki.fi,
         linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-msm@vger.kernel.org
-References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e149940a-2ba3-6a4c-e8e9-2ab2933cca30@xs4all.nl>
-Date: Wed, 19 Jul 2017 12:54:47 +0200
-MIME-Version: 1.0
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v3 13/23] media: camss: Enable building
+Date: Mon, 17 Jul 2017 13:33:39 +0300
+Message-Id: <1500287629-23703-14-git-send-email-todor.tomov@linaro.org>
 In-Reply-To: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17/07/17 12:33, Todor Tomov wrote:
-> This patchset adds basic support for the Qualcomm Camera Subsystem found
-> on Qualcomm MSM8916 and APQ8016 processors.
-> 
-> The driver implements V4L2, Media controller and V4L2 subdev interfaces.
-> Camera sensor using V4L2 subdev interface in the kernel is supported.
-> 
-> The driver is implemented using as a reference the Qualcomm Camera
-> Subsystem driver for Android as found in Code Aurora [1].
-> 
-> The driver is tested on Dragonboard 410C (APQ8016) with one and two
-> OV5645 camera sensors. media-ctl [2] and yavta [3] applications were
-> used for testing. Also Gstreamer 1.10.4 with v4l2src plugin is supported.
-> 
-> More information is present in the document added by the third patch.
+Add Makefile and update platform/Kconfig and platform/Makefile
+to enable building of the QCom CAMSS driver.
 
-OK, so this looks pretty good. I have one comment for patch 12/23, and the
-dt-bindings need to be acked.
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+---
+ drivers/media/platform/Kconfig                  |  7 +++++++
+ drivers/media/platform/Makefile                 |  2 ++
+ drivers/media/platform/qcom/camss-8x16/Makefile | 11 +++++++++++
+ 3 files changed, 20 insertions(+)
+ create mode 100644 drivers/media/platform/qcom/camss-8x16/Makefile
 
-I suggest you make a v3.1 for patch 12/23 and then I'll wait for the binding
-ack. Once that's in (and there are no other comments) I will merge this.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 1313cd5..87be341 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -109,6 +109,13 @@ config VIDEO_PXA27x
+ 	---help---
+ 	  This is a v4l2 driver for the PXA27x Quick Capture Interface
+ 
++config VIDEO_QCOM_CAMSS
++	tristate "Qualcomm 8x16 V4L2 Camera Subsystem driver"
++	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	depends on (ARCH_QCOM && IOMMU_DMA) || COMPILE_TEST
++	select VIDEOBUF2_DMA_SG
++	select V4L2_FWNODE
++
+ config VIDEO_S3C_CAMIF
+ 	tristate "Samsung S3C24XX/S3C64XX SoC Camera Interface driver"
+ 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 9beadc7..10c099c 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -85,4 +85,6 @@ obj-$(CONFIG_VIDEO_MEDIATEK_MDP)	+= mtk-mdp/
+ 
+ obj-$(CONFIG_VIDEO_MEDIATEK_JPEG)	+= mtk-jpeg/
+ 
++obj-$(CONFIG_VIDEO_QCOM_CAMSS)		+= qcom/camss-8x16/
++
+ obj-$(CONFIG_VIDEO_QCOM_VENUS)		+= qcom/venus/
+diff --git a/drivers/media/platform/qcom/camss-8x16/Makefile b/drivers/media/platform/qcom/camss-8x16/Makefile
+new file mode 100644
+index 0000000..3c4024f
+--- /dev/null
++++ b/drivers/media/platform/qcom/camss-8x16/Makefile
+@@ -0,0 +1,11 @@
++# Makefile for Qualcomm CAMSS driver
++
++qcom-camss-objs += \
++		camss.o \
++		camss-csid.o \
++		camss-csiphy.o \
++		camss-ispif.o \
++		camss-vfe.o \
++		camss-video.o \
++
++obj-$(CONFIG_VIDEO_QCOM_CAMSS) += qcom-camss.o
+-- 
+2.7.4
