@@ -1,63 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-1.mail.aliyun.com ([115.124.20.1]:51204 "EHLO
-        out20-1.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751517AbdG0FDi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Jul 2017 01:03:38 -0400
-From: Yong Deng <yong.deng@magewell.com>
-To: maxime.ripard@free-electrons.com
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benoit Parrot <bparrot@ti.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, Yong Deng <yong.deng@magewell.com>
-Subject: [PATCH v2 3/3] media: MAINTAINERS: add entries for Allwinner V3s CSI
-Date: Thu, 27 Jul 2017 13:01:37 +0800
-Message-Id: <1501131697-1359-4-git-send-email-yong.deng@magewell.com>
-In-Reply-To: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
-References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
+Received: from ns.mm-sol.com ([37.157.136.199]:36069 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751396AbdGQKfF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Jul 2017 06:35:05 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v3 15/23] doc: media/v4l-drivers: Qualcomm Camera Subsystem - PIX Interface
+Date: Mon, 17 Jul 2017 13:33:41 +0300
+Message-Id: <1500287629-23703-16-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
+References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Yong Deng <yong.deng@magewell.com>
----
- MAINTAINERS | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Update Qualcomm Camera Subsystem driver document for the PIX interface
+and format conversion support.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 9826a91..b91fa27 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3686,6 +3686,14 @@ M:	Jaya Kumar <jayakumar.alsa@gmail.com>
- S:	Maintained
- F:	sound/pci/cs5535audio/
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+---
+ Documentation/media/v4l-drivers/qcom_camss.rst | 41 +++++++++++++++++++-------
+ 1 file changed, 31 insertions(+), 10 deletions(-)
+
+diff --git a/Documentation/media/v4l-drivers/qcom_camss.rst b/Documentation/media/v4l-drivers/qcom_camss.rst
+index 4707ea7..4df5655 100644
+--- a/Documentation/media/v4l-drivers/qcom_camss.rst
++++ b/Documentation/media/v4l-drivers/qcom_camss.rst
+@@ -45,12 +45,31 @@ Supported functionality
  
-+CSI DRIVERS FOR ALLWINNER V3s
-+M:	Yong Deng <yong.deng@magewell.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/platform/sun6i-csi/
-+F:	Documentation/devicetree/bindings/media/sun6i-csi.txt
+ The current version of the driver supports:
+ 
+-- input from camera sensor via CSIPHY;
+-- generation of test input data by the TG in CSID;
+-- raw dump of the input data to memory. RDI interface of VFE is supported.
+-  PIX interface (ISP processing, statistics engines, resize/crop, format
+-  conversion) is not supported in the current version;
+-- concurrent and independent usage of two data inputs - could be camera sensors
++- Input from camera sensor via CSIPHY;
++- Generation of test input data by the TG in CSID;
++- RDI interface of VFE - raw dump of the input data to memory.
 +
- CW1200 WLAN driver
- M:	Solomon Peachy <pizza@shaftnet.org>
- S:	Maintained
++  Supported formats:
++
++  - YUYV/UYVY/YVYU/VYUY (packed YUV 4:2:2);
++  - MIPI RAW8 (8bit Bayer RAW);
++  - MIPI RAW10 (10bit packed Bayer RAW);
++  - MIPI RAW12 (12bit packed Bayer RAW).
++
++- PIX interface of VFE
++
++  - Format conversion of the input data.
++
++    Supported input formats:
++
++    - YUYV/UYVY/YVYU/VYUY (packed YUV 4:2:2).
++
++    Supported output formats:
++
++    - NV12/NV21 (two plane YUV 4:2:0);
++    - NV16/NV61 (two plane YUV 4:2:2).
++
++- Concurrent and independent usage of two data inputs - could be camera sensors
+   and/or TG.
+ 
+ 
+@@ -65,15 +84,15 @@ interface, the driver is split into V4L2 sub-devices as follows:
+ - 2 CSID sub-devices - each CSID is represented by a single sub-device;
+ - 2 ISPIF sub-devices - ISPIF is represented by a number of sub-devices equal
+   to the number of CSID sub-devices;
+-- 3 VFE sub-devices - VFE is represented by a number of sub-devices equal to
+-  the number of RDI input interfaces.
++- 4 VFE sub-devices - VFE is represented by a number of sub-devices equal to
++  the number of the input interfaces (3 RDI and 1 PIX).
+ 
+ The considerations to split the driver in this particular way are as follows:
+ 
+ - representing CSIPHY and CSID modules by a separate sub-device for each module
+   allows to model the hardware links between these modules;
+-- representing VFE by a separate sub-devices for each RDI input interface allows
+-  to use the three RDI interfaces concurently and independently as this is
++- representing VFE by a separate sub-devices for each input interface allows
++  to use the input interfaces concurently and independently as this is
+   supported by the hardware;
+ - representing ISPIF by a number of sub-devices equal to the number of CSID
+   sub-devices allows to create linear media controller pipelines when using two
+@@ -99,6 +118,8 @@ nodes) is as follows:
+ - msm_vfe0_video1
+ - msm_vfe0_rdi2
+ - msm_vfe0_video2
++- msm_vfe0_pix
++- msm_vfe0_video3
+ 
+ 
+ Implementation
 -- 
-1.8.3.1
+2.7.4
