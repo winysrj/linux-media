@@ -1,89 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:36374 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753426AbdGJPb3 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44418 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751351AbdGQWOZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Jul 2017 11:31:29 -0400
-Received: by mail-wr0-f195.google.com with SMTP id 77so25671177wrb.3
-        for <linux-media@vger.kernel.org>; Mon, 10 Jul 2017 08:31:28 -0700 (PDT)
-Date: Mon, 10 Jul 2017 17:31:24 +0200
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: Ralph Metzler <rjkm@metzlerbros.de>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com, jasmin@anw.at, d_spingler@gmx.de
-Subject: Re: [PATCH 00/14] ddbridge: bump to ddbridge-0.9.29
-Message-ID: <20170710173124.653286e7@audiostation.wuest.de>
-In-Reply-To: <22883.13973.46880.749847@morden.metzler>
-References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
-        <22883.13973.46880.749847@morden.metzler>
+        Mon, 17 Jul 2017 18:14:25 -0400
+Received: from lanttu.localdomain (lanttu-e.localdomain [192.168.1.64])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 58333600BF
+        for <linux-media@vger.kernel.org>; Tue, 18 Jul 2017 01:14:22 +0300 (EEST)
+Received: from sailus by lanttu.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@iki.fi>)
+        id 1dXEHX-0004zw-OF
+        for linux-media@vger.kernel.org; Tue, 18 Jul 2017 01:14:23 +0300
+Date: Tue, 18 Jul 2017 01:14:23 +0300
+From: sakari.ailus@iki.fi
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.14] Sub-device driver patches plus a few others
+Message-ID: <20170717221423.tpfz2jhv5xmu6l4q@lanttu.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mon, 10 Jul 2017 10:11:01 +0200
-schrieb Ralph Metzler <rjkm@metzlerbros.de>:
+Hi Mauro,
 
-> Daniel Scheller writes:
->  > Stripped functionality compared to dddvb:
->  > 
->  >  - DVB-C modulator card support removed (requires DVB core API)  
-> 
-> not really besides one device name entry.
+Here's the first set of sensor driver patches for 4.14, including the
+ov5670 sensor driver. Additionally, there are a few fixes for the omap3isp
+driver as well as a documentation fix long due.
 
-... and a header :-) Maybe we should start another thread on this for a
-probable follow-up project.
+Please pull.
 
->  >  - OctoNET SAT>IP server/box support removed (requires API aswell)
->  >  - with this, GT link support was removed (only on OctoNET
->  > hardware)  
-> 
-> There is other PCIe based hardware which uses/will use this.
 
-Umm, good to know - thus better shouldn't (even accidentally)
-throw away the remove-revert of the GTL support for future cards.
+The following changes since commit a3db9d60a118571e696b684a6e8c692a2b064941:
 
->  >  drivers/media/pci/ddbridge/ddbridge-core.c | 4242
->  > ++++++++++++++++++----------
->  > drivers/media/pci/ddbridge/ddbridge-hw.c   |  299 ++
->  > drivers/media/pci/ddbridge/ddbridge-hw.h   |   52 +
->  > drivers/media/pci/ddbridge/ddbridge-i2c.c  |  310 ++
->  > drivers/media/pci/ddbridge/ddbridge-io.h   |   71 +
->  > drivers/media/pci/ddbridge/ddbridge-irq.c  |  161 ++
->  > drivers/media/pci/ddbridge/ddbridge-main.c |  393 +++
->  > drivers/media/pci/ddbridge/ddbridge-regs.h |  138 +-
->  > drivers/media/pci/ddbridge/ddbridge.h      |  355 ++-  
-> 
-> I thought we settled on core, i2c, main, (and mod, ns, which you do
-> not include). This will diverge then from my code.
+  Merge tag 'v4.13-rc1' into patchwork (2017-07-17 11:17:36 -0300)
 
-IIRC this was -main.c, and basically the code split, but no specific
-file. However, each of the additionals (hw, io, irq) were done with a
-reason (please also see their commit messages at patches 4-6):
+are available in the git repository at:
 
--io.h is there since the comparably complex functions in the original
-ddbridge.h sort of scared me off and IMHO shouldn't live together with
-struct definitions and such, so I moved them to a separate object
-first. With the GTL things removed, the remainder was rather small, and
-Jasmin pointed me in the "make it static inline in a header instead"
-direction. When eventually GTL gets added back, it should go into it's
-own object/module.
+  ssh://linuxtv.org/git/sailus/media_tree.git for-4.14
 
--hw.c/h moves all things hardware-definition/info related like regmaps
-into one single place, currently it's spread out into -main and -core,
-which might make things difficult to find.
+for you to fetch changes up to f7690b0b9d7e9e12a830a18d7b19b6026ac05ac7:
 
--irq.c gets rid of the need of additional ifdefs related to
-CONFIG_PCI_MSI, in that "defined but unused function" warnings are
-generated if this isn't defined. Again, also makes it easier to find,
-rather than search through ~3800 lines of -core :)
+  i2c: Add Omnivision OV5670 5M sensor support (2017-07-18 00:00:13 +0300)
 
-If you're comfortable with this, I will propose it via a GitHub PR as
-well (alongside the other things I'd like to push out to you). For the
-in-kernel code, I'd prefer to keep it like this.
+----------------------------------------------------------------
+Chiranjeevi Rapolu (1):
+      i2c: Add Omnivision OV5670 5M sensor support
 
-Best regards,
-Daniel Scheller
+Colin Ian King (1):
+      smiapp: make various const arrays static
+
+Pavel Machek (1):
+      omap3isp: Return -EPROBE_DEFER if the required regulators can't be obtained
+
+Ramiro Oliveira (1):
+      MAINTAINERS: Change OV5647 Maintainer
+
+Sakari Ailus (2):
+      omap3isp: Ignore endpoints with invalid configuration
+      docs-rst: v4l: Fix sink compose selection target documentation
+
+Todor Tomov (3):
+      ov5645: Set media entity function
+      ov5645: Add control to export pixel clock frequency
+      ov5645: Add control to export CSI2 link frequency
+
+ Documentation/media/uapi/v4l/dev-subdev.rst |    2 +-
+ MAINTAINERS                                 |    2 +-
+ drivers/media/i2c/Kconfig                   |   12 +
+ drivers/media/i2c/Makefile                  |    1 +
+ drivers/media/i2c/ov5645.c                  |   49 +-
+ drivers/media/i2c/ov5670.c                  | 2588 +++++++++++++++++++++++++++
+ drivers/media/i2c/smiapp/smiapp-quirk.c     |    8 +-
+ drivers/media/platform/omap3isp/isp.c       |   11 +-
+ drivers/media/platform/omap3isp/ispccp2.c   |    5 +
+ 9 files changed, 2663 insertions(+), 15 deletions(-)
+ create mode 100644 drivers/media/i2c/ov5670.c
+
 -- 
-https://github.com/herrnst
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
