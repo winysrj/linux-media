@@ -1,103 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:35311 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932536AbdGKVGK (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44148 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751336AbdGQWBS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 17:06:10 -0400
-Received: by mail-wr0-f196.google.com with SMTP id z45so1066929wrb.2
-        for <linux-media@vger.kernel.org>; Tue, 11 Jul 2017 14:06:09 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, aospan@netup.ru, serjk@netup.ru
-Cc: mchehab@kernel.org, mchehab@s-opensource.com
-Subject: [PATCH] [media] dvb-frontends/cxd2841er: do sleep on delivery system change
-Date: Tue, 11 Jul 2017 23:06:05 +0200
-Message-Id: <20170711210605.408-1-d.scheller.oss@gmail.com>
+        Mon, 17 Jul 2017 18:01:18 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: pavel@ucw.cz, linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH 1/7] omap3isp: Ignore endpoints with invalid configuration
+Date: Tue, 18 Jul 2017 01:01:10 +0300
+Message-Id: <20170717220116.17886-2-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170717220116.17886-1-sakari.ailus@linux.intel.com>
+References: <20170717220116.17886-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+If endpoint has an invalid configuration, ignore it instead of happily
+proceeding to use it nonetheless. Ignoring such an endpoint is better than
+failing since there could be multiple endpoints, only some of which are
+bad.
 
-Discovered using w_scan when scanning DVB-T/T2: When w_scan goes from -T
-to -T2, it does so without stopping the frontend using .sleep. Due to
-this, the demod operation mode isn't re-setup, but as it still is in
-STATE_ACTIVE_TC, PLP and T2 Profile are set up, but only retune_active()
-is called, leaving the demod in T mode, thus not operable on any T2
-frequency.
-
-Fix this by putting the demod to sleep if priv->system isn't equal to
-p->delsys. To properly accomplish this, sleep_tc() is split into
-sleep_tc() and shutdown_tc(), where sleep_tc() will only perform the
-sleep operation, while shutdown_tc() additionally performs the full
-demod shutdown (to keep the behaviour when the .sleep FE_OP is called).
-
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Tested-by: Pavel Machek <pavel@ucw.cz>
 ---
- drivers/media/dvb-frontends/cxd2841er.c | 25 +++++++++++++++++++++++--
- 1 file changed, 23 insertions(+), 2 deletions(-)
+ drivers/media/platform/omap3isp/isp.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-index 12bff778c97f..f663f5c4a7a8 100644
---- a/drivers/media/dvb-frontends/cxd2841er.c
-+++ b/drivers/media/dvb-frontends/cxd2841er.c
-@@ -487,6 +487,8 @@ static int cxd2841er_sleep_tc_to_shutdown(struct cxd2841er_priv *priv);
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index db2cccb57ceb..441eba1e02eb 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2110,10 +2110,12 @@ static int isp_fwnodes_parse(struct device *dev,
+ 		if (!isd)
+ 			goto error;
  
- static int cxd2841er_shutdown_to_sleep_tc(struct cxd2841er_priv *priv);
+-		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
++		if (isp_fwnode_parse(dev, fwnode, isd)) {
++			devm_kfree(dev, isd);
++			continue;
++		}
  
-+static int cxd2841er_sleep_tc(struct dvb_frontend *fe);
-+
- static int cxd2841er_retune_active(struct cxd2841er_priv *priv,
- 				   struct dtv_frontend_properties *p)
- {
-@@ -3378,6 +3380,14 @@ static int cxd2841er_set_frontend_tc(struct dvb_frontend *fe)
- 	if (priv->flags & CXD2841ER_EARLY_TUNE)
- 		cxd2841er_tuner_set(fe);
+-		if (isp_fwnode_parse(dev, fwnode, isd))
+-			goto error;
++		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
  
-+	/* deconfigure/put demod to sleep on delsys switch if active */
-+	if (priv->state == STATE_ACTIVE_TC &&
-+	    priv->system != p->delivery_system) {
-+		dev_dbg(&priv->i2c->dev, "%s(): old_delsys=%d, new_delsys=%d -> sleep\n",
-+			 __func__, priv->system, p->delivery_system);
-+		cxd2841er_sleep_tc(fe);
-+	}
-+
- 	if (p->delivery_system == SYS_DVBT) {
- 		priv->system = SYS_DVBT;
- 		switch (priv->state) {
-@@ -3594,6 +3604,7 @@ static int cxd2841er_sleep_tc(struct dvb_frontend *fe)
- 	struct cxd2841er_priv *priv = fe->demodulator_priv;
- 
- 	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
-+
- 	if (priv->state == STATE_ACTIVE_TC) {
- 		switch (priv->system) {
- 		case SYS_DVBT:
-@@ -3619,7 +3630,17 @@ static int cxd2841er_sleep_tc(struct dvb_frontend *fe)
- 			__func__, priv->state);
- 		return -EINVAL;
- 	}
--	cxd2841er_sleep_tc_to_shutdown(priv);
-+	return 0;
-+}
-+
-+static int cxd2841er_shutdown_tc(struct dvb_frontend *fe)
-+{
-+	struct cxd2841er_priv *priv = fe->demodulator_priv;
-+
-+	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
-+
-+	if (!cxd2841er_sleep_tc(fe))
-+		cxd2841er_sleep_tc_to_shutdown(priv);
- 	return 0;
- }
- 
-@@ -3968,7 +3989,7 @@ static struct dvb_frontend_ops cxd2841er_t_c_ops = {
- 		.symbol_rate_max = 11700000
- 	},
- 	.init = cxd2841er_init_tc,
--	.sleep = cxd2841er_sleep_tc,
-+	.sleep = cxd2841er_shutdown_tc,
- 	.release = cxd2841er_release,
- 	.set_frontend = cxd2841er_set_frontend_tc,
- 	.get_frontend = cxd2841er_get_frontend,
+ 		isd->asd.match.fwnode.fwnode =
+ 			fwnode_graph_get_remote_port_parent(fwnode);
 -- 
-2.13.0
+2.11.0
