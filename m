@@ -1,103 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:36732 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751457AbdGRUCA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 16:02:00 -0400
-MIME-Version: 1.0
-In-Reply-To: <CAKv+Gu_OYCNK2qvyDb0+7MqyG4rTEhsf57i6m9SJU80CE7Yt+g@mail.gmail.com>
-References: <20170714092540.1217397-1-arnd@arndb.de> <20170714092540.1217397-8-arnd@arndb.de>
- <CAKv+Gu9+0H9w8z8_Zedd-RxXt89Y7sJ=57_ZTThfDpFe4H0uXg@mail.gmail.com>
- <CAK8P3a3qrkZLkL=PuUHkaq9p021-Y+odTj5UrdM=dZw8L=oM8g@mail.gmail.com> <CAKv+Gu_OYCNK2qvyDb0+7MqyG4rTEhsf57i6m9SJU80CE7Yt+g@mail.gmail.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Tue, 18 Jul 2017 22:01:59 +0200
-Message-ID: <CAK8P3a0549U8zt7MPRJ5a6+pSZ-faqYiDTG3tNQGmvAbrZZfqw@mail.gmail.com>
-Subject: Re: [PATCH 07/14] proc/kcore: hide a harmless warning
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Jiri Olsa <jolsa@kernel.org>,
+Received: from mail-sn1nam02on0076.outbound.protection.outlook.com ([104.47.36.76]:36256
+        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751281AbdGQNQM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Jul 2017 09:16:12 -0400
+Date: Mon, 17 Jul 2017 15:15:49 +0200
+From: Sinclair Yeh <syeh@vmware.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        VMware Graphics <linux-graphics-maintainer@vmware.com>,
+        Thomas Hellstrom <thellstrom@vmware.com>,
+        David Airlie <airlied@linux.ie>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
         Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
         IDE-ML <linux-ide@vger.kernel.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
         Andrew Morton <akpm@linux-foundation.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Kees Cook <keescook@chromium.org>,
-        Ingo Molnar <mingo@kernel.org>,
-        Laura Abbott <labbott@redhat.com>,
-        Pratyush Anand <panand@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        DRI <dri-devel@lists.freedesktop.org>,
+        Brian Paul <brianp@vmware.com>
+Subject: Re: [PATCH, RESEND 03/14] drm/vmwgfx: avoid gcc-7 parentheses warning
+Message-ID: <20170717131548.GA15306@pc24.home>
+References: <20170714092540.1217397-1-arnd@arndb.de>
+ <20170714092540.1217397-4-arnd@arndb.de>
+ <CA+55aFw9xE_+qnx1=6FbU8HJ23+Go1iS5bxDLOHefETgn5Wx6w@mail.gmail.com>
+ <CA+55aFw+DTc_czppqfbqY+7kq6Uej=Nf1Wxf1HutRw4tRxC85Q@mail.gmail.com>
+ <CAK8P3a2QEOuQXy51q-EqzTh3STKTDHy2V-twi5nFPbuzOSEDkQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAK8P3a2QEOuQXy51q-EqzTh3STKTDHy2V-twi5nFPbuzOSEDkQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 18, 2017 at 9:55 PM, Ard Biesheuvel
-<ard.biesheuvel@linaro.org> wrote:
-> On 18 July 2017 at 20:53, Arnd Bergmann <arnd@arndb.de> wrote:
->> On Fri, Jul 14, 2017 at 2:28 PM, Ard Biesheuvel
->> <ard.biesheuvel@linaro.org> wrote:
->>> On 14 July 2017 at 10:25, Arnd Bergmann <arnd@arndb.de> wrote:
->>>> gcc warns when MODULES_VADDR/END is defined to the same value as
->>>> VMALLOC_START/VMALLOC_END, e.g. on x86-32:
->>>>
->>>> fs/proc/kcore.c: In function =E2=80=98add_modules_range=E2=80=99:
->>>> fs/proc/kcore.c:622:161: error: self-comparison always evaluates to fa=
-lse [-Werror=3Dtautological-compare]
->>>>   if (/*MODULES_VADDR !=3D VMALLOC_START && */MODULES_END !=3D VMALLOC=
-_END) {
->>>>
->>>
->>> Does it occur for subtraction as well? Or only for comparison?
->>
->> This replacement patch would also address the warning:
->>
->> diff --git a/fs/proc/kcore.c b/fs/proc/kcore.c
->> index 45629f4b5402..35824e986c2c 100644
->> --- a/fs/proc/kcore.c
->> +++ b/fs/proc/kcore.c
->> @@ -623,7 +623,7 @@ static void __init proc_kcore_text_init(void)
->>  struct kcore_list kcore_modules;
->>  static void __init add_modules_range(void)
->>  {
->> -       if (MODULES_VADDR !=3D VMALLOC_START && MODULES_END !=3D VMALLOC=
-_END) {
->> +       if (MODULES_VADDR - VMALLOC_START && MODULES_END - VMALLOC_END) =
-{
->>                 kclist_add(&kcore_modules, (void *)MODULES_VADDR,
->>                         MODULES_END - MODULES_VADDR, KCORE_VMALLOC);
->>         }
->>
->> I have also verified that four of the 14 patches are not needed when bui=
-lding
->> without ccache, this is one of them:
->>
->>  acpi: thermal: fix gcc-6/ccache warning
->>  proc/kcore: hide a harmless warning
->>  SFI: fix tautological-compare warning
->>  [media] fix warning on v4l2_subdev_call() result interpreted as bool
->>
->> Not sure what to do with those, we could either ignore them all and
->> not care about ccache, or we try to address them all in some way.
->>
->
-> Any idea why ccache makes a difference here? It is not obvious (not to
-> me at least)
+On Fri, Jul 14, 2017 at 10:28:29PM +0200, Arnd Bergmann wrote:
+> On Fri, Jul 14, 2017 at 9:23 PM, Linus Torvalds
+> <torvalds@linux-foundation.org> wrote:
+> > On Fri, Jul 14, 2017 at 12:21 PM, Linus Torvalds
+> > <torvalds@linux-foundation.org> wrote:
+> >>
+> >> NAK. This takes unintentionally insane code and turns it intentionally
+> >> insane. Any non-zero return is considered an error.
+> >>
+> >> The right fix is almost certainly to just return -EINVAL unconditionally.
 
-When ccache is used, the compilation stage is apparently always done on
-the preprocessed source file. So instead of parsing (with the integrated
-preprocessor)
+Correct.  I'll fix this.
 
-          if (MODULES_VADDR !=3D VMALLOC_START ...)
+> >
+> > Btw, this is why I hate compiler warning fix patch series. Even when
+> > they don't actually break the code (and sometimes they do that too),
+> > they can actually end up making the code worse.
+> 
+> I generally agree, and this is also why I held up sending patches for the
+> -Wformat warnings until you brought those up. I also frequently send
+> patches for recently introduced warnings, which tend to have a better
+> chance of getting reviewed by the person that just introduced the code,
+> to catch this kind of mistake in my patches.
+> 
+> I also regularly run into cases where I send a correct patch and find
+> that another broken patch has been applied the following day ;-)
+> 
+> > The *intent* of that code was to return zero for the CAP_SYS_ADMIN.
+> > But the code has never done that in its lifetime and nobody ever
+> > noticed, so clearly the code shouldn't even have tried.
+> 
+> Makes sense, yes. In this case, the review process has failed as
+> well, as one of the maintainers even gave an Ack on the wrong patch,
+> and then the patch got dropped without any feedback.
 
-the compiler sees
+I've done some digging and noticed that my -fixes pull request
+didn't get picked up last December.  It's most likely because I
+initially made an address typo in the original request, and then
+followed it up with a direct email with the correct address.
 
-          if (((unsigned long)high_memory + (8 * 1024 * 1024))  !=3D
-              ((unsigned long)high_memory + (8 * 1024 * 1024))  ...)
-
-and it correctly considers the first expression something that one
-would write in source code, while -Wtautological-compare
-is intended to warn about the second version being always true,
-which makes the 'if()' pointless.
-
-       Arnd
+Sinclair
