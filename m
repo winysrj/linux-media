@@ -1,82 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f175.google.com ([209.85.128.175]:34968 "EHLO
-        mail-wr0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750950AbdGGIip (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 04:38:45 -0400
-Received: by mail-wr0-f175.google.com with SMTP id k67so36617546wrc.2
-        for <linux-media@vger.kernel.org>; Fri, 07 Jul 2017 01:38:44 -0700 (PDT)
-Subject: Re: [PATCH] [media] v4l2-mediabus: Add helper functions
-To: Hans Verkuil <hverkuil@xs4all.nl>, hansverk@cisco.com
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <1499415487-15785-1-git-send-email-todor.tomov@linaro.org>
- <c9d253aa-b9dd-e4d0-7c9e-a02688f8fc60@xs4all.nl>
-From: Todor Tomov <todor.tomov@linaro.org>
-Message-ID: <13de1991-678e-3f8f-a9c6-490d9b597aa5@linaro.org>
-Date: Fri, 7 Jul 2017 11:38:40 +0300
-MIME-Version: 1.0
-In-Reply-To: <c9d253aa-b9dd-e4d0-7c9e-a02688f8fc60@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60042 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751929AbdGRTEG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Jul 2017 15:04:06 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: linux-leds@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        niklas.soderlund@ragnatech.se, hverkuil@xs4all.nl
+Subject: [RFC 10/19] v4l2-fwnode: Add convenience function for parsing common external refs
+Date: Tue, 18 Jul 2017 22:03:52 +0300
+Message-Id: <20170718190401.14797-11-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
+References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/07/2017 11:23 AM, Hans Verkuil wrote:
-> On 07/07/2017 10:18 AM, Todor Tomov wrote:
->> Add helper functions for mbus to/from mplane pixel format conversion.
->>
->> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
->> ---
->>   include/media/v4l2-mediabus.h | 26 ++++++++++++++++++++++++++
->>   1 file changed, 26 insertions(+)
->>
->> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
->> index 34cc99e..f97fd4a 100644
->> --- a/include/media/v4l2-mediabus.h
->> +++ b/include/media/v4l2-mediabus.h
->> @@ -113,4 +113,30 @@ static inline void v4l2_fill_mbus_format(struct v4l2_mbus_framefmt *mbus_fmt,
->>       mbus_fmt->code = code;
->>   }
->>   +static inline void v4l2_fill_pix_format_mplane(
->> +                struct v4l2_pix_format_mplane *pix_fmt,
->> +                const struct v4l2_mbus_framefmt *mbus_fmt)
->> +{
->> +    pix_fmt->width = mbus_fmt->width;
->> +    pix_fmt->height = mbus_fmt->height;
->> +    pix_fmt->field = mbus_fmt->field;
->> +    pix_fmt->colorspace = mbus_fmt->colorspace;
->> +    pix_fmt->ycbcr_enc = mbus_fmt->ycbcr_enc;
->> +    pix_fmt->quantization = mbus_fmt->quantization;
->> +    pix_fmt->xfer_func = mbus_fmt->xfer_func;
->> +}
->> +
->> +static inline void v4l2_fill_mbus_format_mplane(
->> +                struct v4l2_mbus_framefmt *mbus_fmt,
->> +                const struct v4l2_pix_format_mplane *pix_fmt)
->> +{
->> +    mbus_fmt->width = pix_fmt->width;
->> +    mbus_fmt->height = pix_fmt->height;
->> +    mbus_fmt->field = pix_fmt->field;
->> +    mbus_fmt->colorspace = pix_fmt->colorspace;
->> +    mbus_fmt->ycbcr_enc = pix_fmt->ycbcr_enc;
->> +    mbus_fmt->quantization = pix_fmt->quantization;
->> +    mbus_fmt->xfer_func = pix_fmt->xfer_func;
->> +}
->> +
->>   #endif
->>
-> 
-> Looks good. But can you rename pix_fmt to pix_mp_fmt? It makes it a bit
-> clearer that we're operating on the pix_mp member of struct v4l2_format.
+Add v4l2_fwnode_parse_reference_sensor_common for parsing common
+sensor properties that refer to adjacent devices such as flash or lens
+driver chips.
 
-Ok, I'll rename and resend.
+As this is an association only, there's little a regular driver needs to
+know about these devices as such.
 
-> 
-> Regards,
-> 
->     Hans
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/v4l2-fwnode.c | 27 +++++++++++++++++++++++++++
+ include/media/v4l2-fwnode.h           |  3 +++
+ 2 files changed, 30 insertions(+)
 
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index bfc9e38766f3..8671262eb22c 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -486,6 +486,33 @@ int v4l2_fwnode_reference_parse(
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fwnode_reference_parse);
+ 
++int v4l2_fwnode_reference_parse_sensor_common(
++	struct device *dev, struct v4l2_async_notifier *notifier)
++{
++	static const struct {
++		char *name;
++		char *cells;
++		unsigned int nr_cells;
++	} props[] = {
++		{ "flash", NULL, 0 },
++		{ "lens-focus", NULL, 0 },
++	};
++	unsigned int i;
++	int rval;
++
++	for (i = 0; i < ARRAY_SIZE(props); i++) {
++		rval = v4l2_fwnode_reference_parse(
++			dev, notifier, props[i].name, props[i].cells,
++			props[i].nr_cells, sizeof(struct v4l2_async_subdev),
++			NULL);
++		if (rval < 0 && rval != -ENOENT)
++			return rval;
++	}
++
++	return rval;
++}
++EXPORT_SYMBOL_GPL(v4l2_fwnode_reference_parse_sensor_common);
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index e27526bd744d..8cd4f8a75c3d 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -118,4 +118,7 @@ int v4l2_fwnode_reference_parse(
+ 			    struct fwnode_reference_args *args,
+ 			    struct v4l2_async_subdev *asd));
+ 
++int v4l2_fwnode_reference_parse_sensor_common(
++	struct device *dev, struct v4l2_async_notifier *notifier);
++
+ #endif /* _V4L2_FWNODE_H */
 -- 
-Best regards,
-Todor Tomov
+2.11.0
