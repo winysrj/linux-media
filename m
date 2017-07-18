@@ -1,65 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:35248 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753485AbdGLRMs (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:38827 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751334AbdGRK1f (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Jul 2017 13:12:48 -0400
-Subject: Re: [PATCH v2] [media] staging/imx: remove confusing IS_ERR_OR_NULL
- usage
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Marek Vasut <marex@denx.de>,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-References: <20170711132001.2266388-1-arnd@arndb.de>
- <1499874605.6374.56.camel@pengutronix.de>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <0470fa74-dfbd-e512-295c-4ba64c483aac@gmail.com>
-Date: Wed, 12 Jul 2017 10:12:45 -0700
-MIME-Version: 1.0
-In-Reply-To: <1499874605.6374.56.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
+        Tue, 18 Jul 2017 06:27:35 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        "H. Nikolaus Schaller" <hns@goldelico.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        "Rob Herring" <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "Maxime Coquelin" <mcoquelin.stm32@gmail.com>,
+        Alexandre TORGUE <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Hans Verkuil" <hverkuil@xs4all.nl>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick FERTRE <yannick.fertre@st.com>
+Subject: Re: [PATCH v2 3/7] [media] ov9650: add device tree support
+Date: Tue, 18 Jul 2017 10:26:39 +0000
+Message-ID: <7c8a2f91-34c6-4386-3f58-35d31ab63991@st.com>
+References: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com>
+ <1499073368-31905-4-git-send-email-hugues.fruchet@st.com>
+ <20170708230606.zva4m52anvffo2vb@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20170708230606.zva4m52anvffo2vb@valkosipuli.retiisi.org.uk>
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <332ECEB0A64F054BA447DEB7EB0B2862@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 07/12/2017 08:50 AM, Philipp Zabel wrote:
-> On Tue, 2017-07-11 at 15:18 +0200, Arnd Bergmann wrote:
->> While looking at a compiler warning, I noticed the use of
->> IS_ERR_OR_NULL, which is generally a sign of a bad API design
->> and should be avoided.
->>
->> In this driver, this is fairly easy, we can simply stop storing
->> error pointers in persistent structures, and change the two
->> functions that might return either a NULL pointer or an error
->> code to consistently return error pointers when failing.
->>
->> of_parse_subdev() now separates the error code and the pointer
->> it looks up, to clarify the interface. There are two cases
->> where this function originally returns 'NULL', and I have
->> changed that to '0' for success to keep the current behavior,
->> though returning an error would also make sense there.
->>
->> Fixes: e130291212df ("[media] media: Add i.MX media core driver")
->> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->> ---
->> v2: fix type mismatch
->> v3: rework of_parse_subdev() as well.
-> 
-> Thanks!
-> 
-> Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
-> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-> 
-
-Looks fine to me. Tested on SabreAuto with affected pipelines.
-
-Reviewed-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Tested-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+SGkgU2FrYXJpLCB0aGtzIGZvciByZXZpZXcuDQoNCk9uIDA3LzA5LzIwMTcgMDE6MDYgQU0sIFNh
+a2FyaSBBaWx1cyB3cm90ZToNCj4gSGkgSHVndWVzLA0KPiANCj4gT24gTW9uLCBKdWwgMDMsIDIw
+MTcgYXQgMTE6MTY6MDRBTSArMDIwMCwgSHVndWVzIEZydWNoZXQgd3JvdGU6DQo+PiBBbGxvd3Mg
+dXNlIG9mIGRldmljZSB0cmVlIGNvbmZpZ3VyYXRpb24gZGF0YS4NCj4+IElmIG5vIGRldmljZSB0
+cmVlIGRhdGEgaXMgdGhlcmUsIGNvbmZpZ3VyYXRpb24gaXMgdGFrZW4gZnJvbSBwbGF0Zm9ybSBk
+YXRhLg0KPj4gSW4gb3JkZXIgdG8ga2VlcCBHUElPcyBjb25maWd1cmF0aW9uIGNvbXBhdGlibGUg
+YmV0d2VlbiBib3RoIHdheSBvZiBkb2luZywNCj4+IEdQSU9zIGFyZSBzd2l0Y2hlZCB0byBkZXNj
+cmlwdG9yLWJhc2VkIGludGVyZmFjZS4NCj4+DQo+PiBTaWduZWQtb2ZmLWJ5OiBILiBOaWtvbGF1
+cyBTY2hhbGxlciA8aG5zQGdvbGRlbGljby5jb20+DQo+PiBTaWduZWQtb2ZmLWJ5OiBIdWd1ZXMg
+RnJ1Y2hldCA8aHVndWVzLmZydWNoZXRAc3QuY29tPg0KPj4gLS0tDQo+PiAgIGRyaXZlcnMvbWVk
+aWEvaTJjL0tjb25maWcgIHwgIDIgKy0NCj4+ICAgZHJpdmVycy9tZWRpYS9pMmMvb3Y5NjUwLmMg
+fCA3NyArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tDQo+PiAg
+IDIgZmlsZXMgY2hhbmdlZCwgNTkgaW5zZXJ0aW9ucygrKSwgMjAgZGVsZXRpb25zKC0pDQo+Pg0K
+Pj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvaTJjL0tjb25maWcgYi9kcml2ZXJzL21lZGlh
+L2kyYy9LY29uZmlnDQo+PiBpbmRleCAxMjFiM2I1Li4xNjgxMTVjIDEwMDY0NA0KPj4gLS0tIGEv
+ZHJpdmVycy9tZWRpYS9pMmMvS2NvbmZpZw0KPj4gKysrIGIvZHJpdmVycy9tZWRpYS9pMmMvS2Nv
+bmZpZw0KPj4gQEAgLTYxNSw3ICs2MTUsNyBAQCBjb25maWcgVklERU9fT1Y3NjcwDQo+PiAgIA0K
+Pj4gICBjb25maWcgVklERU9fT1Y5NjUwDQo+PiAgIAl0cmlzdGF0ZSAiT21uaVZpc2lvbiBPVjk2
+NTAvT1Y5NjUyIHNlbnNvciBzdXBwb3J0Ig0KPj4gLQlkZXBlbmRzIG9uIEkyQyAmJiBWSURFT19W
+NEwyICYmIFZJREVPX1Y0TDJfU1VCREVWX0FQSQ0KPj4gKwlkZXBlbmRzIG9uIEdQSU9MSUIgJiYg
+STJDICYmIFZJREVPX1Y0TDIgJiYgVklERU9fVjRMMl9TVUJERVZfQVBJDQo+PiAgIAktLS1oZWxw
+LS0tDQo+PiAgIAkgIFRoaXMgaXMgYSBWNEwyIHNlbnNvci1sZXZlbCBkcml2ZXIgZm9yIHRoZSBP
+bW5pdmlzaW9uDQo+PiAgIAkgIE9WOTY1MCBhbmQgT1Y5NjUyIGNhbWVyYSBzZW5zb3JzLg0KPj4g
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvaTJjL292OTY1MC5jIGIvZHJpdmVycy9tZWRpYS9p
+MmMvb3Y5NjUwLmMNCj4+IGluZGV4IDFlNGU5OWUuLjdlOWE5MDIgMTAwNjQ0DQo+PiAtLS0gYS9k
+cml2ZXJzL21lZGlhL2kyYy9vdjk2NTAuYw0KPj4gKysrIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y5
+NjUwLmMNCj4+IEBAIC0xMSwxMiArMTEsMTQgQEANCj4+ICAgICogaXQgdW5kZXIgdGhlIHRlcm1z
+IG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSB2ZXJzaW9uIDIgYXMNCj4+ICAgICog
+cHVibGlzaGVkIGJ5IHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24uDQo+PiAgICAqLw0KPj4g
+KyNpbmNsdWRlIDxsaW51eC9jbGsuaD4NCj4+ICAgI2luY2x1ZGUgPGxpbnV4L2RlbGF5Lmg+DQo+
+PiAgICNpbmNsdWRlIDxsaW51eC9ncGlvLmg+DQo+PiAgICNpbmNsdWRlIDxsaW51eC9pMmMuaD4N
+Cj4+ICAgI2luY2x1ZGUgPGxpbnV4L2tlcm5lbC5oPg0KPj4gICAjaW5jbHVkZSA8bGludXgvbWVk
+aWEuaD4NCj4+ICAgI2luY2x1ZGUgPGxpbnV4L21vZHVsZS5oPg0KPj4gKyNpbmNsdWRlIDxsaW51
+eC9vZl9ncGlvLmg+DQo+PiAgICNpbmNsdWRlIDxsaW51eC9yYXRlbGltaXQuaD4NCj4+ICAgI2lu
+Y2x1ZGUgPGxpbnV4L3NsYWIuaD4NCj4+ICAgI2luY2x1ZGUgPGxpbnV4L3N0cmluZy5oPg0KPj4g
+QEAgLTI0OSw5ICsyNTEsMTAgQEAgc3RydWN0IG92OTY1eCB7DQo+PiAgIAlzdHJ1Y3QgdjRsMl9z
+dWJkZXYgc2Q7DQo+PiAgIAlzdHJ1Y3QgbWVkaWFfcGFkIHBhZDsNCj4+ICAgCWVudW0gdjRsMl9t
+YnVzX3R5cGUgYnVzX3R5cGU7DQo+PiAtCWludCBncGlvc1tOVU1fR1BJT1NdOw0KPj4gKwlzdHJ1
+Y3QgZ3Bpb19kZXNjICpncGlvc1tOVU1fR1BJT1NdOw0KPj4gICAJLyogRXh0ZXJuYWwgbWFzdGVy
+IGNsb2NrIGZyZXF1ZW5jeSAqLw0KPj4gICAJdW5zaWduZWQgbG9uZyBtY2xrX2ZyZXF1ZW5jeTsN
+Cj4+ICsJc3RydWN0IGNsayAqY2xrOw0KPj4gICANCj4+ICAgCS8qIFByb3RlY3RzIHRoZSBzdHJ1
+Y3QgZmllbGRzIGJlbG93ICovDQo+PiAgIAlzdHJ1Y3QgbXV0ZXggbG9jazsNCj4+IEBAIC01MTEs
+MTAgKzUxNCwxMCBAQCBzdGF0aWMgaW50IG92OTY1eF9zZXRfY29sb3JfbWF0cml4KHN0cnVjdCBv
+djk2NXggKm92OTY1eCkNCj4+ICAgCXJldHVybiAwOw0KPj4gICB9DQo+PiAgIA0KPj4gLXN0YXRp
+YyB2b2lkIG92OTY1eF9ncGlvX3NldChpbnQgZ3BpbywgaW50IHZhbCkNCj4+ICtzdGF0aWMgdm9p
+ZCBvdjk2NXhfZ3Bpb19zZXQoc3RydWN0IGdwaW9fZGVzYyAqZ3BpbywgaW50IHZhbCkNCj4+ICAg
+ew0KPj4gLQlpZiAoZ3Bpb19pc192YWxpZChncGlvKSkNCj4+IC0JCWdwaW9fc2V0X3ZhbHVlKGdw
+aW8sIHZhbCk7DQo+PiArCWlmIChncGlvKQ0KPj4gKwkJZ3Bpb2Rfc2V0X3ZhbHVlX2NhbnNsZWVw
+KGdwaW8sIHZhbCk7DQo+IA0KPiBncGlvZF9zZXRfdmFsdWVfY2Fuc2xlZXAoKSBjYW4gbWFuYWdl
+IHdpdGggTlVMTCBncGlvIHBhcmFtZXRlciwgbm8gbmVlZCB0bw0KPiBjaGVjayBpdC4NCg0KZG9u
+ZQ0KDQo+IA0KPj4gICB9DQo+PiAgIA0KPj4gICBzdGF0aWMgdm9pZCBfX292OTY1eF9zZXRfcG93
+ZXIoc3RydWN0IG92OTY1eCAqb3Y5NjV4LCBpbnQgb24pDQo+PiBAQCAtMTQwNiwyNCArMTQwOSwy
+OCBAQCBzdGF0aWMgaW50IG92OTY1eF9jb25maWd1cmVfZ3Bpb3Moc3RydWN0IG92OTY1eCAqb3Y5
+NjV4LA0KPj4gICAJCQkJICBjb25zdCBzdHJ1Y3Qgb3Y5NjUwX3BsYXRmb3JtX2RhdGEgKnBkYXRh
+KQ0KPj4gICB7DQo+PiAgIAlpbnQgcmV0LCBpOw0KPj4gKwlpbnQgZ3Bpb3NbTlVNX0dQSU9TXTsN
+Cj4+ICAgDQo+PiAtCW92OTY1eC0+Z3Bpb3NbR1BJT19QV0ROXSA9IHBkYXRhLT5ncGlvX3B3ZG47
+DQo+PiAtCW92OTY1eC0+Z3Bpb3NbR1BJT19SU1RdICA9IHBkYXRhLT5ncGlvX3Jlc2V0Ow0KPj4g
+KwlncGlvc1tHUElPX1BXRE5dID0gcGRhdGEtPmdwaW9fcHdkbjsNCj4+ICsJZ3Bpb3NbR1BJT19S
+U1RdICA9IHBkYXRhLT5ncGlvX3Jlc2V0Ow0KPj4gICANCj4+IC0JZm9yIChpID0gMDsgaSA8IEFS
+UkFZX1NJWkUob3Y5NjV4LT5ncGlvcyk7IGkrKykgew0KPj4gLQkJaW50IGdwaW8gPSBvdjk2NXgt
+PmdwaW9zW2ldOw0KPj4gKwlmb3IgKGkgPSAwOyBpIDwgQVJSQVlfU0laRShncGlvcyk7IGkrKykg
+ew0KPj4gKwkJaW50IGdwaW8gPSBncGlvc1tpXTsNCj4+ICAgDQo+PiAgIAkJaWYgKCFncGlvX2lz
+X3ZhbGlkKGdwaW8pKQ0KPj4gICAJCQljb250aW51ZTsNCj4+ICAgCQlyZXQgPSBkZXZtX2dwaW9f
+cmVxdWVzdF9vbmUoJm92OTY1eC0+Y2xpZW50LT5kZXYsIGdwaW8sDQo+PiAtCQkJCQkgICAgR1BJ
+T0ZfT1VUX0lOSVRfSElHSCwgIk9WOTY1WCIpOw0KPj4gLQkJaWYgKHJldCA8IDApDQo+PiArCQkJ
+CQkgICAgR1BJT0ZfT1VUX0lOSVRfSElHSCwgRFJJVkVSX05BTUUpOw0KPiANCj4gRFJJVkVSX05B
+TUUgaXMgZGlmZmVyZW50IGZyb20gIk9WOTY1WCIuIElzIHRoaXMgYW4gaW50ZW5kZWQgY2hhbmdl
+Pw0KDQpZZXMgaXQgd2FzIHRvIHVuaWZ5IG5hbWluZ3MgYXJvdW5kIGEgc2luZ2xlIERSSVZFUl9O
+QU1FIGRlZmluaXRpb24uDQoNCj4gDQo+PiArCQlpZiAocmV0IDwgMCkgew0KPj4gKwkJCWRldl9l
+cnIoJm92OTY1eC0+Y2xpZW50LT5kZXYsDQo+PiArCQkJCSJGYWlsZWQgdG8gcmVxdWVzdCBncGlv
+JWQgKCVkKVxuIiwgZ3BpbywgcmV0KTsNCj4+ICAgCQkJcmV0dXJuIHJldDsNCj4+ICsJCX0NCj4+
+ICAgCQl2NGwyX2RiZygxLCBkZWJ1ZywgJm92OTY1eC0+c2QsICJzZXQgZ3BpbyAlZCB0byAxXG4i
+LCBncGlvKTsNCj4+ICAgDQo+PiAgIAkJZ3Bpb19zZXRfdmFsdWUoZ3BpbywgMSk7DQo+PiAgIAkJ
+Z3Bpb19leHBvcnQoZ3BpbywgMCk7DQo+PiAtCQlvdjk2NXgtPmdwaW9zW2ldID0gZ3BpbzsNCj4+
+ICsJCW92OTY1eC0+Z3Bpb3NbaV0gPSBncGlvX3RvX2Rlc2MoZ3Bpbyk7DQo+PiAgIAl9DQo+PiAg
+IA0KPj4gICAJcmV0dXJuIDA7DQo+PiBAQCAtMTQ2OSwxNCArMTQ3NiwxMCBAQCBzdGF0aWMgaW50
+IG92OTY1eF9wcm9iZShzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LA0KPj4gICAJc3RydWN0IHY0
+bDJfc3ViZGV2ICpzZDsNCj4+ICAgCXN0cnVjdCBvdjk2NXggKm92OTY1eDsNCj4+ICAgCWludCBy
+ZXQ7DQo+PiArCXN0cnVjdCBkZXZpY2Vfbm9kZSAqbnAgPSBjbGllbnQtPmRldi5vZl9ub2RlOw0K
+PiANCj4gSXQnZCBiZSBuaWNlIHRvIGRlY2xhcmUgdGhpcyBuZXh0IHRvIHBkYXRhLCByYXRoZXIg
+dGhhbiBhZnRlciByZXQgYW5kIG90aGVyDQo+IHNob3J0IGRlY2xhcmF0aW9ucy4NCg0KZG9uZQ0K
+DQo+IA0KPj4gICANCj4+IC0JaWYgKHBkYXRhID09IE5VTEwpIHsNCj4+IC0JCWRldl9lcnIoJmNs
+aWVudC0+ZGV2LCAicGxhdGZvcm0gZGF0YSBub3Qgc3BlY2lmaWVkXG4iKTsNCj4+IC0JCXJldHVy
+biAtRUlOVkFMOw0KPj4gLQl9DQo+PiAtDQo+PiAtCWlmIChwZGF0YS0+bWNsa19mcmVxdWVuY3kg
+PT0gMCkgew0KPj4gLQkJZGV2X2VycigmY2xpZW50LT5kZXYsICJNQ0xLIGZyZXF1ZW5jeSBub3Qg
+c3BlY2lmaWVkXG4iKTsNCj4+ICsJaWYgKCFwZGF0YSAmJiAhbnApIHsNCj4+ICsJCWRldl9lcnIo
+JmNsaWVudC0+ZGV2LCAiUGxhdGZvcm0gZGF0YSBvciBkZXZpY2UgdHJlZSBkYXRhIG11c3QgYmUg
+cHJvdmlkZWRcbiIpOw0KPj4gICAJCXJldHVybiAtRUlOVkFMOw0KPj4gICAJfQ0KPj4gICANCj4+
+IEBAIC0xNDg2LDcgKzE0ODksMzUgQEAgc3RhdGljIGludCBvdjk2NXhfcHJvYmUoc3RydWN0IGky
+Y19jbGllbnQgKmNsaWVudCwNCj4+ICAgDQo+PiAgIAltdXRleF9pbml0KCZvdjk2NXgtPmxvY2sp
+Ow0KPj4gICAJb3Y5NjV4LT5jbGllbnQgPSBjbGllbnQ7DQo+PiAtCW92OTY1eC0+bWNsa19mcmVx
+dWVuY3kgPSBwZGF0YS0+bWNsa19mcmVxdWVuY3k7DQo+PiArCW11dGV4X2luaXQoJm92OTY1eC0+
+bG9jayk7DQo+PiArDQo+PiArCWlmIChucCkgew0KPj4gKwkJLyogRGV2aWNlIHRyZWUgKi8NCj4+
+ICsJCW92OTY1eC0+Z3Bpb3NbR1BJT19SU1RdID0NCj4+ICsJCQlkZXZtX2dwaW9kX2dldF9vcHRp
+b25hbCgmY2xpZW50LT5kZXYsICJyZXNldGIiLA0KPj4gKwkJCQkJCUdQSU9EX09VVF9MT1cpOw0K
+Pj4gKwkJb3Y5NjV4LT5ncGlvc1tHUElPX1BXRE5dID0NCj4+ICsJCQlkZXZtX2dwaW9kX2dldF9v
+cHRpb25hbCgmY2xpZW50LT5kZXYsICJwd2RuIiwNCj4+ICsJCQkJCQlHUElPRF9PVVRfSElHSCk7
+DQo+PiArDQo+PiArCQlvdjk2NXgtPmNsayA9IGRldm1fY2xrX2dldCgmY2xpZW50LT5kZXYsIE5V
+TEwpOw0KPj4gKwkJaWYgKElTX0VSUihvdjk2NXgtPmNsaykpIHsNCj4+ICsJCQlkZXZfZXJyKCZj
+bGllbnQtPmRldiwgIkNvdWxkIG5vdCBnZXQgY2xvY2tcbiIpOw0KPiANCj4gbXV0ZXhfZGVzdHJv
+eSgpIHNob3VsZCBjYWxsZWQgb24gYW4gaW5pdGlhbGlzZWQgbXV0ZXggaWYgcHJvYmUgaXMgZ29p
+bmcgdG8NCj4gZmFpbC4gSXQncyBjZXJ0YWlubHkgbm90IGEgcHJvYmxlbSBpbnRyb2R1Y2VkIGJ5
+IHRoaXMgcGF0Y2gsIGJ1dCBpdCdkIGJlDQo+IG5pY2UgdG8gZml4IHRoYXQgKGluIGEgc2VwYXJh
+dGUgcGF0Y2gpIG5vdyB0aGF0IGl0J3MgZm91bmQuIFRoZSBzYW1lIGdvZXMNCj4gZm9yIHJlbW92
+ZSBiZWxvdy4NCg0KV2lsbCBkby4NCg0KPiANCj4+ICsJCQlyZXR1cm4gUFRSX0VSUihvdjk2NXgt
+PmNsayk7DQo+PiArCQl9DQo+PiArCQlvdjk2NXgtPm1jbGtfZnJlcXVlbmN5ID0gY2xrX2dldF9y
+YXRlKG92OTY1eC0+Y2xrKTsNCj4+ICsJfSBlbHNlIHsNCj4+ICsJCS8qIFBsYXRmb3JtIGRhdGEg
+Ki8NCj4+ICsJCXJldCA9IG92OTY1eF9jb25maWd1cmVfZ3Bpb3Mob3Y5NjV4LCBwZGF0YSk7DQo+
+PiArCQlpZiAocmV0IDwgMCkNCj4+ICsJCQlyZXR1cm4gcmV0Ow0KPj4gKw0KPj4gKwkJaWYgKHBk
+YXRhLT5tY2xrX2ZyZXF1ZW5jeSA9PSAwKSB7DQo+PiArCQkJZGV2X2VycigmY2xpZW50LT5kZXYs
+ICJNQ0xLIGZyZXF1ZW5jeSBpcyBtYW5kYXRvcnlcbiIpOw0KPj4gKwkJCXJldHVybiAtRUlOVkFM
+Ow0KPj4gKwkJfQ0KPj4gKwkJb3Y5NjV4LT5tY2xrX2ZyZXF1ZW5jeSA9IHBkYXRhLT5tY2xrX2Zy
+ZXF1ZW5jeTsNCj4+ICsJfQ0KPj4gICANCj4+ICAgCXNkID0gJm92OTY1eC0+c2Q7DQo+PiAgIAl2
+NGwyX2kyY19zdWJkZXZfaW5pdChzZCwgY2xpZW50LCAmb3Y5NjV4X3N1YmRldl9vcHMpOw0KPj4g
+QEAgLTE1NTEsOSArMTU4MiwxNyBAQCBzdGF0aWMgaW50IG92OTY1eF9yZW1vdmUoc3RydWN0IGky
+Y19jbGllbnQgKmNsaWVudCkNCj4+ICAgfTsNCj4+ICAgTU9EVUxFX0RFVklDRV9UQUJMRShpMmMs
+IG92OTY1eF9pZCk7DQo+PiAgIA0KPj4gK3N0YXRpYyBjb25zdCBzdHJ1Y3Qgb2ZfZGV2aWNlX2lk
+IG92OTY1eF9vZl9tYXRjaFtdID0gew0KPj4gKwl7IC5jb21wYXRpYmxlID0gIm92dGksb3Y5NjUw
+IiwgfSwNCj4+ICsJeyAuY29tcGF0aWJsZSA9ICJvdnRpLG92OTY1MiIsIH0sDQo+PiArCXsgLyog
+c2VudGluZWwgKi8gfQ0KPj4gK307DQo+PiArTU9EVUxFX0RFVklDRV9UQUJMRShvZiwgb3Y5NjV4
+X29mX21hdGNoKTsNCj4+ICsNCj4+ICAgc3RhdGljIHN0cnVjdCBpMmNfZHJpdmVyIG92OTY1eF9p
+MmNfZHJpdmVyID0gew0KPj4gICAJLmRyaXZlciA9IHsNCj4+ICAgCQkubmFtZQk9IERSSVZFUl9O
+QU1FLA0KPj4gKwkJLm9mX21hdGNoX3RhYmxlID0gb2ZfbWF0Y2hfcHRyKG92OTY1eF9vZl9tYXRj
+aCksDQo+PiAgIAl9LA0KPj4gICAJLnByb2JlCQk9IG92OTY1eF9wcm9iZSwNCj4+ICAgCS5yZW1v
+dmUJCT0gb3Y5NjV4X3JlbW92ZSwNCj4g
