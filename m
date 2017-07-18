@@ -1,90 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:46246 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751255AbdGPAnj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Jul 2017 20:43:39 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
-        rjkm@metzlerbros.de, d.scheller@gmx.net, crope@iki.fi,
-        jasmin@anw.at
-Subject: [PATCH V3 00/16] Fix coding style in en50221 CAM functions
-Date: Sun, 16 Jul 2017 02:43:01 +0200
-Message-Id: <1500165797-16987-1-git-send-email-jasmin@anw.at>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59241 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751371AbdGRKCH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Jul 2017 06:02:07 -0400
+Date: Tue, 18 Jul 2017 12:02:05 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
+Subject: Re: [RFC 11/13] gpio-switch is for some reason neccessary for camera
+ to work.
+Message-ID: <20170718100205.GA28301@amd>
+References: <20170214134019.GA8631@amd>
+ <20170717222051.byilkg3x7lljlyja@valkosipuli.retiisi.org.uk>
+ <20170718092753.GA17216@amd>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="BXVAT5kNtrzKuDFl"
+Content-Disposition: inline
+In-Reply-To: <20170718092753.GA17216@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
 
-Changes V2 to V3:
-Fixed the remarks from Antti Polosaari.
-Checked the code with checkpatch.pl -strict and fixed all the findings.
+--BXVAT5kNtrzKuDFl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-These patch series is the V3 version adapted to the already merged patches
-from V1 and other merged patches. It does no longer rename constants (see
-V1 of this series), as stated by Mauro as a no-go. It still fixed nearly
-all the style issues reported by checkpatch.pl in
-dvb-core/dvb_ca_en50221.c. In addtion also the checks have been fixed. I
-also renamed the patch title, because "Make checkpatch happy ?" is a bad
-title and checkpatch complained about it. I also refactored the state
-machine a bit more and added the new function dvb_ca_en50221_poll_cam_gone
-in a new patch.
- 
-Two of the remaining warnings are "WARNING: memory barrier without
-comment". I have really no clue why there is a call to "mb()" in that file,
-so I can't fill in a good comment.
- 
-I kept some of the "WARNING: line over 80 characters" findings, which are 
-strings for debugging, which shouldn't be split in several lines (will 
-give other warning). And some lines, where a change would decrease the
-readability. There it would be better to split the functions in new
-subroutines, which I currently didn't.
- 
-And finally one "WARNING: Prefer [subsystem eg: netdev]_dbg", complaining
-about the "dprintk" macro. In my opinion it is correctly used and it is
-normally disabled anyway.
- 
-The main problem of the original code was the size of the lines and the
-structural complexity of some functions. Beside refactoring of the thread
-state machine, I used in nearly every function a helper pointer "sl" (for
-"slot" structure) instead the whole structure path. This saved also a lot
-of characters in long lines and made the code more readable in my opinion.
- 
-I split the patch set is small pieces for easier review, compiled each
-step and tested the resulting driver on my hardware with the DD DuoFlex CI
-(single) card. I took a lot of care in the first two patches to really
-keep the code as is without loosing any line during refactoring.
+On Tue 2017-07-18 11:27:53, Pavel Machek wrote:
+> Hi!
+>=20
+> > On Tue, Feb 14, 2017 at 02:40:19PM +0100, Pavel Machek wrote:
+> > > Probably something fun happening in userspace.
+> >=20
+> > What's the status of this one?
+> >=20
+> > I don't think it has a chance to be merged in the foreseeable future. W=
+hy
+> > is it needed?
+>=20
+> Good question. And agreed that this one is not for merging. I suspect
+> something in my userspace depends on gpio-switch device being
+> present.
+>=20
+> I'll try to debug what is going on there once more.
 
-Each patch has been tested for compiling and is therefore bisect save.
-I also tested the complete patch set with two CAMs and did several plug-
-unplug cycles. And the CAM did decode the program as expected.
+I tried with current userspace, and to my surprise, both sdlcam and
+fcam-dev seem to work now. We can forget about this one.
 
-Additional note:
-In the first patch there are two checks "Logical continuations should be
-on the previous line" which can't be fixed easily without braking the 80
-col limit. Both of them will be resolved automatically with the 2nd patch
-"New function dvb_ca_en50221_poll_cam_gone".
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Jasmin Jessich (16):
-  [media] dvb-core/dvb_ca_en50221.c: Refactored dvb_ca_en50221_thread
-  [media] dvb-core/dvb_ca_en50221.c: New function dvb_ca_en50221_poll_cam_gone
-  [media] dvb-core/dvb_ca_en50221.c: use usleep_range
-  [media] dvb-core/dvb_ca_en50221.c: Fixed block comments
-  [media] dvb-core/dvb_ca_en50221.c: Avoid assignments in ifs
-  [media] dvb-core/dvb_ca_en50221.c: Used a helper variable
-  [media] dvb-core/dvb_ca_en50221.c: Added line breaks
-  [media] dvb-core/dvb_ca_en50221.c: Removed useless braces
-  [media] dvb-core/dvb_ca_en50221.c: Removed unused symbol
-  [media] dvb-core/dvb_ca_en50221.c: Fixed C++ comments
-  [media] dvb-core/dvb_ca_en50221.c: Fixed 80 char limit
-  [media] dvb-core/dvb_ca_en50221.c: Fixed typo
-  [media] dvb-core/dvb_ca_en50221.c: Fix again wrong EXPORT_SYMBOL order
-  [media] dvb-core/dvb_ca_en50221.c: Fixed remaining block comments
-  [media] dvb-core/dvb_ca_en50221.c: Fixed style issues on the whole file
-  [media] dvb-core/dvb_ca_en50221.c: Fixed multiple blank lines
+--BXVAT5kNtrzKuDFl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
- drivers/media/dvb-core/dvb_ca_en50221.c | 945 +++++++++++++++++---------------
- 1 file changed, 512 insertions(+), 433 deletions(-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
--- 
-2.7.4
+iEYEARECAAYFAllt3J0ACgkQMOfwapXb+vLvRACgq7ylsyHJNe3SEV9s/jPwyeJ6
+5zQAoLDXLmmbwjpjxLw0QAga6bYAKC8s
+=UdSz
+-----END PGP SIGNATURE-----
+
+--BXVAT5kNtrzKuDFl--
