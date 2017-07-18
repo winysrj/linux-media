@@ -1,116 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:44865 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751122AbdG0MZx (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:38526 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751508AbdGRLtY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Jul 2017 08:25:53 -0400
-Date: Thu, 27 Jul 2017 14:25:51 +0200
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Baruch Siach <baruch@tkos.co.il>
-Cc: Yong Deng <yong.deng@magewell.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Tue, 18 Jul 2017 07:49:24 -0400
+Subject: Re: [PATCH v6] media: platform: Renesas IMR driver
+To: Konstantin Kozhevnikov
+        <konstantin.kozhevnikov@cogentembedded.com>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
         Rob Herring <robh+dt@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benoit Parrot <bparrot@ti.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
-Message-ID: <20170727122551.qca4atjeet6whfrs@flea.lan>
-References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
- <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
- <20170727121644.jtpge4x432gfxhvw@tarshish>
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org
+References: <20170623203456.503714406@cogentembedded.com>
+ <589c2ca4-d1e7-86c3-1ef5-8831a54856ed@xs4all.nl>
+ <45854c21-f355-37e4-b677-dddb8222e719@cogentembedded.com>
+ <bb62b320-262b-0cc4-7da3-5b2c7f9c7535@cogentembedded.com>
+Cc: linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <bc926ba4-0c04-344e-329c-0aa1ded4ad94@xs4all.nl>
+Date: Tue, 18 Jul 2017 13:49:21 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="kjaywmgek52r2jvf"
-Content-Disposition: inline
-In-Reply-To: <20170727121644.jtpge4x432gfxhvw@tarshish>
+In-Reply-To: <bb62b320-262b-0cc4-7da3-5b2c7f9c7535@cogentembedded.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 08/07/17 15:31, Konstantin Kozhevnikov wrote:
+> Hello all,
+> 
+> the sample is made publicly available, and can be taken from https://github.com/CogentEmbedded/imr-sv-utest/blob/master/utest/utest-imr.c.
+> 
+> It doesn't show how luminance/chrominance correction actually works, however. That feature has been tested once a while ago, and probably we are going to release that soon.
+> 
+> Regarding usage of "chromacity" word in the comments, I actually meant "chrominance" or "chroma". The difference for non-native speaker is probably a bit vague, just like one between "luminance" and
+> "luminosity". In the R-Car manual it is referred to as "hue", but what is meant is the "luma" and "chroma". These short forms seem a bit weird to me, hence I was using the words "luminance" and
+> "chromacity". If that's confusing, I don't mind them be replaced with just "luma"/"chroma".
 
---kjaywmgek52r2jvf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+luma/chroma works well for me. 'chromacity' was confusing for me because it is close to
+'chromaticity' which is a valid word but it has a different meaning.
 
-On Thu, Jul 27, 2017 at 03:16:44PM +0300, Baruch Siach wrote:
-> Hi Yong,
->=20
-> I managed to get the Frame Done interrupt with the previous version of th=
-is=20
-> driver on the A33 OLinuXino. No data yet (all zeros). I'm still working o=
-n it.
->=20
-> One comment below.
->=20
-> On Thu, Jul 27, 2017 at 01:01:35PM +0800, Yong Deng wrote:
-> > Allwinner V3s SoC have two CSI module. CSI0 is used for MIPI interface
-> > and CSI1 is used for parallel interface. This is not documented in
-> > datasheet but by testing and guess.
-> >=20
-> > This patch implement a v4l2 framework driver for it.
-> >=20
-> > Currently, the driver only support the parallel interface. MIPI-CSI2,
-> > ISP's support are not included in this patch.
-> >=20
-> > Signed-off-by: Yong Deng <yong.deng@magewell.com>
-> > ---
->=20
-> [...]
->=20
-> > +static int update_buf_addr(struct sun6i_csi *csi, dma_addr_t addr)
-> > +{
-> > +	struct sun6i_csi_dev *sdev =3D sun6i_csi_to_dev(csi);
-> > +	/* transform physical address to bus address */
-> > +	dma_addr_t bus_addr =3D addr - 0x40000000;
->=20
-> What is the source of this magic number? Is it platform dependent? Are th=
-ere=20
-> other devices doing DMA that need this adjustment?
+> 
+> For documentation part, I am not 100% sure Renesas is okay with disclosing each and every detail, it might be the case we should obtain a permit from their legals. Still, I believe the person who is
+> about to use the driver is having an access to at least Technical Reference Manual of R-Car Gen2/3, so adding a reference to a chapter in TRM will most likely be sufficient.
 
-This is the RAM base address in most (but not all) Allwinner
-SoCs. You'll want to use PHYS_OFFSET instead.
+A reference to the TRM is fine. I assume people who write code for this will have the TRM
+available.
 
-Maxime
+Regarding the code: having that example code is certainly useful, but what I am really looking
+for is a code snippet that allocates and fills in the data to pass on with the ioctl.
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+Especially the handling of the 'type' field remains very fuzzy to me. Especially the fact
+that it is a bitmask is strange. Usually a type is an enum that defines how to interpret
+the struct (e.g. similar to type in struct v4l2_format). I get the feeling your mixing
+type with flags. Perhaps if you split it up into a type and flags field things will make
+more sense.
 
---kjaywmgek52r2jvf
-Content-Type: application/pgp-signature; name="signature.asc"
+> 
+> The question about usage of "user-pointer" buffers (V4L2_MEMORY_USERPTR) is a bit confusing. Indeed, right now we are using that scheme, though I wouldn't say we are absolutely required to do that.
+> Specifically, we are allocating the contiguous buffers using Renesas' proprietary "mmngr" driver (it's not a rocket science thing, but it's made proprietary for some reason). Then we are using the
+> buffers for various persons, both in EGL and in IMR. I guess we are okay with moving completely to DMA-fd (given the fact we have an accompanying driver "mmngrbuf" which serves for translation of
+> memory pointers to DMA-fds for further cross-process sharing and stuff). I mean, if USERPTR is tagged as an obsolete / deprecated function, we are fine with dropping it. However, there is one thing
+> I'd like to understand from V4L2 experts. I do see sometimes (during application closing or shortly after it) the bunches of warnings from kernel regarding "corrupted" MMU state (don't recall exactly,
+> but it sounds like page which is supposed to be free gets somehow corrupted). Is that something that is related to (mis)use of USERPTR? I was trying to find out if there is any memory corruption
+> caused by application logic, came to conclusion it's not. To me it looks like a race condition between unmapping of VMAs and V4L2 buffers deallocation which yields sometimes unpredictable results. Can
+> you please provide some details about possible issues with usage of USERPTR with DMA-contiguous buffer driver, it would be good to find a match.
 
------BEGIN PGP SIGNATURE-----
+I am not aware of any warnings like you described.
 
-iQIcBAEBAgAGBQJZedvPAAoJEBx+YmzsjxAgP94P/1fQruY4FKlKe2YnwKC7rjlE
-QHG/nsWmhbLNDCljxATG7kpe7784R2ec3Ib+HMUM+tAkWIQ50HM/ZTBalSHx5Im+
-CDy6+PUL062QMfCY6FcueNtTNfq05SpFE9//KQThyR53DYyItTihoQUGFr5eaNmz
-lQSFvGIkcv6cmlpFGwdVH8aZiYrgsaDq4nkmeuhjhwi7WUuaLDzVJ92H4i/Z4cg7
-1rdo8GVz38j2vPJ2SlYqN+izrl9D+65wxH/HcY/tSgKhf5HF9IiNd4cDmcD7bWgJ
-MMbjRjWU6N51ct5XXF6xIvs/vHvSZHVt0noc9EWfu633GbVe3LVQMzw09zU9DVF+
-AE6WWVZUgSTRJZg08an+98Qam57ShbDrxJH6xMMOAxPpUY9jm94r0a1vX2a4DEzn
-Dsw9FVrpP3y1ACWVPlqIIrVIOVlNIalrFvAm4d2zNAG+cvLjlkch8VAJgpO7mUmB
-Qq1VGB6Mt9anODLJ71MSYAU1MXvdv22c4XR68F3xTl8e5Yqy6fsM96V0vHpEhk/+
-6wws8N8cR7P4WzPwiawUHXdwPvyxyAzUk8Hpier34nySB71k/R8koVgpgFWSb36n
-bL9mnDb3Yf6jRcS/5ZO4zN0hUYBqaJSuhdtegAdYx8l463FQ47llhIj5tYJt2qN6
-M1qzGQrJJdQ03CkWDPR1
-=EJEd
------END PGP SIGNATURE-----
+Originally USERPTR was designed to be used with scatter-gather DMA engines. It requires
+a really good DMA engine that is able to handle partial pages and address alignments
+of 8 bytes or less. That way it allowed userspace to use malloc to allocate the buffers.
 
---kjaywmgek52r2jvf--
+Later it was abused for embedded systems that used contiguous DMA but had special code
+that carved out memory. Userspace would pass a pointer to the driver using the USERPTR
+API and the driver would verify that it indeed pointed to physically contiguous memory.
+
+When dmabuf came along (together with the CMA subsystem) the need for abusing USERPTR
+in that way disappeared and our recommendation for new drivers is to always support
+DMABUF and only use USERPTR if the hardware can *really* handle malloc()ed buffers.
+
+I.e. without special alignment requirements such as the buffer must start at a page
+boundary. Most hardware fails that test.
+
+In practice we discourage the use of USERPTR for embedded systems.
+
+Apologies for the delay in replying, I was on vacation last week.
+
+Regards,
+
+	Hans
