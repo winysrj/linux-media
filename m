@@ -1,77 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44160 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59670 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751384AbdGQWBT (ORCPT
+        by vger.kernel.org with ESMTP id S1751436AbdGRSlJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 18:01:19 -0400
+        Tue, 18 Jul 2017 14:41:09 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: pavel@ucw.cz, linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [PATCH 3/7] omap3isp: Correctly set IO_OUT_SEL and VP_CLK_POL for CCP2 mode
-Date: Tue, 18 Jul 2017 01:01:12 +0300
-Message-Id: <20170717220116.17886-4-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170717220116.17886-1-sakari.ailus@linux.intel.com>
-References: <20170717220116.17886-1-sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: linux-leds@vger.kernel.org, jacek.anaszewski@gmail.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [PATCH 0/2] Create sub-device per LED
+Date: Tue, 18 Jul 2017 21:41:05 +0300
+Message-Id: <20170718184107.10598-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pavel Machek <pavel@ucw.cz>
+Hi folks,
 
-ISP CSI1 module needs all the bits correctly set to work.
+The original design decision in the V4L2 flash API allows controlling a two
+LEDs (an indicator and a flash) through a single sub-device. This covered
+virtually all flash driver chips back then but this no longer holds as
+there are many LED driver chips with multiple flash LED outputs. This
+necessitates creating as many sub-devices as there are flash LEDs.
 
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/platform/omap3isp/ispccp2.c | 7 +++++--
- drivers/media/platform/omap3isp/ispreg.h  | 4 ++++
- 2 files changed, 9 insertions(+), 2 deletions(-)
+Additionally the flash LEDs can be associated to different sensors. This is
+not unconceivable although not very probable.
 
-diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
-index 588f67a89f79..4f8fd0c00748 100644
---- a/drivers/media/platform/omap3isp/ispccp2.c
-+++ b/drivers/media/platform/omap3isp/ispccp2.c
-@@ -213,14 +213,17 @@ static int ccp2_phyif_config(struct isp_ccp2_device *ccp2,
- 	struct isp_device *isp = to_isp_device(ccp2);
- 	u32 val;
- 
--	/* CCP2B mode */
- 	val = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_CTRL) |
--			    ISPCCP2_CTRL_IO_OUT_SEL | ISPCCP2_CTRL_MODE;
-+			    ISPCCP2_CTRL_MODE;
- 	/* Data/strobe physical layer */
- 	BIT_SET(val, ISPCCP2_CTRL_PHY_SEL_SHIFT, ISPCCP2_CTRL_PHY_SEL_MASK,
- 		buscfg->phy_layer);
-+	BIT_SET(val, ISPCCP2_CTRL_IO_OUT_SEL_SHIFT,
-+		ISPCCP2_CTRL_IO_OUT_SEL_MASK, buscfg->ccp2_mode);
- 	BIT_SET(val, ISPCCP2_CTRL_INV_SHIFT, ISPCCP2_CTRL_INV_MASK,
- 		buscfg->strobe_clk_pol);
-+	BIT_SET(val, ISPCCP2_CTRL_VP_CLK_POL_SHIFT,
-+		ISPCCP2_CTRL_VP_CLK_POL_MASK, buscfg->vp_clk_pol);
- 	isp_reg_writel(isp, val, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_CTRL);
- 
- 	val = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_CTRL);
-diff --git a/drivers/media/platform/omap3isp/ispreg.h b/drivers/media/platform/omap3isp/ispreg.h
-index b5ea8da0b904..d08483919a77 100644
---- a/drivers/media/platform/omap3isp/ispreg.h
-+++ b/drivers/media/platform/omap3isp/ispreg.h
-@@ -87,6 +87,8 @@
- #define ISPCCP2_CTRL_PHY_SEL_MASK	0x1
- #define ISPCCP2_CTRL_PHY_SEL_SHIFT	1
- #define ISPCCP2_CTRL_IO_OUT_SEL		(1 << 2)
-+#define ISPCCP2_CTRL_IO_OUT_SEL_MASK	0x1
-+#define ISPCCP2_CTRL_IO_OUT_SEL_SHIFT	2
- #define ISPCCP2_CTRL_MODE		(1 << 4)
- #define ISPCCP2_CTRL_VP_CLK_FORCE_ON	(1 << 9)
- #define ISPCCP2_CTRL_INV		(1 << 10)
-@@ -94,6 +96,8 @@
- #define ISPCCP2_CTRL_INV_SHIFT		10
- #define ISPCCP2_CTRL_VP_ONLY_EN		(1 << 11)
- #define ISPCCP2_CTRL_VP_CLK_POL		(1 << 12)
-+#define ISPCCP2_CTRL_VP_CLK_POL_MASK	0x1
-+#define ISPCCP2_CTRL_VP_CLK_POL_SHIFT	12
- #define ISPCCP2_CTRL_VPCLK_DIV_SHIFT	15
- #define ISPCCP2_CTRL_VPCLK_DIV_MASK	0x1ffff /* [31:15] */
- #define ISPCCP2_CTRL_VP_OUT_CTRL_SHIFT	8 /* 3430 bits */
+This patchset splits the indicator and flash LEDs exposed by the V4L2 flash
+class framework into multiple sub-devices. This way the driver creates the
+sub-devices individually for each LED which will also facilitate fwnode
+matching (e.g. will you refer to LED or a LED driver chip with a phandle?).
+
+I'll post that set soonish.
+
+These go on top of the other flash patches here:
+
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=for-4.14-2>
+
+Sakari Ailus (2):
+  staging: greybus: light: Don't leak memory for no gain
+  v4l2-flash-led-class: Create separate sub-devices for indicators
+
+ drivers/leds/leds-aat1290.c                    |   4 +-
+ drivers/leds/leds-max77693.c                   |   4 +-
+ drivers/media/v4l2-core/v4l2-flash-led-class.c | 112 +++++++++++++++----------
+ drivers/staging/greybus/light.c                |  33 +++++---
+ include/media/v4l2-flash-led-class.h           |  41 ++++++---
+ 5 files changed, 119 insertions(+), 75 deletions(-)
+
 -- 
 2.11.0
