@@ -1,199 +1,267 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:44926 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754986AbdGKLUZ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59948 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751689AbdGRTEE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 07:20:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Tue, 18 Jul 2017 15:04:04 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Eric Anholt <eric@anholt.net>, dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/4] drm/vc4: Add register defines for CEC.
-Date: Tue, 11 Jul 2017 13:20:20 +0200
-Message-Id: <20170711112021.38525-4-hverkuil@xs4all.nl>
-In-Reply-To: <20170711112021.38525-1-hverkuil@xs4all.nl>
-References: <20170711112021.38525-1-hverkuil@xs4all.nl>
+Cc: linux-leds@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        niklas.soderlund@ragnatech.se, hverkuil@xs4all.nl,
+        =?ISO-8859-1?q?Niklas=20S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [RFC 02/19] v4l: async: add subnotifier registration for subdevices
+Date: Tue, 18 Jul 2017 22:03:44 +0300
+Message-Id: <20170718190401.14797-3-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
+References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Eric Anholt <eric@anholt.net>
+From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Basic usage:
+When the registered() callback of v4l2_subdev_internal_ops is called the
+subdevice has access to the master devices v4l2_dev and it's called with
+the async frameworks list_lock held. In this context the subdevice can
+register its own notifiers to allow for incremental discovery of
+subdevices.
 
-poweron: HSM clock should be running.  Set the bit clock divider,
-set all the other _US timeouts based on bit clock rate.  Bring RX/TX
-reset up and then down.
+The master device registers the subdevices closest to itself in its
+notifier while the subdevice(s) register notifiers for their closest
+neighboring devices when they are registered. Using this incremental
+approach two problems can be solved:
 
-powerdown: Set RX/TX reset.
+1. The master device no longer has to care how many devices exist in
+   the pipeline. It only needs to care about its closest subdevice and
+   arbitrary long pipelines can be created without having to adapt the
+   master device for each case.
 
-interrupt: read CPU_STATUS, write bits that have been handled to
-CPU_CLEAR.
+2. Subdevices which are represented as a single DT node but register
+   more than one subdevice can use this to improve the pipeline
+   discovery, since the subdevice driver is the only one who knows which
+   of its subdevices is linked with which subdevice of a neighboring DT
+   node.
 
-Bits are added to /debug/dri/0/hdmi_regs so you can check out the
-power-on values.
+To enable subdevices to register/unregister notifiers from the
+registered()/unregistered() callback v4l2_async_subnotifier_register()
+and v4l2_async_subnotifier_unregister() are added. These new notifier
+register functions are similar to the master device equivalent functions
+but run without taking the v4l2-async list_lock which already is held
+when the registered()/unregistered() callbacks are called.
 
-Signed-off-by: Eric Anholt <eric@anholt.net>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/gpu/drm/vc4/vc4_hdmi.c |  16 ++++++
- drivers/gpu/drm/vc4/vc4_regs.h | 108 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 124 insertions(+)
+ Documentation/media/kapi/v4l2-subdev.rst | 20 ++++++++++
+ drivers/media/v4l2-core/v4l2-async.c     | 65 +++++++++++++++++++++++++++-----
+ include/media/v4l2-async.h               | 22 +++++++++++
+ 3 files changed, 98 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/gpu/drm/vc4/vc4_hdmi.c b/drivers/gpu/drm/vc4/vc4_hdmi.c
-index e0104f96011e..b0521e6cc281 100644
---- a/drivers/gpu/drm/vc4/vc4_hdmi.c
-+++ b/drivers/gpu/drm/vc4/vc4_hdmi.c
-@@ -149,6 +149,22 @@ static const struct {
- 	HDMI_REG(VC4_HDMI_VERTB1),
- 	HDMI_REG(VC4_HDMI_TX_PHY_RESET_CTL),
- 	HDMI_REG(VC4_HDMI_TX_PHY_CTL0),
+diff --git a/Documentation/media/kapi/v4l2-subdev.rst b/Documentation/media/kapi/v4l2-subdev.rst
+index e1f0b726e438..e308f30887a8 100644
+--- a/Documentation/media/kapi/v4l2-subdev.rst
++++ b/Documentation/media/kapi/v4l2-subdev.rst
+@@ -262,6 +262,26 @@ is called. After all subdevices have been located the .complete() callback is
+ called. When a subdevice is removed from the system the .unbind() method is
+ called. All three callbacks are optional.
+ 
++Subdevice drivers might in turn register subnotifier objects with an
++array of other subdevice descriptors that the subdevice needs for its
++own operation. Subnotifiers are an extension of the bridge drivers
++notifier to allow for a incremental registering and matching of
++subdevices. This is useful when a driver only has information about
++which subdevice is closest to itself and would require knowledge from the
++driver of that subdevice to know which other subdevice(s) lie beyond.
++By registering subnotifiers drivers can incrementally move the subdevice
++matching down the chain of drivers. This is performed using the
++:c:func:`v4l2_async_subnotifier_register` call. To unregister the
++subnotifier the driver has to call
++:c:func:`v4l2_async_subnotifier_unregister`. These functions and their
++arguments behave almost the same as the bridge driver notifiers
++described above and are treated equally by the V4L2 core when matching
++asynchronously registered subdevices. The differences are that the
++subnotifier functions act on :c:type:`v4l2_subdev` instead of
++:c:type:`v4l2_device` and that they should be called from the subdevice's
++``.registered()`` and ``.unregistered()``
++:c:type:`v4l2_subdev_internal_ops` callbacks instead of at probe time.
 +
-+	HDMI_REG(VC4_HDMI_CEC_CNTRL_1),
-+	HDMI_REG(VC4_HDMI_CEC_CNTRL_2),
-+	HDMI_REG(VC4_HDMI_CEC_CNTRL_3),
-+	HDMI_REG(VC4_HDMI_CEC_CNTRL_4),
-+	HDMI_REG(VC4_HDMI_CEC_CNTRL_5),
-+	HDMI_REG(VC4_HDMI_CPU_STATUS),
+ V4L2 sub-device userspace API
+ -----------------------------
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 268e19724809..d2ce39ac402e 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -163,8 +163,9 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
+ 	sd->dev = NULL;
+ }
+ 
+-int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+-				 struct v4l2_async_notifier *notifier)
++static int v4l2_async_do_notifier_register(struct v4l2_device *v4l2_dev,
++					   struct v4l2_async_notifier *notifier,
++					   bool subnotifier)
+ {
+ 	struct v4l2_subdev *sd, *tmp;
+ 	struct v4l2_async_subdev *asd;
+@@ -196,8 +197,17 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 		list_add_tail(&asd->list, &notifier->waiting);
+ 	}
+ 
+-	mutex_lock(&list_lock);
++	if (subnotifier)
++		lockdep_assert_held(&list_lock);
++	else
++		mutex_lock(&list_lock);
+ 
++	/*
++	 * This function can be called recursively so the list
++	 * might be modified in a recursive call. Start from the
++	 * top of the list each iteration.
++	 */
++again:
+ 	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+ 		int ret;
+ 
+@@ -207,21 +217,39 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 
+ 		ret = v4l2_async_test_notify(notifier, sd, asd);
+ 		if (ret < 0) {
+-			mutex_unlock(&list_lock);
++			if (!subnotifier)
++				mutex_unlock(&list_lock);
+ 			return ret;
+ 		}
++		goto again;
+ 	}
+ 
+ 	/* Keep also completed notifiers on the list */
+ 	list_add(&notifier->list, &notifier_list);
+ 
+-	mutex_unlock(&list_lock);
++	if (!subnotifier)
++		mutex_unlock(&list_lock);
+ 
+ 	return 0;
+ }
 +
-+	HDMI_REG(VC4_HDMI_CEC_RX_DATA_1),
-+	HDMI_REG(VC4_HDMI_CEC_RX_DATA_2),
-+	HDMI_REG(VC4_HDMI_CEC_RX_DATA_3),
-+	HDMI_REG(VC4_HDMI_CEC_RX_DATA_4),
-+	HDMI_REG(VC4_HDMI_CEC_TX_DATA_1),
-+	HDMI_REG(VC4_HDMI_CEC_TX_DATA_2),
-+	HDMI_REG(VC4_HDMI_CEC_TX_DATA_3),
-+	HDMI_REG(VC4_HDMI_CEC_TX_DATA_4),
++int v4l2_async_subnotifier_register(struct v4l2_subdev *sd,
++				    struct v4l2_async_notifier *notifier)
++{
++	return v4l2_async_do_notifier_register(sd->v4l2_dev, notifier, true);
++}
++EXPORT_SYMBOL(v4l2_async_subnotifier_register);
++
++int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
++				 struct v4l2_async_notifier *notifier)
++{
++	return v4l2_async_do_notifier_register(v4l2_dev, notifier, false);
++}
+ EXPORT_SYMBOL(v4l2_async_notifier_register);
+ 
+-void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
++static void
++v4l2_async_do_notifier_unregister(struct v4l2_async_notifier *notifier,
++				  bool subnotifier)
+ {
+ 	struct v4l2_subdev *sd, *tmp;
+ 	unsigned int notif_n_subdev = notifier->num_subdevs;
+@@ -238,7 +266,10 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 			"Failed to allocate device cache!\n");
+ 	}
+ 
+-	mutex_lock(&list_lock);
++	if (subnotifier)
++		lockdep_assert_held(&list_lock);
++	else
++		mutex_lock(&list_lock);
+ 
+ 	list_del(&notifier->list);
+ 
+@@ -265,15 +296,20 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 			put_device(d);
+ 	}
+ 
+-	mutex_unlock(&list_lock);
++	if (!subnotifier)
++		mutex_unlock(&list_lock);
+ 
+ 	/*
+ 	 * Call device_attach() to reprobe devices
+ 	 *
+ 	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
+ 	 * executed.
++	 * TODO: If we are unregistering a subdevice notifier we can't reprobe
++	 * since the lock_list is held by the master device and attaching that
++	 * device would call v4l2_async_register_subdev() and end in a deadlock
++	 * on list_lock.
+ 	 */
+-	while (i--) {
++	while (i-- && !subnotifier) {
+ 		struct device *d = dev[i];
+ 
+ 		if (d && device_attach(d) < 0) {
+@@ -297,6 +333,17 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 	 * upon notifier registration.
+ 	 */
+ }
++
++void v4l2_async_subnotifier_unregister(struct v4l2_async_notifier *notifier)
++{
++	v4l2_async_do_notifier_unregister(notifier, true);
++}
++EXPORT_SYMBOL(v4l2_async_subnotifier_unregister);
++
++void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
++{
++	v4l2_async_do_notifier_unregister(notifier, false);
++}
+ EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+ 
+ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 056cae0af2f0..8c7519fce5b9 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -105,6 +105,18 @@ struct v4l2_async_notifier {
  };
  
- static const struct {
-diff --git a/drivers/gpu/drm/vc4/vc4_regs.h b/drivers/gpu/drm/vc4/vc4_regs.h
-index d382c34c1b9e..b18cc20ee185 100644
---- a/drivers/gpu/drm/vc4/vc4_regs.h
-+++ b/drivers/gpu/drm/vc4/vc4_regs.h
-@@ -561,16 +561,124 @@
- # define VC4_HDMI_VERTB_VBP_MASK		VC4_MASK(8, 0)
- # define VC4_HDMI_VERTB_VBP_SHIFT		0
- 
-+#define VC4_HDMI_CEC_CNTRL_1			0x0e8
-+/* Set when the transmission has ended. */
-+# define VC4_HDMI_CEC_TX_EOM			BIT(31)
-+/* If set, transmission was acked on the 1st or 2nd attempt (only one
-+ * retry is attempted).  If in continuous mode, this means TX needs to
-+ * be filled if !TX_EOM.
-+ */
-+# define VC4_HDMI_CEC_TX_STATUS_GOOD		BIT(30)
-+# define VC4_HDMI_CEC_RX_EOM			BIT(29)
-+# define VC4_HDMI_CEC_RX_STATUS_GOOD		BIT(28)
-+/* Number of bytes received for the message. */
-+# define VC4_HDMI_CEC_REC_WRD_CNT_MASK		VC4_MASK(27, 24)
-+# define VC4_HDMI_CEC_REC_WRD_CNT_SHIFT		24
-+/* Sets continuous receive mode.  Generates interrupt after each 8
-+ * bytes to signal that RX_DATA should be consumed, and at RX_EOM.
+ /**
++ * v4l2_async_notifier_register - registers a subdevice asynchronous subnotifier
 + *
-+ * If disabled, maximum 16 bytes will be received (including header),
-+ * and interrupt at RX_EOM.  Later bytes will be acked but not put
-+ * into the RX_DATA.
++ * @sd: pointer to &struct v4l2_subdev
++ * @notifier: pointer to &struct v4l2_async_notifier
++ *
++ * This function assumes the async list_lock is already locked, allowing it to
++ * be used from the struct v4l2_subdev_internal_ops registered() callback.
 + */
-+# define VC4_HDMI_CEC_RX_CONTINUE		BIT(23)
-+# define VC4_HDMI_CEC_TX_CONTINUE		BIT(22)
-+/* Set this after a CEC interrupt. */
-+# define VC4_HDMI_CEC_CLEAR_RECEIVE_OFF		BIT(21)
-+/* Starts a TX.  Will wait for appropriate idel time before CEC
-+ * activity. Must be cleared in between transmits.
-+ */
-+# define VC4_HDMI_CEC_START_XMIT_BEGIN		BIT(20)
-+# define VC4_HDMI_CEC_MESSAGE_LENGTH_MASK	VC4_MASK(19, 16)
-+# define VC4_HDMI_CEC_MESSAGE_LENGTH_SHIFT	16
-+/* Device's CEC address */
-+# define VC4_HDMI_CEC_ADDR_MASK			VC4_MASK(15, 12)
-+# define VC4_HDMI_CEC_ADDR_SHIFT		12
-+/* Divides off of HSM clock to generate CEC bit clock. */
-+# define VC4_HDMI_CEC_DIV_CLK_CNT_MASK		VC4_MASK(11, 0)
-+# define VC4_HDMI_CEC_DIV_CLK_CNT_SHIFT		0
++int v4l2_async_subnotifier_register(struct v4l2_subdev *sd,
++				    struct v4l2_async_notifier *notifier);
 +
-+/* Set these fields to how many bit clock cycles get to that many
-+ * microseconds.
-+ */
-+#define VC4_HDMI_CEC_CNTRL_2			0x0ec
-+# define VC4_HDMI_CEC_CNT_TO_1500_US_MASK	VC4_MASK(30, 24)
-+# define VC4_HDMI_CEC_CNT_TO_1500_US_SHIFT	24
-+# define VC4_HDMI_CEC_CNT_TO_1300_US_MASK	VC4_MASK(23, 17)
-+# define VC4_HDMI_CEC_CNT_TO_1300_US_SHIFT	17
-+# define VC4_HDMI_CEC_CNT_TO_800_US_MASK	VC4_MASK(16, 11)
-+# define VC4_HDMI_CEC_CNT_TO_800_US_SHIFT	11
-+# define VC4_HDMI_CEC_CNT_TO_600_US_MASK	VC4_MASK(10, 5)
-+# define VC4_HDMI_CEC_CNT_TO_600_US_SHIFT	5
-+# define VC4_HDMI_CEC_CNT_TO_400_US_MASK	VC4_MASK(4, 0)
-+# define VC4_HDMI_CEC_CNT_TO_400_US_SHIFT	0
-+
-+#define VC4_HDMI_CEC_CNTRL_3			0x0f0
-+# define VC4_HDMI_CEC_CNT_TO_2750_US_MASK	VC4_MASK(31, 24)
-+# define VC4_HDMI_CEC_CNT_TO_2750_US_SHIFT	24
-+# define VC4_HDMI_CEC_CNT_TO_2400_US_MASK	VC4_MASK(23, 16)
-+# define VC4_HDMI_CEC_CNT_TO_2400_US_SHIFT	16
-+# define VC4_HDMI_CEC_CNT_TO_2050_US_MASK	VC4_MASK(15, 8)
-+# define VC4_HDMI_CEC_CNT_TO_2050_US_SHIFT	8
-+# define VC4_HDMI_CEC_CNT_TO_1700_US_MASK	VC4_MASK(7, 0)
-+# define VC4_HDMI_CEC_CNT_TO_1700_US_SHIFT	0
-+
-+#define VC4_HDMI_CEC_CNTRL_4			0x0f4
-+# define VC4_HDMI_CEC_CNT_TO_4300_US_MASK	VC4_MASK(31, 24)
-+# define VC4_HDMI_CEC_CNT_TO_4300_US_SHIFT	24
-+# define VC4_HDMI_CEC_CNT_TO_3900_US_MASK	VC4_MASK(23, 16)
-+# define VC4_HDMI_CEC_CNT_TO_3900_US_SHIFT	16
-+# define VC4_HDMI_CEC_CNT_TO_3600_US_MASK	VC4_MASK(15, 8)
-+# define VC4_HDMI_CEC_CNT_TO_3600_US_SHIFT	8
-+# define VC4_HDMI_CEC_CNT_TO_3500_US_MASK	VC4_MASK(7, 0)
-+# define VC4_HDMI_CEC_CNT_TO_3500_US_SHIFT	0
-+
-+#define VC4_HDMI_CEC_CNTRL_5			0x0f8
-+# define VC4_HDMI_CEC_TX_SW_RESET		BIT(27)
-+# define VC4_HDMI_CEC_RX_SW_RESET		BIT(26)
-+# define VC4_HDMI_CEC_PAD_SW_RESET		BIT(25)
-+# define VC4_HDMI_CEC_MUX_TP_OUT_CEC		BIT(24)
-+# define VC4_HDMI_CEC_RX_CEC_INT		BIT(23)
-+# define VC4_HDMI_CEC_CLK_PRELOAD_MASK		VC4_MASK(22, 16)
-+# define VC4_HDMI_CEC_CLK_PRELOAD_SHIFT		16
-+# define VC4_HDMI_CEC_CNT_TO_4700_US_MASK	VC4_MASK(15, 8)
-+# define VC4_HDMI_CEC_CNT_TO_4700_US_SHIFT	8
-+# define VC4_HDMI_CEC_CNT_TO_4500_US_MASK	VC4_MASK(7, 0)
-+# define VC4_HDMI_CEC_CNT_TO_4500_US_SHIFT	0
-+
-+/* Transmit data, first byte is low byte of the 32-bit reg.  MSB of
-+ * each byte transmitted first.
-+ */
-+#define VC4_HDMI_CEC_TX_DATA_1			0x0fc
-+#define VC4_HDMI_CEC_TX_DATA_2			0x100
-+#define VC4_HDMI_CEC_TX_DATA_3			0x104
-+#define VC4_HDMI_CEC_TX_DATA_4			0x108
-+#define VC4_HDMI_CEC_RX_DATA_1			0x10c
-+#define VC4_HDMI_CEC_RX_DATA_2			0x110
-+#define VC4_HDMI_CEC_RX_DATA_3			0x114
-+#define VC4_HDMI_CEC_RX_DATA_4			0x118
-+
- #define VC4_HDMI_TX_PHY_RESET_CTL		0x2c0
++/**
+  * v4l2_async_notifier_register - registers a subdevice asynchronous notifier
+  *
+  * @v4l2_dev: pointer to &struct v4l2_device
+@@ -114,6 +126,16 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 				 struct v4l2_async_notifier *notifier);
  
- #define VC4_HDMI_TX_PHY_CTL0			0x2c4
- # define VC4_HDMI_TX_PHY_RNG_PWRDN		BIT(25)
- 
-+/* Interrupt status bits */
-+#define VC4_HDMI_CPU_STATUS			0x340
-+#define VC4_HDMI_CPU_SET			0x344
-+#define VC4_HDMI_CPU_CLEAR			0x348
-+# define VC4_HDMI_CPU_CEC			BIT(6)
-+# define VC4_HDMI_CPU_HOTPLUG			BIT(0)
+ /**
++ * v4l2_async_subnotifier_unregister - unregisters a asynchronous subnotifier
++ *
++ * @notifier: pointer to &struct v4l2_async_notifier
++ *
++ * This function assumes the async list_lock is already locked, allowing it to
++ * be used from the struct v4l2_subdev_internal_ops unregistered() callback.
++ */
++void v4l2_async_subnotifier_unregister(struct v4l2_async_notifier *notifier);
 +
- #define VC4_HDMI_GCP(x)				(0x400 + ((x) * 0x4))
- #define VC4_HDMI_RAM_PACKET(x)			(0x400 + ((x) * 0x24))
- #define VC4_HDMI_PACKET_STRIDE			0x24
- 
- #define VC4_HD_M_CTL				0x00c
-+/* Debug: Current receive value on the CEC pad. */
-+# define VC4_HD_CECRXD				BIT(9)
-+/* Debug: Override CEC output to 0. */
-+# define VC4_HD_CECOVR				BIT(8)
- # define VC4_HD_M_REGISTER_FILE_STANDBY		(3 << 6)
- # define VC4_HD_M_RAM_STANDBY			(3 << 4)
- # define VC4_HD_M_SW_RST			BIT(2)
++/**
+  * v4l2_async_notifier_unregister - unregisters a subdevice asynchronous notifier
+  *
+  * @notifier: pointer to &struct v4l2_async_notifier
 -- 
 2.11.0
