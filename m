@@ -1,37 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36106 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751065AbdG3NRY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 30 Jul 2017 09:17:24 -0400
-Date: Sun, 30 Jul 2017 21:16:25 +0800
-From: Shawn Guo <shawnguo@kernel.org>
-To: Sean Young <sean@mess.org>
-Cc: devicetree@vger.kernel.org,
-        Baoyou Xie <xie.baoyou@sanechips.com.cn>,
-        Rob Herring <robh+dt@kernel.org>,
-        Xin Zhou <zhou.xin8@sanechips.com.cn>,
-        Jun Nie <jun.nie@linaro.org>, Shawn Guo <shawn.guo@linaro.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] rc: add zx-irdec remote control driver
-Message-ID: <20170730131624.GK29754@dragon>
-References: <1501309902-7559-1-git-send-email-shawnguo@kernel.org>
- <1501309902-7559-3-git-send-email-shawnguo@kernel.org>
- <20170729095113.g6hrb3qffi7qcaxx@gofer.mess.org>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:36549 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751189AbdGRHhe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Jul 2017 03:37:34 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.14] New adv748x driver
+Message-ID: <58b3b3ef-3487-cfb4-04e2-45411a5fa107@xs4all.nl>
+Date: Tue, 18 Jul 2017 09:37:30 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170729095113.g6hrb3qffi7qcaxx@gofer.mess.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean,
+The following changes since commit a3db9d60a118571e696b684a6e8c692a2b064941:
 
-On Sat, Jul 29, 2017 at 10:51:13AM +0100, Sean Young wrote:
-> Hi Shawn,
-> 
-> The driver looks great! Just a minor point, see below.
+  Merge tag 'v4.13-rc1' into patchwork (2017-07-17 11:17:36 -0300)
 
-Thanks for taking time to look at the patch.  I appreciate your review
-comments, and will post v2 that addressed them shortly.  Thanks.
+are available in the git repository at:
 
-Shawn
+  git://linuxtv.org/hverkuil/media_tree.git adv748x
+
+for you to fetch changes up to 5376ca8bf478886a495798f39a7648f78337c8b9:
+
+  MAINTAINERS: Add ADV748x driver (2017-07-18 09:05:49 +0200)
+
+----------------------------------------------------------------
+Kieran Bingham (3):
+      media: adv748x: Add adv7481, adv7482 bindings
+      media: i2c: adv748x: add adv748x driver
+      MAINTAINERS: Add ADV748x driver
+
+ Documentation/devicetree/bindings/media/i2c/adv748x.txt |  95 ++++++++
+ MAINTAINERS                                             |   6 +
+ drivers/media/i2c/Kconfig                               |  12 ++
+ drivers/media/i2c/Makefile                              |   1 +
+ drivers/media/i2c/adv748x/Makefile                      |   7 +
+ drivers/media/i2c/adv748x/adv748x-afe.c                 | 552 +++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/i2c/adv748x/adv748x-core.c                | 832 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/i2c/adv748x/adv748x-csi2.c                | 327 ++++++++++++++++++++++++++++
+ drivers/media/i2c/adv748x/adv748x-hdmi.c                | 768 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/i2c/adv748x/adv748x.h                     | 425 ++++++++++++++++++++++++++++++++++++
+ 10 files changed, 3025 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/adv748x.txt
+ create mode 100644 drivers/media/i2c/adv748x/Makefile
+ create mode 100644 drivers/media/i2c/adv748x/adv748x-afe.c
+ create mode 100644 drivers/media/i2c/adv748x/adv748x-core.c
+ create mode 100644 drivers/media/i2c/adv748x/adv748x-csi2.c
+ create mode 100644 drivers/media/i2c/adv748x/adv748x-hdmi.c
+ create mode 100644 drivers/media/i2c/adv748x/adv748x.h
