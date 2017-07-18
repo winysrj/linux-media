@@ -1,140 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57871 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751462AbdGROig (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:35768 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751338AbdGRQ3Q (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 10:38:36 -0400
-Subject: Re: [PATCH v4 2/2] media: entity: Add media_entity_get_fwnode_pad()
- function
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20170615091726.22370-1-niklas.soderlund+renesas@ragnatech.se>
- <20170615091726.22370-3-niklas.soderlund+renesas@ragnatech.se>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <ae0bebb9-63f2-8ed8-88b0-a23fe42a1b72@ideasonboard.com>
-Date: Tue, 18 Jul 2017 15:38:31 +0100
+        Tue, 18 Jul 2017 12:29:16 -0400
+Date: Tue, 18 Jul 2017 18:29:14 +0200
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Subject: Re: [PATCH 00/11] drm/sun4i: add CEC support
+Message-ID: <20170718162914.3zok2ll3ee2mwlte@flea>
+References: <20170711063044.29849-1-hverkuil@xs4all.nl>
+ <20170711203917.gcpod5gcsy6zbkyx@flea>
+ <33287848-2050-e36a-05a4-f27487358d5e@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20170615091726.22370-3-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="m4ghusgasvvy4zly"
+Content-Disposition: inline
+In-Reply-To: <33287848-2050-e36a-05a4-f27487358d5e@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
 
-Small spelling error discovered in here:
+--m4ghusgasvvy4zly
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 15/06/17 10:17, Niklas Söderlund wrote:
-> This is a wrapper around the media entity get_fwnode_pad operation.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/media-entity.c | 36 ++++++++++++++++++++++++++++++++++++
->  include/media/media-entity.h | 23 +++++++++++++++++++++++
->  2 files changed, 59 insertions(+)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index bc44193efa4798b4..82d6755bd5d0d5f0 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -18,6 +18,7 @@
->  
->  #include <linux/bitmap.h>
->  #include <linux/module.h>
-> +#include <linux/property.h>
->  #include <linux/slab.h>
->  #include <media/media-entity.h>
->  #include <media/media-device.h>
-> @@ -386,6 +387,41 @@ struct media_entity *media_graph_walk_next(struct media_graph *graph)
->  }
->  EXPORT_SYMBOL_GPL(media_graph_walk_next);
->  
-> +int media_entity_get_fwnode_pad(struct media_entity *entity,
-> +				struct fwnode_handle *fwnode,
+Hi,
 
-Could fwnode be 'ep' or such to show that we want the pad of the remote endpoint?
+On Tue, Jul 11, 2017 at 11:06:52PM +0200, Hans Verkuil wrote:
+> On 11/07/17 22:39, Maxime Ripard wrote:
+> > On Tue, Jul 11, 2017 at 08:30:33AM +0200, Hans Verkuil wrote:
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>
+> >> This patch series adds CEC support for the sun4i HDMI controller.
+> >>
+> >> The CEC hardware support for the A10 is very low-level as it just
+> >> controls the CEC pin. Since I also wanted to support GPIO-based CEC
+> >> hardware most of this patch series is in the CEC framework to
+> >> add a generic low-level CEC pin framework. It is only the final patch
+> >> that adds the sun4i support.
+> >>
+> >> This patch series first makes some small changes in the CEC framework
+> >> (patches 1-4) to prepare for this CEC pin support.
+> >>
+> >> Patch 5-7 adds the new API elements and documents it. Patch 6 reworks
+> >> the CEC core event handling.
+> >>
+> >> Patch 8 adds pin monitoring support (allows userspace to see all
+> >> CEC pin transitions as they happen).
+> >>
+> >> Patch 9 adds the core cec-pin implementation that translates low-level
+> >> pin transitions into valid CEC messages. Basically this does what any
+> >> SoC with a proper CEC hardware implementation does.
+> >>
+> >> Patch 10 documents the cec-pin kAPI (and also the cec-notifier kAPI
+> >> which was missing).
+> >>
+> >> Finally patch 11 adds the actual sun4i_hdmi CEC implementation.
+> >>
+> >> I tested this on my cubieboard. There were no errors at all
+> >> after 126264 calls of 'cec-ctl --give-device-vendor-id' while at the
+> >> same time running a 'make -j4' of the v4l-utils git repository and
+> >> doing a continuous scp to create network traffic.
+> >>
+> >> This patch series is based on top of the mainline kernel as of
+> >> yesterday (so with all the sun4i and cec patches for 4.13 merged).
+> >=20
+> > For the whole serie:
+> > Reviewed-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+> >=20
+> >> Maxime, patches 1-10 will go through the media subsystem. How do you
+> >> want to handle the final patch? It can either go through the media
+> >> subsystem as well, or you can sit on it and handle this yourself during
+> >> the 4.14 merge window. Another option is to separate the Kconfig change
+> >> into its own patch. That way you can merge the code changes and only
+> >> have to handle the Kconfig patch as a final change during the merge
+> >> window.
+> >=20
+> > We'll probably have a number of reworks for 4.14, so it would be
+> > better if I merged it.
+> >=20
+> > However, I guess if we just switch to a depends on CEC_PIN instead of
+> > a select, everything would just work even if we merge your patches in
+> > a separate tree, right?
+>=20
+> This small patch will do it:
+>=20
+> diff --git a/drivers/gpu/drm/sun4i/Kconfig b/drivers/gpu/drm/sun4i/Kconfig
+> index e884d265c0b3..ebad80aefc87 100644
+> --- a/drivers/gpu/drm/sun4i/Kconfig
+> +++ b/drivers/gpu/drm/sun4i/Kconfig
+> @@ -25,7 +25,7 @@ config DRM_SUN4I_HDMI_CEC
+>         bool "Allwinner A10 HDMI CEC Support"
+>         depends on DRM_SUN4I_HDMI
+>         select CEC_CORE
+> -       select CEC_PIN
+> +       depends on CEC_PIN
+>         help
+>  	  Choose this option if you have an Allwinner SoC with an HDMI
+>  	  controller and want to use CEC.
+> diff --git a/drivers/gpu/drm/sun4i/sun4i_hdmi.h b/drivers/gpu/drm/sun4i/s=
+un4i_hdmi.h
+> index 8263de225b36..82bc6923b90f 100644
+> --- a/drivers/gpu/drm/sun4i/sun4i_hdmi.h
+> +++ b/drivers/gpu/drm/sun4i/sun4i_hdmi.h
+> @@ -15,7 +15,7 @@
+>  #include <drm/drm_connector.h>
+>  #include <drm/drm_encoder.h>
+>=20
+> -#include <media/cec-pin.h>
+> +#include <media/cec.h>
+>=20
+>  #define SUN4I_HDMI_CTRL_REG		0x004
+>  #define SUN4I_HDMI_CTRL_ENABLE			BIT(31)
+>=20
+>=20
+> Unfortunately you need to change the header as well since cec-pin.h doesn=
+'t
+> exist without the cec patches. It might be better to
+>=20
+> And once the cec patch series and the sun4i_hdmi patch is merged the patc=
+h above
+> can be applied with -R and all will work fine.
+>=20
+> This seems a sensible way forward.
 
-fwnode is confusing ...
+I just tested this serie, it works just fine. I've applied the patch
+11 with my Tested-by and that small patch above.
 
-> +				unsigned long direction_flags)
-> +{
-> +	struct fwnode_endpoint endpoint;
-> +	unsigned int i;
-> +	int ret;
-> +
-> +	if (!entity->ops || !entity->ops->get_fwnode_pad) {
-> +		for (i = 0; i < entity->num_pads; i++) {
-> +			if (entity->pads[i].flags & direction_flags)
-> +				return i;
-> +		}
-> +
-> +		return -ENXIO;
-> +	}
-> +
-> +	ret = fwnode_graph_parse_endpoint(fwnode, &endpoint);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = entity->ops->get_fwnode_pad(&endpoint);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	if (ret >= entity->num_pads)
-> +		return -ENXIO;
-> +
-> +	if (!(entity->pads[ret].flags & direction_flags))
-> +		return -ENXIO;
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(media_entity_get_fwnode_pad);
-> +
->  /* -----------------------------------------------------------------------------
->   * Pipeline management
->   */
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 46eeb036aa330534..754182d296689675 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -821,6 +821,29 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad);
->  struct media_entity *media_entity_get(struct media_entity *entity);
->  
->  /**
-> + * media_entity_get_fwnode_pad - Get pad number from fwnode
-> + *
-> + * @entity: The entity
-> + * @fwnode: Pointer to the fwnode_handle which should be used to find the pad
-> + * @direction_flags: Expected direction of the pad, as defined in
-> + *		     :ref:`include/uapi/linux/media.h <media_header>`
-> + *		     (seek for ``MEDIA_PAD_FL_*``)
-> + *
-> + * This function can be used to resolve the media pad number from
-> + * a fwnode. This is useful for devices which use more complex
-> + * mappings of media pads.
-> + *
-> + * If the entity dose not implement the get_fwnode_pad() operation
+Thanks a lot!
+Maxime
 
-s/dose/does/
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
 
-> + * then this function searches the entity for the first pad that
-> + * matches the @direction_flags.
-> + *
-> + * Return: returns the pad number on success or a negative error code.
-> + */
-> +int media_entity_get_fwnode_pad(struct media_entity *entity,
-> +				struct fwnode_handle *fwnode,
-> +				unsigned long direction_flags);
-> +
-> +/**
->   * media_graph_walk_init - Allocate resources used by graph walk.
->   *
->   * @graph: Media graph structure that will be used to walk the graph
-> 
+--m4ghusgasvvy4zly
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJZbjdaAAoJEBx+YmzsjxAgMzQP/R99Sm2cvj8nVwwzNgq51k//
+t08R/y7Pl/GWvGpuI7a80JnFwAvPhOLIntpnXiHUbKGbeJw/uJIb6sp8G6hmedJX
+gjGmuJMHwn1jr4wEiuVNThrZEcCNLM75hrGdExeEbNujD9FGm80eGrgI8123rqBe
+8Xwn/uMVdu6vBH+rCet39ZO+kFBFcuG5uTFdgd1XClsjnHCAEhIBBaw5JdfBaf7Y
+N5bIgxzwJP5hzl3+6YjnGu3NrDam9VoQ7JaeaGiVpqDipi0RDo0aRtcFNDzcO0/e
+BUssqv3YEleAasgCH5I7Zpb7xYNjItUMlcDS1lUoGShz8iQGlLXyEgGJBXo/Q3Wy
+UH17wwz7hOkugXnz/oPPIGbKR5v2yG5bzzxDBgegtY2whXRkIifqIAwnvyt+GU+Q
+OpoR/v0HS03Uhu1PnJ3yYXldoCqFTCxxOWIjrH8dZ6gy4j3yNaBPoWs155MXHwnf
+8mDC1sikJqDUW8GniEg5Ml1LpcdtGQ6SJNERmDt+u7cHnMmpZMbt1JvoQMMH0pA8
+VrF0d5M8oq5fXj8iEDGtGX76HALl5ogKYjf26DCTs7zW+LdSCsRLWYgyS5rXksS4
+pRWNNk43m5a6fCottyhZpTkNfbvKig1GKcKMJL5YoCUMlx/7vnhosjbKFA2IQqaN
+PvHKM2ePFNk2BhZHRAII
+=u/6l
+-----END PGP SIGNATURE-----
+
+--m4ghusgasvvy4zly--
