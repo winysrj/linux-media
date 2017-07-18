@@ -1,149 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:40797 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752120AbdG3LIg (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60038 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752013AbdGRTEI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 30 Jul 2017 07:08:36 -0400
-Subject: [PATCHv2 4/4] drm/tegra: add cec-notifier support
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Tue, 18 Jul 2017 15:04:08 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: linux-tegra@vger.kernel.org, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        dri-devel@lists.freedesktop.org
-References: <20170715124753.43714-1-hverkuil@xs4all.nl>
- <20170715124753.43714-5-hverkuil@xs4all.nl>
-Message-ID: <cd7fa62b-83b9-e94d-66a3-fafae70de1ba@xs4all.nl>
-Date: Sun, 30 Jul 2017 13:08:30 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170715124753.43714-5-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Cc: linux-leds@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        niklas.soderlund@ragnatech.se, hverkuil@xs4all.nl
+Subject: [RFC 17/19] omap3isp: Drop the async notifier callback
+Date: Tue, 18 Jul 2017 22:03:59 +0300
+Message-Id: <20170718190401.14797-18-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
+References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to support CEC the HDMI driver has to inform the CEC driver
-whenever the physical address changes. So when the EDID is read the
-CEC driver has to be informed and whenever the hotplug detect goes
-away.
+v4l2_device_register_subdev_nodes() is now nop and can be dropped without
+side effects. Do so.
 
-This is done through the cec-notifier framework.
-
-The link between the HDMI driver and the CEC driver is done through
-the hdmi_phandle in the tegra-cec node in the device tree.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
-Changes since v1:
+ drivers/media/platform/omap3isp/isp.c | 13 -------------
+ 1 file changed, 13 deletions(-)
 
-Add 'select CEC_CORE if CEC_NOTIFIER' to Kconfig. If the tegra-cec driver
-is a module and the drm tegra driver is built-in, then the CEC core
-will be a module also, causing the CEC notifier to fail (will be
-compiled as empty functions). This select forces the correct dependency.
----
- drivers/gpu/drm/tegra/Kconfig  | 1 +
- drivers/gpu/drm/tegra/drm.h    | 3 +++
- drivers/gpu/drm/tegra/hdmi.c   | 9 +++++++++
- drivers/gpu/drm/tegra/output.c | 6 ++++++
- 4 files changed, 19 insertions(+)
-
-diff --git a/drivers/gpu/drm/tegra/Kconfig b/drivers/gpu/drm/tegra/Kconfig
-index 2db29d67193d..c882918c2024 100644
---- a/drivers/gpu/drm/tegra/Kconfig
-+++ b/drivers/gpu/drm/tegra/Kconfig
-@@ -8,6 +8,7 @@ config DRM_TEGRA
- 	select DRM_PANEL
- 	select TEGRA_HOST1X
- 	select IOMMU_IOVA if IOMMU_SUPPORT
-+	select CEC_CORE if CEC_NOTIFIER
- 	help
- 	  Choose this option if you have an NVIDIA Tegra SoC.
-
-diff --git a/drivers/gpu/drm/tegra/drm.h b/drivers/gpu/drm/tegra/drm.h
-index 6d6da01282f3..c0a18b60caf1 100644
---- a/drivers/gpu/drm/tegra/drm.h
-+++ b/drivers/gpu/drm/tegra/drm.h
-@@ -212,6 +212,8 @@ int tegra_dc_state_setup_clock(struct tegra_dc *dc,
- 			       struct clk *clk, unsigned long pclk,
- 			       unsigned int div);
-
-+struct cec_notifier;
-+
- struct tegra_output {
- 	struct device_node *of_node;
- 	struct device *dev;
-@@ -219,6 +221,7 @@ struct tegra_output {
- 	struct drm_panel *panel;
- 	struct i2c_adapter *ddc;
- 	const struct edid *edid;
-+	struct cec_notifier *notifier;
- 	unsigned int hpd_irq;
- 	int hpd_gpio;
- 	enum of_gpio_flags hpd_gpio_flags;
-diff --git a/drivers/gpu/drm/tegra/hdmi.c b/drivers/gpu/drm/tegra/hdmi.c
-index cda0491ed6bf..fbf14e1efd0e 100644
---- a/drivers/gpu/drm/tegra/hdmi.c
-+++ b/drivers/gpu/drm/tegra/hdmi.c
-@@ -21,6 +21,8 @@
-
- #include <sound/hda_verbs.h>
-
-+#include <media/cec-notifier.h>
-+
- #include "hdmi.h"
- #include "drm.h"
- #include "dc.h"
-@@ -1720,6 +1722,10 @@ static int tegra_hdmi_probe(struct platform_device *pdev)
- 		return PTR_ERR(hdmi->vdd);
- 	}
-
-+	hdmi->output.notifier = cec_notifier_get(&pdev->dev);
-+	if (hdmi->output.notifier == NULL)
-+		return -ENOMEM;
-+
- 	hdmi->output.dev = &pdev->dev;
-
- 	err = tegra_output_probe(&hdmi->output);
-@@ -1778,6 +1784,9 @@ static int tegra_hdmi_remove(struct platform_device *pdev)
-
- 	tegra_output_remove(&hdmi->output);
-
-+	if (hdmi->output.notifier)
-+		cec_notifier_put(hdmi->output.notifier);
-+
- 	return 0;
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 68c02ea1fe6f..ae867eb3fd15 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2102,18 +2102,6 @@ static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
+ 	return isp_link_entity(isp, &sd->entity, isd->bus.interface);
  }
-
-diff --git a/drivers/gpu/drm/tegra/output.c b/drivers/gpu/drm/tegra/output.c
-index 595d1ec3e02e..57c052521a44 100644
---- a/drivers/gpu/drm/tegra/output.c
-+++ b/drivers/gpu/drm/tegra/output.c
-@@ -11,6 +11,8 @@
- #include <drm/drm_panel.h>
- #include "drm.h"
-
-+#include <media/cec-notifier.h>
-+
- int tegra_output_connector_get_modes(struct drm_connector *connector)
- {
- 	struct tegra_output *output = connector_to_output(connector);
-@@ -33,6 +35,7 @@ int tegra_output_connector_get_modes(struct drm_connector *connector)
- 		edid = drm_get_edid(connector, output->ddc);
-
- 	drm_mode_connector_update_edid_property(connector, edid);
-+	cec_notifier_set_phys_addr_from_edid(output->notifier, edid);
-
- 	if (edid) {
- 		err = drm_add_edid_modes(connector, edid);
-@@ -68,6 +71,9 @@ tegra_output_connector_detect(struct drm_connector *connector, bool force)
- 			status = connector_status_connected;
- 	}
-
-+	if (status != connector_status_connected)
-+		cec_notifier_phys_addr_invalidate(output->notifier);
-+
- 	return status;
- }
-
+ 
+-static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
+-{
+-	struct isp_device *isp = container_of(async, struct isp_device,
+-					      notifier);
+-	struct v4l2_device *v4l2_dev = &isp->v4l2_dev;
+-	struct v4l2_subdev *sd;
+-	struct isp_bus_cfg *bus;
+-	int ret;
+-
+-        return v4l2_device_register_subdev_nodes(&isp->v4l2_dev);
+-}
+-
+ /*
+  * isp_probe - Probe ISP platform device
+  * @pdev: Pointer to ISP platform device
+@@ -2289,7 +2277,6 @@ static int isp_probe(struct platform_device *pdev)
+ 		goto error_register_entities;
+ 
+ 	isp->notifier.bound = isp_subdev_notifier_bound;
+-	isp->notifier.complete = isp_subdev_notifier_complete;
+ 
+ 	ret = v4l2_async_notifier_register(&isp->v4l2_dev, &isp->notifier);
+ 	if (ret)
 -- 
-2.13.1
+2.11.0
