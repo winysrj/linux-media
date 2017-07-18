@@ -1,129 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:54594 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750800AbdGLXBm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Jul 2017 19:01:42 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
-        rjkm@metzlerbros.de, d.scheller@gmx.net, jasmin@anw.at
-Subject: [PATCH V2 8/9] [media] dvb-core/dvb_ca_en50221.c: Removed useless braces
-Date: Thu, 13 Jul 2017 01:00:57 +0200
-Message-Id: <1499900458-2339-9-git-send-email-jasmin@anw.at>
-In-Reply-To: <1499900458-2339-1-git-send-email-jasmin@anw.at>
-References: <1499900458-2339-1-git-send-email-jasmin@anw.at>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:42897 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751413AbdGRPcU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Jul 2017 11:32:20 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.14] Various fixes, improvements.
+Message-ID: <269b632f-e20f-3d2d-24af-fb6fec5961ea@xs4all.nl>
+Date: Tue, 18 Jul 2017 17:32:18 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+Mauro, feel free to cherry-pick from this series if needed.
 
-Fixed all:
-  WARNING: braces {} are not necessary for single statement blocks
+Regards,
 
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
----
- drivers/media/dvb-core/dvb_ca_en50221.c | 30 ++++++++++++------------------
- 1 file changed, 12 insertions(+), 18 deletions(-)
+	Hans
 
-diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
-index 5a0b35d..3e390a4 100644
---- a/drivers/media/dvb-core/dvb_ca_en50221.c
-+++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-@@ -242,9 +242,8 @@ static int dvb_ca_en50221_check_camstatus(struct dvb_ca_private *ca, int slot)
- 	int cam_changed;
- 
- 	/* IRQ mode */
--	if (ca->flags & DVB_CA_EN50221_FLAG_IRQ_CAMCHANGE) {
-+	if (ca->flags & DVB_CA_EN50221_FLAG_IRQ_CAMCHANGE)
- 		return (atomic_read(&sl->camchange_count) != 0);
--	}
- 
- 	/* poll mode */
- 	slot_status = ca->pub->poll_slot_status(ca->pub, slot, ca->open);
-@@ -258,11 +257,10 @@ static int dvb_ca_en50221_check_camstatus(struct dvb_ca_private *ca, int slot)
- 	}
- 
- 	if (cam_changed) {
--		if (!cam_present_now) {
-+		if (!cam_present_now)
- 			sl->camchange_type = DVB_CA_EN50221_CAMCHANGE_REMOVED;
--		} else {
-+		else
- 			sl->camchange_type = DVB_CA_EN50221_CAMCHANGE_INSERTED;
--		}
- 		atomic_set(&sl->camchange_count, 1);
- 	} else {
- 		if ((sl->slot_state == DVB_CA_SLOTSTATE_WAITREADY) &&
-@@ -314,9 +312,8 @@ static int dvb_ca_en50221_wait_if_status(struct dvb_ca_private *ca, int slot,
- 		}
- 
- 		/* check for timeout */
--		if (time_after(jiffies, timeout)) {
-+		if (time_after(jiffies, timeout))
- 			break;
--		}
- 
- 		/* wait for a bit */
- 		usleep_range(1000, 1100);
-@@ -782,9 +779,9 @@ static int dvb_ca_en50221_read_data(struct dvb_ca_private *ca, int slot,
- 		buf[0], (buf[1] & 0x80) == 0, bytes_read);
- 
- 	/* wake up readers when a last_fragment is received */
--	if ((buf[1] & 0x80) == 0x00) {
-+	if ((buf[1] & 0x80) == 0x00)
- 		wake_up_interruptible(&ca->wait_queue);
--	}
-+
- 	status = bytes_read;
- 
- exit:
-@@ -1665,11 +1662,10 @@ static ssize_t dvb_ca_en50221_io_read(struct file *file, char __user *buf,
- 			connection_id = hdr[0];
- 		if (hdr[0] == connection_id) {
- 			if (pktlen < count) {
--				if ((pktlen + fraglen - 2) > count) {
-+				if ((pktlen + fraglen - 2) > count)
- 					fraglen = count - pktlen;
--				} else {
-+				else
- 					fraglen -= 2;
--				}
- 
- 				status =
- 				   dvb_ringbuffer_pkt_read_user(&sl->rx_buffer,
-@@ -1806,9 +1802,8 @@ static unsigned int dvb_ca_en50221_io_poll(struct file *file, poll_table *wait)
- 
- 	dprintk("%s\n", __func__);
- 
--	if (dvb_ca_en50221_io_read_condition(ca, &result, &slot) == 1) {
-+	if (dvb_ca_en50221_io_read_condition(ca, &result, &slot) == 1)
- 		mask |= POLLIN;
--	}
- 
- 	/* if there is something, return now */
- 	if (mask)
-@@ -1817,9 +1812,8 @@ static unsigned int dvb_ca_en50221_io_poll(struct file *file, poll_table *wait)
- 	/* wait for something to happen */
- 	poll_wait(file, &ca->wait_queue, wait);
- 
--	if (dvb_ca_en50221_io_read_condition(ca, &result, &slot) == 1) {
-+	if (dvb_ca_en50221_io_read_condition(ca, &result, &slot) == 1)
- 		mask |= POLLIN;
--	}
- 
- 	return mask;
- }
-@@ -1961,9 +1955,9 @@ void dvb_ca_en50221_release(struct dvb_ca_en50221 *pubca)
- 	/* shutdown the thread if there was one */
- 	kthread_stop(ca->thread);
- 
--	for (i = 0; i < ca->slot_count; i++) {
-+	for (i = 0; i < ca->slot_count; i++)
- 		dvb_ca_en50221_slot_shutdown(ca, i);
--	}
-+
- 	dvb_remove_device(ca->dvbdev);
- 	dvb_ca_private_put(ca);
- 	pubca->private = NULL;
--- 
-2.7.4
+The following changes since commit a3db9d60a118571e696b684a6e8c692a2b064941:
+
+  Merge tag 'v4.13-rc1' into patchwork (2017-07-17 11:17:36 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.14b
+
+for you to fetch changes up to e08dbd60ed38b3c182afcc9aef16372fe9c93921:
+
+  platform: video-mux: convert to multiplexer framework (2017-07-18 16:27:36 +0200)
+
+----------------------------------------------------------------
+Anton Sviridenko (1):
+      solo6x10: fix detection of TW2864B chips
+
+Arnd Bergmann (1):
+      usbvision-i2c: fix format overflow warning
+
+Philipp Zabel (1):
+      platform: video-mux: convert to multiplexer framework
+
+Ramesh Shanmugasundaram (1):
+      dt-bindings: media: Add r8a7796 DRIF bindings
+
+Todor Tomov (1):
+      v4l2-mediabus: Add helper functions
+
+Ulrich Hecht (1):
+      media: adv7180: add missing adv7180cp, adv7180st i2c device IDs
+
+ Documentation/devicetree/bindings/media/renesas,drif.txt |  1 +
+ drivers/media/i2c/adv7180.c                              |  2 ++
+ drivers/media/pci/solo6x10/solo6x10-tw28.c               |  1 +
+ drivers/media/platform/Kconfig                           |  1 +
+ drivers/media/platform/video-mux.c                       | 53 +++++++----------------------------------------------
+ drivers/media/usb/usbvision/usbvision-i2c.c              |  5 +++--
+ include/media/v4l2-mediabus.h                            | 26 ++++++++++++++++++++++++++
+ 7 files changed, 41 insertions(+), 48 deletions(-)
