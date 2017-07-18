@@ -1,73 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:60898 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751190AbdGNJ13 (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:51331 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751403AbdGRN0I (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Jul 2017 05:27:29 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-kernel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
-        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
-        akpm@linux-foundation.org, dri-devel@lists.freedesktop.org,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH, RESEND 01/14] ide: avoid warning for timings calculation
-Date: Fri, 14 Jul 2017 11:25:13 +0200
-Message-Id: <20170714092540.1217397-2-arnd@arndb.de>
-In-Reply-To: <20170714092540.1217397-1-arnd@arndb.de>
-References: <20170714092540.1217397-1-arnd@arndb.de>
+        Tue, 18 Jul 2017 09:26:08 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2] [media] platform: video-mux: convert to multiplexer framework
+Date: Tue, 18 Jul 2017 15:26:00 +0200
+Message-Id: <20170718132600.18117-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-gcc-7 warns about the result of a constant multiplication used as
-a boolean:
+Now that the multiplexer framework is merged, drop the temporary
+mmio-mux implementation from the video-mux driver and convert it to use
+the multiplexer API.
 
-drivers/ide/ide-timings.c: In function 'ide_timing_quantize':
-drivers/ide/ide-timings.c:112:24: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
-  q->setup   = EZ(t->setup   * 1000,  T);
-
-This slightly rearranges the macro to simplify the code and avoid
-the warning at the same time.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/ide/ide-timings.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+Changes since v1:
+ - Select CONFIG_MULTIPLEXER.
+---
+ drivers/media/platform/Kconfig     |  1 +
+ drivers/media/platform/video-mux.c | 53 +++++---------------------------------
+ 2 files changed, 8 insertions(+), 46 deletions(-)
 
-diff --git a/drivers/ide/ide-timings.c b/drivers/ide/ide-timings.c
-index 0e05f75934c9..1858e3ce3993 100644
---- a/drivers/ide/ide-timings.c
-+++ b/drivers/ide/ide-timings.c
-@@ -104,19 +104,19 @@ u16 ide_pio_cycle_time(ide_drive_t *drive, u8 pio)
- EXPORT_SYMBOL_GPL(ide_pio_cycle_time);
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 1313cd5334360..9a07e98e5620c 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -76,6 +76,7 @@ config VIDEO_M32R_AR_M64278
  
- #define ENOUGH(v, unit)		(((v) - 1) / (unit) + 1)
--#define EZ(v, unit)		((v) ? ENOUGH(v, unit) : 0)
-+#define EZ(v, unit)		((v) ? ENOUGH((v) * 1000, unit) : 0)
+ config VIDEO_MUX
+ 	tristate "Video Multiplexer"
++	select MULTIPLEXER
+ 	depends on OF && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
+ 	select REGMAP
+ 	help
+diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
+index 665744716f73b..ee89ad76bee23 100644
+--- a/drivers/media/platform/video-mux.c
++++ b/drivers/media/platform/video-mux.c
+@@ -17,8 +17,7 @@
+ #include <linux/err.h>
+ #include <linux/module.h>
+ #include <linux/mutex.h>
+-#include <linux/regmap.h>
+-#include <linux/mfd/syscon.h>
++#include <linux/mux/consumer.h>
+ #include <linux/of.h>
+ #include <linux/of_graph.h>
+ #include <linux/platform_device.h>
+@@ -30,7 +29,7 @@ struct video_mux {
+ 	struct v4l2_subdev subdev;
+ 	struct media_pad *pads;
+ 	struct v4l2_mbus_framefmt *format_mbus;
+-	struct regmap_field *field;
++	struct mux_control *mux;
+ 	struct mutex lock;
+ 	int active;
+ };
+@@ -71,7 +70,7 @@ static int video_mux_link_setup(struct media_entity *entity,
+ 		}
  
- static void ide_timing_quantize(struct ide_timing *t, struct ide_timing *q,
- 				int T, int UT)
+ 		dev_dbg(sd->dev, "setting %d active\n", local->index);
+-		ret = regmap_field_write(vmux->field, local->index);
++		ret = mux_control_try_select(vmux->mux, local->index);
+ 		if (ret < 0)
+ 			goto out;
+ 		vmux->active = local->index;
+@@ -80,6 +79,7 @@ static int video_mux_link_setup(struct media_entity *entity,
+ 			goto out;
+ 
+ 		dev_dbg(sd->dev, "going inactive\n");
++		mux_control_deselect(vmux->mux);
+ 		vmux->active = -1;
+ 	}
+ 
+@@ -193,46 +193,6 @@ static const struct v4l2_subdev_ops video_mux_subdev_ops = {
+ 	.video = &video_mux_subdev_video_ops,
+ };
+ 
+-static int video_mux_probe_mmio_mux(struct video_mux *vmux)
+-{
+-	struct device *dev = vmux->subdev.dev;
+-	struct of_phandle_args args;
+-	struct reg_field field;
+-	struct regmap *regmap;
+-	u32 reg, mask;
+-	int ret;
+-
+-	ret = of_parse_phandle_with_args(dev->of_node, "mux-controls",
+-					 "#mux-control-cells", 0, &args);
+-	if (ret)
+-		return ret;
+-
+-	if (!of_device_is_compatible(args.np, "mmio-mux"))
+-		return -EINVAL;
+-
+-	regmap = syscon_node_to_regmap(args.np->parent);
+-	if (IS_ERR(regmap))
+-		return PTR_ERR(regmap);
+-
+-	ret = of_property_read_u32_index(args.np, "mux-reg-masks",
+-					 2 * args.args[0], &reg);
+-	if (!ret)
+-		ret = of_property_read_u32_index(args.np, "mux-reg-masks",
+-						 2 * args.args[0] + 1, &mask);
+-	if (ret < 0)
+-		return ret;
+-
+-	field.reg = reg;
+-	field.msb = fls(mask) - 1;
+-	field.lsb = ffs(mask) - 1;
+-
+-	vmux->field = devm_regmap_field_alloc(dev, regmap, field);
+-	if (IS_ERR(vmux->field))
+-		return PTR_ERR(vmux->field);
+-
+-	return 0;
+-}
+-
+ static int video_mux_probe(struct platform_device *pdev)
  {
--	q->setup   = EZ(t->setup   * 1000,  T);
--	q->act8b   = EZ(t->act8b   * 1000,  T);
--	q->rec8b   = EZ(t->rec8b   * 1000,  T);
--	q->cyc8b   = EZ(t->cyc8b   * 1000,  T);
--	q->active  = EZ(t->active  * 1000,  T);
--	q->recover = EZ(t->recover * 1000,  T);
--	q->cycle   = EZ(t->cycle   * 1000,  T);
--	q->udma    = EZ(t->udma    * 1000, UT);
-+	q->setup   = EZ(t->setup,   T);
-+	q->act8b   = EZ(t->act8b,   T);
-+	q->rec8b   = EZ(t->rec8b,   T);
-+	q->cyc8b   = EZ(t->cyc8b,   T);
-+	q->active  = EZ(t->active,  T);
-+	q->recover = EZ(t->recover, T);
-+	q->cycle   = EZ(t->cycle,   T);
-+	q->udma    = EZ(t->udma,    UT);
- }
+ 	struct device_node *np = pdev->dev.of_node;
+@@ -270,8 +230,9 @@ static int video_mux_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
  
- void ide_timing_merge(struct ide_timing *a, struct ide_timing *b,
+-	ret = video_mux_probe_mmio_mux(vmux);
+-	if (ret) {
++	vmux->mux = devm_mux_control_get(dev, NULL);
++	if (IS_ERR(vmux->mux)) {
++		ret = PTR_ERR(vmux->mux);
+ 		if (ret != -EPROBE_DEFER)
+ 			dev_err(dev, "Failed to get mux: %d\n", ret);
+ 		return ret;
 -- 
-2.9.0
+2.11.0
