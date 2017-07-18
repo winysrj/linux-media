@@ -1,103 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:33610 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750927AbdGINTV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 09:19:21 -0400
-From: Rob Clark <robdclark@gmail.com>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:42673 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751346AbdGRDqP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Jul 2017 23:46:15 -0400
+Message-ID: <3f111889fa1b7c7e12e176797ac7a2e1@smtp-cloud3.xs4all.net>
+Date: Tue, 18 Jul 2017 05:46:13 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Rob Clark <robdclark@gmail.com>
-Subject: [PATCH] media: venus: hfi: fix error handling in hfi_sys_init_done()
-Date: Sun,  9 Jul 2017 09:19:16 -0400
-Message-Id: <20170709131916.11643-1-robdclark@gmail.com>
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Not entirely sure what triggers it, but with venus build as kernel
-module and in initrd, we hit this crash:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-  Unable to handle kernel paging request at virtual address ffff80003c039000
-  pgd = ffff00000a14f000
-  [ffff80003c039000] *pgd=00000000bd9f7003, *pud=00000000bd9f6003, *pmd=00000000bd9f0003, *pte=0000000000000000
-  Internal error: Oops: 96000007 [#1] SMP
-  Modules linked in: qcom_wcnss_pil(E+) crc32_ce(E) qcom_common(E) venus_core(E+) remoteproc(E) snd_soc_msm8916_digital(E) virtio_ring(E) cdc_ether(E) snd_soc_lpass_apq8016(E) snd_soc_lpass_cpu(E) snd_soc_apq8016_sbc(E) snd_soc_lpass_platform(E) v4l2_mem2mem(E) virtio(E) snd_soc_core(E) ac97_bus(E) snd_pcm_dmaengine(E) snd_seq(E) leds_gpio(E) videobuf2_v4l2(E) videobuf2_core(E) snd_seq_device(E) snd_pcm(E) videodev(E) media(E) nvmem_qfprom(E) msm(E) snd_timer(E) snd(E) soundcore(E) spi_qup(E) mdt_loader(E) qcom_tsens(E) qcom_spmi_temp_alarm(E) nvmem_core(E) msm_rng(E) uas(E) usb_storage(E) dm9601(E) usbnet(E) mii(E) mmc_block(E) adv7511(E) drm_kms_helper(E) syscopyarea(E) sysfillrect(E) sysimgblt(E) fb_sys_fops(E) qcom_spmi_vadc(E) qcom_vadc_common(PE) industrialio(E) pinctrl_spmi_mpp(E)
-   pinctrl_spmi_gpio(E) rtc_pm8xxx(E) clk_smd_rpm(E) sdhci_msm(E) sdhci_pltfm(E) qcom_smd_regulator(E) drm(E) smd_rpm(E) qcom_spmi_pmic(E) regmap_spmi(E) ci_hdrc_msm(E) ci_hdrc(E) usb3503(E) extcon_usb_gpio(E) phy_msm_usb(E) udc_core(E) qcom_hwspinlock(E) extcon_core(E) ehci_msm(E) i2c_qup(E) sdhci(E) mmc_core(E) spmi_pmic_arb(E) spmi(E) qcom_smd(E) smsm(E) rpmsg_core(E) smp2p(E) smem(E) hwspinlock_core(E) gpio_keys(E)
-  CPU: 2 PID: 551 Comm: irq/150-venus Tainted: P            E   4.12.0+ #1625
-  Hardware name: qualcomm dragonboard410c/dragonboard410c, BIOS 2017.07-rc2-00144-ga97bdbdf72-dirty 07/08/2017
-  task: ffff800037338000 task.stack: ffff800038e00000
-  PC is at hfi_sys_init_done+0x64/0x140 [venus_core]
-  LR is at hfi_process_msg_packet+0xcc/0x1e8 [venus_core]
-  pc : [<ffff00000118b384>] lr : [<ffff00000118c11c>] pstate: 20400145
-  sp : ffff800038e03c60
-  x29: ffff800038e03c60 x28: 0000000000000000
-  x27: 00000000000df018 x26: ffff00000118f4d0
-  x25: 0000000000020003 x24: ffff80003a8d3010
-  x23: ffff00000118f760 x22: ffff800037b40028
-  x21: ffff8000382981f0 x20: ffff800037b40028
-  x19: ffff80003c039000 x18: 0000000000000020
-  x17: 0000000000000000 x16: ffff800037338000
-  x15: ffffffffffffffff x14: 0000001000000014
-  x13: 0000000100001007 x12: 0000000100000020
-  x11: 0000100e00000000 x10: 0000000000000001
-  x9 : 0000000200000000 x8 : 0000001400000001
-  x7 : 0000000000001010 x6 : 0000000000000148
-  x5 : 0000000000001009 x4 : ffff80003c039000
-  x3 : 00000000cd770abb x2 : 0000000000000042
-  x1 : 0000000000000788 x0 : 0000000000000002
-  Process irq/150-venus (pid: 551, stack limit = 0xffff800038e00000)
-  Call trace:
-  [<ffff00000118b384>] hfi_sys_init_done+0x64/0x140 [venus_core]
-  [<ffff00000118c11c>] hfi_process_msg_packet+0xcc/0x1e8 [venus_core]
-  [<ffff00000118a2b4>] venus_isr_thread+0x1b4/0x208 [venus_core]
-  [<ffff00000118e750>] hfi_isr_thread+0x28/0x38 [venus_core]
-  [<ffff000008161550>] irq_thread_fn+0x30/0x70
-  [<ffff0000081617fc>] irq_thread+0x14c/0x1c8
-  [<ffff000008105e68>] kthread+0x138/0x140
-  [<ffff000008083590>] ret_from_fork+0x10/0x40
-  Code: 52820125 52820207 7a431820 54000249 (b9400263)
-  ---[ end trace c963460f20a984b6 ]---
+Results of the daily build of media_tree:
 
-The problem is that in the error case, we've incremented the data ptr
-but not decremented rem_bytes, and keep reading (presumably garbage)
-until eventually we go beyond the end of the buffer.
+date:			Tue Jul 18 05:00:28 CEST 2017
+media-tree git hash:	a3db9d60a118571e696b684a6e8c692a2b064941
+media_build git hash:	bc1db0a204a87da86349ea5e64ae0d65e945609d
+v4l-utils git hash:	8e68406dae2233e811032dc8e7714c09c818e893
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.11.0-164
 
-Instead, on first error, we should probably just bail out.  Other
-option is to increment read_bytes by sizeof(u32) before the switch,
-rather than only accounting for the ptype header in the non-error
-case.  Note that in this case it is HFI_ERR_SYS_INVALID_PARAMETER,
-ie. an unrecognized/unsupported parameter, so interpreting the next
-word as a property type would be bogus.  The other error cases are
-due to truncated buffer, so there isn't likely to be anything valid
-to interpret in the remainder of the buffer.  So just bailing seems
-like a reasonable solution.
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-multi: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-arm-stm32: ERRORS
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: WARNINGS
+linux-git-m32r: WARNINGS
+linux-git-mips: ERRORS
+linux-git-powerpc64: WARNINGS
+linux-git-sh: ERRORS
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-Signed-off-by: Rob Clark <robdclark@gmail.com>
----
- drivers/media/platform/qcom/venus/hfi_msgs.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+Detailed results are available here:
 
-diff --git a/drivers/media/platform/qcom/venus/hfi_msgs.c b/drivers/media/platform/qcom/venus/hfi_msgs.c
-index debf80a92797..4190825b20a1 100644
---- a/drivers/media/platform/qcom/venus/hfi_msgs.c
-+++ b/drivers/media/platform/qcom/venus/hfi_msgs.c
-@@ -239,11 +239,12 @@ static void hfi_sys_init_done(struct venus_core *core, struct venus_inst *inst,
- 			break;
- 		}
- 
--		if (!error) {
--			rem_bytes -= read_bytes;
--			data += read_bytes;
--			num_properties--;
--		}
-+		if (error)
-+			break;
-+
-+		rem_bytes -= read_bytes;
-+		data += read_bytes;
-+		num_properties--;
- 	}
- 
- err_no_prop:
--- 
-2.13.0
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
