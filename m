@@ -1,46 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:54701 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751585AbdGZLeb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Jul 2017 07:34:31 -0400
-Subject: Re: distro-specific hint for Raspbian
-To: Christoph Wempe <christoph@wempe.net>, linux-media@vger.kernel.org
-References: <ee2b53ed-7436-d310-1055-65062c10db2f@wempe.net>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <bbc63958-ca76-eca6-5f3f-011f1db2aca9@xs4all.nl>
-Date: Wed, 26 Jul 2017 13:27:20 +0200
-MIME-Version: 1.0
-In-Reply-To: <ee2b53ed-7436-d310-1055-65062c10db2f@wempe.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from sauhun.de ([88.99.104.3]:36527 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751379AbdGRKYT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Jul 2017 06:24:19 -0400
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+To: linux-i2c@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-input@vger.kernel.org, linux-iio@vger.kernel.org,
+        alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>
+Subject: [PATCH v3 4/4] i2c: rcar: check for DMA-capable buffers
+Date: Tue, 18 Jul 2017 12:23:39 +0200
+Message-Id: <20170718102339.28726-5-wsa+renesas@sang-engineering.com>
+In-Reply-To: <20170718102339.28726-1-wsa+renesas@sang-engineering.com>
+References: <20170718102339.28726-1-wsa+renesas@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/26/17 09:06, Christoph Wempe wrote:
-> Hello,
-> 
-> I want to suggest to add a "distro-specific hint" for Raspbian.
-> 
-> I got this message:
-> --- snip ---
-> Checking if the needed tools for Raspbian GNU/Linux 8.0 (jessie) are 
-> available
-> ERROR: please install "lsdiff", otherwise, build won't work.
-> ERROR: please install "Proc::ProcessTable", otherwise, build won't work.
-> I don't know distro Raspbian GNU/Linux 8.0 (jessie). So, I can't provide 
-> you a hint with the package names.
-> --- snip ---
-> 
-> I solved the dependencies like suggested here: 
-> https://patchwork.linuxtv.org/patch/7067/ 
-> <https://patchwork.linuxtv.org/patch/7067/>
-> 
-> Since Raspbian is based on Debian, I guess it would be save to link this 
-> to `give_ubuntu_hints`.
+Handling this is special for this driver. Because the hardware needs to
+initialize the next message in interrupt context, we cannot use the
+i2c_check_msg_for_dma() directly. This helper only works reliably in
+process context. So, we need to check during initial preparation of the
+whole transfer and need to disable DMA completely for the whole transfer
+once a message with a not-DMA-capable buffer is found.
 
-Done.
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+---
+ drivers/i2c/busses/i2c-rcar.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-Thanks,
-
-	Hans
+diff --git a/drivers/i2c/busses/i2c-rcar.c b/drivers/i2c/busses/i2c-rcar.c
+index 93c1a54981df08..5d0e820d708853 100644
+--- a/drivers/i2c/busses/i2c-rcar.c
++++ b/drivers/i2c/busses/i2c-rcar.c
+@@ -111,8 +111,11 @@
+ #define ID_ARBLOST	(1 << 3)
+ #define ID_NACK		(1 << 4)
+ /* persistent flags */
++#define ID_P_NODMA	(1 << 30)
+ #define ID_P_PM_BLOCKED	(1 << 31)
+-#define ID_P_MASK	ID_P_PM_BLOCKED
++#define ID_P_MASK	(ID_P_PM_BLOCKED | ID_P_NODMA)
++
++#define RCAR_DMA_THRESHOLD 8
+ 
+ enum rcar_i2c_type {
+ 	I2C_RCAR_GEN1,
+@@ -358,8 +361,7 @@ static void rcar_i2c_dma(struct rcar_i2c_priv *priv)
+ 	unsigned char *buf;
+ 	int len;
+ 
+-	/* Do not use DMA if it's not available or for messages < 8 bytes */
+-	if (IS_ERR(chan) || msg->len < 8)
++	if (IS_ERR(chan) || msg->len < RCAR_DMA_THRESHOLD || priv->flags & ID_P_NODMA)
+ 		return;
+ 
+ 	if (read) {
+@@ -657,11 +659,15 @@ static void rcar_i2c_request_dma(struct rcar_i2c_priv *priv,
+ 				 struct i2c_msg *msg)
+ {
+ 	struct device *dev = rcar_i2c_priv_to_dev(priv);
+-	bool read;
++	bool read = msg->flags & I2C_M_RD;
+ 	struct dma_chan *chan;
+ 	enum dma_transfer_direction dir;
+ 
+-	read = msg->flags & I2C_M_RD;
++	/* we need to check here because we need the 'current' context */
++	if (i2c_check_msg_for_dma(msg, RCAR_DMA_THRESHOLD, NULL) == -EFAULT) {
++		dev_dbg(dev, "skipping DMA for this whole transfer\n");
++		priv->flags |= ID_P_NODMA;
++	}
+ 
+ 	chan = read ? priv->dma_rx : priv->dma_tx;
+ 	if (PTR_ERR(chan) != -EPROBE_DEFER)
+@@ -740,6 +746,8 @@ static int rcar_i2c_master_xfer(struct i2c_adapter *adap,
+ 	if (ret < 0 && ret != -ENXIO)
+ 		dev_err(dev, "error %d : %x\n", ret, priv->flags);
+ 
++	priv->flags &= ~ID_P_NODMA;
++
+ 	return ret;
+ }
+ 
+-- 
+2.11.0
