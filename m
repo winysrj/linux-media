@@ -1,207 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:35612 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755878AbdGXRrD (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:46467 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751794AbdGRV1N (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Jul 2017 13:47:03 -0400
-Date: Mon, 24 Jul 2017 12:46:59 -0500
-From: Rob Herring <robh@kernel.org>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
+        Tue, 18 Jul 2017 17:27:13 -0400
+Date: Tue, 18 Jul 2017 23:27:12 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v8 1/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2
- receiver documentation
-Message-ID: <20170724174659.2esawsxudve22dlw@rob-hp-laptop>
-References: <20170717170356.25568-1-niklas.soderlund+renesas@ragnatech.se>
- <20170717170356.25568-2-niklas.soderlund+renesas@ragnatech.se>
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/7] omap3isp: Return -EPROBE_DEFER if the required
+ regulators can't be obtained
+Message-ID: <20170718212712.GA19771@amd>
+References: <20170717220116.17886-1-sakari.ailus@linux.intel.com>
+ <20170717220116.17886-5-sakari.ailus@linux.intel.com>
+ <1652763.9EYemjAvaH@avalon>
+ <20170718100352.GA28481@amd>
+ <20170718101702.qi72355jjjuq7jjs@valkosipuli.retiisi.org.uk>
+ <20170718210228.GA13046@amd>
+ <20170718211640.qzplt2sx7gjlgqox@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="azLHFNyN32YCQGCU"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170717170356.25568-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170718211640.qzplt2sx7gjlgqox@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 17, 2017 at 07:03:55PM +0200, Niklas Söderlund wrote:
-> Documentation for Renesas R-Car MIPI CSI-2 receiver. The CSI-2 receivers
-> are located between the video sources (CSI-2 transmitters) and the video
-> grabbers (VIN) on Gen3 of Renesas R-Car SoC.
-> 
-> Each CSI-2 device is connected to more then one VIN device which
-> simultaneously can receive video from the same CSI-2 device. Each VIN
-> device can also be connected to more then one CSI-2 device. The routing
-> of which link are used are controlled by the VIN devices. There are only
-> a few possible routes which are set by hardware limitations, which are
-> different for each SoC in the Gen3 family.
-> 
-> To work with the limitations of routing possibilities it is necessary
-> for the DT bindings to describe which VIN device is connected to which
-> CSI-2 device. This is why port 1 needs to to assign reg numbers for each
-> VIN device that be connected to it. To setup and to know which links are
-> valid for each SoC is the responsibility of the VIN driver since the
-> register to configure it belongs to the VIN hardware.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  .../devicetree/bindings/media/rcar-csi2.txt        | 118 +++++++++++++++++++++
->  1 file changed, 118 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/rcar-csi2.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/rcar-csi2.txt b/Documentation/devicetree/bindings/media/rcar-csi2.txt
-> new file mode 100644
-> index 0000000000000000..c298a7d821153219
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/rcar-csi2.txt
-> @@ -0,0 +1,118 @@
-> +Renesas R-Car MIPI CSI-2
-> +------------------------
-> +
-> +The rcar-csi2 device provides MIPI CSI-2 capabilities for the Renesas R-Car
-> +family of devices. It is to be used in conjunction with the R-Car VIN module,
-> +which provides the video capture capabilities.
-> +
-> +Mandatory properties
-> +--------------------
-> + - compatible: Must be one or more of the following
-> +   - "renesas,r8a7795-csi2" for the R8A7795 device.
-> +   - "renesas,r8a7796-csi2" for the R8A7796 device.
-> +   - "renesas,rcar-gen3-csi2" for a generic R-Car Gen3 compatible device.
-> +
-> +   When compatible with a generic version nodes must list the
-> +   SoC-specific version corresponding to the platform first
-> +   followed by the generic version.
-> +
-> + - reg: the register base and size for the device registers
-> + - interrupts: the interrupt for the device
-> + - clocks: Reference to the parent clock
-> +
-> +The device node shall contain two 'port' child nodes according to the
-> +bindings defined in Documentation/devicetree/bindings/media/
-> +video-interfaces.txt. Port 0 shall connect the node that is the video
-> +source for to the CSI-2. Port 1 shall connect all the R-Car VIN
-> +modules, which can make use of the CSI-2 module.
-> +
-> +- Port 0 - Video source (Mandatory)
-> +	- Reg 0 - sub-node describing the endpoint that is the video source
 
-Endpoint 0
+--azLHFNyN32YCQGCU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-It's not very clear that you are talking endpoints here. I had to look 
-at the example.
+Hi!
 
-> +
-> +- Port 1 - VIN instances (Mandatory for all VIN present in the SoC)
-> +	- Reg 0 - sub-node describing the endpoint that is VIN0
+> > No idea really. I only have N900 working with linux at the moment. I'm
+> > trying to get N9 and N950 working, but no luck so far.
+>=20
+> Still no? :-(
+>=20
+> Do you know if you get the kernel booting? Do you have access to the seri=
+al
+> console? I might have seen the e-mail chain but I lost the track. What
+> happens after the flasher has pushed the kernel to RAM and the boot start=
+s?
+> It's wonderful for debugging if something's wrong...
 
-Endpoint 0
+Still no. No serial cable, unfortunately. Flasher seems to run the
+kernel, but I see no evidence new kernel started successfully. I was
+told display is not expected to work, and on USB I see bootloader
+disconnecting and that's it.
 
-> +	- Reg 1 - sub-node describing the endpoint that is VIN1
+If you had a kernel binary that works for you, and does something I
+can observe, that would be welcome :-).
 
-and so on.
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-> +	- Reg 2 - sub-node describing the endpoint that is VIN2
-> +	- Reg 3 - sub-node describing the endpoint that is VIN3
-> +	- Reg 4 - sub-node describing the endpoint that is VIN4
-> +	- Reg 5 - sub-node describing the endpoint that is VIN5
-> +	- Reg 6 - sub-node describing the endpoint that is VIN6
-> +	- Reg 7 - sub-node describing the endpoint that is VIN7
-> +
-> +Example:
-> +
-> +/* SoC properties */
-> +
-> +	 csi20: csi2@fea80000 {
-> +		 compatible = "renesas,r8a7796-csi2";
-> +		 reg = <0 0xfea80000 0 0x10000>;
-> +		 interrupts = <0 184 IRQ_TYPE_LEVEL_HIGH>;
-> +		 clocks = <&cpg CPG_MOD 714>;
-> +		 power-domains = <&sysc R8A7796_PD_ALWAYS_ON>;
-> +		 status = "disabled";
+--azLHFNyN32YCQGCU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Don't show status in examples.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-> +
-> +		 ports {
-> +			 #address-cells = <1>;
-> +			 #size-cells = <0>;
-> +
-> +			 port@1 {
-> +				 #address-cells = <1>;
-> +				 #size-cells = <0>;
-> +
-> +				 reg = <1>;
-> +
-> +				 csi20vin0: endpoint@0 {
-> +					 reg = <0>;
-> +					 remote-endpoint = <&vin0csi20>;
-> +				 };
-> +				 csi20vin1: endpoint@1 {
-> +					 reg = <1>;
-> +					 remote-endpoint = <&vin1csi20>;
-> +				 };
-> +				 csi20vin2: endpoint@2 {
-> +					 reg = <2>;
-> +					 remote-endpoint = <&vin2csi20>;
-> +				 };
-> +				 csi20vin3: endpoint@3 {
-> +					 reg = <3>;
-> +					 remote-endpoint = <&vin3csi20>;
-> +				 };
-> +				 csi20vin4: endpoint@4 {
-> +					 reg = <4>;
-> +					 remote-endpoint = <&vin4csi20>;
-> +				 };
-> +				 csi20vin5: endpoint@5 {
-> +					 reg = <5>;
-> +					 remote-endpoint = <&vin5csi20>;
-> +				 };
-> +				 csi20vin6: endpoint@6 {
-> +					 reg = <6>;
-> +					 remote-endpoint = <&vin6csi20>;
-> +				 };
-> +				 csi20vin7: endpoint@7 {
-> +					 reg = <7>;
-> +					 remote-endpoint = <&vin7csi20>;
-> +				 };
-> +			 };
-> +		 };
-> +	 };
-> +
-> +/* Board properties */
+iEYEARECAAYFAllufTAACgkQMOfwapXb+vKJ0wCeIpG0/PbzZq0Z4N/XZqCINgv5
+7DEAoK3LgBcgUnHAIijeafD6Yj68SaNo
+=+M39
+-----END PGP SIGNATURE-----
 
-Don't split the example. This is source convention which is independent 
-of the binding.
-
-> +
-> +	&csi20 {
-> +		status = "okay";
-> +
-> +		ports {
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +
-> +			port@0 {
-> +				reg = <0>;
-
-Missing #address-cells and #size-cells.
-
-> +				csi20_in: endpoint@0 {
-> +					clock-lanes = <0>;
-> +					data-lanes = <1>;
-> +					remote-endpoint = <&adv7482_txb>;
-> +				};
-> +			};
-> +		};
-> +	};
-> -- 
-> 2.13.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--azLHFNyN32YCQGCU--
