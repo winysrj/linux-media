@@ -1,259 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:34556 "EHLO
-        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751289AbdGQI6a (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59930 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751584AbdGRTEE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 04:58:30 -0400
-Received: by mail-wm0-f43.google.com with SMTP id 70so20747537wmo.1
-        for <linux-media@vger.kernel.org>; Mon, 17 Jul 2017 01:58:30 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Arnd Bergmann <arnd@arndb.de>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH 2/4] media: venus: don't abuse dma_alloc for non-DMA allocations
-Date: Mon, 17 Jul 2017 11:56:48 +0300
-Message-Id: <20170717085650.12185-3-stanimir.varbanov@linaro.org>
-In-Reply-To: <20170717085650.12185-1-stanimir.varbanov@linaro.org>
-References: <20170717085650.12185-1-stanimir.varbanov@linaro.org>
+        Tue, 18 Jul 2017 15:04:04 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: linux-leds@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        niklas.soderlund@ragnatech.se, hverkuil@xs4all.nl
+Subject: [RFC 00/19] Async sub-notifiers and how to use them
+Date: Tue, 18 Jul 2017 22:03:42 +0300
+Message-Id: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In venus_boot(), we pass a pointer to a phys_addr_t
-into dmam_alloc_coherent, which the compiler warns about:
+Hi folks,
 
-platform/qcom/venus/firmware.c: In function 'venus_boot':
-platform/qcom/venus/firmware.c:63:49: error: passing argument 3 of 'dmam_alloc_coherent' from incompatible pointer type [-Werror=incompatible-pointer-types]
+This RFC patchset achieves a number of things which I've put to the same
+patchset for they need to be show together to demonstrate the use cases.
 
-To avoid the error refactor venus_boot function by discard
-dma_alloc_coherent usage because we don't want to map the
-memory for the device. The meaning of venus_boot is to
-copy the content of the firmware buffer into the reserved
-(and memblock removed) block of memory and pass the physical
-address to the remote processor.
+I don't really intend this to compete with Niklas's patchset but much of
+the problem area addressed by the two is the same.
 
-Now we parse memory-region property by hand and memremap
-the physical address to CPU, call mdt_load to load firmware
-segments into proper places and unmap reserved memory.
+Comments would be welcome.
 
-Fixes: af2c3834c8ca ("[media] media: venus: adding core part and helper functions")
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- drivers/media/platform/qcom/venus/core.c     | 10 ++--
- drivers/media/platform/qcom/venus/core.h     |  1 -
- drivers/media/platform/qcom/venus/firmware.c | 74 ++++++++++++----------------
- drivers/media/platform/qcom/venus/firmware.h |  5 +-
- 4 files changed, 39 insertions(+), 51 deletions(-)
+- Add AS3645A LED flash class driver.
 
-diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
-index 694f57a78288..a70368cb713f 100644
---- a/drivers/media/platform/qcom/venus/core.c
-+++ b/drivers/media/platform/qcom/venus/core.c
-@@ -76,7 +76,7 @@ static void venus_sys_error_handler(struct work_struct *work)
- 	hfi_core_deinit(core, true);
- 	hfi_destroy(core);
- 	mutex_lock(&core->lock);
--	venus_shutdown(&core->dev_fw);
-+	venus_shutdown(core->dev);
- 
- 	pm_runtime_put_sync(core->dev);
- 
-@@ -84,7 +84,7 @@ static void venus_sys_error_handler(struct work_struct *work)
- 
- 	pm_runtime_get_sync(core->dev);
- 
--	ret |= venus_boot(core->dev, &core->dev_fw, core->res->fwname);
-+	ret |= venus_boot(core->dev, core->res->fwname);
- 
- 	ret |= hfi_core_resume(core, true);
- 
-@@ -207,7 +207,7 @@ static int venus_probe(struct platform_device *pdev)
- 	if (ret < 0)
- 		goto err_runtime_disable;
- 
--	ret = venus_boot(dev, &core->dev_fw, core->res->fwname);
-+	ret = venus_boot(dev, core->res->fwname);
- 	if (ret)
- 		goto err_runtime_disable;
- 
-@@ -238,7 +238,7 @@ static int venus_probe(struct platform_device *pdev)
- err_core_deinit:
- 	hfi_core_deinit(core, false);
- err_venus_shutdown:
--	venus_shutdown(&core->dev_fw);
-+	venus_shutdown(dev);
- err_runtime_disable:
- 	pm_runtime_set_suspended(dev);
- 	pm_runtime_disable(dev);
-@@ -259,7 +259,7 @@ static int venus_remove(struct platform_device *pdev)
- 	WARN_ON(ret);
- 
- 	hfi_destroy(core);
--	venus_shutdown(&core->dev_fw);
-+	venus_shutdown(dev);
- 	of_platform_depopulate(dev);
- 
- 	pm_runtime_put_sync(dev);
-diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
-index e542700eee32..cba092bcb76d 100644
---- a/drivers/media/platform/qcom/venus/core.h
-+++ b/drivers/media/platform/qcom/venus/core.h
-@@ -101,7 +101,6 @@ struct venus_core {
- 	struct device *dev;
- 	struct device *dev_dec;
- 	struct device *dev_enc;
--	struct device dev_fw;
- 	struct mutex lock;
- 	struct list_head instances;
- 	atomic_t insts_count;
-diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
-index 1b1a4f355918..d6d9560c1c19 100644
---- a/drivers/media/platform/qcom/venus/firmware.c
-+++ b/drivers/media/platform/qcom/venus/firmware.c
-@@ -12,29 +12,27 @@
-  *
-  */
- 
--#include <linux/dma-mapping.h>
-+#include <linux/device.h>
- #include <linux/firmware.h>
- #include <linux/kernel.h>
-+#include <linux/io.h>
- #include <linux/of.h>
--#include <linux/of_reserved_mem.h>
--#include <linux/slab.h>
-+#include <linux/of_address.h>
- #include <linux/qcom_scm.h>
-+#include <linux/sizes.h>
- #include <linux/soc/qcom/mdt_loader.h>
- 
- #include "firmware.h"
- 
- #define VENUS_PAS_ID			9
--#define VENUS_FW_MEM_SIZE		SZ_8M
-+#define VENUS_FW_MEM_SIZE		(6 * SZ_1M)
- 
--static void device_release_dummy(struct device *dev)
--{
--	of_reserved_mem_device_release(dev);
--}
--
--int venus_boot(struct device *parent, struct device *fw_dev, const char *fwname)
-+int venus_boot(struct device *dev, const char *fwname)
- {
- 	const struct firmware *mdt;
-+	struct device_node *node;
- 	phys_addr_t mem_phys;
-+	struct resource r;
- 	ssize_t fw_size;
- 	size_t mem_size;
- 	void *mem_va;
-@@ -43,66 +41,58 @@ int venus_boot(struct device *parent, struct device *fw_dev, const char *fwname)
- 	if (!qcom_scm_is_available())
- 		return -EPROBE_DEFER;
- 
--	fw_dev->parent = parent;
--	fw_dev->release = device_release_dummy;
-+	node = of_parse_phandle(dev->of_node, "memory-region", 0);
-+	if (!node) {
-+		dev_err(dev, "no memory-region specified\n");
-+		return -EINVAL;
-+	}
- 
--	ret = dev_set_name(fw_dev, "%s:%s", dev_name(parent), "firmware");
-+	ret = of_address_to_resource(node, 0, &r);
- 	if (ret)
- 		return ret;
- 
--	ret = device_register(fw_dev);
--	if (ret < 0)
--		return ret;
-+	mem_phys = r.start;
-+	mem_size = resource_size(&r);
- 
--	ret = of_reserved_mem_device_init_by_idx(fw_dev, parent->of_node, 0);
--	if (ret)
--		goto err_unreg_device;
-+	if (mem_size < VENUS_FW_MEM_SIZE)
-+		return -EINVAL;
- 
--	mem_size = VENUS_FW_MEM_SIZE;
--
--	mem_va = dmam_alloc_coherent(fw_dev, mem_size, &mem_phys, GFP_KERNEL);
-+	mem_va = memremap(r.start, mem_size, MEMREMAP_WC);
- 	if (!mem_va) {
--		ret = -ENOMEM;
--		goto err_unreg_device;
-+		dev_err(dev, "unable to map memory region: %pa+%zx\n",
-+			&r.start, mem_size);
-+		return -ENOMEM;
- 	}
- 
--	ret = request_firmware(&mdt, fwname, fw_dev);
-+	ret = request_firmware(&mdt, fwname, dev);
- 	if (ret < 0)
--		goto err_unreg_device;
-+		goto err_unmap;
- 
- 	fw_size = qcom_mdt_get_size(mdt);
- 	if (fw_size < 0) {
- 		ret = fw_size;
- 		release_firmware(mdt);
--		goto err_unreg_device;
-+		goto err_unmap;
- 	}
- 
--	ret = qcom_mdt_load(fw_dev, mdt, fwname, VENUS_PAS_ID, mem_va, mem_phys,
-+	ret = qcom_mdt_load(dev, mdt, fwname, VENUS_PAS_ID, mem_va, mem_phys,
- 			    mem_size);
- 
- 	release_firmware(mdt);
- 
- 	if (ret)
--		goto err_unreg_device;
-+		goto err_unmap;
- 
- 	ret = qcom_scm_pas_auth_and_reset(VENUS_PAS_ID);
- 	if (ret)
--		goto err_unreg_device;
--
--	return 0;
-+		goto err_unmap;
- 
--err_unreg_device:
--	device_unregister(fw_dev);
-+err_unmap:
-+	memunmap(mem_va);
- 	return ret;
- }
- 
--int venus_shutdown(struct device *fw_dev)
-+int venus_shutdown(struct device *dev)
- {
--	int ret;
--
--	ret = qcom_scm_pas_shutdown(VENUS_PAS_ID);
--	device_unregister(fw_dev);
--	memset(fw_dev, 0, sizeof(*fw_dev));
--
--	return ret;
-+	return qcom_scm_pas_shutdown(VENUS_PAS_ID);
- }
-diff --git a/drivers/media/platform/qcom/venus/firmware.h b/drivers/media/platform/qcom/venus/firmware.h
-index f81a98979798..428efb56d339 100644
---- a/drivers/media/platform/qcom/venus/firmware.h
-+++ b/drivers/media/platform/qcom/venus/firmware.h
-@@ -16,8 +16,7 @@
- 
- struct device;
- 
--int venus_boot(struct device *parent, struct device *fw_dev,
--	       const char *fwname);
--int venus_shutdown(struct device *fw_dev);
-+int venus_boot(struct device *dev, const char *fwname);
-+int venus_shutdown(struct device *dev);
- 
- #endif
+- Add async notifiers (by Niklas).
+
+- V4L2 sub-device node registration is moved to take place at the same time
+  with the registration of the sub-device itself. With this change,
+  sub-device node registration behaviour is aligned with video node
+  registration.
+
+- The former is made possible by moving the bound() callback after
+  sub-device registration.
+
+- As all the device node registration and link creation is done as the
+  respective devices are probed, there is no longer dependency to the
+  notifier complete callback which as itself is seen problematic. The
+  complete callback still exists but there's no need to use it, pending
+  changes in individual drivers.
+
+  See:
+  <URL:http://www.spinics.net/lists/linux-media/msg118323.html>
+
+  As a result, if a part of the media device fails to initialise because it
+  is e.g. physically broken, it will be possible to use what works.
+
+- Finally, the use of the async sub-notifier is hidden in the framework and
+  all a driver (such as smiapp) needs to do is to call
+  v4l2_subdev_fwnode_reference_parse_sensor_common() in its probe()
+  function to find out the associated devices (lens and flash). This
+  approach makes it possible to later on to rework the sub-notifier
+  implementation without touching driver code. Endpoints can be parsed
+  similarly by simply calling v4l2_subdev_fwnode_endpoints_parse() for
+  driver's probe function.
+
+The patches depend on this branch currently:
+
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=as3645a-leds-base>
+
+It's essentially the V4L2 flash class patches I've posted earlier today and
+a stash of fwnode property API improvements.
+
+
+Niklas Söderlund (1):
+  v4l: async: add subnotifier registration for subdevices
+
+Sakari Ailus (18):
+  device property: Introduce fwnode_property_get_reference_args
+  dt: bindings: Add a binding for flash devices associated to a sensor
+  dt: bindings: Add lens-focus binding for image sensors
+  leds: as3645a: Add LED flash class driver
+  leds: as3645a: Separate flash and indicator LED sub-devices
+  v4l: fwnode: Support generic parsing of graph endpoints in V4L2
+  arm: dts: omap3: N9/N950: Add AS3645A camera flash
+  v4l2-fwnode: Add conveniences function for parsing generic references
+  v4l2-fwnode: Add convenience function for parsing common external refs
+  v4l2-async: Register sub-devices before calling bound callback
+  v4l2-subdev: Support registering V4L2 sub-device nodes one by one
+  v4l2-device: Register sub-device nodes at sub-device registration time
+  omap3isp: Move sub-device link creation to notifier bound callback
+  omap3isp: Initialise "crashed" media entity enum in probe
+  omap3isp: Move media device registration to probe
+  omap3isp: Drop the async notifier callback
+  v4l2-fwnode: Add abstracted sub-device notifiers
+  smiapp: Add support for flash and lens devices
+
+ .../devicetree/bindings/media/video-interfaces.txt |  10 +
+ Documentation/media/kapi/v4l2-subdev.rst           |  20 +
+ MAINTAINERS                                        |   6 +
+ arch/arm/boot/dts/omap3-n9.dts                     |   1 +
+ arch/arm/boot/dts/omap3-n950-n9.dtsi               |  14 +
+ arch/arm/boot/dts/omap3-n950.dts                   |   1 +
+ drivers/acpi/property.c                            |  27 +
+ drivers/base/property.c                            |  12 +
+ drivers/leds/Kconfig                               |   8 +
+ drivers/leds/Makefile                              |   1 +
+ drivers/leds/leds-as3645a.c                        | 762 +++++++++++++++++++++
+ drivers/media/i2c/smiapp/smiapp-core.c             |   5 +
+ drivers/media/platform/omap3isp/isp.c              | 144 ++--
+ drivers/media/platform/omap3isp/isp.h              |   3 -
+ drivers/media/v4l2-core/v4l2-async.c               |  96 ++-
+ drivers/media/v4l2-core/v4l2-device.c              | 139 ++--
+ drivers/media/v4l2-core/v4l2-fwnode.c              | 174 +++++
+ drivers/media/v4l2-core/v4l2-subdev.c              |  44 +-
+ drivers/of/property.c                              |  31 +
+ include/linux/fwnode.h                             |  19 +
+ include/linux/property.h                           |   4 +
+ include/media/v4l2-async.h                         |  26 +-
+ include/media/v4l2-fwnode.h                        |  21 +
+ include/media/v4l2-subdev.h                        |  11 +
+ 24 files changed, 1388 insertions(+), 191 deletions(-)
+ create mode 100644 drivers/leds/leds-as3645a.c
+
 -- 
 2.11.0
