@@ -1,65 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:38600 "EHLO
-        mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752009AbdGUHjM (ORCPT
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:36732 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751457AbdGRUCA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Jul 2017 03:39:12 -0400
-Received: by mail-wm0-f47.google.com with SMTP id w191so6595504wmw.1
-        for <linux-media@vger.kernel.org>; Fri, 21 Jul 2017 00:39:11 -0700 (PDT)
-Subject: Re: [PATCH v3 00/23] Qualcomm 8x16 Camera Subsystem driver
-To: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@kernel.org,
-        hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
- <e149940a-2ba3-6a4c-e8e9-2ab2933cca30@xs4all.nl>
-From: Todor Tomov <todor.tomov@linaro.org>
-Message-ID: <30ff0a7d-e27d-03a2-4927-ce537a766531@linaro.org>
-Date: Fri, 21 Jul 2017 10:39:07 +0300
+        Tue, 18 Jul 2017 16:02:00 -0400
 MIME-Version: 1.0
-In-Reply-To: <e149940a-2ba3-6a4c-e8e9-2ab2933cca30@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAKv+Gu_OYCNK2qvyDb0+7MqyG4rTEhsf57i6m9SJU80CE7Yt+g@mail.gmail.com>
+References: <20170714092540.1217397-1-arnd@arndb.de> <20170714092540.1217397-8-arnd@arndb.de>
+ <CAKv+Gu9+0H9w8z8_Zedd-RxXt89Y7sJ=57_ZTThfDpFe4H0uXg@mail.gmail.com>
+ <CAK8P3a3qrkZLkL=PuUHkaq9p021-Y+odTj5UrdM=dZw8L=oM8g@mail.gmail.com> <CAKv+Gu_OYCNK2qvyDb0+7MqyG4rTEhsf57i6m9SJU80CE7Yt+g@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Tue, 18 Jul 2017 22:01:59 +0200
+Message-ID: <CAK8P3a0549U8zt7MPRJ5a6+pSZ-faqYiDTG3tNQGmvAbrZZfqw@mail.gmail.com>
+Subject: Re: [PATCH 07/14] proc/kcore: hide a harmless warning
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Jiri Olsa <jolsa@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
+        IDE-ML <linux-ide@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Kees Cook <keescook@chromium.org>,
+        Ingo Molnar <mingo@kernel.org>,
+        Laura Abbott <labbott@redhat.com>,
+        Pratyush Anand <panand@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
-
-On 19.07.2017 13:54, Hans Verkuil wrote:
-> On 17/07/17 12:33, Todor Tomov wrote:
->> This patchset adds basic support for the Qualcomm Camera Subsystem found
->> on Qualcomm MSM8916 and APQ8016 processors.
+On Tue, Jul 18, 2017 at 9:55 PM, Ard Biesheuvel
+<ard.biesheuvel@linaro.org> wrote:
+> On 18 July 2017 at 20:53, Arnd Bergmann <arnd@arndb.de> wrote:
+>> On Fri, Jul 14, 2017 at 2:28 PM, Ard Biesheuvel
+>> <ard.biesheuvel@linaro.org> wrote:
+>>> On 14 July 2017 at 10:25, Arnd Bergmann <arnd@arndb.de> wrote:
+>>>> gcc warns when MODULES_VADDR/END is defined to the same value as
+>>>> VMALLOC_START/VMALLOC_END, e.g. on x86-32:
+>>>>
+>>>> fs/proc/kcore.c: In function =E2=80=98add_modules_range=E2=80=99:
+>>>> fs/proc/kcore.c:622:161: error: self-comparison always evaluates to fa=
+lse [-Werror=3Dtautological-compare]
+>>>>   if (/*MODULES_VADDR !=3D VMALLOC_START && */MODULES_END !=3D VMALLOC=
+_END) {
+>>>>
+>>>
+>>> Does it occur for subtraction as well? Or only for comparison?
 >>
->> The driver implements V4L2, Media controller and V4L2 subdev interfaces.
->> Camera sensor using V4L2 subdev interface in the kernel is supported.
+>> This replacement patch would also address the warning:
 >>
->> The driver is implemented using as a reference the Qualcomm Camera
->> Subsystem driver for Android as found in Code Aurora [1].
+>> diff --git a/fs/proc/kcore.c b/fs/proc/kcore.c
+>> index 45629f4b5402..35824e986c2c 100644
+>> --- a/fs/proc/kcore.c
+>> +++ b/fs/proc/kcore.c
+>> @@ -623,7 +623,7 @@ static void __init proc_kcore_text_init(void)
+>>  struct kcore_list kcore_modules;
+>>  static void __init add_modules_range(void)
+>>  {
+>> -       if (MODULES_VADDR !=3D VMALLOC_START && MODULES_END !=3D VMALLOC=
+_END) {
+>> +       if (MODULES_VADDR - VMALLOC_START && MODULES_END - VMALLOC_END) =
+{
+>>                 kclist_add(&kcore_modules, (void *)MODULES_VADDR,
+>>                         MODULES_END - MODULES_VADDR, KCORE_VMALLOC);
+>>         }
 >>
->> The driver is tested on Dragonboard 410C (APQ8016) with one and two
->> OV5645 camera sensors. media-ctl [2] and yavta [3] applications were
->> used for testing. Also Gstreamer 1.10.4 with v4l2src plugin is supported.
+>> I have also verified that four of the 14 patches are not needed when bui=
+lding
+>> without ccache, this is one of them:
 >>
->> More information is present in the document added by the third patch.
-> 
-> OK, so this looks pretty good. I have one comment for patch 12/23, and the
-> dt-bindings need to be acked.
-> 
-> I suggest you make a v3.1 for patch 12/23 and then I'll wait for the binding
-> ack. Once that's in (and there are no other comments) I will merge this.
+>>  acpi: thermal: fix gcc-6/ccache warning
+>>  proc/kcore: hide a harmless warning
+>>  SFI: fix tautological-compare warning
+>>  [media] fix warning on v4l2_subdev_call() result interpreted as bool
+>>
+>> Not sure what to do with those, we could either ignore them all and
+>> not care about ccache, or we try to address them all in some way.
+>>
+>
+> Any idea why ccache makes a difference here? It is not obvious (not to
+> me at least)
 
-Thank you for the review!
-I'll update patch 12/23 and will send in the next version along with the rest
-of the fixes from the review.
+When ccache is used, the compilation stage is apparently always done on
+the preprocessed source file. So instead of parsing (with the integrated
+preprocessor)
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
+          if (MODULES_VADDR !=3D VMALLOC_START ...)
 
--- 
-Best regards,
-Todor Tomov
+the compiler sees
+
+          if (((unsigned long)high_memory + (8 * 1024 * 1024))  !=3D
+              ((unsigned long)high_memory + (8 * 1024 * 1024))  ...)
+
+and it correctly considers the first expression something that one
+would write in source code, while -Wtautological-compare
+is intended to warn about the second version being always true,
+which makes the 'if()' pointless.
+
+       Arnd
