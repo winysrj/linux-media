@@ -1,61 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.135]:59663 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751190AbdGNJbQ (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:51811 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751528AbdGROuS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Jul 2017 05:31:16 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
-        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
-        akpm@linux-foundation.org, dri-devel@lists.freedesktop.org,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 09/14] SFI: fix tautological-compare warning
-Date: Fri, 14 Jul 2017 11:30:12 +0200
-Message-Id: <20170714093021.1341005-1-arnd@arndb.de>
-In-Reply-To: <20170714092540.1217397-1-arnd@arndb.de>
-References: <20170714092540.1217397-1-arnd@arndb.de>
+        Tue, 18 Jul 2017 10:50:18 -0400
+Subject: Re: [PATCH v4 2/3] v4l: async: do not hold list_lock when reprobing
+ devices
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
+References: <20170717165917.24851-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170717165917.24851-3-niklas.soderlund+renesas@ragnatech.se>
+ <5a184e14-b429-fd7d-fc0c-d0520e1cc3fa@xs4all.nl>
+ <20170718143936.GC28538@bigcity.dyn.berto.se>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <eab3d6ad-c90a-310a-a9fb-29e19e6ebb69@xs4all.nl>
+Date: Tue, 18 Jul 2017 16:50:15 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20170718143936.GC28538@bigcity.dyn.berto.se>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With ccache in combination with gcc-6, we get a harmless warning for the sfi subsystem,
-as ccache only sees the preprocessed source:
+On 18/07/17 16:39, Niklas Söderlund wrote:
+> Hi Hans,
+> 
+> Thanks for your feedback.
+> 
+> On 2017-07-18 16:22:14 +0200, Hans Verkuil wrote:
+>> On 17/07/17 18:59, Niklas Söderlund wrote:
+>>> There is no good reason to hold the list_lock when reprobing the devices
+>>> and it prevents a clean implementation of subdevice notifiers. Move the
+>>> actual release of the devices outside of the loop which requires the
+>>> lock to be held.
+>>>
+>>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+>>> ---
+>>>  drivers/media/v4l2-core/v4l2-async.c | 29 ++++++++++-------------------
+>>>  1 file changed, 10 insertions(+), 19 deletions(-)
+>>>
+>>> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+>>> index 0acf288d7227ba97..8fc84f7962386ddd 100644
+>>> --- a/drivers/media/v4l2-core/v4l2-async.c
+>>> +++ b/drivers/media/v4l2-core/v4l2-async.c
+>>> @@ -206,7 +206,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+>>>  	unsigned int notif_n_subdev = notifier->num_subdevs;
+>>>  	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
+>>>  	struct device **dev;
+>>> -	int i = 0;
+>>> +	int i, count = 0;
+>>>  
+>>>  	if (!notifier->v4l2_dev)
+>>>  		return;
+>>> @@ -222,37 +222,28 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+>>>  	list_del(&notifier->list);
+>>>  
+>>>  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+>>> -		struct device *d;
+>>> -
+>>> -		d = get_device(sd->dev);
+>>> +		if (dev)
+>>> +			dev[count] = get_device(sd->dev);
+>>> +		count++;
+>>>  
+>>>  		if (notifier->unbind)
+>>>  			notifier->unbind(notifier, sd, sd->asd);
+>>>  
+>>>  		v4l2_async_cleanup(sd);
+>>> +	}
+>>>  
+>>> -		/* If we handled USB devices, we'd have to lock the parent too */
+>>> -		device_release_driver(d);
+>>> +	mutex_unlock(&list_lock);
+>>>  
+>>> -		/*
+>>> -		 * Store device at the device cache, in order to call
+>>> -		 * put_device() on the final step
+>>> -		 */
+>>> +	for (i = 0; i < count; i++) {
+>>> +		/* If we handled USB devices, we'd have to lock the parent too */
+>>>  		if (dev)
+>>> -			dev[i++] = d;
+>>> -		else
+>>> -			put_device(d);
+>>> +			device_release_driver(dev[i]);
+>>
+>> This changes the behavior. If the alloc failed, then at least put_device was still called.
+>> Now that no longer happens.
+> 
+> Yes, but also changes the behavior to also only call get_device() if the 
+> allocation was successful. So the behavior is kept the same as far as I 
+> understands it.
 
-drivers/sfi/sfi_core.c: In function â€˜sfi_map_tableâ€™:
-drivers/sfi/sfi_core.c:175:53: error: self-comparison always evaluates to true [-Werror=tautological-compare]
+Ah, I missed that. Sorry about that.
 
-Using an inline function to do the comparison tells the compiler what is
-going on even for preprocessed files, and avoids the warning.
+But regardless of that the device_release_driver(d) isn't called anymore.
+It's not clear at all to me whether that is a problem or not.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/sfi/sfi_core.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+> 
+>>
+>> Frankly I don't understand this code, it is in desperate need of some comments explaining
+>> this whole reprobing thing.
+> 
+> I agree that the code is in need of comments, but I feel a patch that 
+> separates the v4l2-async work from the re-probing work is a step in the 
+> right direction :-)
 
-diff --git a/drivers/sfi/sfi_core.c b/drivers/sfi/sfi_core.c
-index 296db7a69c27..a8f2313a2613 100644
---- a/drivers/sfi/sfi_core.c
-+++ b/drivers/sfi/sfi_core.c
-@@ -71,9 +71,12 @@
- 
- #include "sfi_core.h"
- 
--#define ON_SAME_PAGE(addr1, addr2) \
--	(((unsigned long)(addr1) & PAGE_MASK) == \
--	((unsigned long)(addr2) & PAGE_MASK))
-+static inline bool on_same_page(unsigned long addr1, unsigned long addr2)
-+{
-+	return (addr1 & PAGE_MASK) == (addr2 & PAGE_MASK);
-+}
-+
-+#define ON_SAME_PAGE(addr1, addr2) on_same_page((unsigned long)addr1, (unsigned long)addr2)
- #define TABLE_ON_PAGE(page, table, size) (ON_SAME_PAGE(page, table) && \
- 				ON_SAME_PAGE(page, table + size))
- 
--- 
-2.9.0
+Would it help to simplify this function to:
+
+        dev = kvmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
+        if (!dev) {
+                dev_err(notifier->v4l2_dev->dev,
+                        "Failed to allocate device cache!\n");
+
+	        mutex_lock(&list_lock);
+
+	        list_del(&notifier->list);
+
+		/* this assumes device_release_driver(d) isn't necessary */
+        	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+	                if (notifier->unbind)
+        	                notifier->unbind(notifier, sd, sd->asd);
+
+               	        v4l2_async_cleanup(sd);
+	        }
+
+        	mutex_unlock(&list_lock);
+		return;
+	}
+
+	...and here the code where dev is non-NULL...
+
+Yes, there is some code duplication, but it is a lot easier to understand.
+
+Regards,
+
+	Hans
+
+> 
+>>
+>> I have this strong feeling that this function needs to be reworked.
+> 
+> I also strongly agree with this.
+> 
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>>  	}
+>>>  
+>>> -	mutex_unlock(&list_lock);
+>>> -
+>>>  	/*
+>>>  	 * Call device_attach() to reprobe devices
+>>> -	 *
+>>> -	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
+>>> -	 * executed.
+>>>  	 */
+>>> -	while (i--) {
+>>> +	for (i = 0; dev && i < count; i++) {
+>>>  		struct device *d = dev[i];
+>>>  
+>>>  		if (d && device_attach(d) < 0) {
+>>>
+>>
+> 
