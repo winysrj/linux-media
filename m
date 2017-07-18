@@ -1,13 +1,13 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:59826 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752169AbdGDUR5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Jul 2017 16:17:57 -0400
-Date: Tue, 4 Jul 2017 22:17:55 +0200
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Yong <yong.deng@magewell.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@kernel.org,
-        robh+dt@kernel.org, mark.rutland@arm.com, wens@csie.org,
+Received: from guitar.tcltek.co.il ([192.115.133.116]:43989 "EHLO
+        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751322AbdGRLzh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Jul 2017 07:55:37 -0400
+Date: Tue, 18 Jul 2017 14:55:30 +0300
+From: Baruch Siach <baruch@tkos.co.il>
+To: Yong Deng <yong.deng@magewell.com>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
         hans.verkuil@cisco.com, peter.griffin@linaro.org,
         hugues.fruchet@st.com, krzk@kernel.org, bparrot@ti.com,
         arnd@arndb.de, jean-christophe.trotin@st.com,
@@ -16,87 +16,104 @@ Cc: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@kernel.org,
         andrew-ct.chen@mediatek.com, linux-media@vger.kernel.org,
         devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-kernel@vger.kernel.org, linux-sunxi@googlegroups.com
-Subject: Re: [PATCH RFC 1/2] media: V3s: Add support for Allwinner CSI.
-Message-ID: <20170704201755.fuktyr2nyrhvndas@flea>
+Subject: Re: [PATCH RFC 2/2] dt-bindings: add binding documentation for
+ Allwinner CSI
+Message-ID: <20170718115530.ssy7g5vv4siqnfpo@tarshish>
 References: <1498561654-14658-1-git-send-email-yong.deng@magewell.com>
- <1498561654-14658-2-git-send-email-yong.deng@magewell.com>
- <667c858b-2655-88c5-6bbc-9d70d06c1ff1@xs4all.nl>
- <20170703185952.18a97e9b7b05cbe321cb1268@magewell.com>
- <20170703112521.ca253erguut5v7se@flea>
- <20170704152545.4a70f04db2c984d4d54bf9dd@magewell.com>
+ <1498561654-14658-3-git-send-email-yong.deng@magewell.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="skryaxsyrlhsg3yt"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170704152545.4a70f04db2c984d4d54bf9dd@magewell.com>
+In-Reply-To: <1498561654-14658-3-git-send-email-yong.deng@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Yong,
 
---skryaxsyrlhsg3yt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I am trying to get this driver working on the Olimex A33 OLinuXino. I didn't 
+get it working yet, but I had some progress. See the comment below on one 
+issue I encountered.
 
-On Tue, Jul 04, 2017 at 03:25:45PM +0800, Yong wrote:
-> On Mon, 3 Jul 2017 13:25:21 +0200
-> Maxime Ripard <maxime.ripard@free-electrons.com> wrote:
->=20
-> > Hi,
-> >=20
-> > On Mon, Jul 03, 2017 at 06:59:52PM +0800, Yong wrote:
-> > > > > +	select VIDEOBUF2_DMA_CONTIG
-> > > > > +	select REGMAP_MMIO
-> > > > > +	---help---
-> > > > > +	   Support for the Allwinner Camera Sensor Interface Controller.
-> > > >=20
-> > > > This controller is the same for all Allwinner SoC models?
-> > >=20
-> > > No.
-> > > I will change the Kconfig and Makefile.
-> >=20
-> > This is basically a design that has been introduced in the A31 (sun6i
-> > family). I guess we should just call the driver and Kconfig symbols
-> > sun6i_csi (even though we don't support it yet). It also used on the
-> > A23, A33, A80, A83T, H3, and probably the H5 and A64.
->=20
-> Thanks for the advice. That's good.
-> My purpose is to make the code reusable. People working on other
-> Allwinner SoC could easily make their CSI working by just filling the
-> SoC specific code. But I'm not familiar with other Allwinner SoCs=20
-> except V3s. I hope to get more advice.
+On Tue, Jun 27, 2017 at 07:07:34PM +0800, Yong Deng wrote:
+> Add binding documentation for Allwinner CSI.
+> 
+> Signed-off-by: Yong Deng <yong.deng@magewell.com>
+> ---
+>  .../devicetree/bindings/media/sunxi-csi.txt        | 51 ++++++++++++++++++++++
+>  1 file changed, 51 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/sunxi-csi.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/sunxi-csi.txt b/Documentation/devicetree/bindings/media/sunxi-csi.txt
+> new file mode 100644
+> index 0000000..770be0e
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/sunxi-csi.txt
+> @@ -0,0 +1,51 @@
+> +Allwinner V3s Camera Sensor Interface
+> +------------------------------
+> +
+> +Required properties:
+> +  - compatible: value must be "allwinner,sun8i-v3s-csi"
+> +  - reg: base address and size of the memory-mapped region.
+> +  - interrupts: interrupt associated to this IP
+> +  - clocks: phandles to the clocks feeding the CSI
+> +    * ahb: the CSI interface clock
+> +    * mod: the CSI module clock
+> +    * ram: the CSI DRAM clock
+> +  - clock-names: the clock names mentioned above
+> +  - resets: phandles to the reset line driving the CSI
+> +
+> +- ports: A ports node with endpoint definitions as defined in
+> +  Documentation/devicetree/bindings/media/video-interfaces.txt. The
+> +  first port should be the input endpoints, the second one the outputs
+> +
+> +Example:
+> +
+> +	csi1: csi@01cb4000 {
+> +		compatible = "allwinner,sun8i-v3s-csi";
+> +		reg = <0x01cb4000 0x1000>;
 
-Right, of course we don't expect you to do all that work, and we
-should definitely focus on the V3s that you have for now. My comment
-was only about the driver name and Kconfig option.
+You use platform_get_resource_byname() to get this IO resource. This requires 
+adding mandatory
 
-For the rest of the code, see the other comments :)
+  reg-names = "csi";
 
-Maxime
+But is it actually needed? Wouldn't a simple platform_get_resource() be 
+enough?
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+Thanks,
+baruch
 
---skryaxsyrlhsg3yt
-Content-Type: application/pgp-signature; name="signature.asc"
+> +		interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
+> +		clocks = <&ccu CLK_BUS_CSI>,
+> +			 <&ccu CLK_CSI1_SCLK>,
+> +			 <&ccu CLK_DRAM_CSI>;
+> +		clock-names = "ahb", "mod", "ram";
+> +		resets = <&ccu RST_BUS_CSI>;
+> +
+> +		port {
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+> +
+> +			/* Parallel bus endpoint */
+> +			csi1_0: endpoint@0 {
+> +				reg = <0>;
+> +				remote = <&adv7611_1>;
+> +				bus-width = <16>;
+> +				data-shift = <0>;
+> +
+> +				/* If hsync-active/vsync-active are missing,
+> +				   embedded BT.656 sync is used */
+> +				hsync-active = <0>; /* Active low */
+> +				vsync-active = <0>; /* Active low */
+> +				data-active = <1>;  /* Active high */
+> +				pclk-sample = <1>;  /* Rising */
+> +			};
+> +		};
+> +	};
+> +
 
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJZW/fzAAoJEBx+YmzsjxAgdasP/2Z2P87KFrFsL5TckAremzRN
-tuJkwbp/pn689nhJNTFqAyInYOinaULabtix/kBcYtqMhf8+GpP3PAe3/WOyceYo
-WgcysnHLs46NloTv+lBP2WhV/CAFCFwhUXbFmDsuX1rmmlNOADKOOqeXKc2dJ2pE
-0lvKF0XkhKcTv2dMQmDMkb0LRk8r80d39GOLl021Qj/8TV/Lg2b/rlulVB5wrZlZ
-RHKiJVCmYP1qMogGsCIYrZiGODoYRYUnqg2zfqUL43y97YCfna+QiKw0dP3YJ+Il
-yvXT6xfeNCRbH3aVEdTzhQYc474JsBvujM/8UjTGEjmyWbyvZas5RIvReo4gCPry
-+UAW/d33kFews+HZkYxKGLL9eSbvRg3pc8jxCQFz3Auz6GOC7C4ZUrCwIgzSc8Zi
-OzvVbeA33mlOmrllKZbBUDSnB1tFcQrIVxjOz+Xn1zXSX0JBLTRpG8QpZxPGH8n5
-Ecv78j5Dv66AFDNJApKt1HtcLEofq/ReZrhr2qXpgyPLgTiz+3PYKgaTnVKH8gza
-rvocKNXdv0Y0yrbGBI7CVwv9GeZ//CrPg5Y+5T1uh64i6dwrLWvAHSZlrJk/sx5Z
-1DMnwCWKMRGFjC3v8MDQnzmkC6guVNPqsjIm/ebkTO29dOeDylOoYp1BNfbUpJW6
-Ykl38J1TjBsS8sj4t0e7
-=imwt
------END PGP SIGNATURE-----
-
---skryaxsyrlhsg3yt--
+-- 
+     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.52.368.4656, http://www.tkos.co.il -
