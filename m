@@ -1,126 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gloria.sntech.de ([95.129.55.99]:33644 "EHLO gloria.sntech.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751216AbdGPQIi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 16 Jul 2017 12:08:38 -0400
-From: Heiko Stuebner <heiko@sntech.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        robh+dt@kernel.org
-Cc: Jacob Chen <jacob-chen@iotwrt.com>,
-        linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        s.nawrocki@samsung.com, tfiga@chromium.org, nicolas@ndufresne.ca,
-        Yakir Yang <ykk@rock-chips.com>
-Subject: Re: [PATCH v2 6/6] dt-bindings: Document the Rockchip RGA bindings
-Date: Sun, 16 Jul 2017 18:07:58 +0200
-Message-ID: <1882912.vhlUDqklbZ@phil>
-In-Reply-To: <1918615.rEp9U5BAbC@avalon>
-References: <1500101920-24039-1-git-send-email-jacob-chen@iotwrt.com> <1500101920-24039-7-git-send-email-jacob-chen@iotwrt.com> <1918615.rEp9U5BAbC@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60052 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751990AbdGRTEI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Jul 2017 15:04:08 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: linux-leds@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        niklas.soderlund@ragnatech.se, hverkuil@xs4all.nl
+Subject: [RFC 14/19] omap3isp: Move sub-device link creation to notifier bound callback
+Date: Tue, 18 Jul 2017 22:03:56 +0300
+Message-Id: <20170718190401.14797-15-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
+References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+The external sub-device links may well be created from the bound callback.
+Don't postpone creation to the complete callback.
 
-Am Samstag, 15. Juli 2017, 12:23:12 CEST schrieb Laurent Pinchart:
-> On Saturday 15 Jul 2017 14:58:40 Jacob Chen wrote:
-> > Add DT bindings documentation for Rockchip RGA
-> > 
-> > Signed-off-by: Yakir Yang <ykk@rock-chips.com>
-> > Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
-> > ---
-> >  .../devicetree/bindings/media/rockchip-rga.txt     | 35 +++++++++++++++++++
-> >  1 file changed, 35 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
-> > 
-> > diff --git a/Documentation/devicetree/bindings/media/rockchip-rga.txt
-> > b/Documentation/devicetree/bindings/media/rockchip-rga.txt new file mode
-> > 100644
-> > index 0000000..966eba0
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/media/rockchip-rga.txt
-> > @@ -0,0 +1,35 @@
-> > +device-tree bindings for rockchip 2D raster graphic acceleration controller
-> > (RGA)
-> > +
-> > +RGA is a separate 2D raster graphic acceleration unit. It accelerates 2D
-> 
-> "Separate" from what ? Do you mean "standalone" ?
-> 
-> > +graphics operations, such as point/line drawing, image scaling, rotation,
-> > +BitBLT, alpha blending and image blur/sharpness.
-> > +
-> > +Required properties:
-> > +- compatible: value should be one of the following
-> > +		"rockchip,rk3228-rga";
-> > +		"rockchip,rk3288-rga";
-> > +		"rockchip,rk3399-rga";
-> 
-> The driver in patch 2/6 has match entry for rk3328, which is missing from this 
-> list.
-> 
-> As the implementation of the driver doesn't seem to discriminate between the 
-> four SoCs, wouldn't it make sense to create a generic compatible string on 
-> which the driver would match ? You can have both the generic and SoC-specific 
-> compatible strings in DT if there are differences between the IP core in those 
-> SoCs that might need to be handled later by the driver.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/platform/omap3isp/isp.c | 20 ++++++--------------
+ 1 file changed, 6 insertions(+), 14 deletions(-)
 
-I think the block is named something like RGA2 in some kernel trees, but
-am not sure if that is an actual name, or someone just added a number.
->From short glances at vendor rga-code in the past, it looks like there are
-currently 2 basic versions of the in existence I.e. older Rockchip socs
-(like the rk3188 or so) use something older.
-
-I think everywhere else we do have only (or at least mostly) soc-specifc
-compatibles, but I guess that is more a question what Rob prefers.
-
-
-Heiko
-
-> > +- interrupts: RGA interrupt number.
-> 
-> This is an "interrupt specifier", not just an "interrupt number" (as you can 
-> see in the example below there are three numbers)
-> 
-> > +
-> > +- clocks: phandle to RGA sclk/hclk/aclk clocks
-> > +
-> > +- clock-names: should be "aclk" "hclk" and "sclk"
-> 
-> Nitpicking, there should be a comma after "aclk".
-> 
-> > +
-> > +- resets: Must contain an entry for each entry in reset-names.
-> > +  See ../reset/reset.txt for details.
-> > +- reset-names: should be "core" "axi" and "ahb"
-> 
-> And a comma after "core".
-> 
-> > +
-> > +Example:
-> > +SoC specific DT entry:
-> 
-> s/SoC specific/SoC-specific/
-> 
-> > +	rga: rga@ff680000 {
-> > +		compatible = "rockchip,rk3399-rga";
-> > +		reg = <0xff680000 0x10000>;
-> > +		interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
-> > +		interrupt-names = "rga";
-> 
-> The interrupt-names property is not described above. Do you really need it ?
-> 
-> > +		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru 
-> SCLK_RGA_CORE>;
-> > +		clock-names = "aclk", "hclk", "sclk";
-> > +
-> > +		resets = <&cru SRST_RGA_CORE>, <&cru SRST_A_RGA>, <&cru 
-> SRST_H_RGA>;
-> > +		reset-names = "core, "axi", "ahb";
-> > +	};
-> 
-> 
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 92245a457d18..ef6ce2b214ce 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2085,16 +2085,18 @@ static int isp_fwnode_parse(struct device *dev,
+ }
+ 
+ static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
+-				     struct v4l2_subdev *subdev,
++				     struct v4l2_subdev *sd,
+ 				     struct v4l2_async_subdev *asd)
+ {
++	struct isp_device *isp = container_of(async, struct isp_device,
++					      notifier);
+ 	struct isp_async_subdev *isd =
+ 		container_of(asd, struct isp_async_subdev, asd);
+ 
+-	isd->sd = subdev;
+-	isd->sd->host_priv = &isd->bus;
++	isd->sd = sd;
++	sd->host_priv = &isd->bus;
+ 
+-	return 0;
++	return isp_link_entity(isp, &sd->entity, isd->bus.interface);
+ }
+ 
+ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
+@@ -2110,16 +2112,6 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
+ 	if (ret)
+ 		return ret;
+ 
+-	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
+-		/* Only try to link entities whose interface was set on bound */
+-		if (sd->host_priv) {
+-			bus = (struct isp_bus_cfg *)sd->host_priv;
+-			ret = isp_link_entity(isp, &sd->entity, bus->interface);
+-			if (ret < 0)
+-				return ret;
+-		}
+-	}
+-
+ 	ret = v4l2_device_register_subdev_nodes(&isp->v4l2_dev);
+ 	if (ret < 0)
+ 		return ret;
+-- 
+2.11.0
