@@ -1,73 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.60.111]:57739 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932178AbdGJPyP (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60884 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751995AbdGRTw3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Jul 2017 11:54:15 -0400
-Subject: Re: [PATCH v4 4/4] dt-bindings: media: Document Synopsys Designware
- HDMI RX
-To: Rob Herring <robh@kernel.org>, Jose Abreu <Jose.Abreu@synopsys.com>
-References: <cover.1497978962.git.joabreu@synopsys.com>
- <8ebe3dfcd61a1c8cfa99102c376ad26b2bfbd254.1497978963.git.joabreu@synopsys.com>
- <20170623215814.ase6g4lbukaeqak2@rob-hp-laptop>
- <13f2516b-9e2b-4ad6-ecf1-76fc0d744a32@synopsys.com>
- <CAL_JsqKoW=VJ=QmLeztYJSnWEhq+KetsZY9xtoyOa8bf0BA=uw@mail.gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Tue, 18 Jul 2017 15:52:29 -0400
+Date: Tue, 18 Jul 2017 22:52:23 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hugues FRUCHET <hugues.fruchet@st.com>
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Rob Herring <robh+dt@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-Message-ID: <c38bba94-f050-5738-d955-a1d75aad333e@synopsys.com>
-Date: Mon, 10 Jul 2017 16:54:09 +0100
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre TORGUE <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Yannick FERTRE <yannick.fertre@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 0/7] [PATCH v2 0/7] Add support of OV9655 camera
+Message-ID: <20170718195223.zrqfrefxxzqfsojd@valkosipuli.retiisi.org.uk>
+References: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com>
+ <8157da84-1484-8375-1f2b-9831973915b4@kernel.org>
+ <956f17e6-36dd-6733-0d35-9b801ed4244d@xs4all.nl>
+ <BCD1BD18-96E3-4638-8935-B5C832D8EE52@goldelico.com>
+ <2dd3402e-55b0-231d-878f-5ba95ee8cb36@st.com>
 MIME-Version: 1.0
-In-Reply-To: <CAL_JsqKoW=VJ=QmLeztYJSnWEhq+KetsZY9xtoyOa8bf0BA=uw@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2dd3402e-55b0-231d-878f-5ba95ee8cb36@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+On Tue, Jul 18, 2017 at 12:53:12PM +0000, Hugues FRUCHET wrote:
+> 
+> 
+> On 07/18/2017 02:17 PM, H. Nikolaus Schaller wrote:
+> > Hi,
+> > 
+> >> Am 18.07.2017 um 13:59 schrieb Hans Verkuil <hverkuil@xs4all.nl>:
+> >>
+> >> On 12/07/17 22:01, Sylwester Nawrocki wrote:
+> >>> Hi Hugues,
+> >>>
+> >>> On 07/03/2017 11:16 AM, Hugues Fruchet wrote:
+> >>>> This patchset enables OV9655 camera support.
+> >>>>
+> >>>> OV9655 support has been tested using STM32F4DIS-CAM extension board
+> >>>> plugged on connector P1 of STM32F746G-DISCO board.
+> >>>> Due to lack of OV9650/52 hardware support, the modified related code
+> >>>> could not have been checked for non-regression.
+> >>>>
+> >>>> First patches upgrade current support of OV9650/52 to prepare then
+> >>>> introduction of OV9655 variant patch.
+> >>>> Because of OV9655 register set slightly different from OV9650/9652,
+> >>>> not all of the driver features are supported (controls). Supported
+> >>>> resolutions are limited to VGA, QVGA, QQVGA.
+> >>>> Supported format is limited to RGB565.
+> >>>> Controls are limited to color bar test pattern for test purpose.
+> >>>
+> >>> I appreciate your efforts towards making a common driver but IMO it would be
+> >>> better to create a separate driver for the OV9655 sensor.  The original driver
+> >>> is 1576 lines of code, your patch set adds half of that (816).  There are
+> >>> significant differences in the feature set of both sensors, there are
+> >>> differences in the register layout.  I would go for a separate driver, we
+> >>> would then have code easier to follow and wouldn't need to worry about possible
+> >>> regressions.  I'm afraid I have lost the camera module and won't be able
+> >>> to test the patch set against regressions.
+> >>>
+> >>> IMHO from maintenance POV it's better to make a separate driver. In the end
+> >>> of the day we wouldn't be adding much more code than it is being done now.
+> >>
+> >> I agree. We do not have great experiences in the past with trying to support
+> >> multiple variants in a single driver (unless the diffs are truly small).
+> > 
+> > Well,
+> > IMHO the diffs in ov965x are smaller (but untestable because nobody seems
+> > to have an ov9650/52 board) than within the bq27xxx chips, but I can dig out
+> > an old pdata based separate ov9655 driver and extend that to become DT compatible.
+> > 
+> > I had abandoned that separate approach in favour of extending the ov965x driver.
+> > 
+> > Have to discuss with Hugues how to proceed.
+> > 
+> > BR and thanks,
+> > Nikolaus
+> > 
+> 
+> As Sylwester and Hans, I'm also in flavour of a separate driver, the 
+> fact that register set seems similar but in fact is not and that we 
+> cannot test for non-regression of 9650/52 are killer for me to continue 
+> on a single driver.
+> We can now restart from a new fresh state of the art sensor driver 
+> getting rid of legacy (pdata, old gpio, etc...).
 
+Agreed. I bet the result will look cleaner indeed although this wasn't one
+of the complex drivers.
 
-On 10-07-2017 16:24, Rob Herring wrote:
-> On Mon, Jun 26, 2017 at 11:42 AM, Jose Abreu <Jose.Abreu@synopsys.com> wrote:
->> Hi Rob,
->>
->>
->> On 23-06-2017 22:58, Rob Herring wrote:
->>> On Tue, Jun 20, 2017 at 06:26:12PM +0100, Jose Abreu wrote:
->>>> Document the bindings for the Synopsys Designware HDMI RX.
->>>>
-> [...]
->
->>>> +A sample binding is now provided. The compatible string is for a SoC which has
->>>> +has a Synopsys Designware HDMI RX decoder inside.
->>>> +
->>>> +Example:
->>>> +
->>>> +dw_hdmi_soc: dw-hdmi-soc@0 {
->>>> +    compatible = "snps,dw-hdmi-soc";
->>> Not documented.
->> Yes, its a sample binding which reflects a wrapper driver that
->> shall instantiate the controller driver (and this wrapper driver
->> is not in this patch series), should I remove this?
-> Ah, I see. Please don't do this wrapper node like what was done on
-> DWC3. It should be all one node with the SoC specific part being a new
-> compatible string (and maybe additional properties). If there's really
-> some custom logic around the IP block, then maybe it makes sense, but
-> if it is just different clock connections, phys, resets, etc. those
-> don't need a separate node.
+It'd be nice that someone was able to test the ov9650/2, too, drivers that
+are never used tend to break...
 
-Ok. I guess I can just drop the SoC specific bindings as this was
-more of a sample as how the EDID handle can be specified. I just
-sent v8 now with the new bindings :) Thanks!
-
-Best regards,
-Jose Miguel Abreu
-
->
-> Rob
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
