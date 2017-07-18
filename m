@@ -1,96 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:38424 "EHLO
-        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750768AbdGYHCm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Jul 2017 03:02:42 -0400
-Received: by mail-wm0-f46.google.com with SMTP id m85so34177426wma.1
-        for <linux-media@vger.kernel.org>; Tue, 25 Jul 2017 00:02:41 -0700 (PDT)
-Date: Tue, 25 Jul 2017 09:02:36 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: zhoucm1 <david1.zhou@amd.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-        Christian =?iso-8859-1?Q?K=F6nig?= <deathsimple@vodafone.de>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] dma-buf: fix reservation_object_wait_timeout_rcu to wait
- correctly
-Message-ID: <20170725070236.yjn526srw5ki7onh@phenom.ffwll.local>
-References: <1500654001-20899-1-git-send-email-deathsimple@vodafone.de>
- <20170724083359.j6wo5icln3faajn6@phenom.ffwll.local>
- <b3cb04f6-07c8-f5dd-3d7b-7f41f1d0dd81@vodafone.de>
- <CAKMK7uEC6BpYZeWZENk=Kt01yQuJXW=kgpp3acAMEdQBmD84FQ@mail.gmail.com>
- <5976E257.4080701@amd.com>
- <20170725065027.jdwbpyqfs7ir7tyn@phenom.ffwll.local>
- <5976EB52.6020008@amd.com>
+Received: from anholt.net ([50.246.234.109]:51438 "EHLO anholt.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752328AbdGRWEJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Jul 2017 18:04:09 -0400
+From: Eric Anholt <eric@anholt.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        dri-devel@lists.freedesktop.org
+Subject: Re: [PATCH 4/4] drm/vc4: add HDMI CEC support
+In-Reply-To: <e8289d89-bfd5-d964-2b9a-2d36394ce868@xs4all.nl>
+References: <20170711112021.38525-1-hverkuil@xs4all.nl> <20170711112021.38525-5-hverkuil@xs4all.nl> <87d195h41b.fsf@eliezer.anholt.net> <c45868d2-50e5-987b-db1e-b8e76983cbb2@xs4all.nl> <e8289d89-bfd5-d964-2b9a-2d36394ce868@xs4all.nl>
+Date: Tue, 18 Jul 2017 15:03:55 -0700
+Message-ID: <87vampjtbo.fsf@eliezer.anholt.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <5976EB52.6020008@amd.com>
+Content-Type: multipart/signed; boundary="=-=-=";
+        micalg=pgp-sha512; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 25, 2017 at 02:55:14PM +0800, zhoucm1 wrote:
-> 
-> 
-> On 2017年07月25日 14:50, Daniel Vetter wrote:
-> > On Tue, Jul 25, 2017 at 02:16:55PM +0800, zhoucm1 wrote:
-> > > 
-> > > On 2017年07月24日 19:57, Daniel Vetter wrote:
-> > > > On Mon, Jul 24, 2017 at 11:51 AM, Christian König
-> > > > <deathsimple@vodafone.de> wrote:
-> > > > > Am 24.07.2017 um 10:33 schrieb Daniel Vetter:
-> > > > > > On Fri, Jul 21, 2017 at 06:20:01PM +0200, Christian König wrote:
-> > > > > > > From: Christian König <christian.koenig@amd.com>
-> > > > > > > 
-> > > > > > > With hardware resets in mind it is possible that all shared fences are
-> > > > > > > signaled, but the exlusive isn't. Fix waiting for everything in this
-> > > > > > > situation.
-> > > > > > How did you end up with both shared and exclusive fences on the same
-> > > > > > reservation object? At least I thought the point of exclusive was that
-> > > > > > it's exclusive (and has an implicit barrier on all previous shared
-> > > > > > fences). Same for shared fences, they need to wait for the exclusive one
-> > > > > > (and replace it).
-> > > > > > 
-> > > > > > Is this fallout from the amdgpu trickery where by default you do all
-> > > > > > shared fences? I thought we've aligned semantics a while back ...
-> > > > > No, that is perfectly normal even for other drivers. Take a look at the
-> > > > > reservation code.
-> > > > > 
-> > > > > The exclusive fence replaces all shared fences, but adding a shared fence
-> > > > > doesn't replace the exclusive fence. That actually makes sense, cause when
-> > > > > you want to add move shared fences those need to wait for the last exclusive
-> > > > > fence as well.
-> > > > Hm right.
-> > > > 
-> > > > > Now normally I would agree that when you have shared fences it is sufficient
-> > > > > to wait for all of them cause those operations can't start before the
-> > > > > exclusive one finishes. But with GPU reset and/or the ability to abort
-> > > > > already submitted operations it is perfectly possible that you end up with
-> > > > > an exclusive fence which isn't signaled and a shared fence which is signaled
-> > > > > in the same reservation object.
-> > > > How does that work? The batch(es) with the shared fence are all
-> > > > supposed to wait for the exclusive fence before they start, which
-> > > > means even if you gpu reset and restart/cancel certain things, they
-> > > > shouldn't be able to complete out of order.
-> > > Hi Daniel,
-> > > 
-> > > Do you mean exclusive fence must be signalled before any shared fence? Where
-> > > could I find this restriction?
-> > Yes, Christian also described it above. Could be that we should have
-> > better kerneldoc to document this ...
-> Is that a known assumption? if that way, it doesn't matter even that we
-> always wait exclusive fence, right? Just one more line checking.
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-The problem is that amdgpu breaks that assumption over gpu reset, and that
-might have implications _everywhere_, not just in this code here. Are you
-sure this case won't pull the i915 driver over the table when sharing
-dma-bufs with it? Did you audit the code (plus all the other drivers too
-ofc).
--Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+Hans Verkuil <hverkuil@xs4all.nl> writes:
+
+> On 12/07/17 21:43, Hans Verkuil wrote:
+>> On 12/07/17 21:02, Eric Anholt wrote:
+>>>> +static int vc4_hdmi_cec_adap_transmit(struct cec_adapter *adap, u8 at=
+tempts,
+>>>> +				      u32 signal_free_time, struct cec_msg *msg)
+>>>> +{
+>>>> +	struct vc4_dev *vc4 =3D cec_get_drvdata(adap);
+>>>> +	u32 val;
+>>>> +	unsigned int i;
+>>>> +
+>>>> +	for (i =3D 0; i < msg->len; i +=3D 4)
+>>>> +		HDMI_WRITE(VC4_HDMI_CEC_TX_DATA_1 + i,
+>>>> +			   (msg->msg[i]) |
+>>>> +			   (msg->msg[i + 1] << 8) |
+>>>> +			   (msg->msg[i + 2] << 16) |
+>>>> +			   (msg->msg[i + 3] << 24));
+>>>> +
+>>>> +	val =3D HDMI_READ(VC4_HDMI_CEC_CNTRL_1);
+>>>> +	val &=3D ~VC4_HDMI_CEC_START_XMIT_BEGIN;
+>>>> +	HDMI_WRITE(VC4_HDMI_CEC_CNTRL_1, val);
+>>>> +	val &=3D ~VC4_HDMI_CEC_MESSAGE_LENGTH_MASK;
+>>>> +	val |=3D (msg->len - 1) << VC4_HDMI_CEC_MESSAGE_LENGTH_SHIFT;
+>>>> +	val |=3D VC4_HDMI_CEC_START_XMIT_BEGIN;
+>>>
+>>> It doesn't look to me like len should have 1 subtracted from it.  The
+>>> field has 4 bits for our up-to-16-byte length, and the firmware seems to
+>>> be setting it to the same value as a memcpy for the message data uses.
+>>=20
+>> You need to subtract by one. The CEC protocol supports messages of 1-16
+>> bytes in length. Since the message length mask is only 4 bits you need to
+>> encode this in the value 0-15. Hence the '-1', otherwise you would never
+>> be able to send 16 byte messages.
+>>=20
+>> I actually found this when debugging the messages it was transmitting: t=
+hey
+>> were one too long.
+>>=20
+>> This suggests that the firmware does this wrong. I don't have time tomor=
+row,
+>> but I'll see if I can do a quick test on Friday to verify that.
+>
+> I double-checked this and both the driver and the firmware do the right t=
+hing.
+> Just to be certain I also tried sending a message that uses the full 16 b=
+yte
+> payload and that too went well. So the code is definitely correct.
+
+Great, I'll assume that I just missed the subtraction somewhere in the
+layers of firmware code.  Thanks for checking!
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEE/JuuFDWp9/ZkuCBXtdYpNtH8nugFAlluhcsACgkQtdYpNtH8
+nuhzrxAAkadhExKHeHtBjzk6sWwJfroAg/YX77Hpe9TXezA9Nd4N38IoZWDO5l0Y
+33IDodgSFTdA7JtcxD6ElJ05VRydWNuwFcTSdDb+WX84N6V0qsTGNNW+XriKlxA3
+HvlaQCioo3fkx7A5vmHFmmdUwX8eI6fxwxYL9Ec6hR5kfa1whe6XgMIhdYY/E7E6
+BzU7OgYIUCgTe8/eqyMajmwYA47Cn1URVIV08z4yNxeKRE8570685DWntjPpfv5a
+diGbqzEW8CqketPR6U99EebI9ZYSXTqhXLkJgOBSRiHDbmG4WJh1QI/kDXFlysfp
+LoCD3VkRbpjsO0YIDXaYY1OOmIrvz71lQ8oGq72hJzl6UF8q0xJUCGTmWfRKPJl7
+H00W4hM/DwQiJg0+jtdEfXf65ekxOvbHCc9rbPRadhPySGUB2F977bKDF+51f3R9
+QELwcupSpitq4brI1YvPKrI5Avu1njqR4gFbNw8MMvf/65DipuSQbp22gbLs1ENB
+oIX3GziwTFW4KiVenFCQq9MZ7CxUEjm6bwkqajy2YY/VxhWM0uxCJ3kOGG3rnL/2
+l2I4cYqVwb94MzR72gGIZKa62tn1nzyYAXk6vXpXKkNL1/wmxVWisvLR6Tgv/kgt
+ilOA8wftAdW16uE2MMWJ9hgUuYjtBi8uqS4vlYRBhksdVmQS7fs=
+=L+6b
+-----END PGP SIGNATURE-----
+--=-=-=--
