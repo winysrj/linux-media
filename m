@@ -1,267 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59948 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751689AbdGRTEE (ORCPT
+Received: from mail-lf0-f50.google.com ([209.85.215.50]:35033 "EHLO
+        mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751504AbdGRHjc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 15:04:04 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: linux-leds@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        niklas.soderlund@ragnatech.se, hverkuil@xs4all.nl,
-        =?ISO-8859-1?q?Niklas=20S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [RFC 02/19] v4l: async: add subnotifier registration for subdevices
-Date: Tue, 18 Jul 2017 22:03:44 +0300
-Message-Id: <20170718190401.14797-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
-References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
+        Tue, 18 Jul 2017 03:39:32 -0400
+Received: by mail-lf0-f50.google.com with SMTP id w198so6768069lff.2
+        for <linux-media@vger.kernel.org>; Tue, 18 Jul 2017 00:39:31 -0700 (PDT)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Tue, 18 Jul 2017 09:39:28 +0200
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>
+Subject: Re: [PATCH v4 3/3] v4l: async: add subnotifier to subdevices
+Message-ID: <20170718073928.GA28538@bigcity.dyn.berto.se>
+References: <20170717165917.24851-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170717165917.24851-4-niklas.soderlund+renesas@ragnatech.se>
+ <CAMuHMdV6Y5_VNUOHr4E_J6rYMUTbwR6aYwcPuREx59A4fxkS-A@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAMuHMdV6Y5_VNUOHr4E_J6rYMUTbwR6aYwcPuREx59A4fxkS-A@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Hi Geert,
 
-When the registered() callback of v4l2_subdev_internal_ops is called the
-subdevice has access to the master devices v4l2_dev and it's called with
-the async frameworks list_lock held. In this context the subdevice can
-register its own notifiers to allow for incremental discovery of
-subdevices.
+Thanks for your feedback.
 
-The master device registers the subdevices closest to itself in its
-notifier while the subdevice(s) register notifiers for their closest
-neighboring devices when they are registered. Using this incremental
-approach two problems can be solved:
+On 2017-07-18 09:11:19 +0200, Geert Uytterhoeven wrote:
+> Hi Niklas,
+> 
+> On Mon, Jul 17, 2017 at 6:59 PM, Niklas Söderlund
+> <niklas.soderlund+renesas@ragnatech.se> wrote:
+> > Add a subdevice specific notifier which can be used by a subdevice
+> > driver to compliment the master device notifier to extend the subdevice
+> > discovery.
+> >
+> > The master device registers the subdevices closest to itself in its
+> > notifier while the subdevice(s) register notifiers for their closest
+> > neighboring devices. Subdevice drivers configures a notifier at probe
+> > time which are registered by the v4l2-async framework once the subdevice
+> > itself is register, since it's only at this point the v4l2_dev is
+> > available to the subnotifier.
+> >
+> > Using this incremental approach two problems can be solved:
+> >
+> > 1. The master device no longer has to care how many devices exist in
+> >    the pipeline. It only needs to care about its closest subdevice and
+> >    arbitrary long pipelines can be created without having to adapt the
+> >    master device for each case.
+> >
+> > 2. Subdevices which are represented as a single DT node but register
+> >    more than one subdevice can use this to improve the pipeline
+> >    discovery, since the subdevice driver is the only one who knows which
+> >    of its subdevices is linked with which subdevice of a neighboring DT
+> >    node.
+> >
+> > To allow subdevices to provide its own list of subdevices to the
+> > v4l2-async framework v4l2_async_subdev_register_notifier() is added.
+> > This new function must be called before the subdevice itself is
+> > registered with the v4l2-async framework using
+> > v4l2_async_register_subdev().
+> >
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> 
+> Thanks for your patch!
+> 
+> > --- a/drivers/media/v4l2-core/v4l2-async.c
+> > +++ b/drivers/media/v4l2-core/v4l2-async.c
+> 
+> > @@ -217,6 +293,12 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> >                         "Failed to allocate device cache!\n");
+> >         }
+> >
+> > +       subdev = kvmalloc_array(n_subdev, sizeof(*subdev), GFP_KERNEL);
+> > +       if (!dev) {
+> 
+> if (!subdev) {
 
-1. The master device no longer has to care how many devices exist in
-   the pipeline. It only needs to care about its closest subdevice and
-   arbitrary long pipelines can be created without having to adapt the
-   master device for each case.
+Wops, copy-past coding strikes again! Will fix.
 
-2. Subdevices which are represented as a single DT node but register
-   more than one subdevice can use this to improve the pipeline
-   discovery, since the subdevice driver is the only one who knows which
-   of its subdevices is linked with which subdevice of a neighboring DT
-   node.
+> 
+> (noticed accidentally[*] :-)
+> 
+> > +               dev_err(notifier->v4l2_dev->dev,
+> > +                       "Failed to allocate subdevice cache!\n");
+> > +       }
+> > +
+> >         mutex_lock(&list_lock);
+> >
+> >         list_del(&notifier->list);
+> > @@ -224,6 +306,8 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> >         list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+> >                 if (dev)
+> >                         dev[count] = get_device(sd->dev);
+> > +               if (subdev)
+> > +                       subdev[count] = sd;
+> 
+> I don't like these "memory allocation fails, let's continue but check the
+> pointer first"-games.
+> Why not abort when the dev/subdev arrays cannot be allocated? It's not
+> like the system is in a good state anyway.
+> kmalloc() may have printed a big fat warning and invoked the OOM-killer
+> already.
 
-To enable subdevices to register/unregister notifiers from the
-registered()/unregistered() callback v4l2_async_subnotifier_register()
-and v4l2_async_subnotifier_unregister() are added. These new notifier
-register functions are similar to the master device equivalent functions
-but run without taking the v4l2-async list_lock which already is held
-when the registered()/unregistered() callbacks are called.
+I agree, and I also don't like these "games". In my first attempt to 
+work with this function I did remove the memory game, but then it hit me 
+that if I did I would alter behavior of the function and I did not dare 
+to do so.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- Documentation/media/kapi/v4l2-subdev.rst | 20 ++++++++++
- drivers/media/v4l2-core/v4l2-async.c     | 65 +++++++++++++++++++++++++++-----
- include/media/v4l2-async.h               | 22 +++++++++++
- 3 files changed, 98 insertions(+), 9 deletions(-)
+Hopefully this can be addressed in the future if someone ever gets 
+around to reworking the whole mess of re-probing devices which IMOH 
+looks a but like a hack :-) I also ofc be happy to just remove the 
+memory game from this function and as you suggest simply abort if the 
+allocation fails, but I feel I need the blessing from the v4l2 community 
+before doing so. Sometimes v4l2 do funny stuff for legacy reasons beyond 
+my understanding.
 
-diff --git a/Documentation/media/kapi/v4l2-subdev.rst b/Documentation/media/kapi/v4l2-subdev.rst
-index e1f0b726e438..e308f30887a8 100644
---- a/Documentation/media/kapi/v4l2-subdev.rst
-+++ b/Documentation/media/kapi/v4l2-subdev.rst
-@@ -262,6 +262,26 @@ is called. After all subdevices have been located the .complete() callback is
- called. When a subdevice is removed from the system the .unbind() method is
- called. All three callbacks are optional.
- 
-+Subdevice drivers might in turn register subnotifier objects with an
-+array of other subdevice descriptors that the subdevice needs for its
-+own operation. Subnotifiers are an extension of the bridge drivers
-+notifier to allow for a incremental registering and matching of
-+subdevices. This is useful when a driver only has information about
-+which subdevice is closest to itself and would require knowledge from the
-+driver of that subdevice to know which other subdevice(s) lie beyond.
-+By registering subnotifiers drivers can incrementally move the subdevice
-+matching down the chain of drivers. This is performed using the
-+:c:func:`v4l2_async_subnotifier_register` call. To unregister the
-+subnotifier the driver has to call
-+:c:func:`v4l2_async_subnotifier_unregister`. These functions and their
-+arguments behave almost the same as the bridge driver notifiers
-+described above and are treated equally by the V4L2 core when matching
-+asynchronously registered subdevices. The differences are that the
-+subnotifier functions act on :c:type:`v4l2_subdev` instead of
-+:c:type:`v4l2_device` and that they should be called from the subdevice's
-+``.registered()`` and ``.unregistered()``
-+:c:type:`v4l2_subdev_internal_ops` callbacks instead of at probe time.
-+
- V4L2 sub-device userspace API
- -----------------------------
- 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 268e19724809..d2ce39ac402e 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -163,8 +163,9 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
- 	sd->dev = NULL;
- }
- 
--int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
--				 struct v4l2_async_notifier *notifier)
-+static int v4l2_async_do_notifier_register(struct v4l2_device *v4l2_dev,
-+					   struct v4l2_async_notifier *notifier,
-+					   bool subnotifier)
- {
- 	struct v4l2_subdev *sd, *tmp;
- 	struct v4l2_async_subdev *asd;
-@@ -196,8 +197,17 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 		list_add_tail(&asd->list, &notifier->waiting);
- 	}
- 
--	mutex_lock(&list_lock);
-+	if (subnotifier)
-+		lockdep_assert_held(&list_lock);
-+	else
-+		mutex_lock(&list_lock);
- 
-+	/*
-+	 * This function can be called recursively so the list
-+	 * might be modified in a recursive call. Start from the
-+	 * top of the list each iteration.
-+	 */
-+again:
- 	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
- 		int ret;
- 
-@@ -207,21 +217,39 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 
- 		ret = v4l2_async_test_notify(notifier, sd, asd);
- 		if (ret < 0) {
--			mutex_unlock(&list_lock);
-+			if (!subnotifier)
-+				mutex_unlock(&list_lock);
- 			return ret;
- 		}
-+		goto again;
- 	}
- 
- 	/* Keep also completed notifiers on the list */
- 	list_add(&notifier->list, &notifier_list);
- 
--	mutex_unlock(&list_lock);
-+	if (!subnotifier)
-+		mutex_unlock(&list_lock);
- 
- 	return 0;
- }
-+
-+int v4l2_async_subnotifier_register(struct v4l2_subdev *sd,
-+				    struct v4l2_async_notifier *notifier)
-+{
-+	return v4l2_async_do_notifier_register(sd->v4l2_dev, notifier, true);
-+}
-+EXPORT_SYMBOL(v4l2_async_subnotifier_register);
-+
-+int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-+				 struct v4l2_async_notifier *notifier)
-+{
-+	return v4l2_async_do_notifier_register(v4l2_dev, notifier, false);
-+}
- EXPORT_SYMBOL(v4l2_async_notifier_register);
- 
--void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-+static void
-+v4l2_async_do_notifier_unregister(struct v4l2_async_notifier *notifier,
-+				  bool subnotifier)
- {
- 	struct v4l2_subdev *sd, *tmp;
- 	unsigned int notif_n_subdev = notifier->num_subdevs;
-@@ -238,7 +266,10 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 			"Failed to allocate device cache!\n");
- 	}
- 
--	mutex_lock(&list_lock);
-+	if (subnotifier)
-+		lockdep_assert_held(&list_lock);
-+	else
-+		mutex_lock(&list_lock);
- 
- 	list_del(&notifier->list);
- 
-@@ -265,15 +296,20 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 			put_device(d);
- 	}
- 
--	mutex_unlock(&list_lock);
-+	if (!subnotifier)
-+		mutex_unlock(&list_lock);
- 
- 	/*
- 	 * Call device_attach() to reprobe devices
- 	 *
- 	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
- 	 * executed.
-+	 * TODO: If we are unregistering a subdevice notifier we can't reprobe
-+	 * since the lock_list is held by the master device and attaching that
-+	 * device would call v4l2_async_register_subdev() and end in a deadlock
-+	 * on list_lock.
- 	 */
--	while (i--) {
-+	while (i-- && !subnotifier) {
- 		struct device *d = dev[i];
- 
- 		if (d && device_attach(d) < 0) {
-@@ -297,6 +333,17 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 	 * upon notifier registration.
- 	 */
- }
-+
-+void v4l2_async_subnotifier_unregister(struct v4l2_async_notifier *notifier)
-+{
-+	v4l2_async_do_notifier_unregister(notifier, true);
-+}
-+EXPORT_SYMBOL(v4l2_async_subnotifier_unregister);
-+
-+void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-+{
-+	v4l2_async_do_notifier_unregister(notifier, false);
-+}
- EXPORT_SYMBOL(v4l2_async_notifier_unregister);
- 
- int v4l2_async_register_subdev(struct v4l2_subdev *sd)
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 056cae0af2f0..8c7519fce5b9 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -105,6 +105,18 @@ struct v4l2_async_notifier {
- };
- 
- /**
-+ * v4l2_async_notifier_register - registers a subdevice asynchronous subnotifier
-+ *
-+ * @sd: pointer to &struct v4l2_subdev
-+ * @notifier: pointer to &struct v4l2_async_notifier
-+ *
-+ * This function assumes the async list_lock is already locked, allowing it to
-+ * be used from the struct v4l2_subdev_internal_ops registered() callback.
-+ */
-+int v4l2_async_subnotifier_register(struct v4l2_subdev *sd,
-+				    struct v4l2_async_notifier *notifier);
-+
-+/**
-  * v4l2_async_notifier_register - registers a subdevice asynchronous notifier
-  *
-  * @v4l2_dev: pointer to &struct v4l2_device
-@@ -114,6 +126,16 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 				 struct v4l2_async_notifier *notifier);
- 
- /**
-+ * v4l2_async_subnotifier_unregister - unregisters a asynchronous subnotifier
-+ *
-+ * @notifier: pointer to &struct v4l2_async_notifier
-+ *
-+ * This function assumes the async list_lock is already locked, allowing it to
-+ * be used from the struct v4l2_subdev_internal_ops unregistered() callback.
-+ */
-+void v4l2_async_subnotifier_unregister(struct v4l2_async_notifier *notifier);
-+
-+/**
-  * v4l2_async_notifier_unregister - unregisters a subdevice asynchronous notifier
-  *
-  * @notifier: pointer to &struct v4l2_async_notifier
+> 
+> [*] while checking if you perhaps removed the "dev" games in a later patch.
+>      No, you added another one :-(
+> 
+> Gr{oetje,eeting}s,
+> 
+>                         Geert
+> 
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+> 
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
+
 -- 
-2.11.0
+Regards,
+Niklas Söderlund
