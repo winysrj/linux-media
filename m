@@ -1,135 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:35445 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752158AbdGJU1B (ORCPT
+Received: from mail-io0-f195.google.com ([209.85.223.195]:34278 "EHLO
+        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751203AbdGRHLV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Jul 2017 16:27:01 -0400
-Received: by mail-qt0-f195.google.com with SMTP id w12so14120562qta.2
-        for <linux-media@vger.kernel.org>; Mon, 10 Jul 2017 13:27:01 -0700 (PDT)
-Date: Mon, 10 Jul 2017 17:26:56 -0300
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [PATCH 03/12] [media] vb2: add in-fence support to QBUF
-Message-ID: <20170710202656.GM10284@jade>
-References: <20170616073915.5027-1-gustavo@padovan.org>
- <20170616073915.5027-4-gustavo@padovan.org>
- <ae203289-11cc-d5a5-0ce6-a8fbbc4742af@xs4all.nl>
- <20170707020028.GE10284@jade>
- <25827205-94f3-3a2f-c65a-4ae120288f00@xs4all.nl>
- <20170710190244.GF10284@jade>
+        Tue, 18 Jul 2017 03:11:21 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170710190244.GF10284@jade>
+In-Reply-To: <20170717165917.24851-4-niklas.soderlund+renesas@ragnatech.se>
+References: <20170717165917.24851-1-niklas.soderlund+renesas@ragnatech.se> <20170717165917.24851-4-niklas.soderlund+renesas@ragnatech.se>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Tue, 18 Jul 2017 09:11:19 +0200
+Message-ID: <CAMuHMdV6Y5_VNUOHr4E_J6rYMUTbwR6aYwcPuREx59A4fxkS-A@mail.gmail.com>
+Subject: Re: [PATCH v4 3/3] v4l: async: add subnotifier to subdevices
+To: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-07-10 Gustavo Padovan <gustavo@padovan.org>:
+Hi Niklas,
 
-> 2017-07-07 Hans Verkuil <hverkuil@xs4all.nl>:
-> 
-> > On 07/07/2017 04:00 AM, Gustavo Padovan wrote:
-> > > 2017-07-06 Hans Verkuil <hverkuil@xs4all.nl>:
-> > > 
-> > > > On 06/16/17 09:39, Gustavo Padovan wrote:
-> > > > > From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> > > > > 
-> > > > > Receive in-fence from userspace and add support for waiting on them
-> > > > > before queueing the buffer to the driver. Buffers are only queued
-> > > > > to the driver once they are ready. A buffer is ready when its
-> > > > > in-fence signals.
-> > > > > 
-> > > > > v2:
-> > > > > 	- fix vb2_queue_or_prepare_buf() ret check
-> > > > > 	- remove check for VB2_MEMORY_DMABUF only (Javier)
-> > > > > 	- check num of ready buffers to start streaming
-> > > > > 	- when queueing, start from the first ready buffer
-> > > > > 	- handle queue cancel
-> > > > > 
-> > > > > Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> > > > > ---
-> > > > >   drivers/media/Kconfig                    |  1 +
-> > > > >   drivers/media/v4l2-core/videobuf2-core.c | 97 +++++++++++++++++++++++++-------
-> > > > >   drivers/media/v4l2-core/videobuf2-v4l2.c | 15 ++++-
-> > > > >   include/media/videobuf2-core.h           |  7 ++-
-> > > > >   4 files changed, 99 insertions(+), 21 deletions(-)
-> > > > > 
-> > > > 
-> > > > <snip>
-> > > > 
-> > > > > diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> > > > > index 110fb45..e6ad77f 100644
-> > > > > --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> > > > > +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> > > > > @@ -23,6 +23,7 @@
-> > > > >   #include <linux/sched.h>
-> > > > >   #include <linux/freezer.h>
-> > > > >   #include <linux/kthread.h>
-> > > > > +#include <linux/sync_file.h>
-> > > > >   #include <media/v4l2-dev.h>
-> > > > >   #include <media/v4l2-fh.h>
-> > > > > @@ -560,6 +561,7 @@ EXPORT_SYMBOL_GPL(vb2_create_bufs);
-> > > > >   int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
-> > > > >   {
-> > > > > +	struct dma_fence *fence = NULL;
-> > > > >   	int ret;
-> > > > >   	if (vb2_fileio_is_active(q)) {
-> > > > > @@ -568,7 +570,18 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
-> > > > >   	}
-> > > > >   	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
-> > > > > -	return ret ? ret : vb2_core_qbuf(q, b->index, b);
-> > > > > +	if (ret)
-> > > > > +		return ret;
-> > > > > +
-> > > > > +	if (b->flags & V4L2_BUF_FLAG_IN_FENCE) {
-> > > > > +		fence = sync_file_get_fence(b->fence_fd);
-> > > > > +		if (!fence) {
-> > > > > +			dprintk(1, "failed to get in-fence from fd\n");
-> > > > > +			return -EINVAL;
-> > > > > +		}
-> > > > > +	}
-> > > > > +
-> > > > > +	return ret ? ret : vb2_core_qbuf(q, b->index, b, fence);
-> > > > >   }
-> > > > >   EXPORT_SYMBOL_GPL(vb2_qbuf);
-> > > > 
-> > > > You need to adapt __fill_v4l2_buffer so it sets the IN_FENCE buffer flag
-> > > > if there is a fence pending. It should also fill in fence_fd.
-> > > 
-> > > It was userspace who sent the fence_fd in the first place. Why do we
-> > > need to send it back? The initial plan was - from a userspace point of view
-> > > - to send the in-fence in the fence_fd field and receive the out-fence
-> > >   in the same field.
-> > > 
-> > > As per setting the IN_FENCE flag, that is racy, as the fence can signal
-> > > just after we called __fill_v4l2_buffer. Why is it important to set it?
-> > 
-> > Because when running VIDIOC_QUERYBUF it should return the current state of
-> > the buffer, including whether it has a fence. You can do something like
-> > v4l2-ctl --list-buffers to see how many buffers are queued up and the state
-> > of each buffer. Can be useful to e.g. figure out why a video capture seems
-> > to stall. Knowing that all queued buffers are all waiting for a fence is
-> > very useful information. Whether the fence_fd should also be set here or
-> > only in dqbuf is something I don't know (not enough knowledge about how
-> > fences are supposed to work). The IN/OUT_FENCE flags should definitely be
-> > reported though.
-> 
-> I didn't know about this usecase. Thanks for explaining. It certainly
-> makes sense to set the IN/OUT_FENCE flags here. Regarding the fence_fd
-> I would expect the application to know the fence fd associated to than
-> buffer. If we expect an application other than the one which issued
-> QBUF than I'd say we also need to provide the fd on VIDIOC_QUERYBUF
-> for inspection purposes. Is that the case?
+On Mon, Jul 17, 2017 at 6:59 PM, Niklas S=C3=B6derlund
+<niklas.soderlund+renesas@ragnatech.se> wrote:
+> Add a subdevice specific notifier which can be used by a subdevice
+> driver to compliment the master device notifier to extend the subdevice
+> discovery.
+>
+> The master device registers the subdevices closest to itself in its
+> notifier while the subdevice(s) register notifiers for their closest
+> neighboring devices. Subdevice drivers configures a notifier at probe
+> time which are registered by the v4l2-async framework once the subdevice
+> itself is register, since it's only at this point the v4l2_dev is
+> available to the subnotifier.
+>
+> Using this incremental approach two problems can be solved:
+>
+> 1. The master device no longer has to care how many devices exist in
+>    the pipeline. It only needs to care about its closest subdevice and
+>    arbitrary long pipelines can be created without having to adapt the
+>    master device for each case.
+>
+> 2. Subdevices which are represented as a single DT node but register
+>    more than one subdevice can use this to improve the pipeline
+>    discovery, since the subdevice driver is the only one who knows which
+>    of its subdevices is linked with which subdevice of a neighboring DT
+>    node.
+>
+> To allow subdevices to provide its own list of subdevices to the
+> v4l2-async framework v4l2_async_subdev_register_notifier() is added.
+> This new function must be called before the subdevice itself is
+> registered with the v4l2-async framework using
+> v4l2_async_register_subdev().
+>
+> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.=
+se>
 
-I just realized that if we want to also set the in-fence fd here we
-actually need to get a new unused fd, as either it is a different pid or
-the app already closed the fd it was using previously. Given this extra
-complication I'd say we shouldn't set fence fd unless someone has an
-usecase in mind.
+Thanks for your patch!
 
-	Gustavo
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+
+> @@ -217,6 +293,12 @@ void v4l2_async_notifier_unregister(struct v4l2_asyn=
+c_notifier *notifier)
+>                         "Failed to allocate device cache!\n");
+>         }
+>
+> +       subdev =3D kvmalloc_array(n_subdev, sizeof(*subdev), GFP_KERNEL);
+> +       if (!dev) {
+
+if (!subdev) {
+
+(noticed accidentally[*] :-)
+
+> +               dev_err(notifier->v4l2_dev->dev,
+> +                       "Failed to allocate subdevice cache!\n");
+> +       }
+> +
+>         mutex_lock(&list_lock);
+>
+>         list_del(&notifier->list);
+> @@ -224,6 +306,8 @@ void v4l2_async_notifier_unregister(struct v4l2_async=
+_notifier *notifier)
+>         list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+>                 if (dev)
+>                         dev[count] =3D get_device(sd->dev);
+> +               if (subdev)
+> +                       subdev[count] =3D sd;
+
+I don't like these "memory allocation fails, let's continue but check the
+pointer first"-games.
+Why not abort when the dev/subdev arrays cannot be allocated? It's not
+like the system is in a good state anyway.
+kmalloc() may have printed a big fat warning and invoked the OOM-killer
+already.
+
+[*] while checking if you perhaps removed the "dev" games in a later patch.
+     No, you added another one :-(
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
+.org
+
+In personal conversations with technical people, I call myself a hacker. Bu=
+t
+when I'm talking to journalists I just say "programmer" or something like t=
+hat.
+                                -- Linus Torvalds
