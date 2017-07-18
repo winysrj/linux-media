@@ -1,56 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60933 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753489AbdGSLx3 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50204 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751334AbdGRIle (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Jul 2017 07:53:29 -0400
-Date: Wed, 19 Jul 2017 13:53:27 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
-        robh@kernel.org, jacek.anaszewski@gmail.com
-Subject: Re: [PATCH v1.1 1/1] v4l2-flash: Flash ops aren't mandatory
-Message-ID: <20170719115327.GA23056@amd>
-References: <1497433639-13101-6-git-send-email-sakari.ailus@linux.intel.com>
- <20170718173623.7821-1-sakari.ailus@linux.intel.com>
+        Tue, 18 Jul 2017 04:41:34 -0400
+Date: Tue, 18 Jul 2017 11:41:28 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        kieran.bingham@ideasonboard.com, niklas.soderlund@ragnatech.se,
+        hans.verkuil@cisco.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Pavel Machek <pavel@ucw.cz>,
+        Rajmohan Mani <rajmohan.mani@intel.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Hyungwoo Yang <hyungwoo.yang@intel.com>
+Subject: Re: [PATCH v7 2/3] media: i2c: adv748x: add adv748x driver
+Message-ID: <20170718084128.e3eaio6ua2qf346g@valkosipuli.retiisi.org.uk>
+References: <cover.f44897c9f4c2d4555dfa156cc24a755477e409bf.1499336175.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <af59e8809a954d44b7bc2b0e6c654a2e0fdd5f6c.1499336175.git-series.kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="SUOF0GtieIMvvwua"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170718173623.7821-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <af59e8809a954d44b7bc2b0e6c654a2e0fdd5f6c.1499336175.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Kieran,
 
---SUOF0GtieIMvvwua
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+A few more minor matters that you might want to address on top of Hans's
+pull request.
 
-On Tue 2017-07-18 20:36:23, Sakari Ailus wrote:
-> None of the flash operations are mandatory and therefore there should be
-> no need for the flash ops structure either. Accept NULL.
+On Thu, Jul 06, 2017 at 12:01:16PM +0100, Kieran Bingham wrote:
+...
+> +static int adv748x_afe_g_input_status(struct v4l2_subdev *sd, u32 *status)
+> +{
+> +	struct adv748x_afe *afe = adv748x_sd_to_afe(sd);
+> +	struct adv748x_state *state = adv748x_afe_to_state(afe);
+> +	int ret;
+> +
+> +	mutex_lock(&state->mutex);
+> +
+> +	ret = adv748x_afe_status(afe, status, NULL);
+> +
+> +	mutex_unlock(&state->mutex);
 
-Well, ok, but is not the flash without any operations kind of useless?
+A newline here would be nice.
 
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+> +	return ret;
+> +}
 
---SUOF0GtieIMvvwua
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+...
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+> +int adv748x_csi2_set_pixelrate(struct v4l2_subdev *sd, s64 rate)
+> +{
+> +	struct v4l2_ctrl *ctrl;
+> +
+> +	ctrl = v4l2_ctrl_find(sd->ctrl_handler, V4L2_CID_PIXEL_RATE);
 
-iEYEARECAAYFAllvSDcACgkQMOfwapXb+vLNHgCdGc/m/JaVMaXLphXxDWzJy5Mc
-URIAn0KblGKmyVta1/J1CSCtDo3Pik+D
-=Rgsi
------END PGP SIGNATURE-----
+It'd be much nicer to store the control pointer to your device's own struct
+and use it. No need to look it up or check whether it was found.
 
---SUOF0GtieIMvvwua--
+> +	if (!ctrl)
+> +		return -EINVAL;
+> +
+> +	return v4l2_ctrl_s_ctrl_int64(ctrl, rate);
+> +}
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
