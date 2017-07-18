@@ -1,56 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:39375 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750807AbdGaJOI (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:34765 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751399AbdGRNZx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Jul 2017 05:14:08 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.14] Various fixes
-Message-ID: <a8d1881c-77c2-b469-f416-37f47aee0523@xs4all.nl>
-Date: Mon, 31 Jul 2017 11:14:04 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+        Tue, 18 Jul 2017 09:25:53 -0400
+Message-ID: <1500384351.9510.3.camel@pengutronix.de>
+Subject: Re: [PATCH] [media] platform: video-mux: convert to multiplexer
+ framework
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, kernel@pengutronix.de
+Date: Tue, 18 Jul 2017 15:25:51 +0200
+In-Reply-To: <39517db4-d249-4073-e6cb-b0204474da87@xs4all.nl>
+References: <20170717105514.18426-1-p.zabel@pengutronix.de>
+         <39517db4-d249-4073-e6cb-b0204474da87@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit da48c948c263c9d87dfc64566b3373a858cc8aa2:
+On Tue, 2017-07-18 at 12:03 +0200, Hans Verkuil wrote:
+> On 17/07/17 12:55, Philipp Zabel wrote:
+> > Now that the multiplexer framework is merged, drop the temporary
+> > mmio-mux implementation from the video-mux driver and convert it to use
+> > the multiplexer API.
+> > 
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > ---
+> >  drivers/media/platform/video-mux.c | 53 +++++---------------------------------
+> >  1 file changed, 7 insertions(+), 46 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
+> > index 665744716f73b..ee89ad76bee23 100644
+> > --- a/drivers/media/platform/video-mux.c
+> > +++ b/drivers/media/platform/video-mux.c
+> > @@ -17,8 +17,7 @@
+> >  #include <linux/err.h>
+> >  #include <linux/module.h>
+> >  #include <linux/mutex.h>
+> > -#include <linux/regmap.h>
+> > -#include <linux/mfd/syscon.h>
+> > +#include <linux/mux/consumer.h>
+> 
+> Shouldn't Kconfig be modified as well to select the multiplexer? Am I missing something?
 
-  media: fix warning on v4l2_subdev_call() result interpreted as bool (2017-07-26 13:43:17 -0400)
+The mux framework has stubs, so this compiles fine without MULTIPLEXER
+enabled.
+On the other hand this driver is pretty useless without the multiplexer
+framework, and the i2c and iio muxes select it as well.
 
-are available in the git repository at:
+I'll change it and send a v2.
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.14d
-
-for you to fetch changes up to 478a2d07c23760c82bdbb8bfaa71050c9256c553:
-
-  coda: reduce iram size to leave space for suspend to ram (2017-07-31 10:53:19 +0200)
-
-----------------------------------------------------------------
-Arnd Bergmann (1):
-      staging/imx: remove confusing IS_ERR_OR_NULL usage
-
-Hirokazu Honda (1):
-      vb2: core: Lower the log level of debug outputs
-
-Jan Luebbe (1):
-      coda: reduce iram size to leave space for suspend to ram
-
-Philipp Zabel (1):
-      coda: fix decoder sequence init escape flag
-
-kbuild test robot (1):
-      i2c: fix semicolon.cocci warnings
-
- drivers/media/i2c/ov5670.c                  |  2 +-
- drivers/media/platform/coda/coda-bit.c      | 13 +++++--------
- drivers/media/platform/coda/coda-common.c   |  2 +-
- drivers/media/v4l2-core/videobuf2-core.c    | 10 +++++-----
- drivers/staging/media/imx/imx-ic-prpencvf.c | 41 ++++++++++++++++++++++-------------------
- drivers/staging/media/imx/imx-media-csi.c   | 30 ++++++++++++++++++------------
- drivers/staging/media/imx/imx-media-dev.c   |  4 ++--
- drivers/staging/media/imx/imx-media-of.c    | 50 ++++++++++++++++++++++++++++----------------------
- drivers/staging/media/imx/imx-media-vdic.c  | 37 ++++++++++++++++++++-----------------
- 9 files changed, 102 insertions(+), 87 deletions(-)
+regards
+Philipp
