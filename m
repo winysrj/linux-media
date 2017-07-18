@@ -1,83 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:48210 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751071AbdG1Lnx (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56435 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751322AbdGRJCJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Jul 2017 07:43:53 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.14] Various fixes
-Message-ID: <ff97d2b4-bb23-17e7-de28-1c9c4f0df345@xs4all.nl>
-Date: Fri, 28 Jul 2017 13:43:49 +0200
+        Tue, 18 Jul 2017 05:02:09 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: pavel@ucw.cz, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/7] omap3isp: Ignore endpoints with invalid configuration
+Date: Tue, 18 Jul 2017 12:02:16 +0300
+Message-ID: <7431573.EthHK8LOg7@avalon>
+In-Reply-To: <20170717220116.17886-2-sakari.ailus@linux.intel.com>
+References: <20170717220116.17886-1-sakari.ailus@linux.intel.com> <20170717220116.17886-2-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit da48c948c263c9d87dfc64566b3373a858cc8aa2:
+Hi Sakari,
 
-  media: fix warning on v4l2_subdev_call() result interpreted as bool (2017-07-26 13:43:17 -0400)
+Thank you for the patch.
 
-are available in the git repository at:
+On Tuesday 18 Jul 2017 01:01:10 Sakari Ailus wrote:
+> If endpoint has an invalid configuration, ignore it instead of happily
+> proceeding to use it nonetheless. Ignoring such an endpoint is better than
+> failing since there could be multiple endpoints, only some of which are
+> bad.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Tested-by: Pavel Machek <pavel@ucw.cz>
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.14c
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-for you to fetch changes up to 82fb31aa8e0dc11da47bc774dddafc14ac801e2c:
+> ---
+>  drivers/media/platform/omap3isp/isp.c | 8 +++++---
+>  1 file changed, 5 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index db2cccb57ceb..441eba1e02eb
+> 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -2110,10 +2110,12 @@ static int isp_fwnodes_parse(struct device *dev,
+>  		if (!isd)
+>  			goto error;
+> 
+> -		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
+> +		if (isp_fwnode_parse(dev, fwnode, isd)) {
+> +			devm_kfree(dev, isd);
+> +			continue;
+> +		}
+> 
+> -		if (isp_fwnode_parse(dev, fwnode, isd))
+> -			goto error;
+> +		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
+> 
+>  		isd->asd.match.fwnode.fwnode =
+>  			fwnode_graph_get_remote_port_parent(fwnode);
 
-  cec: documentation fixes (2017-07-28 13:25:27 +0200)
+-- 
+Regards,
 
-----------------------------------------------------------------
-Arnd Bergmann (5):
-      v4l: omap_vout: vrfb: include linux/slab.h
-      imx: add VIDEO_V4L2_SUBDEV_API dependency
-      media: i2c: add KConfig dependencies
-      media: v4l: use WARN_ON(1) instead of __WARN()
-      media: v4l: omap_vout: vrfb: initialize DMA flags
-
-Fabio Estevam (2):
-      ov7670: Return the real error code
-      ov7670: Check the return value from clk_prepare_enable()
-
-Hans Verkuil (1):
-      cec: documentation fixes
-
-Hugues Fruchet (2):
-      ov9650: fix coding style
-      ov9655: fix missing mutex_destroy()
-
-JB Van Puyvelde (1):
-      staging: imx: fix non-static declarations
-
-Kuninori Morimoto (1):
-      media: ti-vpe: cal: use of_graph_get_remote_endpoint()
-
-Philipp Zabel (1):
-      stm32-dcmi: explicitly request exclusive reset control
-
-Steve Longerbeam (1):
-      media: imx: prpencvf: enable double write reduction
-
-Tiffany Lin (1):
-      mtk-vcodec: fix vp9 decode error
-
- Documentation/media/uapi/cec/cec-func-close.rst      |  2 +-
- Documentation/media/uapi/cec/cec-func-ioctl.rst      |  2 +-
- Documentation/media/uapi/cec/cec-func-open.rst       |  4 +--
- Documentation/media/uapi/cec/cec-func-poll.rst       |  8 +++---
- Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst |  2 +-
- Documentation/media/uapi/cec/cec-ioc-dqevent.rst     |  2 +-
- drivers/media/i2c/Kconfig                            |  3 ++-
- drivers/media/i2c/ov7670.c                           |  6 +++--
- drivers/media/i2c/ov9650.c                           | 67 ++++++++++++++++++++++++++++--------------------
- drivers/media/platform/mtk-vcodec/vdec/vdec_vp9_if.c | 37 ++++++++++++++++++++++++--
- drivers/media/platform/omap/omap_vout_vrfb.c         |  3 ++-
- drivers/media/platform/pxa_camera.c                  |  2 +-
- drivers/media/platform/soc_camera/soc_mediabus.c     |  2 +-
- drivers/media/platform/stm32/stm32-dcmi.c            |  2 +-
- drivers/media/platform/ti-vpe/cal.c                  |  2 +-
- drivers/staging/media/atomisp/i2c/imx/imx.c          | 24 ++++++++---------
- drivers/staging/media/imx/Kconfig                    |  1 +
- drivers/staging/media/imx/imx-ic-prpencvf.c          | 11 ++++++++
- 18 files changed, 120 insertions(+), 60 deletions(-)
+Laurent Pinchart
