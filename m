@@ -1,46 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58382 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932655AbdGKW3w (ORCPT
+Received: from mail-lf0-f54.google.com ([209.85.215.54]:33810 "EHLO
+        mail-lf0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751576AbdGRPGk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 18:29:52 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v2 1/3] drm: rcar-du: Use the VBK interrupt for vblank events
-Date: Wed, 12 Jul 2017 01:29:40 +0300
-Message-Id: <20170711222942.27735-2-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20170711222942.27735-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20170711222942.27735-1-laurent.pinchart+renesas@ideasonboard.com>
+        Tue, 18 Jul 2017 11:06:40 -0400
+Received: by mail-lf0-f54.google.com with SMTP id t72so16686380lff.1
+        for <linux-media@vger.kernel.org>; Tue, 18 Jul 2017 08:06:40 -0700 (PDT)
+Date: Tue, 18 Jul 2017 17:06:37 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>
+Subject: Re: [PATCH v4 2/3] v4l: async: do not hold list_lock when reprobing
+ devices
+Message-ID: <20170718150637.GE28538@bigcity.dyn.berto.se>
+References: <20170717165917.24851-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170717165917.24851-3-niklas.soderlund+renesas@ragnatech.se>
+ <5a184e14-b429-fd7d-fc0c-d0520e1cc3fa@xs4all.nl>
+ <20170718143936.GC28538@bigcity.dyn.berto.se>
+ <eab3d6ad-c90a-310a-a9fb-29e19e6ebb69@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <eab3d6ad-c90a-310a-a9fb-29e19e6ebb69@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When implementing support for interlaced modes, the driver switched from
-reporting vblank events on the vertical blanking (VBK) interrupt to the
-frame end interrupt (FRM). This incorrectly divided the reported refresh
-rate by two. Fix it by moving back to the VBK interrupt.
+On 2017-07-18 16:50:15 +0200, Hans Verkuil wrote:
+> On 18/07/17 16:39, Niklas Söderlund wrote:
+> > Hi Hans,
+> > 
+> > Thanks for your feedback.
+> > 
+> > On 2017-07-18 16:22:14 +0200, Hans Verkuil wrote:
+> >> On 17/07/17 18:59, Niklas Söderlund wrote:
+> >>> There is no good reason to hold the list_lock when reprobing the devices
+> >>> and it prevents a clean implementation of subdevice notifiers. Move the
+> >>> actual release of the devices outside of the loop which requires the
+> >>> lock to be held.
+> >>>
+> >>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> >>> ---
+> >>>  drivers/media/v4l2-core/v4l2-async.c | 29 ++++++++++-------------------
+> >>>  1 file changed, 10 insertions(+), 19 deletions(-)
+> >>>
+> >>> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> >>> index 0acf288d7227ba97..8fc84f7962386ddd 100644
+> >>> --- a/drivers/media/v4l2-core/v4l2-async.c
+> >>> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> >>> @@ -206,7 +206,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> >>>  	unsigned int notif_n_subdev = notifier->num_subdevs;
+> >>>  	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
+> >>>  	struct device **dev;
+> >>> -	int i = 0;
+> >>> +	int i, count = 0;
+> >>>  
+> >>>  	if (!notifier->v4l2_dev)
+> >>>  		return;
+> >>> @@ -222,37 +222,28 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> >>>  	list_del(&notifier->list);
+> >>>  
+> >>>  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+> >>> -		struct device *d;
+> >>> -
+> >>> -		d = get_device(sd->dev);
+> >>> +		if (dev)
+> >>> +			dev[count] = get_device(sd->dev);
+> >>> +		count++;
+> >>>  
+> >>>  		if (notifier->unbind)
+> >>>  			notifier->unbind(notifier, sd, sd->asd);
+> >>>  
+> >>>  		v4l2_async_cleanup(sd);
+> >>> +	}
+> >>>  
+> >>> -		/* If we handled USB devices, we'd have to lock the parent too */
+> >>> -		device_release_driver(d);
+> >>> +	mutex_unlock(&list_lock);
+> >>>  
+> >>> -		/*
+> >>> -		 * Store device at the device cache, in order to call
+> >>> -		 * put_device() on the final step
+> >>> -		 */
+> >>> +	for (i = 0; i < count; i++) {
+> >>> +		/* If we handled USB devices, we'd have to lock the parent too */
+> >>>  		if (dev)
+> >>> -			dev[i++] = d;
+> >>> -		else
+> >>> -			put_device(d);
+> >>> +			device_release_driver(dev[i]);
+> >>
+> >> This changes the behavior. If the alloc failed, then at least put_device was still called.
+> >> Now that no longer happens.
+> > 
+> > Yes, but also changes the behavior to also only call get_device() if the 
+> > allocation was successful. So the behavior is kept the same as far as I 
+> > understands it.
+> 
+> Ah, I missed that. Sorry about that.
+> 
+> But regardless of that the device_release_driver(d) isn't called anymore.
+> It's not clear at all to me whether that is a problem or not.
 
-Fixes: 906eff7fcada ("drm: rcar-du: Implement support for interlaced modes")
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+You are right I missed that, thanks for pointing it out, please see 
+bellow.
 
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-index 98cf446391dc..17fd1cd5212c 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-@@ -698,7 +698,7 @@ static irqreturn_t rcar_du_crtc_irq(int irq, void *arg)
- 	status = rcar_du_crtc_read(rcrtc, DSSR);
- 	rcar_du_crtc_write(rcrtc, DSRCR, status & DSRCR_MASK);
- 
--	if (status & DSSR_FRM) {
-+	if (status & DSSR_VBK) {
- 		drm_crtc_handle_vblank(&rcrtc->crtc);
- 
- 		if (rcdu->info->gen < 3)
+> 
+> > 
+> >>
+> >> Frankly I don't understand this code, it is in desperate need of some comments explaining
+> >> this whole reprobing thing.
+> > 
+> > I agree that the code is in need of comments, but I feel a patch that 
+> > separates the v4l2-async work from the re-probing work is a step in the 
+> > right direction :-)
+> 
+> Would it help to simplify this function to:
+> 
+>         dev = kvmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
+>         if (!dev) {
+>                 dev_err(notifier->v4l2_dev->dev,
+>                         "Failed to allocate device cache!\n");
+> 
+> 	        mutex_lock(&list_lock);
+> 
+> 	        list_del(&notifier->list);
+> 
+> 		/* this assumes device_release_driver(d) isn't necessary */
+>         	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+> 	                if (notifier->unbind)
+>         	                notifier->unbind(notifier, sd, sd->asd);
+> 
+>                	        v4l2_async_cleanup(sd);
+> 	        }
+> 
+>         	mutex_unlock(&list_lock);
+> 		return;
+> 	}
+> 
+> 	...and here the code where dev is non-NULL...
+> 
+> Yes, there is some code duplication, but it is a lot easier to understand.
+
+I be fine with this, or simply aborting with -ENOMEM if the allocation 
+fails. If the allocation fails I say we are in a lot of trouble anyhow, 
+as Geert pointed out the kernel would already printed a warning and 
+invoked the OOM-killer.
+
+If you are OK with it I will rework the next version of this series to 
+introduce this behavior. Let me know what you think.
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> >>
+> >> I have this strong feeling that this function needs to be reworked.
+> > 
+> > I also strongly agree with this.
+> > 
+> >>
+> >> Regards,
+> >>
+> >> 	Hans
+> >>
+> >>>  	}
+> >>>  
+> >>> -	mutex_unlock(&list_lock);
+> >>> -
+> >>>  	/*
+> >>>  	 * Call device_attach() to reprobe devices
+> >>> -	 *
+> >>> -	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
+> >>> -	 * executed.
+> >>>  	 */
+> >>> -	while (i--) {
+> >>> +	for (i = 0; dev && i < count; i++) {
+> >>>  		struct device *d = dev[i];
+> >>>  
+> >>>  		if (d && device_attach(d) < 0) {
+> >>>
+> >>
+> > 
+> 
+
 -- 
 Regards,
-
-Laurent Pinchart
+Niklas Söderlund
