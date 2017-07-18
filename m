@@ -1,130 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58530 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750715AbdGQEFf (ORCPT
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:35050 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751693AbdGRUVi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 00:05:35 -0400
-Message-ID: <83040c63492cf7f041d5b66033dfd134@smtp-cloud2.xs4all.net>
-Date: Mon, 17 Jul 2017 06:05:33 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Tue, 18 Jul 2017 16:21:38 -0400
+MIME-Version: 1.0
+In-Reply-To: <CAKv+Gu8XZa6twiqheZ1JCCwKEmqvqeECAq7MyG_4WwO_WQMMQg@mail.gmail.com>
+References: <20170714092540.1217397-1-arnd@arndb.de> <20170714092540.1217397-8-arnd@arndb.de>
+ <CAKv+Gu9+0H9w8z8_Zedd-RxXt89Y7sJ=57_ZTThfDpFe4H0uXg@mail.gmail.com>
+ <CAK8P3a3qrkZLkL=PuUHkaq9p021-Y+odTj5UrdM=dZw8L=oM8g@mail.gmail.com>
+ <CAKv+Gu_OYCNK2qvyDb0+7MqyG4rTEhsf57i6m9SJU80CE7Yt+g@mail.gmail.com>
+ <CAK8P3a0549U8zt7MPRJ5a6+pSZ-faqYiDTG3tNQGmvAbrZZfqw@mail.gmail.com> <CAKv+Gu8XZa6twiqheZ1JCCwKEmqvqeECAq7MyG_4WwO_WQMMQg@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Tue, 18 Jul 2017 22:21:37 +0200
+Message-ID: <CAK8P3a3dC-ZUKMB=V3N67A9xzpLJj7YG9+Oy0OXkfALAwrPiXQ@mail.gmail.com>
+Subject: Re: [PATCH 07/14] proc/kcore: hide a harmless warning
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Jiri Olsa <jolsa@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
+        IDE-ML <linux-ide@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Kees Cook <keescook@chromium.org>,
+        Ingo Molnar <mingo@kernel.org>,
+        Laura Abbott <labbott@redhat.com>,
+        Pratyush Anand <panand@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Tue, Jul 18, 2017 at 10:07 PM, Ard Biesheuvel
+<ard.biesheuvel@linaro.org> wrote:
+> On 18 July 2017 at 21:01, Arnd Bergmann <arnd@arndb.de> wrote:
+>> On Tue, Jul 18, 2017 at 9:55 PM, Ard Biesheuvel
+>
+> Ah, now it makes sense. I was a bit surprised that
+> -Wtautological-compare complains about symbolic constants that resolve
+> to the same expression, but apparently it doesn't.
+>
+> I see how ccache needs to preprocess first: that is how it notices
+> changes, by hashing the preprocessed input and comparing it to the
+> stored hash. I'd still expect it to go back to letting the compiler
+> preprocess for the actual build, but apparently it doesn't.
 
-Results of the daily build of media_tree:
+When I tried to figure this out, I saw that ccache has two modes, "direct"
+and "preprocessed". It usually tries to use direct mode unless something
+prevents that.
 
-date:			Mon Jul 17 05:00:21 CEST 2017
-media-tree git hash:	2748e76ddb2967c4030171342ebdd3faa6a5e8e8
-media_build git hash:	bc1db0a204a87da86349ea5e64ae0d65e945609d
-v4l-utils git hash:	8e68406dae2233e811032dc8e7714c09c818e893
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.11.0-164
+In "direct" mode, it hashes the source file and the included headers
+instead of the preprocessed source file, however it still calls the compiler
+for the preprocessed source file, I guess since it has to preprocess the
+file the first time it is seen so it can record which headers are included.
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+> A quick google search didn't produce anything useful, but I'd expect
+> other ccache users to run into the same issue.
 
-Detailed results are available here:
+I suspect gcc-7 is still too new for most people to have noticed this.
+The kernel is a very large codebase, and we only got a handful
+of -Wtautological-compare warnings at all, most of them happen
+wtihout ccache, too.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+Among the four patches, three are for -Wtautological-compare, and one
+ is for -Wint-in-bool-context:
 
-Full logs are available here:
+         if (v4l2_subdev_call(cx->sd_av, vbi, g_sliced_fmt, &fmt->fmt.sliced))
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+v4l2_subdev_call() in this case is a function-like macro that may return
+-ENODEV if its first argument is NULL. The other -Wint-in-bool-context
+I found all happen with or without ccache, most commonly there is
+an constant integer expression passed into a macro and then checked
+like
 
-The Media Infrastructure API from this daily build is here:
+#define macro(arg) \
+       do { \
+            if (arg) \
+               do_something(arg);  \
+       } while (0)
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+         Arnd
