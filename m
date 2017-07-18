@@ -1,84 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:36635 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752640AbdGITmj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 15:42:39 -0400
-Received: by mail-wr0-f194.google.com with SMTP id 77so20375322wrb.3
-        for <linux-media@vger.kernel.org>; Sun, 09 Jul 2017 12:42:38 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, d_spingler@gmx.de, rjkm@metzlerbros.de
-Subject: [PATCH 13/14] [media] ddbridge: Kconfig option to control the MSI modparam default
-Date: Sun,  9 Jul 2017 21:42:20 +0200
-Message-Id: <20170709194221.10255-14-d.scheller.oss@gmail.com>
-In-Reply-To: <20170709194221.10255-1-d.scheller.oss@gmail.com>
-References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:6340 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751371AbdGRMxs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Jul 2017 08:53:48 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre TORGUE <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        "Yannick FERTRE" <yannick.fertre@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 0/7] [PATCH v2 0/7] Add support of OV9655 camera
+Date: Tue, 18 Jul 2017 12:53:12 +0000
+Message-ID: <2dd3402e-55b0-231d-878f-5ba95ee8cb36@st.com>
+References: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com>
+ <8157da84-1484-8375-1f2b-9831973915b4@kernel.org>
+ <956f17e6-36dd-6733-0d35-9b801ed4244d@xs4all.nl>
+ <BCD1BD18-96E3-4638-8935-B5C832D8EE52@goldelico.com>
+In-Reply-To: <BCD1BD18-96E3-4638-8935-B5C832D8EE52@goldelico.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <0606AD7205958C4DB8FD3950C939896E@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
-
-It is known that MSI interrupts - while working quite well so far - can
-still cause issues on some hardware platforms (causing I2C timeouts due
-to unhandled interrupts). The msi variable/option is set to 1 by default.
-So, add a Kconfig option prefixed with "EXPERIMENTAL" that will control
-the default value of that modparam, defaulting to off for a better
-user experience and (guaranteed) stable operation "per default".
-
-Cc: Ralph Metzler <rjkm@metzlerbros.de>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ddbridge/Kconfig         | 15 +++++++++++++++
- drivers/media/pci/ddbridge/ddbridge-main.c | 11 +++++++++--
- 2 files changed, 24 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/pci/ddbridge/Kconfig b/drivers/media/pci/ddbridge/Kconfig
-index c79a58fa5fc3..1330b2ecc72a 100644
---- a/drivers/media/pci/ddbridge/Kconfig
-+++ b/drivers/media/pci/ddbridge/Kconfig
-@@ -26,3 +26,18 @@ config DVB_DDBRIDGE
- 	  - CineS2 V7/V7A and DuoFlex S2 V4 (ST STV0910-based)
- 
- 	  Say Y if you own such a card and want to use it.
-+
-+config DVB_DDBRIDGE_MSIENABLE
-+	bool "Enable Message Signaled Interrupts (MSI) per default (EXPERIMENTAL)"
-+	depends on DVB_DDBRIDGE
-+	depends on PCI_MSI
-+	default n
-+	---help---
-+	  Use PCI MSI (Message Signaled Interrupts) per default. Enabling this
-+	  might lead to I2C errors originating from the bridge in conjunction
-+	  with certain SATA controllers, requiring a reload of the ddbridge
-+	  module. MSI can still be disabled by passing msi=0 as option, as
-+	  this will just change the msi option default value.
-+
-+	  If you're unsure, concerned about stability and don't want to pass
-+	  module options in case of troubles, say N.
-diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
-index fa4f663c5acb..83643bc21d09 100644
---- a/drivers/media/pci/ddbridge/ddbridge-main.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-main.c
-@@ -46,10 +46,17 @@ MODULE_PARM_DESC(adapter_alloc,
- 		 "0-one adapter per io, 1-one per tab with io, 2-one per tab, 3-one for all");
- 
- #ifdef CONFIG_PCI_MSI
-+#ifdef CONFIG_DVB_DDBRIDGE_MSIENABLE
- int msi = 1;
-+#else
-+int msi;
-+#endif
- module_param(msi, int, 0444);
--MODULE_PARM_DESC(msi,
--		 " Control MSI interrupts: 0-disable, 1-enable (default)");
-+#ifdef CONFIG_DVB_DDBRIDGE_MSIENABLE
-+MODULE_PARM_DESC(msi, "Control MSI interrupts: 0-disable, 1-enable (default)");
-+#else
-+MODULE_PARM_DESC(msi, "Control MSI interrupts: 0-disable (default), 1-enable");
-+#endif
- #endif
- 
- int ci_bitrate = 70000;
--- 
-2.13.0
+DQoNCk9uIDA3LzE4LzIwMTcgMDI6MTcgUE0sIEguIE5pa29sYXVzIFNjaGFsbGVyIHdyb3RlOg0K
+PiBIaSwNCj4gDQo+PiBBbSAxOC4wNy4yMDE3IHVtIDEzOjU5IHNjaHJpZWIgSGFucyBWZXJrdWls
+IDxodmVya3VpbEB4czRhbGwubmw+Og0KPj4NCj4+IE9uIDEyLzA3LzE3IDIyOjAxLCBTeWx3ZXN0
+ZXIgTmF3cm9ja2kgd3JvdGU6DQo+Pj4gSGkgSHVndWVzLA0KPj4+DQo+Pj4gT24gMDcvMDMvMjAx
+NyAxMToxNiBBTSwgSHVndWVzIEZydWNoZXQgd3JvdGU6DQo+Pj4+IFRoaXMgcGF0Y2hzZXQgZW5h
+YmxlcyBPVjk2NTUgY2FtZXJhIHN1cHBvcnQuDQo+Pj4+DQo+Pj4+IE9WOTY1NSBzdXBwb3J0IGhh
+cyBiZWVuIHRlc3RlZCB1c2luZyBTVE0zMkY0RElTLUNBTSBleHRlbnNpb24gYm9hcmQNCj4+Pj4g
+cGx1Z2dlZCBvbiBjb25uZWN0b3IgUDEgb2YgU1RNMzJGNzQ2Ry1ESVNDTyBib2FyZC4NCj4+Pj4g
+RHVlIHRvIGxhY2sgb2YgT1Y5NjUwLzUyIGhhcmR3YXJlIHN1cHBvcnQsIHRoZSBtb2RpZmllZCBy
+ZWxhdGVkIGNvZGUNCj4+Pj4gY291bGQgbm90IGhhdmUgYmVlbiBjaGVja2VkIGZvciBub24tcmVn
+cmVzc2lvbi4NCj4+Pj4NCj4+Pj4gRmlyc3QgcGF0Y2hlcyB1cGdyYWRlIGN1cnJlbnQgc3VwcG9y
+dCBvZiBPVjk2NTAvNTIgdG8gcHJlcGFyZSB0aGVuDQo+Pj4+IGludHJvZHVjdGlvbiBvZiBPVjk2
+NTUgdmFyaWFudCBwYXRjaC4NCj4+Pj4gQmVjYXVzZSBvZiBPVjk2NTUgcmVnaXN0ZXIgc2V0IHNs
+aWdodGx5IGRpZmZlcmVudCBmcm9tIE9WOTY1MC85NjUyLA0KPj4+PiBub3QgYWxsIG9mIHRoZSBk
+cml2ZXIgZmVhdHVyZXMgYXJlIHN1cHBvcnRlZCAoY29udHJvbHMpLiBTdXBwb3J0ZWQNCj4+Pj4g
+cmVzb2x1dGlvbnMgYXJlIGxpbWl0ZWQgdG8gVkdBLCBRVkdBLCBRUVZHQS4NCj4+Pj4gU3VwcG9y
+dGVkIGZvcm1hdCBpcyBsaW1pdGVkIHRvIFJHQjU2NS4NCj4+Pj4gQ29udHJvbHMgYXJlIGxpbWl0
+ZWQgdG8gY29sb3IgYmFyIHRlc3QgcGF0dGVybiBmb3IgdGVzdCBwdXJwb3NlLg0KPj4+DQo+Pj4g
+SSBhcHByZWNpYXRlIHlvdXIgZWZmb3J0cyB0b3dhcmRzIG1ha2luZyBhIGNvbW1vbiBkcml2ZXIg
+YnV0IElNTyBpdCB3b3VsZCBiZQ0KPj4+IGJldHRlciB0byBjcmVhdGUgYSBzZXBhcmF0ZSBkcml2
+ZXIgZm9yIHRoZSBPVjk2NTUgc2Vuc29yLiAgVGhlIG9yaWdpbmFsIGRyaXZlcg0KPj4+IGlzIDE1
+NzYgbGluZXMgb2YgY29kZSwgeW91ciBwYXRjaCBzZXQgYWRkcyBoYWxmIG9mIHRoYXQgKDgxNiku
+ICBUaGVyZSBhcmUNCj4+PiBzaWduaWZpY2FudCBkaWZmZXJlbmNlcyBpbiB0aGUgZmVhdHVyZSBz
+ZXQgb2YgYm90aCBzZW5zb3JzLCB0aGVyZSBhcmUNCj4+PiBkaWZmZXJlbmNlcyBpbiB0aGUgcmVn
+aXN0ZXIgbGF5b3V0LiAgSSB3b3VsZCBnbyBmb3IgYSBzZXBhcmF0ZSBkcml2ZXIsIHdlDQo+Pj4g
+d291bGQgdGhlbiBoYXZlIGNvZGUgZWFzaWVyIHRvIGZvbGxvdyBhbmQgd291bGRuJ3QgbmVlZCB0
+byB3b3JyeSBhYm91dCBwb3NzaWJsZQ0KPj4+IHJlZ3Jlc3Npb25zLiAgSSdtIGFmcmFpZCBJIGhh
+dmUgbG9zdCB0aGUgY2FtZXJhIG1vZHVsZSBhbmQgd29uJ3QgYmUgYWJsZQ0KPj4+IHRvIHRlc3Qg
+dGhlIHBhdGNoIHNldCBhZ2FpbnN0IHJlZ3Jlc3Npb25zLg0KPj4+DQo+Pj4gSU1ITyBmcm9tIG1h
+aW50ZW5hbmNlIFBPViBpdCdzIGJldHRlciB0byBtYWtlIGEgc2VwYXJhdGUgZHJpdmVyLiBJbiB0
+aGUgZW5kDQo+Pj4gb2YgdGhlIGRheSB3ZSB3b3VsZG4ndCBiZSBhZGRpbmcgbXVjaCBtb3JlIGNv
+ZGUgdGhhbiBpdCBpcyBiZWluZyBkb25lIG5vdy4NCj4+DQo+PiBJIGFncmVlLiBXZSBkbyBub3Qg
+aGF2ZSBncmVhdCBleHBlcmllbmNlcyBpbiB0aGUgcGFzdCB3aXRoIHRyeWluZyB0byBzdXBwb3J0
+DQo+PiBtdWx0aXBsZSB2YXJpYW50cyBpbiBhIHNpbmdsZSBkcml2ZXIgKHVubGVzcyB0aGUgZGlm
+ZnMgYXJlIHRydWx5IHNtYWxsKS4NCj4gDQo+IFdlbGwsDQo+IElNSE8gdGhlIGRpZmZzIGluIG92
+OTY1eCBhcmUgc21hbGxlciAoYnV0IHVudGVzdGFibGUgYmVjYXVzZSBub2JvZHkgc2VlbXMNCj4g
+dG8gaGF2ZSBhbiBvdjk2NTAvNTIgYm9hcmQpIHRoYW4gd2l0aGluIHRoZSBicTI3eHh4IGNoaXBz
+LCBidXQgSSBjYW4gZGlnIG91dA0KPiBhbiBvbGQgcGRhdGEgYmFzZWQgc2VwYXJhdGUgb3Y5NjU1
+IGRyaXZlciBhbmQgZXh0ZW5kIHRoYXQgdG8gYmVjb21lIERUIGNvbXBhdGlibGUuDQo+IA0KPiBJ
+IGhhZCBhYmFuZG9uZWQgdGhhdCBzZXBhcmF0ZSBhcHByb2FjaCBpbiBmYXZvdXIgb2YgZXh0ZW5k
+aW5nIHRoZSBvdjk2NXggZHJpdmVyLg0KPiANCj4gSGF2ZSB0byBkaXNjdXNzIHdpdGggSHVndWVz
+IGhvdyB0byBwcm9jZWVkLg0KPiANCj4gQlIgYW5kIHRoYW5rcywNCj4gTmlrb2xhdXMNCj4gDQoN
+CkFzIFN5bHdlc3RlciBhbmQgSGFucywgSSdtIGFsc28gaW4gZmxhdm91ciBvZiBhIHNlcGFyYXRl
+IGRyaXZlciwgdGhlIA0KZmFjdCB0aGF0IHJlZ2lzdGVyIHNldCBzZWVtcyBzaW1pbGFyIGJ1dCBp
+biBmYWN0IGlzIG5vdCBhbmQgdGhhdCB3ZSANCmNhbm5vdCB0ZXN0IGZvciBub24tcmVncmVzc2lv
+biBvZiA5NjUwLzUyIGFyZSBraWxsZXIgZm9yIG1lIHRvIGNvbnRpbnVlIA0Kb24gYSBzaW5nbGUg
+ZHJpdmVyLg0KV2UgY2FuIG5vdyByZXN0YXJ0IGZyb20gYSBuZXcgZnJlc2ggc3RhdGUgb2YgdGhl
+IGFydCBzZW5zb3IgZHJpdmVyIA0KZ2V0dGluZyByaWQgb2YgbGVnYWN5IChwZGF0YSwgb2xkIGdw
+aW8sIGV0Yy4uLikuDQoNCkJSLA0KSHVndWVzLg==
