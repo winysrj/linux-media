@@ -1,139 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:60928 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933734AbdGTJXG (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60038 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751921AbdGRTEG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 05:23:06 -0400
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Cyprian Wronka <cwronka@cadence.com>,
-        Neil Webb <neilw@cadence.com>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: [PATCH v2 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
-Date: Thu, 20 Jul 2017 11:23:01 +0200
-Message-Id: <20170720092302.2982-2-maxime.ripard@free-electrons.com>
-In-Reply-To: <20170720092302.2982-1-maxime.ripard@free-electrons.com>
-References: <20170720092302.2982-1-maxime.ripard@free-electrons.com>
+        Tue, 18 Jul 2017 15:04:06 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: linux-leds@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        niklas.soderlund@ragnatech.se, hverkuil@xs4all.nl,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [RFC 08/19] arm: dts: omap3: N9/N950: Add AS3645A camera flash
+Date: Tue, 18 Jul 2017 22:03:50 +0300
+Message-Id: <20170718190401.14797-9-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
+References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Cadence MIPI-CSI2 RX controller is a CSI2RX bridge that supports up to
-4 CSI-2 lanes, and can route the frames to up to 4 streams, depending on
-the hardware implementation.
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-It can operate with an external D-PHY, an internal one or no D-PHY at all
-in some configurations.
+Add the as3645a flash controller to the DT source as well as the flash
+property with the as3645a device phandle to the sensor DT node.
 
-Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- .../devicetree/bindings/media/cdns-csi2rx.txt      | 87 ++++++++++++++++++++++
- 1 file changed, 87 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/cdns-csi2rx.txt
+ arch/arm/boot/dts/omap3-n9.dts       |  1 +
+ arch/arm/boot/dts/omap3-n950-n9.dtsi | 14 ++++++++++++++
+ arch/arm/boot/dts/omap3-n950.dts     |  1 +
+ 3 files changed, 16 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/cdns-csi2rx.txt b/Documentation/devicetree/bindings/media/cdns-csi2rx.txt
-new file mode 100644
-index 000000000000..e08547abe885
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/cdns-csi2rx.txt
-@@ -0,0 +1,87 @@
-+Cadence MIPI-CSI2 RX controller
-+===============================
+diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
+index b9e58c536afd..a2944010f62f 100644
+--- a/arch/arm/boot/dts/omap3-n9.dts
++++ b/arch/arm/boot/dts/omap3-n9.dts
+@@ -26,6 +26,7 @@
+ 		clocks = <&isp 0>;
+ 		clock-frequency = <9600000>;
+ 		nokia,nvm-size = <(16 * 64)>;
++		flash = <&as3645a_flash &as3645a_indicator>;
+ 		port {
+ 			smia_1_1: endpoint {
+ 				link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index df3366fa5409..e15722b83a70 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -265,6 +265,20 @@
+ 
+ &i2c2 {
+ 	clock-frequency = <400000>;
 +
-+The Cadence MIPI-CSI2 RX controller is a CSI-2 bridge supporting up to 4 CSI
-+lanes in input, and 4 different pixel streams in output.
-+
-+Required properties:
-+  - compatible: must be set to "cdns,csi2rx" and an SoC-specific compatible
-+  - reg: base address and size of the memory mapped region
-+  - clocks: phandles to the clocks driving the controller
-+  - clock-names: must contain:
-+    * sys_clk: main clock
-+    * p_clk: register bank clock
-+    * p_free_clk: free running register bank clock
-+    * pixel_ifX_clk: pixel stream output clock, one for each stream
-+                     implemented in hardware, between 0 and 3
-+    * dphy_rx_clk: D-PHY byte clock, if implemented in hardware
-+  - phys: phandle to the external D-PHY
-+  - phy-names: must contain dphy, if the implementation uses an
-+               external D-PHY
-+
-+Required subnodes:
-+  - ports: A ports node with endpoint definitions as defined in
-+           Documentation/devicetree/bindings/media/video-interfaces.txt. The
-+           first port subnode should be the input endpoint, the second one the
-+           outputs
-+
-+  The output port should have as many endpoints as stream supported by
-+  the hardware implementation, between 1 and 4, their ID being the
-+  stream output number used in the implementation.
-+
-+Example:
-+
-+csi2rx: csi-bridge@0d060000 {
-+	compatible = "cdns,csi2rx";
-+	reg = <0x0d060000 0x1000>;
-+	clocks = <&byteclock>, <&byteclock>, <&byteclock>,
-+		 <&coreclock>, <&coreclock>,
-+		 <&coreclock>, <&coreclock>;
-+	clock-names = "sys_clk", "p_clk", "p_free_clk",
-+		      "pixel_if0_clk", "pixel_if1_clk",
-+		      "pixel_if2_clk", "pixel_if3_clk";
-+
-+	ports {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			reg = <0>;
-+
-+			csi2rx_in_sensor: endpoint@0 {
-+				reg = <0>;
-+				remote-endpoint = <&sensor_out_csi2rx>;
-+				clock-lanes = <0>;
-+				data-lanes = <1 2>;
-+			};
++	as3645a: flash@30 {
++		reg = <0x30>;
++		compatible = "ams,as3645a";
++		as3645a_flash: flash {
++			flash-timeout-us = <150000>;
++			flash-max-microamp = <320000>;
++			led-max-microamp = <60000>;
++			peak-current-limit = <1750000>;
 +		};
-+
-+		port@1 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			reg = <1>;
-+
-+			csi2rx_out_grabber0: endpoint@0 {
-+				reg = <0>;
-+				remote-endpoint = <&grabber0_in_csi2rx>;
-+			};
-+
-+			csi2rx_out_grabber1: endpoint@1 {
-+				reg = <1>;
-+				remote-endpoint = <&grabber1_in_csi2rx>;
-+			};
-+
-+			csi2rx_out_grabber2: endpoint@2 {
-+				reg = <2>;
-+				remote-endpoint = <&grabber2_in_csi2rx>;
-+			};
-+
-+			csi2rx_out_grabber3: endpoint@3 {
-+				reg = <3>;
-+				remote-endpoint = <&grabber3_in_csi2rx>;
-+			};
++		as3645a_indicator: indicator {
++			led-max-microamp = <10000>;
 +		};
 +	};
-+};
+ };
+ 
+ &i2c3 {
+diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
+index 646601a3ebd8..8fca0384d2df 100644
+--- a/arch/arm/boot/dts/omap3-n950.dts
++++ b/arch/arm/boot/dts/omap3-n950.dts
+@@ -60,6 +60,7 @@
+ 		clocks = <&isp 0>;
+ 		clock-frequency = <9600000>;
+ 		nokia,nvm-size = <(16 * 64)>;
++		flash = <&as3645a>;
+ 		port {
+ 			smia_1_1: endpoint {
+ 				link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
 -- 
-2.13.3
+2.11.0
