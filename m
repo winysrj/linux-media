@@ -1,177 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:36292 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751293AbdGQREx (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:35643 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932335AbdGSQfM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 13:04:53 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v8 1/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
-Date: Mon, 17 Jul 2017 19:03:55 +0200
-Message-Id: <20170717170356.25568-2-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170717170356.25568-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170717170356.25568-1-niklas.soderlund+renesas@ragnatech.se>
+        Wed, 19 Jul 2017 12:35:12 -0400
+Received: by mail-pg0-f65.google.com with SMTP id d193so453182pgc.2
+        for <linux-media@vger.kernel.org>; Wed, 19 Jul 2017 09:35:12 -0700 (PDT)
+Subject: Re: [PATCH v2] [media] imx: csi: enable double write reduction
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+References: <20170719163420.27608-1-p.zabel@pengutronix.de>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <63f48880-4640-2b97-58a9-5594bb39fd2a@gmail.com>
+Date: Wed, 19 Jul 2017 09:35:10 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170719163420.27608-1-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Documentation for Renesas R-Car MIPI CSI-2 receiver. The CSI-2 receivers
-are located between the video sources (CSI-2 transmitters) and the video
-grabbers (VIN) on Gen3 of Renesas R-Car SoC.
+Acked-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 
-Each CSI-2 device is connected to more then one VIN device which
-simultaneously can receive video from the same CSI-2 device. Each VIN
-device can also be connected to more then one CSI-2 device. The routing
-of which link are used are controlled by the VIN devices. There are only
-a few possible routes which are set by hardware limitations, which are
-different for each SoC in the Gen3 family.
-
-To work with the limitations of routing possibilities it is necessary
-for the DT bindings to describe which VIN device is connected to which
-CSI-2 device. This is why port 1 needs to to assign reg numbers for each
-VIN device that be connected to it. To setup and to know which links are
-valid for each SoC is the responsibility of the VIN driver since the
-register to configure it belongs to the VIN hardware.
-
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- .../devicetree/bindings/media/rcar-csi2.txt        | 118 +++++++++++++++++++++
- 1 file changed, 118 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rcar-csi2.txt
-
-diff --git a/Documentation/devicetree/bindings/media/rcar-csi2.txt b/Documentation/devicetree/bindings/media/rcar-csi2.txt
-new file mode 100644
-index 0000000000000000..c298a7d821153219
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/rcar-csi2.txt
-@@ -0,0 +1,118 @@
-+Renesas R-Car MIPI CSI-2
-+------------------------
-+
-+The rcar-csi2 device provides MIPI CSI-2 capabilities for the Renesas R-Car
-+family of devices. It is to be used in conjunction with the R-Car VIN module,
-+which provides the video capture capabilities.
-+
-+Mandatory properties
-+--------------------
-+ - compatible: Must be one or more of the following
-+   - "renesas,r8a7795-csi2" for the R8A7795 device.
-+   - "renesas,r8a7796-csi2" for the R8A7796 device.
-+   - "renesas,rcar-gen3-csi2" for a generic R-Car Gen3 compatible device.
-+
-+   When compatible with a generic version nodes must list the
-+   SoC-specific version corresponding to the platform first
-+   followed by the generic version.
-+
-+ - reg: the register base and size for the device registers
-+ - interrupts: the interrupt for the device
-+ - clocks: Reference to the parent clock
-+
-+The device node shall contain two 'port' child nodes according to the
-+bindings defined in Documentation/devicetree/bindings/media/
-+video-interfaces.txt. Port 0 shall connect the node that is the video
-+source for to the CSI-2. Port 1 shall connect all the R-Car VIN
-+modules, which can make use of the CSI-2 module.
-+
-+- Port 0 - Video source (Mandatory)
-+	- Reg 0 - sub-node describing the endpoint that is the video source
-+
-+- Port 1 - VIN instances (Mandatory for all VIN present in the SoC)
-+	- Reg 0 - sub-node describing the endpoint that is VIN0
-+	- Reg 1 - sub-node describing the endpoint that is VIN1
-+	- Reg 2 - sub-node describing the endpoint that is VIN2
-+	- Reg 3 - sub-node describing the endpoint that is VIN3
-+	- Reg 4 - sub-node describing the endpoint that is VIN4
-+	- Reg 5 - sub-node describing the endpoint that is VIN5
-+	- Reg 6 - sub-node describing the endpoint that is VIN6
-+	- Reg 7 - sub-node describing the endpoint that is VIN7
-+
-+Example:
-+
-+/* SoC properties */
-+
-+	 csi20: csi2@fea80000 {
-+		 compatible = "renesas,r8a7796-csi2";
-+		 reg = <0 0xfea80000 0 0x10000>;
-+		 interrupts = <0 184 IRQ_TYPE_LEVEL_HIGH>;
-+		 clocks = <&cpg CPG_MOD 714>;
-+		 power-domains = <&sysc R8A7796_PD_ALWAYS_ON>;
-+		 status = "disabled";
-+
-+		 ports {
-+			 #address-cells = <1>;
-+			 #size-cells = <0>;
-+
-+			 port@1 {
-+				 #address-cells = <1>;
-+				 #size-cells = <0>;
-+
-+				 reg = <1>;
-+
-+				 csi20vin0: endpoint@0 {
-+					 reg = <0>;
-+					 remote-endpoint = <&vin0csi20>;
-+				 };
-+				 csi20vin1: endpoint@1 {
-+					 reg = <1>;
-+					 remote-endpoint = <&vin1csi20>;
-+				 };
-+				 csi20vin2: endpoint@2 {
-+					 reg = <2>;
-+					 remote-endpoint = <&vin2csi20>;
-+				 };
-+				 csi20vin3: endpoint@3 {
-+					 reg = <3>;
-+					 remote-endpoint = <&vin3csi20>;
-+				 };
-+				 csi20vin4: endpoint@4 {
-+					 reg = <4>;
-+					 remote-endpoint = <&vin4csi20>;
-+				 };
-+				 csi20vin5: endpoint@5 {
-+					 reg = <5>;
-+					 remote-endpoint = <&vin5csi20>;
-+				 };
-+				 csi20vin6: endpoint@6 {
-+					 reg = <6>;
-+					 remote-endpoint = <&vin6csi20>;
-+				 };
-+				 csi20vin7: endpoint@7 {
-+					 reg = <7>;
-+					 remote-endpoint = <&vin7csi20>;
-+				 };
-+			 };
-+		 };
-+	 };
-+
-+/* Board properties */
-+
-+	&csi20 {
-+		status = "okay";
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			port@0 {
-+				reg = <0>;
-+				csi20_in: endpoint@0 {
-+					clock-lanes = <0>;
-+					data-lanes = <1>;
-+					remote-endpoint = <&adv7482_txb>;
-+				};
-+			};
-+		};
-+	};
--- 
-2.13.1
+On 07/19/2017 09:34 AM, Philipp Zabel wrote:
+> For 4:2:0 subsampled YUV formats, avoid chroma overdraw by only writing
+> chroma for even lines. Reduces necessary write memory bandwidth by 25%.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+> Changes since v1:
+>   - Move odd row skipping setup into existing switch statement.
+> ---
+>   drivers/staging/media/imx/imx-media-csi.c | 2 ++
+>   1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+> index a2d26693912ec..f2d64d1eeff80 100644
+> --- a/drivers/staging/media/imx/imx-media-csi.c
+> +++ b/drivers/staging/media/imx/imx-media-csi.c
+> @@ -357,6 +357,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+>   		passthrough = (sensor_ep->bus_type != V4L2_MBUS_CSI2 &&
+>   			       sensor_ep->bus.parallel.bus_width >= 16);
+>   		passthrough_bits = 16;
+> +		/* Skip writing U and V components to odd rows */
+> +		ipu_cpmem_skip_odd_chroma_rows(priv->idmac_ch);
+>   		break;
+>   	case V4L2_PIX_FMT_YUYV:
+>   	case V4L2_PIX_FMT_UYVY:
+> 
