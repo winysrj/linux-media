@@ -1,44 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:34986 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932243AbdGTClb (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:44651 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754249AbdGSQeW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Jul 2017 22:41:31 -0400
-Received: by mail-qt0-f194.google.com with SMTP id p25so2040069qtp.2
-        for <linux-media@vger.kernel.org>; Wed, 19 Jul 2017 19:41:31 -0700 (PDT)
-From: Fabio Estevam <festevam@gmail.com>
-To: hans.verkuil@cisco.com
-Cc: slongerbeam@gmail.com, mchehab@s-opensource.com,
-        linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>
-Subject: [PATCH] [media] ov5640: Remove unneeded gpiod NULL check
-Date: Wed, 19 Jul 2017 23:41:20 -0300
-Message-Id: <1500518480-3568-1-git-send-email-festevam@gmail.com>
+        Wed, 19 Jul 2017 12:34:22 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2] [media] imx: csi: enable double write reduction
+Date: Wed, 19 Jul 2017 18:34:20 +0200
+Message-Id: <20170719163420.27608-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabio Estevam <fabio.estevam@nxp.com>
+For 4:2:0 subsampled YUV formats, avoid chroma overdraw by only writing
+chroma for even lines. Reduces necessary write memory bandwidth by 25%.
 
-The gpiod API checks for NULL descriptors, so there is no need to
-duplicate the check in the driver.
-
-Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/i2c/ov5640.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Changes since v1:
+ - Move odd row skipping setup into existing switch statement.
+---
+ drivers/staging/media/imx/imx-media-csi.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 1f5b483..39a2269 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -1524,8 +1524,7 @@ static int ov5640_restore_mode(struct ov5640_dev *sensor)
- 
- static void ov5640_power(struct ov5640_dev *sensor, bool enable)
- {
--	if (sensor->pwdn_gpio)
--		gpiod_set_value(sensor->pwdn_gpio, enable ? 0 : 1);
-+	gpiod_set_value(sensor->pwdn_gpio, enable ? 0 : 1);
- }
- 
- static void ov5640_reset(struct ov5640_dev *sensor)
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index a2d26693912ec..f2d64d1eeff80 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -357,6 +357,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 		passthrough = (sensor_ep->bus_type != V4L2_MBUS_CSI2 &&
+ 			       sensor_ep->bus.parallel.bus_width >= 16);
+ 		passthrough_bits = 16;
++		/* Skip writing U and V components to odd rows */
++		ipu_cpmem_skip_odd_chroma_rows(priv->idmac_ch);
+ 		break;
+ 	case V4L2_PIX_FMT_YUYV:
+ 	case V4L2_PIX_FMT_UYVY:
 -- 
-2.7.4
+2.11.0
