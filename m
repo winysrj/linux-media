@@ -1,43 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:46244 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751256AbdGPAnj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Jul 2017 20:43:39 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
-        rjkm@metzlerbros.de, d.scheller@gmx.net, crope@iki.fi,
-        jasmin@anw.at
-Subject: [PATCH V3 14/16] [media] dvb-core/dvb_ca_en50221.c: Fixed remaining block comments
-Date: Sun, 16 Jul 2017 02:43:15 +0200
-Message-Id: <1500165797-16987-15-git-send-email-jasmin@anw.at>
-In-Reply-To: <1500165797-16987-1-git-send-email-jasmin@anw.at>
-References: <1500165797-16987-1-git-send-email-jasmin@anw.at>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:44531 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932763AbdGSP2s (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Jul 2017 11:28:48 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-kernel@vger.kernel.org
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Chen-Yu Tsai <wens@csie.org>, linux-media@vger.kernel.org
+Subject: [PATCH 037/102] rc: sunxi-cir: explicitly request exclusive reset control
+Date: Wed, 19 Jul 2017 17:25:41 +0200
+Message-Id: <20170719152646.25903-38-p.zabel@pengutronix.de>
+In-Reply-To: <20170719152646.25903-1-p.zabel@pengutronix.de>
+References: <20170719152646.25903-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+Commit a53e35db70d1 ("reset: Ensure drivers are explicit when requesting
+reset lines") started to transition the reset control request API calls
+to explicitly state whether the driver needs exclusive or shared reset
+control behavior. Convert all drivers requesting exclusive resets to the
+explicit API call so the temporary transition helpers can be removed.
 
-- Added the missing opening empty comment line.
+No functional changes.
 
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Chen-Yu Tsai <wens@csie.org>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/dvb-core/dvb_ca_en50221.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/rc/sunxi-cir.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
-index 2619822..24e2b0c 100644
---- a/drivers/media/dvb-core/dvb_ca_en50221.c
-+++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-@@ -1071,7 +1071,8 @@ static void dvb_ca_en50221_thread_update_delay(struct dvb_ca_private *ca)
- 	int curdelay = 100000000;
- 	int slot;
+diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
+index 4b785dd775c11..3e033fb79463a 100644
+--- a/drivers/media/rc/sunxi-cir.c
++++ b/drivers/media/rc/sunxi-cir.c
+@@ -173,7 +173,7 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+ 	}
  
--	/* Beware of too high polling frequency, because one polling
-+	/*
-+	 * Beware of too high polling frequency, because one polling
- 	 * call might take several hundred milliseconds until timeout!
- 	 */
- 	for (slot = 0; slot < ca->slot_count; slot++) {
+ 	/* Reset (optional) */
+-	ir->rst = devm_reset_control_get_optional(dev, NULL);
++	ir->rst = devm_reset_control_get_optional_exclusive(dev, NULL);
+ 	if (IS_ERR(ir->rst))
+ 		return PTR_ERR(ir->rst);
+ 	ret = reset_control_deassert(ir->rst);
 -- 
-2.7.4
+2.11.0
