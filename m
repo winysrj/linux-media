@@ -1,96 +1,572 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from anholt.net ([50.246.234.109]:51438 "EHLO anholt.net"
+Received: from mga09.intel.com ([134.134.136.24]:21766 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752328AbdGRWEJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 18:04:09 -0400
-From: Eric Anholt <eric@anholt.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH 4/4] drm/vc4: add HDMI CEC support
-In-Reply-To: <e8289d89-bfd5-d964-2b9a-2d36394ce868@xs4all.nl>
-References: <20170711112021.38525-1-hverkuil@xs4all.nl> <20170711112021.38525-5-hverkuil@xs4all.nl> <87d195h41b.fsf@eliezer.anholt.net> <c45868d2-50e5-987b-db1e-b8e76983cbb2@xs4all.nl> <e8289d89-bfd5-d964-2b9a-2d36394ce868@xs4all.nl>
-Date: Tue, 18 Jul 2017 15:03:55 -0700
-Message-ID: <87vampjtbo.fsf@eliezer.anholt.net>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha512; protocol="application/pgp-signature"
+        id S1752424AbdGSDOH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Jul 2017 23:14:07 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
+        hyungwoo.yang@intel.com, jerry.w.hu@intel.com,
+        Yong Zhi <yong.zhi@intel.com>, Tomasz Figa <tfiga@chromium.org>
+Subject: [PATCH v3 09/12] intel-ipu3: css hardware setup
+Date: Tue, 18 Jul 2017 22:13:41 -0500
+Message-Id: <1500434023-2411-7-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1500434023-2411-1-git-send-email-yong.zhi@intel.com>
+References: <1500434023-2411-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+The driver code that handles hw programming for
+clock, irq and power etc.
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+---
+ drivers/media/pci/intel/ipu3/ipu3-css.c | 521 ++++++++++++++++++++++++++++++++
+ drivers/media/pci/intel/ipu3/ipu3-css.h |   5 +
+ 2 files changed, 526 insertions(+)
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css.c
 
-> On 12/07/17 21:43, Hans Verkuil wrote:
->> On 12/07/17 21:02, Eric Anholt wrote:
->>>> +static int vc4_hdmi_cec_adap_transmit(struct cec_adapter *adap, u8 at=
-tempts,
->>>> +				      u32 signal_free_time, struct cec_msg *msg)
->>>> +{
->>>> +	struct vc4_dev *vc4 =3D cec_get_drvdata(adap);
->>>> +	u32 val;
->>>> +	unsigned int i;
->>>> +
->>>> +	for (i =3D 0; i < msg->len; i +=3D 4)
->>>> +		HDMI_WRITE(VC4_HDMI_CEC_TX_DATA_1 + i,
->>>> +			   (msg->msg[i]) |
->>>> +			   (msg->msg[i + 1] << 8) |
->>>> +			   (msg->msg[i + 2] << 16) |
->>>> +			   (msg->msg[i + 3] << 24));
->>>> +
->>>> +	val =3D HDMI_READ(VC4_HDMI_CEC_CNTRL_1);
->>>> +	val &=3D ~VC4_HDMI_CEC_START_XMIT_BEGIN;
->>>> +	HDMI_WRITE(VC4_HDMI_CEC_CNTRL_1, val);
->>>> +	val &=3D ~VC4_HDMI_CEC_MESSAGE_LENGTH_MASK;
->>>> +	val |=3D (msg->len - 1) << VC4_HDMI_CEC_MESSAGE_LENGTH_SHIFT;
->>>> +	val |=3D VC4_HDMI_CEC_START_XMIT_BEGIN;
->>>
->>> It doesn't look to me like len should have 1 subtracted from it.  The
->>> field has 4 bits for our up-to-16-byte length, and the firmware seems to
->>> be setting it to the same value as a memcpy for the message data uses.
->>=20
->> You need to subtract by one. The CEC protocol supports messages of 1-16
->> bytes in length. Since the message length mask is only 4 bits you need to
->> encode this in the value 0-15. Hence the '-1', otherwise you would never
->> be able to send 16 byte messages.
->>=20
->> I actually found this when debugging the messages it was transmitting: t=
-hey
->> were one too long.
->>=20
->> This suggests that the firmware does this wrong. I don't have time tomor=
-row,
->> but I'll see if I can do a quick test on Friday to verify that.
->
-> I double-checked this and both the driver and the firmware do the right t=
-hing.
-> Just to be certain I also tried sending a message that uses the full 16 b=
-yte
-> payload and that too went well. So the code is definitely correct.
-
-Great, I'll assume that I just missed the subtraction somewhere in the
-layers of firmware code.  Thanks for checking!
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE/JuuFDWp9/ZkuCBXtdYpNtH8nugFAlluhcsACgkQtdYpNtH8
-nuhzrxAAkadhExKHeHtBjzk6sWwJfroAg/YX77Hpe9TXezA9Nd4N38IoZWDO5l0Y
-33IDodgSFTdA7JtcxD6ElJ05VRydWNuwFcTSdDb+WX84N6V0qsTGNNW+XriKlxA3
-HvlaQCioo3fkx7A5vmHFmmdUwX8eI6fxwxYL9Ec6hR5kfa1whe6XgMIhdYY/E7E6
-BzU7OgYIUCgTe8/eqyMajmwYA47Cn1URVIV08z4yNxeKRE8570685DWntjPpfv5a
-diGbqzEW8CqketPR6U99EebI9ZYSXTqhXLkJgOBSRiHDbmG4WJh1QI/kDXFlysfp
-LoCD3VkRbpjsO0YIDXaYY1OOmIrvz71lQ8oGq72hJzl6UF8q0xJUCGTmWfRKPJl7
-H00W4hM/DwQiJg0+jtdEfXf65ekxOvbHCc9rbPRadhPySGUB2F977bKDF+51f3R9
-QELwcupSpitq4brI1YvPKrI5Avu1njqR4gFbNw8MMvf/65DipuSQbp22gbLs1ENB
-oIX3GziwTFW4KiVenFCQq9MZ7CxUEjm6bwkqajy2YY/VxhWM0uxCJ3kOGG3rnL/2
-l2I4cYqVwb94MzR72gGIZKa62tn1nzyYAXk6vXpXKkNL1/wmxVWisvLR6Tgv/kgt
-ilOA8wftAdW16uE2MMWJ9hgUuYjtBi8uqS4vlYRBhksdVmQS7fs=
-=L+6b
------END PGP SIGNATURE-----
---=-=-=--
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-css.c b/drivers/media/pci/intel/ipu3/ipu3-css.c
+new file mode 100644
+index 0000000..f78c511
+--- /dev/null
++++ b/drivers/media/pci/intel/ipu3/ipu3-css.c
+@@ -0,0 +1,521 @@
++/*
++ * Copyright (c) 2017 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/delay.h>
++#include <linux/dma-mapping.h>
++#include <linux/iopoll.h>
++#include "ipu3-css.h"
++#include "ipu3-css-fw.h"
++#include "ipu3-tables.h"
++
++/* IRQ configuration */
++#define IMGU_IRQCTRL_IRQ_MASK	(IMGU_IRQCTRL_IRQ_SP1 | \
++				 IMGU_IRQCTRL_IRQ_SP2 | \
++				 IMGU_IRQCTRL_IRQ_SW_PIN(0) | \
++				 IMGU_IRQCTRL_IRQ_SW_PIN(1))
++
++static void writes(void *mem, ssize_t len, void __iomem *reg)
++{
++	while (len >= 4) {
++		writel(*(u32 *)mem, reg);
++		mem += 4;
++		reg += 4;
++		len -= 4;
++	}
++}
++
++/******************* css hw *******************/
++
++/* Wait until register `reg', masked with `mask', becomes `cmp' */
++static int ipu3_hw_wait(void __iomem *base, int reg, u32 mask, u32 cmp)
++{
++	u32 val;
++
++	return readl_poll_timeout(base + reg, val, (val & mask) == cmp,
++				  1000, 100 * 1000);
++}
++
++/* Initialize the IPU3 CSS hardware and associated h/w blocks */
++
++int ipu3_css_set_powerup(struct device *dev, void __iomem *base)
++{
++	static const unsigned int freq = 450;
++	u32 pm_ctrl, state, val;
++
++	dev_dbg(dev, "power up.\n");
++	/* Clear the CSS busy signal */
++	readl(base + IMGU_REG_GP_BUSY);
++	writel(0, base + IMGU_REG_GP_BUSY);
++
++	/* Wait for idle signal */
++	if (ipu3_hw_wait(base, IMGU_REG_STATE, IMGU_STATE_IDLE_STS,
++			 IMGU_STATE_IDLE_STS)) {
++		dev_err(dev, "failed to set CSS idle\n");
++		goto fail;
++	}
++
++	/* Reset the css */
++	writel(readl(base + IMGU_REG_PM_CTRL) | IMGU_PM_CTRL_FORCE_RESET,
++		base + IMGU_REG_PM_CTRL);
++
++	usleep_range(200, 300);
++
++	/** Prepare CSS */
++
++	pm_ctrl = readl(base + IMGU_REG_PM_CTRL);
++	state = readl(base + IMGU_REG_STATE);
++
++	dev_dbg(dev, "CSS pm_ctrl 0x%x state 0x%x (power %s)\n",
++		pm_ctrl, state, state & IMGU_STATE_POWER_DOWN ? "down" : "up");
++
++	/* Power up CSS using wrapper */
++	if (state & IMGU_STATE_POWER_DOWN) {
++		writel(IMGU_PM_CTRL_RACE_TO_HALT | IMGU_PM_CTRL_START,
++			base + IMGU_REG_PM_CTRL);
++		if (ipu3_hw_wait(base, IMGU_REG_PM_CTRL,
++				 IMGU_PM_CTRL_START, 0)) {
++			dev_err(dev, "failed to power up CSS\n");
++			goto fail;
++		}
++		usleep_range(2000, 3000);
++	} else {
++		writel(IMGU_PM_CTRL_RACE_TO_HALT, base + IMGU_REG_PM_CTRL);
++	}
++
++	/* Set the busy bit */
++	writel(readl(base + IMGU_REG_GP_BUSY) | 1, base + IMGU_REG_GP_BUSY);
++
++	/* Set CSS clock frequency */
++	pm_ctrl = readl(base + IMGU_REG_PM_CTRL);
++	val = pm_ctrl & ~(IMGU_PM_CTRL_CSS_PWRDN | IMGU_PM_CTRL_RST_AT_EOF);
++	writel(val, base + IMGU_REG_PM_CTRL);
++	writel(0, base + IMGU_REG_GP_BUSY);
++	if (ipu3_hw_wait(base, IMGU_REG_STATE,
++			 IMGU_STATE_PWRDNM_FSM_MASK, 0)) {
++		dev_err(dev, "failed to pwrdn CSS\n");
++		goto fail;
++	}
++	val = (freq / IMGU_SYSTEM_REQ_FREQ_DIVIDER) & IMGU_SYSTEM_REQ_FREQ_MASK;
++	writel(val, base + IMGU_REG_SYSTEM_REQ);
++	writel(1, base + IMGU_REG_GP_BUSY);
++	writel(readl(base + IMGU_REG_PM_CTRL) | IMGU_PM_CTRL_FORCE_HALT,
++		base + IMGU_REG_PM_CTRL);
++	if (ipu3_hw_wait(base, IMGU_REG_STATE, IMGU_STATE_HALT_STS,
++			 IMGU_STATE_HALT_STS)) {
++		dev_err(dev, "failed to halt CSS\n");
++		goto fail;
++	}
++
++	writel(readl(base + IMGU_REG_PM_CTRL) | IMGU_PM_CTRL_START,
++		base + IMGU_REG_PM_CTRL);
++	if (ipu3_hw_wait(base, IMGU_REG_PM_CTRL, IMGU_PM_CTRL_START, 0)) {
++		dev_err(dev, "failed to start CSS\n");
++		goto fail;
++	}
++	writel(readl(base + IMGU_REG_PM_CTRL) | IMGU_PM_CTRL_FORCE_UNHALT,
++		base + IMGU_REG_PM_CTRL);
++
++	val = readl(base + IMGU_REG_PM_CTRL);	/* get pm_ctrl */
++	val &= ~(IMGU_PM_CTRL_CSS_PWRDN | IMGU_PM_CTRL_RST_AT_EOF);
++	val |= pm_ctrl & (IMGU_PM_CTRL_CSS_PWRDN | IMGU_PM_CTRL_RST_AT_EOF);
++	writel(val, base + IMGU_REG_PM_CTRL);
++
++	return 0;
++
++fail:
++	ipu3_css_set_powerdown(dev, base);
++	return -EIO;
++}
++
++int ipu3_css_set_powerdown(struct device *dev, void __iomem *base)
++{
++	dev_dbg(dev, "power down.\n");
++	/* Clear the CSS busy signal */
++	readl(base + IMGU_REG_GP_BUSY);
++	writel(0, base + IMGU_REG_GP_BUSY);
++
++	/* Wait for idle signal */
++	if (ipu3_hw_wait(base, IMGU_REG_STATE, IMGU_STATE_IDLE_STS,
++			 IMGU_STATE_IDLE_STS))
++		dev_warn(dev, "failed to set CSS idle\n");
++
++	/* Reset the css */
++	writel(readl(base + IMGU_REG_PM_CTRL) | IMGU_PM_CTRL_CSS_PWRDN,
++		base + IMGU_REG_PM_CTRL);
++
++	/* Wait for power down signal */
++	if (ipu3_hw_wait(base, IMGU_REG_STATE, IMGU_PM_CTRL_CSS_PWRDN,
++			     IMGU_PM_CTRL_CSS_PWRDN))
++		dev_warn(dev, "failed to set CSS power down\n");
++
++	return 0;
++}
++
++static int ipu3_css_hw_init(struct ipu3_css *css)
++{
++	/* For checking that streaming monitor statuses are valid */
++	static const struct {
++		u32 reg;
++		u32 mask;
++		const char *name;
++	} stream_monitors[] = {
++		{
++			IMGU_REG_GP_SP1_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_ISP_PORT_SP12ISP,
++			"ISP0 to SP0"
++		}, {
++			IMGU_REG_GP_ISP_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_SP1_PORT_ISP2SP1,
++			"SP0 to ISP0"
++		}, {
++			IMGU_REG_GP_MOD_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_MOD_PORT_ISP2DMA,
++			"ISP0 to DMA0"
++		}, {
++			IMGU_REG_GP_ISP_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_ISP_PORT_DMA2ISP,
++			"DMA0 to ISP0"
++		}, {
++			IMGU_REG_GP_MOD_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_MOD_PORT_CELLS2GDC,
++			"ISP0 to GDC0"
++		}, {
++			IMGU_REG_GP_MOD_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_MOD_PORT_GDC2CELLS,
++			"GDC0 to ISP0"
++		}, {
++			IMGU_REG_GP_MOD_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_MOD_PORT_SP12DMA,
++			"SP0 to DMA0"
++		}, {
++			IMGU_REG_GP_SP1_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_SP1_PORT_DMA2SP1,
++			"DMA0 to SP0"
++		}, {
++			IMGU_REG_GP_MOD_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_MOD_PORT_CELLS2GDC,
++			"SP0 to GDC0"
++		}, {
++			IMGU_REG_GP_MOD_STRMON_STAT,
++			IMGU_GP_STRMON_STAT_MOD_PORT_GDC2CELLS,
++			"GDC0 to SP0"
++		},
++	};
++
++	struct device *dev = css->dev;
++	void __iomem *const base = css->base;
++	u32 val, i;
++
++	/* Set up interrupts */
++
++	/*
++	 * Enable IRQ on the SP which signals that SP goes to idle
++	 * (aka ready state) and set trigger to pulse
++	 */
++	val = readl(base + IMGU_REG_SP_CTRL(0)) | IMGU_CTRL_IRQ_READY;
++	writel(val, base + IMGU_REG_SP_CTRL(0));
++	writel(val | IMGU_CTRL_IRQ_CLEAR, base + IMGU_REG_SP_CTRL(0));
++
++	/* Enable IRQs from the IMGU wrapper */
++	writel(IMGU_REG_INT_CSS_IRQ, base + IMGU_REG_INT_ENABLE);
++	/* Clear */
++	writel(IMGU_REG_INT_CSS_IRQ, base + IMGU_REG_INT_STATUS);
++
++	/* Enable IRQs from main IRQ controller */
++	writel(~0, base + IMGU_REG_IRQCTRL_EDGE_NOT_PULSE(IMGU_IRQCTRL_MAIN));
++	writel(0, base + IMGU_REG_IRQCTRL_MASK(IMGU_IRQCTRL_MAIN));
++	writel(IMGU_IRQCTRL_IRQ_MASK,
++		base + IMGU_REG_IRQCTRL_EDGE(IMGU_IRQCTRL_MAIN));
++	writel(IMGU_IRQCTRL_IRQ_MASK,
++		base + IMGU_REG_IRQCTRL_ENABLE(IMGU_IRQCTRL_MAIN));
++	writel(IMGU_IRQCTRL_IRQ_MASK,
++		base + IMGU_REG_IRQCTRL_CLEAR(IMGU_IRQCTRL_MAIN));
++	writel(IMGU_IRQCTRL_IRQ_MASK,
++		base + IMGU_REG_IRQCTRL_MASK(IMGU_IRQCTRL_MAIN));
++	/* Wait for write complete */
++	readl(base + IMGU_REG_IRQCTRL_ENABLE(IMGU_IRQCTRL_MAIN));
++
++	/* Enable IRQs from SP0 and SP1 controllers */
++	for (i = IMGU_IRQCTRL_SP0; i <= IMGU_IRQCTRL_SP1; i++) {
++		writel(~0, base + IMGU_REG_IRQCTRL_EDGE_NOT_PULSE(i));
++		writel(0, base + IMGU_REG_IRQCTRL_MASK(i));
++		writel(IMGU_IRQCTRL_IRQ_MASK, base + IMGU_REG_IRQCTRL_EDGE(i));
++		writel(IMGU_IRQCTRL_IRQ_MASK,
++			base + IMGU_REG_IRQCTRL_ENABLE(i));
++		writel(IMGU_IRQCTRL_IRQ_MASK, base + IMGU_REG_IRQCTRL_CLEAR(i));
++		writel(IMGU_IRQCTRL_IRQ_MASK, base + IMGU_REG_IRQCTRL_MASK(i));
++		/* Wait for write complete */
++		readl(base + IMGU_REG_IRQCTRL_ENABLE(i));
++	}
++
++	/* Set instruction cache address and inv bit for ISP, SP, and SP1 */
++	for (i = 0; i < IMGU_NUM_SP; i++) {
++		struct imgu_fw_info *bi =
++			&css->fwp->binary_header[css->fw_sp[i]];
++
++		writel(css->binary[css->fw_sp[i]].daddr,
++			base + IMGU_REG_SP_ICACHE_ADDR(bi->type));
++		writel(readl(base + IMGU_REG_SP_CTRL(bi->type)) |
++			IMGU_CTRL_ICACHE_INV,
++			base + IMGU_REG_SP_CTRL(bi->type));
++	}
++	writel(css->binary[css->fw_bl].daddr, base + IMGU_REG_ISP_ICACHE_ADDR);
++	writel(readl(base + IMGU_REG_ISP_CTRL) | IMGU_CTRL_ICACHE_INV,
++		base + IMGU_REG_ISP_CTRL);
++
++	/* Check that IMGU hardware is ready */
++
++	if (!(readl(base + IMGU_REG_SP_CTRL(0)) & IMGU_CTRL_IDLE)) {
++		dev_err(dev, "SP is not idle\n");
++		return -EIO;
++	}
++	if (!(readl(base + IMGU_REG_ISP_CTRL) & IMGU_CTRL_IDLE)) {
++		dev_err(dev, "ISP is not idle\n");
++		return -EIO;
++	}
++
++	for (i = 0; i < ARRAY_SIZE(stream_monitors); i++) {
++		val = readl(base + stream_monitors[i].reg);
++		if (val & stream_monitors[i].mask) {
++			dev_err(dev, "error: Stream monitor %s is valid\n",
++				stream_monitors[i].name);
++			return -EIO;
++		}
++	}
++
++	/* Initialize GDC with default values */
++
++	for (i = 0; i < ARRAY_SIZE(ipu3_css_gdc_lut[0]); i++) {
++		u32 val0 = ipu3_css_gdc_lut[0][i] & IMGU_GDC_LUT_MASK;
++		u32 val1 = ipu3_css_gdc_lut[1][i] & IMGU_GDC_LUT_MASK;
++		u32 val2 = ipu3_css_gdc_lut[2][i] & IMGU_GDC_LUT_MASK;
++		u32 val3 = ipu3_css_gdc_lut[3][i] & IMGU_GDC_LUT_MASK;
++
++		writel(val0 | (val1 << 16),
++			base + IMGU_REG_GDC_LUT_BASE + i * 8);
++		writel(val2 | (val3 << 16),
++			base + IMGU_REG_GDC_LUT_BASE + i * 8 + 4);
++	};
++
++	return 0;
++}
++
++/* Boot the given IPU3 CSS SP */
++static int ipu3_css_hw_start_sp(struct ipu3_css *css, int sp)
++{
++	void __iomem *const base = css->base;
++	struct imgu_fw_info *bi = &css->fwp->binary_header[css->fw_sp[sp]];
++	struct imgu_abi_sp_init_dmem_cfg dmem_cfg = {
++		.ddr_data_addr = css->binary[css->fw_sp[sp]].daddr
++			+ bi->blob.data_source,
++		.dmem_data_addr = bi->blob.data_target,
++		.dmem_bss_addr = bi->blob.bss_target,
++		.data_size = bi->blob.data_size,
++		.bss_size = bi->blob.bss_size,
++		.sp_id = sp,
++	};
++
++	writes(&dmem_cfg, sizeof(dmem_cfg), base +
++		IMGU_REG_SP_DMEM_BASE(sp) + bi->info.sp.init_dmem_data);
++
++	writel(bi->info.sp.sp_entry, base + IMGU_REG_SP_START_ADDR(sp));
++
++	writel(readl(base + IMGU_REG_SP_CTRL(sp))
++		| IMGU_CTRL_START | IMGU_CTRL_RUN, base + IMGU_REG_SP_CTRL(sp));
++
++	if (ipu3_hw_wait(css->base, IMGU_REG_SP_DMEM_BASE(sp)
++			 + bi->info.sp.sw_state,
++			 ~0, IMGU_ABI_SP_SWSTATE_INITIALIZED))
++		return -EIO;
++
++	return 0;
++}
++
++/* Start the IPU3 CSS ImgU (Imaging Unit) and all the SPs */
++static int ipu3_css_hw_start(struct ipu3_css *css)
++{
++	static const u32 event_mask =
++		((1 << IMGU_ABI_EVTTYPE_OUT_FRAME_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_2ND_OUT_FRAME_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_VF_OUT_FRAME_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_2ND_VF_OUT_FRAME_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_3A_STATS_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_DIS_STATS_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_PIPELINE_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_FRAME_TAGGED) |
++		(1 << IMGU_ABI_EVTTYPE_INPUT_FRAME_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_METADATA_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_LACE_STATS_DONE) |
++		(1 << IMGU_ABI_EVTTYPE_ACC_STAGE_COMPLETE))
++		<< IMGU_ABI_SP_COMM_EVENT_IRQ_MASK_OR_SHIFT;
++
++	void __iomem *const base = css->base;
++	struct imgu_fw_info *bi, *bl = &css->fwp->binary_header[css->fw_bl];
++	unsigned int i;
++
++	writel(IMGU_TLB_INVALIDATE, base + IMGU_REG_TLB_INVALIDATE);
++
++	/* Start bootloader */
++
++	writel(IMGU_ABI_BL_SWSTATE_BUSY,
++		base + IMGU_REG_ISP_DMEM_BASE + bl->info.bl.sw_state);
++	writel(IMGU_NUM_SP,
++		base + IMGU_REG_ISP_DMEM_BASE + bl->info.bl.num_dma_cmds);
++
++	for (i = 0; i < IMGU_NUM_SP; i++) {
++		int j = IMGU_NUM_SP - i - 1;	/* load sp1 first, then sp0 */
++		struct imgu_fw_info *sp =
++			&css->fwp->binary_header[css->fw_sp[j]];
++		struct imgu_abi_bl_dma_cmd_entry dma_cmd = {
++			.src_addr = css->binary[css->fw_sp[j]].daddr
++				+ sp->blob.text_source,
++			.size = sp->blob.text_size,
++			.dst_type = IMGU_ABI_BL_DMACMD_TYPE_SP_PMEM,
++			.dst_addr = IMGU_SP_PMEM_BASE(j),
++		};
++
++		writes(&dma_cmd, sizeof(dma_cmd),
++			base + IMGU_REG_ISP_DMEM_BASE + i * sizeof(dma_cmd) +
++			bl->info.bl.dma_cmd_list);
++	}
++
++	writel(bl->info.bl.bl_entry, base + IMGU_REG_ISP_START_ADDR);
++
++	writel(readl(base + IMGU_REG_ISP_CTRL)
++		| IMGU_CTRL_START | IMGU_CTRL_RUN, base + IMGU_REG_ISP_CTRL);
++	if (ipu3_hw_wait(css->base, IMGU_REG_ISP_DMEM_BASE
++			 + bl->info.bl.sw_state, ~0,
++			 IMGU_ABI_BL_SWSTATE_OK)) {
++		dev_err(css->dev, "failed to start bootloader\n");
++		return -EIO;
++	}
++
++	/* Start ISP */
++
++	memset(css->xmem_sp_group_ptrs.vaddr, 0,
++		sizeof(struct imgu_abi_sp_group));
++	dma_sync_single_for_device(css->dev,
++		css->xmem_sp_group_ptrs.daddr,
++		sizeof(struct imgu_abi_sp_group), DMA_TO_DEVICE);
++
++	bi = &css->fwp->binary_header[css->fw_sp[0]];
++
++	writel(css->xmem_sp_group_ptrs.daddr,
++		base + IMGU_REG_SP_DMEM_BASE(0) + bi->info.sp.per_frame_data);
++
++	writel(IMGU_ABI_SP_SWSTATE_TERMINATED,
++		base + IMGU_REG_SP_DMEM_BASE(0) + bi->info.sp.sw_state);
++	writel(1, base + IMGU_REG_SP_DMEM_BASE(0) + bi->info.sp.invalidate_tlb);
++
++	if (ipu3_css_hw_start_sp(css, 0))
++		return -EIO;
++
++	writel(0, base + IMGU_REG_SP_DMEM_BASE(0) + bi->info.sp.isp_started);
++	writel(0, base + IMGU_REG_SP_DMEM_BASE(0) +
++		bi->info.sp.host_sp_queues_initialized);
++	writel(0, base + IMGU_REG_SP_DMEM_BASE(0) + bi->info.sp.sleep_mode);
++	writel(0, base + IMGU_REG_SP_DMEM_BASE(0) + bi->info.sp.invalidate_tlb);
++	writel(IMGU_ABI_SP_COMM_COMMAND_READY, base + IMGU_REG_SP_DMEM_BASE(0)
++		+ bi->info.sp.host_sp_com + IMGU_ABI_SP_COMM_COMMAND);
++
++	/* Enable all events for all queues */
++
++	for (i = 0; i < IPU3_CSS_PIPE_ID_NUM; i++)
++		writel(event_mask, base + IMGU_REG_SP_DMEM_BASE(0)
++			+ bi->info.sp.host_sp_com
++			+ IMGU_ABI_SP_COMM_EVENT_IRQ_MASK(i));
++	writel(1, base + IMGU_REG_SP_DMEM_BASE(0) +
++		bi->info.sp.host_sp_queues_initialized);
++
++	/* Start SP1 */
++
++	bi = &css->fwp->binary_header[css->fw_sp[1]];
++
++	writel(IMGU_ABI_SP_SWSTATE_TERMINATED,
++		base + IMGU_REG_SP_DMEM_BASE(1) + bi->info.sp.sw_state);
++
++	if (ipu3_css_hw_start_sp(css, 1))
++		return -EIO;
++
++	writel(IMGU_ABI_SP_COMM_COMMAND_READY, base + IMGU_REG_SP_DMEM_BASE(1)
++		+ bi->info.sp.host_sp_com + IMGU_ABI_SP_COMM_COMMAND);
++
++	return 0;
++}
++
++static void ipu3_css_hw_cleanup(struct ipu3_css *css)
++{
++	void __iomem *const base = css->base;
++
++	/** Reset CSS **/
++
++	/* Clear the CSS busy signal */
++	readl(base + IMGU_REG_GP_BUSY);
++	writel(0, base + IMGU_REG_GP_BUSY);
++
++	/* Wait for idle signal */
++	if (ipu3_hw_wait(css->base, IMGU_REG_STATE, IMGU_STATE_IDLE_STS,
++			 IMGU_STATE_IDLE_STS))
++		dev_err(css->dev, "failed to shut down hw cleanly\n");
++
++	/* Reset the css */
++	writel(readl(base + IMGU_REG_PM_CTRL) | IMGU_PM_CTRL_FORCE_RESET,
++		base + IMGU_REG_PM_CTRL);
++
++	usleep_range(200, 300);
++}
++
++int ipu3_css_irq_ack(struct ipu3_css *css)
++{
++	static const int NUM_SWIRQS = 3;
++	struct imgu_fw_info *bi = &css->fwp->binary_header[css->fw_sp[0]];
++	void __iomem *const base = css->base;
++	u32 irq_status[IMGU_IRQCTRL_NUM];
++	int i;
++
++	u32 imgu_status = readl(base + IMGU_REG_INT_STATUS);
++
++	for (i = 0; i < IMGU_IRQCTRL_NUM; i++)
++		irq_status[i] = readl(base + IMGU_REG_IRQCTRL_STATUS(i));
++
++	for (i = 0; i < NUM_SWIRQS; i++) {
++		if (irq_status[IMGU_IRQCTRL_SP0] & IMGU_IRQCTRL_IRQ_SW_PIN(i)) {
++			/* SP SW interrupt */
++			u32 cnt = readl(base + IMGU_REG_SP_DMEM_BASE(0) +
++					bi->info.sp.output);
++			u32 val = readl(base + IMGU_REG_SP_DMEM_BASE(0) +
++					bi->info.sp.output + 4 + 4 * i);
++
++			dev_dbg(css->dev, "%s: swirq %i cnt %i val 0x%x\n",
++				 __func__, i, cnt, val);
++		}
++	}
++
++	for (i = IMGU_IRQCTRL_NUM - 1; i >= 0; i--)
++		if (irq_status[i]) {
++			writel(irq_status[i], base + IMGU_REG_IRQCTRL_CLEAR(i));
++			/* Wait for write to complete */
++			readl(base + IMGU_REG_IRQCTRL_ENABLE(i));
++		}
++	writel(imgu_status, base + IMGU_REG_INT_STATUS);
++
++	dev_dbg(css->dev, "%s: imgu 0x%x main 0x%x sp0 0x%x sp1 0x%x\n",
++		__func__,
++		imgu_status, irq_status[IMGU_IRQCTRL_MAIN],
++		irq_status[IMGU_IRQCTRL_SP0], irq_status[IMGU_IRQCTRL_SP1]);
++
++	if (!imgu_status && !irq_status[IMGU_IRQCTRL_MAIN])
++		return -ENOMSG;
++
++	return 0;
++}
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-css.h b/drivers/media/pci/intel/ipu3/ipu3-css.h
+index 16bfcbd..b18a880 100644
+--- a/drivers/media/pci/intel/ipu3/ipu3-css.h
++++ b/drivers/media/pci/intel/ipu3/ipu3-css.h
+@@ -143,4 +143,9 @@ struct ipu3_css {
+ 	struct v4l2_rect rect[IPU3_CSS_RECTS];
+ };
+ 
++/******************* css hw *******************/
++int ipu3_css_set_powerup(struct device *dev, void __iomem *base);
++int ipu3_css_set_powerdown(struct device *dev, void __iomem *base);
++int ipu3_css_irq_ack(struct ipu3_css *css);
++
+ #endif
+-- 
+2.7.4
