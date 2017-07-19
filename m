@@ -1,95 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:54748 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752013AbdGFJTA (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:41053 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751754AbdGSKyt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Jul 2017 05:19:00 -0400
-Subject: Re: [PATCH 03/12] [media] vb2: add in-fence support to QBUF
-To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
-References: <20170616073915.5027-1-gustavo@padovan.org>
- <20170616073915.5027-4-gustavo@padovan.org>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
+        Wed, 19 Jul 2017 06:54:49 -0400
+Subject: Re: [PATCH v3 00/23] Qualcomm 8x16 Camera Subsystem driver
+To: Todor Tomov <todor.tomov@linaro.org>, mchehab@kernel.org,
+        hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ae203289-11cc-d5a5-0ce6-a8fbbc4742af@xs4all.nl>
-Date: Thu, 6 Jul 2017 11:18:39 +0200
+Message-ID: <e149940a-2ba3-6a4c-e8e9-2ab2933cca30@xs4all.nl>
+Date: Wed, 19 Jul 2017 12:54:47 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170616073915.5027-4-gustavo@padovan.org>
+In-Reply-To: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/16/17 09:39, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+On 17/07/17 12:33, Todor Tomov wrote:
+> This patchset adds basic support for the Qualcomm Camera Subsystem found
+> on Qualcomm MSM8916 and APQ8016 processors.
 > 
-> Receive in-fence from userspace and add support for waiting on them
-> before queueing the buffer to the driver. Buffers are only queued
-> to the driver once they are ready. A buffer is ready when its
-> in-fence signals.
+> The driver implements V4L2, Media controller and V4L2 subdev interfaces.
+> Camera sensor using V4L2 subdev interface in the kernel is supported.
 > 
-> v2:
-> 	- fix vb2_queue_or_prepare_buf() ret check
-> 	- remove check for VB2_MEMORY_DMABUF only (Javier)
-> 	- check num of ready buffers to start streaming
-> 	- when queueing, start from the first ready buffer
-> 	- handle queue cancel
+> The driver is implemented using as a reference the Qualcomm Camera
+> Subsystem driver for Android as found in Code Aurora [1].
 > 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  drivers/media/Kconfig                    |  1 +
->  drivers/media/v4l2-core/videobuf2-core.c | 97 +++++++++++++++++++++++++-------
->  drivers/media/v4l2-core/videobuf2-v4l2.c | 15 ++++-
->  include/media/videobuf2-core.h           |  7 ++-
->  4 files changed, 99 insertions(+), 21 deletions(-)
+> The driver is tested on Dragonboard 410C (APQ8016) with one and two
+> OV5645 camera sensors. media-ctl [2] and yavta [3] applications were
+> used for testing. Also Gstreamer 1.10.4 with v4l2src plugin is supported.
 > 
+> More information is present in the document added by the third patch.
 
-<snip>
+OK, so this looks pretty good. I have one comment for patch 12/23, and the
+dt-bindings need to be acked.
 
-> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> index 110fb45..e6ad77f 100644
-> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> @@ -23,6 +23,7 @@
->  #include <linux/sched.h>
->  #include <linux/freezer.h>
->  #include <linux/kthread.h>
-> +#include <linux/sync_file.h>
->  
->  #include <media/v4l2-dev.h>
->  #include <media/v4l2-fh.h>
-> @@ -560,6 +561,7 @@ EXPORT_SYMBOL_GPL(vb2_create_bufs);
->  
->  int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->  {
-> +	struct dma_fence *fence = NULL;
->  	int ret;
->  
->  	if (vb2_fileio_is_active(q)) {
-> @@ -568,7 +570,18 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->  	}
->  
->  	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
-> -	return ret ? ret : vb2_core_qbuf(q, b->index, b);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (b->flags & V4L2_BUF_FLAG_IN_FENCE) {
-> +		fence = sync_file_get_fence(b->fence_fd);
-> +		if (!fence) {
-> +			dprintk(1, "failed to get in-fence from fd\n");
-> +			return -EINVAL;
-> +		}
-> +	}
-> +
-> +	return ret ? ret : vb2_core_qbuf(q, b->index, b, fence);
->  }
->  EXPORT_SYMBOL_GPL(vb2_qbuf);
-
-You need to adapt __fill_v4l2_buffer so it sets the IN_FENCE buffer flag
-if there is a fence pending. It should also fill in fence_fd.
+I suggest you make a v3.1 for patch 12/23 and then I'll wait for the binding
+ack. Once that's in (and there are no other comments) I will merge this.
 
 Regards,
 
