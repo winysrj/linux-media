@@ -1,88 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f170.google.com ([209.85.161.170]:33251 "EHLO
-        mail-yw0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751653AbdGFOHV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 10:07:21 -0400
-Received: by mail-yw0-f170.google.com with SMTP id x125so1517896ywa.0
-        for <linux-media@vger.kernel.org>; Thu, 06 Jul 2017 07:07:20 -0700 (PDT)
-Received: from mail-yw0-f175.google.com (mail-yw0-f175.google.com. [209.85.161.175])
-        by smtp.gmail.com with ESMTPSA id y66sm122512ywy.28.2017.07.06.07.07.17
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 06 Jul 2017 07:07:18 -0700 (PDT)
-Received: by mail-yw0-f175.google.com with SMTP id l21so1487983ywb.1
-        for <linux-media@vger.kernel.org>; Thu, 06 Jul 2017 07:07:17 -0700 (PDT)
+Received: from mail-lf0-f50.google.com ([209.85.215.50]:36280 "EHLO
+        mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753419AbdGSJ2E (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Jul 2017 05:28:04 -0400
+Received: by mail-lf0-f50.google.com with SMTP id d78so25900333lfg.3
+        for <linux-media@vger.kernel.org>; Wed, 19 Jul 2017 02:28:03 -0700 (PDT)
+Date: Wed, 19 Jul 2017 11:28:00 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-iio@vger.kernel.org, alsa-devel@alsa-project.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 1/4] i2c: add helpers to ease DMA handling
+Message-ID: <20170719092800.GL28538@bigcity.dyn.berto.se>
+References: <20170718102339.28726-1-wsa+renesas@sang-engineering.com>
+ <20170718102339.28726-2-wsa+renesas@sang-engineering.com>
 MIME-Version: 1.0
-In-Reply-To: <CAK8P3a0xVjgD-w-uVDc54Mx0s6b1Bd3tRYt9rpetjNoMwDXvCA@mail.gmail.com>
-References: <20170705071215.17603-1-tfiga@chromium.org> <20170705071215.17603-2-tfiga@chromium.org>
- <20170705151728.GA2479@lst.de> <CAAFQd5DijKbNJ-8wHh=+2Z2y1nSF-LC8R+d+NktTRF4iQqPsrA@mail.gmail.com>
- <20170705172019.GB5246@lst.de> <CAAFQd5CkVYd6uyoFP_15N8ZaZp8jivJ-4S=CAvrTynRU2ShFYg@mail.gmail.com>
- <CAK8P3a2htZ7q=npfwJVW7Lr90O78Ey+OR5e0ivaR7GwV4YBs=A@mail.gmail.com>
- <CAAFQd5BMorNa8CD+cEap2=boD2-=jr+DFF9cXTNXzSSfe7FnLg@mail.gmail.com>
- <CAAFQd5BFLvWS5n8owm053GNC5VniMq-8Gh0BHo43B-TYShpsnA@mail.gmail.com>
- <CAK8P3a2JyQ-qLgh+ig4yWMJvB0AGjspMu8P8fNrPHgm3NMCGNw@mail.gmail.com>
- <CAAFQd5DS1NxKh4OJ52T2AJNTHg6K2fnuDm5-GHzmUk-kjowf2w@mail.gmail.com>
- <CAAFQd5Axz2yMnOo4rtP3jgEBJxUVOW0RLmFEGFejBHkYjq0s5A@mail.gmail.com> <CAK8P3a0xVjgD-w-uVDc54Mx0s6b1Bd3tRYt9rpetjNoMwDXvCA@mail.gmail.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 6 Jul 2017 23:06:56 +0900
-Message-ID: <CAAFQd5BgVRaEym9fXt3sMSafFPK1cXwTdMgSiB87w8QVeXzzVw@mail.gmail.com>
-Subject: Re: [RFC PATCH 1/5] base: dma-mapping: Export commonly used symbols
-To: Arnd Bergmann <arnd@arndb.de>, Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Christoph Hellwig <hch@lst.de>,
-        "open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Joerg Roedel <joro@8bytes.org>,
-        Will Deacon <will.deacon@arm.com>,
-        Vineet Gupta <vgupta@synopsys.com>,
-        Hans-Christian Noren Egtvedt <egtvedt@samfundet.no>,
-        Mitchel Humpherys <mitchelh@codeaurora.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Pawel Osciak <posciak@chromium.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170718102339.28726-2-wsa+renesas@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 6, 2017 at 11:02 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Thu, Jul 6, 2017 at 3:49 PM, Tomasz Figa <tfiga@chromium.org> wrote:
->> On Thu, Jul 6, 2017 at 10:31 PM, Tomasz Figa <tfiga@chromium.org> wrote:
->
->>> On the other hand, if it's strictly about base/dma-mapping, we might
->>> not need it indeed. The driver could call iommu-dma helpers directly,
->>> without the need to provide its own DMA ops. One caveat, though, we
->>> are not able to obtain coherent (i.e. uncached) memory with this
->>> approach, which might have some performance effects and complicates
->>> the code, that would now need to flush caches even for some small
->>> internal buffers.
->>
->> I think I should add a bit of explanation here:
->>  1) the device is non-coherent with CPU caches, even on x86,
->>  2) it looks like x86 does not have non-coherent DMA ops, (but it
->> might be something that could be fixed)
->
-> I don't understand what this means here. The PCI on x86 is always
-> cache-coherent, so why is the device not?
->
-> Do you mean that the device has its own caches that may need
-> flushing to make the device cache coherent with the CPU cache,
-> rather than flushing the CPU caches?
+Hi Wolfram,
 
-Sakari might be able to explain this with more technical details, but
-generally the device is not a standard PCI device one might find on
-existing x86 systems.
+On 2017-07-18 12:23:36 +0200, Wolfram Sang wrote:
+> One helper checks if DMA is suitable and optionally creates a bounce
+> buffer, if not. The other function returns the bounce buffer and makes
+> sure the data is properly copied back to the message.
+> 
+> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 
-It is some kind of embedded subsystem that behaves mostly like a PCI
-device, with certain exceptions, one being the lack of coherency with
-CPU caches, at least for certain parts of the subsystem. The reference
-vendor code disables the coherency completely, for reasons not known
-to me, but AFAICT this is the preferred operating mode, possibly due
-to performance effects (this is a memory-heavy image processing
-subsystem).
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Best regards,
-Tomasz
+> ---
+> Changes since v2:
+> 
+> * rebased to v4.13-rc1
+> * helper functions are not inlined anymore but moved to i2c core
+> * __must_check has been added to the buffer check helper
+> * the release function has been renamed to contain 'dma' as well
+> 
+>  drivers/i2c/i2c-core-base.c | 68 +++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/i2c.h         |  5 ++++
+>  2 files changed, 73 insertions(+)
+> 
+> diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
+> index c89dac7fd2e7b7..7326a9d2e4eb69 100644
+> --- a/drivers/i2c/i2c-core-base.c
+> +++ b/drivers/i2c/i2c-core-base.c
+> @@ -34,6 +34,7 @@
+>  #include <linux/irqflags.h>
+>  #include <linux/jump_label.h>
+>  #include <linux/kernel.h>
+> +#include <linux/mm.h>
+>  #include <linux/module.h>
+>  #include <linux/mutex.h>
+>  #include <linux/of_device.h>
+> @@ -44,6 +45,7 @@
+>  #include <linux/pm_wakeirq.h>
+>  #include <linux/property.h>
+>  #include <linux/rwsem.h>
+> +#include <linux/sched/task_stack.h>
+>  #include <linux/slab.h>
+>  
+>  #include "i2c-core.h"
+> @@ -2240,6 +2242,72 @@ void i2c_put_adapter(struct i2c_adapter *adap)
+>  }
+>  EXPORT_SYMBOL(i2c_put_adapter);
+>  
+> +/**
+> + * i2c_check_msg_for_dma() - check if a message is suitable for DMA
+> + * @msg: the message to be checked
+> + * @threshold: the amount of byte from which using DMA makes sense
+> + * @ptr_for_bounce_buf: if not NULL, a bounce buffer will be attached to this
+> + *			ptr, if needed. The bounce buffer must be freed by the
+> + *			caller using i2c_release_dma_bounce_buf().
+> + *
+> + * Return: -ERANGE if message is smaller than threshold
+> + *	   -EFAULT if message buffer is not DMA capable and no bounce buffer
+> + *		   was requested
+> + *	   -ENOMEM if a bounce buffer could not be created
+> + *	   0 if message is suitable for DMA
+> + *
+> + * The return value must be checked.
+> + *
+> + * Note: This function should only be called from process context! It uses
+> + * helper functions which work on the 'current' task.
+> + */
+> +int i2c_check_msg_for_dma(struct i2c_msg *msg, unsigned int threshold,
+> +					u8 **ptr_for_bounce_buf)
+> +{
+> +	if (ptr_for_bounce_buf)
+> +		*ptr_for_bounce_buf = NULL;
+> +
+> +	if (msg->len < threshold)
+> +		return -ERANGE;
+> +
+> +	if (!virt_addr_valid(msg->buf) || object_is_on_stack(msg->buf)) {
+> +		pr_debug("msg buffer to 0x%04x is not DMA safe%s\n", msg->addr,
+> +			 ptr_for_bounce_buf ? ", trying bounce buffer" : "");
+> +		if (ptr_for_bounce_buf) {
+> +			if (msg->flags & I2C_M_RD)
+> +				*ptr_for_bounce_buf = kzalloc(msg->len, GFP_KERNEL);
+> +			else
+> +				*ptr_for_bounce_buf = kmemdup(msg->buf, msg->len,
+> +							      GFP_KERNEL);
+> +			if (!*ptr_for_bounce_buf)
+> +				return -ENOMEM;
+> +		} else {
+> +			return -EFAULT;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(i2c_check_msg_for_dma);
+> +
+> +/**
+> + * i2c_release_bounce_buf - copy data back from bounce buffer and release it
+> + * @msg: the message to be copied back to
+> + * @bounce_buf: the bounce buffer obtained from i2c_check_msg_for_dma().
+> + *		May be NULL.
+> + */
+> +void i2c_release_dma_bounce_buf(struct i2c_msg *msg, u8 *bounce_buf)
+> +{
+> +	if (!bounce_buf)
+> +		return;
+> +
+> +	if (msg->flags & I2C_M_RD)
+> +		memcpy(msg->buf, bounce_buf, msg->len);
+> +
+> +	kfree(bounce_buf);
+> +}
+> +EXPORT_SYMBOL_GPL(i2c_release_bounce_buf);
+> +
+>  MODULE_AUTHOR("Simon G. Vogl <simon@tk.uni-linz.ac.at>");
+>  MODULE_DESCRIPTION("I2C-Bus main module");
+>  MODULE_LICENSE("GPL");
+> diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+> index 00ca5b86a753f8..ac02287b6c0d8f 100644
+> --- a/include/linux/i2c.h
+> +++ b/include/linux/i2c.h
+> @@ -766,6 +766,11 @@ static inline u8 i2c_8bit_addr_from_msg(const struct i2c_msg *msg)
+>  	return (msg->addr << 1) | (msg->flags & I2C_M_RD ? 1 : 0);
+>  }
+>  
+> +int __must_check i2c_check_msg_for_dma(struct i2c_msg *msg, unsigned int threshold,
+> +					u8 **ptr_for_bounce_buf);
+> +
+> +void i2c_release_dma_bounce_buf(struct i2c_msg *msg, u8 *bounce_buf);
+> +
+>  int i2c_handle_smbus_host_notify(struct i2c_adapter *adap, unsigned short addr);
+>  /**
+>   * module_i2c_driver() - Helper macro for registering a modular I2C driver
+> -- 
+> 2.11.0
+> 
+
+-- 
+Regards,
+Niklas Söderlund
