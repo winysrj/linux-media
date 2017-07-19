@@ -1,48 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f54.google.com ([209.85.218.54]:33407 "EHLO
-        mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752619AbdGLDRX (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:52675 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753408AbdGSKuT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 23:17:23 -0400
+        Wed, 19 Jul 2017 06:50:19 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v5 3/4] v4l: async: do not hold list_lock when re-probing devices
+Date: Wed, 19 Jul 2017 12:49:45 +0200
+Message-Id: <20170719104946.7322-4-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170719104946.7322-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170719104946.7322-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <848b3f21-9516-8a66-e4b3-9056ce38d6f6@roeck-us.net>
-References: <CA+55aFzXz-PxKSJP=hfHD+mfCX4M6+HMacWMkDz7KB8-3y55qw@mail.gmail.com>
- <848b3f21-9516-8a66-e4b3-9056ce38d6f6@roeck-us.net>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Tue, 11 Jul 2017 20:17:21 -0700
-Message-ID: <CA+55aFyKpezj3oHwtBShyf9x-DJNAGQhrq55iVGM42eWKQtP3w@mail.gmail.com>
-Subject: Re: Lots of new warnings with gcc-7.1.1
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Tejun Heo <tj@kernel.org>, Jean Delvare <jdelvare@suse.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Sathya Prakash <sathya.prakash@broadcom.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        xen-devel <xen-devel@lists.xenproject.org>,
-        linux-block <linux-block@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        IDE-ML <linux-ide@vger.kernel.org>,
-        "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-        Network Development <netdev@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 11, 2017 at 8:10 PM, Guenter Roeck <linux@roeck-us.net> wrote:
->
-> The hwmon warnings are all about supporting no more than 9,999 sensors
-> (applesmc) to 999,999,999 sensors (scpi) of a given type.
+There is no good reason to hold the list_lock when re-probing the
+devices and it prevents a clean implementation of subdevice notifiers.
+Move the actual release of the devices outside of the loop which
+requires the lock to be held.
 
-Yeah, I think that's enough.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-> Easy "fix" would be to replace snprintf() with scnprintf(), presumably
-> because gcc doesn't know about scnprintf().
-
-If that's the case, I'd prefer just turning off the format-truncation
-(but not overflow) warning with '-Wno-format-trunction".
-
-But maybe we can at least start it on a subsystem-by-subsystem basis
-after people have verified their own subsusystem?
-
-                  Linus
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 67852f0f2d3000c9..d91ff0a33fd3eaff 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -206,7 +206,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 	unsigned int notif_n_subdev = notifier->num_subdevs;
+ 	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
+ 	struct device **dev;
+-	int i = 0;
++	int i, count = 0;
+ 
+ 	if (!notifier->v4l2_dev)
+ 		return;
+@@ -223,27 +223,26 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 	list_del(&notifier->list);
+ 
+ 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+-		struct device *d;
+-
+-		d = get_device(sd->dev);
++		dev[count] = get_device(sd->dev);
++		count++;
+ 
+ 		if (notifier->unbind)
+ 			notifier->unbind(notifier, sd, sd->asd);
+ 
+ 		v4l2_async_cleanup(sd);
+-
+-		/* If we handled USB devices, we'd have to lock the parent too */
+-		device_release_driver(d);
+-
+-		dev[i++] = d;
+ 	}
+ 
+ 	mutex_unlock(&list_lock);
+ 
++	for (i = 0; i < count; i++) {
++		/* If we handled USB devices, we'd have to lock the parent too */
++		device_release_driver(dev[i]);
++	}
++
+ 	/*
+ 	 * Call device_attach() to reprobe devices
+ 	 */
+-	while (i--) {
++	for (i = 0; i < count; i++) {
+ 		struct device *d = dev[i];
+ 
+ 		if (d && device_attach(d) < 0) {
+-- 
+2.13.1
