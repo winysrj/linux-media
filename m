@@ -1,51 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:53552 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750836AbdG0Jao (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60933 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753489AbdGSLx3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Jul 2017 05:30:44 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCH 3/3] media/doc: improve the SMPTE 2084 documentation
-Date: Thu, 27 Jul 2017 11:30:32 +0200
-Message-Id: <20170727093032.12663-4-hverkuil@xs4all.nl>
-In-Reply-To: <20170727093032.12663-1-hverkuil@xs4all.nl>
-References: <20170727093032.12663-1-hverkuil@xs4all.nl>
+        Wed, 19 Jul 2017 07:53:29 -0400
+Date: Wed, 19 Jul 2017 13:53:27 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+        devicetree@vger.kernel.org, sebastian.reichel@collabora.co.uk,
+        robh@kernel.org, jacek.anaszewski@gmail.com
+Subject: Re: [PATCH v1.1 1/1] v4l2-flash: Flash ops aren't mandatory
+Message-ID: <20170719115327.GA23056@amd>
+References: <1497433639-13101-6-git-send-email-sakari.ailus@linux.intel.com>
+ <20170718173623.7821-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="SUOF0GtieIMvvwua"
+Content-Disposition: inline
+In-Reply-To: <20170718173623.7821-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
 
-Make note of the different luminance ranges between HDR and SDR.
+--SUOF0GtieIMvvwua
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
----
- Documentation/media/uapi/v4l/colorspaces-details.rst | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+On Tue 2017-07-18 20:36:23, Sakari Ailus wrote:
+> None of the flash operations are mandatory and therefore there should be
+> no need for the flash ops structure either. Accept NULL.
 
-diff --git a/Documentation/media/uapi/v4l/colorspaces-details.rst b/Documentation/media/uapi/v4l/colorspaces-details.rst
-index 47d7d1915284..b5d551b9cc8f 100644
---- a/Documentation/media/uapi/v4l/colorspaces-details.rst
-+++ b/Documentation/media/uapi/v4l/colorspaces-details.rst
-@@ -793,3 +793,15 @@ Transfer function:
- Inverse Transfer function:
-     L = (max(L':sup:`1/m2` - c1, 0) / (c2 - c3 *
-     L'\ :sup:`1/m2`))\ :sup:`1/m1`
-+
-+Take care when converting between this transfer function and non-HDR transfer
-+functions: the linear RGB values [0…1] of HDR content map to a luminance range
-+of 0 to 10000 cd/m\ :sup:`2` whereas the linear RGB values of non-HDR (aka
-+Standard Dynamic Range or SDR) map to a luminance range of 0 to 100 cd/m\ :sup:`2`.
-+
-+To go from SDR to HDR you will have to divide L by 100 first. To go in the other
-+direction you will have to multiply L by 100. Of course, this clamps all
-+luminance values over 100 cd/m\ :sup:`2` to 100 cd/m\ :sup:`2`.
-+
-+There are better methods, see e.g. :ref:`colimg` for more in-depth information
-+about this.
--- 
-2.13.1
+Well, ok, but is not the flash without any operations kind of useless?
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--SUOF0GtieIMvvwua
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAllvSDcACgkQMOfwapXb+vLNHgCdGc/m/JaVMaXLphXxDWzJy5Mc
+URIAn0KblGKmyVta1/J1CSCtDo3Pik+D
+=Rgsi
+-----END PGP SIGNATURE-----
+
+--SUOF0GtieIMvvwua--
