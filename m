@@ -1,759 +1,759 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:35986 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751306AbdGOMr6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Jul 2017 08:47:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/4] tegra-cec: add Tegra HDMI CEC driver
-Date: Sat, 15 Jul 2017 14:47:52 +0200
-Message-Id: <20170715124753.43714-4-hverkuil@xs4all.nl>
-In-Reply-To: <20170715124753.43714-1-hverkuil@xs4all.nl>
-References: <20170715124753.43714-1-hverkuil@xs4all.nl>
+Received: from mga09.intel.com ([134.134.136.24]:38079 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752424AbdGSDOL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Jul 2017 23:14:11 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
+        hyungwoo.yang@intel.com, jerry.w.hu@intel.com,
+        Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH v3 11/12] intel-ipu3: Add imgu v4l2 driver
+Date: Tue, 18 Jul 2017 22:13:43 -0500
+Message-Id: <1500434023-2411-9-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1500434023-2411-1-git-send-email-yong.zhi@intel.com>
+References: <1500434023-2411-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+ipu3 imgu video device based on v4l2, vb2 and
+media controller framework.
 
-This driver adds support for the Tegra CEC IP. It is based on the
-NVIDIA drivers/misc/tegra-cec driver in their 3.10 kernel.
-
-This has been converted to the CEC framework and cleaned up.
-
-Tested with my Jetson TK1 board. It has also been tested with the
-Tegra X1 in an embedded product.
-
-Note of warning for the Tegra X2: this SoC supports two HDMI outputs,
-but only one CEC adapter and the CEC bus is shared between the
-two outputs. This is a design mistake and the CEC adapter can
-control only one HDMI output. Never hook up both HDMI outputs
-to the CEC bus in a hardware design: this is illegal as per the
-CEC specification.
-
-The CEC bus can be shared between multiple inputs and zero or one
-outputs, but not between multiple outputs.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
 ---
- MAINTAINERS                                  |   8 +
- drivers/media/platform/Kconfig               |  11 +
- drivers/media/platform/Makefile              |   2 +
- drivers/media/platform/tegra-cec/Makefile    |   1 +
- drivers/media/platform/tegra-cec/tegra_cec.c | 506 +++++++++++++++++++++++++++
- drivers/media/platform/tegra-cec/tegra_cec.h | 127 +++++++
- 6 files changed, 655 insertions(+)
- create mode 100644 drivers/media/platform/tegra-cec/Makefile
- create mode 100644 drivers/media/platform/tegra-cec/tegra_cec.c
- create mode 100644 drivers/media/platform/tegra-cec/tegra_cec.h
+ drivers/media/pci/intel/ipu3/ipu3-v4l2.c | 724 +++++++++++++++++++++++++++++++
+ 1 file changed, 724 insertions(+)
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-v4l2.c
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 7d9bd4a041af..35b393feac52 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -1917,6 +1917,14 @@ M:	Lennert Buytenhek <kernel@wantstofly.org>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Maintained
- 
-+ARM/TEGRA HDMI CEC SUBSYSTEM SUPPORT
-+M:	Hans Verkuil <hans.verkuil@cisco.com>
-+L:	linux-tegra@vger.kernel.org
-+L:	linux-media@vger.kernel.org
-+S:	Maintained
-+F:	drivers/media/platform/tegra-cec/
-+F:	Documentation/devicetree/bindings/media/tegra-cec.txt
-+
- ARM/TETON BGA MACHINE SUPPORT
- M:	"Mark F. Brown" <mark.brown314@gmail.com>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 1313cd533436..31f54cbdf2e2 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -570,6 +570,17 @@ config VIDEO_STM32_HDMI_CEC
-          CEC bus is present in the HDMI connector and enables communication
-          between compatible devices.
- 
-+config VIDEO_TEGRA_HDMI_CEC
-+       tristate "Tegra HDMI CEC driver"
-+       depends on ARCH_TEGRA || COMPILE_TEST
-+       select CEC_CORE
-+       select CEC_NOTIFIER
-+       ---help---
-+         This is a driver for the Tegra HDMI CEC interface. It uses the
-+         generic CEC framework interface.
-+         The CEC bus is present in the HDMI connector and enables communication
-+         between compatible devices.
-+
- endif #CEC_PLATFORM_DRIVERS
- 
- menuconfig SDR_PLATFORM_DRIVERS
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 9beadc760467..9da73532e556 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -46,6 +46,8 @@ obj-$(CONFIG_VIDEO_STI_HDMI_CEC) 	+= sti/cec/
- 
- obj-$(CONFIG_VIDEO_STI_DELTA)		+= sti/delta/
- 
-+obj-$(CONFIG_VIDEO_TEGRA_HDMI_CEC)	+= tegra-cec/
-+
- obj-y 					+= stm32/
- 
- obj-y                                   += blackfin/
-diff --git a/drivers/media/platform/tegra-cec/Makefile b/drivers/media/platform/tegra-cec/Makefile
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-v4l2.c b/drivers/media/pci/intel/ipu3/ipu3-v4l2.c
 new file mode 100644
-index 000000000000..f3d81127589f
+index 0000000..c8c37f3
 --- /dev/null
-+++ b/drivers/media/platform/tegra-cec/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_VIDEO_TEGRA_HDMI_CEC)	+= tegra_cec.o
-diff --git a/drivers/media/platform/tegra-cec/tegra_cec.c b/drivers/media/platform/tegra-cec/tegra_cec.c
-new file mode 100644
-index 000000000000..346586c3ad6d
---- /dev/null
-+++ b/drivers/media/platform/tegra-cec/tegra_cec.c
-@@ -0,0 +1,506 @@
++++ b/drivers/media/pci/intel/ipu3/ipu3-v4l2.c
+@@ -0,0 +1,724 @@
 +/*
-+ * Tegra CEC implementation
++ * Copyright (c) 2017 Intel Corporation.
 + *
-+ * The original 3.10 CEC driver using a custom API:
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
 + *
-+ * Copyright (c) 2012-2015, NVIDIA CORPORATION.  All rights reserved.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
 + *
-+ * Conversion to the CEC framework and to the mainline kernel:
-+ *
-+ * Copyright 2016-2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 + */
 +
 +#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/err.h>
-+#include <linux/errno.h>
-+#include <linux/interrupt.h>
-+#include <linux/slab.h>
-+#include <linux/io.h>
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/pm.h>
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
-+#include <linux/platform_device.h>
-+#include <linux/clk/tegra.h>
++#include <linux/pm_runtime.h>
++#include <media/v4l2-ioctl.h>
++#include <media/videobuf2-dma-sg.h>
 +
-+#include <media/cec-notifier.h>
++#include "ipu3.h"
 +
-+#include "tegra_cec.h"
++/******************** v4l2_subdev_ops ********************/
 +
-+#define TEGRA_CEC_NAME "tegra-cec"
-+
-+struct tegra_cec {
-+	struct cec_adapter	*adap;
-+	struct device		*dev;
-+	struct clk		*clk;
-+	void __iomem		*cec_base;
-+	struct cec_notifier	*notifier;
-+	int			tegra_cec_irq;
-+	bool			rx_done;
-+	bool			tx_done;
-+	int			tx_status;
-+	u8			rx_buf[CEC_MAX_MSG_SIZE];
-+	u8			rx_buf_cnt;
-+	u32			tx_buf[CEC_MAX_MSG_SIZE];
-+	u8			tx_buf_cur;
-+	u8			tx_buf_cnt;
-+};
-+
-+static inline u32 cec_read(struct tegra_cec *cec, u32 reg)
++static int ipu3_subdev_s_stream(struct v4l2_subdev *sd, int enable)
 +{
-+	return readl(cec->cec_base + reg);
++	struct ipu3_mem2mem2_device *m2m2 =
++		container_of(sd, struct ipu3_mem2mem2_device, subdev);
++	int r = 0;
++
++	if (m2m2->ops && m2m2->ops->s_stream)
++		r = m2m2->ops->s_stream(m2m2, enable);
++
++	if (!r)
++		m2m2->streaming = enable;
++
++	return r;
 +}
 +
-+static inline void cec_write(struct tegra_cec *cec, u32 reg, u32 val)
++static int ipu3_subdev_get_fmt(struct v4l2_subdev *sd,
++			       struct v4l2_subdev_pad_config *cfg,
++			       struct v4l2_subdev_format *fmt)
 +{
-+	writel(val, cec->cec_base + reg);
++	struct ipu3_mem2mem2_device *m2m2 =
++		container_of(sd, struct ipu3_mem2mem2_device, subdev);
++	struct v4l2_mbus_framefmt *mf;
++	u32 pad = fmt->pad;
++
++	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
++		fmt->format = m2m2->nodes[pad].pad_fmt;
++	} else {
++		mf = v4l2_subdev_get_try_format(sd, cfg, pad);
++		fmt->format = *mf;
++	}
++
++	return 0;
 +}
 +
-+static void tegra_cec_error_recovery(struct tegra_cec *cec)
++static int ipu3_subdev_set_fmt(struct v4l2_subdev *sd,
++			       struct v4l2_subdev_pad_config *cfg,
++			       struct v4l2_subdev_format *fmt)
 +{
-+	u32 hw_ctrl;
++	struct ipu3_mem2mem2_device *m2m2 =
++		container_of(sd, struct ipu3_mem2mem2_device, subdev);
++	struct v4l2_mbus_framefmt *mf;
++	u32 pad = fmt->pad;
 +
-+	hw_ctrl = cec_read(cec, TEGRA_CEC_HW_CONTROL);
-+	cec_write(cec, TEGRA_CEC_HW_CONTROL, 0);
-+	cec_write(cec, TEGRA_CEC_INT_STAT, 0xffffffff);
-+	cec_write(cec, TEGRA_CEC_HW_CONTROL, hw_ctrl);
++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
++		mf = v4l2_subdev_get_try_format(sd, cfg, pad);
++	else
++		mf = &m2m2->nodes[pad].pad_fmt;
++
++	/* Clamp the w and h based on the hardware capabilities */
++	if (m2m2->subdev_pads[pad].flags & MEDIA_PAD_FL_SOURCE) {
++
++		fmt->format.width = clamp(fmt->format.width,
++					IPU3_OUTPUT_MIN_WIDTH,
++					IPU3_OUTPUT_MAX_WIDTH);
++		fmt->format.height = clamp(fmt->format.height,
++					IPU3_OUTPUT_MIN_HEIGHT,
++					IPU3_OUTPUT_MAX_HEIGHT);
++	} else {
++		fmt->format.width = clamp(fmt->format.width,
++					IPU3_INPUT_MIN_WIDTH,
++					IPU3_INPUT_MAX_WIDTH);
++		fmt->format.height = clamp(fmt->format.height,
++					IPU3_INPUT_MIN_HEIGHT,
++					IPU3_INPUT_MAX_HEIGHT);
++	}
++
++	*mf = fmt->format;
++
++	return 0;
 +}
 +
-+static irqreturn_t tegra_cec_irq_thread_handler(int irq, void *data)
++/******************** media_entity_operations ********************/
++
++static int ipu3_link_setup(struct media_entity *entity,
++				     const struct media_pad *local,
++				     const struct media_pad *remote, u32 flags)
 +{
-+	struct device *dev = data;
-+	struct tegra_cec *cec = dev_get_drvdata(dev);
++	struct ipu3_mem2mem2_device *m2m2 =
++	    container_of(entity, struct ipu3_mem2mem2_device, subdev.entity);
++	u32 pad = local->index;
 +
-+	if (cec->tx_done) {
-+		cec_transmit_attempt_done(cec->adap, cec->tx_status);
-+		cec->tx_done = false;
-+	}
-+	if (cec->rx_done) {
-+		struct cec_msg msg = {};
++	WARN_ON(pad >= m2m2->num_nodes);
 +
-+		msg.len = cec->rx_buf_cnt;
-+		memcpy(msg.msg, cec->rx_buf, msg.len);
-+		cec_received_msg(cec->adap, &msg);
-+		cec->rx_done = false;
-+		cec->rx_buf_cnt = 0;
-+	}
-+	return IRQ_HANDLED;
++	m2m2->nodes[pad].enabled = !!(flags & MEDIA_LNK_FL_ENABLED);
++
++	return 0;
 +}
 +
-+static irqreturn_t tegra_cec_irq_handler(int irq, void *data)
++/******************** vb2_ops ********************/
++
++/* Transfer buffer ownership to me */
++static void ipu3_vb2_buf_queue(struct vb2_buffer *vb)
 +{
-+	struct device *dev = data;
-+	struct tegra_cec *cec = dev_get_drvdata(dev);
-+	u32 status, mask;
++	struct ipu3_mem2mem2_device *m2m2 = vb2_get_drv_priv(vb->vb2_queue);
++	struct imgu_device *imgu =
++		container_of(m2m2, struct imgu_device, mem2mem2);
++	struct imgu_video_device *node =
++		container_of(vb->vb2_queue, struct imgu_video_device, vbq);
++	struct ipu3_mem2mem2_buffer *b =
++		container_of(vb, struct ipu3_mem2mem2_buffer, vbb.vb2_buf);
++	int queue;
 +
-+	status = cec_read(cec, TEGRA_CEC_INT_STAT);
-+	mask = cec_read(cec, TEGRA_CEC_INT_MASK);
++	list_add_tail(&b->list, &node->buffers);
 +
-+	status &= mask;
++	queue = imgu_node_to_queue(node - m2m2->nodes);
 +
-+	if (!status)
-+		return IRQ_HANDLED;
-+
-+	if (status & TEGRA_CEC_INT_STAT_TX_REGISTER_UNDERRUN) {
-+		dev_err(dev, "TX underrun, interrupt timing issue!\n");
-+
-+		tegra_cec_error_recovery(cec);
-+		cec_write(cec, TEGRA_CEC_INT_MASK,
-+			  mask & ~TEGRA_CEC_INT_MASK_TX_REGISTER_EMPTY);
-+
-+		cec->tx_done = true;
-+		cec->tx_status = CEC_TX_STATUS_ERROR;
-+		return IRQ_WAKE_THREAD;
++	if (queue < 0) {
++		dev_err(&imgu->pci_dev->dev, "Invalid imgu node.\n");
++		return;
 +	}
 +
-+	if ((status & TEGRA_CEC_INT_STAT_TX_ARBITRATION_FAILED) ||
-+		   (status & TEGRA_CEC_INT_STAT_TX_BUS_ANOMALY_DETECTED)) {
-+		tegra_cec_error_recovery(cec);
-+		cec_write(cec, TEGRA_CEC_INT_MASK,
-+			  mask & ~TEGRA_CEC_INT_MASK_TX_REGISTER_EMPTY);
++	if (queue == IPU3_CSS_QUEUE_PARAMS) {
++		unsigned int need_bytes = sizeof(struct ipu3_uapi_params);
++		int r = -EINVAL;
 +
-+		cec->tx_done = true;
-+		if (status & TEGRA_CEC_INT_STAT_TX_BUS_ANOMALY_DETECTED)
-+			cec->tx_status = CEC_TX_STATUS_LOW_DRIVE;
-+		else
-+			cec->tx_status = CEC_TX_STATUS_ARB_LOST;
-+		return IRQ_WAKE_THREAD;
++		if (vb2_get_plane_payload(vb, 0) >= need_bytes)
++			r = ipu3_css_set_parameters(&imgu->css,
++						vb2_plane_vaddr(vb, 0),
++						NULL, 0, NULL, 0);
++		imgu_buffer_done(imgu, vb, r == 0 ? VB2_BUF_STATE_DONE
++						: VB2_BUF_STATE_ERROR);
++	} else {
++		struct imgu_buffer *buf = container_of(vb,
++				struct imgu_buffer, m2m2_buf.vbb.vb2_buf);
++		struct sg_table *sg = vb2_dma_sg_plane_desc(vb, 0);
++
++		ipu3_css_buf_init(&buf->css_buf, queue,
++			sg_dma_address(sg->sgl));
++		if (imgu->mem2mem2.streaming)
++			imgu_queue_buffers(imgu, false);
 +	}
-+
-+	if (status & TEGRA_CEC_INT_STAT_TX_FRAME_TRANSMITTED) {
-+		cec_write(cec, TEGRA_CEC_INT_STAT,
-+			  TEGRA_CEC_INT_STAT_TX_FRAME_TRANSMITTED);
-+
-+		if (status & TEGRA_CEC_INT_STAT_TX_FRAME_OR_BLOCK_NAKD) {
-+			tegra_cec_error_recovery(cec);
-+
-+			cec->tx_done = true;
-+			cec->tx_status = CEC_TX_STATUS_NACK;
-+		} else {
-+			cec->tx_done = true;
-+			cec->tx_status = CEC_TX_STATUS_OK;
-+		}
-+		return IRQ_WAKE_THREAD;
-+	}
-+
-+	if (status & TEGRA_CEC_INT_STAT_TX_FRAME_OR_BLOCK_NAKD)
-+		dev_warn(dev, "TX NAKed on the fly!\n");
-+
-+	if (status & TEGRA_CEC_INT_STAT_TX_REGISTER_EMPTY) {
-+		if (cec->tx_buf_cur == cec->tx_buf_cnt) {
-+			cec_write(cec, TEGRA_CEC_INT_MASK,
-+				  mask & ~TEGRA_CEC_INT_MASK_TX_REGISTER_EMPTY);
-+		} else {
-+			cec_write(cec, TEGRA_CEC_TX_REGISTER,
-+				  cec->tx_buf[cec->tx_buf_cur++]);
-+			cec_write(cec, TEGRA_CEC_INT_STAT,
-+				  TEGRA_CEC_INT_STAT_TX_REGISTER_EMPTY);
-+		}
-+	}
-+
-+	if (status & (TEGRA_CEC_INT_STAT_RX_REGISTER_OVERRUN |
-+		      TEGRA_CEC_INT_STAT_RX_BUS_ANOMALY_DETECTED |
-+		      TEGRA_CEC_INT_STAT_RX_START_BIT_DETECTED |
-+		      TEGRA_CEC_INT_STAT_RX_BUS_ERROR_DETECTED)) {
-+		cec_write(cec, TEGRA_CEC_INT_STAT,
-+			  (TEGRA_CEC_INT_STAT_RX_REGISTER_OVERRUN |
-+			   TEGRA_CEC_INT_STAT_RX_BUS_ANOMALY_DETECTED |
-+			   TEGRA_CEC_INT_STAT_RX_START_BIT_DETECTED |
-+			   TEGRA_CEC_INT_STAT_RX_BUS_ERROR_DETECTED));
-+	} else if (status & TEGRA_CEC_INT_STAT_RX_REGISTER_FULL) {
-+		u32 v;
-+
-+		cec_write(cec, TEGRA_CEC_INT_STAT,
-+			  TEGRA_CEC_INT_STAT_RX_REGISTER_FULL);
-+		v = cec_read(cec, TEGRA_CEC_RX_REGISTER);
-+		if (cec->rx_buf_cnt < CEC_MAX_MSG_SIZE)
-+			cec->rx_buf[cec->rx_buf_cnt++] = v & 0xff;
-+		if (v & TEGRA_CEC_RX_REGISTER_EOM) {
-+			cec->rx_done = true;
-+			return IRQ_WAKE_THREAD;
-+		}
-+	}
-+
-+	return IRQ_HANDLED;
 +}
 +
-+static int tegra_cec_adap_enable(struct cec_adapter *adap, bool enable)
++static int ipu3_vb2_queue_setup(struct vb2_queue *vq,
++				unsigned int *num_buffers,
++				unsigned int *num_planes,
++				unsigned int sizes[],
++				struct device *alloc_devs[])
 +{
-+	struct tegra_cec *cec = adap->priv;
++	struct ipu3_mem2mem2_device *m2m2 = vb2_get_drv_priv(vq);
++	struct imgu_video_device *node =
++		container_of(vq, struct imgu_video_device, vbq);
++	const struct v4l2_format *fmt = &node->vdev_fmt;
++	const struct v4l2_pix_format *pix = &fmt->fmt.pix;
 +
-+	cec->rx_buf_cnt = 0;
-+	cec->tx_buf_cnt = 0;
-+	cec->tx_buf_cur = 0;
++	alloc_devs[0] = m2m2->vb2_alloc_dev;
 +
-+	cec_write(cec, TEGRA_CEC_HW_CONTROL, 0);
-+	cec_write(cec, TEGRA_CEC_INT_MASK, 0);
-+	cec_write(cec, TEGRA_CEC_INT_STAT, 0xffffffff);
-+	cec_write(cec, TEGRA_CEC_SW_CONTROL, 0);
++	if (*num_planes) {
++		/*
++		 * Only single plane is supported
++		 */
++		if (*num_planes != 1 || sizes[0] < pix->sizeimage)
++			return -EINVAL;
++	}
 +
-+	if (!enable)
++	*num_planes = 1;
++	sizes[0] = pix->sizeimage;
++	*num_buffers = clamp_val(*num_buffers, 1, VB2_MAX_FRAME);
++
++	/* Initialize buffer queue */
++
++	INIT_LIST_HEAD(&node->buffers);
++
++	return 0;
++}
++
++/* Check if all enabled video nodes are streaming, exception ignored */
++static bool ipu3_all_nodes_streaming(struct ipu3_mem2mem2_device *m2m2,
++					 struct imgu_video_device *except)
++{
++	int i;
++
++	for (i = 0; i < m2m2->num_nodes; i++) {
++		struct imgu_video_device *node = &m2m2->nodes[i];
++
++		if (node == except)
++			continue;
++		if (node->enabled && !vb2_start_streaming_called(&node->vbq))
++			return false;
++	}
++
++	return true;
++}
++
++static void ipu3_return_all_buffers(struct ipu3_mem2mem2_device *m2m2,
++					struct imgu_video_device *node,
++					enum vb2_buffer_state state)
++{
++	struct ipu3_mem2mem2_buffer *b, *b0;
++
++	/* Return all buffers */
++	list_for_each_entry_safe(b, b0, &node->buffers, list) {
++		list_del(&b->list);
++		vb2_buffer_done(&b->vbb.vb2_buf, state);
++	}
++}
++
++static int ipu3_vb2_start_streaming(struct vb2_queue *vq, unsigned int count)
++{
++	struct ipu3_mem2mem2_device *m2m2 = vb2_get_drv_priv(vq);
++	struct imgu_video_device *node =
++		container_of(vq, struct imgu_video_device, vbq);
++	int r;
++
++	if (m2m2->streaming) {
++		r = -EBUSY;
++		goto fail_return_bufs;
++	}
++
++	if (!node->enabled) {
++		r = -EINVAL;
++		goto fail_return_bufs;
++	}
++
++	r = media_pipeline_start(&node->vdev.entity, &m2m2->pipeline);
++	if (r < 0)
++		goto fail_return_bufs;
++
++	if (!ipu3_all_nodes_streaming(m2m2, node))
 +		return 0;
 +
-+	cec_write(cec, TEGRA_CEC_INPUT_FILTER, (1U << 31) | 0x20);
++	/* Start streaming of the whole pipeline now */
 +
-+	cec_write(cec, TEGRA_CEC_RX_TIMING_0,
-+		  (0x7a << TEGRA_CEC_RX_TIM0_START_BIT_MAX_LO_TIME_SHIFT) |
-+		  (0x6d << TEGRA_CEC_RX_TIM0_START_BIT_MIN_LO_TIME_SHIFT) |
-+		  (0x93 << TEGRA_CEC_RX_TIM0_START_BIT_MAX_DURATION_SHIFT) |
-+		  (0x86 << TEGRA_CEC_RX_TIM0_START_BIT_MIN_DURATION_SHIFT));
++	r = v4l2_subdev_call(&m2m2->subdev, video, s_stream, 1);
++	if (r < 0)
++		goto fail_stop_pipeline;
 +
-+	cec_write(cec, TEGRA_CEC_RX_TIMING_1,
-+		  (0x35 << TEGRA_CEC_RX_TIM1_DATA_BIT_MAX_LO_TIME_SHIFT) |
-+		  (0x21 << TEGRA_CEC_RX_TIM1_DATA_BIT_SAMPLE_TIME_SHIFT) |
-+		  (0x56 << TEGRA_CEC_RX_TIM1_DATA_BIT_MAX_DURATION_SHIFT) |
-+		  (0x40 << TEGRA_CEC_RX_TIM1_DATA_BIT_MIN_DURATION_SHIFT));
-+
-+	cec_write(cec, TEGRA_CEC_RX_TIMING_2,
-+		  (0x50 << TEGRA_CEC_RX_TIM2_END_OF_BLOCK_TIME_SHIFT));
-+
-+	cec_write(cec, TEGRA_CEC_TX_TIMING_0,
-+		  (0x74 << TEGRA_CEC_TX_TIM0_START_BIT_LO_TIME_SHIFT) |
-+		  (0x8d << TEGRA_CEC_TX_TIM0_START_BIT_DURATION_SHIFT) |
-+		  (0x08 << TEGRA_CEC_TX_TIM0_BUS_XITION_TIME_SHIFT) |
-+		  (0x71 << TEGRA_CEC_TX_TIM0_BUS_ERROR_LO_TIME_SHIFT));
-+
-+	cec_write(cec, TEGRA_CEC_TX_TIMING_1,
-+		  (0x2f << TEGRA_CEC_TX_TIM1_LO_DATA_BIT_LO_TIME_SHIFT) |
-+		  (0x13 << TEGRA_CEC_TX_TIM1_HI_DATA_BIT_LO_TIME_SHIFT) |
-+		  (0x4b << TEGRA_CEC_TX_TIM1_DATA_BIT_DURATION_SHIFT) |
-+		  (0x21 << TEGRA_CEC_TX_TIM1_ACK_NAK_BIT_SAMPLE_TIME_SHIFT));
-+
-+	cec_write(cec, TEGRA_CEC_TX_TIMING_2,
-+		  (0x07 << TEGRA_CEC_TX_TIM2_BUS_IDLE_TIME_ADDITIONAL_FRAME_SHIFT) |
-+		  (0x05 << TEGRA_CEC_TX_TIM2_BUS_IDLE_TIME_NEW_FRAME_SHIFT) |
-+		  (0x03 << TEGRA_CEC_TX_TIM2_BUS_IDLE_TIME_RETRY_FRAME_SHIFT));
-+
-+	cec_write(cec, TEGRA_CEC_INT_MASK,
-+		  TEGRA_CEC_INT_MASK_TX_REGISTER_UNDERRUN |
-+		  TEGRA_CEC_INT_MASK_TX_FRAME_OR_BLOCK_NAKD |
-+		  TEGRA_CEC_INT_MASK_TX_ARBITRATION_FAILED |
-+		  TEGRA_CEC_INT_MASK_TX_BUS_ANOMALY_DETECTED |
-+		  TEGRA_CEC_INT_MASK_TX_FRAME_TRANSMITTED |
-+		  TEGRA_CEC_INT_MASK_RX_REGISTER_FULL |
-+		  TEGRA_CEC_INT_MASK_RX_REGISTER_OVERRUN);
-+
-+	cec_write(cec, TEGRA_CEC_HW_CONTROL, TEGRA_CEC_HWCTRL_TX_RX_MODE);
 +	return 0;
++
++fail_stop_pipeline:
++	media_pipeline_stop(&node->vdev.entity);
++fail_return_bufs:
++	ipu3_return_all_buffers(m2m2, node, VB2_BUF_STATE_QUEUED);
++
++	return r;
 +}
 +
-+static int tegra_cec_adap_log_addr(struct cec_adapter *adap, u8 logical_addr)
++static void ipu3_vb2_stop_streaming(struct vb2_queue *vq)
 +{
-+	struct tegra_cec *cec = adap->priv;
-+	u32 state = cec_read(cec, TEGRA_CEC_HW_CONTROL);
++	struct ipu3_mem2mem2_device *m2m2 = vb2_get_drv_priv(vq);
++	struct imgu_video_device *node =
++		container_of(vq, struct imgu_video_device, vbq);
++	int r;
 +
-+	if (logical_addr == CEC_LOG_ADDR_INVALID)
-+		state &= ~TEGRA_CEC_HWCTRL_RX_LADDR_MASK;
-+	else
-+		state |= TEGRA_CEC_HWCTRL_RX_LADDR((1 << logical_addr));
++	WARN_ON(!node->enabled);
 +
-+	cec_write(cec, TEGRA_CEC_HW_CONTROL, state);
-+	return 0;
++	/* Was this the first node with streaming disabled? */
++	if (ipu3_all_nodes_streaming(m2m2, node)) {
++		/* Yes, really stop streaming now */
++		r = v4l2_subdev_call(&m2m2->subdev, video, s_stream, 0);
++		if (r)
++			dev_err(m2m2->dev, "failed to stop streaming\n");
++	}
++
++	ipu3_return_all_buffers(m2m2, node, VB2_BUF_STATE_ERROR);
++	media_pipeline_stop(&node->vdev.entity);
++
 +}
 +
-+static int tegra_cec_adap_monitor_all_enable(struct cec_adapter *adap,
-+					     bool enable)
++/******************** v4l2_ioctl_ops ********************/
++
++static int ipu3_videoc_querycap(struct file *file, void *fh,
++				  struct v4l2_capability *cap)
 +{
-+	struct tegra_cec *cec = adap->priv;
-+	u32 reg = cec_read(cec, TEGRA_CEC_HW_CONTROL);
++	struct ipu3_mem2mem2_device *m2m2 = video_drvdata(file);
++	struct imgu_video_device *node = file_to_intel_ipu3_node(file);
 +
-+	if (enable)
-+		reg |= TEGRA_CEC_HWCTRL_RX_SNOOP;
-+	else
-+		reg &= ~TEGRA_CEC_HWCTRL_RX_SNOOP;
-+	cec_write(cec, TEGRA_CEC_HW_CONTROL, reg);
++	strlcpy(cap->driver, m2m2->name, sizeof(cap->driver));
++	strlcpy(cap->card, m2m2->model, sizeof(cap->card));
++	snprintf(cap->bus_info, sizeof(cap->bus_info), "%s", node->name);
++
++	cap->capabilities = node->vdev.device_caps | V4L2_CAP_DEVICE_CAPS;
++
 +	return 0;
 +}
 +
-+static int tegra_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
-+				   u32 signal_free_time_ms, struct cec_msg *msg)
++/* Propagate forward always the format from the CIO2 subdev */
++static int ipu3_videoc_g_fmt(struct file *file, void *fh,
++			       struct v4l2_format *f)
 +{
-+	bool retry_xfer = signal_free_time_ms == CEC_SIGNAL_FREE_TIME_RETRY;
-+	struct tegra_cec *cec = adap->priv;
-+	unsigned int i;
-+	u32 mode = 0;
-+	u32 mask;
++	struct imgu_video_device *node = file_to_intel_ipu3_node(file);
 +
-+	if (cec_msg_is_broadcast(msg))
-+		mode = TEGRA_CEC_TX_REG_BCAST;
-+
-+	cec->tx_buf_cur = 0;
-+	cec->tx_buf_cnt = msg->len;
-+
-+	for (i = 0; i < msg->len; i++) {
-+		cec->tx_buf[i] = mode | msg->msg[i];
-+		if (i == 0)
-+			cec->tx_buf[i] |= TEGRA_CEC_TX_REG_START_BIT;
-+		if (i == msg->len - 1)
-+			cec->tx_buf[i] |= TEGRA_CEC_TX_REG_EOM;
-+		if (i == 0 && retry_xfer)
-+			cec->tx_buf[i] |= TEGRA_CEC_TX_REG_RETRY;
-+	}
-+
-+	mask = cec_read(cec, TEGRA_CEC_INT_MASK);
-+	cec_write(cec, TEGRA_CEC_INT_MASK,
-+		  mask | TEGRA_CEC_INT_MASK_TX_REGISTER_EMPTY);
++	f->fmt = node->vdev_fmt.fmt;
 +
 +	return 0;
 +}
 +
-+static const struct cec_adap_ops tegra_cec_ops = {
-+	.adap_enable = tegra_cec_adap_enable,
-+	.adap_log_addr = tegra_cec_adap_log_addr,
-+	.adap_transmit = tegra_cec_adap_transmit,
-+	.adap_monitor_all_enable = tegra_cec_adap_monitor_all_enable,
-+};
-+
-+static int tegra_cec_probe(struct platform_device *pdev)
-+{
-+	struct platform_device *hdmi_dev;
-+	struct device_node *np;
-+	struct tegra_cec *cec;
-+	struct resource *res;
-+	int ret = 0;
-+
-+	np = of_parse_phandle(pdev->dev.of_node, "hdmi-phandle", 0);
-+
-+	if (!np) {
-+		dev_err(&pdev->dev, "Failed to find hdmi node in device tree\n");
-+		return -ENODEV;
-+	}
-+	hdmi_dev = of_find_device_by_node(np);
-+	if (hdmi_dev == NULL)
-+		return -EPROBE_DEFER;
-+
-+	cec = devm_kzalloc(&pdev->dev, sizeof(struct tegra_cec), GFP_KERNEL);
-+
-+	if (!cec)
-+		return -ENOMEM;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+
-+	if (!res) {
-+		dev_err(&pdev->dev,
-+			"Unable to allocate resources for device\n");
-+		ret = -EBUSY;
-+		goto cec_error;
-+	}
-+
-+	if (!devm_request_mem_region(&pdev->dev, res->start, resource_size(res),
-+		pdev->name)) {
-+		dev_err(&pdev->dev,
-+			"Unable to request mem region for device\n");
-+		ret = -EBUSY;
-+		goto cec_error;
-+	}
-+
-+	cec->tegra_cec_irq = platform_get_irq(pdev, 0);
-+
-+	if (cec->tegra_cec_irq <= 0) {
-+		ret = -EBUSY;
-+		goto cec_error;
-+	}
-+
-+	cec->cec_base = devm_ioremap_nocache(&pdev->dev, res->start,
-+		resource_size(res));
-+
-+	if (!cec->cec_base) {
-+		dev_err(&pdev->dev, "Unable to grab IOs for device\n");
-+		ret = -EBUSY;
-+		goto cec_error;
-+	}
-+
-+	cec->clk = devm_clk_get(&pdev->dev, "cec");
-+
-+	if (IS_ERR_OR_NULL(cec->clk)) {
-+		dev_err(&pdev->dev, "Can't get clock for CEC\n");
-+		ret = -ENOENT;
-+		goto clk_error;
-+	}
-+
-+	clk_prepare_enable(cec->clk);
-+
-+	/* set context info. */
-+	cec->dev = &pdev->dev;
-+
-+	platform_set_drvdata(pdev, cec);
-+	/* clear out the hardware. */
-+
-+	device_init_wakeup(&pdev->dev, 1);
-+
-+	ret = devm_request_threaded_irq(&pdev->dev, cec->tegra_cec_irq,
-+		tegra_cec_irq_handler, tegra_cec_irq_thread_handler,
-+		0, "cec_irq", &pdev->dev);
-+
-+	if (ret) {
-+		dev_err(&pdev->dev,
-+			"Unable to request interrupt for device\n");
-+		goto cec_error;
-+	}
-+
-+	cec->notifier = cec_notifier_get(&hdmi_dev->dev);
-+	if (!cec->notifier) {
-+		ret = -ENOMEM;
-+		goto cec_error;
-+	}
-+
-+	cec->adap = cec_allocate_adapter(&tegra_cec_ops, cec, TEGRA_CEC_NAME,
-+			CEC_CAP_LOG_ADDRS | CEC_CAP_TRANSMIT |
-+			CEC_CAP_MONITOR_ALL | CEC_CAP_PASSTHROUGH | CEC_CAP_RC,
-+			CEC_MAX_LOG_ADDRS);
-+	if (IS_ERR_OR_NULL(cec->adap)) {
-+		ret = -ENOMEM;
-+		dev_err(&pdev->dev, "Couldn't create cec adapter\n");
-+		goto cec_error;
-+	}
-+	ret = cec_register_adapter(cec->adap, &pdev->dev);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Couldn't register device\n");
-+		goto cec_error;
-+	}
-+
-+	cec_register_cec_notifier(cec->adap, cec->notifier);
-+
-+	return 0;
-+
-+cec_error:
-+	if (cec->notifier)
-+		cec_notifier_put(cec->notifier);
-+	if (!IS_ERR_OR_NULL(cec->adap))
-+		cec_delete_adapter(cec->adap);
-+	clk_disable_unprepare(cec->clk);
-+clk_error:
-+	return ret;
-+}
-+
-+static int tegra_cec_remove(struct platform_device *pdev)
-+{
-+	struct tegra_cec *cec = platform_get_drvdata(pdev);
-+
-+	clk_disable_unprepare(cec->clk);
-+
-+	cec_unregister_adapter(cec->adap);
-+	cec_notifier_put(cec->notifier);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+static int tegra_cec_suspend(struct platform_device *pdev, pm_message_t state)
-+{
-+	struct tegra_cec *cec = platform_get_drvdata(pdev);
-+
-+	clk_disable_unprepare(cec->clk);
-+
-+	dev_notice(&pdev->dev, "suspended\n");
-+	return 0;
-+}
-+
-+static int tegra_cec_resume(struct platform_device *pdev)
-+{
-+	struct tegra_cec *cec = platform_get_drvdata(pdev);
-+
-+	dev_notice(&pdev->dev, "Resuming\n");
-+
-+	clk_prepare_enable(cec->clk);
-+
-+	return 0;
-+}
-+#endif
-+
-+static const struct of_device_id tegra_cec_of_match[] = {
-+	{ .compatible = "nvidia,tegra114-cec", },
-+	{ .compatible = "nvidia,tegra124-cec", },
-+	{ .compatible = "nvidia,tegra210-cec", },
-+	{},
-+};
-+
-+static struct platform_driver tegra_cec_driver = {
-+	.driver = {
-+		.name = TEGRA_CEC_NAME,
-+		.of_match_table = of_match_ptr(tegra_cec_of_match),
-+	},
-+	.probe = tegra_cec_probe,
-+	.remove = tegra_cec_remove,
-+
-+#ifdef CONFIG_PM
-+	.suspend = tegra_cec_suspend,
-+	.resume = tegra_cec_resume,
-+#endif
-+};
-+
-+module_platform_driver(tegra_cec_driver);
-diff --git a/drivers/media/platform/tegra-cec/tegra_cec.h b/drivers/media/platform/tegra-cec/tegra_cec.h
-new file mode 100644
-index 000000000000..e301513daa87
---- /dev/null
-+++ b/drivers/media/platform/tegra-cec/tegra_cec.h
-@@ -0,0 +1,127 @@
 +/*
-+ * Tegra CEC register definitions
-+ *
-+ * The original 3.10 CEC driver using a custom API:
-+ *
-+ * Copyright (c) 2012-2015, NVIDIA CORPORATION.  All rights reserved.
-+ *
-+ * Conversion to the CEC framework and to the mainline kernel:
-+ *
-+ * Copyright 2016-2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ * Set input/output format. Unless it is just a try, this also resets
++ * selections (ie. effective and BDS resolutions) to defaults.
 + */
++static int mem2mem2_fmt(struct ipu3_mem2mem2_device *m2m2_dev,
++			int node, struct v4l2_format *f, bool try)
++{
++	struct imgu_device *imgu =
++		container_of(m2m2_dev, struct imgu_device, mem2mem2);
++	struct v4l2_pix_format try_fmts[IPU3_CSS_QUEUES];
++	struct v4l2_pix_format *fmts[IPU3_CSS_QUEUES];
++	struct v4l2_rect *rects[IPU3_CSS_RECTS] = { NULL };
++	unsigned int i;
++	int css_q, r;
 +
-+#ifndef TEGRA_CEC_H
-+#define TEGRA_CEC_H
++	if (m2m2_dev->nodes[IMGU_NODE_PV].enabled &&
++		m2m2_dev->nodes[IMGU_NODE_VF].enabled) {
++		dev_err(&imgu->pci_dev->dev,
++				"Postview and vf are not supported simultaneously\n");
++		return -EINVAL;
++	}
++	/*
++	 * Tell css that the vf q is used for PV
++	 */
++	if (m2m2_dev->nodes[IMGU_NODE_PV].enabled)
++		imgu->css.vf_output_en = IPU3_NODE_PV_ENABLED;
++	else
++		imgu->css.vf_output_en = IPU3_NODE_VF_ENABLED;
 +
-+/* CEC registers */
-+#define TEGRA_CEC_SW_CONTROL	0x000
-+#define TEGRA_CEC_HW_CONTROL	0x004
-+#define TEGRA_CEC_INPUT_FILTER	0x008
-+#define TEGRA_CEC_TX_REGISTER	0x010
-+#define TEGRA_CEC_RX_REGISTER	0x014
-+#define TEGRA_CEC_RX_TIMING_0	0x018
-+#define TEGRA_CEC_RX_TIMING_1	0x01c
-+#define TEGRA_CEC_RX_TIMING_2	0x020
-+#define TEGRA_CEC_TX_TIMING_0	0x024
-+#define TEGRA_CEC_TX_TIMING_1	0x028
-+#define TEGRA_CEC_TX_TIMING_2	0x02c
-+#define TEGRA_CEC_INT_STAT	0x030
-+#define TEGRA_CEC_INT_MASK	0x034
-+#define TEGRA_CEC_HW_DEBUG_RX	0x038
-+#define TEGRA_CEC_HW_DEBUG_TX	0x03c
++	for (i = 0; i < IPU3_CSS_QUEUES; i++) {
++		int inode = imgu_map_node(imgu, i);
 +
-+#define TEGRA_CEC_HWCTRL_RX_LADDR_MASK				0x7fff
-+#define TEGRA_CEC_HWCTRL_RX_LADDR(x)	\
-+	((x) & TEGRA_CEC_HWCTRL_RX_LADDR_MASK)
-+#define TEGRA_CEC_HWCTRL_RX_SNOOP				(1 << 15)
-+#define TEGRA_CEC_HWCTRL_RX_NAK_MODE				(1 << 16)
-+#define TEGRA_CEC_HWCTRL_TX_NAK_MODE				(1 << 24)
-+#define TEGRA_CEC_HWCTRL_FAST_SIM_MODE				(1 << 30)
-+#define TEGRA_CEC_HWCTRL_TX_RX_MODE				(1 << 31)
++		if (inode < 0)
++			return -EINVAL;
++		if (try) {
++			try_fmts[i] = m2m2_dev->nodes[inode].vdev_fmt.fmt.pix;
++			fmts[i] = &try_fmts[i];
++		} else {
++			fmts[i] = &m2m2_dev->nodes[inode].vdev_fmt.fmt.pix;
++		}
 +
-+#define TEGRA_CEC_INPUT_FILTER_MODE				(1 << 31)
-+#define TEGRA_CEC_INPUT_FILTER_FIFO_LENGTH_SHIFT		0
++		/* CSS expects some format on OUT queue */
++		if (i != IPU3_CSS_QUEUE_OUT &&
++			!m2m2_dev->nodes[inode].enabled && inode != node)
++			fmts[i] = NULL;
++	}
 +
-+#define TEGRA_CEC_TX_REG_DATA_SHIFT				0
-+#define TEGRA_CEC_TX_REG_EOM					(1 << 8)
-+#define TEGRA_CEC_TX_REG_BCAST					(1 << 12)
-+#define TEGRA_CEC_TX_REG_START_BIT				(1 << 16)
-+#define TEGRA_CEC_TX_REG_RETRY					(1 << 17)
++	if (!try) {
++		memset(&imgu->rect, 0, sizeof(imgu->rect));
++		rects[IPU3_CSS_RECT_EFFECTIVE] = &imgu->rect.eff;
++		rects[IPU3_CSS_RECT_BDS] = &imgu->rect.bds;
++	}
 +
-+#define TEGRA_CEC_RX_REGISTER_SHIFT				0
-+#define TEGRA_CEC_RX_REGISTER_EOM				(1 << 8)
-+#define TEGRA_CEC_RX_REGISTER_ACK				(1 << 9)
++	/*
++	 * ipu3_mem2mem2 doesn't set the node to the value given by user
++	 * before we return success from this function, so set it here.
++	 */
++	css_q = imgu_node_to_queue(node);
++	*fmts[css_q] = f->fmt.pix;
 +
-+#define TEGRA_CEC_RX_TIM0_START_BIT_MAX_LO_TIME_SHIFT		0
-+#define TEGRA_CEC_RX_TIM0_START_BIT_MIN_LO_TIME_SHIFT		8
-+#define TEGRA_CEC_RX_TIM0_START_BIT_MAX_DURATION_SHIFT		16
-+#define TEGRA_CEC_RX_TIM0_START_BIT_MIN_DURATION_SHIFT		24
++	if (try)
++		r = ipu3_css_fmt_try(&imgu->css, fmts, rects);
++	else
++		r = ipu3_css_fmt_set(&imgu->css, fmts, rects);
 +
-+#define TEGRA_CEC_RX_TIM1_DATA_BIT_MAX_LO_TIME_SHIFT		0
-+#define TEGRA_CEC_RX_TIM1_DATA_BIT_SAMPLE_TIME_SHIFT		8
-+#define TEGRA_CEC_RX_TIM1_DATA_BIT_MAX_DURATION_SHIFT		16
-+#define TEGRA_CEC_RX_TIM1_DATA_BIT_MIN_DURATION_SHIFT		24
++	/* fmt_try returns the binary number in the firmware blob */
++	return r < 0 ? r : 0;
++}
 +
-+#define TEGRA_CEC_RX_TIM2_END_OF_BLOCK_TIME_SHIFT		0
++static int ipu3_videoc_try_fmt(struct file *file, void *fh,
++				 struct v4l2_format *f)
++{
++	struct ipu3_mem2mem2_device *m2m2 = video_drvdata(file);
++	struct imgu_video_device *node = file_to_intel_ipu3_node(file);
 +
-+#define TEGRA_CEC_TX_TIM0_START_BIT_LO_TIME_SHIFT		0
-+#define TEGRA_CEC_TX_TIM0_START_BIT_DURATION_SHIFT		8
-+#define TEGRA_CEC_TX_TIM0_BUS_XITION_TIME_SHIFT			16
-+#define TEGRA_CEC_TX_TIM0_BUS_ERROR_LO_TIME_SHIFT		24
++	return mem2mem2_fmt(m2m2, node - m2m2->nodes, f, true);
++}
 +
-+#define TEGRA_CEC_TX_TIM1_LO_DATA_BIT_LO_TIME_SHIFT		0
-+#define TEGRA_CEC_TX_TIM1_HI_DATA_BIT_LO_TIME_SHIFT		8
-+#define TEGRA_CEC_TX_TIM1_DATA_BIT_DURATION_SHIFT		16
-+#define TEGRA_CEC_TX_TIM1_ACK_NAK_BIT_SAMPLE_TIME_SHIFT		24
++static int ipu3_videoc_s_fmt(struct file *file, void *fh,
++			       struct v4l2_format *f)
++{
++	struct ipu3_mem2mem2_device *m2m2 = video_drvdata(file);
++	struct imgu_video_device *node = file_to_intel_ipu3_node(file);
++	int r;
 +
-+#define TEGRA_CEC_TX_TIM2_BUS_IDLE_TIME_ADDITIONAL_FRAME_SHIFT	0
-+#define TEGRA_CEC_TX_TIM2_BUS_IDLE_TIME_NEW_FRAME_SHIFT		4
-+#define TEGRA_CEC_TX_TIM2_BUS_IDLE_TIME_RETRY_FRAME_SHIFT	8
++	r = mem2mem2_fmt(m2m2, node - m2m2->nodes, f, false);
++	if (!r)
++		f->fmt = node->vdev_fmt.fmt;
 +
-+#define TEGRA_CEC_INT_STAT_TX_REGISTER_EMPTY			(1 << 0)
-+#define TEGRA_CEC_INT_STAT_TX_REGISTER_UNDERRUN			(1 << 1)
-+#define TEGRA_CEC_INT_STAT_TX_FRAME_OR_BLOCK_NAKD		(1 << 2)
-+#define TEGRA_CEC_INT_STAT_TX_ARBITRATION_FAILED		(1 << 3)
-+#define TEGRA_CEC_INT_STAT_TX_BUS_ANOMALY_DETECTED		(1 << 4)
-+#define TEGRA_CEC_INT_STAT_TX_FRAME_TRANSMITTED			(1 << 5)
-+#define TEGRA_CEC_INT_STAT_RX_REGISTER_FULL			(1 << 8)
-+#define TEGRA_CEC_INT_STAT_RX_REGISTER_OVERRUN			(1 << 9)
-+#define TEGRA_CEC_INT_STAT_RX_START_BIT_DETECTED		(1 << 10)
-+#define TEGRA_CEC_INT_STAT_RX_BUS_ANOMALY_DETECTED		(1 << 11)
-+#define TEGRA_CEC_INT_STAT_RX_BUS_ERROR_DETECTED		(1 << 12)
-+#define TEGRA_CEC_INT_STAT_FILTERED_RX_DATA_PIN_TRANSITION_H2L	(1 << 13)
-+#define TEGRA_CEC_INT_STAT_FILTERED_RX_DATA_PIN_TRANSITION_L2H	(1 << 14)
++	return r;
++}
 +
-+#define TEGRA_CEC_INT_MASK_TX_REGISTER_EMPTY			(1 << 0)
-+#define TEGRA_CEC_INT_MASK_TX_REGISTER_UNDERRUN			(1 << 1)
-+#define TEGRA_CEC_INT_MASK_TX_FRAME_OR_BLOCK_NAKD		(1 << 2)
-+#define TEGRA_CEC_INT_MASK_TX_ARBITRATION_FAILED		(1 << 3)
-+#define TEGRA_CEC_INT_MASK_TX_BUS_ANOMALY_DETECTED		(1 << 4)
-+#define TEGRA_CEC_INT_MASK_TX_FRAME_TRANSMITTED			(1 << 5)
-+#define TEGRA_CEC_INT_MASK_RX_REGISTER_FULL			(1 << 8)
-+#define TEGRA_CEC_INT_MASK_RX_REGISTER_OVERRUN			(1 << 9)
-+#define TEGRA_CEC_INT_MASK_RX_START_BIT_DETECTED		(1 << 10)
-+#define TEGRA_CEC_INT_MASK_RX_BUS_ANOMALY_DETECTED		(1 << 11)
-+#define TEGRA_CEC_INT_MASK_RX_BUS_ERROR_DETECTED		(1 << 12)
-+#define TEGRA_CEC_INT_MASK_FILTERED_RX_DATA_PIN_TRANSITION_H2L	(1 << 13)
-+#define TEGRA_CEC_INT_MASK_FILTERED_RX_DATA_PIN_TRANSITION_L2H	(1 << 14)
++/******************** function pointers ********************/
 +
-+#define TEGRA_CEC_HW_DEBUG_TX_DURATION_COUNT_SHIFT		0
-+#define TEGRA_CEC_HW_DEBUG_TX_TXBIT_COUNT_SHIFT			17
-+#define TEGRA_CEC_HW_DEBUG_TX_STATE_SHIFT			21
-+#define TEGRA_CEC_HW_DEBUG_TX_FORCELOOUT			(1 << 25)
-+#define TEGRA_CEC_HW_DEBUG_TX_TXDATABIT_SAMPLE_TIMER		(1 << 26)
++static const struct v4l2_subdev_video_ops ipu3_subdev_video_ops = {
++	.s_stream = ipu3_subdev_s_stream,
++};
 +
-+#endif /* TEGRA_CEC_H */
++static const struct v4l2_subdev_pad_ops ipu3_subdev_pad_ops = {
++	.link_validate = v4l2_subdev_link_validate_default,
++	.get_fmt = ipu3_subdev_get_fmt,
++	.set_fmt = ipu3_subdev_set_fmt,
++};
++
++static const struct v4l2_subdev_ops ipu3_subdev_ops = {
++	.video = &ipu3_subdev_video_ops,
++	.pad = &ipu3_subdev_pad_ops,
++};
++
++static const struct media_entity_operations ipu3_media_ops = {
++	.link_setup = ipu3_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
++};
++
++/****************** vb2_ops of the Q ********************/
++
++static const struct vb2_ops ipu3_vb2_ops = {
++	.buf_queue = ipu3_vb2_buf_queue,
++	.queue_setup = ipu3_vb2_queue_setup,
++	.start_streaming = ipu3_vb2_start_streaming,
++	.stop_streaming = ipu3_vb2_stop_streaming,
++	.wait_prepare = vb2_ops_wait_prepare,
++	.wait_finish = vb2_ops_wait_finish,
++};
++
++/****************** v4l2_file_operations *****************/
++
++static const struct v4l2_file_operations ipu3_v4l2_fops = {
++	.unlocked_ioctl = video_ioctl2,
++	.open = v4l2_fh_open,
++	.release = vb2_fop_release,
++	.poll = vb2_fop_poll,
++	.mmap = vb2_fop_mmap,
++};
++
++/******************** v4l2_ioctl_ops ********************/
++
++static const struct v4l2_ioctl_ops ipu3_v4l2_ioctl_ops = {
++	.vidioc_querycap = ipu3_videoc_querycap,
++
++	.vidioc_g_fmt_vid_cap = ipu3_videoc_g_fmt,
++	.vidioc_s_fmt_vid_cap = ipu3_videoc_s_fmt,
++	.vidioc_try_fmt_vid_cap = ipu3_videoc_try_fmt,
++
++	.vidioc_g_fmt_vid_out = ipu3_videoc_g_fmt,
++	.vidioc_s_fmt_vid_out = ipu3_videoc_s_fmt,
++	.vidioc_try_fmt_vid_out = ipu3_videoc_try_fmt,
++
++	/* buffer queue management */
++	.vidioc_reqbufs = vb2_ioctl_reqbufs,
++	.vidioc_create_bufs = vb2_ioctl_create_bufs,
++	.vidioc_prepare_buf = vb2_ioctl_prepare_buf,
++	.vidioc_querybuf = vb2_ioctl_querybuf,
++	.vidioc_qbuf = vb2_ioctl_qbuf,
++	.vidioc_dqbuf = vb2_ioctl_dqbuf,
++	.vidioc_streamon = vb2_ioctl_streamon,
++	.vidioc_streamoff = vb2_ioctl_streamoff,
++	.vidioc_expbuf = vb2_ioctl_expbuf,
++};
++
++/******************** Framework registration ********************/
++
++int ipu3_v4l2_register(struct imgu_device *dev)
++{
++	struct ipu3_mem2mem2_device *m2m2 = &dev->mem2mem2;
++	int i, r;
++
++	/* Initialize miscellaneous variables */
++	m2m2->streaming = false;
++	m2m2->v4l2_file_ops = ipu3_v4l2_fops;
++
++	/* Set up media device */
++	m2m2->media_dev.dev = m2m2->dev;
++	strlcpy(m2m2->media_dev.model, m2m2->model,
++		sizeof(m2m2->media_dev.model));
++	snprintf(m2m2->media_dev.bus_info, sizeof(m2m2->media_dev.bus_info),
++		 "%s", dev_name(m2m2->dev));
++	m2m2->media_dev.driver_version = LINUX_VERSION_CODE;
++	m2m2->media_dev.hw_revision = 0;
++	media_device_init(&m2m2->media_dev);
++	r = media_device_register(&m2m2->media_dev);
++	if (r) {
++		dev_err(m2m2->dev, "failed to register media device (%d)\n", r);
++		goto fail_media_dev;
++	}
++
++	/* Set up v4l2 device */
++	m2m2->v4l2_dev.mdev = &m2m2->media_dev;
++	m2m2->v4l2_dev.ctrl_handler = m2m2->ctrl_handler;
++	r = v4l2_device_register(m2m2->dev, &m2m2->v4l2_dev);
++	if (r) {
++		dev_err(m2m2->dev, "failed to register V4L2 device (%d)\n", r);
++		goto fail_v4l2_dev;
++	}
++
++	/* Initialize subdev media entity */
++	m2m2->subdev_pads = kzalloc(sizeof(*m2m2->subdev_pads) *
++					m2m2->num_nodes, GFP_KERNEL);
++	if (!m2m2->subdev_pads) {
++		r = -ENOMEM;
++		goto fail_subdev_pads;
++	}
++	r = media_entity_pads_init(&m2m2->subdev.entity, m2m2->num_nodes,
++				   m2m2->subdev_pads);
++	if (r) {
++		dev_err(m2m2->dev,
++			"failed initialize subdev media entity (%d)\n", r);
++		goto fail_media_entity;
++	}
++	m2m2->subdev.entity.ops = &ipu3_media_ops;
++	for (i = 0; i < m2m2->num_nodes; i++) {
++		m2m2->subdev_pads[i].flags = m2m2->nodes[i].output ?
++			MEDIA_PAD_FL_SINK : MEDIA_PAD_FL_SOURCE;
++	}
++
++	/* Initialize subdev */
++	v4l2_subdev_init(&m2m2->subdev, &ipu3_subdev_ops);
++	m2m2->subdev.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
++	snprintf(m2m2->subdev.name, sizeof(m2m2->subdev.name),
++		 "%s", m2m2->name);
++	v4l2_set_subdevdata(&m2m2->subdev, m2m2);
++	m2m2->subdev.ctrl_handler = m2m2->ctrl_handler;
++	r = v4l2_device_register_subdev(&m2m2->v4l2_dev, &m2m2->subdev);
++	if (r) {
++		dev_err(m2m2->dev, "failed initialize subdev (%d)\n", r);
++		goto fail_subdev;
++	}
++	r = v4l2_device_register_subdev_nodes(&m2m2->v4l2_dev);
++	if (r) {
++		dev_err(m2m2->dev, "failed to register subdevs (%d)\n", r);
++		goto fail_subdevs;
++	}
++
++	/* Create video nodes and links */
++	for (i = 0; i < m2m2->num_nodes; i++) {
++		struct imgu_video_device *node = &m2m2->nodes[i];
++		struct video_device *vdev = &node->vdev;
++		struct vb2_queue *vbq = &node->vbq;
++		struct v4l2_mbus_framefmt *fmt;
++		u32 flags;
++
++		/* Initialize miscellaneous variables */
++		mutex_init(&node->lock);
++		INIT_LIST_HEAD(&node->buffers);
++
++		/* Initialize formats to default values */
++		fmt = &node->pad_fmt;
++		fmt->width = 352;
++		fmt->height = 288;
++		fmt->code = MEDIA_BUS_FMT_UYVY8_2X8;
++		fmt->field = V4L2_FIELD_NONE;
++		fmt->colorspace = V4L2_COLORSPACE_RAW;
++		fmt->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
++		fmt->quantization = V4L2_QUANTIZATION_DEFAULT;
++		fmt->xfer_func = V4L2_XFER_FUNC_DEFAULT;
++		fmt = &node->pad_fmt;
++		node->vdev_fmt.type = node->output ?
++			V4L2_BUF_TYPE_VIDEO_OUTPUT :
++			V4L2_BUF_TYPE_VIDEO_CAPTURE;
++		node->vdev_fmt.fmt.pix.width = fmt->width;
++		node->vdev_fmt.fmt.pix.height = fmt->height;
++		node->vdev_fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
++		node->vdev_fmt.fmt.pix.field = fmt->field;
++		node->vdev_fmt.fmt.pix.bytesperline = fmt->width * 2;
++		node->vdev_fmt.fmt.pix.sizeimage =
++			node->vdev_fmt.fmt.pix.bytesperline * fmt->height;
++		node->vdev_fmt.fmt.pix.colorspace = fmt->colorspace;
++		node->vdev_fmt.fmt.pix.priv = 0;
++		node->vdev_fmt.fmt.pix.flags = 0;
++		node->vdev_fmt.fmt.pix.ycbcr_enc = fmt->ycbcr_enc;
++		node->vdev_fmt.fmt.pix.quantization = fmt->quantization;
++		node->vdev_fmt.fmt.pix.xfer_func = fmt->xfer_func;
++
++		/* Initialize media entities */
++		r = media_entity_pads_init(&vdev->entity, 1, &node->vdev_pad);
++		if (r) {
++			dev_err(m2m2->dev,
++				"failed initialize media entity (%d)\n", r);
++			goto fail_vdev_media_entity;
++		}
++		node->vdev_pad.flags = node->output ?
++			MEDIA_PAD_FL_SOURCE : MEDIA_PAD_FL_SINK;
++		vdev->entity.ops = NULL;
++
++		/* Initialize vbq */
++		vbq->type = node->output ?
++		    V4L2_BUF_TYPE_VIDEO_OUTPUT : V4L2_BUF_TYPE_VIDEO_CAPTURE;
++		vbq->io_modes = VB2_USERPTR | VB2_MMAP | VB2_DMABUF;
++		vbq->ops = &ipu3_vb2_ops;
++		vbq->mem_ops = m2m2->vb2_mem_ops;
++		if (m2m2->buf_struct_size <= 0)
++			m2m2->buf_struct_size =
++				sizeof(struct ipu3_mem2mem2_buffer);
++		vbq->buf_struct_size = m2m2->buf_struct_size;
++		vbq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++		vbq->min_buffers_needed = 0;	/* Can streamon w/o buffers */
++		vbq->drv_priv = m2m2;
++		vbq->lock = &node->lock;
++		r = vb2_queue_init(vbq);
++		if (r) {
++			dev_err(m2m2->dev,
++				"failed to initialize video queue (%d)\n", r);
++			goto fail_vdev;
++		}
++
++		/* Initialize vdev */
++		strlcpy(vdev->name, node->name, sizeof(vdev->name));
++		vdev->release = video_device_release_empty;
++		vdev->fops = &m2m2->v4l2_file_ops;
++		vdev->ioctl_ops = &ipu3_v4l2_ioctl_ops;
++		vdev->lock = &node->lock;
++		vdev->v4l2_dev = &m2m2->v4l2_dev;
++		vdev->queue = &node->vbq;
++		vdev->vfl_dir = node->output ? VFL_DIR_TX : VFL_DIR_RX;
++		vdev->device_caps = V4L2_CAP_STREAMING;
++		vdev->device_caps |= node->output ?
++			V4L2_CAP_VIDEO_OUTPUT : V4L2_CAP_VIDEO_CAPTURE;
++		video_set_drvdata(vdev, m2m2);
++		r = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
++		if (r) {
++			dev_err(m2m2->dev,
++				"failed to register video device (%d)\n", r);
++			goto fail_vdev;
++		}
++
++		/* Create link between video node and the subdev pad */
++		flags = 0;
++		if (node->enabled)
++			flags |= MEDIA_LNK_FL_ENABLED;
++		if (node->immutable)
++			flags |= MEDIA_LNK_FL_IMMUTABLE;
++		if (node->output) {
++			r = media_create_pad_link(
++						 &vdev->entity, 0,
++						 &m2m2->subdev.entity,
++						 i, flags);
++		} else {
++			r = media_create_pad_link(
++						 &m2m2->subdev.entity,
++						 i, &vdev->entity, 0,
++						 flags);
++		}
++		if (r)
++			goto fail_link;
++
++	}
++
++	return 0;
++
++	for (; i >= 0; i--) {
++fail_link:
++		video_unregister_device(&m2m2->nodes[i].vdev);
++fail_vdev:
++		media_entity_cleanup(&m2m2->nodes[i].vdev.entity);
++fail_vdev_media_entity:
++		mutex_destroy(&m2m2->nodes[i].lock);
++	}
++fail_subdevs:
++	v4l2_device_unregister_subdev(&m2m2->subdev);
++fail_subdev:
++	media_entity_cleanup(&m2m2->subdev.entity);
++fail_media_entity:
++	kfree(m2m2->subdev_pads);
++fail_subdev_pads:
++	v4l2_device_unregister(&m2m2->v4l2_dev);
++fail_v4l2_dev:
++	media_device_unregister(&m2m2->media_dev);
++	media_device_cleanup(&m2m2->media_dev);
++fail_media_dev:
++
++	return r;
++}
++EXPORT_SYMBOL_GPL(ipu3_v4l2_register);
++
++int ipu3_v4l2_unregister(struct imgu_device *dev)
++{
++	struct ipu3_mem2mem2_device *m2m2 = &dev->mem2mem2;
++	unsigned int i;
++
++	for (i = 0; i < m2m2->num_nodes; i++) {
++		video_unregister_device(&m2m2->nodes[i].vdev);
++		media_entity_cleanup(&m2m2->nodes[i].vdev.entity);
++		mutex_destroy(&m2m2->nodes[i].lock);
++	}
++
++	v4l2_device_unregister_subdev(&m2m2->subdev);
++	media_entity_cleanup(&m2m2->subdev.entity);
++	kfree(m2m2->subdev_pads);
++	v4l2_device_unregister(&m2m2->v4l2_dev);
++	media_device_unregister(&m2m2->media_dev);
++	media_device_cleanup(&m2m2->media_dev);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(ipu3_v4l2_unregister);
++
++void ipu3_v4l2_buffer_done(struct vb2_buffer *vb,
++			   enum vb2_buffer_state state)
++{
++	struct ipu3_mem2mem2_buffer *b =
++		container_of(vb, struct ipu3_mem2mem2_buffer, vbb.vb2_buf);
++
++	list_del(&b->list);
++	vb2_buffer_done(&b->vbb.vb2_buf, state);
++};
++EXPORT_SYMBOL_GPL(ipu3_v4l2_buffer_done);
++
++MODULE_AUTHOR("Tuukka Toivonen <tuukka.toivonen@intel.com>");
++MODULE_AUTHOR("Tianshu Qiu <tian.shu.qiu@intel.com>");
++MODULE_AUTHOR("Jian Xu Zheng <jian.xu.zheng@intel.com>");
++MODULE_AUTHOR("Yuning Pu <yuning.pu@intel.com>");
++MODULE_AUTHOR("Yong Zhi <yong.zhi@intel.com>");
++MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("Intel IPU3 Camera Sub-system (ImgU) driver");
 -- 
-2.11.0
+2.7.4
