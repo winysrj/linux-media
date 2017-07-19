@@ -1,55 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:39533 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751893AbdGGJ6x (ORCPT
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:34491 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751560AbdGSDes (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Jul 2017 05:58:53 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 4/5] [media] coda: set MPEG-4 encoder class register
-Date: Fri,  7 Jul 2017 11:58:30 +0200
-Message-Id: <20170707095831.9852-4-p.zabel@pengutronix.de>
-In-Reply-To: <20170707095831.9852-1-p.zabel@pengutronix.de>
-References: <20170707095831.9852-1-p.zabel@pengutronix.de>
+        Tue, 18 Jul 2017 23:34:48 -0400
+Received: by mail-qk0-f195.google.com with SMTP id q66so4860020qki.1
+        for <linux-media@vger.kernel.org>; Tue, 18 Jul 2017 20:34:48 -0700 (PDT)
+From: Fabio Estevam <festevam@gmail.com>
+To: mchehab@s-opensource.com
+Cc: hans.verkuil@cisco.com, corbet@lwn.net,
+        linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>
+Subject: [PATCH 1/2] [media] ov7670: Return the real error code
+Date: Wed, 19 Jul 2017 00:34:18 -0300
+Message-Id: <1500435259-5838-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Explicitly set MPEG-4 encoder class register instead of relying on the
-default value of 0.
+From: Fabio Estevam <fabio.estevam@nxp.com>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+When devm_clk_get() fails the real error code should be propagated,
+instead of always returning -EPROBE_DEFER.
+
+Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
 ---
- drivers/media/platform/coda/coda-bit.c  | 4 ++++
- drivers/media/platform/coda/coda_regs.h | 1 +
- 2 files changed, 5 insertions(+)
+ drivers/media/i2c/ov7670.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 2f31c672aba04..2a8e13c53f2e1 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -1655,6 +1655,10 @@ static int __coda_start_decoding(struct coda_ctx *ctx)
- 		ctx->params.codec_mode_aux = CODA_MP4_AUX_MPEG4;
- 	else
- 		ctx->params.codec_mode_aux = 0;
-+	if (src_fourcc == V4L2_PIX_FMT_MPEG4) {
-+		coda_write(dev, CODA_MP4_CLASS_MPEG4,
-+			   CODA_CMD_DEC_SEQ_MP4_ASP_CLASS);
-+	}
- 	if (src_fourcc == V4L2_PIX_FMT_H264) {
- 		if (dev->devtype->product == CODA_7541) {
- 			coda_write(dev, ctx->psbuf.paddr,
-diff --git a/drivers/media/platform/coda/coda_regs.h b/drivers/media/platform/coda/coda_regs.h
-index 77ee46a934272..38df5fd9a2fa7 100644
---- a/drivers/media/platform/coda/coda_regs.h
-+++ b/drivers/media/platform/coda/coda_regs.h
-@@ -158,6 +158,7 @@
- #define CODA_CMD_DEC_SEQ_PS_BB_START		0x194
- #define CODA_CMD_DEC_SEQ_PS_BB_SIZE		0x198
- #define CODA_CMD_DEC_SEQ_MP4_ASP_CLASS		0x19c
-+#define		CODA_MP4_CLASS_MPEG4			0
- #define CODA_CMD_DEC_SEQ_X264_MV_EN		0x19c
- #define CODA_CMD_DEC_SEQ_SPP_CHUNK_SIZE		0x1a0
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index 7270c68..552a881 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -1614,7 +1614,7 @@ static int ov7670_probe(struct i2c_client *client,
  
+ 	info->clk = devm_clk_get(&client->dev, "xclk");
+ 	if (IS_ERR(info->clk))
+-		return -EPROBE_DEFER;
++		return PTR_ERR(info->clk);
+ 	clk_prepare_enable(info->clk);
+ 
+ 	ret = ov7670_init_gpio(client, info);
 -- 
-2.11.0
+2.7.4
