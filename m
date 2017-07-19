@@ -1,175 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60048 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751987AbdGRTEH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 15:04:07 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: linux-leds@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        niklas.soderlund@ragnatech.se, hverkuil@xs4all.nl
-Subject: [RFC 12/19] v4l2-subdev: Support registering V4L2 sub-device nodes one by one
-Date: Tue, 18 Jul 2017 22:03:54 +0300
-Message-Id: <20170718190401.14797-13-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
-References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
+Received: from guitar.tcltek.co.il ([192.115.133.116]:44055 "EHLO
+        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752785AbdGSGdx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Jul 2017 02:33:53 -0400
+Date: Wed, 19 Jul 2017 09:33:49 +0300
+From: Baruch Siach <baruch@tkos.co.il>
+To: Yong <yong.deng@magewell.com>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
+        hans.verkuil@cisco.com, peter.griffin@linaro.org,
+        hugues.fruchet@st.com, krzk@kernel.org, bparrot@ti.com,
+        arnd@arndb.de, jean-christophe.trotin@st.com,
+        benjamin.gaignard@linaro.org, tiffany.lin@mediatek.com,
+        kamil@wypas.org, kieran+renesas@ksquared.org.uk,
+        andrew-ct.chen@mediatek.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH RFC 2/2] dt-bindings: add binding documentation for
+ Allwinner CSI
+Message-ID: <20170719063349.m5yg4n2radkvy74r@sapphire.tkos.co.il>
+References: <1498561654-14658-1-git-send-email-yong.deng@magewell.com>
+ <1498561654-14658-3-git-send-email-yong.deng@magewell.com>
+ <20170718115530.ssy7g5vv4siqnfpo@tarshish>
+ <20170719092249.2fb6ec720ba1b194cea320c8@magewell.com>
+ <20170719044923.yae2ye4slvrmtyfe@sapphire.tkos.co.il>
+ <20170719142120.d00469cf9fce844d40b9988e@magewell.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170719142120.d00469cf9fce844d40b9988e@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just like video devices, V4L2 sub-device nodes can and should be registered
-as soon as possible. Support this by providing
-v4l2_device_register_subdev_node() function.
-v4l2_device_register_subdev_nodes() continues to work just as it used to.
+Hi Yong,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-device.c | 99 ++++++++++++++++++++---------------
- include/media/v4l2-device.h           | 12 +++++
- 2 files changed, 70 insertions(+), 41 deletions(-)
+On Wed, Jul 19, 2017 at 02:21:20PM +0800, Yong wrote:
+> On Wed, 19 Jul 2017 07:49:23 +0300
+> Baruch Siach <baruch@tkos.co.il> wrote:
+> > On Wed, Jul 19, 2017 at 09:22:49AM +0800, Yong wrote:
+> > > I am waiting for more comments for the sunxi-csi.h. It's pleasure if
+> > > you have any suggestions about it.
+> > 
+> > You mean sunxi_csi.h, right?
+> 
+> Yes. My spelling mistake.
+> 
+> > Why do you need the sunxi_csi_ops indirection? Do you expect to add 
+> > alternative implementations of these ops at some point?
+> 
+> I want to seperate the sunxi_video.c and sunxi_csi_v3s.c. 
+> sunxi_csi_v3s.c is Soc specific. Maybe there will be sunxi_csi_r40.c
+> in the futrue. But the sunxi_video.c and sunxi_csi.c are common.
 
-diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-index 937c6de85606..0c0c4772c00a 100644
---- a/drivers/media/v4l2-core/v4l2-device.c
-+++ b/drivers/media/v4l2-core/v4l2-device.c
-@@ -222,58 +222,75 @@ static void v4l2_device_release_subdev_node(struct video_device *vdev)
- 	kfree(vdev);
- }
- 
--int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
-+int v4l2_device_register_subdev_node(struct v4l2_device *v4l2_dev,
-+				     struct v4l2_subdev *sd)
- {
- 	struct video_device *vdev;
--	struct v4l2_subdev *sd;
- 	int err;
- 
--	/* Register a device node for every subdev marked with the
--	 * V4L2_SUBDEV_FL_HAS_DEVNODE flag.
--	 */
--	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
--		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE))
--			continue;
-+	/* Bail out if the V4L2_SUBDEV_FL_HAS_DEVNODE flag isn't set. */
-+	if (!(sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE))
-+		return 0;
- 
--		if (sd->devnode)
--			continue;
-+	/* Was the device node already registered? If yes, then return here. */
-+	if (sd->devnode)
-+		return 0;
- 
--		vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
--		if (!vdev) {
-+	vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
-+	if (!vdev)
-+		return -ENOMEM;
-+
-+	video_set_drvdata(vdev, sd);
-+	strlcpy(vdev->name, sd->name, sizeof(vdev->name));
-+	vdev->v4l2_dev = v4l2_dev;
-+	vdev->fops = &v4l2_subdev_fops;
-+	vdev->release = v4l2_device_release_subdev_node;
-+	vdev->ctrl_handler = sd->ctrl_handler;
-+	err = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
-+				      sd->owner);
-+	if (err < 0)
-+		goto clean_up;
-+
-+	sd->devnode = vdev;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	sd->entity.info.dev.major = VIDEO_MAJOR;
-+	sd->entity.info.dev.minor = vdev->minor;
-+
-+	/* Interface is created by __video_register_device() */
-+	if (vdev->v4l2_dev->mdev) {
-+		struct media_link *link;
-+
-+		link = media_create_intf_link(&sd->entity,
-+					      &vdev->intf_devnode->intf,
-+					      MEDIA_LNK_FL_ENABLED);
-+		if (!link) {
- 			err = -ENOMEM;
- 			goto clean_up;
- 		}
-+	}
-+#endif
- 
--		video_set_drvdata(vdev, sd);
--		strlcpy(vdev->name, sd->name, sizeof(vdev->name));
--		vdev->v4l2_dev = v4l2_dev;
--		vdev->fops = &v4l2_subdev_fops;
--		vdev->release = v4l2_device_release_subdev_node;
--		vdev->ctrl_handler = sd->ctrl_handler;
--		err = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
--					      sd->owner);
--		if (err < 0) {
--			kfree(vdev);
-+	return 0;
-+
-+clean_up:
-+	video_unregister_device(vdev);
-+	kfree(vdev);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_device_register_subdev_node);
-+
-+int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
-+{
-+	struct v4l2_subdev *sd;
-+	int err;
-+
-+	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
-+		int err;
-+
-+		err = v4l2_device_register_subdev_node(v4l2_dev, sd);
-+		if (err < 0)
- 			goto clean_up;
--		}
--		sd->devnode = vdev;
--#if defined(CONFIG_MEDIA_CONTROLLER)
--		sd->entity.info.dev.major = VIDEO_MAJOR;
--		sd->entity.info.dev.minor = vdev->minor;
--
--		/* Interface is created by __video_register_device() */
--		if (vdev->v4l2_dev->mdev) {
--			struct media_link *link;
--
--			link = media_create_intf_link(&sd->entity,
--						      &vdev->intf_devnode->intf,
--						      MEDIA_LNK_FL_ENABLED);
--			if (!link) {
--				err = -ENOMEM;
--				goto clean_up;
--			}
--		}
--#endif
- 	}
- 	return 0;
- 
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index 8ffa94009d1a..8b19c1f5bacd 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -189,6 +189,18 @@ int __must_check v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- void v4l2_device_unregister_subdev(struct v4l2_subdev *sd);
- 
- /**
-+ * v4l2_device_register_subdev_node - Registers device nodes for a subdev
-+ *	of the v4l2 device. The call is a no-op unless the
-+ *	%V4L2_SUBDEV_FL_HAS_DEVNODE subdev flag is set.
-+ *
-+ * @v4l2_dev: pointer to struct v4l2_device
-+ * @sd: pointer to struct v4l2_subdev
-+ */
-+int __must_check
-+v4l2_device_register_subdev_node(struct v4l2_device *v4l2_dev,
-+				 struct v4l2_subdev *sd);
-+
-+/**
-  * v4l2_device_register_subdev_nodes - Registers device nodes for all subdevs
-  *	of the v4l2 device that are marked with
-  *	the %V4L2_SUBDEV_FL_HAS_DEVNODE flag.
+I'd say it is a premature optimization. The file separation is fine, IMO, but 
+the added csi_ops indirection makes the code less readable. Someone with 
+access to R40 hardware with CSI setup would be a better position to abstract 
+the platform specific code.
+
+But I'd defer to the media maintainers on that.
+
+Thanks,
+baruch
+
 -- 
-2.11.0
+     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
