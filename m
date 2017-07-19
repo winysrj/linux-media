@@ -1,83 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59306 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751371AbdGRKDx (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:35953 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753275AbdGSJ4J (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 06:03:53 -0400
-Date: Tue, 18 Jul 2017 12:03:52 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/7] omap3isp: Return -EPROBE_DEFER if the required
- regulators can't be obtained
-Message-ID: <20170718100352.GA28481@amd>
-References: <20170717220116.17886-1-sakari.ailus@linux.intel.com>
- <20170717220116.17886-5-sakari.ailus@linux.intel.com>
- <1652763.9EYemjAvaH@avalon>
+        Wed, 19 Jul 2017 05:56:09 -0400
+Date: Wed, 19 Jul 2017 12:55:47 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, kernel-janitors@vger.kernel.org
+Subject: [PATCH] [media] atomisp2: Array underflow in atomisp_enum_input()
+Message-ID: <20170719095547.klmttai63nxbprqy@mwanda>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="0F1p//8PRICkK4MW"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1652763.9EYemjAvaH@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The problem here is this code from atomisp_enum_input():
 
---0F1p//8PRICkK4MW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+   581          int index = input->index;
+   582  
+   583          if (index >= isp->input_cnt)
+   584                  return -EINVAL;
+   585  
+   586          if (!isp->inputs[index].camera)
+   587                  return -EINVAL;
 
-Hi!
+"input->index" is a u32 which comes from the ioctl.  We want negative
+values of "index" to be counted as -EINVAL but they aren't.  I've fixed
+this by changing the type of "isp->input_cnt" to unsigned int.
 
-> > diff --git a/drivers/media/platform/omap3isp/ispccp2.c
-> > b/drivers/media/platform/omap3isp/ispccp2.c index
-> > 4f8fd0c00748..47210b102bcb 100644
-> > --- a/drivers/media/platform/omap3isp/ispccp2.c
-> > +++ b/drivers/media/platform/omap3isp/ispccp2.c
-> > @@ -1140,6 +1140,11 @@ int omap3isp_ccp2_init(struct isp_device *isp)
-> >  	if (isp->revision =3D=3D ISP_REVISION_2_0) {
-> >  		ccp2->vdds_csib =3D devm_regulator_get(isp->dev, "vdds_csib");
-> >  		if (IS_ERR(ccp2->vdds_csib)) {
-> > +			if (PTR_ERR(ccp2->vdds_csib) =3D=3D -EPROBE_DEFER) {
-> > +				dev_dbg(isp->dev,
-> > +					"Can't get regulator vdds_csib,=20
-> deferring probing\n");
-> > +				return -EPROBE_DEFER;
-> > +			}
-> >  			dev_dbg(isp->dev,
-> >  				"Could not get regulator vdds_csib\n");
->=20
-> I would just move this message above the -EPROBE_DEFER check and remove t=
-he=20
-> one inside the check. Probe deferral debug information can be obtained by=
-=20
-> enabling the debug messages in the driver core.
+Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Actually, in such case perhaps the message in -EPROBE_DEFER could be
-removed. Deferred probing happens all the time. OTOH "Could not get
-regulator" probably should be dev_err(), as it will make device
-unusable?
-
-Thanks,
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---0F1p//8PRICkK4MW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAllt3QgACgkQMOfwapXb+vJgsgCgq6Xnm3o6qldESPCpMwBbUBZ4
-bmEAniif0SGKE4DJ3b4xFJDfCZrPGWdH
-=ImvU
------END PGP SIGNATURE-----
-
---0F1p//8PRICkK4MW--
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
+index d3667132851b..c8e0c4fe3717 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
+@@ -275,7 +275,7 @@ struct atomisp_device {
+ 	 */
+ 	struct mutex streamoff_mutex;
+ 
+-	int input_cnt;
++	unsigned int input_cnt;
+ 	struct atomisp_input_subdev inputs[ATOM_ISP_MAX_INPUTS];
+ 	struct v4l2_subdev *flash;
+ 	struct v4l2_subdev *motor;
