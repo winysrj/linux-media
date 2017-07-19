@@ -1,42 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51626 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751153AbdGMV04 (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:54209 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932696AbdGSP2k (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Jul 2017 17:26:56 -0400
-Date: Fri, 14 Jul 2017 00:26:52 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/2] OMAP3ISP CCP2 support
-Message-ID: <20170713212651.so5aqqp5k325pb4w@valkosipuli.retiisi.org.uk>
-References: <20170713161903.9974-1-sakari.ailus@linux.intel.com>
- <20170713211335.GA13502@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170713211335.GA13502@amd>
+        Wed, 19 Jul 2017 11:28:40 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-kernel@vger.kernel.org
+Cc: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+Subject: [PATCH 034/102] coda: explicitly request exclusive reset control
+Date: Wed, 19 Jul 2017 17:25:38 +0200
+Message-Id: <20170719152646.25903-35-p.zabel@pengutronix.de>
+In-Reply-To: <20170719152646.25903-1-p.zabel@pengutronix.de>
+References: <20170719152646.25903-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 13, 2017 at 11:13:35PM +0200, Pavel Machek wrote:
-> Hi!
-> 
-> > I took the liberty of changing your patch a bit. I added another to extract
-> > the number of lanes from the endpoint instead as it's not really a property
-> > of the PHY. (Not tested yet, will check with N9.)
-> 
-> No problem.
-> 
-> Notice that the 1/2 does not apply on top of ccp2 branch; my merge
-> resolution was this:
+Commit a53e35db70d1 ("reset: Ensure drivers are explicit when requesting
+reset lines") started to transition the reset control request API calls
+to explicitly state whether the driver needs exclusive or shared reset
+control behavior. Convert all drivers requesting exclusive resets to the
+explicit API call so the temporary transition helpers can be removed.
 
-The two patches are for the ccp2-prepare branches, not for ccp2; it's
-somewhat out of date right now and needs a rebase.
+No functional changes.
 
-The patches work fine on N9.
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-common.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index f92cc7df58fb8..8e0b1a4e2546b 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -2470,7 +2470,8 @@ static int coda_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
+-	dev->rstc = devm_reset_control_get_optional(&pdev->dev, NULL);
++	dev->rstc = devm_reset_control_get_optional_exclusive(&pdev->dev,
++							      NULL);
+ 	if (IS_ERR(dev->rstc)) {
+ 		ret = PTR_ERR(dev->rstc);
+ 		dev_err(&pdev->dev, "failed get reset control: %d\n", ret);
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.11.0
