@@ -1,51 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f170.google.com ([209.85.220.170]:34726 "EHLO
-        mail-qk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751093AbdGQF0Q (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:35506 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752812AbdGSIVo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 01:26:16 -0400
-Received: by mail-qk0-f170.google.com with SMTP id d78so112088343qkb.1
-        for <linux-media@vger.kernel.org>; Sun, 16 Jul 2017 22:26:15 -0700 (PDT)
+        Wed, 19 Jul 2017 04:21:44 -0400
+Received: by mail-wr0-f194.google.com with SMTP id c24so4219340wra.2
+        for <linux-media@vger.kernel.org>; Wed, 19 Jul 2017 01:21:44 -0700 (PDT)
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Sekhar Nori <nsekhar@ti.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v2 0/2] media: platform: davinci: remove VPFE_CMD_S_CCDC_RAW_PARAMS IOCTL
+Date: Wed, 19 Jul 2017 09:21:32 +0100
+Message-Id: <1500452494-15879-1-git-send-email-prabhakar.csengg@gmail.com>
 MIME-Version: 1.0
-From: Szabolcs Andrasi <andrasi.szabolcs@gmail.com>
-Date: Sun, 16 Jul 2017 22:26:14 -0700
-Message-ID: <CAM1CkLU6gTj2zDS-9cu_POOVpByitEyi26XhKZ1W3j9AbTTK-Q@mail.gmail.com>
-Subject: ir-keytable question [Ubuntu 17.04]
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This patch series drops VPFE_CMD_S_CCDC_RAW_PARAMS ioctl, from davicni
+vpfe_capture driver because of following reasons:
 
-I'm using Ubuntu 17.04 and I installed the ir-keytable tool. The
-output of the ir-keytable command is as follows:
-
-
-
-Found /sys/class/rc/rc0/ (/dev/input/event5) with:
-Driver ite-cir, table rc-rc6-mce
-Supported protocols: unknown other lirc rc-5 rc-5-sz jvc sony nec
-sanyo mce_kbd rc-6 sharp xmp
-Enabled protocols: lirc rc-6
-Name: ITE8708 CIR transceiver
-bus: 25, vendor/product: 1283:0000, version: 0x0000
-Repeat delay = 500 ms, repeat period = 125 ms
-
+- The function constantly mixes up pointers and phys_addr_t numbers
+- This is part of a 'VPFE_CMD_S_CCDC_RAW_PARAMS' ioctl command that is
+  described as an 'experimental ioctl that will change in future kernels',
+  but if we have users that probably won't happen.
+- The code to allocate the table never gets called after we copy_from_user
+  the user input over the kernel settings, and then compare them
+  for inequality.
+- We then go on to use an address provided by user space as both the
+  __user pointer for input and pass it through phys_to_virt to come up
+  with a kernel pointer to copy the data to. This looks like a trivially
+  exploitable root hole.
 
 
-I'm trying to enable the supported mce_kbd protocol in addition to the
-lirc and rc-6 protocols with the
+As discussed at [1], there wouldn’t be any possible users of
+the VPFE_CMD_S_CCDC_RAW_PARAMS IOCTL, but if someone complains
+we might end up reverting the removal and fix it differently.
 
-$ sudo ir-keytable -p lirc -p rc-6 -p mce_kbd
+[1] https://patchwork.kernel.org/patch/9779385/
 
-command which works as expected. If, however, I reboot my computer,
-ir-keytable forgets this change and only the lirc and rc-6 protocols
-are enabled. Is there a configuration file I can edit so that after
-the boot my IR remote still works? Or is that so that the only way to
-make it work is to write a start-up script that runs the above command
-to enable the needed protocol?
+Note: Patch 0001 is intended to apply for backports so as the reason
+minimalistic changes have been done since the ioctl was added in
+kernel 2.6.32 [2] and applying too many changes would produce conflicts,
+just applying this patch would produce build warning of unused functions.
 
-Thank you in advance!
+[2] commit 5f15fbb68fd7 ("V4L/DVB (12251): v4l: dm644x ccdc module for vpfe capture driver")
 
--- Szabolcs
+Lad, Prabhakar (2):
+  media: platform: davinci: prepare for removal of
+    VPFE_CMD_S_CCDC_RAW_PARAMS ioctl
+  media: platform: davinci: drop VPFE_CMD_S_CCDC_RAW_PARAMS
+
+ drivers/media/platform/davinci/ccdc_hw_device.h |  10 --
+ drivers/media/platform/davinci/dm355_ccdc.c     |  92 +--------------
+ drivers/media/platform/davinci/dm644x_ccdc.c    | 151 +-----------------------
+ drivers/media/platform/davinci/vpfe_capture.c   |  93 ---------------
+ include/media/davinci/dm644x_ccdc.h             |  12 --
+ include/media/davinci/vpfe_capture.h            |  10 --
+ 6 files changed, 4 insertions(+), 364 deletions(-)
+
+-- 
+2.7.4
