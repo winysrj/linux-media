@@ -1,66 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:55447 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755152AbdGVLbB (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53782 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752982AbdGSUxf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Jul 2017 07:31:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sylwester Nawrocki <snawrocki@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 1/6] media-device: set driver_version directly
-Date: Sat, 22 Jul 2017 13:30:52 +0200
-Message-Id: <20170722113057.45202-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170722113057.45202-1-hverkuil@xs4all.nl>
-References: <20170722113057.45202-1-hverkuil@xs4all.nl>
+        Wed, 19 Jul 2017 16:53:35 -0400
+Date: Wed, 19 Jul 2017 23:53:30 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, pavel@ucw.cz
+Subject: Re: [PATCH 5/8] v4l: Add support for CSI-1 and CCP2 busses
+Message-ID: <20170719205329.akt2tcspq7ri3xh4@valkosipuli.retiisi.org.uk>
+References: <20170705230019.5461-1-sakari.ailus@linux.intel.com>
+ <20170705230019.5461-6-sakari.ailus@linux.intel.com>
+ <20170719163751.3fd7c891@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170719163751.3fd7c891@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Jul 19, 2017 at 04:37:51PM -0300, Mauro Carvalho Chehab wrote:
+> Em Thu,  6 Jul 2017 02:00:16 +0300
+> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> 
+> > From: Sakari Ailus <sakari.ailus@iki.fi>
+> > 
+> > CCP2 and CSI-1, are older single data lane serial busses.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> > ---
+> >  drivers/media/platform/pxa_camera.c              |  3 ++
+> >  drivers/media/platform/soc_camera/soc_mediabus.c |  3 ++
+> >  drivers/media/v4l2-core/v4l2-fwnode.c            | 58 +++++++++++++++++++-----
+> >  include/media/v4l2-fwnode.h                      | 19 ++++++++
+> >  include/media/v4l2-mediabus.h                    |  4 ++
+> >  5 files changed, 76 insertions(+), 11 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
+> > index 399095170b6e..17e797c9559f 100644
+> > --- a/drivers/media/platform/pxa_camera.c
+> > +++ b/drivers/media/platform/pxa_camera.c
+> > @@ -638,6 +638,9 @@ static unsigned int pxa_mbus_config_compatible(const struct v4l2_mbus_config *cf
+> >  		mipi_clock = common_flags & (V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK |
+> >  					     V4L2_MBUS_CSI2_CONTINUOUS_CLOCK);
+> >  		return (!mipi_lanes || !mipi_clock) ? 0 : common_flags;
+> > +	default:
+> > +		__WARN();
+> > +		return -EINVAL;
+> >  	}
+> >  	return 0;
+> >  }
+> > diff --git a/drivers/media/platform/soc_camera/soc_mediabus.c b/drivers/media/platform/soc_camera/soc_mediabus.c
+> > index 57581f626f4c..43192d80beef 100644
+> > --- a/drivers/media/platform/soc_camera/soc_mediabus.c
+> > +++ b/drivers/media/platform/soc_camera/soc_mediabus.c
+> > @@ -508,6 +508,9 @@ unsigned int soc_mbus_config_compatible(const struct v4l2_mbus_config *cfg,
+> >  		mipi_clock = common_flags & (V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK |
+> >  					     V4L2_MBUS_CSI2_CONTINUOUS_CLOCK);
+> >  		return (!mipi_lanes || !mipi_clock) ? 0 : common_flags;
+> > +	default:
+> > +		__WARN();
+> > +		return -EINVAL;
+> >  	}
+> >  	return 0;
+> >  }
+> > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> > index d71dd3913cd9..76a88f210cb6 100644
+> > --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> > @@ -154,6 +154,31 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
+> >  
+> >  }
+> >  
+> > +void v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_handle *fwnode,
+> > +					 struct v4l2_fwnode_endpoint *vep,
+> > +					 u32 bus_type)
+> > +{
+> > +       struct v4l2_fwnode_bus_mipi_csi1 *bus = &vep->bus.mipi_csi1;
+> > +       u32 v;
+> > +
+> > +       if (!fwnode_property_read_u32(fwnode, "clock-inv", &v))
+> > +               bus->clock_inv = v;
+> > +
+> > +       if (!fwnode_property_read_u32(fwnode, "strobe", &v))
+> > +               bus->strobe = v;
+> > +
+> > +       if (!fwnode_property_read_u32(fwnode, "data-lanes", &v))
+> > +               bus->data_lane = v;
+> > +
+> > +       if (!fwnode_property_read_u32(fwnode, "clock-lanes", &v))
+> > +               bus->clock_lane = v;
+> > +
+> > +       if (bus_type == V4L2_FWNODE_BUS_TYPE_CCP2)
+> > +	       vep->bus_type = V4L2_MBUS_CCP2;
+> > +       else
+> > +	       vep->bus_type = V4L2_MBUS_CSI1;
+> > +}
+> > +
+> 
+> This function is indented with whitespaces! Next time, please check with
+> checkpatch.
+> 
+> I fixed when merging it upstream.
 
-Don't use driver_version from struct media_device, just return
-LINUX_VERSION_CODE as the other media subsystems do.
+Well, what can I say?
 
-The driver_version field in struct media_device will be removed
-in the following patches.
+Apologies for the collateral damage, and thanks! :-)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/media-device.c | 2 +-
- include/media/media-device.h | 5 -----
- 2 files changed, 1 insertion(+), 6 deletions(-)
-
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index fce91b543c14..7ff8e2d5bb07 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -71,7 +71,7 @@ static int media_device_get_info(struct media_device *dev,
- 
- 	info->media_version = MEDIA_API_VERSION;
- 	info->hw_revision = dev->hw_revision;
--	info->driver_version = dev->driver_version;
-+	info->driver_version = LINUX_VERSION_CODE;
- 
- 	return 0;
- }
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 6896266031b9..7ae200d89a9f 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -249,11 +249,6 @@ void media_device_cleanup(struct media_device *mdev);
-  *    driver-specific format. When possible the revision should be formatted
-  *    with the KERNEL_VERSION() macro.
-  *
-- *  - &media_entity.driver_version is formatted with the KERNEL_VERSION()
-- *    macro. The version minor must be incremented when new features are added
-- *    to the userspace API without breaking binary compatibility. The version
-- *    major must be incremented when binary compatibility is broken.
-- *
-  * .. note::
-  *
-  *    #) Upon successful registration a character device named media[0-9]+ is created. The device major and minor numbers are dynamic. The model name is exported as a sysfs attribute.
 -- 
-2.13.2
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
