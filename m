@@ -1,72 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:34605 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755152AbdGVLbG (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:32889 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752269AbdGSL7h (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Jul 2017 07:31:06 -0400
-Subject: Re: [PATCHv2 5/5] media-device: remove driver_version
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-media@vger.kernel.org
-References: <20170721105706.40703-1-hverkuil@xs4all.nl>
- <CGME20170721105717epcas3p354c2aa0c7a7fc333a5442866e77498dc@epcas3p3.samsung.com>
- <20170721105706.40703-6-hverkuil@xs4all.nl>
- <a9f06de4-30a9-316c-642d-0f6cd2345fd0@samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sylwester Nawrocki <snawrocki@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <f1bc4b77-5637-2a5a-1afb-1ab0e09ce0c1@xs4all.nl>
-Date: Sat, 22 Jul 2017 13:31:03 +0200
+        Wed, 19 Jul 2017 07:59:37 -0400
+Date: Wed, 19 Jul 2017 13:59:35 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+        jacek.anaszewski@gmail.com, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 1/2] staging: greybus: light: Don't leak memory for no
+ gain
+Message-ID: <20170719115934.GA23510@amd>
+References: <20170718184107.10598-1-sakari.ailus@linux.intel.com>
+ <20170718184107.10598-2-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <a9f06de4-30a9-316c-642d-0f6cd2345fd0@samsung.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="CE+1k2dSO48ffgeK"
+Content-Disposition: inline
+In-Reply-To: <20170718184107.10598-2-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22/07/17 13:16, Sylwester Nawrocki wrote:
-> On 07/21/2017 12:57 PM, Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Since the driver_version field in struct media_device is no longer
->> used, just remove it.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>   drivers/media/media-device.c | 3 ---
->>   include/media/media-device.h | 2 --
->>   2 files changed, 5 deletions(-)
-> 
->> diff --git a/include/media/media-device.h b/include/media/media-device.h
->> index 6896266031b9..7d268802cc2e 100644
->> --- a/include/media/media-device.h
->> +++ b/include/media/media-device.h
->> @@ -68,7 +68,6 @@ struct media_device_ops {
->>    * @serial:    Device serial number (optional)
->>    * @bus_info:    Unique and stable device location identifier
->>    * @hw_revision: Hardware device revision
->> - * @driver_version: Device driver version
->>    * @topology_version: Monotonic counter for storing the version of the graph
->>    *        topology. Should be incremented each time the topology changes.
->>    * @id:        Unique ID used on the last registered graph object
->> @@ -134,7 +133,6 @@ struct media_device {
->>       char serial[40];
->>       char bus_info[32];
->>       u32 hw_revision;
->> -    u32 driver_version;
-> 
-> It seems we still have such paragraph in include/media/media-device.h:
-> 
->  *  - &media_entity.driver_version is formatted with the KERNEL_VERSION()
->  *    macro. The version minor must be incremented when new features are added
->  *    to the userspace API without breaking binary compatibility. The version
->  *    major must be incremented when binary compatibility is broken.
-> 
-> Shouldn't this also be removed?
 
-Good catch! Yes, that should be removed as well.
+--CE+1k2dSO48ffgeK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+Hi!
 
-	Hans
+> Memory for struct v4l2_flash_config is allocated in
+> gb_lights_light_v4l2_register() for no gain and yet the allocated memory =
+is
+> leaked; the struct isn't used outside the function. Fix this.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+
+> diff --git a/drivers/staging/greybus/light.c b/drivers/staging/greybus/li=
+ght.c
+> index 129ceed39829..b25c117ec41a 100644
+> --- a/drivers/staging/greybus/light.c
+> +++ b/drivers/staging/greybus/light.c
+> @@ -534,25 +534,21 @@ static int gb_lights_light_v4l2_register(struct gb_=
+light *light)
+>  {
+>  	struct gb_connection *connection =3D get_conn_from_light(light);
+>  	struct device *dev =3D &connection->bundle->dev;
+> -	struct v4l2_flash_config *sd_cfg;
+> +	struct v4l2_flash_config sd_cfg =3D { 0 };
+>  	struct led_classdev_flash *fled;
+>  	struct led_classdev *iled =3D NULL;
+>  	struct gb_channel *channel_torch, *channel_ind, *channel_flash;
+>  	int ret =3D 0;
+=2E...
+>  	light->v4l2_flash =3D v4l2_flash_init(dev, NULL, fled, iled,
+> -					    &v4l2_flash_ops, sd_cfg);
+> +					    &v4l2_flash_ops, &sd_cfg);
+>  	if (IS_ERR_OR_NULL(light->v4l2_flash)) {
+>  		ret =3D PTR_ERR(light->v4l2_flash);
+>  		goto out_free;
+
+Acked-by: Pavel Machek <pavel@ucw.cz>
+
+struct v4l2_flash *v4l2_flash_init(
+        struct device *dev, struct fwnode_handle *fwn,
+	       struct led_classdev_flash *fled_cdev,
+	       	      struct led_classdev_flash *iled_cdev,
+		      	     const struct v4l2_flash_ops *ops,
+			     	   struct v4l2_flash_config *config)
+				  =20
+This function saves "ops" argument, but is careful to copy from
+"config" argument. Perhaps that's worth a comment?
+
+Thanks,
+								Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--CE+1k2dSO48ffgeK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAllvSaYACgkQMOfwapXb+vLWKgCeOOYrQ3l96G1YbqRcWz2HRUsZ
+U8sAnjhKGKAH2+gibflUkqsxqEB1Gpat
+=JDPY
+-----END PGP SIGNATURE-----
+
+--CE+1k2dSO48ffgeK--
