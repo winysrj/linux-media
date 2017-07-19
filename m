@@ -1,120 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:58147 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751563AbdGZMvu (ORCPT
+Received: from out20-87.mail.aliyun.com ([115.124.20.87]:33629 "EHLO
+        out20-87.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751560AbdGSBXI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Jul 2017 08:51:50 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-CC: <linux-media@vger.kernel.org>,
-        Gregor Jasny <gjasny@googlemail.com>,
-        Christophe Priouzeau <christophe.priouzeau@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Subject: [PATCH v2] Build libv4lconvert helper support only when fork() is available
-Date: Wed, 26 Jul 2017 14:51:24 +0200
-Message-ID: <1501073484-9193-2-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1501073484-9193-1-git-send-email-hugues.fruchet@st.com>
-References: <1501073484-9193-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Tue, 18 Jul 2017 21:23:08 -0400
+Date: Wed, 19 Jul 2017 09:22:49 +0800
+From: Yong <yong.deng@magewell.com>
+To: Baruch Siach <baruch@tkos.co.il>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
+        hans.verkuil@cisco.com, peter.griffin@linaro.org,
+        hugues.fruchet@st.com, krzk@kernel.org, bparrot@ti.com,
+        arnd@arndb.de, jean-christophe.trotin@st.com,
+        benjamin.gaignard@linaro.org, tiffany.lin@mediatek.com,
+        kamil@wypas.org, kieran+renesas@ksquared.org.uk,
+        andrew-ct.chen@mediatek.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-sunxi@googlegroups.com
+Subject: Re: [PATCH RFC 2/2] dt-bindings: add binding documentation for
+ Allwinner CSI
+Message-Id: <20170719092249.2fb6ec720ba1b194cea320c8@magewell.com>
+In-Reply-To: <20170718115530.ssy7g5vv4siqnfpo@tarshish>
+References: <1498561654-14658-1-git-send-email-yong.deng@magewell.com>
+        <1498561654-14658-3-git-send-email-yong.deng@magewell.com>
+        <20170718115530.ssy7g5vv4siqnfpo@tarshish>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+On Tue, 18 Jul 2017 14:55:30 +0300
+Baruch Siach <baruch@tkos.co.il> wrote:
 
-Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
----
- configure.ac                      | 3 +++
- lib/libv4lconvert/Makefile.am     | 7 ++++++-
- lib/libv4lconvert/libv4lconvert.c | 6 ++++++
- 3 files changed, 15 insertions(+), 1 deletion(-)
+> Hi Yong,
+> 
+> I am trying to get this driver working on the Olimex A33 OLinuXino. I didn't 
+> get it working yet, but I had some progress. See the comment below on one 
+> issue I encountered.
+> 
+> On Tue, Jun 27, 2017 at 07:07:34PM +0800, Yong Deng wrote:
+> > Add binding documentation for Allwinner CSI.
+> > 
+> > Signed-off-by: Yong Deng <yong.deng@magewell.com>
+> > ---
+> >  .../devicetree/bindings/media/sunxi-csi.txt        | 51 ++++++++++++++++++++++
+> >  1 file changed, 51 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/media/sunxi-csi.txt
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/sunxi-csi.txt b/Documentation/devicetree/bindings/media/sunxi-csi.txt
+> > new file mode 100644
+> > index 0000000..770be0e
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/sunxi-csi.txt
+> > @@ -0,0 +1,51 @@
+> > +Allwinner V3s Camera Sensor Interface
+> > +------------------------------
+> > +
+> > +Required properties:
+> > +  - compatible: value must be "allwinner,sun8i-v3s-csi"
+> > +  - reg: base address and size of the memory-mapped region.
+> > +  - interrupts: interrupt associated to this IP
+> > +  - clocks: phandles to the clocks feeding the CSI
+> > +    * ahb: the CSI interface clock
+> > +    * mod: the CSI module clock
+> > +    * ram: the CSI DRAM clock
+> > +  - clock-names: the clock names mentioned above
+> > +  - resets: phandles to the reset line driving the CSI
+> > +
+> > +- ports: A ports node with endpoint definitions as defined in
+> > +  Documentation/devicetree/bindings/media/video-interfaces.txt. The
+> > +  first port should be the input endpoints, the second one the outputs
+> > +
+> > +Example:
+> > +
+> > +	csi1: csi@01cb4000 {
+> > +		compatible = "allwinner,sun8i-v3s-csi";
+> > +		reg = <0x01cb4000 0x1000>;
+> 
+> You use platform_get_resource_byname() to get this IO resource. This requires 
+> adding mandatory
+> 
+>   reg-names = "csi";
+> 
+> But is it actually needed? Wouldn't a simple platform_get_resource() be 
+> enough?
 
-diff --git a/configure.ac b/configure.ac
-index ae8f2e2..72c9421 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -299,6 +299,9 @@ argp_saved_libs=$LIBS
-   AC_SUBST([ARGP_LIBS])
- LIBS=$argp_saved_libs
- 
-+AC_CHECK_FUNCS([fork], AC_DEFINE([HAVE_LIBV4LCONVERT_HELPERS],[1],[whether to use libv4lconvert helpers]))
-+AM_CONDITIONAL([HAVE_LIBV4LCONVERT_HELPERS], [test x$ac_cv_func_fork = xyes])
-+
- AC_CHECK_HEADER([linux/i2c-dev.h], [linux_i2c_dev=yes], [linux_i2c_dev=no])
- AM_CONDITIONAL([HAVE_LINUX_I2C_DEV], [test x$linux_i2c_dev = xyes])
- 
-diff --git a/lib/libv4lconvert/Makefile.am b/lib/libv4lconvert/Makefile.am
-index 4f332fa..f266f3e 100644
---- a/lib/libv4lconvert/Makefile.am
-+++ b/lib/libv4lconvert/Makefile.am
-@@ -1,6 +1,8 @@
- if WITH_DYN_LIBV4L
- lib_LTLIBRARIES = libv4lconvert.la
-+if HAVE_LIBV4LCONVERT_HELPERS
- libv4lconvertpriv_PROGRAMS = ov511-decomp ov518-decomp
-+endif
- include_HEADERS = ../include/libv4lconvert.h
- pkgconfig_DATA = libv4lconvert.pc
- LIBV4LCONVERT_VERSION = -version-info 0
-@@ -16,11 +18,14 @@ libv4lconvert_la_SOURCES = \
-   control/libv4lcontrol.c control/libv4lcontrol.h control/libv4lcontrol-priv.h \
-   processing/libv4lprocessing.c processing/whitebalance.c processing/autogain.c \
-   processing/gamma.c processing/libv4lprocessing.h processing/libv4lprocessing-priv.h \
--  helper.c helper-funcs.h libv4lconvert-priv.h libv4lsyscall-priv.h \
-+  helper-funcs.h libv4lconvert-priv.h libv4lsyscall-priv.h \
-   tinyjpeg.h tinyjpeg-internal.h
- if HAVE_JPEG
- libv4lconvert_la_SOURCES += jpeg_memsrcdest.c jpeg_memsrcdest.h
- endif
-+if HAVE_LIBV4LCONVERT_HELPERS
-+libv4lconvert_la_SOURCES += helper.c
-+endif
- libv4lconvert_la_CPPFLAGS = $(CFLAG_VISIBILITY) $(ENFORCE_LIBV4L_STATIC)
- libv4lconvert_la_LDFLAGS = $(LIBV4LCONVERT_VERSION) -lrt -lm $(JPEG_LIBS) $(ENFORCE_LIBV4L_STATIC)
- 
-diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-index d60774e..1a5ccec 100644
---- a/lib/libv4lconvert/libv4lconvert.c
-+++ b/lib/libv4lconvert/libv4lconvert.c
-@@ -122,8 +122,10 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
- 	{ V4L2_PIX_FMT_JPEG,		 0,	 7,	 7,	0 },
- 	{ V4L2_PIX_FMT_PJPG,		 0,	 7,	 7,	1 },
- 	{ V4L2_PIX_FMT_JPGL,		 0,	 7,	 7,	1 },
-+#ifdef HAVE_LIBV4LCONVERT_HELPERS
- 	{ V4L2_PIX_FMT_OV511,		 0,	 7,	 7,	1 },
- 	{ V4L2_PIX_FMT_OV518,		 0,	 7,	 7,	1 },
-+#endif
- 	/* uncompressed bayer */
- 	{ V4L2_PIX_FMT_SBGGR8,		 8,	 8,	 8,	0 },
- 	{ V4L2_PIX_FMT_SGBRG8,		 8,	 8,	 8,	0 },
-@@ -278,7 +280,9 @@ void v4lconvert_destroy(struct v4lconvert_data *data)
- 	if (data->cinfo_initialized)
- 		jpeg_destroy_decompress(&data->cinfo);
- #endif // HAVE_JPEG
-+#ifdef HAVE_LIBV4LCONVERT_HELPERS
- 	v4lconvert_helper_cleanup(data);
-+#endif
- 	free(data->convert1_buf);
- 	free(data->convert2_buf);
- 	free(data->rotate90_buf);
-@@ -833,6 +837,7 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
- 				return -1;
- 			}
- 			break;
-+#ifdef HAVE_LIBV4LCONVERT_HELPERS
- 		case V4L2_PIX_FMT_OV511:
- 			if (v4lconvert_helper_decompress(data, LIBV4LCONVERT_PRIV_DIR "/ov511-decomp",
- 						src, src_size, d, d_size, width, height, yvu)) {
-@@ -849,6 +854,7 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
- 				return -1;
- 			}
- 			break;
-+#endif
- 		}
- 
- 		switch (dest_pix_fmt) {
--- 
-1.9.1
+You are right.
+This will be fixed in the next version.
+I am waiting for more comments for the sunxi-csi.h. It's pleasure if
+you have any suggestions about it.
