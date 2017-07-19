@@ -1,70 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:58385 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750883AbdGGJ6l (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:44183 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752500AbdGSLCS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Jul 2017 05:58:41 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 1/5] [media] coda: extend GOP size range
-Date: Fri,  7 Jul 2017 11:58:27 +0200
-Message-Id: <20170707095831.9852-1-p.zabel@pengutronix.de>
+        Wed, 19 Jul 2017 07:02:18 -0400
+Subject: Re: [PATCH v5 0/4] v4l2-async: add subnotifier registration for
+ subdevices
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+References: <20170719104946.7322-1-niklas.soderlund+renesas@ragnatech.se>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5e25930e-b249-6d92-1c7e-36266754f3cb@xs4all.nl>
+Date: Wed, 19 Jul 2017 13:02:14 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170719104946.7322-1-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CodaDx6 only accepts GOP sizes up to 60 frames, but CODA960 can handle
-up to 99 frames. If we disable automatic I frame generation altogether
-by setting GOP size to 0, we can let an application produce arbitrarily
-large I frame intervals using the V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME
-control.
+On 19/07/17 12:49, Niklas Söderlund wrote:
+> * Changes since v4
+> - Add patch which aborts v4l2_async_notifier_unregister() if the memory 
+>   allocation for the device cache fails instead of trying to do as much 
+>   as possible but still leave the system in a semi good state.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-bit.c    | 5 +++--
- drivers/media/platform/coda/coda-common.c | 4 +++-
- 2 files changed, 6 insertions(+), 3 deletions(-)
+Since you are working with this code I would very much appreciate it if you
+can make another patch that adds comments to this reprobing stuff, including
+why device_reprobe() cannot be used here.
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index bba1eb43b5d83..50eed636830f8 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -1006,7 +1006,7 @@ static int coda_start_encoding(struct coda_ctx *ctx)
- 			break;
- 		}
- 		coda_write(dev, value, CODA_CMD_ENC_SEQ_SLICE_MODE);
--		value = ctx->params.gop_size & CODA_GOP_SIZE_MASK;
-+		value = ctx->params.gop_size;
- 		coda_write(dev, value, CODA_CMD_ENC_SEQ_GOP_SIZE);
- 	}
- 
-@@ -1250,7 +1250,8 @@ static int coda_prepare_encode(struct coda_ctx *ctx)
- 	force_ipicture = ctx->params.force_ipicture;
- 	if (force_ipicture)
- 		ctx->params.force_ipicture = false;
--	else if ((src_buf->sequence % ctx->params.gop_size) == 0)
-+	else if (ctx->params.gop_size != 0 &&
-+		 (src_buf->sequence % ctx->params.gop_size) == 0)
- 		force_ipicture = 1;
- 
- 	/*
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 829c7895a98a2..218d778a9c45a 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1734,10 +1734,12 @@ static const struct v4l2_ctrl_ops coda_ctrl_ops = {
- 
- static void coda_encode_ctrls(struct coda_ctx *ctx)
- {
-+	int max_gop_size = (ctx->dev->devtype->product == CODA_DX6) ? 60 : 99;
-+
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_BITRATE, 0, 32767000, 1000, 0);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
--		V4L2_CID_MPEG_VIDEO_GOP_SIZE, 1, 60, 1, 16);
-+		V4L2_CID_MPEG_VIDEO_GOP_SIZE, 0, max_gop_size, 1, 16);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP, 0, 51, 1, 25);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
--- 
-2.11.0
+That will help in the future.
+
+Regards,
+
+	Hans
