@@ -1,78 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:34281 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964820AbdGTI4n (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:47333 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751448AbdGSIJZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 04:56:43 -0400
-Received: by mail-wr0-f196.google.com with SMTP id o33so2309529wrb.1
-        for <linux-media@vger.kernel.org>; Thu, 20 Jul 2017 01:56:43 -0700 (PDT)
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Sekhar Nori <nsekhar@ti.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [v3 1/2] media: platform: davinci: prepare for removal of VPFE_CMD_S_CCDC_RAW_PARAMS ioctl
-Date: Thu, 20 Jul 2017 09:56:30 +0100
-Message-Id: <1500540991-27430-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1500540991-27430-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1500540991-27430-1-git-send-email-prabhakar.csengg@gmail.com>
+        Wed, 19 Jul 2017 04:09:25 -0400
+Message-ID: <1500451764.2364.17.camel@pengutronix.de>
+Subject: Re: [PATCH] [media] coda: disable BWB for all codecs on CODA 960
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Ian Arkver <ian.arkver.dev@gmail.com>
+Cc: linux-media@vger.kernel.org, kernel@pengutronix.de
+Date: Wed, 19 Jul 2017 10:09:24 +0200
+In-Reply-To: <594ed2a7-df43-4fb4-b12c-5b215b618087@gmail.com>
+References: <20170302101952.16917-1-p.zabel@pengutronix.de>
+         <594ed2a7-df43-4fb4-b12c-5b215b618087@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-preparing for removal of VPFE_CMD_S_CCDC_RAW_PARAMS ioctl from
-davicni vpfe_capture driver because of following reasons:
+Hi Ian,
 
-- This ioctl was never in public api and was only defined in kernel header.
-- The function set_params constantly mixes up pointers and phys_addr_t
-  numbers.
-- This is part of a 'VPFE_CMD_S_CCDC_RAW_PARAMS' ioctl command that is
-  described as an 'experimental ioctl that will change in future kernels'.
-- The code to allocate the table never gets called after we copy_from_user
-  the user input over the kernel settings, and then compare them
-  for inequality.
-- We then go on to use an address provided by user space as both the
-  __user pointer for input and pass it through phys_to_virt to come up
-  with a kernel pointer to copy the data to. This looks like a trivially
-  exploitable root hole.
+On Wed, 2017-07-19 at 08:16 +0100, Ian Arkver wrote:
+> Hi Philipp,
+> 
+> On 02/03/17 10:19, Philipp Zabel wrote:
+> > I don't know what the BWB unit is, I guess W is for write and one of the
+> > Bs is for burst. All I know is that there repeatedly have been issues
+> > with it hanging on certain streams (ENGR00223231, ENGR00293425), with
+> > various firmware versions, sometimes blocking something related to the
+> > GDI bus or the GDI AXI adapter. There are some error cases that we don't
+> > know how to recover from without a reboot. Apparently this unit can be
+> > disabled by setting bit 12 in the FRAME_MEM_CTRL mailbox register to
+> > zero, so do that to avoid crashes.
+> 
+> Both those FSL ENGR patches to Android and VPU lib are specific to 
+> decode, with the first being specific to VC1 decode only.
 
-Fixes: 5f15fbb68fd7 ("V4L/DVB (12251): v4l: dm644x ccdc module for vpfe capture driver")
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpfe_capture.c | 22 ++--------------------
- 1 file changed, 2 insertions(+), 20 deletions(-)
+The first one is older, I suppose VC1 is where the issue has been
+observed first.
+I have seen sporadic BWB hangups when decoding h.264 RTP streams.
 
-diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
-index e3fe3e0..1831bf5 100644
---- a/drivers/media/platform/davinci/vpfe_capture.c
-+++ b/drivers/media/platform/davinci/vpfe_capture.c
-@@ -1719,27 +1719,9 @@ static long vpfe_param_handler(struct file *file, void *priv,
- 
- 	switch (cmd) {
- 	case VPFE_CMD_S_CCDC_RAW_PARAMS:
-+		ret = -EINVAL;
- 		v4l2_warn(&vpfe_dev->v4l2_dev,
--			  "VPFE_CMD_S_CCDC_RAW_PARAMS: experimental ioctl\n");
--		if (ccdc_dev->hw_ops.set_params) {
--			ret = ccdc_dev->hw_ops.set_params(param);
--			if (ret) {
--				v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
--					"Error setting parameters in CCDC\n");
--				goto unlock_out;
--			}
--			ret = vpfe_get_ccdc_image_format(vpfe_dev,
--							 &vpfe_dev->fmt);
--			if (ret < 0) {
--				v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
--					"Invalid image format at CCDC\n");
--				goto unlock_out;
--			}
--		} else {
--			ret = -EINVAL;
--			v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
--				"VPFE_CMD_S_CCDC_RAW_PARAMS not supported\n");
--		}
-+			"VPFE_CMD_S_CCDC_RAW_PARAMS not supported\n");
- 		break;
- 	default:
- 		ret = -ENOTTY;
--- 
-2.7.4
+> > Side effects are reduced burst lengths when writing out decoded frames
+> > to memory, so there is an "enable_bwb" module parameter to turn it back
+> > on.
+> 
+> These side effects are dramatically reducing the VPU throughput during 
+> H.264 encode as well. Prior to this patch I was just about managing to 
+> capture and stream 1080p25 H.264. After this change it fell to about 
+> 19fps. Reverting this patch (or presumably using the module param) 
+> restores the frame rate.
+> 
+> Can we at least make this decode specific? The VPU library patches do it 
+> in vpu_DecOpen. I'd guess disabling the BWB any time prior to stream 
+> start would be OK.
+
+Yes, since ENGR00293425 only talks about decoders, and I haven't seen
+any BWB related hangups during encoding yet, I'm inclined to agree.
+
+> It might also be worth adding some sort of /* HACK */ marker, since 
+> disabling the BWB feels very like a hack to me.
+
+I don't think HACK in itself is very descriptive, but a reference to the
+original workaround could be helpful in the future.
+
+regards
+Philipp
