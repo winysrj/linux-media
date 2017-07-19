@@ -1,74 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.74]:62117 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753492AbdGNJ3T (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33222 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751581AbdGSHQc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Jul 2017 05:29:19 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-kernel@vger.kernel.org, Jiri Olsa <jolsa@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
-        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
-        akpm@linux-foundation.org, dri-devel@lists.freedesktop.org,
-        Arnd Bergmann <arnd@arndb.de>,
-        Kees Cook <keescook@chromium.org>,
-        Ingo Molnar <mingo@kernel.org>,
-        Laura Abbott <labbott@redhat.com>,
-        Pratyush Anand <panand@redhat.com>,
-        Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: [PATCH 07/14] proc/kcore: hide a harmless warning
-Date: Fri, 14 Jul 2017 11:25:19 +0200
-Message-Id: <20170714092540.1217397-8-arnd@arndb.de>
-In-Reply-To: <20170714092540.1217397-1-arnd@arndb.de>
-References: <20170714092540.1217397-1-arnd@arndb.de>
+        Wed, 19 Jul 2017 03:16:32 -0400
+Received: by mail-wm0-f68.google.com with SMTP id 65so2234913wmf.0
+        for <linux-media@vger.kernel.org>; Wed, 19 Jul 2017 00:16:32 -0700 (PDT)
+Subject: Re: [PATCH] [media] coda: disable BWB for all codecs on CODA 960
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de
+References: <20170302101952.16917-1-p.zabel@pengutronix.de>
+From: Ian Arkver <ian.arkver.dev@gmail.com>
+Message-ID: <594ed2a7-df43-4fb4-b12c-5b215b618087@gmail.com>
+Date: Wed, 19 Jul 2017 08:16:29 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170302101952.16917-1-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-gcc warns when MODULES_VADDR/END is defined to the same value as
-VMALLOC_START/VMALLOC_END, e.g. on x86-32:
+Hi Philipp,
 
-fs/proc/kcore.c: In function ‘add_modules_range’:
-fs/proc/kcore.c:622:161: error: self-comparison always evaluates to false [-Werror=tautological-compare]
-  if (/*MODULES_VADDR != VMALLOC_START && */MODULES_END != VMALLOC_END) {
+On 02/03/17 10:19, Philipp Zabel wrote:
+> I don't know what the BWB unit is, I guess W is for write and one of the
+> Bs is for burst. All I know is that there repeatedly have been issues
+> with it hanging on certain streams (ENGR00223231, ENGR00293425), with
+> various firmware versions, sometimes blocking something related to the
+> GDI bus or the GDI AXI adapter. There are some error cases that we don't
+> know how to recover from without a reboot. Apparently this unit can be
+> disabled by setting bit 12 in the FRAME_MEM_CTRL mailbox register to
+> zero, so do that to avoid crashes.
 
-The code is correct as it is required for most other configurations.
-The best workaround I found for shutting up that warning is to make
-it a little more complex by adding a temporary variable. The compiler
-will still optimize away the code as it finds the two to be identical,
-but it no longer warns because it doesn't condider the comparison
-"tautological" any more.
+Both those FSL ENGR patches to Android and VPU lib are specific to 
+decode, with the first being specific to VC1 decode only.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- fs/proc/kcore.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+> Side effects are reduced burst lengths when writing out decoded frames
+> to memory, so there is an "enable_bwb" module parameter to turn it back
+> on.
 
-diff --git a/fs/proc/kcore.c b/fs/proc/kcore.c
-index 45629f4b5402..c503ad657c46 100644
---- a/fs/proc/kcore.c
-+++ b/fs/proc/kcore.c
-@@ -620,12 +620,14 @@ static void __init proc_kcore_text_init(void)
- /*
-  * MODULES_VADDR has no intersection with VMALLOC_ADDR.
-  */
--struct kcore_list kcore_modules;
-+static struct kcore_list kcore_modules;
- static void __init add_modules_range(void)
- {
--	if (MODULES_VADDR != VMALLOC_START && MODULES_END != VMALLOC_END) {
--		kclist_add(&kcore_modules, (void *)MODULES_VADDR,
--			MODULES_END - MODULES_VADDR, KCORE_VMALLOC);
-+	void *start = (void *)MODULES_VADDR;
-+	size_t len = MODULES_END - MODULES_VADDR;
-+
-+	if (start != (void *)VMALLOC_START && len != VMALLOC_END - VMALLOC_START) {
-+		kclist_add(&kcore_modules, start, len, KCORE_VMALLOC);
- 	}
- }
- #else
--- 
-2.9.0
+These side effects are dramatically reducing the VPU throughput during 
+H.264 encode as well. Prior to this patch I was just about managing to 
+capture and stream 1080p25 H.264. After this change it fell to about 
+19fps. Reverting this patch (or presumably using the module param) 
+restores the frame rate.
+
+Can we at least make this decode specific? The VPU library patches do it 
+in vpu_DecOpen. I'd guess disabling the BWB any time prior to stream 
+start would be OK.
+
+It might also be worth adding some sort of /* HACK */ marker, since 
+disabling the BWB feels very like a hack to me.
+
+Regards,
+Ian
