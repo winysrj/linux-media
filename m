@@ -1,363 +1,849 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60036 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751942AbdGRTEH (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:33930 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752865AbdGSUSK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 15:04:07 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: linux-leds@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        niklas.soderlund@ragnatech.se, hverkuil@xs4all.nl
-Subject: [RFC 07/19] v4l: fwnode: Support generic parsing of graph endpoints in V4L2
-Date: Tue, 18 Jul 2017 22:03:49 +0300
-Message-Id: <20170718190401.14797-8-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
+        Wed, 19 Jul 2017 16:18:10 -0400
+Subject: Re: [RFC 05/19] leds: as3645a: Add LED flash class driver
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
 References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
+ <20170718190401.14797-6-sakari.ailus@linux.intel.com>
+Cc: linux-leds@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        niklas.soderlund@ragnatech.se, hverkuil@xs4all.nl,
+        Sakari Ailus <sakari.ailus@iki.fi>
+From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Message-ID: <1571264e-9c74-b4ad-8f12-c30b6bdeb66c@gmail.com>
+Date: Wed, 19 Jul 2017 22:17:26 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170718190401.14797-6-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The current practice is that drivers iterate over their endpoints and
-parse each endpoint separately. This is very similar in a number of
-drivers, implement a generic function for the job. Driver specific matters
-can be taken into account in the driver specific callback.
+Hi Sakari,
 
-Convert the omap3isp as an example.
+Thanks for the update.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/platform/omap3isp/isp.c | 88 +++++++++-----------------------
- drivers/media/platform/omap3isp/isp.h |  3 --
- drivers/media/v4l2-core/v4l2-fwnode.c | 94 +++++++++++++++++++++++++++++++++++
- include/media/v4l2-async.h            |  4 +-
- include/media/v4l2-fwnode.h           |  9 ++++
- 5 files changed, 129 insertions(+), 69 deletions(-)
+My remarks from [0] related to LED class device naming apply also
+to this version of the patch.
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 9df64c189883..92245a457d18 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2008,43 +2008,40 @@ enum isp_of_phy {
- 	ISP_OF_PHY_CSIPHY2,
- };
- 
--static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
--			    struct isp_async_subdev *isd)
-+static int isp_fwnode_parse(struct device *dev,
-+			    struct v4l2_fwnode_endpoint *vep,
-+			    struct v4l2_async_subdev *asd)
- {
-+	struct isp_async_subdev *isd =
-+		container_of(asd, struct isp_async_subdev, asd);
- 	struct isp_bus_cfg *buscfg = &isd->bus;
--	struct v4l2_fwnode_endpoint vep;
- 	unsigned int i;
--	int ret;
--
--	ret = v4l2_fwnode_endpoint_parse(fwnode, &vep);
--	if (ret)
--		return ret;
- 
- 	dev_dbg(dev, "parsing endpoint %s, interface %u\n",
--		to_of_node(fwnode)->full_name, vep.base.port);
-+		to_of_node(vep->base.local_fwnode)->full_name, vep->base.port);
- 
--	switch (vep.base.port) {
-+	switch (vep->base.port) {
- 	case ISP_OF_PHY_PARALLEL:
- 		buscfg->interface = ISP_INTERFACE_PARALLEL;
- 		buscfg->bus.parallel.data_lane_shift =
--			vep.bus.parallel.data_shift;
-+			vep->bus.parallel.data_shift;
- 		buscfg->bus.parallel.clk_pol =
--			!!(vep.bus.parallel.flags
-+			!!(vep->bus.parallel.flags
- 			   & V4L2_MBUS_PCLK_SAMPLE_FALLING);
- 		buscfg->bus.parallel.hs_pol =
--			!!(vep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
-+			!!(vep->bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
- 		buscfg->bus.parallel.vs_pol =
--			!!(vep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
-+			!!(vep->bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
- 		buscfg->bus.parallel.fld_pol =
--			!!(vep.bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
-+			!!(vep->bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
- 		buscfg->bus.parallel.data_pol =
--			!!(vep.bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
-+			!!(vep->bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
- 		break;
- 
- 	case ISP_OF_PHY_CSIPHY1:
- 	case ISP_OF_PHY_CSIPHY2:
- 		/* FIXME: always assume CSI-2 for now. */
--		switch (vep.base.port) {
-+		switch (vep->base.port) {
- 		case ISP_OF_PHY_CSIPHY1:
- 			buscfg->interface = ISP_INTERFACE_CSI2C_PHY1;
- 			break;
-@@ -2052,18 +2049,18 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
- 			buscfg->interface = ISP_INTERFACE_CSI2A_PHY2;
- 			break;
- 		}
--		buscfg->bus.csi2.lanecfg.clk.pos = vep.bus.mipi_csi2.clock_lane;
-+		buscfg->bus.csi2.lanecfg.clk.pos = vep->bus.mipi_csi2.clock_lane;
- 		buscfg->bus.csi2.lanecfg.clk.pol =
--			vep.bus.mipi_csi2.lane_polarities[0];
-+			vep->bus.mipi_csi2.lane_polarities[0];
- 		dev_dbg(dev, "clock lane polarity %u, pos %u\n",
- 			buscfg->bus.csi2.lanecfg.clk.pol,
- 			buscfg->bus.csi2.lanecfg.clk.pos);
- 
- 		for (i = 0; i < ISP_CSIPHY2_NUM_DATA_LANES; i++) {
- 			buscfg->bus.csi2.lanecfg.data[i].pos =
--				vep.bus.mipi_csi2.data_lanes[i];
-+				vep->bus.mipi_csi2.data_lanes[i];
- 			buscfg->bus.csi2.lanecfg.data[i].pol =
--				vep.bus.mipi_csi2.lane_polarities[i + 1];
-+				vep->bus.mipi_csi2.lane_polarities[i + 1];
- 			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
- 				buscfg->bus.csi2.lanecfg.data[i].pol,
- 				buscfg->bus.csi2.lanecfg.data[i].pos);
-@@ -2079,55 +2076,14 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
- 
- 	default:
- 		dev_warn(dev, "%s: invalid interface %u\n",
--			 to_of_node(fwnode)->full_name, vep.base.port);
-+			 to_of_node(vep->base.local_fwnode)->full_name,
-+			 vep->base.port);
- 		break;
- 	}
- 
- 	return 0;
- }
- 
--static int isp_fwnodes_parse(struct device *dev,
--			     struct v4l2_async_notifier *notifier)
--{
--	struct fwnode_handle *fwnode = NULL;
--
--	notifier->subdevs = devm_kcalloc(
--		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
--	if (!notifier->subdevs)
--		return -ENOMEM;
--
--	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
--	       (fwnode = fwnode_graph_get_next_endpoint(
--			of_fwnode_handle(dev->of_node), fwnode))) {
--		struct isp_async_subdev *isd;
--
--		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
--		if (!isd)
--			goto error;
--
--		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
--
--		if (isp_fwnode_parse(dev, fwnode, isd))
--			goto error;
--
--		isd->asd.match.fwnode.fwnode =
--			fwnode_graph_get_remote_port_parent(fwnode);
--		if (!isd->asd.match.fwnode.fwnode) {
--			dev_warn(dev, "bad remote port parent\n");
--			goto error;
--		}
--
--		isd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
--		notifier->num_subdevs++;
--	}
--
--	return notifier->num_subdevs;
--
--error:
--	fwnode_handle_put(fwnode);
--	return -EINVAL;
--}
--
- static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
- 				     struct v4l2_subdev *subdev,
- 				     struct v4l2_async_subdev *asd)
-@@ -2210,7 +2166,9 @@ static int isp_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
--	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
-+	ret = v4l2_fwnode_endpoints_parse(
-+		&pdev->dev, &isp->notifier, sizeof(struct isp_async_subdev),
-+		isp_fwnode_parse);
- 	if (ret < 0)
- 		return ret;
- 
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index 2f2ae609c548..a852c1168d20 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -220,9 +220,6 @@ struct isp_device {
- 
- 	unsigned int sbl_resources;
- 	unsigned int subclk_resources;
--
--#define ISP_MAX_SUBDEVS		8
--	struct v4l2_subdev *subdevs[ISP_MAX_SUBDEVS];
- };
- 
- struct isp_async_subdev {
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index d4d7537011da..c3ad9e31e4cb 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -26,6 +26,7 @@
- #include <linux/string.h>
- #include <linux/types.h>
- 
-+#include <media/v4l2-async.h>
- #include <media/v4l2-fwnode.h>
- 
- static int v4l2_fwnode_endpoint_parse_csi_bus(
-@@ -339,6 +340,99 @@ void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link)
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_put_link);
- 
-+static int notifier_realloc(struct device *dev,
-+			    struct v4l2_async_notifier *notifier,
-+			    unsigned int max_subdevs)
-+{
-+	struct v4l2_async_subdev **subdevs;
-+	unsigned int i;
-+
-+	if (max_subdevs <= notifier->max_subdevs)
-+		return 0;
-+
-+	subdevs = devm_kcalloc(
-+		dev, max_subdevs, sizeof(*notifier->subdevs), GFP_KERNEL);
-+	if (!subdevs)
-+		return -ENOMEM;
-+
-+	if (notifier->subdevs) {
-+		for (i = 0; i < notifier->num_subdevs; i++)
-+			subdevs[i] = notifier->subdevs[i];
-+
-+		devm_kfree(dev, notifier->subdevs);
-+	}
-+
-+	notifier->subdevs = subdevs;
-+	notifier->max_subdevs = max_subdevs;
-+
-+	return 0;
-+}
-+
-+int v4l2_fwnode_endpoints_parse(
-+	struct device *dev, struct v4l2_async_notifier *notifier,
-+	size_t asd_struct_size,
-+	int (*parse_single)(struct device *dev,
-+			    struct v4l2_fwnode_endpoint *vep,
-+			    struct v4l2_async_subdev *asd))
-+{
-+	struct fwnode_handle *fwnode = NULL;
-+	unsigned int max_subdevs = notifier->max_subdevs;
-+	int ret;
-+
-+	if (asd_struct_size < sizeof(struct v4l2_async_subdev))
-+		return -EINVAL;
-+
-+	while ((fwnode = fwnode_graph_get_next_endpoint(dev_fwnode(dev),
-+							fwnode)))
-+		max_subdevs++;
-+
-+	ret = notifier_realloc(dev, notifier, max_subdevs);
-+	if (ret)
-+		return ret;
-+
-+	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
-+				     dev_fwnode(dev), fwnode)) &&
-+		     !WARN_ON(notifier->num_subdevs >= notifier->max_subdevs);
-+		) {
-+		struct v4l2_fwnode_endpoint *vep;
-+		struct v4l2_async_subdev *asd;
-+
-+		asd = devm_kzalloc(dev, asd_struct_size, GFP_KERNEL);
-+		if (!asd) {
-+			ret = -ENOMEM;
-+			goto error;
-+		}
-+
-+		notifier->subdevs[notifier->num_subdevs] = asd;
-+
-+		/* Ignore endpoints the parsing of which failed. */
-+		vep = v4l2_fwnode_endpoint_alloc_parse(fwnode);
-+		if (IS_ERR(vep))
-+			continue;
-+
-+		ret = parse_single(dev, vep, asd);
-+		v4l2_fwnode_endpoint_free(vep);
-+		if (ret)
-+			goto error;
-+
-+		asd->match.fwnode.fwnode =
-+			fwnode_graph_get_remote_port_parent(fwnode);
-+		if (!asd->match.fwnode.fwnode) {
-+			dev_warn(dev, "bad remote port parent\n");
-+			ret = -EINVAL;
-+			goto error;
-+		}
-+
-+		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-+		notifier->num_subdevs++;
-+	}
-+
-+error:
-+	fwnode_handle_put(fwnode);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoints_parse);
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
- MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 8c7519fce5b9..54eecf9c9d2f 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -78,7 +78,8 @@ struct v4l2_async_subdev {
- /**
-  * struct v4l2_async_notifier - v4l2_device notifier data
-  *
-- * @num_subdevs: number of subdevices
-+ * @num_subdevs: number of subdevices used in subdevs array
-+ * @max_subdevs: number of subdevices allocated in subdevs array
-  * @subdevs:	array of pointers to subdevice descriptors
-  * @v4l2_dev:	pointer to struct v4l2_device
-  * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
-@@ -90,6 +91,7 @@ struct v4l2_async_subdev {
-  */
- struct v4l2_async_notifier {
- 	unsigned int num_subdevs;
-+	unsigned int max_subdevs;
- 	struct v4l2_async_subdev **subdevs;
- 	struct v4l2_device *v4l2_dev;
- 	struct list_head waiting;
-diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-index bdbd785c3d38..6ba1a0bbc328 100644
---- a/include/media/v4l2-fwnode.h
-+++ b/include/media/v4l2-fwnode.h
-@@ -25,6 +25,8 @@
- #include <media/v4l2-mediabus.h>
- 
- struct fwnode_handle;
-+struct v4l2_async_notifier;
-+struct v4l2_async_subdev;
- 
- /**
-  * struct v4l2_fwnode_bus_mipi_csi2 - MIPI CSI-2 bus data structure
-@@ -101,4 +103,11 @@ int v4l2_fwnode_parse_link(const struct fwnode_handle *fwnode,
- 			   struct v4l2_fwnode_link *link);
- void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
- 
-+int v4l2_fwnode_endpoints_parse(
-+	struct device *dev, struct v4l2_async_notifier *notifier,
-+	size_t asd_struct_size,
-+	int (*parse_single)(struct device *dev,
-+			    struct v4l2_fwnode_endpoint *vep,
-+			    struct v4l2_async_subdev *asd));
-+
- #endif /* _V4L2_FWNODE_H */
--- 
-2.11.0
+[0[ https://www.spinics.net/lists/linux-leds/msg08015.html
+
+Best regards,
+Jacek Anaszewski
+
+On 07/18/2017 09:03 PM, Sakari Ailus wrote:
+> From: Sakari Ailus <sakari.ailus@iki.fi>
+> 
+> Add a LED flash class driver for the as3654a flash controller. A V4L2 flash
+> driver for it already exists (drivers/media/i2c/as3645a.c), and this driver
+> is based on that.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  MAINTAINERS                 |   6 +
+>  drivers/leds/Kconfig        |   8 +
+>  drivers/leds/Makefile       |   1 +
+>  drivers/leds/leds-as3645a.c | 742 ++++++++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 757 insertions(+)
+>  create mode 100644 drivers/leds/leds-as3645a.c
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 205d3977ac46..312be8939969 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -2106,6 +2106,12 @@ F:	arch/arm64/
+>  F:	Documentation/arm64/
+>  
+>  AS3645A LED FLASH CONTROLLER DRIVER
+> +M:	Sakari Ailus <sakari.ailus@iki.fi>
+> +L:	linux-leds@vger.kernel.org
+> +S:	Maintained
+> +F:	drivers/leds/leds-as3645a.c
+> +
+> +AS3645A LED FLASH CONTROLLER DRIVER
+>  M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>  L:	linux-media@vger.kernel.org
+>  T:	git git://linuxtv.org/media_tree.git
+> diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
+> index 594b24d410c3..bad3a4098104 100644
+> --- a/drivers/leds/Kconfig
+> +++ b/drivers/leds/Kconfig
+> @@ -58,6 +58,14 @@ config LEDS_AAT1290
+>  	help
+>  	 This option enables support for the LEDs on the AAT1290.
+>  
+> +config LEDS_AS3645A
+> +	tristate "AS3645A LED flash controller support"
+> +	depends on I2C && LEDS_CLASS_FLASH
+> +	help
+> +	  Enable LED flash class support for AS3645A LED flash
+> +	  controller. V4L2 flash API is provided as well if
+> +	  CONFIG_V4L2_FLASH_API is enabled.
+> +
+>  config LEDS_BCM6328
+>  	tristate "LED Support for Broadcom BCM6328"
+>  	depends on LEDS_CLASS
+> diff --git a/drivers/leds/Makefile b/drivers/leds/Makefile
+> index 909dae62ba05..7d7b26552923 100644
+> --- a/drivers/leds/Makefile
+> +++ b/drivers/leds/Makefile
+> @@ -8,6 +8,7 @@ obj-$(CONFIG_LEDS_TRIGGERS)		+= led-triggers.o
+>  # LED Platform Drivers
+>  obj-$(CONFIG_LEDS_88PM860X)		+= leds-88pm860x.o
+>  obj-$(CONFIG_LEDS_AAT1290)		+= leds-aat1290.o
+> +obj-$(CONFIG_LEDS_AS3645A)		+= leds-as3645a.o
+>  obj-$(CONFIG_LEDS_BCM6328)		+= leds-bcm6328.o
+>  obj-$(CONFIG_LEDS_BCM6358)		+= leds-bcm6358.o
+>  obj-$(CONFIG_LEDS_BD2802)		+= leds-bd2802.o
+> diff --git a/drivers/leds/leds-as3645a.c b/drivers/leds/leds-as3645a.c
+> new file mode 100644
+> index 000000000000..b1dc32a3c620
+> --- /dev/null
+> +++ b/drivers/leds/leds-as3645a.c
+> @@ -0,0 +1,742 @@
+> +/*
+> + * drivers/leds/leds-as3645a.c - AS3645A and LM3555 flash controllers driver
+> + *
+> + * Copyright (C) 2008-2011 Nokia Corporation
+> + * Copyright (c) 2011, 2017 Intel Corporation.
+> + *
+> + * Based on drivers/media/i2c/as3645a.c.
+> + *
+> + * Contact: Sakari Ailus <sakari.ailus@iki.fi>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + */
+> +
+> +#include <linux/delay.h>
+> +#include <linux/gpio/consumer.h>
+> +#include <linux/i2c.h>
+> +#include <linux/led-class-flash.h>
+> +#include <linux/leds.h>
+> +#include <linux/module.h>
+> +#include <linux/mutex.h>
+> +#include <linux/of.h>
+> +#include <linux/pm_runtime.h>
+> +#include <linux/slab.h>
+> +
+> +#include <media/v4l2-flash-led-class.h>
+> +
+> +#define AS_TIMER_US_TO_CODE(t)			(((t) / 1000 - 100) / 50)
+> +#define AS_TIMER_CODE_TO_US(c)			((50 * (c) + 100) * 1000)
+> +
+> +/* Register definitions */
+> +
+> +/* Read-only Design info register: Reset state: xxxx 0001 */
+> +#define AS_DESIGN_INFO_REG			0x00
+> +#define AS_DESIGN_INFO_FACTORY(x)		(((x) >> 4))
+> +#define AS_DESIGN_INFO_MODEL(x)			((x) & 0x0f)
+> +
+> +/* Read-only Version control register: Reset state: 0000 0000
+> + * for first engineering samples
+> + */
+> +#define AS_VERSION_CONTROL_REG			0x01
+> +#define AS_VERSION_CONTROL_RFU(x)		(((x) >> 4))
+> +#define AS_VERSION_CONTROL_VERSION(x)		((x) & 0x0f)
+> +
+> +/* Read / Write	(Indicator and timer register): Reset state: 0000 1111 */
+> +#define AS_INDICATOR_AND_TIMER_REG		0x02
+> +#define AS_INDICATOR_AND_TIMER_TIMEOUT_SHIFT	0
+> +#define AS_INDICATOR_AND_TIMER_VREF_SHIFT	4
+> +#define AS_INDICATOR_AND_TIMER_INDICATOR_SHIFT	6
+> +
+> +/* Read / Write	(Current set register): Reset state: 0110 1001 */
+> +#define AS_CURRENT_SET_REG			0x03
+> +#define AS_CURRENT_ASSIST_LIGHT_SHIFT		0
+> +#define AS_CURRENT_LED_DET_ON			(1 << 3)
+> +#define AS_CURRENT_FLASH_CURRENT_SHIFT		4
+> +
+> +/* Read / Write	(Control register): Reset state: 1011 0100 */
+> +#define AS_CONTROL_REG				0x04
+> +#define AS_CONTROL_MODE_SETTING_SHIFT		0
+> +#define AS_CONTROL_STROBE_ON			(1 << 2)
+> +#define AS_CONTROL_OUT_ON			(1 << 3)
+> +#define AS_CONTROL_EXT_TORCH_ON			(1 << 4)
+> +#define AS_CONTROL_STROBE_TYPE_EDGE		(0 << 5)
+> +#define AS_CONTROL_STROBE_TYPE_LEVEL		(1 << 5)
+> +#define AS_CONTROL_COIL_PEAK_SHIFT		6
+> +
+> +/* Read only (D3 is read / write) (Fault and info): Reset state: 0000 x000 */
+> +#define AS_FAULT_INFO_REG			0x05
+> +#define AS_FAULT_INFO_INDUCTOR_PEAK_LIMIT	(1 << 1)
+> +#define AS_FAULT_INFO_INDICATOR_LED		(1 << 2)
+> +#define AS_FAULT_INFO_LED_AMOUNT		(1 << 3)
+> +#define AS_FAULT_INFO_TIMEOUT			(1 << 4)
+> +#define AS_FAULT_INFO_OVER_TEMPERATURE		(1 << 5)
+> +#define AS_FAULT_INFO_SHORT_CIRCUIT		(1 << 6)
+> +#define AS_FAULT_INFO_OVER_VOLTAGE		(1 << 7)
+> +
+> +/* Boost register */
+> +#define AS_BOOST_REG				0x0d
+> +#define AS_BOOST_CURRENT_DISABLE		(0 << 0)
+> +#define AS_BOOST_CURRENT_ENABLE			(1 << 0)
+> +
+> +/* Password register is used to unlock boost register writing */
+> +#define AS_PASSWORD_REG				0x0f
+> +#define AS_PASSWORD_UNLOCK_VALUE		0x55
+> +
+> +#define AS_NAME					"as3645a"
+> +#define AS_I2C_ADDR				(0x60 >> 1) /* W:0x60, R:0x61 */
+> +
+> +#define AS_FLASH_TIMEOUT_MIN			100000	/* us */
+> +#define AS_FLASH_TIMEOUT_MAX			850000
+> +#define AS_FLASH_TIMEOUT_STEP			50000
+> +
+> +#define AS_FLASH_INTENSITY_MIN			200000	/* uA */
+> +#define AS_FLASH_INTENSITY_MAX_1LED		500000
+> +#define AS_FLASH_INTENSITY_MAX_2LEDS		400000
+> +#define AS_FLASH_INTENSITY_STEP			20000
+> +
+> +#define AS_TORCH_INTENSITY_MIN			20000	/* uA */
+> +#define AS_TORCH_INTENSITY_MAX			160000
+> +#define AS_TORCH_INTENSITY_STEP			20000
+> +
+> +#define AS_INDICATOR_INTENSITY_MIN		0	/* uA */
+> +#define AS_INDICATOR_INTENSITY_MAX		10000
+> +#define AS_INDICATOR_INTENSITY_STEP		2500
+> +
+> +#define AS_PEAK_mA_MAX				2000
+> +#define AS_PEAK_mA_TO_REG(a) \
+> +	((min_t(u32, AS_PEAK_mA_MAX, a) - 1250) / 250)
+> +
+> +enum as_mode {
+> +	AS_MODE_EXT_TORCH = 0 << AS_CONTROL_MODE_SETTING_SHIFT,
+> +	AS_MODE_INDICATOR = 1 << AS_CONTROL_MODE_SETTING_SHIFT,
+> +	AS_MODE_ASSIST = 2 << AS_CONTROL_MODE_SETTING_SHIFT,
+> +	AS_MODE_FLASH = 3 << AS_CONTROL_MODE_SETTING_SHIFT,
+> +};
+> +
+> +struct as3645a_config {
+> +	u32 flash_timeout_us;
+> +	u32 flash_max_ua;
+> +	u32 assist_max_ua;
+> +	u32 indicator_max_ua;
+> +	u32 voltage_reference;
+> +	u32 peak;
+> +};
+> +
+> +struct as3645a {
+> +	struct i2c_client *client;
+> +
+> +	struct mutex mutex;
+> +
+> +	struct led_classdev_flash fled;
+> +	struct led_classdev iled_cdev;
+> +
+> +	struct v4l2_flash *vf;
+> +
+> +	struct as3645a_config cfg;
+> +
+> +	enum as_mode mode;
+> +	unsigned int timeout;
+> +	unsigned int flash_current;
+> +	unsigned int assist_current;
+> +	unsigned int indicator_current;
+> +	enum v4l2_flash_strobe_source strobe_source;
+> +};
+> +
+> +#define fled_to_as3645a(__fled) container_of(__fled, struct as3645a, fled)
+> +#define iled_cdev_to_as3645a(__iled_cdev) \
+> +	container_of(__iled_cdev, struct as3645a, iled_cdev)
+> +
+> +/* Return negative errno else zero on success */
+> +static int as3645a_write(struct as3645a *flash, u8 addr, u8 val)
+> +{
+> +	struct i2c_client *client = flash->client;
+> +	int rval;
+> +
+> +	rval = i2c_smbus_write_byte_data(client, addr, val);
+> +
+> +	dev_dbg(&client->dev, "Write Addr:%02X Val:%02X %s\n", addr, val,
+> +		rval < 0 ? "fail" : "ok");
+> +
+> +	return rval;
+> +}
+> +
+> +/* Return negative errno else a data byte received from the device. */
+> +static int as3645a_read(struct as3645a *flash, u8 addr)
+> +{
+> +	struct i2c_client *client = flash->client;
+> +	int rval;
+> +
+> +	rval = i2c_smbus_read_byte_data(client, addr);
+> +
+> +	dev_dbg(&client->dev, "Read Addr:%02X Val:%02X %s\n", addr, rval,
+> +		rval < 0 ? "fail" : "ok");
+> +
+> +	return rval;
+> +}
+> +
+> +/* -----------------------------------------------------------------------------
+> + * Hardware configuration and trigger
+> + */
+> +
+> +/**
+> + * as3645a_set_config - Set flash configuration registers
+> + * @flash: The flash
+> + *
+> + * Configure the hardware with flash, assist and indicator currents, as well as
+> + * flash timeout.
+> + *
+> + * Return 0 on success, or a negative error code if an I2C communication error
+> + * occurred.
+> + */
+> +static int as3645a_set_current(struct as3645a *flash)
+> +{
+> +	u8 val;
+> +
+> +	val = (flash->flash_current << AS_CURRENT_FLASH_CURRENT_SHIFT)
+> +	    | (flash->assist_current << AS_CURRENT_ASSIST_LIGHT_SHIFT)
+> +	    | AS_CURRENT_LED_DET_ON;
+> +
+> +	return as3645a_write(flash, AS_CURRENT_SET_REG, val);
+> +}
+> +
+> +static int as3645a_set_timeout(struct as3645a *flash)
+> +{
+> +	u8 val;
+> +
+> +	val = flash->timeout << AS_INDICATOR_AND_TIMER_TIMEOUT_SHIFT;
+> +
+> +	val |= (flash->cfg.voltage_reference
+> +		<< AS_INDICATOR_AND_TIMER_VREF_SHIFT)
+> +	    |  ((flash->indicator_current ? flash->indicator_current - 1 : 0)
+> +		 << AS_INDICATOR_AND_TIMER_INDICATOR_SHIFT);
+> +
+> +	return as3645a_write(flash, AS_INDICATOR_AND_TIMER_REG, val);
+> +}
+> +
+> +/**
+> + * as3645a_set_control - Set flash control register
+> + * @flash: The flash
+> + * @mode: Desired output mode
+> + * @on: Desired output state
+> + *
+> + * Configure the hardware with output mode and state.
+> + *
+> + * Return 0 on success, or a negative error code if an I2C communication error
+> + * occurred.
+> + */
+> +static int
+> +as3645a_set_control(struct as3645a *flash, enum as_mode mode, bool on)
+> +{
+> +	u8 reg;
+> +
+> +	/* Configure output parameters and operation mode. */
+> +	reg = (flash->cfg.peak << AS_CONTROL_COIL_PEAK_SHIFT)
+> +	    | (on ? AS_CONTROL_OUT_ON : 0)
+> +	    | mode;
+> +
+> +	if (mode == AS_MODE_FLASH &&
+> +	    flash->strobe_source == V4L2_FLASH_STROBE_SOURCE_EXTERNAL)
+> +		reg |= AS_CONTROL_STROBE_TYPE_LEVEL
+> +		    |  AS_CONTROL_STROBE_ON;
+> +
+> +	return as3645a_write(flash, AS_CONTROL_REG, reg);
+> +}
+> +
+> +static int as3645a_get_fault(struct led_classdev_flash *fled, u32 *fault)
+> +{
+> +	struct as3645a *flash = fled_to_as3645a(fled);
+> +	int rval;
+> +
+> +	/* NOTE: reading register clears fault status */
+> +	rval = as3645a_read(flash, AS_FAULT_INFO_REG);
+> +	if (rval < 0)
+> +		return rval;
+> +
+> +	if (rval & AS_FAULT_INFO_INDUCTOR_PEAK_LIMIT)
+> +		*fault |= LED_FAULT_OVER_CURRENT;
+> +
+> +	if (rval & AS_FAULT_INFO_INDICATOR_LED)
+> +		*fault |= LED_FAULT_INDICATOR;
+> +
+> +	dev_dbg(&flash->client->dev, "%u connected LEDs\n",
+> +		rval & AS_FAULT_INFO_LED_AMOUNT ? 2 : 1);
+> +
+> +	if (rval & AS_FAULT_INFO_TIMEOUT)
+> +		*fault |= LED_FAULT_TIMEOUT;
+> +
+> +	if (rval & AS_FAULT_INFO_OVER_TEMPERATURE)
+> +		*fault |= LED_FAULT_OVER_TEMPERATURE;
+> +
+> +	if (rval & AS_FAULT_INFO_SHORT_CIRCUIT)
+> +		*fault |= LED_FAULT_OVER_CURRENT;
+> +
+> +	if (rval & AS_FAULT_INFO_OVER_VOLTAGE)
+> +		*fault |= LED_FAULT_INPUT_VOLTAGE;
+> +
+> +	return rval;
+> +}
+> +
+> +static unsigned int __as3645a_current_to_reg(unsigned int min, unsigned int max,
+> +					     unsigned int step,
+> +					     unsigned int val)
+> +{
+> +	if (val < min)
+> +		val = min;
+> +
+> +	if (val > max)
+> +		val = max;
+> +
+> +	return (val - min) / step;
+> +}
+> +
+> +static unsigned int as3645a_current_to_reg(struct as3645a *flash, bool is_flash,
+> +					   unsigned int ua)
+> +{
+> +	if (is_flash)
+> +		return __as3645a_current_to_reg(AS_TORCH_INTENSITY_MIN,
+> +						flash->cfg.assist_max_ua,
+> +						AS_TORCH_INTENSITY_STEP, ua);
+> +	else
+> +		return __as3645a_current_to_reg(AS_FLASH_INTENSITY_MIN,
+> +						flash->cfg.flash_max_ua,
+> +						AS_FLASH_INTENSITY_STEP, ua);
+> +}
+> +
+> +static int as3645a_set_indicator_brightness(struct led_classdev *iled_cdev,
+> +					    enum led_brightness brightness)
+> +{
+> +	struct as3645a *flash = iled_cdev_to_as3645a(iled_cdev);
+> +	int rval;
+> +
+> +	flash->indicator_current = brightness;
+> +
+> +	rval = as3645a_set_timeout(flash);
+> +	if (rval)
+> +		return rval;
+> +
+> +	return as3645a_set_control(flash, AS_MODE_INDICATOR, brightness);
+> +}
+> +
+> +static int as3645a_set_assist_brightness(struct led_classdev *fled_cdev,
+> +					 enum led_brightness brightness)
+> +{
+> +	struct led_classdev_flash *fled = lcdev_to_flcdev(fled_cdev);
+> +	struct as3645a *flash = fled_to_as3645a(fled);
+> +	int rval;
+> +
+> +	if (brightness) {
+> +		/* Register value 0 is 20 mA. */
+> +		flash->assist_current = brightness - 1;
+> +
+> +		rval = as3645a_set_current(flash);
+> +		if (rval)
+> +			return rval;
+> +	}
+> +
+> +	return as3645a_set_control(flash, AS_MODE_ASSIST, brightness);
+> +}
+> +
+> +static int as3645a_set_flash_brightness(struct led_classdev_flash *fled,
+> +					u32 brightness_ua)
+> +{
+> +	struct as3645a *flash = fled_to_as3645a(fled);
+> +
+> +	flash->flash_current = as3645a_current_to_reg(flash, true, brightness_ua);
+> +
+> +	return as3645a_set_current(flash);
+> +}
+> +
+> +static int as3645a_set_flash_timeout(struct led_classdev_flash *fled,
+> +				     u32 timeout_us)
+> +{
+> +	struct as3645a *flash = fled_to_as3645a(fled);
+> +
+> +	flash->timeout = AS_TIMER_US_TO_CODE(timeout_us);
+> +
+> +	return as3645a_set_timeout(flash);
+> +}
+> +
+> +static int as3645a_set_strobe(struct led_classdev_flash *fled, bool state)
+> +{
+> +	struct as3645a *flash = fled_to_as3645a(fled);
+> +
+> +	return as3645a_set_control(flash, AS_MODE_FLASH, state);
+> +}
+> +
+> +static const struct led_flash_ops as3645a_led_flash_ops = {
+> +	.flash_brightness_set = as3645a_set_flash_brightness,
+> +	.timeout_set = as3645a_set_flash_timeout,
+> +	.strobe_set = as3645a_set_strobe,
+> +	.fault_get = as3645a_get_fault,
+> +};
+> +
+> +static int as3645a_setup(struct as3645a *flash)
+> +{
+> +	struct device *dev = &flash->client->dev;
+> +	u32 fault = 0;
+> +	int rval;
+> +
+> +	/* clear errors */
+> +	rval = as3645a_read(flash, AS_FAULT_INFO_REG);
+> +	if (rval < 0)
+> +		return rval;
+> +
+> +	dev_dbg(dev, "Fault info: %02x\n", rval);
+> +
+> +	rval = as3645a_set_current(flash);
+> +	if (rval < 0)
+> +		return rval;
+> +
+> +	rval = as3645a_set_timeout(flash);
+> +	if (rval < 0)
+> +		return rval;
+> +
+> +	rval = as3645a_set_control(flash, AS_MODE_INDICATOR, false);
+> +	if (rval < 0)
+> +		return rval;
+> +
+> +	/* read status */
+> +	rval = as3645a_get_fault(&flash->fled, &fault);
+> +	if (rval < 0)
+> +		return rval;
+> +
+> +	dev_dbg(dev, "AS_INDICATOR_AND_TIMER_REG: %02x\n",
+> +		as3645a_read(flash, AS_INDICATOR_AND_TIMER_REG));
+> +	dev_dbg(dev, "AS_CURRENT_SET_REG: %02x\n",
+> +		as3645a_read(flash, AS_CURRENT_SET_REG));
+> +	dev_dbg(dev, "AS_CONTROL_REG: %02x\n",
+> +		as3645a_read(flash, AS_CONTROL_REG));
+> +
+> +	return rval & ~AS_FAULT_INFO_LED_AMOUNT ? -EIO : 0;
+> +}
+> +
+> +static int as3645a_detect(struct as3645a *flash)
+> +{
+> +	struct device *dev = &flash->client->dev;
+> +	int rval, man, model, rfu, version;
+> +	const char *vendor;
+> +
+> +	rval = as3645a_read(flash, AS_DESIGN_INFO_REG);
+> +	if (rval < 0) {
+> +		dev_err(dev, "can't read design info reg\n");
+> +		return rval;
+> +	}
+> +
+> +	man = AS_DESIGN_INFO_FACTORY(rval);
+> +	model = AS_DESIGN_INFO_MODEL(rval);
+> +
+> +	rval = as3645a_read(flash, AS_VERSION_CONTROL_REG);
+> +	if (rval < 0) {
+> +		dev_err(dev, "can't read version control reg\n");
+> +		return rval;
+> +	}
+> +
+> +	rfu = AS_VERSION_CONTROL_RFU(rval);
+> +	version = AS_VERSION_CONTROL_VERSION(rval);
+> +
+> +	/* Verify the chip model and version. */
+> +	if (model != 0x01 || rfu != 0x00) {
+> +		dev_err(dev, "AS3645A not detected "
+> +			"(model %d rfu %d)\n", model, rfu);
+> +		return -ENODEV;
+> +	}
+> +
+> +	switch (man) {
+> +	case 1:
+> +		vendor = "AMS, Austria Micro Systems";
+> +		break;
+> +	case 2:
+> +		vendor = "ADI, Analog Devices Inc.";
+> +		break;
+> +	case 3:
+> +		vendor = "NSC, National Semiconductor";
+> +		break;
+> +	case 4:
+> +		vendor = "NXP";
+> +		break;
+> +	case 5:
+> +		vendor = "TI, Texas Instrument";
+> +		break;
+> +	default:
+> +		vendor = "Unknown";
+> +	}
+> +
+> +	dev_info(dev, "Chip vendor: %s (%d) Version: %d\n", vendor,
+> +		 man, version);
+> +
+> +	rval = as3645a_write(flash, AS_PASSWORD_REG, AS_PASSWORD_UNLOCK_VALUE);
+> +	if (rval < 0)
+> +		return rval;
+> +
+> +	return as3645a_write(flash, AS_BOOST_REG, AS_BOOST_CURRENT_DISABLE);
+> +}
+> +
+> +static __maybe_unused int as3645a_suspend(struct device *dev)
+> +{
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct as3645a *flash = i2c_get_clientdata(client);
+> +	int rval;
+> +
+> +	rval = as3645a_set_control(flash, AS_MODE_EXT_TORCH, false);
+> +
+> +	dev_dbg(dev, "Suspend %s\n", rval < 0 ? "failed" : "ok");
+> +
+> +	return rval;
+> +}
+> +
+> +static __maybe_unused int as3645a_resume(struct device *dev)
+> +{
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct as3645a *flash = i2c_get_clientdata(client);
+> +	int rval;
+> +
+> +	rval = as3645a_setup(flash);
+> +
+> +	dev_dbg(dev, "Resume %s\n", rval < 0 ? "fail" : "ok");
+> +
+> +	return rval;
+> +}
+> +
+> +static int as3645a_parse_node(struct as3645a *flash,
+> +			      struct device_node *node)
+> +{
+> +	struct as3645a_config *cfg = &flash->cfg;
+> +	struct device_node *child;
+> +	int rval;
+> +
+> +	child = of_get_child_by_name(node, "flash");
+> +	if (!child) {
+> +		dev_err(&flash->client->dev, "can't find flash node\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	rval = of_property_read_u32(child, "flash-timeout-us",
+> +				   &cfg->flash_timeout_us);
+> +	if (rval < 0) {
+> +		dev_err(&flash->client->dev,
+> +			"can't read flash-timeout-us property for flash\n");
+> +		goto out_err;
+> +	}
+> +
+> +	rval = of_property_read_u32(child, "flash-max-microamp",
+> +				   &cfg->flash_max_ua);
+> +	if (rval < 0) {
+> +		dev_err(&flash->client->dev,
+> +			"can't read flash-max-microamp property for flash\n");
+> +		goto out_err;
+> +	}
+> +
+> +	rval = of_property_read_u32(child, "led-max-microamp",
+> +				   &cfg->assist_max_ua);
+> +	if (rval < 0) {
+> +		dev_err(&flash->client->dev,
+> +			"can't read led-max-microamp property for flash\n");
+> +		goto out_err;
+> +	}
+> +
+> +	of_property_read_u32(child, "voltage-reference",
+> +			     &cfg->voltage_reference);
+> +
+> +	of_property_read_u32(child, "peak-current-limit", &cfg->peak);
+> +	cfg->peak = AS_PEAK_mA_TO_REG(cfg->peak);
+> +
+> +	of_node_put(child);
+> +
+> +	child = of_get_child_by_name(node, "indicator");
+> +	if (!child) {
+> +		dev_warn(&flash->client->dev,
+> +			 "can't find indicator node\n");
+> +		return 0;
+> +	}
+> +
+> +	rval = of_property_read_u32(child, "led-max-microamp",
+> +				   &cfg->indicator_max_ua);
+> +	if (rval < 0) {
+> +		dev_err(&flash->client->dev,
+> +			"can't read led-max-microamp property for indicator\n");
+> +		goto out_err;
+> +	}
+> +
+> +	of_node_put(child);
+> +
+> +	return 0;
+> +
+> +out_err:
+> +	of_node_put(child);
+> +
+> +	return rval;
+> +}
+> +
+> +static int as3645a_led_class_setup(struct as3645a *flash)
+> +{
+> +	struct led_classdev *fled_cdev = &flash->fled.led_cdev;
+> +	struct led_classdev *iled_cdev = &flash->iled_cdev;
+> +	struct led_flash_setting *cfg;
+> +	int rval;
+> +
+> +	iled_cdev->name = "as3645a indicator";
+> +	iled_cdev->brightness_set_blocking = as3645a_set_indicator_brightness;
+> +	iled_cdev->max_brightness =
+> +		flash->cfg.indicator_max_ua / AS_INDICATOR_INTENSITY_STEP;
+> +
+> +	rval = led_classdev_register(&flash->client->dev, iled_cdev);
+> +	if (rval < 0)
+> +		return rval;
+> +
+> +	cfg = &flash->fled.brightness;
+> +	cfg->min = AS_FLASH_INTENSITY_MIN;
+> +	cfg->max = flash->cfg.flash_max_ua;
+> +	cfg->step = AS_FLASH_INTENSITY_STEP;
+> +	cfg->val = flash->cfg.flash_max_ua;
+> +
+> +	cfg = &flash->fled.timeout;
+> +	cfg->min = AS_FLASH_TIMEOUT_MIN;
+> +	cfg->max = flash->cfg.flash_timeout_us;
+> +	cfg->step = AS_FLASH_TIMEOUT_STEP;
+> +	cfg->val = flash->cfg.flash_timeout_us;
+> +
+> +	flash->fled.ops = &as3645a_led_flash_ops;
+> +
+> +	fled_cdev->name = "as3645a flash";
+> +	fled_cdev->brightness_set_blocking = as3645a_set_assist_brightness;
+> +	/* Value 0 is off in LED class. */
+> +	fled_cdev->max_brightness =
+> +		as3645a_current_to_reg(flash, false,
+> +				       flash->cfg.assist_max_ua) + 1;
+> +	fled_cdev->flags = LED_DEV_CAP_FLASH;
+> +
+> +	rval = led_classdev_flash_register(&flash->client->dev, &flash->fled);
+> +	if (rval) {
+> +		led_classdev_unregister(iled_cdev);
+> +		dev_err(&flash->client->dev,
+> +			"led_classdev_flash_register() failed, error %d\n",
+> +			rval);
+> +	}
+> +
+> +	return rval;
+> +}
+> +
+> +static int as3645a_v4l2_setup(struct as3645a *flash)
+> +{
+> +	struct led_classdev_flash *fled = &flash->fled;
+> +	struct led_classdev *led = &fled->led_cdev;
+> +	struct v4l2_flash_config cfg = {
+> +		.torch_intensity = {
+> +			.min = AS_TORCH_INTENSITY_MIN,
+> +			.max = flash->cfg.assist_max_ua,
+> +			.step = AS_TORCH_INTENSITY_STEP,
+> +			.val = flash->cfg.assist_max_ua,
+> +		},
+> +		.indicator_intensity = {
+> +			.min = AS_INDICATOR_INTENSITY_MIN,
+> +			.max = flash->cfg.indicator_max_ua,
+> +			.step = AS_INDICATOR_INTENSITY_STEP,
+> +			.val = flash->cfg.indicator_max_ua,
+> +		},
+> +	};
+> +
+> +	strlcpy(cfg.dev_name, led->name, sizeof(cfg.dev_name));
+> +
+> +	flash->vf = v4l2_flash_init(&flash->client->dev, NULL, &flash->fled,
+> +				    &flash->iled_cdev, NULL, &cfg);
+> +	if (IS_ERR(flash->vf))
+> +		return PTR_ERR(flash->vf);
+> +
+> +	return 0;
+> +}
+> +
+> +static int as3645a_probe(struct i2c_client *client)
+> +{
+> +	struct as3645a *flash;
+> +	int rval;
+> +
+> +	if (client->dev.of_node == NULL)
+> +		return -ENODEV;
+> +
+> +	flash = devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
+> +	if (flash == NULL)
+> +		return -ENOMEM;
+> +
+> +	flash->client = client;
+> +
+> +	rval = as3645a_parse_node(flash, client->dev.of_node);
+> +	if (rval < 0)
+> +		return rval;
+> +
+> +	rval = as3645a_detect(flash);
+> +	if (rval < 0)
+> +		return rval;
+> +
+> +	mutex_init(&flash->mutex);
+> +	i2c_set_clientdata(client, flash);
+> +
+> +	rval = as3645a_setup(flash);
+> +	if (rval)
+> +		goto out_mutex_destroy;
+> +
+> +	rval = as3645a_led_class_setup(flash);
+> +	if (rval)
+> +		goto out_mutex_destroy;
+> +
+> +	rval = as3645a_v4l2_setup(flash);
+> +	if (rval)
+> +		goto out_led_classdev_flash_unregister;
+> +
+> +	return 0;
+> +
+> +out_led_classdev_flash_unregister:
+> +	led_classdev_flash_unregister(&flash->fled);
+> +
+> +out_mutex_destroy:
+> +	mutex_destroy(&flash->mutex);
+> +
+> +	return rval;
+> +}
+> +
+> +static int as3645a_remove(struct i2c_client *client)
+> +{
+> +	struct as3645a *flash = i2c_get_clientdata(client);
+> +
+> +	as3645a_set_control(flash, AS_MODE_EXT_TORCH, false);
+> +
+> +	v4l2_flash_release(flash->vf);
+> +
+> +	led_classdev_flash_unregister(&flash->fled);
+> +	led_classdev_unregister(&flash->iled_cdev);
+> +
+> +	mutex_destroy(&flash->mutex);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct of_device_id as3645a_of_table[] = {
+> +	{ .compatible = "ams,as3645a" },
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(of, as3645a_of_table);
+> +
+> +SIMPLE_DEV_PM_OPS(as3645a_pm_ops, as3645a_resume, as3645a_suspend);
+> +
+> +static struct i2c_driver as3645a_i2c_driver = {
+> +	.driver	= {
+> +		.of_match_table = as3645a_of_table,
+> +		.name = AS_NAME,
+> +		.pm   = &as3645a_pm_ops,
+> +	},
+> +	.probe_new	= as3645a_probe,
+> +	.remove	= as3645a_remove,
+> +};
+> +
+> +module_i2c_driver(as3645a_i2c_driver);
+> +
+> +MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
+> +MODULE_AUTHOR("Sakari Ailus <sakari.ailus@iki.fi>");
+> +MODULE_DESCRIPTION("LED flash driver for AS3645A, LM3555 and their clones");
+> +MODULE_LICENSE("GPL v2");
+> 
