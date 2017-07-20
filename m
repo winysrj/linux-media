@@ -1,61 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.60.111]:46991 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750848AbdGGJbG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 05:31:06 -0400
-Subject: Re: [PATCH v6 4/4] dt-bindings: media: Document Synopsys Designware
- HDMI RX
-To: Sylwester Nawrocki <snawrocki@kernel.org>,
-        Jose Abreu <Jose.Abreu@synopsys.com>
-References: <cover.1499176790.git.joabreu@synopsys.com>
- <d6da0a3ec47a46d30b74e9d41fb4bf9ef392d969.1499176790.git.joabreu@synopsys.com>
- <4dc8f06f-b9cf-6d3d-da88-51abb24c1724@kernel.org>
- <e87124d0-d523-5dcd-5ace-6b5896ad585c@synopsys.com>
- <b0ba8226-972e-a997-e456-c342603b2ffd@kernel.org>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        "Carlos Palminha" <CARLOS.PALMINHA@synopsys.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        <devicetree@vger.kernel.org>
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-Message-ID: <258a880c-8b4d-8201-b90a-44ed4d351daa@synopsys.com>
-Date: Fri, 7 Jul 2017 10:31:00 +0100
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:37661
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S965347AbdGTODP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 20 Jul 2017 10:03:15 -0400
+Date: Thu, 20 Jul 2017 11:03:08 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 11/14] v4l: vsp1: Add support for header display
+ lists in continuous mode
+Message-ID: <20170720110308.7572b061@vento.lan>
+In-Reply-To: <20170626181226.29575-12-laurent.pinchart+renesas@ideasonboard.com>
+References: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
+        <20170626181226.29575-12-laurent.pinchart+renesas@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <b0ba8226-972e-a997-e456-c342603b2ffd@kernel.org>
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06-07-2017 21:30, Sylwester Nawrocki wrote:
-> On 07/06/2017 12:24 PM, Jose Abreu wrote:
->>>> +- edid-phandle: phandle to the EDID handler block.
->>> Could you make this property optional and when it is missing assume that device
->>> corresponding to the parent node of this node handles EDID? This way we could
->>> avoid having property pointing to the parent node.
->> Hmm, this is for the CEC notifier. Do you mean I should grab the
->> parent device for the notifier? This property is already optional
->> if cec is not enabled though.
->  
-> Yes, device associated with the parent node. Something like:
->
->  - edid-phandle - phandle to the EDID handler block; if this property is
->   not specified it is assumed that EDID is handled by device described 
->   by parent node of the HDMI RX node
->
-> Not sure if it is any better than always requiring edid-phandle property,
-> even when it is pointing to the parent node. We would need a DT maintainer's
-> opinion on that.
+Em Mon, 26 Jun 2017 21:12:23 +0300
+Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com> escreveu:
 
-I will change and resend. I also have to fix a kbuild error when
-cec is not enabled.
+> The VSP supports both header and headerless display lists. The latter is
+> easier to use when the VSP feeds data directly to the DU in continuous
+> mode, and the driver thus uses headerless display lists for DU operation
+> and header display lists otherwise.
+> 
+> Headerless display lists are only available on WPF.0. This has never
+> been an issue so far, as only WPF.0 is connected to the DU. However, on
+> H3 ES2.0, the VSP-DL instance has both WPF.0 and WPF.1 connected to the
+> DU. We thus can't use headerless display lists unconditionally for DU
+> operation.
+> 
+> Implement support for continuous mode with header display lists, and use
+> it for DU operation on WPF outputs that don't support headerless mode.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-Best regards,
-Jose Miguel Abreu
+Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
->
-> --
-> Thanks,
-> Sylwester
+Thanks,
+Mauro
