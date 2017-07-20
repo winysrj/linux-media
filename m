@@ -1,353 +1,419 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:41727 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751898AbdGFI3n (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43142 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S934927AbdGTVzO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Jul 2017 04:29:43 -0400
-Subject: Re: [PATCH 03/12] [media] vb2: add in-fence support to QBUF
-To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
-References: <20170616073915.5027-1-gustavo@padovan.org>
- <20170616073915.5027-4-gustavo@padovan.org>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <396bc2f8-eea6-82d5-c3b5-b8c2514af853@xs4all.nl>
-Date: Thu, 6 Jul 2017 10:29:35 +0200
+        Thu, 20 Jul 2017 17:55:14 -0400
+Date: Fri, 21 Jul 2017 00:55:11 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Yong Zhi <yong.zhi@intel.com>
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
+        hyungwoo.yang@intel.com, jerry.w.hu@intel.com, arnd@arndb.de,
+        hch@lst.de, robin.murphy@arm.com, iommu@lists.linux-foundation.org,
+        Tomasz Figa <tfiga@chromium.org>
+Subject: Re: [PATCH v3 03/12] intel-ipu3: Add DMA API implementation
+Message-ID: <20170720215511.ejztqforel333uv5@valkosipuli.retiisi.org.uk>
+References: <1500433978-2350-1-git-send-email-yong.zhi@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20170616073915.5027-4-gustavo@padovan.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1500433978-2350-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/16/17 09:39, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Hi Yong,
+
+On Tue, Jul 18, 2017 at 10:12:58PM -0500, Yong Zhi wrote:
+> From: Tomasz Figa <tfiga@chromium.org>
 > 
-> Receive in-fence from userspace and add support for waiting on them
-> before queueing the buffer to the driver. Buffers are only queued
-> to the driver once they are ready. A buffer is ready when its
-> in-fence signals.
+> This patch adds support for the IPU3 DMA mapping API.
 > 
-> v2:
-> 	- fix vb2_queue_or_prepare_buf() ret check
-> 	- remove check for VB2_MEMORY_DMABUF only (Javier)
-> 	- check num of ready buffers to start streaming
-> 	- when queueing, start from the first ready buffer
-> 	- handle queue cancel
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
 > ---
->  drivers/media/Kconfig                    |  1 +
->  drivers/media/v4l2-core/videobuf2-core.c | 97 +++++++++++++++++++++++++-------
->  drivers/media/v4l2-core/videobuf2-v4l2.c | 15 ++++-
->  include/media/videobuf2-core.h           |  7 ++-
->  4 files changed, 99 insertions(+), 21 deletions(-)
+>  drivers/media/pci/intel/ipu3/Kconfig       |   8 +
+>  drivers/media/pci/intel/ipu3/Makefile      |   2 +-
+>  drivers/media/pci/intel/ipu3/ipu3-dmamap.c | 302 +++++++++++++++++++++++++++++
+>  drivers/media/pci/intel/ipu3/ipu3-dmamap.h |  22 +++
+>  4 files changed, 333 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-dmamap.c
+>  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-dmamap.h
 > 
-> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-> index 55d9c2b..3cd1d3d 100644
-> --- a/drivers/media/Kconfig
-> +++ b/drivers/media/Kconfig
-> @@ -11,6 +11,7 @@ config CEC_NOTIFIER
->  menuconfig MEDIA_SUPPORT
->  	tristate "Multimedia support"
->  	depends on HAS_IOMEM
-> +	select SYNC_FILE
-
-Is this the right place for this? Shouldn't this be selected in
-'config VIDEOBUF2_CORE'?
-
-Fences are specific to vb2 after all.
-
->  	help
->  	  If you want to use Webcams, Video grabber devices and/or TV devices
->  	  enable this option and other options below.
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index ea83126..29aa9d4 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1279,6 +1279,22 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
->  	return 0;
->  }
+> diff --git a/drivers/media/pci/intel/ipu3/Kconfig b/drivers/media/pci/intel/ipu3/Kconfig
+> index 7bcdfa5..d503806 100644
+> --- a/drivers/media/pci/intel/ipu3/Kconfig
+> +++ b/drivers/media/pci/intel/ipu3/Kconfig
+> @@ -24,3 +24,11 @@ config INTEL_IPU3_MMU
+>  	---help---
+>  	  For IPU3, this option enables its MMU driver to translate its internal
+>  	  virtual address to 39 bits wide physical address for 64GBytes space access.
+> +
+> +config INTEL_IPU3_DMAMAP
+> +	tristate
+> +	default n
+> +	select IOMMU_DMA
+> +	select IOMMU_IOVA
+> +	---help---
+> +	  This is IPU3 IOMMU domain specific DMA driver.
+> diff --git a/drivers/media/pci/intel/ipu3/Makefile b/drivers/media/pci/intel/ipu3/Makefile
+> index 91cac9c..6517732 100644
+> --- a/drivers/media/pci/intel/ipu3/Makefile
+> +++ b/drivers/media/pci/intel/ipu3/Makefile
+> @@ -13,4 +13,4 @@
 >  
-> +static int __get_num_ready_buffers(struct vb2_queue *q)
+>  obj-$(CONFIG_VIDEO_IPU3_CIO2) += ipu3-cio2.o
+>  obj-$(CONFIG_INTEL_IPU3_MMU) += ipu3-mmu.o
+> -
+> +obj-$(CONFIG_INTEL_IPU3_DMAMAP) += ipu3-dmamap.o
+> diff --git a/drivers/media/pci/intel/ipu3/ipu3-dmamap.c b/drivers/media/pci/intel/ipu3/ipu3-dmamap.c
+> new file mode 100644
+> index 0000000..86a0e15
+> --- /dev/null
+> +++ b/drivers/media/pci/intel/ipu3/ipu3-dmamap.c
+> @@ -0,0 +1,302 @@
+> +/*
+> + * Copyright (c) 2017 Intel Corporation.
+> + * Copyright (C) 2017 Google, Inc.
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License version
+> + * 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + */
+> +#include <linux/types.h>
+> +#include <linux/dma-iommu.h>
+> +#include <linux/dma-mapping.h>
+> +#include <linux/highmem.h>
+> +#include <linux/module.h>
+> +#include <linux/slab.h>
+> +#include <linux/version.h>
+> +#include <linux/vmalloc.h>
+> +#include "ipu3-mmu.h"
+> +
+> +/*
+> + * Based on arch/arm64/mm/dma-mapping.c, with simplifications possible due
+> + * to driver-specific character of this file.
+> + */
+> +
+> +static pgprot_t __get_dma_pgprot(unsigned long attrs, pgprot_t prot)
 > +{
-> +	struct vb2_buffer *vb;
-> +	int ready_count = 0;
-> +
-> +	/* count num of buffers ready in front of the queued_list */
-> +	list_for_each_entry(vb, &q->queued_list, queued_entry) {
-> +		if (vb->in_fence && !dma_fence_is_signaled(vb->in_fence))
-> +			break;
-
-Obviously the break is wrong as Mauro mentioned.
-
-> +
-> +		ready_count++;
-> +	}
-> +
-> +	return ready_count;
+> +	if (DMA_ATTR_NON_CONSISTENT & attrs)
+> +		return prot;
+> +	return pgprot_writecombine(prot);
 > +}
 > +
->  int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
->  {
->  	struct vb2_buffer *vb;
-> @@ -1324,8 +1340,15 @@ static int vb2_start_streaming(struct vb2_queue *q)
->  	 * If any buffers were queued before streamon,
->  	 * we can now pass them to driver for processing.
->  	 */
-> -	list_for_each_entry(vb, &q->queued_list, queued_entry)
-> +	list_for_each_entry(vb, &q->queued_list, queued_entry) {
-> +		if (vb->state != VB2_BUF_STATE_QUEUED)
-> +			continue;
-
-I think this test is unnecessary.
-
-> +
-> +		if (vb->in_fence && !dma_fence_is_signaled(vb->in_fence))
-> +			break;
-> +
->  		__enqueue_in_driver(vb);
-
-I would move the above test (after fixing it as Mauro said) to __enqueue_in_driver.
-I.e. if this is waiting for a fence then __enqueue_in_driver does nothing.
-
-> +	}
->  
->  	/* Tell the driver to start streaming */
->  	q->start_streaming_called = 1;
-> @@ -1369,33 +1392,55 @@ static int vb2_start_streaming(struct vb2_queue *q)
->  
->  static int __vb2_core_qbuf(struct vb2_buffer *vb, struct vb2_queue *q)
->  {
-> +	struct vb2_buffer *b;
->  	int ret;
->  
->  	/*
->  	 * If already streaming, give the buffer to driver for processing.
->  	 * If not, the buffer will be given to driver on next streamon.
->  	 */
-> -	if (q->start_streaming_called)
-> -		__enqueue_in_driver(vb);
->  
-> -	/*
-> -	 * If streamon has been called, and we haven't yet called
-> -	 * start_streaming() since not enough buffers were queued, and
-> -	 * we now have reached the minimum number of queued buffers,
-> -	 * then we can finally call start_streaming().
-> -	 */
-> -	if (q->streaming && !q->start_streaming_called &&
-> -	    q->queued_count >= q->min_buffers_needed) {
-> -		ret = vb2_start_streaming(q);
-> -		if (ret)
-> -			return ret;
-> +	if (q->start_streaming_called) {
-> +		list_for_each_entry(b, &q->queued_list, queued_entry) {
-> +			if (b->state != VB2_BUF_STATE_QUEUED)
-> +				continue;
-> +
-> +			if (b->in_fence && !dma_fence_is_signaled(b->in_fence))
-> +				break;
-
-Again, if this test is in __enqueue_in_driver, then you can keep the
-original code. Why would you need to loop over all buffers anyway?
-
-If a fence is ready then the callback will call this function for that
-buffer. Everything works fine AFAICT without looping over buffers here.
-
-> +
-> +			__enqueue_in_driver(b);
-> +		}
-> +	} else {
-> +		/*
-> +		 * If streamon has been called, and we haven't yet called
-> +		 * start_streaming() since not enough buffers were queued, and
-> +		 * we now have reached the minimum number of queued buffers
-> +		 * that are ready, then we can finally call start_streaming().
-> +		 */
-> +		if (q->streaming &&
-> +		    __get_num_ready_buffers(q) >= q->min_buffers_needed) {
-
-Just combine this with the 'else' to an 'else if'. Saves an extra level of
-indentation.
-
-To follow-up from Mauro's comment: having an 'else if' here is fine.
-
-> +			ret = vb2_start_streaming(q);
-> +			if (ret)
-> +				return ret;
-> +		}
->  	}
->  
->  	dprintk(1, "qbuf of buffer %d succeeded\n", vb->index);
->  	return 0;
->  }
->  
-> -int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
-> +static void vb2_qbuf_fence_cb(struct dma_fence *f, struct dma_fence_cb *cb)
+> +static void flush_page(struct device *dev, const void *virt, phys_addr_t phys)
 > +{
-> +	struct vb2_buffer *vb = container_of(cb, struct vb2_buffer, fence_cb);
-> +
-> +	dma_fence_put(vb->in_fence);
-> +	vb->in_fence = NULL;
-> +
-> +	__vb2_core_qbuf(vb, vb->vb2_queue);
+> +	/*
+> +	 * FIXME: Yes, casting to override the const specifier is ugly.
+> +	 * However, for some reason, this callback is intended to flush cache
+> +	 * for a page pointed to by a const pointer, even though the cach
+> +	 * flush operation by definition does not keep the affected memory
+> +	 * constant...
+> +	 */
+> +	clflush_cache_range((void *)virt, PAGE_SIZE);
+
+Hmm. Is this needed? The hardware is coherent --- apart from the MMU
+tables.
+
+Same for the flushes below.
+
 > +}
 > +
-> +int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
-> +		  struct dma_fence *fence)
->  {
->  	struct vb2_buffer *vb;
->  	int ret;
-> @@ -1436,6 +1481,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
->  	if (pb)
->  		call_void_bufop(q, fill_user_buffer, vb, pb);
->  
-> +	vb->in_fence = fence;
-> +	if (fence && !dma_fence_add_callback(fence, &vb->fence_cb,
-> +					     vb2_qbuf_fence_cb))
-> +		return 0;
-
-Shouldn't this return an error? How would userspace know this failed?
-
+> +static void *ipu3_dmamap_alloc(struct device *dev, size_t size,
+> +			       dma_addr_t *handle, gfp_t gfp,
+> +			       unsigned long attrs)
+> +{
+> +	int ioprot = dma_info_to_prot(DMA_BIDIRECTIONAL, false, attrs);
+> +	size_t iosize = size;
+> +	struct page **pages;
+> +	pgprot_t prot;
+> +	void *addr;
 > +
->  	return __vb2_core_qbuf(vb, q);
->  }
->  EXPORT_SYMBOL_GPL(vb2_core_qbuf);
-> @@ -1647,6 +1697,7 @@ EXPORT_SYMBOL_GPL(vb2_core_dqbuf);
->  static void __vb2_queue_cancel(struct vb2_queue *q)
->  {
->  	unsigned int i;
-> +	struct vb2_buffer *vb;
->  
->  	/*
->  	 * Tell driver to stop all transactions and release all queued
-> @@ -1669,6 +1720,14 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
->  		WARN_ON(atomic_read(&q->owned_by_drv_count));
->  	}
->  
-> +	list_for_each_entry(vb, &q->queued_list, queued_entry) {
-> +		if (vb->in_fence) {
-> +			dma_fence_remove_callback(vb->in_fence, &vb->fence_cb);
-> +			dma_fence_put(vb->in_fence);
-> +			vb->in_fence = NULL;
-> +		}
-> +	}
+> +	if (WARN(!dev, "cannot create IOMMU mapping for unknown device\n"))
+> +		return NULL;
 > +
->  	q->streaming = 0;
->  	q->start_streaming_called = 0;
->  	q->queued_count = 0;
-> @@ -1735,7 +1794,7 @@ int vb2_core_streamon(struct vb2_queue *q, unsigned int type)
->  	 * Tell driver to start streaming provided sufficient buffers
->  	 * are available.
->  	 */
-> -	if (q->queued_count >= q->min_buffers_needed) {
-> +	if (__get_num_ready_buffers(q) >= q->min_buffers_needed) {
->  		ret = v4l_vb2q_enable_media_source(q);
->  		if (ret)
->  			return ret;
-> @@ -2250,7 +2309,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
->  		 * Queue all buffers.
->  		 */
->  		for (i = 0; i < q->num_buffers; i++) {
-> -			ret = vb2_core_qbuf(q, i, NULL);
-> +			ret = vb2_core_qbuf(q, i, NULL, NULL);
->  			if (ret)
->  				goto err_reqbufs;
->  			fileio->bufs[i].queued = 1;
-> @@ -2429,7 +2488,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
->  
->  		if (copy_timestamp)
->  			b->timestamp = ktime_get_ns();
-> -		ret = vb2_core_qbuf(q, index, NULL);
-> +		ret = vb2_core_qbuf(q, index, NULL, NULL);
->  		dprintk(5, "vb2_dbuf result: %d\n", ret);
->  		if (ret)
->  			return ret;
-> @@ -2532,7 +2591,7 @@ static int vb2_thread(void *data)
->  		if (copy_timestamp)
->  			vb->timestamp = ktime_get_ns();;
->  		if (!threadio->stop)
-> -			ret = vb2_core_qbuf(q, vb->index, NULL);
-> +			ret = vb2_core_qbuf(q, vb->index, NULL, NULL);
->  		call_void_qop(q, wait_prepare, q);
->  		if (ret || threadio->stop)
->  			break;
-> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> index 110fb45..e6ad77f 100644
-> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> @@ -23,6 +23,7 @@
->  #include <linux/sched.h>
->  #include <linux/freezer.h>
->  #include <linux/kthread.h>
-> +#include <linux/sync_file.h>
->  
->  #include <media/v4l2-dev.h>
->  #include <media/v4l2-fh.h>
-> @@ -560,6 +561,7 @@ EXPORT_SYMBOL_GPL(vb2_create_bufs);
->  
->  int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->  {
-> +	struct dma_fence *fence = NULL;
->  	int ret;
->  
->  	if (vb2_fileio_is_active(q)) {
-> @@ -568,7 +570,18 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->  	}
->  
->  	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
-> -	return ret ? ret : vb2_core_qbuf(q, b->index, b);
+> +	if (WARN(!gfpflags_allow_blocking(gfp),
+> +		 "atomic allocations not supported\n") ||
+> +	    WARN((DMA_ATTR_FORCE_CONTIGUOUS & attrs),
+> +	         "contiguous allocations not supported\n"))
+> +		return NULL;
+> +
+> +	size = PAGE_ALIGN(size);
+> +
+> +	dev_dbg(dev, "%s: allocating %zu\n", __func__, size);
+> +
+> +	/*
+> +	 * Some drivers rely on this, and we probably don't want the
+> +	 * possibility of stale kernel data being read by devices anyway.
+> +	 */
+> +	gfp |= __GFP_ZERO;
+> +
+> +	/*
+> +	 * On x86, __GFP_DMA or __GFP_DMA32 might be added implicitly, based
+> +	 * on device DMA mask. However the mask does not apply to the IOMMU,
+> +	 * which is expected to be able to map any physical page.
+> +	 */
+> +	gfp &= ~(__GFP_DMA | __GFP_DMA32);
+> +
+> +	pages = iommu_dma_alloc(dev, iosize, gfp, attrs, ioprot,
+> +				handle, flush_page);
+> +	if (!pages)
+> +		return NULL;
+> +
+> +	prot = __get_dma_pgprot(attrs, PAGE_KERNEL);
+> +	addr = dma_common_pages_remap(pages, size, VM_USERMAP, prot,
+> +				      __builtin_return_address(0));
+> +	if (!addr)
+> +		iommu_dma_free(dev, pages, iosize, handle);
+> +
+> +	dev_dbg(dev, "%s: allocated %zu @ IOVA %pad @ VA %p\n",
+> +		__func__, size, handle, addr);
+> +
+> +	return addr;
+> +}
+> +
+> +static void ipu3_dmamap_free(struct device *dev, size_t size, void *cpu_addr,
+> +			     dma_addr_t handle, unsigned long attrs)
+> +{
+> +	struct page **pages;
+> +	size_t iosize = size;
+> +
+> +	size = PAGE_ALIGN(size);
+> +
+> +	pages = dma_common_get_mapped_pages(cpu_addr, VM_USERMAP);
+> +	if (WARN_ON(!pages))
+> +		return;
+> +
+> +	dev_dbg(dev, "%s: freeing %zu @ IOVA %pad @ VA %p\n",
+> +		__func__, size, &handle, cpu_addr);
+> +
+> +	iommu_dma_free(dev, pages, iosize, &handle);
+> +
+> +	dma_common_free_remap(cpu_addr, size, VM_USERMAP);
+> +}
+> +
+> +static int ipu3_dmamap_mmap(struct device *dev, struct vm_area_struct *vma,
+> +			    void *cpu_addr, dma_addr_t dma_addr, size_t size,
+> +			    unsigned long attrs)
+> +{
+> +	struct page **pages;
+> +
+> +	vma->vm_page_prot = __get_dma_pgprot(attrs, vma->vm_page_prot);
+> +
+> +	pages = dma_common_get_mapped_pages(cpu_addr, VM_USERMAP);
+> +	if (WARN_ON(!pages))
+> +		return -ENXIO;
+> +
+> +	return iommu_dma_mmap(pages, size, vma);
+> +}
+> +
+> +static int ipu3_dmamap_get_sgtable(struct device *dev, struct sg_table *sgt,
+> +				   void *cpu_addr, dma_addr_t dma_addr,
+> +				   size_t size, unsigned long attrs)
+> +{
+> +	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
+> +	struct page **pages;
+> +
+> +	pages = dma_common_get_mapped_pages(cpu_addr, VM_USERMAP);
+> +	if (WARN_ON(!pages))
+> +		return -ENXIO;
+> +
+> +	return sg_alloc_table_from_pages(sgt, pages, count, 0, size,
+> +					 GFP_KERNEL);
+> +}
+> +
+> +static void ipu3_dmamap_sync_single_for_cpu(struct device *dev,
+> +					dma_addr_t dev_addr, size_t size,
+> +					enum dma_data_direction dir)
+> +{
+> +	phys_addr_t phys;
+> +
+> +	phys = iommu_iova_to_phys(iommu_get_domain_for_dev(dev), dev_addr);
+> +	clflush_cache_range(phys_to_virt(phys), size);
+> +}
+> +
+> +static void ipu3_dmamap_sync_single_for_device(struct device *dev,
+> +					   dma_addr_t dev_addr, size_t size,
+> +					   enum dma_data_direction dir)
+> +{
+> +	phys_addr_t phys;
+> +
+> +	phys = iommu_iova_to_phys(iommu_get_domain_for_dev(dev), dev_addr);
+> +	clflush_cache_range(phys_to_virt(phys), size);
+> +}
+> +
+> +static dma_addr_t ipu3_dmamap_map_page(struct device *dev, struct page *page,
+> +				   unsigned long offset, size_t size,
+> +				   enum dma_data_direction dir,
+> +				   unsigned long attrs)
+> +{
+> +	int prot = dma_info_to_prot(dir, false, attrs);
+> +	dma_addr_t dev_addr = iommu_dma_map_page(dev, page, offset, size, prot);
+> +
+> +	if (!iommu_dma_mapping_error(dev, dev_addr) &&
+> +	    (DMA_ATTR_SKIP_CPU_SYNC & attrs) == 0)
+> +		ipu3_dmamap_sync_single_for_device(dev, dev_addr, size, dir);
+> +
+> +	return dev_addr;
+> +}
+> +
+> +static void ipu3_dmamap_unmap_page(struct device *dev, dma_addr_t dev_addr,
+> +			       size_t size, enum dma_data_direction dir,
+> +			       unsigned long attrs)
+> +{
+> +	if ((DMA_ATTR_SKIP_CPU_SYNC & attrs) == 0)
+> +		ipu3_dmamap_sync_single_for_cpu(dev, dev_addr, size, dir);
+> +
+> +	iommu_dma_unmap_page(dev, dev_addr, size, dir, attrs);
+> +}
+> +
+> +static void ipu3_dmamap_sync_sg_for_cpu(struct device *dev,
+> +				    struct scatterlist *sgl, int nelems,
+> +				    enum dma_data_direction dir)
+> +{
+> +	struct scatterlist *sg;
+> +	int i;
+> +
+> +	for_each_sg(sgl, sg, nelems, i)
+> +		clflush_cache_range(sg_virt(sg), sg->length);
+> +}
+> +
+> +static void ipu3_dmamap_sync_sg_for_device(struct device *dev,
+> +				       struct scatterlist *sgl, int nelems,
+> +				       enum dma_data_direction dir)
+> +{
+> +	struct scatterlist *sg;
+> +	int i;
+> +
+> +	for_each_sg(sgl, sg, nelems, i)
+> +		clflush_cache_range(sg_virt(sg), sg->length);
+> +}
+> +
+> +static int ipu3_dmamap_map_sg(struct device *dev, struct scatterlist *sgl,
+> +			      int nents, enum dma_data_direction dir,
+> +			      unsigned long attrs)
+> +{
+> +	if ((DMA_ATTR_SKIP_CPU_SYNC & attrs) == 0)
+> +		ipu3_dmamap_sync_sg_for_device(dev, sgl, nents, dir);
+> +
+> +	return iommu_dma_map_sg(dev, sgl, nents,
+> +				dma_info_to_prot(dir, false, attrs));
+> +}
+> +
+> +static void ipu3_dmamap_unmap_sg(struct device *dev, struct scatterlist *sgl,
+> +				 int nents, enum dma_data_direction dir,
+> +				 unsigned long attrs)
+> +{
+> +	if ((DMA_ATTR_SKIP_CPU_SYNC & attrs) == 0)
+> +		ipu3_dmamap_sync_sg_for_cpu(dev, sgl, nents, dir);
+> +
+> +	iommu_dma_unmap_sg(dev, sgl, nents, dir, attrs);
+> +}
+> +
+> +static struct dma_map_ops ipu3_dmamap_ops = {
+
+const?
+
+> +	.alloc = ipu3_dmamap_alloc,
+> +	.free = ipu3_dmamap_free,
+> +	.mmap = ipu3_dmamap_mmap,
+> +	.get_sgtable = ipu3_dmamap_get_sgtable,
+> +	.map_page = ipu3_dmamap_map_page,
+> +	.unmap_page = ipu3_dmamap_unmap_page,
+> +	.map_sg = ipu3_dmamap_map_sg,
+> +	.unmap_sg = ipu3_dmamap_unmap_sg,
+> +	.sync_single_for_cpu = ipu3_dmamap_sync_single_for_cpu,
+> +	.sync_single_for_device = ipu3_dmamap_sync_single_for_device,
+> +	.sync_sg_for_cpu = ipu3_dmamap_sync_sg_for_cpu,
+> +	.sync_sg_for_device = ipu3_dmamap_sync_sg_for_device,
+> +	.mapping_error = iommu_dma_mapping_error,
+> +};
+> +
+> +int ipu3_dmamap_init(struct device *dev, u64 dma_base, u64 size)
+> +{
+> +	struct iommu_domain *domain;
+> +	int ret;
+> +
+> +	ret = iommu_dma_init();
 > +	if (ret)
 > +		return ret;
 > +
-> +	if (b->flags & V4L2_BUF_FLAG_IN_FENCE) {
-> +		fence = sync_file_get_fence(b->fence_fd);
-> +		if (!fence) {
-> +			dprintk(1, "failed to get in-fence from fd\n");
-> +			return -EINVAL;
-> +		}
+> +	/*
+> +	 * The IOMMU core code allocates the default DMA domain, which the
+> +	 * underlying IOMMU driver needs to support via the dma-iommu layer.
+> +	 */
+> +	domain = iommu_get_domain_for_dev(dev);
+> +	if (!domain) {
+> +		pr_warn("Failed to get IOMMU domain for device %s\n",
+> +			dev_name(dev));
+> +		return -ENODEV;
 > +	}
 > +
-> +	return ret ? ret : vb2_core_qbuf(q, b->index, b, fence);
->  }
->  EXPORT_SYMBOL_GPL(vb2_qbuf);
->  
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index cb97c22..aa43e43 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -16,6 +16,7 @@
->  #include <linux/mutex.h>
->  #include <linux/poll.h>
->  #include <linux/dma-buf.h>
-> +#include <linux/dma-fence.h>
->  
->  #define VB2_MAX_FRAME	(32)
->  #define VB2_MAX_PLANES	(8)
-> @@ -259,6 +260,9 @@ struct vb2_buffer {
->  
->  	struct list_head	queued_entry;
->  	struct list_head	done_entry;
+> +	if (WARN(domain->type != IOMMU_DOMAIN_DMA, "device %s already managed?\n",
+> +		 dev_name(dev)))
+> +		return -EINVAL;
 > +
-> +	struct dma_fence	*in_fence;
-> +	struct dma_fence_cb	fence_cb;
->  #ifdef CONFIG_VIDEO_ADV_DEBUG
->  	/*
->  	 * Counters for how often these buffer-related ops are
-> @@ -727,7 +731,8 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
->   * The return values from this function are intended to be directly returned
->   * from vidioc_qbuf handler in driver.
->   */
-> -int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
-> +int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
-> +		  struct dma_fence *fence);
->  
->  /**
->   * vb2_core_dqbuf() - Dequeue a buffer to the userspace
-> 
+> +	ret = iommu_dma_init_domain(domain, dma_base, size, dev);
+> +	if (ret) {
+> +		pr_warn("Failed to init IOMMU domain for device %s\n",
+> +			dev_name(dev));
+> +		return ret;
+> +	}
+> +
+> +	dev->dma_ops = &ipu3_dmamap_ops;
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(ipu3_dmamap_init);
+> +
+> +void ipu3_dmamap_cleanup(struct device *dev)
+> +{
+> +	dev->dma_ops = &ipu3_dmamap_ops;
+> +	iommu_dma_cleanup();
+> +}
+> +EXPORT_SYMBOL_GPL(ipu3_dmamap_cleanup);
+> +
+> +MODULE_AUTHOR("Tomasz Figa <tfiga@chromium.org>");
+> +MODULE_LICENSE("GPL v2");
+> +MODULE_DESCRIPTION("IPU3 DMA mapping support");
+> diff --git a/drivers/media/pci/intel/ipu3/ipu3-dmamap.h b/drivers/media/pci/intel/ipu3/ipu3-dmamap.h
+> new file mode 100644
+> index 0000000..fe5d0a4
+> --- /dev/null
+> +++ b/drivers/media/pci/intel/ipu3/ipu3-dmamap.h
+> @@ -0,0 +1,22 @@
+> +/*
+> + * Copyright (c) 2017 Intel Corporation.
+> + * Copyright (C) 2017 Google, Inc.
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License version
+> + * 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + */
+> +
+> +#ifndef __IPU3_DMAMAP_H
+> +#define __IPU3_DMAMAP_H
+> +
+> +int ipu3_dmamap_init(struct device *dev, u64 dma_base, u64 size);
+> +void ipu3_dmamap_cleanup(struct device *dev);
+> +
+> +#endif
 
+-- 
 Regards,
 
-	Hans
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
