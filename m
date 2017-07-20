@@ -1,115 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f172.google.com ([209.85.128.172]:36485 "EHLO
-        mail-wr0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751059AbdGGO70 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 10:59:26 -0400
-Received: by mail-wr0-f172.google.com with SMTP id c11so50582802wrc.3
-        for <linux-media@vger.kernel.org>; Fri, 07 Jul 2017 07:59:25 -0700 (PDT)
-Subject: Re: [Patch v5 12/12] Documention: v4l: Documentation for HEVC CIDs
-To: Smitha T Murthy <smitha.t@samsung.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
- <CGME20170619052521epcas5p36a0bc384d10809dcfe775e6da87ed37b@epcas5p3.samsung.com>
- <1497849055-26583-13-git-send-email-smitha.t@samsung.com>
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <617cb1c5-074c-3f47-0096-fe7568dab8be@linaro.org>
-Date: Fri, 7 Jul 2017 17:59:21 +0300
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:37633
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S964918AbdGTOAt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 20 Jul 2017 10:00:49 -0400
+Date: Thu, 20 Jul 2017 11:00:41 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 09/14] v4l: vsp1: Add support for multiple LIF
+ instances
+Message-ID: <20170720110041.3a9e1ef9@vento.lan>
+In-Reply-To: <1a43853e-d33e-f990-255f-47e77fcc7573@ideasonboard.com>
+References: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
+        <20170626181226.29575-10-laurent.pinchart+renesas@ideasonboard.com>
+        <1a43853e-d33e-f990-255f-47e77fcc7573@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <1497849055-26583-13-git-send-email-smitha.t@samsung.com>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Thu, 13 Jul 2017 18:57:40 +0100
+Kieran Bingham <kieran.bingham@ideasonboard.com> escreveu:
 
-On 06/19/2017 08:10 AM, Smitha T Murthy wrote:
-> Added V4l2 controls for HEVC encoder
+> Hi Laurent,
 > 
-> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> ---
->  Documentation/media/uapi/v4l/extended-controls.rst | 364 +++++++++++++++++++++
->  1 file changed, 364 insertions(+)
+> On 26/06/17 19:12, Laurent Pinchart wrote:
+> > The VSP2-DL instance (present in the H3 ES2.0 and M3-N SoCs) has two LIF
+> > instances. Adapt the driver infrastructure to support multiple LIFs.
+> > Support for multiple display pipelines will be added separately.
+> > 
+> > The change to the entity routing table removes the ability to connect
+> > the LIF output to the HGO or HGT histogram generators. This feature is
+> > only available on Gen2 hardware, isn't supported by the rest of the
+> > driver, and has no known use case, so this isn't an issue.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>  
+> This looks good.
 > 
-> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-> index abb1057..7767c70 100644
-> --- a/Documentation/media/uapi/v4l/extended-controls.rst
-> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
-> @@ -1960,6 +1960,370 @@ enum v4l2_vp8_golden_frame_sel -
->      1, 2 and 3 corresponding to encoder profiles 0, 1, 2 and 3.
->  
->  
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-<cut>
+Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-> +``V4L2_CID_MPEG_VIDEO_HEVC_PROFILE``
-> +    (enum)
-> +
-> +enum v4l2_mpeg_video_hevc_profile -
-> +    Select the desired profile for HEVC encoder.
-> +
-> +.. raw:: latex
-> +
-> +    \begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> +
-> +.. flat-table::
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN``
-> +      - Main profile.
 
-MAIN10?
-
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE``
-> +      - Main still picture profile.
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}
-> +
-> +
-
-<cut>
-
-> +MFC 10.10 MPEG Controls
-> +-----------------------
-> +
-> +The following MPEG class controls deal with MPEG decoding and encoding
-> +settings that are specific to the Multi Format Codec 10.10 device present
-> +in the S5P and Exynos family of SoCs by Samsung.
-> +
-> +
-> +.. _mfc1010-control-id:
-> +
-> +MFC 10.10 Control IDs
-> +^^^^^^^^^^^^^^^^^^^^^
-> +
-> +``V4L2_CID_MPEG_MFC10_VIDEO_HEVC_REF_NUMBER_FOR_PFRAMES (integer)``
-> +    Selects number of P reference pictures required for HEVC encoder.
-> +    P-Frame can use 1 or 2 frames for reference.
-> +
-> +``V4L2_CID_MPEG_MFC10_VIDEO_HEVC_PREPEND_SPSPPS_TO_IDR (integer)``
-> +    Indicates whether to generate SPS and PPS at every IDR. Setting it to 0
-> +    disables generating SPS and PPS at every IDR. Setting it to one enables
-> +    generating SPS and PPS at every IDR.
-> +
-
-I'm not sure those two should be driver specific, have to check does
-venus driver has similar controls.
-
-> +
->  .. _camera-controls:
->  
->  Camera Control Reference
-> 
-
--- 
-regards,
-Stan
+Thanks,
+Mauro
