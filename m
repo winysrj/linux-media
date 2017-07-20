@@ -1,142 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:51331 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751403AbdGRN0I (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:39069 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933218AbdGTDmo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 09:26:08 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+        Wed, 19 Jul 2017 23:42:44 -0400
+Message-ID: <a222baed0d30b19300984f7d0a93c114@smtp-cloud2.xs4all.net>
+Date: Thu, 20 Jul 2017 05:42:38 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2] [media] platform: video-mux: convert to multiplexer framework
-Date: Tue, 18 Jul 2017 15:26:00 +0200
-Message-Id: <20170718132600.18117-1-p.zabel@pengutronix.de>
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that the multiplexer framework is merged, drop the temporary
-mmio-mux implementation from the video-mux driver and convert it to use
-the multiplexer API.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v1:
- - Select CONFIG_MULTIPLEXER.
----
- drivers/media/platform/Kconfig     |  1 +
- drivers/media/platform/video-mux.c | 53 +++++---------------------------------
- 2 files changed, 8 insertions(+), 46 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 1313cd5334360..9a07e98e5620c 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -76,6 +76,7 @@ config VIDEO_M32R_AR_M64278
- 
- config VIDEO_MUX
- 	tristate "Video Multiplexer"
-+	select MULTIPLEXER
- 	depends on OF && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
- 	select REGMAP
- 	help
-diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
-index 665744716f73b..ee89ad76bee23 100644
---- a/drivers/media/platform/video-mux.c
-+++ b/drivers/media/platform/video-mux.c
-@@ -17,8 +17,7 @@
- #include <linux/err.h>
- #include <linux/module.h>
- #include <linux/mutex.h>
--#include <linux/regmap.h>
--#include <linux/mfd/syscon.h>
-+#include <linux/mux/consumer.h>
- #include <linux/of.h>
- #include <linux/of_graph.h>
- #include <linux/platform_device.h>
-@@ -30,7 +29,7 @@ struct video_mux {
- 	struct v4l2_subdev subdev;
- 	struct media_pad *pads;
- 	struct v4l2_mbus_framefmt *format_mbus;
--	struct regmap_field *field;
-+	struct mux_control *mux;
- 	struct mutex lock;
- 	int active;
- };
-@@ -71,7 +70,7 @@ static int video_mux_link_setup(struct media_entity *entity,
- 		}
- 
- 		dev_dbg(sd->dev, "setting %d active\n", local->index);
--		ret = regmap_field_write(vmux->field, local->index);
-+		ret = mux_control_try_select(vmux->mux, local->index);
- 		if (ret < 0)
- 			goto out;
- 		vmux->active = local->index;
-@@ -80,6 +79,7 @@ static int video_mux_link_setup(struct media_entity *entity,
- 			goto out;
- 
- 		dev_dbg(sd->dev, "going inactive\n");
-+		mux_control_deselect(vmux->mux);
- 		vmux->active = -1;
- 	}
- 
-@@ -193,46 +193,6 @@ static const struct v4l2_subdev_ops video_mux_subdev_ops = {
- 	.video = &video_mux_subdev_video_ops,
- };
- 
--static int video_mux_probe_mmio_mux(struct video_mux *vmux)
--{
--	struct device *dev = vmux->subdev.dev;
--	struct of_phandle_args args;
--	struct reg_field field;
--	struct regmap *regmap;
--	u32 reg, mask;
--	int ret;
--
--	ret = of_parse_phandle_with_args(dev->of_node, "mux-controls",
--					 "#mux-control-cells", 0, &args);
--	if (ret)
--		return ret;
--
--	if (!of_device_is_compatible(args.np, "mmio-mux"))
--		return -EINVAL;
--
--	regmap = syscon_node_to_regmap(args.np->parent);
--	if (IS_ERR(regmap))
--		return PTR_ERR(regmap);
--
--	ret = of_property_read_u32_index(args.np, "mux-reg-masks",
--					 2 * args.args[0], &reg);
--	if (!ret)
--		ret = of_property_read_u32_index(args.np, "mux-reg-masks",
--						 2 * args.args[0] + 1, &mask);
--	if (ret < 0)
--		return ret;
--
--	field.reg = reg;
--	field.msb = fls(mask) - 1;
--	field.lsb = ffs(mask) - 1;
--
--	vmux->field = devm_regmap_field_alloc(dev, regmap, field);
--	if (IS_ERR(vmux->field))
--		return PTR_ERR(vmux->field);
--
--	return 0;
--}
--
- static int video_mux_probe(struct platform_device *pdev)
- {
- 	struct device_node *np = pdev->dev.of_node;
-@@ -270,8 +230,9 @@ static int video_mux_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
--	ret = video_mux_probe_mmio_mux(vmux);
--	if (ret) {
-+	vmux->mux = devm_mux_control_get(dev, NULL);
-+	if (IS_ERR(vmux->mux)) {
-+		ret = PTR_ERR(vmux->mux);
- 		if (ret != -EPROBE_DEFER)
- 			dev_err(dev, "Failed to get mux: %d\n", ret);
- 		return ret;
--- 
-2.11.0
+date:			Thu Jul 20 05:00:24 CEST 2017
+media-tree git hash:	8d935787d38f1c2bf689f64ecfe4581e05e5fe55
+media_build git hash:	bc1db0a204a87da86349ea5e64ae0d65e945609d
+v4l-utils git hash:	fd44413f67f9af2cd24ce83b8897b6824c7d8022
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.11.0-164
+
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: OK
+linux-git-arm-multi: ERRORS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
