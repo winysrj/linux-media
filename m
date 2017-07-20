@@ -1,83 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:41093 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755877AbdGKNaT (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:36698 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S933731AbdGTJSd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 09:30:19 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel <dri-devel@lists.freedesktop.org>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: [PATCH 0/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
-Date: Tue, 11 Jul 2017 15:30:08 +0200
-Message-Id: <20170711133011.41139-1-hverkuil@xs4all.nl>
+        Thu, 20 Jul 2017 05:18:33 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        "Hans Verkuil" <hverkuil@xs4all.nl>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre TORGUE <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        "Yannick FERTRE" <yannick.fertre@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 0/7] Add support of OV9655 camera
+Date: Thu, 20 Jul 2017 09:17:38 +0000
+Message-ID: <8050f688-fc6e-c3c0-460a-93ad3ae8d735@st.com>
+References: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com>
+ <8157da84-1484-8375-1f2b-9831973915b4@kernel.org>
+ <956f17e6-36dd-6733-0d35-9b801ed4244d@xs4all.nl>
+ <BCD1BD18-96E3-4638-8935-B5C832D8EE52@goldelico.com>
+ <2dd3402e-55b0-231d-878f-5ba95ee8cb36@st.com>
+ <20170718195223.zrqfrefxxzqfsojd@valkosipuli.retiisi.org.uk>
+ <AB91B71D-E34B-4645-BD70-A87226BA34C5@goldelico.com>
+In-Reply-To: <AB91B71D-E34B-4645-BD70-A87226BA34C5@goldelico.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <6EB4E3EF8784074DAD57E64B1F57A9ED@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-This patch series adds support for the DisplayPort CEC-Tunneling-over-AUX
-feature. This patch series is based on the latest mainline kernel (as of today)
-which has all the needed cec and drm 4.13 patches merged.
-
-This patch series has been tested with my NUC7i5BNK and a Samsung USB-C to 
-HDMI adapter.
-
-Please note this comment at the start of drm_dp_cec.c:
-
-----------------------------------------------------------------------
-Unfortunately it turns out that we have a chicken-and-egg situation
-here. Quite a few active (mini-)DP-to-HDMI or USB-C-to-HDMI adapters
-have a converter chip that supports CEC-Tunneling-over-AUX (usually the
-Parade PS176), but they do not wire up the CEC pin, thus making CEC
-useless.
-
-Sadly there is no way for this driver to know this. What happens is 
-that a /dev/cecX device is created that is isolated and unable to see
-any of the other CEC devices. Quite literally the CEC wire is cut
-(or in this case, never connected in the first place).
-
-I suspect that the reason so few adapters support this is that this
-tunneling protocol was never supported by any OS. So there was no 
-easy way of testing it, and no incentive to correctly wire up the
-CEC pin.
-
-Hopefully by creating this driver it will be easier for vendors to 
-finally fix their adapters and test the CEC functionality.
-
-I keep a list of known working adapters here:
-
-https://hverkuil.home.xs4all.nl/cec-status.txt
-
-Please mail me (hverkuil@xs4all.nl) if you find an adapter that works
-and is not yet listed there.
-----------------------------------------------------------------------
-
-I really hope that this work will provide an incentive for vendors to
-finally connect the CEC pin. It's a shame that there are so few adapters
-that work (I found only two USB-C to HDMI adapters that work, and no
-(mini-)DP to HDMI adapters at all).
-
-Daniel, I incorporated all your suggestions/comments from the RFC patch
-series from about 2 months ago.
-
-Regards,
-
-        Hans
-
-Hans Verkuil (3):
-  drm: add support for DisplayPort CEC-Tunneling-over-AUX
-  drm-kms-helpers.rst: document the DP CEC helpers
-  drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
-
- Documentation/gpu/drm-kms-helpers.rst |   9 +
- drivers/gpu/drm/Kconfig               |  10 ++
- drivers/gpu/drm/Makefile              |   1 +
- drivers/gpu/drm/drm_dp_cec.c          | 308 ++++++++++++++++++++++++++++++++++
- drivers/gpu/drm/i915/intel_dp.c       |  18 +-
- include/drm/drm_dp_helper.h           |  24 +++
- 6 files changed, 366 insertions(+), 4 deletions(-)
- create mode 100644 drivers/gpu/drm/drm_dp_cec.c
-
--- 
-2.11.0
+DQoNCk9uIDA3LzIwLzIwMTcgMTA6MzcgQU0sIEguIE5pa29sYXVzIFNjaGFsbGVyIHdyb3RlOg0K
+PiBIaSwNCj4gDQo+PiBBbSAxOC4wNy4yMDE3IHVtIDIxOjUyIHNjaHJpZWIgU2FrYXJpIEFpbHVz
+IDxzYWthcmkuYWlsdXNAaWtpLmZpPjoNCj4+DQo+PiBPbiBUdWUsIEp1bCAxOCwgMjAxNyBhdCAx
+Mjo1MzoxMlBNICswMDAwLCBIdWd1ZXMgRlJVQ0hFVCB3cm90ZToNCj4+Pg0KPj4+DQo+Pj4gT24g
+MDcvMTgvMjAxNyAwMjoxNyBQTSwgSC4gTmlrb2xhdXMgU2NoYWxsZXIgd3JvdGU6DQo+Pj4+IEhp
+LA0KPj4+Pg0KPj4+Pj4gQW0gMTguMDcuMjAxNyB1bSAxMzo1OSBzY2hyaWViIEhhbnMgVmVya3Vp
+bCA8aHZlcmt1aWxAeHM0YWxsLm5sPjoNCj4+Pj4+DQo+Pj4+PiBPbiAxMi8wNy8xNyAyMjowMSwg
+U3lsd2VzdGVyIE5hd3JvY2tpIHdyb3RlOg0KPj4+Pj4+IEhpIEh1Z3VlcywNCj4+Pj4+Pg0KPj4+
+Pj4+IE9uIDA3LzAzLzIwMTcgMTE6MTYgQU0sIEh1Z3VlcyBGcnVjaGV0IHdyb3RlOg0KPj4+Pj4+
+PiBUaGlzIHBhdGNoc2V0IGVuYWJsZXMgT1Y5NjU1IGNhbWVyYSBzdXBwb3J0Lg0KPj4+Pj4+Pg0K
+Pj4+Pj4+PiBPVjk2NTUgc3VwcG9ydCBoYXMgYmVlbiB0ZXN0ZWQgdXNpbmcgU1RNMzJGNERJUy1D
+QU0gZXh0ZW5zaW9uIGJvYXJkDQo+Pj4+Pj4+IHBsdWdnZWQgb24gY29ubmVjdG9yIFAxIG9mIFNU
+TTMyRjc0NkctRElTQ08gYm9hcmQuDQo+Pj4+Pj4+IER1ZSB0byBsYWNrIG9mIE9WOTY1MC81MiBo
+YXJkd2FyZSBzdXBwb3J0LCB0aGUgbW9kaWZpZWQgcmVsYXRlZCBjb2RlDQo+Pj4+Pj4+IGNvdWxk
+IG5vdCBoYXZlIGJlZW4gY2hlY2tlZCBmb3Igbm9uLXJlZ3Jlc3Npb24uDQo+Pj4+Pj4+DQo+Pj4+
+Pj4+IEZpcnN0IHBhdGNoZXMgdXBncmFkZSBjdXJyZW50IHN1cHBvcnQgb2YgT1Y5NjUwLzUyIHRv
+IHByZXBhcmUgdGhlbg0KPj4+Pj4+PiBpbnRyb2R1Y3Rpb24gb2YgT1Y5NjU1IHZhcmlhbnQgcGF0
+Y2guDQo+Pj4+Pj4+IEJlY2F1c2Ugb2YgT1Y5NjU1IHJlZ2lzdGVyIHNldCBzbGlnaHRseSBkaWZm
+ZXJlbnQgZnJvbSBPVjk2NTAvOTY1MiwNCj4+Pj4+Pj4gbm90IGFsbCBvZiB0aGUgZHJpdmVyIGZl
+YXR1cmVzIGFyZSBzdXBwb3J0ZWQgKGNvbnRyb2xzKS4gU3VwcG9ydGVkDQo+Pj4+Pj4+IHJlc29s
+dXRpb25zIGFyZSBsaW1pdGVkIHRvIFZHQSwgUVZHQSwgUVFWR0EuDQo+Pj4+Pj4+IFN1cHBvcnRl
+ZCBmb3JtYXQgaXMgbGltaXRlZCB0byBSR0I1NjUuDQo+Pj4+Pj4+IENvbnRyb2xzIGFyZSBsaW1p
+dGVkIHRvIGNvbG9yIGJhciB0ZXN0IHBhdHRlcm4gZm9yIHRlc3QgcHVycG9zZS4NCj4+Pj4+Pg0K
+Pj4+Pj4+IEkgYXBwcmVjaWF0ZSB5b3VyIGVmZm9ydHMgdG93YXJkcyBtYWtpbmcgYSBjb21tb24g
+ZHJpdmVyIGJ1dCBJTU8gaXQgd291bGQgYmUNCj4+Pj4+PiBiZXR0ZXIgdG8gY3JlYXRlIGEgc2Vw
+YXJhdGUgZHJpdmVyIGZvciB0aGUgT1Y5NjU1IHNlbnNvci4gIFRoZSBvcmlnaW5hbCBkcml2ZXIN
+Cj4+Pj4+PiBpcyAxNTc2IGxpbmVzIG9mIGNvZGUsIHlvdXIgcGF0Y2ggc2V0IGFkZHMgaGFsZiBv
+ZiB0aGF0ICg4MTYpLiAgVGhlcmUgYXJlDQo+Pj4+Pj4gc2lnbmlmaWNhbnQgZGlmZmVyZW5jZXMg
+aW4gdGhlIGZlYXR1cmUgc2V0IG9mIGJvdGggc2Vuc29ycywgdGhlcmUgYXJlDQo+Pj4+Pj4gZGlm
+ZmVyZW5jZXMgaW4gdGhlIHJlZ2lzdGVyIGxheW91dC4gIEkgd291bGQgZ28gZm9yIGEgc2VwYXJh
+dGUgZHJpdmVyLCB3ZQ0KPj4+Pj4+IHdvdWxkIHRoZW4gaGF2ZSBjb2RlIGVhc2llciB0byBmb2xs
+b3cgYW5kIHdvdWxkbid0IG5lZWQgdG8gd29ycnkgYWJvdXQgcG9zc2libGUNCj4+Pj4+PiByZWdy
+ZXNzaW9ucy4gIEknbSBhZnJhaWQgSSBoYXZlIGxvc3QgdGhlIGNhbWVyYSBtb2R1bGUgYW5kIHdv
+bid0IGJlIGFibGUNCj4+Pj4+PiB0byB0ZXN0IHRoZSBwYXRjaCBzZXQgYWdhaW5zdCByZWdyZXNz
+aW9ucy4NCj4+Pj4+Pg0KPj4+Pj4+IElNSE8gZnJvbSBtYWludGVuYW5jZSBQT1YgaXQncyBiZXR0
+ZXIgdG8gbWFrZSBhIHNlcGFyYXRlIGRyaXZlci4gSW4gdGhlIGVuZA0KPj4+Pj4+IG9mIHRoZSBk
+YXkgd2Ugd291bGRuJ3QgYmUgYWRkaW5nIG11Y2ggbW9yZSBjb2RlIHRoYW4gaXQgaXMgYmVpbmcg
+ZG9uZSBub3cuDQo+Pj4+Pg0KPj4+Pj4gSSBhZ3JlZS4gV2UgZG8gbm90IGhhdmUgZ3JlYXQgZXhw
+ZXJpZW5jZXMgaW4gdGhlIHBhc3Qgd2l0aCB0cnlpbmcgdG8gc3VwcG9ydA0KPj4+Pj4gbXVsdGlw
+bGUgdmFyaWFudHMgaW4gYSBzaW5nbGUgZHJpdmVyICh1bmxlc3MgdGhlIGRpZmZzIGFyZSB0cnVs
+eSBzbWFsbCkuDQo+Pj4+DQo+Pj4+IFdlbGwsDQo+Pj4+IElNSE8gdGhlIGRpZmZzIGluIG92OTY1
+eCBhcmUgc21hbGxlciAoYnV0IHVudGVzdGFibGUgYmVjYXVzZSBub2JvZHkgc2VlbXMNCj4+Pj4g
+dG8gaGF2ZSBhbiBvdjk2NTAvNTIgYm9hcmQpIHRoYW4gd2l0aGluIHRoZSBicTI3eHh4IGNoaXBz
+LCBidXQgSSBjYW4gZGlnIG91dA0KPj4+PiBhbiBvbGQgcGRhdGEgYmFzZWQgc2VwYXJhdGUgb3Y5
+NjU1IGRyaXZlciBhbmQgZXh0ZW5kIHRoYXQgdG8gYmVjb21lIERUIGNvbXBhdGlibGUuDQo+Pj4+
+DQo+Pj4+IEkgaGFkIGFiYW5kb25lZCB0aGF0IHNlcGFyYXRlIGFwcHJvYWNoIGluIGZhdm91ciBv
+ZiBleHRlbmRpbmcgdGhlIG92OTY1eCBkcml2ZXIuDQo+Pj4+DQo+Pj4+IEhhdmUgdG8gZGlzY3Vz
+cyB3aXRoIEh1Z3VlcyBob3cgdG8gcHJvY2VlZC4NCj4+Pj4NCj4+Pj4gQlIgYW5kIHRoYW5rcywN
+Cj4+Pj4gTmlrb2xhdXMNCj4+Pj4NCj4+Pg0KPj4+IEFzIFN5bHdlc3RlciBhbmQgSGFucywgSSdt
+IGFsc28gaW4gZmxhdm91ciBvZiBhIHNlcGFyYXRlIGRyaXZlciwgdGhlDQo+Pj4gZmFjdCB0aGF0
+IHJlZ2lzdGVyIHNldCBzZWVtcyBzaW1pbGFyIGJ1dCBpbiBmYWN0IGlzIG5vdCBhbmQgdGhhdCB3
+ZQ0KPj4+IGNhbm5vdCB0ZXN0IGZvciBub24tcmVncmVzc2lvbiBvZiA5NjUwLzUyIGFyZSBraWxs
+ZXIgZm9yIG1lIHRvIGNvbnRpbnVlDQo+Pj4gb24gYSBzaW5nbGUgZHJpdmVyLg0KPj4+IFdlIGNh
+biBub3cgcmVzdGFydCBmcm9tIGEgbmV3IGZyZXNoIHN0YXRlIG9mIHRoZSBhcnQgc2Vuc29yIGRy
+aXZlcg0KPj4+IGdldHRpbmcgcmlkIG9mIGxlZ2FjeSAocGRhdGEsIG9sZCBncGlvLCBldGMuLi4p
+Lg0KPj4NCj4+IEFncmVlZC4gSSBiZXQgdGhlIHJlc3VsdCB3aWxsIGxvb2sgY2xlYW5lciBpbmRl
+ZWQgYWx0aG91Z2ggdGhpcyB3YXNuJ3Qgb25lDQo+PiBvZiB0aGUgY29tcGxleCBkcml2ZXJzLg0K
+PiANCj4gSSBmaW5hbGx5IG1hbmFnZWQgdG8gZmluZCB0aGUgYnVnIHdoeSBtcGxheWVyIGRpZCBz
+ZWxlY3QtdGltZW91dCBvbiB0aGUgR1RBMDQuDQo+IFdhcyBhIGJ1ZyBpbiBwaW5tdXggc2V0dXAg
+b2YgdGhlIEdUQTA0IGZvciB0aGUgb21hcDNpc3AuDQo+IA0KPiBBbmQgSSBoYXZlIHJlc3VycmVj
+dGVkIG91ciB5ZWFycyBvbGQgMy4xMiBjYW1lcmEgZHJpdmVyLCB3aGljaCB3YXMgYmFzZWQgb24g
+dGhlDQo+IE1UOVAwMzEgY29kZS4gSXQgd2FzIGFscmVhZHkgc2VwYXJhdGUgZnJvbSBvdjk2NTAv
+NTIuDQo+IA0KPiBJIGhhdmUgZXh0ZW5kZWQgaXQgdG8gc3VwcG9ydCBEVCBieSBpbmNsdWRpbmcg
+c29tZSBwYXJ0cyBvZiBIdWd1ZXMnIHdvcmsuDQo+IA0KPiBJdCBzdGlsbCBuZWVkcyBzb21lIGNs
+ZWFudXAgYW5kIGRpc2N1c3Npb24gYnV0IHdpbGwgYmUgYSBzaW1wbGUgcGF0Y2ggKG9uZQ0KPiBm
+b3Igb3Y5NjU1LmMgKyBLY29uZmlnICsgTWFrZWZpbGUpIGFuZCBvbmUgZm9yIGJpbmRpbmdzIChJ
+IGhvcGUgaXQgaW5jbHVkZXMNCj4gYWxsIHlvdXIgY29tbWVudHMpLg0KPiANCj4gSSB3aWxsIHBv
+c3QgdjEgaW4gdGhlIG5leHQgZGF5cy4NCj4gDQo+IEJSLA0KPiBOaWtvbGF1cw0KPiANCg0KVGhh
+bmtzIE5pa29sYXVzLA0KDQpJIHdhcyByZWFkeSB0byBwdXNoIHRoZSBuZXcgdmVyc2lvbiBpbiBu
+ZXcgZmlsZSBvdjk2NTUuYyB3aXRoIGFsbCANCmNvbW1lbnRzIGluY2x1ZGVkLCBidXQgYXMgbXkg
+dmVyc2lvbiBpcyB2ZXJ5IG1pbmltYWwgYW5kIEkgc3VzcGVjdCB0aGF0IA0KeW91cnMgaXMgbW9y
+ZSBjb21wbGV0ZSwgbGV0J3MgbWVyZ2UgdGhpbmdzIHRvZ2V0aGVyLg0KQ2FuIEkgY29uc2lkZXIg
+dGhhdCB5b3Ugbm93IHRha2Ugb3duZXJzaGlwIG9mIHRoaXMgZHJpdmVyIHVwc3RyZWFtID8NCklm
+IHNvIEknbGwgc2VuZCB0byB5b3UgbXkgY3VycmVudCBwYXRjaHNldCBzbyB5b3UgY2FuIGNvbXBh
+cmUsIA0KZG91YmxlLWNoZWNrIHJldmlldyBjb21tZW50cyBhbmQgYWRkIG1pc3Npbmcgc3VwcG9y
+dCBvbiB5b3VyIHNpZGUgDQooUkdCNTY1IGFuZCBWR0EvUVZHQSByZXNvbHV0aW9uIG1hdHRlciBv
+biBteSBzaWRlKS4NCg0KVGhhbmtzIGFnYWluIE5pa29sYXVzIGZvciB0aGlzIHdvcmssDQoNCkJS
+LA0KSHVndWVzLg==
