@@ -1,124 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:54588 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755262AbdGKGav (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:38066
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S965158AbdGTPgt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 02:30:51 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 07/11] cec: document the new CEC pin capability, events and mode
-Date: Tue, 11 Jul 2017 08:30:40 +0200
-Message-Id: <20170711063044.29849-8-hverkuil@xs4all.nl>
-In-Reply-To: <20170711063044.29849-1-hverkuil@xs4all.nl>
-References: <20170711063044.29849-1-hverkuil@xs4all.nl>
+        Thu, 20 Jul 2017 11:36:49 -0400
+Date: Thu, 20 Jul 2017 12:36:41 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Ralph Metzler <rjkm@metzlerbros.de>
+Cc: Daniel Scheller <d.scheller.oss@gmail.com>,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        liplianin@netup.ru, crope@iki.fi,
+        "Jasmin J.\" <jasmin@anw.at>"@s-opensource.com
+Subject: Re: DD support improvements (was: Re: [PATCH v3 00/13]
+ stv0367/ddbridge: support CTv6/FlexCT hardware)
+Message-ID: <20170720123641.0395b0ac@vento.lan>
+In-Reply-To: <22885.5395.942193.897565@morden.metzler>
+References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
+        <20170412212327.5b75be19@macbox>
+        <20170507174212.2e45ab71@audiostation.wuest.de>
+        <20170528234537.3bed2dde@macbox>
+        <20170619221821.022fc473@macbox>
+        <20170620093645.6f72fd1a@vento.lan>
+        <20170620204121.4cff42d1@macbox>
+        <20170620161043.1e6a1364@vento.lan>
+        <20170621225712.426d3a17@audiostation.wuest.de>
+        <22860.14367.464168.657791@morden.metzler>
+        <20170624135001.5bcafb64@vento.lan>
+        <22864.55204.841821.456223@morden.metzler>
+        <20170626073944.1102ceb5@vento.lan>
+        <22885.5395.942193.897565@morden.metzler>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Tue, 11 Jul 2017 20:12:35 +0200
+Ralph Metzler <rjkm@metzlerbros.de> escreveu:
 
-Document CEC_CAP_MONITOR_PIN, CEC_EVENT_PIN_LOW/HIGH,
-CEC_EVENT_FL_DROPPED_EVENTS and CEC_MODE_MONITOR_PIN.
+> Mauro Carvalho Chehab writes:
+>  > Em Mon, 26 Jun 2017 11:45:08 +0200
+>  > Ralph Metzler <rjkm@metzlerbros.de> escreveu:
+>  >   
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst |  7 +++++++
- Documentation/media/uapi/cec/cec-ioc-dqevent.rst     | 20 ++++++++++++++++++++
- Documentation/media/uapi/cec/cec-ioc-g-mode.rst      | 19 +++++++++++++++++--
- 3 files changed, 44 insertions(+), 2 deletions(-)
+> > The media controller is generic enough to control all pipelines at
+>  > the hardware level. It can be used to select frontend inputs, to
+>  > dynamically add/remove CAM modules, etc.
+>  > 
+>  > If I remember well, in the case of the hardware I was working on that
+>  > time, each frontend had 3 inputs (and the hardware had 2 identical
+>  > sets of tuner/demod),  plus 3 MPEG-TS demuxes) and 2 CAM modules.
+>  > 
+>  > With the media controller, any arrangement between input, tuner,
+>  > demod, demux and CAM is possible, as long as supported by
+>  > the hardware.  
+> 
+> OK, for such complex arrangements it makes sense.
+> I just thought it to be overkill for just the input selection
 
-diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-index 6d7bf7bef3eb..882d6e025747 100644
---- a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-@@ -121,6 +121,13 @@ returns the information to the application. The ioctl never fails.
-         high. This makes it impossible to use CEC to wake up displays that
- 	set the HPD pin low when in standby mode, but keep the CEC bus
- 	alive.
-+    * .. _`CEC-CAP-MONITOR-PIN`:
-+
-+      - ``CEC_CAP_MONITOR_PIN``
-+      - 0x00000080
-+      - The CEC hardware can monitor CEC pin changes from low to high voltage
-+        and vice versa. When in pin monitoring mode the application will
-+	receive ``CEC_EVENT_PIN_LOW`` and ``CEC_EVENT_PIN_HIGH`` events.
- 
- 
- 
-diff --git a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-index 4d3570c2e0b3..3e2cd5fefd38 100644
---- a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-@@ -146,6 +146,20 @@ it is guaranteed that the state did change in between the two events.
-       - 2
-       - Generated if one or more CEC messages were lost because the
- 	application didn't dequeue CEC messages fast enough.
-+    * .. _`CEC-EVENT-PIN-LOW`:
-+
-+      - ``CEC_EVENT_PIN_LOW``
-+      - 3
-+      - Generated if the CEC pin goes from a high voltage to a low voltage.
-+        Only applies to adapters that have the ``CEC_CAP_MONITOR_PIN``
-+	capability set.
-+    * .. _`CEC-EVENT-PIN-HIGH`:
-+
-+      - ``CEC_EVENT_PIN_HIGH``
-+      - 4
-+      - Generated if the CEC pin goes from a low voltage to a high voltage.
-+        Only applies to adapters that have the ``CEC_CAP_MONITOR_PIN``
-+	capability set.
- 
- 
- .. tabularcolumns:: |p{6.0cm}|p{0.6cm}|p{10.9cm}|
-@@ -165,6 +179,12 @@ it is guaranteed that the state did change in between the two events.
- 	opened. See the table above for which events do this. This allows
- 	applications to learn the initial state of the CEC adapter at
- 	open() time.
-+    * .. _`CEC-EVENT-FL-DROPPED-EVENTS`:
-+
-+      - ``CEC_EVENT_FL_DROPPED_EVENTS``
-+      - 2
-+      - Set if one or more events of the given event type have been dropped.
-+        This is an indication that the application cannot keep up.
- 
- 
- 
-diff --git a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
-index 664f0d47bbcd..3e907c74338f 100644
---- a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
-@@ -149,13 +149,28 @@ Available follower modes are:
- 	code. You cannot become a follower if :ref:`CEC_CAP_TRANSMIT <CEC-CAP-TRANSMIT>`
- 	is not set or if :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>` was specified,
- 	the ``EINVAL`` error code is returned in that case.
-+    * .. _`CEC-MODE-MONITOR-PIN`:
-+
-+      - ``CEC_MODE_MONITOR_PIN``
-+      - 0xd0
-+      - Put the file descriptor into pin monitoring mode. Can only be used in
-+	combination with :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>`,
-+	otherwise the ``EINVAL`` error code will be returned.
-+	This mode requires that the :ref:`CEC_CAP_MONITOR_PIN <CEC-CAP-MONITOR-PIN>`
-+	capability is set, otherwise the ``EINVAL`` error code is returned.
-+	While in pin monitoring mode this file descriptor can receive the
-+	``CEC_EVENT_PIN_LOW`` and ``CEC_EVENT_PIN_HIGH`` events to see the
-+	low-level CEC pin transitions. This is very useful for debugging.
-+	This mode is only allowed if the process has the ``CAP_NET_ADMIN``
-+	capability. If that is not set, then the ``EPERM`` error code is returned.
-     * .. _`CEC-MODE-MONITOR`:
- 
-       - ``CEC_MODE_MONITOR``
-       - 0xe0
-       - Put the file descriptor into monitor mode. Can only be used in
--	combination with :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>`, otherwise EINVAL error
--	code will be returned. In monitor mode all messages this CEC
-+	combination with :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>`,i
-+	otherwise the ``EINVAL`` error code will be returned.
-+	In monitor mode all messages this CEC
- 	device transmits and all messages it receives (both broadcast
- 	messages and directed messages for one its logical addresses) will
- 	be reported. This is very useful for debugging. This is only
--- 
-2.11.0
+The media controller support is handled by the DVB core for the
+general case. The needed bits that would give the flexibility that
+ddbridge require shouldn't be hard to add.
+
+> and it also has to run on older kernels where th MC stuff is
+> not yet in the DVB core.
+
+The MC DVB support is there since jan/2015 (Kernel 3.20):
+
+commit a0246e02f466482a34c8ad94bedbe4efa498662d
+Author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Date:   Fri Jan 2 12:19:51 2015 -0300
+
+    [media] dvbdev: add support for media controller
+    
+    Provide a way to register media controller device nodes
+    at the DVB core.
+    
+    Please notice that the dvbdev callers also require changes
+    for the devices to be registered via the media controller.
+    
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+$ git describe a0246e02f4664
+media/v3.20-1-9-ga0246e02f466
+
+
+For older Kernels, there are a few ways to proceed:
+
+1) use an approach like media_build for the DD tree, where the
+   DVB core is replaced by a newer one. I guess it has support
+   since v2.6.30, at least for the core.
+
+2) Keep use the solution you have already, using ifdefs on your
+   tree to keep it supported with legacy Kernels.
+
+3) you could base DD trees at the backport tree:
+	https://backports.wiki.kernel.org/index.php/Main_Page
+   I never used it myself, but it should be covering the
+   media drivers there too.
+
+
+Thanks,
+Mauro
