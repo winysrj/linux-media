@@ -1,46 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46990 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753873AbdGMPpU (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:52489 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S936035AbdGTLbb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Jul 2017 11:45:20 -0400
-Date: Thu, 13 Jul 2017 18:45:10 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Philipp Guendisch <philipp.guendisch@fau.de>
-Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        alan@linux.intel.com, jeremy.lefaure@lse.epita.fr, fabf@skynet.be,
-        rvarsha016@gmail.com, chris.baller@gmx.de, robsonde@gmail.com,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org, linux-kernel@i4.cs.fau.de
-Subject: Re: [PATCH v2 2/2] staging: atomisp2: hmm: Alignment code (rebased)
-Message-ID: <20170713154510.qtbeuhw3lsw55zod@valkosipuli.retiisi.org.uk>
-References: <20170711152758.3azqdhfyeiyagtv7@valkosipuli.retiisi.org.uk>
- <1499928943-9133-1-git-send-email-philipp.guendisch@fau.de>
- <1499928943-9133-2-git-send-email-philipp.guendisch@fau.de>
+        Thu, 20 Jul 2017 07:31:31 -0400
+Subject: Re: [v3 1/2] media: platform: davinci: prepare for removal of
+ VPFE_CMD_S_CCDC_RAW_PARAMS ioctl
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        LMML <linux-media@vger.kernel.org>
+References: <1500540991-27430-1-git-send-email-prabhakar.csengg@gmail.com>
+ <1500540991-27430-2-git-send-email-prabhakar.csengg@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Sekhar Nori <nsekhar@ti.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2f4d77fb-cddd-9f8c-02c6-09f40213ec1c@xs4all.nl>
+Date: Thu, 20 Jul 2017 13:31:28 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1499928943-9133-2-git-send-email-philipp.guendisch@fau.de>
+In-Reply-To: <1500540991-27430-2-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 13, 2017 at 08:55:43AM +0200, Philipp Guendisch wrote:
-> This patch fixed code alignment to open paranthesis.
-> Semantic should not be affected by this patch.
+On 20/07/17 10:56, Lad, Prabhakar wrote:
+> preparing for removal of VPFE_CMD_S_CCDC_RAW_PARAMS ioctl from
+
+You don't really prepare for removal. You make sure VPFE_CMD_S_CCDC_RAW_PARAMS
+no longer works with a minimal patch suitable for backporting.
+
+> davicni vpfe_capture driver because of following reasons:
+
+davicni -> davinci
+
 > 
-> It has been rebased on top of media_tree atomisp branch
-> 
-> Signed-off-by: Philipp Guendisch <philipp.guendisch@fau.de>
-> Signed-off-by: Chris Baller <chris.baller@gmx.de>
+> - This ioctl was never in public api and was only defined in kernel header.
+> - The function set_params constantly mixes up pointers and phys_addr_t
+>   numbers.
+> - This is part of a 'VPFE_CMD_S_CCDC_RAW_PARAMS' ioctl command that is
+>   described as an 'experimental ioctl that will change in future kernels'.
+> - The code to allocate the table never gets called after we copy_from_user
+>   the user input over the kernel settings, and then compare them
+>   for inequality.
+> - We then go on to use an address provided by user space as both the
+>   __user pointer for input and pass it through phys_to_virt to come up
+>   with a kernel pointer to copy the data to. This looks like a trivially
+>   exploitable root hole.
 
-Hi Philipp,
+Add something like:
 
-Neither of the patches still applies?
+"Due to these reasons we make sure this ioctl now returns -EINVAL and backport
+this patch as far as possible."
 
-Are you sure you rebased them on the atomisp branch?
-
--- 
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+	Hans
+
+> 
+> Fixes: 5f15fbb68fd7 ("V4L/DVB (12251): v4l: dm644x ccdc module for vpfe capture driver")
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> ---
+>  drivers/media/platform/davinci/vpfe_capture.c | 22 ++--------------------
+>  1 file changed, 2 insertions(+), 20 deletions(-)
+> 
+> diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
+> index e3fe3e0..1831bf5 100644
+> --- a/drivers/media/platform/davinci/vpfe_capture.c
+> +++ b/drivers/media/platform/davinci/vpfe_capture.c
+> @@ -1719,27 +1719,9 @@ static long vpfe_param_handler(struct file *file, void *priv,
+>  
+>  	switch (cmd) {
+>  	case VPFE_CMD_S_CCDC_RAW_PARAMS:
+> +		ret = -EINVAL;
+>  		v4l2_warn(&vpfe_dev->v4l2_dev,
+> -			  "VPFE_CMD_S_CCDC_RAW_PARAMS: experimental ioctl\n");
+> -		if (ccdc_dev->hw_ops.set_params) {
+> -			ret = ccdc_dev->hw_ops.set_params(param);
+> -			if (ret) {
+> -				v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
+> -					"Error setting parameters in CCDC\n");
+> -				goto unlock_out;
+> -			}
+> -			ret = vpfe_get_ccdc_image_format(vpfe_dev,
+> -							 &vpfe_dev->fmt);
+> -			if (ret < 0) {
+> -				v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
+> -					"Invalid image format at CCDC\n");
+> -				goto unlock_out;
+> -			}
+> -		} else {
+> -			ret = -EINVAL;
+> -			v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
+> -				"VPFE_CMD_S_CCDC_RAW_PARAMS not supported\n");
+> -		}
+> +			"VPFE_CMD_S_CCDC_RAW_PARAMS not supported\n");
+>  		break;
+>  	default:
+>  		ret = -ENOTTY;
+> 
