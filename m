@@ -1,1444 +1,518 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:36540 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752470AbdGITm2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 15:42:28 -0400
-Received: by mail-wr0-f194.google.com with SMTP id 77so20374491wrb.3
-        for <linux-media@vger.kernel.org>; Sun, 09 Jul 2017 12:42:27 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, d_spingler@gmx.de, rjkm@metzlerbros.de
-Subject: [PATCH 02/14] [media] ddbridge: split code into multiple files
-Date: Sun,  9 Jul 2017 21:42:09 +0200
-Message-Id: <20170709194221.10255-3-d.scheller.oss@gmail.com>
-In-Reply-To: <20170709194221.10255-1-d.scheller.oss@gmail.com>
-References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:38389
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S935106AbdGTRVf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 20 Jul 2017 13:21:35 -0400
+Date: Thu, 20 Jul 2017 14:21:24 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org, jasmin@anw.at,
+        rjkm@metzlerbros.de
+Subject: Re: [PATCH v3 01/10] [media] dvb-frontends: add ST STV0910 DVB-S/S2
+ demodulator frontend driver
+Message-ID: <20170720142124.0363f432@vento.lan>
+In-Reply-To: <20170703172104.27283-2-d.scheller.oss@gmail.com>
+References: <20170703172104.27283-1-d.scheller.oss@gmail.com>
+        <20170703172104.27283-2-d.scheller.oss@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Em Mon,  3 Jul 2017 19:20:54 +0200
+Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
 
-As of 0.9.9b, the ddbridge code has been split from one single file
-(ddbridge-core.c) into multiple files, with the purpose of taking care of
-different topics, and to be able to reuse code in different kernel modules
-(ddbridge.ko and octonet.ko). This applies the same code split, with a
-notable difference:
+> From: Daniel Scheller <d.scheller@gmx.net>
+> 
+> This adds a multi frontend driver for the ST STV0910 DVB-S/S2 demodulator
+> frontends. The driver code originates from the Digital Devices' dddvb
+> vendor driver package as of version 0.9.29, and has been cleaned up from
+> core API usage which isn't supported yet in the kernel, and additionally
+> all obvious style issues have been resolved. All camel case and allcaps
+> have been converted to kernel_case and lowercase. Patches have been sent
+> to the vendor package maintainers to fix this aswell. Signal statistics
+> acquisition has been refactored to comply with standards.
+> 
+> Permission to reuse and mainline the driver code was formally granted by
+> Ralph Metzler <rjkm@metzlerbros.de>.
+> 
+> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+> Tested-by: Richard Scobie <r.scobie@clear.net.nz>
+> ---
+>  drivers/media/dvb-frontends/Kconfig        |    9 +
+>  drivers/media/dvb-frontends/Makefile       |    1 +
+>  drivers/media/dvb-frontends/stv0910.c      | 1702 ++++++++++
+>  drivers/media/dvb-frontends/stv0910.h      |   32 +
+>  drivers/media/dvb-frontends/stv0910_regs.h | 4759 ++++++++++++++++++++++++++++
+>  5 files changed, 6503 insertions(+)
+>  create mode 100644 drivers/media/dvb-frontends/stv0910.c
+>  create mode 100644 drivers/media/dvb-frontends/stv0910.h
+>  create mode 100644 drivers/media/dvb-frontends/stv0910_regs.h
+> 
+> diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
+> index 3a260b82b3e8..773de5e264e3 100644
+> --- a/drivers/media/dvb-frontends/Kconfig
+> +++ b/drivers/media/dvb-frontends/Kconfig
+> @@ -28,6 +28,15 @@ config DVB_STV090x
+>  	  DVB-S/S2/DSS Multistandard Professional/Broadcast demodulators.
+>  	  Say Y when you want to support these frontends.
+>  
+> +config DVB_STV0910
+> +	tristate "STV0910 based"
+> +	depends on DVB_CORE && I2C
+> +	default m if !MEDIA_SUBDRV_AUTOSELECT
+> +	help
+> +	  ST STV0910 DVB-S/S2 demodulator driver.
+> +
+> +	  Say Y when you want to support these frontends.
+> +
+>  config DVB_STV6110x
+>  	tristate "STV6110/(A) based tuners"
+>  	depends on DVB_CORE && I2C
+> diff --git a/drivers/media/dvb-frontends/Makefile b/drivers/media/dvb-frontends/Makefile
+> index 3fccaf34ef52..c302b2d07499 100644
+> --- a/drivers/media/dvb-frontends/Makefile
+> +++ b/drivers/media/dvb-frontends/Makefile
+> @@ -110,6 +110,7 @@ obj-$(CONFIG_DVB_CXD2820R) += cxd2820r.o
+>  obj-$(CONFIG_DVB_CXD2841ER) += cxd2841er.o
+>  obj-$(CONFIG_DVB_DRXK) += drxk.o
+>  obj-$(CONFIG_DVB_TDA18271C2DD) += tda18271c2dd.o
+> +obj-$(CONFIG_DVB_STV0910) += stv0910.o
+>  obj-$(CONFIG_DVB_SI2165) += si2165.o
+>  obj-$(CONFIG_DVB_A8293) += a8293.o
+>  obj-$(CONFIG_DVB_SP2) += sp2.o
+> diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
+> new file mode 100644
+> index 000000000000..9dfcaf5e067f
+> --- /dev/null
+> +++ b/drivers/media/dvb-frontends/stv0910.c
+> @@ -0,0 +1,1702 @@
+> +/*
+> + * Driver for the ST STV0910 DVB-S/S2 demodulator.
+> + *
+> + * Copyright (C) 2014-2015 Ralph Metzler <rjkm@metzlerbros.de>
+> + *                         Marcus Metzler <mocm@metzlerbros.de>
+> + *                         developed for Digital Devices GmbH
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 only, as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/moduleparam.h>
+> +#include <linux/init.h>
+> +#include <linux/delay.h>
+> +#include <linux/firmware.h>
+> +#include <linux/i2c.h>
+> +#include <asm/div64.h>
+> +
+> +#include "dvb_math.h"
+> +#include "dvb_frontend.h"
+> +#include "stv0910.h"
+> +#include "stv0910_regs.h"
+> +
+> +#define EXT_CLOCK    30000000
+> +#define TUNING_DELAY 200
+> +#define BER_SRC_S    0x20
+> +#define BER_SRC_S2   0x20
+> +
+> +LIST_HEAD(stvlist);
+> +
+> +enum receive_mode { RCVMODE_NONE, RCVMODE_DVBS, RCVMODE_DVBS2, RCVMODE_AUTO };
+> +
+> +enum dvbs2_fectype { DVBS2_64K, DVBS2_16K };
+> +
+> +enum dvbs2_mod_cod {
+> +	DVBS2_DUMMY_PLF, DVBS2_QPSK_1_4, DVBS2_QPSK_1_3, DVBS2_QPSK_2_5,
+> +	DVBS2_QPSK_1_2, DVBS2_QPSK_3_5, DVBS2_QPSK_2_3,	DVBS2_QPSK_3_4,
+> +	DVBS2_QPSK_4_5,	DVBS2_QPSK_5_6,	DVBS2_QPSK_8_9,	DVBS2_QPSK_9_10,
+> +	DVBS2_8PSK_3_5,	DVBS2_8PSK_2_3,	DVBS2_8PSK_3_4,	DVBS2_8PSK_5_6,
+> +	DVBS2_8PSK_8_9,	DVBS2_8PSK_9_10, DVBS2_16APSK_2_3, DVBS2_16APSK_3_4,
+> +	DVBS2_16APSK_4_5, DVBS2_16APSK_5_6, DVBS2_16APSK_8_9, DVBS2_16APSK_9_10,
+> +	DVBS2_32APSK_3_4, DVBS2_32APSK_4_5, DVBS2_32APSK_5_6, DVBS2_32APSK_8_9,
+> +	DVBS2_32APSK_9_10
+> +};
+> +
+> +enum fe_stv0910_mod_cod {
+> +	FE_DUMMY_PLF, FE_QPSK_14, FE_QPSK_13, FE_QPSK_25,
+> +	FE_QPSK_12, FE_QPSK_35, FE_QPSK_23, FE_QPSK_34,
+> +	FE_QPSK_45, FE_QPSK_56, FE_QPSK_89, FE_QPSK_910,
+> +	FE_8PSK_35, FE_8PSK_23, FE_8PSK_34, FE_8PSK_56,
+> +	FE_8PSK_89, FE_8PSK_910, FE_16APSK_23, FE_16APSK_34,
+> +	FE_16APSK_45, FE_16APSK_56, FE_16APSK_89, FE_16APSK_910,
+> +	FE_32APSK_34, FE_32APSK_45, FE_32APSK_56, FE_32APSK_89,
+> +	FE_32APSK_910
+> +};
+> +
+> +enum fe_stv0910_roll_off { FE_SAT_35, FE_SAT_25, FE_SAT_20, FE_SAT_15 };
+> +
+> +static inline u32 muldiv32(u32 a, u32 b, u32 c)
+> +{
+> +	u64 tmp64;
+> +
+> +	tmp64 = (u64)a * (u64)b;
+> +	do_div(tmp64, c);
+> +
+> +	return (u32) tmp64;
+> +}
+> +
+> +struct stv_base {
+> +	struct list_head     stvlist;
+> +
+> +	u8                   adr;
+> +	struct i2c_adapter  *i2c;
+> +	struct mutex         i2c_lock;
+> +	struct mutex         reg_lock;
+> +	int                  count;
+> +
+> +	u32                  extclk;
+> +	u32                  mclk;
+> +};
+> +
+> +struct stv {
+> +	struct stv_base     *base;
+> +	struct dvb_frontend  fe;
+> +	int                  nr;
+> +	u16                  regoff;
+> +	u8                   i2crpt;
+> +	u8                   tscfgh;
+> +	u8                   tsgeneral;
+> +	u8                   tsspeed;
+> +	u8                   single;
+> +	unsigned long        tune_time;
+> +
+> +	s32                  search_range;
+> +	u32                  started;
+> +	u32                  demod_lock_time;
+> +	enum receive_mode    receive_mode;
+> +	u32                  demod_timeout;
+> +	u32                  fec_timeout;
+> +	u32                  first_time_lock;
+> +	u8                   demod_bits;
+> +	u32                  symbol_rate;
+> +
+> +	u8                       last_viterbi_rate;
+> +	enum fe_code_rate        puncture_rate;
+> +	enum fe_stv0910_mod_cod  mod_cod;
+> +	enum dvbs2_fectype       fectype;
+> +	u32                      pilots;
+> +	enum fe_stv0910_roll_off feroll_off;
+> +
+> +	int   is_standard_broadcast;
+> +	int   is_vcm;
+> +
+> +	u32   last_bernumerator;
+> +	u32   last_berdenominator;
+> +	u8    berscale;
+> +
+> +	u8    vth[6];
+> +};
+> +
+> +struct sinit_table {
+> +	u16  address;
+> +	u8   data;
+> +};
+> +
+> +struct slookup {
+> +	s16  value;
+> +	u16  reg_value;
+> +};
+> +
+> +static inline int i2c_write(struct i2c_adapter *adap, u8 adr,
+> +			    u8 *data, int len)
+> +{
+> +	struct i2c_msg msg = {.addr = adr, .flags = 0,
+> +			      .buf = data, .len = len};
+> +
+> +	if (i2c_transfer(adap, &msg, 1) != 1) {
+> +		dev_warn(&adap->dev, "i2c write error ([%02x] %04x: %02x)\n",
+> +			adr, (data[0] << 8) | data[1],
+> +			(len > 2 ? data[2] : 0));
+> +		return -EREMOTEIO;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int i2c_write_reg16(struct i2c_adapter *adap, u8 adr, u16 reg, u8 val)
+> +{
+> +	u8 msg[3] = {reg >> 8, reg & 0xff, val};
+> +
+> +	return i2c_write(adap, adr, msg, 3);
+> +}
+> +
+> +static int write_reg(struct stv *state, u16 reg, u8 val)
+> +{
+> +	return i2c_write_reg16(state->base->i2c, state->base->adr, reg, val);
+> +}
+> +
+> +static inline int i2c_read_regs16(struct i2c_adapter *adapter, u8 adr,
+> +				 u16 reg, u8 *val, int count)
+> +{
+> +	u8 msg[2] = {reg >> 8, reg & 0xff};
+> +	struct i2c_msg msgs[2] = {{.addr = adr, .flags = 0,
+> +				   .buf  = msg, .len   = 2},
+> +				  {.addr = adr, .flags = I2C_M_RD,
+> +				   .buf  = val, .len   = count } };
+> +
+> +	if (i2c_transfer(adapter, msgs, 2) != 2) {
+> +		dev_warn(&adapter->dev, "i2c read error ([%02x] %04x)\n",
+> +			adr, reg);
+> +		return -EREMOTEIO;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int read_reg(struct stv *state, u16 reg, u8 *val)
+> +{
+> +	return i2c_read_regs16(state->base->i2c, state->base->adr,
+> +		reg, val, 1);
+> +}
+> +
+> +static int read_regs(struct stv *state, u16 reg, u8 *val, int len)
+> +{
+> +	return i2c_read_regs16(state->base->i2c, state->base->adr,
+> +			       reg, val, len);
+> +}
+> +
+> +static int write_shared_reg(struct stv *state, u16 reg, u8 mask, u8 val)
+> +{
+> +	int status;
+> +	u8 tmp;
+> +
+> +	mutex_lock(&state->base->reg_lock);
+> +	status = read_reg(state, reg, &tmp);
+> +	if (!status)
+> +		status = write_reg(state, reg, (tmp & ~mask) | (val & mask));
+> +	mutex_unlock(&state->base->reg_lock);
+> +	return status;
+> +}
+> +
+> +struct slookup s1_sn_lookup[] = {
+> +	{   0,    9242  },  /*C/N=  0dB*/
+> +	{   5,    9105  },  /*C/N=0.5dB*/
+> +	{  10,    8950  },  /*C/N=1.0dB*/
+> +	{  15,    8780  },  /*C/N=1.5dB*/
+> +	{  20,    8566  },  /*C/N=2.0dB*/
+> +	{  25,    8366  },  /*C/N=2.5dB*/
+> +	{  30,    8146  },  /*C/N=3.0dB*/
+> +	{  35,    7908  },  /*C/N=3.5dB*/
+> +	{  40,    7666  },  /*C/N=4.0dB*/
+> +	{  45,    7405  },  /*C/N=4.5dB*/
+> +	{  50,    7136  },  /*C/N=5.0dB*/
+> +	{  55,    6861  },  /*C/N=5.5dB*/
+> +	{  60,    6576  },  /*C/N=6.0dB*/
+> +	{  65,    6330  },  /*C/N=6.5dB*/
+> +	{  70,    6048  },  /*C/N=7.0dB*/
+> +	{  75,    5768  },  /*C/N=7.5dB*/
+> +	{  80,    5492  },  /*C/N=8.0dB*/
+> +	{  85,    5224  },  /*C/N=8.5dB*/
+> +	{  90,    4959  },  /*C/N=9.0dB*/
+> +	{  95,    4709  },  /*C/N=9.5dB*/
+> +	{  100,   4467  },  /*C/N=10.0dB*/
+> +	{  105,   4236  },  /*C/N=10.5dB*/
+> +	{  110,   4013  },  /*C/N=11.0dB*/
+> +	{  115,   3800  },  /*C/N=11.5dB*/
+> +	{  120,   3598  },  /*C/N=12.0dB*/
+> +	{  125,   3406  },  /*C/N=12.5dB*/
+> +	{  130,   3225  },  /*C/N=13.0dB*/
+> +	{  135,   3052  },  /*C/N=13.5dB*/
+> +	{  140,   2889  },  /*C/N=14.0dB*/
+> +	{  145,   2733  },  /*C/N=14.5dB*/
+> +	{  150,   2587  },  /*C/N=15.0dB*/
+> +	{  160,   2318  },  /*C/N=16.0dB*/
+> +	{  170,   2077  },  /*C/N=17.0dB*/
+> +	{  180,   1862  },  /*C/N=18.0dB*/
+> +	{  190,   1670  },  /*C/N=19.0dB*/
+> +	{  200,   1499  },  /*C/N=20.0dB*/
+> +	{  210,   1347  },  /*C/N=21.0dB*/
+> +	{  220,   1213  },  /*C/N=22.0dB*/
+> +	{  230,   1095  },  /*C/N=23.0dB*/
+> +	{  240,    992  },  /*C/N=24.0dB*/
+> +	{  250,    900  },  /*C/N=25.0dB*/
+> +	{  260,    826  },  /*C/N=26.0dB*/
+> +	{  270,    758  },  /*C/N=27.0dB*/
+> +	{  280,    702  },  /*C/N=28.0dB*/
+> +	{  290,    653  },  /*C/N=29.0dB*/
+> +	{  300,    613  },  /*C/N=30.0dB*/
+> +	{  310,    579  },  /*C/N=31.0dB*/
+> +	{  320,    550  },  /*C/N=32.0dB*/
+> +	{  330,    526  },  /*C/N=33.0dB*/
+> +	{  350,    490  },  /*C/N=33.0dB*/
+> +	{  400,    445  },  /*C/N=40.0dB*/
+> +	{  450,    430  },  /*C/N=45.0dB*/
+> +	{  500,    426  },  /*C/N=50.0dB*/
+> +	{  510,    425  }   /*C/N=51.0dB*/
+> +};
+> +
+> +struct slookup s2_sn_lookup[] = {
+> +	{  -30,  13950  },  /*C/N=-2.5dB*/
+> +	{  -25,  13580  },  /*C/N=-2.5dB*/
+> +	{  -20,  13150  },  /*C/N=-2.0dB*/
+> +	{  -15,  12760  },  /*C/N=-1.5dB*/
+> +	{  -10,  12345  },  /*C/N=-1.0dB*/
+> +	{   -5,  11900  },  /*C/N=-0.5dB*/
+> +	{    0,  11520  },  /*C/N=   0dB*/
+> +	{    5,  11080  },  /*C/N= 0.5dB*/
+> +	{   10,  10630  },  /*C/N= 1.0dB*/
+> +	{   15,  10210  },  /*C/N= 1.5dB*/
+> +	{   20,   9790  },  /*C/N= 2.0dB*/
+> +	{   25,   9390  },  /*C/N= 2.5dB*/
+> +	{   30,   8970  },  /*C/N= 3.0dB*/
+> +	{   35,   8575  },  /*C/N= 3.5dB*/
+> +	{   40,   8180  },  /*C/N= 4.0dB*/
+> +	{   45,   7800  },  /*C/N= 4.5dB*/
+> +	{   50,   7430  },  /*C/N= 5.0dB*/
+> +	{   55,   7080  },  /*C/N= 5.5dB*/
+> +	{   60,   6720  },  /*C/N= 6.0dB*/
+> +	{   65,   6320  },  /*C/N= 6.5dB*/
+> +	{   70,   6060  },  /*C/N= 7.0dB*/
+> +	{   75,   5760  },  /*C/N= 7.5dB*/
+> +	{   80,   5480  },  /*C/N= 8.0dB*/
+> +	{   85,   5200  },  /*C/N= 8.5dB*/
+> +	{   90,   4930  },  /*C/N= 9.0dB*/
+> +	{   95,   4680  },  /*C/N= 9.5dB*/
+> +	{  100,   4425  },  /*C/N=10.0dB*/
+> +	{  105,   4210  },  /*C/N=10.5dB*/
+> +	{  110,   3980  },  /*C/N=11.0dB*/
+> +	{  115,   3765  },  /*C/N=11.5dB*/
+> +	{  120,   3570  },  /*C/N=12.0dB*/
+> +	{  125,   3315  },  /*C/N=12.5dB*/
+> +	{  130,   3140  },  /*C/N=13.0dB*/
+> +	{  135,   2980  },  /*C/N=13.5dB*/
+> +	{  140,   2820  },  /*C/N=14.0dB*/
+> +	{  145,   2670  },  /*C/N=14.5dB*/
+> +	{  150,   2535  },  /*C/N=15.0dB*/
+> +	{  160,   2270  },  /*C/N=16.0dB*/
+> +	{  170,   2035  },  /*C/N=17.0dB*/
+> +	{  180,   1825  },  /*C/N=18.0dB*/
+> +	{  190,   1650  },  /*C/N=19.0dB*/
+> +	{  200,   1485  },  /*C/N=20.0dB*/
+> +	{  210,   1340  },  /*C/N=21.0dB*/
+> +	{  220,   1212  },  /*C/N=22.0dB*/
+> +	{  230,   1100  },  /*C/N=23.0dB*/
+> +	{  240,   1000  },  /*C/N=24.0dB*/
+> +	{  250,    910  },  /*C/N=25.0dB*/
+> +	{  260,    836  },  /*C/N=26.0dB*/
+> +	{  270,    772  },  /*C/N=27.0dB*/
+> +	{  280,    718  },  /*C/N=28.0dB*/
+> +	{  290,    671  },  /*C/N=29.0dB*/
+> +	{  300,    635  },  /*C/N=30.0dB*/
+> +	{  310,    602  },  /*C/N=31.0dB*/
+> +	{  320,    575  },  /*C/N=32.0dB*/
+> +	{  330,    550  },  /*C/N=33.0dB*/
+> +	{  350,    517  },  /*C/N=35.0dB*/
+> +	{  400,    480  },  /*C/N=40.0dB*/
+> +	{  450,    466  },  /*C/N=45.0dB*/
+> +	{  500,    464  },  /*C/N=50.0dB*/
+> +	{  510,    463  },  /*C/N=51.0dB*/
+> +};
+> +
+> +/*********************************************************************
+> + * Tracking carrier loop carrier QPSK 1/4 to 8PSK 9/10 long Frame
+> + *********************************************************************/
+> +static u8 s2car_loop[] =	{
+> +	/* Modcod  2MPon 2MPoff 5MPon 5MPoff 10MPon 10MPoff
+> +	 * 20MPon 20MPoff 30MPon 30MPoff
+> +	 */
 
-In the vendor package, the split was done by moving all code parts into
-separate files, and in the "main" code files (ddbridge.c and octonet.c),
-a simple "#include ddbridge-core.c" was done.
+The right coding style for multi-line comments is:
 
-In this patch, the same split (codewise) is done, but all resulting .c/.o
-files will be handled by the makefile, with proper prototyping of all
-shared functions done in ddbridge.h.
+	/*
+	 * foo
+	 * bar
+	 */
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ddbridge/Makefile        |   2 +-
- drivers/media/pci/ddbridge/ddbridge-core.c | 588 +----------------------------
- drivers/media/pci/ddbridge/ddbridge-i2c.c  | 231 ++++++++++++
- drivers/media/pci/ddbridge/ddbridge-main.c | 388 +++++++++++++++++++
- drivers/media/pci/ddbridge/ddbridge.h      |  49 +++
- 5 files changed, 681 insertions(+), 577 deletions(-)
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-i2c.c
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-main.c
+I ended by merging this series, but please send a fixup patch when
+you have some time.
 
-diff --git a/drivers/media/pci/ddbridge/Makefile b/drivers/media/pci/ddbridge/Makefile
-index 7446c8b677b5..fe8ff0c681ad 100644
---- a/drivers/media/pci/ddbridge/Makefile
-+++ b/drivers/media/pci/ddbridge/Makefile
-@@ -2,7 +2,7 @@
- # Makefile for the ddbridge device driver
- #
- 
--ddbridge-objs := ddbridge-core.o
-+ddbridge-objs := ddbridge-main.o ddbridge-core.o ddbridge-i2c.o
- 
- obj-$(CONFIG_DVB_DDBRIDGE) += ddbridge.o
- 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 4d6ab46cb635..ccbc9f41b10e 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -32,8 +32,8 @@
- #include <linux/i2c.h>
- #include <linux/swab.h>
- #include <linux/vmalloc.h>
--#include "ddbridge.h"
- 
-+#include "ddbridge.h"
- #include "ddbridge-regs.h"
- 
- #include "tda18271c2dd.h"
-@@ -49,227 +49,8 @@
- #include "stv6111.h"
- #include "lnbh25.h"
- 
--static int xo2_speed = 2;
--module_param(xo2_speed, int, 0444);
--MODULE_PARM_DESC(xo2_speed, "default transfer speed for xo2 based duoflex, 0=55,1=75,2=90,3=104 MBit/s, default=2, use attribute to change for individual cards");
--
--static int stv0910_single;
--module_param(stv0910_single, int, 0444);
--MODULE_PARM_DESC(stv0910_single, "use stv0910 cards as single demods");
--
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
--/* MSI had problems with lost interrupts, fixed but needs testing */
--#undef CONFIG_PCI_MSI
--
--/******************************************************************************/
--
--static int i2c_io(struct i2c_adapter *adapter, u8 adr,
--		  u8 *wbuf, u32 wlen, u8 *rbuf, u32 rlen)
--{
--	struct i2c_msg msgs[2] = {{.addr = adr,  .flags = 0,
--				   .buf  = wbuf, .len   = wlen },
--				  {.addr = adr,  .flags = I2C_M_RD,
--				   .buf  = rbuf,  .len   = rlen } };
--	return (i2c_transfer(adapter, msgs, 2) == 2) ? 0 : -1;
--}
--
--static int i2c_write(struct i2c_adapter *adap, u8 adr, u8 *data, int len)
--{
--	struct i2c_msg msg = {.addr = adr, .flags = 0,
--			      .buf = data, .len = len};
--
--	return (i2c_transfer(adap, &msg, 1) == 1) ? 0 : -1;
--}
--
--static int i2c_read(struct i2c_adapter *adapter, u8 adr, u8 *val)
--{
--	struct i2c_msg msgs[1] = {{.addr = adr,  .flags = I2C_M_RD,
--				   .buf  = val,  .len   = 1 } };
--	return (i2c_transfer(adapter, msgs, 1) == 1) ? 0 : -1;
--}
--
--static int i2c_read_regs(struct i2c_adapter *adapter,
--			 u8 adr, u8 reg, u8 *val, u8 len)
--{
--	struct i2c_msg msgs[2] = {{.addr = adr,  .flags = 0,
--				   .buf  = &reg, .len   = 1 },
--				  {.addr = adr,  .flags = I2C_M_RD,
--				   .buf  = val,  .len   = len } };
--	return (i2c_transfer(adapter, msgs, 2) == 2) ? 0 : -1;
--}
--
--static int i2c_read_reg(struct i2c_adapter *adapter, u8 adr, u8 reg, u8 *val)
--{
--	return i2c_read_regs(adapter, adr, reg, val, 1);
--}
--
--static int i2c_read_reg16(struct i2c_adapter *adapter, u8 adr,
--			  u16 reg, u8 *val)
--{
--	u8 msg[2] = {reg>>8, reg&0xff};
--	struct i2c_msg msgs[2] = {{.addr = adr, .flags = 0,
--				   .buf  = msg, .len   = 2},
--				  {.addr = adr, .flags = I2C_M_RD,
--				   .buf  = val, .len   = 1} };
--	return (i2c_transfer(adapter, msgs, 2) == 2) ? 0 : -1;
--}
--
--static int i2c_write_reg(struct i2c_adapter *adap, u8 adr,
--			 u8 reg, u8 val)
--{
--	u8 msg[2] = {reg, val};
--
--	return i2c_write(adap, adr, msg, 2);
--}
--
--static inline u32 safe_ddbreadl(struct ddb *dev, u32 adr)
--{
--	u32 val = ddbreadl(adr);
--
--	/* (ddb)readl returns (uint)-1 (all bits set) on failure, catch that */
--	if (val == ~0) {
--		dev_err(&dev->pdev->dev, "ddbreadl failure, adr=%08x\n", adr);
--		return 0;
--	}
--
--	return val;
--}
--
--static int ddb_i2c_cmd(struct ddb_i2c *i2c, u32 adr, u32 cmd)
--{
--	struct ddb *dev = i2c->dev;
--	long stat;
--	u32 val;
--
--	i2c->done = 0;
--	ddbwritel((adr << 9) | cmd, i2c->regs + I2C_COMMAND);
--	stat = wait_event_timeout(i2c->wq, i2c->done == 1, HZ);
--	if (stat == 0) {
--		dev_err(&dev->pdev->dev, "I2C timeout\n");
--		{ /* MSI debugging*/
--			u32 istat = ddbreadl(INTERRUPT_STATUS);
--			dev_err(&dev->pdev->dev, "IRS %08x\n", istat);
--			ddbwritel(istat, INTERRUPT_ACK);
--		}
--		return -EIO;
--	}
--	val = ddbreadl(i2c->regs+I2C_COMMAND);
--	if (val & 0x70000)
--		return -EIO;
--	return 0;
--}
--
--static int ddb_i2c_master_xfer(struct i2c_adapter *adapter,
--			       struct i2c_msg msg[], int num)
--{
--	struct ddb_i2c *i2c = (struct ddb_i2c *)i2c_get_adapdata(adapter);
--	struct ddb *dev = i2c->dev;
--	u8 addr = 0;
--
--	if (num)
--		addr = msg[0].addr;
--
--	if (num == 2 && msg[1].flags & I2C_M_RD &&
--	    !(msg[0].flags & I2C_M_RD)) {
--		memcpy_toio(dev->regs + I2C_TASKMEM_BASE + i2c->wbuf,
--			    msg[0].buf, msg[0].len);
--		ddbwritel(msg[0].len|(msg[1].len << 16),
--			  i2c->regs+I2C_TASKLENGTH);
--		if (!ddb_i2c_cmd(i2c, addr, 1)) {
--			memcpy_fromio(msg[1].buf,
--				      dev->regs + I2C_TASKMEM_BASE + i2c->rbuf,
--				      msg[1].len);
--			return num;
--		}
--	}
--
--	if (num == 1 && !(msg[0].flags & I2C_M_RD)) {
--		ddbcpyto(I2C_TASKMEM_BASE + i2c->wbuf, msg[0].buf, msg[0].len);
--		ddbwritel(msg[0].len, i2c->regs + I2C_TASKLENGTH);
--		if (!ddb_i2c_cmd(i2c, addr, 2))
--			return num;
--	}
--	if (num == 1 && (msg[0].flags & I2C_M_RD)) {
--		ddbwritel(msg[0].len << 16, i2c->regs + I2C_TASKLENGTH);
--		if (!ddb_i2c_cmd(i2c, addr, 3)) {
--			ddbcpyfrom(msg[0].buf,
--				   I2C_TASKMEM_BASE + i2c->rbuf, msg[0].len);
--			return num;
--		}
--	}
--	return -EIO;
--}
--
--
--static u32 ddb_i2c_functionality(struct i2c_adapter *adap)
--{
--	return I2C_FUNC_SMBUS_EMUL;
--}
--
--static struct i2c_algorithm ddb_i2c_algo = {
--	.master_xfer   = ddb_i2c_master_xfer,
--	.functionality = ddb_i2c_functionality,
--};
--
--static void ddb_i2c_release(struct ddb *dev)
--{
--	int i;
--	struct ddb_i2c *i2c;
--	struct i2c_adapter *adap;
--
--	for (i = 0; i < dev->info->port_num; i++) {
--		i2c = &dev->i2c[i];
--		adap = &i2c->adap;
--		i2c_del_adapter(adap);
--	}
--}
--
--static int ddb_i2c_init(struct ddb *dev)
--{
--	int i, j, stat = 0;
--	struct ddb_i2c *i2c;
--	struct i2c_adapter *adap;
--
--	for (i = 0; i < dev->info->port_num; i++) {
--		i2c = &dev->i2c[i];
--		i2c->dev = dev;
--		i2c->nr = i;
--		i2c->wbuf = i * (I2C_TASKMEM_SIZE / 4);
--		i2c->rbuf = i2c->wbuf + (I2C_TASKMEM_SIZE / 8);
--		i2c->regs = 0x80 + i * 0x20;
--		ddbwritel(I2C_SPEED_100, i2c->regs + I2C_TIMING);
--		ddbwritel((i2c->rbuf << 16) | i2c->wbuf,
--			  i2c->regs + I2C_TASKADDRESS);
--		init_waitqueue_head(&i2c->wq);
--
--		adap = &i2c->adap;
--		i2c_set_adapdata(adap, i2c);
--#ifdef I2C_ADAP_CLASS_TV_DIGITAL
--		adap->class = I2C_ADAP_CLASS_TV_DIGITAL|I2C_CLASS_TV_ANALOG;
--#else
--#ifdef I2C_CLASS_TV_ANALOG
--		adap->class = I2C_CLASS_TV_ANALOG;
--#endif
--#endif
--		strcpy(adap->name, "ddbridge");
--		adap->algo = &ddb_i2c_algo;
--		adap->algo_data = (void *)i2c;
--		adap->dev.parent = &dev->pdev->dev;
--		stat = i2c_add_adapter(adap);
--		if (stat)
--			break;
--	}
--	if (stat)
--		for (j = 0; j < i; j++) {
--			i2c = &dev->i2c[j];
--			adap = &i2c->adap;
--			i2c_del_adapter(adap);
--		}
--	return stat;
--}
--
--
- /******************************************************************************/
- /******************************************************************************/
- /******************************************************************************/
-@@ -342,7 +123,7 @@ static int io_alloc(struct pci_dev *pdev, u8 **vbuf,
- 	return 0;
- }
- 
--static int ddb_buffers_alloc(struct ddb *dev)
-+int ddb_buffers_alloc(struct ddb *dev)
- {
- 	int i;
- 	struct ddb_port *port;
-@@ -382,7 +163,7 @@ static int ddb_buffers_alloc(struct ddb *dev)
- 	return 0;
- }
- 
--static void ddb_buffers_free(struct ddb *dev)
-+void ddb_buffers_free(struct ddb *dev)
- {
- 	int i;
- 	struct ddb_port *port;
-@@ -1662,7 +1443,7 @@ static int ddb_port_attach(struct ddb_port *port)
- 	return ret;
- }
- 
--static int ddb_ports_attach(struct ddb *dev)
-+int ddb_ports_attach(struct ddb *dev)
- {
- 	int i, ret = 0;
- 	struct ddb_port *port;
-@@ -1676,7 +1457,7 @@ static int ddb_ports_attach(struct ddb *dev)
- 	return ret;
- }
- 
--static void ddb_ports_detach(struct ddb *dev)
-+void ddb_ports_detach(struct ddb *dev)
- {
- 	int i;
- 	struct ddb_port *port;
-@@ -1787,7 +1568,7 @@ static void ddb_output_init(struct ddb_port *port, int nr)
- 	init_waitqueue_head(&output->wq);
- }
- 
--static void ddb_ports_init(struct ddb *dev)
-+void ddb_ports_init(struct ddb *dev)
- {
- 	int i;
- 	struct ddb_port *port;
-@@ -1809,7 +1590,7 @@ static void ddb_ports_init(struct ddb *dev)
- 	}
- }
- 
--static void ddb_ports_release(struct ddb *dev)
-+void ddb_ports_release(struct ddb *dev)
- {
- 	int i;
- 	struct ddb_port *port;
-@@ -1835,7 +1616,7 @@ static void irq_handle_i2c(struct ddb *dev, int n)
- 	wake_up(&i2c->wq);
- }
- 
--static irqreturn_t irq_handler(int irq, void *dev_id)
-+irqreturn_t irq_handler(int irq, void *dev_id)
- {
- 	struct ddb *dev = (struct ddb *) dev_id;
- 	u32 s = ddbreadl(INTERRUPT_STATUS);
-@@ -2038,7 +1819,7 @@ static char *ddb_devnode(struct device *device, umode_t *mode)
- 	return kasprintf(GFP_KERNEL, "ddbridge/card%d", dev->nr);
- }
- 
--static int ddb_class_create(void)
-+int ddb_class_create(void)
- {
- 	ddb_major = register_chrdev(0, DDB_NAME, &ddb_fops);
- 	if (ddb_major < 0)
-@@ -2053,13 +1834,13 @@ static int ddb_class_create(void)
- 	return 0;
- }
- 
--static void ddb_class_destroy(void)
-+void ddb_class_destroy(void)
- {
- 	class_destroy(ddb_class);
- 	unregister_chrdev(ddb_major, DDB_NAME);
- }
- 
--static int ddb_device_create(struct ddb *dev)
-+int ddb_device_create(struct ddb *dev)
- {
- 	dev->nr = ddb_num++;
- 	dev->ddb_dev = device_create(ddb_class, NULL,
-@@ -2071,355 +1852,10 @@ static int ddb_device_create(struct ddb *dev)
- 	return 0;
- }
- 
--static void ddb_device_destroy(struct ddb *dev)
-+void ddb_device_destroy(struct ddb *dev)
- {
- 	ddb_num--;
- 	if (IS_ERR(dev->ddb_dev))
- 		return;
- 	device_destroy(ddb_class, MKDEV(ddb_major, 0));
- }
--
--/****************************************************************************/
--/****************************************************************************/
--/****************************************************************************/
--
--static void ddb_unmap(struct ddb *dev)
--{
--	if (dev->regs)
--		iounmap(dev->regs);
--	vfree(dev);
--}
--
--
--static void ddb_remove(struct pci_dev *pdev)
--{
--	struct ddb *dev = pci_get_drvdata(pdev);
--
--	ddb_ports_detach(dev);
--	ddb_i2c_release(dev);
--
--	ddbwritel(0, INTERRUPT_ENABLE);
--	free_irq(dev->pdev->irq, dev);
--#ifdef CONFIG_PCI_MSI
--	if (dev->msi)
--		pci_disable_msi(dev->pdev);
--#endif
--	ddb_ports_release(dev);
--	ddb_buffers_free(dev);
--	ddb_device_destroy(dev);
--
--	ddb_unmap(dev);
--	pci_set_drvdata(pdev, NULL);
--	pci_disable_device(pdev);
--}
--
--
--static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
--{
--	struct ddb *dev;
--	int stat = 0;
--	int irq_flag = IRQF_SHARED;
--
--	if (pci_enable_device(pdev) < 0)
--		return -ENODEV;
--
--	dev = vzalloc(sizeof(struct ddb));
--	if (dev == NULL)
--		return -ENOMEM;
--
--	dev->pdev = pdev;
--	pci_set_drvdata(pdev, dev);
--	dev->info = (struct ddb_info *) id->driver_data;
--	dev_info(&pdev->dev, "Detected %s\n", dev->info->name);
--
--	dev->regs = ioremap(pci_resource_start(dev->pdev, 0),
--			    pci_resource_len(dev->pdev, 0));
--	if (!dev->regs) {
--		stat = -ENOMEM;
--		goto fail;
--	}
--	dev_info(&pdev->dev, "HW %08x FW %08x\n", ddbreadl(0), ddbreadl(4));
--
--#ifdef CONFIG_PCI_MSI
--	if (pci_msi_enabled())
--		stat = pci_enable_msi(dev->pdev);
--	if (stat) {
--		dev_info(&pdev->dev, "MSI not available.\n");
--	} else {
--		irq_flag = 0;
--		dev->msi = 1;
--	}
--#endif
--	stat = request_irq(dev->pdev->irq, irq_handler,
--			   irq_flag, "DDBridge", (void *) dev);
--	if (stat < 0)
--		goto fail1;
--	ddbwritel(0, DMA_BASE_WRITE);
--	ddbwritel(0, DMA_BASE_READ);
--	ddbwritel(0xffffffff, INTERRUPT_ACK);
--	ddbwritel(0xfff0f, INTERRUPT_ENABLE);
--	ddbwritel(0, MSI1_ENABLE);
--
--	/* board control */
--	if (dev->info->board_control) {
--		ddbwritel(0, DDB_LINK_TAG(0) | BOARD_CONTROL);
--		msleep(100);
--		ddbwritel(dev->info->board_control_2,
--			DDB_LINK_TAG(0) | BOARD_CONTROL);
--		usleep_range(2000, 3000);
--		ddbwritel(dev->info->board_control_2
--			| dev->info->board_control,
--			DDB_LINK_TAG(0) | BOARD_CONTROL);
--		usleep_range(2000, 3000);
--	}
--
--	if (ddb_i2c_init(dev) < 0)
--		goto fail1;
--	ddb_ports_init(dev);
--	if (ddb_buffers_alloc(dev) < 0) {
--		dev_err(&pdev->dev, "Could not allocate buffer memory\n");
--		goto fail2;
--	}
--	if (ddb_ports_attach(dev) < 0)
--		goto fail3;
--	ddb_device_create(dev);
--	return 0;
--
--fail3:
--	ddb_ports_detach(dev);
--	dev_err(&pdev->dev, "fail3\n");
--	ddb_ports_release(dev);
--fail2:
--	dev_err(&pdev->dev, "fail2\n");
--	ddb_buffers_free(dev);
--fail1:
--	dev_err(&pdev->dev, "fail1\n");
--	if (dev->msi)
--		pci_disable_msi(dev->pdev);
--	if (stat == 0)
--		free_irq(dev->pdev->irq, dev);
--fail:
--	dev_err(&pdev->dev, "fail\n");
--	ddb_unmap(dev);
--	pci_set_drvdata(pdev, NULL);
--	pci_disable_device(pdev);
--	return -1;
--}
--
--/******************************************************************************/
--/******************************************************************************/
--/******************************************************************************/
--
--static const struct ddb_info ddb_none = {
--	.type     = DDB_NONE,
--	.name     = "Digital Devices PCIe bridge",
--};
--
--static const struct ddb_info ddb_octopus = {
--	.type     = DDB_OCTOPUS,
--	.name     = "Digital Devices Octopus DVB adapter",
--	.port_num = 4,
--};
--
--static const struct ddb_info ddb_octopus_le = {
--	.type     = DDB_OCTOPUS,
--	.name     = "Digital Devices Octopus LE DVB adapter",
--	.port_num = 2,
--};
--
--static const struct ddb_info ddb_octopus_oem = {
--	.type     = DDB_OCTOPUS,
--	.name     = "Digital Devices Octopus OEM",
--	.port_num = 4,
--};
--
--static const struct ddb_info ddb_octopus_mini = {
--	.type     = DDB_OCTOPUS,
--	.name     = "Digital Devices Octopus Mini",
--	.port_num = 4,
--};
--
--static const struct ddb_info ddb_v6 = {
--	.type     = DDB_OCTOPUS,
--	.name     = "Digital Devices Cine S2 V6 DVB adapter",
--	.port_num = 3,
--};
--static const struct ddb_info ddb_v6_5 = {
--	.type     = DDB_OCTOPUS,
--	.name     = "Digital Devices Cine S2 V6.5 DVB adapter",
--	.port_num = 4,
--};
--
--static const struct ddb_info ddb_v7 = {
--	.type     = DDB_OCTOPUS,
--	.name     = "Digital Devices Cine S2 V7 DVB adapter",
--	.port_num = 4,
--	.board_control   = 2,
--	.board_control_2 = 4,
--	.ts_quirks = TS_QUIRK_REVERSED,
--};
--
--static const struct ddb_info ddb_v7a = {
--	.type     = DDB_OCTOPUS,
--	.name     = "Digital Devices Cine S2 V7 Advanced DVB adapter",
--	.port_num = 4,
--	.board_control   = 2,
--	.board_control_2 = 4,
--	.ts_quirks = TS_QUIRK_REVERSED,
--};
--
--static const struct ddb_info ddb_dvbct = {
--	.type     = DDB_OCTOPUS,
--	.name     = "Digital Devices DVBCT V6.1 DVB adapter",
--	.port_num = 3,
--};
--
--static const struct ddb_info ddb_ctv7 = {
--	.type     = DDB_OCTOPUS,
--	.name     = "Digital Devices Cine CT V7 DVB adapter",
--	.port_num = 4,
--	.board_control   = 3,
--	.board_control_2 = 4,
--};
--
--static const struct ddb_info ddb_satixS2v3 = {
--	.type     = DDB_OCTOPUS,
--	.name     = "Mystique SaTiX-S2 V3 DVB adapter",
--	.port_num = 3,
--};
--
--static const struct ddb_info ddb_octopusv3 = {
--	.type     = DDB_OCTOPUS,
--	.name     = "Digital Devices Octopus V3 DVB adapter",
--	.port_num = 4,
--};
--
--/*** MaxA8 adapters ***********************************************************/
--
--static struct ddb_info ddb_ct2_8 = {
--	.type     = DDB_OCTOPUS_MAX_CT,
--	.name     = "Digital Devices MAX A8 CT2",
--	.port_num = 4,
--	.board_control   = 0x0ff,
--	.board_control_2 = 0xf00,
--	.ts_quirks = TS_QUIRK_SERIAL,
--};
--
--static struct ddb_info ddb_c2t2_8 = {
--	.type     = DDB_OCTOPUS_MAX_CT,
--	.name     = "Digital Devices MAX A8 C2T2",
--	.port_num = 4,
--	.board_control   = 0x0ff,
--	.board_control_2 = 0xf00,
--	.ts_quirks = TS_QUIRK_SERIAL,
--};
--
--static struct ddb_info ddb_isdbt_8 = {
--	.type     = DDB_OCTOPUS_MAX_CT,
--	.name     = "Digital Devices MAX A8 ISDBT",
--	.port_num = 4,
--	.board_control   = 0x0ff,
--	.board_control_2 = 0xf00,
--	.ts_quirks = TS_QUIRK_SERIAL,
--};
--
--static struct ddb_info ddb_c2t2i_v0_8 = {
--	.type     = DDB_OCTOPUS_MAX_CT,
--	.name     = "Digital Devices MAX A8 C2T2I V0",
--	.port_num = 4,
--	.board_control   = 0x0ff,
--	.board_control_2 = 0xf00,
--	.ts_quirks = TS_QUIRK_SERIAL | TS_QUIRK_ALT_OSC,
--};
--
--static struct ddb_info ddb_c2t2i_8 = {
--	.type     = DDB_OCTOPUS_MAX_CT,
--	.name     = "Digital Devices MAX A8 C2T2I",
--	.port_num = 4,
--	.board_control   = 0x0ff,
--	.board_control_2 = 0xf00,
--	.ts_quirks = TS_QUIRK_SERIAL,
--};
--
--/******************************************************************************/
--
--#define DDVID 0xdd01 /* Digital Devices Vendor ID */
--
--#define DDB_ID(_vend, _dev, _subvend, _subdev, _driverdata) {	\
--	.vendor      = _vend,    .device    = _dev, \
--	.subvendor   = _subvend, .subdevice = _subdev, \
--	.driver_data = (unsigned long)&_driverdata }
--
--static const struct pci_device_id ddb_id_tbl[] = {
--	DDB_ID(DDVID, 0x0002, DDVID, 0x0001, ddb_octopus),
--	DDB_ID(DDVID, 0x0003, DDVID, 0x0001, ddb_octopus),
--	DDB_ID(DDVID, 0x0005, DDVID, 0x0004, ddb_octopusv3),
--	DDB_ID(DDVID, 0x0003, DDVID, 0x0002, ddb_octopus_le),
--	DDB_ID(DDVID, 0x0003, DDVID, 0x0003, ddb_octopus_oem),
--	DDB_ID(DDVID, 0x0003, DDVID, 0x0010, ddb_octopus_mini),
--	DDB_ID(DDVID, 0x0005, DDVID, 0x0011, ddb_octopus_mini),
--	DDB_ID(DDVID, 0x0003, DDVID, 0x0020, ddb_v6),
--	DDB_ID(DDVID, 0x0003, DDVID, 0x0021, ddb_v6_5),
--	DDB_ID(DDVID, 0x0006, DDVID, 0x0022, ddb_v7),
--	DDB_ID(DDVID, 0x0006, DDVID, 0x0024, ddb_v7a),
--	DDB_ID(DDVID, 0x0003, DDVID, 0x0030, ddb_dvbct),
--	DDB_ID(DDVID, 0x0003, DDVID, 0xdb03, ddb_satixS2v3),
--	DDB_ID(DDVID, 0x0006, DDVID, 0x0031, ddb_ctv7),
--	DDB_ID(DDVID, 0x0006, DDVID, 0x0032, ddb_ctv7),
--	DDB_ID(DDVID, 0x0006, DDVID, 0x0033, ddb_ctv7),
--	DDB_ID(DDVID, 0x0008, DDVID, 0x0034, ddb_ct2_8),
--	DDB_ID(DDVID, 0x0008, DDVID, 0x0035, ddb_c2t2_8),
--	DDB_ID(DDVID, 0x0008, DDVID, 0x0036, ddb_isdbt_8),
--	DDB_ID(DDVID, 0x0008, DDVID, 0x0037, ddb_c2t2i_v0_8),
--	DDB_ID(DDVID, 0x0008, DDVID, 0x0038, ddb_c2t2i_8),
--	DDB_ID(DDVID, 0x0006, DDVID, 0x0039, ddb_ctv7),
--	/* in case sub-ids got deleted in flash */
--	DDB_ID(DDVID, 0x0003, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
--	DDB_ID(DDVID, 0x0005, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
--	DDB_ID(DDVID, 0x0006, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
--	DDB_ID(DDVID, 0x0007, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
--	DDB_ID(DDVID, 0x0008, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
--	DDB_ID(DDVID, 0x0011, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
--	DDB_ID(DDVID, 0x0013, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
--	DDB_ID(DDVID, 0x0201, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
--	DDB_ID(DDVID, 0x0320, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
--	{0}
--};
--MODULE_DEVICE_TABLE(pci, ddb_id_tbl);
--
--
--static struct pci_driver ddb_pci_driver = {
--	.name        = "DDBridge",
--	.id_table    = ddb_id_tbl,
--	.probe       = ddb_probe,
--	.remove      = ddb_remove,
--};
--
--static __init int module_init_ddbridge(void)
--{
--	int ret;
--
--	pr_info("Digital Devices PCIE bridge driver, Copyright (C) 2010-11 Digital Devices GmbH\n");
--
--	ret = ddb_class_create();
--	if (ret < 0)
--		return ret;
--	ret = pci_register_driver(&ddb_pci_driver);
--	if (ret < 0)
--		ddb_class_destroy();
--	return ret;
--}
--
--static __exit void module_exit_ddbridge(void)
--{
--	pci_unregister_driver(&ddb_pci_driver);
--	ddb_class_destroy();
--}
--
--module_init(module_init_ddbridge);
--module_exit(module_exit_ddbridge);
--
--MODULE_DESCRIPTION("Digital Devices PCIe Bridge");
--MODULE_AUTHOR("Ralph Metzler");
--MODULE_LICENSE("GPL");
--MODULE_VERSION("0.5");
-diff --git a/drivers/media/pci/ddbridge/ddbridge-i2c.c b/drivers/media/pci/ddbridge/ddbridge-i2c.c
-new file mode 100644
-index 000000000000..ea3565efdd3b
---- /dev/null
-+++ b/drivers/media/pci/ddbridge/ddbridge-i2c.c
-@@ -0,0 +1,231 @@
-+/*
-+ * ddbridge.c: Digital Devices PCIe bridge driver
-+ *
-+ * Copyright (C) 2010-2011 Digital Devices GmbH
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 only, as published by the Free Software Foundation.
-+ *
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * To obtain the license, point your browser to
-+ * http://www.gnu.org/copyleft/gpl.html
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/delay.h>
-+#include <linux/slab.h>
-+#include <linux/poll.h>
-+#include <linux/io.h>
-+#include <linux/pci.h>
-+#include <linux/pci_ids.h>
-+#include <linux/timer.h>
-+#include <linux/i2c.h>
-+#include <linux/swab.h>
-+#include <linux/vmalloc.h>
-+
-+#include "ddbridge.h"
-+#include "ddbridge-regs.h"
-+
-+/******************************************************************************/
-+
-+int i2c_io(struct i2c_adapter *adapter, u8 adr,
-+		  u8 *wbuf, u32 wlen, u8 *rbuf, u32 rlen)
-+{
-+	struct i2c_msg msgs[2] = {{.addr = adr,  .flags = 0,
-+				   .buf  = wbuf, .len   = wlen },
-+				  {.addr = adr,  .flags = I2C_M_RD,
-+				   .buf  = rbuf,  .len   = rlen } };
-+	return (i2c_transfer(adapter, msgs, 2) == 2) ? 0 : -1;
-+}
-+
-+static int i2c_write(struct i2c_adapter *adap, u8 adr, u8 *data, int len)
-+{
-+	struct i2c_msg msg = {.addr = adr, .flags = 0,
-+			      .buf = data, .len = len};
-+
-+	return (i2c_transfer(adap, &msg, 1) == 1) ? 0 : -1;
-+}
-+
-+int i2c_read(struct i2c_adapter *adapter, u8 adr, u8 *val)
-+{
-+	struct i2c_msg msgs[1] = {{.addr = adr,  .flags = I2C_M_RD,
-+				   .buf  = val,  .len   = 1 } };
-+	return (i2c_transfer(adapter, msgs, 1) == 1) ? 0 : -1;
-+}
-+
-+int i2c_read_regs(struct i2c_adapter *adapter,
-+			 u8 adr, u8 reg, u8 *val, u8 len)
-+{
-+	struct i2c_msg msgs[2] = {{.addr = adr,  .flags = 0,
-+				   .buf  = &reg, .len   = 1 },
-+				  {.addr = adr,  .flags = I2C_M_RD,
-+				   .buf  = val,  .len   = len } };
-+	return (i2c_transfer(adapter, msgs, 2) == 2) ? 0 : -1;
-+}
-+
-+int i2c_read_reg(struct i2c_adapter *adapter, u8 adr, u8 reg, u8 *val)
-+{
-+	return i2c_read_regs(adapter, adr, reg, val, 1);
-+}
-+
-+int i2c_read_reg16(struct i2c_adapter *adapter, u8 adr,
-+			  u16 reg, u8 *val)
-+{
-+	u8 msg[2] = {reg>>8, reg&0xff};
-+	struct i2c_msg msgs[2] = {{.addr = adr, .flags = 0,
-+				   .buf  = msg, .len   = 2},
-+				  {.addr = adr, .flags = I2C_M_RD,
-+				   .buf  = val, .len   = 1} };
-+	return (i2c_transfer(adapter, msgs, 2) == 2) ? 0 : -1;
-+}
-+
-+int i2c_write_reg(struct i2c_adapter *adap, u8 adr,
-+			 u8 reg, u8 val)
-+{
-+	u8 msg[2] = {reg, val};
-+
-+	return i2c_write(adap, adr, msg, 2);
-+}
-+
-+static int ddb_i2c_cmd(struct ddb_i2c *i2c, u32 adr, u32 cmd)
-+{
-+	struct ddb *dev = i2c->dev;
-+	long stat;
-+	u32 val;
-+
-+	i2c->done = 0;
-+	ddbwritel((adr << 9) | cmd, i2c->regs + I2C_COMMAND);
-+	stat = wait_event_timeout(i2c->wq, i2c->done == 1, HZ);
-+	if (stat == 0) {
-+		dev_err(&dev->pdev->dev, "I2C timeout\n");
-+		{ /* MSI debugging*/
-+			u32 istat = ddbreadl(INTERRUPT_STATUS);
-+			dev_err(&dev->pdev->dev, "IRS %08x\n", istat);
-+			ddbwritel(istat, INTERRUPT_ACK);
-+		}
-+		return -EIO;
-+	}
-+	val = ddbreadl(i2c->regs+I2C_COMMAND);
-+	if (val & 0x70000)
-+		return -EIO;
-+	return 0;
-+}
-+
-+static int ddb_i2c_master_xfer(struct i2c_adapter *adapter,
-+			       struct i2c_msg msg[], int num)
-+{
-+	struct ddb_i2c *i2c = (struct ddb_i2c *)i2c_get_adapdata(adapter);
-+	struct ddb *dev = i2c->dev;
-+	u8 addr = 0;
-+
-+	if (num)
-+		addr = msg[0].addr;
-+
-+	if (num == 2 && msg[1].flags & I2C_M_RD &&
-+	    !(msg[0].flags & I2C_M_RD)) {
-+		memcpy_toio(dev->regs + I2C_TASKMEM_BASE + i2c->wbuf,
-+			    msg[0].buf, msg[0].len);
-+		ddbwritel(msg[0].len|(msg[1].len << 16),
-+			  i2c->regs+I2C_TASKLENGTH);
-+		if (!ddb_i2c_cmd(i2c, addr, 1)) {
-+			memcpy_fromio(msg[1].buf,
-+				      dev->regs + I2C_TASKMEM_BASE + i2c->rbuf,
-+				      msg[1].len);
-+			return num;
-+		}
-+	}
-+
-+	if (num == 1 && !(msg[0].flags & I2C_M_RD)) {
-+		ddbcpyto(I2C_TASKMEM_BASE + i2c->wbuf, msg[0].buf, msg[0].len);
-+		ddbwritel(msg[0].len, i2c->regs + I2C_TASKLENGTH);
-+		if (!ddb_i2c_cmd(i2c, addr, 2))
-+			return num;
-+	}
-+	if (num == 1 && (msg[0].flags & I2C_M_RD)) {
-+		ddbwritel(msg[0].len << 16, i2c->regs + I2C_TASKLENGTH);
-+		if (!ddb_i2c_cmd(i2c, addr, 3)) {
-+			ddbcpyfrom(msg[0].buf,
-+				   I2C_TASKMEM_BASE + i2c->rbuf, msg[0].len);
-+			return num;
-+		}
-+	}
-+	return -EIO;
-+}
-+
-+
-+static u32 ddb_i2c_functionality(struct i2c_adapter *adap)
-+{
-+	return I2C_FUNC_SMBUS_EMUL;
-+}
-+
-+static struct i2c_algorithm ddb_i2c_algo = {
-+	.master_xfer   = ddb_i2c_master_xfer,
-+	.functionality = ddb_i2c_functionality,
-+};
-+
-+void ddb_i2c_release(struct ddb *dev)
-+{
-+	int i;
-+	struct ddb_i2c *i2c;
-+	struct i2c_adapter *adap;
-+
-+	for (i = 0; i < dev->info->port_num; i++) {
-+		i2c = &dev->i2c[i];
-+		adap = &i2c->adap;
-+		i2c_del_adapter(adap);
-+	}
-+}
-+
-+int ddb_i2c_init(struct ddb *dev)
-+{
-+	int i, j, stat = 0;
-+	struct ddb_i2c *i2c;
-+	struct i2c_adapter *adap;
-+
-+	for (i = 0; i < dev->info->port_num; i++) {
-+		i2c = &dev->i2c[i];
-+		i2c->dev = dev;
-+		i2c->nr = i;
-+		i2c->wbuf = i * (I2C_TASKMEM_SIZE / 4);
-+		i2c->rbuf = i2c->wbuf + (I2C_TASKMEM_SIZE / 8);
-+		i2c->regs = 0x80 + i * 0x20;
-+		ddbwritel(I2C_SPEED_100, i2c->regs + I2C_TIMING);
-+		ddbwritel((i2c->rbuf << 16) | i2c->wbuf,
-+			  i2c->regs + I2C_TASKADDRESS);
-+		init_waitqueue_head(&i2c->wq);
-+
-+		adap = &i2c->adap;
-+		i2c_set_adapdata(adap, i2c);
-+#ifdef I2C_ADAP_CLASS_TV_DIGITAL
-+		adap->class = I2C_ADAP_CLASS_TV_DIGITAL|I2C_CLASS_TV_ANALOG;
-+#else
-+#ifdef I2C_CLASS_TV_ANALOG
-+		adap->class = I2C_CLASS_TV_ANALOG;
-+#endif
-+#endif
-+		strcpy(adap->name, "ddbridge");
-+		adap->algo = &ddb_i2c_algo;
-+		adap->algo_data = (void *)i2c;
-+		adap->dev.parent = &dev->pdev->dev;
-+		stat = i2c_add_adapter(adap);
-+		if (stat)
-+			break;
-+	}
-+	if (stat)
-+		for (j = 0; j < i; j++) {
-+			i2c = &dev->i2c[j];
-+			adap = &i2c->adap;
-+			i2c_del_adapter(adap);
-+		}
-+	return stat;
-+}
-diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
-new file mode 100644
-index 000000000000..917fd116d92f
---- /dev/null
-+++ b/drivers/media/pci/ddbridge/ddbridge-main.c
-@@ -0,0 +1,388 @@
-+/*
-+ * ddbridge.c: Digital Devices PCIe bridge driver
-+ *
-+ * Copyright (C) 2010-2011 Digital Devices GmbH
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 only, as published by the Free Software Foundation.
-+ *
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * To obtain the license, point your browser to
-+ * http://www.gnu.org/copyleft/gpl.html
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/delay.h>
-+#include <linux/slab.h>
-+#include <linux/poll.h>
-+#include <linux/io.h>
-+#include <linux/pci.h>
-+#include <linux/pci_ids.h>
-+#include <linux/timer.h>
-+#include <linux/i2c.h>
-+#include <linux/swab.h>
-+#include <linux/vmalloc.h>
-+
-+#include "ddbridge.h"
-+#include "ddbridge-regs.h"
-+
-+int xo2_speed = 2;
-+module_param(xo2_speed, int, 0444);
-+MODULE_PARM_DESC(xo2_speed, "default transfer speed for xo2 based duoflex, 0=55,1=75,2=90,3=104 MBit/s, default=2, use attribute to change for individual cards");
-+
-+int stv0910_single;
-+module_param(stv0910_single, int, 0444);
-+MODULE_PARM_DESC(stv0910_single, "use stv0910 cards as single demods");
-+
-+/******************************************************************************/
-+
-+static void ddb_unmap(struct ddb *dev)
-+{
-+	if (dev->regs)
-+		iounmap(dev->regs);
-+	vfree(dev);
-+}
-+
-+
-+static void ddb_remove(struct pci_dev *pdev)
-+{
-+	struct ddb *dev = pci_get_drvdata(pdev);
-+
-+	ddb_ports_detach(dev);
-+	ddb_i2c_release(dev);
-+
-+	ddbwritel(0, INTERRUPT_ENABLE);
-+	free_irq(dev->pdev->irq, dev);
-+#ifdef CONFIG_PCI_MSI
-+	if (dev->msi)
-+		pci_disable_msi(dev->pdev);
-+#endif
-+	ddb_ports_release(dev);
-+	ddb_buffers_free(dev);
-+	ddb_device_destroy(dev);
-+
-+	ddb_unmap(dev);
-+	pci_set_drvdata(pdev, NULL);
-+	pci_disable_device(pdev);
-+}
-+
-+
-+static int ddb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
-+{
-+	struct ddb *dev;
-+	int stat = 0;
-+	int irq_flag = IRQF_SHARED;
-+
-+	if (pci_enable_device(pdev) < 0)
-+		return -ENODEV;
-+
-+	dev = vzalloc(sizeof(struct ddb));
-+	if (dev == NULL)
-+		return -ENOMEM;
-+
-+	dev->pdev = pdev;
-+	pci_set_drvdata(pdev, dev);
-+	dev->info = (struct ddb_info *) id->driver_data;
-+	dev_info(&pdev->dev, "Detected %s\n", dev->info->name);
-+
-+	dev->regs = ioremap(pci_resource_start(dev->pdev, 0),
-+			    pci_resource_len(dev->pdev, 0));
-+	if (!dev->regs) {
-+		stat = -ENOMEM;
-+		goto fail;
-+	}
-+	dev_info(&pdev->dev, "HW %08x FW %08x\n", ddbreadl(0), ddbreadl(4));
-+
-+#ifdef CONFIG_PCI_MSI
-+	if (pci_msi_enabled())
-+		stat = pci_enable_msi(dev->pdev);
-+	if (stat) {
-+		dev_info(&pdev->dev, "MSI not available.\n");
-+	} else {
-+		irq_flag = 0;
-+		dev->msi = 1;
-+	}
-+#endif
-+	stat = request_irq(dev->pdev->irq, irq_handler,
-+			   irq_flag, "DDBridge", (void *) dev);
-+	if (stat < 0)
-+		goto fail1;
-+	ddbwritel(0, DMA_BASE_WRITE);
-+	ddbwritel(0, DMA_BASE_READ);
-+	ddbwritel(0xffffffff, INTERRUPT_ACK);
-+	ddbwritel(0xfff0f, INTERRUPT_ENABLE);
-+	ddbwritel(0, MSI1_ENABLE);
-+
-+	/* board control */
-+	if (dev->info->board_control) {
-+		ddbwritel(0, DDB_LINK_TAG(0) | BOARD_CONTROL);
-+		msleep(100);
-+		ddbwritel(dev->info->board_control_2,
-+			DDB_LINK_TAG(0) | BOARD_CONTROL);
-+		usleep_range(2000, 3000);
-+		ddbwritel(dev->info->board_control_2
-+			| dev->info->board_control,
-+			DDB_LINK_TAG(0) | BOARD_CONTROL);
-+		usleep_range(2000, 3000);
-+	}
-+
-+	if (ddb_i2c_init(dev) < 0)
-+		goto fail1;
-+	ddb_ports_init(dev);
-+	if (ddb_buffers_alloc(dev) < 0) {
-+		dev_err(&pdev->dev, "Could not allocate buffer memory\n");
-+		goto fail2;
-+	}
-+	if (ddb_ports_attach(dev) < 0)
-+		goto fail3;
-+	ddb_device_create(dev);
-+	return 0;
-+
-+fail3:
-+	ddb_ports_detach(dev);
-+	dev_err(&pdev->dev, "fail3\n");
-+	ddb_ports_release(dev);
-+fail2:
-+	dev_err(&pdev->dev, "fail2\n");
-+	ddb_buffers_free(dev);
-+fail1:
-+	dev_err(&pdev->dev, "fail1\n");
-+	if (dev->msi)
-+		pci_disable_msi(dev->pdev);
-+	if (stat == 0)
-+		free_irq(dev->pdev->irq, dev);
-+fail:
-+	dev_err(&pdev->dev, "fail\n");
-+	ddb_unmap(dev);
-+	pci_set_drvdata(pdev, NULL);
-+	pci_disable_device(pdev);
-+	return -1;
-+}
-+
-+/******************************************************************************/
-+/******************************************************************************/
-+/******************************************************************************/
-+
-+static const struct ddb_info ddb_none = {
-+	.type     = DDB_NONE,
-+	.name     = "Digital Devices PCIe bridge",
-+};
-+
-+static const struct ddb_info ddb_octopus = {
-+	.type     = DDB_OCTOPUS,
-+	.name     = "Digital Devices Octopus DVB adapter",
-+	.port_num = 4,
-+};
-+
-+static const struct ddb_info ddb_octopus_le = {
-+	.type     = DDB_OCTOPUS,
-+	.name     = "Digital Devices Octopus LE DVB adapter",
-+	.port_num = 2,
-+};
-+
-+static const struct ddb_info ddb_octopus_oem = {
-+	.type     = DDB_OCTOPUS,
-+	.name     = "Digital Devices Octopus OEM",
-+	.port_num = 4,
-+};
-+
-+static const struct ddb_info ddb_octopus_mini = {
-+	.type     = DDB_OCTOPUS,
-+	.name     = "Digital Devices Octopus Mini",
-+	.port_num = 4,
-+};
-+
-+static const struct ddb_info ddb_v6 = {
-+	.type     = DDB_OCTOPUS,
-+	.name     = "Digital Devices Cine S2 V6 DVB adapter",
-+	.port_num = 3,
-+};
-+static const struct ddb_info ddb_v6_5 = {
-+	.type     = DDB_OCTOPUS,
-+	.name     = "Digital Devices Cine S2 V6.5 DVB adapter",
-+	.port_num = 4,
-+};
-+
-+static const struct ddb_info ddb_v7 = {
-+	.type     = DDB_OCTOPUS,
-+	.name     = "Digital Devices Cine S2 V7 DVB adapter",
-+	.port_num = 4,
-+	.board_control   = 2,
-+	.board_control_2 = 4,
-+	.ts_quirks = TS_QUIRK_REVERSED,
-+};
-+
-+static const struct ddb_info ddb_v7a = {
-+	.type     = DDB_OCTOPUS,
-+	.name     = "Digital Devices Cine S2 V7 Advanced DVB adapter",
-+	.port_num = 4,
-+	.board_control   = 2,
-+	.board_control_2 = 4,
-+	.ts_quirks = TS_QUIRK_REVERSED,
-+};
-+
-+static const struct ddb_info ddb_dvbct = {
-+	.type     = DDB_OCTOPUS,
-+	.name     = "Digital Devices DVBCT V6.1 DVB adapter",
-+	.port_num = 3,
-+};
-+
-+static const struct ddb_info ddb_ctv7 = {
-+	.type     = DDB_OCTOPUS,
-+	.name     = "Digital Devices Cine CT V7 DVB adapter",
-+	.port_num = 4,
-+	.board_control   = 3,
-+	.board_control_2 = 4,
-+};
-+
-+static const struct ddb_info ddb_satixS2v3 = {
-+	.type     = DDB_OCTOPUS,
-+	.name     = "Mystique SaTiX-S2 V3 DVB adapter",
-+	.port_num = 3,
-+};
-+
-+static const struct ddb_info ddb_octopusv3 = {
-+	.type     = DDB_OCTOPUS,
-+	.name     = "Digital Devices Octopus V3 DVB adapter",
-+	.port_num = 4,
-+};
-+
-+/*** MaxA8 adapters ***********************************************************/
-+
-+static struct ddb_info ddb_ct2_8 = {
-+	.type     = DDB_OCTOPUS_MAX_CT,
-+	.name     = "Digital Devices MAX A8 CT2",
-+	.port_num = 4,
-+	.board_control   = 0x0ff,
-+	.board_control_2 = 0xf00,
-+	.ts_quirks = TS_QUIRK_SERIAL,
-+};
-+
-+static struct ddb_info ddb_c2t2_8 = {
-+	.type     = DDB_OCTOPUS_MAX_CT,
-+	.name     = "Digital Devices MAX A8 C2T2",
-+	.port_num = 4,
-+	.board_control   = 0x0ff,
-+	.board_control_2 = 0xf00,
-+	.ts_quirks = TS_QUIRK_SERIAL,
-+};
-+
-+static struct ddb_info ddb_isdbt_8 = {
-+	.type     = DDB_OCTOPUS_MAX_CT,
-+	.name     = "Digital Devices MAX A8 ISDBT",
-+	.port_num = 4,
-+	.board_control   = 0x0ff,
-+	.board_control_2 = 0xf00,
-+	.ts_quirks = TS_QUIRK_SERIAL,
-+};
-+
-+static struct ddb_info ddb_c2t2i_v0_8 = {
-+	.type     = DDB_OCTOPUS_MAX_CT,
-+	.name     = "Digital Devices MAX A8 C2T2I V0",
-+	.port_num = 4,
-+	.board_control   = 0x0ff,
-+	.board_control_2 = 0xf00,
-+	.ts_quirks = TS_QUIRK_SERIAL | TS_QUIRK_ALT_OSC,
-+};
-+
-+static struct ddb_info ddb_c2t2i_8 = {
-+	.type     = DDB_OCTOPUS_MAX_CT,
-+	.name     = "Digital Devices MAX A8 C2T2I",
-+	.port_num = 4,
-+	.board_control   = 0x0ff,
-+	.board_control_2 = 0xf00,
-+	.ts_quirks = TS_QUIRK_SERIAL,
-+};
-+
-+/******************************************************************************/
-+
-+#define DDVID 0xdd01 /* Digital Devices Vendor ID */
-+
-+#define DDB_ID(_vend, _dev, _subvend, _subdev, _driverdata) {	\
-+	.vendor      = _vend,    .device    = _dev, \
-+	.subvendor   = _subvend, .subdevice = _subdev, \
-+	.driver_data = (unsigned long)&_driverdata }
-+
-+static const struct pci_device_id ddb_id_tbl[] = {
-+	DDB_ID(DDVID, 0x0002, DDVID, 0x0001, ddb_octopus),
-+	DDB_ID(DDVID, 0x0003, DDVID, 0x0001, ddb_octopus),
-+	DDB_ID(DDVID, 0x0005, DDVID, 0x0004, ddb_octopusv3),
-+	DDB_ID(DDVID, 0x0003, DDVID, 0x0002, ddb_octopus_le),
-+	DDB_ID(DDVID, 0x0003, DDVID, 0x0003, ddb_octopus_oem),
-+	DDB_ID(DDVID, 0x0003, DDVID, 0x0010, ddb_octopus_mini),
-+	DDB_ID(DDVID, 0x0005, DDVID, 0x0011, ddb_octopus_mini),
-+	DDB_ID(DDVID, 0x0003, DDVID, 0x0020, ddb_v6),
-+	DDB_ID(DDVID, 0x0003, DDVID, 0x0021, ddb_v6_5),
-+	DDB_ID(DDVID, 0x0006, DDVID, 0x0022, ddb_v7),
-+	DDB_ID(DDVID, 0x0006, DDVID, 0x0024, ddb_v7a),
-+	DDB_ID(DDVID, 0x0003, DDVID, 0x0030, ddb_dvbct),
-+	DDB_ID(DDVID, 0x0003, DDVID, 0xdb03, ddb_satixS2v3),
-+	DDB_ID(DDVID, 0x0006, DDVID, 0x0031, ddb_ctv7),
-+	DDB_ID(DDVID, 0x0006, DDVID, 0x0032, ddb_ctv7),
-+	DDB_ID(DDVID, 0x0006, DDVID, 0x0033, ddb_ctv7),
-+	DDB_ID(DDVID, 0x0008, DDVID, 0x0034, ddb_ct2_8),
-+	DDB_ID(DDVID, 0x0008, DDVID, 0x0035, ddb_c2t2_8),
-+	DDB_ID(DDVID, 0x0008, DDVID, 0x0036, ddb_isdbt_8),
-+	DDB_ID(DDVID, 0x0008, DDVID, 0x0037, ddb_c2t2i_v0_8),
-+	DDB_ID(DDVID, 0x0008, DDVID, 0x0038, ddb_c2t2i_8),
-+	DDB_ID(DDVID, 0x0006, DDVID, 0x0039, ddb_ctv7),
-+	/* in case sub-ids got deleted in flash */
-+	DDB_ID(DDVID, 0x0003, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
-+	DDB_ID(DDVID, 0x0005, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
-+	DDB_ID(DDVID, 0x0006, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
-+	DDB_ID(DDVID, 0x0007, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
-+	DDB_ID(DDVID, 0x0008, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
-+	DDB_ID(DDVID, 0x0011, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
-+	DDB_ID(DDVID, 0x0013, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
-+	DDB_ID(DDVID, 0x0201, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
-+	DDB_ID(DDVID, 0x0320, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
-+	{0}
-+};
-+MODULE_DEVICE_TABLE(pci, ddb_id_tbl);
-+
-+
-+static struct pci_driver ddb_pci_driver = {
-+	.name        = "DDBridge",
-+	.id_table    = ddb_id_tbl,
-+	.probe       = ddb_probe,
-+	.remove      = ddb_remove,
-+};
-+
-+static __init int module_init_ddbridge(void)
-+{
-+	int ret;
-+
-+	pr_info("Digital Devices PCIE bridge driver, Copyright (C) 2010-11 Digital Devices GmbH\n");
-+
-+	ret = ddb_class_create();
-+	if (ret < 0)
-+		return ret;
-+	ret = pci_register_driver(&ddb_pci_driver);
-+	if (ret < 0)
-+		ddb_class_destroy();
-+	return ret;
-+}
-+
-+static __exit void module_exit_ddbridge(void)
-+{
-+	pci_unregister_driver(&ddb_pci_driver);
-+	ddb_class_destroy();
-+}
-+
-+module_init(module_init_ddbridge);
-+module_exit(module_exit_ddbridge);
-+
-+MODULE_DESCRIPTION("Digital Devices PCIe Bridge");
-+MODULE_AUTHOR("Ralph Metzler");
-+MODULE_LICENSE("GPL");
-+MODULE_VERSION("0.5");
-diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
-index 4783a17175a8..810a4da1c10e 100644
---- a/drivers/media/pci/ddbridge/ddbridge.h
-+++ b/drivers/media/pci/ddbridge/ddbridge.h
-@@ -39,6 +39,9 @@
- #include "dvb_net.h"
- #include "cxd2099.h"
- 
-+/* MSI had problems with lost interrupts, fixed but needs testing */
-+#undef CONFIG_PCI_MSI
-+
- #define DDB_MAX_I2C     4
- #define DDB_MAX_PORT    4
- #define DDB_MAX_INPUT   8
-@@ -205,4 +208,50 @@ struct ddb {
- 
- /****************************************************************************/
- 
-+static inline u32 safe_ddbreadl(struct ddb *dev, u32 adr)
-+{
-+        u32 val = ddbreadl(adr);
-+
-+        /* (ddb)readl returns (uint)-1 (all bits set) on failure, catch that */
-+        if (val == ~0) {
-+                dev_err(&dev->pdev->dev, "ddbreadl failure, adr=%08x\n", adr);
-+                return 0;
-+        }
-+
-+	return val;
-+}
-+
-+/****************************************************************************/
-+
-+/* ddbridge-main.c (modparams) */
-+extern int xo2_speed;
-+extern int stv0910_single;
-+
-+/* ddbridge-core.c */
-+void ddb_ports_detach(struct ddb *dev);
-+void ddb_ports_release(struct ddb *dev);
-+void ddb_buffers_free(struct ddb *dev);
-+void ddb_device_destroy(struct ddb *dev);
-+irqreturn_t irq_handler(int irq, void *dev_id);
-+void ddb_ports_init(struct ddb *dev);
-+int ddb_buffers_alloc(struct ddb *dev);
-+int ddb_ports_attach(struct ddb *dev);
-+int ddb_device_create(struct ddb *dev);
-+int ddb_class_create(void);
-+void ddb_class_destroy(void);
-+
-+/* ddbridge-i2c.c */
-+int i2c_io(struct i2c_adapter *adapter, u8 adr,
-+	   u8 *wbuf, u32 wlen, u8 *rbuf, u32 rlen);
-+int i2c_read(struct i2c_adapter *adapter, u8 adr, u8 *val);
-+int i2c_read_regs(struct i2c_adapter *adapter,
-+		  u8 adr, u8 reg, u8 *val, u8 len);
-+int i2c_read_reg(struct i2c_adapter *adapter, u8 adr, u8 reg, u8 *val);
-+int i2c_read_reg16(struct i2c_adapter *adapter, u8 adr,
-+		   u16 reg, u8 *val);
-+int i2c_write_reg(struct i2c_adapter *adap, u8 adr,
-+		  u8 reg, u8 val);
-+void ddb_i2c_release(struct ddb *dev);
-+int ddb_i2c_init(struct ddb *dev);
-+
- #endif
--- 
-2.13.0
+Btw, specially for new drivers, it could worth running checkpatch in
+scritct mode:
+
+$ git diff 435945e08551|./scripts/checkpatch.pl --terse --strict
+-:36: WARNING: please write a paragraph that describes the config symbol fully
+-:52: WARNING: please write a paragraph that describes the config symbol fully
+-:78: WARNING: added, moved or deleted file(s), does MAINTAINERS need updating?
+-:156: CHECK: No space is necessary after a cast
+-:164: CHECK: struct mutex definition without comment
+-:165: CHECK: struct mutex definition without comment
+-:231: CHECK: Alignment should match open parenthesis
+-:251: CHECK: Alignment should match open parenthesis
+-:261: CHECK: Alignment should match open parenthesis
+-:558: CHECK: No space is necessary after a cast
+-:559: CHECK: No space is necessary after a cast
+-:560: CHECK: No space is necessary after a cast
+-:561: CHECK: No space is necessary after a cast
+-:563: CHECK: spaces preferred around that '<<' (ctx:VxV)
+-:566: CHECK: No space is necessary after a cast
+-:567: CHECK: No space is necessary after a cast
+-:583: CHECK: No space is necessary after a cast
+-:585: CHECK: No space is necessary after a cast
+-:671: CHECK: Alignment should match open parenthesis
+-:680: CHECK: braces {} should be used on all arms of this statement
+-:684: CHECK: Unbalanced braces around else statement
+-:685: CHECK: spaces preferred around that '-' (ctx:VxV)
+-:688: CHECK: Alignment should match open parenthesis
+-:734: CHECK: No space is necessary after a cast
+-:740: CHECK: Alignment should match open parenthesis
+-:754: CHECK: No space is necessary after a cast
+-:755: CHECK: No space is necessary after a cast
+-:815: CHECK: Alignment should match open parenthesis
+-:827: CHECK: No space is necessary after a cast
+-:830: CHECK: No space is necessary after a cast
+-:831: CHECK: No space is necessary after a cast
+-:849: CHECK: Alignment should match open parenthesis
+-:1296: CHECK: Please don't use multiple blank lines
+-:1358: CHECK: Alignment should match open parenthesis
+-:1360: CHECK: No space is necessary after a cast
+-:1377: CHECK: braces {} should be used on all arms of this statement
+-:1380: CHECK: Unbalanced braces around else statement
+-:1414: CHECK: No space is necessary after a cast
+-:1418: CHECK: No space is necessary after a cast
+-:1419: CHECK: No space is necessary after a cast
+-:1578: CHECK: braces {} should be used on all arms of this statement
+-:1580: CHECK: Unbalanced braces around else statement
+-:1672: CHECK: Please don't use multiple blank lines
+-:1794: CHECK: Prefer kzalloc(sizeof(*state)...) over kzalloc(sizeof(struct stv)...)
+-:1815: CHECK: Prefer kzalloc(sizeof(*base)...) over kzalloc(sizeof(struct stv_base)...)
+-:1828: CHECK: Alignment should match open parenthesis
+-:1839: CHECK: Alignment should match open parenthesis
+-:1876: CHECK: extern prototypes should be avoided in .h files
+-:3364: WARNING: 'VALIDE' may be misspelled - perhaps 'VALID'?
+-:4927: WARNING: 'VALIDE' may be misspelled - perhaps 'VALID'?
+-:6963: CHECK: No space is necessary after a cast
+-:7094: CHECK: spaces preferred around that '-' (ctx:VxV)
+-:7097: CHECK: spaces preferred around that '-' (ctx:VxV)
+-:7207: CHECK: braces {} should be used on all arms of this statement
+-:7211: CHECK: Unbalanced braces around else statement
+-:7212: CHECK: spaces preferred around that '-' (ctx:VxV)
+-:7223: CHECK: No space is necessary after a cast
+-:7225: CHECK: spaces preferred around that '/' (ctx:VxV)
+-:7252: CHECK: Alignment should match open parenthesis
+-:7256: CHECK: Alignment should match open parenthesis
+-:7266: CHECK: Alignment should match open parenthesis
+-:7271: CHECK: Alignment should match open parenthesis
+-:7312: CHECK: Prefer kzalloc(sizeof(*state)...) over kzalloc(sizeof(struct stv)...)
+-:7348: CHECK: extern prototypes should be avoided in .h files
+-:7349: CHECK: Alignment should match open parenthesis
+-:7354: CHECK: Alignment should match open parenthesis
+-:7439: CHECK: Alignment should match open parenthesis
+-:7564: CHECK: Alignment should match open parenthesis
+total: 0 errors, 5 warnings, 63 checks, 7552 lines checked
+
+Several of those warnings can be automatically fixed with:
+
+./scripts/checkpatch.pl -f $(git diff 435945e08551|diffstat -p1 -l|grep -v MAINT) --strict --fix-inplace
+
+But you need to review if the results are ok.
+
+Regards,
+Mauro
