@@ -1,70 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f43.google.com ([209.85.213.43]:36068 "EHLO
-        mail-vk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752618AbdGJJoU (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:55314 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934472AbdGTHdA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Jul 2017 05:44:20 -0400
-Received: by mail-vk0-f43.google.com with SMTP id y70so43800682vky.3
-        for <linux-media@vger.kernel.org>; Mon, 10 Jul 2017 02:44:19 -0700 (PDT)
+        Thu, 20 Jul 2017 03:33:00 -0400
+Date: Thu, 20 Jul 2017 09:32:59 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/8] v4l: Add support for CSI-1 and CCP2 busses
+Message-ID: <20170720073259.GA11817@amd>
+References: <20170705230019.5461-1-sakari.ailus@linux.intel.com>
+ <20170705230019.5461-6-sakari.ailus@linux.intel.com>
+ <20170719163751.3fd7c891@vento.lan>
+ <20170719205329.akt2tcspq7ri3xh4@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-From: =?UTF-8?B?7LWc7Yq56rec?= <heartily0421@gmail.com>
-Date: Mon, 10 Jul 2017 18:43:38 +0900
-Message-ID: <CAL4ntm-X6AvdKjL4oGVzCpVjYbvBmcHUmG1b-RcR0AJOZBjRKA@mail.gmail.com>
-Subject: Support for Linux driver for GENIATECH Mygica ATSC USB TV Stick A681
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="OXfL5xGRrasGEqWY"
+Content-Disposition: inline
+In-Reply-To: <20170719205329.akt2tcspq7ri3xh4@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear all
 
-(I have no experience in mailing list and linux programming.
-Please be patient of my first request mail. No html allowed, I insert
-blank and replaced . to $$$)
+--OXfL5xGRrasGEqWY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-By chance I got linux driver for GENIATECH Mygica A681.
-Can any one include it to LinuxTV project?
+Hi!
 
-I saw my gica support forum (http
-://mygicasupport$$$com/index$$$php?/topic/2484-linux-support/
-It said no linux driver for A681.
+> > > +void v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_handle *fwnod=
+e,
+> > > +					 struct v4l2_fwnode_endpoint *vep,
+> > > +					 u32 bus_type)
+> > > +{
+> > > +       struct v4l2_fwnode_bus_mipi_csi1 *bus =3D &vep->bus.mipi_csi1;
+> > > +       u32 v;
+> > > +
+> > > +       if (!fwnode_property_read_u32(fwnode, "clock-inv", &v))
+> > > +               bus->clock_inv =3D v;
+=2E..
+> > This function is indented with whitespaces! Next time, please check with
+> > checkpatch.
+> >=20
+> > I fixed when merging it upstream.
+>=20
+> Well, what can I say?
 
-But I saw A681's specification document (http
-://file$$$geniatech$$$com/thcdownloads/geniatech/specification/A681$$$pdf
-)
-It says linux driver is supported.
+You can probably blame Pavel copy/pasting patches from emails.
 
-So I request it to Geniatech.
-Their respond as follow:
-************************************************************
-Hi sir,
-Please try this driver:
-https ://mega$$$nz/#!utlmUA4L!A_AA-obMjiVJA3fOTLe_kZuml1tYPDGHtaQCuMv6bpQ
+Sorry about that.
 
+Best regards,
+								Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Thanks & Best regards
-************************************************************
-Claire
-Geniatech Anhui LLC
-Tel: +86-551-65553836
-Mob:+86-18226641675
-Email: claire$$$chen@geniatech$$$com
-Website: www$$$geniatech$$$com
-Skype: claire$$$chen@geniatech$$$com
+--OXfL5xGRrasGEqWY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Office address:Room 906,Building F5,Innovation Industrial Park,NO.2800
-InnovationRoad,High Tech Zone,Hefei,Anhui,China
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Factory address: 2~3 Floor, Block A, Yinghaosheng Industrial Park,
-Dayang Street, Fuyong, Bao=E2=80=99an District, Shenzhen, China
-************************************************************
+iEYEARECAAYFAllwXKoACgkQMOfwapXb+vJK9ACaAoSAd0zdvh1qDa1UaRK46hjl
+KzoAnjZDppJJemBtSBszJuVN7KTBJNiv
+=KEjs
+-----END PGP SIGNATURE-----
 
-Maybe this person(Claire) cannot know technical issue (http
-://mygicasupport$$$com/index$$$php?/topic/2484-linux-support/)
-
-But I surely have no proper programming skill for verify or develop this dr=
-iver.
-Please help.
-
-Sincerely
+--OXfL5xGRrasGEqWY--
