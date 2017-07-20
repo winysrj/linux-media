@@ -1,73 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60014 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751995AbdGRTEI (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:37991 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964819AbdGTI4m (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 15:04:08 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: linux-leds@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        niklas.soderlund@ragnatech.se, hverkuil@xs4all.nl
-Subject: [RFC 15/19] omap3isp: Initialise "crashed" media entity enum in probe
-Date: Tue, 18 Jul 2017 22:03:57 +0300
-Message-Id: <20170718190401.14797-16-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
-References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
+        Thu, 20 Jul 2017 04:56:42 -0400
+Received: by mail-wr0-f194.google.com with SMTP id p12so1822206wrc.5
+        for <linux-media@vger.kernel.org>; Thu, 20 Jul 2017 01:56:42 -0700 (PDT)
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Sekhar Nori <nsekhar@ti.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [v3 0/2] media: platform: davinci: remove VPFE_CMD_S_CCDC_RAW_PARAMS IOCTL
+Date: Thu, 20 Jul 2017 09:56:29 +0100
+Message-Id: <1500540991-27430-1-git-send-email-prabhakar.csengg@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Initialise the struct isp_device.crashed media entity enum field when the
-ISP's local media entities have been registered, in probe. This is to make
-sure that the enumeration is initialised and large enough when the media
-device is made visible.
+This patch series drops VPFE_CMD_S_CCDC_RAW_PARAMS ioctl, from davicni
+vpfe_capture driver because of following reasons:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/platform/omap3isp/isp.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+- The function constantly mixes up pointers and phys_addr_t numbers
+- This is part of a 'VPFE_CMD_S_CCDC_RAW_PARAMS' ioctl command that is
+  described as an 'experimental ioctl that will change in future kernels',
+  but if we have users that probably won't happen.
+- The code to allocate the table never gets called after we copy_from_user
+  the user input over the kernel settings, and then compare them
+  for inequality.
+- We then go on to use an address provided by user space as both the
+  __user pointer for input and pass it through phys_to_virt to come up
+  with a kernel pointer to copy the data to. This looks like a trivially
+  exploitable root hole.
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index ef6ce2b214ce..90da8343b3dd 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1592,6 +1592,7 @@ static void isp_pm_complete(struct device *dev)
- 
- static void isp_unregister_entities(struct isp_device *isp)
- {
-+	media_entity_enum_cleanup(&isp->crashed);
- 	omap3isp_csi2_unregister_entities(&isp->isp_csi2a);
- 	omap3isp_ccp2_unregister_entities(&isp->isp_ccp2);
- 	omap3isp_ccdc_unregister_entities(&isp->isp_ccdc);
-@@ -1730,6 +1731,10 @@ static int isp_register_entities(struct isp_device *isp)
- 	if (ret < 0)
- 		goto done;
- 
-+	ret = media_entity_enum_init(&isp->crashed, &isp->media_dev);
-+	if (ret)
-+		return ret;
-+
- done:
- 	if (ret < 0)
- 		isp_unregister_entities(isp);
-@@ -1997,8 +2002,6 @@ static int isp_remove(struct platform_device *pdev)
- 	isp_detach_iommu(isp);
- 	__omap3isp_put(isp, false);
- 
--	media_entity_enum_cleanup(&isp->crashed);
--
- 	return 0;
- }
- 
-@@ -2108,10 +2111,6 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
- 	struct isp_bus_cfg *bus;
- 	int ret;
- 
--	ret = media_entity_enum_init(&isp->crashed, &isp->media_dev);
--	if (ret)
--		return ret;
--
- 	ret = v4l2_device_register_subdev_nodes(&isp->v4l2_dev);
- 	if (ret < 0)
- 		return ret;
+
+As discussed at [1], there wouldn’t be any possible users of
+the VPFE_CMD_S_CCDC_RAW_PARAMS IOCTL, but if someone complains
+we might end up reverting the removal and fix it differently.
+
+[1] https://patchwork.kernel.org/patch/9779385/
+
+Note: Patch 0001 is intended to apply for backports so as the reason
+minimalistic changes have been done since the ioctl was added in
+kernel 2.6.32 [2] and applying too many changes would produce conflicts,
+just applying this patch would produce build warning of unused functions.
+
+[2] commit 5f15fbb68fd7 ("V4L/DVB (12251): v4l: dm644x ccdc module for vpfe capture driver")
+
+Lad, Prabhakar (2):
+  media: platform: davinci: prepare for removal of
+    VPFE_CMD_S_CCDC_RAW_PARAMS ioctl
+  media: platform: davinci: drop VPFE_CMD_S_CCDC_RAW_PARAMS
+
+ drivers/media/platform/davinci/ccdc_hw_device.h |  10 --
+ drivers/media/platform/davinci/dm355_ccdc.c     |  92 +--------------
+ drivers/media/platform/davinci/dm644x_ccdc.c    | 151 +-----------------------
+ drivers/media/platform/davinci/vpfe_capture.c   |  93 ---------------
+ include/media/davinci/dm644x_ccdc.h             |  12 --
+ include/media/davinci/vpfe_capture.h            |  10 --
+ 6 files changed, 4 insertions(+), 364 deletions(-)
+
 -- 
-2.11.0
+2.7.4
