@@ -1,84 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:32818 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752218AbdGIM0R (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 08:26:17 -0400
-MIME-Version: 1.0
-In-Reply-To: <20170708110157.jkpg6foz35lckdqu@ihha.localdomain>
-References: <20170707144521.4520-1-gehariprasath@gmail.com> <20170708110157.jkpg6foz35lckdqu@ihha.localdomain>
-From: hari prasath <gehariprasath@gmail.com>
-Date: Sun, 9 Jul 2017 17:56:15 +0530
-Message-ID: <CAHHWPbfxGxJ6_N=rx1ZFW-DnTTAui0qYcbCjrY=ke3mGJF_kkA@mail.gmail.com>
-Subject: Re: [PATCH v2] staging: atomisp: use kstrdup to replace kmalloc and memcpy
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: mchehab@kernel.org,
-        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>, rvarsha016@gmail.com,
-        Julia Lawall <julia.lawall@lip6.fr>,
-        SIMRAN SINGHAL <singhalsimran0@gmail.com>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37002 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755233AbdGTNdD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 20 Jul 2017 09:33:03 -0400
+Date: Thu, 20 Jul 2017 16:32:59 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Colin King <colin.king@canonical.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>,
+        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH][media-next] media: v4l: make local function
+ v4l2_fwnode_endpoint_parse_csi1_bus static
+Message-ID: <20170720133258.s4yvdygcav4i4m6z@valkosipuli.retiisi.org.uk>
+References: <20170720103014.19545-1-colin.king@canonical.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170720103014.19545-1-colin.king@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 8 July 2017 at 16:31, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Hari,
->
-> On Fri, Jul 07, 2017 at 08:15:21PM +0530, Hari Prasath wrote:
->> kstrdup kernel primitive can be used to replace kmalloc followed by
->> string copy. This was reported by coccinelle tool
->>
->> Signed-off-by: Hari Prasath <gehariprasath@gmail.com>
->> ---
->>  .../media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c       | 10 +++-------
->>  1 file changed, 3 insertions(+), 7 deletions(-)
->>
->> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
->> index 34cc56f..68db87b 100644
->> --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
->> +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
->> @@ -144,14 +144,10 @@ sh_css_load_blob_info(const char *fw, const struct ia_css_fw_info *bi, struct ia
->>       )
->>       {
->>               char *namebuffer;
->> -             int namelength = (int)strlen(name);
->> -
->> -             namebuffer = (char *) kmalloc(namelength + 1, GFP_KERNEL);
->> -             if (namebuffer == NULL)
->> -                     return IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
->> -
->> -             memcpy(namebuffer, name, namelength + 1);
->>
->> +             namebuffer = kstrdup(name, GFP_KERNEL);
->> +             if (!namebuffer)
->> +                     return -ENOMEM;
->
-> The patch also changes the return value in error cases. I believe the
-> caller(s) expect to get errors in the IA_CCS_ERR_* range.
+On Thu, Jul 20, 2017 at 11:30:14AM +0100, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
+> 
+> The function v4l2_fwnode_endpoint_parse_csi1_bus does not need to be
+> in global scope, so make it static.  Also reformat the function arguments
+> as adding the static keyword made one of the source lines more than 80
+> chars wide and checkpatch does not like that.
+> 
+> Cleans up sparse warning:
+> "symbol 'v4l2_fwnode_endpoint_parse_csi1_bus' was not declared. Should it
+> be static?"
+> 
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 
-Hi,
+Thanks!
 
-In this particular case, the calling function just checks if it's not
-success defined by a enum. I think returning -ENOMEM would not effect,
-at least in this case.
-
-- Hari Prasath
-
-
->
->>               bd->name = fw_minibuffer[index].name = namebuffer;
->>       } else {
->>               bd->name = name;
->
-> --
-> Regards,
->
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
-
-
+Applied, with removal of an extra neline and a tab in the arguments.
 
 -- 
-Regards,
-G.E.Hari Prasath
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
