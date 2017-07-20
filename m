@@ -1,62 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:36493 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753359AbdGXUxo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Jul 2017 16:53:44 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, d.scheller@gmx.net, jasmin@anw.at
-Subject: [PATCH V2 1/3] build: Add compat code for pm_runtime_get_if_in_use
-Date: Mon, 24 Jul 2017 22:53:35 +0200
-Message-Id: <1500929617-13623-2-git-send-email-jasmin@anw.at>
-In-Reply-To: <1500929617-13623-1-git-send-email-jasmin@anw.at>
-References: <1500929617-13623-1-git-send-email-jasmin@anw.at>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:57935 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932086AbdGTH7u (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 20 Jul 2017 03:59:50 -0400
+From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+To: <linux-firmware@kernel.org>
+CC: <linux-mediatek@lists.infradead.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>, <tiffany.lin@mediatek.com>,
+        <eddie.huang@mediatek.com>, <wuchengli@google.com>,
+        <Longfei.Wang@mediatek.com>, <erin.lo@mediatek.com>,
+        <srv_heupstream@mediatek.com>
+Subject: pull request: linux-firmware: Update Mediatek MT8173 VPU firmware
+Date: Thu, 20 Jul 2017 15:59:40 +0800
+Message-ID: <1500537581-20310-1-git-send-email-andrew-ct.chen@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+Hi linux-firmware maintainers,
 
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
----
- v4l/compat.h                      | 15 +++++++++++++++
- v4l/scripts/make_config_compat.pl |  1 +
- 2 files changed, 16 insertions(+)
+The following changes since commit 7d2c913dcd1be083350d97a8cb1eba24cfacbc8a:
 
-diff --git a/v4l/compat.h b/v4l/compat.h
-index e565292..b5b0846 100644
---- a/v4l/compat.h
-+++ b/v4l/compat.h
-@@ -2084,4 +2084,19 @@ static inline void *skb_put_data(struct sk_buff *skb, const void *data,
- }
- #endif
- 
-+#ifdef NEED_PM_RUNTIME_GET
-+static inline int pm_runtime_get_if_in_use(struct device *dev)
-+{
-+	unsigned long flags;
-+	int retval;
-+
-+	spin_lock_irqsave(&dev->power.lock, flags);
-+	retval = dev->power.disable_depth > 0 ? -EINVAL :
-+		dev->power.runtime_status == RPM_ACTIVE
-+			&& atomic_inc_not_zero(&dev->power.usage_count);
-+	spin_unlock_irqrestore(&dev->power.lock, flags);
-+	return retval;
-+}
-+#endif
-+
- #endif /*  _COMPAT_H */
-diff --git a/v4l/scripts/make_config_compat.pl b/v4l/scripts/make_config_compat.pl
-index 5ac59ab..be278aa 100644
---- a/v4l/scripts/make_config_compat.pl
-+++ b/v4l/scripts/make_config_compat.pl
-@@ -700,6 +700,7 @@ sub check_other_dependencies()
- 	check_files_for_func("to_of_node", "NEED_TO_OF_NODE", "include/linux/of.h");
- 	check_files_for_func("is_of_node", "NEED_IS_OF_NODE", "include/linux/of.h");
- 	check_files_for_func("skb_put_data", "NEED_SKB_PUT_DATA", "include/linux/skbuff.h");
-+	check_files_for_func("pm_runtime_get_if_in_use", "NEED_PM_RUNTIME_GET", "include/linux/pm_runtime.h");
- 
- 	# For tests for uapi-dependent logic
- 	check_files_for_func_uapi("usb_endpoint_maxp", "NEED_USB_ENDPOINT_MAXP", "usb/ch9.h");
--- 
-2.7.4
+  ath10k: update year in license (2017-06-22 12:06:02 -0700)
+
+are available in the git repository at:
+
+  https://github.com/andrewct-chen/linux_fw_vpu_v1.0.5.git v1.0.5
+
+for you to fetch changes up to 0d4ab52ba9be6f619024d7a57b1af05a03daa099:
+
+  mediatek: update MT8173 VPU firmware to 1.0.5 (2017-07-20 15:27:05 +0800)
+
+----------------------------------------------------------------
+Andrew-CT Chen (1):
+      mediatek: update MT8173 VPU firmware to 1.0.5
+
+ vpu_d.bin | Bin 4082928 -> 2977008 bytes
+ vpu_p.bin | Bin 131160 -> 131324 bytes
+ 2 files changed, 0 insertions(+), 0 deletions(-)
