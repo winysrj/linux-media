@@ -1,47 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:32831 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751560AbdGSDev (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:34281 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964820AbdGTI4n (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 23:34:51 -0400
-Received: by mail-qt0-f193.google.com with SMTP id 50so3662487qtz.0
-        for <linux-media@vger.kernel.org>; Tue, 18 Jul 2017 20:34:51 -0700 (PDT)
-From: Fabio Estevam <festevam@gmail.com>
-To: mchehab@s-opensource.com
-Cc: hans.verkuil@cisco.com, corbet@lwn.net,
-        linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>
-Subject: [PATCH 2/2] [media] ov7670: Check the return value from clk_prepare_enable()
-Date: Wed, 19 Jul 2017 00:34:19 -0300
-Message-Id: <1500435259-5838-2-git-send-email-festevam@gmail.com>
-In-Reply-To: <1500435259-5838-1-git-send-email-festevam@gmail.com>
-References: <1500435259-5838-1-git-send-email-festevam@gmail.com>
+        Thu, 20 Jul 2017 04:56:43 -0400
+Received: by mail-wr0-f196.google.com with SMTP id o33so2309529wrb.1
+        for <linux-media@vger.kernel.org>; Thu, 20 Jul 2017 01:56:43 -0700 (PDT)
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Sekhar Nori <nsekhar@ti.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [v3 1/2] media: platform: davinci: prepare for removal of VPFE_CMD_S_CCDC_RAW_PARAMS ioctl
+Date: Thu, 20 Jul 2017 09:56:30 +0100
+Message-Id: <1500540991-27430-2-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1500540991-27430-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1500540991-27430-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabio Estevam <fabio.estevam@nxp.com>
+preparing for removal of VPFE_CMD_S_CCDC_RAW_PARAMS ioctl from
+davicni vpfe_capture driver because of following reasons:
 
-clk_prepare_enable() may fail, so we should better check its return value
-and propagate it in the case of error.
+- This ioctl was never in public api and was only defined in kernel header.
+- The function set_params constantly mixes up pointers and phys_addr_t
+  numbers.
+- This is part of a 'VPFE_CMD_S_CCDC_RAW_PARAMS' ioctl command that is
+  described as an 'experimental ioctl that will change in future kernels'.
+- The code to allocate the table never gets called after we copy_from_user
+  the user input over the kernel settings, and then compare them
+  for inequality.
+- We then go on to use an address provided by user space as both the
+  __user pointer for input and pass it through phys_to_virt to come up
+  with a kernel pointer to copy the data to. This looks like a trivially
+  exploitable root hole.
 
-Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
+Fixes: 5f15fbb68fd7 ("V4L/DVB (12251): v4l: dm644x ccdc module for vpfe capture driver")
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/i2c/ov7670.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/media/platform/davinci/vpfe_capture.c | 22 ++--------------------
+ 1 file changed, 2 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-index 552a881..e88549f 100644
---- a/drivers/media/i2c/ov7670.c
-+++ b/drivers/media/i2c/ov7670.c
-@@ -1615,7 +1615,9 @@ static int ov7670_probe(struct i2c_client *client,
- 	info->clk = devm_clk_get(&client->dev, "xclk");
- 	if (IS_ERR(info->clk))
- 		return PTR_ERR(info->clk);
--	clk_prepare_enable(info->clk);
-+	ret = clk_prepare_enable(info->clk);
-+	if (ret)
-+		return ret;
+diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
+index e3fe3e0..1831bf5 100644
+--- a/drivers/media/platform/davinci/vpfe_capture.c
++++ b/drivers/media/platform/davinci/vpfe_capture.c
+@@ -1719,27 +1719,9 @@ static long vpfe_param_handler(struct file *file, void *priv,
  
- 	ret = ov7670_init_gpio(client, info);
- 	if (ret)
+ 	switch (cmd) {
+ 	case VPFE_CMD_S_CCDC_RAW_PARAMS:
++		ret = -EINVAL;
+ 		v4l2_warn(&vpfe_dev->v4l2_dev,
+-			  "VPFE_CMD_S_CCDC_RAW_PARAMS: experimental ioctl\n");
+-		if (ccdc_dev->hw_ops.set_params) {
+-			ret = ccdc_dev->hw_ops.set_params(param);
+-			if (ret) {
+-				v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
+-					"Error setting parameters in CCDC\n");
+-				goto unlock_out;
+-			}
+-			ret = vpfe_get_ccdc_image_format(vpfe_dev,
+-							 &vpfe_dev->fmt);
+-			if (ret < 0) {
+-				v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
+-					"Invalid image format at CCDC\n");
+-				goto unlock_out;
+-			}
+-		} else {
+-			ret = -EINVAL;
+-			v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
+-				"VPFE_CMD_S_CCDC_RAW_PARAMS not supported\n");
+-		}
++			"VPFE_CMD_S_CCDC_RAW_PARAMS not supported\n");
+ 		break;
+ 	default:
+ 		ret = -ENOTTY;
 -- 
 2.7.4
