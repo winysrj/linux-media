@@ -1,51 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.221]:14355 "EHLO
-        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752454AbdGJILc (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:37577
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755466AbdGTNyl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Jul 2017 04:11:32 -0400
-From: Ralph Metzler <rjkm@metzlerbros.de>
+        Thu, 20 Jul 2017 09:54:41 -0400
+Date: Thu, 20 Jul 2017 10:54:34 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: kieran.bingham@ideasonboard.com,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 05/14] v4l: vsp1: Don't create links for DRM pipeline
+Message-ID: <20170720105434.1aee4cba@vento.lan>
+In-Reply-To: <883d6ab4-6f0f-aa2d-b38d-335987a4ca8b@ideasonboard.com>
+References: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
+        <20170626181226.29575-6-laurent.pinchart+renesas@ideasonboard.com>
+        <883d6ab4-6f0f-aa2d-b38d-335987a4ca8b@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-ID: <22883.13973.46880.749847@morden.metzler>
-Date: Mon, 10 Jul 2017 10:11:01 +0200
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com, jasmin@anw.at, d_spingler@gmx.de,
-        rjkm@metzlerbros.de
-Subject: [PATCH 00/14] ddbridge: bump to ddbridge-0.9.29
-In-Reply-To: <20170709194221.10255-1-d.scheller.oss@gmail.com>
-References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Daniel Scheller writes:
- > Stripped functionality compared to dddvb:
- > 
- >  - DVB-C modulator card support removed (requires DVB core API)
+Em Thu, 13 Jul 2017 14:06:04 +0100
+Kieran Bingham <kieran.bingham+renesas@ideasonboard.com> escreveu:
 
-not really besides one device name entry.
+> On 26/06/17 19:12, Laurent Pinchart wrote:
+> > When the VSP1 is used in a DRM pipeline the driver doesn't register the
+> > media device. Links between entities are not exposed to userspace, but
+> > are still used internally for the sole purpose of setting up internal
+> > source to sink pointers through the link setup handler.
+> > 
+> > Instead of going through this complex procedure, remove link creation
+> > and set the sink pointers directly.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>  
+> 
+> A whole function removed ... always love code removal...
+> 
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
- >  - OctoNET SAT>IP server/box support removed (requires API aswell)
- >  - with this, GT link support was removed (only on OctoNET hardware)
+Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-There is other PCIe based hardware which uses/will use this.
-
-
- >  drivers/media/pci/ddbridge/ddbridge-core.c | 4242 ++++++++++++++++++----------
- >  drivers/media/pci/ddbridge/ddbridge-hw.c   |  299 ++
- >  drivers/media/pci/ddbridge/ddbridge-hw.h   |   52 +
- >  drivers/media/pci/ddbridge/ddbridge-i2c.c  |  310 ++
- >  drivers/media/pci/ddbridge/ddbridge-io.h   |   71 +
- >  drivers/media/pci/ddbridge/ddbridge-irq.c  |  161 ++
- >  drivers/media/pci/ddbridge/ddbridge-main.c |  393 +++
- >  drivers/media/pci/ddbridge/ddbridge-regs.h |  138 +-
- >  drivers/media/pci/ddbridge/ddbridge.h      |  355 ++-
-
-I thought we settled on core, i2c, main, (and mod, ns, which you do not include).
-This will diverge then from my code.
-
-
-Regards,
-Ralph
+Thanks,
+Mauro
