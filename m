@@ -1,128 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:46239 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751249AbdGPAni (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Jul 2017 20:43:38 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
-        rjkm@metzlerbros.de, d.scheller@gmx.net, crope@iki.fi,
-        jasmin@anw.at
-Subject: [PATCH V3 02/16] [media] dvb-core/dvb_ca_en50221.c: New function dvb_ca_en50221_poll_cam_gone
-Date: Sun, 16 Jul 2017 02:43:03 +0200
-Message-Id: <1500165797-16987-3-git-send-email-jasmin@anw.at>
-In-Reply-To: <1500165797-16987-1-git-send-email-jasmin@anw.at>
-References: <1500165797-16987-1-git-send-email-jasmin@anw.at>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43256 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S965487AbdGTWJH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 20 Jul 2017 18:09:07 -0400
+Date: Fri, 21 Jul 2017 01:09:05 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Yong Zhi <yong.zhi@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
+        hyungwoo.yang@intel.com, jerry.w.hu@intel.com,
+        Christoph Hellwig <hch@lst.de>,
+        Robin Murphy <robin.murphy@arm.com>,
+        "open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
+        Tomasz Figa <tfiga@chromium.org>
+Subject: Re: [PATCH v3 03/12] intel-ipu3: Add DMA API implementation
+Message-ID: <20170720220904.icclurhemtkk7sx7@valkosipuli.retiisi.org.uk>
+References: <1500433978-2350-1-git-send-email-yong.zhi@intel.com>
+ <CAK8P3a0Muca-NB0+yuotTHEixhx8jG9Dytsd_wE9=SfNdGSGBg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAK8P3a0Muca-NB0+yuotTHEixhx8jG9Dytsd_wE9=SfNdGSGBg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+Hi Arnd,
 
-The CAM poll code for the budget-av is exactly the same on several
-places. Extracting the code to a new function improves maintainability.
+On Wed, Jul 19, 2017 at 09:24:41AM +0200, Arnd Bergmann wrote:
+> On Wed, Jul 19, 2017 at 5:12 AM, Yong Zhi <yong.zhi@intel.com> wrote:
+> > From: Tomasz Figa <tfiga@chromium.org>
+> >
+> > This patch adds support for the IPU3 DMA mapping API.
+> >
+> > Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> 
+> This needs some explanation on why you decided to go down the
+> route of adding your own dma_map_ops. It's not obvious at all,
+> and and I'm still concerned that this complicates things more than
+> it helps.
 
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
----
- drivers/media/dvb-core/dvb_ca_en50221.c | 66 +++++++++++++++++----------------
- 1 file changed, 35 insertions(+), 31 deletions(-)
+There are a few considerations here --- they could be documented in the
+patch commit message
 
-diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
-index e2f35b7..bb6aa0f 100644
---- a/drivers/media/dvb-core/dvb_ca_en50221.c
-+++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-@@ -1064,6 +1064,37 @@ static void dvb_ca_en50221_thread_update_delay(struct dvb_ca_private *ca)
- }
- 
- /**
-+ * Poll if the CAM is gone.
-+ *
-+ * @ca: CA instance.
-+ * @slot: Slot to process.
-+ * @return: 0 .. no change
-+ *          1 .. CAM state changed
-+ */
-+
-+static int dvb_ca_en50221_poll_cam_gone(struct dvb_ca_private *ca, int slot)
-+{
-+	int changed = 0;
-+	int status;
-+
-+	/*
-+	 * we need this extra check for annoying interfaces like the
-+	 * budget-av
-+	 */
-+	if ((!(ca->flags & DVB_CA_EN50221_FLAG_IRQ_CAMCHANGE)) &&
-+	    (ca->pub->poll_slot_status)) {
-+		status = ca->pub->poll_slot_status(ca->pub, slot, 0);
-+		if (!(status &
-+			DVB_CA_EN50221_POLL_CAM_PRESENT)) {
-+			ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_NONE;
-+			dvb_ca_en50221_thread_update_delay(ca);
-+			changed = 1;
-+		}
-+	}
-+	return changed;
-+}
-+
-+/**
-  * Thread state machine for one CA slot to perform the data transfer.
-  *
-  * @ca: CA instance.
-@@ -1074,7 +1105,6 @@ static void dvb_ca_en50221_thread_state_machine(struct dvb_ca_private *ca,
- {
- 	struct dvb_ca_slot *sl = &ca->slot_info[slot];
- 	int flags;
--	int status;
- 	int pktcount;
- 	void *rxbuf;
- 
-@@ -1124,21 +1154,8 @@ static void dvb_ca_en50221_thread_state_machine(struct dvb_ca_private *ca,
- 
- 	case DVB_CA_SLOTSTATE_VALIDATE:
- 		if (dvb_ca_en50221_parse_attributes(ca, slot) != 0) {
--			/*
--			 * we need this extra check for annoying interfaces like
--			 * the budget-av
--			 */
--			if ((!(ca->flags & DVB_CA_EN50221_FLAG_IRQ_CAMCHANGE))
--			    && (ca->pub->poll_slot_status)) {
--				status = ca->pub->poll_slot_status(ca->pub,
--								   slot, 0);
--				if (!(status &
--				      DVB_CA_EN50221_POLL_CAM_PRESENT)) {
--					sl->slot_state = DVB_CA_SLOTSTATE_NONE;
--					dvb_ca_en50221_thread_update_delay(ca);
--					break;
--				}
--			}
-+			if (dvb_ca_en50221_poll_cam_gone(ca, slot))
-+				break;
- 
- 			pr_err("dvb_ca adapter %d: Invalid PC card inserted :(\n",
- 			       ca->dvbdev->adapter->num);
-@@ -1187,21 +1204,8 @@ static void dvb_ca_en50221_thread_state_machine(struct dvb_ca_private *ca,
- 
- 	case DVB_CA_SLOTSTATE_LINKINIT:
- 		if (dvb_ca_en50221_link_init(ca, slot) != 0) {
--			/*
--			 * we need this extra check for annoying interfaces like
--			 * the budget-av
--			 */
--			if ((!(ca->flags & DVB_CA_EN50221_FLAG_IRQ_CAMCHANGE))
--			    && (ca->pub->poll_slot_status)) {
--				status = ca->pub->poll_slot_status(ca->pub,
--								   slot, 0);
--				if (!(status &
--					DVB_CA_EN50221_POLL_CAM_PRESENT)) {
--					sl->slot_state = DVB_CA_SLOTSTATE_NONE;
--					dvb_ca_en50221_thread_update_delay(ca);
--					break;
--				}
--			}
-+			if (dvb_ca_en50221_poll_cam_gone(ca, slot))
-+				break;
- 
- 			pr_err("dvb_ca adapter %d: DVB CAM link initialisation failed :(\n",
- 			       ca->dvbdev->adapter->num);
+- The device has its own MMU. The default x86 DMA ops assume there isn't.
+
+- As this is an image signal processor device, the buffers are typically
+  large (often in the range of tens of MB) and they do not need to be
+  physically contiguous. The current implementation of e.g.
+  drivers/iommu/intel-iommu.c allocate memory using alloc_pages() which is
+  unfeasible for such single allocations. Neither CMA is needed.
+
+  Also other IOMMU implementations have their own DMA ops currently.
+
+I agree it'd be nice to unify these in the long run but I don't think this
+stands apart from the rest currently --- except that the MMU is only used
+by a single PCI device, the same which it is contained in.
+
 -- 
-2.7.4
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
