@@ -1,69 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:34605 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755095AbdGVLbA (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50467 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S964876AbdGTPSj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Jul 2017 07:31:00 -0400
+        Thu, 20 Jul 2017 11:18:39 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-Subject: [PATCHv3 0/6] media: drop driver_version from media_device
-Date: Sat, 22 Jul 2017 13:30:51 +0200
-Message-Id: <20170722113057.45202-1-hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.13] venus/davinci fixes for 4.13
+Message-ID: <4dbb9259-6574-746b-515b-1454b6561a83@xs4all.nl>
+Date: Thu, 20 Jul 2017 17:18:36 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The following changes since commit 0e6fd95802e25b2428749703f76ea9d54ea743a3:
 
-Just a little thing that always annoyed me: the driver_version shouldn't
-be set in drivers.
+  media: pulse8-cec/rainshadow-cec: make adapter name unique (2017-07-18 13:00:52 -0300)
 
-The version number never, ever gets updated in drivers. We saw that in
-the other media subsystems and now the core always sets it, not drivers.
+are available in the git repository at:
 
-This works much better, and also works well when backporting the media
-code to an older kernel using the media_build system, where the driver
-version is set to the kernel version you are backporting from.
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.13b
 
-So just set the driver_version in media_device_get_info() to
-LINUX_VERSION_CODE and drop the driver_version field from struct
-media_device.
+for you to fetch changes up to 250c04a2dda0cb7e378773443a000f5c32b42c8d:
 
-In addition do the same with media_version, that too is never updated
-when it should.
+  media: platform: davinci: drop VPFE_CMD_S_CCDC_RAW_PARAMS (2017-07-20 17:08:06 +0200)
 
-Regards,
+----------------------------------------------------------------
+Arnd Bergmann (2):
+      venus: mark PM functions as __maybe_unused
+      venus: fix compile-test build on non-qcom ARM platform
 
-	Hans
+Prabhakar Lad (2):
+      media: platform: davinci: return -EINVAL for VPFE_CMD_S_CCDC_RAW_PARAMS ioctl
+      media: platform: davinci: drop VPFE_CMD_S_CCDC_RAW_PARAMS
 
-Changes since v2:
+Rob Clark (1):
+      media: venus: hfi: fix error handling in hfi_sys_init_done()
 
-- remove obsolete comment about driver_version from media/media-device.h
-- add patch to make the same change for media_version
+Stanimir Varbanov (1):
+      media: venus: don't abuse dma_alloc for non-DMA allocations
 
-Changes since v1:
-
-- just set driver_version in media_device_get_info() and drop it
-  in struct media_device.
-- combine two lines in atomisp_v4l2.c
-
-Hans Verkuil (6):
-  media-device: set driver_version directly
-  s3c-camif: don't set driver_version
-  uvc: don't set driver_version
-  atomisp2: don't set driver_version
-  media-device: remove driver_version
-  media: drop use of MEDIA_API_VERSION
-
- drivers/media/media-device.c                              | 6 +-----
- drivers/media/platform/s3c-camif/camif-core.c             | 1 -
- drivers/media/usb/uvc/uvc_driver.c                        | 1 -
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c | 6 +-----
- include/media/media-device.h                              | 7 -------
- include/uapi/linux/media.h                                | 5 +++--
- 6 files changed, 5 insertions(+), 21 deletions(-)
-
--- 
-2.13.2
+ drivers/media/platform/Kconfig                  |   4 +--
+ drivers/media/platform/davinci/ccdc_hw_device.h |  10 ------
+ drivers/media/platform/davinci/dm355_ccdc.c     |  92 +-----------------------------------------------
+ drivers/media/platform/davinci/dm644x_ccdc.c    | 151 ++-----------------------------------------------------------------------------
+ drivers/media/platform/davinci/vpfe_capture.c   |  93 -------------------------------------------------
+ drivers/media/platform/qcom/venus/core.c        |  16 ++++-----
+ drivers/media/platform/qcom/venus/core.h        |   1 -
+ drivers/media/platform/qcom/venus/firmware.c    |  76 ++++++++++++++++++----------------------
+ drivers/media/platform/qcom/venus/firmware.h    |   5 ++-
+ drivers/media/platform/qcom/venus/hfi_msgs.c    |  11 +++---
+ include/media/davinci/dm644x_ccdc.h             |  12 -------
+ include/media/davinci/vpfe_capture.h            |  10 ------
+ 12 files changed, 54 insertions(+), 427 deletions(-)
