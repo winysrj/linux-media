@@ -1,164 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33303 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751271AbdGMVNh (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:52301 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965203AbdGTXrk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Jul 2017 17:13:37 -0400
-Date: Thu, 13 Jul 2017 23:13:35 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/2] OMAP3ISP CCP2 support
-Message-ID: <20170713211335.GA13502@amd>
-References: <20170713161903.9974-1-sakari.ailus@linux.intel.com>
+        Thu, 20 Jul 2017 19:47:40 -0400
+To: LKML <linux-kernel@vger.kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+From: Randy Dunlap <rdunlap@infradead.org>
+Cc: "Yang, Hyungwoo" <hyungwoo.yang@intel.com>,
+        "Rapolu, Chiranjeevi" <chiranjeevi.rapolu@intel.com>
+Subject: [PATCH -next] media: ov5670: add depends to fix build errors
+Message-ID: <7b6d824a-2574-d33f-7bc9-308809b15b70@infradead.org>
+Date: Thu, 20 Jul 2017 16:47:38 -0700
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="AhhlLboLdkugWU4S"
-Content-Disposition: inline
-In-Reply-To: <20170713161903.9974-1-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Randy Dunlap <rdunlap@infradead.org>
 
---AhhlLboLdkugWU4S
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Fix build errors by adding dependency on VIDEO_V4L2_SUBDEV_API:
 
-Hi!
+../drivers/media/i2c/ov5670.c: In function 'ov5670_open':
+../drivers/media/i2c/ov5670.c:1917:5: error: implicit declaration of function 'v4l2_subdev_get_try_format' [-Werror=implicit-function-declaration]
+     v4l2_subdev_get_try_format(sd, fh->pad, 0);
+../drivers/media/i2c/ov5670.c:1917:38: error: 'struct v4l2_subdev_fh' has no member named 'pad'
+     v4l2_subdev_get_try_format(sd, fh->pad, 0);
+../drivers/media/i2c/ov5670.c: In function 'ov5670_do_get_pad_format':
+../drivers/media/i2c/ov5670.c:2198:17: error: invalid type argument of unary '*' (have 'int')
+   fmt->format = *v4l2_subdev_get_try_format(&ov5670->sd, cfg,
+../drivers/media/i2c/ov5670.c: In function 'ov5670_set_pad_format':
+../drivers/media/i2c/ov5670.c:2236:3: error: invalid type argument of unary '*' (have 'int')
+   *v4l2_subdev_get_try_format(sd, cfg, fmt->pad) = fmt->format;
+../drivers/media/i2c/ov5670.c: At top level:
+../drivers/media/i2c/ov5670.c:2444:19: error: 'v4l2_subdev_link_validate' undeclared here (not in a function)
+  .link_validate = v4l2_subdev_link_validate,
+../drivers/media/i2c/ov5670.c: In function 'ov5670_probe':
+../drivers/media/i2c/ov5670.c:2492:12: error: 'struct v4l2_subdev' has no member named 'entity'
+  ov5670->sd.entity.ops = &ov5670_subdev_entity_ops;
+../drivers/media/i2c/ov5670.c:2493:12: error: 'struct v4l2_subdev' has no member named 'entity'
+  ov5670->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
+../drivers/media/i2c/ov5670.c:2497:42: error: 'struct v4l2_subdev' has no member named 'entity'
+  ret = media_entity_pads_init(&ov5670->sd.entity, 1, &ov5670->pad);
+../drivers/media/i2c/ov5670.c:2524:34: error: 'struct v4l2_subdev' has no member named 'entity'
+  media_entity_cleanup(&ov5670->sd.entity);
+../drivers/media/i2c/ov5670.c: In function 'ov5670_remove':
+../drivers/media/i2c/ov5670.c:2544:26: error: 'struct v4l2_subdev' has no member named 'entity'
+  media_entity_cleanup(&sd->entity);
 
-> I took the liberty of changing your patch a bit. I added another to extra=
-ct
-> the number of lanes from the endpoint instead as it's not really a proper=
-ty
-> of the PHY. (Not tested yet, will check with N9.)
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: "Rapolu, Chiranjeevi" <chiranjeevi.rapolu@intel.com>
+Cc: "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
+---
+ drivers/media/i2c/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-No problem.
-
-Notice that the 1/2 does not apply on top of ccp2 branch; my merge
-resolution was this:
-
-I broke something in my userspace; I'll continue testing tommorow.
-
-Thanks,
-								Pavel
-
-commit 895f4f28972942d1ee77d98dd38dc3d59afaa5c4
-Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-Date:   Thu Jul 13 19:19:02 2017 +0300
-
-    omap3isp: Explicitly set the number of CSI-2 lanes used in lane cfg
-   =20
-    The omap3isp driver extracts the CSI-2 lane configuration from the V4L2
-    fwnode endpoint but misses the number of lanes itself. Get this informa=
-tion
-    and use it in PHY configuration.
-   =20
-    Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform=
-/omap3isp/isp.c
-index b80debf..776f708 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2118,7 +2118,10 @@ static int isp_fwnode_parse(struct device *dev, stru=
-ct fwnode_handle *fwnode,
- 				buscfg->bus.csi2.lanecfg.clk.pol,
- 				buscfg->bus.csi2.lanecfg.clk.pos);
-=20
--			for (i =3D 0; i < ISP_CSIPHY2_NUM_DATA_LANES; i++) {
-+			buscfg->bus.csi2.num_data_lanes =3D
-+				vep.bus.mipi_csi2.num_data_lanes;
-+
-+			for (i =3D 0; i < buscfg->bus.csi2.num_data_lanes; i++) {
- 				buscfg->bus.csi2.lanecfg.data[i].pos =3D
- 					vep.bus.mipi_csi2.data_lanes[i];
- 				buscfg->bus.csi2.lanecfg.data[i].pol =3D
-diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/pl=
-atform/omap3isp/ispcsiphy.c
-index 50c0f64..958ac7b 100644
---- a/drivers/media/platform/omap3isp/ispcsiphy.c
-+++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-@@ -181,7 +181,7 @@ static int omap3isp_csiphy_config(struct isp_csiphy *ph=
-y)
- 	struct isp_bus_cfg *buscfg;
- 	struct isp_csiphy_lanes_cfg *lanes;
- 	int csi2_ddrclk_khz;
--	unsigned int used_lanes =3D 0;
-+	unsigned int num_data_lanes, used_lanes =3D 0;
- 	unsigned int i;
- 	u32 reg;
-=20
-@@ -197,13 +197,19 @@ static int omap3isp_csiphy_config(struct isp_csiphy *=
-phy)
- 	}
-=20
- 	if (buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY1
--	    || buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY2)
-+	    || buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY2) {
- 		lanes =3D &buscfg->bus.ccp2.lanecfg;
--	else
-+		num_data_lanes =3D 1;
-+	} else {
- 		lanes =3D &buscfg->bus.csi2.lanecfg;
-+		num_data_lanes =3D buscfg->bus.csi2.num_data_lanes;
-+	}
-+
-+	if (num_data_lanes > phy->num_data_lanes)
-+		return -EINVAL;
-=20
- 	/* Clock and data lanes verification */
--	for (i =3D 0; i < phy->num_data_lanes; i++) {
-+	for (i =3D 0; i < num_data_lanes; i++) {
- 		if (lanes->data[i].pol > 1 || lanes->data[i].pos > 3)
- 			return -EINVAL;
-=20
-@@ -259,7 +265,7 @@ static int omap3isp_csiphy_config(struct isp_csiphy *ph=
-y)
- 	/* DPHY lane configuration */
- 	reg =3D isp_reg_readl(phy->isp, phy->cfg_regs, ISPCSI2_PHY_CFG);
-=20
--	for (i =3D 0; i < phy->num_data_lanes; i++) {
-+	for (i =3D 0; i < num_data_lanes; i++) {
- 		reg &=3D ~(ISPCSI2_PHY_CFG_DATA_POL_MASK(i + 1) |
- 			 ISPCSI2_PHY_CFG_DATA_POSITION_MASK(i + 1));
- 		reg |=3D (lanes->data[i].pol <<
-diff --git a/drivers/media/platform/omap3isp/omap3isp.h b/drivers/media/pla=
-tform/omap3isp/omap3isp.h
-index f6d1d0d..672a9cf 100644
---- a/drivers/media/platform/omap3isp/omap3isp.h
-+++ b/drivers/media/platform/omap3isp/omap3isp.h
-@@ -115,10 +115,13 @@ struct isp_ccp2_cfg {
- /**
-  * struct isp_csi2_cfg - CSI2 interface configuration
-  * @crc: Enable the cyclic redundancy check
-+ * @lanecfg: CSI-2 lane configuration
-+ * @num_data_lanes: The number of data lanes in use
-  */
- struct isp_csi2_cfg {
- 	unsigned crc:1;
- 	struct isp_csiphy_lanes_cfg lanecfg;
-+	u8 num_data_lanes;
- };
-=20
- struct isp_bus_cfg {
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---AhhlLboLdkugWU4S
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlln4n8ACgkQMOfwapXb+vLvrQCfYbeDGQQ4at5/zGkvA+9DNYB9
-G3wAnjSr9gx3vdqF6jffw2bDyPMK+SMl
-=HYzU
------END PGP SIGNATURE-----
-
---AhhlLboLdkugWU4S--
+--- linux-next-20170720.orig/drivers/media/i2c/Kconfig
++++ linux-next-20170720/drivers/media/i2c/Kconfig
+@@ -618,7 +618,7 @@ config VIDEO_OV6650
+ 
+ config VIDEO_OV5670
+ 	tristate "OmniVision OV5670 sensor support"
+-	depends on I2C && VIDEO_V4L2
++	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+ 	depends on MEDIA_CAMERA_SUPPORT
+ 	select V4L2_FWNODE
+ 	---help---
