@@ -1,385 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:33217 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932121AbdGSSnW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Jul 2017 14:43:22 -0400
-Received: by mail-wr0-f195.google.com with SMTP id y43so8836994wrd.0
-        for <linux-media@vger.kernel.org>; Wed, 19 Jul 2017 11:43:21 -0700 (PDT)
-Subject: Re: Kworld 340U (1b80:a340) kernel 4.8.0 ERROR: i2c_transfer
- returned: -6
-To: Kumar Vivek <kv2000inn@gmail.com>, linux-media@vger.kernel.org
-References: <CACEBzGRLchBD1wYzT5ecpbRgHZ6LhC9fgJCRZmRWHChwaWx7fQ@mail.gmail.com>
-From: =?UTF-8?Q?Frank_Sch=c3=a4fer?= <fschaefer.oss@googlemail.com>
-Message-ID: <b794761a-2cc0-28c9-b032-eaf62e46bad9@googlemail.com>
-Date: Wed, 19 Jul 2017 20:44:18 +0200
+Received: from mail.anw.at ([195.234.101.228]:56121 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S965634AbdGTVQx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 20 Jul 2017 17:16:53 -0400
+Subject: Re: [PATCH 00/14] ddbridge: bump to ddbridge-0.9.29
+To: Daniel Scheller <d.scheller.oss@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Ralph Metzler <rjkm@metzlerbros.de>, linux-media@vger.kernel.org,
+        mchehab@kernel.org, d_spingler@gmx.de
+References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
+ <22883.13973.46880.749847@morden.metzler>
+ <20170710173124.653286e7@audiostation.wuest.de>
+ <22884.38463.374508.270284@morden.metzler>
+ <20170711173013.25741b86@audiostation.wuest.de>
+ <20170720122412.0aaefcfe@vento.lan>
+ <20170720202549.6d77b8d2@audiostation.wuest.de>
+From: "Jasmin J." <jasmin@anw.at>
+Message-ID: <b8470340-82a3-7109-3414-5f5ccefa4749@anw.at>
+Date: Thu, 20 Jul 2017 23:16:36 +0200
 MIME-Version: 1.0
-In-Reply-To: <CACEBzGRLchBD1wYzT5ecpbRgHZ6LhC9fgJCRZmRWHChwaWx7fQ@mail.gmail.com>
+In-Reply-To: <20170720202549.6d77b8d2@audiostation.wuest.de>
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: de-DE
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi!
 
-Hi Kumar,
+Daniel lined out already what the technical differences are.
+In fact nothing what the normal user of this very good DVB cards needs.
+The Octopus NET has its own distribution provided by DD. So there is no need
+to support this in the mainline Kernel at this time.
 
-I don't have time for the em28xx driver at the moment (and I also do not
-have access to a device with tda18271 tuner).
-But...
+Also the modulator is something which might be used in central stations at
+hotels, but not by the arbitrary user in the public. I guess this stations are
+also equipped with the drivers from DD or even provided as a whole system by
+this company. I also see no reason to support the modulator card *now*, when we
+are in a stage where we need to put in nearly 7 years of improvements of the
+DD driver into the Kernel. Yes, we are talking about nearly 7 years!
 
-Am 08.07.2017 um 22:29 schrieb Kumar Vivek:
-> New subscriber and first time poster. I have tried to read most of the
-> instructions and etiquettes regarding the mailing list but there might
-> still be some noob mistakes on my part.
->
-> I have had this tuner for a while and I used it successfully in 2009
-> (with help from Markus Rechberger - who provided me with the
-> appropriate patch). I saw that the patches were included in the kernel
-> drivers and this was fully supported. I tried to use it again recently
-> and ran into problems and hence this mail. I have spent days trying to
-> figure out the problem and have been unsuccessful.
->
-> I am using kernel 4.8.0
->
-> The variant of this USB ATSC device I have has vid:pid = 1b80:a340 ,
-> EM2870 USB bridge, lgdt3304 demodulator/Frontend, TDA18271HDC2 tuner.
->
-> I loaded the em28xx module with debugging on - including i2c bus scan
-> and i2c transfer.
->
-> [  320.139648] em2870 #0 at em28xx_i2c_xfer: read stop addr=1c len=0:
-> [  320.139652] (pipe 0x80000280): IN:  c0 02 00 00 1c 00 01 00
-> [  320.140008] <<< cf
-> [  320.140038] (pipe 0x80000280): IN:  c0 00 00 00 05 00 01 00 <<< 00
->
-> [  320.140732] em2870 #0: found i2c device @ 0x1c on bus 0 [lgdt330x]
->
-> .....
-> [  320.177163] (pipe 0x80000280): IN:  c0 02 00 00 a0 00 01 00
-> [  320.177541] <<< 1a
-> [  320.177547] (pipe 0x80000280): IN:  c0 00 00 00 05 00 01 00 <<< 00
->
-> [  320.177663] em2870 #0: found i2c device @ 0xa0 on bus 0 [eeprom]
-> .....
->
-> [  320.186289] (pipe 0x80000280): IN:  c0 02 00 00 c4 00 01 00
-> [  320.186659] <<< 84
-> [  320.186665] (pipe 0x80000280): IN:  c0 00 00 00 05 00 01 00 <<< 00
->
-> [  320.186945] em2870 #0: found i2c device @ 0xc4 on bus 0 [tuner (analog)]
->
-> This is a bit strange since the tuner TDA18271HDC2 is at 0x60 (7 bit)
-> or 0xC0 (8 bit) i2c address and usually - i2cbus scan doesn't reveal
-> the tuner's address.
->
-> And then this happens :
-> [  320.203404] em2870 #0: Identified as KWorld PlusTV 340U or UB435-Q
-> (ATSC) (card=76)
-> [  320.203406] em28xx: Currently, V4L2 is not supported on this model
-> [  320.203407] em2870 #0: dvb set to isoc mode.
-> [  320.260270] em2870 #0: Binding DVB extension
-> [  320.260274] em2870 #0 em28xx_alloc_urbs :em28xx: called
-> em28xx_alloc_isoc in mode 2
-> [  320.260276] em2870 #0 em28xx_uninit_usb_xfer :em28xx: called
-> em28xx_uninit_usb_xfer in mode 2
-> [  320.260279] (pipe 0x80000280): IN:  c0 00 00 00 0c 00 01 00 <<< 00
-> [  320.260536] (pipe 0x80000200): OUT: 40 00 00 00 0c 00 01 00 >>> 00
-> [  320.260631] (pipe 0x80000200): OUT: 40 00 00 00 12 00 01 00 >>> 27
-> [  320.260833] (pipe 0x80000200): OUT: 40 00 00 00 48 00 01 00 >>> 00
-> [  320.260987] (pipe 0x80000200): OUT: 40 00 00 00 12 00 01 00 >>> 37
-> [  320.275990] (pipe 0x80000280): IN:  c0 00 00 00 08 00 01 00 <<< ff
-> [  320.278154] (pipe 0x80000200): OUT: 40 00 00 00 08 00 01 00 >>> 7d
-> [  320.337050] em2870 #0 at em28xx_i2c_xfer: write nonstop addr=1c len=2: 00 01
-> [  320.337056] (pipe 0x80000200): OUT: 40 03 00 00 1c 00 02 00 >>>
-> [  320.337057]  00 01
-> [  320.337502] (pipe 0x80000280): IN:  c0 00 00 00 05 00 01 00 <<< 00
->
-> [  320.337618] em2870 #0 at em28xx_i2c_xfer: read stop addr=1c len=1:
-> [  320.337620] (pipe 0x80000280): IN:  c0 02 00 00 1c 00 01 00
-> [  320.337860] <<< 30
-> [  320.337867] (pipe 0x80000280): IN:  c0 00 00 00 05 00 01 00 <<< 00
-> [  320.337979]  30
-> [  320.337984] em2870 #0 at em28xx_i2c_xfer: write stop addr=1c len=3: 08 08 80
-> [  320.337987] (pipe 0x80000200): OUT: 40 02 00 00 1c 00 03 00 >>>
-> [  320.337988]  08 08 80
-> [  320.338518] (pipe 0x80000280): IN:  c0 00 00 00 05 00 01 00 <<< 00
->
-> [  320.338618] em2870 #0 at em28xx_i2c_xfer: write nonstop addr=1c len=2: 08 08
-> [  320.338622] (pipe 0x80000200): OUT: 40 03 00 00 1c 00 02 00 >>>
-> [  320.338623]  08 08
-> [  320.339018] (pipe 0x80000280): IN:  c0 00 00 00 05 00 01 00 <<< 00
->
-> [  320.339110] em2870 #0 at em28xx_i2c_xfer: read stop addr=1c len=1:
-> [  320.339113] (pipe 0x80000280): IN:  c0 02 00 00 1c 00 01 00
-> [  320.339391] <<< 80
-> [  320.339397] (pipe 0x80000280): IN:  c0 00 00 00 05 00 01 00 <<< 00
-> [  320.339490]  80
-> [  320.339496] em2870 #0 at em28xx_i2c_xfer: write stop addr=1c len=3: 08 08 00
-> [  320.339499] (pipe 0x80000200): OUT: 40 02 00 00 1c 00 03 00 >>>
-> [  320.339499]  08 08 00
-> [  320.340768] (pipe 0x80000280): IN:  c0 00 00 00 05 00 01 00 <<< 00
->
-> [  320.341276] tda18271 12-0060: creating new instance
-> [  320.341279] em2870 #0 at em28xx_i2c_xfer: write nonstop addr=c0 len=1: 00
-> [  320.341283] (pipe 0x80000200): OUT: 40 03 00 00 c0 00 01 00 >>>
-> [  320.341284]  00
-> [  320.341506] (pipe 0x80000280): IN:  c0 00 00 00 05 00 01 00 <<< 10
-> [  320.341637]  ERROR: -6
-This means that the i2c client did not ACK the i2c transfer.
+And there is another thing. The very old driver V 0.5.0 currently existing in
+mainline, does not support the DD CI cards, which are an essential addon for
+all users in Austria, Switzerland, ... . Without this CI cards it is
+*impossible* to see the official TV program! This countries scramble the TS
+stream to restrict the access to citizens.
+Without bumping the ddbridge to V 0.9.29, we all living in this countries can't
+use the Kernel driver, but only the DD version! Sticking to the DD version
+means, we can't use other cards in parallel, because the DD version simply
+doesn't support to use any other driver together with the DD cards, due to the
+API changes and the currently used old DVB core.
 
-Due to the "phenomenons" you are describing, I would suspect the
-tda18271 is in reset state / not yet ready.
+In my opinion nearly nobody is using the current mainline driver, due to it's
+limitations and the fact, that the DD version provides all the features we
+need. So merging the new version will not harm anyone, but help to prevent
+using self compiled incompatible drivers.
 
-On your device, it is reset by toggling a gpo line. See em28xx-cards.c:
+In my opinion it should have been DD's task to keep the DD version in sync
+with mainline. Moreover they should have needed to upstream their changes
+in the past in little steps. Instead they changed the API and made it more or
+less impossible to merge it without a lot of effort!
 
-/*
- * KWorld PlusTV 340U, UB435-Q and UB435-Q V2 (ATSC) GPIOs map:
- * EM_GPIO_0 - currently unknown
- * EM_GPIO_1 - LED disable/enable (1 = off, 0 = on)
- * EM_GPIO_2 - currently unknown
- * EM_GPIO_3 - currently unknown
- * EM_GPIO_4 - TDA18271HD/C1 tuner (1 = active, 0 = in reset)
- * EM_GPIO_5 - LGDT3304 ATSC/QAM demod (1 = active, 0 = in reset)
- * EM_GPIO_6 - currently unknown
- * EM_GPIO_7 - currently unknown
- */
-static struct em28xx_reg_seq kworld_a340_digital[] = {
-    {EM2820_R08_GPIO_CTRL,    0x6d,    ~EM_GPIO_4,    10},
-    {    -1,        -1,    -1,        -1},
-};
+As Daniel already mentioned, he spent 1,5 years to understand the driver, to
+make it compatible to the Mainline DVB core, to provide patches, to test the
+result, to get other people involved to test the new drivers, ... .
+When this is not merged *now*, I guess we will lose *the* person who made it
+happen! There were other people who tried it, but didn't have the endurance
+and energy to meet the target.
+Daniel will definitely continue working on this subject to keep the DD
+version in sync with the mainline version, even if there are some things still
+different.
 
+We are very close to the target and making it now a stopper for the mentioned
+little things is the worst thing we can do!
 
-The reset sequence kworld_a340_digital is performed in fcn
-em28xx_set_mode() (em28xx-core.c):
+Beside all this organisational issue, I had the chance to use this driver for
+a couple of days on my test system:
+  DD Cine V 6.5 with a
+  DD Duoflex CI (single) and a
+  DD Duoflex S2 V4 tuner card
+  VDR 2.3.8, ddci2 Plugin 1.5.0
 
-    ...
-        return em28xx_gpio_set(dev, dev->board.dvb_gpio);
-    ...
+And the productive system:
+  DD Octopus CI (dual) with a
+  DD Duoflex S2 tuner card
+  VDR 2.2.0, ddci2 Plugin 1.5.0
 
+I had no issues, beside small problems with my CAM on the productive system,
+which I also had with the upstream DD driver. I am already debugging them, but
+need support from Ralph concerning FPGA registers and maybe more. This problem
+has nothing to do with the new drivers, so it is no stopper for merging it into
+mainline.
 
-Maybe something is wrong with this sequence, e.g. the sleep of 10ms
-could be too short.
-(the datasheet should tell you how long the tda18271 requires to get
-ready after a reset)
-But it might be more complicating.
+With this eMail I add my
+  Tested-by: Jasmin Jessich <jasmin@anw.at>
+for this whole series.
 
-Hope this helps a bit,
+Finally I want to thank Daniel for his effort and I adjure Mauro to merge
+this now!
 
-Frank
+BR,
+   Jasmin
 
+*************************************************************************
 
-> [  320.341642] tda18271_read_regs: [12-0060|M] ERROR: i2c_transfer returned: -6
-> [  320.341647] tda18271_dump_regs: [12-0060|M] === TDA18271 REG DUMP ===
-> [  320.341648] tda18271_dump_regs: [12-0060|M] ID_BYTE            = 0x00
-> [  320.341650] tda18271_dump_regs: [12-0060|M] THERMO_BYTE        = 0x00
-> [  320.341651] tda18271_dump_regs: [12-0060|M] POWER_LEVEL_BYTE   = 0x00
-> [  320.341652] tda18271_dump_regs: [12-0060|M] EASY_PROG_BYTE_1   = 0x00
-> [  320.341653] tda18271_dump_regs: [12-0060|M] EASY_PROG_BYTE_2   = 0x00
-> [  320.341655] tda18271_dump_regs: [12-0060|M] EASY_PROG_BYTE_3   = 0x00
-> [  320.341656] tda18271_dump_regs: [12-0060|M] EASY_PROG_BYTE_4   = 0x00
-> [  320.341657] tda18271_dump_regs: [12-0060|M] EASY_PROG_BYTE_5   = 0x00
-> [  320.341658] tda18271_dump_regs: [12-0060|M] CAL_POST_DIV_BYTE  = 0x00
-> [  320.341659] tda18271_dump_regs: [12-0060|M] CAL_DIV_BYTE_1     = 0x00
-> [  320.341660] tda18271_dump_regs: [12-0060|M] CAL_DIV_BYTE_2     = 0x00
-> [  320.341662] tda18271_dump_regs: [12-0060|M] CAL_DIV_BYTE_3     = 0x00
-> [  320.341663] tda18271_dump_regs: [12-0060|M] MAIN_POST_DIV_BYTE = 0x00
-> [  320.341664] tda18271_dump_regs: [12-0060|M] MAIN_DIV_BYTE_1    = 0x00
-> [  320.341665] tda18271_dump_regs: [12-0060|M] MAIN_DIV_BYTE_2    = 0x00
-> [  320.341667] tda18271_dump_regs: [12-0060|M] MAIN_DIV_BYTE_3    = 0x00
-> [  320.341668] Error reading device ID @ 12-0060, bailing out.
-> [  320.341670] tda18271_attach: [12-0060|M] error -5 on line 1285
-> [  320.341673] tda18271 12-0060: destroying instance
-> [  320.341688] em28xx: Registered (Em28xx dvb Extension) extension
->
-> I read the TDA18271HD datasheet section on i2c -
->
-> Remark: The I2C-bus read in the TDA18271HD must read the entire
-> I2C-bus map, with required subaddress 00h. The number of bytes read is
-> 16, or 39 in extended register mode; see Table 7. Reading write-only
-> bits can return values that are different from the programmed values.
->
->
-> And - TDA18271 module is not the problem because I tested another
-> device with an Au0828 usb bridge and Au8522 demodulator and TDA18271
-> tuner -
->
-> [ 4552.248898] usb 1-3: New USB device found, idVendor=05e1, idProduct=0400
-> [ 4552.248906] usb 1-3: New USB device strings: Mfr=1, Product=2,
-> SerialNumber=10
-> [ 4552.248911] usb 1-3: Product: Auvitek
-> [ 4552.248914] usb 1-3: Manufacturer: Auvitek
-> [ 4552.248918] usb 1-3: SerialNumber: 000000000000001
-> [ 4552.656242] au0828: i2c bus registered
->
-> ....
->
-> [ 4552.717745] au0828: i2c_xfer(num = 1)
-> [ 4552.717748] au0828: i2c_xfer(num = 1) addr = 0x47  len = 0x0
-> [ 4552.717749] au0828: i2c_readbytes()
-> [ 4552.718115] au0828:  RECV:
-> [ 4552.844998] au0828: au0828: i2c scan: found device @ 0x8e  [au8522]
-> ....
-> [ 4552.850466] au0828: i2c_xfer(num = 1)
-> [ 4552.850469] au0828: i2c_xfer(num = 1) addr = 0x50  len = 0x0
-> [ 4552.850470] au0828: i2c_readbytes()
-> [ 4552.850836] au0828:  RECV:
-> [ 4552.978809] au0828: au0828: i2c scan: found device @ 0xa0  [eeprom]
-> ....
->
-> [ 4553.876897] au0828: i2c_xfer(num = 1)
-> [ 4553.876900] au0828: i2c_xfer(num = 1) addr = 0x5f  len = 0x0
-> [ 4553.876900] au0828: i2c_readbytes()
-> [ 4553.877251] au0828:  RECV:
-> [ 4553.877509] au0828: i2c_xfer(num = 1)
-> [ 4553.877511] au0828: i2c_xfer(num = 1) addr = 0x60  len = 0x0
-> [ 4553.877512] au0828: i2c_readbytes()
-> [ 4553.877878] au0828:  RECV:
-> [ 4553.878130] au0828: i2c_xfer(num = 1)
-> [ 4553.878133] au0828: i2c_xfer(num = 1) addr = 0x61  len = 0x0
-> [ 4553.878134] au0828: i2c_readbytes()
-> [ 4553.878503] au0828:  RECV:
-> ....
-> *Tuner not "detected" during i2c_scan*
-> ....
-> [ 4554.089719] tda18271 12-0060: creating new instance
-> [ 4554.089723] au0828: i2c_xfer(num = 1)
-> [ 4554.089726] au0828: i2c_xfer(num = 1) addr = 0x47  len = 0x3
-> [ 4554.089728] au0828: i2c_sendbytes()
-> [ 4554.090108] au0828: SEND: 47
-> [ 4554.090110] au0828:  81
-> [ 4554.090187] au0828:  06
-> [ 4554.090361] au0828:  01
-> [ 4554.090856] au0828:
-> [ 4554.090865] au0828: i2c_xfer(num = 2)
-> [ 4554.090868] au0828: i2c_xfer(num = 2) addr = 0x60  len = 0x1
-> [ 4554.090870] au0828: i2c_sendbytes()
-> [ 4554.091221] au0828: SEND: 60
-> [ 4554.091224] au0828:  00
-> [ 4554.092849] au0828:
-> [ 4554.092852] au0828: i2c_readbytes()
-> [ 4554.093212] au0828:  RECV:
-> [ 4554.093588] au0828:  84
-> [ 4554.093959] au0828:  c8
-> [ 4554.094336] au0828:  80
-> [ 4554.094709] au0828:  46
-> [ 4554.095087] au0828:  df
-> [ 4554.095461] au0828:  92
-> [ 4554.096088] au0828:  60
-> [ 4554.096463] au0828:  30
-> [ 4554.096834] au0828:  00
-> [ 4554.097212] au0828:  00
-> [ 4554.097584] au0828:  00
-> [ 4554.097971] au0828:  00
-> [ 4554.098335] au0828:  00
-> [ 4554.098709] au0828:  00
-> [ 4554.099086] au0828:  00
-> [ 4554.099458] au0828:  00
-> [ 4554.099871] au0828:
-> [ 4554.099876] au0828: i2c_xfer(num = 1)
-> [ 4554.099878] au0828: i2c_xfer(num = 1) addr = 0x47  len = 0x3
-> [ 4554.099879] au0828: i2c_sendbytes()
-> [ 4554.100212] au0828: SEND: 47
-> [ 4554.100214] au0828:  81
-> [ 4554.100335] au0828:  06
-> [ 4554.100458] au0828:  00
-> [ 4554.101082] au0828:
-> [ 4554.101090] tda18271_dump_regs: [12-0060|M] === TDA18271 REG DUMP ===
-> [ 4554.101092] tda18271_dump_regs: [12-0060|M] ID_BYTE            = 0x84
-> [ 4554.101093] tda18271_dump_regs: [12-0060|M] THERMO_BYTE        = 0xc8
-> [ 4554.101095] tda18271_dump_regs: [12-0060|M] POWER_LEVEL_BYTE   = 0x80
-> [ 4554.101096] tda18271_dump_regs: [12-0060|M] EASY_PROG_BYTE_1   = 0x46
-> [ 4554.101097] tda18271_dump_regs: [12-0060|M] EASY_PROG_BYTE_2   = 0xdf
-> [ 4554.101098] tda18271_dump_regs: [12-0060|M] EASY_PROG_BYTE_3   = 0x92
-> [ 4554.101100] tda18271_dump_regs: [12-0060|M] EASY_PROG_BYTE_4   = 0x60
-> [ 4554.101101] tda18271_dump_regs: [12-0060|M] EASY_PROG_BYTE_5   = 0x30
-> [ 4554.101102] tda18271_dump_regs: [12-0060|M] CAL_POST_DIV_BYTE  = 0x00
-> [ 4554.101104] tda18271_dump_regs: [12-0060|M] CAL_DIV_BYTE_1     = 0x00
-> [ 4554.101105] tda18271_dump_regs: [12-0060|M] CAL_DIV_BYTE_2     = 0x00
-> [ 4554.101106] tda18271_dump_regs: [12-0060|M] CAL_DIV_BYTE_3     = 0x00
-> [ 4554.101108] tda18271_dump_regs: [12-0060|M] MAIN_POST_DIV_BYTE = 0x00
-> [ 4554.101109] tda18271_dump_regs: [12-0060|M] MAIN_DIV_BYTE_1    = 0x00
-> [ 4554.101110] tda18271_dump_regs: [12-0060|M] MAIN_DIV_BYTE_2    = 0x00
-> [ 4554.101111] tda18271_dump_regs: [12-0060|M] MAIN_DIV_BYTE_3    = 0x00
-> [ 4554.101112] TDA18271HD/C2 detected @ 12-0060
->
-> And this Auvitek device works just fine.
->
-> Another strange behavior - on removing and re-attaching the Kworld 340U device -
->
-> Now the i2cscan shows -
->
-> [ 7349.417593] em2870 #0 at em28xx_i2c_xfer: read stop addr=c0 len=0:
-> [ 7349.417595] (pipe 0x80000380): IN:  c0 02 00 00 c0 00 01 00
-> [ 7349.417844] <<< 10
-> [ 7349.417850] (pipe 0x80000380): IN:  c0 00 00 00 05 00 01 00 <<< 10
-> [ 7349.417959]  no device
-> [ 7349.417963] em2870 #0 at em28xx_i2c_xfer: read stop addr=c2 len=0:
-> [ 7349.417965] (pipe 0x80000380): IN:  c0 02 00 00 c2 00 01 00
-> [ 7349.418343] <<< 84
-> [ 7349.418349] (pipe 0x80000380): IN:  c0 00 00 00 05 00 01 00 <<< 00
->
-> [ 7349.418468] em2870 #0: found i2c device @ 0xc2 on bus 0 [tuner (analog)]
-> [ 7349.418470] em2870 #0 at em28xx_i2c_xfer: read stop addr=c4 len=0:
-> [ 7349.418472] (pipe 0x80000380): IN:  c0 02 00 00 c4 00 01 00
-> [ 7349.418718] <<< 00
-> [ 7349.418724] (pipe 0x80000380): IN:  c0 00 00 00 05 00 01 00 <<< 10
-> [ 7349.418834]  no device
-> ..
-> So the tuner address changed from 0xC4 to 0xC4 by removing and re-attaching?
->
-> EEPROM info..
->
-> [ 7349.369253] eeprom 00000000: 1a eb 67 95 80 1b 40 a3 c0 13 6b 10 6a
-> 22 00 00  ..g...@...k.j"..
-> [ 7349.369256] eeprom 00000010: 00 00 04 57 00 0d 00 00 00 00 00 00 00
-> 00 00 00  ...W............
-> [ 7349.369260] eeprom 00000020: 44 00 00 00 f0 10 01 00 00 00 00 00 5b
-> 1c c0 00  D...........[...
-> [ 7349.369263] eeprom 00000030: 00 00 20 40 20 80 02 20 01 01 00 00 00
-> 00 00 00  .. @ .. ........
-> [ 7349.369265] eeprom 00000040: 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 00 00 00  ................
-> [ 7349.369268] eeprom 00000050: 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 00 00 00  ................
-> [ 7349.369270] eeprom 00000060: 00 00 00 00 00 00 00 00 00 00 22 03 55
-> 00 53 00  ..........".U.S.
-> [ 7349.369272] eeprom 00000070: 42 00 20 00 32 00 38 00 37 00 30 00 20
-> 00 44 00  B. .2.8.7.0. .D.
-> [ 7349.369275] eeprom 00000080: 65 00 76 00 69 00 63 00 65 00 00 00 00
-> 00 00 00  e.v.i.c.e.......
-> [ 7349.369277] eeprom 00000090: 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 00 00 00  ................
-> [ 7349.369279] eeprom 000000a0: 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 00 00 00  ................
-> [ 7349.369282] eeprom 000000b0: 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 00 00 00  ................
-> [ 7349.369284] eeprom 000000c0: 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 00 00 00  ................
-> [ 7349.369287] eeprom 000000d0: 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 00 00 00  ................
-> [ 7349.369289] eeprom 000000e0: 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 00 00 00  ................
-> [ 7349.369291] eeprom 000000f0: 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 00 00 00  ................
-> [ 7349.369297] em2870 #0: EEPROM ID = 1a eb 67 95, EEPROM hash = 0x2888a312
-> [ 7349.369299] em2870 #0: EEPROM info:
-> [ 7349.369301] em2870 #0: No audio on board.
-> [ 7349.369302] em2870 #0: 500mA max power
-> [ 7349.369306] em2870 #0: Table at offset 0x04, strings=0x226a, 0x0000, 0x0000
->
-> I have hit a wall trying to figure this out and will appreciate any help.
->
-> I did try to use the Kworld device on windows XP once - using the
-> driver provided by the manufacturer- could that have caused an
-> irreparable damage ? changed something?
-> is it the em28xx_i2c_xfer call not following the "read entire i2c bus
-> map" remark from the TDA18271 datasheet?
-> I have tried probing the bus at 0x60 with i2cdetect and i2cdump with no success.
->
-> This error (ERROR:i2c_transfer returned:-X) is widely prevalent on
-> google search-mostly appearing after a kernel upgrade so I am inclined
-> to think that this is a software issue rather than a faulty hardware
-> Any help/pointer would be appreciated.
->
-> Thank you!
+On 07/20/2017 08:25 PM, Daniel Scheller wrote:
+> Hi Mauro,
+> 
+> Am Thu, 20 Jul 2017 12:24:12 -0300
+> schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> 
+>> Em Tue, 11 Jul 2017 17:30:13 +0200
+>> Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
+>>
+>>> Am Tue, 11 Jul 2017 11:11:27 +0200
+>>> schrieb Ralph Metzler <rjkm@metzlerbros.de>:
+>>>   
+>>>> Daniel Scheller writes:    
+>>>>  > 
+>>>>  > IIRC this was -main.c, and basically the code split, but no
+>>>>  > specific file. However, each of the additionals (hw, io, irq)
+>>>>  > were done with a reason (please also see their commit messages
+>>>>  > at patches 4-6):
+>>>>  > [...]    
+>>>>
+>>>> As I wrote before, changes like this will break other things like
+>>>> the OctopusNet build tree. So, I cannot use them like this or
+>>>> without changes at other places. And even if I wanted to, I
+>>>> cannot pull anything into the public dddvb repository.    
+>>>
+>>> Ok, you probably have seen the PRs I created against dddvb, as they
+>>> apply basically the same as is contained in this patchset, and even
+>>> fixes a few minors. Thus, lets not declare this as merge-blocker for
+>>> this patches, please.  
+>>
+>> I would prefer if we could spend more time trying to find a way where
+>> we can proceed without increasing the discrepancies between upstream
+>> and DD tree, but, instead to reduce. 
+>>
+>> I mean, if we know that some change won't be accepted at DD tree,
+>> better to change our approach to another one that it is acceptable
+>> on both upstream and DD trees.
+> 
+> (hopefully not too much language barrier coming up...)
+> 
+> First and foremost (to everyone involved) - I appeal at you all, in
+> the name of all DD hardware owners, for like six approaches to get the
+> patches in shape and over 1.5 years of spare time spent, to not make
+> this a reason to block the patches. And yes, Mauro, I understand
+> what you're up to.
+> 
+> Rather, this closes the gap between the current dddvb drivers and what
+> we have in mainline by at least 24 (!!) (plus some minor revisions and
+> other intermediate versions I couldn't get tar archives for) software
+> releases. Plus, the only real difference we have after these patches is
+> support for the DVB-C modulator cards and the OctoNET box support (with
+> that, support for the aforementioned GTL links, which I even already
+> have a patch for to add that back), and both are features that are
+> removed *for now* only due to the API changes involved, which simply is
+> a tad too much for me right now to add them in and provide reasoning
+> why they're needed and what exactly they do. Speaking of the modulator
+> card support, things are even quite simple, see [1] and [2] what I
+> gathered from the package to have all things API in place. In
+> addition, the parts in ddbridge can be added back quite easily (some
+> output-dma things, PCI IDs plus ddbridge-mod[ulator].c). If these two
+> simple things are acceptable in DVB core, I can even prepare patches
+> for getting the modulator support back in.
+> 
+> As Ralph mentioned the three additional files -irq, -io and -hw, I do
+> not insist on them, but rather thought it'd be a good way to further
+> make things cleaner, by separating things more.
+> 
+> So, again, please do not make this a blocker, but lets rather make this
+> a start to get things closer to each other, and continue in doing so by
+> finding agreements in parallel. And: I _WILL_ care about keeping the
+> mainline version in sync with upstream and NOT diverge further; this is
+> what the MAINTAINERS entry is meant for at last!
+> 
+> [1]
+> https://github.com/herrnst/dddvb-linux-kernel/commit/c586db283ef51f43ecb1d1c9e49230184ea02714
+> [2]
+> https://github.com/herrnst/dddvb-linux-kernel/commit/f448a8485a24acec7b44ac418ef57b59eb8369cd
+> 
+> All the best,
+> Daniel Scheller
+> 
