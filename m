@@ -1,78 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:33583 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755095AbdGVLbB (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39682 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S935122AbdGTQJ7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Jul 2017 07:31:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sylwester Nawrocki <snawrocki@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 6/6] media: drop use of MEDIA_API_VERSION
-Date: Sat, 22 Jul 2017 13:30:57 +0200
-Message-Id: <20170722113057.45202-7-hverkuil@xs4all.nl>
-In-Reply-To: <20170722113057.45202-1-hverkuil@xs4all.nl>
-References: <20170722113057.45202-1-hverkuil@xs4all.nl>
+        Thu, 20 Jul 2017 12:09:59 -0400
+Date: Thu, 20 Jul 2017 19:09:55 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se
+Subject: Re: [RFC 11/19] v4l2-async: Register sub-devices before calling
+ bound callback
+Message-ID: <20170720160954.47rbdwpxx6d4ezvq@valkosipuli.retiisi.org.uk>
+References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
+ <20170718190401.14797-12-sakari.ailus@linux.intel.com>
+ <03f4a632-30b8-bdc8-2b03-fa7c3eb811a1@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <03f4a632-30b8-bdc8-2b03-fa7c3eb811a1@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans,
 
-Set media_version to LINUX_VERSION_CODE, just as we did for
-driver_version.
+On Wed, Jul 19, 2017 at 01:24:54PM +0200, Hans Verkuil wrote:
+> On 18/07/17 21:03, Sakari Ailus wrote:
+> > The async notifier supports three callbacks to the notifier: bound, unbound
+> > and complete. The complete callback has been traditionally used for
+> > creating the sub-device nodes.
+> > 
+> > This approach has an inherent weakness: if registration of a single
+> > sub-device fails for whatever reason, it renders the entire media device
+> > unusable even if only that piece of hardware is not working. This is a
+> > problem in particular in systems with multiple independent image pipelines
+> > on a single device. We have had such devices (e.g. omap3isp) supported for
+> > a number of years and the problem is growing more pressing as time passes
+> > so there is an incentive to resolve this.
+> 
+> I don't think this is a good reason. If one of the subdevices fail, then your
+> hardware is messed up and there is no point in continuing.
 
-Nobody ever rememebers to update the version number, but
-LINUX_VERSION_CODE will always be updated.
+That's entirely untrue in general case.
 
-Move the MEDIA_API_VERSION define to the ifndef __KERNEL__ section of the
-media.h header. That way kernelspace can't accidentally start to use
-it again.
+If you have e.g. a mobile phone with a single camera, yes, you're right.
+But most mobile phones have two cameras these days. Embedded systems may
+have many, think of automotive use cases: you could have five or ten
+cameras there.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/media-device.c | 3 +--
- include/uapi/linux/media.h   | 5 +++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+It is not feasible to prevent the entire system from working if a single
+component is at fault --- this is really any component such as a lens
+controller.
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 979e4307d248..3c99294e3ebf 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -69,9 +69,8 @@ static int media_device_get_info(struct media_device *dev,
- 	strlcpy(info->serial, dev->serial, sizeof(info->serial));
- 	strlcpy(info->bus_info, dev->bus_info, sizeof(info->bus_info));
- 
--	info->media_version = MEDIA_API_VERSION;
-+	info->media_version = info->driver_version = LINUX_VERSION_CODE;
- 	info->hw_revision = dev->hw_revision;
--	info->driver_version = LINUX_VERSION_CODE;
- 
- 	return 0;
- }
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index fac96c64fe51..4865f1e71339 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -30,8 +30,6 @@
- #include <linux/types.h>
- #include <linux/version.h>
- 
--#define MEDIA_API_VERSION	KERNEL_VERSION(0, 1, 0)
--
- struct media_device_info {
- 	char driver[16];
- 	char model[32];
-@@ -187,6 +185,9 @@ struct media_device_info {
- #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	MEDIA_ENT_F_LENS
- #define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	MEDIA_ENT_F_ATV_DECODER
- #define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	MEDIA_ENT_F_TUNER
-+
-+/* Obsolete symbol for media_version, no longer used in the kernel */
-+#define MEDIA_API_VERSION		KERNEL_VERSION(0, 1, 0)
- #endif
- 
- /* Entity flags */
 -- 
-2.13.2
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
