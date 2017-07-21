@@ -1,56 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:35394 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752618AbdGITmw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 15:42:52 -0400
-Received: by mail-wr0-f193.google.com with SMTP id z45so20514859wrb.2
-        for <linux-media@vger.kernel.org>; Sun, 09 Jul 2017 12:42:52 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, d_spingler@gmx.de, rjkm@metzlerbros.de
-Subject: [PATCH 3/4] [media] ddbridge: fix buffer overflow in max_set_input_unlocked()
-Date: Sun,  9 Jul 2017 21:42:45 +0200
-Message-Id: <20170709194246.10334-4-d.scheller.oss@gmail.com>
-In-Reply-To: <20170709194246.10334-1-d.scheller.oss@gmail.com>
-References: <20170709194246.10334-1-d.scheller.oss@gmail.com>
+Received: from mail-wr0-f177.google.com ([209.85.128.177]:37087 "EHLO
+        mail-wr0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752871AbdGUHzo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Jul 2017 03:55:44 -0400
+Received: by mail-wr0-f177.google.com with SMTP id 33so22633765wrz.4
+        for <linux-media@vger.kernel.org>; Fri, 21 Jul 2017 00:55:43 -0700 (PDT)
+Subject: Re: [PATCH v3 22/23] camss: Use optimal clock frequency rates
+Cc: mchehab@kernel.org, hans.verkuil@cisco.com, s.nawrocki@samsung.com,
+        sakari.ailus@iki.fi, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
+References: <201707192319.2CeMkOEJ%fengguang.wu@intel.com>
+From: Todor Tomov <todor.tomov@linaro.org>
+Message-ID: <23d32af2-13cc-617d-c2a9-cb16aea9542d@linaro.org>
+Date: Fri, 21 Jul 2017 10:55:41 +0300
+MIME-Version: 1.0
+In-Reply-To: <201707192319.2CeMkOEJ%fengguang.wu@intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Hello,
 
-Picked up code parts introduced one smatch error:
+On 19.07.2017 18:59, kbuild test robot wrote:
+> Hi Todor,
+> 
+> [auto build test ERROR on linuxtv-media/master]
+> [also build test ERROR on v4.13-rc1]
+> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+> 
+> url:    https://github.com/0day-ci/linux/commits/Todor-Tomov/Qualcomm-8x16-Camera-Subsystem-driver/20170718-055348
+> base:   git://linuxtv.org/media_tree.git master
+> config: i386-allmodconfig (attached as .config)
+> compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
+> reproduce:
+>         # save the attached .config to linux build tree
+>         make ARCH=i386 
+> 
+> All errors (new ones prefixed by >>):
+> 
+>    ERROR: "__udivdi3" [fs/ufs/ufs.ko] undefined!
+>>> ERROR: "__udivdi3" [drivers/media/platform/qcom/camss-8x16/qcom-camss.ko] undefined!
+>    ERROR: "__divdi3" [drivers/media/platform/qcom/camss-8x16/qcom-camss.ko] undefined!
 
-  drivers/media/pci/ddbridge/ddbridge-maxs8.c:163 max_set_input_unlocked() error: buffer overflow 'dev->link[port->lnr].lnb.voltage' 4 <= 255
+Just FYI,
+I'll switch to using the proper division functions/macros so this error
+will be fixed in the next version of the patchset.
 
-Fix this by clamping the .lnb.voltage array access to 0-3 by "& 3"'ing
-dvb->input.
+> 
+> ---
+> 0-DAY kernel test infrastructure                Open Source Technology Center
+> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+> 
 
-Cc: Ralph Metzler <rjkm@metzlerbros.de>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ddbridge/ddbridge-maxs8.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/pci/ddbridge/ddbridge-maxs8.c b/drivers/media/pci/ddbridge/ddbridge-maxs8.c
-index a9dc5f9754da..10716ee8cf59 100644
---- a/drivers/media/pci/ddbridge/ddbridge-maxs8.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-maxs8.c
-@@ -187,11 +187,12 @@ static int max_set_input_unlocked(struct dvb_frontend *fe, int in)
- 		return -EINVAL;
- 	if (dvb->input != in) {
- 		u32 bit = (1ULL << input->nr);
--		u32 obit = dev->link[port->lnr].lnb.voltage[dvb->input] & bit;
-+		u32 obit =
-+			dev->link[port->lnr].lnb.voltage[dvb->input & 3] & bit;
- 
--		dev->link[port->lnr].lnb.voltage[dvb->input] &= ~bit;
-+		dev->link[port->lnr].lnb.voltage[dvb->input & 3] &= ~bit;
- 		dvb->input = in;
--		dev->link[port->lnr].lnb.voltage[dvb->input] |= obit;
-+		dev->link[port->lnr].lnb.voltage[dvb->input & 3] |= obit;
- 	}
- 	res = dvb->set_input(fe, in);
- 	return res;
 -- 
-2.13.0
+Best regards,
+Todor Tomov
