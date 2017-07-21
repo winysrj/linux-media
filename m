@@ -1,81 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:56126 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752549AbdGFKn1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 06:43:27 -0400
-Date: Thu, 6 Jul 2017 12:43:25 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/8] Prepare for CCP2 / CSI-1 support, omap3isp fixes
-Message-ID: <20170706104325.GA11297@amd>
-References: <20170705230019.5461-1-sakari.ailus@linux.intel.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45704 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753679AbdGUKK1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Jul 2017 06:10:27 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 4/4] atomisp2: don't set driver_version anymore
+Date: Fri, 21 Jul 2017 13:10:34 +0300
+Message-ID: <2861836.LoGWVYMxAE@avalon>
+In-Reply-To: <20170721090234.6501-5-hverkuil@xs4all.nl>
+References: <20170721090234.6501-1-hverkuil@xs4all.nl> <20170721090234.6501-5-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="EVF5PPMfhYS0aIcm"
-Content-Disposition: inline
-In-Reply-To: <20170705230019.5461-1-sakari.ailus@linux.intel.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
---EVF5PPMfhYS0aIcm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Friday 21 Jul 2017 11:02:34 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> This is now set by media_device_init.
+> 
+> Drop the print of driver_version in the error message: the driver
+> version is 1) not yet set at this point (the media_device_init call
+> comes later AFAICS), and 2) irrelevant here, since it is the hw_revision
+> that is important, not the driver version (which is identical to the
+> kernel version anyway).
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c | 5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
+> 
+> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+> b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c index
+> 2f49562377e6..29387c03fae9 100644
+> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+> @@ -1100,8 +1100,7 @@ atomisp_load_firmware(struct atomisp_device *isp)
+> 
+>  	if (!fw_path) {
+>  		dev_err(isp->dev,
+> -			"Unsupported driver_version 0x%x, hw_revision 0x%x\n",
+> -			isp->media_dev.driver_version,
+> +			"Unsupported hw_revision 0x%x\n",
 
-Hi!
+Nitpicking, you can now merge the first two lines.
 
-> Most of these patches have been posted to the list in some form or other
-> already but a lot has happened since. Thus reposting. There are more
-> patches in my ccp2 branch but they're not quite ready as such, for the
-> reasons discussed previously.
+>  			isp->media_dev.hw_revision);
+>  		return NULL;
+>  	}
+> @@ -1249,8 +1248,6 @@ static int atomisp_pci_probe(struct pci_dev *dev,
+>  	/* This is not a true PCI device on SoC, so the delay is not needed. 
+*/
+>  	isp->pdev->d3_delay = 0;
+> 
+> -	isp->media_dev.driver_version = LINUX_VERSION_CODE;
+> -
+>  	switch (id->device & ATOMISP_PCI_DEVICE_SOC_MASK) {
+>  	case ATOMISP_PCI_DEVICE_SOC_MRFLD:
+>  		isp->media_dev.hw_revision =
 
-I'm using Sakari's ccp2 branch as a basis of camera support for
-N900. camera-fw5-6 branch on kernel.org has the code, and it works
-rather well.
+-- 
+Regards,
 
-Yes, there's more work to be done (finishing the support in omap3isp,
-connecting focus, flash, all the userland support, ...), but this is
-good basis and is ready now.
-
-Thus (for the series)
-
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Tested-by: Pavel Machek <pavel@ucw.cz>
-
-Best regards,
-								Pavel
-							=09
->=20
-> Pavel Machek (1):
->   smiapp: add CCP2 support
->=20
-> Sakari Ailus (7):
->   dt: bindings: Explicitly specify bus type
->   dt: bindings: Add strobe property for CCP2
->   v4l: fwnode: Call CSI2 bus csi2, not csi
->   v4l: fwnode: Obtain data bus type from FW
->   v4l: Add support for CSI-1 and CCP2 busses
->   omap3isp: Check for valid port in endpoints
->   omap3isp: Destroy CSI-2 phy mutexes in error and module removal
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---EVF5PPMfhYS0aIcm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlleFE0ACgkQMOfwapXb+vIvswCff1LaiXkVyklV+lqeQKpmOesR
-spcAn20Y5cokizO0/TnttIXIB2iEKs9O
-=yMpG
------END PGP SIGNATURE-----
-
---EVF5PPMfhYS0aIcm--
+Laurent Pinchart
