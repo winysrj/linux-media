@@ -1,72 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f171.google.com ([209.85.128.171]:36791 "EHLO
-        mail-wr0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753545AbdGUHu0 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59368 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753940AbdGUOrM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Jul 2017 03:50:26 -0400
-Received: by mail-wr0-f171.google.com with SMTP id y43so79044774wrd.3
-        for <linux-media@vger.kernel.org>; Fri, 21 Jul 2017 00:50:25 -0700 (PDT)
-Subject: Re: [PATCH v3 00/23] Qualcomm 8x16 Camera Subsystem driver
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
-References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
- <20170720152535.crxlxhirtlv23rjr@valkosipuli.retiisi.org.uk>
-From: Todor Tomov <todor.tomov@linaro.org>
-Message-ID: <694ea988-1f36-e0bb-7e03-0dee36fb79a4@linaro.org>
-Date: Fri, 21 Jul 2017 10:50:23 +0300
+        Fri, 21 Jul 2017 10:47:12 -0400
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 75473600CF
+        for <linux-media@vger.kernel.org>; Fri, 21 Jul 2017 15:06:33 +0300 (EEST)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakke@valkosipuli.retiisi.org.uk>)
+        id 1dYWhU-00016r-TY
+        for linux-media@vger.kernel.org; Fri, 21 Jul 2017 15:06:32 +0300
+Date: Fri, 21 Jul 2017 15:06:32 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.14] V4L2 flash class and misc patches
+Message-ID: <20170721120632.6cdmsxmsvryx77ud@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <20170720152535.crxlxhirtlv23rjr@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sakari,
+Hi Mauro,
 
-Thank you for the review!
+More patches for 4.14. Flash fixes and improvements plus other
+miscellaneous patches.
 
-On 20.07.2017 18:25, Sakari Ailus wrote:
-> Hi Todor,
-> 
-> On Mon, Jul 17, 2017 at 01:33:26PM +0300, Todor Tomov wrote:
->> This patchset adds basic support for the Qualcomm Camera Subsystem found
->> on Qualcomm MSM8916 and APQ8016 processors.
->>
->> The driver implements V4L2, Media controller and V4L2 subdev interfaces.
->> Camera sensor using V4L2 subdev interface in the kernel is supported.
->>
->> The driver is implemented using as a reference the Qualcomm Camera
->> Subsystem driver for Android as found in Code Aurora [1].
->>
->> The driver is tested on Dragonboard 410C (APQ8016) with one and two
->> OV5645 camera sensors. media-ctl [2] and yavta [3] applications were
->> used for testing. Also Gstreamer 1.10.4 with v4l2src plugin is supported.
->>
->> More information is present in the document added by the third patch.
-> 
-> After addressing the comments (please pay attention especially those
-> affecting the user space API behaviour) you can add:
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> Let me know if you have any further questions on the individual comments.
-> 
+Please pull.
 
-I'll prepare updates based on your comments. I'll reply to individual
-comments only if there is something to discuss, the others I'll fix
-directly.
 
-Also, we had a discussion with Rob Herring about the device tree
-binding and he requested some more opinions. If you have something
-to say about this, please do. You can see the context here:
+The following changes since commit 6538b02d210f52ef2a2e67d59fcb58be98451fbd:
 
-https://lkml.org/lkml/2017/6/19/280
-https://lkml.org/lkml/2017/6/29/311
+  media: Make parameter of media_entity_remote_pad() const (2017-07-20 16:54:04 -0400)
 
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git for-4.14-2
+
+for you to fetch changes up to c8c62ce6f725078ec3cf8a3b1945417f0d8e6706:
+
+  ov5640: Remove unneeded gpiod NULL check (2017-07-21 14:56:06 +0300)
+
+----------------------------------------------------------------
+Fabio Estevam (1):
+      ov5640: Remove unneeded gpiod NULL check
+
+Laurent Pinchart (1):
+      v4l: omap3isp: Get the parallel bus type from DT
+
+Sakari Ailus (3):
+      v4l2-fwnode: link_frequency is an optional property
+      v4l2-flash: Use led_classdev instead of led_classdev_flash for indicator
+      v4l2-flash: Flash ops aren't mandatory
+
+ drivers/media/i2c/ov5640.c                     |  3 +--
+ drivers/media/platform/omap3isp/isp.c          |  1 +
+ drivers/media/platform/omap3isp/ispccdc.c      |  8 +------
+ drivers/media/platform/omap3isp/omap3isp.h     |  2 ++
+ drivers/media/v4l2-core/v4l2-flash-led-class.c | 30 +++++++++++---------------
+ drivers/media/v4l2-core/v4l2-fwnode.c          | 30 +++++++++++++-------------
+ drivers/staging/greybus/light.c                |  4 ++--
+ include/media/v4l2-flash-led-class.h           |  6 +++---
+ 8 files changed, 37 insertions(+), 47 deletions(-)
 
 -- 
-Best regards,
-Todor Tomov
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
