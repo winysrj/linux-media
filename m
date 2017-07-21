@@ -1,64 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:53511 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752516AbdG2KXY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Jul 2017 06:23:24 -0400
-Date: Sat, 29 Jul 2017 11:23:22 +0100
-From: Sean Young <sean@mess.org>
-To: Szabolcs Andrasi <andrasi.szabolcs@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: ir-keytable question [Ubuntu 17.04]
-Message-ID: <20170729102322.7p6ipsszmvryqubs@gofer.mess.org>
-References: <CAM1CkLU6gTj2zDS-9cu_POOVpByitEyi26XhKZ1W3j9AbTTK-Q@mail.gmail.com>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:37393 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750762AbdGUM4i (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Jul 2017 08:56:38 -0400
+Received: by mail-pg0-f65.google.com with SMTP id g14so707899pgu.4
+        for <linux-media@vger.kernel.org>; Fri, 21 Jul 2017 05:56:38 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAM1CkLU6gTj2zDS-9cu_POOVpByitEyi26XhKZ1W3j9AbTTK-Q@mail.gmail.com>
+From: Przemyslaw Gajos <przemyslaw.gajos@gmail.com>
+Date: Fri, 21 Jul 2017 13:56:36 +0100
+Message-ID: <CA+mzHXp0DZXZvcNQGLd+Nvv_C7onO7FokQE25zFTaETfJNqnYw@mail.gmail.com>
+Subject: WARNING from linux/drivers/media/v4l2-core/v4l2-ioctl.c: Unknown
+ pixelformat 0x20203852
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Deal all,
 
-On Sun, Jul 16, 2017 at 10:26:14PM -0700, Szabolcs Andrasi wrote:
-> Hi,
-> 
-> I'm using Ubuntu 17.04 and I installed the ir-keytable tool. The
-> output of the ir-keytable command is as follows:
-> 
-> 
-> 
-> Found /sys/class/rc/rc0/ (/dev/input/event5) with:
-> Driver ite-cir, table rc-rc6-mce
-> Supported protocols: unknown other lirc rc-5 rc-5-sz jvc sony nec
-> sanyo mce_kbd rc-6 sharp xmp
-> Enabled protocols: lirc rc-6
-> Name: ITE8708 CIR transceiver
-> bus: 25, vendor/product: 1283:0000, version: 0x0000
-> Repeat delay = 500 ms, repeat period = 125 ms
-> 
-> 
-> 
-> I'm trying to enable the supported mce_kbd protocol in addition to the
-> lirc and rc-6 protocols with the
-> 
-> $ sudo ir-keytable -p lirc -p rc-6 -p mce_kbd
-> 
-> command which works as expected. If, however, I reboot my computer,
-> ir-keytable forgets this change and only the lirc and rc-6 protocols
-> are enabled. Is there a configuration file I can edit so that after
-> the boot my IR remote still works? Or is that so that the only way to
-> make it work is to write a start-up script that runs the above command
-> to enable the needed protocol?
+My v4l2 capture driver advertises some non-v4l2 pixel formats and in
+new kernels I get a warning message to kernel logs when
+VIDIOC_ENUM_FMT ioctl is called in the driver:
 
-So what we have today is /etc/rc_maps.cfg, where you can select the default
-keymap for a particular driver; unfortunately, you can only select one
-keymap and one keymap can only have one protocol.
+[11205.998032] WARNING: CPU: 5 PID: 2471 at
+/home/kernel/COD/linux/drivers/media/v4l2-core/v4l2-ioctl.c:1272
+v4l_enum_fmt+0xd86/0x10f0 [videodev]()
+[11205.998034] Unknown pixelformat 0x20203852
+[11205.998036] Modules linked in: arc4 md4 nls_utf8 cifs fscache
+rgb200(POE) videodev media gpio_ich snd_hda_codec_realtek
+snd_hda_codec_generic intel_rapl x86_pkg_temp_thermal intel_powerclamp
+coretemp snd_hda_intel snd_hda_codec snd_hda_core snd_hwdep snd_pcm
+snd_seq_midi snd_seq_midi_event joydev input_leds snd_rawmidi kvm
+snd_seq snd_seq_device snd_timer snd soundcore shpchp irqbypass
+crct10dif_pclmul crc32_pclmul ghash_clmulni_intel lpc_ich aesni_intel
+aes_x86_64 lrw gf128mul glue_helper ablk_helper mei_me mei cryptd
+8250_fintek mac_hid parport_pc ppdev lp parport autofs4 hid_generic
+hid_cherry usbhid hid amdkfd amd_iommu_v2 radeon i2c_algo_bit ttm
+drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops e1000e
+ahci drm libahci ptp pps_core floppy fjes
+[11205.998093] CPU: 5 PID: 2471 Comm: gst-launch-1.0 Tainted: P
+W  OE   4.4.76-040476-generic #201707050936
+[11205.998095] Hardware name: To be filled by O.E.M. To be filled by
+O.E.M./To be filled by O.E.M., BIOS 4.6.4 12/16/2011
+[11205.998098]  0000000000000286 82331ce6718839c1 ffff8802325fbbf0
+ffffffff813da083
+[11205.998101]  ffff8802325fbc38 ffffffffc05b8a68 ffff8802325fbc28
+ffffffff81080132
+[11205.998105]  ffff8802325fbda0 0000000000000000 0000000000000000
+ffffc900013da000
+[11205.998108] Call Trace:
+[11205.998116]  [<ffffffff813da083>] dump_stack+0x63/0x90
+[11205.998121]  [<ffffffff81080132>] warn_slowpath_common+0x82/0xc0
+[11205.998124]  [<ffffffff810801cc>] warn_slowpath_fmt+0x5c/0x80
+[11205.998132]  [<ffffffffc05a36f6>] v4l_enum_fmt+0xd86/0x10f0 [videodev]
+[11205.998145]  [<ffffffffc071a1db>] ?
+rgb133_enum_framesizes+0x2c4/0x2d4 [rgb200]
+[11205.998153]  [<ffffffffc05a42c1>] __video_do_ioctl+0x291/0x310 [videodev]
+[11205.998161]  [<ffffffffc05a3d96>] video_usercopy+0x336/0x5b0 [videodev]
+[11205.998169]  [<ffffffffc05a4030>] ? video_ioctl2+0x20/0x20 [videodev]
+[11205.998174]  [<ffffffff811bf6e7>] ? handle_mm_fault+0x1277/0x1820
+[11205.998181]  [<ffffffffc05a4025>] video_ioctl2+0x15/0x20 [videodev]
+[11205.998188]  [<ffffffffc059f6a3>] v4l2_ioctl+0xd3/0xe0 [videodev]
+[11205.998193]  [<ffffffff8121f598>] do_vfs_ioctl+0x298/0x480
+[11205.998196]  [<ffffffff8106a574>] ? __do_page_fault+0x1b4/0x400
+[11205.998200]  [<ffffffff8121f7f9>] SyS_ioctl+0x79/0x90
+[11205.998204]  [<ffffffff8181aaf2>] entry_SYSCALL_64_fastpath+0x16/0x71
+[11205.998206] ---[ end trace 13c7a64a61ea1959 ]---
+[11205.998210] ------------[ cut here ]------------
 
-Ideally we could either have more than one protocol per keymap, which
-would be helpful for the MCE Keyboard, or we could allow multiple keymaps
-which would be great for supporting different remotes at the same time.
+The above is printed to kernel logs every time a non-v4l2 pixel format
+is enumerated (every time a format is not recognised by the v4l2
+layer). In older kernels such warning was not present but was enabled
+in new kernels (>=4.4).
+Note that my driver supports 8 non-v4l2 formats and in practice, every
+time a capture is opened kernel logs get filled with 8 such warnings
+as shown above. This results in kernel logs being not only polluted
+with those call traces but also their size rising quickly in some
+cases.
 
-For now, you could add a udev rule to also enable the mce_kbd protocol.
+What is Your position on those warning messages? Do You think they are
+really needed in the v4l2 layer? Do You think they could disappear?
 
-
-Sean
+Best regards,
+Przemek Gajos
