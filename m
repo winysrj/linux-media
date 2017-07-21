@@ -1,120 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:36698 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933731AbdGTJSd (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45722 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753679AbdGUKL5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 05:18:33 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: "H. Nikolaus Schaller" <hns@goldelico.com>,
+        Fri, 21 Jul 2017 06:11:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@iki.fi>,
         Sylwester Nawrocki <snawrocki@kernel.org>,
-        "Hans Verkuil" <hverkuil@xs4all.nl>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre TORGUE <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        "Yannick FERTRE" <yannick.fertre@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 0/7] Add support of OV9655 camera
-Date: Thu, 20 Jul 2017 09:17:38 +0000
-Message-ID: <8050f688-fc6e-c3c0-460a-93ad3ae8d735@st.com>
-References: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com>
- <8157da84-1484-8375-1f2b-9831973915b4@kernel.org>
- <956f17e6-36dd-6733-0d35-9b801ed4244d@xs4all.nl>
- <BCD1BD18-96E3-4638-8935-B5C832D8EE52@goldelico.com>
- <2dd3402e-55b0-231d-878f-5ba95ee8cb36@st.com>
- <20170718195223.zrqfrefxxzqfsojd@valkosipuli.retiisi.org.uk>
- <AB91B71D-E34B-4645-BD70-A87226BA34C5@goldelico.com>
-In-Reply-To: <AB91B71D-E34B-4645-BD70-A87226BA34C5@goldelico.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <6EB4E3EF8784074DAD57E64B1F57A9ED@st.com>
-Content-Transfer-Encoding: base64
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 1/4] media-device: set driver_version in media_device_init
+Date: Fri, 21 Jul 2017 13:12:04 +0300
+Message-ID: <3878230.p4nklYSnFj@avalon>
+In-Reply-To: <20170721090234.6501-2-hverkuil@xs4all.nl>
+References: <20170721090234.6501-1-hverkuil@xs4all.nl> <20170721090234.6501-2-hverkuil@xs4all.nl>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQoNCk9uIDA3LzIwLzIwMTcgMTA6MzcgQU0sIEguIE5pa29sYXVzIFNjaGFsbGVyIHdyb3RlOg0K
-PiBIaSwNCj4gDQo+PiBBbSAxOC4wNy4yMDE3IHVtIDIxOjUyIHNjaHJpZWIgU2FrYXJpIEFpbHVz
-IDxzYWthcmkuYWlsdXNAaWtpLmZpPjoNCj4+DQo+PiBPbiBUdWUsIEp1bCAxOCwgMjAxNyBhdCAx
-Mjo1MzoxMlBNICswMDAwLCBIdWd1ZXMgRlJVQ0hFVCB3cm90ZToNCj4+Pg0KPj4+DQo+Pj4gT24g
-MDcvMTgvMjAxNyAwMjoxNyBQTSwgSC4gTmlrb2xhdXMgU2NoYWxsZXIgd3JvdGU6DQo+Pj4+IEhp
-LA0KPj4+Pg0KPj4+Pj4gQW0gMTguMDcuMjAxNyB1bSAxMzo1OSBzY2hyaWViIEhhbnMgVmVya3Vp
-bCA8aHZlcmt1aWxAeHM0YWxsLm5sPjoNCj4+Pj4+DQo+Pj4+PiBPbiAxMi8wNy8xNyAyMjowMSwg
-U3lsd2VzdGVyIE5hd3JvY2tpIHdyb3RlOg0KPj4+Pj4+IEhpIEh1Z3VlcywNCj4+Pj4+Pg0KPj4+
-Pj4+IE9uIDA3LzAzLzIwMTcgMTE6MTYgQU0sIEh1Z3VlcyBGcnVjaGV0IHdyb3RlOg0KPj4+Pj4+
-PiBUaGlzIHBhdGNoc2V0IGVuYWJsZXMgT1Y5NjU1IGNhbWVyYSBzdXBwb3J0Lg0KPj4+Pj4+Pg0K
-Pj4+Pj4+PiBPVjk2NTUgc3VwcG9ydCBoYXMgYmVlbiB0ZXN0ZWQgdXNpbmcgU1RNMzJGNERJUy1D
-QU0gZXh0ZW5zaW9uIGJvYXJkDQo+Pj4+Pj4+IHBsdWdnZWQgb24gY29ubmVjdG9yIFAxIG9mIFNU
-TTMyRjc0NkctRElTQ08gYm9hcmQuDQo+Pj4+Pj4+IER1ZSB0byBsYWNrIG9mIE9WOTY1MC81MiBo
-YXJkd2FyZSBzdXBwb3J0LCB0aGUgbW9kaWZpZWQgcmVsYXRlZCBjb2RlDQo+Pj4+Pj4+IGNvdWxk
-IG5vdCBoYXZlIGJlZW4gY2hlY2tlZCBmb3Igbm9uLXJlZ3Jlc3Npb24uDQo+Pj4+Pj4+DQo+Pj4+
-Pj4+IEZpcnN0IHBhdGNoZXMgdXBncmFkZSBjdXJyZW50IHN1cHBvcnQgb2YgT1Y5NjUwLzUyIHRv
-IHByZXBhcmUgdGhlbg0KPj4+Pj4+PiBpbnRyb2R1Y3Rpb24gb2YgT1Y5NjU1IHZhcmlhbnQgcGF0
-Y2guDQo+Pj4+Pj4+IEJlY2F1c2Ugb2YgT1Y5NjU1IHJlZ2lzdGVyIHNldCBzbGlnaHRseSBkaWZm
-ZXJlbnQgZnJvbSBPVjk2NTAvOTY1MiwNCj4+Pj4+Pj4gbm90IGFsbCBvZiB0aGUgZHJpdmVyIGZl
-YXR1cmVzIGFyZSBzdXBwb3J0ZWQgKGNvbnRyb2xzKS4gU3VwcG9ydGVkDQo+Pj4+Pj4+IHJlc29s
-dXRpb25zIGFyZSBsaW1pdGVkIHRvIFZHQSwgUVZHQSwgUVFWR0EuDQo+Pj4+Pj4+IFN1cHBvcnRl
-ZCBmb3JtYXQgaXMgbGltaXRlZCB0byBSR0I1NjUuDQo+Pj4+Pj4+IENvbnRyb2xzIGFyZSBsaW1p
-dGVkIHRvIGNvbG9yIGJhciB0ZXN0IHBhdHRlcm4gZm9yIHRlc3QgcHVycG9zZS4NCj4+Pj4+Pg0K
-Pj4+Pj4+IEkgYXBwcmVjaWF0ZSB5b3VyIGVmZm9ydHMgdG93YXJkcyBtYWtpbmcgYSBjb21tb24g
-ZHJpdmVyIGJ1dCBJTU8gaXQgd291bGQgYmUNCj4+Pj4+PiBiZXR0ZXIgdG8gY3JlYXRlIGEgc2Vw
-YXJhdGUgZHJpdmVyIGZvciB0aGUgT1Y5NjU1IHNlbnNvci4gIFRoZSBvcmlnaW5hbCBkcml2ZXIN
-Cj4+Pj4+PiBpcyAxNTc2IGxpbmVzIG9mIGNvZGUsIHlvdXIgcGF0Y2ggc2V0IGFkZHMgaGFsZiBv
-ZiB0aGF0ICg4MTYpLiAgVGhlcmUgYXJlDQo+Pj4+Pj4gc2lnbmlmaWNhbnQgZGlmZmVyZW5jZXMg
-aW4gdGhlIGZlYXR1cmUgc2V0IG9mIGJvdGggc2Vuc29ycywgdGhlcmUgYXJlDQo+Pj4+Pj4gZGlm
-ZmVyZW5jZXMgaW4gdGhlIHJlZ2lzdGVyIGxheW91dC4gIEkgd291bGQgZ28gZm9yIGEgc2VwYXJh
-dGUgZHJpdmVyLCB3ZQ0KPj4+Pj4+IHdvdWxkIHRoZW4gaGF2ZSBjb2RlIGVhc2llciB0byBmb2xs
-b3cgYW5kIHdvdWxkbid0IG5lZWQgdG8gd29ycnkgYWJvdXQgcG9zc2libGUNCj4+Pj4+PiByZWdy
-ZXNzaW9ucy4gIEknbSBhZnJhaWQgSSBoYXZlIGxvc3QgdGhlIGNhbWVyYSBtb2R1bGUgYW5kIHdv
-bid0IGJlIGFibGUNCj4+Pj4+PiB0byB0ZXN0IHRoZSBwYXRjaCBzZXQgYWdhaW5zdCByZWdyZXNz
-aW9ucy4NCj4+Pj4+Pg0KPj4+Pj4+IElNSE8gZnJvbSBtYWludGVuYW5jZSBQT1YgaXQncyBiZXR0
-ZXIgdG8gbWFrZSBhIHNlcGFyYXRlIGRyaXZlci4gSW4gdGhlIGVuZA0KPj4+Pj4+IG9mIHRoZSBk
-YXkgd2Ugd291bGRuJ3QgYmUgYWRkaW5nIG11Y2ggbW9yZSBjb2RlIHRoYW4gaXQgaXMgYmVpbmcg
-ZG9uZSBub3cuDQo+Pj4+Pg0KPj4+Pj4gSSBhZ3JlZS4gV2UgZG8gbm90IGhhdmUgZ3JlYXQgZXhw
-ZXJpZW5jZXMgaW4gdGhlIHBhc3Qgd2l0aCB0cnlpbmcgdG8gc3VwcG9ydA0KPj4+Pj4gbXVsdGlw
-bGUgdmFyaWFudHMgaW4gYSBzaW5nbGUgZHJpdmVyICh1bmxlc3MgdGhlIGRpZmZzIGFyZSB0cnVs
-eSBzbWFsbCkuDQo+Pj4+DQo+Pj4+IFdlbGwsDQo+Pj4+IElNSE8gdGhlIGRpZmZzIGluIG92OTY1
-eCBhcmUgc21hbGxlciAoYnV0IHVudGVzdGFibGUgYmVjYXVzZSBub2JvZHkgc2VlbXMNCj4+Pj4g
-dG8gaGF2ZSBhbiBvdjk2NTAvNTIgYm9hcmQpIHRoYW4gd2l0aGluIHRoZSBicTI3eHh4IGNoaXBz
-LCBidXQgSSBjYW4gZGlnIG91dA0KPj4+PiBhbiBvbGQgcGRhdGEgYmFzZWQgc2VwYXJhdGUgb3Y5
-NjU1IGRyaXZlciBhbmQgZXh0ZW5kIHRoYXQgdG8gYmVjb21lIERUIGNvbXBhdGlibGUuDQo+Pj4+
-DQo+Pj4+IEkgaGFkIGFiYW5kb25lZCB0aGF0IHNlcGFyYXRlIGFwcHJvYWNoIGluIGZhdm91ciBv
-ZiBleHRlbmRpbmcgdGhlIG92OTY1eCBkcml2ZXIuDQo+Pj4+DQo+Pj4+IEhhdmUgdG8gZGlzY3Vz
-cyB3aXRoIEh1Z3VlcyBob3cgdG8gcHJvY2VlZC4NCj4+Pj4NCj4+Pj4gQlIgYW5kIHRoYW5rcywN
-Cj4+Pj4gTmlrb2xhdXMNCj4+Pj4NCj4+Pg0KPj4+IEFzIFN5bHdlc3RlciBhbmQgSGFucywgSSdt
-IGFsc28gaW4gZmxhdm91ciBvZiBhIHNlcGFyYXRlIGRyaXZlciwgdGhlDQo+Pj4gZmFjdCB0aGF0
-IHJlZ2lzdGVyIHNldCBzZWVtcyBzaW1pbGFyIGJ1dCBpbiBmYWN0IGlzIG5vdCBhbmQgdGhhdCB3
-ZQ0KPj4+IGNhbm5vdCB0ZXN0IGZvciBub24tcmVncmVzc2lvbiBvZiA5NjUwLzUyIGFyZSBraWxs
-ZXIgZm9yIG1lIHRvIGNvbnRpbnVlDQo+Pj4gb24gYSBzaW5nbGUgZHJpdmVyLg0KPj4+IFdlIGNh
-biBub3cgcmVzdGFydCBmcm9tIGEgbmV3IGZyZXNoIHN0YXRlIG9mIHRoZSBhcnQgc2Vuc29yIGRy
-aXZlcg0KPj4+IGdldHRpbmcgcmlkIG9mIGxlZ2FjeSAocGRhdGEsIG9sZCBncGlvLCBldGMuLi4p
-Lg0KPj4NCj4+IEFncmVlZC4gSSBiZXQgdGhlIHJlc3VsdCB3aWxsIGxvb2sgY2xlYW5lciBpbmRl
-ZWQgYWx0aG91Z2ggdGhpcyB3YXNuJ3Qgb25lDQo+PiBvZiB0aGUgY29tcGxleCBkcml2ZXJzLg0K
-PiANCj4gSSBmaW5hbGx5IG1hbmFnZWQgdG8gZmluZCB0aGUgYnVnIHdoeSBtcGxheWVyIGRpZCBz
-ZWxlY3QtdGltZW91dCBvbiB0aGUgR1RBMDQuDQo+IFdhcyBhIGJ1ZyBpbiBwaW5tdXggc2V0dXAg
-b2YgdGhlIEdUQTA0IGZvciB0aGUgb21hcDNpc3AuDQo+IA0KPiBBbmQgSSBoYXZlIHJlc3VycmVj
-dGVkIG91ciB5ZWFycyBvbGQgMy4xMiBjYW1lcmEgZHJpdmVyLCB3aGljaCB3YXMgYmFzZWQgb24g
-dGhlDQo+IE1UOVAwMzEgY29kZS4gSXQgd2FzIGFscmVhZHkgc2VwYXJhdGUgZnJvbSBvdjk2NTAv
-NTIuDQo+IA0KPiBJIGhhdmUgZXh0ZW5kZWQgaXQgdG8gc3VwcG9ydCBEVCBieSBpbmNsdWRpbmcg
-c29tZSBwYXJ0cyBvZiBIdWd1ZXMnIHdvcmsuDQo+IA0KPiBJdCBzdGlsbCBuZWVkcyBzb21lIGNs
-ZWFudXAgYW5kIGRpc2N1c3Npb24gYnV0IHdpbGwgYmUgYSBzaW1wbGUgcGF0Y2ggKG9uZQ0KPiBm
-b3Igb3Y5NjU1LmMgKyBLY29uZmlnICsgTWFrZWZpbGUpIGFuZCBvbmUgZm9yIGJpbmRpbmdzIChJ
-IGhvcGUgaXQgaW5jbHVkZXMNCj4gYWxsIHlvdXIgY29tbWVudHMpLg0KPiANCj4gSSB3aWxsIHBv
-c3QgdjEgaW4gdGhlIG5leHQgZGF5cy4NCj4gDQo+IEJSLA0KPiBOaWtvbGF1cw0KPiANCg0KVGhh
-bmtzIE5pa29sYXVzLA0KDQpJIHdhcyByZWFkeSB0byBwdXNoIHRoZSBuZXcgdmVyc2lvbiBpbiBu
-ZXcgZmlsZSBvdjk2NTUuYyB3aXRoIGFsbCANCmNvbW1lbnRzIGluY2x1ZGVkLCBidXQgYXMgbXkg
-dmVyc2lvbiBpcyB2ZXJ5IG1pbmltYWwgYW5kIEkgc3VzcGVjdCB0aGF0IA0KeW91cnMgaXMgbW9y
-ZSBjb21wbGV0ZSwgbGV0J3MgbWVyZ2UgdGhpbmdzIHRvZ2V0aGVyLg0KQ2FuIEkgY29uc2lkZXIg
-dGhhdCB5b3Ugbm93IHRha2Ugb3duZXJzaGlwIG9mIHRoaXMgZHJpdmVyIHVwc3RyZWFtID8NCklm
-IHNvIEknbGwgc2VuZCB0byB5b3UgbXkgY3VycmVudCBwYXRjaHNldCBzbyB5b3UgY2FuIGNvbXBh
-cmUsIA0KZG91YmxlLWNoZWNrIHJldmlldyBjb21tZW50cyBhbmQgYWRkIG1pc3Npbmcgc3VwcG9y
-dCBvbiB5b3VyIHNpZGUgDQooUkdCNTY1IGFuZCBWR0EvUVZHQSByZXNvbHV0aW9uIG1hdHRlciBv
-biBteSBzaWRlKS4NCg0KVGhhbmtzIGFnYWluIE5pa29sYXVzIGZvciB0aGlzIHdvcmssDQoNCkJS
-LA0KSHVndWVzLg==
+Hi Hans,
+
+Thank you for the patch.
+
+On Friday 21 Jul 2017 11:02:31 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Set the driver_version to LINUX_VERSION_CODE in the media_device_init
+> call, just as the other media subsystems do.
+> 
+> There is no point in doing anything else, since version numbers that
+> are set by drivers are never, ever updated. LINUX_VERSION_CODE will
+> be updated, and is also set correctly when backporting the media
+> subsystem to an older kernel using the media_build system.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Wouldn't it be even better to drop the driver_version field completely from 
+struct media_device, as it's now hardcoded ?
+
+> ---
+>  drivers/media/media-device.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index fce91b543c14..2beffe3e3464 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -681,6 +681,7 @@ void media_device_init(struct media_device *mdev)
+>  	INIT_LIST_HEAD(&mdev->entity_notify);
+>  	mutex_init(&mdev->graph_mutex);
+>  	ida_init(&mdev->entity_internal_idx);
+> +	mdev->driver_version = LINUX_VERSION_CODE;
+> 
+>  	dev_dbg(mdev->dev, "Media device initialized\n");
+>  }
+> @@ -833,8 +834,6 @@ void media_device_pci_init(struct media_device *mdev,
+>  	mdev->hw_revision = (pci_dev->subsystem_vendor << 16)
+> 
+>  			    | pci_dev->subsystem_device;
+> 
+> -	mdev->driver_version = LINUX_VERSION_CODE;
+> -
+>  	media_device_init(mdev);
+>  }
+>  EXPORT_SYMBOL_GPL(media_device_pci_init);
+> @@ -862,7 +861,6 @@ void __media_device_usb_init(struct media_device *mdev,
+>  		strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
+>  	usb_make_path(udev, mdev->bus_info, sizeof(mdev->bus_info));
+>  	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
+> -	mdev->driver_version = LINUX_VERSION_CODE;
+> 
+>  	media_device_init(mdev);
+>  }
+
+-- 
+Regards,
+
+Laurent Pinchart
