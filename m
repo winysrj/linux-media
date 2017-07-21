@@ -1,47 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:35541 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750778AbdGYJiK (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:41695 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752196AbdGUK5N (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Jul 2017 05:38:10 -0400
-Subject: Re: linux and sony pregius cmos sensors
-To: Philippe De Muyter <phdm@macq.eu>, linux-media@vger.kernel.org
-References: <20170725083659.GA27375@frolo.macqel>
+        Fri, 21 Jul 2017 06:57:13 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <1f71995f-c62d-a8be-a877-10c82b22d1f1@xs4all.nl>
-Date: Tue, 25 Jul 2017 11:38:04 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170725083659.GA27375@frolo.macqel>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 3/5] uvc: don't set driver_version
+Date: Fri, 21 Jul 2017 12:57:04 +0200
+Message-Id: <20170721105706.40703-4-hverkuil@xs4all.nl>
+In-Reply-To: <20170721105706.40703-1-hverkuil@xs4all.nl>
+References: <20170721105706.40703-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/25/17 10:36, Philippe De Muyter wrote:
-> Hi all,
-> 
-> I currently investigate using sony pregius cmos sensor (imx264, e.g.)
-> on a imx (tegra or imx6) board.  I see that many camera vendors already
-> sell USB3 or IP cameras based on such chips, but is there support (or
-> currently in development drivers) in linux kernel for those chips ?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Not in the mainline kernel. However, you might want to google this since
-it may be supported by third-party (android) kernels.
+This field will be removed as it is not needed anymore.
 
-Usually the code quality of those is awful, but it can be a starting point.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/usb/uvc/uvc_driver.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-Regards,
-
-	Hans
-
-> 
-> IIRC, they don't have a MIPI-CSI2 interface but a LVDS interface.
-> Fortunately there is ia chip from a FPGA vendor that can convert LVDS
-> to MIPI-CSI2.
-> 
-> Any advice or info ?
-> 
-> TIA
-> 
-> Philippe
-> 
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 70842c5af05b..4f463bf2b877 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -2096,7 +2096,6 @@ static int uvc_probe(struct usb_interface *intf,
+ 			sizeof(dev->mdev.serial));
+ 	strcpy(dev->mdev.bus_info, udev->devpath);
+ 	dev->mdev.hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
+-	dev->mdev.driver_version = LINUX_VERSION_CODE;
+ 	media_device_init(&dev->mdev);
+ 
+ 	dev->vdev.mdev = &dev->mdev;
+-- 
+2.13.2
