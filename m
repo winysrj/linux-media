@@ -1,92 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.60.111]:48520 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750938AbdGGLZt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 07:25:49 -0400
-Subject: Re: [PATCH v7 2/6] [media] cec-notifier.h: Prevent build warnings
- using forward declaration
-To: Hans Verkuil <hansverk@cisco.com>,
-        Jose Abreu <Jose.Abreu@synopsys.com>,
-        <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-References: <cover.1499425271.git.joabreu@synopsys.com>
- <e0e455ac3f40b3dd0344127bbb8773cea579620e.1499425271.git.joabreu@synopsys.com>
- <4e42b0be-fdef-b4d6-be92-ccce71dda49d@cisco.com>
-CC: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-Message-ID: <ebaee90a-7448-207d-4d54-3e83ea51cc86@synopsys.com>
-Date: Fri, 7 Jul 2017 12:25:43 +0100
-MIME-Version: 1.0
-In-Reply-To: <4e42b0be-fdef-b4d6-be92-ccce71dda49d@cisco.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:43931 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753626AbdGUJCh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Jul 2017 05:02:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sylwester Nawrocki <snawrocki@kernel.org>
+Subject: [PATCH 0/4] media: set driver_version in media_device_init
+Date: Fri, 21 Jul 2017 11:02:30 +0200
+Message-Id: <20170721090234.6501-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+Just a little thing that always annoyed me: the driver_version should
+be set in media_device_init, not in the drivers themselves.
 
-On 07-07-2017 12:16, Hans Verkuil wrote:
-> On 07/07/17 13:08, Jose Abreu wrote:
->> When CONFIC_CEC_NOTIFIER is not set and we only include cec-notifier.h
->> we can get build warnings like these ones:
->>
->> "warning: ‘struct cec_notifier’ declared inside parameter list will
->> not be visible outside of this definition or declaration"
->>
->> Prevent these warnings by using forward declaration of notifier
->> structure.
->>
->> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
->> Cc: Carlos Palminha <palminha@synopsys.com>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  include/media/cec-notifier.h | 6 +++---
->>  1 file changed, 3 insertions(+), 3 deletions(-)
->>
->> diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
->> index 298f996..84f9376 100644
->> --- a/include/media/cec-notifier.h
->> +++ b/include/media/cec-notifier.h
->> @@ -21,14 +21,14 @@
->>  #ifndef LINUX_CEC_NOTIFIER_H
->>  #define LINUX_CEC_NOTIFIER_H
->>  
->> -#include <linux/types.h>
->> -#include <media/cec.h>
->> -
->>  struct device;
->>  struct edid;
->>  struct cec_adapter;
->>  struct cec_notifier;
->>  
->> +#include <linux/types.h>
->> +#include <media/cec.h>
->> +
->>  #if IS_REACHABLE(CONFIG_CEC_CORE) && IS_ENABLED(CONFIG_CEC_NOTIFIER)
->>  
->>  /**
->>
-> Isn't it enough to add a forward declaration of cec_notifier in the previous
-> patch? E.g.:
->
-> +#ifndef CONFIG_CEC_NOTIFIER
-> +struct cec_notifier;
-> +static inline void cec_register_cec_notifier(struct cec_adapter *adap,
-> +					     struct cec_notifier *notifier)
-> +{
-> +}
-> +#endif
->
-> Then this header doesn't need to change.
+The version number never, ever gets updated in drivers. We saw that in
+the other media subsystems and now the core always sets it, not drivers.
 
-Yeah, it should also work :) I will add to the previous patch and
-drop this one then.
+This works much better, and also works well when backporting the media
+code to an older kernel using the media_build system, where the driver
+version is set to the kernel version you are backporting from.
 
-Best regards,
-Jose Miguel Abreu
+Note: the media_device driver_version does not appear to be set in the
+omap3isp driver, so I assume it returns 0 as the version? Is that indeed
+the case or did I miss something?
 
->
-> Regards,
->
-> 	Hans
+Regards,
+
+	Hans
+
+Hans Verkuil (4):
+  media-device: set driver_version in media_device_init
+  s3c-camif: don't set driver_version anymore
+  uvc: don't set driver_version anymore
+  atomisp2: don't set driver_version anymore
+
+ drivers/media/media-device.c                              | 4 +---
+ drivers/media/platform/s3c-camif/camif-core.c             | 1 -
+ drivers/media/usb/uvc/uvc_driver.c                        | 1 -
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c | 5 +----
+ 4 files changed, 2 insertions(+), 9 deletions(-)
+
+-- 
+2.13.2
