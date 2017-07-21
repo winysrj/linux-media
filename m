@@ -1,75 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:33986 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751122AbdGIJqN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 05:46:13 -0400
-Received: by mail-wr0-f196.google.com with SMTP id k67so17867258wrc.1
-        for <linux-media@vger.kernel.org>; Sun, 09 Jul 2017 02:46:12 -0700 (PDT)
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Malcolm Priestley <tvboxspy@gmail.com>
-Subject: [PATCH RFC 1/2] app: kaffeine: Fix missing PCR on live streams.
-Date: Sun,  9 Jul 2017 10:43:50 +0100
-Message-Id: <20170709094351.14642-1-tvboxspy@gmail.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:47237 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751611AbdGUK5K (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Jul 2017 06:57:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 1/5] media-device: set driver_version directly
+Date: Fri, 21 Jul 2017 12:57:02 +0200
+Message-Id: <20170721105706.40703-2-hverkuil@xs4all.nl>
+In-Reply-To: <20170721105706.40703-1-hverkuil@xs4all.nl>
+References: <20170721105706.40703-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ISO/IEC standard 13818-1 or ITU-T Rec. H.222.0 standard allow transport
-vendors to place PCR (Program Clock Reference) on a different PID.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-If the PCR is unset the value is 0x1fff, most vendors appear to set it the
-same as video pid in which case it need not be set.
+Don't use driver_version from struct media_device, just return
+LINUX_VERSION_CODE as the other media subsystems do.
 
-The PCR PID is at an offset of 8 in pmtSection structure.
+The driver_version field in struct media_device will be removed
+in the following patches.
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- src/dvb/dvbliveview.cpp | 8 ++++++++
- src/dvb/dvbsi.h         | 5 +++++
- 2 files changed, 13 insertions(+)
+ drivers/media/media-device.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/dvb/dvbliveview.cpp b/src/dvb/dvbliveview.cpp
-index cfad892..3e92fa6 100644
---- a/src/dvb/dvbliveview.cpp
-+++ b/src/dvb/dvbliveview.cpp
-@@ -518,6 +518,7 @@ void DvbLiveView::updatePids(bool forcePatPmtUpdate)
- 	DvbPmtSection pmtSection(internal->pmtSectionData);
- 	DvbPmtParser pmtParser(pmtSection);
- 	QSet<int> newPids;
-+	int pcr_pid = pmtSection.pcr_pid();
- 	bool updatePatPmt = forcePatPmtUpdate;
- 	bool isTimeShifting = internal->timeShiftFile.isOpen();
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index fce91b543c14..7ff8e2d5bb07 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -71,7 +71,7 @@ static int media_device_get_info(struct media_device *dev,
  
-@@ -543,6 +544,13 @@ void DvbLiveView::updatePids(bool forcePatPmtUpdate)
- 		newPids.insert(pmtParser.teletextPid);
- 	}
+ 	info->media_version = MEDIA_API_VERSION;
+ 	info->hw_revision = dev->hw_revision;
+-	info->driver_version = dev->driver_version;
++	info->driver_version = LINUX_VERSION_CODE;
  
-+	/* check PCR PID is set */
-+	if (pcr_pid != 0x1fff) {
-+		/* Check not already in list */
-+		if (!newPids.contains(pcr_pid))
-+			newPids.insert(pcr_pid);
-+	}
-+
- 	for (int i = 0; i < pids.size(); ++i) {
- 		int pid = pids.at(i);
- 
-diff --git a/src/dvb/dvbsi.h b/src/dvb/dvbsi.h
-index 4d27252..9b4bbe0 100644
---- a/src/dvb/dvbsi.h
-+++ b/src/dvb/dvbsi.h
-@@ -1098,6 +1098,11 @@ public:
- 		return (at(3) << 8) | at(4);
- 	}
- 
-+	int pcr_pid() const
-+	{
-+		return ((at(8) & 0x1f) << 8) | at(9);
-+	}
-+
- 	DvbDescriptor descriptors() const
- 	{
- 		return DvbDescriptor(getData() + 12, descriptorsLength);
+ 	return 0;
+ }
 -- 
 2.13.2
