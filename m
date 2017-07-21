@@ -1,69 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:42398 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751725AbdG1OUI (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:20706 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750737AbdGULf5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Jul 2017 10:20:08 -0400
-Subject: Re: [RFCv2 PATCH 0/2] add VIDIOC_SUBDEV_QUERYCAP ioctl
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-References: <20170728110529.4057-1-hverkuil@xs4all.nl>
- <1925879.q3PoFGT7lz@avalon> <625cbe4e-7ebd-c995-b4f3-4e1bf892aac9@xs4all.nl>
-Message-ID: <b2b355dd-8e29-9a02-ca8e-a18ce4bfa954@xs4all.nl>
-Date: Fri, 28 Jul 2017 16:20:03 +0200
-MIME-Version: 1.0
-In-Reply-To: <625cbe4e-7ebd-c995-b4f3-4e1bf892aac9@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Fri, 21 Jul 2017 07:35:57 -0400
+To: LMML <linux-media@vger.kernel.org>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [GIT PULL FOR 4.14] Samsung SoC related updates
+Cc: linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Message-id: <bffa2f9f-0c6b-d4c4-f360-7e020870f049@samsung.com>
+Date: Fri, 21 Jul 2017 13:35:51 +0200
+MIME-version: 1.0
+Content-type: text/plain; charset="utf-8"
+Content-language: en-GB
+Content-transfer-encoding: 7bit
+References: <CGME20170721113554epcas5p33038698354481532ac30e86ab1f83111@epcas5p3.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/28/2017 04:04 PM, Hans Verkuil wrote:
-> On 07/28/2017 03:25 PM, Laurent Pinchart wrote:
->> To solve this, if you really want to identify the type of device node at 
->> runtime, we should have a single ioctl supported by the two device nodes. 
->> Given that we"re running out of capabilities bits for VIDIOC_QUERYCAP, this 
->> could be a good occasion to introduce a new ioctl to query capabilities.
-> 
-> This makes more sense :-)
+Hi Mauro,
 
-Here is a quick proposal:
+The following changes since commit 6538b02d210f52ef2a2e67d59fcb58be98451fbd:
 
-struct v4l2_ext_capability {
-        char    driver[16];
-        char    name[32];
-        char    bus_info[32];
-        __u64   device_caps;
-        __u32   version;
-        __u32   entity_id;
-        /* Corresponding media controller device node specifications */
-        __u32   media_node_major;
-        __u32   media_node_minor;
-        __u32   reserved[16];
-};
+  media: Make parameter of media_entity_remote_pad() const (2017-07-20 16:54:04 -0400)
 
-#define V4L2_CAP_SUBDEV                 0x00000008  /* This is a v4l-subdev device */
-#define V4L2_CAP_ENTITY                 0x08000000  /* MC entity */
+are available in the git repository at:
 
-#define VIDIOC_EXT_QUERYCAP             _IOR('V', 104, struct v4l2_ext_capability)
+  git://linuxtv.org/snawrocki/samsung.git for-v4.14/media/next
 
-We keep the existing caps, but double the size of the device_caps field.
+for you to fetch changes up to c7782331ca78c9b84485051365c1aaceac6c634c:
 
-Add a CAP_SUBDEV to indicate that it is a subdev, and a CAP_ENTITY to indicate
-that it is part of the media controller.
+  exynos4-is: fimc-is-i2c: constify dev_pm_ops structures. (2017-07-21 13:22:40 +0200)
 
-I dropped the old 'capabilities' field. In V4L2 that is meant to give the sum
-of all the capabilities of all the video/vbi/radio/swradio device nodes, but
-it never worked and is inconsistently implemented.
+----------------------------------------------------------------
+Arvind Yadav (1):
+      exynos4-is: fimc-is-i2c: constify dev_pm_ops structures.
 
-It's really historical so I decided to drop it. I also replaced __u8 by char
-for the string fields (__u8 was very, very annoying!).
+Gustavo A. R. Silva (1):
+      s5k5baf: remove unnecessary static in s5k5baf_get_selection()
 
-No driver changes needed for this, it can all be handled in the core.
+Thierry Escande (3):
+      s5p-jpeg: Handle parsing error in s5p_jpeg_parse_hdr()
+      s5p-jpeg: Don't use temporary structure in s5p_jpeg_buf_queue
+      s5p-jpeg: Split s5p_jpeg_parse_hdr()
 
-Regards,
+Tony K Nadackal (3):
+      s5p-jpeg: Call jpeg_bound_align_image after qbuf
+      s5p-jpeg: Correct WARN_ON statement for checking subsampling
+      s5p-jpeg: Decode 4:1:1 chroma subsampling format
 
-	Hans
+henryhsu (2):
+      s5p-jpeg: Add support for resolution change event
+      s5p-jpeg: Add stream error handling for Exynos5420
+
+ drivers/media/i2c/s5k5baf.c                  |   2 +-
+ .../media/platform/exynos4-is/fimc-is-i2c.c  |   2 +-
+ drivers/media/platform/s5p-jpeg/jpeg-core.c  | 186 ++++++++++++----
+ drivers/media/platform/s5p-jpeg/jpeg-core.h  |   7 +
+ 4 files changed, 150 insertions(+), 47 deletions(-)
+
+-- 
+Thanks,
+Sylwester
