@@ -1,175 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:51216 "EHLO mout.web.de"
+Received: from mail.kernel.org ([198.145.29.99]:51942 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752780AbdGUUov (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Jul 2017 16:44:51 -0400
-Subject: Re: [GIT PULL] SAA716x DVB driver
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andreas Regel <andreas.regel@gmx.de>,
-        Manu Abraham <manu@linuxtv.org>,
-        Oliver Endriss <o.endriss@gmx.de>, linux-media@vger.kernel.org
-References: <50e5ba3c-4e32-f2e4-7844-150eefdf71b5@web.de>
-From: Soeren Moch <smoch@web.de>
-Message-ID: <d693cf1b-de3d-5994-5ef0-eeb0e37065a3@web.de>
-Date: Fri, 21 Jul 2017 22:44:42 +0200
-MIME-Version: 1.0
-In-Reply-To: <50e5ba3c-4e32-f2e4-7844-150eefdf71b5@web.de>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Content-Language: en-GB
+        id S1752198AbdGUJz4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Jul 2017 05:55:56 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: niklas.soderlund@ragnatech.se
+Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH] v4l: rcar-vin: Simplify rvin_group_notify_{bound,unbind}
+Date: Fri, 21 Jul 2017 10:55:50 +0100
+Message-Id: <1500630950-29870-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Use a container_of macro to obtain the graph entity object from the ASD
+This removes the error conditions, and reduces the lock contention.
 
-On 20.07.2017 07:49:36 -0300, Mauro Carvalho Chehab wrote:
->Hi Soeren,
->
->Em Sun, 16 Jul 2017 20:34:23 +0200
->Soeren Moch <smoch@xxxxxx> escreveu:
->
->> This is a driver for DVB cards based on the SAA7160/62 PCIe bridges from
->> Philips/NXP. The most important of these cards, at least for me, is the
->> TechnoTrend S2-6400, a high-definition full-featured DVB-S2 card, the
->> successor of the famous ttpci decoder cards. Other supported cards are:
->> Avermedia H788
->> Avermedia HC82 Express-54
->> KNC One Dual S2
->> KWorld DVB-T PE310
->> Technisat SkyStar 2 eXpress HD
->> Twinhan/Azurewave VP-1028
->> Twinhan/Azurewave VP-3071
->> Twinhan/Azurewave VP-6002
->> Twinhan/Azurewave VP-6090
->>
->> The driver is taken from [1] with adaptations for current mainline,
->> converted to git and moved to drivers/staging/media. See TODO for
->> required cleanups (from my point of view, maybe more to come from
->> additional code review by other developers). I added myself as driver
->> maintainer to document my commitment to further development to get this
->> out of staging, help from others welcome.
->>
->> This driver was licensed "GPL" from the beginning. S2-6400 firmware is
->> available at [2].
->>
->> I want to preserve the development history of the driver, since this
->> is mainly work of Andreas Regel, Manu Abraham, and Oliver Endriss.
->> Unfortunately Andreas seems not to take care of this driver anymore, he
->> also did not answer my requests to integrate patches for newer kernel
->> versions. So I send this upstream.
->>
->> With all the history this is a 280 part patch series, so I send this as
->> pull request. Of course I can also send this as 'git send-email' series
->> if desired.
->
->Even on staging, reviewing a 280 patch series take a while ;)
->
->As the patches that make it build with current upstream are at the
->end of the series, you need to be sure that the saa716x Makefile
->won't be included until those fixes get applied. It seems you took
->care of it already, with is good!
->
->
->The hole idea of adding a driver to staging is that it will be moved
->some day out of staging. That's why a TODO and an entry at MAINTAINERS
->is required.
->
->By looking at the saa716x_ff_main:
->
->   
-https://github.com/s-moch/linux-saa716x/blob/for-media/drivers/staging/media/saa716x/saa716x_ff_main.c
->
->I'm seeing that the main problem of this driver is that it still use
->the API from the legacy ttpci driver, e. g. DVB audio, video and osd APIs.
->
->Those APIs were deprecated because they duplicate a functionality
->provided by the V4L2 API, and are obscure, because they're not
->properly documented. Also, no other driver uses it upstream.
->
->So, it was agreed several years ago that new full featured drivers
->should use the V4L2 API for audio/video codecs.
->
->We have a some drivers that use V4L2 for MPEG audio/video decoding
->and encoding. The best examples are ivtv and cx18 (as both are for
->PCI devices). Currently, none of those drivers support the DVB
->API, though, as they're used only on analog TV devices.
->
->It was also agreed that setup pipelines on more complex DVB
->devices should use the media controller API (MC API).
->
->Yet, we don't have, currently, any full featured drivers upstream
->(except for the legacy one).
->
->So, if we're willing to apply this driver, you should be committed
->to do implement the media APIs properly, porting from DVB
->audio/video/osd to V4L2 and MC APIs.
->
->That should also reflect its TODO:
->
->   
-https://github.com/s-moch/linux-saa716x/blob/for-media/drivers/staging/media/saa716x/TODO
+(The locking may even be potentially removed)
 
-Thanks for your feedback. I understand all your concerns about the legacy
-API and your request to convert this to v4l2. For me the whole story looks
-a little bit different, though.
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
 
-The only application which makes use of the decoder part of this saa716x_ff
-driver is VDR (Video Disk Recorder by Klaus Schmidinger, [1] [2]) - if
-anybody else knows about a different use-case, please speak up!
-In fact the high-definition version of VDR (vdr-2.x) was co-developed with
-the S2-6400 hardware and this saa716x_ff driver. So it is no surprise, that
-this driver utilizes the - now legacy - DVB API of the ttpci cards, since
-VDR was originally developed with this API in mind. The missing API
-documentation, besides of course not being ideal, is therefore no real
-problem here, since driver and application are closely tied together.
+Hi Niklas,
 
-The S2-6400 card (the only hardware which saa716x_ff supports) only has
-two simple hardware interfaces for the decoder part, a transport stream
-interface for the video/audio decoder, and a DVB API command interface
-for osd. There is no real separate DVB audio interface, audio TS packets
-are simply multiplexed into the video TS stream.
+While working through the Multi camera setup, we came across this improvement.
 
-Because there are no complicated hardware interfaces or, e.g., configurable
-processing pipelines, I think a media controller driver is not applicable
-for this hardware, but a v4l2 API would be possible for the video part. For
-the osd part instead I'm not really sure how to convert this. The DVB osd
-API contains several commands for window and palette management,
-pixel/line/block drawing, and even text rendering. Typical plane/framebuffer
-based overlay APIs are a very bad match for this command-based hardware
-interface. And a full-blown GPU driver only for menu overlays would be quite
-a big effort, especially as we do not need a standard command-to-image
-processing, but a gpu-command to dvb-osd-command conversion. Even now with
-the osd API command processing implemented in the S2-6400 hardware, the
-overlay is relatively slow, this could only become worse with an additional
-translation layer. But let's assume that is all solvable technically.
+If this code isn't yet upstream, feel free to squash this change into your
+existing branch if you wish.
 
-The real problem is not my commitment to convert the DVB video/osd API to
-v4l2. I would do it, although this means huge additional effort. My real
-concern about your request is, with converted DVB APIs in this saa716x_ff
-driver, VDR would not be able to use this driver. So the only known use-case
-would not work anymore, so the whole effort to mainline this driver would
-not make sense for me.
+Regards
 
-I agree that new drivers should use modern APIs in the general case. But
-for this driver the legacy DVB decoder API is a hard requirement for me,
-as described. So I hope you will dispense with the v4l2 conversion for
-this special case. I'm pretty sure that there will be no new hardware
-and therefore no new driver with this legacy API, this saa716x_ff driver
-also has a 7-year development history, in this sense it is not really new
-and one could also think of it as some sort of legacy code.
+Kieran
 
-If it helps, I can offer to also take maintainership for the saa7146/ttpci
-drivers, I still have such card in productive use. This way I could at
-least maintain the DVB decoder API code together, as we cannot get rid
-of it.
+ drivers/media/platform/rcar-vin/rcar-core.c | 28 ++++++----------------------
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  3 +++
+ 2 files changed, 9 insertions(+), 22 deletions(-)
 
-If you got any better idea how to solve this "legacy issue" in a different
-way, I'm glad to help.
-
-Regards,
-Soeren
-
-
-[1] www.tvdr.de
-[2] https://linuxtv.org/vdrwiki
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 8393a1598660..b4fc7b56c8a1 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -688,20 +688,11 @@ static void rvin_group_notify_unbind(struct v4l2_async_notifier *notifier,
+ 				     struct v4l2_async_subdev *asd)
+ {
+ 	struct rvin_dev *vin = notifier_to_vin(notifier);
+-	unsigned int i;
++	struct rvin_graph_entity *csi = to_rvin_graph_entity(asd);
+ 
+ 	mutex_lock(&vin->group->lock);
+-	for (i = 0; i < RVIN_CSI_MAX; i++) {
+-		if (&vin->group->csi[i].asd == asd) {
+-			vin_dbg(vin, "Unbind CSI-2 %s\n", subdev->name);
+-			vin->group->csi[i].subdev = NULL;
+-			mutex_unlock(&vin->group->lock);
+-			return;
+-		}
+-	}
++	csi->subdev = NULL;
+ 	mutex_unlock(&vin->group->lock);
+-
+-	vin_err(vin, "No entity for subdev %s to unbind\n", subdev->name);
+ }
+ 
+ static int rvin_group_notify_bound(struct v4l2_async_notifier *notifier,
+@@ -709,23 +700,16 @@ static int rvin_group_notify_bound(struct v4l2_async_notifier *notifier,
+ 				   struct v4l2_async_subdev *asd)
+ {
+ 	struct rvin_dev *vin = notifier_to_vin(notifier);
+-	unsigned int i;
++	struct rvin_graph_entity *csi = to_rvin_graph_entity(asd);
+ 
+ 	v4l2_set_subdev_hostdata(subdev, vin);
+ 
+ 	mutex_lock(&vin->group->lock);
+-	for (i = 0; i < RVIN_CSI_MAX; i++) {
+-		if (&vin->group->csi[i].asd == asd) {
+-			vin_dbg(vin, "Bound CSI-2 %s\n", subdev->name);
+-			vin->group->csi[i].subdev = subdev;
+-			mutex_unlock(&vin->group->lock);
+-			return 0;
+-		}
+-	}
++	vin_dbg(vin, "Bound CSI-2 %s\n", subdev->name);
++	csi->subdev = subdev;
+ 	mutex_unlock(&vin->group->lock);
+ 
+-	vin_err(vin, "No entity for subdev %s to bind\n", subdev->name);
+-	return -EINVAL;
++	return 0;
+ }
+ 
+ static struct device_node *rvin_group_get_csi(struct rvin_dev *vin,
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index e7e600fdf566..900c473c3d15 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -92,6 +92,9 @@ struct rvin_graph_entity {
+ 	unsigned int sink_pad;
+ };
+ 
++#define to_rvin_graph_entity(asd) \
++	container_of(asd, struct rvin_graph_entity, asd)
++
+ struct rvin_group;
+ 
+ 
+-- 
+2.7.4
