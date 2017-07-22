@@ -1,148 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f174.google.com ([209.85.128.174]:37025 "EHLO
-        mail-wr0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751439AbdGWSQe (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:38646 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750735AbdGVSwl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Jul 2017 14:16:34 -0400
-Received: by mail-wr0-f174.google.com with SMTP id 33so41752094wrz.4
-        for <linux-media@vger.kernel.org>; Sun, 23 Jul 2017 11:16:34 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
-        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
-Subject: [PATCH RESEND 00/14] ddbridge: bump to ddbridge-0.9.29
-Date: Sun, 23 Jul 2017 20:16:16 +0200
-Message-Id: <20170723181630.19526-1-d.scheller.oss@gmail.com>
+        Sat, 22 Jul 2017 14:52:41 -0400
+Subject: Re: [PATCH] [media] imx: add VIDEO_V4L2_SUBDEV_API dependency
+To: Arnd Bergmann <arnd@arndb.de>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Russell King <rmk+kernel@armlinux.org.uk>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+References: <20170721162144.3339864-1-arnd@arndb.de>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <eb12f9cd-46f6-47ae-0306-6d7a6efaa56d@gmail.com>
+Date: Sat, 22 Jul 2017 11:52:38 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170721162144.3339864-1-arnd@arndb.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Acked-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 
-Preferrably for Linux 4.14 (to get things done).
-
-Resend reasons (resend since no real changes went in):
-* rebased on latest mediatree-master wrt
-    commit 618e8aac3d7c ("media: ddbridge: constify i2c_algorithm structure")
-* build error in ddbridge-core.c fixed wrt
-    commit dcda9b04713c ("mm, tree wide: replace __GFP_REPEAT by __GFP_RETRY_MAYFAIL with more useful semantic")
-* useless return removed from void calc_con()
-* UTF8 in ddbridge-regs.h removed
-* Tested-by's added to commit messages
-
-Since the STV0910 patches are merged, the dependency is resolved.
-
-Mauro/Media maintainers, this updates drivers/media/pci/ddbridge to the
-very latest code that DD carry in their vendor driver package as of
-version 0.9.29, in the "once, the big-bang-way is ok" way as discussed at
-[2] (compared to the incremental, awkward to do variant since that
-involves dissecting all available release archives and having to - try
-to - build proper commits out of this, which will always be inaccurate;
-a start was done at [3], however - and please understand - I definitely
-don't want to continue doing that...)
-
-In patch 14, I add myself to MAINTAINERS. This means I will care about
-getting driver updates as they're released by DD into mainline,  starting
-from this (0.9.29) version, which is definitely doable in an incremental
-way. So, I'll make sure the in-kernel driver won't bit-rot again, and it
-will receive new hardware support as it becomes available in a timely
-manner.
-
-While the driver code bump looks massive, judging from the diff, there's
-mostly a whole lot of refactoring and restructuring of variables, port/
-link management and all such stuff in it. Feature-wise, this is most
-notable:
-
- - Support for all (PCIe) CI (single/duo) cards and Flex addons
- - Support for MSI (Message Signaled Interrupts), though disabled by
-   default since there were still reports of problems with this
- - TS Loopback support (set up ports to behave as if a CI is connected,
-   without decryption of course)
- - As mentioned: Heavy code reordering, and split up into multiple files
-
-Stripped functionality compared to dddvb:
-
- - DVB-C modulator card support removed (requires DVB core API)
- - OctoNET SAT>IP server/box support removed (requires API aswell)
- - with this, GT link support was removed (only on OctoNET hardware)
- - MaxS8 4/8 DVB-S/S2 card support (temporarily) removed (requires an
-   additional Demod driver; subject for another, later, series)
-
-A note on the patches:
-
-The bump starts by aligning the code "order-wise" to the updated driver,
-to keep the diff a bit cleaner. Next, the code split is applied, without
-actually changing any functionality. Compared to upstream, this isn't done
-by moving functions into different C files and then do an include on them,
-but we're handling them with the Makefile, building separate objects, and
-having proper prototypes in ddbridge.h. After the code bump, further split
-up is applied to increase readability and maintainability (also, for the
-MaxS8 support, there will be another object with another ~400 LoC, which
-originally lives in ddbridge-core aswell). Then, all issues found by W=1
-and smatch are resolved, one by one. This is kept separate since those
-fixes will be proposed for upstream inclusion. The last thing is the
-addition of the MSI default Kconfig options which will mainly inform users
-that there's something that might(!) cause issues but is still being
-worked on - the default is "off" to provide a proper OotB experience.
-
-To distinguish from the original unchanged vendor driver, "-integrated" is
-suffixed to the version code.
-
-Note on checkpatch:
-
-First two patches are solely code-moving, so checkpatch will complain on
-them. With the ddbridge code bump, all non-strict style issues are
-resolved. "--strict" checking will receive another round of patches
-afterwards.
-
-Yes, you will hate me for this large code drop, but at least we sort-of
-discussed this beforehand, and we have to start *somewhere*.
-
-Thanks in advance for reviewing and (optimally) getting this merged and
-getting the DD driver dilemma solved hopefully once and for all.
-
-[1] http://www.spinics.net/lists/linux-media/msg117946.html
-[2] http://www.spinics.net/lists/linux-media/msg117358.html
-[3] https://github.com/herrnst/dddvb-linux-kernel/compare/4226861...mediatree/master-ddbupdate
-
-Daniel Scheller (14):
-  [media] ddbridge: move/reorder functions
-  [media] ddbridge: split code into multiple files
-  [media] ddbridge: bump ddbridge code to version 0.9.29
-  [media] ddbridge: split I/O related functions off from ddbridge.h
-  [media] ddbridge: split off IRQ handling
-  [media] ddbridge: split off hardware definitions and mappings
-  [media] ddbridge: check pointers before dereferencing
-  [media] ddbridge: only register frontends in fe2 if fe is not NULL
-  [media] ddbridge: fix possible buffer overflow in ddb_ports_init()
-  [media] ddbridge: remove unreachable code
-  [media] ddbridge: fix impossible condition warning
-  [media] ddbridge: fix dereference before check
-  [media] ddbridge: Kconfig option to control the MSI modparam default
-  [media] MAINTAINERS: add entry for ddbridge
-
- MAINTAINERS                                |    8 +
- drivers/media/pci/ddbridge/Kconfig         |   15 +
- drivers/media/pci/ddbridge/Makefile        |    3 +-
- drivers/media/pci/ddbridge/ddbridge-core.c | 4241 ++++++++++++++++++----------
- drivers/media/pci/ddbridge/ddbridge-hw.c   |  299 ++
- drivers/media/pci/ddbridge/ddbridge-hw.h   |   52 +
- drivers/media/pci/ddbridge/ddbridge-i2c.c  |  310 ++
- drivers/media/pci/ddbridge/ddbridge-io.h   |   71 +
- drivers/media/pci/ddbridge/ddbridge-irq.c  |  161 ++
- drivers/media/pci/ddbridge/ddbridge-main.c |  393 +++
- drivers/media/pci/ddbridge/ddbridge-regs.h |  138 +-
- drivers/media/pci/ddbridge/ddbridge.h      |  355 ++-
- 12 files changed, 4401 insertions(+), 1645 deletions(-)
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-hw.c
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-hw.h
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-i2c.c
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-io.h
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-irq.c
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-main.c
-
--- 
-2.13.0
+On 07/21/2017 09:21 AM, Arnd Bergmann wrote:
+> Without this, I get a build error:
+> 
+> drivers/staging/media/imx/imx-media-vdic.c: In function '__vdic_get_fmt':
+> drivers/staging/media/imx/imx-media-vdic.c:554:10: error: implicit declaration of function 'v4l2_subdev_get_try_format'; did you mean 'v4l2_subdev_notify_event'? [-Werror=implicit-function-declaration]
+> 
+> Fixes: e130291212df ("[media] media: Add i.MX media core driver")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>   drivers/staging/media/imx/Kconfig | 1 +
+>   1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/staging/media/imx/Kconfig b/drivers/staging/media/imx/Kconfig
+> index 7eff50bcea39..719508fcb0e9 100644
+> --- a/drivers/staging/media/imx/Kconfig
+> +++ b/drivers/staging/media/imx/Kconfig
+> @@ -1,6 +1,7 @@
+>   config VIDEO_IMX_MEDIA
+>   	tristate "i.MX5/6 V4L2 media core driver"
+>   	depends on MEDIA_CONTROLLER && VIDEO_V4L2 && ARCH_MXC && IMX_IPUV3_CORE
+> +	depends on VIDEO_V4L2_SUBDEV_API
+>   	select V4L2_FWNODE
+>   	---help---
+>   	  Say yes here to enable support for video4linux media controller
+> 
