@@ -1,65 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:35126 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751649AbdGWMQ3 (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:55108 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752127AbdGVJHG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Jul 2017 08:16:29 -0400
-Received: by mail-wr0-f196.google.com with SMTP id c24so11848294wra.2
-        for <linux-media@vger.kernel.org>; Sun, 23 Jul 2017 05:16:28 -0700 (PDT)
-Date: Sun, 23 Jul 2017 14:16:25 +0200
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, d_spingler@freenet.de, rjkm@metzlerbros.de
-Subject: Re: [PATCH 00/14] ddbridge: bump to ddbridge-0.9.29
-Message-ID: <20170723141625.40892196@audiostation.wuest.de>
-In-Reply-To: <20170709194221.10255-1-d.scheller.oss@gmail.com>
-References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
+        Sat, 22 Jul 2017 05:07:06 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] media: drop use of MEDIA_API_VERSION
+Message-ID: <46b82486-56fa-9e66-53c9-071a7a03e32c@xs4all.nl>
+Date: Sat, 22 Jul 2017 11:06:59 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Sun,  9 Jul 2017 21:42:07 +0200
-schrieb Daniel Scheller <d.scheller.oss@gmail.com>:
+Set media_version to LINUX_VERSION_CODE, just as we did for
+driver_version.
 
-> From: Daniel Scheller <d.scheller@gmx.net>
-> 
-> Preferrably for Linux 4.14 (to get things done).
-> 
-> [...]
-> 
-> Mauro/Media maintainers, this updates drivers/media/pci/ddbridge to
-> the very latest code that DD carry in their vendor driver package as
-> of version 0.9.29, in the "once, the big-bang-way is ok" way as
-> discussed at [2] (compared to the incremental, awkward to do variant
-> since that involves dissecting all available release archives and
-> having to - try to - build proper commits out of this, which will
-> always be inaccurate; a start was done at [3], however - and please
-> understand - I definitely don't want to continue doing that...)
-> 
-> [...]
+Nobody ever rememebers to update the version number, but
+LINUX_VERSION_CODE will always be updated.
 
-Feedback from "Dietmar Spingler <d_spingler@freenet.de>", a very
-valuable tester, who has a huge share of getting the mainline
-patches going, but isn't subscribed to the list, so posting in behalf
-of him (added in Cc aswell):
+Move the MEDIA_API_VERSION define to the ifndef __KERNEL__ section of the
+media.h header. That way kernelspace can't accidentally start to use
+it again.
 
-"Running the patches on two Gentoo systems equipped with DD hardware
-parts on current kernel versions:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+This patch sits on top of the '[PATCHv2 0/5] media: drop driver_version from media_device'
+patch series I posted yesterday.
+---
+ drivers/media/media-device.c | 3 +--
+ include/uapi/linux/media.h   | 5 +++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-* Digital Devices MaxS8
-* Digital Devices MaxA8
-* Digital Devices Octopus V3 Bridge, with a DuoFlex S2v4 and a DuoFlex
-  CT2 attached
-* 2x Digital Devices CI Duo PCIe Bridges
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 979e4307d248..3c99294e3ebf 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -69,9 +69,8 @@ static int media_device_get_info(struct media_device *dev,
+ 	strlcpy(info->serial, dev->serial, sizeof(info->serial));
+ 	strlcpy(info->bus_info, dev->bus_info, sizeof(info->bus_info));
 
-Several CAMs are in use to decrypt DVB-S(2) and DVB-T2 channels.
-Running current VDR and minisatip on the userspace side. Everything
-running without issues, even with all tuners active in parallel."
+-	info->media_version = MEDIA_API_VERSION;
++	info->media_version = info->driver_version = LINUX_VERSION_CODE;
+ 	info->hw_revision = dev->hw_revision;
+-	info->driver_version = LINUX_VERSION_CODE;
 
-Best regards,
-Daniel Scheller
+ 	return 0;
+ }
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index fac96c64fe51..4865f1e71339 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -30,8 +30,6 @@
+ #include <linux/types.h>
+ #include <linux/version.h>
+
+-#define MEDIA_API_VERSION	KERNEL_VERSION(0, 1, 0)
+-
+ struct media_device_info {
+ 	char driver[16];
+ 	char model[32];
+@@ -187,6 +185,9 @@ struct media_device_info {
+ #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	MEDIA_ENT_F_LENS
+ #define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	MEDIA_ENT_F_ATV_DECODER
+ #define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	MEDIA_ENT_F_TUNER
++
++/* Obsolete symbol for media_version, no longer used in the kernel */
++#define MEDIA_API_VERSION		KERNEL_VERSION(0, 1, 0)
+ #endif
+
+ /* Entity flags */
 -- 
-https://github.com/herrnst
+2.13.2
