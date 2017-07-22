@@ -1,63 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35318 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751306AbdGPOxQ (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45099
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751860AbdGVNYx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 16 Jul 2017 10:53:16 -0400
-Received: by mail-wm0-f65.google.com with SMTP id u23so18845146wma.2
-        for <linux-media@vger.kernel.org>; Sun, 16 Jul 2017 07:53:15 -0700 (PDT)
-From: Philipp Zabel <philipp.zabel@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Philipp Zabel <philipp.zabel@gmail.com>
-Subject: [PATCH v2 3/3] [media] uvcvideo: skip non-extension unit controls on Oculus Rift Sensors
-Date: Sun, 16 Jul 2017 16:53:05 +0200
-Message-Id: <20170716145305.19934-3-philipp.zabel@gmail.com>
-In-Reply-To: <20170716145305.19934-1-philipp.zabel@gmail.com>
-References: <20170716145305.19934-1-philipp.zabel@gmail.com>
+        Sat, 22 Jul 2017 09:24:53 -0400
+Date: Sat, 22 Jul 2017 10:24:46 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv3 6/6] media: drop use of MEDIA_API_VERSION
+Message-ID: <20170722102446.3f45f569@vento.lan>
+In-Reply-To: <20170722113057.45202-7-hverkuil@xs4all.nl>
+References: <20170722113057.45202-1-hverkuil@xs4all.nl>
+        <20170722113057.45202-7-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Oculus Rift Sensors (DK2 and CV1) allow to configure their sensor chips
-directly via I2C commands using extension unit controls. The processing and
-camera unit controls do not function at all.
+Em Sat, 22 Jul 2017 13:30:57 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
----
- drivers/media/usb/uvc/uvc_ctrl.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Set media_version to LINUX_VERSION_CODE, just as we did for
+> driver_version.
+> 
+> Nobody ever rememebers to update the version number, but
+> LINUX_VERSION_CODE will always be updated.
+> 
+> Move the MEDIA_API_VERSION define to the ifndef __KERNEL__ section of the
+> media.h header. That way kernelspace can't accidentally start to use
+> it again.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/media-device.c | 3 +--
+>  include/uapi/linux/media.h   | 5 +++--
+>  2 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 979e4307d248..3c99294e3ebf 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -69,9 +69,8 @@ static int media_device_get_info(struct media_device *dev,
+>  	strlcpy(info->serial, dev->serial, sizeof(info->serial));
+>  	strlcpy(info->bus_info, dev->bus_info, sizeof(info->bus_info));
+>  
+> -	info->media_version = MEDIA_API_VERSION;
+> +	info->media_version = info->driver_version = LINUX_VERSION_CODE;
+>  	info->hw_revision = dev->hw_revision;
+> -	info->driver_version = LINUX_VERSION_CODE;
+>  
+>  	return 0;
+>  }
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index fac96c64fe51..4865f1e71339 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -30,8 +30,6 @@
+>  #include <linux/types.h>
+>  #include <linux/version.h>
+>  
+> -#define MEDIA_API_VERSION	KERNEL_VERSION(0, 1, 0)
+> -
+>  struct media_device_info {
+>  	char driver[16];
+>  	char model[32];
+> @@ -187,6 +185,9 @@ struct media_device_info {
+>  #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	MEDIA_ENT_F_LENS
+>  #define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	MEDIA_ENT_F_ATV_DECODER
+>  #define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	MEDIA_ENT_F_TUNER
+> +
+> +/* Obsolete symbol for media_version, no longer used in the kernel */
+> +#define MEDIA_API_VERSION		KERNEL_VERSION(0, 1, 0)
 
-diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
-index 1d60321a6777..738edb81bc0a 100644
---- a/drivers/media/usb/uvc/uvc_ctrl.c
-+++ b/drivers/media/usb/uvc/uvc_ctrl.c
-@@ -2213,6 +2213,10 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
- {
- 	struct uvc_entity *entity;
- 	unsigned int i;
-+	const struct usb_device_id xu_only[] = {
-+		{ USB_DEVICE(0x2833, 0x0201) },
-+		{ USB_DEVICE(0x2833, 0x0211) },
-+	};
- 
- 	/* Walk the entities list and instantiate controls */
- 	list_for_each_entry(entity, &dev->entities, list) {
-@@ -2220,6 +2224,16 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
- 		unsigned int bControlSize = 0, ncontrols;
- 		__u8 *bmControls = NULL;
- 
-+		/* Oculus Sensors only handle extension unit controls */
-+		if (UVC_ENTITY_TYPE(entity) != UVC_VC_EXTENSION_UNIT) {
-+			for (i = 0; i < ARRAY_SIZE(xu_only); i++) {
-+				if (usb_match_one_id(dev->intf, &xu_only[i]))
-+					break;
-+			}
-+			if (i != ARRAY_SIZE(xu_only))
-+				continue;
-+		}
-+
- 		if (UVC_ENTITY_TYPE(entity) == UVC_VC_EXTENSION_UNIT) {
- 			bmControls = entity->extension.bmControls;
- 			bControlSize = entity->extension.bControlSize;
--- 
-2.13.2
+IMHO, it should, instead be identical to LINUX_VERSION_CODE, as
+applications might be relying on it in order to check what
+media API version they receive from the MC queries.
+
+The problem is that this macro is defined only internally inside
+the Kernel tree.
+
+>  #endif
+>  
+>  /* Entity flags */
+
+
+
+Thanks,
+Mauro
