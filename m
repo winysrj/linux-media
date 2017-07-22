@@ -1,107 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sender-of-o52.zoho.com ([135.84.80.217]:21398 "EHLO
-        sender-of-o52.zoho.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750743AbdGYGFa (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:34605 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755152AbdGVLbG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Jul 2017 02:05:30 -0400
-From: Stephen Brennan <stephen@brennan.io>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stephen Brennan <stephen@brennan.io>
-Subject: [PATCH] staging: atomisp: remove trailing whitespace
-Date: Mon, 24 Jul 2017 23:04:10 -0700
-Message-Id: <20170725060410.28012-1-stephen@brennan.io>
+        Sat, 22 Jul 2017 07:31:06 -0400
+Subject: Re: [PATCHv2 5/5] media-device: remove driver_version
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-media@vger.kernel.org
+References: <20170721105706.40703-1-hverkuil@xs4all.nl>
+ <CGME20170721105717epcas3p354c2aa0c7a7fc333a5442866e77498dc@epcas3p3.samsung.com>
+ <20170721105706.40703-6-hverkuil@xs4all.nl>
+ <a9f06de4-30a9-316c-642d-0f6cd2345fd0@samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f1bc4b77-5637-2a5a-1afb-1ab0e09ce0c1@xs4all.nl>
+Date: Sat, 22 Jul 2017 13:31:03 +0200
+MIME-Version: 1.0
+In-Reply-To: <a9f06de4-30a9-316c-642d-0f6cd2345fd0@samsung.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Stephen Brennan <stephen@brennan.io>
----
- drivers/staging/media/atomisp/i2c/ov2680.c | 17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+On 22/07/17 13:16, Sylwester Nawrocki wrote:
+> On 07/21/2017 12:57 PM, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Since the driver_version field in struct media_device is no longer
+>> used, just remove it.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>   drivers/media/media-device.c | 3 ---
+>>   include/media/media-device.h | 2 --
+>>   2 files changed, 5 deletions(-)
+> 
+>> diff --git a/include/media/media-device.h b/include/media/media-device.h
+>> index 6896266031b9..7d268802cc2e 100644
+>> --- a/include/media/media-device.h
+>> +++ b/include/media/media-device.h
+>> @@ -68,7 +68,6 @@ struct media_device_ops {
+>>    * @serial:    Device serial number (optional)
+>>    * @bus_info:    Unique and stable device location identifier
+>>    * @hw_revision: Hardware device revision
+>> - * @driver_version: Device driver version
+>>    * @topology_version: Monotonic counter for storing the version of the graph
+>>    *        topology. Should be incremented each time the topology changes.
+>>    * @id:        Unique ID used on the last registered graph object
+>> @@ -134,7 +133,6 @@ struct media_device {
+>>       char serial[40];
+>>       char bus_info[32];
+>>       u32 hw_revision;
+>> -    u32 driver_version;
+> 
+> It seems we still have such paragraph in include/media/media-device.h:
+> 
+>  *  - &media_entity.driver_version is formatted with the KERNEL_VERSION()
+>  *    macro. The version minor must be incremented when new features are added
+>  *    to the userspace API without breaking binary compatibility. The version
+>  *    major must be incremented when binary compatibility is broken.
+> 
+> Shouldn't this also be removed?
 
-diff --git a/drivers/staging/media/atomisp/i2c/ov2680.c b/drivers/staging/media/atomisp/i2c/ov2680.c
-index 8daf81dfabb7..51b7d61df0f5 100644
---- a/drivers/staging/media/atomisp/i2c/ov2680.c
-+++ b/drivers/staging/media/atomisp/i2c/ov2680.c
-@@ -89,7 +89,7 @@ static int ov2680_read_reg(struct i2c_client *client,
- 			"read from offset 0x%x error %d", reg, err);
- 		return err;
- 	}
--	
-+
- 	*val = 0;
- 	/* high byte comes first */
- 	if (data_length == OV2680_8BIT)
-@@ -285,7 +285,6 @@ static int ov2680_g_fnumber(struct v4l2_subdev *sd, s32 *val)
- 
- static int ov2680_g_fnumber_range(struct v4l2_subdev *sd, s32 *val)
- {
--	
- 	*val = (OV2680_F_NUMBER_DEFAULT_NUM << 24) |
- 		(OV2680_F_NUMBER_DEM << 16) |
- 		(OV2680_F_NUMBER_DEFAULT_NUM << 8) | OV2680_F_NUMBER_DEM;
-@@ -306,7 +305,7 @@ static int ov2680_g_bin_factor_y(struct v4l2_subdev *sd, s32 *val)
- {
- 	struct ov2680_device *dev = to_ov2680_sensor(sd);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	
-+
- 	*val = ov2680_res[dev->fmt_idx].bin_factor_y;
- 	dev_dbg(&client->dev,  "++++ov2680_g_bin_factor_y\n");
- 	return 0;
-@@ -399,7 +398,7 @@ static long __ov2680_set_exposure(struct v4l2_subdev *sd, int coarse_itg,
- 	struct ov2680_device *dev = to_ov2680_sensor(sd);
- 	u16 vts,hts;
- 	int ret,exp_val;
--	
-+
-        dev_dbg(&client->dev, "+++++++__ov2680_set_exposure coarse_itg %d, gain %d, digitgain %d++\n",coarse_itg, gain, digitgain);
- 
- 	hts = ov2680_res[dev->fmt_idx].pixels_per_line;
-@@ -542,7 +541,7 @@ static long ov2680_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
- 	switch (cmd) {
- 	case ATOMISP_IOC_S_EXPOSURE:
- 		return ov2680_s_exposure(sd, arg);
--	
-+
- 	default:
- 		return -EINVAL;
- 	}
-@@ -983,7 +982,7 @@ static int ov2680_s_power(struct v4l2_subdev *sd, int on)
- 	if (on == 0){
- 		ret = power_down(sd);
- 	} else {
--		ret = power_up(sd);	
-+		ret = power_up(sd);
- 		if (!ret)
- 			return ov2680_init(sd);
- 	}
-@@ -1207,7 +1206,7 @@ static int ov2680_s_stream(struct v4l2_subdev *sd, int enable)
- 		dev_dbg(&client->dev, "ov2680_s_stream one \n");
- 	else
- 		dev_dbg(&client->dev, "ov2680_s_stream off \n");
--	
-+
- 	ret = ov2680_write_reg(client, OV2680_8BIT, OV2680_SW_STREAM,
- 				enable ? OV2680_START_STREAMING :
- 				OV2680_STOP_STREAMING);
-@@ -1267,7 +1266,7 @@ static int ov2680_s_config(struct v4l2_subdev *sd,
- 		dev_err(&client->dev, "ov2680_detect err s_config.\n");
- 		goto fail_csi_cfg;
- 	}
--	
-+
- 	/* turn off sensor, after probed */
- 	ret = power_down(sd);
- 	if (ret) {
-@@ -1385,7 +1384,7 @@ static int ov2680_enum_frame_size(struct v4l2_subdev *sd,
- static int ov2680_g_skip_frames(struct v4l2_subdev *sd, u32 *frames)
- {
- 	struct ov2680_device *dev = to_ov2680_sensor(sd);
--	
-+
- 	mutex_lock(&dev->input_lock);
- 	*frames = ov2680_res[dev->fmt_idx].skip_frames;
- 	mutex_unlock(&dev->input_lock);
--- 
-2.13.3
+Good catch! Yes, that should be removed as well.
+
+Regards,
+
+	Hans
