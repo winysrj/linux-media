@@ -1,72 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:36980 "EHLO
-        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751314AbdGQI6E (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 04:58:04 -0400
-Received: by mail-wm0-f54.google.com with SMTP id b134so40589650wma.0
-        for <linux-media@vger.kernel.org>; Mon, 17 Jul 2017 01:58:04 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Arnd Bergmann <arnd@arndb.de>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Subject: [PATCH 1/4] venus: mark PM functions as __maybe_unused
-Date: Mon, 17 Jul 2017 11:56:47 +0300
-Message-Id: <20170717085650.12185-2-stanimir.varbanov@linaro.org>
-In-Reply-To: <20170717085650.12185-1-stanimir.varbanov@linaro.org>
-References: <20170717085650.12185-1-stanimir.varbanov@linaro.org>
+Received: from mail.anw.at ([195.234.101.228]:38977 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755265AbdGWMMU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 23 Jul 2017 08:12:20 -0400
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, d.scheller@gmx.net, jasmin@anw.at
+Subject: [PATCH 3/3] build: fix up build w/kernels <=4.12 by reverting 4.13 patches
+Date: Sun, 23 Jul 2017 14:12:04 +0200
+Message-Id: <1500811924-4559-4-git-send-email-jasmin@anw.at>
+In-Reply-To: <1500811924-4559-1-git-send-email-jasmin@anw.at>
+References: <1500811924-4559-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Arnd Bergmann <arnd@arndb.de>
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Without PM support, gcc warns about two unused functions:
-
-platform/qcom/venus/core.c:146:13: error: 'venus_clks_disable' defined but not used [-Werror=unused-function]
-platform/qcom/venus/core.c:126:12: error: 'venus_clks_enable' defined but not used [-Werror=unused-function]
-
-The problem as usual are incorrect #ifdefs, so the easiest fix
-is to do away with the #ifdef completely and mark the suspend/resume
-handlers as __maybe_unused, which they are.
-
-Fixes: af2c3834c8ca ("[media] media: venus: adding core part and helper functions")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
 ---
- drivers/media/platform/qcom/venus/core.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ backports/backports.txt                            |  3 +
+ .../v4.12_revert_solo6x10_copykerneluser.patch     | 71 ++++++++++++++++++++++
+ 2 files changed, 74 insertions(+)
+ create mode 100644 backports/v4.12_revert_solo6x10_copykerneluser.patch
 
-diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
-index 776d2bae6979..694f57a78288 100644
---- a/drivers/media/platform/qcom/venus/core.c
-+++ b/drivers/media/platform/qcom/venus/core.c
-@@ -270,8 +270,7 @@ static int venus_remove(struct platform_device *pdev)
- 	return ret;
- }
+diff --git a/backports/backports.txt b/backports/backports.txt
+index 9803f76..873b2f5 100644
+--- a/backports/backports.txt
++++ b/backports/backports.txt
+@@ -26,6 +26,9 @@ add pr_fmt.patch
+ add debug.patch
+ add drx39xxj.patch
  
--#ifdef CONFIG_PM
--static int venus_runtime_suspend(struct device *dev)
-+static __maybe_unused int venus_runtime_suspend(struct device *dev)
- {
- 	struct venus_core *core = dev_get_drvdata(dev);
- 	int ret;
-@@ -283,7 +282,7 @@ static int venus_runtime_suspend(struct device *dev)
- 	return ret;
- }
- 
--static int venus_runtime_resume(struct device *dev)
-+static __maybe_unused int venus_runtime_resume(struct device *dev)
- {
- 	struct venus_core *core = dev_get_drvdata(dev);
- 	int ret;
-@@ -302,7 +301,6 @@ static int venus_runtime_resume(struct device *dev)
- 	venus_clks_disable(core);
- 	return ret;
- }
--#endif
- 
- static const struct dev_pm_ops venus_pm_ops = {
- 	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
++[4.12.255]
++add v4.12_revert_solo6x10_copykerneluser.patch
++
+ [4.10.255]
+ add v4.10_sched_signal.patch
+ add v4.10_fault_page.patch
+diff --git a/backports/v4.12_revert_solo6x10_copykerneluser.patch b/backports/v4.12_revert_solo6x10_copykerneluser.patch
+new file mode 100644
+index 0000000..2ccb9d8
+--- /dev/null
++++ b/backports/v4.12_revert_solo6x10_copykerneluser.patch
+@@ -0,0 +1,71 @@
++commit bbf3d164ec2723f090533c14ec1dc166eaca46f8
++Author: Daniel Scheller <d.scheller@gmx.net>
++Date:   Fri Jul 21 20:41:49 2017 +0200
++
++    Revert "[media] solo6x10: Convert to the new PCM ops"
++    
++    This reverts commit 1facf21e8b903524b34f09c39a7d27b4b71a07f7.
++
++diff --git a/drivers/media/pci/solo6x10/solo6x10-g723.c b/drivers/media/pci/solo6x10/solo6x10-g723.c
++index 3ca947092775..36e93540bb49 100644
++--- a/drivers/media/pci/solo6x10/solo6x10-g723.c
+++++ b/drivers/media/pci/solo6x10/solo6x10-g723.c
++@@ -223,9 +223,9 @@ static snd_pcm_uframes_t snd_solo_pcm_pointer(struct snd_pcm_substream *ss)
++ 	return idx * G723_FRAMES_PER_PAGE;
++ }
++ 
++-static int __snd_solo_pcm_copy(struct snd_pcm_substream *ss,
++-			       unsigned long pos, void *dst,
++-			       unsigned long count, bool in_kernel)
+++static int snd_solo_pcm_copy(struct snd_pcm_substream *ss, int channel,
+++			     snd_pcm_uframes_t pos, void __user *dst,
+++			     snd_pcm_uframes_t count)
++ {
++ 	struct solo_snd_pcm *solo_pcm = snd_pcm_substream_chip(ss);
++ 	struct solo_dev *solo_dev = solo_pcm->solo_dev;
++@@ -242,31 +242,16 @@ static int __snd_solo_pcm_copy(struct snd_pcm_substream *ss,
++ 		if (err)
++ 			return err;
++ 
++-		if (in_kernel)
++-			memcpy(dst, solo_pcm->g723_buf, G723_PERIOD_BYTES);
++-		else if (copy_to_user((void __user *)dst,
++-				      solo_pcm->g723_buf, G723_PERIOD_BYTES))
+++		err = copy_to_user(dst + (i * G723_PERIOD_BYTES),
+++				   solo_pcm->g723_buf, G723_PERIOD_BYTES);
+++
+++		if (err)
++ 			return -EFAULT;
++-		dst += G723_PERIOD_BYTES;
++ 	}
++ 
++ 	return 0;
++ }
++ 
++-static int snd_solo_pcm_copy_user(struct snd_pcm_substream *ss, int channel,
++-				  unsigned long pos, void __user *dst,
++-				  unsigned long count)
++-{
++-	return __snd_solo_pcm_copy(ss, pos, (void *)dst, count, false);
++-}
++-
++-static int snd_solo_pcm_copy_kernel(struct snd_pcm_substream *ss, int channel,
++-				    unsigned long pos, void *dst,
++-				    unsigned long count)
++-{
++-	return __snd_solo_pcm_copy(ss, pos, dst, count, true);
++-}
++-
++ static const struct snd_pcm_ops snd_solo_pcm_ops = {
++ 	.open = snd_solo_pcm_open,
++ 	.close = snd_solo_pcm_close,
++@@ -276,8 +261,7 @@ static const struct snd_pcm_ops snd_solo_pcm_ops = {
++ 	.prepare = snd_solo_pcm_prepare,
++ 	.trigger = snd_solo_pcm_trigger,
++ 	.pointer = snd_solo_pcm_pointer,
++-	.copy_user = snd_solo_pcm_copy_user,
++-	.copy_kernel = snd_solo_pcm_copy_kernel,
+++	.copy = snd_solo_pcm_copy,
++ };
++ 
++ static int snd_solo_capture_volume_info(struct snd_kcontrol *kcontrol,
 -- 
-2.11.0
+2.7.4
