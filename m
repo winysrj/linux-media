@@ -1,47 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:56999 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751906AbdGGJwG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Jul 2017 05:52:06 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org, robh+dt@kernel.org,
-        devicetree@vger.kernel.org
-Subject: [PATCH v2 6/6] [media] dt-bindings: pwm-ir-tx: Add support for PWM IR Transmitter
-Date: Fri,  7 Jul 2017 10:52:04 +0100
-Message-Id: <e18cec2d3f66cd59d8683cb07fc59e3a2086cf6e.1499419624.git.sean@mess.org>
-In-Reply-To: <580c648de65344e9316ff153ba316efd4d527f12.1499419624.git.sean@mess.org>
-References: <580c648de65344e9316ff153ba316efd4d527f12.1499419624.git.sean@mess.org>
-In-Reply-To: <cover.1499419624.git.sean@mess.org>
-References: <cover.1499419624.git.sean@mess.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33868 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750909AbdGWKNV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 23 Jul 2017 06:13:21 -0400
+Received: by mail-wm0-f66.google.com with SMTP id 79so1683952wmg.1
+        for <linux-media@vger.kernel.org>; Sun, 23 Jul 2017 03:13:20 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at, r.scobie@clear.net.nz
+Subject: [PATCH 2/7] [media] dvb-frontends/stv0910: implement diseqc_send_burst
+Date: Sun, 23 Jul 2017 12:13:10 +0200
+Message-Id: <20170723101315.12523-3-d.scheller.oss@gmail.com>
+In-Reply-To: <20170723101315.12523-1-d.scheller.oss@gmail.com>
+References: <20170723101315.12523-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document the device tree bindings for the PWM IR Transmitter.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Signed-off-by: Sean Young <sean@mess.org>
+This implements the diseqc_send_burst frontend op to support sending
+mini-DISEQC bursts. Picked up from dddvb's driver package where this
+specific block was disabled via #if 0/#endif, but is still working
+according to feedback from upstream, so add it.
+
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- Documentation/devicetree/bindings/leds/irled/pwm-ir-tx.txt | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/leds/irled/pwm-ir-tx.txt
+ drivers/media/dvb-frontends/stv0910.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/leds/irled/pwm-ir-tx.txt b/Documentation/devicetree/bindings/leds/irled/pwm-ir-tx.txt
-new file mode 100644
-index 0000000..66e5672
---- /dev/null
-+++ b/Documentation/devicetree/bindings/leds/irled/pwm-ir-tx.txt
-@@ -0,0 +1,13 @@
-+Device tree bindings for IR LED connected through pwm pin which is used as
-+remote controller transmitter.
+diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
+index 4084c142f1e4..bbe609143497 100644
+--- a/drivers/media/dvb-frontends/stv0910.c
++++ b/drivers/media/dvb-frontends/stv0910.c
+@@ -1638,6 +1638,27 @@ static int send_master_cmd(struct dvb_frontend *fe,
+ 	return 0;
+ }
+ 
++static int send_burst(struct dvb_frontend *fe, enum fe_sec_mini_cmd burst)
++{
++	struct stv *state = fe->demodulator_priv;
++	u16 offs = state->nr ? 0x40 : 0;
++	u8 value;
 +
-+Required properties:
-+	- compatible: should be "pwm-ir-tx".
-+	- pwms : PWM property to point to the PWM device (phandle)/port (id)
-+	  and to specify the period time to be used: <&phandle id period_ns>;
++	if (burst == SEC_MINI_A) {
++		write_reg(state, RSTV0910_P1_DISTXCFG + offs, 0x3F);
++		value = 0x00;
++	} else {
++		write_reg(state, RSTV0910_P1_DISTXCFG + offs, 0x3E);
++		value = 0xFF;
++	}
++	wait_dis(state, 0x40, 0x00);
++	write_reg(state, RSTV0910_P1_DISTXFIFO + offs, value);
++	write_reg(state, RSTV0910_P1_DISTXCFG + offs, 0x3A);
++	wait_dis(state, 0x20, 0x20);
 +
-+Example:
-+	irled {
-+		compatible = "pwm-ir-tx";
-+		pwms = <&pwm0 0 10000000>;
-+	};
++	return 0;
++}
++
+ static int sleep(struct dvb_frontend *fe)
+ {
+ 	struct stv *state = fe->demodulator_priv;
+@@ -1673,6 +1694,7 @@ static struct dvb_frontend_ops stv0910_ops = {
+ 	.set_tone			= set_tone,
+ 
+ 	.diseqc_send_master_cmd		= send_master_cmd,
++	.diseqc_send_burst              = send_burst,
+ };
+ 
+ static struct stv_base *match_base(struct i2c_adapter  *i2c, u8 adr)
 -- 
-2.9.4
+2.13.0
