@@ -1,66 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:32947 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753358AbdGKLUZ (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:33372 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751439AbdGWSQr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 07:20:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Eric Anholt <eric@anholt.net>, dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/4] cec: be smarter about detecting the number of attempts made
-Date: Tue, 11 Jul 2017 13:20:18 +0200
-Message-Id: <20170711112021.38525-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170711112021.38525-1-hverkuil@xs4all.nl>
-References: <20170711112021.38525-1-hverkuil@xs4all.nl>
+        Sun, 23 Jul 2017 14:16:47 -0400
+Received: by mail-wr0-f193.google.com with SMTP id y43so15830940wrd.0
+        for <linux-media@vger.kernel.org>; Sun, 23 Jul 2017 11:16:47 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
+        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
+Subject: [PATCH RESEND 12/14] [media] ddbridge: fix dereference before check
+Date: Sun, 23 Jul 2017 20:16:28 +0200
+Message-Id: <20170723181630.19526-13-d.scheller.oss@gmail.com>
+In-Reply-To: <20170723181630.19526-1-d.scheller.oss@gmail.com>
+References: <20170723181630.19526-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Some hardware does more than one attempt. So when it calls
-cec_transmit_done when an error occurred it will e.g. use an error count
-of 2 instead of 1.
+Both ts_release() and ts_open() can use "output" before check (smatch):
 
-The framework always assumed a single attempt, but now it is smarter
-and will sum the counters to detect how many attempts were made.
+  drivers/media/pci/ddbridge/ddbridge-core.c:816 ts_release() warn: variable dereferenced before check 'output' (see line 809)
+  drivers/media/pci/ddbridge/ddbridge-core.c:836 ts_open() warn: variable dereferenced before check 'output' (see line 828)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Fix by performing checks on those pointers.
+
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <r.scobie@clear.net.nz>
+Tested-by: Jasmin Jessich <jasmin@anw.at>
+Tested-by: Dietmar Spingler <d_spingler@freenet.de>
+Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
 ---
- drivers/media/cec/cec-adap.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ drivers/media/pci/ddbridge/ddbridge-core.c | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index bf45977b2823..e9284dbdc880 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -472,9 +472,14 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index e3119351b9a1..98ead4ee8d2f 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -737,8 +737,13 @@ static unsigned int ts_poll(struct file *file, poll_table *wait)
+ static int ts_release(struct inode *inode, struct file *file)
  {
- 	struct cec_data *data;
- 	struct cec_msg *msg;
-+	unsigned int attempts_made = arb_lost_cnt + nack_cnt +
-+				     low_drive_cnt + error_cnt;
- 	u64 ts = ktime_get_ns();
- 
- 	dprintk(2, "%s: status %02x\n", __func__, status);
-+	if (attempts_made < 1)
-+		attempts_made = 1;
+ 	struct dvb_device *dvbdev = file->private_data;
+-	struct ddb_output *output = dvbdev->priv;
+-	struct ddb_input *input = output->port->input[0];
++	struct ddb_output *output = NULL;
++	struct ddb_input *input = NULL;
 +
- 	mutex_lock(&adap->lock);
- 	data = adap->transmitting;
- 	if (!data) {
-@@ -507,10 +512,10 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
- 	 * the hardware didn't signal that it retried itself (by setting
- 	 * CEC_TX_STATUS_MAX_RETRIES), then we will retry ourselves.
- 	 */
--	if (data->attempts > 1 &&
-+	if (data->attempts > attempts_made &&
- 	    !(status & (CEC_TX_STATUS_MAX_RETRIES | CEC_TX_STATUS_OK))) {
- 		/* Retry this message */
--		data->attempts--;
-+		data->attempts -= attempts_made;
- 		if (msg->timeout)
- 			dprintk(2, "retransmit: %*ph (attempts: %d, wait for 0x%02x)\n",
- 				msg->len, msg->msg, data->attempts, msg->reply);
++	if (dvbdev) {
++		output = dvbdev->priv;
++		input = output->port->input[0];
++	}
+ 
+ 	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
+ 		if (!input)
+@@ -756,8 +761,13 @@ static int ts_open(struct inode *inode, struct file *file)
+ {
+ 	int err;
+ 	struct dvb_device *dvbdev = file->private_data;
+-	struct ddb_output *output = dvbdev->priv;
+-	struct ddb_input *input = output->port->input[0];
++	struct ddb_output *output = NULL;
++	struct ddb_input *input = NULL;
++
++	if (dvbdev) {
++		output = dvbdev->priv;
++		input = output->port->input[0];
++	}
+ 
+ 	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
+ 		if (!input)
 -- 
-2.11.0
+2.13.0
