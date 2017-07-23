@@ -1,91 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:41706
-        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751057AbdGFGEu (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:34724 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750909AbdGWKSK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Jul 2017 02:04:50 -0400
-Date: Thu, 6 Jul 2017 08:04:46 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Cyprian Wronka <cwronka@cadence.com>,
-        Neil Webb <neilw@cadence.com>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        =?ISO-8859-15?Q?Niklas_S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>, kbuild-all@01.org
-Subject: Re: [PATCH 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
- (fwd)
-Message-ID: <alpine.DEB.2.20.1707060803210.2028@hadrien>
+        Sun, 23 Jul 2017 06:18:10 -0400
+Received: by mail-wr0-f193.google.com with SMTP id o33so7755785wrb.1
+        for <linux-media@vger.kernel.org>; Sun, 23 Jul 2017 03:18:09 -0700 (PDT)
+Date: Sun, 23 Jul 2017 12:18:06 +0200
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at
+Subject: Re: [PATCH] [media] ddbridge: constify i2c_algorithm structure
+Message-ID: <20170723121806.189bf4c9@audiostation.wuest.de>
+In-Reply-To: <20170710151227.15616-1-d.scheller.oss@gmail.com>
+References: <20170710151227.15616-1-d.scheller.oss@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please check on this (line 199).
+Am Mon, 10 Jul 2017 17:12:27 +0200
+schrieb Daniel Scheller <d.scheller.oss@gmail.com>:
 
-julia
+> From: Daniel Scheller <d.scheller@gmx.net>
+> 
+> Original patch and issue identified by Gustavo A. R. Silva
+> <garsilva@embeddedor.com> via [1] using Coccinelle. While at it, even
+> mark the struct static again since it isn't referenced anywhere else.
+> 
+> [1] http://www.spinics.net/lists/linux-media/msg118221.html
+> 
+> Cc: Gustavo A. R. Silva <garsilva@embeddedor.com>
+> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+> ---
+>  drivers/media/pci/ddbridge/ddbridge-i2c.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/pci/ddbridge/ddbridge-i2c.c
+> b/drivers/media/pci/ddbridge/ddbridge-i2c.c index
+> 22b2543da4ca..3d0aefe05cec 100644 ---
+> a/drivers/media/pci/ddbridge/ddbridge-i2c.c +++
+> b/drivers/media/pci/ddbridge/ddbridge-i2c.c @@ -212,7 +212,7 @@
+> static u32 ddb_i2c_functionality(struct i2c_adapter *adap) return
+> I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL; }
+>  
+> -struct i2c_algorithm ddb_i2c_algo = {
+> +static const struct i2c_algorithm ddb_i2c_algo = {
+>  	.master_xfer   = ddb_i2c_master_xfer,
+>  	.functionality = ddb_i2c_functionality,
+>  };
 
----------- Forwarded message ----------
-Date: Thu, 6 Jul 2017 13:58:29 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: kbuild@01.org
-Cc: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
+This one can be marked "Obsolete" in patchwork. Original ddbridge
+patches have since been rebased (will re-send soonish), with this change
+included.
 
-Hi Maxime,
-
-[auto build test WARNING on linuxtv-media/master]
-[also build test WARNING on v4.12]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-
-url:    https://github.com/0day-ci/linux/commits/Maxime-Ripard/dt-bindings-media-Add-Cadence-MIPI-CSI2RX-Device-Tree-bindings/20170705-205643
-base:   git://linuxtv.org/media_tree.git master
-:::::: branch date: 17 hours ago
-:::::: commit date: 17 hours ago
-
->> drivers/media/platform/cadence/cdns-csi2rx.c:199:5-23: WARNING: Unsigned expression compared with zero: csi2rx -> sensor_pad < 0
-
-git remote add linux-review https://github.com/0day-ci/linux
-git remote update linux-review
-git checkout fb3d2879ba0623bcdc83c99ba70229ec1713feaf
-vim +199 drivers/media/platform/cadence/cdns-csi2rx.c
-
-fb3d2879 Maxime Ripard 2017-07-03  183  	return media_create_pad_link(&csi2rx->sensor_subdev->entity,
-fb3d2879 Maxime Ripard 2017-07-03  184  				     csi2rx->sensor_pad,
-fb3d2879 Maxime Ripard 2017-07-03  185  				     &csi2rx->subdev.entity, 0,
-fb3d2879 Maxime Ripard 2017-07-03  186  				     MEDIA_LNK_FL_ENABLED |
-fb3d2879 Maxime Ripard 2017-07-03  187  				     MEDIA_LNK_FL_IMMUTABLE);
-fb3d2879 Maxime Ripard 2017-07-03  188  }
-fb3d2879 Maxime Ripard 2017-07-03  189
-fb3d2879 Maxime Ripard 2017-07-03  190  static int csi2rx_async_bound(struct v4l2_async_notifier *notifier,
-fb3d2879 Maxime Ripard 2017-07-03  191  			      struct v4l2_subdev *subdev,
-fb3d2879 Maxime Ripard 2017-07-03  192  			      struct v4l2_async_subdev *asd)
-fb3d2879 Maxime Ripard 2017-07-03  193  {
-fb3d2879 Maxime Ripard 2017-07-03  194  	struct csi2rx_priv *csi2rx = v4l2_notifier_to_csi2rx(notifier);
-fb3d2879 Maxime Ripard 2017-07-03  195
-fb3d2879 Maxime Ripard 2017-07-03  196  	csi2rx->sensor_pad = media_entity_get_fwnode_pad(&subdev->entity,
-fb3d2879 Maxime Ripard 2017-07-03  197  							 &csi2rx->sensor_node->fwnode,
-fb3d2879 Maxime Ripard 2017-07-03  198  							 MEDIA_PAD_FL_SOURCE);
-fb3d2879 Maxime Ripard 2017-07-03 @199  	if (csi2rx->sensor_pad < 0) {
-fb3d2879 Maxime Ripard 2017-07-03  200  		dev_err(csi2rx->dev, "Couldn't find output pad for subdev %s\n",
-fb3d2879 Maxime Ripard 2017-07-03  201  			subdev->name);
-fb3d2879 Maxime Ripard 2017-07-03  202  		return csi2rx->sensor_pad;
-fb3d2879 Maxime Ripard 2017-07-03  203  	}
-fb3d2879 Maxime Ripard 2017-07-03  204
-fb3d2879 Maxime Ripard 2017-07-03  205  	csi2rx->sensor_subdev = subdev;
-fb3d2879 Maxime Ripard 2017-07-03  206
-fb3d2879 Maxime Ripard 2017-07-03  207  	dev_dbg(csi2rx->dev, "Bound %s pad: %d\n", subdev->name,
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+Best regards,
+Daniel Scheller
+-- 
+https://github.com/herrnst
