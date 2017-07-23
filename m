@@ -1,59 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:42762 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750863AbdGZI50 (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36347 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751487AbdGWSQp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Jul 2017 04:57:26 -0400
-Subject: Re: [PATCH V2 0/3] fix compile for kernel 3.13
-To: "Jasmin J." <jasmin@anw.at>, linux-media@vger.kernel.org
-Cc: d.scheller@gmx.net
-References: <1500929617-13623-1-git-send-email-jasmin@anw.at>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <1506939c-3ca4-b539-5a2d-5315f1ba0d93@xs4all.nl>
-Date: Wed, 26 Jul 2017 10:57:19 +0200
-MIME-Version: 1.0
-In-Reply-To: <1500929617-13623-1-git-send-email-jasmin@anw.at>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Sun, 23 Jul 2017 14:16:45 -0400
+Received: by mail-wm0-f68.google.com with SMTP id 184so10070700wmo.3
+        for <linux-media@vger.kernel.org>; Sun, 23 Jul 2017 11:16:44 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
+        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
+Subject: [PATCH RESEND 09/14] [media] ddbridge: fix possible buffer overflow in ddb_ports_init()
+Date: Sun, 23 Jul 2017 20:16:25 +0200
+Message-Id: <20170723181630.19526-10-d.scheller.oss@gmail.com>
+In-Reply-To: <20170723181630.19526-1-d.scheller.oss@gmail.com>
+References: <20170723181630.19526-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/24/2017 10:53 PM, Jasmin J. wrote:
-> From: Jasmin Jessich <jasmin@anw.at>
-> 
-> Changes since V1:
-> - CEC_PIN and VIDEO_OV5670 disabled for all kernels older 4.10.
-> 
-> This series fixed compilation errors for older kernels.
-> I have tested it with Kernel 3.13 and Daniel with Kernel 4.12 and
-> someone else with Kernel 4.4.
-> 
-> CEC_PIN and VIDEO_OV5670 is now disabled for all kernels older 4.10.
-> 
-> This series requires "Add compat code for skb_put_data" from Matthias
-> Schwarzott to be applied first (see
-> https://www.mail-archive.com/linux-media@vger.kernel.org/msg116145.html )
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Applied, much appreciated that you looked into this!
+Report from smatch:
 
-Regards.
+  drivers/media/pci/ddbridge/ddbridge-core.c:2659 ddb_ports_init() error: buffer overflow 'dev->port' 32 <= u32max
 
-	Hans
+Fix by making sure "p" is greater than zero before checking for
+"dev->port[].type == DDB_CI_EXTERNAL_XO2".
 
-> 
-> Daniel Scheller (2):
->    build: CEC_PIN and the VIDEO_OV5670 driver both require kernel 4.10 to compile
->    build: fix up build w/kernels <=4.12 by reverting 4.13 patches
-> 
-> Jasmin Jessich (1):
->    build: Add compat code for pm_runtime_get_if_in_use
-> 
->   backports/backports.txt                            |  3 +
->   .../v4.12_revert_solo6x10_copykerneluser.patch     | 71 ++++++++++++++++++++++
->   v4l/compat.h                                       | 15 +++++
->   v4l/scripts/make_config_compat.pl                  |  1 +
->   v4l/versions.txt                                   |  6 ++
->   5 files changed, 96 insertions(+)
->   create mode 100644 backports/v4.12_revert_solo6x10_copykerneluser.patch
-> 
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <r.scobie@clear.net.nz>
+Tested-by: Jasmin Jessich <jasmin@anw.at>
+Tested-by: Dietmar Spingler <d_spingler@freenet.de>
+Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
+---
+ drivers/media/pci/ddbridge/ddbridge-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 1e5c420e4717..5f8f77c74339 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -2550,7 +2550,7 @@ void ddb_ports_init(struct ddb *dev)
+ 			port->dvb[0].adap = &dev->adap[2 * p];
+ 			port->dvb[1].adap = &dev->adap[2 * p + 1];
+ 
+-			if ((port->class == DDB_PORT_NONE) && i &&
++			if ((port->class == DDB_PORT_NONE) && i && p > 0 &&
+ 			    dev->port[p - 1].type == DDB_CI_EXTERNAL_XO2) {
+ 				port->class = DDB_PORT_CI;
+ 				port->type = DDB_CI_EXTERNAL_XO2_B;
+-- 
+2.13.0
