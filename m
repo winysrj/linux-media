@@ -1,77 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f175.google.com ([209.85.161.175]:35993 "EHLO
-        mail-yw0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750949AbdGMIb4 (ORCPT
+Received: from mail-wr0-f174.google.com ([209.85.128.174]:37025 "EHLO
+        mail-wr0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751439AbdGWSQe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Jul 2017 04:31:56 -0400
-Received: by mail-yw0-f175.google.com with SMTP id a12so19613635ywh.3
-        for <linux-media@vger.kernel.org>; Thu, 13 Jul 2017 01:31:56 -0700 (PDT)
-Received: from mail-yw0-f179.google.com (mail-yw0-f179.google.com. [209.85.161.179])
-        by smtp.gmail.com with ESMTPSA id p82sm1702113ywc.77.2017.07.13.01.31.53
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 13 Jul 2017 01:31:54 -0700 (PDT)
-Received: by mail-yw0-f179.google.com with SMTP id v193so19638412ywg.2
-        for <linux-media@vger.kernel.org>; Thu, 13 Jul 2017 01:31:53 -0700 (PDT)
+        Sun, 23 Jul 2017 14:16:34 -0400
+Received: by mail-wr0-f174.google.com with SMTP id 33so41752094wrz.4
+        for <linux-media@vger.kernel.org>; Sun, 23 Jul 2017 11:16:34 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
+        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
+Subject: [PATCH RESEND 00/14] ddbridge: bump to ddbridge-0.9.29
+Date: Sun, 23 Jul 2017 20:16:16 +0200
+Message-Id: <20170723181630.19526-1-d.scheller.oss@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20170713082156.zbxnle22effcoarm@valkosipuli.retiisi.org.uk>
-References: <1499730214-9005-1-git-send-email-yong.zhi@intel.com>
- <1499730214-9005-4-git-send-email-yong.zhi@intel.com> <20170711103343.qynz4rps7fsx36bc@valkosipuli.retiisi.org.uk>
- <C193D76D23A22742993887E6D207B54D1ADD7EFB@ORSMSX106.amr.corp.intel.com>
- <CAAFQd5CKwWoiEZo9rBy1P3ioGJyScr8iG5iDpq_M+Wem6YAS9g@mail.gmail.com> <20170713082156.zbxnle22effcoarm@valkosipuli.retiisi.org.uk>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 13 Jul 2017 17:31:33 +0900
-Message-ID: <CAAFQd5CN=AK8N6MkJSj8+KGbDEQMmsP=bZq4wyz22Bjb8Y3hmg@mail.gmail.com>
-Subject: Re: [PATCH v4 3/3] intel-ipu3: cio2: Add new MIPI-CSI2 driver
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: "Zhi, Yong" <yong.zhi@intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>,
-        "Vijaykumar, Ramya" <ramya.vijaykumar@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 13, 2017 at 5:21 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
->> >> +     ret = v4l2_async_notifier_register(&cio2->v4l2_dev, &cio2->notifier);
->> >> +     if (ret) {
->> >> +             cio2->notifier.num_subdevs = 0;
->> >
->> > No need to assign num_subdevs as 0.
->> >
->> > [YZ] _notifier_exit() will call _unregister() if this is not 0.
->>
->> You shouldn't call _exit() if _init() failed. I noticed that many
->> error paths in your code does this. Please fix it.
->
-> In general most functions that initialise and clean up something are
-> implemented so that the cleanup function can be called without calling the
-> corresponding init function. This eases driver implementation by reducing
-> complexity in error paths that are difficult to implement and test to begin
-> with, so I don't see anything wrong with that, quite the contrary.
->
-> I.e. in this case you should call v4l2_async_notifier_unregister() without
-> checking the number of async sub-devices.
->
-> There are exceptions to that though; not all the framework functions behave
-> this way. Of kernel APIs, e.g. kmalloc() and kfree() do this --- you can
-> pass a NULL pointer to kfree() and it does nothing.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-I'd argue that most of the cleanup paths I've seen in the kernel are
-the opposite. If you properly check for errors in your code, it's
-actually very unlikely that you need to call a cleanup function
-without the init function called... That said, I've seen the pattern
-you describe too, so probably either there is no strict rule or it's
-not strictly enforced. (Still, judging by
-https://www.kernel.org/doc/html/v4.10/process/coding-style.html#centralized-exiting-of-functions,
-which mentions "one err bugs" and suggests "to split it up into two
-error labels", the pattern I'm arguing for might be the recommended
-default.)
+Preferrably for Linux 4.14 (to get things done).
 
-Best regards,
-Tomasz
+Resend reasons (resend since no real changes went in):
+* rebased on latest mediatree-master wrt
+    commit 618e8aac3d7c ("media: ddbridge: constify i2c_algorithm structure")
+* build error in ddbridge-core.c fixed wrt
+    commit dcda9b04713c ("mm, tree wide: replace __GFP_REPEAT by __GFP_RETRY_MAYFAIL with more useful semantic")
+* useless return removed from void calc_con()
+* UTF8 in ddbridge-regs.h removed
+* Tested-by's added to commit messages
+
+Since the STV0910 patches are merged, the dependency is resolved.
+
+Mauro/Media maintainers, this updates drivers/media/pci/ddbridge to the
+very latest code that DD carry in their vendor driver package as of
+version 0.9.29, in the "once, the big-bang-way is ok" way as discussed at
+[2] (compared to the incremental, awkward to do variant since that
+involves dissecting all available release archives and having to - try
+to - build proper commits out of this, which will always be inaccurate;
+a start was done at [3], however - and please understand - I definitely
+don't want to continue doing that...)
+
+In patch 14, I add myself to MAINTAINERS. This means I will care about
+getting driver updates as they're released by DD into mainline,  starting
+from this (0.9.29) version, which is definitely doable in an incremental
+way. So, I'll make sure the in-kernel driver won't bit-rot again, and it
+will receive new hardware support as it becomes available in a timely
+manner.
+
+While the driver code bump looks massive, judging from the diff, there's
+mostly a whole lot of refactoring and restructuring of variables, port/
+link management and all such stuff in it. Feature-wise, this is most
+notable:
+
+ - Support for all (PCIe) CI (single/duo) cards and Flex addons
+ - Support for MSI (Message Signaled Interrupts), though disabled by
+   default since there were still reports of problems with this
+ - TS Loopback support (set up ports to behave as if a CI is connected,
+   without decryption of course)
+ - As mentioned: Heavy code reordering, and split up into multiple files
+
+Stripped functionality compared to dddvb:
+
+ - DVB-C modulator card support removed (requires DVB core API)
+ - OctoNET SAT>IP server/box support removed (requires API aswell)
+ - with this, GT link support was removed (only on OctoNET hardware)
+ - MaxS8 4/8 DVB-S/S2 card support (temporarily) removed (requires an
+   additional Demod driver; subject for another, later, series)
+
+A note on the patches:
+
+The bump starts by aligning the code "order-wise" to the updated driver,
+to keep the diff a bit cleaner. Next, the code split is applied, without
+actually changing any functionality. Compared to upstream, this isn't done
+by moving functions into different C files and then do an include on them,
+but we're handling them with the Makefile, building separate objects, and
+having proper prototypes in ddbridge.h. After the code bump, further split
+up is applied to increase readability and maintainability (also, for the
+MaxS8 support, there will be another object with another ~400 LoC, which
+originally lives in ddbridge-core aswell). Then, all issues found by W=1
+and smatch are resolved, one by one. This is kept separate since those
+fixes will be proposed for upstream inclusion. The last thing is the
+addition of the MSI default Kconfig options which will mainly inform users
+that there's something that might(!) cause issues but is still being
+worked on - the default is "off" to provide a proper OotB experience.
+
+To distinguish from the original unchanged vendor driver, "-integrated" is
+suffixed to the version code.
+
+Note on checkpatch:
+
+First two patches are solely code-moving, so checkpatch will complain on
+them. With the ddbridge code bump, all non-strict style issues are
+resolved. "--strict" checking will receive another round of patches
+afterwards.
+
+Yes, you will hate me for this large code drop, but at least we sort-of
+discussed this beforehand, and we have to start *somewhere*.
+
+Thanks in advance for reviewing and (optimally) getting this merged and
+getting the DD driver dilemma solved hopefully once and for all.
+
+[1] http://www.spinics.net/lists/linux-media/msg117946.html
+[2] http://www.spinics.net/lists/linux-media/msg117358.html
+[3] https://github.com/herrnst/dddvb-linux-kernel/compare/4226861...mediatree/master-ddbupdate
+
+Daniel Scheller (14):
+  [media] ddbridge: move/reorder functions
+  [media] ddbridge: split code into multiple files
+  [media] ddbridge: bump ddbridge code to version 0.9.29
+  [media] ddbridge: split I/O related functions off from ddbridge.h
+  [media] ddbridge: split off IRQ handling
+  [media] ddbridge: split off hardware definitions and mappings
+  [media] ddbridge: check pointers before dereferencing
+  [media] ddbridge: only register frontends in fe2 if fe is not NULL
+  [media] ddbridge: fix possible buffer overflow in ddb_ports_init()
+  [media] ddbridge: remove unreachable code
+  [media] ddbridge: fix impossible condition warning
+  [media] ddbridge: fix dereference before check
+  [media] ddbridge: Kconfig option to control the MSI modparam default
+  [media] MAINTAINERS: add entry for ddbridge
+
+ MAINTAINERS                                |    8 +
+ drivers/media/pci/ddbridge/Kconfig         |   15 +
+ drivers/media/pci/ddbridge/Makefile        |    3 +-
+ drivers/media/pci/ddbridge/ddbridge-core.c | 4241 ++++++++++++++++++----------
+ drivers/media/pci/ddbridge/ddbridge-hw.c   |  299 ++
+ drivers/media/pci/ddbridge/ddbridge-hw.h   |   52 +
+ drivers/media/pci/ddbridge/ddbridge-i2c.c  |  310 ++
+ drivers/media/pci/ddbridge/ddbridge-io.h   |   71 +
+ drivers/media/pci/ddbridge/ddbridge-irq.c  |  161 ++
+ drivers/media/pci/ddbridge/ddbridge-main.c |  393 +++
+ drivers/media/pci/ddbridge/ddbridge-regs.h |  138 +-
+ drivers/media/pci/ddbridge/ddbridge.h      |  355 ++-
+ 12 files changed, 4401 insertions(+), 1645 deletions(-)
+ create mode 100644 drivers/media/pci/ddbridge/ddbridge-hw.c
+ create mode 100644 drivers/media/pci/ddbridge/ddbridge-hw.h
+ create mode 100644 drivers/media/pci/ddbridge/ddbridge-i2c.c
+ create mode 100644 drivers/media/pci/ddbridge/ddbridge-io.h
+ create mode 100644 drivers/media/pci/ddbridge/ddbridge-irq.c
+ create mode 100644 drivers/media/pci/ddbridge/ddbridge-main.c
+
+-- 
+2.13.0
