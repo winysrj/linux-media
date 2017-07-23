@@ -1,115 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:34036 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755147AbdGJXoG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Jul 2017 19:44:06 -0400
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: hans.verkuil@cisco.com, jian.xu.zheng@intel.com,
-        tfiga@chromium.org, rajmohan.mani@intel.com,
-        tuukka.toivonen@intel.com, hyungwoo.yang@intel.com,
-        ramya.vijaykumar@intel.com, Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH v4 2/3] doc-rst: add IPU3 raw10 bayer pixel format definitions
-Date: Mon, 10 Jul 2017 18:43:33 -0500
-Message-Id: <1499730214-9005-3-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1499730214-9005-1-git-send-email-yong.zhi@intel.com>
-References: <1499730214-9005-1-git-send-email-yong.zhi@intel.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33862 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751332AbdGWKNU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 23 Jul 2017 06:13:20 -0400
+Received: by mail-wm0-f66.google.com with SMTP id 79so1683931wmg.1
+        for <linux-media@vger.kernel.org>; Sun, 23 Jul 2017 03:13:19 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at, r.scobie@clear.net.nz
+Subject: [PATCH 1/7] [media] dvb-frontends/stv0910: fix STR assignment, remove unneeded var
+Date: Sun, 23 Jul 2017 12:13:09 +0200
+Message-Id: <20170723101315.12523-2-d.scheller.oss@gmail.com>
+In-Reply-To: <20170723101315.12523-1-d.scheller.oss@gmail.com>
+References: <20170723101315.12523-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The formats added by this patch are:
+From: Daniel Scheller <d.scheller@gmx.net>
 
-    V4L2_PIX_FMT_IPU3_SBGGR10
-    V4L2_PIX_FMT_IPU3_SGBRG10
-    V4L2_PIX_FMT_IPU3_SGRBG10
-    V4L2_PIX_FMT_IPU3_SRGGB10
+According to the documentation, FE_SCALE_DECIBEL values should be assigned
+to .svalue and not .uvalue, so let's do this. While at it, remove the
+unneeded strength var from read_signal_strength().
 
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-Signed-off-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- Documentation/media/uapi/v4l/pixfmt-rgb.rst        |  1 +
- .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         | 62 ++++++++++++++++++++++
- 2 files changed, 63 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+ drivers/media/dvb-frontends/stv0910.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-index b0f3513..6900d5c 100644
---- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-@@ -16,5 +16,6 @@ RGB Formats
-     pixfmt-srggb10p
-     pixfmt-srggb10alaw8
-     pixfmt-srggb10dpcm8
-+    pixfmt-srggb10-ipu3
-     pixfmt-srggb12
-     pixfmt-srggb16
-diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
-new file mode 100644
-index 0000000..618e24a
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
-@@ -0,0 +1,62 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _V4L2_PIX_FMT_IPU3_SBGGR10:
-+.. _V4L2_PIX_FMT_IPU3_SGBRG10:
-+.. _V4L2_PIX_FMT_IPU3_SGRBG10:
-+.. _V4L2_PIX_FMT_IPU3_SRGGB10:
-+
-+**********************************************************************************************************************************************
-+V4L2_PIX_FMT_IPU3_SBGGR10 ('ip3b'), V4L2_PIX_FMT_IPU3_SGBRG10 ('ip3g'), V4L2_PIX_FMT_IPU3_SGRBG10 ('ip3G'), V4L2_PIX_FMT_IPU3_SRGGB10 ('ip3r')
-+**********************************************************************************************************************************************
-+
-+10-bit Bayer formats
-+
-+Description
-+===========
-+
-+These four pixel formats are used by Intel IPU3 driver, they are raw
-+sRGB / Bayer formats with 10 bits per sample with every 25 pixels packed
-+to 32 bytes leaving 6 most significant bits padding in the last byte.
-+The format is little endian.
-+
-+In other respects this format is similar to :ref:`V4L2-PIX-FMT-SRGGB10`.
-+
-+**Byte Order.**
-+Each cell is one byte.
-+
-+.. raw:: latex
-+
-+    \newline\newline\begin{adjustbox}{width=\columnwidth}
-+
-+.. tabularcolumns:: |p{1.3cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|
-+
-+.. flat-table::
-+
-+    * - start + 0:
-+      - B\ :sub:`00low`
-+      - G\ :sub:`01low` \ (bits 7--2) B\ :sub:`00high`\ (bits 1--0)
-+      - B\ :sub:`02low` \ (bits 7--4) G\ :sub:`01high`\ (bits 3--0)
-+      - G\ :sub:`03low` \ (bits 7--6) B\ :sub:`02high`\ (bits 5--0)
-+      - G\ :sub:`03high`
-+    * - start + 5:
-+      - G\ :sub:`10low`
-+      - R\ :sub:`11low` \ (bits 7--2) G\ :sub:`10high`\ (bits 1--0)
-+      - G\ :sub:`12low` \ (bits 7--4) R\ :sub:`11high`\ (bits 3--0)
-+      - R\ :sub:`13low` \ (bits 7--6) G\ :sub:`12high`\ (bits 5--0)
-+      - R\ :sub:`13high`
-+    * - start + 10:
-+      - B\ :sub:`20low`
-+      - G\ :sub:`21low` \ (bits 7--2) B\ :sub:`20high`\ (bits 1--0)
-+      - B\ :sub:`22low` \ (bits 7--4) G\ :sub:`21high`\ (bits 3--0)
-+      - G\ :sub:`23low` \ (bits 7--6) B\ :sub:`22high`\ (bits 5--0)
-+      - G\ :sub:`23high`
-+    * - start + 15:
-+      - G\ :sub:`30low`
-+      - R\ :sub:`31low` \ (bits 7--2) G\ :sub:`30high`\ (bits 1--0)
-+      - G\ :sub:`32low` \ (bits 7--4) R\ :sub:`31high`\ (bits 3--0)
-+      - R\ :sub:`33low` \ (bits 7--6) G\ :sub:`32high`\ (bits 5--0)
-+      - R\ :sub:`33high`
-+
-+.. raw:: latex
-+
-+    \end{adjustbox}\newline\newline
---
-2.7.4
+diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
+index bae1da3fdb2d..4084c142f1e4 100644
+--- a/drivers/media/dvb-frontends/stv0910.c
++++ b/drivers/media/dvb-frontends/stv0910.c
+@@ -1321,7 +1321,6 @@ static void read_signal_strength(struct dvb_frontend *fe)
+ {
+ 	struct stv *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *p = &state->fe.dtv_property_cache;
+-	s64 strength;
+ 	u8 reg[2];
+ 	u16 agc;
+ 	s32 padc, power = 0;
+@@ -1341,10 +1340,8 @@ static void read_signal_strength(struct dvb_frontend *fe)
+ 
+ 	padc = table_lookup(padc_lookup, ARRAY_SIZE(padc_lookup), power) + 352;
+ 
+-	strength = (padc - agc);
+-
+ 	p->strength.stat[0].scale = FE_SCALE_DECIBEL;
+-	p->strength.stat[0].uvalue = strength;
++	p->strength.stat[0].svalue = (padc - agc);
+ }
+ 
+ static int read_status(struct dvb_frontend *fe, enum fe_status *status)
+-- 
+2.13.0
