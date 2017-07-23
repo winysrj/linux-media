@@ -1,43 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:35420 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750988AbdG3MfB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 30 Jul 2017 08:35:01 -0400
-Received: by mail-lf0-f67.google.com with SMTP id w199so10507993lff.2
-        for <linux-media@vger.kernel.org>; Sun, 30 Jul 2017 05:35:01 -0700 (PDT)
-From: olli.salonen@iki.fi
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 1/2] mn88472: reset stream ID reg if no PLP given
-Date: Sun, 30 Jul 2017 15:34:48 +0300
-Message-Id: <1501418089-22418-1-git-send-email-olli.salonen@iki.fi>
+Received: from smtp.gentoo.org ([140.211.166.183]:48892 "EHLO smtp.gentoo.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750909AbdGWJb5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 23 Jul 2017 05:31:57 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH] Add compat code for skb_put_data
+Date: Sun, 23 Jul 2017 11:31:51 +0200
+Message-Id: <20170723093151.26338-1-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Olli Salonen <olli.salonen@iki.fi>
-
-If the PLP given is NO_STREAM_ID_FILTER (~0u) don't try to set that into the PLP register. Set PLP to 0 instead.
-
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
 ---
- drivers/media/dvb-frontends/mn88472.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ v4l/compat.h                      | 12 ++++++++++++
+ v4l/scripts/make_config_compat.pl |  1 +
+ 2 files changed, 13 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/mn88472.c b/drivers/media/dvb-frontends/mn88472.c
-index f6938f96..5e8fd63 100644
---- a/drivers/media/dvb-frontends/mn88472.c
-+++ b/drivers/media/dvb-frontends/mn88472.c
-@@ -377,7 +377,9 @@ static int mn88472_set_frontend(struct dvb_frontend *fe)
- 		ret = regmap_write(dev->regmap[1], 0xf6, 0x05);
- 		if (ret)
- 			goto err;
--		ret = regmap_write(dev->regmap[2], 0x32, c->stream_id);
-+		ret = regmap_write(dev->regmap[2], 0x32,
-+				(c->stream_id == NO_STREAM_ID_FILTER) ? 0 :
-+				c->stream_id );
- 		if (ret)
- 			goto err;
- 		break;
+diff --git a/v4l/compat.h b/v4l/compat.h
+index 47e2694..e565292 100644
+--- a/v4l/compat.h
++++ b/v4l/compat.h
+@@ -2072,4 +2072,16 @@ static inline bool is_of_node(struct fwnode_handle *fwnode)
+ }
+ #endif
+ 
++#ifdef NEED_SKB_PUT_DATA
++static inline void *skb_put_data(struct sk_buff *skb, const void *data,
++                                 unsigned int len)
++{
++        void *tmp = skb_put(skb, len);
++
++        memcpy(tmp, data, len);
++
++        return tmp;
++}
++#endif
++
+ #endif /*  _COMPAT_H */
+diff --git a/v4l/scripts/make_config_compat.pl b/v4l/scripts/make_config_compat.pl
+index d186cb4..5ac59ab 100644
+--- a/v4l/scripts/make_config_compat.pl
++++ b/v4l/scripts/make_config_compat.pl
+@@ -699,6 +699,7 @@ sub check_other_dependencies()
+ 	check_files_for_func("of_fwnode_handle", "NEED_FWNODE", "include/linux/of.h");
+ 	check_files_for_func("to_of_node", "NEED_TO_OF_NODE", "include/linux/of.h");
+ 	check_files_for_func("is_of_node", "NEED_IS_OF_NODE", "include/linux/of.h");
++	check_files_for_func("skb_put_data", "NEED_SKB_PUT_DATA", "include/linux/skbuff.h");
+ 
+ 	# For tests for uapi-dependent logic
+ 	check_files_for_func_uapi("usb_endpoint_maxp", "NEED_USB_ENDPOINT_MAXP", "usb/ch9.h");
 -- 
-2.7.4
+2.13.3
