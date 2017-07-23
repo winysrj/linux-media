@@ -1,68 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:32981 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751967AbdGSMCs (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:35126 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751649AbdGWMQ3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Jul 2017 08:02:48 -0400
-Date: Wed, 19 Jul 2017 14:02:46 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        jacek.anaszewski@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 2/2] v4l2-flash-led-class: Create separate sub-devices
- for indicators
-Message-ID: <20170719120246.GB23510@amd>
-References: <20170718184107.10598-1-sakari.ailus@linux.intel.com>
- <20170718184107.10598-3-sakari.ailus@linux.intel.com>
+        Sun, 23 Jul 2017 08:16:29 -0400
+Received: by mail-wr0-f196.google.com with SMTP id c24so11848294wra.2
+        for <linux-media@vger.kernel.org>; Sun, 23 Jul 2017 05:16:28 -0700 (PDT)
+Date: Sun, 23 Jul 2017 14:16:25 +0200
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at, d_spingler@freenet.de, rjkm@metzlerbros.de
+Subject: Re: [PATCH 00/14] ddbridge: bump to ddbridge-0.9.29
+Message-ID: <20170723141625.40892196@audiostation.wuest.de>
+In-Reply-To: <20170709194221.10255-1-d.scheller.oss@gmail.com>
+References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="XF85m9dhOBO43t/C"
-Content-Disposition: inline
-In-Reply-To: <20170718184107.10598-3-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Am Sun,  9 Jul 2017 21:42:07 +0200
+schrieb Daniel Scheller <d.scheller.oss@gmail.com>:
 
---XF85m9dhOBO43t/C
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> From: Daniel Scheller <d.scheller@gmx.net>
+> 
+> Preferrably for Linux 4.14 (to get things done).
+> 
+> [...]
+> 
+> Mauro/Media maintainers, this updates drivers/media/pci/ddbridge to
+> the very latest code that DD carry in their vendor driver package as
+> of version 0.9.29, in the "once, the big-bang-way is ok" way as
+> discussed at [2] (compared to the incremental, awkward to do variant
+> since that involves dissecting all available release archives and
+> having to - try to - build proper commits out of this, which will
+> always be inaccurate; a start was done at [3], however - and please
+> understand - I definitely don't want to continue doing that...)
+> 
+> [...]
 
-On Tue 2017-07-18 21:41:07, Sakari Ailus wrote:
-> The V4L2 flash interface allows controlling multiple LEDs through a single
-> sub-devices if, and only if, these LEDs are of different types. This
-> approach scales badly for flash controllers that drive multiple flash LEDs
-> or for LED specific associations. Essentially, the original assumption of=
- a
-> LED driver chip that drives a single flash LED and an indicator LED is no
-> longer valid.
->=20
-> Address the matter by registering one sub-device per LED.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Feedback from "Dietmar Spingler <d_spingler@freenet.de>", a very
+valuable tester, who has a huge share of getting the mainline
+patches going, but isn't subscribed to the list, so posting in behalf
+of him (added in Cc aswell):
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+"Running the patches on two Gentoo systems equipped with DD hardware
+parts on current kernel versions:
 
-Does anything need to be done with drivers/media/i2c/adp1653.c ?
+* Digital Devices MaxS8
+* Digital Devices MaxA8
+* Digital Devices Octopus V3 Bridge, with a DuoFlex S2v4 and a DuoFlex
+  CT2 attached
+* 2x Digital Devices CI Duo PCIe Bridges
+
+Several CAMs are in use to decrypt DVB-S(2) and DVB-T2 channels.
+Running current VDR and minisatip on the userspace side. Everything
+running without issues, even with all tuners active in parallel."
 
 Best regards,
-									Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---XF85m9dhOBO43t/C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAllvSmYACgkQMOfwapXb+vLdmwCgt3gvhj4ej88cOSH4naXlYQrx
-mNQAn3kQI6JuW+pfiQ65uF0QdL0Bm+FN
-=ragz
------END PGP SIGNATURE-----
-
---XF85m9dhOBO43t/C--
+Daniel Scheller
+-- 
+https://github.com/herrnst
