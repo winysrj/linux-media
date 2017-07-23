@@ -1,61 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4.clear.net.nz ([203.97.37.64]:42962 "EHLO
-        smtp4.clear.net.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751185AbdGOUwq (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:33365 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751461AbdGWSQq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Jul 2017 16:52:46 -0400
-Received: from mxin3-orange.clear.net.nz
- (lb1-srcnat.clear.net.nz [203.97.32.236])
- by smtp4.clear.net.nz (CLEAR Net Mail)
- with ESMTP id <0OT5003ALFXJX720@smtp4.clear.net.nz> for
- linux-media@vger.kernel.org; Sun, 16 Jul 2017 08:37:09 +1200 (NZST)
-Date: Sun, 16 Jul 2017 08:37:05 +1200
-From: Richard Scobie <r.scobie@clear.net.nz>
-Subject: Re: [PATCH 00/14] ddbridge: bump to ddbridge-0.9.29
-In-reply-to: <20170709194221.10255-1-d.scheller.oss@gmail.com>
-To: Daniel Scheller <d.scheller.oss@gmail.com>,
-        linux-media@vger.kernel.org, mchehab@kernel.org,
+        Sun, 23 Jul 2017 14:16:46 -0400
+Received: by mail-wr0-f194.google.com with SMTP id y43so15830893wrd.0
+        for <linux-media@vger.kernel.org>; Sun, 23 Jul 2017 11:16:45 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
         mchehab@s-opensource.com
-Cc: jasmin@anw.at, d_spingler@gmx.de, rjkm@metzlerbros.de
-Message-id: <962a5ae5-60bc-22bd-534d-fe05705322b4@clear.net.nz>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
-References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
+Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
+        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
+Subject: [PATCH RESEND 10/14] [media] ddbridge: remove unreachable code
+Date: Sun, 23 Jul 2017 20:16:26 +0200
+Message-Id: <20170723181630.19526-11-d.scheller.oss@gmail.com>
+In-Reply-To: <20170723181630.19526-1-d.scheller.oss@gmail.com>
+References: <20170723181630.19526-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Daniel Scheller wrote:
-> From: Daniel Scheller <d.scheller@gmx.net>
->
-> Preferrably for Linux 4.14 (to get things done).
->
-> Hard-depends on the STV0910/STV6111 driver patchset as the diff and the
-> updated code depends on the driver and the changes involved with the
-> glue code of the STV/DDCineS2V7 series [1].
->
-> Mauro/Media maintainers, this updates drivers/media/pci/ddbridge to the
-> very latest code that DD carry in their vendor driver package as of
-> version 0.9.29, in the "once, the big-bang-way is ok" way as discussed at
-> [2] (compared to the incremental, awkward to do variant since that
-> involves dissecting all available release archives and having to - try
-> to - build proper commits out of this, which will always be inaccurate;
-> a start was done at [3], however - and please understand - I definitely
-> don't want to continue doing that...)
+From: Daniel Scheller <d.scheller@gmx.net>
 
--snip
+>From smatch:
 
-Posting another "tested by" for this patch series, in conjunction with 
-the recently posted STV0910/STV6111 set that I've been testing longer term
+  drivers/media/pci/ddbridge/ddbridge-core.c:3490 snr_store() info: ignoring unreachable code.
 
-Have been running this series, since it was posted here, several hours 
-daily on a dedicated vdr based PVR with a Digital Devices Cine S2 V7A, 
-kernel 4.12 and vdr 2.3.8.
+In fact, the function immediately returns zero, so remove it and update
+ddb_attrs_snr[] to not reference it anymore.
 
-MSI interrupts are enabled and no issues to date.
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <r.scobie@clear.net.nz>
+Tested-by: Jasmin Jessich <jasmin@anw.at>
+Tested-by: Dietmar Spingler <d_spingler@freenet.de>
+Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
+---
+ drivers/media/pci/ddbridge/ddbridge-core.c | 27 ++++-----------------------
+ 1 file changed, 4 insertions(+), 23 deletions(-)
 
-Thanks to Daniel and the reviewers.
-
-Regards,
-
-Richard
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 5f8f77c74339..2479cb70743e 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -3235,25 +3235,6 @@ static ssize_t snr_show(struct device *device,
+ 	return sprintf(buf, "%s\n", snr);
+ }
+ 
+-
+-static ssize_t snr_store(struct device *device, struct device_attribute *attr,
+-			 const char *buf, size_t count)
+-{
+-	struct ddb *dev = dev_get_drvdata(device);
+-	int num = attr->attr.name[3] - 0x30;
+-	u8 snr[34] = { 0x01, 0x00 };
+-
+-	return 0; /* NOE: remove completely? */
+-	if (count > 31)
+-		return -EINVAL;
+-	if (dev->port[num].type >= DDB_TUNER_XO2)
+-		return -EINVAL;
+-	memcpy(snr + 2, buf, count);
+-	i2c_write(&dev->i2c[num].adap, 0x57, snr, 34);
+-	i2c_write(&dev->i2c[num].adap, 0x50, snr, 34);
+-	return count;
+-}
+-
+ static ssize_t bsnr_show(struct device *device,
+ 			 struct device_attribute *attr, char *buf)
+ {
+@@ -3393,10 +3374,10 @@ static struct device_attribute ddb_attrs_fan[] = {
+ };
+ 
+ static struct device_attribute ddb_attrs_snr[] = {
+-	__ATTR(snr0, 0664, snr_show, snr_store),
+-	__ATTR(snr1, 0664, snr_show, snr_store),
+-	__ATTR(snr2, 0664, snr_show, snr_store),
+-	__ATTR(snr3, 0664, snr_show, snr_store),
++	__ATTR_MRO(snr0, snr_show),
++	__ATTR_MRO(snr1, snr_show),
++	__ATTR_MRO(snr2, snr_show),
++	__ATTR_MRO(snr3, snr_show),
+ };
+ 
+ static struct device_attribute ddb_attrs_ctemp[] = {
+-- 
+2.13.0
