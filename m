@@ -1,57 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52303
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750778AbdGGOiK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 10:38:10 -0400
-Subject: Re: [PATCH 04/12] [media] uvc: enable subscriptions to other events
-To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>
-References: <20170616073915.5027-1-gustavo@padovan.org>
- <20170616073915.5027-5-gustavo@padovan.org>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <c49b13ab-3fd9-e5f2-1a8f-59f72e2e12b8@osg.samsung.com>
-Date: Fri, 7 Jul 2017 08:38:07 -0600
-MIME-Version: 1.0
-In-Reply-To: <20170616073915.5027-5-gustavo@padovan.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:36707 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751458AbdGWSQm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 23 Jul 2017 14:16:42 -0400
+Received: by mail-wr0-f196.google.com with SMTP id y67so15036919wrb.3
+        for <linux-media@vger.kernel.org>; Sun, 23 Jul 2017 11:16:42 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
+        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
+Subject: [PATCH RESEND 07/14] [media] ddbridge: check pointers before dereferencing
+Date: Sun, 23 Jul 2017 20:16:23 +0200
+Message-Id: <20170723181630.19526-8-d.scheller.oss@gmail.com>
+In-Reply-To: <20170723181630.19526-1-d.scheller.oss@gmail.com>
+References: <20170723181630.19526-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/16/2017 01:39 AM, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> Call v4l2_ctrl_subscribe_event to subscribe to more events supported by
-> v4l.
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  drivers/media/usb/uvc/uvc_v4l2.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-> index 3e7e283..dfa0ccd 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -1240,7 +1240,7 @@ static int uvc_ioctl_subscribe_event(struct v4l2_fh *fh,
->  	case V4L2_EVENT_CTRL:
->  		return v4l2_event_subscribe(fh, sub, 0, &uvc_ctrl_sub_ev_ops);
->  	default:
-> -		return -EINVAL;
-> +		return v4l2_ctrl_subscribe_event(fh, sub);
+From: Daniel Scheller <d.scheller@gmx.net>
 
-This looks incorrect. With this change driver will be subscribing to all
-v4l2 events? Is this the intent?
+Fixes two warnings reported by smatch:
 
->  	}
->  }
->  
-> 
+  drivers/media/pci/ddbridge/ddbridge-core.c:240 ddb_redirect() warn: variable dereferenced before check 'idev' (see line 238)
+  drivers/media/pci/ddbridge/ddbridge-core.c:240 ddb_redirect() warn: variable dereferenced before check 'pdev' (see line 238)
 
-thanks,
--- Shuah
+Fixed by moving the existing checks up before accessing members.
+
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <r.scobie@clear.net.nz>
+Tested-by: Jasmin Jessich <jasmin@anw.at>
+Tested-by: Dietmar Spingler <d_spingler@freenet.de>
+Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
+---
+ drivers/media/pci/ddbridge/ddbridge-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 374d095565dc..72f4cd3de2b8 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -169,10 +169,10 @@ static int ddb_redirect(u32 i, u32 p)
+ 	struct ddb *pdev = ddbs[(p >> 4) & 0x3f];
+ 	struct ddb_port *port;
+ 
+-	if (!idev->has_dma || !pdev->has_dma)
+-		return -EINVAL;
+ 	if (!idev || !pdev)
+ 		return -EINVAL;
++	if (!idev->has_dma || !pdev->has_dma)
++		return -EINVAL;
+ 
+ 	port = &pdev->port[p & 0x0f];
+ 	if (!port->output)
+-- 
+2.13.0
