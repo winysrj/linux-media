@@ -1,79 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:37446 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934876AbdGTMCT (ORCPT
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:34258 "EHLO
+        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751616AbdGXFwZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 08:02:19 -0400
-Received: by mail-wm0-f65.google.com with SMTP id m4so3283105wmi.4
-        for <linux-media@vger.kernel.org>; Thu, 20 Jul 2017 05:02:18 -0700 (PDT)
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Sekhar Nori <nsekhar@ti.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [v4] media: platform: davinci: return -EINVAL for VPFE_CMD_S_CCDC_RAW_PARAMS ioctl
-Date: Thu, 20 Jul 2017 13:02:09 +0100
-Message-Id: <1500552129-422-1-git-send-email-prabhakar.csengg@gmail.com>
+        Mon, 24 Jul 2017 01:52:25 -0400
+Received: by mail-wm0-f52.google.com with SMTP id l81so16546484wmg.1
+        for <linux-media@vger.kernel.org>; Sun, 23 Jul 2017 22:52:24 -0700 (PDT)
+Message-ID: <1500875542.24053.1.camel@gmail.com>
+Subject: Re: [PATCH 3/3] [media] uvcvideo: skip non-extension unit controls
+ on Oculus Rift Sensors
+From: Philipp Zabel <philipp.zabel@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Date: Mon, 24 Jul 2017 07:52:22 +0200
+In-Reply-To: <1692289.IcaTpD3SF0@avalon>
+References: <20170714201424.23592-1-philipp.zabel@gmail.com>
+         <1988392.8ZGCFRfgf9@avalon> <1500124425.25393.3.camel@gmail.com>
+         <1692289.IcaTpD3SF0@avalon>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this patch makes sure VPFE_CMD_S_CCDC_RAW_PARAMS ioctl no longer works
-for vpfe_capture driver with a minimal patch suitable for backporting.
+Hi Laurent,
 
-- This ioctl was never in public api and was only defined in kernel header.
-- The function set_params constantly mixes up pointers and phys_addr_t
-  numbers.
-- This is part of a 'VPFE_CMD_S_CCDC_RAW_PARAMS' ioctl command that is
-  described as an 'experimental ioctl that will change in future kernels'.
-- The code to allocate the table never gets called after we copy_from_user
-  the user input over the kernel settings, and then compare them
-  for inequality.
-- We then go on to use an address provided by user space as both the
-  __user pointer for input and pass it through phys_to_virt to come up
-  with a kernel pointer to copy the data to. This looks like a trivially
-  exploitable root hole.
+Am Montag, den 17.07.2017, 05:25 +0300 schrieb Laurent Pinchart:
+> Hi Philipp,
+> 
+> On Saturday 15 Jul 2017 15:13:45 Philipp Zabel wrote:
+> > Am Samstag, den 15.07.2017, 12:54 +0300 schrieb Laurent Pinchart:
+> > > On Friday 14 Jul 2017 22:14:24 Philipp Zabel wrote:
+> > > > The Oculus Rift Sensors (DK2 and CV1) allow to configure their
+> > > > sensor
+> > > > chips directly via I2C commands using extension unit controls.
+> > > > The
+> > > > processing and camera unit controls do not function at all.
+> > > 
+> > > Do the processing and camera units they report controls that
+> > > don't work
+> > > when  exercised ? Who in a sane state of mind could have designed
+> > > such a
+> > > terrible product ?
+> > 
+> > Yes. Without this patch I get a bunch of controls that have no
+> > effect
+> > whatsoever.
+> > 
+> > > If I understand you correctly, this device requires userspace
+> > > code that
+> > > knows  how to program the sensor (and possibly other chips). If
+> > > that's
+> > > the case, is there an open-source implementation of that code
+> > > publicly
+> > > available ?
+> > 
+> > Well, it's all still a bit in the experimentation phase. We have an
+> > implementation to set up the DK2 camera for synchronised exposure
+> > triggered by the Rift DK2 HMD and to read the calibration data from
+> > flash, here:
+> > 
+> > https://github.com/pH5/ouvrt/blob/master/src/esp570.c
+> > https://github.com/pH5/ouvrt/blob/master/src/mt9v034.c
+> > 
+> > And an even more rough version to set up the CV1 camera for
+> > synchronised exposure triggered by the Rift CV1 HMD here:
+> > 
+> > https://github.com/OpenHMD/OpenHMD-RiftPlayground/blob/master/src/m
+> > ain.c
+> > 
+> > The latter is using libusb, as it needs the variable length SPI
+> > data
+> > control.
+> > 
+> > Do you think adding a pseudo i2c driver for the eSP570/eSP770u
+> > webcam
+> > controllers and then exposing the sensor chips as V4L2 subdevices
+> > could
+> > be a good idea? We already have a sensor driver for the MT9V034 in
+> > the
+> > DK2 USB camera.
+> 
+> Yes, I think a device-specific driver would make sense, especially if
+> we can 
+> implement support for the sensor as a standalone V4L2 subdev driver.
+> The 
+> device only fakes UVC compatibility :-(
 
-Due to these reasons we make sure this ioctl now returns -EINVAL and backport
-this patch as far as possible.
+When you say standalone driver, do you mean I can reuse uvcvideo
+device/stream/chain handling, and just replace the control handling?
 
-Fixes: 5f15fbb68fd7 ("V4L/DVB (12251): v4l: dm644x ccdc module for vpfe capture driver")
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpfe_capture.c | 22 ++--------------------
- 1 file changed, 2 insertions(+), 20 deletions(-)
+I'll try this, but it isn't a straightforward as I initially thought.
+For example, the mt9v032 subdev driver expects to have control over
+power during probe and s_power. But in this case power is controlled by
+UVC streaming. I'd either have to modify the subdev driver to support a
+passive mode or fake the chip id register reads in the i2c adapter
+driver to make mt9v032 probe at all.
 
-diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
-index e3fe3e0..1831bf5 100644
---- a/drivers/media/platform/davinci/vpfe_capture.c
-+++ b/drivers/media/platform/davinci/vpfe_capture.c
-@@ -1719,27 +1719,9 @@ static long vpfe_param_handler(struct file *file, void *priv,
- 
- 	switch (cmd) {
- 	case VPFE_CMD_S_CCDC_RAW_PARAMS:
-+		ret = -EINVAL;
- 		v4l2_warn(&vpfe_dev->v4l2_dev,
--			  "VPFE_CMD_S_CCDC_RAW_PARAMS: experimental ioctl\n");
--		if (ccdc_dev->hw_ops.set_params) {
--			ret = ccdc_dev->hw_ops.set_params(param);
--			if (ret) {
--				v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
--					"Error setting parameters in CCDC\n");
--				goto unlock_out;
--			}
--			ret = vpfe_get_ccdc_image_format(vpfe_dev,
--							 &vpfe_dev->fmt);
--			if (ret < 0) {
--				v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
--					"Invalid image format at CCDC\n");
--				goto unlock_out;
--			}
--		} else {
--			ret = -EINVAL;
--			v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
--				"VPFE_CMD_S_CCDC_RAW_PARAMS not supported\n");
--		}
-+			"VPFE_CMD_S_CCDC_RAW_PARAMS not supported\n");
- 		break;
- 	default:
- 		ret = -ENOTTY;
--- 
-2.7.4
+Do you have any further comments on the first two patches?
+
+regards
+Philipp
