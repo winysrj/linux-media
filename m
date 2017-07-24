@@ -1,84 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47670 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752578AbdGMQTH (ORCPT
+Received: from mx009.vodafonemail.xion.oxcs.net ([153.92.174.39]:61337 "EHLO
+        mx009.vodafonemail.xion.oxcs.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752679AbdGXJ62 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Jul 2017 12:19:07 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: pavel@ucw.cz
-Subject: [PATCH 2/2] omap3isp: add CSI1 support
-Date: Thu, 13 Jul 2017 19:19:03 +0300
-Message-Id: <20170713161903.9974-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170713161903.9974-1-sakari.ailus@linux.intel.com>
-References: <20170713161903.9974-1-sakari.ailus@linux.intel.com>
+        Mon, 24 Jul 2017 05:58:28 -0400
+Subject: Re: [PATCH] dma-buf: fix reservation_object_wait_timeout_rcu to wait
+ correctly
+To: zhoucm1 <david1.zhou@amd.com>, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org
+References: <1500654001-20899-1-git-send-email-deathsimple@vodafone.de>
+ <5975B0FD.5070908@amd.com>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <deathsimple@vodafone.de>
+Message-ID: <f1d556b2-6f16-e289-a9c0-3eb728f4eaa8@vodafone.de>
+Date: Mon, 24 Jul 2017 11:58:15 +0200
+MIME-Version: 1.0
+In-Reply-To: <5975B0FD.5070908@amd.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pavel Machek <pavel@ucw.cz>
+Am 24.07.2017 um 10:34 schrieb zhoucm1:
+>
+>
+> On 2017年07月22日 00:20, Christian König wrote:
+>> From: Christian König <christian.koenig@amd.com>
+>>
+>> With hardware resets in mind it is possible that all shared fences are
+>> signaled, but the exlusive isn't. Fix waiting for everything in this 
+>> situation.
+>>
+>> Signed-off-by: Christian König <christian.koenig@amd.com>
+>> ---
+>>   drivers/dma-buf/reservation.c | 2 +-
+>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/dma-buf/reservation.c 
+>> b/drivers/dma-buf/reservation.c
+>> index e2eff86..ce3f9c1 100644
+>> --- a/drivers/dma-buf/reservation.c
+>> +++ b/drivers/dma-buf/reservation.c
+>> @@ -461,7 +461,7 @@ long reservation_object_wait_timeout_rcu(struct 
+>> reservation_object *obj,
+>>           }
+>>       }
+>>   -    if (!shared_count) {
+>> +    if (!fence) {
+> previous code seems be a bug, the exclusive fence isn't be waited at 
+> all if shared_count != 0.
+>
+> With your fix, there still is a case the exclusive fence could be 
+> skipped, that when fobj->shared[shared_count-1] isn't signalled.
 
-CSI-2 PHY power management is only needed for major version 15 of the ISP.
-Additionally, set the CCP2 PHY for previous ISP versions as well.
+Yeah, indeed that looks like it needs to be fixed as well.
 
-These changes are necessary for CCP2 support.
+I'm still completely jet lagged and need to work through tons of stuff 
+from last week. Do you have time to take care of fixing up this patch 
+and send a v2?
 
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/platform/omap3isp/ispccp2.c   |  1 +
- drivers/media/platform/omap3isp/ispcsiphy.c | 19 ++++++++++++-------
- 2 files changed, 13 insertions(+), 7 deletions(-)
+Thanks in advance,
+Christian.
 
-diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
-index ca095238510d..588f67a89f79 100644
---- a/drivers/media/platform/omap3isp/ispccp2.c
-+++ b/drivers/media/platform/omap3isp/ispccp2.c
-@@ -1141,6 +1141,7 @@ int omap3isp_ccp2_init(struct isp_device *isp)
- 				"Could not get regulator vdds_csib\n");
- 			ccp2->vdds_csib = NULL;
- 		}
-+		ccp2->phy = &isp->isp_csiphy2;
- 	} else if (isp->revision == ISP_REVISION_15_0) {
- 		ccp2->phy = &isp->isp_csiphy1;
- 	}
-diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
-index 3efa71396aae..addc6efbb033 100644
---- a/drivers/media/platform/omap3isp/ispcsiphy.c
-+++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-@@ -292,13 +292,16 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
- 	if (rval < 0)
- 		goto done;
- 
--	rval = csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_ON);
--	if (rval) {
--		regulator_disable(phy->vdd);
--		goto done;
-+	if (phy->isp->revision == ISP_REVISION_15_0) {
-+		rval = csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_ON);
-+		if (rval) {
-+			regulator_disable(phy->vdd);
-+			goto done;
-+		}
-+
-+		csiphy_power_autoswitch_enable(phy, true);
- 	}
- 
--	csiphy_power_autoswitch_enable(phy, true);
- 	phy->phy_in_use = 1;
- 
- done:
-@@ -317,8 +320,10 @@ void omap3isp_csiphy_release(struct isp_csiphy *phy)
- 
- 		csiphy_routing_cfg(phy, buscfg->interface, false,
- 				   buscfg->bus.ccp2.phy_layer);
--		csiphy_power_autoswitch_enable(phy, false);
--		csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_OFF);
-+		if (phy->isp->revision == ISP_REVISION_15_0) {
-+			csiphy_power_autoswitch_enable(phy, false);
-+			csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_OFF);
-+		}
- 		regulator_disable(phy->vdd);
- 		phy->phy_in_use = 0;
- 	}
--- 
-2.11.0
+>
+> Regards,
+> David Zhou
+>>           struct dma_fence *fence_excl = 
+>> rcu_dereference(obj->fence_excl);
+>>             if (fence_excl &&
+>
