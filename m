@@ -1,99 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58829
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750867AbdGZRtK (ORCPT
+Received: from mail-pg0-f52.google.com ([74.125.83.52]:36879 "EHLO
+        mail-pg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755329AbdGXTAN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Jul 2017 13:49:10 -0400
-Date: Wed, 26 Jul 2017 14:48:59 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
-        linux-leds@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        hverkuil@xs4all.nl
-Subject: Re: [RFC 1/1] v4l2-subdev: Add a function to set sub-device
- notifier callbacks
-Message-ID: <20170726144859.387f4490@vento.lan>
-In-Reply-To: <20170719223329.10112-1-sakari.ailus@linux.intel.com>
-References: <20170718211922.GI28538@bigcity.dyn.berto.se>
-        <20170719223329.10112-1-sakari.ailus@linux.intel.com>
+        Mon, 24 Jul 2017 15:00:13 -0400
+Received: by mail-pg0-f52.google.com with SMTP id y129so60753034pgy.4
+        for <linux-media@vger.kernel.org>; Mon, 24 Jul 2017 12:00:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: =?UTF-8?Q?Jo=C3=A3o_Paulo_Rechi_Vita?= <jprvita@endlessm.com>
+Date: Mon, 24 Jul 2017 12:00:12 -0700
+Message-ID: <CAOcMMiftY+VXTCWZRR8FKbUNr4uDGkZ+X0OZfzJQMQDa8WC8uw@mail.gmail.com>
+Subject: Kabylake atomisp driver?
+To: alan@linux.intel.com, Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org,
+        Linux Upstreaming Team <linux@endlessm.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 20 Jul 2017 01:33:29 +0300
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+Hello all,
 
-> The sub-device's sub-notifier is hidded in the sub-device and not meant to
-> be accessed directly by drivers. Still the driver may wish to set callbacks
-> to the notifier. Add a function to do that:
-> v4l2_subdev_notifier_set_callbacks().
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
-> Well, this appears to be quite straightforward. The code is entirely untested
-> but trivial at the same time. 
-> 
->  drivers/media/v4l2-core/v4l2-subdev.c | 20 ++++++++++++++++++++
->  include/media/v4l2-subdev.h           |  6 ++++++
->  2 files changed, 26 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> index a6976d4a52ac..8629224bfdba 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -666,3 +666,23 @@ int v4l2_subdev_fwnode_reference_parse_sensor_common(struct v4l2_subdev *sd)
->  	return v4l2_fwnode_reference_parse_sensor_common(sd->dev, subnotifier);
->  }
->  EXPORT_SYMBOL_GPL(v4l2_subdev_fwnode_reference_parse_sensor_common);
-> +
-> +int v4l2_subdev_notifier_set_callbacks(
-> +	struct v4l2_subdev *sd,
-> +	int (*bound)(struct v4l2_async_notifier *notifier,
-> +		     struct v4l2_subdev *subdev,
-> +		     struct v4l2_async_subdev *asd),
-> +	int (*complete)(struct v4l2_async_notifier *notifier))
-> +{
-> +	struct v4l2_async_notifier *subnotifier =
-> +		v4l2_subdev_get_subnotifier(sd);
-> +
-> +	if (!subnotifier)
-> +		return -ENOMEM;
-> +
-> +	subnotifier->bound = bound;
-> +	subnotifier->complete = complete;
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_subdev_notifier_set_callbacks);
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index e309a2e2030b..ee85b64ad4f4 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -1012,4 +1012,10 @@ int v4l2_subdev_fwnode_endpoints_parse(
->  
->  int v4l2_subdev_fwnode_reference_parse_sensor_common(struct v4l2_subdev *sd);
->  
-> +int v4l2_subdev_notifier_set_callbacks(
-> +	struct v4l2_subdev *sd,
-> +	int (*bound)(struct v4l2_async_notifier *notifier,
-> +		     struct v4l2_subdev *subdev,
-> +		     struct v4l2_async_subdev *asd),
-> +	int (*complete)(struct v4l2_async_notifier *notifier));
+At Endless we are trying to support an Asus T304UA convertible
+tablet/laptop, which has the following controller:
 
-I guess currently v4l2-subdev.h is not included at the kAPI guide,
-but it should (patches documenting it are welcomed!).
+00:14.3 Multimedia controller [0480]: Intel Corporation Device
+[8086:9d32] (rev 01)
+Subsystem: ASUSTeK Computer Inc. Device [1043:1d2d]
+Control: I/O- Mem- BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR- FastB2B- DisINTx-
+Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dfast >TAbort-
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+Interrupt: pin A routed to IRQ 255
+Region 0: Memory at ef510000 (64-bit, non-prefetchable) [disabled] [size=3D=
+64K]
+Capabilities: [90] MSI: Enable- Count=3D1/1 Maskable- 64bit+
+Address: 0000000000000000  Data: 0000
+Capabilities: [d0] Power Management version 3
+Flags: PMEClk- DSI- D1- D2- AuxCurrent=3D0mA PME(D0-,D1-,D2-,D3hot-,D3cold-=
+)
+Status: D0 NoSoftRst+ PME-Enable- DSel=3D0 DScale=3D0 PME-
 
-Yet, let's try to not increase the documentation gap here. So,
-if we're willing to add this upstream, please add the 
-kernel-doc macro for such function at the final patch, and test it.
+I believe this is similar to the controllers driver by the atomisp2
+driver, which recently made into staging -- but this is a Kabylake
+processor, not a Baytrail / Cherrytrail.
 
-I suspect that the best is to use typedefs for bound and complete,
-in order for them to be properly documented and to be parsed by 
-kernel-doc/Sphinx.
+Do you guys know anything about this controller? Has any linux driver
+for it been seen out there in the wild (like in an Android code dump)?
 
-Regards,
+Thanks and best regards,
 
-Thanks,
-Mauro
+...........................................................................=
+...........
+Jo=C3=A3o Paulo Rechi Vita  |  +1.415.851.5778  |  Endless
