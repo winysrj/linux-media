@@ -1,190 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:51342 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751605AbdG1KFv (ORCPT
+Received: from mail-io0-f193.google.com ([209.85.223.193]:33119 "EHLO
+        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753207AbdGXL5D (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Jul 2017 06:05:51 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Hans Verkuil" <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v1 0/5] STM32 DCMI camera interface crop support
-Date: Fri, 28 Jul 2017 12:04:57 +0200
-Message-ID: <1501236302-18097-1-git-send-email-hugues.fruchet@st.com>
+        Mon, 24 Jul 2017 07:57:03 -0400
+Received: by mail-io0-f193.google.com with SMTP id q64so1749175ioi.0
+        for <linux-media@vger.kernel.org>; Mon, 24 Jul 2017 04:57:03 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <b3cb04f6-07c8-f5dd-3d7b-7f41f1d0dd81@vodafone.de>
+References: <1500654001-20899-1-git-send-email-deathsimple@vodafone.de>
+ <20170724083359.j6wo5icln3faajn6@phenom.ffwll.local> <b3cb04f6-07c8-f5dd-3d7b-7f41f1d0dd81@vodafone.de>
+From: Daniel Vetter <daniel@ffwll.ch>
+Date: Mon, 24 Jul 2017 13:57:01 +0200
+Message-ID: <CAKMK7uEC6BpYZeWZENk=Kt01yQuJXW=kgpp3acAMEdQBmD84FQ@mail.gmail.com>
+Subject: Re: [PATCH] dma-buf: fix reservation_object_wait_timeout_rcu to wait correctly
+To: =?UTF-8?Q?Christian_K=C3=B6nig?= <deathsimple@vodafone.de>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset implements crop feature of Digital Camera Memory Interface
-(DCMI) of STMicroelectronics STM32 SoC series, allowing user to crop
-at pixel level inside sensor captured frame.
+On Mon, Jul 24, 2017 at 11:51 AM, Christian K=C3=B6nig
+<deathsimple@vodafone.de> wrote:
+> Am 24.07.2017 um 10:33 schrieb Daniel Vetter:
+>>
+>> On Fri, Jul 21, 2017 at 06:20:01PM +0200, Christian K=C3=B6nig wrote:
+>>>
+>>> From: Christian K=C3=B6nig <christian.koenig@amd.com>
+>>>
+>>> With hardware resets in mind it is possible that all shared fences are
+>>> signaled, but the exlusive isn't. Fix waiting for everything in this
+>>> situation.
+>>
+>> How did you end up with both shared and exclusive fences on the same
+>> reservation object? At least I thought the point of exclusive was that
+>> it's exclusive (and has an implicit barrier on all previous shared
+>> fences). Same for shared fences, they need to wait for the exclusive one
+>> (and replace it).
+>>
+>> Is this fallout from the amdgpu trickery where by default you do all
+>> shared fences? I thought we've aligned semantics a while back ...
+>
+>
+> No, that is perfectly normal even for other drivers. Take a look at the
+> reservation code.
+>
+> The exclusive fence replaces all shared fences, but adding a shared fence
+> doesn't replace the exclusive fence. That actually makes sense, cause whe=
+n
+> you want to add move shared fences those need to wait for the last exclus=
+ive
+> fence as well.
 
-This patchset follows discussions initiated from a first submission of DCMI
-crop support, see [1].
+Hm right.
 
-First part of patches brings few fixes and cleanup in DCMI driver
-to prepare support of crop through g_/s_selection interface in latest
-commit.
+> Now normally I would agree that when you have shared fences it is suffici=
+ent
+> to wait for all of them cause those operations can't start before the
+> exclusive one finishes. But with GPU reset and/or the ability to abort
+> already submitted operations it is perfectly possible that you end up wit=
+h
+> an exclusive fence which isn't signaled and a shared fence which is signa=
+led
+> in the same reservation object.
 
-This has been tested on STM32F746G-DISCO + STM32F4DIS-CAM extension
-running OV9655 sensor, using a modified version of yavta [2] utility
-to support crop through S_SELECTION(V4L2_SEL_TGT_CROP) ioctl:
- yavta -s 480x272 -n 1 --capture=2 /dev/video0 --crop=0,0,480,272
+How does that work? The batch(es) with the shared fence are all
+supposed to wait for the exclusive fence before they start, which
+means even if you gpu reset and restart/cancel certain things, they
+shouldn't be able to complete out of order.
 
-v4l2-compliance cropping test is failed due to OV9655 sensor supporting
-several discrete frame sizes and crop support added by DCMI interface [3]:
-  fail: v4l2-test-formats.cpp(1266): node->frmsizes_count[pixfmt] > 1
-    test Cropping: FAIL
-If sensor is restricted to only a single supported resolution, test is OK.
-Compliance test should be adapted to support this case.
-
-
-[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg114652.html
-[2] http://git.ideasonboard.org/?p=yavta.git;a=summary
-[3] see v4l2-compliance test report below
-
-===========
-= history =
-===========
-version 1:
-  - Initial version
-
-===================
-= v4l2-compliance =
-===================
-Below is the v4l2-compliance report for this current version of the DCMI camera interface.
-v4l2-compliance has been built from v4l-utils-1.12.5.
-
-~ # v4l2-compliance -s -f -d /dev/video0
-v4l2-compliance SHA   : f5f45e17ee98a0ebad7836ade2b34ceec909d751
-
-Driver Info:
-        Driver name   : stm32-dcmi
-        Card type     : STM32 Camera Memory Interface
-        Bus info      : platform:dcmi
-        Driver version: 4.12.0
-        Capabilities  : 0x85200001
-                Video Capture
-                Read/Write
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x05200001
-                Video Capture
-                Read/Write
-                Streaming
-                Extended Pix Format
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-        test for unlimited opens: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 1 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Test input 0:
-
-        Control ioctls:
-                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-                test VIDIOC_QUERYCTRL: OK
-                test VIDIOC_G/S_CTRL: OK
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 2 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK (Not Supported)
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                fail: v4l2-test-formats.cpp(1266): node->frmsizes_count[pixfmt] > 1
-                test Cropping: FAIL
-                test Composing: OK (Not Supported)
-                fail: v4l2-test-formats.cpp(1633): node->can_scale && node->frmsizes_count[v4l_format_g_pixelformat(&cur)]
-                test Scaling: OK
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-Streaming ioctls:
-        test read/write: OK
-        test MMAP: OK
-        test USERPTR: OK (Not Supported)
-        test DMABUF: Cannot test, specify --expbuf-device
-
-Stream using all formats:
-        test MMAP for Format RGBP, Frame Size 160x120:
-                Crop 160x120@0x0, Stride 320, Field None: OK
-                Crop 0x0@0x0, Stride 320, Field None, SelTest: OK
-                Crop 160x120@0x0, Stride 320, Field None, SelTest: OK
-        test MMAP for Format RGBP, Frame Size 160x120:
-                Crop 160x120@0x0, Stride 320, Field None: OK
-        test MMAP for Format RGBP, Frame Size 160x120:
-                Crop 160x120@0x0, Stride 320, Field None: OK
-
-Total: 51, Succeeded: 50, Failed: 1, Warnings: 0
-
-
-Hugues Fruchet (5):
-  [media] stm32-dcmi: catch dma submission error
-  [media] stm32-dcmi: revisit control register handling
-  [media] stm32-dcmi: cleanup variable/fields namings
-  [media] stm32-dcmi: set default format at open()
-  [media] stm32-dcmi: g_/s_selection crop support
-
- drivers/media/platform/stm32/stm32-dcmi.c | 527 +++++++++++++++++++++++++-----
- 1 file changed, 448 insertions(+), 79 deletions(-)
-
--- 
-1.9.1
+If you outright cancel a fence then you're supposed to first call
+dma_fence_set_error(-EIO) and then complete it. Note that atm that
+part might be slightly overengineered and I'm not sure about how we
+expose stuff to userspace, e.g. dma_fence_set_error(-EAGAIN) is (or
+soon, has been) used by i915 for it's internal book-keeping, which
+might not be the best to leak to other consumers. But completing
+fences (at least exported ones, where userspace or other drivers can
+get at them) shouldn't be possible.
+-Daniel
+--=20
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
