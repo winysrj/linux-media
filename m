@@ -1,88 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx009.vodafonemail.xion.oxcs.net ([153.92.174.39]:57890 "EHLO
-        mx009.vodafonemail.xion.oxcs.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750980AbdGYNfZ (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:40801 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751521AbdGXHVG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Jul 2017 09:35:25 -0400
-From: =?UTF-8?q?Christian=20K=C3=B6nig?= <deathsimple@vodafone.de>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org
-Cc: sumit.semwal@linaro.org, daniel@ffwll.ch
-Subject: [PATCH] dma-buf: fix reservation_object_wait_timeout_rcu to wait correctly v2
-Date: Tue, 25 Jul 2017 15:35:10 +0200
-Message-Id: <1500989710-12982-1-git-send-email-deathsimple@vodafone.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Mon, 24 Jul 2017 03:21:06 -0400
+Message-ID: <1500880863.2391.13.camel@pengutronix.de>
+Subject: Re: [PATCH] media: imx: prpencvf: enable double write reduction
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Date: Mon, 24 Jul 2017 09:21:03 +0200
+In-Reply-To: <a3299b77-917a-f946-d9fc-33efcf3f2721@gmail.com>
+References: <1500758501-5394-1-git-send-email-steve_longerbeam@mentor.com>
+         <a3299b77-917a-f946-d9fc-33efcf3f2721@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Christian König <christian.koenig@amd.com>
+Hi Steve,
 
-With hardware resets in mind it is possible that all shared fences are
-signaled, but the exlusive isn't. Fix waiting for everything in this situation.
+On Sat, 2017-07-22 at 15:04 -0700, Steve Longerbeam wrote:
+> Hi Philipp,
+> 
+> This is the same as your patch to CSI, applied to ic-prpencvf.
+> 
+> I'm not really sure what this cpmem bit is doing. The U/V planes
+> in memory are already subsampled by 2 in both width and height.
+> This must be referring to what the IDMAC is transferring on the bus,
 
-v2: make sure we always wait for the exclusive fence
+Right, the IDMAC is just receiving AYUV 4:4:4 pixels from the FIFO, the
+CPMEM settings decide how they are written to the AXI bus. If this bit
+is not enabled, all pixels are written fully, even though chroma samples
+of even and odd lines end up in the same place for 4:2:0 chroma
+subsampled output formats. If the bit is set, the chroma writes for odd
+lines are skipped, so there is no overdraw.
 
-Signed-off-by: Christian König <christian.koenig@amd.com>
----
- drivers/dma-buf/reservation.c | 33 +++++++++++++++------------------
- 1 file changed, 15 insertions(+), 18 deletions(-)
+Unfortunately this does not work for reading, unless there is a line
+buffer (which only the VDIC has), because otherwise odd lines end up
+without chroma information. This one of the reasons that YUY2 is the
+most memory efficient format to read, not NV12.
 
-diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
-index 393817e..9d4316d 100644
---- a/drivers/dma-buf/reservation.c
-+++ b/drivers/dma-buf/reservation.c
-@@ -373,12 +373,25 @@ long reservation_object_wait_timeout_rcu(struct reservation_object *obj,
- 	long ret = timeout ? timeout : 1;
- 
- retry:
--	fence = NULL;
- 	shared_count = 0;
- 	seq = read_seqcount_begin(&obj->seq);
- 	rcu_read_lock();
- 
--	if (wait_all) {
-+	fence = rcu_dereference(obj->fence_excl);
-+	if (fence && !test_bit(DMA_FENCE_FLAG_SIGNALED_BIT, &fence->flags)) {
-+		if (!dma_fence_get_rcu(fence))
-+			goto unlock_retry;
-+
-+		if (dma_fence_is_signaled(fence)) {
-+			dma_fence_put(fence);
-+			fence = NULL;
-+		}
-+
-+	} else {
-+		fence = NULL;
-+	}
-+
-+	if (!fence && wait_all) {
- 		struct reservation_object_list *fobj =
- 						rcu_dereference(obj->fence);
- 
-@@ -405,22 +418,6 @@ long reservation_object_wait_timeout_rcu(struct reservation_object *obj,
- 		}
- 	}
- 
--	if (!shared_count) {
--		struct dma_fence *fence_excl = rcu_dereference(obj->fence_excl);
--
--		if (fence_excl &&
--		    !test_bit(DMA_FENCE_FLAG_SIGNALED_BIT,
--			      &fence_excl->flags)) {
--			if (!dma_fence_get_rcu(fence_excl))
--				goto unlock_retry;
--
--			if (dma_fence_is_signaled(fence_excl))
--				dma_fence_put(fence_excl);
--			else
--				fence = fence_excl;
--		}
--	}
--
- 	rcu_read_unlock();
- 	if (fence) {
- 		if (read_seqcount_retry(&obj->seq, seq)) {
--- 
-2.7.4
+> but why would it place duplicate U/V samples on the bus in the first
+> place?
+
+Don't ask me why the hardware was designed this way :)
+I see no reason to ever disable this bit for YUV420 or NV12 write
+channels.
+
+> Anyway, thanks for the heads-up on this.
+
+regards
+Philipp
