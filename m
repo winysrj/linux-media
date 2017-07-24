@@ -1,32 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f47.google.com ([209.85.213.47]:34370 "EHLO
-        mail-vk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752378AbdGGNik (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 09:38:40 -0400
+Received: from mout.gmx.net ([212.227.17.22]:64676 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751831AbdGXFPZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 24 Jul 2017 01:15:25 -0400
+Subject: Re: [ragnatech:media-tree 2075/2144]
+ drivers/media/dvb-frontends/stv0910.c:1185:2-8: preceding lock on line 1176
+ (fwd)
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+        linux-media@vger.kernel.org, kbuild-all@01.org
+References: <alpine.DEB.2.20.1707240700321.3169@hadrien>
+From: Daniel Scheller <d.scheller@gmx.net>
+Message-ID: <770f952d-fdf1-bc73-2ef3-b5299338e5e5@gmx.net>
+Date: Mon, 24 Jul 2017 07:15:06 +0200
 MIME-Version: 1.0
-In-Reply-To: <CAD6G_RQ-7uwTVLr27UTSvA50rLq-yRRTYKMmYQf7K1O8wf6HOA@mail.gmail.com>
-References: <CAD6G_RQ-7uwTVLr27UTSvA50rLq-yRRTYKMmYQf7K1O8wf6HOA@mail.gmail.com>
-From: Fabio Estevam <festevam@gmail.com>
-Date: Fri, 7 Jul 2017 10:38:38 -0300
-Message-ID: <CAOMZO5DTgtgcG_e+Z56fOwAiK4bqmPfBesgZwqUHWzCGZhAZSg@mail.gmail.com>
-Subject: Re: coda 2040000.vpu: firmware request failed
-To: Jagan Teki <jagannadh.teki@gmail.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Michael Trimarchi <michael@amarulasolutions.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <alpine.DEB.2.20.1707240700321.3169@hadrien>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jagan,
+Hello Jula,
 
-On Fri, Jul 7, 2017 at 9:45 AM, Jagan Teki <jagannadh.teki@gmail.com> wrote:
-> Hi,
->
-> I'm observing firmware request failure with i.MX6Q board, This is with
-> latest linux-next (4.12) with firmware from, [1] and converted
-> v4l-coda960-imx6q.bin using [2].
+Am 24.07.2017 um 07:02 schrieb Julia Lawall:
 
-There is no need to do the conversion with current code.
+> Is a lock release needed before line 1185?  Is the !enable in line 1189
+> correct?  If the code is correct as is, perhaps it could be good to add
+> some comments.
+
+Yes, it's needed because the I2C gate is shared for the two tuner chips 
+attached to it (one dual-demod chip -> two tuners/SECs) and the bus 
+access needs to be protected to not accidentally interfere when 
+accessing both tuners in parallel.
+
+I'll think about proper comments there.
+
+Thanks,
+Daniel
+
+> ---------- Forwarded message ----------
+> Date: Mon, 24 Jul 2017 12:55:30 +0800
+> From: kbuild test robot <fengguang.wu@intel.com>
+> To: kbuild@01.org
+> Cc: Julia Lawall <julia.lawall@lip6.fr>
+> Subject: [ragnatech:media-tree 2075/2144]
+>      drivers/media/dvb-frontends/stv0910.c:1185:2-8: preceding lock on line 1176
+> 
+> CC: kbuild-all@01.org
+> TO: Daniel Scheller <d.scheller@gmx.net>
+> CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> CC: linux-media@vger.kernel.org
+> 
+> tree:   git://git.ragnatech.se/linux media-tree
+> head:   0e50e84a11f4854e9a7e3b7f4443ffb99e6be292
+> commit: cd21b334943719f880e707eb91895fc916a88000 [2075/2144] media: dvb-frontends: add ST STV0910 DVB-S/S2 demodulator frontend driver
+> :::::: branch date: 3 days ago
+> :::::: commit date: 4 days ago
+> 
+>>> drivers/media/dvb-frontends/stv0910.c:1185:2-8: preceding lock on line 1176
+> 
+> git remote add ragnatech git://git.ragnatech.se/linux
+> git remote update ragnatech
+> git checkout cd21b334943719f880e707eb91895fc916a88000
+> vim +1185 drivers/media/dvb-frontends/stv0910.c
+> 
+> cd21b334 Daniel Scheller 2017-07-03  1168
+> cd21b334 Daniel Scheller 2017-07-03  1169
+> cd21b334 Daniel Scheller 2017-07-03  1170  static int gate_ctrl(struct dvb_frontend *fe, int enable)
+> cd21b334 Daniel Scheller 2017-07-03  1171  {
+> cd21b334 Daniel Scheller 2017-07-03  1172  	struct stv *state = fe->demodulator_priv;
+> cd21b334 Daniel Scheller 2017-07-03  1173  	u8 i2crpt = state->i2crpt & ~0x86;
+> cd21b334 Daniel Scheller 2017-07-03  1174
+> cd21b334 Daniel Scheller 2017-07-03  1175  	if (enable)
+> cd21b334 Daniel Scheller 2017-07-03 @1176  		mutex_lock(&state->base->i2c_lock);
+> cd21b334 Daniel Scheller 2017-07-03  1177
+> cd21b334 Daniel Scheller 2017-07-03  1178  	if (enable)
+> cd21b334 Daniel Scheller 2017-07-03  1179  		i2crpt |= 0x80;
+> cd21b334 Daniel Scheller 2017-07-03  1180  	else
+> cd21b334 Daniel Scheller 2017-07-03  1181  		i2crpt |= 0x02;
+> cd21b334 Daniel Scheller 2017-07-03  1182
+> cd21b334 Daniel Scheller 2017-07-03  1183  	if (write_reg(state, state->nr ? RSTV0910_P2_I2CRPT :
+> cd21b334 Daniel Scheller 2017-07-03  1184  		      RSTV0910_P1_I2CRPT, i2crpt) < 0)
+> cd21b334 Daniel Scheller 2017-07-03 @1185  		return -EIO;
+> cd21b334 Daniel Scheller 2017-07-03  1186
+> cd21b334 Daniel Scheller 2017-07-03  1187  	state->i2crpt = i2crpt;
+> cd21b334 Daniel Scheller 2017-07-03  1188
+> cd21b334 Daniel Scheller 2017-07-03  1189  	if (!enable)
+> cd21b334 Daniel Scheller 2017-07-03  1190  		mutex_unlock(&state->base->i2c_lock);
+> cd21b334 Daniel Scheller 2017-07-03  1191  	return 0;
+> cd21b334 Daniel Scheller 2017-07-03  1192  }
+> cd21b334 Daniel Scheller 2017-07-03  1193
+> 
+> ---
+> 0-DAY kernel test infrastructure                Open Source Technology Center
+> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+> 
+
+Best regards,
+Daniel Scheller
+-- 
+https://github.com/herrnst
