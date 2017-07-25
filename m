@@ -1,106 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55992
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751774AbdGILPE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 07:15:04 -0400
-Date: Sun, 9 Jul 2017 08:14:55 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Malcolm Priestley <tvboxspy@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFC 1/2] app: kaffeine: Fix missing PCR on live streams.
-Message-ID: <20170709081455.024e4c0d@vento.lan>
-In-Reply-To: <20170709094351.14642-1-tvboxspy@gmail.com>
-References: <20170709094351.14642-1-tvboxspy@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:35592 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755484AbdGYCe5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 24 Jul 2017 22:34:57 -0400
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, roliveir@synopsys.com,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        vladimir_zapolskiy@mentor.com, hans.verkuil@cisco.com,
+        sakari.ailus@linux.intel.com, Jacob Chen <jacob-chen@iotwrt.com>
+Subject: [PATCH] media: i2c: OV5647: gate clock lane before stream on
+Date: Tue, 25 Jul 2017 10:34:01 +0800
+Message-Id: <1500950041-5449-1-git-send-email-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Malcolm,
+According to datasheet, BIT5 in reg-0x4800 are used to
+enable/disable clock lane gate.
 
-Em Sun,  9 Jul 2017 10:43:50 +0100
-Malcolm Priestley <tvboxspy@gmail.com> escreveu:
+It's wrong to make clock lane free running before
+sensor stream on was called, while the mipi phy
+are not initialized.
 
-> The ISO/IEC standard 13818-1 or ITU-T Rec. H.222.0 standard allow transport
-> vendors to place PCR (Program Clock Reference) on a different PID.
-> 
-> If the PCR is unset the value is 0x1fff, most vendors appear to set it the
-> same as video pid in which case it need not be set.
-> 
-> The PCR PID is at an offset of 8 in pmtSection structure.
+Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+---
+ drivers/media/i2c/ov5647.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-Thanks for the patches!
-
-Patches look good, except for two things:
-
-- we use camelCase at Kaffeine. So, the new field should be pcrPid ;)
-
-- you didn't use dvbsi.xml. The way we usually update dvbsi.h and part of
-  dvbsi.cpp is to add a field at dvbsi.xml and then run:
-
-	$ tools/update_dvbsi.sh
-
-  Kaffeine should be built with the optional BUILD_TOOLS feature, in order
-  for it to build the tool that parses dvbsi.xml.
-
-Anyway, I applied your patchset and added a few pathes afterwards 
-adjusting it.
-
-Regards,
-Mauro
-
-> 
-> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
-> ---
->  src/dvb/dvbliveview.cpp | 8 ++++++++
->  src/dvb/dvbsi.h         | 5 +++++
->  2 files changed, 13 insertions(+)
-> 
-> diff --git a/src/dvb/dvbliveview.cpp b/src/dvb/dvbliveview.cpp
-> index cfad892..3e92fa6 100644
-> --- a/src/dvb/dvbliveview.cpp
-> +++ b/src/dvb/dvbliveview.cpp
-> @@ -518,6 +518,7 @@ void DvbLiveView::updatePids(bool forcePatPmtUpdate)
->  	DvbPmtSection pmtSection(internal->pmtSectionData);
->  	DvbPmtParser pmtParser(pmtSection);
->  	QSet<int> newPids;
-> +	int pcr_pid = pmtSection.pcr_pid();
->  	bool updatePatPmt = forcePatPmtUpdate;
->  	bool isTimeShifting = internal->timeShiftFile.isOpen();
->  
-> @@ -543,6 +544,13 @@ void DvbLiveView::updatePids(bool forcePatPmtUpdate)
->  		newPids.insert(pmtParser.teletextPid);
->  	}
->  
-> +	/* check PCR PID is set */
-> +	if (pcr_pid != 0x1fff) {
-> +		/* Check not already in list */
-> +		if (!newPids.contains(pcr_pid))
-> +			newPids.insert(pcr_pid);
-> +	}
-> +
->  	for (int i = 0; i < pids.size(); ++i) {
->  		int pid = pids.at(i);
->  
-> diff --git a/src/dvb/dvbsi.h b/src/dvb/dvbsi.h
-> index 4d27252..9b4bbe0 100644
-> --- a/src/dvb/dvbsi.h
-> +++ b/src/dvb/dvbsi.h
-> @@ -1098,6 +1098,11 @@ public:
->  		return (at(3) << 8) | at(4);
->  	}
->  
-> +	int pcr_pid() const
-> +	{
-> +		return ((at(8) & 0x1f) << 8) | at(9);
-> +	}
-> +
->  	DvbDescriptor descriptors() const
->  	{
->  		return DvbDescriptor(getData() + 12, descriptorsLength);
-
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/i2c/ov5647.c b/drivers/media/i2c/ov5647.c
+index 95ce90f..d3e6fd0 100644
+--- a/drivers/media/i2c/ov5647.c
++++ b/drivers/media/i2c/ov5647.c
+@@ -253,6 +253,10 @@ static int ov5647_stream_on(struct v4l2_subdev *sd)
+ {
+ 	int ret;
+ 
++	ret = ov5647_write(sd, 0x4800, 0x04);
++	if (ret < 0)
++		return ret;
++
+ 	ret = ov5647_write(sd, 0x4202, 0x00);
+ 	if (ret < 0)
+ 		return ret;
+@@ -264,6 +268,10 @@ static int ov5647_stream_off(struct v4l2_subdev *sd)
+ {
+ 	int ret;
+ 
++	ret = ov5647_write(sd, 0x4800, 0x25);
++	if (ret < 0)
++		return ret;
++
+ 	ret = ov5647_write(sd, 0x4202, 0x0f);
+ 	if (ret < 0)
+ 		return ret;
+@@ -320,7 +328,7 @@ static int __sensor_init(struct v4l2_subdev *sd)
+ 			return ret;
+ 	}
+ 
+-	return ov5647_write(sd, 0x4800, 0x04);
++	return ov5647_stream_off(sd);
+ }
+ 
+ static int ov5647_sensor_power(struct v4l2_subdev *sd, int on)
+-- 
+2.7.4
