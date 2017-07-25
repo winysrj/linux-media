@@ -1,57 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:51292 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751057AbdGGJeK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 05:34:10 -0400
-Subject: Re: [PATCH v6 2/4] [media] platform: Add Synopsys Designware HDMI RX
- Controller Driver
-To: kbuild test robot <lkp@intel.com>,
-        Jose Abreu <Jose.Abreu@synopsys.com>
-References: <201707070407.vA4LTBMK%fengguang.wu@intel.com>
-CC: <kbuild-all@01.org>, <linux-media@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-Message-ID: <30db25dd-3ef1-ea85-ed41-97ee315bd5c7@synopsys.com>
-Date: Fri, 7 Jul 2017 10:34:04 +0100
+Received: from parrot.pmhahn.de ([88.198.50.102]:60842 "EHLO parrot.pmhahn.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750744AbdGYGRe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 25 Jul 2017 02:17:34 -0400
+Subject: Re: [PATCH RESEND 00/14] ddbridge: bump to ddbridge-0.9.29
+To: Daniel Scheller <d.scheller.oss@gmail.com>,
+        linux-media@vger.kernel.org
+References: <20170723181630.19526-1-d.scheller.oss@gmail.com>
+Cc: rjkm@metzlerbros.de
+From: Philipp Hahn <pmhahn+video@pmhahn.de>
+Message-ID: <57b893dc-d54f-0293-1874-b3606bb811c1@pmhahn.de>
+Date: Tue, 25 Jul 2017 07:36:12 +0200
 MIME-Version: 1.0
-In-Reply-To: <201707070407.vA4LTBMK%fengguang.wu@intel.com>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20170723181630.19526-1-d.scheller.oss@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06-07-2017 21:52, kbuild test robot wrote:
->    drivers/media//platform/dwc/dw-hdmi-rx.c: In function 'dw_hdmi_registered':
->>> drivers/media//platform/dwc/dw-hdmi-rx.c:1452:9: error: implicit declaration of function 'v4l2_async_subnotifier_register' [-Werror=implicit-function-declaration]
->      return v4l2_async_subnotifier_register(&dw_dev->sd,
->             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->    drivers/media//platform/dwc/dw-hdmi-rx.c: In function 'dw_hdmi_unregistered':
->>> drivers/media//platform/dwc/dw-hdmi-rx.c:1462:2: error: implicit declaration of function 'v4l2_async_subnotifier_unregister' [-Werror=implicit-function-declaration]
->      v4l2_async_subnotifier_unregister(&dw_dev->v4l2_notifier);
+Hello,
 
-This one is expected. Required patch was not merged yet.
+first of all "thank you" for doing this - I have a ddbridge myself
+currently using the driver from Ralf, which luckily works for me, but
+having them "in tree" is very much appreciated.
 
->      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->    drivers/media//platform/dwc/dw-hdmi-rx.c: In function 'dw_hdmi_parse_dt':
->    drivers/media//platform/dwc/dw-hdmi-rx.c:1555:22: warning: unused variable 'notifier' [-Wunused-variable]
->      struct device_node *notifier, *phy_node, *np = dw_dev->of_node;
->                          ^~~~~~~~
->    drivers/media//platform/dwc/dw-hdmi-rx.c: In function 'dw_hdmi_rx_probe':
->    drivers/media//platform/dwc/dw-hdmi-rx.c:1765:1: warning: label 'err_phy' defined but not used [-Wunused-label]
->     err_phy:
->     ^~~~~~~
->    cc1: some warnings being treated as errors
->
->
+Am 23.07.2017 um 20:16 schrieb Daniel Scheller:
+> While the driver code bump looks massive, judging from the diff, there's
+> mostly a whole lot of refactoring and restructuring of variables, port/
+> link management and all such stuff in it. Feature-wise, this is most
+> notable:
+> 
+>  - Support for all (PCIe) CI (single/duo) cards and Flex addons
+>  - Support for MSI (Message Signaled Interrupts), though disabled by
+>    default since there were still reports of problems with this
+>  - TS Loopback support (set up ports to behave as if a CI is connected,
+>    without decryption of course)
+>  - As mentioned: Heavy code reordering, and split up into multiple files
+> 
+> Stripped functionality compared to dddvb:
+> 
+>  - DVB-C modulator card support removed (requires DVB core API)
 
-These two is due to cec not being enabled. I hate to wrap this
-around a #ifdef but is either this or extract cec to a separate
-file, which I don't think is the best solution because the cec
-code is quite small.
+Since I'm in DVB-C land, what is required to get that working as well?
+I only know myself around in general Linux Kernel land and I'm not a DVB
+expert, but if there is anything I can help with, please send me a note.
+(I only have one ddbridge system, which is running my "production"
+MythTV system, so testing is limited to the times were my house does not
+need it).
 
-Best regards,
-Jose Miguel Abreu
+Philipp
