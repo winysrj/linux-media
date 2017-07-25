@@ -1,159 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:36070 "EHLO extserv.mm-sol.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751338AbdGQKfC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 06:35:02 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Cc: Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v3 06/23] doc: media/v4l-drivers: Add Qualcomm Camera Subsystem driver document
-Date: Mon, 17 Jul 2017 13:33:32 +0300
-Message-Id: <1500287629-23703-7-git-send-email-todor.tomov@linaro.org>
-In-Reply-To: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
-References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
+Received: from mout.kundenserver.de ([212.227.126.187]:61531 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752144AbdGYPhz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 25 Jul 2017 11:37:55 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: i2c: add KConfig dependencies
+Date: Tue, 25 Jul 2017 17:36:45 +0200
+Message-Id: <20170725153735.239734-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a document to describe Qualcomm Camera Subsystem driver.
+The new ov5670 driver fails to build when VIDEO_V4L2_SUBDEV_API
+or MEDIA_CONTROLLER are disabled:
 
-Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+drivers/media/i2c/ov5670.c: In function 'ov5670_open':
+drivers/media/i2c/ov5670.c:1917:5: error: implicit declaration of function 'v4l2_subdev_get_try_format'; did you mean 'v4l2_subdev_notify_event'? [-Werror=implicit-function-declaration]
+     v4l2_subdev_get_try_format(sd, fh->pad, 0);
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+     v4l2_subdev_notify_event
+drivers/media/i2c/ov5670.c:1917:38: error: 'struct v4l2_subdev_fh' has no member named 'pad'
+     v4l2_subdev_get_try_format(sd, fh->pad, 0);
+                                      ^~
+drivers/media/i2c/ov5670.c: In function 'ov5670_do_get_pad_format':
+drivers/media/i2c/ov5670.c:2198:17: error: invalid type argument of unary '*' (have 'int')
+   fmt->format = *v4l2_subdev_get_try_format(&ov5670->sd, cfg,
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          fmt->pad);
+          ~~~~~~~~~
+drivers/media/i2c/ov5670.c: At top level:
+drivers/media/i2c/ov5670.c:2444:19: error: 'v4l2_subdev_link_validate' undeclared here (not in a function); did you mean 'v4l2_subdev_init'?
+  .link_validate = v4l2_subdev_link_validate,
+                   ^~~~~~~~~~~~~~~~~~~~~~~~~
+                   v4l2_subdev_init
+drivers/media/i2c/ov5670.c: In function 'ov5670_probe':
+drivers/media/i2c/ov5670.c:2492:12: error: 'struct v4l2_subdev' has no member named 'entity'
+
+This adds both to the Kconfig entry.
+
+Fixes: 5de35c9b8dcd ("media: i2c: Add Omnivision OV5670 5M sensor support")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- Documentation/media/v4l-drivers/qcom_camss.rst | 124 +++++++++++++++++++++++++
- 1 file changed, 124 insertions(+)
- create mode 100644 Documentation/media/v4l-drivers/qcom_camss.rst
+ drivers/media/i2c/Kconfig | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/media/v4l-drivers/qcom_camss.rst b/Documentation/media/v4l-drivers/qcom_camss.rst
-new file mode 100644
-index 0000000..4707ea7
---- /dev/null
-+++ b/Documentation/media/v4l-drivers/qcom_camss.rst
-@@ -0,0 +1,124 @@
-+.. include:: <isonum.txt>
-+
-+Qualcomm Camera Subsystem driver
-+================================
-+
-+Introduction
-+------------
-+
-+This file documents the Qualcomm Camera Subsystem driver located under
-+drivers/media/platform/qcom/camss-8x16.
-+
-+The current version of the driver supports the Camera Subsystem found on
-+Qualcomm MSM8916 and APQ8016 processors.
-+
-+The driver implements V4L2, Media controller and V4L2 subdev interfaces.
-+Camera sensor using V4L2 subdev interface in the kernel is supported.
-+
-+The driver is implemented using as a reference the Qualcomm Camera Subsystem
-+driver for Android as found in Code Aurora [#f1]_.
-+
-+
-+Qualcomm Camera Subsystem hardware
-+----------------------------------
-+
-+The Camera Subsystem hardware found on 8x16 processors and supported by the
-+driver consists of:
-+
-+- 2 CSIPHY modules. They handle the Physical layer of the CSI2 receivers.
-+  A separate camera sensor can be connected to each of the CSIPHY module;
-+- 2 CSID (CSI Decoder) modules. They handle the Protocol and Application layer
-+  of the CSI2 receivers. A CSID can decode data stream from any of the CSIPHY.
-+  Each CSID also contains a TG (Test Generator) block which can generate
-+  artificial input data for test purposes;
-+- ISPIF (ISP Interface) module. Handles the routing of the data streams from
-+  the CSIDs to the inputs of the VFE;
-+- VFE (Video Front End) module. Contains a pipeline of image processing hardware
-+  blocks. The VFE has different input interfaces. The PIX input interface feeds
-+  the input data to the image processing pipeline. Three RDI input interfaces
-+  bypass the image processing pipeline. The VFE also contains the AXI bus
-+  interface which writes the output data to memory.
-+
-+
-+Supported functionality
-+-----------------------
-+
-+The current version of the driver supports:
-+
-+- input from camera sensor via CSIPHY;
-+- generation of test input data by the TG in CSID;
-+- raw dump of the input data to memory. RDI interface of VFE is supported.
-+  PIX interface (ISP processing, statistics engines, resize/crop, format
-+  conversion) is not supported in the current version;
-+- concurrent and independent usage of two data inputs - could be camera sensors
-+  and/or TG.
-+
-+
-+Driver Architecture and Design
-+------------------------------
-+
-+The driver implements the V4L2 subdev interface. With the goal to model the
-+hardware links between the modules and to expose a clean, logical and usable
-+interface, the driver is split into V4L2 sub-devices as follows:
-+
-+- 2 CSIPHY sub-devices - each CSIPHY is represented by a single sub-device;
-+- 2 CSID sub-devices - each CSID is represented by a single sub-device;
-+- 2 ISPIF sub-devices - ISPIF is represented by a number of sub-devices equal
-+  to the number of CSID sub-devices;
-+- 3 VFE sub-devices - VFE is represented by a number of sub-devices equal to
-+  the number of RDI input interfaces.
-+
-+The considerations to split the driver in this particular way are as follows:
-+
-+- representing CSIPHY and CSID modules by a separate sub-device for each module
-+  allows to model the hardware links between these modules;
-+- representing VFE by a separate sub-devices for each RDI input interface allows
-+  to use the three RDI interfaces concurently and independently as this is
-+  supported by the hardware;
-+- representing ISPIF by a number of sub-devices equal to the number of CSID
-+  sub-devices allows to create linear media controller pipelines when using two
-+  cameras simultaneously. This avoids branches in the pipelines which otherwise
-+  will require a) userspace and b) media framework (e.g. power on/off
-+  operations) to  make assumptions about the data flow from a sink pad to a
-+  source pad on a single media entity.
-+
-+Each VFE sub-device is linked to a separate video device node.
-+
-+The complete list of the media entities (V4L2 sub-devices and video device
-+nodes) is as follows:
-+
-+- msm_csiphy0
-+- msm_csiphy1
-+- msm_csid0
-+- msm_csid1
-+- msm_ispif0
-+- msm_ispif1
-+- msm_vfe0_rdi0
-+- msm_vfe0_video0
-+- msm_vfe0_rdi1
-+- msm_vfe0_video1
-+- msm_vfe0_rdi2
-+- msm_vfe0_video2
-+
-+
-+Implementation
-+--------------
-+
-+Runtime configuration of the hardware (updating settings while streaming) is
-+not required to implement the currently supported functionality. The complete
-+configuration on each hardware module is applied on STREAMON ioctl based on
-+the current active media links, formats and controls set.
-+
-+
-+Documentation
-+-------------
-+
-+APQ8016 Specification:
-+https://developer.qualcomm.com/download/sd410/snapdragon-410-processor-device-specification.pdf
-+Referenced 2016-11-24.
-+
-+
-+References
-+----------
-+
-+.. [#f1] https://source.codeaurora.org/quic/la/kernel/msm-3.10/
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index a05e40ecba7c..94153895fcd4 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -618,8 +618,9 @@ config VIDEO_OV6650
+ 
+ config VIDEO_OV5670
+ 	tristate "OmniVision OV5670 sensor support"
+-	depends on I2C && VIDEO_V4L2
++	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+ 	depends on MEDIA_CAMERA_SUPPORT
++	depends on MEDIA_CONTROLLER
+ 	select V4L2_FWNODE
+ 	---help---
+ 	  This is a Video4Linux2 sensor-level driver for the OmniVision
 -- 
-2.7.4
+2.9.0
