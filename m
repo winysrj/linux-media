@@ -1,48 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:34265 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751340AbdGNJAk (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:46704 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751458AbdGYFRB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Jul 2017 05:00:40 -0400
-Received: by mail-it0-f67.google.com with SMTP id o202so11470799itc.1
-        for <linux-media@vger.kernel.org>; Fri, 14 Jul 2017 02:00:39 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CABxcv=nKHs6nFvbNdwMxsGjbj-JpHAOXd1Lt8FCXk3RHjCZgwA@mail.gmail.com>
-References: <ea42b2bdf113f7c2533c83986657647934b4e839.1499859983.git.mchehab@s-opensource.com>
- <20170713153842.xupjvsf2nfkvtkyy@valkosipuli.retiisi.org.uk> <CABxcv=nKHs6nFvbNdwMxsGjbj-JpHAOXd1Lt8FCXk3RHjCZgwA@mail.gmail.com>
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Date: Fri, 14 Jul 2017 11:00:38 +0200
-Message-ID: <CABxcv=kThAbvFnNRBZJgVABr1YpS9qQpfVgcmUBtDMYFBTUx4w@mail.gmail.com>
-Subject: Re: [PATCH] media: vimc: cleanup a few warnings
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Helen Koike <helen.koike@collabora.com>
-Content-Type: text/plain; charset="UTF-8"
+        Tue, 25 Jul 2017 01:17:01 -0400
+Received: from epcas5p3.samsung.com (unknown [182.195.41.41])
+        by mailout1.samsung.com (KnoxPortal) with ESMTP id 20170725051659epoutp015c68c9076b9cf699cde31aa130dcf3e4~UewD41jEG1917319173epoutp019
+        for <linux-media@vger.kernel.org>; Tue, 25 Jul 2017 05:16:59 +0000 (GMT)
+Subject: Re: [Patch v5 12/12] Documention: v4l: Documentation for HEVC CIDs
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
+        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
+        m.szyprowski@samsung.com, s.nawrocki@samsung.com
+In-Reply-To: <54ad8901-ccd0-4b0b-bb3f-23779d3534e8@linaro.org>
+Date: Tue, 25 Jul 2017 10:23:13 +0530
+Message-ID: <1500958393.16819.3282.camel@smitha-fedora>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+References: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
+        <CGME20170619052521epcas5p36a0bc384d10809dcfe775e6da87ed37b@epcas5p3.samsung.com>
+        <1497849055-26583-13-git-send-email-smitha.t@samsung.com>
+        <617cb1c5-074c-3f47-0096-fe7568dab8be@linaro.org>
+        <1500290336.16819.6.camel@smitha-fedora>
+        <54ad8901-ccd0-4b0b-bb3f-23779d3534e8@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 13, 2017 at 5:47 PM, Javier Martinez Canillas
-<javier@dowhile0.org> wrote:
-> On Thu, Jul 13, 2017 at 5:38 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+On Thu, 2017-07-20 at 18:46 +0300, Stanimir Varbanov wrote:
+> Hi,
+> 
+> >>> +
+> >>> +    * - ``V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN``
+> >>> +      - Main profile.
+> >>
+> >> MAIN10?
+> >>
+> > No just MAIN.
+> 
+> I haven't because the MFC does not supported it?
+> 
+> If so, I think we have to add MAIN10 for completeness and because other
+> drivers could have support for it.
+> 
+MFC supports Main and Main Still profile for encoder. Main, Main10, Main
+Still for decoder. I will add both Main and Main10 in the next patch
+series.
+Thank you for the review.
 
-[snip]
-
->>
->> Shouldn't these be set to the corresponding driver structs' id_table
->> fields? Or do I miss something...?
->>
->
-> Agreed, the real problem is that the .id_table is not set for these
-> drivers. The match only works because the platform subsystem fallbacks
-> to the driver's name if an .id_table isn't defined:
->
-
-I just posted a patch fixing the build warning in the driver as
-suggested by Sakari:
-
-https://patchwork.linuxtv.org/patch/42480/
-
-Best regards,
-Javier
+Regards,
+Smitha
