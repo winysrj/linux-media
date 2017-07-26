@@ -1,81 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:37158 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752858AbdGSJ6i (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:46322 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750908AbdGZDkX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Jul 2017 05:58:38 -0400
-Date: Wed, 19 Jul 2017 12:58:20 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, kernel-janitors@vger.kernel.org
-Subject: [PATCH] [media] atomisp2: array underflow in imx_enum_frame_size()
-Message-ID: <20170719095820.ucy74kccuph5i737@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+        Tue, 25 Jul 2017 23:40:23 -0400
+Message-ID: <c207d111fc238b4d4cefe91bbe603ef0@smtp-cloud3.xs4all.net>
+Date: Wed, 26 Jul 2017 05:40:20 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The code looks in imx_enum_frame_size() looks like this:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-  2066          int index = fse->index;
-  2067          struct imx_device *dev = to_imx_sensor(sd);
-  2068  
-  2069          mutex_lock(&dev->input_lock);
-  2070          if (index >= dev->entries_curr_table) {
-  2071                  mutex_unlock(&dev->input_lock);
-  2072                  return -EINVAL;
-  2073          }
-  2074  
-  2075          fse->min_width = dev->curr_res_table[index].width;
+Results of the daily build of media_tree:
 
-"fse->index" is a u32 that comes from the user.  We want negative values
-of "index" to be -EINVAL so we don't read before the start of the
-dev->curr_res_table[] array.  I've made "entries_curr_table" unsigned
-long to fix this.  I thought about making it unsigned int, but because
-of struct alignment, it doesn't use more memory either way.
+date:			Wed Jul 26 05:00:17 CEST 2017
+media-tree git hash:	0e50e84a11f4854e9a7e3b7f4443ffb99e6be292
+media_build git hash:	bc1db0a204a87da86349ea5e64ae0d65e945609d
+v4l-utils git hash:	5649bf5343fb7c32f909f92ec07c1bf5b77ff869
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.11.0-164
 
-Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-diff --git a/drivers/staging/media/atomisp/i2c/imx/imx.h b/drivers/staging/media/atomisp/i2c/imx/imx.h
-index 36b3f3a5a41f..41b4133ca995 100644
---- a/drivers/staging/media/atomisp/i2c/imx/imx.h
-+++ b/drivers/staging/media/atomisp/i2c/imx/imx.h
-@@ -480,7 +480,7 @@ struct imx_device {
- 	struct imx_vcm *vcm_driver;
- 	struct imx_otp *otp_driver;
- 	const struct imx_resolution *curr_res_table;
--	int entries_curr_table;
-+	unsigned long entries_curr_table;
- 	const struct firmware *fw;
- 	struct imx_reg_addr *reg_addr;
- 	const struct imx_reg *param_hold;
-diff --git a/drivers/staging/media/atomisp/i2c/ov8858.h b/drivers/staging/media/atomisp/i2c/ov8858.h
-index 9be6a0e63861..d3fde200c013 100644
---- a/drivers/staging/media/atomisp/i2c/ov8858.h
-+++ b/drivers/staging/media/atomisp/i2c/ov8858.h
-@@ -266,7 +266,7 @@ struct ov8858_device {
- 	const struct ov8858_reg *regs;
- 	struct ov8858_vcm *vcm_driver;
- 	const struct ov8858_resolution *curr_res_table;
--	int entries_curr_table;
-+	unsigned long entries_curr_table;
- 
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	struct v4l2_ctrl *run_mode;
-diff --git a/drivers/staging/media/atomisp/i2c/ov8858_btns.h b/drivers/staging/media/atomisp/i2c/ov8858_btns.h
-index 09e3cdc1a394..f9a3cf8fbf1a 100644
---- a/drivers/staging/media/atomisp/i2c/ov8858_btns.h
-+++ b/drivers/staging/media/atomisp/i2c/ov8858_btns.h
-@@ -266,7 +266,7 @@ struct ov8858_device {
- 	const struct ov8858_reg *regs;
- 	struct ov8858_vcm *vcm_driver;
- 	const struct ov8858_resolution *curr_res_table;
--	int entries_curr_table;
-+	unsigned long entries_curr_table;
- 
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	struct v4l2_ctrl *run_mode;
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
