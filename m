@@ -1,55 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:36519 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751161AbdGOK4K (ORCPT
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:36494 "EHLO
+        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750867AbdGZSd7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Jul 2017 06:56:10 -0400
-Date: Sat, 15 Jul 2017 06:56:01 -0400
-From: Tejun Heo <tj@kernel.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-kernel@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Guenter Roeck <linux@roeck-us.net>, linux-ide@vger.kernel.org,
-        linux-media@vger.kernel.org, akpm@linux-foundation.org,
-        dri-devel@lists.freedesktop.org,
-        Adam Manzanares <adam.manzanares@wdc.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hannes Reinecke <hare@suse.de>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Damien Le Moal <damien.lemoal@wdc.com>
-Subject: Re: [PATCH, RESEND 02/14] ata: avoid gcc-7 warning in
- ata_timing_quantize
-Message-ID: <20170715105601.GC2969123@devbig577.frc2.facebook.com>
-References: <20170714092540.1217397-1-arnd@arndb.de>
- <20170714092540.1217397-3-arnd@arndb.de>
+        Wed, 26 Jul 2017 14:33:59 -0400
+Received: by mail-wm0-f50.google.com with SMTP id t201so80267555wmt.1
+        for <linux-media@vger.kernel.org>; Wed, 26 Jul 2017 11:33:58 -0700 (PDT)
+Subject: Re: Problems pushing to v4l-utils
+From: Gregor Jasny <gjasny@googlemail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <d62e6cc4-9538-1431-e269-91f777b754e7@googlemail.com>
+Message-ID: <6f95f24e-d93e-9245-eb4d-f61e655183c7@googlemail.com>
+Date: Wed, 26 Jul 2017 20:33:54 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170714092540.1217397-3-arnd@arndb.de>
+In-Reply-To: <d62e6cc4-9538-1431-e269-91f777b754e7@googlemail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 14, 2017 at 11:25:14AM +0200, Arnd Bergmann wrote:
-> gcc-7 warns about the result of a constant multiplication used as
-> a boolean:
-> 
-> drivers/ata/libata-core.c: In function 'ata_timing_quantize':
-> drivers/ata/libata-core.c:3164:30: warning: '*' in boolean context, suggest '&&' instead [-Wint-in-bool-context]
-> 
-> This slightly rearranges the macro to simplify the code and avoid
-> the warning at the same time.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+On 7/26/17 8:15 PM, Gregor Jasny wrote:
+> I'm having problems to push to v4l-utils:
 
-If the whole series will be routed together,
+Please ignore. It was the wrong clone of v4l-utils.
 
- Acked-by: Tejun Heo <tj@kernel.org>
-
-If not, please let me know.  I'll push it through
-libata/for-4.13-fixes.
-
-Thanks!
-
--- 
-tejun
+Thanks,
+Gregor
