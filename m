@@ -1,77 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway36.websitewelcome.com ([192.185.186.5]:21925 "EHLO
-        gateway36.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751878AbdGFUZf (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:37894 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751542AbdGZMvt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Jul 2017 16:25:35 -0400
-Received: from cm16.websitewelcome.com (cm16.websitewelcome.com [100.42.49.19])
-        by gateway36.websitewelcome.com (Postfix) with ESMTP id 258A04012F959
-        for <linux-media@vger.kernel.org>; Thu,  6 Jul 2017 15:25:33 -0500 (CDT)
-Date: Thu, 6 Jul 2017 15:25:32 -0500
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: Kieran Bingham <kieran@ksquared.org.uk>,
+        Wed, 26 Jul 2017 08:51:49 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] rcar_fdp1: constify vb2_ops structure
-Message-ID: <20170706202532.GA12160@embeddedgus>
+CC: <linux-media@vger.kernel.org>,
+        Gregor Jasny <gjasny@googlemail.com>,
+        Christophe Priouzeau <christophe.priouzeau@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: [PATCH v2] Build libv4lconvert helper support only when fork() is available.
+Date: Wed, 26 Jul 2017 14:51:23 +0200
+Message-ID: <1501073484-9193-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Check for vb2_ops structures that are only stored in the ops field of a
-vb2_queue structure. That field is declared const, so vb2_ops structures
-that have this property can be declared as const also.
+Build libv4lconvert helper support only when fork() is available.
+This fix the build issue reported here:
+http://autobuild.buildroot.net/results/7e8/7e8fbd99a8c091d7bbeedd16066297682bbe29fe/build-end.log
 
-This issue was detected using Coccinelle and the following semantic patch:
+More details on buildroot mailing list here:
+http://lists.buildroot.org/pipermail/buildroot/2017-July/199093.html
 
-@r disable optional_qualifier@
-identifier i;
-position p;
-@@
-static struct vb2_ops i@p = { ... };
+===========
+= history =
+===========
+version 2:
+  - point to http://autobuild.buildroot.org build result
+  - revisit Author & Signed-off-by
 
-@ok@
-identifier r.i;
-struct vb2_queue e;
-position p;
-@@
-e.ops = &i@p;
+version 1:
+  - Initial submission
 
-@bad@
-position p != {r.p,ok.p};
-identifier r.i;
-struct vb2_ops e;
-@@
-e@i@p
+Thomas Petazzoni (1):
+  Build libv4lconvert helper support only when fork() is available
 
-@depends on !bad disable optional_qualifier@
-identifier r.i;
-@@
-static
-+const
-struct vb2_ops i = { ... };
+ configure.ac                      | 3 +++
+ lib/libv4lconvert/Makefile.am     | 7 ++++++-
+ lib/libv4lconvert/libv4lconvert.c | 6 ++++++
+ 3 files changed, 15 insertions(+), 1 deletion(-)
 
-Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
----
- drivers/media/platform/rcar_fdp1.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
-index 3ee51fc..3245bc4 100644
---- a/drivers/media/platform/rcar_fdp1.c
-+++ b/drivers/media/platform/rcar_fdp1.c
-@@ -2032,7 +2032,7 @@ static void fdp1_stop_streaming(struct vb2_queue *q)
- 	}
- }
- 
--static struct vb2_ops fdp1_qops = {
-+static const struct vb2_ops fdp1_qops = {
- 	.queue_setup	 = fdp1_queue_setup,
- 	.buf_prepare	 = fdp1_buf_prepare,
- 	.buf_queue	 = fdp1_buf_queue,
 -- 
-2.5.0
+1.9.1
