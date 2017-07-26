@@ -1,254 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:33962 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751647AbdGYRkc (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:55765 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751034AbdGZLYs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Jul 2017 13:40:32 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v3] go2001 hardware codec support
-Date: Tue, 25 Jul 2017 19:40:21 +0200
-Message-Id: <1501004422-8294-1-git-send-email-thierry.escande@collabora.com>
+        Wed, 26 Jul 2017 07:24:48 -0400
+Date: Wed, 26 Jul 2017 13:24:47 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Petr Cvek <petr.cvek@tul.cz>,
+        Sebastian Reichel <sre@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: v4l: use WARN_ON(1) instead of __WARN()
+Message-ID: <20170726112447.GD6033@amd>
+References: <20170725154001.294864-1-arnd@arndb.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="OaZoDhBhXzo6bW1J"
+Content-Disposition: inline
+In-Reply-To: <20170725154001.294864-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-This patch introduces the go2001 hardware codec driver.
+--OaZoDhBhXzo6bW1J
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Changes in v3:
-- Replace crop iotcl with selection ones
-- Use video dev device_caps field
-- Return v4l2_ctrl_subscribe_event() for default case
-- Fix start_streaming error handling
-- Remove empty ctrl ops callbacks
-- Avoid use of private ctrl structures
-- Remove VB2_USERPTR support
-- Remove format description strings
+On Tue 2017-07-25 17:39:14, Arnd Bergmann wrote:
+> __WARN() cannot be used in portable code, since it is only
+> available on some architectures and configurations:
+>=20
+> drivers/media/platform/pxa_camera.c: In function 'pxa_mbus_config_compati=
+ble':
+> drivers/media/platform/pxa_camera.c:642:3: error: implicit declaration of=
+ function '__WARN'; did you mean '__WALL'? [-Werror=3Dimplicit-function-dec=
+laration]
+>=20
+> The common way to express an unconditional warning is WARN_ON(1),
+> so let's use that here.
+>=20
+> Fixes: 97bbdf02d905 ("media: v4l: Add support for CSI-1 and CCP2 busses")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Changes in v2:
-- Remove unneeded call to dma_cache_sync() on coherent dma buffer.
+Acked-by: Pavel Machek <pavel@ucw.cz>
 
-Following are the results of v4l2-compliance utility execution for both
-/dev/video0 and /dev/video1 devices.
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Note that the failing tests are due to un-initialized internal
-structures of the driver not done through these unit tests.
+--OaZoDhBhXzo6bW1J
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-$ ./utils/v4l2-compliance/v4l2-compliance -d /dev/video0
-v4l2-compliance SHA   : 1ae9a7adea3766879935dfede90d5aefd954c786
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Driver Info:
-	Driver name   : go2001
-	Card type     : GO2001 PCIe codec
-	Bus info      : PCI:0000:03:00.0
-	Driver version: 4.12.0
-	Capabilities  : 0x84204000
-		Video Memory-to-Memory Multiplanar
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x04204000
-		Video Memory-to-Memory Multiplanar
-		Streaming
-		Extended Pix Format
+iEYEARECAAYFAll4e/8ACgkQMOfwapXb+vK0wQCgo1tn2wTeoLqePfkj/HxNGTtw
+3awAoKajCM0vnmPmPG699EL5L2pIsfBN
+=+Q0J
+-----END PGP SIGNATURE-----
 
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-	test for unlimited opens: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-		test VIDIOC_QUERYCTRL: OK
-		test VIDIOC_G/S_CTRL: OK
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 2 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		test VIDIOC_G/S_PARM: OK (Not Supported)
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		fail: v4l2-test-formats.cpp(590): Video Capture Multiplanar cap set, but no Video Capture Multiplanar formats defined
-		test VIDIOC_G_FMT: FAIL
-		test VIDIOC_TRY_FMT: OK (Not Supported)
-		test VIDIOC_S_FMT: OK (Not Supported)
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-		test Cropping: OK (Not Supported)
-		test Composing: OK (Not Supported)
-		fail: v4l2-test-formats.cpp(1670): doioctl(node, VIDIOC_G_FMT, &fmt)
-		test Scaling: FAIL
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		fail: v4l2-test-buffers.cpp(574): VIDIOC_EXPBUF is supported, but the V4L2_MEMORY_MMAP support is missing, probably due to earlier failing format tests.
-		test VIDIOC_EXPBUF: OK (Not Supported)
-
-Test input 0:
-
-Total: 43, Succeeded: 41, Failed: 2, Warnings: 0
-
-$ ./utils/v4l2-compliance/v4l2-compliance -d /dev/video1
-v4l2-compliance SHA   : 1ae9a7adea3766879935dfede90d5aefd954c786
-
-Driver Info:
-	Driver name   : go2001
-	Card type     : GO2001 PCIe codec
-	Bus info      : PCI:0000:03:00.0
-	Driver version: 4.12.0
-	Capabilities  : 0x84204000
-		Video Memory-to-Memory Multiplanar
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x04204000
-		Video Memory-to-Memory Multiplanar
-		Streaming
-		Extended Pix Format
-
-Compliance test for device /dev/video1 (not using libv4l2):
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-	test for unlimited opens: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-		test VIDIOC_QUERYCTRL: OK
-		test VIDIOC_G/S_CTRL: OK
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 4 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		fail: v4l2-test-formats.cpp(1213): got error 22 when setting parms for buftype 10
-		test VIDIOC_G/S_PARM: FAIL
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		fail: v4l2-test-formats.cpp(446): !pix_mp.width || !pix_mp.height
-		test VIDIOC_G_FMT: FAIL
-		test VIDIOC_TRY_FMT: OK (Not Supported)
-		test VIDIOC_S_FMT: OK (Not Supported)
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-		test Cropping: OK (Not Supported)
-		test Composing: OK (Not Supported)
-		fail: v4l2-test-formats.cpp(1678): doioctl(node, VIDIOC_G_FMT, &fmt)
-		test Scaling: FAIL
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		fail: v4l2-test-buffers.cpp(574): VIDIOC_EXPBUF is supported, but the V4L2_MEMORY_MMAP support is missing, probably due to earlier failing format tests.
-		test VIDIOC_EXPBUF: OK (Not Supported)
-
-Test input 0:
-
-
-Total: 43, Succeeded: 40, Failed: 3, Warnings: 0
-
-
-Thierry Escande (1):
-  [media] v4l2: Add support for go2001 PCI codec driver
-
- drivers/media/pci/Kconfig                |    2 +
- drivers/media/pci/Makefile               |    1 +
- drivers/media/pci/go2001/Kconfig         |   11 +
- drivers/media/pci/go2001/Makefile        |    2 +
- drivers/media/pci/go2001/go2001.h        |  331 ++++
- drivers/media/pci/go2001/go2001_driver.c | 2525 ++++++++++++++++++++++++++++++
- drivers/media/pci/go2001/go2001_hw.c     | 1362 ++++++++++++++++
- drivers/media/pci/go2001/go2001_hw.h     |   55 +
- drivers/media/pci/go2001/go2001_proto.h  |  359 +++++
- 9 files changed, 4648 insertions(+)
- create mode 100644 drivers/media/pci/go2001/Kconfig
- create mode 100644 drivers/media/pci/go2001/Makefile
- create mode 100644 drivers/media/pci/go2001/go2001.h
- create mode 100644 drivers/media/pci/go2001/go2001_driver.c
- create mode 100644 drivers/media/pci/go2001/go2001_hw.c
- create mode 100644 drivers/media/pci/go2001/go2001_hw.h
- create mode 100644 drivers/media/pci/go2001/go2001_proto.h
-
--- 
-2.7.4
+--OaZoDhBhXzo6bW1J--
