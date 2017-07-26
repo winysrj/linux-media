@@ -1,52 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:40270 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751794AbdGaHwi (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:56044 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751474AbdGZMhb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Jul 2017 03:52:38 -0400
-Subject: Re: [PATCH 8/8] omapdrm: hdmi4: hook up the HDMI CEC support
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Peter Ujfalusi <peter.ujfalusi@ti.com>
-References: <20170414102512.48834-1-hverkuil@xs4all.nl>
- <20170414102512.48834-9-hverkuil@xs4all.nl>
- <144b95df-8eb2-1307-1157-2eb2572c51aa@xs4all.nl>
- <7d3ab159-9284-bcc8-80f0-cbc621769203@ti.com>
- <50af289e-2601-2d57-71ce-1d0a205277cb@xs4all.nl>
- <e88d84fa-b92e-1491-0c3b-d61d94b58234@ti.com>
+        Wed, 26 Jul 2017 08:37:31 -0400
+Subject: Re: [PATCH v4] uvcvideo: add a metadata device node
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <Pine.LNX.4.64.1707071536440.9200@axis700.grange>
+ <3406101.2MuKeu43r1@avalon> <Pine.LNX.4.64.1707240958280.4948@axis700.grange>
+ <Pine.LNX.4.64.1707261316010.6259@axis700.grange>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <c2764c8a-8206-8d1d-5422-134004cc21b5@xs4all.nl>
-Date: Mon, 31 Jul 2017 09:52:33 +0200
+Message-ID: <61413236-ac5c-474d-5dd4-5fd34f8ffcf8@xs4all.nl>
+Date: Wed, 26 Jul 2017 14:37:22 +0200
 MIME-Version: 1.0
-In-Reply-To: <e88d84fa-b92e-1491-0c3b-d61d94b58234@ti.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+In-Reply-To: <Pine.LNX.4.64.1707261316010.6259@axis700.grange>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomi,
-
-On 06/08/2017 11:19 AM, Tomi Valkeinen wrote:
-> On 08/06/17 10:34, Hans Verkuil wrote:
+On 07/26/17 14:29, Guennadi Liakhovetski wrote:
+> On Tue, 25 Jul 2017, Guennadi Liakhovetski wrote:
 > 
->>> Peter is about to send hotplug-interrupt-handling series, I think the
->>> HPD function work should be done on top of that, as otherwise it'll just
->>> conflict horribly.
+> [snip]
+> 
+>>>> +struct uvc_meta_buf {
+>>>> +	struct timespec ts;
+>>>
+>>> timespec has a different size on 32-bit and 64-bit architectures, so there
+>>> could be issues on 32-bit userspace running on a 64-bit kernel.
+>>>
+>>> Additionally, on 32-bit platforms, timespec is not year 2038-safe. I thought
+>>> that timespec64 was exposed to userspace nowadays, but it doesn't seem to be
+>>> the case. I'm not sure how to handle this.
 >>
->> Has that been merged yet? And if so, what git repo/branch should I base
->> my next version of this patch series on? If not, do you know when it is
->> expected?
+>> Oh, that isn't good :-/ I'll have to think more about this. If you get any 
+>> more ideas, I'd be glad to hear them too.
 > 
-> No, still pending review. The patches ("[PATCH v2 0/3] drm/omap: Support
-> for hotplug detection") apply on top of latest drm-next, if you want to try.
+> Shall we just use nanoseconds here too then, as returned by 
+> timespec_to_ns(), just like in frame timestamps?
 
-I gather[1] that this has been merged? Where can I find a git tree that has
-these patches? I'd like to get the omap4 CEC support in for 4.14.
+That's what I use and what Arnd recommended for use in public APIs. It's a u64, so easy
+to work with.
+
+Don't use timespec/timeval in any new public APIs, that will only cause a mess later.
 
 Regards,
 
 	Hans
-
-[1]: http://www.spinics.net/lists/dri-devel/msg143440.html
