@@ -1,79 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39338 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751366AbdGNJqg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Jul 2017 05:46:36 -0400
-Date: Fri, 14 Jul 2017 12:46:31 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-kernel@vger.kernel.org, Doug Ledford <dledford@redhat.com>,
-        Sean Hefty <sean.hefty@intel.com>,
-        Hal Rosenstock <hal.rosenstock@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
-        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
-        akpm@linux-foundation.org, dri-devel@lists.freedesktop.org,
-        Matan Barak <matanb@mellanox.com>,
-        Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH 11/14] IB/uverbs: fix gcc-7 type warning
-Message-ID: <20170714094631.GX1528@mtr-leonro.local>
-References: <20170714092540.1217397-1-arnd@arndb.de>
- <20170714093129.1366900-2-arnd@arndb.de>
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:34831 "EHLO
+        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751406AbdGZSPI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Jul 2017 14:15:08 -0400
+Received: by mail-wm0-f52.google.com with SMTP id c184so85825678wmd.0
+        for <linux-media@vger.kernel.org>; Wed, 26 Jul 2017 11:15:08 -0700 (PDT)
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Gregor Jasny <gjasny@googlemail.com>
+Subject: Problems pushing to v4l-utils
+Message-ID: <d62e6cc4-9538-1431-e269-91f777b754e7@googlemail.com>
+Date: Wed, 26 Jul 2017 20:15:03 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="Ee0603b/+xKyHz99"
-Content-Disposition: inline
-In-Reply-To: <20170714093129.1366900-2-arnd@arndb.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello Mauro & list,
 
---Ee0603b/+xKyHz99
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I'm having problems to push to v4l-utils:
 
-On Fri, Jul 14, 2017 at 11:31:04AM +0200, Arnd Bergmann wrote:
-> When using ccache, we get a harmless warning about the fact that
-> we use the result of a multiplication as a condition:
->
-> drivers/infiniband/core/uverbs_main.c: In function 'ib_uverbs_write':
-> drivers/infiniband/core/uverbs_main.c:787:40: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
-> drivers/infiniband/core/uverbs_main.c:787:117: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
-> drivers/infiniband/core/uverbs_main.c:790:50: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
-> drivers/infiniband/core/uverbs_main.c:790:151: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
->
-> This changes the macro to explicitly check the number for a positive
-> length, which avoids the warning.
->
-> Fixes: a96e4e2ffe43 ("IB/uverbs: New macro to set pointers to NULL if length is 0 in INIT_UDATA()")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  drivers/infiniband/core/uverbs.h | 14 ++++++++------
->  1 file changed, 8 insertions(+), 6 deletions(-)
->
+Did the setup recently change?
+
+gjasny@sid:~/src/v4l-utils$ git remote -v
+origin	git://linuxtv.org/v4l-utils.git (fetch)
+origin	git://linuxtv.org/v4l-utils.git (push)
+
+gjasny@sid:~/src/v4l-utils$ git push -v
+Pushing to git://linuxtv.org/v4l-utils.git
+Looking up linuxtv.org ... done.
+Connecting to linuxtv.org (port 9418) ... 130.149.80.248 done.
+fatal: remote error: access denied or repository not exported:
+/v4l-utils.git
+
+The SSH key is working and I can access the shell on linuxtv.org.
 
 Thanks,
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-
---Ee0603b/+xKyHz99
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllokvcACgkQ5GN7iDZy
-WKdunw/+LLcL3bFxt6Jb1Xg/2r0CxgcYf5oO8ehOVaPYHBnLsI3zheWbrOARxAQO
-+ACWy3W/t6cjKTgdme2GsPpFxUk/vhEDa6d0r0YwVomStSnA6QCKgn1SZpbnszZ4
-LrMB+2HK34GA835xlJkVYgYV8sG1Ncbbv7OuvojsfFqBonOJ5deob4LWdP5IHoxG
-uHZthMD3MlF2aail5faoUm0CyocXPvnB3oR1Wop74xrcAeiRghRICtRgXICKNKl0
-3CKpneP+7MtoCpDemKwhjWeiH0FGseP44L1183zrVU5u61R4YV6Lixx/t2lz2Imw
-kuMAONs3QbP+xxcvK99wqX0JTKrFqbTD7eVYNQEt9kZI/eviAvHkq51iRkZ0nA+b
-h46iuvs//jshbPn9gLT1rUFNOiXfoUss+hNzeN1jAW07h+zNTdvQprKdqcKAxxKM
-sDsKX3MQfbc4yKSdP9cVG4N+b8P/QZP3Imq6k5UQltrXsnwNi+twVUVVWV14nJbl
-cIgC8PP/DRJziklsZzqTQuxXuBjvrQkZB0zYyw0iQTpDEm+zfhnsr+PKe43p4M51
-DO2f8rKzqauj6/bsb8IwicjTbXnvdlSDwejl8HvsiihDuD9fMOEmPAMa19/lhCH5
-4Emn+YSH7F05w1VwSrs7gLynvQLycuz7PnFD+xBWNWBZ7iuxlow=
-=79Js
------END PGP SIGNATURE-----
-
---Ee0603b/+xKyHz99--
+Gregor
