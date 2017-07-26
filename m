@@ -1,71 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx009.vodafonemail.xion.oxcs.net ([153.92.174.39]:61337 "EHLO
-        mx009.vodafonemail.xion.oxcs.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752679AbdGXJ62 (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:39822 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750922AbdGZI6B (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Jul 2017 05:58:28 -0400
-Subject: Re: [PATCH] dma-buf: fix reservation_object_wait_timeout_rcu to wait
- correctly
-To: zhoucm1 <david1.zhou@amd.com>, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org
-References: <1500654001-20899-1-git-send-email-deathsimple@vodafone.de>
- <5975B0FD.5070908@amd.com>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <deathsimple@vodafone.de>
-Message-ID: <f1d556b2-6f16-e289-a9c0-3eb728f4eaa8@vodafone.de>
-Date: Mon, 24 Jul 2017 11:58:15 +0200
+        Wed, 26 Jul 2017 04:58:01 -0400
+Subject: Re: [PATCH] Add compat code for skb_put_data
+To: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org
+References: <20170723093151.26338-1-zzam@gentoo.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2c19b8e1-34ef-102e-4686-31d21c409ad8@xs4all.nl>
+Date: Wed, 26 Jul 2017 10:57:55 +0200
 MIME-Version: 1.0
-In-Reply-To: <5975B0FD.5070908@amd.com>
+In-Reply-To: <20170723093151.26338-1-zzam@gentoo.org>
 Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
 Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 24.07.2017 um 10:34 schrieb zhoucm1:
->
->
-> On 2017年07月22日 00:20, Christian König wrote:
->> From: Christian König <christian.koenig@amd.com>
->>
->> With hardware resets in mind it is possible that all shared fences are
->> signaled, but the exlusive isn't. Fix waiting for everything in this 
->> situation.
->>
->> Signed-off-by: Christian König <christian.koenig@amd.com>
->> ---
->>   drivers/dma-buf/reservation.c | 2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/dma-buf/reservation.c 
->> b/drivers/dma-buf/reservation.c
->> index e2eff86..ce3f9c1 100644
->> --- a/drivers/dma-buf/reservation.c
->> +++ b/drivers/dma-buf/reservation.c
->> @@ -461,7 +461,7 @@ long reservation_object_wait_timeout_rcu(struct 
->> reservation_object *obj,
->>           }
->>       }
->>   -    if (!shared_count) {
->> +    if (!fence) {
-> previous code seems be a bug, the exclusive fence isn't be waited at 
-> all if shared_count != 0.
->
-> With your fix, there still is a case the exclusive fence could be 
-> skipped, that when fobj->shared[shared_count-1] isn't signalled.
+On 07/23/2017 11:31 AM, Matthias Schwarzott wrote:
+> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
 
-Yeah, indeed that looks like it needs to be fixed as well.
+Applied, much appreciated that you looked into this!
 
-I'm still completely jet lagged and need to work through tons of stuff 
-from last week. Do you have time to take care of fixing up this patch 
-and send a v2?
+Regards.
 
-Thanks in advance,
-Christian.
+	Hans
 
->
-> Regards,
-> David Zhou
->>           struct dma_fence *fence_excl = 
->> rcu_dereference(obj->fence_excl);
->>             if (fence_excl &&
->
+> ---
+>   v4l/compat.h                      | 12 ++++++++++++
+>   v4l/scripts/make_config_compat.pl |  1 +
+>   2 files changed, 13 insertions(+)
+> 
+> diff --git a/v4l/compat.h b/v4l/compat.h
+> index 47e2694..e565292 100644
+> --- a/v4l/compat.h
+> +++ b/v4l/compat.h
+> @@ -2072,4 +2072,16 @@ static inline bool is_of_node(struct fwnode_handle *fwnode)
+>   }
+>   #endif
+>   
+> +#ifdef NEED_SKB_PUT_DATA
+> +static inline void *skb_put_data(struct sk_buff *skb, const void *data,
+> +                                 unsigned int len)
+> +{
+> +        void *tmp = skb_put(skb, len);
+> +
+> +        memcpy(tmp, data, len);
+> +
+> +        return tmp;
+> +}
+> +#endif
+> +
+>   #endif /*  _COMPAT_H */
+> diff --git a/v4l/scripts/make_config_compat.pl b/v4l/scripts/make_config_compat.pl
+> index d186cb4..5ac59ab 100644
+> --- a/v4l/scripts/make_config_compat.pl
+> +++ b/v4l/scripts/make_config_compat.pl
+> @@ -699,6 +699,7 @@ sub check_other_dependencies()
+>   	check_files_for_func("of_fwnode_handle", "NEED_FWNODE", "include/linux/of.h");
+>   	check_files_for_func("to_of_node", "NEED_TO_OF_NODE", "include/linux/of.h");
+>   	check_files_for_func("is_of_node", "NEED_IS_OF_NODE", "include/linux/of.h");
+> +	check_files_for_func("skb_put_data", "NEED_SKB_PUT_DATA", "include/linux/skbuff.h");
+>   
+>   	# For tests for uapi-dependent logic
+>   	check_files_for_func_uapi("usb_endpoint_maxp", "NEED_USB_ENDPOINT_MAXP", "usb/ch9.h");
+> 
