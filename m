@@ -1,57 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33222 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751581AbdGSHQc (ORCPT
+Received: from mail-lf0-f53.google.com ([209.85.215.53]:35860 "EHLO
+        mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751472AbdGZIim (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Jul 2017 03:16:32 -0400
-Received: by mail-wm0-f68.google.com with SMTP id 65so2234913wmf.0
-        for <linux-media@vger.kernel.org>; Wed, 19 Jul 2017 00:16:32 -0700 (PDT)
-Subject: Re: [PATCH] [media] coda: disable BWB for all codecs on CODA 960
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de
-References: <20170302101952.16917-1-p.zabel@pengutronix.de>
-From: Ian Arkver <ian.arkver.dev@gmail.com>
-Message-ID: <594ed2a7-df43-4fb4-b12c-5b215b618087@gmail.com>
-Date: Wed, 19 Jul 2017 08:16:29 +0100
+        Wed, 26 Jul 2017 04:38:42 -0400
+Received: by mail-lf0-f53.google.com with SMTP id o85so6097651lff.3
+        for <linux-media@vger.kernel.org>; Wed, 26 Jul 2017 01:38:41 -0700 (PDT)
+Date: Wed, 26 Jul 2017 10:38:39 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Naman Jain <nsahula.photo.sharing@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: adv7281m and rcar-vin problem
+Message-ID: <20170726083838.GC22320@bigcity.dyn.berto.se>
+References: <CAPD8ABUMQgL88WdTHLsVuGRqJR46TJuJ4jHzPm7bgdBJp9k_sw@mail.gmail.com>
+ <20170724094158.GA22320@bigcity.dyn.berto.se>
+ <CAPD8ABWD7wqQiYLKiX4AV88Wzjcsc8aH6GgybWiawcAufiQx-g@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20170302101952.16917-1-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAPD8ABWD7wqQiYLKiX4AV88Wzjcsc8aH6GgybWiawcAufiQx-g@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+Hi Naman,
 
-On 02/03/17 10:19, Philipp Zabel wrote:
-> I don't know what the BWB unit is, I guess W is for write and one of the
-> Bs is for burst. All I know is that there repeatedly have been issues
-> with it hanging on certain streams (ENGR00223231, ENGR00293425), with
-> various firmware versions, sometimes blocking something related to the
-> GDI bus or the GDI AXI adapter. There are some error cases that we don't
-> know how to recover from without a reboot. Apparently this unit can be
-> disabled by setting bit 12 in the FRAME_MEM_CTRL mailbox register to
-> zero, so do that to avoid crashes.
+On 2017-07-24 22:43:06 +0530, Naman Jain wrote:
+> On Mon, Jul 24, 2017 at 3:11 PM, Niklas Söderlund
+> <niklas.soderlund@ragnatech.se> wrote:
+> > Hi Naman,
+> >
+> > On 2017-07-24 14:30:52 +0530, Naman Jain wrote:
+> >> i am using renesas soc with video decoder adv7281m
+> >> i have done thr device tree configuration by following dt bindings
+> >> i am getting timeout of reading the phy clock lane, after i start streaming
+> >> and nothing is displayed on the screen
+> >> kindly help me in configuration
+> >
+> > To be able to try and help you I would need a lot more information. For
+> > starters:
+> >
+> > - Which kernel version are you using?
+> >
+> > - How dose the device tree nodes for VIN and ADV7281m look like?
+> >
+> > --
+> > Regards,
+> > Niklas Söderlund
+> 
+> Hi Niklas,
+> 
+> I am using kernel version  - 4.9
 
-Both those FSL ENGR patches to Android and VPU lib are specific to 
-decode, with the first being specific to VC1 decode only.
+The VIN driver which supports CSI-2 and the R-Car CSI-2 driver is not a 
+part of the upstream kernel yet, and the latest patches with contains 
+the most fixes are based on newer kernels then v4.9. So I assume you are 
+using a BSP of some sort, if possible could you tell me which one?
 
-> Side effects are reduced burst lengths when writing out decoded frames
-> to memory, so there is an "enable_bwb" module parameter to turn it back
-> on.
+If you want to try with later increments of the VIN and CSI-2 patches 
+please see:
 
-These side effects are dramatically reducing the VPU throughput during 
-H.264 encode as well. Prior to this patch I was just about managing to 
-capture and stream 1080p25 H.264. After this change it fell to about 
-19fps. Reverting this patch (or presumably using the module param) 
-restores the frame rate.
+http://elinux.org/R-Car/Tests:rcar-vin
 
-Can we at least make this decode specific? The VPU library patches do it 
-in vpu_DecOpen. I'd guess disabling the BWB any time prior to stream 
-start would be OK.
 
-It might also be worth adding some sort of /* HACK */ marker, since 
-disabling the BWB feels very like a hack to me.
+> 
+> following is the device tree configuration :
+> 
+> &i2c6 {
+> status = "okay";
+> clock-frequency = <400000>;
+> adv7281m@21{
+>                    compatible = "adi,adv7281-m";
+>                    reg = <0x20>;
+>                    interrupt-parent = <&gpio6>;
+>                    interrupts = <4 IRQ_TYPE_LEVEL_LOW>
+>                    adv7281m_out: endpoint {
+>                                 clock-lanes = <0>;
+>                                 data-lanes = <1>;
+>                                 remote-endpoint = <&csi20_in>;
+>                                  };
+>                };
+> 
+> }
+> 
+> &csi20 {
+>   status = "okay";
+>   ports {
+>          #address-cells = <1>;
+>          #size-cells = <0>;
+> 
+>          port@0 {
+>                         reg = <0>;
+>                         csi20_in: endpoint {
+>                                                    clock-lanes = <0>;
+>                                                    data-lanes = <1>;
+>                                                     virtual-channel-number=<0>;
 
+This is interesting for me, I have not worked with any driver for the 
+R-Car CSI-2 driver which understands the virtual-channel-number 
+property.
+
+>                                                    remote-endpoint =
+> <&adv7281m_out>;
+>                                             };
+>                        };
+>             };
+> };
+> 
+> &vin0 {
+> status = "okay";
+> };
+> 
+> &vin1 {
+> status = "okay";
+> };
+> 
+> &vin2 {
+> status = "okay";
+> };
+> 
+> &vin3 {
+> status = "okay";
+> };
+> 
+> &vin4 {
+> status = "okay";
+> };
+> 
+> &vin5 {
+> status = "okay";
+> };
+> 
+> &vin6 {
+> status = "okay";
+> };
+> 
+> &vin7 {
+> status = "okay";
+> };
+
+-- 
 Regards,
-Ian
+Niklas Söderlund
