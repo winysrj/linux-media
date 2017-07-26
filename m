@@ -1,50 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:52822 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751757AbdGGLh3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Jul 2017 07:37:29 -0400
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v7.1 1/5] [media] cec.h: Add stub function for cec_register_cec_notifier()
-Date: Fri,  7 Jul 2017 12:37:16 +0100
-Message-Id: <bcf671fd7de56db2a224394e21766eae01d0ad02.1499427365.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1499427365.git.joabreu@synopsys.com>
-References: <cover.1499427365.git.joabreu@synopsys.com>
+Received: from mout.gmx.net ([212.227.17.20]:55363 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751744AbdGZMbb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Jul 2017 08:31:31 -0400
+Date: Wed, 26 Jul 2017 14:29:07 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v4] uvcvideo: add a metadata device node
+In-Reply-To: <Pine.LNX.4.64.1707240958280.4948@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1707261316010.6259@axis700.grange>
+References: <Pine.LNX.4.64.1707071536440.9200@axis700.grange>
+ <3406101.2MuKeu43r1@avalon> <Pine.LNX.4.64.1707240958280.4948@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new stub function for cec_register_cec_notifier() so that
-we can still call this function when CONFIG_CEC_NOTIFIER and
-CONFIG_CEC_CORE are not set.
+On Tue, 25 Jul 2017, Guennadi Liakhovetski wrote:
 
-Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-Cc: Carlos Palminha <palminha@synopsys.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/media/cec.h | 8 ++++++++
- 1 file changed, 8 insertions(+)
+[snip]
 
-diff --git a/include/media/cec.h b/include/media/cec.h
-index 56643b2..8357f60 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -365,6 +365,14 @@ static inline int cec_phys_addr_validate(u16 phys_addr, u16 *parent, u16 *port)
- 	return 0;
- }
- 
-+#ifndef CONFIG_CEC_NOTIFIER
-+struct cec_notifier;
-+static inline void cec_register_cec_notifier(struct cec_adapter *adap,
-+					     struct cec_notifier *notifier)
-+{
-+}
-+#endif
-+
- #endif
- 
- /**
--- 
-1.9.1
+> > > +struct uvc_meta_buf {
+> > > +	struct timespec ts;
+> > 
+> > timespec has a different size on 32-bit and 64-bit architectures, so there
+> > could be issues on 32-bit userspace running on a 64-bit kernel.
+> > 
+> > Additionally, on 32-bit platforms, timespec is not year 2038-safe. I thought
+> > that timespec64 was exposed to userspace nowadays, but it doesn't seem to be
+> > the case. I'm not sure how to handle this.
+> 
+> Oh, that isn't good :-/ I'll have to think more about this. If you get any 
+> more ideas, I'd be glad to hear them too.
+
+Shall we just use nanoseconds here too then, as returned by 
+timespec_to_ns(), just like in frame timestamps?
+
+Thanks
+Guennadi
