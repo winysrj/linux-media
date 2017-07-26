@@ -1,119 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50076 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965399AbdGTOGY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 10:06:24 -0400
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:61639 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751682AbdGZKd7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Jul 2017 06:33:59 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Gregor Jasny <gjasny@googlemail.com>,
+        Christophe Priouzeau <christophe.priouzeau@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v1] Build libv4lconvert helper support only when fork() is available
+Date: Wed, 26 Jul 2017 12:33:36 +0200
+Message-ID: <1501065216-1636-2-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1501065216-1636-1-git-send-email-hugues.fruchet@st.com>
+References: <1501065216-1636-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-In-Reply-To: <20170720081508.33563afe@vento.lan>
-References: <CGME20170718215328epcas2p2e5e1d7df96fcd894e70a961df864abdd@epcas2p2.samsung.com>
- <20170718214339.7774-33-robh@kernel.org> <564a6768-3b23-6dc7-ecb5-cb4f4359b633@samsung.com>
- <CAL_JsqLDCgO60ECGB70pMNcaLg0zUcJ6_+50vH-evfGe-D266Q@mail.gmail.com> <20170720081508.33563afe@vento.lan>
-From: Rob Herring <robh@kernel.org>
-Date: Thu, 20 Jul 2017 09:06:01 -0500
-Message-ID: <CAL_JsqJcS_Ewfow0+iuUtLRab62m=AHO+bvbHXX-eSR0Hw_JaQ@mail.gmail.com>
-Subject: Re: [PATCH] media: Convert to using %pOF instead of full_name
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Frank Rowand <frowand.list@gmail.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Houlong Wei <houlong.wei@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Hyun Kwon <hyun.kwon@xilinx.com>,
-        Michal Simek <michal.simek@xilinx.com>,
-        =?UTF-8?Q?S=C3=B6ren_Brinkmann?= <soren.brinkmann@xilinx.com>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-samsung-soc@vger.kernel.org"
-        <linux-samsung-soc@vger.kernel.org>,
-        linux-mediatek@lists.infradead.org,
-        "open list:MEDIA DRIVERS FOR RENESAS - FCP"
-        <linux-renesas-soc@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 20, 2017 at 6:15 AM, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
-> Em Wed, 19 Jul 2017 11:02:01 -0500
-> Rob Herring <robh@kernel.org> escreveu:
->
->> On Wed, Jul 19, 2017 at 4:41 AM, Sylwester Nawrocki
->> <s.nawrocki@samsung.com> wrote:
->> > On 07/18/2017 11:43 PM, Rob Herring wrote:
->> >> Now that we have a custom printf format specifier, convert users of
->> >> full_name to use %pOF instead. This is preparation to remove storing
->> >> of the full path string for each node.
->> >>
->> >> Signed-off-by: Rob Herring <robh@kernel.org>
->> >
->> >> ---
->> >>   drivers/media/i2c/s5c73m3/s5c73m3-core.c       |  3 +-
->> >>   drivers/media/i2c/s5k5baf.c                    |  7 ++--
->> >>   drivers/media/platform/am437x/am437x-vpfe.c    |  4 +-
->> >>   drivers/media/platform/atmel/atmel-isc.c       |  4 +-
->> >>   drivers/media/platform/davinci/vpif_capture.c  | 16 ++++----
->> >>   drivers/media/platform/exynos4-is/fimc-is.c    |  8 ++--
->> >>   drivers/media/platform/exynos4-is/fimc-lite.c  |  3 +-
->> >>   drivers/media/platform/exynos4-is/media-dev.c  |  8 ++--
->> >>   drivers/media/platform/exynos4-is/mipi-csis.c  |  4 +-
->> >>   drivers/media/platform/mtk-mdp/mtk_mdp_comp.c  |  6 +--
->> >>   drivers/media/platform/mtk-mdp/mtk_mdp_core.c  |  8 ++--
->> >>   drivers/media/platform/omap3isp/isp.c          |  8 ++--
->> >>   drivers/media/platform/pxa_camera.c            |  2 +-
->> >>   drivers/media/platform/rcar-vin/rcar-core.c    |  4 +-
->> >>   drivers/media/platform/soc_camera/soc_camera.c |  6 +--
->> >>   drivers/media/platform/xilinx/xilinx-vipp.c    | 52 +++++++++++++-------------
->> >>   drivers/media/v4l2-core/v4l2-async.c           |  4 +-
->> >>   drivers/media/v4l2-core/v4l2-clk.c             |  3 +-
->> >>   include/media/v4l2-clk.h                       |  4 +-
->> >>   19 files changed, 71 insertions(+), 83 deletions(-)
->> >
->> >> diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c b/drivers/media/platform/xilinx/xilinx-vipp.c
->> >> index ac4704388920..9233ad0b1b6b 100644
->> >> --- a/drivers/media/platform/xilinx/xilinx-vipp.c
->> >> +++ b/drivers/media/platform/xilinx/xilinx-vipp.c
->> >
->> >> @@ -144,9 +144,8 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
->> >>               remote = ent->entity;
->> >>
->> >>               if (link.remote_port >= remote->num_pads) {
->> >> -                     dev_err(xdev->dev, "invalid port number %u on %s\n",
->> >> -                             link.remote_port,
->> >> -                             to_of_node(link.remote_node)->full_name);
->> >> +                     dev_err(xdev->dev, "invalid port number %u on %pOF\n",
->> >> +                             link.remote_port, link.remote_node);
->> >
->> > Shouldn't there be to_of_node(link.remote_node) instead of link.remote_node ?
->>
->> Humm, yes. I thought I fixed that.
->
-> After such fix, I'm OK with this patch.
+Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ configure.ac                      | 3 +++
+ lib/libv4lconvert/Makefile.am     | 7 ++++++-
+ lib/libv4lconvert/libv4lconvert.c | 6 ++++++
+ 3 files changed, 15 insertions(+), 1 deletion(-)
 
-I'll send a new version.
-
-I think I'll send a revert of the referenced commit. It won't apply
-cleanly, but at least it will capture the change in behavior and why
-it was wrong.
-
-> Are you planning to apply it on your tree, or via the media one?
->
-> I guess it is probably better to apply via media, in order to avoid
-> conflicts with other changes.
-
-Yes, you can take it.
-
-Rob
+diff --git a/configure.ac b/configure.ac
+index ae8f2e2..72c9421 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -299,6 +299,9 @@ argp_saved_libs=$LIBS
+   AC_SUBST([ARGP_LIBS])
+ LIBS=$argp_saved_libs
+ 
++AC_CHECK_FUNCS([fork], AC_DEFINE([HAVE_LIBV4LCONVERT_HELPERS],[1],[whether to use libv4lconvert helpers]))
++AM_CONDITIONAL([HAVE_LIBV4LCONVERT_HELPERS], [test x$ac_cv_func_fork = xyes])
++
+ AC_CHECK_HEADER([linux/i2c-dev.h], [linux_i2c_dev=yes], [linux_i2c_dev=no])
+ AM_CONDITIONAL([HAVE_LINUX_I2C_DEV], [test x$linux_i2c_dev = xyes])
+ 
+diff --git a/lib/libv4lconvert/Makefile.am b/lib/libv4lconvert/Makefile.am
+index 4f332fa..f266f3e 100644
+--- a/lib/libv4lconvert/Makefile.am
++++ b/lib/libv4lconvert/Makefile.am
+@@ -1,6 +1,8 @@
+ if WITH_DYN_LIBV4L
+ lib_LTLIBRARIES = libv4lconvert.la
++if HAVE_LIBV4LCONVERT_HELPERS
+ libv4lconvertpriv_PROGRAMS = ov511-decomp ov518-decomp
++endif
+ include_HEADERS = ../include/libv4lconvert.h
+ pkgconfig_DATA = libv4lconvert.pc
+ LIBV4LCONVERT_VERSION = -version-info 0
+@@ -16,11 +18,14 @@ libv4lconvert_la_SOURCES = \
+   control/libv4lcontrol.c control/libv4lcontrol.h control/libv4lcontrol-priv.h \
+   processing/libv4lprocessing.c processing/whitebalance.c processing/autogain.c \
+   processing/gamma.c processing/libv4lprocessing.h processing/libv4lprocessing-priv.h \
+-  helper.c helper-funcs.h libv4lconvert-priv.h libv4lsyscall-priv.h \
++  helper-funcs.h libv4lconvert-priv.h libv4lsyscall-priv.h \
+   tinyjpeg.h tinyjpeg-internal.h
+ if HAVE_JPEG
+ libv4lconvert_la_SOURCES += jpeg_memsrcdest.c jpeg_memsrcdest.h
+ endif
++if HAVE_LIBV4LCONVERT_HELPERS
++libv4lconvert_la_SOURCES += helper.c
++endif
+ libv4lconvert_la_CPPFLAGS = $(CFLAG_VISIBILITY) $(ENFORCE_LIBV4L_STATIC)
+ libv4lconvert_la_LDFLAGS = $(LIBV4LCONVERT_VERSION) -lrt -lm $(JPEG_LIBS) $(ENFORCE_LIBV4L_STATIC)
+ 
+diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+index d60774e..1a5ccec 100644
+--- a/lib/libv4lconvert/libv4lconvert.c
++++ b/lib/libv4lconvert/libv4lconvert.c
+@@ -122,8 +122,10 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+ 	{ V4L2_PIX_FMT_JPEG,		 0,	 7,	 7,	0 },
+ 	{ V4L2_PIX_FMT_PJPG,		 0,	 7,	 7,	1 },
+ 	{ V4L2_PIX_FMT_JPGL,		 0,	 7,	 7,	1 },
++#ifdef HAVE_LIBV4LCONVERT_HELPERS
+ 	{ V4L2_PIX_FMT_OV511,		 0,	 7,	 7,	1 },
+ 	{ V4L2_PIX_FMT_OV518,		 0,	 7,	 7,	1 },
++#endif
+ 	/* uncompressed bayer */
+ 	{ V4L2_PIX_FMT_SBGGR8,		 8,	 8,	 8,	0 },
+ 	{ V4L2_PIX_FMT_SGBRG8,		 8,	 8,	 8,	0 },
+@@ -278,7 +280,9 @@ void v4lconvert_destroy(struct v4lconvert_data *data)
+ 	if (data->cinfo_initialized)
+ 		jpeg_destroy_decompress(&data->cinfo);
+ #endif // HAVE_JPEG
++#ifdef HAVE_LIBV4LCONVERT_HELPERS
+ 	v4lconvert_helper_cleanup(data);
++#endif
+ 	free(data->convert1_buf);
+ 	free(data->convert2_buf);
+ 	free(data->rotate90_buf);
+@@ -833,6 +837,7 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+ 				return -1;
+ 			}
+ 			break;
++#ifdef HAVE_LIBV4LCONVERT_HELPERS
+ 		case V4L2_PIX_FMT_OV511:
+ 			if (v4lconvert_helper_decompress(data, LIBV4LCONVERT_PRIV_DIR "/ov511-decomp",
+ 						src, src_size, d, d_size, width, height, yvu)) {
+@@ -849,6 +854,7 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+ 				return -1;
+ 			}
+ 			break;
++#endif
+ 		}
+ 
+ 		switch (dest_pix_fmt) {
+-- 
+1.9.1
