@@ -1,87 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:34820 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750922AbdGFO1I (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 10:27:08 -0400
-MIME-Version: 1.0
-In-Reply-To: <CAAFQd5BgVRaEym9fXt3sMSafFPK1cXwTdMgSiB87w8QVeXzzVw@mail.gmail.com>
-References: <20170705071215.17603-1-tfiga@chromium.org> <20170705071215.17603-2-tfiga@chromium.org>
- <20170705151728.GA2479@lst.de> <CAAFQd5DijKbNJ-8wHh=+2Z2y1nSF-LC8R+d+NktTRF4iQqPsrA@mail.gmail.com>
- <20170705172019.GB5246@lst.de> <CAAFQd5CkVYd6uyoFP_15N8ZaZp8jivJ-4S=CAvrTynRU2ShFYg@mail.gmail.com>
- <CAK8P3a2htZ7q=npfwJVW7Lr90O78Ey+OR5e0ivaR7GwV4YBs=A@mail.gmail.com>
- <CAAFQd5BMorNa8CD+cEap2=boD2-=jr+DFF9cXTNXzSSfe7FnLg@mail.gmail.com>
- <CAAFQd5BFLvWS5n8owm053GNC5VniMq-8Gh0BHo43B-TYShpsnA@mail.gmail.com>
- <CAK8P3a2JyQ-qLgh+ig4yWMJvB0AGjspMu8P8fNrPHgm3NMCGNw@mail.gmail.com>
- <CAAFQd5DS1NxKh4OJ52T2AJNTHg6K2fnuDm5-GHzmUk-kjowf2w@mail.gmail.com>
- <CAAFQd5Axz2yMnOo4rtP3jgEBJxUVOW0RLmFEGFejBHkYjq0s5A@mail.gmail.com>
- <CAK8P3a0xVjgD-w-uVDc54Mx0s6b1Bd3tRYt9rpetjNoMwDXvCA@mail.gmail.com> <CAAFQd5BgVRaEym9fXt3sMSafFPK1cXwTdMgSiB87w8QVeXzzVw@mail.gmail.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 6 Jul 2017 16:27:06 +0200
-Message-ID: <CAK8P3a0_S=ONcnfD0qrt61iu4N_2WQHbGTtED-WXHov-30gK=w@mail.gmail.com>
-Subject: Re: [RFC PATCH 1/5] base: dma-mapping: Export commonly used symbols
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, Christoph Hellwig <hch@lst.de>,
-        "open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Joerg Roedel <joro@8bytes.org>,
-        Will Deacon <will.deacon@arm.com>,
-        Vineet Gupta <vgupta@synopsys.com>,
-        Hans-Christian Noren Egtvedt <egtvedt@samfundet.no>,
-        Mitchel Humpherys <mitchelh@codeaurora.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Pawel Osciak <posciak@chromium.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mga01.intel.com ([192.55.52.88]:39580 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750950AbdG0HqI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Jul 2017 03:46:08 -0400
+From: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
+        hyungwoo.yang@intel.com, tfiga@chromium.org,
+        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+Subject: [PATCH v1] media: ov13858: Fix initial expsoure max
+Date: Thu, 27 Jul 2017 00:44:19 -0700
+Message-Id: <1501141459-18717-1-git-send-email-chiranjeevi.rapolu@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 6, 2017 at 4:06 PM, Tomasz Figa <tfiga@chromium.org> wrote:
-> On Thu, Jul 6, 2017 at 11:02 PM, Arnd Bergmann <arnd@arndb.de> wrote:
->> On Thu, Jul 6, 2017 at 3:49 PM, Tomasz Figa <tfiga@chromium.org> wrote:
->>> On Thu, Jul 6, 2017 at 10:31 PM, Tomasz Figa <tfiga@chromium.org> wrote:
->>
->>>> On the other hand, if it's strictly about base/dma-mapping, we might
->>>> not need it indeed. The driver could call iommu-dma helpers directly,
->>>> without the need to provide its own DMA ops. One caveat, though, we
->>>> are not able to obtain coherent (i.e. uncached) memory with this
->>>> approach, which might have some performance effects and complicates
->>>> the code, that would now need to flush caches even for some small
->>>> internal buffers.
->>>
->>> I think I should add a bit of explanation here:
->>>  1) the device is non-coherent with CPU caches, even on x86,
->>>  2) it looks like x86 does not have non-coherent DMA ops, (but it
->>> might be something that could be fixed)
->>
->> I don't understand what this means here. The PCI on x86 is always
->> cache-coherent, so why is the device not?
->>
->> Do you mean that the device has its own caches that may need
->> flushing to make the device cache coherent with the CPU cache,
->> rather than flushing the CPU caches?
->
-> Sakari might be able to explain this with more technical details, but
-> generally the device is not a standard PCI device one might find on
-> existing x86 systems.
->
-> It is some kind of embedded subsystem that behaves mostly like a PCI
-> device, with certain exceptions, one being the lack of coherency with
-> CPU caches, at least for certain parts of the subsystem. The reference
-> vendor code disables the coherency completely, for reasons not known
-> to me, but AFAICT this is the preferred operating mode, possibly due
-> to performance effects (this is a memory-heavy image processing
+Previously, initial exposure max was set incorrectly to (0x7fff - 8).
+Now, limit exposure max to current resolution (VTS - 8).
 
-Ok, got it. I think something similar happens on integrated GPUs for
-a certain CPU family. The DRM code has its own ways of dealing with
-this kind of device. If you find that the hardware to be closely
-related (either the implementation, or the location on the internal
-buses) to the GPU on this machine, I'd recommend having a look
-in drivers/gpu/drm to see how it's handled there, and if that code could
-be shared.
+Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+---
+ drivers/media/i2c/ov13858.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-        Arnd
+diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+index 86550d8..013c565 100644
+--- a/drivers/media/i2c/ov13858.c
++++ b/drivers/media/i2c/ov13858.c
+@@ -66,7 +66,6 @@
+ /* Exposure control */
+ #define OV13858_REG_EXPOSURE		0x3500
+ #define OV13858_EXPOSURE_MIN		4
+-#define OV13858_EXPOSURE_MAX		(OV13858_VTS_MAX - 8)
+ #define OV13858_EXPOSURE_STEP		1
+ #define OV13858_EXPOSURE_DEFAULT	0x640
+ 
+@@ -1602,6 +1601,7 @@ static int ov13858_init_controls(struct ov13858 *ov13858)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
+ 	struct v4l2_ctrl_handler *ctrl_hdlr;
++	s64 exposure_max;
+ 	int ret;
+ 
+ 	ctrl_hdlr = &ov13858->ctrl_handler;
+@@ -1640,10 +1640,11 @@ static int ov13858_init_controls(struct ov13858 *ov13858)
+ 				OV13858_PPL_1080MHZ - ov13858->cur_mode->width);
+ 	ov13858->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 
++	exposure_max = ov13858->cur_mode->vts - 8;
+ 	ov13858->exposure = v4l2_ctrl_new_std(
+ 				ctrl_hdlr, &ov13858_ctrl_ops,
+ 				V4L2_CID_EXPOSURE, OV13858_EXPOSURE_MIN,
+-				OV13858_EXPOSURE_MAX, OV13858_EXPOSURE_STEP,
++				exposure_max, OV13858_EXPOSURE_STEP,
+ 				OV13858_EXPOSURE_DEFAULT);
+ 
+ 	v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_ANALOGUE_GAIN,
+-- 
+1.9.1
