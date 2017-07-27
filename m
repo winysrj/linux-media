@@ -1,98 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:33775 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751892AbdGFLHy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 07:07:54 -0400
-Date: Thu, 6 Jul 2017 13:07:45 +0200
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, pavel@ucw.cz
-Subject: Re: [PATCH 3/8] v4l: fwnode: Call CSI2 bus csi2, not csi
-Message-ID: <20170706110745.2qpfeh2dkfxfxynw@earth>
-References: <20170705230019.5461-1-sakari.ailus@linux.intel.com>
- <20170705230019.5461-4-sakari.ailus@linux.intel.com>
+Received: from mail-wr0-f172.google.com ([209.85.128.172]:32872 "EHLO
+        mail-wr0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751446AbdG0Onu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Jul 2017 10:43:50 -0400
+Received: by mail-wr0-f172.google.com with SMTP id v105so114317090wrb.0
+        for <linux-media@vger.kernel.org>; Thu, 27 Jul 2017 07:43:50 -0700 (PDT)
+Subject: Re: [PATCH v2 1/2] platform: Add Amlogic Meson AO CEC Controller
+ driver
+To: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@kernel.org,
+        hans.verkuil@cisco.com
+Cc: linux-media@vger.kernel.org, linux-amlogic@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <1499673696-21372-1-git-send-email-narmstrong@baylibre.com>
+ <1499673696-21372-2-git-send-email-narmstrong@baylibre.com>
+ <b5cb7021-4c9e-98b2-5fd1-11effda3fd30@xs4all.nl>
+ <f6e40d38-fe18-49e6-0ee1-a4467666777c@baylibre.com>
+ <6f93edd0-098e-6cbc-9eea-99dd68ab3420@xs4all.nl>
+From: Neil Armstrong <narmstrong@baylibre.com>
+Message-ID: <9acecab0-7dda-9aa1-fa07-886d40f6c7df@baylibre.com>
+Date: Thu, 27 Jul 2017 16:43:46 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="v55s26rpecmb4fxd"
-Content-Disposition: inline
-In-Reply-To: <20170705230019.5461-4-sakari.ailus@linux.intel.com>
+In-Reply-To: <6f93edd0-098e-6cbc-9eea-99dd68ab3420@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 07/25/2017 03:45 PM, Hans Verkuil wrote:
+> On 07/25/17 14:34, Neil Armstrong wrote:
+>> Hi Hans,
+> 
+>>>> +static int meson_ao_cec_probe(struct platform_device *pdev)
+>>>> +{
+>>>> +	struct meson_ao_cec_device *ao_cec;
+>>>> +	struct platform_device *hdmi_dev;
+>>>> +	struct device_node *np;
+>>>> +	struct resource *res;
+>>>> +	int ret, irq;
+>>>> +
+>>>> +	np = of_parse_phandle(pdev->dev.of_node, "hdmi-phandle", 0);
+>>>> +	if (!np) {
+>>>> +		dev_err(&pdev->dev, "Failed to find hdmi node\n");
+>>>> +		return -ENODEV;
+>>>> +	}
+>>>> +
+>>>> +	hdmi_dev = of_find_device_by_node(np);
+>>>> +	if (hdmi_dev == NULL)
+>>>> +		return -EPROBE_DEFER;
+>>>> +
+>>>> +	ao_cec = devm_kzalloc(&pdev->dev, sizeof(*ao_cec), GFP_KERNEL);
+>>>> +	if (!ao_cec)
+>>>> +		return -ENOMEM;
+>>>> +
+>>>> +	spin_lock_init(&ao_cec->cec_reg_lock);
+>>>> +
+>>>> +	ao_cec->notify = cec_notifier_get(&hdmi_dev->dev);
+>>>> +	if (!ao_cec->notify)
+>>>> +		return -ENOMEM;
+>>>> +
+>>>> +	ao_cec->adap = cec_allocate_adapter(&meson_ao_cec_ops, ao_cec,
+>>>> +					    "meson_ao_cec",
+>>>> +					    CEC_CAP_LOG_ADDRS |
+>>>> +					    CEC_CAP_TRANSMIT |
+>>>> +					    CEC_CAP_RC |
+>>>> +					    CEC_CAP_PASSTHROUGH,
+>>>> +					    1); /* Use 1 for now */
+>>>
+>>> I recommend that you add support for 2 logical addresses. More isn't allowed
+>>> by the CEC 2.0 spec anyway (no such restriction for CEC 1.4, but more than
+>>> two really isn't needed).
+>>
+>> I know, but in the "communication" register with the suspend/poweroff firmware
+>> that  handles the wake up, only a single logical address is supported...
+>>
+>> What should I do in this case ? Which logical adress should I pass to the firmware when implementing ir ?
+> 
+> Ah, OK. Interesting.
+> 
+> From cec-adap.c:
+> 
+>                 if (log_addrs->num_log_addrs == 2) {
+>                         if (!(type_mask & ((1 << CEC_LOG_ADDR_TYPE_AUDIOSYSTEM) |
+>                                            (1 << CEC_LOG_ADDR_TYPE_TV)))) {
+>                                 dprintk(1, "two LAs is only allowed for audiosystem and TV\n");
+>                                 return -EINVAL;
+>                         }
+>                         if (!(type_mask & ((1 << CEC_LOG_ADDR_TYPE_PLAYBACK) |
+>                                            (1 << CEC_LOG_ADDR_TYPE_RECORD)))) {
+>                                 dprintk(1, "an audiosystem/TV can only be combined with record or playback\n");
+>                                 return -EINVAL;
+>                         }
+>                 }
+> 
+> So you would store the TV or AUDIOSYSTEM logical address in the firmware, since those
+> describe the system best.
+> 
+> I.e. it is a TV/Audiosystem with recording/playback capabilities.
+> 
+> The problem is that for CEC 1.4 no such restriction is imposed (the test above is
+> specific to CEC 2.0). But I think it makes sense to just check if TV/Audiosystem
+> is selected and pick that as the LA to store in the firmware, and otherwise just
+> pick the first LA (log_addr[0]).
 
---v55s26rpecmb4fxd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi,
+Ok I'll add support for dual LA, and I'll do this LA selection when I'll add firmware support.
 
-On Thu, Jul 06, 2017 at 02:00:14AM +0300, Sakari Ailus wrote:
-> The function to parse CSI2 bus parameters was called
-> v4l2_fwnode_endpoint_parse_csi_bus(), rename it as
-> v4l2_fwnode_endpoint_parse_csi2_bus() in anticipation of CSI1/CCP2
-> support.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Thanks,
+Neil
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 
--- Sebastian
-
-> ---
->  drivers/media/v4l2-core/v4l2-fwnode.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->=20
-> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-c=
-ore/v4l2-fwnode.c
-> index 153c53ca3925..8df26010d006 100644
-> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> @@ -28,8 +28,8 @@
-> =20
->  #include <media/v4l2-fwnode.h>
-> =20
-> -static int v4l2_fwnode_endpoint_parse_csi_bus(struct fwnode_handle *fwno=
-de,
-> -					      struct v4l2_fwnode_endpoint *vep)
-> +static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwn=
-ode,
-> +					       struct v4l2_fwnode_endpoint *vep)
->  {
->  	struct v4l2_fwnode_bus_mipi_csi2 *bus =3D &vep->bus.mipi_csi2;
->  	bool have_clk_lane =3D false;
-> @@ -176,7 +176,7 @@ int v4l2_fwnode_endpoint_parse(struct fwnode_handle *=
-fwnode,
->  	memset(&vep->bus_type, 0, sizeof(*vep) -
->  	       offsetof(typeof(*vep), bus_type));
-> =20
-> -	rval =3D v4l2_fwnode_endpoint_parse_csi_bus(fwnode, vep);
-> +	rval =3D v4l2_fwnode_endpoint_parse_csi2_bus(fwnode, vep);
->  	if (rval)
->  		return rval;
->  	/*
-> --=20
-> 2.11.0
->=20
-
---v55s26rpecmb4fxd
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlleGf0ACgkQ2O7X88g7
-+poYoxAAp5YvZRXHSnIXcqgPOD/iBa2X9tlg1D/ejvtIYo+nJs65K3tjaFKmBj5g
-Z8y3ZHZSwT1JEwYV+e7E5UQrrKRn5JL8w159OISEmhOsILKfvbvsXEClGJEY0KdG
-NXJryLcVNtlo7o3q8Iz8MykqicVKL9pHnIo9ykyBp/F9M4GuEQiI1mu+ckSF+Qpe
-Uu/MLe6Rye3Muo02SU58JRqvubarkwqKXsnsYe4dC2eMuTPwnxYdVQXE8pXzeeEj
-c/R8BPhPCQ1tWgFP7Vw6ozVFYRPcYmnbA+CmwQYnvBoVphzfmMt3pH9S1bNeIJ9L
-VMRNlw2Pt/0wg+0GEMH5nkUt/EKSanOoiOKzJTw/JqFfrW0axm0/tG7sxBO6nRbx
-KhswMLvzWkFXMtrJjeqDOEwxAeWdX+6jEDbqoxr7M41nXMKzn4NaEdeKSiYGsRHa
-/j5Wwaxf8OF9YW75I0ma76CpSIBYXB/cxuYufu/b+RueasFCRWQuMBetGHMPa2lK
-TZoxPN5wrOOTDZ/D7IJcLxXHNsJTm77TR/vEdW/EkpnxTHbJOdypAc0e32+53rAY
-ZiduD7tNXsLftaSfdBAMeqKYz9MviSlegK1JrItYVsYmdb4b5w8znaM84D2PlBtx
-EFIHOWT4Xvq81vyYeKm06IvNdx7FMiqHzODPGGVyQ/C8FToT9as=
-=qKAJ
------END PGP SIGNATURE-----
-
---v55s26rpecmb4fxd--
+> Regards,
+> 
+> 	Hans
+> 
