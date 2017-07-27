@@ -1,77 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f66.google.com ([209.85.214.66]:35019 "EHLO
-        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753584AbdGJImL (ORCPT
+Received: from out20-63.mail.aliyun.com ([115.124.20.63]:60100 "EHLO
+        out20-63.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751659AbdG0Dvs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Jul 2017 04:42:11 -0400
-Received: by mail-it0-f66.google.com with SMTP id v193so12182015itc.2
-        for <linux-media@vger.kernel.org>; Mon, 10 Jul 2017 01:42:10 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCH] media/dvb: earth-pt3: fix hang-up in a rare case
-Date: Mon, 10 Jul 2017 17:40:13 +0900
-Message-Id: <20170710084013.4321-1-tskd08@gmail.com>
+        Wed, 26 Jul 2017 23:51:48 -0400
+From: Yong Deng <yong.deng@magewell.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benoit Parrot <bparrot@ti.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Cc: Yong Deng <yong.deng@magewell.com>
+Subject: [PATCH v2 2/3] dt-bindings: media: Add Allwinner V3s Camera Sensor Interface (CSI)
+Date: Thu, 27 Jul 2017 11:51:13 +0800
+Message-Id: <1501127474-40895-3-git-send-email-yong.deng@magewell.com>
+In-Reply-To: <1501127474-40895-1-git-send-email-yong.deng@magewell.com>
+References: <1501127474-40895-1-git-send-email-yong.deng@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+Add binding documentation for Allwinner V3s CSI.
 
-When a user starts and stops filtering at a demux device too quickly
-in a very short interval, the user process hangs in uninterruptible sleep,
-due to an inconsistency of kthread status in the driver.
-The kthread can be stopped before it starts running its thread function,
-but the invocation status was partly managed in the kthread function,
-which resulted in a double kthread_stop() of one kthread.
-
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+Signed-off-by: Yong Deng <yong.deng@magewell.com>
 ---
- drivers/media/pci/pt3/pt3.c | 11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ .../devicetree/bindings/media/sun6i-csi.txt        | 49 ++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
 
-diff --git a/drivers/media/pci/pt3/pt3.c b/drivers/media/pci/pt3/pt3.c
-index e8b5d099215..34044a45fec 100644
---- a/drivers/media/pci/pt3/pt3.c
-+++ b/drivers/media/pci/pt3/pt3.c
-@@ -472,7 +472,6 @@ static int pt3_fetch_thread(void *data)
- 	}
- 	dev_dbg(adap->dvb_adap.device, "PT3: [%s] exited\n",
- 		adap->thread->comm);
--	adap->thread = NULL;
- 	return 0;
- }
- 
-@@ -486,6 +485,7 @@ static int pt3_start_streaming(struct pt3_adapter *adap)
- 	if (IS_ERR(thread)) {
- 		int ret = PTR_ERR(thread);
- 
-+		adap->thread = NULL;
- 		dev_warn(adap->dvb_adap.device,
- 			 "PT3 (adap:%d, dmx:%d): failed to start kthread\n",
- 			 adap->dvb_adap.num, adap->dmxdev.dvbdev->id);
-@@ -508,6 +508,7 @@ static int pt3_stop_streaming(struct pt3_adapter *adap)
- 
- 	/* kill the fetching thread */
- 	ret = kthread_stop(adap->thread);
-+	adap->thread = NULL;
- 	return ret;
- }
- 
-@@ -520,14 +521,8 @@ static int pt3_start_feed(struct dvb_demux_feed *feed)
- 
- 	adap = container_of(feed->demux, struct pt3_adapter, demux);
- 	adap->num_feeds++;
--	if (adap->thread)
-+	if (adap->num_feeds > 1)
- 		return 0;
--	if (adap->num_feeds != 1) {
--		dev_warn(adap->dvb_adap.device,
--			 "%s: unmatched start/stop_feed in adap:%i/dmx:%i\n",
--			 __func__, adap->dvb_adap.num, adap->dmxdev.dvbdev->id);
--		adap->num_feeds = 1;
--	}
- 
- 	return pt3_start_streaming(adap);
- 
+diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+new file mode 100644
+index 0000000..f8d83f6
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+@@ -0,0 +1,49 @@
++Allwinner V3s Camera Sensor Interface
++------------------------------
++
++Required properties:
++  - compatible: value must be "allwinner,sun8i-v3s-csi"
++  - reg: base address and size of the memory-mapped region.
++  - interrupts: interrupt associated to this IP
++  - clocks: phandles to the clocks feeding the CSI
++    * ahb: the CSI interface clock
++    * mod: the CSI module clock
++    * ram: the CSI DRAM clock
++  - clock-names: the clock names mentioned above
++  - resets: phandles to the reset line driving the CSI
++
++- ports: A ports node with endpoint definitions as defined in
++  Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++	csi1: csi@01cb4000 {
++		compatible = "allwinner,sun8i-v3s-csi";
++		reg = <0x01cb4000 0x1000>;
++		interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&ccu CLK_BUS_CSI>,
++			 <&ccu CLK_CSI1_SCLK>,
++			 <&ccu CLK_DRAM_CSI>;
++		clock-names = "ahb", "mod", "ram";
++		resets = <&ccu RST_BUS_CSI>;
++
++		port {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			/* Parallel bus endpoint */
++			csi1_ep: endpoint {
++				remote-endpoint = <&adv7611_ep>;
++				bus-width = <16>;
++				data-shift = <0>;
++
++				/* If hsync-active/vsync-active are missing,
++				   embedded BT.656 sync is used */
++				hsync-active = <0>; /* Active low */
++				vsync-active = <0>; /* Active low */
++				data-active = <1>;  /* Active high */
++				pclk-sample = <1>;  /* Rising */
++			};
++		};
++	};
++
 -- 
-2.13.2
+1.8.3.1
