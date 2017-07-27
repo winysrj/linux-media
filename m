@@ -1,47 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:34380 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752645AbdGITmk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Jul 2017 15:42:40 -0400
-Received: by mail-wr0-f195.google.com with SMTP id k67so20345738wrc.1
-        for <linux-media@vger.kernel.org>; Sun, 09 Jul 2017 12:42:39 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, d_spingler@gmx.de, rjkm@metzlerbros.de
-Subject: [PATCH 14/14] [media] MAINTAINERS: add entry for ddbridge
-Date: Sun,  9 Jul 2017 21:42:21 +0200
-Message-Id: <20170709194221.10255-15-d.scheller.oss@gmail.com>
-In-Reply-To: <20170709194221.10255-1-d.scheller.oss@gmail.com>
-References: <20170709194221.10255-1-d.scheller.oss@gmail.com>
+Received: from mga04.intel.com ([192.55.52.120]:40252 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751782AbdG0HaB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Jul 2017 03:30:01 -0400
+From: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
+        hyungwoo.yang@intel.com, tfiga@chromium.org,
+        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+Subject: [PATCH v1] [media] ov13858 Set default fps as current fps
+Date: Thu, 27 Jul 2017 00:28:05 -0700
+Message-Id: <1501140485-27879-1-git-send-email-chiranjeevi.rapolu@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On format change, sometimes, sensor was streaming at a much higher
+FPS than the default. This was resulting in various problems like
+frame drops/corruption.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Upon format change, set default vblank as current vblank. This will
+ensure that sensor will start streaming at default fps.
+
+Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
 ---
- MAINTAINERS | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/media/i2c/ov13858.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 7b85e578d238..6abb534c69c7 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8262,6 +8262,14 @@ T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/dvb-frontends/stv6111*
+diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+index 86550d8..8e6c8f0 100644
+--- a/drivers/media/i2c/ov13858.c
++++ b/drivers/media/i2c/ov13858.c
+@@ -1377,6 +1377,7 @@ static int ov13858_get_pad_format(struct v4l2_subdev *sd,
+ 	struct ov13858 *ov13858 = to_ov13858(sd);
+ 	const struct ov13858_mode *mode;
+ 	struct v4l2_mbus_framefmt *framefmt;
++	s32 vblank_def;
+ 	s64 h_blank;
  
-+MEDIA DRIVERS FOR DIGITAL DEVICES PCIE DEVICES
-+M:	Daniel Scheller <d.scheller.oss@gmail.com>
-+L:	linux-media@vger.kernel.org
-+W:	https://linuxtv.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/pci/ddbridge/*
-+
- MEDIA INPUT INFRASTRUCTURE (V4L/DVB)
- M:	Mauro Carvalho Chehab <mchehab@s-opensource.com>
- M:	Mauro Carvalho Chehab <mchehab@kernel.org>
+ 	mutex_lock(&ov13858->mutex);
+@@ -1397,10 +1398,12 @@ static int ov13858_get_pad_format(struct v4l2_subdev *sd,
+ 			ov13858->pixel_rate,
+ 			link_freq_configs[mode->link_freq_index].pixel_rate);
+ 		/* Update limits and set FPS to default */
++		vblank_def = ov13858->cur_mode->vts - ov13858->cur_mode->height;
+ 		__v4l2_ctrl_modify_range(
+ 			ov13858->vblank, OV13858_VBLANK_MIN,
+ 			OV13858_VTS_MAX - ov13858->cur_mode->height, 1,
+-			ov13858->cur_mode->vts - ov13858->cur_mode->height);
++			vblank_def);
++		__v4l2_ctrl_s_ctrl(ov13858->vblank, vblank_def);
+ 		h_blank =
+ 			link_freq_configs[mode->link_freq_index].pixels_per_line
+ 			 - ov13858->cur_mode->width;
 -- 
-2.13.0
+1.9.1
