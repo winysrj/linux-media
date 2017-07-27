@@ -1,83 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59273 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752068AbdGFWlX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 18:41:23 -0400
-Subject: Re: [PATCH] rcar_fdp1: constify vb2_ops structure
-To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <20170706202532.GA12160@embeddedgus>
-Reply-To: kieran.bingham@ideasonboard.com
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <76532629-9ab3-117a-d849-46c7ade8688c@ideasonboard.com>
-Date: Thu, 6 Jul 2017 23:41:12 +0100
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:35348 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751441AbdG0PjU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Jul 2017 11:39:20 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] v4l2-tpg-core.c: fix typo in bt2020_full matrix
+Message-ID: <cdee9afa-6824-aaf5-e0e3-c724d00ee107@xs4all.nl>
+Date: Thu, 27 Jul 2017 17:39:14 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170706202532.GA12160@embeddedgus>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gustavo,
+My eye fell on this wrong coefficient in the bt2020_full matrix.
+The bt2020 matrix (limited range) is OK.
 
-Thank you for the patch.
-
-On 06/07/17 21:25, Gustavo A. R. Silva wrote:
-> Check for vb2_ops structures that are only stored in the ops field of a
-> vb2_queue structure. That field is declared const, so vb2_ops structures
-> that have this property can be declared as const also.
-> 
-> This issue was detected using Coccinelle and the following semantic patch:
-> 
-> @r disable optional_qualifier@
-> identifier i;
-> position p;
-> @@
-> static struct vb2_ops i@p = { ... };
-> 
-> @ok@
-> identifier r.i;
-> struct vb2_queue e;
-> position p;
-> @@
-> e.ops = &i@p;
-> 
-> @bad@
-> position p != {r.p,ok.p};
-> identifier r.i;
-> struct vb2_ops e;
-> @@
-> e@i@p
-> 
-> @depends on !bad disable optional_qualifier@
-> identifier r.i;
-> @@
-> static
-> +const
-> struct vb2_ops i = { ... };
-> 
-> Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
-
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-> ---
->  drivers/media/platform/rcar_fdp1.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
-> index 3ee51fc..3245bc4 100644
-> --- a/drivers/media/platform/rcar_fdp1.c
-> +++ b/drivers/media/platform/rcar_fdp1.c
-> @@ -2032,7 +2032,7 @@ static void fdp1_stop_streaming(struct vb2_queue *q)
->  	}
->  }
->  
-> -static struct vb2_ops fdp1_qops = {
-> +static const struct vb2_ops fdp1_qops = {
->  	.queue_setup	 = fdp1_queue_setup,
->  	.buf_prepare	 = fdp1_buf_prepare,
->  	.buf_queue	 = fdp1_buf_queue,
-> 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+index 3dd22da7e17d..a772976cfe26 100644
+--- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
++++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+@@ -615,7 +615,7 @@ static void color_to_ycbcr(struct tpg_data *tpg, int r, int g, int b,
+ 	static const int bt2020_full[3][3] = {
+ 		{ COEFF(0.2627, 255),  COEFF(0.6780, 255),  COEFF(0.0593, 255)  },
+ 		{ COEFF(-0.1396, 255), COEFF(-0.3604, 255), COEFF(0.5, 255)     },
+-		{ COEFF(0.5, 255),     COEFF(-0.4698, 255), COEFF(-0.0402, 255) },
++		{ COEFF(0.5, 255),     COEFF(-0.4598, 255), COEFF(-0.0402, 255) },
+ 	};
+ 	static const int bt2020c[4] = {
+ 		COEFF(1.0 / 1.9404, 224), COEFF(1.0 / 1.5816, 224),
