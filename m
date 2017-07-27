@@ -1,34 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49406 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933181AbdGKTiG (ORCPT
+Received: from mail-wr0-f177.google.com ([209.85.128.177]:38418 "EHLO
+        mail-wr0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751554AbdG0POh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 15:38:06 -0400
-Date: Tue, 11 Jul 2017 22:38:01 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Kevin Hilman <khilman@baylibre.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH] [media] davinci: vpif_capture: fix potential NULL deref
-Message-ID: <20170711193801.mohebkj6igfmy7hu@valkosipuli.retiisi.org.uk>
-References: <20170711190752.30142-1-khilman@baylibre.com>
+        Thu, 27 Jul 2017 11:14:37 -0400
+Received: by mail-wr0-f177.google.com with SMTP id f21so88510066wrf.5
+        for <linux-media@vger.kernel.org>; Thu, 27 Jul 2017 08:14:36 -0700 (PDT)
+Subject: Re: [PATCH v2 1/2] platform: Add Amlogic Meson AO CEC Controller
+ driver
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@kernel.org,
+        hans.verkuil@cisco.com
+Cc: linux-media@vger.kernel.org, linux-amlogic@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <1499673696-21372-1-git-send-email-narmstrong@baylibre.com>
+ <1499673696-21372-2-git-send-email-narmstrong@baylibre.com>
+ <b5cb7021-4c9e-98b2-5fd1-11effda3fd30@xs4all.nl>
+ <f6e40d38-fe18-49e6-0ee1-a4467666777c@baylibre.com>
+ <6f93edd0-098e-6cbc-9eea-99dd68ab3420@xs4all.nl>
+ <9acecab0-7dda-9aa1-fa07-886d40f6c7df@baylibre.com>
+Message-ID: <b3cc0f02-7bd0-a6c9-c223-6902f448d276@baylibre.com>
+Date: Thu, 27 Jul 2017 17:14:32 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170711190752.30142-1-khilman@baylibre.com>
+In-Reply-To: <9acecab0-7dda-9aa1-fa07-886d40f6c7df@baylibre.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 11, 2017 at 12:07:52PM -0700, Kevin Hilman wrote:
-> Fix potential NULL pointer dereference in the error path of memory
-> allocation failure.
+On 07/27/2017 04:43 PM, Neil Armstrong wrote:
+> On 07/25/2017 03:45 PM, Hans Verkuil wrote:
+>> On 07/25/17 14:34, Neil Armstrong wrote:
+>>> Hi Hans,
+>>
+>>>>> +static int meson_ao_cec_probe(struct platform_device *pdev)
+>>>>> +{
+>>>>> +	struct meson_ao_cec_device *ao_cec;
+>>>>> +	struct platform_device *hdmi_dev;
+>>>>> +	struct device_node *np;
+>>>>> +	struct resource *res;
+>>>>> +	int ret, irq;
+>>>>> +
+>>>>> +	np = of_parse_phandle(pdev->dev.of_node, "hdmi-phandle", 0);
+>>>>> +	if (!np) {
+>>>>> +		dev_err(&pdev->dev, "Failed to find hdmi node\n");
+>>>>> +		return -ENODEV;
+>>>>> +	}
+>>>>> +
+>>>>> +	hdmi_dev = of_find_device_by_node(np);
+>>>>> +	if (hdmi_dev == NULL)
+>>>>> +		return -EPROBE_DEFER;
+>>>>> +
+>>>>> +	ao_cec = devm_kzalloc(&pdev->dev, sizeof(*ao_cec), GFP_KERNEL);
+>>>>> +	if (!ao_cec)
+>>>>> +		return -ENOMEM;
+>>>>> +
+>>>>> +	spin_lock_init(&ao_cec->cec_reg_lock);
+>>>>> +
+>>>>> +	ao_cec->notify = cec_notifier_get(&hdmi_dev->dev);
+>>>>> +	if (!ao_cec->notify)
+>>>>> +		return -ENOMEM;
+>>>>> +
+>>>>> +	ao_cec->adap = cec_allocate_adapter(&meson_ao_cec_ops, ao_cec,
+>>>>> +					    "meson_ao_cec",
+>>>>> +					    CEC_CAP_LOG_ADDRS |
+>>>>> +					    CEC_CAP_TRANSMIT |
+>>>>> +					    CEC_CAP_RC |
+>>>>> +					    CEC_CAP_PASSTHROUGH,
+>>>>> +					    1); /* Use 1 for now */
+>>>>
+>>>> I recommend that you add support for 2 logical addresses. More isn't allowed
+>>>> by the CEC 2.0 spec anyway (no such restriction for CEC 1.4, but more than
+>>>> two really isn't needed).
+>>>
+>>> I know, but in the "communication" register with the suspend/poweroff firmware
+>>> that  handles the wake up, only a single logical address is supported...
+>>>
+>>> What should I do in this case ? Which logical adress should I pass to the firmware when implementing ir ?
+>>
+>> Ah, OK. Interesting.
+>>
+>> From cec-adap.c:
+>>
+>>                 if (log_addrs->num_log_addrs == 2) {
+>>                         if (!(type_mask & ((1 << CEC_LOG_ADDR_TYPE_AUDIOSYSTEM) |
+>>                                            (1 << CEC_LOG_ADDR_TYPE_TV)))) {
+>>                                 dprintk(1, "two LAs is only allowed for audiosystem and TV\n");
+>>                                 return -EINVAL;
+>>                         }
+>>                         if (!(type_mask & ((1 << CEC_LOG_ADDR_TYPE_PLAYBACK) |
+>>                                            (1 << CEC_LOG_ADDR_TYPE_RECORD)))) {
+>>                                 dprintk(1, "an audiosystem/TV can only be combined with record or playback\n");
+>>                                 return -EINVAL;
+>>                         }
+>>                 }
+>>
+>> So you would store the TV or AUDIOSYSTEM logical address in the firmware, since those
+>> describe the system best.
+>>
+>> I.e. it is a TV/Audiosystem with recording/playback capabilities.
+>>
+>> The problem is that for CEC 1.4 no such restriction is imposed (the test above is
+>> specific to CEC 2.0). But I think it makes sense to just check if TV/Audiosystem
+>> is selected and pick that as the LA to store in the firmware, and otherwise just
+>> pick the first LA (log_addr[0]).
 > 
-> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+> 
+> Ok I'll add support for dual LA, and I'll do this LA selection when I'll add firmware support.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Sorry, but having more than 1 LA makes the CEC controller very unstable, I'll need more info from amlogic to activate multiple LAs.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Neil
+
+> 
+> Thanks,
+> Neil
+> 
+> 
+>> Regards,
+>>
+>> 	Hans
+>>
+> 
