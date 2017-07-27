@@ -1,54 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60126 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751899AbdGFUbA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Jul 2017 16:31:00 -0400
-Subject: Re: [PATCH v6 4/4] dt-bindings: media: Document Synopsys Designware
- HDMI RX
-To: Jose Abreu <Jose.Abreu@synopsys.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        devicetree@vger.kernel.org
-References: <cover.1499176790.git.joabreu@synopsys.com>
- <d6da0a3ec47a46d30b74e9d41fb4bf9ef392d969.1499176790.git.joabreu@synopsys.com>
- <4dc8f06f-b9cf-6d3d-da88-51abb24c1724@kernel.org>
- <e87124d0-d523-5dcd-5ace-6b5896ad585c@synopsys.com>
-From: Sylwester Nawrocki <snawrocki@kernel.org>
-Message-ID: <b0ba8226-972e-a997-e456-c342603b2ffd@kernel.org>
-Date: Thu, 6 Jul 2017 22:30:55 +0200
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39969 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751444AbdG0OkM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Jul 2017 10:40:12 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv3 6/6] media: drop use of MEDIA_API_VERSION
+Date: Thu, 27 Jul 2017 17:40:20 +0300
+Message-ID: <37535292.eoyeuJDe2y@avalon>
+In-Reply-To: <20170722113057.45202-7-hverkuil@xs4all.nl>
+References: <20170722113057.45202-1-hverkuil@xs4all.nl> <20170722113057.45202-7-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <e87124d0-d523-5dcd-5ace-6b5896ad585c@synopsys.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/06/2017 12:24 PM, Jose Abreu wrote:
->>> +- edid-phandle: phandle to the EDID handler block.
->>
->> Could you make this property optional and when it is missing assume that device
->> corresponding to the parent node of this node handles EDID? This way we could
->> avoid having property pointing to the parent node.
->
-> Hmm, this is for the CEC notifier. Do you mean I should grab the
-> parent device for the notifier? This property is already optional
-> if cec is not enabled though.
- 
-Yes, device associated with the parent node. Something like:
+Hi Hans,
 
- - edid-phandle - phandle to the EDID handler block; if this property is
-  not specified it is assumed that EDID is handled by device described 
-  by parent node of the HDMI RX node
+On Saturday 22 Jul 2017 13:30:57 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Set media_version to LINUX_VERSION_CODE, just as we did for
+> driver_version.
+> 
+> Nobody ever rememebers to update the version number, but
+> LINUX_VERSION_CODE will always be updated.
+> 
+> Move the MEDIA_API_VERSION define to the ifndef __KERNEL__ section of the
+> media.h header. That way kernelspace can't accidentally start to use
+> it again.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/media-device.c | 3 +--
+>  include/uapi/linux/media.h   | 5 +++--
+>  2 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 979e4307d248..3c99294e3ebf 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -69,9 +69,8 @@ static int media_device_get_info(struct media_device *dev,
+> strlcpy(info->serial, dev->serial, sizeof(info->serial));
+>  	strlcpy(info->bus_info, dev->bus_info, sizeof(info->bus_info));
+> 
+> -	info->media_version = MEDIA_API_VERSION;
+> +	info->media_version = info->driver_version = LINUX_VERSION_CODE;
 
-Not sure if it is any better than always requiring edid-phandle property,
-even when it is pointing to the parent node. We would need a DT maintainer's
-opinion on that.
+I'd split this on two lines, I believe it would be clearer. Apart from that,
 
---
-Thanks,
-Sylwester
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>  	info->hw_revision = dev->hw_revision;
+> -	info->driver_version = LINUX_VERSION_CODE;
+> 
+>  	return 0;
+>  }
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index fac96c64fe51..4865f1e71339 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -30,8 +30,6 @@
+>  #include <linux/types.h>
+>  #include <linux/version.h>
+> 
+> -#define MEDIA_API_VERSION	KERNEL_VERSION(0, 1, 0)
+> -
+>  struct media_device_info {
+>  	char driver[16];
+>  	char model[32];
+> @@ -187,6 +185,9 @@ struct media_device_info {
+>  #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	MEDIA_ENT_F_LENS
+>  #define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	MEDIA_ENT_F_ATV_DECODER
+>  #define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	MEDIA_ENT_F_TUNER
+> +
+> +/* Obsolete symbol for media_version, no longer used in the kernel */
+> +#define MEDIA_API_VERSION		KERNEL_VERSION(0, 1, 0)
+>  #endif
+> 
+>  /* Entity flags */
+
+-- 
+Regards,
+
+Laurent Pinchart
