@@ -1,213 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:55954 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751071AbdG1Nju (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Jul 2017 09:39:50 -0400
-Subject: Re: [media] vimc: API proposal, configuring the topology from user
- space
-To: Helen Koike <helen.koike@collabora.com>,
-        linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Jeremy Gebben <jgebben@codeaurora.org>,
-        linux-kernel@vger.kernel.org
-References: <b88b916e-97ee-f91d-368f-bc0793fe5c0d@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <73f4a527-1144-4b0d-a9db-e3fb153cc658@xs4all.nl>
-Date: Fri, 28 Jul 2017 15:39:44 +0200
+Received: from mga11.intel.com ([192.55.52.93]:41595 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751617AbdG0M7E (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Jul 2017 08:59:04 -0400
+Date: Thu, 27 Jul 2017 20:59:00 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: [ragnatech:media-tree] BUILD SUCCESS
+ da48c948c263c9d87dfc64566b3373a858cc8aa2
+Message-ID: <5979e394.uIvde/3egBMFb3ZN%fengguang.wu@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <b88b916e-97ee-f91d-368f-bc0793fe5c0d@collabora.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Helen,
+git://git.ragnatech.se/linux  media-tree
+da48c948c263c9d87dfc64566b3373a858cc8aa2  media: fix warning on v4l2_subdev_call() result interpreted as bool
 
-Finally after way too long I found some time to review this. See my comments
-below.
+elapsed time: 1130m
 
-On 04/11/2017 12:53 AM, Helen Koike wrote:
-> 
-> Hi,
-> 
-> Continuing the discussion about the API of the vimc driver, I made some 
-> changes
-> based on the previous comments, please see below and let me know your 
-> opinion about it.
-> 
-> Helen
-> 
-> /***********************
-> Configfs considerations:
-> ************************/
-> Informal definitions:
-> 	subsystem: the root driver folder in user space (/configfs/vimc)
-> 	item: aka a folder in user space
-> 	attributes: aka files in the folder
-> 	group: aka a folder that can contain subfolders (parent and child relation)
-> 	default group: aka a subfolder that is created automatically when the 
-> "parent" folder is created
-> 		it is not considered a child in terms of rmdir
-> 
-> * Performing rmdir in a group will fail if it contain children that are 
-> not default groups, i.e, if the
-> folder contain subfolders that are default group, then it can be removed 
-> with rmdir, if the
-> subfolders were created with mkdir, then rmdir in the parent will fail.
-> 
-> * Configfs has the notion of committable item but it is not implemented 
-> yet. A committable item is an item
-> that can be in one of two parent folders called: live and pending. The 
-> idea is to create and modify the item
-> in the pending directory and then to move the item through a rename to 
-> the live directory where
-> it can't be modified. This seems to be a nice feature for vimc, but as 
-> it is not available yet the
-> proposal below won't be based on this.
-> 
-> * Groups can be dynamically created/destroyed by the driver whenever it 
-> wants. Afaik attributes can only
-> be created when the group or item is created and symlinks can only be 
-> create from user space, i.e, the
-> driver don't know how to create/destroy attributes or symlinks in anytime.
-> 
-> /***********************
-> The API:
-> ************************/
-> 
-> In short, a topology like this one: http://goo.gl/Y7eUfu
-> Would look like this filesystem tree: https://goo.gl/mEOmOf
+configs tested: 153
 
-This mentions 'Yellow' lines, but since you dropped symlinks these no
-longer exist. You probably need to update the legend.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-> 
-> v3 core changes:
-> - I removed the use of symlinks as I wans't able to see how to do it nicely.
-> - I use the names of the folders created by user space to retrieve 
-> information at mkdir time
-> - hotplug file in each entity
-> - hotplug file in each device
-> - reset file in each device
-> 
-> * The /configfs/vimc subsystem
-> empty when the driver is loaded
+x86_64                           allmodconfig
+sh                               allmodconfig
+sh                            titan_defconfig
+sh                          rsk7269_defconfig
+sh                  sh7785lcr_32bit_defconfig
+sh                                allnoconfig
+x86_64                 randconfig-a0-07271829
+i386                               tinyconfig
+cris                 etrax-100lx_v2_defconfig
+blackfin                  TCM-BF537_defconfig
+blackfin            BF561-EZKIT-SMP_defconfig
+blackfin                BF533-EZKIT_defconfig
+blackfin                BF526-EZBRD_defconfig
+ia64                              allnoconfig
+ia64                                defconfig
+ia64                             alldefconfig
+i386                   randconfig-x019-201730
+i386                   randconfig-x013-201730
+i386                   randconfig-x016-201730
+i386                   randconfig-x012-201730
+i386                   randconfig-x018-201730
+i386                   randconfig-x010-201730
+i386                   randconfig-x015-201730
+i386                   randconfig-x011-201730
+i386                   randconfig-x017-201730
+i386                   randconfig-x014-201730
+microblaze                      mmu_defconfig
+microblaze                    nommu_defconfig
+i386                   randconfig-n0-07241914
+x86_64                 randconfig-x007-201730
+x86_64                 randconfig-x001-201730
+x86_64                 randconfig-x000-201730
+x86_64                 randconfig-x006-201730
+x86_64                 randconfig-x003-201730
+x86_64                 randconfig-x004-201730
+x86_64                 randconfig-x009-201730
+x86_64                 randconfig-x005-201730
+x86_64                 randconfig-x008-201730
+x86_64                 randconfig-x002-201730
+x86_64                                  kexec
+x86_64                                   rhel
+x86_64                               rhel-7.2
+c6x                        evmc6678_defconfig
+xtensa                       common_defconfig
+m32r                       m32104ut_defconfig
+score                      spct6600_defconfig
+xtensa                          iss_defconfig
+m32r                         opsput_defconfig
+m32r                           usrv_defconfig
+m32r                     mappi3.smp_defconfig
+nios2                         10m50_defconfig
+h8300                    h8300h-sim_defconfig
+powerpc                             defconfig
+s390                        default_defconfig
+powerpc                       ppc64_defconfig
+powerpc                           allnoconfig
+x86_64                 randconfig-x016-201730
+x86_64                 randconfig-x011-201730
+x86_64                 randconfig-x019-201730
+x86_64                 randconfig-x014-201730
+x86_64                 randconfig-x012-201730
+x86_64                 randconfig-x013-201730
+x86_64                 randconfig-x018-201730
+x86_64                 randconfig-x015-201730
+x86_64                 randconfig-x010-201730
+x86_64                 randconfig-x017-201730
+arm                       omap2plus_defconfig
+arm                                    sa1100
+arm                              allmodconfig
+arm                                   samsung
+arm                        mvebu_v7_defconfig
+arm                          ixp4xx_defconfig
+arm                       imx_v6_v7_defconfig
+arm64                            allmodconfig
+arm                           tegra_defconfig
+arm                                      arm5
+arm64                            alldefconfig
+arm                                        sh
+arm                                     arm67
+i386                     randconfig-a0-201730
+i386                     randconfig-a1-201730
+i386                   randconfig-s0-07240817
+i386                   randconfig-s1-07240817
+x86_64                 randconfig-i0-07231502
+i386                   randconfig-i0-07240017
+i386                   randconfig-i1-07240017
+sparc                               defconfig
+sparc64                           allnoconfig
+sparc64                             defconfig
+arm                        keystone_defconfig
+blackfin                   CM-BF561_defconfig
+sh                ecovec24-romimage_defconfig
+blackfin                BF538-EZKIT_defconfig
+tile                                defconfig
+x86_64                                    lkp
+i386                             allmodconfig
+m68k                           sun3_defconfig
+m68k                          multi_defconfig
+m68k                       m5475evb_defconfig
+parisc                        c3000_defconfig
+parisc                         b180_defconfig
+parisc                              defconfig
+alpha                               defconfig
+parisc                            allnoconfig
+arm                         at91_dt_defconfig
+arm                               allnoconfig
+arm                           efm32_defconfig
+arm64                               defconfig
+arm                        multi_v5_defconfig
+arm                           sunxi_defconfig
+arm64                             allnoconfig
+arm                          exynos_defconfig
+arm                        shmobile_defconfig
+arm                        multi_v7_defconfig
+i386                 randconfig-x078-07241842
+i386                 randconfig-x072-07241842
+i386                 randconfig-x077-07241842
+i386                 randconfig-x074-07241842
+i386                 randconfig-x071-07241842
+i386                 randconfig-x073-07241842
+i386                 randconfig-x070-07241842
+i386                 randconfig-x075-07241842
+i386                 randconfig-x079-07241842
+i386                 randconfig-x076-07241842
+mn10300                     asb2364_defconfig
+openrisc                    or1ksim_defconfig
+um                           x86_64_defconfig
+um                             i386_defconfig
+frv                                 defconfig
+tile                         tilegx_defconfig
+x86_64                             acpi-redef
+x86_64                           allyesdebian
+x86_64                                nfsroot
+i386                   randconfig-x000-201730
+i386                   randconfig-x003-201730
+i386                   randconfig-x009-201730
+i386                   randconfig-x004-201730
+i386                   randconfig-x008-201730
+i386                   randconfig-x001-201730
+i386                   randconfig-x005-201730
+i386                   randconfig-x007-201730
+i386                   randconfig-x002-201730
+i386                   randconfig-x006-201730
+i386                              allnoconfig
+i386                                defconfig
+i386                             alldefconfig
+mips                                   jz4740
+mips                      malta_kvm_defconfig
+mips                         64r6el_defconfig
+mips                           32r2_defconfig
+mips                              allnoconfig
+mips                      fuloong2e_defconfig
+mips                                     txx9
 
-I'm not sure about that. I think it would make sense that vimc when loaded
-would make one instance, unless otherwise told via a module option.
-
-Something like this (taken from vivid):
-
-parm:           n_devs: number of driver instances to create (uint)
-
-By default this is 1, but can also be 0, 2, 3, etc.
-
-> 
-> * Create a device
-> Userspace can create a new vimc device with:
-> 
-> 	$ mkdir /configfs/vimc/any_name
-> 	Example:
-> 	$ mkdir /configfs/vimc/vimc0
-> 	$ ls -l /configfs/vimc/vimc0
-> 	hotplug
-> 	reset
-> 	entities/
-> 	links/
-> 
-> entities/ and links/ folder are default groups, thus they don't prevent 
-> rmdir vimc0/, but
-> rmdir will fail if it has any child inside entities/ or links/.
-> hotplug is used to plug and unplug the device, it can read "plugged" or 
-> "unplugged" and user can
-> write "plug" or "unplug" to change its state.
-
-I would also support writing "plugged" and "unplugged". I.e. support both variants.
-
-> Changing hotplug state will never fail as the configfs tree will always 
-> be in a valid state.
-> reset is used to easily destroy all the topology without the need to 
-> walk through all the children
-> to perform rmdir, writing 1 to reset file will set hotplug to 
-> "unplugged" and erase all folders
-> under entities/ and links/.
-> 
-> * Create an entity
-> Userspace can create a new entity with:
-> 
-> 	$ mkdir /configfs/vimc/vimc0/entities/<role>:<name>
-> 	Example:
-> 	$ mkdir /configfs/vimc/vimc0/entities/sensor:SensorA
-> 	$ ls -l /configfs/vimc/vimc0/entities/sensor:SensorA
-> 	hotplug
-> 	pad:source:0/
-> 
-> The name of the folder needs to be in the format <role>:<name> or it 
-> will be rejected, this allows the
-> creation of the right pads according to its role at mkdir time, 
-> eliminating the previously proposed role
-> and name files.
-> hotplug is used to plug and unplug the hw block, it can read "plugged" 
-> or "unplugged" and user can
-> write "plug" or "unplug" to change its state. As we don't support this 
-> yet in the media core, changing it
-> will only be allowed if /configfs/vimc/vimc0/hotplug is "unplugged".
-> hotplug file is "unplugged" by default.
-> Pads will be created as default groups with the name in the format 
-> pad:<direction>:<pad_number> and it
-> will be an empty folder.
-> If the hw block supports different number of pads, we could expose two 
-> files:
-> sinks
-> sources
-> where the user space can write the desired number of sink and source 
-> pads and the driver will dynamically
-> create the folders pad:<direction>:<pad_number>
-> 
-> * Create a link
-> User space can create a link between two entities with:
-> 
-> 	$ mkdir 
-> /configfs/vimc/vimc0/links/<entity_src_name>:<pad_n>-><entity_sink_name>:<pad_n>
-> 	Example:
-> 	$ mkdir /configfs/vimc/vimc0/links/DebayerA:1->Scaler:0
-> 	$ ls -l /configfs/vimc/vimc0/links/DebayerA:1->Scaler:0
-
-You need to escape '>' in the examples above. Or better, just put the whole argument
-in '...' quotes.
-
-> 	flags
-> 
-> mkdir will be rejected if folder is not on the format 
-> <entity_src_name>:<pad_n>-><entity_sink_name>:<pad_n>.
-> mkdir will be rejected if either <entity_src_name> or <entity_sink_name> 
-> are not found in /configfs/vimc/vimc0/entities/
-> The link will only be created if both entities are in "plugged" state.
-> When an entity is removed from /configfs/vimc/vimc0/entities/ with 
-> rmdir, its corresponding link folders at
-> /configfs/vimc/vimc0/links will be automatically removed.
-> If one of the entities changes from "plugged" to "unplugged", the link 
-> is only removed from the media
-> representation, the link folder won't be removed.
-> flags can be one of "", "enabled", "immutable", "dynamic", 
-> "dynamic,enabled".
-> flags cannot be changed if the link was already created in the media 
-> controller, to alter it unplug the
-> device through /configfs/vimc/vimc0/hotplug or unplug one of the source 
-> or sink entities connected to the
-> link through its hotplug file.
-> flags are of type "" by default.
-> 
-
-I'm a bit uncertain about the hotplug part. We don't really support this yet, so
-why add this to vimc now?
-
-Otherwise this seems a sane proposal to me.
-
-Regards,
-
-	Hans
+Thanks,
+Fengguang
