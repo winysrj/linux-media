@@ -1,66 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53827 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754152AbdGJTr0 (ORCPT
+Received: from mail-wm0-f42.google.com ([74.125.82.42]:34323 "EHLO
+        mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751593AbdG0PUi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Jul 2017 15:47:26 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jim Lin <jilin@nvidia.com>
-Cc: mchehab@kernel.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1 V2] media: usb: uvc: Fix incorrect timeout for Get Request
-Date: Mon, 10 Jul 2017 22:47:28 +0300
-Message-ID: <3026364.oSOK2ZPSm0@avalon>
-In-Reply-To: <1499669029-3412-1-git-send-email-jilin@nvidia.com>
-References: <1499669029-3412-1-git-send-email-jilin@nvidia.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Thu, 27 Jul 2017 11:20:38 -0400
+Received: by mail-wm0-f42.google.com with SMTP id t138so3581279wmt.1
+        for <linux-media@vger.kernel.org>; Thu, 27 Jul 2017 08:20:37 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: mchehab@kernel.org, hans.verkuil@cisco.com
+Cc: Neil Armstrong <narmstrong@baylibre.com>,
+        linux-media@vger.kernel.org, linux-amlogic@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: [PATCH v3 2/2] dt-bindings: media: Add Amlogic Meson AO-CEC bindings
+Date: Thu, 27 Jul 2017 17:20:30 +0200
+Message-Id: <1501168830-5308-3-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1501168830-5308-1-git-send-email-narmstrong@baylibre.com>
+References: <1501168830-5308-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jim,
+The Amlogic SoCs embeds a standalone CEC Controller, this patch adds this
+device bindings.
 
-Thank you for the patch.
+Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+---
+ .../devicetree/bindings/media/meson-ao-cec.txt     | 28 ++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/meson-ao-cec.txt
 
-On Monday 10 Jul 2017 14:43:49 Jim Lin wrote:
-> Section 9.2.6.4 of USB 2.0/3.x specification describes that
-> "device must be able to return the first data packet to host within
-> 500 ms of receipt of the request. For subsequent data packet, if any,
-> the device must be able to return them within 500 ms".
-> 
-> This is to fix incorrect timeout and change it from 300 ms to 500 ms
-> to meet the timing specified by specification for Get Request.
-> 
-> Signed-off-by: Jim Lin <jilin@nvidia.com>
-
-The patch looks good to me, so
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-but I'm curious, have you noticed issues with some devices in practice ?
-
-> ---
-> V2: Change patch description
-> 
->  drivers/media/usb/uvc/uvcvideo.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> b/drivers/media/usb/uvc/uvcvideo.h index 15e415e..296b69b 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -166,7 +166,7 @@
->  /* Maximum status buffer size in bytes of interrupt URB. */
->  #define UVC_MAX_STATUS_SIZE	16
-> 
-> -#define UVC_CTRL_CONTROL_TIMEOUT	300
-> +#define UVC_CTRL_CONTROL_TIMEOUT	500
->  #define UVC_CTRL_STREAMING_TIMEOUT	5000
-> 
->  /* Maximum allowed number of control mappings per device */
-
+diff --git a/Documentation/devicetree/bindings/media/meson-ao-cec.txt b/Documentation/devicetree/bindings/media/meson-ao-cec.txt
+new file mode 100644
+index 0000000..8671bdb
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/meson-ao-cec.txt
+@@ -0,0 +1,28 @@
++* Amlogic Meson AO-CEC driver
++
++The Amlogic Meson AO-CEC module is present is Amlogic SoCs and its purpose is
++to handle communication between HDMI connected devices over the CEC bus.
++
++Required properties:
++  - compatible : value should be following
++	"amlogic,meson-gx-ao-cec"
++
++  - reg : Physical base address of the IP registers and length of memory
++	  mapped region.
++
++  - interrupts : AO-CEC interrupt number to the CPU.
++  - clocks : from common clock binding: handle to AO-CEC clock.
++  - clock-names : from common clock binding: must contain "core",
++		  corresponding to entry in the clocks property.
++  - hdmi-phandle: phandle to the HDMI controller
++
++Example:
++
++cec_AO: cec@100 {
++	compatible = "amlogic,meson-gx-ao-cec";
++	reg = <0x0 0x00100 0x0 0x14>;
++	interrupts = <GIC_SPI 199 IRQ_TYPE_EDGE_RISING>;
++	clocks = <&clkc_AO CLKID_AO_CEC_32K>;
++	clock-names = "core";
++	hdmi-phandle = <&hdmi_tx>;
++};
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
