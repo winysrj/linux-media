@@ -1,117 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53782 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752982AbdGSUxf (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:44865 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751122AbdG0MZx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Jul 2017 16:53:35 -0400
-Date: Wed, 19 Jul 2017 23:53:30 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, pavel@ucw.cz
-Subject: Re: [PATCH 5/8] v4l: Add support for CSI-1 and CCP2 busses
-Message-ID: <20170719205329.akt2tcspq7ri3xh4@valkosipuli.retiisi.org.uk>
-References: <20170705230019.5461-1-sakari.ailus@linux.intel.com>
- <20170705230019.5461-6-sakari.ailus@linux.intel.com>
- <20170719163751.3fd7c891@vento.lan>
+        Thu, 27 Jul 2017 08:25:53 -0400
+Date: Thu, 27 Jul 2017 14:25:51 +0200
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Baruch Siach <baruch@tkos.co.il>
+Cc: Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benoit Parrot <bparrot@ti.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
+Message-ID: <20170727122551.qca4atjeet6whfrs@flea.lan>
+References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
+ <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
+ <20170727121644.jtpge4x432gfxhvw@tarshish>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="kjaywmgek52r2jvf"
 Content-Disposition: inline
-In-Reply-To: <20170719163751.3fd7c891@vento.lan>
+In-Reply-To: <20170727121644.jtpge4x432gfxhvw@tarshish>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 19, 2017 at 04:37:51PM -0300, Mauro Carvalho Chehab wrote:
-> Em Thu,  6 Jul 2017 02:00:16 +0300
-> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> 
-> > From: Sakari Ailus <sakari.ailus@iki.fi>
-> > 
-> > CCP2 and CSI-1, are older single data lane serial busses.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
+--kjaywmgek52r2jvf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Jul 27, 2017 at 03:16:44PM +0300, Baruch Siach wrote:
+> Hi Yong,
+>=20
+> I managed to get the Frame Done interrupt with the previous version of th=
+is=20
+> driver on the A33 OLinuXino. No data yet (all zeros). I'm still working o=
+n it.
+>=20
+> One comment below.
+>=20
+> On Thu, Jul 27, 2017 at 01:01:35PM +0800, Yong Deng wrote:
+> > Allwinner V3s SoC have two CSI module. CSI0 is used for MIPI interface
+> > and CSI1 is used for parallel interface. This is not documented in
+> > datasheet but by testing and guess.
+> >=20
+> > This patch implement a v4l2 framework driver for it.
+> >=20
+> > Currently, the driver only support the parallel interface. MIPI-CSI2,
+> > ISP's support are not included in this patch.
+> >=20
+> > Signed-off-by: Yong Deng <yong.deng@magewell.com>
 > > ---
-> >  drivers/media/platform/pxa_camera.c              |  3 ++
-> >  drivers/media/platform/soc_camera/soc_mediabus.c |  3 ++
-> >  drivers/media/v4l2-core/v4l2-fwnode.c            | 58 +++++++++++++++++++-----
-> >  include/media/v4l2-fwnode.h                      | 19 ++++++++
-> >  include/media/v4l2-mediabus.h                    |  4 ++
-> >  5 files changed, 76 insertions(+), 11 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
-> > index 399095170b6e..17e797c9559f 100644
-> > --- a/drivers/media/platform/pxa_camera.c
-> > +++ b/drivers/media/platform/pxa_camera.c
-> > @@ -638,6 +638,9 @@ static unsigned int pxa_mbus_config_compatible(const struct v4l2_mbus_config *cf
-> >  		mipi_clock = common_flags & (V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK |
-> >  					     V4L2_MBUS_CSI2_CONTINUOUS_CLOCK);
-> >  		return (!mipi_lanes || !mipi_clock) ? 0 : common_flags;
-> > +	default:
-> > +		__WARN();
-> > +		return -EINVAL;
-> >  	}
-> >  	return 0;
-> >  }
-> > diff --git a/drivers/media/platform/soc_camera/soc_mediabus.c b/drivers/media/platform/soc_camera/soc_mediabus.c
-> > index 57581f626f4c..43192d80beef 100644
-> > --- a/drivers/media/platform/soc_camera/soc_mediabus.c
-> > +++ b/drivers/media/platform/soc_camera/soc_mediabus.c
-> > @@ -508,6 +508,9 @@ unsigned int soc_mbus_config_compatible(const struct v4l2_mbus_config *cfg,
-> >  		mipi_clock = common_flags & (V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK |
-> >  					     V4L2_MBUS_CSI2_CONTINUOUS_CLOCK);
-> >  		return (!mipi_lanes || !mipi_clock) ? 0 : common_flags;
-> > +	default:
-> > +		__WARN();
-> > +		return -EINVAL;
-> >  	}
-> >  	return 0;
-> >  }
-> > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> > index d71dd3913cd9..76a88f210cb6 100644
-> > --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> > @@ -154,6 +154,31 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
-> >  
-> >  }
-> >  
-> > +void v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_handle *fwnode,
-> > +					 struct v4l2_fwnode_endpoint *vep,
-> > +					 u32 bus_type)
+>=20
+> [...]
+>=20
+> > +static int update_buf_addr(struct sun6i_csi *csi, dma_addr_t addr)
 > > +{
-> > +       struct v4l2_fwnode_bus_mipi_csi1 *bus = &vep->bus.mipi_csi1;
-> > +       u32 v;
-> > +
-> > +       if (!fwnode_property_read_u32(fwnode, "clock-inv", &v))
-> > +               bus->clock_inv = v;
-> > +
-> > +       if (!fwnode_property_read_u32(fwnode, "strobe", &v))
-> > +               bus->strobe = v;
-> > +
-> > +       if (!fwnode_property_read_u32(fwnode, "data-lanes", &v))
-> > +               bus->data_lane = v;
-> > +
-> > +       if (!fwnode_property_read_u32(fwnode, "clock-lanes", &v))
-> > +               bus->clock_lane = v;
-> > +
-> > +       if (bus_type == V4L2_FWNODE_BUS_TYPE_CCP2)
-> > +	       vep->bus_type = V4L2_MBUS_CCP2;
-> > +       else
-> > +	       vep->bus_type = V4L2_MBUS_CSI1;
-> > +}
-> > +
-> 
-> This function is indented with whitespaces! Next time, please check with
-> checkpatch.
-> 
-> I fixed when merging it upstream.
+> > +	struct sun6i_csi_dev *sdev =3D sun6i_csi_to_dev(csi);
+> > +	/* transform physical address to bus address */
+> > +	dma_addr_t bus_addr =3D addr - 0x40000000;
+>=20
+> What is the source of this magic number? Is it platform dependent? Are th=
+ere=20
+> other devices doing DMA that need this adjustment?
 
-Well, what can I say?
+This is the RAM base address in most (but not all) Allwinner
+SoCs. You'll want to use PHYS_OFFSET instead.
 
-Apologies for the collateral damage, and thanks! :-)
+Maxime
 
--- 
-Regards,
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+--kjaywmgek52r2jvf
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJZedvPAAoJEBx+YmzsjxAgP94P/1fQruY4FKlKe2YnwKC7rjlE
+QHG/nsWmhbLNDCljxATG7kpe7784R2ec3Ib+HMUM+tAkWIQ50HM/ZTBalSHx5Im+
+CDy6+PUL062QMfCY6FcueNtTNfq05SpFE9//KQThyR53DYyItTihoQUGFr5eaNmz
+lQSFvGIkcv6cmlpFGwdVH8aZiYrgsaDq4nkmeuhjhwi7WUuaLDzVJ92H4i/Z4cg7
+1rdo8GVz38j2vPJ2SlYqN+izrl9D+65wxH/HcY/tSgKhf5HF9IiNd4cDmcD7bWgJ
+MMbjRjWU6N51ct5XXF6xIvs/vHvSZHVt0noc9EWfu633GbVe3LVQMzw09zU9DVF+
+AE6WWVZUgSTRJZg08an+98Qam57ShbDrxJH6xMMOAxPpUY9jm94r0a1vX2a4DEzn
+Dsw9FVrpP3y1ACWVPlqIIrVIOVlNIalrFvAm4d2zNAG+cvLjlkch8VAJgpO7mUmB
+Qq1VGB6Mt9anODLJ71MSYAU1MXvdv22c4XR68F3xTl8e5Yqy6fsM96V0vHpEhk/+
+6wws8N8cR7P4WzPwiawUHXdwPvyxyAzUk8Hpier34nySB71k/R8koVgpgFWSb36n
+bL9mnDb3Yf6jRcS/5ZO4zN0hUYBqaJSuhdtegAdYx8l463FQ47llhIj5tYJt2qN6
+M1qzGQrJJdQ03CkWDPR1
+=EJEd
+-----END PGP SIGNATURE-----
+
+--kjaywmgek52r2jvf--
