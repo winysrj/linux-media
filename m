@@ -1,102 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:64676 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751831AbdGXFPZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Jul 2017 01:15:25 -0400
-Subject: Re: [ragnatech:media-tree 2075/2144]
- drivers/media/dvb-frontends/stv0910.c:1185:2-8: preceding lock on line 1176
- (fwd)
-To: Julia Lawall <julia.lawall@lip6.fr>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-        linux-media@vger.kernel.org, kbuild-all@01.org
-References: <alpine.DEB.2.20.1707240700321.3169@hadrien>
-From: Daniel Scheller <d.scheller@gmx.net>
-Message-ID: <770f952d-fdf1-bc73-2ef3-b5299338e5e5@gmx.net>
-Date: Mon, 24 Jul 2017 07:15:06 +0200
-MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.20.1707240700321.3169@hadrien>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-wr0-f179.google.com ([209.85.128.179]:37969 "EHLO
+        mail-wr0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751454AbdG0PUg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Jul 2017 11:20:36 -0400
+Received: by mail-wr0-f179.google.com with SMTP id f21so88579516wrf.5
+        for <linux-media@vger.kernel.org>; Thu, 27 Jul 2017 08:20:35 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: mchehab@kernel.org, hans.verkuil@cisco.com
+Cc: Neil Armstrong <narmstrong@baylibre.com>,
+        linux-media@vger.kernel.org, linux-amlogic@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v3 0/2] media: Add Amlogic Meson AO CEC Controller support
+Date: Thu, 27 Jul 2017 17:20:28 +0200
+Message-Id: <1501168830-5308-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Jula,
+The Amlogic SoC embeds a standalone CEC controller, this patch adds a driver
+for such controller.
+The controller does not need HPD to be active, and could support up to max
+5 logical addresses, but only 1 is handled since the Suspend firmware can
+make use of this unique logical address to wake up the device.
 
-Am 24.07.2017 um 07:02 schrieb Julia Lawall:
+The Suspend firmware configuration will be added in an other patchset.
 
-> Is a lock release needed before line 1185?  Is the !enable in line 1189
-> correct?  If the code is correct as is, perhaps it could be good to add
-> some comments.
+Changes since v2 at [2] :
+ - change meson_ao_cec_read/write prototype to simplify error handling
 
-Yes, it's needed because the I2C gate is shared for the two tuner chips 
-attached to it (one dual-demod chip -> two tuners/SECs) and the bus 
-access needs to be protected to not accidentally interfere when 
-accessing both tuners in parallel.
+Changes since v1 at [1] :
+ - add timeout to wait busy, with error return
+ - handle busy error in all read/write operations
+ - add CEC_CAP_PASSTHROUGH
+ - add bindings ack
 
-I'll think about proper comments there.
+[1] https://lkml.kernel.org/r/1499336870-24118-1-git-send-email-narmstrong@baylibre.com
+[2] https://lkml.kernel.org/r/1499673696-21372-1-git-send-email-narmstrong@baylibre.com
 
-Thanks,
-Daniel
+Neil Armstrong (2):
+  platform: Add Amlogic Meson AO CEC Controller driver
+  dt-bindings: media: Add Amlogic Meson AO-CEC bindings
 
-> ---------- Forwarded message ----------
-> Date: Mon, 24 Jul 2017 12:55:30 +0800
-> From: kbuild test robot <fengguang.wu@intel.com>
-> To: kbuild@01.org
-> Cc: Julia Lawall <julia.lawall@lip6.fr>
-> Subject: [ragnatech:media-tree 2075/2144]
->      drivers/media/dvb-frontends/stv0910.c:1185:2-8: preceding lock on line 1176
-> 
-> CC: kbuild-all@01.org
-> TO: Daniel Scheller <d.scheller@gmx.net>
-> CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> CC: linux-media@vger.kernel.org
-> 
-> tree:   git://git.ragnatech.se/linux media-tree
-> head:   0e50e84a11f4854e9a7e3b7f4443ffb99e6be292
-> commit: cd21b334943719f880e707eb91895fc916a88000 [2075/2144] media: dvb-frontends: add ST STV0910 DVB-S/S2 demodulator frontend driver
-> :::::: branch date: 3 days ago
-> :::::: commit date: 4 days ago
-> 
->>> drivers/media/dvb-frontends/stv0910.c:1185:2-8: preceding lock on line 1176
-> 
-> git remote add ragnatech git://git.ragnatech.se/linux
-> git remote update ragnatech
-> git checkout cd21b334943719f880e707eb91895fc916a88000
-> vim +1185 drivers/media/dvb-frontends/stv0910.c
-> 
-> cd21b334 Daniel Scheller 2017-07-03  1168
-> cd21b334 Daniel Scheller 2017-07-03  1169
-> cd21b334 Daniel Scheller 2017-07-03  1170  static int gate_ctrl(struct dvb_frontend *fe, int enable)
-> cd21b334 Daniel Scheller 2017-07-03  1171  {
-> cd21b334 Daniel Scheller 2017-07-03  1172  	struct stv *state = fe->demodulator_priv;
-> cd21b334 Daniel Scheller 2017-07-03  1173  	u8 i2crpt = state->i2crpt & ~0x86;
-> cd21b334 Daniel Scheller 2017-07-03  1174
-> cd21b334 Daniel Scheller 2017-07-03  1175  	if (enable)
-> cd21b334 Daniel Scheller 2017-07-03 @1176  		mutex_lock(&state->base->i2c_lock);
-> cd21b334 Daniel Scheller 2017-07-03  1177
-> cd21b334 Daniel Scheller 2017-07-03  1178  	if (enable)
-> cd21b334 Daniel Scheller 2017-07-03  1179  		i2crpt |= 0x80;
-> cd21b334 Daniel Scheller 2017-07-03  1180  	else
-> cd21b334 Daniel Scheller 2017-07-03  1181  		i2crpt |= 0x02;
-> cd21b334 Daniel Scheller 2017-07-03  1182
-> cd21b334 Daniel Scheller 2017-07-03  1183  	if (write_reg(state, state->nr ? RSTV0910_P2_I2CRPT :
-> cd21b334 Daniel Scheller 2017-07-03  1184  		      RSTV0910_P1_I2CRPT, i2crpt) < 0)
-> cd21b334 Daniel Scheller 2017-07-03 @1185  		return -EIO;
-> cd21b334 Daniel Scheller 2017-07-03  1186
-> cd21b334 Daniel Scheller 2017-07-03  1187  	state->i2crpt = i2crpt;
-> cd21b334 Daniel Scheller 2017-07-03  1188
-> cd21b334 Daniel Scheller 2017-07-03  1189  	if (!enable)
-> cd21b334 Daniel Scheller 2017-07-03  1190  		mutex_unlock(&state->base->i2c_lock);
-> cd21b334 Daniel Scheller 2017-07-03  1191  	return 0;
-> cd21b334 Daniel Scheller 2017-07-03  1192  }
-> cd21b334 Daniel Scheller 2017-07-03  1193
-> 
-> ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
-> 
+ .../devicetree/bindings/media/meson-ao-cec.txt     |  28 +
+ drivers/media/platform/Kconfig                     |  11 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/meson/Makefile              |   1 +
+ drivers/media/platform/meson/ao-cec.c              | 744 +++++++++++++++++++++
+ 5 files changed, 786 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/meson-ao-cec.txt
+ create mode 100644 drivers/media/platform/meson/Makefile
+ create mode 100644 drivers/media/platform/meson/ao-cec.c
 
-Best regards,
-Daniel Scheller
 -- 
-https://github.com/herrnst
+1.9.1
