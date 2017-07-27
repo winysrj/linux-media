@@ -1,918 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:40450 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751257AbdGQIBp (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:53552 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750836AbdG0Jam (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 04:01:45 -0400
-Subject: Re: [PATCH v2 1/2] platform: Add Amlogic Meson AO CEC Controller
- driver
-To: Neil Armstrong <narmstrong@baylibre.com>, mchehab@kernel.org,
-        hans.verkuil@cisco.com
-References: <1499673696-21372-1-git-send-email-narmstrong@baylibre.com>
- <1499673696-21372-2-git-send-email-narmstrong@baylibre.com>
-Cc: linux-media@vger.kernel.org, linux-amlogic@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+        Thu, 27 Jul 2017 05:30:42 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b5cb7021-4c9e-98b2-5fd1-11effda3fd30@xs4all.nl>
-Date: Mon, 17 Jul 2017 10:01:42 +0200
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCH 1/3] media/doc: rename and reorder pixfmt files
+Date: Thu, 27 Jul 2017 11:30:30 +0200
+Message-Id: <20170727093032.12663-2-hverkuil@xs4all.nl>
+In-Reply-To: <20170727093032.12663-1-hverkuil@xs4all.nl>
+References: <20170727093032.12663-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1499673696-21372-2-git-send-email-narmstrong@baylibre.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/07/17 10:01, Neil Armstrong wrote:
-> The Amlogic SoC embeds a standalone CEC controller, this patch adds a driver
-> for such controller.
-> The controller does not need HPD to be active, and could support up to max
-> 5 logical addresses, but only 1 is handled since the Suspend firmware can
-> make use of this unique logical address to wake up the device.
-> 
-> The Suspend firmware configuration will be added in an other patchset.
-> 
-> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-> ---
->  drivers/media/platform/Kconfig        |  11 +
->  drivers/media/platform/Makefile       |   2 +
->  drivers/media/platform/meson/Makefile |   1 +
->  drivers/media/platform/meson/ao-cec.c | 781 ++++++++++++++++++++++++++++++++++
->  4 files changed, 795 insertions(+)
->  create mode 100644 drivers/media/platform/meson/Makefile
->  create mode 100644 drivers/media/platform/meson/ao-cec.c
-> 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index 1313cd5..1e67381 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -536,6 +536,17 @@ menuconfig CEC_PLATFORM_DRIVERS
->  
->  if CEC_PLATFORM_DRIVERS
->  
-> +config VIDEO_MESON_AO_CEC
-> +	tristate "Amlogic Meson AO CEC driver"
-> +	depends on ARCH_MESON || COMPILE_TEST
-> +	select CEC_CORE
-> +	select CEC_NOTIFIER
-> +	---help---
-> +	  This is a driver for Amlogic Meson SoCs AO CEC interface. It uses the
-> +	  generic CEC framework interface.
-> +	  CEC bus is present in the HDMI connector and enables communication
-> +	  between compatible devices.
-> +
->  config VIDEO_SAMSUNG_S5P_CEC
->         tristate "Samsung S5P CEC driver"
->         depends on PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST
-> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-> index 9beadc7..a52d7b6 100644
-> --- a/drivers/media/platform/Makefile
-> +++ b/drivers/media/platform/Makefile
-> @@ -86,3 +86,5 @@ obj-$(CONFIG_VIDEO_MEDIATEK_MDP)	+= mtk-mdp/
->  obj-$(CONFIG_VIDEO_MEDIATEK_JPEG)	+= mtk-jpeg/
->  
->  obj-$(CONFIG_VIDEO_QCOM_VENUS)		+= qcom/venus/
-> +
-> +obj-y					+= meson/
-> diff --git a/drivers/media/platform/meson/Makefile b/drivers/media/platform/meson/Makefile
-> new file mode 100644
-> index 0000000..597beb8
-> --- /dev/null
-> +++ b/drivers/media/platform/meson/Makefile
-> @@ -0,0 +1 @@
-> +obj-$(CONFIG_VIDEO_MESON_AO_CEC)	+= ao-cec.o
-> diff --git a/drivers/media/platform/meson/ao-cec.c b/drivers/media/platform/meson/ao-cec.c
-> new file mode 100644
-> index 0000000..cdc1f61
-> --- /dev/null
-> +++ b/drivers/media/platform/meson/ao-cec.c
-> @@ -0,0 +1,781 @@
-> +/*
-> + * Driver for Amlogic Meson AO CEC Controller
-> + *
-> + * Copyright (C) 2015 Amlogic, Inc. All rights reserved
-> + * Copyright (C) 2017 BayLibre, SAS
-> + * Author: Neil Armstrong <narmstrong@baylibre.com>
-> + *
-> + * SPDX-License-Identifier: GPL-2.0+
-> + */
-> +
-> +#include <linux/bitfield.h>
-> +#include <linux/clk.h>
-> +#include <linux/device.h>
-> +#include <linux/io.h>
-> +#include <linux/delay.h>
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/of.h>
-> +#include <linux/of_platform.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/types.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/reset.h>
-> +#include <media/cec.h>
-> +#include <media/cec-notifier.h>
-> +
-> +/* CEC Registers */
-> +
-> +/*
-> + * [2:1] cntl_clk
-> + *  - 0 = Disable clk (Power-off mode)
-> + *  - 1 = Enable gated clock (Normal mode)
-> + *  - 2 = Enable free-run clk (Debug mode)
-> + */
-> +#define CEC_GEN_CNTL_REG		0x00
-> +
-> +#define CEC_GEN_CNTL_RESET		BIT(0)
-> +#define CEC_GEN_CNTL_CLK_DISABLE	0
-> +#define CEC_GEN_CNTL_CLK_ENABLE		1
-> +#define CEC_GEN_CNTL_CLK_ENABLE_DBG	2
-> +#define CEC_GEN_CNTL_CLK_CTRL_MASK	GENMASK(2, 1)
-> +
-> +/*
-> + * [7:0] cec_reg_addr
-> + * [15:8] cec_reg_wrdata
-> + * [16] cec_reg_wr
-> + *  - 0 = Read
-> + *  - 1 = Write
-> + * [23] bus free
-> + * [31:24] cec_reg_rddata
-> + */
-> +#define CEC_RW_REG			0x04
-> +
-> +#define CEC_RW_ADDR			GENMASK(7, 0)
-> +#define CEC_RW_WR_DATA			GENMASK(15, 8)
-> +#define CEC_RW_WRITE_EN			BIT(16)
-> +#define CEC_RW_BUS_BUSY			BIT(23)
-> +#define CEC_RW_RD_DATA			GENMASK(31, 24)
-> +
-> +/*
-> + * [1] tx intr
-> + * [2] rx intr
-> + */
-> +#define CEC_INTR_MASKN_REG		0x08
-> +#define CEC_INTR_CLR_REG		0x0c
-> +#define CEC_INTR_STAT_REG		0x10
-> +
-> +#define CEC_INTR_TX			BIT(1)
-> +#define CEC_INTR_RX			BIT(2)
-> +
-> +/* CEC Commands */
-> +
-> +#define CEC_TX_MSG_0_HEADER		0x00
-> +#define CEC_TX_MSG_1_OPCODE		0x01
-> +#define CEC_TX_MSG_2_OP1		0x02
-> +#define CEC_TX_MSG_3_OP2		0x03
-> +#define CEC_TX_MSG_4_OP3		0x04
-> +#define CEC_TX_MSG_5_OP4		0x05
-> +#define CEC_TX_MSG_6_OP5		0x06
-> +#define CEC_TX_MSG_7_OP6		0x07
-> +#define CEC_TX_MSG_8_OP7		0x08
-> +#define CEC_TX_MSG_9_OP8		0x09
-> +#define CEC_TX_MSG_A_OP9		0x0A
-> +#define CEC_TX_MSG_B_OP10		0x0B
-> +#define CEC_TX_MSG_C_OP11		0x0C
-> +#define CEC_TX_MSG_D_OP12		0x0D
-> +#define CEC_TX_MSG_E_OP13		0x0E
-> +#define CEC_TX_MSG_F_OP14		0x0F
-> +#define CEC_TX_MSG_LENGTH		0x10
-> +#define CEC_TX_MSG_CMD			0x11
-> +#define CEC_TX_WRITE_BUF		0x12
-> +#define CEC_TX_CLEAR_BUF		0x13
-> +#define CEC_RX_MSG_CMD			0x14
-> +#define CEC_RX_CLEAR_BUF		0x15
-> +#define CEC_LOGICAL_ADDR0		0x16
-> +#define CEC_LOGICAL_ADDR1		0x17
-> +#define CEC_LOGICAL_ADDR2		0x18
-> +#define CEC_LOGICAL_ADDR3		0x19
-> +#define CEC_LOGICAL_ADDR4		0x1A
-> +#define CEC_CLOCK_DIV_H			0x1B
-> +#define CEC_CLOCK_DIV_L			0x1C
-> +#define CEC_QUIESCENT_25MS_BIT7_0	0x20
-> +#define CEC_QUIESCENT_25MS_BIT11_8	0x21
-> +#define CEC_STARTBITMINL2H_3MS5_BIT7_0	0x22
-> +#define CEC_STARTBITMINL2H_3MS5_BIT8	0x23
-> +#define CEC_STARTBITMAXL2H_3MS9_BIT7_0	0x24
-> +#define CEC_STARTBITMAXL2H_3MS9_BIT8	0x25
-> +#define CEC_STARTBITMINH_0MS6_BIT7_0	0x26
-> +#define CEC_STARTBITMINH_0MS6_BIT8	0x27
-> +#define CEC_STARTBITMAXH_1MS0_BIT7_0	0x28
-> +#define CEC_STARTBITMAXH_1MS0_BIT8	0x29
-> +#define CEC_STARTBITMINTOT_4MS3_BIT7_0	0x2A
-> +#define CEC_STARTBITMINTOT_4MS3_BIT9_8	0x2B
-> +#define CEC_STARTBITMAXTOT_4MS7_BIT7_0	0x2C
-> +#define CEC_STARTBITMAXTOT_4MS7_BIT9_8	0x2D
-> +#define CEC_LOGIC1MINL2H_0MS4_BIT7_0	0x2E
-> +#define CEC_LOGIC1MINL2H_0MS4_BIT8	0x2F
-> +#define CEC_LOGIC1MAXL2H_0MS8_BIT7_0	0x30
-> +#define CEC_LOGIC1MAXL2H_0MS8_BIT8	0x31
-> +#define CEC_LOGIC0MINL2H_1MS3_BIT7_0	0x32
-> +#define CEC_LOGIC0MINL2H_1MS3_BIT8	0x33
-> +#define CEC_LOGIC0MAXL2H_1MS7_BIT7_0	0x34
-> +#define CEC_LOGIC0MAXL2H_1MS7_BIT8	0x35
-> +#define CEC_LOGICMINTOTAL_2MS05_BIT7_0	0x36
-> +#define CEC_LOGICMINTOTAL_2MS05_BIT9_8	0x37
-> +#define CEC_LOGICMAXHIGH_2MS8_BIT7_0	0x38
-> +#define CEC_LOGICMAXHIGH_2MS8_BIT8	0x39
-> +#define CEC_LOGICERRLOW_3MS4_BIT7_0	0x3A
-> +#define CEC_LOGICERRLOW_3MS4_BIT8	0x3B
-> +#define CEC_NOMSMPPOINT_1MS05		0x3C
-> +#define CEC_DELCNTR_LOGICERR		0x3E
-> +#define CEC_TXTIME_17MS_BIT7_0		0x40
-> +#define CEC_TXTIME_17MS_BIT10_8		0x41
-> +#define CEC_TXTIME_2BIT_BIT7_0		0x42
-> +#define CEC_TXTIME_2BIT_BIT10_8		0x43
-> +#define CEC_TXTIME_4BIT_BIT7_0		0x44
-> +#define CEC_TXTIME_4BIT_BIT10_8		0x45
-> +#define CEC_STARTBITNOML2H_3MS7_BIT7_0	0x46
-> +#define CEC_STARTBITNOML2H_3MS7_BIT8	0x47
-> +#define CEC_STARTBITNOMH_0MS8_BIT7_0	0x48
-> +#define CEC_STARTBITNOMH_0MS8_BIT8	0x49
-> +#define CEC_LOGIC1NOML2H_0MS6_BIT7_0	0x4A
-> +#define CEC_LOGIC1NOML2H_0MS6_BIT8	0x4B
-> +#define CEC_LOGIC0NOML2H_1MS5_BIT7_0	0x4C
-> +#define CEC_LOGIC0NOML2H_1MS5_BIT8	0x4D
-> +#define CEC_LOGIC1NOMH_1MS8_BIT7_0	0x4E
-> +#define CEC_LOGIC1NOMH_1MS8_BIT8	0x4F
-> +#define CEC_LOGIC0NOMH_0MS9_BIT7_0	0x50
-> +#define CEC_LOGIC0NOMH_0MS9_BIT8	0x51
-> +#define CEC_LOGICERRLOW_3MS6_BIT7_0	0x52
-> +#define CEC_LOGICERRLOW_3MS6_BIT8	0x53
-> +#define CEC_CHKCONTENTION_0MS1		0x54
-> +#define CEC_PREPARENXTBIT_0MS05_BIT7_0	0x56
-> +#define CEC_PREPARENXTBIT_0MS05_BIT8	0x57
-> +#define CEC_NOMSMPACKPOINT_0MS45	0x58
-> +#define CEC_ACK0NOML2H_1MS5_BIT7_0	0x5A
-> +#define CEC_ACK0NOML2H_1MS5_BIT8	0x5B
-> +#define CEC_BUGFIX_DISABLE_0		0x60
-> +#define CEC_BUGFIX_DISABLE_1		0x61
-> +#define CEC_RX_MSG_0_HEADER		0x80
-> +#define CEC_RX_MSG_1_OPCODE		0x81
-> +#define CEC_RX_MSG_2_OP1		0x82
-> +#define CEC_RX_MSG_3_OP2		0x83
-> +#define CEC_RX_MSG_4_OP3		0x84
-> +#define CEC_RX_MSG_5_OP4		0x85
-> +#define CEC_RX_MSG_6_OP5		0x86
-> +#define CEC_RX_MSG_7_OP6		0x87
-> +#define CEC_RX_MSG_8_OP7		0x88
-> +#define CEC_RX_MSG_9_OP8		0x89
-> +#define CEC_RX_MSG_A_OP9		0x8A
-> +#define CEC_RX_MSG_B_OP10		0x8B
-> +#define CEC_RX_MSG_C_OP11		0x8C
-> +#define CEC_RX_MSG_D_OP12		0x8D
-> +#define CEC_RX_MSG_E_OP13		0x8E
-> +#define CEC_RX_MSG_F_OP14		0x8F
-> +#define CEC_RX_MSG_LENGTH		0x90
-> +#define CEC_RX_MSG_STATUS		0x91
-> +#define CEC_RX_NUM_MSG			0x92
-> +#define CEC_TX_MSG_STATUS		0x93
-> +#define CEC_TX_NUM_MSG			0x94
-> +
-> +
-> +/* CEC_TX_MSG_CMD definition */
-> +#define TX_NO_OP	0  /* No transaction */
-> +#define TX_REQ_CURRENT	1  /* Transmit earliest message in buffer */
-> +#define TX_ABORT	2  /* Abort transmitting earliest message */
-> +#define TX_REQ_NEXT	3  /* Overwrite earliest msg, transmit next */
-> +
-> +/* tx_msg_status definition */
-> +#define TX_IDLE		0  /* No transaction */
-> +#define TX_BUSY		1  /* Transmitter is busy */
-> +#define TX_DONE		2  /* Message successfully transmitted */
-> +#define TX_ERROR	3  /* Message transmitted with error */
-> +
-> +/* rx_msg_cmd */
-> +#define RX_NO_OP	0  /* No transaction */
-> +#define RX_ACK_CURRENT	1  /* Read earliest message in buffer */
-> +#define RX_DISABLE	2  /* Disable receiving latest message */
-> +#define RX_ACK_NEXT	3  /* Clear earliest msg, read next */
-> +
-> +/* rx_msg_status */
-> +#define RX_IDLE		0  /* No transaction */
-> +#define RX_BUSY		1  /* Receiver is busy */
-> +#define RX_DONE		2  /* Message has been received successfully */
-> +#define RX_ERROR	3  /* Message has been received with error */
-> +
-> +/* RX_CLEAR_BUF options */
-> +#define CLEAR_START	1
-> +#define CLEAR_STOP	0
-> +
-> +/* CEC_LOGICAL_ADDRx options */
-> +#define LOGICAL_ADDR_MASK	0xf
-> +#define LOGICAL_ADDR_VALID	BIT(4)
-> +#define LOGICAL_ADDR_DISABLE	0
-> +
-> +#define CEC_CLK_RATE		32768
-> +
-> +struct meson_ao_cec_device {
-> +	struct platform_device		*pdev;
-> +	void __iomem			*base;
-> +	struct clk			*core;
-> +	spinlock_t			cec_reg_lock;
-> +	struct cec_notifier		*notify;
-> +	struct cec_adapter		*adap;
-> +	struct cec_msg			rx_msg;
-> +};
-> +
-> +#define writel_bits_relaxed(mask, val, addr) \
-> +	writel_relaxed((readl_relaxed(addr) & ~(mask)) | (val), addr)
-> +
-> +static inline int meson_ao_cec_wait_busy(struct meson_ao_cec_device *ao_cec)
-> +{
-> +	ktime_t timeout = ktime_add_us(ktime_get(), 5000);
-> +
-> +	while (readl_relaxed(ao_cec->base + CEC_RW_REG) & CEC_RW_BUS_BUSY) {
-> +		if (ktime_compare(ktime_get(), timeout) > 0)
-> +			return -ETIMEDOUT;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int meson_ao_cec_read(struct meson_ao_cec_device *ao_cec,
-> +			     unsigned long address, u8 *data)
-> +{
-> +	unsigned long flags;
-> +	u32 reg = FIELD_PREP(CEC_RW_ADDR, address);
-> +	int ret = 0;
-> +
-> +	spin_lock_irqsave(&ao_cec->cec_reg_lock, flags);
-> +
-> +	ret = meson_ao_cec_wait_busy(ao_cec);
-> +	if (ret)
-> +		goto read_out;
-> +
-> +	writel_relaxed(reg, ao_cec->base + CEC_RW_REG);
-> +
-> +	ret = meson_ao_cec_wait_busy(ao_cec);
-> +	if (ret)
-> +		goto read_out;
-> +
-> +	*data = FIELD_GET(CEC_RW_RD_DATA,
-> +			  readl_relaxed(ao_cec->base + CEC_RW_REG));
-> +
-> +read_out:
-> +	spin_unlock_irqrestore(&ao_cec->cec_reg_lock, flags);
-> +
-> +	return ret;
-> +}
-> +
-> +static int meson_ao_cec_write(struct meson_ao_cec_device *ao_cec,
-> +			      unsigned long address, u8 data)
+From: Hans Verkuil <hansverk@cisco.com>
 
-I suggest a different prototype for the write functions:
+After the DocBook conversion a number of pixfmt description files just had
+a number in the filename (pix-fmt-004, 006, etc) which was not very descriptive.
 
-static void meson_ao_cec_write(struct meson_ao_cec_device *ao_cec,
-			      unsigned long address, u8 data, int *res);
+Rename them.
 
-and that the write function starts with:
+Note that pixfmt-008.rst was folded into colorspaces-details.rst, so that
+file is deleted. It's easier to maintain that way.
 
-	if (*res)
-		return;
+Also moved the colorspace sections to the end of the chapter. The old order
+was weird: the "Standard Image Formats" section (an intro into pixel formats)
+was followed by the colorspace sections instead of the pixel format descriptions.
 
-This makes it possible to replace awkward code like this:
+Moving it to the end resolved that issue.
 
-	int ret;
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+---
+ .../v4l/{pixfmt-006.rst => colorspaces-defs.rst}   |  0
+ .../{pixfmt-007.rst => colorspaces-details.rst}    | 30 ++++++++++++++++++++
+ Documentation/media/uapi/v4l/pixfmt-008.rst        | 32 ----------------------
+ .../v4l/{pixfmt-013.rst => pixfmt-compressed.rst}  |  0
+ .../uapi/v4l/{pixfmt-004.rst => pixfmt-intro.rst}  |  0
+ .../v4l/{pixfmt-003.rst => pixfmt-v4l2-mplane.rst} |  0
+ .../uapi/v4l/{pixfmt-002.rst => pixfmt-v4l2.rst}   |  0
+ Documentation/media/uapi/v4l/pixfmt.rst            | 15 +++++-----
+ 8 files changed, 37 insertions(+), 40 deletions(-)
+ rename Documentation/media/uapi/v4l/{pixfmt-006.rst => colorspaces-defs.rst} (100%)
+ rename Documentation/media/uapi/v4l/{pixfmt-007.rst => colorspaces-details.rst} (96%)
+ delete mode 100644 Documentation/media/uapi/v4l/pixfmt-008.rst
+ rename Documentation/media/uapi/v4l/{pixfmt-013.rst => pixfmt-compressed.rst} (100%)
+ rename Documentation/media/uapi/v4l/{pixfmt-004.rst => pixfmt-intro.rst} (100%)
+ rename Documentation/media/uapi/v4l/{pixfmt-003.rst => pixfmt-v4l2-mplane.rst} (100%)
+ rename Documentation/media/uapi/v4l/{pixfmt-002.rst => pixfmt-v4l2.rst} (100%)
 
-	ret = meson_ao_cec_write(ao_cec, CEC_RX_MSG_CMD, RX_DISABLE);
-	if (ret)
-		return ret;
-	ret = meson_ao_cec_write(ao_cec, CEC_TX_MSG_CMD, TX_ABORT);
-	if (ret)
-		return ret;
-
-to this:
-
-	int ret = 0;
-
-	meson_ao_cec_write(ao_cec, CEC_RX_MSG_CMD, RX_DISABLE, &ret);
-	meson_ao_cec_write(ao_cec, CEC_TX_MSG_CMD, TX_ABORT, &ret);
-	...
-	return ret;
-
-The read() function isn't called that often, so I leave it up to you to decide
-whether or not to change that function to something similar.
-
-> +{
-> +	unsigned long flags;
-> +	u32 reg = FIELD_PREP(CEC_RW_ADDR, address) |
-> +		  FIELD_PREP(CEC_RW_WR_DATA, data) |
-> +		  CEC_RW_WRITE_EN;
-> +	int ret = 0;
-> +
-> +	spin_lock_irqsave(&ao_cec->cec_reg_lock, flags);
-> +
-> +	ret = meson_ao_cec_wait_busy(ao_cec);
-> +	if (ret)
-> +		goto write_out;
-> +
-> +	writel_relaxed(reg, ao_cec->base + CEC_RW_REG);
-> +
-> +write_out:
-> +	spin_unlock_irqrestore(&ao_cec->cec_reg_lock, flags);
-> +
-> +	return ret;
-> +}
-> +
-> +static inline void meson_ao_cec_irq_setup(struct meson_ao_cec_device *ao_cec,
-> +				      bool enable)
-> +{
-> +	u32 cfg = CEC_INTR_TX | CEC_INTR_RX;
-> +
-> +	writel_bits_relaxed(cfg, enable ? cfg : 0,
-> +			    ao_cec->base + CEC_INTR_MASKN_REG);
-> +}
-> +
-> +static inline int meson_ao_cec_clear(struct meson_ao_cec_device *ao_cec)
-> +{
-> +	int ret;
-> +
-> +	ret = meson_ao_cec_write(ao_cec, CEC_RX_MSG_CMD, RX_DISABLE);
-> +	if (ret)
-> +		return ret;
-> +	ret = meson_ao_cec_write(ao_cec, CEC_TX_MSG_CMD, TX_ABORT);
-> +	if (ret)
-> +		return ret;
-> +	ret = meson_ao_cec_write(ao_cec, CEC_RX_CLEAR_BUF, 1);
-> +	if (ret)
-> +		return ret;
-> +	ret = meson_ao_cec_write(ao_cec, CEC_TX_CLEAR_BUF, 1);
-> +	if (ret)
-> +		return ret;
-> +
-> +	udelay(100);
-> +
-> +	ret = meson_ao_cec_write(ao_cec, CEC_RX_CLEAR_BUF, 0);
-> +	if (ret)
-> +		return ret;
-> +	ret = meson_ao_cec_write(ao_cec, CEC_TX_CLEAR_BUF, 0);
-> +	if (ret)
-> +		return ret;
-> +
-> +	udelay(100);
-> +
-> +	ret = meson_ao_cec_write(ao_cec, CEC_RX_MSG_CMD, RX_NO_OP);
-> +	if (ret)
-> +		return ret;
-> +	ret = meson_ao_cec_write(ao_cec, CEC_TX_MSG_CMD, TX_NO_OP);
-> +	if (ret)
-> +		return ret;
-> +
-> +	return 0;
-> +}
-> +
-> +static int meson_ao_cec_arbit_bit_time_set(struct meson_ao_cec_device *ao_cec,
-> +					   unsigned int bit_set,
-> +					   unsigned int time_set)
-> +{
-> +	int ret;
-> +
-> +	switch (bit_set) {
-> +	case CEC_SIGNAL_FREE_TIME_RETRY:
-> +		ret = meson_ao_cec_write(ao_cec, CEC_TXTIME_4BIT_BIT7_0,
-> +				   time_set & 0xff);
-> +		if (ret)
-> +			return ret;
-> +		ret = meson_ao_cec_write(ao_cec, CEC_TXTIME_4BIT_BIT10_8,
-> +				   (time_set >> 8) & 0x7);
-> +		if (ret)
-> +			return ret;
-> +		break;
-> +
-> +	case CEC_SIGNAL_FREE_TIME_NEW_INITIATOR:
-> +		ret = meson_ao_cec_write(ao_cec, CEC_TXTIME_2BIT_BIT7_0,
-> +				   time_set & 0xff);
-> +		if (ret)
-> +			return ret;
-> +		ret = meson_ao_cec_write(ao_cec, CEC_TXTIME_2BIT_BIT10_8,
-> +				   (time_set >> 8) & 0x7);
-> +		if (ret)
-> +			return ret;
-> +		break;
-> +
-> +	case CEC_SIGNAL_FREE_TIME_NEXT_XFER:
-> +		ret = meson_ao_cec_write(ao_cec, CEC_TXTIME_17MS_BIT7_0,
-> +				   time_set & 0xff);
-> +		if (ret)
-> +			return ret;
-> +		ret = meson_ao_cec_write(ao_cec, CEC_TXTIME_17MS_BIT10_8,
-> +				   (time_set >> 8) & 0x7);
-> +		if (ret)
-> +			return ret;
-> +		break;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static irqreturn_t meson_ao_cec_irq(int irq, void *data)
-> +{
-> +	struct meson_ao_cec_device *ao_cec = data;
-> +	u32 stat = readl_relaxed(ao_cec->base + CEC_INTR_STAT_REG);
-> +
-> +	if (stat)
-> +		return IRQ_WAKE_THREAD;
-> +
-> +	return IRQ_NONE;
-> +}
-> +
-> +static void meson_ao_cec_irq_tx(struct meson_ao_cec_device *ao_cec)
-> +{
-> +	unsigned long tx_status = 0;
-> +	u8 stat;
-> +	int ret;
-> +
-> +	ret = meson_ao_cec_read(ao_cec, CEC_TX_MSG_STATUS, &stat);
-> +	if (ret)
-> +		goto tx_reg_err;
-> +
-> +	switch (stat) {
-> +	case TX_DONE:
-> +		tx_status = CEC_TX_STATUS_OK;
-> +		break;
-> +
-> +	case TX_BUSY:
-> +		tx_status = CEC_TX_STATUS_ARB_LOST;
-> +		break;
-> +
-> +	case TX_IDLE:
-> +		tx_status = CEC_TX_STATUS_LOW_DRIVE;
-> +		break;
-> +
-> +	case TX_ERROR:
-> +	default:
-> +		tx_status = CEC_TX_STATUS_NACK;
-> +		break;
-> +	}
-> +
-> +	/* Clear Interruption */
-> +	writel_relaxed(CEC_INTR_TX, ao_cec->base + CEC_INTR_CLR_REG);
-> +
-> +	/* Stop TX */
-> +	ret = meson_ao_cec_write(ao_cec, CEC_TX_MSG_CMD, TX_NO_OP);
-> +	if (ret)
-> +		goto tx_reg_err;
-> +
-> +	cec_transmit_attempt_done(ao_cec->adap, tx_status);
-> +	return;
-> +
-> +tx_reg_err:
-> +	cec_transmit_attempt_done(ao_cec->adap, CEC_TX_STATUS_ERROR);
-> +}
-> +
-> +static void meson_ao_cec_irq_rx(struct meson_ao_cec_device *ao_cec)
-> +{
-> +	int i, ret;
-> +	u8 reg;
-> +
-> +	ret = meson_ao_cec_read(ao_cec, CEC_RX_MSG_STATUS, &reg);
-> +	if (ret)
-> +		goto rx_out;
-> +
-> +	/* RX Error */
-> +	if (reg != RX_DONE)
-> +		goto rx_out;
-> +
-> +	ret = meson_ao_cec_read(ao_cec, CEC_RX_NUM_MSG, &reg);
-> +	if (ret || reg != 1)
-> +		goto rx_out;
-> +
-> +	ret = meson_ao_cec_read(ao_cec, CEC_RX_MSG_LENGTH, &reg);
-> +	if (ret)
-> +		goto rx_out;
-> +
-> +	ao_cec->rx_msg.len = reg + 1;
-> +	if (ao_cec->rx_msg.len > CEC_MAX_MSG_SIZE)
-> +		ao_cec->rx_msg.len = CEC_MAX_MSG_SIZE;
-> +
-> +	for (i = 0; i < ao_cec->rx_msg.len; i++) {
-> +		u8 byte;
-> +
-> +		ret = meson_ao_cec_read(ao_cec, CEC_RX_MSG_0_HEADER + i, &byte);
-> +		if (ret)
-> +			goto rx_out;
-> +
-> +		ao_cec->rx_msg.msg[i] = byte;
-> +	}
-> +
-> +	cec_received_msg(ao_cec->adap, &ao_cec->rx_msg);
-> +
-> +rx_out:
-> +	/* Clear Interruption */
-> +	writel_relaxed(CEC_INTR_RX, ao_cec->base + CEC_INTR_CLR_REG);
-> +
-> +	/* Return if previous read errors */
-> +	if (ret)
-> +		return;
-> +
-> +	/* Ack RX message */
-> +	ret = meson_ao_cec_write(ao_cec, CEC_RX_MSG_CMD, RX_ACK_CURRENT);
-> +	if (ret)
-> +		return;
-> +	ret = meson_ao_cec_write(ao_cec, CEC_RX_MSG_CMD, RX_NO_OP);
-> +	if (ret)
-> +		return;
-> +
-> +	/* Clear RX buffer */
-> +	ret = meson_ao_cec_write(ao_cec, CEC_RX_CLEAR_BUF, CLEAR_START);
-> +	if (ret)
-> +		return;
-> +	ret = meson_ao_cec_write(ao_cec, CEC_RX_CLEAR_BUF, CLEAR_STOP);
-> +	if (ret)
-> +		return;
-> +}
-> +
-> +static irqreturn_t meson_ao_cec_irq_thread(int irq, void *data)
-> +{
-> +	struct meson_ao_cec_device *ao_cec = data;
-> +	u32 stat = readl_relaxed(ao_cec->base + CEC_INTR_STAT_REG);
-> +
-> +	if (stat & CEC_INTR_TX)
-> +		meson_ao_cec_irq_tx(ao_cec);
-> +
-> +	meson_ao_cec_irq_rx(ao_cec);
-> +
-> +	return IRQ_HANDLED;
-> +}
-> +
-> +static int meson_ao_cec_set_log_addr(struct cec_adapter *adap, u8 logical_addr)
-> +{
-> +	struct meson_ao_cec_device *ao_cec = adap->priv;
-> +	int ret;
-> +
-> +	ret = meson_ao_cec_write(ao_cec, CEC_LOGICAL_ADDR0,
-> +				 LOGICAL_ADDR_DISABLE);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = meson_ao_cec_clear(ao_cec);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (logical_addr == CEC_LOG_ADDR_INVALID)
-> +		return 0;
-> +
-> +	ret = meson_ao_cec_write(ao_cec, CEC_LOGICAL_ADDR0,
-> +			   logical_addr & LOGICAL_ADDR_MASK);
-> +	if (ret)
-> +		return ret;
-> +
-> +	udelay(100);
-> +
-> +	ret = meson_ao_cec_write(ao_cec, CEC_LOGICAL_ADDR0,
-> +			   (logical_addr & LOGICAL_ADDR_MASK) |
-> +			   LOGICAL_ADDR_VALID);
-> +
-> +	return ret;
-> +}
-> +
-> +static int meson_ao_cec_transmit(struct cec_adapter *adap, u8 attempts,
-> +				 u32 signal_free_time, struct cec_msg *msg)
-> +{
-> +	struct meson_ao_cec_device *ao_cec = adap->priv;
-> +	int i, ret;
-> +	u8 reg;
-> +
-> +	ret = meson_ao_cec_read(ao_cec, CEC_TX_MSG_STATUS, &reg);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (reg == TX_BUSY) {
-> +		dev_err(&ao_cec->pdev->dev, "%s: busy TX\n", __func__);
-
-s/busy TX/busy TX: aborting/
-
-to make it clear that this TX is aborted.
-
-> +		ret = meson_ao_cec_write(ao_cec, CEC_TX_MSG_CMD, TX_ABORT);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-> +	for (i = 0; i < msg->len; i++) {
-> +		ret = meson_ao_cec_write(ao_cec, CEC_TX_MSG_0_HEADER + i,
-> +					 msg->msg[i]);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-> +	ret = meson_ao_cec_write(ao_cec, CEC_TX_MSG_LENGTH, msg->len - 1);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = meson_ao_cec_write(ao_cec, CEC_TX_MSG_CMD, TX_REQ_CURRENT);
-> +
-> +	return ret;
-> +}
-> +
-> +static int meson_ao_cec_adap_enable(struct cec_adapter *adap, bool enable)
-> +{
-> +	struct meson_ao_cec_device *ao_cec = adap->priv;
-> +	int ret;
-> +
-> +	meson_ao_cec_irq_setup(ao_cec, false);
-> +
-> +	writel_bits_relaxed(CEC_GEN_CNTL_RESET, CEC_GEN_CNTL_RESET,
-> +			    ao_cec->base + CEC_GEN_CNTL_REG);
-> +
-> +	if (!enable)
-> +		return 0;
-> +
-> +	/* Enable gated clock (Normal mode). */
-> +	writel_bits_relaxed(CEC_GEN_CNTL_CLK_CTRL_MASK,
-> +			    FIELD_PREP(CEC_GEN_CNTL_CLK_CTRL_MASK,
-> +				       CEC_GEN_CNTL_CLK_ENABLE),
-> +			    ao_cec->base + CEC_GEN_CNTL_REG);
-> +
-> +	udelay(100);
-> +
-> +	/* Release Reset */
-> +	writel_bits_relaxed(CEC_GEN_CNTL_RESET, 0,
-> +			    ao_cec->base + CEC_GEN_CNTL_REG);
-> +
-> +	/* Clear buffers */
-> +	ret = meson_ao_cec_clear(ao_cec);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/* CEC arbitration 3/5/7 bit time set. */
-> +	ret = meson_ao_cec_arbit_bit_time_set(ao_cec,
-> +					CEC_SIGNAL_FREE_TIME_RETRY,
-> +					0x118);
-> +	if (ret)
-> +		return ret;
-> +	ret = meson_ao_cec_arbit_bit_time_set(ao_cec,
-> +					CEC_SIGNAL_FREE_TIME_NEW_INITIATOR,
-> +					0x000);
-> +	if (ret)
-> +		return ret;
-> +	ret = meson_ao_cec_arbit_bit_time_set(ao_cec,
-> +					CEC_SIGNAL_FREE_TIME_NEXT_XFER,
-> +					0x2aa);
-> +	if (ret)
-> +		return ret;
-> +
-> +	meson_ao_cec_irq_setup(ao_cec, true);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct cec_adap_ops meson_ao_cec_ops = {
-> +	.adap_enable = meson_ao_cec_adap_enable,
-> +	.adap_log_addr = meson_ao_cec_set_log_addr,
-> +	.adap_transmit = meson_ao_cec_transmit,
-> +};
-> +
-> +static int meson_ao_cec_probe(struct platform_device *pdev)
-> +{
-> +	struct meson_ao_cec_device *ao_cec;
-> +	struct platform_device *hdmi_dev;
-> +	struct device_node *np;
-> +	struct resource *res;
-> +	int ret, irq;
-> +
-> +	np = of_parse_phandle(pdev->dev.of_node, "hdmi-phandle", 0);
-> +	if (!np) {
-> +		dev_err(&pdev->dev, "Failed to find hdmi node\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	hdmi_dev = of_find_device_by_node(np);
-> +	if (hdmi_dev == NULL)
-> +		return -EPROBE_DEFER;
-> +
-> +	ao_cec = devm_kzalloc(&pdev->dev, sizeof(*ao_cec), GFP_KERNEL);
-> +	if (!ao_cec)
-> +		return -ENOMEM;
-> +
-> +	spin_lock_init(&ao_cec->cec_reg_lock);
-> +
-> +	ao_cec->notify = cec_notifier_get(&hdmi_dev->dev);
-> +	if (!ao_cec->notify)
-> +		return -ENOMEM;
-> +
-> +	ao_cec->adap = cec_allocate_adapter(&meson_ao_cec_ops, ao_cec,
-> +					    "meson_ao_cec",
-> +					    CEC_CAP_LOG_ADDRS |
-> +					    CEC_CAP_TRANSMIT |
-> +					    CEC_CAP_RC |
-> +					    CEC_CAP_PASSTHROUGH,
-> +					    1); /* Use 1 for now */
-
-I recommend that you add support for 2 logical addresses. More isn't allowed
-by the CEC 2.0 spec anyway (no such restriction for CEC 1.4, but more than
-two really isn't needed).
-
-> +	if (IS_ERR(ao_cec->adap)) {
-> +		ret = PTR_ERR(ao_cec->adap);
-> +		goto out_probe_notify;
-> +	}
-> +
-> +	ao_cec->adap->owner = THIS_MODULE;
-> +
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	ao_cec->base = devm_ioremap_resource(&pdev->dev, res);
-> +	if (IS_ERR(ao_cec->base)) {
-> +		ret = PTR_ERR(ao_cec->base);
-> +		goto out_probe_adapter;
-> +	}
-> +
-> +	irq = platform_get_irq(pdev, 0);
-> +	ret = devm_request_threaded_irq(&pdev->dev, irq,
-> +					meson_ao_cec_irq,
-> +					meson_ao_cec_irq_thread,
-> +					0, NULL, ao_cec);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "irq request failed\n");
-> +		goto out_probe_adapter;
-> +	}
-> +
-> +	ao_cec->core = devm_clk_get(&pdev->dev, "core");
-> +	if (IS_ERR(ao_cec->core)) {
-> +		dev_err(&pdev->dev, "core clock request failed\n");
-> +		ret = PTR_ERR(ao_cec->core);
-> +		goto out_probe_adapter;
-> +	}
-> +
-> +	ret = clk_prepare_enable(ao_cec->core);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "core clock enable failed\n");
-> +		goto out_probe_adapter;
-> +	}
-> +
-> +	ret = clk_set_rate(ao_cec->core, CEC_CLK_RATE);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "core clock set rate failed\n");
-> +		goto out_probe_clk;
-> +	}
-> +
-> +	device_reset_optional(&pdev->dev);
-> +
-> +	ao_cec->pdev = pdev;
-> +	platform_set_drvdata(pdev, ao_cec);
-> +
-> +	ret = cec_register_adapter(ao_cec->adap, &pdev->dev);
-> +	if (ret < 0) {
-> +		cec_notifier_put(ao_cec->notify);
-> +		goto out_probe_clk;
-> +	}
-> +
-> +	/* Setup Hardware */
-> +	writel_relaxed(CEC_GEN_CNTL_RESET,
-> +		       ao_cec->base + CEC_GEN_CNTL_REG);
-> +
-> +	cec_register_cec_notifier(ao_cec->adap, ao_cec->notify);
-> +
-> +	return 0;
-> +
-> +out_probe_clk:
-> +	clk_disable_unprepare(ao_cec->core);
-> +
-> +out_probe_adapter:
-> +	cec_delete_adapter(ao_cec->adap);
-> +
-> +out_probe_notify:
-> +	cec_notifier_put(ao_cec->notify);
-> +
-> +	dev_err(&pdev->dev, "CEC controller registration failed\n");
-> +
-> +	return ret;
-> +}
-> +
-> +static int meson_ao_cec_remove(struct platform_device *pdev)
-> +{
-> +	struct meson_ao_cec_device *ao_cec = platform_get_drvdata(pdev);
-> +
-> +	clk_disable_unprepare(ao_cec->core);
-> +
-> +	cec_unregister_adapter(ao_cec->adap);
-> +
-> +	cec_notifier_put(ao_cec->notify);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct of_device_id meson_ao_cec_of_match[] = {
-> +	{ .compatible = "amlogic,meson-gx-ao-cec", },
-> +	{ /* sentinel */ }
-> +};
-> +MODULE_DEVICE_TABLE(of, meson_ao_cec_of_match);
-> +
-> +static struct platform_driver meson_ao_cec_driver = {
-> +	.probe   = meson_ao_cec_probe,
-> +	.remove  = meson_ao_cec_remove,
-> +	.driver  = {
-> +		.name = "meson-ao-cec",
-> +		.of_match_table = of_match_ptr(meson_ao_cec_of_match),
-> +	},
-> +};
-> +
-> +module_platform_driver(meson_ao_cec_driver);
-> +
-> +MODULE_DESCRIPTION("Meson AO CEC Controller driver");
-> +MODULE_AUTHOR("Neil Armstrong <narmstrong@baylibre.com>");
-> +MODULE_LICENSE("GPL");
-> 
-
-Regards,
-
-	Hans
+diff --git a/Documentation/media/uapi/v4l/pixfmt-006.rst b/Documentation/media/uapi/v4l/colorspaces-defs.rst
+similarity index 100%
+rename from Documentation/media/uapi/v4l/pixfmt-006.rst
+rename to Documentation/media/uapi/v4l/colorspaces-defs.rst
+diff --git a/Documentation/media/uapi/v4l/pixfmt-007.rst b/Documentation/media/uapi/v4l/colorspaces-details.rst
+similarity index 96%
+rename from Documentation/media/uapi/v4l/pixfmt-007.rst
+rename to Documentation/media/uapi/v4l/colorspaces-details.rst
+index 0c30ee2577d3..128b2acbe824 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-007.rst
++++ b/Documentation/media/uapi/v4l/colorspaces-details.rst
+@@ -758,3 +758,33 @@ scaled to [-128…128] and then clipped to [-128…127].
+    ``V4L2_COLORSPACE_JPEG`` can be considered to be an abbreviation for
+    ``V4L2_COLORSPACE_SRGB``, ``V4L2_YCBCR_ENC_601`` and
+    ``V4L2_QUANTIZATION_FULL_RANGE``.
++
++***************************************
++Detailed Transfer Function Descriptions
++***************************************
++
++.. _xf-smpte-2084:
++
++Transfer Function SMPTE 2084 (V4L2_XFER_FUNC_SMPTE2084)
++=======================================================
++
++The :ref:`smpte2084` standard defines the transfer function used by
++High Dynamic Range content.
++
++Constants:
++    m1 = (2610 / 4096) / 4
++
++    m2 = (2523 / 4096) * 128
++
++    c1 = 3424 / 4096
++
++    c2 = (2413 / 4096) * 32
++
++    c3 = (2392 / 4096) * 32
++
++Transfer function:
++    L' = ((c1 + c2 * L\ :sup:`m1`) / (1 + c3 * L\ :sup:`m1`))\ :sup:`m2`
++
++Inverse Transfer function:
++    L = (max(L':sup:`1/m2` - c1, 0) / (c2 - c3 *
++    L'\ :sup:`1/m2`))\ :sup:`1/m1`
+diff --git a/Documentation/media/uapi/v4l/pixfmt-008.rst b/Documentation/media/uapi/v4l/pixfmt-008.rst
+deleted file mode 100644
+index 4bec79784bdd..000000000000
+--- a/Documentation/media/uapi/v4l/pixfmt-008.rst
++++ /dev/null
+@@ -1,32 +0,0 @@
+-.. -*- coding: utf-8; mode: rst -*-
+-
+-***************************************
+-Detailed Transfer Function Descriptions
+-***************************************
+-
+-
+-.. _xf-smpte-2084:
+-
+-Transfer Function SMPTE 2084 (V4L2_XFER_FUNC_SMPTE2084)
+-=======================================================
+-
+-The :ref:`smpte2084` standard defines the transfer function used by
+-High Dynamic Range content.
+-
+-Constants:
+-    m1 = (2610 / 4096) / 4
+-
+-    m2 = (2523 / 4096) * 128
+-
+-    c1 = 3424 / 4096
+-
+-    c2 = (2413 / 4096) * 32
+-
+-    c3 = (2392 / 4096) * 32
+-
+-Transfer function:
+-    L' = ((c1 + c2 * L\ :sup:`m1`) / (1 + c3 * L\ :sup:`m1`))\ :sup:`m2`
+-
+-Inverse Transfer function:
+-    L = (max(L':sup:`1/m2` - c1, 0) / (c2 - c3 *
+-    L'\ :sup:`1/m2`))\ :sup:`1/m1`
+diff --git a/Documentation/media/uapi/v4l/pixfmt-013.rst b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+similarity index 100%
+rename from Documentation/media/uapi/v4l/pixfmt-013.rst
+rename to Documentation/media/uapi/v4l/pixfmt-compressed.rst
+diff --git a/Documentation/media/uapi/v4l/pixfmt-004.rst b/Documentation/media/uapi/v4l/pixfmt-intro.rst
+similarity index 100%
+rename from Documentation/media/uapi/v4l/pixfmt-004.rst
+rename to Documentation/media/uapi/v4l/pixfmt-intro.rst
+diff --git a/Documentation/media/uapi/v4l/pixfmt-003.rst b/Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst
+similarity index 100%
+rename from Documentation/media/uapi/v4l/pixfmt-003.rst
+rename to Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst
+diff --git a/Documentation/media/uapi/v4l/pixfmt-002.rst b/Documentation/media/uapi/v4l/pixfmt-v4l2.rst
+similarity index 100%
+rename from Documentation/media/uapi/v4l/pixfmt-002.rst
+rename to Documentation/media/uapi/v4l/pixfmt-v4l2.rst
+diff --git a/Documentation/media/uapi/v4l/pixfmt.rst b/Documentation/media/uapi/v4l/pixfmt.rst
+index 00737152497b..2aa449e2da67 100644
+--- a/Documentation/media/uapi/v4l/pixfmt.rst
++++ b/Documentation/media/uapi/v4l/pixfmt.rst
+@@ -19,20 +19,19 @@ see also :ref:`VIDIOC_G_FBUF <VIDIOC_G_FBUF>`.)
+ .. toctree::
+     :maxdepth: 1
+ 
+-    pixfmt-002
+-    pixfmt-003
+-    pixfmt-004
+-    colorspaces
+-    pixfmt-006
+-    pixfmt-007
+-    pixfmt-008
++    pixfmt-v4l2
++    pixfmt-v4l2-mplane
++    pixfmt-intro
+     pixfmt-indexed
+     pixfmt-rgb
+     yuv-formats
+     hsv-formats
+     depth-formats
+-    pixfmt-013
++    pixfmt-compressed
+     sdr-formats
+     tch-formats
+     meta-formats
+     pixfmt-reserved
++    colorspaces
++    colorspaces-defs
++    colorspaces-details
+-- 
+2.13.1
