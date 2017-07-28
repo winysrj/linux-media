@@ -1,102 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-61.mail.aliyun.com ([115.124.20.61]:58604 "EHLO
-        out20-61.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751113AbdG0FDg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Jul 2017 01:03:36 -0400
-From: Yong Deng <yong.deng@magewell.com>
-To: maxime.ripard@free-electrons.com
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
+Received: from mout.gmx.net ([212.227.15.15]:50148 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751949AbdG1Mdk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Jul 2017 08:33:40 -0400
+Received: from axis700.grange ([87.78.105.5]) by mail.gmx.com (mrgmx001
+ [212.227.17.190]) with ESMTPSA (Nemesis) id 0MQ2Wx-1dVrOr3I3f-005EWW for
+ <linux-media@vger.kernel.org>; Fri, 28 Jul 2017 14:33:38 +0200
+Received: from 200r.grange (200r.grange [192.168.1.16])
+        by axis700.grange (Postfix) with ESMTP id 71D878B126
+        for <linux-media@vger.kernel.org>; Fri, 28 Jul 2017 14:30:58 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Hans Verkuil <hverkuil@xs4all.nl>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benoit Parrot <bparrot@ti.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, Yong Deng <yong.deng@magewell.com>
-Subject: [PATCH v2 2/3] dt-bindings: media: Add Allwinner V3s Camera Sensor Interface (CSI)
-Date: Thu, 27 Jul 2017 13:01:36 +0800
-Message-Id: <1501131697-1359-3-git-send-email-yong.deng@magewell.com>
-In-Reply-To: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
-References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
+        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+Subject: [PATCH 6/6 v5]  uvcvideo: handle control pipe protocol STALLs
+Date: Fri, 28 Jul 2017 14:33:25 +0200
+Message-Id: <1501245205-15802-7-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1501245205-15802-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1501245205-15802-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add binding documentation for Allwinner V3s CSI.
+When a command ends up in a STALL on the control pipe, use the Request
+Error Code control to provide a more precise error information to the
+user.
 
-Signed-off-by: Yong Deng <yong.deng@magewell.com>
+Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
 ---
- .../devicetree/bindings/media/sun6i-csi.txt        | 49 ++++++++++++++++++++++
- 1 file changed, 49 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
+ drivers/media/usb/uvc/uvc_video.c | 59 +++++++++++++++++++++++++++++++++++----
+ 1 file changed, 53 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-new file mode 100644
-index 0000000..f8d83f6
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-@@ -0,0 +1,49 @@
-+Allwinner V3s Camera Sensor Interface
-+------------------------------
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 006691e..887561b 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -34,15 +34,59 @@ static int __uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
+ 			__u8 intfnum, __u8 cs, void *data, __u16 size,
+ 			int timeout)
+ {
+-	__u8 type = USB_TYPE_CLASS | USB_RECIP_INTERFACE;
++	__u8 type = USB_TYPE_CLASS | USB_RECIP_INTERFACE, tmp, error;
+ 	unsigned int pipe;
++	int ret;
+ 
+ 	pipe = (query & 0x80) ? usb_rcvctrlpipe(dev->udev, 0)
+ 			      : usb_sndctrlpipe(dev->udev, 0);
+ 	type |= (query & 0x80) ? USB_DIR_IN : USB_DIR_OUT;
+ 
+-	return usb_control_msg(dev->udev, pipe, query, type, cs << 8,
++	ret = usb_control_msg(dev->udev, pipe, query, type, cs << 8,
+ 			unit << 8 | intfnum, data, size, timeout);
 +
-+Required properties:
-+  - compatible: value must be "allwinner,sun8i-v3s-csi"
-+  - reg: base address and size of the memory-mapped region.
-+  - interrupts: interrupt associated to this IP
-+  - clocks: phandles to the clocks feeding the CSI
-+    * ahb: the CSI interface clock
-+    * mod: the CSI module clock
-+    * ram: the CSI DRAM clock
-+  - clock-names: the clock names mentioned above
-+  - resets: phandles to the reset line driving the CSI
++	if (ret != -EPIPE)
++		return ret;
 +
-+- ports: A ports node with endpoint definitions as defined in
-+  Documentation/devicetree/bindings/media/video-interfaces.txt.
++	tmp = *(u8 *)data;
 +
-+Example:
++	pipe = usb_rcvctrlpipe(dev->udev, 0);
++	type = USB_TYPE_CLASS | USB_RECIP_INTERFACE | USB_DIR_IN;
++	ret = usb_control_msg(dev->udev, pipe, UVC_GET_CUR, type,
++			      UVC_VC_REQUEST_ERROR_CODE_CONTROL << 8,
++			      unit << 8 | intfnum, data, 1, timeout);
++	error = *(u8 *)data;
++	*(u8 *)data = tmp;
 +
-+	csi1: csi@01cb4000 {
-+		compatible = "allwinner,sun8i-v3s-csi";
-+		reg = <0x01cb4000 0x1000>;
-+		interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&ccu CLK_BUS_CSI>,
-+			 <&ccu CLK_CSI1_SCLK>,
-+			 <&ccu CLK_DRAM_CSI>;
-+		clock-names = "ahb", "mod", "ram";
-+		resets = <&ccu RST_BUS_CSI>;
++	if (ret < 0)
++		return ret;
 +
-+		port {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
++	if (!ret)
++		return -EINVAL;
 +
-+			/* Parallel bus endpoint */
-+			csi1_ep: endpoint {
-+				remote-endpoint = <&adv7611_ep>;
-+				bus-width = <16>;
-+				data-shift = <0>;
++	uvc_trace(UVC_TRACE_CONTROL, "Control error %u\n", error);
 +
-+				/* If hsync-active/vsync-active are missing,
-+				   embedded BT.656 sync is used */
-+				hsync-active = <0>; /* Active low */
-+				vsync-active = <0>; /* Active low */
-+				data-active = <1>;  /* Active high */
-+				pclk-sample = <1>;  /* Rising */
-+			};
-+		};
-+	};
++	switch (error) {
++	case 0:
++		/* Cannot happen - we received a STALL */
++		return -EPIPE;
++	case 1: /* Not ready */
++		return -EAGAIN;
++	case 2: /* Wrong state */
++		return -EILSEQ;
++	case 3: /* Power */
++		return -EREMOTE;
++	case 4: /* Out of range */
++		return -ERANGE;
++	case 5: /* Invalid unit */
++	case 6: /* Invalid control */
++	case 7: /* Invalid Request */
++	case 8: /* Invalid value within range */
++	default: /* reserved or unknown */
++		break;
++	}
 +
++	return -EINVAL;
+ }
+ 
+ static const char *uvc_query_name(__u8 query)
+@@ -80,7 +124,7 @@ int uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
+ 		uvc_printk(KERN_ERR, "Failed to query (%s) UVC control %u on "
+ 			"unit %u: %d (exp. %u).\n", uvc_query_name(query), cs,
+ 			unit, ret, size);
+-		return -EIO;
++		return ret < 0 ? ret : -EIO;
+ 	}
+ 
+ 	return 0;
+@@ -203,13 +247,15 @@ static int uvc_get_video_ctrl(struct uvc_streaming *stream,
+ 		uvc_warn_once(stream->dev, UVC_WARN_PROBE_DEF, "UVC non "
+ 			"compliance - GET_DEF(PROBE) not supported. "
+ 			"Enabling workaround.\n");
+-		ret = -EIO;
++		if (ret >= 0)
++			ret = -EIO;
+ 		goto out;
+ 	} else if (ret != size) {
+ 		uvc_printk(KERN_ERR, "Failed to query (%u) UVC %s control : "
+ 			"%d (exp. %u).\n", query, probe ? "probe" : "commit",
+ 			ret, size);
+-		ret = -EIO;
++		if (ret >= 0)
++			ret = -EIO;
+ 		goto out;
+ 	}
+ 
+@@ -290,7 +336,8 @@ static int uvc_set_video_ctrl(struct uvc_streaming *stream,
+ 		uvc_printk(KERN_ERR, "Failed to set UVC %s control : "
+ 			"%d (exp. %u).\n", probe ? "probe" : "commit",
+ 			ret, size);
+-		ret = -EIO;
++		if (ret >= 0)
++			ret = -EIO;
+ 	}
+ 
+ 	kfree(data);
 -- 
-1.8.3.1
+1.9.3
