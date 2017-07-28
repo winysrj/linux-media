@@ -1,56 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:34765 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751399AbdGRNZx (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:51341 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751622AbdG1KFv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 09:25:53 -0400
-Message-ID: <1500384351.9510.3.camel@pengutronix.de>
-Subject: Re: [PATCH] [media] platform: video-mux: convert to multiplexer
- framework
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, kernel@pengutronix.de
-Date: Tue, 18 Jul 2017 15:25:51 +0200
-In-Reply-To: <39517db4-d249-4073-e6cb-b0204474da87@xs4all.nl>
-References: <20170717105514.18426-1-p.zabel@pengutronix.de>
-         <39517db4-d249-4073-e6cb-b0204474da87@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Fri, 28 Jul 2017 06:05:51 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Hans Verkuil" <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v1 1/5] [media] stm32-dcmi: catch dma submission error
+Date: Fri, 28 Jul 2017 12:04:58 +0200
+Message-ID: <1501236302-18097-2-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1501236302-18097-1-git-send-email-hugues.fruchet@st.com>
+References: <1501236302-18097-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2017-07-18 at 12:03 +0200, Hans Verkuil wrote:
-> On 17/07/17 12:55, Philipp Zabel wrote:
-> > Now that the multiplexer framework is merged, drop the temporary
-> > mmio-mux implementation from the video-mux driver and convert it to use
-> > the multiplexer API.
-> > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> >  drivers/media/platform/video-mux.c | 53 +++++---------------------------------
-> >  1 file changed, 7 insertions(+), 46 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
-> > index 665744716f73b..ee89ad76bee23 100644
-> > --- a/drivers/media/platform/video-mux.c
-> > +++ b/drivers/media/platform/video-mux.c
-> > @@ -17,8 +17,7 @@
-> >  #include <linux/err.h>
-> >  #include <linux/module.h>
-> >  #include <linux/mutex.h>
-> > -#include <linux/regmap.h>
-> > -#include <linux/mfd/syscon.h>
-> > +#include <linux/mux/consumer.h>
-> 
-> Shouldn't Kconfig be modified as well to select the multiplexer? Am I missing something?
+Test cookie return by dmaengine_submit() and return error if any.
 
-The mux framework has stubs, so this compiles fine without MULTIPLEXER
-enabled.
-On the other hand this driver is pretty useless without the multiplexer
-framework, and the i2c and iio muxes select it as well.
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/platform/stm32/stm32-dcmi.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-I'll change it and send a v2.
-
-regards
-Philipp
+diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
+index 24ef888..716b3db 100644
+--- a/drivers/media/platform/stm32/stm32-dcmi.c
++++ b/drivers/media/platform/stm32/stm32-dcmi.c
+@@ -295,6 +295,10 @@ static int dcmi_start_dma(struct stm32_dcmi *dcmi,
+ 
+ 	/* Push current DMA transaction in the pending queue */
+ 	dcmi->dma_cookie = dmaengine_submit(desc);
++	if (dma_submit_error(dcmi->dma_cookie)) {
++		dev_err(dcmi->dev, "%s: DMA submission failed\n", __func__);
++		return -ENXIO;
++	}
+ 
+ 	dma_async_issue_pending(dcmi->dma_chan);
+ 
+-- 
+1.9.1
