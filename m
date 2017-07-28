@@ -1,130 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:51982 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750846AbdGMDuJ (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:48210 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751071AbdG1Lnx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Jul 2017 23:50:09 -0400
-Message-ID: <6fa8335fd593279d2a8def830ab481d3@smtp-cloud3.xs4all.net>
-Date: Thu, 13 Jul 2017 05:50:06 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 28 Jul 2017 07:43:53 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.14] Various fixes
+Message-ID: <ff97d2b4-bb23-17e7-de28-1c9c4f0df345@xs4all.nl>
+Date: Fri, 28 Jul 2017 13:43:49 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The following changes since commit da48c948c263c9d87dfc64566b3373a858cc8aa2:
 
-Results of the daily build of media_tree:
+  media: fix warning on v4l2_subdev_call() result interpreted as bool (2017-07-26 13:43:17 -0400)
 
-date:			Thu Jul 13 05:00:18 CEST 2017
-media-tree git hash:	2748e76ddb2967c4030171342ebdd3faa6a5e8e8
-media_build git hash:	bc1db0a204a87da86349ea5e64ae0d65e945609d
-v4l-utils git hash:	8e68406dae2233e811032dc8e7714c09c818e893
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+are available in the git repository at:
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.14c
 
-Detailed results are available here:
+for you to fetch changes up to 82fb31aa8e0dc11da47bc774dddafc14ac801e2c:
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+  cec: documentation fixes (2017-07-28 13:25:27 +0200)
 
-Full logs are available here:
+----------------------------------------------------------------
+Arnd Bergmann (5):
+      v4l: omap_vout: vrfb: include linux/slab.h
+      imx: add VIDEO_V4L2_SUBDEV_API dependency
+      media: i2c: add KConfig dependencies
+      media: v4l: use WARN_ON(1) instead of __WARN()
+      media: v4l: omap_vout: vrfb: initialize DMA flags
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+Fabio Estevam (2):
+      ov7670: Return the real error code
+      ov7670: Check the return value from clk_prepare_enable()
 
-The Media Infrastructure API from this daily build is here:
+Hans Verkuil (1):
+      cec: documentation fixes
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Hugues Fruchet (2):
+      ov9650: fix coding style
+      ov9655: fix missing mutex_destroy()
+
+JB Van Puyvelde (1):
+      staging: imx: fix non-static declarations
+
+Kuninori Morimoto (1):
+      media: ti-vpe: cal: use of_graph_get_remote_endpoint()
+
+Philipp Zabel (1):
+      stm32-dcmi: explicitly request exclusive reset control
+
+Steve Longerbeam (1):
+      media: imx: prpencvf: enable double write reduction
+
+Tiffany Lin (1):
+      mtk-vcodec: fix vp9 decode error
+
+ Documentation/media/uapi/cec/cec-func-close.rst      |  2 +-
+ Documentation/media/uapi/cec/cec-func-ioctl.rst      |  2 +-
+ Documentation/media/uapi/cec/cec-func-open.rst       |  4 +--
+ Documentation/media/uapi/cec/cec-func-poll.rst       |  8 +++---
+ Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst |  2 +-
+ Documentation/media/uapi/cec/cec-ioc-dqevent.rst     |  2 +-
+ drivers/media/i2c/Kconfig                            |  3 ++-
+ drivers/media/i2c/ov7670.c                           |  6 +++--
+ drivers/media/i2c/ov9650.c                           | 67 ++++++++++++++++++++++++++++--------------------
+ drivers/media/platform/mtk-vcodec/vdec/vdec_vp9_if.c | 37 ++++++++++++++++++++++++--
+ drivers/media/platform/omap/omap_vout_vrfb.c         |  3 ++-
+ drivers/media/platform/pxa_camera.c                  |  2 +-
+ drivers/media/platform/soc_camera/soc_mediabus.c     |  2 +-
+ drivers/media/platform/stm32/stm32-dcmi.c            |  2 +-
+ drivers/media/platform/ti-vpe/cal.c                  |  2 +-
+ drivers/staging/media/atomisp/i2c/imx/imx.c          | 24 ++++++++---------
+ drivers/staging/media/imx/Kconfig                    |  1 +
+ drivers/staging/media/imx/imx-ic-prpencvf.c          | 11 ++++++++
+ 18 files changed, 120 insertions(+), 60 deletions(-)
