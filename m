@@ -1,94 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:36521 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750847AbdGaHV3 (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:42964 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751745AbdG1NNR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Jul 2017 03:21:29 -0400
+        Fri, 28 Jul 2017 09:13:17 -0400
+Subject: Re: [PATCH v2] [media] vb2: core: Lower the log level of debug
+ outputs
+To: Hirokazu Honda <hiroh@chromium.org>, Joe Perches <joe@perches.com>
+Cc: Tomasz Figa <tfiga@chromium.org>, Pawel Osciak <pawel@osciak.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+References: <20170530094901.1807-1-hiroh@chromium.org>
+ <1496139572.2618.19.camel@perches.com>
+ <CAO5uPHO7GwxCTk2OqQA5NfrL0-Jyt5SB-jVpeUA_eCrqR7u5xA@mail.gmail.com>
+ <1496196991.2618.47.camel@perches.com>
+ <CAO5uPHPWGABuKf3FuAky2BRx+9E=n-QhZ94RPQ7wEuHAwC1qGg@mail.gmail.com>
+ <1496203602.2618.54.camel@perches.com>
+ <0eb529d9-a710-4305-f0e2-e2fcd5d5433a@xs4all.nl>
+ <CAO5uPHOX=++z_YGFoCapH9fvhPwXpC5xr=gCCimAK=ZJ5pp7Hw@mail.gmail.com>
+ <CAAFQd5AnpjwgWkNL1RvOY1C2WR8gqVuCrPQmaRVCwjSvAM2u8Q@mail.gmail.com>
+ <1496898982.1929.7.camel@perches.com>
+ <CAAFQd5A2i+23F1piYbe1zk5Uy0+p+=wN9vyKJX=7JmaXF3Q9BQ@mail.gmail.com>
+ <1496900032.1929.9.camel@perches.com>
+ <CAO5uPHP7HSpzbO7EhqLjjEsZ+etnqS106Ec98Z7cDvGhKb6dDQ@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <c12a57ae-6f0c-eee2-b487-594ee330d9be@xs4all.nl>
+Date: Fri, 28 Jul 2017 15:13:11 +0200
 MIME-Version: 1.0
-In-Reply-To: <1501470460-12014-1-git-send-email-jacob-chen@iotwrt.com>
-References: <1501470460-12014-1-git-send-email-jacob-chen@iotwrt.com>
-From: Jacob Chen <jacobchen110@gmail.com>
-Date: Mon, 31 Jul 2017 15:21:27 +0800
-Message-ID: <CAFLEztRRq5Eep+c20h_=a+uf30egAYfPmX75=K+F6XnQ2N1+zg@mail.gmail.com>
-Subject: Re: [PATCH v3 0/5] Add Rockchip RGA V4l2 support
-To: "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devicetree@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>,
-        robh+dt@kernel.org, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        laurent.pinchart+renesas@ideasonboard.com,
-        Hans Verkuil <hans.verkuil@cisco.com>, s.nawrocki@samsung.com,
-        Tomasz Figa <tfiga@chromium.org>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Jacob Chen <jacob-chen@iotwrt.com>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <CAO5uPHP7HSpzbO7EhqLjjEsZ+etnqS106Ec98Z7cDvGhKb6dDQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 06/28/2017 12:57 AM, Hirokazu Honda wrote:
+> Hi,
+> 
+> According to patch work, this patch are not approved yet and its
+> status are "Changes Requested."
+> What changes are necessary actually?
+> If there is no necessary change, can you approve this patch?
 
+I was considering to have more fine grained control by changing
+the debug parameter to a bitmask. But after thinking about it a
+bit more I decided that this patch is OK after all.
 
-2017-07-31 11:07 GMT+08:00 Jacob Chen <jacob-chen@iotwrt.com>:
-> This patch series add a v4l2 m2m drvier for rockchip RGA direct rendering based 2d graphics acceleration module.
->
-> Before, my colleague yakir have write a drm RGA drvier and send it to the lists.
-> http://lists.infradead.org/pipermail/linux-arm-kernel/2016-March/416769.html
-> I have been asked to find a userspace user("compositor") for it, but after some studys, my conclusion is that unlike exynos g2d,
-> rockchip rga are not suitable for compositor. Rockchip RGA have a limited MMU, which means it can only hold several buffers in the same time.
-> When it was used in compositor, it will waste a lot of time to import/export/flush buffer, resulting in a bad performance.
->
-> A few months ago, i saw a discussion in dri-devel@lists.freedesktop.org.
-> It remind that we could write a v4l2 m2m RGA driver, since we usually use RGA for streaming purpose.
-> https://patches.linaro.org/cover/97727/
->
-> I have test this driver with gstreamer v4l2transform plugin and it seems work well.
->
-> change in V3:
-> - rename the controls.
-> - add pm_runtime support.
-> - enable node by default.
-> - correct spelling in documents.
->
-> change in V2:
-> - generalize the controls.
-> - map buffers (10-50 us) in every cmd-run rather than in buffer-import to avoid get_free_pages failed on
-> actively used systems.
-> - remove status in dt-bindings examples.
->
-> Jacob Chen (5):
->   [media] v4l: add blend modes controls
->   [media]: rockchip/rga: v4l2 m2m support
->   ARM: dts: rockchip: add RGA device node for RK3288
->   ARM: dts: rockchip: add RGA device node for RK3399
->   dt-bindings: Document the Rockchip RGA bindings
->
->  .../devicetree/bindings/media/rockchip-rga.txt     |  33 +
->  arch/arm/boot/dts/rk3288.dtsi                      |  11 +
->  arch/arm64/boot/dts/rockchip/rk3399.dtsi           |  11 +
->  drivers/media/platform/Kconfig                     |  11 +
->  drivers/media/platform/Makefile                    |   2 +
->  drivers/media/platform/rockchip-rga/Makefile       |   3 +
->  drivers/media/platform/rockchip-rga/rga-buf.c      | 141 +++
->  drivers/media/platform/rockchip-rga/rga-hw.c       | 650 ++++++++++++++
->  drivers/media/platform/rockchip-rga/rga-hw.h       | 437 +++++++++
->  drivers/media/platform/rockchip-rga/rga.c          | 987 +++++++++++++++++++++
->  drivers/media/platform/rockchip-rga/rga.h          | 110 +++
->  drivers/media/v4l2-core/v4l2-ctrls.c               |  20 +-
->  include/uapi/linux/v4l2-controls.h                 |  16 +-
->  13 files changed, 2430 insertions(+), 2 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
->  create mode 100644 drivers/media/platform/rockchip-rga/Makefile
->  create mode 100644 drivers/media/platform/rockchip-rga/rga-buf.c
->  create mode 100644 drivers/media/platform/rockchip-rga/rga-hw.c
->  create mode 100644 drivers/media/platform/rockchip-rga/rga-hw.h
->  create mode 100644 drivers/media/platform/rockchip-rga/rga.c
->  create mode 100644 drivers/media/platform/rockchip-rga/rga.h
->
-> --
-> 2.7.4
->
+I'll pick it up the next time I prepare a pull request.
 
-We are going to use this driver in our BSP, and write userspace for it.
-Though there are some work needed be done for better use, i'm
-satisfied with it at present.
-It could be improved through usage.
+Regards,
+
+	Hans
+
+> 
+> Best,
+> Hirokazu Honda
+> 
+> On Thu, Jun 8, 2017 at 2:33 PM, Joe Perches <joe@perches.com> wrote:
+>> On Thu, 2017-06-08 at 14:24 +0900, Tomasz Figa wrote:
+>>> On Thu, Jun 8, 2017 at 2:16 PM, Joe Perches <joe@perches.com> wrote:
+>> []
+>>>> If there automated systems that rely on specific levels, then
+>>>> changing the levels of individual messages could also cause
+>>>> those automated systems to fail.
+>>>
+>>> Well, that might be true for some of them indeed. I was thinking about
+>>> our use case, which relies on particular numbers to get expected
+>>> verbosity levels not caring about particular messages. I guess the
+>>> break all or none rule is going to apply here, so we should do the
+>>> bitmap conversion indeed. :)
+>>>
+>>> On the other hand, I think it would be still preferable to do the
+>>> conversion in a separate patch.
+>>
+>> Right.  No worries.
+>>
