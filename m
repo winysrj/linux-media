@@ -1,75 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42622 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750839AbdGYW6M (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:53921 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752027AbdG1Qcc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Jul 2017 18:58:12 -0400
-Date: Wed, 26 Jul 2017 01:58:09 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Arnd Bergmann <arnd@arndb.de>
+        Fri, 28 Jul 2017 12:32:32 -0400
+Date: Fri, 28 Jul 2017 18:03:53 +0200
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Yong Deng <yong.deng@magewell.com>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benoit Parrot <bparrot@ti.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
         Robert Jarzmik <robert.jarzmik@free.fr>,
-        Petr Cvek <petr.cvek@tul.cz>, Pavel Machek <pavel@ucw.cz>,
-        Sebastian Reichel <sre@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: v4l: use WARN_ON(1) instead of __WARN()
-Message-ID: <20170725225808.r2oueqjdflyr6acq@valkosipuli.retiisi.org.uk>
-References: <20170725154001.294864-1-arnd@arndb.de>
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 2/3] dt-bindings: media: Add Allwinner V3s Camera
+ Sensor Interface (CSI)
+Message-ID: <20170728160353.gqb2f47v6ujozvxz@flea.lan>
+References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
+ <1501131697-1359-3-git-send-email-yong.deng@magewell.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="l4yhxtsyrl7uef4x"
 Content-Disposition: inline
-In-Reply-To: <20170725154001.294864-1-arnd@arndb.de>
+In-Reply-To: <1501131697-1359-3-git-send-email-yong.deng@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 25, 2017 at 05:39:14PM +0200, Arnd Bergmann wrote:
-> __WARN() cannot be used in portable code, since it is only
-> available on some architectures and configurations:
-> 
-> drivers/media/platform/pxa_camera.c: In function 'pxa_mbus_config_compatible':
-> drivers/media/platform/pxa_camera.c:642:3: error: implicit declaration of function '__WARN'; did you mean '__WALL'? [-Werror=implicit-function-declaration]
-> 
-> The common way to express an unconditional warning is WARN_ON(1),
-> so let's use that here.
-> 
-> Fixes: 97bbdf02d905 ("media: v4l: Add support for CSI-1 and CCP2 busses")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+
+--l4yhxtsyrl7uef4x
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Thu, Jul 27, 2017 at 01:01:36PM +0800, Yong Deng wrote:
+> Add binding documentation for Allwinner V3s CSI.
+>=20
+> Signed-off-by: Yong Deng <yong.deng@magewell.com>
 > ---
->  drivers/media/platform/pxa_camera.c              | 2 +-
->  drivers/media/platform/soc_camera/soc_mediabus.c | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
-> index 3898a5cd8664..0d4af6d91ffc 100644
-> --- a/drivers/media/platform/pxa_camera.c
-> +++ b/drivers/media/platform/pxa_camera.c
-> @@ -639,7 +639,7 @@ static unsigned int pxa_mbus_config_compatible(const struct v4l2_mbus_config *cf
->  					     V4L2_MBUS_CSI2_CONTINUOUS_CLOCK);
->  		return (!mipi_lanes || !mipi_clock) ? 0 : common_flags;
->  	default:
-> -		__WARN();
-> +		WARN_ON(1);
->  		return -EINVAL;
->  	}
->  	return 0;
-> diff --git a/drivers/media/platform/soc_camera/soc_mediabus.c b/drivers/media/platform/soc_camera/soc_mediabus.c
-> index 43192d80beef..0ad4b28266e4 100644
-> --- a/drivers/media/platform/soc_camera/soc_mediabus.c
-> +++ b/drivers/media/platform/soc_camera/soc_mediabus.c
-> @@ -509,7 +509,7 @@ unsigned int soc_mbus_config_compatible(const struct v4l2_mbus_config *cfg,
->  					     V4L2_MBUS_CSI2_CONTINUOUS_CLOCK);
->  		return (!mipi_lanes || !mipi_clock) ? 0 : common_flags;
->  	default:
-> -		__WARN();
-> +		WARN_ON(1);
->  		return -EINVAL;
->  	}
->  	return 0;
+>  .../devicetree/bindings/media/sun6i-csi.txt        | 49 ++++++++++++++++=
+++++++
+>  1 file changed, 49 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Docu=
+mentation/devicetree/bindings/media/sun6i-csi.txt
+> new file mode 100644
+> index 0000000..f8d83f6
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+> @@ -0,0 +1,49 @@
+> +Allwinner V3s Camera Sensor Interface
+> +------------------------------
+> +
+> +Required properties:
+> +  - compatible: value must be "allwinner,sun8i-v3s-csi"
+> +  - reg: base address and size of the memory-mapped region.
+> +  - interrupts: interrupt associated to this IP
+> +  - clocks: phandles to the clocks feeding the CSI
+> +    * ahb: the CSI interface clock
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+We've been bad at this, but we're trying to have the same clock name
+here across all devices, and to use "bus" instead of "ahb".
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Thanks!
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
+
+--l4yhxtsyrl7uef4x
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJZe2BpAAoJEBx+YmzsjxAgwt4P/ih9Y9bcu4IXwbKWesaz5mCE
+/y6QgGIfJTcajWs70lmp/6Uk9ASw/RY13XUEvBUQulnhnrDfILLnlSkgHz8NZ7up
+3n++OERZZwzhqb7GfP/UwM+0NZJlkGcHTbZksE2C9tfDWtImQALwH0k3xY/23o+G
+v9SbfCNWp3g49YzV6BWcFq11z4Ml4y0DWM0kJW4IJTqcr4DX3SLDn0znpvYm7wto
+rlB5QSk6c6K5Eg9F69NYSMxVfm9zQt4qANt249B00tmdgHXxoBwfRzw4i0KLeshv
+gWoT8LO+9mjiYhtUZSTUPhocxns1WMihsi4qeWrr5ox6RX+TxO71Aol63hpdDzk/
+RxwWh+8NXg4ww0Lygi02+Qy6I0nH/ZCBtUrd4hsMzvDByxArCbIQR9KVqShYgJnL
+gtqnyfX5PYV87b38Mmf7C3n5h4Ua980Mucd4SCEDRObQGSAPvcy3etrRGCZXUJzy
+YJCBiL5Mxx8T6HL6DWhDyckp5GzTX0Svmlf7W6aaSrML+yK2KXdZCQwDMHupJIuN
+N7i3MqM767h1fU16fENP2wAr+OIpEZKlNEjvCMYUqzyss78G3JVONnhkZ4AKNZXy
+LYM5yjN2meJgY/P9SrR1A5v1xSfaWZ0787Vb5X5j2qJSiGKAfWfsbuVEOsMVXh/d
+73MLNH2a3Chc1Y2oDV42
+=/q+Z
+-----END PGP SIGNATURE-----
+
+--l4yhxtsyrl7uef4x--
