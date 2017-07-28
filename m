@@ -1,83 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60038 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751921AbdGRTEG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 15:04:06 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from mout.gmx.net ([212.227.15.15]:63172 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751628AbdG1Mda (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Jul 2017 08:33:30 -0400
+Received: from axis700.grange ([87.78.105.5]) by mail.gmx.com (mrgmx001
+ [212.227.17.190]) with ESMTPSA (Nemesis) id 0MAQXq-1dPTc22aVe-00BblH for
+ <linux-media@vger.kernel.org>; Fri, 28 Jul 2017 14:33:28 +0200
+Received: from 200r.grange (200r.grange [192.168.1.16])
+        by axis700.grange (Postfix) with ESMTP id 186CA8B104
+        for <linux-media@vger.kernel.org>; Fri, 28 Jul 2017 14:30:58 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: linux-media@vger.kernel.org
-Cc: linux-leds@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        niklas.soderlund@ragnatech.se, hverkuil@xs4all.nl,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [RFC 08/19] arm: dts: omap3: N9/N950: Add AS3645A camera flash
-Date: Tue, 18 Jul 2017 22:03:50 +0300
-Message-Id: <20170718190401.14797-9-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
-References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 0/6 v5] uvcvideo: metadata nodes and controls
+Date: Fri, 28 Jul 2017 14:33:19 +0200
+Message-Id: <1501245205-15802-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+The first four patches are for UVC metadata nodes, the last two patches
+are for asynchronous controls and control error reporting.
 
-Add the as3645a flash controller to the DT source as well as the flash
-property with the as3645a device phandle to the sensor DT node.
+Thanks
+Guennadi
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
----
- arch/arm/boot/dts/omap3-n9.dts       |  1 +
- arch/arm/boot/dts/omap3-n950-n9.dtsi | 14 ++++++++++++++
- arch/arm/boot/dts/omap3-n950.dts     |  1 +
- 3 files changed, 16 insertions(+)
+Guennadi Liakhovetski (6):
+  UVC: fix .queue_setup() to check the number of planes
+  V4L: Add a UVC Metadata format
+  uvcvideo: convert from using an atomic variable to a reference count
+  uvcvideo: add a metadata device node
+  uvcvideo: send a control event when a Control Change interrupt arrives
+  uvcvideo: handle control pipe protocol STALLs
 
-diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
-index b9e58c536afd..a2944010f62f 100644
---- a/arch/arm/boot/dts/omap3-n9.dts
-+++ b/arch/arm/boot/dts/omap3-n9.dts
-@@ -26,6 +26,7 @@
- 		clocks = <&isp 0>;
- 		clock-frequency = <9600000>;
- 		nokia,nvm-size = <(16 * 64)>;
-+		flash = <&as3645a_flash &as3645a_indicator>;
- 		port {
- 			smia_1_1: endpoint {
- 				link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index df3366fa5409..e15722b83a70 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -265,6 +265,20 @@
- 
- &i2c2 {
- 	clock-frequency = <400000>;
-+
-+	as3645a: flash@30 {
-+		reg = <0x30>;
-+		compatible = "ams,as3645a";
-+		as3645a_flash: flash {
-+			flash-timeout-us = <150000>;
-+			flash-max-microamp = <320000>;
-+			led-max-microamp = <60000>;
-+			peak-current-limit = <1750000>;
-+		};
-+		as3645a_indicator: indicator {
-+			led-max-microamp = <10000>;
-+		};
-+	};
- };
- 
- &i2c3 {
-diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
-index 646601a3ebd8..8fca0384d2df 100644
---- a/arch/arm/boot/dts/omap3-n950.dts
-+++ b/arch/arm/boot/dts/omap3-n950.dts
-@@ -60,6 +60,7 @@
- 		clocks = <&isp 0>;
- 		clock-frequency = <9600000>;
- 		nokia,nvm-size = <(16 * 64)>;
-+		flash = <&as3645a>;
- 		port {
- 			smia_1_1: endpoint {
- 				link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
+ Documentation/media/uapi/v4l/meta-formats.rst    |   1 +
+ Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst |  39 +++++
+ drivers/media/usb/uvc/Makefile                   |   2 +-
+ drivers/media/usb/uvc/uvc_ctrl.c                 | 150 +++++++++++++++++--
+ drivers/media/usb/uvc/uvc_driver.c               |  43 ++++--
+ drivers/media/usb/uvc/uvc_isight.c               |   2 +-
+ drivers/media/usb/uvc/uvc_metadata.c             | 139 ++++++++++++++++++
+ drivers/media/usb/uvc/uvc_queue.c                |  43 +++++-
+ drivers/media/usb/uvc/uvc_status.c               | 112 ++++++++++++--
+ drivers/media/usb/uvc/uvc_v4l2.c                 |   4 +-
+ drivers/media/usb/uvc/uvc_video.c                | 178 +++++++++++++++++++++--
+ drivers/media/usb/uvc/uvcvideo.h                 |  33 ++++-
+ drivers/media/v4l2-core/v4l2-ioctl.c             |   1 +
+ include/uapi/linux/uvcvideo.h                    |  28 ++++
+ include/uapi/linux/videodev2.h                   |   1 +
+ 15 files changed, 705 insertions(+), 71 deletions(-)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
+ create mode 100644 drivers/media/usb/uvc/uvc_metadata.c
+
 -- 
-2.11.0
+1.9.3
