@@ -1,148 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:33121 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751310AbdGQNpO (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:49235 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751668AbdG1KFx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 09:45:14 -0400
-Subject: Re: [PATCH 14/14] [media] fix warning on v4l2_subdev_call() result
- interpreted as bool
-To: Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <20170714092540.1217397-1-arnd@arndb.de>
- <20170714093938.1469319-1-arnd@arndb.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
-        linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
-        akpm@linux-foundation.org, dri-devel@lists.freedesktop.org,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Daeseok Youn <daeseok.youn@gmail.com>,
-        Alan Cox <alan@linux.intel.com>,
-        adi-buildroot-devel@lists.sourceforge.net,
-        linux-renesas-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <f57e08d9-0984-b67c-c64b-c7e0542d0361@xs4all.nl>
-Date: Mon, 17 Jul 2017 15:45:08 +0200
+        Fri, 28 Jul 2017 06:05:53 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Hans Verkuil" <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v1 4/5] [media] stm32-dcmi: set default format at open()
+Date: Fri, 28 Jul 2017 12:05:01 +0200
+Message-ID: <1501236302-18097-5-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1501236302-18097-1-git-send-email-hugues.fruchet@st.com>
+References: <1501236302-18097-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-In-Reply-To: <20170714093938.1469319-1-arnd@arndb.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 14/07/17 11:36, Arnd Bergmann wrote:
-> v4l2_subdev_call is a macro returning whatever the callback return
-> type is, usually 'int'. With gcc-7 and ccache, this can lead to
-> many wanings like:
-> 
-> media/platform/pxa_camera.c: In function 'pxa_mbus_build_fmts_xlate':
-> media/platform/pxa_camera.c:766:27: error: ?: using integer constants in boolean context [-Werror=int-in-bool-context]
->   while (!v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL, &code)) {
-> media/atomisp/pci/atomisp2/atomisp_cmd.c: In function 'atomisp_s_ae_window':
-> media/atomisp/pci/atomisp2/atomisp_cmd.c:6414:52: error: ?: using integer constants in boolean context [-Werror=int-in-bool-context]
->   if (v4l2_subdev_call(isp->inputs[asd->input_curr].camera,
-> 
-> The best workaround I could come up with is to change all the
-> callers that use the return code from v4l2_subdev_call() in an
-> 'if' or 'while' condition.
-> 
-> In case of simple 'if' checks, adding a temporary variable is
-> usually ok, and sometimes this can be used to propagate or
-> print an error code, so I do that.
-> 
-> For the 'while' loops, I ended up adding an otherwise useless
-> comparison with zero, which unfortunately makes the code a little
-> uglied.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  drivers/media/pci/cx18/cx18-ioctl.c                      |  6 ++++--
->  drivers/media/pci/saa7146/mxb.c                          |  5 +++--
->  drivers/media/platform/atmel/atmel-isc.c                 |  4 ++--
->  drivers/media/platform/atmel/atmel-isi.c                 |  4 ++--
->  drivers/media/platform/blackfin/bfin_capture.c           |  4 ++--
->  drivers/media/platform/omap3isp/ispccdc.c                |  5 +++--
->  drivers/media/platform/pxa_camera.c                      |  3 ++-
->  drivers/media/platform/rcar-vin/rcar-core.c              |  2 +-
->  drivers/media/platform/rcar-vin/rcar-dma.c               |  4 +++-
->  drivers/media/platform/soc_camera/soc_camera.c           |  4 ++--
->  drivers/media/platform/stm32/stm32-dcmi.c                |  4 ++--
->  drivers/media/platform/ti-vpe/cal.c                      |  6 ++++--
->  drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c | 13 +++++++------
->  13 files changed, 37 insertions(+), 27 deletions(-)
-> 
-> diff --git a/drivers/media/pci/cx18/cx18-ioctl.c b/drivers/media/pci/cx18/cx18-ioctl.c
-> index 80b902b12a78..1803f28fc501 100644
-> --- a/drivers/media/pci/cx18/cx18-ioctl.c
-> +++ b/drivers/media/pci/cx18/cx18-ioctl.c
-> @@ -188,6 +188,7 @@ static int cx18_g_fmt_sliced_vbi_cap(struct file *file, void *fh,
->  {
->  	struct cx18 *cx = fh2id(fh)->cx;
->  	struct v4l2_sliced_vbi_format *vbifmt = &fmt->fmt.sliced;
-> +	int ret;
->  
->  	/* sane, V4L2 spec compliant, defaults */
->  	vbifmt->reserved[0] = 0;
-> @@ -201,8 +202,9 @@ static int cx18_g_fmt_sliced_vbi_cap(struct file *file, void *fh,
->  	 * digitizer/slicer.  Note, cx18_av_vbi() wipes the passed in
->  	 * fmt->fmt.sliced under valid calling conditions
->  	 */
-> -	if (v4l2_subdev_call(cx->sd_av, vbi, g_sliced_fmt, &fmt->fmt.sliced))
-> -		return -EINVAL;
-> +	ret = v4l2_subdev_call(cx->sd_av, vbi, g_sliced_fmt, &fmt->fmt.sliced);
-> +	if (ret)
-> +		return ret;
+Ensure that we start with default pixel format and resolution
+when opening a new instance.
 
-Please keep the -EINVAL here. I can't be 100% certain that returning 'ret' wouldn't
-break something.
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/platform/stm32/stm32-dcmi.c | 49 ++++++++++++++++++-------------
+ 1 file changed, 28 insertions(+), 21 deletions(-)
 
->  
->  	vbifmt->service_set = cx18_get_service_set(vbifmt);
->  	return 0;
-
-<snip>
-
-> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-> index 97093baf28ac..fe56a037f065 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-> @@ -6405,19 +6405,20 @@ int atomisp_s_ae_window(struct atomisp_sub_device *asd,
->  	struct atomisp_device *isp = asd->isp;
->  	/* Coverity CID 298071 - initialzize struct */
->  	struct v4l2_subdev_selection sel = { 0 };
-> +	int ret;
->  
->  	sel.r.left = arg->x_left;
->  	sel.r.top = arg->y_top;
->  	sel.r.width = arg->x_right - arg->x_left + 1;
->  	sel.r.height = arg->y_bottom - arg->y_top + 1;
->  
-> -	if (v4l2_subdev_call(isp->inputs[asd->input_curr].camera,
-> -			     pad, set_selection, NULL, &sel)) {
-> -		dev_err(isp->dev, "failed to call sensor set_selection.\n");
-> -		return -EINVAL;
-> -	}
-> +	ret = v4l2_subdev_call(isp->inputs[asd->input_curr].camera,
-> +			       pad, set_selection, NULL, &sel);
-> +	if (ret)
-> +		dev_err(isp->dev, "failed to call sensor set_selection: %d\n",
-> +			ret);
-
-Same here: just keep the 'return -EINVAL'.
-
->  
-> -	return 0;
-> +	return ret;
->  }
->  
->  int atomisp_flash_enable(struct atomisp_sub_device *asd, int num_frames)
-> 
-
-This is all very hackish, though. I'm not terribly keen on this patch. It's not
-clear to me *why* these warnings appear in your setup.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
+index 4733d1f..2be56b6 100644
+--- a/drivers/media/platform/stm32/stm32-dcmi.c
++++ b/drivers/media/platform/stm32/stm32-dcmi.c
+@@ -890,6 +890,28 @@ static int dcmi_enum_frameintervals(struct file *file, void *fh,
+ 	return 0;
+ }
+ 
++static int dcmi_set_default_fmt(struct stm32_dcmi *dcmi)
++{
++	struct v4l2_format f = {
++		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
++		.fmt.pix = {
++			.width		= CIF_WIDTH,
++			.height		= CIF_HEIGHT,
++			.field		= V4L2_FIELD_NONE,
++			.pixelformat	= dcmi->sd_formats[0]->fourcc,
++		},
++	};
++	int ret;
++
++	ret = dcmi_try_fmt(dcmi, &f, NULL);
++	if (ret)
++		return ret;
++	dcmi->sd_format = dcmi->sd_formats[0];
++	dcmi->fmt = f;
++
++	return 0;
++}
++
+ static const struct of_device_id stm32_dcmi_of_match[] = {
+ 	{ .compatible = "st,stm32-dcmi"},
+ 	{ /* end node */ },
+@@ -916,7 +938,13 @@ static int dcmi_open(struct file *file)
+ 	if (ret < 0 && ret != -ENOIOCTLCMD)
+ 		goto fh_rel;
+ 
++	ret = dcmi_set_default_fmt(dcmi);
++	if (ret)
++		goto power_off;
++
+ 	ret = dcmi_set_fmt(dcmi, &dcmi->fmt);
++
++power_off:
+ 	if (ret)
+ 		v4l2_subdev_call(sd, core, s_power, 0);
+ fh_rel:
+@@ -991,27 +1019,6 @@ static int dcmi_release(struct file *file)
+ 	.read		= vb2_fop_read,
+ };
+ 
+-static int dcmi_set_default_fmt(struct stm32_dcmi *dcmi)
+-{
+-	struct v4l2_format f = {
+-		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
+-		.fmt.pix = {
+-			.width		= CIF_WIDTH,
+-			.height		= CIF_HEIGHT,
+-			.field		= V4L2_FIELD_NONE,
+-			.pixelformat	= dcmi->sd_formats[0]->fourcc,
+-		},
+-	};
+-	int ret;
+-
+-	ret = dcmi_try_fmt(dcmi, &f, NULL);
+-	if (ret)
+-		return ret;
+-	dcmi->sd_format = dcmi->sd_formats[0];
+-	dcmi->fmt = f;
+-	return 0;
+-}
+-
+ static const struct dcmi_format dcmi_formats[] = {
+ 	{
+ 		.fourcc = V4L2_PIX_FMT_RGB565,
+-- 
+1.9.1
