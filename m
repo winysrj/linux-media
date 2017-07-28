@@ -1,59 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:39580 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750950AbdG0HqI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Jul 2017 03:46:08 -0400
-From: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
-        hyungwoo.yang@intel.com, tfiga@chromium.org,
-        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
-Subject: [PATCH v1] media: ov13858: Fix initial expsoure max
-Date: Thu, 27 Jul 2017 00:44:19 -0700
-Message-Id: <1501141459-18717-1-git-send-email-chiranjeevi.rapolu@intel.com>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:57518 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751744AbdG1LFi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Jul 2017 07:05:38 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 1/2] v4l2-subdev: add VIDIOC_SUBDEV_QUERYCAP ioctl
+Date: Fri, 28 Jul 2017 13:05:28 +0200
+Message-Id: <20170728110529.4057-2-hverkuil@xs4all.nl>
+In-Reply-To: <20170728110529.4057-1-hverkuil@xs4all.nl>
+References: <20170728110529.4057-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Previously, initial exposure max was set incorrectly to (0x7fff - 8).
-Now, limit exposure max to current resolution (VTS - 8).
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+While normal video/radio/vbi/swradio nodes have a proper QUERYCAP ioctl
+that apps can call to determine that it is indeed a V4L2 device, there
+is currently no equivalent for v4l-subdev nodes. Adding this ioctl will
+solve that, and it will allow utilities like v4l2-compliance to be used
+with these devices as well.
+
+SUBDEV_QUERYCAP currently returns the version and device_caps of the
+subdevice. If the subdev is used as part of a media controller, then
+it also returns the entity ID and the major and minor numbers of the
+media controller device node.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/ov13858.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-subdev.c | 27 +++++++++++++++++++++++++++
+ include/uapi/linux/v4l2-subdev.h      | 31 +++++++++++++++++++++++++++++++
+ 2 files changed, 58 insertions(+)
 
-diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
-index 86550d8..013c565 100644
---- a/drivers/media/i2c/ov13858.c
-+++ b/drivers/media/i2c/ov13858.c
-@@ -66,7 +66,6 @@
- /* Exposure control */
- #define OV13858_REG_EXPOSURE		0x3500
- #define OV13858_EXPOSURE_MIN		4
--#define OV13858_EXPOSURE_MAX		(OV13858_VTS_MAX - 8)
- #define OV13858_EXPOSURE_STEP		1
- #define OV13858_EXPOSURE_DEFAULT	0x640
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 43fefa73e0a3..56cc255171d7 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -20,8 +20,10 @@
+ #include <linux/mm.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
++#include <linux/kdev_t.h>
+ #include <linux/videodev2.h>
+ #include <linux/export.h>
++#include <linux/version.h>
  
-@@ -1602,6 +1601,7 @@ static int ov13858_init_controls(struct ov13858 *ov13858)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&ov13858->sd);
- 	struct v4l2_ctrl_handler *ctrl_hdlr;
-+	s64 exposure_max;
- 	int ret;
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+@@ -186,6 +188,31 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ #endif
  
- 	ctrl_hdlr = &ov13858->ctrl_handler;
-@@ -1640,10 +1640,11 @@ static int ov13858_init_controls(struct ov13858 *ov13858)
- 				OV13858_PPL_1080MHZ - ov13858->cur_mode->width);
- 	ov13858->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 	switch (cmd) {
++	case VIDIOC_SUBDEV_QUERYCAP: {
++		struct v4l2_subdev_capability *cap = arg;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++		struct media_device *mdev = sd->entity.graph_obj.mdev;
++		struct media_devnode *devnode = mdev ? mdev->devnode : NULL;
++#endif
++
++		cap->version = LINUX_VERSION_CODE;
++		cap->device_caps = 0;
++		strlcpy(cap->name, sd->name, sizeof(cap->name));
++		cap->entity_id = 0;
++		cap->media_node_major = 0;
++		cap->media_node_minor = 0;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++		if (devnode) {
++			cap->device_caps = V4L2_SUBDEV_CAP_ENTITY;
++			cap->entity_id = sd->entity.graph_obj.id;
++			cap->media_node_major = MAJOR(devnode->cdev.dev);
++			cap->media_node_minor = MINOR(devnode->cdev.dev);
++		}
++#endif
++		memset(cap->reserved, 0, sizeof(cap->reserved));
++		break;
++	}
++
+ 	case VIDIOC_QUERYCTRL:
+ 		return v4l2_queryctrl(vfh->ctrl_handler, arg);
  
-+	exposure_max = ov13858->cur_mode->vts - 8;
- 	ov13858->exposure = v4l2_ctrl_new_std(
- 				ctrl_hdlr, &ov13858_ctrl_ops,
- 				V4L2_CID_EXPOSURE, OV13858_EXPOSURE_MIN,
--				OV13858_EXPOSURE_MAX, OV13858_EXPOSURE_STEP,
-+				exposure_max, OV13858_EXPOSURE_STEP,
- 				OV13858_EXPOSURE_DEFAULT);
+diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
+index dbce2b554e02..3dd1c412bf0d 100644
+--- a/include/uapi/linux/v4l2-subdev.h
++++ b/include/uapi/linux/v4l2-subdev.h
+@@ -154,9 +154,40 @@ struct v4l2_subdev_selection {
+ 	__u32 reserved[8];
+ };
  
- 	v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_ANALOGUE_GAIN,
++/**
++ * struct v4l2_subdev_capability - subdev capabilities
++ * @version: the kernel version
++ * @device_caps: the subdev capabilities
++ * @name: the subdev name
++ * @entity_id: the entity ID as assigned by the media controller. Only
++ * valid if V4L2_SUBDEV_CAP_ENTITY is set
++ * @media_node_major: the major number of the media controller device node.
++ * Only valid if V4L2_SUBDEV_CAP_ENTITY is set
++ * @media_node_minor: the minor number of the media controller device node.
++ * Only valid if V4L2_SUBDEV_CAP_ENTITY is set
++ * @reserved: for future use, set to zero for now
++ */
++struct v4l2_subdev_capability {
++	__u32 version;
++	__u32 device_caps;
++	char  name[32];
++	__u32 entity_id;
++	/* Corresponding media controller device node specifications */
++	__u32 media_node_major;
++	__u32 media_node_minor;
++	__u32 reserved[19];
++};
++
++/*
++ * This v4l2_subdev is also a media entity and the entity_id, media_node_major
++ * and media_node_minor fields are valid
++ */
++#define V4L2_SUBDEV_CAP_ENTITY		(1 << 0)
++
+ /* Backwards compatibility define --- to be removed */
+ #define v4l2_subdev_edid v4l2_edid
+ 
++#define VIDIOC_SUBDEV_QUERYCAP			 _IOR('V',  0, struct v4l2_subdev_capability)
+ #define VIDIOC_SUBDEV_G_FMT			_IOWR('V',  4, struct v4l2_subdev_format)
+ #define VIDIOC_SUBDEV_S_FMT			_IOWR('V',  5, struct v4l2_subdev_format)
+ #define VIDIOC_SUBDEV_G_FRAME_INTERVAL		_IOWR('V', 21, struct v4l2_subdev_frame_interval)
 -- 
-1.9.1
+2.13.1
