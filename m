@@ -1,145 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:35266 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755511AbdGKM4d (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44102 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751826AbdG1O2l (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 08:56:33 -0400
-Received: by mail-qk0-f194.google.com with SMTP id 16so17338430qkg.2
-        for <linux-media@vger.kernel.org>; Tue, 11 Jul 2017 05:56:32 -0700 (PDT)
-Date: Tue, 11 Jul 2017 09:56:26 -0300
-From: Gustavo Padovan <gustavo@padovan.org>
+        Fri, 28 Jul 2017 10:28:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [PATCH 03/12] [media] vb2: add in-fence support to QBUF
-Message-ID: <20170711125626.GN10284@jade>
-References: <20170616073915.5027-1-gustavo@padovan.org>
- <20170616073915.5027-4-gustavo@padovan.org>
- <ae203289-11cc-d5a5-0ce6-a8fbbc4742af@xs4all.nl>
- <20170707020028.GE10284@jade>
- <25827205-94f3-3a2f-c65a-4ae120288f00@xs4all.nl>
- <20170710190244.GF10284@jade>
- <20170710202656.GM10284@jade>
- <62670305-3d18-aba8-aa2d-2aa2e6755699@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [RFCv2 PATCH 0/2] add VIDIOC_SUBDEV_QUERYCAP ioctl
+Date: Fri, 28 Jul 2017 17:28:51 +0300
+Message-ID: <5652381.J6V3Mkh0f4@avalon>
+In-Reply-To: <625cbe4e-7ebd-c995-b4f3-4e1bf892aac9@xs4all.nl>
+References: <20170728110529.4057-1-hverkuil@xs4all.nl> <1925879.q3PoFGT7lz@avalon> <625cbe4e-7ebd-c995-b4f3-4e1bf892aac9@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <62670305-3d18-aba8-aa2d-2aa2e6755699@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-07-11 Hans Verkuil <hverkuil@xs4all.nl>:
+Hi Hans,
 
-> On 10/07/17 22:26, Gustavo Padovan wrote:
-> > 2017-07-10 Gustavo Padovan <gustavo@padovan.org>:
+On Friday 28 Jul 2017 16:04:48 Hans Verkuil wrote:
+> On 07/28/2017 03:25 PM, Laurent Pinchart wrote:
+> > On Friday 28 Jul 2017 13:05:27 Hans Verkuil wrote:
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >> 
+> >> I tried to get this in back in 2015, but that effort stalled.
+> >> 
+> >> Trying again, since I really need this in order to add proper v4l-subdev
+> >> support to v4l2-ctl and v4l2-compliance. There currently is no way of
+> >> unique identifying that the device really is a v4l-subdev device other
+> >> than the device name (which can be changed by udev).
+> >> 
+> >> So this patch series adds a VIDIOC_SUBDEV_QUERYCAP ioctl that is in
+> >> the core so it's guaranteed to be there.
+> >> 
+> >> If the subdev is part of an MC then it also gives the corresponding
+> >> entity ID of the subdev and the major/minor numbers of the MC device
+> >> so v4l2-compliance can relate the subdev device directly to the right
+> >> MC device. The reserved array has room enough for more strings should
+> >> we need them later, although I think what we have here is sufficient.
 > > 
-> >> 2017-07-07 Hans Verkuil <hverkuil@xs4all.nl>:
-> >>
-> >>> On 07/07/2017 04:00 AM, Gustavo Padovan wrote:
-> >>>> 2017-07-06 Hans Verkuil <hverkuil@xs4all.nl>:
-> >>>>
-> >>>>> On 06/16/17 09:39, Gustavo Padovan wrote:
-> >>>>>> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> >>>>>>
-> >>>>>> Receive in-fence from userspace and add support for waiting on them
-> >>>>>> before queueing the buffer to the driver. Buffers are only queued
-> >>>>>> to the driver once they are ready. A buffer is ready when its
-> >>>>>> in-fence signals.
-> >>>>>>
-> >>>>>> v2:
-> >>>>>> 	- fix vb2_queue_or_prepare_buf() ret check
-> >>>>>> 	- remove check for VB2_MEMORY_DMABUF only (Javier)
-> >>>>>> 	- check num of ready buffers to start streaming
-> >>>>>> 	- when queueing, start from the first ready buffer
-> >>>>>> 	- handle queue cancel
-> >>>>>>
-> >>>>>> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> >>>>>> ---
-> >>>>>>   drivers/media/Kconfig                    |  1 +
-> >>>>>>   drivers/media/v4l2-core/videobuf2-core.c | 97 +++++++++++++++++++++++++-------
-> >>>>>>   drivers/media/v4l2-core/videobuf2-v4l2.c | 15 ++++-
-> >>>>>>   include/media/videobuf2-core.h           |  7 ++-
-> >>>>>>   4 files changed, 99 insertions(+), 21 deletions(-)
-> >>>>>>
-> >>>>>
-> >>>>> <snip>
-> >>>>>
-> >>>>>> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> >>>>>> index 110fb45..e6ad77f 100644
-> >>>>>> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> >>>>>> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> >>>>>> @@ -23,6 +23,7 @@
-> >>>>>>   #include <linux/sched.h>
-> >>>>>>   #include <linux/freezer.h>
-> >>>>>>   #include <linux/kthread.h>
-> >>>>>> +#include <linux/sync_file.h>
-> >>>>>>   #include <media/v4l2-dev.h>
-> >>>>>>   #include <media/v4l2-fh.h>
-> >>>>>> @@ -560,6 +561,7 @@ EXPORT_SYMBOL_GPL(vb2_create_bufs);
-> >>>>>>   int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
-> >>>>>>   {
-> >>>>>> +	struct dma_fence *fence = NULL;
-> >>>>>>   	int ret;
-> >>>>>>   	if (vb2_fileio_is_active(q)) {
-> >>>>>> @@ -568,7 +570,18 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
-> >>>>>>   	}
-> >>>>>>   	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
-> >>>>>> -	return ret ? ret : vb2_core_qbuf(q, b->index, b);
-> >>>>>> +	if (ret)
-> >>>>>> +		return ret;
-> >>>>>> +
-> >>>>>> +	if (b->flags & V4L2_BUF_FLAG_IN_FENCE) {
-> >>>>>> +		fence = sync_file_get_fence(b->fence_fd);
-> >>>>>> +		if (!fence) {
-> >>>>>> +			dprintk(1, "failed to get in-fence from fd\n");
-> >>>>>> +			return -EINVAL;
-> >>>>>> +		}
-> >>>>>> +	}
-> >>>>>> +
-> >>>>>> +	return ret ? ret : vb2_core_qbuf(q, b->index, b, fence);
-> >>>>>>   }
-> >>>>>>   EXPORT_SYMBOL_GPL(vb2_qbuf);
-> >>>>>
-> >>>>> You need to adapt __fill_v4l2_buffer so it sets the IN_FENCE buffer flag
-> >>>>> if there is a fence pending. It should also fill in fence_fd.
-> >>>>
-> >>>> It was userspace who sent the fence_fd in the first place. Why do we
-> >>>> need to send it back? The initial plan was - from a userspace point of view
-> >>>> - to send the in-fence in the fence_fd field and receive the out-fence
-> >>>>   in the same field.
-> >>>>
-> >>>> As per setting the IN_FENCE flag, that is racy, as the fence can signal
-> >>>> just after we called __fill_v4l2_buffer. Why is it important to set it?
-> >>>
-> >>> Because when running VIDIOC_QUERYBUF it should return the current state of
-> >>> the buffer, including whether it has a fence. You can do something like
-> >>> v4l2-ctl --list-buffers to see how many buffers are queued up and the state
-> >>> of each buffer. Can be useful to e.g. figure out why a video capture seems
-> >>> to stall. Knowing that all queued buffers are all waiting for a fence is
-> >>> very useful information. Whether the fence_fd should also be set here or
-> >>> only in dqbuf is something I don't know (not enough knowledge about how
-> >>> fences are supposed to work). The IN/OUT_FENCE flags should definitely be
-> >>> reported though.
-> >>
-> >> I didn't know about this usecase. Thanks for explaining. It certainly
-> >> makes sense to set the IN/OUT_FENCE flags here. Regarding the fence_fd
-> >> I would expect the application to know the fence fd associated to than
-> >> buffer. If we expect an application other than the one which issued
-> >> QBUF than I'd say we also need to provide the fd on VIDIOC_QUERYBUF
-> >> for inspection purposes. Is that the case?
+> > I still think this is not correct for two reasons.
 > > 
-> > I just realized that if we want to also set the in-fence fd here we
-> > actually need to get a new unused fd, as either it is a different pid or
-> > the app already closed the fd it was using previously. Given this extra
-> > complication I'd say we shouldn't set fence fd unless someone has an
-> > usecase in mind.
+> > First of all, the new querycap ioctl uses the same ioctl number as
+> > VIDIOC_QUERYCAP. The full 32-bit number is different as the structures
+> > used for the two ioctls currently have different sizes, but that's not
+> > guaranteed going forward when we'll extend the structures used by the two
+> > ioctls with new fields.
 > 
-> Fair enough. Just make sure the fence_fd is some fixed value (-1?) in
-> that case.
+> I think it is extraordinarily unlikely that these two will ever become
+> identical. And anyway, we control that ourselves.
+> 
+> > To solve this, if you really want to identify the type of device node at
+> > runtime, we should have a single ioctl supported by the two device nodes.
+> > Given that we"re running out of capabilities bits for VIDIOC_QUERYCAP,
+> > this could be a good occasion to introduce a new ioctl to query
+> > capabilities.
+> 
+> This makes more sense :-)
+> 
+> > The second reason is that I don't think we should report the media device
+> > node associated with the subdev. Userspace really needs to become
+> > MC-centric, starting with the MC device, and going to the video nodes and
+> > subdev nodes. The other way around just doesn't make sense to me.
+> 
+> It's not for 'regular' applications. It's to easily find out to which media
+> device a /dev/v4l-subdevX belongs. Primarily for applications like
+> v4l2-compliance.
+> 
+> We have the information, and right now there is no way to take a v4l-subdevX
+> device and determine of which media device it is part other than scanning
+> the topologies of all media devices. That's nuts. This is cheap and makes
+> life for a certain class of applications much easier. Creating good
+> compliance tests is critical and this is a small but important contribution
+> to that.
 
-Sure. -1 is the default value for these cases.
+I fully agree with the need for compliance tools, but I believe they should go 
+from MC to subdev, not the other way around. Let's discuss this below.
 
-	Gustavo
+> > For MC-enabled devices, specifying subdev or video nodes by /dev node name
+> > is painful. When you have multiple video devices on the system, or even
+> > when you're modifying initialization order in a driver, the devnode names
+> > will not be stable across boots. I used to type them out manually in the
+> > very beginning and very quickly switched to retrieving them from the
+> > subdev entity name in my test scripts.
+> > 
+> > What I'd like the compliance tools to do is to test all video nodes and
+> > subdev nodes for a given MC device, with an option to restrict the tests
+> > to a subset of the video devices and subdevs specified by media entity
+> > name. We obviously need to keep support for addressing video nodes
+> > manually as not all devices are MC-enabled, but for subdev we don't have
+> > to care about such a backward compatibility issue as there's currently no
+> > compliance tool.
+> 
+> I want two things:
+> 
+> 1) v4l2-compliance to be able to test a v4l-subdevX, just in isolation. And
+> to be able to find the corresponding media device and make sure that what
+> the v4l-subdev does is compatible with the entity/link information from the
+> MC.
+
+Why do you want to test /dev/v4l-subdev$(random) instead of /dev/mediaX + 
+"subdev entity name" ?
+
+Furthermore, if you want to test a subdev in complete isolation, why do you 
+need to know which media device it belongs to ?
+
+By the way, I'd like Sakari to join the discussion, but he won't be back 
+before the end of next week.
+
+> 2) make a media-compliance to look at the media topology as a whole.
+> 
+> Having the major/minor numbers are specifically for 1.
+> 
+> Actually, I really want to have the major/minor numbers of the media device
+> for /dev/videoX as well, but entity ID +  major + minor number would use up
+> the available space in struct v4l2_capability, so your suggestion of making
+> a new VIDIOC_EXT_QUERYCAP has merit.
+> 
+> > On a side note, I believe subdev nodes should depend on MC. It has been a
+> > historical mistake not to do so, and as far as I can see only three
+> > drivers register subdev nodes without registering a media device. They
+> > should be fixed if they want to benefit from the compliance tool.
+> 
+> Which ones?
+
+atmel-isc, cobalt and rcar_drif.
+
+> I'm not opposed to that. It would simplify matters quite a bit.
+> 
+> But I very, very strongly believe that a VIDIOC_EXT_QUERYCAP should return
+> the corresponding entity ID and /dev/mediaX major and minor numbers. It's
+> very useful information for a certain class of applications.
+
+Do you have any application in mind other than the compliance tools ?
+
+> Heck, I want to do 'v4l2-ctl -d /dev/video0 -D' or 'v4l2-ctl -d
+> /dev/v4l-subdev0' and see not only the device capabilities, but also the
+> corresponding entity information. Without having to scan through all
+> /dev/media devices or requiring the user to pass the /dev/mediaX device
+> separately.
+> 
+> This information is very cheap and I see no reason whatsoever not to
+> implement this. It also feels much more symmetrical if I have what is
+> effectively a backlink to the media device to which the subdev belongs.
+> 
+> And yes, normally applications will never need this since they use the media
+> device and never reference a /dev/v4l-subdevX by name. But for v4l2-ctl and
+> v4l2-compliance it is very useful indeed.
+
+-- 
+Regards,
+
+Laurent Pinchart
