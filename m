@@ -1,71 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:52301 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965203AbdGTXrk (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:41707 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751584AbdG1HTs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 19:47:40 -0400
-To: LKML <linux-kernel@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-From: Randy Dunlap <rdunlap@infradead.org>
-Cc: "Yang, Hyungwoo" <hyungwoo.yang@intel.com>,
-        "Rapolu, Chiranjeevi" <chiranjeevi.rapolu@intel.com>
-Subject: [PATCH -next] media: ov5670: add depends to fix build errors
-Message-ID: <7b6d824a-2574-d33f-7bc9-308809b15b70@infradead.org>
-Date: Thu, 20 Jul 2017 16:47:38 -0700
+        Fri, 28 Jul 2017 03:19:48 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.14] Use LINUX_VERSION_CODE for media versioning
+Message-ID: <63ca669a-1399-3cfd-a153-b8c127772af2@xs4all.nl>
+Date: Fri, 28 Jul 2017 09:19:43 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <rdunlap@infradead.org>
+Just a little thing that always annoyed me: the driver_version shouldn't
+be set in drivers.
 
-Fix build errors by adding dependency on VIDEO_V4L2_SUBDEV_API:
+The version number never, ever gets updated in drivers. We saw that in
+the other media subsystems and now the core always sets it, not drivers.
 
-../drivers/media/i2c/ov5670.c: In function 'ov5670_open':
-../drivers/media/i2c/ov5670.c:1917:5: error: implicit declaration of function 'v4l2_subdev_get_try_format' [-Werror=implicit-function-declaration]
-     v4l2_subdev_get_try_format(sd, fh->pad, 0);
-../drivers/media/i2c/ov5670.c:1917:38: error: 'struct v4l2_subdev_fh' has no member named 'pad'
-     v4l2_subdev_get_try_format(sd, fh->pad, 0);
-../drivers/media/i2c/ov5670.c: In function 'ov5670_do_get_pad_format':
-../drivers/media/i2c/ov5670.c:2198:17: error: invalid type argument of unary '*' (have 'int')
-   fmt->format = *v4l2_subdev_get_try_format(&ov5670->sd, cfg,
-../drivers/media/i2c/ov5670.c: In function 'ov5670_set_pad_format':
-../drivers/media/i2c/ov5670.c:2236:3: error: invalid type argument of unary '*' (have 'int')
-   *v4l2_subdev_get_try_format(sd, cfg, fmt->pad) = fmt->format;
-../drivers/media/i2c/ov5670.c: At top level:
-../drivers/media/i2c/ov5670.c:2444:19: error: 'v4l2_subdev_link_validate' undeclared here (not in a function)
-  .link_validate = v4l2_subdev_link_validate,
-../drivers/media/i2c/ov5670.c: In function 'ov5670_probe':
-../drivers/media/i2c/ov5670.c:2492:12: error: 'struct v4l2_subdev' has no member named 'entity'
-  ov5670->sd.entity.ops = &ov5670_subdev_entity_ops;
-../drivers/media/i2c/ov5670.c:2493:12: error: 'struct v4l2_subdev' has no member named 'entity'
-  ov5670->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
-../drivers/media/i2c/ov5670.c:2497:42: error: 'struct v4l2_subdev' has no member named 'entity'
-  ret = media_entity_pads_init(&ov5670->sd.entity, 1, &ov5670->pad);
-../drivers/media/i2c/ov5670.c:2524:34: error: 'struct v4l2_subdev' has no member named 'entity'
-  media_entity_cleanup(&ov5670->sd.entity);
-../drivers/media/i2c/ov5670.c: In function 'ov5670_remove':
-../drivers/media/i2c/ov5670.c:2544:26: error: 'struct v4l2_subdev' has no member named 'entity'
-  media_entity_cleanup(&sd->entity);
+This works much better, and also works well when backporting the media
+code to an older kernel using the media_build system, where the driver
+version is set to the kernel version you are backporting from.
 
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: "Rapolu, Chiranjeevi" <chiranjeevi.rapolu@intel.com>
-Cc: "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
----
- drivers/media/i2c/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+So just set the driver_version in media_device_get_info() to
+LINUX_VERSION_CODE and drop the driver_version field from struct
+media_device.
 
---- linux-next-20170720.orig/drivers/media/i2c/Kconfig
-+++ linux-next-20170720/drivers/media/i2c/Kconfig
-@@ -618,7 +618,7 @@ config VIDEO_OV6650
- 
- config VIDEO_OV5670
- 	tristate "OmniVision OV5670 sensor support"
--	depends on I2C && VIDEO_V4L2
-+	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
- 	depends on MEDIA_CAMERA_SUPPORT
- 	select V4L2_FWNODE
- 	---help---
+In addition do the same with media_version, that too is never updated
+when it should.
+
+Regards,
+
+	Hans
+
+The following changes since commit da48c948c263c9d87dfc64566b3373a858cc8aa2:
+
+   media: fix warning on v4l2_subdev_call() result interpreted as bool (2017-07-26 13:43:17 -0400)
+
+are available in the git repository at:
+
+   git://linuxtv.org/hverkuil/media_tree.git mc-version
+
+for you to fetch changes up to 590a9c978c0fd8a58580e58245f1187d676a6f54:
+
+   media: drop use of MEDIA_API_VERSION (2017-07-28 09:16:51 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (6):
+       media-device: set driver_version directly
+       s3c-camif: don't set driver_version
+       uvc: don't set driver_version
+       atomisp2: don't set driver_version
+       media-device: remove driver_version
+       media: drop use of MEDIA_API_VERSION
+
+  Documentation/media/uapi/v4l/extended-controls.rst        | 26 +++++++++++++-------------
+  drivers/media/media-device.c                              |  7 ++-----
+  drivers/media/platform/s3c-camif/camif-core.c             |  1 -
+  drivers/media/usb/uvc/uvc_driver.c                        |  1 -
+  drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c |  6 +-----
+  include/media/media-device.h                              |  7 -------
+  include/uapi/linux/media.h                                |  5 +++--
+  7 files changed, 19 insertions(+), 34 deletions(-)
