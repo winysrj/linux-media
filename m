@@ -1,80 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:35246 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751012AbdGNVkp (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:54857 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751607AbdG1KX3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Jul 2017 17:40:45 -0400
-Date: Fri, 14 Jul 2017 14:40:41 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Michael Hennerich <michael.hennerich@analog.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
-        IDE-ML <linux-ide@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        DRI <dri-devel@lists.freedesktop.org>,
-        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
-Subject: Re: [PATCH 08/14] Input: adxl34x - fix gcc-7 -Wint-in-bool-context
- warning
-Message-ID: <20170714214041.GA33582@dtor-ws>
-References: <20170714092540.1217397-1-arnd@arndb.de>
- <20170714092540.1217397-9-arnd@arndb.de>
- <CA+55aFw076kkn_NS1K+nSHDLoajhviHUsnCOmJOpz5YajpEtFw@mail.gmail.com>
- <CAK8P3a0nZsqWtFX84FTHmm=aVFevrU5ZATnaLVSA39PZeG=6UQ@mail.gmail.com>
+        Fri, 28 Jul 2017 06:23:29 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Helen Koike <helen.koike@collabora.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] vimc: add test_pattern and h/vflip controls to the sensor
+Message-ID: <519c6f9f-178e-5ffa-e7a3-83057d31602a@xs4all.nl>
+Date: Fri, 28 Jul 2017 12:23:24 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAK8P3a0nZsqWtFX84FTHmm=aVFevrU5ZATnaLVSA39PZeG=6UQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 14, 2017 at 10:17:10PM +0200, Arnd Bergmann wrote:
-> On Fri, Jul 14, 2017 at 9:24 PM, Linus Torvalds
-> <torvalds@linux-foundation.org> wrote:
-> > On Fri, Jul 14, 2017 at 2:25 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> >> FIFO_MODE is an macro expression with a '<<' operator, which
-> >> gcc points out could be misread as a '<':
-> >
-> > Yeah, no, NAK again.
-> >
-> > We don't make the code look worse just because gcc is being a f*cking
-> > moron about things.
-> >
-> > This warning is clearly pure garbage.
-> >
-> 
-> I looked at this one again and found a better approach, matching the
-> check that is done a few lines later. Unless you find something wrong
-> with that one, I'd resubmit it with the fixup below.
-> 
->       Arnd
-> 
-> --- a/drivers/input/misc/adxl34x.c
-> +++ b/drivers/input/misc/adxl34x.c
-> @@ -789,21 +789,21 @@ struct adxl34x *adxl34x_probe(struct device *dev, int irq,
->                 __set_bit(pdata->ev_code_ff, input_dev->keybit);
->         }
-> 
->         if (pdata->ev_code_act_inactivity)
->                 __set_bit(pdata->ev_code_act_inactivity, input_dev->keybit);
-> 
->         ac->int_mask |= ACTIVITY | INACTIVITY;
-> 
->         if (pdata->watermark) {
->                 ac->int_mask |= WATERMARK;
-> -               if (FIFO_MODE(pdata->fifo_mode) == 0)
-> +               if (FIFO_MODE(pdata->fifo_mode) == FIFO_BYPASS)
+Add support for the test_pattern control and the h/vflip controls.
 
-This is better, not because of GCC, but it makes sense logically; 0 is
-not a special value here.
+This makes it possible to switch to more interesting test patterns and to
+test control handling in v4l-subdevs.
 
-Still, I am not sure that GCC is being that helpful here. Checking
-result of shift for 0/non 0 with "!" is very common pattern.
+There are more tpg-related controls that can be added, but this is a good
+start.
 
-Thanks.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
+index dca528a316e7..2e9981b18166 100644
+--- a/drivers/media/platform/vimc/vimc-common.h
++++ b/drivers/media/platform/vimc/vimc-common.h
+@@ -22,6 +22,11 @@
+ #include <media/media-device.h>
+ #include <media/v4l2-device.h>
 
--- 
-Dmitry
++/* VIMC-specific controls */
++#define VIMC_CID_VIMC_BASE		(0x00f00000 | 0xf000)
++#define VIMC_CID_VIMC_CLASS		(0x00f00000 | 1)
++#define VIMC_CID_TEST_PATTERN		(VIMC_CID_VIMC_BASE + 0)
++
+ #define VIMC_FRAME_MAX_WIDTH 4096
+ #define VIMC_FRAME_MAX_HEIGHT 2160
+ #define VIMC_FRAME_MIN_WIDTH 16
+diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+index 615c2b18dcfc..532097566b27 100644
+--- a/drivers/media/platform/vimc/vimc-sensor.c
++++ b/drivers/media/platform/vimc/vimc-sensor.c
+@@ -22,6 +22,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/v4l2-mediabus.h>
+ #include <linux/vmalloc.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/v4l2-subdev.h>
+ #include <media/v4l2-tpg.h>
+
+@@ -38,6 +39,7 @@ struct vimc_sen_device {
+ 	u8 *frame;
+ 	/* The active format */
+ 	struct v4l2_mbus_framefmt mbus_format;
++	struct v4l2_ctrl_handler hdl;
+ };
+
+ static const struct v4l2_mbus_framefmt fmt_default = {
+@@ -291,6 +293,31 @@ static const struct v4l2_subdev_ops vimc_sen_ops = {
+ 	.video = &vimc_sen_video_ops,
+ };
+
++static int vimc_sen_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct vimc_sen_device *vsen =
++		container_of(ctrl->handler, struct vimc_sen_device, hdl);
++
++	switch (ctrl->id) {
++	case VIMC_CID_TEST_PATTERN:
++		tpg_s_pattern(&vsen->tpg, ctrl->val);
++		break;
++	case V4L2_CID_HFLIP:
++		tpg_s_hflip(&vsen->tpg, ctrl->val);
++		break;
++	case V4L2_CID_VFLIP:
++		tpg_s_vflip(&vsen->tpg, ctrl->val);
++		break;
++	default:
++		return -EINVAL;
++	}
++	return 0;
++}
++
++static const struct v4l2_ctrl_ops vimc_sen_ctrl_ops = {
++	.s_ctrl = vimc_sen_s_ctrl,
++};
++
+ static void vimc_sen_comp_unbind(struct device *comp, struct device *master,
+ 				 void *master_data)
+ {
+@@ -299,10 +326,29 @@ static void vimc_sen_comp_unbind(struct device *comp, struct device *master,
+ 				container_of(ved, struct vimc_sen_device, ved);
+
+ 	vimc_ent_sd_unregister(ved, &vsen->sd);
++	v4l2_ctrl_handler_free(&vsen->hdl);
+ 	tpg_free(&vsen->tpg);
+ 	kfree(vsen);
+ }
+
++/* Image Processing Controls */
++static const struct v4l2_ctrl_config vimc_sen_ctrl_class = {
++	.ops = &vimc_sen_ctrl_ops,
++	.flags = V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY,
++	.id = VIMC_CID_VIMC_CLASS,
++	.name = "VIMC Controls",
++	.type = V4L2_CTRL_TYPE_CTRL_CLASS,
++};
++
++static const struct v4l2_ctrl_config vimc_sen_ctrl_test_pattern = {
++	.ops = &vimc_sen_ctrl_ops,
++	.id = VIMC_CID_TEST_PATTERN,
++	.name = "Test Pattern",
++	.type = V4L2_CTRL_TYPE_MENU,
++	.max = TPG_PAT_NOISE,
++	.qmenu = tpg_pattern_strings,
++};
++
+ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
+ 			      void *master_data)
+ {
+@@ -316,6 +362,20 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
+ 	if (!vsen)
+ 		return -ENOMEM;
+
++	v4l2_ctrl_handler_init(&vsen->hdl, 4);
++
++	v4l2_ctrl_new_custom(&vsen->hdl, &vimc_sen_ctrl_class, NULL);
++	v4l2_ctrl_new_custom(&vsen->hdl, &vimc_sen_ctrl_test_pattern, NULL);
++	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
++			V4L2_CID_VFLIP, 0, 1, 1, 0);
++	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
++			V4L2_CID_HFLIP, 0, 1, 1, 0);
++	vsen->sd.ctrl_handler = &vsen->hdl;
++	if (vsen->hdl.error) {
++		ret = vsen->hdl.error;
++		goto err_free_vsen;
++	}
++
+ 	/* Initialize ved and sd */
+ 	ret = vimc_ent_sd_register(&vsen->ved, &vsen->sd, v4l2_dev,
+ 				   pdata->entity_name,
+@@ -323,7 +383,7 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
+ 				   (const unsigned long[1]) {MEDIA_PAD_FL_SOURCE},
+ 				   &vimc_sen_ops);
+ 	if (ret)
+-		goto err_free_vsen;
++		goto err_free_hdl;
+
+ 	dev_set_drvdata(comp, &vsen->ved);
+ 	vsen->dev = comp;
+@@ -342,6 +402,8 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
+
+ err_unregister_ent_sd:
+ 	vimc_ent_sd_unregister(&vsen->ved,  &vsen->sd);
++err_free_hdl:
++	v4l2_ctrl_handler_free(&vsen->hdl);
+ err_free_vsen:
+ 	kfree(vsen);
