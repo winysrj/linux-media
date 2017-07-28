@@ -1,208 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:36032 "EHLO extserv.mm-sol.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751306AbdGQKfA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 06:35:00 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v3 03/23] v4l: Add packed Bayer raw12 pixel formats
-Date: Mon, 17 Jul 2017 13:33:29 +0300
-Message-Id: <1500287629-23703-4-git-send-email-todor.tomov@linaro.org>
-In-Reply-To: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
-References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:53707 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751991AbdG1O7Z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Jul 2017 10:59:25 -0400
+Subject: Re: [RFCv2 PATCH 0/2] add VIDIOC_SUBDEV_QUERYCAP ioctl
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+References: <20170728110529.4057-1-hverkuil@xs4all.nl>
+ <1925879.q3PoFGT7lz@avalon> <625cbe4e-7ebd-c995-b4f3-4e1bf892aac9@xs4all.nl>
+ <5652381.J6V3Mkh0f4@avalon>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <4801ccb7-5022-ecff-c81e-6115f9b2f29a@xs4all.nl>
+Date: Fri, 28 Jul 2017 16:59:20 +0200
+MIME-Version: 1.0
+In-Reply-To: <5652381.J6V3Mkh0f4@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+On 07/28/2017 04:28 PM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Friday 28 Jul 2017 16:04:48 Hans Verkuil wrote:
+>> On 07/28/2017 03:25 PM, Laurent Pinchart wrote:
+>>> On Friday 28 Jul 2017 13:05:27 Hans Verkuil wrote:
+>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>
+>>>> I tried to get this in back in 2015, but that effort stalled.
+>>>>
+>>>> Trying again, since I really need this in order to add proper v4l-subdev
+>>>> support to v4l2-ctl and v4l2-compliance. There currently is no way of
+>>>> unique identifying that the device really is a v4l-subdev device other
+>>>> than the device name (which can be changed by udev).
+>>>>
+>>>> So this patch series adds a VIDIOC_SUBDEV_QUERYCAP ioctl that is in
+>>>> the core so it's guaranteed to be there.
+>>>>
+>>>> If the subdev is part of an MC then it also gives the corresponding
+>>>> entity ID of the subdev and the major/minor numbers of the MC device
+>>>> so v4l2-compliance can relate the subdev device directly to the right
+>>>> MC device. The reserved array has room enough for more strings should
+>>>> we need them later, although I think what we have here is sufficient.
+>>>
+>>> I still think this is not correct for two reasons.
+>>>
+>>> First of all, the new querycap ioctl uses the same ioctl number as
+>>> VIDIOC_QUERYCAP. The full 32-bit number is different as the structures
+>>> used for the two ioctls currently have different sizes, but that's not
+>>> guaranteed going forward when we'll extend the structures used by the two
+>>> ioctls with new fields.
+>>
+>> I think it is extraordinarily unlikely that these two will ever become
+>> identical. And anyway, we control that ourselves.
+>>
+>>> To solve this, if you really want to identify the type of device node at
+>>> runtime, we should have a single ioctl supported by the two device nodes.
+>>> Given that we"re running out of capabilities bits for VIDIOC_QUERYCAP,
+>>> this could be a good occasion to introduce a new ioctl to query
+>>> capabilities.
+>>
+>> This makes more sense :-)
+>>
+>>> The second reason is that I don't think we should report the media device
+>>> node associated with the subdev. Userspace really needs to become
+>>> MC-centric, starting with the MC device, and going to the video nodes and
+>>> subdev nodes. The other way around just doesn't make sense to me.
+>>
+>> It's not for 'regular' applications. It's to easily find out to which media
+>> device a /dev/v4l-subdevX belongs. Primarily for applications like
+>> v4l2-compliance.
+>>
+>> We have the information, and right now there is no way to take a v4l-subdevX
+>> device and determine of which media device it is part other than scanning
+>> the topologies of all media devices. That's nuts. This is cheap and makes
+>> life for a certain class of applications much easier. Creating good
+>> compliance tests is critical and this is a small but important contribution
+>> to that.
+> 
+> I fully agree with the need for compliance tools, but I believe they should go 
+> from MC to subdev, not the other way around. Let's discuss this below.
+> 
+>>> For MC-enabled devices, specifying subdev or video nodes by /dev node name
+>>> is painful. When you have multiple video devices on the system, or even
+>>> when you're modifying initialization order in a driver, the devnode names
+>>> will not be stable across boots. I used to type them out manually in the
+>>> very beginning and very quickly switched to retrieving them from the
+>>> subdev entity name in my test scripts.
+>>>
+>>> What I'd like the compliance tools to do is to test all video nodes and
+>>> subdev nodes for a given MC device, with an option to restrict the tests
+>>> to a subset of the video devices and subdevs specified by media entity
+>>> name. We obviously need to keep support for addressing video nodes
+>>> manually as not all devices are MC-enabled, but for subdev we don't have
+>>> to care about such a backward compatibility issue as there's currently no
+>>> compliance tool.
+>>
+>> I want two things:
+>>
+>> 1) v4l2-compliance to be able to test a v4l-subdevX, just in isolation. And
+>> to be able to find the corresponding media device and make sure that what
+>> the v4l-subdev does is compatible with the entity/link information from the
+>> MC.
+> 
+> Why do you want to test /dev/v4l-subdev$(random) instead of /dev/mediaX + 
+> "subdev entity name" ?
+> 
+> Furthermore, if you want to test a subdev in complete isolation, why do you 
+> need to know which media device it belongs to ?
+> 
+> By the way, I'd like Sakari to join the discussion, but he won't be back 
+> before the end of next week.
+> 
+>> 2) make a media-compliance to look at the media topology as a whole.
+>>
+>> Having the major/minor numbers are specifically for 1.
+>>
+>> Actually, I really want to have the major/minor numbers of the media device
+>> for /dev/videoX as well, but entity ID +  major + minor number would use up
+>> the available space in struct v4l2_capability, so your suggestion of making
+>> a new VIDIOC_EXT_QUERYCAP has merit.
+>>
+>>> On a side note, I believe subdev nodes should depend on MC. It has been a
+>>> historical mistake not to do so, and as far as I can see only three
+>>> drivers register subdev nodes without registering a media device. They
+>>> should be fixed if they want to benefit from the compliance tool.
+>>
+>> Which ones?
+> 
+> atmel-isc, cobalt and rcar_drif.
 
-These formats are compressed 12-bit raw bayer formats with four different
-pixel orders. They are similar to 10-bit variants. The formats added by
-this patch are
+Huh, I thought I added media device support to cobalt. I probably started
+that but never finished it. I can certainly take care of that one, it should
+not be hard.
 
-	V4L2_PIX_FMT_SBGGR12P
-	V4L2_PIX_FMT_SGBRG12P
-	V4L2_PIX_FMT_SGRBG12P
-	V4L2_PIX_FMT_SRGGB12P
+> 
+>> I'm not opposed to that. It would simplify matters quite a bit.
+>>
+>> But I very, very strongly believe that a VIDIOC_EXT_QUERYCAP should return
+>> the corresponding entity ID and /dev/mediaX major and minor numbers. It's
+>> very useful information for a certain class of applications.
+> 
+> Do you have any application in mind other than the compliance tools ?
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/media/uapi/v4l/pixfmt-rgb.rst      |   1 +
- Documentation/media/uapi/v4l/pixfmt-srggb12p.rst | 104 +++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ioctl.c             |  12 ++-
- include/uapi/linux/videodev2.h                   |   5 ++
- 4 files changed, 118 insertions(+), 4 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb12p.rst
+No. v4l2-ctl, v4l2-compliance and perhaps a future media-compliance. Those
+are the primary use-cases.
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-index b0f3513..4cc2719 100644
---- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-@@ -17,4 +17,5 @@ RGB Formats
-     pixfmt-srggb10alaw8
-     pixfmt-srggb10dpcm8
-     pixfmt-srggb12
-+    pixfmt-srggb12p
-     pixfmt-srggb16
-diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb12p.rst b/Documentation/media/uapi/v4l/pixfmt-srggb12p.rst
-new file mode 100644
-index 0000000..c3c19f9e
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-srggb12p.rst
-@@ -0,0 +1,104 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _V4L2-PIX-FMT-SRGGB12P:
-+.. _v4l2-pix-fmt-sbggr12p:
-+.. _v4l2-pix-fmt-sgbrg12p:
-+.. _v4l2-pix-fmt-sgrbg12p:
-+
-+*******************************************************************************************************************************
-+V4L2_PIX_FMT_SRGGB12P ('pRAA'), V4L2_PIX_FMT_SGRBG12P ('pgAA'), V4L2_PIX_FMT_SGBRG12P ('pGAA'), V4L2_PIX_FMT_SBGGR12P ('pBAA'),
-+*******************************************************************************************************************************
-+
-+
-+12-bit packed Bayer formats
-+
-+
-+Description
-+===========
-+
-+These four pixel formats are packed raw sRGB / Bayer formats with 12
-+bits per colour. Every two consecutive samples are packed into three
-+bytes. Each of the first two bytes contain the 8 high order bits of
-+the pixels, and the third byte contains the four least significants
-+bits of each pixel, in the same order.
-+
-+Each n-pixel row contains n/2 green samples and n/2 blue or red
-+samples, with alternating green-red and green-blue rows. They are
-+conventionally described as GRGR... BGBG..., RGRG... GBGB..., etc.
-+Below is an example of a small V4L2_PIX_FMT_SBGGR12P image:
-+
-+**Byte Order.**
-+Each cell is one byte.
-+
-+
-+
-+.. flat-table::
-+    :header-rows:  0
-+    :stub-columns: 0
-+    :widths:       2 1 1 1 1 1 1
-+
-+
-+    -  .. row 1
-+
-+       -  start + 0:
-+
-+       -  B\ :sub:`00high`
-+
-+       -  G\ :sub:`01high`
-+
-+       -  G\ :sub:`01low`\ (bits 7--4) B\ :sub:`00low`\ (bits 3--0)
-+
-+       -  B\ :sub:`02high`
-+
-+       -  G\ :sub:`03high`
-+
-+       -  G\ :sub:`03low`\ (bits 7--4) B\ :sub:`02low`\ (bits 3--0)
-+
-+    -  .. row 2
-+
-+       -  start + 6:
-+
-+       -  G\ :sub:`10high`
-+
-+       -  R\ :sub:`11high`
-+
-+       -  R\ :sub:`11low`\ (bits 7--4) G\ :sub:`10low`\ (bits 3--0)
-+
-+       -  G\ :sub:`12high`
-+
-+       -  R\ :sub:`13high`
-+
-+       -  R\ :sub:`13low`\ (bits 3--2) G\ :sub:`12low`\ (bits 3--0)
-+
-+    -  .. row 3
-+
-+       -  start + 12:
-+
-+       -  B\ :sub:`20high`
-+
-+       -  G\ :sub:`21high`
-+
-+       -  G\ :sub:`21low`\ (bits 7--4) B\ :sub:`20low`\ (bits 3--0)
-+
-+       -  B\ :sub:`22high`
-+
-+       -  G\ :sub:`23high`
-+
-+       -  G\ :sub:`23low`\ (bits 7--4) B\ :sub:`22low`\ (bits 3--0)
-+
-+    -  .. row 4
-+
-+       -  start + 18:
-+
-+       -  G\ :sub:`30high`
-+
-+       -  R\ :sub:`31high`
-+
-+       -  R\ :sub:`31low`\ (bits 7--4) G\ :sub:`30low`\ (bits 3--0)
-+
-+       -  G\ :sub:`32high`
-+
-+       -  R\ :sub:`33high`
-+
-+       -  R\ :sub:`33low`\ (bits 3--2) G\ :sub:`32low`\ (bits 3--0)
-+
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index cab63bb..b60a6b0 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1195,10 +1195,6 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_PIX_FMT_SGBRG10:	descr = "10-bit Bayer GBGB/RGRG"; break;
- 	case V4L2_PIX_FMT_SGRBG10:	descr = "10-bit Bayer GRGR/BGBG"; break;
- 	case V4L2_PIX_FMT_SRGGB10:	descr = "10-bit Bayer RGRG/GBGB"; break;
--	case V4L2_PIX_FMT_SBGGR12:	descr = "12-bit Bayer BGBG/GRGR"; break;
--	case V4L2_PIX_FMT_SGBRG12:	descr = "12-bit Bayer GBGB/RGRG"; break;
--	case V4L2_PIX_FMT_SGRBG12:	descr = "12-bit Bayer GRGR/BGBG"; break;
--	case V4L2_PIX_FMT_SRGGB12:	descr = "12-bit Bayer RGRG/GBGB"; break;
- 	case V4L2_PIX_FMT_SBGGR10P:	descr = "10-bit Bayer BGBG/GRGR Packed"; break;
- 	case V4L2_PIX_FMT_SGBRG10P:	descr = "10-bit Bayer GBGB/RGRG Packed"; break;
- 	case V4L2_PIX_FMT_SGRBG10P:	descr = "10-bit Bayer GRGR/BGBG Packed"; break;
-@@ -1211,6 +1207,14 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_PIX_FMT_SGBRG10DPCM8:	descr = "8-bit Bayer GBGB/RGRG (DPCM)"; break;
- 	case V4L2_PIX_FMT_SGRBG10DPCM8:	descr = "8-bit Bayer GRGR/BGBG (DPCM)"; break;
- 	case V4L2_PIX_FMT_SRGGB10DPCM8:	descr = "8-bit Bayer RGRG/GBGB (DPCM)"; break;
-+	case V4L2_PIX_FMT_SBGGR12:	descr = "12-bit Bayer BGBG/GRGR"; break;
-+	case V4L2_PIX_FMT_SGBRG12:	descr = "12-bit Bayer GBGB/RGRG"; break;
-+	case V4L2_PIX_FMT_SGRBG12:	descr = "12-bit Bayer GRGR/BGBG"; break;
-+	case V4L2_PIX_FMT_SRGGB12:	descr = "12-bit Bayer RGRG/GBGB"; break;
-+	case V4L2_PIX_FMT_SBGGR12P:	descr = "12-bit Bayer BGBG/GRGR Packed"; break;
-+	case V4L2_PIX_FMT_SGBRG12P:	descr = "12-bit Bayer GBGB/RGRG Packed"; break;
-+	case V4L2_PIX_FMT_SGRBG12P:	descr = "12-bit Bayer GRGR/BGBG Packed"; break;
-+	case V4L2_PIX_FMT_SRGGB12P:	descr = "12-bit Bayer RGRG/GBGB Packed"; break;
- 	case V4L2_PIX_FMT_SBGGR16:	descr = "16-bit Bayer BGBG/GRGR"; break;
- 	case V4L2_PIX_FMT_SGBRG16:	descr = "16-bit Bayer GBGB/RGRG"; break;
- 	case V4L2_PIX_FMT_SGRBG16:	descr = "16-bit Bayer GRGR/BGBG"; break;
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 45cf735..185d6a0 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -603,6 +603,11 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_SGBRG12 v4l2_fourcc('G', 'B', '1', '2') /* 12  GBGB.. RGRG.. */
- #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
- #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
-+	/* 12bit raw bayer packed, 6 bytes for every 4 pixels */
-+#define V4L2_PIX_FMT_SBGGR12P v4l2_fourcc('p', 'B', 'C', 'C')
-+#define V4L2_PIX_FMT_SGBRG12P v4l2_fourcc('p', 'G', 'C', 'C')
-+#define V4L2_PIX_FMT_SGRBG12P v4l2_fourcc('p', 'g', 'C', 'C')
-+#define V4L2_PIX_FMT_SRGGB12P v4l2_fourcc('p', 'R', 'C', 'C')
- #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
- #define V4L2_PIX_FMT_SGBRG16 v4l2_fourcc('G', 'B', '1', '6') /* 16  GBGB.. RGRG.. */
- #define V4L2_PIX_FMT_SGRBG16 v4l2_fourcc('G', 'R', '1', '6') /* 16  GRGR.. BGBG.. */
--- 
-2.7.4
+But even more important it is against all my 'good API sense' that I can't
+find the corresponding media device from a v4l-subdev/video device. If I
+can get to them from the media device through major/minor numbers then
+consistent API design requires that I can also go through the other
+direction. Especially since I see no downside to this.
+
+It's nuts that I can't just pass /dev/v4l-subdevX to v4l2-ctl/compliance
+and have it find out everything about it automatically.
+
+It's all about self-discovery in an API.
+
+Sorry, I feel very strongly about this.
+
+Regards,
+
+	Hans
+
+> 
+>> Heck, I want to do 'v4l2-ctl -d /dev/video0 -D' or 'v4l2-ctl -d
+>> /dev/v4l-subdev0' and see not only the device capabilities, but also the
+>> corresponding entity information. Without having to scan through all
+>> /dev/media devices or requiring the user to pass the /dev/mediaX device
+>> separately.
+>>
+>> This information is very cheap and I see no reason whatsoever not to
+>> implement this. It also feels much more symmetrical if I have what is
+>> effectively a backlink to the media device to which the subdev belongs.
+>>
+>> And yes, normally applications will never need this since they use the media
+>> device and never reference a /dev/v4l-subdevX by name. But for v4l2-ctl and
+>> v4l2-compliance it is very useful indeed.
+> 
