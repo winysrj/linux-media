@@ -1,103 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:53269 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751376AbdGSGuV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Jul 2017 02:50:21 -0400
-Date: Wed, 19 Jul 2017 08:50:19 +0200
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Baruch Siach <baruch@tkos.co.il>
-Cc: Yong <yong.deng@magewell.com>, mchehab@kernel.org,
-        robh+dt@kernel.org, mark.rutland@arm.com, wens@csie.org,
-        hans.verkuil@cisco.com, peter.griffin@linaro.org,
-        hugues.fruchet@st.com, krzk@kernel.org, bparrot@ti.com,
-        arnd@arndb.de, jean-christophe.trotin@st.com,
-        benjamin.gaignard@linaro.org, tiffany.lin@mediatek.com,
-        kamil@wypas.org, kieran+renesas@ksquared.org.uk,
-        andrew-ct.chen@mediatek.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH RFC 2/2] dt-bindings: add binding documentation for
- Allwinner CSI
-Message-ID: <20170719065019.sc2xivtm4d77vrzw@flea>
-References: <1498561654-14658-1-git-send-email-yong.deng@magewell.com>
- <1498561654-14658-3-git-send-email-yong.deng@magewell.com>
- <20170718115530.ssy7g5vv4siqnfpo@tarshish>
- <20170719092249.2fb6ec720ba1b194cea320c8@magewell.com>
- <20170719044923.yae2ye4slvrmtyfe@sapphire.tkos.co.il>
- <20170719142120.d00469cf9fce844d40b9988e@magewell.com>
- <20170719063349.m5yg4n2radkvy74r@sapphire.tkos.co.il>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="v4g3dpjs7ofqle2n"
-Content-Disposition: inline
-In-Reply-To: <20170719063349.m5yg4n2radkvy74r@sapphire.tkos.co.il>
+Received: from mga11.intel.com ([192.55.52.93]:11289 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753095AbdG1XWv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Jul 2017 19:22:51 -0400
+From: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: tfiga@chromium.org, jian.xu.zheng@intel.com,
+        tian.shu.qiu@intel.com, rajmohan.mani@intel.com,
+        hyungwoo.yang@intel.com,
+        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+Subject: [PATCH v1] media: ov13858: Increase digital gain granularity, range
+Date: Fri, 28 Jul 2017 16:21:03 -0700
+Message-Id: <1501284063-23771-1-git-send-email-chiranjeevi.rapolu@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Previously, possible digital gains were just 1x, 2x and 4x. These
+coarse gains were not sufficient in fine-tuning the image capture.
 
---v4g3dpjs7ofqle2n
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Now, digital gain range is [0, 16x] with each step 1/1024, default 1x.
+This is achieved through OV13858 MWB R/G/B gain controls.
 
-On Wed, Jul 19, 2017 at 09:33:49AM +0300, Baruch Siach wrote:
-> Hi Yong,
->=20
-> On Wed, Jul 19, 2017 at 02:21:20PM +0800, Yong wrote:
-> > On Wed, 19 Jul 2017 07:49:23 +0300
-> > Baruch Siach <baruch@tkos.co.il> wrote:
-> > > On Wed, Jul 19, 2017 at 09:22:49AM +0800, Yong wrote:
-> > > > I am waiting for more comments for the sunxi-csi.h. It's pleasure if
-> > > > you have any suggestions about it.
-> > >=20
-> > > You mean sunxi_csi.h, right?
-> >=20
-> > Yes. My spelling mistake.
-> >=20
-> > > Why do you need the sunxi_csi_ops indirection? Do you expect to add=
-=20
-> > > alternative implementations of these ops at some point?
-> >=20
-> > I want to seperate the sunxi_video.c and sunxi_csi_v3s.c.=20
-> > sunxi_csi_v3s.c is Soc specific. Maybe there will be sunxi_csi_r40.c
-> > in the futrue. But the sunxi_video.c and sunxi_csi.c are common.
->=20
-> I'd say it is a premature optimization. The file separation is fine, IMO,=
- but=20
-> the added csi_ops indirection makes the code less readable. Someone with=
-=20
-> access to R40 hardware with CSI setup would be a better position to abstr=
-act=20
-> the platform specific code.
+Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+---
+ drivers/media/i2c/ov13858.c | 32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-I agree
-
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
---v4g3dpjs7ofqle2n
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJZbwErAAoJEBx+YmzsjxAgkA8QAK3rocgwl+IIKUxE7K2LZ5Ex
-mSGc7hHBl3UxAa4YdN/94h94LYoQiGh09ngGyBaIWsJHIS0RiGiqvdf80BDGh2Em
-DZpUEznBMQl3SSNW5hCriLmmm1xrg9J/E9rLBpJutVJBDxjkQKZpEnjBzClIGGO0
-ONu9BFsz+FJ914X5NwXNYI5twOcg2K21OmBBhyzthFkUPUvwrNVJ0BDvtg8xVKws
-fbP0UJ0lUScWaOv1h+CYQuX4PfJkoZbEQN7ipnMUMNKUTsv1w7fA7kwxDrehfj/H
-LGgDvyAbyTzPaQLF1mBv1Z1Bj4bvzUuwyBSQMTA3Mb1wj/qQqOHlriqIP+3O6yER
-Dk0RtEdSrpGQtTr4U11/oMnCSV34+hA07TYzuajFtlFonBokm8wuFGj17lqFkkKW
-D5ccTFGvhOAiUG02Sxb0UoLrU4xo4+OW2Gi09bs7WjXhFpbAELhjjrfZLhgjCjG7
-HFN6Y2SE0hQFObQpmH+BIhn0Qa9AUDcTxZua/nInZQ04GGO+2OW2t/kr3lbhwDg8
-/rXjC74hS9LXLt2GYC0RUyhwnRoVlXlhpQ+0FbOcnVlrxIpXEaLV2g1kDnBq+0Mw
-qBvvrm1Oeg70a4DcJ0sCHvMKFMae3SpOJKBslqw2CMd2c0bBO9oZncMUWDaPMtHg
-l8f00rTwmxRrpJXsphy4
-=IFl6
------END PGP SIGNATURE-----
-
---v4g3dpjs7ofqle2n--
+diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+index 86550d8..b78e323b 100644
+--- a/drivers/media/i2c/ov13858.c
++++ b/drivers/media/i2c/ov13858.c
+@@ -78,13 +78,13 @@
+ #define OV13858_ANA_GAIN_DEFAULT	0x80
+ 
+ /* Digital gain control */
+-#define OV13858_REG_DIGITAL_GAIN	0x350a
+-#define OV13858_DGTL_GAIN_MASK		0xf3
+-#define OV13858_DGTL_GAIN_SHIFT		2
+-#define OV13858_DGTL_GAIN_MIN		1
+-#define OV13858_DGTL_GAIN_MAX		4
+-#define OV13858_DGTL_GAIN_STEP		1
+-#define OV13858_DGTL_GAIN_DEFAULT	1
++#define OV13858_REG_B_MWB_GAIN		0x5100
++#define OV13858_REG_G_MWB_GAIN		0x5102
++#define OV13858_REG_R_MWB_GAIN		0x5104
++#define OV13858_DGTL_GAIN_MIN		0
++#define OV13858_DGTL_GAIN_MAX		16384	/* Max = 16 X */
++#define OV13858_DGTL_GAIN_DEFAULT	1024	/* Default gain = 1 X */
++#define OV13858_DGTL_GAIN_STEP		1	/* Each step = 1/1024 */
+ 
+ /* Test Pattern Control */
+ #define OV13858_REG_TEST_PATTERN	0x4503
+@@ -1161,21 +1161,21 @@ static int ov13858_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+ static int ov13858_update_digital_gain(struct ov13858 *ov13858, u32 d_gain)
+ {
+ 	int ret;
+-	u32 val;
+ 
+-	if (d_gain == 3)
+-		return -EINVAL;
++	ret = ov13858_write_reg(ov13858, OV13858_REG_B_MWB_GAIN,
++				OV13858_REG_VALUE_16BIT, d_gain);
++	if (ret)
++		return ret;
+ 
+-	ret = ov13858_read_reg(ov13858, OV13858_REG_DIGITAL_GAIN,
+-			       OV13858_REG_VALUE_08BIT, &val);
++	ret = ov13858_write_reg(ov13858, OV13858_REG_G_MWB_GAIN,
++				OV13858_REG_VALUE_16BIT, d_gain);
+ 	if (ret)
+ 		return ret;
+ 
+-	val &= OV13858_DGTL_GAIN_MASK;
+-	val |= (d_gain - 1) << OV13858_DGTL_GAIN_SHIFT;
++	ret = ov13858_write_reg(ov13858, OV13858_REG_R_MWB_GAIN,
++				OV13858_REG_VALUE_16BIT, d_gain);
+ 
+-	return ov13858_write_reg(ov13858, OV13858_REG_DIGITAL_GAIN,
+-				 OV13858_REG_VALUE_08BIT, val);
++	return ret;
+ }
+ 
+ static int ov13858_enable_test_pattern(struct ov13858 *ov13858, u32 pattern)
+-- 
+1.9.1
