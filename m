@@ -1,78 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:35469 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751500AbdGRTxm (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:36498 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753750AbdG2L3G (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 15:53:42 -0400
-MIME-Version: 1.0
-In-Reply-To: <CAKv+Gu9+0H9w8z8_Zedd-RxXt89Y7sJ=57_ZTThfDpFe4H0uXg@mail.gmail.com>
-References: <20170714092540.1217397-1-arnd@arndb.de> <20170714092540.1217397-8-arnd@arndb.de>
- <CAKv+Gu9+0H9w8z8_Zedd-RxXt89Y7sJ=57_ZTThfDpFe4H0uXg@mail.gmail.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Tue, 18 Jul 2017 21:53:40 +0200
-Message-ID: <CAK8P3a3qrkZLkL=PuUHkaq9p021-Y+odTj5UrdM=dZw8L=oM8g@mail.gmail.com>
-Subject: Re: [PATCH 07/14] proc/kcore: hide a harmless warning
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Jiri Olsa <jolsa@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Tejun Heo <tj@kernel.org>, Guenter Roeck <linux@roeck-us.net>,
-        IDE-ML <linux-ide@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Kees Cook <keescook@chromium.org>,
-        Ingo Molnar <mingo@kernel.org>,
-        Laura Abbott <labbott@redhat.com>,
-        Pratyush Anand <panand@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Sat, 29 Jul 2017 07:29:06 -0400
+Received: by mail-wm0-f65.google.com with SMTP id d40so1134856wma.3
+        for <linux-media@vger.kernel.org>; Sat, 29 Jul 2017 04:29:05 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
+        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
+Subject: [PATCH v2 13/14] [media] ddbridge: Kconfig option to control the MSI modparam default
+Date: Sat, 29 Jul 2017 13:28:47 +0200
+Message-Id: <20170729112848.707-14-d.scheller.oss@gmail.com>
+In-Reply-To: <20170729112848.707-1-d.scheller.oss@gmail.com>
+References: <20170729112848.707-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 14, 2017 at 2:28 PM, Ard Biesheuvel
-<ard.biesheuvel@linaro.org> wrote:
-> On 14 July 2017 at 10:25, Arnd Bergmann <arnd@arndb.de> wrote:
->> gcc warns when MODULES_VADDR/END is defined to the same value as
->> VMALLOC_START/VMALLOC_END, e.g. on x86-32:
->>
->> fs/proc/kcore.c: In function =E2=80=98add_modules_range=E2=80=99:
->> fs/proc/kcore.c:622:161: error: self-comparison always evaluates to fals=
-e [-Werror=3Dtautological-compare]
->>   if (/*MODULES_VADDR !=3D VMALLOC_START && */MODULES_END !=3D VMALLOC_E=
-ND) {
->>
->
-> Does it occur for subtraction as well? Or only for comparison?
+From: Daniel Scheller <d.scheller@gmx.net>
 
-This replacement patch would also address the warning:
+It is known that MSI interrupts - while working quite well so far - can
+still cause issues on some hardware platforms (causing I2C timeouts due
+to unhandled interrupts). The msi variable/option is set to 1 by default.
+So, add a Kconfig option prefixed with "EXPERIMENTAL" that will control
+the default value of that modparam, defaulting to off for a better
+user experience and (guaranteed) stable operation "per default".
 
-diff --git a/fs/proc/kcore.c b/fs/proc/kcore.c
-index 45629f4b5402..35824e986c2c 100644
---- a/fs/proc/kcore.c
-+++ b/fs/proc/kcore.c
-@@ -623,7 +623,7 @@ static void __init proc_kcore_text_init(void)
- struct kcore_list kcore_modules;
- static void __init add_modules_range(void)
- {
--       if (MODULES_VADDR !=3D VMALLOC_START && MODULES_END !=3D VMALLOC_EN=
-D) {
-+       if (MODULES_VADDR - VMALLOC_START && MODULES_END - VMALLOC_END) {
-                kclist_add(&kcore_modules, (void *)MODULES_VADDR,
-                        MODULES_END - MODULES_VADDR, KCORE_VMALLOC);
-        }
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <r.scobie@clear.net.nz>
+Tested-by: Jasmin Jessich <jasmin@anw.at>
+Tested-by: Dietmar Spingler <d_spingler@freenet.de>
+Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
+---
+ drivers/media/pci/ddbridge/Kconfig         | 15 +++++++++++++++
+ drivers/media/pci/ddbridge/ddbridge-main.c | 11 +++++++++--
+ 2 files changed, 24 insertions(+), 2 deletions(-)
 
-I have also verified that four of the 14 patches are not needed when buildi=
-ng
-without ccache, this is one of them:
-
- acpi: thermal: fix gcc-6/ccache warning
- proc/kcore: hide a harmless warning
- SFI: fix tautological-compare warning
- [media] fix warning on v4l2_subdev_call() result interpreted as bool
-
-Not sure what to do with those, we could either ignore them all and
-not care about ccache, or we try to address them all in some way.
-
-        Arnd
+diff --git a/drivers/media/pci/ddbridge/Kconfig b/drivers/media/pci/ddbridge/Kconfig
+index c79a58fa5fc3..1330b2ecc72a 100644
+--- a/drivers/media/pci/ddbridge/Kconfig
++++ b/drivers/media/pci/ddbridge/Kconfig
+@@ -26,3 +26,18 @@ config DVB_DDBRIDGE
+ 	  - CineS2 V7/V7A and DuoFlex S2 V4 (ST STV0910-based)
+ 
+ 	  Say Y if you own such a card and want to use it.
++
++config DVB_DDBRIDGE_MSIENABLE
++	bool "Enable Message Signaled Interrupts (MSI) per default (EXPERIMENTAL)"
++	depends on DVB_DDBRIDGE
++	depends on PCI_MSI
++	default n
++	---help---
++	  Use PCI MSI (Message Signaled Interrupts) per default. Enabling this
++	  might lead to I2C errors originating from the bridge in conjunction
++	  with certain SATA controllers, requiring a reload of the ddbridge
++	  module. MSI can still be disabled by passing msi=0 as option, as
++	  this will just change the msi option default value.
++
++	  If you're unsure, concerned about stability and don't want to pass
++	  module options in case of troubles, say N.
+diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
+index 5094d2ef79d6..5a930a6e9fb2 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-main.c
++++ b/drivers/media/pci/ddbridge/ddbridge-main.c
+@@ -47,10 +47,17 @@ MODULE_PARM_DESC(adapter_alloc,
+ 		 "0-one adapter per io, 1-one per tab with io, 2-one per tab, 3-one for all");
+ 
+ #ifdef CONFIG_PCI_MSI
++#ifdef CONFIG_DVB_DDBRIDGE_MSIENABLE
+ int msi = 1;
++#else
++int msi;
++#endif
+ module_param(msi, int, 0444);
+-MODULE_PARM_DESC(msi,
+-		 " Control MSI interrupts: 0-disable, 1-enable (default)");
++#ifdef CONFIG_DVB_DDBRIDGE_MSIENABLE
++MODULE_PARM_DESC(msi, "Control MSI interrupts: 0-disable, 1-enable (default)");
++#else
++MODULE_PARM_DESC(msi, "Control MSI interrupts: 0-disable (default), 1-enable");
++#endif
+ #endif
+ 
+ int ci_bitrate = 70000;
+-- 
+2.13.0
