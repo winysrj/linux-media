@@ -1,97 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37422 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753446AbdGNQOa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Jul 2017 12:14:30 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH 4/6] v4l: vsp1: Convert CLU to use a fragment pool
-Date: Fri, 14 Jul 2017 17:14:13 +0100
-Message-Id: <efd134fda974a976acf47c220984243eaf4b1317.1500047489.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.6756808fb978882ae2db0cde7745c7e12b177713.1500047489.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.6756808fb978882ae2db0cde7745c7e12b177713.1500047489.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.6756808fb978882ae2db0cde7745c7e12b177713.1500047489.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.6756808fb978882ae2db0cde7745c7e12b177713.1500047489.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:34597 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753612AbdG2L3C (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 29 Jul 2017 07:29:02 -0400
+Received: by mail-wr0-f195.google.com with SMTP id o33so20716050wrb.1
+        for <linux-media@vger.kernel.org>; Sat, 29 Jul 2017 04:29:02 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
+        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
+Subject: [PATCH v2 09/14] [media] ddbridge: fix possible buffer overflow in ddb_ports_init()
+Date: Sat, 29 Jul 2017 13:28:43 +0200
+Message-Id: <20170729112848.707-10-d.scheller.oss@gmail.com>
+In-Reply-To: <20170729112848.707-1-d.scheller.oss@gmail.com>
+References: <20170729112848.707-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adapt the CLU to allocate a fragment pool for passing the table updates
-to hardware.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Two bodies are pre-allocated in the pool to manage a userspace update
-before the hardware has taken a previous set of tables.
+Report from smatch:
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+  drivers/media/pci/ddbridge/ddbridge-core.c:2659 ddb_ports_init() error: buffer overflow 'dev->port' 32 <= u32max
+
+Fix by making sure "p" is greater than zero before checking for
+"dev->port[].type == DDB_CI_EXTERNAL_XO2".
+
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <r.scobie@clear.net.nz>
+Tested-by: Jasmin Jessich <jasmin@anw.at>
+Tested-by: Dietmar Spingler <d_spingler@freenet.de>
+Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
 ---
- drivers/media/platform/vsp1/vsp1_clu.c | 18 ++++++++++++++++--
- drivers/media/platform/vsp1/vsp1_clu.h |  1 +
- 2 files changed, 17 insertions(+), 2 deletions(-)
+ drivers/media/pci/ddbridge/ddbridge-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
-index f2fb26e5ab4e..6079c6465435 100644
---- a/drivers/media/platform/vsp1/vsp1_clu.c
-+++ b/drivers/media/platform/vsp1/vsp1_clu.c
-@@ -47,7 +47,7 @@ static int clu_set_table(struct vsp1_clu *clu, struct v4l2_ctrl *ctrl)
- 	struct vsp1_dl_body *dlb;
- 	unsigned int i;
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 9aee112c0d88..06bd37f8b95d 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -2551,7 +2551,7 @@ void ddb_ports_init(struct ddb *dev)
+ 			port->dvb[0].adap = &dev->adap[2 * p];
+ 			port->dvb[1].adap = &dev->adap[2 * p + 1];
  
--	dlb = vsp1_dl_fragment_alloc(clu->entity.vsp1, 1 + 17 * 17 * 17);
-+	dlb = vsp1_dl_fragment_get(clu->pool);
- 	if (!dlb)
- 		return -ENOMEM;
- 
-@@ -59,7 +59,7 @@ static int clu_set_table(struct vsp1_clu *clu, struct v4l2_ctrl *ctrl)
- 	swap(clu->clu, dlb);
- 	spin_unlock_irq(&clu->lock);
- 
--	vsp1_dl_fragment_free(dlb);
-+	vsp1_dl_fragment_put(dlb);
- 	return 0;
- }
- 
-@@ -261,8 +261,16 @@ static void clu_configure(struct vsp1_entity *entity,
- 	}
- }
- 
-+static void clu_destroy(struct vsp1_entity *entity)
-+{
-+	struct vsp1_clu *clu = to_clu(&entity->subdev);
-+
-+	vsp1_dl_fragment_pool_free(clu->pool);
-+}
-+
- static const struct vsp1_entity_operations clu_entity_ops = {
- 	.configure = clu_configure,
-+	.destroy = clu_destroy,
- };
- 
- /* -----------------------------------------------------------------------------
-@@ -288,6 +296,12 @@ struct vsp1_clu *vsp1_clu_create(struct vsp1_device *vsp1)
- 	if (ret < 0)
- 		return ERR_PTR(ret);
- 
-+	/* Allocate a fragment pool */
-+	clu->pool = vsp1_dl_fragment_pool_alloc(clu->entity.vsp1, 2,
-+			1 + 17 * 17 * 17, 0);
-+	if (!clu->pool)
-+		return ERR_PTR(-ENOMEM);
-+
- 	/* Initialize the control handler. */
- 	v4l2_ctrl_handler_init(&clu->ctrls, 2);
- 	v4l2_ctrl_new_custom(&clu->ctrls, &clu_table_control, NULL);
-diff --git a/drivers/media/platform/vsp1/vsp1_clu.h b/drivers/media/platform/vsp1/vsp1_clu.h
-index 036e0a2f1a42..601ffb558e30 100644
---- a/drivers/media/platform/vsp1/vsp1_clu.h
-+++ b/drivers/media/platform/vsp1/vsp1_clu.h
-@@ -36,6 +36,7 @@ struct vsp1_clu {
- 	spinlock_t lock;
- 	unsigned int mode;
- 	struct vsp1_dl_body *clu;
-+	struct vsp1_dl_fragment_pool *pool;
- };
- 
- static inline struct vsp1_clu *to_clu(struct v4l2_subdev *subdev)
+-			if ((port->class == DDB_PORT_NONE) && i &&
++			if ((port->class == DDB_PORT_NONE) && i && p &&
+ 			    dev->port[p - 1].type == DDB_CI_EXTERNAL_XO2) {
+ 				port->class = DDB_PORT_CI;
+ 				port->type = DDB_CI_EXTERNAL_XO2_B;
 -- 
-git-series 0.9.1
+2.13.0
