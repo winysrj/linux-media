@@ -1,63 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:59462 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751642AbdG1Kxo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Jul 2017 06:53:44 -0400
-Subject: Re: [RFC PATCH 0/2] add VIDIOC_SUBDEV_QUERYCAP ioctl
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-References: <20170728105231.12043-1-hverkuil@xs4all.nl>
-Message-ID: <e2f7db70-b89f-5aef-2cb0-f20aead6b4c8@xs4all.nl>
-Date: Fri, 28 Jul 2017 12:53:39 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170728105231.12043-1-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mga04.intel.com ([192.55.52.120]:45038 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751064AbdG2HDN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 29 Jul 2017 03:03:13 -0400
+From: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: tfiga@chromium.org, jian.xu.zheng@intel.com,
+        tian.shu.qiu@intel.com, rajmohan.mani@intel.com,
+        hyungwoo.yang@intel.com,
+        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+Subject: [PATCH v2] media: ov13858: Correct link-frequency and pixel-rate
+Date: Sat, 29 Jul 2017 00:00:39 -0700
+Message-Id: <d5ecfb61ff8e2eb84a9204d473b5ff4483d0ceb4.1501311132.git.chiranjeevi.rapolu@intel.com>
+In-Reply-To: <1501267690-2338-1-git-send-email-chiranjeevi.rapolu@intel.com>
+References: <1501267690-2338-1-git-send-email-chiranjeevi.rapolu@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Grrr. Please ignore, I pressed send even though I wanted to make
-some more changes.
+Previously both link-frequency and pixel-rate reported by
+the sensor was incorrect, resulting in incorrect FPS.
+Report link-frequency in Hz rather than link data rate in bps.
+Calculate pixel-rate from link-frequency.
 
-I'll post a v2 soon.
+Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+---
+Changes in v2:
+	- Fix typo, from PLL to PPL.
+	- Suffixed ULL instead of typecasting to uint64_t
+ drivers/media/i2c/ov13858.c | 28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
-Regards,
-
-	Hans
-
-
-On 07/28/2017 12:52 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> I tried to get this in back in 2015, but that effort stalled.
-> 
-> Trying again, since I really need this in order to add proper v4l-subdev
-> support to v4l2-ctl and v4l2-compliance. There currently is no way of
-> unique identifying that the device really is a v4l-subdev device other
-> than the device name (which can be changed by udev).
-> 
-> So this patch series adds a VIDIOC_SUBDEV_QUERYCAP ioctl that is in
-> the core so it's guaranteed to be there.
-> 
-> If the subdev is part of an MC then it also gives the corresponding
-> entity ID of the subdev and the major/minor numbers of the MC device
-> so v4l2-compliance can relate the subdev device directly to the right
-> MC device. The reserved array has room enough for strings should we
-> need them later. 
-> 
-> Hans Verkuil (2):
->   v4l2-subdev: add VIDIOC_SUBDEV_QUERYCAP ioctl
->   v4l: document VIDIOC_SUBDEV_QUERYCAP
-> 
->  Documentation/media/uapi/v4l/user-func.rst         |   1 +
->  .../media/uapi/v4l/vidioc-subdev-querycap.rst      | 118 +++++++++++++++++++++
->  drivers/media/v4l2-core/v4l2-subdev.c              |  26 +++++
->  include/uapi/linux/v4l2-subdev.h                   |  29 +++++
->  4 files changed, 174 insertions(+)
->  create mode 100644 Documentation/media/uapi/v4l/vidioc-subdev-querycap.rst
-> 
+diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+index 86550d8..9b87820 100644
+--- a/drivers/media/i2c/ov13858.c
++++ b/drivers/media/i2c/ov13858.c
+@@ -60,8 +60,8 @@
+ #define OV13858_VBLANK_MIN		56
+ 
+ /* HBLANK control - read only */
+-#define OV13858_PPL_540MHZ		2244
+-#define OV13858_PPL_1080MHZ		4488
++#define OV13858_PPL_270MHZ		2244
++#define OV13858_PPL_540MHZ		4488
+ 
+ /* Exposure control */
+ #define OV13858_REG_EXPOSURE		0x3500
+@@ -944,31 +944,33 @@ struct ov13858_mode {
+ 
+ /* Configurations for supported link frequencies */
+ #define OV13858_NUM_OF_LINK_FREQS	2
+-#define OV13858_LINK_FREQ_1080MBPS	1080000000
+-#define OV13858_LINK_FREQ_540MBPS	540000000
++#define OV13858_LINK_FREQ_540MHZ	540000000ULL
++#define OV13858_LINK_FREQ_270MHZ	270000000ULL
+ #define OV13858_LINK_FREQ_INDEX_0	0
+ #define OV13858_LINK_FREQ_INDEX_1	1
+ 
+ /* Menu items for LINK_FREQ V4L2 control */
+ static const s64 link_freq_menu_items[OV13858_NUM_OF_LINK_FREQS] = {
+-	OV13858_LINK_FREQ_1080MBPS,
+-	OV13858_LINK_FREQ_540MBPS
++	OV13858_LINK_FREQ_540MHZ,
++	OV13858_LINK_FREQ_270MHZ
+ };
+ 
+ /* Link frequency configs */
+ static const struct ov13858_link_freq_config
+ 			link_freq_configs[OV13858_NUM_OF_LINK_FREQS] = {
+ 	{
+-		.pixel_rate = 864000000,
+-		.pixels_per_line = OV13858_PPL_1080MHZ,
++		/* pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample */
++		.pixel_rate = (OV13858_LINK_FREQ_540MHZ * 2 * 4) / 10,
++		.pixels_per_line = OV13858_PPL_540MHZ,
+ 		.reg_list = {
+ 			.num_of_regs = ARRAY_SIZE(mipi_data_rate_1080mbps),
+ 			.regs = mipi_data_rate_1080mbps,
+ 		}
+ 	},
+ 	{
+-		.pixel_rate = 432000000,
+-		.pixels_per_line = OV13858_PPL_540MHZ,
++		/* pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample */
++		.pixel_rate = (OV13858_LINK_FREQ_270MHZ * 2 * 4) / 10,
++		.pixels_per_line = OV13858_PPL_270MHZ,
+ 		.reg_list = {
+ 			.num_of_regs = ARRAY_SIZE(mipi_data_rate_540mbps),
+ 			.regs = mipi_data_rate_540mbps,
+@@ -1634,10 +1636,10 @@ static int ov13858_init_controls(struct ov13858 *ov13858)
+ 
+ 	ov13858->hblank = v4l2_ctrl_new_std(
+ 				ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_HBLANK,
+-				OV13858_PPL_1080MHZ - ov13858->cur_mode->width,
+-				OV13858_PPL_1080MHZ - ov13858->cur_mode->width,
++				OV13858_PPL_540MHZ - ov13858->cur_mode->width,
++				OV13858_PPL_540MHZ - ov13858->cur_mode->width,
+ 				1,
+-				OV13858_PPL_1080MHZ - ov13858->cur_mode->width);
++				OV13858_PPL_540MHZ - ov13858->cur_mode->width);
+ 	ov13858->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 
+ 	ov13858->exposure = v4l2_ctrl_new_std(
+-- 
+1.9.1
