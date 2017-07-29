@@ -1,92 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:33290 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753602AbdGVK75 (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34805 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753745AbdG2L3F (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Jul 2017 06:59:57 -0400
-Date: Sat, 22 Jul 2017 12:59:53 +0200
+        Sat, 29 Jul 2017 07:29:05 -0400
+Received: by mail-wm0-f65.google.com with SMTP id x64so5864350wmg.1
+        for <linux-media@vger.kernel.org>; Sat, 29 Jul 2017 04:29:04 -0700 (PDT)
 From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: Colin King <colin.king@canonical.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH][media-next] media: dvb-frontends/stv0910: make various
- local variables static
-Message-ID: <20170722125953.362fe9c6@audiostation.wuest.de>
-In-Reply-To: <20170721110635.23610-1-colin.king@canonical.com>
-References: <20170721110635.23610-1-colin.king@canonical.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
+        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
+Subject: [PATCH v2 12/14] [media] ddbridge: fix dereference before check
+Date: Sat, 29 Jul 2017 13:28:46 +0200
+Message-Id: <20170729112848.707-13-d.scheller.oss@gmail.com>
+In-Reply-To: <20170729112848.707-1-d.scheller.oss@gmail.com>
+References: <20170729112848.707-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Fri, 21 Jul 2017 12:06:35 +0100
-schrieb Colin King <colin.king@canonical.com>:
+From: Daniel Scheller <d.scheller@gmx.net>
 
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> The list stvlist and arrays padc_lookup, s1_sn_lookup and s2_sn_lookup
-> do not need to be in global scope, so make them all static.
-> 
-> Cleans up a bunch of smatch warnings:
-> symbol 'padc_lookup' was not declared. Should it be static?
-> symbol 's1_sn_lookup' was not declared. Should it be static?
-> symbol 's2_sn_lookup' was not declared. Should it be static?
-> symbol 'stvlist' was not declared. Should it be static?
-> 
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Both ts_release() and ts_open() can use "output" before check (smatch):
 
-Thanks,
+  drivers/media/pci/ddbridge/ddbridge-core.c:816 ts_release() warn: variable dereferenced before check 'output' (see line 809)
+  drivers/media/pci/ddbridge/ddbridge-core.c:836 ts_open() warn: variable dereferenced before check 'output' (see line 828)
 
-Acked-by: Daniel Scheller <d.scheller@gmx.net>
+Fix by performing checks on those pointers.
 
-> ---
->  drivers/media/dvb-frontends/stv0910.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/dvb-frontends/stv0910.c
-> b/drivers/media/dvb-frontends/stv0910.c index
-> 7e8a460449c5..bae1da3fdb2d 100644 ---
-> a/drivers/media/dvb-frontends/stv0910.c +++
-> b/drivers/media/dvb-frontends/stv0910.c @@ -34,7 +34,7 @@
->  #define BER_SRC_S    0x20
->  #define BER_SRC_S2   0x20
->  
-> -LIST_HEAD(stvlist);
-> +static LIST_HEAD(stvlist);
->  
->  enum receive_mode { RCVMODE_NONE, RCVMODE_DVBS, RCVMODE_DVBS2,
-> RCVMODE_AUTO }; 
-> @@ -207,7 +207,7 @@ static int write_shared_reg(struct stv *state,
-> u16 reg, u8 mask, u8 val) return status;
->  }
->  
-> -struct slookup s1_sn_lookup[] = {
-> +static struct slookup s1_sn_lookup[] = {
->  	{   0,    9242  },  /*C/N=  0dB*/
->  	{   5,    9105  },  /*C/N=0.5dB*/
->  	{  10,    8950  },  /*C/N=1.0dB*/
-> @@ -264,7 +264,7 @@ struct slookup s1_sn_lookup[] = {
->  	{  510,    425  }   /*C/N=51.0dB*/
->  };
->  
-> -struct slookup s2_sn_lookup[] = {
-> +static struct slookup s2_sn_lookup[] = {
->  	{  -30,  13950  },  /*C/N=-2.5dB*/
->  	{  -25,  13580  },  /*C/N=-2.5dB*/
->  	{  -20,  13150  },  /*C/N=-2.0dB*/
-> @@ -327,7 +327,7 @@ struct slookup s2_sn_lookup[] = {
->  	{  510,    463  },  /*C/N=51.0dB*/
->  };
->  
-> -struct slookup padc_lookup[] = {
-> +static struct slookup padc_lookup[] = {
->  	{    0,  118000 }, /* PADC=+0dBm  */
->  	{ -100,  93600  }, /* PADC=-1dBm  */
->  	{ -200,  74500  }, /* PADC=-2dBm  */
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <r.scobie@clear.net.nz>
+Tested-by: Jasmin Jessich <jasmin@anw.at>
+Tested-by: Dietmar Spingler <d_spingler@freenet.de>
+Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
+---
+ drivers/media/pci/ddbridge/ddbridge-core.c | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-Best regards,
-Daniel Scheller
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index ace06fcdd0cf..ed75c1c6734a 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -738,8 +738,13 @@ static unsigned int ts_poll(struct file *file, poll_table *wait)
+ static int ts_release(struct inode *inode, struct file *file)
+ {
+ 	struct dvb_device *dvbdev = file->private_data;
+-	struct ddb_output *output = dvbdev->priv;
+-	struct ddb_input *input = output->port->input[0];
++	struct ddb_output *output = NULL;
++	struct ddb_input *input = NULL;
++
++	if (dvbdev) {
++		output = dvbdev->priv;
++		input = output->port->input[0];
++	}
+ 
+ 	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
+ 		if (!input)
+@@ -757,8 +762,13 @@ static int ts_open(struct inode *inode, struct file *file)
+ {
+ 	int err;
+ 	struct dvb_device *dvbdev = file->private_data;
+-	struct ddb_output *output = dvbdev->priv;
+-	struct ddb_input *input = output->port->input[0];
++	struct ddb_output *output = NULL;
++	struct ddb_input *input = NULL;
++
++	if (dvbdev) {
++		output = dvbdev->priv;
++		input = output->port->input[0];
++	}
+ 
+ 	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
+ 		if (!input)
 -- 
-https://github.com/herrnst
+2.13.0
