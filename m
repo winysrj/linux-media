@@ -1,80 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f170.google.com ([209.85.161.170]:34277 "EHLO
-        mail-yw0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750783AbdGZNwK (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49536 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751630AbdG2VIt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Jul 2017 09:52:10 -0400
-Received: by mail-yw0-f170.google.com with SMTP id i6so54014649ywb.1
-        for <linux-media@vger.kernel.org>; Wed, 26 Jul 2017 06:52:10 -0700 (PDT)
-Received: from mail-yw0-f182.google.com (mail-yw0-f182.google.com. [209.85.161.182])
-        by smtp.gmail.com with ESMTPSA id k70sm1197327ywe.40.2017.07.26.06.52.07
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 26 Jul 2017 06:52:08 -0700 (PDT)
-Received: by mail-yw0-f182.google.com with SMTP id l82so29777008ywc.2
-        for <linux-media@vger.kernel.org>; Wed, 26 Jul 2017 06:52:07 -0700 (PDT)
+        Sat, 29 Jul 2017 17:08:49 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v3 0/4] drm: rcar-du: Repair vblank event handling
+Date: Sun, 30 Jul 2017 00:08:51 +0300
+Message-Id: <20170729210855.9187-1-laurent.pinchart+renesas@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <20170720220904.icclurhemtkk7sx7@valkosipuli.retiisi.org.uk>
-References: <1500433978-2350-1-git-send-email-yong.zhi@intel.com>
- <CAK8P3a0Muca-NB0+yuotTHEixhx8jG9Dytsd_wE9=SfNdGSGBg@mail.gmail.com> <20170720220904.icclurhemtkk7sx7@valkosipuli.retiisi.org.uk>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Wed, 26 Jul 2017 22:51:46 +0900
-Message-ID: <CAAFQd5DD-x+SA9d406AcXSEvNmqmex2CFmdnbst7vzxssVXo3g@mail.gmail.com>
-Subject: Re: [PATCH v3 03/12] intel-ipu3: Add DMA API implementation
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Arnd Bergmann <arnd@arndb.de>, Yong Zhi <yong.zhi@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Robin Murphy <robin.murphy@arm.com>,
-        "open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 21, 2017 at 7:09 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Arnd,
->
-> On Wed, Jul 19, 2017 at 09:24:41AM +0200, Arnd Bergmann wrote:
->> On Wed, Jul 19, 2017 at 5:12 AM, Yong Zhi <yong.zhi@intel.com> wrote:
->> > From: Tomasz Figa <tfiga@chromium.org>
->> >
->> > This patch adds support for the IPU3 DMA mapping API.
->> >
->> > Signed-off-by: Tomasz Figa <tfiga@chromium.org>
->> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
->>
->> This needs some explanation on why you decided to go down the
->> route of adding your own dma_map_ops. It's not obvious at all,
->> and and I'm still concerned that this complicates things more than
->> it helps.
->
-> There are a few considerations here --- they could be documented in the
-> patch commit message
->
-> - The device has its own MMU. The default x86 DMA ops assume there isn't.
->
-> - As this is an image signal processor device, the buffers are typically
->   large (often in the range of tens of MB) and they do not need to be
->   physically contiguous. The current implementation of e.g.
->   drivers/iommu/intel-iommu.c allocate memory using alloc_pages() which is
->   unfeasible for such single allocations. Neither CMA is needed.
->
->   Also other IOMMU implementations have their own DMA ops currently.
->
-> I agree it'd be nice to unify these in the long run but I don't think this
-> stands apart from the rest currently --- except that the MMU is only used
-> by a single PCI device, the same which it is contained in.
+Hello,
 
-On top of what Sakari said, it just perfectly matches what V4L2
-videobuf2 framework expects. It does all the buffer mapping and
-synchronization using DMA mapping and given the x86 DMA ops being
-useless for this device, it makes everything that videobuf2 does using
-them useless too.
+The recent changes to the rcar-du driver to fix a page flip handling race
+condition changed the order of which vblanks and page flips are handled,
+resulting in incorrect timestamps being reported in the vblan events. Correct
+this by handling vblank events in the same completion handler as page flips.
 
-Best regards,
-Tomasz
+Compared to v2 patch 3/4 is completely rewritten with a new approach, as the
+previous one caused flip timeouts for a currently unknown reason. This version
+now uses the vertical blanking interrupt to handle the CRTC stop race
+regardless of the generation of the SoC.
+
+As a result drm_atomic_helper_wait_for_vblanks() can't be used anymore to wait
+for completion of a page flip or CRTC disable. I've thus included the
+previously posted patch "drm: rcar-du: Wait for flip completion instead of
+vblank in commit tail" in this series.
+
+I still plan to investigate why the original version caused issues, as I
+believe it went in the right direction. For now this series should do, as it
+doesn't introduce any hack and passes all tests properly.
+
+Kieran Bingham (1):
+  drm: rcar-du: Repair vblank for DRM page flips using the VSP
+
+Laurent Pinchart (3):
+  drm: rcar-du: Use the VBK interrupt for vblank events
+  drm: rcar-du: Wait for flip completion instead of vblank in commit
+    tail
+  drm: rcar-du: Fix race condition when disabling planes at CRTC stop
+
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.c   | 66 +++++++++++++++++++++++++++-----
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.h   | 10 +++++
+ drivers/gpu/drm/rcar-du/rcar_du_kms.c    |  2 +-
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c    |  8 +++-
+ drivers/media/platform/vsp1/vsp1_drm.c   |  5 ++-
+ drivers/media/platform/vsp1/vsp1_drm.h   |  2 +-
+ drivers/media/platform/vsp1/vsp1_pipe.c  | 20 +++++-----
+ drivers/media/platform/vsp1/vsp1_pipe.h  |  2 +-
+ drivers/media/platform/vsp1/vsp1_video.c |  6 ++-
+ include/media/vsp1.h                     |  2 +-
+ 10 files changed, 95 insertions(+), 28 deletions(-)
+
+-- 
+Regards,
+
+Laurent Pinchart
