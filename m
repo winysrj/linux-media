@@ -1,54 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:38646 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750735AbdGVSwl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Jul 2017 14:52:41 -0400
-Subject: Re: [PATCH] [media] imx: add VIDEO_V4L2_SUBDEV_API dependency
-To: Arnd Bergmann <arnd@arndb.de>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-References: <20170721162144.3339864-1-arnd@arndb.de>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <eb12f9cd-46f6-47ae-0306-6d7a6efaa56d@gmail.com>
-Date: Sat, 22 Jul 2017 11:52:38 -0700
-MIME-Version: 1.0
-In-Reply-To: <20170721162144.3339864-1-arnd@arndb.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail.kernel.org ([198.145.29.99]:57396 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750912AbdG2Gco (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 29 Jul 2017 02:32:44 -0400
+From: Shawn Guo <shawnguo@kernel.org>
+To: Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>
+Cc: Baoyou Xie <xie.baoyou@sanechips.com.cn>,
+        Xin Zhou <zhou.xin8@sanechips.com.cn>,
+        Jun Nie <jun.nie@linaro.org>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Shawn Guo <shawn.guo@linaro.org>
+Subject: [PATCH 1/2] dt-bindings: add bindings document for zx-irdec
+Date: Sat, 29 Jul 2017 14:31:41 +0800
+Message-Id: <1501309902-7559-2-git-send-email-shawnguo@kernel.org>
+In-Reply-To: <1501309902-7559-1-git-send-email-shawnguo@kernel.org>
+References: <1501309902-7559-1-git-send-email-shawnguo@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Shawn Guo <shawn.guo@linaro.org>
 
-On 07/21/2017 09:21 AM, Arnd Bergmann wrote:
-> Without this, I get a build error:
-> 
-> drivers/staging/media/imx/imx-media-vdic.c: In function '__vdic_get_fmt':
-> drivers/staging/media/imx/imx-media-vdic.c:554:10: error: implicit declaration of function 'v4l2_subdev_get_try_format'; did you mean 'v4l2_subdev_notify_event'? [-Werror=implicit-function-declaration]
-> 
-> Fixes: e130291212df ("[media] media: Add i.MX media core driver")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->   drivers/staging/media/imx/Kconfig | 1 +
->   1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/staging/media/imx/Kconfig b/drivers/staging/media/imx/Kconfig
-> index 7eff50bcea39..719508fcb0e9 100644
-> --- a/drivers/staging/media/imx/Kconfig
-> +++ b/drivers/staging/media/imx/Kconfig
-> @@ -1,6 +1,7 @@
->   config VIDEO_IMX_MEDIA
->   	tristate "i.MX5/6 V4L2 media core driver"
->   	depends on MEDIA_CONTROLLER && VIDEO_V4L2 && ARCH_MXC && IMX_IPUV3_CORE
-> +	depends on VIDEO_V4L2_SUBDEV_API
->   	select V4L2_FWNODE
->   	---help---
->   	  Say yes here to enable support for video4linux media controller
-> 
+It adds the dt-bindings document for ZTE ZX IRDEC remote control
+block.
+
+Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
+---
+ Documentation/devicetree/bindings/media/zx-irdec.txt | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/zx-irdec.txt
+
+diff --git a/Documentation/devicetree/bindings/media/zx-irdec.txt b/Documentation/devicetree/bindings/media/zx-irdec.txt
+new file mode 100644
+index 000000000000..295b9fab593e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/zx-irdec.txt
+@@ -0,0 +1,14 @@
++IR Decoder (IRDEC) on ZTE ZX family SoCs
++
++Required properties:
++ - compatible: Should be "zte,zx296718-irdec".
++ - reg: Physical base address and length of IRDEC registers.
++ - interrupts: Interrupt number of IRDEC.
++
++Exmaples:
++
++	irdec: ir-decoder@111000 {
++		compatible = "zte,zx296718-irdec";
++		reg = <0x111000 0x1000>;
++		interrupts = <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
++	};
+-- 
+1.9.1
