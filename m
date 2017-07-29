@@ -1,126 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35496 "EHLO mail.kernel.org"
+Received: from gofer.mess.org ([88.97.38.141]:53511 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751952AbdGFLBX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Jul 2017 07:01:23 -0400
-From: Kieran Bingham <kbingham@kernel.org>
-To: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com,
-        niklas.soderlund@ragnatech.se, hans.verkuil@cisco.com,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v7 0/3] ADV748x HDMI/Analog video receiver
-Date: Thu,  6 Jul 2017 12:01:14 +0100
-Message-Id: <cover.f44897c9f4c2d4555dfa156cc24a755477e409bf.1499336175.git-series.kieran.bingham+renesas@ideasonboard.com>
+        id S1752516AbdG2KXY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 29 Jul 2017 06:23:24 -0400
+Date: Sat, 29 Jul 2017 11:23:22 +0100
+From: Sean Young <sean@mess.org>
+To: Szabolcs Andrasi <andrasi.szabolcs@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: ir-keytable question [Ubuntu 17.04]
+Message-ID: <20170729102322.7p6ipsszmvryqubs@gofer.mess.org>
+References: <CAM1CkLU6gTj2zDS-9cu_POOVpByitEyi26XhKZ1W3j9AbTTK-Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAM1CkLU6gTj2zDS-9cu_POOVpByitEyi26XhKZ1W3j9AbTTK-Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Hi,
 
-This is a driver for the Analog Devices ADV748x device, and follows on from a
-previous posting by Niklas Söderlund [0] of an earlier incarnation of this
-driver, and earlier versions posted by myself.
+On Sun, Jul 16, 2017 at 10:26:14PM -0700, Szabolcs Andrasi wrote:
+> Hi,
+> 
+> I'm using Ubuntu 17.04 and I installed the ir-keytable tool. The
+> output of the ir-keytable command is as follows:
+> 
+> 
+> 
+> Found /sys/class/rc/rc0/ (/dev/input/event5) with:
+> Driver ite-cir, table rc-rc6-mce
+> Supported protocols: unknown other lirc rc-5 rc-5-sz jvc sony nec
+> sanyo mce_kbd rc-6 sharp xmp
+> Enabled protocols: lirc rc-6
+> Name: ITE8708 CIR transceiver
+> bus: 25, vendor/product: 1283:0000, version: 0x0000
+> Repeat delay = 500 ms, repeat period = 125 ms
+> 
+> 
+> 
+> I'm trying to enable the supported mce_kbd protocol in addition to the
+> lirc and rc-6 protocols with the
+> 
+> $ sudo ir-keytable -p lirc -p rc-6 -p mce_kbd
+> 
+> command which works as expected. If, however, I reboot my computer,
+> ir-keytable forgets this change and only the lirc and rc-6 protocols
+> are enabled. Is there a configuration file I can edit so that after
+> the boot my IR remote still works? Or is that so that the only way to
+> make it work is to write a start-up script that runs the above command
+> to enable the needed protocol?
 
-ADV748x
-=======
-The ADV7481 and ADV7482 support two video pipelines which can run independently
-of each other, with each pipeline terminating in a CSI-2 output: TXA (4-Lane)
-and TXB (1-Lane)
+So what we have today is /etc/rc_maps.cfg, where you can select the default
+keymap for a particular driver; unfortunately, you can only select one
+keymap and one keymap can only have one protocol.
 
-The ADV7480 (Not included here), ADV7481, and ADV7482 are all derivatives,
-with the following features
+Ideally we could either have more than one protocol per keymap, which
+would be helpful for the MCE Keyboard, or we could allow multiple keymaps
+which would be great for supporting different remotes at the same time.
 
-            Analog   HDMI  MHL  4-Lane  1-Lane
-              In      In         CSI     CSI
- ADV7480               X    X     X
- ADV7481      X        X    X     X       X
- ADV7482      X        X          X       X
+For now, you could add a udev rule to also enable the mce_kbd protocol.
 
-Implementation
-==============
 
-This driver creates 4 entities. AFE (CVBS/Analog In), HDMI, TXA and TXB.  At
-probe time, the DT is parsed to identify the endpoints for each of these nodes,
-and those are used for async matching of the CSI2 (TXA/TXB) entities in the
-master driver. The HDMI and AFE entities are then registered after a successful
-registration of both the CSI2 entities.
-
-HDMI is statically linked to the TXA entity, while the AFE is statically linked
-to the TXB entity. Routing the AFE through TXA is not supported.
-
-Support for setting the EDID on HDMI is provided
-
-(Known) Future Todo's
-=====================
-
-Further potential development areas include:
- - ADV7480 Support (No AFE)
- - MHL support (Not present on ADV7482)
- - CEC Support
- - Configurable I2C addressing
- - Interrupt handling for format changes and hotplug detect.
-
-However, this driver is functional without the above, and these developments
-can be written when required.
-
-References
-==========
-[0] http://www.mail-archive.com/linux-renesas-soc@vger.kernel.org/msg05196.html
-
-v1/RFC:
- - Initial posting
-
-v2:
- - Reworked DT parsing and entities
-
-v3:
- - Refreshed with lots of fixups from Sakari's review comments
-
-v4:
- - Many changes all round, following Laurent's review and extensive development
- - Now uses regmap
- - AFE port numbering has been changed to match the entity pads
-
-v5:
- - DT is now based on the latest salvator-common.dtsi
- - Entities are linked with immutable connections
-
-v6:
- - EDID support added to HDMI
- - AFE no longer autodetects input format by default.
-
-v7:
- - Comments from Hans addressed
- - AFE now uses FIELD_ALTERNATE
- - HDMI interlaced support removed (it's untested)
-
-Kieran Bingham (3):
-  media: adv748x: Add adv7481, adv7482 bindings
-  media: i2c: adv748x: add adv748x driver
-  MAINTAINERS: Add ADV748x driver
-
- Documentation/devicetree/bindings/media/i2c/adv748x.txt |  95 +-
- MAINTAINERS                                             |   6 +-
- drivers/media/i2c/Kconfig                               |  12 +-
- drivers/media/i2c/Makefile                              |   1 +-
- drivers/media/i2c/adv748x/Makefile                      |   7 +-
- drivers/media/i2c/adv748x/adv748x-afe.c                 | 552 ++++++-
- drivers/media/i2c/adv748x/adv748x-core.c                | 832 +++++++++-
- drivers/media/i2c/adv748x/adv748x-csi2.c                | 327 ++++-
- drivers/media/i2c/adv748x/adv748x-hdmi.c                | 768 ++++++++-
- drivers/media/i2c/adv748x/adv748x.h                     | 425 +++++-
- 10 files changed, 3025 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/adv748x.txt
- create mode 100644 drivers/media/i2c/adv748x/Makefile
- create mode 100644 drivers/media/i2c/adv748x/adv748x-afe.c
- create mode 100644 drivers/media/i2c/adv748x/adv748x-core.c
- create mode 100644 drivers/media/i2c/adv748x/adv748x-csi2.c
- create mode 100644 drivers/media/i2c/adv748x/adv748x-hdmi.c
- create mode 100644 drivers/media/i2c/adv748x/adv748x.h
-
-base-commit: 2748e76ddb2967c4030171342ebdd3faa6a5e8e8
--- 
-git-series 0.9.1
+Sean
