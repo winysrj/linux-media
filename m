@@ -1,2075 +1,380 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:36097 "EHLO extserv.mm-sol.com"
+Received: from mail.kernel.org ([198.145.29.99]:57416 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751367AbdGQKfE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Jul 2017 06:35:04 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Cc: Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v3 10/23] media: camss: Add VFE files
-Date: Mon, 17 Jul 2017 13:33:36 +0300
-Message-Id: <1500287629-23703-11-git-send-email-todor.tomov@linaro.org>
-In-Reply-To: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
-References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
+        id S1752516AbdG2Gcr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 29 Jul 2017 02:32:47 -0400
+From: Shawn Guo <shawnguo@kernel.org>
+To: Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>
+Cc: Baoyou Xie <xie.baoyou@sanechips.com.cn>,
+        Xin Zhou <zhou.xin8@sanechips.com.cn>,
+        Jun Nie <jun.nie@linaro.org>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Shawn Guo <shawn.guo@linaro.org>
+Subject: [PATCH 2/2] rc: add zx-irdec remote control driver
+Date: Sat, 29 Jul 2017 14:31:42 +0800
+Message-Id: <1501309902-7559-3-git-send-email-shawnguo@kernel.org>
+In-Reply-To: <1501309902-7559-1-git-send-email-shawnguo@kernel.org>
+References: <1501309902-7559-1-git-send-email-shawnguo@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These files control the VFE module. The VFE has different input interfaces.
-The PIX input interface feeds the input data to an image processing pipeline.
-Three RDI input interfaces bypass the image processing pipeline. The VFE also
-contains the AXI bus interface which writes the output data to memory.
+From: Shawn Guo <shawn.guo@linaro.org>
 
-RDI interfaces are supported in this version. PIX interface is not supported.
+It adds the remote control driver and corresponding keymap file for
+IRDEC block found on ZTE ZX family SoCs.
 
-Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
 ---
- drivers/media/platform/qcom/camss-8x16/camss-vfe.c | 1913 ++++++++++++++++++++
- drivers/media/platform/qcom/camss-8x16/camss-vfe.h |  114 ++
- 2 files changed, 2027 insertions(+)
- create mode 100644 drivers/media/platform/qcom/camss-8x16/camss-vfe.c
- create mode 100644 drivers/media/platform/qcom/camss-8x16/camss-vfe.h
+ drivers/media/rc/Kconfig               |  11 ++
+ drivers/media/rc/Makefile              |   1 +
+ drivers/media/rc/keymaps/Makefile      |   3 +-
+ drivers/media/rc/keymaps/rc-zx-irdec.c |  79 +++++++++++++
+ drivers/media/rc/zx-irdec.c            | 198 +++++++++++++++++++++++++++++++++
+ include/media/rc-map.h                 |   1 +
+ 6 files changed, 292 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/rc/keymaps/rc-zx-irdec.c
+ create mode 100644 drivers/media/rc/zx-irdec.c
 
-diff --git a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 5e83b76495f7..c572d5da4b5f 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -435,4 +435,15 @@ config IR_SIR
+ 	   To compile this driver as a module, choose M here: the module will
+ 	   be called sir-ir.
+ 
++config IR_ZX
++	tristate "ZTE ZX IR remote control"
++	depends on RC_CORE
++	depends on ARCH_ZX || COMPILE_TEST
++	---help---
++	   Say Y if you want to use the IR remote control available
++	   on ZTE ZX family SoCs.
++
++	   To compile this driver as a module, choose M here: the
++	   module will be called zx-irdec.
++
+ endif #RC_DEVICES
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index 245e2c2d0b22..922c1a5620e9 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -41,3 +41,4 @@ obj-$(CONFIG_IR_IMG) += img-ir/
+ obj-$(CONFIG_IR_SERIAL) += serial_ir.o
+ obj-$(CONFIG_IR_SIR) += sir_ir.o
+ obj-$(CONFIG_IR_MTK) += mtk-cir.o
++obj-$(CONFIG_IR_ZX) += zx-irdec.o
+diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
+index 2945f99907b5..af6496d709fb 100644
+--- a/drivers/media/rc/keymaps/Makefile
++++ b/drivers/media/rc/keymaps/Makefile
+@@ -109,4 +109,5 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-videomate-tv-pvr.o \
+ 			rc-winfast.o \
+ 			rc-winfast-usbii-deluxe.o \
+-			rc-su3000.o
++			rc-su3000.o \
++			rc-zx-irdec.o
+diff --git a/drivers/media/rc/keymaps/rc-zx-irdec.c b/drivers/media/rc/keymaps/rc-zx-irdec.c
 new file mode 100644
-index 0000000..b6dd29b
+index 000000000000..cc889df47eb8
 --- /dev/null
-+++ b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
-@@ -0,0 +1,1913 @@
++++ b/drivers/media/rc/keymaps/rc-zx-irdec.c
+@@ -0,0 +1,79 @@
 +/*
-+ * camss-vfe.c
-+ *
-+ * Qualcomm MSM Camera Subsystem - VFE Module
-+ *
-+ * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
-+ * Copyright (C) 2015-2017 Linaro Ltd.
++ * Copyright (C) 2017 Sanechips Technology Co., Ltd.
++ * Copyright 2017 Linaro Ltd.
 + *
 + * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 and
-+ * only version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
-+#include <linux/clk.h>
-+#include <linux/completion.h>
-+#include <linux/interrupt.h>
-+#include <linux/iommu.h>
-+#include <linux/mutex.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
-+#include <linux/spinlock_types.h>
-+#include <linux/spinlock.h>
-+#include <media/media-entity.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-subdev.h>
 +
-+#include "camss-vfe.h"
-+#include "camss.h"
++#include <linux/module.h>
++#include <media/rc-map.h>
 +
-+#define MSM_VFE_NAME "msm_vfe"
-+
-+#define vfe_line_array(ptr_line)	\
-+	((const struct vfe_line (*)[]) &(ptr_line[-(ptr_line->id)]))
-+
-+#define to_vfe(ptr_line)	\
-+	container_of(vfe_line_array(ptr_line), struct vfe_device, ptr_line)
-+
-+#define VFE_0_HW_VERSION		0x000
-+
-+#define VFE_0_GLOBAL_RESET_CMD		0x00c
-+#define VFE_0_GLOBAL_RESET_CMD_CORE	(1 << 0)
-+#define VFE_0_GLOBAL_RESET_CMD_CAMIF	(1 << 1)
-+#define VFE_0_GLOBAL_RESET_CMD_BUS	(1 << 2)
-+#define VFE_0_GLOBAL_RESET_CMD_BUS_BDG	(1 << 3)
-+#define VFE_0_GLOBAL_RESET_CMD_REGISTER	(1 << 4)
-+#define VFE_0_GLOBAL_RESET_CMD_TIMER	(1 << 5)
-+#define VFE_0_GLOBAL_RESET_CMD_PM	(1 << 6)
-+#define VFE_0_GLOBAL_RESET_CMD_BUS_MISR	(1 << 7)
-+#define VFE_0_GLOBAL_RESET_CMD_TESTGEN	(1 << 8)
-+
-+#define VFE_0_IRQ_CMD			0x024
-+#define VFE_0_IRQ_CMD_GLOBAL_CLEAR	(1 << 0)
-+
-+#define VFE_0_IRQ_MASK_0		0x028
-+#define VFE_0_IRQ_MASK_0_RDIn_REG_UPDATE(n)		(1 << ((n) + 5))
-+#define VFE_0_IRQ_MASK_0_IMAGE_MASTER_n_PING_PONG(n)	(1 << ((n) + 8))
-+#define VFE_0_IRQ_MASK_0_RESET_ACK			(1 << 31)
-+#define VFE_0_IRQ_MASK_1		0x02c
-+#define VFE_0_IRQ_MASK_1_VIOLATION			(1 << 7)
-+#define VFE_0_IRQ_MASK_1_BUS_BDG_HALT_ACK		(1 << 8)
-+#define VFE_0_IRQ_MASK_1_IMAGE_MASTER_n_BUS_OVERFLOW(n)	(1 << ((n) + 9))
-+
-+#define VFE_0_IRQ_CLEAR_0		0x030
-+#define VFE_0_IRQ_CLEAR_1		0x034
-+
-+#define VFE_0_IRQ_STATUS_0		0x038
-+#define VFE_0_IRQ_STATUS_0_RDIn_REG_UPDATE(n)		(1 << ((n) + 5))
-+#define VFE_0_IRQ_STATUS_0_IMAGE_MASTER_n_PING_PONG(n)	(1 << ((n) + 8))
-+#define VFE_0_IRQ_STATUS_0_RESET_ACK			(1 << 31)
-+#define VFE_0_IRQ_STATUS_1		0x03c
-+#define VFE_0_IRQ_STATUS_1_VIOLATION			(1 << 7)
-+#define VFE_0_IRQ_STATUS_1_BUS_BDG_HALT_ACK		(1 << 8)
-+
-+#define VFE_0_VIOLATION_STATUS		0x48
-+
-+#define VFE_0_BUS_CMD			0x4c
-+#define VFE_0_BUS_CMD_Mx_RLD_CMD(x)	(1 << (x))
-+
-+#define VFE_0_BUS_CFG			0x050
-+
-+#define VFE_0_BUS_XBAR_CFG_x(x)		(0x58 + 0x4 * ((x) / 2))
-+#define VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_SHIFT		8
-+#define VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_VAL_RDI0	5
-+#define VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_VAL_RDI1	6
-+#define VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_VAL_RDI2	7
-+
-+#define VFE_0_BUS_IMAGE_MASTER_n_WR_CFG(n)		(0x06c + 0x24 * (n))
-+#define VFE_0_BUS_IMAGE_MASTER_n_WR_CFG_WR_PATH_SHIFT	0
-+#define VFE_0_BUS_IMAGE_MASTER_n_WR_CFG_FRM_BASED_SHIFT	1
-+#define VFE_0_BUS_IMAGE_MASTER_n_WR_PING_ADDR(n)	(0x070 + 0x24 * (n))
-+#define VFE_0_BUS_IMAGE_MASTER_n_WR_PONG_ADDR(n)	(0x074 + 0x24 * (n))
-+#define VFE_0_BUS_IMAGE_MASTER_n_WR_ADDR_CFG(n)		(0x078 + 0x24 * (n))
-+#define VFE_0_BUS_IMAGE_MASTER_n_WR_ADDR_CFG_FRM_DROP_PER_SHIFT	2
-+#define VFE_0_BUS_IMAGE_MASTER_n_WR_ADDR_CFG_FRM_DROP_PER_MASK	(0x1F << 2)
-+
-+#define VFE_0_BUS_IMAGE_MASTER_n_WR_UB_CFG(n)		(0x07c + 0x24 * (n))
-+#define VFE_0_BUS_IMAGE_MASTER_n_WR_UB_CFG_OFFSET_SHIFT	16
-+#define VFE_0_BUS_IMAGE_MASTER_n_WR_FRAMEDROP_PATTERN(n)	\
-+							(0x088 + 0x24 * (n))
-+#define VFE_0_BUS_IMAGE_MASTER_n_WR_IRQ_SUBSAMPLE_PATTERN(n)	\
-+							(0x08c + 0x24 * (n))
-+#define VFE_0_BUS_IMAGE_MASTER_n_WR_IRQ_SUBSAMPLE_PATTERN_DEF	0xffffffff
-+
-+#define VFE_0_BUS_PING_PONG_STATUS	0x268
-+
-+#define VFE_0_BUS_BDG_CMD		0x2c0
-+#define VFE_0_BUS_BDG_CMD_HALT_REQ	1
-+
-+#define VFE_0_BUS_BDG_QOS_CFG_0		0x2c4
-+#define VFE_0_BUS_BDG_QOS_CFG_1		0x2c8
-+#define VFE_0_BUS_BDG_QOS_CFG_2		0x2cc
-+#define VFE_0_BUS_BDG_QOS_CFG_3		0x2d0
-+#define VFE_0_BUS_BDG_QOS_CFG_4		0x2d4
-+#define VFE_0_BUS_BDG_QOS_CFG_5		0x2d8
-+#define VFE_0_BUS_BDG_QOS_CFG_6		0x2dc
-+#define VFE_0_BUS_BDG_QOS_CFG_7		0x2e0
-+
-+#define VFE_0_RDI_CFG_x(x)		(0x2e8 + (0x4 * (x)))
-+#define VFE_0_RDI_CFG_x_RDI_STREAM_SEL_SHIFT	28
-+#define VFE_0_RDI_CFG_x_RDI_STREAM_SEL_MASK	(0xf << 28)
-+#define VFE_0_RDI_CFG_x_RDI_M0_SEL_SHIFT	4
-+#define VFE_0_RDI_CFG_x_RDI_M0_SEL_MASK		(0xf << 4)
-+#define VFE_0_RDI_CFG_x_RDI_EN_BIT		(1 << 2)
-+#define VFE_0_RDI_CFG_x_MIPI_EN_BITS		0x3
-+#define VFE_0_RDI_CFG_x_RDI_Mr_FRAME_BASED_EN(r)	(1 << (16 + (r)))
-+
-+#define VFE_0_REG_UPDATE			0x378
-+#define VFE_0_REG_UPDATE_RDIn(n)		(1 << (1 + (n)))
-+
-+#define VFE_0_CGC_OVERRIDE_1			0x974
-+#define VFE_0_CGC_OVERRIDE_1_IMAGE_Mx_CGC_OVERRIDE(x)	(1 << (x))
-+
-+/* VFE reset timeout */
-+#define VFE_RESET_TIMEOUT_MS 50
-+/* VFE halt timeout */
-+#define VFE_HALT_TIMEOUT_MS 100
-+/* Max number of frame drop updates per frame */
-+#define VFE_FRAME_DROP_UPDATES 5
-+/* Frame drop value. NOTE: VAL + UPDATES should not exceed 31 */
-+#define VFE_FRAME_DROP_VAL 20
-+
-+static const u32 vfe_formats[] = {
-+	MEDIA_BUS_FMT_UYVY8_2X8,
-+	MEDIA_BUS_FMT_VYUY8_2X8,
-+	MEDIA_BUS_FMT_YUYV8_2X8,
-+	MEDIA_BUS_FMT_YVYU8_2X8,
-+	MEDIA_BUS_FMT_SBGGR8_1X8,
-+	MEDIA_BUS_FMT_SGBRG8_1X8,
-+	MEDIA_BUS_FMT_SGRBG8_1X8,
-+	MEDIA_BUS_FMT_SRGGB8_1X8,
-+	MEDIA_BUS_FMT_SBGGR10_1X10,
-+	MEDIA_BUS_FMT_SGBRG10_1X10,
-+	MEDIA_BUS_FMT_SGRBG10_1X10,
-+	MEDIA_BUS_FMT_SRGGB10_1X10,
-+	MEDIA_BUS_FMT_SBGGR12_1X12,
-+	MEDIA_BUS_FMT_SGBRG12_1X12,
-+	MEDIA_BUS_FMT_SGRBG12_1X12,
-+	MEDIA_BUS_FMT_SRGGB12_1X12,
++static struct rc_map_table zx_irdec_table[] = {
++	{ 0x01, KEY_1 },
++	{ 0x02, KEY_2 },
++	{ 0x03, KEY_3 },
++	{ 0x04, KEY_4 },
++	{ 0x05, KEY_5 },
++	{ 0x06, KEY_6 },
++	{ 0x07, KEY_7 },
++	{ 0x08, KEY_8 },
++	{ 0x09, KEY_9 },
++	{ 0x31, KEY_0 },
++	{ 0x16, KEY_DELETE },
++	{ 0x0a, KEY_MODE },		/* Input method */
++	{ 0x0c, KEY_VOLUMEUP },
++	{ 0x18, KEY_VOLUMEDOWN },
++	{ 0x0b, KEY_CHANNELUP },
++	{ 0x15, KEY_CHANNELDOWN },
++	{ 0x0d, KEY_PAGEUP },
++	{ 0x13, KEY_PAGEDOWN },
++	{ 0x46, KEY_FASTFORWARD },
++	{ 0x43, KEY_REWIND },
++	{ 0x44, KEY_PLAYPAUSE },
++	{ 0x45, KEY_STOP },
++	{ 0x49, KEY_OK },
++	{ 0x47, KEY_UP },
++	{ 0x4b, KEY_DOWN },
++	{ 0x48, KEY_LEFT },
++	{ 0x4a, KEY_RIGHT },
++	{ 0x4d, KEY_MENU },
++	{ 0x56, KEY_APPSELECT },	/* Application */
++	{ 0x4c, KEY_BACK },
++	{ 0x1e, KEY_INFO },
++	{ 0x4e, KEY_F1 },
++	{ 0x4f, KEY_F2 },
++	{ 0x50, KEY_F3 },
++	{ 0x51, KEY_F4 },
++	{ 0x1c, KEY_AUDIO },
++	{ 0x12, KEY_MUTE },
++	{ 0x11, KEY_DOT },		/* Location */
++	{ 0x1d, KEY_SETUP },
++	{ 0x40, KEY_POWER },
 +};
 +
-+static inline void vfe_reg_clr(struct vfe_device *vfe, u32 reg, u32 clr_bits)
-+{
-+	u32 bits = readl_relaxed(vfe->base + reg);
++static struct rc_map_list zx_irdec_map = {
++	.map = {
++		.scan = zx_irdec_table,
++		.size = ARRAY_SIZE(zx_irdec_table),
++		.rc_type = RC_TYPE_NEC,
++		.name = RC_MAP_ZX_IRDEC,
++	}
++};
 +
-+	writel_relaxed(bits & ~clr_bits, vfe->base + reg);
++static int __init init_rc_map_zx_irdec(void)
++{
++	return rc_map_register(&zx_irdec_map);
 +}
 +
-+static inline void vfe_reg_set(struct vfe_device *vfe, u32 reg, u32 set_bits)
++static void __exit exit_rc_map_zx_irdec(void)
 +{
-+	u32 bits = readl_relaxed(vfe->base + reg);
-+
-+	writel_relaxed(bits | set_bits, vfe->base + reg);
++	rc_map_unregister(&zx_irdec_map);
 +}
 +
-+static void vfe_global_reset(struct vfe_device *vfe)
-+{
-+	u32 reset_bits = VFE_0_GLOBAL_RESET_CMD_TESTGEN		|
-+			 VFE_0_GLOBAL_RESET_CMD_BUS_MISR	|
-+			 VFE_0_GLOBAL_RESET_CMD_PM		|
-+			 VFE_0_GLOBAL_RESET_CMD_TIMER		|
-+			 VFE_0_GLOBAL_RESET_CMD_REGISTER	|
-+			 VFE_0_GLOBAL_RESET_CMD_BUS_BDG		|
-+			 VFE_0_GLOBAL_RESET_CMD_BUS		|
-+			 VFE_0_GLOBAL_RESET_CMD_CAMIF		|
-+			 VFE_0_GLOBAL_RESET_CMD_CORE;
++module_init(init_rc_map_zx_irdec)
++module_exit(exit_rc_map_zx_irdec)
 +
-+	writel_relaxed(reset_bits, vfe->base + VFE_0_GLOBAL_RESET_CMD);
++MODULE_AUTHOR("Shawn Guo <shawn.guo@linaro.org>");
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/media/rc/zx-irdec.c b/drivers/media/rc/zx-irdec.c
+new file mode 100644
+index 000000000000..bc68c54a910e
+--- /dev/null
++++ b/drivers/media/rc/zx-irdec.c
+@@ -0,0 +1,198 @@
++/*
++ * Copyright (C) 2017 Sanechips Technology Co., Ltd.
++ * Copyright 2017 Linaro Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/device.h>
++#include <linux/err.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/module.h>
++#include <linux/of_platform.h>
++#include <linux/platform_device.h>
++
++#include <media/rc-core.h>
++
++#define DRIVER_NAME		"zx-irdec"
++
++#define ZX_IR_ENABLE		0x04
++#define ZX_IREN			BIT(0)
++#define ZX_IR_CTRL		0x08
++#define ZX_DEGL_MASK		GENMASK(21, 20)
++#define ZX_DEGL_VALUE(x)	(((x) << 20) & ZX_DEGL_MASK)
++#define ZX_WDBEGIN_MASK		GENMASK(18, 8)
++#define ZX_WDBEGIN_VALUE(x)	(((x) << 8) & ZX_WDBEGIN_MASK)
++#define ZX_IR_INTEN		0x10
++#define ZX_IR_INTSTCLR		0x14
++#define ZX_IR_CODE		0x30
++#define ZX_IR_CNUM		0x34
++#define ZX_NECRPT		BIT(16)
++
++struct zx_irdec {
++	void __iomem *base;
++	struct rc_dev *rcd;
++	struct device *dev;
++};
++
++static void zx_irdec_set_mask(struct zx_irdec *irdec, unsigned int reg,
++			      u32 mask, u32 value)
++{
++	u32 data;
++
++	data = readl(irdec->base + reg);
++	data &= ~mask;
++	data |= value & mask;
++	writel(data, irdec->base + reg);
 +}
 +
-+static void vfe_wm_enable(struct vfe_device *vfe, u8 wm, u8 enable)
++static irqreturn_t zx_irdec_irq(int irq, void *dev_id)
 +{
-+	if (enable)
-+		vfe_reg_set(vfe, VFE_0_BUS_IMAGE_MASTER_n_WR_CFG(wm),
-+			    1 << VFE_0_BUS_IMAGE_MASTER_n_WR_CFG_WR_PATH_SHIFT);
-+	else
-+		vfe_reg_clr(vfe, VFE_0_BUS_IMAGE_MASTER_n_WR_CFG(wm),
-+			    1 << VFE_0_BUS_IMAGE_MASTER_n_WR_CFG_WR_PATH_SHIFT);
-+}
++	struct zx_irdec *irdec = dev_id;
++	struct device *dev = irdec->dev;
++	u8 address, not_address;
++	u8 command, not_command;
++	u32 rawcode, scancode;
++	enum rc_type rc_type;
 +
-+static void vfe_wm_frame_based(struct vfe_device *vfe, u8 wm, u8 enable)
-+{
-+	if (enable)
-+		vfe_reg_set(vfe, VFE_0_BUS_IMAGE_MASTER_n_WR_CFG(wm),
-+			1 << VFE_0_BUS_IMAGE_MASTER_n_WR_CFG_FRM_BASED_SHIFT);
-+	else
-+		vfe_reg_clr(vfe, VFE_0_BUS_IMAGE_MASTER_n_WR_CFG(wm),
-+			1 << VFE_0_BUS_IMAGE_MASTER_n_WR_CFG_FRM_BASED_SHIFT);
-+}
++	/* Clear interrupt */
++	writel(1, irdec->base + ZX_IR_INTSTCLR);
 +
-+static void vfe_wm_set_framedrop_period(struct vfe_device *vfe, u8 wm, u8 per)
-+{
-+	u32 reg;
-+
-+	reg = readl_relaxed(vfe->base +
-+			    VFE_0_BUS_IMAGE_MASTER_n_WR_ADDR_CFG(wm));
-+
-+	reg &= ~(VFE_0_BUS_IMAGE_MASTER_n_WR_ADDR_CFG_FRM_DROP_PER_MASK);
-+
-+	reg |= (per << VFE_0_BUS_IMAGE_MASTER_n_WR_ADDR_CFG_FRM_DROP_PER_SHIFT)
-+		& VFE_0_BUS_IMAGE_MASTER_n_WR_ADDR_CFG_FRM_DROP_PER_MASK;
-+
-+	writel_relaxed(reg,
-+		       vfe->base + VFE_0_BUS_IMAGE_MASTER_n_WR_ADDR_CFG(wm));
-+}
-+
-+static void vfe_wm_set_framedrop_pattern(struct vfe_device *vfe, u8 wm,
-+					 u32 pattern)
-+{
-+	writel_relaxed(pattern,
-+	       vfe->base + VFE_0_BUS_IMAGE_MASTER_n_WR_FRAMEDROP_PATTERN(wm));
-+}
-+
-+static void vfe_wm_set_ub_cfg(struct vfe_device *vfe, u8 wm, u16 offset,
-+			      u16 depth)
-+{
-+	u32 reg;
-+
-+	reg = (offset << VFE_0_BUS_IMAGE_MASTER_n_WR_UB_CFG_OFFSET_SHIFT) |
-+		depth;
-+	writel_relaxed(reg, vfe->base + VFE_0_BUS_IMAGE_MASTER_n_WR_UB_CFG(wm));
-+}
-+
-+static void vfe_bus_reload_wm(struct vfe_device *vfe, u8 wm)
-+{
-+	wmb();
-+	writel_relaxed(VFE_0_BUS_CMD_Mx_RLD_CMD(wm), vfe->base + VFE_0_BUS_CMD);
-+	wmb();
-+}
-+
-+static void vfe_wm_set_ping_addr(struct vfe_device *vfe, u8 wm, u32 addr)
-+{
-+	writel_relaxed(addr,
-+		       vfe->base + VFE_0_BUS_IMAGE_MASTER_n_WR_PING_ADDR(wm));
-+}
-+
-+static void vfe_wm_set_pong_addr(struct vfe_device *vfe, u8 wm, u32 addr)
-+{
-+	writel_relaxed(addr,
-+		       vfe->base + VFE_0_BUS_IMAGE_MASTER_n_WR_PONG_ADDR(wm));
-+}
-+
-+static int vfe_wm_get_ping_pong_status(struct vfe_device *vfe, u8 wm)
-+{
-+	u32 reg;
-+
-+	reg = readl_relaxed(vfe->base + VFE_0_BUS_PING_PONG_STATUS);
-+
-+	return (reg >> wm) & 0x1;
-+}
-+
-+static void vfe_bus_enable_wr_if(struct vfe_device *vfe, u8 enable)
-+{
-+	if (enable)
-+		writel_relaxed(0x10000009, vfe->base + VFE_0_BUS_CFG);
-+	else
-+		writel_relaxed(0, vfe->base + VFE_0_BUS_CFG);
-+}
-+
-+static void vfe_bus_connect_wm_to_rdi(struct vfe_device *vfe, u8 wm,
-+				      enum vfe_line_id id)
-+{
-+	u32 reg;
-+
-+	reg = VFE_0_RDI_CFG_x_MIPI_EN_BITS;
-+	reg |= VFE_0_RDI_CFG_x_RDI_Mr_FRAME_BASED_EN(id);
-+	vfe_reg_set(vfe, VFE_0_RDI_CFG_x(0), reg);
-+
-+	reg = VFE_0_RDI_CFG_x_RDI_EN_BIT;
-+	reg |= ((3 * id) << VFE_0_RDI_CFG_x_RDI_STREAM_SEL_SHIFT) &
-+		VFE_0_RDI_CFG_x_RDI_STREAM_SEL_MASK;
-+	vfe_reg_set(vfe, VFE_0_RDI_CFG_x(id), reg);
-+
-+	switch (id) {
-+	case VFE_LINE_RDI0:
-+	default:
-+		reg = VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_VAL_RDI0 <<
-+		      VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_SHIFT;
-+		break;
-+	case VFE_LINE_RDI1:
-+		reg = VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_VAL_RDI1 <<
-+		      VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_SHIFT;
-+		break;
-+	case VFE_LINE_RDI2:
-+		reg = VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_VAL_RDI2 <<
-+		      VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_SHIFT;
-+		break;
++	/* Check repeat frame */
++	if (readl(irdec->base + ZX_IR_CNUM) & ZX_NECRPT) {
++		rc_repeat(irdec->rcd);
++		goto done;
 +	}
 +
-+	if (wm % 2 == 1)
-+		reg <<= 16;
++	rawcode = readl(irdec->base + ZX_IR_CODE);
++	not_command = (rawcode >> 24) & 0xff;
++	command = (rawcode >> 16) & 0xff;
++	not_address = (rawcode >> 8) & 0xff;
++	address = rawcode & 0xff;
 +
-+	vfe_reg_set(vfe, VFE_0_BUS_XBAR_CFG_x(wm), reg);
-+
-+	writel_relaxed(VFE_0_BUS_IMAGE_MASTER_n_WR_IRQ_SUBSAMPLE_PATTERN_DEF,
-+	       vfe->base +
-+	       VFE_0_BUS_IMAGE_MASTER_n_WR_IRQ_SUBSAMPLE_PATTERN(wm));
-+}
-+
-+static void vfe_bus_disconnect_wm_from_rdi(struct vfe_device *vfe, u8 wm,
-+					   enum vfe_line_id id)
-+{
-+	u32 reg;
-+
-+	reg = VFE_0_RDI_CFG_x_RDI_Mr_FRAME_BASED_EN(id);
-+	vfe_reg_clr(vfe, VFE_0_RDI_CFG_x(0), reg);
-+
-+	reg = VFE_0_RDI_CFG_x_RDI_EN_BIT;
-+	vfe_reg_clr(vfe, VFE_0_RDI_CFG_x(id), reg);
-+
-+	switch (id) {
-+	case VFE_LINE_RDI0:
-+	default:
-+		reg = VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_VAL_RDI0 <<
-+		      VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_SHIFT;
-+		break;
-+	case VFE_LINE_RDI1:
-+		reg = VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_VAL_RDI1 <<
-+		      VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_SHIFT;
-+		break;
-+	case VFE_LINE_RDI2:
-+		reg = VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_VAL_RDI2 <<
-+		      VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_SHIFT;
-+		break;
++	if ((command ^ not_command) != 0xff) {
++		dev_err(dev, "checksum error: received 0x%08x\n", rawcode);
++		goto done;
 +	}
 +
-+	if (wm % 2 == 1)
-+		reg <<= 16;
-+
-+	vfe_reg_clr(vfe, VFE_0_BUS_XBAR_CFG_x(wm), reg);
-+}
-+
-+static void vfe_set_rdi_cid(struct vfe_device *vfe, enum vfe_line_id id, u8 cid)
-+{
-+	vfe_reg_clr(vfe, VFE_0_RDI_CFG_x(id),
-+		    VFE_0_RDI_CFG_x_RDI_M0_SEL_MASK);
-+
-+	vfe_reg_set(vfe, VFE_0_RDI_CFG_x(id),
-+		    cid << VFE_0_RDI_CFG_x_RDI_M0_SEL_SHIFT);
-+}
-+
-+static void vfe_reg_update(struct vfe_device *vfe, enum vfe_line_id line_id)
-+{
-+	vfe->reg_update |= VFE_0_REG_UPDATE_RDIn(line_id);
-+	wmb();
-+	writel_relaxed(vfe->reg_update, vfe->base + VFE_0_REG_UPDATE);
-+	wmb();
-+}
-+
-+static void vfe_enable_irq_wm_line(struct vfe_device *vfe, u8 wm,
-+				   enum vfe_line_id line_id, u8 enable)
-+{
-+	u32 irq_en0 = VFE_0_IRQ_MASK_0_IMAGE_MASTER_n_PING_PONG(wm) |
-+		      VFE_0_IRQ_MASK_0_RDIn_REG_UPDATE(line_id);
-+	u32 irq_en1 = VFE_0_IRQ_MASK_1_IMAGE_MASTER_n_BUS_OVERFLOW(wm);
-+
-+	if (enable) {
-+		vfe_reg_set(vfe, VFE_0_IRQ_MASK_0, irq_en0);
-+		vfe_reg_set(vfe, VFE_0_IRQ_MASK_1, irq_en1);
++	if ((address ^ not_address) != 0xff) {
++		/* Extended NEC */
++		scancode = RC_SCANCODE_NECX(address, command);
++		rc_type = RC_TYPE_NECX;
 +	} else {
-+		vfe_reg_clr(vfe, VFE_0_IRQ_MASK_0, irq_en0);
-+		vfe_reg_clr(vfe, VFE_0_IRQ_MASK_1, irq_en1);
-+	}
-+}
-+
-+static void vfe_enable_irq_common(struct vfe_device *vfe)
-+{
-+	u32 irq_en0 = VFE_0_IRQ_MASK_0_RESET_ACK;
-+	u32 irq_en1 = VFE_0_IRQ_MASK_1_VIOLATION |
-+		      VFE_0_IRQ_MASK_1_BUS_BDG_HALT_ACK;
-+
-+	vfe_reg_set(vfe, VFE_0_IRQ_MASK_0, irq_en0);
-+	vfe_reg_set(vfe, VFE_0_IRQ_MASK_1, irq_en1);
-+}
-+
-+/*
-+ * vfe_reset - Trigger reset on VFE module and wait to complete
-+ * @vfe: VFE device
-+ *
-+ * Return 0 on success or a negative error code otherwise
-+ */
-+static int vfe_reset(struct vfe_device *vfe)
-+{
-+	unsigned long time;
-+
-+	reinit_completion(&vfe->reset_complete);
-+
-+	vfe_global_reset(vfe);
-+
-+	time = wait_for_completion_timeout(&vfe->reset_complete,
-+		msecs_to_jiffies(VFE_RESET_TIMEOUT_MS));
-+	if (!time) {
-+		dev_err(to_device(vfe), "VFE reset timeout\n");
-+		return -EIO;
++		/* Normal NEC */
++		scancode = RC_SCANCODE_NEC(address, command);
++		rc_type = RC_TYPE_NEC;
 +	}
 +
-+	return 0;
-+}
++	rc_keydown(irdec->rcd, rc_type, scancode, 0);
 +
-+/*
-+ * vfe_halt - Trigger halt on VFE module and wait to complete
-+ * @vfe: VFE device
-+ *
-+ * Return 0 on success or a negative error code otherwise
-+ */
-+static int vfe_halt(struct vfe_device *vfe)
-+{
-+	unsigned long time;
-+
-+	reinit_completion(&vfe->halt_complete);
-+
-+	writel_relaxed(VFE_0_BUS_BDG_CMD_HALT_REQ,
-+		       vfe->base + VFE_0_BUS_BDG_CMD);
-+
-+	time = wait_for_completion_timeout(&vfe->halt_complete,
-+		msecs_to_jiffies(VFE_HALT_TIMEOUT_MS));
-+	if (!time) {
-+		dev_err(to_device(vfe), "VFE halt timeout\n");
-+		return -EIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static void vfe_init_outputs(struct vfe_device *vfe)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(vfe->line); i++) {
-+		struct vfe_output *output = &vfe->line[i].output;
-+
-+		output->state = VFE_OUTPUT_OFF;
-+		output->buf[0] = NULL;
-+		output->buf[1] = NULL;
-+		INIT_LIST_HEAD(&output->pending_bufs);
-+	}
-+}
-+
-+static void vfe_reset_output_maps(struct vfe_device *vfe)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(vfe->wm_output_map); i++)
-+		vfe->wm_output_map[i] = VFE_LINE_NONE;
-+}
-+
-+static void vfe_set_qos(struct vfe_device *vfe)
-+{
-+	u32 val = 0xaaa5aaa5;
-+	u32 val7 = 0x0001aaa5;
-+
-+	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_0);
-+	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_1);
-+	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_2);
-+	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_3);
-+	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_4);
-+	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_5);
-+	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_6);
-+	writel_relaxed(val7, vfe->base + VFE_0_BUS_BDG_QOS_CFG_7);
-+}
-+
-+static void vfe_set_cgc_override(struct vfe_device *vfe, u8 wm, u8 enable)
-+{
-+	u32 val = VFE_0_CGC_OVERRIDE_1_IMAGE_Mx_CGC_OVERRIDE(wm);
-+
-+	if (enable)
-+		vfe_reg_set(vfe, VFE_0_CGC_OVERRIDE_1, val);
-+	else
-+		vfe_reg_clr(vfe, VFE_0_CGC_OVERRIDE_1, val);
-+
-+	wmb();
-+}
-+
-+static void vfe_output_init_addrs(struct vfe_device *vfe,
-+				  struct vfe_output *output, u8 sync)
-+{
-+	u32 ping_addr = 0;
-+	u32 pong_addr = 0;
-+
-+	output->active_buf = 0;
-+
-+	if (output->buf[0])
-+		ping_addr = output->buf[0]->addr;
-+
-+	if (output->buf[1])
-+		pong_addr = output->buf[1]->addr;
-+	else
-+		pong_addr = ping_addr;
-+
-+	vfe_wm_set_ping_addr(vfe, output->wm_idx, ping_addr);
-+	vfe_wm_set_pong_addr(vfe, output->wm_idx, pong_addr);
-+	if (sync)
-+		vfe_bus_reload_wm(vfe, output->wm_idx);
-+}
-+
-+static void vfe_output_update_ping_addr(struct vfe_device *vfe,
-+					struct vfe_output *output, u8 sync)
-+{
-+	u32 addr = 0;
-+
-+	if (output->buf[0])
-+		addr = output->buf[0]->addr;
-+
-+	vfe_wm_set_ping_addr(vfe, output->wm_idx, addr);
-+	if (sync)
-+		vfe_bus_reload_wm(vfe, output->wm_idx);
-+}
-+
-+static void vfe_output_update_pong_addr(struct vfe_device *vfe,
-+					struct vfe_output *output, u8 sync)
-+{
-+	u32 addr = 0;
-+
-+	if (output->buf[1])
-+		addr = output->buf[1]->addr;
-+
-+	vfe_wm_set_pong_addr(vfe, output->wm_idx, addr);
-+	if (sync)
-+		vfe_bus_reload_wm(vfe, output->wm_idx);
-+
-+}
-+
-+static int vfe_reserve_wm(struct vfe_device *vfe, enum vfe_line_id line_id)
-+{
-+	int ret = -EBUSY;
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(vfe->wm_output_map); i++) {
-+		if (vfe->wm_output_map[i] == VFE_LINE_NONE) {
-+			vfe->wm_output_map[i] = line_id;
-+			ret = i;
-+			break;
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+static int vfe_release_wm(struct vfe_device *vfe, u8 wm)
-+{
-+	if (wm > ARRAY_SIZE(vfe->wm_output_map))
-+		return -EINVAL;
-+
-+	vfe->wm_output_map[wm] = VFE_LINE_NONE;
-+
-+	return 0;
-+}
-+
-+static void vfe_output_frame_drop(struct vfe_device *vfe,
-+				  struct vfe_output *output,
-+				  u32 drop_pattern)
-+{
-+	u8 drop_period;
-+
-+	/* We need to toggle update period to be valid on next frame */
-+	output->drop_update_idx++;
-+	output->drop_update_idx %= VFE_FRAME_DROP_UPDATES;
-+	drop_period = VFE_FRAME_DROP_VAL + output->drop_update_idx;
-+
-+	vfe_wm_set_framedrop_period(vfe, output->wm_idx, drop_period);
-+	vfe_wm_set_framedrop_pattern(vfe, output->wm_idx, drop_pattern);
-+	vfe_reg_update(vfe, container_of(output, struct vfe_line, output)->id);
-+
-+}
-+
-+static struct camss_buffer *vfe_buf_get_pending(struct vfe_output *output)
-+{
-+	struct camss_buffer *buffer = NULL;
-+
-+	if (!list_empty(&output->pending_bufs)) {
-+		buffer = list_first_entry(&output->pending_bufs,
-+					  struct camss_buffer,
-+					  queue);
-+		list_del(&buffer->queue);
-+	}
-+
-+	return buffer;
-+}
-+
-+/*
-+ * vfe_buf_add_pending - Add output buffer to list of pending
-+ * @output: VFE output
-+ * @buffer: Video buffer
-+ */
-+static void vfe_buf_add_pending(struct vfe_output *output,
-+				struct camss_buffer *buffer)
-+{
-+	INIT_LIST_HEAD(&buffer->queue);
-+	list_add_tail(&buffer->queue, &output->pending_bufs);
-+}
-+
-+/*
-+ * vfe_buf_flush_pending - Flush all pending buffers.
-+ * @output: VFE output
-+ * @state: vb2 buffer state
-+ */
-+static void vfe_buf_flush_pending(struct vfe_output *output,
-+				  enum vb2_buffer_state state)
-+{
-+	struct camss_buffer *buf;
-+	struct camss_buffer *t;
-+
-+	list_for_each_entry_safe(buf, t, &output->pending_bufs, queue) {
-+		vb2_buffer_done(&buf->vb.vb2_buf, state);
-+		list_del(&buf->queue);
-+	}
-+}
-+
-+static void vfe_buf_update_wm_on_next(struct vfe_device *vfe,
-+				      struct vfe_output *output)
-+{
-+	switch (output->state) {
-+	case VFE_OUTPUT_CONTINUOUS:
-+		vfe_output_frame_drop(vfe, output, 3);
-+		break;
-+	case VFE_OUTPUT_SINGLE:
-+	default:
-+		dev_err_ratelimited(to_device(vfe),
-+				    "Next buf in wrong state! %d\n",
-+				    output->state);
-+		break;
-+	}
-+}
-+
-+static void vfe_buf_update_wm_on_last(struct vfe_device *vfe,
-+				      struct vfe_output *output)
-+{
-+	switch (output->state) {
-+	case VFE_OUTPUT_CONTINUOUS:
-+		output->state = VFE_OUTPUT_SINGLE;
-+		vfe_output_frame_drop(vfe, output, 1);
-+		break;
-+	case VFE_OUTPUT_SINGLE:
-+		output->state = VFE_OUTPUT_STOPPING;
-+		vfe_output_frame_drop(vfe, output, 0);
-+		break;
-+	default:
-+		dev_err_ratelimited(to_device(vfe),
-+				    "Last buff in wrong state! %d\n",
-+				    output->state);
-+		break;
-+	}
-+}
-+
-+static void vfe_buf_update_wm_on_new(struct vfe_device *vfe,
-+				     struct vfe_output *output,
-+				     struct camss_buffer *new_buf)
-+{
-+	int inactive_idx;
-+
-+	switch (output->state) {
-+	case VFE_OUTPUT_SINGLE:
-+		inactive_idx = !output->active_buf;
-+
-+		if (!output->buf[inactive_idx]) {
-+			output->buf[inactive_idx] = new_buf;
-+
-+			if (inactive_idx)
-+				vfe_output_update_pong_addr(vfe, output, 0);
-+			else
-+				vfe_output_update_ping_addr(vfe, output, 0);
-+
-+			vfe_output_frame_drop(vfe, output, 3);
-+			output->state = VFE_OUTPUT_CONTINUOUS;
-+		} else {
-+			vfe_buf_add_pending(output, new_buf);
-+			dev_err_ratelimited(to_device(vfe),
-+					    "Inactive buffer is busy\n");
-+		}
-+		break;
-+
-+	case VFE_OUTPUT_IDLE:
-+		if (!output->buf[0]) {
-+			output->buf[0] = new_buf;
-+
-+			vfe_output_init_addrs(vfe, output, 1);
-+
-+			vfe_output_frame_drop(vfe, output, 1);
-+			output->state = VFE_OUTPUT_SINGLE;
-+		} else {
-+			vfe_buf_add_pending(output, new_buf);
-+			dev_err_ratelimited(to_device(vfe),
-+					    "Output idle with buffer set!\n");
-+		}
-+		break;
-+
-+	case VFE_OUTPUT_CONTINUOUS:
-+	default:
-+		vfe_buf_add_pending(output, new_buf);
-+		break;
-+	}
-+}
-+
-+static int vfe_get_output(struct vfe_line *line)
-+{
-+	struct vfe_device *vfe = to_vfe(line);
-+	struct vfe_output *output;
-+	unsigned long flags;
-+	int wm_idx;
-+
-+	spin_lock_irqsave(&vfe->output_lock, flags);
-+
-+	output = &line->output;
-+	if (output->state != VFE_OUTPUT_OFF) {
-+		dev_err(to_device(vfe), "Output is running\n");
-+		goto error;
-+	}
-+	output->state = VFE_OUTPUT_RESERVED;
-+
-+	output->active_buf = 0;
-+
-+	/* We will use only one wm per output for now */
-+	wm_idx = vfe_reserve_wm(vfe, line->id);
-+	if (wm_idx < 0) {
-+		dev_err(to_device(vfe), "Can not reserve wm\n");
-+		goto error_get_wm;
-+	}
-+	output->drop_update_idx = 0;
-+	output->wm_idx = wm_idx;
-+
-+	spin_unlock_irqrestore(&vfe->output_lock, flags);
-+
-+	return 0;
-+
-+error_get_wm:
-+	output->state = VFE_OUTPUT_OFF;
-+error:
-+	spin_unlock_irqrestore(&vfe->output_lock, flags);
-+
-+	return -EINVAL;
-+}
-+
-+static int vfe_put_output(struct vfe_line *line)
-+{
-+	struct vfe_device *vfe = to_vfe(line);
-+	struct vfe_output *output = &line->output;
-+	unsigned long flags;
-+	int ret;
-+
-+	spin_lock_irqsave(&vfe->output_lock, flags);
-+
-+	ret = vfe_release_wm(vfe, output->wm_idx);
-+	if (ret < 0)
-+		goto out;
-+
-+	output->state = VFE_OUTPUT_OFF;
-+
-+out:
-+	spin_unlock_irqrestore(&vfe->output_lock, flags);
-+	return ret;
-+}
-+
-+static int vfe_enable_output(struct vfe_line *line)
-+{
-+	struct vfe_device *vfe = to_vfe(line);
-+	struct vfe_output *output = &line->output;
-+	unsigned long flags;
-+	u16 ub_size;
-+
-+	switch (vfe->id) {
-+	case 0:
-+		ub_size = MSM_VFE_VFE0_UB_SIZE_RDI;
-+		break;
-+	case 1:
-+		ub_size = MSM_VFE_VFE1_UB_SIZE_RDI;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	spin_lock_irqsave(&vfe->output_lock, flags);
-+
-+	vfe->reg_update &= ~VFE_0_REG_UPDATE_RDIn(line->id);
-+
-+	if (output->state != VFE_OUTPUT_RESERVED) {
-+		dev_err(to_device(vfe), "Output is not in reserved state %d\n",
-+			output->state);
-+		spin_unlock_irqrestore(&vfe->output_lock, flags);
-+		return -EINVAL;
-+	}
-+	output->state = VFE_OUTPUT_IDLE;
-+
-+	output->buf[0] = vfe_buf_get_pending(output);
-+	output->buf[1] = vfe_buf_get_pending(output);
-+
-+	if (!output->buf[0] && output->buf[1]) {
-+		output->buf[0] = output->buf[1];
-+		output->buf[1] = NULL;
-+	}
-+
-+	if (output->buf[0])
-+		output->state = VFE_OUTPUT_SINGLE;
-+
-+	if (output->buf[1])
-+		output->state = VFE_OUTPUT_CONTINUOUS;
-+
-+	switch (output->state) {
-+	case VFE_OUTPUT_SINGLE:
-+		vfe_output_frame_drop(vfe, output, 1);
-+		break;
-+	case VFE_OUTPUT_CONTINUOUS:
-+		vfe_output_frame_drop(vfe, output, 3);
-+		break;
-+	default:
-+		vfe_output_frame_drop(vfe, output, 0);
-+		break;
-+	}
-+
-+	output->sequence = 0;
-+
-+	vfe_output_init_addrs(vfe, output, 0);
-+
-+	vfe_set_cgc_override(vfe, output->wm_idx, 1);
-+
-+	vfe_enable_irq_wm_line(vfe, output->wm_idx, line->id, 1);
-+
-+	vfe_bus_connect_wm_to_rdi(vfe, output->wm_idx, line->id);
-+
-+	vfe_set_rdi_cid(vfe, line->id, 0);
-+
-+	vfe_wm_set_ub_cfg(vfe, output->wm_idx,
-+			  (ub_size + 1) * output->wm_idx, ub_size);
-+
-+	vfe_wm_frame_based(vfe, output->wm_idx, 1);
-+	vfe_wm_enable(vfe, output->wm_idx, 1);
-+
-+	vfe_bus_reload_wm(vfe, output->wm_idx);
-+
-+	vfe_reg_update(vfe, line->id);
-+
-+	spin_unlock_irqrestore(&vfe->output_lock, flags);
-+
-+	return 0;
-+}
-+
-+static int vfe_disable_output(struct vfe_line *line)
-+{
-+	struct vfe_device *vfe = to_vfe(line);
-+	struct vfe_output *output = &line->output;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&vfe->output_lock, flags);
-+
-+	vfe_wm_enable(vfe, output->wm_idx, 0);
-+	vfe_bus_disconnect_wm_from_rdi(vfe, output->wm_idx, line->id);
-+	vfe_reg_update(vfe, line->id);
-+
-+	spin_unlock_irqrestore(&vfe->output_lock, flags);
-+
-+	return 0;
-+}
-+
-+/*
-+ * vfe_enable - Enable streaming on VFE line
-+ * @line: VFE line
-+ *
-+ * Return 0 on success or a negative error code otherwise
-+ */
-+static int vfe_enable(struct vfe_line *line)
-+{
-+	struct vfe_device *vfe = to_vfe(line);
-+	int ret;
-+
-+	mutex_lock(&vfe->stream_lock);
-+
-+	if (!vfe->stream_count) {
-+		vfe_enable_irq_common(vfe);
-+
-+		vfe_bus_enable_wr_if(vfe, 1);
-+
-+		vfe_set_qos(vfe);
-+	}
-+
-+	vfe->stream_count++;
-+
-+	mutex_unlock(&vfe->stream_lock);
-+
-+	ret = vfe_get_output(line);
-+	if (ret < 0)
-+		goto error_get_output;
-+
-+	ret = vfe_enable_output(line);
-+	if (ret < 0)
-+		goto error_enable_output;
-+
-+	vfe->was_streaming = 1;
-+
-+	return 0;
-+
-+
-+error_enable_output:
-+	vfe_put_output(line);
-+
-+error_get_output:
-+	mutex_lock(&vfe->stream_lock);
-+
-+	if (vfe->stream_count == 1)
-+		vfe_bus_enable_wr_if(vfe, 0);
-+
-+	vfe->stream_count--;
-+
-+	mutex_unlock(&vfe->stream_lock);
-+
-+	return ret;
-+}
-+
-+/*
-+ * vfe_disable - Disable streaming on VFE line
-+ * @line: VFE line
-+ *
-+ * Return 0 on success or a negative error code otherwise
-+ */
-+static int vfe_disable(struct vfe_line *line)
-+{
-+	struct vfe_device *vfe = to_vfe(line);
-+
-+	mutex_lock(&vfe->stream_lock);
-+
-+	if (vfe->stream_count == 1)
-+		vfe_bus_enable_wr_if(vfe, 0);
-+
-+	vfe->stream_count--;
-+
-+	mutex_unlock(&vfe->stream_lock);
-+
-+	vfe_disable_output(line);
-+
-+	vfe_put_output(line);
-+
-+	return 0;
-+}
-+
-+/*
-+ * vfe_isr_reg_update - Process reg update interrupt
-+ * @vfe: VFE Device
-+ * @line_id: VFE line
-+ */
-+static void vfe_isr_reg_update(struct vfe_device *vfe, enum vfe_line_id line_id)
-+{
-+	struct vfe_output *output;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&vfe->output_lock, flags);
-+	vfe->reg_update &= ~VFE_0_REG_UPDATE_RDIn(line_id);
-+
-+	output = &vfe->line[line_id].output;
-+	if (output->state == VFE_OUTPUT_STOPPING) {
-+		/* Release last buffer when hw is idle */
-+		if (output->last_buffer) {
-+			vb2_buffer_done(&output->last_buffer->vb.vb2_buf,
-+					VB2_BUF_STATE_DONE);
-+			output->last_buffer = NULL;
-+		}
-+		output->state = VFE_OUTPUT_IDLE;
-+
-+		/* Buffers received in stopping state are queued in */
-+		/* dma pending queue, start next capture here */
-+
-+		output->buf[0] = vfe_buf_get_pending(output);
-+		output->buf[1] = vfe_buf_get_pending(output);
-+
-+		if (!output->buf[0] && output->buf[1]) {
-+			output->buf[0] = output->buf[1];
-+			output->buf[1] = NULL;
-+		}
-+
-+		if (output->buf[0])
-+			output->state = VFE_OUTPUT_SINGLE;
-+
-+		if (output->buf[1])
-+			output->state = VFE_OUTPUT_CONTINUOUS;
-+
-+		switch (output->state) {
-+		case VFE_OUTPUT_SINGLE:
-+			vfe_output_frame_drop(vfe, output, 2);
-+			break;
-+		case VFE_OUTPUT_CONTINUOUS:
-+			vfe_output_frame_drop(vfe, output, 3);
-+			break;
-+		default:
-+			vfe_output_frame_drop(vfe, output, 0);
-+			break;
-+		}
-+
-+		vfe_output_init_addrs(vfe, output, 1);
-+	}
-+
-+	spin_unlock_irqrestore(&vfe->output_lock, flags);
-+}
-+
-+/*
-+ * vfe_isr_wm_done - Process write master done interrupt
-+ * @vfe: VFE Device
-+ * @wm: Write master id
-+ */
-+static void vfe_isr_wm_done(struct vfe_device *vfe, u8 wm)
-+{
-+	struct camss_buffer *ready_buf;
-+	struct vfe_output *output;
-+	dma_addr_t new_addr;
-+	unsigned long flags;
-+	u32 active_index;
-+	u64 ts = ktime_get_ns();
-+
-+	active_index = vfe_wm_get_ping_pong_status(vfe, wm);
-+
-+	spin_lock_irqsave(&vfe->output_lock, flags);
-+
-+	if (vfe->wm_output_map[wm] == VFE_LINE_NONE) {
-+		dev_err_ratelimited(to_device(vfe),
-+				    "Received wm done for unmapped index\n");
-+		goto out_unlock;
-+	}
-+	output = &vfe->line[vfe->wm_output_map[wm]].output;
-+
-+	if (output->active_buf == active_index) {
-+		dev_err_ratelimited(to_device(vfe),
-+				    "Active buffer mismatch!\n");
-+		goto out_unlock;
-+	}
-+	output->active_buf = active_index;
-+
-+	ready_buf = output->buf[!active_index];
-+	if (!ready_buf) {
-+		dev_err_ratelimited(to_device(vfe),
-+				    "Missing ready buf %d %d!\n",
-+				    !active_index, output->state);
-+		goto out_unlock;
-+	}
-+
-+	ready_buf->vb.vb2_buf.timestamp = ts;
-+	ready_buf->vb.sequence = output->sequence++;
-+
-+	/* Get next buffer */
-+	output->buf[!active_index] = vfe_buf_get_pending(output);
-+	if (!output->buf[!active_index]) {
-+		/* No next buffer - set same address */
-+		new_addr = ready_buf->addr;
-+		vfe_buf_update_wm_on_last(vfe, output);
-+	} else {
-+		new_addr = output->buf[!active_index]->addr;
-+		vfe_buf_update_wm_on_next(vfe, output);
-+	}
-+
-+	if (active_index)
-+		vfe_wm_set_ping_addr(vfe, wm, new_addr);
-+	else
-+		vfe_wm_set_pong_addr(vfe, wm, new_addr);
-+
-+	spin_unlock_irqrestore(&vfe->output_lock, flags);
-+
-+	if (output->state == VFE_OUTPUT_STOPPING)
-+		output->last_buffer = ready_buf;
-+	else
-+		vb2_buffer_done(&ready_buf->vb.vb2_buf, VB2_BUF_STATE_DONE);
-+
-+	return;
-+
-+out_unlock:
-+	spin_unlock_irqrestore(&vfe->output_lock, flags);
-+}
-+
-+/*
-+ * vfe_isr - ISPIF module interrupt handler
-+ * @irq: Interrupt line
-+ * @dev: VFE device
-+ *
-+ * Return IRQ_HANDLED on success
-+ */
-+static irqreturn_t vfe_isr(int irq, void *dev)
-+{
-+	struct vfe_device *vfe = dev;
-+	u32 value0, value1;
-+	u32 violation;
-+	int i;
-+
-+	value0 = readl_relaxed(vfe->base + VFE_0_IRQ_STATUS_0);
-+	value1 = readl_relaxed(vfe->base + VFE_0_IRQ_STATUS_1);
-+
-+	writel_relaxed(value0, vfe->base + VFE_0_IRQ_CLEAR_0);
-+	writel_relaxed(value1, vfe->base + VFE_0_IRQ_CLEAR_1);
-+
-+	wmb();
-+	writel_relaxed(VFE_0_IRQ_CMD_GLOBAL_CLEAR, vfe->base + VFE_0_IRQ_CMD);
-+
-+	if (value0 & VFE_0_IRQ_STATUS_0_RESET_ACK)
-+		complete(&vfe->reset_complete);
-+
-+	if (value1 & VFE_0_IRQ_STATUS_1_VIOLATION) {
-+		violation = readl_relaxed(vfe->base + VFE_0_VIOLATION_STATUS);
-+		dev_err_ratelimited(to_device(vfe),
-+				    "VFE: violation = 0x%08x\n", violation);
-+	}
-+
-+	if (value1 & VFE_0_IRQ_STATUS_1_BUS_BDG_HALT_ACK) {
-+		complete(&vfe->halt_complete);
-+		writel_relaxed(0x0, vfe->base + VFE_0_BUS_BDG_CMD);
-+	}
-+
-+	for (i = VFE_LINE_RDI0; i <= VFE_LINE_RDI2; i++)
-+		if (value0 & VFE_0_IRQ_STATUS_0_RDIn_REG_UPDATE(i))
-+			vfe_isr_reg_update(vfe, i);
-+
-+	for (i = 0; i < MSM_VFE_IMAGE_MASTERS_NUM; i++)
-+		if (value0 & VFE_0_IRQ_STATUS_0_IMAGE_MASTER_n_PING_PONG(i))
-+			vfe_isr_wm_done(vfe, i);
-+
++done:
 +	return IRQ_HANDLED;
 +}
 +
-+/*
-+ * vfe_get - Power up and reset VFE module
-+ * @vfe: VFE Device
-+ *
-+ * Return 0 on success or a negative error code otherwise
-+ */
-+static int vfe_get(struct vfe_device *vfe)
++static int zx_irdec_probe(struct platform_device *pdev)
 +{
++	struct device *dev = &pdev->dev;
++	struct zx_irdec *irdec;
++	struct resource *res;
++	struct rc_dev *rcd;
++	int irq;
 +	int ret;
 +
-+	mutex_lock(&vfe->power_lock);
++	irdec = devm_kzalloc(dev, sizeof(*irdec), GFP_KERNEL);
++	if (!irdec)
++		return -ENOMEM;
 +
-+	if (vfe->power_count == 0) {
-+		ret = camss_enable_clocks(vfe->nclocks, vfe->clock,
-+					  to_device(vfe));
-+		if (ret < 0)
-+			goto error_clocks;
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	irdec->base = devm_ioremap_resource(dev, res);
++	if (IS_ERR(irdec->base))
++		return PTR_ERR(irdec->base);
 +
-+		ret = vfe_reset(vfe);
-+		if (ret < 0)
-+			goto error_reset;
++	irq = platform_get_irq(pdev, 0);
++	if (irq < 0)
++		return irq;
 +
-+		vfe_reset_output_maps(vfe);
-+
-+		vfe_init_outputs(vfe);
-+	}
-+	vfe->power_count++;
-+
-+	mutex_unlock(&vfe->power_lock);
-+
-+	return 0;
-+
-+error_reset:
-+	camss_disable_clocks(vfe->nclocks, vfe->clock);
-+
-+error_clocks:
-+	mutex_unlock(&vfe->power_lock);
-+
-+	return ret;
-+}
-+
-+/*
-+ * vfe_put - Power down VFE module
-+ * @vfe: VFE Device
-+ */
-+static void vfe_put(struct vfe_device *vfe)
-+{
-+	mutex_lock(&vfe->power_lock);
-+
-+	if (vfe->power_count == 0) {
-+		dev_err(to_device(vfe), "vfe power off on power_count == 0\n");
-+		goto exit;
-+	} else if (vfe->power_count == 1) {
-+		if (vfe->was_streaming) {
-+			vfe->was_streaming = 0;
-+			vfe_halt(vfe);
-+		}
-+		camss_disable_clocks(vfe->nclocks, vfe->clock);
++	rcd = devm_rc_allocate_device(dev, RC_DRIVER_SCANCODE);
++	if (!rcd) {
++		dev_err(dev, "failed to allocate rc device\n");
++		return -ENOMEM;
 +	}
 +
-+	vfe->power_count--;
-+
-+exit:
-+	mutex_unlock(&vfe->power_lock);
-+}
-+
-+/*
-+ * vfe_video_pad_to_line - Get pointer to VFE line by media pad
-+ * @pad: Media pad
-+ *
-+ * Return pointer to vfe line structure
-+ */
-+static struct vfe_line *vfe_video_pad_to_line(struct media_pad *pad)
-+{
-+	struct media_pad *vfe_pad;
-+	struct v4l2_subdev *subdev;
-+
-+	vfe_pad = media_entity_remote_pad(pad);
-+	if (vfe_pad == NULL)
-+		return NULL;
-+
-+	subdev = media_entity_to_v4l2_subdev(vfe_pad->entity);
-+
-+	return container_of(subdev, struct vfe_line, subdev);
-+}
-+
-+/*
-+ * vfe_queue_buffer - Add empty buffer
-+ * @vid: Video device structure
-+ * @buf: Buffer to be enqueued
-+ *
-+ * Add an empty buffer - depending on the current number of buffers it will be
-+ * put in pending buffer queue or directly given to the hardware to be filled.
-+ *
-+ * Return 0 on success or a negative error code otherwise
-+ */
-+static int vfe_queue_buffer(struct camss_video *vid,
-+			    struct camss_buffer *buf)
-+{
-+	struct vfe_device *vfe = &vid->camss->vfe;
-+	struct vfe_line *line;
-+	struct vfe_output *output;
-+	unsigned long flags;
-+
-+	line = vfe_video_pad_to_line(&vid->pad);
-+	if (!line) {
-+		dev_err(to_device(vfe), "Can not queue buffer\n");
-+		return -1;
-+	}
-+	output = &line->output;
-+
-+	spin_lock_irqsave(&vfe->output_lock, flags);
-+
-+	vfe_buf_update_wm_on_new(vfe, output, buf);
-+
-+	spin_unlock_irqrestore(&vfe->output_lock, flags);
-+
-+	return 0;
-+}
-+
-+/*
-+ * vfe_flush_buffers - Return all vb2 buffers
-+ * @vid: Video device structure
-+ * @state: vb2 buffer state of the returned buffers
-+ *
-+ * Return all buffers to vb2. This includes queued pending buffers (still
-+ * unused) and any buffers given to the hardware but again still not used.
-+ *
-+ * Return 0 on success or a negative error code otherwise
-+ */
-+static int vfe_flush_buffers(struct camss_video *vid,
-+			     enum vb2_buffer_state state)
-+{
-+	struct vfe_device *vfe = &vid->camss->vfe;
-+	struct vfe_line *line;
-+	struct vfe_output *output;
-+	unsigned long flags;
-+
-+	line = vfe_video_pad_to_line(&vid->pad);
-+	if (!line) {
-+		dev_err(to_device(vfe),	"Can not flush buffers\n");
-+		return -1;
-+	}
-+	output = &line->output;
-+
-+	spin_lock_irqsave(&vfe->output_lock, flags);
-+
-+	vfe_buf_flush_pending(output, state);
-+
-+	if (output->buf[0])
-+		vb2_buffer_done(&output->buf[0]->vb.vb2_buf, state);
-+
-+	if (output->buf[1])
-+		vb2_buffer_done(&output->buf[1]->vb.vb2_buf, state);
-+
-+	if (output->last_buffer) {
-+		vb2_buffer_done(&output->last_buffer->vb.vb2_buf, state);
-+		output->last_buffer = NULL;
-+	}
-+
-+	spin_unlock_irqrestore(&vfe->output_lock, flags);
-+
-+	return 0;
-+}
-+
-+/*
-+ * vfe_set_power - Power on/off VFE module
-+ * @sd: VFE V4L2 subdevice
-+ * @on: Requested power state
-+ *
-+ * Return 0 on success or a negative error code otherwise
-+ */
-+static int vfe_set_power(struct v4l2_subdev *sd, int on)
-+{
-+	struct vfe_line *line = v4l2_get_subdevdata(sd);
-+	struct vfe_device *vfe = to_vfe(line);
-+	int ret;
-+
-+	if (on) {
-+		u32 hw_version;
-+
-+		ret = vfe_get(vfe);
-+		if (ret < 0)
-+			return ret;
-+
-+		hw_version = readl_relaxed(vfe->base + VFE_0_HW_VERSION);
-+		dev_dbg(to_device(vfe),
-+			"VFE HW Version = 0x%08x\n", hw_version);
-+	} else {
-+		vfe_put(vfe);
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * vfe_set_stream - Enable/disable streaming on VFE module
-+ * @sd: VFE V4L2 subdevice
-+ * @enable: Requested streaming state
-+ *
-+ * Main configuration of VFE module is triggered here.
-+ *
-+ * Return 0 on success or a negative error code otherwise
-+ */
-+static int vfe_set_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct vfe_line *line = v4l2_get_subdevdata(sd);
-+	struct vfe_device *vfe = to_vfe(line);
-+	int ret;
-+
-+	if (enable) {
-+		ret = vfe_enable(line);
-+		if (ret < 0)
-+			dev_err(to_device(vfe),
-+				"Failed to enable vfe outputs\n");
-+	} else {
-+		ret = vfe_disable(line);
-+		if (ret < 0)
-+			dev_err(to_device(vfe),
-+				"Failed to disable vfe outputs\n");
-+	}
-+
-+	return ret;
-+}
-+
-+/*
-+ * __vfe_get_format - Get pointer to format structure
-+ * @line: VFE line
-+ * @cfg: V4L2 subdev pad configuration
-+ * @pad: pad from which format is requested
-+ * @which: TRY or ACTIVE format
-+ *
-+ * Return pointer to TRY or ACTIVE format structure
-+ */
-+static struct v4l2_mbus_framefmt *
-+__vfe_get_format(struct vfe_line *line,
-+		 struct v4l2_subdev_pad_config *cfg,
-+		 unsigned int pad,
-+		 enum v4l2_subdev_format_whence which)
-+{
-+	if (which == V4L2_SUBDEV_FORMAT_TRY)
-+		return v4l2_subdev_get_try_format(&line->subdev, cfg, pad);
-+
-+	return &line->fmt[pad];
-+}
-+
-+
-+/*
-+ * vfe_try_format - Handle try format by pad subdev method
-+ * @line: VFE line
-+ * @cfg: V4L2 subdev pad configuration
-+ * @pad: pad on which format is requested
-+ * @fmt: pointer to v4l2 format structure
-+ * @which: wanted subdev format
-+ */
-+static void vfe_try_format(struct vfe_line *line,
-+			   struct v4l2_subdev_pad_config *cfg,
-+			   unsigned int pad,
-+			   struct v4l2_mbus_framefmt *fmt,
-+			   enum v4l2_subdev_format_whence which)
-+{
-+	unsigned int i;
-+
-+	switch (pad) {
-+	case MSM_VFE_PAD_SINK:
-+		/* Set format on sink pad */
-+
-+		for (i = 0; i < ARRAY_SIZE(vfe_formats); i++)
-+			if (fmt->code == vfe_formats[i])
-+				break;
-+
-+		/* If not found, use UYVY as default */
-+		if (i >= ARRAY_SIZE(vfe_formats))
-+			fmt->code = MEDIA_BUS_FMT_UYVY8_2X8;
-+
-+		fmt->width = clamp_t(u32, fmt->width, 1, 8191);
-+		fmt->height = clamp_t(u32, fmt->height, 1, 8191);
-+
-+		if (fmt->field == V4L2_FIELD_ANY)
-+			fmt->field = V4L2_FIELD_NONE;
-+
-+		break;
-+
-+	case MSM_VFE_PAD_SRC:
-+		/* Set and return a format same as sink pad */
-+
-+		*fmt = *__vfe_get_format(line, cfg, MSM_VFE_PAD_SINK,
-+					 which);
-+
-+		break;
-+	}
-+
-+	fmt->colorspace = V4L2_COLORSPACE_SRGB;
-+}
-+
-+/*
-+ * vfe_enum_mbus_code - Handle pixel format enumeration
-+ * @sd: VFE V4L2 subdevice
-+ * @cfg: V4L2 subdev pad configuration
-+ * @code: pointer to v4l2_subdev_mbus_code_enum structure
-+ *
-+ * return -EINVAL or zero on success
-+ */
-+static int vfe_enum_mbus_code(struct v4l2_subdev *sd,
-+			      struct v4l2_subdev_pad_config *cfg,
-+			      struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	struct vfe_line *line = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *format;
-+
-+	if (code->pad == MSM_VFE_PAD_SINK) {
-+		if (code->index >= ARRAY_SIZE(vfe_formats))
-+			return -EINVAL;
-+
-+		code->code = vfe_formats[code->index];
-+	} else {
-+		if (code->index > 0)
-+			return -EINVAL;
-+
-+		format = __vfe_get_format(line, cfg, MSM_VFE_PAD_SINK,
-+					  code->which);
-+
-+		code->code = format->code;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * vfe_enum_frame_size - Handle frame size enumeration
-+ * @sd: VFE V4L2 subdevice
-+ * @cfg: V4L2 subdev pad configuration
-+ * @fse: pointer to v4l2_subdev_frame_size_enum structure
-+ *
-+ * Return -EINVAL or zero on success
-+ */
-+static int vfe_enum_frame_size(struct v4l2_subdev *sd,
-+			       struct v4l2_subdev_pad_config *cfg,
-+			       struct v4l2_subdev_frame_size_enum *fse)
-+{
-+	struct vfe_line *line = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt format;
-+
-+	if (fse->index != 0)
-+		return -EINVAL;
-+
-+	format.code = fse->code;
-+	format.width = 1;
-+	format.height = 1;
-+	vfe_try_format(line, cfg, fse->pad, &format, fse->which);
-+	fse->min_width = format.width;
-+	fse->min_height = format.height;
-+
-+	if (format.code != fse->code)
-+		return -EINVAL;
-+
-+	format.code = fse->code;
-+	format.width = -1;
-+	format.height = -1;
-+	vfe_try_format(line, cfg, fse->pad, &format, fse->which);
-+	fse->max_width = format.width;
-+	fse->max_height = format.height;
-+
-+	return 0;
-+}
-+
-+/*
-+ * vfe_get_format - Handle get format by pads subdev method
-+ * @sd: VFE V4L2 subdevice
-+ * @cfg: V4L2 subdev pad configuration
-+ * @fmt: pointer to v4l2 subdev format structure
-+ *
-+ * Return -EINVAL or zero on success
-+ */
-+static int vfe_get_format(struct v4l2_subdev *sd,
-+			  struct v4l2_subdev_pad_config *cfg,
-+			  struct v4l2_subdev_format *fmt)
-+{
-+	struct vfe_line *line = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *format;
-+
-+	format = __vfe_get_format(line, cfg, fmt->pad, fmt->which);
-+	if (format == NULL)
-+		return -EINVAL;
-+
-+	fmt->format = *format;
-+
-+	return 0;
-+}
-+
-+/*
-+ * vfe_set_format - Handle set format by pads subdev method
-+ * @sd: VFE V4L2 subdevice
-+ * @cfg: V4L2 subdev pad configuration
-+ * @fmt: pointer to v4l2 subdev format structure
-+ *
-+ * Return -EINVAL or zero on success
-+ */
-+static int vfe_set_format(struct v4l2_subdev *sd,
-+			  struct v4l2_subdev_pad_config *cfg,
-+			  struct v4l2_subdev_format *fmt)
-+{
-+	struct vfe_line *line = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *format;
-+
-+	format = __vfe_get_format(line, cfg, fmt->pad, fmt->which);
-+	if (format == NULL)
-+		return -EINVAL;
-+
-+	vfe_try_format(line, cfg, fmt->pad, &fmt->format, fmt->which);
-+	*format = fmt->format;
-+
-+	/* Propagate the format from sink to source */
-+	if (fmt->pad == MSM_VFE_PAD_SINK) {
-+		format = __vfe_get_format(line, cfg, MSM_VFE_PAD_SRC,
-+					  fmt->which);
-+
-+		*format = fmt->format;
-+		vfe_try_format(line, cfg, MSM_VFE_PAD_SRC, format,
-+			       fmt->which);
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * vfe_init_formats - Initialize formats on all pads
-+ * @sd: VFE V4L2 subdevice
-+ * @fh: V4L2 subdev file handle
-+ *
-+ * Initialize all pad formats with default values.
-+ *
-+ * Return 0 on success or a negative error code otherwise
-+ */
-+static int vfe_init_formats(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	struct v4l2_subdev_format format = {
-+		.pad = MSM_VFE_PAD_SINK,
-+		.which = fh ? V4L2_SUBDEV_FORMAT_TRY :
-+			      V4L2_SUBDEV_FORMAT_ACTIVE,
-+		.format = {
-+			.code = MEDIA_BUS_FMT_UYVY8_2X8,
-+			.width = 1920,
-+			.height = 1080
-+		}
-+	};
-+
-+	return vfe_set_format(sd, fh ? fh->pad : NULL, &format);
-+}
-+
-+/*
-+ * msm_vfe_subdev_init - Initialize VFE device structure and resources
-+ * @vfe: VFE device
-+ * @res: VFE module resources table
-+ *
-+ * Return 0 on success or a negative error code otherwise
-+ */
-+int msm_vfe_subdev_init(struct vfe_device *vfe, const struct resources *res)
-+{
-+	struct device *dev = to_device(vfe);
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct resource *r;
-+	struct camss *camss = to_camss(vfe);
-+
-+	int i;
-+	int ret;
-+
-+	mutex_init(&vfe->power_lock);
-+	vfe->power_count = 0;
-+
-+	mutex_init(&vfe->stream_lock);
-+	vfe->stream_count = 0;
-+
-+	spin_lock_init(&vfe->output_lock);
-+
-+	vfe->id = 0;
-+	vfe->reg_update = 0;
-+
-+	for (i = VFE_LINE_RDI0; i <= VFE_LINE_RDI2; i++) {
-+		vfe->line[i].video_out.type =
-+					V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+		vfe->line[i].video_out.camss = camss;
-+		vfe->line[i].id = i;
-+	}
-+
-+	/* Memory */
-+
-+	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, res->reg[0]);
-+	vfe->base = devm_ioremap_resource(dev, r);
-+	if (IS_ERR(vfe->base)) {
-+		dev_err(dev, "could not map memory\n");
-+		return PTR_ERR(vfe->base);
-+	}
-+
-+	/* Interrupt */
-+
-+	r = platform_get_resource_byname(pdev, IORESOURCE_IRQ,
-+					 res->interrupt[0]);
-+	if (!r) {
-+		dev_err(dev, "missing IRQ\n");
-+		return -EINVAL;
-+	}
-+
-+	vfe->irq = r->start;
-+	snprintf(vfe->irq_name, sizeof(vfe->irq_name), "%s_%s%d",
-+		 dev_name(dev), MSM_VFE_NAME, vfe->id);
-+	ret = devm_request_irq(dev, vfe->irq, vfe_isr,
-+			       IRQF_TRIGGER_RISING, vfe->irq_name, vfe);
-+	if (ret < 0) {
-+		dev_err(dev, "request_irq failed: %d\n", ret);
++	irdec->rcd = rcd;
++	irdec->dev = dev;
++
++	rcd->priv = irdec;
++	rcd->input_name = DRIVER_NAME;
++	rcd->input_phys = DRIVER_NAME "/input0";
++	rcd->input_id.bustype = BUS_HOST;
++	rcd->map_name = RC_MAP_ZX_IRDEC;
++	rcd->allowed_protocols = RC_BIT_NEC | RC_BIT_NECX;
++	rcd->driver_name = DRIVER_NAME;
++
++	platform_set_drvdata(pdev, irdec);
++
++	ret = devm_rc_register_device(dev, rcd);
++	if (ret) {
++		dev_err(dev, "failed to register rc device\n");
 +		return ret;
 +	}
 +
-+	/* Clocks */
-+
-+	vfe->nclocks = 0;
-+	while (res->clock[vfe->nclocks])
-+		vfe->nclocks++;
-+
-+	vfe->clock = devm_kzalloc(dev, vfe->nclocks * sizeof(*vfe->clock),
-+				  GFP_KERNEL);
-+	if (!vfe->clock)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < vfe->nclocks; i++) {
-+		vfe->clock[i] = devm_clk_get(dev, res->clock[i]);
-+		if (IS_ERR(vfe->clock[i]))
-+			return PTR_ERR(vfe->clock[i]);
-+
-+		if (res->clock_rate[i]) {
-+			long clk_rate = clk_round_rate(vfe->clock[i],
-+						       res->clock_rate[i]);
-+			if (clk_rate < 0) {
-+				dev_err(dev, "clk round rate failed\n");
-+				return -EINVAL;
-+			}
-+			ret = clk_set_rate(vfe->clock[i], clk_rate);
-+			if (ret < 0) {
-+				dev_err(dev, "clk set rate failed\n");
-+				return ret;
-+			}
-+		}
++	ret = devm_request_irq(dev, irq, zx_irdec_irq, 0, NULL, irdec);
++	if (ret) {
++		dev_err(dev, "failed to request irq\n");
++		return ret;
 +	}
 +
-+	init_completion(&vfe->reset_complete);
-+	init_completion(&vfe->halt_complete);
++	/*
++	 * Initialize deglitch level and watchdog counter beginner as
++	 * recommended by vendor BSP code.
++	 */
++	zx_irdec_set_mask(irdec, ZX_IR_CTRL, ZX_DEGL_MASK, ZX_DEGL_VALUE(0));
++	zx_irdec_set_mask(irdec, ZX_IR_CTRL, ZX_WDBEGIN_MASK,
++			  ZX_WDBEGIN_VALUE(0x21c));
++
++	/* Enable interrupt */
++	writel(1, irdec->base + ZX_IR_INTEN);
++
++	/* Enable the decoder */
++	zx_irdec_set_mask(irdec, ZX_IR_ENABLE, ZX_IREN, ZX_IREN);
 +
 +	return 0;
 +}
 +
-+/*
-+ * msm_vfe_get_vfe_id - Get VFE HW module id
-+ * @entity: Pointer to VFE media entity structure
-+ * @id: Return CSID HW module id here
-+ */
-+void msm_vfe_get_vfe_id(struct media_entity *entity, u8 *id)
++static int zx_irdec_remove(struct platform_device *pdev)
 +{
-+	struct v4l2_subdev *sd;
-+	struct vfe_line *line;
-+	struct vfe_device *vfe;
++	struct zx_irdec *irdec = platform_get_drvdata(pdev);
 +
-+	sd = media_entity_to_v4l2_subdev(entity);
-+	line = v4l2_get_subdevdata(sd);
-+	vfe = to_vfe(line);
++	/* Disable the decoder */
++	zx_irdec_set_mask(irdec, ZX_IR_ENABLE, ZX_IREN, 0);
 +
-+	*id = vfe->id;
-+}
-+
-+/*
-+ * msm_vfe_get_vfe_line_id - Get VFE line id by media entity
-+ * @entity: Pointer to VFE media entity structure
-+ * @id: Return VFE line id here
-+ */
-+void msm_vfe_get_vfe_line_id(struct media_entity *entity, enum vfe_line_id *id)
-+{
-+	struct v4l2_subdev *sd;
-+	struct vfe_line *line;
-+
-+	sd = media_entity_to_v4l2_subdev(entity);
-+	line = v4l2_get_subdevdata(sd);
-+
-+	*id = line->id;
-+}
-+
-+/*
-+ * vfe_link_setup - Setup VFE connections
-+ * @entity: Pointer to media entity structure
-+ * @local: Pointer to local pad
-+ * @remote: Pointer to remote pad
-+ * @flags: Link flags
-+ *
-+ * Return 0 on success
-+ */
-+static int vfe_link_setup(struct media_entity *entity,
-+			  const struct media_pad *local,
-+			  const struct media_pad *remote, u32 flags)
-+{
-+	if (flags & MEDIA_LNK_FL_ENABLED)
-+		if (media_entity_remote_pad(local))
-+			return -EBUSY;
++	/* Disable interrupt */
++	writel(0, irdec->base + ZX_IR_INTEN);
 +
 +	return 0;
 +}
 +
-+static const struct v4l2_subdev_core_ops vfe_core_ops = {
-+	.s_power = vfe_set_power,
++static const struct of_device_id zx_irdec_match[] = {
++	{ .compatible = "zte,zx296718-irdec" },
++	{ },
 +};
++MODULE_DEVICE_TABLE(of, zx_irdec_match);
 +
-+static const struct v4l2_subdev_video_ops vfe_video_ops = {
-+	.s_stream = vfe_set_stream,
++static struct platform_driver zx_irdec_driver = {
++	.probe = zx_irdec_probe,
++	.remove = zx_irdec_remove,
++	.driver = {
++		.name = DRIVER_NAME,
++		.of_match_table	= zx_irdec_match,
++	},
 +};
++module_platform_driver(zx_irdec_driver);
 +
-+static const struct v4l2_subdev_pad_ops vfe_pad_ops = {
-+	.enum_mbus_code = vfe_enum_mbus_code,
-+	.enum_frame_size = vfe_enum_frame_size,
-+	.get_fmt = vfe_get_format,
-+	.set_fmt = vfe_set_format,
-+};
-+
-+static const struct v4l2_subdev_ops vfe_v4l2_ops = {
-+	.core = &vfe_core_ops,
-+	.video = &vfe_video_ops,
-+	.pad = &vfe_pad_ops,
-+};
-+
-+static const struct v4l2_subdev_internal_ops vfe_v4l2_internal_ops = {
-+	.open = vfe_init_formats,
-+};
-+
-+static const struct media_entity_operations vfe_media_ops = {
-+	.link_setup = vfe_link_setup,
-+	.link_validate = v4l2_subdev_link_validate,
-+};
-+
-+static const struct camss_video_ops camss_vfe_video_ops = {
-+	.queue_buffer = vfe_queue_buffer,
-+	.flush_buffers = vfe_flush_buffers,
-+};
-+
-+void msm_vfe_stop_streaming(struct vfe_device *vfe)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(vfe->line); i++)
-+		msm_video_stop_streaming(&vfe->line[i].video_out);
-+}
-+
-+/*
-+ * msm_vfe_register_entities - Register subdev node for VFE module
-+ * @vfe: VFE device
-+ * @v4l2_dev: V4L2 device
-+ *
-+ * Initialize and register a subdev node for the VFE module. Then
-+ * call msm_video_register() to register the video device node which
-+ * will be connected to this subdev node. Then actually create the
-+ * media link between them.
-+ *
-+ * Return 0 on success or a negative error code otherwise
-+ */
-+int msm_vfe_register_entities(struct vfe_device *vfe,
-+			      struct v4l2_device *v4l2_dev)
-+{
-+	struct device *dev = to_device(vfe);
-+	struct v4l2_subdev *sd;
-+	struct media_pad *pads;
-+	struct camss_video *video_out;
-+	int ret;
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(vfe->line); i++) {
-+		char name[32];
-+
-+		sd = &vfe->line[i].subdev;
-+		pads = vfe->line[i].pads;
-+		video_out = &vfe->line[i].video_out;
-+
-+		v4l2_subdev_init(sd, &vfe_v4l2_ops);
-+		sd->internal_ops = &vfe_v4l2_internal_ops;
-+		sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+		snprintf(sd->name, ARRAY_SIZE(sd->name), "%s%d_%s%d",
-+			 MSM_VFE_NAME, vfe->id, "rdi", i);
-+		v4l2_set_subdevdata(sd, &vfe->line[i]);
-+
-+		ret = vfe_init_formats(sd, NULL);
-+		if (ret < 0) {
-+			dev_err(dev, "Failed to init format: %d\n", ret);
-+			goto error_init;
-+		}
-+
-+		pads[MSM_VFE_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
-+		pads[MSM_VFE_PAD_SRC].flags = MEDIA_PAD_FL_SOURCE;
-+
-+		sd->entity.function = MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER;
-+		sd->entity.ops = &vfe_media_ops;
-+		ret = media_entity_pads_init(&sd->entity, MSM_VFE_PADS_NUM,
-+					     pads);
-+		if (ret < 0) {
-+			dev_err(dev, "Failed to init media entity: %d\n", ret);
-+			goto error_init;
-+		}
-+
-+		ret = v4l2_device_register_subdev(v4l2_dev, sd);
-+		if (ret < 0) {
-+			dev_err(dev, "Failed to register subdev: %d\n", ret);
-+			goto error_reg_subdev;
-+		}
-+
-+		video_out->ops = &camss_vfe_video_ops;
-+		snprintf(name, ARRAY_SIZE(name), "%s%d_%s%d",
-+			 MSM_VFE_NAME, vfe->id, "video", i);
-+		ret = msm_video_register(video_out, v4l2_dev, name);
-+		if (ret < 0) {
-+			dev_err(dev, "Failed to register video node: %d\n",
-+				ret);
-+			goto error_reg_video;
-+		}
-+
-+		ret = media_create_pad_link(
-+				&sd->entity, MSM_VFE_PAD_SRC,
-+				&video_out->vdev.entity, 0,
-+				MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
-+		if (ret < 0) {
-+			dev_err(dev, "Failed to link %s->%s entities: %d\n",
-+				sd->entity.name, video_out->vdev.entity.name,
-+				ret);
-+			goto error_link;
-+		}
-+
-+		ret = msm_video_init_format(video_out);
-+		if (ret < 0) {
-+			dev_err(dev, "Failed to init format: %d\n", ret);
-+			goto error_link;
-+		}
-+
-+	}
-+
-+	return 0;
-+
-+error_link:
-+	msm_video_unregister(video_out);
-+
-+error_reg_video:
-+	v4l2_device_unregister_subdev(sd);
-+
-+error_reg_subdev:
-+	media_entity_cleanup(&sd->entity);
-+
-+error_init:
-+	for (i--; i >= 0; i--) {
-+		sd = &vfe->line[i].subdev;
-+		video_out = &vfe->line[i].video_out;
-+
-+		msm_video_unregister(video_out);
-+		v4l2_device_unregister_subdev(sd);
-+		media_entity_cleanup(&sd->entity);
-+	}
-+
-+	return ret;
-+}
-+
-+/*
-+ * msm_vfe_unregister_entities - Unregister VFE module subdev node
-+ * @vfe: VFE device
-+ */
-+void msm_vfe_unregister_entities(struct vfe_device *vfe)
-+{
-+	int i;
-+
-+	mutex_destroy(&vfe->power_lock);
-+	mutex_destroy(&vfe->stream_lock);
-+
-+	for (i = 0; i < ARRAY_SIZE(vfe->line); i++) {
-+		struct v4l2_subdev *sd = &vfe->line[i].subdev;
-+		struct camss_video *video_out = &vfe->line[i].video_out;
-+
-+		msm_video_unregister(video_out);
-+		v4l2_device_unregister_subdev(sd);
-+		media_entity_cleanup(&sd->entity);
-+	}
-+}
-diff --git a/drivers/media/platform/qcom/camss-8x16/camss-vfe.h b/drivers/media/platform/qcom/camss-8x16/camss-vfe.h
-new file mode 100644
-index 0000000..6d2fc57
---- /dev/null
-+++ b/drivers/media/platform/qcom/camss-8x16/camss-vfe.h
-@@ -0,0 +1,114 @@
-+/*
-+ * camss-vfe.h
-+ *
-+ * Qualcomm MSM Camera Subsystem - VFE Module
-+ *
-+ * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
-+ * Copyright (C) 2015-2017 Linaro Ltd.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 and
-+ * only version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+#ifndef QC_MSM_CAMSS_VFE_H
-+#define QC_MSM_CAMSS_VFE_H
-+
-+#include <linux/clk.h>
-+#include <linux/spinlock_types.h>
-+#include <media/media-entity.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-subdev.h>
-+
-+#include "camss-video.h"
-+
-+#define MSM_VFE_PAD_SINK 0
-+#define MSM_VFE_PAD_SRC 1
-+#define MSM_VFE_PADS_NUM 2
-+
-+#define MSM_VFE_LINE_NUM 3
-+#define MSM_VFE_IMAGE_MASTERS_NUM 7
-+
-+#define MSM_VFE_VFE0_UB_SIZE 1023
-+#define MSM_VFE_VFE0_UB_SIZE_RDI (MSM_VFE_VFE0_UB_SIZE / 3)
-+#define MSM_VFE_VFE1_UB_SIZE 1535
-+#define MSM_VFE_VFE1_UB_SIZE_RDI (MSM_VFE_VFE1_UB_SIZE / 3)
-+
-+enum vfe_output_state {
-+	VFE_OUTPUT_OFF,
-+	VFE_OUTPUT_RESERVED,
-+	VFE_OUTPUT_SINGLE,
-+	VFE_OUTPUT_CONTINUOUS,
-+	VFE_OUTPUT_IDLE,
-+	VFE_OUTPUT_STOPPING
-+};
-+
-+enum vfe_line_id {
-+	VFE_LINE_NONE = -1,
-+	VFE_LINE_RDI0 = 0,
-+	VFE_LINE_RDI1 = 1,
-+	VFE_LINE_RDI2 = 2
-+};
-+
-+struct vfe_output {
-+	u8 wm_idx;
-+
-+	int active_buf;
-+	struct camss_buffer *buf[2];
-+	struct camss_buffer *last_buffer;
-+	struct list_head pending_bufs;
-+
-+	unsigned int drop_update_idx;
-+
-+	enum vfe_output_state state;
-+	unsigned int sequence;
-+};
-+
-+struct vfe_line {
-+	enum vfe_line_id id;
-+	struct v4l2_subdev subdev;
-+	struct media_pad pads[MSM_VFE_PADS_NUM];
-+	struct v4l2_mbus_framefmt fmt[MSM_VFE_PADS_NUM];
-+	struct camss_video video_out;
-+	struct vfe_output output;
-+};
-+
-+struct vfe_device {
-+	u8 id;
-+	void __iomem *base;
-+	u32 irq;
-+	char irq_name[30];
-+	struct clk **clock;
-+	int nclocks;
-+	struct completion reset_complete;
-+	struct completion halt_complete;
-+	struct mutex power_lock;
-+	int power_count;
-+	struct mutex stream_lock;
-+	int stream_count;
-+	spinlock_t output_lock;
-+	enum vfe_line_id wm_output_map[MSM_VFE_IMAGE_MASTERS_NUM];
-+	struct vfe_line line[MSM_VFE_LINE_NUM];
-+	u32 reg_update;
-+	u8 was_streaming;
-+};
-+
-+struct resources;
-+
-+int msm_vfe_subdev_init(struct vfe_device *vfe, const struct resources *res);
-+
-+int msm_vfe_register_entities(struct vfe_device *vfe,
-+			      struct v4l2_device *v4l2_dev);
-+
-+void msm_vfe_unregister_entities(struct vfe_device *vfe);
-+
-+void msm_vfe_get_vfe_id(struct media_entity *entity, u8 *id);
-+void msm_vfe_get_vfe_line_id(struct media_entity *entity, enum vfe_line_id *id);
-+
-+void msm_vfe_stop_streaming(struct vfe_device *vfe);
-+
-+#endif /* QC_MSM_CAMSS_VFE_H */
++MODULE_DESCRIPTION("ZTE ZX IR remote control driver");
++MODULE_AUTHOR("Shawn Guo <shawn.guo@linaro.org>");
++MODULE_LICENSE("GPL v2");
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 1a815a572fa1..c69482852f29 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -313,6 +313,7 @@ struct rc_map_list {
+ #define RC_MAP_WINFAST                   "rc-winfast"
+ #define RC_MAP_WINFAST_USBII_DELUXE      "rc-winfast-usbii-deluxe"
+ #define RC_MAP_SU3000                    "rc-su3000"
++#define RC_MAP_ZX_IRDEC                  "rc-zx-irdec"
+ 
+ /*
+  * Please, do not just append newer Remote Controller names at the end.
 -- 
-2.7.4
+1.9.1
