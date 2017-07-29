@@ -1,76 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway34.websitewelcome.com ([192.185.150.114]:23502 "EHLO
-        gateway34.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752749AbdGJBGy (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:33427 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753579AbdG2L3A (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 9 Jul 2017 21:06:54 -0400
-Received: from cm11.websitewelcome.com (cm11.websitewelcome.com [100.42.49.5])
-        by gateway34.websitewelcome.com (Postfix) with ESMTP id 0CE376B66B
-        for <linux-media@vger.kernel.org>; Sun,  9 Jul 2017 20:06:52 -0500 (CDT)
-Date: Sun, 9 Jul 2017 20:06:51 -0500
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] cx24123: constify i2c_algorithm structure
-Message-ID: <20170710010651.GA19896@embeddedgus>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+        Sat, 29 Jul 2017 07:29:00 -0400
+Received: by mail-wr0-f195.google.com with SMTP id y43so28177941wrd.0
+        for <linux-media@vger.kernel.org>; Sat, 29 Jul 2017 04:29:00 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
+        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
+Subject: [PATCH v2 07/14] [media] ddbridge: check pointers before dereferencing
+Date: Sat, 29 Jul 2017 13:28:41 +0200
+Message-Id: <20170729112848.707-8-d.scheller.oss@gmail.com>
+In-Reply-To: <20170729112848.707-1-d.scheller.oss@gmail.com>
+References: <20170729112848.707-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Check for i2c_algorithm structures that are only stored in
-the algo field of an i2c_adapter structure. This field is
-declared const, so i2c_algorithm structures that have this
-property can be declared as const also.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-This issue was identified using Coccinelle and the following
-semantic patch:
+Fixes two warnings reported by smatch:
 
-@r disable optional_qualifier@
-identifier i;
-position p;
-@@
-static struct i2c_algorithm i@p = { ... };
+  drivers/media/pci/ddbridge/ddbridge-core.c:240 ddb_redirect() warn: variable dereferenced before check 'idev' (see line 238)
+  drivers/media/pci/ddbridge/ddbridge-core.c:240 ddb_redirect() warn: variable dereferenced before check 'pdev' (see line 238)
 
-@ok@
-identifier r.i;
-struct i2c_adapter e;
-position p;
-@@
-e.algo = &i@p;
+Fixed by moving the existing checks up before accessing members.
 
-@bad@
-position p != {r.p,ok.p};
-identifier r.i;
-@@
-i@p
-
-@depends on !bad disable optional_qualifier@
-identifier r.i;
-@@
-static
-+const
- struct i2c_algorithm i = { ... };
-
-Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <r.scobie@clear.net.nz>
+Tested-by: Jasmin Jessich <jasmin@anw.at>
+Tested-by: Dietmar Spingler <d_spingler@freenet.de>
+Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
 ---
- drivers/media/dvb-frontends/cx24123.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/pci/ddbridge/ddbridge-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/cx24123.c b/drivers/media/dvb-frontends/cx24123.c
-index 4ae3d92..1d59d1d 100644
---- a/drivers/media/dvb-frontends/cx24123.c
-+++ b/drivers/media/dvb-frontends/cx24123.c
-@@ -1032,7 +1032,7 @@ static u32 cx24123_tuner_i2c_func(struct i2c_adapter *adapter)
- 	return I2C_FUNC_I2C;
- }
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 758073b716a2..0002b6a8ec85 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -170,10 +170,10 @@ static int ddb_redirect(u32 i, u32 p)
+ 	struct ddb *pdev = ddbs[(p >> 4) & 0x3f];
+ 	struct ddb_port *port;
  
--static struct i2c_algorithm cx24123_tuner_i2c_algo = {
-+static const struct i2c_algorithm cx24123_tuner_i2c_algo = {
- 	.master_xfer   = cx24123_tuner_i2c_tuner_xfer,
- 	.functionality = cx24123_tuner_i2c_func,
- };
+-	if (!idev->has_dma || !pdev->has_dma)
+-		return -EINVAL;
+ 	if (!idev || !pdev)
+ 		return -EINVAL;
++	if (!idev->has_dma || !pdev->has_dma)
++		return -EINVAL;
+ 
+ 	port = &pdev->port[p & 0x0f];
+ 	if (!port->output)
 -- 
-2.5.0
+2.13.0
