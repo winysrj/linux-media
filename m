@@ -1,70 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:38368 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753338AbdGKJnx (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:39603 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750991AbdG3NH4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Jul 2017 05:43:53 -0400
-From: Colin King <colin.king@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] fc001[23]: make const gain table arrays static
-Date: Tue, 11 Jul 2017 10:43:49 +0100
-Message-Id: <20170711094349.13263-1-colin.king@canonical.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+        Sun, 30 Jul 2017 09:07:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
+        Archit Taneja <architt@codeaurora.org>,
+        linux-renesas-soc@vger.kernel.org, devicetree@vger.kernel.org,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/4] arm: dts: renesas: add cec clock for Koelsch board
+Date: Sun, 30 Jul 2017 15:07:42 +0200
+Message-Id: <20170730130743.19681-4-hverkuil@xs4all.nl>
+In-Reply-To: <20170730130743.19681-1-hverkuil@xs4all.nl>
+References: <20170730130743.19681-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Don't populate the gain tables on the stack but make them static const.
-Makes the object code smaller:
+The adv7511 on the Koelsch board has a 12 MHz fixed clock
+for the CEC block. Specify this in the dts to enable CEC support.
 
-Before:
-   text	   data	    bss	    dec	    hex	filename
-   7801	   1408	      0	   9209	   23f9	drivers/media/tuners/fc0012.o
-   8483	    936	      0	   9419	   24cb	drivers/media/tuners/fc0013.o
-
-After:
-   text	   data	    bss	    dec	    hex	filename
-   7696	   1464	      0	   9160	   23c8	drivers/media/tuners/fc0012.o
-   8362	   1024	      0	   9386	   24aa	drivers/media/tuners/fc0013.o
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/tuners/fc0012.c | 2 +-
- drivers/media/tuners/fc0013.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/r8a7791-koelsch.dts | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/media/tuners/fc0012.c b/drivers/media/tuners/fc0012.c
-index dcc323ffbde7..625ac6f51c39 100644
---- a/drivers/media/tuners/fc0012.c
-+++ b/drivers/media/tuners/fc0012.c
-@@ -351,7 +351,7 @@ static int fc0012_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
- 	int ret;
- 	unsigned char tmp;
- 	int int_temp, lna_gain, int_lna, tot_agc_gain, power;
--	const int fc0012_lna_gain_table[] = {
-+	static const int fc0012_lna_gain_table[] = {
- 		/* low gain */
- 		-63, -58, -99, -73,
- 		-63, -65, -54, -60,
-diff --git a/drivers/media/tuners/fc0013.c b/drivers/media/tuners/fc0013.c
-index 91dfa770a5cc..e606118d1a9b 100644
---- a/drivers/media/tuners/fc0013.c
-+++ b/drivers/media/tuners/fc0013.c
-@@ -511,7 +511,7 @@ static int fc0013_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
- 	int ret;
- 	unsigned char tmp;
- 	int int_temp, lna_gain, int_lna, tot_agc_gain, power;
--	const int fc0013_lna_gain_table[] = {
-+	static const int fc0013_lna_gain_table[] = {
- 		/* low gain */
- 		-63, -58, -99, -73,
- 		-63, -65, -54, -60,
+diff --git a/arch/arm/boot/dts/r8a7791-koelsch.dts b/arch/arm/boot/dts/r8a7791-koelsch.dts
+index 001e6116c47c..88c8957b075b 100644
+--- a/arch/arm/boot/dts/r8a7791-koelsch.dts
++++ b/arch/arm/boot/dts/r8a7791-koelsch.dts
+@@ -642,11 +642,19 @@
+ 		};
+ 	};
+ 
++	cec_clock: cec-clock {
++		compatible = "fixed-clock";
++		#clock-cells = <0>;
++		clock-frequency = <12000000>;
++	};
++
+ 	hdmi@39 {
+ 		compatible = "adi,adv7511w";
+ 		reg = <0x39>;
+ 		interrupt-parent = <&gpio3>;
+ 		interrupts = <29 IRQ_TYPE_LEVEL_LOW>;
++		clocks = <&cec_clock>;
++		clock-names = "cec";
+ 
+ 		adi,input-depth = <8>;
+ 		adi,input-colorspace = "rgb";
 -- 
-2.11.0
+2.13.1
