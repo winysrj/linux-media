@@ -1,95 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:33121 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750877AbdGMHeE (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:35420 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750988AbdG3MfB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Jul 2017 03:34:04 -0400
-MIME-Version: 1.0
-In-Reply-To: <20170712191737.umbzyw6osz76yv3c@yves>
-References: <20170712191737.umbzyw6osz76yv3c@yves>
-From: Frans Klaver <fransklaver@gmail.com>
-Date: Thu, 13 Jul 2017 09:06:55 +0200
-Message-ID: <CAH6sp9MPi4yK6V7R+uiSoTea09GZA2Weom9Ay1mx2cvR3yLabA@mail.gmail.com>
-Subject: Re: [PATCH v2] [media] lirc_zilog: Clean up lirc zilog error codes
-To: =?UTF-8?Q?Yves_Lem=C3=A9e?= <yves.lemee.kernel@gmail.com>
-Cc: mchehab@kernel.org, driverdevel <devel@driverdev.osuosl.org>,
-        Greg KH <gregkh@linuxfoundation.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Sun, 30 Jul 2017 08:35:01 -0400
+Received: by mail-lf0-f67.google.com with SMTP id w199so10507993lff.2
+        for <linux-media@vger.kernel.org>; Sun, 30 Jul 2017 05:35:01 -0700 (PDT)
+From: olli.salonen@iki.fi
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 1/2] mn88472: reset stream ID reg if no PLP given
+Date: Sun, 30 Jul 2017 15:34:48 +0300
+Message-Id: <1501418089-22418-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Almost there on the subject. Stuff between brackets is removed by git,
-so you should rather use something like
+From: Olli Salonen <olli.salonen@iki.fi>
 
-[PATCH v2] staging: lirc: Clean up zilog error codes
+If the PLP given is NO_STREAM_ID_FILTER (~0u) don't try to set that into the PLP register. Set PLP to 0 instead.
 
-On Wed, Jul 12, 2017 at 9:17 PM, Yves Lem=C3=A9e <yves.lemee.kernel@gmail.c=
-om> wrote:
-> According the coding style guidelines, the ENOSYS error code must be retu=
-rned
-> in case of a non existent system call. This code has been replaced with
-> the ENOTTY error code indicating a missing functionality.
->
-> v2: Improved punctuation
->     Fixed patch subject
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/dvb-frontends/mn88472.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-This change info goes below the --- line and just above the diffstat.
-
-
-> Signed-off-by: Yves Lem=C3=A9e <yves.lemee.kernel@gmail.com>
-> ---
->  drivers/staging/media/lirc/lirc_zilog.c | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/me=
-dia/lirc/lirc_zilog.c
-> index 015e41bd036e..26dd32d5b5b2 100644
-> --- a/drivers/staging/media/lirc/lirc_zilog.c
-> +++ b/drivers/staging/media/lirc/lirc_zilog.c
-> @@ -1249,7 +1249,7 @@ static long ioctl(struct file *filep, unsigned int =
-cmd, unsigned long arg)
->                 break;
->         case LIRC_GET_REC_MODE:
->                 if (!(features & LIRC_CAN_REC_MASK))
-> -                       return -ENOSYS;
-> +                       return -ENOTTY;
->
->                 result =3D put_user(LIRC_REC2MODE
->                                   (features & LIRC_CAN_REC_MASK),
-> @@ -1257,21 +1257,21 @@ static long ioctl(struct file *filep, unsigned in=
-t cmd, unsigned long arg)
->                 break;
->         case LIRC_SET_REC_MODE:
->                 if (!(features & LIRC_CAN_REC_MASK))
-> -                       return -ENOSYS;
-> +                       return -ENOTTY;
->
->                 result =3D get_user(mode, uptr);
->                 if (!result && !(LIRC_MODE2REC(mode) & features))
-> -                       result =3D -EINVAL;
-> +                       result =3D -ENOTTY;
->                 break;
->         case LIRC_GET_SEND_MODE:
->                 if (!(features & LIRC_CAN_SEND_MASK))
-> -                       return -ENOSYS;
-> +                       return -ENOTTY;
->
->                 result =3D put_user(LIRC_MODE_PULSE, uptr);
->                 break;
->         case LIRC_SET_SEND_MODE:
->                 if (!(features & LIRC_CAN_SEND_MASK))
-> -                       return -ENOSYS;
-> +                       return -ENOTTY;
->
->                 result =3D get_user(mode, uptr);
->                 if (!result && mode !=3D LIRC_MODE_PULSE)
-> --
-> 2.13.2
->
-> _______________________________________________
-> devel mailing list
-> devel@linuxdriverproject.org
-> http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel
+diff --git a/drivers/media/dvb-frontends/mn88472.c b/drivers/media/dvb-frontends/mn88472.c
+index f6938f96..5e8fd63 100644
+--- a/drivers/media/dvb-frontends/mn88472.c
++++ b/drivers/media/dvb-frontends/mn88472.c
+@@ -377,7 +377,9 @@ static int mn88472_set_frontend(struct dvb_frontend *fe)
+ 		ret = regmap_write(dev->regmap[1], 0xf6, 0x05);
+ 		if (ret)
+ 			goto err;
+-		ret = regmap_write(dev->regmap[2], 0x32, c->stream_id);
++		ret = regmap_write(dev->regmap[2], 0x32,
++				(c->stream_id == NO_STREAM_ID_FILTER) ? 0 :
++				c->stream_id );
+ 		if (ret)
+ 			goto err;
+ 		break;
+-- 
+2.7.4
