@@ -1,77 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:46467 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751794AbdGRV1N (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:54285 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751681AbdG3WcW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 17:27:13 -0400
-Date: Tue, 18 Jul 2017 23:27:12 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sun, 30 Jul 2017 18:32:22 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/7] omap3isp: Return -EPROBE_DEFER if the required
- regulators can't be obtained
-Message-ID: <20170718212712.GA19771@amd>
-References: <20170717220116.17886-1-sakari.ailus@linux.intel.com>
- <20170717220116.17886-5-sakari.ailus@linux.intel.com>
- <1652763.9EYemjAvaH@avalon>
- <20170718100352.GA28481@amd>
- <20170718101702.qi72355jjjuq7jjs@valkosipuli.retiisi.org.uk>
- <20170718210228.GA13046@amd>
- <20170718211640.qzplt2sx7gjlgqox@valkosipuli.retiisi.org.uk>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 3/4] v4l: async: do not hold list_lock when re-probing devices
+Date: Mon, 31 Jul 2017 00:31:57 +0200
+Message-Id: <20170730223158.14405-4-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170730223158.14405-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170730223158.14405-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="azLHFNyN32YCQGCU"
-Content-Disposition: inline
-In-Reply-To: <20170718211640.qzplt2sx7gjlgqox@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+There is no good reason to hold the list_lock when re-probing the
+devices and it prevents a clean implementation of subdevice notifiers.
+Move the actual release of the devices outside of the loop which
+requires the lock to be held.
 
---azLHFNyN32YCQGCU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-Hi!
-
-> > No idea really. I only have N900 working with linux at the moment. I'm
-> > trying to get N9 and N950 working, but no luck so far.
->=20
-> Still no? :-(
->=20
-> Do you know if you get the kernel booting? Do you have access to the seri=
-al
-> console? I might have seen the e-mail chain but I lost the track. What
-> happens after the flasher has pushed the kernel to RAM and the boot start=
-s?
-> It's wonderful for debugging if something's wrong...
-
-Still no. No serial cable, unfortunately. Flasher seems to run the
-kernel, but I see no evidence new kernel started successfully. I was
-told display is not expected to work, and on USB I see bootloader
-disconnecting and that's it.
-
-If you had a kernel binary that works for you, and does something I
-can observe, that would be welcome :-).
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---azLHFNyN32YCQGCU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAllufTAACgkQMOfwapXb+vKJ0wCeIpG0/PbzZq0Z4N/XZqCINgv5
-7DEAoK3LgBcgUnHAIijeafD6Yj68SaNo
-=+M39
------END PGP SIGNATURE-----
-
---azLHFNyN32YCQGCU--
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 67852f0f2d3000c9..d91ff0a33fd3eaff 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -206,7 +206,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 	unsigned int notif_n_subdev = notifier->num_subdevs;
+ 	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
+ 	struct device **dev;
+-	int i = 0;
++	int i, count = 0;
+ 
+ 	if (!notifier->v4l2_dev)
+ 		return;
+@@ -223,27 +223,26 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 	list_del(&notifier->list);
+ 
+ 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+-		struct device *d;
+-
+-		d = get_device(sd->dev);
++		dev[count] = get_device(sd->dev);
++		count++;
+ 
+ 		if (notifier->unbind)
+ 			notifier->unbind(notifier, sd, sd->asd);
+ 
+ 		v4l2_async_cleanup(sd);
+-
+-		/* If we handled USB devices, we'd have to lock the parent too */
+-		device_release_driver(d);
+-
+-		dev[i++] = d;
+ 	}
+ 
+ 	mutex_unlock(&list_lock);
+ 
++	for (i = 0; i < count; i++) {
++		/* If we handled USB devices, we'd have to lock the parent too */
++		device_release_driver(dev[i]);
++	}
++
+ 	/*
+ 	 * Call device_attach() to reprobe devices
+ 	 */
+-	while (i--) {
++	for (i = 0; i < count; i++) {
+ 		struct device *d = dev[i];
+ 
+ 		if (d && device_attach(d) < 0) {
+-- 
+2.13.3
