@@ -1,50 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f169.google.com ([209.85.128.169]:38772 "EHLO
-        mail-wr0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934434AbdGTPqJ (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:54263 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751126AbdG3WcV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 11:46:09 -0400
-Received: by mail-wr0-f169.google.com with SMTP id f21so16013920wrf.5
-        for <linux-media@vger.kernel.org>; Thu, 20 Jul 2017 08:46:08 -0700 (PDT)
-Subject: Re: [Patch v5 12/12] Documention: v4l: Documentation for HEVC CIDs
-To: Smitha T Murthy <smitha.t@samsung.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
-        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com, s.nawrocki@samsung.com
-References: <1497849055-26583-1-git-send-email-smitha.t@samsung.com>
- <CGME20170619052521epcas5p36a0bc384d10809dcfe775e6da87ed37b@epcas5p3.samsung.com>
- <1497849055-26583-13-git-send-email-smitha.t@samsung.com>
- <617cb1c5-074c-3f47-0096-fe7568dab8be@linaro.org>
- <1500290336.16819.6.camel@smitha-fedora>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <54ad8901-ccd0-4b0b-bb3f-23779d3534e8@linaro.org>
-Date: Thu, 20 Jul 2017 18:46:04 +0300
+        Sun, 30 Jul 2017 18:32:21 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 1/4] v4l: async: fix unbind error in v4l2_async_notifier_unregister()
+Date: Mon, 31 Jul 2017 00:31:55 +0200
+Message-Id: <20170730223158.14405-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170730223158.14405-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170730223158.14405-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <1500290336.16819.6.camel@smitha-fedora>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The call to v4l2_async_cleanup() will set sd->asd to NULL so passing it
+to notifier->unbind() have no effect and leaves the notifier confused.
+Call the unbind() callback prior to cleaning up the subdevice to avoid
+this.
 
->>> +
->>> +    * - ``V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN``
->>> +      - Main profile.
->>
->> MAIN10?
->>
-> No just MAIN.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-I haven't because the MFC does not supported it?
-
-If so, I think we have to add MAIN10 for completeness and because other
-drivers could have support for it.
-
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 851f128eba2219ad..0acf288d7227ba97 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -226,14 +226,14 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 
+ 		d = get_device(sd->dev);
+ 
++		if (notifier->unbind)
++			notifier->unbind(notifier, sd, sd->asd);
++
+ 		v4l2_async_cleanup(sd);
+ 
+ 		/* If we handled USB devices, we'd have to lock the parent too */
+ 		device_release_driver(d);
+ 
+-		if (notifier->unbind)
+-			notifier->unbind(notifier, sd, sd->asd);
+-
+ 		/*
+ 		 * Store device at the device cache, in order to call
+ 		 * put_device() on the final step
 -- 
-regards,
-Stan
+2.13.3
