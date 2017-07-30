@@ -1,35 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47668 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752396AbdGMQTH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Jul 2017 12:19:07 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: pavel@ucw.cz
-Subject: [PATCH 0/2] OMAP3ISP CCP2 support
-Date: Thu, 13 Jul 2017 19:19:01 +0300
-Message-Id: <20170713161903.9974-1-sakari.ailus@linux.intel.com>
+Received: from mail.kernel.org ([198.145.29.99]:36106 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751065AbdG3NRY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 30 Jul 2017 09:17:24 -0400
+Date: Sun, 30 Jul 2017 21:16:25 +0800
+From: Shawn Guo <shawnguo@kernel.org>
+To: Sean Young <sean@mess.org>
+Cc: devicetree@vger.kernel.org,
+        Baoyou Xie <xie.baoyou@sanechips.com.cn>,
+        Rob Herring <robh+dt@kernel.org>,
+        Xin Zhou <zhou.xin8@sanechips.com.cn>,
+        Jun Nie <jun.nie@linaro.org>, Shawn Guo <shawn.guo@linaro.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] rc: add zx-irdec remote control driver
+Message-ID: <20170730131624.GK29754@dragon>
+References: <1501309902-7559-1-git-send-email-shawnguo@kernel.org>
+ <1501309902-7559-3-git-send-email-shawnguo@kernel.org>
+ <20170729095113.g6hrb3qffi7qcaxx@gofer.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170729095113.g6hrb3qffi7qcaxx@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+Hi Sean,
 
-I took the liberty of changing your patch a bit. I added another to extract
-the number of lanes from the endpoint instead as it's not really a property
-of the PHY. (Not tested yet, will check with N9.)
+On Sat, Jul 29, 2017 at 10:51:13AM +0100, Sean Young wrote:
+> Hi Shawn,
+> 
+> The driver looks great! Just a minor point, see below.
 
-Pavel Machek (1):
-  omap3isp: add CSI1 support
+Thanks for taking time to look at the patch.  I appreciate your review
+comments, and will post v2 that addressed them shortly.  Thanks.
 
-Sakari Ailus (1):
-  omap3isp: Explicitly set the number of CSI-2 lanes used in lane cfg
-
- drivers/media/platform/omap3isp/isp.c       |  5 ++++-
- drivers/media/platform/omap3isp/ispccp2.c   |  1 +
- drivers/media/platform/omap3isp/ispcsiphy.c | 35 +++++++++++++++++++----------
- drivers/media/platform/omap3isp/omap3isp.h  |  3 +++
- 4 files changed, 31 insertions(+), 13 deletions(-)
-
--- 
-2.11.0
+Shawn
