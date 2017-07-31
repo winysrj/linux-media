@@ -1,53 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:46237 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751252AbdGPAnj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Jul 2017 20:43:39 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, max.kellermann@gmail.com,
-        rjkm@metzlerbros.de, d.scheller@gmx.net, crope@iki.fi,
-        jasmin@anw.at
-Subject: [PATCH V3 03/16] [media] dvb-core/dvb_ca_en50221.c: use usleep_range
-Date: Sun, 16 Jul 2017 02:43:04 +0200
-Message-Id: <1500165797-16987-4-git-send-email-jasmin@anw.at>
-In-Reply-To: <1500165797-16987-1-git-send-email-jasmin@anw.at>
-References: <1500165797-16987-1-git-send-email-jasmin@anw.at>
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:52301 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751046AbdGaQHX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 31 Jul 2017 12:07:23 -0400
+Subject: Re: [PATCH v4 2/6] [media] extended-controls.rst: add PorterDuff mode
+ control
+To: Jacob Chen <jacob-chen@iotwrt.com>,
+        linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, nicolas@ndufresne.ca
+References: <1501515182-26705-1-git-send-email-jacob-chen@iotwrt.com>
+ <1501515182-26705-3-git-send-email-jacob-chen@iotwrt.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <d5bc50d0-f468-f1b4-b52a-4f1c10d7d9af@xs4all.nl>
+Date: Mon, 31 Jul 2017 18:07:17 +0200
+MIME-Version: 1.0
+In-Reply-To: <1501515182-26705-3-git-send-email-jacob-chen@iotwrt.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+On 07/31/2017 05:32 PM, Jacob Chen wrote:
+> PorterDuff mode control are used to determine
+> how two images are combined.
+> 
+> Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+> ---
+>  Documentation/media/uapi/v4l/extended-controls.rst | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+> index abb1057..f9c93bb 100644
+> --- a/Documentation/media/uapi/v4l/extended-controls.rst
+> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
+> @@ -3021,6 +3021,10 @@ Image Process Control IDs
+>      The video deinterlacing mode (such as Bob, Weave, ...). The menu items are
+>      driver specific and are documented in :ref:`v4l-drivers`.
+>  
+> +``V4L2_CID_PORTER_DUFF_MODE (menu)``
+> +    The PorterDuff blend modes. PorterDuff is way to overlay, combine and
+> +    trim images as if they were pieces of cardboard, device could use to
+> +    determine how two images are combined.
 
-Fixed all:
-  WARNING: msleep < 20ms can sleep for up to 20ms
-by using usleep_range.
+A little rewrite:
 
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
----
- drivers/media/dvb-core/dvb_ca_en50221.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+    The PorterDuff blend modes. PorterDuff is a method to overlay, combine and
+    trim images as if they were pieces of cardboard. The device uses this to
+    determine how two images are combined.
 
-diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
-index bb6aa0f..725fdd0 100644
---- a/drivers/media/dvb-core/dvb_ca_en50221.c
-+++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-@@ -313,7 +313,7 @@ static int dvb_ca_en50221_wait_if_status(struct dvb_ca_private *ca, int slot,
- 		}
- 
- 		/* wait for a bit */
--		msleep(1);
-+		usleep_range(1000, 1100);
- 	}
- 
- 	dprintk("%s failed timeout:%lu\n", __func__, jiffies - start);
-@@ -1489,7 +1489,7 @@ static ssize_t dvb_ca_en50221_io_write(struct file *file,
- 			if (status != -EAGAIN)
- 				goto exit;
- 
--			msleep(1);
-+			usleep_range(1000, 1100);
- 		}
- 		if (!written) {
- 			status = -EIO;
--- 
-2.7.4
+Also add a link to the same android article that you pointed to in the header.
+
+Regards,
+
+	Hans
+
+>  
+>  .. _dv-controls:
+>  
+> 
