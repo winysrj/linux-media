@@ -1,87 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from saturn.retrosnub.co.uk ([178.18.118.26]:53156 "EHLO
-        saturn.retrosnub.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751367AbdGWL0p (ORCPT
+Received: from mail-it0-f52.google.com ([209.85.214.52]:37119 "EHLO
+        mail-it0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751239AbdGaM4A (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Jul 2017 07:26:45 -0400
-Date: Sun, 23 Jul 2017 12:26:42 +0100
-From: Jonathan Cameron <jic23@jic23.retrosnub.co.uk>
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-input@vger.kernel.org,
-        linux-iio@vger.kernel.org, alsa-devel@alsa-project.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 2/4] i2c: add docs to clarify DMA handling
-Message-ID: <20170723122642.0e8ceb37@jic23.retrosnub.co.uk>
-In-Reply-To: <20170718102339.28726-3-wsa+renesas@sang-engineering.com>
-References: <20170718102339.28726-1-wsa+renesas@sang-engineering.com>
-        <20170718102339.28726-3-wsa+renesas@sang-engineering.com>
+        Mon, 31 Jul 2017 08:56:00 -0400
+Received: by mail-it0-f52.google.com with SMTP id v127so125708000itd.0
+        for <linux-media@vger.kernel.org>; Mon, 31 Jul 2017 05:56:00 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <bc863191-8f32-d702-f7f0-06a942d29d43@e-consultation.org>
+References: <bc863191-8f32-d702-f7f0-06a942d29d43@e-consultation.org>
+From: Steven Toth <stoth@kernellabs.com>
+Date: Mon, 31 Jul 2017 08:55:59 -0400
+Message-ID: <CALzAhNVpHQ_X4NtB2Zz4K=ii=i9+wUqvpVuaBv9EiftuX06oAw@mail.gmail.com>
+Subject: Re: HauppaugeTV-quadHD DVB-T mpeg risc op code errors
+To: Dave Newman <d.r.newman@e-consultation.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 18 Jul 2017 12:23:37 +0200
-Wolfram Sang <wsa+renesas@sang-engineering.com> wrote:
+On Sun, Jul 30, 2017 at 8:55 AM, Dave Newman
+<d.r.newman@e-consultation.org> wrote:
+> I can confirm the problems with the cx23885 driver reported by Steven
+> Toth on 6 June 2017. He found that:
+>
+>> I tried the card in a different older Intel i7 board and it worked
+>> flawlessly. I then started to wonder if it was some new
+>> incompatibility introduced with Kaby Lake. I had tweaked the UEFI
+>> settings on the new Kaby Lake board to enable VT-d/VT-x since I wanted
+>> to run Linux as a host OS with Windows 10 running on top of qemu/KVM.
+>> Upon resetting the UEFI settings to their defaults (VT-d/VT-x
+>> disabled) the card worked without issue.
+>
+> Like him:
+>
+> - I have a recent Hauppauge WinTV-quadHD TV tuner PCIe card
+>
+> - I have a new fast multi-processor CPU. He found that there were no
+> problems on
+>
+> - Enabling debug output for the cx23885 driver *fixes* the issue
+> (options cx23885 debug=5), letting me run a scan of DVB channels.
+>
+> Unlike him:
+>
+> - my CPU is an 8 core Ryzen 1700 on a new Gigabyte AB350 motherboard.
+>
+> - turning off iommu does not fix the problem.
+>
+> I do not know the cx23885 code well enough to propose any patches, but I
+> am happy to do debugging and testing. One thing I noticed is that
+> i2cdetect output differs from that on
+> https://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-quadHD_(DVB-T/T2/C).
+> E.g.
+>
+>       0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+> 00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+> 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+> 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+> 30: 30 31 32 33 34 35 36 37 -- -- -- -- -- -- -- --
+> 40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+> 50: 50 51 52 53 54 55 56 57 58 59 5a 5b 5c 5d 5e 5f
+> 60: -- -- -- -- UU -- UU -- -- -- -- -- -- -- -- --
+> 70: -- -- -- -- -- -- -- --
+>
+> Anything from 60 and above is listed as UU.
+>
+> The motherboard is known to have problems with chained IRQs, so the latest
+> Ubuntu kernels use independent IRQs to avoid an interrupt storm on IRQ 7.
+>
+> Apart from that, let me know what else I should test.
 
-> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Is this material not perhaps better placed in the sphinx docs?
-Up to you of course as your subsystem ;)
+David, thanks for the report.
 
-Text is good though.
+Just to be clear, I didn't report the original issue, I merely
+attempted to repro it on a Sandy Bridge quad core. I'm the original
+cx23885/8 Linux driver developer, so I know the hardware well and have
+a vested interested in chasing down any obvious problems.
 
-Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> ---
-> Changes since v2:
-> 
-> * documentation updates. Hopefully better wording now
-> 
->  Documentation/i2c/DMA-considerations | 38 ++++++++++++++++++++++++++++++++++++
->  1 file changed, 38 insertions(+)
->  create mode 100644 Documentation/i2c/DMA-considerations
-> 
-> diff --git a/Documentation/i2c/DMA-considerations b/Documentation/i2c/DMA-considerations
-> new file mode 100644
-> index 00000000000000..e46c24d65c8556
-> --- /dev/null
-> +++ b/Documentation/i2c/DMA-considerations
-> @@ -0,0 +1,38 @@
-> +Linux I2C and DMA
-> +-----------------
-> +
-> +Given that I2C is a low-speed bus where largely small messages are transferred,
-> +it is not considered a prime user of DMA access. At this time of writing, only
-> +10% of I2C bus master drivers have DMA support implemented. And the vast
-> +majority of transactions are so small that setting up DMA for it will likely
-> +add more overhead than a plain PIO transfer.
-> +
-> +Therefore, it is *not* mandatory that the buffer of an I2C message is DMA safe.
-> +It does not seem reasonable to apply additional burdens when the feature is so
-> +rarely used. However, it is recommended to use a DMA-safe buffer if your
-> +message size is likely applicable for DMA. Most drivers have this threshold
-> +around 8 bytes. As of today, this is mostly an educated guess, however.
-> +
-> +To support this scenario, drivers wishing to implement DMA can use helper
-> +functions from the I2C core. One checks if a message is DMA capable in terms of
-> +size and memory type. It can optionally also create a bounce buffer:
-> +
-> +	i2c_check_msg_for_dma(msg, threshold, &bounce_buf);
-> +
-> +The bounce buffer handling from the core is generic and simple. It will always
-> +allocate a new bounce buffer. If you want a more sophisticated handling (e.g.
-> +reusing pre-allocated buffers), you can leave the pointer to the bounce buffer
-> +empty and implement your own handling based on the return value of the above
-> +function.
-> +
-> +The other helper function releases the bounce buffer. It ensures data is copied
-> +back to the message:
-> +
-> +	i2c_release_dma_bounce_buf(msg, bounce_buf);
-> +
-> +Please check the in-kernel documentation for details. The i2c-sh_mobile driver
-> +can be used as a reference example.
-> +
-> +If you plan to use DMA with I2C (or with any other bus, actually) make sure you
-> +have CONFIG_DMA_API_DEBUG enabled during development. It can help you find
-> +various issues which can be complex to debug otherwise.
+I was unable to repro the issue.
+
+That being said, another user reported success after disabling
+VT-d/VT-x. Have you tried that?
+
+- Steve
+
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
