@@ -1,1180 +1,1169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:60978 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754424AbdGJPrd (ORCPT
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:33417 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750923AbdGaLmW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Jul 2017 11:47:33 -0400
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-Subject: [PATCH v8 4/5] [media] platform: Add Synopsys Designware HDMI RX PHY e405 Driver
-Date: Mon, 10 Jul 2017 16:46:54 +0100
-Message-Id: <f1b7f2b52e82a907a5ab25f418c520b3d5e00674.1499701282.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1499701281.git.joabreu@synopsys.com>
-References: <cover.1499701281.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1499701281.git.joabreu@synopsys.com>
-References: <cover.1499701281.git.joabreu@synopsys.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Mon, 31 Jul 2017 07:42:22 -0400
+Received: by mail-lf0-f65.google.com with SMTP id 65so10215377lfa.0
+        for <linux-media@vger.kernel.org>; Mon, 31 Jul 2017 04:42:21 -0700 (PDT)
+From: olli.salonen@iki.fi
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 1/2] tda18250: support for new silicon tuner
+Date: Mon, 31 Jul 2017 14:42:05 +0300
+Message-Id: <1501501326-3544-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds support for the Synopsys Designware HDMI RX PHY e405. This
-phy receives and decodes HDMI video that is delivered to a controller.
+From: Olli Salonen <olli.salonen@iki.fi>
 
-Main features included in this driver are:
-	- Equalizer algorithm that chooses the phy best settings
-	according to the detected HDMI cable characteristics.
-	- Support for scrambling
-	- Support for HDMI 2.0 modes up to 6G (HDMI 4k@60Hz).
+NXP TDA18250 silicon tuner driver.
 
-The driver was implemented as a standalone V4L2 subdevice and the
-phy interface with the controller was implemented using V4L2 ioctls. I
-do not know if this is the best option but it is not possible to use the
-existing API functions directly as we need specific functions that will
-be called by the controller at specific configuration stages.
-
-There is also a bidirectional communication between controller and phy:
-The phy must provide functions that the controller will call (i.e.
-configuration functions) and the controller must provide read/write
-callbacks, as well as other specific functions.
-
-Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-Cc: Carlos Palminha <palminha@synopsys.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sylwester Nawrocki <snawrocki@kernel.org>
-
-Changes from v4:
-	- Use usleep_range (Sylwester)
-	- Remove some comments (Sylwester)
-	- Parse phy version from of_device_id (Sylwester)
-	- Use "cfg" instead of "cfg-clk" (Sylwester, Rob)
-	- Change some messages to dev_dbg (Sylwester)
-Changes from v3:
-	- Use v4l2 async API (Sylwester)
-	- Use clock API (Sylwester)
-	- Add compatible string (Sylwester)
-Changes from RFC:
-	- Remove a bunch of functions that can be collapsed into
-	a single config() function
-	- Add comments for the callbacks and structures (Hans)
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 ---
- drivers/media/platform/Kconfig                |   2 +
- drivers/media/platform/Makefile               |   2 +
- drivers/media/platform/dwc/Kconfig            |   8 +
- drivers/media/platform/dwc/Makefile           |   1 +
- drivers/media/platform/dwc/dw-hdmi-phy-e405.c | 844 ++++++++++++++++++++++++++
- drivers/media/platform/dwc/dw-hdmi-phy-e405.h |  63 ++
- include/media/dwc/dw-hdmi-phy-pdata.h         | 128 ++++
- 7 files changed, 1048 insertions(+)
- create mode 100644 drivers/media/platform/dwc/Kconfig
- create mode 100644 drivers/media/platform/dwc/Makefile
- create mode 100644 drivers/media/platform/dwc/dw-hdmi-phy-e405.c
- create mode 100644 drivers/media/platform/dwc/dw-hdmi-phy-e405.h
- create mode 100644 include/media/dwc/dw-hdmi-phy-pdata.h
+ drivers/media/tuners/Kconfig         |   7 +
+ drivers/media/tuners/Makefile        |   1 +
+ drivers/media/tuners/tda18250.c      | 890 +++++++++++++++++++++++++++++++++++
+ drivers/media/tuners/tda18250.h      |  51 ++
+ drivers/media/tuners/tda18250_priv.h | 145 ++++++
+ 5 files changed, 1094 insertions(+)
+ create mode 100644 drivers/media/tuners/tda18250.c
+ create mode 100644 drivers/media/tuners/tda18250.h
+ create mode 100644 drivers/media/tuners/tda18250_priv.h
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 1313cd5..47d4a50 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -33,6 +33,8 @@ source "drivers/media/platform/omap/Kconfig"
+diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
+index 05998f0..6687514 100644
+--- a/drivers/media/tuners/Kconfig
++++ b/drivers/media/tuners/Kconfig
+@@ -26,6 +26,13 @@ config MEDIA_TUNER_SIMPLE
+ 	help
+ 	  Say Y here to include support for various simple tuners.
  
- source "drivers/media/platform/blackfin/Kconfig"
- 
-+source "drivers/media/platform/dwc/Kconfig"
-+
- config VIDEO_SH_VOU
- 	tristate "SuperH VOU video output driver"
- 	depends on MEDIA_CAMERA_SUPPORT
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 9beadc7..e6a55fb 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -86,3 +86,5 @@ obj-$(CONFIG_VIDEO_MEDIATEK_MDP)	+= mtk-mdp/
- obj-$(CONFIG_VIDEO_MEDIATEK_JPEG)	+= mtk-jpeg/
- 
- obj-$(CONFIG_VIDEO_QCOM_VENUS)		+= qcom/venus/
-+
-+obj-y	+= dwc/
-diff --git a/drivers/media/platform/dwc/Kconfig b/drivers/media/platform/dwc/Kconfig
-new file mode 100644
-index 0000000..361d38d
---- /dev/null
-+++ b/drivers/media/platform/dwc/Kconfig
-@@ -0,0 +1,8 @@
-+config VIDEO_DWC_HDMI_PHY_E405
-+	tristate "Synopsys Designware HDMI RX PHY e405 driver"
-+	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++config MEDIA_TUNER_TDA18250
++	tristate "NXP TDA18250 silicon tuner"
++	depends on MEDIA_SUPPORT && I2C
++	default m if !MEDIA_SUBDRV_AUTOSELECT
 +	help
-+	  Support for Synopsys Designware HDMI RX PHY. Version is e405.
++	  Say Y here to include support for TDA18250 tuner.
 +
-+	  To compile this driver as a module, choose M here. The module
-+	  will be called dw-hdmi-phy-e405.
-diff --git a/drivers/media/platform/dwc/Makefile b/drivers/media/platform/dwc/Makefile
+ config MEDIA_TUNER_TDA8290
+ 	tristate "TDA 8290/8295 + 8275(a)/18271 tuner combo"
+ 	depends on MEDIA_SUPPORT && I2C
+diff --git a/drivers/media/tuners/Makefile b/drivers/media/tuners/Makefile
+index 06a9ab6..4b9444b 100644
+--- a/drivers/media/tuners/Makefile
++++ b/drivers/media/tuners/Makefile
+@@ -41,6 +41,7 @@ obj-$(CONFIG_MEDIA_TUNER_R820T) += r820t.o
+ obj-$(CONFIG_MEDIA_TUNER_MXL301RF) += mxl301rf.o
+ obj-$(CONFIG_MEDIA_TUNER_QM1D1C0042) += qm1d1c0042.o
+ obj-$(CONFIG_MEDIA_TUNER_M88RS6000T) += m88rs6000t.o
++obj-$(CONFIG_MEDIA_TUNER_TDA18250) += tda18250.o
+ 
+ ccflags-y += -I$(srctree)/drivers/media/dvb-core
+ ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
+diff --git a/drivers/media/tuners/tda18250.c b/drivers/media/tuners/tda18250.c
 new file mode 100644
-index 0000000..fc3b62c
+index 0000000..21180f4
 --- /dev/null
-+++ b/drivers/media/platform/dwc/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_VIDEO_DWC_HDMI_PHY_E405) += dw-hdmi-phy-e405.o
-diff --git a/drivers/media/platform/dwc/dw-hdmi-phy-e405.c b/drivers/media/platform/dwc/dw-hdmi-phy-e405.c
-new file mode 100644
-index 0000000..26d70ca
---- /dev/null
-+++ b/drivers/media/platform/dwc/dw-hdmi-phy-e405.c
-@@ -0,0 +1,844 @@
++++ b/drivers/media/tuners/tda18250.c
+@@ -0,0 +1,890 @@
 +/*
-+ * Synopsys Designware HDMI PHY E405 driver
++ * NXP TDA18250 silicon tuner driver
 + *
-+ * This Synopsys dw-phy-e405 software and associated documentation
-+ * (hereinafter the "Software") is an unsupported proprietary work of
-+ * Synopsys, Inc. unless otherwise expressly agreed to in writing between
-+ * Synopsys and you. The Software IS NOT an item of Licensed Software or a
-+ * Licensed Product under any End User Software License Agreement or
-+ * Agreement for Licensed Products with Synopsys or any supplement thereto.
-+ * Synopsys is a registered trademark of Synopsys, Inc. Other names included
-+ * in the SOFTWARE may be the trademarks of their respective owners.
++ * Copyright (C) 2017 Olli Salonen <olli.salonen@iki.fi>
 + *
-+ * The contents of this file are dual-licensed; you may select either version 2
-+ * of the GNU General Public License (“GPL”) or the MIT license (“MIT”).
++ *    This program is free software; you can redistribute it and/or modify
++ *    it under the terms of the GNU General Public License as published by
++ *    the Free Software Foundation; either version 2 of the License, or
++ *    (at your option) any later version.
 + *
-+ * Copyright (c) 2017 Synopsys, Inc. and/or its affiliates.
++ *    This program is distributed in the hope that it will be useful,
++ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *    GNU General Public License for more details.
 + *
-+ * THIS SOFTWARE IS PROVIDED "AS IS"  WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-+ * IMPLIED, INCLUDING, BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-+ * FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE
-+ * ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE THE USE OR
-+ * OTHER DEALINGS IN THE SOFTWARE.
 + */
 +
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/module.h>
-+#include <linux/of_device.h>
-+#include <linux/platform_device.h>
-+#include <linux/types.h>
-+#include <media/v4l2-async.h>
-+#include <media/v4l2-subdev.h>
-+#include <media/dwc/dw-hdmi-phy-pdata.h>
-+#include "dw-hdmi-phy-e405.h"
++#include "tda18250_priv.h"
++#include <linux/regmap.h>
 +
-+MODULE_AUTHOR("Jose Abreu <joabreu@synopsys.com>");
-+MODULE_DESCRIPTION("Designware HDMI PHY e405 driver");
-+MODULE_LICENSE("Dual MIT/GPL");
++static const struct dvb_tuner_ops tda18250_ops;
 +
-+#define PHY_EQ_WAIT_TIME_START			3
-+#define PHY_EQ_SLEEP_TIME_CDR			30
-+#define PHY_EQ_SLEEP_TIME_ACQ			1
-+#define PHY_EQ_BOUNDSPREAD			20
-+#define PHY_EQ_MIN_ACQ_STABLE			3
-+#define PHY_EQ_ACC_LIMIT			360
-+#define PHY_EQ_ACC_MIN_LIMIT			0
-+#define PHY_EQ_MAX_SETTING			13
-+#define PHY_EQ_SHORT_CABLE_SETTING		4
-+#define PHY_EQ_ERROR_CABLE_SETTING		4
-+#define PHY_EQ_MIN_SLOPE			50
-+#define PHY_EQ_AVG_ACQ				5
-+#define PHY_EQ_MINMAX_NTRIES			3
-+#define PHY_EQ_EQUALIZED_COUNTER_VAL		512
-+#define PHY_EQ_EQUALIZED_COUNTER_VAL_HDMI20	512
-+#define PHY_EQ_MINMAX_MAXDIFF			4
-+#define PHY_EQ_MINMAX_MAXDIFF_HDMI20		2
-+#define PHY_EQ_FATBIT_MASK			0x0000
-+#define PHY_EQ_FATBIT_MASK_4K			0x0c03
-+#define PHY_EQ_FATBIT_MASK_HDMI20		0x0e03
-+
-+struct dw_phy_eq_ch {
-+	u16 best_long_setting;
-+	u8 valid_long_setting;
-+	u16 best_short_setting;
-+	u8 valid_short_setting;
-+	u16 best_setting;
-+	u16 acc;
-+	u16 acq;
-+	u16 last_acq;
-+	u16 upper_bound_acq;
-+	u16 lower_bound_acq;
-+	u16 out_bound_acq;
-+	u16 read_acq;
-+};
-+
-+static const struct dw_phy_mpll_config {
-+	u16 addr;
-+	u16 val;
-+} dw_phy_e405_mpll_cfg[] = {
-+	{ 0x27, 0x1B94 },
-+	{ 0x28, 0x16D2 },
-+	{ 0x29, 0x12D9 },
-+	{ 0x2A, 0x3249 },
-+	{ 0x2B, 0x3653 },
-+	{ 0x2C, 0x3436 },
-+	{ 0x2D, 0x124D },
-+	{ 0x2E, 0x0001 },
-+	{ 0xCE, 0x0505 },
-+	{ 0xCF, 0x0505 },
-+	{ 0xD0, 0x0000 },
-+	{ 0x00, 0x0000 },
-+};
-+
-+struct dw_phy_dev {
-+	struct device *dev;
-+	struct dw_phy_pdata *config;
-+	unsigned int version;
-+	struct clk *clk;
-+	u16 cfg_clk;
-+	bool phy_enabled;
-+	struct v4l2_subdev sd;
-+	u16 mpll_status;
-+	unsigned char color_depth;
-+	bool hdmi2;
-+	bool scrambling;
-+	struct mutex lock;
-+};
-+
-+static inline struct dw_phy_dev *to_dw_dev(struct v4l2_subdev *sd)
++static int tda18250_power_control(struct dvb_frontend *fe,
++		unsigned int power_state)
 +{
-+	return container_of(sd, struct dw_phy_dev, sd);
-+}
++	struct i2c_client *client = fe->tuner_priv;
++	struct tda18250_dev *dev = i2c_get_clientdata(client);
++	int ret;
++	unsigned int utmp;
 +
-+static void phy_write(struct dw_phy_dev *dw_dev, u16 val, u16 addr)
-+{
-+	void *arg = dw_dev->config->funcs_arg;
++	dev_dbg(&client->dev, "power state: %d", power_state);
 +
-+	dw_dev->config->funcs->write(arg, val, addr);
-+}
-+
-+static u16 phy_read(struct dw_phy_dev *dw_dev, u16 addr)
-+{
-+	void *arg = dw_dev->config->funcs_arg;
-+
-+	return dw_dev->config->funcs->read(arg, addr);
-+}
-+
-+static void phy_reset(struct dw_phy_dev *dw_dev, int enable)
-+{
-+	void *arg = dw_dev->config->funcs_arg;
-+
-+	dw_dev->config->funcs->reset(arg, enable);
-+}
-+
-+static void phy_pddq(struct dw_phy_dev *dw_dev, int enable)
-+{
-+	void *arg = dw_dev->config->funcs_arg;
-+
-+	dw_dev->config->funcs->pddq(arg, enable);
-+}
-+
-+static void phy_svsmode(struct dw_phy_dev *dw_dev, int enable)
-+{
-+	void *arg = dw_dev->config->funcs_arg;
-+
-+	dw_dev->config->funcs->svsmode(arg, enable);
-+}
-+
-+static void phy_zcal_reset(struct dw_phy_dev *dw_dev)
-+{
-+	void *arg = dw_dev->config->funcs_arg;
-+
-+	dw_dev->config->funcs->zcal_reset(arg);
-+}
-+
-+static bool phy_zcal_done(struct dw_phy_dev *dw_dev)
-+{
-+	void *arg = dw_dev->config->funcs_arg;
-+
-+	return dw_dev->config->funcs->zcal_done(arg);
-+}
-+
-+static bool phy_tmds_valid(struct dw_phy_dev *dw_dev)
-+{
-+	void *arg = dw_dev->config->funcs_arg;
-+
-+	return dw_dev->config->funcs->tmds_valid(arg);
-+}
-+
-+static int dw_phy_eq_test(struct dw_phy_dev *dw_dev,
-+		u16 *fat_bit_mask, int *min_max_length)
-+{
-+	u16 main_fsm_status, val;
-+	int i;
-+
-+	for (i = 0; i < PHY_EQ_WAIT_TIME_START; i++) {
-+		main_fsm_status = phy_read(dw_dev, PHY_MAINFSM_STATUS1);
-+		if (main_fsm_status & 0x100)
-+			break;
-+		mdelay(PHY_EQ_SLEEP_TIME_CDR);
-+	}
-+
-+	if (i == PHY_EQ_WAIT_TIME_START) {
-+		dev_dbg(dw_dev->dev, "phy start conditions not achieved\n");
-+		return -ETIMEDOUT;
-+	}
-+
-+	if (main_fsm_status & 0x400) {
-+		dev_dbg(dw_dev->dev, "invalid pll rate\n");
-+		return -EINVAL;
-+	}
-+
-+	val = (phy_read(dw_dev, PHY_CDR_CTRL_CNT) & 0x300) >> 8;
-+	if (val == 0x1) {
-+		/* HDMI 2.0 */
-+		*fat_bit_mask = PHY_EQ_FATBIT_MASK_HDMI20;
-+		*min_max_length = PHY_EQ_MINMAX_MAXDIFF_HDMI20;
-+		dev_dbg(dw_dev->dev, "[EQUALIZER] using HDMI 2.0 values\n");
-+	} else if (!(main_fsm_status & 0x600)) {
-+		/* HDMI 1.4 (pll rate = 0) */
-+		*fat_bit_mask = PHY_EQ_FATBIT_MASK_4K;
-+		*min_max_length = PHY_EQ_MINMAX_MAXDIFF;
-+		dev_dbg(dw_dev->dev, "[EQUALIZER] using HDMI 1.4@4k values\n");
-+	} else {
-+		/* HDMI 1.4 */
-+		*fat_bit_mask = PHY_EQ_FATBIT_MASK;
-+		*min_max_length = PHY_EQ_MINMAX_MAXDIFF;
-+		dev_dbg(dw_dev->dev, "[EQUALIZER] using HDMI 1.4 values\n");
++	switch (power_state) {
++	case TDA18250_POWER_NORMAL:
++		ret = regmap_write_bits(dev->regmap, R06_POWER2, 0x07, 0x00);
++		if (ret)
++			goto err;
++		ret = regmap_write_bits(dev->regmap, R25_REF, 0xc0, 0xc0);
++		if (ret)
++			goto err;
++		break;
++	case TDA18250_POWER_STANDBY:
++		if (dev->loopthrough) {
++			ret = regmap_write_bits(dev->regmap, R25_REF, 0xc0, 0x80);
++			if (ret)
++				goto err;
++			ret = regmap_write_bits(dev->regmap, R06_POWER2, 0x07, 0x02);
++			if (ret)
++				goto err;
++			ret = regmap_write_bits(dev->regmap, R10_LT1, 0x80, 0x00);
++			if (ret)
++				goto err;
++		} else {
++			ret = regmap_write_bits(dev->regmap, R25_REF, 0xc0, 0x80);
++			if (ret)
++				goto err;
++			ret = regmap_write_bits(dev->regmap, R06_POWER2, 0x07, 0x01);
++			if (ret)
++				goto err;
++			ret = regmap_read(dev->regmap, R0D_AGC12, &utmp);
++			if (ret)
++				goto err;
++			ret = regmap_write_bits(dev->regmap, R0D_AGC12, 0x03, 0x03);
++			if (ret)
++				goto err;
++			ret = regmap_write_bits(dev->regmap, R10_LT1, 0x80, 0x80);
++			if (ret)
++				goto err;
++			ret = regmap_write_bits(dev->regmap, R0D_AGC12, 0x03, utmp & 0x03);
++			if (ret)
++				goto err;
++		}
++		break;
++	default:
++		ret = -EINVAL;
++		goto err;
 +	}
 +
 +	return 0;
-+}
-+
-+static void dw_phy_eq_default(struct dw_phy_dev *dw_dev)
-+{
-+	phy_write(dw_dev, 0x08A8, PHY_CH0_EQ_CTRL1);
-+	phy_write(dw_dev, 0x0020, PHY_CH0_EQ_CTRL2);
-+	phy_write(dw_dev, 0x08A8, PHY_CH1_EQ_CTRL1);
-+	phy_write(dw_dev, 0x0020, PHY_CH1_EQ_CTRL2);
-+	phy_write(dw_dev, 0x08A8, PHY_CH2_EQ_CTRL1);
-+	phy_write(dw_dev, 0x0020, PHY_CH2_EQ_CTRL2);
-+}
-+
-+static void dw_phy_eq_single(struct dw_phy_dev *dw_dev)
-+{
-+	phy_write(dw_dev, 0x0211, PHY_CH0_EQ_CTRL1);
-+	phy_write(dw_dev, 0x0211, PHY_CH1_EQ_CTRL1);
-+	phy_write(dw_dev, 0x0211, PHY_CH2_EQ_CTRL1);
-+}
-+
-+static void dw_phy_eq_equal_setting(struct dw_phy_dev *dw_dev,
-+		u16 lock_vector)
-+{
-+	phy_write(dw_dev, lock_vector, PHY_CH0_EQ_CTRL4);
-+	phy_write(dw_dev, 0x0024, PHY_CH0_EQ_CTRL2);
-+	phy_write(dw_dev, 0x0026, PHY_CH0_EQ_CTRL2);
-+	phy_read(dw_dev, PHY_CH0_EQ_STATUS2);
-+	phy_write(dw_dev, lock_vector, PHY_CH1_EQ_CTRL4);
-+	phy_write(dw_dev, 0x0024, PHY_CH1_EQ_CTRL2);
-+	phy_write(dw_dev, 0x0026, PHY_CH1_EQ_CTRL2);
-+	phy_read(dw_dev, PHY_CH1_EQ_STATUS2);
-+	phy_write(dw_dev, lock_vector, PHY_CH2_EQ_CTRL4);
-+	phy_write(dw_dev, 0x0024, PHY_CH2_EQ_CTRL2);
-+	phy_write(dw_dev, 0x0026, PHY_CH2_EQ_CTRL2);
-+	phy_read(dw_dev, PHY_CH2_EQ_STATUS2);
-+}
-+
-+static void dw_phy_eq_equal_setting_ch0(struct dw_phy_dev *dw_dev,
-+		u16 lock_vector)
-+{
-+	phy_write(dw_dev, lock_vector, PHY_CH0_EQ_CTRL4);
-+	phy_write(dw_dev, 0x0024, PHY_CH0_EQ_CTRL2);
-+	phy_write(dw_dev, 0x0026, PHY_CH0_EQ_CTRL2);
-+	phy_read(dw_dev, PHY_CH0_EQ_STATUS2);
-+}
-+
-+static void dw_phy_eq_equal_setting_ch1(struct dw_phy_dev *dw_dev,
-+		u16 lock_vector)
-+{
-+	phy_write(dw_dev, lock_vector, PHY_CH1_EQ_CTRL4);
-+	phy_write(dw_dev, 0x0024, PHY_CH1_EQ_CTRL2);
-+	phy_write(dw_dev, 0x0026, PHY_CH1_EQ_CTRL2);
-+	phy_read(dw_dev, PHY_CH1_EQ_STATUS2);
-+}
-+
-+static void dw_phy_eq_equal_setting_ch2(struct dw_phy_dev *dw_dev,
-+		u16 lock_vector)
-+{
-+	phy_write(dw_dev, lock_vector, PHY_CH2_EQ_CTRL4);
-+	phy_write(dw_dev, 0x0024, PHY_CH2_EQ_CTRL2);
-+	phy_write(dw_dev, 0x0026, PHY_CH2_EQ_CTRL2);
-+	phy_read(dw_dev, PHY_CH2_EQ_STATUS2);
-+}
-+
-+static void dw_phy_eq_auto_calib(struct dw_phy_dev *dw_dev)
-+{
-+	phy_write(dw_dev, 0x1809, PHY_MAINFSM_CTRL);
-+	phy_write(dw_dev, 0x1819, PHY_MAINFSM_CTRL);
-+	phy_write(dw_dev, 0x1809, PHY_MAINFSM_CTRL);
-+}
-+
-+static void dw_phy_eq_init_vars(struct dw_phy_eq_ch *ch)
-+{
-+	ch->acc = 0;
-+	ch->acq = 0;
-+	ch->last_acq = 0;
-+	ch->valid_long_setting = 0;
-+	ch->valid_short_setting = 0;
-+	ch->best_setting = PHY_EQ_SHORT_CABLE_SETTING;
-+}
-+
-+static bool dw_phy_eq_acquire_early_cnt(struct dw_phy_dev *dw_dev,
-+		u16 setting, u16 acq, struct dw_phy_eq_ch *ch0,
-+		struct dw_phy_eq_ch *ch1, struct dw_phy_eq_ch *ch2)
-+{
-+	u16 lock_vector = 0x1;
-+	int i;
-+
-+	lock_vector <<= setting;
-+	ch0->out_bound_acq = 0;
-+	ch1->out_bound_acq = 0;
-+	ch2->out_bound_acq = 0;
-+	ch0->acq = 0;
-+	ch1->acq = 0;
-+	ch2->acq = 0;
-+
-+	dw_phy_eq_equal_setting(dw_dev, lock_vector);
-+	dw_phy_eq_auto_calib(dw_dev);
-+
-+	mdelay(PHY_EQ_SLEEP_TIME_CDR);
-+	if (!phy_tmds_valid(dw_dev))
-+		dev_dbg(dw_dev->dev, "TMDS is NOT valid\n");
-+
-+	ch0->read_acq = phy_read(dw_dev, PHY_CH0_EQ_STATUS3);
-+	ch1->read_acq = phy_read(dw_dev, PHY_CH1_EQ_STATUS3);
-+	ch2->read_acq = phy_read(dw_dev, PHY_CH2_EQ_STATUS3);
-+
-+	ch0->acq += ch0->read_acq;
-+	ch1->acq += ch1->read_acq;
-+	ch2->acq += ch2->read_acq;
-+
-+	ch0->upper_bound_acq = ch0->read_acq + PHY_EQ_BOUNDSPREAD;
-+	ch0->lower_bound_acq = ch0->read_acq - PHY_EQ_BOUNDSPREAD;
-+	ch1->upper_bound_acq = ch1->read_acq + PHY_EQ_BOUNDSPREAD;
-+	ch1->lower_bound_acq = ch1->read_acq - PHY_EQ_BOUNDSPREAD;
-+	ch2->upper_bound_acq = ch2->read_acq + PHY_EQ_BOUNDSPREAD;
-+	ch2->lower_bound_acq = ch2->read_acq - PHY_EQ_BOUNDSPREAD;
-+
-+	for (i = 1; i < acq; i++) {
-+		dw_phy_eq_auto_calib(dw_dev);
-+		mdelay(PHY_EQ_SLEEP_TIME_ACQ);
-+
-+		if ((ch0->read_acq > ch0->upper_bound_acq) ||
-+				(ch0->read_acq < ch0->lower_bound_acq))
-+			ch0->out_bound_acq++;
-+		if ((ch1->read_acq > ch1->upper_bound_acq) ||
-+				(ch1->read_acq < ch1->lower_bound_acq))
-+			ch1->out_bound_acq++;
-+		if ((ch2->read_acq > ch2->upper_bound_acq) ||
-+				(ch2->read_acq < ch1->lower_bound_acq))
-+			ch2->out_bound_acq++;
-+
-+		if (i == PHY_EQ_MIN_ACQ_STABLE) {
-+			if ((ch0->out_bound_acq == 0) &&
-+					(ch1->out_bound_acq == 0) &&
-+					(ch2->out_bound_acq == 0)) {
-+				acq = 3;
-+				break;
-+			}
-+		}
-+
-+		ch0->read_acq = phy_read(dw_dev, PHY_CH0_EQ_STATUS3);
-+		ch1->read_acq = phy_read(dw_dev, PHY_CH1_EQ_STATUS3);
-+		ch2->read_acq = phy_read(dw_dev, PHY_CH2_EQ_STATUS3);
-+
-+		ch0->acq += ch0->read_acq;
-+		ch1->acq += ch1->read_acq;
-+		ch2->acq += ch2->read_acq;
-+	}
-+
-+	ch0->acq = ch0->acq / acq;
-+	ch1->acq = ch1->acq / acq;
-+	ch2->acq = ch2->acq / acq;
-+
-+	return true;
-+}
-+
-+static int dw_phy_eq_test_type(u16 setting, bool tmds_valid,
-+		struct dw_phy_eq_ch *ch)
-+{
-+	u16 step_slope = 0;
-+
-+	if ((ch->acq < ch->last_acq) && tmds_valid) {
-+		/* Long cable equalization */
-+		ch->acc += ch->last_acq - ch->acq;
-+		if ((ch->valid_long_setting == 0) && (ch->acq < 512) &&
-+				(ch->acc > 0)) {
-+			ch->best_long_setting = setting;
-+			ch->valid_long_setting = 1;
-+		}
-+		step_slope = ch->last_acq - ch->acq;
-+	}
-+
-+	if (tmds_valid && (ch->valid_short_setting == 0)) {
-+		/* Short cable equalization */
-+		if ((setting < PHY_EQ_SHORT_CABLE_SETTING) &&
-+				(ch->acq < PHY_EQ_EQUALIZED_COUNTER_VAL)) {
-+			ch->best_short_setting= setting;
-+			ch->valid_short_setting = 1;
-+		}
-+
-+		if (setting == PHY_EQ_SHORT_CABLE_SETTING) {
-+			ch->best_short_setting = PHY_EQ_SHORT_CABLE_SETTING;
-+			ch->valid_short_setting = 1;
-+		}
-+	}
-+
-+	if (ch->valid_long_setting && (ch->acc > PHY_EQ_ACC_LIMIT)) {
-+		ch->best_setting = ch->best_long_setting;
-+		return 1;
-+	}
-+
-+	if ((setting == PHY_EQ_MAX_SETTING) && (ch->acc < PHY_EQ_ACC_LIMIT) &&
-+			ch->valid_short_setting) {
-+		ch->best_setting = ch->best_short_setting;
-+		return 2;
-+	}
-+
-+	if ((setting == PHY_EQ_MAX_SETTING) && tmds_valid &&
-+			(ch->acc > PHY_EQ_ACC_LIMIT) &&
-+			(step_slope > PHY_EQ_MIN_SLOPE)) {
-+		ch->best_setting = PHY_EQ_MAX_SETTING;
-+		return 3;
-+	}
-+
-+	if (setting == PHY_EQ_MAX_SETTING) {
-+		ch->best_setting = PHY_EQ_ERROR_CABLE_SETTING;
-+		return 255;
-+	}
-+
-+	return 0;
-+}
-+
-+static bool dw_phy_eq_setting_finder(struct dw_phy_dev *dw_dev, u16 acq,
-+		struct dw_phy_eq_ch *ch0, struct dw_phy_eq_ch *ch1,
-+		struct dw_phy_eq_ch *ch2)
-+{
-+	u16 act = 0;
-+	int ret_ch0 = 0, ret_ch1 = 0, ret_ch2 = 0;
-+	bool tmds_valid = false;
-+
-+	dw_phy_eq_init_vars(ch0);
-+	dw_phy_eq_init_vars(ch1);
-+	dw_phy_eq_init_vars(ch2);
-+
-+	tmds_valid = dw_phy_eq_acquire_early_cnt(dw_dev, act, acq,
-+			ch0, ch1, ch2);
-+
-+	while ((ret_ch0 == 0) || (ret_ch1 == 0) || (ret_ch2 == 0)) {
-+		act++;
-+
-+		ch0->last_acq = ch0->acq;
-+		ch1->last_acq = ch1->acq;
-+		ch2->last_acq = ch2->acq;
-+
-+		tmds_valid = dw_phy_eq_acquire_early_cnt(dw_dev, act, acq,
-+				ch0, ch1, ch2);
-+
-+		if (!ret_ch0)
-+			ret_ch0 = dw_phy_eq_test_type(act, tmds_valid, ch0);
-+		if (!ret_ch1)
-+			ret_ch1 = dw_phy_eq_test_type(act, tmds_valid, ch1);
-+		if (!ret_ch2)
-+			ret_ch2 = dw_phy_eq_test_type(act, tmds_valid, ch2);
-+	}
-+
-+	if ((ret_ch0 == 255) || (ret_ch1 == 255) || (ret_ch2 == 255))
-+		return false;
-+	return true;
-+}
-+
-+static bool dw_phy_eq_maxvsmin(u16 ch0_setting, u16 ch1_setting,
-+		u16 ch2_setting, u16 min_max_length)
-+{
-+	u16 min = ch0_setting, max = ch0_setting;
-+
-+	if (ch1_setting > max)
-+		max = ch1_setting;
-+	if (ch2_setting > max)
-+		max = ch2_setting;
-+	if (ch1_setting < min)
-+		min = ch1_setting;
-+	if (ch2_setting < min)
-+		min = ch2_setting;
-+
-+	if ((max - min) > min_max_length)
-+		return false;
-+	return true;
-+}
-+
-+static int dw_phy_eq_init(struct dw_phy_dev *dw_dev, u16 acq, bool force)
-+{
-+	struct dw_phy_eq_ch ch0, ch1, ch2;
-+	u16 fat_bit_mask, lock_vector = 0x1;
-+	int min_max_length, i, ret = 0;
-+	u16 mpll_status;
-+
-+	if (dw_dev->version < 401)
-+		return ret;
-+	if (!dw_dev->phy_enabled)
-+		return -EINVAL;
-+
-+	mpll_status = phy_read(dw_dev, PHY_CLK_MPLL_STATUS);
-+	if (mpll_status == dw_dev->mpll_status && !force)
-+		return ret;
-+	dw_dev->mpll_status = mpll_status;
-+
-+	phy_write(dw_dev, 0x00, PHY_MAINFSM_OVR2);
-+	phy_write(dw_dev, 0x00, PHY_CH0_EQ_CTRL3);
-+	phy_write(dw_dev, 0x00, PHY_CH1_EQ_CTRL3);
-+	phy_write(dw_dev, 0x00, PHY_CH2_EQ_CTRL3);
-+
-+	ret = dw_phy_eq_test(dw_dev, &fat_bit_mask, &min_max_length);
-+	if (ret) {
-+		if (ret == -EINVAL) /* Means equalizer is not needed */
-+			ret = 0;
-+
-+		/* Do not change values if we don't have clock */
-+		if (ret != -ETIMEDOUT) {
-+			dw_phy_eq_default(dw_dev);
-+			phy_pddq(dw_dev, 1);
-+			phy_pddq(dw_dev, 0);
-+		}
-+	} else {
-+		dw_phy_eq_single(dw_dev);
-+		dw_phy_eq_equal_setting(dw_dev, 0x0001);
-+		phy_write(dw_dev, fat_bit_mask, PHY_CH0_EQ_CTRL6);
-+		phy_write(dw_dev, fat_bit_mask, PHY_CH1_EQ_CTRL6);
-+		phy_write(dw_dev, fat_bit_mask, PHY_CH2_EQ_CTRL6);
-+
-+		for (i = 0; i < PHY_EQ_MINMAX_NTRIES; i++) {
-+			if (dw_phy_eq_setting_finder(dw_dev, acq,
-+						&ch0, &ch1, &ch2)) {
-+				if (dw_phy_eq_maxvsmin(ch0.best_setting,
-+							ch1.best_setting,
-+							ch2.best_setting,
-+							min_max_length))
-+					break;
-+			}
-+
-+			ch0.best_setting = PHY_EQ_ERROR_CABLE_SETTING;
-+			ch1.best_setting = PHY_EQ_ERROR_CABLE_SETTING;
-+			ch2.best_setting = PHY_EQ_ERROR_CABLE_SETTING;
-+		}
-+
-+		dev_dbg(dw_dev->dev, "equalizer settings: "
-+				"ch0=0x%x, ch1=0x%x, ch1=0x%x\n",
-+				ch0.best_setting, ch1.best_setting,
-+				ch2.best_setting);
-+
-+		if (i == PHY_EQ_MINMAX_NTRIES)
-+			ret = -EINVAL;
-+
-+		lock_vector = 0x1;
-+		lock_vector <<= ch0.best_setting;
-+		dw_phy_eq_equal_setting_ch0(dw_dev, lock_vector);
-+
-+		lock_vector = 0x1;
-+		lock_vector <<= ch1.best_setting;
-+		dw_phy_eq_equal_setting_ch1(dw_dev, lock_vector);
-+
-+		lock_vector = 0x1;
-+		lock_vector <<= ch2.best_setting;
-+		dw_phy_eq_equal_setting_ch2(dw_dev, lock_vector);
-+
-+		phy_pddq(dw_dev, 1);
-+		phy_pddq(dw_dev, 0);
-+	}
-+
++err:
 +	return ret;
 +}
 +
-+static int dw_phy_config(struct dw_phy_dev *dw_dev, unsigned char color_depth,
-+		bool hdmi2, bool scrambling)
++static int tda18250_wait_for_irq(struct dvb_frontend *fe,
++		int maxwait, int step, u8 irq)
 +{
-+	const struct dw_phy_mpll_config *mpll_cfg = dw_phy_e405_mpll_cfg;
-+	struct device *dev = dw_dev->dev;
-+	int timeout = 100;
-+	u16 val, res_idx;
-+	bool zcal_done;
++	struct i2c_client *client = fe->tuner_priv;
++	struct tda18250_dev *dev = i2c_get_clientdata(client);
++	int ret;
++	unsigned long timeout;
++	bool triggered;
++	unsigned int utmp;
 +
-+	dev_dbg(dev, "%s: color_depth=%d, hdmi2=%d, scrambling=%d, cfg_clk=%d\n",
-+			__func__, color_depth, hdmi2, scrambling, dw_dev->cfg_clk);
++	triggered = false;
++	timeout = jiffies + msecs_to_jiffies(maxwait);
++	while (!time_after(jiffies, timeout)) {
++		// check for the IRQ
++		ret = regmap_read(dev->regmap, R08_IRQ1, &utmp);
++		if (ret)
++			goto err;
++		if ((utmp & irq) == irq) {
++			triggered = true;
++			break;
++		}
++		msleep(step);
++	}
 +
-+	switch (color_depth) {
-+	case 8:
-+		res_idx = 0x0;
++	dev_dbg(&client->dev, "waited IRQ (0x%02x) %d ms, triggered: %s", irq,
++			jiffies_to_msecs(jiffies) -
++			(jiffies_to_msecs(timeout) - maxwait),
++			triggered ? "true" : "false");
++
++	if (!triggered)
++		return -ETIMEDOUT;
++
++	return 0;
++err:
++	return ret;
++}
++
++static int tda18250_init(struct dvb_frontend *fe)
++{
++	struct i2c_client *client = fe->tuner_priv;
++	struct tda18250_dev *dev = i2c_get_clientdata(client);
++	int ret, i;
++
++	/* default values for various regs */
++	static const u8 init_regs[][2] = {
++		{ R0C_AGC11, 0xc7 },
++		{ R0D_AGC12, 0x5d },
++		{ R0E_AGC13, 0x40 },
++		{ R0F_AGC14, 0x0e },
++		{ R10_LT1, 0x47 },
++		{ R11_LT2, 0x4e },
++		{ R12_AGC21, 0x26 },
++		{ R13_AGC22, 0x60 },
++		{ R18_AGC32, 0x37 },
++		{ R19_AGC33, 0x09 },
++		{ R1A_AGCK, 0x00 },
++		{ R1E_WI_FI, 0x29 },
++		{ R1F_RF_BPF, 0x06 },
++		{ R20_IR_MIX, 0xc6 },
++		{ R21_IF_AGC, 0x00 },
++		{ R2C_PS1, 0x75 },
++		{ R2D_PS2, 0x06 },
++		{ R2E_PS3, 0x07 },
++		{ R30_RSSI2, 0x0e },
++		{ R31_IRQ_CTRL, 0x00 },
++		{ R39_SD5, 0x00 },
++		{ R3B_REGU, 0x55 },
++		{ R3C_RCCAL1, 0xa7 },
++		{ R3F_IRCAL2, 0x85 },
++		{ R40_IRCAL3, 0x87 },
++		{ R41_IRCAL4, 0xc0 },
++		{ R43_PD1, 0x40 },
++		{ R44_PD2, 0xc0 },
++		{ R46_CPUMP, 0x0c },
++		{ R47_LNAPOL, 0x64 },
++		{ R4B_XTALOSC1, 0x30 },
++		{ R59_AGC2_UP2, 0x05 },
++		{ R5B_AGC_AUTO, 0x07 },
++		{ R5C_AGC_DEBUG, 0x00 },
++	};
++
++	/* crystal related regs depend on frequency */
++	static const u8 xtal_regs[][5] = {
++					/* reg:   4d    4e    4f    50    51 */
++		[TDA18250_XTAL_FREQ_16MHZ]  = { 0x3e, 0x80, 0x50, 0x00, 0x20 },
++		[TDA18250_XTAL_FREQ_24MHZ]  = { 0x5d, 0xc0, 0xec, 0x00, 0x18 },
++		[TDA18250_XTAL_FREQ_25MHZ]  = { 0x61, 0xa8, 0xec, 0x80, 0x19 },
++		[TDA18250_XTAL_FREQ_27MHZ]  = { 0x69, 0x78, 0x8d, 0x80, 0x1b },
++		[TDA18250_XTAL_FREQ_30MHZ]  = { 0x75, 0x30, 0x8f, 0x00, 0x1e },
++	};
++
++	dev_dbg(&client->dev, "\n");
++
++	ret = tda18250_power_control(fe, TDA18250_POWER_NORMAL);
++	if (ret)
++		goto err;
++
++	msleep(20);
++
++	if (dev->warm)
++		goto warm;
++
++	/* set initial register values */
++	for (i = 0; i < ARRAY_SIZE(init_regs); i++) {
++		ret = regmap_write(dev->regmap, init_regs[i][0],
++				init_regs[i][1]);
++		if (ret)
++			goto err;
++	}
++
++	/* set xtal related regs */
++	ret = regmap_bulk_write(dev->regmap, R4D_XTALFLX1,
++			xtal_regs[dev->xtal_freq], 5);
++	if (ret)
++		goto err;
++
++	ret = regmap_write_bits(dev->regmap, R10_LT1, 0x80,
++			dev->loopthrough ? 0x00 : 0x80);
++	if (ret)
++		goto err;
++
++	/* clear IRQ */
++	ret = regmap_write(dev->regmap, R0A_IRQ3, TDA18250_IRQ_HW_INIT);
++	if (ret)
++		goto err;
++
++	/* start HW init */
++	ret = regmap_write(dev->regmap, R2A_MSM1, 0x70);
++	if (ret)
++		goto err;
++
++	ret = regmap_write(dev->regmap, R2B_MSM2, 0x01);
++	if (ret)
++		goto err;
++
++	ret = tda18250_wait_for_irq(fe, 500, 10, TDA18250_IRQ_HW_INIT);
++	if (ret)
++		goto err;
++
++	/* tuner calibration */
++	ret = regmap_write(dev->regmap, R2A_MSM1, 0x02);
++	if (ret)
++		goto err;
++
++	ret = regmap_write(dev->regmap, R2B_MSM2, 0x01);
++	if (ret)
++		goto err;
++
++	ret = tda18250_wait_for_irq(fe, 500, 10, TDA18250_IRQ_CAL);
++	if (ret)
++		goto err;
++
++	dev->warm = true;
++
++warm:
++	/* power up LNA */
++	ret = regmap_write_bits(dev->regmap, R0C_AGC11, 0x80, 0x00);
++	if (ret)
++		goto err;
++
++	return 0;
++err:
++	dev_dbg(&client->dev, "failed=%d", ret);
++	return ret;
++}
++
++static int tda18250_set_agc(struct dvb_frontend *fe)
++{
++	struct i2c_client *client = fe->tuner_priv;
++	struct tda18250_dev *dev = i2c_get_clientdata(client);
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	int ret;
++	u8 utmp, utmp2;
++
++	dev_dbg(&client->dev, "\n");
++
++	ret = regmap_write_bits(dev->regmap, R1F_RF_BPF, 0x87, 0x06);
++	if (ret)
++		goto err;
++
++	utmp = ((c->frequency < 100000000) &&
++			((c->delivery_system == SYS_DVBC_ANNEX_A) ||
++			(c->delivery_system == SYS_DVBC_ANNEX_C)) &&
++			(c->bandwidth_hz == 6000000)) ? 0x80 : 0x00;
++	ret = regmap_write(dev->regmap, R5A_H3H5, utmp);
++	if (ret)
++		goto err;
++
++	/* AGC1 */
++	switch (c->delivery_system) {
++	case SYS_ATSC:
++	case SYS_DVBT:
++	case SYS_DVBT2:
++		utmp = 4;
 +		break;
-+	case 10:
-+		res_idx = 0x1;
++	default: /* DVB-C/QAM */
++		switch (c->bandwidth_hz) {
++		case 6000000:
++			utmp = (c->frequency < 800000000) ? 6 : 4;
++			break;
++		default: /* 7.935 and 8 MHz */
++			utmp = (c->frequency < 100000000) ? 2 : 3;
++			break;
++		}
 +		break;
-+	case 12:
-+		res_idx = 0x2;
++	}
++
++	ret = regmap_write_bits(dev->regmap, R0C_AGC11, 0x07, utmp);
++	if (ret)
++		goto err;
++
++	/* AGC2 */
++	switch (c->delivery_system) {
++	case SYS_ATSC:
++	case SYS_DVBT:
++	case SYS_DVBT2:
++		utmp = (c->frequency < 320000000) ? 20 : 16;
++		utmp2 = (c->frequency < 320000000) ? 22 : 18;
 +		break;
-+	case 16:
-+		res_idx = 0x3;
++	default: /* DVB-C/QAM */
++		switch (c->bandwidth_hz) {
++		case 6000000:
++			if (c->frequency < 600000000) {
++				utmp = 18;
++				utmp2 = 22;
++			} else if (c->frequency < 800000000) {
++				utmp = 16;
++				utmp2 = 20;
++			} else {
++				utmp = 14;
++				utmp2 = 16;
++			}
++			break;
++		default: /* 7.935 and 8 MHz */
++			utmp = (c->frequency < 320000000) ? 16 : 18;
++			utmp2 = (c->frequency < 320000000) ? 18 : 20;
++			break;
++		}
 +		break;
++	}
++	ret = regmap_write_bits(dev->regmap, R58_AGC2_UP1, 0x1f, utmp2+8);
++	if (ret)
++		goto err;
++	ret = regmap_write_bits(dev->regmap, R13_AGC22, 0x1f, utmp);
++	if (ret)
++		goto err;
++	ret = regmap_write_bits(dev->regmap, R14_AGC23, 0x1f, utmp2);
++	if (ret)
++		goto err;
++
++	switch (c->delivery_system) {
++	case SYS_ATSC:
++	case SYS_DVBT:
++	case SYS_DVBT2:
++		utmp = 98;
++		break;
++	default: /* DVB-C/QAM */
++		utmp = 90;
++		break;
++	}
++	ret = regmap_write_bits(dev->regmap, R16_AGC25, 0xf8, utmp);
++	if (ret)
++		goto err;
++
++	ret = regmap_write_bits(dev->regmap, R12_AGC21, 0x60,
++			(c->frequency > 800000000) ? 0x40 : 0x20);
++	if (ret)
++		goto err;
++
++	/* AGC3 */
++	switch (c->delivery_system) {
++	case SYS_ATSC:
++	case SYS_DVBT:
++	case SYS_DVBT2:
++		utmp = (c->frequency < 320000000) ? 5 : 7;
++		utmp2 = (c->frequency < 320000000) ? 10 : 12;
++		break;
++	default: /* DVB-C/QAM */
++		utmp = 7;
++		utmp2 = 12;
++		break;
++	}
++	ret = regmap_write(dev->regmap, R17_AGC31, (utmp << 4) | utmp2);
++	if (ret)
++		goto err;
++
++	/* S2D */
++	switch (c->delivery_system) {
++	case SYS_ATSC:
++	case SYS_DVBT:
++	case SYS_DVBT2:
++		if (c->bandwidth_hz == 8000000)
++			utmp = 0x04;
++		else
++			utmp = (c->frequency < 320000000) ? 0x04 : 0x02;
++		break;
++	default: /* DVB-C/QAM */
++		if (c->bandwidth_hz == 6000000)
++			utmp = ((c->frequency > 172544000) &&
++				(c->frequency < 320000000)) ? 0x04 : 0x02;
++		else /* 7.935 and 8 MHz */
++			utmp = ((c->frequency > 320000000) &&
++				(c->frequency < 600000000)) ? 0x02 : 0x04;
++		break;
++	}
++	ret = regmap_write_bits(dev->regmap, R20_IR_MIX, 0x06, utmp);
++	if (ret)
++		goto err;
++
++	switch (c->delivery_system) {
++	case SYS_ATSC:
++	case SYS_DVBT:
++	case SYS_DVBT2:
++		utmp = 0;
++		break;
++	default: /* DVB-C/QAM */
++		utmp = (c->frequency < 600000000) ? 0 : 3;
++		break;
++	}
++	ret = regmap_write_bits(dev->regmap, R16_AGC25, 0x03, utmp);
++	if (ret)
++		goto err;
++
++	utmp = 0x09;
++	switch (c->delivery_system) {
++	case SYS_ATSC:
++	case SYS_DVBT:
++	case SYS_DVBT2:
++		if (c->bandwidth_hz == 8000000)
++			utmp = 0x0c;
++		break;
++	default: /* DVB-C/QAM */
++		utmp = 0x0c;
++		break;
++	}
++	ret = regmap_write_bits(dev->regmap, R0F_AGC14, 0x3f, utmp);
++	if (ret)
++		goto err;
++
++	return 0;
++err:
++	dev_dbg(&client->dev, "failed=%d", ret);
++	return ret;
++}
++
++static int tda18250_pll_calc(struct dvb_frontend *fe, u8 *rdiv,
++		u8 *ndiv, u8 *icp)
++{
++	struct i2c_client *client = fe->tuner_priv;
++	struct tda18250_dev *dev = i2c_get_clientdata(client);
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	int ret;
++	unsigned int uval, exp, lopd, scale;
++	unsigned long fvco;
++
++	ret = regmap_read(dev->regmap, R34_MD1, &uval);
++	if (ret)
++		goto err;
++
++	exp = (uval & 0x70) >> 4;
++	if (exp > 5)
++		exp = 0;
++	lopd = 1 << (exp - 1);
++	scale = uval & 0x0f;
++	fvco = lopd * scale * ((c->frequency / 1000) + dev->if_frequency);
++
++	switch (dev->xtal_freq) {
++	case TDA18250_XTAL_FREQ_16MHZ:
++		*rdiv = 1;
++		*ndiv = 0;
++		*icp = (fvco < 6622000) ? 0x05 : 0x02;
++	break;
++	case TDA18250_XTAL_FREQ_24MHZ:
++	case TDA18250_XTAL_FREQ_25MHZ:
++		*rdiv = 3;
++		*ndiv = 1;
++		*icp = (fvco < 6622000) ? 0x05 : 0x02;
++	break;
++	case TDA18250_XTAL_FREQ_27MHZ:
++		if (fvco < 6643000) {
++			*rdiv = 2;
++			*ndiv = 0;
++			*icp = 0x05;
++		} else if (fvco < 6811000) {
++			*rdiv = 2;
++			*ndiv = 0;
++			*icp = 0x06;
++		} else {
++			*rdiv = 3;
++			*ndiv = 1;
++			*icp = 0x02;
++		}
++	break;
++	case TDA18250_XTAL_FREQ_30MHZ:
++		*rdiv = 2;
++		*ndiv = 0;
++		*icp = (fvco < 6811000) ? 0x05 : 0x02;
++	break;
 +	default:
 +		return -EINVAL;
 +	}
 +
-+	phy_reset(dw_dev, 1);
-+	phy_pddq(dw_dev, 1);
-+	phy_svsmode(dw_dev, 1);
++	dev_dbg(&client->dev,
++			"lopd=%d scale=%u fvco=%lu, rdiv=%d ndiv=%d icp=%d",
++			lopd, scale, fvco, *rdiv, *ndiv, *icp);
++	return 0;
++err:
++	return ret;
++}
 +
-+	phy_zcal_reset(dw_dev);
-+	do {
-+		usleep_range(1000, 1100);
-+		zcal_done = phy_zcal_done(dw_dev);
-+	} while (!zcal_done && timeout--);
++static int tda18250_set_params(struct dvb_frontend *fe)
++{
++	struct i2c_client *client = fe->tuner_priv;
++	struct tda18250_dev *dev = i2c_get_clientdata(client);
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	u32 if_khz;
++	int ret;
++	unsigned int i, j;
++	u8 utmp;
++	u8 buf[3];
 +
-+	if (!zcal_done) {
-+		dev_err(dw_dev->dev, "Zcal calibration failed\n");
-+		return -ETIMEDOUT;
++	#define REG      0
++	#define MASK     1
++	#define DVBT_6   2
++	#define DVBT_7   3
++	#define DVBT_8   4
++	#define DVBC_6   5
++	#define DVBC_8   6
++	#define ATSC     7
++
++	static const u8 delsys_params[][16] = {
++		[REG]    = { 0x22, 0x23, 0x24, 0x21, 0x0d, 0x0c, 0x0f, 0x14,
++			     0x0e, 0x12, 0x58, 0x59, 0x1a, 0x19, 0x1e, 0x30 },
++		[MASK]   = { 0x77, 0xff, 0xff, 0x87, 0xf0, 0x78, 0x07, 0xe0,
++			     0x60, 0x0f, 0x60, 0x0f, 0x33, 0x30, 0x80, 0x06 },
++		[DVBT_6] = { 0x51, 0x03, 0x83, 0x82, 0x40, 0x48, 0x01, 0xe0,
++			     0x60, 0x0f, 0x60, 0x05, 0x03, 0x10, 0x00, 0x04 },
++		[DVBT_7] = { 0x52, 0x03, 0x85, 0x82, 0x40, 0x48, 0x01, 0xe0,
++			     0x60, 0x0f, 0x60, 0x05, 0x03, 0x10, 0x00, 0x04 },
++		[DVBT_8] = { 0x53, 0x03, 0x87, 0x82, 0x40, 0x48, 0x06, 0xe0,
++			     0x60, 0x07, 0x60, 0x05, 0x03, 0x10, 0x00, 0x04 },
++		[DVBC_6] = { 0x32, 0x05, 0x86, 0x82, 0x50, 0x00, 0x06, 0x60,
++			     0x40, 0x0e, 0x60, 0x05, 0x33, 0x10, 0x00, 0x04 },
++		[DVBC_8] = { 0x53, 0x03, 0x88, 0x82, 0x50, 0x00, 0x06, 0x60,
++			     0x40, 0x0e, 0x60, 0x05, 0x33, 0x10, 0x00, 0x04 },
++		[ATSC]   = { 0x51, 0x03, 0x83, 0x82, 0x40, 0x48, 0x01, 0xe0,
++			     0x40, 0x0e, 0x60, 0x05, 0x03, 0x00, 0x80, 0x04 },
++	};
++
++	dev_dbg(&client->dev,
++			"delivery_system=%d frequency=%u bandwidth_hz=%u",
++			c->delivery_system, c->frequency, c->bandwidth_hz);
++
++
++	switch (c->delivery_system) {
++	case SYS_ATSC:
++		j = ATSC;
++		if_khz = dev->if_atsc;
++		break;
++	case SYS_DVBT:
++	case SYS_DVBT2:
++		if (c->bandwidth_hz == 0) {
++			ret = -EINVAL;
++			goto err;
++		} else if (c->bandwidth_hz <= 6000000) {
++			j = DVBT_6;
++			if_khz = dev->if_dvbt_6;
++		} else if (c->bandwidth_hz <= 7000000) {
++			j = DVBT_7;
++			if_khz = dev->if_dvbt_7;
++		} else if (c->bandwidth_hz <= 8000000) {
++			j = DVBT_8;
++			if_khz = dev->if_dvbt_8;
++		} else {
++			ret = -EINVAL;
++			goto err;
++		}
++		break;
++	case SYS_DVBC_ANNEX_A:
++	case SYS_DVBC_ANNEX_C:
++		if (c->bandwidth_hz == 0) {
++			ret = -EINVAL;
++			goto err;
++		} else if (c->bandwidth_hz <= 6000000) {
++			j = DVBC_6;
++			if_khz = dev->if_dvbc_6;
++		} else if (c->bandwidth_hz <= 8000000) {
++			j = DVBC_8;
++			if_khz = dev->if_dvbc_8;
++		} else {
++			ret = -EINVAL;
++			goto err;
++		}
++		break;
++	default:
++		ret = -EINVAL;
++		dev_err(&client->dev, "unsupported delivery system=%d",
++				c->delivery_system);
++		goto err;
 +	}
 +
-+	phy_reset(dw_dev, 0);
++	/* set delivery system dependent registers */
++	for (i = 0; i < 16; i++) {
++		ret = regmap_write_bits(dev->regmap, delsys_params[REG][i],
++			 delsys_params[MASK][i],  delsys_params[j][i]);
++		if (ret)
++			goto err;
++	}
 +
-+	/* CMU */
-+	val = (0x08 << 10) | (0x01 << 9);
-+	val |= (dw_dev->cfg_clk * 4) & GENMASK(8, 0);
-+	phy_write(dw_dev, val, PHY_CMU_CONFIG);
++	/* set IF if needed */
++	if (dev->if_frequency != if_khz) {
++		utmp = DIV_ROUND_CLOSEST(if_khz, 50);
++		ret = regmap_write(dev->regmap, R26_IF, utmp);
++		if (ret)
++			goto err;
++		dev->if_frequency = if_khz;
++		dev_dbg(&client->dev, "set IF=%u kHz", if_khz);
 +
-+	/* Color Depth and enable fast switching */
-+	val = phy_read(dw_dev, PHY_SYSTEM_CONFIG);
-+	val = (val & ~0x60) | (res_idx << 5) | BIT(11);
-+	phy_write(dw_dev, val, PHY_SYSTEM_CONFIG);
++	}
 +
-+	/* MPLL */
-+	for (; mpll_cfg->addr != 0x0; mpll_cfg++)
-+		phy_write(dw_dev, mpll_cfg->val, mpll_cfg->addr);
++	ret = tda18250_set_agc(fe);
++	if (ret)
++		goto err;
 +
-+	/* Operation for data rates between 3.4Gbps and 6Gbps */
-+	val = phy_read(dw_dev, PHY_CDR_CTRL_CNT);
-+	if (hdmi2)
-+		val |= BIT(8);
-+	else
-+		val &= ~BIT(8);
-+	phy_write(dw_dev, val, PHY_CDR_CTRL_CNT);
++	ret = regmap_write_bits(dev->regmap, R1A_AGCK, 0x03, 0x01);
++	if (ret)
++		goto err;
 +
-+	/* Scrambling */
-+	val = phy_read(dw_dev, PHY_OVL_PROT_CTRL);
-+	if (scrambling)
-+		val |= GENMASK(7,6);
-+	else
-+		val &= ~GENMASK(7,6);
-+	phy_write(dw_dev, val, PHY_OVL_PROT_CTRL);
++	ret = regmap_write_bits(dev->regmap, R14_AGC23, 0x40, 0x00);
++	if (ret)
++		goto err;
 +
-+	/* Enable phy */
-+	phy_pddq(dw_dev, 0);
++	/* set frequency */
++	buf[0] = ((c->frequency / 1000) >> 16) & 0xff;
++	buf[1] = ((c->frequency / 1000) >>  8) & 0xff;
++	buf[2] = ((c->frequency / 1000) >>  0) & 0xff;
++	ret = regmap_bulk_write(dev->regmap, R27_RF1, buf, 3);
++	if (ret)
++		goto err;
 +
-+	dw_dev->color_depth = color_depth;
-+	dw_dev->hdmi2 = hdmi2;
-+	dw_dev->scrambling = scrambling;
++	ret = regmap_write(dev->regmap, R0A_IRQ3, TDA18250_IRQ_TUNE);
++	if (ret)
++		goto err;
++
++	/* initial tune */
++	ret = regmap_write(dev->regmap, R2A_MSM1, 0x01);
++	if (ret)
++		goto err;
++
++	ret = regmap_write(dev->regmap, R2B_MSM2, 0x01);
++	if (ret)
++		goto err;
++
++	ret = tda18250_wait_for_irq(fe, 500, 10, TDA18250_IRQ_TUNE);
++	if (ret)
++		goto err;
++
++	/* calc ndiv and rdiv */
++	ret = tda18250_pll_calc(fe, &buf[0], &buf[1], &buf[2]);
++	if (ret)
++		goto err;
++
++	ret = regmap_write_bits(dev->regmap, R4F_XTALFLX3, 0xe0,
++			(buf[0] << 6) | (buf[1] << 5));
++	if (ret)
++		goto err;
++
++	/* clear IRQ */
++	ret = regmap_write(dev->regmap, R0A_IRQ3, TDA18250_IRQ_TUNE);
++	if (ret)
++		goto err;
++
++	ret = regmap_write_bits(dev->regmap, R46_CPUMP, 0x07, 0x00);
++	if (ret)
++		goto err;
++
++	ret = regmap_write_bits(dev->regmap, R39_SD5, 0x03, 0x00);
++	if (ret)
++		goto err;
++
++	/* tune again */
++	ret = regmap_write(dev->regmap, R2A_MSM1, 0x01); /* tune */
++	if (ret)
++		goto err;
++
++	ret = regmap_write(dev->regmap, R2B_MSM2, 0x01); /* go */
++	if (ret)
++		goto err;
++
++	ret = tda18250_wait_for_irq(fe, 500, 10, TDA18250_IRQ_TUNE);
++	if (ret)
++		goto err;
++
++	/* pll locking */
++	msleep(5);
++
++	ret = regmap_write_bits(dev->regmap, R2B_MSM2, 0x04, 0x04);
++	if (ret)
++		goto err;
++
++	msleep(20);
++
++	/* restore AGCK */
++	ret = regmap_write_bits(dev->regmap, R1A_AGCK, 0x03, 0x03);
++	if (ret)
++		goto err;
++
++	ret = regmap_write_bits(dev->regmap, R14_AGC23, 0x40, 0x40);
++	if (ret)
++		goto err;
++
++	/* charge pump */
++	ret = regmap_write_bits(dev->regmap, R46_CPUMP, 0x07, buf[2]);
++
++	return 0;
++err:
++	return ret;
++}
++
++static int tda18250_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
++{
++	struct i2c_client *client = fe->tuner_priv;
++	struct tda18250_dev *dev = i2c_get_clientdata(client);
++
++	*frequency = dev->if_frequency * 1000;
 +	return 0;
 +}
 +
-+static int dw_phy_enable(struct dw_phy_dev *dw_dev, unsigned char color_depth,
-+		bool hdmi2, bool scrambling)
++static int tda18250_sleep(struct dvb_frontend *fe)
 +{
++	struct i2c_client *client = fe->tuner_priv;
++	struct tda18250_dev *dev = i2c_get_clientdata(client);
 +	int ret;
 +
-+	if (dw_dev->phy_enabled &&
-+	    dw_dev->color_depth == color_depth &&
-+	    dw_dev->hdmi2 == hdmi2 &&
-+	    dw_dev->scrambling == scrambling)
-+		return 0;
++	dev_dbg(&client->dev, "\n");
 +
-+	ret = dw_phy_config(dw_dev, color_depth, hdmi2, scrambling);
++	/* power down LNA */
++	ret = regmap_write_bits(dev->regmap, R0C_AGC11, 0x80, 0x00);
 +	if (ret)
 +		return ret;
 +
-+	phy_reset(dw_dev, 0);
-+	phy_pddq(dw_dev, 0);
-+	dw_dev->phy_enabled = true;
-+	return 0;
++	ret = tda18250_power_control(fe, TDA18250_POWER_STANDBY);
++	return ret;
 +}
 +
-+static void dw_phy_disable(struct dw_phy_dev *dw_dev)
++static const struct dvb_tuner_ops tda18250_ops = {
++	.info = {
++		.name           = "NXP TDA18250",
++		.frequency_min  = 42000000,
++		.frequency_max  = 870000000,
++	},
++
++	.init = tda18250_init,
++	.set_params = tda18250_set_params,
++	.get_if_frequency = tda18250_get_if_frequency,
++	.sleep = tda18250_sleep,
++};
++
++static int tda18250_probe(struct i2c_client *client,
++		const struct i2c_device_id *id)
 +{
-+	if (!dw_dev->phy_enabled)
-+		return;
++	struct tda18250_config *cfg = client->dev.platform_data;
++	struct dvb_frontend *fe = cfg->fe;
++	struct tda18250_dev *dev;
++	int ret;
++	unsigned char chip_id[3];
 +
-+	phy_reset(dw_dev, 1);
-+	phy_pddq(dw_dev, 1);
-+	phy_svsmode(dw_dev, 0);
-+	dw_dev->mpll_status = 0xFFFF;
-+	dw_dev->phy_enabled = false;
-+}
++	/* some registers are always read from HW */
++	static const struct regmap_range tda18250_yes_ranges[] = {
++		regmap_reg_range(R05_POWER1, R0B_IRQ4),
++		regmap_reg_range(R21_IF_AGC, R21_IF_AGC),
++		regmap_reg_range(R2A_MSM1, R2B_MSM2),
++		regmap_reg_range(R2F_RSSI1, R31_IRQ_CTRL),
++	};
 +
-+static long dw_phy_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
-+{
-+	struct dw_phy_dev *dw_dev = to_dw_dev(sd);
-+	struct dw_phy_config_command *ccmd;
-+	struct dw_phy_eq_command *ecmd;
-+	int ret = 0;
++	static const struct regmap_access_table tda18250_volatile_table = {
++		.yes_ranges = tda18250_yes_ranges,
++		.n_yes_ranges = ARRAY_SIZE(tda18250_yes_ranges),
++	};
 +
-+	dev_dbg(dw_dev->dev, "%s: cmd=%d\n", __func__, cmd);
++	static const struct regmap_config tda18250_regmap_config = {
++		.reg_bits = 8,
++		.val_bits = 8,
++		.max_register = TDA18250_NUM_REGS - 1,
++		.volatile_table = &tda18250_volatile_table,
++	};
 +
-+	mutex_lock(&dw_dev->lock);
-+	switch (cmd) {
-+	case DW_PHY_IOCTL_EQ_INIT:
-+		ecmd = (struct dw_phy_eq_command *)arg; 
-+		ecmd->result = dw_phy_eq_init(dw_dev, ecmd->nacq, ecmd->force);
++	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
++	if (!dev) {
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	i2c_set_clientdata(client, dev);
++
++	dev->fe = cfg->fe;
++	dev->loopthrough = cfg->loopthrough;
++	if (cfg->xtal_freq < TDA18250_XTAL_FREQ_MAX) {
++		dev->xtal_freq = cfg->xtal_freq;
++	} else {
++		ret = -EINVAL;
++		dev_err(&client->dev, "xtal_freq invalid=%d", cfg->xtal_freq);
++		goto err_kfree;
++	}
++	dev->if_dvbt_6 = cfg->if_dvbt_6;
++	dev->if_dvbt_7 = cfg->if_dvbt_7;
++	dev->if_dvbt_8 = cfg->if_dvbt_8;
++	dev->if_dvbc_6 = cfg->if_dvbc_6;
++	dev->if_dvbc_8 = cfg->if_dvbc_8;
++	dev->if_atsc = cfg->if_atsc;
++
++	dev->if_frequency = 0;
++	dev->warm = false;
++
++	dev->regmap = devm_regmap_init_i2c(client, &tda18250_regmap_config);
++	if (IS_ERR(dev->regmap)) {
++		ret = PTR_ERR(dev->regmap);
++		goto err_kfree;
++	}
++
++	/* read the three chip ID registers */
++	regmap_bulk_read(dev->regmap, R00_ID1, &chip_id, 3);
++	dev_dbg(&client->dev, "chip_id=%02x:%02x:%02x",
++			chip_id[0], chip_id[1], chip_id[2]);
++
++	switch (chip_id[0]) {
++	case 0xc7:
++		dev->slave = false;
 +		break;
-+	case DW_PHY_IOCTL_CONFIG:
-+		ccmd = (struct dw_phy_config_command *)arg;
-+		ccmd->result = dw_phy_enable(dw_dev, ccmd->color_depth,
-+				ccmd->hdmi2, ccmd->scrambling);
++	case 0x47:
++		dev->slave = true;
 +		break;
 +	default:
-+		ret = -ENOIOCTLCMD;
++		ret = -ENODEV;
++		goto err_kfree;
++	}
++
++	if (chip_id[1] != 0x4a) {
++		ret = -ENODEV;
++		goto err_kfree;
++	}
++
++	switch (chip_id[2]) {
++	case 0x20:
++		dev_info(&client->dev,
++				"NXP TDA18250AHN/%s successfully identified",
++				dev->slave ? "S" : "M");
 +		break;
++	case 0x21:
++		dev_info(&client->dev,
++				"NXP TDA18250BHN/%s successfully identified",
++				dev->slave ? "S" : "M");
++		break;
++	default:
++		ret = -ENODEV;
++		goto err_kfree;
 +	}
-+	mutex_unlock(&dw_dev->lock);
 +
++	fe->tuner_priv = client;
++	memcpy(&fe->ops.tuner_ops, &tda18250_ops,
++			sizeof(struct dvb_tuner_ops));
++
++	/* put the tuner in standby */
++	tda18250_power_control(fe, TDA18250_POWER_STANDBY);
++
++	return 0;
++err_kfree:
++	kfree(dev);
++err:
++	dev_dbg(&client->dev, "failed=%d", ret);
 +	return ret;
 +}
 +
-+static int dw_phy_s_power(struct v4l2_subdev *sd, int on)
++static int tda18250_remove(struct i2c_client *client)
 +{
-+	struct dw_phy_dev *dw_dev = to_dw_dev(sd);
++	struct tda18250_dev *dev = i2c_get_clientdata(client);
++	struct dvb_frontend *fe = dev->fe;
 +
-+	dev_dbg(dw_dev->dev, "%s: on=%d\n", __func__, on);
++	dev_dbg(&client->dev, "\n");
 +
-+	mutex_lock(&dw_dev->lock);
-+	if (!on)
-+		dw_phy_disable(dw_dev);
-+	mutex_unlock(&dw_dev->lock);
++	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
++	fe->tuner_priv = NULL;
++	kfree(dev);
++
 +	return 0;
 +}
 +
-+static const struct v4l2_subdev_core_ops dw_phy_core_ops = {
-+	.ioctl = dw_phy_ioctl,
-+	.s_power = dw_phy_s_power,
++static const struct i2c_device_id tda18250_id_table[] = {
++	{"tda18250", 0},
++	{}
 +};
++MODULE_DEVICE_TABLE(i2c, tda18250_id_table);
 +
-+static const struct v4l2_subdev_ops dw_phy_sd_ops = {
-+	.core = &dw_phy_core_ops,
-+};
-+
-+struct dw_hdmi_phy_data {
-+	const char *name;
-+	unsigned int version;
-+};
-+
-+static const struct dw_hdmi_phy_data dw_phy_e405_data = {
-+	.name = "e405",
-+	.version = 405,
-+};
-+
-+static int dw_phy_probe(struct platform_device *pdev)
-+{
-+	struct dw_phy_pdata *pdata = pdev->dev.platform_data;
-+	const struct dw_hdmi_phy_data *of_data;
-+	struct device *dev = &pdev->dev;
-+	struct dw_phy_dev *dw_dev;
-+	struct v4l2_subdev *sd;
-+	int ret;
-+
-+	dev_dbg(dev, "probe start\n");
-+
-+	dw_dev = devm_kzalloc(dev, sizeof(*dw_dev), GFP_KERNEL);
-+	if (!dw_dev)
-+		return -ENOMEM;
-+
-+	if (!pdata) {
-+		dev_err(dev, "no platform data suplied\n");
-+		return -EINVAL;
-+	}
-+
-+	of_data = of_device_get_match_data(dev);
-+	if (!of_data) {
-+		dev_err(dev, "no valid phy configuration available\n");
-+		return -EINVAL;
-+	}
-+
-+	dw_dev->dev = dev;
-+	dw_dev->config = pdata;
-+	dw_dev->version = of_data->version;
-+	mutex_init(&dw_dev->lock);
-+
-+	dw_dev->clk = devm_clk_get(dev, "cfg");
-+	if (IS_ERR(dw_dev->clk)) {
-+		dev_err(dev, "failed to get cfg clock\n");
-+		return PTR_ERR(dw_dev->clk);
-+	}
-+
-+	ret = clk_prepare_enable(dw_dev->clk);
-+	if (ret) {
-+		dev_err(dev, "failed to enable cfg clock\n");
-+		return ret;
-+	}
-+
-+	dw_dev->cfg_clk = clk_get_rate(dw_dev->clk) / 1000000U;
-+	if (!dw_dev->cfg_clk) {
-+		dev_err(dev, "invalid cfg clock frequency\n");
-+		ret = -EINVAL;
-+		goto err_clk;
-+	}
-+
-+	/* V4L2 initialization */
-+	sd = &dw_dev->sd;
-+	v4l2_subdev_init(sd, &dw_phy_sd_ops);
-+	strlcpy(sd->name, dev_name(dev), sizeof(sd->name));
-+	sd->dev = dev;
-+
-+	/* Force phy disabling */
-+	dw_dev->phy_enabled = true;
-+	dw_phy_disable(dw_dev);
-+
-+	ret = v4l2_async_register_subdev(sd);
-+	if (ret) {
-+		dev_err(dev, "failed to register subdev\n");
-+		goto err_clk;
-+	}
-+
-+	dev_set_drvdata(dev, sd);
-+	dev_dbg(dev, "driver probed (name=%s, cfg clock=%d)\n",
-+			of_data->name, dw_dev->cfg_clk);
-+	return 0;
-+
-+err_clk:
-+	clk_disable_unprepare(dw_dev->clk);
-+	return ret;
-+}
-+
-+static int dw_phy_remove(struct platform_device *pdev)
-+{
-+	struct v4l2_subdev *sd = dev_get_drvdata(&pdev->dev);
-+	struct dw_phy_dev *dw_dev = to_dw_dev(sd);
-+
-+	v4l2_async_unregister_subdev(sd);
-+	clk_disable_unprepare(dw_dev->clk);
-+	return 0;
-+}
-+
-+static const struct of_device_id dw_hdmi_phy_e405_id[] = {
-+	{ .compatible = "snps,dw-hdmi-phy-e405", .data = &dw_phy_e405_data, },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, dw_hdmi_phy_e405_id);
-+
-+static struct platform_driver dw_phy_e405_driver = {
-+	.probe = dw_phy_probe,
-+	.remove = dw_phy_remove,
++static struct i2c_driver tda18250_driver = {
 +	.driver = {
-+		.name = DW_PHY_E405_DRVNAME,
-+		.of_match_table = dw_hdmi_phy_e405_id,
-+	}
++		.name	= "tda18250",
++	},
++	.probe		= tda18250_probe,
++	.remove		= tda18250_remove,
++	.id_table	= tda18250_id_table,
 +};
-+module_platform_driver(dw_phy_e405_driver);
-diff --git a/drivers/media/platform/dwc/dw-hdmi-phy-e405.h b/drivers/media/platform/dwc/dw-hdmi-phy-e405.h
++
++module_i2c_driver(tda18250_driver);
++
++MODULE_DESCRIPTION("NXP TDA18250 silicon tuner driver");
++MODULE_AUTHOR("Olli Salonen <olli.salonen@iki.fi>");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/media/tuners/tda18250.h b/drivers/media/tuners/tda18250.h
 new file mode 100644
-index 0000000..3e6c8da
+index 0000000..fb56906
 --- /dev/null
-+++ b/drivers/media/platform/dwc/dw-hdmi-phy-e405.h
-@@ -0,0 +1,63 @@
++++ b/drivers/media/tuners/tda18250.h
+@@ -0,0 +1,51 @@
 +/*
-+ * Synopsys Designware HDMI PHY E405 driver
++ * NXP TDA18250BHN silicon tuner driver
 + *
-+ * This Synopsys dw-phy-e405 software and associated documentation
-+ * (hereinafter the "Software") is an unsupported proprietary work of
-+ * Synopsys, Inc. unless otherwise expressly agreed to in writing between
-+ * Synopsys and you. The Software IS NOT an item of Licensed Software or a
-+ * Licensed Product under any End User Software License Agreement or
-+ * Agreement for Licensed Products with Synopsys or any supplement thereto.
-+ * Synopsys is a registered trademark of Synopsys, Inc. Other names included
-+ * in the SOFTWARE may be the trademarks of their respective owners.
++ * Copyright (C) 2017 Olli Salonen <olli.salonen@iki.fi>
 + *
-+ * The contents of this file are dual-licensed; you may select either version 2
-+ * of the GNU General Public License (“GPL”) or the MIT license (“MIT”).
++ *    This program is free software; you can redistribute it and/or modify
++ *    it under the terms of the GNU General Public License as published by
++ *    the Free Software Foundation; either version 2 of the License, or
++ *    (at your option) any later version.
 + *
-+ * Copyright (c) 2017 Synopsys, Inc. and/or its affiliates.
-+ *
-+ * THIS SOFTWARE IS PROVIDED "AS IS"  WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-+ * IMPLIED, INCLUDING, BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-+ * FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE
-+ * ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE THE USE OR
-+ * OTHER DEALINGS IN THE SOFTWARE.
++ *    This program is distributed in the hope that it will be useful,
++ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *    GNU General Public License for more details.
 + */
 +
-+#ifndef __DW_HDMI_PHY_E405_H__
-+#define __DW_HDMI_PHY_E405_H__
++#ifndef TDA18250_H
++#define TDA18250_H
 +
-+#define PHY_CMU_CONFIG				0x02
-+#define PHY_SYSTEM_CONFIG			0x03
-+#define PHY_MAINFSM_CTRL			0x05
-+#define PHY_MAINFSM_OVR2			0x08
-+#define PHY_MAINFSM_STATUS1			0x09
-+#define PHY_OVL_PROT_CTRL			0x0D
-+#define PHY_CDR_CTRL_CNT			0x0E
-+#define PHY_CLK_MPLL_STATUS			0x2F
-+#define PHY_CH0_EQ_CTRL1			0x32
-+#define PHY_CH0_EQ_CTRL2			0x33
-+#define PHY_CH0_EQ_STATUS			0x34
-+#define PHY_CH0_EQ_CTRL3			0x3E
-+#define PHY_CH0_EQ_CTRL4			0x3F
-+#define PHY_CH0_EQ_STATUS2			0x40
-+#define PHY_CH0_EQ_STATUS3			0x42
-+#define PHY_CH0_EQ_CTRL6			0x43
-+#define PHY_CH1_EQ_CTRL1			0x52
-+#define PHY_CH1_EQ_CTRL2			0x53
-+#define PHY_CH1_EQ_STATUS			0x54
-+#define PHY_CH1_EQ_CTRL3			0x5E
-+#define PHY_CH1_EQ_CTRL4			0x5F
-+#define PHY_CH1_EQ_STATUS2			0x60
-+#define PHY_CH1_EQ_STATUS3			0x62
-+#define PHY_CH1_EQ_CTRL6			0x63
-+#define PHY_CH2_EQ_CTRL1			0x72
-+#define PHY_CH2_EQ_CTRL2			0x73
-+#define PHY_CH2_EQ_STATUS			0x74
-+#define PHY_CH2_EQ_CTRL3			0x7E
-+#define PHY_CH2_EQ_CTRL4			0x7F
-+#define PHY_CH2_EQ_STATUS2			0x80
-+#define PHY_CH2_EQ_STATUS3			0x82
-+#define PHY_CH2_EQ_CTRL6			0x83
++#include <linux/kconfig.h>
++#include <media/media-device.h>
++#include "dvb_frontend.h"
 +
-+#endif /* __DW_HDMI_PHY_E405_H__ */
-diff --git a/include/media/dwc/dw-hdmi-phy-pdata.h b/include/media/dwc/dw-hdmi-phy-pdata.h
++#define TDA18250_XTAL_FREQ_16MHZ 0
++#define TDA18250_XTAL_FREQ_24MHZ 1
++#define TDA18250_XTAL_FREQ_25MHZ 2
++#define TDA18250_XTAL_FREQ_27MHZ 3
++#define TDA18250_XTAL_FREQ_30MHZ 4
++#define TDA18250_XTAL_FREQ_MAX 5
++
++struct tda18250_config {
++	u16 if_dvbt_6;
++	u16 if_dvbt_7;
++	u16 if_dvbt_8;
++	u16 if_dvbc_6;
++	u16 if_dvbc_8;
++	u16 if_atsc;
++	u8 xtal_freq;
++	bool loopthrough;
++
++	/*
++	 * frontend
++	 */
++	struct dvb_frontend *fe;
++
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_device *mdev;
++#endif
++};
++
++#endif
+diff --git a/drivers/media/tuners/tda18250_priv.h b/drivers/media/tuners/tda18250_priv.h
 new file mode 100644
-index 0000000..e533eec
+index 0000000..4a6f801
 --- /dev/null
-+++ b/include/media/dwc/dw-hdmi-phy-pdata.h
-@@ -0,0 +1,128 @@
++++ b/drivers/media/tuners/tda18250_priv.h
+@@ -0,0 +1,145 @@
 +/*
-+ * Synopsys Designware HDMI PHY platform data
++ * NXP TDA18250BHN silicon tuner driver
 + *
-+ * This Synopsys dw-hdmi-phy software and associated documentation
-+ * (hereinafter the "Software") is an unsupported proprietary work of
-+ * Synopsys, Inc. unless otherwise expressly agreed to in writing between
-+ * Synopsys and you. The Software IS NOT an item of Licensed Software or a
-+ * Licensed Product under any End User Software License Agreement or
-+ * Agreement for Licensed Products with Synopsys or any supplement thereto.
-+ * Synopsys is a registered trademark of Synopsys, Inc. Other names included
-+ * in the SOFTWARE may be the trademarks of their respective owners.
++ * Copyright (C) 2017 Olli Salonen <olli.salonen@iki.fi>
 + *
-+ * The contents of this file are dual-licensed; you may select either version 2
-+ * of the GNU General Public License (“GPL”) or the MIT license (“MIT”).
++ *    This program is free software; you can redistribute it and/or modify
++ *    it under the terms of the GNU General Public License as published by
++ *    the Free Software Foundation; either version 2 of the License, or
++ *    (at your option) any later version.
 + *
-+ * Copyright (c) 2017 Synopsys, Inc. and/or its affiliates.
-+ *
-+ * THIS SOFTWARE IS PROVIDED "AS IS"  WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-+ * IMPLIED, INCLUDING, BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-+ * FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE
-+ * ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE THE USE OR
-+ * OTHER DEALINGS IN THE SOFTWARE.
++ *    This program is distributed in the hope that it will be useful,
++ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *    GNU General Public License for more details.
 + */
 +
-+#ifndef __DW_HDMI_PHY_PDATA_H__
-+#define __DW_HDMI_PHY_PDATA_H__
++#ifndef TDA18250_PRIV_H
++#define TDA18250_PRIV_H
 +
-+#define DW_PHY_E405_DRVNAME	"dw-hdmi-phy-e405"
++#include "tda18250.h"
 +
-+#define DW_PHY_IOCTL_EQ_INIT		_IOW('R',1,int)
-+#define DW_PHY_IOCTL_CONFIG		_IOW('R',2,int)
++#define R00_ID1		0x00	/* ID byte 1 */
++#define R01_ID2		0x01	/* ID byte 2 */
++#define R02_ID3		0x02	/* ID byte 3 */
++#define R03_THERMO1	0x03	/* Thermo byte 1 */
++#define R04_THERMO2	0x04	/* Thermo byte 2 */
++#define R05_POWER1	0x05	/* Power byte 1 */
++#define R06_POWER2	0x06	/* Power byte 2 */
++#define R07_GPIO	0x07	/* GPIO */
++#define R08_IRQ1	0x08	/* IRQ */
++#define R09_IRQ2	0x09	/* IRQ */
++#define R0A_IRQ3	0x0a	/* IRQ */
++#define R0B_IRQ4	0x0b	/* IRQ */
++#define R0C_AGC11	0x0c	/* AGC1 byte 1 */
++#define R0D_AGC12	0x0d	/* AGC1 byte 2 */
++#define R0E_AGC13	0x0e	/* AGC1 byte 3 */
++#define R0F_AGC14	0x0f	/* AGC1 byte 4 */
++#define R10_LT1		0x10	/* LT byte 1 */
++#define R11_LT2		0x11	/* LT byte 2 */
++#define R12_AGC21	0x12	/* AGC2 byte 1 */
++#define R13_AGC22	0x13	/* AGC2 byte 2 */
++#define R14_AGC23	0x14	/* AGC2 byte 3 */
++#define R15_AGC24	0x15	/* AGC2 byte 4 */
++#define R16_AGC25	0x16	/* AGC2 byte 5 */
++#define R17_AGC31	0x17	/* AGC3 byte 1 */
++#define R18_AGC32	0x18	/* AGC3 byte 2 */
++#define R19_AGC33	0x19	/* AGC3 byte 3 */
++#define R1A_AGCK	0x1a
++#define R1B_GAIN1	0x1b
++#define R1C_GAIN2	0x1c
++#define R1D_GAIN3	0x1d
++#define R1E_WI_FI	0x1e	/* Wireless Filter */
++#define R1F_RF_BPF	0x1f	/* RF Band Pass Filter */
++#define R20_IR_MIX	0x20	/* IR Mixer */
++#define R21_IF_AGC	0x21
++#define R22_IF1		0x22	/* IF byte 1 */
++#define R23_IF2		0x23	/* IF byte 2 */
++#define R24_IF3		0x24	/* IF byte 3 */
++#define R25_REF		0x25	/* reference byte */
++#define R26_IF		0x26	/* IF frequency */
++#define R27_RF1		0x27	/* RF frequency byte 1 */
++#define R28_RF2		0x28	/* RF frequency byte 2 */
++#define R29_RF3		0x29	/* RF frequency byte 3 */
++#define R2A_MSM1	0x2a
++#define R2B_MSM2	0x2b
++#define R2C_PS1		0x2c	/* power saving mode byte 1 */
++#define R2D_PS2		0x2d	/* power saving mode byte 2 */
++#define R2E_PS3		0x2e	/* power saving mode byte 3 */
++#define R2F_RSSI1	0x2f
++#define R30_RSSI2	0x30
++#define R31_IRQ_CTRL	0x31
++#define R32_DUMMY	0x32
++#define R33_TEST	0x33
++#define R34_MD1		0x34
++#define R35_SD1		0x35
++#define R36_SD2		0x36
++#define R37_SD3		0x37
++#define R38_SD4		0x38
++#define R39_SD5		0x39
++#define R3A_SD_TEST	0x3a
++#define R3B_REGU	0x3b
++#define R3C_RCCAL1	0x3c
++#define R3D_RCCAL2	0x3d
++#define R3E_IRCAL1	0x3e
++#define R3F_IRCAL2	0x3f
++#define R40_IRCAL3	0x40
++#define R41_IRCAL4	0x41
++#define R42_IRCAL5	0x42
++#define R43_PD1		0x43	/* power down byte 1 */
++#define R44_PD2		0x44	/* power down byte 2 */
++#define R45_PD		0x45	/* power down */
++#define R46_CPUMP	0x46	/* charge pump */
++#define R47_LNAPOL	0x47	/* LNA polar casc */
++#define R48_SMOOTH1	0x48	/* smooth test byte 1 */
++#define R49_SMOOTH2	0x49	/* smooth test byte 2 */
++#define R4A_SMOOTH3	0x4a	/* smooth test byte 3 */
++#define R4B_XTALOSC1	0x4b
++#define R4C_XTALOSC2	0x4c
++#define R4D_XTALFLX1	0x4d
++#define R4E_XTALFLX2	0x4e
++#define R4F_XTALFLX3	0x4f
++#define R50_XTALFLX4	0x50
++#define R51_XTALFLX5	0x51
++#define R52_IRLOOP0	0x52
++#define R53_IRLOOP1	0x53
++#define R54_IRLOOP2	0x54
++#define R55_IRLOOP3	0x55
++#define R56_IRLOOP4	0x56
++#define R57_PLL_LOG	0x57
++#define R58_AGC2_UP1	0x58
++#define R59_AGC2_UP2	0x59
++#define R5A_H3H5	0x5a
++#define R5B_AGC_AUTO	0x5b
++#define R5C_AGC_DEBUG	0x5c
 +
-+/**
-+ * struct dw_phy_eq_command - Command arguments for HDMI PHY equalizer
-+ * 	algorithm.
-+ *
-+ * @nacq: Number of acquisitions to get.
-+ *
-+ * @force: Force equalizer algorithm even if the MPLL status didn't change
-+ * from previous run.
-+ *
-+ * @result: Result from the equalizer algorithm. Shall be zero if equalizer
-+ * ran with success or didn't run because the video mode does not need
-+ * equalizer (for low clock values).
-+ */
-+struct dw_phy_eq_command {
-+	u16 nacq;
-+	bool force;
-+	int result;
++#define TDA18250_NUM_REGS 93
++
++#define TDA18250_POWER_STANDBY 0
++#define TDA18250_POWER_NORMAL 1
++
++#define TDA18250_IRQ_CAL     0x81
++#define TDA18250_IRQ_HW_INIT 0x82
++#define TDA18250_IRQ_TUNE    0x88
++
++struct tda18250_dev {
++	struct mutex i2c_mutex;
++	struct dvb_frontend *fe;
++	struct i2c_adapter *i2c;
++	struct regmap *regmap;
++	u8 xtal_freq;
++	/* IF in kHz */
++	u16 if_dvbt_6;
++	u16 if_dvbt_7;
++	u16 if_dvbt_8;
++	u16 if_dvbc_6;
++	u16 if_dvbc_8;
++	u16 if_atsc;
++	u16 if_frequency;
++	bool slave;
++	bool loopthrough;
++	bool warm;
++	u8 regs[TDA18250_NUM_REGS];
 +};
 +
-+/**
-+ * struct dw_phy_config_command - Command arguments for HDMI PHY configuration
-+ * function.
-+ *
-+ * @color_depth: Color depth of the video mode being received.
-+ *
-+ * @hdmi2: Must be set to true if the video mode being received has a data
-+ * rate above 3.4Gbps (generally HDMI 2.0 video modes, like 4k@60Hz).
-+ *
-+ * @scrambling: Must be set to true if scrambling is currently enabled.
-+ * Scrambling is enabled by source when SCDC scrambling_en field is set to 1.
-+ *
-+ * @result: Result from the configuration function. Shall be zero if phy was
-+ * configured with success.
-+ */
-+struct dw_phy_config_command {
-+	unsigned char color_depth;
-+	bool hdmi2;
-+	bool scrambling;
-+	int result;
-+};
-+
-+/**
-+ * struct dw_phy_funcs - Set of callbacks used to communicate between phy
-+ * 	and hdmi controller. Controller must correctly fill these callbacks
-+ * 	before probbing the phy driver.
-+ *
-+ * @write: write callback. Write value 'val' into address 'addr' of phy.
-+ *
-+ * @read: read callback. Read address 'addr' and return the value.
-+ *
-+ * @reset: reset callback. Activate phy reset. Active high.
-+ *
-+ * @pddq: pddq callback. Activate phy configuration mode. Active high.
-+ *
-+ * @svsmode: svsmode callback. Activate phy retention mode. Active low.
-+ *
-+ * @zcal_reset: zcal reset callback. Restart the impedance calibration
-+ * procedure. Active high. This is only used in prototyping and not in real
-+ * ASIC. Callback shall be empty (but non NULL) in ASIC cases.
-+ *
-+ * @zcal_done: zcal done callback. Return the current status of impedance
-+ * calibration procedure. This is only used in prototyping and not in real
-+ * ASIC. Shall return always true in ASIC cases.
-+ *
-+ * @tmds_valid: TMDS valid callback. Return the current status of TMDS signal
-+ * that comes from phy and feeds controller. This is read from a controller
-+ * register.
-+ */
-+struct dw_phy_funcs {
-+	void (*write) (void *arg, u16 val, u16 addr);
-+	u16 (*read) (void *arg, u16 addr);
-+	void (*reset) (void *arg, int enable);
-+	void (*pddq) (void *arg, int enable);
-+	void (*svsmode) (void *arg, int enable);
-+	void (*zcal_reset) (void *arg);
-+	bool (*zcal_done) (void *arg);
-+	bool (*tmds_valid) (void *arg);
-+};
-+
-+/**
-+ * struct dw_phy_pdata - Platform data definition for Synopsys HDMI PHY.
-+ *
-+ * @funcs: set of callbacks that must be correctly filled and supplied to phy.
-+ * See @dw_phy_funcs.
-+ *
-+ * @funcs_arg: parameter that is supplied to callbacks along with the function
-+ * parameters.
-+ */
-+struct dw_phy_pdata {
-+	const struct dw_phy_funcs *funcs;
-+	void *funcs_arg;
-+};
-+
-+#endif /* __DW_HDMI_PHY_PDATA_H__ */
++#endif
 -- 
-1.9.1
+2.7.4
