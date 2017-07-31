@@ -1,122 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:37982 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751658AbdGZPEC (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42643 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751735AbdGaN5O (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Jul 2017 11:04:02 -0400
-Date: Wed, 26 Jul 2017 16:03:56 +0100
-From: Rui Miguel Silva <rmfrfs@gmail.com>
-To: Johan Hovold <johan@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        jacek.anaszewski@gmail.com, laurent.pinchart@ideasonboard.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH 1/2] staging: greybus: light: Don't leak memory for no
- gain
-Message-ID: <20170726150356.GA21301@arch-late.localdomain>
-References: <20170718184107.10598-1-sakari.ailus@linux.intel.com>
- <20170718184107.10598-2-sakari.ailus@linux.intel.com>
- <20170725123031.GB27516@localhost>
+        Mon, 31 Jul 2017 09:57:14 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+Subject: Re: [PATCH 1/6 v5]  UVC: fix .queue_setup() to check the number of planes
+Date: Mon, 31 Jul 2017 16:57:23 +0300
+Message-ID: <1773002.W70q46i2MF@avalon>
+In-Reply-To: <1501245205-15802-2-git-send-email-g.liakhovetski@gmx.de>
+References: <1501245205-15802-1-git-send-email-g.liakhovetski@gmx.de> <1501245205-15802-2-git-send-email-g.liakhovetski@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170725123031.GB27516@localhost>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-On Tue, Jul 25, 2017 at 02:30:31PM +0200, Johan Hovold wrote:
-> [ +CC: Rui and Greg ]
+Hi Guennadi,
 
-Thanks Johan. I only got this because of you.
+Thank you for the patch.
 
+On Friday 28 Jul 2017 14:33:20 Guennadi Liakhovetski wrote:
+> According to documentation of struct vb2_ops the .queue_setup() callback
+> should return an error if the number of planes parameter contains an
+> invalid value on input. Fix this instead of ignoring the value.
 > 
-> On Tue, Jul 18, 2017 at 09:41:06PM +0300, Sakari Ailus wrote:
-> > Memory for struct v4l2_flash_config is allocated in
-> > gb_lights_light_v4l2_register() for no gain and yet the allocated memory is
-> > leaked; the struct isn't used outside the function. Fix this.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  drivers/staging/greybus/light.c | 17 ++++++-----------
-> >  1 file changed, 6 insertions(+), 11 deletions(-)
-> > 
-> > diff --git a/drivers/staging/greybus/light.c b/drivers/staging/greybus/light.c
-> > index 129ceed39829..b25c117ec41a 100644
-> > --- a/drivers/staging/greybus/light.c
-> > +++ b/drivers/staging/greybus/light.c
-> > @@ -534,25 +534,21 @@ static int gb_lights_light_v4l2_register(struct gb_light *light)
-> >  {
-> >  	struct gb_connection *connection = get_conn_from_light(light);
-> >  	struct device *dev = &connection->bundle->dev;
-> > -	struct v4l2_flash_config *sd_cfg;
-> > +	struct v4l2_flash_config sd_cfg = { 0 };
-> >  	struct led_classdev_flash *fled;
-> >  	struct led_classdev *iled = NULL;
-> >  	struct gb_channel *channel_torch, *channel_ind, *channel_flash;
-> >  	int ret = 0;
-> >  
-> > -	sd_cfg = kcalloc(1, sizeof(*sd_cfg), GFP_KERNEL);
-> > -	if (!sd_cfg)
-> > -		return -ENOMEM;
-> > -
-> >  	channel_torch = get_channel_from_mode(light, GB_CHANNEL_MODE_TORCH);
-> >  	if (channel_torch)
-> >  		__gb_lights_channel_v4l2_config(&channel_torch->intensity_uA,
-> > -						&sd_cfg->torch_intensity);
-> > +						&sd_cfg.torch_intensity);
-> >  
-> >  	channel_ind = get_channel_from_mode(light, GB_CHANNEL_MODE_INDICATOR);
-> >  	if (channel_ind) {
-> >  		__gb_lights_channel_v4l2_config(&channel_ind->intensity_uA,
-> > -						&sd_cfg->indicator_intensity);
-> > +						&sd_cfg.indicator_intensity);
-> >  		iled = &channel_ind->fled.led_cdev;
-> >  	}
-> >  
-> > @@ -561,17 +557,17 @@ static int gb_lights_light_v4l2_register(struct gb_light *light)
-> >  
-> >  	fled = &channel_flash->fled;
-> >  
-> > -	snprintf(sd_cfg->dev_name, sizeof(sd_cfg->dev_name), "%s", light->name);
-> > +	snprintf(sd_cfg.dev_name, sizeof(sd_cfg.dev_name), "%s", light->name);
-> >  
-> >  	/* Set the possible values to faults, in our case all faults */
-> > -	sd_cfg->flash_faults = LED_FAULT_OVER_VOLTAGE | LED_FAULT_TIMEOUT |
-> > +	sd_cfg.flash_faults = LED_FAULT_OVER_VOLTAGE | LED_FAULT_TIMEOUT |
-> >  		LED_FAULT_OVER_TEMPERATURE | LED_FAULT_SHORT_CIRCUIT |
-> >  		LED_FAULT_OVER_CURRENT | LED_FAULT_INDICATOR |
-> >  		LED_FAULT_UNDER_VOLTAGE | LED_FAULT_INPUT_VOLTAGE |
-> >  		LED_FAULT_LED_OVER_TEMPERATURE;
-> >  
-> >  	light->v4l2_flash = v4l2_flash_init(dev, NULL, fled, iled,
-> > -					    &v4l2_flash_ops, sd_cfg);
-> > +					    &v4l2_flash_ops, &sd_cfg);
-> >  	if (IS_ERR_OR_NULL(light->v4l2_flash)) {
-> >  		ret = PTR_ERR(light->v4l2_flash);
-> >  		goto out_free;
-> > @@ -580,7 +576,6 @@ static int gb_lights_light_v4l2_register(struct gb_light *light)
-> >  	return ret;
-> >  
-> >  out_free:
-> > -	kfree(sd_cfg);
+> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> ---
+>  drivers/media/usb/uvc/uvc_queue.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> This looks a bit lazy, even if I just noticed that you repurpose this
-> error label (without renaming it) in you second patch.
+> diff --git a/drivers/media/usb/uvc/uvc_queue.c
+> b/drivers/media/usb/uvc/uvc_queue.c index aa21997..371a4ad 100644
+> --- a/drivers/media/usb/uvc/uvc_queue.c
+> +++ b/drivers/media/usb/uvc/uvc_queue.c
+> @@ -84,7 +84,7 @@ static int uvc_queue_setup(struct vb2_queue *vq,
 > 
-> 
-> >  	return ret;
-> >  }
-> 
-> And while it's fine to take this through linux-media, it would still be
-> good to keep the maintainers on CC.
+>  	/* Make sure the image size is large enough. */
 
-Sakari, if you could resend the all series to the right lists and
-maintainers for proper review that would be great.
+Nitpicking, I'd update the comment as well.
 
-I did not get 0/2 and 2/2 patches.
+        /*
+	 * When called with plane sizes, validate them. The driver supports
+	 * single planar formats only, and requires buffers to be large enough
+	 * to store a complete frame.
+	 */
 
----
-Cheers,
-	Rui
+>  	if (*nplanes)
+> -		return sizes[0] < size ? -EINVAL : 0;
+> +		return sizes[0] < size || *nplanes != 1 ? -EINVAL : 0;
+
+Nitpicking again, I'd test *nplanes first, as it conditions which entries of 
+the sizes array are valid. If course the if (*nplanes) test ensures that entry 
+0 is valid, so it won't make a difference at runtime, it's just about code 
+readability.
+
+The patch looks good otherwise,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>  	*nplanes = 1;
+>  	sizes[0] = size;
+>  	return 0;
+
+-- 
+Regards,
+
+Laurent Pinchart
