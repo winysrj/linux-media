@@ -1,70 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60150 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752858AbdGLUCG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Jul 2017 16:02:06 -0400
-Subject: Re: [PATCH v2 0/7] [PATCH v2 0/7] Add support of OV9655 camera
-To: Hugues Fruchet <hugues.fruchet@st.com>
-Cc: "H. Nikolaus Schaller" <hns@goldelico.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-References: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com>
-From: Sylwester Nawrocki <snawrocki@kernel.org>
-Message-ID: <8157da84-1484-8375-1f2b-9831973915b4@kernel.org>
-Date: Wed, 12 Jul 2017 22:01:59 +0200
-MIME-Version: 1.0
-In-Reply-To: <1499073368-31905-1-git-send-email-hugues.fruchet@st.com>
-Content-Type: text/plain; charset=utf-8
+Received: from mail-cys01nam02on0066.outbound.protection.outlook.com ([104.47.37.66]:3616
+        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752348AbdGaPjf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 31 Jul 2017 11:39:35 -0400
+From: "Deucher, Alexander" <Alexander.Deucher@amd.com>
+To: =?utf-8?B?J0NocmlzdGlhbiBLw7ZuaWcn?= <deathsimple@vodafone.de>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        "Zhou, David(ChunMing)" <David1.Zhou@amd.com>
+Subject: RE: [PATCH] dma-buf: fix reservation_object_wait_timeout_rcu to wait
+ correctly v2
+Date: Mon, 31 Jul 2017 15:39:29 +0000
+Message-ID: <BN6PR12MB1652632DCFB7F2E9DEEDD6EBF7B20@BN6PR12MB1652.namprd12.prod.outlook.com>
+References: <1500989710-12982-1-git-send-email-deathsimple@vodafone.de>
+ <abc22720-7c84-05a7-a71f-f04453bd4df4@vodafone.de>
+In-Reply-To: <abc22720-7c84-05a7-a71f-f04453bd4df4@vodafone.de>
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hugues,
-
-On 07/03/2017 11:16 AM, Hugues Fruchet wrote:
-> This patchset enables OV9655 camera support.
-> 
-> OV9655 support has been tested using STM32F4DIS-CAM extension board
-> plugged on connector P1 of STM32F746G-DISCO board.
-> Due to lack of OV9650/52 hardware support, the modified related code
-> could not have been checked for non-regression.
-> 
-> First patches upgrade current support of OV9650/52 to prepare then
-> introduction of OV9655 variant patch.
-> Because of OV9655 register set slightly different from OV9650/9652,
-> not all of the driver features are supported (controls). Supported
-> resolutions are limited to VGA, QVGA, QQVGA.
-> Supported format is limited to RGB565.
-> Controls are limited to color bar test pattern for test purpose.
-
-I appreciate your efforts towards making a common driver but IMO it would be 
-better to create a separate driver for the OV9655 sensor.  The original driver 
-is 1576 lines of code, your patch set adds half of that (816).  There are
-significant differences in the feature set of both sensors, there are 
-differences in the register layout.  I would go for a separate driver, we  
-would then have code easier to follow and wouldn't need to worry about possible
-regressions.  I'm afraid I have lost the camera module and won't be able 
-to test the patch set against regressions.
-
-IMHO from maintenance POV it's better to make a separate driver. In the end 
-of the day we wouldn't be adding much more code than it is being done now.
-
->   .../devicetree/bindings/media/i2c/ov965x.txt       |  45 ++
->   drivers/media/i2c/Kconfig                          |   6 +-
->   drivers/media/i2c/ov9650.c                         | 816 +++++++++++++++++----
->   3 files changed, 736 insertions(+), 131 deletions(-)
->   create mode 100644 Documentation/devicetree/bindings/media/i2c/ov965x.txt
-
---
-Thanks,
-Sylwester
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBDaHJpc3RpYW4gS8O2bmlnIFtt
+YWlsdG86ZGVhdGhzaW1wbGVAdm9kYWZvbmUuZGVdDQo+IFNlbnQ6IE1vbmRheSwgSnVseSAzMSwg
+MjAxNyAxMDoxMyBBTQ0KPiBUbzogbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnOyBkcmktZGV2
+ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnOyBsaW5hcm8tDQo+IG1tLXNpZ0BsaXN0cy5saW5hcm8u
+b3JnOyBaaG91LCBEYXZpZChDaHVuTWluZyk7IERldWNoZXIsIEFsZXhhbmRlcg0KPiBTdWJqZWN0
+OiBSZTogW1BBVENIXSBkbWEtYnVmOiBmaXggcmVzZXJ2YXRpb25fb2JqZWN0X3dhaXRfdGltZW91
+dF9yY3UgdG8NCj4gd2FpdCBjb3JyZWN0bHkgdjINCj4gDQo+IFBpbmcsIHdoYXQgZG8geW91IGd1
+eXMgdGhpbmsgb2YgdGhhdD8NCg0KU2VlbXMgcmVhc29uYWJsZSB0byBtZS4NClJldmlld2VkLWJ5
+OiBBbGV4IERldWNoZXIgPGFsZXhhbmRlci5kZXVjaGVyQGFtZC5jb20+DQoNCj4gDQo+IEFtIDI1
+LjA3LjIwMTcgdW0gMTU6MzUgc2NocmllYiBDaHJpc3RpYW4gS8O2bmlnOg0KPiA+IEZyb206IENo
+cmlzdGlhbiBLw7ZuaWcgPGNocmlzdGlhbi5rb2VuaWdAYW1kLmNvbT4NCj4gPg0KPiA+IFdpdGgg
+aGFyZHdhcmUgcmVzZXRzIGluIG1pbmQgaXQgaXMgcG9zc2libGUgdGhhdCBhbGwgc2hhcmVkIGZl
+bmNlcyBhcmUNCj4gPiBzaWduYWxlZCwgYnV0IHRoZSBleGx1c2l2ZSBpc24ndC4gRml4IHdhaXRp
+bmcgZm9yIGV2ZXJ5dGhpbmcgaW4gdGhpcyBzaXR1YXRpb24uDQo+ID4NCj4gPiB2MjogbWFrZSBz
+dXJlIHdlIGFsd2F5cyB3YWl0IGZvciB0aGUgZXhjbHVzaXZlIGZlbmNlDQo+ID4NCj4gPiBTaWdu
+ZWQtb2ZmLWJ5OiBDaHJpc3RpYW4gS8O2bmlnIDxjaHJpc3RpYW4ua29lbmlnQGFtZC5jb20+DQo+
+ID4gLS0tDQo+ID4gICBkcml2ZXJzL2RtYS1idWYvcmVzZXJ2YXRpb24uYyB8IDMzICsrKysrKysr
+KysrKysrKy0tLS0tLS0tLS0tLS0tLS0tLQ0KPiA+ICAgMSBmaWxlIGNoYW5nZWQsIDE1IGluc2Vy
+dGlvbnMoKyksIDE4IGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMv
+ZG1hLWJ1Zi9yZXNlcnZhdGlvbi5jIGIvZHJpdmVycy9kbWEtYnVmL3Jlc2VydmF0aW9uLmMNCj4g
+PiBpbmRleCAzOTM4MTdlLi45ZDQzMTZkIDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvZG1hLWJ1
+Zi9yZXNlcnZhdGlvbi5jDQo+ID4gKysrIGIvZHJpdmVycy9kbWEtYnVmL3Jlc2VydmF0aW9uLmMN
+Cj4gPiBAQCAtMzczLDEyICszNzMsMjUgQEAgbG9uZyByZXNlcnZhdGlvbl9vYmplY3Rfd2FpdF90
+aW1lb3V0X3JjdShzdHJ1Y3QNCj4gcmVzZXJ2YXRpb25fb2JqZWN0ICpvYmosDQo+ID4gICAJbG9u
+ZyByZXQgPSB0aW1lb3V0ID8gdGltZW91dCA6IDE7DQo+ID4NCj4gPiAgIHJldHJ5Og0KPiA+IC0J
+ZmVuY2UgPSBOVUxMOw0KPiA+ICAgCXNoYXJlZF9jb3VudCA9IDA7DQo+ID4gICAJc2VxID0gcmVh
+ZF9zZXFjb3VudF9iZWdpbigmb2JqLT5zZXEpOw0KPiA+ICAgCXJjdV9yZWFkX2xvY2soKTsNCj4g
+Pg0KPiA+IC0JaWYgKHdhaXRfYWxsKSB7DQo+ID4gKwlmZW5jZSA9IHJjdV9kZXJlZmVyZW5jZShv
+YmotPmZlbmNlX2V4Y2wpOw0KPiA+ICsJaWYgKGZlbmNlICYmICF0ZXN0X2JpdChETUFfRkVOQ0Vf
+RkxBR19TSUdOQUxFRF9CSVQsICZmZW5jZS0NCj4gPmZsYWdzKSkgew0KPiA+ICsJCWlmICghZG1h
+X2ZlbmNlX2dldF9yY3UoZmVuY2UpKQ0KPiA+ICsJCQlnb3RvIHVubG9ja19yZXRyeTsNCj4gPiAr
+DQo+ID4gKwkJaWYgKGRtYV9mZW5jZV9pc19zaWduYWxlZChmZW5jZSkpIHsNCj4gPiArCQkJZG1h
+X2ZlbmNlX3B1dChmZW5jZSk7DQo+ID4gKwkJCWZlbmNlID0gTlVMTDsNCj4gPiArCQl9DQo+ID4g
+Kw0KPiA+ICsJfSBlbHNlIHsNCj4gPiArCQlmZW5jZSA9IE5VTEw7DQo+ID4gKwl9DQo+ID4gKw0K
+PiA+ICsJaWYgKCFmZW5jZSAmJiB3YWl0X2FsbCkgew0KPiA+ICAgCQlzdHJ1Y3QgcmVzZXJ2YXRp
+b25fb2JqZWN0X2xpc3QgKmZvYmogPQ0KPiA+ICAgCQkJCQkJcmN1X2RlcmVmZXJlbmNlKG9iai0N
+Cj4gPmZlbmNlKTsNCj4gPg0KPiA+IEBAIC00MDUsMjIgKzQxOCw2IEBAIGxvbmcgcmVzZXJ2YXRp
+b25fb2JqZWN0X3dhaXRfdGltZW91dF9yY3Uoc3RydWN0DQo+IHJlc2VydmF0aW9uX29iamVjdCAq
+b2JqLA0KPiA+ICAgCQl9DQo+ID4gICAJfQ0KPiA+DQo+ID4gLQlpZiAoIXNoYXJlZF9jb3VudCkg
+ew0KPiA+IC0JCXN0cnVjdCBkbWFfZmVuY2UgKmZlbmNlX2V4Y2wgPSByY3VfZGVyZWZlcmVuY2Uo
+b2JqLQ0KPiA+ZmVuY2VfZXhjbCk7DQo+ID4gLQ0KPiA+IC0JCWlmIChmZW5jZV9leGNsICYmDQo+
+ID4gLQkJICAgICF0ZXN0X2JpdChETUFfRkVOQ0VfRkxBR19TSUdOQUxFRF9CSVQsDQo+ID4gLQkJ
+CSAgICAgICZmZW5jZV9leGNsLT5mbGFncykpIHsNCj4gPiAtCQkJaWYgKCFkbWFfZmVuY2VfZ2V0
+X3JjdShmZW5jZV9leGNsKSkNCj4gPiAtCQkJCWdvdG8gdW5sb2NrX3JldHJ5Ow0KPiA+IC0NCj4g
+PiAtCQkJaWYgKGRtYV9mZW5jZV9pc19zaWduYWxlZChmZW5jZV9leGNsKSkNCj4gPiAtCQkJCWRt
+YV9mZW5jZV9wdXQoZmVuY2VfZXhjbCk7DQo+ID4gLQkJCWVsc2UNCj4gPiAtCQkJCWZlbmNlID0g
+ZmVuY2VfZXhjbDsNCj4gPiAtCQl9DQo+ID4gLQl9DQo+ID4gLQ0KPiA+ICAgCXJjdV9yZWFkX3Vu
+bG9jaygpOw0KPiA+ICAgCWlmIChmZW5jZSkgew0KPiA+ICAgCQlpZiAocmVhZF9zZXFjb3VudF9y
+ZXRyeSgmb2JqLT5zZXEsIHNlcSkpIHsNCj4gDQoNCg==
