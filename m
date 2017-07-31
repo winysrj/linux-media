@@ -1,85 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58120 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751392AbdGRPvb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Jul 2017 11:51:31 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH] v4l: omap3isp: Get the parallel bus type from DT
-Date: Tue, 18 Jul 2017 18:51:35 +0300
-Message-Id: <20170718155135.29632-1-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-db5eur01on0117.outbound.protection.outlook.com ([104.47.2.117]:27101
+        "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752306AbdGaNjK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 31 Jul 2017 09:39:10 -0400
+From: Peter Rosin <peda@axentia.se>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Subject: [PATCH 2/3] [media] cx231xx: drop return value of cx231xx_i2c_unregister
+Date: Mon, 31 Jul 2017 15:38:51 +0200
+Message-Id: <20170731133852.8013-3-peda@axentia.se>
+In-Reply-To: <20170731133852.8013-1-peda@axentia.se>
+References: <20170731133852.8013-1-peda@axentia.se>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The OMAP3 ISP supports both external and embedded BT.656 synchronization
-for parallel buses. It currently gets the bus type information from the
-source subdev through the .g_mbus_config() operation, but should instead
-get it from DT as that's the authoritative source of bus configuration
-information.
+Noone cares anyway.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- drivers/media/platform/omap3isp/isp.c      | 1 +
- drivers/media/platform/omap3isp/ispccdc.c  | 8 +-------
- drivers/media/platform/omap3isp/omap3isp.h | 2 ++
- 3 files changed, 4 insertions(+), 7 deletions(-)
+ drivers/media/usb/cx231xx/cx231xx-i2c.c | 3 +--
+ drivers/media/usb/cx231xx/cx231xx.h     | 2 +-
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 9df64c189883..5ddf3396b7da 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2039,6 +2039,7 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
- 			!!(vep.bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
- 		buscfg->bus.parallel.data_pol =
- 			!!(vep.bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
-+		buscfg->bus.parallel.bt656 = vep.bus_type == V4L2_MBUS_BT656;
- 		break;
- 
- 	case ISP_OF_PHY_CSIPHY1:
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index 7207558d722c..4947876cfadf 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -1139,15 +1139,9 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	pad = media_entity_remote_pad(&ccdc->pads[CCDC_PAD_SINK]);
- 	sensor = media_entity_to_v4l2_subdev(pad->entity);
- 	if (ccdc->input == CCDC_INPUT_PARALLEL) {
--		struct v4l2_mbus_config cfg;
--		int ret;
--
--		ret = v4l2_subdev_call(sensor, video, g_mbus_config, &cfg);
--		if (!ret)
--			ccdc->bt656 = cfg.type == V4L2_MBUS_BT656;
--
- 		parcfg = &((struct isp_bus_cfg *)sensor->host_priv)
- 			->bus.parallel;
-+		ccdc->bt656 = parcfg->bt656;
- 	}
- 
- 	/* CCDC_PAD_SINK */
-diff --git a/drivers/media/platform/omap3isp/omap3isp.h b/drivers/media/platform/omap3isp/omap3isp.h
-index 443e8f7673e2..48508d452556 100644
---- a/drivers/media/platform/omap3isp/omap3isp.h
-+++ b/drivers/media/platform/omap3isp/omap3isp.h
-@@ -46,6 +46,7 @@ enum isp_interface_type {
-  *		0 - Positive, 1 - Negative
-  * @data_pol: Data polarity
-  *		0 - Normal, 1 - One's complement
-+ * @bt656: Data contain BT.656 embedded synchronization
+diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+index 3a0c45ffd40f..3e49517cb5e0 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
++++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+@@ -551,10 +551,9 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
+  * cx231xx_i2c_unregister()
+  * unregister i2c_bus
   */
- struct isp_parallel_cfg {
- 	unsigned int data_lane_shift:3;
-@@ -54,6 +55,7 @@ struct isp_parallel_cfg {
- 	unsigned int vs_pol:1;
- 	unsigned int fld_pol:1;
- 	unsigned int data_pol:1;
-+	unsigned int bt656;
- };
+-int cx231xx_i2c_unregister(struct cx231xx_i2c *bus)
++void cx231xx_i2c_unregister(struct cx231xx_i2c *bus)
+ {
+ 	i2c_del_adapter(&bus->i2c_adap);
+-	return 0;
+ }
  
- enum {
+ /*
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index 27ee035f9f84..72d5937a087e 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -762,7 +762,7 @@ int cx231xx_reset_analog_tuner(struct cx231xx *dev);
+ /* Provided by cx231xx-i2c.c */
+ void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port);
+ int cx231xx_i2c_register(struct cx231xx_i2c *bus);
+-int cx231xx_i2c_unregister(struct cx231xx_i2c *bus);
++void cx231xx_i2c_unregister(struct cx231xx_i2c *bus);
+ int cx231xx_i2c_mux_create(struct cx231xx *dev);
+ int cx231xx_i2c_mux_register(struct cx231xx *dev, int mux_no);
+ void cx231xx_i2c_mux_unregister(struct cx231xx *dev);
 -- 
-Regards,
-
-Laurent Pinchart
+2.11.0
