@@ -1,268 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43074 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S965190AbdGTVt3 (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:37924 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751595AbdGaDI2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 17:49:29 -0400
-Date: Fri, 21 Jul 2017 00:49:26 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com, jian.xu.zheng@intel.com,
-        rajmohan.mani@intel.com, hyungwoo.yang@intel.com,
-        jerry.w.hu@intel.com, arnd@arndb.de, hch@lst.de,
-        iommu@lists.linux-foundation.org, Tomasz Figa <tfiga@chromium.org>
-Subject: Re: [PATCH v3 02/12] intel-ipu3: mmu: implement driver
-Message-ID: <20170720214925.shnfmpjrvouzuyyc@valkosipuli.retiisi.org.uk>
-References: <1500433958-2304-1-git-send-email-yong.zhi@intel.com>
- <efc5aab9-9f4e-fba3-034b-185d3d7e0fcd@arm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <efc5aab9-9f4e-fba3-034b-185d3d7e0fcd@arm.com>
+        Sun, 30 Jul 2017 23:08:28 -0400
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        s.nawrocki@samsung.com, tfiga@chromium.org, nicolas@ndufresne.ca,
+        Jacob Chen <jacob-chen@iotwrt.com>
+Subject: [PATCH v3 0/5] Add Rockchip RGA V4l2 support
+Date: Mon, 31 Jul 2017 11:07:35 +0800
+Message-Id: <1501470460-12014-1-git-send-email-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Robin,
+This patch series add a v4l2 m2m drvier for rockchip RGA direct rendering based 2d graphics acceleration module.
 
-On Wed, Jul 19, 2017 at 02:37:12PM +0100, Robin Murphy wrote:
-...
-> > +static int ipu3_mmu_map(struct iommu_domain *domain, unsigned long iova,
-> > +			phys_addr_t paddr, size_t size, int prot)
-> > +{
-> > +	struct ipu3_mmu_domain *mmu_dom = to_ipu3_mmu_domain(domain);
-> > +	u32 l1pt_idx, l2pt_idx;
-> > +	unsigned long flags;
-> > +	u32 *l2pt;
-> > +
-> > +	/* We assume a page by page mapping. */
-> > +	if (WARN_ON(size != IPU3_PAGE_SIZE))
-> > +		return -EINVAL;
-> 
-> The core API already enforces this, so drivers shouldn't need to be
-> paranoid.
-> 
-> > +
-> > +	address_to_pte_idx(iova, &l1pt_idx, &l2pt_idx);
-> > +
-> > +	l2pt = ipu3_mmu_get_l2pt(mmu_dom, l1pt_idx, true);
-> > +	if (!l2pt)
-> > +		return -ENOMEM;
-> > +
-> > +	spin_lock_irqsave(&mmu_dom->lock, flags);
-> > +
-> > +	if (l2pt[l2pt_idx] != mmu_dom->dummy_page_pteval) {
-> > +		spin_unlock_irqrestore(&mmu_dom->lock, flags);
-> > +		return -EBUSY;
-> > +	}
-> > +
-> > +	l2pt[l2pt_idx] = IPU3_ADDR2PTE(paddr);
-> > +
-> > +	clflush_cache_range(&l2pt[l2pt_idx], sizeof(*l2pt));
-> > +
-> > +	if (mmu_dom->mmu)
-> 
-> Yikes, are there actually users in the kernel which allocate domains and
-> try to create mappings in them before attaching any devices? In general,
-> that poses an ugly problem for certain IOMMU drivers :(
+Before, my colleague yakir have write a drm RGA drvier and send it to the lists.
+http://lists.infradead.org/pipermail/linux-arm-kernel/2016-March/416769.html
+I have been asked to find a userspace user("compositor") for it, but after some studys, my conclusion is that unlike exynos g2d,
+rockchip rga are not suitable for compositor. Rockchip RGA have a limited MMU, which means it can only hold several buffers in the same time.
+When it was used in compositor, it will waste a lot of time to import/export/flush buffer, resulting in a bad performance.
 
-This case is a bit special. The MMU is part of a PCI device which is also
-behind the MMU itself.
+A few months ago, i saw a discussion in dri-devel@lists.freedesktop.org.
+It remind that we could write a v4l2 m2m RGA driver, since we usually use RGA for streaming purpose.
+https://patches.linaro.org/cover/97727/
 
-Just the existence of mapped memory (or the mapping operation itself)
-shouldn't require powering on or keeping the device powered on. Hence this.
+I have test this driver with gstreamer v4l2transform plugin and it seems work well.
 
-> > +		call_if_ipu3_is_powered(mmu_dom->mmu, ipu3_mmu_tlb_invalidate);
-> > +
-> > +	spin_unlock_irqrestore(&mmu_dom->lock, flags);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static size_t ipu3_mmu_unmap(struct iommu_domain *domain, unsigned long iova,
-> > +			     size_t size)
-> > +{
-> > +	struct ipu3_mmu_domain *mmu_dom = to_ipu3_mmu_domain(domain);
-> > +	u32 l1pt_idx, l2pt_idx;
-> > +	unsigned long flags;
-> > +	u32 *l2pt;
-> > +
-> > +	/* We assume a page by page unmapping. */
-> > +	if (WARN_ON(size != IPU3_PAGE_SIZE))
-> > +		return 0;
-> 
-> As above.
-> 
-> > +
-> > +	address_to_pte_idx(iova, &l1pt_idx, &l2pt_idx);
-> > +
-> > +	l2pt = ipu3_mmu_get_l2pt(mmu_dom, l1pt_idx, false);
-> > +	if (!l2pt)
-> > +		return 0;
-> > +
-> > +	spin_lock_irqsave(&mmu_dom->lock, flags);
-> > +
-> > +	if (l2pt[l2pt_idx] == mmu_dom->dummy_page_pteval)
-> > +		size = 0;
-> > +	l2pt[l2pt_idx] = mmu_dom->dummy_page_pteval;
-> > +
-> > +	clflush_cache_range(&l2pt[l2pt_idx], sizeof(*l2pt));
-> > +
-> > +	if (mmu_dom->mmu)
-> > +		call_if_ipu3_is_powered(mmu_dom->mmu, ipu3_mmu_tlb_invalidate);
-> > +
-> > +	spin_unlock_irqrestore(&mmu_dom->lock, flags);
-> > +
-> > +	return size;
-> > +}
-> > +
-> > +static phys_addr_t ipu3_mmu_iova_to_phys(struct iommu_domain *domain,
-> > +					 dma_addr_t iova)
-> > +{
-> > +	struct ipu3_mmu_domain *d = to_ipu3_mmu_domain(domain);
-> > +	u32 l1pt_idx, l2pt_idx;
-> > +	u32 pteval;
-> > +	u32 *l2pt;
-> > +
-> > +	address_to_pte_idx(iova, &l1pt_idx, &l2pt_idx);
-> > +
-> > +	l2pt = ipu3_mmu_get_l2pt(d, l1pt_idx, false);
-> > +	if (!l2pt)
-> > +		return 0;
-> > +
-> > +	pteval = l2pt[l2pt_idx];
-> > +	if (pteval == d->dummy_page_pteval)
-> > +		return 0;
-> > +
-> > +	return IPU3_PTE2ADDR(pteval);
-> > +}
-> > +
-> > +static struct iommu_group *ipu3_mmu_device_group(struct device *dev)
-> > +{
-> > +	struct ipu3_mmu *mmu = to_ipu3_mmu(dev);
-> > +
-> > +	return mmu->group;
-> 
-> 	return iommu_group_ref_get(mmu->group);
-> 
-> Otherwise, add 2 or more devices, remove 1 again, and watch the
-> still-live group disappear from under your feet.
-> 
-> > +}
-> > +
-> > +static int ipu3_mmu_add_device(struct device *dev)
-> > +{
-> > +	struct iommu_group *group;
-> > +
-> > +	group = iommu_group_get_for_dev(dev);
-> > +	if (IS_ERR(group))
-> > +		return PTR_ERR(group);
-> > +
-> > +	iommu_group_put(group);
-> > +	return 0;
-> > +}
-> > +
-> > +static void ipu3_mmu_remove_device(struct device *dev)
-> > +{
-> > +	struct iommu_domain *domain = iommu_get_domain_for_dev(dev);
-> > +
-> > +	if (!domain)
-> > +		return;
-> > +
-> > +	ipu3_mmu_detach_dev(domain, dev);
-> 
-> Ah, so you avoid the refcount bug by forgetting to remove the device
-> from the group at all, but then go and implement the unpleasant
-> consequences of tearing down a potentially-live domain manually :)
-> 
-> You should call iommu_group_remove_device() here (i.e. undoing what
-> iommu_group_get_for_dev() did), and let that take care of the domain as
-> necessary.
-> 
-> > +}
-> > +
-> > +static struct iommu_ops ipu3_iommu_ops_template = {
-> > +	.domain_alloc   = ipu3_mmu_domain_alloc,
-> > +	.domain_free    = ipu3_mmu_domain_free,
-> > +	.attach_dev	= ipu3_mmu_attach_dev,
-> > +	.detach_dev	= ipu3_mmu_detach_dev,
-> > +	.map		= ipu3_mmu_map,
-> > +	.unmap		= ipu3_mmu_unmap,
-> > +	.map_sg		= default_iommu_map_sg,
-> > +	.iova_to_phys	= ipu3_mmu_iova_to_phys,
-> > +	.device_group	= ipu3_mmu_device_group,
-> > +	.add_device	= ipu3_mmu_add_device,
-> > +	.remove_device	= ipu3_mmu_remove_device,
-> > +	.pgsize_bitmap	= SZ_4K,
-> 
-> Nit: should probably be IPU3_PAGE_SIZE for consistency.
-> 
-> > +};
-> > +
-> > +/**
-> > + * ipu3_mmu_init() - initialize IPU3 MMU block
-> > + * @parent:	Parent IPU device.
-> > + * @base:	IOMEM base of hardware registers.
-> > + * @bus:	Bus on which DMA devices are registered.
-> > + *
-> > + * Return: Pointer to IPU3 MMU private data pointer or ERR_PTR() on error.
-> > + */
-> > +struct ipu3_mmu *ipu3_mmu_init(struct device *parent, void __iomem *base,
-> > +			       struct bus_type *bus)
-> > +{
-> > +	struct ipu3_mmu *mmu;
-> > +	u32 pteval;
-> > +	int ret;
-> > +
-> > +	mmu = kzalloc(sizeof(*mmu), GFP_KERNEL);
-> > +	if (!mmu)
-> > +		return ERR_PTR(-ENOMEM);
-> > +	mmu->base = base;
-> > +	mmu->dev = parent;
-> > +	mmu->bus = bus;
-> > +	mmu->ops = ipu3_iommu_ops_template;
-> > +
-> > +	/* Disallow external memory access when having no valid page tables. */
-> > +	ipu3_mmu_set_halt(mmu, true);
-> > +
-> > +	/*
-> > +	 * Allocate the L1 page table.
-> > +	 *
-> > +	 * NOTE that the hardware does not allow changing the L1 page table
-> > +	 * at runtime, so we use shadow L1 tables with CPU L2 table pointers
-> > +	 * per-domain and update the L1 table on domain attach and detach.
-> > +	 */
-> > +	mmu->l1pt = ipu3_mmu_alloc_page_table(0);
-> > +	if (!mmu->l1pt) {
-> > +		ret = -ENOMEM;
-> > +		goto fail_mmu;
-> > +	}
-> > +
-> > +	mmu->group = iommu_group_alloc();
-> > +	if (!mmu->group) {
-> > +		ret = -ENOMEM;
-> > +		goto fail_l1pt;
-> > +	}
-> > +
-> > +	pteval = IPU3_ADDR2PTE(virt_to_phys(mmu->l1pt));
-> > +	writel(pteval, mmu->base + REG_L1_PHYS);
-> > +	ipu3_mmu_tlb_invalidate(mmu);
-> > +
-> > +	bus_set_iommu(bus, &mmu->ops);
-> > +
-> > +	return mmu;
-> 
-> Rather than playing tricks with bus->ops, it's probably better for the
-> bus code to stash imgu->mmu directly in the other subdevices' archdata
-> as it creates them; that seems the cleanest way.
+change in V3:
+- rename the controls.
+- add pm_runtime support.
+- enable node by default.
+- correct spelling in documents.
 
-Right now there aren't any: there's a PCI device + the MMU struct device
-created by the PCI device driver, while the MMU itself is part of that PCI
-device. I guess you could alternatively create another on the bus and
-designate that for the "real" driver to control the PCI device.
+change in V2:
+- generalize the controls.
+- map buffers (10-50 us) in every cmd-run rather than in buffer-import to avoid get_free_pages failed on
+actively used systems.
+- remove status in dt-bindings examples.
+
+Jacob Chen (5):
+  [media] v4l: add blend modes controls
+  [media]: rockchip/rga: v4l2 m2m support
+  ARM: dts: rockchip: add RGA device node for RK3288
+  ARM: dts: rockchip: add RGA device node for RK3399
+  dt-bindings: Document the Rockchip RGA bindings
+
+ .../devicetree/bindings/media/rockchip-rga.txt     |  33 +
+ arch/arm/boot/dts/rk3288.dtsi                      |  11 +
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi           |  11 +
+ drivers/media/platform/Kconfig                     |  11 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/rockchip-rga/Makefile       |   3 +
+ drivers/media/platform/rockchip-rga/rga-buf.c      | 141 +++
+ drivers/media/platform/rockchip-rga/rga-hw.c       | 650 ++++++++++++++
+ drivers/media/platform/rockchip-rga/rga-hw.h       | 437 +++++++++
+ drivers/media/platform/rockchip-rga/rga.c          | 987 +++++++++++++++++++++
+ drivers/media/platform/rockchip-rga/rga.h          | 110 +++
+ drivers/media/v4l2-core/v4l2-ctrls.c               |  20 +-
+ include/uapi/linux/v4l2-controls.h                 |  16 +-
+ 13 files changed, 2430 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
+ create mode 100644 drivers/media/platform/rockchip-rga/Makefile
+ create mode 100644 drivers/media/platform/rockchip-rga/rga-buf.c
+ create mode 100644 drivers/media/platform/rockchip-rga/rga-hw.c
+ create mode 100644 drivers/media/platform/rockchip-rga/rga-hw.h
+ create mode 100644 drivers/media/platform/rockchip-rga/rga.c
+ create mode 100644 drivers/media/platform/rockchip-rga/rga.h
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.7.4
