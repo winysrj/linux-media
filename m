@@ -1,48 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:33355 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751734AbdGFQOs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Jul 2017 12:14:48 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        alan@linux.intel.com
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] staging: atomisp: ov8858: constify acpi_device_id.
-Date: Thu,  6 Jul 2017 21:44:36 +0530
-Message-Id: <df00971f50ee87bd0ce0fb9ee23c00e3846e5265.1499357476.git.arvind.yadav.cs@gmail.com>
+Received: from mail-db5eur01on0117.outbound.protection.outlook.com ([104.47.2.117]:27101
+        "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752214AbdGaNjJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 31 Jul 2017 09:39:09 -0400
+From: Peter Rosin <peda@axentia.se>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Subject: [PATCH 1/3] [media] cx231xx: fail probe if i2c_add_adapter fails
+Date: Mon, 31 Jul 2017 15:38:50 +0200
+Message-Id: <20170731133852.8013-2-peda@axentia.se>
+In-Reply-To: <20170731133852.8013-1-peda@axentia.se>
+References: <20170731133852.8013-1-peda@axentia.se>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-acpi_device_id are not supposed to change at runtime. All functions
-working with acpi_device_id provided by <acpi/acpi_bus.h> work with
-const acpi_device_id. So mark the non-const structs as const.
+While at it, change the type of the previously always-zero i2c_rc
+member to int, matching the returned type from i2c_add_adapter.
 
-File size before:
-   text	   data	    bss	    dec	    hex	filename
-  23804	   8448	      0	  32252	   7dfc drivers/staging/media/atomisp/i2c/ov8858.o
-
-File size After adding 'const':
-   text	   data	    bss	    dec	    hex	filename
-  23868	   8384	      0	  32252	   7dfc drivers/staging/media/atomisp/i2c/ov8858.o
-
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- drivers/staging/media/atomisp/i2c/ov8858.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/usb/cx231xx/cx231xx-i2c.c | 2 +-
+ drivers/media/usb/cx231xx/cx231xx.h     | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/media/atomisp/i2c/ov8858.c b/drivers/staging/media/atomisp/i2c/ov8858.c
-index 9574bc4..43e1638 100644
---- a/drivers/staging/media/atomisp/i2c/ov8858.c
-+++ b/drivers/staging/media/atomisp/i2c/ov8858.c
-@@ -2189,7 +2189,7 @@ static const struct i2c_device_id ov8858_id[] = {
+diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+index 8d95b1154e12..3a0c45ffd40f 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
++++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+@@ -538,7 +538,7 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
  
- MODULE_DEVICE_TABLE(i2c, ov8858_id);
+ 	bus->i2c_adap.algo_data = bus;
+ 	i2c_set_adapdata(&bus->i2c_adap, &dev->v4l2_dev);
+-	i2c_add_adapter(&bus->i2c_adap);
++	bus->i2c_rc = i2c_add_adapter(&bus->i2c_adap);
  
--static struct acpi_device_id ov8858_acpi_match[] = {
-+static const struct acpi_device_id ov8858_acpi_match[] = {
- 	{"INT3477"},
- 	{},
- };
+ 	if (0 != bus->i2c_rc)
+ 		dev_warn(dev->dev,
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index 986c64ba5b56..27ee035f9f84 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -476,7 +476,7 @@ struct cx231xx_i2c {
+ 
+ 	/* i2c i/o */
+ 	struct i2c_adapter i2c_adap;
+-	u32 i2c_rc;
++	int i2c_rc;
+ 
+ 	/* different settings for each bus */
+ 	u8 i2c_period;
 -- 
-2.7.4
+2.11.0
