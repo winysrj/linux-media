@@ -1,87 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f193.google.com ([209.85.223.193]:33119 "EHLO
-        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753207AbdGXL5D (ORCPT
+Received: from mail-qk0-f196.google.com ([209.85.220.196]:36521 "EHLO
+        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750847AbdGaHV3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Jul 2017 07:57:03 -0400
-Received: by mail-io0-f193.google.com with SMTP id q64so1749175ioi.0
-        for <linux-media@vger.kernel.org>; Mon, 24 Jul 2017 04:57:03 -0700 (PDT)
+        Mon, 31 Jul 2017 03:21:29 -0400
 MIME-Version: 1.0
-In-Reply-To: <b3cb04f6-07c8-f5dd-3d7b-7f41f1d0dd81@vodafone.de>
-References: <1500654001-20899-1-git-send-email-deathsimple@vodafone.de>
- <20170724083359.j6wo5icln3faajn6@phenom.ffwll.local> <b3cb04f6-07c8-f5dd-3d7b-7f41f1d0dd81@vodafone.de>
-From: Daniel Vetter <daniel@ffwll.ch>
-Date: Mon, 24 Jul 2017 13:57:01 +0200
-Message-ID: <CAKMK7uEC6BpYZeWZENk=Kt01yQuJXW=kgpp3acAMEdQBmD84FQ@mail.gmail.com>
-Subject: Re: [PATCH] dma-buf: fix reservation_object_wait_timeout_rcu to wait correctly
-To: =?UTF-8?Q?Christian_K=C3=B6nig?= <deathsimple@vodafone.de>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>
+In-Reply-To: <1501470460-12014-1-git-send-email-jacob-chen@iotwrt.com>
+References: <1501470460-12014-1-git-send-email-jacob-chen@iotwrt.com>
+From: Jacob Chen <jacobchen110@gmail.com>
+Date: Mon, 31 Jul 2017 15:21:27 +0800
+Message-ID: <CAFLEztRRq5Eep+c20h_=a+uf30egAYfPmX75=K+F6XnQ2N1+zg@mail.gmail.com>
+Subject: Re: [PATCH v3 0/5] Add Rockchip RGA V4l2 support
+To: "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>,
+        robh+dt@kernel.org, Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        laurent.pinchart+renesas@ideasonboard.com,
+        Hans Verkuil <hans.verkuil@cisco.com>, s.nawrocki@samsung.com,
+        Tomasz Figa <tfiga@chromium.org>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Jacob Chen <jacob-chen@iotwrt.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 24, 2017 at 11:51 AM, Christian K=C3=B6nig
-<deathsimple@vodafone.de> wrote:
-> Am 24.07.2017 um 10:33 schrieb Daniel Vetter:
->>
->> On Fri, Jul 21, 2017 at 06:20:01PM +0200, Christian K=C3=B6nig wrote:
->>>
->>> From: Christian K=C3=B6nig <christian.koenig@amd.com>
->>>
->>> With hardware resets in mind it is possible that all shared fences are
->>> signaled, but the exlusive isn't. Fix waiting for everything in this
->>> situation.
->>
->> How did you end up with both shared and exclusive fences on the same
->> reservation object? At least I thought the point of exclusive was that
->> it's exclusive (and has an implicit barrier on all previous shared
->> fences). Same for shared fences, they need to wait for the exclusive one
->> (and replace it).
->>
->> Is this fallout from the amdgpu trickery where by default you do all
->> shared fences? I thought we've aligned semantics a while back ...
+Hi,
+
+
+2017-07-31 11:07 GMT+08:00 Jacob Chen <jacob-chen@iotwrt.com>:
+> This patch series add a v4l2 m2m drvier for rockchip RGA direct rendering based 2d graphics acceleration module.
 >
+> Before, my colleague yakir have write a drm RGA drvier and send it to the lists.
+> http://lists.infradead.org/pipermail/linux-arm-kernel/2016-March/416769.html
+> I have been asked to find a userspace user("compositor") for it, but after some studys, my conclusion is that unlike exynos g2d,
+> rockchip rga are not suitable for compositor. Rockchip RGA have a limited MMU, which means it can only hold several buffers in the same time.
+> When it was used in compositor, it will waste a lot of time to import/export/flush buffer, resulting in a bad performance.
 >
-> No, that is perfectly normal even for other drivers. Take a look at the
-> reservation code.
+> A few months ago, i saw a discussion in dri-devel@lists.freedesktop.org.
+> It remind that we could write a v4l2 m2m RGA driver, since we usually use RGA for streaming purpose.
+> https://patches.linaro.org/cover/97727/
 >
-> The exclusive fence replaces all shared fences, but adding a shared fence
-> doesn't replace the exclusive fence. That actually makes sense, cause whe=
-n
-> you want to add move shared fences those need to wait for the last exclus=
-ive
-> fence as well.
+> I have test this driver with gstreamer v4l2transform plugin and it seems work well.
+>
+> change in V3:
+> - rename the controls.
+> - add pm_runtime support.
+> - enable node by default.
+> - correct spelling in documents.
+>
+> change in V2:
+> - generalize the controls.
+> - map buffers (10-50 us) in every cmd-run rather than in buffer-import to avoid get_free_pages failed on
+> actively used systems.
+> - remove status in dt-bindings examples.
+>
+> Jacob Chen (5):
+>   [media] v4l: add blend modes controls
+>   [media]: rockchip/rga: v4l2 m2m support
+>   ARM: dts: rockchip: add RGA device node for RK3288
+>   ARM: dts: rockchip: add RGA device node for RK3399
+>   dt-bindings: Document the Rockchip RGA bindings
+>
+>  .../devicetree/bindings/media/rockchip-rga.txt     |  33 +
+>  arch/arm/boot/dts/rk3288.dtsi                      |  11 +
+>  arch/arm64/boot/dts/rockchip/rk3399.dtsi           |  11 +
+>  drivers/media/platform/Kconfig                     |  11 +
+>  drivers/media/platform/Makefile                    |   2 +
+>  drivers/media/platform/rockchip-rga/Makefile       |   3 +
+>  drivers/media/platform/rockchip-rga/rga-buf.c      | 141 +++
+>  drivers/media/platform/rockchip-rga/rga-hw.c       | 650 ++++++++++++++
+>  drivers/media/platform/rockchip-rga/rga-hw.h       | 437 +++++++++
+>  drivers/media/platform/rockchip-rga/rga.c          | 987 +++++++++++++++++++++
+>  drivers/media/platform/rockchip-rga/rga.h          | 110 +++
+>  drivers/media/v4l2-core/v4l2-ctrls.c               |  20 +-
+>  include/uapi/linux/v4l2-controls.h                 |  16 +-
+>  13 files changed, 2430 insertions(+), 2 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
+>  create mode 100644 drivers/media/platform/rockchip-rga/Makefile
+>  create mode 100644 drivers/media/platform/rockchip-rga/rga-buf.c
+>  create mode 100644 drivers/media/platform/rockchip-rga/rga-hw.c
+>  create mode 100644 drivers/media/platform/rockchip-rga/rga-hw.h
+>  create mode 100644 drivers/media/platform/rockchip-rga/rga.c
+>  create mode 100644 drivers/media/platform/rockchip-rga/rga.h
+>
+> --
+> 2.7.4
+>
 
-Hm right.
-
-> Now normally I would agree that when you have shared fences it is suffici=
-ent
-> to wait for all of them cause those operations can't start before the
-> exclusive one finishes. But with GPU reset and/or the ability to abort
-> already submitted operations it is perfectly possible that you end up wit=
-h
-> an exclusive fence which isn't signaled and a shared fence which is signa=
-led
-> in the same reservation object.
-
-How does that work? The batch(es) with the shared fence are all
-supposed to wait for the exclusive fence before they start, which
-means even if you gpu reset and restart/cancel certain things, they
-shouldn't be able to complete out of order.
-
-If you outright cancel a fence then you're supposed to first call
-dma_fence_set_error(-EIO) and then complete it. Note that atm that
-part might be slightly overengineered and I'm not sure about how we
-expose stuff to userspace, e.g. dma_fence_set_error(-EAGAIN) is (or
-soon, has been) used by i915 for it's internal book-keeping, which
-might not be the best to leak to other consumers. But completing
-fences (at least exported ones, where userspace or other drivers can
-get at them) shouldn't be possible.
--Daniel
---=20
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+We are going to use this driver in our BSP, and write userspace for it.
+Though there are some work needed be done for better use, i'm
+satisfied with it at present.
+It could be improved through usage.
