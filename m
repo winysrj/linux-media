@@ -1,44 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:38965 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755241AbdGWMMP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Jul 2017 08:12:15 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, d.scheller@gmx.net, jasmin@anw.at
-Subject: [PATCH 0/3] fix compile for kernel 3.13
-Date: Sun, 23 Jul 2017 14:12:01 +0200
-Message-Id: <1500811924-4559-1-git-send-email-jasmin@anw.at>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:46921 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750739AbdGaIMn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 31 Jul 2017 04:12:43 -0400
+Subject: Re: [PATCH v3 1/5] [media] v4l: add porter duff blend controls
+To: Jacob Chen <jacob-chen@iotwrt.com>,
+        linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        s.nawrocki@samsung.com, tfiga@chromium.org, nicolas@ndufresne.ca
+References: <1501470460-12014-1-git-send-email-jacob-chen@iotwrt.com>
+ <1501470460-12014-2-git-send-email-jacob-chen@iotwrt.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <c6d4997f-30c6-9583-6cf5-32b374e4de29@xs4all.nl>
+Date: Mon, 31 Jul 2017 10:12:36 +0200
+MIME-Version: 1.0
+In-Reply-To: <1501470460-12014-2-git-send-email-jacob-chen@iotwrt.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+On 07/31/2017 05:07 AM, Jacob Chen wrote:
+> At peresent, we don't have a control for Compositing and Blend.
+> All drivers are just doing copies while actually many hardwares
+> supports more functions.
+> 
+> So Adding V4L2 controls for Compositing and Blend, used for for
+> composting streams.
+> 
+> The values are based on porter duff operations.
+> Defined in below links.
+> https://developer.xamarin.com/api/type/Android.Graphics.PorterDuff+Mode/
+> 
+> Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+> Suggested-by: Nicolas Dufresne <nicolas@ndufresne.ca>
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 20 +++++++++++++++++++-
+>  include/uapi/linux/v4l2-controls.h   | 16 +++++++++++++++-
+>  2 files changed, 34 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index b9e08e3..561d7d5 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -478,7 +478,21 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+>  		"Region Grid",
+>  		NULL,
+>  	};
+> -
+> +	static const char * const porter_duff_modes[] = {
+> +		"Source",
+> +		"Source Top",
+> +		"Source In",
+> +		"Source Out",
+> +		"Source Over",
+> +		"Destination",
+> +		"Destination Top",
+> +		"Destination In",
+> +		"Destination Out",
+> +		"Destination Over",
+> +		"Add",
+> +		"Clear",
+> +		NULL
+> +	};
+>  
+>  	switch (id) {
+>  	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+> @@ -564,6 +578,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+>  		return vpx_golden_frame_sel;
+>  	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
+>  		return jpeg_chroma_subsampling;
+> +	case V4L2_CID_PORTER_DUFF_MODE:
+> +		return porter_duff_modes;
+>  	case V4L2_CID_DV_TX_MODE:
+>  		return dv_tx_mode;
+>  	case V4L2_CID_DV_TX_RGB_RANGE:
+> @@ -886,6 +902,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
+>  	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
+>  	case V4L2_CID_DEINTERLACING_MODE:	return "Deinterlacing Mode";
+> +	case V4L2_CID_PORTER_DUFF_MODE:		return "PorterDuff Blend Modes";
+>  
+>  	/* DV controls */
+>  	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+> @@ -1060,6 +1077,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_DV_RX_IT_CONTENT_TYPE:
+>  	case V4L2_CID_TEST_PATTERN:
+>  	case V4L2_CID_DEINTERLACING_MODE:
+> +	case V4L2_CID_PORTER_DUFF_MODE:
+>  	case V4L2_CID_TUNE_DEEMPHASIS:
+>  	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
+>  	case V4L2_CID_DETECT_MD_MODE:
+> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> index 0d2e1e0..9543b4b 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -893,7 +893,21 @@ enum v4l2_jpeg_chroma_subsampling {
+>  #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
+>  #define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
+>  #define V4L2_CID_DEINTERLACING_MODE		(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
+> -
+> +#define V4L2_CID_PORTER_DUFF_MODE		(V4L2_CID_IMAGE_PROC_CLASS_BASE + 5)
 
-This series fixed compilation errors for older kernels.
-I have tested it with Kernel 3.13 and Daniel with Kernel 4.12.
+I recommend that you add a link to e.g. https://en.wikipedia.org/wiki/Alpha_compositing
+as a comment here.
 
-I disabled VIDEO_OV5670 for all kernels older than 3.17, but I am not 100% 
-sure if the required change to compile it was really implemented in that
-version (checked only the revision history).
+> +enum v4l2_porter_duff_mode {
+> +	V4L2_PORTER_DUFF_SRC			= 0,
+> +	V4L2_PORTER_DUFF_SRCATOP		= 1,
+> +	V4L2_PORTER_DUFF_SRCIN			= 2,
+> +	V4L2_PORTER_DUFF_SRCOUT			= 3,
+> +	V4L2_PORTER_DUFF_SRCOVER		= 4,
+> +	V4L2_PORTER_DUFF_DST			= 5,
+> +	V4L2_PORTER_DUFF_DSTATOP		= 6,
+> +	V4L2_PORTER_DUFF_DSTIN			= 7,
+> +	V4L2_PORTER_DUFF_DSTOUT			= 8,
+> +	V4L2_PORTER_DUFF_DSTOVER		= 9,
+> +	V4L2_PORTER_DUFF_ADD			= 10,
+> +	V4L2_PORTER_DUFF_CLEAR			= 11,
+> +};
+>  
+>  /*  DV-class control IDs defined by V4L2 */
+>  #define V4L2_CID_DV_CLASS_BASE			(V4L2_CTRL_CLASS_DV | 0x900)
+> 
 
-This series requires "Add compat code for skb_put_data" from Matthias
-Schwarzott to be applied first (see 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg116145.html )
+This control also has to be documented in Documentation/media/uapi/v4l/extended-controls.rst.
 
-Daniel Scheller (1):
-  build: fix up build w/kernels <=4.12 by reverting 4.13 patches
+Regards,
 
-Jasmin Jessich (2):
-  build: Add compat code for pm_runtime_get_if_in_use
-  build: Disable VIDEO_OV5670 for Kernels older that 3.17
-
- backports/backports.txt                            |  3 +
- .../v4.12_revert_solo6x10_copykerneluser.patch     | 71 ++++++++++++++++++++++
- v4l/compat.h                                       | 15 +++++
- v4l/scripts/make_config_compat.pl                  |  1 +
- v4l/versions.txt                                   |  1 +
- 5 files changed, 91 insertions(+)
- create mode 100644 backports/v4.12_revert_solo6x10_copykerneluser.patch
-
--- 
-2.7.4
+	Hans
