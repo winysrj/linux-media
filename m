@@ -1,103 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:34258 "EHLO
-        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751616AbdGXFwZ (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:34810 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751596AbdGaDI5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Jul 2017 01:52:25 -0400
-Received: by mail-wm0-f52.google.com with SMTP id l81so16546484wmg.1
-        for <linux-media@vger.kernel.org>; Sun, 23 Jul 2017 22:52:24 -0700 (PDT)
-Message-ID: <1500875542.24053.1.camel@gmail.com>
-Subject: Re: [PATCH 3/3] [media] uvcvideo: skip non-extension unit controls
- on Oculus Rift Sensors
-From: Philipp Zabel <philipp.zabel@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Date: Mon, 24 Jul 2017 07:52:22 +0200
-In-Reply-To: <1692289.IcaTpD3SF0@avalon>
-References: <20170714201424.23592-1-philipp.zabel@gmail.com>
-         <1988392.8ZGCFRfgf9@avalon> <1500124425.25393.3.camel@gmail.com>
-         <1692289.IcaTpD3SF0@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Sun, 30 Jul 2017 23:08:57 -0400
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        s.nawrocki@samsung.com, tfiga@chromium.org, nicolas@ndufresne.ca,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Yakir Yang <ykk@rock-chips.com>
+Subject: [PATCH v3 5/5] dt-bindings: Document the Rockchip RGA bindings
+Date: Mon, 31 Jul 2017 11:07:40 +0800
+Message-Id: <1501470460-12014-6-git-send-email-jacob-chen@iotwrt.com>
+In-Reply-To: <1501470460-12014-1-git-send-email-jacob-chen@iotwrt.com>
+References: <1501470460-12014-1-git-send-email-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Add DT bindings documentation for Rockchip RGA
 
-Am Montag, den 17.07.2017, 05:25 +0300 schrieb Laurent Pinchart:
-> Hi Philipp,
-> 
-> On Saturday 15 Jul 2017 15:13:45 Philipp Zabel wrote:
-> > Am Samstag, den 15.07.2017, 12:54 +0300 schrieb Laurent Pinchart:
-> > > On Friday 14 Jul 2017 22:14:24 Philipp Zabel wrote:
-> > > > The Oculus Rift Sensors (DK2 and CV1) allow to configure their
-> > > > sensor
-> > > > chips directly via I2C commands using extension unit controls.
-> > > > The
-> > > > processing and camera unit controls do not function at all.
-> > > 
-> > > Do the processing and camera units they report controls that
-> > > don't work
-> > > when  exercised ? Who in a sane state of mind could have designed
-> > > such a
-> > > terrible product ?
-> > 
-> > Yes. Without this patch I get a bunch of controls that have no
-> > effect
-> > whatsoever.
-> > 
-> > > If I understand you correctly, this device requires userspace
-> > > code that
-> > > knows  how to program the sensor (and possibly other chips). If
-> > > that's
-> > > the case, is there an open-source implementation of that code
-> > > publicly
-> > > available ?
-> > 
-> > Well, it's all still a bit in the experimentation phase. We have an
-> > implementation to set up the DK2 camera for synchronised exposure
-> > triggered by the Rift DK2 HMD and to read the calibration data from
-> > flash, here:
-> > 
-> > https://github.com/pH5/ouvrt/blob/master/src/esp570.c
-> > https://github.com/pH5/ouvrt/blob/master/src/mt9v034.c
-> > 
-> > And an even more rough version to set up the CV1 camera for
-> > synchronised exposure triggered by the Rift CV1 HMD here:
-> > 
-> > https://github.com/OpenHMD/OpenHMD-RiftPlayground/blob/master/src/m
-> > ain.c
-> > 
-> > The latter is using libusb, as it needs the variable length SPI
-> > data
-> > control.
-> > 
-> > Do you think adding a pseudo i2c driver for the eSP570/eSP770u
-> > webcam
-> > controllers and then exposing the sensor chips as V4L2 subdevices
-> > could
-> > be a good idea? We already have a sensor driver for the MT9V034 in
-> > the
-> > DK2 USB camera.
-> 
-> Yes, I think a device-specific driver would make sense, especially if
-> we can 
-> implement support for the sensor as a standalone V4L2 subdev driver.
-> The 
-> device only fakes UVC compatibility :-(
+Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+Signed-off-by: Yakir Yang <ykk@rock-chips.com>
+---
+ .../devicetree/bindings/media/rockchip-rga.txt     | 33 ++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
 
-When you say standalone driver, do you mean I can reuse uvcvideo
-device/stream/chain handling, and just replace the control handling?
-
-I'll try this, but it isn't a straightforward as I initially thought.
-For example, the mt9v032 subdev driver expects to have control over
-power during probe and s_power. But in this case power is controlled by
-UVC streaming. I'd either have to modify the subdev driver to support a
-passive mode or fake the chip id register reads in the i2c adapter
-driver to make mt9v032 probe at all.
-
-Do you have any further comments on the first two patches?
-
-regards
-Philipp
+diff --git a/Documentation/devicetree/bindings/media/rockchip-rga.txt b/Documentation/devicetree/bindings/media/rockchip-rga.txt
+new file mode 100644
+index 0000000..fd5276a
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/rockchip-rga.txt
+@@ -0,0 +1,33 @@
++device-tree bindings for rockchip 2D raster graphic acceleration controller (RGA)
++
++RGA is a standalone 2D raster graphic acceleration unit. It accelerates 2D
++graphics operations, such as point/line drawing, image scaling, rotation,
++BitBLT, alpha blending and image blur/sharpness.
++
++Required properties:
++- compatible: value should be one of the following
++		"rockchip,rk3288-rga";
++		"rockchip,rk3399-rga";
++
++- interrupts: RGA interrupt specifier.
++
++- clocks: phandle to RGA sclk/hclk/aclk clocks
++
++- clock-names: should be "aclk", "hclk" and "sclk"
++
++- resets: Must contain an entry for each entry in reset-names.
++  See ../reset/reset.txt for details.
++- reset-names: should be "core", "axi" and "ahb"
++
++Example:
++SoC-specific DT entry:
++	rga: rga@ff680000 {
++		compatible = "rockchip,rk3399-rga";
++		reg = <0xff680000 0x10000>;
++		interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA_CORE>;
++		clock-names = "aclk", "hclk", "sclk";
++
++		resets = <&cru SRST_RGA_CORE>, <&cru SRST_A_RGA>, <&cru SRST_H_RGA>;
++		reset-names = "core, "axi", "ahb";
++	};
+-- 
+2.7.4
