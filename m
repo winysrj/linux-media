@@ -1,53 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:61789 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751629AbdGZPX2 (ORCPT
+Received: from out20-39.mail.aliyun.com ([115.124.20.39]:57610 "EHLO
+        out20-39.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751235AbdGaAuU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Jul 2017 11:23:28 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] media: v4l: omap_vout: vrfb: initialize DMA flags
-Date: Wed, 26 Jul 2017 17:23:07 +0200
-Message-Id: <20170726152320.4077805-1-arnd@arndb.de>
+        Sun, 30 Jul 2017 20:50:20 -0400
+Date: Mon, 31 Jul 2017 08:50:00 +0800
+From: Yong <yong.deng@magewell.com>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benoit Parrot <bparrot@ti.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 2/3] dt-bindings: media: Add Allwinner V3s Camera
+ Sensor Interface (CSI)
+Message-Id: <20170731085000.f4cd7287a28647cbc0be2f3c@magewell.com>
+In-Reply-To: <20170728160353.gqb2f47v6ujozvxz@flea.lan>
+References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
+        <1501131697-1359-3-git-send-email-yong.deng@magewell.com>
+        <20170728160353.gqb2f47v6ujozvxz@flea.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Passing uninitialized flags into device_prep_interleaved_dma is clearly
-a bad idea, and we get a compiler warning for it:
+On Fri, 28 Jul 2017 18:03:53 +0200
+Maxime Ripard <maxime.ripard@free-electrons.com> wrote:
 
-drivers/media/platform/omap/omap_vout_vrfb.c: In function 'omap_vout_prepare_vrfb':
-drivers/media/platform/omap/omap_vout_vrfb.c:273:5: error: 'flags' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+> Hi,
+> 
+> On Thu, Jul 27, 2017 at 01:01:36PM +0800, Yong Deng wrote:
+> > Add binding documentation for Allwinner V3s CSI.
+> > 
+> > Signed-off-by: Yong Deng <yong.deng@magewell.com>
+> > ---
+> >  .../devicetree/bindings/media/sun6i-csi.txt        | 49 ++++++++++++++++++++++
+> >  1 file changed, 49 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+> > new file mode 100644
+> > index 0000000..f8d83f6
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+> > @@ -0,0 +1,49 @@
+> > +Allwinner V3s Camera Sensor Interface
+> > +------------------------------
+> > +
+> > +Required properties:
+> > +  - compatible: value must be "allwinner,sun8i-v3s-csi"
+> > +  - reg: base address and size of the memory-mapped region.
+> > +  - interrupts: interrupt associated to this IP
+> > +  - clocks: phandles to the clocks feeding the CSI
+> > +    * ahb: the CSI interface clock
+> 
+> We've been bad at this, but we're trying to have the same clock name
+> here across all devices, and to use "bus" instead of "ahb".
 
-It seems that the OMAP dmaengine ignores the flags, but we should
-pick the right ones anyway. This sets the flags I guessed based
-on what other drivers used, and Peter confirmed that they are the
-right ones.
+OK. "ahb" was just follow other sunxi drivers.
 
-Fixes: 6a1560ecaa8c ("media: v4l: omap_vout: vrfb: Convert to dmaengine")
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
-Originally sent on July 10 as a bugreport. Since Peter has confirmed
-the fix to be correct, please merge this for 4.13.
----
- drivers/media/platform/omap/omap_vout_vrfb.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> Thanks!
+> Maxime
+> 
+> -- 
+> Maxime Ripard, Free Electrons
+> Embedded Linux and Kernel engineering
+> http://free-electrons.com
 
-diff --git a/drivers/media/platform/omap/omap_vout_vrfb.c b/drivers/media/platform/omap/omap_vout_vrfb.c
-index 040eacc45168..123c2b26a933 100644
---- a/drivers/media/platform/omap/omap_vout_vrfb.c
-+++ b/drivers/media/platform/omap/omap_vout_vrfb.c
-@@ -234,7 +234,7 @@ int omap_vout_prepare_vrfb(struct omap_vout_device *vout,
- 			   struct videobuf_buffer *vb)
- {
- 	struct dma_async_tx_descriptor *tx;
--	enum dma_ctrl_flags flags;
-+	enum dma_ctrl_flags flags = DMA_PREP_INTERRUPT | DMA_CTRL_ACK;
- 	struct dma_chan *chan = vout->vrfb_dma_tx.chan;
- 	struct dma_device *dmadev = chan->device;
- 	struct dma_interleaved_template *xt = vout->vrfb_dma_tx.xt;
--- 
-2.9.0
+
+Thanks,
+Yong
