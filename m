@@ -1,113 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:37996
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S935486AbdGTPTq (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:34651 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752045AbdGaPdX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Jul 2017 11:19:46 -0400
-Date: Thu, 20 Jul 2017 12:19:34 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Ralph Metzler <rjkm@metzlerbros.de>
-Cc: Daniel Scheller <d.scheller.oss@gmail.com>,
-        linux-media@vger.kernel.org, mchehab@kernel.org,
-        liplianin@netup.ru, crope@iki.fi, "Jasmin J." <jasmin@anw.at>,
-        "Takiguchi\, Yasunari" <Yasunari.Takiguchi@sony.com>,
-        "tbird20d\@gmail.com" <tbird20d@gmail.com>
-Subject: Re: DD support improvements (was: Re: [PATCH v3 00/13]
- stv0367/ddbridge: support CTv6/FlexCT hardware)
-Message-ID: <20170720121934.3da2f352@vento.lan>
-In-Reply-To: <22865.61290.964849.36217@morden.metzler>
-References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
-        <20170412212327.5b75be19@macbox>
-        <20170507174212.2e45ab71@audiostation.wuest.de>
-        <20170528234537.3bed2dde@macbox>
-        <20170619221821.022fc473@macbox>
-        <20170620093645.6f72fd1a@vento.lan>
-        <20170620204121.4cff42d1@macbox>
-        <20170620161043.1e6a1364@vento.lan>
-        <20170621225712.426d3a17@audiostation.wuest.de>
-        <22860.14367.464168.657791@morden.metzler>
-        <20170624135001.5bcafb64@vento.lan>
-        <20170625195259.1623ef71@audiostation.wuest.de>
-        <20170626061920.2f0aa781@vento.lan>
-        <22864.56056.222371.477817@morden.metzler>
-        <20170626171701.58dac8d0@audiostation.wuest.de>
-        <22865.61290.964849.36217@morden.metzler>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Mon, 31 Jul 2017 11:33:23 -0400
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, nicolas@ndufresne.ca,
+        Jacob Chen <jacob-chen@iotwrt.com>
+Subject: [PATCH v4 1/6] [media] v4l: add portduff blend modes
+Date: Mon, 31 Jul 2017 23:32:57 +0800
+Message-Id: <1501515182-26705-2-git-send-email-jacob-chen@iotwrt.com>
+In-Reply-To: <1501515182-26705-1-git-send-email-jacob-chen@iotwrt.com>
+References: <1501515182-26705-1-git-send-email-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 27 Jun 2017 07:38:50 +0200
-Ralph Metzler <rjkm@metzlerbros.de> escreveu:
+At peresent, we don't have a control for Compositing and Blend.
+All drivers are just doing copies while actually many hardwares
+supports more functions.
 
-> Daniel Scheller writes:
->  > Am Mon, 26 Jun 2017 11:59:20 +0200
->  > schrieb Ralph Metzler <rjkm@metzlerbros.de>:
->  >   
->  > > Mauro Carvalho Chehab writes:  
->  > >  > 
->  > >  > Splitting it is OK. Including a *.c file no. It shouldn't be hard
->  > >  > to    
->  > > [...]  
->  > > > change the makefile to:
->  > >  > 	obj-ddbridge = ddbridge-main.o ddbridge-core.o
->  > >  > ddbridge-i2c.o \ ddbridge-modulator.o and ddbridge-ns.o
->  > >  > 
->  > >  > The only detail is that "ddbridge.c" should be renamed to 
->  > >  > ddbridge-core.c (or something similar) and some *.h files will
->  > >  > be needed.    
->  > > 
->  > > Hmm, ddbridge -> ddbridge-main would be fine.  
->  > 
->  > Funny, that's exactly the naming I had in mind when thinking about this
->  > in the past :)
->  > 
->  > So, I'll propose a rough todo (commit list) for me (I will do and
->  > care about this) then:
->  > 
->  > - 1/4: (Step 0) Since dddvb-0.9.9b besides the split also involved
->  >   reordering the functions in the code, this will be repeated with the
->  >   current mainline driver (helps keeping the diff with the actual code
->  >   bump cleaner)
->  > - 2/4: Do the split like done in 0.9.9 with the mainline driver, but do
->  >   it by having multiple objects in the makefile, adding header files
->  >   with prototypes where required
->  > - 3/4: Bump the driver code with what is already there (means, the
->  >   pre-cleaned variant w/o modulator and netstream/octonet stuff)
->  > - 4/4 (or 4/x): Apply any additional patches (like the "enable msi by
->  >   default Kconf opt, marked EXPERIMENTAL" thing I did to work around
->  >   the still problematic MSI IRQ stuff to let users have a better
->  >   experience)
->  > 
->  > When done, I'll post the patches for early review, but they'll have a
->  > hard dependency on the stv0910/stv6111 demod/tuner drivers (don't feel
->  > like ripping this out since we want that support anyway).
->  > 
->  > Additionally,I can do this for dddvb and submit it to the DigitalDevices dddvb
->  > repository (GitHub Pull Request) so we're at least in-sync wrt
->  > building the driver.
->  > 
->  > Ralph, Mauro, are you ok with this?  
-> 
-> I cannot promise which changes I will accept and when. Some will likely break
-> other things like building the OctopusNet image.
-> 
-> The public DigitalDevices repository also is not the one I am using for development.
-> So, changes will first go into our private repository and will only go upstream
-> for releases.
+So Adding V4L2 controls for Compositing and Blend, used for for
+composting streams.
 
-Are there any way where we can help to make easier to synchronize
-upstream with your internal tree?
+The values are based on porter duff operations.
+Defined in below links.
+https://developer.xamarin.com/api/type/Android.Graphics.PorterDuff+Mode/
 
-As Daniel mentioned that he used some scripts, perhaps he can send
-them for you to run on your tree.
+Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+Suggested-by: Nicolas Dufresne <nicolas@ndufresne.ca>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 20 +++++++++++++++++++-
+ include/uapi/linux/v4l2-controls.h   | 20 +++++++++++++++++++-
+ 2 files changed, 38 insertions(+), 2 deletions(-)
 
-Another alternative would be if you could release a "fork" of your
-development tree before a release, as sort of "release candidate"
-or something similar, at least while we're taking some efforts to
-synchronize it with upstream.
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index b9e08e3..561d7d5 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -478,7 +478,21 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Region Grid",
+ 		NULL,
+ 	};
+-
++	static const char * const porter_duff_modes[] = {
++		"Source",
++		"Source Top",
++		"Source In",
++		"Source Out",
++		"Source Over",
++		"Destination",
++		"Destination Top",
++		"Destination In",
++		"Destination Out",
++		"Destination Over",
++		"Add",
++		"Clear",
++		NULL
++	};
+ 
+ 	switch (id) {
+ 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+@@ -564,6 +578,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return vpx_golden_frame_sel;
+ 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
+ 		return jpeg_chroma_subsampling;
++	case V4L2_CID_PORTER_DUFF_MODE:
++		return porter_duff_modes;
+ 	case V4L2_CID_DV_TX_MODE:
+ 		return dv_tx_mode;
+ 	case V4L2_CID_DV_TX_RGB_RANGE:
+@@ -886,6 +902,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
+ 	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
+ 	case V4L2_CID_DEINTERLACING_MODE:	return "Deinterlacing Mode";
++	case V4L2_CID_PORTER_DUFF_MODE:		return "PorterDuff Blend Modes";
+ 
+ 	/* DV controls */
+ 	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+@@ -1060,6 +1077,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_DV_RX_IT_CONTENT_TYPE:
+ 	case V4L2_CID_TEST_PATTERN:
+ 	case V4L2_CID_DEINTERLACING_MODE:
++	case V4L2_CID_PORTER_DUFF_MODE:
+ 	case V4L2_CID_TUNE_DEEMPHASIS:
+ 	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
+ 	case V4L2_CID_DETECT_MD_MODE:
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 0d2e1e0..986a02b6 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -893,7 +893,25 @@ enum v4l2_jpeg_chroma_subsampling {
+ #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
+ #define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
+ #define V4L2_CID_DEINTERLACING_MODE		(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
+-
++#define V4L2_CID_PORTER_DUFF_MODE		(V4L2_CID_IMAGE_PROC_CLASS_BASE + 5)
++/*
++ * For details: see
++ * https://developer.android.com/reference/android/graphics/PorterDuff.Mode.html
++ */
++enum v4l2_porter_duff_mode {
++	V4L2_PORTER_DUFF_SRC			= 0,
++	V4L2_PORTER_DUFF_SRCATOP		= 1,
++	V4L2_PORTER_DUFF_SRCIN			= 2,
++	V4L2_PORTER_DUFF_SRCOUT			= 3,
++	V4L2_PORTER_DUFF_SRCOVER		= 4,
++	V4L2_PORTER_DUFF_DST			= 5,
++	V4L2_PORTER_DUFF_DSTATOP		= 6,
++	V4L2_PORTER_DUFF_DSTIN			= 7,
++	V4L2_PORTER_DUFF_DSTOUT			= 8,
++	V4L2_PORTER_DUFF_DSTOVER		= 9,
++	V4L2_PORTER_DUFF_ADD			= 10,
++	V4L2_PORTER_DUFF_CLEAR			= 11,
++};
+ 
+ /*  DV-class control IDs defined by V4L2 */
+ #define V4L2_CID_DV_CLASS_BASE			(V4L2_CTRL_CLASS_DV | 0x900)
+-- 
+2.7.4
