@@ -1,208 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from guitar.tcltek.co.il ([192.115.133.116]:44760 "EHLO
-        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750782AbdG3GII (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 30 Jul 2017 02:08:08 -0400
-Date: Sun, 30 Jul 2017 09:08:01 +0300
-From: Baruch Siach <baruch@tkos.co.il>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Yong Deng <yong.deng@magewell.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benoit Parrot <bparrot@ti.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
-Message-ID: <20170730060801.bkc2kvm72ktixy74@tarshish>
-References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
- <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
- <20170728160233.xooevio4hoqkgfaq@flea.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170728160233.xooevio4hoqkgfaq@flea.lan>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:36055 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751864AbdGaDIq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 30 Jul 2017 23:08:46 -0400
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        s.nawrocki@samsung.com, tfiga@chromium.org, nicolas@ndufresne.ca,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Yakir Yang <ykk@rock-chips.com>
+Subject: [PATCH v3 3/5] ARM: dts: rockchip: add RGA device node for RK3288
+Date: Mon, 31 Jul 2017 11:07:38 +0800
+Message-Id: <1501470460-12014-4-git-send-email-jacob-chen@iotwrt.com>
+In-Reply-To: <1501470460-12014-1-git-send-email-jacob-chen@iotwrt.com>
+References: <1501470460-12014-1-git-send-email-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime, Yong,
+This patch add the RGA dt config of rk3288 SoC.
 
-On Fri, Jul 28, 2017 at 06:02:33PM +0200, Maxime Ripard wrote:
-> Hi, 
-> 
-> Thanks for the second iteration!
-> 
-> On Thu, Jul 27, 2017 at 01:01:35PM +0800, Yong Deng wrote:
-> > Allwinner V3s SoC have two CSI module. CSI0 is used for MIPI interface
-> > and CSI1 is used for parallel interface. This is not documented in
-> > datasheet but by testing and guess.
-> > 
-> > This patch implement a v4l2 framework driver for it.
-> > 
-> > Currently, the driver only support the parallel interface. MIPI-CSI2,
-> > ISP's support are not included in this patch.
-> > 
-> > Signed-off-by: Yong Deng <yong.deng@magewell.com>
+Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+Signed-off-by: Yakir Yang <ykk@rock-chips.com>
+---
+ arch/arm/boot/dts/rk3288.dtsi | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-[...]
-
-> > +#ifdef DEBUG
-> > +static void sun6i_csi_dump_regs(struct sun6i_csi_dev *sdev)
-> > +{
-> > +	struct regmap *regmap = sdev->regmap;
-> > +	u32 val;
-> > +
-> > +	regmap_read(regmap, CSI_EN_REG, &val);
-> > +	printk("CSI_EN_REG=0x%x\n",		val);
-> > +	regmap_read(regmap, CSI_IF_CFG_REG, &val);
-> > +	printk("CSI_IF_CFG_REG=0x%x\n",		val);
-> > +	regmap_read(regmap, CSI_CAP_REG, &val);
-> > +	printk("CSI_CAP_REG=0x%x\n",		val);
-> > +	regmap_read(regmap, CSI_SYNC_CNT_REG, &val);
-> > +	printk("CSI_SYNC_CNT_REG=0x%x\n",	val);
-> > +	regmap_read(regmap, CSI_FIFO_THRS_REG, &val);
-> > +	printk("CSI_FIFO_THRS_REG=0x%x\n",	val);
-> > +	regmap_read(regmap, CSI_PTN_LEN_REG, &val);
-> > +	printk("CSI_PTN_LEN_REG=0x%x\n",	val);
-> > +	regmap_read(regmap, CSI_PTN_ADDR_REG, &val);
-> > +	printk("CSI_PTN_ADDR_REG=0x%x\n",	val);
-> > +	regmap_read(regmap, CSI_VER_REG, &val);
-> > +	printk("CSI_VER_REG=0x%x\n",		val);
-> > +	regmap_read(regmap, CSI_CH_CFG_REG, &val);
-> > +	printk("CSI_CH_CFG_REG=0x%x\n",		val);
-> > +	regmap_read(regmap, CSI_CH_SCALE_REG, &val);
-> > +	printk("CSI_CH_SCALE_REG=0x%x\n",	val);
-> > +	regmap_read(regmap, CSI_CH_F0_BUFA_REG, &val);
-> > +	printk("CSI_CH_F0_BUFA_REG=0x%x\n",	val);
-> > +	regmap_read(regmap, CSI_CH_F1_BUFA_REG, &val);
-> > +	printk("CSI_CH_F1_BUFA_REG=0x%x\n",	val);
-> > +	regmap_read(regmap, CSI_CH_F2_BUFA_REG, &val);
-> > +	printk("CSI_CH_F2_BUFA_REG=0x%x\n",	val);
-> > +	regmap_read(regmap, CSI_CH_STA_REG, &val);
-> > +	printk("CSI_CH_STA_REG=0x%x\n",		val);
-> > +	regmap_read(regmap, CSI_CH_INT_EN_REG, &val);
-> > +	printk("CSI_CH_INT_EN_REG=0x%x\n",	val);
-> > +	regmap_read(regmap, CSI_CH_INT_STA_REG, &val);
-> > +	printk("CSI_CH_INT_STA_REG=0x%x\n",	val);
-> > +	regmap_read(regmap, CSI_CH_FLD1_VSIZE_REG, &val);
-> > +	printk("CSI_CH_FLD1_VSIZE_REG=0x%x\n",	val);
-> > +	regmap_read(regmap, CSI_CH_HSIZE_REG, &val);
-> > +	printk("CSI_CH_HSIZE_REG=0x%x\n",	val);
-> > +	regmap_read(regmap, CSI_CH_VSIZE_REG, &val);
-> > +	printk("CSI_CH_VSIZE_REG=0x%x\n",	val);
-> > +	regmap_read(regmap, CSI_CH_BUF_LEN_REG, &val);
-> > +	printk("CSI_CH_BUF_LEN_REG=0x%x\n",	val);
-> > +	regmap_read(regmap, CSI_CH_FLIP_SIZE_REG, &val);
-> > +	printk("CSI_CH_FLIP_SIZE_REG=0x%x\n",	val);
-> > +	regmap_read(regmap, CSI_CH_FRM_CLK_CNT_REG, &val);
-> > +	printk("CSI_CH_FRM_CLK_CNT_REG=0x%x\n",	val);
-> > +	regmap_read(regmap, CSI_CH_ACC_ITNL_CLK_CNT_REG, &val);
-> > +	printk("CSI_CH_ACC_ITNL_CLK_CNT_REG=0x%x\n",	val);
-> > +	regmap_read(regmap, CSI_CH_FIFO_STAT_REG, &val);
-> > +	printk("CSI_CH_FIFO_STAT_REG=0x%x\n",	val);
-> > +	regmap_read(regmap, CSI_CH_PCLK_STAT_REG, &val);
-> > +	printk("CSI_CH_PCLK_STAT_REG=0x%x\n",	val);
-> > +}
-> > +#endif
-> 
-> You can already dump a regmap through debugfs, that's redundant.
-
-The advantage of in-code registers dump routine is the ability to synchronize 
-the snapshot with the driver code execution. This is particularly important 
-for the capture statistics registers. I have found it useful here.
-
-[...]
-
-> > +static int update_buf_addr(struct sun6i_csi *csi, dma_addr_t addr)
-> > +{
-> > +	struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
-> > +	/* transform physical address to bus address */
-> > +	dma_addr_t bus_addr = addr - 0x40000000;
-> 
-> Like Baruch noticed, you should use PHYS_OFFSET here. The A80 for
-> example has a different RAM base address.
-> 
-> > +
-> > +	regmap_write(sdev->regmap, CSI_CH_F0_BUFA_REG,
-> > +		     (bus_addr + sdev->planar_offset[0]) >> 2);
-
-Why do you need the bit shift? Does that work for you?
-
-The User Manuals of both the V3s and the and the A33 (AKA R16) state that the 
-BUFA field size in this register is 31:00, that is 32bit. I have found no 
-indication of this bit shift in the Olimex provided sunxi-vfe[1] driver. On 
-the A33 I have found that only after removing the bit-shift, (some sort of) 
-data started to appear in the buffer.
-
-[1] https://github.com/hehopmajieh/a33_linux/tree/master/drivers/media/video/sunxi-vfe
-
-[...]
-
-> > +static irqreturn_t sun6i_csi_isr(int irq, void *dev_id)
-> > +{
-> > +	struct sun6i_csi_dev *sdev = (struct sun6i_csi_dev *)dev_id;
-> > +	struct regmap *regmap = sdev->regmap;
-> > +	u32 status;
-> > +
-> > +	regmap_read(regmap, CSI_CH_INT_STA_REG, &status);
-> > +
-> > +	if ((status & CSI_CH_INT_STA_FIFO0_OF_PD) ||
-> > +	    (status & CSI_CH_INT_STA_FIFO1_OF_PD) ||
-> > +	    (status & CSI_CH_INT_STA_FIFO2_OF_PD) ||
-> > +	    (status & CSI_CH_INT_STA_HB_OF_PD)) {
-> > +		regmap_write(regmap, CSI_CH_INT_STA_REG, status);
-> > +		regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN, 0);
-> > +		regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN,
-> > +				   CSI_EN_CSI_EN);
-> 
-> You need to enable / disable it at every frame? How do you deal with
-> double buffering? (or did you choose to ignore it for now?)
-
-These *_OF_PD status bits indicate an overflow error condition.
-
-> > +		return IRQ_HANDLED;
-> > +	}
-> > +
-> > +	if (status & CSI_CH_INT_STA_FD_PD) {
-> > +		sun6i_video_frame_done(&sdev->csi.video);
-> > +	}
-> > +
-> > +	regmap_write(regmap, CSI_CH_INT_STA_REG, status);
-> 
-> Isn't it redundant with the one you did in the condition a bit above?
-> 
-> You should also check that your device indeed generated an
-> interrupt. In the occurence of a spourious interrupt, your code will
-> return IRQ_HANDLED, which is the wrong thing to do.
-> 
-> I think you should reverse your logic a bit here to make this
-> easier. You should just check that your status flags are indeed set,
-> and if not just bail out and return IRQ_NONE.
-> 
-> And if they are, go on with treating your interrupt.
-> 
-> > +
-> > +	return IRQ_HANDLED;
-> > +}
-
-baruch
-
+diff --git a/arch/arm/boot/dts/rk3288.dtsi b/arch/arm/boot/dts/rk3288.dtsi
+index 1efc2f2..cea41b7 100644
+--- a/arch/arm/boot/dts/rk3288.dtsi
++++ b/arch/arm/boot/dts/rk3288.dtsi
+@@ -945,6 +945,17 @@
+ 		status = "okay";
+ 	};
+ 
++	rga: rga@ff920000 {
++		compatible = "rockchip,rk3288-rga";
++		reg = <0xff920000 0x180>;
++		interrupts = <GIC_SPI 18 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA>;
++		clock-names = "aclk", "hclk", "sclk";
++		power-domains = <&power RK3288_PD_VIO>;
++		resets = <&cru SRST_RGA_CORE>, <&cru SRST_RGA_AXI>, <&cru SRST_RGA_AHB>;
++		reset-names = "core", "axi", "ahb";
++	};
++
+ 	vopb: vop@ff930000 {
+ 		compatible = "rockchip,rk3288-vop";
+ 		reg = <0xff930000 0x19c>;
 -- 
-     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
-=}------------------------------------------------ooO--U--Ooo------------{=
-   - baruch@tkos.co.il - tel: +972.52.368.4656, http://www.tkos.co.il -
+2.7.4
