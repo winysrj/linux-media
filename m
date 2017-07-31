@@ -1,166 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37806 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751165AbdGMNGJ (ORCPT
+Received: from out20-39.mail.aliyun.com ([115.124.20.39]:56703 "EHLO
+        out20-39.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751641AbdGaAsD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Jul 2017 09:06:09 -0400
-Subject: Re: [PATCH v2 05/14] v4l: vsp1: Don't create links for DRM pipeline
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-References: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
- <20170626181226.29575-6-laurent.pinchart+renesas@ideasonboard.com>
-Reply-To: kieran.bingham@ideasonboard.com
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <883d6ab4-6f0f-aa2d-b38d-335987a4ca8b@ideasonboard.com>
-Date: Thu, 13 Jul 2017 14:06:04 +0100
-MIME-Version: 1.0
-In-Reply-To: <20170626181226.29575-6-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+        Sun, 30 Jul 2017 20:48:03 -0400
+Date: Mon, 31 Jul 2017 08:47:44 +0800
+From: Yong <yong.deng@magewell.com>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Baruch Siach <baruch@tkos.co.il>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benoit Parrot <bparrot@ti.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
+Message-Id: <20170731084744.3d8d9f632858241c54efd185@magewell.com>
+In-Reply-To: <20170727122551.qca4atjeet6whfrs@flea.lan>
+References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
+        <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
+        <20170727121644.jtpge4x432gfxhvw@tarshish>
+        <20170727122551.qca4atjeet6whfrs@flea.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26/06/17 19:12, Laurent Pinchart wrote:
-> When the VSP1 is used in a DRM pipeline the driver doesn't register the
-> media device. Links between entities are not exposed to userspace, but
-> are still used internally for the sole purpose of setting up internal
-> source to sink pointers through the link setup handler.
-> 
-> Instead of going through this complex procedure, remove link creation
-> and set the sink pointers directly.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+On Thu, 27 Jul 2017 14:25:51 +0200
+Maxime Ripard <maxime.ripard@free-electrons.com> wrote:
 
-A whole function removed ... always love code removal...
-
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-
-> ---
->  drivers/media/platform/vsp1/vsp1_drm.c | 53 ++++------------------------------
->  drivers/media/platform/vsp1/vsp1_drm.h |  1 -
->  drivers/media/platform/vsp1/vsp1_drv.c | 16 ++++------
->  3 files changed, 12 insertions(+), 58 deletions(-)
+> On Thu, Jul 27, 2017 at 03:16:44PM +0300, Baruch Siach wrote:
+> > Hi Yong,
+> > 
+> > I managed to get the Frame Done interrupt with the previous version of this 
+> > driver on the A33 OLinuXino. No data yet (all zeros). I'm still working on it.
+> > 
+> > One comment below.
+> > 
+> > On Thu, Jul 27, 2017 at 01:01:35PM +0800, Yong Deng wrote:
+> > > Allwinner V3s SoC have two CSI module. CSI0 is used for MIPI interface
+> > > and CSI1 is used for parallel interface. This is not documented in
+> > > datasheet but by testing and guess.
+> > > 
+> > > This patch implement a v4l2 framework driver for it.
+> > > 
+> > > Currently, the driver only support the parallel interface. MIPI-CSI2,
+> > > ISP's support are not included in this patch.
+> > > 
+> > > Signed-off-by: Yong Deng <yong.deng@magewell.com>
+> > > ---
+> > 
+> > [...]
+> > 
+> > > +static int update_buf_addr(struct sun6i_csi *csi, dma_addr_t addr)
+> > > +{
+> > > +	struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
+> > > +	/* transform physical address to bus address */
+> > > +	dma_addr_t bus_addr = addr - 0x40000000;
+> > 
+> > What is the source of this magic number? Is it platform dependent? Are there 
+> > other devices doing DMA that need this adjustment?
 > 
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-> index 2d5a74e95e09..c72d021ff820 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> @@ -487,6 +487,7 @@ void vsp1_du_atomic_flush(struct device *dev)
->  
->  		vsp1->bru->inputs[i].rpf = rpf;
->  		rpf->bru_input = i;
-> +		rpf->entity.sink = &vsp1->bru->entity;
->  		rpf->entity.sink_pad = i;
->  
->  		dev_dbg(vsp1->dev, "%s: connecting RPF.%u to BRU:%u\n",
-> @@ -564,53 +565,6 @@ EXPORT_SYMBOL_GPL(vsp1_du_unmap_sg);
->   * Initialization
->   */
->  
-> -int vsp1_drm_create_links(struct vsp1_device *vsp1)
-> -{
-> -	const u32 flags = MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE;
-> -	unsigned int i;
-> -	int ret;
-> -
-> -	/*
-> -	 * VSPD instances require a BRU to perform composition and a LIF to
-> -	 * output to the DU.
-> -	 */
-> -	if (!vsp1->bru || !vsp1->lif)
-> -		return -ENXIO;
-> -
-> -	for (i = 0; i < vsp1->info->rpf_count; ++i) {
-> -		struct vsp1_rwpf *rpf = vsp1->rpf[i];
-> -
-> -		ret = media_create_pad_link(&rpf->entity.subdev.entity,
-> -					    RWPF_PAD_SOURCE,
-> -					    &vsp1->bru->entity.subdev.entity,
-> -					    i, flags);
-> -		if (ret < 0)
-> -			return ret;
-> -
-> -		rpf->entity.sink = &vsp1->bru->entity;
-> -		rpf->entity.sink_pad = i;
-> -	}
-> -
-> -	ret = media_create_pad_link(&vsp1->bru->entity.subdev.entity,
-> -				    vsp1->bru->entity.source_pad,
-> -				    &vsp1->wpf[0]->entity.subdev.entity,
-> -				    RWPF_PAD_SINK, flags);
-> -	if (ret < 0)
-> -		return ret;
-> -
-> -	vsp1->bru->entity.sink = &vsp1->wpf[0]->entity;
-> -	vsp1->bru->entity.sink_pad = RWPF_PAD_SINK;
-> -
-> -	ret = media_create_pad_link(&vsp1->wpf[0]->entity.subdev.entity,
-> -				    RWPF_PAD_SOURCE,
-> -				    &vsp1->lif->entity.subdev.entity,
-> -				    LIF_PAD_SINK, flags);
-> -	if (ret < 0)
-> -		return ret;
-> -
-> -	return 0;
-> -}
-> -
->  int vsp1_drm_init(struct vsp1_device *vsp1)
->  {
->  	struct vsp1_pipeline *pipe;
-> @@ -631,6 +585,11 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
->  		list_add_tail(&input->entity.list_pipe, &pipe->entities);
->  	}
->  
-> +	vsp1->bru->entity.sink = &vsp1->wpf[0]->entity;
-> +	vsp1->bru->entity.sink_pad = 0;
-> +	vsp1->wpf[0]->entity.sink = &vsp1->lif->entity;
-> +	vsp1->wpf[0]->entity.sink_pad = 0;
-> +
->  	list_add_tail(&vsp1->bru->entity.list_pipe, &pipe->entities);
->  	list_add_tail(&vsp1->wpf[0]->entity.list_pipe, &pipe->entities);
->  	list_add_tail(&vsp1->lif->entity.list_pipe, &pipe->entities);
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
-> index cbdbb8a39883..67d6549edfad 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.h
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.h
-> @@ -48,6 +48,5 @@ static inline struct vsp1_drm *to_vsp1_drm(struct vsp1_pipeline *pipe)
->  
->  int vsp1_drm_init(struct vsp1_device *vsp1);
->  void vsp1_drm_cleanup(struct vsp1_device *vsp1);
-> -int vsp1_drm_create_links(struct vsp1_device *vsp1);
->  
->  #endif /* __VSP1_DRM_H__ */
-> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-> index 9b3a0790f92a..5a467b118a1c 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drv.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
-> @@ -423,19 +423,15 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
->  			goto done;
->  	}
->  
-> -	/* Create links. */
-> -	if (vsp1->info->uapi)
-> -		ret = vsp1_uapi_create_links(vsp1);
-> -	else
-> -		ret = vsp1_drm_create_links(vsp1);
-> -	if (ret < 0)
-> -		goto done;
-> -
->  	/*
-> -	 * Register subdev nodes if the userspace API is enabled or initialize
-> -	 * the DRM pipeline otherwise.
-> +	 * Create links and register subdev nodes if the userspace API is
-> +	 * enabled or initialize the DRM pipeline otherwise.
->  	 */
->  	if (vsp1->info->uapi) {
-> +		ret = vsp1_uapi_create_links(vsp1);
-> +		if (ret < 0)
-> +			goto done;
-> +
->  		ret = v4l2_device_register_subdev_nodes(&vsp1->v4l2_dev);
->  		if (ret < 0)
->  			goto done;
+> This is the RAM base address in most (but not all) Allwinner
+> SoCs. You'll want to use PHYS_OFFSET instead.
+
+I have try to use PHYS_OFFSET. But I found it is not 0x40000000. I will
+try it again.
+
 > 
+> Maxime
+> 
+> -- 
+> Maxime Ripard, Free Electrons
+> Embedded Linux and Kernel engineering
+> http://free-electrons.com
+
+
+Thanks,
+Yong
