@@ -1,42 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51936 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751243AbdH2Ml2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 08:41:28 -0400
-Received: from lanttu.localdomain (unknown [IPv6:2001:1bc8:1a6:d3d5::e1:1002])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 567EE600DF
-        for <linux-media@vger.kernel.org>; Tue, 29 Aug 2017 15:41:26 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/4] smiapp: Fix error handling in power on sequence
-Date: Tue, 29 Aug 2017 15:41:22 +0300
-Message-Id: <20170829124125.30879-2-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170829124125.30879-1-sakari.ailus@linux.intel.com>
-References: <20170829124125.30879-1-sakari.ailus@linux.intel.com>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:34950 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751815AbdHAR5h (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 1 Aug 2017 13:57:37 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: corbet@lwn.net, mchehab@kernel.org, awalls@md.metrocast.net,
+        hverkuil@xs4all.nl, serjk@netup.ru, aospan@netup.ru,
+        hans.verkuil@cisco.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 06/18] [media] dm1105: constify pci_device_id.
+Date: Tue,  1 Aug 2017 23:26:22 +0530
+Message-Id: <1501610194-8231-7-git-send-email-arvind.yadav.cs@gmail.com>
+In-Reply-To: <1501610194-8231-1-git-send-email-arvind.yadav.cs@gmail.com>
+References: <1501610194-8231-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The error handling code in smiapp_power_on() returned in case of a failed
-I2C write instead of cleaning up the mess. Fix this.
+pci_device_id are not supposed to change at runtime. All functions
+working with pci_device_id provided by <linux/pci.h> work with
+const pci_device_id. So mark the non-const structs as const.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 ---
- drivers/media/i2c/smiapp/smiapp-core.c | 2 +-
+ drivers/media/pci/dm1105/dm1105.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 700f433261d0..d581625d7826 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -1313,7 +1313,7 @@ static int smiapp_power_on(struct device *dev)
- 	rval = smiapp_write(sensor, SMIAPP_REG_U8_DPHY_CTRL,
- 			    SMIAPP_DPHY_CTRL_UI);
- 	if (rval < 0)
--		return rval;
-+		goto out_cci_addr_fail;
+diff --git a/drivers/media/pci/dm1105/dm1105.c b/drivers/media/pci/dm1105/dm1105.c
+index 1d41934..0cd854f 100644
+--- a/drivers/media/pci/dm1105/dm1105.c
++++ b/drivers/media/pci/dm1105/dm1105.c
+@@ -1208,7 +1208,7 @@ static void dm1105_remove(struct pci_dev *pdev)
+ 	kfree(dev);
+ }
  
- 	rval = smiapp_call_quirk(sensor, post_poweron);
- 	if (rval) {
+-static struct pci_device_id dm1105_id_table[] = {
++static const struct pci_device_id dm1105_id_table[] = {
+ 	{
+ 		.vendor = PCI_VENDOR_ID_TRIGEM,
+ 		.device = PCI_DEVICE_ID_DM1105,
 -- 
-2.11.0
+2.7.4
