@@ -1,56 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42632 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751586AbdHSVYN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Aug 2017 17:24:13 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: javier@dowhile0.org, jacek.anaszewski@gmail.com,
-        linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 3/3] arm: dts: omap3: N9/N950: Add AS3645A camera flash
-Date: Sun, 20 Aug 2017 00:24:10 +0300
-Message-Id: <20170819212410.3084-4-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170819212410.3084-1-sakari.ailus@linux.intel.com>
-References: <20170819212410.3084-1-sakari.ailus@linux.intel.com>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:34313 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752154AbdHAR6G (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 1 Aug 2017 13:58:06 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: corbet@lwn.net, mchehab@kernel.org, awalls@md.metrocast.net,
+        hverkuil@xs4all.nl, serjk@netup.ru, aospan@netup.ru,
+        hans.verkuil@cisco.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 15/18] [media] mantis: constify pci_device_id.
+Date: Tue,  1 Aug 2017 23:26:31 +0530
+Message-Id: <1501610194-8231-16-git-send-email-arvind.yadav.cs@gmail.com>
+In-Reply-To: <1501610194-8231-1-git-send-email-arvind.yadav.cs@gmail.com>
+References: <1501610194-8231-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+pci_device_id are not supposed to change at runtime. All functions
+working with pci_device_id provided by <linux/pci.h> work with
+const pci_device_id. So mark the non-const structs as const.
 
-Add the as3645a flash controller to the DT source.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 ---
- arch/arm/boot/dts/omap3-n950-n9.dtsi | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/media/pci/mantis/mantis_cards.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index df3366fa5409..92c1a1da28d3 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -265,6 +265,20 @@
+diff --git a/drivers/media/pci/mantis/mantis_cards.c b/drivers/media/pci/mantis/mantis_cards.c
+index cdefffc..adc980d 100644
+--- a/drivers/media/pci/mantis/mantis_cards.c
++++ b/drivers/media/pci/mantis/mantis_cards.c
+@@ -281,7 +281,7 @@ static void mantis_pci_remove(struct pci_dev *pdev)
+ 	return;
+ }
  
- &i2c2 {
- 	clock-frequency = <400000>;
-+
-+	as3645a@30 {
-+		reg = <0x30>;
-+		compatible = "ams,as3645a";
-+		as3645a_flash: flash {
-+			flash-timeout-us = <150000>;
-+			flash-max-microamp = <320000>;
-+			led-max-microamp = <60000>;
-+			peak-current-limit = <1750000>;
-+		};
-+		as3645a_indicator: indicator {
-+			led-max-microamp = <10000>;
-+		};
-+	};
- };
- 
- &i2c3 {
+-static struct pci_device_id mantis_pci_table[] = {
++static const struct pci_device_id mantis_pci_table[] = {
+ 	MAKE_ENTRY(TECHNISAT, CABLESTAR_HD2, &vp2040_config,
+ 		   RC_MAP_TECHNISAT_TS35),
+ 	MAKE_ENTRY(TECHNISAT, SKYSTAR_HD2_10, &vp1041_config,
 -- 
-2.11.0
+2.7.4
