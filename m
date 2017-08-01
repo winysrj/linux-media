@@ -1,46 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:59620 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751398AbdHaIM7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 04:12:59 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Mats Randgaard <matrandg@cisco.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 1/3] cec.h: initialize *parent and *port in cec_phys_addr_validate
-Date: Thu, 31 Aug 2017 10:12:53 +0200
-Message-Id: <20170831081255.23608-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170831081255.23608-1-hverkuil@xs4all.nl>
-References: <20170831081255.23608-1-hverkuil@xs4all.nl>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:35092 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752154AbdHAR6A (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 1 Aug 2017 13:58:00 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: corbet@lwn.net, mchehab@kernel.org, awalls@md.metrocast.net,
+        hverkuil@xs4all.nl, serjk@netup.ru, aospan@netup.ru,
+        hans.verkuil@cisco.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 13/18] [media] saa7164: constify pci_device_id.
+Date: Tue,  1 Aug 2017 23:26:29 +0530
+Message-Id: <1501610194-8231-14-git-send-email-arvind.yadav.cs@gmail.com>
+In-Reply-To: <1501610194-8231-1-git-send-email-arvind.yadav.cs@gmail.com>
+References: <1501610194-8231-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+pci_device_id are not supposed to change at runtime. All functions
+working with pci_device_id provided by <linux/pci.h> work with
+const pci_device_id. So mark the non-const structs as const.
 
-Make sure these values are set to avoid 'uninitialized variable'
-warnings. Hasn't happened yet, but better safe than sorry.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 ---
- include/media/cec.h | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/pci/saa7164/saa7164-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/media/cec.h b/include/media/cec.h
-index df6b3bd31284..b96423d7058a 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -417,6 +417,10 @@ static inline u16 cec_phys_addr_for_input(u16 phys_addr, u8 input)
- 
- static inline int cec_phys_addr_validate(u16 phys_addr, u16 *parent, u16 *port)
- {
-+	if (parent)
-+		*parent = phys_addr;
-+	if (port)
-+		*port = 0;
- 	return 0;
+diff --git a/drivers/media/pci/saa7164/saa7164-core.c b/drivers/media/pci/saa7164/saa7164-core.c
+index 75eed4c..fca36a4 100644
+--- a/drivers/media/pci/saa7164/saa7164-core.c
++++ b/drivers/media/pci/saa7164/saa7164-core.c
+@@ -1490,7 +1490,7 @@ static void saa7164_finidev(struct pci_dev *pci_dev)
+ 	kfree(dev);
  }
  
+-static struct pci_device_id saa7164_pci_tbl[] = {
++static const struct pci_device_id saa7164_pci_tbl[] = {
+ 	{
+ 		/* SAA7164 */
+ 		.vendor       = 0x1131,
 -- 
-2.14.1
+2.7.4
