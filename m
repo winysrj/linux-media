@@ -1,48 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:51043 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752049AbdHINAc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 9 Aug 2017 09:00:32 -0400
-Date: Wed, 9 Aug 2017 14:00:29 +0100
-From: Sean Young <sean@mess.org>
-To: Shawn Guo <shawnguo@kernel.org>
-Cc: Rob Herring <robh+dt@kernel.org>,
-        Baoyou Xie <xie.baoyou@sanechips.com.cn>,
-        Xin Zhou <zhou.xin8@sanechips.com.cn>,
-        Jun Nie <jun.nie@linaro.org>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Shawn Guo <shawn.guo@linaro.org>
-Subject: Re: [PATCH v2 3/3] rc: add zx-irdec remote control driver
-Message-ID: <20170809130029.eneyqstlejfkotz2@gofer.mess.org>
-References: <1501420993-21977-1-git-send-email-shawnguo@kernel.org>
- <1501420993-21977-4-git-send-email-shawnguo@kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1501420993-21977-4-git-send-email-shawnguo@kernel.org>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:34227 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752113AbdHAR5x (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 1 Aug 2017 13:57:53 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: corbet@lwn.net, mchehab@kernel.org, awalls@md.metrocast.net,
+        hverkuil@xs4all.nl, serjk@netup.ru, aospan@netup.ru,
+        hans.verkuil@cisco.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 11/18] [media] cobalt: constify pci_device_id.
+Date: Tue,  1 Aug 2017 23:26:27 +0530
+Message-Id: <1501610194-8231-12-git-send-email-arvind.yadav.cs@gmail.com>
+In-Reply-To: <1501610194-8231-1-git-send-email-arvind.yadav.cs@gmail.com>
+References: <1501610194-8231-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jul 30, 2017 at 09:23:13PM +0800, Shawn Guo wrote:
-> From: Shawn Guo <shawn.guo@linaro.org>
-> 
-> It adds the remote control driver and corresponding keymap file for
-> IRDEC block found on ZTE ZX family SoCs.
-> 
-> Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
-> ---
->  drivers/media/rc/Kconfig               |  11 ++
->  drivers/media/rc/Makefile              |   1 +
->  drivers/media/rc/keymaps/Makefile      |   3 +-
->  drivers/media/rc/keymaps/rc-zx-irdec.c |  79 ++++++++++++++
->  drivers/media/rc/zx-irdec.c            | 183 +++++++++++++++++++++++++++++++++
->  include/media/rc-map.h                 |   1 +
->  6 files changed, 277 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/media/rc/keymaps/rc-zx-irdec.c
->  create mode 100644 drivers/media/rc/zx-irdec.c
+pci_device_id are not supposed to change at runtime. All functions
+working with pci_device_id provided by <linux/pci.h> work with
+const pci_device_id. So mark the non-const structs as const.
 
-We're missing an MAINTAINERS entry for this driver. Could this be added
-please as a separate patch?
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ drivers/media/pci/cobalt/cobalt-driver.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks
-Sean
+diff --git a/drivers/media/pci/cobalt/cobalt-driver.c b/drivers/media/pci/cobalt/cobalt-driver.c
+index f8e173f..98b6cb9 100644
+--- a/drivers/media/pci/cobalt/cobalt-driver.c
++++ b/drivers/media/pci/cobalt/cobalt-driver.c
+@@ -36,7 +36,7 @@
+ #include "cobalt-omnitek.h"
+ 
+ /* add your revision and whatnot here */
+-static struct pci_device_id cobalt_pci_tbl[] = {
++static const struct pci_device_id cobalt_pci_tbl[] = {
+ 	{PCI_VENDOR_ID_CISCO, PCI_DEVICE_ID_COBALT,
+ 	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
+ 	{0,}
+-- 
+2.7.4
