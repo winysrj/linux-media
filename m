@@ -1,115 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:45457 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932405AbdHWTYP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Aug 2017 15:24:15 -0400
-Date: Wed, 23 Aug 2017 21:24:13 +0200
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Yong <yong.deng@magewell.com>
-Cc: Baruch Siach <baruch@tkos.co.il>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benoit Parrot <bparrot@ti.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
-Message-ID: <20170823192413.y5psmcgd3ghvpkbz@flea.home>
-References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
- <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
- <20170728160233.xooevio4hoqkgfaq@flea.lan>
- <20170730060801.bkc2kvm72ktixy74@tarshish>
- <20170821202145.kmxancepyq55v3o2@flea.lan>
- <20170823104118.b4524830e4bb767d7714772c@magewell.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45870 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751891AbdHANqS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 1 Aug 2017 09:46:18 -0400
+Subject: Re: [PATCH v2 14/14] drm: rcar-du: Configure DPAD0 routing through
+ last group on Gen3
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20170626181226.29575-15-laurent.pinchart+renesas@ideasonboard.com>
+Reply-To: kieran.bingham@ideasonboard.com
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <ec0cd98e-f74c-fb75-ddaa-2a1a3a8193c8@ideasonboard.com>
+Date: Tue, 1 Aug 2017 14:46:13 +0100
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="gpulx6hmx2kzzbcc"
-Content-Disposition: inline
-In-Reply-To: <20170823104118.b4524830e4bb767d7714772c@magewell.com>
+In-Reply-To: <20170626181226.29575-15-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Laurent,
 
---gpulx6hmx2kzzbcc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thankyou for the patch,
 
-On Wed, Aug 23, 2017 at 10:41:18AM +0800, Yong wrote:
-> > > > > +static irqreturn_t sun6i_csi_isr(int irq, void *dev_id)
-> > > > > +{
-> > > > > +	struct sun6i_csi_dev *sdev =3D (struct sun6i_csi_dev *)dev_id;
-> > > > > +	struct regmap *regmap =3D sdev->regmap;
-> > > > > +	u32 status;
-> > > > > +
-> > > > > +	regmap_read(regmap, CSI_CH_INT_STA_REG, &status);
-> > > > > +
-> > > > > +	if ((status & CSI_CH_INT_STA_FIFO0_OF_PD) ||
-> > > > > +	    (status & CSI_CH_INT_STA_FIFO1_OF_PD) ||
-> > > > > +	    (status & CSI_CH_INT_STA_FIFO2_OF_PD) ||
-> > > > > +	    (status & CSI_CH_INT_STA_HB_OF_PD)) {
-> > > > > +		regmap_write(regmap, CSI_CH_INT_STA_REG, status);
-> > > > > +		regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN, 0);
-> > > > > +		regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN,
-> > > > > +				   CSI_EN_CSI_EN);
-> > > >=20
-> > > > You need to enable / disable it at every frame? How do you deal with
-> > > > double buffering? (or did you choose to ignore it for now?)
-> > >=20
-> > > These *_OF_PD status bits indicate an overflow error condition.
-> >=20
-> > Shouldn't we return an error code then? The names of these flags could
-> > be better too.
->=20
-> Then, where and how to deal with the error coce.
+On 26/06/17 19:12, Laurent Pinchart wrote:
+> On Gen3 SoCs DPAD0 routing is configured through the last CRTC group,
+> unlike on Gen2 where it is configured through the first CRTC group. Fix
+> the driver accordingly.
+> 
+> Fixes: 2427b3037710 ("drm: rcar-du: Add R8A7795 device support")
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> ---
+>  drivers/gpu/drm/rcar-du/rcar_du_group.c | 21 ++++++++++++++-------
+>  1 file changed, 14 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_group.c b/drivers/gpu/drm/rcar-du/rcar_du_group.c
+> index 64738fca96d0..2abb2fdd143e 100644
+> --- a/drivers/gpu/drm/rcar-du/rcar_du_group.c
+> +++ b/drivers/gpu/drm/rcar-du/rcar_du_group.c
+> @@ -208,23 +208,30 @@ void rcar_du_group_restart(struct rcar_du_group *rgrp)
+>  
+>  int rcar_du_set_dpad0_vsp1_routing(struct rcar_du_device *rcdu)
+>  {
+> +	struct rcar_du_group *rgrp;
+> +	struct rcar_du_crtc *crtc;
+>  	int ret;
+>  
+>  	if (!rcar_du_has(rcdu, RCAR_DU_FEATURE_EXT_CTRL_REGS))
+>  		return 0;
+>  
+> -	/* RGB output routing to DPAD0 and VSP1D routing to DU0/1/2 are
+> -	 * configured in the DEFR8 register of the first group. As this function
+> -	 * can be called with the DU0 and DU1 CRTCs disabled, we need to enable
+> -	 * the first group clock before accessing the register.
+> +	/*
+> +	 * RGB output routing to DPAD0 and VSP1D routing to DU0/1/2 are
+> +	 * configured in the DEFR8 register of the first group on Gen2 and the
+> +	 * last group on Gen3. As this function can be called with the DU
+> +	 * channels of the corresponding CRTCs disabled, we need to enable the
+> +	 * group clock before accessing the register.
+>  	 */
+> -	ret = clk_prepare_enable(rcdu->crtcs[0].clock);
+> +	rgrp = &rcdu->groups[DIV_ROUND_UP(rcdu->num_crtcs, 2) - 1];
+> +	crtc = &rcdu->crtcs[rgrp->index * 2];
 
-If you want to deal with FIFO overflow, I'm not sure you have anything
-to do. It means, you've been to slow to queue buffers, so I guess
-stopping the pipeline until more buffers are queued would make
-sense. And we should probably increase the sequence number while doing
-so to notify the userspace that some frames were lost.
+I'm not certain I understand how this makes a distinct difference between G2,
+and G3.
 
-Maxime
+Is rcdu->num_crtcs the distinguishing factor between the SoC's?
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
---gpulx6hmx2kzzbcc
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJZndZdAAoJEBx+YmzsjxAgxNMP/j4dG39peK/0A3yVi0cULJeZ
-elrAmFZcV+zD7hvugBW1uvMUPJrE+wKYD7pn5Ku7zcqwE37mVTcnJHe2jtMNpWz7
-WpxEau3zgHFUnoVQDuAOIukdC9YB1sp9ocsPNlUmEFpnFe84Lp7fSMGp5SRy4ae/
-lA4vPMaxohiuNjAhKWB67zB/gOYP6L28gtAV4Y+xtAMii+5eT5aAheyGbjl4qi65
-UcqyjKSl+wXutJJ4vzp2FwRdNHBgwhLNd6Bx7LTKdsMx3oQqhQGQOynRg0dApf3Y
-wwDdCkrEXpjCPa/HOmCHM3mUV19QadeHrbufdhpn7CsqqE1sEfy/GkgbLBbb3gF9
-3kJ941WwrBk0ea8Q6EIn65yy0IZNL4rEf3gQ+mOKWT4ueDhtiVS4+6lgoPS6GRuM
-2i0jyc02tDn/4dIW75MOqXgAO+8k2esxPqO+Ok85KE72IBpRSrOknqQmbTGSZF5F
-ICVRLAqhKZLiYAqottL73DFl51fO7fdUfFGUAmwAwtGcR1GrlnMQAVDyOABn2EfV
-SgMYu2rifKYaTskdUfJe/KQ9WCxNJFVDBAwtedsdqbq1C+bv6PRrA2sCZMrtG+9e
-jR0j/Jp4U9A9l/mTC8n0bq5T2JrLSvj9de09tchELP+dwUWZ8vYWdh6MYKI9Pc4H
-ZoadvlBN3bQ8q91EUiMk
-=43hd
------END PGP SIGNATURE-----
-
---gpulx6hmx2kzzbcc--
+> +
+> +	ret = clk_prepare_enable(crtc->clock);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	rcar_du_group_setup_defr8(&rcdu->groups[0]);
+> +	rcar_du_group_setup_defr8(rgrp);
+>  
+> -	clk_disable_unprepare(rcdu->crtcs[0].clock);
+> +	clk_disable_unprepare(crtc->clock);
+>  
+>  	return 0;
+>  }
+> 
