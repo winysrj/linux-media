@@ -1,131 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37512 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752955AbdHDQcz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 Aug 2017 12:32:55 -0400
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45904 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751680AbdHAOGY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 1 Aug 2017 10:06:24 -0400
+Subject: Re: [PATCH v2 13/14] drm: rcar-du: Restrict DPLL duty cycle
+ workaround to H3 ES1.x
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20170626181226.29575-14-laurent.pinchart+renesas@ideasonboard.com>
 From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        hans.verkuil@cisco.com
-Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v4 4/7] v4l: vsp1: Remove redundant context variables
-Date: Fri,  4 Aug 2017 17:32:41 +0100
-Message-Id: <163e44c4345b8427523bbb19bd82aa83c8d379dc.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
+Reply-To: kieran.bingham@ideasonboard.com
+Message-ID: <8f72d427-4a7c-29ee-2492-d3a99449dfb8@ideasonboard.com>
+Date: Tue, 1 Aug 2017 15:06:20 +0100
+MIME-Version: 1.0
+In-Reply-To: <20170626181226.29575-14-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vsp1_pipe object context variables for div_size and
-current_partition allowed state to be maintained through processing the
-partitions during processing.
+Hi Laurent,
 
-Now that the partition tables are calculated during stream on, there is
-no requirement to store these variables in the pipe object.
+On 26/06/17 19:12, Laurent Pinchart wrote:
+> The H3 ES1.x exhibits dot clock duty cycle stability issues. We can work
+> around them by configuring the DPLL to twice the desired frequency,
+> coupled with a /2 post-divider. This isn't needed on other SoCs and
+> breaks HDMI output on M3-W for a currently unknown reason, so restrict
+> the workaround to H3 ES1.x.
+> 
+> From an implementation point of view, move work around handling outside
+> of the rcar_du_dpll_divider() function by requesting a x2 DPLL output
+> frequency explicitly. The existing post-divider calculation mechanism
+> will then take care of dividing the clock by two automatically.
+> 
+> While at it, print a more useful debugging message to ease debugging
+> clock rate issues.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> ---
+>  drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 37 +++++++++++++++++++++++++---------
+>  1 file changed, 27 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+> index 8f942ebdd0c6..6c29981377c0 100644
+> --- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+> +++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+> @@ -13,6 +13,7 @@
+>  
+>  #include <linux/clk.h>
+>  #include <linux/mutex.h>
+> +#include <linux/sys_soc.h>
+>  
+>  #include <drm/drmP.h>
+>  #include <drm/drm_atomic.h>
+> @@ -129,10 +130,8 @@ static void rcar_du_dpll_divider(struct rcar_du_crtc *rcrtc,
+>  			for (fdpll = 1; fdpll < 32; fdpll++) {
+>  				unsigned long output;
+>  
+> -				/* 1/2 (FRQSEL=1) for duty rate 50% */
+>  				output = input * (n + 1) / (m + 1)
+> -				       / (fdpll + 1) / 2;
+> -
+> +				       / (fdpll + 1);
 
-Utilise local variables for the processing as required.
+I'm finding this hard to interpret vs the commit-message.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_pipe.h  |  4 ----
- drivers/media/platform/vsp1/vsp1_video.c | 21 +++++++--------------
- 2 files changed, 7 insertions(+), 18 deletions(-)
+Here we remove the /2 (which affects all targets... is this a problem?)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index 0cfd07a187a2..9653ef5cfb0c 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -80,10 +80,8 @@ enum vsp1_pipeline_state {
-  * @uds_input: entity at the input of the UDS, if the UDS is present
-  * @entities: list of entities in the pipeline
-  * @dl: display list associated with the pipeline
-- * @div_size: The maximum allowed partition size for the pipeline
-  * @partitions: The number of partitions used to process one frame
-  * @partition: The current partition for configuration to process
-- * @current_partition: The partition number currently being configured
-  * @part_table: The pre-calculated partitions used by the pipeline
-  */
- struct vsp1_pipeline {
-@@ -115,10 +113,8 @@ struct vsp1_pipeline {
- 
- 	struct vsp1_dl_list *dl;
- 
--	unsigned int div_size;
- 	unsigned int partitions;
- 	struct v4l2_rect partition;
--	unsigned int current_partition;
- 	struct v4l2_rect *part_table;
- };
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 2ac57a436811..176fd4b17df5 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -290,7 +290,6 @@ static int vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
- 		}
- 	}
- 
--	pipe->div_size = div_size;
- 	pipe->partitions = DIV_ROUND_UP(format->width, div_size);
- 	pipe->part_table = kcalloc(pipe->partitions, sizeof(*pipe->part_table),
- 				   GFP_KERNEL);
-@@ -379,11 +378,12 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
- }
- 
- static void vsp1_video_pipeline_run_partition(struct vsp1_pipeline *pipe,
--					      struct vsp1_dl_list *dl)
-+					      struct vsp1_dl_list *dl,
-+					      unsigned int partition)
- {
- 	struct vsp1_entity *entity;
- 
--	pipe->partition = pipe->part_table[pipe->current_partition];
-+	pipe->partition = pipe->part_table[partition];
- 
- 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
- 		if (entity->ops->configure)
-@@ -396,6 +396,7 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
- {
- 	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
- 	struct vsp1_entity *entity;
-+	unsigned int partition;
- 
- 	if (!pipe->dl)
- 		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
-@@ -412,20 +413,12 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
- 	}
- 
- 	/* Run the first partition */
--	pipe->current_partition = 0;
--	vsp1_video_pipeline_run_partition(pipe, pipe->dl);
-+	vsp1_video_pipeline_run_partition(pipe, pipe->dl, 0);
- 
- 	/* Process consecutive partitions as necessary */
--	for (pipe->current_partition = 1;
--	     pipe->current_partition < pipe->partitions;
--	     pipe->current_partition++) {
-+	for (partition = 1; partition < pipe->partitions; ++partition) {
- 		struct vsp1_dl_list *dl;
- 
--		/*
--		 * Partition configuration operations will utilise
--		 * the pipe->current_partition variable to determine
--		 * the work they should complete.
--		 */
- 		dl = vsp1_dl_list_get(pipe->output->dlm);
- 
- 		/*
-@@ -438,7 +431,7 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
- 			break;
- 		}
- 
--		vsp1_video_pipeline_run_partition(pipe, dl);
-+		vsp1_video_pipeline_run_partition(pipe, dl, partition);
- 		vsp1_dl_list_add_chain(pipe->dl, dl);
- 	}
- 
--- 
-git-series 0.9.1
+>  				if (output >= 400000000)
+>  					continue;
+>  
+> @@ -158,6 +157,11 @@ static void rcar_du_dpll_divider(struct rcar_du_crtc *rcrtc,
+>  		 best_diff);
+>  }
+>  
+> +static const struct soc_device_attribute rcar_du_r8a7795_es1[] = {
+> +	{ .soc_id = "r8a7795", .revision = "ES1.*" },
+> +	{ /* sentinel */ }
+> +};
+> +
+>  static void rcar_du_crtc_set_display_timing(struct rcar_du_crtc *rcrtc)
+>  {
+>  	const struct drm_display_mode *mode = &rcrtc->crtc.state->adjusted_mode;
+> @@ -185,7 +189,20 @@ static void rcar_du_crtc_set_display_timing(struct rcar_du_crtc *rcrtc)
+>  
+>  		extclk = clk_get_rate(rcrtc->extclock);
+>  		if (rcdu->info->dpll_ch & (1 << rcrtc->index)) {
+> -			rcar_du_dpll_divider(rcrtc, &dpll, extclk, mode_clock);
+> +			unsigned long target = mode_clock;
+> +
+> +			/*
+> +			 * The H3 ES1.x exhibits dot clock duty cycle stability
+> +			 * issues. We can work around them by configuring the
+> +			 * DPLL to twice the desired frequency, coupled with a
+> +			 * /2 post-divider. This isn't needed on other SoCs and
+
+But here we discuss 'coupling' it with a /2 post - divider.
+
+My inference here then is that by setting a target that is 'twice' the value -
+code later will provide the /2 post-divide?
+
+> +			 * breaks HDMI output on M3-W for a currently unknown
+> +			 * reason, so restrict the workaround to H3 ES1.x.
+> +			 */
+> +			if (soc_device_match(rcar_du_r8a7795_es1))
+> +				target *= 2;
+> +
+> +			rcar_du_dpll_divider(rcrtc, &dpll, extclk, target);
+>  			extclk = dpll.output;
+>  		}
+>  
+> @@ -197,8 +214,6 @@ static void rcar_du_crtc_set_display_timing(struct rcar_du_crtc *rcrtc)
+>  
+>  		if (abs((long)extrate - (long)mode_clock) <
+>  		    abs((long)rate - (long)mode_clock)) {
+> -			dev_dbg(rcrtc->group->dev->dev,
+> -				"crtc%u: using external clock\n", rcrtc->index);
+>  
+>  			if (rcdu->info->dpll_ch & (1 << rcrtc->index)) {
+>  				u32 dpllcr = DPLLCR_CODE | DPLLCR_CLKE
+> @@ -215,12 +230,14 @@ static void rcar_du_crtc_set_display_timing(struct rcar_du_crtc *rcrtc)
+>  
+>  				rcar_du_group_write(rcrtc->group, DPLLCR,
+>  						    dpllcr);
+> -
+> -				escr = ESCR_DCLKSEL_DCLKIN | 1;
+> -			} else {
+> -				escr = ESCR_DCLKSEL_DCLKIN | extdiv;
+>  			}
+> +
+> +			escr = ESCR_DCLKSEL_DCLKIN | extdiv;
+
+Therefore - is this the post-divider?
+
+If my inferences are correct - then OK:
+
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+--
+KB
+
+>  		}
+> +
+> +		dev_dbg(rcrtc->group->dev->dev,
+> +			"mode clock %lu extrate %lu rate %lu ESCR 0x%08x\n",
+> +			mode_clock, extrate, rate, escr);
+>  	}
+>  
+>  	rcar_du_group_write(rcrtc->group, rcrtc->index % 2 ? ESCR2 : ESCR,
+> 
