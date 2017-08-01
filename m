@@ -1,55 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:38548 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750955AbdHMKIp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 13 Aug 2017 06:08:45 -0400
-Received: by mail-wm0-f65.google.com with SMTP id y206so11241560wmd.5
-        for <linux-media@vger.kernel.org>; Sun, 13 Aug 2017 03:08:44 -0700 (PDT)
-From: Eugeniu Rosca <roscaeugeniu@gmail.com>
-To: Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Eugeniu Rosca <erosca@de.adit-jv.com>
-Subject: [PATCH] [media] mxl111sf: Fix potential null pointer dereference
-Date: Sun, 13 Aug 2017 12:06:29 +0200
-Message-Id: <20170813100629.24034-1-rosca.eugeniu@gmail.com>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:34251 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752136AbdHAR54 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 1 Aug 2017 13:57:56 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: corbet@lwn.net, mchehab@kernel.org, awalls@md.metrocast.net,
+        hverkuil@xs4all.nl, serjk@netup.ru, aospan@netup.ru,
+        hans.verkuil@cisco.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 12/18] [media] b2c2: constify pci_device_id.
+Date: Tue,  1 Aug 2017 23:26:28 +0530
+Message-Id: <1501610194-8231-13-git-send-email-arvind.yadav.cs@gmail.com>
+In-Reply-To: <1501610194-8231-1-git-send-email-arvind.yadav.cs@gmail.com>
+References: <1501610194-8231-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Eugeniu Rosca <erosca@de.adit-jv.com>
+pci_device_id are not supposed to change at runtime. All functions
+working with pci_device_id provided by <linux/pci.h> work with
+const pci_device_id. So mark the non-const structs as const.
 
-Reviewing the delta between cppcheck output of v4.9.39 and v4.9.40
-stable updates, I stumbled on the new warning:
-
-mxl111sf.c:80: (warning) Possible null pointer dereference: rbuf
-
-Since copying state->rcvbuf into rbuf is not needed in the 'write-only'
-scenario (i.e. calling mxl111sf_ctrl_msg() from mxl111sf_i2c_send_data()
-or from mxl111sf_write_reg()), bypass memcpy() in this case.
-
-Fixes: d90b336f3f65 ("[media] mxl111sf: Fix driver to use heap allocate buffers for USB messages")
-Signed-off-by: Eugeniu Rosca <erosca@de.adit-jv.com>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 ---
- drivers/media/usb/dvb-usb-v2/mxl111sf.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/media/pci/b2c2/flexcop-pci.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-index b0d5904a4ea6..67953360fda5 100644
---- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-+++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-@@ -77,7 +77,9 @@ int mxl111sf_ctrl_msg(struct mxl111sf_state *state,
- 		dvb_usbv2_generic_rw(d, state->sndbuf, 1+wlen, state->rcvbuf,
- 				     rlen);
+diff --git a/drivers/media/pci/b2c2/flexcop-pci.c b/drivers/media/pci/b2c2/flexcop-pci.c
+index 6e60dec..cc6527e 100644
+--- a/drivers/media/pci/b2c2/flexcop-pci.c
++++ b/drivers/media/pci/b2c2/flexcop-pci.c
+@@ -415,7 +415,7 @@ static void flexcop_pci_remove(struct pci_dev *pdev)
+ 	flexcop_device_kfree(fc_pci->fc_dev);
+ }
  
--	memcpy(rbuf, state->rcvbuf, rlen);
-+	if (rbuf)
-+		memcpy(rbuf, state->rcvbuf, rlen);
-+
- 	mutex_unlock(&state->msg_lock);
- 
- 	mxl_fail(ret);
+-static struct pci_device_id flexcop_pci_tbl[] = {
++static const struct pci_device_id flexcop_pci_tbl[] = {
+ 	{ PCI_DEVICE(0x13d0, 0x2103) },
+ 	{ },
+ };
 -- 
-2.14.1
+2.7.4
