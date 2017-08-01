@@ -1,59 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:36158 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753089AbdHRNjF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 09:39:05 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.14] vsp1: partition algorithm improvements
-Message-ID: <07633676-7473-fe6d-64e3-52b60e5be883@xs4all.nl>
-Date: Fri, 18 Aug 2017 15:39:00 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:36342 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751815AbdHAR5a (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 1 Aug 2017 13:57:30 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: corbet@lwn.net, mchehab@kernel.org, awalls@md.metrocast.net,
+        hverkuil@xs4all.nl, serjk@netup.ru, aospan@netup.ru,
+        hans.verkuil@cisco.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 04/18] [media] meye: constify pci_device_id.
+Date: Tue,  1 Aug 2017 23:26:20 +0530
+Message-Id: <1501610194-8231-5-git-send-email-arvind.yadav.cs@gmail.com>
+In-Reply-To: <1501610194-8231-1-git-send-email-arvind.yadav.cs@gmail.com>
+References: <1501610194-8231-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Note from Laurent: the series merges cleanly with Dave's drm-next branch
-(git://people.freedesktop.org/~airlied/linux) that contains a large series of
-VSP patches. There should thus be no merge conflict (at least none that git
-won't solve automatically) when merging upstream.
+pci_device_id are not supposed to change at runtime. All functions
+working with pci_device_id provided by <linux/pci.h> work with
+const pci_device_id. So mark the non-const structs as const.
 
-Regards,
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ drivers/media/pci/meye/meye.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-	Hans
-
-The following changes since commit ec0c3ec497cabbf3bfa03a9eb5edcc252190a4e0:
-
-  media: ddbridge: split code into multiple files (2017-08-09 12:17:01 -0400)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git vsp1
-
-for you to fetch changes up to 8ced9b7523eb503a3271bbfbc41451455fea7d0c:
-
-  v4l: vsp1: Allow entities to participate in the partition algorithm (2017-08-18 15:05:26 +0200)
-
-----------------------------------------------------------------
-Kieran Bingham (7):
-      v4l: vsp1: Release buffers in start_streaming error path
-      v4l: vsp1: Move vsp1_video_pipeline_setup_partitions() function
-      v4l: vsp1: Calculate partition sizes at stream start
-      v4l: vsp1: Remove redundant context variables
-      v4l: vsp1: Move partition rectangles to struct and operate directly
-      v4l: vsp1: Provide UDS register updates
-      v4l: vsp1: Allow entities to participate in the partition algorithm
-
- drivers/media/platform/vsp1/vsp1_entity.h |   7 +++
- drivers/media/platform/vsp1/vsp1_pipe.c   |  22 ++++++++
- drivers/media/platform/vsp1/vsp1_pipe.h   |  46 +++++++++++++++--
- drivers/media/platform/vsp1/vsp1_regs.h   |  14 ++++++
- drivers/media/platform/vsp1/vsp1_rpf.c    |  27 +++++-----
- drivers/media/platform/vsp1/vsp1_sru.c    |  26 ++++++++++
- drivers/media/platform/vsp1/vsp1_uds.c    |  57 ++++++++++++++++++---
- drivers/media/platform/vsp1/vsp1_video.c  | 182 +++++++++++++++++++++++++++++++++++++-----------------------------
- drivers/media/platform/vsp1/vsp1_wpf.c    |  24 ++++++---
- 9 files changed, 289 insertions(+), 116 deletions(-)
+diff --git a/drivers/media/pci/meye/meye.c b/drivers/media/pci/meye/meye.c
+index 9c4a024..0fe76be 100644
+--- a/drivers/media/pci/meye/meye.c
++++ b/drivers/media/pci/meye/meye.c
+@@ -1801,7 +1801,7 @@ static void meye_remove(struct pci_dev *pcidev)
+ 	printk(KERN_INFO "meye: removed\n");
+ }
+ 
+-static struct pci_device_id meye_pci_tbl[] = {
++static const struct pci_device_id meye_pci_tbl[] = {
+ 	{ PCI_VDEVICE(KAWASAKI, PCI_DEVICE_ID_MCHIP_KL5A72002), 0 },
+ 	{ }
+ };
+-- 
+2.7.4
