@@ -1,116 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:52135 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750975AbdHLIWJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Aug 2017 04:22:09 -0400
-Subject: Re: [PATCH] v4l2-compat-ioctl32.c: make ctrl_is_pointer generic
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <3814fe88-647e-dc2d-2b5f-fcb1c925228b@xs4all.nl>
- <20170811180818.2fc408b5@vento.lan>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <838eb18a-b7e0-4d2c-f42b-549488b519b6@xs4all.nl>
-Date: Sat, 12 Aug 2017 10:22:07 +0200
+Received: from mail-pg0-f44.google.com ([74.125.83.44]:35554 "EHLO
+        mail-pg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751739AbdHBUav (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Aug 2017 16:30:51 -0400
+Received: by mail-pg0-f44.google.com with SMTP id v189so25432030pgd.2
+        for <linux-media@vger.kernel.org>; Wed, 02 Aug 2017 13:30:51 -0700 (PDT)
+Received: from [192.168.0.21] (wsip-68-15-115-196.ok.ok.cox.net. [68.15.115.196])
+        by smtp.googlemail.com with ESMTPSA id q89sm42334474pfd.156.2017.08.02.13.30.49
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 02 Aug 2017 13:30:49 -0700 (PDT)
+To: linux-media <linux-media@vger.kernel.org>
+From: Perry Gilfillan <tuxokc@gmail.com>
+Subject: Revisiting the Digiflower DVR2000B capture card
+Message-ID: <232138d2-48ed-4f91-787e-3ceab4fcc02d@gmail.com>
+Date: Wed, 2 Aug 2017 15:30:48 -0500
 MIME-Version: 1.0
-In-Reply-To: <20170811180818.2fc408b5@vento.lan>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/08/17 23:08, Mauro Carvalho Chehab wrote:
-> Em Fri, 11 Aug 2017 15:26:03 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> The ctrl_is_pointer used a hard-coded list of control IDs that besides being
->> outdated also wouldn't work for custom driver controls.
->>
->> Replaced by calling queryctrl and checking if the V4L2_CTRL_FLAG_HAS_PAYLOAD
->> flag was set.
->>
->> Note that get_v4l2_ext_controls32() will set the v4l2_ext_control 'size' field
->> to 0 if the control has no payload before passing it to the kernel. This
->> helps in put_v4l2_ext_controls32() since that function can just look at the
->> 'size' field instead of having to call queryctrl again. The reason we set
->> 'size' explicitly for non-pointer controls is that 'size' is ignored by the
->> kernel in that case. That makes 'size' useless as an indicator of a pointer
->> type in the put function since it can be any value. But setting it to 0 here
->> turns it into a useful indicator.
->>
->> Also added proper checks for the compat_alloc_user_space return value which
->> can be NULL, this was never done for some reason.
-> 
-> On a quick preview, please split those extra checks you added on
-> a separate patch.
-> 
-> The logic for the remaining parts of this patch is not trivial. I'll look 
-> into it later.
-> 
->>
->> Tested with a 32-bit build of v4l2-ctl and the vivid driver.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
->> index af8b4c5b0efa..a16338cc216e 100644
->> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
->> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+Many years ago when the 2.6 kernel was all the rage I had a working 
+patch to support this card:
 
-<snip>
+https://wiki.zoneminder.com/Digiflower
 
->> -/* The following function really belong in v4l2-common, but that causes
->> -   a circular dependency between modules. We need to think about this, but
->> -   for now this will do. */
->>
->> -/* Return non-zero if this control is a pointer type. Currently only
->> -   type STRING is a pointer type. */
->> -static inline int ctrl_is_pointer(u32 id)
->> +/* Return non-zero if this control is a pointer type. */
->> +static inline int ctrl_is_pointer(struct file *file, u32 id)
->>  {
->> -	switch (id) {
->> -	case V4L2_CID_RDS_TX_PS_NAME:
->> -	case V4L2_CID_RDS_TX_RADIO_TEXT:
->> -		return 1;
->> -	default:
->> +	struct video_device *vfd = video_devdata(file);
->> +	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
->> +	void *fh = file->private_data;
->> +	struct v4l2_fh *vfh =
->> +		test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) ? fh : NULL;
->> +	struct v4l2_queryctrl qctrl = { id };
->> +	int err;
->> +
->> +	if (!test_bit(_IOC_NR(VIDIOC_QUERYCTRL), vfd->valid_ioctls))
->> +		err = -ENOTTY;
->> +	else if (vfh && vfh->ctrl_handler)
->> +		err = v4l2_queryctrl(vfh->ctrl_handler, &qctrl);
->> +	else if (vfd->ctrl_handler)
->> +		err = v4l2_queryctrl(vfd->ctrl_handler, &qctrl);
->> +	else if (ops->vidioc_queryctrl)
->> +		err = ops->vidioc_queryctrl(file, fh, &qctrl);
->> +	else
->> +		err = -ENOTTY;
->> +
->> +	if (err)
->>  		return 0;
->> -	}
->> +
->> +	return qctrl.flags & V4L2_CTRL_FLAG_HAS_PAYLOAD;
->>  }
+With the latest Fedora 26 kernel sources with the following patch 
+applied, the wired input and logical source are scrambled and I don't 
+know what changed.
 
-Mauro,
+Fanout                        Fanout
+Input  Camera  Source         Input  Camera  Source
+1      .....   videoX(??)      9     .....   videoX(??)
+2      .....   videoX(4)      10     .....   videoX(12)
+3      porch   videoX(3)      11     solar videoX(11)
+4      .....   videoX(2)      12     .....   videoX(10)
+5      .....   videoX(1)      13     .....   videoX(9)
+6      .....   videoX(0)      14     .....   videoX(8)
+7      .....   videoX(6)      15     south   videoX(13)
+8      north   videoX(5)      16     .....   videoX(14)
 
-I'd like your opinion on something: the code to call queryctrl is identical to
-the v4l_queryctrl() function in v4l2-ioctl.c. I have been debating with myself
-whether or not to drop the 'static' from that v4l2-ioctl.c function and call
-it from here. It's a bit unexpected to have this source calling a function in
-v4l2-ioctl.c, but on the other hand it avoids having a copy of that function.
+Inputs 1 and 9 (Source 7 and 15) simply don't work at all, and they are 
+all out of order.
 
-I'm leaning towards calling v4l_queryctrl from here, but I wonder what you
-think.
+What am I not doing, or what changed?
 
-Regards,
+Any help will be much appreciated!
 
-	Hans
+
+
+--- media_build/linux/drivers/media/pci/bt8xx/bttv-cards.c 2016-12-24 
+19:07:32.963090964 -0600
++++ media_build.digiflower/linux/drivers/media/pci/bt8xx/bttv-cards.c 
+2016-12-24 16:58:34.689715697 -0600
+@@ -90,6 +90,8 @@ static void identify_by_eeprom(struct bt
+                     unsigned char eeprom_data[256]);
+  static int pvr_boot(struct bttv *btv);
+
++static void digiflower_dvr2000b_muxsel(struct bttv *btv, unsigned int 
+input);
++
+  /* config variables */
+  static unsigned int triton1;
+  static unsigned int vsfx;
+@@ -344,6 +346,7 @@ static struct CARD {
+      { 0x15401837, BTTV_BOARD_PV183,         "Provideo PV183-8" },
+      { 0x3116f200, BTTV_BOARD_TVT_TD3116,    "Tongwei Video Technology 
+TD-3116" },
+      { 0x02280279, BTTV_BOARD_APOSONIC_WDVR, "Aposonic W-DVR" },
++    { 0x00000000, BTTV_BOARD_DIGIFLOWER_DVR2000B, "Digi-Flower DVR2000B" },
+      { 0, -1, NULL }
+  };
+
+@@ -2885,6 +2888,25 @@ struct tvcard bttv_tvcards[] = {
+          .no_tda7432    = 1,
+          .pll            = PLL_35,
+      },
++    [BTTV_BOARD_DIGIFLOWER_DVR2000B] = {
++        .name           = "Digi-Flower DVR2000B (master?)",
++        .video_inputs   = 16,
++        /* .audio_inputs   = 0, */
++        /* .tuner          = UNSET, */
++        .svhs           = NO_SVHS,
++        .tuner_type    = TUNER_ABSENT,
++        .tuner_addr    = ADDR_UNSET,
++        /* .radio_addr    = ADDR_UNSET, */
++        .no_gpioirq    = 1,
++//        .gpiomask    = 0x0,
++        .gpiomask2    = 0x140007,
++        .muxsel        = MUXSEL ( 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 
+2, 2, 2, 2 ),
++        .muxsel_hook    = digiflower_dvr2000b_muxsel,
++        .gpiomux    = { 0, 0, 0, 0 }, /* card has no audio */
++        .no_msp34xx    = 1,
++        .no_tda7432    = 1,
++        .pll            = PLL_28,
++    },
+  };
+
+  static const unsigned int bttv_num_tvcards = ARRAY_SIZE(bttv_tvcards);
+@@ -4868,6 +4894,21 @@ static void gv800s_init(struct bttv *btv
+      master[btv->c.nr+3] = btv;
+  }
+
++/* DB1 = Top connector fan-out.  DB2 = Bottom connector fan-out. */
++#define DB1    0x100000
++#define DB2    0x040000
++
++static void digiflower_dvr2000b_muxsel(struct bttv *btv, unsigned int 
+input)
++{
++    static const int masks[] = {
++        DB1,   DB1|1, DB1|2, DB1|3,
++        DB1|4, DB1|5, DB1|6, DB1|7,
++        DB2,   DB2|1, DB2|2, DB2|3,
++        DB2|4, DB2|5, DB2|6, DB2|7,
++    };
++    gpio_write(masks[input%16]);
++}
++
+  /* 
+----------------------------------------------------------------------- */
+  /* motherboard chipset specific 
+stuff                                      */
+
+--- media_build/linux/drivers/media/pci/bt8xx/bttv.h 2016-08-22 
+03:58:36.000000000 -0500
++++ media_build.digiflower/linux/drivers/media/pci/bt8xx/bttv.h 
+2016-12-24 16:59:38.365786180 -0600
+@@ -190,6 +190,7 @@
+  #define BTTV_BOARD_CYBERVISION_CV06        0xa4
+  #define BTTV_BOARD_KWORLD_VSTREAM_XPERT    0xa5
+  #define BTTV_BOARD_PCI_8604PW              0xa6
++#define BTTV_BOARD_DIGIFLOWER_DVR2000B     0xa7
+
+  /* more card-specific defines */
+  #define PT2254_L_CHANNEL 0x10
