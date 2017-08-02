@@ -1,44 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lelnx193.ext.ti.com ([198.47.27.77]:13220 "EHLO
-        lelnx193.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751017AbdHRJCa (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:60028 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752479AbdHBIyO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 05:02:30 -0400
-Subject: Re: [PATCHv2 0/9] omapdrm: hdmi4: add CEC support
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>
-CC: <dri-devel@lists.freedesktop.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+        Wed, 2 Aug 2017 04:54:14 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        dri-devel@lists.freedesktop.org, Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCHv2 5/9] omapdrm: hdmi4: move hdmi4_core_powerdown_disable to hdmi_power_on_core()
+Date: Wed,  2 Aug 2017 10:54:04 +0200
+Message-Id: <20170802085408.16204-6-hverkuil@xs4all.nl>
+In-Reply-To: <20170802085408.16204-1-hverkuil@xs4all.nl>
 References: <20170802085408.16204-1-hverkuil@xs4all.nl>
- <bbc92584-71e8-b41e-dd35-5dd0d686cf53@ti.com>
-Message-ID: <d5034d03-1ef4-0253-0efc-ae7fd5cb09e9@ti.com>
-Date: Fri, 18 Aug 2017 12:02:24 +0300
-MIME-Version: 1.0
-In-Reply-To: <bbc92584-71e8-b41e-dd35-5dd0d686cf53@ti.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-=EF=BB=BFHi Hans,
+From: Hans Verkuil <hansverk@cisco.com>
 
+Call hdmi4_core_powerdown_disable() in hdmi_power_on_core() to
+power up the HDMI core (needed for CEC). The same call can now be dropped
+in hdmi4_configure().
 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
-siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+---
+ drivers/gpu/drm/omapdrm/dss/hdmi4.c      | 2 ++
+ drivers/gpu/drm/omapdrm/dss/hdmi4_core.c | 3 ---
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-On 11/08/17 13:57, Tomi Valkeinen wrote:
-
-> I'm doing some testing with this series on my panda. One issue I see is
-> that when I unload the display modules, I get:
->=20
-> [   75.180206] platform 58006000.encoder: enabled after unload, idling
-> [   75.187896] platform 58001000.dispc: enabled after unload, idling
-> [   75.198242] platform 58000000.dss: enabled after unload, idling
-
-This one is caused by hdmi_cec_adap_enable() never getting called with
-enable=3Dfalse when unloading the modules. Should that be called
-explicitly in hdmi4_cec_uninit, or is the CEC framework supposed to call it=
-?
-
- Tomi
+diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4.c b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
+index eb9c6636f660..bf91cbef78c1 100644
+--- a/drivers/gpu/drm/omapdrm/dss/hdmi4.c
++++ b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
+@@ -133,6 +133,8 @@ static int hdmi_power_on_core(struct omap_dss_device *dssdev)
+ 	if (r)
+ 		goto err_runtime_get;
+ 
++	hdmi4_core_powerdown_disable(&hdmi.core);
++
+ 	/* Make selection of HDMI in DSS */
+ 	dss_select_hdmi_venc_clk_source(DSS_HDMI_M_PCLK);
+ 
+diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4_core.c b/drivers/gpu/drm/omapdrm/dss/hdmi4_core.c
+index b91244378ed1..ca3f2cf773d1 100644
+--- a/drivers/gpu/drm/omapdrm/dss/hdmi4_core.c
++++ b/drivers/gpu/drm/omapdrm/dss/hdmi4_core.c
+@@ -335,9 +335,6 @@ void hdmi4_configure(struct hdmi_core_data *core,
+ 	 */
+ 	hdmi_core_swreset_assert(core);
+ 
+-	/* power down off */
+-	hdmi4_core_powerdown_disable(core);
+-
+ 	v_core_cfg.pkt_mode = HDMI_PACKETMODE24BITPERPIXEL;
+ 	v_core_cfg.hdmi_dvi = cfg->hdmi_dvi_mode;
+ 
+-- 
+2.13.2
