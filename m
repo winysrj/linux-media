@@ -1,50 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vps-vb.mhejs.net ([37.28.154.113]:46486 "EHLO vps-vb.mhejs.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752894AbdHJWL3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Aug 2017 18:11:29 -0400
-From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
-Subject: [PATCH 3/5] [media] cx25840: fix a possible divide by zero in set_fmt
- callback
-To: Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org
-Message-ID: <b9ea3663-a4fd-83a7-8053-488450f5096b@maciej.szmigiero.name>
-Date: Thu, 10 Aug 2017 23:52:02 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:37036 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751837AbdHBDUf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 1 Aug 2017 23:20:35 -0400
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, nicolas@ndufresne.ca,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Yakir Yang <ykk@rock-chips.com>
+Subject: [PATCH v5 6/6] dt-bindings: Document the Rockchip RGA bindings
+Date: Wed,  2 Aug 2017 11:19:47 +0800
+Message-Id: <1501643987-27847-7-git-send-email-jacob-chen@iotwrt.com>
+In-Reply-To: <1501643987-27847-1-git-send-email-jacob-chen@iotwrt.com>
+References: <1501643987-27847-1-git-send-email-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If set_fmt callback is called with format->width or format->height set to
-zero and HACTIVE_CNT or VACTIVE_CNT bits (respectively) in chip are zero
-we will divide by zero later in this callback when we try to calculate
-HSC or VSC values.
+Add DT bindings documentation for Rockchip RGA
 
-Fix this by explicitly rejecting these values.
-
-Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
+Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+Signed-off-by: Yakir Yang <ykk@rock-chips.com>
 ---
- drivers/media/i2c/cx25840/cx25840-core.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ .../devicetree/bindings/media/rockchip-rga.txt     | 33 ++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
 
-diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
-index 2fa74c23d619..c19f39821f46 100644
---- a/drivers/media/i2c/cx25840/cx25840-core.c
-+++ b/drivers/media/i2c/cx25840/cx25840-core.c
-@@ -1691,8 +1691,9 @@ static int cx25840_set_fmt(struct v4l2_subdev *sd,
- 	 * height. Without that margin the cx23885 fails in this
- 	 * check.
- 	 */
--	if ((fmt->width * 16 < Hsrc) || (Hsrc < fmt->width) ||
--			(Vlines * 8 < Vsrc) || (Vsrc + 1 < Vlines)) {
-+	if ((fmt->width == 0) || (Vlines == 0) ||
-+	    (fmt->width * 16 < Hsrc) || (Hsrc < fmt->width) ||
-+	    (Vlines * 8 < Vsrc) || (Vsrc + 1 < Vlines)) {
- 		v4l_err(client, "%dx%d is not a valid size!\n",
- 				fmt->width, fmt->height);
- 		return -ERANGE;
+diff --git a/Documentation/devicetree/bindings/media/rockchip-rga.txt b/Documentation/devicetree/bindings/media/rockchip-rga.txt
+new file mode 100644
+index 0000000..fd5276a
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/rockchip-rga.txt
+@@ -0,0 +1,33 @@
++device-tree bindings for rockchip 2D raster graphic acceleration controller (RGA)
++
++RGA is a standalone 2D raster graphic acceleration unit. It accelerates 2D
++graphics operations, such as point/line drawing, image scaling, rotation,
++BitBLT, alpha blending and image blur/sharpness.
++
++Required properties:
++- compatible: value should be one of the following
++		"rockchip,rk3288-rga";
++		"rockchip,rk3399-rga";
++
++- interrupts: RGA interrupt specifier.
++
++- clocks: phandle to RGA sclk/hclk/aclk clocks
++
++- clock-names: should be "aclk", "hclk" and "sclk"
++
++- resets: Must contain an entry for each entry in reset-names.
++  See ../reset/reset.txt for details.
++- reset-names: should be "core", "axi" and "ahb"
++
++Example:
++SoC-specific DT entry:
++	rga: rga@ff680000 {
++		compatible = "rockchip,rk3399-rga";
++		reg = <0xff680000 0x10000>;
++		interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA_CORE>;
++		clock-names = "aclk", "hclk", "sclk";
++
++		resets = <&cru SRST_RGA_CORE>, <&cru SRST_A_RGA>, <&cru SRST_H_RGA>;
++		reset-names = "core, "axi", "ahb";
++	};
+-- 
+2.7.4
