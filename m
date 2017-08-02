@@ -1,43 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:37526 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751302AbdHZIgk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 04:36:40 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, crope@iki.fi, mchehab@kernel.org,
-        hans.verkuil@cisco.com, isely@pobox.com,
-        ezequiel@vanguardiasur.com.ar, royale@zerezo.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-usb@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 08/11] [media] hackrf:  make video_device const
-Date: Sat, 26 Aug 2017 14:05:12 +0530
-Message-Id: <1503736515-15366-9-git-send-email-bhumirks@gmail.com>
-In-Reply-To: <1503736515-15366-1-git-send-email-bhumirks@gmail.com>
-References: <1503736515-15366-1-git-send-email-bhumirks@gmail.com>
+Received: from smtp.gentoo.org ([140.211.166.183]:43612 "EHLO smtp.gentoo.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751154AbdHBQqT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 Aug 2017 12:46:19 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, crope@iki.fi,
+        Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH 1/2] cx23885: Fix use-after-free when unregistering the i2c_client for the dvb demod
+Date: Wed,  2 Aug 2017 18:45:59 +0200
+Message-Id: <20170802164600.19553-2-zzam@gentoo.org>
+In-Reply-To: <20170802164600.19553-1-zzam@gentoo.org>
+References: <20170802164600.19553-1-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make this const as it is only used in a copy operation.
+Unregistering the i2c_client of the demod driver destroys the frontend
+object.
+Calling vb2_dvb_unregister_bus later accesses the frontend (and with the
+refcount_t) conversion the refcount_t code complains:
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+kernel: ------------[ cut here ]------------
+kernel: WARNING: CPU: 0 PID: 7883 at lib/refcount.c:128 refcount_sub_and_test+0x70/0x80
+kernel: refcount_t: underflow; use-after-free.
+kernel: Modules linked in: bluetooth si2165(O) a8293(O) tda10071(O) tea5767(O) tuner(O) cx23885(O-) tda18271(O) videobuf2_dvb(O) videobuf2_dma_sg(O) m88ds3103(O) tveeprom(O) cx2341x(O) v4l2_common(O) dvb_core(O) rc_core(O) videobuf2_memops(O) videobuf2_v4l2(O) ums_realtek videobuf2_core(O) uas videodev(O) media(O) rtl8192cu i2c_mux usb_storage rtl_usb rtl8192c_common rtlwifi snd_hda_codec_hdmi snd_hda_codec_realtek snd_hda_codec_generic snd_hda_intel snd_hda_codec snd_hwdep snd_hda_core x86_pkg_temp_thermal kvm_intel kvm irqbypass
+kernel: CPU: 0 PID: 7883 Comm: rmmod Tainted: G        W  O    4.11.3-gentoo #3
+kernel: Hardware name: MEDION E2050 2391/H81H3-EM2, BIOS H81EM2W08.308 08/25/2014
+kernel: Call Trace:
+kernel:  dump_stack+0x4d/0x66
+kernel:  __warn+0xc6/0xe0
+kernel:  warn_slowpath_fmt+0x46/0x50
+kernel:  ? kobject_put+0x2f/0x60
+kernel:  refcount_sub_and_test+0x70/0x80
+kernel:  refcount_dec_and_test+0x11/0x20
+kernel:  dvb_unregister_frontend+0x42/0x60 [dvb_core]
+kernel:  vb2_dvb_dealloc_frontends+0x9e/0x100 [videobuf2_dvb]
+kernel:  vb2_dvb_unregister_bus+0xd/0x20 [videobuf2_dvb]
+kernel:  cx23885_dvb_unregister+0xc3/0x110 [cx23885]
+kernel:  cx23885_dev_unregister+0xea/0x150 [cx23885]
+kernel:  cx23885_finidev+0x4f/0x70 [cx23885]
+kernel:  pci_device_remove+0x34/0xb0
+kernel:  device_release_driver_internal+0x150/0x200
+kernel:  driver_detach+0x33/0x70
+kernel:  bus_remove_driver+0x47/0xa0
+kernel:  driver_unregister+0x27/0x50
+kernel:  pci_unregister_driver+0x34/0x90
+kernel:  cx23885_fini+0x10/0x12 [cx23885]
+kernel:  SyS_delete_module+0x166/0x220
+kernel:  ? exit_to_usermode_loop+0x7b/0x80
+kernel:  entry_SYSCALL_64_fastpath+0x17/0x98
+kernel: RIP: 0033:0x7f5901680b07
+kernel: RSP: 002b:00007ffdf6cdb028 EFLAGS: 00000206 ORIG_RAX: 00000000000000b0
+kernel: RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 00007f5901680b07
+kernel: RDX: 000000000000000a RSI: 0000000000000800 RDI: 0000000001500258
+kernel: RBP: 00000000015001f0 R08: 0000000000000000 R09: 1999999999999999
+kernel: R10: 0000000000000884 R11: 0000000000000206 R12: 00007ffdf6cda010
+kernel: R13: 0000000000000000 R14: 00000000015001f0 R15: 00000000014ff010
+kernel: ---[ end trace c3a4659b89086061 ]---
+
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
 ---
- drivers/media/usb/hackrf/hackrf.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/pci/cx23885/cx23885-dvb.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
-index a41b305..7eb5351 100644
---- a/drivers/media/usb/hackrf/hackrf.c
-+++ b/drivers/media/usb/hackrf/hackrf.c
-@@ -1263,7 +1263,7 @@ static int hackrf_enum_freq_bands(struct file *file, void *priv,
- 	.unlocked_ioctl           = video_ioctl2,
- };
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index 979b66627f60..e795ddeb7fe2 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -2637,6 +2637,11 @@ int cx23885_dvb_unregister(struct cx23885_tsport *port)
+ 	struct vb2_dvb_frontend *fe0;
+ 	struct i2c_client *client;
  
--static struct video_device hackrf_template = {
-+static const struct video_device hackrf_template = {
- 	.name                     = "HackRF One",
- 	.release                  = video_device_release_empty,
- 	.fops                     = &hackrf_fops,
++	fe0 = vb2_dvb_get_frontend(&port->frontends, 1);
++
++	if (fe0 && fe0->dvb.frontend)
++		vb2_dvb_unregister_bus(&port->frontends);
++
+ 	/* remove I2C client for CI */
+ 	client = port->i2c_client_ci;
+ 	if (client) {
+@@ -2665,11 +2670,6 @@ int cx23885_dvb_unregister(struct cx23885_tsport *port)
+ 		i2c_unregister_device(client);
+ 	}
+ 
+-	fe0 = vb2_dvb_get_frontend(&port->frontends, 1);
+-
+-	if (fe0 && fe0->dvb.frontend)
+-		vb2_dvb_unregister_bus(&port->frontends);
+-
+ 	switch (port->dev->board) {
+ 	case CX23885_BOARD_NETUP_DUAL_DVBS2_CI:
+ 		netup_ci_exit(port);
 -- 
-1.9.1
+2.13.3
