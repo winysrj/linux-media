@@ -1,73 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:55744 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753905AbdHXQgt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Aug 2017 12:36:49 -0400
-Date: Thu, 24 Aug 2017 18:31:19 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Bhumika Goyal <bhumirks@gmail.com>
-cc: julia.lawall@lip6.fr, bp@alien8.de, mchehab@kernel.org,
-        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
-        seanpaul@chromium.org, airlied@linux.ie, tomas.winkler@intel.com,
-        dwmw2@infradead.org, computersforpeace@gmail.com,
-        boris.brezillon@free-electrons.com, marek.vasut@gmail.com,
-        richard@nod.at, cyrille.pitchen@wedev4u.fr, peda@axentia.se,
-        kishon@ti.com, bhelgaas@google.com, thierry.reding@gmail.com,
-        jonathanh@nvidia.com, dvhart@infradead.org, andy@infradead.org,
-        ohad@wizery.com, bjorn.andersson@linaro.org, freude@de.ibm.com,
-        schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, jth@kernel.org,
-        jejb@linux.vnet.ibm.com, martin.petersen@oracle.com,
-        lduncan@suse.com, cleech@redhat.com, johan@kernel.org,
-        elder@kernel.org, gregkh@linuxfoundation.org,
-        heikki.krogerus@linux.intel.com, linux-edac@vger.kernel.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
-        linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, greybus-dev@lists.linaro.org,
-        devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
-Subject: Re: [PATCH 03/15] [media] i2c: make device_type const
-In-Reply-To: <1503130946-2854-4-git-send-email-bhumirks@gmail.com>
-Message-ID: <Pine.LNX.4.64.1708241830240.3709@axis700.grange>
-References: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
- <1503130946-2854-4-git-send-email-bhumirks@gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:36833 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752174AbdHBIyN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 Aug 2017 04:54:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        dri-devel@lists.freedesktop.org
+Subject: [PATCHv2 0/9] omapdrm: hdmi4: add CEC support
+Date: Wed,  2 Aug 2017 10:53:59 +0200
+Message-Id: <20170802085408.16204-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 19 Aug 2017, Bhumika Goyal wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Make this const as it is only stored in the type field of a device
-> structure, which is const.
-> Done using Coccinelle.
-> 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+This patch series adds CEC support for the omap4. It is based on
+the 4.13-rc2 kernel with this patch series applied:
 
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+http://www.spinics.net/lists/dri-devel/msg143440.html
 
-Thanks
-Guennadi
+It is virtually identical to the first patch series posted in
+April:
 
-> ---
->  drivers/media/i2c/soc_camera/mt9t031.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/soc_camera/mt9t031.c b/drivers/media/i2c/soc_camera/mt9t031.c
-> index 714fb35..4802d30 100644
-> --- a/drivers/media/i2c/soc_camera/mt9t031.c
-> +++ b/drivers/media/i2c/soc_camera/mt9t031.c
-> @@ -592,7 +592,7 @@ static int mt9t031_runtime_resume(struct device *dev)
->  	.runtime_resume		= mt9t031_runtime_resume,
->  };
->  
-> -static struct device_type mt9t031_dev_type = {
-> +static const struct device_type mt9t031_dev_type = {
->  	.name	= "MT9T031",
->  	.pm	= &mt9t031_dev_pm_ops,
->  };
-> -- 
-> 1.9.1
-> 
+http://www.spinics.net/lists/dri-devel/msg138950.html
+
+The only two changes are in the Kconfig due to CEC Kconfig
+changes in 4.13 (it now selects CEC_CORE instead of depending on
+CEC_CORE) and a final patch was added adding a lost_hotplug op
+since for proper CEC support I have to know when the hotplug
+signal goes away.
+
+Tested with my Pandaboard.
+
+The lost_hotplug op is called only when the hotplug is lost,
+but I am happy to change it to an op that is called whenever
+the hotplug signal changes. Just let me know. I just implemented
+the minimal solution that I needed.
+
+Regards,
+
+	Hans
+
+Hans Verkuil (9):
+  omapdrm: encoder-tpd12s015: keep ls_oe_gpio high
+  omapdrm: hdmi.h: extend hdmi_core_data with CEC fields
+  omapdrm: hdmi4: make low-level functions available
+  omapdrm: hdmi4: prepare irq handling for HDMI CEC support
+  omapdrm: hdmi4: move hdmi4_core_powerdown_disable to
+    hdmi_power_on_core()
+  omapdrm: hdmi4: refcount hdmi_power_on/off_core
+  omapdrm: hdmi4_cec: add OMAP4 HDMI CEC support
+  omapdrm: hdmi4: hook up the HDMI CEC support
+  omapdrm: omapdss_hdmi_ops: add lost_hotplug op
+
+ drivers/gpu/drm/omapdrm/displays/connector-hdmi.c  |   8 +-
+ .../gpu/drm/omapdrm/displays/encoder-tpd12s015.c   |  18 +-
+ drivers/gpu/drm/omapdrm/dss/Kconfig                |   8 +
+ drivers/gpu/drm/omapdrm/dss/Makefile               |   1 +
+ drivers/gpu/drm/omapdrm/dss/hdmi.h                 |   6 +-
+ drivers/gpu/drm/omapdrm/dss/hdmi4.c                |  62 +++-
+ drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c            | 381 +++++++++++++++++++++
+ drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h            |  55 +++
+ drivers/gpu/drm/omapdrm/dss/hdmi4_core.c           |   7 +-
+ drivers/gpu/drm/omapdrm/dss/hdmi4_core.h           |   4 +
+ drivers/gpu/drm/omapdrm/dss/omapdss.h              |   1 +
+ 11 files changed, 521 insertions(+), 30 deletions(-)
+ create mode 100644 drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
+ create mode 100644 drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h
+
+-- 
+2.13.2
