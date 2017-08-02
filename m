@@ -1,48 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:40743 "EHLO
-        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751494AbdHNRYx (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:40017 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752369AbdHBIyN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Aug 2017 13:24:53 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH] media: ddbridge: constify stv0910_p and lnbh25_cfg
-Date: Mon, 14 Aug 2017 18:59:13 +0200
-Message-Id: <1502729953-3630-1-git-send-email-Julia.Lawall@lip6.fr>
+        Wed, 2 Aug 2017 04:54:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 2/9] omapdrm: hdmi.h: extend hdmi_core_data with CEC fields
+Date: Wed,  2 Aug 2017 10:54:01 +0200
+Message-Id: <20170802085408.16204-3-hverkuil@xs4all.nl>
+In-Reply-To: <20170802085408.16204-1-hverkuil@xs4all.nl>
+References: <20170802085408.16204-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These structures are only copied into other stuructures, so
-they can be const.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Done with the help of Coccinelle.
+Extend the hdmi_core_data struct with the additional fields needed
+for CEC.
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Also fix a simple typo in a comment.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/ddbridge/ddbridge-core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/omapdrm/dss/hdmi.h | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 7e164a37..7ff570b 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -800,14 +800,14 @@ static int tuner_attach_stv6110(struct ddb_input *input, int type)
- 	return 0;
- }
+diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi.h b/drivers/gpu/drm/omapdrm/dss/hdmi.h
+index fb6cccd02374..3913859146b9 100644
+--- a/drivers/gpu/drm/omapdrm/dss/hdmi.h
++++ b/drivers/gpu/drm/omapdrm/dss/hdmi.h
+@@ -24,6 +24,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/hdmi.h>
+ #include <sound/omap-hdmi-audio.h>
++#include <media/cec.h>
  
--static struct stv0910_cfg stv0910_p = {
-+static const struct stv0910_cfg stv0910_p = {
- 	.adr      = 0x68,
- 	.parallel = 1,
- 	.rptlvl   = 4,
- 	.clk      = 30000000,
+ #include "omapdss.h"
+ #include "dss.h"
+@@ -254,6 +255,9 @@ struct hdmi_phy_data {
+ 
+ struct hdmi_core_data {
+ 	void __iomem *base;
++	struct hdmi_wp_data *wp;
++	unsigned int core_pwr_cnt;
++	struct cec_adapter *adap;
  };
  
--static struct lnbh25_config lnbh25_cfg = {
-+static const struct lnbh25_config lnbh25_cfg = {
- 	.i2c_address = 0x0c << 1,
- 	.data2_config = LNBH25_TEN
- };
+ static inline void hdmi_write_reg(void __iomem *base_addr, const u32 idx,
+@@ -361,7 +365,7 @@ struct omap_hdmi {
+ 	bool audio_configured;
+ 	struct omap_dss_audio audio_config;
+ 
+-	/* This lock should be taken when booleans bellow are touched. */
++	/* This lock should be taken when booleans below are touched. */
+ 	spinlock_t audio_playing_lock;
+ 	bool audio_playing;
+ 	bool display_enabled;
+-- 
+2.13.2
