@@ -1,43 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f193.google.com ([209.85.220.193]:36121 "EHLO
-        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753442AbdHQVLm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Aug 2017 17:11:42 -0400
-Received: by mail-qk0-f193.google.com with SMTP id d21so5754732qke.3
-        for <linux-media@vger.kernel.org>; Thu, 17 Aug 2017 14:11:42 -0700 (PDT)
-From: Fabio Estevam <festevam@gmail.com>
-To: mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, p.zabel@pengutronix.de,
-        Fabio Estevam <fabio.estevam@nxp.com>
-Subject: [PATCH] [media] mx2_emmaprp: Check for platform_get_irq() error
-Date: Thu, 17 Aug 2017 18:12:05 -0300
-Message-Id: <1503004325-23655-1-git-send-email-festevam@gmail.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:37152 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751948AbdHBRcB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Aug 2017 13:32:01 -0400
+Received: by mail-wm0-f65.google.com with SMTP id t138so7977736wmt.4
+        for <linux-media@vger.kernel.org>; Wed, 02 Aug 2017 10:32:00 -0700 (PDT)
+From: Pavel Rojtberg <rojtberg@gmail.com>
+To: laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org
+Cc: Pavel Rojtberg <rojtberg@gmail.com>
+Subject: [PATCH] uvcvideo: extend UVC_QUIRK_FIX_BANDWIDTH to MJPEG streams
+Date: Wed,  2 Aug 2017 19:31:35 +0200
+Message-Id: <1501695095-19308-1-git-send-email-rojtberg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabio Estevam <fabio.estevam@nxp.com>
+From: Pavel Rojtberg <rojtberg@gmail.com>
 
-platform_get_irq() may fail, so we should better check its return
-value and propagate it in the case of error.
+attaching two Logitech C615 webcams currently results in
+    VIDIOC_STREAMON: No space left on device
+as the required bandwidth is not estimated correctly by the device.
+In fact it always requests 3060 bytes - no matter the format or resolution.
 
-Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
+setting UVC_QUIRK_FIX_BANDWIDTH does not help either as it is only implemented
+for uncompressed streams.
+
+This patch extends UVC_QUIRK_FIX_BANDWIDTH to MJPEG streams by making a
+(conservative) assumption of 4bpp for MJPEG streams.
+As the actual compression ration is often closer to 1bpp this can be overridden
+ via the new mjpeg_bpp parameter.
+
+Based on:
+https://www.mail-archive.com/linux-uvc-devel@lists.berlios.de/msg05724.html
 ---
- drivers/media/platform/mx2_emmaprp.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/usb/uvc/uvc_driver.c | 14 +++++++++++++-
+ drivers/media/usb/uvc/uvc_video.c  |  3 ++-
+ 2 files changed, 15 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
-index 03e47e0..f90eaa0 100644
---- a/drivers/media/platform/mx2_emmaprp.c
-+++ b/drivers/media/platform/mx2_emmaprp.c
-@@ -942,6 +942,8 @@ static int emmaprp_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, pcdev);
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 70842c5..f7b759e 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -37,6 +37,7 @@ unsigned int uvc_no_drop_param;
+ static unsigned int uvc_quirks_param = -1;
+ unsigned int uvc_trace_param;
+ unsigned int uvc_timeout_param = UVC_CTRL_STREAMING_TIMEOUT;
++static unsigned int uvc_mjpeg_bpp_param;
  
- 	irq = platform_get_irq(pdev, 0);
-+	if (irq < 0)
-+		return irq;
- 	ret = devm_request_irq(&pdev->dev, irq, emmaprp_irq, 0,
- 			       dev_name(&pdev->dev), pcdev);
- 	if (ret)
+ /* ------------------------------------------------------------------------
+  * Video formats
+@@ -463,7 +464,16 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 		strlcpy(format->name, "MJPEG", sizeof format->name);
+ 		format->fcc = V4L2_PIX_FMT_MJPEG;
+ 		format->flags = UVC_FMT_FLAG_COMPRESSED;
+-		format->bpp = 0;
++		if ((uvc_mjpeg_bpp_param >= 1) && (uvc_mjpeg_bpp_param <= 16)) {
++			format->bpp = uvc_mjpeg_bpp_param;
++		} else {
++			/* conservative estimate. Actual values are around 1bpp.
++			 * see e.g.
++			 * https://developers.google.com/speed/webp/docs/webp_study
++			 */
++			format->bpp = 4;
++		}
++
+ 		ftype = UVC_VS_FRAME_MJPEG;
+ 		break;
+ 
+@@ -2274,6 +2284,8 @@ module_param_named(trace, uvc_trace_param, uint, S_IRUGO|S_IWUSR);
+ MODULE_PARM_DESC(trace, "Trace level bitmask");
+ module_param_named(timeout, uvc_timeout_param, uint, S_IRUGO|S_IWUSR);
+ MODULE_PARM_DESC(timeout, "Streaming control requests timeout");
++module_param_named(mjpeg_bpp, uvc_mjpeg_bpp_param, uint, S_IRUGO|S_IWUSR);
++MODULE_PARM_DESC(mjpeg_bpp, "MJPEG bits per pixel for bandwidth quirk");
+ 
+ /* ------------------------------------------------------------------------
+  * Driver initialization and cleanup
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index fb86d6a..382a0be 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -127,7 +127,8 @@ static void uvc_fixup_video_ctrl(struct uvc_streaming *stream,
+ 	if ((ctrl->dwMaxPayloadTransferSize & 0xffff0000) == 0xffff0000)
+ 		ctrl->dwMaxPayloadTransferSize &= ~0xffff0000;
+ 
+-	if (!(format->flags & UVC_FMT_FLAG_COMPRESSED) &&
++	if ((!(format->flags & UVC_FMT_FLAG_COMPRESSED) ||
++			(format->fcc == V4L2_PIX_FMT_MJPEG)) &&
+ 	    stream->dev->quirks & UVC_QUIRK_FIX_BANDWIDTH &&
+ 	    stream->intf->num_altsetting > 1) {
+ 		u32 interval;
 -- 
 2.7.4
