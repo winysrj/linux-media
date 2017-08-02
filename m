@@ -1,41 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58764 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751144AbdHEIBc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 5 Aug 2017 04:01:32 -0400
-Subject: Re: [PATCH] media: i2c: adv748x: Store the pixel rate ctrl on CSI
- objects
-To: Kieran Bingham <kbingham@kernel.org>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se
-Cc: kieran.bingham@ideasonboard.com,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-References: <1501768223-23654-1-git-send-email-kbingham@kernel.org>
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Message-ID: <f9219815-55c3-c7d7-0812-3b97144d9cfe@iki.fi>
-Date: Fri, 4 Aug 2017 20:09:34 +0300
-MIME-Version: 1.0
-In-Reply-To: <1501768223-23654-1-git-send-email-kbingham@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:37889 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752916AbdHBRPf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Aug 2017 13:15:35 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 8/9] [media] saa7146: hexium_orion: constify pci_device_id.
+Date: Wed,  2 Aug 2017 22:44:56 +0530
+Message-Id: <1501694097-16207-9-git-send-email-arvind.yadav.cs@gmail.com>
+In-Reply-To: <1501694097-16207-1-git-send-email-arvind.yadav.cs@gmail.com>
+References: <1501694097-16207-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Kieran Bingham wrote:
-> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> The current implementation has to search the list of controls for the
-> pixel rate control, each time it is set.  This can be optimised easily
-> by storing the ctrl pointer in the CSI/TX object, and referencing that
-> directly.
-> 
-> While at it, fix up a missing blank line also highlighted in review
-> comments.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+pci_device_id are not supposed to change at runtime. All functions
+working with pci_device_id provided by <media/drv-intf/saa7146.h>
+and <linux/pci.h> work with const pci_device_id. So mark the non-const
+structs as const.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ drivers/media/pci/saa7146/hexium_orion.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/media/pci/saa7146/hexium_orion.c b/drivers/media/pci/saa7146/hexium_orion.c
+index c306a92..01f0158 100644
+--- a/drivers/media/pci/saa7146/hexium_orion.c
++++ b/drivers/media/pci/saa7146/hexium_orion.c
+@@ -427,7 +427,7 @@ static struct saa7146_pci_extension_data hexium_orion_4bnc = {
+ 	.ext = &extension,
+ };
+ 
+-static struct pci_device_id pci_tbl[] = {
++static const struct pci_device_id pci_tbl[] = {
+ 	{
+ 	 .vendor = PCI_VENDOR_ID_PHILIPS,
+ 	 .device = PCI_DEVICE_ID_PHILIPS_SAA7146,
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+2.7.4
