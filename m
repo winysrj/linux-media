@@ -1,51 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:42916 "EHLO smtp.gentoo.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751170AbdH0M0O (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 27 Aug 2017 08:26:14 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, xpert-reactos@gmx.de,
-        Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH] cx23885: Explicitly list Hauppauge model numbers of HVR-4400 and HVR-5500
-Date: Sun, 27 Aug 2017 14:26:07 +0200
-Message-Id: <20170827122607.3738-1-zzam@gentoo.org>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:38910 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752519AbdHBRPh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Aug 2017 13:15:37 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 9/9] [media] saa7146: hexium_gemini: constify pci_device_id.
+Date: Wed,  2 Aug 2017 22:44:57 +0530
+Message-Id: <1501694097-16207-10-git-send-email-arvind.yadav.cs@gmail.com>
+In-Reply-To: <1501694097-16207-1-git-send-email-arvind.yadav.cs@gmail.com>
+References: <1501694097-16207-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add two new model numbers to suppress this message in kernel log:
-  cx23885: cx23885[0]: warning: unknown hauppauge model #121029
+pci_device_id are not supposed to change at runtime. All functions
+working with pci_device_id provided by <media/drv-intf/saa7146.h>
+and <linux/pci.h> work with const pci_device_id. So mark the non-const
+structs as const.
 
-Add these model numbers:
-* Model 121019 - WinTV-HVR4400
-* Model 121029 - WinTV-HVR5500
-
-For WinTV-HVR4400 the documentation and my hardware differ:
-
-Documentation says it supports DVB-S/S2 and DVB-T,
-but my hardware also supports DVB-C.
-
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 ---
- drivers/media/pci/cx23885/cx23885-cards.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/media/pci/saa7146/hexium_gemini.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
-index c48fa8e25a70..78a8836d03e4 100644
---- a/drivers/media/pci/cx23885/cx23885-cards.c
-+++ b/drivers/media/pci/cx23885/cx23885-cards.c
-@@ -1278,6 +1278,12 @@ static void hauppauge_eeprom(struct cx23885_dev *dev, u8 *eeprom_data)
- 	case 85721:
- 		/* WinTV-HVR1290 (PCIe, OEM, RCA in, IR,
- 			Dual channel ATSC and Basic analog */
-+	case 121019:
-+		/* WinTV-HVR4400 (PCIe, DVB-S2, DVB-C/T) */
-+		break;
-+	case 121029:
-+		/* WinTV-HVR5500 (PCIe, DVB-S2, DVB-C/T) */
-+		break;
- 	case 150329:
- 		/* WinTV-HVR5525 (PCIe, DVB-S/S2, DVB-T/T2/C) */
- 		break;
+diff --git a/drivers/media/pci/saa7146/hexium_gemini.c b/drivers/media/pci/saa7146/hexium_gemini.c
+index c889ec9..f708cab 100644
+--- a/drivers/media/pci/saa7146/hexium_gemini.c
++++ b/drivers/media/pci/saa7146/hexium_gemini.c
+@@ -363,7 +363,7 @@ static struct saa7146_pci_extension_data hexium_gemini_dual_4bnc = {
+ 	.ext = &hexium_extension,
+ };
+ 
+-static struct pci_device_id pci_tbl[] = {
++static const struct pci_device_id pci_tbl[] = {
+ 	{
+ 	 .vendor = PCI_VENDOR_ID_PHILIPS,
+ 	 .device = PCI_DEVICE_ID_PHILIPS_SAA7146,
 -- 
-2.14.1
+2.7.4
