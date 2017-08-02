@@ -1,52 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:39302 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752956AbdHKJ50 (ORCPT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:28982 "EHLO
+        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752544AbdHBPTm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Aug 2017 05:57:26 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 15/20] adv748x: declare source pad as multiplexed
-Date: Fri, 11 Aug 2017 11:56:58 +0200
-Message-Id: <20170811095703.6170-16-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Wed, 2 Aug 2017 11:19:42 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: "Lad Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: kernel-janitors@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH] [media] DaVinci-VPBE: constify vpbe_dev_ops
+Date: Wed,  2 Aug 2017 16:54:13 +0200
+Message-Id: <1501685653-4284-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The source pad will receive multiplexed streams over a CSI-2 bus, mark
-the pad as muxed.
+vpbe_dev_ops is only copied into the ops field at the end of a vpbe_device
+structure, so it can be const.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
 ---
- drivers/media/i2c/adv748x/adv748x-csi2.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-index 2bec0cd0a00f1d5c..b76c2be8da4271fb 100644
---- a/drivers/media/i2c/adv748x/adv748x-csi2.c
-+++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-@@ -293,7 +293,8 @@ int adv748x_csi2_init(struct adv748x_state *state, struct adv748x_csi2 *tx)
- 	tx->sd.internal_ops = &adv748x_csi2_internal_ops;
+Does the ops field need to be inlined into the vpbe_device structure?
+
+ drivers/media/platform/davinci/vpbe.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+index 3679b1e..7f64625 100644
+--- a/drivers/media/platform/davinci/vpbe.c
++++ b/drivers/media/platform/davinci/vpbe.c
+@@ -790,7 +790,7 @@ static void vpbe_deinitialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ 	vpss_enable_clock(VPSS_VPBE_CLOCK, 0);
+ }
  
- 	tx->pads[ADV748X_CSI2_SINK].flags = MEDIA_PAD_FL_SINK;
--	tx->pads[ADV748X_CSI2_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
-+	tx->pads[ADV748X_CSI2_SOURCE].flags =
-+		MEDIA_PAD_FL_SOURCE | MEDIA_PAD_FL_MUXED;
- 
- 	ret = media_entity_pads_init(&tx->sd.entity, ADV748X_CSI2_NR_PADS,
- 				     tx->pads);
--- 
-2.13.3
+-static struct vpbe_device_ops vpbe_dev_ops = {
++static const struct vpbe_device_ops vpbe_dev_ops = {
+ 	.g_cropcap = vpbe_g_cropcap,
+ 	.enum_outputs = vpbe_enum_outputs,
+ 	.set_output = vpbe_set_output,
