@@ -1,60 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:52450 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750758AbdH3UVT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Aug 2017 16:21:19 -0400
-Subject: [PATCH 1/4] [media] ds3000: Delete an error message for a failed
- memory allocation in two functions
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <c854b845-3b79-ca7a-a597-4abc5f32ec54@users.sourceforge.net>
-Message-ID: <3f061ac7-4738-ec12-3f4b-dca8c2b6eba5@users.sourceforge.net>
-Date: Wed, 30 Aug 2017 22:21:13 +0200
-MIME-Version: 1.0
-In-Reply-To: <c854b845-3b79-ca7a-a597-4abc5f32ec54@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:34961 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751948AbdHBRPP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Aug 2017 13:15:15 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 0/9] constify media pci_device_id/pci_tbl.
+Date: Wed,  2 Aug 2017 22:44:48 +0530
+Message-Id: <1501694097-16207-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 30 Aug 2017 21:41:28 +0200
+SAA7146 DVD card base pci device id const.
 
-Omit an extra message for a memory allocation failure in these functions.
+Arvind Yadav (9):
+  [PATCH 1/9] [media] drv-intf: saa7146: constify pci_device_id.
+  [PATCH 2/9] [media] ttpci: budget: constify pci_device_id.
+  [PATCH 3/9] [media] ttpci: budget-patch: constify pci_device_id.
+  [PATCH 4/9] [media] ttpci: budget-ci: constify pci_device_id.
+  [PATCH 5/9] [media] ttpci: budget-av: constify pci_device_id.
+  [PATCH 6/9] [media] ttpci: av7110: constify pci_device_id.
+  [PATCH 7/9] [media] saa7146: mxb: constify pci_device_id.
+  [PATCH 8/9] [media] saa7146: hexium_orion: constify pci_device_id.
+  [PATCH 9/9] [media] saa7146: hexium_gemini: constify pci_device_id.
 
-This issue was detected by using the Coccinelle software.
+ drivers/media/pci/saa7146/hexium_gemini.c | 2 +-
+ drivers/media/pci/saa7146/hexium_orion.c  | 2 +-
+ drivers/media/pci/saa7146/mxb.c           | 2 +-
+ drivers/media/pci/ttpci/av7110.c          | 2 +-
+ drivers/media/pci/ttpci/budget-av.c       | 2 +-
+ drivers/media/pci/ttpci/budget-ci.c       | 2 +-
+ drivers/media/pci/ttpci/budget-patch.c    | 2 +-
+ drivers/media/pci/ttpci/budget.c          | 2 +-
+ include/media/drv-intf/saa7146.h          | 2 +-
+ 9 files changed, 9 insertions(+), 9 deletions(-)
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/dvb-frontends/ds3000.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/ds3000.c b/drivers/media/dvb-frontends/ds3000.c
-index 0b17a45c5640..c2959a9695a7 100644
---- a/drivers/media/dvb-frontends/ds3000.c
-+++ b/drivers/media/dvb-frontends/ds3000.c
-@@ -280,7 +280,5 @@ static int ds3000_writeFW(struct ds3000_state *state, int reg,
--	if (buf == NULL) {
--		printk(KERN_ERR "Unable to kmalloc\n");
-+	if (!buf)
- 		return -ENOMEM;
--	}
- 
- 	*(buf) = reg;
- 
-@@ -845,7 +843,5 @@ struct dvb_frontend *ds3000_attach(const struct ds3000_config *config,
--	if (state == NULL) {
--		printk(KERN_ERR "Unable to kmalloc\n");
-+	if (!state)
- 		goto error2;
--	}
- 
- 	state->config = config;
- 	state->i2c = i2c;
 -- 
-2.14.1
+2.7.4
