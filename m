@@ -1,135 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60020 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752350AbdHDQTm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Aug 2017 12:19:42 -0400
-Subject: Re: [PATCH v3 1/7] v4l: vsp1: Release buffers in start_streaming
- error path
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-References: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
- <22778858.uLPLfpXYHT@avalon>
- <cd5f9df6-b56b-d099-b02c-c859027064b5@ideasonboard.com>
- <1646999.r6liOz9tSW@avalon>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <06e0bf19-0f3d-07bd-9cbd-da317f7fcae9@ideasonboard.com>
-Date: Fri, 4 Aug 2017 17:19:38 +0100
+Received: from smtp.gentoo.org ([140.211.166.183]:43568 "EHLO smtp.gentoo.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751154AbdHBQqE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 Aug 2017 12:46:04 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, crope@iki.fi
+Subject: [PATCH 0/2] Fix use-after-free errors when unregistering the i2c_client for the dvb demod
+Date: Wed,  2 Aug 2017 18:45:58 +0200
+Message-Id: <20170802164600.19553-1-zzam@gentoo.org>
 MIME-Version: 1.0
-In-Reply-To: <1646999.r6liOz9tSW@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi!
 
-On 04/08/17 17:13, Laurent Pinchart wrote:
-> On Friday 04 Aug 2017 17:08:34 Kieran Bingham wrote:
->> On 04/08/17 17:03, Laurent Pinchart wrote:
->>> On Friday 04 Aug 2017 16:57:05 Kieran Bingham wrote:
->>>> Presently any received buffers are only released back to vb2 if
->>>> vsp1_video_stop_streaming() is called. If vsp1_video_start_streaming()
->>>> encounters an error, we will be warned by the vb2 handlers that buffers
->>>> have not been returned.
->>>>
->>>> Move the buffer cleanup code to it's own function to prevent duplication
->>>
->>> s/it's/its/
->>
->> Ah yes - I'm always terrible with my its'y bits.
->>
->>>> and call from both vsp1_video_stop_streaming() and the error path in
->>>> vsp1_video_start_streaming()
->>>
->>> s/$/./
->>
->> :D
->>
->>>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>>> ---
->>>>
->>>>  drivers/media/platform/vsp1/vsp1_video.c | 22 +++++++++++++++-------
->>>>  1 file changed, 15 insertions(+), 7 deletions(-)
->>>>
->>>> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
->>>> b/drivers/media/platform/vsp1/vsp1_video.c index
->>>> 5af3486afe07..a24033429cd7
->>>> 100644
->>>> --- a/drivers/media/platform/vsp1/vsp1_video.c
->>>> +++ b/drivers/media/platform/vsp1/vsp1_video.c
->>>> @@ -822,6 +822,19 @@ static int vsp1_video_setup_pipeline(struct
->>>> vsp1_pipeline *pipe)
->>>>  	return 0;
->>>>  }
->>>>
->>>> +static void vsp1_video_cleanup_pipeline(struct vsp1_video *video)
->>>
->>> Should this function take a pipe pointer instead of a video pointer for
->>> symmetry with vsp1_video_setup_pipeline() ?
->>
->> I passed this way because the cleanup needed a *video.
->>
->> Is it possible to get from a *pipe to a *video?
-> 
-> Yes, pipe->output->video
+There seem to be a general error in a lot of dvb bride drivers about the order of i2c_unregister_device
+and the calls to dvb_unregister_frontend and dvb_frontend_detach.
 
-Ah yes of course.
+As soon as the i2c_client for a demod driver is unregistered the memory for the frontend is kfreed.
+But the calls to dvb_unregister_frontend and dvb_frontend_detach access it later.
 
+I fixed the error in cx23885 and cx231xx driver as I have access to the hardware.
 
->>>> +{
->>>> +	struct vsp1_vb2_buffer *buffer;
->>>> +	unsigned long flags;
->>>> +
->>>> +	/* Remove all buffers from the IRQ queue. */
->>>> +	spin_lock_irqsave(&video->irqlock, flags);
->>>> +	list_for_each_entry(buffer, &video->irqqueue, queue)
->>>> +		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_ERROR);
->>>> +	INIT_LIST_HEAD(&video->irqqueue);
->>>> +	spin_unlock_irqrestore(&video->irqlock, flags);
->>>> +}
-> 
-> [snip]
-> 
->>>> @@ -893,12 +906,7 @@ static void vsp1_video_stop_streaming(struct
->>>> vb2_queue
->>>> *vq) media_pipeline_stop(&video->video.entity);
->>>>
->>>>  	vsp1_video_pipeline_put(pipe);
->>>>
->>>> -	/* Remove all buffers from the IRQ queue. */
->>>> -	spin_lock_irqsave(&video->irqlock, flags);
->>>> -	list_for_each_entry(buffer, &video->irqqueue, queue)
->>>> -		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_ERROR);
->>>> -	INIT_LIST_HEAD(&video->irqqueue);
->>>> -	spin_unlock_irqrestore(&video->irqlock, flags);
->>>> +	vsp1_video_cleanup_pipeline(video);
->>>
->>> The vsp1_video_cleanup_pipeline() call should go before
->>> vsp1_video_pipeline_put(), as you've noticed in patch 7/7.
->>
->> I chose to do the move in 3/7 so that this patch did not change the existing
->> functionality.
->>
->> There is no (explicit) need for the cleanup to happen before the
->> pipeline_put() until the cleanup function references the pipe...
-> 
-> Except if you pass a *pipe to the cleanup function, as 
-> vsp1_video_pipeline_put() can free the pipe.
+Further drivers that might show the same bug (but I cannot test):
+* em28xx
+* ddbride
+* saa7164
 
-Indeed!
-
-> 
->>> With all that fixed,
-
-Patch update imminent.
-
-Thanks.
-
->>>
->>> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>>
->>>>  }
->>>>  
->>>>  static const struct vb2_ops vsp1_video_queue_qops = {
-> 
+Regards
+Matthias
