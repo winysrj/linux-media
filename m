@@ -1,76 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:49257 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751834AbdHEViF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 5 Aug 2017 17:38:05 -0400
-Date: Sat, 5 Aug 2017 22:38:03 +0100
-From: Sean Young <sean@mess.org>
-To: Matthias Reichl <hias@horus.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [v4l-utils] 70-infrared.rules starts ir-keytable too early
-Message-ID: <20170805213802.ni42iaht5rf5rye2@gofer.mess.org>
-References: <20170717092038.3e7jbjtx7htu3lda@camel2.lan>
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:37696 "EHLO
+        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752724AbdHBORI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Aug 2017 10:17:08 -0400
+Received: by mail-wm0-f43.google.com with SMTP id t201so43003042wmt.0
+        for <linux-media@vger.kernel.org>; Wed, 02 Aug 2017 07:17:07 -0700 (PDT)
+Date: Wed, 2 Aug 2017 18:17:02 +0400
+From: Anton Sviridenko <anton@corp.bluecherry.net>
+To: Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+        Ismael Luceno <ismael@iodev.co.uk>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-gpio@vger.kernel.org
+Subject: [PATCH] [media] solo6x10: export hardware GPIO pins 8:31 to gpiolib
+ interface
+Message-ID: <20170802141659.GA31617@magpie-gentoo>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170717092038.3e7jbjtx7htu3lda@camel2.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 17, 2017 at 11:20:38AM +0200, Matthias Reichl wrote:
-> While testing serial_ir on kernel 4.11.8 with ir-keytable 1.12.3
-> I noticed that my /etc/rc_maps.cfg configuration wasn't applied.
-> Manually running "ir-keytable -a /etc/rc_maps.cfg -s rc0" always
-> worked fine, though.
-> 
-> Digging further into this I tracked it down to the udev rule
-> being racy. The udev rule triggers on the rc subsystem, but this
-> is before the input and event devices are created.
+24 GPIO pins from 32 available on solo6x10 chips are exported
+to gpiolib. First 8 GPIOs are reserved for internal use on capture card
+boards, GPIOs in range 8:15 are configured as outputs to control relays,
+remaining 16:31 are configured as inputs to read sensor states.
+Now with this patch userspace DVR software can switch relays and read
+sensor states when GPIO extension cards are attached to Softlogic solo6x10
+based video capture cards.
 
-That's an interesting race condition, I haven't seen this before.
+Signed-off-by: Anton Sviridenko <anton@corp.bluecherry.net>
+---
+ drivers/media/pci/solo6x10/solo6x10-gpio.c | 97 ++++++++++++++++++++++++++++++
+ drivers/media/pci/solo6x10/solo6x10.h      |  5 ++
+ 2 files changed, 102 insertions(+)
 
-> One solution is to trigger ir-keytable -a execution from the event device
-> creation instead. I'm currently testing with the following udev rule:
-> 
-> ACTION=="add", SUBSYSTEMS=="rc", GOTO="begin"
-> GOTO="end"
-> 
-> LABEL="begin"
-> 
-> SUBSYSTEM=="rc", ENV{rc_sysdev}="$name"
-> 
-> SUBSYSTEM=="input", IMPORT{parent}="rc_sysdev"
-> 
-> KERNEL=="event[0-9]*", ENV{rc_sysdev}=="?*", \
->    RUN+="/usr/bin/ir-keytable -a /etc/rc_maps.cfg -s $env{rc_sysdev}"
-> 
-> LABEL="end"
-> 
-> That udev rule is a bit messy, ir-keytable -a needs the rcX sysdev,
-> which doesn't seem to be easily available from the event node in
-> the input subsystem, so I'm propagating that info through an
-> environment variable.
-
-This is a good idea; this also solves the problem of udev firing off
-ir-keytable for transmit-only devices, which have no input device.
-
-> So far testing is working fine, but hints for better/nicer solutions
-> are welcome!
-
-So far I've only come up with a minor change:
-
-ACTION!="add", SUBSYSTEMS!="rc", GOTO="rc_dev_end"
-
-SUBSYSTEM=="rc", ENV{rc_sysdev}="$name"
-
-SUBSYSTEM=="input", IMPORT{parent}="rc_sysdev"
-
-KERNEL=="event[0-9]*", ENV{rc_sysdev}=="?*", RUN+="/usr/bin/ir-keytable -a /etc/rc_maps.cfg -s $env{rc_sysdev}"
-
-LABEL="rc_dev_end"
-
-I think we should get this merged into v4l-utils, it solves a real issue.
-
-
-Sean
+diff --git a/drivers/media/pci/solo6x10/solo6x10-gpio.c b/drivers/media/pci/solo6x10/solo6x10-gpio.c
+index 6d3b4a36bc11..3d0d1aa2f6a8 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-gpio.c
++++ b/drivers/media/pci/solo6x10/solo6x10-gpio.c
+@@ -57,6 +57,9 @@ static void solo_gpio_mode(struct solo_dev *solo_dev,
+ 			ret |= 1 << port;
+ 	}
+ 
++	/* Enable GPIO[31:16] */
++	ret |= 0xffff0000;
++
+ 	solo_reg_write(solo_dev, SOLO_GPIO_CONFIG_1, ret);
+ }
+ 
+@@ -90,16 +93,110 @@ static void solo_gpio_config(struct solo_dev *solo_dev)
+ 
+ 	/* Initially set relay status to 0 */
+ 	solo_gpio_clear(solo_dev, 0xff00);
++
++	/* Set input pins direction */
++	solo_gpio_mode(solo_dev, 0xffff0000, 0);
++}
++
++#ifdef CONFIG_GPIOLIB
++/* Pins 0-7 are not exported, because it seems from code above they are
++ * used for internal purposes. So offset 0 corresponds to pin 8, therefore
++ * offsets 0-7 are relay GPIOs, 8-23 - input GPIOs.
++ */
++static int solo_gpiochip_get_direction(struct gpio_chip *chip,
++				       unsigned int offset)
++{
++	int ret, mode;
++	struct solo_dev *solo_dev = gpiochip_get_data(chip);
++
++	if (offset < 8) {
++		ret = solo_reg_read(solo_dev, SOLO_GPIO_CONFIG_0);
++		mode = 3 & (ret >> ((offset + 8) * 2));
++	} else {
++		ret = solo_reg_read(solo_dev, SOLO_GPIO_CONFIG_1);
++		mode =  1 & (ret >> (offset - 8));
++	}
++
++	if (!mode)
++		return 1;
++	else if (mode == 1)
++		return 0;
++
++	return -1;
+ }
+ 
++static int solo_gpiochip_direction_input(struct gpio_chip *chip,
++					 unsigned int offset)
++{
++	return -1;
++}
++
++static int solo_gpiochip_direction_output(struct gpio_chip *chip,
++					  unsigned int offset, int value)
++{
++	return -1;
++}
++
++static int solo_gpiochip_get(struct gpio_chip *chip,
++						unsigned int offset)
++{
++	int ret;
++	struct solo_dev *solo_dev = gpiochip_get_data(chip);
++
++	ret = solo_reg_read(solo_dev, SOLO_GPIO_DATA_IN);
++
++	return 1 & (ret >> (offset + 8));
++}
++
++static void solo_gpiochip_set(struct gpio_chip *chip,
++						unsigned int offset, int value)
++{
++	struct solo_dev *solo_dev = gpiochip_get_data(chip);
++
++	if (value)
++		solo_gpio_set(solo_dev, 1 << (offset + 8));
++	else
++		solo_gpio_clear(solo_dev, 1 << (offset + 8));
++}
++#endif
++
+ int solo_gpio_init(struct solo_dev *solo_dev)
+ {
++	int ret;
++
+ 	solo_gpio_config(solo_dev);
++#ifdef CONFIG_GPIOLIB
++	solo_dev->gpio_dev.label = SOLO6X10_NAME"_gpio";
++	solo_dev->gpio_dev.parent = &solo_dev->pdev->dev;
++	solo_dev->gpio_dev.owner = THIS_MODULE;
++	solo_dev->gpio_dev.base = -1;
++	solo_dev->gpio_dev.ngpio = 24;
++	solo_dev->gpio_dev.can_sleep = 0;
++
++	solo_dev->gpio_dev.get_direction = solo_gpiochip_get_direction;
++	solo_dev->gpio_dev.direction_input = solo_gpiochip_direction_input;
++	solo_dev->gpio_dev.direction_output = solo_gpiochip_direction_output;
++	solo_dev->gpio_dev.get = solo_gpiochip_get;
++	solo_dev->gpio_dev.set = solo_gpiochip_set;
++
++	ret = gpiochip_add_data(&solo_dev->gpio_dev, solo_dev);
++
++	if (ret) {
++		solo_dev->gpio_dev.label = NULL;
++		return -1;
++	}
++#endif
+ 	return 0;
+ }
+ 
+ void solo_gpio_exit(struct solo_dev *solo_dev)
+ {
++#ifdef CONFIG_GPIOLIB
++	if (solo_dev->gpio_dev.label) {
++		gpiochip_remove(&solo_dev->gpio_dev);
++		solo_dev->gpio_dev.label = NULL;
++	}
++#endif
+ 	solo_gpio_clear(solo_dev, 0x30);
+ 	solo_gpio_config(solo_dev);
+ }
+diff --git a/drivers/media/pci/solo6x10/solo6x10.h b/drivers/media/pci/solo6x10/solo6x10.h
+index 3f8da5e8c430..3a1893ae2dad 100644
+--- a/drivers/media/pci/solo6x10/solo6x10.h
++++ b/drivers/media/pci/solo6x10/solo6x10.h
+@@ -31,6 +31,7 @@
+ #include <linux/atomic.h>
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
++#include <linux/gpio/driver.h>
+ 
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-device.h>
+@@ -199,6 +200,10 @@ struct solo_dev {
+ 	u32			irq_mask;
+ 	u32			motion_mask;
+ 	struct v4l2_device	v4l2_dev;
++#ifdef CONFIG_GPIOLIB
++	/* GPIO */
++	struct gpio_chip	gpio_dev;
++#endif
+ 
+ 	/* tw28xx accounting */
+ 	u8			tw2865, tw2864, tw2815;
+-- 
+2.13.0
