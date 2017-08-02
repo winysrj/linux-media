@@ -1,66 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:49969 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751589AbdHZBxF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Aug 2017 21:53:05 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, d.scheller@gmx.net, jasmin@anw.at
-Subject: [PATCH 2/2] build: Fixed backports/v3.3_eprobe_defer.patch
-Date: Sat, 26 Aug 2017 03:52:57 +0200
-Message-Id: <1503712377-31405-3-git-send-email-jasmin@anw.at>
-In-Reply-To: <1503712377-31405-1-git-send-email-jasmin@anw.at>
-References: <1503712377-31405-1-git-send-email-jasmin@anw.at>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:37612 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751900AbdHBRPZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Aug 2017 13:15:25 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 4/9] [media] ttpci: budget-ci: constify pci_device_id.
+Date: Wed,  2 Aug 2017 22:44:52 +0530
+Message-Id: <1501694097-16207-5-git-send-email-arvind.yadav.cs@gmail.com>
+In-Reply-To: <1501694097-16207-1-git-send-email-arvind.yadav.cs@gmail.com>
+References: <1501694097-16207-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+pci_device_id are not supposed to change at runtime. All functions
+working with pci_device_id provided by <media/drv-intf/saa7146.h>
+and <linux/pci.h> work with const pci_device_id. So mark the non-const
+structs as const.
 
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 ---
- backports/v3.3_eprobe_defer.patch | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/media/pci/ttpci/budget-ci.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/backports/v3.3_eprobe_defer.patch b/backports/v3.3_eprobe_defer.patch
-index ec949cc..327979d 100644
---- a/backports/v3.3_eprobe_defer.patch
-+++ b/backports/v3.3_eprobe_defer.patch
-@@ -10,7 +10,7 @@ index 297e10e69898..0ea394e985c7 100644
-  	struct clk *ccf_clk = clk_get(dev, id);
-  	char clk_name[V4L2_CLK_NAME_SIZE];
-  
--@@ -55,17 +56,17 @@ struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id)
-+@@ -55,16 +56,16 @@ struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id)
-  
-  		return clk;
-  	}
-@@ -22,8 +22,7 @@ index 297e10e69898..0ea394e985c7 100644
- +#if 0
-  	/* if dev_name is not found, try use the OF name to find again  */
-  	if (PTR_ERR(clk) == -ENODEV && dev->of_node) {
-- 		v4l2_clk_name_of(clk_name, sizeof(clk_name),
-- 				 of_node_full_name(dev->of_node));
-+ 		v4l2_clk_name_of(clk_name, sizeof(clk_name), dev->of_node);
-  		clk = v4l2_clk_find(clk_name);
-  	}
- -
-@@ -31,7 +30,7 @@ index 297e10e69898..0ea394e985c7 100644
-  	if (!IS_ERR(clk))
-  		atomic_inc(&clk->use_count);
-  	mutex_unlock(&clk_lock);
--@@ -126,8 +127,10 @@ int v4l2_clk_enable(struct v4l2_clk *clk)
-+@@ -125,8 +126,10 @@ int v4l2_clk_enable(struct v4l2_clk *clk)
-  {
-  	int ret;
-  
-@@ -42,7 +41,7 @@ index 297e10e69898..0ea394e985c7 100644
-  
-  	ret = v4l2_clk_lock_driver(clk);
-  	if (ret < 0)
--@@ -155,8 +158,10 @@ void v4l2_clk_disable(struct v4l2_clk *clk)
-+@@ -154,8 +157,10 @@ void v4l2_clk_disable(struct v4l2_clk *clk)
-  {
-  	int enable;
-  
+diff --git a/drivers/media/pci/ttpci/budget-ci.c b/drivers/media/pci/ttpci/budget-ci.c
+index 11b9227..5b8aab4 100644
+--- a/drivers/media/pci/ttpci/budget-ci.c
++++ b/drivers/media/pci/ttpci/budget-ci.c
+@@ -1538,7 +1538,7 @@ MAKE_BUDGET_INFO(ttc1501, "TT-Budget C-1501 PCI", BUDGET_TT);
+ MAKE_BUDGET_INFO(tt3200, "TT-Budget S2-3200 PCI", BUDGET_TT);
+ MAKE_BUDGET_INFO(ttbs1500b, "TT-Budget S-1500B PCI", BUDGET_TT);
+ 
+-static struct pci_device_id pci_tbl[] = {
++static const struct pci_device_id pci_tbl[] = {
+ 	MAKE_EXTENSION_PCI(ttbci, 0x13c2, 0x100c),
+ 	MAKE_EXTENSION_PCI(ttbci, 0x13c2, 0x100f),
+ 	MAKE_EXTENSION_PCI(ttbcci, 0x13c2, 0x1010),
 -- 
 2.7.4
