@@ -1,82 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40512 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755355AbdHYLu3 (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:56373 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752396AbdHBIyO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Aug 2017 07:50:29 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        "mchehab@s-opensource.com" <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH RFC v2] media: open.rst: document devnode-centric and mc-centric types
-Date: Fri, 25 Aug 2017 14:51:01 +0300
-Message-ID: <34177144.tT2mTFkc37@avalon>
-In-Reply-To: <fc2457ae-b4de-67aa-76ca-765f607d7d8d@xs4all.nl>
-References: <779378fa18f93929547665467990ff9284a60521.1503576451.git.mchehab@osg.samsung.com> <fc2457ae-b4de-67aa-76ca-765f607d7d8d@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Wed, 2 Aug 2017 04:54:14 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 4/9] omapdrm: hdmi4: prepare irq handling for HDMI CEC support
+Date: Wed,  2 Aug 2017 10:54:03 +0200
+Message-Id: <20170802085408.16204-5-hverkuil@xs4all.nl>
+In-Reply-To: <20170802085408.16204-1-hverkuil@xs4all.nl>
+References: <20170802085408.16204-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Friday, 25 August 2017 11:59:40 EEST Hans Verkuil wrote:
-> On 24/08/17 14:07, Mauro Carvalho Chehab wrote:
-> > From: "mchehab@s-opensource.com" <mchehab@s-opensource.com>
-> > 
-> > When we added support for omap3, back in 2010, we added a new
-> > type of V4L2 devices that aren't fully controlled via the V4L2
-> > device node. Yet, we never made it clear, at the V4L2 spec,
-> > about the differences between both types.
-> > 
-> > Let's document them with the current implementation.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > ---
-> > 
-> >  Documentation/media/uapi/v4l/open.rst | 47 ++++++++++++++++++++++++++++++
-> >  1 file changed, 47 insertions(+)
-> > 
-> > diff --git a/Documentation/media/uapi/v4l/open.rst
-> > b/Documentation/media/uapi/v4l/open.rst index afd116edb40d..cf522d9bb53c
-> > 100644
-> > --- a/Documentation/media/uapi/v4l/open.rst
-> > +++ b/Documentation/media/uapi/v4l/open.rst
-> > @@ -6,6 +6,53 @@
-> > 
-> >  Opening and Closing Devices
-> >  ***************************
-> > 
-> > +Types of V4L2 device control
-> 
-> I don't like calling this 'device control'. Mostly because the word 'device'
-> can mean almost anything and is very overused.
-> 
-> How about "hardware control"?
+Pass struct omap_hdmi to the irq handler since it will need access
+to hdmi.core.
 
-The word device is used for different purposes that make the text unclear in 
-my opinion. We have at least three different kinds of devices:
+Do not clear the IRQ_HDMI_CORE bit: that will be controlled by the
+HDMI CEC code.
 
-- device node
-- kernel struct device (fortunately not relevant to the V4L2 API discussion)
-- hardware counterpart of the kernel struct device (SoC IP core, I2C chip, 
-...)
-- group of hardware devices that together make a larger user-facing functional 
-device (for instance the SoC ISP IP cores and external camera sensors together 
-make a camera device)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/gpu/drm/omapdrm/dss/hdmi4.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-We need different terms for those different concepts, and we need to be very 
-consistent in our usage of those terms. I believe we should also define them 
-formally at the beginning of the documentation to avoid confusion.
-
-[snip]
-
+diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4.c b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
+index 99af926ca0f5..eb9c6636f660 100644
+--- a/drivers/gpu/drm/omapdrm/dss/hdmi4.c
++++ b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
+@@ -71,7 +71,8 @@ static void hdmi_runtime_put(void)
+ 
+ static irqreturn_t hdmi_irq_handler(int irq, void *data)
+ {
+-	struct hdmi_wp_data *wp = data;
++	struct omap_hdmi *hdmi = data;
++	struct hdmi_wp_data *wp = &hdmi->wp;
+ 	u32 irqstatus;
+ 
+ 	irqstatus = hdmi_wp_get_irqstatus(wp);
+@@ -167,8 +168,8 @@ static int hdmi_power_on_full(struct omap_dss_device *dssdev)
+ 		return r;
+ 
+ 	/* disable and clear irqs */
+-	hdmi_wp_clear_irqenable(wp, 0xffffffff);
+-	hdmi_wp_set_irqstatus(wp, 0xffffffff);
++	hdmi_wp_clear_irqenable(wp, ~HDMI_IRQ_CORE);
++	hdmi_wp_set_irqstatus(wp, ~HDMI_IRQ_CORE);
+ 
+ 	vm = &hdmi.cfg.vm;
+ 
+@@ -243,7 +244,7 @@ static void hdmi_power_off_full(struct omap_dss_device *dssdev)
+ {
+ 	enum omap_channel channel = dssdev->dispc_channel;
+ 
+-	hdmi_wp_clear_irqenable(&hdmi.wp, 0xffffffff);
++	hdmi_wp_clear_irqenable(&hdmi.wp, ~HDMI_IRQ_CORE);
+ 
+ 	hdmi_wp_video_stop(&hdmi.wp);
+ 
+@@ -725,7 +726,7 @@ static int hdmi4_bind(struct device *dev, struct device *master, void *data)
+ 
+ 	r = devm_request_threaded_irq(&pdev->dev, irq,
+ 			NULL, hdmi_irq_handler,
+-			IRQF_ONESHOT, "OMAP HDMI", &hdmi.wp);
++			IRQF_ONESHOT, "OMAP HDMI", &hdmi);
+ 	if (r) {
+ 		DSSERR("HDMI IRQ request failed\n");
+ 		goto err;
 -- 
-Regards,
-
-Laurent Pinchart
+2.13.2
