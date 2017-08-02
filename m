@@ -1,80 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway30.websitewelcome.com ([192.185.197.25]:32325 "EHLO
-        gateway30.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752417AbdHRQSl (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:33307 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751727AbdHBDw0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 12:18:41 -0400
-Received: from cm17.websitewelcome.com (cm17.websitewelcome.com [100.42.49.20])
-        by gateway30.websitewelcome.com (Postfix) with ESMTP id CF414588AC
-        for <linux-media@vger.kernel.org>; Fri, 18 Aug 2017 10:55:48 -0500 (CDT)
-Subject: Re: [PATCH] media: venus: fix duplicated code for different branches
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <20170817231234.GA6674@embeddedgus>
- <99a35cad-9152-ec15-7843-de4668a9190f@linaro.org>
-Cc: linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Message-ID: <96fa5d72-66d1-d28e-5d9f-d991e0c1ce83@embeddedor.com>
-Date: Fri, 18 Aug 2017 10:55:43 -0500
-MIME-Version: 1.0
-In-Reply-To: <99a35cad-9152-ec15-7843-de4668a9190f@linaro.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+        Tue, 1 Aug 2017 23:52:26 -0400
+Message-ID: <44fc3d5609df465316508a1fdb541517@smtp-cloud9.xs4all.net>
+Date: Wed, 02 Aug 2017 05:52:24 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stanimir,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 08/18/2017 02:52 AM, Stanimir Varbanov wrote:
-> Hi Gustavo,
->
-> On 08/18/2017 02:12 AM, Gustavo A. R. Silva wrote:
->> Refactor code in order to avoid identical code for different branches.
->>
->> This issue was detected with the help of Coccinelle.
->>
->> Addresses-Coverity-ID: 1415317
->> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
->> ---
->> This code was reported by Coverity and it was tested by compilation only.
->> Please, verify if this is an actual bug.
->
-> Yes looks like copy/paste error, and yes it is a bug.
->
+Results of the daily build of media_tree:
 
-Thank you for reviewing it.
+date:			Wed Aug  2 05:00:16 CEST 2017
+media-tree git hash:	da48c948c263c9d87dfc64566b3373a858cc8aa2
+media_build git hash:	f01a9176bb03f22e3cd3b70282bd7fd272e504ae
+v4l-utils git hash:	98c162029eb1a21b39028180ac5d36b544a9493c
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.11.0-164
 
->>
->>  drivers/media/platform/qcom/venus/helpers.c | 6 +-----
->>  1 file changed, 1 insertion(+), 5 deletions(-)
->>
->> diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
->> index 5f4434c..8a5c467 100644
->> --- a/drivers/media/platform/qcom/venus/helpers.c
->> +++ b/drivers/media/platform/qcom/venus/helpers.c
->> @@ -240,11 +240,7 @@ static void return_buf_error(struct venus_inst *inst,
->>  {
->>  	struct v4l2_m2m_ctx *m2m_ctx = inst->m2m_ctx;
->>
->> -	if (vbuf->vb2_buf.type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
->> -		v4l2_m2m_src_buf_remove_by_buf(m2m_ctx, vbuf);
->> -	else
->> -		v4l2_m2m_src_buf_remove_by_buf(m2m_ctx, vbuf);
->
-> the correct fix must replace the second v4l2_m2m_src_* with v4l2_m2m_dst_*.
->
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-I'll send a patch to fix this bug shortly
+Detailed results are available here:
 
->> -
->> +	v4l2_m2m_src_buf_remove_by_buf(m2m_ctx, vbuf);
->>  	v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
->>  }
->>
->>
->
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-Thanks!
--- 
-Gustavo A. R. Silva
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
