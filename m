@@ -1,49 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ms.lwn.net ([45.79.88.28]:50478 "EHLO ms.lwn.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751034AbdHaORW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 10:17:22 -0400
-Date: Thu, 31 Aug 2017 08:17:21 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        "linux-doc\@vger.kernel.org" <linux-doc@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2] docs: kernel-doc comments are ASCII
-Message-ID: <20170831081721.38be05ef@lwn.net>
-In-Reply-To: <20170831105602.5607fe52@vento.lan>
-References: <54c23e8e-89c0-5cea-0dcc-e938952c5642@infradead.org>
-        <20170830152314.0486fafb@lwn.net>
-        <3390facf-69ae-ba18-8abe-09b5695a6b31@infradead.org>
-        <20170831064941.1fb18d20@vento.lan>
-        <87h8wn98bv.fsf@intel.com>
-        <20170831105602.5607fe52@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from smtprelay0249.hostedemail.com ([216.40.44.249]:40071 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751142AbdHBILJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 Aug 2017 04:11:09 -0400
+Message-ID: <1501661466.31625.3.camel@perches.com>
+Subject: Re: [PATCH] media: staging: atomisp: sh_css_calloc shall return a
+ pointer to the allocated space
+From: Joe Perches <joe@perches.com>
+To: "Sergei A. Trusov" <sergei.a.trusov@ya.ru>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@llwyncelyn.cymru>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        simran singhal <singhalsimran0@gmail.com>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Date: Wed, 02 Aug 2017 01:11:06 -0700
+In-Reply-To: <1859135.Zd3QESt5CR@z12>
+References: <1859135.Zd3QESt5CR@z12>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 31 Aug 2017 10:56:26 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+On Wed, 2017-08-02 at 18:00 +1000, Sergei A. Trusov wrote:
+> The calloc function returns either a null pointer or a pointer to the
+> allocated space. Add the second case that is missed.
 
-> It should have something to do with python version and/or to some
-> locale info at the system, as neither I or Jon can reproduce it.
+gads.
 
-I can't reproduce it here, but I have certainly seen situations where
-Python 2 wants to run with the ascii codec by default.
+Bug added by commit da22013f7df4 ("atomisp: remove indirection from
+sh_css_malloc")
 
-Note that the exception happens in our Sphinx extension, not in Sphinx
-itself.  We've had other non-ascii text in our docs, so I think Sphinx is
-doing the right thing.  The problem is with our own code.  If I could
-reproduce it, it shouldn't be too hard to track down - take out that
-massive "except anything" block and see where it explodes.
-
-Randy, which distribution are you running, and are you using their version
-of Sphinx?
-
-Thanks,
-
-jon
+These wrappers should really be deleted.
