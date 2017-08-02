@@ -1,92 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:45876 "EHLO
-        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750895AbdHaSIJ (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:51370 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752387AbdHBIyO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 14:08:09 -0400
-Subject: Re: [PATCH 1/2] docs: kernel-doc comments are ASCII
-To: Jani Nikula <jani.nikula@linux.intel.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>
-References: <54c23e8e-89c0-5cea-0dcc-e938952c5642@infradead.org>
- <20170830152314.0486fafb@lwn.net>
- <3390facf-69ae-ba18-8abe-09b5695a6b31@infradead.org>
- <20170831064941.1fb18d20@vento.lan> <87h8wn98bv.fsf@intel.com>
- <20170831105602.5607fe52@vento.lan> <20170831081721.38be05ef@lwn.net>
- <f9e30c84-7ad7-39dd-a39f-f62581f0b893@infradead.org>
- <87d17b90zb.fsf@intel.com> <87a82f8zjc.fsf@intel.com>
- <58800275-b969-5377-2fd8-da8e13bad344@infradead.org>
- <877exj8vw0.fsf@intel.com>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <d7b630f0-0a3f-eb52-8cb5-a41487d040af@infradead.org>
-Date: Thu, 31 Aug 2017 11:08:07 -0700
-MIME-Version: 1.0
-In-Reply-To: <877exj8vw0.fsf@intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Wed, 2 Aug 2017 04:54:14 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 3/9] omapdrm: hdmi4: make low-level functions available
+Date: Wed,  2 Aug 2017 10:54:02 +0200
+Message-Id: <20170802085408.16204-4-hverkuil@xs4all.nl>
+In-Reply-To: <20170802085408.16204-1-hverkuil@xs4all.nl>
+References: <20170802085408.16204-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/31/17 10:55, Jani Nikula wrote:
-> On Thu, 31 Aug 2017, Randy Dunlap <rdunlap@infradead.org> wrote:
->> On 08/31/17 09:36, Jani Nikula wrote:
->>> On Thu, 31 Aug 2017, Jani Nikula <jani.nikula@linux.intel.com> wrote:
->>>> On Thu, 31 Aug 2017, Randy Dunlap <rdunlap@infradead.org> wrote:
->>>>> On 08/31/17 07:17, Jonathan Corbet wrote:
->>>>>> On Thu, 31 Aug 2017 10:56:26 -0300
->>>>>> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
->>>>>>
->>>>>>> It should have something to do with python version and/or to some
->>>>>>> locale info at the system, as neither I or Jon can reproduce it.
->>>>>>
->>>>>> I can't reproduce it here, but I have certainly seen situations where
->>>>>> Python 2 wants to run with the ascii codec by default.
->>>>>>
->>>>>> Note that the exception happens in our Sphinx extension, not in Sphinx
->>>>>> itself.  We've had other non-ascii text in our docs, so I think Sphinx is
->>>>>> doing the right thing.  The problem is with our own code.  If I could
->>>>>> reproduce it, it shouldn't be too hard to track down - take out that
->>>>>> massive "except anything" block and see where it explodes.
->>>>>>
->>>>>> Randy, which distribution are you running, and are you using their version
->>>>>> of Sphinx?
->>>>>
->>>>> opensuse LEAP 42.2
->>>>> Yes, their sphinx 1.3.1.
->>>>
->>>> What's your LANG setting? I think that's what it boils down to, and
->>>> trying to work around non-UTF-8 LANG in both python 2 and 3 compatible
->>>> ways.
->>>>
->>>> The odd thing is that I can reproduce the issue using a small python
->>>> snippet, but not through Sphinx.
->>>
->>> Your original error message suggests your Sphinx actually uses python
->>> 3. Can you check that? The clue is that it's the *decode* that fails.
->>
->> Where do you see that clue?
-> 
-> The message, "'ascii' codec can't decode byte 0xe2 in position 6368:
-> ordinal not in range(128)". In my testing I could only get that *decode*
-> error message using python 3.
-> 
->> My /usr/bin/python is linked to python2.7:
->>
->>> ll /usr/bin/python
->> lrwxrwxrwx 1 root root 9 Jun 10 19:59 /usr/bin/python -> python2.7*
-> 
-> Sure, but how about 'head $(which sphinx-build)'?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-You are correct:
+Three low-level functions in hdmi4.c and hdmi4_core.c are
+made available for use by the OMAP4 CEC support.
 
-#!/usr/bin/python3
+Renamed the prefix to hdmi4 since these are OMAP4 specific.
 
-> I could be completely mistaken too. ;)
+These function deal with the HDMI core and are needed to
+power it up for use with CEC, even when the HPD is low.
 
+Background: even if the HPD is low it should still be possible
+to use CEC. Some displays will set the HPD low when they go into standby or
+when they switch to another input, but CEC is still available and able
+to wake up/change input for such a display.
 
+This is explicitly allowed by the CEC standard.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/gpu/drm/omapdrm/dss/hdmi4.c      | 12 ++++++------
+ drivers/gpu/drm/omapdrm/dss/hdmi4_core.c |  6 +++---
+ drivers/gpu/drm/omapdrm/dss/hdmi4_core.h |  4 ++++
+ 3 files changed, 13 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4.c b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
+index 284b4942b9ac..99af926ca0f5 100644
+--- a/drivers/gpu/drm/omapdrm/dss/hdmi4.c
++++ b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
+@@ -394,11 +394,11 @@ static void hdmi_display_disable(struct omap_dss_device *dssdev)
+ 	mutex_unlock(&hdmi.lock);
+ }
+ 
+-static int hdmi_core_enable(struct omap_dss_device *dssdev)
++int hdmi4_core_enable(struct omap_dss_device *dssdev)
+ {
+ 	int r = 0;
+ 
+-	DSSDBG("ENTER omapdss_hdmi_core_enable\n");
++	DSSDBG("ENTER omapdss_hdmi4_core_enable\n");
+ 
+ 	mutex_lock(&hdmi.lock);
+ 
+@@ -416,9 +416,9 @@ static int hdmi_core_enable(struct omap_dss_device *dssdev)
+ 	return r;
+ }
+ 
+-static void hdmi_core_disable(struct omap_dss_device *dssdev)
++void hdmi4_core_disable(struct omap_dss_device *dssdev)
+ {
+-	DSSDBG("Enter omapdss_hdmi_core_disable\n");
++	DSSDBG("Enter omapdss_hdmi4_core_disable\n");
+ 
+ 	mutex_lock(&hdmi.lock);
+ 
+@@ -476,7 +476,7 @@ static int hdmi_read_edid(struct omap_dss_device *dssdev,
+ 	need_enable = hdmi.core_enabled == false;
+ 
+ 	if (need_enable) {
+-		r = hdmi_core_enable(dssdev);
++		r = hdmi4_core_enable(dssdev);
+ 		if (r)
+ 			return r;
+ 	}
+@@ -484,7 +484,7 @@ static int hdmi_read_edid(struct omap_dss_device *dssdev,
+ 	r = read_edid(edid, len);
+ 
+ 	if (need_enable)
+-		hdmi_core_disable(dssdev);
++		hdmi4_core_disable(dssdev);
+ 
+ 	return r;
+ }
+diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4_core.c b/drivers/gpu/drm/omapdrm/dss/hdmi4_core.c
+index ed6001613405..b91244378ed1 100644
+--- a/drivers/gpu/drm/omapdrm/dss/hdmi4_core.c
++++ b/drivers/gpu/drm/omapdrm/dss/hdmi4_core.c
+@@ -208,9 +208,9 @@ static void hdmi_core_init(struct hdmi_core_video_config *video_cfg)
+ 	video_cfg->tclk_sel_clkmult = HDMI_FPLL10IDCK;
+ }
+ 
+-static void hdmi_core_powerdown_disable(struct hdmi_core_data *core)
++void hdmi4_core_powerdown_disable(struct hdmi_core_data *core)
+ {
+-	DSSDBG("Enter hdmi_core_powerdown_disable\n");
++	DSSDBG("Enter hdmi4_core_powerdown_disable\n");
+ 	REG_FLD_MOD(core->base, HDMI_CORE_SYS_SYS_CTRL1, 0x1, 0, 0);
+ }
+ 
+@@ -336,7 +336,7 @@ void hdmi4_configure(struct hdmi_core_data *core,
+ 	hdmi_core_swreset_assert(core);
+ 
+ 	/* power down off */
+-	hdmi_core_powerdown_disable(core);
++	hdmi4_core_powerdown_disable(core);
+ 
+ 	v_core_cfg.pkt_mode = HDMI_PACKETMODE24BITPERPIXEL;
+ 	v_core_cfg.hdmi_dvi = cfg->hdmi_dvi_mode;
+diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4_core.h b/drivers/gpu/drm/omapdrm/dss/hdmi4_core.h
+index a069f96ec6f6..b6ab579e44d2 100644
+--- a/drivers/gpu/drm/omapdrm/dss/hdmi4_core.h
++++ b/drivers/gpu/drm/omapdrm/dss/hdmi4_core.h
+@@ -266,6 +266,10 @@ void hdmi4_configure(struct hdmi_core_data *core, struct hdmi_wp_data *wp,
+ void hdmi4_core_dump(struct hdmi_core_data *core, struct seq_file *s);
+ int hdmi4_core_init(struct platform_device *pdev, struct hdmi_core_data *core);
+ 
++int hdmi4_core_enable(struct omap_dss_device *dssdev);
++void hdmi4_core_disable(struct omap_dss_device *dssdev);
++void hdmi4_core_powerdown_disable(struct hdmi_core_data *core);
++
+ int hdmi4_audio_start(struct hdmi_core_data *core, struct hdmi_wp_data *wp);
+ void hdmi4_audio_stop(struct hdmi_core_data *core, struct hdmi_wp_data *wp);
+ int hdmi4_audio_config(struct hdmi_core_data *core, struct hdmi_wp_data *wp,
 -- 
-~Randy
+2.13.2
