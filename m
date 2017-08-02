@@ -1,72 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:37036 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751837AbdHBDUf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 1 Aug 2017 23:20:35 -0400
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, nicolas@ndufresne.ca,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Yakir Yang <ykk@rock-chips.com>
-Subject: [PATCH v5 6/6] dt-bindings: Document the Rockchip RGA bindings
-Date: Wed,  2 Aug 2017 11:19:47 +0800
-Message-Id: <1501643987-27847-7-git-send-email-jacob-chen@iotwrt.com>
-In-Reply-To: <1501643987-27847-1-git-send-email-jacob-chen@iotwrt.com>
-References: <1501643987-27847-1-git-send-email-jacob-chen@iotwrt.com>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:34205 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752615AbdHBRPU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Aug 2017 13:15:20 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 2/9] [media] ttpci: budget: constify pci_device_id.
+Date: Wed,  2 Aug 2017 22:44:50 +0530
+Message-Id: <1501694097-16207-3-git-send-email-arvind.yadav.cs@gmail.com>
+In-Reply-To: <1501694097-16207-1-git-send-email-arvind.yadav.cs@gmail.com>
+References: <1501694097-16207-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add DT bindings documentation for Rockchip RGA
+pci_device_id are not supposed to change at runtime. All functions
+working with pci_device_id provided by <media/drv-intf/saa7146.h>
+and <linux/pci.h> work with const pci_device_id. So mark the non-const
+structs as const.
 
-Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
-Signed-off-by: Yakir Yang <ykk@rock-chips.com>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 ---
- .../devicetree/bindings/media/rockchip-rga.txt     | 33 ++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
+ drivers/media/pci/ttpci/budget.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/media/rockchip-rga.txt b/Documentation/devicetree/bindings/media/rockchip-rga.txt
-new file mode 100644
-index 0000000..fd5276a
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/rockchip-rga.txt
-@@ -0,0 +1,33 @@
-+device-tree bindings for rockchip 2D raster graphic acceleration controller (RGA)
-+
-+RGA is a standalone 2D raster graphic acceleration unit. It accelerates 2D
-+graphics operations, such as point/line drawing, image scaling, rotation,
-+BitBLT, alpha blending and image blur/sharpness.
-+
-+Required properties:
-+- compatible: value should be one of the following
-+		"rockchip,rk3288-rga";
-+		"rockchip,rk3399-rga";
-+
-+- interrupts: RGA interrupt specifier.
-+
-+- clocks: phandle to RGA sclk/hclk/aclk clocks
-+
-+- clock-names: should be "aclk", "hclk" and "sclk"
-+
-+- resets: Must contain an entry for each entry in reset-names.
-+  See ../reset/reset.txt for details.
-+- reset-names: should be "core", "axi" and "ahb"
-+
-+Example:
-+SoC-specific DT entry:
-+	rga: rga@ff680000 {
-+		compatible = "rockchip,rk3399-rga";
-+		reg = <0xff680000 0x10000>;
-+		interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA_CORE>;
-+		clock-names = "aclk", "hclk", "sclk";
-+
-+		resets = <&cru SRST_RGA_CORE>, <&cru SRST_A_RGA>, <&cru SRST_H_RGA>;
-+		reset-names = "core, "axi", "ahb";
-+	};
+diff --git a/drivers/media/pci/ttpci/budget.c b/drivers/media/pci/ttpci/budget.c
+index 81fe35c..f59eadb 100644
+--- a/drivers/media/pci/ttpci/budget.c
++++ b/drivers/media/pci/ttpci/budget.c
+@@ -845,7 +845,7 @@ MAKE_BUDGET_INFO(fsact1, "Fujitsu Siemens Activy Budget-T PCI (rev AL/ALPS TDHD1
+ MAKE_BUDGET_INFO(omicom, "Omicom S2 PCI", BUDGET_TT);
+ MAKE_BUDGET_INFO(sylt,   "Philips Semi Sylt PCI", BUDGET_TT_HW_DISEQC);
+ 
+-static struct pci_device_id pci_tbl[] = {
++static const struct pci_device_id pci_tbl[] = {
+ 	MAKE_EXTENSION_PCI(ttbs,  0x13c2, 0x1003),
+ 	MAKE_EXTENSION_PCI(ttbc,  0x13c2, 0x1004),
+ 	MAKE_EXTENSION_PCI(ttbt,  0x13c2, 0x1005),
 -- 
 2.7.4
