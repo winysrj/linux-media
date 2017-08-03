@@ -1,51 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:57622 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753825AbdH2NUp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 09:20:45 -0400
-Date: Tue, 29 Aug 2017 16:20:10 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, hverkuil@xs4all.nl, devicetree@vger.kernel.org
-Subject: Re: [PATCH v5 1/5] v4l: fwnode: Move KernelDoc documentation to the
- header
-Message-ID: <20170829132010.nfofeofidvpipw4h@paasikivi.fi.intel.com>
-References: <20170829110313.19538-1-sakari.ailus@linux.intel.com>
- <20170829110313.19538-2-sakari.ailus@linux.intel.com>
- <2676284.rKR023OhTM@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2676284.rKR023OhTM@avalon>
+Received: from mail-pf0-f175.google.com ([209.85.192.175]:34089 "EHLO
+        mail-pf0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751188AbdHCDnH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Aug 2017 23:43:07 -0400
+Received: by mail-pf0-f175.google.com with SMTP id o86so1182455pfj.1
+        for <linux-media@vger.kernel.org>; Wed, 02 Aug 2017 20:43:07 -0700 (PDT)
+From: Daniel Mentz <danielmentz@google.com>
+To: linux-media@vger.kernel.org
+Cc: Daniel Mentz <danielmentz@google.com>, stable@vger.kernel.org,
+        "H . Peter Anvin" <hpa@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Tiffany Lin <tiffany.lin@mediatek.com>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH] [media] v4l2-compat-ioctl32: Fix timespec conversion
+Date: Wed,  2 Aug 2017 20:42:17 -0700
+Message-Id: <20170803034217.23048-1-danielmentz@google.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Certain syscalls like recvmmsg support 64 bit timespec values for the
+X32 ABI. The helper function compat_put_timespec converts a timespec
+value to a 32 bit or 64 bit value depending on what ABI is used. The
+v4l2 compat layer, however, is not designed to support 64 bit timespec
+values and always uses 32 bit values. Hence, compat_put_timespec must
+not be used.
 
-On Tue, Aug 29, 2017 at 04:15:22PM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thank you for the patch.
-> 
-> On Tuesday, 29 August 2017 14:03:09 EEST Sakari Ailus wrote:
-> > In V4L2 the practice is to have the KernelDoc documentation in the header
-> > and not in .c source code files. This consequientally makes the V4L2
-> > fwnode function documentation part of the Media documentation build.
-> > 
-> > Also correct the link related function and argument naming in
-> > documentation.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> I prefer documenting functions in the C file. Documentation in header files 
-> will get out-of-sync with the implementation much more easily.
+Without this patch, user space will be provided with bad timestamp
+values from the VIDIOC_DQEVENT ioctl. Also, fields of the struct
+v4l2_event32 that come immediately after timestamp get overwritten,
+namely the field named id.
 
-The fact is that there's very little KernelDoc documentation left in the .c
-files in V4L2. This actually appears to be the only exception. And it seems
-to have been in the Sphinx build; I missed that earlier, so that part of
-the commit message doesn't apply.
+Fixes: 81993e81a994 ("compat: Get rid of (get|put)_compat_time(val|spec)")
+Cc: stable@vger.kernel.org
+Cc: H. Peter Anvin <hpa@linux.intel.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: Tiffany Lin <tiffany.lin@mediatek.com>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Daniel Mentz <danielmentz@google.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 6f52970f8b54..0c14e995667c 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -796,7 +796,8 @@ static int put_v4l2_event32(struct v4l2_event *kp, struct v4l2_event32 __user *u
+ 		copy_to_user(&up->u, &kp->u, sizeof(kp->u)) ||
+ 		put_user(kp->pending, &up->pending) ||
+ 		put_user(kp->sequence, &up->sequence) ||
+-		compat_put_timespec(&kp->timestamp, &up->timestamp) ||
++		put_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
++		put_user(kp->timestamp.tv_nsec, &up->timestamp.tv_nsec) ||
+ 		put_user(kp->id, &up->id) ||
+ 		copy_to_user(up->reserved, kp->reserved, 8 * sizeof(__u32)))
+ 			return -EFAULT;
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.14.0.rc1.383.gd1ce394fe2-goog
