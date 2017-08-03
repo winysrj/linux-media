@@ -1,104 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:45185 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750761AbdHLJBL (ORCPT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:6782 "EHLO
+        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751058AbdHCMwV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Aug 2017 05:01:11 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Sean Paul <seanpaul@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 3/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
-Date: Sat, 12 Aug 2017 11:01:07 +0200
-Message-Id: <20170812090107.5198-4-hverkuil@xs4all.nl>
-In-Reply-To: <20170812090107.5198-1-hverkuil@xs4all.nl>
-References: <20170812090107.5198-1-hverkuil@xs4all.nl>
+        Thu, 3 Aug 2017 08:52:21 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: kernel-janitors@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] staging: media: use relevant lock
+Date: Thu,  3 Aug 2017 14:26:52 +0200
+Message-Id: <1501763212-1394-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The data protected is video_out2 and the lock that is released is
+&video_out2->dma_queue_lock, so it seems that that lock should be
+taken as well.
 
-Implement support for this DisplayPort feature.
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-The cec device is created whenever it detects an adapter that
-has this feature. It is only removed when a new adapter is connected
-that does not support this. If a new adapter is connected that has
-different properties than the previous one, then the old cec device is
-unregistered and a new one is registered to replace the old one.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/gpu/drm/i915/intel_dp.c | 18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ drivers/staging/media/davinci_vpfe/dm365_resizer.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
-index 64fa774c855b..fdb853d2c458 100644
---- a/drivers/gpu/drm/i915/intel_dp.c
-+++ b/drivers/gpu/drm/i915/intel_dp.c
-@@ -32,6 +32,7 @@
- #include <linux/notifier.h>
- #include <linux/reboot.h>
- #include <asm/byteorder.h>
-+#include <media/cec.h>
- #include <drm/drmP.h>
- #include <drm/drm_atomic_helper.h>
- #include <drm/drm_crtc.h>
-@@ -1449,6 +1450,7 @@ static void intel_aux_reg_init(struct intel_dp *intel_dp)
- static void
- intel_dp_aux_fini(struct intel_dp *intel_dp)
- {
-+	cec_unregister_adapter(intel_dp->aux.cec_adap);
- 	kfree(intel_dp->aux.name);
- }
- 
-@@ -4587,6 +4589,7 @@ intel_dp_set_edid(struct intel_dp *intel_dp)
- 	intel_connector->detect_edid = edid;
- 
- 	intel_dp->has_audio = drm_detect_monitor_audio(edid);
-+	cec_s_phys_addr_from_edid(intel_dp->aux.cec_adap, edid);
- }
- 
- static void
-@@ -4596,6 +4599,7 @@ intel_dp_unset_edid(struct intel_dp *intel_dp)
- 
- 	kfree(intel_connector->detect_edid);
- 	intel_connector->detect_edid = NULL;
-+	cec_phys_addr_invalidate(intel_dp->aux.cec_adap);
- 
- 	intel_dp->has_audio = false;
- }
-@@ -4616,13 +4620,17 @@ intel_dp_long_pulse(struct intel_connector *intel_connector)
- 	intel_display_power_get(to_i915(dev), intel_dp->aux_power_domain);
- 
- 	/* Can't disconnect eDP, but you can close the lid... */
--	if (is_edp(intel_dp))
-+	if (is_edp(intel_dp)) {
- 		status = edp_detect(intel_dp);
--	else if (intel_digital_port_connected(to_i915(dev),
--					      dp_to_dig_port(intel_dp)))
-+	} else if (intel_digital_port_connected(to_i915(dev),
-+						dp_to_dig_port(intel_dp))) {
- 		status = intel_dp_detect_dpcd(intel_dp);
--	else
-+		if (status == connector_status_connected)
-+			drm_dp_cec_configure_adapter(&intel_dp->aux,
-+				     intel_dp->aux.name, dev->dev);
-+	} else {
- 		status = connector_status_disconnected;
-+	}
- 
- 	if (status == connector_status_disconnected) {
- 		memset(&intel_dp->compliance, 0, sizeof(intel_dp->compliance));
-@@ -5011,6 +5019,8 @@ intel_dp_hpd_pulse(struct intel_digital_port *intel_dig_port, bool long_hpd)
- 
- 	intel_display_power_get(dev_priv, intel_dp->aux_power_domain);
- 
-+	drm_dp_cec_irq(&intel_dp->aux);
-+
- 	if (intel_dp->is_mst) {
- 		if (intel_dp_check_mst_status(intel_dp) == -EINVAL) {
- 			/*
--- 
-2.13.2
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+index 857b0e8..4910cb7 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+@@ -1059,7 +1059,7 @@ static void resizer_ss_isr(struct vpfe_resizer_device *resizer)
+ 	/* If resizer B is enabled */
+ 	if (pipe->output_num > 1 && resizer->resizer_b.output ==
+ 	    RESIZER_OUTPUT_MEMORY) {
+-		spin_lock(&video_out->dma_queue_lock);
++		spin_lock(&video_out2->dma_queue_lock);
+ 		vpfe_video_process_buffer_complete(video_out2);
+ 		video_out2->state = VPFE_VIDEO_BUFFER_NOT_QUEUED;
+ 		vpfe_video_schedule_next_buffer(video_out2);
