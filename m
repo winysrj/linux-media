@@ -1,42 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:34205 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752615AbdHBRPU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Aug 2017 13:15:20 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 2/9] [media] ttpci: budget: constify pci_device_id.
-Date: Wed,  2 Aug 2017 22:44:50 +0530
-Message-Id: <1501694097-16207-3-git-send-email-arvind.yadav.cs@gmail.com>
-In-Reply-To: <1501694097-16207-1-git-send-email-arvind.yadav.cs@gmail.com>
-References: <1501694097-16207-1-git-send-email-arvind.yadav.cs@gmail.com>
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:36144 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751754AbdHCXgb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 Aug 2017 19:36:31 -0400
+Date: Thu, 3 Aug 2017 18:36:28 -0500
+From: Rob Herring <robh@kernel.org>
+To: Shawn Guo <shawnguo@kernel.org>
+Cc: Sean Young <sean@mess.org>,
+        Baoyou Xie <xie.baoyou@sanechips.com.cn>,
+        Xin Zhou <zhou.xin8@sanechips.com.cn>,
+        Jun Nie <jun.nie@linaro.org>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Shawn Guo <shawn.guo@linaro.org>
+Subject: Re: [PATCH v2 2/3] dt-bindings: add bindings document for zx-irdec
+Message-ID: <20170803233628.nxkkrohc6idkmags@rob-hp-laptop>
+References: <1501420993-21977-1-git-send-email-shawnguo@kernel.org>
+ <1501420993-21977-3-git-send-email-shawnguo@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1501420993-21977-3-git-send-email-shawnguo@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-pci_device_id are not supposed to change at runtime. All functions
-working with pci_device_id provided by <media/drv-intf/saa7146.h>
-and <linux/pci.h> work with const pci_device_id. So mark the non-const
-structs as const.
+On Sun, Jul 30, 2017 at 09:23:12PM +0800, Shawn Guo wrote:
+> From: Shawn Guo <shawn.guo@linaro.org>
+> 
+> It adds the dt-bindings document for ZTE ZX IRDEC remote control
+> block.
+> 
+> Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
+> ---
+>  Documentation/devicetree/bindings/media/zx-irdec.txt | 14 ++++++++++++++
+>  1 file changed, 14 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/zx-irdec.txt
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
----
- drivers/media/pci/ttpci/budget.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/pci/ttpci/budget.c b/drivers/media/pci/ttpci/budget.c
-index 81fe35c..f59eadb 100644
---- a/drivers/media/pci/ttpci/budget.c
-+++ b/drivers/media/pci/ttpci/budget.c
-@@ -845,7 +845,7 @@ MAKE_BUDGET_INFO(fsact1, "Fujitsu Siemens Activy Budget-T PCI (rev AL/ALPS TDHD1
- MAKE_BUDGET_INFO(omicom, "Omicom S2 PCI", BUDGET_TT);
- MAKE_BUDGET_INFO(sylt,   "Philips Semi Sylt PCI", BUDGET_TT_HW_DISEQC);
- 
--static struct pci_device_id pci_tbl[] = {
-+static const struct pci_device_id pci_tbl[] = {
- 	MAKE_EXTENSION_PCI(ttbs,  0x13c2, 0x1003),
- 	MAKE_EXTENSION_PCI(ttbc,  0x13c2, 0x1004),
- 	MAKE_EXTENSION_PCI(ttbt,  0x13c2, 0x1005),
--- 
-2.7.4
+Acked-by: Rob Herring <robh@kernel.org>
