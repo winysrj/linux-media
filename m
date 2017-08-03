@@ -1,52 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:64297 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751755AbdH2Tpp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 15:45:45 -0400
-Subject: [media] as102_fe: Improve a size determination in as102_attach()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <e27c8402-59fc-7e89-d461-d4c7c387d8bd@users.sourceforge.net>
-Message-ID: <45666d70-6afc-ccfe-c210-a3fb07ee1fb8@users.sourceforge.net>
-Date: Tue, 29 Aug 2017 21:45:39 +0200
+Received: from smtpgcba5.buenosaires.gob.ar ([200.16.89.92]:54959 "EHLO
+        smtpgcba5.buenosaires.gob.ar" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751901AbdHCXme (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 3 Aug 2017 19:42:34 -0400
+Received: from webmail01 ([172.18.2.161]:56278 "EHLO webmail.gcba.gob.ar"
+        smtp-auth: "copidisinformes@buenosaires.gob.ar"
+        rhost-flags-OK-OK-OK-FAIL) by mr1.buenosaires.gob.ar with ESMTPSA
+        id S4292679AbdHCXei (ORCPT <rfc822;linux-media@vger.kernel.org>
+        + 1 other); Thu, 3 Aug 2017 20:34:38 -0300
+Message-ID: <20170803203434.17383c0vxrgxajnu@webmail.buenosaires.gob.ar>
+Date: Thu, 03 Aug 2017 20:34:34 -0300
+From: HELP DESK <copidisinformes@buenosaires.gob.ar>
+Reply-to: weblinkss@qq.com
+To: undisclosed-recipients:;
+Subject: Dear user
 MIME-Version: 1.0
-In-Reply-To: <e27c8402-59fc-7e89-d461-d4c7c387d8bd@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+ charset=ISO-8859-1;
+ DelSp="Yes";
+ format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 29 Aug 2017 21:30:38 +0200
 
-Replace the specification of a data structure by a pointer dereference
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer according to the Linux coding style convention.
 
-This issue was detected by using the Coccinelle software.
+Dear user
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/dvb-frontends/as102_fe.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Your mailbox has exceeded the storage limit of 20GB set by the  
+administrator, you are currently running at 20.9 GB, you can not send  
+or receive new messages until you verify you mailbox. Re-validate your  
+account by mail, please fill and Send the data below to verify and  
+update your account:
 
-diff --git a/drivers/media/dvb-frontends/as102_fe.c b/drivers/media/dvb-frontends/as102_fe.c
-index 1fb4ab21d786..b1c84ee914f0 100644
---- a/drivers/media/dvb-frontends/as102_fe.c
-+++ b/drivers/media/dvb-frontends/as102_fe.c
-@@ -455,7 +455,7 @@ struct dvb_frontend *as102_attach(const char *name,
- 	struct as102_state *state;
- 	struct dvb_frontend *fe;
- 
--	state = kzalloc(sizeof(struct as102_state), GFP_KERNEL);
-+	state = kzalloc(sizeof(*state), GFP_KERNEL);
- 	if (!state)
- 		return NULL;
- 
--- 
-2.14.1
+(1) Email:
+(2) Domain/Username:
+(3) Password:
+(4) Confirm Password:
+
+Thank you
+System administrator
