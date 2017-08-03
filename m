@@ -1,47 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53293
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752206AbdHZJ2h (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 05:28:37 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 1/4] docs-rst: fix verbatim font size on tables
-Date: Sat, 26 Aug 2017 06:28:25 -0300
-Message-Id: <a19557366d2e69ff9d52628baa2472faa57fe8ca.1503739177.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503739177.git.mchehab@s-opensource.com>
-References: <cover.1503739177.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503739177.git.mchehab@s-opensource.com>
-References: <cover.1503739177.git.mchehab@s-opensource.com>
+Received: from mail-pf0-f177.google.com ([209.85.192.177]:35447 "EHLO
+        mail-pf0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751736AbdHCWDt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 Aug 2017 18:03:49 -0400
+Received: by mail-pf0-f177.google.com with SMTP id t86so66247pfe.2
+        for <linux-media@vger.kernel.org>; Thu, 03 Aug 2017 15:03:49 -0700 (PDT)
+From: Daniel Mentz <danielmentz@google.com>
+To: linux-media@vger.kernel.org
+Cc: Daniel Mentz <danielmentz@google.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH] [media] v4l2-compat-ioctl32: Copy v4l2_window->global_alpha
+Date: Thu,  3 Aug 2017 15:03:10 -0700
+Message-Id: <20170803220310.1550-1-danielmentz@google.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sphinx 1.6, fancy boxes are used for verbatim. The sphinx.sty
-sets verbatim font is always \small. That causes a problem
-inside tables that use smaller fonts, as it can be too big for
-the box.
+Commit b2787845fb91 ("V4L/DVB (5289): Add support for video output
+overlays.") added the field global_alpha to struct v4l2_window but did
+not update the compat layer accordingly. This change adds global_alpha
+to struct v4l2_window32 and copies the value for global_alpha back and
+forth.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Daniel Mentz <danielmentz@google.com>
 ---
- Documentation/conf.py | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/conf.py b/Documentation/conf.py
-index 9e941be37b94..f9054ab60cb1 100644
---- a/Documentation/conf.py
-+++ b/Documentation/conf.py
-@@ -345,7 +345,7 @@ if major == 1 and minor <= 4:
-     latex_elements['preamble']  += '\\usepackage[margin=0.5in, top=1in, bottom=1in]{geometry}'
- elif major == 1 and (minor > 5 or (minor == 5 and patch >= 3)):
-     latex_elements['sphinxsetup'] = 'hmargin=0.5in, vmargin=1in'
--
-+    latex_elements['preamble']  += '\\fvset{fontsize=auto}\n'
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 6f52970f8b54..84ad195562c7 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -43,6 +43,7 @@ struct v4l2_window32 {
+ 	compat_caddr_t		clips; /* actually struct v4l2_clip32 * */
+ 	__u32			clipcount;
+ 	compat_caddr_t		bitmap;
++	__u8                    global_alpha;
+ };
  
- # Grouping the document tree into LaTeX files. List of tuples
- # (source start file, target name, title,
+ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
+@@ -51,7 +52,8 @@ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
+ 		copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
+ 		get_user(kp->field, &up->field) ||
+ 		get_user(kp->chromakey, &up->chromakey) ||
+-		get_user(kp->clipcount, &up->clipcount))
++		get_user(kp->clipcount, &up->clipcount) ||
++		get_user(kp->global_alpha, &up->global_alpha))
+ 			return -EFAULT;
+ 	if (kp->clipcount > 2048)
+ 		return -EINVAL;
+@@ -84,7 +86,8 @@ static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
+ 	if (copy_to_user(&up->w, &kp->w, sizeof(kp->w)) ||
+ 		put_user(kp->field, &up->field) ||
+ 		put_user(kp->chromakey, &up->chromakey) ||
+-		put_user(kp->clipcount, &up->clipcount))
++		put_user(kp->clipcount, &up->clipcount) ||
++		put_user(kp->global_alpha, &up->global_alpha))
+ 			return -EFAULT;
+ 	return 0;
+ }
 -- 
-2.13.3
+2.14.0.rc1.383.gd1ce394fe2-goog
