@@ -1,57 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:60306 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753930AbdHUPwX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Aug 2017 11:52:23 -0400
-Date: Mon, 21 Aug 2017 16:52:03 +0100
-From: Brian Starkey <brian.starkey@arm.com>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:43404 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751161AbdHCDw2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 Aug 2017 23:52:28 -0400
+Message-ID: <503592f2b54c59c8ab618f397b4a58dd@smtp-cloud9.xs4all.net>
+Date: Thu, 03 Aug 2017 05:52:26 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, laurent.pinchart@ideasonboard.com,
-        jonathan.chai@arm.com
-Subject: DRM Format Modifiers in v4l2
-Message-ID: <20170821155203.GB38943@e107564-lin.cambridge.arm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I couldn't find this topic talked about elsewhere, but apologies if
-it's a duplicate - I'll be glad to be steered in the direction of a
-thread.
+Results of the daily build of media_tree:
 
-We'd like to support DRM format modifiers in v4l2 in order to share
-the description of different (mostly proprietary) buffer formats
-between e.g. a v4l2 device and a DRM device.
+date:			Thu Aug  3 05:00:16 CEST 2017
+media-tree git hash:	da48c948c263c9d87dfc64566b3373a858cc8aa2
+media_build git hash:	f01a9176bb03f22e3cd3b70282bd7fd272e504ae
+v4l-utils git hash:	98c162029eb1a21b39028180ac5d36b544a9493c
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.11.0-164
 
-DRM format modifiers are defined in include/uapi/drm/drm_fourcc.h and
-are a vendor-namespaced 64-bit value used to describe various
-vendor-specific buffer layouts. They are combined with a (DRM) FourCC
-code to give a complete description of the data contained in a buffer.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-The same modifier definition is used in the Khronos EGL extension
-EGL_EXT_image_dma_buf_import_modifiers, and is supported in the
-Wayland linux-dmabuf protocol.
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-This buffer information could of course be described in the
-vendor-specific part of V4L2_PIX_FMT_*, but this would duplicate the
-information already defined in drm_fourcc.h. Additionally, there
-would be quite a format explosion where a device supports a dozen or
-more formats, all of which can use one or more different
-layouts/compression schemes.
+Full logs are available here:
 
-So, I'm wondering if anyone has views on how/whether this could be
-incorporated?
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-I spoke briefly about this to Laurent at LPC last year, and he
-suggested v4l2_control as one approach.
+The Media Infrastructure API from this daily build is here:
 
-I also wondered if could be added in v4l2_pix_format_mplane - looks
-like there's 8 bytes left before it exceeds the 200 bytes, or could go
-in the reserved portion of v4l2_plane_pix_format.
-
-Thanks for any thoughts,
--Brian
+http://www.xs4all.nl/~hverkuil/spec/index.html
