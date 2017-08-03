@@ -1,71 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f174.google.com ([209.85.220.174]:34402 "EHLO
-        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752844AbdHTNLW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Aug 2017 09:11:22 -0400
-Received: by mail-qk0-f174.google.com with SMTP id u139so72051291qka.1
-        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 06:11:22 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170804104155.37386-5-hverkuil@xs4all.nl>
-References: <20170804104155.37386-1-hverkuil@xs4all.nl> <20170804104155.37386-5-hverkuil@xs4all.nl>
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Date: Sun, 20 Aug 2017 15:11:21 +0200
-Message-ID: <CA+M3ks4ZL4FXgWkuQkKvhUfou0S7a-u4LbJ0dPRfDuLkS8vM-A@mail.gmail.com>
-Subject: Re: [PATCH 4/5] stih-cec: use CEC_CAP_DEFAULTS
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Received: from mail.kernel.org ([198.145.29.99]:40350 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751755AbdHCNu2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 3 Aug 2017 09:50:28 -0400
+From: Kieran Bingham <kbingham@kernel.org>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        niklas.soderlund@ragnatech.se
+Cc: sakari.ailus@iki.fi, kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH] media: i2c: adv748x: Store the pixel rate ctrl on CSI objects
+Date: Thu,  3 Aug 2017 14:50:23 +0100
+Message-Id: <1501768223-23654-1-git-send-email-kbingham@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-08-04 12:41 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Use the new CEC_CAP_DEFAULTS define in this driver.
-> This also adds the CEC_CAP_RC capability which was missing here
-> (and this is also the reason for this new define, to avoid missing
-> such capabilities).
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Acked-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+The current implementation has to search the list of controls for the
+pixel rate control, each time it is set.  This can be optimised easily
+by storing the ctrl pointer in the CSI/TX object, and referencing that
+directly.
 
-> ---
->  drivers/media/platform/sti/cec/stih-cec.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
->
-> diff --git a/drivers/media/platform/sti/cec/stih-cec.c b/drivers/media/pl=
-atform/sti/cec/stih-cec.c
-> index ce7964c71b50..dc221527fd05 100644
-> --- a/drivers/media/platform/sti/cec/stih-cec.c
-> +++ b/drivers/media/platform/sti/cec/stih-cec.c
-> @@ -351,9 +351,7 @@ static int stih_cec_probe(struct platform_device *pde=
-v)
->         }
->
->         cec->adap =3D cec_allocate_adapter(&sti_cec_adap_ops, cec,
-> -                       CEC_NAME,
-> -                       CEC_CAP_LOG_ADDRS | CEC_CAP_PASSTHROUGH |
-> -                       CEC_CAP_TRANSMIT, CEC_MAX_LOG_ADDRS);
-> +                       CEC_NAME, CEC_CAP_DEFAULTS, CEC_MAX_LOG_ADDRS);
->         if (IS_ERR(cec->adap))
->                 return PTR_ERR(cec->adap);
->
-> --
-> 2.13.2
->
+While at it, fix up a missing blank line also highlighted in review
+comments.
 
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+Small enhancement and fixup as suggested by Sakari, after driver acceptance.
 
+Niklas, with my current 8 Camera set up - I can't fully test this change.
+Could you give it a spin if you get chance please?
 
---=20
-Benjamin Gaignard
+ drivers/media/i2c/adv748x/adv748x-afe.c  |  1 +
+ drivers/media/i2c/adv748x/adv748x-csi2.c | 15 +++++++--------
+ drivers/media/i2c/adv748x/adv748x.h      |  1 +
+ 3 files changed, 9 insertions(+), 8 deletions(-)
 
-Graphic Study Group
-
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-
-Follow Linaro: Facebook | Twitter | Blog
+diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c b/drivers/media/i2c/adv748x/adv748x-afe.c
+index b33ccfc08708..134d981d69d3 100644
+--- a/drivers/media/i2c/adv748x/adv748x-afe.c
++++ b/drivers/media/i2c/adv748x/adv748x-afe.c
+@@ -262,6 +262,7 @@ static int adv748x_afe_g_input_status(struct v4l2_subdev *sd, u32 *status)
+ 	ret = adv748x_afe_status(afe, status, NULL);
+ 
+ 	mutex_unlock(&state->mutex);
++
+ 	return ret;
+ }
+ 
+diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
+index b4fee7f52d6a..609d960c0749 100644
+--- a/drivers/media/i2c/adv748x/adv748x-csi2.c
++++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
+@@ -223,13 +223,12 @@ static const struct v4l2_subdev_ops adv748x_csi2_ops = {
+ 
+ int adv748x_csi2_set_pixelrate(struct v4l2_subdev *sd, s64 rate)
+ {
+-	struct v4l2_ctrl *ctrl;
++	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
+ 
+-	ctrl = v4l2_ctrl_find(sd->ctrl_handler, V4L2_CID_PIXEL_RATE);
+-	if (!ctrl)
++	if (!tx->pixel_rate)
+ 		return -EINVAL;
+ 
+-	return v4l2_ctrl_s_ctrl_int64(ctrl, rate);
++	return v4l2_ctrl_s_ctrl_int64(tx->pixel_rate, rate);
+ }
+ 
+ static int adv748x_csi2_s_ctrl(struct v4l2_ctrl *ctrl)
+@@ -248,12 +247,12 @@ static const struct v4l2_ctrl_ops adv748x_csi2_ctrl_ops = {
+ 
+ static int adv748x_csi2_init_controls(struct adv748x_csi2 *tx)
+ {
+-	struct v4l2_ctrl *ctrl;
+-
+ 	v4l2_ctrl_handler_init(&tx->ctrl_hdl, 1);
+ 
+-	ctrl = v4l2_ctrl_new_std(&tx->ctrl_hdl, &adv748x_csi2_ctrl_ops,
+-				 V4L2_CID_PIXEL_RATE, 1, INT_MAX, 1, 1);
++	tx->pixel_rate = v4l2_ctrl_new_std(&tx->ctrl_hdl,
++					   &adv748x_csi2_ctrl_ops,
++					   V4L2_CID_PIXEL_RATE, 1, INT_MAX,
++					   1, 1);
+ 
+ 	tx->sd.ctrl_handler = &tx->ctrl_hdl;
+ 	if (tx->ctrl_hdl.error) {
+diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
+index cc4151b5b31e..6789e2f3bc8c 100644
+--- a/drivers/media/i2c/adv748x/adv748x.h
++++ b/drivers/media/i2c/adv748x/adv748x.h
+@@ -97,6 +97,7 @@ struct adv748x_csi2 {
+ 
+ 	struct media_pad pads[ADV748X_CSI2_NR_PADS];
+ 	struct v4l2_ctrl_handler ctrl_hdl;
++	struct v4l2_ctrl *pixel_rate;
+ 	struct v4l2_subdev sd;
+ };
+ 
+-- 
+2.7.4
