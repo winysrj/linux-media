@@ -1,61 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:37965 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751814AbdHUKDM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Aug 2017 06:03:12 -0400
-MIME-Version: 1.0
-In-Reply-To: <1502614485-2150-4-git-send-email-arvind.yadav.cs@gmail.com>
-References: <1502614485-2150-1-git-send-email-arvind.yadav.cs@gmail.com> <1502614485-2150-4-git-send-email-arvind.yadav.cs@gmail.com>
-From: Alexey Klimov <klimov.linux@gmail.com>
-Date: Mon, 21 Aug 2017 11:03:11 +0100
-Message-ID: <CALW4P+JFdde5_KYNNEB+VaNJd_jB2pqXHt6bMoMaTfh+qjHyhA@mail.gmail.com>
-Subject: Re: [PATCH 3/3] [media] radio: constify usb_device_id
-To: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Cc: Antti Palosaari <crope@iki.fi>, mchehab@kernel.org,
-        ezequiel@vanguardiasur.com.ar,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        royale@zerezo.com, sean@mess.org,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from gofer.mess.org ([88.97.38.141]:40111 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751791AbdHCVmd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 3 Aug 2017 17:42:33 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Cc: "# v3 . 2" <stable@vger.kernel.org>
+Subject: [PATCH] [media] lirc_zilog: driver only sends LIRCCODE
+Date: Thu,  3 Aug 2017 22:42:28 +0100
+Message-Id: <20170803214231.9334-2-sean@mess.org>
+In-Reply-To: <20170803214231.9334-1-sean@mess.org>
+References: <20170803214231.9334-1-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arvind,
+This driver cannot send pulse, it only accepts driver-dependent codes.
 
-thanks for the patch!
+Cc: <stable@vger.kernel.org> # v3.2
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/staging/media/lirc/lirc_zilog.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-On Sun, Aug 13, 2017 at 9:54 AM, Arvind Yadav <arvind.yadav.cs@gmail.com> wrote:
-> usb_device_id are not supposed to change at runtime. All functions
-> working with usb_device_id provided by <linux/usb.h> work with
-> const usb_device_id. So mark the non-const structs as const.
->
-> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
-
-For dsbr100, radio-mr800 and radio-ma901 please feel free to use:
-
-Acked-by: Alexey Klimov <klimov.linux@gmail.com>
-
-
-> ---
->  drivers/media/radio/dsbr100.c                 | 2 +-
->  drivers/media/radio/radio-keene.c             | 2 +-
->  drivers/media/radio/radio-ma901.c             | 2 +-
->  drivers/media/radio/radio-mr800.c             | 2 +-
->  drivers/media/radio/radio-raremono.c          | 2 +-
->  drivers/media/radio/radio-shark.c             | 2 +-
->  drivers/media/radio/radio-shark2.c            | 2 +-
->  drivers/media/radio/si470x/radio-si470x-usb.c | 2 +-
->  drivers/media/radio/si4713/radio-usb-si4713.c | 2 +-
->  9 files changed, 9 insertions(+), 9 deletions(-)
->
-> diff --git a/drivers/media/radio/dsbr100.c b/drivers/media/radio/dsbr100.c
-> index 53bc8c0..8521bb2 100644
-
-
-[...]
-
-Best regards,
-Alexey
+diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+index c9f2bd324767..d138ca494176 100644
+--- a/drivers/staging/media/lirc/lirc_zilog.c
++++ b/drivers/staging/media/lirc/lirc_zilog.c
+@@ -290,7 +290,7 @@ static void release_ir_tx(struct kref *ref)
+ 	struct IR_tx *tx = container_of(ref, struct IR_tx, ref);
+ 	struct IR *ir = tx->ir;
+ 
+-	ir->l->features &= ~LIRC_CAN_SEND_PULSE;
++	ir->l->features &= ~LIRC_CAN_SEND_LIRCCODE;
+ 	/* Don't put_ir_device(tx->ir) here, so our lock doesn't get freed */
+ 	ir->tx = NULL;
+ 	kfree(tx);
+@@ -1269,14 +1269,14 @@ static long ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
+ 		if (!(features & LIRC_CAN_SEND_MASK))
+ 			return -ENOTTY;
+ 
+-		result = put_user(LIRC_MODE_PULSE, uptr);
++		result = put_user(LIRC_MODE_LIRCCODE, uptr);
+ 		break;
+ 	case LIRC_SET_SEND_MODE:
+ 		if (!(features & LIRC_CAN_SEND_MASK))
+ 			return -ENOTTY;
+ 
+ 		result = get_user(mode, uptr);
+-		if (!result && mode != LIRC_MODE_PULSE)
++		if (!result && mode != LIRC_MODE_LIRCCODE)
+ 			return -EINVAL;
+ 		break;
+ 	default:
+@@ -1484,7 +1484,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		kref_init(&tx->ref);
+ 		ir->tx = tx;
+ 
+-		ir->l->features |= LIRC_CAN_SEND_PULSE;
++		ir->l->features |= LIRC_CAN_SEND_LIRCCODE;
+ 		mutex_init(&tx->client_lock);
+ 		tx->c = client;
+ 		tx->need_boot = 1;
+-- 
+2.13.3
