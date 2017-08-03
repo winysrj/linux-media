@@ -1,82 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:57255 "EHLO mga02.intel.com"
+Received: from mout3.freenet.de ([195.4.92.93]:56238 "EHLO mout3.freenet.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750988AbdHQNpR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Aug 2017 09:45:17 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, rajmohan.mani@intel.com
-Subject: [PATCH 3/3] dw9714: Remove ACPI match tables, convert to use probe_new
-Date: Thu, 17 Aug 2017 16:42:56 +0300
-Message-Id: <1502977376-22836-4-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1502977376-22836-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1502977376-22836-1-git-send-email-sakari.ailus@linux.intel.com>
+        id S1751699AbdHCPWY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 3 Aug 2017 11:22:24 -0400
+From: Branislav Radocaj <branislav@radocaj.org>
+To: mchehab@kernel.org, gregkh@linuxfoundation.org
+Cc: jb@abbadie.fr, hans.verkuil@cisco.com, nikola.jelic83@gmail.com,
+        ran.algawi@gmail.com, aquannie@gmail.com, branislav@radocaj.org,
+        shilpapri@gmail.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] Staging: bcm2048: fix bare use of 'unsigned' in radio-bcm2048.c
+Date: Thu,  3 Aug 2017 17:13:48 +0200
+Message-Id: <20170803151348.21349-1-branislav@radocaj.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ACPI match table is empty. Remove it.
+This is a patch to the radio-bcm2048.c file that fixes up
+a warning found by the checkpatch.pl tool.
 
-Also convert the drive to use probe_new callback in struct i2c_driver.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Branislav Radocaj <branislav@radocaj.org>
 ---
- drivers/media/i2c/dw9714.c | 19 ++++---------------
- 1 file changed, 4 insertions(+), 15 deletions(-)
+ drivers/staging/media/bcm2048/radio-bcm2048.c | 44 +++++++++++++--------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/i2c/dw9714.c b/drivers/media/i2c/dw9714.c
-index bcf64ef..95af4fc 100644
---- a/drivers/media/i2c/dw9714.c
-+++ b/drivers/media/i2c/dw9714.c
-@@ -11,7 +11,6 @@
-  * GNU General Public License for more details.
-  */
- 
--#include <linux/acpi.h>
- #include <linux/delay.h>
- #include <linux/i2c.h>
- #include <linux/module.h>
-@@ -147,8 +146,7 @@ static int dw9714_init_controls(struct dw9714_device *dev_vcm)
- 	return hdl->error;
+diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+index 38f72d069e27..bb8956b3d40c 100644
+--- a/drivers/staging/media/bcm2048/radio-bcm2048.c
++++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+@@ -2028,27 +2028,27 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
+ 	return count;							\
  }
  
--static int dw9714_probe(struct i2c_client *client,
--			const struct i2c_device_id *devid)
-+static int dw9714_probe(struct i2c_client *client)
- {
- 	struct dw9714_device *dw9714_dev;
- 	int rval;
-@@ -250,18 +248,10 @@ static int  __maybe_unused dw9714_vcm_resume(struct device *dev)
- 	return 0;
- }
- 
--#ifdef CONFIG_ACPI
--static const struct acpi_device_id dw9714_acpi_match[] = {
--	{},
--};
--MODULE_DEVICE_TABLE(acpi, dw9714_acpi_match);
--#endif
+-DEFINE_SYSFS_PROPERTY(power_state, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(mute, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(audio_route, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(dac_output, unsigned, int, "%u", 0)
 -
- static const struct i2c_device_id dw9714_id_table[] = {
--	{DW9714_NAME, 0},
--	{}
-+	{ DW9714_NAME, 0 },
-+	{ { 0 } }
- };
+-DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned, int, "%u", value > 3)
 -
- MODULE_DEVICE_TABLE(i2c, dw9714_id_table);
+-DEFINE_SYSFS_PROPERTY(rds, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_wline, unsigned, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(power_state, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(mute, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(audio_route, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(dac_output, unsigned int, int, "%u", 0)
++
++DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned int, int, "%u", value > 3)
++
++DEFINE_SYSFS_PROPERTY(rds, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_wline, unsigned int, int, "%u", 0)
+ property_read(rds_pi, unsigned int, "%x")
+ property_str_read(rds_rt, (BCM2048_MAX_RDS_RT + 1))
+ property_str_read(rds_ps, (BCM2048_MAX_RDS_PS + 1))
+@@ -2060,7 +2060,7 @@ property_read(region_bottom_frequency, unsigned int, "%u")
+ property_read(region_top_frequency, unsigned int, "%u")
+ property_signed_read(fm_carrier_error, int, "%d")
+ property_signed_read(fm_rssi, int, "%d")
+-DEFINE_SYSFS_PROPERTY(region, unsigned, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(region, unsigned int, int, "%u", 0)
  
- static const struct of_device_id dw9714_of_table[] = {
-@@ -279,10 +269,9 @@ static struct i2c_driver dw9714_i2c_driver = {
- 	.driver = {
- 		.name = DW9714_NAME,
- 		.pm = &dw9714_pm_ops,
--		.acpi_match_table = ACPI_PTR(dw9714_acpi_match),
- 		.of_match_table = dw9714_of_table,
- 	},
--	.probe = dw9714_probe,
-+	.probe_new = dw9714_probe,
- 	.remove = dw9714_remove,
- 	.id_table = dw9714_id_table,
- };
+ static struct device_attribute attrs[] = {
+ 	__ATTR(power_state, 0644, bcm2048_power_state_read,
 -- 
-2.7.4
+2.11.0
