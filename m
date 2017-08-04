@@ -1,41 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:36699 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752133AbdHJMpH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Aug 2017 08:45:07 -0400
-Date: Thu, 10 Aug 2017 18:15:01 +0530
-From: Harold Gomez <haroldgmz11@gmail.com>
-To: mchehab@kernel.org
-Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] staging:media:atomisp: Add blank line after declarations
-Message-ID: <20170810124501.GA2793@localhost.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from gofer.mess.org ([88.97.38.141]:36531 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751478AbdHDLNx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Aug 2017 07:13:53 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 2/2] [media] winbond-cir: buffer overrun during transmit
+Date: Fri,  4 Aug 2017 12:13:51 +0100
+Message-Id: <20170804111351.16734-2-sean@mess.org>
+In-Reply-To: <20170804111351.16734-1-sean@mess.org>
+References: <20170804111351.16734-1-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add blank line after declarations
-to avoid warning from checkpatch.pl script
+We're reading beyond the buffer before checking its length.
 
-Signed-off-by: Harold Gomez <haroldgmz11@gmail.com>
+BUG: KASAN: slab-out-of-bounds in wbcir_irq_tx
+
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/staging/media/atomisp/i2c/ap1302.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/rc/winbond-cir.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/atomisp/i2c/ap1302.c b/drivers/staging/media/atomisp/i2c/ap1302.c
-index 995f243..fd0f2ac 100644
---- a/drivers/staging/media/atomisp/i2c/ap1302.c
-+++ b/drivers/staging/media/atomisp/i2c/ap1302.c
-@@ -211,6 +211,7 @@ static int ap1302_i2c_write_reg(struct v4l2_subdev *sd,
- 	struct ap1302_device *dev = to_ap1302_device(sd);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	int ret;
-+
- 	if (len == AP1302_REG16)
- 		ret = regmap_write(dev->regmap16, reg, val);
- 	else if (len == AP1302_REG32)
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index ea7be6d35ff8..a18eb232ed81 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -429,7 +429,7 @@ wbcir_irq_tx(struct wbcir_data *data)
+ 		bytes[used] = byte;
+ 	}
+ 
+-	while (data->txbuf[data->txoff] == 0 && data->txoff != data->txlen)
++	while (data->txoff != data->txlen && data->txbuf[data->txoff] == 0)
+ 		data->txoff++;
+ 
+ 	if (used == 0) {
 -- 
-2.1.4
+2.13.3
