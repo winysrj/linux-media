@@ -1,99 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:33331 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752842AbdHXTDv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Aug 2017 15:03:51 -0400
-Received: by mail-wm0-f67.google.com with SMTP id e67so375331wmd.0
-        for <linux-media@vger.kernel.org>; Thu, 24 Aug 2017 12:03:50 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: jasmin@anw.at
-Subject: [PATCH] [media_build] ddbridge: backport to enable_msi_block, require kernel 3.8
-Date: Thu, 24 Aug 2017 21:03:47 +0200
-Message-Id: <20170824190347.1705-1-d.scheller.oss@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59739 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752514AbdHDQDu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Aug 2017 12:03:50 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH v3 1/7] v4l: vsp1: Release buffers in start_streaming error path
+Date: Fri, 04 Aug 2017 19:04:03 +0300
+Message-ID: <8097894.HmeFa5IAJo@avalon>
+In-Reply-To: <22778858.uLPLfpXYHT@avalon>
+References: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com> <cb35eec2aae25b07fdc303cf9e005c878f07ac92.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com> <22778858.uLPLfpXYHT@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On Friday 04 Aug 2017 19:03:28 Laurent Pinchart wrote:
+> Hi Kieran,
+> 
+> Thank you for the patch.
+> 
+> On Friday 04 Aug 2017 16:57:05 Kieran Bingham wrote:
+> > Presently any received buffers are only released back to vb2 if
+> > vsp1_video_stop_streaming() is called. If vsp1_video_start_streaming()
+> > encounters an error, we will be warned by the vb2 handlers that buffers
+> > have not been returned.
+> > 
+> > Move the buffer cleanup code to it's own function to prevent duplication
+> 
+> s/it's/its/
+> 
+> > and call from both vsp1_video_stop_streaming() and the error path in
+> > vsp1_video_start_streaming()
+> 
+> s/$/./
+> 
+> > Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/platform/vsp1/vsp1_video.c | 22 +++++++++++++++-------
+> >  1 file changed, 15 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/vsp1/vsp1_video.c
+> > b/drivers/media/platform/vsp1/vsp1_video.c index
+> > 5af3486afe07..a24033429cd7
+> > 100644
+> > --- a/drivers/media/platform/vsp1/vsp1_video.c
+> > +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> > @@ -822,6 +822,19 @@ static int vsp1_video_setup_pipeline(struct
+> > vsp1_pipeline *pipe) return 0;
+> > 
+> >  }
+> > 
+> > +static void vsp1_video_cleanup_pipeline(struct vsp1_video *video)
+> 
+> Should this function take a pipe pointer instead of a video pointer for
+> symmetry with vsp1_video_setup_pipeline() ?
+> 
+> > +{
+> > +	struct vsp1_vb2_buffer *buffer;
+> > +	unsigned long flags;
+> > +
+> > +	/* Remove all buffers from the IRQ queue. */
+> > +	spin_lock_irqsave(&video->irqlock, flags);
+> > +	list_for_each_entry(buffer, &video->irqqueue, queue)
+> > +		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_ERROR);
+> > +	INIT_LIST_HEAD(&video->irqqueue);
+> > +	spin_unlock_irqrestore(&video->irqlock, flags);
+> > +}
+> > +
+> > 
+> >  static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int
+> > 
+> > count) {
+> > 
+> >  	struct vsp1_video *video = vb2_get_drv_priv(vq);
+> > 
+> > @@ -835,6 +848,7 @@ static int vsp1_video_start_streaming(struct vb2_queue
+> > *vq, unsigned int count) ret = vsp1_video_setup_pipeline(pipe);
+> > 
+> >  		if (ret < 0) {
+> >  		
+> >  			mutex_unlock(&pipe->lock);
+> > 
+> > +			vsp1_video_cleanup_pipeline(video);
+> > 
+> >  			return ret;
+> >  		
+> >  		}
+> > 
+> > @@ -866,7 +880,6 @@ static void vsp1_video_stop_streaming(struct vb2_queue
+> > *vq) {
+> > 
+> >  	struct vsp1_video *video = vb2_get_drv_priv(vq);
+> >  	struct vsp1_pipeline *pipe = video->rwpf->pipe;
+> > 
+> > -	struct vsp1_vb2_buffer *buffer;
+> > 
+> >  	unsigned long flags;
+> >  	int ret;
+> > 
+> > @@ -893,12 +906,7 @@ static void vsp1_video_stop_streaming(struct
+> > vb2_queue
+> > *vq) media_pipeline_stop(&video->video.entity);
+> > 
+> >  	vsp1_video_pipeline_put(pipe);
+> > 
+> > -	/* Remove all buffers from the IRQ queue. */
+> > -	spin_lock_irqsave(&video->irqlock, flags);
+> > -	list_for_each_entry(buffer, &video->irqqueue, queue)
+> > -		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_ERROR);
+> > -	INIT_LIST_HEAD(&video->irqqueue);
+> > -	spin_unlock_irqrestore(&video->irqlock, flags);
+> > +	vsp1_video_cleanup_pipeline(video);
+> 
+> The vsp1_video_cleanup_pipeline() call should go before
+> vsp1_video_pipeline_put(), as you've noticed in patch 7/7.
 
-Backport to pci_enable_msi_block for kernels <3.14 (picked from upstream
-dddvb package). Also, ddbridge requires the PCI_DEVICE_SUB macro, which
-was added in 3.8.
+I meant 3/7.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-Tested-by: Jasmin Jessich <jasmin@anw.at>
----
-This should finally silence all current media_build compile issues related
-to the ddbridge pcie driver.
+> 
+> With all that fixed,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> >  }
+> >  
+> >  static const struct vb2_ops vsp1_video_queue_qops = {
 
- backports/backports.txt               |  3 +++
- backports/v3.13_ddbridge_pcimsi.patch | 29 +++++++++++++++++++++++++++++
- v4l/versions.txt                      |  2 ++
- 3 files changed, 34 insertions(+)
- create mode 100644 backports/v3.13_ddbridge_pcimsi.patch
-
-diff --git a/backports/backports.txt b/backports/backports.txt
-index 873b2f5..87b9ee8 100644
---- a/backports/backports.txt
-+++ b/backports/backports.txt
-@@ -84,6 +84,9 @@ add v3.16_netdev.patch
- add v3.16_wait_on_bit.patch
- add v3.16_void_gpiochip_remove.patch
- 
-+[3.13.255]
-+add v3.13_ddbridge_pcimsi.patch
-+
- [3.12.255]
- add v3.12_kfifo_in.patch
- 
-diff --git a/backports/v3.13_ddbridge_pcimsi.patch b/backports/v3.13_ddbridge_pcimsi.patch
-new file mode 100644
-index 0000000..80b93a0
---- /dev/null
-+++ b/backports/v3.13_ddbridge_pcimsi.patch
-@@ -0,0 +1,29 @@
-+diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
-+index 9ab4736..50c3b4f 100644
-+--- a/drivers/media/pci/ddbridge/ddbridge-main.c
-++++ b/drivers/media/pci/ddbridge/ddbridge-main.c
-+@@ -129,13 +129,18 @@ static void ddb_irq_msi(struct ddb *dev, int nr)
-+ 	int stat;
-+ 
-+ 	if (msi && pci_msi_enabled()) {
-+-		stat = pci_enable_msi_range(dev->pdev, 1, nr);
-+-		if (stat >= 1) {
-+-			dev->msi = stat;
-+-			dev_info(dev->dev, "using %d MSI interrupt(s)\n",
-+-				dev->msi);
-+-		} else
-++		stat = pci_enable_msi_block(dev->pdev, nr);
-++		if (stat == 0) {
-++			dev->msi = nr;
-++		} else if (stat == 1) {
-++			stat = pci_enable_msi(dev->pdev);
-++			dev->msi = 1;
-++		}
-++		if (stat < 0)
-+ 			dev_info(dev->dev, "MSI not available.\n");
-++		else
-++			dev_info(dev->dev, "using %d MSI interrupts\n",
-++				 dev->msi);
-+ 	}
-+ }
-+ #endif
-diff --git a/v4l/versions.txt b/v4l/versions.txt
-index 5f0b301..abf3b27 100644
---- a/v4l/versions.txt
-+++ b/v4l/versions.txt
-@@ -126,6 +126,8 @@ IR_SPI
- [3.8.0]
- # needs regmap lock/unlock ops
- DVB_TS2020
-+# needs the PCI_DEVICE_SUB macro
-+DVB_DDBRIDGE
- 
- [3.7.0]
- # i2c_add_mux_adapter prototype change
 -- 
-2.13.0
+Regards,
+
+Laurent Pinchart
