@@ -1,44 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:59935 "EHLO pokefinder.org"
+Received: from mail.kernel.org ([198.145.29.99]:35734 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753149AbdHQOOz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Aug 2017 10:14:55 -0400
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-To: linux-i2c@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: [RFC PATCH v4 1/6] i2c: add a message flag for DMA safe buffers
-Date: Thu, 17 Aug 2017 16:14:44 +0200
-Message-Id: <20170817141449.23958-2-wsa+renesas@sang-engineering.com>
-In-Reply-To: <20170817141449.23958-1-wsa+renesas@sang-engineering.com>
-References: <20170817141449.23958-1-wsa+renesas@sang-engineering.com>
+        id S1752433AbdHDP5P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Aug 2017 11:57:15 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v3 0/7] vsp1 partition algorithm improvements
+Date: Fri,  4 Aug 2017 16:57:04 +0100
+Message-Id: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I2C has no requirement that the buffer of a message needs to be DMA
-safe. In case it is, it can now be flagged, so drivers wishing to
-do DMA can use the buffer directly.
+Some updates and initial improvements for the VSP1 partition algorithm that
+remove redundant processing and variables, reducing the processing done in
+interrupt context slightly.
 
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
----
- include/uapi/linux/i2c.h | 3 +++
- 1 file changed, 3 insertions(+)
+Patch 1, fixes up a bug to release buffers back to vb2 if errors occur in
+vsp1_video_start_streaming()
 
-diff --git a/include/uapi/linux/i2c.h b/include/uapi/linux/i2c.h
-index 009e27bb9abe19..1c683cb319e4b7 100644
---- a/include/uapi/linux/i2c.h
-+++ b/include/uapi/linux/i2c.h
-@@ -71,6 +71,9 @@ struct i2c_msg {
- #define I2C_M_RD		0x0001	/* read data, from slave to master */
- 					/* I2C_M_RD is guaranteed to be 0x0001! */
- #define I2C_M_TEN		0x0010	/* this is a ten bit chip address */
-+#define I2C_M_DMA_SAFE		0x0200	/* the buffer of this message is DMA safe */
-+					/* makes only sense in kernelspace */
-+					/* userspace buffers are copied anyway */
- #define I2C_M_RECV_LEN		0x0400	/* length will be first received byte */
- #define I2C_M_NO_RD_ACK		0x0800	/* if I2C_FUNC_PROTOCOL_MANGLING */
- #define I2C_M_IGNORE_NAK	0x1000	/* if I2C_FUNC_PROTOCOL_MANGLING */
+Patches 2, 3 and 4 clean up the calculation of the partition windows such that
+they are only calculated once at streamon.
+
+Patch 5 improves the allocations with a new vsp1_partition object to track each
+window state.
+
+Patches 6, and 7 then go on to enhance the partition algorithm by allowing each
+entity to calculate the requirements for it's pipeline predecessor to
+successfully generate the requested output window. This system allows the
+entity objects to specify what they need to fulfil the output for the next
+entity in the pipeline.
+
+v2:
+ - Rebased to v4.12-rc1
+ - Partition tables dynamically allocated
+ - review fixups
+
+v3:
+ - Review fixes and changes from Laurent
+ - v4l: vsp1: Release buffers in start_streaming error path
+
+Kieran Bingham (7):
+  v4l: vsp1: Release buffers in start_streaming error path
+  v4l: vsp1: Move vsp1_video_pipeline_setup_partitions() function
+  v4l: vsp1: Calculate partition sizes at stream start
+  v4l: vsp1: Remove redundant context variables
+  v4l: vsp1: Move partition rectangles to struct and operate directly
+  v4l: vsp1: Provide UDS register updates
+  v4l: vsp1: Allow entities to participate in the partition algorithm
+
+ drivers/media/platform/vsp1/vsp1_entity.h |   7 +-
+ drivers/media/platform/vsp1/vsp1_pipe.c   |  22 +++-
+ drivers/media/platform/vsp1/vsp1_pipe.h   |  46 +++++-
+ drivers/media/platform/vsp1/vsp1_regs.h   |  14 ++-
+ drivers/media/platform/vsp1/vsp1_rpf.c    |  27 +--
+ drivers/media/platform/vsp1/vsp1_sru.c    |  26 +++-
+ drivers/media/platform/vsp1/vsp1_uds.c    |  57 ++++++-
+ drivers/media/platform/vsp1/vsp1_video.c  | 182 ++++++++++++-----------
+ drivers/media/platform/vsp1/vsp1_wpf.c    |  24 ++-
+ 9 files changed, 289 insertions(+), 116 deletions(-)
+
+base-commit: 520eccdfe187591a51ea9ab4c1a024ae4d0f68d9
 -- 
-2.11.0
+git-series 0.9.1
