@@ -1,82 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54284 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751037AbdHROG2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 10:06:28 -0400
-Date: Fri, 18 Aug 2017 17:06:25 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
-Subject: Re: [PATCH v3 0/3] Unified fwnode endpoint parser
-Message-ID: <20170818140624.6tov4rgzwaxwrvqq@valkosipuli.retiisi.org.uk>
-References: <20170818112317.30933-1-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170818112317.30933-1-sakari.ailus@linux.intel.com>
+Received: from mail.kernel.org ([198.145.29.99]:35742 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752433AbdHDP5S (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Aug 2017 11:57:18 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v3 2/7] v4l: vsp1: Move vsp1_video_pipeline_setup_partitions() function
+Date: Fri,  4 Aug 2017 16:57:06 +0100
+Message-Id: <209eb8c59020c341c745a39ce87b2ae78993726f.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 18, 2017 at 02:23:14PM +0300, Sakari Ailus wrote:
-> Hi folks,
-> 
-> We have a large influx of new, unmerged, drivers that are now parsing
-> fwnode endpoints and each one of them is doing this a little bit
-> differently. The needs are still exactly the same for the graph data
-> structure is device independent. This is still a non-trivial task and the
-> majority of the driver implementations are buggy, just buggy in different
-> ways.
-> 
-> Facilitate parsing endpoints by adding a convenience function for parsing
-> the endpoints, and make the omap3isp driver use it as an example.
-> 
-> I plan to include the first patch to a pull request soonish, the second
-> could go in with the first user.
+Separate the code change from the function move so that code changes can
+be clearly identified. This commit has no functional change.
 
-And now that a new patch has been added in front of the set, this means
-that 1 and 2 could IMO go in soonish whereas the third would go in later.
+The partition algorithm functions will be changed, and
+vsp1_video_pipeline_setup_partitions() will call vsp1_video_partition().
+To prepare for that, move the function without any code change.
 
-> 
-> since v2:
-> 
-> - Rebase on CCP2 support patches.
-> 
-> - Prepend a patch cleaning up omap3isp driver a little.
-> 
-> since v1:
-> 
-> - The first patch has been merged (it was a bugfix).
-> 
-> - In anticipation that the parsing can take place over several iterations,
->   take the existing number of async sub-devices into account when
->   re-allocating an array of async sub-devices.
-> 
-> - Rework the first patch to better anticipate parsing single endpoint at a
->   time by a driver.
-> 
-> - Add a second patch that adds a function for parsing endpoints one at a
->   time based on port and endpoint numbers.
-> 
-> Sakari Ailus (3):
->   omap3isp: Drop redundant isp->subdevs field and ISP_MAX_SUBDEVS
->   v4l: fwnode: Support generic parsing of graph endpoints in a device
->   v4l: fwnode: Support generic parsing of graph endpoints in a single
->     port
-> 
->  drivers/media/platform/omap3isp/isp.c | 116 +++++++---------------
->  drivers/media/platform/omap3isp/isp.h |   3 -
->  drivers/media/v4l2-core/v4l2-fwnode.c | 176 ++++++++++++++++++++++++++++++++++
->  include/media/v4l2-async.h            |   4 +-
->  include/media/v4l2-fwnode.h           |  16 ++++
->  5 files changed, 231 insertions(+), 84 deletions(-)
-> 
-> -- 
-> 2.11.0
-> 
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_video.c | 74 ++++++++++++-------------
+ 1 file changed, 37 insertions(+), 37 deletions(-)
 
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index a24033429cd7..097e4db572a9 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -182,43 +182,6 @@ static int __vsp1_video_try_format(struct vsp1_video *video,
+  * VSP1 Partition Algorithm support
+  */
+ 
+-static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
+-{
+-	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
+-	const struct v4l2_mbus_framefmt *format;
+-	struct vsp1_entity *entity;
+-	unsigned int div_size;
+-
+-	/*
+-	 * Partitions are computed on the size before rotation, use the format
+-	 * at the WPF sink.
+-	 */
+-	format = vsp1_entity_get_pad_format(&pipe->output->entity,
+-					    pipe->output->entity.config,
+-					    RWPF_PAD_SINK);
+-	div_size = format->width;
+-
+-	/* Gen2 hardware doesn't require image partitioning. */
+-	if (vsp1->info->gen == 2) {
+-		pipe->div_size = div_size;
+-		pipe->partitions = 1;
+-		return;
+-	}
+-
+-	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+-		unsigned int entity_max = VSP1_VIDEO_MAX_WIDTH;
+-
+-		if (entity->ops->max_width) {
+-			entity_max = entity->ops->max_width(entity, pipe);
+-			if (entity_max)
+-				div_size = min(div_size, entity_max);
+-		}
+-	}
+-
+-	pipe->div_size = div_size;
+-	pipe->partitions = DIV_ROUND_UP(format->width, div_size);
+-}
+-
+ /**
+  * vsp1_video_partition - Calculate the active partition output window
+  *
+@@ -293,6 +256,43 @@ static struct v4l2_rect vsp1_video_partition(struct vsp1_pipeline *pipe,
+ 	return partition;
+ }
+ 
++static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
++{
++	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
++	const struct v4l2_mbus_framefmt *format;
++	struct vsp1_entity *entity;
++	unsigned int div_size;
++
++	/*
++	 * Partitions are computed on the size before rotation, use the format
++	 * at the WPF sink.
++	 */
++	format = vsp1_entity_get_pad_format(&pipe->output->entity,
++					    pipe->output->entity.config,
++					    RWPF_PAD_SINK);
++	div_size = format->width;
++
++	/* Gen2 hardware doesn't require image partitioning. */
++	if (vsp1->info->gen == 2) {
++		pipe->div_size = div_size;
++		pipe->partitions = 1;
++		return;
++	}
++
++	list_for_each_entry(entity, &pipe->entities, list_pipe) {
++		unsigned int entity_max = VSP1_VIDEO_MAX_WIDTH;
++
++		if (entity->ops->max_width) {
++			entity_max = entity->ops->max_width(entity, pipe);
++			if (entity_max)
++				div_size = min(div_size, entity_max);
++		}
++	}
++
++	pipe->div_size = div_size;
++	pipe->partitions = DIV_ROUND_UP(format->width, div_size);
++}
++
+ /* -----------------------------------------------------------------------------
+  * Pipeline Management
+  */
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+git-series 0.9.1
