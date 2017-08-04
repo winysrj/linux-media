@@ -1,113 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:35504 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751808AbdHSIXN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Aug 2017 04:23:13 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, bp@alien8.de, mchehab@kernel.org,
-        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
-        seanpaul@chromium.org, airlied@linux.ie, g.liakhovetski@gmx.de,
-        tomas.winkler@intel.com, dwmw2@infradead.org,
-        computersforpeace@gmail.com, boris.brezillon@free-electrons.com,
-        marek.vasut@gmail.com, richard@nod.at, cyrille.pitchen@wedev4u.fr,
-        peda@axentia.se, kishon@ti.com, bhelgaas@google.com,
-        thierry.reding@gmail.com, jonathanh@nvidia.com,
-        dvhart@infradead.org, andy@infradead.org, ohad@wizery.com,
-        bjorn.andersson@linaro.org, freude@de.ibm.com,
-        schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, jth@kernel.org,
-        jejb@linux.vnet.ibm.com, martin.petersen@oracle.com,
-        lduncan@suse.com, cleech@redhat.com, johan@kernel.org,
-        elder@kernel.org, gregkh@linuxfoundation.org,
-        heikki.krogerus@linux.intel.com, linux-edac@vger.kernel.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
-        linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, greybus-dev@lists.linaro.org,
-        devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 01/15] EDAC: make device_type const
-Date: Sat, 19 Aug 2017 13:52:12 +0530
-Message-Id: <1503130946-2854-2-git-send-email-bhumirks@gmail.com>
-In-Reply-To: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
-References: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:60020 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752350AbdHDQTm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Aug 2017 12:19:42 -0400
+Subject: Re: [PATCH v3 1/7] v4l: vsp1: Release buffers in start_streaming
+ error path
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <22778858.uLPLfpXYHT@avalon>
+ <cd5f9df6-b56b-d099-b02c-c859027064b5@ideasonboard.com>
+ <1646999.r6liOz9tSW@avalon>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <06e0bf19-0f3d-07bd-9cbd-da317f7fcae9@ideasonboard.com>
+Date: Fri, 4 Aug 2017 17:19:38 +0100
+MIME-Version: 1.0
+In-Reply-To: <1646999.r6liOz9tSW@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make these const as they are only stored in the type field of a device
-structure, which is const.
-Done using Coccinelle.
+Hi Laurent,
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
----
- drivers/edac/edac_mc_sysfs.c | 8 ++++----
- drivers/edac/i7core_edac.c   | 4 ++--
- 2 files changed, 6 insertions(+), 6 deletions(-)
+On 04/08/17 17:13, Laurent Pinchart wrote:
+> On Friday 04 Aug 2017 17:08:34 Kieran Bingham wrote:
+>> On 04/08/17 17:03, Laurent Pinchart wrote:
+>>> On Friday 04 Aug 2017 16:57:05 Kieran Bingham wrote:
+>>>> Presently any received buffers are only released back to vb2 if
+>>>> vsp1_video_stop_streaming() is called. If vsp1_video_start_streaming()
+>>>> encounters an error, we will be warned by the vb2 handlers that buffers
+>>>> have not been returned.
+>>>>
+>>>> Move the buffer cleanup code to it's own function to prevent duplication
+>>>
+>>> s/it's/its/
+>>
+>> Ah yes - I'm always terrible with my its'y bits.
+>>
+>>>> and call from both vsp1_video_stop_streaming() and the error path in
+>>>> vsp1_video_start_streaming()
+>>>
+>>> s/$/./
+>>
+>> :D
+>>
+>>>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>>> ---
+>>>>
+>>>>  drivers/media/platform/vsp1/vsp1_video.c | 22 +++++++++++++++-------
+>>>>  1 file changed, 15 insertions(+), 7 deletions(-)
+>>>>
+>>>> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
+>>>> b/drivers/media/platform/vsp1/vsp1_video.c index
+>>>> 5af3486afe07..a24033429cd7
+>>>> 100644
+>>>> --- a/drivers/media/platform/vsp1/vsp1_video.c
+>>>> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+>>>> @@ -822,6 +822,19 @@ static int vsp1_video_setup_pipeline(struct
+>>>> vsp1_pipeline *pipe)
+>>>>  	return 0;
+>>>>  }
+>>>>
+>>>> +static void vsp1_video_cleanup_pipeline(struct vsp1_video *video)
+>>>
+>>> Should this function take a pipe pointer instead of a video pointer for
+>>> symmetry with vsp1_video_setup_pipeline() ?
+>>
+>> I passed this way because the cleanup needed a *video.
+>>
+>> Is it possible to get from a *pipe to a *video?
+> 
+> Yes, pipe->output->video
 
-diff --git a/drivers/edac/edac_mc_sysfs.c b/drivers/edac/edac_mc_sysfs.c
-index dbc6446..e4fcfa8 100644
---- a/drivers/edac/edac_mc_sysfs.c
-+++ b/drivers/edac/edac_mc_sysfs.c
-@@ -304,7 +304,7 @@ static void csrow_attr_release(struct device *dev)
- 	kfree(csrow);
- }
- 
--static struct device_type csrow_attr_type = {
-+static const struct device_type csrow_attr_type = {
- 	.groups		= csrow_attr_groups,
- 	.release	= csrow_attr_release,
- };
-@@ -644,7 +644,7 @@ static void dimm_attr_release(struct device *dev)
- 	kfree(dimm);
- }
- 
--static struct device_type dimm_attr_type = {
-+static const struct device_type dimm_attr_type = {
- 	.groups		= dimm_attr_groups,
- 	.release	= dimm_attr_release,
- };
-@@ -920,7 +920,7 @@ static void mci_attr_release(struct device *dev)
- 	kfree(mci);
- }
- 
--static struct device_type mci_attr_type = {
-+static const struct device_type mci_attr_type = {
- 	.groups		= mci_attr_groups,
- 	.release	= mci_attr_release,
- };
-@@ -1074,7 +1074,7 @@ static void mc_attr_release(struct device *dev)
- 	kfree(dev);
- }
- 
--static struct device_type mc_attr_type = {
-+static const struct device_type mc_attr_type = {
- 	.release	= mc_attr_release,
- };
- /*
-diff --git a/drivers/edac/i7core_edac.c b/drivers/edac/i7core_edac.c
-index d36cc84..c16c3b9 100644
---- a/drivers/edac/i7core_edac.c
-+++ b/drivers/edac/i7core_edac.c
-@@ -1094,7 +1094,7 @@ static void addrmatch_release(struct device *device)
- 	kfree(device);
- }
- 
--static struct device_type addrmatch_type = {
-+static const struct device_type addrmatch_type = {
- 	.groups		= addrmatch_groups,
- 	.release	= addrmatch_release,
- };
-@@ -1125,7 +1125,7 @@ static void all_channel_counts_release(struct device *device)
- 	kfree(device);
- }
- 
--static struct device_type all_channel_counts_type = {
-+static const struct device_type all_channel_counts_type = {
- 	.groups		= all_channel_counts_groups,
- 	.release	= all_channel_counts_release,
- };
--- 
-1.9.1
+Ah yes of course.
+
+
+>>>> +{
+>>>> +	struct vsp1_vb2_buffer *buffer;
+>>>> +	unsigned long flags;
+>>>> +
+>>>> +	/* Remove all buffers from the IRQ queue. */
+>>>> +	spin_lock_irqsave(&video->irqlock, flags);
+>>>> +	list_for_each_entry(buffer, &video->irqqueue, queue)
+>>>> +		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_ERROR);
+>>>> +	INIT_LIST_HEAD(&video->irqqueue);
+>>>> +	spin_unlock_irqrestore(&video->irqlock, flags);
+>>>> +}
+> 
+> [snip]
+> 
+>>>> @@ -893,12 +906,7 @@ static void vsp1_video_stop_streaming(struct
+>>>> vb2_queue
+>>>> *vq) media_pipeline_stop(&video->video.entity);
+>>>>
+>>>>  	vsp1_video_pipeline_put(pipe);
+>>>>
+>>>> -	/* Remove all buffers from the IRQ queue. */
+>>>> -	spin_lock_irqsave(&video->irqlock, flags);
+>>>> -	list_for_each_entry(buffer, &video->irqqueue, queue)
+>>>> -		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_ERROR);
+>>>> -	INIT_LIST_HEAD(&video->irqqueue);
+>>>> -	spin_unlock_irqrestore(&video->irqlock, flags);
+>>>> +	vsp1_video_cleanup_pipeline(video);
+>>>
+>>> The vsp1_video_cleanup_pipeline() call should go before
+>>> vsp1_video_pipeline_put(), as you've noticed in patch 7/7.
+>>
+>> I chose to do the move in 3/7 so that this patch did not change the existing
+>> functionality.
+>>
+>> There is no (explicit) need for the cleanup to happen before the
+>> pipeline_put() until the cleanup function references the pipe...
+> 
+> Except if you pass a *pipe to the cleanup function, as 
+> vsp1_video_pipeline_put() can free the pipe.
+
+Indeed!
+
+> 
+>>> With all that fixed,
+
+Patch update imminent.
+
+Thanks.
+
+>>>
+>>> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>>
+>>>>  }
+>>>>  
+>>>>  static const struct vb2_ops vsp1_video_queue_qops = {
+> 
