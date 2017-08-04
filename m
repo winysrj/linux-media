@@ -1,72 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:44181 "EHLO
-        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752037AbdHHLYC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Aug 2017 07:24:02 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Helen Koike <helen.koike@collabora.com>
-Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 2/6] [media] vimc: constify video_subdev structures
-Date: Tue,  8 Aug 2017 12:58:28 +0200
-Message-Id: <1502189912-28794-3-git-send-email-Julia.Lawall@lip6.fr>
-In-Reply-To: <1502189912-28794-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1502189912-28794-1-git-send-email-Julia.Lawall@lip6.fr>
+Received: from mail.kernel.org ([198.145.29.99]:37526 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753010AbdHDQc6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Aug 2017 12:32:58 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        hans.verkuil@cisco.com
+Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v4 6/7] v4l: vsp1: Provide UDS register updates
+Date: Fri,  4 Aug 2017 17:32:43 +0100
+Message-Id: <05ce4c38d01f03ccc7895e447ff2368e4b6ddbde.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These structures are all only stored in fields of v4l2_subdev_ops
-structures, all of which are const, so these structures can be const
-as well.
+Provide register definitions required for UDS phase and partition
+algorithm support. The registers and bits defined here are available on
+Gen3 hardware only.
 
-Done with the help of Coccinelle.
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/vimc/vimc-debayer.c |    2 +-
- drivers/media/platform/vimc/vimc-scaler.c  |    2 +-
- drivers/media/platform/vimc/vimc-sensor.c  |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/platform/vsp1/vsp1_regs.h | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/drivers/media/platform/vimc/vimc-debayer.c b/drivers/media/platform/vimc/vimc-debayer.c
-index 033a131..4d663e8 100644
---- a/drivers/media/platform/vimc/vimc-debayer.c
-+++ b/drivers/media/platform/vimc/vimc-debayer.c
-@@ -373,7 +373,7 @@ static int vimc_deb_s_stream(struct v4l2_subdev *sd, int enable)
- 	return 0;
- }
+diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
+index cd3e32af6e3b..362f4f8b1148 100644
+--- a/drivers/media/platform/vsp1/vsp1_regs.h
++++ b/drivers/media/platform/vsp1/vsp1_regs.h
+@@ -388,6 +388,7 @@
+ #define VI6_UDS_CTRL_NE_RCR		(1 << 18)
+ #define VI6_UDS_CTRL_NE_GY		(1 << 17)
+ #define VI6_UDS_CTRL_NE_BCB		(1 << 16)
++#define VI6_UDS_CTRL_AMDSLH		(1 << 2)
+ #define VI6_UDS_CTRL_TDIPC		(1 << 1)
  
--static struct v4l2_subdev_video_ops vimc_deb_video_ops = {
-+static const struct v4l2_subdev_video_ops vimc_deb_video_ops = {
- 	.s_stream = vimc_deb_s_stream,
- };
+ #define VI6_UDS_SCALE			0x2304
+@@ -420,11 +421,24 @@
+ #define VI6_UDS_PASS_BWIDTH_V_MASK	(0x7f << 0)
+ #define VI6_UDS_PASS_BWIDTH_V_SHIFT	0
  
-diff --git a/drivers/media/platform/vimc/vimc-scaler.c b/drivers/media/platform/vimc/vimc-scaler.c
-index 0a3e086..e1602e0 100644
---- a/drivers/media/platform/vimc/vimc-scaler.c
-+++ b/drivers/media/platform/vimc/vimc-scaler.c
-@@ -267,7 +267,7 @@ static int vimc_sca_s_stream(struct v4l2_subdev *sd, int enable)
- 	return 0;
- }
++#define VI6_UDS_HPHASE			0x2314
++#define VI6_UDS_HPHASE_HSTP_MASK	(0xfff << 16)
++#define VI6_UDS_HPHASE_HSTP_SHIFT	16
++#define VI6_UDS_HPHASE_HEDP_MASK	(0xfff << 0)
++#define VI6_UDS_HPHASE_HEDP_SHIFT	0
++
+ #define VI6_UDS_IPC			0x2318
+ #define VI6_UDS_IPC_FIELD		(1 << 27)
+ #define VI6_UDS_IPC_VEDP_MASK		(0xfff << 0)
+ #define VI6_UDS_IPC_VEDP_SHIFT		0
  
--static struct v4l2_subdev_video_ops vimc_sca_video_ops = {
-+static const struct v4l2_subdev_video_ops vimc_sca_video_ops = {
- 	.s_stream = vimc_sca_s_stream,
- };
- 
-diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
-index 615c2b1..02e68c8 100644
---- a/drivers/media/platform/vimc/vimc-sensor.c
-+++ b/drivers/media/platform/vimc/vimc-sensor.c
-@@ -282,7 +282,7 @@ static int vimc_sen_s_stream(struct v4l2_subdev *sd, int enable)
- 	return 0;
- }
- 
--static struct v4l2_subdev_video_ops vimc_sen_video_ops = {
-+static const struct v4l2_subdev_video_ops vimc_sen_video_ops = {
- 	.s_stream = vimc_sen_s_stream,
- };
- 
++#define VI6_UDS_HSZCLIP			0x231c
++#define VI6_UDS_HSZCLIP_HCEN		(1 << 28)
++#define VI6_UDS_HSZCLIP_HCL_OFST_MASK	(0xff << 16)
++#define VI6_UDS_HSZCLIP_HCL_OFST_SHIFT	16
++#define VI6_UDS_HSZCLIP_HCL_SIZE_MASK	(0x1fff << 0)
++#define VI6_UDS_HSZCLIP_HCL_SIZE_SHIFT	0
++
+ #define VI6_UDS_CLIP_SIZE		0x2324
+ #define VI6_UDS_CLIP_SIZE_HSIZE_MASK	(0x1fff << 16)
+ #define VI6_UDS_CLIP_SIZE_HSIZE_SHIFT	16
+-- 
+git-series 0.9.1
