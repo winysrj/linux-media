@@ -1,46 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59190 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932523AbdHVOt5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 10:49:57 -0400
-MIME-Version: 1.0
-In-Reply-To: <20170822001912.27638-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170822001912.27638-1-niklas.soderlund+renesas@ragnatech.se>
-From: Rob Herring <robh@kernel.org>
-Date: Tue, 22 Aug 2017 09:49:35 -0500
-Message-ID: <CAL_Jsq+ABipq+YCpSwu_vhjk0rkZQimCD2vG1x5GL91wi6dzKw@mail.gmail.com>
-Subject: Re: [PATCH v2] device property: preserve usecount for node passed to of_fwnode_graph_get_port_parent()
-To: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        "open list:MEDIA DRIVERS FOR RENESAS - FCP"
-        <linux-renesas-soc@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:46357
+        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752151AbdHDMfQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Aug 2017 08:35:16 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: devel@driverdev.osuosl.org
+Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-usb@vger.kernel.org
+Subject: [PATCH 0/5] constify videobuf_queue_ops structures
+Date: Fri,  4 Aug 2017 14:09:43 +0200
+Message-Id: <1501848588-22628-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 21, 2017 at 7:19 PM, Niklas Söderlund
-<niklas.soderlund+renesas@ragnatech.se> wrote:
-> Using CONFIG_OF_DYNAMIC=y uncovered an imbalance in the usecount of the
-> node being passed to of_fwnode_graph_get_port_parent(). Preserve the
-> usecount by using of_get_parent() instead of of_get_next_parent() which
-> don't decrement the usecount of the node passed to it.
->
-> Fixes: 3b27d00e7b6d7c88 ("device property: Move fwnode graph ops to firmware specific locations")
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/of/property.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+These videobuf_queue_ops structures are only passed as the second
+argument to videobuf_queue_vmalloc_init, which is declared as const.
+Thus the videobuf_queue_ops structures themselves can be const.
 
-Isn't this already fixed with this fix:
+Done with the help of Coccinelle.
 
-commit c0a480d1acf7dc184f9f3e7cf724483b0d28dc2e
-Author: Tony Lindgren <tony@atomide.com>
-Date:   Fri Jul 28 01:23:15 2017 -0700
+---
 
-device property: Fix usecount for of_graph_get_port_parent()
+ drivers/media/pci/cx18/cx18-streams.c                     |    2 +-
+ drivers/media/usb/cx231xx/cx231xx-417.c                   |    2 +-
+ drivers/media/usb/cx231xx/cx231xx-video.c                 |    2 +-
+ drivers/media/usb/tm6000/tm6000-video.c                   |    2 +-
+ drivers/media/usb/zr364xx/zr364xx.c                       |    2 +-
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c |    4 ++--
+ 6 files changed, 7 insertions(+), 7 deletions(-)
