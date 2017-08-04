@@ -1,63 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:38600 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753768AbdHWMCb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Aug 2017 08:02:31 -0400
-Subject: Re: [RFC 00/19] Async sub-notifiers and how to use them
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com
-References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
- <eb0ff309-bdf5-30f9-06da-2fc6c35fbf6a@xs4all.nl>
- <20170720161400.ijud3kppizb44acw@valkosipuli.retiisi.org.uk>
- <20170721065754.GC20077@bigcity.dyn.berto.se>
- <4fa22637-c58e-79e3-be22-575b0a4ff3f9@iki.fi>
- <ea92d79c-bba0-ca22-c0a7-0535d635729c@xs4all.nl> <20170823113436.GA1767@amd>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ad9a6c0f-a798-78e9-f4d1-8ed0bb28ba60@xs4all.nl>
-Date: Wed, 23 Aug 2017 14:02:24 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170823113436.GA1767@amd>
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail.kernel.org ([198.145.29.99]:35746 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752547AbdHDP5T (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Aug 2017 11:57:19 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v3 3/7] v4l: vsp1: Calculate partition sizes at stream start
+Date: Fri,  4 Aug 2017 16:57:07 +0100
+Message-Id: <fbd686459ec4949b8587b2b44bb30331b0dadd2f.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/23/17 13:34, Pavel Machek wrote:
-> Hi!
-> 
->>>> Is this always the case? In the R-Car VIN driver I register the video 
->>>> devices using video_register_device() in the complete handler. Am I 
->>>> doing things wrong in that driver? I had a patch where I moved the 
->>>> video_register_device() call to probe time but it got shoot down in 
->>>> review and was dropped.
->>>
->>> I don't think the current implementation is wrong, it's just different
->>> from other drivers; there's really no requirement regarding this AFAIU.
->>> It's one of the things where no attention has been paid I presume.
->>
->> It actually is a requirement: when a device node appears applications can
->> reasonably expect to have a fully functioning device. True for any device
->> node. You don't want to have to wait until some unspecified time before
->> the full functionality is there.
-> 
-> Well... /dev/sdb appears, but you still get -ENOMEDIA before user
-> presses "Turn on USB storage" button on android phone.
-> 
-> So I agree it is not desirable, but it sometimes happens.
+Previously the active window and partition sizes for each partition were
+calculated for each partition every frame. This data is constant and
+only needs to be calculated once at the start of the stream.
 
-But that is expected behavior. There is nothing wrong with the device.
-Just as it is expected behavior that you can't stream from a video node
-if there is no HDMI source connected.
+Extend the vsp1_pipe object to dynamically store the number of partitions
+required and pre-calculate the partition sizes into this table.
 
-That the HDMI receiver or sensor itself is completely missing is quite
-another story, though.
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_pipe.h  |  3 ++-
+ drivers/media/platform/vsp1/vsp1_video.c | 48 +++++++++++++++++--------
+ 2 files changed, 36 insertions(+), 15 deletions(-)
 
-Regards,
-
-	Hans
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
+index 91a784a13422..0cfd07a187a2 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.h
++++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+@@ -82,7 +82,9 @@ enum vsp1_pipeline_state {
+  * @dl: display list associated with the pipeline
+  * @div_size: The maximum allowed partition size for the pipeline
+  * @partitions: The number of partitions used to process one frame
++ * @partition: The current partition for configuration to process
+  * @current_partition: The partition number currently being configured
++ * @part_table: The pre-calculated partitions used by the pipeline
+  */
+ struct vsp1_pipeline {
+ 	struct media_pipeline pipe;
+@@ -117,6 +119,7 @@ struct vsp1_pipeline {
+ 	unsigned int partitions;
+ 	struct v4l2_rect partition;
+ 	unsigned int current_partition;
++	struct v4l2_rect *part_table;
+ };
+ 
+ void vsp1_pipeline_reset(struct vsp1_pipeline *pipe);
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 097e4db572a9..447597f1b758 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -256,12 +256,13 @@ static struct v4l2_rect vsp1_video_partition(struct vsp1_pipeline *pipe,
+ 	return partition;
+ }
+ 
+-static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
++static int vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
+ {
+ 	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
+ 	const struct v4l2_mbus_framefmt *format;
+ 	struct vsp1_entity *entity;
+ 	unsigned int div_size;
++	unsigned int i;
+ 
+ 	/*
+ 	 * Partitions are computed on the size before rotation, use the format
+@@ -272,17 +273,17 @@ static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
+ 					    RWPF_PAD_SINK);
+ 	div_size = format->width;
+ 
+-	/* Gen2 hardware doesn't require image partitioning. */
+-	if (vsp1->info->gen == 2) {
+-		pipe->div_size = div_size;
+-		pipe->partitions = 1;
+-		return;
+-	}
++	/*
++	 * Only Gen3 hardware requires image partitioning, Gen2 will operate
++	 * with a single partition that covers the whole output.
++	 */
++	if (vsp1->info->gen == 3) {
++		list_for_each_entry(entity, &pipe->entities, list_pipe) {
++			unsigned int entity_max;
+ 
+-	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+-		unsigned int entity_max = VSP1_VIDEO_MAX_WIDTH;
++			if (!entity->ops->max_width)
++				continue;
+ 
+-		if (entity->ops->max_width) {
+ 			entity_max = entity->ops->max_width(entity, pipe);
+ 			if (entity_max)
+ 				div_size = min(div_size, entity_max);
+@@ -291,6 +292,15 @@ static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
+ 
+ 	pipe->div_size = div_size;
+ 	pipe->partitions = DIV_ROUND_UP(format->width, div_size);
++	pipe->part_table = kcalloc(pipe->partitions, sizeof(*pipe->part_table),
++				   GFP_KERNEL);
++	if (!pipe->part_table)
++		return -ENOMEM;
++
++	for (i = 0; i < pipe->partitions; ++i)
++		pipe->part_table[i] = vsp1_video_partition(pipe, div_size, i);
++
++	return 0;
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -373,8 +383,7 @@ static void vsp1_video_pipeline_run_partition(struct vsp1_pipeline *pipe,
+ {
+ 	struct vsp1_entity *entity;
+ 
+-	pipe->partition = vsp1_video_partition(pipe, pipe->div_size,
+-					       pipe->current_partition);
++	pipe->partition = pipe->part_table[pipe->current_partition];
+ 
+ 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+ 		if (entity->ops->configure)
+@@ -783,9 +792,12 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
+ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
+ {
+ 	struct vsp1_entity *entity;
++	int ret;
+ 
+ 	/* Determine this pipelines sizes for image partitioning support. */
+-	vsp1_video_pipeline_setup_partitions(pipe);
++	ret = vsp1_video_pipeline_setup_partitions(pipe);
++	if (ret < 0)
++		return ret;
+ 
+ 	/* Prepare the display list. */
+ 	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
+@@ -824,6 +836,7 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
+ 
+ static void vsp1_video_cleanup_pipeline(struct vsp1_video *video)
+ {
++	struct vsp1_pipeline *pipe = video->rwpf->pipe;
+ 	struct vsp1_vb2_buffer *buffer;
+ 	unsigned long flags;
+ 
+@@ -833,6 +846,12 @@ static void vsp1_video_cleanup_pipeline(struct vsp1_video *video)
+ 		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_ERROR);
+ 	INIT_LIST_HEAD(&video->irqqueue);
+ 	spin_unlock_irqrestore(&video->irqlock, flags);
++
++	/* Release our partition table allocation */
++	mutex_lock(&pipe->lock);
++	kfree(pipe->part_table);
++	pipe->part_table = NULL;
++	mutex_unlock(&pipe->lock);
+ }
+ 
+ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
+@@ -904,9 +923,8 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
+ 	mutex_unlock(&pipe->lock);
+ 
+ 	media_pipeline_stop(&video->video.entity);
+-	vsp1_video_pipeline_put(pipe);
+-
+ 	vsp1_video_cleanup_pipeline(video);
++	vsp1_video_pipeline_put(pipe);
+ }
+ 
+ static const struct vb2_ops vsp1_video_queue_qops = {
+-- 
+git-series 0.9.1
