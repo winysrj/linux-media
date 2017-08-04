@@ -1,106 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44948
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751874AbdHaXrK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 19:47:10 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 04/15] media: dvb/intro: adjust the notices about optional hardware
-Date: Thu, 31 Aug 2017 20:46:51 -0300
-Message-Id: <85e534750c29d2d7eb1051b310da3e434cd97732.1504222628.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
-References: <cover.1504222628.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
-References: <cover.1504222628.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail.kernel.org ([198.145.29.99]:37512 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752955AbdHDQcz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Aug 2017 12:32:55 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        hans.verkuil@cisco.com
+Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v4 4/7] v4l: vsp1: Remove redundant context variables
+Date: Fri,  4 Aug 2017 17:32:41 +0100
+Message-Id: <163e44c4345b8427523bbb19bd82aa83c8d379dc.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Both CA and decoders are optional. Also, the presence or
-absence has nothing to do on being a PCI card or not.
+The vsp1_pipe object context variables for div_size and
+current_partition allowed state to be maintained through processing the
+partitions during processing.
 
-Nowadays, most hardware leaves the decoders to either the
-GPU or to some ISP inside the SoC, instead of implementing
-it inside the Digital TV part of the device.
+Now that the partition tables are calculated during stream on, there is
+no requirement to store these variables in the pipe object.
 
-So, change the wording to reflect the hardware changes.
+Utilise local variables for the processing as required.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- Documentation/media/uapi/dvb/intro.rst | 29 +++++++++++++++++------------
- 1 file changed, 17 insertions(+), 12 deletions(-)
+ drivers/media/platform/vsp1/vsp1_pipe.h  |  4 ----
+ drivers/media/platform/vsp1/vsp1_video.c | 21 +++++++--------------
+ 2 files changed, 7 insertions(+), 18 deletions(-)
 
-diff --git a/Documentation/media/uapi/dvb/intro.rst b/Documentation/media/uapi/dvb/intro.rst
-index 4e1594816ef4..aeafc9ab96c1 100644
---- a/Documentation/media/uapi/dvb/intro.rst
-+++ b/Documentation/media/uapi/dvb/intro.rst
-@@ -71,8 +71,7 @@ Overview
- A Digital TV card or set-top-box (STB) usually consists of the
- following main hardware components:
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
+index 0cfd07a187a2..9653ef5cfb0c 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.h
++++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+@@ -80,10 +80,8 @@ enum vsp1_pipeline_state {
+  * @uds_input: entity at the input of the UDS, if the UDS is present
+  * @entities: list of entities in the pipeline
+  * @dl: display list associated with the pipeline
+- * @div_size: The maximum allowed partition size for the pipeline
+  * @partitions: The number of partitions used to process one frame
+  * @partition: The current partition for configuration to process
+- * @current_partition: The partition number currently being configured
+  * @part_table: The pre-calculated partitions used by the pipeline
+  */
+ struct vsp1_pipeline {
+@@ -115,10 +113,8 @@ struct vsp1_pipeline {
  
---  Frontend consisting of tuner and digital TV demodulator
--
-+Frontend consisting of tuner and digital TV demodulator
-    Here the raw signal reaches the digital TV hardware from a satellite dish or
-    antenna or directly from cable. The frontend down-converts and
-    demodulates this signal into an MPEG transport stream (TS). In case
-@@ -80,34 +79,40 @@ following main hardware components:
-    equipment control (SEC), which allows control of LNB polarization,
-    multi feed switches or dish rotors.
+ 	struct vsp1_dl_list *dl;
  
---  Conditional Access (CA) hardware like CI adapters and smartcard slots
--
-+Conditional Access (CA) hardware like CI adapters and smartcard slots
-    The complete TS is passed through the CA hardware. Programs to which
-    the user has access (controlled by the smart card) are decoded in
-    real time and re-inserted into the TS.
+-	unsigned int div_size;
+ 	unsigned int partitions;
+ 	struct v4l2_rect partition;
+-	unsigned int current_partition;
+ 	struct v4l2_rect *part_table;
+ };
  
---  Demultiplexer which filters the incoming DVB stream
-+   .. note::
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 2ac57a436811..176fd4b17df5 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -290,7 +290,6 @@ static int vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
+ 		}
+ 	}
  
-+      Not every digital TV hardware provides conditional access hardware.
-+
-+Demultiplexer which filters the incoming DVB stream
-    The demultiplexer splits the TS into its components like audio and
-    video streams. Besides usually several of such audio and video
-    streams it also contains data streams with information about the
-    programs offered in this or other streams of the same provider.
+-	pipe->div_size = div_size;
+ 	pipe->partitions = DIV_ROUND_UP(format->width, div_size);
+ 	pipe->part_table = kcalloc(pipe->partitions, sizeof(*pipe->part_table),
+ 				   GFP_KERNEL);
+@@ -379,11 +378,12 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
+ }
  
---  MPEG2 audio and video decoder
--
-+MPEG2 audio and video decoder
-    The main targets of the demultiplexer are the MPEG2 audio and video
-    decoders. After decoding they pass on the uncompressed audio and
-    video to the computer screen or (through a PAL/NTSC encoder) to a TV
-    set.
+ static void vsp1_video_pipeline_run_partition(struct vsp1_pipeline *pipe,
+-					      struct vsp1_dl_list *dl)
++					      struct vsp1_dl_list *dl,
++					      unsigned int partition)
+ {
+ 	struct vsp1_entity *entity;
  
-+   .. note::
-+
-+      Modern hardware usually doesn't have a separate decoder hardware, as
-+      such functionality can be provided by the main CPU, by the graphics
-+      adapter of the system or by a signal processing hardware embedded on
-+      a Systems on a Chip (SoC) integrated circuit.
-+
-+      It may also not be needed for certain usages (e.g. for data-only
-+      uses like “internet over satellite”).
-+
- :ref:`stb_components` shows a crude schematic of the control and data
- flow between those components.
+-	pipe->partition = pipe->part_table[pipe->current_partition];
++	pipe->partition = pipe->part_table[partition];
  
--On a DVB PCI card not all of these have to be present since some
--functionality can be provided by the main CPU of the PC (e.g. MPEG
--picture and sound decoding) or is not needed (e.g. for data-only uses
--like “internet over satellite”). Also not every card or STB provides
--conditional access hardware.
+ 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+ 		if (entity->ops->configure)
+@@ -396,6 +396,7 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
+ {
+ 	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
+ 	struct vsp1_entity *entity;
++	unsigned int partition;
  
+ 	if (!pipe->dl)
+ 		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
+@@ -412,20 +413,12 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
+ 	}
  
- .. _dvb_devices:
+ 	/* Run the first partition */
+-	pipe->current_partition = 0;
+-	vsp1_video_pipeline_run_partition(pipe, pipe->dl);
++	vsp1_video_pipeline_run_partition(pipe, pipe->dl, 0);
+ 
+ 	/* Process consecutive partitions as necessary */
+-	for (pipe->current_partition = 1;
+-	     pipe->current_partition < pipe->partitions;
+-	     pipe->current_partition++) {
++	for (partition = 1; partition < pipe->partitions; ++partition) {
+ 		struct vsp1_dl_list *dl;
+ 
+-		/*
+-		 * Partition configuration operations will utilise
+-		 * the pipe->current_partition variable to determine
+-		 * the work they should complete.
+-		 */
+ 		dl = vsp1_dl_list_get(pipe->output->dlm);
+ 
+ 		/*
+@@ -438,7 +431,7 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
+ 			break;
+ 		}
+ 
+-		vsp1_video_pipeline_run_partition(pipe, dl);
++		vsp1_video_pipeline_run_partition(pipe, dl, partition);
+ 		vsp1_dl_list_add_chain(pipe->dl, dl);
+ 	}
+ 
 -- 
-2.13.5
+git-series 0.9.1
