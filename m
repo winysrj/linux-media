@@ -1,559 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:60755 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933076AbdHVOle (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 10:41:34 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Hans Verkuil" <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v2 4/4] [media] stm32-dcmi: g_/s_selection crop support
-Date: Tue, 22 Aug 2017 16:41:11 +0200
-Message-ID: <1503412871-29829-5-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1503412871-29829-1-git-send-email-hugues.fruchet@st.com>
-References: <1503412871-29829-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail.kernel.org ([198.145.29.99]:37506 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752955AbdHDQcx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Aug 2017 12:32:53 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        hans.verkuil@cisco.com
+Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v4 3/7] v4l: vsp1: Calculate partition sizes at stream start
+Date: Fri,  4 Aug 2017 17:32:40 +0100
+Message-Id: <d6bac3ee449c7b12d8216d3e33809767ec65e2cf.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implements g_/s_selection crop support by using DCMI crop
-hardware feature.
-User can first get the maximum supported resolution of the sensor
-by calling g_selection(V4L2_SEL_TGT_CROP_BOUNDS).
-Then user call to s_selection(V4L2_SEL_TGT_CROP) will reset sensor
-to its maximum resolution and crop request is saved for later usage
-in s_fmt().
-Next call to s_fmt() will check if sensor can do frame size request
-with crop request. If sensor supports only discrete frame sizes,
-the frame size which is larger than user request is selected in
-order to be able to match the crop request. Then s_fmt() resolution
-user request is adjusted to match crop request resolution.
+Previously the active window and partition sizes for each partition were
+calculated for each partition every frame. This data is constant and
+only needs to be calculated once at the start of the stream.
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+Extend the vsp1_pipe object to dynamically store the number of partitions
+required and pre-calculate the partition sizes into this table.
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/stm32/stm32-dcmi.c | 374 +++++++++++++++++++++++++++++-
- 1 file changed, 370 insertions(+), 4 deletions(-)
+ drivers/media/platform/vsp1/vsp1_pipe.h  |  3 ++-
+ drivers/media/platform/vsp1/vsp1_video.c | 44 +++++++++++++++++--------
+ 2 files changed, 34 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-index 7713c10..35ba6f2 100644
---- a/drivers/media/platform/stm32/stm32-dcmi.c
-+++ b/drivers/media/platform/stm32/stm32-dcmi.c
-@@ -33,6 +33,7 @@
- #include <media/v4l2-fwnode.h>
- #include <media/v4l2-image-sizes.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-rect.h>
- #include <media/videobuf2-dma-contig.h>
- 
- #define DRV_NAME "stm32-dcmi"
-@@ -107,6 +108,11 @@ struct dcmi_format {
- 	u8	bpp;
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
+index 91a784a13422..0cfd07a187a2 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.h
++++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+@@ -82,7 +82,9 @@ enum vsp1_pipeline_state {
+  * @dl: display list associated with the pipeline
+  * @div_size: The maximum allowed partition size for the pipeline
+  * @partitions: The number of partitions used to process one frame
++ * @partition: The current partition for configuration to process
+  * @current_partition: The partition number currently being configured
++ * @part_table: The pre-calculated partitions used by the pipeline
+  */
+ struct vsp1_pipeline {
+ 	struct media_pipeline pipe;
+@@ -117,6 +119,7 @@ struct vsp1_pipeline {
+ 	unsigned int partitions;
+ 	struct v4l2_rect partition;
+ 	unsigned int current_partition;
++	struct v4l2_rect *part_table;
  };
  
-+struct dcmi_framesize {
-+	u32	width;
-+	u32	height;
-+};
-+
- struct dcmi_buf {
- 	struct vb2_v4l2_buffer	vb;
- 	bool			prepared;
-@@ -131,10 +137,16 @@ struct stm32_dcmi {
- 	struct v4l2_async_notifier	notifier;
- 	struct dcmi_graph_entity	entity;
- 	struct v4l2_format		fmt;
-+	struct v4l2_rect		crop;
-+	bool				do_crop;
- 
- 	const struct dcmi_format	**sd_formats;
- 	unsigned int			num_of_sd_formats;
- 	const struct dcmi_format	*sd_format;
-+	struct dcmi_framesize		*sd_framesizes;
-+	unsigned int			num_of_sd_framesizes;
-+	struct dcmi_framesize		sd_framesize;
-+	struct v4l2_rect		sd_bounds;
- 
- 	/* Protect this data structure */
- 	struct mutex			lock;
-@@ -325,6 +337,28 @@ static int dcmi_start_capture(struct stm32_dcmi *dcmi)
- 	return 0;
+ void vsp1_pipeline_reset(struct vsp1_pipeline *pipe);
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index e4c0bfa0f864..2ac57a436811 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -256,12 +256,13 @@ static struct v4l2_rect vsp1_video_partition(struct vsp1_pipeline *pipe,
+ 	return partition;
  }
  
-+static void dcmi_set_crop(struct stm32_dcmi *dcmi)
-+{
-+	u32 size, start;
-+
-+	/* Crop resolution */
-+	size = ((dcmi->crop.height - 1) << 16) |
-+		((dcmi->crop.width << 1) - 1);
-+	reg_write(dcmi->regs, DCMI_CWSIZE, size);
-+
-+	/* Crop start point */
-+	start = ((dcmi->crop.top) << 16) |
-+		 ((dcmi->crop.left << 1));
-+	reg_write(dcmi->regs, DCMI_CWSTRT, start);
-+
-+	dev_dbg(dcmi->dev, "Cropping to %ux%u@%u:%u\n",
-+		dcmi->crop.width, dcmi->crop.height,
-+		dcmi->crop.left, dcmi->crop.top);
-+
-+	/* Enable crop */
-+	reg_set(dcmi->regs, DCMI_CR, CR_CROP);
-+}
-+
- static irqreturn_t dcmi_irq_thread(int irq, void *arg)
+-static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
++static int vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
  {
- 	struct stm32_dcmi *dcmi = arg;
-@@ -540,6 +574,10 @@ static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
- 
- 	reg_write(dcmi->regs, DCMI_CR, val);
- 
-+	/* Set crop */
-+	if (dcmi->do_crop)
-+		dcmi_set_crop(dcmi);
-+
- 	/* Enable dcmi */
- 	reg_set(dcmi->regs, DCMI_CR, CR_ENABLE);
- 
-@@ -697,10 +735,37 @@ static const struct dcmi_format *find_format_by_fourcc(struct stm32_dcmi *dcmi,
- 	return NULL;
- }
- 
-+static void __find_outer_frame_size(struct stm32_dcmi *dcmi,
-+				    struct v4l2_pix_format *pix,
-+				    struct dcmi_framesize *framesize)
-+{
-+	struct dcmi_framesize *match = NULL;
+ 	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
+ 	const struct v4l2_mbus_framefmt *format;
+ 	struct vsp1_entity *entity;
+ 	unsigned int div_size;
 +	unsigned int i;
-+	unsigned int min_err = UINT_MAX;
-+
-+	for (i = 0; i < dcmi->num_of_sd_framesizes; i++) {
-+		struct dcmi_framesize *fsize = &dcmi->sd_framesizes[i];
-+		int w_err = (fsize->width - pix->width);
-+		int h_err = (fsize->height - pix->height);
-+		int err = w_err + h_err;
-+
-+		if ((w_err >= 0) && (h_err >= 0) && (err < min_err)) {
-+			min_err = err;
-+			match = fsize;
-+		}
-+	}
-+	if (!match)
-+		match = &dcmi->sd_framesizes[0];
-+
-+	*framesize = *match;
-+}
-+
- static int dcmi_try_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f,
--			const struct dcmi_format **sd_format)
-+			const struct dcmi_format **sd_format,
-+			struct dcmi_framesize *sd_framesize)
- {
- 	const struct dcmi_format *sd_fmt;
-+	struct dcmi_framesize sd_fsize;
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	struct v4l2_subdev_pad_config pad_cfg;
- 	struct v4l2_subdev_format format = {
-@@ -718,6 +783,17 @@ static int dcmi_try_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f,
- 	pix->width = clamp(pix->width, MIN_WIDTH, MAX_WIDTH);
- 	pix->height = clamp(pix->height, MIN_HEIGHT, MAX_HEIGHT);
  
-+	if (dcmi->do_crop && dcmi->num_of_sd_framesizes) {
-+		struct dcmi_framesize outer_sd_fsize;
-+		/*
-+		 * If crop is requested and sensor have discrete frame sizes,
-+		 * select the frame size that is just larger than request
-+		 */
-+		__find_outer_frame_size(dcmi, pix, &outer_sd_fsize);
-+		pix->width = outer_sd_fsize.width;
-+		pix->height = outer_sd_fsize.height;
-+	}
-+
- 	v4l2_fill_mbus_format(&format.format, pix, sd_fmt->mbus_code);
- 	ret = v4l2_subdev_call(dcmi->entity.subdev, pad, set_fmt,
- 			       &pad_cfg, &format);
-@@ -727,6 +803,31 @@ static int dcmi_try_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f,
- 	/* Update pix regarding to what sensor can do */
- 	v4l2_fill_pix_format(pix, &format.format);
+ 	/*
+ 	 * Partitions are computed on the size before rotation, use the format
+@@ -272,17 +273,17 @@ static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
+ 					    RWPF_PAD_SINK);
+ 	div_size = format->width;
  
-+	/* Save resolution that sensor can actually do */
-+	sd_fsize.width = pix->width;
-+	sd_fsize.height = pix->height;
-+
-+	if (dcmi->do_crop) {
-+		struct v4l2_rect c = dcmi->crop;
-+		struct v4l2_rect max_rect;
-+
-+		/*
-+		 * Adjust crop by making the intersection between
-+		 * format resolution request and crop request
-+		 */
-+		max_rect.top = 0;
-+		max_rect.left = 0;
-+		max_rect.width = pix->width;
-+		max_rect.height = pix->height;
-+		v4l2_rect_map_inside(&c, &max_rect);
-+		c.top  = clamp_t(s32, c.top, 0, pix->height - c.height);
-+		c.left = clamp_t(s32, c.left, 0, pix->width - c.width);
-+		dcmi->crop = c;
-+
-+		/* Adjust format resolution request to crop */
-+		pix->width = dcmi->crop.width;
-+		pix->height = dcmi->crop.height;
-+	}
- 
- 	pix->field = V4L2_FIELD_NONE;
- 	pix->bytesperline = pix->width * sd_fmt->bpp;
-@@ -734,6 +835,8 @@ static int dcmi_try_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f,
- 
- 	if (sd_format)
- 		*sd_format = sd_fmt;
-+	if (sd_framesize)
-+		*sd_framesize = sd_fsize;
- 
- 	return 0;
- }
-@@ -744,24 +847,41 @@ static int dcmi_set_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f)
- 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
- 	};
- 	const struct dcmi_format *sd_format;
-+	struct dcmi_framesize sd_framesize;
- 	struct v4l2_mbus_framefmt *mf = &format.format;
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	int ret;
- 
--	ret = dcmi_try_fmt(dcmi, f, &sd_format);
+-	/* Gen2 hardware doesn't require image partitioning. */
+-	if (vsp1->info->gen == 2) {
+-		pipe->div_size = div_size;
+-		pipe->partitions = 1;
+-		return;
+-	}
 +	/*
-+	 * Try format, fmt.width/height could have been changed
-+	 * to match sensor capability or crop request
-+	 * sd_format & sd_framesize will contain what subdev
-+	 * can do for this request.
++	 * Only Gen3 hardware requires image partitioning, Gen2 will operate
++	 * with a single partition that covers the whole output.
 +	 */
-+	ret = dcmi_try_fmt(dcmi, f, &sd_format, &sd_framesize);
- 	if (ret)
- 		return ret;
++	if (vsp1->info->gen == 3) {
++		list_for_each_entry(entity, &pipe->entities, list_pipe) {
++			unsigned int entity_max;
  
- 	/* pix to mbus format */
- 	v4l2_fill_mbus_format(mf, pix,
- 			      sd_format->mbus_code);
-+	mf->width = sd_framesize.width;
-+	mf->height = sd_framesize.height;
+-	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+-		unsigned int entity_max = VSP1_VIDEO_MAX_WIDTH;
++			if (!entity->ops->max_width)
++				continue;
+ 
+-		if (entity->ops->max_width) {
+ 			entity_max = entity->ops->max_width(entity, pipe);
+ 			if (entity_max)
+ 				div_size = min(div_size, entity_max);
+@@ -291,6 +292,15 @@ static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
+ 
+ 	pipe->div_size = div_size;
+ 	pipe->partitions = DIV_ROUND_UP(format->width, div_size);
++	pipe->part_table = kcalloc(pipe->partitions, sizeof(*pipe->part_table),
++				   GFP_KERNEL);
++	if (!pipe->part_table)
++		return -ENOMEM;
 +
- 	ret = v4l2_subdev_call(dcmi->entity.subdev, pad,
- 			       set_fmt, NULL, &format);
- 	if (ret < 0)
- 		return ret;
- 
-+	dev_dbg(dcmi->dev, "Sensor format set to 0x%x %ux%u\n",
-+		mf->code, mf->width, mf->height);
-+	dev_dbg(dcmi->dev, "Buffer format set to %4.4s %ux%u\n",
-+		(char *)&pix->pixelformat,
-+		pix->width, pix->height);
-+
- 	dcmi->fmt = *f;
- 	dcmi->sd_format = sd_format;
-+	dcmi->sd_framesize = sd_framesize;
- 
- 	return 0;
- }
-@@ -782,7 +902,7 @@ static int dcmi_try_fmt_vid_cap(struct file *file, void *priv,
- {
- 	struct stm32_dcmi *dcmi = video_drvdata(file);
- 
--	return dcmi_try_fmt(dcmi, f, NULL);
-+	return dcmi_try_fmt(dcmi, f, NULL, NULL);
- }
- 
- static int dcmi_enum_fmt_vid_cap(struct file *file, void  *priv,
-@@ -797,6 +917,193 @@ static int dcmi_enum_fmt_vid_cap(struct file *file, void  *priv,
- 	return 0;
- }
- 
-+static int dcmi_get_sensor_format(struct stm32_dcmi *dcmi,
-+				  struct v4l2_pix_format *pix)
-+{
-+	struct v4l2_subdev_format fmt = {
-+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+	};
-+	int ret;
-+
-+	ret = v4l2_subdev_call(dcmi->entity.subdev, pad, get_fmt, NULL, &fmt);
-+	if (ret)
-+		return ret;
-+
-+	v4l2_fill_pix_format(pix, &fmt.format);
++	for (i = 0; i < pipe->partitions; ++i)
++		pipe->part_table[i] = vsp1_video_partition(pipe, div_size, i);
 +
 +	return 0;
-+}
-+
-+static int dcmi_set_sensor_format(struct stm32_dcmi *dcmi,
-+				  struct v4l2_pix_format *pix)
-+{
-+	const struct dcmi_format *sd_fmt;
-+	struct v4l2_subdev_format format = {
-+		.which = V4L2_SUBDEV_FORMAT_TRY,
-+	};
-+	struct v4l2_subdev_pad_config pad_cfg;
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -373,8 +383,7 @@ static void vsp1_video_pipeline_run_partition(struct vsp1_pipeline *pipe,
+ {
+ 	struct vsp1_entity *entity;
+ 
+-	pipe->partition = vsp1_video_partition(pipe, pipe->div_size,
+-					       pipe->current_partition);
++	pipe->partition = pipe->part_table[pipe->current_partition];
+ 
+ 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+ 		if (entity->ops->configure)
+@@ -783,9 +792,12 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
+ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
+ {
+ 	struct vsp1_entity *entity;
 +	int ret;
-+
-+	sd_fmt = find_format_by_fourcc(dcmi, pix->pixelformat);
-+	if (!sd_fmt) {
-+		sd_fmt = dcmi->sd_formats[dcmi->num_of_sd_formats - 1];
-+		pix->pixelformat = sd_fmt->fourcc;
-+	}
-+
-+	v4l2_fill_mbus_format(&format.format, pix, sd_fmt->mbus_code);
-+	ret = v4l2_subdev_call(dcmi->entity.subdev, pad, set_fmt,
-+			       &pad_cfg, &format);
+ 
+ 	/* Determine this pipelines sizes for image partitioning support. */
+-	vsp1_video_pipeline_setup_partitions(pipe);
++	ret = vsp1_video_pipeline_setup_partitions(pipe);
 +	if (ret < 0)
 +		return ret;
-+
-+	return 0;
-+}
-+
-+static int dcmi_get_sensor_bounds(struct stm32_dcmi *dcmi,
-+				  struct v4l2_rect *r)
-+{
-+	struct v4l2_subdev_selection bounds = {
-+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+		.target = V4L2_SEL_TGT_CROP_BOUNDS,
-+	};
-+	unsigned int max_width, max_height, max_pixsize;
-+	struct v4l2_pix_format pix;
-+	unsigned int i;
-+	int ret;
-+
-+	/*
-+	 * Get sensor bounds first
-+	 */
-+	ret = v4l2_subdev_call(dcmi->entity.subdev, pad, get_selection,
-+			       NULL, &bounds);
-+	if (!ret)
-+		*r = bounds.r;
-+	if (ret != -ENOIOCTLCMD)
-+		return ret;
-+
-+	/*
-+	 * If selection is not implemented,
-+	 * fallback by enumerating sensor frame sizes
-+	 * and take the largest one
-+	 */
-+	max_width = 0;
-+	max_height = 0;
-+	max_pixsize = 0;
-+	for (i = 0; i < dcmi->num_of_sd_framesizes; i++) {
-+		struct dcmi_framesize *fsize = &dcmi->sd_framesizes[i];
-+		unsigned int pixsize = fsize->width * fsize->height;
-+
-+		if (pixsize > max_pixsize) {
-+			max_pixsize = pixsize;
-+			max_width = fsize->width;
-+			max_height = fsize->height;
-+		}
-+	}
-+	if (max_pixsize > 0) {
-+		r->top = 0;
-+		r->left = 0;
-+		r->width = max_width;
-+		r->height = max_height;
-+		return 0;
-+	}
-+
-+	/*
-+	 * If frame sizes enumeration is not implemented,
-+	 * fallback by getting current sensor frame size
-+	 */
-+	ret = dcmi_get_sensor_format(dcmi, &pix);
-+	if (ret)
-+		return ret;
-+
-+	r->top = 0;
-+	r->left = 0;
-+	r->width = pix.width;
-+	r->height = pix.height;
-+
-+	return 0;
-+}
-+
-+static int dcmi_g_selection(struct file *file, void *fh,
-+			    struct v4l2_selection *s)
-+{
-+	struct stm32_dcmi *dcmi = video_drvdata(file);
-+
-+	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	switch (s->target) {
-+	case V4L2_SEL_TGT_CROP_DEFAULT:
-+	case V4L2_SEL_TGT_CROP_BOUNDS:
-+		s->r = dcmi->sd_bounds;
-+		return 0;
-+	case V4L2_SEL_TGT_CROP:
-+		if (dcmi->do_crop) {
-+			s->r = dcmi->crop;
-+		} else {
-+			s->r.top = 0;
-+			s->r.left = 0;
-+			s->r.width = dcmi->fmt.fmt.pix.width;
-+			s->r.height = dcmi->fmt.fmt.pix.height;
-+		}
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int dcmi_s_selection(struct file *file, void *priv,
-+			    struct v4l2_selection *s)
-+{
-+	struct stm32_dcmi *dcmi = video_drvdata(file);
-+	struct v4l2_rect r = s->r;
-+	struct v4l2_rect max_rect;
-+	struct v4l2_pix_format pix;
-+
-+	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
-+	    s->target != V4L2_SEL_TGT_CROP)
-+		return -EINVAL;
-+
-+	/* Reset sensor resolution to max resolution */
-+	pix.pixelformat = dcmi->fmt.fmt.pix.pixelformat;
-+	pix.width = dcmi->sd_bounds.width;
-+	pix.height = dcmi->sd_bounds.height;
-+	dcmi_set_sensor_format(dcmi, &pix);
-+
-+	/*
-+	 * Make the intersection between
-+	 * sensor resolution
-+	 * and crop request
-+	 */
-+	max_rect.top = 0;
-+	max_rect.left = 0;
-+	max_rect.width = pix.width;
-+	max_rect.height = pix.height;
-+	v4l2_rect_map_inside(&r, &max_rect);
-+	r.top  = clamp_t(s32, r.top, 0, pix.height - r.height);
-+	r.left = clamp_t(s32, r.left, 0, pix.width - r.width);
-+
-+	if (!((r.top == dcmi->sd_bounds.top) &&
-+	      (r.left == dcmi->sd_bounds.left) &&
-+	      (r.width == dcmi->sd_bounds.width) &&
-+	      (r.height == dcmi->sd_bounds.height))) {
-+		/* Crop if request is different than sensor resolution */
-+		dcmi->do_crop = true;
-+		dcmi->crop = r;
-+		dev_dbg(dcmi->dev, "s_selection: crop %ux%u@(%u,%u) from %ux%u\n",
-+			r.width, r.height, r.left, r.top,
-+			pix.width, pix.height);
-+	} else {
-+		/* Disable crop */
-+		dcmi->do_crop = false;
-+		dev_dbg(dcmi->dev, "s_selection: crop is disabled\n");
-+	}
-+
-+	s->r = r;
-+	return 0;
-+}
-+
- static int dcmi_querycap(struct file *file, void *priv,
- 			 struct v4l2_capability *cap)
- {
-@@ -955,6 +1262,8 @@ static int dcmi_release(struct file *file)
- 	.vidioc_g_fmt_vid_cap		= dcmi_g_fmt_vid_cap,
- 	.vidioc_s_fmt_vid_cap		= dcmi_s_fmt_vid_cap,
- 	.vidioc_enum_fmt_vid_cap	= dcmi_enum_fmt_vid_cap,
-+	.vidioc_g_selection		= dcmi_g_selection,
-+	.vidioc_s_selection		= dcmi_s_selection,
  
- 	.vidioc_enum_input		= dcmi_enum_input,
- 	.vidioc_g_input			= dcmi_g_input,
-@@ -1004,7 +1313,7 @@ static int dcmi_set_default_fmt(struct stm32_dcmi *dcmi)
- 	};
- 	int ret;
- 
--	ret = dcmi_try_fmt(dcmi, &f, NULL);
-+	ret = dcmi_try_fmt(dcmi, &f, NULL, NULL);
- 	if (ret)
- 		return ret;
- 	dcmi->sd_format = dcmi->sd_formats[0];
-@@ -1075,6 +1384,51 @@ static int dcmi_formats_init(struct stm32_dcmi *dcmi)
- 	return 0;
+ 	/* Prepare the display list. */
+ 	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
+@@ -834,6 +846,12 @@ static void vsp1_video_cleanup_pipeline(struct vsp1_pipeline *pipe)
+ 		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_ERROR);
+ 	INIT_LIST_HEAD(&video->irqqueue);
+ 	spin_unlock_irqrestore(&video->irqlock, flags);
++
++	/* Release our partition table allocation */
++	mutex_lock(&pipe->lock);
++	kfree(pipe->part_table);
++	pipe->part_table = NULL;
++	mutex_unlock(&pipe->lock);
  }
  
-+static int dcmi_framesizes_init(struct stm32_dcmi *dcmi)
-+{
-+	unsigned int num_fsize = 0;
-+	struct v4l2_subdev *subdev = dcmi->entity.subdev;
-+	struct v4l2_subdev_frame_size_enum fse = {
-+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+		.code = dcmi->sd_format->mbus_code,
-+	};
-+	unsigned int ret;
-+	unsigned int i;
-+
-+	/* Allocate discrete framesizes array */
-+	while (!v4l2_subdev_call(subdev, pad, enum_frame_size,
-+				 NULL, &fse))
-+		fse.index++;
-+
-+	num_fsize = fse.index;
-+	if (!num_fsize)
-+		return 0;
-+
-+	dcmi->num_of_sd_framesizes = num_fsize;
-+	dcmi->sd_framesizes = devm_kcalloc(dcmi->dev, num_fsize,
-+					   sizeof(struct dcmi_framesize),
-+					   GFP_KERNEL);
-+	if (!dcmi->sd_framesizes) {
-+		dev_err(dcmi->dev, "Could not allocate memory\n");
-+		return -ENOMEM;
-+	}
-+
-+	/* Fill array with sensor supported framesizes */
-+	dev_dbg(dcmi->dev, "Sensor supports %u frame sizes:\n", num_fsize);
-+	for (i = 0; i < dcmi->num_of_sd_framesizes; i++) {
-+		fse.index = i;
-+		ret = v4l2_subdev_call(subdev, pad, enum_frame_size,
-+				       NULL, &fse);
-+		if (ret)
-+			return ret;
-+		dcmi->sd_framesizes[fse.index].width = fse.max_width;
-+		dcmi->sd_framesizes[fse.index].height = fse.max_height;
-+		dev_dbg(dcmi->dev, "%ux%u\n", fse.max_width, fse.max_height);
-+	}
-+
-+	return 0;
-+}
-+
- static int dcmi_graph_notify_complete(struct v4l2_async_notifier *notifier)
- {
- 	struct stm32_dcmi *dcmi = notifier_to_dcmi(notifier);
-@@ -1087,6 +1441,18 @@ static int dcmi_graph_notify_complete(struct v4l2_async_notifier *notifier)
- 		return ret;
- 	}
- 
-+	ret = dcmi_framesizes_init(dcmi);
-+	if (ret) {
-+		dev_err(dcmi->dev, "Could not initialize framesizes\n");
-+		return ret;
-+	}
-+
-+	ret = dcmi_get_sensor_bounds(dcmi, &dcmi->sd_bounds);
-+	if (ret) {
-+		dev_err(dcmi->dev, "Could not get sensor bounds\n");
-+		return ret;
-+	}
-+
- 	ret = dcmi_set_default_fmt(dcmi);
- 	if (ret) {
- 		dev_err(dcmi->dev, "Could not set default format\n");
+ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
 -- 
-1.9.1
+git-series 0.9.1
