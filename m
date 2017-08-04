@@ -1,42 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:57722 "EHLO mout.web.de"
+Received: from mail.kernel.org ([198.145.29.99]:35762 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753760AbdHWLZD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Aug 2017 07:25:03 -0400
-Received: from [10.10.0.58] ([213.191.34.238]) by smtp.web.de (mrweb001
- [213.165.67.108]) with ESMTPSA (Nemesis) id 0M6Df8-1dMvLz3OyA-00y89L for
- <linux-media@vger.kernel.org>; Wed, 23 Aug 2017 13:25:01 +0200
-To: linux-media@vger.kernel.org
-From: Stephan Bauroth <stephanbauroth@web.de>
-Subject: Support for direct playback of camera input on imx6q
-Message-ID: <13b9d535-094d-c63b-54f9-3ea54e2b138e@web.de>
-Date: Wed, 23 Aug 2017 13:25:01 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+        id S1752547AbdHDP5Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Aug 2017 11:57:24 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v3 6/7] v4l: vsp1: Provide UDS register updates
+Date: Fri,  4 Aug 2017 16:57:10 +0100
+Message-Id: <366d84abf033d73653643e2bb27c9ac4865ff7e7.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear List,
+Provide register definitions required for UDS phase and partition
+algorithm support. The registers and bits defined here are available on
+Gen3 hardware only.
 
-I'm trying to directly output a captured video signal to an LVDS panel 
-on an imx6q. Capturing frames works fine using the staging imx-media 
-driver. I can grab JPGs using v4l2grab and I can stream the input to the 
-display with gstreamer. However, when streaming, one of the cores is 
-utilized by ~66%, and I have to use the videoconvert module of gstreamer.
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_regs.h | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-The IPU in imx6 can directly stream an captured signal back to the 
-display processor (DP) according to [1]. While the capturing paths 
-within the IPU are managed by the staging media-imx driver, its output 
-paths are not, so I can not simply set up links using media-ctl.
-
-So, my question is whether it is possible to hook up the captured signal 
-to the DP using either the ipuv3 driver or the frame buffer driver 
-(mxcfb) or something else, and if yes, how?
-
-Thanks for any help and/or hints
-Stephan
-
-[1] http://www.nxp.com/docs/en/reference-manual/IMX6DQRM.pdf, pg. 2732 
-or chapter 37.1.2.1.4.1, 'Camera Preview'
+diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
+index cd3e32af6e3b..362f4f8b1148 100644
+--- a/drivers/media/platform/vsp1/vsp1_regs.h
++++ b/drivers/media/platform/vsp1/vsp1_regs.h
+@@ -388,6 +388,7 @@
+ #define VI6_UDS_CTRL_NE_RCR		(1 << 18)
+ #define VI6_UDS_CTRL_NE_GY		(1 << 17)
+ #define VI6_UDS_CTRL_NE_BCB		(1 << 16)
++#define VI6_UDS_CTRL_AMDSLH		(1 << 2)
+ #define VI6_UDS_CTRL_TDIPC		(1 << 1)
+ 
+ #define VI6_UDS_SCALE			0x2304
+@@ -420,11 +421,24 @@
+ #define VI6_UDS_PASS_BWIDTH_V_MASK	(0x7f << 0)
+ #define VI6_UDS_PASS_BWIDTH_V_SHIFT	0
+ 
++#define VI6_UDS_HPHASE			0x2314
++#define VI6_UDS_HPHASE_HSTP_MASK	(0xfff << 16)
++#define VI6_UDS_HPHASE_HSTP_SHIFT	16
++#define VI6_UDS_HPHASE_HEDP_MASK	(0xfff << 0)
++#define VI6_UDS_HPHASE_HEDP_SHIFT	0
++
+ #define VI6_UDS_IPC			0x2318
+ #define VI6_UDS_IPC_FIELD		(1 << 27)
+ #define VI6_UDS_IPC_VEDP_MASK		(0xfff << 0)
+ #define VI6_UDS_IPC_VEDP_SHIFT		0
+ 
++#define VI6_UDS_HSZCLIP			0x231c
++#define VI6_UDS_HSZCLIP_HCEN		(1 << 28)
++#define VI6_UDS_HSZCLIP_HCL_OFST_MASK	(0xff << 16)
++#define VI6_UDS_HSZCLIP_HCL_OFST_SHIFT	16
++#define VI6_UDS_HSZCLIP_HCL_SIZE_MASK	(0x1fff << 0)
++#define VI6_UDS_HSZCLIP_HCL_SIZE_SHIFT	0
++
+ #define VI6_UDS_CLIP_SIZE		0x2324
+ #define VI6_UDS_CLIP_SIZE_HSIZE_MASK	(0x1fff << 16)
+ #define VI6_UDS_CLIP_SIZE_HSIZE_SHIFT	16
+-- 
+git-series 0.9.1
