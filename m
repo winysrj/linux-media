@@ -1,72 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:38465 "EHLO gofer.mess.org"
+Received: from mail.kernel.org ([198.145.29.99]:35738 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752135AbdHJVz5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Aug 2017 17:55:57 -0400
-Date: Thu, 10 Aug 2017 22:55:54 +0100
-From: Sean Young <sean@mess.org>
-To: Amitoj Kaur Chawla <amitoj1606@gmail.com>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] imon: constify attribute_group structures
-Message-ID: <20170810215554.mc3oiddcq7lnv5rf@gofer.mess.org>
-References: <20170805015137.GA5228@amitoj-Inspiron-3542>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170805015137.GA5228@amitoj-Inspiron-3542>
+        id S1752547AbdHDP5R (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Aug 2017 11:57:17 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v3 1/7] v4l: vsp1: Release buffers in start_streaming error path
+Date: Fri,  4 Aug 2017 16:57:05 +0100
+Message-Id: <cb35eec2aae25b07fdc303cf9e005c878f07ac92.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 04, 2017 at 09:51:38PM -0400, Amitoj Kaur Chawla wrote:
-> Functions working with attribute_groups provided by <linux/sysfs.h>
-> work with const attribute_group. These attribute_group structures do not
-> change at runtime so mark them as const.
+Presently any received buffers are only released back to vb2 if
+vsp1_video_stop_streaming() is called. If vsp1_video_start_streaming()
+encounters an error, we will be warned by the vb2 handlers that buffers
+have not been returned.
 
-I'm afraid the exact same patch has already been submitted before.
+Move the buffer cleanup code to it's own function to prevent duplication
+and call from both vsp1_video_stop_streaming() and the error path in
+vsp1_video_start_streaming()
 
-http://www.spinics.net/lists/linux-media/msg118090.html
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_video.c | 22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
 
-
-Sean
-
-> 
-> File size before:
->  text      data     bss     dec     hex filename
->  36981    16776     960   54717    d5bd drivers/media/rc/imon.o
-> 
-> File size after:
->  text      data     bss     dec     hex filename
->  37173    16584     960   54717    d5bd drivers/media/rc/imon.o
-> 
-> This change was made with the help of Coccinelle.
-> 
-> Signed-off-by: Amitoj Kaur Chawla <amitoj1606@gmail.com>
-> ---
->  drivers/media/rc/imon.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-> index bd76534..717ba78 100644
-> --- a/drivers/media/rc/imon.c
-> +++ b/drivers/media/rc/imon.c
-> @@ -911,7 +911,7 @@ static struct attribute *imon_display_sysfs_entries[] = {
->  	NULL
->  };
->  
-> -static struct attribute_group imon_display_attr_group = {
-> +static const struct attribute_group imon_display_attr_group = {
->  	.attrs = imon_display_sysfs_entries
->  };
->  
-> @@ -920,7 +920,7 @@ static struct attribute *imon_rf_sysfs_entries[] = {
->  	NULL
->  };
->  
-> -static struct attribute_group imon_rf_attr_group = {
-> +static const struct attribute_group imon_rf_attr_group = {
->  	.attrs = imon_rf_sysfs_entries
->  };
->  
-> -- 
-> 2.7.4
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 5af3486afe07..a24033429cd7 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -822,6 +822,19 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
+ 	return 0;
+ }
+ 
++static void vsp1_video_cleanup_pipeline(struct vsp1_video *video)
++{
++	struct vsp1_vb2_buffer *buffer;
++	unsigned long flags;
++
++	/* Remove all buffers from the IRQ queue. */
++	spin_lock_irqsave(&video->irqlock, flags);
++	list_for_each_entry(buffer, &video->irqqueue, queue)
++		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_ERROR);
++	INIT_LIST_HEAD(&video->irqqueue);
++	spin_unlock_irqrestore(&video->irqlock, flags);
++}
++
+ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct vsp1_video *video = vb2_get_drv_priv(vq);
+@@ -835,6 +848,7 @@ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 		ret = vsp1_video_setup_pipeline(pipe);
+ 		if (ret < 0) {
+ 			mutex_unlock(&pipe->lock);
++			vsp1_video_cleanup_pipeline(video);
+ 			return ret;
+ 		}
+ 
+@@ -866,7 +880,6 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
+ {
+ 	struct vsp1_video *video = vb2_get_drv_priv(vq);
+ 	struct vsp1_pipeline *pipe = video->rwpf->pipe;
+-	struct vsp1_vb2_buffer *buffer;
+ 	unsigned long flags;
+ 	int ret;
+ 
+@@ -893,12 +906,7 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
+ 	media_pipeline_stop(&video->video.entity);
+ 	vsp1_video_pipeline_put(pipe);
+ 
+-	/* Remove all buffers from the IRQ queue. */
+-	spin_lock_irqsave(&video->irqlock, flags);
+-	list_for_each_entry(buffer, &video->irqqueue, queue)
+-		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_ERROR);
+-	INIT_LIST_HEAD(&video->irqqueue);
+-	spin_unlock_irqrestore(&video->irqlock, flags);
++	vsp1_video_cleanup_pipeline(video);
+ }
+ 
+ static const struct vb2_ops vsp1_video_queue_qops = {
+-- 
+git-series 0.9.1
