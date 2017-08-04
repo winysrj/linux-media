@@ -1,157 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37506 "EHLO mail.kernel.org"
+Received: from gofer.mess.org ([88.97.38.141]:36947 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752955AbdHDQcx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 Aug 2017 12:32:53 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        hans.verkuil@cisco.com
-Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v4 3/7] v4l: vsp1: Calculate partition sizes at stream start
-Date: Fri,  4 Aug 2017 17:32:40 +0100
-Message-Id: <d6bac3ee449c7b12d8216d3e33809767ec65e2cf.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
+        id S1752038AbdHDPSS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Aug 2017 11:18:18 -0400
+Date: Fri, 4 Aug 2017 16:18:16 +0100
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.14] RC changes (part #1)
+Message-ID: <20170804151816.2s2rdxjtqvg6g5mj@gofer.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Previously the active window and partition sizes for each partition were
-calculated for each partition every frame. This data is constant and
-only needs to be calculated once at the start of the stream.
+Hi Mauro,
 
-Extend the vsp1_pipe object to dynamically store the number of partitions
-required and pre-calculate the partition sizes into this table.
+This is missing David Härdeman lirc cleanups, since they conflict with 
+a revert for v4.13.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_pipe.h  |  3 ++-
- drivers/media/platform/vsp1/vsp1_video.c | 44 +++++++++++++++++--------
- 2 files changed, 34 insertions(+), 13 deletions(-)
+What we do have is three new RC drivers: ZTE ZX family SoCs, and two
+GPIO drivers for IR TX (one using pwm and another bit banging). These
+two drivers are useful for the Raspberry Pi. Also RC core no longer
+has any dependency on CONFIG_MEDIA_SUPPORT.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index 91a784a13422..0cfd07a187a2 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -82,7 +82,9 @@ enum vsp1_pipeline_state {
-  * @dl: display list associated with the pipeline
-  * @div_size: The maximum allowed partition size for the pipeline
-  * @partitions: The number of partitions used to process one frame
-+ * @partition: The current partition for configuration to process
-  * @current_partition: The partition number currently being configured
-+ * @part_table: The pre-calculated partitions used by the pipeline
-  */
- struct vsp1_pipeline {
- 	struct media_pipeline pipe;
-@@ -117,6 +119,7 @@ struct vsp1_pipeline {
- 	unsigned int partitions;
- 	struct v4l2_rect partition;
- 	unsigned int current_partition;
-+	struct v4l2_rect *part_table;
- };
- 
- void vsp1_pipeline_reset(struct vsp1_pipeline *pipe);
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index e4c0bfa0f864..2ac57a436811 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -256,12 +256,13 @@ static struct v4l2_rect vsp1_video_partition(struct vsp1_pipeline *pipe,
- 	return partition;
- }
- 
--static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
-+static int vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
- {
- 	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
- 	const struct v4l2_mbus_framefmt *format;
- 	struct vsp1_entity *entity;
- 	unsigned int div_size;
-+	unsigned int i;
- 
- 	/*
- 	 * Partitions are computed on the size before rotation, use the format
-@@ -272,17 +273,17 @@ static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
- 					    RWPF_PAD_SINK);
- 	div_size = format->width;
- 
--	/* Gen2 hardware doesn't require image partitioning. */
--	if (vsp1->info->gen == 2) {
--		pipe->div_size = div_size;
--		pipe->partitions = 1;
--		return;
--	}
-+	/*
-+	 * Only Gen3 hardware requires image partitioning, Gen2 will operate
-+	 * with a single partition that covers the whole output.
-+	 */
-+	if (vsp1->info->gen == 3) {
-+		list_for_each_entry(entity, &pipe->entities, list_pipe) {
-+			unsigned int entity_max;
- 
--	list_for_each_entry(entity, &pipe->entities, list_pipe) {
--		unsigned int entity_max = VSP1_VIDEO_MAX_WIDTH;
-+			if (!entity->ops->max_width)
-+				continue;
- 
--		if (entity->ops->max_width) {
- 			entity_max = entity->ops->max_width(entity, pipe);
- 			if (entity_max)
- 				div_size = min(div_size, entity_max);
-@@ -291,6 +292,15 @@ static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
- 
- 	pipe->div_size = div_size;
- 	pipe->partitions = DIV_ROUND_UP(format->width, div_size);
-+	pipe->part_table = kcalloc(pipe->partitions, sizeof(*pipe->part_table),
-+				   GFP_KERNEL);
-+	if (!pipe->part_table)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < pipe->partitions; ++i)
-+		pipe->part_table[i] = vsp1_video_partition(pipe, div_size, i);
-+
-+	return 0;
- }
- 
- /* -----------------------------------------------------------------------------
-@@ -373,8 +383,7 @@ static void vsp1_video_pipeline_run_partition(struct vsp1_pipeline *pipe,
- {
- 	struct vsp1_entity *entity;
- 
--	pipe->partition = vsp1_video_partition(pipe, pipe->div_size,
--					       pipe->current_partition);
-+	pipe->partition = pipe->part_table[pipe->current_partition];
- 
- 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
- 		if (entity->ops->configure)
-@@ -783,9 +792,12 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
- static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- {
- 	struct vsp1_entity *entity;
-+	int ret;
- 
- 	/* Determine this pipelines sizes for image partitioning support. */
--	vsp1_video_pipeline_setup_partitions(pipe);
-+	ret = vsp1_video_pipeline_setup_partitions(pipe);
-+	if (ret < 0)
-+		return ret;
- 
- 	/* Prepare the display list. */
- 	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
-@@ -834,6 +846,12 @@ static void vsp1_video_cleanup_pipeline(struct vsp1_pipeline *pipe)
- 		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_ERROR);
- 	INIT_LIST_HEAD(&video->irqqueue);
- 	spin_unlock_irqrestore(&video->irqlock, flags);
-+
-+	/* Release our partition table allocation */
-+	mutex_lock(&pipe->lock);
-+	kfree(pipe->part_table);
-+	pipe->part_table = NULL;
-+	mutex_unlock(&pipe->lock);
- }
- 
- static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
--- 
-git-series 0.9.1
+Thanks
+
+Sean
+
+
+The following changes since commit da48c948c263c9d87dfc64566b3373a858cc8aa2:
+
+  media: fix warning on v4l2_subdev_call() result interpreted as bool (2017-07-26 13:43:17 -0400)
+
+are available in the git repository at:
+
+  git://linuxtv.org/syoung/media_tree.git for-v4.14a
+
+for you to fetch changes up to 7af1952a935c062490dd697cd2cf7c65ee75dc19:
+
+  [media] winbond-cir: buffer overrun during transmit (2017-08-04 15:59:50 +0100)
+
+----------------------------------------------------------------
+Arvind Yadav (2):
+      [media] imon: constify attribute_group structures
+      [media] rc: constify attribute_group structures
+
+David Härdeman (1):
+      [media] rc-core: consistent use of rc_repeat()
+
+Gustavo A. R. Silva (1):
+      [media] sir_ir: remove unnecessary static in sir_interrupt()
+
+Heiner Kallweit (1):
+      [media] rc: nuvoton: remove rudimentary transmit functionality
+
+Philipp Zabel (2):
+      [media] st-rc: explicitly request exclusive reset control
+      [media] rc: sunxi-cir: explicitly request exclusive reset control
+
+Sean Wang (4):
+      [media] dt-bindings: media: mtk-cir: Add support for MT7622 SoC
+      [media] rc: mtk-cir: add platform data to adapt into various hardware
+      [media] rc: mtk-cir: add support for MediaTek MT7622 SoC
+      [media] rc: mtk-cir: add MAINTAINERS entry for MediaTek CIR driver
+
+Sean Young (10):
+      [media] rc-core: do not depend on MEDIA_SUPPORT
+      [media] rc-core: rename input_name to device_name
+      [media] rc: mce kbd decoder not needed for IR TX drivers
+      [media] rc: gpio-ir-tx: add new driver
+      [media] rc: pwm-ir-tx: add new driver
+      [media] dt-bindings: pwm-ir-tx: Add support for PWM IR Transmitter
+      [media] dt-bindings: gpio-ir-tx: add support for GPIO IR Transmitter
+      [media] lirc_zilog: driver only sends LIRCCODE
+      [media] mceusb: do not read data parameters unless required
+      [media] winbond-cir: buffer overrun during transmit
+
+Shawn Guo (3):
+      [media] rc: ir-nec-decoder: move scancode composing code into a shared function
+      [media] dt-bindings: add bindings document for zx-irdec
+      [media] rc: add zx-irdec remote control driver
+
+Yves Lemée (1):
+      [media] lirc_zilog: Clean up lirc zilog error codes
+
+ .../devicetree/bindings/leds/irled/gpio-ir-tx.txt  |  14 ++
+ .../devicetree/bindings/leds/irled/pwm-ir-tx.txt   |  13 ++
+ .../devicetree/bindings/media/mtk-cir.txt          |   8 +-
+ .../devicetree/bindings/media/zx-irdec.txt         |  14 ++
+ MAINTAINERS                                        |  17 ++
+ arch/arm/configs/imx_v6_v7_defconfig               |   2 +-
+ arch/arm/configs/omap2plus_defconfig               |   2 +-
+ arch/arm/configs/sunxi_defconfig                   |   2 +-
+ arch/mips/configs/pistachio_defconfig              |   2 +-
+ drivers/hid/hid-picolcd_cir.c                      |   2 +-
+ drivers/media/Kconfig                              |  17 +-
+ drivers/media/cec/cec-core.c                       |   4 +-
+ drivers/media/common/siano/smsir.c                 |   4 +-
+ drivers/media/i2c/ir-kbd-i2c.c                     |   2 +-
+ drivers/media/pci/bt8xx/bttv-input.c               |   2 +-
+ drivers/media/pci/cx23885/cx23885-input.c          |   2 +-
+ drivers/media/pci/cx88/cx88-input.c                |   2 +-
+ drivers/media/pci/dm1105/dm1105.c                  |   2 +-
+ drivers/media/pci/mantis/mantis_common.h           |   2 +-
+ drivers/media/pci/mantis/mantis_input.c            |   4 +-
+ drivers/media/pci/saa7134/saa7134-input.c          |   2 +-
+ drivers/media/pci/smipcie/smipcie-ir.c             |   4 +-
+ drivers/media/pci/smipcie/smipcie.h                |   2 +-
+ drivers/media/pci/ttpci/budget-ci.c                |   2 +-
+ drivers/media/rc/Kconfig                           |  53 ++++-
+ drivers/media/rc/Makefile                          |   3 +
+ drivers/media/rc/ati_remote.c                      |   2 +-
+ drivers/media/rc/ene_ir.c                          |   4 +-
+ drivers/media/rc/fintek-cir.c                      |   2 +-
+ drivers/media/rc/gpio-ir-recv.c                    |   2 +-
+ drivers/media/rc/gpio-ir-tx.c                      | 174 +++++++++++++++
+ drivers/media/rc/igorplugusb.c                     |   2 +-
+ drivers/media/rc/iguanair.c                        |   2 +-
+ drivers/media/rc/img-ir/img-ir-hw.c                |   2 +-
+ drivers/media/rc/img-ir/img-ir-raw.c               |   2 +-
+ drivers/media/rc/imon.c                            |   6 +-
+ drivers/media/rc/ir-hix5hd2.c                      |   2 +-
+ drivers/media/rc/ir-mce_kbd-decoder.c              |   6 +
+ drivers/media/rc/ir-nec-decoder.c                  |  42 +---
+ drivers/media/rc/ir-sanyo-decoder.c                |  10 +-
+ drivers/media/rc/ir-spi.c                          |   1 +
+ drivers/media/rc/ite-cir.c                         |   2 +-
+ drivers/media/rc/keymaps/Makefile                  |   3 +-
+ drivers/media/rc/keymaps/rc-zx-irdec.c             |  79 +++++++
+ drivers/media/rc/mceusb.c                          |  38 ++--
+ drivers/media/rc/meson-ir.c                        |   2 +-
+ drivers/media/rc/mtk-cir.c                         | 244 ++++++++++++++++-----
+ drivers/media/rc/nuvoton-cir.c                     | 116 +---------
+ drivers/media/rc/nuvoton-cir.h                     |  24 --
+ drivers/media/rc/pwm-ir-tx.c                       | 138 ++++++++++++
+ drivers/media/rc/rc-loopback.c                     |   2 +-
+ drivers/media/rc/rc-main.c                         |  20 +-
+ drivers/media/rc/redrat3.c                         |   2 +-
+ drivers/media/rc/serial_ir.c                       |  10 +-
+ drivers/media/rc/sir_ir.c                          |   4 +-
+ drivers/media/rc/st_rc.c                           |   4 +-
+ drivers/media/rc/streamzap.c                       |   2 +-
+ drivers/media/rc/sunxi-cir.c                       |   4 +-
+ drivers/media/rc/ttusbir.c                         |   2 +-
+ drivers/media/rc/winbond-cir.c                     |   4 +-
+ drivers/media/rc/zx-irdec.c                        | 183 ++++++++++++++++
+ drivers/media/usb/au0828/au0828-input.c            |   2 +-
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c        |   5 +-
+ drivers/media/usb/dvb-usb/dvb-usb-remote.c         |   2 +-
+ drivers/media/usb/em28xx/em28xx-input.c            |   2 +-
+ drivers/media/usb/tm6000/tm6000-input.c            |   2 +-
+ drivers/staging/media/lirc/lirc_zilog.c            |  18 +-
+ include/media/cec.h                                |   2 +-
+ include/media/rc-core.h                            |  37 +++-
+ include/media/rc-map.h                             |   1 +
+ 70 files changed, 1035 insertions(+), 361 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt
+ create mode 100644 Documentation/devicetree/bindings/leds/irled/pwm-ir-tx.txt
+ create mode 100644 Documentation/devicetree/bindings/media/zx-irdec.txt
+ create mode 100644 drivers/media/rc/gpio-ir-tx.c
+ create mode 100644 drivers/media/rc/keymaps/rc-zx-irdec.c
+ create mode 100644 drivers/media/rc/pwm-ir-tx.c
+ create mode 100644 drivers/media/rc/zx-irdec.c
