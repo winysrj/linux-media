@@ -1,122 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:36308 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751395AbdIABvH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 21:51:07 -0400
-Received: by mail-qt0-f196.google.com with SMTP id e2so1005968qta.3
-        for <linux-media@vger.kernel.org>; Thu, 31 Aug 2017 18:51:07 -0700 (PDT)
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [PATCH v2 06/14] [media] v4l: add V4L2_EVENT_BUF_QUEUED event
-Date: Thu, 31 Aug 2017 22:50:33 -0300
-Message-Id: <20170901015041.7757-7-gustavo@padovan.org>
-In-Reply-To: <20170901015041.7757-1-gustavo@padovan.org>
-References: <20170901015041.7757-1-gustavo@padovan.org>
+Received: from gofer.mess.org ([88.97.38.141]:59075 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751944AbdHDOun (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Aug 2017 10:50:43 -0400
+From: Sean Young <sean@mess.org>
+To: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+        linux-media@vger.kernel.org
+Subject: [PATCH] Revert "[media] lirc_dev: remove superfluous get/put_device() calls"
+Date: Fri,  4 Aug 2017 15:50:41 +0100
+Message-Id: <20170804145041.18866-1-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+This reverts commit 5be2b76a9ca4ea5fd3e221114d62eeb0d78267ca.
 
-Add a new event the userspace can subscribe to receive notifications
-when a buffer is queued onto the driver. The event provides the index of
-the queued buffer.
+Only when the lirc device is freed, should we drop our reference to
+rc_dev, else we the rc_dev is freed to early. If userspace has
+a file descriptor open during unplug, it goes bang.
 
-v2: - Add missing Documentation (Mauro)
+==================================================================
+BUG: KASAN: use-after-free in __lock_acquire+0x7bb/0x1e10
+Read of size 8 at addr ffff8801d7d61ed0 by task ir-rec/2609
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+-snip-
+ mutex_lock_nested+0x1b/0x20
+ ? mutex_lock_nested+0x1b/0x20
+ rc_close.part.6+0x20/0x60 [rc_core]
+ rc_close+0x13/0x20 [rc_core]
+ lirc_dev_fop_close+0x62/0xd0 [lirc_dev]
+ __fput+0x236/0x410
+ ? fput+0xb0/0xb0
+ ? do_raw_spin_trylock+0x110/0x110
+ ? set_rq_offline.part.70+0xa0/0xa0
+ ____fput+0xe/0x10
+ task_work_run+0x116/0x180
+ ? task_work_cancel+0x170/0x170
+ ? _raw_spin_unlock+0x27/0x40
+ ? switch_task_namespaces+0x5f/0x90
+ do_exit+0x68b/0xe80
+
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- Documentation/media/uapi/v4l/vidioc-dqevent.rst | 18 ++++++++++++++++++
- Documentation/media/videodev2.h.rst.exceptions  |  1 +
- include/uapi/linux/videodev2.h                  | 10 ++++++++++
- 3 files changed, 29 insertions(+)
+ drivers/media/rc/lirc_dev.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-dqevent.rst b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
-index fcd9c933870d..362d82153312 100644
---- a/Documentation/media/uapi/v4l/vidioc-dqevent.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
-@@ -78,6 +78,10 @@ call.
-       - ``src_change``
-       - Event data for event V4L2_EVENT_SOURCE_CHANGE.
-     * -
-+      - struct :c:type:`v4l2_event_buf_queued`
-+      - ``buf_queued``
-+      - Event data for event V4L2_EVENT_BUF_QUEUED.
-+    * -
-       - __u8
-       - ``data``\ [64]
-       - Event data. Defined by the event type. The union should be used to
-@@ -337,6 +341,20 @@ call.
- 	each cell in the motion detection grid, then that all cells are
- 	automatically assigned to the default region 0.
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index db1e7b70c998..9080e39ea391 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -59,6 +59,8 @@ static void lirc_release(struct device *ld)
+ {
+ 	struct irctl *ir = container_of(ld, struct irctl, dev);
  
-+.. c:type:: v4l2_event_buf_queued
++	put_device(ir->dev.parent);
 +
-+.. flat-table:: struct v4l2_event_buf_queued
-+    :header-rows:  0
-+    :stub-columns: 0
-+    :widths:       1 1 2
-+
-+    * - __u32
-+      - ``index``
-+      - The index of the buffer that was queued to the driver.
-+
-+
-+
-+.. tabularcolumns:: |p{4.4cm}|p{4.4cm}|p{8.7cm}|
+ 	if (ir->buf_internal) {
+ 		lirc_buffer_free(ir->buf);
+ 		kfree(ir->buf);
+@@ -218,6 +220,8 @@ int lirc_register_driver(struct lirc_driver *d)
  
+ 	mutex_unlock(&lirc_dev_lock);
  
- .. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
-diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-index a5cb0a8686ac..4e014b1d0317 100644
---- a/Documentation/media/videodev2.h.rst.exceptions
-+++ b/Documentation/media/videodev2.h.rst.exceptions
-@@ -462,6 +462,7 @@ replace define V4L2_EVENT_CTRL event-type
- replace define V4L2_EVENT_FRAME_SYNC event-type
- replace define V4L2_EVENT_SOURCE_CHANGE event-type
- replace define V4L2_EVENT_MOTION_DET event-type
-+replace define V4L2_EVENT_BUF_QUEUED event-type
- replace define V4L2_EVENT_PRIVATE_START event-type
- 
- replace define V4L2_EVENT_CTRL_CH_VALUE ctrl-changes-flags
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index e5abab9a908c..4a7a68ecc709 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -2158,6 +2158,7 @@ struct v4l2_streamparm {
- #define V4L2_EVENT_FRAME_SYNC			4
- #define V4L2_EVENT_SOURCE_CHANGE		5
- #define V4L2_EVENT_MOTION_DET			6
-+#define V4L2_EVENT_BUF_QUEUED			7
- #define V4L2_EVENT_PRIVATE_START		0x08000000
- 
- /* Payload for V4L2_EVENT_VSYNC */
-@@ -2210,6 +2211,14 @@ struct v4l2_event_motion_det {
- 	__u32 region_mask;
- };
- 
-+/**
-+ * struct v4l2_event_buf_queued - buffer queued in the driver event
-+ * @index:		index of the buffer queued in the driver
-+ */
-+struct v4l2_event_buf_queued {
-+	__u32 index;
-+};
++	get_device(ir->dev.parent);
 +
- struct v4l2_event {
- 	__u32				type;
- 	union {
-@@ -2218,6 +2227,7 @@ struct v4l2_event {
- 		struct v4l2_event_frame_sync	frame_sync;
- 		struct v4l2_event_src_change	src_change;
- 		struct v4l2_event_motion_det	motion_det;
-+		struct v4l2_event_buf_queued	buf_queued;
- 		__u8				data[64];
- 	} u;
- 	__u32				pending;
+ 	dev_info(ir->d.dev, "lirc_dev: driver %s registered at minor = %d\n",
+ 		 ir->d.name, ir->d.minor);
+ 
 -- 
-2.13.5
+2.13.3
