@@ -1,31 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:45311 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751212AbdHPIlF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Aug 2017 04:41:05 -0400
-Subject: Re: [PATCH 3/5] s5p-cec: use CEC_CAP_DEFAULTS
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <2e2902bd-b833-6f3f-9b5c-da99dd7a4966@samsung.com>
-Date: Wed, 16 Aug 2017 10:40:57 +0200
-MIME-version: 1.0
-In-reply-to: <20170804104155.37386-4-hverkuil@xs4all.nl>
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <20170804104155.37386-1-hverkuil@xs4all.nl>
-        <20170804104155.37386-4-hverkuil@xs4all.nl>
-        <CGME20170816084104epcas1p28b1eba2785ff9d8c62f254a4316786a7@epcas1p2.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59700 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752160AbdHDQDP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Aug 2017 12:03:15 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH v3 1/7] v4l: vsp1: Release buffers in start_streaming error path
+Date: Fri, 04 Aug 2017 19:03:28 +0300
+Message-ID: <22778858.uLPLfpXYHT@avalon>
+In-Reply-To: <cb35eec2aae25b07fdc303cf9e005c878f07ac92.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com> <cb35eec2aae25b07fdc303cf9e005c878f07ac92.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/04/2017 12:41 PM, Hans Verkuil wrote:
+Hi Kieran,
 
-> Use the new CEC_CAP_DEFAULTS define in the s5p-cec driver.
+Thank you for the patch.
+
+On Friday 04 Aug 2017 16:57:05 Kieran Bingham wrote:
+> Presently any received buffers are only released back to vb2 if
+> vsp1_video_stop_streaming() is called. If vsp1_video_start_streaming()
+> encounters an error, we will be warned by the vb2 handlers that buffers
+> have not been returned.
 > 
-> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
+> Move the buffer cleanup code to it's own function to prevent duplication
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+s/it's/its/
+
+> and call from both vsp1_video_stop_streaming() and the error path in
+> vsp1_video_start_streaming()
+
+s/$/./
+
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> ---
+>  drivers/media/platform/vsp1/vsp1_video.c | 22 +++++++++++++++-------
+>  1 file changed, 15 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
+> b/drivers/media/platform/vsp1/vsp1_video.c index 5af3486afe07..a24033429cd7
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.c
+> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> @@ -822,6 +822,19 @@ static int vsp1_video_setup_pipeline(struct
+> vsp1_pipeline *pipe) return 0;
+>  }
+> 
+> +static void vsp1_video_cleanup_pipeline(struct vsp1_video *video)
+
+Should this function take a pipe pointer instead of a video pointer for 
+symmetry with vsp1_video_setup_pipeline() ?
+
+> +{
+> +	struct vsp1_vb2_buffer *buffer;
+> +	unsigned long flags;
+> +
+> +	/* Remove all buffers from the IRQ queue. */
+> +	spin_lock_irqsave(&video->irqlock, flags);
+> +	list_for_each_entry(buffer, &video->irqqueue, queue)
+> +		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_ERROR);
+> +	INIT_LIST_HEAD(&video->irqqueue);
+> +	spin_unlock_irqrestore(&video->irqlock, flags);
+> +}
+> +
+>  static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int
+> count) {
+>  	struct vsp1_video *video = vb2_get_drv_priv(vq);
+> @@ -835,6 +848,7 @@ static int vsp1_video_start_streaming(struct vb2_queue
+> *vq, unsigned int count) ret = vsp1_video_setup_pipeline(pipe);
+>  		if (ret < 0) {
+>  			mutex_unlock(&pipe->lock);
+> +			vsp1_video_cleanup_pipeline(video);
+>  			return ret;
+>  		}
+> 
+> @@ -866,7 +880,6 @@ static void vsp1_video_stop_streaming(struct vb2_queue
+> *vq) {
+>  	struct vsp1_video *video = vb2_get_drv_priv(vq);
+>  	struct vsp1_pipeline *pipe = video->rwpf->pipe;
+> -	struct vsp1_vb2_buffer *buffer;
+>  	unsigned long flags;
+>  	int ret;
+> 
+> @@ -893,12 +906,7 @@ static void vsp1_video_stop_streaming(struct vb2_queue
+> *vq) media_pipeline_stop(&video->video.entity);
+>  	vsp1_video_pipeline_put(pipe);
+> 
+> -	/* Remove all buffers from the IRQ queue. */
+> -	spin_lock_irqsave(&video->irqlock, flags);
+> -	list_for_each_entry(buffer, &video->irqqueue, queue)
+> -		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_ERROR);
+> -	INIT_LIST_HEAD(&video->irqqueue);
+> -	spin_unlock_irqrestore(&video->irqlock, flags);
+> +	vsp1_video_cleanup_pipeline(video);
+
+The vsp1_video_cleanup_pipeline() call should go before 
+vsp1_video_pipeline_put(), as you've noticed in patch 7/7.
+
+With all that fixed,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>  }
+> 
+>  static const struct vb2_ops vsp1_video_queue_qops = {
+
+-- 
+Regards,
+
+Laurent Pinchart
