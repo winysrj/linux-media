@@ -1,106 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47270 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932867AbdHVMa1 (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:41186 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751319AbdHDKl7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 08:30:27 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+        Fri, 4 Aug 2017 06:41:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
-Subject: [PATCH v4 3/3] v4l: fwnode: Support generic parsing of graph endpoints in a single port
-Date: Tue, 22 Aug 2017 15:30:23 +0300
-Message-Id: <20170822123023.6149-4-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170822123023.6149-1-sakari.ailus@linux.intel.com>
-References: <20170822123023.6149-1-sakari.ailus@linux.intel.com>
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 4/5] stih-cec: use CEC_CAP_DEFAULTS
+Date: Fri,  4 Aug 2017 12:41:54 +0200
+Message-Id: <20170804104155.37386-5-hverkuil@xs4all.nl>
+In-Reply-To: <20170804104155.37386-1-hverkuil@xs4all.nl>
+References: <20170804104155.37386-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the preferred way to parse the endpoints.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Use the new CEC_CAP_DEFAULTS define in this driver.
+This also adds the CEC_CAP_RC capability which was missing here
+(and this is also the reason for this new define, to avoid missing
+such capabilities).
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-fwnode.c | 51 +++++++++++++++++++++++++++++++++++
- include/media/v4l2-fwnode.h           |  7 +++++
- 2 files changed, 58 insertions(+)
+ drivers/media/platform/sti/cec/stih-cec.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index cb0fc4b4e3bf..961bcdf22d9a 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -508,6 +508,57 @@ int v4l2_fwnode_endpoints_parse(
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoints_parse);
+diff --git a/drivers/media/platform/sti/cec/stih-cec.c b/drivers/media/platform/sti/cec/stih-cec.c
+index ce7964c71b50..dc221527fd05 100644
+--- a/drivers/media/platform/sti/cec/stih-cec.c
++++ b/drivers/media/platform/sti/cec/stih-cec.c
+@@ -351,9 +351,7 @@ static int stih_cec_probe(struct platform_device *pdev)
+ 	}
  
-+/**
-+ * v4l2_fwnode_endpoint_parse - Parse V4L2 fwnode endpoints in a port node
-+ * @dev: local struct device
-+ * @notifier: async notifier related to @dev
-+ * @port: port number
-+ * @endpoint: endpoint number
-+ * @asd_struct_size: size of the driver's async sub-device struct, including
-+ *		     sizeof(struct v4l2_async_subdev)
-+ * @parse_single: driver's callback function called on each V4L2 fwnode endpoint
-+ *
-+ * Parse all V4L2 fwnode endpoints related to a given port. This is
-+ * the preferred interface over v4l2_fwnode_endpoints_parse() and
-+ * should be used by new drivers.
-+ */
-+int v4l2_fwnode_endpoint_parse_port(
-+	struct device *dev, struct v4l2_async_notifier *notifier,
-+	unsigned int port, unsigned int endpoint, size_t asd_struct_size,
-+	int (*parse_single)(struct device *dev,
-+			    struct v4l2_fwnode_endpoint *vep,
-+			    struct v4l2_async_subdev *asd))
-+{
-+	struct fwnode_handle *fwnode;
-+	struct v4l2_async_subdev *asd;
-+	int ret;
-+
-+	fwnode = fwnode_graph_get_remote_node(dev_fwnode(dev), port, endpoint);
-+	if (!fwnode)
-+		return -ENOENT;
-+
-+	asd = devm_kzalloc(dev, asd_struct_size, GFP_KERNEL);
-+	if (!asd)
-+		return -ENOMEM;
-+
-+	ret = notifier_realloc(dev, notifier, notifier->num_subdevs + 1);
-+	if (ret)
-+		goto out_free;
-+
-+	ret = __v4l2_fwnode_endpoint_parse(dev, notifier, fwnode, asd,
-+					   parse_single);
-+	if (ret)
-+		goto out_free;
-+
-+	return 0;
-+
-+out_free:
-+	devm_kfree(dev, asd);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_parse_port);
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
- MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-index c75a768d4ef7..5adf28e7b070 100644
---- a/include/media/v4l2-fwnode.h
-+++ b/include/media/v4l2-fwnode.h
-@@ -131,4 +131,11 @@ int v4l2_fwnode_endpoints_parse(
- 			    struct v4l2_fwnode_endpoint *vep,
- 			    struct v4l2_async_subdev *asd));
+ 	cec->adap = cec_allocate_adapter(&sti_cec_adap_ops, cec,
+-			CEC_NAME,
+-			CEC_CAP_LOG_ADDRS | CEC_CAP_PASSTHROUGH |
+-			CEC_CAP_TRANSMIT, CEC_MAX_LOG_ADDRS);
++			CEC_NAME, CEC_CAP_DEFAULTS, CEC_MAX_LOG_ADDRS);
+ 	if (IS_ERR(cec->adap))
+ 		return PTR_ERR(cec->adap);
  
-+int v4l2_fwnode_endpoint_parse_port(
-+	struct device *dev, struct v4l2_async_notifier *notifier,
-+	unsigned int port, unsigned int endpoint, size_t asd_struct_size,
-+	int (*parse_single)(struct device *dev,
-+			    struct v4l2_fwnode_endpoint *vep,
-+			    struct v4l2_async_subdev *asd));
-+
- #endif /* _V4L2_FWNODE_H */
 -- 
-2.11.0
+2.13.2
