@@ -1,142 +1,274 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:48228 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750857AbdHQNMd (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58904 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751144AbdHEITG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Aug 2017 09:12:33 -0400
-Subject: Re: [PATCHv2 0/9] omapdrm: hdmi4: add CEC support
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20170802085408.16204-1-hverkuil@xs4all.nl>
- <bbc92584-71e8-b41e-dd35-5dd0d686cf53@ti.com>
- <90ba5e57-9314-dbdb-3a81-7b5e9555e02f@ti.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <974c6d6d-733b-01d2-2457-6506c531d161@xs4all.nl>
-Date: Thu, 17 Aug 2017 15:12:27 +0200
+        Sat, 5 Aug 2017 04:19:06 -0400
+Date: Sat, 5 Aug 2017 11:19:02 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Todor Tomov <todor.tomov@linaro.org>
+Cc: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Subject: Re: [PATCH v3 04/23] dt-bindings: media: Binding document for
+ Qualcomm Camera subsystem driver
+Message-ID: <20170805081902.pbf4gl5o74uokrmb@valkosipuli.retiisi.org.uk>
+References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
+ <1500287629-23703-5-git-send-email-todor.tomov@linaro.org>
+ <20170720101345.eovx5ovuxr7sqpea@valkosipuli.retiisi.org.uk>
+ <1dc5ab4d-5171-c6df-4300-2abcd0e5483b@linaro.org>
 MIME-Version: 1.0
-In-Reply-To: <90ba5e57-9314-dbdb-3a81-7b5e9555e02f@ti.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1dc5ab4d-5171-c6df-4300-2abcd0e5483b@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/17/17 15:03, Tomi Valkeinen wrote:
+Hi Todor,
+
+On Fri, Aug 04, 2017 at 02:54:21PM +0300, Todor Tomov wrote:
+> Hi Sakari,
 > 
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+> Thank you for the review.
+
+You're welcome!
+
 > 
-> On 11/08/17 13:57, Tomi Valkeinen wrote:
->> Hi Hans,
->>
->> On 02/08/17 11:53, Hans Verkuil wrote:
->>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>
->>> This patch series adds CEC support for the omap4. It is based on
->>> the 4.13-rc2 kernel with this patch series applied:
->>>
->>> http://www.spinics.net/lists/dri-devel/msg143440.html
->>>
->>> It is virtually identical to the first patch series posted in
->>> April:
->>>
->>> http://www.spinics.net/lists/dri-devel/msg138950.html
->>>
->>> The only two changes are in the Kconfig due to CEC Kconfig
->>> changes in 4.13 (it now selects CEC_CORE instead of depending on
->>> CEC_CORE) and a final patch was added adding a lost_hotplug op
->>> since for proper CEC support I have to know when the hotplug
->>> signal goes away.
->>>
->>> Tested with my Pandaboard.
->>
->> I'm doing some testing with this series on my panda. One issue I see is
->> that when I unload the display modules, I get:
->>
->> [   75.180206] platform 58006000.encoder: enabled after unload, idling
->> [   75.187896] platform 58001000.dispc: enabled after unload, idling
->> [   75.198242] platform 58000000.dss: enabled after unload, idling
->>
->> So I think something is left enabled, most likely in the HDMI driver. I
->> haven't debugged this yet.
->>
->> The first time I loaded the modules I also got "operation stopped when
->> reading edid", but I haven't seen that since. Possibly not related to
->> this series.
+> On 20.07.2017 13:13, Sakari Ailus wrote:
+> > Hi Todor,
+> > 
+> > On Mon, Jul 17, 2017 at 01:33:30PM +0300, Todor Tomov wrote:
+> >> Add DT binding document for Qualcomm Camera subsystem driver.
+> >>
+> >> CC: Rob Herring <robh+dt@kernel.org>
+> >> CC: devicetree@vger.kernel.org
+> >> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+> >> ---
+> >>  .../devicetree/bindings/media/qcom,camss.txt       | 191 +++++++++++++++++++++
+> >>  1 file changed, 191 insertions(+)
+> >>  create mode 100644 Documentation/devicetree/bindings/media/qcom,camss.txt
+> >>
+> >> diff --git a/Documentation/devicetree/bindings/media/qcom,camss.txt b/Documentation/devicetree/bindings/media/qcom,camss.txt
+> >> new file mode 100644
+> >> index 0000000..f698498
+> >> --- /dev/null
+> >> +++ b/Documentation/devicetree/bindings/media/qcom,camss.txt
+> >> @@ -0,0 +1,191 @@
+> >> +Qualcomm Camera Subsystem
+> >> +
+> >> +* Properties
+> >> +
+> >> +- compatible:
+> >> +	Usage: required
+> >> +	Value type: <stringlist>
+> >> +	Definition: Should contain:
+> >> +		- "qcom,msm8916-camss"
+> >> +- reg:
+> >> +	Usage: required
+> >> +	Value type: <prop-encoded-array>
+> >> +	Definition: Register ranges as listed in the reg-names property.
+> >> +- reg-names:
+> >> +	Usage: required
+> >> +	Value type: <stringlist>
+> >> +	Definition: Should contain the following entries:
+> >> +		- "csiphy0"
+> >> +		- "csiphy0_clk_mux"
+> >> +		- "csiphy1"
+> >> +		- "csiphy1_clk_mux"
+> >> +		- "csid0"
+> >> +		- "csid1"
+> >> +		- "ispif"
+> >> +		- "csi_clk_mux"
+> >> +		- "vfe0"
+> >> +- interrupts:
+> >> +	Usage: required
+> >> +	Value type: <prop-encoded-array>
+> >> +	Definition: Interrupts as listed in the interrupt-names property.
+> >> +- interrupt-names:
+> >> +	Usage: required
+> >> +	Value type: <stringlist>
+> >> +	Definition: Should contain the following entries:
+> >> +		- "csiphy0"
+> >> +		- "csiphy1"
+> >> +		- "csid0"
+> >> +		- "csid1"
+> >> +		- "ispif"
+> >> +		- "vfe0"
+> >> +- power-domains:
+> >> +	Usage: required
+> >> +	Value type: <prop-encoded-array>
+> >> +	Definition: A phandle and power domain specifier pairs to the
+> >> +		    power domain which is responsible for collapsing
+> >> +		    and restoring power to the peripheral.
+> >> +- clocks:
+> >> +	Usage: required
+> >> +	Value type: <prop-encoded-array>
+> >> +	Definition: A list of phandle and clock specifier pairs as listed
+> >> +		    in clock-names property.
+> >> +- clock-names:
+> >> +	Usage: required
+> >> +	Value type: <stringlist>
+> >> +	Definition: Should contain the following entries:
+> >> +                - "camss_top_ahb"
+> >> +                - "ispif_ahb"
+> >> +                - "csiphy0_timer"
+> >> +                - "csiphy1_timer"
+> >> +                - "csi0_ahb"
+> >> +                - "csi0"
+> >> +                - "csi0_phy"
+> >> +                - "csi0_pix"
+> >> +                - "csi0_rdi"
+> >> +                - "csi1_ahb"
+> >> +                - "csi1"
+> >> +                - "csi1_phy"
+> >> +                - "csi1_pix"
+> >> +                - "csi1_rdi"
+> >> +                - "camss_ahb"
+> >> +                - "camss_vfe_vfe"
+> >> +                - "camss_csi_vfe"
+> >> +                - "iface"
+> >> +                - "bus"
+> >> +- vdda-supply:
+> >> +	Usage: required
+> >> +	Value type: <phandle>
+> >> +	Definition: A phandle to voltage supply for CSI2.
+> >> +- iommus:
+> >> +	Usage: required
+> >> +	Value type: <prop-encoded-array>
+> >> +	Definition: A list of phandle and IOMMU specifier pairs.
+> >> +
+> >> +* Nodes
+> >> +
+> >> +- ports:
+> >> +	Usage: required
+> >> +	Definition: As described in video-interfaces.txt in same directory.
+> >> +	Properties:
+> >> +		- reg:
+> >> +			Usage: required
+> >> +			Value type: <u32>
+> >> +			Definition: Selects CSI2 PHY interface - PHY0 or PHY1.
+> >> +	Endpoint node properties:
+> >> +		- clock-lanes:
+> >> +			Usage: required
+> >> +			Value type: <u32>
+> >> +			Definition: The clock lane.
+> >> +		- data-lanes:
+> >> +			Usage: required
+> >> +			Value type: <prop-encoded-array>
+> >> +			Definition: An array of data lanes.
+> >> +
+> >> +* An Example
+> >> +
+> >> +	camss: camss@1b00000 {
+> >> +		compatible = "qcom,msm8916-camss";
+> >> +		reg = <0x1b0ac00 0x200>,
+> >> +			<0x1b00030 0x4>,
+> >> +			<0x1b0b000 0x200>,
+> >> +			<0x1b00038 0x4>,
+> >> +			<0x1b08000 0x100>,
+> >> +			<0x1b08400 0x100>,
+> >> +			<0x1b0a000 0x500>,
+> >> +			<0x1b00020 0x10>,
+> >> +			<0x1b10000 0x1000>;
+> >> +		reg-names = "csiphy0",
+> >> +			"csiphy0_clk_mux",
+> >> +			"csiphy1",
+> >> +			"csiphy1_clk_mux",
+> >> +			"csid0",
+> >> +			"csid1",
+> >> +			"ispif",
+> >> +			"csi_clk_mux",
+> >> +			"vfe0";
+> >> +		interrupts = <GIC_SPI 78 0>,
+> >> +			<GIC_SPI 79 0>,
+> >> +			<GIC_SPI 51 0>,
+> >> +			<GIC_SPI 52 0>,
+> >> +			<GIC_SPI 55 0>,
+> >> +			<GIC_SPI 57 0>;
+> >> +		interrupt-names = "csiphy0",
+> >> +			"csiphy1",
+> >> +			"csid0",
+> >> +			"csid1",
+> >> +			"ispif",
+> >> +			"vfe0";
+> >> +		power-domains = <&gcc VFE_GDSC>;
+> >> +		clocks = <&gcc GCC_CAMSS_TOP_AHB_CLK>,
+> >> +			<&gcc GCC_CAMSS_ISPIF_AHB_CLK>,
+> >> +			<&gcc GCC_CAMSS_CSI0PHYTIMER_CLK>,
+> >> +			<&gcc GCC_CAMSS_CSI1PHYTIMER_CLK>,
+> >> +			<&gcc GCC_CAMSS_CSI0_AHB_CLK>,
+> >> +			<&gcc GCC_CAMSS_CSI0_CLK>,
+> >> +			<&gcc GCC_CAMSS_CSI0PHY_CLK>,
+> >> +			<&gcc GCC_CAMSS_CSI0PIX_CLK>,
+> >> +			<&gcc GCC_CAMSS_CSI0RDI_CLK>,
+> >> +			<&gcc GCC_CAMSS_CSI1_AHB_CLK>,
+> >> +			<&gcc GCC_CAMSS_CSI1_CLK>,
+> >> +			<&gcc GCC_CAMSS_CSI1PHY_CLK>,
+> >> +			<&gcc GCC_CAMSS_CSI1PIX_CLK>,
+> >> +			<&gcc GCC_CAMSS_CSI1RDI_CLK>,
+> >> +			<&gcc GCC_CAMSS_AHB_CLK>,
+> >> +			<&gcc GCC_CAMSS_VFE0_CLK>,
+> >> +			<&gcc GCC_CAMSS_CSI_VFE0_CLK>,
+> >> +			<&gcc GCC_CAMSS_VFE_AHB_CLK>,
+> >> +			<&gcc GCC_CAMSS_VFE_AXI_CLK>;
+> >> +                clock-names = "camss_top_ahb",
+> >> +                        "ispif_ahb",
+> >> +                        "csiphy0_timer",
+> >> +                        "csiphy1_timer",
+> >> +                        "csi0_ahb",
+> >> +                        "csi0",
+> >> +                        "csi0_phy",
+> >> +                        "csi0_pix",
+> >> +                        "csi0_rdi",
+> >> +                        "csi1_ahb",
+> >> +                        "csi1",
+> >> +                        "csi1_phy",
+> >> +                        "csi1_pix",
+> >> +                        "csi1_rdi",
+> >> +                        "camss_ahb",
+> >> +                        "camss_vfe_vfe",
+> >> +                        "camss_csi_vfe",
+> >> +                        "iface",
+> >> +                        "bus";
+> >> +		vdda-supply = <&pm8916_l2>;
+> >> +		iommus = <&apps_iommu 3>;
+> >> +		ports {
+> >> +			#address-cells = <1>;
+> >> +			#size-cells = <0>;
+> >> +			port@0 {
+> >> +				reg = <0>;
+> >> +				csiphy0_ep: endpoint {
+> >> +					clock-lanes = <1>;
+> >> +					data-lanes = <0 2>;
+> > 
+> > Do you support lane mapping? The values suggest "yes". That's something I
+> > could improve in the documentation: if lane mapping isn't supported, then
+> > the clock lane should be 0 and the data lanes from 1 to n.
 > 
-> Sorry that I have had very little time to debug this. I rebased the cec code
-> on top of the latest omapdrm patches, and tested on AM5 EVM (which is more or
-> less equivalent to OMAP5 on the HDMI front). I get the following crash when
-> I turn on my monitor, which causes a HPD irq.
+> Lane mapping is supported only for the data lanes. The clock lane is always
+> the physical lane 1. This is why I think it makes sense to keep the value
+> of the clock lane to 1 as this is the physical lane 1 really. I'll add
+> explanation in the documentation for this and for the data lanes too so
+> it is clear.
 
-I see the issue: in drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c,
-tpd_detect() this line:
+Could you document this in the binding documentation? What I've seen
+previously is that either the lanes can be mapped any way you want, or
+there's just a single possible mapping.
 
-	if (!connected)
+> 
+> > 
+> > Is the split of the lanes between the ports static and specific to the
+> > hardware?
+> 
+> Each port describes a separate CSIPHY so each has its own set of lanes.
 
-should be:
+Ack. I asked since if the lanes can be shared, the lane numbering needs to
+be global to the device; otherwise there's no way to convey the lane/PHY
+association using the standard bindings.
 
-	if (!connected && in->ops.hdmi->lost_hotplug)
-
-I did that correctly in connector-hdmi.c, but not in encoder-tpd12s015.c.
-And since omap5 doesn't fill in lost_hotplug this crashes.
-
-I'll make a v3 of that patch.
-
+-- 
 Regards,
 
-	Hans
-
-> I'll continue looking at this as soon as I again find time, but I thought I'll
-> share what I have at the moment. I've pushed the branch to:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git 4.14/omapdrm-cec
-> 
->  Tomi
-> 
-> [   34.640159] Unable to handle kernel NULL pointer dereference at virtual address 00000000
-> [   34.648449] pgd = c0004000
-> [   34.651249] [00000000] *pgd=00000000
-> [   34.654921] Internal error: Oops: 80000007 [#1] PREEMPT SMP ARM
-> [   34.660879] Modules linked in: omapdrm drm_kms_helper drm connector_dvi panel_dsi_cm panel_dpi connector_analog_tv connector_hdmi encode
-> r_tpd12s015 encoder_tfp410 omapdss omapdss_base snd_soc_omap_hdmi_audio cec cfbfillrect cfbimgblt cfbcopyarea [last unloaded: omapdss_base]
-> [   34.685482] CPU: 0 PID: 264 Comm: irq/248-tpd12s0 Not tainted 4.13.0-rc5-00626-gbf51300abae9 #99
-> [   34.694314] Hardware name: Generic DRA74X (Flattened Device Tree)
-> [   34.700442] task: ed108140 task.stack: ed190000
-> [   34.705002] PC is at 0x0
-> [   34.707561] LR is at tpd_detect+0x3c/0x44 [encoder_tpd12s015]
-> [   34.713340] pc : [<00000000>]    lr : [<bf200340>]    psr: 600c0013
-> [   34.719642] sp : ed191ee8  ip : ed191e68  fp : ed191efc
-> [   34.724897] r10: 00000001  r9 : ee2e0200  r8 : c01b45c8
-> [   34.730153] r7 : ed10b064  r6 : 00000000  r5 : bf1d716c  r4 : 00000000
-> [   34.736716] r3 : 00000000  r2 : 00000000  r1 : ffffffff  r0 : bf1d716c
-> [   34.743283] Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment none
-> [   34.750458] Control: 10c5387d  Table: ad26406a  DAC: 00000051
-> [   34.756236] Process irq/248-tpd12s0 (pid: 264, stack limit = 0xed190218)
-> [   34.762976] Stack: (0xed191ee8 to 0xed192000)
-> [   34.767363] 1ee0:                   ed27e610 ed27e6d4 ed191f14 ed191f00 bf200388 bf200310
-> [   34.775587] 1f00: ed10b040 ee2e0200 ed191f34 ed191f18 c01b433c bf200354 ed190000 00000001
-> [   34.783812] 1f20: 00000000 ed10b064 ed191f74 ed191f38 c01b4660 c01b4324 c01b4318 ed10b040
-> [   34.792036] 1f40: 00000000 c01b4418 ed191f74 ed1ebc80 00000000 ed392500 ed190000 ed10b040
-> [   34.800261] 1f60: ed1ebcb8 ed24fb08 ed191fac ed191f78 c0163e60 c01b4504 00000000 c01b44f8
-> [   34.808486] 1f80: ed191fac ed392500 c0163d30 00000000 00000000 00000000 00000000 00000000
-> [   34.816710] 1fa0: 00000000 ed191fb0 c0108af0 c0163d3c 00000000 00000000 00000000 00000000
-> [   34.824934] 1fc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-> [   34.833157] 1fe0: 00000000 00000000 00000000 00000000 00000013 00000000 00000000 00000000
-> [   34.841376] Backtrace: 
-> [   34.843861] [<bf200304>] (tpd_detect [encoder_tpd12s015]) from [<bf200388>] (tpd_hpd_isr+0x40/0x68 [encoder_tpd12s015])
-> [   34.854701]  r5:ed27e6d4 r4:ed27e610
-> [   34.858310] [<bf200348>] (tpd_hpd_isr [encoder_tpd12s015]) from [<c01b433c>] (irq_thread_fn+0x24/0x5c)
-> [   34.867667]  r5:ee2e0200 r4:ed10b040
-> [   34.871270] [<c01b4318>] (irq_thread_fn) from [<c01b4660>] (irq_thread+0x168/0x254)
-> [   34.878970]  r7:ed10b064 r6:00000000 r5:00000001 r4:ed190000
-> [   34.884670] [<c01b44f8>] (irq_thread) from [<c0163e60>] (kthread+0x130/0x174)
-> [   34.891847]  r10:ed24fb08 r9:ed1ebcb8 r8:ed10b040 r7:ed190000 r6:ed392500 r5:00000000
-> [   34.899719]  r4:ed1ebc80
-> [   34.902280] [<c0163d30>] (kthread) from [<c0108af0>] (ret_from_fork+0x14/0x24)
-> [   34.909544]  r10:00000000 r9:00000000 r8:00000000 r7:00000000 r6:00000000 r5:c0163d30
-> [   34.917415]  r4:ed392500
-> [   34.919969] Code: bad PC value
-> [   34.923157] ---[ end trace 81cba660da396e25 ]---
-> [   34.927828] genirq: exiting task "irq/248-tpd12s0" (264) is an active IRQ thread (irq 248)
-> 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
