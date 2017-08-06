@@ -1,60 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56252 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751369AbdHQNvU (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:48856 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751263AbdHFLEH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Aug 2017 09:51:20 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Linux Kernel <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFT PATCH] [media] partial revert of "[media] tvp5150: add HW input connectors support"
-Date: Thu, 17 Aug 2017 16:51:44 +0300
-Message-ID: <2696279.xCvGOK2H1o@avalon>
-In-Reply-To: <CABxcv=k8T29Lz6-7gX=Bi7jt__GpBmrPt4bca-MmpcYjoXqvwA@mail.gmail.com>
-References: <1481643559-19666-1-git-send-email-javier@osg.samsung.com> <1502975140.2927.1.camel@pengutronix.de> <CABxcv=k8T29Lz6-7gX=Bi7jt__GpBmrPt4bca-MmpcYjoXqvwA@mail.gmail.com>
+        Sun, 6 Aug 2017 07:04:07 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] cec-api: log the reason for the -EINVAL in cec_s_mode
+Message-ID: <c38f37df-f07e-c91f-3421-a3f068b06c9d@xs4all.nl>
+Date: Sun, 6 Aug 2017 13:04:05 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+If cec_debug >= 1 then log why the requested mode returned -EINVAL.
 
-On Thursday 17 Aug 2017 15:49:51 Javier Martinez Canillas wrote:
-> On Thu, Aug 17, 2017 at 3:05 PM, Philipp Zabel wrote:
-> > On Tue, 2016-12-13 at 12:39 -0300, Javier Martinez Canillas wrote:
-> >> Commit f7b4b54e6364 ("[media] tvp5150: add HW input connectors support")
-> >> added input signals support for the tvp5150, but the approach was found
-> >> to be incorrect so the corresponding DT binding commit 82c2ffeb217a
-> >> ("[media] tvp5150: document input connectors DT bindings") was reverted.
-> >> 
-> >> This left the driver with an undocumented (and wrong) DT parsing logic,
-> >> so lets get rid of this code as well until the input connectors support
-> >> is implemented properly.
-> >> 
-> >> It's a partial revert due other patches added on top of mentioned commit
-> >> not allowing the commit to be reverted cleanly anymore. But all the code
-> >> related to the DT parsing logic and input entities creation are removed.
-> >> 
-> >> > Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >> > Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> > 
-> > what is the state of this patch? Was it forgotten or was the revert
-> > deemed unnecessary?
-> 
-> I think that was just forgotten. That code still needs to be reverted
-> since the DT patch was also reverted.
+It can be hard to debug this since -EINVAL can be returned for many
+reasons. So this should help.
 
-Yes, I think it was just forgotten.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/cec/cec-api.c | 48 +++++++++++++++++++++++++++++++--------------
+ 1 file changed, 33 insertions(+), 15 deletions(-)
 
-> Albeit the code is harmless since should be a no-op if a connectors DT
-> node isn't found.
+diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
+index 981d199ae4b4..4b03b4f20f11 100644
+--- a/drivers/media/cec/cec-api.c
++++ b/drivers/media/cec/cec-api.c
+@@ -357,34 +357,47 @@ static long cec_s_mode(struct cec_adapter *adap, struct cec_fh *fh,
 
+ 	if (copy_from_user(&mode, parg, sizeof(mode)))
+ 		return -EFAULT;
+-	if (mode & ~(CEC_MODE_INITIATOR_MSK | CEC_MODE_FOLLOWER_MSK))
++	if (mode & ~(CEC_MODE_INITIATOR_MSK | CEC_MODE_FOLLOWER_MSK)) {
++		dprintk(1, "%s: invalid mode bits set\n", __func__);
+ 		return -EINVAL;
++	}
+
+ 	mode_initiator = mode & CEC_MODE_INITIATOR_MSK;
+ 	mode_follower = mode & CEC_MODE_FOLLOWER_MSK;
+
+ 	if (mode_initiator > CEC_MODE_EXCL_INITIATOR ||
+-	    mode_follower > CEC_MODE_MONITOR_ALL)
++	    mode_follower > CEC_MODE_MONITOR_ALL) {
++		dprintk(1, "%s: unknown mode\n", __func__);
+ 		return -EINVAL;
++	}
+
+ 	if (mode_follower == CEC_MODE_MONITOR_ALL &&
+-	    !(adap->capabilities & CEC_CAP_MONITOR_ALL))
++	    !(adap->capabilities & CEC_CAP_MONITOR_ALL)) {
++		dprintk(1, "%s: MONITOR_ALL not supported\n", __func__);
+ 		return -EINVAL;
++	}
+
+ 	if (mode_follower == CEC_MODE_MONITOR_PIN &&
+-	    !(adap->capabilities & CEC_CAP_MONITOR_PIN))
++	    !(adap->capabilities & CEC_CAP_MONITOR_PIN)) {
++		dprintk(1, "%s: MONITOR_PIN not supported\n", __func__);
+ 		return -EINVAL;
++	}
+
+ 	/* Follower modes should always be able to send CEC messages */
+ 	if ((mode_initiator == CEC_MODE_NO_INITIATOR ||
+ 	     !(adap->capabilities & CEC_CAP_TRANSMIT)) &&
+ 	    mode_follower >= CEC_MODE_FOLLOWER &&
+-	    mode_follower <= CEC_MODE_EXCL_FOLLOWER_PASSTHRU)
++	    mode_follower <= CEC_MODE_EXCL_FOLLOWER_PASSTHRU) {
++		dprintk(1, "%s: cannot transmit\n", __func__);
+ 		return -EINVAL;
++	}
+
+ 	/* Monitor modes require CEC_MODE_NO_INITIATOR */
+-	if (mode_initiator && mode_follower >= CEC_MODE_MONITOR_PIN)
++	if (mode_initiator && mode_follower >= CEC_MODE_MONITOR_PIN) {
++		dprintk(1, "%s: monitor modes require NO_INITIATOR\n",
++			__func__);
+ 		return -EINVAL;
++	}
+
+ 	/* Monitor modes require CAP_NET_ADMIN */
+ 	if (mode_follower >= CEC_MODE_MONITOR_PIN && !capable(CAP_NET_ADMIN))
+@@ -465,8 +478,8 @@ static long cec_error_inj(struct cec_adapter *adap, struct cec_fh *fh,
+ 			  u32 __user *parg)
+ {
+ 	struct cec_error_inj error_inj;
+-	bool low_drive, inv_bit, stop_after_bit;
+-	u8 low_drive_pos, inv_bit_pos, stop_after_bit_pos;
++	bool invalid_ack, low_drive, inv_bit, stop_after_bit;
++	u8 invalid_ack_pos, low_drive_pos, inv_bit_pos, stop_after_bit_pos;
+
+ 	if (!(adap->capabilities & CEC_CAP_ERROR_INJ))
+ 		return -ENOTTY;
+@@ -486,8 +499,9 @@ static long cec_error_inj(struct cec_adapter *adap, struct cec_fh *fh,
+ 	}
+ 	error_inj.rx_error &= 0x0000ffff;
+ 	error_inj.tx_error &= 0x00ffff1f;
+-	if (!(error_inj.rx_error & CEC_ERROR_INJ_RX_INVALID_ACK))
+-		error_inj.rx_error &= ~0xf0;
++	invalid_ack = error_inj.rx_error & CEC_ERROR_INJ_RX_INVALID_ACK;
++	if (!invalid_ack)
++		error_inj.rx_error &= ~0x00f0;
+ 	low_drive = error_inj.rx_error & CEC_ERROR_INJ_RX_LOW_DRIVE;
+ 	if (!low_drive)
+ 		error_inj.rx_error &= ~0xff00;
+@@ -497,6 +511,7 @@ static long cec_error_inj(struct cec_adapter *adap, struct cec_fh *fh,
+ 	stop_after_bit = error_inj.tx_error & CEC_ERROR_INJ_TX_STOP_EARLY;
+ 	if (!stop_after_bit)
+ 		error_inj.tx_error &= ~0xff0000;
++	invalid_ack_pos = (error_inj.rx_error & 0x00f0) >> 4;
+ 	low_drive_pos = (error_inj.rx_error & 0xff00) >> 8;
+ 	inv_bit_pos = (error_inj.tx_error & 0xff00) >> 8;
+ 	stop_after_bit_pos = (error_inj.tx_error & 0xff0000) >> 16;
+@@ -505,11 +520,14 @@ static long cec_error_inj(struct cec_adapter *adap, struct cec_fh *fh,
+ 		dprintk(1, "%s: bit position > 160\n", __func__);
+ 		return -EINVAL;
+ 	}
+-	if (error_inj.cmd < 256 &&
+-	    ((low_drive && low_drive_pos <= 16) ||
+-	     (inv_bit && inv_bit_pos <= 16) ||
+-	     (stop_after_bit && stop_after_bit_pos <= 16))) {
+-		dprintk(1, "%s: bit position <= 16 when cmd < 256\n", __func__);
++	if (error_inj.cmd < 256 && low_drive && low_drive_pos <= 18) {
++		dprintk(1, "%s: low drive bit position <= 18 when cmd < 256\n",
++			__func__);
++		return -EINVAL;
++	}
++	if (error_inj.cmd < 256 && invalid_ack && !invalid_ack_pos) {
++		dprintk(1, "%s: invalid ack bit position == 0 when cmd < 256\n",
++			__func__);
+ 		return -EINVAL;
+ 	}
+ 	if (inv_bit_pos &&
 -- 
-Regards,
-
-Laurent Pinchart
+2.13.2
