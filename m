@@ -1,53 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:57614 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751357AbdH3R4o (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Aug 2017 13:56:44 -0400
-From: Rajmohan Mani <rajmohan.mani@intel.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@kernel.org, hverkuil@xs4all.nl, tfiga@chromium.org,
-        sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-        tuukka.toivonen@intel.com, Rajmohan Mani <rajmohan.mani@intel.com>
-Subject: [PATCH] [media] dw9714: Set the v4l2 focus ctrl step as 1
-Date: Wed, 30 Aug 2017 10:48:52 -0700
-Message-Id: <1504115332-26651-1-git-send-email-rajmohan.mani@intel.com>
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:33803
+        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751326AbdHFIu6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 6 Aug 2017 04:50:58 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Rick Chang <rick.chang@mediatek.com>
+Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org,
+        Bin Liu <bin.liu@mediatek.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 05/12] [media] vcodec: mediatek: constify v4l2_m2m_ops structures
+Date: Sun,  6 Aug 2017 10:25:14 +0200
+Message-Id: <1502007921-22968-6-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1502007921-22968-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1502007921-22968-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Current v4l2 focus ctrl step value of 16, limits
-the minimum granularity of focus positions to 16.
-Setting this value as 1, enables more accurate
-focus positions.
+The v4l2_m2m_ops structures are only passed as the only
+argument to v4l2_m2m_init, which is declared as const.
+Thus the v4l2_m2m_ops structures themselves can be const.
 
-Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+Done with the help of Coccinelle.
+
+// <smpl>
+@r disable optional_qualifier@
+identifier i;
+position p;
+@@
+static struct v4l2_m2m_ops i@p = { ... };
+
+@ok1@
+identifier r.i;
+position p;
+@@
+v4l2_m2m_init(&i@p)
+
+@bad@
+position p != {r.p,ok1.p};
+identifier r.i;
+struct v4l2_m2m_ops e;
+@@
+e@i@p
+
+@depends on !bad disable optional_qualifier@
+identifier r.i;
+@@
+static
++const
+ struct v4l2_m2m_ops i = { ... };
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
 ---
- drivers/media/i2c/dw9714.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/dw9714.c b/drivers/media/i2c/dw9714.c
-index 6a607d7..f9212a8 100644
---- a/drivers/media/i2c/dw9714.c
-+++ b/drivers/media/i2c/dw9714.c
-@@ -22,6 +22,11 @@
- #define DW9714_NAME		"dw9714"
- #define DW9714_MAX_FOCUS_POS	1023
- /*
-+ * This sets the minimum granularity for the focus positions.
-+ * A value of 1 gives maximum accuracy for a desired focus position
-+ */
-+#define DW9714_FOCUS_STEPS	1
-+/*
-  * This acts as the minimum granularity of lens movement.
-  * Keep this value power of 2, so the control steps can be
-  * uniformly adjusted for gradual lens movement, with desired
-@@ -138,7 +143,7 @@ static int dw9714_init_controls(struct dw9714_device *dev_vcm)
- 	v4l2_ctrl_handler_init(hdl, 1);
+diff --git a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+index f17a86b..226f908 100644
+--- a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
++++ b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+@@ -865,7 +865,7 @@ static void mtk_jpeg_job_abort(void *priv)
+ {
+ }
  
- 	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
--			  0, DW9714_MAX_FOCUS_POS, DW9714_CTRL_STEPS, 0);
-+			  0, DW9714_MAX_FOCUS_POS, DW9714_FOCUS_STEPS, 0);
- 
- 	if (hdl->error)
- 		dev_err(&client->dev, "%s fail error: 0x%x\n",
--- 
-1.9.1
+-static struct v4l2_m2m_ops mtk_jpeg_m2m_ops = {
++static const struct v4l2_m2m_ops mtk_jpeg_m2m_ops = {
+ 	.device_run = mtk_jpeg_device_run,
+ 	.job_ready  = mtk_jpeg_job_ready,
+ 	.job_abort  = mtk_jpeg_job_abort,
