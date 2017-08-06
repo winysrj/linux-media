@@ -1,53 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49076 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751370AbdHPMym (ORCPT
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:49372
+        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751405AbdHFIu7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Aug 2017 08:54:42 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: jacek.anaszewski@gmail.com, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: [PATCH 0/3] AS3645A flash support
-Date: Wed, 16 Aug 2017 15:54:40 +0300
-Message-Id: <20170816125440.27534-1-sakari.ailus@linux.intel.com>
+        Sun, 6 Aug 2017 04:50:59 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 09/12] [media] media: mx2-emmaprp: constify v4l2_m2m_ops structures
+Date: Sun,  6 Aug 2017 10:25:18 +0200
+Message-Id: <1502007921-22968-10-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1502007921-22968-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1502007921-22968-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everyone,
+The v4l2_m2m_ops structures are only passed as the only
+argument to v4l2_m2m_init, which is declared as const.
+Thus the v4l2_m2m_ops structures themselves can be const.
 
-This set adds support for the AS3645A flash driver which can be found e.g.
-in Nokia N9.
+Done with the help of Coccinelle.
 
-The set depeds on the flash patches here so I'd prefer to merge this
-through mediatree.
+// <smpl>
+@r disable optional_qualifier@
+identifier i;
+position p;
+@@
+static struct v4l2_m2m_ops i@p = { ... };
 
-<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=flash>
+@ok1@
+identifier r.i;
+position p;
+@@
+v4l2_m2m_init(&i@p)
 
-Jacek: would that be ok for you?
+@bad@
+position p != {r.p,ok1.p};
+identifier r.i;
+struct v4l2_m2m_ops e;
+@@
+e@i@p
 
-Since the RFC set:
+@depends on !bad disable optional_qualifier@
+identifier r.i;
+@@
+static
++const
+ struct v4l2_m2m_ops i = { ... };
+// </smpl>
 
-- Add back the DT binding documentation I lost long ago.
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-- Use colon (":") in the default names instead of a space.
+---
+ drivers/media/platform/mx2_emmaprp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Sakari Ailus (3):
-  dt: bindings: Document DT bindings for Analog devices as3645a
-  leds: as3645a: Add LED flash class driver
-  arm: dts: omap3: N9/N950: Add AS3645A camera flash
-
- .../devicetree/bindings/leds/ams,as3645a.txt       |  56 ++
- MAINTAINERS                                        |   6 +
- arch/arm/boot/dts/omap3-n9.dts                     |   1 +
- arch/arm/boot/dts/omap3-n950-n9.dtsi               |  14 +
- arch/arm/boot/dts/omap3-n950.dts                   |   1 +
- drivers/leds/Kconfig                               |   8 +
- drivers/leds/Makefile                              |   1 +
- drivers/leds/leds-as3645a.c                        | 785 +++++++++++++++++++++
- 8 files changed, 872 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/leds/ams,as3645a.txt
- create mode 100644 drivers/leds/leds-as3645a.c
-
--- 
-2.11.0
+diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+index 03e47e0..7fd209e 100644
+--- a/drivers/media/platform/mx2_emmaprp.c
++++ b/drivers/media/platform/mx2_emmaprp.c
+@@ -882,7 +882,7 @@ static int emmaprp_mmap(struct file *file, struct vm_area_struct *vma)
+ 	.vfl_dir	= VFL_DIR_M2M,
+ };
+ 
+-static struct v4l2_m2m_ops m2m_ops = {
++static const struct v4l2_m2m_ops m2m_ops = {
+ 	.device_run	= emmaprp_device_run,
+ 	.job_abort	= emmaprp_job_abort,
+ 	.lock		= emmaprp_lock,
