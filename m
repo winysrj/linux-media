@@ -1,112 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51940 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751390AbdH2Ml2 (ORCPT
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:49372
+        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751429AbdHFIvA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 08:41:28 -0400
-Received: from lanttu.localdomain (unknown [IPv6:2001:1bc8:1a6:d3d5::e1:1002])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id B90AC600F6
-        for <linux-media@vger.kernel.org>; Tue, 29 Aug 2017 15:41:26 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 3/4] smiapp: Get clock rate if it's not available through DT
-Date: Tue, 29 Aug 2017 15:41:24 +0300
-Message-Id: <20170829124125.30879-4-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170829124125.30879-1-sakari.ailus@linux.intel.com>
-References: <20170829124125.30879-1-sakari.ailus@linux.intel.com>
+        Sun, 6 Aug 2017 04:51:00 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org,
+        Houlong Wei <houlong.wei@mediatek.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 12/12] [media] mtk-mdp: constify v4l2_m2m_ops structures
+Date: Sun,  6 Aug 2017 10:25:21 +0200
+Message-Id: <1502007921-22968-13-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1502007921-22968-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1502007921-22968-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Obtain the clock rate from the clock framework if it's not available
-through DT. The assumption is that the parent device (camera module)
-defines the rate as clock control is a part of the power on and power off
-sequences --- which are camera module specific.
+The v4l2_m2m_ops structures are only passed as the only
+argument to v4l2_m2m_init, which is declared as const.
+Thus the v4l2_m2m_ops structures themselves can be const.
 
-Also use the clock rate from DT if no clock is provided.
+Done with the help of Coccinelle.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+// <smpl>
+@r disable optional_qualifier@
+identifier i;
+position p;
+@@
+static struct v4l2_m2m_ops i@p = { ... };
+
+@ok1@
+identifier r.i;
+position p;
+@@
+v4l2_m2m_init(&i@p)
+
+@bad@
+position p != {r.p,ok1.p};
+identifier r.i;
+struct v4l2_m2m_ops e;
+@@
+e@i@p
+
+@depends on !bad disable optional_qualifier@
+identifier r.i;
+@@
+static
++const
+ struct v4l2_m2m_ops i = { ... };
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
 ---
- drivers/media/i2c/smiapp/smiapp-core.c | 52 +++++++++++++++++++++-------------
- 1 file changed, 33 insertions(+), 19 deletions(-)
+ drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 55771826b446..009b5e26204b 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2829,12 +2829,10 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
- 	/* NVM size is not mandatory */
- 	fwnode_property_read_u32(fwnode, "nokia,nvm-size", &hwcfg->nvm_size);
+diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+index 3038d62..583d477 100644
+--- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
++++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+@@ -1225,7 +1225,7 @@ static int mtk_mdp_m2m_release(struct file *file)
+ 	.mmap		= v4l2_m2m_fop_mmap,
+ };
  
--	rval = fwnode_property_read_u32(fwnode, "clock-frequency",
-+	rval = fwnode_property_read_u32(dev_fwnode(dev), "clock-frequency",
- 					&hwcfg->ext_clk);
--	if (rval) {
--		dev_warn(dev, "can't get clock-frequency\n");
--		goto out_err;
--	}
-+	if (rval)
-+		dev_info(dev, "can't get clock-frequency\n");
- 
- 	dev_dbg(dev, "nvm %d, clk %d, mode %d\n",
- 		hwcfg->nvm_size, hwcfg->ext_clk, hwcfg->csi_signalling_mode);
-@@ -2870,7 +2868,6 @@ static int smiapp_probe(struct i2c_client *client,
- {
- 	struct smiapp_sensor *sensor;
- 	struct smiapp_hwconfig *hwcfg = smiapp_get_hwconfig(&client->dev);
--	unsigned long rate;
- 	unsigned int i;
- 	int rval;
- 
-@@ -2901,20 +2898,37 @@ static int smiapp_probe(struct i2c_client *client,
- 		return -EPROBE_DEFER;
- 	}
- 
--	rval = clk_set_rate(sensor->ext_clk, sensor->hwcfg->ext_clk);
--	if (rval < 0) {
--		dev_err(&client->dev,
--			"unable to set clock freq to %u\n",
--			sensor->hwcfg->ext_clk);
--		return rval;
--	}
-+	if (sensor->ext_clk) {
-+		if (sensor->hwcfg->ext_clk) {
-+			unsigned long rate;
- 
--	rate = clk_get_rate(sensor->ext_clk);
--	if (rate != sensor->hwcfg->ext_clk) {
--		dev_err(&client->dev,
--			"can't set clock freq, asked for %u but got %lu\n",
--			sensor->hwcfg->ext_clk, rate);
--		return rval;
-+			rval = clk_set_rate(sensor->ext_clk,
-+					    sensor->hwcfg->ext_clk);
-+			if (rval < 0) {
-+				dev_err(&client->dev,
-+					"unable to set clock freq to %u\n",
-+					sensor->hwcfg->ext_clk);
-+				return rval;
-+			}
-+
-+			rate = clk_get_rate(sensor->ext_clk);
-+			if (rate != sensor->hwcfg->ext_clk) {
-+				dev_err(&client->dev,
-+					"can't set clock freq, asked for %u but got %lu\n",
-+					sensor->hwcfg->ext_clk, rate);
-+				return rval;
-+			}
-+		} else {
-+			sensor->hwcfg->ext_clk = clk_get_rate(sensor->ext_clk);
-+			dev_dbg(&client->dev, "obtained clock freq %u\n",
-+				sensor->hwcfg->ext_clk);
-+		}
-+	} else if (sensor->hwcfg->ext_clk) {
-+		dev_dbg(&client->dev, "assuming clock freq %u\n",
-+			sensor->hwcfg->ext_clk);
-+	} else {
-+		dev_err(&client->dev, "unable to obtain clock freq\n");
-+		return -EINVAL;
- 	}
- 
- 	sensor->xshutdown = devm_gpiod_get_optional(&client->dev, "xshutdown",
--- 
-2.11.0
+-static struct v4l2_m2m_ops mtk_mdp_m2m_ops = {
++static const struct v4l2_m2m_ops mtk_mdp_m2m_ops = {
+ 	.device_run	= mtk_mdp_m2m_device_run,
+ 	.job_abort	= mtk_mdp_m2m_job_abort,
+ };
