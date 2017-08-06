@@ -1,60 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51938 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751429AbdH2Ml2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 08:41:28 -0400
-Received: from lanttu.localdomain (unknown [IPv6:2001:1bc8:1a6:d3d5::e1:1002])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 87EBB600E2
-        for <linux-media@vger.kernel.org>; Tue, 29 Aug 2017 15:41:26 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/4] smiapp: Verify clock frequency after setting it, prevent changing it
-Date: Tue, 29 Aug 2017 15:41:23 +0300
-Message-Id: <20170829124125.30879-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170829124125.30879-1-sakari.ailus@linux.intel.com>
-References: <20170829124125.30879-1-sakari.ailus@linux.intel.com>
+Received: from gofer.mess.org ([88.97.38.141]:55651 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751242AbdHFI45 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 6 Aug 2017 04:56:57 -0400
+Date: Sun, 6 Aug 2017 09:56:55 +0100
+From: Sean Young <sean@mess.org>
+To: Matthias Reichl <hias@horus.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org
+Subject: [PATCH] keytable: ensure udev rule fires on rc input device
+Message-ID: <20170806085655.dkaq7hqpyzrc3abj@gofer.mess.org>
+References: <20170717092038.3e7jbjtx7htu3lda@camel2.lan>
+ <20170805213802.ni42iaht5rf5rye2@gofer.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170805213802.ni42iaht5rf5rye2@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The external clock frequency was set by the driver but the obtained
-frequency was never verified. Do that.
+The rc device is created before the input device, so if ir-keytable runs
+too early the input device does not exist yet.
 
-Being able to obtain the exact frequency is important as the value is used
-for PLL calculations which may result in frequencies that violate the PLL
-tree limits.
+Ensure that rule fires on creation of a rc device's input device.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Note that this also prevents udev from starting ir-keytable on an
+transmit only device, which has no input device.
+
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/media/i2c/smiapp/smiapp-core.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ utils/keytable/70-infrared.rules | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index d581625d7826..55771826b446 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2870,6 +2870,7 @@ static int smiapp_probe(struct i2c_client *client,
- {
- 	struct smiapp_sensor *sensor;
- 	struct smiapp_hwconfig *hwcfg = smiapp_get_hwconfig(&client->dev);
-+	unsigned long rate;
- 	unsigned int i;
- 	int rval;
+Matthias, can I have your Signed-off-by please? Thank you.
+
+
+diff --git a/utils/keytable/70-infrared.rules b/utils/keytable/70-infrared.rules
+index afffd951..b3531727 100644
+--- a/utils/keytable/70-infrared.rules
++++ b/utils/keytable/70-infrared.rules
+@@ -1,4 +1,12 @@
+ # Automatically load the proper keymaps after the Remote Controller device
+ # creation.  The keycode tables rules should be at /etc/rc_maps.cfg
  
-@@ -2908,6 +2909,14 @@ static int smiapp_probe(struct i2c_client *client,
- 		return rval;
- 	}
- 
-+	rate = clk_get_rate(sensor->ext_clk);
-+	if (rate != sensor->hwcfg->ext_clk) {
-+		dev_err(&client->dev,
-+			"can't set clock freq, asked for %u but got %lu\n",
-+			sensor->hwcfg->ext_clk, rate);
-+		return rval;
-+	}
+-ACTION=="add", SUBSYSTEM=="rc", RUN+="/usr/bin/ir-keytable -a /etc/rc_maps.cfg -s $name"
++ACTION!="add", SUBSYSTEMS!="rc", GOTO="rc_dev_end"
 +
- 	sensor->xshutdown = devm_gpiod_get_optional(&client->dev, "xshutdown",
- 						    GPIOD_OUT_LOW);
- 	if (IS_ERR(sensor->xshutdown))
++SUBSYSTEM=="rc", ENV{rc_sysdev}="$name"
++
++SUBSYSTEM=="input", IMPORT{parent}="rc_sysdev"
++
++KERNEL=="event[0-9]*", ENV{rc_sysdev}=="?*", RUN+="/usr/bin/ir-keytable -a /etc/rc_maps.cfg -s $env{rc_sysdev}"
++
++LABEL="rc_dev_end"
 -- 
 2.11.0
