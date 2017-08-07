@@ -1,41 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:34841 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750768AbdHaHtG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 03:49:06 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: alan@linux.intel.com, gregkh@linuxfoundation.org,
-        mchehab@kernel.org
-Cc: linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-media@vger.kernel.org
-Subject: [PATCH] Staging: atomisp: constify driver_attribute
-Date: Thu, 31 Aug 2017 13:18:37 +0530
-Message-Id: <a6ed8285b5512f245f0950f2446b07b50c6843dd.1504165443.git.arvind.yadav.cs@gmail.com>
+Received: from mailout1.samsung.com ([203.254.224.24]:51810 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753104AbdHGKSm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Aug 2017 06:18:42 -0400
+Subject: Re: [PATCH 06/12] [media] exynos-gsc: constify v4l2_m2m_ops
+ structures
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, bhumirks@gmail.com,
+        kernel-janitors@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <44bf7134-14c9-fcb2-75d1-398a900e6de3@samsung.com>
+Date: Mon, 07 Aug 2017 12:18:33 +0200
+MIME-version: 1.0
+In-reply-to: <1502007921-22968-7-git-send-email-Julia.Lawall@lip6.fr>
+Content-type: text/plain; charset="utf-8"; format="flowed"
+Content-language: en-GB
+Content-transfer-encoding: 7bit
+References: <1502007921-22968-1-git-send-email-Julia.Lawall@lip6.fr>
+        <1502007921-22968-7-git-send-email-Julia.Lawall@lip6.fr>
+        <CGME20170807101839epcas2p41e7c3092b876487e132a8a640e9ed262@epcas2p4.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-driver_attribute are not supposed to change at runtime.
-Functions driver_create_file/driver_remove_file are working with
-const driver_attribute. So mark the non-const structs as const.
+On 08/06/2017 10:25 AM, Julia Lawall wrote:
+> The v4l2_m2m_ops structures are only passed as the only
+> argument to v4l2_m2m_init, which is declared as const.
+> Thus the v4l2_m2m_ops structures themselves can be const.
+> 
+> Done with the help of Coccinelle.
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
----
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> Signed-off-by: Julia Lawall<Julia.Lawall@lip6.fr>
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c
-index 1ae2358..9f74b2d 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c
-@@ -162,7 +162,7 @@ static ssize_t iunit_dbgopt_store(struct device_driver *drv, const char *buf,
- 	return size;
- }
- 
--static struct driver_attribute iunit_drvfs_attrs[] = {
-+static const struct driver_attribute iunit_drvfs_attrs[] = {
- 	__ATTR(dbglvl, 0644, iunit_dbglvl_show, iunit_dbglvl_store),
- 	__ATTR(dbgfun, 0644, iunit_dbgfun_show, iunit_dbgfun_store),
- 	__ATTR(dbgopt, 0644, iunit_dbgopt_show, iunit_dbgopt_store),
--- 
-1.9.1
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
