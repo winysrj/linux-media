@@ -1,67 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:40281 "EHLO extserv.mm-sol.com"
+Received: from gofer.mess.org ([88.97.38.141]:52459 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752348AbdHHNbA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Aug 2017 09:31:00 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, hans.verkuil@cisco.com, s.nawrocki@samsung.com,
-        sakari.ailus@iki.fi, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
-Cc: Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v4 19/21] doc: media/v4l-drivers: Qualcomm Camera Subsystem - Scale and crop
-Date: Tue,  8 Aug 2017 16:30:16 +0300
-Message-Id: <1502199018-28250-20-git-send-email-todor.tomov@linaro.org>
-In-Reply-To: <1502199018-28250-1-git-send-email-todor.tomov@linaro.org>
-References: <1502199018-28250-1-git-send-email-todor.tomov@linaro.org>
+        id S1751913AbdHGUZh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 7 Aug 2017 16:25:37 -0400
+Date: Mon, 7 Aug 2017 21:25:35 +0100
+From: Sean Young <sean@mess.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 1/2] rc-main: support CEC protocol keypress timeout
+Message-ID: <20170807202535.a54swjrlptgqoxbi@gofer.mess.org>
+References: <20170807133124.30682-1-hverkuil@xs4all.nl>
+ <20170807133124.30682-2-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170807133124.30682-2-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update the Qualcomm Camera Subsystem driver document for VFE scale
-and crop modules support.
+On Mon, Aug 07, 2017 at 03:31:23PM +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The CEC protocol has a keypress timeout of 550ms. Add support for this.
+> 
+> Note: this really should be defined in a protocol struct.
 
-Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
----
- Documentation/media/v4l-drivers/qcom_camss.rst | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+That is a good point, the names of the protocol variants and scancode bits
+can also go into such a struct. This can be done at some point in the
+future.
 
-diff --git a/Documentation/media/v4l-drivers/qcom_camss.rst b/Documentation/media/v4l-drivers/qcom_camss.rst
-index d888443..e6e948f 100644
---- a/Documentation/media/v4l-drivers/qcom_camss.rst
-+++ b/Documentation/media/v4l-drivers/qcom_camss.rst
-@@ -35,7 +35,8 @@ driver consists of:
-   the CSIDs to the inputs of the VFE;
- - VFE (Video Front End) module. Contains a pipeline of image processing hardware
-   blocks. The VFE has different input interfaces. The PIX input interface feeds
--  the input data to the image processing pipeline. Three RDI input interfaces
-+  the input data to the image processing pipeline. The image processing pipeline
-+  contains also a scale and crop module at the end. Three RDI input interfaces
-   bypass the image processing pipeline. The VFE also contains the AXI bus
-   interface which writes the output data to memory.
- 
-@@ -74,6 +75,11 @@ The current version of the driver supports:
-     - NV12/NV21 (two plane YUV 4:2:0 - V4L2_PIX_FMT_NV12 / V4L2_PIX_FMT_NV21);
-     - NV16/NV61 (two plane YUV 4:2:2 - V4L2_PIX_FMT_NV16 / V4L2_PIX_FMT_NV61).
- 
-+  - Scaling support. Configuration of the VFE Encoder Scale module
-+    for downscalling with ratio up to 16x.
-+
-+  - Cropping support. Configuration of the VFE Encoder Crop module.
-+
- - Concurrent and independent usage of two data inputs - could be camera sensors
-   and/or TG.
- 
-@@ -135,6 +141,12 @@ not required to implement the currently supported functionality. The complete
- configuration on each hardware module is applied on STREAMON ioctl based on
- the current active media links, formats and controls set.
- 
-+The output size of the scaler module in the VFE is configured with the actual
-+compose selection rectangle on the sink pad of the 'msm_vfe0_pix' entity.
-+
-+The crop output area of the crop module in the VFE is configured with the actual
-+crop selection rectangle on the source pad of the 'msm_vfe0_pix' entity.
-+
- 
- Documentation
- -------------
--- 
-2.7.4
+Acked-by: Sean Young <sean@mess.org>
+
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/rc/rc-main.c | 17 +++++++++++++++--
+>  1 file changed, 15 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index a9eba0013525..073407a78f70 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -33,6 +33,9 @@
+>  /* FIXME: IR_KEYPRESS_TIMEOUT should be protocol specific */
+>  #define IR_KEYPRESS_TIMEOUT 250
+>  
+> +/* The CEC protocol needs a timeout of 550 */
+> +#define IR_KEYPRESS_CEC_TIMEOUT 550
+> +
+>  /* Used to keep track of known keymaps */
+>  static LIST_HEAD(rc_map_list);
+>  static DEFINE_SPINLOCK(rc_map_lock);
+> @@ -622,7 +625,12 @@ void rc_repeat(struct rc_dev *dev)
+>  	if (!dev->keypressed)
+>  		goto out;
+>  
+> -	dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
+> +	if (dev->last_protocol == RC_TYPE_CEC)
+> +		dev->keyup_jiffies = jiffies +
+> +			msecs_to_jiffies(IR_KEYPRESS_CEC_TIMEOUT);
+> +	else
+> +		dev->keyup_jiffies = jiffies +
+> +			msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
+>  	mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
+>  
+>  out:
+> @@ -692,7 +700,12 @@ void rc_keydown(struct rc_dev *dev, enum rc_type protocol, u32 scancode, u8 togg
+>  	ir_do_keydown(dev, protocol, scancode, keycode, toggle);
+>  
+>  	if (dev->keypressed) {
+> -		dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
+> +		if (protocol == RC_TYPE_CEC)
+> +			dev->keyup_jiffies = jiffies +
+> +				msecs_to_jiffies(IR_KEYPRESS_CEC_TIMEOUT);
+> +		else
+> +			dev->keyup_jiffies = jiffies +
+> +				msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
+>  		mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
+>  	}
+>  	spin_unlock_irqrestore(&dev->keylock, flags);
+> -- 
+> 2.13.2
