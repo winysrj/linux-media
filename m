@@ -1,70 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40929
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750980AbdH3WQD (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:57975 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753225AbdHGM0I (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Aug 2017 18:16:03 -0400
-Date: Wed, 30 Aug 2017 19:15:53 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: Jonathan Corbet <corbet@lwn.net>,
-        "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2] docs: kernel-doc comments are ASCII
-Message-ID: <20170830191553.179a79d6@vento.lan>
-In-Reply-To: <3390facf-69ae-ba18-8abe-09b5695a6b31@infradead.org>
-References: <54c23e8e-89c0-5cea-0dcc-e938952c5642@infradead.org>
-        <20170830152314.0486fafb@lwn.net>
-        <3390facf-69ae-ba18-8abe-09b5695a6b31@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        Mon, 7 Aug 2017 08:26:08 -0400
+Message-ID: <1502108760.2490.28.camel@pengutronix.de>
+Subject: Re: [PATCH] media: i2c: OV5647: gate clock lane before stream on
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Jacob Chen <jacobchen110@gmail.com>
+Cc: "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
+        linux-kernel@vger.kernel.org, roliveir@synopsys.com,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        vladimir_zapolskiy@mentor.com,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        sakari.ailus@linux.intel.com, slongerbeam@gmail.com,
+        robh+dt@kernel.org, lolivei@synopsys.com
+Date: Mon, 07 Aug 2017 14:26:00 +0200
+In-Reply-To: <CAFLEztQcCijnmkp_r3-gy2ptM0b+WFEw4Sf1MeiatJbvnKqA8A@mail.gmail.com>
+References: <1500950041-5449-1-git-send-email-jacob-chen@iotwrt.com>
+         <CAFLEztQHYWAk39+gQCD0XkKPVqmUY5kPZydWgw8+zu53+D2_pA@mail.gmail.com>
+         <1502093851.2490.4.camel@pengutronix.de>
+         <CAFLEztQcCijnmkp_r3-gy2ptM0b+WFEw4Sf1MeiatJbvnKqA8A@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 30 Aug 2017 15:02:59 -0700
-Randy Dunlap <rdunlap@infradead.org> escreveu:
+Hi Jacob,
 
-> On 08/30/17 14:23, Jonathan Corbet wrote:
-> > On Mon, 28 Aug 2017 16:10:09 -0700
-> > Randy Dunlap <rdunlap@infradead.org> wrote:
-> >   
-> >> kernel-doc parsing uses as ASCII codec, so let people know that
-> >> kernel-doc comments should be in ASCII characters only.
+On Mon, 2017-08-07 at 19:06 +0800, Jacob Chen wrote:
+[...]
+> >> > --- a/drivers/media/i2c/ov5647.c
+> >> > +++ b/drivers/media/i2c/ov5647.c
+> >> > @@ -253,6 +253,10 @@ static int ov5647_stream_on(struct v4l2_subdev *sd)
+> >> >  {
+> >> >         int ret;
+> >> >
+> >> > +       ret = ov5647_write(sd, 0x4800, 0x04);
+> >> > +       if (ret < 0)
+> >> > +               return ret;
+> >> > +
+
+So this clears BIT(1) (force clock lane to low power mode) and BIT(5)
+(gate clock lane while idle) that were set by ov5647_stream_off() during
+__sensor_init() due to the change below.
+
+Is there a reason, btw, that this driver is full of magic register
+addresses and values? A few #defines would make this a lot more
+readable.
+
+> >> >         ret = ov5647_write(sd, 0x4202, 0x00);
+> >> >         if (ret < 0)
+> >> >                 return ret;
+> >> > @@ -264,6 +268,10 @@ static int ov5647_stream_off(struct v4l2_subdev *sd)
+> >> >  {
+> >> >         int ret;
+> >> >
+> >> > +       ret = ov5647_write(sd, 0x4800, 0x25);
+> >> > +       if (ret < 0)
+> >> > +               return ret;
+> >> > +
+> >> >         ret = ov5647_write(sd, 0x4202, 0x0f);
+> >> >         if (ret < 0)
+> >> >                 return ret;
+> >> > @@ -320,7 +328,7 @@ static int __sensor_init(struct v4l2_subdev *sd)
+> >> >                         return ret;
+> >> >         }
+> >> >
+> >> > -       return ov5647_write(sd, 0x4800, 0x04);
+> >> > +       return ov5647_stream_off(sd);
+
+I see now that BIT(2) (keep bus in LP-11 while idle) is and was always
+set. So the change is that initially, additionally to LP-11 mode, the
+clock lane is gated and forced into low power mode, as well?
+
+> >> >  }
+> >> >
+> >> >  static int ov5647_sensor_power(struct v4l2_subdev *sd, int on)
+> >> > --
+> >> > 2.7.4
+> >> >
 > >>
-> >> WARNING: kernel-doc '../scripts/kernel-doc -rst -enable-lineno ../drivers/media/dvb-core/demux.h' processing failed with: 'ascii' codec can't decode byte 0xe2 in position 6368: ordinal not in range(128)  
-> > 
-> > So I don't get this error.  What kind of system are you running the docs
-> > build on?  I would really rather that the docs system could handle modern
-> > text if possible, so it would be better to figure out what's going on
-> > here...  
+> >> Can anyone comment on it?
+> >>
+> >> I saw there is a same discussion in  https://patchwork.kernel.org/patch/9569031/
+> >> There is a comment in i.MX CSI2 driver.
+> >> "
+> >> Configure MIPI Camera Sensor to put all Tx lanes in LP-11 state.
+> >> This must be carried out by the MIPI sensor's s_power(ON) subdev
+> >> op.
+> >> "
+> >> That's what this patch do, sensor driver should make sure that clock
+> >> lanes are in stop state while not streaming.
+> >
+> > This is not the same, as far as I can tell. BIT(5) is just clock lane
+> > gating, as you describe above. To put the bus into LP-11 state, BIT(2)
+> > needs to be set.
+> >
 > 
-> I'm OK with that. Source files in general don't need to be ASCII (0-127).
-> 
-> I did this patch based on this (private) comment:
-> 
-> > Yes, using ASCII should fix the problem.  
-> 
-> what kind of system?  HP laptop.
-> 
-> Linux midway.site 4.4.79-18.26-default #1 SMP Thu Aug 10 20:30:05 UTC 2017 (fa5a935) x86_64 x86_64 x86_64 GNU/Linux
-> 
-> > sphinx-build --version  
-> Sphinx (sphinx-build) 1.3.1
+> Yeah, but i double that clock lane is not in LP11 when continue clock
+> mode is enabled.
 
-I suspect that the problem is not related to the version, but to
-what you might have set on LANG.
+If indeed LP-11 state is not achieved while the sensor is idle, as long
+as BIT(5) is cleared, I think this patch is correct.
 
-Maybe if we add something like:
-	LANG=C.utf-8
-
-to the Documentation/Makefile or adding:
-
-	.. -*- coding: utf-8; mode: rst -*-
-
-as the first line on the *.rst file that include the kernel-doc 
-directive would solve the issue.
-
-Regards,
-Mauro
+regards
+Philipp
