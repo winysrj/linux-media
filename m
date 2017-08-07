@@ -1,48 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:41186 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751319AbdHDKl7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 Aug 2017 06:41:59 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 4/5] stih-cec: use CEC_CAP_DEFAULTS
-Date: Fri,  4 Aug 2017 12:41:54 +0200
-Message-Id: <20170804104155.37386-5-hverkuil@xs4all.nl>
-In-Reply-To: <20170804104155.37386-1-hverkuil@xs4all.nl>
-References: <20170804104155.37386-1-hverkuil@xs4all.nl>
+Received: from out20-74.mail.aliyun.com ([115.124.20.74]:34216 "EHLO
+        out20-74.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751386AbdHGBA3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 6 Aug 2017 21:00:29 -0400
+Date: Mon, 7 Aug 2017 09:00:09 +0800
+From: Yong <yong.deng@magewell.com>
+To: Rob Herring <robh@kernel.org>
+Cc: maxime.ripard@free-electrons.com,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benoit Parrot <bparrot@ti.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 2/3] dt-bindings: media: Add Allwinner V3s Camera
+ Sensor Interface (CSI)
+Message-Id: <20170807090009.4af79df794e881d441c18196@magewell.com>
+In-Reply-To: <20170803191415.iyyzjsvlyviftalj@rob-hp-laptop>
+References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
+        <1501131697-1359-3-git-send-email-yong.deng@magewell.com>
+        <20170803191415.iyyzjsvlyviftalj@rob-hp-laptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu, 3 Aug 2017 14:14:15 -0500
+Rob Herring <robh@kernel.org> wrote:
 
-Use the new CEC_CAP_DEFAULTS define in this driver.
-This also adds the CEC_CAP_RC capability which was missing here
-(and this is also the reason for this new define, to avoid missing
-such capabilities).
+> On Thu, Jul 27, 2017 at 01:01:36PM +0800, Yong Deng wrote:
+> > Add binding documentation for Allwinner V3s CSI.
+> > 
+> > Signed-off-by: Yong Deng <yong.deng@magewell.com>
+> > ---
+> >  .../devicetree/bindings/media/sun6i-csi.txt        | 49 ++++++++++++++++++++++
+> >  1 file changed, 49 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+> > new file mode 100644
+> > index 0000000..f8d83f6
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+> > @@ -0,0 +1,49 @@
+> > +Allwinner V3s Camera Sensor Interface
+> > +------------------------------
+> > +
+> > +Required properties:
+> > +  - compatible: value must be "allwinner,sun8i-v3s-csi"
+> > +  - reg: base address and size of the memory-mapped region.
+> > +  - interrupts: interrupt associated to this IP
+> > +  - clocks: phandles to the clocks feeding the CSI
+> > +    * ahb: the CSI interface clock
+> > +    * mod: the CSI module clock
+> > +    * ram: the CSI DRAM clock
+> > +  - clock-names: the clock names mentioned above
+> > +  - resets: phandles to the reset line driving the CSI
+> > +
+> > +- ports: A ports node with endpoint definitions as defined in
+> > +  Documentation/devicetree/bindings/media/video-interfaces.txt.
+> 
+> Need to be explicit about how many ports and endpoints and what each one 
+> represents.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/sti/cec/stih-cec.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+OK.
 
-diff --git a/drivers/media/platform/sti/cec/stih-cec.c b/drivers/media/platform/sti/cec/stih-cec.c
-index ce7964c71b50..dc221527fd05 100644
---- a/drivers/media/platform/sti/cec/stih-cec.c
-+++ b/drivers/media/platform/sti/cec/stih-cec.c
-@@ -351,9 +351,7 @@ static int stih_cec_probe(struct platform_device *pdev)
- 	}
- 
- 	cec->adap = cec_allocate_adapter(&sti_cec_adap_ops, cec,
--			CEC_NAME,
--			CEC_CAP_LOG_ADDRS | CEC_CAP_PASSTHROUGH |
--			CEC_CAP_TRANSMIT, CEC_MAX_LOG_ADDRS);
-+			CEC_NAME, CEC_CAP_DEFAULTS, CEC_MAX_LOG_ADDRS);
- 	if (IS_ERR(cec->adap))
- 		return PTR_ERR(cec->adap);
- 
--- 
-2.13.2
+> 
+> > +
+> > +Example:
+> > +
+> > +	csi1: csi@01cb4000 {
+> > +		compatible = "allwinner,sun8i-v3s-csi";
+> > +		reg = <0x01cb4000 0x1000>;
+> > +		interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
+> > +		clocks = <&ccu CLK_BUS_CSI>,
+> > +			 <&ccu CLK_CSI1_SCLK>,
+> > +			 <&ccu CLK_DRAM_CSI>;
+> > +		clock-names = "ahb", "mod", "ram";
+> > +		resets = <&ccu RST_BUS_CSI>;
+> > +
+> > +		port {
+> > +			#address-cells = <1>;
+> > +			#size-cells = <0>;
+> > +
+> > +			/* Parallel bus endpoint */
+> > +			csi1_ep: endpoint {
+> > +				remote-endpoint = <&adv7611_ep>;
+> > +				bus-width = <16>;
+> > +				data-shift = <0>;
+> > +
+> > +				/* If hsync-active/vsync-active are missing,
+> > +				   embedded BT.656 sync is used */
+> > +				hsync-active = <0>; /* Active low */
+> > +				vsync-active = <0>; /* Active low */
+> > +				data-active = <1>;  /* Active high */
+> > +				pclk-sample = <1>;  /* Rising */
+> > +			};
+> > +		};
+> > +	};
+> > +
+> > -- 
+> > 1.8.3.1
+> > 
+
+
+Thanks,
+Yong
