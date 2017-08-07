@@ -1,152 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50750
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S933601AbdHYPMJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Aug 2017 11:12:09 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v3 1/7] media: add glossary.rst with a glossary of terms used at V4L2 spec
-Date: Fri, 25 Aug 2017 12:11:51 -0300
-Message-Id: <ad395bd4b44f668ff5677eb160fa9d159362102b.1503673702.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503673702.git.mchehab@s-opensource.com>
-References: <cover.1503673702.git.mchehab@s-opensource.com>
+Received: from us01smtprelay-2.synopsys.com ([198.182.60.111]:51567 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751247AbdHGOsq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Aug 2017 10:48:46 -0400
+Subject: Re: [PATCH] media: i2c: OV5647: gate clock lane before stream on
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        Jacob Chen <jacobchen110@gmail.com>
+CC: "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <roliveir@synopsys.com>,
+        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        <vladimir_zapolskiy@mentor.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        <sakari.ailus@linux.intel.com>, <slongerbeam@gmail.com>,
+        <robh+dt@kernel.org>, <Luis.Oliveira@synopsys.com>
+References: <1500950041-5449-1-git-send-email-jacob-chen@iotwrt.com>
+ <CAFLEztQHYWAk39+gQCD0XkKPVqmUY5kPZydWgw8+zu53+D2_pA@mail.gmail.com>
+ <1502093851.2490.4.camel@pengutronix.de>
+ <CAFLEztQcCijnmkp_r3-gy2ptM0b+WFEw4Sf1MeiatJbvnKqA8A@mail.gmail.com>
+ <1502108760.2490.28.camel@pengutronix.de>
+From: Luis Oliveira <Luis.Oliveira@synopsys.com>
+Message-ID: <5121da6b-a37d-270b-2587-b2ee77635546@synopsys.com>
+Date: Mon, 7 Aug 2017 15:48:41 +0100
 MIME-Version: 1.0
-In-Reply-To: <cover.1503673702.git.mchehab@s-opensource.com>
-References: <cover.1503673702.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1502108760.2490.28.camel@pengutronix.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a glossary of terms for V4L2, as several concepts are complex
-enough to cause misunderstandings.
+Hi all,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/v4l/glossary.rst | 95 +++++++++++++++++++++++++++++++
- Documentation/media/uapi/v4l/v4l2.rst     |  1 +
- 2 files changed, 96 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/glossary.rst
+I'm new here, I got to be Maintainer of this driver by the old Maintainer
+recommendation. Still getting the hang of it :)
 
-diff --git a/Documentation/media/uapi/v4l/glossary.rst b/Documentation/media/uapi/v4l/glossary.rst
-new file mode 100644
-index 000000000000..2f1b3cdeb635
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/glossary.rst
-@@ -0,0 +1,95 @@
-+========
-+Glossary
-+========
-+
-+.. note
-+
-+   This goal of section is to standardize the terms used within the V4L2
-+   documentation. It is written incrementally as they're standardized at
-+   the V4L2 documentation. So, it is an incomplete Work In Progress.
-+
-+.. Please keep the glossary entries in alphabetical order
-+
-+Bridge driver
-+   - The same as :ref:`main_v4l2_driver`.
-+
-+.. _device_node:
-+
-+Device Node
-+   - A character device node at the file system used to control and do
-+     input/output data transfers to a Kernel driver.
-+
-+Driver
-+   - The part of the Linux Kernel that implements support
-+     for a hardware component.
-+
-+Inter-Integrated Circuit - I²C
-+   - A  multi-master, multi-slave, packet switched, single-ended,
-+     serial computer bus used to control V4L2 sub-devices
-+
-+Hardware component
-+   - a subset of the media hardware.
-+
-+.. _hardware_peripheral:
-+
-+Hardware peripheral
-+   - A group of hardware components that together make a larger
-+     user-facing functional peripheral. For instance the SoC ISP IP
-+     cores and external camera sensors together make a
-+     camera hardware peripheral.
-+     Also known as peripheral.
-+
-+Hardware peripheral control
-+   - Type of control that it is possible for a V4L2 peripheral.
-+     See :ref:`v4l2_hardware_control`.
-+
-+.. _main_v4l2_driver:
-+
-+Peripheral
-+   - The same as :ref:`hardware_peripheral`.
-+
-+Media Controller
-+   - An API used to identify the hardware components.
-+     See :ref:`media_controller`.
-+
-+MC-centric
-+   - V4L2 hardware that requires a Media controller to be controlled.
-+     See :ref:`v4l2_hardware_control`.
-+
-+SMBus
-+   - A subset of I²C, with defines a stricter usage of the bus.
-+
-+Serial Peripheral Interface Bus - SPI
-+   - Synchronous serial communication interface specification used for
-+     short distance communication, primarily in embedded systems.
-+
-+Sub-device hardware components
-+   - hardware components that aren't controlled by the
-+     V4L2 main driver.
-+
-+V4L2 device node
-+   - A :ref:`device_node` that it is associated to a main V4L2 driver,
-+     as specified at :ref:`v4l2_device_naming`.
-+
-+V4L2 hardware
-+   - A hardware used to on a media device supported by the V4L2
-+     subsystem.
-+
-+V4L2 hardware control
-+   - The type of hardware control that a device supports.
-+     See :ref:`v4l2_hardware_control`.
-+
-+V4L2 main driver
-+   - The V4L2 device driver that implements the main logic to talk with
-+     the V4L2 hardware.
-+     Also known as bridge driver.
-+     See :ref:`v4l2_hardware_control`.
-+
-+V4L2 sub-device
-+   - part of the media hardware that it is implemented by a device
-+     driver that is not part of the main V4L2 driver.
-+     See :ref:`subdev`.
-+
-+Vdev-centric
-+   - V4L2 hardware that it is controlled via V4L2 device nodes.
-+     See :ref:`v4l2_hardware_control`.
-diff --git a/Documentation/media/uapi/v4l/v4l2.rst b/Documentation/media/uapi/v4l/v4l2.rst
-index f52a11c949d3..1ee4b86d18e1 100644
---- a/Documentation/media/uapi/v4l/v4l2.rst
-+++ b/Documentation/media/uapi/v4l/v4l2.rst
-@@ -31,6 +31,7 @@ This part describes the Video for Linux API version 2 (V4L2 API) specification.
-     videodev
-     capture-example
-     v4l2grab-example
-+    glossary
-     biblio
- 
- 
--- 
-2.13.3
+On 07-Aug-17 13:26, Philipp Zabel wrote:
+> Hi Jacob,
+> 
+> On Mon, 2017-08-07 at 19:06 +0800, Jacob Chen wrote:
+> [...]
+>>>>> --- a/drivers/media/i2c/ov5647.c
+>>>>> +++ b/drivers/media/i2c/ov5647.c
+>>>>> @@ -253,6 +253,10 @@ static int ov5647_stream_on(struct v4l2_subdev *sd)
+>>>>>  {
+>>>>>         int ret;
+>>>>>
+>>>>> +       ret = ov5647_write(sd, 0x4800, 0x04);
+>>>>> +       if (ret < 0)
+>>>>> +               return ret;
+>>>>> +
+> 
+> So this clears BIT(1) (force clock lane to low power mode) and BIT(5)
+> (gate clock lane while idle) that were set by ov5647_stream_off() during
+> __sensor_init() due to the change below.
+> 
+> Is there a reason, btw, that this driver is full of magic register
+> addresses and values? A few #defines would make this a lot more
+> readable.
+> 
+
+For what I can see I agree that a few register name setting could be done.
+
+>>>>>         ret = ov5647_write(sd, 0x4202, 0x00);
+>>>>>         if (ret < 0)
+>>>>>                 return ret;
+>>>>> @@ -264,6 +268,10 @@ static int ov5647_stream_off(struct v4l2_subdev *sd)
+>>>>>  {
+>>>>>         int ret;
+>>>>>
+>>>>> +       ret = ov5647_write(sd, 0x4800, 0x25);
+>>>>> +       if (ret < 0)
+>>>>> +               return ret;
+>>>>> +
+>>>>>         ret = ov5647_write(sd, 0x4202, 0x0f);
+>>>>>         if (ret < 0)
+>>>>>                 return ret;
+>>>>> @@ -320,7 +328,7 @@ static int __sensor_init(struct v4l2_subdev *sd)
+>>>>>                         return ret;
+>>>>>         }
+>>>>>
+>>>>> -       return ov5647_write(sd, 0x4800, 0x04);
+>>>>> +       return ov5647_stream_off(sd);
+> 
+> I see now that BIT(2) (keep bus in LP-11 while idle) is and was always
+> set. So the change is that initially, additionally to LP-11 mode, the
+> clock lane is gated and forced into low power mode, as well?
+> 
+
+This is my interpretation as well.
+
+>>>>>  }
+>>>>>
+>>>>>  static int ov5647_sensor_power(struct v4l2_subdev *sd, int on)
+>>>>> --
+>>>>> 2.7.4
+>>>>>
+>>>>
+>>>> Can anyone comment on it?
+>>>>
+>>>> I saw there is a same discussion in  https://urldefense.proofpoint.com/v2/url?u=https-3A__patchwork.kernel.org_patch_9569031_&d=DwICaQ&c=DPL6_X_6JkXFx7AXWqB0tg&r=eMn12aiiNuIDjtRi5xEzC7tWJkpra2vl_XYFVvfxIGE&m=eortcRXje2uLyZNI_-Uw3Ur_z24tb-e4pZfom7WhdE0&s=6sLc76bhjR0IdaA3ArZ7F7slgtcyGz8pDTzAF_CBLno&e= 
+>>>> There is a comment in i.MX CSI2 driver.
+>>>> "
+>>>> Configure MIPI Camera Sensor to put all Tx lanes in LP-11 state.
+>>>> This must be carried out by the MIPI sensor's s_power(ON) subdev
+>>>> op.
+>>>> "
+>>>> That's what this patch do, sensor driver should make sure that clock
+>>>> lanes are in stop state while not streaming.
+>>>
+>>> This is not the same, as far as I can tell. BIT(5) is just clock lane
+>>> gating, as you describe above. To put the bus into LP-11 state, BIT(2)
+>>> needs to be set.
+>>>
+>>
+>> Yeah, but i double that clock lane is not in LP11 when continue clock
+>> mode is enabled.
+
+I think by spec it shouldn't got to stopstate in continuous clock.
+
+> 
+> If indeed LP-11 state is not achieved while the sensor is idle, as long
+> as BIT(5) is cleared, I think this patch is correct.
+> 
+> regards
+> Philipp
+> 
+
+As far as I understand, bit[5] set to 1 will force clock lane to be gated (in
+other words it will be forced to be in LP-11 if there are no packets to
+transmit). But also LP-11 must not be achieved with the BIT(5) cleared (free
+running mode)?
+
+Sorry if I misunderstood something.
+
+regards,
+Luis
