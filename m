@@ -1,65 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53299
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752350AbdHZJ2h (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:55737 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751516AbdHGDwR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 05:28:37 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 4/4] docs-rst: don't require adjustbox anymore
-Date: Sat, 26 Aug 2017 06:28:28 -0300
-Message-Id: <4d7980a4b72da95c73976b48c9769004974cd0bc.1503739177.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503739177.git.mchehab@s-opensource.com>
-References: <cover.1503739177.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503739177.git.mchehab@s-opensource.com>
-References: <cover.1503739177.git.mchehab@s-opensource.com>
+        Sun, 6 Aug 2017 23:52:17 -0400
+Message-ID: <46bd6b45de807d4db14ff50de30abd45@smtp-cloud7.xs4all.net>
+Date: Mon, 07 Aug 2017 05:52:14 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Only the media PDF book was requiring adjustbox, in order to
-scale big tables. That worked pretty good with Sphinx versions
-1.4 and 1.5, but Spinx 1.6 changed the way tables are produced,
-by introducing some weird macros before tabulary.
-That causes adjustbox to fail. So, it can't be used anymore,
-and its usage was removed from the media book.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-So, let's remove it from conf.py and sphinx-pre-install.
+Results of the daily build of media_tree:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/conf.py      | 3 ---
- scripts/sphinx-pre-install | 1 -
- 2 files changed, 4 deletions(-)
+date:			Mon Aug  7 05:00:18 CEST 2017
+media-tree git hash:	da48c948c263c9d87dfc64566b3373a858cc8aa2
+media_build git hash:	f01a9176bb03f22e3cd3b70282bd7fd272e504ae
+v4l-utils git hash:	172b663ea1fd16909a390f508851098a58061d9b
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.11.0-164
 
-diff --git a/Documentation/conf.py b/Documentation/conf.py
-index f9054ab60cb1..4c87bc10220c 100644
---- a/Documentation/conf.py
-+++ b/Documentation/conf.py
-@@ -331,9 +331,6 @@ latex_elements = {
-         \\setromanfont{DejaVu Sans}
-         \\setmonofont{DejaVu Sans Mono}
- 
--	% To allow adjusting table sizes
--	\\usepackage{adjustbox}
--
-      '''
- }
- 
-diff --git a/scripts/sphinx-pre-install b/scripts/sphinx-pre-install
-index 677756ae34c9..067459760a7b 100755
---- a/scripts/sphinx-pre-install
-+++ b/scripts/sphinx-pre-install
-@@ -40,7 +40,6 @@ my $virtualenv = 1;
- #
- 
- my %texlive = (
--	'adjustbox.sty'      => 'texlive-adjustbox',
- 	'amsfonts.sty'       => 'texlive-amsfonts',
- 	'amsmath.sty'        => 'texlive-amsmath',
- 	'amssymb.sty'        => 'texlive-amsfonts',
--- 
-2.13.3
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
