@@ -1,130 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:33307 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751727AbdHBDw0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 1 Aug 2017 23:52:26 -0400
-Message-ID: <44fc3d5609df465316508a1fdb541517@smtp-cloud9.xs4all.net>
-Date: Wed, 02 Aug 2017 05:52:24 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from smtp.codeaurora.org ([198.145.29.96]:39518 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752968AbdHGK6W (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Aug 2017 06:58:22 -0400
+Subject: Re: [PATCHv3 4/4] drm/bridge: dw-hdmi: remove CEC engine register
+ definitions
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Russell King <rmk+kernel@armlinux.org.uk>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        dri-devel@lists.freedesktop.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20170802184108.7913-1-hverkuil@xs4all.nl>
+ <20170802184108.7913-5-hverkuil@xs4all.nl>
+From: Archit Taneja <architt@codeaurora.org>
+Message-ID: <2d170dfa-42fc-e744-bd15-81717d09b271@codeaurora.org>
+Date: Mon, 7 Aug 2017 16:28:17 +0530
+MIME-Version: 1.0
+In-Reply-To: <20170802184108.7913-5-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
 
-date:			Wed Aug  2 05:00:16 CEST 2017
-media-tree git hash:	da48c948c263c9d87dfc64566b3373a858cc8aa2
-media_build git hash:	f01a9176bb03f22e3cd3b70282bd7fd272e504ae
-v4l-utils git hash:	98c162029eb1a21b39028180ac5d36b544a9493c
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.11.0-164
+On 08/03/2017 12:11 AM, Hans Verkuil wrote:
+> From: Russell King <rmk+kernel@armlinux.org.uk>
+> 
+> We don't need the CEC engine register definitions, so let's remove them.
+> 
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+Queued to drm-misc-next.
 
-Detailed results are available here:
+Thanks,
+Archit
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>   drivers/gpu/drm/bridge/synopsys/dw-hdmi.h | 45 -------------------------------
+>   1 file changed, 45 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.h b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.h
+> index 69644c83a0f8..9d90eb9c46e5 100644
+> --- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.h
+> +++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.h
+> @@ -478,51 +478,6 @@
+>   #define HDMI_A_PRESETUP                         0x501A
+>   #define HDMI_A_SRM_BASE                         0x5020
+>   
+> -/* CEC Engine Registers */
+> -#define HDMI_CEC_CTRL                           0x7D00
+> -#define HDMI_CEC_STAT                           0x7D01
+> -#define HDMI_CEC_MASK                           0x7D02
+> -#define HDMI_CEC_POLARITY                       0x7D03
+> -#define HDMI_CEC_INT                            0x7D04
+> -#define HDMI_CEC_ADDR_L                         0x7D05
+> -#define HDMI_CEC_ADDR_H                         0x7D06
+> -#define HDMI_CEC_TX_CNT                         0x7D07
+> -#define HDMI_CEC_RX_CNT                         0x7D08
+> -#define HDMI_CEC_TX_DATA0                       0x7D10
+> -#define HDMI_CEC_TX_DATA1                       0x7D11
+> -#define HDMI_CEC_TX_DATA2                       0x7D12
+> -#define HDMI_CEC_TX_DATA3                       0x7D13
+> -#define HDMI_CEC_TX_DATA4                       0x7D14
+> -#define HDMI_CEC_TX_DATA5                       0x7D15
+> -#define HDMI_CEC_TX_DATA6                       0x7D16
+> -#define HDMI_CEC_TX_DATA7                       0x7D17
+> -#define HDMI_CEC_TX_DATA8                       0x7D18
+> -#define HDMI_CEC_TX_DATA9                       0x7D19
+> -#define HDMI_CEC_TX_DATA10                      0x7D1a
+> -#define HDMI_CEC_TX_DATA11                      0x7D1b
+> -#define HDMI_CEC_TX_DATA12                      0x7D1c
+> -#define HDMI_CEC_TX_DATA13                      0x7D1d
+> -#define HDMI_CEC_TX_DATA14                      0x7D1e
+> -#define HDMI_CEC_TX_DATA15                      0x7D1f
+> -#define HDMI_CEC_RX_DATA0                       0x7D20
+> -#define HDMI_CEC_RX_DATA1                       0x7D21
+> -#define HDMI_CEC_RX_DATA2                       0x7D22
+> -#define HDMI_CEC_RX_DATA3                       0x7D23
+> -#define HDMI_CEC_RX_DATA4                       0x7D24
+> -#define HDMI_CEC_RX_DATA5                       0x7D25
+> -#define HDMI_CEC_RX_DATA6                       0x7D26
+> -#define HDMI_CEC_RX_DATA7                       0x7D27
+> -#define HDMI_CEC_RX_DATA8                       0x7D28
+> -#define HDMI_CEC_RX_DATA9                       0x7D29
+> -#define HDMI_CEC_RX_DATA10                      0x7D2a
+> -#define HDMI_CEC_RX_DATA11                      0x7D2b
+> -#define HDMI_CEC_RX_DATA12                      0x7D2c
+> -#define HDMI_CEC_RX_DATA13                      0x7D2d
+> -#define HDMI_CEC_RX_DATA14                      0x7D2e
+> -#define HDMI_CEC_RX_DATA15                      0x7D2f
+> -#define HDMI_CEC_LOCK                           0x7D30
+> -#define HDMI_CEC_WKUPCTRL                       0x7D31
+> -
+>   /* I2C Master Registers (E-DDC) */
+>   #define HDMI_I2CM_SLAVE                         0x7E00
+>   #define HDMI_I2CM_ADDRESS                       0x7E01
+> 
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
