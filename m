@@ -1,56 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34792
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753626AbdH2NSJ (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:39789 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751516AbdHGG5u (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 09:18:09 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v6 7/7] media: open.rst: add a notice about subdev-API on vdev-centric
-Date: Tue, 29 Aug 2017 10:17:56 -0300
-Message-Id: <7167c8620af7e9b45e37f5121662317f2d1efda1.1504012579.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504012579.git.mchehab@s-opensource.com>
-References: <cover.1504012579.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504012579.git.mchehab@s-opensource.com>
-References: <cover.1504012579.git.mchehab@s-opensource.com>
+        Mon, 7 Aug 2017 02:57:50 -0400
+Subject: Re: [PATCH][resend] media: ti-vpe: cal: use
+ of_graph_get_remote_endpoint()
+To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+        Benoit Parrot <bparrot@ti.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <871soojfl3.wl%kuninori.morimoto.gx@renesas.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <44f9257e-b489-996e-2167-47343a0f62c9@xs4all.nl>
+Date: Mon, 7 Aug 2017 08:57:47 +0200
+MIME-Version: 1.0
+In-Reply-To: <871soojfl3.wl%kuninori.morimoto.gx@renesas.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The documentation doesn't mention if vdev-centric hardware
-control would have subdev API or not.
+On 07/08/17 04:13, Kuninori Morimoto wrote:
+> 
+> From: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+> 
+> Now, we can use of_graph_get_remote_endpoint(). Let's use it.
 
-Add a notice about that, reflecting the current status, where
-three drivers use it, in order to support some subdev-specific
-controls.
+I'm not sure why this is resent. It's part of a pending pull request
+so I expect it to be merged this week.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/v4l/open.rst | 7 +++++++
- 1 file changed, 7 insertions(+)
+Regards,
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index 7de8b2fe3096..250f0b865943 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -47,6 +47,13 @@ the periferal can be used. For such devices, the sub-devices' configuration
- can be controlled via the :ref:`sub-device API <subdev>`, which creates one
- device node per sub-device.
- 
-+.. note::
-+
-+   A **vdev-centric** may also optionally expose V4L2 sub-devices via
-+   :ref:`sub-device API <subdev>`. In that case, it has to implement
-+   the :ref:`media controller API <media_controller>` as well.
-+
-+
- .. attention::
- 
-    Devices that require **MC-centric** hardware peripheral control should
--- 
-2.13.5
+	Hans
+
+> 
+> Signed-off-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+> ---
+>  drivers/media/platform/ti-vpe/cal.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
+> index 177faa3..0c7ddf8 100644
+> --- a/drivers/media/platform/ti-vpe/cal.c
+> +++ b/drivers/media/platform/ti-vpe/cal.c
+> @@ -1702,7 +1702,7 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
+>  	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+>  	asd->match.fwnode.fwnode = of_fwnode_handle(sensor_node);
+>  
+> -	remote_ep = of_parse_phandle(ep_node, "remote-endpoint", 0);
+> +	remote_ep = of_graph_get_remote_endpoint(ep_node);
+>  	if (!remote_ep) {
+>  		ctx_dbg(3, ctx, "can't get remote-endpoint\n");
+>  		goto cleanup_exit;
+> 
