@@ -1,100 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50092
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1755430AbdHYMwt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Aug 2017 08:52:49 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v2 3/3] media: videodev2: add a flag for MC-centric devices
-Date: Fri, 25 Aug 2017 09:52:42 -0300
-Message-Id: <53b52be3d01aa803f1c4342a07778517641990c0.1503665390.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503665390.git.mchehab@s-opensource.com>
-References: <cover.1503665390.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503665390.git.mchehab@s-opensource.com>
-References: <cover.1503665390.git.mchehab@s-opensource.com>
+Received: from mga03.intel.com ([134.134.136.65]:45400 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751761AbdHGWpj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 7 Aug 2017 18:45:39 -0400
+Date: Tue, 8 Aug 2017 01:45:32 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+        jacek.anaszewski@gmail.com, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 2/2] v4l2-flash-led-class: Create separate sub-devices
+ for indicators
+Message-ID: <20170807222502.ctdehs5tyce2hkfj@kekkonen.localdomain>
+References: <20170718184107.10598-1-sakari.ailus@linux.intel.com>
+ <20170718184107.10598-3-sakari.ailus@linux.intel.com>
+ <20170719120246.GB23510@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170719120246.GB23510@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+On Wed, Jul 19, 2017 at 02:02:46PM +0200, Pavel Machek wrote:
+> On Tue 2017-07-18 21:41:07, Sakari Ailus wrote:
+> > The V4L2 flash interface allows controlling multiple LEDs through a single
+> > sub-devices if, and only if, these LEDs are of different types. This
+> > approach scales badly for flash controllers that drive multiple flash LEDs
+> > or for LED specific associations. Essentially, the original assumption of a
+> > LED driver chip that drives a single flash LED and an indicator LED is no
+> > longer valid.
+> > 
+> > Address the matter by registering one sub-device per LED.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> Acked-by: Pavel Machek <pavel@ucw.cz>
 
-As both vdev-centric and MC-centric devices may implement the
-same APIs, we need a flag to allow userspace to distinguish
-between them.
+Thanks!
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/v4l/open.rst            | 11 +++++++++++
- Documentation/media/uapi/v4l/vidioc-querycap.rst |  5 +++++
- include/uapi/linux/videodev2.h                   |  2 ++
- 3 files changed, 18 insertions(+)
+> Does anything need to be done with drivers/media/i2c/adp1653.c ?
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index bbd1887f83a0..c6ab5fef4443 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -6,6 +6,10 @@
- Opening and Closing Devices
- ***************************
- 
-+
-+.. _v4l2_hardware_control:
-+
-+
- Types of V4L2 hardware control
- ==============================
- 
-@@ -49,6 +53,13 @@ sub-devices' configuration can be controlled via the
- :ref:`sub-device API <subdev>`, whith creates one device node
- per sub-device.
- 
-+.. attention::
-+
-+   Devices that require **mc-centric** hardware control should report
-+   a ``V4L2_MC_CENTRIC`` :c:type:`v4l2_capability` flag
-+   (see :ref:`VIDIOC_QUERYCAP`).
-+
-+
- In summary, for **MC-centric** hardware control:
- 
- - The **V4L2 device** node is responsible for controlling the streaming
-diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-index 12e0d9a63cd8..2b08723375bc 100644
---- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-@@ -252,6 +252,11 @@ specification the ioctl returns an ``EINVAL`` error code.
-     * - ``V4L2_CAP_TOUCH``
-       - 0x10000000
-       - This is a touch device.
-+    * - ``V4L2_MC_CENTRIC``
-+      - 0x20000000
-+      - Indicates that the device require **mc-centric** hardware
-+        control, and thus can't be used by **v4l2-centric** applications.
-+        See :ref:`v4l2_hardware_control` for more details.
-     * - ``V4L2_CAP_DEVICE_CAPS``
-       - 0x80000000
-       - The driver fills the ``device_caps`` field. This capability can
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 45cf7359822c..7b490fe97980 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -460,6 +460,8 @@ struct v4l2_capability {
- 
- #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
- 
-+#define V4L2_CAP_MC_CENTRIC             0x20000000  /* Device require mc-centric hardware control */
-+
- #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device capabilities field */
- 
- /*
+No, it's stand-alone and does not use the V4L2 flash LED class
+framework-let.
+
 -- 
-2.13.3
+Sakari Ailus
+sakari.ailus@linux.intel.com
