@@ -1,71 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:39372 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752967AbdHKJ52 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Aug 2017 05:57:28 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 16/20] adv748x: add translation from pixelcode to CSI-2 datatype
-Date: Fri, 11 Aug 2017 11:56:59 +0200
-Message-Id: <20170811095703.6170-17-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-wr0-f181.google.com ([209.85.128.181]:38119 "EHLO
+        mail-wr0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751513AbdHGGtz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Aug 2017 02:49:55 -0400
+Received: by mail-wr0-f181.google.com with SMTP id f21so35581754wrf.5
+        for <linux-media@vger.kernel.org>; Sun, 06 Aug 2017 23:49:54 -0700 (PDT)
+Subject: Re: [PATCH v3 10/23] media: camss: Add VFE files
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: mchehab@kernel.org, hans.verkuil@cisco.com, s.nawrocki@samsung.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
+ <1500287629-23703-11-git-send-email-todor.tomov@linaro.org>
+ <20170720145949.grndikq744zq7ejg@valkosipuli.retiisi.org.uk>
+ <cdcdda84-56d3-56cb-969c-a7dde7c6a12b@linaro.org>
+ <33862f4e-6608-32d9-1759-4bd371d5b1dc@iki.fi>
+From: Todor Tomov <todor.tomov@linaro.org>
+Message-ID: <df4fd972-eb7b-d2b4-dac2-e3219ed358c4@linaro.org>
+Date: Mon, 7 Aug 2017 09:49:52 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <33862f4e-6608-32d9-1759-4bd371d5b1dc@iki.fi>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This will be needed to fill out the frame descriptor information
-correctly.
+Hi Sakari,
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/i2c/adv748x/adv748x-csi2.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+On  4.08.2017 21:02, Sakari Ailus wrote:
+> Hi Todor,
+> 
+> Todor Tomov wrote:
+>> Hi Sakari,
+>>
+>> Thank you for the review.
+>>
+>> On 20.07.2017 17:59, Sakari Ailus wrote:
+>>> Hi Todor,
+>>>
+>>> On Mon, Jul 17, 2017 at 01:33:36PM +0300, Todor Tomov wrote:
+>>>> These files control the VFE module. The VFE has different input interfaces.
+>>>> The PIX input interface feeds the input data to an image processing pipeline.
+>>>> Three RDI input interfaces bypass the image processing pipeline. The VFE also
+>>>> contains the AXI bus interface which writes the output data to memory.
+>>>>
+>>>> RDI interfaces are supported in this version. PIX interface is not supported.
+>>>>
+>>>> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+>>>> ---
+>>>>  drivers/media/platform/qcom/camss-8x16/camss-vfe.c | 1913 ++++++++++++++++++++
+>>>>  drivers/media/platform/qcom/camss-8x16/camss-vfe.h |  114 ++
+>>>>  2 files changed, 2027 insertions(+)
+>>>>  create mode 100644 drivers/media/platform/qcom/camss-8x16/camss-vfe.c
+>>>>  create mode 100644 drivers/media/platform/qcom/camss-8x16/camss-vfe.h
+>>>>
+>>>> diff --git a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
+>>>> new file mode 100644
+>>>> index 0000000..b6dd29b
+>>>> --- /dev/null
+>>>> +++ b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
+>>>> @@ -0,0 +1,1913 @@
+>>
+>> <snip>
+>>
+>>>> +
+>>>> +static void vfe_set_qos(struct vfe_device *vfe)
+>>>> +{
+>>>> +	u32 val = 0xaaa5aaa5;
+>>>> +	u32 val7 = 0x0001aaa5;
+>>>
+>>> Huh. What do these mean? :-)
+>>
+>> For these here I don't have understanding of the values. I'll remove the magic
+>> values here and on all the other places but these here I'll just move to a #define.
+> 
+> If there is no documentation then I guess that's all that can be done.
+> Works for me.
+> 
+>>
+>>>
+>>>> +
+>>>> +	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_0);
+>>>> +	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_1);
+>>>> +	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_2);
+>>>> +	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_3);
+>>>> +	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_4);
+>>>> +	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_5);
+>>>> +	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_6);
+>>>> +	writel_relaxed(val7, vfe->base + VFE_0_BUS_BDG_QOS_CFG_7);
+>>>> +}
+>>>> +
+>>
+>> <snip>
+>>
+>>>> +
+>>>> +/*
+>>>> + * msm_vfe_subdev_init - Initialize VFE device structure and resources
+>>>> + * @vfe: VFE device
+>>>> + * @res: VFE module resources table
+>>>> + *
+>>>> + * Return 0 on success or a negative error code otherwise
+>>>> + */
+>>>> +int msm_vfe_subdev_init(struct vfe_device *vfe, const struct resources *res)
+>>>> +{
+>>>> +	struct device *dev = to_device(vfe);
+>>>> +	struct platform_device *pdev = to_platform_device(dev);
+>>>> +	struct resource *r;
+>>>> +	struct camss *camss = to_camss(vfe);
+>>>> +
+>>>> +	int i;
+>>>> +	int ret;
+>>>> +
+>>>> +	mutex_init(&vfe->power_lock);
+>>>> +	vfe->power_count = 0;
+>>>> +
+>>>> +	mutex_init(&vfe->stream_lock);
+>>>> +	vfe->stream_count = 0;
+>>>> +
+>>>> +	spin_lock_init(&vfe->output_lock);
+>>>> +
+>>>> +	vfe->id = 0;
+>>>> +	vfe->reg_update = 0;
+>>>> +
+>>>> +	for (i = VFE_LINE_RDI0; i <= VFE_LINE_RDI2; i++) {
+>>>> +		vfe->line[i].video_out.type =
+>>>> +					V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+>>>> +		vfe->line[i].video_out.camss = camss;
+>>>> +		vfe->line[i].id = i;
+>>>> +	}
+>>>> +
+>>>> +	/* Memory */
+>>>> +
+>>>> +	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, res->reg[0]);
+>>>> +	vfe->base = devm_ioremap_resource(dev, r);
+>>>> +	if (IS_ERR(vfe->base)) {
+>>>> +		dev_err(dev, "could not map memory\n");
+>>>
+>>> mutex_destroy() for bothof the mutexes. The same below.
+>>>
+>>> Do you have a corresponding cleanup function?
+>>
+>> msm_vfe_subdev_init() and msm_vfe_register_entities() are called on probe().
+>> msm_vfe_unregister_entities() is called on remove() - this is the cleanup
+>> function. The mutexes are destroyed there. Is there something else that you
+>> are concerned about?
+> 
+> What about the error case above then? Where are the mutexes destroyed?
+> 
 
-diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-index b76c2be8da4271fb..a77069fc1adc1eca 100644
---- a/drivers/media/i2c/adv748x/adv748x-csi2.c
-+++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-@@ -18,6 +18,28 @@
- 
- #include "adv748x.h"
- 
-+struct adv748x_csi2_format {
-+	unsigned int code;
-+	unsigned int datatype;
-+};
-+
-+static const struct adv748x_csi2_format adv748x_csi2_formats[] = {
-+	{ .code = MEDIA_BUS_FMT_RGB888_1X24,    .datatype = 0x24, },
-+	{ .code = MEDIA_BUS_FMT_UYVY8_1X16,     .datatype = 0x1e, },
-+	{ .code = MEDIA_BUS_FMT_UYVY8_2X8,      .datatype = 0x1e, },
-+	{ .code = MEDIA_BUS_FMT_YUYV10_2X10,    .datatype = 0x1e, },
-+};
-+
-+static unsigned int adv748x_csi2_code_to_datatype(unsigned int code)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(adv748x_csi2_formats); i++)
-+		if (adv748x_csi2_formats[i].code == code)
-+			return adv748x_csi2_formats[i].datatype;
-+	return 0;
-+}
-+
- static bool is_txa(struct adv748x_csi2 *tx)
- {
- 	return tx == &tx->state->txa;
+Right, I'll add mutex_destroy() for the error cases too.
+
+
 -- 
-2.13.3
+Best regards,
+Todor Tomov
