@@ -1,71 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:40928 "EHLO
-        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750737AbdHZGS4 (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:42593 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751399AbdHGNb1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 02:18:56 -0400
-Date: Sat, 26 Aug 2017 09:18:41 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [PATCH 2/2] [media] dib8000: remove some bogus dead code
-Message-ID: <20170826061841.7hepoocimf5kit5g@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+        Mon, 7 Aug 2017 09:31:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Sean Young <sean@mess.org>, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/2] rc-main: support CEC protocol keypress timeout
+Date: Mon,  7 Aug 2017 15:31:23 +0200
+Message-Id: <20170807133124.30682-2-hverkuil@xs4all.nl>
+In-Reply-To: <20170807133124.30682-1-hverkuil@xs4all.nl>
+References: <20170807133124.30682-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This function is broken.  It sets the wrong front_end to NULL.  But it's
-not used, so let's just delete it.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+The CEC protocol has a keypress timeout of 550ms. Add support for this.
 
-diff --git a/drivers/media/dvb-frontends/dib8000.h b/drivers/media/dvb-frontends/dib8000.h
-index 2b8b4b1656a2..75cc8e47ec8f 100644
---- a/drivers/media/dvb-frontends/dib8000.h
-+++ b/drivers/media/dvb-frontends/dib8000.h
-@@ -53,7 +53,6 @@ struct dib8000_ops {
- 	enum frontend_tune_state (*get_tune_state)(struct dvb_frontend *fe);
- 	int (*set_tune_state)(struct dvb_frontend *fe, enum frontend_tune_state tune_state);
- 	int (*set_slave_frontend)(struct dvb_frontend *fe, struct dvb_frontend *fe_slave);
--	int (*remove_slave_frontend)(struct dvb_frontend *fe);
- 	struct dvb_frontend *(*get_slave_frontend)(struct dvb_frontend *fe, int slave_index);
- 	int (*i2c_enumeration)(struct i2c_adapter *host, int no_of_demods,
- 		u8 default_addr, u8 first_addr, u8 is_dib8096p);
-diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
-index a179a3f6563d..5d9381509b07 100644
---- a/drivers/media/dvb-frontends/dib8000.c
-+++ b/drivers/media/dvb-frontends/dib8000.c
-@@ -4255,23 +4255,6 @@ static int dib8000_set_slave_frontend(struct dvb_frontend *fe, struct dvb_fronte
- 	return -ENOMEM;
- }
+Note: this really should be defined in a protocol struct.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/rc/rc-main.c | 17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index a9eba0013525..073407a78f70 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -33,6 +33,9 @@
+ /* FIXME: IR_KEYPRESS_TIMEOUT should be protocol specific */
+ #define IR_KEYPRESS_TIMEOUT 250
  
--static int dib8000_remove_slave_frontend(struct dvb_frontend *fe)
--{
--	struct dib8000_state *state = fe->demodulator_priv;
--	u8 index_frontend = 1;
--
--	while ((index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[index_frontend] != NULL))
--		index_frontend++;
--	if (index_frontend != 1) {
--		dprintk("remove slave fe %p (index %i)\n", state->fe[index_frontend-1], index_frontend-1);
--		state->fe[index_frontend] = NULL;
--		return 0;
--	}
--
--	dprintk("no frontend to be removed\n");
--	return -ENODEV;
--}
--
- static struct dvb_frontend *dib8000_get_slave_frontend(struct dvb_frontend *fe, int slave_index)
- {
- 	struct dib8000_state *state = fe->demodulator_priv;
-@@ -4506,7 +4489,6 @@ void *dib8000_attach(struct dib8000_ops *ops)
- 	ops->get_slave_frontend = dib8000_get_slave_frontend;
- 	ops->set_tune_state = dib8000_set_tune_state;
- 	ops->pid_filter_ctrl = dib8000_pid_filter_ctrl;
--	ops->remove_slave_frontend = dib8000_remove_slave_frontend;
- 	ops->get_adc_power = dib8000_get_adc_power;
- 	ops->update_pll = dib8000_update_pll;
- 	ops->tuner_sleep = dib8096p_tuner_sleep;
++/* The CEC protocol needs a timeout of 550 */
++#define IR_KEYPRESS_CEC_TIMEOUT 550
++
+ /* Used to keep track of known keymaps */
+ static LIST_HEAD(rc_map_list);
+ static DEFINE_SPINLOCK(rc_map_lock);
+@@ -622,7 +625,12 @@ void rc_repeat(struct rc_dev *dev)
+ 	if (!dev->keypressed)
+ 		goto out;
+ 
+-	dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
++	if (dev->last_protocol == RC_TYPE_CEC)
++		dev->keyup_jiffies = jiffies +
++			msecs_to_jiffies(IR_KEYPRESS_CEC_TIMEOUT);
++	else
++		dev->keyup_jiffies = jiffies +
++			msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
+ 	mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
+ 
+ out:
+@@ -692,7 +700,12 @@ void rc_keydown(struct rc_dev *dev, enum rc_type protocol, u32 scancode, u8 togg
+ 	ir_do_keydown(dev, protocol, scancode, keycode, toggle);
+ 
+ 	if (dev->keypressed) {
+-		dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
++		if (protocol == RC_TYPE_CEC)
++			dev->keyup_jiffies = jiffies +
++				msecs_to_jiffies(IR_KEYPRESS_CEC_TIMEOUT);
++		else
++			dev->keyup_jiffies = jiffies +
++				msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
+ 		mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
+ 	}
+ 	spin_unlock_irqrestore(&dev->keylock, flags);
+-- 
+2.13.2
