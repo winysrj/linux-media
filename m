@@ -1,98 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:42500 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751282AbdH3LZk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Aug 2017 07:25:40 -0400
-Subject: Re: [RFC 0/2] BCM283x Camera Receiver driver
-To: Dave Stevenson <dave.stevenson@raspberrypi.org>
-References: <cover.1497452006.git.dave.stevenson@raspberrypi.org>
- <55eba688-5765-72dc-0984-7b642abaf38e@xs4all.nl>
- <CAAoAYcM5E5vsQ0Cn4X4XSJOO6uNuLqjXaBs1bBHwfiQbi5oHXw@mail.gmail.com>
- <154d1076-89b6-2c6b-07c1-f1c45eca3727@xs4all.nl>
- <CAAoAYcP3xqP=QQ4xTfBiiy9oXiJykPMbJrTBM5pa4WNSiPbSUg@mail.gmail.com>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-rpi-kernel@lists.infradead.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <cf9c0a4d-d89f-e8d9-3a4a-b0f6971395b9@xs4all.nl>
-Date: Wed, 30 Aug 2017 13:25:37 +0200
+Received: from lelnx194.ext.ti.com ([198.47.27.80]:26777 "EHLO
+        lelnx194.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751505AbdHGT5L (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Aug 2017 15:57:11 -0400
+Date: Mon, 7 Aug 2017 14:56:24 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        <linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        Cyprian Wronka <cwronka@cadence.com>,
+        Neil Webb <neilw@cadence.com>,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v2 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 RX
+ Device Tree bindings
+Message-ID: <20170807195624.GE10611@ti.com>
+References: <20170720092302.2982-1-maxime.ripard@free-electrons.com>
+ <20170720092302.2982-2-maxime.ripard@free-electrons.com>
 MIME-Version: 1.0
-In-Reply-To: <CAAoAYcP3xqP=QQ4xTfBiiy9oXiJykPMbJrTBM5pa4WNSiPbSUg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20170720092302.2982-2-maxime.ripard@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 30/08/17 13:04, Dave Stevenson wrote:
-> On 30 August 2017 at 11:45, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On 30/08/17 11:40, Dave Stevenson wrote:
->>> Hi Hans.
->>>
->>> On 28 August 2017 at 15:15, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>> Hi Dave,
->>>>
->>>> What is the status of this work? I ask because I tried to use this driver
->>>> plus my tc358743 on my rpi-2b without any luck. Specifically the tc358843
->>>> isn't able to read from the i2c bus.
->>>
->>> I was on other things until last week, but will try to get a V2 sorted
->>> either this week or early next.
->>> The world moved on slightly too, so there are a few more updates
->>> around fwnode stuff that I ought to adopt.
->>>
->>>> This is probably a bug in my dts, if you have a tree somewhere containing
->>>> a working dts for this, then that would be very helpful.
->>>
->>> Almost certainly just pin ctrl on the I2C bus. The default for i2c0 is
->>> normally to GPIOs 0&1 as that is exposed on the 40 pin header
->>> (physical pins 27&28). The camera is on GPIOs 28&29 (alt0) for the
->>> majority of Pi models (not the Pi3, or the early model B).
->>
->> Yep, that was the culprit!
+Maxime Ripard <maxime.ripard@free-electrons.com> wrote on Thu [2017-Jul-20 11:23:01 +0200]:
+> The Cadence MIPI-CSI2 RX controller is a CSI2RX bridge that supports up to
+> 4 CSI-2 lanes, and can route the frames to up to 4 streams, depending on
+> the hardware implementation.
 > 
-> Great. I like easy ones :-)
+> It can operate with an external D-PHY, an internal one or no D-PHY at all
+> in some configurations.
 > 
->> I now see the tc, but streaming doesn't work yet. I'm not getting any
->> interrupts in the unicam driver.
+> Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+> ---
+>  .../devicetree/bindings/media/cdns-csi2rx.txt      | 87 ++++++++++++++++++++++
+>  1 file changed, 87 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/cdns-csi2rx.txt
 > 
-> What resolution were you streaming at? There are a couple of things
-> that come to mind and I don't have solutions for yet.
 
-I tried 720p60 (both RGB and YUV) and 640x480p60 (aka VGA).
-
-I gather that the last probably won't work, but 720p60 should?
-
-If time permits I'll try to look into this a bit more later today. First CEC
-though :-)
-
-Regards,
-
-	Hans
-
-> Firstly the TC358743 driver assumes that all 4 CSI lanes are
-> available, whilst the Pi only has 2 lanes exposed. IIRC 1080P30 RGB
-> just trickles over into wanting 3 lanes with the default link
-> frequencies and you indeed don't get anything if one or more lane is
-> physically not connected.
-> Secondly was the FIFOCTL register set via state->pdata.fifo_level that
-> we discussed before. The default is 16, which is too small for some of
-> the smaller resolutions. 300 seems reasonable. You do get frames in
-> that situation, but they're generally corrupt.
-> I'm intending to try and make the TC358743 more flexible than just
-> accepting >720P, and if I can support multiple link frequencies then
-> so much the better as 1080P50 UYVY should be just possible on 2 lane,
-> however the lower resolutions are unlikely to work due to FIFO
-> underflow.
-> 
->> BTW, when s_dv_timings is called, then you need to update the v4l2_format
->> as well to the new width and height. I noticed that that didn't happen.
-> 
-> Yes, that came up in the previous discussions and is already fixed.
-> 
->> Anyway, this is good enough for me for now since I want to add CEC support
->> to the tc driver, and I do not need streaming for that...
-> 
-> That sounds fun.
->   Dave
-> 
+Acked-by: Benoit Parrot <bparrot@ti.com>
