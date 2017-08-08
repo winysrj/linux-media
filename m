@@ -1,73 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imap.netup.ru ([77.72.80.14]:57292 "EHLO imap.netup.ru"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751994AbdHBRgl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 Aug 2017 13:36:41 -0400
-Received: from mail-oi0-f46.google.com (mail-oi0-f46.google.com [209.85.218.46])
-        by imap.netup.ru (Postfix) with ESMTPSA id 57BB28D103C
-        for <linux-media@vger.kernel.org>; Wed,  2 Aug 2017 20:36:40 +0300 (MSK)
-Received: by mail-oi0-f46.google.com with SMTP id x3so51313531oia.1
-        for <linux-media@vger.kernel.org>; Wed, 02 Aug 2017 10:36:39 -0700 (PDT)
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58978 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752049AbdHHLYJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 Aug 2017 07:24:09 -0400
+Date: Tue, 8 Aug 2017 14:24:06 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: mchehab@s-opensource.com, hans.verkuil@cisco.com, corbet@lwn.net,
+        linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>
+Subject: Re: [PATCH 1/2] [media] ov7670: Return the real error code
+Message-ID: <20170808112406.gkr2jhedzjkdr2ww@valkosipuli.retiisi.org.uk>
+References: <1500435259-5838-1-git-send-email-festevam@gmail.com>
 MIME-Version: 1.0
-From: Abylay Ospan <aospan@netup.ru>
-Date: Wed, 2 Aug 2017 13:36:18 -0400
-Message-ID: <CAK3bHNUafQc_m7grP9DFTjgc3RKx5H8dCd7L4q0YvFhbGd_qvQ@mail.gmail.com>
-Subject: =?UTF-8?Q?Universal_DTV_USB_receiver_=28=E2=80=9CJoker_TV=E2=80=9D=29?=
-To: linux-media <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1500435259-5838-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Everyone !
+On Wed, Jul 19, 2017 at 12:34:18AM -0300, Fabio Estevam wrote:
+> From: Fabio Estevam <fabio.estevam@nxp.com>
+> 
+> When devm_clk_get() fails the real error code should be propagated,
+> instead of always returning -EPROBE_DEFER.
+> 
+> Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
 
-Some time ago I had announced my initiative about building truly
-universal DTV receiver - =E2=80=9CJoker TV=E2=80=9D (supports DVB-S2/T2/C2,=
- ISDB-T,
-ATSC, DTMB). Now I=E2=80=99m glad to post  an update.
+Hi Fabio,
 
-It has been almost 10 months now but during this time, I have prepared
-two hardware revisions of =E2=80=9CJoker TV=E2=80=9D with various fixes. I =
-also wrote
-software for FPGA and the host (for Linux/OSx/Windows). This was a lot
-of work, but now I=E2=80=99m ready to share all of it with you. I have deci=
-ded
-to donate my work to the community and make this project an Open
-Hardware and Open Software project. Here are some posts with
-additional information:
+I don't think -EPROBE_DEFER is returned by clk_get() if the clock can't be
+found. The clock providers often are e.g. ISP drivers that may well be
+loaded after the sensor driver. In that case this change would prevent
+successful initialisation of the drivers.
 
-https://jokersys.com/2017/07/06/schematic-pcb-share/ - hardware sharing
-https://jokersys.com/2017/07/06/joker-tv-linuxosxwindows-drivers-apps/
-- user-level driver&app description
-https://jokersys.com/2017/07/06/joker-tv-fpga-verilogvhdl-code/ - FPGA
-firmware description
+> ---
+>  drivers/media/i2c/ov7670.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+> index 7270c68..552a881 100644
+> --- a/drivers/media/i2c/ov7670.c
+> +++ b/drivers/media/i2c/ov7670.c
+> @@ -1614,7 +1614,7 @@ static int ov7670_probe(struct i2c_client *client,
+>  
+>  	info->clk = devm_clk_get(&client->dev, "xclk");
+>  	if (IS_ERR(info->clk))
+> -		return -EPROBE_DEFER;
+> +		return PTR_ERR(info->clk);
+>  	clk_prepare_enable(info->clk);
+>  
+>  	ret = ov7670_init_gpio(client, info);
+> -- 
+> 2.7.4
+> 
 
-And bonus for those who are interested in how the production is done
-and how much it cost. Here is my post about this:
-
-https://jokersys.com/2017/07/08/joker-tv-manufacturing/
-
-Additionally, I have just placed the first batch order to the factory
-and I=E2=80=99m anticipating the results which should be ready in about thr=
-ee
-(3) weeks. I will send freshly baked =E2=80=9CJoker TV=E2=80=9D gadgets to =
-all
-backers.
-
-I=E2=80=99m planning to prepare new posts with internals about Joker TV=E2=
-=80=99s
-hardware and software. Here are some topics I=E2=80=99m planning to describ=
-e:
- * USB part. ULPI PHY interface, FPGA USB-stack, Isochronous
-transactions with TS data, etc;
- * RF part. Tuner and Demods, AGC, LNB, I&Q, etc
- * I2C and SPI buses
- * CI interface
-Please let me know if you are interested in some topics listed above -
-I will describe them in more detail next time.
-
-I=E2=80=99m open to any comments, collaboration, discussions. Thanks !
-
---=20
-Abylay Ospan
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
