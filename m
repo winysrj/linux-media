@@ -1,49 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:34447 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753097AbdHTOgw (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34068 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752062AbdHHOof (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Aug 2017 10:36:52 -0400
-Received: by mail-wr0-f196.google.com with SMTP id p14so8262105wrg.1
-        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 07:36:52 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: jasmin@anw.at, mchehab@kernel.org
-Subject: [PATCH 2/3] [media_build] patch pci_alloc_irq_vectors() for ddbridge aswell
-Date: Sun, 20 Aug 2017 16:36:47 +0200
-Message-Id: <20170820143648.27669-3-d.scheller.oss@gmail.com>
-In-Reply-To: <20170820143648.27669-1-d.scheller.oss@gmail.com>
-References: <20170820143648.27669-1-d.scheller.oss@gmail.com>
+        Tue, 8 Aug 2017 10:44:35 -0400
+Date: Tue, 8 Aug 2017 17:44:31 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Todor Tomov <todor.tomov@linaro.org>
+Cc: mchehab@kernel.org, hans.verkuil@cisco.com, s.nawrocki@samsung.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+Subject: Re: [PATCH v4 09/21] media: camss: Add files which handle the video
+ device nodes
+Message-ID: <20170808144430.d3ljza6bq5r4vpj5@valkosipuli.retiisi.org.uk>
+References: <1502199018-28250-1-git-send-email-todor.tomov@linaro.org>
+ <1502199018-28250-10-git-send-email-todor.tomov@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1502199018-28250-10-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Hi Todor,
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- backports/v4.7_pci_alloc_irq_vectors.patch | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+On Tue, Aug 08, 2017 at 04:30:06PM +0300, Todor Tomov wrote:
+...
+> +static int video_start_streaming(struct vb2_queue *q, unsigned int count)
+> +{
+> +	struct camss_video *video = vb2_get_drv_priv(q);
+> +	struct video_device *vdev = &video->vdev;
+> +	struct media_entity *entity;
+> +	struct media_pad *pad;
+> +	struct v4l2_subdev *subdev;
+> +	int ret;
+> +
+> +	ret = media_pipeline_start(&vdev->entity, &video->pipe);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = video_check_format(video);
+> +	if (ret < 0)
+> +		goto error;
+> +
+> +	entity = &vdev->entity;
+> +	while (1) {
+> +		pad = &entity->pads[0];
+> +		if (!(pad->flags & MEDIA_PAD_FL_SINK))
+> +			break;
 
-diff --git a/backports/v4.7_pci_alloc_irq_vectors.patch b/backports/v4.7_pci_alloc_irq_vectors.patch
-index 64867fa..e15d521 100644
---- a/backports/v4.7_pci_alloc_irq_vectors.patch
-+++ b/backports/v4.7_pci_alloc_irq_vectors.patch
-@@ -42,3 +42,16 @@ index 00f773e..ed00dc9 100644
-  	/* omnitek dma */
-  	int dma_channels;
-  	int first_fifo_channel;
-+diff --git a/drivers/media/pci/ddbridge/ddbridge.c b/drivers/media/pci/ddbridge/ddbridge.c
-+index fab421f..031288a 100644
-+--- a/drivers/media/pci/ddbridge/ddbridge-main.c
-++++ b/drivers/media/pci/ddbridge/ddbridge-main.c
-+@@ -109,7 +109,7 @@ static void ddb_irq_msi(struct ddb *dev, int nr)
-+ 	int stat;
-+ 
-+ 	if (msi && pci_msi_enabled()) {
-+-		stat = pci_alloc_irq_vectors(dev->pdev, 1, nr, PCI_IRQ_MSI);
-++		stat = pci_enable_msi_range(dev->pdev, 1, nr);
-+ 		if (stat >= 1) {
-+ 			dev->msi = stat;
-+ 			dev_info(dev->dev, "using %d MSI interrupt(s)\n",
+Could you align starting and stopping the streaming with this patch:
+
+<URL:http://www.spinics.net/lists/linux-media/msg117737.html>
+
+I'll send a pull request on it shortly.
+
+Feel free to postpone for now, this isn't urgent.
+
+> +
+> +		pad = media_entity_remote_pad(pad);
+> +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> +			break;
+> +
+> +		entity = pad->entity;
+> +		subdev = media_entity_to_v4l2_subdev(entity);
+> +
+> +		ret = v4l2_subdev_call(subdev, video, s_stream, 1);
+> +		if (ret < 0 && ret != -ENOIOCTLCMD)
+> +			goto error;
+> +	}
+> +
+> +	return 0;
+> +
+> +error:
+> +	media_pipeline_stop(&vdev->entity);
+> +
+> +	video->ops->flush_buffers(video, VB2_BUF_STATE_QUEUED);
+> +
+> +	return ret;
+> +}
+> +
+> +static void video_stop_streaming(struct vb2_queue *q)
+> +{
+> +	struct camss_video *video = vb2_get_drv_priv(q);
+> +	struct video_device *vdev = &video->vdev;
+> +	struct media_entity *entity;
+> +	struct media_pad *pad;
+> +	struct v4l2_subdev *subdev;
+> +	struct v4l2_subdev *subdev_vfe = NULL;
+> +
+> +	entity = &vdev->entity;
+> +	while (1) {
+> +		pad = &entity->pads[0];
+> +		if (!(pad->flags & MEDIA_PAD_FL_SINK))
+> +			break;
+> +
+> +		pad = media_entity_remote_pad(pad);
+> +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> +			break;
+> +
+> +		entity = pad->entity;
+> +		subdev = media_entity_to_v4l2_subdev(entity);
+> +
+> +		if (strstr(subdev->name, "vfe")) {
+> +			subdev_vfe = subdev;
+> +		} else if (strstr(subdev->name, "ispif")) {
+> +			v4l2_subdev_call(subdev, video, s_stream, 0);
+> +			v4l2_subdev_call(subdev_vfe, video, s_stream, 0);
+> +		} else {
+> +			v4l2_subdev_call(subdev, video, s_stream, 0);
+> +		}
+> +	}
+> +
+> +	media_pipeline_stop(&vdev->entity);
+> +
+> +	video->ops->flush_buffers(video, VB2_BUF_STATE_ERROR);
+> +}
+
 -- 
-2.13.0
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
