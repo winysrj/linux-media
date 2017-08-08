@@ -1,45 +1,278 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-co1nam03on0082.outbound.protection.outlook.com ([104.47.40.82]:20928
-        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751536AbdHISxo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 9 Aug 2017 14:53:44 -0400
-From: Rohit Athavale <rohit.athavale@xilinx.com>
-To: <linux-media@vger.kernel.org>
-CC: <laurent.pinchart@ideasonboard.com>, <hyun.kwon@xilinx.com>,
-        Rohit Athavale <rathaval@xilinx.com>
-Subject: [PATCH 0/3] Xilinx 8-bit color depth YCbCr 4:2:0 media bus format
-Date: Wed, 9 Aug 2017 11:27:51 -0700
-Message-ID: <1502303274-40609-1-git-send-email-rathaval@xilinx.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from ns.mm-sol.com ([37.157.136.199]:40231 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752075AbdHHNay (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 Aug 2017 09:30:54 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hans.verkuil@cisco.com, s.nawrocki@samsung.com,
+        sakari.ailus@iki.fi, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v4 00/21] Qualcomm 8x16 Camera Subsystem driver
+Date: Tue,  8 Aug 2017 16:29:57 +0300
+Message-Id: <1502199018-28250-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch set adds a vendor specific custom YCbCr 4:2:0 format. The way
-Xilinx Video IP sends data over the bus makes it unrepresented by existing
-media bus formats.
+This patchset adds basic support for the Qualcomm Camera Subsystem found
+on Qualcomm MSM8916 and APQ8016 processors.
 
-YCbCr 4:2:0 transmission over the bus does not slice Chroma and Luma
-components over the bus width. Instead it sends sub-sampled Chroma when
-present along with the Luma component, otherwise zero padded Luma only
-data is sent.
+The driver implements V4L2, Media controller and V4L2 subdev interfaces.
+Camera sensor using V4L2 subdev interface in the kernel is supported.
 
-The first patch  (1/3) adds the format to the uapi header file.
-The second patch (2/3) adds the format to the table in xilinx-vip.c.
-The third patch  (3/3) updates the subdev format doc file.
+The driver is implemented using as a reference the Qualcomm Camera
+Subsystem driver for Android as found in Code Aurora [1].
 
-Rohit Athavale (3):
-  uapi: media-bus-format: Add Xilinx specific YCbCr 4:2:0 media bus
-    format
-  media: xilinx-vip: Add 8-bit YCbCr 4:2:0 to formats table
-  Documentation: subdev-formats: Add Xilinx YCbCr to Vendor specific
-    area
+The driver is tested on Dragonboard 410C (APQ8016) with one and two
+OV5645 camera sensors. media-ctl [2] and yavta [3] applications were
+used for testing. Also Gstreamer 1.10.4 with v4l2src plugin is supported.
 
- Documentation/media/uapi/v4l/subdev-formats.rst | 5 +++++
- drivers/media/platform/xilinx/xilinx-vip.c      | 3 +++
- include/uapi/linux/media-bus-format.h           | 4 +++-
- 3 files changed, 11 insertions(+), 1 deletion(-)
+More information is present in the document added by the third patch.
+
+[1] https://source.codeaurora.org/quic/la/kernel/msm-3.10/
+[2] https://git.linuxtv.org//v4l-utils.git
+[3] http://git.ideasonboard.org/yavta.git
+
+-------------------------------------------------------------------------------
+
+Patchset Changelog:
+
+Version 4:
+- rework video node format handling - now can be set independently from the
+  format on the subdev linked to it. Format compatibility is checked
+  on STREAM_ON and should be compatible to allow start of the streaming;
+- fix sensor pixel clock rate request (use 4l2_ctrl_g_ctrl_int64());
+- refuse to continue if received sensor pixel clock == 0;
+- add function to calculate clock frequency margin;
+- use proper functions/macros for 64bit division;
+- add v4l2 format names of the supported formats in documentation;
+- use media_entity_cleanup on camss_remove();
+- remove uncompressed field from format struct - it is unused;
+- remove magic values;
+- fix SBGGR12 typo;
+- improve CSI2 lane configuration description in documentation;
+- do not touch compose selection rectangle sent by userspace;
+- always destroy mutexes at the end;
+- other small code fixes.
+
+Version 3:
+- use V4L2 fwnode framework;
+- remove settle count parameter from DT and add logic to calculate it instead;
+- refactor video device node format initialization;
+- fixed copyright information;
+- shorter clock names;
+- remove redundant memset usage;
+- print error code when error happens;
+- do not check format type on g_fmt/s_fmt;
+- add busy check on s_fmt;
+- rename files to add camss- prefix;
+- other small code fixes.
+
+Version 2:
+- patches 01-10 are updated from v1 following the review received and bugs
+  and limitaitons found after v1 was posted. The updates include:
+  - return buffers on unsuccessful stream on;
+  - fill device capabilities in struct video_device;
+  - simplify v4l2 file handle usage - no custom struct for file handle;
+  - use vb2_fop_poll and vb2_fop_mmap v4l2 file operations;
+  - add support for read/write I/O;
+  - add support for DMABUF streaming I/O;
+  - add support for EXPBUF and PREPARE_BUF ioctl;
+  - avoid a race condition between device unbind and userspace access
+    to the video node;
+  - use non-contiguous memory for video buffers;
+  - switch to V4L2 multi-planar API;
+  - add useful error messages in case of an overflow in ISPIF;
+  - other small and style fixes.
+
+- patches 11-19 are new (they were not ready/posted with v1). I'm including
+  these in this patchset as they add valuable features and may be desired
+  for a real world usage of the driver.
+
+-------------------------------------------------------------------------------
+
+The driver depends on patches:
+- [media] media: Make parameter of media_entity_remote_pad() const
+- [media] v4l2-mediabus: Add helper functions
+- v4l: Add packed Bayer raw12 pixel formats 
+
+The first and second are already on linux-next, the third one is included in
+this patchset to ensure successful compilation.
+
+-------------------------------------------------------------------------------
+
+V4L2 compliance test result:
+
+$ v4l2-compliance -d /dev/video0 -s
+v4l2-compliance SHA   : 172b663ea1fd16909a390f508851098a58061d9b
+
+Driver Info:
+        Driver name   : qcom-camss
+        Card type     : Qualcomm Camera Subsystem
+        Bus info      : platform:1b0ac00.camss
+        Driver version: 4.9.34
+        Capabilities  : 0x85201000
+                Video Capture Multiplanar
+                Read/Write
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x05201000
+                Video Capture Multiplanar
+                Read/Write
+                Streaming
+                Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Test input 0:
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+                test VIDIOC_QUERYCTRL: OK (Not Supported)
+                test VIDIOC_G/S_CTRL: OK (Not Supported)
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 0 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK (Not Supported)
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK (Not Supported)
+                test Composing: OK (Not Supported)
+                test Scaling: OK
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Streaming ioctls:
+        test read/write: OK
+        test MMAP: OK                                     
+        test USERPTR: OK (Not Supported)
+        test DMABUF: Cannot test, specify --expbuf-device
+
+
+Total: 46, Succeeded: 46, Failed: 0, Warnings: 0
+
+-------------------------------------------------------------------------------
+
+Sakari Ailus (1):
+  v4l: Add packed Bayer raw12 pixel formats
+
+Todor Tomov (20):
+  dt-bindings: media: Binding document for Qualcomm Camera subsystem
+    driver
+  MAINTAINERS: Add Qualcomm Camera subsystem driver
+  doc: media/v4l-drivers: Add Qualcomm Camera Subsystem driver document
+  media: camss: Add CSIPHY files
+  media: camss: Add CSID files
+  media: camss: Add ISPIF files
+  media: camss: Add VFE files
+  media: camss: Add files which handle the video device nodes
+  media: camms: Add core files
+  media: camss: Enable building
+  camss: vfe: Format conversion support using PIX interface
+  doc: media/v4l-drivers: Qualcomm Camera Subsystem - PIX Interface
+  camss: vfe: Support for frame padding
+  camss: vfe: Add interface for scaling
+  camss: vfe: Configure scaler module in VFE
+  camss: vfe: Add interface for cropping
+  camss: vfe: Configure crop module in VFE
+  doc: media/v4l-drivers: Qualcomm Camera Subsystem - Scale and crop
+  camss: Use optimal clock frequency rates
+  doc: media/v4l-drivers: Qualcomm Camera Subsystem - Media graph
+
+ .../devicetree/bindings/media/qcom,camss.txt       |  197 ++
+ Documentation/media/uapi/v4l/pixfmt-rgb.rst        |    1 +
+ Documentation/media/uapi/v4l/pixfmt-srggb12p.rst   |  104 +
+ Documentation/media/v4l-drivers/qcom_camss.rst     |  155 +
+ .../media/v4l-drivers/qcom_camss_graph.dot         |   41 +
+ MAINTAINERS                                        |    8 +
+ drivers/media/platform/Kconfig                     |    7 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/qcom/camss-8x16/Makefile    |   11 +
+ .../media/platform/qcom/camss-8x16/camss-csid.c    | 1092 +++++++
+ .../media/platform/qcom/camss-8x16/camss-csid.h    |   82 +
+ .../media/platform/qcom/camss-8x16/camss-csiphy.c  |  890 ++++++
+ .../media/platform/qcom/camss-8x16/camss-csiphy.h  |   77 +
+ .../media/platform/qcom/camss-8x16/camss-ispif.c   | 1175 ++++++++
+ .../media/platform/qcom/camss-8x16/camss-ispif.h   |   85 +
+ drivers/media/platform/qcom/camss-8x16/camss-vfe.c | 3088 ++++++++++++++++++++
+ drivers/media/platform/qcom/camss-8x16/camss-vfe.h |  123 +
+ .../media/platform/qcom/camss-8x16/camss-video.c   |  860 ++++++
+ .../media/platform/qcom/camss-8x16/camss-video.h   |   70 +
+ drivers/media/platform/qcom/camss-8x16/camss.c     |  746 +++++
+ drivers/media/platform/qcom/camss-8x16/camss.h     |  106 +
+ drivers/media/v4l2-core/v4l2-ioctl.c               |   12 +-
+ include/uapi/linux/videodev2.h                     |    5 +
+ 23 files changed, 8933 insertions(+), 4 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/qcom,camss.txt
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb12p.rst
+ create mode 100644 Documentation/media/v4l-drivers/qcom_camss.rst
+ create mode 100644 Documentation/media/v4l-drivers/qcom_camss_graph.dot
+ create mode 100644 drivers/media/platform/qcom/camss-8x16/Makefile
+ create mode 100644 drivers/media/platform/qcom/camss-8x16/camss-csid.c
+ create mode 100644 drivers/media/platform/qcom/camss-8x16/camss-csid.h
+ create mode 100644 drivers/media/platform/qcom/camss-8x16/camss-csiphy.c
+ create mode 100644 drivers/media/platform/qcom/camss-8x16/camss-csiphy.h
+ create mode 100644 drivers/media/platform/qcom/camss-8x16/camss-ispif.c
+ create mode 100644 drivers/media/platform/qcom/camss-8x16/camss-ispif.h
+ create mode 100644 drivers/media/platform/qcom/camss-8x16/camss-vfe.c
+ create mode 100644 drivers/media/platform/qcom/camss-8x16/camss-vfe.h
+ create mode 100644 drivers/media/platform/qcom/camss-8x16/camss-video.c
+ create mode 100644 drivers/media/platform/qcom/camss-8x16/camss-video.h
+ create mode 100644 drivers/media/platform/qcom/camss-8x16/camss.c
+ create mode 100644 drivers/media/platform/qcom/camss-8x16/camss.h
 
 -- 
-1.9.1
+2.7.4
