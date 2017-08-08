@@ -1,74 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:33668 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753548AbdHUUM2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Aug 2017 16:12:28 -0400
-Date: Mon, 21 Aug 2017 22:12:23 +0200
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Bhumika Goyal <bhumirks@gmail.com>
-Cc: julia.lawall@lip6.fr, bp@alien8.de, mchehab@kernel.org,
-        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
-        seanpaul@chromium.org, airlied@linux.ie, g.liakhovetski@gmx.de,
-        tomas.winkler@intel.com, dwmw2@infradead.org,
-        computersforpeace@gmail.com, marek.vasut@gmail.com, richard@nod.at,
-        cyrille.pitchen@wedev4u.fr, peda@axentia.se, kishon@ti.com,
-        bhelgaas@google.com, thierry.reding@gmail.com,
-        jonathanh@nvidia.com, dvhart@infradead.org, andy@infradead.org,
-        ohad@wizery.com, bjorn.andersson@linaro.org, freude@de.ibm.com,
-        schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, jth@kernel.org,
-        jejb@linux.vnet.ibm.com, martin.petersen@oracle.com,
-        lduncan@suse.com, cleech@redhat.com, johan@kernel.org,
-        elder@kernel.org, gregkh@linuxfoundation.org,
-        heikki.krogerus@linux.intel.com, linux-edac@vger.kernel.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
-        linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, greybus-dev@lists.linaro.org,
-        devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
-Subject: Re: [PATCH 06/15] mtd:  make device_type const
-Message-ID: <20170821221223.0a44fe32@bbrezillon>
-In-Reply-To: <1503130946-2854-7-git-send-email-bhumirks@gmail.com>
-References: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
-        <1503130946-2854-7-git-send-email-bhumirks@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:37836 "EHLO
+        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752046AbdHHLW7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Aug 2017 07:22:59 -0400
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+To: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>
+Subject: [PATCH 0/5] s5p-jpeg fixes
+Date: Tue, 08 Aug 2017 13:22:27 +0200
+Message-id: <1502191352-11595-1-git-send-email-andrzej.p@samsung.com>
+References: <CGME20170808112254eucas1p20aacd5bb0737ff85ba4756724af189aa@eucas1p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le Sat, 19 Aug 2017 13:52:17 +0530,
-Bhumika Goyal <bhumirks@gmail.com> a écrit :
+Hi All,
 
-> Make this const as it is only stored in the type field of a device
-> structure, which is const.
-> Done using Coccinelle.
-> 
+This series contains a number of fixes to the s5p-jpeg driver.
 
-Applied to l2-mtd/master.
+There are two patches from Tony K Nadackal, which got lost long time ago.
 
-Thanks,
+@Thierry:
+The patch changing the software reset routine you sent recently was
+actually a resend of Tony's patch. I investigated the question why
+this patch is needed. The encoder/decoder should be disabled as soon
+as possible, in the interrupt service routine; please see the commit message.
+I am resending Tony's patch again, with updated commit message.
+Thank you for reminding about the patch in question!
 
-Boris
+There are also three patches from me, please see appropriate commit
+messages.
 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
-> ---
->  drivers/mtd/mtdcore.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/mtd/mtdcore.c b/drivers/mtd/mtdcore.c
-> index f872a99..e7ea842 100644
-> --- a/drivers/mtd/mtdcore.c
-> +++ b/drivers/mtd/mtdcore.c
-> @@ -340,7 +340,7 @@ static ssize_t mtd_bbtblocks_show(struct device *dev,
->  };
->  ATTRIBUTE_GROUPS(mtd);
->  
-> -static struct device_type mtd_devtype = {
-> +static const struct device_type mtd_devtype = {
->  	.name		= "mtd",
->  	.groups		= mtd_groups,
->  	.release	= mtd_release,
+Rebased onto Mauro's master.
+
+Andrzej Pietrasiewicz (3):
+  media: platform: s5p-jpeg: disable encoder/decoder in exynos4-like
+    hardware after use
+  media: platform: s5p-jpeg: fix number of components macro
+  media: platform: s5p-jpeg: directly use parsed subsampling on 5433
+
+Tony K Nadackal (2):
+  media: platform: s5p-jpeg: Fix crash in jpeg isr due to multiple
+    interrupts.
+  media: platform: s5p-jpeg: Clear JPEG_CODEC_ON bits in sw reset
+    function
+
+ drivers/media/platform/s5p-jpeg/jpeg-core.c       | 8 +++++++-
+ drivers/media/platform/s5p-jpeg/jpeg-core.h       | 1 +
+ drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c | 9 ++++++++-
+ drivers/media/platform/s5p-jpeg/jpeg-regs.h       | 2 +-
+ 4 files changed, 17 insertions(+), 3 deletions(-)
+
+-- 
+1.9.1
