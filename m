@@ -1,68 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50726
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S933583AbdHYPMF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Aug 2017 11:12:05 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH v3 5/7] media: open.rst: Adjust some terms to match the glossary
-Date: Fri, 25 Aug 2017 12:11:55 -0300
-Message-Id: <2e4999001b7ab488338313f07da82365ce4c688b.1503673702.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503673702.git.mchehab@s-opensource.com>
-References: <cover.1503673702.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503673702.git.mchehab@s-opensource.com>
-References: <cover.1503673702.git.mchehab@s-opensource.com>
+Received: from ns.mm-sol.com ([37.157.136.199]:40282 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752435AbdHHNbC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 Aug 2017 09:31:02 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hans.verkuil@cisco.com, s.nawrocki@samsung.com,
+        sakari.ailus@iki.fi, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v4 21/21] doc: media/v4l-drivers: Qualcomm Camera Subsystem - Media graph
+Date: Tue,  8 Aug 2017 16:30:18 +0300
+Message-Id: <1502199018-28250-22-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1502199018-28250-1-git-send-email-todor.tomov@linaro.org>
+References: <1502199018-28250-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we now have a glossary, some terms used on open.rst
-require adjustments.
+Update the Qualcomm Camera Subsystem driver document with a media
+controller pipeline graph diagram.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- Documentation/media/uapi/v4l/open.rst | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ Documentation/media/v4l-drivers/qcom_camss.rst     | 27 ++++++--------
+ .../media/v4l-drivers/qcom_camss_graph.dot         | 41 ++++++++++++++++++++++
+ 2 files changed, 51 insertions(+), 17 deletions(-)
+ create mode 100644 Documentation/media/v4l-drivers/qcom_camss_graph.dot
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index 0a92eadfe936..b5140dbba49a 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -149,7 +149,7 @@ Related Devices
- Devices can support several functions. For example video capturing, VBI
- capturing and radio support.
+diff --git a/Documentation/media/v4l-drivers/qcom_camss.rst b/Documentation/media/v4l-drivers/qcom_camss.rst
+index e6e948f..7ef632a 100644
+--- a/Documentation/media/v4l-drivers/qcom_camss.rst
++++ b/Documentation/media/v4l-drivers/qcom_camss.rst
+@@ -114,23 +114,16 @@ The considerations to split the driver in this particular way are as follows:
  
--The V4L2 API creates different nodes for each of these functions.
-+The V4L2 API creates different V4L2 device nodes for each of these functions.
+ Each VFE sub-device is linked to a separate video device node.
  
- The V4L2 API was designed with the idea that one device node could
- support all functions. However, in practice this never worked: this
-@@ -159,17 +159,17 @@ switching a device node between different functions only works when
- using the streaming I/O API, not with the
- :ref:`read() <func-read>`/\ :ref:`write() <func-write>` API.
+-The complete list of the media entities (V4L2 sub-devices and video device
+-nodes) is as follows:
+-
+-- msm_csiphy0
+-- msm_csiphy1
+-- msm_csid0
+-- msm_csid1
+-- msm_ispif0
+-- msm_ispif1
+-- msm_vfe0_rdi0
+-- msm_vfe0_video0
+-- msm_vfe0_rdi1
+-- msm_vfe0_video1
+-- msm_vfe0_rdi2
+-- msm_vfe0_video2
+-- msm_vfe0_pix
+-- msm_vfe0_video3
++The media controller pipeline graph is as follows (with connected two OV5645
++camera sensors):
++
++.. _qcom_camss_graph:
++
++.. kernel-figure:: qcom_camss_graph.dot
++    :alt:   qcom_camss_graph.dot
++    :align: center
++
++    Media pipeline graph
  
--Today each device node supports just one function.
-+Today each V4L2 device node supports just one function.
  
- Besides video input or output the hardware may also support audio
- sampling or playback. If so, these functions are implemented as ALSA PCM
- devices with optional ALSA audio mixer devices.
- 
- One problem with all these devices is that the V4L2 API makes no
--provisions to find these related devices. Some really complex devices
--use the Media Controller (see :ref:`media_controller`) which can be
--used for this purpose. But most drivers do not use it, and while some
--code exists that uses sysfs to discover related devices (see
-+provisions to find these related V4L2 device nodes. Some really complex
-+hardware use the Media Controller (see :ref:`media_controller`) which can
-+be used for this purpose. But several drivers do not use it, and while some
-+code exists that uses sysfs to discover related V4L2 device nodes (see
- libmedia_dev in the
- `v4l-utils <http://git.linuxtv.org/cgit.cgi/v4l-utils.git/>`__ git
- repository), there is no library yet that can provide a single API
+ Implementation
+diff --git a/Documentation/media/v4l-drivers/qcom_camss_graph.dot b/Documentation/media/v4l-drivers/qcom_camss_graph.dot
+new file mode 100644
+index 0000000..827fc71
+--- /dev/null
++++ b/Documentation/media/v4l-drivers/qcom_camss_graph.dot
+@@ -0,0 +1,41 @@
++digraph board {
++	rankdir=TB
++	n00000001 [label="{{<port0> 0} | msm_csiphy0\n/dev/v4l-subdev0 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000001:port1 -> n00000007:port0 [style=dashed]
++	n00000001:port1 -> n0000000a:port0 [style=dashed]
++	n00000004 [label="{{<port0> 0} | msm_csiphy1\n/dev/v4l-subdev1 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000004:port1 -> n00000007:port0 [style=dashed]
++	n00000004:port1 -> n0000000a:port0 [style=dashed]
++	n00000007 [label="{{<port0> 0} | msm_csid0\n/dev/v4l-subdev2 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000007:port1 -> n0000000d:port0 [style=dashed]
++	n00000007:port1 -> n00000010:port0 [style=dashed]
++	n0000000a [label="{{<port0> 0} | msm_csid1\n/dev/v4l-subdev3 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000000a:port1 -> n0000000d:port0 [style=dashed]
++	n0000000a:port1 -> n00000010:port0 [style=dashed]
++	n0000000d [label="{{<port0> 0} | msm_ispif0\n/dev/v4l-subdev4 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000000d:port1 -> n00000013:port0 [style=dashed]
++	n0000000d:port1 -> n0000001c:port0 [style=dashed]
++	n0000000d:port1 -> n00000025:port0 [style=dashed]
++	n0000000d:port1 -> n0000002e:port0 [style=dashed]
++	n00000010 [label="{{<port0> 0} | msm_ispif1\n/dev/v4l-subdev5 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000010:port1 -> n00000013:port0 [style=dashed]
++	n00000010:port1 -> n0000001c:port0 [style=dashed]
++	n00000010:port1 -> n00000025:port0 [style=dashed]
++	n00000010:port1 -> n0000002e:port0 [style=dashed]
++	n00000013 [label="{{<port0> 0} | msm_vfe0_rdi0\n/dev/v4l-subdev6 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000013:port1 -> n00000016 [style=bold]
++	n00000016 [label="msm_vfe0_video0\n/dev/video0", shape=box, style=filled, fillcolor=yellow]
++	n0000001c [label="{{<port0> 0} | msm_vfe0_rdi1\n/dev/v4l-subdev7 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000001c:port1 -> n0000001f [style=bold]
++	n0000001f [label="msm_vfe0_video1\n/dev/video1", shape=box, style=filled, fillcolor=yellow]
++	n00000025 [label="{{<port0> 0} | msm_vfe0_rdi2\n/dev/v4l-subdev8 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000025:port1 -> n00000028 [style=bold]
++	n00000028 [label="msm_vfe0_video2\n/dev/video2", shape=box, style=filled, fillcolor=yellow]
++	n0000002e [label="{{<port0> 0} | msm_vfe0_pix\n/dev/v4l-subdev9 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000002e:port1 -> n00000031 [style=bold]
++	n00000031 [label="msm_vfe0_video3\n/dev/video3", shape=box, style=filled, fillcolor=yellow]
++	n00000057 [label="{{} | ov5645 1-0076\n/dev/v4l-subdev10 | {<port0> 0}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000057:port0 -> n00000001:port0 [style=bold]
++	n00000059 [label="{{} | ov5645 1-0074\n/dev/v4l-subdev11 | {<port0> 0}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000059:port0 -> n00000004:port0 [style=bold]
++}
 -- 
-2.13.3
+2.7.4
