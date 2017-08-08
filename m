@@ -1,38 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:50214 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751453AbdHZCJg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Aug 2017 22:09:36 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, d.scheller@gmx.net, jasmin@anw.at
-Subject: [PATCH] build: ddbridge can be now compiled for kernels older than 3.8
-Date: Sat, 26 Aug 2017 04:09:30 +0200
-Message-Id: <1503713370-32220-2-git-send-email-jasmin@anw.at>
-In-Reply-To: <1503713370-32220-1-git-send-email-jasmin@anw.at>
-References: <1503713370-32220-1-git-send-email-jasmin@anw.at>
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:61984 "EHLO
+        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751927AbdHHLYB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 Aug 2017 07:24:01 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: linux-samsung-soc@vger.kernel.org
+Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 0/6] constify video_subdev structures
+Date: Tue,  8 Aug 2017 12:58:26 +0200
+Message-Id: <1502189912-28794-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+The structures of type v4l2_subdev_ops are only passed as the second
+argument of v4l2_subdev_init or as the third argument of
+v4l2_i2c_subdev_init, both of which are const.  The structures of type
+v4l2_subdev_core_ops, v4l2_subdev_pad_ops, v4l2_subdev_sensor_ops,
+v4l2_subdev_video_ops are only stored in fields of v4l2_subdev_ops
+structures, all of which are const.  Thus all of these structures can be
+declared as const as well.
 
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+Done with the help of Coccinelle.
+
 ---
- v4l/versions.txt | 2 --
- 1 file changed, 2 deletions(-)
 
-diff --git a/v4l/versions.txt b/v4l/versions.txt
-index 6f27929..7634038 100644
---- a/v4l/versions.txt
-+++ b/v4l/versions.txt
-@@ -126,8 +126,6 @@ IR_SPI
- [3.8.0]
- # needs regmap lock/unlock ops
- DVB_TS2020
--# needs the PCI_DEVICE_SUB macro
--DVB_DDBRIDGE
- 
- [3.7.0]
- # i2c_add_mux_adapter prototype change
--- 
-2.7.4
+ drivers/media/i2c/mt9m111.c                   |    6 +++---
+ drivers/media/i2c/mt9t001.c                   |    8 ++++----
+ drivers/media/platform/exynos4-is/fimc-isp.c  |    2 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c |    2 +-
+ drivers/media/platform/vimc/vimc-debayer.c    |    2 +-
+ drivers/media/platform/vimc/vimc-scaler.c     |    2 +-
+ drivers/media/platform/vimc/vimc-sensor.c     |    2 +-
+ drivers/media/usb/uvc/uvc_entity.c            |    2 +-
+ drivers/staging/media/atomisp/i2c/ap1302.c    |    2 +-
+ drivers/staging/media/atomisp/i2c/mt9m114.c   |    2 +-
+ 10 files changed, 15 insertions(+), 15 deletions(-)
