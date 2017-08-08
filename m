@@ -1,121 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47382 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752341AbdHHM4T (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Aug 2017 08:56:19 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH 4/5] uvcvideo: Convert from using an atomic variable to a reference count
-Date: Tue,  8 Aug 2017 15:56:23 +0300
-Message-Id: <20170808125624.11328-5-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <20170808125624.11328-1-laurent.pinchart@ideasonboard.com>
-References: <20170808125624.11328-1-laurent.pinchart@ideasonboard.com>
+Received: from ns.mm-sol.com ([37.157.136.199]:40281 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752348AbdHHNbA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 Aug 2017 09:31:00 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hans.verkuil@cisco.com, s.nawrocki@samsung.com,
+        sakari.ailus@iki.fi, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v4 19/21] doc: media/v4l-drivers: Qualcomm Camera Subsystem - Scale and crop
+Date: Tue,  8 Aug 2017 16:30:16 +0300
+Message-Id: <1502199018-28250-20-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1502199018-28250-1-git-send-email-todor.tomov@linaro.org>
+References: <1502199018-28250-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Update the Qualcomm Camera Subsystem driver document for VFE scale
+and crop modules support.
 
-When adding support for metadata nodes, we'll have to keep video
-devices registered until all metadata nodes are closed too. Since
-this has nothing to do with stream counting, replace the nstreams
-atomic variable with a reference counter.
-
-Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- drivers/media/usb/uvc/uvc_driver.c | 25 +++++++++----------------
- drivers/media/usb/uvc/uvcvideo.h   |  2 +-
- 2 files changed, 10 insertions(+), 17 deletions(-)
+ Documentation/media/v4l-drivers/qcom_camss.rst | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 4f463bf2b877..0fc8a736ed17 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1802,8 +1802,9 @@ static int uvc_scan_device(struct uvc_device *dev)
-  * already been canceled by the USB core. There is no need to kill the
-  * interrupt URB manually.
-  */
--static void uvc_delete(struct uvc_device *dev)
-+static void uvc_delete(struct kref *kref)
- {
-+	struct uvc_device *dev = container_of(kref, struct uvc_device, ref);
- 	struct list_head *p, *n;
+diff --git a/Documentation/media/v4l-drivers/qcom_camss.rst b/Documentation/media/v4l-drivers/qcom_camss.rst
+index d888443..e6e948f 100644
+--- a/Documentation/media/v4l-drivers/qcom_camss.rst
++++ b/Documentation/media/v4l-drivers/qcom_camss.rst
+@@ -35,7 +35,8 @@ driver consists of:
+   the CSIDs to the inputs of the VFE;
+ - VFE (Video Front End) module. Contains a pipeline of image processing hardware
+   blocks. The VFE has different input interfaces. The PIX input interface feeds
+-  the input data to the image processing pipeline. Three RDI input interfaces
++  the input data to the image processing pipeline. The image processing pipeline
++  contains also a scale and crop module at the end. Three RDI input interfaces
+   bypass the image processing pipeline. The VFE also contains the AXI bus
+   interface which writes the output data to memory.
  
- 	uvc_status_cleanup(dev);
-@@ -1854,11 +1855,7 @@ static void uvc_release(struct video_device *vdev)
- 	struct uvc_streaming *stream = video_get_drvdata(vdev);
- 	struct uvc_device *dev = stream->dev;
+@@ -74,6 +75,11 @@ The current version of the driver supports:
+     - NV12/NV21 (two plane YUV 4:2:0 - V4L2_PIX_FMT_NV12 / V4L2_PIX_FMT_NV21);
+     - NV16/NV61 (two plane YUV 4:2:2 - V4L2_PIX_FMT_NV16 / V4L2_PIX_FMT_NV61).
  
--	/* Decrement the registered streams count and delete the device when it
--	 * reaches zero.
--	 */
--	if (atomic_dec_and_test(&dev->nstreams))
--		uvc_delete(dev);
-+	kref_put(&dev->ref, uvc_delete);
- }
++  - Scaling support. Configuration of the VFE Encoder Scale module
++    for downscalling with ratio up to 16x.
++
++  - Cropping support. Configuration of the VFE Encoder Crop module.
++
+ - Concurrent and independent usage of two data inputs - could be camera sensors
+   and/or TG.
  
- /*
-@@ -1870,10 +1867,10 @@ static void uvc_unregister_video(struct uvc_device *dev)
+@@ -135,6 +141,12 @@ not required to implement the currently supported functionality. The complete
+ configuration on each hardware module is applied on STREAMON ioctl based on
+ the current active media links, formats and controls set.
  
- 	/* Unregistering all video devices might result in uvc_delete() being
- 	 * called from inside the loop if there's no open file handle. To avoid
--	 * that, increment the stream count before iterating over the streams
--	 * and decrement it when done.
-+	 * that, increment the refcount before iterating over the streams and
-+	 * decrement it when done.
- 	 */
--	atomic_inc(&dev->nstreams);
-+	kref_get(&dev->ref);
++The output size of the scaler module in the VFE is configured with the actual
++compose selection rectangle on the sink pad of the 'msm_vfe0_pix' entity.
++
++The crop output area of the crop module in the VFE is configured with the actual
++crop selection rectangle on the source pad of the 'msm_vfe0_pix' entity.
++
  
- 	list_for_each_entry(stream, &dev->streams, list) {
- 		if (!video_is_registered(&stream->vdev))
-@@ -1884,11 +1881,7 @@ static void uvc_unregister_video(struct uvc_device *dev)
- 		uvc_debugfs_cleanup_stream(stream);
- 	}
- 
--	/* Decrement the stream count and call uvc_delete explicitly if there
--	 * are no stream left.
--	 */
--	if (atomic_dec_and_test(&dev->nstreams))
--		uvc_delete(dev);
-+	kref_put(&dev->ref, uvc_delete);
- }
- 
- static int uvc_register_video(struct uvc_device *dev,
-@@ -1946,7 +1939,7 @@ static int uvc_register_video(struct uvc_device *dev,
- 	else
- 		stream->chain->caps |= V4L2_CAP_VIDEO_OUTPUT;
- 
--	atomic_inc(&dev->nstreams);
-+	kref_get(&dev->ref);
- 	return 0;
- }
- 
-@@ -2031,7 +2024,7 @@ static int uvc_probe(struct usb_interface *intf,
- 	INIT_LIST_HEAD(&dev->entities);
- 	INIT_LIST_HEAD(&dev->chains);
- 	INIT_LIST_HEAD(&dev->streams);
--	atomic_set(&dev->nstreams, 0);
-+	kref_init(&dev->ref);
- 	atomic_set(&dev->nmappings, 0);
- 	mutex_init(&dev->lock);
- 
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 296b69bb3fb2..34c7ee6cc9e5 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -575,7 +575,7 @@ struct uvc_device {
- 
- 	/* Video Streaming interfaces */
- 	struct list_head streams;
--	atomic_t nstreams;
-+	struct kref ref;
- 
- 	/* Status Interrupt Endpoint */
- 	struct usb_host_endpoint *int_ep;
+ Documentation
+ -------------
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
