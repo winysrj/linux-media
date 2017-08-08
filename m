@@ -1,52 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:52744 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751227AbdH2Ude (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 16:33:34 -0400
-Subject: [media] cx24113: Improve a size determination in cx24113_attach()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <36a5402f-c7a2-edf0-1af8-b98b0684d8e5@users.sourceforge.net>
-Message-ID: <ca26f674-9d0d-9bc4-06d9-8a15c69af131@users.sourceforge.net>
-Date: Tue, 29 Aug 2017 22:33:25 +0200
-MIME-Version: 1.0
-In-Reply-To: <36a5402f-c7a2-edf0-1af8-b98b0684d8e5@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47377 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752310AbdHHM4R (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Aug 2017 08:56:17 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 0/5] UVC patches for v4.14
+Date: Tue,  8 Aug 2017 15:56:19 +0300
+Message-Id: <20170808125624.11328-1-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 29 Aug 2017 22:17:25 +0200
+Hi Hans,
 
-Replace the specification of a data structure by a pointer dereference
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer according to the Linux coding style convention.
+Here are the patches to the uvcvideo driver that I have queued for v4.14.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/dvb-frontends/cx24113.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Guennadi Liakhovetski (2):
+  uvcvideo: Fix .queue_setup() to check the number of planes
+  uvcvideo: Convert from using an atomic variable to a reference count
 
-diff --git a/drivers/media/dvb-frontends/cx24113.c b/drivers/media/dvb-frontends/cx24113.c
-index 09c3fd1840f2..ee1f704f81f2 100644
---- a/drivers/media/dvb-frontends/cx24113.c
-+++ b/drivers/media/dvb-frontends/cx24113.c
-@@ -552,8 +552,7 @@ struct dvb_frontend *cx24113_attach(struct dvb_frontend *fe,
- 		const struct cx24113_config *config, struct i2c_adapter *i2c)
- {
- 	/* allocate memory for the internal state */
--	struct cx24113_state *state =
--		kzalloc(sizeof(struct cx24113_state), GFP_KERNEL);
-+	struct cx24113_state *state = kzalloc(sizeof(*state), GFP_KERNEL);
- 	int rc;
- 
- 	if (!state)
+Guenter Roeck (1):
+  uvcvideo: Prevent heap overflow when accessing mapped controls
+
+Jim Lin (1):
+  uvcvideo: Fix incorrect timeout for Get Request
+
+Julia Lawall (1):
+  uvcvideo: Constify video_subdev structures
+
+ drivers/media/usb/uvc/uvc_ctrl.c   |  7 +++++++
+ drivers/media/usb/uvc/uvc_driver.c | 25 +++++++++----------------
+ drivers/media/usb/uvc/uvc_entity.c |  2 +-
+ drivers/media/usb/uvc/uvc_queue.c  |  9 +++++++--
+ drivers/media/usb/uvc/uvcvideo.h   |  4 ++--
+ 5 files changed, 26 insertions(+), 21 deletions(-)
+
 -- 
-2.14.1
+Regards,
+
+Laurent Pinchart
