@@ -1,41 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:34075 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752510AbdHBKDB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 Aug 2017 06:03:01 -0400
-Date: Wed, 2 Aug 2017 11:02:58 +0100
-From: Sean Young <sean@mess.org>
-To: Sean Wang <sean.wang@mediatek.com>
-Cc: mchehab@kernel.org, mchehab@osg.samsung.com,
-        Andi Shyti <andi.shyti@samsung.com>, hdegoede@redhat.com,
-        hkallweit1@gmail.com, robh+dt@kernel.org, mark.rutland@arm.com,
-        matthias.bgg@gmail.com, hverkuil@xs4all.nl,
-        ivo.g.dimitrov.75@gmail.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v1 0/4] media: rc: add support for IR receiver on MT7622
- SoC
-Message-ID: <20170802100257.cn5nfotpccdwsruo@gofer.mess.org>
-References: <CGME20170630060312epcas4p351a77795e8469640d5177039f6b1955d@epcas4p3.samsung.com>
- <cover.1498794408.git.sean.wang@mediatek.com>
- <20170704101008.pgnjacbsk3twadzo@gangnam.samsung>
- <1501640647.17690.25.camel@mtkswgap22>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:50575 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751931AbdHHWHR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Aug 2017 18:07:17 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/6] [media] v4l: mt9t001: constify video_subdev structures
+Date: Wed, 09 Aug 2017 01:07:30 +0300
+Message-ID: <5944526.BaCzTLmd28@avalon>
+In-Reply-To: <1502189912-28794-2-git-send-email-Julia.Lawall@lip6.fr>
+References: <1502189912-28794-1-git-send-email-Julia.Lawall@lip6.fr> <1502189912-28794-2-git-send-email-Julia.Lawall@lip6.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1501640647.17690.25.camel@mtkswgap22>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean,
+Hi Julia,
 
-On Wed, Aug 02, 2017 at 10:24:07AM +0800, Sean Wang wrote:
-> Hi, Mauro and Sean
+Thank you for the patch.
+
+On Tuesday 08 Aug 2017 12:58:27 Julia Lawall wrote:
+> The v4l2_subdev_ops structure is only passed as the third argument of
+> v4l2_i2c_subdev_init, which is const, so the v4l2_subdev_ops structure
+> can be const as well.  The other structures are only stored in the
+> v4l2_subdev_ops structure, all the fields of which are const, so these
+> structures can also be const.
 > 
-> Just a gentle ping on the whole patchset porting MediaTek CIR to another
-> platform.
+> Done with the help of Coccinelle.
+> 
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-I'm creating the rc-core pull request, should be done by the end of the week. 
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
+> ---
+>  drivers/media/i2c/mt9t001.c |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/mt9t001.c b/drivers/media/i2c/mt9t001.c
+> index 842017f..9d981d9 100644
+> --- a/drivers/media/i2c/mt9t001.c
+> +++ b/drivers/media/i2c/mt9t001.c
+> @@ -822,15 +822,15 @@ static int mt9t001_close(struct v4l2_subdev *subdev,
+> struct v4l2_subdev_fh *fh) return mt9t001_set_power(subdev, 0);
+>  }
+> 
+> -static struct v4l2_subdev_core_ops mt9t001_subdev_core_ops = {
+> +static const struct v4l2_subdev_core_ops mt9t001_subdev_core_ops = {
+>  	.s_power = mt9t001_set_power,
+>  };
+> 
+> -static struct v4l2_subdev_video_ops mt9t001_subdev_video_ops = {
+> +static const struct v4l2_subdev_video_ops mt9t001_subdev_video_ops = {
+>  	.s_stream = mt9t001_s_stream,
+>  };
+> 
+> -static struct v4l2_subdev_pad_ops mt9t001_subdev_pad_ops = {
+> +static const struct v4l2_subdev_pad_ops mt9t001_subdev_pad_ops = {
+>  	.enum_mbus_code = mt9t001_enum_mbus_code,
+>  	.enum_frame_size = mt9t001_enum_frame_size,
+>  	.get_fmt = mt9t001_get_format,
+> @@ -839,7 +839,7 @@ static int mt9t001_close(struct v4l2_subdev *subdev,
+> struct v4l2_subdev_fh *fh) .set_selection = mt9t001_set_selection,
+>  };
+> 
+> -static struct v4l2_subdev_ops mt9t001_subdev_ops = {
+> +static const struct v4l2_subdev_ops mt9t001_subdev_ops = {
+>  	.core = &mt9t001_subdev_core_ops,
+>  	.video = &mt9t001_subdev_video_ops,
+>  	.pad = &mt9t001_subdev_pad_ops,
 
-Sean
+-- 
+Regards,
+
+Laurent Pinchart
