@@ -1,333 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:58095 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751417AbdHaLB7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 07:01:59 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 4/5] cec-gpio: add HDMI CEC GPIO driver
-Date: Thu, 31 Aug 2017 13:01:55 +0200
-Message-Id: <20170831110156.11018-5-hverkuil@xs4all.nl>
-In-Reply-To: <20170831110156.11018-1-hverkuil@xs4all.nl>
-References: <20170831110156.11018-1-hverkuil@xs4all.nl>
+Received: from ns.mm-sol.com ([37.157.136.199]:40244 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752107AbdHHNay (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 Aug 2017 09:30:54 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, hans.verkuil@cisco.com, s.nawrocki@samsung.com,
+        sakari.ailus@iki.fi, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v4 04/21] doc: media/v4l-drivers: Add Qualcomm Camera Subsystem driver document
+Date: Tue,  8 Aug 2017 16:30:01 +0300
+Message-Id: <1502199018-28250-5-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1502199018-28250-1-git-send-email-todor.tomov@linaro.org>
+References: <1502199018-28250-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add a document to describe Qualcomm Camera Subsystem driver.
 
-Add a simple HDMI CEC GPIO driver that sits on top of the cec-pin framework.
-
-While I have heard of SoCs that use the GPIO pin for CEC (apparently an
-early RockChip SoC used that), the main use-case of this driver is to
-function as a debugging tool.
-
-By connecting the CEC line to a GPIO pin on a Raspberry Pi 3 for example
-it turns it into a CEC debugger and protocol analyzer.
-
-With 'cec-ctl --monitor-pin' the CEC traffic can be analyzed.
-
-But of course it can also be used with any hardware project where the
-HDMI CEC line is hooked up to a pull-up gpio line.
-
-In addition this has (optional) support for tracing HPD changes if the
-HPD is connected to a GPIO.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- drivers/media/platform/Kconfig             |  10 ++
- drivers/media/platform/Makefile            |   2 +
- drivers/media/platform/cec-gpio/Makefile   |   1 +
- drivers/media/platform/cec-gpio/cec-gpio.c | 236 +++++++++++++++++++++++++++++
- 4 files changed, 249 insertions(+)
- create mode 100644 drivers/media/platform/cec-gpio/Makefile
- create mode 100644 drivers/media/platform/cec-gpio/cec-gpio.c
+ Documentation/media/v4l-drivers/qcom_camss.rst | 124 +++++++++++++++++++++++++
+ 1 file changed, 124 insertions(+)
+ create mode 100644 Documentation/media/v4l-drivers/qcom_camss.rst
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 7e7cc49b8674..e4c89a16a3e7 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -553,6 +553,16 @@ config VIDEO_MESON_AO_CEC
- 	  This is a driver for Amlogic Meson SoCs AO CEC interface. It uses the
- 	  generic CEC framework interface.
- 	  CEC bus is present in the HDMI connector and enables communication
-+
-+config CEC_GPIO
-+	tristate "Generic GPIO-based CEC driver"
-+	depends on PREEMPT
-+	select CEC_CORE
-+	select CEC_PIN
-+	select GPIOLIB
-+	---help---
-+	  This is a generic GPIO-based CEC driver.
-+	  The CEC bus is present in the HDMI connector and enables communication
- 	  between compatible devices.
- 
- config VIDEO_SAMSUNG_S5P_CEC
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index c1ef946bf032..9bf48f118537 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -26,6 +26,8 @@ obj-$(CONFIG_VIDEO_CODA) 		+= coda/
- 
- obj-$(CONFIG_VIDEO_SH_VEU)		+= sh_veu.o
- 
-+obj-$(CONFIG_CEC_GPIO)			+= cec-gpio/
-+
- obj-$(CONFIG_VIDEO_MEM2MEM_DEINTERLACE)	+= m2m-deinterlace.o
- 
- obj-$(CONFIG_VIDEO_MUX)			+= video-mux.o
-diff --git a/drivers/media/platform/cec-gpio/Makefile b/drivers/media/platform/cec-gpio/Makefile
+diff --git a/Documentation/media/v4l-drivers/qcom_camss.rst b/Documentation/media/v4l-drivers/qcom_camss.rst
 new file mode 100644
-index 000000000000..e82b258afa55
+index 0000000..4707ea7
 --- /dev/null
-+++ b/drivers/media/platform/cec-gpio/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_CEC_GPIO) += cec-gpio.o
-diff --git a/drivers/media/platform/cec-gpio/cec-gpio.c b/drivers/media/platform/cec-gpio/cec-gpio.c
-new file mode 100644
-index 000000000000..eb982bce99fc
---- /dev/null
-+++ b/drivers/media/platform/cec-gpio/cec-gpio.c
-@@ -0,0 +1,236 @@
-+/*
-+ * Copyright 2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ *
-+ * This program is free software; you may redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
++++ b/Documentation/media/v4l-drivers/qcom_camss.rst
+@@ -0,0 +1,124 @@
++.. include:: <isonum.txt>
 +
-+#include <linux/module.h>
-+#include <linux/interrupt.h>
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+#include <linux/gpio/consumer.h>
-+#include <media/cec-pin.h>
++Qualcomm Camera Subsystem driver
++================================
 +
-+struct cec_gpio {
-+	struct cec_adapter	*adap;
-+	struct device		*dev;
++Introduction
++------------
 +
-+	struct gpio_desc	*cec_gpio;
-+	int			cec_irq;
-+	bool			cec_is_low;
-+	bool			cec_have_irq;
++This file documents the Qualcomm Camera Subsystem driver located under
++drivers/media/platform/qcom/camss-8x16.
 +
-+	struct gpio_desc	*hpd_gpio;
-+	int			hpd_irq;
-+	bool			hpd_is_high;
-+	ktime_t			hpd_ts;
-+};
++The current version of the driver supports the Camera Subsystem found on
++Qualcomm MSM8916 and APQ8016 processors.
 +
-+static bool cec_gpio_read(struct cec_adapter *adap)
-+{
-+	struct cec_gpio *cec = cec_get_drvdata(adap);
++The driver implements V4L2, Media controller and V4L2 subdev interfaces.
++Camera sensor using V4L2 subdev interface in the kernel is supported.
 +
-+	if (cec->cec_is_low)
-+		return false;
-+	return gpiod_get_value(cec->cec_gpio);
-+}
++The driver is implemented using as a reference the Qualcomm Camera Subsystem
++driver for Android as found in Code Aurora [#f1]_.
 +
-+static void cec_gpio_high(struct cec_adapter *adap)
-+{
-+	struct cec_gpio *cec = cec_get_drvdata(adap);
 +
-+	if (!cec->cec_is_low)
-+		return;
-+	cec->cec_is_low = false;
-+	gpiod_set_value(cec->cec_gpio, 1);
-+}
++Qualcomm Camera Subsystem hardware
++----------------------------------
 +
-+static void cec_gpio_low(struct cec_adapter *adap)
-+{
-+	struct cec_gpio *cec = cec_get_drvdata(adap);
++The Camera Subsystem hardware found on 8x16 processors and supported by the
++driver consists of:
 +
-+	if (cec->cec_is_low)
-+		return;
-+	if (WARN_ON_ONCE(cec->cec_have_irq))
-+		free_irq(cec->cec_irq, cec);
-+	cec->cec_have_irq = false;
-+	cec->cec_is_low = true;
-+	gpiod_set_value(cec->cec_gpio, 0);
-+}
++- 2 CSIPHY modules. They handle the Physical layer of the CSI2 receivers.
++  A separate camera sensor can be connected to each of the CSIPHY module;
++- 2 CSID (CSI Decoder) modules. They handle the Protocol and Application layer
++  of the CSI2 receivers. A CSID can decode data stream from any of the CSIPHY.
++  Each CSID also contains a TG (Test Generator) block which can generate
++  artificial input data for test purposes;
++- ISPIF (ISP Interface) module. Handles the routing of the data streams from
++  the CSIDs to the inputs of the VFE;
++- VFE (Video Front End) module. Contains a pipeline of image processing hardware
++  blocks. The VFE has different input interfaces. The PIX input interface feeds
++  the input data to the image processing pipeline. Three RDI input interfaces
++  bypass the image processing pipeline. The VFE also contains the AXI bus
++  interface which writes the output data to memory.
 +
-+static irqreturn_t cec_hpd_gpio_irq_handler_thread(int irq, void *priv)
-+{
-+	struct cec_gpio *cec = priv;
 +
-+	cec_queue_pin_hpd_event(cec->adap, cec->hpd_is_high, cec->hpd_ts);
-+	return IRQ_HANDLED;
-+}
++Supported functionality
++-----------------------
 +
-+static irqreturn_t cec_hpd_gpio_irq_handler(int irq, void *priv)
-+{
-+	struct cec_gpio *cec = priv;
++The current version of the driver supports:
 +
-+	cec->hpd_ts = ktime_get();
-+	cec->hpd_is_high = gpiod_get_value(cec->hpd_gpio);
-+	return IRQ_WAKE_THREAD;
-+}
++- input from camera sensor via CSIPHY;
++- generation of test input data by the TG in CSID;
++- raw dump of the input data to memory. RDI interface of VFE is supported.
++  PIX interface (ISP processing, statistics engines, resize/crop, format
++  conversion) is not supported in the current version;
++- concurrent and independent usage of two data inputs - could be camera sensors
++  and/or TG.
 +
-+static irqreturn_t cec_gpio_irq_handler(int irq, void *priv)
-+{
-+	struct cec_gpio *cec = priv;
 +
-+	cec_pin_changed(cec->adap, gpiod_get_value(cec->cec_gpio));
-+	return IRQ_HANDLED;
-+}
++Driver Architecture and Design
++------------------------------
 +
-+static bool cec_gpio_enable_irq(struct cec_adapter *adap)
-+{
-+	struct cec_gpio *cec = cec_get_drvdata(adap);
++The driver implements the V4L2 subdev interface. With the goal to model the
++hardware links between the modules and to expose a clean, logical and usable
++interface, the driver is split into V4L2 sub-devices as follows:
 +
-+	if (cec->cec_have_irq)
-+		return true;
++- 2 CSIPHY sub-devices - each CSIPHY is represented by a single sub-device;
++- 2 CSID sub-devices - each CSID is represented by a single sub-device;
++- 2 ISPIF sub-devices - ISPIF is represented by a number of sub-devices equal
++  to the number of CSID sub-devices;
++- 3 VFE sub-devices - VFE is represented by a number of sub-devices equal to
++  the number of RDI input interfaces.
 +
-+	if (request_irq(cec->cec_irq, cec_gpio_irq_handler,
-+			IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
-+			adap->name, cec))
-+		return false;
-+	cec->cec_have_irq = true;
-+	return true;
-+}
++The considerations to split the driver in this particular way are as follows:
 +
-+static void cec_gpio_disable_irq(struct cec_adapter *adap)
-+{
-+	struct cec_gpio *cec = cec_get_drvdata(adap);
++- representing CSIPHY and CSID modules by a separate sub-device for each module
++  allows to model the hardware links between these modules;
++- representing VFE by a separate sub-devices for each RDI input interface allows
++  to use the three RDI interfaces concurently and independently as this is
++  supported by the hardware;
++- representing ISPIF by a number of sub-devices equal to the number of CSID
++  sub-devices allows to create linear media controller pipelines when using two
++  cameras simultaneously. This avoids branches in the pipelines which otherwise
++  will require a) userspace and b) media framework (e.g. power on/off
++  operations) to  make assumptions about the data flow from a sink pad to a
++  source pad on a single media entity.
 +
-+	if (cec->cec_have_irq)
-+		free_irq(cec->cec_irq, cec);
-+	cec->cec_have_irq = false;
-+}
++Each VFE sub-device is linked to a separate video device node.
 +
-+static void cec_gpio_status(struct cec_adapter *adap, struct seq_file *file)
-+{
-+	struct cec_gpio *cec = cec_get_drvdata(adap);
++The complete list of the media entities (V4L2 sub-devices and video device
++nodes) is as follows:
 +
-+	seq_printf(file, "mode: %s\n", cec->cec_is_low ? "low-drive" : "read");
-+	if (cec->cec_have_irq)
-+		seq_printf(file, "using irq: %d\n", cec->cec_irq);
-+	if (cec->hpd_gpio)
-+		seq_printf(file, "hpd: %s\n",
-+			   cec->hpd_is_high ? "high" : "low");
-+}
++- msm_csiphy0
++- msm_csiphy1
++- msm_csid0
++- msm_csid1
++- msm_ispif0
++- msm_ispif1
++- msm_vfe0_rdi0
++- msm_vfe0_video0
++- msm_vfe0_rdi1
++- msm_vfe0_video1
++- msm_vfe0_rdi2
++- msm_vfe0_video2
 +
-+static int cec_gpio_read_hpd(struct cec_adapter *adap)
-+{
-+	struct cec_gpio *cec = cec_get_drvdata(adap);
 +
-+	if (!cec->hpd_gpio)
-+		return -ENOTTY;
-+	return gpiod_get_value(cec->hpd_gpio);
-+}
++Implementation
++--------------
 +
-+static void cec_gpio_free(struct cec_adapter *adap)
-+{
-+	cec_gpio_disable_irq(adap);
-+}
++Runtime configuration of the hardware (updating settings while streaming) is
++not required to implement the currently supported functionality. The complete
++configuration on each hardware module is applied on STREAMON ioctl based on
++the current active media links, formats and controls set.
 +
-+static const struct cec_pin_ops cec_gpio_pin_ops = {
-+	.read = cec_gpio_read,
-+	.low = cec_gpio_low,
-+	.high = cec_gpio_high,
-+	.enable_irq = cec_gpio_enable_irq,
-+	.disable_irq = cec_gpio_disable_irq,
-+	.status = cec_gpio_status,
-+	.free = cec_gpio_free,
-+	.read_hpd = cec_gpio_read_hpd,
-+};
 +
-+static int cec_gpio_probe(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct cec_gpio *cec;
-+	int ret;
++Documentation
++-------------
 +
-+	cec = devm_kzalloc(dev, sizeof(*cec), GFP_KERNEL);
-+	if (!cec)
-+		return -ENOMEM;
++APQ8016 Specification:
++https://developer.qualcomm.com/download/sd410/snapdragon-410-processor-device-specification.pdf
++Referenced 2016-11-24.
 +
-+	cec->dev = dev;
 +
-+	cec->cec_gpio = devm_gpiod_get(dev, "cec", GPIOD_IN);
-+	if (IS_ERR(cec->cec_gpio))
-+		return PTR_ERR(cec->cec_gpio);
-+	cec->cec_irq = gpiod_to_irq(cec->cec_gpio);
++References
++----------
 +
-+	cec->hpd_gpio = devm_gpiod_get_optional(dev, "hpd", GPIOD_IN);
-+	if (IS_ERR(cec->hpd_gpio))
-+		return PTR_ERR(cec->hpd_gpio);
-+
-+	cec->adap = cec_pin_allocate_adapter(&cec_gpio_pin_ops,
-+		cec, pdev->name, CEC_CAP_DEFAULTS | CEC_CAP_PHYS_ADDR |
-+				 CEC_CAP_MONITOR_ALL | CEC_CAP_MONITOR_PIN);
-+	if (IS_ERR(cec->adap))
-+		return PTR_ERR(cec->adap);
-+
-+	if (cec->hpd_gpio) {
-+		cec->hpd_irq = gpiod_to_irq(cec->hpd_gpio);
-+		ret = devm_request_threaded_irq(dev, cec->hpd_irq,
-+			cec_hpd_gpio_irq_handler,
-+			cec_hpd_gpio_irq_handler_thread,
-+			IRQF_ONESHOT |
-+			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
-+			"hpd-gpio", cec);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	ret = cec_register_adapter(cec->adap, &pdev->dev);
-+	if (ret) {
-+		cec_delete_adapter(cec->adap);
-+		return ret;
-+	}
-+
-+	platform_set_drvdata(pdev, cec);
-+	return 0;
-+}
-+
-+static int cec_gpio_remove(struct platform_device *pdev)
-+{
-+	struct cec_gpio *cec = platform_get_drvdata(pdev);
-+
-+	cec_unregister_adapter(cec->adap);
-+	return 0;
-+}
-+
-+static const struct of_device_id cec_gpio_match[] = {
-+	{
-+		.compatible	= "cec-gpio",
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, cec_gpio_match);
-+
-+static struct platform_driver cec_gpio_pdrv = {
-+	.probe	= cec_gpio_probe,
-+	.remove = cec_gpio_remove,
-+	.driver = {
-+		.name		= "cec-gpio",
-+		.of_match_table	= cec_gpio_match,
-+	},
-+};
-+
-+module_platform_driver(cec_gpio_pdrv);
-+
-+MODULE_AUTHOR("Hans Verkuil <hans.verkuil@cisco.com>");
-+MODULE_LICENSE("GPL v2");
-+MODULE_DESCRIPTION("CEC GPIO driver");
++.. [#f1] https://source.codeaurora.org/quic/la/kernel/msm-3.10/
 -- 
-2.14.1
+2.7.4
