@@ -1,71 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:45144
-        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751408AbdHFIu7 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59920 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751880AbdHHMPP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 6 Aug 2017 04:50:59 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 10/12] [media] vim2m: constify v4l2_m2m_ops structures
-Date: Sun,  6 Aug 2017 10:25:19 +0200
-Message-Id: <1502007921-22968-11-git-send-email-Julia.Lawall@lip6.fr>
-In-Reply-To: <1502007921-22968-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1502007921-22968-1-git-send-email-Julia.Lawall@lip6.fr>
+        Tue, 8 Aug 2017 08:15:15 -0400
+Date: Tue, 8 Aug 2017 15:15:12 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        linux-media <linux-media@vger.kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>
+Subject: Re: [PATCH 1/2] [media] ov7670: Return the real error code
+Message-ID: <20170808121511.76mqltaiyeraxkvo@valkosipuli.retiisi.org.uk>
+References: <1500435259-5838-1-git-send-email-festevam@gmail.com>
+ <20170808112406.gkr2jhedzjkdr2ww@valkosipuli.retiisi.org.uk>
+ <CAOMZO5CDVNR563UD-na882hGijaxd6ob9hUt83K_ycqmSCSmgg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOMZO5CDVNR563UD-na882hGijaxd6ob9hUt83K_ycqmSCSmgg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2_m2m_ops structures are only passed as the only
-argument to v4l2_m2m_init, which is declared as const.
-Thus the v4l2_m2m_ops structures themselves can be const.
+On Tue, Aug 08, 2017 at 08:56:14AM -0300, Fabio Estevam wrote:
+> Hi Sakari,
+> 
+> On Tue, Aug 8, 2017 at 8:24 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> 
+> > I don't think -EPROBE_DEFER is returned by clk_get() if the clock can't be
+> > found. The clock providers often are e.g. ISP drivers that may well be
+> 
+> Yes, it is.
+> 
+> Please check:
+> 
+> commit a34cd4666f3da84228a82f70c94b8d9b692034ea
+> Author: Jean-Francois Moine <moinejf@free.fr>
+> Date:   Mon Nov 25 19:47:04 2013 +0100
+> 
+>     clk: return probe defer when DT clock not yet ready
+> 
+>     At probe time, a clock device may not be ready when some other device
+>     wants to use it.
+> 
+>     This patch lets the functions clk_get/devm_clk_get return a probe defer
+>     when the clock is defined in the DT but not yet available.
 
-Done with the help of Coccinelle.
+Nice! I'll apply both then.
 
-// <smpl>
-@r disable optional_qualifier@
-identifier i;
-position p;
-@@
-static struct v4l2_m2m_ops i@p = { ... };
+Thanks!
 
-@ok1@
-identifier r.i;
-position p;
-@@
-v4l2_m2m_init(&i@p)
-
-@bad@
-position p != {r.p,ok1.p};
-identifier r.i;
-struct v4l2_m2m_ops e;
-@@
-e@i@p
-
-@depends on !bad disable optional_qualifier@
-identifier r.i;
-@@
-static
-+const
- struct v4l2_m2m_ops i = { ... };
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
----
- drivers/media/platform/vim2m.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 970b9b6..afbaa35 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -983,7 +983,7 @@ static int vim2m_release(struct file *file)
- 	.release	= video_device_release_empty,
- };
- 
--static struct v4l2_m2m_ops m2m_ops = {
-+static const struct v4l2_m2m_ops m2m_ops = {
- 	.device_run	= device_run,
- 	.job_ready	= job_ready,
- 	.job_abort	= job_abort,
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
