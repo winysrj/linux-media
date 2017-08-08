@@ -1,59 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from catmail05.cattelecom.com ([122.155.96.45]:26241 "EHLO
-        cat-mta4.zimbra.cattelecom.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752727AbdHTLF7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Aug 2017 07:05:59 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by cat-mta4.zimbra.cattelecom.com (Postfix) with ESMTP id 116D57CF0CF
-        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 17:18:38 +0700 (ICT)
-Received: from cat-mta4.zimbra.cattelecom.com ([127.0.0.1])
-        by localhost (cat-mta4.zimbra.cattelecom.com [127.0.0.1]) (amavisd-new, port 10032)
-        with ESMTP id ORLPnFBjdxS2 for <linux-media@vger.kernel.org>;
-        Sun, 20 Aug 2017 17:18:37 +0700 (ICT)
-Received: from localhost (localhost [127.0.0.1])
-        by cat-mta4.zimbra.cattelecom.com (Postfix) with ESMTP id 351527CE240
-        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 17:15:26 +0700 (ICT)
-Received: from cat-mta4.zimbra.cattelecom.com ([127.0.0.1])
-        by localhost (cat-mta4.zimbra.cattelecom.com [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP id 9MWgMa86VRbi for <linux-media@vger.kernel.org>;
-        Sun, 20 Aug 2017 17:15:26 +0700 (ICT)
-Received: from cat-mta2.zimbra.cattelecom.com (cat-mta2.zimbra.cattelecom.com [192.168.242.135])
-        by cat-mta4.zimbra.cattelecom.com (Postfix) with ESMTPS id 291C27CDB75
-        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 17:12:32 +0700 (ICT)
-Received: from localhost (localhost [127.0.0.1])
-        by cat-mta2.zimbra.cattelecom.com (Postfix) with ESMTP id B355F820966
-        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 17:12:31 +0700 (ICT)
-Received: from cat-mta2.zimbra.cattelecom.com ([127.0.0.1])
-        by localhost (cat-mta2.zimbra.cattelecom.com [127.0.0.1]) (amavisd-new, port 10032)
-        with ESMTP id 4hIb7RhC1n_C for <linux-media@vger.kernel.org>;
-        Sun, 20 Aug 2017 17:12:31 +0700 (ICT)
-Received: from localhost (localhost [127.0.0.1])
-        by cat-mta2.zimbra.cattelecom.com (Postfix) with ESMTP id 6C5A0820E19
-        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 17:12:30 +0700 (ICT)
-Received: from cat-mta2.zimbra.cattelecom.com ([127.0.0.1])
-        by localhost (cat-mta2.zimbra.cattelecom.com [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP id aVqg1bQ8bVTE for <linux-media@vger.kernel.org>;
-        Sun, 20 Aug 2017 17:12:30 +0700 (ICT)
-Received: from [192.168.0.2] (unknown [105.112.39.24])
-        by cat-mta2.zimbra.cattelecom.com (Postfix) with ESMTPSA id 08193820961
-        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 17:12:27 +0700 (ICT)
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from mail-ua0-f177.google.com ([209.85.217.177]:38087 "EHLO
+        mail-ua0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751925AbdHHL4P (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Aug 2017 07:56:15 -0400
+Received: by mail-ua0-f177.google.com with SMTP id w45so13445224uac.5
+        for <linux-media@vger.kernel.org>; Tue, 08 Aug 2017 04:56:15 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Description: Mail message body
-Subject: Email Notication
-To: linux-media@vger.kernel.org
-From: "IT Department" <arkom.sr@cattelecom.com>
-Date: Sun, 20 Aug 2017 11:12:33 +0100
-Message-Id: <20170820101228.08193820961@cat-mta2.zimbra.cattelecom.com>
+In-Reply-To: <20170808112406.gkr2jhedzjkdr2ww@valkosipuli.retiisi.org.uk>
+References: <1500435259-5838-1-git-send-email-festevam@gmail.com> <20170808112406.gkr2jhedzjkdr2ww@valkosipuli.retiisi.org.uk>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Tue, 8 Aug 2017 08:56:14 -0300
+Message-ID: <CAOMZO5CDVNR563UD-na882hGijaxd6ob9hUt83K_ycqmSCSmgg@mail.gmail.com>
+Subject: Re: [PATCH 1/2] [media] ov7670: Return the real error code
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        linux-media <linux-media@vger.kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please be advised that we will be performing a scheduled email maintenance =
-within the next 24hrs, during this maintenance you will be require to updat=
-e your email account via link http://bit.ly/2wjyBS7
+Hi Sakari,
 
----
-This email has been checked for viruses by Avast antivirus software.
-https://www.avast.com/antivirus
+On Tue, Aug 8, 2017 at 8:24 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+
+> I don't think -EPROBE_DEFER is returned by clk_get() if the clock can't be
+> found. The clock providers often are e.g. ISP drivers that may well be
+
+Yes, it is.
+
+Please check:
+
+commit a34cd4666f3da84228a82f70c94b8d9b692034ea
+Author: Jean-Francois Moine <moinejf@free.fr>
+Date:   Mon Nov 25 19:47:04 2013 +0100
+
+    clk: return probe defer when DT clock not yet ready
+
+    At probe time, a clock device may not be ready when some other device
+    wants to use it.
+
+    This patch lets the functions clk_get/devm_clk_get return a probe defer
+    when the clock is defined in the DT but not yet available.
+
+    Signed-off-by: Jean-Francois Moine <moinejf@free.fr>
+    Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+    Tested-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+    Signed-off-by: Mike Turquette <mturquette@linaro.org>
