@@ -1,248 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35083 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752728AbdHKLbo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Aug 2017 07:31:44 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, pavel@ucw.cz
-Subject: Re: [PATCH v1.2 1/1] omap3isp: Skip CSI-2 receiver initialisation in CCP2 configuration
-Date: Fri, 11 Aug 2017 14:32 +0300
-Message-ID: <29475894.0Ps0lzjic1@avalon>
-In-Reply-To: <20170811095709.3069-1-sakari.ailus@linux.intel.com>
-References: <20170811095709.3069-1-sakari.ailus@linux.intel.com>
+Received: from mail-dm3nam03on0059.outbound.protection.outlook.com ([104.47.41.59]:9100
+        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752301AbdHIBbc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 Aug 2017 21:31:32 -0400
+From: Jeffrey Mouroux <jeff.mouroux@xilinx.com>
+To: <mchehab@kernel.org>, <hansverk@cisco.com>,
+        <laurent.pinchart+renesas@ideasonboard.com>,
+        <sakari.ailus@linux.intel.com>, <tiffany.lin@mediatek.com>,
+        <ricardo.ribalda@gmail.com>, <evgeni.raikhel@intel.com>,
+        <nick@shmanahar.org>
+CC: <linux-media@vger.kernel.org>,
+        Jeffrey Mouroux <jmouroux@xilinx.com>
+Subject: [PATCH v1 0/2] New fourcc codes needed by Video DMA Driver
+Date: Tue, 8 Aug 2017 18:31:16 -0700
+Message-ID: <1502242278-14686-1-git-send-email-jmouroux@xilinx.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This patch set is introduced to support a driver we are developing
+for our new Video Framebuffer DMA IP, a DMA device that is "video format aware".
+Clients need only specify memory layout information for a single plane
+(i.e. luma) and then provide a video format code (e.g. YUV420) which will permit
+for intelligent reads or writes (depending on the IP configuration) to host
+memory with only a minimal set of video memory configuration data.
 
-Thank you for the patch.
+The IP supports a variety of 8-bit and 10-bit video formats, some of which
+are not represented in the current V4L2 user api or framework.  This patch
+set introduces these needed video format codes and updates the 
+framework with the metadata required.
 
-On Friday 11 Aug 2017 12:57:09 Sakari Ailus wrote:
-> If the CSI-2 receiver isn't part of the pipeline (or isn't there to begin
-> with), skip its initialisation.
+The DMA driver requiring these updates is not being submitted as part of this
+patch set as it is still undergoing final development.
 
-I don't think the commit message really describes the patch.
+We are submitting this patch series for review and comment with regard to
+ensuring we haven't missed any required framework updates and/or in regards to
+the choices we've made to the fourcc string values.
 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com> # on
-> Beagleboard-xM + MPT9P031 Acked-by: Pavel Machek <pavel@ucw.cz>
-> ---
-> since v1.1:
-> 
-> - Assign phy->entity before calling omap3isp_csiphy_config(), for
->   phy->entity is used by omap3isp_csiphy_config(). (Thanks to Pavel for
->   spotting this.)
-> 
->  drivers/media/platform/omap3isp/ispccp2.c   |  2 +-
->  drivers/media/platform/omap3isp/ispcsi2.c   |  4 +--
->  drivers/media/platform/omap3isp/ispcsiphy.c | 38 ++++++++++++--------------
->  drivers/media/platform/omap3isp/ispcsiphy.h |  6 +++--
->  4 files changed, 27 insertions(+), 23 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispccp2.c
-> b/drivers/media/platform/omap3isp/ispccp2.c index
-> 47210b102bcb..3db8df09cd9a 100644
-> --- a/drivers/media/platform/omap3isp/ispccp2.c
-> +++ b/drivers/media/platform/omap3isp/ispccp2.c
-> @@ -841,7 +841,7 @@ static int ccp2_s_stream(struct v4l2_subdev *sd, int
-> enable) switch (enable) {
->  	case ISP_PIPELINE_STREAM_CONTINUOUS:
->  		if (ccp2->phy) {
-> -			ret = omap3isp_csiphy_acquire(ccp2->phy);
-> +			ret = omap3isp_csiphy_acquire(ccp2->phy, &sd->entity);
->  			if (ret < 0)
->  				return ret;
->  		}
-> diff --git a/drivers/media/platform/omap3isp/ispcsi2.c
-> b/drivers/media/platform/omap3isp/ispcsi2.c index
-> 7dae2fe0d42d..3ec37fed710b 100644
-> --- a/drivers/media/platform/omap3isp/ispcsi2.c
-> +++ b/drivers/media/platform/omap3isp/ispcsi2.c
-> @@ -490,7 +490,7 @@ int omap3isp_csi2_reset(struct isp_csi2_device *csi2)
->  	if (!csi2->available)
->  		return -ENODEV;
-> 
-> -	if (csi2->phy->phy_in_use)
-> +	if (csi2->phy->entity)
->  		return -EBUSY;
-> 
->  	isp_reg_set(isp, csi2->regs1, ISPCSI2_SYSCONFIG,
-> @@ -1053,7 +1053,7 @@ static int csi2_set_stream(struct v4l2_subdev *sd, int
-> enable)
-> 
->  	switch (enable) {
->  	case ISP_PIPELINE_STREAM_CONTINUOUS:
-> -		if (omap3isp_csiphy_acquire(csi2->phy) < 0)
-> +		if (omap3isp_csiphy_acquire(csi2->phy, &sd->entity) < 0)
->  			return -ENODEV;
->  		if (csi2->output & CSI2_OUTPUT_MEMORY)
->  			omap3isp_sbl_enable(isp, OMAP3_ISP_SBL_CSI2A_WRITE);
-> diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c
-> b/drivers/media/platform/omap3isp/ispcsiphy.c index
-> 2028bb519108..aedd88fa8246 100644
-> --- a/drivers/media/platform/omap3isp/ispcsiphy.c
-> +++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-> @@ -164,15 +164,18 @@ static int csiphy_set_power(struct isp_csiphy *phy,
-> u32 power)
-> 
->  static int omap3isp_csiphy_config(struct isp_csiphy *phy)
->  {
-> -	struct isp_csi2_device *csi2 = phy->csi2;
-> -	struct isp_pipeline *pipe = to_isp_pipeline(&csi2->subdev.entity);
-> -	struct isp_bus_cfg *buscfg = pipe->external->host_priv;
-> +	struct isp_pipeline *pipe = to_isp_pipeline(phy->entity);
-> +	struct isp_bus_cfg *buscfg;
->  	struct isp_csiphy_lanes_cfg *lanes;
->  	int csi2_ddrclk_khz;
->  	unsigned int num_data_lanes, used_lanes = 0;
->  	unsigned int i;
->  	u32 reg;
-> 
-> +	if (!pipe)
-> +		return -EBUSY;
+Jeffrey Mouroux (2):
+  uapi: media: New fourcc codes needed by Xilinx Video IP
+  media: v4l2-core: Update V4L2 framework with new fourcc codes
 
-When can this happen ?
-
-> +	buscfg = pipe->external->host_priv;
->  	if (!buscfg) {
->  		struct isp_async_subdev *isd =
->  			container_of(pipe->external->asd,
-> @@ -222,7 +225,7 @@ static int omap3isp_csiphy_config(struct isp_csiphy
-> *phy) csi2_ddrclk_khz = pipe->external_rate / 1000
->  		/ (2 * hweight32(used_lanes)) * pipe->external_width;
-> 
-> -	reg = isp_reg_readl(csi2->isp, phy->phy_regs, ISPCSIPHY_REG0);
-> +	reg = isp_reg_readl(phy->isp, phy->phy_regs, ISPCSIPHY_REG0);
-> 
->  	reg &= ~(ISPCSIPHY_REG0_THS_TERM_MASK |
->  		 ISPCSIPHY_REG0_THS_SETTLE_MASK);
-> @@ -233,9 +236,9 @@ static int omap3isp_csiphy_config(struct isp_csiphy
-> *phy) reg |= (DIV_ROUND_UP(90 * csi2_ddrclk_khz, 1000000) + 3)
->  		<< ISPCSIPHY_REG0_THS_SETTLE_SHIFT;
-> 
-> -	isp_reg_writel(csi2->isp, reg, phy->phy_regs, ISPCSIPHY_REG0);
-> +	isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG0);
-> 
-> -	reg = isp_reg_readl(csi2->isp, phy->phy_regs, ISPCSIPHY_REG1);
-> +	reg = isp_reg_readl(phy->isp, phy->phy_regs, ISPCSIPHY_REG1);
-> 
->  	reg &= ~(ISPCSIPHY_REG1_TCLK_TERM_MASK |
->  		 ISPCSIPHY_REG1_TCLK_MISS_MASK |
-> @@ -244,10 +247,10 @@ static int omap3isp_csiphy_config(struct isp_csiphy
-> *phy) reg |= TCLK_MISS << ISPCSIPHY_REG1_TCLK_MISS_SHIFT;
->  	reg |= TCLK_SETTLE << ISPCSIPHY_REG1_TCLK_SETTLE_SHIFT;
-> 
-> -	isp_reg_writel(csi2->isp, reg, phy->phy_regs, ISPCSIPHY_REG1);
-> +	isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG1);
-> 
->  	/* DPHY lane configuration */
-> -	reg = isp_reg_readl(csi2->isp, phy->cfg_regs, ISPCSI2_PHY_CFG);
-> +	reg = isp_reg_readl(phy->isp, phy->cfg_regs, ISPCSI2_PHY_CFG);
-> 
->  	for (i = 0; i < num_data_lanes; i++) {
->  		reg &= ~(ISPCSI2_PHY_CFG_DATA_POL_MASK(i + 1) |
-> @@ -263,12 +266,12 @@ static int omap3isp_csiphy_config(struct isp_csiphy
-> *phy) reg |= lanes->clk.pol << ISPCSI2_PHY_CFG_CLOCK_POL_SHIFT;
->  	reg |= lanes->clk.pos << ISPCSI2_PHY_CFG_CLOCK_POSITION_SHIFT;
-> 
-> -	isp_reg_writel(csi2->isp, reg, phy->cfg_regs, ISPCSI2_PHY_CFG);
-> +	isp_reg_writel(phy->isp, reg, phy->cfg_regs, ISPCSI2_PHY_CFG);
-> 
->  	return 0;
->  }
-> 
-> -int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
-> +int omap3isp_csiphy_acquire(struct isp_csiphy *phy, struct media_entity
-> *entity) {
->  	int rval;
-> 
-> @@ -288,6 +291,8 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
->  	if (rval < 0)
->  		goto done;
-> 
-> +	phy->entity = entity;
-> +
->  	rval = omap3isp_csiphy_config(phy);
->  	if (rval < 0)
->  		goto done;
-> @@ -301,10 +306,9 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
-> 
->  		csiphy_power_autoswitch_enable(phy, true);
->  	}
-> -
-> -	phy->phy_in_use = 1;
-> -
->  done:
-> +	phy->entity = NULL;
-> +
-
-Did you really mean to release the PHY here ?
-
->  	mutex_unlock(&phy->mutex);
->  	return rval;
->  }
-> @@ -312,10 +316,8 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
->  void omap3isp_csiphy_release(struct isp_csiphy *phy)
->  {
->  	mutex_lock(&phy->mutex);
-> -	if (phy->phy_in_use) {
-> -		struct isp_csi2_device *csi2 = phy->csi2;
-> -		struct isp_pipeline *pipe =
-> -			to_isp_pipeline(&csi2->subdev.entity);
-> +	if (phy->entity && phy->entity->pipe) {
-> +		struct isp_pipeline *pipe = to_isp_pipeline(phy->entity);
->  		struct isp_bus_cfg *buscfg = pipe->external->host_priv;
-> 
->  		csiphy_routing_cfg(phy, buscfg->interface, false,
-> @@ -325,7 +327,7 @@ void omap3isp_csiphy_release(struct isp_csiphy *phy)
->  			csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_OFF);
->  		}
->  		regulator_disable(phy->vdd);
-> -		phy->phy_in_use = 0;
-> +		phy->entity = NULL;
->  	}
->  	mutex_unlock(&phy->mutex);
->  }
-> diff --git a/drivers/media/platform/omap3isp/ispcsiphy.h
-> b/drivers/media/platform/omap3isp/ispcsiphy.h index
-> 978ca5c80a6c..cffda0265767 100644
-> --- a/drivers/media/platform/omap3isp/ispcsiphy.h
-> +++ b/drivers/media/platform/omap3isp/ispcsiphy.h
-> @@ -25,9 +25,10 @@ struct regulator;
->  struct isp_csiphy {
->  	struct isp_device *isp;
->  	struct mutex mutex;	/* serialize csiphy configuration */
-> -	u8 phy_in_use;
->  	struct isp_csi2_device *csi2;
->  	struct regulator *vdd;
-> +	/* the entity for which the phy was acquired for */
-
-Either "the entity that the phy was acquired for", or "the entity for which 
-the phy was acquired". Or you could rename the field to owner and document it 
-as "the entity owning the PHY", I think that would be more explicit in the 
-code.
-
-> +	struct media_entity *entity;
-> 
->  	/* mem resources - enums as defined in enum isp_mem_resources */
->  	unsigned int cfg_regs;
-> @@ -36,7 +37,8 @@ struct isp_csiphy {
->  	u8 num_data_lanes;	/* number of CSI2 Data Lanes supported */
->  };
-> 
-> -int omap3isp_csiphy_acquire(struct isp_csiphy *phy);
-> +int omap3isp_csiphy_acquire(struct isp_csiphy *phy,
-> +			    struct media_entity *entity);
->  void omap3isp_csiphy_release(struct isp_csiphy *phy);
->  int omap3isp_csiphy_init(struct isp_device *isp);
->  void omap3isp_csiphy_cleanup(struct isp_device *isp);
+ drivers/media/v4l2-core/v4l2-ioctl.c | 9 +++++++++
+ include/uapi/linux/videodev2.h       | 9 +++++++++
+ 2 files changed, 18 insertions(+)
 
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
