@@ -1,135 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:49624 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751164AbdHUHsT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Aug 2017 03:48:19 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: tfiga@chromium.org, yong.zhi@intel.com, hverkuil@xs4all.nl
-Subject: [v4l-utils PATCH v2 2/2] v4l2-compliance: Add support for metadata output
-Date: Mon, 21 Aug 2017 10:48:13 +0300
-Message-Id: <20170821074813.20934-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170821074813.20934-1-sakari.ailus@linux.intel.com>
-References: <20170821074813.20934-1-sakari.ailus@linux.intel.com>
+Received: from mail-cys01nam02on0042.outbound.protection.outlook.com ([104.47.37.42]:55712
+        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751973AbdHIBbo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 Aug 2017 21:31:44 -0400
+From: Jeffrey Mouroux <jeff.mouroux@xilinx.com>
+To: <mchehab@kernel.org>, <hansverk@cisco.com>,
+        <laurent.pinchart+renesas@ideasonboard.com>,
+        <sakari.ailus@linux.intel.com>, <tiffany.lin@mediatek.com>,
+        <ricardo.ribalda@gmail.com>, <evgeni.raikhel@intel.com>,
+        <nick@shmanahar.org>
+CC: <linux-media@vger.kernel.org>,
+        Jeffrey Mouroux <jmouroux@xilinx.com>
+Subject: [PATCH v1 1/2] uapi: media: New fourcc codes needed by Xilinx Video IP
+Date: Tue, 8 Aug 2017 18:31:17 -0700
+Message-ID: <1502242278-14686-2-git-send-email-jmouroux@xilinx.com>
+In-Reply-To: <1502242278-14686-1-git-send-email-jmouroux@xilinx.com>
+References: <1502242278-14686-1-git-send-email-jmouroux@xilinx.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for metadata output video nodes, in other words,
-V4L2_CAP_META_OUTPUT and V4L2_BUF_TYPE_META_OUTPUT.
+The Xilinx Video Mixer andn Xilinx Video Framebuffer DMA IP
+support video memory formats that are not represented in the
+current V4L2 fourcc library.  This patch adds those missing
+fourcc codes.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Jeffrey Mouroux <jmouroux@xilinx.com>
 ---
- utils/v4l2-compliance/v4l2-compliance.cpp   | 11 ++++++++---
- utils/v4l2-compliance/v4l2-test-formats.cpp |  8 +++++++-
- 2 files changed, 15 insertions(+), 4 deletions(-)
+ include/uapi/linux/videodev2.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/utils/v4l2-compliance/v4l2-compliance.cpp b/utils/v4l2-compliance/v4l2-compliance.cpp
-index c40e3bd78..539c8c34b 100644
---- a/utils/v4l2-compliance/v4l2-compliance.cpp
-+++ b/utils/v4l2-compliance/v4l2-compliance.cpp
-@@ -216,6 +216,8 @@ std::string cap2s(unsigned cap)
- 		s += "\t\tSDR Output\n";
- 	if (cap & V4L2_CAP_META_CAPTURE)
- 		s += "\t\tMetadata Capture\n";
-+	if (cap & V4L2_CAP_META_OUTPUT)
-+		s += "\t\tMetadata Output\n";
- 	if (cap & V4L2_CAP_TOUCH)
- 		s += "\t\tTouch Device\n";
- 	if (cap & V4L2_CAP_TUNER)
-@@ -283,6 +285,8 @@ std::string buftype2s(int type)
- 		return "SDR Output";
- 	case V4L2_BUF_TYPE_META_CAPTURE:
- 		return "Metadata Capture";
-+	case V4L2_BUF_TYPE_META_OUTPUT:
-+		return "Metadata Output";
- 	case V4L2_BUF_TYPE_PRIVATE:
- 		return "Private";
- 	default:
-@@ -525,7 +529,7 @@ static int testCap(struct node *node)
- 	const __u32 output_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_VIDEO_OUTPUT_MPLANE |
- 			V4L2_CAP_VIDEO_OUTPUT_OVERLAY | V4L2_CAP_VBI_OUTPUT |
- 			V4L2_CAP_SDR_OUTPUT | V4L2_CAP_SLICED_VBI_OUTPUT |
--			V4L2_CAP_MODULATOR;
-+			V4L2_CAP_MODULATOR | V4L2_CAP_META_OUTPUT;
- 	const __u32 overlay_caps = V4L2_CAP_VIDEO_OVERLAY | V4L2_CAP_VIDEO_OUTPUT_OVERLAY;
- 	const __u32 m2m_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_VIDEO_M2M_MPLANE;
- 	const __u32 io_caps = V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
-@@ -1005,12 +1009,13 @@ int main(int argc, char **argv)
- 	if (node.g_caps() & (V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_VBI_OUTPUT |
- 			 V4L2_CAP_VIDEO_OUTPUT_MPLANE | V4L2_CAP_VIDEO_M2M_MPLANE |
- 			 V4L2_CAP_VIDEO_M2M | V4L2_CAP_SLICED_VBI_OUTPUT |
--			 V4L2_CAP_RDS_OUTPUT | V4L2_CAP_SDR_OUTPUT))
-+			 V4L2_CAP_RDS_OUTPUT | V4L2_CAP_SDR_OUTPUT |
-+			 V4L2_CAP_META_OUTPUT))
- 		node.can_output = true;
- 	if (node.g_caps() & (V4L2_CAP_VIDEO_CAPTURE_MPLANE | V4L2_CAP_VIDEO_OUTPUT_MPLANE |
- 			 V4L2_CAP_VIDEO_M2M_MPLANE))
- 		node.is_planar = true;
--	if (node.g_caps() & V4L2_CAP_META_CAPTURE) {
-+	if (node.g_caps() & (V4L2_CAP_META_CAPTURE | V4L2_CAP_META_OUTPUT)) {
- 		node.is_video = false;
- 		node.is_meta = true;
- 	}
-diff --git a/utils/v4l2-compliance/v4l2-test-formats.cpp b/utils/v4l2-compliance/v4l2-test-formats.cpp
-index b7a32fe38..9da7436e8 100644
---- a/utils/v4l2-compliance/v4l2-test-formats.cpp
-+++ b/utils/v4l2-compliance/v4l2-test-formats.cpp
-@@ -46,7 +46,7 @@ static const __u32 buftype2cap[] = {
- 	V4L2_CAP_VIDEO_OUTPUT_MPLANE | V4L2_CAP_VIDEO_M2M_MPLANE,
- 	V4L2_CAP_SDR_CAPTURE,
- 	V4L2_CAP_SDR_OUTPUT,
--	V4L2_CAP_META_CAPTURE,
-+	V4L2_CAP_META_CAPTURE | V4L2_CAP_META_OUTPUT,
- };
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 45cf735..a059439 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -509,6 +509,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_RGB32   v4l2_fourcc('R', 'G', 'B', '4') /* 32  RGB-8-8-8-8   */
+ #define V4L2_PIX_FMT_ARGB32  v4l2_fourcc('B', 'A', '2', '4') /* 32  ARGB-8-8-8-8  */
+ #define V4L2_PIX_FMT_XRGB32  v4l2_fourcc('B', 'X', '2', '4') /* 32  XRGB-8-8-8-8  */
++#define V4L2_PIX_FMT_XBGR30  v4l2_fourcc('R', 'X', '3', '0') /* 32  XBGR-2-10-10-10 */
  
- static int testEnumFrameIntervals(struct node *node, __u32 pixfmt,
-@@ -298,6 +298,7 @@ int testEnumFormats(struct node *node)
- 		case V4L2_BUF_TYPE_SDR_CAPTURE:
- 		case V4L2_BUF_TYPE_SDR_OUTPUT:
- 		case V4L2_BUF_TYPE_META_CAPTURE:
-+		case V4L2_BUF_TYPE_META_OUTPUT:
- 			if (ret && (node->g_caps() & buftype2cap[type]))
- 				return fail("%s cap set, but no %s formats defined\n",
- 						buftype2s(type).c_str(), buftype2s(type).c_str());
-@@ -546,6 +547,7 @@ static int testFormatsType(struct node *node, int ret,  unsigned type, struct v4
- 		fail_on_test(check_0(sdr.reserved, sizeof(sdr.reserved)));
- 		break;
- 	case V4L2_BUF_TYPE_META_CAPTURE:
-+	case V4L2_BUF_TYPE_META_OUTPUT:
- 		if (map.find(meta.dataformat) == map.end())
- 			return fail("dataformat %08x (%s) for buftype %d not reported by ENUM_FMT\n",
- 					meta.dataformat, fcc2s(meta.dataformat).c_str(), type);
-@@ -585,6 +587,7 @@ int testGetFormats(struct node *node)
- 		case V4L2_BUF_TYPE_SDR_CAPTURE:
- 		case V4L2_BUF_TYPE_SDR_OUTPUT:
- 		case V4L2_BUF_TYPE_META_CAPTURE:
-+		case V4L2_BUF_TYPE_META_OUTPUT:
- 			if (ret && (node->g_caps() & buftype2cap[type]))
- 				return fail("%s cap set, but no %s formats defined\n",
- 					buftype2s(type).c_str(), buftype2s(type).c_str());
-@@ -641,6 +644,7 @@ static bool matchFormats(const struct v4l2_format &f1, const struct v4l2_format
- 	case V4L2_BUF_TYPE_SDR_OUTPUT:
- 		return !memcmp(&f1.fmt.sdr, &f2.fmt.sdr, sizeof(f1.fmt.sdr));
- 	case V4L2_BUF_TYPE_META_CAPTURE:
-+	case V4L2_BUF_TYPE_META_OUTPUT:
- 		return !memcmp(&f1.fmt.meta, &f2.fmt.meta, sizeof(f1.fmt.meta));
+ /* Grey formats */
+ #define V4L2_PIX_FMT_GREY    v4l2_fourcc('G', 'R', 'E', 'Y') /*  8  Greyscale     */
+@@ -536,12 +537,16 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_VYUY    v4l2_fourcc('V', 'Y', 'U', 'Y') /* 16  YUV 4:2:2     */
+ #define V4L2_PIX_FMT_Y41P    v4l2_fourcc('Y', '4', '1', 'P') /* 12  YUV 4:1:1     */
+ #define V4L2_PIX_FMT_YUV444  v4l2_fourcc('Y', '4', '4', '4') /* 16  xxxxyyyy uuuuvvvv */
++#define V4L2_PIX_FMT_XVUY32  v4l2_fourcc('X', 'V', '3', '2') /* 32  XVUY 8:8:8:8 */
++#define V4L2_PIX_FMT_AVUY32  v4l2_fourcc('A', 'V', '3', '2') /* 32  AVUY 8:8:8:8 */
++#define V4L2_PIX_FMT_VUY24   v4l2_fourcc('V', 'U', '2', '4') /* 24  VUY 8:8:8 */
+ #define V4L2_PIX_FMT_YUV555  v4l2_fourcc('Y', 'U', 'V', 'O') /* 16  YUV-5-5-5     */
+ #define V4L2_PIX_FMT_YUV565  v4l2_fourcc('Y', 'U', 'V', 'P') /* 16  YUV-5-6-5     */
+ #define V4L2_PIX_FMT_YUV32   v4l2_fourcc('Y', 'U', 'V', '4') /* 32  YUV-8-8-8-8   */
+ #define V4L2_PIX_FMT_HI240   v4l2_fourcc('H', 'I', '2', '4') /*  8  8-bit color   */
+ #define V4L2_PIX_FMT_HM12    v4l2_fourcc('H', 'M', '1', '2') /*  8  YUV 4:2:0 16x16 macroblocks */
+ #define V4L2_PIX_FMT_M420    v4l2_fourcc('M', '4', '2', '0') /* 12  YUV 4:2:0 2 lines y, 1 line uv interleaved */
++#define V4L2_PIX_FMT_XVUY10  v4l2_fourcc('X', 'Y', '1', '0') /* 32  XVUY 2-10-10-10 */
  
- 	}
-@@ -718,6 +722,7 @@ int testTryFormats(struct node *node)
- 				pixelformat = fmt.fmt.sdr.pixelformat;
- 				break;
- 			case V4L2_BUF_TYPE_META_CAPTURE:
-+			case V4L2_BUF_TYPE_META_OUTPUT:
- 				pixelformat = fmt.fmt.meta.dataformat;
- 				break;
- 			case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-@@ -970,6 +975,7 @@ int testSetFormats(struct node *node)
+ /* two planes -- one Y, one Cr + Cb interleaved  */
+ #define V4L2_PIX_FMT_NV12    v4l2_fourcc('N', 'V', '1', '2') /* 12  Y/CbCr 4:2:0  */
+@@ -550,6 +555,8 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
+ #define V4L2_PIX_FMT_NV24    v4l2_fourcc('N', 'V', '2', '4') /* 24  Y/CbCr 4:4:4  */
+ #define V4L2_PIX_FMT_NV42    v4l2_fourcc('N', 'V', '4', '2') /* 24  Y/CrCb 4:4:4  */
++#define V4L2_PIX_FMT_XV20    v4l2_fourcc('X', 'V', '2', '0') /* 32 XY/UV 4:2:2 10-bit */
++#define V4L2_PIX_FMT_XV15    v4l2_fourcc('X', 'V', '1', '5') /* 32 XY/UV 4:2:0 10-bit */
  
- 			switch (type) {
- 			case V4L2_BUF_TYPE_META_CAPTURE:
-+			case V4L2_BUF_TYPE_META_OUTPUT:
- 				pixelformat = fmt_set.fmt.meta.dataformat;
- 				break;
- 			case V4L2_BUF_TYPE_SDR_CAPTURE:
+ /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
+ #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
+@@ -557,6 +564,8 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_NV16M   v4l2_fourcc('N', 'M', '1', '6') /* 16  Y/CbCr 4:2:2  */
+ #define V4L2_PIX_FMT_NV61M   v4l2_fourcc('N', 'M', '6', '1') /* 16  Y/CrCb 4:2:2  */
+ #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 64x32 macroblocks */
++#define V4L2_PIX_FMT_XV20M   v4l2_fourcc('X', 'M', '2', '0') /* 32 XY/UV 4:2:2 10-bit */
++#define V4L2_PIX_FMT_XV15M   v4l2_fourcc('X', 'M', '1', '5') /* 32 XY/UV 4:2:0 10-bit */
+ #define V4L2_PIX_FMT_NV12MT_16X16 v4l2_fourcc('V', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 16x16 macroblocks */
+ 
+ /* three planes - Y Cb, Cr */
 -- 
-2.11.0
+1.9.1
