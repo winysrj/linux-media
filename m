@@ -1,74 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:35842 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750969AbdHRKOB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 06:14:01 -0400
-Subject: Re: [PATCHv2 0/9] omapdrm: hdmi4: add CEC support
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20170802085408.16204-1-hverkuil@xs4all.nl>
- <bbc92584-71e8-b41e-dd35-5dd0d686cf53@ti.com>
- <d5034d03-1ef4-0253-0efc-ae7fd5cb09e9@ti.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <9f921701-910c-d749-378c-038e8405f656@xs4all.nl>
-Date: Fri, 18 Aug 2017 12:13:55 +0200
-MIME-Version: 1.0
-In-Reply-To: <d5034d03-1ef4-0253-0efc-ae7fd5cb09e9@ti.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:38228 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752039AbdHIUbn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Aug 2017 16:31:43 -0400
+Received: by mail-wr0-f194.google.com with SMTP id g32so5184521wrd.5
+        for <linux-media@vger.kernel.org>; Wed, 09 Aug 2017 13:31:42 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
+        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
+Subject: [PATCH v3 10/12] [media] ddbridge: fix dereference before check
+Date: Wed,  9 Aug 2017 22:31:26 +0200
+Message-Id: <20170809203128.31476-11-d.scheller.oss@gmail.com>
+In-Reply-To: <20170809203128.31476-1-d.scheller.oss@gmail.com>
+References: <20170809203128.31476-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/18/17 11:02, Tomi Valkeinen wrote:
-> Hi Hans,
-> 
-> 
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-> 
-> On 11/08/17 13:57, Tomi Valkeinen wrote:
-> 
->> I'm doing some testing with this series on my panda. One issue I see is
->> that when I unload the display modules, I get:
->>
->> [   75.180206] platform 58006000.encoder: enabled after unload, idling
->> [   75.187896] platform 58001000.dispc: enabled after unload, idling
->> [   75.198242] platform 58000000.dss: enabled after unload, idling
-> 
-> This one is caused by hdmi_cec_adap_enable() never getting called with
-> enable=false when unloading the modules. Should that be called
-> explicitly in hdmi4_cec_uninit, or is the CEC framework supposed to call it?
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Nicely found!
+Both ts_release() and ts_open() can use "output" before check (smatch):
 
-The cec_delete_adapter() function calls __cec_s_phys_addr(CEC_PHYS_ADDR_INVALID)
-which would normally call adap_enable(false), except when the device node was
-already unregistered, in which case it just returns immediately.
+  drivers/media/pci/ddbridge/ddbridge-core.c:816 ts_release() warn: variable dereferenced before check 'output' (see line 809)
+  drivers/media/pci/ddbridge/ddbridge-core.c:836 ts_open() warn: variable dereferenced before check 'output' (see line 828)
 
-The patch below should fix this. Let me know if it works, and I'll post a proper
-patch and get that in for 4.14 (and possible backported as well, I'll have to
-look at that).
+Fix by performing checks on those pointers.
 
-Regards,
-
-	Hans
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <r.scobie@clear.net.nz>
+Tested-by: Jasmin Jessich <jasmin@anw.at>
+Tested-by: Dietmar Spingler <d_spingler@freenet.de>
+Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
 ---
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index bf45977b2823..61dffe165565 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -1390,7 +1390,9 @@ static void cec_claim_log_addrs(struct cec_adapter *adap, bool block)
-  */
- void __cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block)
- {
--	if (phys_addr == adap->phys_addr || adap->devnode.unregistered)
-+	if (phys_addr == adap->phys_addr)
-+		return;
-+	if (phys_addr != CEC_PHYS_ADDR_INVALID && adap->devnode.unregistered)
- 		return;
+ drivers/media/pci/ddbridge/ddbridge-core.c | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
- 	dprintk(1, "new physical address %x.%x.%x.%x\n",
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 1ec3782a6c88..05db3fb98a86 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -738,8 +738,13 @@ static unsigned int ts_poll(struct file *file, poll_table *wait)
+ static int ts_release(struct inode *inode, struct file *file)
+ {
+ 	struct dvb_device *dvbdev = file->private_data;
+-	struct ddb_output *output = dvbdev->priv;
+-	struct ddb_input *input = output->port->input[0];
++	struct ddb_output *output = NULL;
++	struct ddb_input *input = NULL;
++
++	if (dvbdev) {
++		output = dvbdev->priv;
++		input = output->port->input[0];
++	}
+ 
+ 	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
+ 		if (!input)
+@@ -757,8 +762,13 @@ static int ts_open(struct inode *inode, struct file *file)
+ {
+ 	int err;
+ 	struct dvb_device *dvbdev = file->private_data;
+-	struct ddb_output *output = dvbdev->priv;
+-	struct ddb_input *input = output->port->input[0];
++	struct ddb_output *output = NULL;
++	struct ddb_input *input = NULL;
++
++	if (dvbdev) {
++		output = dvbdev->priv;
++		input = output->port->input[0];
++	}
+ 
+ 	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
+ 		if (!input)
+-- 
+2.13.0
