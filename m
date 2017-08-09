@@ -1,113 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bran.ispras.ru ([83.149.199.196]:16916 "EHLO smtp.ispras.ru"
+Received: from mail-eopbgr40118.outbound.protection.outlook.com ([40.107.4.118]:53435
+        "EHLO EUR03-DB5-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752486AbdHJP3s (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Aug 2017 11:29:48 -0400
-From: Anton Vasilyev <vasilyev@ispras.ru>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Anton Vasilyev <vasilyev@ispras.ru>,
-        Jonathan McDowell <noodles@earth.li>,
-        Alyssa Milburn <amilburn@zall.org>,
-        Enrico Mioso <mrkiko.rs@gmail.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        ldv-project@linuxtesting.org
-Subject: [PATCH] dvb-usb: Add memory free on error path in dw2102_probe()
-Date: Thu, 10 Aug 2017 18:27:44 +0300
-Message-Id: <1502378864-13124-1-git-send-email-vasilyev@ispras.ru>
+        id S1751972AbdHIOnL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 9 Aug 2017 10:43:11 -0400
+Subject: Re: [PATCH 3/3] [media] cx231xx: only unregister successfully
+ registered i2c adapters
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-kernel@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+References: <20170731133852.8013-1-peda@axentia.se>
+ <20170731133852.8013-4-peda@axentia.se> <20170809112741.36427eb0@vento.lan>
+From: Peter Rosin <peda@axentia.se>
+Message-ID: <24c02947-3812-1a1b-f6b7-dc5a3ff69d66@axentia.se>
+Date: Wed, 9 Aug 2017 16:43:03 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170809112741.36427eb0@vento.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If dw2102_probe() fails on dvb_usb_device_init(), then memleak occurs.
+On 2017-08-09 16:27, Mauro Carvalho Chehab wrote:
+> Em Mon, 31 Jul 2017 15:38:52 +0200
+> Peter Rosin <peda@axentia.se> escreveu:
+> 
+>> This prevents potentially scary debug messages from the i2c core.
+>>
+>> Signed-off-by: Peter Rosin <peda@axentia.se>
+>> ---
+>>  drivers/media/usb/cx231xx/cx231xx-core.c | 3 +++
+>>  drivers/media/usb/cx231xx/cx231xx-i2c.c  | 3 ++-
+>>  2 files changed, 5 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
+>> index 46646ecd2dbc..f372ad3917a8 100644
+>> --- a/drivers/media/usb/cx231xx/cx231xx-core.c
+>> +++ b/drivers/media/usb/cx231xx/cx231xx-core.c
+>> @@ -1311,6 +1311,7 @@ int cx231xx_dev_init(struct cx231xx *dev)
+>>  	dev->i2c_bus[0].i2c_period = I2C_SPEED_100K;	/* 100 KHz */
+>>  	dev->i2c_bus[0].i2c_nostop = 0;
+>>  	dev->i2c_bus[0].i2c_reserve = 0;
+>> +	dev->i2c_bus[0].i2c_rc = -ENODEV;
+>>  
+>>  	/* External Master 2 Bus */
+>>  	dev->i2c_bus[1].nr = 1;
+>> @@ -1318,6 +1319,7 @@ int cx231xx_dev_init(struct cx231xx *dev)
+>>  	dev->i2c_bus[1].i2c_period = I2C_SPEED_100K;	/* 100 KHz */
+>>  	dev->i2c_bus[1].i2c_nostop = 0;
+>>  	dev->i2c_bus[1].i2c_reserve = 0;
+>> +	dev->i2c_bus[1].i2c_rc = -ENODEV;
+>>  
+>>  	/* Internal Master 3 Bus */
+>>  	dev->i2c_bus[2].nr = 2;
+>> @@ -1325,6 +1327,7 @@ int cx231xx_dev_init(struct cx231xx *dev)
+>>  	dev->i2c_bus[2].i2c_period = I2C_SPEED_100K;	/* 100kHz */
+>>  	dev->i2c_bus[2].i2c_nostop = 0;
+>>  	dev->i2c_bus[2].i2c_reserve = 0;
+>> +	dev->i2c_bus[2].i2c_rc = -ENODEV;
+>>  
+>>  	/* register I2C buses */
+>>  	errCode = cx231xx_i2c_register(&dev->i2c_bus[0]);
+>> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+>> index 3e49517cb5e0..8ce6b815d16d 100644
+>> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
+>> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+>> @@ -553,7 +553,8 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
+>>   */
+>>  void cx231xx_i2c_unregister(struct cx231xx_i2c *bus)
+>>  {
+>> -	i2c_del_adapter(&bus->i2c_adap);
+>> +	if (!bus->i2c_rc)
+>> +		i2c_del_adapter(&bus->i2c_adap);
+> 
+> That doesn't sound right. what happens if i2c_rc is 1 or 2?
+> 
+> IMHO, the right would would be, instead:
+> 
+> 	if (bus->i2c_rc >= 0)
+> 		i2c_del_adapter(&bus->i2c_adap);
 
-The patch adds deallocation to the error path.
+In theory, yes. But in practice i2c_add_adapter never returns >0, and is
+also documented so.
 
-Found by Linux Driver Verification project (linuxtesting.org).
+Let me know if you still want an update. In that case I'll also fix the
+precedent present in the context of patch 1/3, i.e.
 
-Signed-off-by: Anton Vasilyev <vasilyev@ispras.ru>
----
- drivers/media/usb/dvb-usb/dw2102.c | 39 +++++++++++++++++++++-----------------
- 1 file changed, 22 insertions(+), 17 deletions(-)
+	if (0 != bus->i2c_rc)
+		...
 
-diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
-index 6e654e5..0d63693 100644
---- a/drivers/media/usb/dvb-usb/dw2102.c
-+++ b/drivers/media/usb/dvb-usb/dw2102.c
-@@ -2332,10 +2332,12 @@ static struct dvb_usb_device_properties tt_s2_4600_properties = {
- static int dw2102_probe(struct usb_interface *intf,
- 		const struct usb_device_id *id)
- {
-+	int retval = -ENOMEM;
- 	p1100 = kmemdup(&s6x0_properties,
- 			sizeof(struct dvb_usb_device_properties), GFP_KERNEL);
- 	if (!p1100)
--		return -ENOMEM;
-+		goto err0;
-+
- 	/* copy default structure */
- 	/* fill only different fields */
- 	p1100->firmware = P1100_FIRMWARE;
-@@ -2346,10 +2348,9 @@ static int dw2102_probe(struct usb_interface *intf,
- 
- 	s660 = kmemdup(&s6x0_properties,
- 		       sizeof(struct dvb_usb_device_properties), GFP_KERNEL);
--	if (!s660) {
--		kfree(p1100);
--		return -ENOMEM;
--	}
-+	if (!s660)
-+		goto err1;
-+
- 	s660->firmware = S660_FIRMWARE;
- 	s660->num_device_descs = 3;
- 	s660->devices[0] = d660;
-@@ -2359,11 +2360,9 @@ static int dw2102_probe(struct usb_interface *intf,
- 
- 	p7500 = kmemdup(&s6x0_properties,
- 			sizeof(struct dvb_usb_device_properties), GFP_KERNEL);
--	if (!p7500) {
--		kfree(p1100);
--		kfree(s660);
--		return -ENOMEM;
--	}
-+	if (!p7500)
-+		goto err2;
-+
- 	p7500->firmware = P7500_FIRMWARE;
- 	p7500->devices[0] = d7500;
- 	p7500->rc.core.rc_query = prof_rc_query;
-@@ -2373,12 +2372,9 @@ static int dw2102_probe(struct usb_interface *intf,
- 
- 	s421 = kmemdup(&su3000_properties,
- 		       sizeof(struct dvb_usb_device_properties), GFP_KERNEL);
--	if (!s421) {
--		kfree(p1100);
--		kfree(s660);
--		kfree(p7500);
--		return -ENOMEM;
--	}
-+	if (!s421)
-+		goto err3;
-+
- 	s421->num_device_descs = 2;
- 	s421->devices[0] = d421;
- 	s421->devices[1] = d632;
-@@ -2408,7 +2404,16 @@ static int dw2102_probe(struct usb_interface *intf,
- 			 THIS_MODULE, NULL, adapter_nr))
- 		return 0;
- 
--	return -ENODEV;
-+	retval = -ENODEV;
-+	kfree(s421);
-+err3:
-+	kfree(p7500);
-+err2:
-+	kfree(s660);
-+err1:
-+	kfree(p1100);
-+err0:
-+	return retval;
- }
- 
- static void dw2102_disconnect(struct usb_interface *intf)
--- 
-2.7.4
+Cheers,
+peda
