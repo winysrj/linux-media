@@ -1,49 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:38172 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751868AbdHZIf1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 04:35:27 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, crope@iki.fi, mchehab@kernel.org,
-        hans.verkuil@cisco.com, isely@pobox.com,
-        ezequiel@vanguardiasur.com.ar, royale@zerezo.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-usb@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 00/11] [media]: make video_device const
-Date: Sat, 26 Aug 2017 14:05:04 +0530
-Message-Id: <1503736515-15366-1-git-send-email-bhumirks@gmail.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51364
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752675AbdHIO1u (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Aug 2017 10:27:50 -0400
+Date: Wed, 9 Aug 2017 11:27:41 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Peter Rosin <peda@axentia.se>
+Cc: linux-kernel@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/3] [media] cx231xx: only unregister successfully
+ registered i2c adapters
+Message-ID: <20170809112741.36427eb0@vento.lan>
+In-Reply-To: <20170731133852.8013-4-peda@axentia.se>
+References: <20170731133852.8013-1-peda@axentia.se>
+        <20170731133852.8013-4-peda@axentia.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make video_device const.
+Em Mon, 31 Jul 2017 15:38:52 +0200
+Peter Rosin <peda@axentia.se> escreveu:
 
-Bhumika Goyal (11):
-  [media] zr364xx: make video_device const
-  [media] stkwebcam:  make video_device const
-  [media] stk1160: make video_device const
-  [media] s2255drv:  make video_device const
-  [media] pwc: make video_device const
-  [media] pvrusb2: make video_device const
-  [media] msi2500: make video_device const
-  [media] hackrf:  make video_device const
-  [media] go7007: make video_device const
-  [media] cpia2: make video_device const
-  [media] airspy: make video_device const
+> This prevents potentially scary debug messages from the i2c core.
+> 
+> Signed-off-by: Peter Rosin <peda@axentia.se>
+> ---
+>  drivers/media/usb/cx231xx/cx231xx-core.c | 3 +++
+>  drivers/media/usb/cx231xx/cx231xx-i2c.c  | 3 ++-
+>  2 files changed, 5 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
+> index 46646ecd2dbc..f372ad3917a8 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-core.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-core.c
+> @@ -1311,6 +1311,7 @@ int cx231xx_dev_init(struct cx231xx *dev)
+>  	dev->i2c_bus[0].i2c_period = I2C_SPEED_100K;	/* 100 KHz */
+>  	dev->i2c_bus[0].i2c_nostop = 0;
+>  	dev->i2c_bus[0].i2c_reserve = 0;
+> +	dev->i2c_bus[0].i2c_rc = -ENODEV;
+>  
+>  	/* External Master 2 Bus */
+>  	dev->i2c_bus[1].nr = 1;
+> @@ -1318,6 +1319,7 @@ int cx231xx_dev_init(struct cx231xx *dev)
+>  	dev->i2c_bus[1].i2c_period = I2C_SPEED_100K;	/* 100 KHz */
+>  	dev->i2c_bus[1].i2c_nostop = 0;
+>  	dev->i2c_bus[1].i2c_reserve = 0;
+> +	dev->i2c_bus[1].i2c_rc = -ENODEV;
+>  
+>  	/* Internal Master 3 Bus */
+>  	dev->i2c_bus[2].nr = 2;
+> @@ -1325,6 +1327,7 @@ int cx231xx_dev_init(struct cx231xx *dev)
+>  	dev->i2c_bus[2].i2c_period = I2C_SPEED_100K;	/* 100kHz */
+>  	dev->i2c_bus[2].i2c_nostop = 0;
+>  	dev->i2c_bus[2].i2c_reserve = 0;
+> +	dev->i2c_bus[2].i2c_rc = -ENODEV;
+>  
+>  	/* register I2C buses */
+>  	errCode = cx231xx_i2c_register(&dev->i2c_bus[0]);
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+> index 3e49517cb5e0..8ce6b815d16d 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+> @@ -553,7 +553,8 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
+>   */
+>  void cx231xx_i2c_unregister(struct cx231xx_i2c *bus)
+>  {
+> -	i2c_del_adapter(&bus->i2c_adap);
+> +	if (!bus->i2c_rc)
+> +		i2c_del_adapter(&bus->i2c_adap);
 
- drivers/media/usb/airspy/airspy.c        | 2 +-
- drivers/media/usb/cpia2/cpia2_v4l.c      | 2 +-
- drivers/media/usb/go7007/go7007-v4l2.c   | 2 +-
- drivers/media/usb/hackrf/hackrf.c        | 2 +-
- drivers/media/usb/msi2500/msi2500.c      | 2 +-
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c | 2 +-
- drivers/media/usb/pwc/pwc-if.c           | 2 +-
- drivers/media/usb/s2255/s2255drv.c       | 2 +-
- drivers/media/usb/stk1160/stk1160-v4l.c  | 2 +-
- drivers/media/usb/stkwebcam/stk-webcam.c | 2 +-
- drivers/media/usb/zr364xx/zr364xx.c      | 2 +-
- 11 files changed, 11 insertions(+), 11 deletions(-)
+That doesn't sound right. what happens if i2c_rc is 1 or 2?
 
--- 
-1.9.1
+IMHO, the right would would be, instead:
+
+	if (bus->i2c_rc >= 0)
+		i2c_del_adapter(&bus->i2c_adap);
+
+Regards
+
+Thanks,
+Mauro
