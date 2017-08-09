@@ -1,54 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:41944 "EHLO
-        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751715AbdHaPrO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 11:47:14 -0400
-Subject: Re: [PATCH 1/2] docs: kernel-doc comments are ASCII
-To: Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>,
-        "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>
-References: <54c23e8e-89c0-5cea-0dcc-e938952c5642@infradead.org>
- <20170830152314.0486fafb@lwn.net>
- <3390facf-69ae-ba18-8abe-09b5695a6b31@infradead.org>
- <20170831064941.1fb18d20@vento.lan> <87h8wn98bv.fsf@intel.com>
- <20170831105602.5607fe52@vento.lan> <20170831081721.38be05ef@lwn.net>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <f9e30c84-7ad7-39dd-a39f-f62581f0b893@infradead.org>
-Date: Thu, 31 Aug 2017 08:47:10 -0700
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51616
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751523AbdHIPXK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Aug 2017 11:23:10 -0400
+Date: Wed, 9 Aug 2017 12:23:00 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL for 4.14] Sensor driver patches for 4.14
+Message-ID: <20170809122300.4b0b3859@vento.lan>
+In-Reply-To: <20170809075938.5jn7ww6h2cevtyqk@valkosipuli.retiisi.org.uk>
+References: <20170809075938.5jn7ww6h2cevtyqk@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <20170831081721.38be05ef@lwn.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/31/17 07:17, Jonathan Corbet wrote:
-> On Thu, 31 Aug 2017 10:56:26 -0300
-> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
-> 
->> It should have something to do with python version and/or to some
->> locale info at the system, as neither I or Jon can reproduce it.
-> 
-> I can't reproduce it here, but I have certainly seen situations where
-> Python 2 wants to run with the ascii codec by default.
-> 
-> Note that the exception happens in our Sphinx extension, not in Sphinx
-> itself.  We've had other non-ascii text in our docs, so I think Sphinx is
-> doing the right thing.  The problem is with our own code.  If I could
-> reproduce it, it shouldn't be too hard to track down - take out that
-> massive "except anything" block and see where it explodes.
-> 
-> Randy, which distribution are you running, and are you using their version
-> of Sphinx?
+Em Wed, 9 Aug 2017 10:59:38 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-opensuse LEAP 42.2
-Yes, their sphinx 1.3.1.
+> Hi Mauro,
+> 
+> Here are a bunch of sensor driver fixes and improvements for 4.14.
+> 
+> Please pull.
+> 
+> 
+> The following changes since commit da48c948c263c9d87dfc64566b3373a858cc8aa2:
+> 
+>   media: fix warning on v4l2_subdev_call() result interpreted as bool (2017-07-26 13:43:17 -0400)
+> 
+> are available in the git repository at:
+> 
+>   ssh://linuxtv.org/git/sailus/media_tree.git for-4.14-3
+> 
+> for you to fetch changes up to f95a6413a07c372cd586b9087a1425b6c216978a:
+> 
+>   ov9650: fix missing mutex_destroy() (2017-08-09 10:39:13 +0300)
+> 
+> ----------------------------------------------------------------
+> Arnd Bergmann (1):
+>       media: i2c: add KConfig dependencies for ov5670
+> 
+> Chiranjeevi Rapolu (4):
+>       ov13858: Set default fps as current fps
+>       ov13858: Fix initial expsoure max
+>       ov13858: Correct link-frequency and pixel-rate
+>       ov13858: Increase digital gain granularity, range
+> 
+> Fabio Estevam (2):
+>       ov7670: Return the real error code
+>       ov7670: Check the return value from clk_prepare_enable()
+> 
+> Hugues Fruchet (2):
+>       ov9650: fix coding style
+>       ov9650: fix missing mutex_destroy()
+> 
+> Julia Lawall (1):
+>       vs6624: constify vs6624_default_fmt
 
+Hi Sakari,
 
--- 
-~Randy
+Patches 6 to 10 of this series seem to have already be applied. I suspect
+that they were on a pull request from Hans.
+
+The ones that applied fine were:
+
+8593f82c01af media: vs6624: constify vs6624_default_fmt
+dcadb26976a0 media: ov13858: Increase digital gain granularity, range
+36b0d33bfeec media: ov13858: Correct link-frequency and pixel-rate
+e1b84da2fa3e media: ov13858: Fix initial expsoure max
+973e9b1109d8 media: ov13858: Set default fps as current fps
+
+Please check if something is missing.
+
+Regards,
+Mauro
+
+Thanks,
+Mauro
