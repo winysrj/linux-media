@@ -1,45 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:36160 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751342AbdHDKl7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 Aug 2017 06:41:59 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 5/5] stm32-cec: use CEC_CAP_DEFAULTS
-Date: Fri,  4 Aug 2017 12:41:55 +0200
-Message-Id: <20170804104155.37386-6-hverkuil@xs4all.nl>
-In-Reply-To: <20170804104155.37386-1-hverkuil@xs4all.nl>
-References: <20170804104155.37386-1-hverkuil@xs4all.nl>
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:37372 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752022AbdHIUbj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Aug 2017 16:31:39 -0400
+Received: by mail-wr0-f195.google.com with SMTP id f38so4153150wrf.4
+        for <linux-media@vger.kernel.org>; Wed, 09 Aug 2017 13:31:38 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
+        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
+Subject: [PATCH v3 06/12] [media] ddbridge: only register frontends in fe2 if fe is not NULL
+Date: Wed,  9 Aug 2017 22:31:22 +0200
+Message-Id: <20170809203128.31476-7-d.scheller.oss@gmail.com>
+In-Reply-To: <20170809203128.31476-1-d.scheller.oss@gmail.com>
+References: <20170809203128.31476-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Use the new CEC_CAP_DEFAULTS define in this driver.
+Smatch reported:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+  drivers/media/pci/ddbridge/ddbridge-core.c:1602 dvb_input_attach() error: we previously assumed 'dvb->fe' could be null (see line 1595)
+
+dvb->fe2 will ever only be populated when dvb->fe is set. So only handle
+registration of dvb->fe2 when dvb->fe got set beforehand by moving the
+registration into the "if (dvb->fe)" conditional.
+
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <r.scobie@clear.net.nz>
+Tested-by: Jasmin Jessich <jasmin@anw.at>
+Tested-by: Dietmar Spingler <d_spingler@freenet.de>
+Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
 ---
- drivers/media/platform/stm32/stm32-cec.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/media/pci/ddbridge/ddbridge-core.c | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/platform/stm32/stm32-cec.c b/drivers/media/platform/stm32/stm32-cec.c
-index 89904096d0a9..ed332a1a39b1 100644
---- a/drivers/media/platform/stm32/stm32-cec.c
-+++ b/drivers/media/platform/stm32/stm32-cec.c
-@@ -246,9 +246,7 @@ static const struct regmap_config stm32_cec_regmap_cfg = {
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 12bc8de980b5..d01d54159008 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -1506,23 +1506,25 @@ static int dvb_input_attach(struct ddb_input *input)
+ 		return 0;
+ 	}
+ 	dvb->attached = 0x30;
++
+ 	if (dvb->fe) {
+ 		if (dvb_register_frontend(adap, dvb->fe) < 0)
+ 			return -ENODEV;
++
++		if (dvb->fe2) {
++			if (dvb_register_frontend(adap, dvb->fe2) < 0)
++				return -ENODEV;
++			dvb->fe2->tuner_priv = dvb->fe->tuner_priv;
++			memcpy(&dvb->fe2->ops.tuner_ops,
++			       &dvb->fe->ops.tuner_ops,
++			       sizeof(struct dvb_tuner_ops));
++		}
+ 	}
+-	if (dvb->fe2) {
+-		if (dvb_register_frontend(adap, dvb->fe2) < 0)
+-			return -ENODEV;
+-		dvb->fe2->tuner_priv = dvb->fe->tuner_priv;
+-		memcpy(&dvb->fe2->ops.tuner_ops,
+-		       &dvb->fe->ops.tuner_ops,
+-		       sizeof(struct dvb_tuner_ops));
+-	}
++
+ 	dvb->attached = 0x31;
+ 	return 0;
+ }
  
- static int stm32_cec_probe(struct platform_device *pdev)
+-
+ static int port_has_encti(struct ddb_port *port)
  {
--	u32 caps = CEC_CAP_LOG_ADDRS | CEC_CAP_PASSTHROUGH |
--		   CEC_CAP_TRANSMIT | CEC_CAP_RC | CEC_CAP_PHYS_ADDR |
--		   CEC_MODE_MONITOR_ALL;
-+	u32 caps = CEC_CAP_DEFAULTS | CEC_CAP_PHYS_ADDR | CEC_MODE_MONITOR_ALL;
- 	struct resource *res;
- 	struct stm32_cec *cec;
- 	void __iomem *mmio;
+ 	struct device *dev = port->dev->dev;
 -- 
-2.13.2
+2.13.0
