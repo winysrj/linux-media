@@ -1,43 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:28982 "EHLO
-        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752544AbdHBPTm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 Aug 2017 11:19:42 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: "Lad Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: kernel-janitors@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH] [media] DaVinci-VPBE: constify vpbe_dev_ops
-Date: Wed,  2 Aug 2017 16:54:13 +0200
-Message-Id: <1501685653-4284-1-git-send-email-Julia.Lawall@lip6.fr>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:35192 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752050AbdHIUbi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Aug 2017 16:31:38 -0400
+Received: by mail-wm0-f67.google.com with SMTP id r77so754092wmd.2
+        for <linux-media@vger.kernel.org>; Wed, 09 Aug 2017 13:31:37 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
+        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
+Subject: [PATCH v3 05/12] [media] ddbridge: check pointers before dereferencing
+Date: Wed,  9 Aug 2017 22:31:21 +0200
+Message-Id: <20170809203128.31476-6-d.scheller.oss@gmail.com>
+In-Reply-To: <20170809203128.31476-1-d.scheller.oss@gmail.com>
+References: <20170809203128.31476-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-vpbe_dev_ops is only copied into the ops field at the end of a vpbe_device
-structure, so it can be const.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Fixes two warnings reported by smatch:
 
+  drivers/media/pci/ddbridge/ddbridge-core.c:240 ddb_redirect() warn: variable dereferenced before check 'idev' (see line 238)
+  drivers/media/pci/ddbridge/ddbridge-core.c:240 ddb_redirect() warn: variable dereferenced before check 'pdev' (see line 238)
+
+Fixed by moving the existing checks up before accessing members.
+
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <r.scobie@clear.net.nz>
+Tested-by: Jasmin Jessich <jasmin@anw.at>
+Tested-by: Dietmar Spingler <d_spingler@freenet.de>
+Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
 ---
+ drivers/media/pci/ddbridge/ddbridge-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Does the ops field need to be inlined into the vpbe_device structure?
-
- drivers/media/platform/davinci/vpbe.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
-index 3679b1e..7f64625 100644
---- a/drivers/media/platform/davinci/vpbe.c
-+++ b/drivers/media/platform/davinci/vpbe.c
-@@ -790,7 +790,7 @@ static void vpbe_deinitialize(struct device *dev, struct vpbe_device *vpbe_dev)
- 	vpss_enable_clock(VPSS_VPBE_CLOCK, 0);
- }
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 08440dcb5e6f..12bc8de980b5 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -170,10 +170,10 @@ static int ddb_redirect(u32 i, u32 p)
+ 	struct ddb *pdev = ddbs[(p >> 4) & 0x3f];
+ 	struct ddb_port *port;
  
--static struct vpbe_device_ops vpbe_dev_ops = {
-+static const struct vpbe_device_ops vpbe_dev_ops = {
- 	.g_cropcap = vpbe_g_cropcap,
- 	.enum_outputs = vpbe_enum_outputs,
- 	.set_output = vpbe_set_output,
+-	if (!idev->has_dma || !pdev->has_dma)
+-		return -EINVAL;
+ 	if (!idev || !pdev)
+ 		return -EINVAL;
++	if (!idev->has_dma || !pdev->has_dma)
++		return -EINVAL;
+ 
+ 	port = &pdev->port[p & 0x0f];
+ 	if (!port->output)
+-- 
+2.13.0
