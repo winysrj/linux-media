@@ -1,98 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58225
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751237AbdH1MyI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Aug 2017 08:54:08 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v5 2/7] media: open.rst: better document device node naming
-Date: Mon, 28 Aug 2017 09:53:56 -0300
-Message-Id: <f63c7412638307f3f58dc114b64339755741feb6.1503924361.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503924361.git.mchehab@s-opensource.com>
-References: <cover.1503924361.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-In-Reply-To: <cover.1503924361.git.mchehab@s-opensource.com>
-References: <cover.1503924361.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:33351 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752065AbdHIUbk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Aug 2017 16:31:40 -0400
+Received: by mail-wr0-f195.google.com with SMTP id y43so5189205wrd.0
+        for <linux-media@vger.kernel.org>; Wed, 09 Aug 2017 13:31:39 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
+        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
+Subject: [PATCH v3 07/12] [media] ddbridge: fix possible buffer overflow in ddb_ports_init()
+Date: Wed,  9 Aug 2017 22:31:23 +0200
+Message-Id: <20170809203128.31476-8-d.scheller.oss@gmail.com>
+In-Reply-To: <20170809203128.31476-1-d.scheller.oss@gmail.com>
+References: <20170809203128.31476-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Right now, only kAPI documentation describes the device naming.
-However, such description is needed at the uAPI too. Add it,
-and describe how to get an unique identify for a given device.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Report from smatch:
+
+  drivers/media/pci/ddbridge/ddbridge-core.c:2659 ddb_ports_init() error: buffer overflow 'dev->port' 32 <= u32max
+
+Fix by making sure "p" is greater than zero before checking for
+"dev->port[].type == DDB_CI_EXTERNAL_XO2".
+
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <r.scobie@clear.net.nz>
+Tested-by: Jasmin Jessich <jasmin@anw.at>
+Tested-by: Dietmar Spingler <d_spingler@freenet.de>
+Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
 ---
- Documentation/media/uapi/v4l/open.rst | 39 ++++++++++++++++++++++++++++++++---
- 1 file changed, 36 insertions(+), 3 deletions(-)
+ drivers/media/pci/ddbridge/ddbridge-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index afd116edb40d..fc0037091814 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -7,12 +7,14 @@ Opening and Closing Devices
- ***************************
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index d01d54159008..2a4bb6ddf3a2 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -2551,7 +2551,7 @@ void ddb_ports_init(struct ddb *dev)
+ 			port->dvb[0].adap = &dev->adap[2 * p];
+ 			port->dvb[1].adap = &dev->adap[2 * p + 1];
  
- 
--Device Naming
--=============
-+.. _v4l2_device_naming:
-+
-+V4L2 Device Node Naming
-+=======================
- 
- V4L2 drivers are implemented as kernel modules, loaded manually by the
- system administrator or automatically when a device is first discovered.
--The driver modules plug into the "videodev" kernel module. It provides
-+The driver modules plug into the ``videodev`` kernel module. It provides
- helper functions and a common application interface specified in this
- document.
- 
-@@ -23,6 +25,37 @@ option CONFIG_VIDEO_FIXED_MINOR_RANGES. In that case minor numbers
- are allocated in ranges depending on the device node type (video, radio,
- etc.).
- 
-+The existing V4L2 device node types are:
-+
-+======================== ======================================================
-+Default device node name Usage
-+======================== ======================================================
-+``/dev/videoX``		 Video input/output devices
-+``/dev/vbiX``		 Vertical blank data (i.e. closed captions, teletext)
-+``/dev/radioX``		 Radio tuners and modulators
-+``/dev/swradioX``	 Software Defined Radio tuners and modulators
-+``/dev/v4l-touchX``	 Touch sensors
-+======================== ======================================================
-+
-+Where ``X`` is a non-negative number.
-+
-+.. note::
-+
-+   1. The actual device node name is system-dependent, as udev rules may apply.
-+   2. There is no warranty that ``X`` will remain the same for the same
-+      device, as the number depends on the device driver's probe order.
-+      If you need an unique name, udev default rules produce
-+      ``/dev/v4l/by-id/`` and ``/dev/v4l/by-path/`` directoiries containing
-+      links that can be used uniquely to identify a V4L2 device node::
-+
-+	$ tree /dev/v4l
-+	/dev/v4l
-+	├── by-id
-+	│   └── usb-OmniVision._USB_Camera-B4.04.27.1-video-index0 -> ../../video0
-+	└── by-path
-+	    └── pci-0000:00:14.0-usb-0:2:1.0-video-index0 -> ../../video0
-+
-+
- Many drivers support "video_nr", "radio_nr" or "vbi_nr" module
- options to select specific video/radio/vbi node numbers. This allows the
- user to request that the device node is named e.g. /dev/video5 instead
+-			if ((port->class == DDB_PORT_NONE) && i &&
++			if ((port->class == DDB_PORT_NONE) && i && p &&
+ 			    dev->port[p - 1].type == DDB_CI_EXTERNAL_XO2) {
+ 				port->class = DDB_PORT_CI;
+ 				port->type = DDB_CI_EXTERNAL_XO2_B;
 -- 
-2.13.5
+2.13.0
