@@ -1,147 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58788 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41898 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751229AbdHEIBn (ORCPT
+        by vger.kernel.org with ESMTP id S1752199AbdHIH5W (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 5 Aug 2017 04:01:43 -0400
-Subject: Re: [PATCH v3 10/23] media: camss: Add VFE files
-To: Todor Tomov <todor.tomov@linaro.org>
-Cc: mchehab@kernel.org, hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
-References: <1500287629-23703-1-git-send-email-todor.tomov@linaro.org>
- <1500287629-23703-11-git-send-email-todor.tomov@linaro.org>
- <20170720145949.grndikq744zq7ejg@valkosipuli.retiisi.org.uk>
- <cdcdda84-56d3-56cb-969c-a7dde7c6a12b@linaro.org>
+        Wed, 9 Aug 2017 03:57:22 -0400
+Date: Wed, 9 Aug 2017 10:57:20 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-Message-ID: <33862f4e-6608-32d9-1759-4bd371d5b1dc@iki.fi>
-Date: Fri, 4 Aug 2017 21:02:54 +0300
+To: linux-media@vger.kernel.org
+Cc: alan@linux.intel.com
+Subject: [GIT PULL for 4.14] Atomisp cleanups
+Message-ID: <20170809075719.bcwhkumaqjhh3dc7@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <cdcdda84-56d3-56cb-969c-a7dde7c6a12b@linaro.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Todor,
+Hi Mauro,
 
-Todor Tomov wrote:
-> Hi Sakari,
-> 
-> Thank you for the review.
-> 
-> On 20.07.2017 17:59, Sakari Ailus wrote:
->> Hi Todor,
->>
->> On Mon, Jul 17, 2017 at 01:33:36PM +0300, Todor Tomov wrote:
->>> These files control the VFE module. The VFE has different input interfaces.
->>> The PIX input interface feeds the input data to an image processing pipeline.
->>> Three RDI input interfaces bypass the image processing pipeline. The VFE also
->>> contains the AXI bus interface which writes the output data to memory.
->>>
->>> RDI interfaces are supported in this version. PIX interface is not supported.
->>>
->>> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
->>> ---
->>>  drivers/media/platform/qcom/camss-8x16/camss-vfe.c | 1913 ++++++++++++++++++++
->>>  drivers/media/platform/qcom/camss-8x16/camss-vfe.h |  114 ++
->>>  2 files changed, 2027 insertions(+)
->>>  create mode 100644 drivers/media/platform/qcom/camss-8x16/camss-vfe.c
->>>  create mode 100644 drivers/media/platform/qcom/camss-8x16/camss-vfe.h
->>>
->>> diff --git a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
->>> new file mode 100644
->>> index 0000000..b6dd29b
->>> --- /dev/null
->>> +++ b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
->>> @@ -0,0 +1,1913 @@
-> 
-> <snip>
-> 
->>> +
->>> +static void vfe_set_qos(struct vfe_device *vfe)
->>> +{
->>> +	u32 val = 0xaaa5aaa5;
->>> +	u32 val7 = 0x0001aaa5;
->>
->> Huh. What do these mean? :-)
-> 
-> For these here I don't have understanding of the values. I'll remove the magic
-> values here and on all the other places but these here I'll just move to a #define.
+Here's a usual bunch of atomisp cleanups.
 
-If there is no documentation then I guess that's all that can be done.
-Works for me.
+Please pull.
 
-> 
->>
->>> +
->>> +	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_0);
->>> +	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_1);
->>> +	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_2);
->>> +	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_3);
->>> +	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_4);
->>> +	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_5);
->>> +	writel_relaxed(val, vfe->base + VFE_0_BUS_BDG_QOS_CFG_6);
->>> +	writel_relaxed(val7, vfe->base + VFE_0_BUS_BDG_QOS_CFG_7);
->>> +}
->>> +
-> 
-> <snip>
-> 
->>> +
->>> +/*
->>> + * msm_vfe_subdev_init - Initialize VFE device structure and resources
->>> + * @vfe: VFE device
->>> + * @res: VFE module resources table
->>> + *
->>> + * Return 0 on success or a negative error code otherwise
->>> + */
->>> +int msm_vfe_subdev_init(struct vfe_device *vfe, const struct resources *res)
->>> +{
->>> +	struct device *dev = to_device(vfe);
->>> +	struct platform_device *pdev = to_platform_device(dev);
->>> +	struct resource *r;
->>> +	struct camss *camss = to_camss(vfe);
->>> +
->>> +	int i;
->>> +	int ret;
->>> +
->>> +	mutex_init(&vfe->power_lock);
->>> +	vfe->power_count = 0;
->>> +
->>> +	mutex_init(&vfe->stream_lock);
->>> +	vfe->stream_count = 0;
->>> +
->>> +	spin_lock_init(&vfe->output_lock);
->>> +
->>> +	vfe->id = 0;
->>> +	vfe->reg_update = 0;
->>> +
->>> +	for (i = VFE_LINE_RDI0; i <= VFE_LINE_RDI2; i++) {
->>> +		vfe->line[i].video_out.type =
->>> +					V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
->>> +		vfe->line[i].video_out.camss = camss;
->>> +		vfe->line[i].id = i;
->>> +	}
->>> +
->>> +	/* Memory */
->>> +
->>> +	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, res->reg[0]);
->>> +	vfe->base = devm_ioremap_resource(dev, r);
->>> +	if (IS_ERR(vfe->base)) {
->>> +		dev_err(dev, "could not map memory\n");
->>
->> mutex_destroy() for bothof the mutexes. The same below.
->>
->> Do you have a corresponding cleanup function?
-> 
-> msm_vfe_subdev_init() and msm_vfe_register_entities() are called on probe().
-> msm_vfe_unregister_entities() is called on remove() - this is the cleanup
-> function. The mutexes are destroyed there. Is there something else that you
-> are concerned about?
 
-What about the error case above then? Where are the mutexes destroyed?
+The following changes since commit da48c948c263c9d87dfc64566b3373a858cc8aa2:
+
+  media: fix warning on v4l2_subdev_call() result interpreted as bool (2017-07-26 13:43:17 -0400)
+
+are available in the git repository at:
+
+  https://linuxtv.org/git/sailus/media_tree.git atomisp
+
+for you to fetch changes up to c06f41fb60389ef7bc59ee58ed07bab444fd5455:
+
+  staging: media: atomisp: constify video_subdev structures (2017-08-08 15:55:05 +0300)
+
+----------------------------------------------------------------
+Geliang Tang (1):
+      staging: media: atomisp: use kvmalloc/kvzalloc
+
+Julia Lawall (2):
+      staging: media: atomisp: constify videobuf_queue_ops structures
+      staging: media: atomisp: constify video_subdev structures
+
+Rene Hickersberger (1):
+      staging: media: atomisp: i2c: gc0310: fixed brace coding style issue
+
+Stephen Brennan (1):
+      staging: media: atomisp: remove trailing whitespace
+
+ drivers/staging/media/atomisp/i2c/ap1302.c         |  2 +-
+ drivers/staging/media/atomisp/i2c/gc0310.c         |  3 +--
+ drivers/staging/media/atomisp/i2c/mt9m114.c        |  2 +-
+ drivers/staging/media/atomisp/i2c/ov2680.c         | 17 ++++++------
+ .../media/atomisp/pci/atomisp2/atomisp_cmd.c       | 31 +---------------------
+ .../media/atomisp/pci/atomisp2/atomisp_cmd.h       |  2 --
+ .../atomisp/pci/atomisp2/atomisp_compat_css20.c    |  4 +--
+ .../media/atomisp/pci/atomisp2/atomisp_fops.c      |  4 +--
+ .../media/atomisp/pci/atomisp2/atomisp_internal.h  |  2 --
+ 9 files changed, 16 insertions(+), 51 deletions(-)
 
 -- 
 Sakari Ailus
-sakari.ailus@iki.fi
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
