@@ -1,139 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f43.google.com ([209.85.215.43]:34235 "EHLO
-        mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752407AbdHRNmk (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44028 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752106AbdHILP7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 09:42:40 -0400
-Received: by mail-lf0-f43.google.com with SMTP id g77so10529744lfg.1
-        for <linux-media@vger.kernel.org>; Fri, 18 Aug 2017 06:42:39 -0700 (PDT)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Fri, 18 Aug 2017 15:42:37 +0200
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-Subject: Re: [PATCH 4/4] v4l: async: add comment about re-probing to
- v4l2_async_notifier_unregister()
-Message-ID: <20170818134237.GB6304@bigcity.dyn.berto.se>
-References: <20170730223158.14405-1-niklas.soderlund+renesas@ragnatech.se>
- <20170730223158.14405-5-niklas.soderlund+renesas@ragnatech.se>
- <20170815160932.fizwqqkaivtz3nqu@valkosipuli.retiisi.org.uk>
- <2865661.SePdnx8dyz@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <2865661.SePdnx8dyz@avalon>
+        Wed, 9 Aug 2017 07:15:59 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: linux-leds@vger.kernel.org, jacek.anaszewski@gmail.com,
+        laurent.pinchart@ideasonboard.com, Johan Hovold <johan@kernel.org>,
+        Alex Elder <elder@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        greybus-dev@lists.linaro.org, devel@driverdev.osuosl.org,
+        viresh.kumar@linaro.org, Rui Miguel Silva <rmfrfs@gmail.com>
+Subject: [PATCH v2 0/3] Create sub-device per LED                                  
+Date: Wed,  9 Aug 2017 14:15:52 +0300
+Message-Id: <20170809111555.30147-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari and Laurent,
+Hi folks,
 
-Thanks for your feedback.
+The original design decision in the V4L2 flash API allows controlling a two
+LEDs (an indicator and a flash) through a single sub-device. This covered
+virtually all flash driver chips back then but this no longer holds as
+there are many LED driver chips with multiple flash LED outputs. This
+necessitates creating as many sub-devices as there are flash LEDs.
 
-On 2017-08-18 14:20:08 +0300, Laurent Pinchart wrote:
-> Hello,
-> 
-> On Tuesday 15 Aug 2017 19:09:33 Sakari Ailus wrote:
-> > On Mon, Jul 31, 2017 at 12:31:58AM +0200, Niklas Söderlund wrote:
-> > > The re-probing of subdevices when unregistering a notifier is tricky to
-> > > understand, and implemented somewhat as a hack. Add a comment trying to
-> > > explain why the re-probing is needed in the first place and why existing
-> > > helper functions can't be used in this situation.
-> > > 
-> > > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > > ---
-> > > 
-> > >  drivers/media/v4l2-core/v4l2-async.c | 17 +++++++++++++++++
-> > >  1 file changed, 17 insertions(+)
-> > > 
-> > > diff --git a/drivers/media/v4l2-core/v4l2-async.c
-> > > b/drivers/media/v4l2-core/v4l2-async.c index
-> > > d91ff0a33fd3eaff..a3c5a1f6d4d2ab03 100644
-> > > --- a/drivers/media/v4l2-core/v4l2-async.c
-> > > +++ b/drivers/media/v4l2-core/v4l2-async.c
-> > > @@ -234,6 +234,23 @@ void v4l2_async_notifier_unregister(struct
-> > > v4l2_async_notifier *notifier)> 
-> > >  	mutex_unlock(&list_lock);
-> > > 
-> > > +	/*
-> > > +	 * Try to re-probe the subdevices which where part of the notifier.
-> > > +	 * This is done so subdevices which where part of the notifier will
-> > > +	 * be re-probed to a pristine state and put back on the global
-> > > +	 * list of subdevices so they can once more be found and associated
-> > > +	 * with a new notifier.
-> > 
-> > Instead of tweaking the code trying to handle unhandleable error conditions
-> > in notifier unregistration and adding lengthy stories on why this is done
-> > the way it is, could we simply get rid of the driver re-probing?
-> > 
-> > I can't see why drivers shouldn't simply cope with the current interfaces
-> > without re-probing to which I've never seen any reasoned cause. When a
-> > sub-device driver is unbound, simply return the sub-device node to the list
-> > of async sub-devices.
-> 
-> I agree, this is a hack that we should get rid of. Reprobing has been there 
-> from the very beginning, it's now 4 years and a half old, let's allow it to 
-> retire :-)
+Additionally the flash LEDs can be associated to different sensors. This is
+not unconceivable although not very probable.
 
-I would also be happy to see this code go away :-)
+This patchset splits the indicator and flash LEDs exposed by the V4L2 flash
+class framework into multiple sub-devices. This way the driver creates the
+sub-devices individually for each LED which will also facilitate fwnode
+matching (e.g. will you refer to LED or a LED driver chip with a phandle?).
 
-> 
-> > Or can someone come up with a valid reason why the re-probing code should
-> > stay? :-)
+since v1:
 
-Hans kindly dug out the original reason talking about why this code was 
-added in the first place at
+- Drop patch "staging: greybus: light: Don't leak memory for no gain" in
+  favour of Rui's "staging: greybus: light: fix memory leak in v4l2
+  register".
 
-    http://lkml.iu.edu/hypermail/linux/kernel/1210.2/00713.html
+- Rebase "staging: greybus: light: fix memory leak in v4l2 register" on
+  "media: v4l2-flash: Use led_classdev instead of led_classdev_flash for
+  indicator" already in mediatree.
 
-I would also like record here what Laurent stated about this after 
-reading the above on #v4l 
+- Add "v4l2-flash-led-class: Document v4l2_flash_init() references" to the
+  set.
 
-13:53  pinchartl : what could happen is this
-13:53  pinchartl : the master could export resources used by the subdev
-13:53  pinchartl : the omap3 isp driver, for instance, is a clock source
-13:54  pinchartl : and the clock can be used by sensors
-13:54  pinchartl : so if you remove the omap3 isp, the clock won't be 
-   there anymore
-13:54  pinchartl : and that's bad for the subdev
+Rui Miguel Silva (1):
+  staging: greybus: light: fix memory leak in v4l2 register
 
+Sakari Ailus (2):
+  v4l2-flash-led-class: Create separate sub-devices for indicators
+  v4l2-flash-led-class: Document v4l2_flash_init() references
 
-I don't claim I fully understand all the consequences of removing this 
-reprobing now. But maybe it's safer to lave the current behavior in for 
-now until the full problem is understood and move forward whit these 
-patches since at least they document the behavior and removes another 
-funky bit when trying to handle the situation where the memory 
-allocation fails? What do you guys think?
-
-> > 
-> > > +	 *
-> > > +	 * One might be tempted to use device_reprobe() to handle the re-
-> > > +	 * probing. Unfortunately this is not possible since some video
-> > > +	 * device drivers call v4l2_async_notifier_unregister() from
-> > > +	 * there remove function leading to a dead lock situation on
-> > > +	 * device_lock(dev->parent). This lock is held when video device
-> > > +	 * drivers remove function is called and device_reprobe() also
-> > > +	 * tries to take the same lock, so using it here could lead to a
-> > > +	 * dead lock situation.
-> > > +	 */
-> > > +
-> > >  	for (i = 0; i < count; i++) {
-> > >  	
-> > >  		/* If we handled USB devices, we'd have to lock the parent too 
-> */
-> > >  		device_release_driver(dev[i]);
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+ drivers/leds/leds-aat1290.c                    |   4 +-
+ drivers/leds/leds-max77693.c                   |   4 +-
+ drivers/media/v4l2-core/v4l2-flash-led-class.c | 113 +++++++++++++++----------
+ drivers/staging/greybus/light.c                |  42 ++++-----
+ include/media/v4l2-flash-led-class.h           |  47 +++++++---
+ 5 files changed, 127 insertions(+), 83 deletions(-)
 
 -- 
-Regards,
-Niklas Söderlund
+2.11.0
