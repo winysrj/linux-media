@@ -1,191 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:37521 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751891AbdHGUVC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Aug 2017 16:21:02 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 3/6] [media] rc: simplify ir_raw_event_store_edge()
-Date: Mon,  7 Aug 2017 21:20:56 +0100
-Message-Id: <3bebe168dc8933b48de5e7e39a4e9fa00c27cb7b.1502137028.git.sean@mess.org>
-In-Reply-To: <cover.1502137028.git.sean@mess.org>
-References: <cover.1502137028.git.sean@mess.org>
-In-Reply-To: <cover.1502137028.git.sean@mess.org>
-References: <cover.1502137028.git.sean@mess.org>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51753
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752406AbdHIP6G (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Aug 2017 11:58:06 -0400
+Date: Wed, 9 Aug 2017 12:57:57 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL for 4.14] Stream control documentation
+Message-ID: <20170809125757.57cd8d2b@vento.lan>
+In-Reply-To: <20170809122917.0461db2c@vento.lan>
+References: <20170809080340.4c5b4jjypqiqyllp@valkosipuli.retiisi.org.uk>
+        <20170809122917.0461db2c@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since commit 12749b198fa4 ("[media] rc: saa7134: add trailing space for
-timely decoding"), the workaround of inserting reset events is no
-longer needed.
+Em Wed, 9 Aug 2017 12:29:17 -0300
+Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
 
-Verified on a HVR-1150.
+> Em Wed, 9 Aug 2017 11:03:40 +0300
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> 
+> > Hi Mauro,
+> > 
+> > Add stream control documentation.
+> > 
+> > We have recently added support for hardware that makes it possible to have
+> > pipelines that are controlled by more than two drivers. This necessitates
+> > documenting V4L2 stream control behaviour for such pipelines.  
+> 
+> Perhaps I missed this one, but I'm not seeing any e-mail with
+> 	"docs-rst: media: Document s_stream() video op usage"
+> 
+> Please always submit patches via e-mail too, as it makes easier for
+> us to comment/review when needed.
+> 
+> In any case, I'm appending the patch contents here. I'll reply to it
+> on a next e-mail.
+> 
+> > From ef8e5d20b45b05290c56450d2130a0dc3c021c5a Mon Sep 17 00:00:00 2001
+> > From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Date: Thu, 9 Mar 2017 15:07:57 +0200
+> > Subject: docs-rst: media: Document s_stream() video op usage
+> > MIME-Version: 1.0
+> > Content-Type: text/plain; charset=UTF-8
+> > Content-Transfer-Encoding: 8bit
+> > Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+> >     Mauro Carvalho Chehab <mchehab@infradead.org>
+> > 
+> > As we begin to add support for systems with media pipelines controlled by
+> > more than one device driver, it is essential that we precisely define the
+> > responsibilities of each component in the stream control and common
+> > practices.
 
-Fixes: 3f5c4c73322e ("[media] rc: fix ghost keypresses with certain hw")
+Not sure what you meant here. Currently, there is support already
+for multiple subdevs attached to a driver.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/pci/saa7134/saa7134-input.c |  2 +-
- drivers/media/rc/gpio-ir-recv.c           |  6 +-----
- drivers/media/rc/img-ir/img-ir-raw.c      |  4 ++--
- drivers/media/rc/rc-core-priv.h           |  1 -
- drivers/media/rc/rc-ir-raw.c              | 31 +++++--------------------------
- include/media/rc-core.h                   | 10 +---------
- 6 files changed, 10 insertions(+), 44 deletions(-)
+As we're talking here about kAPI, it is quite common that a V4L2 the
+need to set multiple devices while stream. A typical non-MC device like
+bttv can set up to 4 types of devices:
+	- tuner;
+	- audio decoder;
+	- video decoder;
+	- video enhancers.
 
-diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
-index 4b58c129be92..e7b386ee3ff9 100644
---- a/drivers/media/pci/saa7134/saa7134-input.c
-+++ b/drivers/media/pci/saa7134/saa7134-input.c
-@@ -1055,7 +1055,7 @@ static int saa7134_raw_decode_irq(struct saa7134_dev *dev)
- 	saa_clearb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
- 	saa_setb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
- 	space = saa_readl(SAA7134_GPIO_GPSTATUS0 >> 2) & ir->mask_keydown;
--	ir_raw_event_store_edge(dev->remote->dev, space ? IR_SPACE : IR_PULSE);
-+	ir_raw_event_store_edge(dev->remote->dev, !space);
- 
- 	return 1;
- }
-diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
-index 512e31593a77..24c7ac8f1b82 100644
---- a/drivers/media/rc/gpio-ir-recv.c
-+++ b/drivers/media/rc/gpio-ir-recv.c
-@@ -76,7 +76,6 @@ static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
- 	struct gpio_rc_dev *gpio_dev = dev_id;
- 	int gval;
- 	int rc = 0;
--	enum raw_event_type type = IR_SPACE;
- 
- 	gval = gpio_get_value(gpio_dev->gpio_nr);
- 
-@@ -86,10 +85,7 @@ static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
- 	if (gpio_dev->active_low)
- 		gval = !gval;
- 
--	if (gval == 1)
--		type = IR_PULSE;
--
--	rc = ir_raw_event_store_edge(gpio_dev->rcdev, type);
-+	rc = ir_raw_event_store_edge(gpio_dev->rcdev, gval == 1);
- 	if (rc < 0)
- 		goto err_get_value;
- 
-diff --git a/drivers/media/rc/img-ir/img-ir-raw.c b/drivers/media/rc/img-ir/img-ir-raw.c
-index 7f23a863310c..64714efc1145 100644
---- a/drivers/media/rc/img-ir/img-ir-raw.c
-+++ b/drivers/media/rc/img-ir/img-ir-raw.c
-@@ -40,9 +40,9 @@ static void img_ir_refresh_raw(struct img_ir_priv *priv, u32 irq_status)
- 
- 	/* report the edge to the IR raw decoders */
- 	if (ir_status) /* low */
--		ir_raw_event_store_edge(rc_dev, IR_SPACE);
-+		ir_raw_event_store_edge(rc_dev, false);
- 	else /* high */
--		ir_raw_event_store_edge(rc_dev, IR_PULSE);
-+		ir_raw_event_store_edge(rc_dev, true);
- 	ir_raw_event_handle(rc_dev);
- }
- 
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index cae13efc1a88..5e5b10fbc47e 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -41,7 +41,6 @@ struct ir_raw_event_ctrl {
- 	/* fifo for the pulse/space durations */
- 	DECLARE_KFIFO(kfifo, struct ir_raw_event, MAX_IR_EVENT_SIZE);
- 	ktime_t				last_event;	/* when last event occurred */
--	enum raw_event_type		last_type;	/* last event type */
- 	struct rc_dev			*dev;		/* pointer to the parent rc_dev */
- 	/* edge driver */
- 	struct timer_list edge_handle;
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index ef5efd994eef..1761be8c7028 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -88,7 +88,7 @@ EXPORT_SYMBOL_GPL(ir_raw_event_store);
- /**
-  * ir_raw_event_store_edge() - notify raw ir decoders of the start of a pulse/space
-  * @dev:	the struct rc_dev device descriptor
-- * @type:	the type of the event that has occurred
-+ * @pulse:	true for pulse, false for space
-  *
-  * This routine (which may be called from an interrupt context) is used to
-  * store the beginning of an ir pulse or space (or the start/end of ir
-@@ -96,43 +96,22 @@ EXPORT_SYMBOL_GPL(ir_raw_event_store);
-  * hardware which does not provide durations directly but only interrupts
-  * (or similar events) on state change.
-  */
--int ir_raw_event_store_edge(struct rc_dev *dev, enum raw_event_type type)
-+int ir_raw_event_store_edge(struct rc_dev *dev, bool pulse)
- {
- 	ktime_t			now;
--	s64			delta; /* ns */
- 	DEFINE_IR_RAW_EVENT(ev);
- 	int			rc = 0;
--	int			delay;
- 
- 	if (!dev->raw)
- 		return -EINVAL;
- 
- 	now = ktime_get();
--	delta = ktime_to_ns(ktime_sub(now, dev->raw->last_event));
--	delay = MS_TO_NS(dev->input_dev->rep[REP_DELAY]);
-+	ev.duration = ktime_sub(now, dev->raw->last_event);
-+	ev.pulse = !pulse;
- 
--	/* Check for a long duration since last event or if we're
--	 * being called for the first time, note that delta can't
--	 * possibly be negative.
--	 */
--	if (delta > delay || !dev->raw->last_type)
--		type |= IR_START_EVENT;
--	else
--		ev.duration = delta;
--
--	if (type & IR_START_EVENT)
--		ir_raw_event_reset(dev);
--	else if (dev->raw->last_type & IR_SPACE) {
--		ev.pulse = false;
--		rc = ir_raw_event_store(dev, &ev);
--	} else if (dev->raw->last_type & IR_PULSE) {
--		ev.pulse = true;
--		rc = ir_raw_event_store(dev, &ev);
--	} else
--		return 0;
-+	rc = ir_raw_event_store(dev, &ev);
- 
- 	dev->raw->last_event = now;
--	dev->raw->last_type = type;
- 
- 	/* timer could be set to timeout (125ms by default) */
- 	if (!timer_pending(&dev->raw->edge_handle) ||
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index b6c18840d125..5be527ff851d 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -272,14 +272,6 @@ u32 rc_g_keycode_from_table(struct rc_dev *dev, u32 scancode);
-  * The Raw interface is specific to InfraRed. It may be a good idea to
-  * split it later into a separate header.
-  */
--
--enum raw_event_type {
--	IR_SPACE        = (1 << 0),
--	IR_PULSE        = (1 << 1),
--	IR_START_EVENT  = (1 << 2),
--	IR_STOP_EVENT   = (1 << 3),
--};
--
- struct ir_raw_event {
- 	union {
- 		u32             duration;
-@@ -308,7 +300,7 @@ static inline void init_ir_raw_event(struct ir_raw_event *ev)
- 
- void ir_raw_event_handle(struct rc_dev *dev);
- int ir_raw_event_store(struct rc_dev *dev, struct ir_raw_event *ev);
--int ir_raw_event_store_edge(struct rc_dev *dev, enum raw_event_type type);
-+int ir_raw_event_store_edge(struct rc_dev *dev, bool pulse);
- int ir_raw_event_store_with_filter(struct rc_dev *dev,
- 				struct ir_raw_event *ev);
- void ir_raw_event_set_idle(struct rc_dev *dev, bool idle);
--- 
-2.13.4
+> > Specifically, this patch documents two things:
+> > 
+> > 1) streaming control is done per sub-device and sub-device drivers
+> > themselves are responsible for streaming setup in upstream sub-devices and
+
+In the case of non-MC devices, it is the bridge driver that it is
+responsible to pass a "broadcast" message to all subdevices for
+them to be at "stream mode".
+
+> > 
+> > 2) broken frames should be tolerated at streaming stop. It is the
+> > responsibility of the sub-device driver to stop the transmitter after
+> > itself if it cannot handle broken frames (and it should be probably be
+> > done anyway).
+
+You should define what you mean by "transmitter".
+
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > ---
+> >  Documentation/media/kapi/v4l2-subdev.rst | 36 ++++++++++++++++++++++++++++++++
+> >  1 file changed, 36 insertions(+)
+> > 
+> > diff --git a/Documentation/media/kapi/v4l2-subdev.rst b/Documentation/media/kapi/v4l2-subdev.rst
+> > index e1f0b726e438..100ffc783f72 100644
+> > --- a/Documentation/media/kapi/v4l2-subdev.rst
+> > +++ b/Documentation/media/kapi/v4l2-subdev.rst
+> > @@ -262,6 +262,42 @@ is called. After all subdevices have been located the .complete() callback is
+> >  called. When a subdevice is removed from the system the .unbind() method is
+> >  called. All three callbacks are optional.
+> >  
+> > +Streaming control
+> > +^^^^^^^^^^^^^^^^^
+> > +
+> > +Starting and stopping the stream are somewhat complex operations that
+> > +often require walking the media graph to enable streaming on
+> > +sub-devices which the pipeline consists of. This involves interaction
+> > +between multiple drivers, sometimes more than two.
+> > +
+> > +The ``.s_stream()`` op in :c:type:`v4l2_subdev_video_ops` is responsible
+> > +for starting and stopping the stream on the sub-device it is called on.
+> > +Additionally, if there are sub-devices further up in the pipeline, i.e.
+> > +connected to that sub-device's sink pads through enabled links, the
+> > +sub-device driver must call the ``.s_stream()`` video op of all such
+> > +sub-devices. The sub-device driver is thus in control of whether the
+> > +upstream sub-devices start (or stop) streaming before or after the
+> > +sub-device itself is set up for streaming.
+
+Why the sub-device? Even in the MC case, the stream on operation is
+usually called via the v4l devnode, where the DMA engine is.
+
+> > +
+> > +.. note::
+> > +
+> > +   As the ``.s_stream()`` callback is called recursively through the
+> > +   sub-devices along the pipeline, it is important to keep the
+> > +   recursion as short as possible. To this end, drivers are encouraged
+> > +   not to internally call ``.s_stream()`` recursively in order to make
+> > +   only a single additional recursion per driver in the pipeline. This
+> > +   greatly reduces stack usage.
+
+what "drivers" are encouraged not to ...?
+
+> > +
+> > +Stopping the transmitter
+> > +^^^^^^^^^^^^^^^^^^^^^^^^
+
+What is a transmitter? There are only two places inside kAPI that
+uses the word "transmitter":
+	Documentation/media/kapi/cec-core.rst
+	Documentation/media/kapi/csi2.rst
+
+On both documents, the meaning of the term is clear, but I can't
+understand what you mean by "transmitter" at the subdev's core
+documentation. Is it the tuner? the bridge driver? a CSI bus?
+the DMA engine? all of them?
+
+> > +
+> > +A transmitter stops sending the stream of images as a result of
+> > +calling the ``.s_stream()`` callback. Some transmitters may stop the
+> > +stream at a frame boundary whereas others stop immediately,
+> > +effectively leaving the current frame unfinished. The receiver driver
+> > +should not make assumptions either way, but function properly in both
+> > +cases.
+> > +
+> >  V4L2 sub-device userspace API
+> >  -----------------------------
+> >  
+> > -- 
+> > 2.13.3
+> >   
+> 
+> 
+> Thanks,
+> Mauro
+
+
+
+Thanks,
+Mauro
