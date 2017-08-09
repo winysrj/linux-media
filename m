@@ -1,62 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:57535 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752487AbdHGKtr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Aug 2017 06:49:47 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] staging/imx: always select VIDEOBUF2_DMA_CONTIG
-Date: Mon,  7 Aug 2017 12:49:18 +0200
-Message-Id: <20170807104929.3651892-1-arnd@arndb.de>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:38838 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752050AbdHIUbn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Aug 2017 16:31:43 -0400
+Received: by mail-wm0-f66.google.com with SMTP id y206so737425wmd.5
+        for <linux-media@vger.kernel.org>; Wed, 09 Aug 2017 13:31:43 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
+        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
+Subject: [PATCH v3 11/12] [media] ddbridge: Kconfig option to control the MSI modparam default
+Date: Wed,  9 Aug 2017 22:31:27 +0200
+Message-Id: <20170809203128.31476-12-d.scheller.oss@gmail.com>
+In-Reply-To: <20170809203128.31476-1-d.scheller.oss@gmail.com>
+References: <20170809203128.31476-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I ran into a rare build error during randconfig testing:
+From: Daniel Scheller <d.scheller@gmx.net>
 
-drivers/staging/media/imx/imx-media-capture.o: In function `capture_stop_streaming':
-imx-media-capture.c:(.text+0x224): undefined reference to `vb2_buffer_done'
-drivers/staging/media/imx/imx-media-capture.o: In function `imx_media_capture_device_register':
-imx-media-capture.c:(.text+0xe60): undefined reference to `vb2_queue_init'
-imx-media-capture.c:(.text+0xfa0): undefined reference to `vb2_dma_contig_memops'
+It is known that MSI interrupts - while working quite well so far - can
+still cause issues on some hardware platforms (causing I2C timeouts due
+to unhandled interrupts). The msi variable/option is set to 1 by default.
+So, add a Kconfig option prefixed with "EXPERIMENTAL" that will control
+the default value of that modparam, defaulting to off for a better
+user experience and (guaranteed) stable operation "per default".
 
-While VIDEOBUF2_DMA_CONTIG was already selected by the camera driver,
-it wasn't necessarily there with just the base driver enabled.
-This moves the 'select' statement to the top-level option to make
-sure it's always available.
-
-Fixes: 64b5a49df486 ("[media] media: imx: Add Capture Device Interface")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <r.scobie@clear.net.nz>
+Tested-by: Jasmin Jessich <jasmin@anw.at>
+Tested-by: Dietmar Spingler <d_spingler@freenet.de>
+Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
 ---
- drivers/staging/media/imx/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/pci/ddbridge/Kconfig         | 15 +++++++++++++++
+ drivers/media/pci/ddbridge/ddbridge-main.c | 11 +++++++++--
+ 2 files changed, 24 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/media/imx/Kconfig b/drivers/staging/media/imx/Kconfig
-index 719508fcb0e9..2be921cd0d55 100644
---- a/drivers/staging/media/imx/Kconfig
-+++ b/drivers/staging/media/imx/Kconfig
-@@ -2,6 +2,7 @@ config VIDEO_IMX_MEDIA
- 	tristate "i.MX5/6 V4L2 media core driver"
- 	depends on MEDIA_CONTROLLER && VIDEO_V4L2 && ARCH_MXC && IMX_IPUV3_CORE
- 	depends on VIDEO_V4L2_SUBDEV_API
-+	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_FWNODE
- 	---help---
- 	  Say yes here to enable support for video4linux media controller
-@@ -13,7 +14,6 @@ menu "i.MX5/6 Media Sub devices"
- config VIDEO_IMX_CSI
- 	tristate "i.MX5/6 Camera Sensor Interface driver"
- 	depends on VIDEO_IMX_MEDIA && VIDEO_DEV && I2C
--	select VIDEOBUF2_DMA_CONTIG
- 	default y
- 	---help---
- 	  A video4linux camera sensor interface driver for i.MX5/6.
+diff --git a/drivers/media/pci/ddbridge/Kconfig b/drivers/media/pci/ddbridge/Kconfig
+index c79a58fa5fc3..1330b2ecc72a 100644
+--- a/drivers/media/pci/ddbridge/Kconfig
++++ b/drivers/media/pci/ddbridge/Kconfig
+@@ -26,3 +26,18 @@ config DVB_DDBRIDGE
+ 	  - CineS2 V7/V7A and DuoFlex S2 V4 (ST STV0910-based)
+ 
+ 	  Say Y if you own such a card and want to use it.
++
++config DVB_DDBRIDGE_MSIENABLE
++	bool "Enable Message Signaled Interrupts (MSI) per default (EXPERIMENTAL)"
++	depends on DVB_DDBRIDGE
++	depends on PCI_MSI
++	default n
++	---help---
++	  Use PCI MSI (Message Signaled Interrupts) per default. Enabling this
++	  might lead to I2C errors originating from the bridge in conjunction
++	  with certain SATA controllers, requiring a reload of the ddbridge
++	  module. MSI can still be disabled by passing msi=0 as option, as
++	  this will just change the msi option default value.
++
++	  If you're unsure, concerned about stability and don't want to pass
++	  module options in case of troubles, say N.
+diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
+index 5094d2ef79d6..5a930a6e9fb2 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-main.c
++++ b/drivers/media/pci/ddbridge/ddbridge-main.c
+@@ -47,10 +47,17 @@ MODULE_PARM_DESC(adapter_alloc,
+ 		 "0-one adapter per io, 1-one per tab with io, 2-one per tab, 3-one for all");
+ 
+ #ifdef CONFIG_PCI_MSI
++#ifdef CONFIG_DVB_DDBRIDGE_MSIENABLE
+ int msi = 1;
++#else
++int msi;
++#endif
+ module_param(msi, int, 0444);
+-MODULE_PARM_DESC(msi,
+-		 " Control MSI interrupts: 0-disable, 1-enable (default)");
++#ifdef CONFIG_DVB_DDBRIDGE_MSIENABLE
++MODULE_PARM_DESC(msi, "Control MSI interrupts: 0-disable, 1-enable (default)");
++#else
++MODULE_PARM_DESC(msi, "Control MSI interrupts: 0-disable (default), 1-enable");
++#endif
+ #endif
+ 
+ int ci_bitrate = 70000;
 -- 
-2.9.0
+2.13.0
