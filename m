@@ -1,106 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:33411 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752514AbdHJNjc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Aug 2017 09:39:32 -0400
-Date: Thu, 10 Aug 2017 19:09:25 +0530
-From: Harold Gomez <haroldgmz11@gmail.com>
-To: mchehab@kernel.org
-Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] staging: media: atomisp: Add blank line after variable
- declarations.
-Message-ID: <20170810133925.GA3650@localhost.localdomain>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51643
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751523AbdHIP30 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Aug 2017 11:29:26 -0400
+Date: Wed, 9 Aug 2017 12:29:17 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL for 4.14] Stream control documentation
+Message-ID: <20170809122917.0461db2c@vento.lan>
+In-Reply-To: <20170809080340.4c5b4jjypqiqyllp@valkosipuli.retiisi.org.uk>
+References: <20170809080340.4c5b4jjypqiqyllp@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes the checkpatch.pl warning
+Em Wed, 9 Aug 2017 11:03:40 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-WARNING: Missing a blank line after declarations
-+	int i;
-+	dev_dbg(&client->dev, "Dump registers for context[%d]:\n",
-context)
+> Hi Mauro,
+> 
+> Add stream control documentation.
+> 
+> We have recently added support for hardware that makes it possible to have
+> pipelines that are controlled by more than two drivers. This necessitates
+> documenting V4L2 stream control behaviour for such pipelines.
 
-WARNING: Missing a blank line after declarations
-+	int ret;
-+	ret = request_firmware(&dev->fw, "ap1302_fw.bin", &client->dev);
+Perhaps I missed this one, but I'm not seeing any e-mail with
+	"docs-rst: media: Document s_stream() video op usage"
 
-WARNING: Missing a blank line after declarations
-+	u32 sub_len;
-+	for (pos = 0; pos < len; pos += sub_len) {
+Please always submit patches via e-mail too, as it makes easier for
+us to comment/review when needed.
 
-WARNING: Missing a blank line after declarations
-+	struct ap1302_device *dev = to_ap1302_device(sd);
-+	return dev->cur_context;
+In any case, I'm appending the patch contents here. I'll reply to it
+on a next e-mail.
 
-WARNING: Missing a blank line after declarations
-+	enum ap1302_contexts context, main_context;
-+	if (format->pad)
+> From ef8e5d20b45b05290c56450d2130a0dc3c021c5a Mon Sep 17 00:00:00 2001
+> From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Date: Thu, 9 Mar 2017 15:07:57 +0200
+> Subject: docs-rst: media: Document s_stream() video op usage
+> MIME-Version: 1.0
+> Content-Type: text/plain; charset=UTF-8
+> Content-Transfer-Encoding: 8bit
+> Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+>     Mauro Carvalho Chehab <mchehab@infradead.org>
+> 
+> As we begin to add support for systems with media pipelines controlled by
+> more than one device driver, it is essential that we precisely define the
+> responsibilities of each component in the stream control and common
+> practices.
+> 
+> Specifically, this patch documents two things:
+> 
+> 1) streaming control is done per sub-device and sub-device drivers
+> themselves are responsible for streaming setup in upstream sub-devices and
+> 
+> 2) broken frames should be tolerated at streaming stop. It is the
+> responsibility of the sub-device driver to stop the transmitter after
+> itself if it cannot handle broken frames (and it should be probably be
+> done anyway).
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  Documentation/media/kapi/v4l2-subdev.rst | 36 ++++++++++++++++++++++++++++++++
+>  1 file changed, 36 insertions(+)
+> 
+> diff --git a/Documentation/media/kapi/v4l2-subdev.rst b/Documentation/media/kapi/v4l2-subdev.rst
+> index e1f0b726e438..100ffc783f72 100644
+> --- a/Documentation/media/kapi/v4l2-subdev.rst
+> +++ b/Documentation/media/kapi/v4l2-subdev.rst
+> @@ -262,6 +262,42 @@ is called. After all subdevices have been located the .complete() callback is
+>  called. When a subdevice is removed from the system the .unbind() method is
+>  called. All three callbacks are optional.
+>  
+> +Streaming control
+> +^^^^^^^^^^^^^^^^^
+> +
+> +Starting and stopping the stream are somewhat complex operations that
+> +often require walking the media graph to enable streaming on
+> +sub-devices which the pipeline consists of. This involves interaction
+> +between multiple drivers, sometimes more than two.
+> +
+> +The ``.s_stream()`` op in :c:type:`v4l2_subdev_video_ops` is responsible
+> +for starting and stopping the stream on the sub-device it is called on.
+> +Additionally, if there are sub-devices further up in the pipeline, i.e.
+> +connected to that sub-device's sink pads through enabled links, the
+> +sub-device driver must call the ``.s_stream()`` video op of all such
+> +sub-devices. The sub-device driver is thus in control of whether the
+> +upstream sub-devices start (or stop) streaming before or after the
+> +sub-device itself is set up for streaming.
+> +
+> +.. note::
+> +
+> +   As the ``.s_stream()`` callback is called recursively through the
+> +   sub-devices along the pipeline, it is important to keep the
+> +   recursion as short as possible. To this end, drivers are encouraged
+> +   not to internally call ``.s_stream()`` recursively in order to make
+> +   only a single additional recursion per driver in the pipeline. This
+> +   greatly reduces stack usage.
+> +
+> +Stopping the transmitter
+> +^^^^^^^^^^^^^^^^^^^^^^^^
+> +
+> +A transmitter stops sending the stream of images as a result of
+> +calling the ``.s_stream()`` callback. Some transmitters may stop the
+> +stream at a frame boundary whereas others stop immediately,
+> +effectively leaving the current frame unfinished. The receiver driver
+> +should not make assumptions either way, but function properly in both
+> +cases.
+> +
+>  V4L2 sub-device userspace API
+>  -----------------------------
+>  
+> -- 
+> 2.13.3
+> 
 
-WARNING: Missing a blank line after declarations
-+	long ret = 0;
-+	switch (cmd) {
 
-Signed-off-by: Harold Gomez <haroldgmz11@gmail.com>
----
- drivers/staging/media/atomisp/i2c/ap1302.c | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/drivers/staging/media/atomisp/i2c/ap1302.c b/drivers/staging/media/atomisp/i2c/ap1302.c
-index fba4f96..3e229ba 100644
---- a/drivers/staging/media/atomisp/i2c/ap1302.c
-+++ b/drivers/staging/media/atomisp/i2c/ap1302.c
-@@ -275,6 +275,7 @@ static int ap1302_write_context_reg(struct v4l2_subdev *sd,
- {
- 	struct ap1302_device *dev = to_ap1302_device(sd);
- 	u16 reg_addr = ap1302_calculate_context_reg_addr(context, offset);
-+
- 	if (reg_addr == 0)
- 		return -EINVAL;
- 	return ap1302_i2c_write_reg(sd, reg_addr, len,
-@@ -287,6 +288,7 @@ static int ap1302_dump_context_reg(struct v4l2_subdev *sd,
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct ap1302_device *dev = to_ap1302_device(sd);
- 	int i;
-+
- 	dev_dbg(&client->dev, "Dump registers for context[%d]:\n", context);
- 	for (i = 0; i < ARRAY_SIZE(context_info); i++) {
- 		struct ap1302_context_info *info = &context_info[i];
-@@ -311,6 +313,7 @@ static int ap1302_request_firmware(struct v4l2_subdev *sd)
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct ap1302_device *dev = to_ap1302_device(sd);
- 	int ret;
-+
- 	ret = request_firmware(&dev->fw, "ap1302_fw.bin", &client->dev);
- 	if (ret)
- 		dev_err(&client->dev,
-@@ -539,6 +542,7 @@ static int ap1302_s_config(struct v4l2_subdev *sd, void *pdata)
- static enum ap1302_contexts ap1302_get_context(struct v4l2_subdev *sd)
- {
- 	struct ap1302_device *dev = to_ap1302_device(sd);
-+
- 	return dev->cur_context;
- }
- 
-@@ -641,6 +645,7 @@ static int ap1302_set_fmt(struct v4l2_subdev *sd,
- 	struct atomisp_input_stream_info *stream_info =
- 		(struct atomisp_input_stream_info *)fmt->reserved;
- 	enum ap1302_contexts context, main_context;
-+
- 	if (format->pad)
- 		return -EINVAL;
- 	if (!fmt)
-@@ -1003,6 +1008,7 @@ static int ap1302_s_register(struct v4l2_subdev *sd,
- static long ap1302_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
- {
- 	long ret = 0;
-+
- 	switch (cmd) {
- 	case VIDIOC_DBG_G_REGISTER:
- 		ret = ap1302_g_register(sd, arg);
--- 
-2.1.4
+Thanks,
+Mauro
