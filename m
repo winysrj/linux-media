@@ -1,286 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:38261 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752420AbdHTKlV (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:38179 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752585AbdHIEF1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Aug 2017 06:41:21 -0400
-Received: by mail-wr0-f193.google.com with SMTP id k10so256448wre.5
-        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 03:41:20 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, rjkm@metzlerbros.de
-Subject: [PATCH 4/6] [media] ddbridge: remove ddb_info's from the global scope
-Date: Sun, 20 Aug 2017 12:41:12 +0200
-Message-Id: <20170820104114.6515-5-d.scheller.oss@gmail.com>
-In-Reply-To: <20170820104114.6515-1-d.scheller.oss@gmail.com>
-References: <20170820104114.6515-1-d.scheller.oss@gmail.com>
+        Wed, 9 Aug 2017 00:05:27 -0400
+Message-ID: <612c69d6e8351387ca6371f9b9331fa5@smtp-cloud9.xs4all.net>
+Date: Wed, 09 Aug 2017 06:05:24 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Since the DD hardware info and maps aren't needed anymore outside of
-ddbridge-hw.c (they're returned via get_ddb_info() now), mark them
-static and remove all refs from ddbridge-hw.h.
+Results of the daily build of media_tree:
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ddbridge/ddbridge-hw.c | 46 ++++++++++++++++----------------
- drivers/media/pci/ddbridge/ddbridge-hw.h | 32 ----------------------
- 2 files changed, 23 insertions(+), 55 deletions(-)
+date:			Wed Aug  9 05:00:14 CEST 2017
+media-tree git hash:	079c6eaf80d9fb6d9cea7ad71e590c8425c1b0fe
+media_build git hash:	3a2afb881d1efadba33831f9c56321c4bcbe7178
+v4l-utils git hash:	9453f7472a8828d39cec617d9f9d27260a28ab38
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.11.0-164
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-hw.c b/drivers/media/pci/ddbridge/ddbridge-hw.c
-index 3b208d5bf4ad..1c25e86c189e 100644
---- a/drivers/media/pci/ddbridge/ddbridge-hw.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-hw.c
-@@ -87,13 +87,13 @@ static struct ddb_regmap octopus_map = {
- 
- /****************************************************************************/
- 
--const struct ddb_info ddb_none = {
-+static const struct ddb_info ddb_none = {
- 	.type     = DDB_NONE,
- 	.name     = "unknown Digital Devices PCIe card, install newer driver",
- 	.regmap   = &octopus_map,
- };
- 
--const struct ddb_info ddb_octopus = {
-+static const struct ddb_info ddb_octopus = {
- 	.type     = DDB_OCTOPUS,
- 	.name     = "Digital Devices Octopus DVB adapter",
- 	.regmap   = &octopus_map,
-@@ -101,7 +101,7 @@ const struct ddb_info ddb_octopus = {
- 	.i2c_mask = 0x0f,
- };
- 
--const struct ddb_info ddb_octopusv3 = {
-+static const struct ddb_info ddb_octopusv3 = {
- 	.type     = DDB_OCTOPUS,
- 	.name     = "Digital Devices Octopus V3 DVB adapter",
- 	.regmap   = &octopus_map,
-@@ -109,7 +109,7 @@ const struct ddb_info ddb_octopusv3 = {
- 	.i2c_mask = 0x0f,
- };
- 
--const struct ddb_info ddb_octopus_le = {
-+static const struct ddb_info ddb_octopus_le = {
- 	.type     = DDB_OCTOPUS,
- 	.name     = "Digital Devices Octopus LE DVB adapter",
- 	.regmap   = &octopus_map,
-@@ -117,7 +117,7 @@ const struct ddb_info ddb_octopus_le = {
- 	.i2c_mask = 0x03,
- };
- 
--const struct ddb_info ddb_octopus_oem = {
-+static const struct ddb_info ddb_octopus_oem = {
- 	.type     = DDB_OCTOPUS,
- 	.name     = "Digital Devices Octopus OEM",
- 	.regmap   = &octopus_map,
-@@ -129,7 +129,7 @@ const struct ddb_info ddb_octopus_oem = {
- 	.temp_bus = 0,
- };
- 
--const struct ddb_info ddb_octopus_mini = {
-+static const struct ddb_info ddb_octopus_mini = {
- 	.type     = DDB_OCTOPUS,
- 	.name     = "Digital Devices Octopus Mini",
- 	.regmap   = &octopus_map,
-@@ -137,7 +137,7 @@ const struct ddb_info ddb_octopus_mini = {
- 	.i2c_mask = 0x0f,
- };
- 
--const struct ddb_info ddb_v6 = {
-+static const struct ddb_info ddb_v6 = {
- 	.type     = DDB_OCTOPUS,
- 	.name     = "Digital Devices Cine S2 V6 DVB adapter",
- 	.regmap   = &octopus_map,
-@@ -145,7 +145,7 @@ const struct ddb_info ddb_v6 = {
- 	.i2c_mask = 0x07,
- };
- 
--const struct ddb_info ddb_v6_5 = {
-+static const struct ddb_info ddb_v6_5 = {
- 	.type     = DDB_OCTOPUS,
- 	.name     = "Digital Devices Cine S2 V6.5 DVB adapter",
- 	.regmap   = &octopus_map,
-@@ -153,7 +153,7 @@ const struct ddb_info ddb_v6_5 = {
- 	.i2c_mask = 0x0f,
- };
- 
--const struct ddb_info ddb_v7 = {
-+static const struct ddb_info ddb_v7 = {
- 	.type     = DDB_OCTOPUS,
- 	.name     = "Digital Devices Cine S2 V7 DVB adapter",
- 	.regmap   = &octopus_map,
-@@ -164,7 +164,7 @@ const struct ddb_info ddb_v7 = {
- 	.ts_quirks = TS_QUIRK_REVERSED,
- };
- 
--const struct ddb_info ddb_v7a = {
-+static const struct ddb_info ddb_v7a = {
- 	.type     = DDB_OCTOPUS,
- 	.name     = "Digital Devices Cine S2 V7 Advanced DVB adapter",
- 	.regmap   = &octopus_map,
-@@ -175,7 +175,7 @@ const struct ddb_info ddb_v7a = {
- 	.ts_quirks = TS_QUIRK_REVERSED,
- };
- 
--const struct ddb_info ddb_ctv7 = {
-+static const struct ddb_info ddb_ctv7 = {
- 	.type     = DDB_OCTOPUS,
- 	.name     = "Digital Devices Cine CT V7 DVB adapter",
- 	.regmap   = &octopus_map,
-@@ -185,7 +185,7 @@ const struct ddb_info ddb_ctv7 = {
- 	.board_control_2 = 4,
- };
- 
--const struct ddb_info ddb_satixS2v3 = {
-+static const struct ddb_info ddb_satixS2v3 = {
- 	.type     = DDB_OCTOPUS,
- 	.name     = "Mystique SaTiX-S2 V3 DVB adapter",
- 	.regmap   = &octopus_map,
-@@ -193,7 +193,7 @@ const struct ddb_info ddb_satixS2v3 = {
- 	.i2c_mask = 0x07,
- };
- 
--const struct ddb_info ddb_ci = {
-+static const struct ddb_info ddb_ci = {
- 	.type     = DDB_OCTOPUS_CI,
- 	.name     = "Digital Devices Octopus CI",
- 	.regmap   = &octopus_map,
-@@ -201,7 +201,7 @@ const struct ddb_info ddb_ci = {
- 	.i2c_mask = 0x03,
- };
- 
--const struct ddb_info ddb_cis = {
-+static const struct ddb_info ddb_cis = {
- 	.type     = DDB_OCTOPUS_CI,
- 	.name     = "Digital Devices Octopus CI single",
- 	.regmap   = &octopus_map,
-@@ -209,7 +209,7 @@ const struct ddb_info ddb_cis = {
- 	.i2c_mask = 0x03,
- };
- 
--const struct ddb_info ddb_ci_s2_pro = {
-+static const struct ddb_info ddb_ci_s2_pro = {
- 	.type     = DDB_OCTOPUS_CI,
- 	.name     = "Digital Devices Octopus CI S2 Pro",
- 	.regmap   = &octopus_map,
-@@ -219,7 +219,7 @@ const struct ddb_info ddb_ci_s2_pro = {
- 	.board_control_2 = 4,
- };
- 
--const struct ddb_info ddb_ci_s2_pro_a = {
-+static const struct ddb_info ddb_ci_s2_pro_a = {
- 	.type     = DDB_OCTOPUS_CI,
- 	.name     = "Digital Devices Octopus CI S2 Pro Advanced",
- 	.regmap   = &octopus_map,
-@@ -229,7 +229,7 @@ const struct ddb_info ddb_ci_s2_pro_a = {
- 	.board_control_2 = 4,
- };
- 
--const struct ddb_info ddb_dvbct = {
-+static const struct ddb_info ddb_dvbct = {
- 	.type     = DDB_OCTOPUS,
- 	.name     = "Digital Devices DVBCT V6.1 DVB adapter",
- 	.regmap   = &octopus_map,
-@@ -239,7 +239,7 @@ const struct ddb_info ddb_dvbct = {
- 
- /****************************************************************************/
- 
--const struct ddb_info ddb_ct2_8 = {
-+static const struct ddb_info ddb_ct2_8 = {
- 	.type     = DDB_OCTOPUS_MAX_CT,
- 	.name     = "Digital Devices MAX A8 CT2",
- 	.regmap   = &octopus_map,
-@@ -251,7 +251,7 @@ const struct ddb_info ddb_ct2_8 = {
- 	.tempmon_irq = 24,
- };
- 
--const struct ddb_info ddb_c2t2_8 = {
-+static const struct ddb_info ddb_c2t2_8 = {
- 	.type     = DDB_OCTOPUS_MAX_CT,
- 	.name     = "Digital Devices MAX A8 C2T2",
- 	.regmap   = &octopus_map,
-@@ -263,7 +263,7 @@ const struct ddb_info ddb_c2t2_8 = {
- 	.tempmon_irq = 24,
- };
- 
--const struct ddb_info ddb_isdbt_8 = {
-+static const struct ddb_info ddb_isdbt_8 = {
- 	.type     = DDB_OCTOPUS_MAX_CT,
- 	.name     = "Digital Devices MAX A8 ISDBT",
- 	.regmap   = &octopus_map,
-@@ -275,7 +275,7 @@ const struct ddb_info ddb_isdbt_8 = {
- 	.tempmon_irq = 24,
- };
- 
--const struct ddb_info ddb_c2t2i_v0_8 = {
-+static const struct ddb_info ddb_c2t2i_v0_8 = {
- 	.type     = DDB_OCTOPUS_MAX_CT,
- 	.name     = "Digital Devices MAX A8 C2T2I V0",
- 	.regmap   = &octopus_map,
-@@ -287,7 +287,7 @@ const struct ddb_info ddb_c2t2i_v0_8 = {
- 	.tempmon_irq = 24,
- };
- 
--const struct ddb_info ddb_c2t2i_8 = {
-+static const struct ddb_info ddb_c2t2i_8 = {
- 	.type     = DDB_OCTOPUS_MAX_CT,
- 	.name     = "Digital Devices MAX A8 C2T2I",
- 	.regmap   = &octopus_map,
-@@ -301,7 +301,7 @@ const struct ddb_info ddb_c2t2i_8 = {
- 
- /****************************************************************************/
- 
--const struct ddb_info ddb_s2_48 = {
-+static const struct ddb_info ddb_s2_48 = {
- 	.type     = DDB_OCTOPUS_MAX,
- 	.name     = "Digital Devices MAX S8 4/8",
- 	.regmap   = &octopus_map,
-diff --git a/drivers/media/pci/ddbridge/ddbridge-hw.h b/drivers/media/pci/ddbridge/ddbridge-hw.h
-index 1a985d0a1a97..7c142419419c 100644
---- a/drivers/media/pci/ddbridge/ddbridge-hw.h
-+++ b/drivers/media/pci/ddbridge/ddbridge-hw.h
-@@ -37,38 +37,6 @@ struct ddb_device_id {
- 
- /******************************************************************************/
- 
--extern const struct ddb_info ddb_none;
--extern const struct ddb_info ddb_octopus;
--extern const struct ddb_info ddb_octopusv3;
--extern const struct ddb_info ddb_octopus_le;
--extern const struct ddb_info ddb_octopus_oem;
--extern const struct ddb_info ddb_octopus_mini;
--extern const struct ddb_info ddb_v6;
--extern const struct ddb_info ddb_v6_5;
--extern const struct ddb_info ddb_v7;
--extern const struct ddb_info ddb_v7a;
--extern const struct ddb_info ddb_ctv7;
--extern const struct ddb_info ddb_satixS2v3;
--extern const struct ddb_info ddb_ci;
--extern const struct ddb_info ddb_cis;
--extern const struct ddb_info ddb_ci_s2_pro;
--extern const struct ddb_info ddb_ci_s2_pro_a;
--extern const struct ddb_info ddb_dvbct;
--
--/****************************************************************************/
--
--extern const struct ddb_info ddb_ct2_8;
--extern const struct ddb_info ddb_c2t2_8;
--extern const struct ddb_info ddb_isdbt_8;
--extern const struct ddb_info ddb_c2t2i_v0_8;
--extern const struct ddb_info ddb_c2t2i_8;
--
--/****************************************************************************/
--
--extern const struct ddb_info ddb_s2_48;
--
--/****************************************************************************/
--
- const struct ddb_info *get_ddb_info(u16 vendor, u16 device,
- 				    u16 subvendor, u16 subdevice);
- 
--- 
-2.13.0
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
