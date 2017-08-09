@@ -1,89 +1,214 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.horus.com ([78.46.148.228]:34334 "EHLO mail.horus.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751247AbdHGHJ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Aug 2017 03:09:28 -0400
-Date: Mon, 7 Aug 2017 09:09:26 +0200
-From: Matthias Reichl <hias@horus.com>
-To: Sean Young <sean@mess.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] keytable: ensure udev rule fires on rc input device
-Message-ID: <20170807070926.hvj5qvqb34xb2x3k@camel2.lan>
-References: <20170717092038.3e7jbjtx7htu3lda@camel2.lan>
- <20170805213802.ni42iaht5rf5rye2@gofer.mess.org>
- <20170806085655.dkaq7hqpyzrc3abj@gofer.mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170806085655.dkaq7hqpyzrc3abj@gofer.mess.org>
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:38173 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751904AbdHIUbf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Aug 2017 16:31:35 -0400
+Received: by mail-wr0-f193.google.com with SMTP id g32so5184283wrd.5
+        for <linux-media@vger.kernel.org>; Wed, 09 Aug 2017 13:31:35 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
+        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
+Subject: [PATCH v3 02/12] [media] ddbridge: split I/O related functions off from ddbridge.h
+Date: Wed,  9 Aug 2017 22:31:18 +0200
+Message-Id: <20170809203128.31476-3-d.scheller.oss@gmail.com>
+In-Reply-To: <20170809203128.31476-1-d.scheller.oss@gmail.com>
+References: <20170809203128.31476-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean!
+From: Daniel Scheller <d.scheller@gmx.net>
 
-On Sun, Aug 06, 2017 at 09:56:55AM +0100, Sean Young wrote:
-> The rc device is created before the input device, so if ir-keytable runs
-> too early the input device does not exist yet.
-> 
-> Ensure that rule fires on creation of a rc device's input device.
-> 
-> Note that this also prevents udev from starting ir-keytable on an
-> transmit only device, which has no input device.
-> 
-> Signed-off-by: Sean Young <sean@mess.org>
+While it seems valid that headers can carry simple oneline static inline
+annotated functions, move them into their own header file to have the
+overall code more readable. Also, keep them as header (and don't put in
+a separate object) and static inline to help the compiler avoid
+generating function calls.
 
-Signed-off-by: Matthias Reichl <hias@horus.com>
+(Thanks to Jasmin J. <jasmin@anw.at> for valuable input on this!)
 
-One comment though, see below
+Cc: Jasmin J. <jasmin@anw.at>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <r.scobie@clear.net.nz>
+Tested-by: Jasmin Jessich <jasmin@anw.at>
+Tested-by: Dietmar Spingler <d_spingler@freenet.de>
+Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
+---
+ drivers/media/pci/ddbridge/ddbridge-core.c |  1 +
+ drivers/media/pci/ddbridge/ddbridge-i2c.c  |  1 +
+ drivers/media/pci/ddbridge/ddbridge-io.h   | 71 ++++++++++++++++++++++++++++++
+ drivers/media/pci/ddbridge/ddbridge-main.c |  1 +
+ drivers/media/pci/ddbridge/ddbridge.h      | 43 ------------------
+ 5 files changed, 74 insertions(+), 43 deletions(-)
+ create mode 100644 drivers/media/pci/ddbridge/ddbridge-io.h
 
-> ---
->  utils/keytable/70-infrared.rules | 10 +++++++++-
->  1 file changed, 9 insertions(+), 1 deletion(-)
-> 
-> Matthias, can I have your Signed-off-by please? Thank you.
-> 
-> 
-> diff --git a/utils/keytable/70-infrared.rules b/utils/keytable/70-infrared.rules
-> index afffd951..b3531727 100644
-> --- a/utils/keytable/70-infrared.rules
-> +++ b/utils/keytable/70-infrared.rules
-> @@ -1,4 +1,12 @@
->  # Automatically load the proper keymaps after the Remote Controller device
->  # creation.  The keycode tables rules should be at /etc/rc_maps.cfg
->  
-> -ACTION=="add", SUBSYSTEM=="rc", RUN+="/usr/bin/ir-keytable -a /etc/rc_maps.cfg -s $name"
-> +ACTION!="add", SUBSYSTEMS!="rc", GOTO="rc_dev_end"
-
-This line doesn't quite what we want it to do.
-
-As SUBSYSTEMS!="rc" is basically a no-op and would only be
-evaluated on change/remove events anyways that line boils down to
-
-ACTION!="add", GOTO="rc_dev_end"
-
-and the following rules are evaluated on all add events.
-
-While that'll still work it'll do unnecessary work, like importing
-rc_sydev for all input devices and could bite us (or users) later
-if we change/extend the ruleset.
-
-Better do it like in my original comment (using positive logic and
-a GOTO="begin") or use ACTION!="add", GOTO="rc_dev_end" and add
-SUBSYSTEMS=="rc" to the IMPORT and RUN rules below.
-
-so long,
-
-Hias
-
-> +
-> +SUBSYSTEM=="rc", ENV{rc_sysdev}="$name"
-> +
-> +SUBSYSTEM=="input", IMPORT{parent}="rc_sysdev"
-> +
-> +KERNEL=="event[0-9]*", ENV{rc_sysdev}=="?*", RUN+="/usr/bin/ir-keytable -a /etc/rc_maps.cfg -s $env{rc_sysdev}"
-> +
-> +LABEL="rc_dev_end"
-> -- 
-> 2.11.0
-> 
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 9d28448524de..177775d7be4d 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -37,6 +37,7 @@
+ #include "ddbridge.h"
+ #include "ddbridge-i2c.h"
+ #include "ddbridge-regs.h"
++#include "ddbridge-io.h"
+ 
+ #include "tda18271c2dd.h"
+ #include "stv6110x.h"
+diff --git a/drivers/media/pci/ddbridge/ddbridge-i2c.c b/drivers/media/pci/ddbridge/ddbridge-i2c.c
+index 376d8a7ca0b9..3d4fafb5db27 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-i2c.c
++++ b/drivers/media/pci/ddbridge/ddbridge-i2c.c
+@@ -33,6 +33,7 @@
+ #include "ddbridge.h"
+ #include "ddbridge-i2c.h"
+ #include "ddbridge-regs.h"
++#include "ddbridge-io.h"
+ 
+ /******************************************************************************/
+ 
+diff --git a/drivers/media/pci/ddbridge/ddbridge-io.h b/drivers/media/pci/ddbridge/ddbridge-io.h
+new file mode 100644
+index 000000000000..ce92e9484075
+--- /dev/null
++++ b/drivers/media/pci/ddbridge/ddbridge-io.h
+@@ -0,0 +1,71 @@
++/*
++ * ddbridge-io.h: Digital Devices bridge I/O inline functions
++ *
++ * Copyright (C) 2010-2017 Digital Devices GmbH
++ *                         Ralph Metzler <rjkm@metzlerbros.de>
++ *                         Marcus Metzler <mocm@metzlerbros.de>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 only, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#ifndef __DDBRIDGE_IO_H__
++#define __DDBRIDGE_IO_H__
++
++#include <linux/io.h>
++
++#include "ddbridge.h"
++
++/******************************************************************************/
++
++static inline u32 ddblreadl(struct ddb_link *link, u32 adr)
++{
++	return readl((char *) (link->dev->regs + (adr)));
++}
++
++static inline void ddblwritel(struct ddb_link *link, u32 val, u32 adr)
++{
++	writel(val, (char *) (link->dev->regs + (adr)));
++}
++
++static inline u32 ddbreadl(struct ddb *dev, u32 adr)
++{
++	return readl((char *) (dev->regs + (adr)));
++}
++
++static inline void ddbwritel(struct ddb *dev, u32 val, u32 adr)
++{
++	writel(val, (char *) (dev->regs + (adr)));
++}
++
++static inline void ddbcpyto(struct ddb *dev, u32 adr, void *src, long count)
++{
++	return memcpy_toio((char *) (dev->regs + adr), src, count);
++}
++
++static inline void ddbcpyfrom(struct ddb *dev, void *dst, u32 adr, long count)
++{
++	return memcpy_fromio(dst, (char *) (dev->regs + adr), count);
++}
++
++static inline u32 safe_ddbreadl(struct ddb *dev, u32 adr)
++{
++	u32 val = ddbreadl(dev, adr);
++
++	/* (ddb)readl returns (uint)-1 (all bits set) on failure, catch that */
++	if (val == ~0) {
++		dev_err(&dev->pdev->dev, "ddbreadl failure, adr=%08x\n", adr);
++		return 0;
++	}
++
++	return val;
++}
++
++#endif /* __DDBRIDGE_IO_H__ */
+diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
+index dde938ad1247..5332fd89f359 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-main.c
++++ b/drivers/media/pci/ddbridge/ddbridge-main.c
+@@ -35,6 +35,7 @@
+ #include "ddbridge.h"
+ #include "ddbridge-i2c.h"
+ #include "ddbridge-regs.h"
++#include "ddbridge-io.h"
+ 
+ /****************************************************************************/
+ /* module parameters */
+diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
+index ab6364ae0711..3790fd8465a4 100644
+--- a/drivers/media/pci/ddbridge/ddbridge.h
++++ b/drivers/media/pci/ddbridge/ddbridge.h
+@@ -353,49 +353,6 @@ struct ddb {
+ 	u8                     tsbuf[TS_CAPTURE_LEN];
+ };
+ 
+-static inline u32 ddblreadl(struct ddb_link *link, u32 adr)
+-{
+-	return readl((char *) (link->dev->regs + (adr)));
+-}
+-
+-static inline void ddblwritel(struct ddb_link *link, u32 val, u32 adr)
+-{
+-	writel(val, (char *) (link->dev->regs + (adr)));
+-}
+-
+-static inline u32 ddbreadl(struct ddb *dev, u32 adr)
+-{
+-	return readl((char *) (dev->regs + (adr)));
+-}
+-
+-static inline void ddbwritel(struct ddb *dev, u32 val, u32 adr)
+-{
+-	writel(val, (char *) (dev->regs + (adr)));
+-}
+-
+-static inline void ddbcpyto(struct ddb *dev, u32 adr, void *src, long count)
+-{
+-	return memcpy_toio((char *) (dev->regs + adr), src, count);
+-}
+-
+-static inline void ddbcpyfrom(struct ddb *dev, void *dst, u32 adr, long count)
+-{
+-	return memcpy_fromio(dst, (char *) (dev->regs + adr), count);
+-}
+-
+-static inline u32 safe_ddbreadl(struct ddb *dev, u32 adr)
+-{
+-	u32 val = ddbreadl(dev, adr);
+-
+-	/* (ddb)readl returns (uint)-1 (all bits set) on failure, catch that */
+-	if (val == ~0) {
+-		dev_err(&dev->pdev->dev, "ddbreadl failure, adr=%08x\n", adr);
+-		return 0;
+-	}
+-
+-	return val;
+-}
+-
+ /****************************************************************************/
+ /****************************************************************************/
+ /****************************************************************************/
+-- 
+2.13.0
