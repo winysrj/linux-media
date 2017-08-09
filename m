@@ -1,64 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:53337 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750709AbdHRG53 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 02:57:29 -0400
-Subject: Re: [PATCH] media: venus: fix duplicated code for different branches
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <20170817231234.GA6674@embeddedgus>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <d50b28cb-8430-d1a2-c1a8-98a436582bf7@xs4all.nl>
-Date: Fri, 18 Aug 2017 08:57:23 +0200
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:38843 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751974AbdHII1n (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Aug 2017 04:27:43 -0400
 MIME-Version: 1.0
-In-Reply-To: <20170817231234.GA6674@embeddedgus>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20170809074844.3elw7posdcohjaiy@valkosipuli.retiisi.org.uk>
+References: <20170725153735.239734-1-arnd@arndb.de> <20170809074844.3elw7posdcohjaiy@valkosipuli.retiisi.org.uk>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Wed, 9 Aug 2017 10:27:41 +0200
+Message-ID: <CAK8P3a0QQeBZObjaX7E6pUzbzBTRHuaPny7fupGZu0m5ArMSvQ@mail.gmail.com>
+Subject: Re: [PATCH] media: i2c: add KConfig dependencies
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stanimir, please review this! I suspect that this is the wrong fix and
-that the first v4l2_m2m_src_buf_remove_by_buf should be
-v4l2_m2m_dst_buf_remove_by_buf instead.
+On Wed, Aug 9, 2017 at 9:48 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Arnd,
+>
+> Thanks for the patch.
+>
+> On Tue, Jul 25, 2017 at 05:36:45PM +0200, Arnd Bergmann wrote:
+>> @@ -618,8 +618,9 @@ config VIDEO_OV6650
+>>
+>>  config VIDEO_OV5670
+>>       tristate "OmniVision OV5670 sensor support"
+>> -     depends on I2C && VIDEO_V4L2
+>> +     depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+>>       depends on MEDIA_CAMERA_SUPPORT
+>> +     depends on MEDIA_CONTROLLER
+>>       select V4L2_FWNODE
+>>       ---help---
+>>         This is a Video4Linux2 sensor-level driver for the OmniVision
+>
+> Applied, with dropping explicit MEDIA_CONTROLLER. VIDEO_V4L2_SUBDEV_API
+> already depends on MEDIA_CONTROLLER.
 
-Regards,
+makes sense, thanks!
 
-	Hans
-
-On 08/18/2017 01:12 AM, Gustavo A. R. Silva wrote:
-> Refactor code in order to avoid identical code for different branches.
-> 
-> This issue was detected with the help of Coccinelle.
-> 
-> Addresses-Coverity-ID: 1415317
-> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
-> ---
-> This code was reported by Coverity and it was tested by compilation only.
-> Please, verify if this is an actual bug.
-> 
->  drivers/media/platform/qcom/venus/helpers.c | 6 +-----
->  1 file changed, 1 insertion(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-> index 5f4434c..8a5c467 100644
-> --- a/drivers/media/platform/qcom/venus/helpers.c
-> +++ b/drivers/media/platform/qcom/venus/helpers.c
-> @@ -240,11 +240,7 @@ static void return_buf_error(struct venus_inst *inst,
->  {
->  	struct v4l2_m2m_ctx *m2m_ctx = inst->m2m_ctx;
->  
-> -	if (vbuf->vb2_buf.type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-> -		v4l2_m2m_src_buf_remove_by_buf(m2m_ctx, vbuf);
-> -	else
-> -		v4l2_m2m_src_buf_remove_by_buf(m2m_ctx, vbuf);
-> -
-> +	v4l2_m2m_src_buf_remove_by_buf(m2m_ctx, vbuf);
->  	v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
->  }
->  
-> 
+       Arnd
