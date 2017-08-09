@@ -1,47 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:37112 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751869AbdHBDUP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 1 Aug 2017 23:20:15 -0400
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, nicolas@ndufresne.ca,
-        Jacob Chen <jacob-chen@iotwrt.com>
-Subject: [PATCH v5 2/6] extended-controls.rst: add PorterDuff mode control
-Date: Wed,  2 Aug 2017 11:19:43 +0800
-Message-Id: <1501643987-27847-3-git-send-email-jacob-chen@iotwrt.com>
-In-Reply-To: <1501643987-27847-1-git-send-email-jacob-chen@iotwrt.com>
-References: <1501643987-27847-1-git-send-email-jacob-chen@iotwrt.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:38828 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752061AbdHIUbm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Aug 2017 16:31:42 -0400
+Received: by mail-wm0-f67.google.com with SMTP id y206so737346wmd.5
+        for <linux-media@vger.kernel.org>; Wed, 09 Aug 2017 13:31:41 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
+        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
+Subject: [PATCH v3 09/12] [media] ddbridge: fix impossible condition warning
+Date: Wed,  9 Aug 2017 22:31:25 +0200
+Message-Id: <20170809203128.31476-10-d.scheller.oss@gmail.com>
+In-Reply-To: <20170809203128.31476-1-d.scheller.oss@gmail.com>
+References: <20170809203128.31476-1-d.scheller.oss@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PorterDuff mode control are used to determine
-how two images are combined.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+Smatch and gcc complained:
+
+  drivers/media/pci/ddbridge/ddbridge-core.c:3491 bpsnr_show() warn: impossible condition '(snr[0] == 255) => ((-128)-127 == 255)'
+
+  drivers/media/pci/ddbridge/ddbridge-core.c: In function ‘bpsnr_show’:
+  drivers/media/pci/ddbridge/ddbridge-core.c:3491:13: warning: comparison is always false due to limited range of data type [-Wtype-limits]
+
+Fix this by changing the type of snr to unsigned char.
+
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <r.scobie@clear.net.nz>
+Tested-by: Jasmin Jessich <jasmin@anw.at>
+Tested-by: Dietmar Spingler <d_spingler@freenet.de>
+Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
 ---
- Documentation/media/uapi/v4l/extended-controls.rst | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/media/pci/ddbridge/ddbridge-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-index abb1057..b713581 100644
---- a/Documentation/media/uapi/v4l/extended-controls.rst
-+++ b/Documentation/media/uapi/v4l/extended-controls.rst
-@@ -3021,6 +3021,11 @@ Image Process Control IDs
-     The video deinterlacing mode (such as Bob, Weave, ...). The menu items are
-     driver specific and are documented in :ref:`v4l-drivers`.
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index ba2a2d987430..1ec3782a6c88 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -2992,7 +2992,7 @@ static ssize_t bpsnr_show(struct device *device,
+ 			 struct device_attribute *attr, char *buf)
+ {
+ 	struct ddb *dev = dev_get_drvdata(device);
+-	char snr[32];
++	unsigned char snr[32];
  
-+``V4L2_CID_PORTER_DUFF_MODE (menu)``
-+    The PorterDuff blend modes. PorterDuff is a method to overlay, combine and
-+    trim images as if they were pieces of cardboard. The device uses this to
-+    determine how two images are combined. For more information see
-+    `PorterDuff.Mode <https://developer.android.com/reference/android/graphics/PorterDuff.Mode.html>`__.
- 
- .. _dv-controls:
- 
+ 	if (!dev->i2c_num)
+ 		return 0;
 -- 
-2.7.4
+2.13.0
