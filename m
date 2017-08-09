@@ -1,52 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:14921 "EHLO
-        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750741AbdHQHXS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Aug 2017 03:23:18 -0400
-From: Wenyou Yang <wenyou.yang@microchip.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-CC: Nicolas Ferre <nicolas.ferre@microchip.com>,
-        <linux-kernel@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
-        "Jonathan Corbet" <corbet@lwn.net>,
-        <linux-arm-kernel@lists.infradead.org>,
-        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH 1/3] media: atmel-isc: Not support RBG format from sensor.
-Date: Thu, 17 Aug 2017 15:16:12 +0800
-Message-ID: <20170817071614.12767-2-wenyou.yang@microchip.com>
-In-Reply-To: <20170817071614.12767-1-wenyou.yang@microchip.com>
-References: <20170817071614.12767-1-wenyou.yang@microchip.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:55619 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752585AbdHIQCt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Aug 2017 12:02:49 -0400
+Date: Wed, 9 Aug 2017 18:02:46 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH v1.1 1/1] omap3isp: Skip CSI-2 receiver initialisation in
+ CCP2 configuration
+Message-ID: <20170809160246.GB8711@atrey.karlin.mff.cuni.cz>
+References: <20170718194303.20436-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170718194303.20436-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The 12-bit parallel interface supports the Raw Bayer, YCbCr,
-Monochrome and JPEG Compressed pixel formats from the external
-sensor, not support RBG pixel format.
+> If the CSI-2 receiver isn't part of the pipeline (or isn't there to begin
+> with), skip its initialisation.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
----
+Looks good to me.
 
- drivers/media/platform/atmel/atmel-isc.c | 5 +++++
- 1 file changed, 5 insertions(+)
+Acked-by: Pavel Machek <pavel@ucw.cz>
 
-diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-index d4df3d4ccd85..535bb03783fe 100644
---- a/drivers/media/platform/atmel/atmel-isc.c
-+++ b/drivers/media/platform/atmel/atmel-isc.c
-@@ -1478,6 +1478,11 @@ static int isc_formats_init(struct isc_device *isc)
- 	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code,
- 	       NULL, &mbus_code)) {
- 		mbus_code.index++;
-+
-+		/* Not support the RGB pixel formats from sensor */
-+		if ((mbus_code.code & 0xf000) == 0x1000)
-+			continue;
-+
- 		fmt = find_format_by_code(mbus_code.code, &i);
- 		if (!fmt)
- 			continue;
+I should be able to test it later, but as Laurent already tested it, I
+believe it is good to go.
+
+Thanks,
+									Pavel
+
 -- 
-2.13.0
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
