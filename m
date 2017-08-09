@@ -1,59 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:32866 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751944AbdHLL4f (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44080 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752214AbdHILP7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Aug 2017 07:56:35 -0400
-Received: by mail-wm0-f67.google.com with SMTP id q189so9229214wmd.0
-        for <linux-media@vger.kernel.org>; Sat, 12 Aug 2017 04:56:34 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
-        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
-Subject: [PATCH v4 04/11] [media] ddbridge: check pointers before dereferencing
-Date: Sat, 12 Aug 2017 13:55:55 +0200
-Message-Id: <20170812115602.18124-5-d.scheller.oss@gmail.com>
-In-Reply-To: <20170812115602.18124-1-d.scheller.oss@gmail.com>
-References: <20170812115602.18124-1-d.scheller.oss@gmail.com>
+        Wed, 9 Aug 2017 07:15:59 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: linux-leds@vger.kernel.org, jacek.anaszewski@gmail.com,
+        laurent.pinchart@ideasonboard.com, Johan Hovold <johan@kernel.org>,
+        Alex Elder <elder@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        greybus-dev@lists.linaro.org, devel@driverdev.osuosl.org,
+        viresh.kumar@linaro.org, Rui Miguel Silva <rmfrfs@gmail.com>
+Subject: [PATCH v2 3/3] v4l2-flash-led-class: Document v4l2_flash_init() references
+Date: Wed,  9 Aug 2017 14:15:55 +0300
+Message-Id: <20170809111555.30147-4-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170809111555.30147-1-sakari.ailus@linux.intel.com>
+References: <20170809111555.30147-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+The v4l2_flash_init() keeps a reference to the ops struct but not to the
+config struct (nor anything it contains). Document this.
 
-Fixes two warnings reported by smatch:
-
-  drivers/media/pci/ddbridge/ddbridge-core.c:240 ddb_redirect() warn: variable dereferenced before check 'idev' (see line 238)
-  drivers/media/pci/ddbridge/ddbridge-core.c:240 ddb_redirect() warn: variable dereferenced before check 'pdev' (see line 238)
-
-Fixed by moving the existing checks up before accessing members.
-
-Cc: Ralph Metzler <rjkm@metzlerbros.de>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-Tested-by: Richard Scobie <r.scobie@clear.net.nz>
-Tested-by: Jasmin Jessich <jasmin@anw.at>
-Tested-by: Dietmar Spingler <d_spingler@freenet.de>
-Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 ---
- drivers/media/pci/ddbridge/ddbridge-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/media/v4l2-flash-led-class.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index bbd8d556175b..d7bf01f38d98 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -170,10 +170,10 @@ static int ddb_redirect(u32 i, u32 p)
- 	struct ddb *pdev = ddbs[(p >> 4) & 0x3f];
- 	struct ddb_port *port;
- 
--	if (!idev->has_dma || !pdev->has_dma)
--		return -EINVAL;
- 	if (!idev || !pdev)
- 		return -EINVAL;
-+	if (!idev->has_dma || !pdev->has_dma)
-+		return -EINVAL;
- 
- 	port = &pdev->port[p & 0x0f];
- 	if (!port->output)
+diff --git a/include/media/v4l2-flash-led-class.h b/include/media/v4l2-flash-led-class.h
+index c3f39992f3fa..6f4825b6a352 100644
+--- a/include/media/v4l2-flash-led-class.h
++++ b/include/media/v4l2-flash-led-class.h
+@@ -112,6 +112,9 @@ static inline struct v4l2_flash *v4l2_ctrl_to_v4l2_flash(struct v4l2_ctrl *c)
+  * @config:	initialization data for V4L2 Flash sub-device
+  *
+  * Create V4L2 Flash sub-device wrapping given LED subsystem device.
++ * The ops pointer is stored by the V4L2 flash framework. No
++ * references are held to config nor its contents once this function
++ * has returned.
+  *
+  * Returns: A valid pointer, or, when an error occurs, the return
+  * value is encoded using ERR_PTR(). Use IS_ERR() to check and
+@@ -130,6 +133,9 @@ struct v4l2_flash *v4l2_flash_init(
+  * @config:	initialization data for V4L2 Flash sub-device
+  *
+  * Create V4L2 Flash sub-device wrapping given LED subsystem device.
++ * The ops pointer is stored by the V4L2 flash framework. No
++ * references are held to config nor its contents once this function
++ * has returned.
+  *
+  * Returns: A valid pointer, or, when an error occurs, the return
+  * value is encoded using ERR_PTR(). Use IS_ERR() to check and
 -- 
-2.13.0
+2.11.0
