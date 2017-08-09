@@ -1,76 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:49372
-        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751429AbdHFIvA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 6 Aug 2017 04:51:00 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org,
-        Houlong Wei <houlong.wei@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+Received: from mx1.redhat.com ([209.132.183.28]:47770 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751429AbdHIJhi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 9 Aug 2017 05:37:38 -0400
+From: Javier Martinez Canillas <javierm@redhat.com>
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javierm@redhat.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 12/12] [media] mtk-mdp: constify v4l2_m2m_ops structures
-Date: Sun,  6 Aug 2017 10:25:21 +0200
-Message-Id: <1502007921-22968-13-git-send-email-Julia.Lawall@lip6.fr>
-In-Reply-To: <1502007921-22968-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1502007921-22968-1-git-send-email-Julia.Lawall@lip6.fr>
+        linux-media@vger.kernel.org
+Subject: [PATCH] media: i2c: adv748x: Export I2C device table entries as module aliases
+Date: Wed,  9 Aug 2017 11:37:30 +0200
+Message-Id: <20170809093731.3572-1-javierm@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2_m2m_ops structures are only passed as the only
-argument to v4l2_m2m_init, which is declared as const.
-Thus the v4l2_m2m_ops structures themselves can be const.
+The I2C core always reports a MODALIAS of the form i2c:<foo> even if the
+device was registered via OF, and the driver is only exporting the OF ID
+table entries as module aliases.
 
-Done with the help of Coccinelle.
+So if the driver is built as module, autoload won't work since udev/kmod
+won't be able to match the registered OF device with its driver module.
 
-// <smpl>
-@r disable optional_qualifier@
-identifier i;
-position p;
-@@
-static struct v4l2_m2m_ops i@p = { ... };
+Before this patch:
 
-@ok1@
-identifier r.i;
-position p;
-@@
-v4l2_m2m_init(&i@p)
+$ modinfo drivers/media/i2c/adv748x/adv748x.ko | grep alias
+alias:          of:N*T*Cadi,adv7482C*
+alias:          of:N*T*Cadi,adv7482
+alias:          of:N*T*Cadi,adv7481C*
+alias:          of:N*T*Cadi,adv7481
 
-@bad@
-position p != {r.p,ok1.p};
-identifier r.i;
-struct v4l2_m2m_ops e;
-@@
-e@i@p
+After this patch:
 
-@depends on !bad disable optional_qualifier@
-identifier r.i;
-@@
-static
-+const
- struct v4l2_m2m_ops i = { ... };
-// </smpl>
+modinfo drivers/media/i2c/adv748x/adv748x.ko | grep alias
+alias:          of:N*T*Cadi,adv7482C*
+alias:          of:N*T*Cadi,adv7482
+alias:          of:N*T*Cadi,adv7481C*
+alias:          of:N*T*Cadi,adv7481
+alias:          i2c:adv7482
+alias:          i2c:adv7481
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
+Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
 ---
- drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-index 3038d62..583d477 100644
---- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-+++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-@@ -1225,7 +1225,7 @@ static int mtk_mdp_m2m_release(struct file *file)
- 	.mmap		= v4l2_m2m_fop_mmap,
+ drivers/media/i2c/adv748x/adv748x-core.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
+index aeb6ae80cb18..5ee14f2c2747 100644
+--- a/drivers/media/i2c/adv748x/adv748x-core.c
++++ b/drivers/media/i2c/adv748x/adv748x-core.c
+@@ -807,6 +807,7 @@ static const struct i2c_device_id adv748x_id[] = {
+ 	{ "adv7482", 0 },
+ 	{ },
  };
++MODULE_DEVICE_TABLE(i2c, adv748x_id);
  
--static struct v4l2_m2m_ops mtk_mdp_m2m_ops = {
-+static const struct v4l2_m2m_ops mtk_mdp_m2m_ops = {
- 	.device_run	= mtk_mdp_m2m_device_run,
- 	.job_abort	= mtk_mdp_m2m_job_abort,
- };
+ static const struct of_device_id adv748x_of_table[] = {
+ 	{ .compatible = "adi,adv7481", },
+-- 
+2.13.3
