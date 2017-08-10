@@ -1,43 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:32940 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754312AbdHZIfp (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.242]:51245 "EHLO
+        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751449AbdHJJSC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 04:35:45 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, crope@iki.fi, mchehab@kernel.org,
-        hans.verkuil@cisco.com, isely@pobox.com,
-        ezequiel@vanguardiasur.com.ar, royale@zerezo.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-usb@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 02/11] [media] stkwebcam:  make video_device const
-Date: Sat, 26 Aug 2017 14:05:06 +0530
-Message-Id: <1503736515-15366-3-git-send-email-bhumirks@gmail.com>
-In-Reply-To: <1503736515-15366-1-git-send-email-bhumirks@gmail.com>
-References: <1503736515-15366-1-git-send-email-bhumirks@gmail.com>
+        Thu, 10 Aug 2017 05:18:02 -0400
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Jonathan Corbet <corbet@lwn.net>
+CC: Nicolas Ferre <nicolas.ferre@microchip.com>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "Mauro Carvalho Chehab" <mchehab@s-opensource.com>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH 1/2] media: ov7670: Add entity pads initialization
+Date: Thu, 10 Aug 2017 17:06:44 +0800
+Message-ID: <20170810090645.24344-2-wenyou.yang@microchip.com>
+In-Reply-To: <20170810090645.24344-1-wenyou.yang@microchip.com>
+References: <20170810090645.24344-1-wenyou.yang@microchip.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make this const as it is only used in a copy operation.
+Add the media entity pads initialization.
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
 ---
- drivers/media/usb/stkwebcam/stk-webcam.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
-index 39abb58..c0bba77 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.c
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-@@ -1244,7 +1244,7 @@ static void stk_v4l_dev_release(struct video_device *vd)
- 	kfree(dev);
+ drivers/media/i2c/ov7670.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index e88549f0e704..5c8460ee65c3 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -213,6 +213,7 @@ struct ov7670_devtype {
+ struct ov7670_format_struct;  /* coming later */
+ struct ov7670_info {
+ 	struct v4l2_subdev sd;
++	struct media_pad pad;
+ 	struct v4l2_ctrl_handler hdl;
+ 	struct {
+ 		/* gain cluster */
+@@ -1688,14 +1689,23 @@ static int ov7670_probe(struct i2c_client *client,
+ 	v4l2_ctrl_auto_cluster(2, &info->auto_exposure,
+ 			       V4L2_EXPOSURE_MANUAL, false);
+ 	v4l2_ctrl_cluster(2, &info->saturation);
++
++	info->pad.flags = MEDIA_PAD_FL_SOURCE;
++	info->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
++	ret = media_entity_pads_init(&info->sd.entity, 1, &info->pad);
++	if (ret < 0)
++		goto hdl_free;
++
+ 	v4l2_ctrl_handler_setup(&info->hdl);
+ 
+ 	ret = v4l2_async_register_subdev(&info->sd);
+ 	if (ret < 0)
+-		goto hdl_free;
++		goto entity_cleanup;
+ 
+ 	return 0;
+ 
++entity_cleanup:
++	media_entity_cleanup(&info->sd.entity);
+ hdl_free:
+ 	v4l2_ctrl_handler_free(&info->hdl);
+ clk_disable:
+@@ -1712,6 +1722,7 @@ static int ov7670_remove(struct i2c_client *client)
+ 	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&info->hdl);
+ 	clk_disable_unprepare(info->clk);
++	media_entity_cleanup(&info->sd.entity);
+ 	return 0;
  }
  
--static struct video_device stk_v4l_data = {
-+static const struct video_device stk_v4l_data = {
- 	.name = "stkwebcam",
- 	.fops = &v4l_stk_fops,
- 	.ioctl_ops = &v4l_stk_ioctl_ops,
 -- 
-1.9.1
+2.13.0
