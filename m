@@ -1,60 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41984 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59026 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752410AbdHIIDm (ORCPT
+        by vger.kernel.org with ESMTP id S1752972AbdHJN4y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 9 Aug 2017 04:03:42 -0400
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 2651D600C7
-        for <linux-media@vger.kernel.org>; Wed,  9 Aug 2017 11:03:41 +0300 (EEST)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakke@valkosipuli.retiisi.org.uk>)
-        id 1dfLxs-0005X4-Rb
-        for linux-media@vger.kernel.org; Wed, 09 Aug 2017 11:03:40 +0300
-Date: Wed, 9 Aug 2017 11:03:40 +0300
+        Thu, 10 Aug 2017 09:56:54 -0400
+Date: Thu, 10 Aug 2017 16:56:50 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for 4.14] Stream control documentation
-Message-ID: <20170809080340.4c5b4jjypqiqyllp@valkosipuli.retiisi.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+        jacek.anaszewski@gmail.com, laurent.pinchart@ideasonboard.com,
+        Johan Hovold <johan@kernel.org>, Alex Elder <elder@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        greybus-dev@lists.linaro.org, devel@driverdev.osuosl.org,
+        viresh.kumar@linaro.org, Rui Miguel Silva <rmfrfs@gmail.com>
+Subject: Re: [PATCH v2 1/3] staging: greybus: light: fix memory leak in v4l2
+ register
+Message-ID: <20170810135650.d62h2g4bxqkndiaa@valkosipuli.retiisi.org.uk>
+References: <20170809111555.30147-1-sakari.ailus@linux.intel.com>
+ <20170809111555.30147-2-sakari.ailus@linux.intel.com>
+ <cec7fc27-25eb-8769-6795-c377307c5f57@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <cec7fc27-25eb-8769-6795-c377307c5f57@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Hans,
 
-Add stream control documentation.
+On Thu, Aug 10, 2017 at 03:02:46PM +0200, Hans Verkuil wrote:
+> > @@ -534,25 +534,20 @@ static int gb_lights_light_v4l2_register(struct gb_light *light)
+> >  {
+> >  	struct gb_connection *connection = get_conn_from_light(light);
+> >  	struct device *dev = &connection->bundle->dev;
+> > -	struct v4l2_flash_config *sd_cfg;
+> > +	struct v4l2_flash_config sd_cfg = { {0} };
+> 
+> Just use '= {};'
 
-We have recently added support for hardware that makes it possible to have
-pipelines that are controlled by more than two drivers. This necessitates
-documenting V4L2 stream control behaviour for such pipelines.
+This is GCC specific whereas { {0} } is standard C. The latter is thus
+obviously better IMO.
 
-Please pull.
+> 
+> >  	struct led_classdev_flash *fled;
+> >  	struct led_classdev *iled = NULL;
+> >  	struct gb_channel *channel_torch, *channel_ind, *channel_flash;
+> > -	int ret = 0;
+> > -
+> > -	sd_cfg = kcalloc(1, sizeof(*sd_cfg), GFP_KERNEL);
+> > -	if (!sd_cfg)
+> > -		return -ENOMEM;
+> >  
+> >  	channel_torch = get_channel_from_mode(light, GB_CHANNEL_MODE_TORCH);
+> >  	if (channel_torch)
+> >  		__gb_lights_channel_v4l2_config(&channel_torch->intensity_uA,
+> > -						&sd_cfg->torch_intensity);
+> > +						&sd_cfg.torch_intensity);
+> >  
+> >  	channel_ind = get_channel_from_mode(light, GB_CHANNEL_MODE_INDICATOR);
+> >  	if (channel_ind) {
+> >  		__gb_lights_channel_v4l2_config(&channel_ind->intensity_uA,
+> > -						&sd_cfg->indicator_intensity);
+> > +						&sd_cfg.indicator_intensity);
+> >  		iled = &channel_ind->fled.led_cdev;
+> >  	}
+> >  
+> > @@ -561,27 +556,21 @@ static int gb_lights_light_v4l2_register(struct gb_light *light)
+> >  
+> >  	fled = &channel_flash->fled;
+> >  
+> > -	snprintf(sd_cfg->dev_name, sizeof(sd_cfg->dev_name), "%s", light->name);
+> > +	snprintf(sd_cfg.dev_name, sizeof(sd_cfg.dev_name), "%s", light->name);
+> >  
+> >  	/* Set the possible values to faults, in our case all faults */
+> > -	sd_cfg->flash_faults = LED_FAULT_OVER_VOLTAGE | LED_FAULT_TIMEOUT |
+> > +	sd_cfg.flash_faults = LED_FAULT_OVER_VOLTAGE | LED_FAULT_TIMEOUT |
+> >  		LED_FAULT_OVER_TEMPERATURE | LED_FAULT_SHORT_CIRCUIT |
+> >  		LED_FAULT_OVER_CURRENT | LED_FAULT_INDICATOR |
+> >  		LED_FAULT_UNDER_VOLTAGE | LED_FAULT_INPUT_VOLTAGE |
+> >  		LED_FAULT_LED_OVER_TEMPERATURE;
+> >  
+> >  	light->v4l2_flash = v4l2_flash_init(dev, NULL, fled, iled,
+> > -					    &v4l2_flash_ops, sd_cfg);
+> > -	if (IS_ERR_OR_NULL(light->v4l2_flash)) {
+> > -		ret = PTR_ERR(light->v4l2_flash);
+> > -		goto out_free;
+> > -	}
+> > +					    &v4l2_flash_ops, &sd_cfg);
+> > +	if (IS_ERR_OR_NULL(light->v4l2_flash))
+> 
+> Just IS_ERR since v4l2_flash_init() never returns NULL.
 
+Will fix.
 
-The following changes since commit da48c948c263c9d87dfc64566b3373a858cc8aa2:
-
-  media: fix warning on v4l2_subdev_call() result interpreted as bool (2017-07-26 13:43:17 -0400)
-
-are available in the git repository at:
-
-  https://linuxtv.org/git/sailus/media_tree.git v4l2-stream-doc
-
-for you to fetch changes up to ef8e5d20b45b05290c56450d2130a0dc3c021c5a:
-
-  docs-rst: media: Document s_stream() video op usage (2017-08-08 17:31:25 +0300)
-
-----------------------------------------------------------------
-Sakari Ailus (1):
-      docs-rst: media: Document s_stream() video op usage
-
- Documentation/media/kapi/v4l2-subdev.rst | 36 ++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
-
+> 
+> > +		return PTR_ERR(light->v4l2_flash);
+> >  
+> > -	return ret;
+> > -
+> > -out_free:
+> > -	kfree(sd_cfg);
+> > -	return ret;
+> > +	return 0;
+> >  }
+> >  
+> >  static void gb_lights_light_v4l2_unregister(struct gb_light *light)
+> > 
+> 
+> After those two changes:
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
 -- 
+Regards,
+
 Sakari Ailus
 e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
