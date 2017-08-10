@@ -1,2642 +1,2874 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44950
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751980AbdHaXrN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 19:47:13 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Colin Ian King <colin.king@canonical.com>
-Subject: [PATCH 07/15] media: dvb frontend docs: use kernel-doc documentation
-Date: Thu, 31 Aug 2017 20:46:54 -0300
-Message-Id: <085d257cf0d7a3a183ffa5e22544e316bdb6658c.1504222628.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
-References: <cover.1504222628.git.mchehab@s-opensource.com>
+Received: from vps-vb.mhejs.net ([37.28.154.113]:46521 "EHLO vps-vb.mhejs.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751487AbdHJWLh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Aug 2017 18:11:37 -0400
+From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
+Subject: [PATCH 5/5] [media] cxusb: add analog mode support for Medion MD95700
+To: Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org
+Message-ID: <6a74971c-171f-7336-065c-59cede29f624@maciej.szmigiero.name>
+Date: Thu, 10 Aug 2017 23:53:48 +0200
 MIME-Version: 1.0
-In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
-References: <cover.1504222628.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that frontend.h contains most documentation for the frontend,
-remove the duplicated information from Documentation/ and use the
-kernel-doc auto-generated one instead.
+This patch adds support for analog part of Medion 95700 in the cxusb
+driver.
 
-That should simplify maintainership of DVB frontend uAPI, as most
-of the documentation will stick with the header file.
+What works:
+* Video capture at various sizes with sequential fields,
+* Input switching (TV Tuner, Composite, S-Video),
+* TV and radio tuning,
+* Video standard switching and auto detection,
+* Radio mode switching (stereo / mono),
+* Unplugging while capturing,
+* DVB / analog coexistence,
+* Raw BT.656 stream support.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+What does not work yet:
+* Audio,
+* VBI,
+* Picture controls.
+
+Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
 ---
- Documentation/media/frontend.h.rst.exceptions      |  185 ++-
- Documentation/media/uapi/dvb/dtv-fe-stats.rst      |   17 -
- Documentation/media/uapi/dvb/dtv-properties.rst    |   15 -
- Documentation/media/uapi/dvb/dtv-property.rst      |   31 -
- Documentation/media/uapi/dvb/dtv-stats.rst         |   18 -
- Documentation/media/uapi/dvb/dvbproperty-006.rst   |   12 -
- Documentation/media/uapi/dvb/dvbproperty.rst       |   28 +-
- .../media/uapi/dvb/fe-diseqc-recv-slave-reply.rst  |   40 +-
- .../media/uapi/dvb/fe-diseqc-send-burst.rst        |   31 +-
- .../media/uapi/dvb/fe-diseqc-send-master-cmd.rst   |   29 +-
- Documentation/media/uapi/dvb/fe-get-info.rst       |  370 +-----
- Documentation/media/uapi/dvb/fe-get-property.rst   |    2 +-
- Documentation/media/uapi/dvb/fe-read-status.rst    |   83 --
- Documentation/media/uapi/dvb/fe-set-tone.rst       |   30 -
- .../media/uapi/dvb/fe_property_parameters.rst      | 1277 ++------------------
- Documentation/media/uapi/dvb/frontend-header.rst   |    4 +
- include/uapi/linux/dvb/frontend.h                  |    8 +-
- 17 files changed, 317 insertions(+), 1863 deletions(-)
- delete mode 100644 Documentation/media/uapi/dvb/dtv-fe-stats.rst
- delete mode 100644 Documentation/media/uapi/dvb/dtv-properties.rst
- delete mode 100644 Documentation/media/uapi/dvb/dtv-property.rst
- delete mode 100644 Documentation/media/uapi/dvb/dtv-stats.rst
- delete mode 100644 Documentation/media/uapi/dvb/dvbproperty-006.rst
- create mode 100644 Documentation/media/uapi/dvb/frontend-header.rst
+ drivers/media/usb/dvb-usb/Kconfig        |    8 +-
+ drivers/media/usb/dvb-usb/Makefile       |    2 +-
+ drivers/media/usb/dvb-usb/cxusb-analog.c | 1867 ++++++++++++++++++++++++++++++
+ drivers/media/usb/dvb-usb/cxusb.c        |  453 +++++++-
+ drivers/media/usb/dvb-usb/cxusb.h        |  137 +++
+ drivers/media/usb/dvb-usb/dvb-usb-dvb.c  |   20 +-
+ drivers/media/usb/dvb-usb/dvb-usb-init.c |   13 +
+ drivers/media/usb/dvb-usb/dvb-usb.h      |    8 +
+ 8 files changed, 2449 insertions(+), 59 deletions(-)
+ create mode 100644 drivers/media/usb/dvb-usb/cxusb-analog.c
 
-diff --git a/Documentation/media/frontend.h.rst.exceptions b/Documentation/media/frontend.h.rst.exceptions
-index 7656770f1936..f7c4df620a52 100644
---- a/Documentation/media/frontend.h.rst.exceptions
-+++ b/Documentation/media/frontend.h.rst.exceptions
-@@ -25,19 +25,9 @@ ignore define DTV_MAX_COMMAND
- ignore define MAX_DTV_STATS
- ignore define DTV_IOCTL_MAX_MSGS
- 
--# Stats enum is documented altogether
--replace enum fecap_scale_params :ref:`frontend-stat-properties`
--replace symbol FE_SCALE_COUNTER frontend-stat-properties
--replace symbol FE_SCALE_DECIBEL frontend-stat-properties
--replace symbol FE_SCALE_NOT_AVAILABLE frontend-stat-properties
--replace symbol FE_SCALE_RELATIVE frontend-stat-properties
--
- # the same reference is used for both get and set ioctls
- replace ioctl FE_SET_PROPERTY :c:type:`FE_GET_PROPERTY`
- 
--# Ignore struct used only internally at Kernel
--ignore struct dtv_cmds_h
--
- # Typedefs that use the enum reference
- replace typedef fe_sec_voltage_t :c:type:`fe_sec_voltage`
- 
-@@ -45,3 +35,178 @@ replace typedef fe_sec_voltage_t :c:type:`fe_sec_voltage`
- replace define FE_TUNE_MODE_ONESHOT :c:func:`FE_SET_FRONTEND_TUNE_MODE`
- replace define LNA_AUTO dtv-lna
- replace define NO_STREAM_ID_FILTER dtv-stream-id
-+
-+# Those enums are defined at the frontend.h header, and not externally
-+
-+ignore symbol FE_IS_STUPID
-+ignore symbol FE_CAN_INVERSION_AUTO
-+ignore symbol FE_CAN_FEC_1_2
-+ignore symbol FE_CAN_FEC_2_3
-+ignore symbol FE_CAN_FEC_3_4
-+ignore symbol FE_CAN_FEC_4_5
-+ignore symbol FE_CAN_FEC_5_6
-+ignore symbol FE_CAN_FEC_6_7
-+ignore symbol FE_CAN_FEC_7_8
-+ignore symbol FE_CAN_FEC_8_9
-+ignore symbol FE_CAN_FEC_AUTO
-+ignore symbol FE_CAN_QPSK
-+ignore symbol FE_CAN_QAM_16
-+ignore symbol FE_CAN_QAM_32
-+ignore symbol FE_CAN_QAM_64
-+ignore symbol FE_CAN_QAM_128
-+ignore symbol FE_CAN_QAM_256
-+ignore symbol FE_CAN_QAM_AUTO
-+ignore symbol FE_CAN_TRANSMISSION_MODE_AUTO
-+ignore symbol FE_CAN_BANDWIDTH_AUTO
-+ignore symbol FE_CAN_GUARD_INTERVAL_AUTO
-+ignore symbol FE_CAN_HIERARCHY_AUTO
-+ignore symbol FE_CAN_8VSB
-+ignore symbol FE_CAN_16VSB
-+ignore symbol FE_HAS_EXTENDED_CAPS
-+ignore symbol FE_CAN_MULTISTREAM
-+ignore symbol FE_CAN_TURBO_FEC
-+ignore symbol FE_CAN_2G_MODULATION
-+ignore symbol FE_NEEDS_BENDING
-+ignore symbol FE_CAN_RECOVER
-+ignore symbol FE_CAN_MUTE_TS
-+
-+ignore symbol QPSK
-+ignore symbol QAM_16
-+ignore symbol QAM_32
-+ignore symbol QAM_64
-+ignore symbol QAM_128
-+ignore symbol QAM_256
-+ignore symbol QAM_AUTO
-+ignore symbol VSB_8
-+ignore symbol VSB_16
-+ignore symbol PSK_8
-+ignore symbol APSK_16
-+ignore symbol APSK_32
-+ignore symbol DQPSK
-+ignore symbol QAM_4_NR
-+
-+ignore symbol SEC_VOLTAGE_13
-+ignore symbol SEC_VOLTAGE_18
-+ignore symbol SEC_VOLTAGE_OFF
-+
-+ignore symbol SEC_TONE_ON
-+ignore symbol SEC_TONE_OFF
-+
-+ignore symbol SEC_MINI_A
-+ignore symbol SEC_MINI_B
-+
-+ignore symbol FE_NONE
-+ignore symbol FE_HAS_SIGNAL
-+ignore symbol FE_HAS_CARRIER
-+ignore symbol FE_HAS_VITERBI
-+ignore symbol FE_HAS_SYNC
-+ignore symbol FE_HAS_LOCK
-+ignore symbol FE_REINIT
-+ignore symbol FE_TIMEDOUT
-+
-+ignore symbol FEC_NONE
-+ignore symbol FEC_1_2
-+ignore symbol FEC_2_3
-+ignore symbol FEC_3_4
-+ignore symbol FEC_4_5
-+ignore symbol FEC_5_6
-+ignore symbol FEC_6_7
-+ignore symbol FEC_7_8
-+ignore symbol FEC_8_9
-+ignore symbol FEC_AUTO
-+ignore symbol FEC_3_5
-+ignore symbol FEC_9_10
-+ignore symbol FEC_2_5
-+
-+ignore symbol TRANSMISSION_MODE_AUTO
-+ignore symbol TRANSMISSION_MODE_1K
-+ignore symbol TRANSMISSION_MODE_2K
-+ignore symbol TRANSMISSION_MODE_8K
-+ignore symbol TRANSMISSION_MODE_4K
-+ignore symbol TRANSMISSION_MODE_16K
-+ignore symbol TRANSMISSION_MODE_32K
-+ignore symbol TRANSMISSION_MODE_C1
-+ignore symbol TRANSMISSION_MODE_C3780
-+ignore symbol TRANSMISSION_MODE_2K
-+ignore symbol TRANSMISSION_MODE_8K
-+
-+ignore symbol GUARD_INTERVAL_AUTO
-+ignore symbol GUARD_INTERVAL_1_128
-+ignore symbol GUARD_INTERVAL_1_32
-+ignore symbol GUARD_INTERVAL_1_16
-+ignore symbol GUARD_INTERVAL_1_8
-+ignore symbol GUARD_INTERVAL_1_4
-+ignore symbol GUARD_INTERVAL_19_128
-+ignore symbol GUARD_INTERVAL_19_256
-+ignore symbol GUARD_INTERVAL_PN420
-+ignore symbol GUARD_INTERVAL_PN595
-+ignore symbol GUARD_INTERVAL_PN945
-+
-+ignore symbol HIERARCHY_NONE
-+ignore symbol HIERARCHY_AUTO
-+ignore symbol HIERARCHY_1
-+ignore symbol HIERARCHY_2
-+ignore symbol HIERARCHY_4
-+
-+ignore symbol INTERLEAVING_NONE
-+ignore symbol INTERLEAVING_AUTO
-+ignore symbol INTERLEAVING_240
-+ignore symbol INTERLEAVING_720
-+
-+ignore symbol PILOT_ON
-+ignore symbol PILOT_OFF
-+ignore symbol PILOT_AUTO
-+
-+ignore symbol ROLLOFF_35
-+ignore symbol ROLLOFF_20
-+ignore symbol ROLLOFF_25
-+ignore symbol ROLLOFF_AUTO
-+
-+ignore symbol INVERSION_ON
-+ignore symbol INVERSION_OFF
-+ignore symbol INVERSION_AUTO
-+
-+ignore symbol SYS_UNDEFINED
-+ignore symbol SYS_DVBC_ANNEX_A
-+ignore symbol SYS_DVBC_ANNEX_B
-+ignore symbol SYS_DVBC_ANNEX_C
-+ignore symbol SYS_ISDBC
-+ignore symbol SYS_DVBT
-+ignore symbol SYS_DVBT2
-+ignore symbol SYS_ISDBT
-+ignore symbol SYS_ATSC
-+ignore symbol SYS_ATSCMH
-+ignore symbol SYS_DTMB
-+ignore symbol SYS_DVBS
-+ignore symbol SYS_DVBS2
-+ignore symbol SYS_TURBO
-+ignore symbol SYS_ISDBS
-+ignore symbol SYS_DAB
-+ignore symbol SYS_DSS
-+ignore symbol SYS_CMMB
-+ignore symbol SYS_DVBH
-+
-+ignore symbol ATSCMH_SCCC_BLK_SEP
-+ignore symbol ATSCMH_SCCC_BLK_COMB
-+ignore symbol ATSCMH_SCCC_BLK_RES
-+
-+ignore symbol ATSCMH_SCCC_CODE_HLF
-+ignore symbol ATSCMH_SCCC_CODE_QTR
-+ignore symbol ATSCMH_SCCC_CODE_RES
-+
-+ignore symbol ATSCMH_RSFRAME_ENS_PRI
-+ignore symbol ATSCMH_RSFRAME_ENS_SEC
-+
-+ignore symbol ATSCMH_RSFRAME_PRI_ONLY
-+ignore symbol ATSCMH_RSFRAME_PRI_SEC
-+ignore symbol ATSCMH_RSFRAME_RES
-+
-+ignore symbol ATSCMH_RSCODE_211_187
-+ignore symbol ATSCMH_RSCODE_223_187
-+ignore symbol ATSCMH_RSCODE_235_187
-+ignore symbol ATSCMH_RSCODE_RES
-+
-+ignore symbol FE_SCALE_NOT_AVAILABLE
-+ignore symbol FE_SCALE_DECIBEL
-+ignore symbol FE_SCALE_RELATIVE
-+ignore symbol FE_SCALE_COUNTER
-diff --git a/Documentation/media/uapi/dvb/dtv-fe-stats.rst b/Documentation/media/uapi/dvb/dtv-fe-stats.rst
-deleted file mode 100644
-index e8a02a1f138d..000000000000
---- a/Documentation/media/uapi/dvb/dtv-fe-stats.rst
-+++ /dev/null
-@@ -1,17 +0,0 @@
--.. -*- coding: utf-8; mode: rst -*-
--
--.. c:type:: dtv_fe_stats
--
--*******************
--struct dtv_fe_stats
--*******************
--
--
--.. code-block:: c
--
--    #define MAX_DTV_STATS   4
--
--    struct dtv_fe_stats {
--	__u8 len;
--	struct dtv_stats stat[MAX_DTV_STATS];
--    } __packed;
-diff --git a/Documentation/media/uapi/dvb/dtv-properties.rst b/Documentation/media/uapi/dvb/dtv-properties.rst
-deleted file mode 100644
-index 48c4e834ad11..000000000000
---- a/Documentation/media/uapi/dvb/dtv-properties.rst
-+++ /dev/null
-@@ -1,15 +0,0 @@
--.. -*- coding: utf-8; mode: rst -*-
--
--.. c:type:: dtv_properties
--
--*********************
--struct dtv_properties
--*********************
--
--
--.. code-block:: c
--
--    struct dtv_properties {
--	__u32 num;
--	struct dtv_property *props;
--    };
-diff --git a/Documentation/media/uapi/dvb/dtv-property.rst b/Documentation/media/uapi/dvb/dtv-property.rst
-deleted file mode 100644
-index 3ddc3474b00e..000000000000
---- a/Documentation/media/uapi/dvb/dtv-property.rst
-+++ /dev/null
-@@ -1,31 +0,0 @@
--.. -*- coding: utf-8; mode: rst -*-
--
--.. c:type:: dtv_property
--
--*******************
--struct dtv_property
--*******************
--
--
--.. code-block:: c
--
--    /* Reserved fields should be set to 0 */
--
--    struct dtv_property {
--	__u32 cmd;
--	__u32 reserved[3];
--	union {
--	    __u32 data;
--	    struct dtv_fe_stats st;
--	    struct {
--		__u8 data[32];
--		__u32 len;
--		__u32 reserved1[3];
--		void *reserved2;
--	    } buffer;
--	} u;
--	int result;
--    } __attribute__ ((packed));
--
--    /* num of properties cannot exceed DTV_IOCTL_MAX_MSGS per ioctl */
--    #define DTV_IOCTL_MAX_MSGS 64
-diff --git a/Documentation/media/uapi/dvb/dtv-stats.rst b/Documentation/media/uapi/dvb/dtv-stats.rst
-deleted file mode 100644
-index 35239e72bf74..000000000000
---- a/Documentation/media/uapi/dvb/dtv-stats.rst
-+++ /dev/null
-@@ -1,18 +0,0 @@
--.. -*- coding: utf-8; mode: rst -*-
--
--.. c:type:: dtv_stats
--
--****************
--struct dtv_stats
--****************
--
--
--.. code-block:: c
--
--    struct dtv_stats {
--	__u8 scale; /* enum fecap_scale_params type */
--	union {
--	    __u64 uvalue;   /* for counters and relative scales */
--	    __s64 svalue;   /* for 1/1000 dB measures */
--	};
--    } __packed;
-diff --git a/Documentation/media/uapi/dvb/dvbproperty-006.rst b/Documentation/media/uapi/dvb/dvbproperty-006.rst
-deleted file mode 100644
-index 3343a0f306fe..000000000000
---- a/Documentation/media/uapi/dvb/dvbproperty-006.rst
-+++ /dev/null
-@@ -1,12 +0,0 @@
--.. -*- coding: utf-8; mode: rst -*-
--
--**************
--Property types
--**************
--
--On :ref:`FE_GET_PROPERTY and FE_SET_PROPERTY <FE_GET_PROPERTY>`,
--the actual action is determined by the dtv_property cmd/data pairs.
--With one single ioctl, is possible to get/set up to 64 properties. The
--actual meaning of each property is described on the next sections.
--
--The available frontend property types are shown on the next section.
-diff --git a/Documentation/media/uapi/dvb/dvbproperty.rst b/Documentation/media/uapi/dvb/dvbproperty.rst
-index 843f1d70aff0..c40943be5925 100644
---- a/Documentation/media/uapi/dvb/dvbproperty.rst
-+++ b/Documentation/media/uapi/dvb/dvbproperty.rst
-@@ -2,8 +2,9 @@
- 
- .. _frontend-properties:
- 
--DVB Frontend properties
--=======================
-+**************
-+Property types
-+**************
- 
- Tuning into a Digital TV physical channel and starting decoding it
- requires changing a set of parameters, in order to control the tuner,
-@@ -20,10 +21,15 @@ enough to group the structs that would be required for those new
- standards. Also, extending it would break userspace.
- 
- So, the legacy union/struct based approach was deprecated, in favor
--of a properties set approach.
-+of a properties set approach. On such approach,
-+:ref:`FE_GET_PROPERTY and FE_SET_PROPERTY <FE_GET_PROPERTY>` are used
-+to setup the frontend and read its status.
-+
-+The actual action is determined by a set of dtv_property cmd/data pairs.
-+With one single ioctl, is possible to get/set up to 64 properties.
- 
- This section describes the new and recommended way to set the frontend,
--with suppports all digital TV delivery systems.
-+with supports all digital TV delivery systems.
- 
- .. note::
- 
-@@ -63,12 +69,9 @@ Mbauds, those properties should be sent to
- The code that would that would do the above is show in
- :ref:`dtv-prop-example`.
- 
--.. _dtv-prop-example:
--
--Example: Setting digital TV frontend properties
--===============================================
--
- .. code-block:: c
-+    :caption: Example: Setting digital TV frontend properties
-+    :name: dtv-prop-example
- 
-     #include <stdio.h>
-     #include <fcntl.h>
-@@ -112,17 +115,12 @@ Example: Setting digital TV frontend properties
-    provides methods for usual operations like program scanning and to
-    read/write channel descriptor files.
- 
--
- .. toctree::
-     :maxdepth: 1
- 
--    dtv-stats
--    dtv-fe-stats
--    dtv-property
--    dtv-properties
--    dvbproperty-006
-     fe_property_parameters
-     frontend-stat-properties
-     frontend-property-terrestrial-systems
-     frontend-property-cable-systems
-     frontend-property-satellite-systems
-+    frontend-header
-diff --git a/Documentation/media/uapi/dvb/fe-diseqc-recv-slave-reply.rst b/Documentation/media/uapi/dvb/fe-diseqc-recv-slave-reply.rst
-index 302db2857f90..473855584d7f 100644
---- a/Documentation/media/uapi/dvb/fe-diseqc-recv-slave-reply.rst
-+++ b/Documentation/media/uapi/dvb/fe-diseqc-recv-slave-reply.rst
-@@ -26,8 +26,7 @@ Arguments
-     File descriptor returned by :ref:`open() <frontend_f_open>`.
- 
- ``argp``
--    pointer to struct
--    :c:type:`dvb_diseqc_slave_reply`
-+    pointer to struct :c:type:`dvb_diseqc_slave_reply`.
- 
- 
- Description
-@@ -35,42 +34,7 @@ Description
- 
- Receives reply from a DiSEqC 2.0 command.
- 
--.. c:type:: dvb_diseqc_slave_reply
--
--.. tabularcolumns:: |p{4.4cm}|p{4.4cm}|p{8.7cm}|
--
--.. flat-table:: struct dvb_diseqc_slave_reply
--    :header-rows:  0
--    :stub-columns: 0
--    :widths:       1 1 2
--
--
--    -  .. row 1
--
--       -  uint8_t
--
--       -  msg[4]
--
--       -  DiSEqC message (framing, data[3])
--
--    -  .. row 2
--
--       -  uint8_t
--
--       -  msg_len
--
--       -  Length of the DiSEqC message. Valid values are 0 to 4, where 0
--	  means no msg
--
--    -  .. row 3
--
--       -  int
--
--       -  timeout
--
--       -  Return from ioctl after timeout ms with errorcode when no message
--	  was received
--
-+The received message is stored at the buffer pointed by ``argp``.
- 
- Return Value
- ============
-diff --git a/Documentation/media/uapi/dvb/fe-diseqc-send-burst.rst b/Documentation/media/uapi/dvb/fe-diseqc-send-burst.rst
-index e962f6ec5aaf..54d35517e784 100644
---- a/Documentation/media/uapi/dvb/fe-diseqc-send-burst.rst
-+++ b/Documentation/media/uapi/dvb/fe-diseqc-send-burst.rst
-@@ -26,7 +26,7 @@ Arguments
-     File descriptor returned by :ref:`open() <frontend_f_open>`.
- 
- ``tone``
--    an integer enumered value described at :c:type:`fe_sec_mini_cmd`
-+    An integer enumered value described at :c:type:`fe_sec_mini_cmd`.
- 
- 
- Description
-@@ -39,35 +39,6 @@ read/write permissions.
- It provides support for what's specified at
- `Digital Satellite Equipment Control (DiSEqC) - Simple "ToneBurst" Detection Circuit specification. <http://www.eutelsat.com/files/contributed/satellites/pdf/Diseqc/associated%20docs/simple_tone_burst_detec.pdf>`__
- 
--.. c:type:: fe_sec_mini_cmd
--
--.. flat-table:: enum fe_sec_mini_cmd
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _SEC-MINI-A:
--
--	  ``SEC_MINI_A``
--
--       -  Sends a mini-DiSEqC 22kHz '0' Tone Burst to select satellite-A
--
--    -  .. row 3
--
--       -  .. _SEC-MINI-B:
--
--	  ``SEC_MINI_B``
--
--       -  Sends a mini-DiSEqC 22kHz '1' Data Burst to select satellite-B
--
- 
- Return Value
- ============
-diff --git a/Documentation/media/uapi/dvb/fe-diseqc-send-master-cmd.rst b/Documentation/media/uapi/dvb/fe-diseqc-send-master-cmd.rst
-index bbcab3df39b5..7392d6747ad6 100644
---- a/Documentation/media/uapi/dvb/fe-diseqc-send-master-cmd.rst
-+++ b/Documentation/media/uapi/dvb/fe-diseqc-send-master-cmd.rst
-@@ -33,34 +33,7 @@ Arguments
- Description
- ===========
- 
--Sends a DiSEqC command to the antenna subsystem.
--
--
--.. c:type:: dvb_diseqc_master_cmd
--
--.. tabularcolumns:: |p{4.4cm}|p{4.4cm}|p{8.7cm}|
--
--.. flat-table:: struct dvb_diseqc_master_cmd
--    :header-rows:  0
--    :stub-columns: 0
--    :widths:       1 1 2
--
--
--    -  .. row 1
--
--       -  uint8_t
--
--       -  msg[6]
--
--       -  DiSEqC message (framing, address, command, data[3])
--
--    -  .. row 2
--
--       -  uint8_t
--
--       -  msg_len
--
--       -  Length of the DiSEqC message. Valid values are 3 to 6
-+Sends the DiSEqC command pointed by ``argp`` to the antenna subsystem.
- 
- Return Value
- ============
-diff --git a/Documentation/media/uapi/dvb/fe-get-info.rst b/Documentation/media/uapi/dvb/fe-get-info.rst
-index e3d64b251f61..30dde8a791f3 100644
---- a/Documentation/media/uapi/dvb/fe-get-info.rst
-+++ b/Documentation/media/uapi/dvb/fe-get-info.rst
-@@ -40,112 +40,6 @@ takes a pointer to dvb_frontend_info which is filled by the driver.
- When the driver is not compatible with this specification the ioctl
- returns an error.
- 
--.. c:type:: dvb_frontend_info
--
--.. tabularcolumns:: |p{4.4cm}|p{4.4cm}|p{8.7cm}|
--
--.. flat-table:: struct dvb_frontend_info
--    :header-rows:  0
--    :stub-columns: 0
--    :widths:       1 1 2
--
--
--    -  .. row 1
--
--       -  char
--
--       -  name[128]
--
--       -  Name of the frontend
--
--    -  .. row 2
--
--       -  fe_type_t
--
--       -  type
--
--       -  **DEPRECATED**. DVBv3 type. Should not be used on modern programs,
--	  as a frontend may have more than one type. So, the DVBv5 API
--	  should be used instead to enumerate and select the frontend type.
--
--    -  .. row 3
--
--       -  uint32_t
--
--       -  frequency_min
--
--       -  Minimal frequency supported by the frontend
--
--    -  .. row 4
--
--       -  uint32_t
--
--       -  frequency_max
--
--       -  Maximal frequency supported by the frontend
--
--    -  .. row 5
--
--       -  uint32_t
--
--       -  frequency_stepsize
--
--       -  Frequency step - all frequencies are multiple of this value
--
--    -  .. row 6
--
--       -  uint32_t
--
--       -  frequency_tolerance
--
--       -  Tolerance of the frequency
--
--    -  .. row 7
--
--       -  uint32_t
--
--       -  symbol_rate_min
--
--       -  Minimal symbol rate (for Cable/Satellite systems), in bauds
--
--    -  .. row 8
--
--       -  uint32_t
--
--       -  symbol_rate_max
--
--       -  Maximal symbol rate (for Cable/Satellite systems), in bauds
--
--    -  .. row 9
--
--       -  uint32_t
--
--       -  symbol_rate_tolerance
--
--       -  Maximal symbol rate tolerance, in ppm
--
--    -  .. row 10
--
--       -  uint32_t
--
--       -  notifier_delay
--
--       -  **DEPRECATED**. Not used by any driver.
--
--    -  .. row 11
--
--       -  enum :c:type:`fe_caps`
--
--       -  caps
--
--       -  Capabilities supported by the frontend
--
--
--.. note::
--
--   The frequencies are specified in Hz for Terrestrial and Cable
--   systems. They're specified in kHz for Satellite systems
--
- 
- frontend capabilities
- =====================
-@@ -153,269 +47,7 @@ frontend capabilities
- Capabilities describe what a frontend can do. Some capabilities are
- supported only on some specific frontend types.
- 
--.. c:type:: fe_caps
--
--.. tabularcolumns:: |p{6.5cm}|p{11.0cm}|
--
--.. flat-table:: enum fe_caps
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _FE-IS-STUPID:
--
--	  ``FE_IS_STUPID``
--
--       -  There's something wrong at the frontend, and it can't report its
--	  capabilities
--
--    -  .. row 3
--
--       -  .. _FE-CAN-INVERSION-AUTO:
--
--	  ``FE_CAN_INVERSION_AUTO``
--
--       -  The frontend is capable of auto-detecting inversion
--
--    -  .. row 4
--
--       -  .. _FE-CAN-FEC-1-2:
--
--	  ``FE_CAN_FEC_1_2``
--
--       -  The frontend supports FEC 1/2
--
--    -  .. row 5
--
--       -  .. _FE-CAN-FEC-2-3:
--
--	  ``FE_CAN_FEC_2_3``
--
--       -  The frontend supports FEC 2/3
--
--    -  .. row 6
--
--       -  .. _FE-CAN-FEC-3-4:
--
--	  ``FE_CAN_FEC_3_4``
--
--       -  The frontend supports FEC 3/4
--
--    -  .. row 7
--
--       -  .. _FE-CAN-FEC-4-5:
--
--	  ``FE_CAN_FEC_4_5``
--
--       -  The frontend supports FEC 4/5
--
--    -  .. row 8
--
--       -  .. _FE-CAN-FEC-5-6:
--
--	  ``FE_CAN_FEC_5_6``
--
--       -  The frontend supports FEC 5/6
--
--    -  .. row 9
--
--       -  .. _FE-CAN-FEC-6-7:
--
--	  ``FE_CAN_FEC_6_7``
--
--       -  The frontend supports FEC 6/7
--
--    -  .. row 10
--
--       -  .. _FE-CAN-FEC-7-8:
--
--	  ``FE_CAN_FEC_7_8``
--
--       -  The frontend supports FEC 7/8
--
--    -  .. row 11
--
--       -  .. _FE-CAN-FEC-8-9:
--
--	  ``FE_CAN_FEC_8_9``
--
--       -  The frontend supports FEC 8/9
--
--    -  .. row 12
--
--       -  .. _FE-CAN-FEC-AUTO:
--
--	  ``FE_CAN_FEC_AUTO``
--
--       -  The frontend can autodetect FEC.
--
--    -  .. row 13
--
--       -  .. _FE-CAN-QPSK:
--
--	  ``FE_CAN_QPSK``
--
--       -  The frontend supports QPSK modulation
--
--    -  .. row 14
--
--       -  .. _FE-CAN-QAM-16:
--
--	  ``FE_CAN_QAM_16``
--
--       -  The frontend supports 16-QAM modulation
--
--    -  .. row 15
--
--       -  .. _FE-CAN-QAM-32:
--
--	  ``FE_CAN_QAM_32``
--
--       -  The frontend supports 32-QAM modulation
--
--    -  .. row 16
--
--       -  .. _FE-CAN-QAM-64:
--
--	  ``FE_CAN_QAM_64``
--
--       -  The frontend supports 64-QAM modulation
--
--    -  .. row 17
--
--       -  .. _FE-CAN-QAM-128:
--
--	  ``FE_CAN_QAM_128``
--
--       -  The frontend supports 128-QAM modulation
--
--    -  .. row 18
--
--       -  .. _FE-CAN-QAM-256:
--
--	  ``FE_CAN_QAM_256``
--
--       -  The frontend supports 256-QAM modulation
--
--    -  .. row 19
--
--       -  .. _FE-CAN-QAM-AUTO:
--
--	  ``FE_CAN_QAM_AUTO``
--
--       -  The frontend can autodetect modulation
--
--    -  .. row 20
--
--       -  .. _FE-CAN-TRANSMISSION-MODE-AUTO:
--
--	  ``FE_CAN_TRANSMISSION_MODE_AUTO``
--
--       -  The frontend can autodetect the transmission mode
--
--    -  .. row 21
--
--       -  .. _FE-CAN-BANDWIDTH-AUTO:
--
--	  ``FE_CAN_BANDWIDTH_AUTO``
--
--       -  The frontend can autodetect the bandwidth
--
--    -  .. row 22
--
--       -  .. _FE-CAN-GUARD-INTERVAL-AUTO:
--
--	  ``FE_CAN_GUARD_INTERVAL_AUTO``
--
--       -  The frontend can autodetect the guard interval
--
--    -  .. row 23
--
--       -  .. _FE-CAN-HIERARCHY-AUTO:
--
--	  ``FE_CAN_HIERARCHY_AUTO``
--
--       -  The frontend can autodetect hierarch
--
--    -  .. row 24
--
--       -  .. _FE-CAN-8VSB:
--
--	  ``FE_CAN_8VSB``
--
--       -  The frontend supports 8-VSB modulation
--
--    -  .. row 25
--
--       -  .. _FE-CAN-16VSB:
--
--	  ``FE_CAN_16VSB``
--
--       -  The frontend supports 16-VSB modulation
--
--    -  .. row 26
--
--       -  .. _FE-HAS-EXTENDED-CAPS:
--
--	  ``FE_HAS_EXTENDED_CAPS``
--
--       -  Currently, unused
--
--    -  .. row 27
--
--       -  .. _FE-CAN-MULTISTREAM:
--
--	  ``FE_CAN_MULTISTREAM``
--
--       -  The frontend supports multistream filtering
--
--    -  .. row 28
--
--       -  .. _FE-CAN-TURBO-FEC:
--
--	  ``FE_CAN_TURBO_FEC``
--
--       -  The frontend supports turbo FEC modulation
--
--    -  .. row 29
--
--       -  .. _FE-CAN-2G-MODULATION:
--
--	  ``FE_CAN_2G_MODULATION``
--
--       -  The frontend supports "2nd generation modulation" (DVB-S2/T2)>
--
--    -  .. row 30
--
--       -  .. _FE-NEEDS-BENDING:
--
--	  ``FE_NEEDS_BENDING``
--
--       -  Not supported anymore, don't use it
--
--    -  .. row 31
--
--       -  .. _FE-CAN-RECOVER:
--
--	  ``FE_CAN_RECOVER``
--
--       -  The frontend can recover from a cable unplug automatically
--
--    -  .. row 32
--
--       -  .. _FE-CAN-MUTE-TS:
--
--	  ``FE_CAN_MUTE_TS``
--
--       -  The frontend can stop spurious TS data output
-+The frontend capabilities are described at :c:type:`fe_caps`.
- 
- 
- Return Value
-diff --git a/Documentation/media/uapi/dvb/fe-get-property.rst b/Documentation/media/uapi/dvb/fe-get-property.rst
-index 015d4db597b5..b22e37c4a787 100644
---- a/Documentation/media/uapi/dvb/fe-get-property.rst
-+++ b/Documentation/media/uapi/dvb/fe-get-property.rst
-@@ -29,7 +29,7 @@ Arguments
-     File descriptor returned by :ref:`open() <frontend_f_open>`.
- 
- ``argp``
--    pointer to struct :c:type:`dtv_properties`
-+    Pointer to struct :c:type:`dtv_properties`.
- 
- 
- Description
-diff --git a/Documentation/media/uapi/dvb/fe-read-status.rst b/Documentation/media/uapi/dvb/fe-read-status.rst
-index 76b93e386552..21b2db3591fd 100644
---- a/Documentation/media/uapi/dvb/fe-read-status.rst
-+++ b/Documentation/media/uapi/dvb/fe-read-status.rst
-@@ -52,89 +52,6 @@ The fe_status parameter is used to indicate the current state and/or
- state changes of the frontend hardware. It is produced using the enum
- :c:type:`fe_status` values on a bitmask
- 
--.. c:type:: fe_status
--
--.. tabularcolumns:: |p{3.5cm}|p{14.0cm}|
--
--.. _fe-status:
--
--.. flat-table:: enum fe_status
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _FE-NONE:
--
--	  ``FE_NONE``
--
--       -  The frontend doesn't have any kind of lock. That's the initial frontend status
--
--    -  .. row 3
--
--       -  .. _FE-HAS-SIGNAL:
--
--	  ``FE_HAS_SIGNAL``
--
--       -  The frontend has found something above the noise level
--
--    -  .. row 4
--
--       -  .. _FE-HAS-CARRIER:
--
--	  ``FE_HAS_CARRIER``
--
--       -  The frontend has found a DVB signal
--
--    -  .. row 5
--
--       -  .. _FE-HAS-VITERBI:
--
--	  ``FE_HAS_VITERBI``
--
--       -  The frontend FEC inner coding (Viterbi, LDPC or other inner code)
--	  is stable
--
--    -  .. row 6
--
--       -  .. _FE-HAS-SYNC:
--
--	  ``FE_HAS_SYNC``
--
--       -  Synchronization bytes was found
--
--    -  .. row 7
--
--       -  .. _FE-HAS-LOCK:
--
--	  ``FE_HAS_LOCK``
--
--       -  The DVB were locked and everything is working
--
--    -  .. row 8
--
--       -  .. _FE-TIMEDOUT:
--
--	  ``FE_TIMEDOUT``
--
--       -  no lock within the last about 2 seconds
--
--    -  .. row 9
--
--       -  .. _FE-REINIT:
--
--	  ``FE_REINIT``
--
--       -  The frontend was reinitialized, application is recommended to
--	  reset DiSEqC, tone and parameters
--
- 
- Return Value
- ============
-diff --git a/Documentation/media/uapi/dvb/fe-set-tone.rst b/Documentation/media/uapi/dvb/fe-set-tone.rst
-index 84e4da3fd4c9..d0950acbbe64 100644
---- a/Documentation/media/uapi/dvb/fe-set-tone.rst
-+++ b/Documentation/media/uapi/dvb/fe-set-tone.rst
-@@ -45,36 +45,6 @@ this is done using the DiSEqC ioctls.
-    capability of selecting the band. So, it is recommended that applications
-    would change to SEC_TONE_OFF when the device is not used.
- 
--.. c:type:: fe_sec_tone_mode
--
--.. flat-table:: enum fe_sec_tone_mode
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _SEC-TONE-ON:
--
--	  ``SEC_TONE_ON``
--
--       -  Sends a 22kHz tone burst to the antenna
--
--    -  .. row 3
--
--       -  .. _SEC-TONE-OFF:
--
--	  ``SEC_TONE_OFF``
--
--       -  Don't send a 22kHz tone to the antenna (except if the
--	  FE_DISEQC_* ioctls are called)
--
- 
- Return Value
- ============
-diff --git a/Documentation/media/uapi/dvb/fe_property_parameters.rst b/Documentation/media/uapi/dvb/fe_property_parameters.rst
-index 7bb7559c4500..c6eb74f59b00 100644
---- a/Documentation/media/uapi/dvb/fe_property_parameters.rst
-+++ b/Documentation/media/uapi/dvb/fe_property_parameters.rst
-@@ -6,6 +6,11 @@
- Digital TV property parameters
- ******************************
- 
-+There are several different Digital TV parameters that can be used by
-+:ref:`FE_SET_PROPERTY and FE_GET_PROPERTY ioctls<FE_GET_PROPERTY>`.
-+This section describes each of them. Please notice, however, that only
-+a subset of them are needed to setup a frontend.
-+
- 
- .. _DTV-UNDEFINED:
- 
-@@ -67,144 +72,36 @@ DTV_MODULATION
- ==============
- 
- Specifies the frontend modulation type for delivery systems that
--supports more than one modulation type. The modulation can be one of the
--types defined by enum :c:type:`fe_modulation`.
--
--
--.. c:type:: fe_modulation
--
--Modulation property
---------------------
--
--Most of the digital TV standards currently offers more than one possible
--modulation (sometimes called as "constellation" on some standards). This
--enum contains the values used by the Kernel. Please note that not all
--modulations are supported by a given standard.
--
--
--.. flat-table:: enum fe_modulation
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _QPSK:
--
--	  ``QPSK``
--
--       -  QPSK modulation
--
--    -  .. row 3
--
--       -  .. _QAM-16:
--
--	  ``QAM_16``
--
--       -  16-QAM modulation
--
--    -  .. row 4
--
--       -  .. _QAM-32:
--
--	  ``QAM_32``
--
--       -  32-QAM modulation
--
--    -  .. row 5
--
--       -  .. _QAM-64:
--
--	  ``QAM_64``
--
--       -  64-QAM modulation
--
--    -  .. row 6
--
--       -  .. _QAM-128:
--
--	  ``QAM_128``
--
--       -  128-QAM modulation
--
--    -  .. row 7
--
--       -  .. _QAM-256:
--
--	  ``QAM_256``
--
--       -  256-QAM modulation
--
--    -  .. row 8
--
--       -  .. _QAM-AUTO:
--
--	  ``QAM_AUTO``
--
--       -  Autodetect QAM modulation
--
--    -  .. row 9
--
--       -  .. _VSB-8:
--
--	  ``VSB_8``
--
--       -  8-VSB modulation
--
--    -  .. row 10
--
--       -  .. _VSB-16:
--
--	  ``VSB_16``
--
--       -  16-VSB modulation
--
--    -  .. row 11
--
--       -  .. _PSK-8:
--
--	  ``PSK_8``
--
--       -  8-PSK modulation
--
--    -  .. row 12
--
--       -  .. _APSK-16:
--
--	  ``APSK_16``
--
--       -  16-APSK modulation
--
--    -  .. row 13
--
--       -  .. _APSK-32:
--
--	  ``APSK_32``
--
--       -  32-APSK modulation
--
--    -  .. row 14
--
--       -  .. _DQPSK:
--
--	  ``DQPSK``
--
--       -  DQPSK modulation
--
--    -  .. row 15
--
--       -  .. _QAM-4-NR:
--
--	  ``QAM_4_NR``
--
--       -  4-QAM-NR modulation
--
-+supports more multiple modulations.
-+
-+The modulation can be one of the types defined by enum :c:type:`fe_modulation`.
-+
-+Most of the digital TV standards offers more than one possible
-+modulation type.
-+
-+The table below presents a summary of the types of modulation types
-+supported by each delivery system, as currently defined by specs.
-+
-+======================= =======================================================
-+Standard		Modulation types
-+======================= =======================================================
-+ATSC (version 1)	8-VSB and 16-VSB.
-+DMTB			4-QAM, 16-QAM, 32-QAM, 64-QAM and 4-QAM-NR.
-+DVB-C Annex A/C		16-QAM, 32-QAM, 64-QAM and 256-QAM.
-+DVB-C Annex B		64-QAM.
-+DVB-T			QPSK, 16-QAM and 64-QAM.
-+DVB-T2			QPSK, 16-QAM, 64-QAM and 256-QAM.
-+DVB-S			No need to set. It supports only QPSK.
-+DVB-S2			QPSK, 8-PSK, 16-APSK and 32-APSK.
-+ISDB-T			QPSK, DQPSK, 16-QAM and 64-QAM.
-+ISDB-S			8-PSK, QPSK and BPSK.
-+======================= =======================================================
-+
-+.. note::
-+
-+   Please notice that some of the above modulation types may not be
-+   defined currently at the Kernel. The reason is simple: no driver
-+   needed such definition yet.
- 
- 
- .. _DTV-BANDWIDTH-HZ:
-@@ -249,54 +146,7 @@ DTV_INVERSION
- 
- Specifies if the frontend should do spectral inversion or not.
- 
--.. c:type:: fe_spectral_inversion
--
--enum fe_modulation: Frontend spectral inversion
-------------------------------------------------
--
--This parameter indicates if spectral inversion should be presumed or
--not. In the automatic setting (``INVERSION_AUTO``) the hardware will try
--to figure out the correct setting by itself. If the hardware doesn't
--support, the DVB core will try to lock at the carrier first with
--inversion off. If it fails, it will try to enable inversion.
--
--
--.. flat-table:: enum fe_modulation
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _INVERSION-OFF:
--
--	  ``INVERSION_OFF``
--
--       -  Don't do spectral band inversion.
--
--    -  .. row 3
--
--       -  .. _INVERSION-ON:
--
--	  ``INVERSION_ON``
--
--       -  Do spectral band inversion.
--
--    -  .. row 4
--
--       -  .. _INVERSION-AUTO:
--
--	  ``INVERSION_AUTO``
--
--       -  Autodetect spectral band inversion.
--
--
-+The acceptable values are defined by :c:type:`fe_spectral_inversion`.
- 
- .. _DTV-DISEQC-MASTER:
- 
-@@ -320,128 +170,9 @@ standards.
- DTV_INNER_FEC
- =============
- 
--Used cable/satellite transmissions. The acceptable values are:
--
--.. c:type:: fe_code_rate
--
--enum fe_code_rate: type of the Forward Error Correction.
----------------------------------------------------------
--
--.. flat-table:: enum fe_code_rate
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _FEC-NONE:
--
--	  ``FEC_NONE``
--
--       -  No Forward Error Correction Code
--
--    -  .. row 3
--
--       -  .. _FEC-AUTO:
--
--	  ``FEC_AUTO``
--
--       -  Autodetect Error Correction Code
--
--    -  .. row 4
--
--       -  .. _FEC-1-2:
--
--	  ``FEC_1_2``
--
--       -  Forward Error Correction Code 1/2
--
--    -  .. row 5
--
--       -  .. _FEC-2-3:
--
--	  ``FEC_2_3``
--
--       -  Forward Error Correction Code 2/3
--
--    -  .. row 6
--
--       -  .. _FEC-3-4:
--
--	  ``FEC_3_4``
--
--       -  Forward Error Correction Code 3/4
--
--    -  .. row 7
--
--       -  .. _FEC-4-5:
--
--	  ``FEC_4_5``
--
--       -  Forward Error Correction Code 4/5
--
--    -  .. row 8
--
--       -  .. _FEC-5-6:
--
--	  ``FEC_5_6``
--
--       -  Forward Error Correction Code 5/6
--
--    -  .. row 9
--
--       -  .. _FEC-6-7:
--
--	  ``FEC_6_7``
--
--       -  Forward Error Correction Code 6/7
--
--    -  .. row 10
--
--       -  .. _FEC-7-8:
--
--	  ``FEC_7_8``
--
--       -  Forward Error Correction Code 7/8
--
--    -  .. row 11
--
--       -  .. _FEC-8-9:
--
--	  ``FEC_8_9``
--
--       -  Forward Error Correction Code 8/9
--
--    -  .. row 12
--
--       -  .. _FEC-9-10:
--
--	  ``FEC_9_10``
--
--       -  Forward Error Correction Code 9/10
--
--    -  .. row 13
--
--       -  .. _FEC-2-5:
--
--	  ``FEC_2_5``
--
--       -  Forward Error Correction Code 2/5
--
--    -  .. row 14
--
--       -  .. _FEC-3-5:
--
--	  ``FEC_3_5``
--
--       -  Forward Error Correction Code 3/5
-+Used cable/satellite transmissions.
- 
-+The acceptable values are defined by :c:type:`fe_code_rate`.
- 
- 
- .. _DTV-VOLTAGE:
-@@ -454,44 +185,7 @@ polarzation (horizontal/vertical). When using DiSEqC epuipment this
- voltage has to be switched consistently to the DiSEqC commands as
- described in the DiSEqC spec.
- 
--
--.. c:type:: fe_sec_voltage
--
--.. flat-table:: enum fe_sec_voltage
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _SEC-VOLTAGE-13:
--
--	  ``SEC_VOLTAGE_13``
--
--       -  Set DC voltage level to 13V
--
--    -  .. row 3
--
--       -  .. _SEC-VOLTAGE-18:
--
--	  ``SEC_VOLTAGE_18``
--
--       -  Set DC voltage level to 18V
--
--    -  .. row 4
--
--       -  .. _SEC-VOLTAGE-OFF:
--
--	  ``SEC_VOLTAGE_OFF``
--
--       -  Don't send any voltage to the antenna
--
-+The acceptable values are defined by :c:type:`fe_sec_voltage`.
- 
- 
- .. _DTV-TONE:
-@@ -507,50 +201,9 @@ Currently not used.
- DTV_PILOT
- =========
- 
--Sets DVB-S2 pilot
--
--
--.. c:type:: fe_pilot
--
--fe_pilot type
---------------
--
--
--.. flat-table:: enum fe_pilot
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _PILOT-ON:
--
--	  ``PILOT_ON``
--
--       -  Pilot tones enabled
--
--    -  .. row 3
--
--       -  .. _PILOT-OFF:
--
--	  ``PILOT_OFF``
--
--       -  Pilot tones disabled
--
--    -  .. row 4
--
--       -  .. _PILOT-AUTO:
--
--	  ``PILOT_AUTO``
--
--       -  Autodetect pilot tones
-+Sets DVB-S2 pilot.
- 
-+The acceptable values are defined by :c:type:`fe_pilot`.
- 
- 
- .. _DTV-ROLLOFF:
-@@ -560,56 +213,7 @@ DTV_ROLLOFF
- 
- Sets DVB-S2 rolloff
- 
--
--.. c:type:: fe_rolloff
--
--fe_rolloff type
-----------------
--
--
--.. flat-table:: enum fe_rolloff
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _ROLLOFF-35:
--
--	  ``ROLLOFF_35``
--
--       -  Roloff factor: α=35%
--
--    -  .. row 3
--
--       -  .. _ROLLOFF-20:
--
--	  ``ROLLOFF_20``
--
--       -  Roloff factor: α=20%
--
--    -  .. row 4
--
--       -  .. _ROLLOFF-25:
--
--	  ``ROLLOFF_25``
--
--       -  Roloff factor: α=25%
--
--    -  .. row 5
--
--       -  .. _ROLLOFF-AUTO:
--
--	  ``ROLLOFF_AUTO``
--
--       -  Auto-detect the roloff factor.
--
-+The acceptable values are defined by :c:type:`fe_rolloff`.
- 
- 
- .. _DTV-DISEQC-SLAVE-REPLY:
-@@ -641,180 +245,9 @@ Currently not implemented.
- DTV_DELIVERY_SYSTEM
- ===================
- 
--Specifies the type of Delivery system
--
--
--.. c:type:: fe_delivery_system
--
--fe_delivery_system type
-------------------------
--
--Possible values:
--
--
--.. flat-table:: enum fe_delivery_system
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _SYS-UNDEFINED:
--
--	  ``SYS_UNDEFINED``
--
--       -  Undefined standard. Generally, indicates an error
--
--    -  .. row 3
--
--       -  .. _SYS-DVBC-ANNEX-A:
--
--	  ``SYS_DVBC_ANNEX_A``
--
--       -  Cable TV: DVB-C following ITU-T J.83 Annex A spec
--
--    -  .. row 4
--
--       -  .. _SYS-DVBC-ANNEX-B:
--
--	  ``SYS_DVBC_ANNEX_B``
--
--       -  Cable TV: DVB-C following ITU-T J.83 Annex B spec (ClearQAM)
--
--    -  .. row 5
--
--       -  .. _SYS-DVBC-ANNEX-C:
--
--	  ``SYS_DVBC_ANNEX_C``
--
--       -  Cable TV: DVB-C following ITU-T J.83 Annex C spec
--
--    -  .. row 6
--
--       -  .. _SYS-ISDBC:
--
--	  ``SYS_ISDBC``
--
--       -  Cable TV: ISDB-C (no drivers yet)
--
--    -  .. row 7
--
--       -  .. _SYS-DVBT:
--
--	  ``SYS_DVBT``
--
--       -  Terrestral TV: DVB-T
--
--    -  .. row 8
--
--       -  .. _SYS-DVBT2:
--
--	  ``SYS_DVBT2``
--
--       -  Terrestral TV: DVB-T2
--
--    -  .. row 9
--
--       -  .. _SYS-ISDBT:
--
--	  ``SYS_ISDBT``
--
--       -  Terrestral TV: ISDB-T
--
--    -  .. row 10
--
--       -  .. _SYS-ATSC:
--
--	  ``SYS_ATSC``
--
--       -  Terrestral TV: ATSC
--
--    -  .. row 11
--
--       -  .. _SYS-ATSCMH:
--
--	  ``SYS_ATSCMH``
--
--       -  Terrestral TV (mobile): ATSC-M/H
--
--    -  .. row 12
--
--       -  .. _SYS-DTMB:
--
--	  ``SYS_DTMB``
--
--       -  Terrestrial TV: DTMB
--
--    -  .. row 13
--
--       -  .. _SYS-DVBS:
--
--	  ``SYS_DVBS``
--
--       -  Satellite TV: DVB-S
--
--    -  .. row 14
--
--       -  .. _SYS-DVBS2:
--
--	  ``SYS_DVBS2``
--
--       -  Satellite TV: DVB-S2
--
--    -  .. row 15
--
--       -  .. _SYS-TURBO:
--
--	  ``SYS_TURBO``
--
--       -  Satellite TV: DVB-S Turbo
--
--    -  .. row 16
--
--       -  .. _SYS-ISDBS:
--
--	  ``SYS_ISDBS``
--
--       -  Satellite TV: ISDB-S
--
--    -  .. row 17
--
--       -  .. _SYS-DAB:
--
--	  ``SYS_DAB``
--
--       -  Digital audio: DAB (not fully supported)
--
--    -  .. row 18
--
--       -  .. _SYS-DSS:
--
--	  ``SYS_DSS``
--
--       -  Satellite TV:"DSS (not fully supported)
--
--    -  .. row 19
--
--       -  .. _SYS-CMMB:
--
--	  ``SYS_CMMB``
--
--       -  Terrestral TV (mobile):CMMB (not fully supported)
--
--    -  .. row 20
--
--       -  .. _SYS-DVBH:
--
--	  ``SYS_DVBH``
--
--       -  Terrestral TV (mobile): DVB-H (standard deprecated)
-+Specifies the type of Delivery system.
- 
-+The acceptable values are defined by :c:type:`fe_delivery_system`.
- 
- 
- .. _DTV-ISDBT-PARTIAL-RECEPTION:
-@@ -964,7 +397,11 @@ Only the values of the first 3 bits are used. Other bits will be silently ignore
- DTV_ISDBT_LAYER[A-C]_FEC
- ------------------------
- 
--Possible values: ``FEC_AUTO``, ``FEC_1_2``, ``FEC_2_3``, ``FEC_3_4``,
-+The Forward Error Correction mechanism used by a given ISDB Layer, as
-+defined by :c:type:`fe_code_rate`.
-+
-+
-+Possible values are: ``FEC_AUTO``, ``FEC_1_2``, ``FEC_2_3``, ``FEC_3_4``,
- ``FEC_5_6``, ``FEC_7_8``
- 
- 
-@@ -973,11 +410,17 @@ Possible values: ``FEC_AUTO``, ``FEC_1_2``, ``FEC_2_3``, ``FEC_3_4``,
- DTV_ISDBT_LAYER[A-C]_MODULATION
- -------------------------------
- 
--Possible values: ``QAM_AUTO``, QP\ ``SK, QAM_16``, ``QAM_64``, ``DQPSK``
-+The modulation used by a given ISDB Layer, as defined by
-+:c:type:`fe_modulation`.
- 
--Note: If layer C is ``DQPSK`` layer B has to be ``DQPSK``. If layer B is
--``DQPSK`` and ``DTV_ISDBT_PARTIAL_RECEPTION``\ =0 layer has to be
--``DQPSK``.
-+Possible values are: ``QAM_AUTO``, ``QPSK``, ``QAM_16``, ``QAM_64``, ``DQPSK``
-+
-+.. note::
-+
-+   #. If layer C is ``DQPSK``, then layer B has to be ``DQPSK``.
-+
-+   #. If layer B is ``DQPSK`` and ``DTV_ISDBT_PARTIAL_RECEPTION``\ = 0,
-+      then layer has to be ``DQPSK``.
- 
- 
- .. _DTV-ISDBT-LAYER-SEGMENT-COUNT:
-@@ -993,15 +436,15 @@ Note: Truth table for ``DTV_ISDBT_SOUND_BROADCASTING`` and
- .. _isdbt-layer_seg-cnt-table:
- 
- .. flat-table:: Truth table for ISDB-T Sound Broadcasting
--    :header-rows:  0
-+    :header-rows:  1
-     :stub-columns: 0
- 
- 
-     -  .. row 1
- 
--       -  PR
-+       -  Partial Reception
- 
--       -  SB
-+       -  Sound Broadcasting
- 
-        -  Layer A width
- 
-@@ -1086,7 +529,7 @@ TMCC-structure, as shown in the table below.
- .. c:type:: isdbt_layer_interleaving_table
- 
- .. flat-table:: ISDB-T time interleaving modes
--    :header-rows:  0
-+    :header-rows:  1
-     :stub-columns: 0
- 
- 
-@@ -1216,42 +659,7 @@ DTV_ATSCMH_RS_FRAME_MODE
- 
- Reed Solomon (RS) frame mode.
- 
--Possible values are:
--
--.. tabularcolumns:: |p{5.0cm}|p{12.5cm}|
--
--.. c:type:: atscmh_rs_frame_mode
--
--.. flat-table:: enum atscmh_rs_frame_mode
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _ATSCMH-RSFRAME-PRI-ONLY:
--
--	  ``ATSCMH_RSFRAME_PRI_ONLY``
--
--       -  Single Frame: There is only a primary RS Frame for all Group
--	  Regions.
--
--    -  .. row 3
--
--       -  .. _ATSCMH-RSFRAME-PRI-SEC:
--
--	  ``ATSCMH_RSFRAME_PRI_SEC``
--
--       -  Dual Frame: There are two separate RS Frames: Primary RS Frame for
--	  Group Region A and B and Secondary RS Frame for Group Region C and
--	  D.
--
-+The acceptable values are defined by :c:type:`atscmh_rs_frame_mode`.
- 
- 
- .. _DTV-ATSCMH-RS-FRAME-ENSEMBLE:
-@@ -1261,46 +669,7 @@ DTV_ATSCMH_RS_FRAME_ENSEMBLE
- 
- Reed Solomon(RS) frame ensemble.
- 
--Possible values are:
--
--
--.. c:type:: atscmh_rs_frame_ensemble
--
--.. flat-table:: enum atscmh_rs_frame_ensemble
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _ATSCMH-RSFRAME-ENS-PRI:
--
--	  ``ATSCMH_RSFRAME_ENS_PRI``
--
--       -  Primary Ensemble.
--
--    -  .. row 3
--
--       -  .. _ATSCMH-RSFRAME-ENS-SEC:
--
--	  ``AATSCMH_RSFRAME_PRI_SEC``
--
--       -  Secondary Ensemble.
--
--    -  .. row 4
--
--       -  .. _ATSCMH-RSFRAME-RES:
--
--	  ``AATSCMH_RSFRAME_RES``
--
--       -  Reserved. Shouldn't be used.
--
-+The acceptable values are defined by :c:type:`atscmh_rs_frame_ensemble`.
- 
- 
- .. _DTV-ATSCMH-RS-CODE-MODE-PRI:
-@@ -1310,54 +679,7 @@ DTV_ATSCMH_RS_CODE_MODE_PRI
- 
- Reed Solomon (RS) code mode (primary).
- 
--Possible values are:
--
--
--.. c:type:: atscmh_rs_code_mode
--
--.. flat-table:: enum atscmh_rs_code_mode
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _ATSCMH-RSCODE-211-187:
--
--	  ``ATSCMH_RSCODE_211_187``
--
--       -  Reed Solomon code (211,187).
--
--    -  .. row 3
--
--       -  .. _ATSCMH-RSCODE-223-187:
--
--	  ``ATSCMH_RSCODE_223_187``
--
--       -  Reed Solomon code (223,187).
--
--    -  .. row 4
--
--       -  .. _ATSCMH-RSCODE-235-187:
--
--	  ``ATSCMH_RSCODE_235_187``
--
--       -  Reed Solomon code (235,187).
--
--    -  .. row 5
--
--       -  .. _ATSCMH-RSCODE-RES:
--
--	  ``ATSCMH_RSCODE_RES``
--
--       -  Reserved. Shouldn't be used.
--
-+The acceptable values are defined by :c:type:`atscmh_rs_code_mode`.
- 
- 
- .. _DTV-ATSCMH-RS-CODE-MODE-SEC:
-@@ -1367,8 +689,7 @@ DTV_ATSCMH_RS_CODE_MODE_SEC
- 
- Reed Solomon (RS) code mode (secondary).
- 
--Possible values are the same as documented on enum
--:c:type:`atscmh_rs_code_mode`:
-+The acceptable values are defined by :c:type:`atscmh_rs_code_mode`.
- 
- 
- .. _DTV-ATSCMH-SCCC-BLOCK-MODE:
-@@ -1378,49 +699,7 @@ DTV_ATSCMH_SCCC_BLOCK_MODE
- 
- Series Concatenated Convolutional Code Block Mode.
- 
--Possible values are:
--
--.. tabularcolumns:: |p{4.5cm}|p{13.0cm}|
--
--.. c:type:: atscmh_sccc_block_mode
--
--.. flat-table:: enum atscmh_scc_block_mode
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _ATSCMH-SCCC-BLK-SEP:
--
--	  ``ATSCMH_SCCC_BLK_SEP``
--
--       -  Separate SCCC: the SCCC outer code mode shall be set independently
--	  for each Group Region (A, B, C, D)
--
--    -  .. row 3
--
--       -  .. _ATSCMH-SCCC-BLK-COMB:
--
--	  ``ATSCMH_SCCC_BLK_COMB``
--
--       -  Combined SCCC: all four Regions shall have the same SCCC outer
--	  code mode.
--
--    -  .. row 4
--
--       -  .. _ATSCMH-SCCC-BLK-RES:
--
--	  ``ATSCMH_SCCC_BLK_RES``
--
--       -  Reserved. Shouldn't be used.
--
-+The acceptable values are defined by :c:type:`atscmh_sccc_block_mode`.
- 
- 
- .. _DTV-ATSCMH-SCCC-CODE-MODE-A:
-@@ -1430,47 +709,7 @@ DTV_ATSCMH_SCCC_CODE_MODE_A
- 
- Series Concatenated Convolutional Code Rate.
- 
--Possible values are:
--
--
--.. c:type:: atscmh_sccc_code_mode
--
--.. flat-table:: enum atscmh_sccc_code_mode
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _ATSCMH-SCCC-CODE-HLF:
--
--	  ``ATSCMH_SCCC_CODE_HLF``
--
--       -  The outer code rate of a SCCC Block is 1/2 rate.
--
--    -  .. row 3
--
--       -  .. _ATSCMH-SCCC-CODE-QTR:
--
--	  ``ATSCMH_SCCC_CODE_QTR``
--
--       -  The outer code rate of a SCCC Block is 1/4 rate.
--
--    -  .. row 4
--
--       -  .. _ATSCMH-SCCC-CODE-RES:
--
--	  ``ATSCMH_SCCC_CODE_RES``
--
--       -  to be documented.
--
--
-+The acceptable values are defined by :c:type:`atscmh_sccc_code_mode`.
- 
- .. _DTV-ATSCMH-SCCC-CODE-MODE-B:
- 
-@@ -1518,8 +757,9 @@ Returns the major/minor version of the DVB API
- DTV_CODE_RATE_HP
- ================
- 
--Used on terrestrial transmissions. The acceptable values are the ones
--described at :c:type:`fe_transmit_mode`.
-+Used on terrestrial transmissions.
-+
-+The acceptable values are defined by :c:type:`fe_transmit_mode`.
- 
- 
- .. _DTV-CODE-RATE-LP:
-@@ -1527,8 +767,9 @@ described at :c:type:`fe_transmit_mode`.
- DTV_CODE_RATE_LP
- ================
- 
--Used on terrestrial transmissions. The acceptable values are the ones
--described at :c:type:`fe_transmit_mode`.
-+Used on terrestrial transmissions.
-+
-+The acceptable values are defined by :c:type:`fe_transmit_mode`.
- 
- 
- .. _DTV-GUARD-INTERVAL:
-@@ -1536,242 +777,54 @@ described at :c:type:`fe_transmit_mode`.
- DTV_GUARD_INTERVAL
- ==================
- 
--Possible values are:
--
--
--.. c:type:: fe_guard_interval
--
--Modulation guard interval
---------------------------
--
--
--.. flat-table:: enum fe_guard_interval
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _GUARD-INTERVAL-AUTO:
--
--	  ``GUARD_INTERVAL_AUTO``
--
--       -  Autodetect the guard interval
--
--    -  .. row 3
--
--       -  .. _GUARD-INTERVAL-1-128:
--
--	  ``GUARD_INTERVAL_1_128``
--
--       -  Guard interval 1/128
--
--    -  .. row 4
--
--       -  .. _GUARD-INTERVAL-1-32:
--
--	  ``GUARD_INTERVAL_1_32``
--
--       -  Guard interval 1/32
--
--    -  .. row 5
--
--       -  .. _GUARD-INTERVAL-1-16:
--
--	  ``GUARD_INTERVAL_1_16``
--
--       -  Guard interval 1/16
--
--    -  .. row 6
--
--       -  .. _GUARD-INTERVAL-1-8:
--
--	  ``GUARD_INTERVAL_1_8``
--
--       -  Guard interval 1/8
--
--    -  .. row 7
--
--       -  .. _GUARD-INTERVAL-1-4:
--
--	  ``GUARD_INTERVAL_1_4``
--
--       -  Guard interval 1/4
--
--    -  .. row 8
--
--       -  .. _GUARD-INTERVAL-19-128:
--
--	  ``GUARD_INTERVAL_19_128``
--
--       -  Guard interval 19/128
--
--    -  .. row 9
--
--       -  .. _GUARD-INTERVAL-19-256:
--
--	  ``GUARD_INTERVAL_19_256``
--
--       -  Guard interval 19/256
--
--    -  .. row 10
--
--       -  .. _GUARD-INTERVAL-PN420:
--
--	  ``GUARD_INTERVAL_PN420``
--
--       -  PN length 420 (1/4)
--
--    -  .. row 11
--
--       -  .. _GUARD-INTERVAL-PN595:
--
--	  ``GUARD_INTERVAL_PN595``
--
--       -  PN length 595 (1/6)
--
--    -  .. row 12
--
--       -  .. _GUARD-INTERVAL-PN945:
--
--	  ``GUARD_INTERVAL_PN945``
--
--       -  PN length 945 (1/9)
--
--
--Notes:
--
--1) If ``DTV_GUARD_INTERVAL`` is set the ``GUARD_INTERVAL_AUTO`` the
--hardware will try to find the correct guard interval (if capable) and
--will use TMCC to fill in the missing parameters.
--
--2) Intervals 1/128, 19/128 and 19/256 are used only for DVB-T2 at
--present
--
--3) DTMB specifies PN420, PN595 and PN945.
--
-+The acceptable values are defined by :c:type:`fe_guard_interval`.
-+
-+.. note::
-+
-+   #. If ``DTV_GUARD_INTERVAL`` is set the ``GUARD_INTERVAL_AUTO`` the
-+      hardware will try to find the correct guard interval (if capable) and
-+      will use TMCC to fill in the missing parameters.
-+   #. Intervals ``GUARD_INTERVAL_1_128``, ``GUARD_INTERVAL_19_128``
-+      and ``GUARD_INTERVAL_19_256`` are used only for DVB-T2 at
-+      present.
-+   #. Intervals ``GUARD_INTERVAL_PN420``, ``GUARD_INTERVAL_PN595`` and
-+      ``GUARD_INTERVAL_PN945`` are used only for DMTB at the present.
-+      On such standard, only those intervals and ``GUARD_INTERVAL_AUTO``
-+      are valid.
- 
- .. _DTV-TRANSMISSION-MODE:
- 
- DTV_TRANSMISSION_MODE
- =====================
- 
--Specifies the number of carriers used by the standard. This is used only
--on OFTM-based standards, e. g. DVB-T/T2, ISDB-T, DTMB
-+Specifies the FFT size (with corresponds to the approximate number of
-+carriers) used by the standard. This is used only on OFTM-based standards,
-+e. g. DVB-T/T2, ISDB-T, DTMB.
- 
-+The acceptable values are defined by :c:type:`fe_transmit_mode`.
- 
--.. c:type:: fe_transmit_mode
-+.. note::
- 
--enum fe_transmit_mode: Number of carriers per channel
-------------------------------------------------------
-+   #. ISDB-T supports three carrier/symbol-size: 8K, 4K, 2K. It is called
-+      **mode** on such standard, and are numbered from 1 to 3:
- 
--.. tabularcolumns:: |p{5.0cm}|p{12.5cm}|
-+      ====	========	========================
-+      Mode	FFT size	Transmission mode
-+      ====	========	========================
-+      1		2K		``TRANSMISSION_MODE_2K``
-+      2		4K		``TRANSMISSION_MODE_4K``
-+      3		8K		``TRANSMISSION_MODE_8K``
-+      ====	========	========================
- 
--.. flat-table:: enum fe_transmit_mode
--    :header-rows:  1
--    :stub-columns: 0
-+   #. If ``DTV_TRANSMISSION_MODE`` is set the ``TRANSMISSION_MODE_AUTO``
-+      the hardware will try to find the correct FFT-size (if capable) and
-+      will use TMCC to fill in the missing parameters.
- 
-+   #. DVB-T specifies 2K and 8K as valid sizes.
- 
--    -  .. row 1
-+   #. DVB-T2 specifies 1K, 2K, 4K, 8K, 16K and 32K.
- 
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _TRANSMISSION-MODE-AUTO:
--
--	  ``TRANSMISSION_MODE_AUTO``
--
--       -  Autodetect transmission mode. The hardware will try to find the
--	  correct FFT-size (if capable) to fill in the missing parameters.
--
--    -  .. row 3
--
--       -  .. _TRANSMISSION-MODE-1K:
--
--	  ``TRANSMISSION_MODE_1K``
--
--       -  Transmission mode 1K
--
--    -  .. row 4
--
--       -  .. _TRANSMISSION-MODE-2K:
--
--	  ``TRANSMISSION_MODE_2K``
--
--       -  Transmission mode 2K
--
--    -  .. row 5
--
--       -  .. _TRANSMISSION-MODE-8K:
--
--	  ``TRANSMISSION_MODE_8K``
--
--       -  Transmission mode 8K
--
--    -  .. row 6
--
--       -  .. _TRANSMISSION-MODE-4K:
--
--	  ``TRANSMISSION_MODE_4K``
--
--       -  Transmission mode 4K
--
--    -  .. row 7
--
--       -  .. _TRANSMISSION-MODE-16K:
--
--	  ``TRANSMISSION_MODE_16K``
--
--       -  Transmission mode 16K
--
--    -  .. row 8
--
--       -  .. _TRANSMISSION-MODE-32K:
--
--	  ``TRANSMISSION_MODE_32K``
--
--       -  Transmission mode 32K
--
--    -  .. row 9
--
--       -  .. _TRANSMISSION-MODE-C1:
--
--	  ``TRANSMISSION_MODE_C1``
--
--       -  Single Carrier (C=1) transmission mode (DTMB)
--
--    -  .. row 10
--
--       -  .. _TRANSMISSION-MODE-C3780:
--
--	  ``TRANSMISSION_MODE_C3780``
--
--       -  Multi Carrier (C=3780) transmission mode (DTMB)
--
--
--Notes:
--
--1) ISDB-T supports three carrier/symbol-size: 8K, 4K, 2K. It is called
--'mode' in the standard: Mode 1 is 2K, mode 2 is 4K, mode 3 is 8K
--
--2) If ``DTV_TRANSMISSION_MODE`` is set the ``TRANSMISSION_MODE_AUTO``
--the hardware will try to find the correct FFT-size (if capable) and will
--use TMCC to fill in the missing parameters.
--
--3) DVB-T specifies 2K and 8K as valid sizes.
--
--4) DVB-T2 specifies 1K, 2K, 4K, 8K, 16K and 32K.
--
--5) DTMB specifies C1 and C3780.
-+   #. DTMB specifies C1 and C3780.
- 
- 
- .. _DTV-HIERARCHY:
-@@ -1779,66 +832,9 @@ use TMCC to fill in the missing parameters.
- DTV_HIERARCHY
- =============
- 
--Frontend hierarchy
--
--
--.. c:type:: fe_hierarchy
--
--Frontend hierarchy
--------------------
--
--
--.. flat-table:: enum fe_hierarchy
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _HIERARCHY-NONE:
--
--	  ``HIERARCHY_NONE``
--
--       -  No hierarchy
--
--    -  .. row 3
--
--       -  .. _HIERARCHY-AUTO:
--
--	  ``HIERARCHY_AUTO``
--
--       -  Autodetect hierarchy (if supported)
--
--    -  .. row 4
--
--       -  .. _HIERARCHY-1:
--
--	  ``HIERARCHY_1``
--
--       -  Hierarchy 1
--
--    -  .. row 5
--
--       -  .. _HIERARCHY-2:
--
--	  ``HIERARCHY_2``
--
--       -  Hierarchy 2
--
--    -  .. row 6
--
--       -  .. _HIERARCHY-4:
--
--	  ``HIERARCHY_4``
--
--       -  Hierarchy 4
-+Frontend hierarchy.
- 
-+The acceptable values are defined by :c:type:`fe_hierarchy`.
- 
- 
- .. _DTV-STREAM-ID:
-@@ -1884,60 +880,17 @@ with it, rather than trying to use FE_GET_INFO. In the case of a
- legacy frontend, the result is just the same as with FE_GET_INFO, but
- in a more structured format
- 
-+The acceptable values are defined by :c:type:`fe_delivery_system`.
-+
- 
- .. _DTV-INTERLEAVING:
- 
- DTV_INTERLEAVING
- ================
- 
--Time interleaving to be used. Currently, used only on DTMB.
--
--
--.. c:type:: fe_interleaving
--
--.. flat-table:: enum fe_interleaving
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  .. _INTERLEAVING-NONE:
--
--	  ``INTERLEAVING_NONE``
--
--       -  No interleaving.
--
--    -  .. row 3
--
--       -  .. _INTERLEAVING-AUTO:
--
--	  ``INTERLEAVING_AUTO``
--
--       -  Auto-detect interleaving.
--
--    -  .. row 4
--
--       -  .. _INTERLEAVING-240:
--
--	  ``INTERLEAVING_240``
--
--       -  Interleaving of 240 symbols.
--
--    -  .. row 5
--
--       -  .. _INTERLEAVING-720:
--
--	  ``INTERLEAVING_720``
--
--       -  Interleaving of 720 symbols.
-+Time interleaving to be used.
- 
-+The acceptable values are defined by :c:type:`fe_interleaving`.
- 
- 
- .. _DTV-LNA:
-diff --git a/Documentation/media/uapi/dvb/frontend-header.rst b/Documentation/media/uapi/dvb/frontend-header.rst
+diff --git a/drivers/media/usb/dvb-usb/Kconfig b/drivers/media/usb/dvb-usb/Kconfig
+index 959fa09dfd92..ba941069ae3b 100644
+--- a/drivers/media/usb/dvb-usb/Kconfig
++++ b/drivers/media/usb/dvb-usb/Kconfig
+@@ -118,7 +118,9 @@ config DVB_USB_UMT_010
+ 
+ config DVB_USB_CXUSB
+ 	tristate "Conexant USB2.0 hybrid reference design support"
+-	depends on DVB_USB
++	depends on DVB_USB && VIDEO_V4L2
++	select VIDEO_CX25840
++	select VIDEOBUF2_VMALLOC
+ 	select DVB_PLL if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_CX22702 if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_LGDT330X if MEDIA_SUBDRV_AUTOSELECT
+@@ -136,8 +138,8 @@ config DVB_USB_CXUSB
+ 	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  Say Y here to support the Conexant USB2.0 hybrid reference design.
+-	  Currently, only DVB and ATSC modes are supported, analog mode
+-	  shall be added in the future. Devices that require this module:
++	  DVB and ATSC modes are supported, with basic analog mode support
++	  for Medion MD95700. Devices that require this module:
+ 
+ 	  Medion MD95700 hybrid USB2.0 device.
+ 	  DViCO FusionHDTV (Bluebird) USB2.0 devices
+diff --git a/drivers/media/usb/dvb-usb/Makefile b/drivers/media/usb/dvb-usb/Makefile
+index 3b3f32b426d1..24d222e9acc7 100644
+--- a/drivers/media/usb/dvb-usb/Makefile
++++ b/drivers/media/usb/dvb-usb/Makefile
+@@ -40,7 +40,7 @@ obj-$(CONFIG_DVB_USB_M920X) += dvb-usb-m920x.o
+ dvb-usb-digitv-objs := digitv.o
+ obj-$(CONFIG_DVB_USB_DIGITV) += dvb-usb-digitv.o
+ 
+-dvb-usb-cxusb-objs := cxusb.o
++dvb-usb-cxusb-objs := cxusb.o cxusb-analog.o
+ obj-$(CONFIG_DVB_USB_CXUSB) += dvb-usb-cxusb.o
+ 
+ dvb-usb-ttusb2-objs := ttusb2.o
+diff --git a/drivers/media/usb/dvb-usb/cxusb-analog.c b/drivers/media/usb/dvb-usb/cxusb-analog.c
 new file mode 100644
-index 000000000000..8d8433cf1e12
+index 000000000000..473d3f06145f
 --- /dev/null
-+++ b/Documentation/media/uapi/dvb/frontend-header.rst
-@@ -0,0 +1,4 @@
-+Frontend uAPI data types
-+========================
++++ b/drivers/media/usb/dvb-usb/cxusb-analog.c
+@@ -0,0 +1,1867 @@
++/* DVB USB compliant linux driver for Conexant USB reference design -
++ * (analog part).
++ *
++ * Copyright (C) 2011, 2017 Maciej S. Szmigiero (mail@maciej.szmigiero.name)
++ *
++ * TODO:
++ *  * audio support,
++ *  * finish radio support (requires audio of course),
++ *  * VBI support,
++ *  * controls support
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ */
 +
-+.. kernel-doc:: include/uapi/linux/dvb/frontend.h
-diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
-index c7f2124b7851..f898cc384f43 100644
---- a/include/uapi/linux/dvb/frontend.h
-+++ b/include/uapi/linux/dvb/frontend.h
-@@ -554,10 +554,10 @@ enum fe_pilot {
++#include <linux/bitops.h>
++#include <linux/device.h>
++#include <linux/slab.h>
++#include <linux/string.h>
++#include <linux/timekeeping.h>
++#include <linux/vmalloc.h>
++#include <media/drv-intf/cx25840.h>
++#include <media/tuner.h>
++#include <media/v4l2-fh.h>
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-subdev.h>
++#include <media/videobuf2-v4l2.h>
++#include <media/videobuf2-vmalloc.h>
++
++#include "cxusb.h"
++
++static int cxusb_medion_v_queue_setup(struct vb2_queue *q,
++				      unsigned int *num_buffers,
++				      unsigned int *num_planes,
++				      unsigned int sizes[],
++				      struct device *alloc_devs[])
++{
++	struct dvb_usb_device *dvbdev = vb2_get_drv_priv(q);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	unsigned int size = cxdev->raw_mode ?
++		CXUSB_VIDEO_MAX_FRAME_SIZE :
++		cxdev->width * cxdev->height * 2;
++
++	if (*num_planes > 0) {
++		if (*num_planes != 1)
++			return -EINVAL;
++
++		if (sizes[0] < size)
++			return -EINVAL;
++	} else {
++		*num_planes = 1;
++		sizes[0] = size;
++	}
++
++	if (q->num_buffers + *num_buffers < 6)
++		*num_buffers = 6 - q->num_buffers;
++
++	return 0;
++}
++
++static int cxusb_medion_v_buf_init(struct vb2_buffer *vb)
++{
++	struct dvb_usb_device *dvbdev = vb2_get_drv_priv(vb->vb2_queue);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++
++	cxusb_vprintk(dvbdev, OPS, "buffer init\n");
++
++	if (cxdev->raw_mode) {
++		if (vb2_plane_size(vb, 0) < CXUSB_VIDEO_MAX_FRAME_SIZE)
++			return -ENOMEM;
++	} else {
++		if (vb2_plane_size(vb, 0) < cxdev->width * cxdev->height * 2)
++			return -ENOMEM;
++	}
++
++	cxusb_vprintk(dvbdev, OPS, "buffer OK\n");
++
++	return 0;
++}
++
++static void cxusb_auxbuf_init(struct cxusb_medion_auxbuf *auxbuf,
++			      u8 *buf, unsigned int len)
++{
++	auxbuf->buf = buf;
++	auxbuf->len = len;
++	auxbuf->paylen = 0;
++}
++
++static void cxusb_auxbuf_head_trim(struct dvb_usb_device *dvbdev,
++				   struct cxusb_medion_auxbuf *auxbuf,
++				   unsigned int pos)
++{
++	if (pos == 0)
++		return;
++
++	if (WARN_ON(pos > auxbuf->paylen))
++		return;
++
++	cxusb_vprintk(dvbdev, AUXB,
++		      "trimming auxbuf len by %u to %u\n",
++		      pos, auxbuf->paylen - pos);
++
++	memmove(auxbuf->buf, auxbuf->buf + pos, auxbuf->paylen - pos);
++	auxbuf->paylen -= pos;
++}
++
++static unsigned int cxusb_auxbuf_paylen(struct cxusb_medion_auxbuf *auxbuf)
++{
++	return auxbuf->paylen;
++}
++
++static bool cxusb_auxbuf_make_space(struct dvb_usb_device *dvbdev,
++				    struct cxusb_medion_auxbuf *auxbuf,
++				    unsigned int howmuch)
++{
++	unsigned int freespace;
++
++	if (WARN_ON(howmuch >= auxbuf->len))
++		howmuch = auxbuf->len - 1;
++
++	freespace = auxbuf->len -
++		cxusb_auxbuf_paylen(auxbuf);
++
++	cxusb_vprintk(dvbdev, AUXB, "freespace is %u\n", freespace);
++
++	if (freespace >= howmuch)
++		return true;
++
++	howmuch -= freespace;
++
++	cxusb_vprintk(dvbdev, AUXB, "will overwrite %u bytes of buffer\n",
++		      howmuch);
++
++	cxusb_auxbuf_head_trim(dvbdev, auxbuf, howmuch);
++
++	return false;
++}
++
++/* returns false if some data was overwritten */
++static bool cxusb_auxbuf_append_urb(struct dvb_usb_device *dvbdev,
++				    struct cxusb_medion_auxbuf *auxbuf,
++				    struct urb *urb,
++				    unsigned int len)
++{
++	int i;
++	bool ret;
++
++	ret = cxusb_auxbuf_make_space(dvbdev, auxbuf, len);
++
++	for (i = 0; i < urb->number_of_packets; i++) {
++		unsigned int to_copy;
++
++		to_copy = urb->iso_frame_desc[i].actual_length;
++
++		if (to_copy == 0)
++			continue;
++
++		memcpy(auxbuf->buf + auxbuf->paylen, urb->transfer_buffer +
++		       urb->iso_frame_desc[i].offset, to_copy);
++
++		auxbuf->paylen += to_copy;
++	}
++
++	return ret;
++}
++
++static bool cxusb_auxbuf_copy(struct cxusb_medion_auxbuf *auxbuf,
++			      unsigned int pos, unsigned char *dest,
++			      unsigned int len)
++{
++	if (pos+len > auxbuf->paylen)
++		return false;
++
++	memcpy(dest, auxbuf->buf + pos, len);
++
++	return true;
++}
++
++static unsigned int cxusb_auxbuf_advance(struct cxusb_medion_auxbuf *auxbuf,
++					 unsigned int pos,
++					 unsigned int increment)
++{
++	return pos + increment;
++}
++
++static unsigned int cxusb_auxbuf_begin(struct cxusb_medion_auxbuf *auxbuf)
++{
++	return 0;
++}
++
++static bool cxusb_auxbuf_isend(struct cxusb_medion_auxbuf *auxbuf,
++			       unsigned int pos)
++{
++	return pos >= auxbuf->paylen;
++}
++
++static bool cxusb_medion_copy_field(struct dvb_usb_device *dvbdev,
++				    struct cxusb_medion_auxbuf *auxbuf,
++				    struct cxusb_bt656_params *bt656,
++				    bool firstfield,
++				    unsigned int maxlines,
++				    unsigned int maxlinesamples)
++{
++	while (bt656->line < maxlines &&
++	       !cxusb_auxbuf_isend(auxbuf, bt656->pos)) {
++
++		unsigned char val;
++
++		if (!cxusb_auxbuf_copy(auxbuf, bt656->pos, &val, 1))
++			return false;
++
++		if ((char)val == CXUSB_BT656_COMMON[0]) {
++			char buf[3];
++
++			if (!cxusb_auxbuf_copy(auxbuf, bt656->pos + 1,
++					       buf, 3))
++				return false;
++
++			if (buf[0] != (CXUSB_BT656_COMMON)[1] ||
++			    buf[1] != (CXUSB_BT656_COMMON)[2])
++				goto normal_sample;
++
++			if (bt656->line != 0 && (!!firstfield !=
++						 ((buf[2] & CXUSB_FIELD_MASK)
++						  == CXUSB_FIELD_1))) {
++				if (bt656->fmode == LINE_SAMPLES) {
++					cxusb_vprintk(dvbdev, BT656,
++						      "field %c after line %u field change\n",
++						      firstfield ? '1' : '2',
++						      bt656->line);
++
++					if (bt656->buf != NULL &&
++						maxlinesamples -
++						bt656->linesamples > 0) {
++
++						memset(bt656->buf, 0,
++							maxlinesamples -
++							bt656->linesamples);
++
++						bt656->buf +=
++							maxlinesamples -
++							bt656->linesamples;
++
++						cxusb_vprintk(dvbdev, BT656,
++							      "field %c line %u %u samples still remaining (of %u)\n",
++							      firstfield ?
++							      '1' : '2',
++							      bt656->line,
++							      maxlinesamples -
++							      bt656->
++							      linesamples,
++							      maxlinesamples);
++					}
++
++					bt656->line++;
++				}
++
++				if (maxlines - bt656->line > 0 &&
++					bt656->buf != NULL) {
++					memset(bt656->buf, 0,
++						(maxlines - bt656->line)
++						* maxlinesamples);
++
++					bt656->buf +=
++						(maxlines - bt656->line)
++						* maxlinesamples;
++
++					cxusb_vprintk(dvbdev, BT656,
++						      "field %c %u lines still remaining (of %u)\n",
++						      firstfield ? '1' : '2',
++						      maxlines - bt656->line,
++						      maxlines);
++				}
++
++				return true;
++			}
++
++			if (bt656->fmode == START_SEARCH) {
++				if ((buf[2] & CXUSB_SEAV_MASK) ==
++				    CXUSB_SEAV_SAV &&
++				    (!!firstfield == ((buf[2] &
++						       CXUSB_FIELD_MASK)
++						      == CXUSB_FIELD_1))) {
++
++					if ((buf[2] & CXUSB_VBI_MASK) ==
++					    CXUSB_VBI_OFF) {
++						cxusb_vprintk(dvbdev,
++							      BT656,
++							      "line start @ pos %x\n",
++							      bt656->pos);
++
++						bt656->linesamples = 0;
++						bt656->fmode = LINE_SAMPLES;
++					} else {
++						cxusb_vprintk(dvbdev,
++							      BT656,
++							      "VBI start @ pos %x\n",
++							      bt656->pos);
++
++						bt656->fmode = VBI_SAMPLES;
++					}
++				}
++
++				bt656->pos =
++					cxusb_auxbuf_advance(auxbuf,
++							     bt656->pos, 4);
++				continue;
++			} else if (bt656->fmode == LINE_SAMPLES) {
++				if ((buf[2] & CXUSB_SEAV_MASK) ==
++				    CXUSB_SEAV_SAV)
++					cxusb_vprintk(dvbdev, BT656,
++						      "SAV in line samples @ line %u, pos %x\n",
++						      bt656->line, bt656->pos);
++
++				if (bt656->buf != NULL && maxlinesamples -
++				    bt656->linesamples > 0) {
++
++					memset(bt656->buf, 0,
++					       maxlinesamples -
++					       bt656->linesamples);
++					bt656->buf += maxlinesamples -
++						bt656->linesamples;
++
++					cxusb_vprintk(dvbdev, BT656,
++						      "field %c line %u %u samples still remaining (of %u)\n",
++						      firstfield ? '1' : '2',
++						      bt656->line,
++						      maxlinesamples -
++						      bt656->linesamples,
++						      maxlinesamples);
++				}
++
++
++				bt656->fmode = START_SEARCH;
++				bt656->line++;
++				continue;
++			} else if (bt656->fmode == VBI_SAMPLES) {
++				if ((buf[2] & CXUSB_SEAV_MASK) ==
++				    CXUSB_SEAV_SAV)
++					cxusb_vprintk(dvbdev, BT656,
++						      "SAV in VBI samples @ pos %x\n",
++						      bt656->pos);
++
++				bt656->fmode = START_SEARCH;
++				continue;
++			}
++
++			bt656->pos =
++				cxusb_auxbuf_advance(auxbuf, bt656->pos, 4);
++			continue;
++		}
++
++normal_sample:
++		if (bt656->fmode == START_SEARCH && bt656->line != 0) {
++			unsigned char buf[64];
++			unsigned int idx;
++			unsigned int tocheck = min(sizeof(buf),
++						   max(sizeof(buf),
++						       maxlinesamples / 4));
++
++			if (!cxusb_auxbuf_copy(auxbuf, bt656->pos + 1,
++					       buf, tocheck)) {
++				bt656->pos =
++					cxusb_auxbuf_advance(auxbuf,
++							     bt656->pos, 1);
++				continue;
++			}
++
++			for (idx = 0; idx <= tocheck - 3; idx++)
++				if (memcmp(buf + idx, CXUSB_BT656_COMMON, 3)
++				    == 0)
++					break;
++
++			if (idx <= tocheck - 3) {
++				bt656->pos =
++					cxusb_auxbuf_advance(auxbuf,
++							     bt656->pos, 1);
++				continue;
++			}
++
++			cxusb_vprintk(dvbdev, BT656,
++				      "line %u early start, pos %x\n",
++				      bt656->line, bt656->pos);
++
++			bt656->linesamples = 0;
++			bt656->fmode = LINE_SAMPLES;
++			continue;
++		} else if (bt656->fmode == LINE_SAMPLES) {
++			if (bt656->buf != NULL)
++				*(bt656->buf++) = val;
++
++			bt656->linesamples++;
++			bt656->pos =
++				cxusb_auxbuf_advance(auxbuf,
++						     bt656->pos, 1);
++
++			if (bt656->linesamples >= maxlinesamples) {
++				bt656->fmode = START_SEARCH;
++				bt656->line++;
++			}
++
++			continue;
++		}
++		/* TODO: copy VBI samples */
++
++		bt656->pos =
++			cxusb_auxbuf_advance(auxbuf,
++					     bt656->pos, 1);
++	}
++
++	if (bt656->line < maxlines) {
++		cxusb_vprintk(dvbdev, BT656, "end of buffer, pos = %u\n",
++			      bt656->pos);
++		return false;
++	}
++
++	return true;
++}
++
++static void cxusb_medion_v_complete_work(struct work_struct *work)
++{
++	struct cxusb_medion_dev *cxdev = container_of(work,
++						      struct cxusb_medion_dev,
++						      urbwork);
++	struct dvb_usb_device *dvbdev = cxdev->dvbdev;
++	struct urb *urb;
++	int ret;
++	unsigned int i, urbn;
++
++	mutex_lock(cxdev->videodev->lock);
++
++	cxusb_vprintk(dvbdev, URB, "worker called, streaming = %d\n",
++		      (int)cxdev->streaming);
++
++	if (!cxdev->streaming)
++		goto unlock;
++
++	urbn = cxdev->nexturb;
++	if (test_bit(urbn, &cxdev->urbcomplete)) {
++		urb = cxdev->streamurbs[urbn];
++		clear_bit(urbn, &cxdev->urbcomplete);
++
++		cxdev->nexturb++;
++		cxdev->nexturb %= CXUSB_VIDEO_URBS;
++	} else {
++		for (i = 0, urbn++; i < CXUSB_VIDEO_URBS - 1; i++, urbn++) {
++			urbn %= CXUSB_VIDEO_URBS;
++			if (test_bit(urbn, &cxdev->urbcomplete)) {
++				urb = cxdev->streamurbs[urbn];
++				clear_bit(urbn, &cxdev->urbcomplete);
++				break;
++			}
++		}
++
++		if (i >= CXUSB_VIDEO_URBS - 1) {
++			cxusb_vprintk(dvbdev, URB,
++				      "URB worker called but no URB ready\n");
++			goto unlock;
++		}
++
++		cxusb_vprintk(dvbdev, URB,
++			      "out-of-order URB: expected %u but %u is ready\n",
++			      cxdev->nexturb, urbn);
++
++		cxdev->nexturb = urbn + 1;
++		cxdev->nexturb %= CXUSB_VIDEO_URBS;
++	}
++
++	cxusb_vprintk(dvbdev, URB, "URB %u status = %d\n", urbn, urb->status);
++
++	if (urb->status == 0 || urb->status == -EXDEV) {
++		int i;
++		unsigned long len = 0;
++
++		for (i = 0; i < urb->number_of_packets; i++)
++			len += urb->iso_frame_desc[i].actual_length;
++
++		cxusb_vprintk(dvbdev, URB, "URB %u data len = %lu\n",
++			      urbn, len);
++
++		if (len == 0)
++			goto resubmit;
++
++		if (cxdev->raw_mode) {
++			u8 *buf;
++			struct cxusb_medion_vbuffer *vbuf;
++
++			if (list_empty(&cxdev->buflist)) {
++				dev_warn(&dvbdev->udev->dev,
++					 "no free buffers\n");
++
++				goto resubmit;
++			}
++
++			vbuf = list_first_entry(&cxdev->buflist,
++						struct cxusb_medion_vbuffer,
++						list);
++			list_del(&vbuf->list);
++
++			vbuf->vb2.timestamp = ktime_get_ns();
++
++			buf = vb2_plane_vaddr(&vbuf->vb2, 0);
++
++			for (i = 0; i < urb->number_of_packets; i++) {
++				memcpy(buf, urb->transfer_buffer +
++				       urb->iso_frame_desc[i].offset,
++				       urb->iso_frame_desc[i].actual_length);
++
++				buf += urb->iso_frame_desc[i].actual_length;
++			}
++
++			vb2_set_plane_payload(&vbuf->vb2, 0, len);
++
++			vb2_buffer_done(&vbuf->vb2, VB2_BUF_STATE_DONE);
++		} else {
++			struct cxusb_bt656_params *bt656 = &cxdev->bt656;
++			bool reset;
++
++			cxusb_vprintk(dvbdev, URB, "appending urb\n");
++
++			/*
++			 * append new data to circ. buffer
++			 * overwrite old data if necessary
++			 */
++			reset = !cxusb_auxbuf_append_urb(dvbdev,
++							 &cxdev->auxbuf, urb,
++							 len);
++
++			/*
++			 * if this is a new frame
++			 * fetch a buffer from list
++			 */
++			if (bt656->mode == NEW_FRAME) {
++				if (!list_empty(&cxdev->buflist)) {
++					cxdev->vbuf = list_first_entry(
++						&cxdev->buflist,
++						struct cxusb_medion_vbuffer,
++						list);
++					list_del(&cxdev->vbuf->list);
++
++					cxdev->vbuf->vb2.timestamp =
++						ktime_get_ns();
++				} else
++					dev_warn(&dvbdev->udev->dev,
++						 "no free buffers\n");
++			}
++
++			if (bt656->mode == NEW_FRAME || reset) {
++				bt656->pos =
++					cxusb_auxbuf_begin(&cxdev->auxbuf);
++				bt656->mode = FIRST_FIELD;
++				bt656->fmode = START_SEARCH;
++				bt656->line = 0;
++
++				if (cxdev->vbuf != NULL)
++					bt656->buf = vb2_plane_vaddr(
++						&cxdev->vbuf->vb2, 0);
++			}
++
++			cxusb_vprintk(dvbdev, URB, "auxbuf payload len %u",
++				      cxusb_auxbuf_paylen(&cxdev->auxbuf));
++
++			if (bt656->mode == FIRST_FIELD) {
++				cxusb_vprintk(dvbdev, URB,
++					      "copying field 1\n");
++
++				if (!cxusb_medion_copy_field(
++					    dvbdev, &cxdev->auxbuf,
++					    bt656, true,
++					    cxdev->height / 2,
++					    cxdev->width * 2))
++					goto resubmit;
++
++
++				/*
++				 * do not trim buffer there in case
++				 * we need to reset search later
++				 */
++
++				bt656->mode = SECOND_FIELD;
++				bt656->fmode = START_SEARCH;
++				bt656->line = 0;
++			}
++
++			if (bt656->mode == SECOND_FIELD) {
++				cxusb_vprintk(dvbdev, URB,
++					"copying field 2\n");
++
++				if (!cxusb_medion_copy_field(
++						dvbdev, &cxdev->auxbuf,
++						bt656, false,
++						cxdev->height / 2,
++						cxdev->width * 2))
++					goto resubmit;
++
++				cxusb_auxbuf_head_trim(dvbdev,
++						       &cxdev->auxbuf,
++						       bt656->pos);
++
++				bt656->mode = NEW_FRAME;
++
++				if (cxdev->vbuf != NULL) {
++					vb2_set_plane_payload(
++						&cxdev->vbuf->vb2, 0,
++						cxdev->width *
++						cxdev->height * 2);
++
++					vb2_buffer_done(&cxdev->vbuf->vb2,
++							VB2_BUF_STATE_DONE);
++
++					cxdev->vbuf = NULL;
++					cxdev->bt656.buf = NULL;
++
++					cxusb_vprintk(dvbdev, URB,
++						      "frame done\n");
++				} else
++					cxusb_vprintk(dvbdev, URB,
++						      "frame skipped\n");
++			}
++		}
++	}
++
++resubmit:
++	cxusb_vprintk(dvbdev, URB, "URB %u submit\n", urbn);
++
++	ret = usb_submit_urb(urb, GFP_KERNEL);
++	if (ret != 0)
++		dev_err(&dvbdev->udev->dev,
++			"unable to submit URB (%d), you'll have to restart streaming\n",
++			ret);
++
++	for (i = 0; i < CXUSB_VIDEO_URBS; i++)
++		if (test_bit(i, &cxdev->urbcomplete)) {
++			schedule_work(&cxdev->urbwork);
++			break;
++		}
++
++unlock:
++	mutex_unlock(cxdev->videodev->lock);
++}
++
++static void cxusb_medion_v_complete(struct urb *u)
++{
++	struct dvb_usb_device *dvbdev = u->context;
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	unsigned int i;
++
++	for (i = 0; i < CXUSB_VIDEO_URBS; i++)
++		if (cxdev->streamurbs[i] == u)
++			break;
++
++	if (i >= CXUSB_VIDEO_URBS) {
++		dev_err(&dvbdev->udev->dev,
++			"complete on unknown URB\n");
++		return;
++	}
++
++	cxusb_vprintk(dvbdev, URB, "URB %d complete\n", i);
++
++	set_bit(i, &cxdev->urbcomplete);
++	schedule_work(&cxdev->urbwork);
++}
++
++static bool cxusb_medion_stream_busy(struct cxusb_medion_dev *cxdev)
++{
++	int i;
++
++	if (cxdev->streaming)
++		return true;
++
++	for (i = 0; i < CXUSB_VIDEO_URBS; i++)
++		/*
++		 * not streaming but URB is still active -
++		 * stream is being stopped
++		 */
++		if (cxdev->streamurbs[i] != NULL)
++			return true;
++
++	return false;
++}
++
++static void cxusb_medion_return_buffers(struct cxusb_medion_dev *cxdev,
++					bool requeue)
++{
++	struct cxusb_medion_vbuffer *vbuf, *vbuf_tmp;
++
++	list_for_each_entry_safe(vbuf, vbuf_tmp, &cxdev->buflist,
++				 list) {
++		list_del(&vbuf->list);
++		vb2_buffer_done(&vbuf->vb2, requeue ? VB2_BUF_STATE_QUEUED :
++				VB2_BUF_STATE_ERROR);
++	}
++
++	if (cxdev->vbuf != NULL) {
++		vb2_buffer_done(&cxdev->vbuf->vb2, requeue ?
++				VB2_BUF_STATE_QUEUED :
++				VB2_BUF_STATE_ERROR);
++
++		cxdev->vbuf = NULL;
++		cxdev->bt656.buf = NULL;
++	}
++}
++
++static int cxusb_medion_v_start_streaming(struct vb2_queue *q,
++					  unsigned int count)
++{
++	struct dvb_usb_device *dvbdev = vb2_get_drv_priv(q);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	u8 streamon_params[2] = { 0x03, 0x00 };
++	int npackets, i;
++	int ret;
++
++	cxusb_vprintk(dvbdev, OPS, "should start streaming\n");
++
++	/* already streaming */
++	if (cxdev->streaming)
++		return 0;
++
++	if (cxusb_medion_stream_busy(cxdev)) {
++		ret = -EBUSY;
++		goto ret_retbufs;
++	}
++
++	ret = v4l2_subdev_call(cxdev->cx25840, video, s_stream, 1);
++	if (ret != 0) {
++		dev_err(&dvbdev->udev->dev,
++			"unable to start stream (%d)\n", ret);
++		goto ret_retbufs;
++	}
++
++	ret = cxusb_ctrl_msg(dvbdev, CMD_STREAMING_ON, streamon_params, 2,
++			     NULL, 0);
++	if (ret != 0) {
++		dev_err(&dvbdev->udev->dev,
++			"unable to start streaming (%d)\n", ret);
++		goto ret_unstream_cx;
++	}
++
++	if (cxdev->raw_mode)
++		npackets = CXUSB_VIDEO_MAX_FRAME_PKTS;
++	else {
++		u8 *buf;
++		unsigned int urblen, auxbuflen;
++
++		/* has to be less than full frame size */
++		urblen = (cxdev->width * 2 + 4 + 4) * cxdev->height;
++		npackets = urblen / CXUSB_VIDEO_PKT_SIZE;
++		urblen = npackets * CXUSB_VIDEO_PKT_SIZE;
++
++		auxbuflen = (cxdev->width * 2 + 4 + 4) *
++			(cxdev->height + 50 /* VBI lines */) + urblen;
++
++		buf = vmalloc(auxbuflen);
++		if (buf == NULL) {
++			dev_err(&dvbdev->udev->dev,
++				"cannot allocate auxiliary buffer of %u bytes\n",
++				auxbuflen);
++			ret = -ENOMEM;
++			goto ret_unstream_md;
++		}
++
++		cxusb_auxbuf_init(&cxdev->auxbuf, buf, auxbuflen);
++	}
++
++	for (i = 0; i < CXUSB_VIDEO_URBS; i++) {
++		int framen;
++		u8 *streambuf;
++		struct urb *surb;
++
++		streambuf = kmalloc(npackets * CXUSB_VIDEO_PKT_SIZE,
++				    GFP_KERNEL);
++		if (streambuf == NULL) {
++			if (i == 0) {
++				dev_err(&dvbdev->udev->dev,
++					"cannot allocate stream buffer\n");
++				ret = -ENOMEM;
++				goto ret_freeab;
++			} else
++				break;
++		}
++
++		surb = usb_alloc_urb(npackets, GFP_KERNEL);
++		if (surb == NULL) {
++			dev_err(&dvbdev->udev->dev,
++				"cannot allocate URB %d\n", i);
++
++			kfree(streambuf);
++			ret = -ENOMEM;
++			goto ret_freeu;
++		}
++
++		cxdev->streamurbs[i] = surb;
++		surb->dev = dvbdev->udev;
++		surb->context = dvbdev;
++		surb->pipe = usb_rcvisocpipe(dvbdev->udev, 2);
++
++		surb->interval = 1;
++		surb->transfer_flags = URB_ISO_ASAP;
++
++		surb->transfer_buffer = streambuf;
++
++		surb->complete = cxusb_medion_v_complete;
++		surb->number_of_packets = npackets;
++		surb->transfer_buffer_length = npackets * CXUSB_VIDEO_PKT_SIZE;
++
++		for (framen = 0; framen < npackets; framen++) {
++			surb->iso_frame_desc[framen].offset =
++				CXUSB_VIDEO_PKT_SIZE * framen;
++
++			surb->iso_frame_desc[framen].length =
++				CXUSB_VIDEO_PKT_SIZE;
++		}
++	}
++
++	cxdev->urbcomplete = 0;
++	cxdev->nexturb = 0;
++	cxdev->vbuf = NULL;
++	cxdev->bt656.mode = NEW_FRAME;
++	cxdev->bt656.buf = NULL;
++
++	for (i = 0; i < CXUSB_VIDEO_URBS; i++)
++		if (cxdev->streamurbs[i] != NULL) {
++			ret = usb_submit_urb(cxdev->streamurbs[i],
++					GFP_KERNEL);
++			if (ret != 0)
++				dev_err(&dvbdev->udev->dev,
++					"URB %d submission failed (%d)\n", i,
++					ret);
++		}
++
++	cxdev->streaming = true;
++
++	return 0;
++
++ret_freeu:
++	for (i = 0; i < CXUSB_VIDEO_URBS; i++)
++		if (cxdev->streamurbs[i] != NULL) {
++			kfree(cxdev->streamurbs[i]->transfer_buffer);
++			usb_free_urb(cxdev->streamurbs[i]);
++			cxdev->streamurbs[i] = NULL;
++		}
++
++ret_freeab:
++	if (!cxdev->raw_mode)
++		vfree(cxdev->auxbuf.buf);
++
++ret_unstream_md:
++	cxusb_ctrl_msg(dvbdev, CMD_STREAMING_OFF, NULL, 0, NULL, 0);
++
++ret_unstream_cx:
++	v4l2_subdev_call(cxdev->cx25840, video, s_stream, 0);
++
++ret_retbufs:
++	cxusb_medion_return_buffers(cxdev, true);
++
++	return ret;
++}
++
++static void cxusb_medion_v_stop_streaming(struct vb2_queue *q)
++{
++	struct dvb_usb_device *dvbdev = vb2_get_drv_priv(q);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	int i, ret;
++
++	cxusb_vprintk(dvbdev, OPS, "should stop streaming\n");
++
++	if (!cxdev->streaming)
++		return;
++
++	cxdev->streaming = false;
++
++	cxusb_ctrl_msg(dvbdev, CMD_STREAMING_OFF, NULL, 0, NULL, 0);
++
++	ret = v4l2_subdev_call(cxdev->cx25840, video, s_stream, 0);
++	if (ret != 0)
++		dev_err(&dvbdev->udev->dev, "unable to stop stream (%d)\n",
++			ret);
++
++	/* let URB completion run */
++	mutex_unlock(cxdev->videodev->lock);
++
++	for (i = 0; i < CXUSB_VIDEO_URBS; i++)
++		if (cxdev->streamurbs[i] != NULL)
++			usb_kill_urb(cxdev->streamurbs[i]);
++
++	flush_work(&cxdev->urbwork);
++
++	mutex_lock(cxdev->videodev->lock);
++
++	/* free transfer buffer and URB */
++	if (!cxdev->raw_mode)
++		vfree(cxdev->auxbuf.buf);
++
++	for (i = 0; i < CXUSB_VIDEO_URBS; i++)
++		if (cxdev->streamurbs[i] != NULL) {
++			kfree(cxdev->streamurbs[i]->transfer_buffer);
++			usb_free_urb(cxdev->streamurbs[i]);
++			cxdev->streamurbs[i] = NULL;
++		}
++
++	cxusb_medion_return_buffers(cxdev, false);
++}
++
++static void cxusub_medion_v_buf_queue(struct vb2_buffer *vb)
++{
++	struct cxusb_medion_vbuffer *vbuf =
++		container_of(vb, struct cxusb_medion_vbuffer, vb2);
++	struct dvb_usb_device *dvbdev = vb2_get_drv_priv(vb->vb2_queue);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++
++	/* cxusb_vprintk(dvbdev, OPS, "mmmm.. fresh buffer...\n"); */
++
++	list_add_tail(&vbuf->list, &cxdev->buflist);
++}
++
++static void cxusub_medion_v_wait_prepare(struct vb2_queue *q)
++{
++	struct dvb_usb_device *dvbdev = vb2_get_drv_priv(q);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++
++	mutex_unlock(cxdev->videodev->lock);
++}
++
++static void cxusub_medion_v_wait_finish(struct vb2_queue *q)
++{
++	struct dvb_usb_device *dvbdev = vb2_get_drv_priv(q);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++
++	mutex_lock(cxdev->videodev->lock);
++}
++
++static const struct vb2_ops cxdev_video_qops = {
++	.queue_setup = cxusb_medion_v_queue_setup,
++	.buf_init = cxusb_medion_v_buf_init,
++	.start_streaming = cxusb_medion_v_start_streaming,
++	.stop_streaming = cxusb_medion_v_stop_streaming,
++	.buf_queue = cxusub_medion_v_buf_queue,
++	.wait_prepare = cxusub_medion_v_wait_prepare,
++	.wait_finish = cxusub_medion_v_wait_finish
++};
++
++static int cxusb_medion_v_querycap(struct file *file, void *fh,
++				   struct v4l2_capability *cap)
++{
++	const __u32 videocaps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_TUNER |
++		V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
++	const __u32 radiocaps = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
++	struct dvb_usb_device *dvbdev = video_drvdata(file);
++	struct video_device *vdev = video_devdata(file);
++
++	strncpy(cap->driver, dvbdev->udev->dev.driver->name,
++		sizeof(cap->driver) - 1);
++	strcpy(cap->card, "Medion 95700");
++	usb_make_path(dvbdev->udev, cap->bus_info, sizeof(cap->bus_info));
++
++	if (vdev->vfl_type == VFL_TYPE_GRABBER)
++		cap->device_caps = videocaps;
++	else
++		cap->device_caps = radiocaps;
++
++	cap->capabilities = videocaps | radiocaps | V4L2_CAP_DEVICE_CAPS;
++
++	memset(cap->reserved, 0, sizeof(cap->reserved));
++
++	return 0;
++}
++
++static int cxusb_medion_v_enum_fmt_vid_cap(struct file *file, void *fh,
++					   struct v4l2_fmtdesc *f)
++{
++	if (f->index != 0)
++		return -EINVAL;
++
++	f->flags = 0;
++	strcpy(f->description, "YUV 4:2:2");
++	f->pixelformat = V4L2_PIX_FMT_UYVY;
++	memset(f->reserved, 0, sizeof(f->reserved));
++
++	return 0;
++}
++
++static int cxusb_medion_g_fmt_vid_cap(struct file *file, void *fh,
++				      struct v4l2_format *f)
++{
++	struct dvb_usb_device *dvbdev = video_drvdata(file);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++
++	f->fmt.pix.width = cxdev->width;
++	f->fmt.pix.height = cxdev->height;
++	f->fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
++	f->fmt.pix.field = V4L2_FIELD_SEQ_TB;
++	f->fmt.pix.bytesperline = cxdev->raw_mode ? 0 : cxdev->width * 2;
++	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
++	f->fmt.pix.sizeimage =
++		cxdev->raw_mode ? CXUSB_VIDEO_MAX_FRAME_SIZE :
++		f->fmt.pix.bytesperline * f->fmt.pix.height;
++	f->fmt.pix.priv = 0;
++
++	return 0;
++}
++
++static int cxusb_medion_g_parm(struct file *file, void *fh,
++			       struct v4l2_streamparm *param)
++{
++	struct dvb_usb_device *dvbdev = video_drvdata(file);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++
++	if (param->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	memset(&param->parm.capture, 0, sizeof(param->parm.capture));
++
++	if (cxdev->raw_mode)
++		param->parm.capture.extendedmode |=
++			CXUSB_EXTENDEDMODE_CAPTURE_RAW;
++
++	param->parm.capture.readbuffers = 1;
++
++	return 0;
++}
++
++static int cxusb_medion_s_parm(struct file *file, void *fh,
++			       struct v4l2_streamparm *param)
++{
++	struct dvb_usb_device *dvbdev = video_drvdata(file);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	bool want_raw;
++
++	if (param->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	want_raw = param->parm.capture.extendedmode &
++		CXUSB_EXTENDEDMODE_CAPTURE_RAW;
++
++	if (want_raw != cxdev->raw_mode) {
++		if (cxusb_medion_stream_busy(cxdev) ||
++		    vb2_is_busy(&cxdev->videoqueue))
++			return -EBUSY;
++
++		cxdev->raw_mode = want_raw;
++	}
++
++	param->parm.capture.readbuffers = 1;
++
++	return 0;
++}
++
++static int cxusb_medion_try_s_fmt_vid_cap(struct file *file,
++					  struct v4l2_format *f,
++					  bool isset)
++{
++	struct dvb_usb_device *dvbdev = video_drvdata(file);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	struct v4l2_subdev_format subfmt;
++	int ret;
++
++	if (isset && (cxusb_medion_stream_busy(cxdev) ||
++		      vb2_is_busy(&cxdev->videoqueue)))
++		return -EBUSY;
++
++	memset(&subfmt, 0, sizeof(subfmt));
++	subfmt.which = isset ? V4L2_SUBDEV_FORMAT_ACTIVE :
++		V4L2_SUBDEV_FORMAT_TRY;
++	subfmt.format.width = f->fmt.pix.width & ~1;
++	subfmt.format.height = f->fmt.pix.height & ~1;
++	subfmt.format.code = MEDIA_BUS_FMT_FIXED;
++	subfmt.format.field = V4L2_FIELD_SEQ_TB;
++	subfmt.format.colorspace = V4L2_COLORSPACE_SMPTE170M;
++
++	ret = v4l2_subdev_call(cxdev->cx25840, pad, set_fmt, NULL, &subfmt);
++	if (ret != 0) {
++		if (ret != -ERANGE)
++			return ret;
++
++		/* try some common formats */
++		subfmt.format.width = 720;
++		subfmt.format.height = 576;
++		ret = v4l2_subdev_call(cxdev->cx25840, pad, set_fmt, NULL,
++				       &subfmt);
++		if (ret != 0) {
++			if (ret != -ERANGE)
++				return ret;
++
++			subfmt.format.width = 640;
++			subfmt.format.height = 480;
++			ret = v4l2_subdev_call(cxdev->cx25840, pad, set_fmt,
++					       NULL, &subfmt);
++			if (ret != 0)
++				return ret;
++		}
++	}
++
++	f->fmt.pix.width = subfmt.format.width;
++	f->fmt.pix.height = subfmt.format.height;
++	f->fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
++	f->fmt.pix.field = V4L2_FIELD_SEQ_TB;
++	f->fmt.pix.bytesperline = cxdev->raw_mode ? 0 : f->fmt.pix.width * 2;
++	f->fmt.pix.sizeimage =
++		cxdev->raw_mode ? CXUSB_VIDEO_MAX_FRAME_SIZE :
++		f->fmt.pix.bytesperline * f->fmt.pix.height;
++	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
++	f->fmt.pix.priv = 0;
++
++	if (isset) {
++		cxdev->width = f->fmt.pix.width;
++		cxdev->height = f->fmt.pix.height;
++	}
++
++	return 0;
++}
++
++static int cxusb_medion_try_fmt_vid_cap(struct file *file, void *fh,
++					struct v4l2_format *f)
++{
++	return cxusb_medion_try_s_fmt_vid_cap(file, f, false);
++}
++
++static int cxusb_medion_s_fmt_vid_cap(struct file *file, void *fh,
++				      struct v4l2_format *f)
++{
++	return cxusb_medion_try_s_fmt_vid_cap(file, f, true);
++}
++
++static const struct {
++	struct v4l2_input input;
++	u32 inputcfg;
++} cxusb_medion_inputs[] = {
++	{ .input = { .name = "TV tuner", .type = V4L2_INPUT_TYPE_TUNER,
++		     .tuner = 0, .std = V4L2_STD_PAL },
++	  .inputcfg = CX25840_COMPOSITE2, },
++
++	{  .input = { .name = "Composite", .type = V4L2_INPUT_TYPE_CAMERA,
++		     .std = V4L2_STD_ALL },
++	   .inputcfg = CX25840_COMPOSITE1, },
++
++	{  .input = { .name = "S-Video", .type = V4L2_INPUT_TYPE_CAMERA,
++		      .std = V4L2_STD_ALL },
++	   .inputcfg = CX25840_SVIDEO_LUMA3 | CX25840_SVIDEO_CHROMA4 }
++};
++
++#define CXUSB_INPUT_CNT ARRAY_SIZE(cxusb_medion_inputs)
++
++static int cxusb_medion_enum_input(struct file *file, void *fh,
++				   struct v4l2_input *inp)
++{
++	struct dvb_usb_device *dvbdev = video_drvdata(file);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	u32 index = inp->index;
++
++	if (index >= CXUSB_INPUT_CNT)
++		return -EINVAL;
++
++	*inp = cxusb_medion_inputs[index].input;
++	inp->index = index;
++	inp->capabilities |= V4L2_IN_CAP_STD;
++
++	if (index == cxdev->input) {
++		int ret;
++		u32 status = 0;
++
++		ret = v4l2_subdev_call(cxdev->cx25840, video, g_input_status,
++				       &status);
++		if (ret != 0)
++			dev_warn(&dvbdev->udev->dev,
++				 "cx25840 input status query failed (%d)\n",
++				 ret);
++		else
++			inp->status = status;
++	}
++
++	return 0;
++}
++
++static int cxusb_medion_g_input(struct file *file, void *fh,
++				unsigned int *i)
++{
++	struct dvb_usb_device *dvbdev = video_drvdata(file);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++
++	*i = cxdev->input;
++
++	return 0;
++}
++
++static int cxusb_medion_s_input(struct file *file, void *fh,
++				unsigned int i)
++{
++	struct dvb_usb_device *dvbdev = video_drvdata(file);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	int ret;
++
++	if (i >= CXUSB_INPUT_CNT)
++		return -EINVAL;
++
++	ret = v4l2_subdev_call(cxdev->cx25840, video, s_routing,
++			       cxusb_medion_inputs[i].inputcfg, 0, 0);
++	if (ret != 0)
++		return ret;
++
++	cxdev->input = i;
++
++	return 0;
++}
++
++static int cxusb_medion_g_tuner(struct file *file, void *fh,
++				struct v4l2_tuner *tuner)
++{
++	struct dvb_usb_device *dvbdev = video_drvdata(file);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	struct video_device *vdev = video_devdata(file);
++	int ret;
++
++	if (tuner->index != 0)
++		return -EINVAL;
++
++	if (vdev->vfl_type == VFL_TYPE_GRABBER)
++		tuner->type = V4L2_TUNER_ANALOG_TV;
++	else
++		tuner->type = V4L2_TUNER_RADIO;
++
++	tuner->capability = 0;
++	tuner->afc = 0;
++
++	/*
++	 * fills:
++	 * always: capability (static), rangelow (static), rangehigh (static)
++	 * radio mode: afc (may fail silently), rxsubchans (static), audmode
++	 */
++	ret = v4l2_subdev_call(cxdev->tda9887, tuner, g_tuner, tuner);
++	if (ret != 0)
++		return ret;
++
++	/*
++	 * fills:
++	 * always: capability (static), rangelow (static), rangehigh (static)
++	 * radio mode: rxsubchans (always stereo), audmode,
++	 * signal (might be wrong)
++	 */
++	ret = v4l2_subdev_call(cxdev->tuner, tuner, g_tuner, tuner);
++	if (ret != 0)
++		return ret;
++
++	tuner->signal = 0;
++
++	/*
++	 * fills: TV mode: capability, rxsubchans, audmode, signal
++	 */
++	ret = v4l2_subdev_call(cxdev->cx25840, tuner, g_tuner, tuner);
++	if (ret != 0)
++		return ret;
++
++	if (vdev->vfl_type == VFL_TYPE_GRABBER)
++		strcpy(tuner->name, "TV tuner");
++	else
++		strcpy(tuner->name, "Radio tuner");
++
++	memset(tuner->reserved, 0, sizeof(tuner->reserved));
++
++	return 0;
++}
++
++static int cxusb_medion_s_tuner(struct file *file, void *fh,
++				const struct v4l2_tuner *tuner)
++{
++	struct dvb_usb_device *dvbdev = video_drvdata(file);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	struct video_device *vdev = video_devdata(file);
++	int ret;
++
++	if (tuner->index != 0)
++		return -EINVAL;
++
++	ret = v4l2_subdev_call(cxdev->tda9887, tuner, s_tuner, tuner);
++	if (ret != 0)
++		return ret;
++
++	ret = v4l2_subdev_call(cxdev->tuner, tuner, s_tuner, tuner);
++	if (ret != 0)
++		return ret;
++
++	/*
++	 * make sure that cx25840 is in a correct TV / radio mode,
++	 * since calls above may have changed it for tuner / IF demod
++	 */
++	if (vdev->vfl_type == VFL_TYPE_GRABBER)
++		v4l2_subdev_call(cxdev->cx25840, video, s_std, cxdev->norm);
++	else
++		v4l2_subdev_call(cxdev->cx25840, tuner, s_radio);
++
++	return v4l2_subdev_call(cxdev->cx25840, tuner, s_tuner, tuner);
++}
++
++static int cxusb_medion_g_frequency(struct file *file, void *fh,
++				    struct v4l2_frequency *freq)
++{
++	struct dvb_usb_device *dvbdev = video_drvdata(file);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++
++	if (freq->tuner != 0)
++		return -EINVAL;
++
++	return v4l2_subdev_call(cxdev->tuner, tuner, g_frequency, freq);
++}
++
++static int cxusb_medion_s_frequency(struct file *file, void *fh,
++				    const struct v4l2_frequency *freq)
++{
++	struct dvb_usb_device *dvbdev = video_drvdata(file);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	struct video_device *vdev = video_devdata(file);
++	int ret;
++
++	if (freq->tuner != 0)
++		return -EINVAL;
++
++	ret = v4l2_subdev_call(cxdev->tda9887, tuner, s_frequency, freq);
++	if (ret != 0)
++		return ret;
++
++	ret = v4l2_subdev_call(cxdev->tuner, tuner, s_frequency, freq);
++	if (ret != 0)
++		return ret;
++
++	/*
++	 * make sure that cx25840 is in a correct TV / radio mode,
++	 * since calls above may have changed it for tuner / IF demod
++	 */
++	if (vdev->vfl_type == VFL_TYPE_GRABBER)
++		v4l2_subdev_call(cxdev->cx25840, video, s_std, cxdev->norm);
++	else
++		v4l2_subdev_call(cxdev->cx25840, tuner, s_radio);
++
++	return v4l2_subdev_call(cxdev->cx25840, tuner, s_frequency, freq);
++}
++
++static int cxusb_medion_g_std(struct file *file, void *fh,
++			      v4l2_std_id *norm)
++{
++	struct dvb_usb_device *dvbdev = video_drvdata(file);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	int ret;
++
++	ret = v4l2_subdev_call(cxdev->cx25840, video, g_std, norm);
++	if (ret != 0) {
++		cxusb_vprintk(dvbdev, OPS, "cannot get standard for input %u\n",
++			      (unsigned int)cxdev->input);
++
++		return ret;
++	}
++
++	cxusb_vprintk(dvbdev, OPS,
++		      "current standard for input %u is %lx\n",
++		      (unsigned int)cxdev->input,
++		      (unsigned long)*norm);
++
++	if (cxdev->input == 0)
++		/*
++		 * make sure we don't have improper std bits set
++		 * for TV tuner (could happen when no signal was
++		 * present yet after reset)
++		 */
++		*norm &= V4L2_STD_PAL;
++
++	if (*norm == V4L2_STD_UNKNOWN)
++		return -ENODATA;
++
++	return 0;
++}
++
++static int cxusb_medion_s_std(struct file *file, void *fh,
++			      v4l2_std_id norm)
++{
++	struct dvb_usb_device *dvbdev = video_drvdata(file);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	int ret;
++
++	cxusb_vprintk(dvbdev, OPS,
++		      "trying to set standard for input %u to %lx\n",
++		      (unsigned int)cxdev->input,
++		      (unsigned long)norm);
++
++	/* on composite or S-Video any std is acceptable */
++	if (cxdev->input != 0) {
++		ret = v4l2_subdev_call(cxdev->cx25840, video, s_std, norm);
++		if (ret)
++			return ret;
++
++		goto ret_savenorm;
++	}
++
++	/* TV tuner is only able to demodulate PAL */
++	if ((norm & ~V4L2_STD_PAL) != 0)
++		return -EINVAL;
++
++	/* no autodetection support */
++	if (norm == 0)
++		return -EINVAL;
++
++	ret = v4l2_subdev_call(cxdev->tda9887, video, s_std, norm);
++	if (ret != 0) {
++		dev_err(&dvbdev->udev->dev,
++			"tda9887 norm setup failed (%d)\n",
++			ret);
++		return ret;
++	}
++
++	ret = v4l2_subdev_call(cxdev->tuner, video, s_std, norm);
++	if (ret != 0) {
++		dev_err(&dvbdev->udev->dev,
++			"tuner norm setup failed (%d)\n",
++			ret);
++		return ret;
++	}
++
++	ret = v4l2_subdev_call(cxdev->cx25840, video, s_std, norm);
++	if (ret != 0) {
++		dev_err(&dvbdev->udev->dev,
++			"cx25840 norm setup failed (%d)\n",
++			ret);
++		return ret;
++	}
++
++ret_savenorm:
++	cxdev->norm = norm;
++
++	return 0;
++}
++
++static int cxusb_medion_log_status(struct file *file, void *fh)
++{
++	struct dvb_usb_device *dvbdev = video_drvdata(file);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++
++	v4l2_device_call_all(&cxdev->v4l2dev, 0, core, log_status);
++
++	return 0;
++}
++
++static const struct v4l2_ioctl_ops cxusb_video_ioctl = {
++	.vidioc_querycap = cxusb_medion_v_querycap,
++	.vidioc_enum_fmt_vid_cap = cxusb_medion_v_enum_fmt_vid_cap,
++	.vidioc_g_fmt_vid_cap = cxusb_medion_g_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap = cxusb_medion_s_fmt_vid_cap,
++	.vidioc_try_fmt_vid_cap = cxusb_medion_try_fmt_vid_cap,
++	.vidioc_enum_input = cxusb_medion_enum_input,
++	.vidioc_g_input = cxusb_medion_g_input,
++	.vidioc_s_input = cxusb_medion_s_input,
++	.vidioc_g_parm = cxusb_medion_g_parm,
++	.vidioc_s_parm = cxusb_medion_s_parm,
++	.vidioc_g_tuner = cxusb_medion_g_tuner,
++	.vidioc_s_tuner = cxusb_medion_s_tuner,
++	.vidioc_g_frequency = cxusb_medion_g_frequency,
++	.vidioc_s_frequency = cxusb_medion_s_frequency,
++	.vidioc_g_std = cxusb_medion_g_std,
++	.vidioc_s_std = cxusb_medion_s_std,
++	.vidioc_log_status = cxusb_medion_log_status,
++	.vidioc_reqbufs = vb2_ioctl_reqbufs,
++	.vidioc_querybuf = vb2_ioctl_querybuf,
++	.vidioc_qbuf = vb2_ioctl_qbuf,
++	.vidioc_dqbuf = vb2_ioctl_dqbuf,
++	.vidioc_create_bufs = vb2_ioctl_create_bufs,
++	.vidioc_prepare_buf = vb2_ioctl_prepare_buf,
++	.vidioc_streamon = vb2_ioctl_streamon,
++	.vidioc_streamoff = vb2_ioctl_streamoff
++};
++
++static const struct v4l2_ioctl_ops cxusb_radio_ioctl = {
++	.vidioc_querycap = cxusb_medion_v_querycap,
++	.vidioc_g_tuner = cxusb_medion_g_tuner,
++	.vidioc_s_tuner = cxusb_medion_s_tuner,
++	.vidioc_g_frequency = cxusb_medion_g_frequency,
++	.vidioc_s_frequency = cxusb_medion_s_frequency,
++	.vidioc_log_status = cxusb_medion_log_status
++};
++
++/*
++ * in principle, this should be const, but s_io_pin_config is declared
++ * to take non-const, and gcc complains
++ */
++static struct v4l2_subdev_io_pin_config cxusub_medion_pin_config[] = {
++	{ .pin = CX25840_PIN_DVALID_PRGM0, .function = CX25840_PAD_DEFAULT,
++	  .strength = CX25840_PIN_DRIVE_MEDIUM },
++	{ .pin = CX25840_PIN_PLL_CLK_PRGM7, .function = CX25840_PAD_AUX_PLL },
++	{ .pin = CX25840_PIN_HRESET_PRGM2, .function = CX25840_PAD_ACTIVE,
++	  .strength = CX25840_PIN_DRIVE_MEDIUM }
++};
++
++int cxusb_medion_analog_init(struct dvb_usb_device *dvbdev)
++{
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	u8 tuner_analog_msg_data[] = { 0x9c, 0x60, 0x85, 0x54 };
++	struct i2c_msg tuner_analog_msg = { .addr = 0x61, .flags = 0,
++					    .buf = tuner_analog_msg_data,
++					    .len =
++					    sizeof(tuner_analog_msg_data) };
++	struct v4l2_subdev_format subfmt;
++	int ret;
++
++	/* switch tuner to analog mode so IF demod will become accessible */
++	ret = i2c_transfer(&dvbdev->i2c_adap, &tuner_analog_msg, 1);
++	if (ret != 1)
++		dev_warn(&dvbdev->udev->dev,
++			 "tuner analog switch failed (%d)\n", ret);
++
++	ret = v4l2_subdev_call(cxdev->cx25840, core, load_fw);
++	if (ret != 0)
++		dev_warn(&dvbdev->udev->dev,
++			 "cx25840 fw load failed (%d)\n", ret);
++
++	ret = v4l2_subdev_call(cxdev->cx25840, video, s_routing,
++			       CX25840_COMPOSITE1, 0,
++			       CX25840_VCONFIG_FMT_BT656 |
++			       CX25840_VCONFIG_RES_8BIT |
++			       CX25840_VCONFIG_VBIRAW_DISABLED |
++			       CX25840_VCONFIG_ANCDATA_DISABLED |
++			       CX25840_VCONFIG_ACTIVE_COMPOSITE |
++			       CX25840_VCONFIG_VALID_ANDACTIVE |
++			       CX25840_VCONFIG_HRESETW_NORMAL |
++			       CX25840_VCONFIG_CLKGATE_NONE |
++			       CX25840_VCONFIG_DCMODE_DWORDS);
++	if (ret != 0)
++		dev_warn(&dvbdev->udev->dev,
++			 "cx25840 mode set failed (%d)\n", ret);
++
++	/* composite */
++	cxdev->input = 1;
++	cxdev->norm = 0;
++
++	/* TODO: setup audio samples insertion */
++
++	ret = v4l2_subdev_call(cxdev->cx25840, core, s_io_pin_config,
++			       sizeof(cxusub_medion_pin_config) /
++			       sizeof(cxusub_medion_pin_config[0]),
++			       cxusub_medion_pin_config);
++	if (ret != 0)
++		dev_warn(&dvbdev->udev->dev,
++			"cx25840 pin config failed (%d)\n", ret);
++
++	/* make sure that we aren't in radio mode */
++	v4l2_subdev_call(cxdev->tda9887, video, s_std, V4L2_STD_PAL);
++	v4l2_subdev_call(cxdev->tuner, video, s_std, V4L2_STD_PAL);
++	v4l2_subdev_call(cxdev->cx25840, video, s_std, cxdev->norm);
++
++	memset(&subfmt, 0, sizeof(subfmt));
++	subfmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++	subfmt.format.width = cxdev->width;
++	subfmt.format.height = cxdev->height;
++	subfmt.format.code = MEDIA_BUS_FMT_FIXED;
++	subfmt.format.field = V4L2_FIELD_SEQ_TB;
++	subfmt.format.colorspace = V4L2_COLORSPACE_SMPTE170M;
++
++	ret = v4l2_subdev_call(cxdev->cx25840, pad, set_fmt, NULL, &subfmt);
++	if (ret != 0) {
++		subfmt.format.width = 640;
++		subfmt.format.height = 480;
++		ret = v4l2_subdev_call(cxdev->cx25840, pad, set_fmt, NULL,
++				       &subfmt);
++		if (ret != 0)
++			dev_warn(&dvbdev->udev->dev,
++				 "cx25840 format set failed (%d)\n", ret);
++	}
++
++	if (ret == 0) {
++		cxdev->width = subfmt.format.width;
++		cxdev->height = subfmt.format.height;
++	}
++
++	return 0;
++}
++
++static int cxusb_videoradio_open(struct file *f)
++{
++	struct dvb_usb_device *dvbdev = video_drvdata(f);
++	int ret;
++
++	/*
++	 * no locking needed since this call only modifies analog
++	 * state if there are no other analog handles currenly
++	 * opened so ops done via them cannot create a conflict
++	 */
++	ret = cxusb_medion_get(dvbdev, CXUSB_OPEN_ANALOG);
++	if (ret != 0)
++		return ret;
++
++	ret = v4l2_fh_open(f);
++	if (ret != 0)
++		goto ret_release;
++
++	cxusb_vprintk(dvbdev, OPS, "got open\n");
++
++	return 0;
++
++ret_release:
++	cxusb_medion_put(dvbdev);
++
++	return ret;
++}
++
++static int cxusb_videoradio_release(struct file *f)
++{
++	struct video_device *vdev = video_devdata(f);
++	struct dvb_usb_device *dvbdev = video_drvdata(f);
++	int ret;
++
++	cxusb_vprintk(dvbdev, OPS, "got release\n");
++
++	if (vdev->vfl_type == VFL_TYPE_GRABBER)
++		ret = vb2_fop_release(f);
++	else
++		ret = v4l2_fh_release(f);
++
++	cxusb_medion_put(dvbdev);
++
++	return ret;
++}
++
++static const struct v4l2_file_operations cxusb_video_fops = {
++	.owner = THIS_MODULE,
++	.read = vb2_fop_read,
++	.poll = vb2_fop_poll,
++	.unlocked_ioctl = video_ioctl2,
++	.mmap = vb2_fop_mmap,
++	.open = cxusb_videoradio_open,
++	.release = cxusb_videoradio_release
++};
++
++static const struct v4l2_file_operations cxusb_radio_fops = {
++	.owner = THIS_MODULE,
++	.unlocked_ioctl = video_ioctl2,
++	.open = cxusb_videoradio_open,
++	.release = cxusb_videoradio_release
++};
++
++static void cxusb_medion_v4l2_release(struct v4l2_device *v4l2_dev)
++{
++	struct cxusb_medion_dev *cxdev =
++		container_of(v4l2_dev, struct cxusb_medion_dev, v4l2dev);
++	struct dvb_usb_device *dvbdev = cxdev->dvbdev;
++
++	cxusb_vprintk(dvbdev, OPS, "v4l2 device release\n");
++
++	v4l2_device_unregister(&cxdev->v4l2dev);
++
++	mutex_destroy(&cxdev->dev_lock);
++
++	while (completion_done(&cxdev->v4l2_release))
++		schedule();
++
++	complete(&cxdev->v4l2_release);
++}
++
++static void cxusb_medion_videodev_release(struct video_device *vdev)
++{
++	struct dvb_usb_device *dvbdev = video_get_drvdata(vdev);
++
++	cxusb_vprintk(dvbdev, OPS, "video device release\n");
++
++	vb2_queue_release(vdev->queue);
++
++	video_device_release(vdev);
++}
++
++static int cxusb_medion_register_analog_video(struct dvb_usb_device *dvbdev)
++{
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	int ret;
++
++	cxdev->videoqueue.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	cxdev->videoqueue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
++	cxdev->videoqueue.ops = &cxdev_video_qops;
++	cxdev->videoqueue.mem_ops = &vb2_vmalloc_memops;
++	cxdev->videoqueue.drv_priv = dvbdev;
++	cxdev->videoqueue.buf_struct_size =
++		sizeof(struct cxusb_medion_vbuffer);
++	cxdev->videoqueue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++
++	ret = vb2_queue_init(&cxdev->videoqueue);
++	if (ret) {
++		dev_err(&dvbdev->udev->dev,
++			"video queue init failed, ret = %d\n", ret);
++		return ret;
++	}
++
++	cxdev->videodev = video_device_alloc();
++	if (cxdev->videodev == NULL) {
++		dev_err(&dvbdev->udev->dev, "video device alloc failed\n");
++		ret = -ENOMEM;
++		goto ret_qrelease;
++	}
++
++	cxdev->videodev->fops = &cxusb_video_fops;
++	cxdev->videodev->v4l2_dev = &cxdev->v4l2dev;
++	cxdev->videodev->queue = &cxdev->videoqueue;
++	strcpy(cxdev->videodev->name, "cxusb");
++	cxdev->videodev->vfl_dir = VFL_DIR_RX;
++	cxdev->videodev->ioctl_ops = &cxusb_video_ioctl;
++	cxdev->videodev->tvnorms = V4L2_STD_ALL;
++	cxdev->videodev->release = cxusb_medion_videodev_release;
++	cxdev->videodev->lock = &cxdev->dev_lock;
++	video_set_drvdata(cxdev->videodev, dvbdev);
++
++	ret = video_register_device(cxdev->videodev, VFL_TYPE_GRABBER, -1);
++	if (ret) {
++		dev_err(&dvbdev->udev->dev,
++			"video device register failed, ret = %d\n", ret);
++		goto ret_vrelease;
++	}
++
++	return 0;
++
++ret_vrelease:
++	video_device_release(cxdev->videodev);
++
++ret_qrelease:
++	vb2_queue_release(&cxdev->videoqueue);
++
++	return ret;
++}
++
++static int cxusb_medion_register_analog_radio(struct dvb_usb_device *dvbdev)
++{
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	int ret;
++
++	cxdev->radiodev = video_device_alloc();
++	if (cxdev->radiodev == NULL) {
++		dev_err(&dvbdev->udev->dev, "radio device alloc failed\n");
++		return -ENOMEM;
++	}
++
++	cxdev->radiodev->fops = &cxusb_radio_fops;
++	cxdev->radiodev->v4l2_dev = &cxdev->v4l2dev;
++	strcpy(cxdev->radiodev->name, "cxusb");
++	cxdev->radiodev->vfl_dir = VFL_DIR_RX;
++	cxdev->radiodev->ioctl_ops = &cxusb_radio_ioctl;
++	cxdev->radiodev->release = video_device_release;
++	cxdev->radiodev->lock = &cxdev->dev_lock;
++	video_set_drvdata(cxdev->radiodev, dvbdev);
++
++	ret = video_register_device(cxdev->radiodev, VFL_TYPE_RADIO, -1);
++	if (ret) {
++		dev_err(&dvbdev->udev->dev,
++			"radio device register failed, ret = %d\n", ret);
++		video_device_release(cxdev->radiodev);
++		return ret;
++	}
++
++	return 0;
++}
++
++static int cxusb_medion_register_analog_subdevs(struct dvb_usb_device *dvbdev)
++{
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	struct tuner_setup tun_setup;
++	struct i2c_board_info cx25840_board;
++	struct cx25840_platform_data cx25840_platform;
++
++	/* attach capture chip */
++	memset(&cx25840_platform, 0, sizeof(cx25840_platform));
++	cx25840_platform.generic_mode = 1;
++
++	memset(&cx25840_board, 0, sizeof(cx25840_board));
++	strcpy(cx25840_board.type, "cx25840");
++	cx25840_board.addr = 0x44;
++	cx25840_board.platform_data = &cx25840_platform;
++
++	cxdev->cx25840 = v4l2_i2c_new_subdev_board(&cxdev->v4l2dev,
++						   &dvbdev->i2c_adap,
++						   &cx25840_board, NULL);
++	if (cxdev->cx25840 == NULL) {
++		dev_err(&dvbdev->udev->dev, "cx25840 not found\n");
++		return -ENODEV;
++	}
++
++	/* attach analog tuner */
++	cxdev->tuner = v4l2_i2c_new_subdev(&cxdev->v4l2dev,
++					   &dvbdev->i2c_adap,
++					   "tuner", 0x61, NULL);
++	if (cxdev->tuner == NULL) {
++		dev_err(&dvbdev->udev->dev, "tuner not found\n");
++		return -ENODEV;
++	}
++
++	/* configure it */
++	memset(&tun_setup, 0, sizeof(tun_setup));
++	tun_setup.addr = 0x61;
++	tun_setup.type = TUNER_PHILIPS_FMD1216ME_MK3;
++	tun_setup.mode_mask = T_RADIO | T_ANALOG_TV;
++	v4l2_subdev_call(cxdev->tuner, tuner, s_type_addr, &tun_setup);
++
++	/* attach IF demod */
++	cxdev->tda9887 = v4l2_i2c_new_subdev(&cxdev->v4l2dev,
++					     &dvbdev->i2c_adap,
++					     "tuner", 0x43, NULL);
++	if (cxdev->tda9887 == NULL) {
++		dev_err(&dvbdev->udev->dev, "tda9887 not found\n");
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++int cxusb_medion_register_analog(struct dvb_usb_device *dvbdev)
++{
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	int ret;
++
++	mutex_init(&cxdev->dev_lock);
++
++	init_completion(&cxdev->v4l2_release);
++
++	cxdev->v4l2dev.release = cxusb_medion_v4l2_release;
++
++	ret = v4l2_device_register(&dvbdev->udev->dev, &cxdev->v4l2dev);
++	if (ret != 0) {
++		dev_err(&dvbdev->udev->dev,
++			"V4L2 device registration failed, ret = %d\n", ret);
++		mutex_destroy(&cxdev->dev_lock);
++		return ret;
++	}
++
++	ret = cxusb_medion_register_analog_subdevs(dvbdev);
++	if (ret)
++		goto ret_unregister;
++
++	INIT_WORK(&cxdev->urbwork, cxusb_medion_v_complete_work);
++	INIT_LIST_HEAD(&cxdev->buflist);
++
++	cxdev->width = 320;
++	cxdev->height = 240;
++
++	ret = cxusb_medion_register_analog_video(dvbdev);
++	if (ret)
++		goto ret_unregister;
++
++	ret = cxusb_medion_register_analog_radio(dvbdev);
++	if (ret)
++		goto ret_vunreg;
++
++	return 0;
++
++ret_vunreg:
++	video_unregister_device(cxdev->videodev);
++
++ret_unregister:
++	v4l2_device_put(&cxdev->v4l2dev);
++	wait_for_completion(&cxdev->v4l2_release);
++
++	return ret;
++}
++
++void cxusb_medion_unregister_analog(struct dvb_usb_device *dvbdev)
++{
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++
++	cxusb_vprintk(dvbdev, OPS, "unregistering analog\n");
++
++	video_unregister_device(cxdev->radiodev);
++	video_unregister_device(cxdev->videodev);
++
++	v4l2_device_put(&cxdev->v4l2dev);
++	wait_for_completion(&cxdev->v4l2_release);
++
++	cxusb_vprintk(dvbdev, OPS, "analog unregistered\n");
++}
+diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+index 99a3f3625944..db03b64308ab 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.c
++++ b/drivers/media/usb/dvb-usb/cxusb.c
+@@ -11,11 +11,11 @@
+  * design, so it can be reused for the "analogue-only" device (if it will
+  * appear at all).
+  *
+- * TODO: Use the cx25840-driver for the analogue part
+  *
+  * Copyright (C) 2005 Patrick Boettcher (patrick.boettcher@posteo.de)
+  * Copyright (C) 2006 Michael Krufky (mkrufky@linuxtv.org)
+  * Copyright (C) 2006, 2007 Chris Pascoe (c.pascoe@itee.uq.edu.au)
++ * Copyright (C) 2011, 2017 Maciej S. Szmigiero (mail@maciej.szmigiero.name)
+  *
+  *   This program is free software; you can redistribute it and/or modify it
+  *   under the terms of the GNU General Public License as published by the Free
+@@ -24,8 +24,11 @@
+  * see Documentation/dvb/README.dvb-usb for more information
+  */
+ #include <media/tuner.h>
+-#include <linux/vmalloc.h>
++#include <linux/delay.h>
++#include <linux/device.h>
+ #include <linux/slab.h>
++#include <linux/string.h>
++#include <linux/vmalloc.h>
+ 
+ #include "cxusb.h"
+ 
+@@ -46,17 +49,46 @@
+ #include "si2157.h"
+ 
+ /* debug */
+-static int dvb_usb_cxusb_debug;
++int dvb_usb_cxusb_debug;
+ module_param_named(debug, dvb_usb_cxusb_debug, int, 0644);
+-MODULE_PARM_DESC(debug, "set debugging level (1=rc (or-able))." DVB_USB_DEBUG_STATUS);
++MODULE_PARM_DESC(debug, "set debugging level (see cxusb.h)."
++		 DVB_USB_DEBUG_STATUS);
+ 
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
+-#define deb_info(args...)   dprintk(dvb_usb_cxusb_debug, 0x03, args)
+-#define deb_i2c(args...)    dprintk(dvb_usb_cxusb_debug, 0x02, args)
++#define deb_info(args...)   dprintk(dvb_usb_cxusb_debug, CXUSB_DBG_MISC, args)
++#define deb_i2c(args...)    dprintk(dvb_usb_cxusb_debug, CXUSB_DBG_I2C, args)
++
++enum cxusb_table_index {
++	MEDION_MD95700,
++	DVICO_BLUEBIRD_LG064F_COLD,
++	DVICO_BLUEBIRD_LG064F_WARM,
++	DVICO_BLUEBIRD_DUAL_1_COLD,
++	DVICO_BLUEBIRD_DUAL_1_WARM,
++	DVICO_BLUEBIRD_LGZ201_COLD,
++	DVICO_BLUEBIRD_LGZ201_WARM,
++	DVICO_BLUEBIRD_TH7579_COLD,
++	DVICO_BLUEBIRD_TH7579_WARM,
++	DIGITALNOW_BLUEBIRD_DUAL_1_COLD,
++	DIGITALNOW_BLUEBIRD_DUAL_1_WARM,
++	DVICO_BLUEBIRD_DUAL_2_COLD,
++	DVICO_BLUEBIRD_DUAL_2_WARM,
++	DVICO_BLUEBIRD_DUAL_4,
++	DVICO_BLUEBIRD_DVB_T_NANO_2,
++	DVICO_BLUEBIRD_DVB_T_NANO_2_NFW_WARM,
++	AVERMEDIA_VOLAR_A868R,
++	DVICO_BLUEBIRD_DUAL_4_REV_2,
++	CONEXANT_D680_DMB,
++	MYGICA_D689,
++	MYGICA_T230,
++	MYGICA_T230C,
++	NR__cxusb_table_index
++};
++
++static struct usb_device_id cxusb_table[];
+ 
+-static int cxusb_ctrl_msg(struct dvb_usb_device *d,
+-			  u8 cmd, u8 *wbuf, int wlen, u8 *rbuf, int rlen)
++int cxusb_ctrl_msg(struct dvb_usb_device *d,
++		   u8 cmd, u8 *wbuf, int wlen, u8 *rbuf, int rlen)
+ {
+ 	struct cxusb_state *st = d->priv;
+ 	int ret;
+@@ -88,7 +120,8 @@ static void cxusb_gpio_tuner(struct dvb_usb_device *d, int onoff)
+ 	struct cxusb_state *st = d->priv;
+ 	u8 o[2], i;
+ 
+-	if (st->gpio_write_state[GPIO_TUNER] == onoff)
++	if (st->gpio_write_state[GPIO_TUNER] == onoff &&
++	    !st->gpio_write_refresh[GPIO_TUNER])
+ 		return;
+ 
+ 	o[0] = GPIO_TUNER;
+@@ -99,6 +132,7 @@ static void cxusb_gpio_tuner(struct dvb_usb_device *d, int onoff)
+ 		deb_info("gpio_write failed.\n");
+ 
+ 	st->gpio_write_state[GPIO_TUNER] = onoff;
++	st->gpio_write_refresh[GPIO_TUNER] = false;
+ }
+ 
+ static int cxusb_bluebird_gpio_rw(struct dvb_usb_device *d, u8 changemask,
+@@ -258,7 +292,7 @@ static int cxusb_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 
+ static u32 cxusb_i2c_func(struct i2c_adapter *adapter)
+ {
+-	return I2C_FUNC_I2C;
++	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
+ }
+ 
+ static struct i2c_algorithm cxusb_i2c_algo = {
+@@ -266,15 +300,48 @@ static struct i2c_algorithm cxusb_i2c_algo = {
+ 	.functionality = cxusb_i2c_func,
  };
  
- /**
-- * enum fe_rolloff - Rolloff factor (also known as alpha)
-- * @ROLLOFF_35:		Roloff factor: 35%
-- * @ROLLOFF_20:		Roloff factor: 20%
-- * @ROLLOFF_25:		Roloff factor: 25%
-+ * enum fe_rolloff - Rolloff factor
-+ * @ROLLOFF_35:		Roloff factor: α=35%
-+ * @ROLLOFF_20:		Roloff factor: α=20%
-+ * @ROLLOFF_25:		Roloff factor: α=25%
-  * @ROLLOFF_AUTO:	Auto-detect the roloff factor.
+-static int cxusb_power_ctrl(struct dvb_usb_device *d, int onoff)
++static int _cxusb_power_ctrl(struct dvb_usb_device *d, int onoff)
+ {
+ 	u8 b = 0;
++
++	deb_info("setting power %s\n", onoff ? "ON" : "OFF");
++
+ 	if (onoff)
+ 		return cxusb_ctrl_msg(d, CMD_POWER_ON, &b, 1, NULL, 0);
+ 	else
+ 		return cxusb_ctrl_msg(d, CMD_POWER_OFF, &b, 1, NULL, 0);
+ }
+ 
++static int cxusb_power_ctrl(struct dvb_usb_device *d, int onoff)
++{
++	bool is_medion = d->props.devices[0].warm_ids[0] ==
++		&cxusb_table[MEDION_MD95700];
++	int ret;
++
++	if (is_medion && !onoff) {
++		struct cxusb_medion_dev *cxdev = d->priv;
++
++		mutex_lock(&cxdev->open_lock);
++
++		if (cxdev->open_type == CXUSB_OPEN_ANALOG) {
++			deb_info("preventing DVB core from setting power OFF while we are in analog mode\n");
++			ret = -EBUSY;
++			goto ret_unlock;
++		}
++	}
++
++	ret = _cxusb_power_ctrl(d, onoff);
++
++ret_unlock:
++	if (is_medion && !onoff) {
++		struct cxusb_medion_dev *cxdev = d->priv;
++
++		mutex_unlock(&cxdev->open_lock);
++	}
++
++	return ret;
++}
++
+ static int cxusb_aver_power_ctrl(struct dvb_usb_device *d, int onoff)
+ {
+ 	int ret;
+@@ -351,11 +418,26 @@ static int cxusb_d680_dmb_power_ctrl(struct dvb_usb_device *d, int onoff)
+ 
+ static int cxusb_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ {
++	struct dvb_usb_device *dvbdev = adap->dev;
++	bool is_medion = dvbdev->props.devices[0].warm_ids[0] ==
++		&cxusb_table[MEDION_MD95700];
+ 	u8 buf[2] = { 0x03, 0x00 };
++
++	if (is_medion && onoff) {
++		int ret;
++
++		ret = cxusb_medion_get(dvbdev, CXUSB_OPEN_DIGITAL);
++		if (ret != 0)
++			return ret;
++	}
++
+ 	if (onoff)
+-		cxusb_ctrl_msg(adap->dev, CMD_STREAMING_ON, buf, 2, NULL, 0);
++		cxusb_ctrl_msg(dvbdev, CMD_STREAMING_ON, buf, 2, NULL, 0);
+ 	else
+-		cxusb_ctrl_msg(adap->dev, CMD_STREAMING_OFF, NULL, 0, NULL, 0);
++		cxusb_ctrl_msg(dvbdev, CMD_STREAMING_OFF, NULL, 0, NULL, 0);
++
++	if (is_medion && !onoff)
++		cxusb_medion_put(dvbdev);
+ 
+ 	return 0;
+ }
+@@ -630,9 +712,21 @@ static struct max2165_config mygica_d689_max2165_cfg = {
+ /* Callbacks for DVB USB */
+ static int cxusb_fmd1216me_tuner_attach(struct dvb_usb_adapter *adap)
+ {
++	struct dvb_usb_device *dvbdev = adap->dev;
++	bool is_medion = dvbdev->props.devices[0].warm_ids[0] ==
++		&cxusb_table[MEDION_MD95700];
++
+ 	dvb_attach(simple_tuner_attach, adap->fe_adap[0].fe,
+-		   &adap->dev->i2c_adap, 0x61,
++		   &dvbdev->i2c_adap, 0x61,
+ 		   TUNER_PHILIPS_FMD1216ME_MK3);
++
++	if (is_medion && adap->fe_adap[0].fe != NULL)
++		/*
++		 * make sure that DVB core won't put to sleep (reset, really)
++		 * tuner when we might be open in analog mode
++		 */
++		adap->fe_adap[0].fe->ops.tuner_ops.sleep = NULL;
++
+ 	return 0;
+ }
+ 
+@@ -734,20 +828,105 @@ static int cxusb_mygica_d689_tuner_attach(struct dvb_usb_adapter *adap)
+ 	return (fe == NULL) ? -EIO : 0;
+ }
+ 
+-static int cxusb_cx22702_frontend_attach(struct dvb_usb_adapter *adap)
++static int cxusb_medion_fe_ts_bus_ctrl(struct dvb_frontend *fe, int acquire)
+ {
++	struct dvb_usb_adapter *adap = fe->dvb->priv;
++	struct dvb_usb_device *dvbdev = adap->dev;
++
++	if (acquire)
++		return cxusb_medion_get(dvbdev, CXUSB_OPEN_DIGITAL);
++
++	cxusb_medion_put(dvbdev);
++
++	return 0;
++}
++
++static int cxusb_medion_set_mode(struct dvb_usb_device *dvbdev, bool digital)
++{
++	struct cxusb_state *st = dvbdev->priv;
++	int ret;
+ 	u8 b;
+-	if (usb_set_interface(adap->dev->udev, 0, 6) < 0)
+-		err("set interface failed");
++	unsigned int i;
++
++	/*
++	 * switching mode while doing an I2C transaction often causes
++	 * the device to crash
++	 */
++	mutex_lock(&dvbdev->i2c_mutex);
++
++	if (digital) {
++		ret = usb_set_interface(dvbdev->udev, 0, 6);
++		if (ret != 0) {
++			dev_err(&dvbdev->udev->dev,
++				"digital interface selection failed (%d)\n",
++				ret);
++			goto ret_unlock;
++		}
++	} else {
++		ret = usb_set_interface(dvbdev->udev, 0, 1);
++		if (ret != 0) {
++			dev_err(&dvbdev->udev->dev,
++				"analog interface selection failed (%d)\n",
++				ret);
++			goto ret_unlock;
++		}
++	}
+ 
+-	cxusb_ctrl_msg(adap->dev, CMD_DIGITAL, NULL, 0, &b, 1);
++	/* pipes need to be cleared after setting interface */
++	ret = usb_clear_halt(dvbdev->udev, usb_rcvbulkpipe(dvbdev->udev, 1));
++	if (ret != 0)
++		dev_warn(&dvbdev->udev->dev,
++			 "clear halt on IN pipe failed (%d)\n",
++			 ret);
++
++	ret = usb_clear_halt(dvbdev->udev, usb_sndbulkpipe(dvbdev->udev, 1));
++	if (ret != 0)
++		dev_warn(&dvbdev->udev->dev,
++			 "clear halt on OUT pipe failed (%d)\n",
++			 ret);
++
++	ret = cxusb_ctrl_msg(dvbdev, digital ? CMD_DIGITAL : CMD_ANALOG,
++			     NULL, 0, &b, 1);
++	if (ret != 0) {
++		dev_err(&dvbdev->udev->dev, "mode switch failed (%d)\n",
++			ret);
++		goto ret_unlock;
++	}
++
++	/* mode switch seems to reset GPIO states */
++	for (i = 0; i < ARRAY_SIZE(st->gpio_write_refresh); i++)
++		st->gpio_write_refresh[i] = true;
++
++ret_unlock:
++	mutex_unlock(&dvbdev->i2c_mutex);
++
++	return ret;
++}
++
++static int cxusb_cx22702_frontend_attach(struct dvb_usb_adapter *adap)
++{
++	struct dvb_usb_device *dvbdev = adap->dev;
++	bool is_medion = dvbdev->props.devices[0].warm_ids[0] ==
++		&cxusb_table[MEDION_MD95700];
++
++	if (is_medion) {
++		int ret;
++
++		ret = cxusb_medion_set_mode(dvbdev, true);
++		if (ret)
++			return ret;
++	}
+ 
+ 	adap->fe_adap[0].fe = dvb_attach(cx22702_attach, &cxusb_cx22702_config,
+-					 &adap->dev->i2c_adap);
+-	if ((adap->fe_adap[0].fe) != NULL)
+-		return 0;
++					 &dvbdev->i2c_adap);
++	if (adap->fe_adap[0].fe == NULL)
++		return -EIO;
+ 
+-	return -EIO;
++	if (is_medion)
++		adap->fe_adap[0].fe->ops.ts_bus_ctrl =
++			cxusb_medion_fe_ts_bus_ctrl;
++
++	return 0;
+ }
+ 
+ static int cxusb_lgdt3303_frontend_attach(struct dvb_usb_adapter *adap)
+@@ -1383,6 +1562,101 @@ static int bluebird_patch_dvico_firmware_download(struct usb_device *udev,
+ 	return -EINVAL;
+ }
+ 
++int cxusb_medion_get(struct dvb_usb_device *dvbdev,
++		     enum cxusb_open_type open_type)
++{
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	int ret = 0;
++
++	mutex_lock(&cxdev->open_lock);
++
++	if (WARN_ON((cxdev->open_type == CXUSB_OPEN_INIT ||
++		     cxdev->open_type == CXUSB_OPEN_NONE) &&
++		    cxdev->open_ctr != 0)) {
++		ret = -EINVAL;
++		goto ret_unlock;
++	}
++
++	if (cxdev->open_type == CXUSB_OPEN_INIT) {
++		ret = -EAGAIN;
++		goto ret_unlock;
++	}
++
++	if (cxdev->open_ctr == 0) {
++		if (cxdev->open_type != open_type) {
++			deb_info("will acquire and switch to %s\n",
++				 open_type == CXUSB_OPEN_ANALOG ?
++				 "analog" : "digital");
++
++			if (open_type == CXUSB_OPEN_ANALOG) {
++				ret = _cxusb_power_ctrl(dvbdev, 1);
++				if (ret != 0)
++					dev_warn(&dvbdev->udev->dev,
++						 "powerup for analog switch failed (%d)\n",
++						 ret);
++
++				ret = cxusb_medion_set_mode(dvbdev, false);
++				if (ret != 0)
++					goto ret_unlock;
++
++				ret = cxusb_medion_analog_init(dvbdev);
++				if (ret != 0)
++					goto ret_unlock;
++			} else { /* digital */
++				ret = _cxusb_power_ctrl(dvbdev, 1);
++				if (ret != 0)
++					dev_warn(&dvbdev->udev->dev,
++						 "powerup for digital switch failed (%d)\n",
++						 ret);
++
++				ret = cxusb_medion_set_mode(dvbdev, true);
++				if (ret != 0)
++					goto ret_unlock;
++			}
++
++			cxdev->open_type = open_type;
++		} else
++			deb_info("reacquired idle %s\n",
++				 open_type == CXUSB_OPEN_ANALOG ?
++				 "analog" : "digital");
++
++		cxdev->open_ctr = 1;
++	} else if (cxdev->open_type == open_type) {
++		cxdev->open_ctr++;
++		deb_info("acquired %s\n", open_type == CXUSB_OPEN_ANALOG ?
++			 "analog" : "digital");
++	} else
++		ret = -EBUSY;
++
++ret_unlock:
++	mutex_unlock(&cxdev->open_lock);
++
++	return ret;
++}
++
++void cxusb_medion_put(struct dvb_usb_device *dvbdev)
++{
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++
++	mutex_lock(&cxdev->open_lock);
++
++	if (cxdev->open_type == CXUSB_OPEN_INIT) {
++		WARN_ON(cxdev->open_ctr != 0);
++		cxdev->open_type = CXUSB_OPEN_NONE;
++		goto unlock;
++	}
++
++	if (!WARN_ON(cxdev->open_ctr < 1)) {
++		cxdev->open_ctr--;
++
++		deb_info("release %s\n", cxdev->open_type ==
++			 CXUSB_OPEN_ANALOG ? "analog" : "digital");
++	}
++
++unlock:
++	mutex_unlock(&cxdev->open_lock);
++}
++
+ /* DVB USB Driver stuff */
+ static struct dvb_usb_device_properties cxusb_medion_properties;
+ static struct dvb_usb_device_properties cxusb_bluebird_lgh064f_properties;
+@@ -1399,12 +1673,101 @@ static struct dvb_usb_device_properties cxusb_mygica_d689_properties;
+ static struct dvb_usb_device_properties cxusb_mygica_t230_properties;
+ static struct dvb_usb_device_properties cxusb_mygica_t230c_properties;
+ 
++static int cxusb_medion_priv_init(struct dvb_usb_device *dvbdev)
++{
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++
++	cxdev->dvbdev = dvbdev;
++	cxdev->open_type = CXUSB_OPEN_INIT;
++	mutex_init(&cxdev->open_lock);
++
++	return 0;
++}
++
++static void cxusb_medion_priv_destroy(struct dvb_usb_device *dvbdev)
++{
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++
++	mutex_destroy(&cxdev->open_lock);
++}
++
++static bool cxusb_medion_check_altsetting(struct usb_host_interface *as)
++{
++	unsigned int ctr;
++
++	for (ctr = 0; ctr < as->desc.bNumEndpoints; ctr++) {
++		if ((as->endpoint[ctr].desc.bEndpointAddress &
++		     USB_ENDPOINT_NUMBER_MASK) != 2)
++			continue;
++
++		if (as->endpoint[ctr].desc.bEndpointAddress & USB_DIR_IN &&
++		    ((as->endpoint[ctr].desc.bmAttributes &
++		      USB_ENDPOINT_XFERTYPE_MASK) == USB_ENDPOINT_XFER_ISOC))
++			return true;
++
++		break;
++	}
++
++	return false;
++}
++
++static bool cxusb_medion_check_intf(struct usb_interface *intf)
++{
++	unsigned int ctr;
++
++	if (intf->num_altsetting < 2) {
++		dev_err(intf->usb_dev, "no alternate interface");
++
++		return false;
++	}
++
++	for (ctr = 0; ctr < intf->num_altsetting; ctr++) {
++		if (intf->altsetting[ctr].desc.bAlternateSetting != 1)
++			continue;
++
++		if (cxusb_medion_check_altsetting(&intf->altsetting[ctr]))
++			return true;
++
++		break;
++	}
++
++	dev_err(intf->usb_dev, "no iso interface");
++
++	return false;
++}
++
+ static int cxusb_probe(struct usb_interface *intf,
+ 		       const struct usb_device_id *id)
+ {
++	struct dvb_usb_device *dvbdev;
++	int ret;
++
++	/* Medion 95700 */
+ 	if (0 == dvb_usb_device_init(intf, &cxusb_medion_properties,
+-				     THIS_MODULE, NULL, adapter_nr) ||
+-	    0 == dvb_usb_device_init(intf, &cxusb_bluebird_lgh064f_properties,
++				     THIS_MODULE, &dvbdev, adapter_nr)) {
++		if (!cxusb_medion_check_intf(intf)) {
++			ret = -ENODEV;
++			goto ret_uninit;
++		}
++
++		_cxusb_power_ctrl(dvbdev, 1);
++		ret = cxusb_medion_set_mode(dvbdev, false);
++		if (ret)
++			goto ret_uninit;
++
++		ret = cxusb_medion_register_analog(dvbdev);
++
++		cxusb_medion_set_mode(dvbdev, true);
++		_cxusb_power_ctrl(dvbdev, 0);
++
++		if (ret != 0)
++			goto ret_uninit;
++
++		/* release device from INIT mode to normal operation */
++		cxusb_medion_put(dvbdev);
++
++		return 0;
++	} else if (0 == dvb_usb_device_init(intf, &cxusb_bluebird_lgh064f_properties,
+ 				     THIS_MODULE, NULL, adapter_nr) ||
+ 	    0 == dvb_usb_device_init(intf, &cxusb_bluebird_dee1601_properties,
+ 				     THIS_MODULE, NULL, adapter_nr) ||
+@@ -1436,6 +1799,11 @@ static int cxusb_probe(struct usb_interface *intf,
+ 		return 0;
+ 
+ 	return -EINVAL;
++
++ret_uninit:
++	dvb_usb_device_exit(intf);
++
++	return ret;
+ }
+ 
+ static void cxusb_disconnect(struct usb_interface *intf)
+@@ -1444,6 +1812,9 @@ static void cxusb_disconnect(struct usb_interface *intf)
+ 	struct cxusb_state *st = d->priv;
+ 	struct i2c_client *client;
+ 
++	if (d->props.devices[0].warm_ids[0] == &cxusb_table[MEDION_MD95700])
++		cxusb_medion_unregister_analog(d);
++
+ 	/* remove I2C client for tuner */
+ 	client = st->i2c_client_tuner;
+ 	if (client) {
+@@ -1461,32 +1832,6 @@ static void cxusb_disconnect(struct usb_interface *intf)
+ 	dvb_usb_device_exit(intf);
+ }
+ 
+-enum cxusb_table_index {
+-	MEDION_MD95700,
+-	DVICO_BLUEBIRD_LG064F_COLD,
+-	DVICO_BLUEBIRD_LG064F_WARM,
+-	DVICO_BLUEBIRD_DUAL_1_COLD,
+-	DVICO_BLUEBIRD_DUAL_1_WARM,
+-	DVICO_BLUEBIRD_LGZ201_COLD,
+-	DVICO_BLUEBIRD_LGZ201_WARM,
+-	DVICO_BLUEBIRD_TH7579_COLD,
+-	DVICO_BLUEBIRD_TH7579_WARM,
+-	DIGITALNOW_BLUEBIRD_DUAL_1_COLD,
+-	DIGITALNOW_BLUEBIRD_DUAL_1_WARM,
+-	DVICO_BLUEBIRD_DUAL_2_COLD,
+-	DVICO_BLUEBIRD_DUAL_2_WARM,
+-	DVICO_BLUEBIRD_DUAL_4,
+-	DVICO_BLUEBIRD_DVB_T_NANO_2,
+-	DVICO_BLUEBIRD_DVB_T_NANO_2_NFW_WARM,
+-	AVERMEDIA_VOLAR_A868R,
+-	DVICO_BLUEBIRD_DUAL_4_REV_2,
+-	CONEXANT_D680_DMB,
+-	MYGICA_D689,
+-	MYGICA_T230,
+-	MYGICA_T230C,
+-	NR__cxusb_table_index
+-};
+-
+ static struct usb_device_id cxusb_table[NR__cxusb_table_index + 1] = {
+ 	[MEDION_MD95700] = {
+ 		USB_DEVICE(USB_VID_MEDION, USB_PID_MEDION_MD95700)
+@@ -1563,13 +1908,16 @@ static struct dvb_usb_device_properties cxusb_medion_properties = {
+ 
+ 	.usb_ctrl = CYPRESS_FX2,
+ 
+-	.size_of_priv     = sizeof(struct cxusb_state),
++	.size_of_priv     = sizeof(struct cxusb_medion_dev),
++	.priv_init        = cxusb_medion_priv_init,
++	.priv_destroy     = cxusb_medion_priv_destroy,
+ 
+ 	.num_adapters = 1,
+ 	.adapter = {
+ 		{
+ 		.num_frontends = 1,
+ 		.fe = {{
++			.caps = DVB_USB_ADAP_STREAMING_CTRL_NO_URB,
+ 			.streaming_ctrl   = cxusb_streaming_ctrl,
+ 			.frontend_attach  = cxusb_cx22702_frontend_attach,
+ 			.tuner_attach     = cxusb_fmd1216me_tuner_attach,
+@@ -2330,6 +2678,7 @@ module_usb_driver(cxusb_driver);
+ MODULE_AUTHOR("Patrick Boettcher <patrick.boettcher@posteo.de>");
+ MODULE_AUTHOR("Michael Krufky <mkrufky@linuxtv.org>");
+ MODULE_AUTHOR("Chris Pascoe <c.pascoe@itee.uq.edu.au>");
++MODULE_AUTHOR("Maciej S. Szmigiero <mail@maciej.szmigiero.name>");
+ MODULE_DESCRIPTION("Driver for Conexant USB2.0 hybrid reference design");
+-MODULE_VERSION("1.0-alpha");
++MODULE_VERSION("1.0-beta");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/media/usb/dvb-usb/cxusb.h b/drivers/media/usb/dvb-usb/cxusb.h
+index 66429d7f69b5..1cead0fb533e 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.h
++++ b/drivers/media/usb/dvb-usb/cxusb.h
+@@ -1,9 +1,28 @@
+ #ifndef _DVB_USB_CXUSB_H_
+ #define _DVB_USB_CXUSB_H_
+ 
++#include <linux/completion.h>
++#include <linux/i2c.h>
++#include <linux/list.h>
++#include <linux/mutex.h>
++#include <linux/spinlock.h>
++#include <linux/usb.h>
++#include <linux/workqueue.h>
++#include <media/v4l2-common.h>
++#include <media/v4l2-dev.h>
++#include <media/v4l2-device.h>
++#include <media/videobuf2-core.h>
++
+ #define DVB_USB_LOG_PREFIX "cxusb"
+ #include "dvb-usb.h"
+ 
++#define CXUSB_VIDEO_URBS (5)
++
++#define CXUSB_VIDEO_PKT_SIZE 3030
++#define CXUSB_VIDEO_MAX_FRAME_PKTS 346
++#define CXUSB_VIDEO_MAX_FRAME_SIZE (CXUSB_VIDEO_MAX_FRAME_PKTS * \
++					CXUSB_VIDEO_PKT_SIZE)
++
+ /* usb commands - some of it are guesses, don't have a reference yet */
+ #define CMD_BLUEBIRD_GPIO_RW 0x05
+ 
+@@ -28,11 +47,26 @@
+ #define CMD_ANALOG        0x50
+ #define CMD_DIGITAL       0x51
+ 
++#define CXUSB_BT656_COMMON "\xff\x00\x00"
++
++#define CXUSB_FIELD_MASK (0x40)
++#define CXUSB_FIELD_1 (0)
++#define CXUSB_FIELD_2 (0x40)
++
++#define CXUSB_SEAV_MASK (0x10)
++#define CXUSB_SEAV_EAV (0x10)
++#define CXUSB_SEAV_SAV (0)
++
++#define CXUSB_VBI_MASK (0x20)
++#define CXUSB_VBI_ON (0x20)
++#define CXUSB_VBI_OFF (0)
++
+ /* Max transfer size done by I2C transfer functions */
+ #define MAX_XFER_SIZE  80
+ 
+ struct cxusb_state {
+ 	u8 gpio_write_state[3];
++	bool gpio_write_refresh[3];
+ 	struct i2c_client *i2c_client_demod;
+ 	struct i2c_client *i2c_client_tuner;
+ 
+@@ -44,4 +78,107 @@ struct cxusb_state {
+ 		enum fe_status *status);
+ };
+ 
++enum cxusb_open_type {
++	CXUSB_OPEN_INIT, CXUSB_OPEN_NONE,
++	CXUSB_OPEN_ANALOG, CXUSB_OPEN_DIGITAL
++};
++
++struct cxusb_medion_auxbuf {
++	u8 *buf;
++	unsigned int len;
++	unsigned int paylen;
++};
++
++enum cxusb_bt656_mode {
++	NEW_FRAME, FIRST_FIELD, SECOND_FIELD
++};
++
++enum cxusb_bt656_fmode {
++	START_SEARCH, LINE_SAMPLES, VBI_SAMPLES
++};
++
++struct cxusb_bt656_params {
++	enum cxusb_bt656_mode mode;
++	enum cxusb_bt656_fmode fmode;
++	unsigned int pos;
++	unsigned int line;
++	unsigned int linesamples;
++	u8 *buf;
++};
++
++struct cxusb_medion_dev {
++	/* has to be the first one */
++	struct cxusb_state state;
++
++	struct dvb_usb_device *dvbdev;
++
++	struct v4l2_device v4l2dev;
++	struct v4l2_subdev *cx25840;
++	struct v4l2_subdev *tuner;
++	struct v4l2_subdev *tda9887;
++	struct video_device *videodev, *radiodev;
++	struct mutex dev_lock;
++
++	enum cxusb_open_type open_type;
++	unsigned int open_ctr;
++	struct mutex open_lock;
++
++	struct vb2_queue videoqueue;
++	u32 input;
++	bool streaming;
++	u32 width, height;
++	bool raw_mode;
++	struct cxusb_medion_auxbuf auxbuf;
++	v4l2_std_id norm;
++
++	struct urb *streamurbs[CXUSB_VIDEO_URBS];
++	unsigned long urbcomplete;
++	struct work_struct urbwork;
++	unsigned int nexturb;
++
++	struct cxusb_bt656_params bt656;
++	struct cxusb_medion_vbuffer *vbuf;
++
++	struct list_head buflist;
++
++	struct completion v4l2_release;
++};
++
++struct cxusb_medion_vbuffer {
++	struct vb2_buffer vb2;
++	struct list_head list;
++};
++
++/* Capture streaming parameters extendedmode field flags */
++#define CXUSB_EXTENDEDMODE_CAPTURE_RAW 1
++
++/* defines for "debug" module parameter */
++#define CXUSB_DBG_RC BIT(0)
++#define CXUSB_DBG_I2C BIT(1)
++#define CXUSB_DBG_MISC BIT(2)
++#define CXUSB_DBG_BT656 BIT(3)
++#define CXUSB_DBG_URB BIT(4)
++#define CXUSB_DBG_OPS BIT(5)
++#define CXUSB_DBG_AUXB BIT(6)
++
++extern int dvb_usb_cxusb_debug;
++
++#define cxusb_vprintk(dvbdev, lvl, ...) do {				\
++		struct cxusb_medion_dev *_cxdev = (dvbdev)->priv;	\
++		if (dvb_usb_cxusb_debug & CXUSB_DBG_##lvl)		\
++			v4l2_printk(KERN_DEBUG,			\
++				    &_cxdev->v4l2dev, __VA_ARGS__);	\
++	} while (0)
++
++int cxusb_ctrl_msg(struct dvb_usb_device *d,
++		   u8 cmd, u8 *wbuf, int wlen, u8 *rbuf, int rlen);
++
++int cxusb_medion_analog_init(struct dvb_usb_device *dvbdev);
++int cxusb_medion_register_analog(struct dvb_usb_device *dvbdev);
++void cxusb_medion_unregister_analog(struct dvb_usb_device *dvbdev);
++
++int cxusb_medion_get(struct dvb_usb_device *dvbdev,
++		     enum cxusb_open_type open_type);
++void cxusb_medion_put(struct dvb_usb_device *dvbdev);
++
+ #endif
+diff --git a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
+index e5675da286cb..d7d388b7b311 100644
+--- a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
++++ b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
+@@ -14,6 +14,7 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
+ {
+ 	struct dvb_usb_adapter *adap = dvbdmxfeed->demux->priv;
+ 	int newfeedcount, ret;
++	bool streaming_ctrl_no_urb;
+ 
+ 	if (adap == NULL)
+ 		return -ENODEV;
+@@ -23,12 +24,16 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
+ 		return -EINVAL;
+ 	}
+ 
++	streaming_ctrl_no_urb = adap->props.fe[adap->active_fe].caps &
++		DVB_USB_ADAP_STREAMING_CTRL_NO_URB;
+ 	newfeedcount = adap->feedcount + (onoff ? 1 : -1);
+ 
+ 	/* stop feed before setting a new pid if there will be no pid anymore */
+ 	if (newfeedcount == 0) {
+ 		deb_ts("stop feeding\n");
+-		usb_urb_kill(&adap->fe_adap[adap->active_fe].stream);
++
++		if (streaming_ctrl_no_urb)
++			usb_urb_kill(&adap->fe_adap[adap->active_fe].stream);
+ 
+ 		if (adap->props.fe[adap->active_fe].streaming_ctrl != NULL) {
+ 			ret = adap->props.fe[adap->active_fe].streaming_ctrl(adap, 0);
+@@ -37,6 +42,9 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
+ 				return ret;
+ 			}
+ 		}
++
++		if (!streaming_ctrl_no_urb)
++			usb_urb_kill(&adap->fe_adap[adap->active_fe].stream);
+ 	}
+ 
+ 	adap->feedcount = newfeedcount;
+@@ -55,8 +63,10 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
+ 	 * for reception.
+ 	 */
+ 	if (adap->feedcount == onoff && adap->feedcount > 0) {
+-		deb_ts("submitting all URBs\n");
+-		usb_urb_submit(&adap->fe_adap[adap->active_fe].stream);
++		if (!streaming_ctrl_no_urb) {
++			deb_ts("submitting all URBs early\n");
++			usb_urb_submit(&adap->fe_adap[adap->active_fe].stream);
++		}
+ 
+ 		deb_ts("controlling pid parser\n");
+ 		if (adap->props.fe[adap->active_fe].caps & DVB_USB_ADAP_HAS_PID_FILTER &&
+@@ -79,6 +89,10 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
+ 			}
+ 		}
+ 
++		if (streaming_ctrl_no_urb) {
++			deb_ts("submitting all URBs late\n");
++			usb_urb_submit(&adap->fe_adap[adap->active_fe].stream);
++		}
+ 	}
+ 	return 0;
+ }
+diff --git a/drivers/media/usb/dvb-usb/dvb-usb-init.c b/drivers/media/usb/dvb-usb/dvb-usb-init.c
+index 84308569e7dc..9746266c9e35 100644
+--- a/drivers/media/usb/dvb-usb/dvb-usb-init.c
++++ b/drivers/media/usb/dvb-usb/dvb-usb-init.c
+@@ -133,6 +133,10 @@ static int dvb_usb_exit(struct dvb_usb_device *d)
+ 	dvb_usb_i2c_exit(d);
+ 	deb_info("state should be zero now: %x\n", d->state);
+ 	d->state = DVB_USB_STATE_INIT;
++
++	if (d->priv != NULL && d->props.priv_destroy != NULL)
++		d->props.priv_destroy(d);
++
+ 	kfree(d->priv);
+ 	kfree(d);
+ 	return 0;
+@@ -154,6 +158,15 @@ static int dvb_usb_init(struct dvb_usb_device *d, short *adapter_nums)
+ 			err("no memory for priv in 'struct dvb_usb_device'");
+ 			return -ENOMEM;
+ 		}
++
++		if (d->props.priv_init != NULL) {
++			ret = d->props.priv_init(d);
++			if (ret != 0) {
++				kfree(d->priv);
++				d->priv = NULL;
++				return ret;
++			}
++		}
+ 	}
+ 
+ 	/* check the capabilities and set appropriate variables */
+diff --git a/drivers/media/usb/dvb-usb/dvb-usb.h b/drivers/media/usb/dvb-usb/dvb-usb.h
+index 67f898b6f6d0..0254ecfbd4c6 100644
+--- a/drivers/media/usb/dvb-usb/dvb-usb.h
++++ b/drivers/media/usb/dvb-usb/dvb-usb.h
+@@ -142,6 +142,7 @@ struct dvb_usb_adapter_fe_properties {
+ #define DVB_USB_ADAP_NEED_PID_FILTERING           0x04
+ #define DVB_USB_ADAP_RECEIVES_204_BYTE_TS         0x08
+ #define DVB_USB_ADAP_RECEIVES_RAW_PAYLOAD         0x10
++#define DVB_USB_ADAP_STREAMING_CTRL_NO_URB        0x20
+ 	int caps;
+ 	int pid_filter_count;
+ 
+@@ -232,6 +233,11 @@ enum dvb_usb_mode {
   *
-  * .. note:
--- 
-2.13.5
+  * @size_of_priv: how many bytes shall be allocated for the private field
+  *  of struct dvb_usb_device.
++ * @priv_init: optional callback to initialize the variable that private field
++ * of struct dvb_usb_device has pointer to just after it had been allocated and
++ * zeroed.
++ * @priv_destroy: just like priv_init, only called before deallocating
++ * the memory pointed by private field of struct dvb_usb_device.
+  *
+  * @power_ctrl: called to enable/disable power of the device.
+  * @read_mac_address: called to read the MAC address of the device.
+@@ -273,6 +279,8 @@ struct dvb_usb_device_properties {
+ 	int        no_reconnect;
+ 
+ 	int size_of_priv;
++	int (*priv_init)(struct dvb_usb_device *);
++	void (*priv_destroy)(struct dvb_usb_device *);
+ 
+ 	int num_adapters;
+ 	struct dvb_usb_adapter_properties adapter[MAX_NO_OF_ADAPTER_PER_DEVICE];
