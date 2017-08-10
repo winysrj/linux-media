@@ -1,82 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:35258 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751351AbdIABuy (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:55816 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751463AbdHJJvt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 21:50:54 -0400
-Received: by mail-qt0-f196.google.com with SMTP id u11so1008659qtu.2
-        for <linux-media@vger.kernel.org>; Thu, 31 Aug 2017 18:50:54 -0700 (PDT)
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [PATCH v2 02/14] [media] vb2: check earlier if stream can be started
-Date: Thu, 31 Aug 2017 22:50:29 -0300
-Message-Id: <20170901015041.7757-3-gustavo@padovan.org>
-In-Reply-To: <20170901015041.7757-1-gustavo@padovan.org>
-References: <20170901015041.7757-1-gustavo@padovan.org>
+        Thu, 10 Aug 2017 05:51:49 -0400
+Subject: Re: [PATCH 0/4] drm/bridge/adv7511: add CEC support
+To: Archit Taneja <architt@codeaurora.org>
+References: <20170730130743.19681-1-hverkuil@xs4all.nl>
+ <9d1757b3-24f9-2f0f-1971-62d1ef4b79e3@codeaurora.org>
+ <fa41b1e5-7319-c7f8-32e9-36c291d85a0f@xs4all.nl>
+ <75a39db0-a5cc-9a20-2bbf-ebfc3573efca@codeaurora.org>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        devicetree@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <319342e7-a07a-5cac-a5d2-f822c98630bd@xs4all.nl>
+Date: Thu, 10 Aug 2017 11:51:46 +0200
+MIME-Version: 1.0
+In-Reply-To: <75a39db0-a5cc-9a20-2bbf-ebfc3573efca@codeaurora.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+On 10/08/17 11:08, Archit Taneja wrote:
+> 
+> 
+> On 08/10/2017 02:26 PM, Hans Verkuil wrote:
+>> On 10/08/17 10:49, Archit Taneja wrote:
+>>> Hi Hans,
+>>>
+>>> On 07/30/2017 06:37 PM, Hans Verkuil wrote:
+>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>
+>>>> This patch series adds CEC support to the drm adv7511/adv7533 drivers.
+>>>>
+>>>> I have tested this with the Qualcomm Dragonboard C410 (adv7533 based)
+>>>> and the Renesas R-Car Koelsch board (adv7511 based).
+>>>>
+>>>> Note: the Dragonboard needs this patch:
+>>>>
+>>>> https://patchwork.kernel.org/patch/9824773/
+>>>>
+>>>> Archit, can you confirm that this patch will go to kernel 4.14?
+>>>>
+>>>> And the Koelsch board needs this 4.13 fix:
+>>>>
+>>>> https://patchwork.kernel.org/patch/9836865/
+>>>>
+>>>> I only have the Koelsch board to test with, but it looks like other
+>>>> R-Car boards use the same adv7511. It would be nice if someone can
+>>>> add CEC support to the other R-Car boards as well. The main thing
+>>>> to check is if they all use the same 12 MHz fixed CEC clock source.
+>>>>
+>>>> Anyone who wants to test this will need the CEC utilities that
+>>>> are part of the v4l-utils git repository:
+>>>>
+>>>> git clone git://linuxtv.org/v4l-utils.git
+>>>> cd v4l-utils
+>>>> ./bootstrap.sh
+>>>> ./configure
+>>>> make
+>>>> sudo make install
+>>>>
+>>>> Now configure the CEC adapter as a Playback device:
+>>>>
+>>>> cec-ctl --playback
+>>>>
+>>>> Discover other CEC devices:
+>>>>
+>>>> cec-ctl -S
+>>>
+>>> I tried the instructions, and I get the following output. I don't think I have
+>>> any CEC device connected, though. Is this the expected behaviour?
+>>>
+>>> #cec-ctl -S
+>>> Driver Info:
+>>>          Driver Name                : adv7511
+>>>          Adapter Name               : 3-0039
+>>>          Capabilities               : 0x0000000e
+>>>                  Logical Addresses
+>>>                  Transmit
+>>>                  Passthrough
+>>>          Driver version             : 4.13.0
+>>>          Available Logical Addresses: 3
+>>>          Physical Address           : 1.0.0.0
+>>>          Logical Address Mask       : 0x0000
+>>>          CEC Version                : 2.0
+>>>          Logical Addresses          : 0
+>>>
+>>> #cec-ctl --playback
+>>> [ 1038.761545] cec-3-0039: cec_thread_func: message 44 timed out!
+>>
+>> This isn't right. You shouldn't see this. It never receives an interrupt
+>> when the transmit has finished, which causes these time outs.
+>>
+>> What are you testing this on? The Dragonboard c410?
+> 
+> Yes.
 
-To support explicit synchronization we need to run all operations that can
-fail before we queue the buffer to the driver. With fences the queueing
-will be delayed if the fence is not signaled yet and it will be better if
-such callback do not fail.
+On top of which kernel tree are these patches applied? I can try and reproduce
+it.
 
-For that we move the vb2_start_streaming() before the queuing for the
-buffer may happen.
+Regards,
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index cb115ba6a1d2..60f8b582396a 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1399,29 +1399,27 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
- 	trace_vb2_qbuf(q, vb);
- 
- 	/*
--	 * If already streaming, give the buffer to driver for processing.
--	 * If not, the buffer will be given to driver on next streamon.
--	 */
--	if (q->start_streaming_called)
--		__enqueue_in_driver(vb);
--
--	/* Fill buffer information for the userspace */
--	if (pb)
--		call_void_bufop(q, fill_user_buffer, vb, pb);
--
--	/*
- 	 * If streamon has been called, and we haven't yet called
- 	 * start_streaming() since not enough buffers were queued, and
- 	 * we now have reached the minimum number of queued buffers,
- 	 * then we can finally call start_streaming().
-+	 *
-+	 * If already streaming, give the buffer to driver for processing.
-+	 * If not, the buffer will be given to driver on next streamon.
- 	 */
- 	if (q->streaming && !q->start_streaming_called &&
- 	    q->queued_count >= q->min_buffers_needed) {
- 		ret = vb2_start_streaming(q);
- 		if (ret)
- 			return ret;
-+	} else if (q->start_streaming_called) {
-+		__enqueue_in_driver(vb);
- 	}
- 
-+	/* Fill buffer information for the userspace */
-+	if (pb)
-+		call_void_bufop(q, fill_user_buffer, vb, pb);
-+
- 	dprintk(2, "qbuf of buffer %d succeeded\n", vb->index);
- 	return 0;
- }
--- 
-2.13.5
+	Hans
