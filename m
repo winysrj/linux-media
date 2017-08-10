@@ -1,130 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:59076 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751965AbdHHDxW (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:39654 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752154AbdHJIuD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Aug 2017 23:53:22 -0400
-Message-ID: <55063f45cd8b84015458019ec874fcae@smtp-cloud7.xs4all.net>
-Date: Tue, 08 Aug 2017 05:53:19 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Thu, 10 Aug 2017 04:50:03 -0400
+Subject: Re: [PATCH 0/4] drm/bridge/adv7511: add CEC support
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        devicetree@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+References: <20170730130743.19681-1-hverkuil@xs4all.nl>
+From: Archit Taneja <architt@codeaurora.org>
+Message-ID: <9d1757b3-24f9-2f0f-1971-62d1ef4b79e3@codeaurora.org>
+Date: Thu, 10 Aug 2017 14:19:58 +0530
+MIME-Version: 1.0
+In-Reply-To: <20170730130743.19681-1-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Hans,
 
-Results of the daily build of media_tree:
+On 07/30/2017 06:37 PM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> This patch series adds CEC support to the drm adv7511/adv7533 drivers.
+> 
+> I have tested this with the Qualcomm Dragonboard C410 (adv7533 based)
+> and the Renesas R-Car Koelsch board (adv7511 based).
+> 
+> Note: the Dragonboard needs this patch:
+> 
+> https://patchwork.kernel.org/patch/9824773/
+> 
+> Archit, can you confirm that this patch will go to kernel 4.14?
+> 
+> And the Koelsch board needs this 4.13 fix:
+> 
+> https://patchwork.kernel.org/patch/9836865/
+> 
+> I only have the Koelsch board to test with, but it looks like other
+> R-Car boards use the same adv7511. It would be nice if someone can
+> add CEC support to the other R-Car boards as well. The main thing
+> to check is if they all use the same 12 MHz fixed CEC clock source.
+> 
+> Anyone who wants to test this will need the CEC utilities that
+> are part of the v4l-utils git repository:
+> 
+> git clone git://linuxtv.org/v4l-utils.git
+> cd v4l-utils
+> ./bootstrap.sh
+> ./configure
+> make
+> sudo make install
+> 
+> Now configure the CEC adapter as a Playback device:
+> 
+> cec-ctl --playback
+> 
+> Discover other CEC devices:
+> 
+> cec-ctl -S
 
-date:			Tue Aug  8 05:00:16 CEST 2017
-media-tree git hash:	da48c948c263c9d87dfc64566b3373a858cc8aa2
-media_build git hash:	f01a9176bb03f22e3cd3b70282bd7fd272e504ae
-v4l-utils git hash:	172b663ea1fd16909a390f508851098a58061d9b
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.11.0-164
+I tried the instructions, and I get the following output. I don't think I have
+any CEC device connected, though. Is this the expected behaviour?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+#cec-ctl -S
+Driver Info:
+         Driver Name                : adv7511
+         Adapter Name               : 3-0039
+         Capabilities               : 0x0000000e
+                 Logical Addresses
+                 Transmit
+                 Passthrough
+         Driver version             : 4.13.0
+         Available Logical Addresses: 3
+         Physical Address           : 1.0.0.0
+         Logical Address Mask       : 0x0000
+         CEC Version                : 2.0
+         Logical Addresses          : 0
 
-Detailed results are available here:
+#cec-ctl --playback
+[ 1038.761545] cec-3-0039: cec_thread_func: message 44 timed out!
+Driver Info:
+         Driver Name                : adv7511
+         Adapter Name               : 3-0039
+         Capabilities               : 0x0000000e
+                 Logical Addresses
+                 Transmit
+                 Passthrough
+         Driver version             : 4.13.0
+         Available Logical Addresses: 3
+         Physical Address           : 1.0.0.0
+         Logical Address Mask       : 0x0010
+         CEC Version                : 2.0
+         Vendor ID                  : 0x000c03
+         Logical Addresses          : 1 (Allow RC Passthrough)
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+           Logical Address          : 4
+             Primary Device Type    : Playback
+             Logical Address Type   : Playback
+             All Device Types       : Playback
+             RC TV Profile          : None
+             Device Features        :
+                 None
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+[ 1041.063605] cec-3-0039: cec_thread_func: message 4f a6 06 10 00 00 timed out!
+[ 1043.367482] cec-3-0039: cec_thread_func: message 4f 84 10 00 04 timed out!
 
-The Media Infrastructure API from this daily build is here:
+Thanks,
+Archit
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> Hans Verkuil (4):
+>    dt-bindings: adi,adv7511.txt: document cec clock
+>    arm: dts: qcom: add cec clock for apq8016 board
+>    arm: dts: renesas: add cec clock for Koelsch board
+>    drm: adv7511/33: add HDMI CEC support
+> 
+>   .../bindings/display/bridge/adi,adv7511.txt        |   4 +
+>   arch/arm/boot/dts/r8a7791-koelsch.dts              |   8 +
+>   arch/arm64/boot/dts/qcom/apq8016-sbc.dtsi          |   2 +
+>   drivers/gpu/drm/bridge/adv7511/Kconfig             |   8 +
+>   drivers/gpu/drm/bridge/adv7511/Makefile            |   1 +
+>   drivers/gpu/drm/bridge/adv7511/adv7511.h           |  45 ++-
+>   drivers/gpu/drm/bridge/adv7511/adv7511_cec.c       | 314 +++++++++++++++++++++
+>   drivers/gpu/drm/bridge/adv7511/adv7511_drv.c       | 152 +++++++++-
+>   drivers/gpu/drm/bridge/adv7511/adv7533.c           |  30 +-
+>   9 files changed, 514 insertions(+), 50 deletions(-)
+>   create mode 100644 drivers/gpu/drm/bridge/adv7511/adv7511_cec.c
+> 
+
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
