@@ -1,125 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:39530 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751218AbdHXLOe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Aug 2017 07:14:34 -0400
-Date: Thu, 24 Aug 2017 12:14:31 +0100
-From: Brian Starkey <brian.starkey@arm.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        jonathan.chai@arm.com,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>
-Subject: Re: DRM Format Modifiers in v4l2
-Message-ID: <20170824111430.GB25711@e107564-lin.cambridge.arm.com>
-References: <20170821155203.GB38943@e107564-lin.cambridge.arm.com>
- <CAKMK7uFdQPUomZDCp_ak6sTsUayZuut4us08defjKmiy=24QnA@mail.gmail.com>
- <47128f36-2990-bd45-ead9-06a31ed8cde0@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <47128f36-2990-bd45-ead9-06a31ed8cde0@xs4all.nl>
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:51268 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751449AbdHJIeB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Aug 2017 04:34:01 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 1/3] dt-bindings: document the CEC GPIO bindings
+Date: Thu, 10 Aug 2017 10:33:57 +0200
+Message-Id: <20170810083359.36800-2-hverkuil@xs4all.nl>
+In-Reply-To: <20170810083359.36800-1-hverkuil@xs4all.nl>
+References: <20170810083359.36800-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Mon, Aug 21, 2017 at 06:36:29PM +0200, Hans Verkuil wrote:
->On 08/21/2017 06:01 PM, Daniel Vetter wrote:
->> On Mon, Aug 21, 2017 at 5:52 PM, Brian Starkey <brian.starkey@arm.com> wrote:
->>> Hi all,
->>>
->>> I couldn't find this topic talked about elsewhere, but apologies if
->>> it's a duplicate - I'll be glad to be steered in the direction of a
->>> thread.
->>>
->>> We'd like to support DRM format modifiers in v4l2 in order to share
->>> the description of different (mostly proprietary) buffer formats
->>> between e.g. a v4l2 device and a DRM device.
->>>
->>> DRM format modifiers are defined in include/uapi/drm/drm_fourcc.h and
->>> are a vendor-namespaced 64-bit value used to describe various
->>> vendor-specific buffer layouts. They are combined with a (DRM) FourCC
->>> code to give a complete description of the data contained in a buffer.
->>>
->>> The same modifier definition is used in the Khronos EGL extension
->>> EGL_EXT_image_dma_buf_import_modifiers, and is supported in the
->>> Wayland linux-dmabuf protocol.
->>>
->>>
->>> This buffer information could of course be described in the
->>> vendor-specific part of V4L2_PIX_FMT_*, but this would duplicate the
->>> information already defined in drm_fourcc.h. Additionally, there
->>> would be quite a format explosion where a device supports a dozen or
->>> more formats, all of which can use one or more different
->>> layouts/compression schemes.
->>>
->>> So, I'm wondering if anyone has views on how/whether this could be
->>> incorporated?
->>>
->>> I spoke briefly about this to Laurent at LPC last year, and he
->>> suggested v4l2_control as one approach.
->>>
->>> I also wondered if could be added in v4l2_pix_format_mplane - looks
->>> like there's 8 bytes left before it exceeds the 200 bytes, or could go
->>> in the reserved portion of v4l2_plane_pix_format.
->>>
->>> Thanks for any thoughts,
->>
->> One problem is that the modifers sometimes reference the DRM fourcc
->> codes. v4l has a different (and incompatible set) of fourcc codes,
->> whereas all the protocols and specs (you can add DRI3.1 for Xorg to
->> that list btw) use both drm fourcc and drm modifiers.
->>
->> This might or might not make this proposal unworkable, but it's
->> something I'd at least review carefully.
->>
->> Otherwise I think it'd be great if we could have one namespace for all
->> modifiers, that's pretty much why we have them. Please also note that
->> for drm_fourcc.h we don't require an in-kernel user for a new modifier
->> since a bunch of them might need to be allocated just for
->> userspace-to-userspace buffer sharing (e.g. in EGL/vk). One example
->> for this would be compressed surfaces with fast-clearing, which is
->> planned for i915 (but current hw can't scan it out). And we really
->> want to have one namespace for everything.
->
->Who sets these modifiers? Kernel or userspace? Or can it be set by both?
->I assume any userspace code that sets/reads this is code specific for that
->hardware?
+Document the bindings for the cec-gpio module for hardware where the
+CEC pin is connected to a GPIO pin.
 
-I think normally the modifier would be set by userspace. However it
-might not necessarily be device-specific code. In DRM the intention is
-for userspace to query the set of modifiers which are supported, and
-then use them without necessarily knowing exactly what they mean
-(insofar as that is possible).
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/devicetree/bindings/media/cec-gpio.txt | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cec-gpio.txt
 
-e.g. if I have two devices which support MODIFIER_FOO, I could attempt
-to share a buffer between them which uses MODIFIER_FOO without
-necessarily knowing exactly what it is/does.
-
->
->I think Laurent's suggestion of using a 64 bit V4L2 control for this makes
->the most sense.
->
->Especially if you can assume that whoever sets this knows the hardware.
->
->I think this only makes sense if you pass buffers from one HW device to another.
->
->Because you cannot expect generic video capture code to be able to interpret
->all the zillion different combinations of modifiers.
-
-I don't quite follow this last bit. The control could report the set
-of supported modifiers.
-
-However, in DRM the API lets you get the supported formats for each
-modifier as-well-as the modifier list itself. I'm not sure how exactly
-to provide that in a control.
-
-Thanks,
--Brian
-
->
->Regards,
->
->	Hans
+diff --git a/Documentation/devicetree/bindings/media/cec-gpio.txt b/Documentation/devicetree/bindings/media/cec-gpio.txt
+new file mode 100644
+index 000000000000..e34a175468e2
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/cec-gpio.txt
+@@ -0,0 +1,16 @@
++* HDMI CEC GPIO-based hardware
++
++Use these bindings for HDMI CEC hardware where the CEC pin is hooked up
++to a pull-up GPIO pin.
++
++Required properties:
++  - compatible: value must be "cec-gpio"
++  - gpio: gpio that the CEC line is connected to
++
++Example for the Raspberry Pi 3 where the CEC line is connected to
++pin 7 aka BCM4 aka GPCLK0 on the GPIO pin header:
++
++cec-gpio {
++       compatible = "cec-gpio";
++       gpio = <&gpio 4 GPIO_ACTIVE_HIGH>;
++};
+-- 
+2.13.2
