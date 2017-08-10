@@ -1,121 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:33274 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752218AbdHDLkU (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:33180 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751492AbdHJOcL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 Aug 2017 07:40:20 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.14] Fixes, fixes, ever more fixes :-)
-Message-ID: <9307321b-6fff-2102-b1af-4f73b7199e2b@xs4all.nl>
-Date: Fri, 4 Aug 2017 13:40:18 +0200
+        Thu, 10 Aug 2017 10:32:11 -0400
+Date: Thu, 10 Aug 2017 20:02:05 +0530
+From: Harold Gomez <haroldgmz11@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] staging:media:atomisp:Fix trivial codingstyle issues
+Message-ID: <20170810143204.GA4107@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Lots of constify patches and some random other fixes. Except for the solo patch
-which is an actual feature enhancement.
+change comment style to match codingstyle. Issue found by checkpatch
+change four comments.
 
-Regards,
+Signed-off-by: Harold Gomez <haroldgmz11@gmail.com>
+---
+ drivers/staging/media/atomisp/i2c/ap1302.c | 38 ++++++++++++++++++++----------
+ 1 file changed, 25 insertions(+), 13 deletions(-)
 
-	Hans
-
-
-The following changes since commit da48c948c263c9d87dfc64566b3373a858cc8aa2:
-
-  media: fix warning on v4l2_subdev_call() result interpreted as bool (2017-07-26 13:43:17 -0400)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.14e
-
-for you to fetch changes up to 09408627c4d001f4df6ede6d22eb27c2945c455c:
-
-  v4l2-compat-ioctl32: Fix timespec conversion (2017-08-04 13:27:18 +0200)
-
-----------------------------------------------------------------
-Anton Sviridenko (1):
-      solo6x10: export hardware GPIO pins 8:31 to gpiolib interface
-
-Arvind Yadav (27):
-      marvell-ccic: constify pci_device_id.
-      netup_unidvb: constify pci_device_id.
-      cx23885: constify pci_device_id.
-      meye: constify pci_device_id.
-      pluto2: constify pci_device_id.
-      dm1105: constify pci_device_id.
-      zoran: constify pci_device_id.
-      bt8xx: constify pci_device_id.
-      bt8xx: bttv: constify pci_device_id.
-      ivtv: constify pci_device_id.
-      cobalt: constify pci_device_id.
-      b2c2: constify pci_device_id.
-      saa7164: constify pci_device_id.
-      pt1: constify pci_device_id.
-      mantis: constify pci_device_id.
-      mantis: hopper_cards: constify pci_device_id.
-      cx18: constify pci_device_id.
-      radio: constify pci_device_id.
-      drv-intf: saa7146: constify pci_device_id.
-      ttpci: budget: constify pci_device_id.
-      ttpci: budget-patch: constify pci_device_id.
-      ttpci: budget-ci: constify pci_device_id.
-      ttpci: budget-av: constify pci_device_id.
-      ttpci: av7110: constify pci_device_id.
-      saa7146: mxb: constify pci_device_id.
-      saa7146: hexium_orion: constify pci_device_id.
-      saa7146: hexium_gemini: constify pci_device_id.
-
-Dan Carpenter (1):
-      adv7604: Prevent out of bounds access
-
-Daniel Mentz (2):
-      v4l2-compat-ioctl32: Copy v4l2_window->global_alpha
-      v4l2-compat-ioctl32: Fix timespec conversion
-
-Julia Lawall (1):
-      DaVinci-VPBE: constify vpbe_dev_ops
-
-Peter Rosin (3):
-      cx231xx: fail probe if i2c_add_adapter fails
-      cx231xx: drop return value of cx231xx_i2c_unregister
-      cx231xx: only unregister successfully registered i2c adapters
-
- drivers/media/i2c/adv7604.c                        |  4 +--
- drivers/media/pci/b2c2/flexcop-pci.c               |  2 +-
- drivers/media/pci/bt8xx/bt878.c                    |  2 +-
- drivers/media/pci/bt8xx/bttv-driver.c              |  2 +-
- drivers/media/pci/cobalt/cobalt-driver.c           |  2 +-
- drivers/media/pci/cx18/cx18-driver.c               |  2 +-
- drivers/media/pci/cx23885/cx23885-core.c           |  2 +-
- drivers/media/pci/dm1105/dm1105.c                  |  2 +-
- drivers/media/pci/ivtv/ivtv-driver.c               |  2 +-
- drivers/media/pci/mantis/hopper_cards.c            |  2 +-
- drivers/media/pci/mantis/mantis_cards.c            |  2 +-
- drivers/media/pci/meye/meye.c                      |  2 +-
- drivers/media/pci/netup_unidvb/netup_unidvb_core.c |  2 +-
- drivers/media/pci/pluto2/pluto2.c                  |  2 +-
- drivers/media/pci/pt1/pt1.c                        |  2 +-
- drivers/media/pci/saa7146/hexium_gemini.c          |  2 +-
- drivers/media/pci/saa7146/hexium_orion.c           |  2 +-
- drivers/media/pci/saa7146/mxb.c                    |  2 +-
- drivers/media/pci/saa7164/saa7164-core.c           |  2 +-
- drivers/media/pci/solo6x10/solo6x10-gpio.c         | 97 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/pci/solo6x10/solo6x10.h              |  5 +++
- drivers/media/pci/ttpci/av7110.c                   |  2 +-
- drivers/media/pci/ttpci/budget-av.c                |  2 +-
- drivers/media/pci/ttpci/budget-ci.c                |  2 +-
- drivers/media/pci/ttpci/budget-patch.c             |  2 +-
- drivers/media/pci/ttpci/budget.c                   |  2 +-
- drivers/media/pci/zoran/zoran_card.c               |  2 +-
- drivers/media/platform/davinci/vpbe.c              |  2 +-
- drivers/media/platform/marvell-ccic/cafe-driver.c  |  2 +-
- drivers/media/radio/radio-maxiradio.c              |  2 +-
- drivers/media/usb/cx231xx/cx231xx-core.c           |  3 ++
- drivers/media/usb/cx231xx/cx231xx-i2c.c            |  8 ++---
- drivers/media/usb/cx231xx/cx231xx.h                |  4 +--
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c      | 10 ++++--
- include/media/drv-intf/saa7146.h                   |  2 +-
- 35 files changed, 148 insertions(+), 39 deletions(-)
+diff --git a/drivers/staging/media/atomisp/i2c/ap1302.c b/drivers/staging/media/atomisp/i2c/ap1302.c
+index 3e229ba..68e0b83 100644
+--- a/drivers/staging/media/atomisp/i2c/ap1302.c
++++ b/drivers/staging/media/atomisp/i2c/ap1302.c
+@@ -321,12 +321,15 @@ static int ap1302_request_firmware(struct v4l2_subdev *sd)
+ 	return ret;
+ }
+ 
+-/* When loading firmware, host writes firmware data from address 0x8000.
+-   When the address reaches 0x9FFF, the next address should return to 0x8000.
+-   This function handles this address window and load firmware data to AP1302.
+-   win_pos indicates the offset within this window. Firmware loading procedure
+-   may call this function several times. win_pos records the current position
+-   that has been written to.*/
++/*
++ * When loading firmware, host writes firmware data from address 0x8000.
++ * When the address reaches 0x9FFF, the next address should return to 0x8000.
++ * This function handles this address window and load firmware data to AP1302.
++ * win_pos indicates the offset within this window. Firmware loading procedure
++ * may call this function several times. win_pos records the current position
++ * that has been written to.
++ *
++ */
+ static int ap1302_write_fw_window(struct v4l2_subdev *sd,
+ 				  u16 *win_pos, const u8 *buf, u32 len)
+ {
+@@ -371,9 +374,12 @@ static int ap1302_load_firmware(struct v4l2_subdev *sd)
+ 		dev_err(&client->dev, "firmware size does not match.\n");
+ 		return -EINVAL;
+ 	}
+-	/* The fw binary contains a header of struct ap1302_firmware.
+-	   Following the header is the bootdata of AP1302.
+-	   The bootdata pointer can be referenced as &fw[1]. */
++	/*
++	 * The fw binary contains a header of struct ap1302_firmware.
++	 * Following the header is the bootdata of AP1302.
++	 * The bootdata pointer can be referenced as &fw[1].
++	 *
++	 */
+ 	fw_data = (u8 *)&fw[1];
+ 
+ 	/* Clear crc register. */
+@@ -386,8 +392,11 @@ static int ap1302_load_firmware(struct v4l2_subdev *sd)
+ 	if (ret)
+ 		return ret;
+ 
+-	/* Write 2 to bootdata_stage register to apply basic_init_hp
+-	   settings and enable PLL. */
++	/*
++	 * Write 2 to bootdata_stage register to apply basic_init_hp
++	 * settings and enable PLL.
++	 *
++	 */
+ 	ret = ap1302_i2c_write_reg(sd, REG_BOOTDATA_STAGE,
+ 				   AP1302_REG16, 0x0002);
+ 	if (ret)
+@@ -413,8 +422,11 @@ static int ap1302_load_firmware(struct v4l2_subdev *sd)
+ 		return -EAGAIN;
+ 	}
+ 
+-	/* Write 0xFFFF to bootdata_stage register to indicate AP1302 that
+-	   the whole bootdata content has been loaded. */
++	/*
++	 * Write 0xFFFF to bootdata_stage register to indicate AP1302 that
++	 * the whole bootdata content has been loaded.
++	 *
++	 */
+ 	ret = ap1302_i2c_write_reg(sd, REG_BOOTDATA_STAGE,
+ 				   AP1302_REG16, 0xFFFF);
+ 	if (ret)
+-- 
+2.1.4
