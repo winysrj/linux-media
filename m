@@ -1,41 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f195.google.com ([209.85.161.195]:32771 "EHLO
-        mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932729AbdHVM46 (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:37738 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752095AbdHJIDl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 08:56:58 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: hverkuil@xs4all.nl, mchehab@kernel.org, awalls@md.metrocast.net,
-        prabhakar.csengg@gmail.com, royale@zerezo.com
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-usb@vger.kernel.org
-Subject: [PATCH 0/4] constify videobuf_queue_ops structures
-Date: Tue, 22 Aug 2017 18:26:32 +0530
-Message-Id: <1503406596-28266-1-git-send-email-arvind.yadav.cs@gmail.com>
+        Thu, 10 Aug 2017 04:03:41 -0400
+Subject: Re: [PATCH 1/3] dt-bindings: document the CEC GPIO bindings
+To: linux-media@vger.kernel.org
+References: <20170802084242.14947-1-hverkuil@xs4all.nl>
+ <20170802084242.14947-2-hverkuil@xs4all.nl>
+Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <64803004-6bea-44db-a651-cc21806250b5@xs4all.nl>
+Date: Thu, 10 Aug 2017 10:03:37 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170802084242.14947-2-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-videobuf_queue_ops are not supposed to change at runtime. All functions
-working with videobuf_queue_ops provided by <media/videobuf-core.h> work
-with const videobuf_queue_ops. So mark the non-const structs as const.
+On 02/08/17 10:42, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Document the bindings for the cec-gpio module for hardware where the
+> CEC pin is connected to a GPIO pin.
 
-Arvind Yadav (4):
-  [PATCH 1/4] [media] saa7146: constify videobuf_queue_ops structures
-  [PATCH 2/4] [media] pci: constify videobuf_queue_ops structures
-  [PATCH 3/4] [media] platform: constify videobuf_queue_ops structures
-  [PATCH 4/4] [media] usb: constify videobuf_queue_ops structures
+ping?
 
- drivers/media/common/saa7146/saa7146_vbi.c    | 2 +-
- drivers/media/common/saa7146/saa7146_video.c  | 2 +-
- drivers/media/pci/bt8xx/bttv-driver.c         | 2 +-
- drivers/media/pci/cx18/cx18-streams.c         | 2 +-
- drivers/media/platform/davinci/vpfe_capture.c | 2 +-
- drivers/media/platform/fsl-viu.c              | 2 +-
- drivers/media/usb/cx231xx/cx231xx-417.c       | 2 +-
- drivers/media/usb/cx231xx/cx231xx-video.c     | 2 +-
- drivers/media/usb/tm6000/tm6000-video.c       | 2 +-
- drivers/media/usb/zr364xx/zr364xx.c           | 2 +-
- 10 files changed, 10 insertions(+), 10 deletions(-)
-
--- 
-1.9.1
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  Documentation/devicetree/bindings/media/cec-gpio.txt | 18 ++++++++++++++++++
+>  1 file changed, 18 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/cec-gpio.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/cec-gpio.txt b/Documentation/devicetree/bindings/media/cec-gpio.txt
+> new file mode 100644
+> index 000000000000..58fa56080cda
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/cec-gpio.txt
+> @@ -0,0 +1,18 @@
+> +* HDMI CEC GPIO driver
+> +
+> +The HDMI CEC GPIO module supports CEC implementations where the CEC pin
+> +is hooked up to a pull-up GPIO pin.
+> +
+> +The CEC GPIO
+> +
+> +Required properties:
+> +  - compatible: value must be "cec-gpio"
+> +  - gpio: gpio that the CEC line is connected to
+> +
+> +Example for the Raspberry Pi 3 where the CEC line is connected to
+> +pin 7 aka BCM4 aka GPCLK0 on the GPIO pin header:
+> +
+> +cec-gpio {
+> +       compatible = "cec-gpio";
+> +       gpio = <&gpio 4 GPIO_ACTIVE_HIGH>;
+> +};
+> 
