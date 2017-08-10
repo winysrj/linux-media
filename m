@@ -1,52 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f179.google.com ([209.85.161.179]:35420 "EHLO
-        mail-yw0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751329AbdH3AnW (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:38426 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751512AbdHJIcl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 20:43:22 -0400
-Received: by mail-yw0-f179.google.com with SMTP id s187so24694795ywf.2
-        for <linux-media@vger.kernel.org>; Tue, 29 Aug 2017 17:43:22 -0700 (PDT)
+        Thu, 10 Aug 2017 04:32:41 -0400
+Date: Thu, 10 Aug 2017 14:02:35 +0530
+From: Harold Gomez <haroldgmz11@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] Subject: drivers:staging:media:atomisp:12c:ab1302.c fix CHECK
+Message-ID: <20170810083235.GA2362@localhost.localdomain>
 MIME-Version: 1.0
-From: Mike Atkinson <kdx7214@gmail.com>
-Date: Tue, 29 Aug 2017 19:43:21 -0500
-Message-ID: <CAAxvtFYjbGzEHi0PTVG+c=HYMZ+7bORcpYXZSVfG1yZ7qndzQg@mail.gmail.com>
-Subject: GP fault in cx18 module from v4l-dvb drivers on linuxtv.org (Ubuntu 17.04)
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Having a problem with a #GP fault when loading the cx18 driver from
-v4l-dvb from the linuxtv.org site.
+CHECK: Do not include the paragraph about writing to the Free Software
+Foundation's mailing address from the sample GPL notice.
+The FSF has changed addresses in the past, and may do so again.
+Linux already includes a copy of the GPL.
 
+remove the unnecessary paragraph
 
-Device:  Hauppauge HVR-1600 (lspci output at pastebin.com/e7G52kqQ)
-(ATSC signals)
+Signed-off-by: Harold Gomez <haroldgmz11@gmail.com>
+---
+ drivers/staging/media/atomisp/i2c/ap1302.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
-Environment:  Ubuntu 17.04, kernel 4.10.0-33-generic, 64-bit
-
-Hardware:  Motherboard:  Gigabyte GA-B150M-D3H  (16GB RAM)
-
-
-I've downloaded the v4l-dvb kernel drivers, built them, and installed
-them.  I was unable to use the built-in drivers as I needed the
-cx18-i2c driver.
-
-
->From the stack trace included with the pastebin link above it appears
-the problem is in find_ref_lock() when called from c18_probe() if that
-helps immediately.
-
-
-Things I've tried:
-
-    -- Remove kernel drivers/Reboot/Install v4l-dvb
-drivers/build/install/modprobe
-
-    -- Do a 'make rminstall' to remove drivers and attempt
-install/modprobe again
-
-
-I found it interesting that even though the #GP happens and the /dev
-entries are not created, the cx18 module still loads (as found with
-lsmod) but no cx18-i2c was loaded.
+diff --git a/drivers/staging/media/atomisp/i2c/ap1302.c b/drivers/staging/media/atomisp/i2c/ap1302.c
+index bacffbe..9d6ce36 100644
+--- a/drivers/staging/media/atomisp/i2c/ap1302.c
++++ b/drivers/staging/media/atomisp/i2c/ap1302.c
+@@ -11,11 +11,6 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+- * 02110-1301, USA.
+- *
+  */
+ 
+ #include "../include/linux/atomisp.h"
+-- 
+2.1.4
