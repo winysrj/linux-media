@@ -1,146 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44942
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751842AbdHaXrJ (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:54418 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752342AbdHJILv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 19:47:09 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 13/15] media: dmx.h: get rid of GET_DMX_EVENT
-Date: Thu, 31 Aug 2017 20:47:00 -0300
-Message-Id: <dd7d1f980509c454f8bbad4ffb8522091564191d.1504222628.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
-References: <cover.1504222628.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
-References: <cover.1504222628.git.mchehab@s-opensource.com>
+        Thu, 10 Aug 2017 04:11:51 -0400
+Subject: Re: [PATCH 1/3] dt-bindings: document the CEC GPIO bindings
+To: linux-media@vger.kernel.org
+References: <20170802084242.14947-1-hverkuil@xs4all.nl>
+ <20170802084242.14947-2-hverkuil@xs4all.nl>
+ <64803004-6bea-44db-a651-cc21806250b5@xs4all.nl>
+Cc: devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        dri-devel@lists.freedesktop.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e64f40cb-f53c-4de9-180c-a6a30e052965@xs4all.nl>
+Date: Thu, 10 Aug 2017 10:11:49 +0200
+MIME-Version: 1.0
+In-Reply-To: <64803004-6bea-44db-a651-cc21806250b5@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This seems to be a pure fictional API :-)
+On 10/08/17 10:03, Hans Verkuil wrote:
+> On 02/08/17 10:42, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Document the bindings for the cec-gpio module for hardware where the
+>> CEC pin is connected to a GPIO pin.
+> 
+> ping?
+> 
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  Documentation/devicetree/bindings/media/cec-gpio.txt | 18 ++++++++++++++++++
+>>  1 file changed, 18 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/cec-gpio.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/cec-gpio.txt b/Documentation/devicetree/bindings/media/cec-gpio.txt
+>> new file mode 100644
+>> index 000000000000..58fa56080cda
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/cec-gpio.txt
+>> @@ -0,0 +1,18 @@
+>> +* HDMI CEC GPIO driver
 
-It only exists at the DVB book, with no code implemeting it.
+OK, reading your comments from an other bindings patch I realize that 'bindings
+refer to hardware, not drivers'. I'll fix and repost :-)
 
-So, just get rid of it.
+Regards,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/dvb/dmx-get-event.rst | 60 --------------------------
- Documentation/media/uapi/dvb/dmx_fcalls.rst    |  1 -
- Documentation/media/uapi/dvb/dmx_types.rst     | 19 --------
- 3 files changed, 80 deletions(-)
- delete mode 100644 Documentation/media/uapi/dvb/dmx-get-event.rst
+	Hans
 
-diff --git a/Documentation/media/uapi/dvb/dmx-get-event.rst b/Documentation/media/uapi/dvb/dmx-get-event.rst
-deleted file mode 100644
-index 8be626c29158..000000000000
---- a/Documentation/media/uapi/dvb/dmx-get-event.rst
-+++ /dev/null
-@@ -1,60 +0,0 @@
--.. -*- coding: utf-8; mode: rst -*-
--
--.. _DMX_GET_EVENT:
--
--=============
--DMX_GET_EVENT
--=============
--
--Name
------
--
--DMX_GET_EVENT
--
--
--Synopsis
----------
--
--.. c:function:: int ioctl( int fd, DMX_GET_EVENT, struct dmx_event *ev)
--    :name: DMX_GET_EVENT
--
--
--Arguments
-----------
--
--``fd``
--    File descriptor returned by :c:func:`open() <dvb-dmx-open>`.
--
--``ev``
--    Pointer to the location where the event is to be stored.
--
--
--Description
-------------
--
--This ioctl call returns an event if available. If an event is not
--available, the behavior depends on whether the device is in blocking or
--non-blocking mode. In the latter case, the call fails immediately with
--errno set to ``EWOULDBLOCK``. In the former case, the call blocks until an
--event becomes available.
--
--
--Return Value
--------------
--
--On success 0 is returned, on error -1 and the ``errno`` variable is set
--appropriately. The generic error codes are described at the
--:ref:`Generic Error Codes <gen-errors>` chapter.
--
--
--
--.. flat-table::
--    :header-rows:  0
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ``EWOULDBLOCK``
--
--       -  There is no event pending, and the device is in non-blocking mode.
-diff --git a/Documentation/media/uapi/dvb/dmx_fcalls.rst b/Documentation/media/uapi/dvb/dmx_fcalls.rst
-index be98d60877f2..a17289143220 100644
---- a/Documentation/media/uapi/dvb/dmx_fcalls.rst
-+++ b/Documentation/media/uapi/dvb/dmx_fcalls.rst
-@@ -18,7 +18,6 @@ Demux Function Calls
-     dmx-set-filter
-     dmx-set-pes-filter
-     dmx-set-buffer-size
--    dmx-get-event
-     dmx-get-stc
-     dmx-get-pes-pids
-     dmx-add-pid
-diff --git a/Documentation/media/uapi/dvb/dmx_types.rst b/Documentation/media/uapi/dvb/dmx_types.rst
-index a205c02ccdc1..171205ed86a4 100644
---- a/Documentation/media/uapi/dvb/dmx_types.rst
-+++ b/Documentation/media/uapi/dvb/dmx_types.rst
-@@ -166,25 +166,6 @@ struct dmx_pes_filter_params
- 	__u32          flags;
-     };
- 
--
--struct dmx_event
--================
--
--.. c:type:: dmx_event
--
--.. code-block:: c
--
--     struct dmx_event
--     {
--	 dmx_event_t          event;
--	 time_t               timeStamp;
--	 union
--	 {
--	     dmx_scrambling_status_t scrambling;
--	 } u;
--     };
--
--
- struct dmx_stc
- ==============
- 
--- 
-2.13.5
+>> +
+>> +The HDMI CEC GPIO module supports CEC implementations where the CEC pin
+>> +is hooked up to a pull-up GPIO pin.
+>> +
+>> +The CEC GPIO
+>> +
+>> +Required properties:
+>> +  - compatible: value must be "cec-gpio"
+>> +  - gpio: gpio that the CEC line is connected to
+>> +
+>> +Example for the Raspberry Pi 3 where the CEC line is connected to
+>> +pin 7 aka BCM4 aka GPCLK0 on the GPIO pin header:
+>> +
+>> +cec-gpio {
+>> +       compatible = "cec-gpio";
+>> +       gpio = <&gpio 4 GPIO_ACTIVE_HIGH>;
+>> +};
+>>
+> 
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+> 
