@@ -1,42 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:36591 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752193AbdHAR6J (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 1 Aug 2017 13:58:09 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: corbet@lwn.net, mchehab@kernel.org, awalls@md.metrocast.net,
-        hverkuil@xs4all.nl, serjk@netup.ru, aospan@netup.ru,
-        hans.verkuil@cisco.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 16/18] [media] mantis: hopper_cards: constify pci_device_id.
-Date: Tue,  1 Aug 2017 23:26:32 +0530
-Message-Id: <1501610194-8231-17-git-send-email-arvind.yadav.cs@gmail.com>
-In-Reply-To: <1501610194-8231-1-git-send-email-arvind.yadav.cs@gmail.com>
-References: <1501610194-8231-1-git-send-email-arvind.yadav.cs@gmail.com>
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:40327 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751485AbdHJIeC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Aug 2017 04:34:02 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 3/3] MAINTAINERS: add cec-gpio entry
+Date: Thu, 10 Aug 2017 10:33:59 +0200
+Message-Id: <20170810083359.36800-4-hverkuil@xs4all.nl>
+In-Reply-To: <20170810083359.36800-1-hverkuil@xs4all.nl>
+References: <20170810083359.36800-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-pci_device_id are not supposed to change at runtime. All functions
-working with pci_device_id provided by <linux/pci.h> work with
-const pci_device_id. So mark the non-const structs as const.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Add an entry for the CEC GPIO driver.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/mantis/hopper_cards.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/media/pci/mantis/hopper_cards.c b/drivers/media/pci/mantis/hopper_cards.c
-index 68b5800..11e9878 100644
---- a/drivers/media/pci/mantis/hopper_cards.c
-+++ b/drivers/media/pci/mantis/hopper_cards.c
-@@ -255,7 +255,7 @@ static void hopper_pci_remove(struct pci_dev *pdev)
+diff --git a/MAINTAINERS b/MAINTAINERS
+index aeb84877854b..d85959f82a09 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -3199,6 +3199,15 @@ F:	include/uapi/linux/cec.h
+ F:	include/uapi/linux/cec-funcs.h
+ F:	Documentation/devicetree/bindings/media/cec.txt
  
- }
- 
--static struct pci_device_id hopper_pci_table[] = {
-+static const struct pci_device_id hopper_pci_table[] = {
- 	MAKE_ENTRY(TWINHAN_TECHNOLOGIES, MANTIS_VP_3028_DVB_T, &vp3028_config,
- 		   NULL),
- 	{ }
++CEC GPIO DRIVER
++M:	Hans Verkuil <hans.verkuil@cisco.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++W:	http://linuxtv.org
++S:	Supported
++F:	drivers/media/platform/cec-gpio/
++F:	Documentation/devicetree/bindings/media/cec-gpio.txt
++
+ CELL BROADBAND ENGINE ARCHITECTURE
+ M:	Arnd Bergmann <arnd@arndb.de>
+ L:	linuxppc-dev@lists.ozlabs.org
 -- 
-2.7.4
+2.13.2
