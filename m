@@ -1,126 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:43146 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752557AbdHVURn (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:35241 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752362AbdHJOnk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 16:17:43 -0400
-Date: Tue, 22 Aug 2017 22:17:31 +0200
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Yong <yong.deng@magewell.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
+        Thu, 10 Aug 2017 10:43:40 -0400
+Date: Thu, 10 Aug 2017 15:43:35 +0100
+From: Rui Miguel Silva <rmfrfs@gmail.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+        jacek.anaszewski@gmail.com, laurent.pinchart@ideasonboard.com,
+        Johan Hovold <johan@kernel.org>, Alex Elder <elder@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benoit Parrot <bparrot@ti.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
-Message-ID: <20170822201731.hyjqrbkhggaoomfl@flea.home>
-References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
- <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
- <5082b6d6-29a7-f101-8cba-13fce8983c89@xs4all.nl>
- <20170822110148.734c01b69dacc57fa08965d1@magewell.com>
- <8dd8c350-cd45-5cd9-65cc-67102944811f@xs4all.nl>
+        greybus-dev@lists.linaro.org, devel@driverdev.osuosl.org,
+        viresh.kumar@linaro.org
+Subject: Re: [PATCH v2 1/3] staging: greybus: light: fix memory leak in v4l2
+ register
+Message-ID: <20170810144335.GA22689@arch-late.localdomain>
+References: <20170809111555.30147-1-sakari.ailus@linux.intel.com>
+ <20170809111555.30147-2-sakari.ailus@linux.intel.com>
+ <cec7fc27-25eb-8769-6795-c377307c5f57@xs4all.nl>
+ <20170810135650.d62h2g4bxqkndiaa@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="6fmkb2gzohr3aqga"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <8dd8c350-cd45-5cd9-65cc-67102944811f@xs4all.nl>
+In-Reply-To: <20170810135650.d62h2g4bxqkndiaa@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
+On Thu, Aug 10, 2017 at 04:56:50PM +0300, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Thu, Aug 10, 2017 at 03:02:46PM +0200, Hans Verkuil wrote:
+> > > @@ -534,25 +534,20 @@ static int gb_lights_light_v4l2_register(struct gb_light *light)
+> > >  {
+> > >  	struct gb_connection *connection = get_conn_from_light(light);
+> > >  	struct device *dev = &connection->bundle->dev;
+> > > -	struct v4l2_flash_config *sd_cfg;
+> > > +	struct v4l2_flash_config sd_cfg = { {0} };
+> > 
+> > Just use '= {};'
+> 
+> This is GCC specific whereas { {0} } is standard C. The latter is thus
+> obviously better IMO.
 
---6fmkb2gzohr3aqga
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+My thought exactly. Let keep it this way, please.
 
-On Tue, Aug 22, 2017 at 08:43:35AM +0200, Hans Verkuil wrote:
-> >>> +static int sun6i_video_link_setup(struct media_entity *entity,
-> >>> +				  const struct media_pad *local,
-> >>> +				  const struct media_pad *remote, u32 flags)
-> >>> +{
-> >>> +	struct video_device *vdev =3D media_entity_to_video_device(entity);
-> >>> +	struct sun6i_video *video =3D video_get_drvdata(vdev);
-> >>> +
-> >>> +	if (WARN_ON(video =3D=3D NULL))
-> >>> +		return 0;
-> >>> +
-> >>> +	return sun6i_video_formats_init(video);
-> >>
-> >> Why is this called here? Why not in video_init()?
-> >=20
-> > sun6i_video_init is in the driver probe context. sun6i_video_formats_in=
-it
-> > use media_entity_remote_pad and media_entity_to_v4l2_subdev to find the
-> > subdevs.
-> > The media_entity_remote_pad can't work before all the media pad linked.
->=20
-> A video_init is typically called from the notify_complete callback.
-> Actually, that's where the video_register_device should be created as wel=
-l.
-> When you create it in probe() there is possibly no sensor yet, so it would
-> be a dead video node (or worse, crash when used).
->=20
-> There are still a lot of platform drivers that create the video node in t=
-he
-> probe, but it's not the right place if you rely on the async loading of
-> subdevs.
+> 
+> > 
+> > >  	struct led_classdev_flash *fled;
+> > >  	struct led_classdev *iled = NULL;
+> > >  	struct gb_channel *channel_torch, *channel_ind, *channel_flash;
+> > > -	int ret = 0;
+> > > -
+> > > -	sd_cfg = kcalloc(1, sizeof(*sd_cfg), GFP_KERNEL);
+> > > -	if (!sd_cfg)
+> > > -		return -ENOMEM;
+> > >  
+> > >  	channel_torch = get_channel_from_mode(light, GB_CHANNEL_MODE_TORCH);
+> > >  	if (channel_torch)
+> > >  		__gb_lights_channel_v4l2_config(&channel_torch->intensity_uA,
+> > > -						&sd_cfg->torch_intensity);
+> > > +						&sd_cfg.torch_intensity);
+> > >  
+> > >  	channel_ind = get_channel_from_mode(light, GB_CHANNEL_MODE_INDICATOR);
+> > >  	if (channel_ind) {
+> > >  		__gb_lights_channel_v4l2_config(&channel_ind->intensity_uA,
+> > > -						&sd_cfg->indicator_intensity);
+> > > +						&sd_cfg.indicator_intensity);
+> > >  		iled = &channel_ind->fled.led_cdev;
+> > >  	}
+> > >  
+> > > @@ -561,27 +556,21 @@ static int gb_lights_light_v4l2_register(struct gb_light *light)
+> > >  
+> > >  	fled = &channel_flash->fled;
+> > >  
+> > > -	snprintf(sd_cfg->dev_name, sizeof(sd_cfg->dev_name), "%s", light->name);
+> > > +	snprintf(sd_cfg.dev_name, sizeof(sd_cfg.dev_name), "%s", light->name);
+> > >  
+> > >  	/* Set the possible values to faults, in our case all faults */
+> > > -	sd_cfg->flash_faults = LED_FAULT_OVER_VOLTAGE | LED_FAULT_TIMEOUT |
+> > > +	sd_cfg.flash_faults = LED_FAULT_OVER_VOLTAGE | LED_FAULT_TIMEOUT |
+> > >  		LED_FAULT_OVER_TEMPERATURE | LED_FAULT_SHORT_CIRCUIT |
+> > >  		LED_FAULT_OVER_CURRENT | LED_FAULT_INDICATOR |
+> > >  		LED_FAULT_UNDER_VOLTAGE | LED_FAULT_INPUT_VOLTAGE |
+> > >  		LED_FAULT_LED_OVER_TEMPERATURE;
+> > >  
+> > >  	light->v4l2_flash = v4l2_flash_init(dev, NULL, fled, iled,
+> > > -					    &v4l2_flash_ops, sd_cfg);
+> > > -	if (IS_ERR_OR_NULL(light->v4l2_flash)) {
+> > > -		ret = PTR_ERR(light->v4l2_flash);
+> > > -		goto out_free;
+> > > -	}
+> > > +					    &v4l2_flash_ops, &sd_cfg);
+> > > +	if (IS_ERR_OR_NULL(light->v4l2_flash))
+> > 
+> > Just IS_ERR since v4l2_flash_init() never returns NULL.
+> 
+> Will fix.
 
-That's not really related, but I'm not really sure it's a good way to
-operate. This essentially means that you might wait forever for a
-component in your pipeline to be probed, without any chance of it
-happening (not compiled, compiled as a module and not loaded, hardware
-defect preventing the driver from probing properly, etc), even though
-that component might not be essential.
+Thanks for that Sakari.
 
-This is how DRM operates, and you sometimes end up in some very dumb
-situations where you wait for say, the DSI controller to probe, while
-you only care about HDMI in your system.
+---
+Cheers,
+	Rui
 
-But this seems to be on of the hot topic these days, so we might
-discuss it further in some other thread :)
-
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
---6fmkb2gzohr3aqga
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJZnJFbAAoJEBx+YmzsjxAgMtsQAKSTAOKjGu0DMGROoAdX3iZS
-Zz8GXJsf3bRpZIVKdD98EINRs1uOKAlwK3S4pghb3Tak6Ixj9/zEJSMjF1XMsO55
-dSGLeIdqZj3C7JF41Eyr+5TCVK1ps53TNyA8qrf0rO0I0KdRbjlulv56mn/WWoMO
-W7RD7rP+xL/GaiT0az691zbUuBXBA3Sv7bfg0XhWshFBFpc9G9nbeHk/TaG17wd/
-YchlkJG98gEfl/a8RF0yu7xMR629PzoqTxFEqmI966HFNp5jxBWW8SEF+SduawAt
-Ly9zt5y0ISLyFWlfzGIEDsWvOqZKubihblPuas36qYdxJwNb+qySymq9EXReO6BD
-sP6aafm7DS32Nkagz+QxBQmULYcSjBzj+/434ezLvB6MCq8ZmpDiKUoGppe+3NxI
-WSrSqvpe7e0BWjSlMtevfwNvZUpXTnQ1lGDBb6uPuo2vXXIG9g4uMQTXc0tuiVit
-84ek3cN28trSgOSiSOISp7pbPYEZwlNtMzyASB7o067OrR7EUg5bP+/MuPn/MSN1
-8R4siDejt+A6fcHU+xQMxI2tcm1pu280wKML6Huypz7J7Ql2WNs54H3ldRAKH+/N
-kCbZSXYA9b83UTX+jb0oegJ2I8O/b/yA2xZsLpVhPJ1dJLoF1GKnHAuAwozmfR/D
-BoUZ19JquVDfaEYpO2wH
-=4ADb
------END PGP SIGNATURE-----
-
---6fmkb2gzohr3aqga--
+> 
+> > 
+> > > +		return PTR_ERR(light->v4l2_flash);
+> > >  
+> > > -	return ret;
+> > > -
+> > > -out_free:
+> > > -	kfree(sd_cfg);
+> > > -	return ret;
+> > > +	return 0;
+> > >  }
+> > >  
+> > >  static void gb_lights_light_v4l2_unregister(struct gb_light *light)
+> > > 
+> > 
+> > After those two changes:
+> > 
+> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> -- 
+> Regards,
+> 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
