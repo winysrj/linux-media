@@ -1,39 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:49514 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750758AbdH2FbG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 01:31:06 -0400
-To: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
-        Antoine Jacquet <royale@zerezo.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 0/4] [media] zr364xx: Adjustments for some function
- implementations
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-Message-ID: <d632eadf-98a3-7e05-4d9d-96d04b3619ff@users.sourceforge.net>
-Date: Tue, 29 Aug 2017 07:30:52 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:58560 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751468AbdHJIb2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Aug 2017 04:31:28 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: linux-tegra@vger.kernel.org, devicetree@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 1/4] dt-bindings: document the tegra CEC bindings
+Date: Thu, 10 Aug 2017 10:31:22 +0200
+Message-Id: <20170810083125.36649-2-hverkuil@xs4all.nl>
+In-Reply-To: <20170810083125.36649-1-hverkuil@xs4all.nl>
+References: <20170810083125.36649-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 29 Aug 2017 07:17:07 +0200
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-A few update suggestions were taken into account
-from static source code analysis.
+This documents the binding for the Tegra CEC module.
 
-Markus Elfring (4):
-  Delete an error message for a failed memory allocation in two functions
-  Improve a size determination in zr364xx_probe()
-  Adjust ten checks for null pointers
-  Fix a typo in a comment line of the file header
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../devicetree/bindings/media/tegra-cec.txt        | 27 ++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/tegra-cec.txt
 
- drivers/media/usb/zr364xx/zr364xx.c | 34 +++++++++++++++-------------------
- 1 file changed, 15 insertions(+), 19 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/media/tegra-cec.txt b/Documentation/devicetree/bindings/media/tegra-cec.txt
+new file mode 100644
+index 000000000000..c503f06f3b84
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/tegra-cec.txt
+@@ -0,0 +1,27 @@
++* Tegra HDMI CEC hardware
++
++The HDMI CEC module is present in Tegra SoCs and its purpose is to
++handle communication between HDMI connected devices over the CEC bus.
++
++Required properties:
++  - compatible : value should be one of the following:
++	"nvidia,tegra114-cec"
++	"nvidia,tegra124-cec"
++	"nvidia,tegra210-cec"
++  - reg : Physical base address of the IP registers and length of memory
++	  mapped region.
++  - interrupts : HDMI CEC interrupt number to the CPU.
++  - clocks : from common clock binding: handle to HDMI CEC clock.
++  - clock-names : from common clock binding: must contain "cec",
++		  corresponding to the entry in the clocks property.
++  - hdmi-phandle : phandle to the HDMI controller, see also cec.txt.
++
++Example:
++
++cec@70015000 {
++	compatible = "nvidia,tegra124-cec";
++	reg = <0x0 0x70015000 0x0 0x00001000>;
++	interrupts = <GIC_SPI 3 IRQ_TYPE_LEVEL_HIGH>;
++	clocks = <&tegra_car TEGRA124_CLK_CEC>;
++	clock-names = "cec";
++};
 -- 
-2.14.1
+2.13.2
