@@ -1,67 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:51630 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751601AbdHQG4P (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:37987 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751948AbdHJOGk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Aug 2017 02:56:15 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.14] cec: rename uAPI defines, fixes
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <7319f0bd-5882-345c-9143-c968e31e8933@xs4all.nl>
-Date: Thu, 17 Aug 2017 08:56:11 +0200
+        Thu, 10 Aug 2017 10:06:40 -0400
+Date: Thu, 10 Aug 2017 19:36:33 +0530
+From: Harold Gomez <haroldgmz11@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] staging:media:atomisp:Fix block comments use * on subsequent
+ lines ap1302.c
+Message-ID: <20170810140633.GA3892@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This patch fixes the warning
 
-The second patch renames two CEC events in the public API. Since these were
-introduced for 4.14, now is the time to do the rename before they become
-part of the ABI. While working with and working on the cec-gpio driver to
-debug CEC issues I realized that optionally being able to monitor the HDMI
-HPD (hotplug detect) pin as well is very useful.
+WARNING: Block comments use * on subsequent lines
++/* When loading firmware, host writes firmware data from address
+0x8000.
++   When the address reaches 0x9FFF, the next address should return to
+0x8000.
 
-So besides monitoring the CEC pin it will also be possible to monitor the
-HPD pin in the future. That means that the pin event has to tell with pin
-has an event, CEC or HPD. Hence the rename while I still can.
+WARNING: Block comments use a trailing */ on a separate line
++   that has been written to.*/
 
-The last patch is a fix for the irq handling in cec-pin.c which was broken.
-This only affects the cec-gpio driver which isn't merged yet (expected for
-4.15), but it is good to get this fixed now.
+WARNING: Block comments use * on subsequent lines
++	/* The fw binary contains a header of struct ap1302_firmware.
++	   Following the header is the bootdata of AP1302.
 
-Regards,
+WARNING: Block comments use a trailing */ on a separate line
++	   The bootdata pointer can be referenced as &fw[1]. */
 
-	Hans
+WARNING: Block comments use * on subsequent lines
++	/* Write 2 to bootdata_stage register to apply basic_init_hp
++	   settings and enable PLL. */
 
-The following changes since commit ec0c3ec497cabbf3bfa03a9eb5edcc252190a4e0:
+WARNING: Block comments use a trailing */ on a separate line
++	   settings and enable PLL. */
 
-  media: ddbridge: split code into multiple files (2017-08-09 12:17:01 -0400)
+WARNING: Block comments use * on subsequent lines
++	/* Write 0xFFFF to bootdata_stage register to indicate AP1302
+that
++	   the whole bootdata content has been loaded. */
 
-are available in the git repository at:
+WARNING: Block comments use a trailing */ on a separate line
++	   the whole bootdata content has been loaded. */
 
-  git://linuxtv.org/hverkuil/media_tree.git cec-rename
+Signed-off-by: Harold Gomez <haroldgmz11@gmail.com>
+---
+ drivers/staging/media/atomisp/i2c/ap1302.c | 38 ++++++++++++++++++++----------
+ 1 file changed, 25 insertions(+), 13 deletions(-)
 
-for you to fetch changes up to 36fa912800ef8129b6c8c9caffb74a84ff5be36d:
-
-  cec-pin: fix irq handling (2017-08-17 08:43:50 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (3):
-      s5p-cec: use CEC_CAP_DEFAULTS
-      cec: rename pin events/function
-      cec-pin: fix irq handling
-
- Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst |  2 +-
- Documentation/media/uapi/cec/cec-ioc-dqevent.rst     |  8 ++++----
- Documentation/media/uapi/cec/cec-ioc-g-mode.rst      |  2 +-
- drivers/media/cec/cec-adap.c                         |  7 ++++---
- drivers/media/cec/cec-api.c                          |  4 ++--
- drivers/media/cec/cec-pin.c                          | 39 ++++++++++++++++++++++++---------------
- drivers/media/platform/s5p-cec/s5p_cec.c             |  7 ++-----
- include/media/cec-pin.h                              |  6 +++++-
- include/media/cec.h                                  |  9 +++++----
- include/uapi/linux/cec.h                             |  4 ++--
- 10 files changed, 50 insertions(+), 38 deletions(-)
+diff --git a/drivers/staging/media/atomisp/i2c/ap1302.c b/drivers/staging/media/atomisp/i2c/ap1302.c
+index 3e229ba..68e0b83 100644
+--- a/drivers/staging/media/atomisp/i2c/ap1302.c
++++ b/drivers/staging/media/atomisp/i2c/ap1302.c
+@@ -321,12 +321,15 @@ static int ap1302_request_firmware(struct v4l2_subdev *sd)
+ 	return ret;
+ }
+ 
+-/* When loading firmware, host writes firmware data from address 0x8000.
+-   When the address reaches 0x9FFF, the next address should return to 0x8000.
+-   This function handles this address window and load firmware data to AP1302.
+-   win_pos indicates the offset within this window. Firmware loading procedure
+-   may call this function several times. win_pos records the current position
+-   that has been written to.*/
++/*
++ * When loading firmware, host writes firmware data from address 0x8000.
++ * When the address reaches 0x9FFF, the next address should return to 0x8000.
++ * This function handles this address window and load firmware data to AP1302.
++ * win_pos indicates the offset within this window. Firmware loading procedure
++ * may call this function several times. win_pos records the current position
++ * that has been written to.
++ *
++ */
+ static int ap1302_write_fw_window(struct v4l2_subdev *sd,
+ 				  u16 *win_pos, const u8 *buf, u32 len)
+ {
+@@ -371,9 +374,12 @@ static int ap1302_load_firmware(struct v4l2_subdev *sd)
+ 		dev_err(&client->dev, "firmware size does not match.\n");
+ 		return -EINVAL;
+ 	}
+-	/* The fw binary contains a header of struct ap1302_firmware.
+-	   Following the header is the bootdata of AP1302.
+-	   The bootdata pointer can be referenced as &fw[1]. */
++	/*
++	 * The fw binary contains a header of struct ap1302_firmware.
++	 * Following the header is the bootdata of AP1302.
++	 * The bootdata pointer can be referenced as &fw[1].
++	 *
++	 */
+ 	fw_data = (u8 *)&fw[1];
+ 
+ 	/* Clear crc register. */
+@@ -386,8 +392,11 @@ static int ap1302_load_firmware(struct v4l2_subdev *sd)
+ 	if (ret)
+ 		return ret;
+ 
+-	/* Write 2 to bootdata_stage register to apply basic_init_hp
+-	   settings and enable PLL. */
++	/*
++	 * Write 2 to bootdata_stage register to apply basic_init_hp
++	 * settings and enable PLL.
++	 *
++	 */
+ 	ret = ap1302_i2c_write_reg(sd, REG_BOOTDATA_STAGE,
+ 				   AP1302_REG16, 0x0002);
+ 	if (ret)
+@@ -413,8 +422,11 @@ static int ap1302_load_firmware(struct v4l2_subdev *sd)
+ 		return -EAGAIN;
+ 	}
+ 
+-	/* Write 0xFFFF to bootdata_stage register to indicate AP1302 that
+-	   the whole bootdata content has been loaded. */
++	/*
++	 * Write 0xFFFF to bootdata_stage register to indicate AP1302 that
++	 * the whole bootdata content has been loaded.
++	 *
++	 */
+ 	ret = ap1302_i2c_write_reg(sd, REG_BOOTDATA_STAGE,
+ 				   AP1302_REG16, 0xFFFF);
+ 	if (ret)
+-- 
+2.1.4
