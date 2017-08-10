@@ -1,53 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:62296 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751725AbdHaT4v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 15:56:51 -0400
-Subject: [PATCH 1/3] [media] mb86a20s: Delete an error message for a failed
- memory allocation in mb86a20s_attach()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <9571ee6c-5137-15f4-4cdb-9f03b5cb9268@users.sourceforge.net>
-Message-ID: <b977ca6f-5839-380c-e4b1-0b6108fb4274@users.sourceforge.net>
-Date: Thu, 31 Aug 2017 21:56:44 +0200
-MIME-Version: 1.0
-In-Reply-To: <9571ee6c-5137-15f4-4cdb-9f03b5cb9268@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:60542 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751469AbdHJIb3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Aug 2017 04:31:29 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: linux-tegra@vger.kernel.org, devicetree@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 2/4] ARM: tegra: add CEC support to tegra124.dtsi
+Date: Thu, 10 Aug 2017 10:31:23 +0200
+Message-Id: <20170810083125.36649-3-hverkuil@xs4all.nl>
+In-Reply-To: <20170810083125.36649-1-hverkuil@xs4all.nl>
+References: <20170810083125.36649-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 31 Aug 2017 21:10:25 +0200
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Omit an extra message for a memory allocation failure in this function.
+Add support for the Tegra CEC IP to tegra124.dtsi and enable it on the
+Jetson TK1.
 
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/mb86a20s.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ arch/arm/boot/dts/tegra124-jetson-tk1.dts |  4 ++++
+ arch/arm/boot/dts/tegra124.dtsi           | 12 +++++++++++-
+ 2 files changed, 15 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index e8ac8c3e2ec0..340984100aec 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -2075,8 +2075,5 @@ struct dvb_frontend *mb86a20s_attach(const struct mb86a20s_config *config,
--	if (state == NULL) {
--		dev_err(&i2c->dev,
--			"%s: unable to allocate memory for state\n", __func__);
-+	if (!state)
- 		goto error;
--	}
+diff --git a/arch/arm/boot/dts/tegra124-jetson-tk1.dts b/arch/arm/boot/dts/tegra124-jetson-tk1.dts
+index 7bacb2954f58..7f56de6890c3 100644
+--- a/arch/arm/boot/dts/tegra124-jetson-tk1.dts
++++ b/arch/arm/boot/dts/tegra124-jetson-tk1.dts
+@@ -67,6 +67,10 @@
+ 		};
+ 	};
  
- 	/* setup the state */
- 	state->config = config;
++	cec@70015000 {
++		status = "okay";
++	};
++
+ 	gpu@0,57000000 {
+ 		/*
+ 		 * Node left disabled on purpose - the bootloader will enable
+diff --git a/arch/arm/boot/dts/tegra124.dtsi b/arch/arm/boot/dts/tegra124.dtsi
+index 1b10b14a6abd..1a21e527fb6e 100644
+--- a/arch/arm/boot/dts/tegra124.dtsi
++++ b/arch/arm/boot/dts/tegra124.dtsi
+@@ -123,7 +123,7 @@
+ 			nvidia,head = <1>;
+ 		};
+ 
+-		hdmi@54280000 {
++		hdmi: hdmi@54280000 {
+ 			compatible = "nvidia,tegra124-hdmi";
+ 			reg = <0x0 0x54280000 0x0 0x00040000>;
+ 			interrupts = <GIC_SPI 75 IRQ_TYPE_LEVEL_HIGH>;
+@@ -851,6 +851,16 @@
+ 		status = "disabled";
+ 	};
+ 
++	cec@70015000 {
++		compatible = "nvidia,tegra124-cec";
++		reg = <0x0 0x70015000 0x0 0x00001000>;
++		interrupts = <GIC_SPI 3 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&tegra_car TEGRA124_CLK_CEC>;
++		clock-names = "cec";
++		hdmi-phandle = <&hdmi>;
++		status = "disabled";
++	};
++
+ 	soctherm: thermal-sensor@700e2000 {
+ 		compatible = "nvidia,tegra124-soctherm";
+ 		reg = <0x0 0x700e2000 0x0 0x600 /* SOC_THERM reg_base */
 -- 
-2.14.1
+2.13.2
