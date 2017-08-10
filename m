@@ -1,50 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0190.hostedemail.com ([216.40.44.190]:41950 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751663AbdH2JJu (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58462 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751456AbdHJNE4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 05:09:50 -0400
-Message-ID: <1503997786.2040.23.camel@perches.com>
-Subject: Re: [PATCH 4/4] [media] zr364xx: Fix a typo in a comment line of
- the file header
-From: Joe Perches <joe@perches.com>
-To: SF Markus Elfring <elfring@users.sourceforge.net>,
-        linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
-        Antoine Jacquet <royale@zerezo.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-Date: Tue, 29 Aug 2017 02:09:46 -0700
-In-Reply-To: <bea45b65-dd34-73a6-cfd7-2ce22aa749fe@users.sourceforge.net>
-References: <d632eadf-98a3-7e05-4d9d-96d04b3619ff@users.sourceforge.net>
-         <bea45b65-dd34-73a6-cfd7-2ce22aa749fe@users.sourceforge.net>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Thu, 10 Aug 2017 09:04:56 -0400
+Date: Thu, 10 Aug 2017 16:04:53 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Harold Gomez <haroldgmz11@gmail.com>
+Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] Subject:staging:media:atomisp:ap1302: fix comments style
+Message-ID: <20170810130453.ahoabwyttsj5tfqp@valkosipuli.retiisi.org.uk>
+References: <20170810122735.GA2481@localhost.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170810122735.GA2481@localhost.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2017-08-29 at 07:35 +0200, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Mon, 28 Aug 2017 22:46:30 +0200
+On Thu, Aug 10, 2017 at 05:57:35PM +0530, Harold Gomez wrote:
+> fix comment style Warning in ap1302.c
+> fix WARNING on Block comments use * on subsequent lines
 > 
-> Fix a word in this description.
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/media/usb/zr364xx/zr364xx.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/zr364xx/zr364xx.c b/drivers/media/usb/zr364xx/zr364xx.c
-> index 4cc6d2a9d91f..4ccf71d8b608 100644
-> --- a/drivers/media/usb/zr364xx/zr364xx.c
-> +++ b/drivers/media/usb/zr364xx/zr364xx.c
-> @@ -2,7 +2,7 @@
->   * Zoran 364xx based USB webcam module version 0.73
->   *
->   * Allows you to use your USB webcam with V4L2 applications
-> - * This is still in heavy developpement !
-> + * This is still in heavy development!
+> Signed-off-by: Harold Gomez <haroldgmz11@gmail.com>
 
-There is almost no development being done here.
-Just delete the line.
+If you're making a number of trivial cleanups to a single driver, please
+submit them as a single patch instead. And do continue paying attention to
+commit message subject and body.
+
+Thanks.
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
