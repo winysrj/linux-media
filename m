@@ -1,145 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:3727 "EHLO
-        DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751674AbdHQHX0 (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:49862 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752095AbdHJNCx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Aug 2017 03:23:26 -0400
-From: Wenyou Yang <wenyou.yang@microchip.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-CC: Nicolas Ferre <nicolas.ferre@microchip.com>,
-        <linux-kernel@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
-        "Jonathan Corbet" <corbet@lwn.net>,
-        <linux-arm-kernel@lists.infradead.org>,
-        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH 2/3] media: atmel-isc: Remove the redundant assignment
-Date: Thu, 17 Aug 2017 15:16:13 +0800
-Message-ID: <20170817071614.12767-3-wenyou.yang@microchip.com>
-In-Reply-To: <20170817071614.12767-1-wenyou.yang@microchip.com>
-References: <20170817071614.12767-1-wenyou.yang@microchip.com>
+        Thu, 10 Aug 2017 09:02:53 -0400
+Subject: Re: [PATCH v2 1/3] staging: greybus: light: fix memory leak in v4l2
+ register
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+References: <20170809111555.30147-1-sakari.ailus@linux.intel.com>
+ <20170809111555.30147-2-sakari.ailus@linux.intel.com>
+Cc: linux-leds@vger.kernel.org, jacek.anaszewski@gmail.com,
+        laurent.pinchart@ideasonboard.com, Johan Hovold <johan@kernel.org>,
+        Alex Elder <elder@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        greybus-dev@lists.linaro.org, devel@driverdev.osuosl.org,
+        viresh.kumar@linaro.org, Rui Miguel Silva <rmfrfs@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <cec7fc27-25eb-8769-6795-c377307c5f57@xs4all.nl>
+Date: Thu, 10 Aug 2017 15:02:46 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20170809111555.30147-2-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove the redundant assignment of members in the isc_formats array.
+On 09/08/17 13:15, Sakari Ailus wrote:
+> From: Rui Miguel Silva <rmfrfs@gmail.com>
+> 
+> We are allocating memory for the v4l2 flash configuration structure and
+> leak it in the normal path. Just use the stack for this as we do not
+> use it outside of this function.
 
-Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
----
+I'm not sure why this is part of this patch series. This is a greybus
+bug fix, right? And independent from the other two patches.
 
- drivers/media/platform/atmel/atmel-isc.c | 64 ++++++++++++++++----------------
- 1 file changed, 32 insertions(+), 32 deletions(-)
+> 
+> Fixes: 2870b52bae4c ("greybus: lights: add lights implementation")
+> Reported-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Signed-off-by: Rui Miguel Silva <rmfrfs@gmail.com>
+> Reviewed-by: Viresh Kumar <viresh.kumar@linaro.org>
+> ---
+>  drivers/staging/greybus/light.c | 29 +++++++++--------------------
+>  1 file changed, 9 insertions(+), 20 deletions(-)
+> 
+> diff --git a/drivers/staging/greybus/light.c b/drivers/staging/greybus/light.c
+> index 129ceed39829..0771db418f84 100644
+> --- a/drivers/staging/greybus/light.c
+> +++ b/drivers/staging/greybus/light.c
+> @@ -534,25 +534,20 @@ static int gb_lights_light_v4l2_register(struct gb_light *light)
+>  {
+>  	struct gb_connection *connection = get_conn_from_light(light);
+>  	struct device *dev = &connection->bundle->dev;
+> -	struct v4l2_flash_config *sd_cfg;
+> +	struct v4l2_flash_config sd_cfg = { {0} };
 
-diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-index 535bb03783fe..d91f4e5f8a8d 100644
---- a/drivers/media/platform/atmel/atmel-isc.c
-+++ b/drivers/media/platform/atmel/atmel-isc.c
-@@ -187,74 +187,74 @@ struct isc_device {
- #define ISC_FMT_IND_END      14
- 
- static struct isc_format isc_formats[] = {
-+	/* 0 */
- 	{ V4L2_PIX_FMT_SBGGR8, MEDIA_BUS_FMT_SBGGR8_1X8, 8,
- 	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_DAT8,
--	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
-+	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0 },
-+	/* 1 */
- 	{ V4L2_PIX_FMT_SGBRG8, MEDIA_BUS_FMT_SGBRG8_1X8, 8,
- 	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_GBGB, ISC_RLP_CFG_MODE_DAT8,
--	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
-+	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0 },
-+	/* 2 */
- 	{ V4L2_PIX_FMT_SGRBG8, MEDIA_BUS_FMT_SGRBG8_1X8, 8,
- 	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_GRGR, ISC_RLP_CFG_MODE_DAT8,
--	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
-+	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0 },
-+	/* 3 */
- 	{ V4L2_PIX_FMT_SRGGB8, MEDIA_BUS_FMT_SRGGB8_1X8, 8,
- 	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_RGRG, ISC_RLP_CFG_MODE_DAT8,
--	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
-+	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0 },
- 
-+	/* 4 */
- 	{ V4L2_PIX_FMT_SBGGR10, MEDIA_BUS_FMT_SBGGR10_1X10, 16,
- 	  ISC_PFG_CFG0_BPS_TEN, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_DAT10,
--	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
-+	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0 },
-+	/* 5 */
- 	{ V4L2_PIX_FMT_SGBRG10, MEDIA_BUS_FMT_SGBRG10_1X10, 16,
- 	  ISC_PFG_CFG0_BPS_TEN, ISC_BAY_CFG_GBGB, ISC_RLP_CFG_MODE_DAT10,
--	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
-+	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0 },
-+	/* 6 */
- 	{ V4L2_PIX_FMT_SGRBG10, MEDIA_BUS_FMT_SGRBG10_1X10, 16,
- 	  ISC_PFG_CFG0_BPS_TEN, ISC_BAY_CFG_GRGR, ISC_RLP_CFG_MODE_DAT10,
--	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
-+	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0 },
-+	/* 7 */
- 	{ V4L2_PIX_FMT_SRGGB10, MEDIA_BUS_FMT_SRGGB10_1X10, 16,
- 	  ISC_PFG_CFG0_BPS_TEN, ISC_BAY_CFG_RGRG, ISC_RLP_CFG_MODE_DAT10,
--	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
-+	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0 },
- 
-+	/* 8 */
- 	{ V4L2_PIX_FMT_SBGGR12, MEDIA_BUS_FMT_SBGGR12_1X12, 16,
- 	  ISC_PFG_CFG0_BPS_TWELVE, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_DAT12,
--	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
-+	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0 },
-+	/* 9 */
- 	{ V4L2_PIX_FMT_SGBRG12, MEDIA_BUS_FMT_SGBRG12_1X12, 16,
- 	  ISC_PFG_CFG0_BPS_TWELVE, ISC_BAY_CFG_GBGB, ISC_RLP_CFG_MODE_DAT12,
--	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
-+	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0 },
-+	/* 10 */
- 	{ V4L2_PIX_FMT_SGRBG12, MEDIA_BUS_FMT_SGRBG12_1X12, 16,
- 	  ISC_PFG_CFG0_BPS_TWELVE, ISC_BAY_CFG_GRGR, ISC_RLP_CFG_MODE_DAT12,
--	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
-+	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0 },
-+	/* 11 */
- 	{ V4L2_PIX_FMT_SRGGB12, MEDIA_BUS_FMT_SRGGB12_1X12, 16,
- 	  ISC_PFG_CFG0_BPS_TWELVE, ISC_BAY_CFG_RGRG, ISC_RLP_CFG_MODE_DAT12,
--	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
-+	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0 },
- 
-+	/* 12 */
- 	{ V4L2_PIX_FMT_YUV420, 0x0, 12,
- 	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_YYCC,
--	  ISC_DCFG_IMODE_YC420P, ISC_DCTRL_DVIEW_PLANAR, 0x7fb,
--	  false, false },
-+	  ISC_DCFG_IMODE_YC420P, ISC_DCTRL_DVIEW_PLANAR, 0x7fb },
-+	/* 13 */
- 	{ V4L2_PIX_FMT_YUV422P, 0x0, 16,
- 	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_YYCC,
--	  ISC_DCFG_IMODE_YC422P, ISC_DCTRL_DVIEW_PLANAR, 0x3fb,
--	  false, false },
-+	  ISC_DCFG_IMODE_YC422P, ISC_DCTRL_DVIEW_PLANAR, 0x3fb },
-+	/* 14 */
- 	{ V4L2_PIX_FMT_RGB565, MEDIA_BUS_FMT_RGB565_2X8_LE, 16,
- 	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_RGB565,
--	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x7b,
--	  false, false },
-+	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x7b },
- 
-+	/* 15 */
- 	{ V4L2_PIX_FMT_YUYV, MEDIA_BUS_FMT_YUYV8_2X8, 16,
- 	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_DAT8,
--	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
-+	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0 },
- };
- 
- #define GAMMA_MAX	2
--- 
-2.13.0
+Just use '= {};'
+
+>  	struct led_classdev_flash *fled;
+>  	struct led_classdev *iled = NULL;
+>  	struct gb_channel *channel_torch, *channel_ind, *channel_flash;
+> -	int ret = 0;
+> -
+> -	sd_cfg = kcalloc(1, sizeof(*sd_cfg), GFP_KERNEL);
+> -	if (!sd_cfg)
+> -		return -ENOMEM;
+>  
+>  	channel_torch = get_channel_from_mode(light, GB_CHANNEL_MODE_TORCH);
+>  	if (channel_torch)
+>  		__gb_lights_channel_v4l2_config(&channel_torch->intensity_uA,
+> -						&sd_cfg->torch_intensity);
+> +						&sd_cfg.torch_intensity);
+>  
+>  	channel_ind = get_channel_from_mode(light, GB_CHANNEL_MODE_INDICATOR);
+>  	if (channel_ind) {
+>  		__gb_lights_channel_v4l2_config(&channel_ind->intensity_uA,
+> -						&sd_cfg->indicator_intensity);
+> +						&sd_cfg.indicator_intensity);
+>  		iled = &channel_ind->fled.led_cdev;
+>  	}
+>  
+> @@ -561,27 +556,21 @@ static int gb_lights_light_v4l2_register(struct gb_light *light)
+>  
+>  	fled = &channel_flash->fled;
+>  
+> -	snprintf(sd_cfg->dev_name, sizeof(sd_cfg->dev_name), "%s", light->name);
+> +	snprintf(sd_cfg.dev_name, sizeof(sd_cfg.dev_name), "%s", light->name);
+>  
+>  	/* Set the possible values to faults, in our case all faults */
+> -	sd_cfg->flash_faults = LED_FAULT_OVER_VOLTAGE | LED_FAULT_TIMEOUT |
+> +	sd_cfg.flash_faults = LED_FAULT_OVER_VOLTAGE | LED_FAULT_TIMEOUT |
+>  		LED_FAULT_OVER_TEMPERATURE | LED_FAULT_SHORT_CIRCUIT |
+>  		LED_FAULT_OVER_CURRENT | LED_FAULT_INDICATOR |
+>  		LED_FAULT_UNDER_VOLTAGE | LED_FAULT_INPUT_VOLTAGE |
+>  		LED_FAULT_LED_OVER_TEMPERATURE;
+>  
+>  	light->v4l2_flash = v4l2_flash_init(dev, NULL, fled, iled,
+> -					    &v4l2_flash_ops, sd_cfg);
+> -	if (IS_ERR_OR_NULL(light->v4l2_flash)) {
+> -		ret = PTR_ERR(light->v4l2_flash);
+> -		goto out_free;
+> -	}
+> +					    &v4l2_flash_ops, &sd_cfg);
+> +	if (IS_ERR_OR_NULL(light->v4l2_flash))
+
+Just IS_ERR since v4l2_flash_init() never returns NULL.
+
+> +		return PTR_ERR(light->v4l2_flash);
+>  
+> -	return ret;
+> -
+> -out_free:
+> -	kfree(sd_cfg);
+> -	return ret;
+> +	return 0;
+>  }
+>  
+>  static void gb_lights_light_v4l2_unregister(struct gb_light *light)
+> 
+
+After those two changes:
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
