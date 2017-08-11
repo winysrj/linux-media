@@ -1,80 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45924 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751185AbdHXQ0P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Aug 2017 12:26:15 -0400
-Date: Thu, 24 Aug 2017 11:26:12 -0500
-From: Bjorn Helgaas <helgaas@kernel.org>
-To: Bhumika Goyal <bhumirks@gmail.com>
-Cc: julia.lawall@lip6.fr, bp@alien8.de, mchehab@kernel.org,
-        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
-        seanpaul@chromium.org, airlied@linux.ie, g.liakhovetski@gmx.de,
-        tomas.winkler@intel.com, dwmw2@infradead.org,
-        computersforpeace@gmail.com, boris.brezillon@free-electrons.com,
-        marek.vasut@gmail.com, richard@nod.at, cyrille.pitchen@wedev4u.fr,
-        peda@axentia.se, kishon@ti.com, bhelgaas@google.com,
-        thierry.reding@gmail.com, jonathanh@nvidia.com,
-        dvhart@infradead.org, andy@infradead.org, ohad@wizery.com,
-        bjorn.andersson@linaro.org, freude@de.ibm.com,
-        schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, jth@kernel.org,
-        jejb@linux.vnet.ibm.com, martin.petersen@oracle.com,
-        lduncan@suse.com, cleech@redhat.com, johan@kernel.org,
-        elder@kernel.org, gregkh@linuxfoundation.org,
-        heikki.krogerus@linux.intel.com, linux-edac@vger.kernel.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
-        linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, greybus-dev@lists.linaro.org,
-        devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
-Subject: Re: [PATCH 08/15] PCI: make device_type const
-Message-ID: <20170824162612.GE31858@bhelgaas-glaptop.roam.corp.google.com>
-References: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
- <1503130946-2854-9-git-send-email-bhumirks@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1503130946-2854-9-git-send-email-bhumirks@gmail.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:43123 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753325AbdHKRYU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 Aug 2017 13:24:20 -0400
+To: LMML <linux-media@vger.kernel.org>
+Cc: linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [GIT PULL] s5p-jpeg fixes for v4.14-rc1
+Message-id: <2fc2475a-248f-0ea2-a180-30419e91275e@samsung.com>
+Date: Fri, 11 Aug 2017 19:24:14 +0200
+MIME-version: 1.0
+Content-type: text/plain; charset="utf-8"
+Content-language: en-GB
+Content-transfer-encoding: 7bit
+References: <CGME20170811172417epcas1p4a5ab8343231f1434e7abbca962b3b08d@epcas1p4.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Aug 19, 2017 at 01:52:19PM +0530, Bhumika Goyal wrote:
-> Make this const as it is only stored in the type field of a device
-> structure, which is const.
-> Done using Coccinelle.
-> 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 
-Applied to pci/misc for v4.14, thanks!
+Hi Mauro,
 
-> ---
->  drivers/pci/endpoint/pci-epf-core.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/pci/endpoint/pci-epf-core.c b/drivers/pci/endpoint/pci-epf-core.c
-> index 6877d6a..9d0de12 100644
-> --- a/drivers/pci/endpoint/pci-epf-core.c
-> +++ b/drivers/pci/endpoint/pci-epf-core.c
-> @@ -27,7 +27,7 @@
->  #include <linux/pci-ep-cfs.h>
->  
->  static struct bus_type pci_epf_bus_type;
-> -static struct device_type pci_epf_type;
-> +static const struct device_type pci_epf_type;
->  
->  /**
->   * pci_epf_linkup() - Notify the function driver that EPC device has
-> @@ -275,7 +275,7 @@ static void pci_epf_dev_release(struct device *dev)
->  	kfree(epf);
->  }
->  
-> -static struct device_type pci_epf_type = {
-> +static const struct device_type pci_epf_type = {
->  	.release	= pci_epf_dev_release,
->  };
->  
-> -- 
-> 1.9.1
-> 
+The following changes since commit ec0c3ec497cabbf3bfa03a9eb5edcc252190a4e0:
+
+  media: ddbridge: split code into multiple files (2017-08-09 12:17:01 -0400)
+
+are available in the git repository at:
+
+  git://linuxtv.org/snawrocki/samsung.git for-v4.14/media/next-2
+
+for you to fetch changes up to a1c60f2c60228a6c0d31e95ae4e65e6afd4655df:
+
+  s5p-jpeg: directly use parsed subsampling on exynos5433 (2017-08-11 19:13:06 +0200)
+
+----------------------------------------------------------------
+Andrzej Pietrasiewicz (5):
+      s5p-jpeg: don't overwrite result's "size" member
+      s5p-jpeg: set w/h when encoding
+      s5p-jpeg: disable encoder/decoder in exynos4-like hardware after use
+      s5p-jpeg: fix number of components macro
+      s5p-jpeg: directly use parsed subsampling on exynos5433
+
+Tony K Nadackal (2):
+      s5p-jpeg: Fix crash in jpeg isr due to multiple interrupts.
+      s5p-jpeg: Clear JPEG_CODEC_ON bits in sw reset function
+
+ drivers/media/platform/s5p-jpeg/jpeg-core.c       | 18 ++++++++++++++----
+ drivers/media/platform/s5p-jpeg/jpeg-core.h       |  1 +
+ drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c |  9 ++++++++-
+ drivers/media/platform/s5p-jpeg/jpeg-regs.h       |  2 +-
+ 4 files changed, 24 insertions(+), 6 deletions(-)
+
+-- 
+Regards,
+Sylwester
