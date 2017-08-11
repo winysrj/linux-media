@@ -1,93 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:50388 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751211AbdH1LQ3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Aug 2017 07:16:29 -0400
-Subject: [PATCH 3/3] [media] Siano: Adjust five checks for null pointers
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <386b5a60-548e-1896-5271-4875fa2aea94@users.sourceforge.net>
-Message-ID: <2000da6b-ca21-18a1-dc04-d2b127084153@users.sourceforge.net>
-Date: Mon, 28 Aug 2017 13:16:21 +0200
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:39078 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752927AbdHKJ5V (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 Aug 2017 05:57:21 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 02/20] v4l2-subdev.h: add pad and stream aware s_stream
+Date: Fri, 11 Aug 2017 11:56:45 +0200
+Message-Id: <20170811095703.6170-3-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <386b5a60-548e-1896-5271-4875fa2aea94@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 28 Aug 2017 12:50:28 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To be able to start and stop individual streams of a multiplexed pad the
+s_stream operation needs to be both pad and stream aware. Add a new
+operation to pad ops to facilitate this.
 
-The script “checkpatch.pl” pointed information out like the following.
-
-Comparison to NULL could be written !…
-
-Thus fix the affected source code places.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/common/siano/smscoreapi.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/media/v4l2-subdev.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
-index ad1c41f727b1..e4ea2a0c7a24 100644
---- a/drivers/media/common/siano/smscoreapi.c
-+++ b/drivers/media/common/siano/smscoreapi.c
-@@ -749,7 +749,7 @@ static int smscore_sendrequest_and_wait(struct smscore_device_t *coredev,
- 		void *buffer, size_t size, struct completion *completion) {
- 	int rc;
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 7e63124450a963da..c258b1524f94f8ff 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -643,6 +643,9 @@ struct v4l2_subdev_pad_config {
+  *
+  * @set_frame_desc: set the low level media bus frame parameters, @fd array
+  *                  may be adjusted by the subdev driver to device capabilities.
++ *
++ * @s_stream: used to notify the driver that a stream will start or has
++ *	stopped.
+  */
+ struct v4l2_subdev_pad_ops {
+ 	int (*init_cfg)(struct v4l2_subdev *sd,
+@@ -683,6 +686,8 @@ struct v4l2_subdev_pad_ops {
+ 			      struct v4l2_mbus_frame_desc *fd);
+ 	int (*set_frame_desc)(struct v4l2_subdev *sd, unsigned int pad,
+ 			      struct v4l2_mbus_frame_desc *fd);
++	int (*s_stream)(struct v4l2_subdev *sd, unsigned int pad,
++			unsigned int stream, int enable);
+ };
  
--	if (completion == NULL)
-+	if (!completion)
- 		return -EINVAL;
- 	init_completion(completion);
- 
-@@ -1151,8 +1151,8 @@ static int smscore_load_firmware_from_file(struct smscore_device_t *coredev,
- 	}
- 	pr_debug("Firmware name: %s\n", fw_filename);
- 
--	if (loadfirmware_handler == NULL && !(coredev->device_flags
--			& SMS_DEVICE_FAMILY2))
-+	if (!loadfirmware_handler &&
-+	    !(coredev->device_flags & SMS_DEVICE_FAMILY2))
- 		return -EINVAL;
- 
- 	rc = request_firmware(&fw, fw_filename, coredev->device);
-@@ -1789,7 +1789,7 @@ int smsclient_sendrequest(struct smscore_client_t *client,
- 	struct sms_msg_hdr *phdr = (struct sms_msg_hdr *) buffer;
- 	int rc;
- 
--	if (client == NULL) {
-+	if (!client) {
- 		pr_err("Got NULL client\n");
- 		return -EINVAL;
- 	}
-@@ -1797,7 +1797,7 @@ int smsclient_sendrequest(struct smscore_client_t *client,
- 	coredev = client->coredev;
- 
- 	/* check that no other channel with same id exists */
--	if (coredev == NULL) {
-+	if (!coredev) {
- 		pr_err("Got NULL coredev\n");
- 		return -EINVAL;
- 	}
-@@ -1954,7 +1954,7 @@ int smscore_gpio_configure(struct smscore_device_t *coredev, u8 pin_num,
- 	if (pin_num > MAX_GPIO_PIN_NUMBER)
- 		return -EINVAL;
- 
--	if (p_gpio_config == NULL)
-+	if (!p_gpio_config)
- 		return -EINVAL;
- 
- 	total_len = sizeof(struct sms_msg_hdr) + (sizeof(u32) * 6);
+ /**
 -- 
-2.14.1
+2.13.3
