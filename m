@@ -1,76 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53360
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57144
         "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751970AbdHZJgu (ORCPT
+        with ESMTP id S1750841AbdHKAQ6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 05:36:50 -0400
-Date: Sat, 26 Aug 2017 06:36:41 -0300
+        Thu, 10 Aug 2017 20:16:58 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        SeongJae Park <sj38.park@gmail.com>,
-        Markus Heiser <markus.heiser@darmarit.de>
-Subject: Re: [PATCH v2 4/4] docs-rst: Allow Sphinx version 1.6
-Message-ID: <20170826063641.6f2467f2@vento.lan>
-In-Reply-To: <20170824132914.062d7a4c@lwn.net>
-References: <cover.1503477995.git.mchehab@s-opensource.com>
-        <0552b7adf6e023f33494987c3e908101d75250d2.1503477995.git.mchehab@s-opensource.com>
-        <20170824132628.75cdf353@lwn.net>
-        <20170824132914.062d7a4c@lwn.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 1/3] media: v4l2-ctrls.h: better document the arguments for v4l2_ctrl_fill
+Date: Thu, 10 Aug 2017 21:16:50 -0300
+Message-Id: <f6ac7366e711649241bb77aff997d6815d6c063e.1502409182.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1502409182.git.mchehab@s-opensource.com>
+References: <f7340d67-cf7c-3407-e59a-aa0261185e82@xs4all.nl>
+ <cover.1502409182.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1502409182.git.mchehab@s-opensource.com>
+References: <cover.1502409182.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 24 Aug 2017 13:29:14 -0600
-Jonathan Corbet <corbet@lwn.net> escreveu:
+The arguments for this function are pointers. Make it clear at
+its documentation.
 
-> On Thu, 24 Aug 2017 13:26:28 -0600
-> Jonathan Corbet <corbet@lwn.net> wrote:
-> 
-> > > -	% To allow adjusting table sizes
-> > > -	\\usepackage{adjustbox}
-> > > -
-> > >       '''
-> > >  }    
-> > 
-> > So this change doesn't quite match the changelog...what's the story there?  
-> 
-> Indeed, with that patch applied, I get this:
-> 
-> ! LaTeX Error: Environment adjustbox undefined.
-> 
-> See the LaTeX manual or LaTeX Companion for explanation.
-> Type  H <return>  for immediate help.
->  ...                                              
->                                                   
-> l.4108 \begin{adjustbox}
->                         {width=\columnwidth}
-> 
-> ...so methinks something isn't quite right...
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ include/media/v4l2-ctrls.h | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-Sorry, yeah, I messed with this one. Just sent a new series of patches,
-splitting it from the documentation changes.
-
-This change (and the equivalent one at sphinx-pre-build script) is
-actually a cleanup change. It can *only* be applied after the
-patch that goes through the media tree.
-
-What happens is that this patch:
-	media: fix pdf build with Spinx 1.6
-
-Stops using adjustbox, with is what causes build problem on Sphinx 1.6.
-
-I suspect that now the PDF build will be a bit more reliable, as the
-"..raw: latex" blocs now only adjust font sizes and table spacing,
-when needed to output large tables, but Sphinx maintainers have been
-creative on finding new ways to break backward compatibility on every
-new version ;-) Still, hope is the last thing to die.
-
-Thanks,
-Mauro
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 2d2aed56922f..6ba30acf06aa 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -339,18 +339,18 @@ struct v4l2_ctrl_config {
+ /**
+  * v4l2_ctrl_fill - Fill in the control fields based on the control ID.
+  *
+- * @id: ID of the control
+- * @name: name of the control
+- * @type: type of the control
+- * @min: minimum value for the control
+- * @max: maximum value for the control
+- * @step: control step
+- * @def: default value for the control
+- * @flags: flags to be used on the control
++ * @id: pointer for storing the ID of the control
++ * @name: pointer for storing the name of the control
++ * @type: pointer for storing the type of the control
++ * @min: pointer for storing the minimum value for the control
++ * @max: pointer for storing the maximum value for the control
++ * @step: pointer for storing the control step
++ * @def: pointer for storing the default value for the control
++ * @flags: pointer for storing the flags to be used on the control
+  *
+  * This works for all standard V4L2 controls.
+  * For non-standard controls it will only fill in the given arguments
+- * and @name will be %NULL.
++ * and @name content will be filled with %NULL.
+  *
+  * This function will overwrite the contents of @name, @type and @flags.
+  * The contents of @min, @max, @step and @def may be modified depending on
+-- 
+2.13.3
