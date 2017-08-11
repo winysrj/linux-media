@@ -1,71 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([75.149.91.89]:42317 "EHLO cnc.isely.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751752AbdHSUUh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Aug 2017 16:20:37 -0400
-Date: Sat, 19 Aug 2017 15:15:02 -0500 (CDT)
-From: isely@isely.net
-Reply-To: Mike Isely at pobox <isely@pobox.com>
-To: Bhumika Goyal <bhumirks@gmail.com>
-cc: julia.lawall@lip6.fr, vz@mleia.com, slemieux.tyco@gmail.com,
-        wsa@the-dreams.de, gxt@mprc.pku.edu.cn, mchehab@kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org, Mike Isely at pobox <isely@pobox.com>
-Subject: Re: [PATCH 2/2] [media] usb: make i2c_algorithm const
-In-Reply-To: <1503072418-6887-3-git-send-email-bhumirks@gmail.com>
-Message-ID: <alpine.DEB.2.11.1708191514360.27909@lochley.isely.net>
-References: <1503072418-6887-1-git-send-email-bhumirks@gmail.com> <1503072418-6887-3-git-send-email-bhumirks@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:60325 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751233AbdHKGFG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 Aug 2017 02:05:06 -0400
+Subject: Re: [PATCH RESEND 0/3] v4l2-compat-ioctl32.c: better detect pointer
+ controls
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <f7340d67-cf7c-3407-e59a-aa0261185e82@xs4all.nl>
+ <cover.1502409182.git.mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Daniel Mentz <danielmentz@google.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <173e50c4-77ae-a718-46bd-01963e07785f@xs4all.nl>
+Date: Fri, 11 Aug 2017 08:05:03 +0200
+MIME-Version: 1.0
+In-Reply-To: <cover.1502409182.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-Acked-by: Mike Isely <isely@pobox.com>
-
-On Fri, 18 Aug 2017, Bhumika Goyal wrote:
-
-> Make these const as they are only used in a copy operation or
-> are stored in the algo field of i2c_adapter structure, which is const.
+On 11/08/17 02:16, Mauro Carvalho Chehab wrote:
+> In the past, only string controls were pointers. That changed when compounded
+> types got added, but the compat32 code was not updated.
 > 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+> We could just add those controls there, but maintaining it is flaw, as we
+> often forget about the compat code. So, instead, rely on the control type,
+> as this is always updated when new controls are added.
+> 
+> As both v4l2-ctrl and compat32 code are at videodev.ko module, we can
+> move the ctrl_is_pointer() helper function to v4l2-ctrl.c.
+
+This series doesn't really solve anything:
+
+- it introduces a circular dependency between two modules
+- it doesn't handle driver-custom controls (the old code didn't either). For
+  example vivid has custom pointer controls.
+- it replaces a list of control IDs with a list of type IDs, which also has to
+  be kept up to date.
+
+I thought this over and I have a better and much simpler idea. I'll post a
+patch for that.
+
+Regards,
+
+	Hans
+
+> 
 > ---
->  drivers/media/usb/au0828/au0828-i2c.c        | 2 +-
->  drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/media/usb/au0828/au0828-i2c.c b/drivers/media/usb/au0828/au0828-i2c.c
-> index 42b352b..a028e36 100644
-> --- a/drivers/media/usb/au0828/au0828-i2c.c
-> +++ b/drivers/media/usb/au0828/au0828-i2c.c
-> @@ -329,7 +329,7 @@ static u32 au0828_functionality(struct i2c_adapter *adap)
->  	return I2C_FUNC_SMBUS_EMUL | I2C_FUNC_I2C;
->  }
->  
-> -static struct i2c_algorithm au0828_i2c_algo_template = {
-> +static const struct i2c_algorithm au0828_i2c_algo_template = {
->  	.master_xfer	= i2c_xfer,
->  	.functionality	= au0828_functionality,
->  };
-> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c b/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
-> index 20a52b7..cfa8fbe 100644
-> --- a/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
-> +++ b/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
-> @@ -514,7 +514,7 @@ static u32 pvr2_i2c_functionality(struct i2c_adapter *adap)
->  	return I2C_FUNC_SMBUS_EMUL | I2C_FUNC_I2C;
->  }
->  
-> -static struct i2c_algorithm pvr2_i2c_algo_template = {
-> +static const struct i2c_algorithm pvr2_i2c_algo_template = {
->  	.master_xfer   = pvr2_i2c_xfer,
->  	.functionality = pvr2_i2c_functionality,
->  };
+> Re-sending this patch series, as it was c/c to the linux-doc ML by mistake.
 > 
-
--- 
-
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+> Mauro Carvalho Chehab (3):
+>   media: v4l2-ctrls.h: better document the arguments for v4l2_ctrl_fill
+>   media: v4l2-ctrls: prepare the function to be used by compat32 code
+>   media: compat32: reimplement ctrl_is_pointer()
+> 
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 18 +---------
+>  drivers/media/v4l2-core/v4l2-ctrls.c          | 49 +++++++++++++++++++++++++--
+>  include/media/v4l2-ctrls.h                    | 28 ++++++++++-----
+>  3 files changed, 67 insertions(+), 28 deletions(-)
+> 
