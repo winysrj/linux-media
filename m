@@ -1,49 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40442 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752199AbdHNPNv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Aug 2017 11:13:51 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v2 8/8] v4l: vsp1: Reduce display list body size
-Date: Mon, 14 Aug 2017 16:13:31 +0100
-Message-Id: <fa078611769415d7adbad208f1299d05bee3bda8.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:39198 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752935AbdHKJ5Z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 Aug 2017 05:57:25 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 05/20] v4l2-core: verify all streams formats on multiplexed links
+Date: Fri, 11 Aug 2017 11:56:48 +0200
+Message-Id: <20170811095703.6170-6-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The display list originally allocated a body of 256 entries to store all
-of the register lists required for each frame.
+Extend the format validation for multiplexed pads to verify all streams
+which are part of the multiplexed link. This might take the verification
+to an extreme as it could be argued that one should be able to configure
+and start just one stream without having to configure other streams
+which the user never intends to start.
 
-This has now been separated into fragments for constant stream setup, and
-runtime updates.
+It could also be argued that the multiplexer and demultiplexer needs to
+know about all formats which could be activated before any stream could
+be started. In such case the number of streams described in the frame
+descriptor should be dynamic and only possible and configured streams
+should be reported which would then solve this issue.
 
-Empirical testing shows that the body0 now uses a maximum of 41
-registers for each frame, for both DRM and Video API pipelines thus a
-rounded 64 entries provides a suitable allocation.
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/platform/vsp1/vsp1_dl.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-subdev.c | 72 +++++++++++++++++++++++++++++++----
+ 1 file changed, 64 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 176a258146ac..b3f5eb2f9a4f 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -21,7 +21,7 @@
- #include "vsp1.h"
- #include "vsp1_dl.h"
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index d6c1a3b777dd2fcd..43cd2b5e3d8ea323 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -541,20 +541,76 @@ v4l2_subdev_link_validate_get_format(struct media_pad *pad,
+ 	return -EINVAL;
+ }
  
--#define VSP1_DL_NUM_ENTRIES		256
-+#define VSP1_DL_NUM_ENTRIES		64
++static int v4l2_subdev_link_validate_muxed(struct media_link *link)
++{
++	struct v4l2_mbus_frame_desc sink_fd, source_fd;
++	struct v4l2_subdev *sink_sd, *source_sd;
++	unsigned int i;
++	int ret;
++
++	/* Require both pads in a link to be multiplexed */
++	if ((link->source->flags & MEDIA_PAD_FL_MUXED) == 0 ||
++	    (link->sink->flags & MEDIA_PAD_FL_MUXED) == 0)
++		return -EINVAL;
++
++	sink_sd = media_entity_to_v4l2_subdev(link->sink->entity);
++	source_sd = media_entity_to_v4l2_subdev(link->source->entity);
++
++	/* If not both provide frame descs there is not much to be done */
++	ret = v4l2_subdev_call(sink_sd, pad, get_frame_desc,
++			       link->sink->index, &sink_fd);
++	if (ret < 0)
++		return 0;
++	ret = v4l2_subdev_call(source_sd, pad, get_frame_desc,
++			       link->source->index, &source_fd);
++	if (ret < 0)
++		return 0;
++
++	/* Check both side multiplex same number of streams */
++	if (sink_fd.num_entries != source_fd.num_entries)
++		return -EINVAL;
++
++	/* Verify all formats of the multiplexed pads by examining the
++	 * format of the pads which are routed to them. Maybe this is
++	 * a bad idea...
++	 */
++	for (i = 0; i < sink_fd.num_entries; i++) {
++		struct v4l2_subdev_format sink_fmt, source_fmt;
++
++		sink_fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++		sink_fmt.pad = sink_fd.entry[i].csi2.pad;
++		ret = v4l2_subdev_call(sink_sd, pad, get_fmt, NULL, &sink_fmt);
++		if (ret < 0)
++			return 0;
++
++		source_fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++		source_fmt.pad = source_fd.entry[i].csi2.pad;
++		ret = v4l2_subdev_call(source_sd, pad, get_fmt, NULL,
++				       &source_fmt);
++		if (ret < 0)
++			return 0;
++
++		ret = v4l2_subdev_call(sink_sd, pad, link_validate, link,
++					&source_fmt, &sink_fmt);
++		if (ret == -ENOIOCTLCMD)
++			ret = v4l2_subdev_link_validate_default(sink_sd, link,
++								&source_fmt,
++								&sink_fmt);
++		if (ret)
++			return -EPIPE;
++	}
++
++	return 0;
++}
++
+ int v4l2_subdev_link_validate(struct media_link *link)
+ {
+ 	struct v4l2_subdev *sink;
+ 	struct v4l2_subdev_format sink_fmt, source_fmt;
+ 	int rval;
  
- #define VSP1_DLH_INT_ENABLE		(1 << 1)
- #define VSP1_DLH_AUTO_START		(1 << 0)
+-	/* Require both pads in a link to be multiplexed if one is */
+-	if ((link->source->flags | link->sink->flags) & MEDIA_PAD_FL_MUXED) {
+-		if ((link->source->flags & MEDIA_PAD_FL_MUXED) == 0)
+-			return -EINVAL;
+-		if ((link->sink->flags & MEDIA_PAD_FL_MUXED) == 0)
+-			return -EINVAL;
+-		return 0;
+-	}
++	if ((link->source->flags | link->sink->flags) & MEDIA_PAD_FL_MUXED)
++		return v4l2_subdev_link_validate_muxed(link);
+ 
+ 	rval = v4l2_subdev_link_validate_get_format(
+ 		link->source, &source_fmt);
 -- 
-git-series 0.9.1
+2.13.3
