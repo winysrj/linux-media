@@ -1,80 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58682 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751872AbdHIK6V (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 9 Aug 2017 06:58:21 -0400
-Subject: Re: [PATCH] media: i2c: adv748x: Export I2C device table entries as
- module aliases
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-References: <20170809093731.3572-1-javierm@redhat.com>
- <e446df61-defc-4c9e-0f5a-d7afce878156@ideasonboard.com>
-From: Javier Martinez Canillas <javierm@redhat.com>
-Message-ID: <a984305d-6ba2-5b1a-b68a-98a9bcd245df@redhat.com>
-Date: Wed, 9 Aug 2017 12:58:18 +0200
-MIME-Version: 1.0
-In-Reply-To: <e446df61-defc-4c9e-0f5a-d7afce878156@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:33126 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752526AbdHKLuP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 Aug 2017 07:50:15 -0400
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+To: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>
+Subject: [PATCH 0/2] More s5p-jpeg fixes
+Date: Fri, 11 Aug 2017 13:49:59 +0200
+Message-id: <1502452201-17171-1-git-send-email-andrzej.p@samsung.com>
+In-reply-to: <1502191352-11595-1-git-send-email-andrzej.p@samsung.com>
+References: <1502191352-11595-1-git-send-email-andrzej.p@samsung.com>
+        <CGME20170811115011eucas1p2d31daaa9e6f8d142291d9352ad5b732c@eucas1p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Hi All,
 
-On 08/09/2017 12:29 PM, Kieran Bingham wrote:
-> Hi Javier,
-> 
-> Thankyou for the patch
->
+The first patch in the series fixes decoding path,
+the second patch fixes encoding path. Please see
+appropriate commit messages.
 
-You are welcome.
- 
-> On 09/08/17 10:37, Javier Martinez Canillas wrote:
->> The I2C core always reports a MODALIAS of the form i2c:<foo> even if the
->> device was registered via OF, and the driver is only exporting the OF ID
->> table entries as module aliases.
->>
->> So if the driver is built as module, autoload won't work since udev/kmod
->> won't be able to match the registered OF device with its driver module.
-> 
-> Good catch, and perhaps I should have known better :D
-> 
-> I've only worked on this driver as a built-in so far :-) #BadExcuses
->
+Andrzej Pietrasiewicz (2):
+  media: s5p-jpeg: don't overwrite result's "size" member
+  media: s5p-jpeg: set w/h when encoding
 
-A better excuse I think is that after all these years, one would had thought
-that the I2C OF modalias issue would had been finally fixed, but not yet :)
- 
->> Before this patch:
->>
->> $ modinfo drivers/media/i2c/adv748x/adv748x.ko | grep alias
->> alias:          of:N*T*Cadi,adv7482C*
->> alias:          of:N*T*Cadi,adv7482
->> alias:          of:N*T*Cadi,adv7481C*
->> alias:          of:N*T*Cadi,adv7481
->>
->> After this patch:
->>
->> modinfo drivers/media/i2c/adv748x/adv748x.ko | grep alias
->> alias:          of:N*T*Cadi,adv7482C*
->> alias:          of:N*T*Cadi,adv7482
->> alias:          of:N*T*Cadi,adv7481C*
->> alias:          of:N*T*Cadi,adv7481
->> alias:          i2c:adv7482
->> alias:          i2c:adv7481
->>
->> Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
-> 
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-Thanks!
-
-Best regards,
 -- 
-Javier Martinez Canillas
-Software Engineer - Desktop Hardware Enablement
-Red Hat
+1.9.1
