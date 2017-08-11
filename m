@@ -1,209 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:38679 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750895AbdHaLB7 (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:39040 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752925AbdHKJ5V (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 07:01:59 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Fri, 11 Aug 2017 05:57:21 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
 To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 1/5] cec: add CEC_EVENT_PIN_HPD_LOW/HIGH events
-Date: Thu, 31 Aug 2017 13:01:52 +0200
-Message-Id: <20170831110156.11018-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170831110156.11018-1-hverkuil@xs4all.nl>
-References: <20170831110156.11018-1-hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 00/20] Add multiplexed media pads to support CSI-2 virtual channels
+Date: Fri, 11 Aug 2017 11:56:43 +0200
+Message-Id: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi,
 
-Add support for two new low-level events: PIN_HPD_LOW and PIN_HPD_HIGH.
+This series is a RFC for how I think one could add CSI-2 virtual channel 
+support to the V4L2 framework. The problem is that there is no way to in 
+the media framework describe and control links between subdevices which 
+carry more then one video stream, for example a CSI-2 bus which can have 
+4 virtual channels carrying different video streams.
 
-This is specifically meant for use with the upcoming cec-gpio driver
-and makes it possible to trace when the HPD pin changes. Some HDMI
-sinks do strange things with the HPD and this makes it easy to debug
-this.
+This series adds a new pad flag which would indicate that a pad carries 
+multiplexed streams, adds a new s_stream() operation to the pad 
+operations structure which takes a new argument 'stream'. This new 
+s_stream() operation then is both pad and stream aware. It also extends 
+struct v4l2_mbus_frame_desc_entry with a new sub-struct to describe how 
+a CSI-2 link multiplexes virtual channels. I also include one 
+implementation based on Renesas R-Car which makes use of these patches 
+as I think they help with understanding but they have no impact on the 
+RFC feature itself.
 
-Note that this also moves the initialization of a devnode mutex and
-list to the allocate_adapter function: if the HPD is high, then as
-soon as the HPD interrupt is created an interrupt occurs and
-cec_queue_pin_hpd_event() is called which requires that the devnode
-mutex and list are initialized.
+The idea is that on both sides of the multiplexed media link there are 
+one multiplexer subdevice and one demultiplexer subdevice. These two 
+subdevices can't do any format conversions, there sole purpose is to 
+(de)multiplex the CSI-2 link. If there is hardware which can do both 
+CSI-2 multiplexing and format conversions they can be modeled as two 
+subdevices from the same device driver and using the still pending 
+incremental async mechanism to connect the external pads. The reason 
+there is no format conversion is important as the multiplexed pads can't 
+have a format in the current V4L2 model, get/set_fmt are not aware of 
+streams.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/cec/cec-adap.c | 18 +++++++++++++++++-
- drivers/media/cec/cec-api.c  | 18 ++++++++++++++----
- drivers/media/cec/cec-core.c |  8 ++++----
- include/media/cec-pin.h      |  4 ++++
- include/media/cec.h          | 12 +++++++++++-
- include/uapi/linux/cec.h     |  2 ++
- 6 files changed, 52 insertions(+), 10 deletions(-)
+        +------------------+              +------------------+
+     +-------+  subdev 1   |              |  subdev 2   +-------+
+  +--+ Pad 1 |             |              |             | Pad 3 +---+
+     +--+----+   +---------+---+      +---+---------+   +----+--+
+        |        | Muxed pad A +------+ Muxed pad B |        |
+     +--+----+   +---------+---+      +---+---------+   +----+--+
+  +--+ Pad 2 |             |              |             | Pad 4 +---+
+     +-------+             |              |             +-------+
+        +------------------+              +------------------+
 
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index dd769e40416f..eb904a71609a 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -86,7 +86,7 @@ void cec_queue_event_fh(struct cec_fh *fh,
- 			const struct cec_event *new_ev, u64 ts)
- {
- 	static const u8 max_events[CEC_NUM_EVENTS] = {
--		1, 1, 64, 64,
-+		1, 1, 64, 64, 8, 8,
- 	};
- 	struct cec_event_entry *entry;
- 	unsigned int ev_idx = new_ev->event - 1;
-@@ -170,6 +170,22 @@ void cec_queue_pin_cec_event(struct cec_adapter *adap, bool is_high, ktime_t ts)
- }
- EXPORT_SYMBOL_GPL(cec_queue_pin_cec_event);
- 
-+/* Notify userspace that the HPD pin changed state at the given time. */
-+void cec_queue_pin_hpd_event(struct cec_adapter *adap, bool is_high, ktime_t ts)
-+{
-+	struct cec_event ev = {
-+		.event = is_high ? CEC_EVENT_PIN_HPD_HIGH :
-+				   CEC_EVENT_PIN_HPD_LOW,
-+	};
-+	struct cec_fh *fh;
-+
-+	mutex_lock(&adap->devnode.lock);
-+	list_for_each_entry(fh, &adap->devnode.fhs, list)
-+		cec_queue_event_fh(fh, &ev, ktime_to_ns(ts));
-+	mutex_unlock(&adap->devnode.lock);
-+}
-+EXPORT_SYMBOL_GPL(cec_queue_pin_hpd_event);
-+
- /*
-  * Queue a new message for this filehandle.
-  *
-diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
-index a079f7fe018c..465bb3ec21f6 100644
---- a/drivers/media/cec/cec-api.c
-+++ b/drivers/media/cec/cec-api.c
-@@ -529,7 +529,7 @@ static int cec_open(struct inode *inode, struct file *filp)
- 	 * Initial events that are automatically sent when the cec device is
- 	 * opened.
- 	 */
--	struct cec_event ev_state = {
-+	struct cec_event ev = {
- 		.event = CEC_EVENT_STATE_CHANGE,
- 		.flags = CEC_EVENT_FL_INITIAL_STATE,
- 	};
-@@ -569,9 +569,19 @@ static int cec_open(struct inode *inode, struct file *filp)
- 	filp->private_data = fh;
- 
- 	/* Queue up initial state events */
--	ev_state.state_change.phys_addr = adap->phys_addr;
--	ev_state.state_change.log_addr_mask = adap->log_addrs.log_addr_mask;
--	cec_queue_event_fh(fh, &ev_state, 0);
-+	ev.state_change.phys_addr = adap->phys_addr;
-+	ev.state_change.log_addr_mask = adap->log_addrs.log_addr_mask;
-+	cec_queue_event_fh(fh, &ev, 0);
-+#ifdef CONFIG_CEC_PIN
-+	if (adap->pin && adap->pin->ops->read_hpd) {
-+		err = adap->pin->ops->read_hpd(adap);
-+		if (err >= 0) {
-+			ev.event = err ? CEC_EVENT_PIN_HPD_HIGH :
-+					 CEC_EVENT_PIN_HPD_LOW;
-+			cec_queue_event_fh(fh, &ev, 0);
-+		}
-+	}
-+#endif
- 
- 	list_add(&fh->list, &devnode->fhs);
- 	mutex_unlock(&devnode->lock);
-diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-index 648136e552d5..e3a1fb6d6690 100644
---- a/drivers/media/cec/cec-core.c
-+++ b/drivers/media/cec/cec-core.c
-@@ -112,10 +112,6 @@ static int __must_check cec_devnode_register(struct cec_devnode *devnode,
- 	int minor;
- 	int ret;
- 
--	/* Initialization */
--	INIT_LIST_HEAD(&devnode->fhs);
--	mutex_init(&devnode->lock);
--
- 	/* Part 1: Find a free minor number */
- 	mutex_lock(&cec_devnode_lock);
- 	minor = find_next_zero_bit(cec_devnode_nums, CEC_NUM_DEVICES, 0);
-@@ -242,6 +238,10 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
- 	INIT_LIST_HEAD(&adap->wait_queue);
- 	init_waitqueue_head(&adap->kthread_waitq);
- 
-+	/* adap->devnode initialization */
-+	INIT_LIST_HEAD(&adap->devnode.fhs);
-+	mutex_init(&adap->devnode.lock);
-+
- 	adap->kthread = kthread_run(cec_thread_func, adap, "cec-%s", name);
- 	if (IS_ERR(adap->kthread)) {
- 		pr_err("cec-%s: kernel_thread() failed\n", name);
-diff --git a/include/media/cec-pin.h b/include/media/cec-pin.h
-index f09cc9579d53..ea84b9c9e0c3 100644
---- a/include/media/cec-pin.h
-+++ b/include/media/cec-pin.h
-@@ -97,6 +97,9 @@ enum cec_pin_state {
-  * @free:	optional. Free any allocated resources. Called when the
-  *		adapter is deleted.
-  * @status:	optional, log status information.
-+ * @read_hpd:	read the HPD pin. Return true if high, false if low or
-+ *		an error if negative. If NULL or -ENOTTY is returned,
-+ *		then this is not supported.
-  *
-  * These operations are used by the cec pin framework to manipulate
-  * the CEC pin.
-@@ -109,6 +112,7 @@ struct cec_pin_ops {
- 	void (*disable_irq)(struct cec_adapter *adap);
- 	void (*free)(struct cec_adapter *adap);
- 	void (*status)(struct cec_adapter *adap, struct seq_file *file);
-+	int  (*read_hpd)(struct cec_adapter *adap);
- };
- 
- #define CEC_NUM_PIN_EVENTS 128
-diff --git a/include/media/cec.h b/include/media/cec.h
-index df6b3bd31284..9d0f983faea9 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -91,7 +91,7 @@ struct cec_event_entry {
- };
- 
- #define CEC_NUM_CORE_EVENTS 2
--#define CEC_NUM_EVENTS CEC_EVENT_PIN_CEC_HIGH
-+#define CEC_NUM_EVENTS CEC_EVENT_PIN_HPD_HIGH
- 
- struct cec_fh {
- 	struct list_head	list;
-@@ -296,6 +296,16 @@ static inline void cec_received_msg(struct cec_adapter *adap,
- void cec_queue_pin_cec_event(struct cec_adapter *adap,
- 			     bool is_high, ktime_t ts);
- 
-+/**
-+ * cec_queue_pin_hpd_event() - queue a pin event with a given timestamp.
-+ *
-+ * @adap:	pointer to the cec adapter
-+ * @is_high:	when true the HPD pin is high, otherwise it is low
-+ * @ts:		the timestamp for this event
-+ *
-+ */
-+void cec_queue_pin_hpd_event(struct cec_adapter *adap, bool is_high, ktime_t ts);
-+
- /**
-  * cec_get_edid_phys_addr() - find and return the physical address
-  *
-diff --git a/include/uapi/linux/cec.h b/include/uapi/linux/cec.h
-index 4351c3481aea..b9f8df3a0477 100644
---- a/include/uapi/linux/cec.h
-+++ b/include/uapi/linux/cec.h
-@@ -410,6 +410,8 @@ struct cec_log_addrs {
- #define CEC_EVENT_LOST_MSGS		2
- #define CEC_EVENT_PIN_CEC_LOW		3
- #define CEC_EVENT_PIN_CEC_HIGH		4
-+#define CEC_EVENT_PIN_HPD_LOW		5
-+#define CEC_EVENT_PIN_HPD_HIGH		6
- 
- #define CEC_EVENT_FL_INITIAL_STATE	(1 << 0)
- #define CEC_EVENT_FL_DROPPED_EVENTS	(1 << 1)
+In the simple example above Pad 1 is routed to Pad 3 and Pad 2 to Pad 4, 
+and the video data for both of them travels the link between pad A and 
+B. One shortcoming of this RFC is that there currently are no way to 
+express to user-space which pad is routed to which stream of the 
+multiplexed link. But inside the kernel this is known and format 
+validation is done by comparing the format of Pad 1 to Pad 3 and Pad 2 
+to Pad 4 by the V4L2 framework. But it would be nice for the user to 
+also be able to get this information while setting up the MC graph in 
+user-space.
+
+Obviously there are things that are not perfect in this RFC, one is the 
+above mentioned lack of user-space visibility of that Pad 1 is in fact 
+routed to Pad 3. Others are lack of Documentation/ work and I'm sure 
+there are error path shortcuts which are not fully thought out. One big 
+question is also if the s_stream() operation added to ops structure 
+should be a compliment to the existing ones in video and audio ops or 
+aim to replace the one in video ops. I'm also unsure of the CSI2 flag of 
+struct v4l2_mbus_frame_desc_entry don't really belong in struct 
+v4l2_mbus_frame_desc. And I'm sure there are lots of other stuff that's 
+why this is a RFC...
+
+A big thanks to Laurent and Sakari for being really nice and taking time 
+helping me grasp all the possibilities and issues with this problem, all 
+cred to them and all blame to me for misunderstanding there guidance :-)
+
+This series based on the latest R-Car CSI-2 and VIN patches which can be 
+found at [1], but that is a dependency only for the driver specific
+implementation which acts as an example of implementation. For the V4L2 
+framework patches the media-tree is the base.
+
+1. https://git.ragnatech.se/linux#rcar-vin-elinux-v12
+
+Niklas Söderlund (20):
+  media.h: add MEDIA_PAD_FL_MUXED flag
+  v4l2-subdev.h: add pad and stream aware s_stream
+  v4l2-subdev.h: add CSI-2 bus description to struct
+    v4l2_mbus_frame_desc_entry
+  v4l2-core: check that both pads in a link are muxed if one are
+  v4l2-core: verify all streams formats on multiplexed links
+  rcar-vin: use the pad and stream aware s_stream
+  rcar-csi2: declare sink pad as multiplexed
+  rcar-csi2: switch to pad and stream aware s_stream
+  rcar-csi2: figure out remote pad and stream which are starting
+  rcar-csi2: count usage for each source pad
+  rcar-csi2: when starting CSI-2 receiver use frame descriptor
+    information
+  rcar-csi2: only allow formats on source pads
+  rcar-csi2: implement get_frame_desc
+  adv748x: add module param for virtual channel
+  adv748x: declare source pad as multiplexed
+  adv748x: add translation from pixelcode to CSI-2 datatype
+  adv748x: implement get_frame_desc
+  adv748x: switch to pad and stream aware s_stream
+  adv748x: only allow formats on sink pads
+  arm64: dts: renesas: salvator: use VC1 for CVBS
+
+ arch/arm64/boot/dts/renesas/salvator-common.dtsi |   2 +-
+ drivers/media/i2c/adv748x/adv748x-core.c         |  10 +
+ drivers/media/i2c/adv748x/adv748x-csi2.c         |  78 +++++++-
+ drivers/media/i2c/adv748x/adv748x.h              |   1 +
+ drivers/media/platform/rcar-vin/rcar-csi2.c      | 239 ++++++++++++++++-------
+ drivers/media/platform/rcar-vin/rcar-dma.c       |   6 +-
+ drivers/media/v4l2-core/v4l2-subdev.c            |  65 ++++++
+ include/media/v4l2-subdev.h                      |  16 ++
+ include/uapi/linux/media.h                       |   1 +
+ 9 files changed, 341 insertions(+), 77 deletions(-)
+
 -- 
-2.14.1
+2.13.3
