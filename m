@@ -1,138 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam01on0064.outbound.protection.outlook.com ([104.47.34.64]:17152
-        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752551AbdHVTZy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 15:25:54 -0400
-From: Cyprian Wronka <cwronka@cadence.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Neil Webb <neilw@cadence.com>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        =?utf-8?B?TmlrbGFzIFPDtmRlcmx1bmQ=?=
-        <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v2 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 RX
- Device Tree bindings
-Date: Tue, 22 Aug 2017 19:25:49 +0000
-Message-ID: <EB0D0DEA-1418-4237-910D-F0BE0B9069A1@cadence.com>
-References: <20170720092302.2982-1-maxime.ripard@free-electrons.com>
- <2362756.VjbdGaYBzu@avalon> <20170822085320.pdxbxfv53rb75btu@flea.lan>
- <6400552.TlCMAsqn3H@avalon>
-In-Reply-To: <6400552.TlCMAsqn3H@avalon>
-Content-Language: en-GB
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <90678DB6A4436242B1E59491DF9F8940@namprd07.prod.outlook.com>
-Content-Transfer-Encoding: base64
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:39372 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752967AbdHKJ52 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 Aug 2017 05:57:28 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 16/20] adv748x: add translation from pixelcode to CSI-2 datatype
+Date: Fri, 11 Aug 2017 11:56:59 +0200
+Message-Id: <20170811095703.6170-17-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgTGF1cmVudCwNCg0KT24gMjIvMDgvMjAxNywgMDI6MDEsICJMYXVyZW50IFBpbmNoYXJ0IiA8
-bGF1cmVudC5waW5jaGFydEBpZGVhc29uYm9hcmQuY29tPiB3cm90ZToNCg0KICAgIEVYVEVSTkFM
-IE1BSUwNCiAgICANCiAgICANCiAgICBIaSBNYXhpbWUsDQogICAgDQogICAgT24gVHVlc2RheSwg
-MjIgQXVndXN0IDIwMTcgMTE6NTM6MjAgRUVTVCBNYXhpbWUgUmlwYXJkIHdyb3RlOg0KICAgID4g
-T24gTW9uLCBBdWcgMDcsIDIwMTcgYXQgMTE6MTg6MDNQTSArMDMwMCwgTGF1cmVudCBQaW5jaGFy
-dCB3cm90ZToNCiAgICA+ID4gT24gVGh1cnNkYXkgMjAgSnVsIDIwMTcgMTE6MjM6MDEgTWF4aW1l
-IFJpcGFyZCB3cm90ZToNCiAgICA+ID4+IFRoZSBDYWRlbmNlIE1JUEktQ1NJMiBSWCBjb250cm9s
-bGVyIGlzIGEgQ1NJMlJYIGJyaWRnZSB0aGF0IHN1cHBvcnRzIHVwDQogICAgPiA+PiB0byA0IENT
-SS0yIGxhbmVzLCBhbmQgY2FuIHJvdXRlIHRoZSBmcmFtZXMgdG8gdXAgdG8gNCBzdHJlYW1zLCBk
-ZXBlbmRpbmcNCiAgICA+ID4+IG9uIHRoZSBoYXJkd2FyZSBpbXBsZW1lbnRhdGlvbi4NCiAgICA+
-ID4+IA0KICAgID4gPj4gSXQgY2FuIG9wZXJhdGUgd2l0aCBhbiBleHRlcm5hbCBELVBIWSwgYW4g
-aW50ZXJuYWwgb25lIG9yIG5vIEQtUEhZIGF0DQogICAgPiA+PiBhbGwgaW4gc29tZSBjb25maWd1
-cmF0aW9ucy4NCiAgICA+ID4gDQogICAgPiA+IFdpdGhvdXQgYW55IFBIWSA/IEknbSBjdXJpb3Vz
-LCBob3cgZG9lcyB0aGF0IHdvcmsgPw0KICAgID4gDQogICAgPiBXZSdyZSBjdXJyZW50bHkgd29y
-a2luZyBvbiBhbiBGUEdBIGV4YWN0bHkgd2l0aCB0aGF0IGNvbmZpZ3VyYXRpb24uIFNvDQogICAg
-PiBJIGd1ZXNzIHRoZSBhbnN3ZXIgd291bGQgYmUgIml0IGRvZXNuJ3Qgb24gYW4gQVNJQyIgOikN
-CiAgICANCiAgICBXaGF0J3MgY29ubmVjdGVkIHRvIHRoZSBpbnB1dCBvZiB0aGUgQ1NJLTIgcmVj
-ZWl2ZXIgPw0KICAgIA0KSXQgaXMgY29ubmVjdGVkIHRvIGFuIGluc3RhbmNlIG9mIGEgQ1NJIFRY
-IGRpZ2l0YWwgaW50ZXJmYWNlLg0KDQogICAgPiA+PiBTaWduZWQtb2ZmLWJ5OiBNYXhpbWUgUmlw
-YXJkIDxtYXhpbWUucmlwYXJkQGZyZWUtZWxlY3Ryb25zLmNvbT4NCiAgICA+ID4+IC0tLQ0KICAg
-ID4gPj4gDQogICAgPiA+PiAgLi4uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvY2Rucy1jc2ky
-cngudHh0ICAgICAgfCA4NyArKysrKysrKysrKysrKysrDQogICAgPiA+PiAgMSBmaWxlIGNoYW5n
-ZWQsIDg3IGluc2VydGlvbnMoKykNCiAgICA+ID4+ICBjcmVhdGUgbW9kZSAxMDA2NDQNCiAgICA+
-ID4+ICBEb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvY2Rucy1jc2kycngu
-dHh0DQogICAgPiA+PiANCiAgICA+ID4+IGRpZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9uL2Rldmlj
-ZXRyZWUvYmluZGluZ3MvbWVkaWEvY2Rucy1jc2kycngudHh0DQogICAgPiA+PiBiL0RvY3VtZW50
-YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9tZWRpYS9jZG5zLWNzaTJyeC50eHQgbmV3IGZpbGUg
-bW9kZQ0KICAgID4gPj4gMTAwNjQ0DQogICAgPiA+PiBpbmRleCAwMDAwMDAwMDAwMDAuLmUwODU0
-N2FiZTg4NQ0KICAgID4gPj4gLS0tIC9kZXYvbnVsbA0KICAgID4gPj4gKysrIGIvRG9jdW1lbnRh
-dGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL21lZGlhL2NkbnMtY3NpMnJ4LnR4dA0KICAgID4gPj4g
-QEAgLTAsMCArMSw4NyBAQA0KICAgID4gPj4gK0NhZGVuY2UgTUlQSS1DU0kyIFJYIGNvbnRyb2xs
-ZXINCiAgICA+ID4+ICs9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQogICAgPiA+PiAr
-DQogICAgPiA+PiArVGhlIENhZGVuY2UgTUlQSS1DU0kyIFJYIGNvbnRyb2xsZXIgaXMgYSBDU0kt
-MiBicmlkZ2Ugc3VwcG9ydGluZyB1cCB0bw0KICAgID4gPj4gND4gQ1NJDQogICAgPiA+PiArbGFu
-ZXMgaW4gaW5wdXQsIGFuZCA0IGRpZmZlcmVudCBwaXhlbCBzdHJlYW1zIGluIG91dHB1dC4NCiAg
-ICA+ID4+ICsNCiAgICA+ID4+ICtSZXF1aXJlZCBwcm9wZXJ0aWVzOg0KICAgID4gPj4gKyAgLSBj
-b21wYXRpYmxlOiBtdXN0IGJlIHNldCB0byAiY2Rucyxjc2kycngiIGFuZCBhbiBTb0Mtc3BlY2lm
-aWMNCiAgICA+ID4+IGNvbXBhdGlibGUNCiAgICA+ID4+ICsgIC0gcmVnOiBiYXNlIGFkZHJlc3Mg
-YW5kIHNpemUgb2YgdGhlIG1lbW9yeSBtYXBwZWQgcmVnaW9uDQogICAgPiA+PiArICAtIGNsb2Nr
-czogcGhhbmRsZXMgdG8gdGhlIGNsb2NrcyBkcml2aW5nIHRoZSBjb250cm9sbGVyDQogICAgPiA+
-PiArICAtIGNsb2NrLW5hbWVzOiBtdXN0IGNvbnRhaW46DQogICAgPiA+PiArICAgICogc3lzX2Ns
-azogbWFpbiBjbG9jaw0KICAgID4gPj4gKyAgICAqIHBfY2xrOiByZWdpc3RlciBiYW5rIGNsb2Nr
-DQogICAgPiA+PiArICAgICogcF9mcmVlX2NsazogZnJlZSBydW5uaW5nIHJlZ2lzdGVyIGJhbmsg
-Y2xvY2sNCiAgICA+ID4+ICsgICAgKiBwaXhlbF9pZlhfY2xrOiBwaXhlbCBzdHJlYW0gb3V0cHV0
-IGNsb2NrLCBvbmUgZm9yIGVhY2ggc3RyZWFtDQogICAgPiA+PiArICAgICAgICAgICAgICAgICAg
-ICAgaW1wbGVtZW50ZWQgaW4gaGFyZHdhcmUsIGJldHdlZW4gMCBhbmQgMw0KICAgID4gPiANCiAg
-ICA+ID4gTml0cGlja2luZywgSSB3b3VsZCB3cml0ZSB0aGUgbmFtZSBpcyBwaXhlbF9pZlswLTNd
-X2NsaywgaXQgdG9vayBtZSBhIGZldw0KICAgID4gPiBzZWNvbmRzIHRvIHNlZSB0aGF0IHRoZSBY
-IHdhcyBhIHBsYWNlaG9sZGVyLg0KICAgID4gDQogICAgPiBPay4NCiAgICA+IA0KICAgID4gPj4g
-KyAgICAqIGRwaHlfcnhfY2xrOiBELVBIWSBieXRlIGNsb2NrLCBpZiBpbXBsZW1lbnRlZCBpbiBo
-YXJkd2FyZQ0KICAgID4gPj4gKyAgLSBwaHlzOiBwaGFuZGxlIHRvIHRoZSBleHRlcm5hbCBELVBI
-WQ0KICAgID4gPj4gKyAgLSBwaHktbmFtZXM6IG11c3QgY29udGFpbiBkcGh5LCBpZiB0aGUgaW1w
-bGVtZW50YXRpb24gdXNlcyBhbg0KICAgID4gPj4gKyAgICAgICAgICAgICAgIGV4dGVybmFsIEQt
-UEhZDQogICAgPiA+IA0KICAgID4gPiBJIHdvdWxkIG1vdmUgdGhlIGxhc3QgdHdvIHByb3BlcnRp
-ZXMgaW4gYW4gb3B0aW9uYWwgY2F0ZWdvcnkgYXMgdGhleSdyZQ0KICAgID4gPiBlZmZlY3RpdmVs
-eSBvcHRpb25hbC4gSSB0aGluayB5b3Ugc2hvdWxkIGFsc28gZXhwbGFpbiBhIGJpdCBtb3JlIGNs
-ZWFybHkNCiAgICA+ID4gdGhhdCB0aGUgcGh5cyBwcm9wZXJ0eSBtdXN0IG5vdCBiZSBwcmVzZW50
-IGlmIHRoZSBwaHktbmFtZXMgcHJvcGVydHkgaXMNCiAgICA+ID4gbm90IHByZXNlbnQuDQogICAg
-PiANCiAgICA+IEl0J3Mgbm90IHJlYWxseSBvcHRpb25hbC4gVGhlIElQIGhhcyBhIGNvbmZpZ3Vy
-YXRpb24gcmVnaXN0ZXIgdGhhdA0KICAgID4gYWxsb3dzIHlvdSB0byBzZWUgaWYgaXQncyBiZWVu
-IHN5bnRoZXNpemVkIHdpdGggb3Igd2l0aG91dCBhIFBIWS4gSWYNCiAgICA+IHRoZSByaWdodCBi
-aXQgaXMgc2V0LCB0aGF0IHByb3BlcnR5IHdpbGwgYmUgbWFuZGF0b3J5LCBpZiBub3QsIGl0J3MN
-CiAgICA+IHVzZWxlc3MuDQogICAgDQogICAgSnVzdCB0byBjb25maXJtLCB0aGUgUEhZIGlzIGEg
-c2VwYXJhdGUgSVAgY29yZSwgcmlnaHQgPyBJcyB0aGUgQ1NJLTIgcmVjZWl2ZXIgDQogICAgaW5w
-dXQgaW50ZXJmYWNlIGRpZmZlcmVudCB3aGVuIHVzZWQgd2l0aCBhIFBIWSBhbmQgd2hlbiB1c2Vk
-IHdpdGhvdXQgb25lID8gDQogICAgQ291bGQgYSB0aGlyZC1wYXJ0eSBQSFkgYmUgdXNlZCBhcyB3
-ZWxsID8gSWYgc28sIHdvdWxkIHRoZSBQSFkgc3ludGhlc2lzIGJpdCANCiAgICBiZSBzZXQgb3Ig
-bm90ID8NCg0KVGhlIFBIWSAoaW4gb3VyIGNhc2UgYSBELVBIWSkgaXMgYSBzZXBhcmF0ZSBlbnRp
-dHksIGl0IGNhbiBiZSBmcm9tIGEgM3JkIHBhcnR5IGFzIHRoZSBJUCBpbnRlcmZhY2UgaXMgc3Rh
-bmRhcmQsIHRoZSBTb0MgaW50ZWdyYXRvciB3b3VsZCBzZXQgdGhlIGJpdCBhY2NvcmRpbmdseSBi
-YXNlZCBvbiB3aGV0aGVyIGFueSBQSFkgaXMgcHJlc2VudCBvciBub3QuDQpUaGVyZSBpcyBhbHNv
-IGFuIG9wdGlvbiBvZiByb3V0aW5nIGRpZ2l0YWwgb3V0cHV0IGZyb20gYSBDU0ktVFggdG8gYSBD
-U0ktUlggYW5kIGluIHN1Y2ggY2FzZSBhIFBIWSB3b3VsZCBub3QgbmVlZCB0byBiZSB1c2VkIChh
-cyBpbiB0aGUgY2FzZSBvZiBvdXIgY3VycmVudCBwbGF0Zm9ybSkuDQogICAgDQogICAgPiBNYXli
-ZSBpdCdzIGp1c3Qgc2VtYW50aWNzLCBidXQgdG8gbWUsIG9wdGlvbmFsIG1lYW5zIHRoYXQgaXQg
-Y2FuDQogICAgPiBvcGVyYXRlIHdpdGggb3Igd2l0aG91dCBpdCB1bmRlciBhbnkgY2lyY3Vtc3Rh
-bmNlcy4gSXQncyBub3QgcmVhbGx5DQogICAgPiB0aGUgY2FzZSBoZXJlLg0KICAgIA0KICAgIEl0
-J3NhIHNlbWFudGljIGlzc3VlLCBidXQgZG9jdW1lbnRpbmcgYSBwcm9wZXJ0eSBhcyByZXF1aXJl
-ZCB3aGVuIGl0IGNhbiBiZSANCiAgICBvbW1pdHRlZCB1bmRlciBzb21lIGNpcmN1bXN0YW5jZXMg
-c2VlbXMgZXZlbiB3ZWlyZGVyIHRvIG1lIDotKSBJIHVuZGVyc3RhbmQgDQogICAgdGhlIG9wdGlv
-bmFsIGNhdGVnb3J5IGFzICJjYW4gYmUgb21taXR0ZWQgaW4gY2VydGFpbiBjaXJjdW1zdGFuY2Vz
-Ii4NCiAgICANCiAgICA+ID4+ICsNCiAgICA+ID4+ICtSZXF1aXJlZCBzdWJub2RlczoNCiAgICA+
-ID4+ICsgIC0gcG9ydHM6IEEgcG9ydHMgbm9kZSB3aXRoIGVuZHBvaW50IGRlZmluaXRpb25zIGFz
-IGRlZmluZWQgaW4NCiAgICA+ID4+ICsgICAgICAgICAgDQogICAgPiA+PiBEb2N1bWVudGF0aW9u
-L2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvdmlkZW8taW50ZXJmYWNlcy50eHQuDQogICAgPiA+
-PiBUaGUNCiAgICA+ID4+ICsgICAgICAgICAgIGZpcnN0IHBvcnQgc3Vibm9kZSBzaG91bGQgYmUg
-dGhlIGlucHV0IGVuZHBvaW50LCB0aGUgc2Vjb25kDQogICAgPiA+PiBvbmUgdGhlDQogICAgPiA+
-PiArICAgICAgICAgICBvdXRwdXRzDQogICAgPiA+PiArDQogICAgPiA+PiArICBUaGUgb3V0cHV0
-IHBvcnQgc2hvdWxkIGhhdmUgYXMgbWFueSBlbmRwb2ludHMgYXMgc3RyZWFtIHN1cHBvcnRlZCBi
-eQ0KICAgID4gPj4gKyAgdGhlIGhhcmR3YXJlIGltcGxlbWVudGF0aW9uLCBiZXR3ZWVuIDEgYW5k
-IDQsIHRoZWlyIElEIGJlaW5nIHRoZQ0KICAgID4gPj4gKyAgc3RyZWFtIG91dHB1dCBudW1iZXIg
-dXNlZCBpbiB0aGUgaW1wbGVtZW50YXRpb24uDQogICAgPiA+IA0KICAgID4gPiBJIGRvbid0IHRo
-aW5rIHRoYXQncyBjb3JyZWN0LiBUaGUgSVAgaGFzIGZvdXIgaW5kZXBlbmRlbnQgb3V0cHV0cywg
-aXQNCiAgICA+ID4gc2hvdWxkIGhhdmUgNCBvdXRwdXQgcG9ydHMgZm9yIGEgdG90YWwgZm9yIDUg
-cG9ydHMuIE11bHRpcGxlIGVuZHBvaW50cw0KICAgID4gPiBwZXIgcG9ydCB3b3VsZCBkZXNjcmli
-ZSBtdWx0aXBsZSBjb25uZWN0aW9ucyBmcm9tIHRoZSBzYW1lIG91dHB1dCB0bw0KICAgID4gPiBk
-aWZmZXJlbnQgc2lua3MuDQogICAgPg0KICAgID4gT2suDQoNClJlZ2FyZHMsDQoNCkN5cHJpYW4N
-Cg0K
+This will be needed to fill out the frame descriptor information
+correctly.
+
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/i2c/adv748x/adv748x-csi2.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
+index b76c2be8da4271fb..a77069fc1adc1eca 100644
+--- a/drivers/media/i2c/adv748x/adv748x-csi2.c
++++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
+@@ -18,6 +18,28 @@
+ 
+ #include "adv748x.h"
+ 
++struct adv748x_csi2_format {
++	unsigned int code;
++	unsigned int datatype;
++};
++
++static const struct adv748x_csi2_format adv748x_csi2_formats[] = {
++	{ .code = MEDIA_BUS_FMT_RGB888_1X24,    .datatype = 0x24, },
++	{ .code = MEDIA_BUS_FMT_UYVY8_1X16,     .datatype = 0x1e, },
++	{ .code = MEDIA_BUS_FMT_UYVY8_2X8,      .datatype = 0x1e, },
++	{ .code = MEDIA_BUS_FMT_YUYV10_2X10,    .datatype = 0x1e, },
++};
++
++static unsigned int adv748x_csi2_code_to_datatype(unsigned int code)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(adv748x_csi2_formats); i++)
++		if (adv748x_csi2_formats[i].code == code)
++			return adv748x_csi2_formats[i].datatype;
++	return 0;
++}
++
+ static bool is_txa(struct adv748x_csi2 *tx)
+ {
+ 	return tx == &tx->state->txa;
+-- 
+2.13.3
