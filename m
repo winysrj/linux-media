@@ -1,63 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f173.google.com ([209.85.128.173]:32887 "EHLO
-        mail-wr0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752168AbdHJNiv (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:39200 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752941AbdHKJ51 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Aug 2017 09:38:51 -0400
-Received: by mail-wr0-f173.google.com with SMTP id v105so3328059wrb.0
-        for <linux-media@vger.kernel.org>; Thu, 10 Aug 2017 06:38:51 -0700 (PDT)
+        Fri, 11 Aug 2017 05:57:27 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 17/20] adv748x: implement get_frame_desc
+Date: Fri, 11 Aug 2017 11:57:00 +0200
+Message-Id: <20170811095703.6170-18-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <1502007921-22968-5-git-send-email-Julia.Lawall@lip6.fr>
-References: <1502007921-22968-1-git-send-email-Julia.Lawall@lip6.fr> <1502007921-22968-5-git-send-email-Julia.Lawall@lip6.fr>
-From: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-Date: Thu, 10 Aug 2017 16:38:49 +0300
-Message-ID: <CALi4nhp_xQodYy9Y=Cma4NSJh5wwPKhSksfj+HAtJ4jnCMHrxg@mail.gmail.com>
-Subject: Re: [PATCH 04/12] [media] V4L2: platform: rcar_jpu: constify
- v4l2_m2m_ops structures
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Aug 6, 2017 at 11:25 AM, Julia Lawall <Julia.Lawall@lip6.fr> wrote:
-> The v4l2_m2m_ops structures are only passed as the only
-> argument to v4l2_m2m_init, which is declared as const.
-> Thus the v4l2_m2m_ops structures themselves can be const.
->
-> Done with the help of Coccinelle.
->
-> // <smpl>
-> @r disable optional_qualifier@
-> identifier i;
-> position p;
-> @@
-> static struct v4l2_m2m_ops i@p = { ... };
->
-> @ok1@
-> identifier r.i;
-> position p;
-> @@
-> v4l2_m2m_init(&i@p)
->
-> @bad@
-> position p != {r.p,ok1.p};
-> identifier r.i;
-> struct v4l2_m2m_ops e;
-> @@
-> e@i@p
->
-> @depends on !bad disable optional_qualifier@
-> identifier r.i;
-> @@
-> static
-> +const
->  struct v4l2_m2m_ops i = { ... };
-> // </smpl>
->
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/i2c/adv748x/adv748x-csi2.c | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-Acked-by: Ulyanov Mikhail <mikhail.ulyanov@cogentembedded.com>
+diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
+index a77069fc1adc1eca..58a9d9105148c15b 100644
+--- a/drivers/media/i2c/adv748x/adv748x-csi2.c
++++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
+@@ -225,9 +225,38 @@ static int adv748x_csi2_set_format(struct v4l2_subdev *sd,
+ 	return ret;
+ }
+ 
++static int adv748x_csi2_get_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
++				       struct v4l2_mbus_frame_desc *fd)
++{
++	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
++	struct adv748x_state *state = tx->state;
++	struct v4l2_mbus_framefmt *mbusformat;
++
++	if (pad != ADV748X_CSI2_SOURCE || fd == NULL)
++		return -EINVAL;
++
++	mbusformat = adv748x_csi2_get_pad_format(sd, NULL, ADV748X_CSI2_SINK,
++						 V4L2_SUBDEV_FORMAT_ACTIVE);
++	if (!mbusformat)
++		return -EINVAL;
++
++	mutex_lock(&state->mutex);
++	fd->entry[0].flags = V4L2_MBUS_FRAME_DESC_FL_CSI2;
++	fd->entry[0].pixelcode = mbusformat->code;
++	fd->entry[0].csi2.channel = tx->vc;
++	fd->entry[0].csi2.datatype =
++		adv748x_csi2_code_to_datatype(fd->entry[0].pixelcode);
++	fd->entry[0].csi2.pad = ADV748X_CSI2_SINK;
++	fd->num_entries = 1;
++	mutex_unlock(&state->mutex);
++
++	return 0;
++}
++
+ static const struct v4l2_subdev_pad_ops adv748x_csi2_pad_ops = {
+ 	.get_fmt = adv748x_csi2_get_format,
+ 	.set_fmt = adv748x_csi2_set_format,
++	.get_frame_desc = adv748x_csi2_get_frame_desc,
+ };
+ 
+ /* -----------------------------------------------------------------------------
+-- 
+2.13.3
