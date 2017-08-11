@@ -1,73 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41854 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750862AbdH3V2V (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:39202 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752943AbdHKJ52 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Aug 2017 17:28:21 -0400
-Date: Thu, 31 Aug 2017 00:28:19 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Rajmohan Mani <rajmohan.mani@intel.com>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
-        hverkuil@xs4all.nl, tfiga@chromium.org, s.nawrocki@samsung.com,
-        tuukka.toivonen@intel.com
-Subject: Re: [PATCH] [media] dw9714: Set the v4l2 focus ctrl step as 1
-Message-ID: <20170830212819.6tepof4jzdiqtezd@valkosipuli.retiisi.org.uk>
-References: <1504115332-26651-1-git-send-email-rajmohan.mani@intel.com>
+        Fri, 11 Aug 2017 05:57:28 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 20/20] arm64: dts: renesas: salvator: use VC1 for CVBS
+Date: Fri, 11 Aug 2017 11:57:03 +0200
+Message-Id: <20170811095703.6170-21-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1504115332-26651-1-git-send-email-rajmohan.mani@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rajmohan,
+In order to test Virtual Channels use VC1 for CVBS input from the
+adv748x.
 
-On Wed, Aug 30, 2017 at 10:48:52AM -0700, Rajmohan Mani wrote:
-> Current v4l2 focus ctrl step value of 16, limits
-> the minimum granularity of focus positions to 16.
-> Setting this value as 1, enables more accurate
-> focus positions.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ arch/arm64/boot/dts/renesas/salvator-common.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks for the patch.
-
-The recommended limit for line length is 75, not 50 (or 25 or whatever) as
-it might be in certain Gerrit installations. :-) Please make good use of
-lines in the future, I've rewrapped the text this time. Thanks.
-
-> 
-> Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
-> ---
->  drivers/media/i2c/dw9714.c | 7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/dw9714.c b/drivers/media/i2c/dw9714.c
-> index 6a607d7..f9212a8 100644
-> --- a/drivers/media/i2c/dw9714.c
-> +++ b/drivers/media/i2c/dw9714.c
-> @@ -22,6 +22,11 @@
->  #define DW9714_NAME		"dw9714"
->  #define DW9714_MAX_FOCUS_POS	1023
->  /*
-> + * This sets the minimum granularity for the focus positions.
-> + * A value of 1 gives maximum accuracy for a desired focus position
-> + */
-> +#define DW9714_FOCUS_STEPS	1
-> +/*
->   * This acts as the minimum granularity of lens movement.
->   * Keep this value power of 2, so the control steps can be
->   * uniformly adjusted for gradual lens movement, with desired
-> @@ -138,7 +143,7 @@ static int dw9714_init_controls(struct dw9714_device *dev_vcm)
->  	v4l2_ctrl_handler_init(hdl, 1);
->  
->  	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
-> -			  0, DW9714_MAX_FOCUS_POS, DW9714_CTRL_STEPS, 0);
-> +			  0, DW9714_MAX_FOCUS_POS, DW9714_FOCUS_STEPS, 0);
->  
->  	if (hdl->error)
->  		dev_err(&client->dev, "%s fail error: 0x%x\n",
-
+diff --git a/arch/arm64/boot/dts/renesas/salvator-common.dtsi b/arch/arm64/boot/dts/renesas/salvator-common.dtsi
+index 7b67efcb1d22090a..8047fe1df065d63b 100644
+--- a/arch/arm64/boot/dts/renesas/salvator-common.dtsi
++++ b/arch/arm64/boot/dts/renesas/salvator-common.dtsi
+@@ -41,7 +41,7 @@
+ 	};
+ 
+ 	chosen {
+-		bootargs = "ignore_loglevel rw root=/dev/nfs ip=dhcp";
++		bootargs = "ignore_loglevel rw root=/dev/nfs ip=dhcp adv748x.txbvc=1";
+ 		stdout-path = "serial0:115200n8";
+ 	};
+ 
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.13.3
