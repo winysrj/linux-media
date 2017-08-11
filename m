@@ -1,86 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44914
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751345AbdHaXrI (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:58614 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751818AbdHKJYY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 19:47:08 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Fri, 11 Aug 2017 05:24:24 -0400
+Subject: Re: [PATCH RESEND 0/3] v4l2-compat-ioctl32.c: better detect pointer
+ controls
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <f7340d67-cf7c-3407-e59a-aa0261185e82@xs4all.nl>
+ <cover.1502409182.git.mchehab@s-opensource.com>
+ <173e50c4-77ae-a718-46bd-01963e07785f@xs4all.nl>
+ <20170811060007.5849ad37@vento.lan>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Shuah Khan <shuah@kernel.org>,
-        Colin Ian King <colin.king@canonical.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Ingo Molnar <mingo@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 05/15] media: dvb/frontend.h: move out a private internal structure
-Date: Thu, 31 Aug 2017 20:46:52 -0300
-Message-Id: <424dfef4f0a55038a84110466da8796915f4aee6.1504222628.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
-References: <cover.1504222628.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
-References: <cover.1504222628.git.mchehab@s-opensource.com>
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Daniel Mentz <danielmentz@google.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5d788b06-04b2-b333-1775-0a36f9904aaa@xs4all.nl>
+Date: Fri, 11 Aug 2017 11:24:21 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170811060007.5849ad37@vento.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-struct dtv_cmds_h is just an ancillary struct used by the
-dvb_frontend.c to internally store frontend commands.
+On 11/08/17 11:00, Mauro Carvalho Chehab wrote:
+> Em Fri, 11 Aug 2017 08:05:03 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> On 11/08/17 02:16, Mauro Carvalho Chehab wrote:
+>>> In the past, only string controls were pointers. That changed when compounded
+>>> types got added, but the compat32 code was not updated.
+>>>
+>>> We could just add those controls there, but maintaining it is flaw, as we
+>>> often forget about the compat code. So, instead, rely on the control type,
+>>> as this is always updated when new controls are added.
+>>>
+>>> As both v4l2-ctrl and compat32 code are at videodev.ko module, we can
+>>> move the ctrl_is_pointer() helper function to v4l2-ctrl.c.  
+>>
+>> This series doesn't really solve anything:
+>>
+>> - it introduces a circular dependency between two modules
+> 
+> What two modules? both v4l2-ctrl and compat32 belong to the *same* module.
+> See the Makefile:
+> 
+> videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+> 			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o \
+> 			v4l2-async.o
+> ifeq ($(CONFIG_COMPAT),y)
+>   videodev-objs += v4l2-compat-ioctl32.o
+> endif
 
-It doesn't belong to the userspace header, nor it is used anywhere,
-except inside the DVB core. So, remove it from the header.
+My fault, I should have checked. The 'circular dependency' comment in the code
+referred to the bad old days when v4l2_ctrl_fill was in v4l2-common.c and that
+was a separate module. All that has long since changed.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dvb_frontend.c | 11 +++++++++++
- include/uapi/linux/dvb/frontend.h     | 11 -----------
- 2 files changed, 11 insertions(+), 11 deletions(-)
+> Both belong to videodev module. IMHO, the best is to move whatever
+> control check logic it might need to v4l2-ctrls.
+> 
+>> - it doesn't handle driver-custom controls (the old code didn't either). For
+>>   example vivid has custom pointer controls.
+> 
+> True.
+> 
+>> - it replaces a list of control IDs with a list of type IDs, which also has to
+>>   be kept up to date.
+> 
+> True, but at least after the patch, the ancillary function is together
+> with the code that handles the controls. Also, we don't introduce new
+> types too often.
+> 
+>>
+>> I thought this over and I have a better and much simpler idea. I'll post a
+>> patch for that.
+> 
+> OK.
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 114994ca0929..2fcba1616168 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -1000,6 +1000,17 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
- 	.buffer = b \
- }
- 
-+struct dtv_cmds_h {
-+	char	*name;		/* A display name for debugging purposes */
-+
-+	__u32	cmd;		/* A unique ID */
-+
-+	/* Flags */
-+	__u32	set:1;		/* Either a set or get property */
-+	__u32	buffer:1;	/* Does this property use the buffer? */
-+	__u32	reserved:30;	/* Align */
-+};
-+
- static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
- 	_DTV_CMD(DTV_TUNE, 1, 0),
- 	_DTV_CMD(DTV_CLEAR, 1, 0),
-diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
-index afc3972b0879..3a80f3d1da1c 100644
---- a/include/uapi/linux/dvb/frontend.h
-+++ b/include/uapi/linux/dvb/frontend.h
-@@ -384,17 +384,6 @@ enum atscmh_rs_code_mode {
- #define NO_STREAM_ID_FILTER	(~0U)
- #define LNA_AUTO                (~0U)
- 
--struct dtv_cmds_h {
--	char	*name;		/* A display name for debugging purposes */
--
--	__u32	cmd;		/* A unique ID */
--
--	/* Flags */
--	__u32	set:1;		/* Either a set or get property */
--	__u32	buffer:1;	/* Does this property use the buffer? */
--	__u32	reserved:30;	/* Align */
--};
--
- /**
-  * Scale types for the quality parameters.
-  * @FE_SCALE_NOT_AVAILABLE: That QoS measure is not available. That
--- 
-2.13.5
+I have the patch ready, but I need to test it first with vivid.
+
+Regards,
+
+	Hans
