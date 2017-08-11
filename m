@@ -1,64 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:56545 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754141AbdHUOHG (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58907
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752526AbdHKJK1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Aug 2017 10:07:06 -0400
-Subject: Re: [PATCH 1/3] media: atmel-isc: Not support RBG format from sensor.
-To: Wenyou Yang <wenyou.yang@microchip.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Nicolas Ferre <nicolas.ferre@microchip.com>,
-        linux-kernel@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
-        Jonathan Corbet <corbet@lwn.net>,
-        linux-arm-kernel@lists.infradead.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20170817071614.12767-1-wenyou.yang@microchip.com>
- <20170817071614.12767-2-wenyou.yang@microchip.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <61cb51fa-8d05-6707-00cc-429c761fa6f5@xs4all.nl>
-Date: Mon, 21 Aug 2017 16:07:00 +0200
+        Fri, 11 Aug 2017 05:10:27 -0400
+Date: Fri, 11 Aug 2017 06:10:18 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 1/3] media: v4l2-ctrls.h: better document the arguments
+ for v4l2_ctrl_fill
+Message-ID: <20170811061018.354590e3@vento.lan>
+In-Reply-To: <d2ad9cc5-5635-79a0-5213-f312edc07603@xs4all.nl>
+References: <f7340d67-cf7c-3407-e59a-aa0261185e82@xs4all.nl>
+        <cover.1502409182.git.mchehab@s-opensource.com>
+        <f6ac7366e711649241bb77aff997d6815d6c063e.1502409182.git.mchehab@s-opensource.com>
+        <d2ad9cc5-5635-79a0-5213-f312edc07603@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20170817071614.12767-2-wenyou.yang@microchip.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/17/2017 09:16 AM, Wenyou Yang wrote:
-> The 12-bit parallel interface supports the Raw Bayer, YCbCr,
-> Monochrome and JPEG Compressed pixel formats from the external
-> sensor, not support RBG pixel format.
-> 
-> Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
-> ---
-> 
->  drivers/media/platform/atmel/atmel-isc.c | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-> index d4df3d4ccd85..535bb03783fe 100644
-> --- a/drivers/media/platform/atmel/atmel-isc.c
-> +++ b/drivers/media/platform/atmel/atmel-isc.c
-> @@ -1478,6 +1478,11 @@ static int isc_formats_init(struct isc_device *isc)
->  	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code,
->  	       NULL, &mbus_code)) {
->  		mbus_code.index++;
-> +
-> +		/* Not support the RGB pixel formats from sensor */
-> +		if ((mbus_code.code & 0xf000) == 0x1000)
-> +			continue;
+Em Fri, 11 Aug 2017 08:01:58 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Am I missing something? Here you skip any RGB mediabus formats, but in patch 3/3
-you add RGB mediabus formats. But this patch prevents those new formats from being
-selected, right?
-
-Regards,
-
-	Hans
-
-> +
->  		fmt = find_format_by_code(mbus_code.code, &i);
->  		if (!fmt)
->  			continue;
+> On 11/08/17 02:16, Mauro Carvalho Chehab wrote:
+> > The arguments for this function are pointers. Make it clear at
+> > its documentation.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > ---
+> >  include/media/v4l2-ctrls.h | 18 +++++++++---------
+> >  1 file changed, 9 insertions(+), 9 deletions(-)
+> > 
+> > diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+> > index 2d2aed56922f..6ba30acf06aa 100644
+> > --- a/include/media/v4l2-ctrls.h
+> > +++ b/include/media/v4l2-ctrls.h
+> > @@ -339,18 +339,18 @@ struct v4l2_ctrl_config {
+> >  /**
+> >   * v4l2_ctrl_fill - Fill in the control fields based on the control ID.
+> >   *
+> > - * @id: ID of the control
+> > - * @name: name of the control
+> > - * @type: type of the control
+> > - * @min: minimum value for the control
+> > - * @max: maximum value for the control
+> > - * @step: control step
+> > - * @def: default value for the control
+> > - * @flags: flags to be used on the control
+> > + * @id: pointer for storing the ID of the control  
 > 
+> id isn't a pointer, all other arguments are.
+> 
+> > + * @name: pointer for storing the name of the control  
+> 
+> This is a pointer to a pointer.
+
+IMO, it is better to say that it is a pointer to a string.
+
+> 
+> > + * @type: pointer for storing the type of the control
+> > + * @min: pointer for storing the minimum value for the control
+> > + * @max: pointer for storing the maximum value for the control
+> > + * @step: pointer for storing the control step
+> > + * @def: pointer for storing the default value for the control
+> > + * @flags: pointer for storing the flags to be used on the control
+> >   *
+> >   * This works for all standard V4L2 controls.
+> >   * For non-standard controls it will only fill in the given arguments
+> > - * and @name will be %NULL.
+> > + * and @name content will be filled with %NULL.  
+> 
+> I'd say: 'set to %NULL'.
+> 
+> >   *
+> >   * This function will overwrite the contents of @name, @type and @flags.
+> >   * The contents of @min, @max, @step and @def may be modified depending on
+> >   
+> 
+> Regards,
+> 
+> 	Hans
+
+Thanks for reviewing. Version 2 follows.
+
+---
+
+[PATCH v2] media: v4l2-ctrls.h: better document the arguments for
+ v4l2_ctrl_fill
+
+The arguments for this function are pointers. Make it clear at
+its documentation.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 2d2aed56922f..044ea9bc83a8 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -340,17 +340,19 @@ struct v4l2_ctrl_config {
+  * v4l2_ctrl_fill - Fill in the control fields based on the control ID.
+  *
+  * @id: ID of the control
+- * @name: name of the control
+- * @type: type of the control
+- * @min: minimum value for the control
+- * @max: maximum value for the control
+- * @step: control step
+- * @def: default value for the control
+- * @flags: flags to be used on the control
++ * @name: pointer to be filled with a string with the name of the control
++ * @type: pointer for storing the type of the control
++ * @min: pointer for storing the minimum value for the control
++ * @max: pointer for storing the maximum value for the control
++ * @step: pointer for storing the control step
++ * @def: pointer for storing the default value for the control
++ * @flags: pointer for storing the flags to be used on the control
+  *
+  * This works for all standard V4L2 controls.
+  * For non-standard controls it will only fill in the given arguments
+- * and @name will be %NULL.
++ * and @name content will be set to %NULL.
++ *
++ * if @name is NULL, only the @type will be filled.
+  *
+  * This function will overwrite the contents of @name, @type and @flags.
+  * The contents of @min, @max, @step and @def may be modified depending on
+
+
+Thanks,
+Mauro
