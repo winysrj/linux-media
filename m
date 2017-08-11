@@ -1,57 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f194.google.com ([209.85.161.194]:37458 "EHLO
-        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932893AbdHVM5C (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:39136 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752931AbdHKJ5W (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 08:57:02 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: hverkuil@xs4all.nl, mchehab@kernel.org, awalls@md.metrocast.net,
-        prabhakar.csengg@gmail.com, royale@zerezo.com
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-usb@vger.kernel.org
-Subject: [PATCH 1/4] [media] saa7146: constify videobuf_queue_ops structures
-Date: Tue, 22 Aug 2017 18:26:33 +0530
-Message-Id: <1503406596-28266-2-git-send-email-arvind.yadav.cs@gmail.com>
-In-Reply-To: <1503406596-28266-1-git-send-email-arvind.yadav.cs@gmail.com>
-References: <1503406596-28266-1-git-send-email-arvind.yadav.cs@gmail.com>
+        Fri, 11 Aug 2017 05:57:22 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 04/20] v4l2-core: check that both pads in a link are muxed if one are
+Date: Fri, 11 Aug 2017 11:56:47 +0200
+Message-Id: <20170811095703.6170-5-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-videobuf_queue_ops are not supposed to change at runtime. All functions
-working with videobuf_queue_ops provided by <media/videobuf-core.h> work
-with const videobuf_queue_ops. So mark the non-const structs as const.
+Since multiplexed pads carry multiple streams it's not possible to
+verify the format for a specific stream at this time. Instead make sure
+both pads are marked as multiplexed and skip the format checking.
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/common/saa7146/saa7146_vbi.c   | 2 +-
- drivers/media/common/saa7146/saa7146_video.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-subdev.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/media/common/saa7146/saa7146_vbi.c b/drivers/media/common/saa7146/saa7146_vbi.c
-index 3553ac4..d79e4d7 100644
---- a/drivers/media/common/saa7146/saa7146_vbi.c
-+++ b/drivers/media/common/saa7146/saa7146_vbi.c
-@@ -308,7 +308,7 @@ static void buffer_release(struct videobuf_queue *q, struct videobuf_buffer *vb)
- 	saa7146_dma_free(dev,q,buf);
- }
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 43fefa73e0a3f64f..d6c1a3b777dd2fcd 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -547,6 +547,15 @@ int v4l2_subdev_link_validate(struct media_link *link)
+ 	struct v4l2_subdev_format sink_fmt, source_fmt;
+ 	int rval;
  
--static struct videobuf_queue_ops vbi_qops = {
-+static const struct videobuf_queue_ops vbi_qops = {
- 	.buf_setup    = buffer_setup,
- 	.buf_prepare  = buffer_prepare,
- 	.buf_queue    = buffer_queue,
-diff --git a/drivers/media/common/saa7146/saa7146_video.c b/drivers/media/common/saa7146/saa7146_video.c
-index b3b29d4..37b4654 100644
---- a/drivers/media/common/saa7146/saa7146_video.c
-+++ b/drivers/media/common/saa7146/saa7146_video.c
-@@ -1187,7 +1187,7 @@ static void buffer_release(struct videobuf_queue *q, struct videobuf_buffer *vb)
- 	release_all_pagetables(dev, buf);
- }
- 
--static struct videobuf_queue_ops video_qops = {
-+static const struct videobuf_queue_ops video_qops = {
- 	.buf_setup    = buffer_setup,
- 	.buf_prepare  = buffer_prepare,
- 	.buf_queue    = buffer_queue,
++	/* Require both pads in a link to be multiplexed if one is */
++	if ((link->source->flags | link->sink->flags) & MEDIA_PAD_FL_MUXED) {
++		if ((link->source->flags & MEDIA_PAD_FL_MUXED) == 0)
++			return -EINVAL;
++		if ((link->sink->flags & MEDIA_PAD_FL_MUXED) == 0)
++			return -EINVAL;
++		return 0;
++	}
++
+ 	rval = v4l2_subdev_link_validate_get_format(
+ 		link->source, &source_fmt);
+ 	if (rval < 0)
 -- 
-1.9.1
+2.13.3
