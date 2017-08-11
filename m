@@ -1,92 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:56038 "EHLO
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:39302 "EHLO
         smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752555AbdHVX2s (ORCPT
+        with ESMTP id S1752956AbdHKJ50 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 19:28:48 -0400
+        Fri, 11 Aug 2017 05:57:26 -0400
 From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
         linux-renesas-soc@vger.kernel.org,
         =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v6 20/25] rcar-vin: add chsel information to rvin_info
-Date: Wed, 23 Aug 2017 01:26:35 +0200
-Message-Id: <20170822232640.26147-21-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 15/20] adv748x: declare source pad as multiplexed
+Date: Fri, 11 Aug 2017 11:56:58 +0200
+Message-Id: <20170811095703.6170-16-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Each Gen3 SoC has a limited set of predefined routing possibilities for
-which CSI-2 device and virtual channel can be routed to which VIN
-instance. Prepare to store this information in the struct rvin_info.
+The source pad will receive multiplexed streams over a CSI-2 bus, mark
+the pad as muxed.
 
 Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/platform/rcar-vin/rcar-vin.h | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/media/i2c/adv748x/adv748x-csi2.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 88683aaee3b6acd5..617f254b52fe106d 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -35,6 +35,9 @@
- /* Max number on VIN instances that can be in a system */
- #define RCAR_VIN_NUM 8
+diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
+index 2bec0cd0a00f1d5c..b76c2be8da4271fb 100644
+--- a/drivers/media/i2c/adv748x/adv748x-csi2.c
++++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
+@@ -293,7 +293,8 @@ int adv748x_csi2_init(struct adv748x_state *state, struct adv748x_csi2 *tx)
+ 	tx->sd.internal_ops = &adv748x_csi2_internal_ops;
  
-+/* Max number of CHSEL values for any Gen3 SoC */
-+#define RCAR_CHSEL_MAX 6
-+
- enum chip_id {
- 	RCAR_H1,
- 	RCAR_M1,
-@@ -91,6 +94,19 @@ struct rvin_graph_entity {
+ 	tx->pads[ADV748X_CSI2_SINK].flags = MEDIA_PAD_FL_SINK;
+-	tx->pads[ADV748X_CSI2_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
++	tx->pads[ADV748X_CSI2_SOURCE].flags =
++		MEDIA_PAD_FL_SOURCE | MEDIA_PAD_FL_MUXED;
  
- struct rvin_group;
- 
-+
-+/** struct rvin_group_chsel - Map a CSI2 device and channel for a CHSEL value
-+ * @csi:		VIN internal number for CSI2 device
-+ * @chan:		CSI-2 channel number on remote. Note that channel
-+ *			is not the same as VC. The CSI-2 hardware have 4
-+ *			channels it can output on but which VC is outputted
-+ *			on which channel is configurable inside the CSI-2.
-+ */
-+struct rvin_group_chsel {
-+	enum rvin_csi_id csi;
-+	unsigned int chan;
-+};
-+
- /**
-  * struct rvin_info - Information about the particular VIN implementation
-  * @chip:		type of VIN chip
-@@ -98,6 +114,9 @@ struct rvin_group;
-  *
-  * max_width:		max input width the VIN supports
-  * max_height:		max input height the VIN supports
-+ *
-+ * num_chsels:		number of possible chsel values for this VIN
-+ * chsels:		routing table VIN <-> CSI-2 for the chsel values
-  */
- struct rvin_info {
- 	enum chip_id chip;
-@@ -105,6 +124,9 @@ struct rvin_info {
- 
- 	unsigned int max_width;
- 	unsigned int max_height;
-+
-+	unsigned int num_chsels;
-+	struct rvin_group_chsel chsels[RCAR_VIN_NUM][RCAR_CHSEL_MAX];
- };
- 
- /**
+ 	ret = media_entity_pads_init(&tx->sd.entity, ADV748X_CSI2_NR_PADS,
+ 				     tx->pads);
 -- 
-2.14.0
+2.13.3
