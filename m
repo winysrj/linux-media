@@ -1,79 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:52007 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751127AbdHaKbS (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57147
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750868AbdHKAQ6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 06:31:18 -0400
-Subject: Re: [PATCHv3 3/5] dt-bindings: document the CEC GPIO bindings
-To: Linus Walleij <linus.walleij@linaro.org>
-References: <20170830161044.26571-1-hverkuil@xs4all.nl>
- <20170830161044.26571-4-hverkuil@xs4all.nl>
- <CACRpkdZxoHbM2T-McdinK3gJJ9uEq9hwX+mH=13s0AkGArhJFw@mail.gmail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "open list:DRM PANEL DRIVERS" <dri-devel@lists.freedesktop.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <c80b4369-b592-228f-3781-d1a32af6278a@xs4all.nl>
-Date: Thu, 31 Aug 2017 12:31:13 +0200
-MIME-Version: 1.0
-In-Reply-To: <CACRpkdZxoHbM2T-McdinK3gJJ9uEq9hwX+mH=13s0AkGArhJFw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+        Thu, 10 Aug 2017 20:16:58 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Daniel Mentz <danielmentz@google.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH RESEND 0/3] v4l2-compat-ioctl32.c: better detect pointer controls
+Date: Thu, 10 Aug 2017 21:16:49 -0300
+Message-Id: <cover.1502409182.git.mchehab@s-opensource.com>
+In-Reply-To: <f7340d67-cf7c-3407-e59a-aa0261185e82@xs4all.nl>
+References: <f7340d67-cf7c-3407-e59a-aa0261185e82@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 31/08/17 11:20, Linus Walleij wrote:
-> On Wed, Aug 30, 2017 at 6:10 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Document the bindings for the cec-gpio module for hardware where the
->> CEC pin and optionally the HPD pin are connected to GPIO pins.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> I usually refer to GPIO "lines" rather than "pins" for clarity.
-> It's because some systems also have pin control, and then it becomes
-> a bit muddy what is a pin.
+In the past, only string controls were pointers. That changed when compounded
+types got added, but the compat32 code was not updated.
 
-I'll change the terminology.
+We could just add those controls there, but maintaining it is flaw, as we
+often forget about the compat code. So, instead, rely on the control type,
+as this is always updated when new controls are added.
 
->> +* HDMI CEC GPIO driver
->> +
->> +The HDMI CEC GPIO module supports CEC implementations where the CEC pin
->> +is hooked up to a pull-up GPIO pin and - optionally - the HPD pin is
->> +hooked up to a pull-down GPIO pin.
->> +
->> +Required properties:
->> +  - compatible: value must be "cec-gpio"
->> +  - cec-gpio: gpio that the CEC line is connected to
->> +
->> +Optional property:
->> +  - hpd-gpio: gpio that the HPD line is connected to
->> +
->> +Example for the Raspberry Pi 3 where the CEC line is connected to
->> +pin 26 aka BCM7 aka CE1 on the GPIO pin header and the HPD line is
->> +connected to pin 11 aka BCM17:
->> +
->> +cec-gpio@7 {
->> +       compatible = "cec-gpio";
->> +       cec-gpio = <&gpio 7 GPIO_ACTIVE_HIGH>;
->> +       hpd-gpio = <&gpio 17 GPIO_ACTIVE_HIGH>;
->> +};
-> 
-> So what I understood from the driver is that the cec-gpio is maybe actually
-> an open drain output line, so in that case it should be stated in the docs and
-> cec-gpio  = <&gpio 7 GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN>
-> or GPIO_LINE_OPEN_DRAIN if it is not also single-ended.
+As both v4l2-ctrl and compat32 code are at videodev.ko module, we can
+move the ctrl_is_pointer() helper function to v4l2-ctrl.c.
 
-Yes, I agree, it's open drain. I'm not sure whether or not it is single-ended.
-I'm not sure what the difference is, and I have no electronics background.
+---
 
-Looking at fwnode_get_named_gpiod() it seems that it has to be single-ended
-for GPIO_OPEN_DRAIN to be set, so I am going with that. It works, so it is
-probably right :-)
+Re-sending this patch series, as it was c/c to the linux-doc ML by mistake.
 
-Regards,
+Mauro Carvalho Chehab (3):
+  media: v4l2-ctrls.h: better document the arguments for v4l2_ctrl_fill
+  media: v4l2-ctrls: prepare the function to be used by compat32 code
+  media: compat32: reimplement ctrl_is_pointer()
 
-	Hans
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 18 +---------
+ drivers/media/v4l2-core/v4l2-ctrls.c          | 49 +++++++++++++++++++++++++--
+ include/media/v4l2-ctrls.h                    | 28 ++++++++++-----
+ 3 files changed, 67 insertions(+), 28 deletions(-)
+
+-- 
+2.13.3
