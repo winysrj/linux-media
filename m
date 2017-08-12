@@ -1,204 +1,428 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-86.mail.aliyun.com ([115.124.20.86]:56609 "EHLO
-        out20-86.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753057AbdHWCc4 (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:58029 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750771AbdHLJBL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 22:32:56 -0400
-Date: Wed, 23 Aug 2017 10:32:16 +0800
-From: Yong <yong.deng@magewell.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benoit Parrot <bparrot@ti.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
-Message-Id: <20170823103216.e43283308c195c4a80d929fa@magewell.com>
-In-Reply-To: <20170822174339.6woauylgzkgqxygk@flea.lan>
-References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
-        <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
-        <20170728160233.xooevio4hoqkgfaq@flea.lan>
-        <20170731111640.d5a8e580a48183cfce85943d@magewell.com>
-        <20170822174339.6woauylgzkgqxygk@flea.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Sat, 12 Aug 2017 05:01:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Sean Paul <seanpaul@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 1/3] drm: add support for DisplayPort CEC-Tunneling-over-AUX
+Date: Sat, 12 Aug 2017 11:01:05 +0200
+Message-Id: <20170812090107.5198-2-hverkuil@xs4all.nl>
+In-Reply-To: <20170812090107.5198-1-hverkuil@xs4all.nl>
+References: <20170812090107.5198-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 22 Aug 2017 19:43:39 +0200
-Maxime Ripard <maxime.ripard@free-electrons.com> wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Hi Yong,
-> 
-> On Mon, Jul 31, 2017 at 11:16:40AM +0800, Yong wrote:
-> > > > @@ -143,6 +143,7 @@ source "drivers/media/platform/am437x/Kconfig"
-> > > >  source "drivers/media/platform/xilinx/Kconfig"
-> > > >  source "drivers/media/platform/rcar-vin/Kconfig"
-> > > >  source "drivers/media/platform/atmel/Kconfig"
-> > > > +source "drivers/media/platform/sun6i-csi/Kconfig"
-> > > 
-> > > We're going to have several different drivers in v4l eventually, so I
-> > > guess it would make sense to move to a directory of our own.
-> > 
-> > Like this?
-> > drivers/media/platform/sunxi/sun6i-csi
-> 
-> Yep.
-> 
-> > > > +static int sun6i_graph_notify_complete(struct v4l2_async_notifier *notifier)
-> > > > +{
-> > > > +	struct sun6i_csi *csi =
-> > > > +			container_of(notifier, struct sun6i_csi, notifier);
-> > > > +	struct sun6i_graph_entity *entity;
-> > > > +	int ret;
-> > > > +
-> > > > +	dev_dbg(csi->dev, "notify complete, all subdevs registered\n");
-> > > > +
-> > > > +	/* Create links for every entity. */
-> > > > +	list_for_each_entry(entity, &csi->entities, list) {
-> > > > +		ret = sun6i_graph_build_one(csi, entity);
-> > > > +		if (ret < 0)
-> > > > +			return ret;
-> > > > +	}
-> > > > +
-> > > > +	/* Create links for video node. */
-> > > > +	ret = sun6i_graph_build_video(csi);
-> > > > +	if (ret < 0)
-> > > > +		return ret;
-> > > 
-> > > Can you elaborate a bit on the difference between a node parsed with
-> > > _graph_build_one and _graph_build_video? Can't you just store the
-> > > remote sensor when you build the notifier, and reuse it here?
-> > 
-> > There maybe many usercases:
-> > 1. CSI->Sensor.
-> > 2. CSI->MIPI->Sensor.
-> > 3. CSI->FPGA->Sensor1
-> >             ->Sensor2.
-> > FPGA maybe some other video processor. FPGA, MIPI, Sensor can be
-> > registered as v4l2 subdevs. We do not care about the driver code
-> > of them. But they should be linked together here.
-> > 
-> > So, the _graph_build_one is used to link CSI port and subdevs. 
-> > _graph_build_video is used to link CSI port and video node.
-> 
-> So the graph_build_one is for the two first cases, and the
-> _build_video for the latter case?
+This adds support for the DisplayPort CEC-Tunneling-over-AUX
+feature that is part of the DisplayPort 1.3 standard.
 
-No. 
-The _graph_build_one is used to link the subdevs found in the device 
-tree. _build_video is used to link the closest subdev to video node.
-Video node is created in the driver, so the method to get it's pad is
-diffrent to the subdevs.
+Unfortunately, not all DisplayPort/USB-C to HDMI adapters with a
+chip that has this capability actually hook up the CEC pin, so
+even though a CEC device is created, it may not actually work.
 
-> 
-> If so, you should take a look at the last iteration of the
-> subnotifiers rework by Nikas Söderlund (v4l2-async: add subnotifier
-> registration for subdevices).
-> 
-> It allows subdevs to register notifiers, and you don't have to build
-> the graph from the video device, each device and subdev can only care
-> about what's next in the pipeline, but not really what's behind it.
-> 
-> That would mean in your case that you can only deal with your single
-> CSI pad, and whatever subdev driver will use it care about its own.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/gpu/drm/Kconfig      |  10 ++
+ drivers/gpu/drm/Makefile     |   1 +
+ drivers/gpu/drm/drm_dp_cec.c | 302 +++++++++++++++++++++++++++++++++++++++++++
+ include/drm/drm_dp_helper.h  |  24 ++++
+ 4 files changed, 337 insertions(+)
+ create mode 100644 drivers/gpu/drm/drm_dp_cec.c
 
-Do you mean the subdevs create pad link in the notifier registered by
-themself ?
-If so, _graph_build_one is needless. But how to make sure the pipeline
-has linked correctly when operateing the pipeline. 
-I will lookt at this in more detail.
-
-> 
-> > This part is also difficult to understand for me. The one CSI module
-> > have only one DMA channel(single port). But thay can be linked to 
-> > different physical port (Parallel or MIPI)(multiple ep) by IF select
-> > register.
-> > 
-> > For now, the binding can have several ep, the driver will just pick
-> > the first valid one.
-> 
-> Yeah, I'm not really sure how we could deal with that, but I guess we
-> can do it later on.
-> 
-> > > 
-> > > > +struct sun6i_csi_ops {
-> > > > +	int (*get_supported_pixformats)(struct sun6i_csi *csi,
-> > > > +					const u32 **pixformats);
-> > > > +	bool (*is_format_support)(struct sun6i_csi *csi, u32 pixformat,
-> > > > +				  u32 mbus_code);
-> > > > +	int (*s_power)(struct sun6i_csi *csi, bool enable);
-> > > > +	int (*update_config)(struct sun6i_csi *csi,
-> > > > +			     struct sun6i_csi_config *config);
-> > > > +	int (*update_buf_addr)(struct sun6i_csi *csi, dma_addr_t addr);
-> > > > +	int (*s_stream)(struct sun6i_csi *csi, bool enable);
-> > > > +};
-> > > 
-> > > Didn't we agreed on removing those in the first iteration? It's not
-> > > really clear at this point whether they will be needed at all. Make
-> > > something simple first, without those ops. When we'll support other
-> > > SoCs we'll have a better chance at seeing what and how we should deal
-> > > with potential quirks.
-> > 
-> > OK. But without ops, it is inappropriate to sun6i_csi and sun6i_csi.
-> > Maybe I should merge the two files.
-> 
-> I'm not sure what you meant here, but if you think that's appropriate,
-> please go ahead.
-> 
-> > > > +		return IRQ_HANDLED;
-> > > > +	}
-> > > > +
-> > > > +	if (status & CSI_CH_INT_STA_FD_PD) {
-> > > > +		sun6i_video_frame_done(&sdev->csi.video);
-> > > > +	}
-> > > > +
-> > > > +	regmap_write(regmap, CSI_CH_INT_STA_REG, status);
-> > > 
-> > > Isn't it redundant with the one you did in the condition a bit above?
-> > > 
-> > > You should also check that your device indeed generated an
-> > > interrupt. In the occurence of a spourious interrupt, your code will
-> > > return IRQ_HANDLED, which is the wrong thing to do.
-> > > 
-> > > I think you should reverse your logic a bit here to make this
-> > > easier. You should just check that your status flags are indeed set,
-> > > and if not just bail out and return IRQ_NONE.
-> > > 
-> > > And if they are, go on with treating your interrupt.
-> > 
-> > OK. I will add check for status flags.
-> > BTW, how can a spurious interrupt occurred?
-> 
-> Usually it's either through some interference, or some poorly designed
-> controller. This is unlikely, but it's something you should take into
-> account.
-> 
-> Thanks!
-> Maxime
-> 
-> -- 
-> Maxime Ripard, Free Electrons
-> Embedded Linux and Kernel engineering
-> http://free-electrons.com
-
-
-Thanks,
-Yong
+diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+index 83cb2a88c204..1f2708df5c4e 100644
+--- a/drivers/gpu/drm/Kconfig
++++ b/drivers/gpu/drm/Kconfig
+@@ -120,6 +120,16 @@ config DRM_LOAD_EDID_FIRMWARE
+ 	  default case is N. Details and instructions how to build your own
+ 	  EDID data are given in Documentation/EDID/HOWTO.txt.
+ 
++config DRM_DP_CEC
++	bool "Enable DisplayPort CEC-Tunneling-over-AUX HDMI support"
++	select CEC_CORE
++	help
++	  Choose this option if you want to enable HDMI CEC support for
++	  DisplayPort/USB-C to HDMI adapters.
++
++	  Note: not all adapters support this feature, and even for those
++	  that do support this they often do not hook up the CEC pin.
++
+ config DRM_TTM
+ 	tristate
+ 	depends on DRM && MMU
+diff --git a/drivers/gpu/drm/Makefile b/drivers/gpu/drm/Makefile
+index 24a066e1841c..c6552c62049e 100644
+--- a/drivers/gpu/drm/Makefile
++++ b/drivers/gpu/drm/Makefile
+@@ -40,6 +40,7 @@ drm_kms_helper-$(CONFIG_DRM_LOAD_EDID_FIRMWARE) += drm_edid_load.o
+ drm_kms_helper-$(CONFIG_DRM_FBDEV_EMULATION) += drm_fb_helper.o
+ drm_kms_helper-$(CONFIG_DRM_KMS_CMA_HELPER) += drm_fb_cma_helper.o
+ drm_kms_helper-$(CONFIG_DRM_DP_AUX_CHARDEV) += drm_dp_aux_dev.o
++drm_kms_helper-$(CONFIG_DRM_DP_CEC) += drm_dp_cec.o
+ 
+ obj-$(CONFIG_DRM_KMS_HELPER) += drm_kms_helper.o
+ obj-$(CONFIG_DRM_DEBUG_MM_SELFTEST) += selftests/
+diff --git a/drivers/gpu/drm/drm_dp_cec.c b/drivers/gpu/drm/drm_dp_cec.c
+new file mode 100644
+index 000000000000..7f669900f5c1
+--- /dev/null
++++ b/drivers/gpu/drm/drm_dp_cec.c
+@@ -0,0 +1,302 @@
++/*
++ * DisplayPort CEC-Tunneling-over-AUX support
++ *
++ * Copyright 2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
++ *
++ * This program is free software; you may redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <drm/drm_dp_helper.h>
++#include <media/cec.h>
++
++/*
++ * Unfortunately it turns out that we have a chicken-and-egg situation
++ * here. Quite a few active (mini-)DP-to-HDMI or USB-C-to-HDMI adapters
++ * have a converter chip that supports CEC-Tunneling-over-AUX (usually the
++ * Parade PS176), but they do not wire up the CEC pin, thus making CEC
++ * useless.
++ *
++ * Sadly there is no way for this driver to know this. What happens is
++ * that a /dev/cecX device is created that is isolated and unable to see
++ * any of the other CEC devices. Quite literally the CEC wire is cut
++ * (or in this case, never connected in the first place).
++ *
++ * I suspect that the reason so few adapters support this is that this
++ * tunneling protocol was never supported by any OS. So there was no
++ * easy way of testing it, and no incentive to correctly wire up the
++ * CEC pin.
++ *
++ * Hopefully by creating this driver it will be easier for vendors to
++ * finally fix their adapters and test the CEC functionality.
++ *
++ * I keep a list of known working adapters here:
++ *
++ * https://hverkuil.home.xs4all.nl/cec-status.txt
++ *
++ * Please mail me (hverkuil@xs4all.nl) if you find an adapter that works
++ * and is not yet listed there.
++ */
++
++/**
++ * DOC: dp cec helpers
++ *
++ * These functions take care of supporting the CEC-Tunneling-over-AUX
++ * feature of DisplayPort-to-HDMI adapters.
++ */
++
++static int drm_dp_cec_adap_enable(struct cec_adapter *adap, bool enable)
++{
++	struct drm_dp_aux *aux = cec_get_drvdata(adap);
++	u32 val = enable ? DP_CEC_TUNNELING_ENABLE : 0;
++	ssize_t err = 0;
++
++	err = drm_dp_dpcd_writeb(aux, DP_CEC_TUNNELING_CONTROL, val);
++	return (enable && err < 0) ? err : 0;
++}
++
++static int drm_dp_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
++{
++	struct drm_dp_aux *aux = cec_get_drvdata(adap);
++	/* Bit 15 (logical address 15) should always be set */
++	u16 la_mask = 1 << CEC_LOG_ADDR_BROADCAST;
++	u8 mask[2];
++	ssize_t err;
++
++	if (addr != CEC_LOG_ADDR_INVALID)
++		la_mask |= adap->log_addrs.log_addr_mask | (1 << addr);
++	mask[0] = la_mask & 0xff;
++	mask[1] = la_mask >> 8;
++	err = drm_dp_dpcd_write(aux, DP_CEC_LOGICAL_ADDRESS_MASK, mask, 2);
++	return (addr != CEC_LOG_ADDR_INVALID && err < 0) ? err : 0;
++}
++
++static int drm_dp_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
++				    u32 signal_free_time, struct cec_msg *msg)
++{
++	struct drm_dp_aux *aux = cec_get_drvdata(adap);
++	unsigned int retries = min(5, attempts - 1);
++	ssize_t err;
++
++	err = drm_dp_dpcd_write(aux, DP_CEC_TX_MESSAGE_BUFFER,
++				msg->msg, msg->len);
++	if (err < 0)
++		return err;
++
++	err = drm_dp_dpcd_writeb(aux, DP_CEC_TX_MESSAGE_INFO,
++				 (msg->len - 1) | (retries << 4) |
++				 DP_CEC_TX_MESSAGE_SEND);
++	return err < 0 ? err : 0;
++}
++
++static int drm_dp_cec_adap_monitor_all_enable(struct cec_adapter *adap,
++					      bool enable)
++{
++	struct drm_dp_aux *aux = cec_get_drvdata(adap);
++	ssize_t err;
++	u8 val;
++
++	if (!(adap->capabilities & CEC_CAP_MONITOR_ALL))
++		return 0;
++
++	err = drm_dp_dpcd_readb(aux, DP_CEC_TUNNELING_CONTROL, &val);
++	if (err >= 0) {
++		if (enable)
++			val |= DP_CEC_SNOOPING_ENABLE;
++		else
++			val &= ~DP_CEC_SNOOPING_ENABLE;
++		err = drm_dp_dpcd_writeb(aux, DP_CEC_TUNNELING_CONTROL, val);
++	}
++	return (enable && err < 0) ? err : 0;
++}
++
++static void drm_dp_cec_adap_status(struct cec_adapter *adap,
++				   struct seq_file *file)
++{
++	struct drm_dp_aux *aux = cec_get_drvdata(adap);
++	u8 buf[DP_AUX_MAX_PAYLOAD_BYTES];
++	u8 hw_rev;
++
++	if (drm_dp_dpcd_read(aux, DP_BRANCH_OUI,
++			     buf, sizeof(buf)) != sizeof(buf))
++		return;
++	hw_rev = buf[9];
++	buf[9] = 0;
++	seq_printf(file, "OUI: %02x-%02x-%02x\n",
++		   buf[0], buf[1], buf[2]);
++	seq_printf(file, "ID: %s\n", buf + 3);
++	seq_printf(file, "HW Rev: %d.%d\n", hw_rev >> 4, hw_rev & 0xf);
++	/*
++	 * Show this both in decimal and hex: at least one vendor
++	 * always reports this in hex.
++	 */
++	seq_printf(file, "FW/SW Rev: %d.%d (0x%02x.0x%02x)\n",
++		   buf[10], buf[11], buf[10], buf[11]);
++}
++
++static const struct cec_adap_ops drm_dp_cec_adap_ops = {
++	.adap_enable = drm_dp_cec_adap_enable,
++	.adap_log_addr = drm_dp_cec_adap_log_addr,
++	.adap_transmit = drm_dp_cec_adap_transmit,
++	.adap_monitor_all_enable = drm_dp_cec_adap_monitor_all_enable,
++	.adap_status = drm_dp_cec_adap_status,
++};
++
++static int drm_dp_cec_received(struct drm_dp_aux *aux)
++{
++	struct cec_adapter *adap = aux->cec_adap;
++	struct cec_msg msg;
++	u8 rx_msg_info;
++	ssize_t err;
++
++	err = drm_dp_dpcd_readb(aux, DP_CEC_RX_MESSAGE_INFO, &rx_msg_info);
++	if (err < 0)
++		return err;
++	if (!(rx_msg_info & DP_CEC_RX_MESSAGE_ENDED))
++		return 0;
++	msg.len = (rx_msg_info & DP_CEC_RX_MESSAGE_LEN_MASK) + 1;
++	err = drm_dp_dpcd_read(aux, DP_CEC_RX_MESSAGE_BUFFER, msg.msg, msg.len);
++	if (err < 0)
++		return err;
++	cec_received_msg(adap, &msg);
++	return 0;
++}
++
++static int drm_dp_cec_handle_irq(struct drm_dp_aux *aux)
++{
++	struct cec_adapter *adap = aux->cec_adap;
++	u8 flags;
++	ssize_t err;
++
++	err = drm_dp_dpcd_readb(aux, DP_CEC_TUNNELING_IRQ_FLAGS, &flags);
++	if (err < 0)
++		return err;
++
++	if (flags & DP_CEC_RX_MESSAGE_INFO_VALID)
++		drm_dp_cec_received(aux);
++
++	if (flags & DP_CEC_TX_MESSAGE_SENT)
++		cec_transmit_attempt_done(adap, CEC_TX_STATUS_OK);
++	else if (flags & DP_CEC_TX_LINE_ERROR)
++		cec_transmit_attempt_done(adap, CEC_TX_STATUS_ERROR |
++						CEC_TX_STATUS_MAX_RETRIES);
++	else if (flags &
++		 (DP_CEC_TX_ADDRESS_NACK_ERROR | DP_CEC_TX_DATA_NACK_ERROR))
++		cec_transmit_attempt_done(adap, CEC_TX_STATUS_NACK |
++						CEC_TX_STATUS_MAX_RETRIES);
++	drm_dp_dpcd_writeb(aux, DP_CEC_TUNNELING_IRQ_FLAGS, flags);
++	return 0;
++}
++
++/**
++ * drm_dp_cec_irq() - handle CEC interrupt, if any
++ * @aux: DisplayPort AUX channel
++ *
++ * Should be called when handling an IRQ_HPD request. If CEC-tunneling-over-AUX
++ * is present, then it will check for a CEC_IRQ and handle it accordingly.
++ *
++ * Returns true if an interrupt was handled successfully or false otherwise.
++ */
++bool drm_dp_cec_irq(struct drm_dp_aux *aux)
++{
++	bool handled = false;
++	int attempts;
++
++	if (!aux->cec_adap)
++		return false;
++
++	for (attempts = 0; attempts < 4; attempts++) {
++		u8 cec_irq;
++		int ret;
++
++		ret = drm_dp_dpcd_readb(aux, DP_DEVICE_SERVICE_IRQ_VECTOR_ESI1,
++					&cec_irq);
++		if (ret < 0 || !(cec_irq & DP_CEC_IRQ))
++			break;
++
++		if (!drm_dp_cec_handle_irq(aux))
++			handled = true;
++
++		ret = drm_dp_dpcd_writeb(aux, DP_DEVICE_SERVICE_IRQ_VECTOR_ESI1,
++					 DP_CEC_IRQ);
++		if (ret < 0)
++			break;
++	}
++	return handled;
++}
++EXPORT_SYMBOL(drm_dp_cec_irq);
++
++/**
++ * drm_dp_cec_configure_adapter() - configure the CEC adapter
++ * @aux: DisplayPort AUX channel
++ * @name: name of the CEC device
++ * @parent: parent device
++ *
++ * Checks if this is a DisplayPort-to-HDMI adapter that supports
++ * CEC-tunneling-over-AUX, and if so it creates a CEC device.
++ *
++ * If a CEC device was already created, then check if the capabilities
++ * have changed. If not, then do nothing. Otherwise destroy the old
++ * CEC device and create a new CEC device.
++ *
++ * This can happen when one DP-to-HDMI adapter is disconnected and
++ * replaced by another adapter with different CEC capabilities.
++ *
++ * Returns 0 on success or a negative error code on failure.
++ */
++int drm_dp_cec_configure_adapter(struct drm_dp_aux *aux, const char *name,
++				 struct device *parent)
++{
++	u32 cec_caps = CEC_CAP_LOG_ADDRS | CEC_CAP_TRANSMIT |
++		       CEC_CAP_PASSTHROUGH | CEC_CAP_RC | CEC_CAP_NEEDS_HPD;
++	unsigned int num_las = 1;
++	int err;
++	u8 cap;
++
++	if (drm_dp_dpcd_readb(aux, DP_CEC_TUNNELING_CAPABILITY, &cap) != 1 ||
++	    !(cap & DP_CEC_TUNNELING_CAPABLE)) {
++		cec_unregister_adapter(aux->cec_adap);
++		aux->cec_adap = NULL;
++		return -ENODEV;
++	}
++
++	if (cap & DP_CEC_SNOOPING_CAPABLE)
++		cec_caps |= CEC_CAP_MONITOR_ALL;
++	if (cap & DP_CEC_MULTIPLE_LA_CAPABLE)
++		num_las = CEC_MAX_LOG_ADDRS;
++
++	if (!IS_ERR_OR_NULL(aux->cec_adap)) {
++		if (aux->cec_adap->capabilities == cec_caps &&
++		    aux->cec_adap->available_log_addrs == num_las)
++			return 0;
++		cec_unregister_adapter(aux->cec_adap);
++	}
++
++	aux->cec_adap = cec_allocate_adapter(&drm_dp_cec_adap_ops,
++			 aux, name, cec_caps, num_las);
++	if (IS_ERR(aux->cec_adap)) {
++		err = PTR_ERR(aux->cec_adap);
++		aux->cec_adap = NULL;
++		return err;
++	}
++	err = cec_register_adapter(aux->cec_adap, parent);
++	if (err) {
++		cec_delete_adapter(aux->cec_adap);
++		aux->cec_adap = NULL;
++	}
++	return err;
++}
++EXPORT_SYMBOL(drm_dp_cec_configure_adapter);
+diff --git a/include/drm/drm_dp_helper.h b/include/drm/drm_dp_helper.h
+index b17476a6909c..0e236dd40b42 100644
+--- a/include/drm/drm_dp_helper.h
++++ b/include/drm/drm_dp_helper.h
+@@ -952,6 +952,8 @@ struct drm_dp_aux_msg {
+ 	size_t size;
+ };
+ 
++struct cec_adapter;
++
+ /**
+  * struct drm_dp_aux - DisplayPort AUX channel
+  * @name: user-visible name of this AUX channel and the I2C-over-AUX adapter
+@@ -1010,6 +1012,10 @@ struct drm_dp_aux {
+ 	 * @i2c_defer_count: Counts I2C DEFERs, used for DP validation.
+ 	 */
+ 	unsigned i2c_defer_count;
++	/**
++	 * @cec_adap: the CEC adapter for CEC-Tunneling-over-AUX support.
++	 */
++	struct cec_adapter *cec_adap;
+ };
+ 
+ ssize_t drm_dp_dpcd_read(struct drm_dp_aux *aux, unsigned int offset,
+@@ -1132,4 +1138,22 @@ drm_dp_has_quirk(const struct drm_dp_desc *desc, enum drm_dp_quirk quirk)
+ 	return desc->quirks & BIT(quirk);
+ }
+ 
++#ifdef CONFIG_DRM_DP_CEC
++bool drm_dp_cec_irq(struct drm_dp_aux *aux);
++int drm_dp_cec_configure_adapter(struct drm_dp_aux *aux, const char *name,
++				 struct device *parent);
++#else
++static inline bool drm_dp_cec_irq(struct drm_dp_aux *aux)
++{
++	return false;
++}
++
++static inline int drm_dp_cec_configure_adapter(struct drm_dp_aux *aux,
++					       const char *name,
++					       struct device *parent)
++{
++	return -ENODEV;
++}
++#endif
++
+ #endif /* _DRM_DP_HELPER_H_ */
+-- 
+2.13.2
