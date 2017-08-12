@@ -1,53 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44922
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751693AbdHaXrI (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:33798 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751402AbdHLL4h (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 19:47:08 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 02/15] media: dvb/intro: update references for TV standards
-Date: Thu, 31 Aug 2017 20:46:49 -0300
-Message-Id: <48d1f5611b7f4537e0208798763f92f6b2be18c0.1504222628.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
-References: <cover.1504222628.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
-References: <cover.1504222628.git.mchehab@s-opensource.com>
+        Sat, 12 Aug 2017 07:56:37 -0400
+Received: by mail-wm0-f67.google.com with SMTP id x64so9192994wmg.1
+        for <linux-media@vger.kernel.org>; Sat, 12 Aug 2017 04:56:36 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
+        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
+Subject: [PATCH v4 05/11] [media] ddbridge: only register frontends in fe2 if fe is not NULL
+Date: Sat, 12 Aug 2017 13:55:56 +0200
+Message-Id: <20170812115602.18124-6-d.scheller.oss@gmail.com>
+In-Reply-To: <20170812115602.18124-1-d.scheller.oss@gmail.com>
+References: <20170812115602.18124-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The references there are only for DVB. Add missing references for
-ATSC and ISDB standards.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Smatch reported:
+
+  drivers/media/pci/ddbridge/ddbridge-core.c:1602 dvb_input_attach() error: we previously assumed 'dvb->fe' could be null (see line 1595)
+
+dvb->fe2 will ever only be populated when dvb->fe is set. So only handle
+registration of dvb->fe2 when dvb->fe got set beforehand by moving the
+registration into the "if (dvb->fe)" conditional.
+
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <r.scobie@clear.net.nz>
+Tested-by: Jasmin Jessich <jasmin@anw.at>
+Tested-by: Dietmar Spingler <d_spingler@freenet.de>
+Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
 ---
- Documentation/media/uapi/dvb/intro.rst | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/media/pci/ddbridge/ddbridge-core.c | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/Documentation/media/uapi/dvb/intro.rst b/Documentation/media/uapi/dvb/intro.rst
-index de432ffcba50..991643d3b461 100644
---- a/Documentation/media/uapi/dvb/intro.rst
-+++ b/Documentation/media/uapi/dvb/intro.rst
-@@ -18,10 +18,13 @@ part I of the MPEG2 specification ISO/IEC 13818 (aka ITU-T H.222), i.e
- you should know what a program/transport stream (PS/TS) is and what is
- meant by a packetized elementary stream (PES) or an I-frame.
- 
--Various DVB standards documents are available from http://www.dvb.org
--and/or http://www.etsi.org.
-+Various Digital TV standards documents are available for download at:
- 
--It is also necessary to know how to access unix/linux devices and how to
-+- European standards (DVB): http://www.dvb.org and/or http://www.etsi.org.
-+- American standards (ATSC): https://www.atsc.org/standards/
-+- Japanese standards (ISDB): http://www.dibeg.org/
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index d7bf01f38d98..759a53e82252 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -1506,23 +1506,25 @@ static int dvb_input_attach(struct ddb_input *input)
+ 		return 0;
+ 	}
+ 	dvb->attached = 0x30;
 +
-+It is also necessary to know how to access Linux devices and how to
- use ioctl calls. This also includes the knowledge of C or C++.
+ 	if (dvb->fe) {
+ 		if (dvb_register_frontend(adap, dvb->fe) < 0)
+ 			return -ENODEV;
++
++		if (dvb->fe2) {
++			if (dvb_register_frontend(adap, dvb->fe2) < 0)
++				return -ENODEV;
++			dvb->fe2->tuner_priv = dvb->fe->tuner_priv;
++			memcpy(&dvb->fe2->ops.tuner_ops,
++			       &dvb->fe->ops.tuner_ops,
++			       sizeof(struct dvb_tuner_ops));
++		}
+ 	}
+-	if (dvb->fe2) {
+-		if (dvb_register_frontend(adap, dvb->fe2) < 0)
+-			return -ENODEV;
+-		dvb->fe2->tuner_priv = dvb->fe->tuner_priv;
+-		memcpy(&dvb->fe2->ops.tuner_ops,
+-		       &dvb->fe->ops.tuner_ops,
+-		       sizeof(struct dvb_tuner_ops));
+-	}
++
+ 	dvb->attached = 0x31;
+ 	return 0;
+ }
  
- 
+-
+ static int port_has_encti(struct ddb_port *port)
+ {
+ 	struct device *dev = port->dev->dev;
 -- 
-2.13.5
+2.13.0
