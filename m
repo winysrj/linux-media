@@ -1,129 +1,270 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:49688 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751019AbdHUDXi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Aug 2017 23:23:38 -0400
-Message-ID: <a71f6886730b5ac24921322cf545910c@smtp-cloud9.xs4all.net>
-Date: Mon, 21 Aug 2017 05:23:35 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mga11.intel.com ([192.55.52.93]:13327 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751989AbdHLWc2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 12 Aug 2017 18:32:28 -0400
+Date: Sun, 13 Aug 2017 06:32:09 +0800
+From: kbuild test robot <lkp@intel.com>
+To: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
+Cc: kbuild-all@01.org, Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Andy Walls <awalls@md.metrocast.net>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/5] [media] cxusb: add analog mode support for Medion
+ MD95700
+Message-ID: <201708130619.vuq0fThc%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6a74971c-171f-7336-065c-59cede29f624@maciej.szmigiero.name>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Maciej,
 
-Results of the daily build of media_tree:
+[auto build test WARNING on linuxtv-media/master]
+[also build test WARNING on v4.13-rc4 next-20170811]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-date:			Mon Aug 21 05:00:20 CEST 2017
-media-tree git hash:	ec0c3ec497cabbf3bfa03a9eb5edcc252190a4e0
-media_build git hash:	b1a305fb27ad5df895356baeff575a1ecb14ebf1
-v4l-utils git hash:	15df21b333e243827ac0f89d7f4f307bf0968baf
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.11.0-164
+url:    https://github.com/0day-ci/linux/commits/Maciej-S-Szmigiero/Add-analog-mode-support-for-Medion-MD95700/20170813-041742
+base:   git://linuxtv.org/media_tree.git master
+reproduce:
+        # apt-get install sparse
+        make ARCH=x86_64 allmodconfig
+        make C=1 CF=-D__CHECK_ENDIAN__
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-multi: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-arm-stm32: ERRORS
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-sh: ERRORS
-linux-git-x86_64: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: ERRORS
-linux-4.12.1-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: ERRORS
-linux-4.12.1-x86_64: ERRORS
-apps: WARNINGS
-spec-git: OK
 
-Detailed results are available here:
+sparse warnings: (new ones prefixed by >>)
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Full logs are available here:
+vim +359 drivers/media/usb/dvb-usb/cxusb-analog.c
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+   198	
+   199	static bool cxusb_medion_copy_field(struct dvb_usb_device *dvbdev,
+   200					    struct cxusb_medion_auxbuf *auxbuf,
+   201					    struct cxusb_bt656_params *bt656,
+   202					    bool firstfield,
+   203					    unsigned int maxlines,
+   204					    unsigned int maxlinesamples)
+   205	{
+   206		while (bt656->line < maxlines &&
+   207		       !cxusb_auxbuf_isend(auxbuf, bt656->pos)) {
+   208	
+   209			unsigned char val;
+   210	
+   211			if (!cxusb_auxbuf_copy(auxbuf, bt656->pos, &val, 1))
+   212				return false;
+   213	
+   214			if ((char)val == CXUSB_BT656_COMMON[0]) {
+   215				char buf[3];
+   216	
+   217				if (!cxusb_auxbuf_copy(auxbuf, bt656->pos + 1,
+   218						       buf, 3))
+   219					return false;
+   220	
+   221				if (buf[0] != (CXUSB_BT656_COMMON)[1] ||
+   222				    buf[1] != (CXUSB_BT656_COMMON)[2])
+   223					goto normal_sample;
+   224	
+   225				if (bt656->line != 0 && (!!firstfield !=
+   226							 ((buf[2] & CXUSB_FIELD_MASK)
+   227							  == CXUSB_FIELD_1))) {
+   228					if (bt656->fmode == LINE_SAMPLES) {
+   229						cxusb_vprintk(dvbdev, BT656,
+   230							      "field %c after line %u field change\n",
+   231							      firstfield ? '1' : '2',
+   232							      bt656->line);
+   233	
+   234						if (bt656->buf != NULL &&
+   235							maxlinesamples -
+   236							bt656->linesamples > 0) {
+   237	
+   238							memset(bt656->buf, 0,
+   239								maxlinesamples -
+   240								bt656->linesamples);
+   241	
+   242							bt656->buf +=
+   243								maxlinesamples -
+   244								bt656->linesamples;
+   245	
+   246							cxusb_vprintk(dvbdev, BT656,
+   247								      "field %c line %u %u samples still remaining (of %u)\n",
+   248								      firstfield ?
+   249								      '1' : '2',
+   250								      bt656->line,
+   251								      maxlinesamples -
+   252								      bt656->
+   253								      linesamples,
+   254								      maxlinesamples);
+   255						}
+   256	
+   257						bt656->line++;
+   258					}
+   259	
+   260					if (maxlines - bt656->line > 0 &&
+   261						bt656->buf != NULL) {
+   262						memset(bt656->buf, 0,
+   263							(maxlines - bt656->line)
+   264							* maxlinesamples);
+   265	
+   266						bt656->buf +=
+   267							(maxlines - bt656->line)
+   268							* maxlinesamples;
+   269	
+   270						cxusb_vprintk(dvbdev, BT656,
+   271							      "field %c %u lines still remaining (of %u)\n",
+   272							      firstfield ? '1' : '2',
+   273							      maxlines - bt656->line,
+   274							      maxlines);
+   275					}
+   276	
+   277					return true;
+   278				}
+   279	
+   280				if (bt656->fmode == START_SEARCH) {
+   281					if ((buf[2] & CXUSB_SEAV_MASK) ==
+   282					    CXUSB_SEAV_SAV &&
+   283					    (!!firstfield == ((buf[2] &
+   284							       CXUSB_FIELD_MASK)
+   285							      == CXUSB_FIELD_1))) {
+   286	
+   287						if ((buf[2] & CXUSB_VBI_MASK) ==
+   288						    CXUSB_VBI_OFF) {
+   289							cxusb_vprintk(dvbdev,
+   290								      BT656,
+   291								      "line start @ pos %x\n",
+   292								      bt656->pos);
+   293	
+   294							bt656->linesamples = 0;
+   295							bt656->fmode = LINE_SAMPLES;
+   296						} else {
+   297							cxusb_vprintk(dvbdev,
+   298								      BT656,
+   299								      "VBI start @ pos %x\n",
+   300								      bt656->pos);
+   301	
+   302							bt656->fmode = VBI_SAMPLES;
+   303						}
+   304					}
+   305	
+   306					bt656->pos =
+   307						cxusb_auxbuf_advance(auxbuf,
+   308								     bt656->pos, 4);
+   309					continue;
+   310				} else if (bt656->fmode == LINE_SAMPLES) {
+   311					if ((buf[2] & CXUSB_SEAV_MASK) ==
+   312					    CXUSB_SEAV_SAV)
+   313						cxusb_vprintk(dvbdev, BT656,
+   314							      "SAV in line samples @ line %u, pos %x\n",
+   315							      bt656->line, bt656->pos);
+   316	
+   317					if (bt656->buf != NULL && maxlinesamples -
+   318					    bt656->linesamples > 0) {
+   319	
+   320						memset(bt656->buf, 0,
+   321						       maxlinesamples -
+   322						       bt656->linesamples);
+   323						bt656->buf += maxlinesamples -
+   324							bt656->linesamples;
+   325	
+   326						cxusb_vprintk(dvbdev, BT656,
+   327							      "field %c line %u %u samples still remaining (of %u)\n",
+   328							      firstfield ? '1' : '2',
+   329							      bt656->line,
+   330							      maxlinesamples -
+   331							      bt656->linesamples,
+   332							      maxlinesamples);
+   333					}
+   334	
+   335	
+   336					bt656->fmode = START_SEARCH;
+   337					bt656->line++;
+   338					continue;
+   339				} else if (bt656->fmode == VBI_SAMPLES) {
+   340					if ((buf[2] & CXUSB_SEAV_MASK) ==
+   341					    CXUSB_SEAV_SAV)
+   342						cxusb_vprintk(dvbdev, BT656,
+   343							      "SAV in VBI samples @ pos %x\n",
+   344							      bt656->pos);
+   345	
+   346					bt656->fmode = START_SEARCH;
+   347					continue;
+   348				}
+   349	
+   350				bt656->pos =
+   351					cxusb_auxbuf_advance(auxbuf, bt656->pos, 4);
+   352				continue;
+   353			}
+   354	
+   355	normal_sample:
+   356			if (bt656->fmode == START_SEARCH && bt656->line != 0) {
+   357				unsigned char buf[64];
+   358				unsigned int idx;
+ > 359				unsigned int tocheck = min(sizeof(buf),
+   360							   max(sizeof(buf),
+   361							       maxlinesamples / 4));
+   362	
+   363				if (!cxusb_auxbuf_copy(auxbuf, bt656->pos + 1,
+   364						       buf, tocheck)) {
+   365					bt656->pos =
+   366						cxusb_auxbuf_advance(auxbuf,
+   367								     bt656->pos, 1);
+   368					continue;
+   369				}
+   370	
+   371				for (idx = 0; idx <= tocheck - 3; idx++)
+   372					if (memcmp(buf + idx, CXUSB_BT656_COMMON, 3)
+   373					    == 0)
+   374						break;
+   375	
+   376				if (idx <= tocheck - 3) {
+   377					bt656->pos =
+   378						cxusb_auxbuf_advance(auxbuf,
+   379								     bt656->pos, 1);
+   380					continue;
+   381				}
+   382	
+   383				cxusb_vprintk(dvbdev, BT656,
+   384					      "line %u early start, pos %x\n",
+   385					      bt656->line, bt656->pos);
+   386	
+   387				bt656->linesamples = 0;
+   388				bt656->fmode = LINE_SAMPLES;
+   389				continue;
+   390			} else if (bt656->fmode == LINE_SAMPLES) {
+   391				if (bt656->buf != NULL)
+   392					*(bt656->buf++) = val;
+   393	
+   394				bt656->linesamples++;
+   395				bt656->pos =
+   396					cxusb_auxbuf_advance(auxbuf,
+   397							     bt656->pos, 1);
+   398	
+   399				if (bt656->linesamples >= maxlinesamples) {
+   400					bt656->fmode = START_SEARCH;
+   401					bt656->line++;
+   402				}
+   403	
+   404				continue;
+   405			}
+   406			/* TODO: copy VBI samples */
+   407	
+   408			bt656->pos =
+   409				cxusb_auxbuf_advance(auxbuf,
+   410						     bt656->pos, 1);
+   411		}
+   412	
+   413		if (bt656->line < maxlines) {
+   414			cxusb_vprintk(dvbdev, BT656, "end of buffer, pos = %u\n",
+   415				      bt656->pos);
+   416			return false;
+   417		}
+   418	
+   419		return true;
+   420	}
+   421	
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
