@@ -1,79 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bl2nam02on0053.outbound.protection.outlook.com ([104.47.38.53]:37424
-        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752301AbdHIBbo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Aug 2017 21:31:44 -0400
-From: Jeffrey Mouroux <jeff.mouroux@xilinx.com>
-To: <mchehab@kernel.org>, <hansverk@cisco.com>,
-        <laurent.pinchart+renesas@ideasonboard.com>,
-        <sakari.ailus@linux.intel.com>, <tiffany.lin@mediatek.com>,
-        <ricardo.ribalda@gmail.com>, <evgeni.raikhel@intel.com>,
-        <nick@shmanahar.org>
-CC: <linux-media@vger.kernel.org>,
-        Jeffrey Mouroux <jmouroux@xilinx.com>
-Subject: [PATCH v1 2/2] media: v4l2-core: Update V4L2 framework with new fourcc codes
-Date: Tue, 8 Aug 2017 18:31:18 -0700
-Message-ID: <1502242278-14686-3-git-send-email-jmouroux@xilinx.com>
-In-Reply-To: <1502242278-14686-1-git-send-email-jmouroux@xilinx.com>
-References: <1502242278-14686-1-git-send-email-jmouroux@xilinx.com>
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:52135 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750975AbdHLIWJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 12 Aug 2017 04:22:09 -0400
+Subject: Re: [PATCH] v4l2-compat-ioctl32.c: make ctrl_is_pointer generic
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <3814fe88-647e-dc2d-2b5f-fcb1c925228b@xs4all.nl>
+ <20170811180818.2fc408b5@vento.lan>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <838eb18a-b7e0-4d2c-f42b-549488b519b6@xs4all.nl>
+Date: Sat, 12 Aug 2017 10:22:07 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20170811180818.2fc408b5@vento.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-New fourcc codes have been added to support additional video
-memory layout supported by Xilinx Video IP.  These have been
-added to the V4L2 framework with this patch.
+On 11/08/17 23:08, Mauro Carvalho Chehab wrote:
+> Em Fri, 11 Aug 2017 15:26:03 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> The ctrl_is_pointer used a hard-coded list of control IDs that besides being
+>> outdated also wouldn't work for custom driver controls.
+>>
+>> Replaced by calling queryctrl and checking if the V4L2_CTRL_FLAG_HAS_PAYLOAD
+>> flag was set.
+>>
+>> Note that get_v4l2_ext_controls32() will set the v4l2_ext_control 'size' field
+>> to 0 if the control has no payload before passing it to the kernel. This
+>> helps in put_v4l2_ext_controls32() since that function can just look at the
+>> 'size' field instead of having to call queryctrl again. The reason we set
+>> 'size' explicitly for non-pointer controls is that 'size' is ignored by the
+>> kernel in that case. That makes 'size' useless as an indicator of a pointer
+>> type in the put function since it can be any value. But setting it to 0 here
+>> turns it into a useful indicator.
+>>
+>> Also added proper checks for the compat_alloc_user_space return value which
+>> can be NULL, this was never done for some reason.
+> 
+> On a quick preview, please split those extra checks you added on
+> a separate patch.
+> 
+> The logic for the remaining parts of this patch is not trivial. I'll look 
+> into it later.
+> 
+>>
+>> Tested with a 32-bit build of v4l2-ctl and the vivid driver.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>> index af8b4c5b0efa..a16338cc216e 100644
+>> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
 
-Signed-off-by: Jeffrey Mouroux <jmouroux@xilinx.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+<snip>
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index cab63bb..d3edb7e 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1136,6 +1136,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_PIX_FMT_RGB32:	descr = "32-bit A/XRGB 8-8-8-8"; break;
- 	case V4L2_PIX_FMT_ARGB32:	descr = "32-bit ARGB 8-8-8-8"; break;
- 	case V4L2_PIX_FMT_XRGB32:	descr = "32-bit XRGB 8-8-8-8"; break;
-+	case V4L2_PIX_FMT_XBGR30:	descr = "32-bit XBGR 2-10-10-10"; break;
- 	case V4L2_PIX_FMT_GREY:		descr = "8-bit Greyscale"; break;
- 	case V4L2_PIX_FMT_Y4:		descr = "4-bit Greyscale"; break;
- 	case V4L2_PIX_FMT_Y6:		descr = "6-bit Greyscale"; break;
-@@ -1161,6 +1162,9 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_PIX_FMT_YUV411P:	descr = "Planar YUV 4:1:1"; break;
- 	case V4L2_PIX_FMT_Y41P:		descr = "YUV 4:1:1 (Packed)"; break;
- 	case V4L2_PIX_FMT_YUV444:	descr = "16-bit A/XYUV 4-4-4-4"; break;
-+	case V4L2_PIX_FMT_XVUY32:	descr = "32-bit packed XVUY 8-8-8-8"; break;
-+	case V4L2_PIX_FMT_AVUY32:	descr = "32-bit packed AVUY 8-8-8-8"; break;
-+	case V4L2_PIX_FMT_VUY24:	descr = "24-bit packed VUY 8-8-8"; break;
- 	case V4L2_PIX_FMT_YUV555:	descr = "16-bit A/XYUV 1-5-5-5"; break;
- 	case V4L2_PIX_FMT_YUV565:	descr = "16-bit YUV 5-6-5"; break;
- 	case V4L2_PIX_FMT_YUV32:	descr = "32-bit A/XYUV 8-8-8-8"; break;
-@@ -1169,16 +1173,21 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_PIX_FMT_HI240:	descr = "8-bit Dithered RGB (BTTV)"; break;
- 	case V4L2_PIX_FMT_HM12:		descr = "YUV 4:2:0 (16x16 Macroblocks)"; break;
- 	case V4L2_PIX_FMT_M420:		descr = "YUV 4:2:0 (M420)"; break;
-+	case V4L2_PIX_FMT_XVUY10:	descr = "XVUY 2-10-10-10"; break;
- 	case V4L2_PIX_FMT_NV12:		descr = "Y/CbCr 4:2:0"; break;
- 	case V4L2_PIX_FMT_NV21:		descr = "Y/CrCb 4:2:0"; break;
- 	case V4L2_PIX_FMT_NV16:		descr = "Y/CbCr 4:2:2"; break;
- 	case V4L2_PIX_FMT_NV61:		descr = "Y/CrCb 4:2:2"; break;
- 	case V4L2_PIX_FMT_NV24:		descr = "Y/CbCr 4:4:4"; break;
- 	case V4L2_PIX_FMT_NV42:		descr = "Y/CrCb 4:4:4"; break;
-+	case V4L2_PIX_FMT_XV20:		descr = "Y/CrCb 4:2:2 10-bit w/padding"; break;
-+	case V4L2_PIX_FMT_XV15:		descr = "Y/CrCb 4:2:0 10-bit w/padding"; break;
- 	case V4L2_PIX_FMT_NV12M:	descr = "Y/CbCr 4:2:0 (N-C)"; break;
- 	case V4L2_PIX_FMT_NV21M:	descr = "Y/CrCb 4:2:0 (N-C)"; break;
- 	case V4L2_PIX_FMT_NV16M:	descr = "Y/CbCr 4:2:2 (N-C)"; break;
- 	case V4L2_PIX_FMT_NV61M:	descr = "Y/CrCb 4:2:2 (N-C)"; break;
-+	case V4L2_PIX_FMT_XV20M:	descr = "Y/CrCb 4:2:2 (N-C) 10-bit w/padding"; break;
-+	case V4L2_PIX_FMT_XV15M:	descr = "Y/CrCb 4:2:0 (N-C) 10-bit w/padding"; break;
- 	case V4L2_PIX_FMT_NV12MT:	descr = "Y/CbCr 4:2:0 (64x32 MB, N-C)"; break;
- 	case V4L2_PIX_FMT_NV12MT_16X16:	descr = "Y/CbCr 4:2:0 (16x16 MB, N-C)"; break;
- 	case V4L2_PIX_FMT_YUV420M:	descr = "Planar YUV 4:2:0 (N-C)"; break;
--- 
-1.9.1
+>> -/* The following function really belong in v4l2-common, but that causes
+>> -   a circular dependency between modules. We need to think about this, but
+>> -   for now this will do. */
+>>
+>> -/* Return non-zero if this control is a pointer type. Currently only
+>> -   type STRING is a pointer type. */
+>> -static inline int ctrl_is_pointer(u32 id)
+>> +/* Return non-zero if this control is a pointer type. */
+>> +static inline int ctrl_is_pointer(struct file *file, u32 id)
+>>  {
+>> -	switch (id) {
+>> -	case V4L2_CID_RDS_TX_PS_NAME:
+>> -	case V4L2_CID_RDS_TX_RADIO_TEXT:
+>> -		return 1;
+>> -	default:
+>> +	struct video_device *vfd = video_devdata(file);
+>> +	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
+>> +	void *fh = file->private_data;
+>> +	struct v4l2_fh *vfh =
+>> +		test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) ? fh : NULL;
+>> +	struct v4l2_queryctrl qctrl = { id };
+>> +	int err;
+>> +
+>> +	if (!test_bit(_IOC_NR(VIDIOC_QUERYCTRL), vfd->valid_ioctls))
+>> +		err = -ENOTTY;
+>> +	else if (vfh && vfh->ctrl_handler)
+>> +		err = v4l2_queryctrl(vfh->ctrl_handler, &qctrl);
+>> +	else if (vfd->ctrl_handler)
+>> +		err = v4l2_queryctrl(vfd->ctrl_handler, &qctrl);
+>> +	else if (ops->vidioc_queryctrl)
+>> +		err = ops->vidioc_queryctrl(file, fh, &qctrl);
+>> +	else
+>> +		err = -ENOTTY;
+>> +
+>> +	if (err)
+>>  		return 0;
+>> -	}
+>> +
+>> +	return qctrl.flags & V4L2_CTRL_FLAG_HAS_PAYLOAD;
+>>  }
+
+Mauro,
+
+I'd like your opinion on something: the code to call queryctrl is identical to
+the v4l_queryctrl() function in v4l2-ioctl.c. I have been debating with myself
+whether or not to drop the 'static' from that v4l2-ioctl.c function and call
+it from here. It's a bit unexpected to have this source calling a function in
+v4l2-ioctl.c, but on the other hand it avoids having a copy of that function.
+
+I'm leaning towards calling v4l_queryctrl from here, but I wonder what you
+think.
+
+Regards,
+
+	Hans
