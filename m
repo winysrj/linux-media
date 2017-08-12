@@ -1,39 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:38099 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752583AbdHQL4f (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36126 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750896AbdHLL4a (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Aug 2017 07:56:35 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: mchehab@kernel.org, hverkuil@xs4all.nl
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH] [media] usb: pulse8-cec: constify serio_device_id
-Date: Thu, 17 Aug 2017 17:26:23 +0530
-Message-Id: <e7621768ad407ec297b173e3a768a29f9136a780.1502970772.git.arvind.yadav.cs@gmail.com>
+        Sat, 12 Aug 2017 07:56:30 -0400
+Received: by mail-wm0-f68.google.com with SMTP id d40so9165782wma.3
+        for <linux-media@vger.kernel.org>; Sat, 12 Aug 2017 04:56:29 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
+        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
+Subject: [PATCH v4 02/11] [media] ddbridge: split I/O related functions off from ddbridge.h
+Date: Sat, 12 Aug 2017 13:55:53 +0200
+Message-Id: <20170812115602.18124-3-d.scheller.oss@gmail.com>
+In-Reply-To: <20170812115602.18124-1-d.scheller.oss@gmail.com>
+References: <20170812115602.18124-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-serio_device_id are not supposed to change at runtime. All functions
-working with serio_device_id provided by <linux/serio.h> work with
-const serio_device_id. So mark the non-const structs as const.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+While it seems valid that headers can carry simple oneline static inline
+annotated functions, move them into their own header file to have the
+overall code more readable. Also, keep them as header (and don't put in
+a separate object) and static inline to help the compiler avoid
+generating function calls.
+
+(Thanks to Jasmin J. <jasmin@anw.at> for valuable input on this!)
+
+Cc: Jasmin J. <jasmin@anw.at>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <r.scobie@clear.net.nz>
+Tested-by: Jasmin Jessich <jasmin@anw.at>
+Tested-by: Dietmar Spingler <d_spingler@freenet.de>
+Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
 ---
- drivers/media/usb/pulse8-cec/pulse8-cec.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/pci/ddbridge/ddbridge-core.c |  1 +
+ drivers/media/pci/ddbridge/ddbridge-i2c.c  |  1 +
+ drivers/media/pci/ddbridge/ddbridge-io.h   | 71 ++++++++++++++++++++++++++++++
+ drivers/media/pci/ddbridge/ddbridge-main.c |  1 +
+ drivers/media/pci/ddbridge/ddbridge.h      | 43 ------------------
+ 5 files changed, 74 insertions(+), 43 deletions(-)
+ create mode 100644 drivers/media/pci/ddbridge/ddbridge-io.h
 
-diff --git a/drivers/media/usb/pulse8-cec/pulse8-cec.c b/drivers/media/usb/pulse8-cec/pulse8-cec.c
-index c843070..d10d803 100644
---- a/drivers/media/usb/pulse8-cec/pulse8-cec.c
-+++ b/drivers/media/usb/pulse8-cec/pulse8-cec.c
-@@ -732,7 +732,7 @@ static void pulse8_ping_eeprom_work_handler(struct work_struct *work)
- 	mutex_unlock(&pulse8->config_lock);
- }
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 6cda798a80a4..de73b74a7afc 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -37,6 +37,7 @@
+ #include "ddbridge.h"
+ #include "ddbridge-i2c.h"
+ #include "ddbridge-regs.h"
++#include "ddbridge-io.h"
  
--static struct serio_device_id pulse8_serio_ids[] = {
-+static const struct serio_device_id pulse8_serio_ids[] = {
- 	{
- 		.type	= SERIO_RS232,
- 		.proto	= SERIO_PULSE8_CEC,
+ #include "tda18271c2dd.h"
+ #include "stv6110x.h"
+diff --git a/drivers/media/pci/ddbridge/ddbridge-i2c.c b/drivers/media/pci/ddbridge/ddbridge-i2c.c
+index 376d8a7ca0b9..3d4fafb5db27 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-i2c.c
++++ b/drivers/media/pci/ddbridge/ddbridge-i2c.c
+@@ -33,6 +33,7 @@
+ #include "ddbridge.h"
+ #include "ddbridge-i2c.h"
+ #include "ddbridge-regs.h"
++#include "ddbridge-io.h"
+ 
+ /******************************************************************************/
+ 
+diff --git a/drivers/media/pci/ddbridge/ddbridge-io.h b/drivers/media/pci/ddbridge/ddbridge-io.h
+new file mode 100644
+index 000000000000..ce92e9484075
+--- /dev/null
++++ b/drivers/media/pci/ddbridge/ddbridge-io.h
+@@ -0,0 +1,71 @@
++/*
++ * ddbridge-io.h: Digital Devices bridge I/O inline functions
++ *
++ * Copyright (C) 2010-2017 Digital Devices GmbH
++ *                         Ralph Metzler <rjkm@metzlerbros.de>
++ *                         Marcus Metzler <mocm@metzlerbros.de>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 only, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#ifndef __DDBRIDGE_IO_H__
++#define __DDBRIDGE_IO_H__
++
++#include <linux/io.h>
++
++#include "ddbridge.h"
++
++/******************************************************************************/
++
++static inline u32 ddblreadl(struct ddb_link *link, u32 adr)
++{
++	return readl((char *) (link->dev->regs + (adr)));
++}
++
++static inline void ddblwritel(struct ddb_link *link, u32 val, u32 adr)
++{
++	writel(val, (char *) (link->dev->regs + (adr)));
++}
++
++static inline u32 ddbreadl(struct ddb *dev, u32 adr)
++{
++	return readl((char *) (dev->regs + (adr)));
++}
++
++static inline void ddbwritel(struct ddb *dev, u32 val, u32 adr)
++{
++	writel(val, (char *) (dev->regs + (adr)));
++}
++
++static inline void ddbcpyto(struct ddb *dev, u32 adr, void *src, long count)
++{
++	return memcpy_toio((char *) (dev->regs + adr), src, count);
++}
++
++static inline void ddbcpyfrom(struct ddb *dev, void *dst, u32 adr, long count)
++{
++	return memcpy_fromio(dst, (char *) (dev->regs + adr), count);
++}
++
++static inline u32 safe_ddbreadl(struct ddb *dev, u32 adr)
++{
++	u32 val = ddbreadl(dev, adr);
++
++	/* (ddb)readl returns (uint)-1 (all bits set) on failure, catch that */
++	if (val == ~0) {
++		dev_err(&dev->pdev->dev, "ddbreadl failure, adr=%08x\n", adr);
++		return 0;
++	}
++
++	return val;
++}
++
++#endif /* __DDBRIDGE_IO_H__ */
+diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
+index 73b041118bbf..d06543bbc393 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-main.c
++++ b/drivers/media/pci/ddbridge/ddbridge-main.c
+@@ -35,6 +35,7 @@
+ #include "ddbridge.h"
+ #include "ddbridge-i2c.h"
+ #include "ddbridge-regs.h"
++#include "ddbridge-io.h"
+ 
+ /****************************************************************************/
+ /* module parameters */
+diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
+index 65b3f6b38bd7..4b78b01cc0a8 100644
+--- a/drivers/media/pci/ddbridge/ddbridge.h
++++ b/drivers/media/pci/ddbridge/ddbridge.h
+@@ -349,49 +349,6 @@ struct ddb {
+ 	u8                     tsbuf[TS_CAPTURE_LEN];
+ };
+ 
+-static inline u32 ddblreadl(struct ddb_link *link, u32 adr)
+-{
+-	return readl((char *) (link->dev->regs + (adr)));
+-}
+-
+-static inline void ddblwritel(struct ddb_link *link, u32 val, u32 adr)
+-{
+-	writel(val, (char *) (link->dev->regs + (adr)));
+-}
+-
+-static inline u32 ddbreadl(struct ddb *dev, u32 adr)
+-{
+-	return readl((char *) (dev->regs + (adr)));
+-}
+-
+-static inline void ddbwritel(struct ddb *dev, u32 val, u32 adr)
+-{
+-	writel(val, (char *) (dev->regs + (adr)));
+-}
+-
+-static inline void ddbcpyto(struct ddb *dev, u32 adr, void *src, long count)
+-{
+-	return memcpy_toio((char *) (dev->regs + adr), src, count);
+-}
+-
+-static inline void ddbcpyfrom(struct ddb *dev, void *dst, u32 adr, long count)
+-{
+-	return memcpy_fromio(dst, (char *) (dev->regs + adr), count);
+-}
+-
+-static inline u32 safe_ddbreadl(struct ddb *dev, u32 adr)
+-{
+-	u32 val = ddbreadl(dev, adr);
+-
+-	/* (ddb)readl returns (uint)-1 (all bits set) on failure, catch that */
+-	if (val == ~0) {
+-		dev_err(&dev->pdev->dev, "ddbreadl failure, adr=%08x\n", adr);
+-		return 0;
+-	}
+-
+-	return val;
+-}
+-
+ /****************************************************************************/
+ /****************************************************************************/
+ /****************************************************************************/
 -- 
-2.7.4
+2.13.0
