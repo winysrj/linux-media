@@ -1,43 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:36493 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751857AbdHGNb1 (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:38224 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750968AbdHLMMr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Aug 2017 09:31:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Sean Young <sean@mess.org>
-Subject: [PATCH 0/2] cec: improve RC passthrough behavior
-Date: Mon,  7 Aug 2017 15:31:22 +0200
-Message-Id: <20170807133124.30682-1-hverkuil@xs4all.nl>
+        Sat, 12 Aug 2017 08:12:47 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, mkrufky@linuxtv.org, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH] [media] tuners: make tda18271_std_map const
+Date: Sat, 12 Aug 2017 17:42:36 +0530
+Message-Id: <1502539956-20977-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Make these const as they are only used during a copy operation.
+Done using Coccinelle.
 
-The CEC remote control passthrough behavior was not correct in the case
-of the 'Press and Hold' auto-repeat feature.
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/media/tuners/tda18271-maps.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-This patch series fixes this.
-
-The first patch teaches rc about the CEC protocol keypress timeout (550 ms).
-
-The second improves the cec rc code so that it creates the correct behavior
-as required by CEC.
-
-Regards,
-
-	Hans
-
-Hans Verkuil (2):
-  rc-main: support CEC protocol keypress timeout
-  cec: fix remote control passthrough
-
- drivers/media/cec/cec-adap.c | 56 ++++++++++++++++++++++++++++++++++++++++----
- drivers/media/cec/cec-core.c | 13 ++++++++++
- drivers/media/rc/rc-main.c   | 17 ++++++++++++--
- include/media/cec.h          |  5 ++++
- 4 files changed, 84 insertions(+), 7 deletions(-)
-
+diff --git a/drivers/media/tuners/tda18271-maps.c b/drivers/media/tuners/tda18271-maps.c
+index 7d11467..9679804 100644
+--- a/drivers/media/tuners/tda18271-maps.c
++++ b/drivers/media/tuners/tda18271-maps.c
+@@ -1182,7 +1182,7 @@ int tda18271_lookup_map(struct dvb_frontend *fe,
+ 
+ /*---------------------------------------------------------------------*/
+ 
+-static struct tda18271_std_map tda18271c1_std_map = {
++static const struct tda18271_std_map tda18271c1_std_map = {
+ 	.fm_radio = { .if_freq = 1250, .fm_rfn = 1, .agc_mode = 3, .std = 0,
+ 		      .if_lvl = 0, .rfagc_top = 0x2c, }, /* EP3[4:0] 0x18 */
+ 	.atv_b    = { .if_freq = 6750, .fm_rfn = 0, .agc_mode = 1, .std = 6,
+@@ -1215,7 +1215,7 @@ int tda18271_lookup_map(struct dvb_frontend *fe,
+ 		      .if_lvl = 1, .rfagc_top = 0x37, }, /* EP3[4:0] 0x1f */
+ };
+ 
+-static struct tda18271_std_map tda18271c2_std_map = {
++static const struct tda18271_std_map tda18271c2_std_map = {
+ 	.fm_radio = { .if_freq = 1250, .fm_rfn = 1, .agc_mode = 3, .std = 0,
+ 		      .if_lvl = 0, .rfagc_top = 0x2c, }, /* EP3[4:0] 0x18 */
+ 	.atv_b    = { .if_freq = 6000, .fm_rfn = 0, .agc_mode = 1, .std = 5,
 -- 
-2.13.2
+1.9.1
