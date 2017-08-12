@@ -1,230 +1,811 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:60493 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751589AbdHGUVB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Aug 2017 16:21:01 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/6] Various RC fixes
-Date: Mon,  7 Aug 2017 21:20:53 +0100
-Message-Id: <cover.1502137028.git.sean@mess.org>
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:36051 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750980AbdHLJxf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 12 Aug 2017 05:53:35 -0400
+Subject: Re: [PATCH 4/4] drm: adv7511/33: add HDMI CEC support
+To: Archit Taneja <architt@codeaurora.org>, linux-media@vger.kernel.org
+References: <20170730130743.19681-1-hverkuil@xs4all.nl>
+ <20170730130743.19681-5-hverkuil@xs4all.nl>
+ <811a3e0c-d938-744e-2d1d-46be76b708aa@codeaurora.org>
+Cc: dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, devicetree@vger.kernel.org,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2d2e2a68-8b55-580d-b109-f639aa9fcd00@xs4all.nl>
+Date: Sat, 12 Aug 2017 11:53:31 +0200
+MIME-Version: 1.0
+In-Reply-To: <811a3e0c-d938-744e-2d1d-46be76b708aa@codeaurora.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some improvements to the saa7134 raw decoder, more efficient gpio-ir-recv
-and a few cosmetic changes.
+On 10/08/17 10:49, Archit Taneja wrote:
+> 
+> 
+> On 07/30/2017 06:37 PM, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Add support for HDMI CEC to the drm adv7511/adv7533 drivers.
+>>
+>> The CEC registers that we need to use are identical for both drivers,
+>> but they appear at different offsets in the register map.
+> 
+> Thanks for the patch. Some minor comments below.
+> 
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>   drivers/gpu/drm/bridge/adv7511/Kconfig       |   8 +
+>>   drivers/gpu/drm/bridge/adv7511/Makefile      |   1 +
+>>   drivers/gpu/drm/bridge/adv7511/adv7511.h     |  45 +++-
+>>   drivers/gpu/drm/bridge/adv7511/adv7511_cec.c | 314 +++++++++++++++++++++++++++
+>>   drivers/gpu/drm/bridge/adv7511/adv7511_drv.c | 152 +++++++++++--
+>>   drivers/gpu/drm/bridge/adv7511/adv7533.c     |  30 +--
+>>   6 files changed, 500 insertions(+), 50 deletions(-)
+>>   create mode 100644 drivers/gpu/drm/bridge/adv7511/adv7511_cec.c
+>>
+>> diff --git a/drivers/gpu/drm/bridge/adv7511/Kconfig b/drivers/gpu/drm/bridge/adv7511/Kconfig
+>> index 2fed567f9943..592b9d2ec034 100644
+>> --- a/drivers/gpu/drm/bridge/adv7511/Kconfig
+>> +++ b/drivers/gpu/drm/bridge/adv7511/Kconfig
+>> @@ -21,3 +21,11 @@ config DRM_I2C_ADV7533
+>>       default y
+>>       help
+>>         Support for the Analog Devices ADV7533 DSI to HDMI encoder.
+>> +
+>> +config DRM_I2C_ADV7511_CEC
+>> +    bool "ADV7511/33 HDMI CEC driver"
+>> +    depends on DRM_I2C_ADV7511
+>> +    select CEC_CORE
+>> +    default y
+>> +    help
+>> +      When selected the HDMI transmitter will support the CEC feature.
+>> diff --git a/drivers/gpu/drm/bridge/adv7511/Makefile b/drivers/gpu/drm/bridge/adv7511/Makefile
+>> index 5ba675534f6e..5bb384938a71 100644
+>> --- a/drivers/gpu/drm/bridge/adv7511/Makefile
+>> +++ b/drivers/gpu/drm/bridge/adv7511/Makefile
+>> @@ -1,4 +1,5 @@
+>>   adv7511-y := adv7511_drv.o
+>>   adv7511-$(CONFIG_DRM_I2C_ADV7511_AUDIO) += adv7511_audio.o
+>> +adv7511-$(CONFIG_DRM_I2C_ADV7511_CEC) += adv7511_cec.o
+>>   adv7511-$(CONFIG_DRM_I2C_ADV7533) += adv7533.o
+>>   obj-$(CONFIG_DRM_I2C_ADV7511) += adv7511.o
+>> diff --git a/drivers/gpu/drm/bridge/adv7511/adv7511.h b/drivers/gpu/drm/bridge/adv7511/adv7511.h
+>> index fe18a5d2d84b..4fd7b14f619b 100644
+>> --- a/drivers/gpu/drm/bridge/adv7511/adv7511.h
+>> +++ b/drivers/gpu/drm/bridge/adv7511/adv7511.h
+>> @@ -195,6 +195,25 @@
+>>   #define ADV7511_PACKET_GM(x)        ADV7511_PACKET(5, x)
+>>   #define ADV7511_PACKET_SPARE(x)        ADV7511_PACKET(6, x)
+>>   +#define ADV7511_REG_CEC_TX_FRAME_HDR    0x00
+>> +#define ADV7511_REG_CEC_TX_FRAME_DATA0    0x01
+>> +#define ADV7511_REG_CEC_TX_FRAME_LEN    0x10
+>> +#define ADV7511_REG_CEC_TX_ENABLE    0x11
+>> +#define ADV7511_REG_CEC_TX_RETRY    0x12
+>> +#define ADV7511_REG_CEC_TX_LOW_DRV_CNT    0x14
+>> +#define ADV7511_REG_CEC_RX_FRAME_HDR    0x15
+>> +#define ADV7511_REG_CEC_RX_FRAME_DATA0    0x16
+>> +#define ADV7511_REG_CEC_RX_FRAME_LEN    0x25
+>> +#define ADV7511_REG_CEC_RX_ENABLE    0x26
+>> +#define ADV7511_REG_CEC_RX_BUFFERS    0x4a
+>> +#define ADV7511_REG_CEC_LOG_ADDR_MASK    0x4b
+>> +#define ADV7511_REG_CEC_LOG_ADDR_0_1    0x4c
+>> +#define ADV7511_REG_CEC_LOG_ADDR_2    0x4d
+>> +#define ADV7511_REG_CEC_CLK_DIV        0x4e
+>> +#define ADV7511_REG_CEC_SOFT_RESET    0x50
+>> +
+>> +#define ADV7533_REG_CEC_OFFSET        0x70
+>> +
+>>   enum adv7511_input_clock {
+>>       ADV7511_INPUT_CLOCK_1X,
+>>       ADV7511_INPUT_CLOCK_2X,
+>> @@ -297,6 +316,8 @@ enum adv7511_type {
+>>       ADV7533,
+>>   };
+>>   +#define ADV7511_MAX_ADDRS 3
+>> +
+>>   struct adv7511 {
+>>       struct i2c_client *i2c_main;
+>>       struct i2c_client *i2c_edid;
+>> @@ -343,15 +364,29 @@ struct adv7511 {
+>>         enum adv7511_type type;
+>>       struct platform_device *audio_pdev;
+>> +
+>> +    struct cec_adapter *cec_adap;
+>> +    u8   cec_addr[ADV7511_MAX_ADDRS];
+>> +    u8   cec_valid_addrs;
+>> +    bool cec_enabled_adap;
+>> +    struct clk *cec_clk;
+>> +    u32 cec_clk_freq;
+>>   };
+>>   +#ifdef CONFIG_DRM_I2C_ADV7511_CEC
+>> +extern const struct cec_adap_ops adv7511_cec_adap_ops;
+>> +
+>> +void adv7511_cec_init(struct adv7511 *adv7511, unsigned int offset);
+>> +int adv7511_cec_parse_dt(struct device *dev, struct adv7511 *adv7511);
+>> +void adv7511_cec_irq_process(struct adv7511 *adv7511, unsigned int irq1);
+>> +#endif
+>> +
+>>   #ifdef CONFIG_DRM_I2C_ADV7533
+>>   void adv7533_dsi_power_on(struct adv7511 *adv);
+>>   void adv7533_dsi_power_off(struct adv7511 *adv);
+>>   void adv7533_mode_set(struct adv7511 *adv, struct drm_display_mode *mode);
+>>   int adv7533_patch_registers(struct adv7511 *adv);
+>> -void adv7533_uninit_cec(struct adv7511 *adv);
+>> -int adv7533_init_cec(struct adv7511 *adv);
+>> +int adv7533_patch_cec_registers(struct adv7511 *adv);
+>>   int adv7533_attach_dsi(struct adv7511 *adv);
+>>   void adv7533_detach_dsi(struct adv7511 *adv);
+>>   int adv7533_parse_dt(struct device_node *np, struct adv7511 *adv);
+>> @@ -374,11 +409,7 @@ static inline int adv7533_patch_registers(struct adv7511 *adv)
+>>       return -ENODEV;
+>>   }
+>>   -static inline void adv7533_uninit_cec(struct adv7511 *adv)
+>> -{
+>> -}
+>> -
+>> -static inline int adv7533_init_cec(struct adv7511 *adv)
+>> +static inline int adv7533_patch_cec_registers(struct adv7511 *adv)
+>>   {
+>>       return -ENODEV;
+>>   }
+>> diff --git a/drivers/gpu/drm/bridge/adv7511/adv7511_cec.c b/drivers/gpu/drm/bridge/adv7511/adv7511_cec.c
+>> new file mode 100644
+>> index 000000000000..74081cbfb5db
+>> --- /dev/null
+>> +++ b/drivers/gpu/drm/bridge/adv7511/adv7511_cec.c
+>> @@ -0,0 +1,314 @@
+>> +/*
+>> + * adv7511_cec.c - Analog Devices ADV7511/33 cec driver
+>> + *
+>> + * Copyright 2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+>> + *
+>> + * This program is free software; you may redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License as published by
+>> + * the Free Software Foundation; version 2 of the License.
+>> + *
+>> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+>> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+>> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+>> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+>> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+>> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+>> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+>> + * SOFTWARE.
+>> + *
+>> + */
+>> +
+>> +#include <linux/device.h>
+>> +#include <linux/module.h>
+>> +#include <linux/of_device.h>
+>> +#include <linux/slab.h>
+>> +#include <linux/clk.h>
+>> +
+>> +#include <media/cec.h>
+>> +
+>> +#include "adv7511.h"
+>> +
+>> +#define ADV7511_INT1_CEC_MASK \
+>> +    (ADV7511_INT1_CEC_TX_READY | ADV7511_INT1_CEC_TX_ARBIT_LOST | \
+>> +     ADV7511_INT1_CEC_TX_RETRY_TIMEOUT | ADV7511_INT1_CEC_RX_READY1)
+>> +
+>> +static void adv_cec_tx_raw_status(struct adv7511 *adv7511, u8 tx_raw_status)
+>> +{
+>> +    unsigned int offset = adv7511->type == ADV7533 ?
+>> +                    ADV7533_REG_CEC_OFFSET : 0;
+>> +    unsigned int val;
+>> +
+>> +    if (regmap_read(adv7511->regmap_cec,
+>> +            ADV7511_REG_CEC_TX_ENABLE + offset, &val))
+>> +        return;
+>> +
+>> +    if ((val & 0x01) == 0)
+>> +        return;
+>> +
+>> +    if (tx_raw_status & 0x10) {
+> 
+> Should we try to use IRQ1 masks (ADV7511_INT1_CEC_TX_ARBIT_LOST here) to make the
+> code more legible?
+> 
+> Same comments for the rest of this func and adv7511_cec_irq_process below.
 
-Sean Young (6):
-  [media] rc-core: improve ir_raw_store_edge() handling
-  [media] rc: saa7134: add trailing space for timely decoding
-  [media] rc: simplify ir_raw_event_store_edge()
-  [media] rc: ensure we do not read out of bounds
-  [media] rc: rename RC_TYPE_* to RC_PROTO_* and RC_BIT_* to
-    RC_PROTO_BIT_*
-  [media] rc: saa7134: raw decoder can support any protocol
+Done.
 
- drivers/hid/hid-picolcd_cir.c                      |   2 +-
- drivers/media/cec/cec-adap.c                       |   6 +-
- drivers/media/cec/cec-core.c                       |   2 +-
- drivers/media/common/siano/smsir.c                 |   2 +-
- drivers/media/i2c/ir-kbd-i2c.c                     |  57 +++---
- drivers/media/pci/bt8xx/bttv-input.c               |  16 +-
- drivers/media/pci/cx18/cx18-i2c.c                  |   4 +-
- drivers/media/pci/cx23885/cx23885-input.c          |  14 +-
- drivers/media/pci/cx88/cx88-input.c                |  28 +--
- drivers/media/pci/dm1105/dm1105.c                  |   2 +-
- drivers/media/pci/ivtv/ivtv-i2c.c                  |  14 +-
- drivers/media/pci/mantis/mantis_input.c            |   2 +-
- drivers/media/pci/saa7134/saa7134-input.c          |  79 +++-----
- drivers/media/pci/smipcie/smipcie-ir.c             |   2 +-
- drivers/media/pci/ttpci/budget-ci.c                |   5 +-
- drivers/media/rc/ati_remote.c                      |   5 +-
- drivers/media/rc/ene_ir.c                          |   2 +-
- drivers/media/rc/fintek-cir.c                      |   2 +-
- drivers/media/rc/gpio-ir-recv.c                    |  29 +--
- drivers/media/rc/igorplugusb.c                     |   9 +-
- drivers/media/rc/iguanair.c                        |   2 +-
- drivers/media/rc/img-ir/img-ir-hw.c                |   4 +-
- drivers/media/rc/img-ir/img-ir-hw.h                |   4 +-
- drivers/media/rc/img-ir/img-ir-jvc.c               |   4 +-
- drivers/media/rc/img-ir/img-ir-nec.c               |  20 +-
- drivers/media/rc/img-ir/img-ir-raw.c               |   4 +-
- drivers/media/rc/img-ir/img-ir-rc5.c               |   4 +-
- drivers/media/rc/img-ir/img-ir-rc6.c               |   4 +-
- drivers/media/rc/img-ir/img-ir-sanyo.c             |   4 +-
- drivers/media/rc/img-ir/img-ir-sharp.c             |   4 +-
- drivers/media/rc/img-ir/img-ir-sony.c              |  27 +--
- drivers/media/rc/imon.c                            |  49 ++---
- drivers/media/rc/ir-hix5hd2.c                      |   2 +-
- drivers/media/rc/ir-jvc-decoder.c                  |   6 +-
- drivers/media/rc/ir-mce_kbd-decoder.c              |   6 +-
- drivers/media/rc/ir-nec-decoder.c                  |  17 +-
- drivers/media/rc/ir-rc5-decoder.c                  |  25 +--
- drivers/media/rc/ir-rc6-decoder.c                  |  30 +--
- drivers/media/rc/ir-sanyo-decoder.c                |   6 +-
- drivers/media/rc/ir-sharp-decoder.c                |   6 +-
- drivers/media/rc/ir-sony-decoder.c                 |  23 +--
- drivers/media/rc/ir-xmp-decoder.c                  |   4 +-
- drivers/media/rc/ite-cir.c                         |   2 +-
- drivers/media/rc/keymaps/rc-adstech-dvb-t-pci.c    |   8 +-
- drivers/media/rc/keymaps/rc-alink-dtu-m.c          |   8 +-
- drivers/media/rc/keymaps/rc-anysee.c               |   8 +-
- drivers/media/rc/keymaps/rc-apac-viewcomp.c        |   8 +-
- drivers/media/rc/keymaps/rc-asus-pc39.c            |   8 +-
- drivers/media/rc/keymaps/rc-asus-ps3-100.c         |   8 +-
- drivers/media/rc/keymaps/rc-ati-tv-wonder-hd-600.c |   8 +-
- drivers/media/rc/keymaps/rc-ati-x10.c              |   8 +-
- drivers/media/rc/keymaps/rc-avermedia-a16d.c       |   8 +-
- drivers/media/rc/keymaps/rc-avermedia-cardbus.c    |   8 +-
- drivers/media/rc/keymaps/rc-avermedia-dvbt.c       |   8 +-
- drivers/media/rc/keymaps/rc-avermedia-m135a.c      |   8 +-
- .../media/rc/keymaps/rc-avermedia-m733a-rm-k6.c    |   8 +-
- drivers/media/rc/keymaps/rc-avermedia-rm-ks.c      |   8 +-
- drivers/media/rc/keymaps/rc-avermedia.c            |   8 +-
- drivers/media/rc/keymaps/rc-avertv-303.c           |   8 +-
- drivers/media/rc/keymaps/rc-azurewave-ad-tu700.c   |   8 +-
- drivers/media/rc/keymaps/rc-behold-columbus.c      |   8 +-
- drivers/media/rc/keymaps/rc-behold.c               |   8 +-
- drivers/media/rc/keymaps/rc-budget-ci-old.c        |   8 +-
- drivers/media/rc/keymaps/rc-cec.c                  |   2 +-
- drivers/media/rc/keymaps/rc-cinergy-1400.c         |   8 +-
- drivers/media/rc/keymaps/rc-cinergy.c              |   8 +-
- drivers/media/rc/keymaps/rc-d680-dmb.c             |   8 +-
- drivers/media/rc/keymaps/rc-delock-61959.c         |   8 +-
- drivers/media/rc/keymaps/rc-dib0700-nec.c          |   8 +-
- drivers/media/rc/keymaps/rc-dib0700-rc5.c          |   8 +-
- drivers/media/rc/keymaps/rc-digitalnow-tinytwin.c  |   8 +-
- drivers/media/rc/keymaps/rc-digittrade.c           |   8 +-
- drivers/media/rc/keymaps/rc-dm1105-nec.c           |   8 +-
- drivers/media/rc/keymaps/rc-dntv-live-dvb-t.c      |   8 +-
- drivers/media/rc/keymaps/rc-dntv-live-dvbt-pro.c   |   8 +-
- drivers/media/rc/keymaps/rc-dtt200u.c              |   8 +-
- drivers/media/rc/keymaps/rc-dvbsky.c               |   8 +-
- drivers/media/rc/keymaps/rc-dvico-mce.c            |   8 +-
- drivers/media/rc/keymaps/rc-dvico-portable.c       |   8 +-
- drivers/media/rc/keymaps/rc-em-terratec.c          |   8 +-
- drivers/media/rc/keymaps/rc-encore-enltv-fm53.c    |   8 +-
- drivers/media/rc/keymaps/rc-encore-enltv.c         |   8 +-
- drivers/media/rc/keymaps/rc-encore-enltv2.c        |   8 +-
- drivers/media/rc/keymaps/rc-evga-indtube.c         |   8 +-
- drivers/media/rc/keymaps/rc-eztv.c                 |   8 +-
- drivers/media/rc/keymaps/rc-flydvb.c               |   8 +-
- drivers/media/rc/keymaps/rc-flyvideo.c             |   8 +-
- drivers/media/rc/keymaps/rc-fusionhdtv-mce.c       |   8 +-
- drivers/media/rc/keymaps/rc-gadmei-rm008z.c        |   8 +-
- drivers/media/rc/keymaps/rc-geekbox.c              |   8 +-
- drivers/media/rc/keymaps/rc-genius-tvgo-a11mce.c   |   8 +-
- drivers/media/rc/keymaps/rc-gotview7135.c          |   8 +-
- drivers/media/rc/keymaps/rc-hauppauge.c            |   8 +-
- drivers/media/rc/keymaps/rc-imon-mce.c             |   8 +-
- drivers/media/rc/keymaps/rc-imon-pad.c             |   8 +-
- drivers/media/rc/keymaps/rc-iodata-bctv7e.c        |   8 +-
- drivers/media/rc/keymaps/rc-it913x-v1.c            |   8 +-
- drivers/media/rc/keymaps/rc-it913x-v2.c            |   8 +-
- drivers/media/rc/keymaps/rc-kaiomy.c               |   8 +-
- drivers/media/rc/keymaps/rc-kworld-315u.c          |   8 +-
- drivers/media/rc/keymaps/rc-kworld-pc150u.c        |   8 +-
- .../media/rc/keymaps/rc-kworld-plus-tv-analog.c    |   8 +-
- drivers/media/rc/keymaps/rc-leadtek-y04g0051.c     |   8 +-
- drivers/media/rc/keymaps/rc-lme2510.c              |   8 +-
- drivers/media/rc/keymaps/rc-manli.c                |   8 +-
- .../media/rc/keymaps/rc-medion-x10-digitainer.c    |   8 +-
- drivers/media/rc/keymaps/rc-medion-x10-or2x.c      |   8 +-
- drivers/media/rc/keymaps/rc-medion-x10.c           |   8 +-
- drivers/media/rc/keymaps/rc-msi-digivox-ii.c       |   8 +-
- drivers/media/rc/keymaps/rc-msi-digivox-iii.c      |   8 +-
- drivers/media/rc/keymaps/rc-msi-tvanywhere-plus.c  |   8 +-
- drivers/media/rc/keymaps/rc-msi-tvanywhere.c       |   8 +-
- drivers/media/rc/keymaps/rc-nebula.c               |   8 +-
- .../media/rc/keymaps/rc-nec-terratec-cinergy-xs.c  |   8 +-
- drivers/media/rc/keymaps/rc-norwood.c              |   8 +-
- drivers/media/rc/keymaps/rc-npgtech.c              |   8 +-
- drivers/media/rc/keymaps/rc-pctv-sedna.c           |   8 +-
- drivers/media/rc/keymaps/rc-pinnacle-color.c       |   8 +-
- drivers/media/rc/keymaps/rc-pinnacle-grey.c        |   8 +-
- drivers/media/rc/keymaps/rc-pinnacle-pctv-hd.c     |   8 +-
- drivers/media/rc/keymaps/rc-pixelview-002t.c       |   8 +-
- drivers/media/rc/keymaps/rc-pixelview-mk12.c       |   8 +-
- drivers/media/rc/keymaps/rc-pixelview-new.c        |   8 +-
- drivers/media/rc/keymaps/rc-pixelview.c            |   8 +-
- .../media/rc/keymaps/rc-powercolor-real-angel.c    |   8 +-
- drivers/media/rc/keymaps/rc-proteus-2309.c         |   8 +-
- drivers/media/rc/keymaps/rc-purpletv.c             |   8 +-
- drivers/media/rc/keymaps/rc-pv951.c                |   8 +-
- drivers/media/rc/keymaps/rc-rc6-mce.c              |   8 +-
- .../media/rc/keymaps/rc-real-audio-220-32-keys.c   |   8 +-
- drivers/media/rc/keymaps/rc-reddo.c                |   8 +-
- drivers/media/rc/keymaps/rc-snapstream-firefly.c   |   8 +-
- drivers/media/rc/keymaps/rc-streamzap.c            |   8 +-
- drivers/media/rc/keymaps/rc-su3000.c               |   8 +-
- drivers/media/rc/keymaps/rc-tbs-nec.c              |   8 +-
- drivers/media/rc/keymaps/rc-technisat-ts35.c       |   8 +-
- drivers/media/rc/keymaps/rc-technisat-usb2.c       |   8 +-
- .../media/rc/keymaps/rc-terratec-cinergy-c-pci.c   |   8 +-
- .../media/rc/keymaps/rc-terratec-cinergy-s2-hd.c   |   8 +-
- drivers/media/rc/keymaps/rc-terratec-cinergy-xs.c  |   8 +-
- drivers/media/rc/keymaps/rc-terratec-slim-2.c      |   8 +-
- drivers/media/rc/keymaps/rc-terratec-slim.c        |   8 +-
- drivers/media/rc/keymaps/rc-tevii-nec.c            |   8 +-
- drivers/media/rc/keymaps/rc-tivo.c                 |   8 +-
- .../media/rc/keymaps/rc-total-media-in-hand-02.c   |   8 +-
- drivers/media/rc/keymaps/rc-total-media-in-hand.c  |   8 +-
- drivers/media/rc/keymaps/rc-trekstor.c             |   8 +-
- drivers/media/rc/keymaps/rc-tt-1500.c              |   8 +-
- drivers/media/rc/keymaps/rc-twinhan-dtv-cab-ci.c   |   8 +-
- drivers/media/rc/keymaps/rc-twinhan1027.c          |   8 +-
- drivers/media/rc/keymaps/rc-videomate-m1f.c        |   8 +-
- drivers/media/rc/keymaps/rc-videomate-s350.c       |   8 +-
- drivers/media/rc/keymaps/rc-videomate-tv-pvr.c     |   8 +-
- drivers/media/rc/keymaps/rc-winfast-usbii-deluxe.c |   8 +-
- drivers/media/rc/keymaps/rc-winfast.c              |   8 +-
- drivers/media/rc/keymaps/rc-zx-irdec.c             |   2 +-
- drivers/media/rc/mceusb.c                          |   2 +-
- drivers/media/rc/meson-ir.c                        |   2 +-
- drivers/media/rc/mtk-cir.c                         |   2 +-
- drivers/media/rc/nuvoton-cir.c                     |   4 +-
- drivers/media/rc/rc-core-priv.h                    |   5 +-
- drivers/media/rc/rc-ir-raw.c                       |  67 ++++---
- drivers/media/rc/rc-loopback.c                     |   4 +-
- drivers/media/rc/rc-main.c                         | 195 ++++++++++---------
- drivers/media/rc/redrat3.c                         |   2 +-
- drivers/media/rc/serial_ir.c                       |   2 +-
- drivers/media/rc/sir_ir.c                          |   2 +-
- drivers/media/rc/st_rc.c                           |   2 +-
- drivers/media/rc/streamzap.c                       |   2 +-
- drivers/media/rc/sunxi-cir.c                       |   2 +-
- drivers/media/rc/ttusbir.c                         |   2 +-
- drivers/media/rc/winbond-cir.c                     |  33 ++--
- drivers/media/rc/zx-irdec.c                        |   9 +-
- drivers/media/usb/au0828/au0828-input.c            |   4 +-
- drivers/media/usb/cx231xx/cx231xx-input.c          |   6 +-
- drivers/media/usb/dvb-usb-v2/af9015.c              |  11 +-
- drivers/media/usb/dvb-usb-v2/af9035.c              |  14 +-
- drivers/media/usb/dvb-usb-v2/anysee.c              |   4 +-
- drivers/media/usb/dvb-usb-v2/az6007.c              |  11 +-
- drivers/media/usb/dvb-usb-v2/dvb_usb.h             |   2 +-
- drivers/media/usb/dvb-usb-v2/dvbsky.c              |   4 +-
- drivers/media/usb/dvb-usb-v2/lmedm04.c             |   6 +-
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c            |  13 +-
- drivers/media/usb/dvb-usb/cxusb.c                  |  30 +--
- drivers/media/usb/dvb-usb/dib0700.h                |   2 +-
- drivers/media/usb/dvb-usb/dib0700_core.c           |  28 +--
- drivers/media/usb/dvb-usb/dib0700_devices.c        | 152 +++++++--------
- drivers/media/usb/dvb-usb/dtt200u.c                |  12 +-
- drivers/media/usb/dvb-usb/dvb-usb.h                |   2 +-
- drivers/media/usb/dvb-usb/dw2102.c                 |  21 +-
- drivers/media/usb/dvb-usb/m920x.c                  |   4 +-
- drivers/media/usb/dvb-usb/pctv452e.c               |   6 +-
- drivers/media/usb/dvb-usb/technisat-usb2.c         |   2 +-
- drivers/media/usb/dvb-usb/ttusb2.c                 |   4 +-
- drivers/media/usb/em28xx/em28xx-input.c            | 124 ++++++------
- drivers/media/usb/hdpvr/hdpvr-i2c.c                |   3 +-
- drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c       |  10 +-
- drivers/media/usb/tm6000/tm6000-input.c            |  38 ++--
- include/media/i2c/ir-kbd-i2c.h                     |   8 +-
- include/media/rc-core.h                            |  43 ++---
- include/media/rc-map.h                             | 215 +++++++++++----------
- 201 files changed, 1278 insertions(+), 1269 deletions(-)
+> 
+>> +        cec_transmit_attempt_done(adv7511->cec_adap,
+>> +                      CEC_TX_STATUS_ARB_LOST);
+>> +        return;
+>> +    }
+>> +    if (tx_raw_status & 0x08) {
+>> +        u8 status;
+>> +        u8 err_cnt = 0;
+>> +        u8 nack_cnt = 0;
+>> +        u8 low_drive_cnt = 0;
+>> +        unsigned int cnt;
+>> +
+>> +        /*
+>> +         * We set this status bit since this hardware performs
+>> +         * retransmissions.
+>> +         */
+>> +        status = CEC_TX_STATUS_MAX_RETRIES;
+>> +        if (regmap_read(adv7511->regmap_cec,
+>> +                ADV7511_REG_CEC_TX_LOW_DRV_CNT + offset, &cnt)) {
+>> +            err_cnt = 1;
+>> +            status |= CEC_TX_STATUS_ERROR;
+>> +        } else {
+>> +            nack_cnt = cnt & 0xf;
+>> +            if (nack_cnt)
+>> +                status |= CEC_TX_STATUS_NACK;
+>> +            low_drive_cnt = cnt >> 4;
+>> +            if (low_drive_cnt)
+>> +                status |= CEC_TX_STATUS_LOW_DRIVE;
+>> +        }
+>> +        cec_transmit_done(adv7511->cec_adap, status,
+>> +                  0, nack_cnt, low_drive_cnt, err_cnt);
+>> +        return;
+>> +    }
+>> +    if (tx_raw_status & 0x20) {
+>> +        cec_transmit_attempt_done(adv7511->cec_adap, CEC_TX_STATUS_OK);
+>> +        return;
+>> +    }
+>> +}
+>> +
+>> +void adv7511_cec_irq_process(struct adv7511 *adv7511, unsigned int irq1)
+>> +{
+>> +    unsigned int offset = adv7511->type == ADV7533 ?
+>> +                    ADV7533_REG_CEC_OFFSET : 0;
+>> +    struct cec_msg msg = {};
+>> +    unsigned int len;
+>> +    unsigned int val;
+>> +    u8 i;
+>> +
+>> +    if (irq1 & 0x38) > +        adv_cec_tx_raw_status(adv7511, irq1);
+>> +
+>> +    if (!(irq1 & 1))
+>> +        return;
+>> +
+>> +    if (regmap_read(adv7511->regmap_cec,
+>> +            ADV7511_REG_CEC_RX_FRAME_LEN + offset, &len))
+>> +        return;
+>> +
+>> +    msg.len = len & 0x1f;
+>> +
+>> +    if (msg.len > 16)
+>> +        msg.len = 16;
+>> +
+>> +    if (!msg.len)
+>> +        return;
+>> +
+>> +    for (i = 0; i < msg.len; i++) {
+>> +        regmap_read(adv7511->regmap_cec,
+>> +                i + ADV7511_REG_CEC_RX_FRAME_HDR + offset, &val);
+>> +        msg.msg[i] = val;
+>> +    }
+>> +
+>> +    /* toggle to re-enable rx 1 */
+>> +    regmap_write(adv7511->regmap_cec,
+>> +             ADV7511_REG_CEC_RX_BUFFERS + offset, 1);
+>> +    regmap_write(adv7511->regmap_cec,
+>> +             ADV7511_REG_CEC_RX_BUFFERS + offset, 0);
+>> +    cec_received_msg(adv7511->cec_adap, &msg);
+>> +}
+>> +
+>> +static int adv7511_cec_adap_enable(struct cec_adapter *adap, bool enable)
+>> +{
+>> +    struct adv7511 *adv7511 = cec_get_drvdata(adap);
+>> +    unsigned int offset = adv7511->type == ADV7533 ?
+>> +                    ADV7533_REG_CEC_OFFSET : 0;
+>> +
+>> +    if (adv7511->i2c_cec == NULL)
+>> +        return -EIO;
+>> +
+>> +    if (!adv7511->cec_enabled_adap && enable) {
+>> +        /* power up cec section */
+>> +        regmap_update_bits(adv7511->regmap_cec,
+>> +                   ADV7511_REG_CEC_CLK_DIV + offset,
+>> +                   0x03, 0x01);
+>> +        /* legacy mode and clear all rx buffers */
+>> +        regmap_write(adv7511->regmap_cec,
+>> +                 ADV7511_REG_CEC_RX_BUFFERS + offset, 0x07);
+>> +        regmap_write(adv7511->regmap_cec,
+>> +                 ADV7511_REG_CEC_RX_BUFFERS + offset, 0);
+>> +        /* initially disable tx */
+>> +        regmap_update_bits(adv7511->regmap_cec,
+>> +                   ADV7511_REG_CEC_TX_ENABLE + offset, 1, 0);
+>> +        /* enabled irqs: */
+>> +        /* tx: ready */
+>> +        /* tx: arbitration lost */
+>> +        /* tx: retry timeout */
+>> +        /* rx: ready 1 */
+>> +        regmap_update_bits(adv7511->regmap,
+>> +                   ADV7511_REG_INT_ENABLE(1), 0x3f,
+>> +                   ADV7511_INT1_CEC_MASK);
+>> +    } else if (adv7511->cec_enabled_adap && !enable) {
+>> +        regmap_update_bits(adv7511->regmap,
+>> +                   ADV7511_REG_INT_ENABLE(1), 0x3f, 0);
+>> +        /* disable address mask 1-3 */
+>> +        regmap_update_bits(adv7511->regmap_cec,
+>> +                   ADV7511_REG_CEC_LOG_ADDR_MASK + offset,
+>> +                   0x70, 0x00);
+>> +        /* power down cec section */
+>> +        regmap_update_bits(adv7511->regmap_cec,
+>> +                   ADV7511_REG_CEC_CLK_DIV + offset,
+>> +                   0x03, 0x00);
+>> +        adv7511->cec_valid_addrs = 0;
+>> +    }
+>> +    adv7511->cec_enabled_adap = enable;
+>> +    return 0;
+>> +}
+>> +
+>> +static int adv7511_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
+>> +{
+>> +    struct adv7511 *adv7511 = cec_get_drvdata(adap);
+>> +    unsigned int offset = adv7511->type == ADV7533 ?
+>> +                    ADV7533_REG_CEC_OFFSET : 0;
+>> +    unsigned int i, free_idx = ADV7511_MAX_ADDRS;
+>> +
+>> +    if (!adv7511->cec_enabled_adap)
+>> +        return addr == CEC_LOG_ADDR_INVALID ? 0 : -EIO;
+>> +
+>> +    if (addr == CEC_LOG_ADDR_INVALID) {
+>> +        regmap_update_bits(adv7511->regmap_cec,
+>> +                   ADV7511_REG_CEC_LOG_ADDR_MASK + offset,
+>> +                   0x70, 0);
+>> +        adv7511->cec_valid_addrs = 0;
+>> +        return 0;
+>> +    }
+>> +
+>> +    for (i = 0; i < ADV7511_MAX_ADDRS; i++) {
+>> +        bool is_valid = adv7511->cec_valid_addrs & (1 << i);
+>> +
+>> +        if (free_idx == ADV7511_MAX_ADDRS && !is_valid)
+>> +            free_idx = i;
+>> +        if (is_valid && adv7511->cec_addr[i] == addr)
+>> +            return 0;
+>> +    }
+>> +    if (i == ADV7511_MAX_ADDRS) {
+>> +        i = free_idx;
+>> +        if (i == ADV7511_MAX_ADDRS)
+>> +            return -ENXIO;
+>> +    }
+>> +    adv7511->cec_addr[i] = addr;
+>> +    adv7511->cec_valid_addrs |= 1 << i;
+>> +
+>> +    switch (i) {
+>> +    case 0:
+>> +        /* enable address mask 0 */
+>> +        regmap_update_bits(adv7511->regmap_cec,
+>> +                   ADV7511_REG_CEC_LOG_ADDR_MASK + offset,
+>> +                   0x10, 0x10);
+>> +        /* set address for mask 0 */
+>> +        regmap_update_bits(adv7511->regmap_cec,
+>> +                   ADV7511_REG_CEC_LOG_ADDR_0_1 + offset,
+>> +                   0x0f, addr);
+>> +        break;
+>> +    case 1:
+>> +        /* enable address mask 1 */
+>> +        regmap_update_bits(adv7511->regmap_cec,
+>> +                   ADV7511_REG_CEC_LOG_ADDR_MASK + offset,
+>> +                   0x20, 0x20);
+>> +        /* set address for mask 1 */
+>> +        regmap_update_bits(adv7511->regmap_cec,
+>> +                   ADV7511_REG_CEC_LOG_ADDR_0_1 + offset,
+>> +                   0xf0, addr << 4);
+>> +        break;
+>> +    case 2:
+>> +        /* enable address mask 2 */
+>> +        regmap_update_bits(adv7511->regmap_cec,
+>> +                   ADV7511_REG_CEC_LOG_ADDR_MASK + offset,
+>> +                   0x40, 0x40);
+>> +        /* set address for mask 1 */
+>> +        regmap_update_bits(adv7511->regmap_cec,
+>> +                   ADV7511_REG_CEC_LOG_ADDR_2 + offset,
+>> +                   0x0f, addr);
+>> +        break;
+>> +    }
+>> +    return 0;
+>> +}
+>> +
+>> +static int adv7511_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
+>> +                     u32 signal_free_time, struct cec_msg *msg)
+>> +{
+>> +    struct adv7511 *adv7511 = cec_get_drvdata(adap);
+>> +    unsigned int offset = adv7511->type == ADV7533 ?
+>> +                    ADV7533_REG_CEC_OFFSET : 0;
+>> +    u8 len = msg->len;
+>> +    unsigned int i;
+>> +
+>> +    /*
+>> +     * The number of retries is the number of attempts - 1, but retry
+>> +     * at least once. It's not clear if a value of 0 is allowed, so
+>> +     * let's do at least one retry.
+>> +     */
+>> +    regmap_update_bits(adv7511->regmap_cec,
+>> +               ADV7511_REG_CEC_TX_RETRY + offset,
+>> +               0x70, max(1, attempts - 1) << 4);
+>> +
+>> +    /* blocking, clear cec tx irq status */
+>> +    regmap_update_bits(adv7511->regmap, ADV7511_REG_INT(1), 0x38, 0x38);
+>> +
+>> +    /* write data */ > +    for (i = 0; i < len; i++)
+>> +        regmap_write(adv7511->regmap_cec, i + offset, msg->msg[i]);
+> 
+> Maybe "i + ADV7511_REG_CEC_TX_FRAME_HDR + offset" here for more clarity?
 
--- 
-2.13.4
+Done.
+
+> 
+>> +
+>> +    /* set length (data + header) */
+>> +    regmap_write(adv7511->regmap_cec,
+>> +             ADV7511_REG_CEC_TX_FRAME_LEN + offset, len);
+>> +    /* start transmit, enable tx */
+>> +    regmap_write(adv7511->regmap_cec,
+>> +             ADV7511_REG_CEC_TX_ENABLE + offset, 0x01);
+>> +    return 0;
+>> +}
+>> +
+>> +const struct cec_adap_ops adv7511_cec_adap_ops = {
+>> +    .adap_enable = adv7511_cec_adap_enable,
+>> +    .adap_log_addr = adv7511_cec_adap_log_addr,
+>> +    .adap_transmit = adv7511_cec_adap_transmit,
+>> +};
+>> +
+>> +void adv7511_cec_init(struct adv7511 *adv7511, unsigned int offset)
+>> +{
+>> +    regmap_write(adv7511->regmap, ADV7511_REG_CEC_CTRL + offset, 0);
+>> +    /* cec soft reset */
+>> +    regmap_write(adv7511->regmap_cec,
+>> +             ADV7511_REG_CEC_SOFT_RESET + offset, 0x01);
+>> +    regmap_write(adv7511->regmap_cec,
+>> +             ADV7511_REG_CEC_SOFT_RESET + offset, 0x00);
+>> +
+>> +    /* legacy mode */
+>> +    regmap_write(adv7511->regmap_cec,
+>> +             ADV7511_REG_CEC_RX_BUFFERS + offset, 0x00);
+>> +
+>> +    regmap_write(adv7511->regmap_cec,
+>> +             ADV7511_REG_CEC_CLK_DIV + offset,
+>> +             ((adv7511->cec_clk_freq / 750000) - 1) << 2);
+>> +}
+>> +
+>> +int adv7511_cec_parse_dt(struct device *dev, struct adv7511 *adv7511)
+>> +{
+>> +    adv7511->cec_clk = devm_clk_get(dev, "cec");
+>> +    if (IS_ERR(adv7511->cec_clk)) {
+>> +        int ret = PTR_ERR(adv7511->cec_clk);
+>> +
+>> +        adv7511->cec_clk = NULL;
+>> +        return ret;
+>> +    }
+>> +    clk_prepare_enable(adv7511->cec_clk);
+>> +    adv7511->cec_clk_freq = clk_get_rate(adv7511->cec_clk);
+>> +    return 0;
+>> +}
+>> diff --git a/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c b/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c
+>> index f75ab6278113..1bef33e99358 100644
+>> --- a/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c
+>> +++ b/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c
+>> @@ -11,12 +11,15 @@
+>>   #include <linux/module.h>
+>>   #include <linux/of_device.h>
+>>   #include <linux/slab.h>
+>> +#include <linux/clk.h>
+>>     #include <drm/drmP.h>
+>>   #include <drm/drm_atomic.h>
+>>   #include <drm/drm_atomic_helper.h>
+>>   #include <drm/drm_edid.h>
+>>   +#include <media/cec.h>
+>> +
+>>   #include "adv7511.h"
+>>     /* ADI recommended values for proper operation. */
+>> @@ -339,8 +342,10 @@ static void __adv7511_power_on(struct adv7511 *adv7511)
+>>            */
+>>           regmap_write(adv7511->regmap, ADV7511_REG_INT_ENABLE(0),
+>>                    ADV7511_INT0_EDID_READY | ADV7511_INT0_HPD);
+>> -        regmap_write(adv7511->regmap, ADV7511_REG_INT_ENABLE(1),
+>> -                 ADV7511_INT1_DDC_ERROR);
+>> +        regmap_update_bits(adv7511->regmap,
+>> +                   ADV7511_REG_INT_ENABLE(1),
+>> +                   ADV7511_INT1_DDC_ERROR,
+>> +                   ADV7511_INT1_DDC_ERROR);
+>>       }
+>>         /*
+>> @@ -376,6 +381,9 @@ static void __adv7511_power_off(struct adv7511 *adv7511)
+>>       regmap_update_bits(adv7511->regmap, ADV7511_REG_POWER,
+>>                  ADV7511_POWER_POWER_DOWN,
+>>                  ADV7511_POWER_POWER_DOWN);
+>> +    regmap_update_bits(adv7511->regmap,
+>> +               ADV7511_REG_INT_ENABLE(1),
+>> +               ADV7511_INT1_DDC_ERROR, 0);
+>>       regcache_mark_dirty(adv7511->regmap);
+>>   }
+>>   @@ -426,6 +434,8 @@ static void adv7511_hpd_work(struct work_struct *work)
+>>         if (adv7511->connector.status != status) {
+>>           adv7511->connector.status = status;
+>> +        if (status == connector_status_disconnected)
+>> +            cec_phys_addr_invalidate(adv7511->cec_adap);
+>>           drm_kms_helper_hotplug_event(adv7511->connector.dev);
+>>       }
+>>   }
+>> @@ -456,6 +466,10 @@ static int adv7511_irq_process(struct adv7511 *adv7511, bool process_hpd)
+>>               wake_up_all(&adv7511->wq);
+>>       }
+>>   +#ifdef CONFIG_DRM_I2C_ADV7511_CEC
+>> +    adv7511_cec_irq_process(adv7511, irq1);
+>> +#endif
+>> +
+>>       return 0;
+>>   }
+>>   @@ -599,6 +613,8 @@ static int adv7511_get_modes(struct adv7511 *adv7511,
+>>         adv7511_set_config_csc(adv7511, connector, adv7511->rgb);
+>>   +    cec_s_phys_addr_from_edid(adv7511->cec_adap, edid);
+>> +
+>>       return count;
+>>   }
+>>   @@ -920,6 +936,84 @@ static void adv7511_uninit_regulators(struct adv7511 *adv)
+>>       regulator_bulk_disable(adv->num_supplies, adv->supplies);
+>>   }
+>>   +static bool adv7533_cec_register_volatile(struct device *dev, unsigned int reg)
+>> +{
+>> +    switch (reg) {
+>> +    case ADV7511_REG_CEC_RX_FRAME_HDR + ADV7533_REG_CEC_OFFSET:
+>> +    case ADV7511_REG_CEC_RX_FRAME_DATA0 + ADV7533_REG_CEC_OFFSET...
+>> +        ADV7511_REG_CEC_RX_FRAME_DATA0 + ADV7533_REG_CEC_OFFSET + 14:
+>> +    case ADV7511_REG_CEC_RX_FRAME_LEN + ADV7533_REG_CEC_OFFSET:
+>> +    case ADV7511_REG_CEC_RX_BUFFERS + ADV7533_REG_CEC_OFFSET:
+>> +    case ADV7511_REG_CEC_TX_LOW_DRV_CNT + ADV7533_REG_CEC_OFFSET:
+>> +        return true;
+>> +    }
+>> +
+>> +    return false;
+>> +}
+>> +
+>> +static const struct regmap_config adv7533_cec_regmap_config = {
+>> +    .reg_bits = 8,
+>> +    .val_bits = 8,
+>> +
+>> +    .max_register = 0xff,
+>> +    .cache_type = REGCACHE_RBTREE,
+>> +    .volatile_reg = adv7533_cec_register_volatile,
+>> +};
+>> +
+>> +static bool adv7511_cec_register_volatile(struct device *dev, unsigned int reg)
+>> +{
+> 
+> Maybe we could combine the two register_volatile() funcs and the remap_config structs
+> for adv7511 and adv7533 by passing (reg + offset) to switch?
+
+How? How would I know in the volatile function whether it is an adv7511 or adv7533?
+Is there an easy way to go from the struct device to a struct adv7511?
+
+> 
+>> +    switch (reg) {
+>> +    case ADV7511_REG_CEC_RX_FRAME_HDR:
+>> +    case ADV7511_REG_CEC_RX_FRAME_DATA0...
+>> +        ADV7511_REG_CEC_RX_FRAME_DATA0 + 14:
+>> +    case ADV7511_REG_CEC_RX_FRAME_LEN:
+>> +    case ADV7511_REG_CEC_RX_BUFFERS:
+>> +    case ADV7511_REG_CEC_TX_LOW_DRV_CNT:
+>> +        return true;
+>> +    }
+>> +
+>> +    return false;
+>> +}
+>> +
+>> +static const struct regmap_config adv7511_cec_regmap_config = {
+>> +    .reg_bits = 8,
+>> +    .val_bits = 8,
+>> +
+>> +    .max_register = 0xff,
+>> +    .cache_type = REGCACHE_RBTREE,
+>> +    .volatile_reg = adv7511_cec_register_volatile,
+>> +};
+>> +
+>> +static int adv7511_init_cec_regmap(struct adv7511 *adv)
+>> +{
+>> +    int ret;
+>> +
+>> +    adv->i2c_cec = i2c_new_dummy(adv->i2c_main->adapter,
+>> +                     adv->i2c_main->addr - 1);
+>> +    if (!adv->i2c_cec)
+>> +        return -ENOMEM;
+>> +
+>> +    adv->regmap_cec = devm_regmap_init_i2c(adv->i2c_cec,
+>> +                           adv->type == ADV7533 ?
+>> +                           &adv7533_cec_regmap_config :
+>> +                    &adv7511_cec_regmap_config);
+>> +    if (IS_ERR(adv->regmap_cec)) {
+>> +        ret = PTR_ERR(adv->regmap_cec);
+>> +        goto err;
+>> +    }
+>> +
+>> +    if (adv->type == ADV7533) {
+>> +        ret = adv7533_patch_cec_registers(adv);
+>> +        if (ret)
+>> +            goto err;
+>> +    }
+>> +
+>> +    return 0;
+>> +err:
+>> +    i2c_unregister_device(adv->i2c_cec);
+>> +    return ret;
+>> +}
+>> +
+>>   static int adv7511_parse_dt(struct device_node *np,
+>>                   struct adv7511_link_config *config)
+>>   {
+>> @@ -1010,6 +1104,7 @@ static int adv7511_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
+>>       struct device *dev = &i2c->dev;
+>>       unsigned int main_i2c_addr = i2c->addr << 1;
+>>       unsigned int edid_i2c_addr = main_i2c_addr + 4;
+>> +    unsigned int offset;
+>>       unsigned int val;
+>>       int ret;
+>>   @@ -1035,6 +1130,7 @@ static int adv7511_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
+>>           ret = adv7511_parse_dt(dev->of_node, &link_config);
+>>       else
+>>           ret = adv7533_parse_dt(dev->of_node, adv7511);
+>> +
+> 
+> This line seems unnecessary.
+
+Removed.
+
+> 
+>>       if (ret)
+>>           return ret;
+>>   @@ -1093,11 +1189,9 @@ static int adv7511_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
+>>           goto uninit_regulators;
+>>       }
+>>   -    if (adv7511->type == ADV7533) {
+>> -        ret = adv7533_init_cec(adv7511);
+>> -        if (ret)
+>> -            goto err_i2c_unregister_edid;
+>> -    }
+>> +    ret = adv7511_init_cec_regmap(adv7511);
+>> +    if (ret)
+>> +        goto err_i2c_unregister_edid;
+>>         INIT_WORK(&adv7511->hpd_work, adv7511_hpd_work);
+>>   @@ -1112,10 +1206,6 @@ static int adv7511_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
+>>               goto err_unregister_cec;
+>>       }
+>>   -    /* CEC is unused for now */
+>> -    regmap_write(adv7511->regmap, ADV7511_REG_CEC_CTRL,
+>> -             ADV7511_CEC_CTRL_POWER_DOWN);
+>> -
+>>       adv7511_power_off(adv7511);
+>>         i2c_set_clientdata(i2c, adv7511);
+>> @@ -1134,10 +1224,39 @@ static int adv7511_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
+>>         adv7511_audio_init(dev, adv7511);
+>>   +    offset = adv7511->type == ADV7533 ? ADV7533_REG_CEC_OFFSET : 0;
+>> +
+>> +#ifdef CONFIG_DRM_I2C_ADV7511_CEC
+>> +    ret = adv7511_cec_parse_dt(dev, adv7511);
+>> +    if (ret)
+>> +        goto err_unregister_cec;
+>> +
+>> +    adv7511->cec_adap = cec_allocate_adapter(&adv7511_cec_adap_ops,
+>> +        adv7511, dev_name(&i2c->dev), CEC_CAP_TRANSMIT |
+>> +        CEC_CAP_LOG_ADDRS | CEC_CAP_PASSTHROUGH | CEC_CAP_RC,
+>> +        ADV7511_MAX_ADDRS);
+>> +    ret = PTR_ERR_OR_ZERO(adv7511->cec_adap);
+>> +    if (ret)
+>> +        goto err_unregister_cec;
+>> +
+>> +    adv7511_cec_init(adv7511, offset);
+>> +
+>> +    ret = cec_register_adapter(adv7511->cec_adap, &i2c->dev);
+>> +    if (ret) {
+>> +        cec_delete_adapter(adv7511->cec_adap);
+>> +        goto err_unregister_cec;
+>> +    }
+> 
+> We could ideally put this code in a single func and make adv7511_cec_init,
+> adv7511_cec_parse_dt and adv7511_cec_adap_ops within the scope of adv7511_cec.c.
+> It's not necessary to do, though.
+
+Done. Not sure why I didn't do that in the first place...
+
+> 
+>> +#else
+>> +    regmap_write(adv7511->regmap, ADV7511_REG_CEC_CTRL + offset,
+>> +             ADV7511_CEC_CTRL_POWER_DOWN);
+>> +#endif
+>> +
+>>       return 0;
+>>     err_unregister_cec:
+>> -    adv7533_uninit_cec(adv7511);
+>> +    i2c_unregister_device(adv7511->i2c_cec);
+>> +    if (adv7511->cec_clk)
+>> +        clk_disable_unprepare(adv7511->cec_clk);
+>>   err_i2c_unregister_edid:
+>>       i2c_unregister_device(adv7511->i2c_edid);
+>>   uninit_regulators:
+>> @@ -1150,10 +1269,11 @@ static int adv7511_remove(struct i2c_client *i2c)
+>>   {
+>>       struct adv7511 *adv7511 = i2c_get_clientdata(i2c);
+>>   -    if (adv7511->type == ADV7533) {
+>> +    if (adv7511->type == ADV7533)
+>>           adv7533_detach_dsi(adv7511);
+>> -        adv7533_uninit_cec(adv7511);
+>> -    }
+>> +    i2c_unregister_device(adv7511->i2c_cec);
+>> +    if (adv7511->cec_clk)
+>> +        clk_disable_unprepare(adv7511->cec_clk);
+>>         adv7511_uninit_regulators(adv7511);
+>>   @@ -1161,6 +1281,8 @@ static int adv7511_remove(struct i2c_client *i2c)
+>>         adv7511_audio_exit(adv7511);
+>>   +    cec_unregister_adapter(adv7511->cec_adap);
+>> +
+>>       i2c_unregister_device(adv7511->i2c_edid);
+>>         kfree(adv7511->edid);
+>> diff --git a/drivers/gpu/drm/bridge/adv7511/adv7533.c b/drivers/gpu/drm/bridge/adv7511/adv7533.c
+>> index ac804f81e2f6..0e173abb913c 100644
+>> --- a/drivers/gpu/drm/bridge/adv7511/adv7533.c
+>> +++ b/drivers/gpu/drm/bridge/adv7511/adv7533.c
+>> @@ -145,37 +145,11 @@ int adv7533_patch_registers(struct adv7511 *adv)
+>>                        ARRAY_SIZE(adv7533_fixed_registers));
+>>   }
+>>   -void adv7533_uninit_cec(struct adv7511 *adv)
+>> +int adv7533_patch_cec_registers(struct adv7511 *adv)
+>>   {
+>> -    i2c_unregister_device(adv->i2c_cec);
+>> -}
+>> -
+>> -int adv7533_init_cec(struct adv7511 *adv)
+>> -{
+>> -    int ret;
+>> -
+>> -    adv->i2c_cec = i2c_new_dummy(adv->i2c_main->adapter,
+>> -                     adv->i2c_main->addr - 1);
+>> -    if (!adv->i2c_cec)
+>> -        return -ENOMEM;
+>> -
+>> -    adv->regmap_cec = devm_regmap_init_i2c(adv->i2c_cec,
+>> -                    &adv7533_cec_regmap_config);
+> 
+> adv7533_cec_regmap_config struct isn't needed in the file anymore, that too
+> can be deleted.
+
+Oops, must have missed that. Removed.
+
+> 
+> Looks good to me otherwise.
+
+Thanks!
+
+I will test the dragonboard again on Monday using your tree. Strange.
+
+Regards,
+
+	Hans
+
+> 
+> Thanks,
+> Archit
+> 
+>> -    if (IS_ERR(adv->regmap_cec)) {
+>> -        ret = PTR_ERR(adv->regmap_cec);
+>> -        goto err;
+>> -    }
+>> -
+>> -    ret = regmap_register_patch(adv->regmap_cec,
+>> +    return regmap_register_patch(adv->regmap_cec,
+>>                       adv7533_cec_fixed_registers,
+>>                       ARRAY_SIZE(adv7533_cec_fixed_registers));
+>> -    if (ret)
+>> -        goto err;
+>> -
+>> -    return 0;
+>> -err:
+>> -    adv7533_uninit_cec(adv);
+>> -    return ret;
+>>   }
+>>     int adv7533_attach_dsi(struct adv7511 *adv)
+>>
+> 
