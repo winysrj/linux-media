@@ -1,73 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam01on0043.outbound.protection.outlook.com ([104.47.34.43]:20305
-        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751419AbdH1PQE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Aug 2017 11:16:04 -0400
-From: Soren Brinkmann <soren.brinkmann@xilinx.com>
-To: <mchehab@kernel.org>, <robh+dt@kernel.org>, <mark.rutland@arm.com>,
-        <hans.verkuil@cisco.com>, <sakari.ailus@linux.intel.com>
-CC: <linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>,
-        Leon Luo <leonl@leopardimaging.com>,
-        =?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>
-Subject: [PATCH 1/2] media:imx274 device tree binding file
-Date: Mon, 28 Aug 2017 08:15:33 -0700
-Message-ID: <20170828151534.13045-1-soren.brinkmann@xilinx.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:59881 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750780AbdHLJBL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 12 Aug 2017 05:01:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Sean Paul <seanpaul@chromium.org>
+Subject: [PATCHv2 0/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
+Date: Sat, 12 Aug 2017 11:01:04 +0200
+Message-Id: <20170812090107.5198-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Leon Luo <leonl@leopardimaging.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The binding file for imx274 CMOS sensor V4l2 driver
+This patch series adds support for the DisplayPort CEC-Tunneling-over-AUX
+feature. This patch series is based on 4.13-rc4 which has all the needed cec
+and drm 4.13 patches merged.
 
-Signed-off-by: Leon Luo <leonl@leopardimaging.com>
-Acked-by: Sören Brinkmann <soren.brinkmann@xilinx.com>
----
- .../devicetree/bindings/media/i2c/imx274.txt       | 32 ++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/imx274.txt
+This patch series has been tested with my NUC7i5BNK and a Samsung USB-C to 
+HDMI adapter.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/imx274.txt b/Documentation/devicetree/bindings/media/i2c/imx274.txt
-new file mode 100644
-index 000000000000..9154666d1149
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/imx274.txt
-@@ -0,0 +1,32 @@
-+* Sony 1/2.5-Inch 8.51Mp CMOS Digital Image Sensor
-+
-+The Sony imx274 is a 1/2.5-inch CMOS active pixel digital image sensor with
-+an active array size of 3864H x 2202V. It is programmable through I2C
-+interface. The I2C address is fixed to 0x1a as per sensor data sheet.
-+Image data is sent through MIPI CSI-2, which is configured as 4 lanes
-+at 1440 Mbps.
-+
-+
-+Required Properties:
-+- compatible: value should be "sony,imx274" for imx274 sensor
-+
-+Optional Properties:
-+- reset-gpios: Sensor reset GPIO
-+
-+For further reading on port node refer to
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+	imx274: sensor@1a{
-+		compatible = "sony,imx274";
-+		reg = <0x1a>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		reset-gpios = <&gpio_sensor 0 0>;
-+		port@0 {
-+			reg = <0>;
-+			sensor_out: endpoint {
-+				remote-endpoint = <&csiss_in>;
-+			};
-+		};
-+	};
+Please note this comment at the start of drm_dp_cec.c:
+
+----------------------------------------------------------------------
+Unfortunately it turns out that we have a chicken-and-egg situation
+here. Quite a few active (mini-)DP-to-HDMI or USB-C-to-HDMI adapters
+have a converter chip that supports CEC-Tunneling-over-AUX (usually the
+Parade PS176), but they do not wire up the CEC pin, thus making CEC
+useless.
+
+Sadly there is no way for this driver to know this. What happens is 
+that a /dev/cecX device is created that is isolated and unable to see
+any of the other CEC devices. Quite literally the CEC wire is cut
+(or in this case, never connected in the first place).
+
+I suspect that the reason so few adapters support this is that this
+tunneling protocol was never supported by any OS. So there was no 
+easy way of testing it, and no incentive to correctly wire up the
+CEC pin.
+
+Hopefully by creating this driver it will be easier for vendors to 
+finally fix their adapters and test the CEC functionality.
+
+I keep a list of known working adapters here:
+
+https://hverkuil.home.xs4all.nl/cec-status.txt
+
+Please mail me (hverkuil@xs4all.nl) if you find an adapter that works
+and is not yet listed there.
+----------------------------------------------------------------------
+
+I really hope that this work will provide an incentive for vendors to
+finally connect the CEC pin. It's a shame that there are so few adapters
+that work (I found only two USB-C to HDMI adapters that work, and no
+(mini-)DP to HDMI adapters at all).
+
+Note that a colleague who actually knows his way around a soldering iron
+modified an UpTab DisplayPort-to-HDMI adapter for me, hooking up the CEC
+pin. And after that change it worked. I also received confirmation that
+this really is a chicken-and-egg situation: it is because there is no CEC
+support for this feature in any OS that they do not hook up the CEC pin.
+
+So hopefully if this gets merged there will be an incentive for vendors
+to make adapters where this actually works. It is a very nice feature
+for HTPC boxes.
+
+Changes since v1:
+
+- Incorporated Sean's review comments in patch 1/3.
+
+Regards,
+
+        Hans
+
+Hans Verkuil (3):
+  drm: add support for DisplayPort CEC-Tunneling-over-AUX
+  drm-kms-helpers.rst: document the DP CEC helpers
+  drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
+
+ Documentation/gpu/drm-kms-helpers.rst |   9 +
+ drivers/gpu/drm/Kconfig               |  10 ++
+ drivers/gpu/drm/Makefile              |   1 +
+ drivers/gpu/drm/drm_dp_cec.c          | 302 ++++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/i915/intel_dp.c       |  18 +-
+ include/drm/drm_dp_helper.h           |  24 +++
+ 6 files changed, 360 insertions(+), 4 deletions(-)
+ create mode 100644 drivers/gpu/drm/drm_dp_cec.c
+
 -- 
-2.14.1.3.g5766cf452
+2.13.2
