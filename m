@@ -1,42 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:36177 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752519AbdHBRPX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Aug 2017 13:15:23 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 3/9] [media] ttpci: budget-patch: constify pci_device_id.
-Date: Wed,  2 Aug 2017 22:44:51 +0530
-Message-Id: <1501694097-16207-4-git-send-email-arvind.yadav.cs@gmail.com>
-In-Reply-To: <1501694097-16207-1-git-send-email-arvind.yadav.cs@gmail.com>
-References: <1501694097-16207-1-git-send-email-arvind.yadav.cs@gmail.com>
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:44798 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750802AbdHLJBL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 12 Aug 2017 05:01:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Sean Paul <seanpaul@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 2/3] drm-kms-helpers.rst: document the DP CEC helpers
+Date: Sat, 12 Aug 2017 11:01:06 +0200
+Message-Id: <20170812090107.5198-3-hverkuil@xs4all.nl>
+In-Reply-To: <20170812090107.5198-1-hverkuil@xs4all.nl>
+References: <20170812090107.5198-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-pci_device_id are not supposed to change at runtime. All functions
-working with pci_device_id provided by <media/drv-intf/saa7146.h>
-and <linux/pci.h> work with const pci_device_id. So mark the non-const
-structs as const.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Document the Display Port CEC helper functions.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/ttpci/budget-patch.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/gpu/drm-kms-helpers.rst | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/media/pci/ttpci/budget-patch.c b/drivers/media/pci/ttpci/budget-patch.c
-index 4429923..a738018 100644
---- a/drivers/media/pci/ttpci/budget-patch.c
-+++ b/drivers/media/pci/ttpci/budget-patch.c
-@@ -45,7 +45,7 @@ static struct saa7146_extension budget_extension;
- MAKE_BUDGET_INFO(ttbp, "TT-Budget/Patch DVB-S 1.x PCI", BUDGET_PATCH);
- //MAKE_BUDGET_INFO(satel,"TT-Budget/Patch SATELCO PCI", BUDGET_TT_HW_DISEQC);
+diff --git a/Documentation/gpu/drm-kms-helpers.rst b/Documentation/gpu/drm-kms-helpers.rst
+index 7c5e2549a58a..0d2fa879edd1 100644
+--- a/Documentation/gpu/drm-kms-helpers.rst
++++ b/Documentation/gpu/drm-kms-helpers.rst
+@@ -175,6 +175,15 @@ Display Port Helper Functions Reference
+ .. kernel-doc:: drivers/gpu/drm/drm_dp_helper.c
+    :export:
  
--static struct pci_device_id pci_tbl[] = {
-+static const struct pci_device_id pci_tbl[] = {
- 	MAKE_EXTENSION_PCI(ttbp,0x13c2, 0x0000),
- //        MAKE_EXTENSION_PCI(satel, 0x13c2, 0x1013),
- 	{
++Display Port CEC Helper Functions Reference
++===========================================
++
++.. kernel-doc:: drivers/gpu/drm/drm_dp_cec.c
++   :doc: dp cec helpers
++
++.. kernel-doc:: drivers/gpu/drm/drm_dp_cec.c
++   :export:
++
+ Display Port Dual Mode Adaptor Helper Functions Reference
+ =========================================================
+ 
 -- 
-2.7.4
+2.13.2
