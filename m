@@ -1,59 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58234
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36407
         "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751161AbdH1MyI (ORCPT
+        with ESMTP id S1751420AbdHMMKn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Aug 2017 08:54:08 -0400
+        Sun, 13 Aug 2017 08:10:43 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v5 3/7] media: open.rst: remove the minor number range
-Date: Mon, 28 Aug 2017 09:53:57 -0300
-Message-Id: <3c844b9d2b5ed9dc3a398c6e1166fad0ee44cd54.1503924361.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503924361.git.mchehab@s-opensource.com>
-References: <cover.1503924361.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503924361.git.mchehab@s-opensource.com>
-References: <cover.1503924361.git.mchehab@s-opensource.com>
+        Patrick Boettcher <pb@linuxtv.org>
+Subject: [PATCH RFC] media: isl6421: add checks for current overflow
+Date: Sun, 13 Aug 2017 09:10:32 -0300
+Message-Id: <06047fe2c30107f01f2484c9d72acfb5abeca158.1502625545.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-minor numbers use to range between 0 to 255, but that
-was changed a long time ago. While it still applies when
-CONFIG_VIDEO_FIXED_MINOR_RANGES, when the minor number is
-dynamically allocated, this may not be true. In any case,
-this is not relevant, as udev will take care of it.
+This Kaffeine's BZ:
+	https://bugs.kde.org/show_bug.cgi?id=374693
 
-So, remove this useless misinformation.
+affects SkyStar S2 PCI DVB-S/S2 rev 3.3 device. It could be due to
+a Kernel bug.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+While checking the Isil 6421, comparing with its manual, available at:
+
+	http://www.intersil.com/content/dam/Intersil/documents/isl6/isl6421a.pdf
+
+It was noticed that, if the output load is highly capacitive, a different approach 
+is recomended when energizing the LNBf.
+
+Also, it is possible to detect if a current overload is happening, by checking an
+special flag.
+
+Add support for it.
+
+Compile-tested only.
+
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/media/uapi/v4l/open.rst | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/media/dvb-frontends/isl6421.c | 72 +++++++++++++++++++++++++++++++++--
+ 1 file changed, 68 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index fc0037091814..96ac972c1fa2 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -19,11 +19,10 @@ helper functions and a common application interface specified in this
- document.
+diff --git a/drivers/media/dvb-frontends/isl6421.c b/drivers/media/dvb-frontends/isl6421.c
+index 838b42771a05..47a7e559cef2 100644
+--- a/drivers/media/dvb-frontends/isl6421.c
++++ b/drivers/media/dvb-frontends/isl6421.c
+@@ -38,25 +38,43 @@ struct isl6421 {
+ 	u8			override_and;
+ 	struct i2c_adapter	*i2c;
+ 	u8			i2c_addr;
++	bool			is_off;
+ };
  
- Each driver thus loaded registers one or more device nodes with major
--number 81 and a minor number between 0 and 255. Minor numbers are
--allocated dynamically unless the kernel is compiled with the kernel
--option CONFIG_VIDEO_FIXED_MINOR_RANGES. In that case minor numbers
--are allocated in ranges depending on the device node type (video, radio,
--etc.).
-+number 81. Minor numbers are allocated dynamically unless the kernel
-+is compiled with the kernel option CONFIG_VIDEO_FIXED_MINOR_RANGES.
-+In that case minor numbers are allocated in ranges depending on the
-+device node type.
+ static int isl6421_set_voltage(struct dvb_frontend *fe,
+ 			       enum fe_sec_voltage voltage)
+ {
++	int ret;
++	u8 buf;
++	bool is_off;
+ 	struct isl6421 *isl6421 = (struct isl6421 *) fe->sec_priv;
+-	struct i2c_msg msg = {	.addr = isl6421->i2c_addr, .flags = 0,
+-				.buf = &isl6421->config,
+-				.len = sizeof(isl6421->config) };
++	struct i2c_msg msg[2] = {
++		{
++		  .addr = isl6421->i2c_addr,
++		  .flags = 0,
++		  .buf = &isl6421->config,
++		  .len = 1,
++		}, {
++		  .addr = isl6421->i2c_addr,
++		  .flags = I2C_M_RD,
++		  .buf = &buf,
++		  .len = 1,
++		}
++
++	};
  
- The existing V4L2 device node types are:
+ 	isl6421->config &= ~(ISL6421_VSEL1 | ISL6421_EN1);
+ 
+ 	switch(voltage) {
+ 	case SEC_VOLTAGE_OFF:
++		is_off = true;
+ 		break;
+ 	case SEC_VOLTAGE_13:
++		is_off = false;
+ 		isl6421->config |= ISL6421_EN1;
+ 		break;
+ 	case SEC_VOLTAGE_18:
++		is_off = false;
+ 		isl6421->config |= (ISL6421_EN1 | ISL6421_VSEL1);
+ 		break;
+ 	default:
+@@ -66,7 +84,51 @@ static int isl6421_set_voltage(struct dvb_frontend *fe,
+ 	isl6421->config |= isl6421->override_or;
+ 	isl6421->config &= isl6421->override_and;
+ 
+-	return (i2c_transfer(isl6421->i2c, &msg, 1) == 1) ? 0 : -EIO;
++	/*
++	 * If LNBf were not powered on, disable dynamic current limit, as,
++	 * according with datasheet, highly capacitive load on the output may
++	 * cause a difficult start-up.
++	 */
++	if (isl6421->is_off && !is_off)
++		isl6421->config |= ISL6421_EN1;
++
++	ret = i2c_transfer(isl6421->i2c, msg, 2);
++	if (ret < 0)
++		return ret;
++	if (ret != 1)
++		return -EIO;
++
++	isl6421->is_off = is_off;
++
++	/* On overflow, the device will try again after 900 ms (typically) */
++	if (isl6421->is_off && (buf & ISL6421_OLF1))
++		msleep(1000);
++
++	if (isl6421->is_off && !is_off) {
++		isl6421->config &= ~ISL6421_EN1;
++
++		ret = i2c_transfer(isl6421->i2c, msg, 2);
++		if (ret < 0)
++			return ret;
++		if (ret != 1)
++			return -EIO;
++	}
++
++	/* Check if overload flag is active. If so, disable power */
++	if (buf & ISL6421_OLF1) {
++		isl6421->config &= ~(ISL6421_VSEL1 | ISL6421_EN1);
++		ret = i2c_transfer(isl6421->i2c, msg, 1);
++		if (ret < 0)
++			return ret;
++		if (ret != 1)
++			return -EIO;
++		isl6421->is_off = true;
++
++		dev_warn(&isl6421->i2c->dev,
++			 "Overload current detected. disabling LNBf power\n");
++		return -EINVAL;
++	}
++	return 0;
+ }
+ 
+ static int isl6421_enable_high_lnb_voltage(struct dvb_frontend *fe, long arg)
+@@ -148,6 +210,8 @@ struct dvb_frontend *isl6421_attach(struct dvb_frontend *fe, struct i2c_adapter
+ 		return NULL;
+ 	}
+ 
++	isl6421->is_off = true;
++
+ 	/* install release callback */
+ 	fe->ops.release_sec = isl6421_release;
  
 -- 
-2.13.5
+2.13.3
