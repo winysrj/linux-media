@@ -1,67 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:34543 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751160AbdHPFaZ (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:38348 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752018AbdHMMoD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Aug 2017 01:30:25 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: mchehab@kernel.org, hverkuil@xs4all.nl
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH] [media] radio: constify pnp_device_id
-Date: Wed, 16 Aug 2017 11:00:10 +0530
-Message-Id: <14915fbdafae1820527dc9f0030af3f7e0fbec64.1502860820.git.arvind.yadav.cs@gmail.com>
+        Sun, 13 Aug 2017 08:44:03 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, architt@codeaurora.org, a.hajda@samsung.com,
+        Laurent.pinchart@ideasonboard.com, airlied@linux.ie,
+        hans.verkuil@cisco.com, mchehab@kernel.org,
+        awalls@md.metrocast.net, mkrufky@linuxtv.org, eric@anholt.net,
+        stefan.wahren@i2se.com, gregkh@linuxfoundation.org,
+        f.fainelli@gmail.com, rjui@broadcom.com, sbranden@broadcom.com,
+        bcm-kernel-feedback-list@broadcom.com, balbi@kernel.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org,
+        linux-usb@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 2/6] [media] pci: make snd_pcm_hardware const
+Date: Sun, 13 Aug 2017 18:13:09 +0530
+Message-Id: <1502628193-3343-3-git-send-email-bhumirks@gmail.com>
+In-Reply-To: <1502628193-3343-1-git-send-email-bhumirks@gmail.com>
+References: <1502628193-3343-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-pnp_device_id are not supposed to change at runtime. All functions
-working with pnp_device_id provided by <linux/pnp.h> work with
-const pnp_device_id. So mark the non-const structs as const.
+Make these const as they are only used during a copy operation.
+Done using Coccinelle.
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 ---
- drivers/media/radio/radio-cadet.c    | 2 +-
- drivers/media/radio/radio-gemtek.c   | 2 +-
- drivers/media/radio/radio-sf16fmr2.c | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/pci/cobalt/cobalt-alsa-pcm.c | 4 ++--
+ drivers/media/pci/cx18/cx18-alsa-pcm.c     | 2 +-
+ drivers/media/pci/cx23885/cx23885-alsa.c   | 2 +-
+ drivers/media/pci/cx25821/cx25821-alsa.c   | 2 +-
+ drivers/media/pci/ivtv/ivtv-alsa-pcm.c     | 2 +-
+ drivers/media/pci/saa7134/saa7134-alsa.c   | 2 +-
+ 6 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/radio/radio-cadet.c b/drivers/media/radio/radio-cadet.c
-index cbaf850..6888b7d 100644
---- a/drivers/media/radio/radio-cadet.c
-+++ b/drivers/media/radio/radio-cadet.c
-@@ -528,7 +528,7 @@ static const struct v4l2_ctrl_ops cadet_ctrl_ops = {
+diff --git a/drivers/media/pci/cobalt/cobalt-alsa-pcm.c b/drivers/media/pci/cobalt/cobalt-alsa-pcm.c
+index 49013c6..b69b258 100644
+--- a/drivers/media/pci/cobalt/cobalt-alsa-pcm.c
++++ b/drivers/media/pci/cobalt/cobalt-alsa-pcm.c
+@@ -43,7 +43,7 @@
+ 			pr_info("cobalt-alsa-pcm %s: " fmt, __func__, ##arg); \
+ 	} while (0)
  
- #ifdef CONFIG_PNP
- 
--static struct pnp_device_id cadet_pnp_devices[] = {
-+static const struct pnp_device_id cadet_pnp_devices[] = {
- 	/* ADS Cadet AM/FM Radio Card */
- 	{.id = "MSM0c24", .driver_data = 0},
- 	{.id = ""}
-diff --git a/drivers/media/radio/radio-gemtek.c b/drivers/media/radio/radio-gemtek.c
-index ca051ccb..ddc12b1 100644
---- a/drivers/media/radio/radio-gemtek.c
-+++ b/drivers/media/radio/radio-gemtek.c
-@@ -281,7 +281,7 @@ static const struct radio_isa_ops gemtek_ops = {
- static const int gemtek_ioports[] = { 0x20c, 0x30c, 0x24c, 0x34c, 0x248, 0x28c };
- 
- #ifdef CONFIG_PNP
--static struct pnp_device_id gemtek_pnp_devices[] = {
-+static const struct pnp_device_id gemtek_pnp_devices[] = {
- 	/* AOpen FX-3D/Pro Radio */
- 	{.id = "ADS7183", .driver_data = 0},
- 	{.id = ""}
-diff --git a/drivers/media/radio/radio-sf16fmr2.c b/drivers/media/radio/radio-sf16fmr2.c
-index dc81d42..de79d55 100644
---- a/drivers/media/radio/radio-sf16fmr2.c
-+++ b/drivers/media/radio/radio-sf16fmr2.c
-@@ -197,7 +197,7 @@ static int fmr2_tea_ext_init(struct snd_tea575x *tea)
- 	return 0;
- }
- 
--static struct pnp_device_id fmr2_pnp_ids[] = {
-+static const struct pnp_device_id fmr2_pnp_ids[] = {
- 	{ .id = "MFRad13" }, /* tuner subdevice of SF16-FMD2 */
- 	{ .id = "" }
+-static struct snd_pcm_hardware snd_cobalt_hdmi_capture = {
++static const struct snd_pcm_hardware snd_cobalt_hdmi_capture = {
+ 	.info = SNDRV_PCM_INFO_BLOCK_TRANSFER |
+ 		SNDRV_PCM_INFO_MMAP           |
+ 		SNDRV_PCM_INFO_INTERLEAVED    |
+@@ -64,7 +64,7 @@
+ 	.periods_max = 4,
  };
+ 
+-static struct snd_pcm_hardware snd_cobalt_playback = {
++static const struct snd_pcm_hardware snd_cobalt_playback = {
+ 	.info = SNDRV_PCM_INFO_BLOCK_TRANSFER |
+ 		SNDRV_PCM_INFO_MMAP           |
+ 		SNDRV_PCM_INFO_INTERLEAVED    |
+diff --git a/drivers/media/pci/cx18/cx18-alsa-pcm.c b/drivers/media/pci/cx18/cx18-alsa-pcm.c
+index f68ee57..aadd764 100644
+--- a/drivers/media/pci/cx18/cx18-alsa-pcm.c
++++ b/drivers/media/pci/cx18/cx18-alsa-pcm.c
+@@ -44,7 +44,7 @@
+ 				  __func__, ##arg); 			\
+ 	} while (0)
+ 
+-static struct snd_pcm_hardware snd_cx18_hw_capture = {
++static const struct snd_pcm_hardware snd_cx18_hw_capture = {
+ 	.info = SNDRV_PCM_INFO_BLOCK_TRANSFER |
+ 		SNDRV_PCM_INFO_MMAP           |
+ 		SNDRV_PCM_INFO_INTERLEAVED    |
+diff --git a/drivers/media/pci/cx23885/cx23885-alsa.c b/drivers/media/pci/cx23885/cx23885-alsa.c
+index c148f9a..d8c3637 100644
+--- a/drivers/media/pci/cx23885/cx23885-alsa.c
++++ b/drivers/media/pci/cx23885/cx23885-alsa.c
+@@ -293,7 +293,7 @@ static int dsp_buffer_free(struct cx23885_audio_dev *chip)
+  */
+ #define DEFAULT_FIFO_SIZE	4096
+ 
+-static struct snd_pcm_hardware snd_cx23885_digital_hw = {
++static const struct snd_pcm_hardware snd_cx23885_digital_hw = {
+ 	.info = SNDRV_PCM_INFO_MMAP |
+ 		SNDRV_PCM_INFO_INTERLEAVED |
+ 		SNDRV_PCM_INFO_BLOCK_TRANSFER |
+diff --git a/drivers/media/pci/cx25821/cx25821-alsa.c b/drivers/media/pci/cx25821/cx25821-alsa.c
+index 519b81c..2b34990 100644
+--- a/drivers/media/pci/cx25821/cx25821-alsa.c
++++ b/drivers/media/pci/cx25821/cx25821-alsa.c
+@@ -428,7 +428,7 @@ static int dsp_buffer_free(struct cx25821_audio_dev *chip)
+  * Digital hardware definition
+  */
+ #define DEFAULT_FIFO_SIZE	384
+-static struct snd_pcm_hardware snd_cx25821_digital_hw = {
++static const struct snd_pcm_hardware snd_cx25821_digital_hw = {
+ 	.info = SNDRV_PCM_INFO_MMAP | SNDRV_PCM_INFO_INTERLEAVED |
+ 		SNDRV_PCM_INFO_BLOCK_TRANSFER | SNDRV_PCM_INFO_MMAP_VALID,
+ 	.formats = SNDRV_PCM_FMTBIT_S16_LE,
+diff --git a/drivers/media/pci/ivtv/ivtv-alsa-pcm.c b/drivers/media/pci/ivtv/ivtv-alsa-pcm.c
+index 417d03d..5326d86 100644
+--- a/drivers/media/pci/ivtv/ivtv-alsa-pcm.c
++++ b/drivers/media/pci/ivtv/ivtv-alsa-pcm.c
+@@ -41,7 +41,7 @@
+ 			pr_info("ivtv-alsa-pcm %s: " fmt, __func__, ##arg); \
+ 	} while (0)
+ 
+-static struct snd_pcm_hardware snd_ivtv_hw_capture = {
++static const struct snd_pcm_hardware snd_ivtv_hw_capture = {
+ 	.info = SNDRV_PCM_INFO_BLOCK_TRANSFER |
+ 		SNDRV_PCM_INFO_MMAP           |
+ 		SNDRV_PCM_INFO_INTERLEAVED    |
+diff --git a/drivers/media/pci/saa7134/saa7134-alsa.c b/drivers/media/pci/saa7134/saa7134-alsa.c
+index bf358ec..c59b69f 100644
+--- a/drivers/media/pci/saa7134/saa7134-alsa.c
++++ b/drivers/media/pci/saa7134/saa7134-alsa.c
+@@ -627,7 +627,7 @@ static int snd_card_saa7134_capture_prepare(struct snd_pcm_substream * substream
+  *    switching to 32kHz without any frequency translation
+  */
+ 
+-static struct snd_pcm_hardware snd_card_saa7134_capture =
++static const struct snd_pcm_hardware snd_card_saa7134_capture =
+ {
+ 	.info =                 (SNDRV_PCM_INFO_MMAP | SNDRV_PCM_INFO_INTERLEAVED |
+ 				 SNDRV_PCM_INFO_BLOCK_TRANSFER |
 -- 
-2.7.4
+1.9.1
