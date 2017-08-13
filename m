@@ -1,38 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36508 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751135AbdH1Jg0 (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:33869 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752018AbdHMMoS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Aug 2017 05:36:26 -0400
-Date: Mon, 28 Aug 2017 12:36:23 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] cobalt: do not register subdev nodes
-Message-ID: <20170828093623.jk6sxiov6kxc7dp2@valkosipuli.retiisi.org.uk>
-References: <d913ad14-79e1-1c2d-e692-4941ccf9b9a5@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <d913ad14-79e1-1c2d-e692-4941ccf9b9a5@xs4all.nl>
+        Sun, 13 Aug 2017 08:44:18 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, architt@codeaurora.org, a.hajda@samsung.com,
+        Laurent.pinchart@ideasonboard.com, airlied@linux.ie,
+        hans.verkuil@cisco.com, mchehab@kernel.org,
+        awalls@md.metrocast.net, mkrufky@linuxtv.org, eric@anholt.net,
+        stefan.wahren@i2se.com, gregkh@linuxfoundation.org,
+        f.fainelli@gmail.com, rjui@broadcom.com, sbranden@broadcom.com,
+        bcm-kernel-feedback-list@broadcom.com, balbi@kernel.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org,
+        linux-usb@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 3/6] drm: bridge: dw-hdmi: make snd_pcm_hardware const
+Date: Sun, 13 Aug 2017 18:13:10 +0530
+Message-Id: <1502628193-3343-4-git-send-email-bhumirks@gmail.com>
+In-Reply-To: <1502628193-3343-1-git-send-email-bhumirks@gmail.com>
+References: <1502628193-3343-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 28, 2017 at 10:45:58AM +0200, Hans Verkuil wrote:
-> In the distant past the adv7604 driver used private controls. In order to access
-> them the v4l-subdevX nodes were needed. Later the is_private tag was removed in
-> the adv7604 driver and the need for v4l-subdevX device nodes disappeared.
-> 
-> Remove the creation of those device nodes from this driver.
-> 
-> Note: the cobalt card is only used inside Cisco and we never actually used the
-> v4l-subdevX nodes for anything. So this API change can be done safely without
-> breaking anything.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Make this const as it is only used during a copy operation.
+Done using Coccinelle.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi-ahb-audio.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi-ahb-audio.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi-ahb-audio.c
+index cf3f0ca..b161439 100644
+--- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi-ahb-audio.c
++++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi-ahb-audio.c
+@@ -298,7 +298,7 @@ static irqreturn_t snd_dw_hdmi_irq(int irq, void *data)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static struct snd_pcm_hardware dw_hdmi_hw = {
++static const struct snd_pcm_hardware dw_hdmi_hw = {
+ 	.info = SNDRV_PCM_INFO_INTERLEAVED |
+ 		SNDRV_PCM_INFO_BLOCK_TRANSFER |
+ 		SNDRV_PCM_INFO_MMAP |
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+1.9.1
