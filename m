@@ -1,36 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:45551 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751066AbdHXAHm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Aug 2017 20:07:42 -0400
-Subject: Re: [PATCH] [media_build] rc: Fix ktime erros in rc_ir_raw.c
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: d.scheller@gmx.net, Sean Young <sean@mess.org>
-References: <1503531988-15429-1-git-send-email-jasmin@anw.at>
-From: "Jasmin J." <jasmin@anw.at>
-Message-ID: <9b070969-9422-b809-3611-648d8da0e121@anw.at>
-Date: Thu, 24 Aug 2017 02:07:37 +0200
-MIME-Version: 1.0
-In-Reply-To: <1503531988-15429-1-git-send-email-jasmin@anw.at>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:38548 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750955AbdHMKIp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 13 Aug 2017 06:08:45 -0400
+Received: by mail-wm0-f65.google.com with SMTP id y206so11241560wmd.5
+        for <linux-media@vger.kernel.org>; Sun, 13 Aug 2017 03:08:44 -0700 (PDT)
+From: Eugeniu Rosca <roscaeugeniu@gmail.com>
+To: Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org,
+        Devin Heitmueller <dheitmueller@kernellabs.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Eugeniu Rosca <erosca@de.adit-jv.com>
+Subject: [PATCH] [media] mxl111sf: Fix potential null pointer dereference
+Date: Sun, 13 Aug 2017 12:06:29 +0200
+Message-Id: <20170813100629.24034-1-rosca.eugeniu@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+From: Eugeniu Rosca <erosca@de.adit-jv.com>
 
-Just some notes on that patch.
+Reviewing the delta between cppcheck output of v4.9.39 and v4.9.40
+stable updates, I stumbled on the new warning:
 
-I have *not* tested it due to the lack of an ir remote control. So someone
-needs to test this on an <= 4.9 Kernel, if the ir core is still working as
-expected.
+mxl111sf.c:80: (warning) Possible null pointer dereference: rbuf
 
-Even if I fixed that in media_build, it may be better to apply this code change
-in media_tree. This because the involved variables are all of type ktime_t and
-there are accessor and converter functions available for that type, which
-should have been used by the original author of 86fe1ac0d and 48b2de197 in my
-opinion.
+Since copying state->rcvbuf into rbuf is not needed in the 'write-only'
+scenario (i.e. calling mxl111sf_ctrl_msg() from mxl111sf_i2c_send_data()
+or from mxl111sf_write_reg()), bypass memcpy() in this case.
 
-BR,
-   Jasmin
+Fixes: d90b336f3f65 ("[media] mxl111sf: Fix driver to use heap allocate buffers for USB messages")
+Signed-off-by: Eugeniu Rosca <erosca@de.adit-jv.com>
+---
+ drivers/media/usb/dvb-usb-v2/mxl111sf.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+index b0d5904a4ea6..67953360fda5 100644
+--- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
++++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+@@ -77,7 +77,9 @@ int mxl111sf_ctrl_msg(struct mxl111sf_state *state,
+ 		dvb_usbv2_generic_rw(d, state->sndbuf, 1+wlen, state->rcvbuf,
+ 				     rlen);
+ 
+-	memcpy(rbuf, state->rcvbuf, rlen);
++	if (rbuf)
++		memcpy(rbuf, state->rcvbuf, rlen);
++
+ 	mutex_unlock(&state->msg_lock);
+ 
+ 	mxl_fail(ret);
+-- 
+2.14.1
