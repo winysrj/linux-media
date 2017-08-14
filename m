@@ -1,34 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58244 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44236 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751204AbdHRT3j (ORCPT
+        by vger.kernel.org with ESMTP id S1752782AbdHNKyn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 15:29:39 -0400
-Date: Fri, 18 Aug 2017 22:29:35 +0300
+        Mon, 14 Aug 2017 06:54:43 -0400
+Date: Mon, 14 Aug 2017 13:54:41 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Todor Tomov <todor.tomov@linaro.org>
-Cc: hans.verkuil@cisco.com, mchehab@kernel.org, s.nawrocki@samsung.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Subject: Re: [PATCH 1/2] doc: media/v4l-drivers/qcom_camss: Add abbreviations
- explanation
-Message-ID: <20170818192935.uix5he5yx3q3him4@valkosipuli.retiisi.org.uk>
-References: <1503044194-7405-1-git-send-email-todor.tomov@linaro.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, pavel@ucw.cz
+Subject: Re: [PATCH v1.2 1/1] omap3isp: Skip CSI-2 receiver initialisation in
+ CCP2 configuration
+Message-ID: <20170814105441.qg273z3vm4iowxhj@valkosipuli.retiisi.org.uk>
+References: <20170811095709.3069-1-sakari.ailus@linux.intel.com>
+ <29475894.0Ps0lzjic1@avalon>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1503044194-7405-1-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <29475894.0Ps0lzjic1@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 18, 2017 at 11:16:33AM +0300, Todor Tomov wrote:
-> Add explanations for VFE's PIX and RDI interfaces.
+On Fri, Aug 11, 2017 at 02:32:00PM +0300, Laurent Pinchart wrote:
+> > +	if (!pipe)
+> > +		return -EBUSY;
 > 
-> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+> When can this happen ?
 
-For both:
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+And this test should be for phy->entity instead.
 
 -- 
 Sakari Ailus
