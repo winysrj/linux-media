@@ -1,142 +1,264 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59812 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752350AbdHDQIi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Aug 2017 12:08:38 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v3 1/7] v4l: vsp1: Release buffers in start_streaming
- error path
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44200 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752890AbdHNKxa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 Aug 2017 06:53:30 -0400
+Date: Mon, 14 Aug 2017 13:53:27 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        kieran.bingham@ideasonboard.com
-References: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
- <cb35eec2aae25b07fdc303cf9e005c878f07ac92.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
- <22778858.uLPLfpXYHT@avalon>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <cd5f9df6-b56b-d099-b02c-c859027064b5@ideasonboard.com>
-Date: Fri, 4 Aug 2017 17:08:34 +0100
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, pavel@ucw.cz
+Subject: Re: [PATCH v1.2 1/1] omap3isp: Skip CSI-2 receiver initialisation in
+ CCP2 configuration
+Message-ID: <20170814105327.s6hbksmwjjchwejn@valkosipuli.retiisi.org.uk>
+References: <20170811095709.3069-1-sakari.ailus@linux.intel.com>
+ <29475894.0Ps0lzjic1@avalon>
 MIME-Version: 1.0
-In-Reply-To: <22778858.uLPLfpXYHT@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <29475894.0Ps0lzjic1@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Laurent,
 
-Thankyou for the speedy review.
-
-On 04/08/17 17:03, Laurent Pinchart wrote:
-> Hi Kieran,
+On Fri, Aug 11, 2017 at 02:32:00PM +0300, Laurent Pinchart wrote:
+> Hi Sakari,
 > 
 > Thank you for the patch.
 > 
-> On Friday 04 Aug 2017 16:57:05 Kieran Bingham wrote:
->> Presently any received buffers are only released back to vb2 if
->> vsp1_video_stop_streaming() is called. If vsp1_video_start_streaming()
->> encounters an error, we will be warned by the vb2 handlers that buffers
->> have not been returned.
->>
->> Move the buffer cleanup code to it's own function to prevent duplication
+> On Friday 11 Aug 2017 12:57:09 Sakari Ailus wrote:
+> > If the CSI-2 receiver isn't part of the pipeline (or isn't there to begin
+> > with), skip its initialisation.
 > 
-> s/it's/its/
-
-Ah yes - I'm always terrible with my its'y bits.
-
+> I don't think the commit message really describes the patch.
 > 
->> and call from both vsp1_video_stop_streaming() and the error path in
->> vsp1_video_start_streaming()
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com> # on
+> > Beagleboard-xM + MPT9P031 Acked-by: Pavel Machek <pavel@ucw.cz>
+> > ---
+> > since v1.1:
+> > 
+> > - Assign phy->entity before calling omap3isp_csiphy_config(), for
+> >   phy->entity is used by omap3isp_csiphy_config(). (Thanks to Pavel for
+> >   spotting this.)
+> > 
+> >  drivers/media/platform/omap3isp/ispccp2.c   |  2 +-
+> >  drivers/media/platform/omap3isp/ispcsi2.c   |  4 +--
+> >  drivers/media/platform/omap3isp/ispcsiphy.c | 38 ++++++++++++--------------
+> >  drivers/media/platform/omap3isp/ispcsiphy.h |  6 +++--
+> >  4 files changed, 27 insertions(+), 23 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/omap3isp/ispccp2.c
+> > b/drivers/media/platform/omap3isp/ispccp2.c index
+> > 47210b102bcb..3db8df09cd9a 100644
+> > --- a/drivers/media/platform/omap3isp/ispccp2.c
+> > +++ b/drivers/media/platform/omap3isp/ispccp2.c
+> > @@ -841,7 +841,7 @@ static int ccp2_s_stream(struct v4l2_subdev *sd, int
+> > enable) switch (enable) {
+> >  	case ISP_PIPELINE_STREAM_CONTINUOUS:
+> >  		if (ccp2->phy) {
+> > -			ret = omap3isp_csiphy_acquire(ccp2->phy);
+> > +			ret = omap3isp_csiphy_acquire(ccp2->phy, &sd->entity);
+> >  			if (ret < 0)
+> >  				return ret;
+> >  		}
+> > diff --git a/drivers/media/platform/omap3isp/ispcsi2.c
+> > b/drivers/media/platform/omap3isp/ispcsi2.c index
+> > 7dae2fe0d42d..3ec37fed710b 100644
+> > --- a/drivers/media/platform/omap3isp/ispcsi2.c
+> > +++ b/drivers/media/platform/omap3isp/ispcsi2.c
+> > @@ -490,7 +490,7 @@ int omap3isp_csi2_reset(struct isp_csi2_device *csi2)
+> >  	if (!csi2->available)
+> >  		return -ENODEV;
+> > 
+> > -	if (csi2->phy->phy_in_use)
+> > +	if (csi2->phy->entity)
+> >  		return -EBUSY;
+> > 
+> >  	isp_reg_set(isp, csi2->regs1, ISPCSI2_SYSCONFIG,
+> > @@ -1053,7 +1053,7 @@ static int csi2_set_stream(struct v4l2_subdev *sd, int
+> > enable)
+> > 
+> >  	switch (enable) {
+> >  	case ISP_PIPELINE_STREAM_CONTINUOUS:
+> > -		if (omap3isp_csiphy_acquire(csi2->phy) < 0)
+> > +		if (omap3isp_csiphy_acquire(csi2->phy, &sd->entity) < 0)
+> >  			return -ENODEV;
+> >  		if (csi2->output & CSI2_OUTPUT_MEMORY)
+> >  			omap3isp_sbl_enable(isp, OMAP3_ISP_SBL_CSI2A_WRITE);
+> > diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c
+> > b/drivers/media/platform/omap3isp/ispcsiphy.c index
+> > 2028bb519108..aedd88fa8246 100644
+> > --- a/drivers/media/platform/omap3isp/ispcsiphy.c
+> > +++ b/drivers/media/platform/omap3isp/ispcsiphy.c
+> > @@ -164,15 +164,18 @@ static int csiphy_set_power(struct isp_csiphy *phy,
+> > u32 power)
+> > 
+> >  static int omap3isp_csiphy_config(struct isp_csiphy *phy)
+> >  {
+> > -	struct isp_csi2_device *csi2 = phy->csi2;
+> > -	struct isp_pipeline *pipe = to_isp_pipeline(&csi2->subdev.entity);
+> > -	struct isp_bus_cfg *buscfg = pipe->external->host_priv;
+> > +	struct isp_pipeline *pipe = to_isp_pipeline(phy->entity);
+> > +	struct isp_bus_cfg *buscfg;
+> >  	struct isp_csiphy_lanes_cfg *lanes;
+> >  	int csi2_ddrclk_khz;
+> >  	unsigned int num_data_lanes, used_lanes = 0;
+> >  	unsigned int i;
+> >  	u32 reg;
+> > 
+> > +	if (!pipe)
+> > +		return -EBUSY;
 > 
-> s/$/./
+> When can this happen ?
 
-:D
-
-> 
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->> ---
->>  drivers/media/platform/vsp1/vsp1_video.c | 22 +++++++++++++++-------
->>  1 file changed, 15 insertions(+), 7 deletions(-)
->>
->> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
->> b/drivers/media/platform/vsp1/vsp1_video.c index 5af3486afe07..a24033429cd7
->> 100644
->> --- a/drivers/media/platform/vsp1/vsp1_video.c
->> +++ b/drivers/media/platform/vsp1/vsp1_video.c
->> @@ -822,6 +822,19 @@ static int vsp1_video_setup_pipeline(struct
->> vsp1_pipeline *pipe) return 0;
->>  }
->>
->> +static void vsp1_video_cleanup_pipeline(struct vsp1_video *video)
-> 
-> Should this function take a pipe pointer instead of a video pointer for 
-> symmetry with vsp1_video_setup_pipeline() ?
-
-I passed this way because the cleanup needed a *video.
-
-Is it possible to get from a *pipe to a *video?
-
-
->> +{
->> +	struct vsp1_vb2_buffer *buffer;
->> +	unsigned long flags;
->> +
->> +	/* Remove all buffers from the IRQ queue. */
->> +	spin_lock_irqsave(&video->irqlock, flags);
->> +	list_for_each_entry(buffer, &video->irqqueue, queue)
->> +		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_ERROR);
->> +	INIT_LIST_HEAD(&video->irqqueue);
->> +	spin_unlock_irqrestore(&video->irqlock, flags);
->> +}
->> +
->>  static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int
->> count) {
->>  	struct vsp1_video *video = vb2_get_drv_priv(vq);
->> @@ -835,6 +848,7 @@ static int vsp1_video_start_streaming(struct vb2_queue
->> *vq, unsigned int count) ret = vsp1_video_setup_pipeline(pipe);
->>  		if (ret < 0) {
->>  			mutex_unlock(&pipe->lock);
->> +			vsp1_video_cleanup_pipeline(video);
->>  			return ret;
->>  		}
->>
->> @@ -866,7 +880,6 @@ static void vsp1_video_stop_streaming(struct vb2_queue
->> *vq) {
->>  	struct vsp1_video *video = vb2_get_drv_priv(vq);
->>  	struct vsp1_pipeline *pipe = video->rwpf->pipe;
->> -	struct vsp1_vb2_buffer *buffer;
->>  	unsigned long flags;
->>  	int ret;
->>
->> @@ -893,12 +906,7 @@ static void vsp1_video_stop_streaming(struct vb2_queue
->> *vq) media_pipeline_stop(&video->video.entity);
->>  	vsp1_video_pipeline_put(pipe);
->>
->> -	/* Remove all buffers from the IRQ queue. */
->> -	spin_lock_irqsave(&video->irqlock, flags);
->> -	list_for_each_entry(buffer, &video->irqqueue, queue)
->> -		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_ERROR);
->> -	INIT_LIST_HEAD(&video->irqqueue);
->> -	spin_unlock_irqrestore(&video->irqlock, flags);
->> +	vsp1_video_cleanup_pipeline(video);
-> 
-> The vsp1_video_cleanup_pipeline() call should go before 
-> vsp1_video_pipeline_put(), as you've noticed in patch 7/7.
-
-I chose to do the move in 3/7 so that this patch did not change the existing
-functionality.
-
-There is no (explicit) need for the cleanup to happen before the pipeline_put()
-until the cleanup function references the pipe...
-
+It shouldn't. Just in case, it'd be a driver bug if it did. What would you
+think of adding WARN_ON() here?
 
 > 
-> With all that fixed,
+> > +	buscfg = pipe->external->host_priv;
+> >  	if (!buscfg) {
+> >  		struct isp_async_subdev *isd =
+> >  			container_of(pipe->external->asd,
+> > @@ -222,7 +225,7 @@ static int omap3isp_csiphy_config(struct isp_csiphy
+> > *phy) csi2_ddrclk_khz = pipe->external_rate / 1000
+> >  		/ (2 * hweight32(used_lanes)) * pipe->external_width;
+> > 
+> > -	reg = isp_reg_readl(csi2->isp, phy->phy_regs, ISPCSIPHY_REG0);
+> > +	reg = isp_reg_readl(phy->isp, phy->phy_regs, ISPCSIPHY_REG0);
+> > 
+> >  	reg &= ~(ISPCSIPHY_REG0_THS_TERM_MASK |
+> >  		 ISPCSIPHY_REG0_THS_SETTLE_MASK);
+> > @@ -233,9 +236,9 @@ static int omap3isp_csiphy_config(struct isp_csiphy
+> > *phy) reg |= (DIV_ROUND_UP(90 * csi2_ddrclk_khz, 1000000) + 3)
+> >  		<< ISPCSIPHY_REG0_THS_SETTLE_SHIFT;
+> > 
+> > -	isp_reg_writel(csi2->isp, reg, phy->phy_regs, ISPCSIPHY_REG0);
+> > +	isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG0);
+> > 
+> > -	reg = isp_reg_readl(csi2->isp, phy->phy_regs, ISPCSIPHY_REG1);
+> > +	reg = isp_reg_readl(phy->isp, phy->phy_regs, ISPCSIPHY_REG1);
+> > 
+> >  	reg &= ~(ISPCSIPHY_REG1_TCLK_TERM_MASK |
+> >  		 ISPCSIPHY_REG1_TCLK_MISS_MASK |
+> > @@ -244,10 +247,10 @@ static int omap3isp_csiphy_config(struct isp_csiphy
+> > *phy) reg |= TCLK_MISS << ISPCSIPHY_REG1_TCLK_MISS_SHIFT;
+> >  	reg |= TCLK_SETTLE << ISPCSIPHY_REG1_TCLK_SETTLE_SHIFT;
+> > 
+> > -	isp_reg_writel(csi2->isp, reg, phy->phy_regs, ISPCSIPHY_REG1);
+> > +	isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG1);
+> > 
+> >  	/* DPHY lane configuration */
+> > -	reg = isp_reg_readl(csi2->isp, phy->cfg_regs, ISPCSI2_PHY_CFG);
+> > +	reg = isp_reg_readl(phy->isp, phy->cfg_regs, ISPCSI2_PHY_CFG);
+> > 
+> >  	for (i = 0; i < num_data_lanes; i++) {
+> >  		reg &= ~(ISPCSI2_PHY_CFG_DATA_POL_MASK(i + 1) |
+> > @@ -263,12 +266,12 @@ static int omap3isp_csiphy_config(struct isp_csiphy
+> > *phy) reg |= lanes->clk.pol << ISPCSI2_PHY_CFG_CLOCK_POL_SHIFT;
+> >  	reg |= lanes->clk.pos << ISPCSI2_PHY_CFG_CLOCK_POSITION_SHIFT;
+> > 
+> > -	isp_reg_writel(csi2->isp, reg, phy->cfg_regs, ISPCSI2_PHY_CFG);
+> > +	isp_reg_writel(phy->isp, reg, phy->cfg_regs, ISPCSI2_PHY_CFG);
+> > 
+> >  	return 0;
+> >  }
+> > 
+> > -int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
+> > +int omap3isp_csiphy_acquire(struct isp_csiphy *phy, struct media_entity
+> > *entity) {
+> >  	int rval;
+> > 
+> > @@ -288,6 +291,8 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
+> >  	if (rval < 0)
+> >  		goto done;
+> > 
+> > +	phy->entity = entity;
+> > +
+> >  	rval = omap3isp_csiphy_config(phy);
+> >  	if (rval < 0)
+> >  		goto done;
+> > @@ -301,10 +306,9 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
+> > 
+> >  		csiphy_power_autoswitch_enable(phy, true);
+> >  	}
+> > -
+> > -	phy->phy_in_use = 1;
+> > -
+> >  done:
+> > +	phy->entity = NULL;
+> > +
 > 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Did you really mean to release the PHY here ?
+
+Yes, indeed. Fixed.
+
 > 
->>  }
->>
->>  static const struct vb2_ops vsp1_video_queue_qops = {
+> >  	mutex_unlock(&phy->mutex);
+> >  	return rval;
+> >  }
+> > @@ -312,10 +316,8 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
+> >  void omap3isp_csiphy_release(struct isp_csiphy *phy)
+> >  {
+> >  	mutex_lock(&phy->mutex);
+> > -	if (phy->phy_in_use) {
+> > -		struct isp_csi2_device *csi2 = phy->csi2;
+> > -		struct isp_pipeline *pipe =
+> > -			to_isp_pipeline(&csi2->subdev.entity);
+> > +	if (phy->entity && phy->entity->pipe) {
+> > +		struct isp_pipeline *pipe = to_isp_pipeline(phy->entity);
+> >  		struct isp_bus_cfg *buscfg = pipe->external->host_priv;
+> > 
+> >  		csiphy_routing_cfg(phy, buscfg->interface, false,
+> > @@ -325,7 +327,7 @@ void omap3isp_csiphy_release(struct isp_csiphy *phy)
+> >  			csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_OFF);
+> >  		}
+> >  		regulator_disable(phy->vdd);
+> > -		phy->phy_in_use = 0;
+> > +		phy->entity = NULL;
+> >  	}
+> >  	mutex_unlock(&phy->mutex);
+> >  }
+> > diff --git a/drivers/media/platform/omap3isp/ispcsiphy.h
+> > b/drivers/media/platform/omap3isp/ispcsiphy.h index
+> > 978ca5c80a6c..cffda0265767 100644
+> > --- a/drivers/media/platform/omap3isp/ispcsiphy.h
+> > +++ b/drivers/media/platform/omap3isp/ispcsiphy.h
+> > @@ -25,9 +25,10 @@ struct regulator;
+> >  struct isp_csiphy {
+> >  	struct isp_device *isp;
+> >  	struct mutex mutex;	/* serialize csiphy configuration */
+> > -	u8 phy_in_use;
+> >  	struct isp_csi2_device *csi2;
+> >  	struct regulator *vdd;
+> > +	/* the entity for which the phy was acquired for */
 > 
+> Either "the entity that the phy was acquired for", or "the entity for which 
+> the phy was acquired". Or you could rename the field to owner and document it 
+> as "the entity owning the PHY", I think that would be more explicit in the 
+> code.
+
+Yes, there's one "for" too much. I'll drop the latter.
+
+> 
+> > +	struct media_entity *entity;
+> > 
+> >  	/* mem resources - enums as defined in enum isp_mem_resources */
+> >  	unsigned int cfg_regs;
+> > @@ -36,7 +37,8 @@ struct isp_csiphy {
+> >  	u8 num_data_lanes;	/* number of CSI2 Data Lanes supported */
+> >  };
+> > 
+> > -int omap3isp_csiphy_acquire(struct isp_csiphy *phy);
+> > +int omap3isp_csiphy_acquire(struct isp_csiphy *phy,
+> > +			    struct media_entity *entity);
+> >  void omap3isp_csiphy_release(struct isp_csiphy *phy);
+> >  int omap3isp_csiphy_init(struct isp_device *isp);
+> >  void omap3isp_csiphy_cleanup(struct isp_device *isp);
+> 
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
