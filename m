@@ -1,78 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:41831
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753603AbdHWI5D (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:35979 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751042AbdHNT4x (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Aug 2017 04:57:03 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        SeongJae Park <sj38.park@gmail.com>,
-        Markus Heiser <markus.heiser@darmarit.de>
-Subject: [PATCH v2 4/4] docs-rst: Allow Sphinx version 1.6
-Date: Wed, 23 Aug 2017 05:56:57 -0300
-Message-Id: <0552b7adf6e023f33494987c3e908101d75250d2.1503477995.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503477995.git.mchehab@s-opensource.com>
-References: <cover.1503477995.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503477995.git.mchehab@s-opensource.com>
-References: <cover.1503477995.git.mchehab@s-opensource.com>
+        Mon, 14 Aug 2017 15:56:53 -0400
+Subject: Re: [PATCH 0/5] s5p-jpeg fixes
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+References: <CGME20170808112254eucas1p20aacd5bb0737ff85ba4756724af189aa@eucas1p2.samsung.com>
+ <1502191352-11595-1-git-send-email-andrzej.p@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>
+From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Message-ID: <253fafa5-8403-b098-ccb3-d5cd3ccb1c23@gmail.com>
+Date: Mon, 14 Aug 2017 21:56:08 +0200
+MIME-Version: 1.0
+In-Reply-To: <1502191352-11595-1-git-send-email-andrzej.p@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that the PDF building issues with Sphinx 1.6 got fixed,
-update the documentation and scripts accordingly.
+Hi Andrzej,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/conf.py              | 3 ---
- Documentation/doc-guide/sphinx.rst | 4 +---
- scripts/sphinx-pre-install         | 1 -
- 3 files changed, 1 insertion(+), 7 deletions(-)
+Thanks for the patch set.
 
-diff --git a/Documentation/conf.py b/Documentation/conf.py
-index 8e74d68037a5..0834a9933d69 100644
---- a/Documentation/conf.py
-+++ b/Documentation/conf.py
-@@ -331,9 +331,6 @@ latex_elements = {
-         \\setromanfont{DejaVu Sans}
-         \\setmonofont{DejaVu Sans Mono}
- 
--	% To allow adjusting table sizes
--	\\usepackage{adjustbox}
--
-      '''
- }
- 
-diff --git a/Documentation/doc-guide/sphinx.rst b/Documentation/doc-guide/sphinx.rst
-index 8faafb9b2d86..a2417633fdd8 100644
---- a/Documentation/doc-guide/sphinx.rst
-+++ b/Documentation/doc-guide/sphinx.rst
-@@ -80,9 +80,7 @@ output.
- PDF and LaTeX builds
- --------------------
- 
--Such builds are currently supported only with Sphinx versions 1.4 and 1.5.
--
--Currently, it is not possible to do pdf builds with Sphinx version 1.6.
-+Such builds are currently supported only with Sphinx versions 1.4 and upper.
- 
- For PDF and LaTeX output, you'll also need ``XeLaTeX`` version 3.14159265.
- 
-diff --git a/scripts/sphinx-pre-install b/scripts/sphinx-pre-install
-index 677756ae34c9..067459760a7b 100755
---- a/scripts/sphinx-pre-install
-+++ b/scripts/sphinx-pre-install
-@@ -40,7 +40,6 @@ my $virtualenv = 1;
- #
- 
- my %texlive = (
--	'adjustbox.sty'      => 'texlive-adjustbox',
- 	'amsfonts.sty'       => 'texlive-amsfonts',
- 	'amsmath.sty'        => 'texlive-amsmath',
- 	'amssymb.sty'        => 'texlive-amsfonts',
+On 08/08/2017 01:22 PM, Andrzej Pietrasiewicz wrote:
+> Hi All,
+> 
+> This series contains a number of fixes to the s5p-jpeg driver.
+> 
+> There are two patches from Tony K Nadackal, which got lost long time ago.
+> 
+> @Thierry:
+> The patch changing the software reset routine you sent recently was
+> actually a resend of Tony's patch. I investigated the question why
+> this patch is needed. The encoder/decoder should be disabled as soon
+> as possible, in the interrupt service routine; please see the commit message.
+> I am resending Tony's patch again, with updated commit message.
+> Thank you for reminding about the patch in question!
+> 
+> There are also three patches from me, please see appropriate commit
+> messages.
+> 
+> Rebased onto Mauro's master.
+> 
+> Andrzej Pietrasiewicz (3):
+>   media: platform: s5p-jpeg: disable encoder/decoder in exynos4-like
+>     hardware after use
+>   media: platform: s5p-jpeg: fix number of components macro
+>   media: platform: s5p-jpeg: directly use parsed subsampling on 5433
+> 
+> Tony K Nadackal (2):
+>   media: platform: s5p-jpeg: Fix crash in jpeg isr due to multiple
+>     interrupts.
+>   media: platform: s5p-jpeg: Clear JPEG_CODEC_ON bits in sw reset
+>     function
+> 
+>  drivers/media/platform/s5p-jpeg/jpeg-core.c       | 8 +++++++-
+>  drivers/media/platform/s5p-jpeg/jpeg-core.h       | 1 +
+>  drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c | 9 ++++++++-
+>  drivers/media/platform/s5p-jpeg/jpeg-regs.h       | 2 +-
+>  4 files changed, 17 insertions(+), 3 deletions(-)
+> 
+
+For the whole series:
+
+Reviewed-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+
 -- 
-2.13.3
+Best regards,
+Jacek Anaszewski
