@@ -1,106 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42606 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751631AbdHSVYM (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:38185 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751428AbdHNPen (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Aug 2017 17:24:12 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: javier@dowhile0.org, jacek.anaszewski@gmail.com,
-        linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 1/3] dt: bindings: Document DT bindings for Analog devices as3645a
-Date: Sun, 20 Aug 2017 00:24:08 +0300
-Message-Id: <20170819212410.3084-2-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170819212410.3084-1-sakari.ailus@linux.intel.com>
-References: <20170819212410.3084-1-sakari.ailus@linux.intel.com>
+        Mon, 14 Aug 2017 11:34:43 -0400
+MIME-Version: 1.0
+In-Reply-To: <20170730130743.19681-4-hverkuil@xs4all.nl>
+References: <20170730130743.19681-1-hverkuil@xs4all.nl> <20170730130743.19681-4-hverkuil@xs4all.nl>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Mon, 14 Aug 2017 17:34:41 +0200
+Message-ID: <CAMuHMdXSHz2vKNOfJGM3ByzTankzd66Hj_Q_KewmHSWhSmV1Sg@mail.gmail.com>
+Subject: Re: [PATCH 3/4] arm: dts: renesas: add cec clock for Koelsch board
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        DRI Development <dri-devel@lists.freedesktop.org>,
+        "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>,
+        Archit Taneja <architt@codeaurora.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+On Sun, Jul 30, 2017 at 3:07 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- .../devicetree/bindings/leds/ams,as3645a.txt       | 71 ++++++++++++++++++++++
- 1 file changed, 71 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/leds/ams,as3645a.txt
+Probably the one-line summary should be
 
-diff --git a/Documentation/devicetree/bindings/leds/ams,as3645a.txt b/Documentation/devicetree/bindings/leds/ams,as3645a.txt
-new file mode 100644
-index 000000000000..12c5ef26ec73
---- /dev/null
-+++ b/Documentation/devicetree/bindings/leds/ams,as3645a.txt
-@@ -0,0 +1,71 @@
-+Analog devices AS3645A device tree bindings
-+
-+The AS3645A flash LED controller can drive two LEDs, one high current
-+flash LED and one indicator LED. The high current flash LED can be
-+used in torch mode as well.
-+
-+Ranges below noted as [a, b] are closed ranges between a and b, i.e. a
-+and b are included in the range.
-+
-+Please also see common.txt in the same directory.
-+
-+
-+Required properties
-+===================
-+
-+compatible	: Must be "ams,as3645a".
-+reg		: The I2C address of the device. Typically 0x30.
-+
-+
-+Required properties of the "flash" child node
-+=============================================
-+
-+flash-timeout-us: Flash timeout in microseconds. The value must be in
-+		  the range [100000, 850000] and divisible by 50000.
-+flash-max-microamp: Maximum flash current in microamperes. Has to be
-+		    in the range between [200000, 500000] and
-+		    divisible by 20000.
-+led-max-microamp: Maximum torch (assist) current in microamperes. The
-+		  value must be in the range between [20000, 160000] and
-+		  divisible by 20000.
-+ams,input-max-microamp: Maximum flash controller input current. The
-+			value must be in the range [1250000, 2000000]
-+			and divisible by 50000.
-+
-+
-+Optional properties of the "flash" child node
-+=============================================
-+
-+label		: The label of the flash LED.
-+
-+
-+Required properties of the "indicator" child node
-+=================================================
-+
-+led-max-microamp: Maximum indicator current. The allowed values are
-+		  2500, 5000, 7500 and 10000.
-+
-+Optional properties of the "indicator" child node
-+=================================================
-+
-+label		: The label of the indicator LED.
-+
-+
-+Example
-+=======
-+
-+	as3645a@30 {
-+		reg = <0x30>;
-+		compatible = "ams,as3645a";
-+		flash {
-+			flash-timeout-us = <150000>;
-+			flash-max-microamp = <320000>;
-+			led-max-microamp = <60000>;
-+			ams,input-max-microamp = <1750000>;
-+			label = "as3645a:flash";
-+		};
-+		indicator {
-+			led-max-microamp = <10000>;
-+			label = "as3645a:indicator";
-+		};
-+	};
--- 
-2.11.0
+    ARM: dts: koelsch: Add CEC clock  for HDMI transmitter
+
+> The adv7511 on the Koelsch board has a 12 MHz fixed clock
+> for the CEC block. Specify this in the dts to enable CEC support.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
