@@ -1,47 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:56304 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751402AbdH3OlZ (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:35123 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752667AbdHNXOw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Aug 2017 10:41:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Mats Randgaard <matrandg@cisco.com>
-Subject: [PATCH 0/2] tc358743: add CEC support
-Date: Wed, 30 Aug 2017 16:41:20 +0200
-Message-Id: <20170830144122.29054-1-hverkuil@xs4all.nl>
+        Mon, 14 Aug 2017 19:14:52 -0400
+Subject: Re: [PATCH 6/6] [media] media: imx: capture: constify vb2_ops
+ structures
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+References: <1501930033-18249-1-git-send-email-Julia.Lawall@lip6.fr>
+ <1501930033-18249-7-git-send-email-Julia.Lawall@lip6.fr>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <2a79a4c7-b1e4-f142-6740-0b9f2d2a6f4d@gmail.com>
+Date: Mon, 14 Aug 2017 16:14:49 -0700
+MIME-Version: 1.0
+In-Reply-To: <1501930033-18249-7-git-send-email-Julia.Lawall@lip6.fr>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Thanks,
 
-This little patch series adds support for CEC to the Toshiba TC358743
-HDMI to CSI bridge.
+Reviewed-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 
-The CEC IP is identical to that of the tc358840 for which I already had
-CEC support. So this is effectively the tc358840 CEC code copied to the
-tc358743. An RFC version of the tc358840 has been posted to the mailinglist
-in the past, but it is still not quite ready to be merged.
+Steve
 
-Once it is ready for merging I might decide to share the CEC code between the
-two drivers, but for now just put it in the tc358743 code.
-
-Tested with a Raspberry Pi 2B, Dave Stevenson's bcm283x camera receiver
-driver and an Auvidea tc358743 board.
-
-Regards,
-
-	Hans
-
-Hans Verkuil (2):
-  tc358743_regs.h: add CEC registers
-  tc358743: add CEC support
-
- drivers/media/i2c/Kconfig         |   8 ++
- drivers/media/i2c/tc358743.c      | 196 ++++++++++++++++++++++++++++++++++++--
- drivers/media/i2c/tc358743_regs.h |  94 +++++++++++++++++-
- 3 files changed, 290 insertions(+), 8 deletions(-)
-
--- 
-2.14.1
+On 08/05/2017 03:47 AM, Julia Lawall wrote:
+> These vb2_ops structures are only stored in the ops field of a
+> vb2_queue structure, which is declared as const.  Thus the vb2_ops
+> structures themselves can be const.
+>
+> Done with the help of Coccinelle.
+>
+> // <smpl>
+> @r disable optional_qualifier@
+> identifier i;
+> position p;
+> @@
+> static struct vb2_ops i@p = { ... };
+>
+> @ok@
+> identifier r.i;
+> struct vb2_queue e;
+> position p;
+> @@
+> e.ops = &i@p;
+>
+> @bad@
+> position p != {r.p,ok.p};
+> identifier r.i;
+> struct vb2_ops e;
+> @@
+> e@i@p
+>
+> @depends on !bad disable optional_qualifier@
+> identifier r.i;
+> @@
+> static
+> +const
+>   struct vb2_ops i = { ... };
+> // </smpl>
+>
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+>
+> ---
+>   drivers/staging/media/imx/imx-media-capture.c |    4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
+> index ddab4c2..ea145ba 100644
+> --- a/drivers/staging/media/imx/imx-media-capture.c
+> +++ b/drivers/staging/media/imx/imx-media-capture.c
+> @@ -62,7 +62,7 @@ struct capture_priv {
+>   /* In bytes, per queue */
+>   #define VID_MEM_LIMIT	SZ_64M
+>   
+> -static struct vb2_ops capture_qops;
+> +static const struct vb2_ops capture_qops;
+>   
+>   /*
+>    * Video ioctls follow
+> @@ -503,7 +503,7 @@ static void capture_stop_streaming(struct vb2_queue *vq)
+>   	spin_unlock_irqrestore(&priv->q_lock, flags);
+>   }
+>   
+> -static struct vb2_ops capture_qops = {
+> +static const struct vb2_ops capture_qops = {
+>   	.queue_setup	 = capture_queue_setup,
+>   	.buf_init        = capture_buf_init,
+>   	.buf_prepare	 = capture_buf_prepare,
+>
