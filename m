@@ -1,67 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:32954 "EHLO
-        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751237AbdH3XEc (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51060 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750753AbdHNTMZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Aug 2017 19:04:32 -0400
-Subject: Re: [PATCH 1/2] docs: kernel-doc comments are ASCII
-To: Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>
-References: <54c23e8e-89c0-5cea-0dcc-e938952c5642@infradead.org>
- <20170830152314.0486fafb@lwn.net>
- <3390facf-69ae-ba18-8abe-09b5695a6b31@infradead.org>
- <20170830191553.179a79d6@vento.lan> <20170830163139.1abf9baa@lwn.net>
- <228e1748-37dc-1e1e-d5ec-f35e6bfb5636@infradead.org>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <9bbf28b9-73be-04a2-fa7b-0c3a56ed03bb@infradead.org>
-Date: Wed, 30 Aug 2017 16:04:29 -0700
-MIME-Version: 1.0
-In-Reply-To: <228e1748-37dc-1e1e-d5ec-f35e6bfb5636@infradead.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Mon, 14 Aug 2017 15:12:25 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, pavel@ucw.cz
+Subject: [PATCH v1.3 1/1] omap3isp: Skip CSI-2 receiver initialisation in CCP2 configuration
+Date: Mon, 14 Aug 2017 22:12:23 +0300
+Message-Id: <20170814191223.14589-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <6578002.YS5YEteNhM@avalon>
+References: <6578002.YS5YEteNhM@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/30/17 16:01, Randy Dunlap wrote:
-> On 08/30/17 15:31, Jonathan Corbet wrote:
->> On Wed, 30 Aug 2017 19:15:53 -0300
->> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
->>
->>> I suspect that the problem is not related to the version, but to
->>> what you might have set on LANG.
->>>
->>> Maybe if we add something like:
->>> 	LANG=C.utf-8
->>>
->>> to the Documentation/Makefile 
->>
->> That's worth a try; Randy, can you give it a quick go?
-> 
-> Yes, that fixes it for me.  Thanks.
+If the CSI-2 receiver isn't part of the pipeline (or isn't there to begin
+with), skip its initialisation.
 
-Wait!  I forgot to unpatch demux.h.  I'll test again now....
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com> # on Beagleboard-xM + MPT9P031
+Acked-by: Pavel Machek <pavel@ucw.cz>
+---
+ drivers/media/platform/omap3isp/ispccp2.c   |  2 +-
+ drivers/media/platform/omap3isp/ispcsi2.c   |  4 +--
+ drivers/media/platform/omap3isp/ispcsiphy.c | 45 +++++++++++++----------------
+ drivers/media/platform/omap3isp/ispcsiphy.h |  6 ++--
+ 4 files changed, 27 insertions(+), 30 deletions(-)
 
->>> or adding:
->>>
->>> 	.. -*- coding: utf-8; mode: rst -*-
->>>
->>> as the first line on the *.rst file that include the kernel-doc 
->>> directive would solve the issue.
->>
->> I guess I don't see how that would help, instead.  Emacs reads that line,
->> but it's not involved in the problem.
->>
->> I wish I could reproduce this, then we could see what in that massive
->> try..except block in kerneldoc.py is throwing the exception.  Putting in
->> an explicit decode call might be enough to make the problem go away.
-> 
-> 
-> 
-
-
+diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
+index 47210b102bcb..3db8df09cd9a 100644
+--- a/drivers/media/platform/omap3isp/ispccp2.c
++++ b/drivers/media/platform/omap3isp/ispccp2.c
+@@ -841,7 +841,7 @@ static int ccp2_s_stream(struct v4l2_subdev *sd, int enable)
+ 	switch (enable) {
+ 	case ISP_PIPELINE_STREAM_CONTINUOUS:
+ 		if (ccp2->phy) {
+-			ret = omap3isp_csiphy_acquire(ccp2->phy);
++			ret = omap3isp_csiphy_acquire(ccp2->phy, &sd->entity);
+ 			if (ret < 0)
+ 				return ret;
+ 		}
+diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
+index 7dae2fe0d42d..3ec37fed710b 100644
+--- a/drivers/media/platform/omap3isp/ispcsi2.c
++++ b/drivers/media/platform/omap3isp/ispcsi2.c
+@@ -490,7 +490,7 @@ int omap3isp_csi2_reset(struct isp_csi2_device *csi2)
+ 	if (!csi2->available)
+ 		return -ENODEV;
+ 
+-	if (csi2->phy->phy_in_use)
++	if (csi2->phy->entity)
+ 		return -EBUSY;
+ 
+ 	isp_reg_set(isp, csi2->regs1, ISPCSI2_SYSCONFIG,
+@@ -1053,7 +1053,7 @@ static int csi2_set_stream(struct v4l2_subdev *sd, int enable)
+ 
+ 	switch (enable) {
+ 	case ISP_PIPELINE_STREAM_CONTINUOUS:
+-		if (omap3isp_csiphy_acquire(csi2->phy) < 0)
++		if (omap3isp_csiphy_acquire(csi2->phy, &sd->entity) < 0)
+ 			return -ENODEV;
+ 		if (csi2->output & CSI2_OUTPUT_MEMORY)
+ 			omap3isp_sbl_enable(isp, OMAP3_ISP_SBL_CSI2A_WRITE);
+diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
+index 2028bb519108..7e2846c52bb2 100644
+--- a/drivers/media/platform/omap3isp/ispcsiphy.c
++++ b/drivers/media/platform/omap3isp/ispcsiphy.c
+@@ -164,22 +164,17 @@ static int csiphy_set_power(struct isp_csiphy *phy, u32 power)
+ 
+ static int omap3isp_csiphy_config(struct isp_csiphy *phy)
+ {
+-	struct isp_csi2_device *csi2 = phy->csi2;
+-	struct isp_pipeline *pipe = to_isp_pipeline(&csi2->subdev.entity);
+-	struct isp_bus_cfg *buscfg = pipe->external->host_priv;
++	struct isp_pipeline *pipe = to_isp_pipeline(phy->entity);
++	struct isp_async_subdev *isd =
++		container_of(pipe->external->asd, struct isp_async_subdev, asd);
++	struct isp_bus_cfg *buscfg = pipe->external->host_priv ?
++		pipe->external->host_priv : &isd->bus;
+ 	struct isp_csiphy_lanes_cfg *lanes;
+ 	int csi2_ddrclk_khz;
+ 	unsigned int num_data_lanes, used_lanes = 0;
+ 	unsigned int i;
+ 	u32 reg;
+ 
+-	if (!buscfg) {
+-		struct isp_async_subdev *isd =
+-			container_of(pipe->external->asd,
+-				     struct isp_async_subdev, asd);
+-		buscfg = &isd->bus;
+-	}
+-
+ 	if (buscfg->interface == ISP_INTERFACE_CCP2B_PHY1
+ 	    || buscfg->interface == ISP_INTERFACE_CCP2B_PHY2) {
+ 		lanes = &buscfg->bus.ccp2.lanecfg;
+@@ -222,7 +217,7 @@ static int omap3isp_csiphy_config(struct isp_csiphy *phy)
+ 	csi2_ddrclk_khz = pipe->external_rate / 1000
+ 		/ (2 * hweight32(used_lanes)) * pipe->external_width;
+ 
+-	reg = isp_reg_readl(csi2->isp, phy->phy_regs, ISPCSIPHY_REG0);
++	reg = isp_reg_readl(phy->isp, phy->phy_regs, ISPCSIPHY_REG0);
+ 
+ 	reg &= ~(ISPCSIPHY_REG0_THS_TERM_MASK |
+ 		 ISPCSIPHY_REG0_THS_SETTLE_MASK);
+@@ -233,9 +228,9 @@ static int omap3isp_csiphy_config(struct isp_csiphy *phy)
+ 	reg |= (DIV_ROUND_UP(90 * csi2_ddrclk_khz, 1000000) + 3)
+ 		<< ISPCSIPHY_REG0_THS_SETTLE_SHIFT;
+ 
+-	isp_reg_writel(csi2->isp, reg, phy->phy_regs, ISPCSIPHY_REG0);
++	isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG0);
+ 
+-	reg = isp_reg_readl(csi2->isp, phy->phy_regs, ISPCSIPHY_REG1);
++	reg = isp_reg_readl(phy->isp, phy->phy_regs, ISPCSIPHY_REG1);
+ 
+ 	reg &= ~(ISPCSIPHY_REG1_TCLK_TERM_MASK |
+ 		 ISPCSIPHY_REG1_TCLK_MISS_MASK |
+@@ -244,10 +239,10 @@ static int omap3isp_csiphy_config(struct isp_csiphy *phy)
+ 	reg |= TCLK_MISS << ISPCSIPHY_REG1_TCLK_MISS_SHIFT;
+ 	reg |= TCLK_SETTLE << ISPCSIPHY_REG1_TCLK_SETTLE_SHIFT;
+ 
+-	isp_reg_writel(csi2->isp, reg, phy->phy_regs, ISPCSIPHY_REG1);
++	isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG1);
+ 
+ 	/* DPHY lane configuration */
+-	reg = isp_reg_readl(csi2->isp, phy->cfg_regs, ISPCSI2_PHY_CFG);
++	reg = isp_reg_readl(phy->isp, phy->cfg_regs, ISPCSI2_PHY_CFG);
+ 
+ 	for (i = 0; i < num_data_lanes; i++) {
+ 		reg &= ~(ISPCSI2_PHY_CFG_DATA_POL_MASK(i + 1) |
+@@ -263,12 +258,12 @@ static int omap3isp_csiphy_config(struct isp_csiphy *phy)
+ 	reg |= lanes->clk.pol << ISPCSI2_PHY_CFG_CLOCK_POL_SHIFT;
+ 	reg |= lanes->clk.pos << ISPCSI2_PHY_CFG_CLOCK_POSITION_SHIFT;
+ 
+-	isp_reg_writel(csi2->isp, reg, phy->cfg_regs, ISPCSI2_PHY_CFG);
++	isp_reg_writel(phy->isp, reg, phy->cfg_regs, ISPCSI2_PHY_CFG);
+ 
+ 	return 0;
+ }
+ 
+-int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
++int omap3isp_csiphy_acquire(struct isp_csiphy *phy, struct media_entity *entity)
+ {
+ 	int rval;
+ 
+@@ -288,6 +283,8 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
+ 	if (rval < 0)
+ 		goto done;
+ 
++	phy->entity = entity;
++
+ 	rval = omap3isp_csiphy_config(phy);
+ 	if (rval < 0)
+ 		goto done;
+@@ -301,10 +298,10 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
+ 
+ 		csiphy_power_autoswitch_enable(phy, true);
+ 	}
+-
+-	phy->phy_in_use = 1;
+-
+ done:
++	if (rval < 0)
++		phy->entity = NULL;
++
+ 	mutex_unlock(&phy->mutex);
+ 	return rval;
+ }
+@@ -312,10 +309,8 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
+ void omap3isp_csiphy_release(struct isp_csiphy *phy)
+ {
+ 	mutex_lock(&phy->mutex);
+-	if (phy->phy_in_use) {
+-		struct isp_csi2_device *csi2 = phy->csi2;
+-		struct isp_pipeline *pipe =
+-			to_isp_pipeline(&csi2->subdev.entity);
++	if (phy->entity && phy->entity->pipe) {
++		struct isp_pipeline *pipe = to_isp_pipeline(phy->entity);
+ 		struct isp_bus_cfg *buscfg = pipe->external->host_priv;
+ 
+ 		csiphy_routing_cfg(phy, buscfg->interface, false,
+@@ -325,7 +320,7 @@ void omap3isp_csiphy_release(struct isp_csiphy *phy)
+ 			csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_OFF);
+ 		}
+ 		regulator_disable(phy->vdd);
+-		phy->phy_in_use = 0;
++		phy->entity = NULL;
+ 	}
+ 	mutex_unlock(&phy->mutex);
+ }
+diff --git a/drivers/media/platform/omap3isp/ispcsiphy.h b/drivers/media/platform/omap3isp/ispcsiphy.h
+index 978ca5c80a6c..d29e947a24ca 100644
+--- a/drivers/media/platform/omap3isp/ispcsiphy.h
++++ b/drivers/media/platform/omap3isp/ispcsiphy.h
+@@ -25,9 +25,10 @@ struct regulator;
+ struct isp_csiphy {
+ 	struct isp_device *isp;
+ 	struct mutex mutex;	/* serialize csiphy configuration */
+-	u8 phy_in_use;
+ 	struct isp_csi2_device *csi2;
+ 	struct regulator *vdd;
++	/* the entity for which the phy was acquired */
++	struct media_entity *entity;
+ 
+ 	/* mem resources - enums as defined in enum isp_mem_resources */
+ 	unsigned int cfg_regs;
+@@ -36,7 +37,8 @@ struct isp_csiphy {
+ 	u8 num_data_lanes;	/* number of CSI2 Data Lanes supported */
+ };
+ 
+-int omap3isp_csiphy_acquire(struct isp_csiphy *phy);
++int omap3isp_csiphy_acquire(struct isp_csiphy *phy,
++			    struct media_entity *entity);
+ void omap3isp_csiphy_release(struct isp_csiphy *phy);
+ int omap3isp_csiphy_init(struct isp_device *isp);
+ void omap3isp_csiphy_cleanup(struct isp_device *isp);
 -- 
-~Randy
+2.11.0
