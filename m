@@ -1,129 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:47034 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750730AbdHWEGs (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:38125 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752061AbdHNR5t (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Aug 2017 00:06:48 -0400
-Message-ID: <4d2132b5633bd00ce45ab68e641438b2@smtp-cloud7.xs4all.net>
-Date: Wed, 23 Aug 2017 06:06:46 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Mon, 14 Aug 2017 13:57:49 -0400
+Subject: Re: [PATCH] [media] media: imx: depends on V4L2 sub-device userspace
+ API
+To: Cihangir Akturk <cakturk@gmail.com>
+Cc: p.zabel@pengutronix.de, mchehab@kernel.org,
+        gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+References: <1502708457-13344-1-git-send-email-cakturk@gmail.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <5ac43a35-f7ec-7ffc-3e6e-c0af8f4ac497@gmail.com>
+Date: Mon, 14 Aug 2017 10:57:46 -0700
+MIME-Version: 1.0
+In-Reply-To: <1502708457-13344-1-git-send-email-cakturk@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Akturk, this has already been fixed, see
 
-Results of the daily build of media_tree:
+4560cb4a0c ("media: imx: add VIDEO_V4L2_SUBDEV_API dependency").
 
-date:			Wed Aug 23 05:25:33 CEST 2017
-media-tree git hash:	0779b8855c746c90b85bfe6e16d5dfa2a6a46655
-media_build git hash:	1d9cbbf82bfb79eb8c47747121903f762d9cc9fb
-v4l-utils git hash:	15df21b333e243827ac0f89d7f4f307bf0968baf
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.11.0-164
+Steve
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+On 08/14/2017 04:00 AM, Cihangir Akturk wrote:
+> This driver uses various v4l2_subdev_get_try_*() functions provided by
+> V4L2 sub-device userspace API. Current configuration of Kconfig file
+> allows us to enable VIDEO_IMX_MEDIA without enabling this API. This
+> breaks the build of driver.
+>
+> Depend on VIDEO_V4L2_SUBDEV_API to fix this issue.
+>
+> Signed-off-by: Cihangir Akturk <cakturk@gmail.com>
+> ---
+>   drivers/staging/media/imx/Kconfig | 3 ++-
+>   1 file changed, 2 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/staging/media/imx/Kconfig b/drivers/staging/media/imx/Kconfig
+> index 7eff50b..d8c3890 100644
+> --- a/drivers/staging/media/imx/Kconfig
+> +++ b/drivers/staging/media/imx/Kconfig
+> @@ -1,6 +1,7 @@
+>   config VIDEO_IMX_MEDIA
+>   	tristate "i.MX5/6 V4L2 media core driver"
+> -	depends on MEDIA_CONTROLLER && VIDEO_V4L2 && ARCH_MXC && IMX_IPUV3_CORE
+> +	depends on MEDIA_CONTROLLER && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && \
+> +		ARCH_MXC && IMX_IPUV3_CORE
+>   	select V4L2_FWNODE
+>   	---help---
+>   	  Say yes here to enable support for video4linux media controller
