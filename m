@@ -1,61 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:32930 "EHLO
-        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751372AbdH3XBf (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36060 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751635AbdHNUP1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Aug 2017 19:01:35 -0400
-Subject: Re: [PATCH 1/2] docs: kernel-doc comments are ASCII
-To: Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>
-References: <54c23e8e-89c0-5cea-0dcc-e938952c5642@infradead.org>
- <20170830152314.0486fafb@lwn.net>
- <3390facf-69ae-ba18-8abe-09b5695a6b31@infradead.org>
- <20170830191553.179a79d6@vento.lan> <20170830163139.1abf9baa@lwn.net>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <228e1748-37dc-1e1e-d5ec-f35e6bfb5636@infradead.org>
-Date: Wed, 30 Aug 2017 16:01:32 -0700
+        Mon, 14 Aug 2017 16:15:27 -0400
+Date: Mon, 14 Aug 2017 23:15:22 +0300
+From: Cihangir Akturk <cakturk@gmail.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: p.zabel@pengutronix.de, mchehab@kernel.org,
+        gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] media: imx: depends on V4L2 sub-device userspace
+ API
+Message-ID: <20170814201522.GB1270@mbp>
+References: <1502708457-13344-1-git-send-email-cakturk@gmail.com>
+ <5ac43a35-f7ec-7ffc-3e6e-c0af8f4ac497@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20170830163139.1abf9baa@lwn.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5ac43a35-f7ec-7ffc-3e6e-c0af8f4ac497@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/30/17 15:31, Jonathan Corbet wrote:
-> On Wed, 30 Aug 2017 19:15:53 -0300
-> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+On Mon, Aug 14, 2017 at 10:57:46AM -0700, Steve Longerbeam wrote:
+> Hi Akturk, this has already been fixed, see
+
+Sorry. Apparently, I missed to update my tree, somehow.
+
 > 
->> I suspect that the problem is not related to the version, but to
->> what you might have set on LANG.
->>
->> Maybe if we add something like:
->> 	LANG=C.utf-8
->>
->> to the Documentation/Makefile 
+> 4560cb4a0c ("media: imx: add VIDEO_V4L2_SUBDEV_API dependency").
 > 
-> That's worth a try; Randy, can you give it a quick go?
-
-Yes, that fixes it for me.  Thanks.
-
->> or adding:
->>
->> 	.. -*- coding: utf-8; mode: rst -*-
->>
->> as the first line on the *.rst file that include the kernel-doc 
->> directive would solve the issue.
+> Steve
 > 
-> I guess I don't see how that would help, instead.  Emacs reads that line,
-> but it's not involved in the problem.
+> On 08/14/2017 04:00 AM, Cihangir Akturk wrote:
+> > This driver uses various v4l2_subdev_get_try_*() functions provided by
+> > V4L2 sub-device userspace API. Current configuration of Kconfig file
+> > allows us to enable VIDEO_IMX_MEDIA without enabling this API. This
+> > breaks the build of driver.
+> > 
+> > Depend on VIDEO_V4L2_SUBDEV_API to fix this issue.
+> > 
+> > Signed-off-by: Cihangir Akturk <cakturk@gmail.com>
+> > ---
+> >   drivers/staging/media/imx/Kconfig | 3 ++-
+> >   1 file changed, 2 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/staging/media/imx/Kconfig b/drivers/staging/media/imx/Kconfig
+> > index 7eff50b..d8c3890 100644
+> > --- a/drivers/staging/media/imx/Kconfig
+> > +++ b/drivers/staging/media/imx/Kconfig
+> > @@ -1,6 +1,7 @@
+> >   config VIDEO_IMX_MEDIA
+> >   	tristate "i.MX5/6 V4L2 media core driver"
+> > -	depends on MEDIA_CONTROLLER && VIDEO_V4L2 && ARCH_MXC && IMX_IPUV3_CORE
+> > +	depends on MEDIA_CONTROLLER && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && \
+> > +		ARCH_MXC && IMX_IPUV3_CORE
+> >   	select V4L2_FWNODE
+> >   	---help---
+> >   	  Say yes here to enable support for video4linux media controller
 > 
-> I wish I could reproduce this, then we could see what in that massive
-> try..except block in kerneldoc.py is throwing the exception.  Putting in
-> an explicit decode call might be enough to make the problem go away.
-
-
-
--- 
-~Randy
