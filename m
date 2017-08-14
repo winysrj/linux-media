@@ -1,132 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35934 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751357AbdH3Ltt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Aug 2017 07:49:49 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
-Subject: [PATCH v6 0/5] Unified fwnode endpoint parser
-Date: Wed, 30 Aug 2017 14:49:41 +0300
-Message-Id: <20170830114946.17743-1-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail.kernel.org ([198.145.29.99]:40422 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752199AbdHNPNp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 Aug 2017 11:13:45 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v2 4/8] v4l: vsp1: Use reference counting for fragments
+Date: Mon, 14 Aug 2017 16:13:27 +0100
+Message-Id: <d28cb6bce32d33479f5d5b49e67c4c79a9b7b4bc.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi folks,
+Extend the display list body with a reference count, allowing bodies to
+be kept as long as a reference is maintained. This provides the ability
+to keep a cached copy of bodies which will not change, so that they can
+be re-applied to multiple display lists.
 
-We have a large influx of new, unmerged, drivers that are now parsing
-fwnode endpoints and each one of them is doing this a little bit
-differently. The needs are still exactly the same for the graph data
-structure is device independent. This is still a non-trivial task and the
-majority of the driver implementations are buggy, just buggy in different
-ways.
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Facilitate parsing endpoints by adding a convenience function for parsing
-the endpoints, and make the omap3isp and rcar-vin drivers use them as an
-example.
+---
+This could be squashed into the fragment update code, but it's not a
+straightforward squash as the refcounts will affect both:
+  v4l: vsp1: Provide a fragment pool
+and
+  v4l: vsp1: Convert display lists to use new fragment pool
+therefore, I have kept this separate to prevent breaking bisectability
+of the vsp-tests.
+---
+ drivers/media/platform/vsp1/vsp1_clu.c |  7 ++++++-
+ drivers/media/platform/vsp1/vsp1_dl.c  | 15 ++++++++++++++-
+ drivers/media/platform/vsp1/vsp1_lut.c |  7 ++++++-
+ 3 files changed, 26 insertions(+), 3 deletions(-)
 
-since v5:
-
-- Use v4l2_async_ prefix for static functions as well (4th patch)
-
-- Use memcpy() to copy array rather than a loop
-
-- Document that the v4l2_async_subdev pointer in driver specific struct
-  must be the first member
-
-- Improve documentation of the added functions (4th and 5th
-  patches)
-
-	- Arguments
-
-	- More thorough explation of the purpose, usage and object
-	  lifetime
-
-- Added acks
-
-since v4:
-
-- Prepend the set with three documentation fixes.
-
-- The driver's async struct must begin with struct v4l2_async_subdev. Fix this
-  for omap3isp and document it.
-
-- Improve documentation for new functions.
-
-- Don't use devm_ family of functions for allocating memory. Introduce
-  v4l2_async_notifier_release() to release memory resources.
-
-- Rework both v4l2_async_notifier_fwnode_parse_endpoints() and
-  v4l2_async_notifier_fwnode_parse_endpoint() and the local functions they
-  call. This should make the code cleaner. Despite the name, for linking
-  and typical usage reasons the functions remain in v4l2-fwnode.c.
-
-- Convert rcar-vin to use v4l2_async_notifier_fwnode_parse_endpoint().
-
-- Use kvmalloc() for allocating the notifier's subdevs array.
-
-- max_subdevs argument for notifier_realloc is now the total maximum
-  number of subdevs, not the number of available subdevs.
-
-- Use fwnode_device_is_available() to make sure the device actually
-  exists.
-
-- Move the note telling v4l2_async_notifier_fwnode_parse_endpoints()
-  should not be used by new drivers to the last patch adding
-  v4l2_async_notifier_fwnode_parse_endpoint().
-
-since v3:
-
-- Rebase on current mediatree master.
-
-since v2:
-
-- Rebase on CCP2 support patches.
-
-- Prepend a patch cleaning up omap3isp driver a little.
-
-since v1:
-
-- The first patch has been merged (it was a bugfix).
-
-- In anticipation that the parsing can take place over several iterations,
-  take the existing number of async sub-devices into account when
-  re-allocating an array of async sub-devices.
-
-- Rework the first patch to better anticipate parsing single endpoint at a
-  time by a driver.
-
-- Add a second patch that adds a function for parsing endpoints one at a
-  time based on port and endpoint numbers.
-
-Sakari Ailus (5):
-  v4l: fwnode: Move KernelDoc documentation to the header
-  v4l: async: Add V4L2 async documentation to the documentation build
-  docs-rst: v4l: Include Qualcomm CAMSS in documentation build
-  v4l: fwnode: Support generic parsing of graph endpoints in a device
-  v4l: fwnode: Support generic parsing of graph endpoints in a single
-    port
-
- Documentation/media/kapi/v4l2-async.rst     |   3 +
- Documentation/media/kapi/v4l2-core.rst      |   1 +
- Documentation/media/v4l-drivers/index.rst   |   1 +
- drivers/media/platform/omap3isp/isp.c       | 115 ++++---------
- drivers/media/platform/omap3isp/isp.h       |   5 +-
- drivers/media/platform/rcar-vin/rcar-core.c | 111 ++++--------
- drivers/media/platform/rcar-vin/rcar-dma.c  |  10 +-
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  14 +-
- drivers/media/platform/rcar-vin/rcar-vin.h  |   4 +-
- drivers/media/v4l2-core/v4l2-async.c        |  16 ++
- drivers/media/v4l2-core/v4l2-fwnode.c       | 253 +++++++++++++++++++---------
- include/media/v4l2-async.h                  |  24 ++-
- include/media/v4l2-fwnode.h                 | 178 ++++++++++++++++++-
- 13 files changed, 481 insertions(+), 254 deletions(-)
- create mode 100644 Documentation/media/kapi/v4l2-async.rst
-
+diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
+index 52c523625e2f..175717018e11 100644
+--- a/drivers/media/platform/vsp1/vsp1_clu.c
++++ b/drivers/media/platform/vsp1/vsp1_clu.c
+@@ -257,8 +257,13 @@ static void clu_configure(struct vsp1_entity *entity,
+ 		clu->clu = NULL;
+ 		spin_unlock_irqrestore(&clu->lock, flags);
+ 
+-		if (dlb)
++		if (dlb) {
+ 			vsp1_dl_list_add_fragment(dl, dlb);
++
++			/* release our local reference */
++			vsp1_dl_fragment_put(dlb);
++		}
++
+ 		break;
+ 	}
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 6ffdc3549283..37feda248946 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -14,6 +14,7 @@
+ #include <linux/device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/gfp.h>
++#include <linux/refcount.h>
+ #include <linux/slab.h>
+ #include <linux/workqueue.h>
+ 
+@@ -58,6 +59,8 @@ struct vsp1_dl_body {
+ 	struct list_head list;
+ 	struct list_head free;
+ 
++	refcount_t refcnt;
++
+ 	struct vsp1_dl_fragment_pool *pool;
+ 	struct vsp1_device *vsp1;
+ 
+@@ -230,6 +233,7 @@ struct vsp1_dl_body *vsp1_dl_fragment_get(struct vsp1_dl_fragment_pool *pool)
+ 	if (!list_empty(&pool->free)) {
+ 		dlb = list_first_entry(&pool->free, struct vsp1_dl_body, free);
+ 		list_del(&dlb->free);
++		refcount_set(&dlb->refcnt, 1);
+ 	}
+ 
+ 	spin_unlock_irqrestore(&pool->lock, flags);
+@@ -244,6 +248,9 @@ void vsp1_dl_fragment_put(struct vsp1_dl_body *dlb)
+ 	if (!dlb)
+ 		return;
+ 
++	if (!refcount_dec_and_test(&dlb->refcnt))
++		return;
++
+ 	dlb->num_entries = 0;
+ 
+ 	spin_lock_irqsave(&dlb->pool->lock, flags);
+@@ -428,7 +435,11 @@ void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
+  * list, in the order in which fragments are added.
+  *
+  * Adding a fragment to a display list passes ownership of the fragment to the
+- * list. The caller must not touch the fragment after this call.
++ * list. The caller must not modify the fragment after this call, but can retain
++ * a reference to it for future use if necessary, to add to subsequent lists.
++ *
++ * The reference count of the body is incremented by this attachment, and thus
++ * the caller should release it's reference if does not want to cache the body.
+  *
+  * Fragments are only usable for display lists in header mode. Attempt to
+  * add a fragment to a header-less display list will return an error.
+@@ -440,6 +451,8 @@ int vsp1_dl_list_add_fragment(struct vsp1_dl_list *dl,
+ 	if (dl->dlm->mode != VSP1_DL_MODE_HEADER)
+ 		return -EINVAL;
+ 
++	refcount_inc(&dlb->refcnt);
++
+ 	list_add_tail(&dlb->list, &dl->fragments);
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index 57482e057e54..388bd89ade0b 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -213,8 +213,13 @@ static void lut_configure(struct vsp1_entity *entity,
+ 		lut->lut = NULL;
+ 		spin_unlock_irqrestore(&lut->lock, flags);
+ 
+-		if (dlb)
++		if (dlb) {
+ 			vsp1_dl_list_add_fragment(dl, dlb);
++
++			/* release our local reference */
++			vsp1_dl_fragment_put(dlb);
++		}
++
+ 		break;
+ 	}
+ }
 -- 
-2.11.0
+git-series 0.9.1
