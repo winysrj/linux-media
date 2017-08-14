@@ -1,71 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:52755 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751262AbdH1JJr (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43932 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752782AbdHNKbk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Aug 2017 05:09:47 -0400
-Subject: Re: [PATCH v4 3/7] media: open.rst: remove the minor number range
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <cover.1503747774.git.mchehab@s-opensource.com>
- <477281a419dc0a2208e967a7ad312ba79b8ee326.1503747774.git.mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e230d79e-0ecb-6a9b-9752-28ec562c5de7@xs4all.nl>
-Date: Mon, 28 Aug 2017 11:09:44 +0200
-MIME-Version: 1.0
-In-Reply-To: <477281a419dc0a2208e967a7ad312ba79b8ee326.1503747774.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Mon, 14 Aug 2017 06:31:40 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com
+Subject: [PATCH 2/2] v4l: fwnode: The clock lane is the first lane in lane_polarities
+Date: Mon, 14 Aug 2017 13:31:37 +0300
+Message-Id: <20170814103137.17882-3-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170814103137.17882-1-sakari.ailus@linux.intel.com>
+References: <20170814103137.17882-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26/08/17 13:53, Mauro Carvalho Chehab wrote:
-> minor numbers use to range between 0 to 255, but that
-> was changed a long time ago. While it still applies when
-> CONFIG_VIDEO_FIXED_MINOR_RANGES, when the minor number is
-> dynamically allocated, this may not be true. In any case,
-> this is not relevant, as udev will take care of it.
-> 
-> So, remove this useless misinformation.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+The clock lane is the first lane in the lane_polarities array. Reflect this
+consistently by putting the number of data lanes after the number of clock
+lanes.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Fixes: 4ee236219f6d ("media: v4l2-fwnode: suppress a warning at OF parsing logic")
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/v4l2-fwnode.c | 2 +-
+ include/media/v4l2-fwnode.h           | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-> ---
->  Documentation/media/uapi/v4l/open.rst | 9 ++++-----
->  1 file changed, 4 insertions(+), 5 deletions(-)
-> 
-> diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-> index fc0037091814..96ac972c1fa2 100644
-> --- a/Documentation/media/uapi/v4l/open.rst
-> +++ b/Documentation/media/uapi/v4l/open.rst
-> @@ -19,11 +19,10 @@ helper functions and a common application interface specified in this
->  document.
->  
->  Each driver thus loaded registers one or more device nodes with major
-> -number 81 and a minor number between 0 and 255. Minor numbers are
-> -allocated dynamically unless the kernel is compiled with the kernel
-> -option CONFIG_VIDEO_FIXED_MINOR_RANGES. In that case minor numbers
-> -are allocated in ranges depending on the device node type (video, radio,
-> -etc.).
-> +number 81. Minor numbers are allocated dynamically unless the kernel
-> +is compiled with the kernel option CONFIG_VIDEO_FIXED_MINOR_RANGES.
-
-I wonder if we shouldn't remove this kernel option completely. Does it
-make any sense to keep holding on to this?
-
-Regards,
-
-	Hans
-
-> +In that case minor numbers are allocated in ranges depending on the
-> +device node type.
->  
->  The existing V4L2 device node types are:
->  
-> 
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 29e41312f04a..c9147ec398b3 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -48,7 +48,7 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
+ 
+ 	rval = fwnode_property_read_u32_array(fwnode, "data-lanes", NULL, 0);
+ 	if (rval > 0) {
+-		u32 array[MAX_DATA_LANES + 1];
++		u32 array[1 + MAX_DATA_LANES];
+ 
+ 		bus->num_data_lanes = min_t(int, MAX_DATA_LANES, rval);
+ 
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index b373c43f65e8..8da716a6a1b8 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -42,7 +42,7 @@ struct v4l2_fwnode_bus_mipi_csi2 {
+ 	unsigned char data_lanes[MAX_DATA_LANES];
+ 	unsigned char clock_lane;
+ 	unsigned short num_data_lanes;
+-	bool lane_polarities[MAX_DATA_LANES + 1];
++	bool lane_polarities[1 + MAX_DATA_LANES];
+ };
+ 
+ /**
+-- 
+2.11.0
