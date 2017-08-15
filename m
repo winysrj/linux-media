@@ -1,119 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59026 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37042 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752972AbdHJN4y (ORCPT
+        by vger.kernel.org with ESMTP id S1752852AbdHOQgm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Aug 2017 09:56:54 -0400
-Date: Thu, 10 Aug 2017 16:56:50 +0300
+        Tue, 15 Aug 2017 12:36:42 -0400
+Date: Tue, 15 Aug 2017 19:36:39 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        jacek.anaszewski@gmail.com, laurent.pinchart@ideasonboard.com,
-        Johan Hovold <johan@kernel.org>, Alex Elder <elder@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        greybus-dev@lists.linaro.org, devel@driverdev.osuosl.org,
-        viresh.kumar@linaro.org, Rui Miguel Silva <rmfrfs@gmail.com>
-Subject: Re: [PATCH v2 1/3] staging: greybus: light: fix memory leak in v4l2
- register
-Message-ID: <20170810135650.d62h2g4bxqkndiaa@valkosipuli.retiisi.org.uk>
-References: <20170809111555.30147-1-sakari.ailus@linux.intel.com>
- <20170809111555.30147-2-sakari.ailus@linux.intel.com>
- <cec7fc27-25eb-8769-6795-c377307c5f57@xs4all.nl>
+To: Wenyou Yang <wenyou.yang@microchip.com>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH 2/2] media: ov7670: Add the s_power operation
+Message-ID: <20170815163638.77rda4pbkzqsyxwj@valkosipuli.retiisi.org.uk>
+References: <20170810090645.24344-1-wenyou.yang@microchip.com>
+ <20170810090645.24344-3-wenyou.yang@microchip.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <cec7fc27-25eb-8769-6795-c377307c5f57@xs4all.nl>
+In-Reply-To: <20170810090645.24344-3-wenyou.yang@microchip.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Wenyou,
 
-On Thu, Aug 10, 2017 at 03:02:46PM +0200, Hans Verkuil wrote:
-> > @@ -534,25 +534,20 @@ static int gb_lights_light_v4l2_register(struct gb_light *light)
-> >  {
-> >  	struct gb_connection *connection = get_conn_from_light(light);
-> >  	struct device *dev = &connection->bundle->dev;
-> > -	struct v4l2_flash_config *sd_cfg;
-> > +	struct v4l2_flash_config sd_cfg = { {0} };
+On Thu, Aug 10, 2017 at 05:06:45PM +0800, Wenyou Yang wrote:
+> Add the s_power operation which is responsible for manipulating the
+> power dowm mode through the PWDN pin and the reset operation through
+> the RESET pin.
 > 
-> Just use '= {};'
+> Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+> ---
+> 
+>  drivers/media/i2c/ov7670.c | 30 +++++++++++++++++++++++++++---
+>  1 file changed, 27 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+> index 5c8460ee65c3..5ed79ccfaf91 100644
+> --- a/drivers/media/i2c/ov7670.c
+> +++ b/drivers/media/i2c/ov7670.c
+> @@ -1506,6 +1506,22 @@ static int ov7670_s_register(struct v4l2_subdev *sd, const struct v4l2_dbg_regis
+>  }
+>  #endif
+>  
+> +static int ov7670_s_power(struct v4l2_subdev *sd, int on)
+> +{
+> +	struct ov7670_info *info = to_state(sd);
+> +
+> +	if (info->pwdn_gpio)
+> +		gpiod_direction_output(info->pwdn_gpio, !on);
 
-This is GCC specific whereas { {0} } is standard C. The latter is thus
-obviously better IMO.
+gpiod_direction_output() can cope with NULL gpio_desc.
 
-> 
-> >  	struct led_classdev_flash *fled;
-> >  	struct led_classdev *iled = NULL;
-> >  	struct gb_channel *channel_torch, *channel_ind, *channel_flash;
-> > -	int ret = 0;
-> > -
-> > -	sd_cfg = kcalloc(1, sizeof(*sd_cfg), GFP_KERNEL);
-> > -	if (!sd_cfg)
-> > -		return -ENOMEM;
-> >  
-> >  	channel_torch = get_channel_from_mode(light, GB_CHANNEL_MODE_TORCH);
-> >  	if (channel_torch)
-> >  		__gb_lights_channel_v4l2_config(&channel_torch->intensity_uA,
-> > -						&sd_cfg->torch_intensity);
-> > +						&sd_cfg.torch_intensity);
-> >  
-> >  	channel_ind = get_channel_from_mode(light, GB_CHANNEL_MODE_INDICATOR);
-> >  	if (channel_ind) {
-> >  		__gb_lights_channel_v4l2_config(&channel_ind->intensity_uA,
-> > -						&sd_cfg->indicator_intensity);
-> > +						&sd_cfg.indicator_intensity);
-> >  		iled = &channel_ind->fled.led_cdev;
-> >  	}
-> >  
-> > @@ -561,27 +556,21 @@ static int gb_lights_light_v4l2_register(struct gb_light *light)
-> >  
-> >  	fled = &channel_flash->fled;
-> >  
-> > -	snprintf(sd_cfg->dev_name, sizeof(sd_cfg->dev_name), "%s", light->name);
-> > +	snprintf(sd_cfg.dev_name, sizeof(sd_cfg.dev_name), "%s", light->name);
-> >  
-> >  	/* Set the possible values to faults, in our case all faults */
-> > -	sd_cfg->flash_faults = LED_FAULT_OVER_VOLTAGE | LED_FAULT_TIMEOUT |
-> > +	sd_cfg.flash_faults = LED_FAULT_OVER_VOLTAGE | LED_FAULT_TIMEOUT |
-> >  		LED_FAULT_OVER_TEMPERATURE | LED_FAULT_SHORT_CIRCUIT |
-> >  		LED_FAULT_OVER_CURRENT | LED_FAULT_INDICATOR |
-> >  		LED_FAULT_UNDER_VOLTAGE | LED_FAULT_INPUT_VOLTAGE |
-> >  		LED_FAULT_LED_OVER_TEMPERATURE;
-> >  
-> >  	light->v4l2_flash = v4l2_flash_init(dev, NULL, fled, iled,
-> > -					    &v4l2_flash_ops, sd_cfg);
-> > -	if (IS_ERR_OR_NULL(light->v4l2_flash)) {
-> > -		ret = PTR_ERR(light->v4l2_flash);
-> > -		goto out_free;
-> > -	}
-> > +					    &v4l2_flash_ops, &sd_cfg);
-> > +	if (IS_ERR_OR_NULL(light->v4l2_flash))
-> 
-> Just IS_ERR since v4l2_flash_init() never returns NULL.
+> +	if (on && info->resetb_gpio) {
+> +		gpiod_set_value(info->resetb_gpio, 1);
+> +		usleep_range(500, 1000);
+> +		gpiod_set_value(info->resetb_gpio, 0);
+> +		usleep_range(3000, 5000);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  /* ----------------------------------------------------------------------- */
+>  
+>  static const struct v4l2_subdev_core_ops ov7670_core_ops = {
+> @@ -1515,6 +1531,7 @@ static const struct v4l2_subdev_core_ops ov7670_core_ops = {
+>  	.g_register = ov7670_g_register,
+>  	.s_register = ov7670_s_register,
+>  #endif
+> +	.s_power = ov7670_s_power,
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops ov7670_video_ops = {
+> @@ -1568,8 +1585,6 @@ static int ov7670_init_gpio(struct i2c_client *client, struct ov7670_info *info)
+>  		return PTR_ERR(info->resetb_gpio);
+>  	}
+>  
+> -	usleep_range(3000, 5000);
+> -
+>  	return 0;
+>  }
+>  
+> @@ -1630,13 +1645,19 @@ static int ov7670_probe(struct i2c_client *client,
+>  		goto clk_disable;
+>  	}
+>  
+> +	ret = ov7670_init_gpio(client, info);
 
-Will fix.
+ov7670_init_gpio() is already called a few lines above this. Was this
+intended?
 
-> 
-> > +		return PTR_ERR(light->v4l2_flash);
-> >  
-> > -	return ret;
-> > -
-> > -out_free:
-> > -	kfree(sd_cfg);
-> > -	return ret;
-> > +	return 0;
-> >  }
-> >  
-> >  static void gb_lights_light_v4l2_unregister(struct gb_light *light)
-> > 
-> 
-> After those two changes:
-> 
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> +	if (ret)
+> +		goto clk_disable;
+> +
+> +	ov7670_s_power(sd, 1);
+> +
+>  	/* Make sure it's an ov7670 */
+>  	ret = ov7670_detect(sd);
+>  	if (ret) {
+>  		v4l_dbg(1, debug, client,
+>  			"chip found @ 0x%x (%s) is not an ov7670 chip.\n",
+>  			client->addr << 1, client->adapter->name);
+> -		goto clk_disable;
+> +		goto power_off;
+>  	}
+>  	v4l_info(client, "chip found @ 0x%02x (%s)\n",
+>  			client->addr << 1, client->adapter->name);
+> @@ -1708,6 +1729,8 @@ static int ov7670_probe(struct i2c_client *client,
+>  	media_entity_cleanup(&info->sd.entity);
+>  hdl_free:
+>  	v4l2_ctrl_handler_free(&info->hdl);
+> +power_off:
+> +	ov7670_s_power(sd, 0);
+>  clk_disable:
+>  	clk_disable_unprepare(info->clk);
+>  	return ret;
+> @@ -1723,6 +1746,7 @@ static int ov7670_remove(struct i2c_client *client)
+>  	v4l2_ctrl_handler_free(&info->hdl);
+>  	clk_disable_unprepare(info->clk);
+>  	media_entity_cleanup(&info->sd.entity);
+> +	ov7670_s_power(sd, 0);
+>  	return 0;
+>  }
+>  
 
 -- 
-Regards,
-
 Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+e-mail: sakari.ailus@iki.fi
