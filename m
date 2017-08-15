@@ -1,37 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:32880 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752129AbdHZLNp (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:36320 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751653AbdHOLYF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 07:13:45 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, mchehab@kernel.org,
-        maintainers@bluecherrydvr.com, anton@corp.bluecherry.net,
-        andrey.utkin@corp.bluecherry.net, ismael@iodev.co.uk,
-        hverkuil@xs4all.nl, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 0/5] [media] PCI: make video_device const
-Date: Sat, 26 Aug 2017 16:43:29 +0530
-Message-Id: <1503746014-16489-1-git-send-email-bhumirks@gmail.com>
+        Tue, 15 Aug 2017 07:24:05 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: p.zabel@pengutronix.de, mchehab@kernel.org,
+        prabhakar.csengg@gmail.com, laurent.pinchart@ideasonboard.com
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH 3/3] [media] omap3isp: constify platform_device_id
+Date: Tue, 15 Aug 2017 16:53:42 +0530
+Message-Id: <1502796222-9681-4-git-send-email-arvind.yadav.cs@gmail.com>
+In-Reply-To: <1502796222-9681-1-git-send-email-arvind.yadav.cs@gmail.com>
+References: <1502796222-9681-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make video_device const.
+platform_device_id are not supposed to change at runtime. All functions
+working with platform_device_id provided by <linux/platform_device.h>
+work with const platform_device_id. So mark the non-const structs as
+const.
 
-Bhumika Goyal (5):
-  [media] meye:  make video_device const
-  [media] saa7134: make video_device const
-  [media] solo6x10:  make video_device const
-  [media] sta2x11: make video_device const
-  [media] tw68:  make video_device const
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ drivers/media/platform/omap3isp/isp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/media/pci/meye/meye.c               | 2 +-
- drivers/media/pci/saa7134/saa7134-empress.c | 2 +-
- drivers/media/pci/solo6x10/solo6x10-v4l2.c  | 2 +-
- drivers/media/pci/sta2x11/sta2x11_vip.c     | 2 +-
- drivers/media/pci/tw68/tw68-video.c         | 2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
-
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 9df64c1..ddb2cf5 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2373,7 +2373,7 @@ static const struct dev_pm_ops omap3isp_pm_ops = {
+ 	.complete = isp_pm_complete,
+ };
+ 
+-static struct platform_device_id omap3isp_id_table[] = {
++static const struct platform_device_id omap3isp_id_table[] = {
+ 	{ "omap3isp", 0 },
+ 	{ },
+ };
 -- 
-1.9.1
+2.7.4
