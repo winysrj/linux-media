@@ -1,86 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:37562 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751250AbdH2QnL (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:45381 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751160AbdHORSk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 12:43:11 -0400
-Date: Tue, 29 Aug 2017 11:43:09 -0500
-From: Rob Herring <robh@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, jacek.anaszewski@gmail.com,
-        linux-leds@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH 1/1] dt: bindings: Add a binding for flash devices
- associated to a sensor
-Message-ID: <20170829164309.shx2v2acucmvrs7y@rob-hp-laptop>
-References: <20170818125857.13430-1-sakari.ailus@linux.intel.com>
+        Tue, 15 Aug 2017 13:18:40 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] cec: rename pin events/function
+Message-ID: <2bb37727-f2de-9aab-b782-6027db3aab9a@xs4all.nl>
+Date: Tue, 15 Aug 2017 19:18:35 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170818125857.13430-1-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 18, 2017 at 03:58:57PM +0300, Sakari Ailus wrote:
-> Camera flash drivers (and LEDs) are separate from the sensor devices in
-> DT. In order to make an association between the two, provide the
-> association information to the software.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
-> Hi Rob and Jacek, others,
-> 
-> I know I've submitted previous versions of this patch that I have changed
-> since getting your acks... that's bad. I realised there will be problems
-> due to the vague referencing in the old version.
-> 
-> Instead of referring to the flash LED controller itself, the references are
-> now suggested to be made to the LEDs explicitly.
-> 
-> While most of the time all LEDs are associated to the same camera sensor,
-> there's nothing that suggests that this will always be the case. This will
-> work rather nicely with this change to the V4L2 flash class:
-> 
-> <URL:https://git.linuxtv.org/sailus/media_tree.git/commit/?h=flash&id=ef62781f4468d93ba8328caf7db629add453e01d>
-> 
-> An alternative to this could be to refer to the LEDs using the LED
-> controller node and integer arguments. That would require e.g. #led-cells
-> property to tell how many arguments there are. The actual LEDs also have
-> device nodes already so I thought using them would probably be a good idea
-> so we continue to have a single way to refer to LEDs.
+The CEC_EVENT_PIN_LOW/HIGH defines and the cec_queue_pin_event() function
+did not specify that these were about CEC pin events.
 
-There are some advantages to this approach, but I don't think it fits 
-the normal pattern since we do have LED nodes.
+Since in the future there will also be HPD pin events it is wise to rename
+the event defines and function to CEC_EVENT_PIN_CEC_LOW/HIGH and
+cec_queue_pin_cec_event() now before these become part of the ABI.
 
-> 
-> Let me know your thoughts / if you're ok with the patch.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
+index 0a7aa21f24f4..6c1f6efb822e 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
+@@ -127,7 +127,7 @@ returns the information to the application. The ioctl never fails.
+       - 0x00000080
+       - The CEC hardware can monitor CEC pin changes from low to high voltage
+         and vice versa. When in pin monitoring mode the application will
+-	receive ``CEC_EVENT_PIN_LOW`` and ``CEC_EVENT_PIN_HIGH`` events.
++	receive ``CEC_EVENT_PIN_CEC_LOW`` and ``CEC_EVENT_PIN_CEC_HIGH`` events.
 
-So, I think this patch is the right way to do it.
 
-Acked-by: Rob Herring <robh@kernel.org>
 
-> 
->  Documentation/devicetree/bindings/media/video-interfaces.txt | 8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> index 852041a7480c..fee73cf2a714 100644
-> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> @@ -67,6 +67,14 @@ are required in a relevant parent node:
->  		    identifier, should be 1.
->   - #size-cells    : should be zero.
->  
-> +
-> +Optional properties
-> +-------------------
-> +
-> +- flash: An array of phandles referring to the flash LED, a sub-node
-> +  of the LED driver device node.
-> +
-> +
->  Optional endpoint properties
->  ----------------------------
->  
-> -- 
-> 2.11.0
-> 
+diff --git a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
+index 766d8b0ce431..a4a107dc4822 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
+@@ -148,14 +148,14 @@ it is guaranteed that the state did change in between the two events.
+ 	application didn't dequeue CEC messages fast enough.
+     * .. _`CEC-EVENT-PIN-LOW`:
+
+-      - ``CEC_EVENT_PIN_LOW``
++      - ``CEC_EVENT_PIN_CEC_LOW``
+       - 3
+       - Generated if the CEC pin goes from a high voltage to a low voltage.
+         Only applies to adapters that have the ``CEC_CAP_MONITOR_PIN``
+ 	capability set.
+     * .. _`CEC-EVENT-PIN-HIGH`:
+
+-      - ``CEC_EVENT_PIN_HIGH``
++      - ``CEC_EVENT_PIN_CEC_HIGH``
+       - 4
+       - Generated if the CEC pin goes from a low voltage to a high voltage.
+         Only applies to adapters that have the ``CEC_CAP_MONITOR_PIN``
+diff --git a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
+index 494154e9d449..4d8e0647e832 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
+@@ -159,7 +159,7 @@ Available follower modes are:
+ 	This mode requires that the :ref:`CEC_CAP_MONITOR_PIN <CEC-CAP-MONITOR-PIN>`
+ 	capability is set, otherwise the ``EINVAL`` error code is returned.
+ 	While in pin monitoring mode this file descriptor can receive the
+-	``CEC_EVENT_PIN_LOW`` and ``CEC_EVENT_PIN_HIGH`` events to see the
++	``CEC_EVENT_PIN_CEC_LOW`` and ``CEC_EVENT_PIN_CEC_HIGH`` events to see the
+ 	low-level CEC pin transitions. This is very useful for debugging.
+ 	This mode is only allowed if the process has the ``CAP_NET_ADMIN``
+ 	capability. If that is not set, then the ``EPERM`` error code is returned.
+diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
+index 8ac39ddf892c..d9adeb505c09 100644
+--- a/drivers/media/cec/cec-adap.c
++++ b/drivers/media/cec/cec-adap.c
+@@ -154,10 +154,11 @@ static void cec_queue_event(struct cec_adapter *adap,
+ }
+
+ /* Notify userspace that the CEC pin changed state at the given time. */
+-void cec_queue_pin_event(struct cec_adapter *adap, bool is_high, ktime_t ts)
++void cec_queue_pin_cec_event(struct cec_adapter *adap, bool is_high, ktime_t ts)
+ {
+ 	struct cec_event ev = {
+-		.event = is_high ? CEC_EVENT_PIN_HIGH : CEC_EVENT_PIN_LOW,
++		.event = is_high ? CEC_EVENT_PIN_CEC_HIGH :
++				   CEC_EVENT_PIN_CEC_LOW,
+ 	};
+ 	struct cec_fh *fh;
+
+@@ -167,7 +168,7 @@ void cec_queue_pin_event(struct cec_adapter *adap, bool is_high, ktime_t ts)
+ 			cec_queue_event_fh(fh, &ev, ktime_to_ns(ts));
+ 	mutex_unlock(&adap->devnode.lock);
+ }
+-EXPORT_SYMBOL_GPL(cec_queue_pin_event);
++EXPORT_SYMBOL_GPL(cec_queue_pin_cec_event);
+
+ /*
+  * Queue a new message for this filehandle.
+diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
+index 00d43d74020f..87649b0c6381 100644
+--- a/drivers/media/cec/cec-api.c
++++ b/drivers/media/cec/cec-api.c
+@@ -449,8 +449,8 @@ static long cec_s_mode(struct cec_adapter *adap, struct cec_fh *fh,
+ 			.flags = CEC_EVENT_FL_INITIAL_STATE,
+ 		};
+
+-		ev.event = adap->pin->cur_value ? CEC_EVENT_PIN_HIGH :
+-						  CEC_EVENT_PIN_LOW;
++		ev.event = adap->pin->cur_value ? CEC_EVENT_PIN_CEC_HIGH :
++						  CEC_EVENT_PIN_CEC_LOW;
+ 		cec_queue_event_fh(fh, &ev, 0);
+ #endif
+ 		adap->monitor_pin_cnt++;
+diff --git a/drivers/media/cec/cec-pin.c b/drivers/media/cec/cec-pin.c
+index 03f800e5ec1f..31a26d3b8bd8 100644
+--- a/drivers/media/cec/cec-pin.c
++++ b/drivers/media/cec/cec-pin.c
+@@ -609,8 +609,9 @@ static int cec_pin_thread_func(void *_adap)
+ 		while (atomic_read(&pin->work_pin_events)) {
+ 			unsigned int idx = pin->work_pin_events_rd;
+
+-			cec_queue_pin_event(adap, pin->work_pin_is_high[idx],
+-					    pin->work_pin_ts[idx]);
++			cec_queue_pin_cec_event(adap,
++						pin->work_pin_is_high[idx],
++						pin->work_pin_ts[idx]);
+ 			pin->work_pin_events_rd = (idx + 1) % CEC_NUM_PIN_EVENTS;
+ 			atomic_dec(&pin->work_pin_events);
+ 		}
+diff --git a/include/media/cec.h b/include/media/cec.h
+index 1bec7bde4792..224359c9941a 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -91,7 +91,7 @@ struct cec_event_entry {
+ };
+
+ #define CEC_NUM_CORE_EVENTS 2
+-#define CEC_NUM_EVENTS CEC_EVENT_PIN_HIGH
++#define CEC_NUM_EVENTS CEC_EVENT_PIN_CEC_HIGH
+
+ struct cec_fh {
+ 	struct list_head	list;
+@@ -280,14 +280,15 @@ static inline void cec_received_msg(struct cec_adapter *adap,
+ }
+
+ /**
+- * cec_queue_pin_event() - queue a pin event with a given timestamp.
++ * cec_queue_pin_cec_event() - queue a CEC pin event with a given timestamp.
+  *
+  * @adap:	pointer to the cec adapter
+- * @is_high:	when true the pin is high, otherwise it is low
++ * @is_high:	when true the CEC pin is high, otherwise it is low
+  * @ts:		the timestamp for this event
+  *
+  */
+-void cec_queue_pin_event(struct cec_adapter *adap, bool is_high, ktime_t ts);
++void cec_queue_pin_cec_event(struct cec_adapter *adap,
++			     bool is_high, ktime_t ts);
+
+ /**
+  * cec_get_edid_phys_addr() - find and return the physical address
+diff --git a/include/uapi/linux/cec.h b/include/uapi/linux/cec.h
+index d87a67b0bb06..4351c3481aea 100644
+--- a/include/uapi/linux/cec.h
++++ b/include/uapi/linux/cec.h
+@@ -408,8 +408,8 @@ struct cec_log_addrs {
+  * didn't empty the message queue in time
+  */
+ #define CEC_EVENT_LOST_MSGS		2
+-#define CEC_EVENT_PIN_LOW		3
+-#define CEC_EVENT_PIN_HIGH		4
++#define CEC_EVENT_PIN_CEC_LOW		3
++#define CEC_EVENT_PIN_CEC_HIGH		4
+
+ #define CEC_EVENT_FL_INITIAL_STATE	(1 << 0)
+ #define CEC_EVENT_FL_DROPPED_EVENTS	(1 << 1)
