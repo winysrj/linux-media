@@ -1,47 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60584 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752223AbdHHNA2 (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:33599 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751451AbdHOLYA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Aug 2017 09:00:28 -0400
-Date: Tue, 8 Aug 2017 16:00:26 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Joe Perches <joe@perches.com>
-Cc: "Sergei A. Trusov" <sergei.a.trusov@ya.ru>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@llwyncelyn.cymru>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        simran singhal <singhalsimran0@gmail.com>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: Re: [PATCH] media: staging: atomisp: sh_css_calloc shall return a
- pointer to the allocated space
-Message-ID: <20170808130025.zviaw4ddxzn7skaa@valkosipuli.retiisi.org.uk>
-References: <1859135.Zd3QESt5CR@z12>
- <1501661466.31625.3.camel@perches.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1501661466.31625.3.camel@perches.com>
+        Tue, 15 Aug 2017 07:24:00 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: p.zabel@pengutronix.de, mchehab@kernel.org,
+        prabhakar.csengg@gmail.com, laurent.pinchart@ideasonboard.com
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH 1/3] [media] coda: constify platform_device_id
+Date: Tue, 15 Aug 2017 16:53:40 +0530
+Message-Id: <1502796222-9681-2-git-send-email-arvind.yadav.cs@gmail.com>
+In-Reply-To: <1502796222-9681-1-git-send-email-arvind.yadav.cs@gmail.com>
+References: <1502796222-9681-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 02, 2017 at 01:11:06AM -0700, Joe Perches wrote:
-> On Wed, 2017-08-02 at 18:00 +1000, Sergei A. Trusov wrote:
-> > The calloc function returns either a null pointer or a pointer to the
-> > allocated space. Add the second case that is missed.
-> 
-> gads.
-> 
-> Bug added by commit da22013f7df4 ("atomisp: remove indirection from
-> sh_css_malloc")
-> 
-> These wrappers should really be deleted.
+platform_device_id are not supposed to change at runtime. All functions
+working with platform_device_id provided by <linux/platform_device.h>
+work with const platform_device_id. So mark the non-const structs as
+const.
 
-Applied, with the appropriate Fixes: header.
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ drivers/media/platform/coda/coda-common.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks!
-
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index f92cc7d..530c937 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -2390,7 +2390,7 @@ static const struct coda_devtype coda_devdata[] = {
+ 	},
+ };
+ 
+-static struct platform_device_id coda_platform_ids[] = {
++static const struct platform_device_id coda_platform_ids[] = {
+ 	{ .name = "coda-imx27", .driver_data = CODA_IMX27 },
+ 	{ /* sentinel */ }
+ };
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.7.4
