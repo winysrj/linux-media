@@ -1,58 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60924 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750812AbdHRJRh (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:36533 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752048AbdHOTvM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 05:17:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Rohit Athavale <rohit.athavale@xilinx.com>
-Cc: linux-media@vger.kernel.org, hyun.kwon@xilinx.com,
-        Rohit Athavale <rathaval@xilinx.com>
-Subject: Re: [PATCH 3/3] Documentation: subdev-formats: Add Xilinx YCbCr to Vendor specific area
-Date: Fri, 18 Aug 2017 12:18:03 +0300
-Message-ID: <5444997.CSWZR4Ez4Z@avalon>
-In-Reply-To: <1502303274-40609-4-git-send-email-rathaval@xilinx.com>
-References: <1502303274-40609-1-git-send-email-rathaval@xilinx.com> <1502303274-40609-4-git-send-email-rathaval@xilinx.com>
+        Tue, 15 Aug 2017 15:51:12 -0400
+Received: by mail-wr0-f196.google.com with SMTP id y67so1214693wrb.3
+        for <linux-media@vger.kernel.org>; Tue, 15 Aug 2017 12:51:12 -0700 (PDT)
+Subject: Re: [PATCH v2] media: isl6421: add checks for current overflow
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+References: <24d5b36b-0ed5-f290-15a3-d291b10b6c39@gmail.com>
+ <201c07fc2bed74943f2a74fc5734d9aed3e62f8d.1502652879.git.mchehab@s-opensource.com>
+From: Jemma Denson <jdenson@gmail.com>
+Message-ID: <bac2323e-6bde-08f8-1143-31a0b1d7176a@gmail.com>
+Date: Tue, 15 Aug 2017 20:51:09 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <201c07fc2bed74943f2a74fc5734d9aed3e62f8d.1502652879.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-GB
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rohit,
+Hi Mauro,
 
-Thank you for the patch.
+On 13/08/17 20:35, Mauro Carvalho Chehab wrote:
 
-On Wednesday 09 Aug 2017 11:27:54 Rohit Athavale wrote:
-> This commit adds the custom Xilinx IP specific 8-bit YCbCr 4:2:0
-> to the custom formats area in the subdev-formats documentation.
-> 
-> Signed-off-by: Rohit Athavale <rathaval@xilinx.com>
+> This Kaffeine's BZ:
+> 	https://bugs.kde.org/show_bug.cgi?id=374693
+>
+> affects SkyStar S2 PCI DVB-S/S2 rev 3.3 device. It could be due to
+> a Kernel bug.
+>
+> While checking the Isil 6421, comparing with its manual, available at:
+>
+> 	http://www.intersil.com/content/dam/Intersil/documents/isl6/isl6421a.pdf
+>
+> It was noticed that, if the output load is highly capacitive, a different approach
+> is recomended when energizing the LNBf.
+>
+> Also, it is possible to detect if a current overload is happening, by checking an
+> special flag.
+>
+> Add support for it.
+>
+> Compile-tested only.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 > ---
->  Documentation/media/uapi/v4l/subdev-formats.rst | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst
-> b/Documentation/media/uapi/v4l/subdev-formats.rst index 8e73bb0..141a837
-> 100644
-> --- a/Documentation/media/uapi/v4l/subdev-formats.rst
-> +++ b/Documentation/media/uapi/v4l/subdev-formats.rst
-> @@ -7483,3 +7483,8 @@ formats.
->        - 0x5001
->        - Interleaved raw UYVY and JPEG image format with embedded meta-data
->  	used by Samsung S3C73MX camera sensors.
-> +    * .. _MEDIA_BUS_FMT_XLNX8_VUY420_1X24:
+>   drivers/media/dvb-frontends/isl6421.c | 72 +++++++++++++++++++++++++++++++++--
+>   1 file changed, 68 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/isl6421.c b/drivers/media/dvb-frontends/isl6421.c
+> index 838b42771a05..b04d56ad4ce8 100644
+> --- a/drivers/media/dvb-frontends/isl6421.c
+> +++ b/drivers/media/dvb-frontends/isl6421.c
+> @@ -38,25 +38,43 @@ struct isl6421 {
+>   	u8			override_and;
+>   	struct i2c_adapter	*i2c;
+>   	u8			i2c_addr;
+> +	bool			is_off;
+>   };
+>   
+>   static int isl6421_set_voltage(struct dvb_frontend *fe,
+>   			       enum fe_sec_voltage voltage)
+>   {
+> +	int ret;
+> +	u8 buf;
+> +	bool is_off;
+>   	struct isl6421 *isl6421 = (struct isl6421 *) fe->sec_priv;
+> -	struct i2c_msg msg = {	.addr = isl6421->i2c_addr, .flags = 0,
+> -				.buf = &isl6421->config,
+> -				.len = sizeof(isl6421->config) };
+> +	struct i2c_msg msg[2] = {
+> +		{
+> +		  .addr = isl6421->i2c_addr,
+> +		  .flags = 0,
+> +		  .buf = &isl6421->config,
+> +		  .len = 1,
+> +		}, {
+> +		  .addr = isl6421->i2c_addr,
+> +		  .flags = I2C_M_RD,
+> +		  .buf = &buf,
+> +		  .len = 1,
+> +		}
 > +
-> +      - MEDIA_BUS_FMT_XLNX8_VUY420_1X24
-> +      - 0x5002
-> +      - Xilinx IP specific 8-bit color depth YCbCr 4:2:0 used by Xilinx
-> Video IP.
+> +	};
+>   
+>   	isl6421->config &= ~(ISL6421_VSEL1 | ISL6421_EN1);
+>   
+>   	switch(voltage) {
+>   	case SEC_VOLTAGE_OFF:
+> +		is_off = true;
+>   		break;
+>   	case SEC_VOLTAGE_13:
+> +		is_off = false;
+>   		isl6421->config |= ISL6421_EN1;
+>   		break;
+>   	case SEC_VOLTAGE_18:
+> +		is_off = false;
+>   		isl6421->config |= (ISL6421_EN1 | ISL6421_VSEL1);
+>   		break;
+>   	default:
+> @@ -66,7 +84,51 @@ static int isl6421_set_voltage(struct dvb_frontend *fe,
+>   	isl6421->config |= isl6421->override_or;
+>   	isl6421->config &= isl6421->override_and;
+>   
+> -	return (i2c_transfer(isl6421->i2c, &msg, 1) == 1) ? 0 : -EIO;
+> +	/*
+> +	 * If LNBf were not powered on, disable dynamic current limit, as,
+> +	 * according with datasheet, highly capacitive load on the output may
+> +	 * cause a difficult start-up.
+> +	 */
+> +	if (isl6421->is_off && !is_off)
+> +		isl6421->config |= ISL6421_EN1;
 
-You need to document this format in more details, with a table explaining how 
-bits are transferred on the bus, the same way the standard YUV formats are 
-documented.
+Checking the datasheet I think we need to be setting DCL high instead. EN1 is
+already set anyway.
 
--- 
-Regards,
+> +
+> +	ret = i2c_transfer(isl6421->i2c, msg, 2);
+> +	if (ret < 0)
+> +		return ret;
+> +	if (ret != 2)
+> +		return -EIO;
+> +
+> +	isl6421->is_off = is_off;
 
-Laurent Pinchart
+Is this in the right place?
+
+> +
+> +	/* On overflow, the device will try again after 900 ms (typically) */
+> +	if (isl6421->is_off && (buf & ISL6421_OLF1))
+> +		msleep(1000);
+
+1000ms does only cover one cycle of OFF then ON - the device will keep cycling
+900ms off then 20ms on until overflow is cleared so it might take longer but
+adding the code to support longer is  probably not worth it. Waiting one cycle
+is better than the current none anyway.
+
+> +
+> +	if (isl6421->is_off && !is_off) {
+> +		isl6421->config &= ~ISL6421_EN1;
+> +
+> +		ret = i2c_transfer(isl6421->i2c, msg, 2);
+> +		if (ret < 0)
+> +			return ret;
+> +		if (ret != 2)
+> +			return -EIO;
+> +	}
+
+Does this if statement ever match? isl6421->is_off and is_off are the same value
+at this point. I presume this is supposed to be re-enabling DCL so would again
+also need that bit instead of EN1. We might also need a little delay before
+turning it on - the datasheet mentions a "chosen amount of time". I've no idea
+what's appropriate here, 200ms?
+
+A simpler if statement might be just (isl6421->config & ISL6421_DCL), we just
+need to check DCL was set high above.
+
+> +
+> +	/* Check if overload flag is active. If so, disable power */
+> +	if (buf & ISL6421_OLF1) {
+> +		isl6421->config &= ~(ISL6421_VSEL1 | ISL6421_EN1);
+> +		ret = i2c_transfer(isl6421->i2c, msg, 1);
+> +		if (ret < 0)
+> +			return ret;
+> +		if (ret != 1)
+> +			return -EIO;
+> +		isl6421->is_off = true;
+> +
+> +		dev_warn(&isl6421->i2c->dev,
+> +			 "Overload current detected. disabling LNBf power\n");
+> +		return -EINVAL;
+> +	}
+> +	return 0;
+>   }
+>   
+>   static int isl6421_enable_high_lnb_voltage(struct dvb_frontend *fe, long arg)
+> @@ -148,6 +210,8 @@ struct dvb_frontend *isl6421_attach(struct dvb_frontend *fe, struct i2c_adapter
+>   		return NULL;
+>   	}
+>   
+> +	isl6421->is_off = true;
+> +
+>   	/* install release callback */
+>   	fe->ops.release_sec = isl6421_release;
+>   
+
+I've just tested both your v2 patch and changes I'm suggesting above; both work
+fine on my setup. Do you want me to send a v3?
+
+Jemma.
