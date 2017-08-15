@@ -1,85 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51364
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752675AbdHIO1u (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Aug 2017 10:27:50 -0400
-Date: Wed, 9 Aug 2017 11:27:41 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Peter Rosin <peda@axentia.se>
-Cc: linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/3] [media] cx231xx: only unregister successfully
- registered i2c adapters
-Message-ID: <20170809112741.36427eb0@vento.lan>
-In-Reply-To: <20170731133852.8013-4-peda@axentia.se>
-References: <20170731133852.8013-1-peda@axentia.se>
-        <20170731133852.8013-4-peda@axentia.se>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33178 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752246AbdHOLYt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 Aug 2017 07:24:49 -0400
+Date: Tue, 15 Aug 2017 14:24:46 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se
+Subject: Re: [RFC 04/19] dt: bindings: Add lens-focus binding for image
+ sensors
+Message-ID: <20170815112446.5qhasjopvnbdraez@valkosipuli.retiisi.org.uk>
+References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
+ <20170718190401.14797-5-sakari.ailus@linux.intel.com>
+ <dcd84739-7e83-e07f-9290-a066013af102@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <dcd84739-7e83-e07f-9290-a066013af102@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 31 Jul 2017 15:38:52 +0200
-Peter Rosin <peda@axentia.se> escreveu:
+Hi Hans,
 
-> This prevents potentially scary debug messages from the i2c core.
+On Fri, Jul 28, 2017 at 10:53:35AM +0200, Hans Verkuil wrote:
+> Hi Sakari,
 > 
-> Signed-off-by: Peter Rosin <peda@axentia.se>
-> ---
->  drivers/media/usb/cx231xx/cx231xx-core.c | 3 +++
->  drivers/media/usb/cx231xx/cx231xx-i2c.c  | 3 ++-
->  2 files changed, 5 insertions(+), 1 deletion(-)
+> Is the lens-focus phandle specific to voice-coil controllers? What about
+
+I think it's not important. Right now the information is used for making
+the association only.
+
+> motor-controlled focus systems? What when there are multiple motors? E.g.
+> one for the focus, one for the iris control (yes, we have that).
+
+I'd add another property for this purpose.
+
 > 
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
-> index 46646ecd2dbc..f372ad3917a8 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-core.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-core.c
-> @@ -1311,6 +1311,7 @@ int cx231xx_dev_init(struct cx231xx *dev)
->  	dev->i2c_bus[0].i2c_period = I2C_SPEED_100K;	/* 100 KHz */
->  	dev->i2c_bus[0].i2c_nostop = 0;
->  	dev->i2c_bus[0].i2c_reserve = 0;
-> +	dev->i2c_bus[0].i2c_rc = -ENODEV;
->  
->  	/* External Master 2 Bus */
->  	dev->i2c_bus[1].nr = 1;
-> @@ -1318,6 +1319,7 @@ int cx231xx_dev_init(struct cx231xx *dev)
->  	dev->i2c_bus[1].i2c_period = I2C_SPEED_100K;	/* 100 KHz */
->  	dev->i2c_bus[1].i2c_nostop = 0;
->  	dev->i2c_bus[1].i2c_reserve = 0;
-> +	dev->i2c_bus[1].i2c_rc = -ENODEV;
->  
->  	/* Internal Master 3 Bus */
->  	dev->i2c_bus[2].nr = 2;
-> @@ -1325,6 +1327,7 @@ int cx231xx_dev_init(struct cx231xx *dev)
->  	dev->i2c_bus[2].i2c_period = I2C_SPEED_100K;	/* 100kHz */
->  	dev->i2c_bus[2].i2c_nostop = 0;
->  	dev->i2c_bus[2].i2c_reserve = 0;
-> +	dev->i2c_bus[2].i2c_rc = -ENODEV;
->  
->  	/* register I2C buses */
->  	errCode = cx231xx_i2c_register(&dev->i2c_bus[0]);
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> index 3e49517cb5e0..8ce6b815d16d 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> @@ -553,7 +553,8 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
->   */
->  void cx231xx_i2c_unregister(struct cx231xx_i2c *bus)
->  {
-> -	i2c_del_adapter(&bus->i2c_adap);
-> +	if (!bus->i2c_rc)
-> +		i2c_del_adapter(&bus->i2c_adap);
+> What if you have two sensors (stereoscopic) controlled by one motor?
 
-That doesn't sound right. what happens if i2c_rc is 1 or 2?
+You can refer to the same controller from both, I don't see a problem with
+that. The software would need to support that though, I think changes to
+the async framework would be needed.
 
-IMHO, the right would would be, instead:
+> 
+> Just trying to understand this from a bigger perspective. Specifically
+> how this will scale when more of these supporting devices as added.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> On 07/18/2017 09:03 PM, Sakari Ailus wrote:
+> > The lens-focus property contains a phandle to the lens voice coil driver
+> > that is associated to the sensor; typically both are contained in the same
+> > camera module.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Acked-by: Pavel Machek <pavel@ucw.cz>
+> > Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> > Acked-by: Rob Herring <robh@kernel.org>
+> > ---
+> >  Documentation/devicetree/bindings/media/video-interfaces.txt | 2 ++
+> >  1 file changed, 2 insertions(+)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> > index 9723f7e1c7db..a18d9b2d309f 100644
+> > --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> > +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> > @@ -74,6 +74,8 @@ Optional properties
+> >  - flash: phandle referring to the flash driver chip. A flash driver may
+> >    have multiple flashes connected to it.
+> >  
+> > +- lens-focus: A phandle to the node of the focus lens controller.
+> > +
+> >  
+> >  Optional endpoint properties
+> >  ----------------------------
+> > 
+> 
 
-	if (bus->i2c_rc >= 0)
-		i2c_del_adapter(&bus->i2c_adap);
-
-Regards
-
-Thanks,
-Mauro
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
