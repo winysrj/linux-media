@@ -1,46 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53425
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751918AbdHZKHa (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:41975 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751703AbdHOLfE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 06:07:30 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 4/6] media: frontend.rst: mention MMT at the documentation
-Date: Sat, 26 Aug 2017 07:07:12 -0300
-Message-Id: <489d6432cd6cbb5d7280187396ddf61854f5db22.1503742025.git.mchehab@s-opensource.com>
-In-Reply-To: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
-References: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
-In-Reply-To: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
-References: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
+        Tue, 15 Aug 2017 07:35:04 -0400
+Message-ID: <1502796900.2342.1.camel@pengutronix.de>
+Subject: Re: [PATCH 1/3] [media] coda: constify platform_device_id
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Arvind Yadav <arvind.yadav.cs@gmail.com>, mchehab@kernel.org,
+        prabhakar.csengg@gmail.com, laurent.pinchart@ideasonboard.com
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Date: Tue, 15 Aug 2017 13:35:00 +0200
+In-Reply-To: <1502796222-9681-2-git-send-email-arvind.yadav.cs@gmail.com>
+References: <1502796222-9681-1-git-send-email-arvind.yadav.cs@gmail.com>
+         <1502796222-9681-2-git-send-email-arvind.yadav.cs@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ATSC 3.0 uses MPEG Media Transport, with is not currently
-supported. Yet, we'll need to implement it sooner or later.
-So, mention about it at the specs.
+On Tue, 2017-08-15 at 16:53 +0530, Arvind Yadav wrote:
+> platform_device_id are not supposed to change at runtime. All
+> functions
+> working with platform_device_id provided by <linux/platform_device.h>
+> work with const platform_device_id. So mark the non-const structs as
+> const.
+> 
+> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/dvb/frontend.rst | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-diff --git a/Documentation/media/uapi/dvb/frontend.rst b/Documentation/media/uapi/dvb/frontend.rst
-index 0bfade2b72cf..40adcd0da2dc 100644
---- a/Documentation/media/uapi/dvb/frontend.rst
-+++ b/Documentation/media/uapi/dvb/frontend.rst
-@@ -33,9 +33,8 @@ Data types and ioctl definitions can be accessed by including
- 
- .. note::
- 
--   Transmission via the internet (DVB-IP) is not yet handled by this
--   API but a future extension is possible.
--
-+   Transmission via the internet (DVB-IP) and MMT (MPEG Media Transport)
-+   is not yet handled by this API but a future extension is possible.
- 
- .. [#f1]
- 
--- 
-2.13.3
+thanks
+Philipp
