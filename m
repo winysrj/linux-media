@@ -1,60 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:38118 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751537AbdIABvK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 21:51:10 -0400
-Received: by mail-qk0-f196.google.com with SMTP id o63so971122qkb.5
-        for <linux-media@vger.kernel.org>; Thu, 31 Aug 2017 18:51:10 -0700 (PDT)
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [PATCH v2 07/14] [media] vb2: add .buffer_queued() to notify queueing in the driver
-Date: Thu, 31 Aug 2017 22:50:34 -0300
-Message-Id: <20170901015041.7757-8-gustavo@padovan.org>
-In-Reply-To: <20170901015041.7757-1-gustavo@padovan.org>
-References: <20170901015041.7757-1-gustavo@padovan.org>
+Received: from mail-co1nam03on0135.outbound.protection.outlook.com ([104.47.40.135]:17344
+        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750827AbdHPEVA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 Aug 2017 00:21:00 -0400
+From: <Yasunari.Takiguchi@sony.com>
+To: <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-media@vger.kernel.org>
+CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
+        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
+        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
+        Hideki Nozawa <Hideki.Nozawa@sony.com>,
+        "Kota Yonezawa" <Kota.Yonezawa@sony.com>,
+        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
+        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+Subject: [PATCH v3 01/14] [dt-bindings] [media] Add document file for CXD2880 SPI I/F
+Date: Wed, 16 Aug 2017 13:24:12 +0900
+Message-ID: <20170816042412.20712-1-Yasunari.Takiguchi@sony.com>
+In-Reply-To: <20170816041714.20551-1-Yasunari.Takiguchi@sony.com>
+References: <20170816041714.20551-1-Yasunari.Takiguchi@sony.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
 
-With the upcoming explicit synchronization support to V4L2 we need a
-way to notify userspace when buffers are queued to the driver - buffers
-with fences attached to it can only be queued once the fence signal, so
-the queueing to the driver might be deferred.
+This is the document file for Sony CXD2880 DVB-T2/T tuner + demodulator.
+It contains the description of the SPI adapter binding.
 
-Yet, userspace still wants to be notified, so the buffer_queued() callback
-was added to vb2_buf_ops for that purpose.
+No change since version 1. I should have carried the ack forward:
+Acked-by: Rob Herring <robh@kernel.org>
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
+Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
+Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
+Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
+Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
 ---
- include/media/videobuf2-core.h | 3 +++
- 1 file changed, 3 insertions(+)
+ .../devicetree/bindings/media/spi/sony-cxd2880.txt         | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index cad45e49a46d..46049dec7f61 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -412,6 +412,8 @@ struct vb2_ops {
-  *			will return an error.
-  * @copy_timestamp:	copy the timestamp from a userspace structure to
-  *			the vb2_buffer struct.
-+ * @buffer_queued:	VB2 uses this to notify the VB2-client that the buffer
-+ *			was queued to the driver.
-  */
- struct vb2_buf_ops {
- 	int (*verify_planes_array)(struct vb2_buffer *vb, const void *pb);
-@@ -419,6 +421,7 @@ struct vb2_buf_ops {
- 	int (*fill_vb2_buffer)(struct vb2_buffer *vb, const void *pb,
- 				struct vb2_plane *planes);
- 	void (*copy_timestamp)(struct vb2_buffer *vb, const void *pb);
-+	void (*buffer_queued)(struct vb2_buffer *vb);
- };
- 
- /**
+diff --git a/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt b/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
+new file mode 100644
+index 000000000000..fc5aa263abe5
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
+@@ -0,0 +1,14 @@
++Sony CXD2880 DVB-T2/T tuner + demodulator driver SPI adapter
++
++Required properties:
++- compatible: Should be "sony,cxd2880".
++- reg: SPI chip select number for the device.
++- spi-max-frequency: Maximum bus speed, should be set to <55000000> (55MHz).
++
++Example:
++
++cxd2880@0 {
++	compatible = "sony,cxd2880";
++	reg = <0>; /* CE0 */
++	spi-max-frequency = <55000000>; /* 55MHz */
++};
 -- 
-2.13.5
+2.13.0
