@@ -1,59 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:52139 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752991AbdHWBWj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 21:22:39 -0400
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Subject: RE: [PATCH 0/3] DW9714 DT support
-Date: Wed, 23 Aug 2017 01:22:38 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5972FA7293@FMSMSX114.amr.corp.intel.com>
-References: <1502977376-22836-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1502977376-22836-1-git-send-email-sakari.ailus@linux.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49094 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751287AbdHPMzQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 Aug 2017 08:55:16 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: jacek.anaszewski@gmail.com, linux-leds@vger.kernel.org,
+        devicetree@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 1/3] dt: bindings: Document DT bindings for Analog devices as3645a
+Date: Wed, 16 Aug 2017 15:55:12 +0300
+Message-Id: <20170816125514.27634-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170816125440.27534-1-sakari.ailus@linux.intel.com>
+References: <20170816125440.27534-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-Thanks for the patches.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ .../devicetree/bindings/leds/ams,as3645a.txt       | 56 ++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/leds/ams,as3645a.txt
 
-I have verified that the dw9714 driver gets probed via DT bindings, with these patches on 4.13-rc6 kernel.
-
-Feel free to add
-
-Tested-by: Rajmohan Mani <rajmohan.mani@intel.com>
-
-Raj
-
-> -----Original Message-----
-> From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com]
-> Sent: Thursday, August 17, 2017 6:43 AM
-> To: linux-media@vger.kernel.org
-> Cc: devicetree@vger.kernel.org; Mani, Rajmohan
-> <rajmohan.mani@intel.com>
-> Subject: [PATCH 0/3] DW9714 DT support
-> 
-> Hi all,
-> 
-> This patchset adds DT bindings as well as DT support for DW9714. The unused
-> ACPI match table is removed.
-> 
-> Sakari Ailus (3):
->   dt-bindings: Add bindings for Dongwoon DW9714 voice coil
->   dw9714: Add Devicetree support
->   dw9714: Remove ACPI match tables, convert to use probe_new
-> 
->  .../bindings/media/i2c/dongwoon,dw9714.txt         |  9 ++++++++
->  .../devicetree/bindings/vendor-prefixes.txt        |  1 +
->  drivers/media/i2c/dw9714.c                         | 26 +++++++++-------------
->  3 files changed, 21 insertions(+), 15 deletions(-)  create mode 100644
-> Documentation/devicetree/bindings/media/i2c/dongwoon,dw9714.txt
-> 
-> --
-> 2.7.4
+diff --git a/Documentation/devicetree/bindings/leds/ams,as3645a.txt b/Documentation/devicetree/bindings/leds/ams,as3645a.txt
+new file mode 100644
+index 000000000000..00066e3f9036
+--- /dev/null
++++ b/Documentation/devicetree/bindings/leds/ams,as3645a.txt
+@@ -0,0 +1,56 @@
++Analog devices AS3645A device tree bindings
++
++The AS3645A flash LED controller can drive two LEDs, one high current
++flash LED and one indicator LED. The high current flash LED can be
++used in torch mode as well.
++
++Ranges below noted as [a, b] are closed ranges between a and b, i.e. a
++and b are included in the range.
++
++
++Required properties
++===================
++
++compatible	: Must be "ams,as3645a".
++reg		: The I2C address of the device. Typically 0x30.
++
++
++Required properties of the "flash" child node
++=============================================
++
++flash-timeout-us: Flash timeout in microseconds. The value must be in
++		  the range [100000, 850000] and divisible by 50000.
++flash-max-microamp: Maximum flash current in microamperes. Has to be
++		    in the range between [200000, 500000] and
++		    divisible by 20000.
++led-max-microamp: Maximum torch (assist) current in microamperes. The
++		  value must be in the range between [20000, 160000] and
++		  divisible by 20000.
++ams,input-max-microamp: Maximum flash controller input current. The
++			value must be in the range [1250000, 2000000]
++			and divisible by 50000.
++
++
++Required properties of the "indicator" child node
++=================================================
++
++led-max-microamp: Maximum indicator current. The allowed values are
++		  2500, 5000, 7500 and 10000.
++
++
++Example
++=======
++
++	as3645a: flash@30 {
++		reg = <0x30>;
++		compatible = "ams,as3645a";
++		flash {
++			flash-timeout-us = <150000>;
++			flash-max-microamp = <320000>;
++			led-max-microamp = <60000>;
++			ams,input-max-microamp = <1750000>;
++		};
++		indicator {
++			led-max-microamp = <10000>;
++		};
++	};
+-- 
+2.11.0
