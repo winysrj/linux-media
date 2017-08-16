@@ -1,64 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f182.google.com ([209.85.161.182]:34685 "EHLO
-        mail-yw0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751361AbdHJHA2 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44333 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751943AbdHPO5l (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Aug 2017 03:00:28 -0400
-Received: by mail-yw0-f182.google.com with SMTP id s143so53348166ywg.1
-        for <linux-media@vger.kernel.org>; Thu, 10 Aug 2017 00:00:27 -0700 (PDT)
-Received: from mail-yw0-f174.google.com (mail-yw0-f174.google.com. [209.85.161.174])
-        by smtp.gmail.com with ESMTPSA id k132sm2005804ywb.43.2017.08.10.00.00.26
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 10 Aug 2017 00:00:26 -0700 (PDT)
-Received: by mail-yw0-f174.google.com with SMTP id u207so53376905ywc.3
-        for <linux-media@vger.kernel.org>; Thu, 10 Aug 2017 00:00:26 -0700 (PDT)
+        Wed, 16 Aug 2017 10:57:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Edgar Thier <info@edgarthier.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] uvcvideo: Apply flags from device to actual properties
+Date: Wed, 16 Aug 2017 17:58:04 +0300
+Message-ID: <1516233.pKQSzG3xyp@avalon>
+In-Reply-To: <ca483e75-4519-2bc3-eb11-db647fc60860@edgarthier.net>
+References: <ca483e75-4519-2bc3-eb11-db647fc60860@edgarthier.net>
 MIME-Version: 1.0
-In-Reply-To: <47f8b8293a5ea31c2cec771398fbcdaf0f8fe808.1502315473.git.chiranjeevi.rapolu@intel.com>
-References: <1502306262-30400-1-git-send-email-chiranjeevi.rapolu@intel.com> <47f8b8293a5ea31c2cec771398fbcdaf0f8fe808.1502315473.git.chiranjeevi.rapolu@intel.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 10 Aug 2017 16:00:05 +0900
-Message-ID: <CAAFQd5BwCxB7pDokX0qAuGaRoMLt8YV_e0-QPxafhee7iN4gTQ@mail.gmail.com>
-Subject: Re: [PATCH v2] media: ov5670: Fix incorrect frame timing reported to user
-To: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Chiranjeevi,
+Hi Edgar,
 
-On Thu, Aug 10, 2017 at 6:59 AM, Chiranjeevi Rapolu
-<chiranjeevi.rapolu@intel.com> wrote:
-> Previously, pixel-rate/(pixels-per-line * lines-per-frame) was
-> yielding incorrect frame timing for the user.
->
-> OV sensor is using internal timing and this requires
-> conversion (internal timing -> PPL) for correct HBLANK calculation.
->
-> Now, change pixels-per-line domain from internal sensor clock to
-> pixels domain. Set HBLANK read-only because fixed PPL is used for all
-> resolutions. And, use more accurate link-frequency 422.4MHz instead of
-> rounding down to 420MHz.
->
-> Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+Thank you for the patch.
+
+On Tuesday 15 Aug 2017 12:59:47 Edgar Thier wrote:
+> Use flags the device exposes for UVC controls.
+
+In addition to explaining what the patch does, the commit message should 
+explain why the change is needed. What is the problem you're trying to address 
+here ?
+
+> Signed-off-by: Edgar Thier <info@edgarthier.net>
 > ---
-> Changes in v2:
->         - Change subject to reflect frame timing info.
->         - Change OV5670_DEF_PPL so that it doesn't convey a register default
->           value. And, add more comments to it.
->  drivers/media/i2c/ov5670.c | 45 +++++++++++++++++++++++----------------------
->  1 file changed, 23 insertions(+), 22 deletions(-)
+>  drivers/media/usb/uvc/uvc_ctrl.c | 26 +++++++++++++++++++++++++-
+>  1 file changed, 25 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
+> b/drivers/media/usb/uvc/uvc_ctrl.c index c2ee6e3..bc69e92 100644
+> --- a/drivers/media/usb/uvc/uvc_ctrl.c
+> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+> @@ -1568,7 +1568,8 @@ int uvc_ctrl_set(struct uvc_video_chain *chain,
+>  				return ret;
+>  		}
+> 
+> -		ctrl->loaded = 1;
+> +		if (!(ctrl->info.flags && UVC_CTRL_FLAG_AUTO_UPDATE))
+> +			ctrl->loaded = 1;
 
-Okay, the numbers in this version finally make sense. Thanks for
-figuring this out.
+I think this change is unrelated to the subject of this patch. It should be 
+split to a separate patch.
 
-Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+This being said, why is this change needed ? The uvc_ctrl_set() function is 
+called from uvc_ctrl_s_ctrl() and uvc_ioctl_s_try_ext_ctrls(), and followed by 
+a uvc_ctrl_rollback() or uvc_ctrl_commit() call that will set the loaded flag 
+back to 0 in uvc_ctrl_commit_entity().
 
-Best regards,
-Tomasz
+>  	}
+> 
+>  	/* Backup the current value in case we need to rollback later. */
+> @@ -1889,8 +1890,13 @@ int uvc_ctrl_restore_values(struct uvc_device *dev)
+>  static int uvc_ctrl_add_info(struct uvc_device *dev, struct uvc_control
+> *ctrl, const struct uvc_control_info *info)
+>  {
+> +	u8 *data;
+>  	int ret = 0;
+> 
+> +	data = kmalloc(2, GFP_KERNEL);
+> +	if (data == NULL)
+> +		return -ENOMEM;
+> +
+>  	ctrl->info = *info;
+>  	INIT_LIST_HEAD(&ctrl->info.mappings);
+> 
+> @@ -1904,6 +1910,23 @@ static int uvc_ctrl_add_info(struct uvc_device *dev,
+> struct uvc_control *ctrl,
+> 
+>  	ctrl->initialized = 1;
+> 
+> +	ret = uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id, dev-
+>intfnum,
+> +                         info->selector, data, 1);
+> +	if (ret < 0) {
+> +		uvc_trace(UVC_TRACE_CONTROL,
+> +			  "GET_INFO failed on control %pUl/%u (%d).\n",
+> +			  info->entity, info->selector, ret);
+> +	}
+> +	else {
+> +		ctrl->info.flags = UVC_CTRL_FLAG_GET_MIN | 
+UVC_CTRL_FLAG_GET_MAX
+> +		    | UVC_CTRL_FLAG_GET_RES | UVC_CTRL_FLAG_GET_DEF
+> +		    | (data[0] & UVC_CONTROL_CAP_GET ?
+> +		       UVC_CTRL_FLAG_GET_CUR : 0)
+> +		    | (data[0] & UVC_CONTROL_CAP_SET ?
+> +		       UVC_CTRL_FLAG_SET_CUR : 0)
+> +		    | (data[0] & UVC_CONTROL_CAP_AUTOUPDATE ?
+> +		       UVC_CTRL_FLAG_AUTO_UPDATE : 0);
+> +	}
+
+This code seems copied from uvc_ctrl_fill_xu_info(). I'd rather move it to a 
+function that can be called by both instead of duplicating it.
+
+>  	uvc_trace(UVC_TRACE_CONTROL, "Added control %pUl/%u to device %s "
+>  		"entity %u\n", ctrl->info.entity, ctrl->info.selector,
+>  		dev->udev->devpath, ctrl->entity->id);
+> @@ -1911,6 +1934,7 @@ static int uvc_ctrl_add_info(struct uvc_device *dev,
+> struct uvc_control *ctrl, done:
+>  	if (ret < 0)
+>  		kfree(ctrl->uvc_data);
+> +	kfree(data);
+>  	return ret;
+>  }
+
+-- 
+Regards,
+
+Laurent Pinchart
