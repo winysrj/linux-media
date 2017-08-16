@@ -1,46 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50492 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750966AbdHRM4E (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 08:56:04 -0400
-Date: Fri, 18 Aug 2017 20:54:20 +0800
-From: Shawn Guo <shawnguo@kernel.org>
-To: Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>
-Cc: devicetree@vger.kernel.org,
-        Baoyou Xie <xie.baoyou@sanechips.com.cn>,
-        Xin Zhou <zhou.xin8@sanechips.com.cn>,
-        Jun Nie <jun.nie@linaro.org>, Shawn Guo <shawn.guo@linaro.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 0/3] Add ZTE zx-irdec remote control driver
-Message-ID: <20170818125418.GM7608@dragon>
-References: <1501420993-21977-1-git-send-email-shawnguo@kernel.org>
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:52148 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751444AbdHPHUn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 Aug 2017 03:20:43 -0400
+Subject: Re: [PATCHv2 1/3] dt-bindings: document the CEC GPIO bindings
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <20170810083359.36800-1-hverkuil@xs4all.nl>
+ <20170810083359.36800-2-hverkuil@xs4all.nl>
+Message-ID: <c24529d5-fd9e-444a-2bc7-71d54ca950f8@xs4all.nl>
+Date: Wed, 16 Aug 2017 09:20:37 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1501420993-21977-1-git-send-email-shawnguo@kernel.org>
+In-Reply-To: <20170810083359.36800-2-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jul 30, 2017 at 09:23:10PM +0800, Shawn Guo wrote:
-> From: Shawn Guo <shawn.guo@linaro.org>
+On 08/10/2017 10:33 AM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> The series adds dt-bindings and remote control driver for IRDEC block
-> found on ZTE ZX family SoCs.
+> Document the bindings for the cec-gpio module for hardware where the
+> CEC pin is connected to a GPIO pin.
+
+No need to review this, there will be a v3 that will add a second optional
+HPD gpio.
+
+Regards,
+
+	Hans
+
 > 
-> Changes for v2:
->  - Add one patch to move generic NEC scancode composing and protocol
->    type detection code from ir_nec_decode() into an inline shared
->    function, which can be reused by zx-irdec driver.
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  Documentation/devicetree/bindings/media/cec-gpio.txt | 16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/cec-gpio.txt
 > 
-> Shawn Guo (3):
->   rc: ir-nec-decoder: move scancode composing code into a shared
->     function
->   dt-bindings: add bindings document for zx-irdec
->   rc: add zx-irdec remote control driver
-
-Hi Sean,
-
-We are getting close to 4.14 merge window.  Can we get this into -next
-for a bit exposure, if you are fine with the patches?
-
-Shawn
+> diff --git a/Documentation/devicetree/bindings/media/cec-gpio.txt b/Documentation/devicetree/bindings/media/cec-gpio.txt
+> new file mode 100644
+> index 000000000000..e34a175468e2
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/cec-gpio.txt
+> @@ -0,0 +1,16 @@
+> +* HDMI CEC GPIO-based hardware
+> +
+> +Use these bindings for HDMI CEC hardware where the CEC pin is hooked up
+> +to a pull-up GPIO pin.
+> +
+> +Required properties:
+> +  - compatible: value must be "cec-gpio"
+> +  - gpio: gpio that the CEC line is connected to
+> +
+> +Example for the Raspberry Pi 3 where the CEC line is connected to
+> +pin 7 aka BCM4 aka GPCLK0 on the GPIO pin header:
+> +
+> +cec-gpio {
+> +       compatible = "cec-gpio";
+> +       gpio = <&gpio 4 GPIO_ACTIVE_HIGH>;
+> +};
+> 
