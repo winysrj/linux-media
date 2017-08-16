@@ -1,262 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57301 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43910 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752611AbdH2NOt (ORCPT
+        with ESMTP id S1751287AbdHPM2C (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 09:14:49 -0400
+        Wed, 16 Aug 2017 08:28:02 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, hverkuil@xs4all.nl, devicetree@vger.kernel.org
-Subject: Re: [PATCH v5 1/5] v4l: fwnode: Move KernelDoc documentation to the header
-Date: Tue, 29 Aug 2017 16:15:22 +0300
-Message-ID: <2676284.rKR023OhTM@avalon>
-In-Reply-To: <20170829110313.19538-2-sakari.ailus@linux.intel.com>
-References: <20170829110313.19538-1-sakari.ailus@linux.intel.com> <20170829110313.19538-2-sakari.ailus@linux.intel.com>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFC PATCH] media: vb2: add bidirectional flag in vb2_queue
+Date: Wed, 16 Aug 2017 15:28:25 +0300
+Message-ID: <24640227.TDiF9DF693@avalon>
+In-Reply-To: <00f355f6-33d6-f16d-3935-51a42c4a2fee@linaro.org>
+References: <20170814084155.10770-1-stanimir.varbanov@linaro.org> <19b203a8-fdaa-b171-2e96-d1d8075b0e49@xs4all.nl> <00f355f6-33d6-f16d-3935-51a42c4a2fee@linaro.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Stan,
 
-Thank you for the patch.
-
-On Tuesday, 29 August 2017 14:03:09 EEST Sakari Ailus wrote:
-> In V4L2 the practice is to have the KernelDoc documentation in the header
-> and not in .c source code files. This consequientally makes the V4L2
-> fwnode function documentation part of the Media documentation build.
+On Wednesday 16 Aug 2017 14:46:50 Stanimir Varbanov wrote:
+> On 08/15/2017 01:04 PM, Hans Verkuil wrote:
+> > On 08/14/17 10:41, Stanimir Varbanov wrote:
+> >> Hi,
+> >> 
+> >> This RFC patch is intended to give to the drivers a choice to change
+> >> the default behavior of the v4l2-core DMA mapping direction from
+> >> DMA_TO/FROM_DEVICE (depending on the buffer type CAPTURE or OUTPUT)
+> >> to DMA_BIDIRECTIONAL during queue_init time.
+> >> 
+> >> Initially the issue with DMA mapping direction has been found in
+> >> Venus encoder driver where the firmware side of the driver adds few
+> >> lines padding on bottom of the image buffer, and the consequence was
+> >> triggering of IOMMU protection faults.
+> >> 
+> >> Probably other drivers could also has a benefit of this feature (hint)
+> >> in the future.
+> >> 
+> >> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> >> ---
+> >> 
+> >>  drivers/media/v4l2-core/videobuf2-core.c |  3 +++
+> >>  include/media/videobuf2-core.h           | 11 +++++++++++
+> >>  2 files changed, 14 insertions(+)
+> >> 
+> >> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> >> b/drivers/media/v4l2-core/videobuf2-core.c index
+> >> 14f83cecfa92..17d07fda4cdc 100644
+> >> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> >> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> >> @@ -200,6 +200,9 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+> >> 
+> >>  	int plane;
+> >>  	int ret = -ENOMEM;
+> >> 
+> >> +	if (q->bidirectional)
+> >> +		dma_dir = DMA_BIDIRECTIONAL;
+> >> +
+> > 
+> > Does this only have to be used in mem_alloc? In the __prepare_*() it is
+> > still using DMA_TO/FROM_DEVICE.
 > 
-> Also correct the link related function and argument naming in
-> documentation.
+> Yes, it looks like the DMA direction should be covered in the
+> __prepare_* too. Thus the patch should look like below:
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-I prefer documenting functions in the C file. Documentation in header files 
-will get out-of-sync with the implementation much more easily.
-
-> ---
-> drivers/media/v4l2-core/v4l2-fwnode.c | 75 --------------------------------
-> include/media/v4l2-fwnode.h           | 81 ++++++++++++++++++++++++++++++++-
-> 2 files changed, 80 insertions(+), 76 deletions(-)
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> b/drivers/media/v4l2-core/videobuf2-core.c
+> index 14f83cecfa92..0089e7dac7dd 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -188,14 +188,21 @@ module_param(debug, int, 0644);
+>  static void __vb2_queue_cancel(struct vb2_queue *q);
+>  static void __enqueue_in_driver(struct vb2_buffer *vb);
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c
-> b/drivers/media/v4l2-core/v4l2-fwnode.c index 40b2fbfe8865..706f9e7b90f1
-> 100644
-> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> @@ -181,25 +181,6 @@ v4l2_fwnode_endpoint_parse_csi1_bus(struct
-> fwnode_handle *fwnode, vep->bus_type = V4L2_MBUS_CSI1;
->  }
-> 
-> -/**
-> - * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
-> - * @fwnode: pointer to the endpoint's fwnode handle
-> - * @vep: pointer to the V4L2 fwnode data structure
-> - *
-> - * All properties are optional. If none are found, we don't set any flags.
-> This - * means the port has a static configuration and no properties have
-> to be - * specified explicitly. If any properties that identify the bus as
-> parallel - * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER.
-> Similarly, if - * we recognise the bus as serial CSI-2 and
-> clock-noncontinuous isn't set, we - * set the
-> V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a - *
-> reference to @fwnode.
-> - *
-> - * NOTE: This function does not parse properties the size of which is
-> variable - * without a low fixed limit. Please use
-> v4l2_fwnode_endpoint_alloc_parse() in - * new drivers instead.
-> - *
-> - * Return: 0 on success or a negative error code on failure.
-> - */
->  int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
->  			       struct v4l2_fwnode_endpoint *vep)
->  {
-> @@ -239,14 +220,6 @@ int v4l2_fwnode_endpoint_parse(struct fwnode_handle
-> *fwnode, }
->  EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_parse);
-> 
-> -/*
-> - * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
-> - * v4l2_fwnode_endpoint_alloc_parse()
-> - * @vep - the V4L2 fwnode the resources of which are to be released
-> - *
-> - * It is safe to call this function with NULL argument or on a V4L2 fwnode
-> the - * parsing of which failed.
-> - */
->  void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep)
->  {
->  	if (IS_ERR_OR_NULL(vep))
-> @@ -257,29 +230,6 @@ void v4l2_fwnode_endpoint_free(struct
-> v4l2_fwnode_endpoint *vep) }
->  EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_free);
-> 
-> -/**
-> - * v4l2_fwnode_endpoint_alloc_parse() - parse all fwnode node properties
-> - * @fwnode: pointer to the endpoint's fwnode handle
-> - *
-> - * All properties are optional. If none are found, we don't set any flags.
-> This - * means the port has a static configuration and no properties have
-> to be - * specified explicitly. If any properties that identify the bus as
-> parallel - * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER.
-> Similarly, if - * we recognise the bus as serial CSI-2 and
-> clock-noncontinuous isn't set, we - * set the
-> V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a - *
-> reference to @fwnode.
-> - *
-> - * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
-> - * v4l2_fwnode_endpoint_parse():
-> - *
-> - * 1. It also parses variable size data.
-> - *
-> - * 2. The memory it has allocated to store the variable size data must be
-> freed - *    using v4l2_fwnode_endpoint_free() when no longer needed.
-> - *
-> - * Return: Pointer to v4l2_fwnode_endpoint if successful, on an error
-> pointer - * on error.
-> - */
->  struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
->  	struct fwnode_handle *fwnode)
->  {
-> @@ -322,24 +272,6 @@ struct v4l2_fwnode_endpoint
-> *v4l2_fwnode_endpoint_alloc_parse( }
->  EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_alloc_parse);
-> 
-> -/**
-> - * v4l2_fwnode_endpoint_parse_link() - parse a link between two endpoints
-> - * @__fwnode: pointer to the endpoint's fwnode at the local end of the link
-> - * @link: pointer to the V4L2 fwnode link data structure
-> - *
-> - * Fill the link structure with the local and remote nodes and port
-> numbers. - * The local_node and remote_node fields are set to point to the
-> local and - * remote port's parent nodes respectively (the port parent node
-> being the - * parent node of the port node if that node isn't a 'ports'
-> node, or the - * grand-parent node of the port node otherwise).
-> - *
-> - * A reference is taken to both the local and remote nodes, the caller must
-> use - * v4l2_fwnode_endpoint_put_link() to drop the references when done
-> with the - * link.
-> - *
-> - * Return: 0 on success, or -ENOLINK if the remote endpoint fwnode can't be
-> - * found.
-> - */
->  int v4l2_fwnode_parse_link(struct fwnode_handle *__fwnode,
->  			   struct v4l2_fwnode_link *link)
->  {
-> @@ -374,13 +306,6 @@ int v4l2_fwnode_parse_link(struct fwnode_handle
-> *__fwnode, }
->  EXPORT_SYMBOL_GPL(v4l2_fwnode_parse_link);
-> 
-> -/**
-> - * v4l2_fwnode_put_link() - drop references to nodes in a link
-> - * @link: pointer to the V4L2 fwnode link data structure
-> - *
-> - * Drop references to the local and remote nodes in the link. This function
-> - * must be called on every link parsed with v4l2_fwnode_parse_link(). - */
->  void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link)
->  {
->  	fwnode_handle_put(link->local_node);
-> diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-> index 7adec9851d9e..68eb22ba571b 100644
-> --- a/include/media/v4l2-fwnode.h
-> +++ b/include/media/v4l2-fwnode.h
-> @@ -113,13 +113,92 @@ struct v4l2_fwnode_link {
->  	unsigned int remote_port;
->  };
-> 
-> +/**
-> + * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
-> + * @fwnode: pointer to the endpoint's fwnode handle
-> + * @vep: pointer to the V4L2 fwnode data structure
-> + *
-> + * All properties are optional. If none are found, we don't set any flags.
-> This + * means the port has a static configuration and no properties have
-> to be + * specified explicitly. If any properties that identify the bus as
-> parallel + * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER.
-> Similarly, if + * we recognise the bus as serial CSI-2 and
-> clock-noncontinuous isn't set, we + * set the
-> V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a + *
-> reference to @fwnode.
-> + *
-> + * NOTE: This function does not parse properties the size of which is
-> variable + * without a low fixed limit. Please use
-> v4l2_fwnode_endpoint_alloc_parse() in + * new drivers instead.
-> + *
-> + * Return: 0 on success or a negative error code on failure.
-> + */
->  int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
->  			       struct v4l2_fwnode_endpoint *vep);
+> +static enum dma_data_direction __get_dma_dir(struct vb2_queue *q)
+> +{
+> +	if (q->bidirectional)
+> +		return DMA_BIDIRECTIONAL;
 > +
-> +/*
-> + * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
-> + * v4l2_fwnode_endpoint_alloc_parse()
-> + * @vep - the V4L2 fwnode the resources of which are to be released
-> + *
-> + * It is safe to call this function with NULL argument or on a V4L2 fwnode
-> the + * parsing of which failed.
-> + */
-> +void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
-> +
-> +/**
-> + * v4l2_fwnode_endpoint_alloc_parse() - parse all fwnode node properties
-> + * @fwnode: pointer to the endpoint's fwnode handle
-> + *
-> + * All properties are optional. If none are found, we don't set any flags.
-> This + * means the port has a static configuration and no properties have
-> to be + * specified explicitly. If any properties that identify the bus as
-> parallel + * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER.
-> Similarly, if + * we recognise the bus as serial CSI-2 and
-> clock-noncontinuous isn't set, we + * set the
-> V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a + *
-> reference to @fwnode.
-> + *
-> + * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
-> + * v4l2_fwnode_endpoint_parse():
-> + *
-> + * 1. It also parses variable size data.
-> + *
-> + * 2. The memory it has allocated to store the variable size data must be
-> freed + *    using v4l2_fwnode_endpoint_free() when no longer needed.
-> + *
-> + * Return: Pointer to v4l2_fwnode_endpoint if successful, on an error
-> pointer + * on error.
-> + */
->  struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
->  	struct fwnode_handle *fwnode);
-> -void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
-> +
-> +/**
-> + * v4l2_fwnode_parse_link() - parse a link between two endpoints
-> + * @fwnode: pointer to the endpoint's fwnode at the local end of the link
-> + * @link: pointer to the V4L2 fwnode link data structure
-> + *
-> + * Fill the link structure with the local and remote nodes and port
-> numbers. + * The local_node and remote_node fields are set to point to the
-> local and + * remote port's parent nodes respectively (the port parent node
-> being the + * parent node of the port node if that node isn't a 'ports'
-> node, or the + * grand-parent node of the port node otherwise).
-> + *
-> + * A reference is taken to both the local and remote nodes, the caller must
-> use + * v4l2_fwnode_put_link() to drop the references when done with the +
-> * link.
-> + *
-> + * Return: 0 on success, or -ENOLINK if the remote endpoint fwnode can't be
-> + * found.
-> + */
->  int v4l2_fwnode_parse_link(struct fwnode_handle *fwnode,
->  			   struct v4l2_fwnode_link *link);
-> +
-> +/**
-> + * v4l2_fwnode_put_link() - drop references to nodes in a link
-> + * @link: pointer to the V4L2 fwnode link data structure
-> + *
-> + * Drop references to the local and remote nodes in the link. This function
-> + * must be called on every link parsed with v4l2_fwnode_parse_link(). + */
->  void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
-> 
->  #endif /* _V4L2_FWNODE_H */
+> +	return q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
 
+We could also compute the DMA direction once only and store it in the queue. I 
+have no big preference at the moment.
+
+> +}
+> +
+>  /**
+>   * __vb2_buf_mem_alloc() - allocate video memory for the given buffer
+>   */
+>  static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+>  {
+>  	struct vb2_queue *q = vb->vb2_queue;
+> -	enum dma_data_direction dma_dir =
+> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+> +	enum dma_data_direction dma_dir = __get_dma_dir(q);
+>  	void *mem_priv;
+>  	int plane;
+>  	int ret = -ENOMEM;
+> @@ -978,8 +985,7 @@ static int __prepare_userptr(struct vb2_buffer *vb,
+> const void *pb)
+>  	void *mem_priv;
+>  	unsigned int plane;
+>  	int ret = 0;
+> -	enum dma_data_direction dma_dir =
+> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+> +	enum dma_data_direction dma_dir = __get_dma_dir(q);
+>  	bool reacquired = vb->planes[0].mem_priv == NULL;
+> 
+>  	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
+> @@ -1096,8 +1102,7 @@ static int __prepare_dmabuf(struct vb2_buffer *vb,
+> const void *pb)
+>  	void *mem_priv;
+>  	unsigned int plane;
+>  	int ret = 0;
+> -	enum dma_data_direction dma_dir =
+> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+> +	enum dma_data_direction dma_dir = __get_dma_dir(q);
+>  	bool reacquired = vb->planes[0].mem_priv == NULL;
+> 
+>  	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
 
 -- 
 Regards,
