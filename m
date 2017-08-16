@@ -1,49 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47380 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752311AbdHHM4R (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Aug 2017 08:56:17 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org, Jim Lin <jilin@nvidia.com>
-Subject: [PATCH 1/5] uvcvideo: Fix incorrect timeout for Get Request
-Date: Tue,  8 Aug 2017 15:56:20 +0300
-Message-Id: <20170808125624.11328-2-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <20170808125624.11328-1-laurent.pinchart@ideasonboard.com>
-References: <20170808125624.11328-1-laurent.pinchart@ideasonboard.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47848 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752048AbdHPLXD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 Aug 2017 07:23:03 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
+Subject: [RESEND PATCH v2 0/2] Unified fwnode endpoint parser
+Date: Wed, 16 Aug 2017 14:22:58 +0300
+Message-Id: <20170816112300.19514-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jim Lin <jilin@nvidia.com>
+Hi folks,
 
-Section 9.2.6.4 of USB 2.0/3.x specification describes that
-"device must be able to return the first data packet to host within
-500 ms of receipt of the request. For subsequent data packet, if any,
-the device must be able to return them within 500 ms".
+(Resending, got Niklas's e-mail wrong.)
 
-This is to fix incorrect timeout and change it from 300 ms to 500 ms
-to meet the timing specified by specification for Get Request.
+We have a large influx of new, unmerged, drivers that are now parsing
+fwnode endpoints and each one of them is doing this a little bit
+differently. The needs are still exactly the same for the graph data
+structure is device independent. This is still a non-trivial task and the
+majority of the driver implementations are buggy, just buggy in different
+ways.
 
-Signed-off-by: Jim Lin <jilin@nvidia.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/usb/uvc/uvcvideo.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Facilitate parsing endpoints by adding a convenience function for parsing
+the endpoints, and make the omap3isp driver use it as an example.
 
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 15e415e32c7f..296b69bb3fb2 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -166,7 +166,7 @@
- /* Maximum status buffer size in bytes of interrupt URB. */
- #define UVC_MAX_STATUS_SIZE	16
- 
--#define UVC_CTRL_CONTROL_TIMEOUT	300
-+#define UVC_CTRL_CONTROL_TIMEOUT	500
- #define UVC_CTRL_STREAMING_TIMEOUT	5000
- 
- /* Maximum allowed number of control mappings per device */
+I plan to include the first patch to a pull request soonish, the second
+could go in with the first user.
+
+Open question: should we designate an error code to silently skip endpoints
+from driver's parse_endpoint() callback? Would that be useful? An error
+code not relevant for parsing endpoints in general (such as EISDIR) could
+be chosen, otherwise we're hampering with error codes that can be returned
+in general.
+
+since v1:
+
+- The first patch has been merged (it was a bugfix).
+
+- In anticipation that the parsing can take place over several iterations,
+  take the existing number of async sub-devices into account when
+  re-allocating an array of async sub-devices.
+
+- Rework the first patch to better anticipate parsing single endpoint at a
+  time by a driver.
+
+- Add a second patch that adds a function for parsing endpoints one at a
+  time based on port and endpoint numbers.
+
+Sakari Ailus (2):
+  v4l: fwnode: Support generic parsing of graph endpoints in a device
+  v4l: fwnode: Support generic parsing of graph endpoints in a single
+    port
+
+ drivers/media/platform/omap3isp/isp.c | 116 +++++++---------------
+ drivers/media/platform/omap3isp/isp.h |   3 -
+ drivers/media/v4l2-core/v4l2-fwnode.c | 176 ++++++++++++++++++++++++++++++++++
+ include/media/v4l2-async.h            |   4 +-
+ include/media/v4l2-fwnode.h           |  16 ++++
+ 5 files changed, 231 insertions(+), 84 deletions(-)
+
 -- 
-Regards,
-
-Laurent Pinchart
+2.11.0
