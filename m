@@ -1,46 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:38686 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752794AbdHTLxY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Aug 2017 07:53:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mga11.intel.com ([192.55.52.93]:24782 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751605AbdHPMWq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 Aug 2017 08:22:46 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 0/4] cec fixes, vivid-cec improvements
-Date: Sun, 20 Aug 2017 13:53:15 +0200
-Message-Id: <20170820115319.26244-1-hverkuil@xs4all.nl>
+Cc: mchehab@s-opensource.com, hverkuil@xs4all.nl
+Subject: [PATCH v2 1/2] docs-rst: media: Document s_stream() video op usage for MC enabled devices
+Date: Wed, 16 Aug 2017 15:20:17 +0300
+Message-Id: <1502886018-31488-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1502886018-31488-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1502886018-31488-1-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+As we begin to add support for systems with Media controller pipelines
+controlled by more than one device driver, it is essential that we
+precisely define the responsibilities of each component in the stream
+control and common practices.
 
-The first two patches add support for CEC pin emulation in the
-vivid driver. The third fixes a kernel logging bug in vivid.
+Specifically, streaming control is done per sub-device and sub-device
+drivers themselves are responsible for streaming setup in upstream
+sub-devices.
 
-The last patch is a bug fix: the CEC adapter was not explicitly
-disabled when cec_delete_adapter was called. Normally this does not
-cause any problems, but for the upcoming omap4 cec driver it does.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ Documentation/media/kapi/v4l2-subdev.rst | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-Regards,
-
-	Hans
-
-Hans Verkuil (4):
-  cec: replace pin->cur_value by adap->cec_pin_is_high
-  vivid: add CEC pin monitoring emulation
-  vivid: fix incorrect HDMI input/output CEC logging
-  cec: ensure that adap_enable(false) is called from
-    cec_delete_adapter()
-
- drivers/media/cec/cec-adap.c              |  4 +-
- drivers/media/cec/cec-api.c               |  6 +--
- drivers/media/cec/cec-core.c              |  1 +
- drivers/media/cec/cec-pin.c               |  5 +--
- drivers/media/platform/vivid/vivid-cec.c  | 65 ++++++++++++++++++++++++++++++-
- drivers/media/platform/vivid/vivid-core.c |  8 ++--
- include/media/cec-pin.h                   |  1 -
- include/media/cec.h                       |  1 +
- 8 files changed, 77 insertions(+), 14 deletions(-)
-
+diff --git a/Documentation/media/kapi/v4l2-subdev.rst b/Documentation/media/kapi/v4l2-subdev.rst
+index e1f0b72..45088ad 100644
+--- a/Documentation/media/kapi/v4l2-subdev.rst
++++ b/Documentation/media/kapi/v4l2-subdev.rst
+@@ -262,6 +262,35 @@ is called. After all subdevices have been located the .complete() callback is
+ called. When a subdevice is removed from the system the .unbind() method is
+ called. All three callbacks are optional.
+ 
++Streaming control on Media controller enabled devices
++^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++
++Starting and stopping the stream are somewhat complex operations that
++often require walking the media graph to enable streaming on
++sub-devices which the pipeline consists of. This involves interaction
++between multiple drivers, sometimes more than two.
++
++The ``.s_stream()`` op in :c:type:`v4l2_subdev_video_ops` is responsible
++for starting and stopping the stream on the sub-device it is called
++on. A device driver is only responsible for calling the ``.s_stream()`` ops
++of the adjacent sub-devices that are connected to its sink pads
++through an enabled link. A driver may not call ``.s_stream()`` op
++of any other sub-device further up in the pipeline, for instance.
++
++This means that a sub-device driver is thus in direct control of
++whether the upstream sub-devices start (or stop) streaming before or
++after the sub-device itself is set up for streaming.
++
++.. note::
++
++   As the ``.s_stream()`` callback is called recursively through the
++   sub-devices along the pipeline, it is important to keep the
++   recursion as short as possible. To this end, drivers are encouraged
++   to avoid recursively calling ``.s_stream()`` internally to reduce
++   stack usage. Instead, the ``.s_stream()`` op of the directly
++   connected sub-devices should come from the callback through which
++   the driver was first called.
++
+ V4L2 sub-device userspace API
+ -----------------------------
+ 
 -- 
-2.14.1
+2.7.4
