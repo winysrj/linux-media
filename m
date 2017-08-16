@@ -1,187 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49825
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754727AbdHYLPP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Aug 2017 07:15:15 -0400
-Date: Fri, 25 Aug 2017 08:15:03 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Hans Verkuil <hansverk@cisco.com>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 2/3] media: videodev2: add a flag for vdev-centric
- devices
-Message-ID: <20170825081503.13e4df80@vento.lan>
-In-Reply-To: <d118d078-429b-5ea4-02d1-8852c7c662f2@xs4all.nl>
-References: <cover.1503653839.git.mchehab@s-opensource.com>
-        <8d504be517755ee9449a007b5f2de52738c2df63.1503653839.git.mchehab@s-opensource.com>
-        <4f771cfa-0e0d-3548-a363-6470b32a6634@cisco.com>
-        <20170825070632.28580858@vento.lan>
-        <44bdeabc-8899-8f7e-dd26-4284c5b589a1@cisco.com>
-        <20170825073517.1112d618@vento.lan>
-        <7d5f952b-028d-0770-0f37-39ab011ec740@cisco.com>
-        <20170825075044.7ffe3232@vento.lan>
-        <d118d078-429b-5ea4-02d1-8852c7c662f2@xs4all.nl>
+Received: from sauhun.de ([88.99.104.3]:57522 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752336AbdHPU62 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 Aug 2017 16:58:28 -0400
+Date: Wed, 16 Aug 2017 22:58:26 +0200
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Jonathan Cameron <jic23@jic23.retrosnub.co.uk>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-iio@vger.kernel.org, alsa-devel@alsa-project.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 1/4] i2c: add helpers to ease DMA handling
+Message-ID: <20170816205825.zq5u7gqgyrcqptsb@ninjato>
+References: <20170718102339.28726-1-wsa+renesas@sang-engineering.com>
+ <20170718102339.28726-2-wsa+renesas@sang-engineering.com>
+ <20170723122242.7fd0edf4@jic23.retrosnub.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="iw76m45wyrc7u532"
+Content-Disposition: inline
+In-Reply-To: <20170723122242.7fd0edf4@jic23.retrosnub.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 25 Aug 2017 12:56:30 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> On 25/08/17 12:50, Mauro Carvalho Chehab wrote:
-> > Em Fri, 25 Aug 2017 12:42:51 +0200
-> > Hans Verkuil <hansverk@cisco.com> escreveu:
-> >   
-> >> On 08/25/2017 12:35 PM, Mauro Carvalho Chehab wrote:  
-> >>> Em Fri, 25 Aug 2017 12:13:53 +0200
-> >>> Hans Verkuil <hansverk@cisco.com> escreveu:
-> >>>     
-> >>>> On 08/25/2017 12:06 PM, Mauro Carvalho Chehab wrote:    
-> >>>>> Em Fri, 25 Aug 2017 11:44:27 +0200
-> >>>>> Hans Verkuil <hansverk@cisco.com> escreveu:
-> >>>>>       
-> >>>>>> On 08/25/2017 11:40 AM, Mauro Carvalho Chehab wrote:      
-> >>>>>>> From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> >>>>>>>
-> >>>>>>> As both vdev-centric and mc-centric devices may implement the
-> >>>>>>> same APIs, we need a flag to allow userspace to distinguish
-> >>>>>>> between them.
-> >>>>>>>
-> >>>>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> >>>>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> >>>>>>> ---
-> >>>>>>>  Documentation/media/uapi/v4l/open.rst            | 6 ++++++
-> >>>>>>>  Documentation/media/uapi/v4l/vidioc-querycap.rst | 4 ++++
-> >>>>>>>  include/uapi/linux/videodev2.h                   | 2 ++
-> >>>>>>>  3 files changed, 12 insertions(+)
-> >>>>>>>
-> >>>>>>> diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-> >>>>>>> index a72d142897c0..eb3f0ec57edb 100644
-> >>>>>>> --- a/Documentation/media/uapi/v4l/open.rst
-> >>>>>>> +++ b/Documentation/media/uapi/v4l/open.rst
-> >>>>>>> @@ -33,6 +33,12 @@ For **vdev-centric** control, the device and their corresponding hardware
-> >>>>>>>  pipelines are controlled via the **V4L2 device** node. They may optionally
-> >>>>>>>  expose via the :ref:`media controller API <media_controller>`.
-> >>>>>>>  
-> >>>>>>> +.. note::
-> >>>>>>> +
-> >>>>>>> +   **vdev-centric** devices should report V4L2_VDEV_CENTERED        
-> >>>>>>
-> >>>>>> You mean CENTRIC, not CENTERED.      
-> >>>>>
-> >>>>> Yeah, true. I'll fix it.
-> >>>>>       
-> >>>>>> But I would change this to MC_CENTRIC: the vast majority of drivers are VDEV centric,
-> >>>>>> so it makes a lot more sense to keep that as the default and only set the cap for
-> >>>>>> MC-centric drivers.      
-> >>>>>
-> >>>>> I actually focused it on what an userspace application would do.
-> >>>>>
-> >>>>> An specialized application for a given hardware will likely just
-> >>>>> ignore whatever flag is added, and use vdev, mc and subdev APIs
-> >>>>> as it pleases. So, those applications don't need any flag at all.
-> >>>>>
-> >>>>> However, a generic application needs a flag to allow them to check
-> >>>>> if a given hardware can be controlled by the traditional way
-> >>>>> to control the device (e. g. if it accepts vdev-centric type of
-> >>>>> hardware control).
-> >>>>>
-> >>>>> It is an old desire (since when MC was designed) to allow that
-> >>>>> generic V4L2 apps to also work with MC-centric hardware somehow.      
-> >>>>
-> >>>> No, not true. The desire is that they can use the MC to find the
-> >>>> various device nodes (video, radio, vbi, rc, cec, ...). But they
-> >>>> remain vdev-centric. vdev vs mc centric has nothing to do with the
-> >>>> presence of the MC. It's how they are controlled.    
-> >>>
-> >>> No, that's not I'm talking about. I'm talking about libv4l plugin
-> >>> (or whatever) that would allow a generic app to work with a mc-centric
-> >>> device. That's there for a long time (since when we were reviewing
-> >>> the MC patches back in 2009 or 2010).    
-> >>
-> >> So? Such a plugin would obviously remove the MC_CENTRIC cap. Which makes
-> >> perfect sense.
-> >>
-> >> There are a lot of userspace applications that do not use libv4l. It's
-> >> optional, not required, to use that library. We cannot design our API with
-> >> the assumption that this library will be used.
-> >>  
-> >>>     
-> >>>>
-> >>>> Regarding userspace applications: they can't check for a VDEV_CENTRIC
-> >>>> cap since we never had any. I.e., if they do:
-> >>>>
-> >>>> 	if (!(caps & VDEV_CENTRIC))
-> >>>> 		/* unsupported device */
-> >>>>
-> >>>> then they would fail for older kernels that do not set this flag.
-> >>>>
-> >>>> But this works:
-> >>>>
-> >>>> 	if (caps & MC_CENTRIC)
-> >>>> 		/* unsupported device */
-> >>>>
-> >>>> So this really needs to be an MC_CENTRIC capability.    
-> >>>
-> >>> That won't work. The test should take into account the API version
-> >>> too.
-> >>>
-> >>> Assuming that such flag would be added for version 4.15, with a VDEV_CENTRIC,
-> >>> the check would be:
-> >>>
-> >>>
-> >>> 	/*
-> >>>          * There's no need to check version here: libv4l may override it
-> >>> 	 * to support a mc-centric device even for older versions of the
-> >>> 	 * Kernel
-> >>>          */
-> >>> 	if (caps & V4L2_CAP_VDEV_CENTRIC)
-> >>> 		is_supported = true;
-> >>>
-> >>> 	/*
-> >>> 	 * For API version lower than 4.15, there's no way to know for
-> >>> 	 * sure if the device is vdev-centric or not. So, either additional
-> >>> 	 * tests are needed, or it would assume vdev-centric and output
-> >>> 	 * some note about that.
-> >>> 	 */
-> >>> 	if (version < KERNEL_VERSION(4, 15, 0))
-> >>> 		maybe_supported = true;    
-> >>
-> >>
-> >> 	is_supported = true;
-> >> 	if (caps & V4L2_CAP_MC_CENTRIC)
-> >> 		is_supported = false;
-> >>  	if (version < KERNEL_VERSION(4, 15, 0))
-> >>  		maybe_supported = true;
-> >>
-> >> I don't see the difference. BTW, no application will ever do that version check.
-> >> It doesn't help them in any way to know that it 'may' be supported.  
-> > 
-> > Yeah, this can work. The only drawback is that, if we end by
-> > implementing vdev compatible support is that such drivers will
-> > have to clean the V4L2_CAP_MC_CENTRIC flag.  
-> 
-> You mean implementing vdev compatible support in libv4l? (Just making sure
-> I understand you correctly)
+--iw76m45wyrc7u532
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes, either there or at the Kernel, as it seems we'll never have it
-there, as nobody is working on it anymore.
+Hi Jonathan,
 
-> In that case it doesn't matter if the libv4l code would set the VDEV_CENTRIC flag
-> or remove the MC_CENTRIC flag. That makes no difference, or course.
+> I like the basic idea of this patch set a lot btw!
 
-True, but the text will have to be clear that a MC_CENTRIC device is a
-device that can't be controlled by a V4L2-centric application.
+Thanks!
 
-Thanks,
-Mauro
+> Jonathan
+
+Could you delete irrelevant parts of the message, please? I nearly
+missed your other comment which would have been a great loss!
+
+> I'm trying to get my head around whether this is a sufficient set of cond=
+itions
+> for a dma safe buffer and I'm not sure it is.
+>=20
+> We go to a lot of effort with SPI buffers to ensure they are in their own=
+ cache
+> lines.  Do we not need to do the same here?  The issue would be the
+> classic case of embedding a buffer inside a larger structure which is on
+> the stack.  Need the magic of __cacheline_aligned to force it into it's
+> own line for devices with dma-incoherent caches.
+> DMA-API-HOWTO.txt (not read that for a while at it is a rather good
+> at describing this stuff these days!)
+>=20
+> So that one is easy enough to check by checking if it is cache line align=
+ed,
+> but what do you do to know there is nothing much after it?
+
+Thank you, really!
+
+This patch series addressed all cases I have created, but I also
+wondered if there are cases left which I missed. Now, also because you
+mentioned cacheline alignments, the faint idea of "maybe it could be
+fragile" became a strong "it is too fragile"! lib/dma-debug.c is >40KB
+for a reason. I just rewrote this series...
+
+> Not sure there is a way around this short of auditing i2c drivers to
+> change any that do this.
+
+=2E.. to do something like this, more precisely: an opt-in approach. I
+introduce a new flag for i2c_msg, namely I2C_M_DMA_SAFE which can opt-in
+DMA if we know the i2c_msg buffer is DMA safe. I finished a
+proof-of-concept this evening and pushed it here:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git renesas/topic/i=
+2c-core-dma-rfc-v4
+
+I will test it on HW tomorrow and send it out, then. There are still
+some bits missing, but for getting opinions, it should be good enough.
+
+Thanks and kind regards,
+
+   Wolfram
+
+
+--iw76m45wyrc7u532
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlmUsfEACgkQFA3kzBSg
+KbYvTA/9GfvNkpGoyhvY6GHFOWPKNXd8Z3pDbev1Kh9OZIV9fveLjRa8Sq20pdiI
+o0YKCO4ljVL41BDXt/4GOHbONYjmrbPO6KequfqRhn/Eb1QZHgO5lpLuFkIqnSbW
+oWecM6dZqzzhRHIteRKgUYw+d7CU7FdT7RFOZrRllRaPjxZ+fnbw+Mh/fWXapQlK
+/Qz73224MOCDoQgmVqfGIlvwK4pAB6pv7rpV+Qu0S8TOI5NT/j3Ne/hFgMHDQj/E
+fphOGr4/V9UKPAoz6KasbuUgAlqqN8qIs2MwOwLBB+qZV/odTJDvG7+JvH2rLIMe
+QOGZwFxbTVnEllEdKgk056a7rFkSBVFA5jmmLKAPw8CtbNKvpYVKMYXPUih5ea4u
+FNKl2bcxXawuVLyvmovfPzZOhRu85Cw6eS+MFsMZGK32XVL6fd6ZjX0YDhA6+wkt
+BEtFQHLO1K1UCeEFtLmFn9f71pXOX+RZtGgKFuGzNSb9tDN540kanc1Oxpm4KEuz
+jJv9FM9QWkUGFxT+yuRaX4AxXAQNBt46HiWjPNEbpf906Ef4ghf74vj+xM9UxuRQ
+ABhKkOp5RIFYpUHJgnUfgdco36XIMLoF52aUP5+5OAYZ4msnGMy0sEcr3sHQ7Nlg
+Y1zlV9yyesdPAI5soo126qDlFbEpIljXOoMKGk/G5oI5ANl3xD4=
+=UtP7
+-----END PGP SIGNATURE-----
+
+--iw76m45wyrc7u532--
