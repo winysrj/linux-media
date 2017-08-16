@@ -1,179 +1,451 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:45381 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751160AbdHORSk (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47860 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752085AbdHPLXD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Aug 2017 13:18:40 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] cec: rename pin events/function
-Message-ID: <2bb37727-f2de-9aab-b782-6027db3aab9a@xs4all.nl>
-Date: Tue, 15 Aug 2017 19:18:35 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Wed, 16 Aug 2017 07:23:03 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
+Subject: [RESEND PATCH v2 1/2] v4l: fwnode: Support generic parsing of graph endpoints in a device
+Date: Wed, 16 Aug 2017 14:22:59 +0300
+Message-Id: <20170816112300.19514-2-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170816112300.19514-1-sakari.ailus@linux.intel.com>
+References: <20170816112300.19514-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The CEC_EVENT_PIN_LOW/HIGH defines and the cec_queue_pin_event() function
-did not specify that these were about CEC pin events.
+The current practice is that drivers iterate over their endpoints and
+parse each endpoint separately. This is very similar in a number of
+drivers, implement a generic function for the job. Driver specific matters
+can be taken into account in the driver specific callback.
 
-Since in the future there will also be HPD pin events it is wise to rename
-the event defines and function to CEC_EVENT_PIN_CEC_LOW/HIGH and
-cec_queue_pin_cec_event() now before these become part of the ABI.
+Convert the omap3isp as an example.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
-diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-index 0a7aa21f24f4..6c1f6efb822e 100644
---- a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-@@ -127,7 +127,7 @@ returns the information to the application. The ioctl never fails.
-       - 0x00000080
-       - The CEC hardware can monitor CEC pin changes from low to high voltage
-         and vice versa. When in pin monitoring mode the application will
--	receive ``CEC_EVENT_PIN_LOW`` and ``CEC_EVENT_PIN_HIGH`` events.
-+	receive ``CEC_EVENT_PIN_CEC_LOW`` and ``CEC_EVENT_PIN_CEC_HIGH`` events.
+ drivers/media/platform/omap3isp/isp.c | 116 ++++++++++---------------------
+ drivers/media/platform/omap3isp/isp.h |   3 -
+ drivers/media/v4l2-core/v4l2-fwnode.c | 125 ++++++++++++++++++++++++++++++++++
+ include/media/v4l2-async.h            |   4 +-
+ include/media/v4l2-fwnode.h           |   9 +++
+ 5 files changed, 173 insertions(+), 84 deletions(-)
 
-
-
-diff --git a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-index 766d8b0ce431..a4a107dc4822 100644
---- a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-@@ -148,14 +148,14 @@ it is guaranteed that the state did change in between the two events.
- 	application didn't dequeue CEC messages fast enough.
-     * .. _`CEC-EVENT-PIN-LOW`:
-
--      - ``CEC_EVENT_PIN_LOW``
-+      - ``CEC_EVENT_PIN_CEC_LOW``
-       - 3
-       - Generated if the CEC pin goes from a high voltage to a low voltage.
-         Only applies to adapters that have the ``CEC_CAP_MONITOR_PIN``
- 	capability set.
-     * .. _`CEC-EVENT-PIN-HIGH`:
-
--      - ``CEC_EVENT_PIN_HIGH``
-+      - ``CEC_EVENT_PIN_CEC_HIGH``
-       - 4
-       - Generated if the CEC pin goes from a low voltage to a high voltage.
-         Only applies to adapters that have the ``CEC_CAP_MONITOR_PIN``
-diff --git a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
-index 494154e9d449..4d8e0647e832 100644
---- a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
-@@ -159,7 +159,7 @@ Available follower modes are:
- 	This mode requires that the :ref:`CEC_CAP_MONITOR_PIN <CEC-CAP-MONITOR-PIN>`
- 	capability is set, otherwise the ``EINVAL`` error code is returned.
- 	While in pin monitoring mode this file descriptor can receive the
--	``CEC_EVENT_PIN_LOW`` and ``CEC_EVENT_PIN_HIGH`` events to see the
-+	``CEC_EVENT_PIN_CEC_LOW`` and ``CEC_EVENT_PIN_CEC_HIGH`` events to see the
- 	low-level CEC pin transitions. This is very useful for debugging.
- 	This mode is only allowed if the process has the ``CAP_NET_ADMIN``
- 	capability. If that is not set, then the ``EPERM`` error code is returned.
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index 8ac39ddf892c..d9adeb505c09 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -154,10 +154,11 @@ static void cec_queue_event(struct cec_adapter *adap,
- }
-
- /* Notify userspace that the CEC pin changed state at the given time. */
--void cec_queue_pin_event(struct cec_adapter *adap, bool is_high, ktime_t ts)
-+void cec_queue_pin_cec_event(struct cec_adapter *adap, bool is_high, ktime_t ts)
- {
- 	struct cec_event ev = {
--		.event = is_high ? CEC_EVENT_PIN_HIGH : CEC_EVENT_PIN_LOW,
-+		.event = is_high ? CEC_EVENT_PIN_CEC_HIGH :
-+				   CEC_EVENT_PIN_CEC_LOW,
- 	};
- 	struct cec_fh *fh;
-
-@@ -167,7 +168,7 @@ void cec_queue_pin_event(struct cec_adapter *adap, bool is_high, ktime_t ts)
- 			cec_queue_event_fh(fh, &ev, ktime_to_ns(ts));
- 	mutex_unlock(&adap->devnode.lock);
- }
--EXPORT_SYMBOL_GPL(cec_queue_pin_event);
-+EXPORT_SYMBOL_GPL(cec_queue_pin_cec_event);
-
- /*
-  * Queue a new message for this filehandle.
-diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
-index 00d43d74020f..87649b0c6381 100644
---- a/drivers/media/cec/cec-api.c
-+++ b/drivers/media/cec/cec-api.c
-@@ -449,8 +449,8 @@ static long cec_s_mode(struct cec_adapter *adap, struct cec_fh *fh,
- 			.flags = CEC_EVENT_FL_INITIAL_STATE,
- 		};
-
--		ev.event = adap->pin->cur_value ? CEC_EVENT_PIN_HIGH :
--						  CEC_EVENT_PIN_LOW;
-+		ev.event = adap->pin->cur_value ? CEC_EVENT_PIN_CEC_HIGH :
-+						  CEC_EVENT_PIN_CEC_LOW;
- 		cec_queue_event_fh(fh, &ev, 0);
- #endif
- 		adap->monitor_pin_cnt++;
-diff --git a/drivers/media/cec/cec-pin.c b/drivers/media/cec/cec-pin.c
-index 03f800e5ec1f..31a26d3b8bd8 100644
---- a/drivers/media/cec/cec-pin.c
-+++ b/drivers/media/cec/cec-pin.c
-@@ -609,8 +609,9 @@ static int cec_pin_thread_func(void *_adap)
- 		while (atomic_read(&pin->work_pin_events)) {
- 			unsigned int idx = pin->work_pin_events_rd;
-
--			cec_queue_pin_event(adap, pin->work_pin_is_high[idx],
--					    pin->work_pin_ts[idx]);
-+			cec_queue_pin_cec_event(adap,
-+						pin->work_pin_is_high[idx],
-+						pin->work_pin_ts[idx]);
- 			pin->work_pin_events_rd = (idx + 1) % CEC_NUM_PIN_EVENTS;
- 			atomic_dec(&pin->work_pin_events);
- 		}
-diff --git a/include/media/cec.h b/include/media/cec.h
-index 1bec7bde4792..224359c9941a 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -91,7 +91,7 @@ struct cec_event_entry {
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 6cb1f0495804..e2f1da966dc8 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2011,44 +2011,41 @@ enum isp_of_phy {
+ 	ISP_OF_PHY_CSIPHY2,
  };
-
- #define CEC_NUM_CORE_EVENTS 2
--#define CEC_NUM_EVENTS CEC_EVENT_PIN_HIGH
-+#define CEC_NUM_EVENTS CEC_EVENT_PIN_CEC_HIGH
-
- struct cec_fh {
- 	struct list_head	list;
-@@ -280,14 +280,15 @@ static inline void cec_received_msg(struct cec_adapter *adap,
+ 
+-static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+-			    struct isp_async_subdev *isd)
++static int isp_fwnode_parse(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd)
+ {
++	struct isp_async_subdev *isd =
++		container_of(asd, struct isp_async_subdev, asd);
+ 	struct isp_bus_cfg *buscfg = &isd->bus;
+-	struct v4l2_fwnode_endpoint vep;
+-	unsigned int i;
+-	int ret;
+ 	bool csi1 = false;
+-
+-	ret = v4l2_fwnode_endpoint_parse(fwnode, &vep);
+-	if (ret)
+-		return ret;
++	unsigned int i;
+ 
+ 	dev_dbg(dev, "parsing endpoint %s, interface %u\n",
+-		to_of_node(fwnode)->full_name, vep.base.port);
++		to_of_node(vep->base.local_fwnode)->full_name, vep->base.port);
+ 
+-	switch (vep.base.port) {
++	switch (vep->base.port) {
+ 	case ISP_OF_PHY_PARALLEL:
+ 		buscfg->interface = ISP_INTERFACE_PARALLEL;
+ 		buscfg->bus.parallel.data_lane_shift =
+-			vep.bus.parallel.data_shift;
++			vep->bus.parallel.data_shift;
+ 		buscfg->bus.parallel.clk_pol =
+-			!!(vep.bus.parallel.flags
++			!!(vep->bus.parallel.flags
+ 			   & V4L2_MBUS_PCLK_SAMPLE_FALLING);
+ 		buscfg->bus.parallel.hs_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
++			!!(vep->bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
+ 		buscfg->bus.parallel.vs_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
++			!!(vep->bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
+ 		buscfg->bus.parallel.fld_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
++			!!(vep->bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
+ 		buscfg->bus.parallel.data_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
+-		buscfg->bus.parallel.bt656 = vep.bus_type == V4L2_MBUS_BT656;
++			!!(vep->bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
++		buscfg->bus.parallel.bt656 = vep->bus_type == V4L2_MBUS_BT656;
+ 		break;
+ 
+ 	case ISP_OF_PHY_CSIPHY1:
+ 	case ISP_OF_PHY_CSIPHY2:
+-		switch (vep.bus_type) {
++		switch (vep->bus_type) {
+ 		case V4L2_MBUS_CCP2:
+ 		case V4L2_MBUS_CSI1:
+ 			dev_dbg(dev, "CSI-1/CCP-2 configuration\n");
+@@ -2060,11 +2057,11 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+ 			break;
+ 		default:
+ 			dev_err(dev, "unsupported bus type %u\n",
+-				vep.bus_type);
++				vep->bus_type);
+ 			return -EINVAL;
+ 		}
+ 
+-		switch (vep.base.port) {
++		switch (vep->base.port) {
+ 		case ISP_OF_PHY_CSIPHY1:
+ 			if (csi1)
+ 				buscfg->interface = ISP_INTERFACE_CCP2B_PHY1;
+@@ -2080,47 +2077,47 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+ 		}
+ 		if (csi1) {
+ 			buscfg->bus.ccp2.lanecfg.clk.pos =
+-				vep.bus.mipi_csi1.clock_lane;
++				vep->bus.mipi_csi1.clock_lane;
+ 			buscfg->bus.ccp2.lanecfg.clk.pol =
+-				vep.bus.mipi_csi1.lane_polarity[0];
++				vep->bus.mipi_csi1.lane_polarity[0];
+ 			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+ 				buscfg->bus.ccp2.lanecfg.clk.pol,
+ 				buscfg->bus.ccp2.lanecfg.clk.pos);
+ 
+ 			buscfg->bus.ccp2.lanecfg.data[0].pos =
+-				vep.bus.mipi_csi1.data_lane;
++				vep->bus.mipi_csi1.data_lane;
+ 			buscfg->bus.ccp2.lanecfg.data[0].pol =
+-				vep.bus.mipi_csi1.lane_polarity[1];
++				vep->bus.mipi_csi1.lane_polarity[1];
+ 
+-			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
++			dev_dbg(dev, "data lane polarity %u, pos %u\n",
+ 				buscfg->bus.ccp2.lanecfg.data[0].pol,
+ 				buscfg->bus.ccp2.lanecfg.data[0].pos);
+ 
+ 			buscfg->bus.ccp2.strobe_clk_pol =
+-				vep.bus.mipi_csi1.clock_inv;
+-			buscfg->bus.ccp2.phy_layer = vep.bus.mipi_csi1.strobe;
++				vep->bus.mipi_csi1.clock_inv;
++			buscfg->bus.ccp2.phy_layer = vep->bus.mipi_csi1.strobe;
+ 			buscfg->bus.ccp2.ccp2_mode =
+-				vep.bus_type == V4L2_MBUS_CCP2;
++				vep->bus_type == V4L2_MBUS_CCP2;
+ 			buscfg->bus.ccp2.vp_clk_pol = 1;
+ 
+ 			buscfg->bus.ccp2.crc = 1;
+ 		} else {
+ 			buscfg->bus.csi2.lanecfg.clk.pos =
+-				vep.bus.mipi_csi2.clock_lane;
++				vep->bus.mipi_csi2.clock_lane;
+ 			buscfg->bus.csi2.lanecfg.clk.pol =
+-				vep.bus.mipi_csi2.lane_polarities[0];
++				vep->bus.mipi_csi2.lane_polarities[0];
+ 			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+ 				buscfg->bus.csi2.lanecfg.clk.pol,
+ 				buscfg->bus.csi2.lanecfg.clk.pos);
+ 
+ 			buscfg->bus.csi2.num_data_lanes =
+-				vep.bus.mipi_csi2.num_data_lanes;
++				vep->bus.mipi_csi2.num_data_lanes;
+ 
+ 			for (i = 0; i < buscfg->bus.csi2.num_data_lanes; i++) {
+ 				buscfg->bus.csi2.lanecfg.data[i].pos =
+-					vep.bus.mipi_csi2.data_lanes[i];
++					vep->bus.mipi_csi2.data_lanes[i];
+ 				buscfg->bus.csi2.lanecfg.data[i].pol =
+-					vep.bus.mipi_csi2.lane_polarities[i + 1];
++					vep->bus.mipi_csi2.lane_polarities[i + 1];
+ 				dev_dbg(dev,
+ 					"data lane %u polarity %u, pos %u\n", i,
+ 					buscfg->bus.csi2.lanecfg.data[i].pol,
+@@ -2137,57 +2134,14 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+ 
+ 	default:
+ 		dev_warn(dev, "%s: invalid interface %u\n",
+-			 to_of_node(fwnode)->full_name, vep.base.port);
++			 to_of_node(vep->base.local_fwnode)->full_name,
++			 vep->base.port);
+ 		return -EINVAL;
+ 	}
+ 
+ 	return 0;
  }
-
+ 
+-static int isp_fwnodes_parse(struct device *dev,
+-			     struct v4l2_async_notifier *notifier)
+-{
+-	struct fwnode_handle *fwnode = NULL;
+-
+-	notifier->subdevs = devm_kcalloc(
+-		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
+-	if (!notifier->subdevs)
+-		return -ENOMEM;
+-
+-	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
+-	       (fwnode = fwnode_graph_get_next_endpoint(
+-			of_fwnode_handle(dev->of_node), fwnode))) {
+-		struct isp_async_subdev *isd;
+-
+-		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+-		if (!isd)
+-			goto error;
+-
+-		if (isp_fwnode_parse(dev, fwnode, isd)) {
+-			devm_kfree(dev, isd);
+-			continue;
+-		}
+-
+-		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
+-
+-		isd->asd.match.fwnode.fwnode =
+-			fwnode_graph_get_remote_port_parent(fwnode);
+-		if (!isd->asd.match.fwnode.fwnode) {
+-			dev_warn(dev, "bad remote port parent\n");
+-			goto error;
+-		}
+-
+-		isd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+-		notifier->num_subdevs++;
+-	}
+-
+-	return notifier->num_subdevs;
+-
+-error:
+-	fwnode_handle_put(fwnode);
+-	return -EINVAL;
+-}
+-
+ static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
+ 				     struct v4l2_subdev *subdev,
+ 				     struct v4l2_async_subdev *asd)
+@@ -2270,7 +2224,9 @@ static int isp_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
++	ret = v4l2_fwnode_endpoints_parse(
++		&pdev->dev, &isp->notifier, sizeof(struct isp_async_subdev),
++		isp_fwnode_parse);
+ 	if (ret < 0)
+ 		return ret;
+ 
+diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+index 2f2ae609c548..a852c1168d20 100644
+--- a/drivers/media/platform/omap3isp/isp.h
++++ b/drivers/media/platform/omap3isp/isp.h
+@@ -220,9 +220,6 @@ struct isp_device {
+ 
+ 	unsigned int sbl_resources;
+ 	unsigned int subclk_resources;
+-
+-#define ISP_MAX_SUBDEVS		8
+-	struct v4l2_subdev *subdevs[ISP_MAX_SUBDEVS];
+ };
+ 
+ struct isp_async_subdev {
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 5cd2687310fe..cb0fc4b4e3bf 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -26,6 +26,7 @@
+ #include <linux/string.h>
+ #include <linux/types.h>
+ 
++#include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
+ 
+ enum v4l2_fwnode_bus_type {
+@@ -383,6 +384,130 @@ void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link)
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fwnode_put_link);
+ 
++static int notifier_realloc(struct device *dev,
++			    struct v4l2_async_notifier *notifier,
++			    unsigned int max_subdevs)
++{
++	struct v4l2_async_subdev **subdevs;
++	unsigned int i;
++
++	if (max_subdevs + notifier->num_subdevs <= notifier->max_subdevs)
++		return 0;
++
++	subdevs = devm_kcalloc(
++		dev, max_subdevs + notifier->num_subdevs,
++		sizeof(*notifier->subdevs), GFP_KERNEL);
++	if (!subdevs)
++		return -ENOMEM;
++
++	if (notifier->subdevs) {
++		for (i = 0; i < notifier->num_subdevs; i++)
++			subdevs[i] = notifier->subdevs[i];
++
++		devm_kfree(dev, notifier->subdevs);
++	}
++
++	notifier->subdevs = subdevs;
++	notifier->max_subdevs = max_subdevs + notifier->num_subdevs;
++
++	return 0;
++}
++
++static int __v4l2_fwnode_endpoint_parse(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	struct fwnode_handle *endpoint, struct v4l2_async_subdev *asd,
++	int (*parse_single)(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd))
++{
++	struct v4l2_fwnode_endpoint *vep;
++	int ret;
++
++	/* Ignore endpoints the parsing of which failed. */
++	vep = v4l2_fwnode_endpoint_alloc_parse(endpoint);
++	if (IS_ERR(vep))
++		return 0;
++
++	notifier->subdevs[notifier->num_subdevs] = asd;
++
++	ret = parse_single(dev, vep, asd);
++	v4l2_fwnode_endpoint_free(vep);
++	if (ret)
++		return ret;
++
++	asd->match.fwnode.fwnode =
++		fwnode_graph_get_remote_port_parent(endpoint);
++	if (!asd->match.fwnode.fwnode) {
++		dev_warn(dev, "bad remote port parent\n");
++		return -EINVAL;
++	}
++
++	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
++	notifier->num_subdevs++;
++
++	return 0;
++}
++
++/**
++ * v4l2_fwnode_endpoint_parse - Parse V4L2 fwnode endpoints in a device node
++ * @dev: local struct device
++ * @notifier: async notifier related to @dev
++ * @asd_struct_size: size of the driver's async sub-device struct, including
++ *		     sizeof(struct v4l2_async_subdev)
++ * @parse_single: driver's callback function called on each V4L2 fwnode endpoint
++ *
++ * Parse all V4L2 fwnode endpoints related to the device.
++ *
++ * Note that this function is intended for drivers to replace the existing
++ * implementation that loops over all ports and endpoints. It is NOT INTENDED TO
++ * BE USED BY NEW DRIVERS.
++ */
++int v4l2_fwnode_endpoints_parse(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	size_t asd_struct_size,
++	int (*parse_single)(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd))
++{
++	struct fwnode_handle *fwnode = NULL;
++	unsigned int max_subdevs = notifier->max_subdevs;
++	int ret;
++
++	if (asd_struct_size < sizeof(struct v4l2_async_subdev))
++		return -EINVAL;
++
++	while ((fwnode = fwnode_graph_get_next_endpoint(dev_fwnode(dev),
++							fwnode)))
++		max_subdevs++;
++
++	ret = notifier_realloc(dev, notifier, max_subdevs);
++	if (ret)
++		return ret;
++
++	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
++				     dev_fwnode(dev), fwnode)) &&
++		     !WARN_ON(notifier->num_subdevs >= notifier->max_subdevs);
++		) {
++		struct v4l2_async_subdev *asd;
++
++		asd = devm_kzalloc(dev, asd_struct_size, GFP_KERNEL);
++		if (!asd) {
++			ret = -ENOMEM;
++			goto error;
++		}
++
++		ret = __v4l2_fwnode_endpoint_parse(dev, notifier, fwnode, asd,
++						   parse_single);
++		if (ret < 0)
++			goto error;
++	}
++
++error:
++	fwnode_handle_put(fwnode);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoints_parse);
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index c69d8c8a66d0..067f3687774b 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -78,7 +78,8 @@ struct v4l2_async_subdev {
  /**
-- * cec_queue_pin_event() - queue a pin event with a given timestamp.
-+ * cec_queue_pin_cec_event() - queue a CEC pin event with a given timestamp.
+  * struct v4l2_async_notifier - v4l2_device notifier data
   *
-  * @adap:	pointer to the cec adapter
-- * @is_high:	when true the pin is high, otherwise it is low
-+ * @is_high:	when true the CEC pin is high, otherwise it is low
-  * @ts:		the timestamp for this event
-  *
+- * @num_subdevs: number of subdevices
++ * @num_subdevs: number of subdevices used in subdevs array
++ * @max_subdevs: number of subdevices allocated in subdevs array
+  * @subdevs:	array of pointers to subdevice descriptors
+  * @v4l2_dev:	pointer to struct v4l2_device
+  * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+@@ -90,6 +91,7 @@ struct v4l2_async_subdev {
   */
--void cec_queue_pin_event(struct cec_adapter *adap, bool is_high, ktime_t ts);
-+void cec_queue_pin_cec_event(struct cec_adapter *adap,
-+			     bool is_high, ktime_t ts);
-
- /**
-  * cec_get_edid_phys_addr() - find and return the physical address
-diff --git a/include/uapi/linux/cec.h b/include/uapi/linux/cec.h
-index d87a67b0bb06..4351c3481aea 100644
---- a/include/uapi/linux/cec.h
-+++ b/include/uapi/linux/cec.h
-@@ -408,8 +408,8 @@ struct cec_log_addrs {
-  * didn't empty the message queue in time
-  */
- #define CEC_EVENT_LOST_MSGS		2
--#define CEC_EVENT_PIN_LOW		3
--#define CEC_EVENT_PIN_HIGH		4
-+#define CEC_EVENT_PIN_CEC_LOW		3
-+#define CEC_EVENT_PIN_CEC_HIGH		4
-
- #define CEC_EVENT_FL_INITIAL_STATE	(1 << 0)
- #define CEC_EVENT_FL_DROPPED_EVENTS	(1 << 1)
+ struct v4l2_async_notifier {
+ 	unsigned int num_subdevs;
++	unsigned int max_subdevs;
+ 	struct v4l2_async_subdev **subdevs;
+ 	struct v4l2_device *v4l2_dev;
+ 	struct list_head waiting;
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index cb34dcb0bb65..c75a768d4ef7 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -25,6 +25,8 @@
+ #include <media/v4l2-mediabus.h>
+ 
+ struct fwnode_handle;
++struct v4l2_async_notifier;
++struct v4l2_async_subdev;
+ 
+ #define MAX_DATA_LANES	4
+ 
+@@ -122,4 +124,11 @@ int v4l2_fwnode_parse_link(struct fwnode_handle *fwnode,
+ 			   struct v4l2_fwnode_link *link);
+ void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
+ 
++int v4l2_fwnode_endpoints_parse(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	size_t asd_struct_size,
++	int (*parse_single)(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd));
++
+ #endif /* _V4L2_FWNODE_H */
+-- 
+2.11.0
