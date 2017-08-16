@@ -1,98 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f174.google.com ([209.85.128.174]:33939 "EHLO
-        mail-wr0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753510AbdHROQu (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49106 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751661AbdHPMzQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 10:16:50 -0400
-Received: by mail-wr0-f174.google.com with SMTP id y96so68403998wrc.1
-        for <linux-media@vger.kernel.org>; Fri, 18 Aug 2017 07:16:50 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH 3/7] media: venus: mark venc and vdec PM functions as __maybe_unused
-Date: Fri, 18 Aug 2017 17:16:02 +0300
-Message-Id: <20170818141606.4835-4-stanimir.varbanov@linaro.org>
-In-Reply-To: <20170818141606.4835-1-stanimir.varbanov@linaro.org>
-References: <20170818141606.4835-1-stanimir.varbanov@linaro.org>
+        Wed, 16 Aug 2017 08:55:16 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: jacek.anaszewski@gmail.com, linux-leds@vger.kernel.org,
+        devicetree@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 3/3] arm: dts: omap3: N9/N950: Add AS3645A camera flash
+Date: Wed, 16 Aug 2017 15:55:14 +0300
+Message-Id: <20170816125514.27634-3-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170816125514.27634-1-sakari.ailus@linux.intel.com>
+References: <20170816125440.27534-1-sakari.ailus@linux.intel.com>
+ <20170816125514.27634-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Without PM support gcc could warns about unused functions, thus
-mark runtime_suspend/resume as __maybe_unused.
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Add the as3645a flash controller to the DT source as well as the flash
+property with the as3645a device phandle to the sensor DT node.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- drivers/media/platform/qcom/venus/vdec.c | 6 ++----
- drivers/media/platform/qcom/venus/venc.c | 6 ++----
- 2 files changed, 4 insertions(+), 8 deletions(-)
+ arch/arm/boot/dts/omap3-n9.dts       |  1 +
+ arch/arm/boot/dts/omap3-n950-n9.dtsi | 14 ++++++++++++++
+ arch/arm/boot/dts/omap3-n950.dts     |  1 +
+ 3 files changed, 16 insertions(+)
 
-diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-index eb0c1c51cfef..44d4848e878a 100644
---- a/drivers/media/platform/qcom/venus/vdec.c
-+++ b/drivers/media/platform/qcom/venus/vdec.c
-@@ -1103,8 +1103,7 @@ static int vdec_remove(struct platform_device *pdev)
- 	return 0;
- }
+diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
+index b9e58c536afd..a2944010f62f 100644
+--- a/arch/arm/boot/dts/omap3-n9.dts
++++ b/arch/arm/boot/dts/omap3-n9.dts
+@@ -26,6 +26,7 @@
+ 		clocks = <&isp 0>;
+ 		clock-frequency = <9600000>;
+ 		nokia,nvm-size = <(16 * 64)>;
++		flash = <&as3645a_flash &as3645a_indicator>;
+ 		port {
+ 			smia_1_1: endpoint {
+ 				link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index df3366fa5409..e15722b83a70 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -265,6 +265,20 @@
  
--#ifdef CONFIG_PM
--static int vdec_runtime_suspend(struct device *dev)
-+static __maybe_unused int vdec_runtime_suspend(struct device *dev)
- {
- 	struct venus_core *core = dev_get_drvdata(dev);
+ &i2c2 {
+ 	clock-frequency = <400000>;
++
++	as3645a: flash@30 {
++		reg = <0x30>;
++		compatible = "ams,as3645a";
++		as3645a_flash: flash {
++			flash-timeout-us = <150000>;
++			flash-max-microamp = <320000>;
++			led-max-microamp = <60000>;
++			peak-current-limit = <1750000>;
++		};
++		as3645a_indicator: indicator {
++			led-max-microamp = <10000>;
++		};
++	};
+ };
  
-@@ -1118,7 +1117,7 @@ static int vdec_runtime_suspend(struct device *dev)
- 	return 0;
- }
- 
--static int vdec_runtime_resume(struct device *dev)
-+static __maybe_unused int vdec_runtime_resume(struct device *dev)
- {
- 	struct venus_core *core = dev_get_drvdata(dev);
- 	int ret;
-@@ -1132,7 +1131,6 @@ static int vdec_runtime_resume(struct device *dev)
- 
- 	return ret;
- }
--#endif
- 
- static const struct dev_pm_ops vdec_pm_ops = {
- 	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
-diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-index 01af1ac89edf..4bffadd67238 100644
---- a/drivers/media/platform/qcom/venus/venc.c
-+++ b/drivers/media/platform/qcom/venus/venc.c
-@@ -1226,8 +1226,7 @@ static int venc_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
--#ifdef CONFIG_PM
--static int venc_runtime_suspend(struct device *dev)
-+static __maybe_unused int venc_runtime_suspend(struct device *dev)
- {
- 	struct venus_core *core = dev_get_drvdata(dev);
- 
-@@ -1241,7 +1240,7 @@ static int venc_runtime_suspend(struct device *dev)
- 	return 0;
- }
- 
--static int venc_runtime_resume(struct device *dev)
-+static __maybe_unused int venc_runtime_resume(struct device *dev)
- {
- 	struct venus_core *core = dev_get_drvdata(dev);
- 	int ret;
-@@ -1255,7 +1254,6 @@ static int venc_runtime_resume(struct device *dev)
- 
- 	return ret;
- }
--#endif
- 
- static const struct dev_pm_ops venc_pm_ops = {
- 	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
+ &i2c3 {
+diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
+index 646601a3ebd8..bba5c5a6950c 100644
+--- a/arch/arm/boot/dts/omap3-n950.dts
++++ b/arch/arm/boot/dts/omap3-n950.dts
+@@ -60,6 +60,7 @@
+ 		clocks = <&isp 0>;
+ 		clock-frequency = <9600000>;
+ 		nokia,nvm-size = <(16 * 64)>;
++		flash = <&as3645a_flash &as3645a_indicator>;
+ 		port {
+ 			smia_1_1: endpoint {
+ 				link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
 -- 
 2.11.0
