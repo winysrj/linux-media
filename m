@@ -1,63 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:36991 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751745AbdHSI0a (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49006 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751893AbdHPMvw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Aug 2017 04:26:30 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, bp@alien8.de, mchehab@kernel.org,
-        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
-        seanpaul@chromium.org, airlied@linux.ie, g.liakhovetski@gmx.de,
-        tomas.winkler@intel.com, dwmw2@infradead.org,
-        computersforpeace@gmail.com, boris.brezillon@free-electrons.com,
-        marek.vasut@gmail.com, richard@nod.at, cyrille.pitchen@wedev4u.fr,
-        peda@axentia.se, kishon@ti.com, bhelgaas@google.com,
-        thierry.reding@gmail.com, jonathanh@nvidia.com,
-        dvhart@infradead.org, andy@infradead.org, ohad@wizery.com,
-        bjorn.andersson@linaro.org, freude@de.ibm.com,
-        schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, jth@kernel.org,
-        jejb@linux.vnet.ibm.com, martin.petersen@oracle.com,
-        lduncan@suse.com, cleech@redhat.com, johan@kernel.org,
-        elder@kernel.org, gregkh@linuxfoundation.org,
-        heikki.krogerus@linux.intel.com, linux-edac@vger.kernel.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
-        linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, greybus-dev@lists.linaro.org,
-        devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 11/15] remoteproc: make device_type const
-Date: Sat, 19 Aug 2017 13:52:22 +0530
-Message-Id: <1503130946-2854-12-git-send-email-bhumirks@gmail.com>
-In-Reply-To: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
-References: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
+        Wed, 16 Aug 2017 08:51:52 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: pavel@ucw.cz, laurent.pinchart@ideasonboard.com
+Subject: [PATCH v2 2/5] omap3isp: Correctly set IO_OUT_SEL and VP_CLK_POL for CCP2 mode
+Date: Wed, 16 Aug 2017 15:51:47 +0300
+Message-Id: <20170816125150.27199-3-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170816125150.27199-1-sakari.ailus@linux.intel.com>
+References: <20170816125150.27199-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make this const as it is only stored in the type field of a device
-structure, which is const.
-Done using Coccinelle.
+From: Pavel Machek <pavel@ucw.cz>
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+ISP CSI1 module needs all the bits correctly set to work.
+
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com> # on Beagleboard-xM + MPT9P031
 ---
- drivers/remoteproc/remoteproc_core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/omap3isp/ispccp2.c | 7 +++++--
+ drivers/media/platform/omap3isp/ispreg.h  | 4 ++++
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
-index 364ef28..48b2c5d 100644
---- a/drivers/remoteproc/remoteproc_core.c
-+++ b/drivers/remoteproc/remoteproc_core.c
-@@ -1360,7 +1360,7 @@ static void rproc_type_release(struct device *dev)
- 	kfree(rproc);
- }
+diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
+index 8b6f7d2e79a0..47210b102bcb 100644
+--- a/drivers/media/platform/omap3isp/ispccp2.c
++++ b/drivers/media/platform/omap3isp/ispccp2.c
+@@ -213,14 +213,17 @@ static int ccp2_phyif_config(struct isp_ccp2_device *ccp2,
+ 	struct isp_device *isp = to_isp_device(ccp2);
+ 	u32 val;
  
--static struct device_type rproc_type = {
-+static const struct device_type rproc_type = {
- 	.name		= "remoteproc",
- 	.release	= rproc_type_release,
- };
+-	/* CCP2B mode */
+ 	val = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_CTRL) |
+-			    ISPCCP2_CTRL_IO_OUT_SEL | ISPCCP2_CTRL_MODE;
++			    ISPCCP2_CTRL_MODE;
+ 	/* Data/strobe physical layer */
+ 	BIT_SET(val, ISPCCP2_CTRL_PHY_SEL_SHIFT, ISPCCP2_CTRL_PHY_SEL_MASK,
+ 		buscfg->phy_layer);
++	BIT_SET(val, ISPCCP2_CTRL_IO_OUT_SEL_SHIFT,
++		ISPCCP2_CTRL_IO_OUT_SEL_MASK, buscfg->ccp2_mode);
+ 	BIT_SET(val, ISPCCP2_CTRL_INV_SHIFT, ISPCCP2_CTRL_INV_MASK,
+ 		buscfg->strobe_clk_pol);
++	BIT_SET(val, ISPCCP2_CTRL_VP_CLK_POL_SHIFT,
++		ISPCCP2_CTRL_VP_CLK_POL_MASK, buscfg->vp_clk_pol);
+ 	isp_reg_writel(isp, val, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_CTRL);
+ 
+ 	val = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_CTRL);
+diff --git a/drivers/media/platform/omap3isp/ispreg.h b/drivers/media/platform/omap3isp/ispreg.h
+index b5ea8da0b904..d08483919a77 100644
+--- a/drivers/media/platform/omap3isp/ispreg.h
++++ b/drivers/media/platform/omap3isp/ispreg.h
+@@ -87,6 +87,8 @@
+ #define ISPCCP2_CTRL_PHY_SEL_MASK	0x1
+ #define ISPCCP2_CTRL_PHY_SEL_SHIFT	1
+ #define ISPCCP2_CTRL_IO_OUT_SEL		(1 << 2)
++#define ISPCCP2_CTRL_IO_OUT_SEL_MASK	0x1
++#define ISPCCP2_CTRL_IO_OUT_SEL_SHIFT	2
+ #define ISPCCP2_CTRL_MODE		(1 << 4)
+ #define ISPCCP2_CTRL_VP_CLK_FORCE_ON	(1 << 9)
+ #define ISPCCP2_CTRL_INV		(1 << 10)
+@@ -94,6 +96,8 @@
+ #define ISPCCP2_CTRL_INV_SHIFT		10
+ #define ISPCCP2_CTRL_VP_ONLY_EN		(1 << 11)
+ #define ISPCCP2_CTRL_VP_CLK_POL		(1 << 12)
++#define ISPCCP2_CTRL_VP_CLK_POL_MASK	0x1
++#define ISPCCP2_CTRL_VP_CLK_POL_SHIFT	12
+ #define ISPCCP2_CTRL_VPCLK_DIV_SHIFT	15
+ #define ISPCCP2_CTRL_VPCLK_DIV_MASK	0x1ffff /* [31:15] */
+ #define ISPCCP2_CTRL_VP_OUT_CTRL_SHIFT	8 /* 3430 bits */
 -- 
-1.9.1
+2.11.0
