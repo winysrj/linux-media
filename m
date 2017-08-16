@@ -1,83 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:52459 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751913AbdHGUZh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Aug 2017 16:25:37 -0400
-Date: Mon, 7 Aug 2017 21:25:35 +0100
-From: Sean Young <sean@mess.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 1/2] rc-main: support CEC protocol keypress timeout
-Message-ID: <20170807202535.a54swjrlptgqoxbi@gofer.mess.org>
-References: <20170807133124.30682-1-hverkuil@xs4all.nl>
- <20170807133124.30682-2-hverkuil@xs4all.nl>
+Received: from mail-sn1nam02on0097.outbound.protection.outlook.com ([104.47.36.97]:1632
+        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750827AbdHPElN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 Aug 2017 00:41:13 -0400
+From: <Yasunari.Takiguchi@sony.com>
+To: <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-media@vger.kernel.org>
+CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
+        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
+        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
+        Hideki Nozawa <Hideki.Nozawa@sony.com>,
+        "Kota Yonezawa" <Kota.Yonezawa@sony.com>,
+        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
+        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+Subject: [PATCH v3 12/14]  [media] cxd2880: Add all Makefile files for the driver
+Date: Wed, 16 Aug 2017 13:44:24 +0900
+Message-ID: <20170816044424.21731-1-Yasunari.Takiguchi@sony.com>
+In-Reply-To: <20170816041714.20551-1-Yasunari.Takiguchi@sony.com>
+References: <20170816041714.20551-1-Yasunari.Takiguchi@sony.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170807133124.30682-2-hverkuil@xs4all.nl>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 07, 2017 at 03:31:23PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The CEC protocol has a keypress timeout of 550ms. Add support for this.
-> 
-> Note: this really should be defined in a protocol struct.
+From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
 
-That is a good point, the names of the protocol variants and scancode bits
-can also go into such a struct. This can be done at some point in the
-future.
+This is the Makefile files of driver
+for the Sony CXD2880 DVB-T2/T tuner + demodulator.
 
-Acked-by: Sean Young <sean@mess.org>
+[Change list]
+Changes in V3
+   drivers/media/dvb-frontends/Makefile
+      -no change
+   drivers/media/dvb-frontends/cxd2880/Makefile
+      -removed cxd2880_math.o \ 
+   drivers/media/spi/Makefile
+      -no change
 
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/rc/rc-main.c | 17 +++++++++++++++--
->  1 file changed, 15 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index a9eba0013525..073407a78f70 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -33,6 +33,9 @@
->  /* FIXME: IR_KEYPRESS_TIMEOUT should be protocol specific */
->  #define IR_KEYPRESS_TIMEOUT 250
->  
-> +/* The CEC protocol needs a timeout of 550 */
-> +#define IR_KEYPRESS_CEC_TIMEOUT 550
-> +
->  /* Used to keep track of known keymaps */
->  static LIST_HEAD(rc_map_list);
->  static DEFINE_SPINLOCK(rc_map_lock);
-> @@ -622,7 +625,12 @@ void rc_repeat(struct rc_dev *dev)
->  	if (!dev->keypressed)
->  		goto out;
->  
-> -	dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
-> +	if (dev->last_protocol == RC_TYPE_CEC)
-> +		dev->keyup_jiffies = jiffies +
-> +			msecs_to_jiffies(IR_KEYPRESS_CEC_TIMEOUT);
-> +	else
-> +		dev->keyup_jiffies = jiffies +
-> +			msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
->  	mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
->  
->  out:
-> @@ -692,7 +700,12 @@ void rc_keydown(struct rc_dev *dev, enum rc_type protocol, u32 scancode, u8 togg
->  	ir_do_keydown(dev, protocol, scancode, keycode, toggle);
->  
->  	if (dev->keypressed) {
-> -		dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
-> +		if (protocol == RC_TYPE_CEC)
-> +			dev->keyup_jiffies = jiffies +
-> +				msecs_to_jiffies(IR_KEYPRESS_CEC_TIMEOUT);
-> +		else
-> +			dev->keyup_jiffies = jiffies +
-> +				msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
->  		mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
->  	}
->  	spin_unlock_irqrestore(&dev->keylock, flags);
-> -- 
-> 2.13.2
+Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
+Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
+Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
+Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
+Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+---
+ drivers/media/dvb-frontends/Makefile         |  1 +
+ drivers/media/dvb-frontends/cxd2880/Makefile | 20 ++++++++++++++++++++
+ drivers/media/spi/Makefile                   |  5 +++++
+ 3 files changed, 26 insertions(+)
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/Makefile
+
+diff --git a/drivers/media/dvb-frontends/Makefile b/drivers/media/dvb-frontends/Makefile
+index 3fccaf34ef52..d298c7954699 100644
+--- a/drivers/media/dvb-frontends/Makefile
++++ b/drivers/media/dvb-frontends/Makefile
+@@ -126,3 +126,4 @@ obj-$(CONFIG_DVB_HORUS3A) += horus3a.o
+ obj-$(CONFIG_DVB_ASCOT2E) += ascot2e.o
+ obj-$(CONFIG_DVB_HELENE) += helene.o
+ obj-$(CONFIG_DVB_ZD1301_DEMOD) += zd1301_demod.o
++obj-$(CONFIG_DVB_CXD2880) += cxd2880/
+diff --git a/drivers/media/dvb-frontends/cxd2880/Makefile b/drivers/media/dvb-frontends/cxd2880/Makefile
+new file mode 100644
+index 000000000000..ee7758b28a05
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/Makefile
+@@ -0,0 +1,20 @@
++cxd2880-objs := cxd2880_common.o \
++		cxd2880_devio_spi.o \
++		cxd2880_integ.o \
++		cxd2880_integ_dvbt2.o \
++		cxd2880_integ_dvbt.o \
++		cxd2880_io.o \
++		cxd2880_spi_device.o \
++		cxd2880_stopwatch_port.o \
++		cxd2880_tnrdmd.o \
++		cxd2880_tnrdmd_dvbt2.o \
++		cxd2880_tnrdmd_dvbt2_mon.o \
++		cxd2880_tnrdmd_dvbt.o \
++		cxd2880_tnrdmd_dvbt_mon.o\
++		cxd2880_tnrdmd_mon.o\
++		cxd2880_top.o
++
++obj-$(CONFIG_DVB_CXD2880) += cxd2880.o
++
++ccflags-y += -Idrivers/media/dvb-core
++ccflags-y += -Idrivers/media/dvb-frontends
+diff --git a/drivers/media/spi/Makefile b/drivers/media/spi/Makefile
+index ea64013d16cc..40e0f88d9f6c 100644
+--- a/drivers/media/spi/Makefile
++++ b/drivers/media/spi/Makefile
+@@ -1 +1,6 @@
+ obj-$(CONFIG_VIDEO_GS1662) += gs1662.o
++obj-$(CONFIG_CXD2880_SPI_DRV) += cxd2880-spi.o
++
++ccflags-y += -Idrivers/media/dvb-core
++ccflags-y += -Idrivers/media/dvb-frontends
++ccflags-y += -Idrivers/media/dvb-frontends/cxd2880
+\ No newline at end of file
+-- 
+2.13.0
