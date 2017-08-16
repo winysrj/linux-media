@@ -1,59 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:33928 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752275AbdHMMor (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 13 Aug 2017 08:44:47 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, architt@codeaurora.org, a.hajda@samsung.com,
-        Laurent.pinchart@ideasonboard.com, airlied@linux.ie,
-        hans.verkuil@cisco.com, mchehab@kernel.org,
-        awalls@md.metrocast.net, mkrufky@linuxtv.org, eric@anholt.net,
-        stefan.wahren@i2se.com, gregkh@linuxfoundation.org,
-        f.fainelli@gmail.com, rjui@broadcom.com, sbranden@broadcom.com,
-        bcm-kernel-feedback-list@broadcom.com, balbi@kernel.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org,
-        linux-usb@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 5/6] staging: bcm2835-audio:  make snd_pcm_hardware const
-Date: Sun, 13 Aug 2017 18:13:12 +0530
-Message-Id: <1502628193-3343-6-git-send-email-bhumirks@gmail.com>
-In-Reply-To: <1502628193-3343-1-git-send-email-bhumirks@gmail.com>
-References: <1502628193-3343-1-git-send-email-bhumirks@gmail.com>
+Received: from mail-co1nam03on0118.outbound.protection.outlook.com ([104.47.40.118]:44320
+        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751030AbdHPEoU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 Aug 2017 00:44:20 -0400
+From: <Yasunari.Takiguchi@sony.com>
+To: <mchehab@s-opensource.com>, <linux-kernel@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>
+CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
+        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
+        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
+        Hideki Nozawa <Hideki.Nozawa@sony.com>,
+        "Kota Yonezawa" <Kota.Yonezawa@sony.com>,
+        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
+        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+Subject: [PATCH v3 14/14] [media] cxd2880 : Update MAINTAINERS file for CXD2880 driver
+Date: Wed, 16 Aug 2017 13:47:33 +0900
+Message-ID: <20170816044733.21869-1-Yasunari.Takiguchi@sony.com>
+In-Reply-To: <20170816041714.20551-1-Yasunari.Takiguchi@sony.com>
+References: <20170816041714.20551-1-Yasunari.Takiguchi@sony.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make these const as they are only used during a copy operation.
-Done using Coccinelle.
+From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+This is MAINTAINERS file update about the driver for
+the Sony CXD2880 DVB-T2/T tuner + demodulator.
+
+[Change list]
+Changes in V3
+   MAINTAINERS
+      -no change
+
+Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
+Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
+Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
+Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
+Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
 ---
- drivers/staging/vc04_services/bcm2835-audio/bcm2835-pcm.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/staging/vc04_services/bcm2835-audio/bcm2835-pcm.c b/drivers/staging/vc04_services/bcm2835-audio/bcm2835-pcm.c
-index 1bf34ce..94654c0 100644
---- a/drivers/staging/vc04_services/bcm2835-audio/bcm2835-pcm.c
-+++ b/drivers/staging/vc04_services/bcm2835-audio/bcm2835-pcm.c
-@@ -20,7 +20,7 @@
- #include "bcm2835.h"
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 6f7721d1634c..12a80c33c194 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8302,6 +8302,15 @@ T:	git git://linuxtv.org/media_tree.git
+ S:	Supported
+ F:	drivers/media/dvb-frontends/cxd2841er*
  
- /* hardware definition */
--static struct snd_pcm_hardware snd_bcm2835_playback_hw = {
-+static const struct snd_pcm_hardware snd_bcm2835_playback_hw = {
- 	.info = (SNDRV_PCM_INFO_INTERLEAVED | SNDRV_PCM_INFO_BLOCK_TRANSFER |
- 	SNDRV_PCM_INFO_MMAP | SNDRV_PCM_INFO_MMAP_VALID),
- 	.formats = SNDRV_PCM_FMTBIT_U8 | SNDRV_PCM_FMTBIT_S16_LE,
-@@ -36,7 +36,7 @@
- 	.periods_max = 128,
- };
- 
--static struct snd_pcm_hardware snd_bcm2835_playback_spdif_hw = {
-+static const struct snd_pcm_hardware snd_bcm2835_playback_spdif_hw = {
- 	.info = (SNDRV_PCM_INFO_INTERLEAVED | SNDRV_PCM_INFO_BLOCK_TRANSFER |
- 	SNDRV_PCM_INFO_MMAP | SNDRV_PCM_INFO_MMAP_VALID),
- 	.formats = SNDRV_PCM_FMTBIT_S16_LE,
++MEDIA DRIVERS FOR CXD2880
++M:	Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
++L:	linux-media@vger.kernel.org
++W:	http://linuxtv.org/
++T:	git git://linuxtv.org/media_tree.git
++S:	Supported
++F:	drivers/media/dvb-frontends/cxd2880/*
++F:	drivers/media/spi/cxd2880*
++
+ MEDIA DRIVERS FOR FREESCALE IMX
+ M:	Steve Longerbeam <slongerbeam@gmail.com>
+ M:	Philipp Zabel <p.zabel@pengutronix.de>
 -- 
-1.9.1
+2.13.0
