@@ -1,403 +1,509 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:56090 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752853AbdHVX2t (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 19:28:49 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v6 21/25] rcar-vin: parse Gen3 OF and setup media graph
-Date: Wed, 23 Aug 2017 01:26:36 +0200
-Message-Id: <20170822232640.26147-22-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-bl2nam02on0104.outbound.protection.outlook.com ([104.47.38.104]:51361
+        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750827AbdHPEc3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 Aug 2017 00:32:29 -0400
+From: <Yasunari.Takiguchi@sony.com>
+To: <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-media@vger.kernel.org>
+CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
+        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
+        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
+        Hideki Nozawa <Hideki.Nozawa@sony.com>,
+        "Kota Yonezawa" <Kota.Yonezawa@sony.com>,
+        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
+        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+Subject: [PATCH v3 04/14] [media] cxd2880: Add spi device IO routines
+Date: Wed, 16 Aug 2017 13:35:34 +0900
+Message-ID: <20170816043534.21300-1-Yasunari.Takiguchi@sony.com>
+In-Reply-To: <20170816041714.20551-1-Yasunari.Takiguchi@sony.com>
+References: <20170816041714.20551-1-Yasunari.Takiguchi@sony.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse the VIN Gen3 OF graph and register all CSI-2 devices in the VIN
-group common media device. Once all CSI-2 subdevice is added to the
-common media device create links between them.
+From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
 
-The parsing and registering CSI-2 subdevices with the v4l2 async
-framework is a collaborative effort shared between the VIN instances
-which are part of the group. The fist rcar-vin instance parses OF and
-finds all other VIN and CSI-2 nodes which are part of the graph. It
-stores a bit mask of all VIN instances found and handles to all CSI-2
-nodes.
+Add functions for initializing, reading and writing to the SPI
+device for the Sony CXD2880 DVB-T2/T tuner + demodulator.
 
-The bit mask is used to figure out when all VIN instances have been
-probed. Once the last VIN instance is probed this is detected and this
-instance registers all CSI-2 subdevices in its private async notifier.
-Once the .complete() callback of this notifier is called it creates the
-media controller links between all entities in the graph.
+[Change list]
+Changes in V3
+   drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
+      -removed unnecessary cast
+      -changed cxd2880_memcpy to memcpy
+      -modified return code
+      -changed hexadecimal code to lower case. 
+   drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h
+      -modified return code
+   drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h
+      -modified return code
+   drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c
+      -removed unnecessary cast
+      -modified return code
+   drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h
+      -modified return code
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
+Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
+Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
+Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
+Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 296 +++++++++++++++++++++++++++-
- drivers/media/platform/rcar-vin/rcar-vin.h  |   7 +-
- 2 files changed, 301 insertions(+), 2 deletions(-)
+ .../dvb-frontends/cxd2880/cxd2880_devio_spi.c      | 146 +++++++++++++++++++++
+ .../dvb-frontends/cxd2880/cxd2880_devio_spi.h      |  40 ++++++
+ drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h  |  51 +++++++
+ .../dvb-frontends/cxd2880/cxd2880_spi_device.c     | 130 ++++++++++++++++++
+ .../dvb-frontends/cxd2880/cxd2880_spi_device.h     |  43 ++++++
+ 5 files changed, 410 insertions(+)
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 4218a73eb6885486..2aba442a0750e91a 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -440,10 +440,268 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
-  * Group async notifier
-  */
- 
--static int rvin_group_init(struct rvin_dev *vin)
-+/* group lock should be held when calling this function */
-+static int rvin_group_add_link(struct rvin_dev *vin,
-+			       struct media_entity *source,
-+			       unsigned int source_idx,
-+			       struct media_entity *sink,
-+			       unsigned int sink_idx,
-+			       u32 flags)
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
+new file mode 100644
+index 000000000000..2cf4fb0e4610
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
+@@ -0,0 +1,146 @@
++/*
++ * cxd2880_devio_spi.c
++ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
++ * I/O interface via SPI
++ *
++ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; version 2 of the License.
++ *
++ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
++ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
++ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include "cxd2880_devio_spi.h"
++
++#define BURST_WRITE_MAX 128
++
++static int cxd2880_io_spi_read_reg(struct cxd2880_io *io,
++				   enum cxd2880_io_tgt tgt,
++				   u8 sub_address, u8 *data,
++				   u32 size)
 +{
-+	struct media_pad *source_pad, *sink_pad;
 +	int ret = 0;
++	struct cxd2880_spi *spi = NULL;
++	u8 send_data[6];
++	u8 *read_data_top = data;
 +
-+	source_pad = &source->pads[source_idx];
-+	sink_pad = &sink->pads[sink_idx];
++	if ((!io) || (!io->if_object) || (!data))
++		return -EINVAL;
 +
-+	if (!media_entity_find_link(source_pad, sink_pad))
-+		ret = media_create_pad_link(source, source_idx,
-+					    sink, sink_idx, flags);
++	if (sub_address + size > 0x100)
++		return -ERANGE;
 +
-+	if (ret)
-+		vin_err(vin, "Error adding link from %s to %s\n",
-+			source->name, sink->name);
++	spi = io->if_object;
 +
-+	return ret;
-+}
++	if (tgt == CXD2880_IO_TGT_SYS)
++		send_data[0] = 0x0b;
++	else
++		send_data[0] = 0x0a;
 +
-+static int rvin_group_update_links(struct rvin_dev *vin)
- {
-+	struct media_entity *source, *sink;
-+	struct rvin_dev *master;
-+	unsigned int i, n, idx, chsel, csi;
-+	u32 flags;
- 	int ret;
- 
-+	mutex_lock(&vin->group->lock);
++	send_data[3] = 0;
++	send_data[4] = 0;
++	send_data[5] = 0;
 +
-+	for (n = 0; n < RCAR_VIN_NUM; n++) {
++	while (size > 0) {
++		send_data[1] = sub_address;
++		if (size > 255)
++			send_data[2] = 255;
++		else
++			send_data[2] = size;
 +
-+		/* Check that VIN is part of the group */
-+		if (!vin->group->vin[n])
-+			continue;
-+
-+		/* Check that subgroup master is part of the group */
-+		master = vin->group->vin[n < 4 ? 0 : 4];
-+		if (!master)
-+			continue;
-+
-+		chsel = rvin_get_chsel(master);
-+
-+		for (i = 0; i < vin->info->num_chsels; i++) {
-+			csi = vin->info->chsels[n][i].csi;
-+
-+			/* If the CSI-2 is out of bounds it's a noop, skip */
-+			if (csi >= RVIN_CSI_MAX)
-+				continue;
-+
-+			/* Check that CSI-2 are part of the group */
-+			if (!vin->group->csi[csi].subdev)
-+				continue;
-+
-+			source = &vin->group->csi[csi].subdev->entity;
-+			sink = &vin->group->vin[n]->vdev.entity;
-+			idx = vin->info->chsels[n][i].chan + 1;
-+			flags = i == chsel ? MEDIA_LNK_FL_ENABLED : 0;
-+
-+			ret = rvin_group_add_link(vin, source, idx, sink, 0,
-+						  flags);
-+			if (ret)
-+				goto out;
-+		}
-+	}
-+out:
-+	mutex_unlock(&vin->group->lock);
-+
-+	return ret;
-+}
-+
-+static int rvin_group_notify_complete(struct v4l2_async_notifier *notifier)
-+{
-+	struct rvin_dev *vin = notifier_to_vin(notifier);
-+	int ret;
-+
-+	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
-+	if (ret) {
-+		vin_err(vin, "Failed to register subdev nodes\n");
-+		return ret;
-+	}
-+
-+	return rvin_group_update_links(vin);
-+}
-+
-+static void rvin_group_notify_unbind(struct v4l2_async_notifier *notifier,
-+				     struct v4l2_subdev *subdev,
-+				     struct v4l2_async_subdev *asd)
-+{
-+	struct rvin_dev *vin = notifier_to_vin(notifier);
-+	struct rvin_graph_entity *csi = to_rvin_graph_entity(asd);
-+
-+	mutex_lock(&vin->group->lock);
-+	csi->subdev = NULL;
-+	mutex_unlock(&vin->group->lock);
-+}
-+
-+static int rvin_group_notify_bound(struct v4l2_async_notifier *notifier,
-+				   struct v4l2_subdev *subdev,
-+				   struct v4l2_async_subdev *asd)
-+{
-+	struct rvin_dev *vin = notifier_to_vin(notifier);
-+	struct rvin_graph_entity *csi = to_rvin_graph_entity(asd);
-+
-+	v4l2_set_subdev_hostdata(subdev, vin);
-+
-+	mutex_lock(&vin->group->lock);
-+	vin_dbg(vin, "Bound CSI-2 %s\n", subdev->name);
-+	csi->subdev = subdev;
-+	mutex_unlock(&vin->group->lock);
-+
-+	return 0;
-+}
-+
-+static struct device_node *rvin_group_get_remote(struct rvin_dev *vin,
-+						 struct device_node *node)
-+{
-+	struct device_node *np;
-+
-+	np = of_graph_get_remote_port_parent(node);
-+	if (!np) {
-+		vin_err(vin, "Remote not found %s\n", of_node_full_name(node));
-+		return NULL;
-+	}
-+
-+	/* Not all remotes are available, this is OK */
-+	if (!of_device_is_available(np)) {
-+		vin_dbg(vin, "Remote %s is not available\n",
-+			of_node_full_name(np));
-+		of_node_put(np);
-+		return NULL;
-+	}
-+
-+	return np;
-+}
-+
-+/* group lock should be held when calling this function */
-+static int rvin_group_graph_parse(struct rvin_dev *vin, struct device_node *np)
-+{
-+	int i, id, ret;
-+
-+	/* Read VIN id from DT */
-+	id = rvin_group_read_id(vin, np);
-+	if (id < 0)
-+		return id;
-+
-+	/* Check if VIN is already handled */
-+	if (vin->group->mask & BIT(id))
-+		return 0;
-+
-+	vin->group->mask |= BIT(id);
-+
-+	vin_dbg(vin, "Handling VIN%d\n", id);
-+
-+	/* Parse all enpoints for CSI-2 and VIN nodes */
-+	for (i = 0; i < RVIN_CSI_MAX; i++) {
-+		struct device_node *ep, *csi, *remote;
-+
-+		/* Check if instance is connected to the CSI-2 */
-+		ep = of_graph_get_endpoint_by_regs(np, 1, i);
-+		if (!ep) {
-+			vin_dbg(vin, "VIN%d: ep %d not connected\n", id, i);
-+			continue;
-+		}
-+
-+		if (vin->group->csi[i].asd.match.fwnode.fwnode) {
-+			of_node_put(ep);
-+			vin_dbg(vin, "VIN%d: ep %d already handled\n", id, i);
-+			continue;
-+		}
-+
-+		csi = rvin_group_get_remote(vin, ep);
-+		of_node_put(ep);
-+		if (!csi)
-+			continue;
-+
-+		vin->group->csi[i].asd.match.fwnode.fwnode =
-+			of_fwnode_handle(csi);
-+		vin->group->csi[i].asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-+
-+		vin_dbg(vin, "VIN%d ep: %d handled CSI-2 %s\n", id, i,
-+			of_node_full_name(csi));
-+
-+		/* Parse the CSI-2 for all VIN nodes connected to it */
-+		ep = NULL;
-+		while (1) {
-+			ep = of_graph_get_next_endpoint(csi, ep);
-+			if (!ep)
-+				break;
-+
-+			remote = rvin_group_get_remote(vin, ep);
-+			if (!remote)
-+				continue;
-+
-+			if (of_match_node(vin->dev->driver->of_match_table,
-+					  remote)) {
-+				ret = rvin_group_graph_parse(vin, remote);
-+				if (ret)
-+					return ret;
-+
-+			}
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int rvin_group_graph_register(struct rvin_dev *vin)
-+{
-+	struct v4l2_async_subdev **subdevs = NULL;
-+	int i, n, ret, count = 0;
-+
-+	mutex_lock(&vin->group->lock);
-+
-+	/* Count how many CSI-2 nodes found */
-+	for (i = 0; i < RVIN_CSI_MAX; i++)
-+		if (vin->group->csi[i].asd.match.fwnode.fwnode)
-+			count++;
-+
-+	if (!count) {
-+		mutex_unlock(&vin->group->lock);
-+		return 0;
-+	}
-+
-+	/* Allocate and setup list of subdevices for the notifier */
-+	subdevs = devm_kzalloc(vin->dev, sizeof(*subdevs) * count, GFP_KERNEL);
-+	if (subdevs == NULL) {
-+		mutex_unlock(&vin->group->lock);
-+		return -ENOMEM;
-+	}
-+
-+	n = 0;
-+	for (i = 0; i < RVIN_CSI_MAX; i++)
-+		if (vin->group->csi[i].asd.match.fwnode.fwnode)
-+			subdevs[n++] = &vin->group->csi[i].asd;
-+
-+	vin_dbg(vin, "Claimed %d subdevices for group\n", count);
-+
-+	vin->notifier.num_subdevs = count;
-+	vin->notifier.subdevs = subdevs;
-+	vin->notifier.bound = rvin_group_notify_bound;
-+	vin->notifier.unbind = rvin_group_notify_unbind;
-+	vin->notifier.complete = rvin_group_notify_complete;
-+
-+	mutex_unlock(&vin->group->lock);
-+
-+	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
-+	if (ret < 0)
-+		vin_err(vin, "Notifier registration failed\n");
-+
-+	return ret;
-+}
-+
-+static int rvin_group_init(struct rvin_dev *vin)
-+{
-+	int i, ret, count_mask, count_vin = 0;
-+
- 	ret = rvin_group_allocate(vin);
- 	if (ret)
- 		return ret;
-@@ -457,8 +715,44 @@ static int rvin_group_init(struct rvin_dev *vin)
- 	if (ret)
- 		goto error_group;
- 
-+	/*
-+	 * Check number of registered VIN in group against the group mask.
-+	 * If the mask is empty DT have not yet been parsed and if the
-+	 * count match all VINs are registered and it's safe to register
-+	 * the async notifier
-+	 */
-+	mutex_lock(&vin->group->lock);
-+
-+	if (!vin->group->mask) {
-+		ret = rvin_group_graph_parse(vin, vin->dev->of_node);
-+		if (ret) {
-+			mutex_unlock(&vin->group->lock);
-+			goto error_group;
-+		}
-+	}
-+
-+	for (i = 0; i < RCAR_VIN_NUM; i++)
-+		if (vin->group->vin[i])
-+			count_vin++;
-+
-+	count_mask = hweight_long(vin->group->mask);
-+
-+	mutex_unlock(&vin->group->lock);
-+
-+	ret = rvin_v4l2_probe(vin);
-+	if (ret)
-+		goto error_group;
-+
-+	if (count_vin == count_mask) {
-+		ret = rvin_group_graph_register(vin);
++		ret =
++		    spi->write_read(spi, send_data, sizeof(send_data),
++				    read_data_top, send_data[2]);
 +		if (ret)
-+			goto error_vdev;
++			return ret;
++
++		sub_address += send_data[2];
++		read_data_top += send_data[2];
++		size -= send_data[2];
 +	}
 +
- 	return 0;
- 
-+error_vdev:
-+	rvin_v4l2_remove(vin);
- error_group:
- 	rvin_group_delete(vin);
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 617f254b52fe106d..a41301833221c750 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -92,6 +92,9 @@ struct rvin_graph_entity {
- 	unsigned int sink_pad;
- };
- 
-+#define to_rvin_graph_entity(asd) \
-+	container_of(asd, struct rvin_graph_entity, asd)
++	return ret;
++}
 +
- struct rvin_group;
- 
- 
-@@ -208,7 +211,8 @@ struct rvin_dev {
-  *
-  * @mdev:		media device which represents the group
-  *
-- * @lock:		protects the vin and csi members
-+ * @lock:		protects the mask, vin and csi members
-+ * @mask:		Mask of VIN instances found in DT
-  * @vin:		VIN instances which are part of the group
-  * @csi:		CSI-2 entities that are part of the group
-  */
-@@ -218,6 +222,7 @@ struct rvin_group {
- 	struct media_device mdev;
- 
- 	struct mutex lock;
-+	unsigned long mask;
- 	struct rvin_dev *vin[RCAR_VIN_NUM];
- 	struct rvin_graph_entity csi[RVIN_CSI_MAX];
- };
++static int cxd2880_io_spi_write_reg(struct cxd2880_io *io,
++				    enum cxd2880_io_tgt tgt,
++				    u8 sub_address,
++				    const u8 *data, u32 size)
++{
++	int ret = 0;
++	struct cxd2880_spi *spi = NULL;
++	u8 send_data[BURST_WRITE_MAX + 4];
++	const u8 *write_data_top = data;
++
++	if ((!io) || (!io->if_object) || (!data))
++		return -EINVAL;
++
++	if (size > BURST_WRITE_MAX)
++		return -EOVERFLOW;
++
++	if (sub_address + size > 0x100)
++		return -ERANGE;
++
++	spi = io->if_object;
++
++	if (tgt == CXD2880_IO_TGT_SYS)
++		send_data[0] = 0x0f;
++	else
++		send_data[0] = 0x0e;
++
++	while (size > 0) {
++		send_data[1] = sub_address;
++		if (size > 255)
++			send_data[2] = 255;
++		else
++			send_data[2] = size;
++
++		memcpy(&send_data[3], write_data_top, send_data[2]);
++
++		if (tgt == CXD2880_IO_TGT_SYS) {
++			send_data[3 + send_data[2]] = 0x00;
++			ret = spi->write(spi, send_data, send_data[2] + 4);
++		} else {
++			ret = spi->write(spi, send_data, send_data[2] + 3);
++		}
++		if (ret)
++			return ret;
++
++		sub_address += send_data[2];
++		write_data_top += send_data[2];
++		size -= send_data[2];
++	}
++
++	return ret;
++}
++
++int cxd2880_io_spi_create(struct cxd2880_io *io,
++			  struct cxd2880_spi *spi, u8 slave_select)
++{
++	if ((!io) || (!spi))
++		return -EINVAL;
++
++	io->read_regs = cxd2880_io_spi_read_reg;
++	io->write_regs = cxd2880_io_spi_write_reg;
++	io->write_reg = cxd2880_io_common_write_one_reg;
++	io->if_object = spi;
++	io->i2c_address_sys = 0;
++	io->i2c_address_demod = 0;
++	io->slave_select = slave_select;
++
++	return 0;
++}
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h
+new file mode 100644
+index 000000000000..41a86f0f558e
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h
+@@ -0,0 +1,40 @@
++/*
++ * cxd2880_devio_spi.h
++ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
++ * I/O interface via SPI
++ *
++ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; version 2 of the License.
++ *
++ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
++ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
++ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef CXD2880_DEVIO_SPI_H
++#define CXD2880_DEVIO_SPI_H
++
++#include "cxd2880_common.h"
++#include "cxd2880_io.h"
++#include "cxd2880_spi.h"
++
++#include "cxd2880_tnrdmd.h"
++
++int cxd2880_io_spi_create(struct cxd2880_io *io,
++			  struct cxd2880_spi *spi,
++			  u8 slave_select);
++
++#endif
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h
+new file mode 100644
+index 000000000000..f9e28daa6a2c
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h
+@@ -0,0 +1,51 @@
++/*
++ * cxd2880_spi.h
++ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
++ * SPI access definitions
++ *
++ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; version 2 of the License.
++ *
++ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
++ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
++ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef CXD2880_SPI_H
++#define CXD2880_SPI_H
++
++#include "cxd2880_common.h"
++
++enum cxd2880_spi_mode {
++	CXD2880_SPI_MODE_0,
++	CXD2880_SPI_MODE_1,
++	CXD2880_SPI_MODE_2,
++	CXD2880_SPI_MODE_3
++};
++
++struct cxd2880_spi {
++	int (*read)(struct cxd2880_spi *spi, u8 *data,
++		    u32 size);
++	int (*write)(struct cxd2880_spi *spi, const u8 *data,
++		     u32 size);
++	int (*write_read)(struct cxd2880_spi *spi,
++			  const u8 *tx_data, u32 tx_size,
++			  u8 *rx_data, u32 rx_size);
++	u32 flags;
++	void *user;
++};
++
++#endif
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c
+new file mode 100644
+index 000000000000..60b14e4a4098
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c
+@@ -0,0 +1,130 @@
++/*
++ * cxd2880_spi_device.c
++ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
++ * SPI access functions
++ *
++ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; version 2 of the License.
++ *
++ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
++ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
++ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/spi/spi.h>
++
++#include "cxd2880_spi_device.h"
++
++static int cxd2880_spi_device_write(struct cxd2880_spi *spi,
++				    const u8 *data, u32 size)
++{
++	struct cxd2880_spi_device *spi_device = NULL;
++	struct spi_message msg;
++	struct spi_transfer tx;
++	int result = 0;
++
++	if ((!spi) || (!spi->user) || (!data) || (size == 0))
++		return -EINVAL;
++
++	spi_device = spi->user;
++
++	memset(&tx, 0, sizeof(tx));
++	tx.tx_buf = data;
++	tx.len = size;
++
++	spi_message_init(&msg);
++	spi_message_add_tail(&tx, &msg);
++	result = spi_sync(spi_device->spi, &msg);
++
++	if (result < 0)
++		return -EIO;
++
++	return 0;
++}
++
++static int cxd2880_spi_device_write_read(struct cxd2880_spi *spi,
++					 const u8 *tx_data,
++					 u32 tx_size,
++					 u8 *rx_data,
++					 u32 rx_size)
++{
++	struct cxd2880_spi_device *spi_device = NULL;
++	int result = 0;
++
++	if ((!spi) || (!spi->user) || (!tx_data) ||
++		 (tx_size == 0) || (!rx_data) || (rx_size == 0))
++		return -EINVAL;
++
++	spi_device = spi->user;
++
++	result = spi_write_then_read(spi_device->spi, tx_data,
++				     tx_size, rx_data, rx_size);
++	if (result < 0)
++		return -EIO;
++
++	return 0;
++}
++
++int
++cxd2880_spi_device_initialize(struct cxd2880_spi_device *spi_device,
++			      enum cxd2880_spi_mode mode,
++			      u32 speed_hz)
++{
++	int result = 0;
++	struct spi_device *spi = spi_device->spi;
++
++	switch (mode) {
++	case CXD2880_SPI_MODE_0:
++		spi->mode = SPI_MODE_0;
++		break;
++	case CXD2880_SPI_MODE_1:
++		spi->mode = SPI_MODE_1;
++		break;
++	case CXD2880_SPI_MODE_2:
++		spi->mode = SPI_MODE_2;
++		break;
++	case CXD2880_SPI_MODE_3:
++		spi->mode = SPI_MODE_3;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	spi->max_speed_hz = speed_hz;
++	spi->bits_per_word = 8;
++	result = spi_setup(spi);
++	if (result != 0) {
++		pr_err("spi_setup failed %d\n", result);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++int cxd2880_spi_device_create_spi(struct cxd2880_spi *spi,
++				  struct cxd2880_spi_device *spi_device)
++{
++	if ((!spi) || (!spi_device))
++		return -EINVAL;
++
++	spi->read = NULL;
++	spi->write = cxd2880_spi_device_write;
++	spi->write_read = cxd2880_spi_device_write_read;
++	spi->flags = 0;
++	spi->user = spi_device;
++
++	return 0;
++}
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h
+new file mode 100644
+index 000000000000..63f658e29343
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h
+@@ -0,0 +1,43 @@
++/*
++ * cxd2880_spi_device.h
++ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
++ * SPI access interface
++ *
++ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; version 2 of the License.
++ *
++ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
++ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
++ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef CXD2880_SPI_DEVICE_H
++#define CXD2880_SPI_DEVICE_H
++
++#include "cxd2880_spi.h"
++
++struct cxd2880_spi_device {
++	struct spi_device *spi;
++};
++
++int cxd2880_spi_device_initialize(struct cxd2880_spi_device *spi_device,
++				  enum cxd2880_spi_mode mode,
++				  u32 speedHz);
++
++int cxd2880_spi_device_create_spi(struct cxd2880_spi *spi,
++				  struct cxd2880_spi_device *spi_device);
++
++#endif /* CXD2880_SPI_DEVICE_H */
 -- 
-2.14.0
+2.13.0
