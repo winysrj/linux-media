@@ -1,207 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34798
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753634AbdH2NSJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 09:18:09 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v6 1/7] media: add glossary.rst with a glossary of terms used at V4L2 spec
-Date: Tue, 29 Aug 2017 10:17:50 -0300
-Message-Id: <d6ff6eda186d452b9e8902afc2e4011dd6263f1f.1504012579.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504012579.git.mchehab@s-opensource.com>
-References: <cover.1504012579.git.mchehab@s-opensource.com>
+Received: from mga06.intel.com ([134.134.136.31]:64072 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752996AbdHQNqR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 Aug 2017 09:46:17 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org, rajmohan.mani@intel.com
+Subject: [PATCH 1/3] dt-bindings: Add bindings for Dongwoon DW9714 voice coil
+Date: Thu, 17 Aug 2017 16:42:54 +0300
+Message-Id: <1502977376-22836-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1502977376-22836-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1502977376-22836-1-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <cover.1504012579.git.mchehab@s-opensource.com>
-References: <cover.1504012579.git.mchehab@s-opensource.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a glossary of terms for V4L2, as several concepts are complex
-enough to cause misunderstandings.
+Dongwoon DW9714 is a voice coil lens driver.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Also add a vendor prefix for Dongwoon for one did not exist previously.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/media/uapi/v4l/glossary.rst | 150 ++++++++++++++++++++++++++++++
- Documentation/media/uapi/v4l/v4l2.rst     |   1 +
- 2 files changed, 151 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/glossary.rst
+ Documentation/devicetree/bindings/media/i2c/dongwoon,dw9714.txt | 9 +++++++++
+ Documentation/devicetree/bindings/vendor-prefixes.txt           | 1 +
+ 2 files changed, 10 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/dongwoon,dw9714.txt
 
-diff --git a/Documentation/media/uapi/v4l/glossary.rst b/Documentation/media/uapi/v4l/glossary.rst
+diff --git a/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9714.txt b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9714.txt
 new file mode 100644
-index 000000000000..afafe1bc1894
+index 0000000..b88dcdd
 --- /dev/null
-+++ b/Documentation/media/uapi/v4l/glossary.rst
-@@ -0,0 +1,150 @@
-+========
-+Glossary
-+========
++++ b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9714.txt
+@@ -0,0 +1,9 @@
++Dongwoon Anatech DW9714 camera voice coil lens driver
 +
-+.. note::
++DW9174 is a 10-bit DAC with current sink capability. It is intended
++for driving voice coil lenses in camera modules.
 +
-+   This goal of section is to standardize the terms used within the V4L2
-+   documentation. It is written incrementally as they are standardized in
-+   the V4L2 documentation. So, it is a Work In Progress.
++Mandatory properties:
 +
-+.. Please keep the glossary entries in alphabetical order
-+
-+.. glossary::
-+
-+    Bridge driver
-+	The same as V4L2 main driver.
-+
-+    Device Node
-+	A character device node in the file system used to control and do
-+	input/output data transfers from/to a Kernel driver.
-+
-+    Digital Signal Processor - DSP
-+	A specialized microprocessor, with its architecture optimized for
-+	the operational needs of digital signal processing.
-+
-+    Driver
-+	The part of the Linux Kernel that implements support
-+	for a hardware component.
-+
-+    Field-programmable Gate Array - FPGA
-+	A field-programmable gate array (FPGA) is an integrated circuit
-+	designed to be configured by a customer or a designer after
-+	manufacturing.
-+
-+	See https://en.wikipedia.org/wiki/Field-programmable_gate_array.
-+
-+    Hardware component
-+	A subset of the media hardware. For example an I²C or SPI device,
-+	or an IP block inside an SoC or FPGA.
-+
-+    Hardware peripheral
-+	A group of hardware components that together make a larger
-+	user-facing functional peripheral. For instance the SoC ISP IP
-+	cores and external camera sensors together make a
-+	camera hardware peripheral.
-+
-+	Also known as peripheral.
-+
-+    Hardware peripheral control
-+	Type of control for a hardware peripheral supported by V4L2 drivers.
-+
-+	See :ref:`v4l2_hardware_control`.
-+
-+    Inter-Integrated Circuit - I²C
-+	A  multi-master, multi-slave, packet switched, single-ended,
-+	serial computer bus used to control V4L2 sub-devices.
-+
-+	See http://www.nxp.com/docs/en/user-guide/UM10204.pdf.
-+
-+    Integrated circuit - IC
-+	A set of electronic circuits on one small flat piece of
-+	semiconductor material, normally silicon.
-+
-+	Also known as chip.
-+
-+    IP block
-+	The same as IP core.
-+
-+    Intelectual property core - IP core
-+	In electronic design a semiconductor intellectual property core,
-+	is a reusable unit of logic, cell, or integrated circuit layout
-+	design that is the intellectual property of one party.
-+	IP cores may be licensed to another party or can be owned
-+	and used by a single party alone.
-+
-+	See https://en.wikipedia.org/wiki/Semiconductor_intellectual_property_core).
-+
-+    Image Signal Processor - ISP
-+	A specialised processor that implements a set of algorithms for
-+	processing image data. ISPs may implement algorithms for lens
-+	shading correction, demosaic, scaling and pixel format conversion
-+	as well as produce statistics for the use of the control
-+	algorithms (e.g. automatic exposure, white balance and focus).
-+
-+    Peripheral
-+	The same as hardware peripheral.
-+
-+    Media Controller
-+	An API designed to expose and control devices and sub-devices
-+	relationships to applications.
-+
-+	See :ref:`media_controller`.
-+
-+    MC-centric
-+	V4L2 hardware that requires a Media controller.
-+
-+	See :ref:`v4l2_hardware_control`.
-+
-+    Microprocessor
-+	An electronic circuitry that carries out the instructions
-+	of a computer program by performing the basic arithmetic, logical,
-+	control and input/output (I/O) operations specified by the
-+	instructions on a single integrated circuit.
-+
-+    SMBus
-+	A subset of I²C, with defines a stricter usage of the bus.
-+
-+    Serial Peripheral Interface Bus - SPI
-+	Synchronous serial communication interface specification used for
-+	short distance communication, primarily in embedded systems.
-+
-+    System on a Chip - SoC
-+	An integrated circuit that integrates all components of a computer
-+	or other electronic systems.
-+
-+    Sub-device hardware components
-+	Hardware components that aren't controlled by the
-+	V4L2 main driver.
-+
-+    V4L2 device node
-+	A device node that is associated to a V4L2 main driver,
-+	as specified in :ref:`v4l2_device_naming`.
-+
-+    V4L2 hardware
-+	A hardware used to on a media device supported by the V4L2
-+	subsystem.
-+
-+    V4L2 hardware control
-+	The type of hardware control that a device supports.
-+
-+	See :ref:`v4l2_hardware_control`.
-+
-+    V4L2 main driver
-+	The V4L2 device driver that implements the main logic to talk with
-+	the V4L2 hardware.
-+
-+	Also known as bridge driver.
-+
-+	See :ref:`v4l2_hardware_control`.
-+
-+    V4L2 sub-device
-+	Part of the media hardware that it is implemented by a device
-+	driver that is not part of the main V4L2 driver.
-+
-+	See :ref:`subdev`.
-+
-+    Vdev-centric
-+	V4L2 hardware that it is controlled via V4L2 device nodes.
-+
-+	See :ref:`v4l2_hardware_control`.
-diff --git a/Documentation/media/uapi/v4l/v4l2.rst b/Documentation/media/uapi/v4l/v4l2.rst
-index f52a11c949d3..1ee4b86d18e1 100644
---- a/Documentation/media/uapi/v4l/v4l2.rst
-+++ b/Documentation/media/uapi/v4l/v4l2.rst
-@@ -31,6 +31,7 @@ This part describes the Video for Linux API version 2 (V4L2 API) specification.
-     videodev
-     capture-example
-     v4l2grab-example
-+    glossary
-     biblio
- 
- 
++- compatible: "dongwoon,dw9714"
++- reg: I²C slave address
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index daf465be..6b6e683 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -88,6 +88,7 @@ dlg	Dialog Semiconductor
+ dlink	D-Link Corporation
+ dmo	Data Modul AG
+ domintech	Domintech Co., Ltd.
++dongwoon	Dongwoon Anatech
+ dptechnics	DPTechnics
+ dragino	Dragino Technology Co., Limited
+ ea	Embedded Artists AB
 -- 
-2.13.5
+2.7.4
