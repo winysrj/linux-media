@@ -1,60 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp11.smtpout.orange.fr ([80.12.242.133]:36788 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753118AbdHTQtH (ORCPT
+Received: from mail-wr0-f176.google.com ([209.85.128.176]:34389 "EHLO
+        mail-wr0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752820AbdHQTu1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Aug 2017 12:49:07 -0400
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-To: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        arvind.yadav.cs@gmail.com
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        kernel-janitors@vger.kernel.org,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: [PATCH] Staging: media: Release the correct resource in an error handling path
-Date: Sun, 20 Aug 2017 18:49:01 +0200
-Message-Id: <20170820164901.9810-1-christophe.jaillet@wanadoo.fr>
+        Thu, 17 Aug 2017 15:50:27 -0400
+Received: by mail-wr0-f176.google.com with SMTP id y96so49980949wrc.1
+        for <linux-media@vger.kernel.org>; Thu, 17 Aug 2017 12:50:27 -0700 (PDT)
+Subject: Re: [PATCH v2] media: isl6421: add checks for current overflow
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+References: <24d5b36b-0ed5-f290-15a3-d291b10b6c39@gmail.com>
+ <201c07fc2bed74943f2a74fc5734d9aed3e62f8d.1502652879.git.mchehab@s-opensource.com>
+ <bac2323e-6bde-08f8-1143-31a0b1d7176a@gmail.com>
+ <20170816064226.54002cc7@vela.lan>
+From: Jemma Denson <jdenson@gmail.com>
+Message-ID: <18c87cff-a407-8ebc-b758-eeb496f29345@gmail.com>
+Date: Thu, 17 Aug 2017 20:50:24 +0100
+MIME-Version: 1.0
+In-Reply-To: <20170816064226.54002cc7@vela.lan>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-GB
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-'res' is reassigned several times in the function and if we 'goto
-error_unmap', its value is not the returned value of 'request_mem_region()'
-anymore.
+On 16/08/17 10:42, Mauro Carvalho Chehab wrote:
 
-Introduce a new 'struct resource *' variable (i.e. res2) to keep a pointer
-to the right resource, if needed in the error handling path.
+>> I've just tested both your v2 patch and changes I'm suggesting above; both work
+>> fine on my setup. Do you want me to send a v3?
+> Yeah, sure! I'm currently in travel, returning only on Friday, and I don't
+> have the hardware to test. So, if you can send it, I'd appreciate :-)
+>
+> Cheers,
+> Mauro
 
-Fixes: 4b4eda001704 ("Staging: media: Unmap and release region obtained by ioremap_nocache")
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
----
- drivers/staging/media/davinci_vpfe/dm365_ipipe.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Ok, just sent. The if statements ended up being a bit complicated, but I added checking
+if the DCL bit was being overridden (it is by several cards under cx88), only pausing
+for a second if DCL was in use as the datasheet suggested that's only done in that mode,
+and also skipped checking overflow if the device was set to off.
 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-index 6a3434cebd79..8d2d3f8edc07 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-@@ -1791,7 +1791,7 @@ vpfe_ipipe_init(struct vpfe_ipipe_device *ipipe, struct platform_device *pdev)
- 	struct v4l2_subdev *sd = &ipipe->subdev;
- 	struct media_entity *me = &sd->entity;
- 	static resource_size_t  res_len;
--	struct resource *res;
-+	struct resource *res, *res2;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 4);
- 	if (!res)
-@@ -1805,10 +1805,10 @@ vpfe_ipipe_init(struct vpfe_ipipe_device *ipipe, struct platform_device *pdev)
- 	if (!ipipe->base_addr)
- 		goto error_release;
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 6);
--	if (!res)
-+	res2 = platform_get_resource(pdev, IORESOURCE_MEM, 6);
-+	if (!res2)
- 		goto error_unmap;
--	ipipe->isp5_base_addr = ioremap_nocache(res->start, res_len);
-+	ipipe->isp5_base_addr = ioremap_nocache(res2->start, res_len);
- 	if (!ipipe->isp5_base_addr)
- 		goto error_unmap;
- 
--- 
-2.11.0
+The latter should cover overflow somehow being picked up during attach and causing the
+attach to fail. Unlikely to happen but we shouldn't fail on what could be a transient
+issue.
+
+Jemma.
