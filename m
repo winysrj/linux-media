@@ -1,71 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f177.google.com ([209.85.128.177]:38026 "EHLO
-        mail-wr0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753123AbdHROQq (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:51630 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751601AbdHQG4P (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 10:16:46 -0400
-Received: by mail-wr0-f177.google.com with SMTP id 5so47464566wrz.5
-        for <linux-media@vger.kernel.org>; Fri, 18 Aug 2017 07:16:46 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH 2/7] media: venus: venc: set correct resolution on compressed stream
-Date: Fri, 18 Aug 2017 17:16:01 +0300
-Message-Id: <20170818141606.4835-3-stanimir.varbanov@linaro.org>
-In-Reply-To: <20170818141606.4835-1-stanimir.varbanov@linaro.org>
-References: <20170818141606.4835-1-stanimir.varbanov@linaro.org>
+        Thu, 17 Aug 2017 02:56:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.14] cec: rename uAPI defines, fixes
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-ID: <7319f0bd-5882-345c-9143-c968e31e8933@xs4all.nl>
+Date: Thu, 17 Aug 2017 08:56:11 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This change the alignment restriction for output type of buffers
-only, also set corect input resolution and fill bidirectional
-vb2 queue flag in order to map output type buffers read/write.
-The last is needed by encoder firmware to add padding at the
-bottom of output (input buffers).
+Hi Mauro,
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- drivers/media/platform/qcom/venus/venc.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+The second patch renames two CEC events in the public API. Since these were
+introduced for 4.14, now is the time to do the rename before they become
+part of the ABI. While working with and working on the cec-gpio driver to
+debug CEC issues I realized that optionally being able to monitor the HDMI
+HPD (hotplug detect) pin as well is very useful.
 
-diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-index 39748e7a08e4..01af1ac89edf 100644
---- a/drivers/media/platform/qcom/venus/venc.c
-+++ b/drivers/media/platform/qcom/venus/venc.c
-@@ -289,7 +289,7 @@ venc_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
- 	pixmp->height = clamp(pixmp->height, inst->cap_height.min,
- 			      inst->cap_height.max);
- 
--	if (inst->core->res->hfi_version == HFI_VERSION_1XX)
-+	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
- 		pixmp->height = ALIGN(pixmp->height, 32);
- 
- 	pixmp->width = ALIGN(pixmp->width, 2);
-@@ -747,8 +747,8 @@ static int venc_init_session(struct venus_inst *inst)
- 	if (ret)
- 		return ret;
- 
--	ret = venus_helper_set_input_resolution(inst, inst->out_width,
--						inst->out_height);
-+	ret = venus_helper_set_input_resolution(inst, inst->width,
-+						inst->height);
- 	if (ret)
- 		goto deinit;
- 
-@@ -1010,6 +1010,8 @@ static int m2m_queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->allow_zero_bytesused = 1;
- 	src_vq->min_buffers_needed = 1;
- 	src_vq->dev = inst->core->dev;
-+	if (inst->core->res->hfi_version == HFI_VERSION_1XX)
-+		src_vq->bidirectional = 1;
- 	ret = vb2_queue_init(src_vq);
- 	if (ret)
- 		return ret;
--- 
-2.11.0
+So besides monitoring the CEC pin it will also be possible to monitor the
+HPD pin in the future. That means that the pin event has to tell with pin
+has an event, CEC or HPD. Hence the rename while I still can.
+
+The last patch is a fix for the irq handling in cec-pin.c which was broken.
+This only affects the cec-gpio driver which isn't merged yet (expected for
+4.15), but it is good to get this fixed now.
+
+Regards,
+
+	Hans
+
+The following changes since commit ec0c3ec497cabbf3bfa03a9eb5edcc252190a4e0:
+
+  media: ddbridge: split code into multiple files (2017-08-09 12:17:01 -0400)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git cec-rename
+
+for you to fetch changes up to 36fa912800ef8129b6c8c9caffb74a84ff5be36d:
+
+  cec-pin: fix irq handling (2017-08-17 08:43:50 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (3):
+      s5p-cec: use CEC_CAP_DEFAULTS
+      cec: rename pin events/function
+      cec-pin: fix irq handling
+
+ Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst |  2 +-
+ Documentation/media/uapi/cec/cec-ioc-dqevent.rst     |  8 ++++----
+ Documentation/media/uapi/cec/cec-ioc-g-mode.rst      |  2 +-
+ drivers/media/cec/cec-adap.c                         |  7 ++++---
+ drivers/media/cec/cec-api.c                          |  4 ++--
+ drivers/media/cec/cec-pin.c                          | 39 ++++++++++++++++++++++++---------------
+ drivers/media/platform/s5p-cec/s5p_cec.c             |  7 ++-----
+ include/media/cec-pin.h                              |  6 +++++-
+ include/media/cec.h                                  |  9 +++++----
+ include/uapi/linux/cec.h                             |  4 ++--
+ 10 files changed, 50 insertions(+), 38 deletions(-)
