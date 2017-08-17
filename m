@@ -1,68 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:50443 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751873AbdH2LGI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 07:06:08 -0400
-Subject: [PATCH 2/2] [media] imon: Improve a size determination in two
- functions
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Geliang Tang <geliangtang@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Sean Young <sean@mess.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <09417655-9241-72f4-6484-a3c8b3eae87a@users.sourceforge.net>
-Message-ID: <8a174347-580c-520c-436b-7d9406fe94cd@users.sourceforge.net>
-Date: Tue, 29 Aug 2017 13:05:51 +0200
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56486 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750857AbdHQQLG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 Aug 2017 12:11:06 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 8/8] v4l: vsp1: Reduce display list body size
+Date: Thu, 17 Aug 2017 19:11:30 +0300
+Message-ID: <3704707.T2fvHgbeUE@avalon>
+In-Reply-To: <fa078611769415d7adbad208f1299d05bee3bda8.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com> <fa078611769415d7adbad208f1299d05bee3bda8.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <09417655-9241-72f4-6484-a3c8b3eae87a@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 29 Aug 2017 12:45:59 +0200
+Hi Kieran,
 
-Replace the specification of data structures by pointer dereferences
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer according to the Linux coding style convention.
+Thank you for the patch.
 
-This issue was detected by using the Coccinelle software.
+On Monday 14 Aug 2017 16:13:31 Kieran Bingham wrote:
+> The display list originally allocated a body of 256 entries to store all
+> of the register lists required for each frame.
+> 
+> This has now been separated into fragments for constant stream setup, and
+> runtime updates.
+> 
+> Empirical testing shows that the body0 now uses a maximum of 41
+> registers for each frame, for both DRM and Video API pipelines thus a
+> rounded 64 entries provides a suitable allocation.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/rc/imon.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+Didn't you mention in patch 7/8 that one of the fragments uses exactly 64 
+entries ? Which one is it, and is there a risk it could use more ? 
 
-diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-index e6978f1b7f2c..27aab02b75b5 100644
---- a/drivers/media/rc/imon.c
-+++ b/drivers/media/rc/imon.c
-@@ -602,8 +602,7 @@ static int send_packet(struct imon_context *ictx)
- 		ictx->tx_urb->actual_length = 0;
- 	} else {
- 		/* fill request into kmalloc'ed space: */
--		control_req = kmalloc(sizeof(struct usb_ctrlrequest),
--				      GFP_KERNEL);
-+		control_req = kmalloc(sizeof(*control_req), GFP_KERNEL);
- 		if (control_req == NULL)
- 			return -ENOMEM;
- 
-@@ -2309,7 +2308,7 @@ static struct imon_context *imon_init_intf0(struct usb_interface *intf,
- 	struct usb_host_interface *iface_desc;
- 	int ret = -ENOMEM;
- 
--	ictx = kzalloc(sizeof(struct imon_context), GFP_KERNEL);
-+	ictx = kzalloc(sizeof(*ictx), GFP_KERNEL);
- 	if (!ictx)
- 		goto exit;
- 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> ---
+>  drivers/media/platform/vsp1/vsp1_dl.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
+> b/drivers/media/platform/vsp1/vsp1_dl.c index 176a258146ac..b3f5eb2f9a4f
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_dl.c
+> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
+> @@ -21,7 +21,7 @@
+>  #include "vsp1.h"
+>  #include "vsp1_dl.h"
+> 
+> -#define VSP1_DL_NUM_ENTRIES		256
+> +#define VSP1_DL_NUM_ENTRIES		64
+> 
+>  #define VSP1_DLH_INT_ENABLE		(1 << 1)
+>  #define VSP1_DLH_AUTO_START		(1 << 0)
+
 -- 
-2.14.1
+Regards,
+
+Laurent Pinchart
