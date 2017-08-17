@@ -1,53 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:49968 "EHLO mail.anw.at"
+Received: from sauhun.de ([88.99.104.3]:59938 "EHLO pokefinder.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751669AbdHZBxF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Aug 2017 21:53:05 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, d.scheller@gmx.net, jasmin@anw.at
-Subject: [PATCH 1/2] build: Add compat code for PCI_DEVICE_SUB
-Date: Sat, 26 Aug 2017 03:52:56 +0200
-Message-Id: <1503712377-31405-2-git-send-email-jasmin@anw.at>
-In-Reply-To: <1503712377-31405-1-git-send-email-jasmin@anw.at>
-References: <1503712377-31405-1-git-send-email-jasmin@anw.at>
+        id S1753146AbdHQOOz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 Aug 2017 10:14:55 -0400
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+To: linux-i2c@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>
+Subject: [RFC PATCH v4 2/6] i2c: add helpers to ease DMA handling
+Date: Thu, 17 Aug 2017 16:14:45 +0200
+Message-Id: <20170817141449.23958-3-wsa+renesas@sang-engineering.com>
+In-Reply-To: <20170817141449.23958-1-wsa+renesas@sang-engineering.com>
+References: <20170817141449.23958-1-wsa+renesas@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+One helper checks if DMA is suitable and optionally creates a bounce
+buffer, if not. The other function returns the bounce buffer and makes
+sure the data is properly copied back to the message.
 
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 ---
- v4l/compat.h                      | 6 ++++++
- v4l/scripts/make_config_compat.pl | 1 +
- 2 files changed, 7 insertions(+)
+ drivers/i2c/i2c-core-base.c | 45 +++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/i2c.h         |  3 +++
+ 2 files changed, 48 insertions(+)
 
-diff --git a/v4l/compat.h b/v4l/compat.h
-index 9c5d87d..1ab5c0f 100644
---- a/v4l/compat.h
-+++ b/v4l/compat.h
-@@ -2107,4 +2107,10 @@ static inline int pm_runtime_get_if_in_use(struct device *dev)
- #define __GFP_RETRY_MAYFAIL __GFP_REPEAT
- #endif
+diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
+index 12822a4b8f8f09..a104ebc2d05af8 100644
+--- a/drivers/i2c/i2c-core-base.c
++++ b/drivers/i2c/i2c-core-base.c
+@@ -2241,6 +2241,51 @@ void i2c_put_adapter(struct i2c_adapter *adap)
+ }
+ EXPORT_SYMBOL(i2c_put_adapter);
  
-+#ifdef NEED_PCI_DEVICE_SUB
-+#define PCI_DEVICE_SUB(vend, dev, subvend, subdev) \
-+	.vendor = (vend), .device = (dev), \
-+	.subvendor = (subvend), .subdevice = (subdev)
-+#endif
++/**
++ * i2c_get_dma_safe_msg_buf() - get a DMA safe buffer for the given i2c_msg
++ * @msg: the message to be checked
++ * @threshold: the amount of byte from which using DMA makes sense
++ *
++ * Return: NULL if a DMA safe buffer was not obtained. Use msg->buf with PIO.
++ *
++ *	   Or a valid pointer to be used with DMA. Note that it can either be
++ *	   msg->buf or a bounce buffer. After use, release it by calling
++ *	   i2c_release_dma_safe_msg_buf().
++ *
++ * This function must only be called from process context!
++ */
++u8 *i2c_get_dma_safe_msg_buf(struct i2c_msg *msg, unsigned int threshold)
++{
++	if (msg->len < threshold)
++		return NULL;
 +
- #endif /*  _COMPAT_H */
-diff --git a/v4l/scripts/make_config_compat.pl b/v4l/scripts/make_config_compat.pl
-index d0dea7a..2508540 100644
---- a/v4l/scripts/make_config_compat.pl
-+++ b/v4l/scripts/make_config_compat.pl
-@@ -702,6 +702,7 @@ sub check_other_dependencies()
- 	check_files_for_func("skb_put_data", "NEED_SKB_PUT_DATA", "include/linux/skbuff.h");
- 	check_files_for_func("pm_runtime_get_if_in_use", "NEED_PM_RUNTIME_GET", "include/linux/pm_runtime.h");
- 	check_files_for_func("KEY_APPSELECT", "NEED_KEY_APPSELECT", "include/uapi/linux/input-event-codes.h");
-+	check_files_for_func("PCI_DEVICE_SUB", "NEED_PCI_DEVICE_SUB", "include/linux/pci.h");
++	if (msg->flags & I2C_M_DMA_SAFE)
++		return msg->buf;
++
++	if (msg->flags & I2C_M_RD)
++		return kzalloc(msg->len, GFP_KERNEL);
++	else
++		return kmemdup(msg->buf, msg->len, GFP_KERNEL);
++}
++EXPORT_SYMBOL_GPL(i2c_get_dma_safe_msg_buf);
++
++/**
++ * i2c_release_dma_safe_msg_buf - release DMA safe buffer and sync with i2c_msg
++ * @msg: the message to be synced with
++ * @buf: the buffer obtained from i2c_get_dma_safe_msg_buf(). May be NULL.
++ */
++void i2c_release_dma_safe_msg_buf(struct i2c_msg *msg, u8 *buf)
++{
++	if (!buf || buf == msg->buf)
++		return;
++
++	if (msg->flags & I2C_M_RD)
++		memcpy(msg->buf, buf, msg->len);
++
++	kfree(buf);
++}
++EXPORT_SYMBOL_GPL(i2c_release_dma_safe_msg_buf);
++
+ MODULE_AUTHOR("Simon G. Vogl <simon@tk.uni-linz.ac.at>");
+ MODULE_DESCRIPTION("I2C-Bus main module");
+ MODULE_LICENSE("GPL");
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+index d501d3956f13f0..1e99342f180f45 100644
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -767,6 +767,9 @@ static inline u8 i2c_8bit_addr_from_msg(const struct i2c_msg *msg)
+ 	return (msg->addr << 1) | (msg->flags & I2C_M_RD ? 1 : 0);
+ }
  
- 	# For tests for uapi-dependent logic
- 	check_files_for_func_uapi("usb_endpoint_maxp", "NEED_USB_ENDPOINT_MAXP", "usb/ch9.h");
++u8 *i2c_get_dma_safe_msg_buf(struct i2c_msg *msg, unsigned int threshold);
++void i2c_release_dma_safe_msg_buf(struct i2c_msg *msg, u8 *buf);
++
+ int i2c_handle_smbus_host_notify(struct i2c_adapter *adap, unsigned short addr);
+ /**
+  * module_i2c_driver() - Helper macro for registering a modular I2C driver
 -- 
-2.7.4
+2.11.0
