@@ -1,67 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53431
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752102AbdHZKHc (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.243]:14921 "EHLO
+        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750741AbdHQHXS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 06:07:32 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 3/6] media: frontend.rst: convert SEC note into footnote
-Date: Sat, 26 Aug 2017 07:07:11 -0300
-Message-Id: <14fbbe83c1f14a851dbd2ea9005bcc2c7df288be.1503742025.git.mchehab@s-opensource.com>
-In-Reply-To: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
-References: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
-In-Reply-To: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
-References: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
+        Thu, 17 Aug 2017 03:23:18 -0400
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: Nicolas Ferre <nicolas.ferre@microchip.com>,
+        <linux-kernel@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
+        "Jonathan Corbet" <corbet@lwn.net>,
+        <linux-arm-kernel@lists.infradead.org>,
+        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH 1/3] media: atmel-isc: Not support RBG format from sensor.
+Date: Thu, 17 Aug 2017 15:16:12 +0800
+Message-ID: <20170817071614.12767-2-wenyou.yang@microchip.com>
+In-Reply-To: <20170817071614.12767-1-wenyou.yang@microchip.com>
+References: <20170817071614.12767-1-wenyou.yang@microchip.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The description of what SEC means fits well as a footnote.
-That makes the need of saying that SEC is only for Satellite
-when it was mentioned, as the footnote already says that.
+The 12-bit parallel interface supports the Raw Bayer, YCbCr,
+Monochrome and JPEG Compressed pixel formats from the external
+sensor, not support RBG pixel format.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
 ---
- Documentation/media/uapi/dvb/frontend.rst | 19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/Documentation/media/uapi/dvb/frontend.rst b/Documentation/media/uapi/dvb/frontend.rst
-index 313f46a4c6a6..0bfade2b72cf 100644
---- a/Documentation/media/uapi/dvb/frontend.rst
-+++ b/Documentation/media/uapi/dvb/frontend.rst
-@@ -25,7 +25,7 @@ The DVB frontend controls several sub-devices including:
- 
- -  Low noise amplifier (LNA)
- 
---  Satellite Equipment Control (SEC) hardware (only for Satellite).
-+-  Satellite Equipment Control (SEC) [#f1]_.
- 
- The frontend can be accessed through ``/dev/dvb/adapter?/frontend?``.
- Data types and ioctl definitions can be accessed by including
-@@ -36,13 +36,16 @@ Data types and ioctl definitions can be accessed by including
-    Transmission via the internet (DVB-IP) is not yet handled by this
-    API but a future extension is possible.
- 
--On Satellite systems, the API support for the Satellite Equipment
--Control (SEC) allows to power control and to send/receive signals to
--control the antenna subsystem, selecting the polarization and choosing
--the Intermediate Frequency IF) of the Low Noise Block Converter Feed
--Horn (LNBf). It supports the DiSEqC and V-SEC protocols. The DiSEqC
--(digital SEC) specification is available at
--`Eutelsat <http://www.eutelsat.com/satellites/4_5_5.html>`__.
+ drivers/media/platform/atmel/atmel-isc.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index d4df3d4ccd85..535bb03783fe 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -1478,6 +1478,11 @@ static int isc_formats_init(struct isc_device *isc)
+ 	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code,
+ 	       NULL, &mbus_code)) {
+ 		mbus_code.index++;
 +
-+.. [#f1]
++		/* Not support the RGB pixel formats from sensor */
++		if ((mbus_code.code & 0xf000) == 0x1000)
++			continue;
 +
-+   On Satellite systems, the API support for the Satellite Equipment
-+   Control (SEC) allows to power control and to send/receive signals to
-+   control the antenna subsystem, selecting the polarization and choosing
-+   the Intermediate Frequency IF) of the Low Noise Block Converter Feed
-+   Horn (LNBf). It supports the DiSEqC and V-SEC protocols. The DiSEqC
-+   (digital SEC) specification is available at
-+   `Eutelsat <http://www.eutelsat.com/satellites/4_5_5.html>`__.
- 
- 
- .. toctree::
+ 		fmt = find_format_by_code(mbus_code.code, &i);
+ 		if (!fmt)
+ 			continue;
 -- 
-2.13.3
+2.13.0
