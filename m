@@ -1,203 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f170.google.com ([209.85.128.170]:35388 "EHLO
-        mail-wr0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750729AbdHRHyB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 03:54:01 -0400
-Received: by mail-wr0-f170.google.com with SMTP id 49so54450673wrw.2
-        for <linux-media@vger.kernel.org>; Fri, 18 Aug 2017 00:54:00 -0700 (PDT)
-Subject: Re: [PATCH v4 04/21] doc: media/v4l-drivers: Add Qualcomm Camera
- Subsystem driver document
-To: Hans Verkuil <hverkuil@xs4all.nl>
-References: <1502199018-28250-1-git-send-email-todor.tomov@linaro.org>
- <1502199018-28250-5-git-send-email-todor.tomov@linaro.org>
- <1ee25592-63c7-0da8-c58f-a82e0b5d692f@xs4all.nl>
-Cc: mchehab@kernel.org, hans.verkuil@cisco.com, s.nawrocki@samsung.com,
-        sakari.ailus@iki.fi, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
-From: Todor Tomov <todor.tomov@linaro.org>
-Message-ID: <5d7d59c0-6306-ca14-fabe-d6789f6bfd5d@linaro.org>
-Date: Fri, 18 Aug 2017 10:53:58 +0300
-MIME-Version: 1.0
-In-Reply-To: <1ee25592-63c7-0da8-c58f-a82e0b5d692f@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mga02.intel.com ([134.134.136.20]:57255 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750988AbdHQNpR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 Aug 2017 09:45:17 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org, rajmohan.mani@intel.com
+Subject: [PATCH 3/3] dw9714: Remove ACPI match tables, convert to use probe_new
+Date: Thu, 17 Aug 2017 16:42:56 +0300
+Message-Id: <1502977376-22836-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1502977376-22836-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1502977376-22836-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+The ACPI match table is empty. Remove it.
 
-On 18.08.2017 10:45, Hans Verkuil wrote:
-> Hi Todor,
-> 
-> A few small comments below:
-> 
-> On 08/08/2017 03:30 PM, Todor Tomov wrote:
->> Add a document to describe Qualcomm Camera Subsystem driver.
->>
->> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
->> ---
->>  Documentation/media/v4l-drivers/qcom_camss.rst | 124 +++++++++++++++++++++++++
->>  1 file changed, 124 insertions(+)
->>  create mode 100644 Documentation/media/v4l-drivers/qcom_camss.rst
->>
->> diff --git a/Documentation/media/v4l-drivers/qcom_camss.rst b/Documentation/media/v4l-drivers/qcom_camss.rst
->> new file mode 100644
->> index 0000000..4707ea7
->> --- /dev/null
->> +++ b/Documentation/media/v4l-drivers/qcom_camss.rst
->> @@ -0,0 +1,124 @@
->> +.. include:: <isonum.txt>
->> +
->> +Qualcomm Camera Subsystem driver
->> +================================
->> +
->> +Introduction
->> +------------
->> +
->> +This file documents the Qualcomm Camera Subsystem driver located under
->> +drivers/media/platform/qcom/camss-8x16.
->> +
->> +The current version of the driver supports the Camera Subsystem found on
->> +Qualcomm MSM8916 and APQ8016 processors.
->> +
->> +The driver implements V4L2, Media controller and V4L2 subdev interfaces.
->> +Camera sensor using V4L2 subdev interface in the kernel is supported.
->> +
->> +The driver is implemented using as a reference the Qualcomm Camera Subsystem
->> +driver for Android as found in Code Aurora [#f1]_.
->> +
->> +
->> +Qualcomm Camera Subsystem hardware
->> +----------------------------------
->> +
->> +The Camera Subsystem hardware found on 8x16 processors and supported by the
->> +driver consists of:
->> +
->> +- 2 CSIPHY modules. They handle the Physical layer of the CSI2 receivers.
->> +  A separate camera sensor can be connected to each of the CSIPHY module;
->> +- 2 CSID (CSI Decoder) modules. They handle the Protocol and Application layer
->> +  of the CSI2 receivers. A CSID can decode data stream from any of the CSIPHY.
->> +  Each CSID also contains a TG (Test Generator) block which can generate
->> +  artificial input data for test purposes;
->> +- ISPIF (ISP Interface) module. Handles the routing of the data streams from
->> +  the CSIDs to the inputs of the VFE;
->> +- VFE (Video Front End) module. Contains a pipeline of image processing hardware
->> +  blocks. The VFE has different input interfaces. The PIX input interface feeds
->> +  the input data to the image processing pipeline. Three RDI input interfaces
->> +  bypass the image processing pipeline. The VFE also contains the AXI bus
->> +  interface which writes the output data to memory.
-> 
-> Can you explain what PIX and RDI stand for?
-> 
-> I would also think it is a good idea to add a comment at the top of the various
-> subdev sources that say a bit more than just "CSID Module".
-> 
-> A simple "CSID (CSI Decoder) Module" is enough. Just so the reader knows what
-> it is all about.
-> 
-> Otherwise I don't have any more comments about this series.
-> 
-> I don't need a v5 for this, if you can just post one patch for this documentation
-> and one patch improving the source comments as described above, then that's
-> fine with me.
+Also convert the drive to use probe_new callback in struct i2c_driver.
 
-Thank you for the review again.
-I'll post two additional patches to add explanations of the abbreviations.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/dw9714.c | 19 ++++---------------
+ 1 file changed, 4 insertions(+), 15 deletions(-)
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
->> +
->> +
->> +Supported functionality
->> +-----------------------
->> +
->> +The current version of the driver supports:
->> +
->> +- input from camera sensor via CSIPHY;
->> +- generation of test input data by the TG in CSID;
->> +- raw dump of the input data to memory. RDI interface of VFE is supported.
->> +  PIX interface (ISP processing, statistics engines, resize/crop, format
->> +  conversion) is not supported in the current version;
->> +- concurrent and independent usage of two data inputs - could be camera sensors
->> +  and/or TG.
->> +
->> +
->> +Driver Architecture and Design
->> +------------------------------
->> +
->> +The driver implements the V4L2 subdev interface. With the goal to model the
->> +hardware links between the modules and to expose a clean, logical and usable
->> +interface, the driver is split into V4L2 sub-devices as follows:
->> +
->> +- 2 CSIPHY sub-devices - each CSIPHY is represented by a single sub-device;
->> +- 2 CSID sub-devices - each CSID is represented by a single sub-device;
->> +- 2 ISPIF sub-devices - ISPIF is represented by a number of sub-devices equal
->> +  to the number of CSID sub-devices;
->> +- 3 VFE sub-devices - VFE is represented by a number of sub-devices equal to
->> +  the number of RDI input interfaces.
->> +
->> +The considerations to split the driver in this particular way are as follows:
->> +
->> +- representing CSIPHY and CSID modules by a separate sub-device for each module
->> +  allows to model the hardware links between these modules;
->> +- representing VFE by a separate sub-devices for each RDI input interface allows
->> +  to use the three RDI interfaces concurently and independently as this is
->> +  supported by the hardware;
->> +- representing ISPIF by a number of sub-devices equal to the number of CSID
->> +  sub-devices allows to create linear media controller pipelines when using two
->> +  cameras simultaneously. This avoids branches in the pipelines which otherwise
->> +  will require a) userspace and b) media framework (e.g. power on/off
->> +  operations) to  make assumptions about the data flow from a sink pad to a
->> +  source pad on a single media entity.
->> +
->> +Each VFE sub-device is linked to a separate video device node.
->> +
->> +The complete list of the media entities (V4L2 sub-devices and video device
->> +nodes) is as follows:
->> +
->> +- msm_csiphy0
->> +- msm_csiphy1
->> +- msm_csid0
->> +- msm_csid1
->> +- msm_ispif0
->> +- msm_ispif1
->> +- msm_vfe0_rdi0
->> +- msm_vfe0_video0
->> +- msm_vfe0_rdi1
->> +- msm_vfe0_video1
->> +- msm_vfe0_rdi2
->> +- msm_vfe0_video2
->> +
->> +
->> +Implementation
->> +--------------
->> +
->> +Runtime configuration of the hardware (updating settings while streaming) is
->> +not required to implement the currently supported functionality. The complete
->> +configuration on each hardware module is applied on STREAMON ioctl based on
->> +the current active media links, formats and controls set.
->> +
->> +
->> +Documentation
->> +-------------
->> +
->> +APQ8016 Specification:
->> +https://developer.qualcomm.com/download/sd410/snapdragon-410-processor-device-specification.pdf
->> +Referenced 2016-11-24.
->> +
->> +
->> +References
->> +----------
->> +
->> +.. [#f1] https://source.codeaurora.org/quic/la/kernel/msm-3.10/
->>
-> 
-
+diff --git a/drivers/media/i2c/dw9714.c b/drivers/media/i2c/dw9714.c
+index bcf64ef..95af4fc 100644
+--- a/drivers/media/i2c/dw9714.c
++++ b/drivers/media/i2c/dw9714.c
+@@ -11,7 +11,6 @@
+  * GNU General Public License for more details.
+  */
+ 
+-#include <linux/acpi.h>
+ #include <linux/delay.h>
+ #include <linux/i2c.h>
+ #include <linux/module.h>
+@@ -147,8 +146,7 @@ static int dw9714_init_controls(struct dw9714_device *dev_vcm)
+ 	return hdl->error;
+ }
+ 
+-static int dw9714_probe(struct i2c_client *client,
+-			const struct i2c_device_id *devid)
++static int dw9714_probe(struct i2c_client *client)
+ {
+ 	struct dw9714_device *dw9714_dev;
+ 	int rval;
+@@ -250,18 +248,10 @@ static int  __maybe_unused dw9714_vcm_resume(struct device *dev)
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_ACPI
+-static const struct acpi_device_id dw9714_acpi_match[] = {
+-	{},
+-};
+-MODULE_DEVICE_TABLE(acpi, dw9714_acpi_match);
+-#endif
+-
+ static const struct i2c_device_id dw9714_id_table[] = {
+-	{DW9714_NAME, 0},
+-	{}
++	{ DW9714_NAME, 0 },
++	{ { 0 } }
+ };
+-
+ MODULE_DEVICE_TABLE(i2c, dw9714_id_table);
+ 
+ static const struct of_device_id dw9714_of_table[] = {
+@@ -279,10 +269,9 @@ static struct i2c_driver dw9714_i2c_driver = {
+ 	.driver = {
+ 		.name = DW9714_NAME,
+ 		.pm = &dw9714_pm_ops,
+-		.acpi_match_table = ACPI_PTR(dw9714_acpi_match),
+ 		.of_match_table = dw9714_of_table,
+ 	},
+-	.probe = dw9714_probe,
++	.probe_new = dw9714_probe,
+ 	.remove = dw9714_remove,
+ 	.id_table = dw9714_id_table,
+ };
 -- 
-Best regards,
-Todor Tomov
+2.7.4
