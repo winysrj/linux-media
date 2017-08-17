@@ -1,110 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55300 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753411AbdHWHmn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Aug 2017 03:42:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Yong <yong.deng@magewell.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benoit Parrot <bparrot@ti.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
-Date: Wed, 23 Aug 2017 10:43:12 +0300
-Message-ID: <3036789.1NOcar0Ykn@avalon>
-In-Reply-To: <3392c717-10ea-4d6e-4c25-9be0bbec004e@xs4all.nl>
-References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com> <20170822201731.hyjqrbkhggaoomfl@flea.home> <3392c717-10ea-4d6e-4c25-9be0bbec004e@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from sauhun.de ([88.99.104.3]:59941 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753153AbdHQOOz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 Aug 2017 10:14:55 -0400
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+To: linux-i2c@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>
+Subject: [RFC PATCH v4 3/6] i2c: add docs to clarify DMA handling
+Date: Thu, 17 Aug 2017 16:14:46 +0200
+Message-Id: <20170817141449.23958-4-wsa+renesas@sang-engineering.com>
+In-Reply-To: <20170817141449.23958-1-wsa+renesas@sang-engineering.com>
+References: <20170817141449.23958-1-wsa+renesas@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+---
+ Documentation/i2c/DMA-considerations | 50 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
+ create mode 100644 Documentation/i2c/DMA-considerations
 
-On Wednesday, 23 August 2017 09:52:00 EEST Hans Verkuil wrote:
-> On 08/22/2017 10:17 PM, Maxime Ripard wrote:
-> > On Tue, Aug 22, 2017 at 08:43:35AM +0200, Hans Verkuil wrote:
-> >>>>> +static int sun6i_video_link_setup(struct media_entity *entity,
-> >>>>> +				  const struct media_pad *local,
-> >>>>> +				  const struct media_pad *remote, u32 flags)
-> >>>>> +{
-> >>>>> +	struct video_device *vdev = media_entity_to_video_device(entity);
-> >>>>> +	struct sun6i_video *video = video_get_drvdata(vdev);
-> >>>>> +
-> >>>>> +	if (WARN_ON(video == NULL))
-> >>>>> +		return 0;
-> >>>>> +
-> >>>>> +	return sun6i_video_formats_init(video);
-> >>>> 
-> >>>> Why is this called here? Why not in video_init()?
-> >>> 
-> >>> sun6i_video_init is in the driver probe context. 
-> >>> sun6i_video_formats_init use media_entity_remote_pad and
-> >>> media_entity_to_v4l2_subdev to find the subdevs.
-> >>> The media_entity_remote_pad can't work before all the media pad linked.
-> >> 
-> >> A video_init is typically called from the notify_complete callback.
-> >> Actually, that's where the video_register_device should be created as
-> >> well. When you create it in probe() there is possibly no sensor yet, so
-> >> it would be a dead video node (or worse, crash when used).
-> >> 
-> >> There are still a lot of platform drivers that create the video node in
-> >> the probe, but it's not the right place if you rely on the async loading
-> >> of subdevs.
-> > 
-> > That's not really related, but I'm not really sure it's a good way to
-> > operate. This essentially means that you might wait forever for a
-> > component in your pipeline to be probed, without any chance of it
-> > happening (not compiled, compiled as a module and not loaded, hardware
-> > defect preventing the driver from probing properly, etc), even though
-> > that component might not be essential.
-> 
-> We're talking straightforward video pipelines here. I.e. a source, some
-> processing units and a DMA engine at the end.
-
-As a first step possibly, but many SoCs have ISPs that are not supported by 
-the initial camera driver version.
-
-> There is no point in creating a video node if the pipeline is not complete
-> since you need the full pipeline.
-> 
-> I've had bad experiences in the past where video nodes were created too
-> soon and part of the internal state was still incomplete, causing at best
-> weird behavior and at worst crashes.
-
-Drivers obviously need to be fixed if they are buggy in that regard. Such race 
-conditions are definitely something I keep an eye on when reviewing code.
-
-> More complex devices are a whole different ballgame.
-> 
-> > This is how DRM operates, and you sometimes end up in some very dumb
-> > situations where you wait for say, the DSI controller to probe, while
-> > you only care about HDMI in your system.
-> > 
-> > But this seems to be on of the hot topic these days, so we might
-> > discuss it further in some other thread :)
-
+diff --git a/Documentation/i2c/DMA-considerations b/Documentation/i2c/DMA-considerations
+new file mode 100644
+index 00000000000000..a4b4a107102452
+--- /dev/null
++++ b/Documentation/i2c/DMA-considerations
+@@ -0,0 +1,50 @@
++Linux I2C and DMA
++-----------------
++
++Given that I2C is a low-speed bus where largely small messages are transferred,
++it is not considered a prime user of DMA access. At this time of writing, only
++10% of I2C bus master drivers have DMA support implemented. And the vast
++majority of transactions are so small that setting up DMA for it will likely
++add more overhead than a plain PIO transfer.
++
++Therefore, it is *not* mandatory that the buffer of an I2C message is DMA safe.
++It does not seem reasonable to apply additional burdens when the feature is so
++rarely used. However, it is recommended to use a DMA-safe buffer if your
++message size is likely applicable for DMA. Most drivers have this threshold
++around 8 bytes (as of today, this is mostly an educated guess, however). For
++any message of 16 byte or larger, it is probably a really good idea.
++
++If you use such a buffer in a i2c_msg, set the I2C_M_DMA_SAFE flag with it.
++Then, the I2C core and drivers know they can safely operate DMA on it. Note
++that setting this flag makes only sense in kernel space. User space data is
++copied into kernel space anyhow. The I2C core makes sure the destination
++buffers in kernel space are always DMA capable.
++
++FIXME: Need to implement i2c_master_{send|receive}_dma and proper buffers for i2c_smbus_xfer_emulated.
++
++Drivers wishing to implement DMA can use helper functions from the I2C core.
++One gives you a DMA-safe buffer for a given i2c_msg as long as a certain
++threshold is met.
++
++	dma_buf = i2c_get_dma_safe_msg_buf(msg, threshold_in_byte);
++
++If a buffer is returned, it either msg->buf for the I2C_M_DMA_SAFE case or a
++bounce buffer. But you don't need to care about that detail. If NULL is
++returned, the threshold was not met or a bounce buffer could not be allocated.
++Fall back to PIO in that case.
++
++In any case, a buffer obtained from above needs to be released. It ensures data
++is copied back to the message and a potentially used bounce buffer is freed.
++
++	i2c_release_dma_safe_msg_buf(msg, dma_buf);
++
++The bounce buffer handling from the core is generic and simple. It will always
++allocate a new bounce buffer. If you want a more sophisticated handling (e.g.
++reusing pre-allocated buffers), you are free to implement your own.
++
++Please also check the in-kernel documentation for details. The i2c-sh_mobile
++driver can be used as a reference example how to use the above helpers.
++
++Final note: If you plan to use DMA with I2C (or with anything else, actually)
++make sure you have CONFIG_DMA_API_DEBUG enabled during development. It can help
++you find various issues which can be complex to debug otherwise.
 -- 
-Regards,
-
-Laurent Pinchart
+2.11.0
