@@ -1,104 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:42839 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752698AbdHGISA (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:47118 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751851AbdHQHFR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Aug 2017 04:18:00 -0400
-Message-ID: <1502093851.2490.4.camel@pengutronix.de>
-Subject: Re: [PATCH] media: i2c: OV5647: gate clock lane before stream on
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Jacob Chen <jacobchen110@gmail.com>
-Cc: "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-        linux-kernel@vger.kernel.org, roliveir@synopsys.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Thu, 17 Aug 2017 03:05:17 -0400
+Subject: Re: [PATCH v7] media: platform: Renesas IMR driver
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        vladimir_zapolskiy@mentor.com,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        sakari.ailus@linux.intel.com, Jacob Chen <jacob-chen@iotwrt.com>,
-        slongerbeam@gmail.com, robh+dt@kernel.org, lolivei@synopsys.com
-Date: Mon, 07 Aug 2017 10:17:31 +0200
-In-Reply-To: <CAFLEztQHYWAk39+gQCD0XkKPVqmUY5kPZydWgw8+zu53+D2_pA@mail.gmail.com>
-References: <1500950041-5449-1-git-send-email-jacob-chen@iotwrt.com>
-         <CAFLEztQHYWAk39+gQCD0XkKPVqmUY5kPZydWgw8+zu53+D2_pA@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Konstantin Kozhevnikov
+        <Konstantin.Kozhevnikov@cogentembedded.com>,
+        Rob Herring <robh@kernel.org>
+References: <20170804180402.795437602@cogentembedded.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <146c6915-b0c1-5cba-ce67-630c1ddc4b19@xs4all.nl>
+Date: Thu, 17 Aug 2017 09:05:11 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170804180402.795437602@cogentembedded.com>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacob,
+Hi Sergei,
 
-On Mon, 2017-08-07 at 15:11 +0800, Jacob Chen wrote:
-> Hi all,
-> 
-> 2017-07-25 10:34 GMT+08:00 Jacob Chen <jacob-chen@iotwrt.com>:
-> > According to datasheet, BIT5 in reg-0x4800 are used to
-> > enable/disable clock lane gate.
-> >
-> > It's wrong to make clock lane free running before
-> > sensor stream on was called, while the mipi phy
-> > are not initialized.
-> >
-> > Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
->>
-> > ---
-> >  drivers/media/i2c/ov5647.c | 10 +++++++++-
-> >  1 file changed, 9 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/media/i2c/ov5647.c b/drivers/media/i2c/ov5647.c
-> > index 95ce90f..d3e6fd0 100644
-> > --- a/drivers/media/i2c/ov5647.c
-> > +++ b/drivers/media/i2c/ov5647.c
-> > @@ -253,6 +253,10 @@ static int ov5647_stream_on(struct v4l2_subdev *sd)
-> >  {
-> >         int ret;
-> >
-> > +       ret = ov5647_write(sd, 0x4800, 0x04);
-> > +       if (ret < 0)
-> > +               return ret;
-> > +
-> >         ret = ov5647_write(sd, 0x4202, 0x00);
-> >         if (ret < 0)
-> >                 return ret;
-> > @@ -264,6 +268,10 @@ static int ov5647_stream_off(struct v4l2_subdev *sd)
-> >  {
-> >         int ret;
-> >
-> > +       ret = ov5647_write(sd, 0x4800, 0x25);
-> > +       if (ret < 0)
-> > +               return ret;
-> > +
-> >         ret = ov5647_write(sd, 0x4202, 0x0f);
-> >         if (ret < 0)
-> >                 return ret;
-> > @@ -320,7 +328,7 @@ static int __sensor_init(struct v4l2_subdev *sd)
-> >                         return ret;
-> >         }
-> >
-> > -       return ov5647_write(sd, 0x4800, 0x04);
-> > +       return ov5647_stream_off(sd);
-> >  }
-> >
-> >  static int ov5647_sensor_power(struct v4l2_subdev *sd, int on)
-> > --
-> > 2.7.4
-> >
-> 
-> Can anyone comment on it?
-> 
-> I saw there is a same discussion in  https://patchwork.kernel.org/patch/9569031/
-> There is a comment in i.MX CSI2 driver.
-> "
-> Configure MIPI Camera Sensor to put all Tx lanes in LP-11 state.
-> This must be carried out by the MIPI sensor's s_power(ON) subdev
-> op.
-> "
-> That's what this patch do, sensor driver should make sure that clock
-> lanes are in stop state while not streaming.
+A few high level comments (I'll look at the patch itself later):
 
-This is not the same, as far as I can tell. BIT(5) is just clock lane
-gating, as you describe above. To put the bus into LP-11 state, BIT(2)
-needs to be set.
+- There is no MAINTAINERS entry, please add one.
+- Don't attach the patch, post it inline (ideally with 'git send-email')
+- Split up the patch into 4 separate patches: bindings, doc changes,
+  driver and MAINTAINERS patch. This will make it easier to review.
+- Please give the v4l2-compliance output in the cover letter of the v8
+  patch series. I can't merge this driver without being certain there
+  are no compliance issues.
+- You also have IMR-LSX3 and IMR-LX3 patches, why not add them to the
+  patch series? I can review the set as a single unit. Up to you, though.
 
-regards
-Philipp
+Regards,
+
+	Hans
