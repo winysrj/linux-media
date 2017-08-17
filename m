@@ -1,60 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:55327 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750998AbdHaLB6 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56252 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751369AbdHQNvU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 07:01:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 3/5] dt-bindings: document the CEC GPIO bindings
-Date: Thu, 31 Aug 2017 13:01:54 +0200
-Message-Id: <20170831110156.11018-4-hverkuil@xs4all.nl>
-In-Reply-To: <20170831110156.11018-1-hverkuil@xs4all.nl>
-References: <20170831110156.11018-1-hverkuil@xs4all.nl>
+        Thu, 17 Aug 2017 09:51:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        Linux Kernel <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFT PATCH] [media] partial revert of "[media] tvp5150: add HW input connectors support"
+Date: Thu, 17 Aug 2017 16:51:44 +0300
+Message-ID: <2696279.xCvGOK2H1o@avalon>
+In-Reply-To: <CABxcv=k8T29Lz6-7gX=Bi7jt__GpBmrPt4bca-MmpcYjoXqvwA@mail.gmail.com>
+References: <1481643559-19666-1-git-send-email-javier@osg.samsung.com> <1502975140.2927.1.camel@pengutronix.de> <CABxcv=k8T29Lz6-7gX=Bi7jt__GpBmrPt4bca-MmpcYjoXqvwA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hello,
 
-Document the bindings for the cec-gpio module for hardware where the
-CEC line and optionally the HPD line are connected to GPIO lines.
+On Thursday 17 Aug 2017 15:49:51 Javier Martinez Canillas wrote:
+> On Thu, Aug 17, 2017 at 3:05 PM, Philipp Zabel wrote:
+> > On Tue, 2016-12-13 at 12:39 -0300, Javier Martinez Canillas wrote:
+> >> Commit f7b4b54e6364 ("[media] tvp5150: add HW input connectors support")
+> >> added input signals support for the tvp5150, but the approach was found
+> >> to be incorrect so the corresponding DT binding commit 82c2ffeb217a
+> >> ("[media] tvp5150: document input connectors DT bindings") was reverted.
+> >> 
+> >> This left the driver with an undocumented (and wrong) DT parsing logic,
+> >> so lets get rid of this code as well until the input connectors support
+> >> is implemented properly.
+> >> 
+> >> It's a partial revert due other patches added on top of mentioned commit
+> >> not allowing the commit to be reverted cleanly anymore. But all the code
+> >> related to the DT parsing logic and input entities creation are removed.
+> >> 
+> >> > Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >> > Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> > 
+> > what is the state of this patch? Was it forgotten or was the revert
+> > deemed unnecessary?
+> 
+> I think that was just forgotten. That code still needs to be reverted
+> since the DT patch was also reverted.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../devicetree/bindings/media/cec-gpio.txt         | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/cec-gpio.txt
+Yes, I think it was just forgotten.
 
-diff --git a/Documentation/devicetree/bindings/media/cec-gpio.txt b/Documentation/devicetree/bindings/media/cec-gpio.txt
-new file mode 100644
-index 000000000000..db20a7452dbd
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/cec-gpio.txt
-@@ -0,0 +1,22 @@
-+* HDMI CEC GPIO driver
-+
-+The HDMI CEC GPIO module supports CEC implementations where the CEC line
-+is hooked up to a pull-up GPIO line and - optionally - the HPD line is
-+hooked up to another GPIO line.
-+
-+Required properties:
-+  - compatible: value must be "cec-gpio"
-+  - cec-gpio: gpio that the CEC line is connected to
-+
-+Optional property:
-+  - hpd-gpio: gpio that the HPD line is connected to
-+
-+Example for the Raspberry Pi 3 where the CEC line is connected to
-+pin 26 aka BCM7 aka CE1 on the GPIO pin header and the HPD line is
-+connected to pin 11 aka BCM17:
-+
-+cec-gpio@7 {
-+       compatible = "cec-gpio";
-+       cec-gpio = <&gpio 7 GPIO_OPEN_DRAIN>;
-+       hpd-gpio = <&gpio 17 GPIO_ACTIVE_HIGH>;
-+};
+> Albeit the code is harmless since should be a no-op if a connectors DT
+> node isn't found.
+
 -- 
-2.14.1
+Regards,
+
+Laurent Pinchart
