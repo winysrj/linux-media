@@ -1,63 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f175.google.com ([209.85.192.175]:34089 "EHLO
-        mail-pf0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751188AbdHCDnH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Aug 2017 23:43:07 -0400
-Received: by mail-pf0-f175.google.com with SMTP id o86so1182455pfj.1
-        for <linux-media@vger.kernel.org>; Wed, 02 Aug 2017 20:43:07 -0700 (PDT)
-From: Daniel Mentz <danielmentz@google.com>
-To: linux-media@vger.kernel.org
-Cc: Daniel Mentz <danielmentz@google.com>, stable@vger.kernel.org,
-        "H . Peter Anvin" <hpa@linux.intel.com>,
+Received: from mail-it0-f45.google.com ([209.85.214.45]:37115 "EHLO
+        mail-it0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751574AbdHQNtw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 Aug 2017 09:49:52 -0400
+Received: by mail-it0-f45.google.com with SMTP id 76so2279179ith.0
+        for <linux-media@vger.kernel.org>; Thu, 17 Aug 2017 06:49:52 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1502975140.2927.1.camel@pengutronix.de>
+References: <1481643559-19666-1-git-send-email-javier@osg.samsung.com> <1502975140.2927.1.camel@pengutronix.de>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Date: Thu, 17 Aug 2017 15:49:51 +0200
+Message-ID: <CABxcv=k8T29Lz6-7gX=Bi7jt__GpBmrPt4bca-MmpcYjoXqvwA@mail.gmail.com>
+Subject: Re: [RFT PATCH] [media] partial revert of "[media] tvp5150: add HW
+ input connectors support"
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Tiffany Lin <tiffany.lin@mediatek.com>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH] [media] v4l2-compat-ioctl32: Fix timespec conversion
-Date: Wed,  2 Aug 2017 20:42:17 -0700
-Message-Id: <20170803034217.23048-1-danielmentz@google.com>
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Certain syscalls like recvmmsg support 64 bit timespec values for the
-X32 ABI. The helper function compat_put_timespec converts a timespec
-value to a 32 bit or 64 bit value depending on what ABI is used. The
-v4l2 compat layer, however, is not designed to support 64 bit timespec
-values and always uses 32 bit values. Hence, compat_put_timespec must
-not be used.
+Hello Philipp,
 
-Without this patch, user space will be provided with bad timestamp
-values from the VIDIOC_DQEVENT ioctl. Also, fields of the struct
-v4l2_event32 that come immediately after timestamp get overwritten,
-namely the field named id.
+On Thu, Aug 17, 2017 at 3:05 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> Hi,
+>
+> On Tue, 2016-12-13 at 12:39 -0300, Javier Martinez Canillas wrote:
+>> Commit f7b4b54e6364 ("[media] tvp5150: add HW input connectors support")
+>> added input signals support for the tvp5150, but the approach was found
+>> to be incorrect so the corresponding DT binding commit 82c2ffeb217a
+>> ("[media] tvp5150: document input connectors DT bindings") was reverted.
+>>
+>> This left the driver with an undocumented (and wrong) DT parsing logic,
+>> so lets get rid of this code as well until the input connectors support
+>> is implemented properly.
+>>
+>> It's a partial revert due other patches added on top of mentioned commit
+>> not allowing the commit to be reverted cleanly anymore. But all the code
+>> related to the DT parsing logic and input entities creation are removed.
+>>
+>> > Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> > Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>
+> what is the state of this patch? Was it forgotten or was the revert
+> deemed unnecessary?
+>
 
-Fixes: 81993e81a994 ("compat: Get rid of (get|put)_compat_time(val|spec)")
-Cc: stable@vger.kernel.org
-Cc: H. Peter Anvin <hpa@linux.intel.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: Tiffany Lin <tiffany.lin@mediatek.com>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Daniel Mentz <danielmentz@google.com>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+I think that was just forgotten. That code still needs to be reverted
+since the DT patch was also reverted.
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 6f52970f8b54..0c14e995667c 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -796,7 +796,8 @@ static int put_v4l2_event32(struct v4l2_event *kp, struct v4l2_event32 __user *u
- 		copy_to_user(&up->u, &kp->u, sizeof(kp->u)) ||
- 		put_user(kp->pending, &up->pending) ||
- 		put_user(kp->sequence, &up->sequence) ||
--		compat_put_timespec(&kp->timestamp, &up->timestamp) ||
-+		put_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
-+		put_user(kp->timestamp.tv_nsec, &up->timestamp.tv_nsec) ||
- 		put_user(kp->id, &up->id) ||
- 		copy_to_user(up->reserved, kp->reserved, 8 * sizeof(__u32)))
- 			return -EFAULT;
--- 
-2.14.0.rc1.383.gd1ce394fe2-goog
+Albeit the code is harmless since should be a no-op if a connectors DT
+node isn't found.
+
+> regards
+> Philipp
+>
+
+Best regards,
+Javier
