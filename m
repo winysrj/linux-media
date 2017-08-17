@@ -1,70 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:44318 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751972AbdHJNQE (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53369 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752370AbdHQIQx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Aug 2017 09:16:04 -0400
-Subject: Re: [PATCH v2 3/3] v4l2-flash-led-class: Document v4l2_flash_init()
- references
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <20170809111555.30147-1-sakari.ailus@linux.intel.com>
- <20170809111555.30147-4-sakari.ailus@linux.intel.com>
-Cc: linux-leds@vger.kernel.org, jacek.anaszewski@gmail.com,
-        laurent.pinchart@ideasonboard.com, Johan Hovold <johan@kernel.org>,
-        Alex Elder <elder@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        greybus-dev@lists.linaro.org, devel@driverdev.osuosl.org,
-        viresh.kumar@linaro.org, Rui Miguel Silva <rmfrfs@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b50ed1f3-d4e1-998e-0001-3f09e36fb701@xs4all.nl>
-Date: Thu, 10 Aug 2017 15:16:02 +0200
+        Thu, 17 Aug 2017 04:16:53 -0400
+Subject: Re: [PATCH v2 1/8] v4l: vsp1: Protect fragments against overflow
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+References: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <a434f2ae9b782b0d8cb7a00b1e636c17c6dd48ad.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <1552146.CLukKW7q3G@avalon>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <f7194551-e764-42e6-ed59-9cde393d0074@ideasonboard.com>
+Date: Thu, 17 Aug 2017 09:16:48 +0100
 MIME-Version: 1.0
-In-Reply-To: <20170809111555.30147-4-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <1552146.CLukKW7q3G@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/08/17 13:15, Sakari Ailus wrote:
-> The v4l2_flash_init() keeps a reference to the ops struct but not to the
-> config struct (nor anything it contains). Document this.
+Hi Laurent,
+
+Thanks for your review,
+
+On 16/08/17 22:53, Laurent Pinchart wrote:
+> Hi Kieran,
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
+> Thank you for the patch.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
-> ---
->  include/media/v4l2-flash-led-class.h | 6 ++++++
->  1 file changed, 6 insertions(+)
+> How about
 > 
-> diff --git a/include/media/v4l2-flash-led-class.h b/include/media/v4l2-flash-led-class.h
-> index c3f39992f3fa..6f4825b6a352 100644
-> --- a/include/media/v4l2-flash-led-class.h
-> +++ b/include/media/v4l2-flash-led-class.h
-> @@ -112,6 +112,9 @@ static inline struct v4l2_flash *v4l2_ctrl_to_v4l2_flash(struct v4l2_ctrl *c)
->   * @config:	initialization data for V4L2 Flash sub-device
->   *
->   * Create V4L2 Flash sub-device wrapping given LED subsystem device.
-> + * The ops pointer is stored by the V4L2 flash framework. No
-> + * references are held to config nor its contents once this function
-> + * has returned.
->   *
->   * Returns: A valid pointer, or, when an error occurs, the return
->   * value is encoded using ERR_PTR(). Use IS_ERR() to check and
-> @@ -130,6 +133,9 @@ struct v4l2_flash *v4l2_flash_init(
->   * @config:	initialization data for V4L2 Flash sub-device
->   *
->   * Create V4L2 Flash sub-device wrapping given LED subsystem device.
-> + * The ops pointer is stored by the V4L2 flash framework. No
-> + * references are held to config nor its contents once this function
-> + * has returned.
->   *
->   * Returns: A valid pointer, or, when an error occurs, the return
->   * value is encoded using ERR_PTR(). Use IS_ERR() to check and
+> 	if (WARN_ONCE(dlb->num_entries >= dlb->max_entries,
+> 		      "DLB size exceeded (max %u)", dlb->max_entries))
+> 		return;
 > 
+> (WARN_ONCE contains the unlikely() already)
+> 
+> I'm not fussed either way,
+
+That does seem cleaner. Updated ready for any repost.
+
+Thanks
+--
+Kieran
