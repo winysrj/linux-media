@@ -1,66 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:52148 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751444AbdHPHUn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Aug 2017 03:20:43 -0400
-Subject: Re: [PATCHv2 1/3] dt-bindings: document the CEC GPIO bindings
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mga02.intel.com ([134.134.136.20]:57255 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751369AbdHQNpS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 Aug 2017 09:45:18 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20170810083359.36800-1-hverkuil@xs4all.nl>
- <20170810083359.36800-2-hverkuil@xs4all.nl>
-Message-ID: <c24529d5-fd9e-444a-2bc7-71d54ca950f8@xs4all.nl>
-Date: Wed, 16 Aug 2017 09:20:37 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170810083359.36800-2-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Cc: devicetree@vger.kernel.org, rajmohan.mani@intel.com
+Subject: [PATCH 2/3] dw9714: Add Devicetree support
+Date: Thu, 17 Aug 2017 16:42:55 +0300
+Message-Id: <1502977376-22836-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1502977376-22836-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1502977376-22836-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/10/2017 10:33 AM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Document the bindings for the cec-gpio module for hardware where the
-> CEC pin is connected to a GPIO pin.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/dw9714.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-No need to review this, there will be a v3 that will add a second optional
-HPD gpio.
-
-Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  Documentation/devicetree/bindings/media/cec-gpio.txt | 16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/cec-gpio.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/cec-gpio.txt b/Documentation/devicetree/bindings/media/cec-gpio.txt
-> new file mode 100644
-> index 000000000000..e34a175468e2
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/cec-gpio.txt
-> @@ -0,0 +1,16 @@
-> +* HDMI CEC GPIO-based hardware
-> +
-> +Use these bindings for HDMI CEC hardware where the CEC pin is hooked up
-> +to a pull-up GPIO pin.
-> +
-> +Required properties:
-> +  - compatible: value must be "cec-gpio"
-> +  - gpio: gpio that the CEC line is connected to
-> +
-> +Example for the Raspberry Pi 3 where the CEC line is connected to
-> +pin 7 aka BCM4 aka GPCLK0 on the GPIO pin header:
-> +
-> +cec-gpio {
-> +       compatible = "cec-gpio";
-> +       gpio = <&gpio 4 GPIO_ACTIVE_HIGH>;
-> +};
-> 
+diff --git a/drivers/media/i2c/dw9714.c b/drivers/media/i2c/dw9714.c
+index 6a607d7..bcf64ef 100644
+--- a/drivers/media/i2c/dw9714.c
++++ b/drivers/media/i2c/dw9714.c
+@@ -264,6 +264,12 @@ static const struct i2c_device_id dw9714_id_table[] = {
+ 
+ MODULE_DEVICE_TABLE(i2c, dw9714_id_table);
+ 
++static const struct of_device_id dw9714_of_table[] = {
++	{ .compatible = "dongwoon,dw9714" },
++	{ { 0 } }
++};
++MODULE_DEVICE_TABLE(of, dw9714_of_table);
++
+ static const struct dev_pm_ops dw9714_pm_ops = {
+ 	SET_SYSTEM_SLEEP_PM_OPS(dw9714_vcm_suspend, dw9714_vcm_resume)
+ 	SET_RUNTIME_PM_OPS(dw9714_vcm_suspend, dw9714_vcm_resume, NULL)
+@@ -274,6 +280,7 @@ static struct i2c_driver dw9714_i2c_driver = {
+ 		.name = DW9714_NAME,
+ 		.pm = &dw9714_pm_ops,
+ 		.acpi_match_table = ACPI_PTR(dw9714_acpi_match),
++		.of_match_table = dw9714_of_table,
+ 	},
+ 	.probe = dw9714_probe,
+ 	.remove = dw9714_remove,
+-- 
+2.7.4
