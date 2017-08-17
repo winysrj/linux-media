@@ -1,42 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:51495 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751537AbdH2LEL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 07:04:11 -0400
-To: linux-media@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Geliang Tang <geliangtang@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Sean Young <sean@mess.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 0/2] [media] imon: Adjustments for two function
- implementations
-Message-ID: <09417655-9241-72f4-6484-a3c8b3eae87a@users.sourceforge.net>
-Date: Tue, 29 Aug 2017 13:03:46 +0200
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56979 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751665AbdHQSNV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 Aug 2017 14:13:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 5/8] v4l: vsp1: Refactor display list configure operations
+Date: Thu, 17 Aug 2017 21:13:45 +0300
+Message-ID: <9223590.WNj3Hrfh0H@avalon>
+In-Reply-To: <8063f125293346adfdcc66b5d6768d250895f612.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com> <8063f125293346adfdcc66b5d6768d250895f612.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 29 Aug 2017 12:56:54 +0200
+Hi Kieran,
 
-Two update suggestions were taken into account
-from static source code analysis.
+Thank you for the patch.
 
-Markus Elfring (2):
-  Delete an error message for a failed memory allocation in imon_init_intf0()
-  Improve a size determination in two functions
+On Monday 14 Aug 2017 16:13:28 Kieran Bingham wrote:
+> The entities provide a single .configure operation which configures the
+> object into the target display list, based on the vsp1_entity_params
+> selection.
+> 
+> This restricts us to a single function prototype for both static
+> configuration (the pre-stream INIT stage) and the dynamic runtime stages
+> for both each frame - and each partition therein.
+> 
+> Split the configure function into two parts, '.prepare()' and
+> '.configure()', merging both the VSP1_ENTITY_PARAMS_RUNTIME and
+> VSP1_ENTITY_PARAMS_PARTITION stages into a single call through the
+> .configure(). The configuration for individual partitions is handled by
+> passing the partition number to the configure call, and processing any
+> runtime stage actions on the first partition only.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> ---
+>  drivers/media/platform/vsp1/vsp1_bru.c    |  12 +-
+>  drivers/media/platform/vsp1/vsp1_clu.c    |  43 +--
+>  drivers/media/platform/vsp1/vsp1_drm.c    |  11 +-
+>  drivers/media/platform/vsp1/vsp1_entity.c |  15 +-
+>  drivers/media/platform/vsp1/vsp1_entity.h |  27 +--
+>  drivers/media/platform/vsp1/vsp1_hgo.c    |  12 +-
+>  drivers/media/platform/vsp1/vsp1_hgt.c    |  12 +-
+>  drivers/media/platform/vsp1/vsp1_hsit.c   |  12 +-
+>  drivers/media/platform/vsp1/vsp1_lif.c    |  12 +-
+>  drivers/media/platform/vsp1/vsp1_lut.c    |  24 +-
+>  drivers/media/platform/vsp1/vsp1_rpf.c    | 162 ++++++-------
+>  drivers/media/platform/vsp1/vsp1_sru.c    |  12 +-
+>  drivers/media/platform/vsp1/vsp1_uds.c    |  55 ++--
+>  drivers/media/platform/vsp1/vsp1_video.c  |  24 +--
+>  drivers/media/platform/vsp1/vsp1_wpf.c    | 297 ++++++++++++-----------
+>  15 files changed, 359 insertions(+), 371 deletions(-)
 
- drivers/media/rc/imon.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+[snip]
+
+> diff --git a/drivers/media/platform/vsp1/vsp1_clu.c
+> b/drivers/media/platform/vsp1/vsp1_clu.c index 175717018e11..5f65ce3ad97f
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_clu.c
+> +++ b/drivers/media/platform/vsp1/vsp1_clu.c
+> @@ -213,37 +213,37 @@ static const struct v4l2_subdev_ops clu_ops = {
+>  /* ------------------------------------------------------------------------
+>   * VSP1 Entity Operations
+>   */
+> +static void clu_prepare(struct vsp1_entity *entity,
+> +			struct vsp1_pipeline *pipe,
+> +			struct vsp1_dl_list *dl)
+> +{
+> +	struct vsp1_clu *clu = to_clu(&entity->subdev);
+> +
+> +	/*
+> +	 * The format can't be changed during streaming, only verify it
+> +	 * at setup time and store the information internally for future
+> +	 * runtime configuration calls.
+> +	 */
+
+I know you're just moving the comment around, but let's fix it at the same 
+time. There's no verification here (and no "setup time" either). I'd write it 
+as
+
+	/*
+	 * The format can't be changed during streaming. Cache it internally
+	 * for future runtime configuration calls.
+	 */
+
+> +	struct v4l2_mbus_framefmt *format;
+> +
+> +	format = vsp1_entity_get_pad_format(&clu->entity,
+> +					    clu->entity.config,
+> +					    CLU_PAD_SINK);
+> +	clu->yuv_mode = format->code == MEDIA_BUS_FMT_AYUV8_1X32;
+> +}
+
+[snip]
+
+> diff --git a/drivers/media/platform/vsp1/vsp1_entity.h
+> b/drivers/media/platform/vsp1/vsp1_entity.h index
+> 408602ebeb97..2f33e343ccc6 100644
+> --- a/drivers/media/platform/vsp1/vsp1_entity.h
+> +++ b/drivers/media/platform/vsp1/vsp1_entity.h
+
+[snip]
+
+> @@ -80,8 +68,10 @@ struct vsp1_route {
+>  /**
+>   * struct vsp1_entity_operations - Entity operations
+>   * @destroy:	Destroy the entity.
+> - * @configure:	Setup the hardware based on the entity state
+> (pipeline, formats,
+> - *		selection rectangles, ...)
+> + * @prepare:	Setup the initial hardware parameters for the stream
+> (pipeline,
+> + *		formats)
+> + * @configure:	Configure the runtime parameters for each partition
+> (rectangles,
+> + *		buffer addresses, ...)
+
+Now moving to the bikeshedding territory, I'm not sure if prepare and 
+configure are the best names for those operations. I'd like to also point out 
+that we could go one step further by caching the partition-related parameters 
+too, in which case we would need a third operation (or possibly passing the 
+partition number to the prepare operation). While I won't mind if you 
+implement this now, the issue could also be addressed later, but I'd like the 
+operations to already support that use case to avoid yet another painful 
+rename patch.
+
+>   * @max_width:	Return the max supported width of data that the entity
+> can
+>   *		process in a single operation.
+>   * @partition:	Process the partition construction based on this
+> entity's
+
+[snip]
+
+The rest of the patch looks good to me.
 
 -- 
-2.14.1
+Regards,
+
+Laurent Pinchart
