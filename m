@@ -1,113 +1,301 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:44763 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932090AbdHWPfj (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58979 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753271AbdHQXkX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Aug 2017 11:35:39 -0400
-Date: Wed, 23 Aug 2017 17:35:34 +0200
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Thu, 17 Aug 2017 19:40:23 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: linux-kernel@vger.kernel.org,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Pavel Machek <pavel@ucw.cz>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: omap3isp: fix uninitialized variable use
-Message-ID: <20170823153534.enifcsolharwrtum@earth>
-References: <20170823133044.686146-1-arnd@arndb.de>
- <20170823135827.l7fgozsbhw5opyy3@valkosipuli.retiisi.org.uk>
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [RFT PATCH] [media] partial revert of "[media] tvp5150: add HW input connectors support"
+Date: Fri, 18 Aug 2017 02:40:48 +0300
+Message-ID: <1545905.vYKysq9NSb@avalon>
+In-Reply-To: <1481643559-19666-1-git-send-email-javier@osg.samsung.com>
+References: <1481643559-19666-1-git-send-email-javier@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="by5esd6o3khtfg5v"
-Content-Disposition: inline
-In-Reply-To: <20170823135827.l7fgozsbhw5opyy3@valkosipuli.retiisi.org.uk>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Javier,
 
---by5esd6o3khtfg5v
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+(Resent to your new e-mail address)
 
-Hi,
+Thank you for the patch.
 
-On Wed, Aug 23, 2017 at 04:58:27PM +0300, Sakari Ailus wrote:
-> On Wed, Aug 23, 2017 at 03:30:19PM +0200, Arnd Bergmann wrote:
-> > A debug printk statement was copied incorrectly into the new
-> > csi1 parser code and causes a warning there:
-> >=20
-> > drivers/media/platform/omap3isp/isp.c: In function 'isp_probe':
-> > include/linux/dynamic_debug.h:134:3: error: 'i' may be used uninitializ=
-ed in this function [-Werror=3Dmaybe-uninitialized]
-> >=20
-> > Since there is only one lane, the index is never set. This
-> > changes the debug print to always print a zero instead,
-> > keeping the original format of the message.
-> >=20
-> > Fixes: 9211434bad30 ("media: omap3isp: Parse CSI1 configuration from th=
-e device tree")
-> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> > ---
-> >  drivers/media/platform/omap3isp/isp.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >=20
-> > diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/plat=
-form/omap3isp/isp.c
-> > index 83aea08b832d..30c825bf80d9 100644
-> > --- a/drivers/media/platform/omap3isp/isp.c
-> > +++ b/drivers/media/platform/omap3isp/isp.c
-> > @@ -2092,7 +2092,7 @@ static int isp_fwnode_parse(struct device *dev, s=
-truct fwnode_handle *fwnode,
-> >  			buscfg->bus.ccp2.lanecfg.data[0].pol =3D
-> >  				vep.bus.mipi_csi1.lane_polarity[1];
-> > =20
-> > -			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
-> > +			dev_dbg(dev, "data lane 0 polarity %u, pos %u\n",
-> >  				buscfg->bus.ccp2.lanecfg.data[0].pol,
-> >  				buscfg->bus.ccp2.lanecfg.data[0].pos);
-> > =20
->=20
-> Thanks! I removed "0 "; CCP2 always has a single lane. The patch is now:
->=20
-> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platfo=
-rm/omap3isp/isp.c
-> index 83aea08b832d..1a428fe9f070 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -2092,7 +2092,7 @@ static int isp_fwnode_parse(struct device *dev, str=
-uct fwnode_handle *fwnode,
->  			buscfg->bus.ccp2.lanecfg.data[0].pol =3D
->  				vep.bus.mipi_csi1.lane_polarity[1];
-> =20
-> -			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
-> +			dev_dbg(dev, "data lane polarity %u, pos %u\n",
->  				buscfg->bus.ccp2.lanecfg.data[0].pol,
->  				buscfg->bus.ccp2.lanecfg.data[0].pos);
+On Tuesday 13 Dec 2016 12:39:19 Javier Martinez Canillas wrote:
+> Commit f7b4b54e6364 ("[media] tvp5150: add HW input connectors support")
+> added input signals support for the tvp5150, but the approach was found
+> to be incorrect so the corresponding DT binding commit 82c2ffeb217a
+> ("[media] tvp5150: document input connectors DT bindings") was reverted.
+> 
+> This left the driver with an undocumented (and wrong) DT parsing logic,
+> so lets get rid of this code as well until the input connectors support
+> is implemented properly.
+> 
+> It's a partial revert due other patches added on top of mentioned commit
+> not allowing the commit to be reverted cleanly anymore. But all the code
+> related to the DT parsing logic and input entities creation are removed.
+> 
+> Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
--- Sebastian
+> ---
+> 
+> Hello Laurent,
+> 
+> I've tested this patch on top of media/master on my IGEPv2 + tvp5150
+> with the following:
+> 
+> $ media-ctl -r -l '"tvp5150 1-005c":1->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
+> CCDC":1->"OMAP3 ISP CCDC output":0[1]' $ media-ctl -v --set-format '"OMAP3
+> ISP CCDC":0 [UYVY2X8 720x240 field:alternate]' $ media-ctl -v --set-format
+> '"OMAP3 ISP CCDC":1 [UYVY2X8 720x240 field:interlaced-tb]' $ yavta -f UYVY
+> -s 720x480 -n 1 --field interlaced-tb --capture=1 -F /dev/video2 $
+> raw2rgbpnm -f UYVY -s 720x480 frame-000000.bin frame.pnm
+> 
+> I've also tested the other composite input with the following change:
+> 
+> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> index 5fe5faefe212..973be68ff78c 100644
+> --- a/drivers/media/i2c/tvp5150.c
+> +++ b/drivers/media/i2c/tvp5150.c
+> @@ -1371,7 +1371,7 @@ static int tvp5150_probe(struct i2c_client *c,
+>                 return res;
+> 
+>         core->norm = V4L2_STD_ALL;      /* Default is autodetect */
+> -       core->input = TVP5150_COMPOSITE1;
+> +       core->input = TVP5150_COMPOSITE0;
+>         core->enable = true;
+> 
+>         v4l2_ctrl_handler_init(&core->hdl, 5);
+> 
+> But as mentioned, it also worked for me without the revert so please let
+> me know if the driver works with your omap3 board.
+> 
+> Best regards,
+> Javier
+> 
+>  drivers/media/i2c/tvp5150.c | 142
+> -------------------------------------------- 1 file changed, 142
+> deletions(-)
+> 
+> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> index 48646a7f3fb0..5fe5faefe212 100644
+> --- a/drivers/media/i2c/tvp5150.c
+> +++ b/drivers/media/i2c/tvp5150.c
+> @@ -42,8 +42,6 @@ struct tvp5150 {
+>  	struct v4l2_subdev sd;
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  	struct media_pad pads[DEMOD_NUM_PADS];
+> -	struct media_entity input_ent[TVP5150_INPUT_NUM];
+> -	struct media_pad input_pad[TVP5150_INPUT_NUM];
+>  #endif
+>  	struct v4l2_ctrl_handler hdl;
+>  	struct v4l2_rect rect;
+> @@ -1018,40 +1016,6 @@ static int tvp5150_enum_frame_size(struct v4l2_subdev
+> *sd, }
+> 
+>  /**************************************************************************
+> ** -			Media entity ops
+> -
+> ***************************************************************************
+> */ -
+> -#ifdef CONFIG_MEDIA_CONTROLLER
+> -static int tvp5150_link_setup(struct media_entity *entity,
+> -			      const struct media_pad *local,
+> -			      const struct media_pad *remote, u32 flags)
+> -{
+> -	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
+> -	struct tvp5150 *decoder = to_tvp5150(sd);
+> -	int i;
+> -
+> -	for (i = 0; i < TVP5150_INPUT_NUM; i++) {
+> -		if (remote->entity == &decoder->input_ent[i])
+> -			break;
+> -	}
+> -
+> -	/* Do nothing for entities that are not input connectors */
+> -	if (i == TVP5150_INPUT_NUM)
+> -		return 0;
+> -
+> -	decoder->input = i;
+> -
+> -	tvp5150_selmux(sd);
+> -
+> -	return 0;
+> -}
+> -
+> -static const struct media_entity_operations tvp5150_sd_media_ops = {
+> -	.link_setup = tvp5150_link_setup,
+> -};
+> -#endif
+> -
+> -/**************************************************************************
+> ** I2C Command
+>  
+> ***************************************************************************
+> */
+> 
+> @@ -1188,42 +1152,6 @@ static int tvp5150_g_tuner(struct v4l2_subdev *sd,
+> struct v4l2_tuner *vt) return 0;
+>  }
+> 
+> -static int tvp5150_registered(struct v4l2_subdev *sd)
+> -{
+> -#ifdef CONFIG_MEDIA_CONTROLLER
+> -	struct tvp5150 *decoder = to_tvp5150(sd);
+> -	int ret = 0;
+> -	int i;
+> -
+> -	for (i = 0; i < TVP5150_INPUT_NUM; i++) {
+> -		struct media_entity *input = &decoder->input_ent[i];
+> -		struct media_pad *pad = &decoder->input_pad[i];
+> -
+> -		if (!input->name)
+> -			continue;
+> -
+> -		decoder->input_pad[i].flags = MEDIA_PAD_FL_SOURCE;
+> -
+> -		ret = media_entity_pads_init(input, 1, pad);
+> -		if (ret < 0)
+> -			return ret;
+> -
+> -		ret = media_device_register_entity(sd->v4l2_dev->mdev, input);
+> -		if (ret < 0)
+> -			return ret;
+> -
+> -		ret = media_create_pad_link(input, 0, &sd->entity,
+> -					    DEMOD_PAD_IF_INPUT, 0);
+> -		if (ret < 0) {
+> -			media_device_unregister_entity(input);
+> -			return ret;
+> -		}
+> -	}
+> -#endif
+> -
+> -	return 0;
+> -}
+> -
+>  /* -----------------------------------------------------------------------
+> */
+> 
+>  static const struct v4l2_ctrl_ops tvp5150_ctrl_ops = {
+> @@ -1274,11 +1202,6 @@ static const struct v4l2_subdev_ops tvp5150_ops = {
+>  	.pad = &tvp5150_pad_ops,
+>  };
+> 
+> -static const struct v4l2_subdev_internal_ops tvp5150_internal_ops = {
+> -	.registered = tvp5150_registered,
+> -};
+> -
+> -
+>  /**************************************************************************
+> ** I2C Client & Driver
+>  
+> ***************************************************************************
+> */ @@ -1360,12 +1283,6 @@ static int tvp5150_parse_dt(struct tvp5150
+> *decoder, struct device_node *np) {
+>  	struct v4l2_of_endpoint bus_cfg;
+>  	struct device_node *ep;
+> -#ifdef CONFIG_MEDIA_CONTROLLER
+> -	struct device_node *connectors, *child;
+> -	struct media_entity *input;
+> -	const char *name;
+> -	u32 input_type;
+> -#endif
+>  	unsigned int flags;
+>  	int ret = 0;
+> 
+> @@ -1389,63 +1306,6 @@ static int tvp5150_parse_dt(struct tvp5150 *decoder,
+> struct device_node *np)
+> 
+>  	decoder->mbus_type = bus_cfg.bus_type;
+> 
+> -#ifdef CONFIG_MEDIA_CONTROLLER
+> -	connectors = of_get_child_by_name(np, "connectors");
+> -
+> -	if (!connectors)
+> -		goto err;
+> -
+> -	for_each_available_child_of_node(connectors, child) {
+> -		ret = of_property_read_u32(child, "input", &input_type);
+> -		if (ret) {
+> -			dev_err(decoder->sd.dev,
+> -				 "missing type property in node %s\n",
+> -				 child->name);
+> -			goto err_connector;
+> -		}
+> -
+> -		if (input_type >= TVP5150_INPUT_NUM) {
+> -			ret = -EINVAL;
+> -			goto err_connector;
+> -		}
+> -
+> -		input = &decoder->input_ent[input_type];
+> -
+> -		/* Each input connector can only be defined once */
+> -		if (input->name) {
+> -			dev_err(decoder->sd.dev,
+> -				 "input %s with same type already exists\n",
+> -				 input->name);
+> -			ret = -EINVAL;
+> -			goto err_connector;
+> -		}
+> -
+> -		switch (input_type) {
+> -		case TVP5150_COMPOSITE0:
+> -		case TVP5150_COMPOSITE1:
+> -			input->function = MEDIA_ENT_F_CONN_COMPOSITE;
+> -			break;
+> -		case TVP5150_SVIDEO:
+> -			input->function = MEDIA_ENT_F_CONN_SVIDEO;
+> -			break;
+> -		}
+> -
+> -		input->flags = MEDIA_ENT_FL_CONNECTOR;
+> -
+> -		ret = of_property_read_string(child, "label", &name);
+> -		if (ret < 0) {
+> -			dev_err(decoder->sd.dev,
+> -				 "missing label property in node %s\n",
+> -				 child->name);
+> -			goto err_connector;
+> -		}
+> -
+> -		input->name = name;
+> -	}
+> -
+> -err_connector:
+> -	of_node_put(connectors);
+> -#endif
+>  err:
+>  	of_node_put(ep);
+>  	return ret;
+> @@ -1491,7 +1351,6 @@ static int tvp5150_probe(struct i2c_client *c,
+>  	}
+> 
+>  	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
+> -	sd->internal_ops = &tvp5150_internal_ops;
+>  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> 
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+> @@ -1505,7 +1364,6 @@ static int tvp5150_probe(struct i2c_client *c,
+>  	if (res < 0)
+>  		return res;
+> 
+> -	sd->entity.ops = &tvp5150_sd_media_ops;
+>  #endif
+> 
+>  	res = tvp5150_detect_version(core);
 
---by5esd6o3khtfg5v
-Content-Type: application/pgp-signature; name="signature.asc"
+-- 
+Regards,
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlmdoMYACgkQ2O7X88g7
-+poVQA//RYqkZ/E8q9OR647fdPzI2TAJnnrd69cc5KCvdcmcEM2LTC+xQhBIP2Bv
-R4wgx9iwFolaeTJjwqYmSjelHRAjwvr1l5zUFUTKI1BCPlz98lmEEnd+fOm7ldBD
-+mjlQjE6V1IwptAgj0jaXa/a3V9RcM3138dYHRyHccDnWQMIxQc87WWZ46WzoKbS
-CldeyFZkjL6Ja6TzUHvGLmE2ZEfmTkYTJ6Q50RoIrriEuBSzzYxVXVu8y+fnPP0e
-yqahi3BTqO0ysg1t5BStT2g7jG8hgjeULv7v5vNc23Q188eoDhggQDtOzrG+GJzC
-HFfX67wa1936q69j0U1NbUxzUnT78addT6hrZsiMROk3Y9+IEZxtTheiPPwSGLjZ
-QNXNM3akqRiWuWIViHgWj/IWybRNt1k7gdhtTpbhxu64O6NVLggcFAI+5s2hgj2Y
-tlP88H4Zk2EAW+cni6pHNARVJA/ecWWIL7W5/uuh18XROajke3Nd2CQOsKPk/9Yz
-pOkP1U4tNgDQ8e4kZs/+saCF23nIlxLKix/gOTO5U2QhonlO6YfHJk5fXqI/bixH
-Tmo8SF/h1dCz/L4sxJaeAR62Qg0+6QEBRYskBwk5dha7bVTFCbedwSM/+zzcfTVw
-CRdKTrg2XDuC36u3zFuqOuQSSDUiVG10gU2oW98a7R+bHngDa1I=
-=Xvrc
------END PGP SIGNATURE-----
-
---by5esd6o3khtfg5v--
+Laurent Pinchart
