@@ -1,228 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:56032 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752871AbdHVX2u (ORCPT
+Received: from lelnx193.ext.ti.com ([198.47.27.77]:13220 "EHLO
+        lelnx193.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751017AbdHRJCa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 19:28:50 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v6 24/25] rcar-vin: enable support for r8a7795
-Date: Wed, 23 Aug 2017 01:26:39 +0200
-Message-Id: <20170822232640.26147-25-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+        Fri, 18 Aug 2017 05:02:30 -0400
+Subject: Re: [PATCHv2 0/9] omapdrm: hdmi4: add CEC support
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>
+CC: <dri-devel@lists.freedesktop.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20170802085408.16204-1-hverkuil@xs4all.nl>
+ <bbc92584-71e8-b41e-dd35-5dd0d686cf53@ti.com>
+Message-ID: <d5034d03-1ef4-0253-0efc-ae7fd5cb09e9@ti.com>
+Date: Fri, 18 Aug 2017 12:02:24 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <bbc92584-71e8-b41e-dd35-5dd0d686cf53@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the SoC specific information for Renesas r8a7795.
+=EF=BB=BFHi Hans,
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/Kconfig     |   2 +-
- drivers/media/platform/rcar-vin/rcar-core.c | 145 ++++++++++++++++++++++++++++
- 2 files changed, 146 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
-index af4c98b44d2e22cb..8fa7ee468c63afb9 100644
---- a/drivers/media/platform/rcar-vin/Kconfig
-+++ b/drivers/media/platform/rcar-vin/Kconfig
-@@ -6,7 +6,7 @@ config VIDEO_RCAR_VIN
- 	select V4L2_FWNODE
- 	---help---
- 	  Support for Renesas R-Car Video Input (VIN) driver.
--	  Supports R-Car Gen2 SoCs.
-+	  Supports R-Car Gen2 and Gen3 SoCs.
- 
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called rcar-vin.
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index dec91e2f3ccdbd93..58d903ab9fb83faf 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -21,6 +21,7 @@
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/slab.h>
-+#include <linux/sys_soc.h>
- 
- #include <media/v4l2-fwnode.h>
- 
-@@ -987,7 +988,139 @@ static const struct rvin_info rcar_info_gen2 = {
- 	.max_height = 2048,
- };
- 
-+static const struct rvin_info rcar_info_r8a7795 = {
-+	.chip = RCAR_GEN3,
-+	.use_mc = true,
-+	.max_width = 4096,
-+	.max_height = 4096,
-+
-+	.num_chsels = 5,
-+	.chsels = {
-+		{
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 2 },
-+			{ .csi = RVIN_CSI20, .chan = 2 },
-+		}, {
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI40, .chan = 3 },
-+			{ .csi = RVIN_CSI20, .chan = 3 },
-+		}, {
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 1 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 1 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 2 },
-+			{ .csi = RVIN_CSI20, .chan = 2 },
-+		}, {
-+			{ .csi = RVIN_CSI41, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI41, .chan = 3 },
-+			{ .csi = RVIN_CSI20, .chan = 3 },
-+		},
-+	},
-+};
-+
-+static const struct rvin_info rcar_info_r8a7795es1 = {
-+	.chip = RCAR_GEN3,
-+	.use_mc = true,
-+	.max_width = 4096,
-+	.max_height = 4096,
-+
-+	.num_chsels = 6,
-+	.chsels = {
-+		{
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+		}, {
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 2 },
-+			{ .csi = RVIN_CSI20, .chan = 2 },
-+			{ .csi = RVIN_CSI21, .chan = 2 },
-+		}, {
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+			{ .csi = RVIN_CSI40, .chan = 3 },
-+			{ .csi = RVIN_CSI20, .chan = 3 },
-+			{ .csi = RVIN_CSI21, .chan = 3 },
-+		}, {
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+		}, {
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 2 },
-+			{ .csi = RVIN_CSI20, .chan = 2 },
-+			{ .csi = RVIN_CSI21, .chan = 2 },
-+		}, {
-+			{ .csi = RVIN_CSI41, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+			{ .csi = RVIN_CSI41, .chan = 3 },
-+			{ .csi = RVIN_CSI20, .chan = 3 },
-+			{ .csi = RVIN_CSI21, .chan = 3 },
-+		},
-+	},
-+};
-+
- static const struct of_device_id rvin_of_id_table[] = {
-+	{
-+		.compatible = "renesas,vin-r8a7795",
-+		.data = &rcar_info_r8a7795,
-+	},
- 	{
- 		.compatible = "renesas,vin-r8a7794",
- 		.data = &rcar_info_gen2,
-@@ -1020,6 +1153,11 @@ static const struct of_device_id rvin_of_id_table[] = {
- };
- MODULE_DEVICE_TABLE(of, rvin_of_id_table);
- 
-+static const struct soc_device_attribute r8a7795es1[] = {
-+	{ .soc_id = "r8a7795", .revision = "ES1.*" },
-+	{ /* sentinel */ }
-+};
-+
- static int rcar_vin_probe(struct platform_device *pdev)
- {
- 	const struct of_device_id *match;
-@@ -1038,6 +1176,13 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	vin->dev = &pdev->dev;
- 	vin->info = match->data;
- 
-+	/*
-+	 * Special care is needed on r8a7795 ES1.x since it
-+	 * uses different routing then r8a7795 ES2.0.
-+	 */
-+	if (vin->info == &rcar_info_r8a7795 && soc_device_match(r8a7795es1))
-+		vin->info = &rcar_info_r8a7795es1;
-+
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (mem == NULL)
- 		return -EINVAL;
--- 
-2.14.0
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
+siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+
+On 11/08/17 13:57, Tomi Valkeinen wrote:
+
+> I'm doing some testing with this series on my panda. One issue I see is
+> that when I unload the display modules, I get:
+>=20
+> [   75.180206] platform 58006000.encoder: enabled after unload, idling
+> [   75.187896] platform 58001000.dispc: enabled after unload, idling
+> [   75.198242] platform 58000000.dss: enabled after unload, idling
+
+This one is caused by hdmi_cec_adap_enable() never getting called with
+enable=3Dfalse when unloading the modules. Should that be called
+explicitly in hdmi4_cec_uninit, or is the CEC framework supposed to call it=
+?
+
+ Tomi
