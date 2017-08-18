@@ -1,85 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:56038 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752794AbdHVX2o (ORCPT
+Received: from mail-wr0-f172.google.com ([209.85.128.172]:37108 "EHLO
+        mail-wr0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750847AbdHRHwm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 19:28:44 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v6 08/25] rcar-vin: do not reset crop and compose when setting format
-Date: Wed, 23 Aug 2017 01:26:23 +0200
-Message-Id: <20170822232640.26147-9-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+        Fri, 18 Aug 2017 03:52:42 -0400
+Received: by mail-wr0-f172.google.com with SMTP id z91so54825240wrc.4
+        for <linux-media@vger.kernel.org>; Fri, 18 Aug 2017 00:52:41 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: Re: [PATCH] media: venus: fix duplicated code for different branches
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <20170817231234.GA6674@embeddedgus>
+Message-ID: <99a35cad-9152-ec15-7843-de4668a9190f@linaro.org>
+Date: Fri, 18 Aug 2017 10:52:38 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170817231234.GA6674@embeddedgus>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It was a bad idea to reset the crop and compose settings when a new
-format is set. This would overwrite any crop/compose set by s_select and
-cause unexpected behaviors, remove it. Also fold the reset helper in to
-the only remaining caller.
+Hi Gustavo,
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+On 08/18/2017 02:12 AM, Gustavo A. R. Silva wrote:
+> Refactor code in order to avoid identical code for different branches.
+> 
+> This issue was detected with the help of Coccinelle.
+> 
+> Addresses-Coverity-ID: 1415317
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> ---
+> This code was reported by Coverity and it was tested by compilation only.
+> Please, verify if this is an actual bug.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index affdc128a75e502e..421820caf275b066 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -90,17 +90,6 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
-  * V4L2
-  */
- 
--static void rvin_reset_crop_compose(struct rvin_dev *vin)
--{
--	vin->crop.top = vin->crop.left = 0;
--	vin->crop.width = vin->source.width;
--	vin->crop.height = vin->source.height;
--
--	vin->compose.top = vin->compose.left = 0;
--	vin->compose.width = vin->format.width;
--	vin->compose.height = vin->format.height;
--}
--
- int rvin_reset_format(struct rvin_dev *vin)
- {
- 	struct v4l2_subdev_format fmt = {
-@@ -147,7 +136,13 @@ int rvin_reset_format(struct rvin_dev *vin)
- 		break;
- 	}
- 
--	rvin_reset_crop_compose(vin);
-+	vin->crop.top = vin->crop.left = 0;
-+	vin->crop.width = mf->width;
-+	vin->crop.height = mf->height;
-+
-+	vin->compose.top = vin->compose.left = 0;
-+	vin->compose.width = mf->width;
-+	vin->compose.height = mf->height;
- 
- 	vin->format.bytesperline = rvin_format_bytesperline(&vin->format);
- 	vin->format.sizeimage = rvin_format_sizeimage(&vin->format);
-@@ -317,8 +312,6 @@ static int rvin_s_fmt_vid_cap(struct file *file, void *priv,
- 
- 	vin->format = f->fmt.pix;
- 
--	rvin_reset_crop_compose(vin);
--
- 	return 0;
- }
- 
+Yes looks like copy/paste error, and yes it is a bug.
+
+> 
+>  drivers/media/platform/qcom/venus/helpers.c | 6 +-----
+>  1 file changed, 1 insertion(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+> index 5f4434c..8a5c467 100644
+> --- a/drivers/media/platform/qcom/venus/helpers.c
+> +++ b/drivers/media/platform/qcom/venus/helpers.c
+> @@ -240,11 +240,7 @@ static void return_buf_error(struct venus_inst *inst,
+>  {
+>  	struct v4l2_m2m_ctx *m2m_ctx = inst->m2m_ctx;
+>  
+> -	if (vbuf->vb2_buf.type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> -		v4l2_m2m_src_buf_remove_by_buf(m2m_ctx, vbuf);
+> -	else
+> -		v4l2_m2m_src_buf_remove_by_buf(m2m_ctx, vbuf);
+
+the correct fix must replace the second v4l2_m2m_src_* with v4l2_m2m_dst_*.
+
+> -
+> +	v4l2_m2m_src_buf_remove_by_buf(m2m_ctx, vbuf);
+>  	v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
+>  }
+>  
+> 
+
 -- 
-2.14.0
+regards,
+Stan
