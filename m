@@ -1,129 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:50274 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751215AbdH2FeI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 01:34:08 -0400
-Subject: [PATCH 3/4] [media] zr364xx: Adjust ten checks for null pointers
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
-        Antoine Jacquet <royale@zerezo.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <d632eadf-98a3-7e05-4d9d-96d04b3619ff@users.sourceforge.net>
-Message-ID: <8a949a7b-f42a-f875-d4d7-4e0bc1f39102@users.sourceforge.net>
-Date: Tue, 29 Aug 2017 07:34:01 +0200
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:60090 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750709AbdHRHpe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 Aug 2017 03:45:34 -0400
+Subject: Re: [PATCH v4 04/21] doc: media/v4l-drivers: Add Qualcomm Camera
+ Subsystem driver document
+To: Todor Tomov <todor.tomov@linaro.org>, mchehab@kernel.org,
+        hans.verkuil@cisco.com, s.nawrocki@samsung.com,
+        sakari.ailus@iki.fi, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
+References: <1502199018-28250-1-git-send-email-todor.tomov@linaro.org>
+ <1502199018-28250-5-git-send-email-todor.tomov@linaro.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <1ee25592-63c7-0da8-c58f-a82e0b5d692f@xs4all.nl>
+Date: Fri, 18 Aug 2017 09:45:28 +0200
 MIME-Version: 1.0
-In-Reply-To: <d632eadf-98a3-7e05-4d9d-96d04b3619ff@users.sourceforge.net>
+In-Reply-To: <1502199018-28250-5-git-send-email-todor.tomov@linaro.org>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 28 Aug 2017 22:40:47 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Hi Todor,
 
-The script “checkpatch.pl” pointed information out like the following.
+A few small comments below:
 
-Comparison to NULL could be written !…
+On 08/08/2017 03:30 PM, Todor Tomov wrote:
+> Add a document to describe Qualcomm Camera Subsystem driver.
+> 
+> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+> ---
+>  Documentation/media/v4l-drivers/qcom_camss.rst | 124 +++++++++++++++++++++++++
+>  1 file changed, 124 insertions(+)
+>  create mode 100644 Documentation/media/v4l-drivers/qcom_camss.rst
+> 
+> diff --git a/Documentation/media/v4l-drivers/qcom_camss.rst b/Documentation/media/v4l-drivers/qcom_camss.rst
+> new file mode 100644
+> index 0000000..4707ea7
+> --- /dev/null
+> +++ b/Documentation/media/v4l-drivers/qcom_camss.rst
+> @@ -0,0 +1,124 @@
+> +.. include:: <isonum.txt>
+> +
+> +Qualcomm Camera Subsystem driver
+> +================================
+> +
+> +Introduction
+> +------------
+> +
+> +This file documents the Qualcomm Camera Subsystem driver located under
+> +drivers/media/platform/qcom/camss-8x16.
+> +
+> +The current version of the driver supports the Camera Subsystem found on
+> +Qualcomm MSM8916 and APQ8016 processors.
+> +
+> +The driver implements V4L2, Media controller and V4L2 subdev interfaces.
+> +Camera sensor using V4L2 subdev interface in the kernel is supported.
+> +
+> +The driver is implemented using as a reference the Qualcomm Camera Subsystem
+> +driver for Android as found in Code Aurora [#f1]_.
+> +
+> +
+> +Qualcomm Camera Subsystem hardware
+> +----------------------------------
+> +
+> +The Camera Subsystem hardware found on 8x16 processors and supported by the
+> +driver consists of:
+> +
+> +- 2 CSIPHY modules. They handle the Physical layer of the CSI2 receivers.
+> +  A separate camera sensor can be connected to each of the CSIPHY module;
+> +- 2 CSID (CSI Decoder) modules. They handle the Protocol and Application layer
+> +  of the CSI2 receivers. A CSID can decode data stream from any of the CSIPHY.
+> +  Each CSID also contains a TG (Test Generator) block which can generate
+> +  artificial input data for test purposes;
+> +- ISPIF (ISP Interface) module. Handles the routing of the data streams from
+> +  the CSIDs to the inputs of the VFE;
+> +- VFE (Video Front End) module. Contains a pipeline of image processing hardware
+> +  blocks. The VFE has different input interfaces. The PIX input interface feeds
+> +  the input data to the image processing pipeline. Three RDI input interfaces
+> +  bypass the image processing pipeline. The VFE also contains the AXI bus
+> +  interface which writes the output data to memory.
 
-Thus fix the affected source code places.
+Can you explain what PIX and RDI stand for?
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/usb/zr364xx/zr364xx.c | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+I would also think it is a good idea to add a comment at the top of the various
+subdev sources that say a bit more than just "CSID Module".
 
-diff --git a/drivers/media/usb/zr364xx/zr364xx.c b/drivers/media/usb/zr364xx/zr364xx.c
-index 37cd6e20e68a..4cc6d2a9d91f 100644
---- a/drivers/media/usb/zr364xx/zr364xx.c
-+++ b/drivers/media/usb/zr364xx/zr364xx.c
-@@ -385,9 +385,9 @@ static int buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
- 						  vb);
- 	int rc;
- 
--	DBG("%s, field=%d, fmt name = %s\n", __func__, field, cam->fmt != NULL ?
--	    cam->fmt->name : "");
--	if (cam->fmt == NULL)
-+	DBG("%s, field=%d, fmt name = %s\n", __func__, field,
-+	    cam->fmt ? cam->fmt->name : "");
-+	if (!cam->fmt)
- 		return -EINVAL;
- 
- 	buf->vb.size = cam->width * cam->height * (cam->fmt->depth >> 3);
-@@ -787,7 +787,7 @@ static int zr364xx_vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 	struct zr364xx_camera *cam = video_drvdata(file);
- 	char pixelformat_name[5];
- 
--	if (cam == NULL)
-+	if (!cam)
- 		return -ENODEV;
- 
- 	if (f->fmt.pix.pixelformat != V4L2_PIX_FMT_JPEG) {
-@@ -817,7 +817,7 @@ static int zr364xx_vidioc_g_fmt_vid_cap(struct file *file, void *priv,
- {
- 	struct zr364xx_camera *cam;
- 
--	if (file == NULL)
-+	if (!file)
- 		return -ENODEV;
- 	cam = video_drvdata(file);
- 
-@@ -979,13 +979,13 @@ static void read_pipe_completion(struct urb *purb)
- 
- 	pipe_info = purb->context;
- 	_DBG("%s %p, status %d\n", __func__, purb, purb->status);
--	if (pipe_info == NULL) {
-+	if (!pipe_info) {
- 		printk(KERN_ERR KBUILD_MODNAME ": no context!\n");
- 		return;
- 	}
- 
- 	cam = pipe_info->cam;
--	if (cam == NULL) {
-+	if (!cam) {
- 		printk(KERN_ERR KBUILD_MODNAME ": no context!\n");
- 		return;
- 	}
-@@ -1069,7 +1069,7 @@ static void zr364xx_stop_readpipe(struct zr364xx_camera *cam)
- {
- 	struct zr364xx_pipeinfo *pipe_info;
- 
--	if (cam == NULL) {
-+	if (!cam) {
- 		printk(KERN_ERR KBUILD_MODNAME ": invalid device\n");
- 		return;
- 	}
-@@ -1273,7 +1273,7 @@ static int zr364xx_mmap(struct file *file, struct vm_area_struct *vma)
- 	struct zr364xx_camera *cam = video_drvdata(file);
- 	int ret;
- 
--	if (cam == NULL) {
-+	if (!cam) {
- 		DBG("%s: cam == NULL\n", __func__);
- 		return -ENODEV;
- 	}
-@@ -1357,7 +1357,7 @@ static int zr364xx_board_init(struct zr364xx_camera *cam)
- 
- 	pipe->transfer_buffer = kzalloc(pipe->transfer_size,
- 					GFP_KERNEL);
--	if (pipe->transfer_buffer == NULL) {
-+	if (!pipe->transfer_buffer) {
- 		DBG("out of memory!\n");
- 		return -ENOMEM;
- 	}
-@@ -1373,7 +1373,7 @@ static int zr364xx_board_init(struct zr364xx_camera *cam)
- 		DBG("valloc %p, idx %lu, pdata %p\n",
- 			&cam->buffer.frame[i], i,
- 			cam->buffer.frame[i].lpvbits);
--		if (cam->buffer.frame[i].lpvbits == NULL) {
-+		if (!cam->buffer.frame[i].lpvbits) {
- 			printk(KERN_INFO KBUILD_MODNAME ": out of memory. Using less frames\n");
- 			break;
- 		}
--- 
-2.14.1
+A simple "CSID (CSI Decoder) Module" is enough. Just so the reader knows what
+it is all about.
+
+Otherwise I don't have any more comments about this series.
+
+I don't need a v5 for this, if you can just post one patch for this documentation
+and one patch improving the source comments as described above, then that's
+fine with me.
+
+Regards,
+
+	Hans
+
+> +
+> +
+> +Supported functionality
+> +-----------------------
+> +
+> +The current version of the driver supports:
+> +
+> +- input from camera sensor via CSIPHY;
+> +- generation of test input data by the TG in CSID;
+> +- raw dump of the input data to memory. RDI interface of VFE is supported.
+> +  PIX interface (ISP processing, statistics engines, resize/crop, format
+> +  conversion) is not supported in the current version;
+> +- concurrent and independent usage of two data inputs - could be camera sensors
+> +  and/or TG.
+> +
+> +
+> +Driver Architecture and Design
+> +------------------------------
+> +
+> +The driver implements the V4L2 subdev interface. With the goal to model the
+> +hardware links between the modules and to expose a clean, logical and usable
+> +interface, the driver is split into V4L2 sub-devices as follows:
+> +
+> +- 2 CSIPHY sub-devices - each CSIPHY is represented by a single sub-device;
+> +- 2 CSID sub-devices - each CSID is represented by a single sub-device;
+> +- 2 ISPIF sub-devices - ISPIF is represented by a number of sub-devices equal
+> +  to the number of CSID sub-devices;
+> +- 3 VFE sub-devices - VFE is represented by a number of sub-devices equal to
+> +  the number of RDI input interfaces.
+> +
+> +The considerations to split the driver in this particular way are as follows:
+> +
+> +- representing CSIPHY and CSID modules by a separate sub-device for each module
+> +  allows to model the hardware links between these modules;
+> +- representing VFE by a separate sub-devices for each RDI input interface allows
+> +  to use the three RDI interfaces concurently and independently as this is
+> +  supported by the hardware;
+> +- representing ISPIF by a number of sub-devices equal to the number of CSID
+> +  sub-devices allows to create linear media controller pipelines when using two
+> +  cameras simultaneously. This avoids branches in the pipelines which otherwise
+> +  will require a) userspace and b) media framework (e.g. power on/off
+> +  operations) to  make assumptions about the data flow from a sink pad to a
+> +  source pad on a single media entity.
+> +
+> +Each VFE sub-device is linked to a separate video device node.
+> +
+> +The complete list of the media entities (V4L2 sub-devices and video device
+> +nodes) is as follows:
+> +
+> +- msm_csiphy0
+> +- msm_csiphy1
+> +- msm_csid0
+> +- msm_csid1
+> +- msm_ispif0
+> +- msm_ispif1
+> +- msm_vfe0_rdi0
+> +- msm_vfe0_video0
+> +- msm_vfe0_rdi1
+> +- msm_vfe0_video1
+> +- msm_vfe0_rdi2
+> +- msm_vfe0_video2
+> +
+> +
+> +Implementation
+> +--------------
+> +
+> +Runtime configuration of the hardware (updating settings while streaming) is
+> +not required to implement the currently supported functionality. The complete
+> +configuration on each hardware module is applied on STREAMON ioctl based on
+> +the current active media links, formats and controls set.
+> +
+> +
+> +Documentation
+> +-------------
+> +
+> +APQ8016 Specification:
+> +https://developer.qualcomm.com/download/sd410/snapdragon-410-processor-device-specification.pdf
+> +Referenced 2016-11-24.
+> +
+> +
+> +References
+> +----------
+> +
+> +.. [#f1] https://source.codeaurora.org/quic/la/kernel/msm-3.10/
+> 
