@@ -1,58 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:53914 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751409AbdH3QKs (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:39515 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750739AbdHRHnI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Aug 2017 12:10:48 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 2/5] cec-ioc-dqevent.rst: document new CEC_EVENT_PIN_HPD_LOW/HIGH events
-Date: Wed, 30 Aug 2017 18:10:41 +0200
-Message-Id: <20170830161044.26571-3-hverkuil@xs4all.nl>
-In-Reply-To: <20170830161044.26571-1-hverkuil@xs4all.nl>
-References: <20170830161044.26571-1-hverkuil@xs4all.nl>
+        Fri, 18 Aug 2017 03:43:08 -0400
+Message-ID: <1503042183.7730.1.camel@pengutronix.de>
+Subject: Re: [PATCH] [media] coda/imx-vdoa: Check for
+ platform_get_resource() error
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: mchehab@kernel.org, hansverk@cisco.com,
+        linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>
+Date: Fri, 18 Aug 2017 09:43:03 +0200
+In-Reply-To: <1502928847-10464-1-git-send-email-festevam@gmail.com>
+References: <1502928847-10464-1-git-send-email-festevam@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Fabio,
 
-Document these new CEC events.
+On Wed, 2017-08-16 at 21:14 -0300, Fabio Estevam wrote:
+> > From: Fabio Estevam <fabio.estevam@nxp.com>
+> 
+> platform_get_resource() may fail and in this case a NULL dereference
+> will occur.
+> 
+> Prevent this from happening by returning an error on
+> platform_get_resource() failure. 
+> 
+> Fixes: b0444f18e0b18abce ("[media] coda: add i.MX6 VDOA driver")
+> > Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
+> ---
+>  drivers/media/platform/coda/imx-vdoa.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/media/platform/coda/imx-vdoa.c b/drivers/media/platform/coda/imx-vdoa.c
+> index df9b716..8eb3e0c 100644
+> --- a/drivers/media/platform/coda/imx-vdoa.c
+> +++ b/drivers/media/platform/coda/imx-vdoa.c
+> @@ -314,6 +314,8 @@ static int vdoa_probe(struct platform_device *pdev)
+> >  		return PTR_ERR(vdoa->regs);
+>  
+> >  	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+> > +	if (!res)
+> > +		return -EINVAL;
+> >  	vdoa->irq = devm_request_threaded_irq(&pdev->dev, res->start, NULL,
+> >  					vdoa_irq_handler, IRQF_ONESHOT,
+> >  					"vdoa", vdoa);
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/media/uapi/cec/cec-ioc-dqevent.rst | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+Thank you for the fix! I think it would be better to replace
+platform_get_resource with platform_get_irq. Either way,
 
-diff --git a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-index db615e3405c0..32b47763f5a6 100644
---- a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-@@ -160,6 +160,24 @@ it is guaranteed that the state did change in between the two events.
-       - Generated if the CEC pin goes from a low voltage to a high voltage.
-         Only applies to adapters that have the ``CEC_CAP_MONITOR_PIN``
- 	capability set.
-+    * .. _`CEC-EVENT-PIN-HPD-LOW`:
-+
-+      - ``CEC_EVENT_PIN_HPD_LOW``
-+      - 5
-+      - Generated if the HPD pin goes from a high voltage to a low voltage.
-+        Only applies to adapters that have the ``CEC_CAP_MONITOR_PIN``
-+	capability set. When open() is called, the HPD pin can be read and
-+	the HPD is low, then an initial event will be generated for that
-+	filehandle.
-+    * .. _`CEC-EVENT-PIN-HPD-HIGH`:
-+
-+      - ``CEC_EVENT_PIN_HPD_HIGH``
-+      - 6
-+      - Generated if the HPD pin goes from a low voltage to a high voltage.
-+        Only applies to adapters that have the ``CEC_CAP_MONITOR_PIN``
-+	capability set. When open() is called, the HPD pin can be read and
-+	the HPD is high, then an initial event will be generated for that
-+	filehandle.
- 
- 
- .. tabularcolumns:: |p{6.0cm}|p{0.6cm}|p{10.9cm}|
--- 
-2.14.1
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+regards
+Philipp
