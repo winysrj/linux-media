@@ -1,70 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58250
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751286AbdH1MyK (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51676 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751264AbdHRLXU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Aug 2017 08:54:10 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v5 5/7] media: open.rst: Adjust some terms to match the glossary
-Date: Mon, 28 Aug 2017 09:53:59 -0300
-Message-Id: <e173f9d7a787511e6ee46cec702ab98963a10af0.1503924361.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503924361.git.mchehab@s-opensource.com>
-References: <cover.1503924361.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503924361.git.mchehab@s-opensource.com>
-References: <cover.1503924361.git.mchehab@s-opensource.com>
+        Fri, 18 Aug 2017 07:23:20 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
+Subject: [PATCH v3 3/3] v4l: fwnode: Support generic parsing of graph endpoints in a single port
+Date: Fri, 18 Aug 2017 14:23:17 +0300
+Message-Id: <20170818112317.30933-4-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170818112317.30933-1-sakari.ailus@linux.intel.com>
+References: <20170818112317.30933-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we now have a glossary, some terms used on open.rst
-require adjustments.
+This is the preferred way to parse the endpoints.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/media/uapi/v4l/open.rst | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/media/v4l2-core/v4l2-fwnode.c | 51 +++++++++++++++++++++++++++++++++++
+ include/media/v4l2-fwnode.h           |  7 +++++
+ 2 files changed, 58 insertions(+)
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index 21b8f7c5ca55..2575b6aea029 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -138,7 +138,7 @@ Related Devices
- Devices can support several functions. For example video capturing, VBI
- capturing and radio support.
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index cb0fc4b4e3bf..961bcdf22d9a 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -508,6 +508,57 @@ int v4l2_fwnode_endpoints_parse(
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoints_parse);
  
--The V4L2 API creates different nodes for each of these functions.
-+The V4L2 API creates different V4L2 device nodes for each of these functions.
++/**
++ * v4l2_fwnode_endpoint_parse - Parse V4L2 fwnode endpoints in a port node
++ * @dev: local struct device
++ * @notifier: async notifier related to @dev
++ * @port: port number
++ * @endpoint: endpoint number
++ * @asd_struct_size: size of the driver's async sub-device struct, including
++ *		     sizeof(struct v4l2_async_subdev)
++ * @parse_single: driver's callback function called on each V4L2 fwnode endpoint
++ *
++ * Parse all V4L2 fwnode endpoints related to a given port. This is
++ * the preferred interface over v4l2_fwnode_endpoints_parse() and
++ * should be used by new drivers.
++ */
++int v4l2_fwnode_endpoint_parse_port(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	unsigned int port, unsigned int endpoint, size_t asd_struct_size,
++	int (*parse_single)(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd))
++{
++	struct fwnode_handle *fwnode;
++	struct v4l2_async_subdev *asd;
++	int ret;
++
++	fwnode = fwnode_graph_get_remote_node(dev_fwnode(dev), port, endpoint);
++	if (!fwnode)
++		return -ENOENT;
++
++	asd = devm_kzalloc(dev, asd_struct_size, GFP_KERNEL);
++	if (!asd)
++		return -ENOMEM;
++
++	ret = notifier_realloc(dev, notifier, notifier->num_subdevs + 1);
++	if (ret)
++		goto out_free;
++
++	ret = __v4l2_fwnode_endpoint_parse(dev, notifier, fwnode, asd,
++					   parse_single);
++	if (ret)
++		goto out_free;
++
++	return 0;
++
++out_free:
++	devm_kfree(dev, asd);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_parse_port);
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index c75a768d4ef7..5adf28e7b070 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -131,4 +131,11 @@ int v4l2_fwnode_endpoints_parse(
+ 			    struct v4l2_fwnode_endpoint *vep,
+ 			    struct v4l2_async_subdev *asd));
  
- The V4L2 API was designed with the idea that one device node could
- support all functions. However, in practice this never worked: this
-@@ -148,17 +148,17 @@ switching a device node between different functions only works when
- using the streaming I/O API, not with the
- :ref:`read() <func-read>`/\ :ref:`write() <func-write>` API.
- 
--Today each device node supports just one function.
-+Today each V4L2 device node supports just one function.
- 
- Besides video input or output the hardware may also support audio
- sampling or playback. If so, these functions are implemented as ALSA PCM
- devices with optional ALSA audio mixer devices.
- 
- One problem with all these devices is that the V4L2 API makes no
--provisions to find these related devices. Some really complex devices
--use the Media Controller (see :ref:`media_controller`) which can be
--used for this purpose. But most drivers do not use it, and while some
--code exists that uses sysfs to discover related devices (see
-+provisions to find these related V4L2 device nodes. Some really complex
-+hardware use the Media Controller (see :ref:`media_controller`) which can
-+be used for this purpose. But several drivers do not use it, and while some
-+code exists that uses sysfs to discover related V4L2 device nodes (see
- libmedia_dev in the
- `v4l-utils <http://git.linuxtv.org/cgit.cgi/v4l-utils.git/>`__ git
- repository), there is no library yet that can provide a single API
++int v4l2_fwnode_endpoint_parse_port(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	unsigned int port, unsigned int endpoint, size_t asd_struct_size,
++	int (*parse_single)(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd));
++
+ #endif /* _V4L2_FWNODE_H */
 -- 
-2.13.5
+2.11.0
