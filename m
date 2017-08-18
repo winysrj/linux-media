@@ -1,110 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f195.google.com ([209.85.220.195]:37887 "EHLO
-        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752936AbdHGLGS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Aug 2017 07:06:18 -0400
+Received: from galahad.ideasonboard.com ([185.26.127.97]:60899 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751077AbdHRJQT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 Aug 2017 05:16:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Rohit Athavale <rohit.athavale@xilinx.com>
+Cc: linux-media@vger.kernel.org, hyun.kwon@xilinx.com,
+        Rohit Athavale <rathaval@xilinx.com>
+Subject: Re: [PATCH 2/3] media: xilinx-vip: Add 8-bit YCbCr 4:2:0 to formats table
+Date: Fri, 18 Aug 2017 12:16:44 +0300
+Message-ID: <4081123.eIeaFnY7EH@avalon>
+In-Reply-To: <1502303274-40609-3-git-send-email-rathaval@xilinx.com>
+References: <1502303274-40609-1-git-send-email-rathaval@xilinx.com> <1502303274-40609-3-git-send-email-rathaval@xilinx.com>
 MIME-Version: 1.0
-In-Reply-To: <1502093851.2490.4.camel@pengutronix.de>
-References: <1500950041-5449-1-git-send-email-jacob-chen@iotwrt.com>
- <CAFLEztQHYWAk39+gQCD0XkKPVqmUY5kPZydWgw8+zu53+D2_pA@mail.gmail.com> <1502093851.2490.4.camel@pengutronix.de>
-From: Jacob Chen <jacobchen110@gmail.com>
-Date: Mon, 7 Aug 2017 19:06:17 +0800
-Message-ID: <CAFLEztQcCijnmkp_r3-gy2ptM0b+WFEw4Sf1MeiatJbvnKqA8A@mail.gmail.com>
-Subject: Re: [PATCH] media: i2c: OV5647: gate clock lane before stream on
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-        linux-kernel@vger.kernel.org, roliveir@synopsys.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        vladimir_zapolskiy@mentor.com,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        sakari.ailus@linux.intel.com, slongerbeam@gmail.com,
-        robh+dt@kernel.org, lolivei@synopsys.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+Hi Rohit,
 
-2017-08-07 16:17 GMT+08:00 Philipp Zabel <p.zabel@pengutronix.de>:
-> Hi Jacob,
->
-> On Mon, 2017-08-07 at 15:11 +0800, Jacob Chen wrote:
->> Hi all,
->>
->> 2017-07-25 10:34 GMT+08:00 Jacob Chen <jacob-chen@iotwrt.com>:
->> > According to datasheet, BIT5 in reg-0x4800 are used to
->> > enable/disable clock lane gate.
->> >
->> > It's wrong to make clock lane free running before
->> > sensor stream on was called, while the mipi phy
->> > are not initialized.
->> >
->> > Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
->>>
->> > ---
->> >  drivers/media/i2c/ov5647.c | 10 +++++++++-
->> >  1 file changed, 9 insertions(+), 1 deletion(-)
->> >
->> > diff --git a/drivers/media/i2c/ov5647.c b/drivers/media/i2c/ov5647.c
->> > index 95ce90f..d3e6fd0 100644
->> > --- a/drivers/media/i2c/ov5647.c
->> > +++ b/drivers/media/i2c/ov5647.c
->> > @@ -253,6 +253,10 @@ static int ov5647_stream_on(struct v4l2_subdev *sd)
->> >  {
->> >         int ret;
->> >
->> > +       ret = ov5647_write(sd, 0x4800, 0x04);
->> > +       if (ret < 0)
->> > +               return ret;
->> > +
->> >         ret = ov5647_write(sd, 0x4202, 0x00);
->> >         if (ret < 0)
->> >                 return ret;
->> > @@ -264,6 +268,10 @@ static int ov5647_stream_off(struct v4l2_subdev *sd)
->> >  {
->> >         int ret;
->> >
->> > +       ret = ov5647_write(sd, 0x4800, 0x25);
->> > +       if (ret < 0)
->> > +               return ret;
->> > +
->> >         ret = ov5647_write(sd, 0x4202, 0x0f);
->> >         if (ret < 0)
->> >                 return ret;
->> > @@ -320,7 +328,7 @@ static int __sensor_init(struct v4l2_subdev *sd)
->> >                         return ret;
->> >         }
->> >
->> > -       return ov5647_write(sd, 0x4800, 0x04);
->> > +       return ov5647_stream_off(sd);
->> >  }
->> >
->> >  static int ov5647_sensor_power(struct v4l2_subdev *sd, int on)
->> > --
->> > 2.7.4
->> >
->>
->> Can anyone comment on it?
->>
->> I saw there is a same discussion in  https://patchwork.kernel.org/patch/9569031/
->> There is a comment in i.MX CSI2 driver.
->> "
->> Configure MIPI Camera Sensor to put all Tx lanes in LP-11 state.
->> This must be carried out by the MIPI sensor's s_power(ON) subdev
->> op.
->> "
->> That's what this patch do, sensor driver should make sure that clock
->> lanes are in stop state while not streaming.
->
-> This is not the same, as far as I can tell. BIT(5) is just clock lane
-> gating, as you describe above. To put the bus into LP-11 state, BIT(2)
-> needs to be set.
->
+Thank you for the patch.
 
-Yeah, but i double that clock lane is not in LP11 when continue clock
-mode is enabled.
+On Wednesday 09 Aug 2017 11:27:53 Rohit Athavale wrote:
+> Add Xilinx YCbCr 4:2:0 to xvip formats table. This commit
+> will allow driver to setup media pad codes to YUV 420
+> via DT properties.
+> 
+> Signed-off-by: Rohit Athavale <rathaval@xilinx.com>
+> ---
+>  drivers/media/platform/xilinx/xilinx-vip.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/platform/xilinx/xilinx-vip.c
+> b/drivers/media/platform/xilinx/xilinx-vip.c index 3112591..37b80bf 100644
+> --- a/drivers/media/platform/xilinx/xilinx-vip.c
+> +++ b/drivers/media/platform/xilinx/xilinx-vip.c
+> @@ -15,6 +15,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/export.h>
+>  #include <linux/kernel.h>
+> +#include <linux/media-bus-format.h>
 
-> regards
-> Philipp
->
+I'm pretty sure the file is included indirectly already, so this isn't 
+strictly needed, but it shouldn't hurt either.
+
+>  #include <linux/of.h>
+>  #include <linux/platform_device.h>
+> 
+> @@ -27,6 +28,8 @@
+>   */
+> 
+>  static const struct xvip_video_format xvip_video_formats[] = {
+> +	{ XVIP_VF_YUV_420, 8, NULL, MEDIA_BUS_FMT_XLNX8_VUY420_1X24,
+> +	  2, V4L2_PIX_FMT_NV12, "4:2:0, semi-planar, YUYV" },
+
+You're mapping XVIP_VF_YUV_420 to V4L2_PIX_FMT_NV12 which has an average bpp 
+of 1.5 bytes per pixel, but you're setting bpp to 2. How does that work ? You 
+obviously can't express a 1.5 bpp currently in the driver, so we might need to 
+extend the xvip_video_format structure with additional fields (for instance 
+turning bytes per pixel into bits per pixel, but we might need per-plane 
+information too).
+
+On a side note, how does this work with VDMA ? The latest VDMA version I 
+checked (v6.2, a while ago) didn't seem to support planar formats. Has it 
+changed in more recent versions ? Doesn't it require changes in the xilinx-vip 
+driver ?
+
+>  	{ XVIP_VF_YUV_422, 8, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
+>  	  2, V4L2_PIX_FMT_YUYV, "4:2:2, packed, YUYV" },
+>  	{ XVIP_VF_YUV_444, 8, NULL, MEDIA_BUS_FMT_VUY8_1X24,
+
+-- 
+Regards,
+
+Laurent Pinchart
