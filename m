@@ -1,36 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0249.hostedemail.com ([216.40.44.249]:40071 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751142AbdHBILJ (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:36158 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753089AbdHRNjF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 Aug 2017 04:11:09 -0400
-Message-ID: <1501661466.31625.3.camel@perches.com>
-Subject: Re: [PATCH] media: staging: atomisp: sh_css_calloc shall return a
- pointer to the allocated space
-From: Joe Perches <joe@perches.com>
-To: "Sergei A. Trusov" <sergei.a.trusov@ya.ru>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@llwyncelyn.cymru>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        simran singhal <singhalsimran0@gmail.com>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Date: Wed, 02 Aug 2017 01:11:06 -0700
-In-Reply-To: <1859135.Zd3QESt5CR@z12>
-References: <1859135.Zd3QESt5CR@z12>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
+        Fri, 18 Aug 2017 09:39:05 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.14] vsp1: partition algorithm improvements
+Message-ID: <07633676-7473-fe6d-64e3-52b60e5be883@xs4all.nl>
+Date: Fri, 18 Aug 2017 15:39:00 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2017-08-02 at 18:00 +1000, Sergei A. Trusov wrote:
-> The calloc function returns either a null pointer or a pointer to the
-> allocated space. Add the second case that is missed.
+Note from Laurent: the series merges cleanly with Dave's drm-next branch
+(git://people.freedesktop.org/~airlied/linux) that contains a large series of
+VSP patches. There should thus be no merge conflict (at least none that git
+won't solve automatically) when merging upstream.
 
-gads.
+Regards,
 
-Bug added by commit da22013f7df4 ("atomisp: remove indirection from
-sh_css_malloc")
+	Hans
 
-These wrappers should really be deleted.
+The following changes since commit ec0c3ec497cabbf3bfa03a9eb5edcc252190a4e0:
+
+  media: ddbridge: split code into multiple files (2017-08-09 12:17:01 -0400)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git vsp1
+
+for you to fetch changes up to 8ced9b7523eb503a3271bbfbc41451455fea7d0c:
+
+  v4l: vsp1: Allow entities to participate in the partition algorithm (2017-08-18 15:05:26 +0200)
+
+----------------------------------------------------------------
+Kieran Bingham (7):
+      v4l: vsp1: Release buffers in start_streaming error path
+      v4l: vsp1: Move vsp1_video_pipeline_setup_partitions() function
+      v4l: vsp1: Calculate partition sizes at stream start
+      v4l: vsp1: Remove redundant context variables
+      v4l: vsp1: Move partition rectangles to struct and operate directly
+      v4l: vsp1: Provide UDS register updates
+      v4l: vsp1: Allow entities to participate in the partition algorithm
+
+ drivers/media/platform/vsp1/vsp1_entity.h |   7 +++
+ drivers/media/platform/vsp1/vsp1_pipe.c   |  22 ++++++++
+ drivers/media/platform/vsp1/vsp1_pipe.h   |  46 +++++++++++++++--
+ drivers/media/platform/vsp1/vsp1_regs.h   |  14 ++++++
+ drivers/media/platform/vsp1/vsp1_rpf.c    |  27 +++++-----
+ drivers/media/platform/vsp1/vsp1_sru.c    |  26 ++++++++++
+ drivers/media/platform/vsp1/vsp1_uds.c    |  57 ++++++++++++++++++---
+ drivers/media/platform/vsp1/vsp1_video.c  | 182 +++++++++++++++++++++++++++++++++++++-----------------------------
+ drivers/media/platform/vsp1/vsp1_wpf.c    |  24 ++++++---
+ 9 files changed, 289 insertions(+), 116 deletions(-)
