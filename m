@@ -1,151 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:34106 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751588AbdHPINH (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50568 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750812AbdHRJZm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Aug 2017 04:13:07 -0400
-Date: Wed, 16 Aug 2017 10:13:05 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 1/1] et8ek8: Decrease stack usage
-Message-ID: <20170816081305.GA19601@amd>
-References: <1502868825-4531-1-git-send-email-sakari.ailus@linux.intel.com>
+        Fri, 18 Aug 2017 05:25:42 -0400
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id E2C2360111
+        for <linux-media@vger.kernel.org>; Fri, 18 Aug 2017 12:25:40 +0300 (EEST)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakke@valkosipuli.retiisi.org.uk>)
+        id 1didXA-0007jO-CO
+        for linux-media@vger.kernel.org; Fri, 18 Aug 2017 12:25:40 +0300
+Date: Fri, 18 Aug 2017 12:25:40 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.14] More sensor driver patches
+Message-ID: <20170818092539.qrnnhoezklaert3q@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="d6Gm4EdcadzBjdND"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1502868825-4531-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
---d6Gm4EdcadzBjdND
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Here are more sensor driver patches for 4.14.
 
-On Wed 2017-08-16 10:33:45, Sakari Ailus wrote:
-> The et8ek8 driver combines I=B2C register writes to a single array that it
-> passes to i2c_transfer(). The maximum number of writes is 48 at once,
-> decrease it to 8 and make more transfers if needed, thus avoiding a
-> warning on stack usage.
-
-Dunno. Slowing down code to save stack does not sound attractive.
-
-What about this one? Way simpler, too... (Unless there's some rule
-about i2c, DMA and static buffers. Is it?)
-
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
- (untested)
-								Pavel
-
-diff --git a/drivers/media/i2c/et8ek8/et8ek8_driver.c b/drivers/media/i2c/e=
-t8ek8/et8ek8_driver.c
-index f39f517..64da731 100644
---- a/drivers/media/i2c/et8ek8/et8ek8_driver.c
-+++ b/drivers/media/i2c/et8ek8/et8ek8_driver.c
-@@ -227,7 +227,7 @@ static int et8ek8_i2c_buffered_write_regs(struct i2c_cl=
-ient *client,
- 					  int cnt)
- {
- 	struct i2c_msg msg[ET8EK8_MAX_MSG];
--	unsigned char data[ET8EK8_MAX_MSG][6];
-+	static unsigned char data[ET8EK8_MAX_MSG][6];
- 	int wcnt =3D 0;
- 	u16 reg, data_length;
- 	u32 val;
+Please pull.
 
 
+The following changes since commit ec0c3ec497cabbf3bfa03a9eb5edcc252190a4e0:
 
-> ---
-> Pavel: this is just compile tested. Could you test it on N900, please?
->=20
->  drivers/media/i2c/et8ek8/et8ek8_driver.c | 26 +++++++++++++++++---------
->  1 file changed, 17 insertions(+), 9 deletions(-)
->=20
-> diff --git a/drivers/media/i2c/et8ek8/et8ek8_driver.c b/drivers/media/i2c=
-/et8ek8/et8ek8_driver.c
-> index f39f517..c14f0fd 100644
-> --- a/drivers/media/i2c/et8ek8/et8ek8_driver.c
-> +++ b/drivers/media/i2c/et8ek8/et8ek8_driver.c
-> @@ -43,7 +43,7 @@
-> =20
->  #define ET8EK8_NAME		"et8ek8"
->  #define ET8EK8_PRIV_MEM_SIZE	128
-> -#define ET8EK8_MAX_MSG		48
-> +#define ET8EK8_MAX_MSG		8
-> =20
->  struct et8ek8_sensor {
->  	struct v4l2_subdev subdev;
-> @@ -220,7 +220,8 @@ static void et8ek8_i2c_create_msg(struct i2c_client *=
-client, u16 len, u16 reg,
-> =20
->  /*
->   * A buffered write method that puts the wanted register write
-> - * commands in a message list and passes the list to the i2c framework
-> + * commands in smaller number of message lists and passes the lists to
-> + * the i2c framework
->   */
->  static int et8ek8_i2c_buffered_write_regs(struct i2c_client *client,
->  					  const struct et8ek8_reg *wnext,
-> @@ -231,11 +232,7 @@ static int et8ek8_i2c_buffered_write_regs(struct i2c=
-_client *client,
->  	int wcnt =3D 0;
->  	u16 reg, data_length;
->  	u32 val;
-> -
-> -	if (WARN_ONCE(cnt > ET8EK8_MAX_MSG,
-> -		      ET8EK8_NAME ": %s: too many messages.\n", __func__)) {
-> -		return -EINVAL;
-> -	}
-> +	int rval;
-> =20
->  	/* Create new write messages for all writes */
->  	while (wcnt < cnt) {
-> @@ -249,10 +246,21 @@ static int et8ek8_i2c_buffered_write_regs(struct i2=
-c_client *client,
-> =20
->  		/* Update write count */
->  		wcnt++;
-> +
-> +		if (wcnt < ET8EK8_MAX_MSG)
-> +			continue;
-> +
-> +		rval =3D i2c_transfer(client->adapter, msg, wcnt);
-> +		if (rval < 0)
-> +			return rval;
-> +
-> +		cnt -=3D wcnt;
-> +		wcnt =3D 0;
->  	}
-> =20
-> -	/* Now we send everything ... */
-> -	return i2c_transfer(client->adapter, msg, wcnt);
-> +	rval =3D i2c_transfer(client->adapter, msg, wcnt);
-> +
-> +	return rval < 0 ? rval : 0;
->  }
-> =20
->  /*
+  media: ddbridge: split code into multiple files (2017-08-09 12:17:01 -0400)
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+are available in the git repository at:
 
---d6Gm4EdcadzBjdND
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+  ssh://linuxtv.org/git/sailus/media_tree.git for-4.14-4
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+for you to fetch changes up to 0a1405339595edaaf165988b313683b1c1c90fdb:
 
-iEYEARECAAYFAlmT/pEACgkQMOfwapXb+vL9SgCeINMAOoL9gtZv7J+0SpwtgJmy
-K+wAniZKkYEfFsrf/j0eje6ouFC5zPSn
-=7UgL
------END PGP SIGNATURE-----
+  media: ov13858: Limit vblank to permissible range (2017-08-18 11:42:04 +0300)
 
---d6Gm4EdcadzBjdND--
+----------------------------------------------------------------
+Chiranjeevi Rapolu (3):
+      media: ov5670: Fix incorrect frame timing reported to user
+      media: ov5670: Limit vblank to permissible range
+      media: ov13858: Limit vblank to permissible range
+
+Julia Lawall (2):
+      v4l: mt9t001: constify video_subdev structures
+      media: mt9m111: constify video_subdev structures
+
+Sakari Ailus (1):
+      et8ek8: Decrease stack usage
+
+ drivers/media/i2c/et8ek8/et8ek8_driver.c | 26 ++++++----
+ drivers/media/i2c/mt9m111.c              |  6 +--
+ drivers/media/i2c/mt9t001.c              |  8 +--
+ drivers/media/i2c/ov13858.c              | 35 ++++++++-----
+ drivers/media/i2c/ov5670.c               | 85 ++++++++++++++++++--------------
+ 5 files changed, 96 insertions(+), 64 deletions(-)
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
