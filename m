@@ -1,63 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57144
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750841AbdHKAQ6 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:60906 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750877AbdHRJQu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Aug 2017 20:16:58 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/3] media: v4l2-ctrls.h: better document the arguments for v4l2_ctrl_fill
-Date: Thu, 10 Aug 2017 21:16:50 -0300
-Message-Id: <f6ac7366e711649241bb77aff997d6815d6c063e.1502409182.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1502409182.git.mchehab@s-opensource.com>
-References: <f7340d67-cf7c-3407-e59a-aa0261185e82@xs4all.nl>
- <cover.1502409182.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1502409182.git.mchehab@s-opensource.com>
-References: <cover.1502409182.git.mchehab@s-opensource.com>
+        Fri, 18 Aug 2017 05:16:50 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Rohit Athavale <rohit.athavale@xilinx.com>
+Cc: linux-media@vger.kernel.org, hyun.kwon@xilinx.com,
+        Rohit Athavale <rathaval@xilinx.com>
+Subject: Re: [PATCH 1/3] uapi: media-bus-format: Add Xilinx specific YCbCr 4:2:0 media bus format
+Date: Fri, 18 Aug 2017 12:17:16 +0300
+Message-ID: <214739951.lpc3CT9Zau@avalon>
+In-Reply-To: <1502303274-40609-2-git-send-email-rathaval@xilinx.com>
+References: <1502303274-40609-1-git-send-email-rathaval@xilinx.com> <1502303274-40609-2-git-send-email-rathaval@xilinx.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The arguments for this function are pointers. Make it clear at
-its documentation.
+Hi Rohit,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- include/media/v4l2-ctrls.h | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+Thank you for the patch.
 
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 2d2aed56922f..6ba30acf06aa 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -339,18 +339,18 @@ struct v4l2_ctrl_config {
- /**
-  * v4l2_ctrl_fill - Fill in the control fields based on the control ID.
-  *
-- * @id: ID of the control
-- * @name: name of the control
-- * @type: type of the control
-- * @min: minimum value for the control
-- * @max: maximum value for the control
-- * @step: control step
-- * @def: default value for the control
-- * @flags: flags to be used on the control
-+ * @id: pointer for storing the ID of the control
-+ * @name: pointer for storing the name of the control
-+ * @type: pointer for storing the type of the control
-+ * @min: pointer for storing the minimum value for the control
-+ * @max: pointer for storing the maximum value for the control
-+ * @step: pointer for storing the control step
-+ * @def: pointer for storing the default value for the control
-+ * @flags: pointer for storing the flags to be used on the control
-  *
-  * This works for all standard V4L2 controls.
-  * For non-standard controls it will only fill in the given arguments
-- * and @name will be %NULL.
-+ * and @name content will be filled with %NULL.
-  *
-  * This function will overwrite the contents of @name, @type and @flags.
-  * The contents of @min, @max, @step and @def may be modified depending on
+On Wednesday 09 Aug 2017 11:27:52 Rohit Athavale wrote:
+> This commit adds Xilinx Video IP specific 8-bit color depth YCbCr 4:2:0
+> to the media bus format uapi.
+> 
+> Signed-off-by: Rohit Athavale <rathaval@xilinx.com>
+> ---
+>  include/uapi/linux/media-bus-format.h | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/uapi/linux/media-bus-format.h
+> b/include/uapi/linux/media-bus-format.h index ef6fb30..6f65607 100644
+> --- a/include/uapi/linux/media-bus-format.h
+> +++ b/include/uapi/linux/media-bus-format.h
+> @@ -143,10 +143,12 @@
+>  /* JPEG compressed formats - next is	0x4002 */
+>  #define MEDIA_BUS_FMT_JPEG_1X8			0x4001
+> 
+> -/* Vendor specific formats - next is	0x5002 */
+> +/* Vendor specific formats - next is	0x5003 */
+> 
+>  /* S5C73M3 sensor specific interleaved UYVY and JPEG */
+>  #define MEDIA_BUS_FMT_S5C_UYVY_JPEG_1X8		0x5001
+> +/* Xilinx IP Specific 8-bit YCbCr 4:2:0 */
+> +#define MEDIA_BUS_FMT_XLNX8_VUY420_1X24		0x5002
+
+Is this really a Xilinx-specific format ? I think it would make sense to 
+define it as a standard YUV format.
+
+>  /* HSV - next is	0x6002 */
+>  #define MEDIA_BUS_FMT_AHSV8888_1X32		0x6001
+
 -- 
-2.13.3
+Regards,
+
+Laurent Pinchart
