@@ -1,72 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:46357
-        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752490AbdHDMfS (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51656 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751243AbdHRLXU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 Aug 2017 08:35:18 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 4/5] [media] tm6000: constify videobuf_queue_ops structures
-Date: Fri,  4 Aug 2017 14:09:47 +0200
-Message-Id: <1501848588-22628-5-git-send-email-Julia.Lawall@lip6.fr>
-In-Reply-To: <1501848588-22628-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1501848588-22628-1-git-send-email-Julia.Lawall@lip6.fr>
+        Fri, 18 Aug 2017 07:23:20 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
+Subject: [PATCH v3 1/3] omap3isp: Drop redundant isp->subdevs field and ISP_MAX_SUBDEVS
+Date: Fri, 18 Aug 2017 14:23:15 +0300
+Message-Id: <20170818112317.30933-2-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170818112317.30933-1-sakari.ailus@linux.intel.com>
+References: <20170818112317.30933-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These videobuf_queue_ops structures are only passed as the second
-argument to videobuf_queue_vmalloc_init, which is declared as const.
-Thus the videobuf_queue_ops structures themselves can be const.
+struct omap3isp.subdevs field and ISP_MAX_SUBDEVS macro are both unused.
+Remove them.
 
-Done with the help of Coccinelle.
-
-// <smpl>
-@r disable optional_qualifier@
-identifier i;
-position p;
-@@
-static struct videobuf_queue_ops i@p = { ... };
-
-@ok1@
-identifier r.i;
-expression e1;
-position p;
-@@
-videobuf_queue_vmalloc_init(e1,&i@p,...)
-
-@bad@
-position p != {r.p,ok1.p};
-identifier r.i;
-struct videobuf_queue_ops e;
-@@
-e@i@p
-
-@depends on !bad disable optional_qualifier@
-identifier r.i;
-@@
-static
-+const
- struct videobuf_queue_ops i = { ... };
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/usb/tm6000/tm6000-video.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/omap3isp/isp.h | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
-index cec1321..ec8c4d2 100644
---- a/drivers/media/usb/tm6000/tm6000-video.c
-+++ b/drivers/media/usb/tm6000/tm6000-video.c
-@@ -801,7 +801,7 @@ static void buffer_release(struct videobuf_queue *vq, struct videobuf_buffer *vb
- 	free_buffer(vq, buf);
- }
+diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+index e528df6efc09..848cd96b67ca 100644
+--- a/drivers/media/platform/omap3isp/isp.h
++++ b/drivers/media/platform/omap3isp/isp.h
+@@ -220,9 +220,6 @@ struct isp_device {
  
--static struct videobuf_queue_ops tm6000_video_qops = {
-+static const struct videobuf_queue_ops tm6000_video_qops = {
- 	.buf_setup      = buffer_setup,
- 	.buf_prepare    = buffer_prepare,
- 	.buf_queue      = buffer_queue,
+ 	unsigned int sbl_resources;
+ 	unsigned int subclk_resources;
+-
+-#define ISP_MAX_SUBDEVS		8
+-	struct v4l2_subdev *subdevs[ISP_MAX_SUBDEVS];
+ };
+ 
+ struct isp_async_subdev {
+-- 
+2.11.0
