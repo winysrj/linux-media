@@ -1,56 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:33139 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754657AbdHZKVS (ORCPT
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:38609 "EHLO
+        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753239AbdHROQd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 06:21:18 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, mchehab@kernel.org, hverkuil@xs4all.nl,
-        corbet@lwn.net, kyungmin.park@samsung.com, kamil@wypas.org,
-        a.hajda@samsung.com, bparrot@ti.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 06/10] [media]: ti-vpe:  make video_device const
-Date: Sat, 26 Aug 2017 15:50:08 +0530
-Message-Id: <1503742812-16139-7-git-send-email-bhumirks@gmail.com>
-In-Reply-To: <1503742812-16139-1-git-send-email-bhumirks@gmail.com>
-References: <1503742812-16139-1-git-send-email-bhumirks@gmail.com>
+        Fri, 18 Aug 2017 10:16:33 -0400
+Received: by mail-wm0-f43.google.com with SMTP id l19so988382wmi.1
+        for <linux-media@vger.kernel.org>; Fri, 18 Aug 2017 07:16:32 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH 1/7] media: vb2: add bidirectional flag in vb2_queue
+Date: Fri, 18 Aug 2017 17:16:00 +0300
+Message-Id: <20170818141606.4835-2-stanimir.varbanov@linaro.org>
+In-Reply-To: <20170818141606.4835-1-stanimir.varbanov@linaro.org>
+References: <20170818141606.4835-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make this const as it is only used in a copy operation.
+This change is intended to give to the v4l2 drivers a choice to
+change the default behavior of the v4l2-core DMA mapping direction
+from DMA_TO/FROM_DEVICE (depending on the buffer type CAPTURE or
+OUTPUT) to DMA_BIDIRECTIONAL during queue_init time.
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+Initially the issue with DMA mapping direction has been found in
+Venus encoder driver where the hardware (firmware side) adds few
+lines padding on bottom of the image buffer, and the consequence
+is triggering of IOMMU protection faults.
+
+This will help supporting venus encoder (and probably other drivers
+in the future) which wants to map output type of buffers as
+read/write.
+
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- drivers/media/platform/ti-vpe/cal.c | 2 +-
- drivers/media/platform/ti-vpe/vpe.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 17 ++++++++---------
+ include/media/videobuf2-core.h           | 13 +++++++++++++
+ 2 files changed, 21 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
-index 0c7ddf8..42e383a 100644
---- a/drivers/media/platform/ti-vpe/cal.c
-+++ b/drivers/media/platform/ti-vpe/cal.c
-@@ -1420,7 +1420,7 @@ static void cal_stop_streaming(struct vb2_queue *vq)
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 0924594989b4..cb115ba6a1d2 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -194,8 +194,6 @@ static void __enqueue_in_driver(struct vb2_buffer *vb);
+ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+-	enum dma_data_direction dma_dir =
+-		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+ 	void *mem_priv;
+ 	int plane;
+ 	int ret = -ENOMEM;
+@@ -209,7 +207,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
  
--static struct video_device cal_videodev = {
-+static const struct video_device cal_videodev = {
- 	.name		= CAL_MODULE_NAME,
- 	.fops		= &cal_fops,
- 	.ioctl_ops	= &cal_ioctl_ops,
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 2873c22..45bd105 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -2421,7 +2421,7 @@ static int vpe_release(struct file *file)
- 	.mmap		= v4l2_m2m_fop_mmap,
- };
+ 		mem_priv = call_ptr_memop(vb, alloc,
+ 				q->alloc_devs[plane] ? : q->dev,
+-				q->dma_attrs, size, dma_dir, q->gfp_flags);
++				q->dma_attrs, size, q->dma_dir, q->gfp_flags);
+ 		if (IS_ERR_OR_NULL(mem_priv)) {
+ 			if (mem_priv)
+ 				ret = PTR_ERR(mem_priv);
+@@ -978,8 +976,6 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
+ 	void *mem_priv;
+ 	unsigned int plane;
+ 	int ret = 0;
+-	enum dma_data_direction dma_dir =
+-		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+ 	bool reacquired = vb->planes[0].mem_priv == NULL;
  
--static struct video_device vpe_videodev = {
-+static const struct video_device vpe_videodev = {
- 	.name		= VPE_MODULE_NAME,
- 	.fops		= &vpe_fops,
- 	.ioctl_ops	= &vpe_ioctl_ops,
+ 	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
+@@ -1030,7 +1026,7 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
+ 		mem_priv = call_ptr_memop(vb, get_userptr,
+ 				q->alloc_devs[plane] ? : q->dev,
+ 				planes[plane].m.userptr,
+-				planes[plane].length, dma_dir);
++				planes[plane].length, q->dma_dir);
+ 		if (IS_ERR(mem_priv)) {
+ 			dprintk(1, "failed acquiring userspace memory for plane %d\n",
+ 				plane);
+@@ -1096,8 +1092,6 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
+ 	void *mem_priv;
+ 	unsigned int plane;
+ 	int ret = 0;
+-	enum dma_data_direction dma_dir =
+-		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+ 	bool reacquired = vb->planes[0].mem_priv == NULL;
+ 
+ 	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
+@@ -1156,7 +1150,7 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
+ 		/* Acquire each plane's memory */
+ 		mem_priv = call_ptr_memop(vb, attach_dmabuf,
+ 				q->alloc_devs[plane] ? : q->dev,
+-				dbuf, planes[plane].length, dma_dir);
++				dbuf, planes[plane].length, q->dma_dir);
+ 		if (IS_ERR(mem_priv)) {
+ 			dprintk(1, "failed to attach dmabuf\n");
+ 			ret = PTR_ERR(mem_priv);
+@@ -2003,6 +1997,11 @@ int vb2_core_queue_init(struct vb2_queue *q)
+ 	if (q->buf_struct_size == 0)
+ 		q->buf_struct_size = sizeof(struct vb2_buffer);
+ 
++	if (q->bidirectional)
++		q->dma_dir = DMA_BIDIRECTIONAL;
++	else
++		q->dma_dir = q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(vb2_core_queue_init);
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index cb97c224be73..ede09fff1de8 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -427,6 +427,17 @@ struct vb2_buf_ops {
+  * @dev:	device to use for the default allocation context if the driver
+  *		doesn't fill in the @alloc_devs array.
+  * @dma_attrs:	DMA attributes to use for the DMA.
++ * @dma_dir:	DMA mapping direction.
++ * @bidirectional: when this flag is set the DMA direction for the buffers of
++ *		this queue will be overridden with DMA_BIDIRECTIONAL direction.
++ *		This is useful in cases where the hardware (firmware) writes to
++ *		a buffer which is mapped as read (DMA_TO_DEVICE), or reads from
++ *		buffer which is mapped for write (DMA_FROM_DEVICE) in order
++ *		to satisfy some internal hardware restrictions or adds a padding
++ *		needed by the processing algorithm. In case the DMA mapping is
++ *		not bidirectional but the hardware (firmware) trying to access
++ *		the buffer (in the opposite direction) this could lead to an
++ *		IOMMU protection faults.
+  * @fileio_read_once:		report EOF after reading the first buffer
+  * @fileio_write_immediately:	queue buffer after each write() call
+  * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
+@@ -495,6 +506,8 @@ struct vb2_queue {
+ 	unsigned int			io_modes;
+ 	struct device			*dev;
+ 	unsigned long			dma_attrs;
++	enum dma_data_direction		dma_dir;
++	unsigned			bidirectional:1;
+ 	unsigned			fileio_read_once:1;
+ 	unsigned			fileio_write_immediately:1;
+ 	unsigned			allow_zero_bytesused:1;
 -- 
-1.9.1
+2.11.0
