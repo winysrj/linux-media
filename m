@@ -1,109 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:55982 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752766AbdHVX2m (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54284 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751037AbdHROG2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 19:28:42 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v6 04/25] rcar-vin: move max width and height information to chip information
-Date: Wed, 23 Aug 2017 01:26:19 +0200
-Message-Id: <20170822232640.26147-5-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+        Fri, 18 Aug 2017 10:06:28 -0400
+Date: Fri, 18 Aug 2017 17:06:25 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
+Subject: Re: [PATCH v3 0/3] Unified fwnode endpoint parser
+Message-ID: <20170818140624.6tov4rgzwaxwrvqq@valkosipuli.retiisi.org.uk>
+References: <20170818112317.30933-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170818112317.30933-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Gen3 the max supported width and height will be different from Gen2.
-Move the limits to the struct rvin_info to prepare for Gen3 support.
+On Fri, Aug 18, 2017 at 02:23:14PM +0300, Sakari Ailus wrote:
+> Hi folks,
+> 
+> We have a large influx of new, unmerged, drivers that are now parsing
+> fwnode endpoints and each one of them is doing this a little bit
+> differently. The needs are still exactly the same for the graph data
+> structure is device independent. This is still a non-trivial task and the
+> majority of the driver implementations are buggy, just buggy in different
+> ways.
+> 
+> Facilitate parsing endpoints by adding a convenience function for parsing
+> the endpoints, and make the omap3isp driver use it as an example.
+> 
+> I plan to include the first patch to a pull request soonish, the second
+> could go in with the first user.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 6 ++++++
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 6 ++----
- drivers/media/platform/rcar-vin/rcar-vin.h  | 6 ++++++
- 3 files changed, 14 insertions(+), 4 deletions(-)
+And now that a new patch has been added in front of the set, this means
+that 1 and 2 could IMO go in soonish whereas the third would go in later.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index dae38de706b66b64..4dc148e7835439ab 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -279,14 +279,20 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
- 
- static const struct rvin_info rcar_info_h1 = {
- 	.chip = RCAR_H1,
-+	.max_width = 2048,
-+	.max_height = 2048,
- };
- 
- static const struct rvin_info rcar_info_m1 = {
- 	.chip = RCAR_M1,
-+	.max_width = 2048,
-+	.max_height = 2048,
- };
- 
- static const struct rvin_info rcar_info_gen2 = {
- 	.chip = RCAR_GEN2,
-+	.max_width = 2048,
-+	.max_height = 2048,
- };
- 
- static const struct of_device_id rvin_of_id_table[] = {
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 02a08cf5acfce1ce..3c4dd08261a0d3f5 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -23,8 +23,6 @@
- #include "rcar-vin.h"
- 
- #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
--#define RVIN_MAX_WIDTH		2048
--#define RVIN_MAX_HEIGHT		2048
- 
- /* -----------------------------------------------------------------------------
-  * Format Conversions
-@@ -258,8 +256,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
- 
- 	/* Limit to VIN capabilities */
--	v4l_bound_align_image(&pix->width, 2, RVIN_MAX_WIDTH, walign,
--			      &pix->height, 4, RVIN_MAX_HEIGHT, 2, 0);
-+	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-+			      &pix->height, 4, vin->info->max_height, 2, 0);
- 
- 	pix->bytesperline = max_t(u32, pix->bytesperline,
- 				  rvin_format_bytesperline(pix));
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 13466dfd72292fc0..2d8b362012ea46a3 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -91,9 +91,15 @@ struct rvin_graph_entity {
- /**
-  * struct rvin_info - Information about the particular VIN implementation
-  * @chip:		type of VIN chip
-+ *
-+ * max_width:		max input width the VIN supports
-+ * max_height:		max input height the VIN supports
-  */
- struct rvin_info {
- 	enum chip_id chip;
-+
-+	unsigned int max_width;
-+	unsigned int max_height;
- };
- 
- /**
+> 
+> since v2:
+> 
+> - Rebase on CCP2 support patches.
+> 
+> - Prepend a patch cleaning up omap3isp driver a little.
+> 
+> since v1:
+> 
+> - The first patch has been merged (it was a bugfix).
+> 
+> - In anticipation that the parsing can take place over several iterations,
+>   take the existing number of async sub-devices into account when
+>   re-allocating an array of async sub-devices.
+> 
+> - Rework the first patch to better anticipate parsing single endpoint at a
+>   time by a driver.
+> 
+> - Add a second patch that adds a function for parsing endpoints one at a
+>   time based on port and endpoint numbers.
+> 
+> Sakari Ailus (3):
+>   omap3isp: Drop redundant isp->subdevs field and ISP_MAX_SUBDEVS
+>   v4l: fwnode: Support generic parsing of graph endpoints in a device
+>   v4l: fwnode: Support generic parsing of graph endpoints in a single
+>     port
+> 
+>  drivers/media/platform/omap3isp/isp.c | 116 +++++++---------------
+>  drivers/media/platform/omap3isp/isp.h |   3 -
+>  drivers/media/v4l2-core/v4l2-fwnode.c | 176 ++++++++++++++++++++++++++++++++++
+>  include/media/v4l2-async.h            |   4 +-
+>  include/media/v4l2-fwnode.h           |  16 ++++
+>  5 files changed, 231 insertions(+), 84 deletions(-)
+> 
+> -- 
+> 2.11.0
+> 
+
 -- 
-2.14.0
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
