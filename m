@@ -1,64 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f45.google.com ([209.85.214.45]:37115 "EHLO
-        mail-it0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751574AbdHQNtw (ORCPT
+Received: from gateway30.websitewelcome.com ([192.185.197.25]:32325 "EHLO
+        gateway30.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752417AbdHRQSl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Aug 2017 09:49:52 -0400
-Received: by mail-it0-f45.google.com with SMTP id 76so2279179ith.0
-        for <linux-media@vger.kernel.org>; Thu, 17 Aug 2017 06:49:52 -0700 (PDT)
+        Fri, 18 Aug 2017 12:18:41 -0400
+Received: from cm17.websitewelcome.com (cm17.websitewelcome.com [100.42.49.20])
+        by gateway30.websitewelcome.com (Postfix) with ESMTP id CF414588AC
+        for <linux-media@vger.kernel.org>; Fri, 18 Aug 2017 10:55:48 -0500 (CDT)
+Subject: Re: [PATCH] media: venus: fix duplicated code for different branches
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <20170817231234.GA6674@embeddedgus>
+ <99a35cad-9152-ec15-7843-de4668a9190f@linaro.org>
+Cc: linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Message-ID: <96fa5d72-66d1-d28e-5d9f-d991e0c1ce83@embeddedor.com>
+Date: Fri, 18 Aug 2017 10:55:43 -0500
 MIME-Version: 1.0
-In-Reply-To: <1502975140.2927.1.camel@pengutronix.de>
-References: <1481643559-19666-1-git-send-email-javier@osg.samsung.com> <1502975140.2927.1.camel@pengutronix.de>
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Date: Thu, 17 Aug 2017 15:49:51 +0200
-Message-ID: <CABxcv=k8T29Lz6-7gX=Bi7jt__GpBmrPt4bca-MmpcYjoXqvwA@mail.gmail.com>
-Subject: Re: [RFT PATCH] [media] partial revert of "[media] tvp5150: add HW
- input connectors support"
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <99a35cad-9152-ec15-7843-de4668a9190f@linaro.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Philipp,
+Hi Stanimir,
 
-On Thu, Aug 17, 2017 at 3:05 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> Hi,
+On 08/18/2017 02:52 AM, Stanimir Varbanov wrote:
+> Hi Gustavo,
 >
-> On Tue, 2016-12-13 at 12:39 -0300, Javier Martinez Canillas wrote:
->> Commit f7b4b54e6364 ("[media] tvp5150: add HW input connectors support")
->> added input signals support for the tvp5150, but the approach was found
->> to be incorrect so the corresponding DT binding commit 82c2ffeb217a
->> ("[media] tvp5150: document input connectors DT bindings") was reverted.
+> On 08/18/2017 02:12 AM, Gustavo A. R. Silva wrote:
+>> Refactor code in order to avoid identical code for different branches.
 >>
->> This left the driver with an undocumented (and wrong) DT parsing logic,
->> so lets get rid of this code as well until the input connectors support
->> is implemented properly.
+>> This issue was detected with the help of Coccinelle.
 >>
->> It's a partial revert due other patches added on top of mentioned commit
->> not allowing the commit to be reverted cleanly anymore. But all the code
->> related to the DT parsing logic and input entities creation are removed.
+>> Addresses-Coverity-ID: 1415317
+>> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+>> ---
+>> This code was reported by Coverity and it was tested by compilation only.
+>> Please, verify if this is an actual bug.
+>
+> Yes looks like copy/paste error, and yes it is a bug.
+>
+
+Thank you for reviewing it.
+
 >>
->> > Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> > Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>>  drivers/media/platform/qcom/venus/helpers.c | 6 +-----
+>>  1 file changed, 1 insertion(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+>> index 5f4434c..8a5c467 100644
+>> --- a/drivers/media/platform/qcom/venus/helpers.c
+>> +++ b/drivers/media/platform/qcom/venus/helpers.c
+>> @@ -240,11 +240,7 @@ static void return_buf_error(struct venus_inst *inst,
+>>  {
+>>  	struct v4l2_m2m_ctx *m2m_ctx = inst->m2m_ctx;
+>>
+>> -	if (vbuf->vb2_buf.type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+>> -		v4l2_m2m_src_buf_remove_by_buf(m2m_ctx, vbuf);
+>> -	else
+>> -		v4l2_m2m_src_buf_remove_by_buf(m2m_ctx, vbuf);
 >
-> what is the state of this patch? Was it forgotten or was the revert
-> deemed unnecessary?
+> the correct fix must replace the second v4l2_m2m_src_* with v4l2_m2m_dst_*.
 >
 
-I think that was just forgotten. That code still needs to be reverted
-since the DT patch was also reverted.
+I'll send a patch to fix this bug shortly
 
-Albeit the code is harmless since should be a no-op if a connectors DT
-node isn't found.
-
-> regards
-> Philipp
+>> -
+>> +	v4l2_m2m_src_buf_remove_by_buf(m2m_ctx, vbuf);
+>>  	v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
+>>  }
+>>
+>>
 >
 
-Best regards,
-Javier
+Thanks!
+-- 
+Gustavo A. R. Silva
