@@ -1,41 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:33247 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752220AbdHSTVG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Aug 2017 15:21:06 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: hans.verkuil@cisco.com, mchehab@kernel.org, matrandg@cisco.com
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH 4/6] [media] saa7127: constify i2c_device_id
-Date: Sun, 20 Aug 2017 00:50:45 +0530
-Message-Id: <1503170447-18533-5-git-send-email-arvind.yadav.cs@gmail.com>
-In-Reply-To: <1503170447-18533-1-git-send-email-arvind.yadav.cs@gmail.com>
-References: <1503170447-18533-1-git-send-email-arvind.yadav.cs@gmail.com>
+Received: from mga04.intel.com ([192.55.52.120]:60016 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751786AbdHRVeT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 Aug 2017 17:34:19 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: linux-api@vger.kernel.org, tfiga@chromium.org, yong.zhi@intel.com
+Subject: [PATCH 2/2] docs-rst: v4l: Document V4L2_BUF_TYPE_META_OUTPUT interface
+Date: Sat, 19 Aug 2017 00:30:56 +0300
+Message-Id: <1503091856-18294-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1503091856-18294-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1503091856-18294-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-i2c_device_id are not supposed to change at runtime. All functions
-working with i2c_device_id provided by <linux/i2c.h> work with
-const i2c_device_id. So mark the non-const structs as const.
+Document the interface for metadata output, including
+V4L2_BUF_TYPE_META_OUTPUT buffer type and V4L2_CAP_META_OUTPUT capability
+bits.
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/saa7127.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/media/uapi/v4l/buffer.rst          |  3 +++
+ Documentation/media/uapi/v4l/dev-meta.rst        | 33 ++++++++++++++----------
+ Documentation/media/uapi/v4l/vidioc-querycap.rst |  3 +++
+ Documentation/media/videodev2.h.rst.exceptions   |  2 ++
+ 4 files changed, 28 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/i2c/saa7127.c b/drivers/media/i2c/saa7127.c
-index 99c3030..01784d4 100644
---- a/drivers/media/i2c/saa7127.c
-+++ b/drivers/media/i2c/saa7127.c
-@@ -806,7 +806,7 @@ static int saa7127_remove(struct i2c_client *client)
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index ae6ee73..33b932e 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -452,6 +452,9 @@ enum v4l2_buf_type
+     * - ``V4L2_BUF_TYPE_META_CAPTURE``
+       - 13
+       - Buffer for metadata capture, see :ref:`metadata`.
++    * - ``V4L2_BUF_TYPE_META_OUTPUT``
++      - 14
++      - Buffer for metadata output, see :ref:`metadata`.
  
- /* ----------------------------------------------------------------------- */
  
--static struct i2c_device_id saa7127_id[] = {
-+static const struct i2c_device_id saa7127_id[] = {
- 	{ "saa7127_auto", 0 },	/* auto-detection */
- 	{ "saa7126", SAA7127 },
- 	{ "saa7127", SAA7127 },
+ 
+diff --git a/Documentation/media/uapi/v4l/dev-meta.rst b/Documentation/media/uapi/v4l/dev-meta.rst
+index 62518ad..a1e54bc 100644
+--- a/Documentation/media/uapi/v4l/dev-meta.rst
++++ b/Documentation/media/uapi/v4l/dev-meta.rst
+@@ -7,21 +7,27 @@ Metadata Interface
+ ******************
+ 
+ Metadata refers to any non-image data that supplements video frames with
+-additional information. This may include statistics computed over the image
+-or frame capture parameters supplied by the image source. This interface is
+-intended for transfer of metadata to userspace and control of that operation.
++additional information. This may include statistics computed over the image,
++frame capture parameters supplied by the image source or device specific
++parameters for specifying how the device processes images. This interface is
++intended for transfer of metadata between the userspace and the hardware and
++control of that operation.
+ 
+-The metadata interface is implemented on video capture device nodes. The device
+-can be dedicated to metadata or can implement both video and metadata capture
+-as specified in its reported capabilities.
++The metadata interface is implemented on video device nodes. The device can be
++dedicated to metadata or can support both video and metadata as specified in its
++reported capabilities.
+ 
+ Querying Capabilities
+ =====================
+ 
+-Device nodes supporting the metadata interface set the ``V4L2_CAP_META_CAPTURE``
+-flag in the ``device_caps`` field of the
++Device nodes supporting the metadata capture interface set the
++``V4L2_CAP_META_CAPTURE`` flag in the ``device_caps`` field of the
+ :c:type:`v4l2_capability` structure returned by the :c:func:`VIDIOC_QUERYCAP`
+-ioctl. That flag means the device can capture metadata to memory.
++ioctl. That flag means the device can capture metadata to memory. Similarly,
++device nodes supporting metadata output interface set the
++``V4L2_CAP_META_OUTPUT`` flag in the ``device_caps`` field of
++:c:type:`v4l2_capability` structure. That flag means the device can read
++metadata from memory.
+ 
+ At least one of the read/write or streaming I/O methods must be supported.
+ 
+@@ -35,10 +41,11 @@ to the basic :ref:`format` ioctls, the :c:func:`VIDIOC_ENUM_FMT` ioctl must be
+ supported as well.
+ 
+ To use the :ref:`format` ioctls applications set the ``type`` field of the
+-:c:type:`v4l2_format` structure to ``V4L2_BUF_TYPE_META_CAPTURE`` and use the
+-:c:type:`v4l2_meta_format` ``meta`` member of the ``fmt`` union as needed per
+-the desired operation. Both drivers and applications must set the remainder of
+-the :c:type:`v4l2_format` structure to 0.
++:c:type:`v4l2_format` structure to ``V4L2_BUF_TYPE_META_CAPTURE`` or to
++``V4L2_BUF_TYPE_META_OUTPUT`` and use the :c:type:`v4l2_meta_format` ``meta``
++member of the ``fmt`` union as needed per the desired operation. Both drivers
++and applications must set the remainder of the :c:type:`v4l2_format` structure
++to 0.
+ 
+ .. _v4l2-meta-format:
+ 
+diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+index 12e0d9a..36bf879 100644
+--- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
++++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+@@ -249,6 +249,9 @@ specification the ioctl returns an ``EINVAL`` error code.
+     * - ``V4L2_CAP_STREAMING``
+       - 0x04000000
+       - The device supports the :ref:`streaming <mmap>` I/O method.
++    * - ``V4L2_CAP_META_OUTPUT``
++      - 0x08000000
++      - The device supports the :ref:`metadata` output interface.
+     * - ``V4L2_CAP_TOUCH``
+       - 0x10000000
+       - This is a touch device.
+diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
+index a5cb0a8..32172db 100644
+--- a/Documentation/media/videodev2.h.rst.exceptions
++++ b/Documentation/media/videodev2.h.rst.exceptions
+@@ -28,6 +28,7 @@ replace symbol V4L2_FIELD_TOP :c:type:`v4l2_field`
+ 
+ # Documented enum v4l2_buf_type
+ replace symbol V4L2_BUF_TYPE_META_CAPTURE :c:type:`v4l2_buf_type`
++replace symbol V4L2_BUF_TYPE_META_OUTPUT :c:type:`v4l2_buf_type`
+ replace symbol V4L2_BUF_TYPE_SDR_CAPTURE :c:type:`v4l2_buf_type`
+ replace symbol V4L2_BUF_TYPE_SDR_OUTPUT :c:type:`v4l2_buf_type`
+ replace symbol V4L2_BUF_TYPE_SLICED_VBI_CAPTURE :c:type:`v4l2_buf_type`
+@@ -157,6 +158,7 @@ replace define V4L2_CAP_META_CAPTURE device-capabilities
+ replace define V4L2_CAP_READWRITE device-capabilities
+ replace define V4L2_CAP_ASYNCIO device-capabilities
+ replace define V4L2_CAP_STREAMING device-capabilities
++replace define V4L2_CAP_META_OUTPUT device-capabilities
+ replace define V4L2_CAP_DEVICE_CAPS device-capabilities
+ replace define V4L2_CAP_TOUCH device-capabilities
+ 
 -- 
 2.7.4
