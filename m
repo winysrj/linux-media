@@ -1,54 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:33274 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751018AbdHSKea (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:53337 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750709AbdHRG53 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Aug 2017 06:34:30 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, wsa@the-dreams.de, jacmet@sunsite.dk,
-        jglauber@cavium.com, david.daney@cavium.com,
-        hans.verkuil@cisco.com, mchehab@kernel.org,
-        awalls@md.metrocast.net, serjk@netup.ru, aospan@netup.ru,
-        isely@pobox.com, ezequiel@vanguardiasur.com.ar,
-        linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 0/4] drivers: make i2c_adapter const
-Date: Sat, 19 Aug 2017 16:04:11 +0530
-Message-Id: <1503138855-585-1-git-send-email-bhumirks@gmail.com>
+        Fri, 18 Aug 2017 02:57:29 -0400
+Subject: Re: [PATCH] media: venus: fix duplicated code for different branches
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <20170817231234.GA6674@embeddedgus>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <d50b28cb-8430-d1a2-c1a8-98a436582bf7@xs4all.nl>
+Date: Fri, 18 Aug 2017 08:57:23 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170817231234.GA6674@embeddedgus>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make i2c_adapter const. Done using Coccinelle.
+Stanimir, please review this! I suspect that this is the wrong fix and
+that the first v4l2_m2m_src_buf_remove_by_buf should be
+v4l2_m2m_dst_buf_remove_by_buf instead.
 
-Bhumika Goyal (4):
-  i2c: busses: make i2c_adapter const
-  [media] media: pci: make i2c_adapter const
-  [media] radio-usb-si4713: make i2c_adapter const
-  [media] usb: make i2c_adapter const
+Regards,
 
- drivers/i2c/busses/i2c-kempld.c                   | 2 +-
- drivers/i2c/busses/i2c-ocores.c                   | 2 +-
- drivers/i2c/busses/i2c-octeon-platdrv.c           | 2 +-
- drivers/i2c/busses/i2c-thunderx-pcidrv.c          | 2 +-
- drivers/i2c/busses/i2c-xiic.c                     | 2 +-
- drivers/media/pci/cobalt/cobalt-i2c.c             | 2 +-
- drivers/media/pci/cx18/cx18-i2c.c                 | 2 +-
- drivers/media/pci/cx23885/cx23885-i2c.c           | 2 +-
- drivers/media/pci/cx25821/cx25821-i2c.c           | 2 +-
- drivers/media/pci/ivtv/ivtv-i2c.c                 | 4 ++--
- drivers/media/pci/netup_unidvb/netup_unidvb_i2c.c | 2 +-
- drivers/media/pci/saa7134/saa7134-i2c.c           | 2 +-
- drivers/media/pci/saa7164/saa7164-i2c.c           | 2 +-
- drivers/media/radio/si4713/radio-usb-si4713.c     | 2 +-
- drivers/media/usb/au0828/au0828-i2c.c             | 2 +-
- drivers/media/usb/cx231xx/cx231xx-i2c.c           | 2 +-
- drivers/media/usb/em28xx/em28xx-i2c.c             | 2 +-
- drivers/media/usb/hdpvr/hdpvr-i2c.c               | 2 +-
- drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c      | 2 +-
- drivers/media/usb/stk1160/stk1160-i2c.c           | 2 +-
- drivers/media/usb/usbvision/usbvision-i2c.c       | 4 ++--
- 21 files changed, 23 insertions(+), 23 deletions(-)
+	Hans
 
--- 
-1.9.1
+On 08/18/2017 01:12 AM, Gustavo A. R. Silva wrote:
+> Refactor code in order to avoid identical code for different branches.
+> 
+> This issue was detected with the help of Coccinelle.
+> 
+> Addresses-Coverity-ID: 1415317
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> ---
+> This code was reported by Coverity and it was tested by compilation only.
+> Please, verify if this is an actual bug.
+> 
+>  drivers/media/platform/qcom/venus/helpers.c | 6 +-----
+>  1 file changed, 1 insertion(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+> index 5f4434c..8a5c467 100644
+> --- a/drivers/media/platform/qcom/venus/helpers.c
+> +++ b/drivers/media/platform/qcom/venus/helpers.c
+> @@ -240,11 +240,7 @@ static void return_buf_error(struct venus_inst *inst,
+>  {
+>  	struct v4l2_m2m_ctx *m2m_ctx = inst->m2m_ctx;
+>  
+> -	if (vbuf->vb2_buf.type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> -		v4l2_m2m_src_buf_remove_by_buf(m2m_ctx, vbuf);
+> -	else
+> -		v4l2_m2m_src_buf_remove_by_buf(m2m_ctx, vbuf);
+> -
+> +	v4l2_m2m_src_buf_remove_by_buf(m2m_ctx, vbuf);
+>  	v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
+>  }
+>  
+> 
