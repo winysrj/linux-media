@@ -1,83 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49106 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751661AbdHPMzQ (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:33274 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751018AbdHSKea (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Aug 2017 08:55:16 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: jacek.anaszewski@gmail.com, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 3/3] arm: dts: omap3: N9/N950: Add AS3645A camera flash
-Date: Wed, 16 Aug 2017 15:55:14 +0300
-Message-Id: <20170816125514.27634-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170816125514.27634-1-sakari.ailus@linux.intel.com>
-References: <20170816125440.27534-1-sakari.ailus@linux.intel.com>
- <20170816125514.27634-1-sakari.ailus@linux.intel.com>
+        Sat, 19 Aug 2017 06:34:30 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, wsa@the-dreams.de, jacmet@sunsite.dk,
+        jglauber@cavium.com, david.daney@cavium.com,
+        hans.verkuil@cisco.com, mchehab@kernel.org,
+        awalls@md.metrocast.net, serjk@netup.ru, aospan@netup.ru,
+        isely@pobox.com, ezequiel@vanguardiasur.com.ar,
+        linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 0/4] drivers: make i2c_adapter const
+Date: Sat, 19 Aug 2017 16:04:11 +0530
+Message-Id: <1503138855-585-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Make i2c_adapter const. Done using Coccinelle.
 
-Add the as3645a flash controller to the DT source as well as the flash
-property with the as3645a device phandle to the sensor DT node.
+Bhumika Goyal (4):
+  i2c: busses: make i2c_adapter const
+  [media] media: pci: make i2c_adapter const
+  [media] radio-usb-si4713: make i2c_adapter const
+  [media] usb: make i2c_adapter const
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
----
- arch/arm/boot/dts/omap3-n9.dts       |  1 +
- arch/arm/boot/dts/omap3-n950-n9.dtsi | 14 ++++++++++++++
- arch/arm/boot/dts/omap3-n950.dts     |  1 +
- 3 files changed, 16 insertions(+)
+ drivers/i2c/busses/i2c-kempld.c                   | 2 +-
+ drivers/i2c/busses/i2c-ocores.c                   | 2 +-
+ drivers/i2c/busses/i2c-octeon-platdrv.c           | 2 +-
+ drivers/i2c/busses/i2c-thunderx-pcidrv.c          | 2 +-
+ drivers/i2c/busses/i2c-xiic.c                     | 2 +-
+ drivers/media/pci/cobalt/cobalt-i2c.c             | 2 +-
+ drivers/media/pci/cx18/cx18-i2c.c                 | 2 +-
+ drivers/media/pci/cx23885/cx23885-i2c.c           | 2 +-
+ drivers/media/pci/cx25821/cx25821-i2c.c           | 2 +-
+ drivers/media/pci/ivtv/ivtv-i2c.c                 | 4 ++--
+ drivers/media/pci/netup_unidvb/netup_unidvb_i2c.c | 2 +-
+ drivers/media/pci/saa7134/saa7134-i2c.c           | 2 +-
+ drivers/media/pci/saa7164/saa7164-i2c.c           | 2 +-
+ drivers/media/radio/si4713/radio-usb-si4713.c     | 2 +-
+ drivers/media/usb/au0828/au0828-i2c.c             | 2 +-
+ drivers/media/usb/cx231xx/cx231xx-i2c.c           | 2 +-
+ drivers/media/usb/em28xx/em28xx-i2c.c             | 2 +-
+ drivers/media/usb/hdpvr/hdpvr-i2c.c               | 2 +-
+ drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c      | 2 +-
+ drivers/media/usb/stk1160/stk1160-i2c.c           | 2 +-
+ drivers/media/usb/usbvision/usbvision-i2c.c       | 4 ++--
+ 21 files changed, 23 insertions(+), 23 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
-index b9e58c536afd..a2944010f62f 100644
---- a/arch/arm/boot/dts/omap3-n9.dts
-+++ b/arch/arm/boot/dts/omap3-n9.dts
-@@ -26,6 +26,7 @@
- 		clocks = <&isp 0>;
- 		clock-frequency = <9600000>;
- 		nokia,nvm-size = <(16 * 64)>;
-+		flash = <&as3645a_flash &as3645a_indicator>;
- 		port {
- 			smia_1_1: endpoint {
- 				link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index df3366fa5409..e15722b83a70 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -265,6 +265,20 @@
- 
- &i2c2 {
- 	clock-frequency = <400000>;
-+
-+	as3645a: flash@30 {
-+		reg = <0x30>;
-+		compatible = "ams,as3645a";
-+		as3645a_flash: flash {
-+			flash-timeout-us = <150000>;
-+			flash-max-microamp = <320000>;
-+			led-max-microamp = <60000>;
-+			peak-current-limit = <1750000>;
-+		};
-+		as3645a_indicator: indicator {
-+			led-max-microamp = <10000>;
-+		};
-+	};
- };
- 
- &i2c3 {
-diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
-index 646601a3ebd8..bba5c5a6950c 100644
---- a/arch/arm/boot/dts/omap3-n950.dts
-+++ b/arch/arm/boot/dts/omap3-n950.dts
-@@ -60,6 +60,7 @@
- 		clocks = <&isp 0>;
- 		clock-frequency = <9600000>;
- 		nokia,nvm-size = <(16 * 64)>;
-+		flash = <&as3645a_flash &as3645a_indicator>;
- 		port {
- 			smia_1_1: endpoint {
- 				link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
 -- 
-2.11.0
+1.9.1
