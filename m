@@ -1,44 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpgcba5.buenosaires.gob.ar ([200.16.89.92]:54959 "EHLO
-        smtpgcba5.buenosaires.gob.ar" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751901AbdHCXme (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:38860 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751858AbdHSTVE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 Aug 2017 19:42:34 -0400
-Received: from webmail01 ([172.18.2.161]:56278 "EHLO webmail.gcba.gob.ar"
-        smtp-auth: "copidisinformes@buenosaires.gob.ar"
-        rhost-flags-OK-OK-OK-FAIL) by mr1.buenosaires.gob.ar with ESMTPSA
-        id S4292679AbdHCXei (ORCPT <rfc822;linux-media@vger.kernel.org>
-        + 1 other); Thu, 3 Aug 2017 20:34:38 -0300
-Message-ID: <20170803203434.17383c0vxrgxajnu@webmail.buenosaires.gob.ar>
-Date: Thu, 03 Aug 2017 20:34:34 -0300
-From: HELP DESK <copidisinformes@buenosaires.gob.ar>
-Reply-to: weblinkss@qq.com
-To: undisclosed-recipients:;
-Subject: Dear user
-MIME-Version: 1.0
-Content-Type: text/plain;
- charset=ISO-8859-1;
- DelSp="Yes";
- format="flowed"
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
+        Sat, 19 Aug 2017 15:21:04 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: hans.verkuil@cisco.com, mchehab@kernel.org, matrandg@cisco.com
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH 3/6] [media] adv7842: constify i2c_device_id
+Date: Sun, 20 Aug 2017 00:50:44 +0530
+Message-Id: <1503170447-18533-4-git-send-email-arvind.yadav.cs@gmail.com>
+In-Reply-To: <1503170447-18533-1-git-send-email-arvind.yadav.cs@gmail.com>
+References: <1503170447-18533-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+i2c_device_id are not supposed to change at runtime. All functions
+working with i2c_device_id provided by <linux/i2c.h> work with
+const i2c_device_id. So mark the non-const structs as const.
 
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ drivers/media/i2c/adv7842.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Dear user
-
-Your mailbox has exceeded the storage limit of 20GB set by the  
-administrator, you are currently running at 20.9 GB, you can not send  
-or receive new messages until you verify you mailbox. Re-validate your  
-account by mail, please fill and Send the data below to verify and  
-update your account:
-
-(1) Email:
-(2) Domain/Username:
-(3) Password:
-(4) Confirm Password:
-
-Thank you
-System administrator
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 303effd..9b959ec 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -3608,7 +3608,7 @@ static int adv7842_remove(struct i2c_client *client)
+ 
+ /* ----------------------------------------------------------------------- */
+ 
+-static struct i2c_device_id adv7842_id[] = {
++static const struct i2c_device_id adv7842_id[] = {
+ 	{ "adv7842", 0 },
+ 	{ }
+ };
+-- 
+2.7.4
