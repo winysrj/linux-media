@@ -1,50 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:51984 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751039AbdH3HTY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Aug 2017 03:19:24 -0400
-Subject: [PATCH 1/6] [media] cx24116: Delete an error message for a failed
- memory allocation in cx24116_writeregN()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <d01b4a11-6e93-bc40-72de-dab9ce7b997a@users.sourceforge.net>
-Message-ID: <c91b8364-f54f-294a-cf89-1fe09c0a4ea6@users.sourceforge.net>
-Date: Wed, 30 Aug 2017 09:19:18 +0200
-MIME-Version: 1.0
-In-Reply-To: <d01b4a11-6e93-bc40-72de-dab9ce7b997a@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:34710 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751163AbdHSIYd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 19 Aug 2017 04:24:33 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, bp@alien8.de, mchehab@kernel.org,
+        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
+        seanpaul@chromium.org, airlied@linux.ie, g.liakhovetski@gmx.de,
+        tomas.winkler@intel.com, dwmw2@infradead.org,
+        computersforpeace@gmail.com, boris.brezillon@free-electrons.com,
+        marek.vasut@gmail.com, richard@nod.at, cyrille.pitchen@wedev4u.fr,
+        peda@axentia.se, kishon@ti.com, bhelgaas@google.com,
+        thierry.reding@gmail.com, jonathanh@nvidia.com,
+        dvhart@infradead.org, andy@infradead.org, ohad@wizery.com,
+        bjorn.andersson@linaro.org, freude@de.ibm.com,
+        schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, jth@kernel.org,
+        jejb@linux.vnet.ibm.com, martin.petersen@oracle.com,
+        lduncan@suse.com, cleech@redhat.com, johan@kernel.org,
+        elder@kernel.org, gregkh@linuxfoundation.org,
+        heikki.krogerus@linux.intel.com, linux-edac@vger.kernel.org,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
+        linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, greybus-dev@lists.linaro.org,
+        devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 05/15] mei: make device_type const
+Date: Sat, 19 Aug 2017 13:52:16 +0530
+Message-Id: <1503130946-2854-6-git-send-email-bhumirks@gmail.com>
+In-Reply-To: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
+References: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 29 Aug 2017 22:56:29 +0200
+Make this const as it is only stored in the type field of a device
+structure, which is const.
+Done using Coccinelle.
 
-Omit an extra message for a memory allocation failure in this function.
-
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 ---
- drivers/media/dvb-frontends/cx24116.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/misc/mei/bus.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/cx24116.c b/drivers/media/dvb-frontends/cx24116.c
-index e105532bfba8..96af4ffba0f9 100644
---- a/drivers/media/dvb-frontends/cx24116.c
-+++ b/drivers/media/dvb-frontends/cx24116.c
-@@ -227,7 +227,6 @@ static int cx24116_writeregN(struct cx24116_state *state, int reg,
+diff --git a/drivers/misc/mei/bus.c b/drivers/misc/mei/bus.c
+index 40c7908..1ac10cb 100644
+--- a/drivers/misc/mei/bus.c
++++ b/drivers/misc/mei/bus.c
+@@ -845,7 +845,7 @@ static void mei_cl_bus_dev_release(struct device *dev)
+ 	kfree(cldev);
+ }
  
- 	buf = kmalloc(len + 1, GFP_KERNEL);
- 	if (buf == NULL) {
--		printk("Unable to kmalloc\n");
- 		ret = -ENOMEM;
- 		goto error;
- 	}
+-static struct device_type mei_cl_device_type = {
++static const struct device_type mei_cl_device_type = {
+ 	.release	= mei_cl_bus_dev_release,
+ };
+ 
 -- 
-2.14.1
+1.9.1
