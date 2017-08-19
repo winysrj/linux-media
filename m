@@ -1,50 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:60955 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751039AbdH3HXS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Aug 2017 03:23:18 -0400
-Subject: [PATCH 5/6] [media] cx24116: Delete an unnecessary variable
- initialisation in cx24116_attach()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <d01b4a11-6e93-bc40-72de-dab9ce7b997a@users.sourceforge.net>
-Message-ID: <86ad8f11-90b6-4930-8243-ab2e0e0c7650@users.sourceforge.net>
-Date: Wed, 30 Aug 2017 09:23:13 +0200
-MIME-Version: 1.0
-In-Reply-To: <d01b4a11-6e93-bc40-72de-dab9ce7b997a@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57904
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750854AbdHSKSH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 19 Aug 2017 06:18:07 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by osg.samsung.com (Postfix) with ESMTP id 90731A0CAD
+        for <linux-media@vger.kernel.org>; Sat, 19 Aug 2017 10:18:35 +0000 (UTC)
+Received: from osg.samsung.com ([127.0.0.1])
+        by localhost (s-opensource.com [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id oYyDddDCWS7g for <linux-media@vger.kernel.org>;
+        Sat, 19 Aug 2017 10:18:35 +0000 (UTC)
+Received: from vento.lan (unknown [189.61.49.22])
+        by osg.samsung.com (Postfix) with ESMTPSA id 5489BA06C2
+        for <linux-media@vger.kernel.org>; Sat, 19 Aug 2017 10:18:34 +0000 (UTC)
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com> (by way of Mauro
+        Carvalho Chehab <mchehab@s-opensource.com>)
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Date: Sat, 19 Aug 2017 07:04:40 -0300
+Message-Id: <bd5323f2ca5d4693f1f4dcdc7b41389144340f51.1503136835.git.mchehab@s-opensource.com>
+Subject: [PATCH RFC] media: open.rst: document devnode-centric and
+ mc-centric types
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 30 Aug 2017 08:30:12 +0200
+When we added support for omap3, back in 2010, we added a new
+type of V4L2 devices that aren't fully controlled via the V4L2
+device node. Yet, we never made it clear, at the V4L2 spec,
+about the differences between both types.
 
-The variable "state" will be set to an appropriate pointer a bit later.
-Thus omit the explicit initialisation at the beginning.
+Let's document them with the current implementation.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/dvb-frontends/cx24116.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/cx24116.c b/drivers/media/dvb-frontends/cx24116.c
-index 74d610207bf2..902a60d2e1b5 100644
---- a/drivers/media/dvb-frontends/cx24116.c
-+++ b/drivers/media/dvb-frontends/cx24116.c
-@@ -1117,7 +1117,7 @@ static const struct dvb_frontend_ops cx24116_ops;
- struct dvb_frontend *cx24116_attach(const struct cx24116_config *config,
- 	struct i2c_adapter *i2c)
- {
--	struct cx24116_state *state = NULL;
-+	struct cx24116_state *state;
- 	int ret;
+This patch is a result of this week's discussion we had with regards to merging
+a patch series from Sakari documenting the need of propagating streaming
+control between sub-devices on some complex mc-centric devices.
+
+One big gap on our documentation popped up: while we have distinct behavior
+for mc-centric and devnode-centric types of V4L2 devices, we never clearly
+documented about that.
+
+This RFC patch is a first attempt to have a definition of those types, and to
+standardize the names we use to distinguish between those types.
+
+Comments are welcome.
+
+
+ Documentation/media/uapi/v4l/open.rst | 37 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+
+diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+index afd116edb40d..9cf4f74c466a 100644
+--- a/Documentation/media/uapi/v4l/open.rst
++++ b/Documentation/media/uapi/v4l/open.rst
+@@ -6,6 +6,43 @@
+ Opening and Closing Devices
+ ***************************
  
- 	dprintk("%s\n", __func__);
++Types of V4L2 devices
++=====================
++
++V4L2 devices are usually complex: they're implemented via a main driver and
++several other drivers. The main driver always exposes a V4L2 device node
++(see :ref:`v4l2_device_naming`). The other devices are called **sub-devices**.
++They are usually controlled via a serial bus (I2C or SMBus).
++
++When V4L2 started, there was only one type of device, fully controlled via
++V4L2 device nodes. We call those devices as **devnode-centric devices**.
++Since the end of 2010, a new type of V4L2 device was added, in order to
++support complex devices that are common on embedded systems. Those devices
++are controlled mainly via the media controller. So, they're called:
++**mc-centric devices**.
++
++On a **devnode-centric device**, the device and their corresponding hardware
++pipelines are controlled via the V4L2 device node. They may optionally
++expose the hardware pipelines via the
++:ref:`media controller API <media_controller>`.
++
++On a **mc-centric device**, before using the V4L2 device, it is required to
++set the hardware pipelines via the
++:ref:`media controller API <media_controller>`. On those devices, the
++sub-devices' configuration can be controlled via the
++:ref:`sub-device API <subdev>`, with creates one device node per sub device.
++On such devices, the V4L2 device node is mainly responsible for controlling
++the streaming features, while the media controller and the subdevices device
++nodes are responsible for configuring the hardware.
++
++.. note::
++
++   Currently, it is forbidden for a **devnode-centric device** to expose
++   subdevices via :ref:`sub-device API <subdev>`, although this might
++   change in the future.
++
++
++.. _v4l2_device_naming:
+ 
+ Device Naming
+ =============
 -- 
-2.14.1
+2.13.3
