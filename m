@@ -1,54 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f179.google.com ([209.85.220.179]:38471 "EHLO
-        mail-qk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752873AbdHTNNX (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:34209 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752013AbdHSI12 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Aug 2017 09:13:23 -0400
-Received: by mail-qk0-f179.google.com with SMTP id x77so28192804qka.5
-        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 06:13:23 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170804104155.37386-6-hverkuil@xs4all.nl>
-References: <20170804104155.37386-1-hverkuil@xs4all.nl> <20170804104155.37386-6-hverkuil@xs4all.nl>
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Date: Sun, 20 Aug 2017 15:13:22 +0200
-Message-ID: <CA+M3ks6NFzMPeebwy0VPb3US-8adXSeD9mmW_4dy=sXRMQtJeA@mail.gmail.com>
-Subject: Re: [PATCH 5/5] stm32-cec: use CEC_CAP_DEFAULTS
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
+        Sat, 19 Aug 2017 04:27:28 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, bp@alien8.de, mchehab@kernel.org,
+        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
+        seanpaul@chromium.org, airlied@linux.ie, g.liakhovetski@gmx.de,
+        tomas.winkler@intel.com, dwmw2@infradead.org,
+        computersforpeace@gmail.com, boris.brezillon@free-electrons.com,
+        marek.vasut@gmail.com, richard@nod.at, cyrille.pitchen@wedev4u.fr,
+        peda@axentia.se, kishon@ti.com, bhelgaas@google.com,
+        thierry.reding@gmail.com, jonathanh@nvidia.com,
+        dvhart@infradead.org, andy@infradead.org, ohad@wizery.com,
+        bjorn.andersson@linaro.org, freude@de.ibm.com,
+        schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, jth@kernel.org,
+        jejb@linux.vnet.ibm.com, martin.petersen@oracle.com,
+        lduncan@suse.com, cleech@redhat.com, johan@kernel.org,
+        elder@kernel.org, gregkh@linuxfoundation.org,
+        heikki.krogerus@linux.intel.com, linux-edac@vger.kernel.org,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
+        linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, greybus-dev@lists.linaro.org,
+        devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 14/15] staging: greybus: make device_type const
+Date: Sat, 19 Aug 2017 13:52:25 +0530
+Message-Id: <1503130946-2854-15-git-send-email-bhumirks@gmail.com>
+In-Reply-To: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
+References: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-08-04 12:41 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Use the new CEC_CAP_DEFAULTS define in this driver.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Make this const as it is only stored in the type field of a device
+structure, which is const.
+Done using Coccinelle.
 
-Acked-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/staging/greybus/gbphy.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> ---
->  drivers/media/platform/stm32/stm32-cec.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
->
-> diff --git a/drivers/media/platform/stm32/stm32-cec.c b/drivers/media/platform/stm32/stm32-cec.c
-> index 89904096d0a9..ed332a1a39b1 100644
-> --- a/drivers/media/platform/stm32/stm32-cec.c
-> +++ b/drivers/media/platform/stm32/stm32-cec.c
-> @@ -246,9 +246,7 @@ static const struct regmap_config stm32_cec_regmap_cfg = {
->
->  static int stm32_cec_probe(struct platform_device *pdev)
->  {
-> -       u32 caps = CEC_CAP_LOG_ADDRS | CEC_CAP_PASSTHROUGH |
-> -                  CEC_CAP_TRANSMIT | CEC_CAP_RC | CEC_CAP_PHYS_ADDR |
-> -                  CEC_MODE_MONITOR_ALL;
-> +       u32 caps = CEC_CAP_DEFAULTS | CEC_CAP_PHYS_ADDR | CEC_MODE_MONITOR_ALL;
->         struct resource *res;
->         struct stm32_cec *cec;
->         void __iomem *mmio;
-> --
-> 2.13.2
->
+diff --git a/drivers/staging/greybus/gbphy.c b/drivers/staging/greybus/gbphy.c
+index 603de6f..80c1da8 100644
+--- a/drivers/staging/greybus/gbphy.c
++++ b/drivers/staging/greybus/gbphy.c
+@@ -66,7 +66,7 @@ static int gb_gbphy_idle(struct device *dev)
+ 			   gb_gbphy_idle)
+ };
+ 
+-static struct device_type greybus_gbphy_dev_type = {
++static const struct device_type greybus_gbphy_dev_type = {
+ 	.name	 =	"gbphy_device",
+ 	.release =	gbphy_dev_release,
+ 	.pm	=	&gb_gbphy_pm_ops,
+-- 
+1.9.1
