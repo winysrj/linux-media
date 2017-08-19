@@ -1,62 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47265 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751925AbdHHMst (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Aug 2017 08:48:49 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 6/6] [media] uvcvideo: constify video_subdev structures
-Date: Tue, 08 Aug 2017 15:49:02 +0300
-Message-ID: <2365094.bHN9TxZSFH@avalon>
-In-Reply-To: <1502189912-28794-7-git-send-email-Julia.Lawall@lip6.fr>
-References: <1502189912-28794-1-git-send-email-Julia.Lawall@lip6.fr> <1502189912-28794-7-git-send-email-Julia.Lawall@lip6.fr>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:33247 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752220AbdHSTVG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 19 Aug 2017 15:21:06 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: hans.verkuil@cisco.com, mchehab@kernel.org, matrandg@cisco.com
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH 4/6] [media] saa7127: constify i2c_device_id
+Date: Sun, 20 Aug 2017 00:50:45 +0530
+Message-Id: <1503170447-18533-5-git-send-email-arvind.yadav.cs@gmail.com>
+In-Reply-To: <1503170447-18533-1-git-send-email-arvind.yadav.cs@gmail.com>
+References: <1503170447-18533-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Julia,
+i2c_device_id are not supposed to change at runtime. All functions
+working with i2c_device_id provided by <linux/i2c.h> work with
+const i2c_device_id. So mark the non-const structs as const.
 
-Thank you for the patch.
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ drivers/media/i2c/saa7127.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On Tuesday 08 Aug 2017 12:58:32 Julia Lawall wrote:
-> uvc_subdev_ops is only passed as the second argument of
-> v4l2_subdev_init, which is const, so uvc_subdev_ops can be
-> const as well.
-> 
-> Done with the help of Coccinelle.
-> 
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree (with the first word of the commit message after the 
-prefix capitalized to match the rest of the driver's commit messages, let me 
-know if that's a problem :-)).
-> 
-> ---
->  drivers/media/usb/uvc/uvc_entity.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_entity.c
-> b/drivers/media/usb/uvc/uvc_entity.c index ac386bb..554063c 100644
-> --- a/drivers/media/usb/uvc/uvc_entity.c
-> +++ b/drivers/media/usb/uvc/uvc_entity.c
-> @@ -61,7 +61,7 @@ static int uvc_mc_create_links(struct uvc_video_chain
-> *chain, return 0;
->  }
-> 
-> -static struct v4l2_subdev_ops uvc_subdev_ops = {
-> +static const struct v4l2_subdev_ops uvc_subdev_ops = {
->  };
-> 
->  void uvc_mc_cleanup_entity(struct uvc_entity *entity)
-
+diff --git a/drivers/media/i2c/saa7127.c b/drivers/media/i2c/saa7127.c
+index 99c3030..01784d4 100644
+--- a/drivers/media/i2c/saa7127.c
++++ b/drivers/media/i2c/saa7127.c
+@@ -806,7 +806,7 @@ static int saa7127_remove(struct i2c_client *client)
+ 
+ /* ----------------------------------------------------------------------- */
+ 
+-static struct i2c_device_id saa7127_id[] = {
++static const struct i2c_device_id saa7127_id[] = {
+ 	{ "saa7127_auto", 0 },	/* auto-detection */
+ 	{ "saa7126", SAA7127 },
+ 	{ "saa7127", SAA7127 },
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
