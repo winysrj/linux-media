@@ -1,62 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:35449 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750922AbdHMIzD (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:33946 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751742AbdHSI1s (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 13 Aug 2017 04:55:03 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: crope@iki.fi, mchehab@kernel.org, ezequiel@vanguardiasur.com.ar,
-        laurent.pinchart@ideasonboard.com, royale@zerezo.com,
-        sean@mess.org, klimov.linux@gmail.com, hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 0/3] constify media usb_device_id
-Date: Sun, 13 Aug 2017 14:24:42 +0530
-Message-Id: <1502614485-2150-1-git-send-email-arvind.yadav.cs@gmail.com>
+        Sat, 19 Aug 2017 04:27:48 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, bp@alien8.de, mchehab@kernel.org,
+        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
+        seanpaul@chromium.org, airlied@linux.ie, g.liakhovetski@gmx.de,
+        tomas.winkler@intel.com, dwmw2@infradead.org,
+        computersforpeace@gmail.com, boris.brezillon@free-electrons.com,
+        marek.vasut@gmail.com, richard@nod.at, cyrille.pitchen@wedev4u.fr,
+        peda@axentia.se, kishon@ti.com, bhelgaas@google.com,
+        thierry.reding@gmail.com, jonathanh@nvidia.com,
+        dvhart@infradead.org, andy@infradead.org, ohad@wizery.com,
+        bjorn.andersson@linaro.org, freude@de.ibm.com,
+        schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, jth@kernel.org,
+        jejb@linux.vnet.ibm.com, martin.petersen@oracle.com,
+        lduncan@suse.com, cleech@redhat.com, johan@kernel.org,
+        elder@kernel.org, gregkh@linuxfoundation.org,
+        heikki.krogerus@linux.intel.com, linux-edac@vger.kernel.org,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
+        linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, greybus-dev@lists.linaro.org,
+        devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 15/15] usb: make device_type const
+Date: Sat, 19 Aug 2017 13:52:26 +0530
+Message-Id: <1503130946-2854-16-git-send-email-bhumirks@gmail.com>
+In-Reply-To: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
+References: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-usb_device_id are not supposed to change at runtime. All functions
-working with usb_device_id provided by <linux/usb.h> work with
-const usb_device_id. So mark the non-const structs as const.
+Make this const as it is only stored in the type field of a device
+structure, which is const.
+Done using Coccinelle.
 
-Arvind Yadav (3):
-  [PATCH 1/3] [media] usb: constify usb_device_id
-  [PATCH 2/3] [media] rc: constify usb_device_id
-  [PATCH 3/3] [media] radio: constify usb_device_id
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/usb/common/ulpi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/media/radio/dsbr100.c                     | 2 +-
- drivers/media/radio/radio-keene.c                 | 2 +-
- drivers/media/radio/radio-ma901.c                 | 2 +-
- drivers/media/radio/radio-mr800.c                 | 2 +-
- drivers/media/radio/radio-raremono.c              | 2 +-
- drivers/media/radio/radio-shark.c                 | 2 +-
- drivers/media/radio/radio-shark2.c                | 2 +-
- drivers/media/radio/si470x/radio-si470x-usb.c     | 2 +-
- drivers/media/radio/si4713/radio-usb-si4713.c     | 2 +-
- drivers/media/rc/ati_remote.c                     | 2 +-
- drivers/media/rc/igorplugusb.c                    | 2 +-
- drivers/media/rc/imon.c                           | 2 +-
- drivers/media/rc/mceusb.c                         | 2 +-
- drivers/media/rc/redrat3.c                        | 2 +-
- drivers/media/rc/streamzap.c                      | 2 +-
- drivers/media/usb/airspy/airspy.c                 | 2 +-
- drivers/media/usb/as102/as102_usb_drv.c           | 2 +-
- drivers/media/usb/b2c2/flexcop-usb.c              | 2 +-
- drivers/media/usb/cpia2/cpia2_usb.c               | 2 +-
- drivers/media/usb/dvb-usb-v2/az6007.c             | 2 +-
- drivers/media/usb/hackrf/hackrf.c                 | 2 +-
- drivers/media/usb/hdpvr/hdpvr-core.c              | 2 +-
- drivers/media/usb/msi2500/msi2500.c               | 2 +-
- drivers/media/usb/s2255/s2255drv.c                | 2 +-
- drivers/media/usb/stk1160/stk1160-core.c          | 2 +-
- drivers/media/usb/stkwebcam/stk-webcam.c          | 2 +-
- drivers/media/usb/tm6000/tm6000-cards.c           | 2 +-
- drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c | 2 +-
- drivers/media/usb/ttusb-dec/ttusb_dec.c           | 2 +-
- drivers/media/usb/usbtv/usbtv-core.c              | 2 +-
- drivers/media/usb/uvc/uvc_driver.c                | 2 +-
- drivers/media/usb/zr364xx/zr364xx.c               | 2 +-
- 32 files changed, 32 insertions(+), 32 deletions(-)
-
+diff --git a/drivers/usb/common/ulpi.c b/drivers/usb/common/ulpi.c
+index 930e8f3..4aa5195 100644
+--- a/drivers/usb/common/ulpi.c
++++ b/drivers/usb/common/ulpi.c
+@@ -135,7 +135,7 @@ static void ulpi_dev_release(struct device *dev)
+ 	kfree(to_ulpi_dev(dev));
+ }
+ 
+-static struct device_type ulpi_dev_type = {
++static const struct device_type ulpi_dev_type = {
+ 	.name = "ulpi_device",
+ 	.groups = ulpi_dev_attr_groups,
+ 	.release = ulpi_dev_release,
 -- 
-2.7.4
+1.9.1
