@@ -1,76 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33030 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753206AbdHUNxv (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:36822 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751745AbdHSI0u (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Aug 2017 09:53:51 -0400
-Subject: Re: [PATCH v2.1 2/3] leds: as3645a: Add LED flash class driver
-To: Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: javier@dowhile0.org, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org
-References: <20170819212410.3084-3-sakari.ailus@linux.intel.com>
- <20170819214226.20736-1-sakari.ailus@linux.intel.com>
- <fc6c7893-863b-53ff-48e3-d14297364e5d@gmail.com>
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Message-ID: <07392419-c586-a791-a994-bed39f73da94@iki.fi>
-Date: Mon, 21 Aug 2017 16:53:46 +0300
-MIME-Version: 1.0
-In-Reply-To: <fc6c7893-863b-53ff-48e3-d14297364e5d@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Sat, 19 Aug 2017 04:26:50 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, bp@alien8.de, mchehab@kernel.org,
+        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
+        seanpaul@chromium.org, airlied@linux.ie, g.liakhovetski@gmx.de,
+        tomas.winkler@intel.com, dwmw2@infradead.org,
+        computersforpeace@gmail.com, boris.brezillon@free-electrons.com,
+        marek.vasut@gmail.com, richard@nod.at, cyrille.pitchen@wedev4u.fr,
+        peda@axentia.se, kishon@ti.com, bhelgaas@google.com,
+        thierry.reding@gmail.com, jonathanh@nvidia.com,
+        dvhart@infradead.org, andy@infradead.org, ohad@wizery.com,
+        bjorn.andersson@linaro.org, freude@de.ibm.com,
+        schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, jth@kernel.org,
+        jejb@linux.vnet.ibm.com, martin.petersen@oracle.com,
+        lduncan@suse.com, cleech@redhat.com, johan@kernel.org,
+        elder@kernel.org, gregkh@linuxfoundation.org,
+        heikki.krogerus@linux.intel.com, linux-edac@vger.kernel.org,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
+        linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, greybus-dev@lists.linaro.org,
+        devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 12/15] s390/zcrypt: make device_type const
+Date: Sat, 19 Aug 2017 13:52:23 +0530
+Message-Id: <1503130946-2854-13-git-send-email-bhumirks@gmail.com>
+In-Reply-To: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
+References: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Make these const as they are only stored in the type field of a device
+structure, which is const.
+Done using Coccinelle.
 
-Jacek Anaszewski wrote:
-> Hi Sakari,
-> 
-> Thanks for the update.
-> I've noticed that you added node labels to the child device nodes
-> in [0]:
-> 
-> "as3645a_flash : flash" and "as3645a_indicator : indicator"
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/s390/crypto/ap_card.c  | 2 +-
+ drivers/s390/crypto/ap_queue.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-The phandle references (as3645a_flash and as3645a_indicator) should
-actually be moved to the patch adding the flash property to the sensor
-device node. It doesn't do anything here, yet.
-
-> 
-> I am still seeing problems with this approach:
-> 
-> 1) AFAIK these labels are only used for referencing nodes inside dts
->    files and they don't affect the name property of struct device_node
-
-That's right.
-
-> 2) Even if you changed the node name from flash to as3645a_flash, you
->    would get weird LED class device name "as3645a_flash:flash" in case
->    label property is absent. Do you have any objections against the
->    approach I proposed in the previous review?:
-> 
-> 
->     snprintf(names->flash, sizeof(names->flash),
-> 	     AS_NAME":%s", node->name);
-
-In the current patch, the device node of the flash controller is used,
-postfixed with colon and the name of the LED ("flash" or "indicator") if
-no label is defined. In other words, with that DT source you'll have
-"as3645a:flash" and "as3645a:indicator". So if you change the name of
-the device node of the I²C device, that will be reflected in the label.
-
-If a label exists, then the label is used as such.
-
-I don't really have objections to what you're proposing as such but my
-question is: is it useful? With that, the flash and indicator labels
-will not come from DT if label properties are undefined. They'll always
-be "as3645a:flash" and "as3645a:indicator", independently of the names
-of the device nodes.
-
+diff --git a/drivers/s390/crypto/ap_card.c b/drivers/s390/crypto/ap_card.c
+index 836efac9..0329148 100644
+--- a/drivers/s390/crypto/ap_card.c
++++ b/drivers/s390/crypto/ap_card.c
+@@ -153,7 +153,7 @@ static ssize_t ap_modalias_show(struct device *dev,
+ 	NULL
+ };
+ 
+-static struct device_type ap_card_type = {
++static const struct device_type ap_card_type = {
+ 	.name = "ap_card",
+ 	.groups = ap_card_dev_attr_groups,
+ };
+diff --git a/drivers/s390/crypto/ap_queue.c b/drivers/s390/crypto/ap_queue.c
+index 0f1a5d0..e2a85c26 100644
+--- a/drivers/s390/crypto/ap_queue.c
++++ b/drivers/s390/crypto/ap_queue.c
+@@ -577,7 +577,7 @@ static ssize_t ap_interrupt_show(struct device *dev,
+ 	NULL
+ };
+ 
+-static struct device_type ap_queue_type = {
++static const struct device_type ap_queue_type = {
+ 	.name = "ap_queue",
+ 	.groups = ap_queue_dev_attr_groups,
+ };
 -- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@iki.fi
+1.9.1
