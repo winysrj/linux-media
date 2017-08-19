@@ -1,77 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:41612 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750835AbdH3JgZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Aug 2017 05:36:25 -0400
-Date: Wed, 30 Aug 2017 10:36:21 +0100
-From: Brian Starkey <brian.starkey@arm.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        jonathan.chai@arm.com,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>
-Subject: Re: DRM Format Modifiers in v4l2
-Message-ID: <20170830093621.GB15136@e107564-lin.cambridge.arm.com>
-References: <CAKMK7uFdQPUomZDCp_ak6sTsUayZuut4us08defjKmiy=24QnA@mail.gmail.com>
- <47128f36-2990-bd45-ead9-06a31ed8cde0@xs4all.nl>
- <20170824111430.GB25711@e107564-lin.cambridge.arm.com>
- <ba202456-4bc6-733e-4950-88ce64ca990e@xs4all.nl>
- <20170824122647.GA28829@e107564-lin.cambridge.arm.com>
- <1503943642.3316.7.camel@ndufresne.ca>
- <CAKMK7uGaQ+9cZ2PyLkwC06Qpch3AK+Tkr4SZFZVLfUqUFKyygQ@mail.gmail.com>
- <20170829094701.GB26907@e107564-lin.cambridge.arm.com>
- <20170830075035.ojzhefm3ysqzigkg@phenom.ffwll.local>
- <4399d87d-9b60-1d8b-cb83-b62f134a0aa5@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <4399d87d-9b60-1d8b-cb83-b62f134a0aa5@xs4all.nl>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:37765 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752405AbdHSIZL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 19 Aug 2017 04:25:11 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, bp@alien8.de, mchehab@kernel.org,
+        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
+        seanpaul@chromium.org, airlied@linux.ie, g.liakhovetski@gmx.de,
+        tomas.winkler@intel.com, dwmw2@infradead.org,
+        computersforpeace@gmail.com, boris.brezillon@free-electrons.com,
+        marek.vasut@gmail.com, richard@nod.at, cyrille.pitchen@wedev4u.fr,
+        peda@axentia.se, kishon@ti.com, bhelgaas@google.com,
+        thierry.reding@gmail.com, jonathanh@nvidia.com,
+        dvhart@infradead.org, andy@infradead.org, ohad@wizery.com,
+        bjorn.andersson@linaro.org, freude@de.ibm.com,
+        schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, jth@kernel.org,
+        jejb@linux.vnet.ibm.com, martin.petersen@oracle.com,
+        lduncan@suse.com, cleech@redhat.com, johan@kernel.org,
+        elder@kernel.org, gregkh@linuxfoundation.org,
+        heikki.krogerus@linux.intel.com, linux-edac@vger.kernel.org,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
+        linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, greybus-dev@lists.linaro.org,
+        devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 07/15] mux: make device_type const
+Date: Sat, 19 Aug 2017 13:52:18 +0530
+Message-Id: <1503130946-2854-8-git-send-email-bhumirks@gmail.com>
+In-Reply-To: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
+References: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 30, 2017 at 10:10:01AM +0200, Hans Verkuil wrote:
->On 30/08/17 09:50, Daniel Vetter wrote:
->> On Tue, Aug 29, 2017 at 10:47:01AM +0100, Brian Starkey wrote:
->>> The fact is, adding special formats for each combination is
->>> unmanageable - we're talking dozens in the case of our hardware.
->>
->> Hm right, we can just remap the special combos to the drm-fourcc +
->> modifier style. Bonus point if v4l does that in the core so not everyone
->> has to reinvent that wheel :-)
->
->Probably not something we'll do: there are I believe only two drivers that
->are affected (exynos & mediatek), so they can do that in their driver.
->
->Question: how many modifiers will typically apply to a format? I ask
->because I realized that V4L2 could use VIDIOC_ENUMFMT to make the link
->between a fourcc and modifiers:
->
->https://hverkuil.home.xs4all.nl/spec/uapi/v4l/vidioc-enum-fmt.html
->
->The __u32 reserved[4] array can be used to provide a bitmask to modifier
->indices (for the integer menu control). It's similar to what drm does,
->except instead of modifiers mapping to fourccs it is the other way around.
->
->This would avoid having to change the modifiers control whenever a new
->format is set and it makes it easy to enumerate all combinations.
->
->But this only works if the total number of modifiers used by a single driver
->is expected to remain small (let's say no more than 64).
+Make this const as it is only stored in the type field of a device
+structure, which is const.
+Done using Coccinelle.
 
-In our current (yet to be submitted) description, we've got around a
-dozen modifiers for any one format to describe our compression
-variants. We have a lot of on/off toggles which leads to combinatorial
-expansion, so it can grow pretty quickly (though I am trying to limit
-the valid combinations as much as possible).
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/mux/mux-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-How about if the mask fills up then VIDIOC_ENUM_FMT can return another
-fmtdsc with the same FourCC and different modifier bitmask, where the
-second one's modifier bitmask is for the next "N" modifiers?
-
--Brian
->
->Regards,
->
->	Hans
+diff --git a/drivers/mux/mux-core.c b/drivers/mux/mux-core.c
+index 2fe96c4..68bd16d 100644
+--- a/drivers/mux/mux-core.c
++++ b/drivers/mux/mux-core.c
+@@ -58,7 +58,7 @@ static void mux_chip_release(struct device *dev)
+ 	kfree(mux_chip);
+ }
+ 
+-static struct device_type mux_type = {
++static const struct device_type mux_type = {
+ 	.name = "mux-chip",
+ 	.release = mux_chip_release,
+ };
+-- 
+1.9.1
