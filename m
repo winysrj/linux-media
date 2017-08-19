@@ -1,60 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:36385 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751128AbdHEBvi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Aug 2017 21:51:38 -0400
-Date: Fri, 4 Aug 2017 21:51:38 -0400
-From: Amitoj Kaur Chawla <amitoj1606@gmail.com>
-To: mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] imon: constify attribute_group structures
-Message-ID: <20170805015137.GA5228@amitoj-Inspiron-3542>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:34266 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751101AbdHSIWv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 19 Aug 2017 04:22:51 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, bp@alien8.de, mchehab@kernel.org,
+        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
+        seanpaul@chromium.org, airlied@linux.ie, g.liakhovetski@gmx.de,
+        tomas.winkler@intel.com, dwmw2@infradead.org,
+        computersforpeace@gmail.com, boris.brezillon@free-electrons.com,
+        marek.vasut@gmail.com, richard@nod.at, cyrille.pitchen@wedev4u.fr,
+        peda@axentia.se, kishon@ti.com, bhelgaas@google.com,
+        thierry.reding@gmail.com, jonathanh@nvidia.com,
+        dvhart@infradead.org, andy@infradead.org, ohad@wizery.com,
+        bjorn.andersson@linaro.org, freude@de.ibm.com,
+        schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, jth@kernel.org,
+        jejb@linux.vnet.ibm.com, martin.petersen@oracle.com,
+        lduncan@suse.com, cleech@redhat.com, johan@kernel.org,
+        elder@kernel.org, gregkh@linuxfoundation.org,
+        heikki.krogerus@linux.intel.com, linux-edac@vger.kernel.org,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
+        linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, greybus-dev@lists.linaro.org,
+        devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 00/15] drivers: make device_type const
+Date: Sat, 19 Aug 2017 13:52:11 +0530
+Message-Id: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Functions working with attribute_groups provided by <linux/sysfs.h>
-work with const attribute_group. These attribute_group structures do not
-change at runtime so mark them as const.
+Make device_type const. Done using Coccinelle.
 
-File size before:
- text      data     bss     dec     hex filename
- 36981    16776     960   54717    d5bd drivers/media/rc/imon.o
+Bhumika Goyal (15):
+  EDAC: make device_type const
+  drm: make device_type const
+  [media] i2c: make device_type const
+  [media] rc: make device_type const
+  mei: make device_type const
+  mtd:  make device_type const
+  mux: make device_type const
+  PCI: make device_type const
+  phy: tegra: make device_type const
+  platform/x86: wmi: make device_type const
+  remoteproc: make device_type const
+  s390/zcrypt: make device_type const
+  scsi: make device_type const
+  staging: greybus: make device_type const
+  usb: make device_type const
 
-File size after:
- text      data     bss     dec     hex filename
- 37173    16584     960   54717    d5bd drivers/media/rc/imon.o
+ drivers/edac/edac_mc_sysfs.c           | 8 ++++----
+ drivers/edac/i7core_edac.c             | 4 ++--
+ drivers/gpu/drm/drm_sysfs.c            | 2 +-
+ drivers/gpu/drm/ttm/ttm_module.c       | 2 +-
+ drivers/media/i2c/soc_camera/mt9t031.c | 2 +-
+ drivers/media/rc/rc-main.c             | 2 +-
+ drivers/misc/mei/bus.c                 | 2 +-
+ drivers/mtd/mtdcore.c                  | 2 +-
+ drivers/mux/mux-core.c                 | 2 +-
+ drivers/pci/endpoint/pci-epf-core.c    | 4 ++--
+ drivers/phy/tegra/xusb.c               | 4 ++--
+ drivers/platform/x86/wmi.c             | 6 +++---
+ drivers/remoteproc/remoteproc_core.c   | 2 +-
+ drivers/s390/crypto/ap_card.c          | 2 +-
+ drivers/s390/crypto/ap_queue.c         | 2 +-
+ drivers/scsi/fcoe/fcoe_sysfs.c         | 4 ++--
+ drivers/scsi/scsi_transport_iscsi.c    | 4 ++--
+ drivers/staging/greybus/gbphy.c        | 2 +-
+ drivers/usb/common/ulpi.c              | 2 +-
+ 19 files changed, 29 insertions(+), 29 deletions(-)
 
-This change was made with the help of Coccinelle.
-
-Signed-off-by: Amitoj Kaur Chawla <amitoj1606@gmail.com>
----
- drivers/media/rc/imon.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-index bd76534..717ba78 100644
---- a/drivers/media/rc/imon.c
-+++ b/drivers/media/rc/imon.c
-@@ -911,7 +911,7 @@ static struct attribute *imon_display_sysfs_entries[] = {
- 	NULL
- };
- 
--static struct attribute_group imon_display_attr_group = {
-+static const struct attribute_group imon_display_attr_group = {
- 	.attrs = imon_display_sysfs_entries
- };
- 
-@@ -920,7 +920,7 @@ static struct attribute *imon_rf_sysfs_entries[] = {
- 	NULL
- };
- 
--static struct attribute_group imon_rf_attr_group = {
-+static const struct attribute_group imon_rf_attr_group = {
- 	.attrs = imon_rf_sysfs_entries
- };
- 
 -- 
-2.7.4
+1.9.1
