@@ -1,39 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:36531 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751478AbdHDLNx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 Aug 2017 07:13:53 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/2] [media] winbond-cir: buffer overrun during transmit
-Date: Fri,  4 Aug 2017 12:13:51 +0100
-Message-Id: <20170804111351.16734-2-sean@mess.org>
-In-Reply-To: <20170804111351.16734-1-sean@mess.org>
-References: <20170804111351.16734-1-sean@mess.org>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:33321 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753097AbdHTOgv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 20 Aug 2017 10:36:51 -0400
+Received: by mail-wr0-f196.google.com with SMTP id 30so1342597wrk.0
+        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 07:36:50 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: jasmin@anw.at, mchehab@kernel.org
+Subject: [PATCH 0/3] media_build: fixes wrt the ddbridge code bump
+Date: Sun, 20 Aug 2017 16:36:45 +0200
+Message-Id: <20170820143648.27669-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We're reading beyond the buffer before checking its length.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-BUG: KASAN: slab-out-of-bounds in wbcir_irq_tx
+Hans,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/winbond-cir.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+these are the patches I've carried around in my media_build fork wrt
+ddbridge testing, which obviously should go into upstream, now that
+the patches got merged. Things worked pretty well at least up to
+(down to) Kernel 3.13 on Ubuntu Trusty, guess some more things need
+to be added for even older kernels, but your daily build will probably
+tell :) Verified myself against 4.4 (Ubuntu Xenial).
 
-diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
-index ea7be6d35ff8..a18eb232ed81 100644
---- a/drivers/media/rc/winbond-cir.c
-+++ b/drivers/media/rc/winbond-cir.c
-@@ -429,7 +429,7 @@ wbcir_irq_tx(struct wbcir_data *data)
- 		bytes[used] = byte;
- 	}
- 
--	while (data->txbuf[data->txoff] == 0 && data->txoff != data->txlen)
-+	while (data->txoff != data->txlen && data->txbuf[data->txoff] == 0)
- 		data->txoff++;
- 
- 	if (used == 0) {
+Daniel Scheller (3):
+  [media_build] fix pr_fmt patch wrt the ddbridge code bump
+  [media_build] patch pci_alloc_irq_vectors() for ddbridge aswell
+  [media_build] add compat for __GFP_RETRY_MAYFAIL
+
+ backports/pr_fmt.patch                     |  6 +++---
+ backports/v4.7_pci_alloc_irq_vectors.patch | 13 +++++++++++++
+ v4l/compat.h                               |  4 ++++
+ 3 files changed, 20 insertions(+), 3 deletions(-)
+
 -- 
-2.13.3
+2.13.0
