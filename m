@@ -1,75 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34201 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751521AbdHKJqU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Aug 2017 05:46:20 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Daniel Mentz <danielmentz@google.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH RESEND 0/3] v4l2-compat-ioctl32.c: better detect pointer controls
-Date: Fri, 11 Aug 2017 12:46:37 +0300
-Message-ID: <4610701.cORc3TMU1z@avalon>
-In-Reply-To: <173e50c4-77ae-a718-46bd-01963e07785f@xs4all.nl>
-References: <f7340d67-cf7c-3407-e59a-aa0261185e82@xs4all.nl> <cover.1502409182.git.mchehab@s-opensource.com> <173e50c4-77ae-a718-46bd-01963e07785f@xs4all.nl>
+Received: from gofer.mess.org ([88.97.38.141]:58469 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753243AbdHTUJu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 20 Aug 2017 16:09:50 -0400
+Date: Sun, 20 Aug 2017 21:09:48 +0100
+From: Sean Young <sean@mess.org>
+To: Shawn Guo <shawnguo@kernel.org>
+Cc: Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org,
+        Baoyou Xie <xie.baoyou@sanechips.com.cn>,
+        Xin Zhou <zhou.xin8@sanechips.com.cn>,
+        Jun Nie <jun.nie@linaro.org>, Shawn Guo <shawn.guo@linaro.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 0/3] Add ZTE zx-irdec remote control driver
+Message-ID: <20170820200947.pvyj7fqlorfq56l5@gofer.mess.org>
+References: <1501420993-21977-1-git-send-email-shawnguo@kernel.org>
+ <20170818125418.GM7608@dragon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170818125418.GM7608@dragon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Friday 11 Aug 2017 08:05:03 Hans Verkuil wrote:
-> On 11/08/17 02:16, Mauro Carvalho Chehab wrote:
-> > In the past, only string controls were pointers. That changed when
-> > compounded types got added, but the compat32 code was not updated.
+On Fri, Aug 18, 2017 at 08:54:20PM +0800, Shawn Guo wrote:
+> On Sun, Jul 30, 2017 at 09:23:10PM +0800, Shawn Guo wrote:
+> > From: Shawn Guo <shawn.guo@linaro.org>
 > > 
-> > We could just add those controls there, but maintaining it is flaw, as we
-> > often forget about the compat code. So, instead, rely on the control type,
-> > as this is always updated when new controls are added.
+> > The series adds dt-bindings and remote control driver for IRDEC block
+> > found on ZTE ZX family SoCs.
 > > 
-> > As both v4l2-ctrl and compat32 code are at videodev.ko module, we can
-> > move the ctrl_is_pointer() helper function to v4l2-ctrl.c.
+> > Changes for v2:
+> >  - Add one patch to move generic NEC scancode composing and protocol
+> >    type detection code from ir_nec_decode() into an inline shared
+> >    function, which can be reused by zx-irdec driver.
+> > 
+> > Shawn Guo (3):
+> >   rc: ir-nec-decoder: move scancode composing code into a shared
+> >     function
+> >   dt-bindings: add bindings document for zx-irdec
+> >   rc: add zx-irdec remote control driver
 > 
-> This series doesn't really solve anything:
+> Hi Sean,
 > 
-> - it introduces a circular dependency between two modules
-> - it doesn't handle driver-custom controls (the old code didn't either). For
-> example vivid has custom pointer controls.
-> - it replaces a list of control IDs with a list of type IDs, which also has
-> to be kept up to date.
-> 
-> I thought this over and I have a better and much simpler idea. I'll post a
-> patch for that.
+> We are getting close to 4.14 merge window.  Can we get this into -next
+> for a bit exposure, if you are fine with the patches?
 
-Wouldn't it be time to replace the large switch/case with an array of control 
-information ? Maybe that was your better idea already :-)
+The rc pull requests have been merged into the media_tree, so they should
+now get exposure in linux-next.
 
-> > ---
-> > 
-> > Re-sending this patch series, as it was c/c to the linux-doc ML by
-> > mistake.
-> > 
-> > Mauro Carvalho Chehab (3):
-> >   media: v4l2-ctrls.h: better document the arguments for v4l2_ctrl_fill
-> >   media: v4l2-ctrls: prepare the function to be used by compat32 code
-> >   media: compat32: reimplement ctrl_is_pointer()
-> >  
-> >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 18 +---------
-> >  drivers/media/v4l2-core/v4l2-ctrls.c          | 49 ++++++++++++++++++++--
-> >  include/media/v4l2-ctrls.h                    | 28 ++++++++++-----
-> >  3 files changed, 67 insertions(+), 28 deletions(-)
+https://git.linuxtv.org/media_tree.git/
 
--- 
-Regards,
+Thanks,
 
-Laurent Pinchart
+Sean
