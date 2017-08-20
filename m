@@ -1,41 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:34961 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751948AbdHBRPP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Aug 2017 13:15:15 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 0/9] constify media pci_device_id/pci_tbl.
-Date: Wed,  2 Aug 2017 22:44:48 +0530
-Message-Id: <1501694097-16207-1-git-send-email-arvind.yadav.cs@gmail.com>
+Received: from mail-qk0-f174.google.com ([209.85.220.174]:34402 "EHLO
+        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752844AbdHTNLW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 20 Aug 2017 09:11:22 -0400
+Received: by mail-qk0-f174.google.com with SMTP id u139so72051291qka.1
+        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 06:11:22 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20170804104155.37386-5-hverkuil@xs4all.nl>
+References: <20170804104155.37386-1-hverkuil@xs4all.nl> <20170804104155.37386-5-hverkuil@xs4all.nl>
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Date: Sun, 20 Aug 2017 15:11:21 +0200
+Message-ID: <CA+M3ks4ZL4FXgWkuQkKvhUfou0S7a-u4LbJ0dPRfDuLkS8vM-A@mail.gmail.com>
+Subject: Re: [PATCH 4/5] stih-cec: use CEC_CAP_DEFAULTS
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SAA7146 DVD card base pci device id const.
+2017-08-04 12:41 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Use the new CEC_CAP_DEFAULTS define in this driver.
+> This also adds the CEC_CAP_RC capability which was missing here
+> (and this is also the reason for this new define, to avoid missing
+> such capabilities).
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Arvind Yadav (9):
-  [PATCH 1/9] [media] drv-intf: saa7146: constify pci_device_id.
-  [PATCH 2/9] [media] ttpci: budget: constify pci_device_id.
-  [PATCH 3/9] [media] ttpci: budget-patch: constify pci_device_id.
-  [PATCH 4/9] [media] ttpci: budget-ci: constify pci_device_id.
-  [PATCH 5/9] [media] ttpci: budget-av: constify pci_device_id.
-  [PATCH 6/9] [media] ttpci: av7110: constify pci_device_id.
-  [PATCH 7/9] [media] saa7146: mxb: constify pci_device_id.
-  [PATCH 8/9] [media] saa7146: hexium_orion: constify pci_device_id.
-  [PATCH 9/9] [media] saa7146: hexium_gemini: constify pci_device_id.
+Acked-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 
- drivers/media/pci/saa7146/hexium_gemini.c | 2 +-
- drivers/media/pci/saa7146/hexium_orion.c  | 2 +-
- drivers/media/pci/saa7146/mxb.c           | 2 +-
- drivers/media/pci/ttpci/av7110.c          | 2 +-
- drivers/media/pci/ttpci/budget-av.c       | 2 +-
- drivers/media/pci/ttpci/budget-ci.c       | 2 +-
- drivers/media/pci/ttpci/budget-patch.c    | 2 +-
- drivers/media/pci/ttpci/budget.c          | 2 +-
- include/media/drv-intf/saa7146.h          | 2 +-
- 9 files changed, 9 insertions(+), 9 deletions(-)
+> ---
+>  drivers/media/platform/sti/cec/stih-cec.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+>
+> diff --git a/drivers/media/platform/sti/cec/stih-cec.c b/drivers/media/pl=
+atform/sti/cec/stih-cec.c
+> index ce7964c71b50..dc221527fd05 100644
+> --- a/drivers/media/platform/sti/cec/stih-cec.c
+> +++ b/drivers/media/platform/sti/cec/stih-cec.c
+> @@ -351,9 +351,7 @@ static int stih_cec_probe(struct platform_device *pde=
+v)
+>         }
+>
+>         cec->adap =3D cec_allocate_adapter(&sti_cec_adap_ops, cec,
+> -                       CEC_NAME,
+> -                       CEC_CAP_LOG_ADDRS | CEC_CAP_PASSTHROUGH |
+> -                       CEC_CAP_TRANSMIT, CEC_MAX_LOG_ADDRS);
+> +                       CEC_NAME, CEC_CAP_DEFAULTS, CEC_MAX_LOG_ADDRS);
+>         if (IS_ERR(cec->adap))
+>                 return PTR_ERR(cec->adap);
+>
+> --
+> 2.13.2
+>
 
--- 
-2.7.4
+
+
+--=20
+Benjamin Gaignard
+
+Graphic Study Group
+
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+
+Follow Linaro: Facebook | Twitter | Blog
