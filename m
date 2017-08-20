@@ -1,41 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:34738 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751858AbdHSTU7 (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:34447 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753097AbdHTOgw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Aug 2017 15:20:59 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: hans.verkuil@cisco.com, mchehab@kernel.org, matrandg@cisco.com
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH 1/6] [media] ad9389b: constify i2c_device_id
-Date: Sun, 20 Aug 2017 00:50:42 +0530
-Message-Id: <1503170447-18533-2-git-send-email-arvind.yadav.cs@gmail.com>
-In-Reply-To: <1503170447-18533-1-git-send-email-arvind.yadav.cs@gmail.com>
-References: <1503170447-18533-1-git-send-email-arvind.yadav.cs@gmail.com>
+        Sun, 20 Aug 2017 10:36:52 -0400
+Received: by mail-wr0-f196.google.com with SMTP id p14so8262105wrg.1
+        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 07:36:52 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: jasmin@anw.at, mchehab@kernel.org
+Subject: [PATCH 2/3] [media_build] patch pci_alloc_irq_vectors() for ddbridge aswell
+Date: Sun, 20 Aug 2017 16:36:47 +0200
+Message-Id: <20170820143648.27669-3-d.scheller.oss@gmail.com>
+In-Reply-To: <20170820143648.27669-1-d.scheller.oss@gmail.com>
+References: <20170820143648.27669-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-i2c_device_id are not supposed to change at runtime. All functions
-working with i2c_device_id provided by <linux/i2c.h> work with
-const i2c_device_id. So mark the non-const structs as const.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- drivers/media/i2c/ad9389b.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ backports/v4.7_pci_alloc_irq_vectors.patch | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
-index 50f3541..a056d6c 100644
---- a/drivers/media/i2c/ad9389b.c
-+++ b/drivers/media/i2c/ad9389b.c
-@@ -1208,7 +1208,7 @@ static int ad9389b_remove(struct i2c_client *client)
- 
- /* ----------------------------------------------------------------------- */
- 
--static struct i2c_device_id ad9389b_id[] = {
-+static const struct i2c_device_id ad9389b_id[] = {
- 	{ "ad9389b", 0 },
- 	{ "ad9889b", 0 },
- 	{ }
+diff --git a/backports/v4.7_pci_alloc_irq_vectors.patch b/backports/v4.7_pci_alloc_irq_vectors.patch
+index 64867fa..e15d521 100644
+--- a/backports/v4.7_pci_alloc_irq_vectors.patch
++++ b/backports/v4.7_pci_alloc_irq_vectors.patch
+@@ -42,3 +42,16 @@ index 00f773e..ed00dc9 100644
+  	/* omnitek dma */
+  	int dma_channels;
+  	int first_fifo_channel;
++diff --git a/drivers/media/pci/ddbridge/ddbridge.c b/drivers/media/pci/ddbridge/ddbridge.c
++index fab421f..031288a 100644
++--- a/drivers/media/pci/ddbridge/ddbridge-main.c
+++++ b/drivers/media/pci/ddbridge/ddbridge-main.c
++@@ -109,7 +109,7 @@ static void ddb_irq_msi(struct ddb *dev, int nr)
++ 	int stat;
++ 
++ 	if (msi && pci_msi_enabled()) {
++-		stat = pci_alloc_irq_vectors(dev->pdev, 1, nr, PCI_IRQ_MSI);
+++		stat = pci_enable_msi_range(dev->pdev, 1, nr);
++ 		if (stat >= 1) {
++ 			dev->msi = stat;
++ 			dev_info(dev->dev, "using %d MSI interrupt(s)\n",
 -- 
-2.7.4
+2.13.0
