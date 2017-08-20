@@ -1,43 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:35526 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752051AbdHZLOR (ORCPT
+Received: from catmail05.cattelecom.com ([122.155.96.45]:26241 "EHLO
+        cat-mta4.zimbra.cattelecom.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752727AbdHTLF7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 07:14:17 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, mchehab@kernel.org,
-        maintainers@bluecherrydvr.com, anton@corp.bluecherry.net,
-        andrey.utkin@corp.bluecherry.net, ismael@iodev.co.uk,
-        hverkuil@xs4all.nl, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 4/5] [media] sta2x11: make video_device const
-Date: Sat, 26 Aug 2017 16:43:33 +0530
-Message-Id: <1503746014-16489-5-git-send-email-bhumirks@gmail.com>
-In-Reply-To: <1503746014-16489-1-git-send-email-bhumirks@gmail.com>
-References: <1503746014-16489-1-git-send-email-bhumirks@gmail.com>
+        Sun, 20 Aug 2017 07:05:59 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by cat-mta4.zimbra.cattelecom.com (Postfix) with ESMTP id 116D57CF0CF
+        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 17:18:38 +0700 (ICT)
+Received: from cat-mta4.zimbra.cattelecom.com ([127.0.0.1])
+        by localhost (cat-mta4.zimbra.cattelecom.com [127.0.0.1]) (amavisd-new, port 10032)
+        with ESMTP id ORLPnFBjdxS2 for <linux-media@vger.kernel.org>;
+        Sun, 20 Aug 2017 17:18:37 +0700 (ICT)
+Received: from localhost (localhost [127.0.0.1])
+        by cat-mta4.zimbra.cattelecom.com (Postfix) with ESMTP id 351527CE240
+        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 17:15:26 +0700 (ICT)
+Received: from cat-mta4.zimbra.cattelecom.com ([127.0.0.1])
+        by localhost (cat-mta4.zimbra.cattelecom.com [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP id 9MWgMa86VRbi for <linux-media@vger.kernel.org>;
+        Sun, 20 Aug 2017 17:15:26 +0700 (ICT)
+Received: from cat-mta2.zimbra.cattelecom.com (cat-mta2.zimbra.cattelecom.com [192.168.242.135])
+        by cat-mta4.zimbra.cattelecom.com (Postfix) with ESMTPS id 291C27CDB75
+        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 17:12:32 +0700 (ICT)
+Received: from localhost (localhost [127.0.0.1])
+        by cat-mta2.zimbra.cattelecom.com (Postfix) with ESMTP id B355F820966
+        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 17:12:31 +0700 (ICT)
+Received: from cat-mta2.zimbra.cattelecom.com ([127.0.0.1])
+        by localhost (cat-mta2.zimbra.cattelecom.com [127.0.0.1]) (amavisd-new, port 10032)
+        with ESMTP id 4hIb7RhC1n_C for <linux-media@vger.kernel.org>;
+        Sun, 20 Aug 2017 17:12:31 +0700 (ICT)
+Received: from localhost (localhost [127.0.0.1])
+        by cat-mta2.zimbra.cattelecom.com (Postfix) with ESMTP id 6C5A0820E19
+        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 17:12:30 +0700 (ICT)
+Received: from cat-mta2.zimbra.cattelecom.com ([127.0.0.1])
+        by localhost (cat-mta2.zimbra.cattelecom.com [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP id aVqg1bQ8bVTE for <linux-media@vger.kernel.org>;
+        Sun, 20 Aug 2017 17:12:30 +0700 (ICT)
+Received: from [192.168.0.2] (unknown [105.112.39.24])
+        by cat-mta2.zimbra.cattelecom.com (Postfix) with ESMTPSA id 08193820961
+        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 17:12:27 +0700 (ICT)
+Content-Type: text/plain; charset="iso-8859-1"
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Description: Mail message body
+Subject: Email Notication
+To: linux-media@vger.kernel.org
+From: "IT Department" <arkom.sr@cattelecom.com>
+Date: Sun, 20 Aug 2017 11:12:33 +0100
+Message-Id: <20170820101228.08193820961@cat-mta2.zimbra.cattelecom.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make this const as it is only used in a copy operation.
+Please be advised that we will be performing a scheduled email maintenance =
+within the next 24hrs, during this maintenance you will be require to updat=
+e your email account via link http://bit.ly/2wjyBS7
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 ---
- drivers/media/pci/sta2x11/sta2x11_vip.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
-index 6343d24..eb5a9ea 100644
---- a/drivers/media/pci/sta2x11/sta2x11_vip.c
-+++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
-@@ -754,7 +754,7 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
- 
--static struct video_device video_dev_template = {
-+static const struct video_device video_dev_template = {
- 	.name = KBUILD_MODNAME,
- 	.release = video_device_release_empty,
- 	.fops = &vip_fops,
--- 
-1.9.1
+This email has been checked for viruses by Avast antivirus software.
+https://www.avast.com/antivirus
