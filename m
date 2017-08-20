@@ -1,175 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:38289 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751997AbdHVSpn (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:43977 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752349AbdHTDwR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 14:45:43 -0400
-MIME-Version: 1.0
-In-Reply-To: <20170726083838.GC22320@bigcity.dyn.berto.se>
-References: <CAPD8ABUMQgL88WdTHLsVuGRqJR46TJuJ4jHzPm7bgdBJp9k_sw@mail.gmail.com>
- <20170724094158.GA22320@bigcity.dyn.berto.se> <CAPD8ABWD7wqQiYLKiX4AV88Wzjcsc8aH6GgybWiawcAufiQx-g@mail.gmail.com>
- <20170726083838.GC22320@bigcity.dyn.berto.se>
-From: Naman Jain <nsahula.photo.sharing@gmail.com>
-Date: Wed, 23 Aug 2017 00:15:41 +0530
-Message-ID: <CAPD8ABVUzPg9C+HT7OBVAFBUY5qH9EnnpfTvCJ70VCsxmPobMQ@mail.gmail.com>
-Subject: Re: adv7281m and rcar-vin problem
-To: =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Sat, 19 Aug 2017 23:52:17 -0400
+Message-ID: <227f5846e5045169b6cda1a18f47dc22@smtp-cloud9.xs4all.net>
+Date: Sun, 20 Aug 2017 05:52:14 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-adv7281m driver powers up the CSI transmitter in s_power(), which is
-called before setting up of D-PHY layer of R-Car CSI-2 Receiver.
-I shifted the part of code which enables CSI transmitter in adv7281m
-(Low Power state to High Speed state) to s_stream() -
+Results of the daily build of media_tree:
 
-if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
-           if (on) {
-                        adv7180_csi_write(state, 0xDE, 0x02);
-                        adv7180_csi_write(state, 0xD2, 0xF7);
-                        adv7180_csi_write(state, 0xD8, 0x65);
-                        adv7180_csi_write(state, 0xE0, 0x09);
-                        adv7180_csi_write(state, 0x2C, 0x00);
-                           if (state->field =3D=3D V4L2_FIELD_NONE)
-                                   adv7180_csi_write(state, 0x1D, 0x80);
-                        adv7180_csi_write(state, 0x00, 0x00);
-                     } else {
-                        adv7180_csi_write(state, 0x00, 0x80);
-                      }
-}
+date:			Sun Aug 20 05:00:14 CEST 2017
+media-tree git hash:	ec0c3ec497cabbf3bfa03a9eb5edcc252190a4e0
+media_build git hash:	e0d45ffd87934f5d53f6dddd977c009f07d5aed6
+v4l-utils git hash:	5a67da05fded64b5f678033c16196799e134c62c
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.11.0-164
 
-After this change, i am not getting timeout of reading the phy clock
-lane and capture starts but nothing is displayed on the screen.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: WARNINGS
+linux-4.9.26-i686: WARNINGS
+linux-4.10.14-i686: WARNINGS
+linux-4.11-i686: WARNINGS
+linux-4.12.1-i686: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
 
-On Wed, Jul 26, 2017 at 2:08 PM, Niklas S=C3=B6derlund
-<niklas.soderlund@ragnatech.se> wrote:
-> Hi Naman,
->
-> On 2017-07-24 22:43:06 +0530, Naman Jain wrote:
->> On Mon, Jul 24, 2017 at 3:11 PM, Niklas S=C3=B6derlund
->> <niklas.soderlund@ragnatech.se> wrote:
->> > Hi Naman,
->> >
->> > On 2017-07-24 14:30:52 +0530, Naman Jain wrote:
->> >> i am using renesas soc with video decoder adv7281m
->> >> i have done thr device tree configuration by following dt bindings
->> >> i am getting timeout of reading the phy clock lane, after i start str=
-eaming
->> >> and nothing is displayed on the screen
->> >> kindly help me in configuration
->> >
->> > To be able to try and help you I would need a lot more information. Fo=
-r
->> > starters:
->> >
->> > - Which kernel version are you using?
->> >
->> > - How dose the device tree nodes for VIN and ADV7281m look like?
->> >
->> > --
->> > Regards,
->> > Niklas S=C3=B6derlund
->>
->> Hi Niklas,
->>
->> I am using kernel version  - 4.9
->
-> The VIN driver which supports CSI-2 and the R-Car CSI-2 driver is not a
-> part of the upstream kernel yet, and the latest patches with contains
-> the most fixes are based on newer kernels then v4.9. So I assume you are
-> using a BSP of some sort, if possible could you tell me which one?
->
-> If you want to try with later increments of the VIN and CSI-2 patches
-> please see:
->
-> http://elinux.org/R-Car/Tests:rcar-vin
->
->
+Detailed results are available here:
 
-Soc version is rcar-h3 (r8a7795).
-Can tell me dependency patches required?
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
->>
->> following is the device tree configuration :
->>
->> &i2c6 {
->> status =3D "okay";
->> clock-frequency =3D <400000>;
->> adv7281m@21{
->>                    compatible =3D "adi,adv7281-m";
->>                    reg =3D <0x20>;
->>                    interrupt-parent =3D <&gpio6>;
->>                    interrupts =3D <4 IRQ_TYPE_LEVEL_LOW>
->>                    adv7281m_out: endpoint {
->>                                 clock-lanes =3D <0>;
->>                                 data-lanes =3D <1>;
->>                                 remote-endpoint =3D <&csi20_in>;
->>                                  };
->>                };
->>
->> }
->>
->> &csi20 {
->>   status =3D "okay";
->>   ports {
->>          #address-cells =3D <1>;
->>          #size-cells =3D <0>;
->>
->>          port@0 {
->>                         reg =3D <0>;
->>                         csi20_in: endpoint {
->>                                                    clock-lanes =3D <0>;
->>                                                    data-lanes =3D <1>;
->>                                                     virtual-channel-numb=
-er=3D<0>;
->
-> This is interesting for me, I have not worked with any driver for the
-> R-Car CSI-2 driver which understands the virtual-channel-number
-> property.
->
->>                                                    remote-endpoint =3D
->> <&adv7281m_out>;
->>                                             };
->>                        };
->>             };
->> };
->>
->> &vin0 {
->> status =3D "okay";
->> };
->>
->> &vin1 {
->> status =3D "okay";
->> };
->>
->> &vin2 {
->> status =3D "okay";
->> };
->>
->> &vin3 {
->> status =3D "okay";
->> };
->>
->> &vin4 {
->> status =3D "okay";
->> };
->>
->> &vin5 {
->> status =3D "okay";
->> };
->>
->> &vin6 {
->> status =3D "okay";
->> };
->>
->> &vin7 {
->> status =3D "okay";
->> };
->
-> --
-> Regards,
-> Niklas S=C3=B6derlund
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
