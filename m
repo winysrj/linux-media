@@ -1,73 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:53862
-        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751334AbdHELMl (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:36923 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752420AbdHTKlS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 5 Aug 2017 07:12:41 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org
-Subject: [PATCH 1/6] [media] v4l2-pci-skeleton: constify vb2_ops structures
-Date: Sat,  5 Aug 2017 12:47:08 +0200
-Message-Id: <1501930033-18249-2-git-send-email-Julia.Lawall@lip6.fr>
-In-Reply-To: <1501930033-18249-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1501930033-18249-1-git-send-email-Julia.Lawall@lip6.fr>
+        Sun, 20 Aug 2017 06:41:18 -0400
+Received: by mail-wr0-f196.google.com with SMTP id z91so13149675wrc.4
+        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 03:41:17 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at, rjkm@metzlerbros.de
+Subject: [PATCH 1/6] [media] ddbridge: fix gap handling
+Date: Sun, 20 Aug 2017 12:41:09 +0200
+Message-Id: <20170820104114.6515-2-d.scheller.oss@gmail.com>
+In-Reply-To: <20170820104114.6515-1-d.scheller.oss@gmail.com>
+References: <20170820104114.6515-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These vb2_ops structures are only stored in the ops field of a
-vb2_queue structure, which is declared as const.  Thus the vb2_ops
-structures themselves can be const.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Done with the help of Coccinelle.
+Force gap setting if given by attribute and enable gap for older regmaps.
+Also, setting a gap value of 128 via sysfs will now disable gap.
 
-// <smpl>
-@r disable optional_qualifier@
-identifier i;
-position p;
-@@
-static struct vb2_ops i@p = { ... };
-
-@ok@
-identifier r.i;
-struct vb2_queue e;
-position p;
-@@
-e.ops = &i@p;
-
-@bad@
-position p != {r.p,ok.p};
-identifier r.i;
-struct vb2_ops e;
-@@
-e@i@p
-
-@depends on !bad disable optional_qualifier@
-identifier r.i;
-@@
-static
-+const
- struct vb2_ops i = { ... };
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
-There doesn't seem to be a maintainer for this file.
+ drivers/media/pci/ddbridge/ddbridge-core.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
- samples/v4l/v4l2-pci-skeleton.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/samples/v4l/v4l2-pci-skeleton.c b/samples/v4l/v4l2-pci-skeleton.c
-index 93b76c3..483e9bca 100644
---- a/samples/v4l/v4l2-pci-skeleton.c
-+++ b/samples/v4l/v4l2-pci-skeleton.c
-@@ -282,7 +282,7 @@ static void stop_streaming(struct vb2_queue *vq)
-  * vb2_ops_wait_prepare/finish helper functions. If q->lock would be NULL,
-  * then this driver would have to provide these ops.
-  */
--static struct vb2_ops skel_qops = {
-+static const struct vb2_ops skel_qops = {
- 	.queue_setup		= queue_setup,
- 	.buf_prepare		= buffer_prepare,
- 	.buf_queue		= buffer_queue,
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index c290d3fecc8d..98a12c644e44 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -336,6 +336,7 @@ static void calc_con(struct ddb_output *output, u32 *con, u32 *con2, u32 flags)
+ 	if (output->port->gap != 0xffffffff) {
+ 		flags |= 1;
+ 		gap = output->port->gap;
++		max_bitrate = 0;
+ 	}
+ 	if (dev->link[0].info->type == DDB_OCTOPUS_CI && output->port->nr > 1) {
+ 		*con = 0x10c;
+@@ -372,6 +373,7 @@ static void calc_con(struct ddb_output *output, u32 *con, u32 *con2, u32 flags)
+ 				*con |= 0x810; /* 96 MBit/s and gap */
+ 				max_bitrate = 96000;
+ 			}
++			*con |= 0x10; /* enable gap */
+ 		}
+ 	}
+ 	if (max_bitrate > 0) {
+@@ -3203,8 +3205,10 @@ static ssize_t gap_store(struct device *device, struct device_attribute *attr,
+ 
+ 	if (sscanf(buf, "%u\n", &val) != 1)
+ 		return -EINVAL;
+-	if (val > 20)
++	if (val > 128)
+ 		return -EINVAL;
++	if (val == 128)
++		val = 0xffffffff;
+ 	dev->port[num].gap = val;
+ 	return count;
+ }
+-- 
+2.13.0
