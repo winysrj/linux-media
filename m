@@ -1,316 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:33190 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751675AbdIABva (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:33917 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753790AbdHUUV5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 21:51:30 -0400
-Received: by mail-qk0-f194.google.com with SMTP id k126so1008349qkb.0
-        for <linux-media@vger.kernel.org>; Thu, 31 Aug 2017 18:51:29 -0700 (PDT)
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [PATCH v2 13/14] [media] vb2: add out-fence support to QBUF
-Date: Thu, 31 Aug 2017 22:50:40 -0300
-Message-Id: <20170901015041.7757-14-gustavo@padovan.org>
-In-Reply-To: <20170901015041.7757-1-gustavo@padovan.org>
-References: <20170901015041.7757-1-gustavo@padovan.org>
+        Mon, 21 Aug 2017 16:21:57 -0400
+Date: Mon, 21 Aug 2017 22:21:45 +0200
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Baruch Siach <baruch@tkos.co.il>
+Cc: Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benoit Parrot <bparrot@ti.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
+Message-ID: <20170821202145.kmxancepyq55v3o2@flea.lan>
+References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
+ <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
+ <20170728160233.xooevio4hoqkgfaq@flea.lan>
+ <20170730060801.bkc2kvm72ktixy74@tarshish>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="phq7ixndptki6bzi"
+Content-Disposition: inline
+In-Reply-To: <20170730060801.bkc2kvm72ktixy74@tarshish>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-If V4L2_BUF_FLAG_OUT_FENCE flag is present on the QBUF call we create
-an out_fence and return it to userspace on the fence_fd field.
+--phq7ixndptki6bzi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The out fence fd returned references the next buffer to be queued to the
-driver and not the buffer in the actual QBUF call. So there a list in
-videobuf2 core to keep track of the sync_file and fence created and assign
-them to buffers when they are queued to the V4L2 driver.
+Hi Baruch,
 
-The fence is signaled on buffer_done(), when the job on the buffer is
-finished.
+On Sun, Jul 30, 2017 at 09:08:01AM +0300, Baruch Siach wrote:
+> On Fri, Jul 28, 2017 at 06:02:33PM +0200, Maxime Ripard wrote:
+> > Hi,=20
+> >=20
+> > Thanks for the second iteration!
+> >=20
+> > On Thu, Jul 27, 2017 at 01:01:35PM +0800, Yong Deng wrote:
+> > > Allwinner V3s SoC have two CSI module. CSI0 is used for MIPI interface
+> > > and CSI1 is used for parallel interface. This is not documented in
+> > > datasheet but by testing and guess.
+> > >=20
+> > > This patch implement a v4l2 framework driver for it.
+> > >=20
+> > > Currently, the driver only support the parallel interface. MIPI-CSI2,
+> > > ISP's support are not included in this patch.
+> > >=20
+> > > Signed-off-by: Yong Deng <yong.deng@magewell.com>
+>=20
+> [...]
+>=20
+> > > +#ifdef DEBUG
+> > > +static void sun6i_csi_dump_regs(struct sun6i_csi_dev *sdev)
+> > > +{
+> > > +	struct regmap *regmap =3D sdev->regmap;
+> > > +	u32 val;
+> > > +
+> > > +	regmap_read(regmap, CSI_EN_REG, &val);
+> > > +	printk("CSI_EN_REG=3D0x%x\n",		val);
+> > > +	regmap_read(regmap, CSI_IF_CFG_REG, &val);
+> > > +	printk("CSI_IF_CFG_REG=3D0x%x\n",		val);
+> > > +	regmap_read(regmap, CSI_CAP_REG, &val);
+> > > +	printk("CSI_CAP_REG=3D0x%x\n",		val);
+> > > +	regmap_read(regmap, CSI_SYNC_CNT_REG, &val);
+> > > +	printk("CSI_SYNC_CNT_REG=3D0x%x\n",	val);
+> > > +	regmap_read(regmap, CSI_FIFO_THRS_REG, &val);
+> > > +	printk("CSI_FIFO_THRS_REG=3D0x%x\n",	val);
+> > > +	regmap_read(regmap, CSI_PTN_LEN_REG, &val);
+> > > +	printk("CSI_PTN_LEN_REG=3D0x%x\n",	val);
+> > > +	regmap_read(regmap, CSI_PTN_ADDR_REG, &val);
+> > > +	printk("CSI_PTN_ADDR_REG=3D0x%x\n",	val);
+> > > +	regmap_read(regmap, CSI_VER_REG, &val);
+> > > +	printk("CSI_VER_REG=3D0x%x\n",		val);
+> > > +	regmap_read(regmap, CSI_CH_CFG_REG, &val);
+> > > +	printk("CSI_CH_CFG_REG=3D0x%x\n",		val);
+> > > +	regmap_read(regmap, CSI_CH_SCALE_REG, &val);
+> > > +	printk("CSI_CH_SCALE_REG=3D0x%x\n",	val);
+> > > +	regmap_read(regmap, CSI_CH_F0_BUFA_REG, &val);
+> > > +	printk("CSI_CH_F0_BUFA_REG=3D0x%x\n",	val);
+> > > +	regmap_read(regmap, CSI_CH_F1_BUFA_REG, &val);
+> > > +	printk("CSI_CH_F1_BUFA_REG=3D0x%x\n",	val);
+> > > +	regmap_read(regmap, CSI_CH_F2_BUFA_REG, &val);
+> > > +	printk("CSI_CH_F2_BUFA_REG=3D0x%x\n",	val);
+> > > +	regmap_read(regmap, CSI_CH_STA_REG, &val);
+> > > +	printk("CSI_CH_STA_REG=3D0x%x\n",		val);
+> > > +	regmap_read(regmap, CSI_CH_INT_EN_REG, &val);
+> > > +	printk("CSI_CH_INT_EN_REG=3D0x%x\n",	val);
+> > > +	regmap_read(regmap, CSI_CH_INT_STA_REG, &val);
+> > > +	printk("CSI_CH_INT_STA_REG=3D0x%x\n",	val);
+> > > +	regmap_read(regmap, CSI_CH_FLD1_VSIZE_REG, &val);
+> > > +	printk("CSI_CH_FLD1_VSIZE_REG=3D0x%x\n",	val);
+> > > +	regmap_read(regmap, CSI_CH_HSIZE_REG, &val);
+> > > +	printk("CSI_CH_HSIZE_REG=3D0x%x\n",	val);
+> > > +	regmap_read(regmap, CSI_CH_VSIZE_REG, &val);
+> > > +	printk("CSI_CH_VSIZE_REG=3D0x%x\n",	val);
+> > > +	regmap_read(regmap, CSI_CH_BUF_LEN_REG, &val);
+> > > +	printk("CSI_CH_BUF_LEN_REG=3D0x%x\n",	val);
+> > > +	regmap_read(regmap, CSI_CH_FLIP_SIZE_REG, &val);
+> > > +	printk("CSI_CH_FLIP_SIZE_REG=3D0x%x\n",	val);
+> > > +	regmap_read(regmap, CSI_CH_FRM_CLK_CNT_REG, &val);
+> > > +	printk("CSI_CH_FRM_CLK_CNT_REG=3D0x%x\n",	val);
+> > > +	regmap_read(regmap, CSI_CH_ACC_ITNL_CLK_CNT_REG, &val);
+> > > +	printk("CSI_CH_ACC_ITNL_CLK_CNT_REG=3D0x%x\n",	val);
+> > > +	regmap_read(regmap, CSI_CH_FIFO_STAT_REG, &val);
+> > > +	printk("CSI_CH_FIFO_STAT_REG=3D0x%x\n",	val);
+> > > +	regmap_read(regmap, CSI_CH_PCLK_STAT_REG, &val);
+> > > +	printk("CSI_CH_PCLK_STAT_REG=3D0x%x\n",	val);
+> > > +}
+> > > +#endif
+> >=20
+> > You can already dump a regmap through debugfs, that's redundant.
+>=20
+> The advantage of in-code registers dump routine is the ability to
+> synchronize the snapshot with the driver code execution. This is
+> particularly important for the capture statistics registers. I have
+> found it useful here.
 
-v3:	- add WARN_ON_ONCE(q->ordered) on requeueing (Hans)
-	- set the OUT_FENCE flag if there is a fence pending (Hans)
-	- call fd_install() after vb2_core_qbuf() (Hans)
-	- clean up fence if vb2_core_qbuf() fails (Hans)
-	- add list to store sync_file and fence for the next queued buffer
+You also have the option to use the traces to do that, but if that's
+useful, this should be added to regmap itself. It can benefit others
+too.
 
-v2: check if the queue is ordered.
+> > > +static irqreturn_t sun6i_csi_isr(int irq, void *dev_id)
+> > > +{
+> > > +	struct sun6i_csi_dev *sdev =3D (struct sun6i_csi_dev *)dev_id;
+> > > +	struct regmap *regmap =3D sdev->regmap;
+> > > +	u32 status;
+> > > +
+> > > +	regmap_read(regmap, CSI_CH_INT_STA_REG, &status);
+> > > +
+> > > +	if ((status & CSI_CH_INT_STA_FIFO0_OF_PD) ||
+> > > +	    (status & CSI_CH_INT_STA_FIFO1_OF_PD) ||
+> > > +	    (status & CSI_CH_INT_STA_FIFO2_OF_PD) ||
+> > > +	    (status & CSI_CH_INT_STA_HB_OF_PD)) {
+> > > +		regmap_write(regmap, CSI_CH_INT_STA_REG, status);
+> > > +		regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN, 0);
+> > > +		regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN,
+> > > +				   CSI_EN_CSI_EN);
+> >=20
+> > You need to enable / disable it at every frame? How do you deal with
+> > double buffering? (or did you choose to ignore it for now?)
+>=20
+> These *_OF_PD status bits indicate an overflow error condition.
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 85 ++++++++++++++++++++++++++++----
- drivers/media/v4l2-core/videobuf2-v4l2.c | 13 ++++-
- include/media/videobuf2-core.h           | 17 ++++++-
- 3 files changed, 104 insertions(+), 11 deletions(-)
+Shouldn't we return an error code then? The names of these flags could
+be better too.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 2b9ba3dc23f0..07493c846a8d 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -353,6 +353,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
- 			vb->planes[plane].length = plane_sizes[plane];
- 			vb->planes[plane].min_length = plane_sizes[plane];
- 		}
-+		vb->out_fence_fd = -1;
- 		q->bufs[vb->index] = vb;
- 
- 		/* Allocate video buffer memory for the MMAP type */
-@@ -933,10 +934,22 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	case VB2_BUF_STATE_QUEUED:
- 		return;
- 	case VB2_BUF_STATE_REQUEUEING:
-+		/*
-+		 * Explicit synchronization requires ordered queues for now,
-+		 * so WARN_ON if we are requeuing on an ordered queue.
-+		 */
-+		if (vb->out_fence)
-+			WARN_ON_ONCE(q->ordered);
-+
- 		if (q->start_streaming_called)
- 			__enqueue_in_driver(vb);
- 		return;
- 	default:
-+		dma_fence_signal(vb->out_fence);
-+		dma_fence_put(vb->out_fence);
-+		vb->out_fence = NULL;
-+		vb->out_fence_fd = -1;
-+
- 		/* Inform any processes that may be waiting for buffers */
- 		wake_up(&q->done_wq);
- 		break;
-@@ -1224,10 +1237,20 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
- static void __enqueue_in_driver(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
-+	struct vb2_fence *fence;
- 
- 	if (vb->in_fence && !dma_fence_is_signaled(vb->in_fence))
- 		return;
- 
-+	spin_lock(&q->out_fence_lock);
-+	fence = list_first_entry(&q->out_fence_list, struct vb2_fence, entry);
-+	if (fence) {
-+		vb->out_fence = dma_fence_get(fence->out_fence);
-+		list_del(&fence->entry);
-+		kfree(fence);
-+	}
-+	spin_unlock(&q->out_fence_lock);
-+
- 	vb->state = VB2_BUF_STATE_ACTIVE;
- 	atomic_inc(&q->owned_by_drv_count);
- 
-@@ -1323,25 +1346,36 @@ EXPORT_SYMBOL_GPL(vb2_core_prepare_buf);
- int vb2_setup_out_fence(struct vb2_queue *q, unsigned int index)
- {
- 	struct vb2_buffer *vb = q->bufs[index];
-+	struct vb2_fence *fence;
- 
- 	vb->out_fence_fd = get_unused_fd_flags(O_CLOEXEC);
- 	if (vb->out_fence_fd < 0)
- 		return vb->out_fence_fd;
- 
--	vb->out_fence = vb2_fence_alloc();
--	if (!vb->out_fence)
--		goto err;
-+	fence = kzalloc(sizeof(*fence), GFP_KERNEL);
-+	if (!fence)
-+		goto err_fd;
- 
--	vb->sync_file = sync_file_create(vb->out_fence);
--	if (!vb->sync_file) {
--		dma_fence_put(vb->out_fence);
--		vb->out_fence = NULL;
--		goto err;
-+	fence->out_fence = vb2_fence_alloc();
-+	if (!fence->out_fence)
-+		goto err_fence;
-+
-+	fence->sync_file = sync_file_create(fence->out_fence);
-+	if (!fence->sync_file) {
-+		dma_fence_put(fence->out_fence);
-+		goto err_fence;
- 	}
- 
-+	spin_lock(&q->out_fence_lock);
-+	list_add_tail(&fence->entry, &q->out_fence_list);
-+	spin_unlock(&q->out_fence_lock);
-+
- 	return 0;
- 
--err:
-+err_fence:
-+	kfree(fence);
-+
-+err_fd:
- 	put_unused_fd(vb->out_fence_fd);
- 	vb->out_fence_fd = -1;
- 	return -ENOMEM;
-@@ -1425,6 +1459,7 @@ static void vb2_qbuf_fence_cb(struct dma_fence *f, struct dma_fence_cb *cb)
- int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
- 		  struct dma_fence *fence)
- {
-+	struct vb2_fence *vb2_fence;
- 	struct vb2_buffer *vb;
- 	int ret;
- 
-@@ -1506,6 +1541,16 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
- 		vb->in_fence = NULL;
- 	}
- 
-+	if (vb->out_fence_fd >= 0) {
-+		spin_lock(&q->out_fence_lock);
-+		vb2_fence = list_last_entry(&q->out_fence_list,
-+					    struct vb2_fence, entry);
-+		spin_unlock(&q->out_fence_lock);
-+		fd_install(vb->out_fence_fd, vb2_fence->sync_file->file);
-+
-+		vb2_fence->sync_file = NULL;
-+	}
-+
- fill:
- 	if (q->start_streaming_called && !vb->in_fence)
- 		__enqueue_in_driver(vb);
-@@ -1523,6 +1568,17 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
- 		vb->in_fence = NULL;
- 	}
- 
-+	if (vb->out_fence_fd >= 0) {
-+		spin_lock(&q->out_fence_lock);
-+		vb2_fence = list_last_entry(&q->out_fence_list,
-+					    struct vb2_fence, entry);
-+		fput(vb2_fence->sync_file->file);
-+		list_del(&vb2_fence->entry);
-+		kfree(vb2_fence);
-+		spin_unlock(&q->out_fence_lock);
-+		put_unused_fd(vb->out_fence_fd);
-+	}
-+
- 	return ret;
- 
- }
-@@ -1736,6 +1792,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- {
- 	unsigned int i;
- 	struct vb2_buffer *vb;
-+	struct vb2_fence *fence, *tmp;
- 
- 	/*
- 	 * Tell driver to stop all transactions and release all queued
-@@ -1766,6 +1823,13 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 		}
- 	}
- 
-+	spin_lock(&q->out_fence_lock);
-+	list_for_each_entry_safe(fence, tmp, &q->out_fence_list, entry) {
-+		list_del(&fence->entry);
-+		kfree(fence);
-+	}
-+	spin_unlock(&q->out_fence_lock);
-+
- 	q->streaming = 0;
- 	q->start_streaming_called = 0;
- 	q->queued_count = 0;
-@@ -1780,6 +1844,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 	 * has not already dequeued before initiating cancel.
- 	 */
- 	INIT_LIST_HEAD(&q->done_list);
-+	INIT_LIST_HEAD(&q->out_fence_list);
- 	atomic_set(&q->owned_by_drv_count, 0);
- 	wake_up_all(&q->done_wq);
- 
-@@ -2101,6 +2166,8 @@ int vb2_core_queue_init(struct vb2_queue *q)
- 	INIT_LIST_HEAD(&q->queued_list);
- 	INIT_LIST_HEAD(&q->done_list);
- 	spin_lock_init(&q->done_lock);
-+	INIT_LIST_HEAD(&q->out_fence_list);
-+	spin_lock_init(&q->out_fence_lock);
- 	mutex_init(&q->mmap_lock);
- 	init_waitqueue_head(&q->done_wq);
- 
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 1c93bfedaffc..788372e4d0c9 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -223,7 +223,9 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 	b->sequence = vbuf->sequence;
- 	b->reserved = 0;
- 
--	b->fence_fd = -1;
-+	b->fence_fd = vb->out_fence_fd;
-+	if (vb->out_fence_fd)
-+		b->flags |= V4L2_BUF_FLAG_OUT_FENCE;
- 	if (vb->in_fence)
- 		b->flags |= V4L2_BUF_FLAG_IN_FENCE;
- 	else
-@@ -604,6 +606,15 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 		}
- 	}
- 
-+	if (b->flags & V4L2_BUF_FLAG_OUT_FENCE) {
-+		ret = vb2_setup_out_fence(q, b->index);
-+		if (ret) {
-+			dprintk(1, "failed to set up out-fence\n");
-+			dma_fence_put(fence);
-+			return ret;
-+		}
-+	}
-+
- 	return vb2_core_qbuf(q, b->index, b, fence);
- }
- EXPORT_SYMBOL_GPL(vb2_qbuf);
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index bf2f0499c737..a13a080d6c51 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -265,7 +265,6 @@ struct vb2_buffer {
- 	struct dma_fence_cb	fence_cb;
- 
- 	struct dma_fence	*out_fence;
--	struct sync_file	*sync_file;
- 	int			out_fence_fd;
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	/*
-@@ -428,6 +427,17 @@ struct vb2_buf_ops {
- 	void (*buffer_queued)(struct vb2_buffer *vb);
- };
- 
-+/*
-+ * struct vb2_fence - fence related data
-+ *
-+ * XXX
-+ */
-+struct vb2_fence {
-+	struct dma_fence *out_fence;
-+	struct sync_file *sync_file;
-+	struct list_head entry;
-+};
-+
- /**
-  * struct vb2_queue - a videobuf queue
-  *
-@@ -495,6 +505,8 @@ struct vb2_buf_ops {
-  * @done_list:	list of buffers ready to be dequeued to userspace
-  * @done_lock:	lock to protect done_list list
-  * @done_wq:	waitqueue for processes waiting for buffers ready to be dequeued
-+ * @out_fence_list: list of out fences waiting to be assigned to a buffer
-+ * @out_fence_lock: lock to protect out_fence_list
-  * @alloc_devs:	memory type/allocator-specific per-plane device
-  * @streaming:	current streaming state
-  * @start_streaming_called: @start_streaming was called successfully and we
-@@ -554,6 +566,9 @@ struct vb2_queue {
- 	spinlock_t			done_lock;
- 	wait_queue_head_t		done_wq;
- 
-+	struct list_head		out_fence_list;
-+	spinlock_t			out_fence_lock;
-+
- 	struct device			*alloc_devs[VB2_MAX_PLANES];
- 
- 	unsigned int			streaming:1;
--- 
-2.13.5
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
+
+--phq7ixndptki6bzi
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJZm0DZAAoJEBx+YmzsjxAgsgMP/2bJxqGAdDFwrFr/OR3D+lo3
+ZPNzjXY0g5vYTxAlm0p1i1DeyASWAMMMtaKFgbfl+t4e1xbrGa7vMpTcndm3UKuu
+1Xmi01AxOA5xRRm6AQqu53TgqsgvTQlUcFYFklQZ/hA3BcT0SUuizl1ghxQ1IQSl
+NZ0ELWufgHDrBsBUyuNkeI3HwTApbketqhAJ3H1lXwyXRvkEkEliZTRS0nJZD5MO
+B5kNJgcvpSZY73isRcu2XHPcTWcAPzeuuH2/NMWaZSB70/GaEqQpKQcVfeR92wjp
+SUFQu9j3ftINNrnrv3LHWZrHeOyEfSKjRltocEPq0+oW51Epu5G3rDJDRkApbxrB
+rQ2gOKFgjGJNaZ9HLjbyve3jBZIVzL/CK7YpBEDTO68WqR4si1SfKryh51k/cvKU
+PiC+CYP5ZHUtqHodUGlsw2NaHsDR2RcdeLnK9OS8N9zxppxnxspIgOT2N/JMHKUI
+Nf7N7vjRnZOBz9U7RA++8MFtEe/V3dmZMDTkTwRJC/EAd94X7Pq5v0n/oQ8Lan8M
+fCaCSWS1lZ+IRchQxOl8CNaS5JzobxPpP0VkkEF75sR1wSkjK2dyj7epUntbvm64
+NgUipCetdCWAWKMLK0BpMdxOLCDHux01eEUagYj5Ghfa6siGL7Wwx4R5XTCRULfd
+Fz2+hKJhmNYt8fU0aJjb
+=azN1
+-----END PGP SIGNATURE-----
+
+--phq7ixndptki6bzi--
