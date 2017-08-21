@@ -1,214 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38186 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751574AbdHQN1l (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Aug 2017 09:27:41 -0400
+Received: from mga02.intel.com ([134.134.136.20]:59231 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751121AbdHUHi5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 Aug 2017 03:38:57 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: pavel@ucw.cz, laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2.5 5/5] omap3isp: Quit using struct v4l2_subdev.host_priv field
-Date: Thu, 17 Aug 2017 16:27:38 +0300
-Message-Id: <20170817132738.8539-1-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170816203906.29989-1-sakari.ailus@linux.intel.com>
-References: <20170816203906.29989-1-sakari.ailus@linux.intel.com>
+Cc: tfiga@chromium.org, yong.zhi@intel.com, hverkuil@xs4all.nl
+Subject: [v4l-utils PATCH 1/1] v4l2-compliance: Add support for metadata output
+Date: Mon, 21 Aug 2017 10:38:49 +0300
+Message-Id: <20170821073849.20487-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-struct v4l2_subdev.host_priv is intended to be used by another driver. This
-is hardly good design but back in the days of platform data was a quick
-hack to get things done.
-
-As the sub-device specific bus information can be stored to the ISP driver
-specific struct allocated along with v4l2_async_subdev, keep the
-information there and only there.
+Add support for metadata output video nodes, in other words,
+V4L2_CAP_META_OUTPUT and V4L2_BUF_TYPE_META_OUTPUT.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
-since v2.4:
+Hi all,
 
-- Use temporary variables to avoid somewhat lengthy statements.
+This patch adds support for metadata output in v4l2-compliance.
 
- drivers/media/platform/omap3isp/isp.c       | 29 +++++++----------------------
- drivers/media/platform/omap3isp/isp.h       |  4 +++-
- drivers/media/platform/omap3isp/ispccdc.c   | 16 +++++++++-------
- drivers/media/platform/omap3isp/ispccp2.c   |  3 ++-
- drivers/media/platform/omap3isp/ispcsi2.c   |  2 +-
- drivers/media/platform/omap3isp/ispcsiphy.c |  8 +++-----
- 6 files changed, 25 insertions(+), 37 deletions(-)
+It depends on the metadata output patch:
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 6cb1f0495804..c3014c82d64d 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2188,26 +2188,12 @@ static int isp_fwnodes_parse(struct device *dev,
- 	return -EINVAL;
- }
- 
--static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
--				     struct v4l2_subdev *subdev,
--				     struct v4l2_async_subdev *asd)
--{
--	struct isp_async_subdev *isd =
--		container_of(asd, struct isp_async_subdev, asd);
+<URL:https://patchwork.linuxtv.org/patch/43308/>
+
+ include/linux/videodev2.h                   |  3 ++-
+ utils/v4l2-compliance/v4l2-compliance.cpp   | 11 ++++++++---
+ utils/v4l2-compliance/v4l2-test-formats.cpp |  8 +++++++-
+ 3 files changed, 17 insertions(+), 5 deletions(-)
+
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 49fe06c97..101be86c0 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -142,6 +142,7 @@ enum v4l2_buf_type {
+ 	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
+ 	V4L2_BUF_TYPE_SDR_OUTPUT           = 12,
+ 	V4L2_BUF_TYPE_META_CAPTURE         = 13,
++	V4L2_BUF_TYPE_META_OUTPUT          = 14,
+ 	/* Deprecated, do not use */
+ 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
+ };
+@@ -453,7 +454,7 @@ struct v4l2_capability {
+ #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
+ #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
+ #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
 -
--	isd->sd = subdev;
--	isd->sd->host_priv = &isd->bus;
--
--	return 0;
--}
--
- static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
- {
- 	struct isp_device *isp = container_of(async, struct isp_device,
- 					      notifier);
- 	struct v4l2_device *v4l2_dev = &isp->v4l2_dev;
- 	struct v4l2_subdev *sd;
--	struct isp_bus_cfg *bus;
- 	int ret;
++#define V4L2_CAP_META_OUTPUT           0x08000000
+ #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
  
- 	ret = media_entity_enum_init(&isp->crashed, &isp->media_dev);
-@@ -2215,13 +2201,13 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
- 		return ret;
- 
- 	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
--		/* Only try to link entities whose interface was set on bound */
--		if (sd->host_priv) {
--			bus = (struct isp_bus_cfg *)sd->host_priv;
--			ret = isp_link_entity(isp, &sd->entity, bus->interface);
--			if (ret < 0)
--				return ret;
--		}
-+		if (!sd->asd)
-+			continue;
-+
-+		ret = isp_link_entity(isp, &sd->entity,
-+				      v4l2_subdev_to_bus_cfg(sd)->interface);
-+		if (ret < 0)
-+			return ret;
+ #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device capabilities field */
+diff --git a/utils/v4l2-compliance/v4l2-compliance.cpp b/utils/v4l2-compliance/v4l2-compliance.cpp
+index c40e3bd78..539c8c34b 100644
+--- a/utils/v4l2-compliance/v4l2-compliance.cpp
++++ b/utils/v4l2-compliance/v4l2-compliance.cpp
+@@ -216,6 +216,8 @@ std::string cap2s(unsigned cap)
+ 		s += "\t\tSDR Output\n";
+ 	if (cap & V4L2_CAP_META_CAPTURE)
+ 		s += "\t\tMetadata Capture\n";
++	if (cap & V4L2_CAP_META_OUTPUT)
++		s += "\t\tMetadata Output\n";
+ 	if (cap & V4L2_CAP_TOUCH)
+ 		s += "\t\tTouch Device\n";
+ 	if (cap & V4L2_CAP_TUNER)
+@@ -283,6 +285,8 @@ std::string buftype2s(int type)
+ 		return "SDR Output";
+ 	case V4L2_BUF_TYPE_META_CAPTURE:
+ 		return "Metadata Capture";
++	case V4L2_BUF_TYPE_META_OUTPUT:
++		return "Metadata Output";
+ 	case V4L2_BUF_TYPE_PRIVATE:
+ 		return "Private";
+ 	default:
+@@ -525,7 +529,7 @@ static int testCap(struct node *node)
+ 	const __u32 output_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_VIDEO_OUTPUT_MPLANE |
+ 			V4L2_CAP_VIDEO_OUTPUT_OVERLAY | V4L2_CAP_VBI_OUTPUT |
+ 			V4L2_CAP_SDR_OUTPUT | V4L2_CAP_SLICED_VBI_OUTPUT |
+-			V4L2_CAP_MODULATOR;
++			V4L2_CAP_MODULATOR | V4L2_CAP_META_OUTPUT;
+ 	const __u32 overlay_caps = V4L2_CAP_VIDEO_OVERLAY | V4L2_CAP_VIDEO_OUTPUT_OVERLAY;
+ 	const __u32 m2m_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_VIDEO_M2M_MPLANE;
+ 	const __u32 io_caps = V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
+@@ -1005,12 +1009,13 @@ int main(int argc, char **argv)
+ 	if (node.g_caps() & (V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_VBI_OUTPUT |
+ 			 V4L2_CAP_VIDEO_OUTPUT_MPLANE | V4L2_CAP_VIDEO_M2M_MPLANE |
+ 			 V4L2_CAP_VIDEO_M2M | V4L2_CAP_SLICED_VBI_OUTPUT |
+-			 V4L2_CAP_RDS_OUTPUT | V4L2_CAP_SDR_OUTPUT))
++			 V4L2_CAP_RDS_OUTPUT | V4L2_CAP_SDR_OUTPUT |
++			 V4L2_CAP_META_OUTPUT))
+ 		node.can_output = true;
+ 	if (node.g_caps() & (V4L2_CAP_VIDEO_CAPTURE_MPLANE | V4L2_CAP_VIDEO_OUTPUT_MPLANE |
+ 			 V4L2_CAP_VIDEO_M2M_MPLANE))
+ 		node.is_planar = true;
+-	if (node.g_caps() & V4L2_CAP_META_CAPTURE) {
++	if (node.g_caps() & (V4L2_CAP_META_CAPTURE | V4L2_CAP_META_OUTPUT)) {
+ 		node.is_video = false;
+ 		node.is_meta = true;
  	}
- 
- 	ret = v4l2_device_register_subdev_nodes(&isp->v4l2_dev);
-@@ -2399,7 +2385,6 @@ static int isp_probe(struct platform_device *pdev)
- 	if (ret < 0)
- 		goto error_register_entities;
- 
--	isp->notifier.bound = isp_subdev_notifier_bound;
- 	isp->notifier.complete = isp_subdev_notifier_complete;
- 
- 	ret = v4l2_async_notifier_register(&isp->v4l2_dev, &isp->notifier);
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index 2f2ae609c548..e528df6efc09 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -226,11 +226,13 @@ struct isp_device {
+diff --git a/utils/v4l2-compliance/v4l2-test-formats.cpp b/utils/v4l2-compliance/v4l2-test-formats.cpp
+index b7a32fe38..9da7436e8 100644
+--- a/utils/v4l2-compliance/v4l2-test-formats.cpp
++++ b/utils/v4l2-compliance/v4l2-test-formats.cpp
+@@ -46,7 +46,7 @@ static const __u32 buftype2cap[] = {
+ 	V4L2_CAP_VIDEO_OUTPUT_MPLANE | V4L2_CAP_VIDEO_M2M_MPLANE,
+ 	V4L2_CAP_SDR_CAPTURE,
+ 	V4L2_CAP_SDR_OUTPUT,
+-	V4L2_CAP_META_CAPTURE,
++	V4L2_CAP_META_CAPTURE | V4L2_CAP_META_OUTPUT,
  };
  
- struct isp_async_subdev {
--	struct v4l2_subdev *sd;
- 	struct isp_bus_cfg bus;
- 	struct v4l2_async_subdev asd;
- };
+ static int testEnumFrameIntervals(struct node *node, __u32 pixfmt,
+@@ -298,6 +298,7 @@ int testEnumFormats(struct node *node)
+ 		case V4L2_BUF_TYPE_SDR_CAPTURE:
+ 		case V4L2_BUF_TYPE_SDR_OUTPUT:
+ 		case V4L2_BUF_TYPE_META_CAPTURE:
++		case V4L2_BUF_TYPE_META_OUTPUT:
+ 			if (ret && (node->g_caps() & buftype2cap[type]))
+ 				return fail("%s cap set, but no %s formats defined\n",
+ 						buftype2s(type).c_str(), buftype2s(type).c_str());
+@@ -546,6 +547,7 @@ static int testFormatsType(struct node *node, int ret,  unsigned type, struct v4
+ 		fail_on_test(check_0(sdr.reserved, sizeof(sdr.reserved)));
+ 		break;
+ 	case V4L2_BUF_TYPE_META_CAPTURE:
++	case V4L2_BUF_TYPE_META_OUTPUT:
+ 		if (map.find(meta.dataformat) == map.end())
+ 			return fail("dataformat %08x (%s) for buftype %d not reported by ENUM_FMT\n",
+ 					meta.dataformat, fcc2s(meta.dataformat).c_str(), type);
+@@ -585,6 +587,7 @@ int testGetFormats(struct node *node)
+ 		case V4L2_BUF_TYPE_SDR_CAPTURE:
+ 		case V4L2_BUF_TYPE_SDR_OUTPUT:
+ 		case V4L2_BUF_TYPE_META_CAPTURE:
++		case V4L2_BUF_TYPE_META_OUTPUT:
+ 			if (ret && (node->g_caps() & buftype2cap[type]))
+ 				return fail("%s cap set, but no %s formats defined\n",
+ 					buftype2s(type).c_str(), buftype2s(type).c_str());
+@@ -641,6 +644,7 @@ static bool matchFormats(const struct v4l2_format &f1, const struct v4l2_format
+ 	case V4L2_BUF_TYPE_SDR_OUTPUT:
+ 		return !memcmp(&f1.fmt.sdr, &f2.fmt.sdr, sizeof(f1.fmt.sdr));
+ 	case V4L2_BUF_TYPE_META_CAPTURE:
++	case V4L2_BUF_TYPE_META_OUTPUT:
+ 		return !memcmp(&f1.fmt.meta, &f2.fmt.meta, sizeof(f1.fmt.meta));
  
-+#define v4l2_subdev_to_bus_cfg(sd) \
-+	(&container_of((sd)->asd, struct isp_async_subdev, asd)->bus)
-+
- #define v4l2_dev_to_isp_device(dev) \
- 	container_of(dev, struct isp_device, v4l2_dev)
- 
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index 4947876cfadf..b66276ab5765 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -1139,8 +1139,10 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	pad = media_entity_remote_pad(&ccdc->pads[CCDC_PAD_SINK]);
- 	sensor = media_entity_to_v4l2_subdev(pad->entity);
- 	if (ccdc->input == CCDC_INPUT_PARALLEL) {
--		parcfg = &((struct isp_bus_cfg *)sensor->host_priv)
--			->bus.parallel;
-+		struct v4l2_subdev *sd =
-+			to_isp_pipeline(&ccdc->subdev.entity)->external;
-+
-+		parcfg = &v4l2_subdev_to_bus_cfg(sd)->bus.parallel;
- 		ccdc->bt656 = parcfg->bt656;
  	}
+@@ -718,6 +722,7 @@ int testTryFormats(struct node *node)
+ 				pixelformat = fmt.fmt.sdr.pixelformat;
+ 				break;
+ 			case V4L2_BUF_TYPE_META_CAPTURE:
++			case V4L2_BUF_TYPE_META_OUTPUT:
+ 				pixelformat = fmt.fmt.meta.dataformat;
+ 				break;
+ 			case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+@@ -970,6 +975,7 @@ int testSetFormats(struct node *node)
  
-@@ -2412,11 +2414,11 @@ static int ccdc_link_validate(struct v4l2_subdev *sd,
- 
- 	/* We've got a parallel sensor here. */
- 	if (ccdc->input == CCDC_INPUT_PARALLEL) {
--		struct isp_parallel_cfg *parcfg =
--			&((struct isp_bus_cfg *)
--			  media_entity_to_v4l2_subdev(link->source->entity)
--			  ->host_priv)->bus.parallel;
--		parallel_shift = parcfg->data_lane_shift;
-+		struct v4l2_subdev *sd =
-+			media_entity_to_v4l2_subdev(link->source->entity);
-+		struct isp_bus_cfg *bus_cfg = v4l2_subdev_to_bus_cfg(sd);
-+
-+		parallel_shift = bus_cfg->bus.parallel.data_lane_shift;
- 	} else {
- 		parallel_shift = 0;
- 	}
-diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
-index 3db8df09cd9a..e062939d0d05 100644
---- a/drivers/media/platform/omap3isp/ispccp2.c
-+++ b/drivers/media/platform/omap3isp/ispccp2.c
-@@ -350,6 +350,7 @@ static void ccp2_lcx_config(struct isp_ccp2_device *ccp2,
-  */
- static int ccp2_if_configure(struct isp_ccp2_device *ccp2)
- {
-+	struct isp_pipeline *pipe = to_isp_pipeline(&ccp2->subdev.entity);
- 	const struct isp_bus_cfg *buscfg;
- 	struct v4l2_mbus_framefmt *format;
- 	struct media_pad *pad;
-@@ -361,7 +362,7 @@ static int ccp2_if_configure(struct isp_ccp2_device *ccp2)
- 
- 	pad = media_entity_remote_pad(&ccp2->pads[CCP2_PAD_SINK]);
- 	sensor = media_entity_to_v4l2_subdev(pad->entity);
--	buscfg = sensor->host_priv;
-+	buscfg = v4l2_subdev_to_bus_cfg(pipe->external);
- 
- 	ret = ccp2_phyif_config(ccp2, &buscfg->bus.ccp2);
- 	if (ret < 0)
-diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
-index 3ec37fed710b..a4d3d030e81e 100644
---- a/drivers/media/platform/omap3isp/ispcsi2.c
-+++ b/drivers/media/platform/omap3isp/ispcsi2.c
-@@ -566,7 +566,7 @@ static int csi2_configure(struct isp_csi2_device *csi2)
- 
- 	pad = media_entity_remote_pad(&csi2->pads[CSI2_PAD_SINK]);
- 	sensor = media_entity_to_v4l2_subdev(pad->entity);
--	buscfg = sensor->host_priv;
-+	buscfg = v4l2_subdev_to_bus_cfg(pipe->external);
- 
- 	csi2->frame_skip = 0;
- 	v4l2_subdev_call(sensor, sensor, g_skip_frames, &csi2->frame_skip);
-diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
-index ed1eb9907ae0..a28fb79abaac 100644
---- a/drivers/media/platform/omap3isp/ispcsiphy.c
-+++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-@@ -165,10 +165,7 @@ static int csiphy_set_power(struct isp_csiphy *phy, u32 power)
- static int omap3isp_csiphy_config(struct isp_csiphy *phy)
- {
- 	struct isp_pipeline *pipe = to_isp_pipeline(phy->entity);
--	struct isp_async_subdev *isd =
--		container_of(pipe->external->asd, struct isp_async_subdev, asd);
--	struct isp_bus_cfg *buscfg = pipe->external->host_priv ?
--		pipe->external->host_priv : &isd->bus;
-+	struct isp_bus_cfg *buscfg = v4l2_subdev_to_bus_cfg(pipe->external);
- 	struct isp_csiphy_lanes_cfg *lanes;
- 	int csi2_ddrclk_khz;
- 	unsigned int num_data_lanes, used_lanes = 0;
-@@ -311,7 +308,8 @@ void omap3isp_csiphy_release(struct isp_csiphy *phy)
- 	mutex_lock(&phy->mutex);
- 	if (phy->entity) {
- 		struct isp_pipeline *pipe = to_isp_pipeline(phy->entity);
--		struct isp_bus_cfg *buscfg = pipe->external->host_priv;
-+		struct isp_bus_cfg *buscfg =
-+			v4l2_subdev_to_bus_cfg(pipe->external);
- 
- 		csiphy_routing_cfg(phy, buscfg->interface, false,
- 				   buscfg->bus.ccp2.phy_layer);
+ 			switch (type) {
+ 			case V4L2_BUF_TYPE_META_CAPTURE:
++			case V4L2_BUF_TYPE_META_OUTPUT:
+ 				pixelformat = fmt_set.fmt.meta.dataformat;
+ 				break;
+ 			case V4L2_BUF_TYPE_SDR_CAPTURE:
 -- 
 2.11.0
