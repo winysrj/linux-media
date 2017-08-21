@@ -1,163 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:59231 "EHLO mga02.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:14077 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751121AbdHUHi5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Aug 2017 03:38:57 -0400
+        id S1751050AbdHUHz3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 Aug 2017 03:55:29 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
 Cc: tfiga@chromium.org, yong.zhi@intel.com, hverkuil@xs4all.nl
-Subject: [v4l-utils PATCH 1/1] v4l2-compliance: Add support for metadata output
-Date: Mon, 21 Aug 2017 10:38:49 +0300
-Message-Id: <20170821073849.20487-1-sakari.ailus@linux.intel.com>
+Subject: [v4l-utils PATCH v3 0/2] v4l2-compliance: Support for metadata output buffers
+Date: Mon, 21 Aug 2017 10:55:22 +0300
+Message-Id: <20170821075524.21048-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for metadata output video nodes, in other words,
-V4L2_CAP_META_OUTPUT and V4L2_BUF_TYPE_META_OUTPUT.
+Hi,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-Hi all,
+This set adds support for metadata output buffers in v4l2-compliance.
 
-This patch adds support for metadata output in v4l2-compliance.
-
-It depends on the metadata output patch:
+It depends on this kernel patch:
 
 <URL:https://patchwork.linuxtv.org/patch/43308/>
 
- include/linux/videodev2.h                   |  3 ++-
- utils/v4l2-compliance/v4l2-compliance.cpp   | 11 ++++++++---
- utils/v4l2-compliance/v4l2-test-formats.cpp |  8 +++++++-
- 3 files changed, 17 insertions(+), 5 deletions(-)
+since v2:
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 49fe06c97..101be86c0 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -142,6 +142,7 @@ enum v4l2_buf_type {
- 	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
- 	V4L2_BUF_TYPE_SDR_OUTPUT           = 12,
- 	V4L2_BUF_TYPE_META_CAPTURE         = 13,
-+	V4L2_BUF_TYPE_META_OUTPUT          = 14,
- 	/* Deprecated, do not use */
- 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
- };
-@@ -453,7 +454,7 @@ struct v4l2_capability {
- #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
- #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
- #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
--
-+#define V4L2_CAP_META_OUTPUT           0x08000000
- #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
- 
- #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device capabilities field */
-diff --git a/utils/v4l2-compliance/v4l2-compliance.cpp b/utils/v4l2-compliance/v4l2-compliance.cpp
-index c40e3bd78..539c8c34b 100644
---- a/utils/v4l2-compliance/v4l2-compliance.cpp
-+++ b/utils/v4l2-compliance/v4l2-compliance.cpp
-@@ -216,6 +216,8 @@ std::string cap2s(unsigned cap)
- 		s += "\t\tSDR Output\n";
- 	if (cap & V4L2_CAP_META_CAPTURE)
- 		s += "\t\tMetadata Capture\n";
-+	if (cap & V4L2_CAP_META_OUTPUT)
-+		s += "\t\tMetadata Output\n";
- 	if (cap & V4L2_CAP_TOUCH)
- 		s += "\t\tTouch Device\n";
- 	if (cap & V4L2_CAP_TUNER)
-@@ -283,6 +285,8 @@ std::string buftype2s(int type)
- 		return "SDR Output";
- 	case V4L2_BUF_TYPE_META_CAPTURE:
- 		return "Metadata Capture";
-+	case V4L2_BUF_TYPE_META_OUTPUT:
-+		return "Metadata Output";
- 	case V4L2_BUF_TYPE_PRIVATE:
- 		return "Private";
- 	default:
-@@ -525,7 +529,7 @@ static int testCap(struct node *node)
- 	const __u32 output_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_VIDEO_OUTPUT_MPLANE |
- 			V4L2_CAP_VIDEO_OUTPUT_OVERLAY | V4L2_CAP_VBI_OUTPUT |
- 			V4L2_CAP_SDR_OUTPUT | V4L2_CAP_SLICED_VBI_OUTPUT |
--			V4L2_CAP_MODULATOR;
-+			V4L2_CAP_MODULATOR | V4L2_CAP_META_OUTPUT;
- 	const __u32 overlay_caps = V4L2_CAP_VIDEO_OVERLAY | V4L2_CAP_VIDEO_OUTPUT_OVERLAY;
- 	const __u32 m2m_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_VIDEO_M2M_MPLANE;
- 	const __u32 io_caps = V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
-@@ -1005,12 +1009,13 @@ int main(int argc, char **argv)
- 	if (node.g_caps() & (V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_VBI_OUTPUT |
- 			 V4L2_CAP_VIDEO_OUTPUT_MPLANE | V4L2_CAP_VIDEO_M2M_MPLANE |
- 			 V4L2_CAP_VIDEO_M2M | V4L2_CAP_SLICED_VBI_OUTPUT |
--			 V4L2_CAP_RDS_OUTPUT | V4L2_CAP_SDR_OUTPUT))
-+			 V4L2_CAP_RDS_OUTPUT | V4L2_CAP_SDR_OUTPUT |
-+			 V4L2_CAP_META_OUTPUT))
- 		node.can_output = true;
- 	if (node.g_caps() & (V4L2_CAP_VIDEO_CAPTURE_MPLANE | V4L2_CAP_VIDEO_OUTPUT_MPLANE |
- 			 V4L2_CAP_VIDEO_M2M_MPLANE))
- 		node.is_planar = true;
--	if (node.g_caps() & V4L2_CAP_META_CAPTURE) {
-+	if (node.g_caps() & (V4L2_CAP_META_CAPTURE | V4L2_CAP_META_OUTPUT)) {
- 		node.is_video = false;
- 		node.is_meta = true;
- 	}
-diff --git a/utils/v4l2-compliance/v4l2-test-formats.cpp b/utils/v4l2-compliance/v4l2-test-formats.cpp
-index b7a32fe38..9da7436e8 100644
---- a/utils/v4l2-compliance/v4l2-test-formats.cpp
-+++ b/utils/v4l2-compliance/v4l2-test-formats.cpp
-@@ -46,7 +46,7 @@ static const __u32 buftype2cap[] = {
- 	V4L2_CAP_VIDEO_OUTPUT_MPLANE | V4L2_CAP_VIDEO_M2M_MPLANE,
- 	V4L2_CAP_SDR_CAPTURE,
- 	V4L2_CAP_SDR_OUTPUT,
--	V4L2_CAP_META_CAPTURE,
-+	V4L2_CAP_META_CAPTURE | V4L2_CAP_META_OUTPUT,
- };
- 
- static int testEnumFrameIntervals(struct node *node, __u32 pixfmt,
-@@ -298,6 +298,7 @@ int testEnumFormats(struct node *node)
- 		case V4L2_BUF_TYPE_SDR_CAPTURE:
- 		case V4L2_BUF_TYPE_SDR_OUTPUT:
- 		case V4L2_BUF_TYPE_META_CAPTURE:
-+		case V4L2_BUF_TYPE_META_OUTPUT:
- 			if (ret && (node->g_caps() & buftype2cap[type]))
- 				return fail("%s cap set, but no %s formats defined\n",
- 						buftype2s(type).c_str(), buftype2s(type).c_str());
-@@ -546,6 +547,7 @@ static int testFormatsType(struct node *node, int ret,  unsigned type, struct v4
- 		fail_on_test(check_0(sdr.reserved, sizeof(sdr.reserved)));
- 		break;
- 	case V4L2_BUF_TYPE_META_CAPTURE:
-+	case V4L2_BUF_TYPE_META_OUTPUT:
- 		if (map.find(meta.dataformat) == map.end())
- 			return fail("dataformat %08x (%s) for buftype %d not reported by ENUM_FMT\n",
- 					meta.dataformat, fcc2s(meta.dataformat).c_str(), type);
-@@ -585,6 +587,7 @@ int testGetFormats(struct node *node)
- 		case V4L2_BUF_TYPE_SDR_CAPTURE:
- 		case V4L2_BUF_TYPE_SDR_OUTPUT:
- 		case V4L2_BUF_TYPE_META_CAPTURE:
-+		case V4L2_BUF_TYPE_META_OUTPUT:
- 			if (ret && (node->g_caps() & buftype2cap[type]))
- 				return fail("%s cap set, but no %s formats defined\n",
- 					buftype2s(type).c_str(), buftype2s(type).c_str());
-@@ -641,6 +644,7 @@ static bool matchFormats(const struct v4l2_format &f1, const struct v4l2_format
- 	case V4L2_BUF_TYPE_SDR_OUTPUT:
- 		return !memcmp(&f1.fmt.sdr, &f2.fmt.sdr, sizeof(f1.fmt.sdr));
- 	case V4L2_BUF_TYPE_META_CAPTURE:
-+	case V4L2_BUF_TYPE_META_OUTPUT:
- 		return !memcmp(&f1.fmt.meta, &f2.fmt.meta, sizeof(f1.fmt.meta));
- 
- 	}
-@@ -718,6 +722,7 @@ int testTryFormats(struct node *node)
- 				pixelformat = fmt.fmt.sdr.pixelformat;
- 				break;
- 			case V4L2_BUF_TYPE_META_CAPTURE:
-+			case V4L2_BUF_TYPE_META_OUTPUT:
- 				pixelformat = fmt.fmt.meta.dataformat;
- 				break;
- 			case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-@@ -970,6 +975,7 @@ int testSetFormats(struct node *node)
- 
- 			switch (type) {
- 			case V4L2_BUF_TYPE_META_CAPTURE:
-+			case V4L2_BUF_TYPE_META_OUTPUT:
- 				pixelformat = fmt_set.fmt.meta.dataformat;
- 				break;
- 			case V4L2_BUF_TYPE_SDR_CAPTURE:
+- Update V4L2_BUF_TYPE_LAST in v4l2-compliance.h
+
+Sakari Ailus (2):
+  Add metadata output definitions from metadata output patches
+  v4l2-compliance: Add support for metadata output
+
+ include/linux/videodev2.h                   |  2 ++
+ utils/v4l2-compliance/v4l2-compliance.cpp   | 11 ++++++++---
+ utils/v4l2-compliance/v4l2-compliance.h     |  2 +-
+ utils/v4l2-compliance/v4l2-test-formats.cpp |  8 +++++++-
+ 4 files changed, 18 insertions(+), 5 deletions(-)
+
 -- 
 2.11.0
