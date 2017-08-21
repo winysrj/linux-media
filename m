@@ -1,56 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:60761 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752149AbdHGHmQ (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:36032 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751941AbdHUMw0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Aug 2017 03:42:16 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.14] cec: little improvements
-Message-ID: <36c64ff0-2e75-8e6e-62b8-437aae526c6a@xs4all.nl>
-Date: Mon, 7 Aug 2017 09:42:13 +0200
+        Mon, 21 Aug 2017 08:52:26 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH] device property: preserve usecount for node passed to of_fwnode_graph_get_port_parent()
+Date: Mon, 21 Aug 2017 14:51:07 +0200
+Message-Id: <20170821125107.20746-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Better logging, better documentation, add a convenience define.
+Using CONFIG_OF_DYNAMIC=y uncovered an imbalance in the usecount of the
+node being passed to of_fwnode_graph_get_port_parent(). Preserve the
+usecount just like it is done in of_graph_get_port_parent().
 
-Regards,
+Fixes: 3b27d00e7b6d7c88 ("device property: Move fwnode graph ops to firmware specific locations")
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/of/property.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-	Hans
+diff --git a/drivers/of/property.c b/drivers/of/property.c
+index 067f9fab7b77c794..637dcb4833e2af60 100644
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -922,6 +922,12 @@ of_fwnode_graph_get_port_parent(struct fwnode_handle *fwnode)
+ {
+ 	struct device_node *np;
+ 
++	/*
++	 * Preserve usecount for passed in node as of_get_next_parent()
++	 * will do of_node_put() on it.
++	 */
++	of_node_get(to_of_node(fwnode));
++
+ 	/* Get the parent of the port */
+ 	np = of_get_next_parent(to_of_node(fwnode));
+ 	if (!np)
+-- 
+2.14.0
 
-The following changes since commit da48c948c263c9d87dfc64566b3373a858cc8aa2:
+For posterity here is the console log:
 
-  media: fix warning on v4l2_subdev_call() result interpreted as bool (2017-07-26 13:43:17 -0400)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.14f
-
-for you to fetch changes up to b52870ca523e37c424f0267694101905b6256bb8:
-
-  cec-api: log the reason for the -EINVAL in cec_s_mode (2017-08-07 09:31:15 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (6):
-      cec-funcs.h: cec_ops_report_features: set *dev_features to NULL
-      media/cec.h: add CEC_CAP_DEFAULTS
-      adv*/vivid/pulse8/rainshadow: cec: use CEC_CAP_DEFAULTS
-      cec-ioc-adap-g-log-addrs.rst: fix wrong quotes
-      cec-ioc-g-mode.rst: improve description of message, processing
-      cec-api: log the reason for the -EINVAL in cec_s_mode
-
- Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst |  2 +-
- Documentation/media/uapi/cec/cec-ioc-g-mode.rst           | 61 ++++++++++++++++++++++++++++------------------
- drivers/media/cec/cec-api.c                               | 25 ++++++++++++++-----
- drivers/media/i2c/adv7511.c                               |  3 +--
- drivers/media/i2c/adv7604.c                               |  3 +--
- drivers/media/i2c/adv7842.c                               |  3 +--
- drivers/media/platform/vivid/vivid-cec.c                  |  3 +--
- drivers/media/usb/pulse8-cec/pulse8-cec.c                 |  3 +--
- drivers/media/usb/rainshadow-cec/rainshadow-cec.c         |  3 +--
- include/media/cec.h                                       |  3 +++
- include/uapi/linux/cec-funcs.h                            |  1 +
- 11 files changed, 67 insertions(+), 43 deletions(-)
+OF: ERROR: Bad of_node_put() on /soc/i2c@e66d8000/gmsl-deserializer@1/ports/port@4
+CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.13.0-rc4-00418-g32df6aeea9a6f626 #14
+Hardware name: Renesas Salvator-X board based on r8a7795 ES1.x (DT)
+Call trace:
+[<ffff000008088f58>] dump_backtrace+0x0/0x238
+[<ffff00000808929c>] show_stack+0x14/0x20
+[<ffff000008ed6c50>] dump_stack+0x9c/0xbc
+[<ffff000008c58450>] of_node_release+0xb8/0xc0
+[<ffff000008edb644>] kobject_put+0x84/0xf0
+[<ffff000008c57c04>] of_node_put+0x14/0x28
+[<ffff000008c5677c>] of_fwnode_put+0x24/0x40
+[<ffff0000087be488>] fwnode_graph_get_port_parent+0x60/0xb0
+[<ffff000008b85e2c>] match_fwnode+0x2c/0x88
+[<ffff000008b85f98>] v4l2_async_belongs+0x78/0x120
+[<ffff000008b8615c>] v4l2_async_notifier_register+0x11c/0x1d8
+[<ffff000008b86270>] v4l2_async_test_notify+0x58/0x160
+[<ffff000008b86130>] v4l2_async_notifier_register+0xf0/0x1d8
+[<ffff000008bcd39c>] rcar_vin_probe+0x65c/0x718
+[<ffff0000087b9848>] platform_drv_probe+0x58/0xb8
+[<ffff0000087b8014>] driver_probe_device+0x22c/0x2d8
+[<ffff0000087b817c>] __driver_attach+0xbc/0xc0
+[<ffff0000087b622c>] bus_for_each_dev+0x4c/0x98
+[<ffff0000087b82b8>] driver_attach+0x20/0x28
+[<ffff0000087b6c98>] bus_add_driver+0x1b8/0x228
+[<ffff0000087b8b80>] driver_register+0x60/0xf8
+[<ffff0000087ba550>] __platform_driver_register+0x40/0x48
+[<ffff000009482830>] rcar_vin_driver_init+0x18/0x20
+[<ffff000009440c5c>] do_one_initcall+0x80/0x110
+[<ffff000009440e74>] kernel_init_freeable+0x188/0x224
+[<ffff000008ee8ab8>] kernel_init+0x10/0x100
+[<ffff0000080836c0>] ret_from_fork+0x10/0x50
