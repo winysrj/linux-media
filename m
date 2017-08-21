@@ -1,185 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44944
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751911AbdHaXrL (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:33064 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753686AbdHUTEc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 19:47:11 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 12/15] media: dmx.h: get rid of DMX_SET_SOURCE
-Date: Thu, 31 Aug 2017 20:46:59 -0300
-Message-Id: <cf4b97ba0e68bf92cf899d04a3862cad1b3a7874.1504222628.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
-References: <cover.1504222628.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
-References: <cover.1504222628.git.mchehab@s-opensource.com>
+        Mon, 21 Aug 2017 15:04:32 -0400
+Subject: Re: [PATCH v2.1 2/3] leds: as3645a: Add LED flash class driver
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+References: <20170819212410.3084-3-sakari.ailus@linux.intel.com>
+ <20170819214226.20736-1-sakari.ailus@linux.intel.com>
+ <fc6c7893-863b-53ff-48e3-d14297364e5d@gmail.com>
+ <07392419-c586-a791-a994-bed39f73da94@iki.fi>
+Cc: javier@dowhile0.org, linux-leds@vger.kernel.org,
+        devicetree@vger.kernel.org
+From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Message-ID: <cadbcd5b-ad5b-4c6c-8360-1f59aa2e5bf4@gmail.com>
+Date: Mon, 21 Aug 2017 21:03:47 +0200
+MIME-Version: 1.0
+In-Reply-To: <07392419-c586-a791-a994-bed39f73da94@iki.fi>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No driver uses this ioctl, nor it is documented anywhere.
+Hi Sakari,
 
-So, get rid of it.
+On 08/21/2017 03:53 PM, Sakari Ailus wrote:
+> Hi Jacek,
+> 
+> Jacek Anaszewski wrote:
+>> Hi Sakari,
+>>
+>> Thanks for the update.
+>> I've noticed that you added node labels to the child device nodes
+>> in [0]:
+>>
+>> "as3645a_flash : flash" and "as3645a_indicator : indicator"
+> 
+> The phandle references (as3645a_flash and as3645a_indicator) should
+> actually be moved to the patch adding the flash property to the sensor
+> device node. It doesn't do anything here, yet.
+> 
+>>
+>> I am still seeing problems with this approach:
+>>
+>> 1) AFAIK these labels are only used for referencing nodes inside dts
+>>    files and they don't affect the name property of struct device_node
+> 
+> That's right.
+> 
+>> 2) Even if you changed the node name from flash to as3645a_flash, you
+>>    would get weird LED class device name "as3645a_flash:flash" in case
+>>    label property is absent. Do you have any objections against the
+>>    approach I proposed in the previous review?:
+>>
+>>
+>>     snprintf(names->flash, sizeof(names->flash),
+>> 	     AS_NAME":%s", node->name);
+> 
+> In the current patch, the device node of the flash controller is used,
+> postfixed with colon and the name of the LED ("flash" or "indicator") if
+> no label is defined. In other words, with that DT source you'll have
+> "as3645a:flash" and "as3645a:indicator". So if you change the name of
+> the device node of the I²C device, that will be reflected in the label.
+> 
+> If a label exists, then the label is used as such.
+> 
+> I don't really have objections to what you're proposing as such but my
+> question is: is it useful? With that, the flash and indicator labels
+> will not come from DT if label properties are undefined. They'll always
+> be "as3645a:flash" and "as3645a:indicator", independently of the names
+> of the device nodes.
+> 
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/dmx.h.rst.exceptions        | 13 --------
- Documentation/media/uapi/dvb/dmx-set-source.rst | 44 -------------------------
- Documentation/media/uapi/dvb/dmx_fcalls.rst     |  1 -
- Documentation/media/uapi/dvb/dmx_types.rst      | 20 -----------
- include/uapi/linux/dvb/dmx.h                    | 12 -------
- 5 files changed, 90 deletions(-)
- delete mode 100644 Documentation/media/uapi/dvb/dmx-set-source.rst
+Ah, indeed, the node->name is put in place of devicename segment and
+the node points to the LED controller node. Neat approach, likely to
+be adopted as a pattern from now on for all new LED class drivers.
 
-diff --git a/Documentation/media/dmx.h.rst.exceptions b/Documentation/media/dmx.h.rst.exceptions
-index 5572d2dc9d0e..d2dac35bb84b 100644
---- a/Documentation/media/dmx.h.rst.exceptions
-+++ b/Documentation/media/dmx.h.rst.exceptions
-@@ -40,18 +40,6 @@ replace enum dmx_input :c:type:`dmx_input`
- replace symbol DMX_IN_FRONTEND :c:type:`dmx_input`
- replace symbol DMX_IN_DVR :c:type:`dmx_input`
- 
--# dmx_source_t symbols
--replace enum dmx_source :c:type:`dmx_source`
--replace symbol DMX_SOURCE_FRONT0 :c:type:`dmx_source`
--replace symbol DMX_SOURCE_FRONT1 :c:type:`dmx_source`
--replace symbol DMX_SOURCE_FRONT2 :c:type:`dmx_source`
--replace symbol DMX_SOURCE_FRONT3 :c:type:`dmx_source`
--replace symbol DMX_SOURCE_DVR0 :c:type:`dmx_source`
--replace symbol DMX_SOURCE_DVR1 :c:type:`dmx_source`
--replace symbol DMX_SOURCE_DVR2 :c:type:`dmx_source`
--replace symbol DMX_SOURCE_DVR3 :c:type:`dmx_source`
--
--
- # Flags for struct dmx_sct_filter_params
- replace define DMX_CHECK_CRC :c:type:`dmx_sct_filter_params`
- replace define DMX_ONESHOT :c:type:`dmx_sct_filter_params`
-@@ -61,4 +49,3 @@ replace define DMX_IMMEDIATE_START :c:type:`dmx_sct_filter_params`
- replace typedef dmx_filter_t :c:type:`dmx_filter`
- replace typedef dmx_pes_type_t :c:type:`dmx_pes_type`
- replace typedef dmx_input_t :c:type:`dmx_input`
--replace typedef dmx_source_t :c:type:`dmx_source`
-diff --git a/Documentation/media/uapi/dvb/dmx-set-source.rst b/Documentation/media/uapi/dvb/dmx-set-source.rst
-deleted file mode 100644
-index ac7f77b25e06..000000000000
---- a/Documentation/media/uapi/dvb/dmx-set-source.rst
-+++ /dev/null
-@@ -1,44 +0,0 @@
--.. -*- coding: utf-8; mode: rst -*-
--
--.. _DMX_SET_SOURCE:
--
--==============
--DMX_SET_SOURCE
--==============
--
--Name
------
--
--DMX_SET_SOURCE
--
--
--Synopsis
----------
--
--.. c:function:: int ioctl(fd, DMX_SET_SOURCE, struct dmx_source *src)
--    :name: DMX_SET_SOURCE
--
--
--Arguments
-----------
--
--
--``fd``
--    File descriptor returned by :c:func:`open() <dvb-dmx-open>`.
--
--``src``
--   Undocumented.
--
--
--Description
-------------
--
--.. note:: This ioctl is undocumented. Documentation is welcome.
--
--
--Return Value
--------------
--
--On success 0 is returned, on error -1 and the ``errno`` variable is set
--appropriately. The generic error codes are described at the
--:ref:`Generic Error Codes <gen-errors>` chapter.
-diff --git a/Documentation/media/uapi/dvb/dmx_fcalls.rst b/Documentation/media/uapi/dvb/dmx_fcalls.rst
-index 49e013d4540f..be98d60877f2 100644
---- a/Documentation/media/uapi/dvb/dmx_fcalls.rst
-+++ b/Documentation/media/uapi/dvb/dmx_fcalls.rst
-@@ -21,6 +21,5 @@ Demux Function Calls
-     dmx-get-event
-     dmx-get-stc
-     dmx-get-pes-pids
--    dmx-set-source
-     dmx-add-pid
-     dmx-remove-pid
-diff --git a/Documentation/media/uapi/dvb/dmx_types.rst b/Documentation/media/uapi/dvb/dmx_types.rst
-index 9e907b85cf16..a205c02ccdc1 100644
---- a/Documentation/media/uapi/dvb/dmx_types.rst
-+++ b/Documentation/media/uapi/dvb/dmx_types.rst
-@@ -197,23 +197,3 @@ struct dmx_stc
- 	unsigned int base;  /* output: divisor for stc to get 90 kHz clock */
- 	__u64 stc;      /* output: stc in 'base'*90 kHz units */
-     };
--
--
--
--enum dmx_source
--===============
--
--.. c:type:: dmx_source
--
--.. code-block:: c
--
--    typedef enum dmx_source {
--	DMX_SOURCE_FRONT0 = 0,
--	DMX_SOURCE_FRONT1,
--	DMX_SOURCE_FRONT2,
--	DMX_SOURCE_FRONT3,
--	DMX_SOURCE_DVR0   = 16,
--	DMX_SOURCE_DVR1,
--	DMX_SOURCE_DVR2,
--	DMX_SOURCE_DVR3
--    } dmx_source_t;
-diff --git a/include/uapi/linux/dvb/dmx.h b/include/uapi/linux/dvb/dmx.h
-index c0ee44fbdb13..dd2b832c02ce 100644
---- a/include/uapi/linux/dvb/dmx.h
-+++ b/include/uapi/linux/dvb/dmx.h
-@@ -117,17 +117,6 @@ struct dmx_pes_filter_params
- 	__u32          flags;
- };
- 
--typedef enum dmx_source {
--	DMX_SOURCE_FRONT0 = 0,
--	DMX_SOURCE_FRONT1,
--	DMX_SOURCE_FRONT2,
--	DMX_SOURCE_FRONT3,
--	DMX_SOURCE_DVR0   = 16,
--	DMX_SOURCE_DVR1,
--	DMX_SOURCE_DVR2,
--	DMX_SOURCE_DVR3
--} dmx_source_t;
--
- struct dmx_stc {
- 	unsigned int num;	/* input : which STC? 0..N */
- 	unsigned int base;	/* output: divisor for stc to get 90 kHz clock */
-@@ -140,7 +129,6 @@ struct dmx_stc {
- #define DMX_SET_PES_FILTER       _IOW('o', 44, struct dmx_pes_filter_params)
- #define DMX_SET_BUFFER_SIZE      _IO('o', 45)
- #define DMX_GET_PES_PIDS         _IOR('o', 47, __u16[5])
--#define DMX_SET_SOURCE           _IOW('o', 49, dmx_source_t)
- #define DMX_GET_STC              _IOWR('o', 50, struct dmx_stc)
- #define DMX_ADD_PID              _IOW('o', 51, __u16)
- #define DMX_REMOVE_PID           _IOW('o', 52, __u16)
+
+For the patch going through media tree:
+
+Acked-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+
 -- 
-2.13.5
+Best regards,
+Jacek Anaszewski
