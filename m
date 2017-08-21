@@ -1,51 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:38247 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751634AbdHTKlR (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:57458 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753021AbdHULuF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Aug 2017 06:41:17 -0400
-Received: by mail-wr0-f195.google.com with SMTP id k10so256340wre.5
-        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 03:41:17 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, rjkm@metzlerbros.de
-Subject: [PATCH 0/6] ddbridge: updates from dddvb-0.9.31
-Date: Sun, 20 Aug 2017 12:41:08 +0200
-Message-Id: <20170820104114.6515-1-d.scheller.oss@gmail.com>
+        Mon, 21 Aug 2017 07:50:05 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.14] More constify & venus fixes
+Message-ID: <337ca7e4-995c-9829-192e-c073123e1dd3@xs4all.nl>
+Date: Mon, 21 Aug 2017 13:50:01 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+The following changes since commit 0779b8855c746c90b85bfe6e16d5dfa2a6a46655:
 
-Digital Devices bumped their driver package to version 0.9.31, which most
-importantly carries all refactorisations which are part of the pending
-mainline driver bump (bringing dddvb and the proposed kernel version much
-closer to each other), and improves further on that. This series bumps
-the mainline driver accordingly.
+  media: ddbridge: fix semicolon.cocci warnings (2017-08-20 10:25:22 -0400)
 
-These patches should go in right after and alongside the ddbridge-0.9.29
-v4 bump series (see [1], means: 4.14 window material) so we have an
-uptodate driver in mainline when the next major version gets tagged by
-Linus.
+are available in the git repository at:
 
-[1] http://www.spinics.net/lists/linux-media/msg119911.html
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.14j
 
-Daniel Scheller (6):
-  [media] ddbridge: fix gap handling
-  [media] ddbridge: move ddb_unmap(), cleanup modparams
-  [media] ddbridge: move device ID table to ddbridge-hw
-  [media] ddbridge: remove ddb_info's from the global scope
-  [media] ddbridge: const'ify all ddb_info, ddb_regmap et al
-  [media] ddbridge: bump version string to 0.9.31intermediate-integrated
+for you to fetch changes up to b7573e3c684cb552cfbc86712279c131a691acef:
 
- drivers/media/pci/ddbridge/ddbridge-core.c |  46 +++++++---
- drivers/media/pci/ddbridge/ddbridge-hw.c   | 129 ++++++++++++++++++++++-------
- drivers/media/pci/ddbridge/ddbridge-hw.h   |  45 ++++------
- drivers/media/pci/ddbridge/ddbridge-i2c.c  |   5 +-
- drivers/media/pci/ddbridge/ddbridge-main.c |  67 ++-------------
- drivers/media/pci/ddbridge/ddbridge.h      |  27 +++---
- 6 files changed, 172 insertions(+), 147 deletions(-)
+  media: venus: venc: drop VP9 codec support (2017-08-21 13:43:07 +0200)
 
--- 
-2.13.0
+----------------------------------------------------------------
+Arvind Yadav (6):
+      ad9389b: constify i2c_device_id
+      adv7511: constify i2c_device_id
+      adv7842: constify i2c_device_id
+      saa7127: constify i2c_device_id
+      tc358743: constify i2c_device_id
+      ths8200: constify i2c_device_id
+
+Bhumika Goyal (5):
+      usb: make i2c_algorithm const
+      i2c: make device_type const
+      media: pci: make i2c_adapter const
+      radio-usb-si4713: make i2c_adapter const
+      usb: make i2c_adapter const
+
+Stanimir Varbanov (5):
+      media: venus: mark venc and vdec PM functions as __maybe_unused
+      media: venus: fill missing video_device name
+      media: venus: add helper to check supported codecs
+      media: venus: use helper function to check supported codecs
+      media: venus: venc: drop VP9 codec support
+
+ drivers/media/i2c/ad9389b.c                       |  2 +-
+ drivers/media/i2c/adv7511.c                       |  2 +-
+ drivers/media/i2c/adv7842.c                       |  2 +-
+ drivers/media/i2c/saa7127.c                       |  2 +-
+ drivers/media/i2c/soc_camera/mt9t031.c            |  2 +-
+ drivers/media/i2c/tc358743.c                      |  2 +-
+ drivers/media/i2c/ths8200.c                       |  2 +-
+ drivers/media/pci/cobalt/cobalt-i2c.c             |  2 +-
+ drivers/media/pci/cx18/cx18-i2c.c                 |  2 +-
+ drivers/media/pci/cx23885/cx23885-i2c.c           |  2 +-
+ drivers/media/pci/cx25821/cx25821-i2c.c           |  2 +-
+ drivers/media/pci/ivtv/ivtv-i2c.c                 |  4 ++--
+ drivers/media/pci/netup_unidvb/netup_unidvb_i2c.c |  2 +-
+ drivers/media/pci/saa7134/saa7134-i2c.c           |  2 +-
+ drivers/media/pci/saa7164/saa7164-i2c.c           |  2 +-
+ drivers/media/platform/qcom/venus/helpers.c       | 49 +++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/helpers.h       |  1 +
+ drivers/media/platform/qcom/venus/vdec.c          | 31 ++++++++++++++++++++-----------
+ drivers/media/platform/qcom/venus/venc.c          | 39 ++++++++++++++++++++++-----------------
+ drivers/media/radio/si4713/radio-usb-si4713.c     |  2 +-
+ drivers/media/usb/au0828/au0828-i2c.c             |  4 ++--
+ drivers/media/usb/cx231xx/cx231xx-i2c.c           |  2 +-
+ drivers/media/usb/em28xx/em28xx-i2c.c             |  2 +-
+ drivers/media/usb/hdpvr/hdpvr-i2c.c               |  2 +-
+ drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c      |  4 ++--
+ drivers/media/usb/stk1160/stk1160-i2c.c           |  2 +-
+ drivers/media/usb/usbvision/usbvision-i2c.c       |  4 ++--
+ 27 files changed, 119 insertions(+), 55 deletions(-)
