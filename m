@@ -1,52 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:61292 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750756AbdH3TQL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Aug 2017 15:16:11 -0400
-Subject: [PATCH 1/2] [media] drxd: Delete an error message for a failed memory
- allocation in load_firmware()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Colin Ian King <colin.king@canonical.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <62e6221c-226c-3b25-08bb-4baff9b23cbb@users.sourceforge.net>
-Message-ID: <190c120b-6974-e232-a171-e0e103a3e9a6@users.sourceforge.net>
-Date: Wed, 30 Aug 2017 21:15:58 +0200
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:52418 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753536AbdHUOQq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 Aug 2017 10:16:46 -0400
+Subject: Re: [PATCH v7] rockchip/rga: v4l2 m2m support
+To: Jacob Chen <jacob-chen@iotwrt.com>,
+        linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        heiko@sntech.de, mchehab@kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, nicolas@ndufresne.ca
+References: <1501737812-24171-1-git-send-email-jacob-chen@iotwrt.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <fe2c1de6-dd6c-378f-8a1e-d790807310b1@xs4all.nl>
+Date: Mon, 21 Aug 2017 16:16:39 +0200
 MIME-Version: 1.0
-In-Reply-To: <62e6221c-226c-3b25-08bb-4baff9b23cbb@users.sourceforge.net>
+In-Reply-To: <1501737812-24171-1-git-send-email-jacob-chen@iotwrt.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 30 Aug 2017 20:47:12 +0200
+Hi Jacob,
 
-Omit an extra message for a memory allocation failure in this function.
+On 08/03/2017 07:23 AM, Jacob Chen wrote:
+> Rockchip RGA is a separate 2D raster graphic acceleration unit. It
+> accelerates 2D graphics operations, such as point/line drawing, image
+> scaling, rotation, BitBLT, alpha blending and image blur/sharpness
+> 
+> The drvier is mostly based on s5p-g2d v4l2 m2m driver
+> And supports various operations from the rendering pipeline.
+>  - copy
+>  - fast solid color fill
+>  - rotation
+>  - flip
+>  - alpha blending
+> 
+> The code in rga-hw.c is used to configure regs according to operations
+> The code in rga-buf.c is used to create private mmu table for RGA.
+> 
+> changes in V7:
+> - fix some warning reported by "checkpatch --strict"
+> 
+> Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
 
-This issue was detected by using the Coccinelle software.
+Can you post the v4l2-compliance output? I gather that there is at least one
+colorspace-related error that appears to be a v4l2-compliance bug, so I'd
+like to see the exact error it gives. I'll see if I can fix it so this driver
+has a clean compliance output.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/dvb-frontends/drxd_hard.c | 1 -
- 1 file changed, 1 deletion(-)
+I apologize that this driver probably won't make 4.14. Too much to review...
 
-diff --git a/drivers/media/dvb-frontends/drxd_hard.c b/drivers/media/dvb-frontends/drxd_hard.c
-index 7d04400b18dd..47b0d37e70ba 100644
---- a/drivers/media/dvb-frontends/drxd_hard.c
-+++ b/drivers/media/dvb-frontends/drxd_hard.c
-@@ -911,7 +911,6 @@ static int load_firmware(struct drxd_state *state, const char *fw_name)
- 	state->microcode = kmemdup(fw->data, fw->size, GFP_KERNEL);
- 	if (state->microcode == NULL) {
- 		release_firmware(fw);
--		printk(KERN_ERR "drxd: firmware load failure: no memory\n");
- 		return -ENOMEM;
- 	}
- 
--- 
-2.14.1
+I hope to do the v7 review within a week.
+
+Regards,
+
+	Hans
