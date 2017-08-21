@@ -1,54 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:29132 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751337AbdH2LkI (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:51634 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751941AbdHUKPf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 07:40:08 -0400
-Date: Tue, 29 Aug 2017 14:39:50 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: sakari.ailus@linux.intel.com
-Cc: linux-media@vger.kernel.org
-Subject: [bug report] media: v4l2-flash-led-class: Create separate
- sub-devices for indicators
-Message-ID: <20170829112544.4at4tb6msmgxphc4@mwanda>
+        Mon, 21 Aug 2017 06:15:35 -0400
+Subject: Re: [PATCH v2 2/2] docs-rst: media: Document broken frame handling in
+ stream stop for CSI-2
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com
+References: <1502886018-31488-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1502886018-31488-3-git-send-email-sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <095907b0-51f0-b74f-544c-66e57a97f3a3@xs4all.nl>
+Date: Mon, 21 Aug 2017 12:15:31 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <1502886018-31488-3-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sakari Ailus,
+On 08/16/2017 02:20 PM, Sakari Ailus wrote:
+> Some CSI-2 transmitters will finish an ongoing frame whereas others will
+> not. Document that receiver drivers should not assume a particular
+> behaviour but to work in both cases.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  Documentation/media/kapi/csi2.rst | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
+> 
+> diff --git a/Documentation/media/kapi/csi2.rst b/Documentation/media/kapi/csi2.rst
+> index e33fcb9..0560100 100644
+> --- a/Documentation/media/kapi/csi2.rst
+> +++ b/Documentation/media/kapi/csi2.rst
+> @@ -51,6 +51,16 @@ not active. Some transmitters do this automatically but some have to
+>  be explicitly programmed to do so, and some are unable to do so
+>  altogether due to hardware constraints.
+>  
+> +Stopping the transmitter
+> +^^^^^^^^^^^^^^^^^^^^^^^^
+> +
+> +A transmitter stops sending the stream of images as a result of
+> +calling the ``.s_stream()`` callback. Some transmitters may stop the
+> +stream at a frame boundary whereas others stop immediately,
+> +effectively leaving the current frame unfinished. The receiver driver
+> +should not make assumptions either way, but function properly in both
+> +cases.
+> +
+>  Receiver drivers
+>  ----------------
+>  
+> 
 
-This is a semi-automatic email about new static checker warnings.
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-The patch 503dd28af108: "media: v4l2-flash-led-class: Create separate 
-sub-devices for indicators" from Jul 18, 2017, leads to the following 
-Smatch complaint:
+Thanks,
 
-drivers/media/v4l2-core/v4l2-flash-led-class.c:210 v4l2_flash_s_ctrl()
-	 error: we previously assumed 'fled_cdev' could be null (see line 200)
-
-drivers/media/v4l2-core/v4l2-flash-led-class.c
-   199		struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-   200		struct led_classdev *led_cdev = fled_cdev ? &fled_cdev->led_cdev : NULL;
-                                                ^^^^^^^^^
-The patch adds a new check for NULL here
-
-   201		struct v4l2_ctrl **ctrls = v4l2_flash->ctrls;
-   202		bool external_strobe;
-   203		int ret = 0;
-   204	
-   205		switch (c->id) {
-   206		case V4L2_CID_FLASH_LED_MODE:
-   207			switch (c->val) {
-   208			case V4L2_FLASH_LED_MODE_NONE:
-   209				led_set_brightness_sync(led_cdev, LED_OFF);
-   210				return led_set_flash_strobe(fled_cdev, false);
-                                                            ^^^^^^^^^
-but we had an old unchecked dereference here.
-
-   211			case V4L2_FLASH_LED_MODE_FLASH:
-   212				/* Turn the torch LED off */
-
-regards,
-dan carpenter
+	Hans
