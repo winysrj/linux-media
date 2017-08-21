@@ -1,61 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:48321 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751263AbdH3Kpq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Aug 2017 06:45:46 -0400
-Subject: Re: [RFC 0/2] BCM283x Camera Receiver driver
-To: Dave Stevenson <dave.stevenson@raspberrypi.org>
-References: <cover.1497452006.git.dave.stevenson@raspberrypi.org>
- <55eba688-5765-72dc-0984-7b642abaf38e@xs4all.nl>
- <CAAoAYcM5E5vsQ0Cn4X4XSJOO6uNuLqjXaBs1bBHwfiQbi5oHXw@mail.gmail.com>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-rpi-kernel@lists.infradead.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <154d1076-89b6-2c6b-07c1-f1c45eca3727@xs4all.nl>
-Date: Wed, 30 Aug 2017 12:45:41 +0200
+Received: from iodev.co.uk ([82.211.30.53]:43312 "EHLO iodev.co.uk"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752732AbdHUMOF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 Aug 2017 08:14:05 -0400
+Date: Mon, 21 Aug 2017 09:13:52 -0300
+From: Ismael Luceno <ismael@iodev.co.uk>
+To: Bhumika Goyal <bhumirks@gmail.com>
+Cc: julia.lawall@lip6.fr, mchehab@kernel.org,
+        maintainers@bluecherrydvr.com, andrey.utkin@corp.bluecherry.net,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/2] [media] solo6x10: make snd_kcontrol_new const
+Message-ID: <20170821121350.GA10157@pirotess.bf.iodev.co.uk>
+References: <1502875025-3224-1-git-send-email-bhumirks@gmail.com>
+ <1502875025-3224-3-git-send-email-bhumirks@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAAoAYcM5E5vsQ0Cn4X4XSJOO6uNuLqjXaBs1bBHwfiQbi5oHXw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
+Content-Disposition: inline
+In-Reply-To: <1502875025-3224-3-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 30/08/17 11:40, Dave Stevenson wrote:
-> Hi Hans.
-> 
-> On 28 August 2017 at 15:15, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> Hi Dave,
->>
->> What is the status of this work? I ask because I tried to use this driver
->> plus my tc358743 on my rpi-2b without any luck. Specifically the tc358843
->> isn't able to read from the i2c bus.
-> 
-> I was on other things until last week, but will try to get a V2 sorted
-> either this week or early next.
-> The world moved on slightly too, so there are a few more updates
-> around fwnode stuff that I ought to adopt.
-> 
->> This is probably a bug in my dts, if you have a tree somewhere containing
->> a working dts for this, then that would be very helpful.
-> 
-> Almost certainly just pin ctrl on the I2C bus. The default for i2c0 is
-> normally to GPIOs 0&1 as that is exposed on the 40 pin header
-> (physical pins 27&28). The camera is on GPIOs 28&29 (alt0) for the
-> majority of Pi models (not the Pi3, or the early model B).
 
-Yep, that was the culprit!
+--7AUc2qLy4jB3hD7Z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I now see the tc, but streaming doesn't work yet. I'm not getting any
-interrupts in the unicam driver.
+On 16/Aug/2017 14:47, Bhumika Goyal wrote:
+> Make this const as it is only used during a copy operation.
+> Done using Coccinelle.
+>=20
+> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+> ---
+>  drivers/media/pci/solo6x10/solo6x10-g723.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/media/pci/solo6x10/solo6x10-g723.c b/drivers/media/p=
+ci/solo6x10/solo6x10-g723.c
+> index 3ca9470..81be1b8 100644
+> --- a/drivers/media/pci/solo6x10/solo6x10-g723.c
+> +++ b/drivers/media/pci/solo6x10/solo6x10-g723.c
+> @@ -319,7 +319,7 @@ static int snd_solo_capture_volume_put(struct snd_kco=
+ntrol *kcontrol,
+>  	return 1;
+>  }
+> =20
+> -static struct snd_kcontrol_new snd_solo_capture_volume =3D {
+> +static const struct snd_kcontrol_new snd_solo_capture_volume =3D {
+>  	.iface =3D SNDRV_CTL_ELEM_IFACE_MIXER,
+>  	.name =3D "Capture Volume",
+>  	.info =3D snd_solo_capture_volume_info,
+> --=20
+> 1.9.1
+>=20
 
-BTW, when s_dv_timings is called, then you need to update the v4l2_format
-as well to the new width and height. I noticed that that didn't happen.
+Signed-off-by: Ismael Luceno <ismael@iodev.co.uk>
 
-Anyway, this is good enough for me for now since I want to add CEC support
-to the tc driver, and I do not need streaming for that...
+--7AUc2qLy4jB3hD7Z
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Regards,
+-----BEGIN PGP SIGNATURE-----
 
-	Hans
+iQIzBAABCgAdFiEEAqyZ04eQQpueXW0v7JuE7EFrBNgFAlmazm8ACgkQ7JuE7EFr
+BNhRUA/+LRvXaJ2BB/ddht4CbG+ZoLY+7JWCUHHGuCmGQ6ssOrZkIFcmP6TSQid4
+/0+VVbaOFFOhU4Qtc12CzApU13HuBMVKAQAvKUahIQgQ+dCbSNLekuJMSbIeCB/M
+c/wGNyeICzCnIPZkLGHOE1mx2irn6hjXrHJH1RLEwqEPS0hMCozNm869cENr48Bb
+HDFEP1gsRWMRcfZwkP2oVRc3uT7+CUHQgrsxHl8MB073iXPBBVqzb95Z+l9ujqc7
+/OQmJ4NZO8iM2YtZg6eE/z2AVqtWH62pESIVX4a+bMQUr85EVHvLRRx8V0HNH7bt
+quWD9XuubPpJu+p08xuErmg5Cw2o3IuYBkK0ANszS8equEM7YzOMwBAn9vFfYyFp
+E6V25OMUOV7nS1OrTLO9NAEtPfgz4J+mtSVJoK9xT9gOEmF8jqAcgDes3rdit2e1
+jw7dHZGSlNVFYi7si8J1J/UKqMlGlSmCUF25NBocNTmFI8GCpAc8rY/TSE9Jiqyk
+FDRBuf5nzLxA6sC66ME7Oys2xIwy39eYC5ckUFCFRjNhFWTKhTFI8n+glpt1P3Vm
+dtgA1MYy+TJS/xZ7bUJfWB6UIzfpTg8/VDp66oEqWqt4CpAlkHvYvsYdRaLCR9dh
+8UNG022AtfCIChGv9OHCmuxXd5e8ksTTUNgTVn7+Ao64CUY7CUQ=
+=6svl
+-----END PGP SIGNATURE-----
+
+--7AUc2qLy4jB3hD7Z--
