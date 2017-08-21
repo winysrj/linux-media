@@ -1,137 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:50395 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752756AbdHBIyP (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33030 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753206AbdHUNxv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 Aug 2017 04:54:15 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 8/9] omapdrm: hdmi4: hook up the HDMI CEC support
-Date: Wed,  2 Aug 2017 10:54:07 +0200
-Message-Id: <20170802085408.16204-9-hverkuil@xs4all.nl>
-In-Reply-To: <20170802085408.16204-1-hverkuil@xs4all.nl>
-References: <20170802085408.16204-1-hverkuil@xs4all.nl>
+        Mon, 21 Aug 2017 09:53:51 -0400
+Subject: Re: [PATCH v2.1 2/3] leds: as3645a: Add LED flash class driver
+To: Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: javier@dowhile0.org, linux-leds@vger.kernel.org,
+        devicetree@vger.kernel.org
+References: <20170819212410.3084-3-sakari.ailus@linux.intel.com>
+ <20170819214226.20736-1-sakari.ailus@linux.intel.com>
+ <fc6c7893-863b-53ff-48e3-d14297364e5d@gmail.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Message-ID: <07392419-c586-a791-a994-bed39f73da94@iki.fi>
+Date: Mon, 21 Aug 2017 16:53:46 +0300
+MIME-Version: 1.0
+In-Reply-To: <fc6c7893-863b-53ff-48e3-d14297364e5d@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Jacek,
 
-Hook up the HDMI CEC support in the hdmi4 driver.
+Jacek Anaszewski wrote:
+> Hi Sakari,
+> 
+> Thanks for the update.
+> I've noticed that you added node labels to the child device nodes
+> in [0]:
+> 
+> "as3645a_flash : flash" and "as3645a_indicator : indicator"
 
-It add the CEC irq handler, the CEC (un)init calls and tells the CEC
-implementation when the physical address changes.
+The phandle references (as3645a_flash and as3645a_indicator) should
+actually be moved to the patch adding the flash property to the sensor
+device node. It doesn't do anything here, yet.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/gpu/drm/omapdrm/dss/Kconfig  |  8 ++++++++
- drivers/gpu/drm/omapdrm/dss/Makefile |  1 +
- drivers/gpu/drm/omapdrm/dss/hdmi4.c  | 23 ++++++++++++++++++++++-
- 3 files changed, 31 insertions(+), 1 deletion(-)
+> 
+> I am still seeing problems with this approach:
+> 
+> 1) AFAIK these labels are only used for referencing nodes inside dts
+>    files and they don't affect the name property of struct device_node
 
-diff --git a/drivers/gpu/drm/omapdrm/dss/Kconfig b/drivers/gpu/drm/omapdrm/dss/Kconfig
-index 8b87d5cf45fc..f24ebf7f61dd 100644
---- a/drivers/gpu/drm/omapdrm/dss/Kconfig
-+++ b/drivers/gpu/drm/omapdrm/dss/Kconfig
-@@ -65,6 +65,14 @@ config OMAP4_DSS_HDMI
- 	help
- 	  HDMI support for OMAP4 based SoCs.
- 
-+config OMAP4_DSS_HDMI_CEC
-+	bool "Enable HDMI CEC support for OMAP4"
-+	depends on OMAP4_DSS_HDMI
-+	select CEC_CORE
-+	default y
-+	---help---
-+	  When selected the HDMI transmitter will support the CEC feature.
-+
- config OMAP5_DSS_HDMI
- 	bool "HDMI support for OMAP5"
- 	default n
-diff --git a/drivers/gpu/drm/omapdrm/dss/Makefile b/drivers/gpu/drm/omapdrm/dss/Makefile
-index 688195e448c5..6a3a116512f3 100644
---- a/drivers/gpu/drm/omapdrm/dss/Makefile
-+++ b/drivers/gpu/drm/omapdrm/dss/Makefile
-@@ -14,5 +14,6 @@ omapdss-$(CONFIG_OMAP2_DSS_DSI) += dsi.o
- omapdss-$(CONFIG_OMAP2_DSS_HDMI_COMMON) += hdmi_common.o hdmi_wp.o hdmi_pll.o \
- 	hdmi_phy.o
- omapdss-$(CONFIG_OMAP4_DSS_HDMI) += hdmi4.o hdmi4_core.o
-+omapdss-$(CONFIG_OMAP4_DSS_HDMI_CEC) += hdmi4_cec.o
- omapdss-$(CONFIG_OMAP5_DSS_HDMI) += hdmi5.o hdmi5_core.o
- ccflags-$(CONFIG_OMAP2_DSS_DEBUG) += -DDEBUG
-diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4.c b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-index 166aa4df7688..e535010218e6 100644
---- a/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-+++ b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-@@ -36,9 +36,11 @@
- #include <linux/of.h>
- #include <linux/of_graph.h>
- #include <sound/omap-hdmi-audio.h>
-+#include <media/cec.h>
- 
- #include "omapdss.h"
- #include "hdmi4_core.h"
-+#include "hdmi4_cec.h"
- #include "dss.h"
- #include "dss_features.h"
- #include "hdmi.h"
-@@ -97,6 +99,13 @@ static irqreturn_t hdmi_irq_handler(int irq, void *data)
- 	} else if (irqstatus & HDMI_IRQ_LINK_DISCONNECT) {
- 		hdmi_wp_set_phy_pwr(wp, HDMI_PHYPWRCMD_LDOON);
- 	}
-+	if (irqstatus & HDMI_IRQ_CORE) {
-+		u32 intr4 = hdmi_read_reg(hdmi->core.base, HDMI_CORE_SYS_INTR4);
-+
-+		hdmi_write_reg(hdmi->core.base, HDMI_CORE_SYS_INTR4, intr4);
-+		if (intr4 & 8)
-+			hdmi4_cec_irq(&hdmi->core);
-+	}
- 
- 	return IRQ_HANDLED;
- }
-@@ -393,6 +402,8 @@ static void hdmi_display_disable(struct omap_dss_device *dssdev)
- 
- 	DSSDBG("Enter hdmi_display_disable\n");
- 
-+	hdmi4_cec_set_phys_addr(&hdmi.core, CEC_PHYS_ADDR_INVALID);
-+
- 	mutex_lock(&hdmi.lock);
- 
- 	spin_lock_irqsave(&hdmi.audio_playing_lock, flags);
-@@ -493,7 +504,11 @@ static int hdmi_read_edid(struct omap_dss_device *dssdev,
- 	}
- 
- 	r = read_edid(edid, len);
--
-+	if (r >= 256)
-+		hdmi4_cec_set_phys_addr(&hdmi.core,
-+					cec_get_edid_phys_addr(edid, r, NULL));
-+	else
-+		hdmi4_cec_set_phys_addr(&hdmi.core, CEC_PHYS_ADDR_INVALID);
- 	if (need_enable)
- 		hdmi4_core_disable(dssdev);
- 
-@@ -727,6 +742,10 @@ static int hdmi4_bind(struct device *dev, struct device *master, void *data)
- 	if (r)
- 		goto err;
- 
-+	r = hdmi4_cec_init(pdev, &hdmi.core, &hdmi.wp);
-+	if (r)
-+		goto err;
-+
- 	irq = platform_get_irq(pdev, 0);
- 	if (irq < 0) {
- 		DSSERR("platform_get_irq failed\n");
-@@ -771,6 +790,8 @@ static void hdmi4_unbind(struct device *dev, struct device *master, void *data)
- 
- 	hdmi_uninit_output(pdev);
- 
-+	hdmi4_cec_uninit(&hdmi.core);
-+
- 	hdmi_pll_uninit(&hdmi.pll);
- 
- 	pm_runtime_disable(&pdev->dev);
+That's right.
+
+> 2) Even if you changed the node name from flash to as3645a_flash, you
+>    would get weird LED class device name "as3645a_flash:flash" in case
+>    label property is absent. Do you have any objections against the
+>    approach I proposed in the previous review?:
+> 
+> 
+>     snprintf(names->flash, sizeof(names->flash),
+> 	     AS_NAME":%s", node->name);
+
+In the current patch, the device node of the flash controller is used,
+postfixed with colon and the name of the LED ("flash" or "indicator") if
+no label is defined. In other words, with that DT source you'll have
+"as3645a:flash" and "as3645a:indicator". So if you change the name of
+the device node of the I²C device, that will be reflected in the label.
+
+If a label exists, then the label is used as such.
+
+I don't really have objections to what you're proposing as such but my
+question is: is it useful? With that, the flash and indicator labels
+will not come from DT if label properties are undefined. They'll always
+be "as3645a:flash" and "as3645a:indicator", independently of the names
+of the device nodes.
+
 -- 
-2.13.2
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@iki.fi
