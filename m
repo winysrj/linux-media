@@ -1,63 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:40102 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752876AbdHTLxZ (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:33668 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753548AbdHUUM2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Aug 2017 07:53:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/4] vivid: fix incorrect HDMI input/output CEC logging
-Date: Sun, 20 Aug 2017 13:53:18 +0200
-Message-Id: <20170820115319.26244-4-hverkuil@xs4all.nl>
-In-Reply-To: <20170820115319.26244-1-hverkuil@xs4all.nl>
-References: <20170820115319.26244-1-hverkuil@xs4all.nl>
+        Mon, 21 Aug 2017 16:12:28 -0400
+Date: Mon, 21 Aug 2017 22:12:23 +0200
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Bhumika Goyal <bhumirks@gmail.com>
+Cc: julia.lawall@lip6.fr, bp@alien8.de, mchehab@kernel.org,
+        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
+        seanpaul@chromium.org, airlied@linux.ie, g.liakhovetski@gmx.de,
+        tomas.winkler@intel.com, dwmw2@infradead.org,
+        computersforpeace@gmail.com, marek.vasut@gmail.com, richard@nod.at,
+        cyrille.pitchen@wedev4u.fr, peda@axentia.se, kishon@ti.com,
+        bhelgaas@google.com, thierry.reding@gmail.com,
+        jonathanh@nvidia.com, dvhart@infradead.org, andy@infradead.org,
+        ohad@wizery.com, bjorn.andersson@linaro.org, freude@de.ibm.com,
+        schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, jth@kernel.org,
+        jejb@linux.vnet.ibm.com, martin.petersen@oracle.com,
+        lduncan@suse.com, cleech@redhat.com, johan@kernel.org,
+        elder@kernel.org, gregkh@linuxfoundation.org,
+        heikki.krogerus@linux.intel.com, linux-edac@vger.kernel.org,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
+        linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, greybus-dev@lists.linaro.org,
+        devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
+Subject: Re: [PATCH 06/15] mtd:  make device_type const
+Message-ID: <20170821221223.0a44fe32@bbrezillon>
+In-Reply-To: <1503130946-2854-7-git-send-email-bhumirks@gmail.com>
+References: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
+        <1503130946-2854-7-git-send-email-bhumirks@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Le Sat, 19 Aug 2017 13:52:17 +0530,
+Bhumika Goyal <bhumirks@gmail.com> a écrit :
 
-Only the first HDMI input has a CEC adapter, so just report 'HDMI 0' as
-the HDMI input name.
+> Make this const as it is only stored in the type field of a device
+> structure, which is const.
+> Done using Coccinelle.
+> 
 
-For the HDMI outputs use bus_cnt instead of i as the output number.
-The HDMI name now corresponds to what 'v4l2-ctl --list-outputs' reports.
+Applied to l2-mtd/master.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vivid/vivid-core.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Thanks,
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index ef344b9a48af..5f316a5e38db 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -1201,8 +1201,8 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 				goto unreg_dev;
- 			}
- 			cec_s_phys_addr(adap, 0, false);
--			v4l2_info(&dev->v4l2_dev, "CEC adapter %s registered for HDMI input %d\n",
--				  dev_name(&adap->devnode.dev), i);
-+			v4l2_info(&dev->v4l2_dev, "CEC adapter %s registered for HDMI input 0\n",
-+				  dev_name(&adap->devnode.dev));
- 		}
- #endif
- 
-@@ -1255,13 +1255,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 				dev->cec_tx_adap[bus_cnt] = NULL;
- 				goto unreg_dev;
- 			}
-+			v4l2_info(&dev->v4l2_dev, "CEC adapter %s registered for HDMI output %d\n",
-+				  dev_name(&adap->devnode.dev), bus_cnt);
- 			bus_cnt++;
- 			if (bus_cnt <= out_type_counter[HDMI])
- 				cec_s_phys_addr(adap, bus_cnt << 12, false);
- 			else
- 				cec_s_phys_addr(adap, 0x1000, false);
--			v4l2_info(&dev->v4l2_dev, "CEC adapter %s registered for HDMI output %d\n",
--				  dev_name(&adap->devnode.dev), i);
- 		}
- #endif
- 
--- 
-2.14.1
+Boris
+
+> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+> ---
+>  drivers/mtd/mtdcore.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/mtd/mtdcore.c b/drivers/mtd/mtdcore.c
+> index f872a99..e7ea842 100644
+> --- a/drivers/mtd/mtdcore.c
+> +++ b/drivers/mtd/mtdcore.c
+> @@ -340,7 +340,7 @@ static ssize_t mtd_bbtblocks_show(struct device *dev,
+>  };
+>  ATTRIBUTE_GROUPS(mtd);
+>  
+> -static struct device_type mtd_devtype = {
+> +static const struct device_type mtd_devtype = {
+>  	.name		= "mtd",
+>  	.groups		= mtd_groups,
+>  	.release	= mtd_release,
