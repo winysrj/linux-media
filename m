@@ -1,79 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:42733 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752342AbdHBIyN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 Aug 2017 04:54:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 1/9] omapdrm: encoder-tpd12s015: keep ls_oe_gpio high
-Date: Wed,  2 Aug 2017 10:54:00 +0200
-Message-Id: <20170802085408.16204-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170802085408.16204-1-hverkuil@xs4all.nl>
-References: <20170802085408.16204-1-hverkuil@xs4all.nl>
+Received: from mail.horus.com ([78.46.148.228]:47232 "EHLO mail.horus.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753614AbdHUT2I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 Aug 2017 15:28:08 -0400
+Date: Mon, 21 Aug 2017 21:28:06 +0200
+From: Matthias Reichl <hias@horus.com>
+To: Sean Young <sean@mess.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH] keytable: ensure udev rule fires on rc input device
+Message-ID: <20170821192805.73f264uf3gre3eqw@lenny.lan>
+References: <20170717092038.3e7jbjtx7htu3lda@camel2.lan>
+ <20170805213802.ni42iaht5rf5rye2@gofer.mess.org>
+ <20170806085655.dkaq7hqpyzrc3abj@gofer.mess.org>
+ <20170807070926.hvj5qvqb34xb2x3k@camel2.lan>
+ <20170816165625.3554yrommvthkscq@gofer.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170816165625.3554yrommvthkscq@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sean!
 
-For OMAP4 CEC support the CEC pin should always be on. So keep
-ls_oe_gpio high all the time in order to support CEC.
+On Wed, Aug 16, 2017 at 05:56:25PM +0100, Sean Young wrote:
+> I've found a shorter way of doing this.
 
-Background: even if the HPD is low it should still be possible
-to use CEC. Some displays will set the HPD low when they go into standby or
-when they switch to another input, but CEC is still available and able
-to wake up/change input for such a display.
+That's a really clever trick of dealing with the RUN/$id issue,
+I like it a lot!
 
-This is explicitly allowed by the CEC standard.
+> ----
+> From: Sean Young <sean@mess.org>
+> Date: Wed, 16 Aug 2017 17:41:53 +0100
+> Subject: [PATCH] keytable: ensure the udev rule fires on creation of the input
+>  device
+> 
+> The rc device is created before the input device, so if ir-keytable runs
+> too early the input device does not exist yet.
+> 
+> Ensure that rule fires on creation of a rc device's input device.
+> 
+> Note that this also prevents udev from starting ir-keytable on an
+> transmit only device, which has no input device.
+> 
+> Note that $id in RUN will not work, since that is expanded after all the
+> rules are matched, at which point the the parent might have been changed
+> by another match in another rule. The argument to $env{key} is expanded
+> immediately.
+> 
+> Signed-off-by: Sean Young <sean@mess.org>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+Tested-by: Matthias Reichl <hias@horus.com>
 
-diff --git a/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c b/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
-index a9e9d667c55e..293b8fd07cfc 100644
---- a/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
-+++ b/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
-@@ -51,6 +51,8 @@ static int tpd_connect(struct omap_dss_device *dssdev,
- 	dssdev->dst = dst;
- 
- 	gpiod_set_value_cansleep(ddata->ct_cp_hpd_gpio, 1);
-+	gpiod_set_value_cansleep(ddata->ls_oe_gpio, 1);
-+
- 	/* DC-DC converter needs at max 300us to get to 90% of 5V */
- 	udelay(300);
- 
-@@ -69,6 +71,7 @@ static void tpd_disconnect(struct omap_dss_device *dssdev,
- 		return;
- 
- 	gpiod_set_value_cansleep(ddata->ct_cp_hpd_gpio, 0);
-+	gpiod_set_value_cansleep(ddata->ls_oe_gpio, 0);
- 
- 	dst->src = NULL;
- 	dssdev->dst = NULL;
-@@ -146,18 +149,11 @@ static int tpd_read_edid(struct omap_dss_device *dssdev,
- {
- 	struct panel_drv_data *ddata = to_panel_data(dssdev);
- 	struct omap_dss_device *in = ddata->in;
--	int r;
- 
- 	if (!gpiod_get_value_cansleep(ddata->hpd_gpio))
- 		return -ENODEV;
- 
--	gpiod_set_value_cansleep(ddata->ls_oe_gpio, 1);
--
--	r = in->ops.hdmi->read_edid(in, edid, len);
--
--	gpiod_set_value_cansleep(ddata->ls_oe_gpio, 0);
--
--	return r;
-+	return in->ops.hdmi->read_edid(in, edid, len);
- }
- 
- static bool tpd_detect(struct omap_dss_device *dssdev)
--- 
-2.13.2
+so long & thanks for the fix,
+
+Hias
+> ---
+>  utils/keytable/70-infrared.rules | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/utils/keytable/70-infrared.rules b/utils/keytable/70-infrared.rules
+> index afffd951..41ca2089 100644
+> --- a/utils/keytable/70-infrared.rules
+> +++ b/utils/keytable/70-infrared.rules
+> @@ -1,4 +1,4 @@
+>  # Automatically load the proper keymaps after the Remote Controller device
+>  # creation.  The keycode tables rules should be at /etc/rc_maps.cfg
+>  
+> -ACTION=="add", SUBSYSTEM=="rc", RUN+="/usr/bin/ir-keytable -a /etc/rc_maps.cfg -s $name"
+> +ACTION=="add", SUBSYSTEM=="input", SUBSYSTEMS=="rc", KERNEL=="event*", ENV{.rc_sysdev}="$id", RUN+="/usr/bin/ir-keytable -a /etc/rc_maps.cfg -s $env{.rc_sysdev}"
+> -- 
+> 2.13.5
+> 
