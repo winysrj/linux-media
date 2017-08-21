@@ -1,60 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57976
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751552AbdHSKrs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Aug 2017 06:47:48 -0400
-Date: Sat, 19 Aug 2017 07:47:38 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [PATCH v2 2/2] docs-rst: media: Document broken frame handling
- in stream stop for CSI-2
-Message-ID: <20170819074738.2036ff36@vento.lan>
-In-Reply-To: <1502886018-31488-3-git-send-email-sakari.ailus@linux.intel.com>
-References: <1502886018-31488-1-git-send-email-sakari.ailus@linux.intel.com>
-        <1502886018-31488-3-git-send-email-sakari.ailus@linux.intel.com>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:60920 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753684AbdHUQVQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 Aug 2017 12:21:16 -0400
+Date: Mon, 21 Aug 2017 17:21:05 +0100
+From: Brian Starkey <brian.starkey@arm.com>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        jonathan.chai@arm.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>
+Subject: Re: DRM Format Modifiers in v4l2
+Message-ID: <20170821162105.GA4871@e107564-lin.cambridge.arm.com>
+References: <20170821155203.GB38943@e107564-lin.cambridge.arm.com>
+ <CAKMK7uFdQPUomZDCp_ak6sTsUayZuut4us08defjKmiy=24QnA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <CAKMK7uFdQPUomZDCp_ak6sTsUayZuut4us08defjKmiy=24QnA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 16 Aug 2017 15:20:18 +0300
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+On Mon, Aug 21, 2017 at 06:01:24PM +0200, Daniel Vetter wrote:
+>On Mon, Aug 21, 2017 at 5:52 PM, Brian Starkey <brian.starkey@arm.com> wrote:
+>> Hi all,
+>>
+>> I couldn't find this topic talked about elsewhere, but apologies if
+>> it's a duplicate - I'll be glad to be steered in the direction of a
+>> thread.
+>>
+>> We'd like to support DRM format modifiers in v4l2 in order to share
+>> the description of different (mostly proprietary) buffer formats
+>> between e.g. a v4l2 device and a DRM device.
+>>
+>> DRM format modifiers are defined in include/uapi/drm/drm_fourcc.h and
+>> are a vendor-namespaced 64-bit value used to describe various
+>> vendor-specific buffer layouts. They are combined with a (DRM) FourCC
+>> code to give a complete description of the data contained in a buffer.
+>>
+>> The same modifier definition is used in the Khronos EGL extension
+>> EGL_EXT_image_dma_buf_import_modifiers, and is supported in the
+>> Wayland linux-dmabuf protocol.
+>>
+>>
+>> This buffer information could of course be described in the
+>> vendor-specific part of V4L2_PIX_FMT_*, but this would duplicate the
+>> information already defined in drm_fourcc.h. Additionally, there
+>> would be quite a format explosion where a device supports a dozen or
+>> more formats, all of which can use one or more different
+>> layouts/compression schemes.
+>>
+>> So, I'm wondering if anyone has views on how/whether this could be
+>> incorporated?
+>>
+>> I spoke briefly about this to Laurent at LPC last year, and he
+>> suggested v4l2_control as one approach.
+>>
+>> I also wondered if could be added in v4l2_pix_format_mplane - looks
+>> like there's 8 bytes left before it exceeds the 200 bytes, or could go
+>> in the reserved portion of v4l2_plane_pix_format.
+>>
+>> Thanks for any thoughts,
+>
+>One problem is that the modifers sometimes reference the DRM fourcc
+>codes. v4l has a different (and incompatible set) of fourcc codes,
+>whereas all the protocols and specs (you can add DRI3.1 for Xorg to
+>that list btw) use both drm fourcc and drm modifiers.
+>
 
-> Some CSI-2 transmitters will finish an ongoing frame whereas others will
-> not. Document that receiver drivers should not assume a particular
-> behaviour but to work in both cases.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  Documentation/media/kapi/csi2.rst | 10 ++++++++++
->  1 file changed, 10 insertions(+)
-> 
-> diff --git a/Documentation/media/kapi/csi2.rst b/Documentation/media/kapi/csi2.rst
-> index e33fcb9..0560100 100644
-> --- a/Documentation/media/kapi/csi2.rst
-> +++ b/Documentation/media/kapi/csi2.rst
-> @@ -51,6 +51,16 @@ not active. Some transmitters do this automatically but some have to
->  be explicitly programmed to do so, and some are unable to do so
->  altogether due to hardware constraints.
->  
-> +Stopping the transmitter
-> +^^^^^^^^^^^^^^^^^^^^^^^^
-> +
-> +A transmitter stops sending the stream of images as a result of
-> +calling the ``.s_stream()`` callback. Some transmitters may stop the
-> +stream at a frame boundary whereas others stop immediately,
-> +effectively leaving the current frame unfinished. The receiver driver
-> +should not make assumptions either way, but function properly in both
-> +cases.
-> +
->  Receiver drivers
->  ----------------
->  
+This problem already exists (ignoring modifiers) in the case of any
+v4l2 <-> DRM buffer sharing (direct video scanout, for instance).
 
-Reviewed-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+I was hoping it would be possible to draw enough equivalency between
+the different definitions to manage a useful subset through a 1:1
+lookup table. If that's not possible then this gets a whole lot more
+tricky. Are you already aware of incompatibilities which would prevent
+it?
 
-Thanks,
-Mauro
+-Brian
+
+>This might or might not make this proposal unworkable, but it's
+>something I'd at least review carefully.
+>
+>Otherwise I think it'd be great if we could have one namespace for all
+>modifiers, that's pretty much why we have them. Please also note that
+>for drm_fourcc.h we don't require an in-kernel user for a new modifier
+>since a bunch of them might need to be allocated just for
+>userspace-to-userspace buffer sharing (e.g. in EGL/vk). One example
+>for this would be compressed surfaces with fast-clearing, which is
+>planned for i915 (but current hw can't scan it out). And we really
+>want to have one namespace for everything.
+>-Daniel
+>-- 
+>Daniel Vetter
+>Software Engineer, Intel Corporation
+>+41 (0) 79 365 57 48 - http://blog.ffwll.ch
