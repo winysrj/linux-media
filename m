@@ -1,105 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51522
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752001AbdHIPEL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Aug 2017 11:04:11 -0400
-Date: Wed, 9 Aug 2017 12:04:02 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Peter Rosin <peda@axentia.se>
-Cc: linux-kernel@vger.kernel.org,
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53727 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751085AbdHVUvm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 Aug 2017 16:51:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Yong <yong.deng@magewell.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/3] [media] cx231xx: only unregister successfully
- registered i2c adapters
-Message-ID: <20170809120402.3358552c@vento.lan>
-In-Reply-To: <24c02947-3812-1a1b-f6b7-dc5a3ff69d66@axentia.se>
-References: <20170731133852.8013-1-peda@axentia.se>
-        <20170731133852.8013-4-peda@axentia.se>
-        <20170809112741.36427eb0@vento.lan>
-        <24c02947-3812-1a1b-f6b7-dc5a3ff69d66@axentia.se>
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benoit Parrot <bparrot@ti.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
+Date: Tue, 22 Aug 2017 23:52:12 +0300
+Message-ID: <4387854.RiNf2zWZcD@avalon>
+In-Reply-To: <20170822201731.hyjqrbkhggaoomfl@flea.home>
+References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com> <8dd8c350-cd45-5cd9-65cc-67102944811f@xs4all.nl> <20170822201731.hyjqrbkhggaoomfl@flea.home>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 9 Aug 2017 16:43:03 +0200
-Peter Rosin <peda@axentia.se> escreveu:
+Hello,
 
-> On 2017-08-09 16:27, Mauro Carvalho Chehab wrote:
-> > Em Mon, 31 Jul 2017 15:38:52 +0200
-> > Peter Rosin <peda@axentia.se> escreveu:
-> >   
-> >> This prevents potentially scary debug messages from the i2c core.
-> >>
-> >> Signed-off-by: Peter Rosin <peda@axentia.se>
-> >> ---
-> >>  drivers/media/usb/cx231xx/cx231xx-core.c | 3 +++
-> >>  drivers/media/usb/cx231xx/cx231xx-i2c.c  | 3 ++-
-> >>  2 files changed, 5 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
-> >> index 46646ecd2dbc..f372ad3917a8 100644
-> >> --- a/drivers/media/usb/cx231xx/cx231xx-core.c
-> >> +++ b/drivers/media/usb/cx231xx/cx231xx-core.c
-> >> @@ -1311,6 +1311,7 @@ int cx231xx_dev_init(struct cx231xx *dev)
-> >>  	dev->i2c_bus[0].i2c_period = I2C_SPEED_100K;	/* 100 KHz */
-> >>  	dev->i2c_bus[0].i2c_nostop = 0;
-> >>  	dev->i2c_bus[0].i2c_reserve = 0;
-> >> +	dev->i2c_bus[0].i2c_rc = -ENODEV;
-> >>  
-> >>  	/* External Master 2 Bus */
-> >>  	dev->i2c_bus[1].nr = 1;
-> >> @@ -1318,6 +1319,7 @@ int cx231xx_dev_init(struct cx231xx *dev)
-> >>  	dev->i2c_bus[1].i2c_period = I2C_SPEED_100K;	/* 100 KHz */
-> >>  	dev->i2c_bus[1].i2c_nostop = 0;
-> >>  	dev->i2c_bus[1].i2c_reserve = 0;
-> >> +	dev->i2c_bus[1].i2c_rc = -ENODEV;
-> >>  
-> >>  	/* Internal Master 3 Bus */
-> >>  	dev->i2c_bus[2].nr = 2;
-> >> @@ -1325,6 +1327,7 @@ int cx231xx_dev_init(struct cx231xx *dev)
-> >>  	dev->i2c_bus[2].i2c_period = I2C_SPEED_100K;	/* 100kHz */
-> >>  	dev->i2c_bus[2].i2c_nostop = 0;
-> >>  	dev->i2c_bus[2].i2c_reserve = 0;
-> >> +	dev->i2c_bus[2].i2c_rc = -ENODEV;
-> >>  
-> >>  	/* register I2C buses */
-> >>  	errCode = cx231xx_i2c_register(&dev->i2c_bus[0]);
-> >> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> >> index 3e49517cb5e0..8ce6b815d16d 100644
-> >> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> >> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> >> @@ -553,7 +553,8 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
-> >>   */
-> >>  void cx231xx_i2c_unregister(struct cx231xx_i2c *bus)
-> >>  {
-> >> -	i2c_del_adapter(&bus->i2c_adap);
-> >> +	if (!bus->i2c_rc)
-> >> +		i2c_del_adapter(&bus->i2c_adap);  
+On Tuesday, 22 August 2017 23:17:31 EEST Maxime Ripard wrote:
+> On Tue, Aug 22, 2017 at 08:43:35AM +0200, Hans Verkuil wrote:
+> >>>> +static int sun6i_video_link_setup(struct media_entity *entity,
+> >>>> +				  const struct media_pad *local,
+> >>>> +				  const struct media_pad *remote, u32 flags)
+> >>>> +{
+> >>>> +	struct video_device *vdev = media_entity_to_video_device(entity);
+> >>>> +	struct sun6i_video *video = video_get_drvdata(vdev);
+> >>>> +
+> >>>> +	if (WARN_ON(video == NULL))
+> >>>> +		return 0;
+> >>>> +
+> >>>> +	return sun6i_video_formats_init(video);
+> >>> 
+> >>> Why is this called here? Why not in video_init()?
+> >> 
+> >> sun6i_video_init is in the driver probe context.
+> >> sun6i_video_formats_init use media_entity_remote_pad and
+> >> media_entity_to_v4l2_subdev to find the subdevs.
+> >> The media_entity_remote_pad can't work before all the media pad linked.
 > > 
-> > That doesn't sound right. what happens if i2c_rc is 1 or 2?
+> > A video_init is typically called from the notify_complete callback.
+> > Actually, that's where the video_register_device should be created as
+> > well. When you create it in probe() there is possibly no sensor yet, so it
+> > would be a dead video node (or worse, crash when used).
 > > 
-> > IMHO, the right would would be, instead:
-> > 
-> > 	if (bus->i2c_rc >= 0)
-> > 		i2c_del_adapter(&bus->i2c_adap);  
+> > There are still a lot of platform drivers that create the video node in
+> > the probe, but it's not the right place if you rely on the async loading
+> > of subdevs.
 > 
-> In theory, yes. But in practice i2c_add_adapter never returns >0, and is
-> also documented so.
+> That's not really related, but I'm not really sure it's a good way to
+> operate. This essentially means that you might wait forever for a
+> component in your pipeline to be probed, without any chance of it
+> happening (not compiled, compiled as a module and not loaded, hardware
+> defect preventing the driver from probing properly, etc), even though
+> that component might not be essential.
 
-Good point. Just applied the patch.
+I agree with Maxime here, we should build the media device incrementally, and 
+offer userspace access early on without waiting for all pieces to be 
+available. If properly implemented (there should definitely be so crash) I 
+don't see any drawback to that approach.
+
+> This is how DRM operates, and you sometimes end up in some very dumb
+> situations where you wait for say, the DSI controller to probe, while
+> you only care about HDMI in your system.
 > 
-> Let me know if you still want an update. In that case I'll also fix the
-> precedent present in the context of patch 1/3, i.e.
-> 
-> 	if (0 != bus->i2c_rc)
-> 		...
-> 
-> Cheers,
-> peda
+> But this seems to be on of the hot topic these days, so we might
+> discuss it further in some other thread :)
 
+Or here :-)
 
+-- 
+Regards,
 
-Thanks,
-Mauro
+Laurent Pinchart
