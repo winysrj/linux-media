@@ -1,202 +1,267 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:43080 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750835AbdH3IrY (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:56050 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752834AbdHVX2s (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Aug 2017 04:47:24 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Thomas Kaiser <linux-dvb@kaiser-linux.li>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] media: fix media Kconfig help syntax issues
-Message-ID: <83028a48-f188-fe8f-7228-4e838044bb81@xs4all.nl>
-Date: Wed, 30 Aug 2017 10:47:21 +0200
+        Tue, 22 Aug 2017 19:28:48 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v6 17/25] rcar-vin: use different v4l2 operations in media controller mode
+Date: Wed, 23 Aug 2017 01:26:32 +0200
+Message-Id: <20170822232640.26147-18-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The help text should be indented by at least two spaces after the
-'help' separator. This is both good practice and the media_build system
-for building media drivers makes this assumption.
+When the driver runs in media controller mode it should not directly
+control the subdevice instead userspace will be responsible for
+configuring the pipeline. To be able to run in this mode a different set
+of v4l2 operations needs to be used.
 
-I went through all Kconfigs under drivers/media and fixed any bad help
-sections. This makes it conform to the common practice and should fix
-problems with 'make menuconfig' when using media_build. This is due to
-a "WARNING" message that media_build can insert in the Kconfig and that
-assumes the help text is indented by at least two spaces. If not, then the
-Kconfig becomes invalid and 'make menuconfig' fails.
+Add a new set of v4l2 operations to support the running without directly
+interacting with the source subdevice.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: Thomas Kaiser <linux-dvb@kaiser-linux.li>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
-Mauro, please double-check the drivers/media/pci/netup_unidvb/Kconfig change:
-that Kconfig was really bad and had *two* help sections for the same entry.
----
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index 2631d0e0a024..d17722eb4456 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -173,7 +173,7 @@ config DVB_STB6000
- 	tristate "ST STB6000 silicon tuner"
- 	depends on DVB_CORE && I2C
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
--	  help
-+	help
- 	  A DVB-S silicon tuner module. Say Y when you want to support this tuner.
+ drivers/media/platform/rcar-vin/rcar-dma.c  |   3 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 155 +++++++++++++++++++++++++++-
+ drivers/media/platform/rcar-vin/rcar-vin.h  |   1 +
+ 3 files changed, 155 insertions(+), 4 deletions(-)
 
- config DVB_STV0299
-@@ -187,7 +187,7 @@ config DVB_STV6110
- 	tristate "ST STV6110 silicon tuner"
- 	depends on DVB_CORE && I2C
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
--	  help
-+	help
- 	  A DVB-S silicon tuner module. Say Y when you want to support this tuner.
-
- config DVB_STV0900
-@@ -902,7 +902,7 @@ config DVB_HELENE
- 	depends on DVB_CORE && I2C
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
--	Say Y when you want to support this frontend.
-+	  Say Y when you want to support this frontend.
-
- comment "Tools to develop new frontends"
-
-diff --git a/drivers/media/pci/b2c2/Kconfig b/drivers/media/pci/b2c2/Kconfig
-index 58761a21caa0..7b818d445f39 100644
---- a/drivers/media/pci/b2c2/Kconfig
-+++ b/drivers/media/pci/b2c2/Kconfig
-@@ -11,5 +11,5 @@ config DVB_B2C2_FLEXCOP_PCI_DEBUG
- 	depends on DVB_B2C2_FLEXCOP_PCI
- 	select DVB_B2C2_FLEXCOP_DEBUG
- 	help
--	Say Y if you want to enable the module option to control debug messages
--	of all B2C2 FlexCop drivers.
-+	  Say Y if you want to enable the module option to control debug messages
-+	  of all B2C2 FlexCop drivers.
-diff --git a/drivers/media/pci/netup_unidvb/Kconfig b/drivers/media/pci/netup_unidvb/Kconfig
-index 0ad37714c7fd..356fff6e6907 100644
---- a/drivers/media/pci/netup_unidvb/Kconfig
-+++ b/drivers/media/pci/netup_unidvb/Kconfig
-@@ -1,8 +1,8 @@
- config DVB_NETUP_UNIDVB
- 	tristate "NetUP Universal DVB card support"
- 	depends on DVB_CORE && VIDEO_DEV && PCI && I2C && SPI_MASTER
--    select VIDEOBUF2_DVB
--    select VIDEOBUF2_VMALLOC
-+	select VIDEOBUF2_DVB
-+	select VIDEOBUF2_VMALLOC
- 	select DVB_HORUS3A if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_ASCOT2E if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_HELENE if MEDIA_SUBDRV_AUTOSELECT
-@@ -10,8 +10,8 @@ config DVB_NETUP_UNIDVB
- 	select DVB_CXD2841ER if MEDIA_SUBDRV_AUTOSELECT
- 	---help---
- 	  Support for NetUP PCI express Universal DVB card.
--     help
--	Say Y when you want to support NetUP Dual Universal DVB card
--	Card can receive two independent streams in following standards:
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 6206fab7b6cdc55a..de1486ee2786b499 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -628,7 +628,8 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		/* Default to TB */
+ 		vnmc = VNMC_IM_FULL;
+ 		/* Use BT if video standard can be read and is 60 Hz format */
+-		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
++		if (!vin->info->use_mc &&
++		    !v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
+ 			if (std & V4L2_STD_525_60)
+ 				vnmc = VNMC_IM_FULL | VNMC_FOC;
+ 		}
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index f71dea8d5d40323a..9d540644bbe446f6 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -23,6 +23,9 @@
+ #include "rcar-vin.h"
+ 
+ #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
++#define RVIN_DEFAULT_WIDTH	800
++#define RVIN_DEFAULT_HEIGHT	600
++#define RVIN_DEFAULT_COLORSPACE	V4L2_COLORSPACE_SRGB
+ 
+ /* -----------------------------------------------------------------------------
+  * Format Conversions
+@@ -671,6 +674,84 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+ 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+ };
+ 
++/* -----------------------------------------------------------------------------
++ * V4L2 Media Controller
++ */
 +
-+	  Say Y when you want to support NetUP Dual Universal DVB card.
-+	  Card can receive two independent streams in following standards:
- 		DVB-S/S2, T/T2, C/C2
--	Two CI slots available for CAM modules.
-+	  Two CI slots available for CAM modules.
-diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
-index c480efb755f5..46a7d242a1a5 100644
---- a/drivers/media/platform/exynos4-is/Kconfig
-+++ b/drivers/media/platform/exynos4-is/Kconfig
-@@ -76,7 +76,7 @@ config VIDEO_EXYNOS4_ISP_DMA_CAPTURE
- 	depends on VIDEO_EXYNOS4_FIMC_IS
- 	select VIDEO_EXYNOS4_IS_COMMON
- 	default y
--	  help
-+	help
- 	  This option enables an additional video device node exposing a V4L2
- 	  video capture interface for the FIMC-IS ISP raw (Bayer) capture DMA.
-
-diff --git a/drivers/media/radio/wl128x/Kconfig b/drivers/media/radio/wl128x/Kconfig
-index c9e349b169c4..2add222ea346 100644
---- a/drivers/media/radio/wl128x/Kconfig
-+++ b/drivers/media/radio/wl128x/Kconfig
-@@ -7,11 +7,11 @@ config RADIO_WL128X
- 	depends on VIDEO_V4L2 && RFKILL && TTY && TI_ST
- 	depends on GPIOLIB || COMPILE_TEST
- 	help
--	Choose Y here if you have this FM radio chip.
-+	  Choose Y here if you have this FM radio chip.
-
--	In order to control your radio card, you will need to use programs
--	that are compatible with the Video For Linux 2 API.  Information on
--	this API and pointers to "v4l2" programs may be found at
--	<file:Documentation/video4linux/API.html>.
-+	  In order to control your radio card, you will need to use programs
-+	  that are compatible with the Video For Linux 2 API.  Information on
-+	  this API and pointers to "v4l2" programs may be found at
-+	  <file:Documentation/video4linux/API.html>.
-
- endmenu
-diff --git a/drivers/media/usb/b2c2/Kconfig b/drivers/media/usb/b2c2/Kconfig
-index 17d35833980c..a620ae42dfc8 100644
---- a/drivers/media/usb/b2c2/Kconfig
-+++ b/drivers/media/usb/b2c2/Kconfig
-@@ -10,6 +10,6 @@ config DVB_B2C2_FLEXCOP_USB_DEBUG
- 	bool "Enable debug for the B2C2 FlexCop drivers"
- 	depends on DVB_B2C2_FLEXCOP_USB
- 	select DVB_B2C2_FLEXCOP_DEBUG
--	   help
--	Say Y if you want to enable the module option to control debug messages
--	of all B2C2 FlexCop drivers.
-+	help
-+	  Say Y if you want to enable the module option to control debug messages
-+	  of all B2C2 FlexCop drivers.
-diff --git a/drivers/media/usb/gspca/Kconfig b/drivers/media/usb/gspca/Kconfig
-index 3fd94fe7e1eb..d214a21acff7 100644
---- a/drivers/media/usb/gspca/Kconfig
-+++ b/drivers/media/usb/gspca/Kconfig
-@@ -204,11 +204,11 @@ config USB_GSPCA_SE401
- 	tristate "SE401 USB Camera Driver"
- 	depends on VIDEO_V4L2 && USB_GSPCA
- 	help
--	 Say Y here if you want support for cameras based on the
--	 Endpoints (formerly known as AOX) se401 chip.
-+	  Say Y here if you want support for cameras based on the
-+	  Endpoints (formerly known as AOX) se401 chip.
-
--	 To compile this driver as a module, choose M here: the
--	 module will be called gspca_se401.
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called gspca_se401.
-
- config USB_GSPCA_SN9C2028
- 	tristate "SONIX Dual-Mode USB Camera Driver"
-@@ -224,11 +224,11 @@ config USB_GSPCA_SN9C20X
- 	tristate "SN9C20X USB Camera Driver"
- 	depends on VIDEO_V4L2 && USB_GSPCA
- 	help
--	 Say Y here if you want support for cameras based on the
--	 sn9c20x chips (SN9C201 and SN9C202).
-+	  Say Y here if you want support for cameras based on the
-+	  sn9c20x chips (SN9C201 and SN9C202).
-
--	 To compile this driver as a module, choose M here: the
--	 module will be called gspca_sn9c20x.
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called gspca_sn9c20x.
-
- config USB_GSPCA_SONIXB
- 	tristate "SONIX Bayer USB Camera Driver"
-diff --git a/drivers/media/usb/pvrusb2/Kconfig b/drivers/media/usb/pvrusb2/Kconfig
-index 60a2604e4cb3..1ad913fc30bf 100644
---- a/drivers/media/usb/pvrusb2/Kconfig
-+++ b/drivers/media/usb/pvrusb2/Kconfig
-@@ -44,7 +44,6 @@ config VIDEO_PVRUSB2_DVB
- 	select MEDIA_TUNER_SIMPLE if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_TDA8290 if MEDIA_SUBDRV_AUTOSELECT
- 	---help---
--
- 	  This option enables a DVB interface for the pvrusb2 driver.
- 	  If your device does not support digital television, this
- 	  feature will have no affect on the driver's operation.
++static int __rvin_mc_try_format(struct rvin_dev *vin,
++				struct v4l2_pix_format *pix)
++{
++	/* Keep current field if no specific one is asked for */
++	if (pix->field == V4L2_FIELD_ANY)
++		pix->field = vin->format.field;
++
++	return rvin_format_align(vin, pix);
++}
++
++static int rvin_mc_try_fmt_vid_cap(struct file *file, void *priv,
++				   struct v4l2_format *f)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++
++	return __rvin_mc_try_format(vin, &f->fmt.pix);
++}
++
++static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
++				 struct v4l2_format *f)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	int ret;
++
++	if (vb2_is_busy(&vin->queue))
++		return -EBUSY;
++
++	ret = __rvin_mc_try_format(vin, &f->fmt.pix);
++	if (ret)
++		return ret;
++
++	vin->format = f->fmt.pix;
++
++	return 0;
++}
++
++static int rvin_mc_enum_input(struct file *file, void *priv,
++			      struct v4l2_input *i)
++{
++	if (i->index != 0)
++		return -EINVAL;
++
++	i->type = V4L2_INPUT_TYPE_CAMERA;
++	strlcpy(i->name, "Camera", sizeof(i->name));
++
++	return 0;
++}
++
++static const struct v4l2_ioctl_ops rvin_mc_ioctl_ops = {
++	.vidioc_querycap		= rvin_querycap,
++	.vidioc_try_fmt_vid_cap		= rvin_mc_try_fmt_vid_cap,
++	.vidioc_g_fmt_vid_cap		= rvin_g_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap		= rvin_mc_s_fmt_vid_cap,
++	.vidioc_enum_fmt_vid_cap	= rvin_enum_fmt_vid_cap,
++
++	.vidioc_enum_input		= rvin_mc_enum_input,
++	.vidioc_g_input			= rvin_g_input,
++	.vidioc_s_input			= rvin_s_input,
++
++	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
++	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
++	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_qbuf			= vb2_ioctl_qbuf,
++	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_expbuf			= vb2_ioctl_expbuf,
++	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
++	.vidioc_streamon		= vb2_ioctl_streamon,
++	.vidioc_streamoff		= vb2_ioctl_streamoff,
++
++	.vidioc_log_status		= v4l2_ctrl_log_status,
++	.vidioc_subscribe_event		= rvin_subscribe_event,
++	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
++};
++
+ /* -----------------------------------------------------------------------------
+  * File Operations
+  */
+@@ -819,6 +900,60 @@ static const struct v4l2_file_operations rvin_fops = {
+ 	.read		= vb2_fop_read,
+ };
+ 
++/* -----------------------------------------------------------------------------
++ * Media controller file Operations
++ */
++
++static int rvin_mc_open(struct file *file)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	int ret;
++
++	mutex_lock(&vin->lock);
++
++	file->private_data = vin;
++
++	ret = v4l2_fh_open(file);
++	if (ret)
++		goto unlock;
++
++	pm_runtime_get_sync(vin->dev);
++	v4l2_pipeline_pm_use(&vin->vdev.entity, 1);
++
++unlock:
++	mutex_unlock(&vin->lock);
++
++	return ret;
++}
++
++static int rvin_mc_release(struct file *file)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	int ret;
++
++	mutex_lock(&vin->lock);
++
++	/* the release helper will cleanup any on-going streaming */
++	ret = _vb2_fop_release(file, NULL);
++
++	v4l2_pipeline_pm_use(&vin->vdev.entity, 0);
++	pm_runtime_put(vin->dev);
++
++	mutex_unlock(&vin->lock);
++
++	return ret;
++}
++
++static const struct v4l2_file_operations rvin_mc_fops = {
++	.owner		= THIS_MODULE,
++	.unlocked_ioctl	= video_ioctl2,
++	.open		= rvin_mc_open,
++	.release	= rvin_mc_release,
++	.poll		= vb2_fop_poll,
++	.mmap		= vb2_fop_mmap,
++	.read		= vb2_fop_read,
++};
++
+ void rvin_v4l2_remove(struct rvin_dev *vin)
+ {
+ 	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
+@@ -851,19 +986,33 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 	vin->v4l2_dev.notify = rvin_notify;
+ 
+ 	/* video node */
+-	vdev->fops = &rvin_fops;
+ 	vdev->v4l2_dev = &vin->v4l2_dev;
+ 	vdev->queue = &vin->queue;
+ 	snprintf(vdev->name, sizeof(vdev->name), "%s %s", KBUILD_MODNAME,
+ 		 dev_name(vin->dev));
+ 	vdev->release = video_device_release_empty;
+-	vdev->ioctl_ops = &rvin_ioctl_ops;
+ 	vdev->lock = &vin->lock;
+-	vdev->ctrl_handler = &vin->ctrl_handler;
+ 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+ 		V4L2_CAP_READWRITE;
+ 
++	/* Set some form of default format */
+ 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
++	vin->format.width = RVIN_DEFAULT_WIDTH;
++	vin->format.height = RVIN_DEFAULT_HEIGHT;
++	vin->format.colorspace = RVIN_DEFAULT_COLORSPACE;
++
++	ret = rvin_format_align(vin, &vin->format);
++	if (ret)
++		return ret;
++
++	if (vin->info->use_mc) {
++		vdev->fops = &rvin_mc_fops;
++		vdev->ioctl_ops = &rvin_mc_ioctl_ops;
++	} else {
++		vdev->fops = &rvin_fops;
++		vdev->ioctl_ops = &rvin_ioctl_ops;
++		vdev->ctrl_handler = &vin->ctrl_handler;
++	}
+ 
+ 	ret = video_register_device(&vin->vdev, VFL_TYPE_GRABBER, -1);
+ 	if (ret) {
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 819d9c04ed8ffb36..12daff804bb6f77f 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -21,6 +21,7 @@
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-mc.h>
+ #include <media/videobuf2-v4l2.h>
+ 
+ /* Number of HW buffers */
+-- 
+2.14.0
