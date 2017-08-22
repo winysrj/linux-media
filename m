@@ -1,35 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:50215 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751411AbdHZCJg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Aug 2017 22:09:36 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, d.scheller@gmx.net, jasmin@anw.at
-Subject: [PATCH] build: ddbridge can be now compiled for kernels older than 3.8
-Date: Sat, 26 Aug 2017 04:09:29 +0200
-Message-Id: <1503713370-32220-1-git-send-email-jasmin@anw.at>
+Received: from youngberry.canonical.com ([91.189.89.112]:53156 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932510AbdHVOVW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 Aug 2017 10:21:22 -0400
+From: Colin King <colin.king@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] em28xx: calculate left volume level correctly
+Date: Tue, 22 Aug 2017 15:21:20 +0100
+Message-Id: <20170822142120.14348-1-colin.king@canonical.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+From: Colin Ian King <colin.king@canonical.com>
 
-When you have already applied patch
-  https://www.mail-archive.com/linux-media@vger.kernel.org/msg117633.html
-this patch will re-enable ddbridge for all older Kernels.
-I have tested it with Kernel 2.6.36, 2.6.37, 3.4, 3.13 and 4.4.
+The calculation of the left volume looks suspect, the value of
+0x1f - ((val << 8) & 0x1f) is always 0x1f. The debug prior to the
+assignemnt of value[1] prints the left volume setting using the
+calculation 0x1f - (val >> 8) & 0x1f which looks correct to me.
+Fix the left volume by using the correct expression as used in
+the debug.
 
-Please note, that you need to apply the patch series
-  "fix compile for kernel 3.3 and older"
-    ->  build: Add compat code for PCI_DEVICE_SUB
-        build: Fixed backports/v3.3_eprobe_defer.patch
-to be able to compile ddbridge for Kernels <=3.3.
+Detected by CoverityScan, CID#146140 ("Wrong operator used")
 
-Jasmin Jessich (1):
-  build: ddbridge can be now compiled for kernels older than 3.8
+Fixes: 850d24a5a861 ("[media] em28xx-alsa: add mixer support for AC97 volume controls")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/usb/em28xx/em28xx-audio.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- v4l/versions.txt | 2 --
- 1 file changed, 2 deletions(-)
-
+diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+index 261620a57420..4628d73f46f2 100644
+--- a/drivers/media/usb/em28xx/em28xx-audio.c
++++ b/drivers/media/usb/em28xx/em28xx-audio.c
+@@ -564,7 +564,7 @@ static int em28xx_vol_get(struct snd_kcontrol *kcontrol,
+ 		val, (int)kcontrol->private_value);
+ 
+ 	value->value.integer.value[0] = 0x1f - (val & 0x1f);
+-	value->value.integer.value[1] = 0x1f - ((val << 8) & 0x1f);
++	value->value.integer.value[1] = 0x1f - ((val >> 8) & 0x1f);
+ 
+ 	return 0;
+ }
 -- 
-2.7.4
+2.14.1
