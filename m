@@ -1,82 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:45034 "EHLO
-        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751622AbdHaRfB (ORCPT
+Received: from esa4.microchip.iphmx.com ([68.232.154.123]:50987 "EHLO
+        esa4.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754434AbdHVBSl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 13:35:01 -0400
-Subject: Re: [PATCH 1/2] docs: kernel-doc comments are ASCII
-To: Jani Nikula <jani.nikula@linux.intel.com>,
-        Jonathan Corbet <corbet@lwn.net>,
+        Mon, 21 Aug 2017 21:18:41 -0400
+Subject: Re: [PATCH 1/3] media: atmel-isc: Not support RBG format from sensor.
+To: Hans Verkuil <hverkuil@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>
-References: <54c23e8e-89c0-5cea-0dcc-e938952c5642@infradead.org>
- <20170830152314.0486fafb@lwn.net>
- <3390facf-69ae-ba18-8abe-09b5695a6b31@infradead.org>
- <20170831064941.1fb18d20@vento.lan> <87h8wn98bv.fsf@intel.com>
- <20170831105602.5607fe52@vento.lan> <20170831081721.38be05ef@lwn.net>
- <f9e30c84-7ad7-39dd-a39f-f62581f0b893@infradead.org>
- <87d17b90zb.fsf@intel.com> <87a82f8zjc.fsf@intel.com>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <58800275-b969-5377-2fd8-da8e13bad344@infradead.org>
-Date: Thu, 31 Aug 2017 10:34:57 -0700
+CC: Nicolas Ferre <nicolas.ferre@microchip.com>,
+        <linux-kernel@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
+        Jonathan Corbet <corbet@lwn.net>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <20170817071614.12767-1-wenyou.yang@microchip.com>
+ <20170817071614.12767-2-wenyou.yang@microchip.com>
+ <61cb51fa-8d05-6707-00cc-429c761fa6f5@xs4all.nl>
+From: "Yang, Wenyou" <Wenyou.Yang@Microchip.com>
+Message-ID: <14941b74-8931-4d00-0664-0735fad9b5d1@Microchip.com>
+Date: Tue, 22 Aug 2017 09:18:17 +0800
 MIME-Version: 1.0
-In-Reply-To: <87a82f8zjc.fsf@intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+In-Reply-To: <61cb51fa-8d05-6707-00cc-429c761fa6f5@xs4all.nl>
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/31/17 09:36, Jani Nikula wrote:
-> On Thu, 31 Aug 2017, Jani Nikula <jani.nikula@linux.intel.com> wrote:
->> On Thu, 31 Aug 2017, Randy Dunlap <rdunlap@infradead.org> wrote:
->>> On 08/31/17 07:17, Jonathan Corbet wrote:
->>>> On Thu, 31 Aug 2017 10:56:26 -0300
->>>> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
->>>>
->>>>> It should have something to do with python version and/or to some
->>>>> locale info at the system, as neither I or Jon can reproduce it.
->>>>
->>>> I can't reproduce it here, but I have certainly seen situations where
->>>> Python 2 wants to run with the ascii codec by default.
->>>>
->>>> Note that the exception happens in our Sphinx extension, not in Sphinx
->>>> itself.  We've had other non-ascii text in our docs, so I think Sphinx is
->>>> doing the right thing.  The problem is with our own code.  If I could
->>>> reproduce it, it shouldn't be too hard to track down - take out that
->>>> massive "except anything" block and see where it explodes.
->>>>
->>>> Randy, which distribution are you running, and are you using their version
->>>> of Sphinx?
->>>
->>> opensuse LEAP 42.2
->>> Yes, their sphinx 1.3.1.
+Hi Hans,
+
+On 2017/8/21 22:07, Hans Verkuil wrote:
+> On 08/17/2017 09:16 AM, Wenyou Yang wrote:
+>> The 12-bit parallel interface supports the Raw Bayer, YCbCr,
+>> Monochrome and JPEG Compressed pixel formats from the external
+>> sensor, not support RBG pixel format.
 >>
->> What's your LANG setting? I think that's what it boils down to, and
->> trying to work around non-UTF-8 LANG in both python 2 and 3 compatible
->> ways.
+>> Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+>> ---
 >>
->> The odd thing is that I can reproduce the issue using a small python
->> snippet, but not through Sphinx.
-> 
-> Your original error message suggests your Sphinx actually uses python
-> 3. Can you check that? The clue is that it's the *decode* that fails.
+>>   drivers/media/platform/atmel/atmel-isc.c | 5 +++++
+>>   1 file changed, 5 insertions(+)
+>>
+>> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+>> index d4df3d4ccd85..535bb03783fe 100644
+>> --- a/drivers/media/platform/atmel/atmel-isc.c
+>> +++ b/drivers/media/platform/atmel/atmel-isc.c
+>> @@ -1478,6 +1478,11 @@ static int isc_formats_init(struct isc_device *isc)
+>>   	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code,
+>>   	       NULL, &mbus_code)) {
+>>   		mbus_code.index++;
+>> +
+>> +		/* Not support the RGB pixel formats from sensor */
+>> +		if ((mbus_code.code & 0xf000) == 0x1000)
+>> +			continue;
+> Am I missing something? Here you skip any RGB mediabus formats, but in patch 3/3
+> you add RGB mediabus formats. But this patch prevents those new formats from being
+> selected, right?
+This patch prevents getting the RGB format from the sensor directly.
+The RGB format can be produced by ISC controller by itself.
 
-Where do you see that clue?
-My /usr/bin/python is linked to python2.7:
+> Regards,
+>
+> 	Hans
+>
+>> +
+>>   		fmt = find_format_by_code(mbus_code.code, &i);
+>>   		if (!fmt)
+>>   			continue;
+>>
 
-> ll /usr/bin/python
-lrwxrwxrwx 1 root root 9 Jun 10 19:59 /usr/bin/python -> python2.7*
-
-> Does the below patch help? It avoids the implicit ascii decoding due to
-> universal_newlines=True and your LANG setting, and does explicit utf-8
-> decoding instead.
-> 
-> Fingers crossed.
-
-testing now.
-
--- 
-~Randy
+Best Regards,
+Wenyou Yang
