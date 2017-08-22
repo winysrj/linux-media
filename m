@@ -1,48 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f176.google.com ([209.85.128.176]:34389 "EHLO
-        mail-wr0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752820AbdHQTu1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Aug 2017 15:50:27 -0400
-Received: by mail-wr0-f176.google.com with SMTP id y96so49980949wrc.1
-        for <linux-media@vger.kernel.org>; Thu, 17 Aug 2017 12:50:27 -0700 (PDT)
-Subject: Re: [PATCH v2] media: isl6421: add checks for current overflow
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <24d5b36b-0ed5-f290-15a3-d291b10b6c39@gmail.com>
- <201c07fc2bed74943f2a74fc5734d9aed3e62f8d.1502652879.git.mchehab@s-opensource.com>
- <bac2323e-6bde-08f8-1143-31a0b1d7176a@gmail.com>
- <20170816064226.54002cc7@vela.lan>
-From: Jemma Denson <jdenson@gmail.com>
-Message-ID: <18c87cff-a407-8ebc-b758-eeb496f29345@gmail.com>
-Date: Thu, 17 Aug 2017 20:50:24 +0100
+Received: from mail.kernel.org ([198.145.29.99]:59190 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932523AbdHVOt5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 Aug 2017 10:49:57 -0400
 MIME-Version: 1.0
-In-Reply-To: <20170816064226.54002cc7@vela.lan>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-GB
+In-Reply-To: <20170822001912.27638-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170822001912.27638-1-niklas.soderlund+renesas@ragnatech.se>
+From: Rob Herring <robh@kernel.org>
+Date: Tue, 22 Aug 2017 09:49:35 -0500
+Message-ID: <CAL_Jsq+ABipq+YCpSwu_vhjk0rkZQimCD2vG1x5GL91wi6dzKw@mail.gmail.com>
+Subject: Re: [PATCH v2] device property: preserve usecount for node passed to of_fwnode_graph_get_port_parent()
+To: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        "open list:MEDIA DRIVERS FOR RENESAS - FCP"
+        <linux-renesas-soc@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 16/08/17 10:42, Mauro Carvalho Chehab wrote:
-
->> I've just tested both your v2 patch and changes I'm suggesting above; both work
->> fine on my setup. Do you want me to send a v3?
-> Yeah, sure! I'm currently in travel, returning only on Friday, and I don't
-> have the hardware to test. So, if you can send it, I'd appreciate :-)
+On Mon, Aug 21, 2017 at 7:19 PM, Niklas Söderlund
+<niklas.soderlund+renesas@ragnatech.se> wrote:
+> Using CONFIG_OF_DYNAMIC=y uncovered an imbalance in the usecount of the
+> node being passed to of_fwnode_graph_get_port_parent(). Preserve the
+> usecount by using of_get_parent() instead of of_get_next_parent() which
+> don't decrement the usecount of the node passed to it.
 >
-> Cheers,
-> Mauro
+> Fixes: 3b27d00e7b6d7c88 ("device property: Move fwnode graph ops to firmware specific locations")
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/of/property.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-Ok, just sent. The if statements ended up being a bit complicated, but I added checking
-if the DCL bit was being overridden (it is by several cards under cx88), only pausing
-for a second if DCL was in use as the datasheet suggested that's only done in that mode,
-and also skipped checking overflow if the device was set to off.
+Isn't this already fixed with this fix:
 
-The latter should cover overflow somehow being picked up during attach and causing the
-attach to fail. Unlikely to happen but we shouldn't fail on what could be a transient
-issue.
+commit c0a480d1acf7dc184f9f3e7cf724483b0d28dc2e
+Author: Tony Lindgren <tony@atomide.com>
+Date:   Fri Jul 28 01:23:15 2017 -0700
 
-Jemma.
+device property: Fix usecount for of_graph_get_port_parent()
