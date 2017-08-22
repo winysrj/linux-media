@@ -1,63 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:37765 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752405AbdHSIZL (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:54886 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754563AbdHVHA2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Aug 2017 04:25:11 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, bp@alien8.de, mchehab@kernel.org,
-        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
-        seanpaul@chromium.org, airlied@linux.ie, g.liakhovetski@gmx.de,
-        tomas.winkler@intel.com, dwmw2@infradead.org,
-        computersforpeace@gmail.com, boris.brezillon@free-electrons.com,
-        marek.vasut@gmail.com, richard@nod.at, cyrille.pitchen@wedev4u.fr,
-        peda@axentia.se, kishon@ti.com, bhelgaas@google.com,
-        thierry.reding@gmail.com, jonathanh@nvidia.com,
-        dvhart@infradead.org, andy@infradead.org, ohad@wizery.com,
-        bjorn.andersson@linaro.org, freude@de.ibm.com,
-        schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, jth@kernel.org,
-        jejb@linux.vnet.ibm.com, martin.petersen@oracle.com,
-        lduncan@suse.com, cleech@redhat.com, johan@kernel.org,
-        elder@kernel.org, gregkh@linuxfoundation.org,
-        heikki.krogerus@linux.intel.com, linux-edac@vger.kernel.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
-        linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, greybus-dev@lists.linaro.org,
-        devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 07/15] mux: make device_type const
-Date: Sat, 19 Aug 2017 13:52:18 +0530
-Message-Id: <1503130946-2854-8-git-send-email-bhumirks@gmail.com>
-In-Reply-To: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
-References: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
+        Tue, 22 Aug 2017 03:00:28 -0400
+Subject: Re: [PATCH 1/3] media: atmel-isc: Not support RBG format from sensor.
+To: "Yang, Wenyou" <Wenyou.Yang@Microchip.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Nicolas Ferre <nicolas.ferre@microchip.com>,
+        linux-kernel@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
+        Jonathan Corbet <corbet@lwn.net>,
+        linux-arm-kernel@lists.infradead.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <20170817071614.12767-1-wenyou.yang@microchip.com>
+ <20170817071614.12767-2-wenyou.yang@microchip.com>
+ <61cb51fa-8d05-6707-00cc-429c761fa6f5@xs4all.nl>
+ <14941b74-8931-4d00-0664-0735fad9b5d1@Microchip.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <ce6d074b-1c13-d3ea-5dfa-89cca2f26feb@xs4all.nl>
+Date: Tue, 22 Aug 2017 09:00:23 +0200
+MIME-Version: 1.0
+In-Reply-To: <14941b74-8931-4d00-0664-0735fad9b5d1@Microchip.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make this const as it is only stored in the type field of a device
-structure, which is const.
-Done using Coccinelle.
+On 08/22/2017 03:18 AM, Yang, Wenyou wrote:
+> Hi Hans,
+> 
+> On 2017/8/21 22:07, Hans Verkuil wrote:
+>> On 08/17/2017 09:16 AM, Wenyou Yang wrote:
+>>> The 12-bit parallel interface supports the Raw Bayer, YCbCr,
+>>> Monochrome and JPEG Compressed pixel formats from the external
+>>> sensor, not support RBG pixel format.
+>>>
+>>> Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+>>> ---
+>>>
+>>>   drivers/media/platform/atmel/atmel-isc.c | 5 +++++
+>>>   1 file changed, 5 insertions(+)
+>>>
+>>> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+>>> index d4df3d4ccd85..535bb03783fe 100644
+>>> --- a/drivers/media/platform/atmel/atmel-isc.c
+>>> +++ b/drivers/media/platform/atmel/atmel-isc.c
+>>> @@ -1478,6 +1478,11 @@ static int isc_formats_init(struct isc_device *isc)
+>>>   	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code,
+>>>   	       NULL, &mbus_code)) {
+>>>   		mbus_code.index++;
+>>> +
+>>> +		/* Not support the RGB pixel formats from sensor */
+>>> +		if ((mbus_code.code & 0xf000) == 0x1000)
+>>> +			continue;
+>> Am I missing something? Here you skip any RGB mediabus formats, but in patch 3/3
+>> you add RGB mediabus formats. But this patch prevents those new formats from being
+>> selected, right?
+> This patch prevents getting the RGB format from the sensor directly.
+> The RGB format can be produced by ISC controller by itself.
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
----
- drivers/mux/mux-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+OK, I think I see what is going on here. The isc_formats array really is two
+arrays in one: up to RAW_FMT_IND_END it describes what it can receive from
+the source, and after that it describes what it can convert it to.
 
-diff --git a/drivers/mux/mux-core.c b/drivers/mux/mux-core.c
-index 2fe96c4..68bd16d 100644
---- a/drivers/mux/mux-core.c
-+++ b/drivers/mux/mux-core.c
-@@ -58,7 +58,7 @@ static void mux_chip_release(struct device *dev)
- 	kfree(mux_chip);
- }
- 
--static struct device_type mux_type = {
-+static const struct device_type mux_type = {
- 	.name = "mux-chip",
- 	.release = mux_chip_release,
- };
--- 
-1.9.1
+But if you can't handle RGB formats from the sensor, then why not make
+sure none of the mbus codes in isc_formats uses RGB? That makes much
+more sense.
+
+E.g.:
+
+        { V4L2_PIX_FMT_RGB565, MEDIA_BUS_FMT_RGB565_2X8_LE, 16,
+          ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_RGB565,
+          ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x7b,
+          false, false },
+
+Why use MEDIA_BUS_FMT_RGB565_2X8_LE if this apparently is not supported?
+
+Regards,
+
+	Hans
+
+> 
+>> Regards,
+>>
+>> 	Hans
+>>
+>>> +
+>>>   		fmt = find_format_by_code(mbus_code.code, &i);
+>>>   		if (!fmt)
+>>>   			continue;
+>>>
+> 
+> Best Regards,
+> Wenyou Yang
+> 
