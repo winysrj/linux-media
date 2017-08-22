@@ -1,109 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55352
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751152AbdH0MSP (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:56038 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752555AbdHVX2s (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 27 Aug 2017 08:18:15 -0400
-Date: Sun, 27 Aug 2017 09:18:07 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org, jasmin@anw.at,
-        rjkm@metzlerbros.de
-Subject: Re: [PATCH] [media] dvb-frontends/mxl5xx: fix lock check order
-Message-ID: <20170827091807.404a9907@vento.lan>
-In-Reply-To: <20170820104545.6596-1-d.scheller.oss@gmail.com>
-References: <20170820104545.6596-1-d.scheller.oss@gmail.com>
+        Tue, 22 Aug 2017 19:28:48 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v6 20/25] rcar-vin: add chsel information to rvin_info
+Date: Wed, 23 Aug 2017 01:26:35 +0200
+Message-Id: <20170822232640.26147-21-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 20 Aug 2017 12:45:45 +0200
-Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
+Each Gen3 SoC has a limited set of predefined routing possibilities for
+which CSI-2 device and virtual channel can be routed to which VIN
+instance. Prepare to store this information in the struct rvin_info.
 
-> From: Daniel Scheller <d.scheller@gmx.net>
-> 
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-vin.h | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-Always add a description at the patch.
-
-
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> ---
-> When the mxl5xx driver together with the ddbridge glue gets merged ([1]),
-> this one should go in aswell - this fix is part of the dddvb-0.9.31
-> release.
-> 
->  drivers/media/dvb-frontends/mxl5xx.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/dvb-frontends/mxl5xx.c b/drivers/media/dvb-frontends/mxl5xx.c
-> index 676c96c216c3..d9136d67f5d4 100644
-> --- a/drivers/media/dvb-frontends/mxl5xx.c
-> +++ b/drivers/media/dvb-frontends/mxl5xx.c
-> @@ -638,13 +638,14 @@ static int tune(struct dvb_frontend *fe, bool re_tune,
->  		state->tune_time = jiffies;
->  		return 0;
->  	}
-> -	if (*status & FE_HAS_LOCK)
-> -		return 0;
->  
->  	r = read_status(fe, status);
->  	if (r)
->  		return r;
->  
-> +	if (*status & FE_HAS_LOCK)
-> +		return 0;
-> +
->  	return 0;
-
-That's stupid! it will return 0 on all situations, no matter if FE_HAS_LOCK
-or not. So, no need for the if.
-
-Anyway, IMHO, either the original code is right and it needs to
-use a previously cached value (with sounds weird to me, although
-it is possible), or the logic is utterly broken, and we should,
-instead, apply the enclosed patch.
-
->  	if (r)
->  		return r;
-
->  }
->  
-
-Thanks,
-Mauro
-
-[PATCH RFC] media: mxl5xx: fix tuning logic
-
-The tuning logic is broken with regards to status report:
-it relies on a previously-cached value that may not be valid
-if retuned.
-
-Change the logic to always read the status.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-
-diff --git a/drivers/media/dvb-frontends/mxl5xx.c b/drivers/media/dvb-frontends/mxl5xx.c
-index 676c96c216c3..4b449a6943c5 100644
---- a/drivers/media/dvb-frontends/mxl5xx.c
-+++ b/drivers/media/dvb-frontends/mxl5xx.c
-@@ -636,16 +636,9 @@ static int tune(struct dvb_frontend *fe, bool re_tune,
- 		if (r)
- 			return r;
- 		state->tune_time = jiffies;
--		return 0;
- 	}
--	if (*status & FE_HAS_LOCK)
--		return 0;
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 88683aaee3b6acd5..617f254b52fe106d 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -35,6 +35,9 @@
+ /* Max number on VIN instances that can be in a system */
+ #define RCAR_VIN_NUM 8
  
--	r = read_status(fe, status);
--	if (r)
--		return r;
--
--	return 0;
-+	return read_status(fe, status);
- }
++/* Max number of CHSEL values for any Gen3 SoC */
++#define RCAR_CHSEL_MAX 6
++
+ enum chip_id {
+ 	RCAR_H1,
+ 	RCAR_M1,
+@@ -91,6 +94,19 @@ struct rvin_graph_entity {
  
- static enum fe_code_rate conv_fec(enum MXL_HYDRA_FEC_E fec)
+ struct rvin_group;
+ 
++
++/** struct rvin_group_chsel - Map a CSI2 device and channel for a CHSEL value
++ * @csi:		VIN internal number for CSI2 device
++ * @chan:		CSI-2 channel number on remote. Note that channel
++ *			is not the same as VC. The CSI-2 hardware have 4
++ *			channels it can output on but which VC is outputted
++ *			on which channel is configurable inside the CSI-2.
++ */
++struct rvin_group_chsel {
++	enum rvin_csi_id csi;
++	unsigned int chan;
++};
++
+ /**
+  * struct rvin_info - Information about the particular VIN implementation
+  * @chip:		type of VIN chip
+@@ -98,6 +114,9 @@ struct rvin_group;
+  *
+  * max_width:		max input width the VIN supports
+  * max_height:		max input height the VIN supports
++ *
++ * num_chsels:		number of possible chsel values for this VIN
++ * chsels:		routing table VIN <-> CSI-2 for the chsel values
+  */
+ struct rvin_info {
+ 	enum chip_id chip;
+@@ -105,6 +124,9 @@ struct rvin_info {
+ 
+ 	unsigned int max_width;
+ 	unsigned int max_height;
++
++	unsigned int num_chsels;
++	struct rvin_group_chsel chsels[RCAR_VIN_NUM][RCAR_CHSEL_MAX];
+ };
+ 
+ /**
+-- 
+2.14.0
