@@ -1,66 +1,228 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:36644 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752336AbdHPU2C (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:56032 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752871AbdHVX2u (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Aug 2017 16:28:02 -0400
-Subject: Re: [PATCH 0/3] AS3645A flash support
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <20170816125440.27534-1-sakari.ailus@linux.intel.com>
-Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org
-From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Message-ID: <0534a432-39ff-e498-d208-770812cd8f1d@gmail.com>
-Date: Wed, 16 Aug 2017 22:27:17 +0200
+        Tue, 22 Aug 2017 19:28:50 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v6 24/25] rcar-vin: enable support for r8a7795
+Date: Wed, 23 Aug 2017 01:26:39 +0200
+Message-Id: <20170822232640.26147-25-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <20170816125440.27534-1-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Add the SoC specific information for Renesas r8a7795.
 
-On 08/16/2017 02:54 PM, Sakari Ailus wrote:
-> Hi everyone,
-> 
-> This set adds support for the AS3645A flash driver which can be found e.g.
-> in Nokia N9.
-> 
-> The set depeds on the flash patches here so I'd prefer to merge this
-> through mediatree.
-> 
-> <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=flash>
-> 
-> Jacek: would that be ok for you?
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/Kconfig     |   2 +-
+ drivers/media/platform/rcar-vin/rcar-core.c | 145 ++++++++++++++++++++++++++++
+ 2 files changed, 146 insertions(+), 1 deletion(-)
 
-No problem.
-
-> 
-> Since the RFC set:
-> 
-> - Add back the DT binding documentation I lost long ago.
-> 
-> - Use colon (":") in the default names instead of a space.
-> 
-> Sakari Ailus (3):
->   dt: bindings: Document DT bindings for Analog devices as3645a
->   leds: as3645a: Add LED flash class driver
->   arm: dts: omap3: N9/N950: Add AS3645A camera flash
-> 
->  .../devicetree/bindings/leds/ams,as3645a.txt       |  56 ++
->  MAINTAINERS                                        |   6 +
->  arch/arm/boot/dts/omap3-n9.dts                     |   1 +
->  arch/arm/boot/dts/omap3-n950-n9.dtsi               |  14 +
->  arch/arm/boot/dts/omap3-n950.dts                   |   1 +
->  drivers/leds/Kconfig                               |   8 +
->  drivers/leds/Makefile                              |   1 +
->  drivers/leds/leds-as3645a.c                        | 785 +++++++++++++++++++++
->  8 files changed, 872 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/leds/ams,as3645a.txt
->  create mode 100644 drivers/leds/leds-as3645a.c
-> 
-
+diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
+index af4c98b44d2e22cb..8fa7ee468c63afb9 100644
+--- a/drivers/media/platform/rcar-vin/Kconfig
++++ b/drivers/media/platform/rcar-vin/Kconfig
+@@ -6,7 +6,7 @@ config VIDEO_RCAR_VIN
+ 	select V4L2_FWNODE
+ 	---help---
+ 	  Support for Renesas R-Car Video Input (VIN) driver.
+-	  Supports R-Car Gen2 SoCs.
++	  Supports R-Car Gen2 and Gen3 SoCs.
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called rcar-vin.
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index dec91e2f3ccdbd93..58d903ab9fb83faf 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -21,6 +21,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/slab.h>
++#include <linux/sys_soc.h>
+ 
+ #include <media/v4l2-fwnode.h>
+ 
+@@ -987,7 +988,139 @@ static const struct rvin_info rcar_info_gen2 = {
+ 	.max_height = 2048,
+ };
+ 
++static const struct rvin_info rcar_info_r8a7795 = {
++	.chip = RCAR_GEN3,
++	.use_mc = true,
++	.max_width = 4096,
++	.max_height = 4096,
++
++	.num_chsels = 5,
++	.chsels = {
++		{
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 1 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++		}, {
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 1 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++		}, {
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 2 },
++			{ .csi = RVIN_CSI20, .chan = 2 },
++		}, {
++			{ .csi = RVIN_CSI40, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI40, .chan = 3 },
++			{ .csi = RVIN_CSI20, .chan = 3 },
++		}, {
++			{ .csi = RVIN_CSI41, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI41, .chan = 1 },
++			{ .csi = RVIN_CSI41, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++		}, {
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI41, .chan = 1 },
++			{ .csi = RVIN_CSI41, .chan = 0 },
++			{ .csi = RVIN_CSI41, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++		}, {
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI41, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI41, .chan = 2 },
++			{ .csi = RVIN_CSI20, .chan = 2 },
++		}, {
++			{ .csi = RVIN_CSI41, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI41, .chan = 3 },
++			{ .csi = RVIN_CSI20, .chan = 3 },
++		},
++	},
++};
++
++static const struct rvin_info rcar_info_r8a7795es1 = {
++	.chip = RCAR_GEN3,
++	.use_mc = true,
++	.max_width = 4096,
++	.max_height = 4096,
++
++	.num_chsels = 6,
++	.chsels = {
++		{
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI21, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI21, .chan = 0 },
++		}, {
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI21, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI21, .chan = 1 },
++		}, {
++			{ .csi = RVIN_CSI21, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 2 },
++			{ .csi = RVIN_CSI20, .chan = 2 },
++			{ .csi = RVIN_CSI21, .chan = 2 },
++		}, {
++			{ .csi = RVIN_CSI40, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI21, .chan = 1 },
++			{ .csi = RVIN_CSI40, .chan = 3 },
++			{ .csi = RVIN_CSI20, .chan = 3 },
++			{ .csi = RVIN_CSI21, .chan = 3 },
++		}, {
++			{ .csi = RVIN_CSI41, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI21, .chan = 0 },
++			{ .csi = RVIN_CSI41, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI21, .chan = 0 },
++		}, {
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI21, .chan = 0 },
++			{ .csi = RVIN_CSI41, .chan = 0 },
++			{ .csi = RVIN_CSI41, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI21, .chan = 1 },
++		}, {
++			{ .csi = RVIN_CSI21, .chan = 0 },
++			{ .csi = RVIN_CSI41, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI41, .chan = 2 },
++			{ .csi = RVIN_CSI20, .chan = 2 },
++			{ .csi = RVIN_CSI21, .chan = 2 },
++		}, {
++			{ .csi = RVIN_CSI41, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI21, .chan = 1 },
++			{ .csi = RVIN_CSI41, .chan = 3 },
++			{ .csi = RVIN_CSI20, .chan = 3 },
++			{ .csi = RVIN_CSI21, .chan = 3 },
++		},
++	},
++};
++
+ static const struct of_device_id rvin_of_id_table[] = {
++	{
++		.compatible = "renesas,vin-r8a7795",
++		.data = &rcar_info_r8a7795,
++	},
+ 	{
+ 		.compatible = "renesas,vin-r8a7794",
+ 		.data = &rcar_info_gen2,
+@@ -1020,6 +1153,11 @@ static const struct of_device_id rvin_of_id_table[] = {
+ };
+ MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+ 
++static const struct soc_device_attribute r8a7795es1[] = {
++	{ .soc_id = "r8a7795", .revision = "ES1.*" },
++	{ /* sentinel */ }
++};
++
+ static int rcar_vin_probe(struct platform_device *pdev)
+ {
+ 	const struct of_device_id *match;
+@@ -1038,6 +1176,13 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	vin->dev = &pdev->dev;
+ 	vin->info = match->data;
+ 
++	/*
++	 * Special care is needed on r8a7795 ES1.x since it
++	 * uses different routing then r8a7795 ES2.0.
++	 */
++	if (vin->info == &rcar_info_r8a7795 && soc_device_match(r8a7795es1))
++		vin->info = &rcar_info_r8a7795es1;
++
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (mem == NULL)
+ 		return -EINVAL;
 -- 
-Best regards,
-Jacek Anaszewski
+2.14.0
