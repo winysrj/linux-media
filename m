@@ -1,228 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:35261 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753663AbdHUVCY (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:61502 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932917AbdHVOld (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Aug 2017 17:02:24 -0400
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Hugues Fruchet <hugues.fruchet@st.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Subject: [PATCH v4l-utils] configure.ac: drop --disable-libv4l, disable plugin support instead
-Date: Mon, 21 Aug 2017 23:02:06 +0200
-Message-Id: <20170821210206.21055-1-thomas.petazzoni@free-electrons.com>
+        Tue, 22 Aug 2017 10:41:33 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Hans Verkuil" <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v2 2/4] [media] stm32-dcmi: revisit control register handling
+Date: Tue, 22 Aug 2017 16:41:09 +0200
+Message-ID: <1503412871-29829-3-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1503412871-29829-1-git-send-email-hugues.fruchet@st.com>
+References: <1503412871-29829-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In commit 2e604dfbcd09b93f0808cedb2a0b324c5569a599 ("configure.ac: add
---disable-libv4l option"), an option --disable-libv4l was added. As
-part of this, libv4l is no longer built at all in static linking
-configurations, just because libv4l uses dlopen() for plugin support.
+Simplify bits handling of DCMI_CR register.
 
-However, plugin support is only a side feature of libv4l, and one may
-need to use libv4l in static configurations, just without plugin
-support.
-
-Therefore, this commit:
-
- - Essentially reverts 2e604dfbcd09b93f0808cedb2a0b324c5569a599, so
-   that libv4l can be built in static linking configurations again.
-
- - Adjusts the compilation of libv4l2 so that the plugin support is
-   not compiled in when dlopen() in static linking configuration
-   (dlopen is not available).
-
-Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
-NOTE: this was only build-time tested, not runtime tested.
----
- Makefile.am                       | 11 ++---------
- configure.ac                      | 15 +++------------
- lib/libv4l2/Makefile.am           |  6 +++++-
- lib/libv4l2/libv4l2-priv.h        | 14 ++++++++++++++
- utils/Makefile.am                 |  6 +-----
- utils/v4l2-compliance/Makefile.am |  4 ----
- utils/v4l2-ctl/Makefile.am        |  4 ----
- 7 files changed, 25 insertions(+), 35 deletions(-)
+ drivers/media/platform/stm32/stm32-dcmi.c | 14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index 07c3ef8..e603472 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -1,17 +1,10 @@
- AUTOMAKE_OPTIONS = foreign
- ACLOCAL_AMFLAGS = -I m4
+diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
+index 7ffb2d3..1fe2d0f 100644
+--- a/drivers/media/platform/stm32/stm32-dcmi.c
++++ b/drivers/media/platform/stm32/stm32-dcmi.c
+@@ -490,7 +490,7 @@ static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct stm32_dcmi *dcmi = vb2_get_drv_priv(vq);
+ 	struct dcmi_buf *buf, *node;
+-	u32 val;
++	u32 val = 0;
+ 	int ret;
  
--SUBDIRS = v4l-utils-po libdvbv5-po
+ 	ret = clk_enable(dcmi->mclk);
+@@ -510,22 +510,16 @@ static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 
+ 	spin_lock_irq(&dcmi->irqlock);
+ 
+-	val = reg_read(dcmi->regs, DCMI_CR);
 -
--if WITH_LIBV4L
--SUBDIRS += lib
--endif
-+SUBDIRS = v4l-utils-po libdvbv5-po lib
- 
- if WITH_V4LUTILS
--SUBDIRS += utils
--if WITH_LIBV4L
--SUBDIRS += contrib
--endif
-+SUBDIRS += utils contrib
- endif
- 
- EXTRA_DIST = android-config.h bootstrap.sh doxygen_libdvbv5.cfg include COPYING.libv4l \
-diff --git a/configure.ac b/configure.ac
-index 72c9421..af44663 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -375,14 +375,6 @@ AC_ARG_ENABLE(libdvbv5,
-    esac]
- )
- 
--AC_ARG_ENABLE(libv4l,
--  AS_HELP_STRING([--disable-libv4l], [disable libv4l compilation]),
--  [case "${enableval}" in
--     yes | no ) ;;
--     *) AC_MSG_ERROR(bad value ${enableval} for --disable-libv4l) ;;
--   esac]
--)
+-	val &= ~(CR_PCKPOL | CR_HSPOL | CR_VSPOL |
+-		 CR_EDM_0 | CR_EDM_1 | CR_FCRC_0 |
+-		 CR_FCRC_1 | CR_JPEG | CR_ESS);
 -
- AC_ARG_ENABLE(dyn-libv4l,
-   AS_HELP_STRING([--disable-dyn-libv4l], [disable dynamic libv4l support]),
-   [case "${enableval}" in
-@@ -448,7 +440,6 @@ AM_CONDITIONAL([WITH_LIBDVBV5],     [test x$enable_libdvbv5  != xno -a x$have_li
- AM_CONDITIONAL([WITH_DVBV5_REMOTE], [test x$enable_libdvbv5  != xno -a x$have_libudev = xyes -a x$have_pthread = xyes])
- 
- AM_CONDITIONAL([WITH_DYN_LIBV4L],   [test x$enable_dyn_libv4l != xno])
--AM_CONDITIONAL([WITH_LIBV4L],       [test x$enable_libv4l    != xno -a x$enable_shared != xno])
- AM_CONDITIONAL([WITH_V4LUTILS],	    [test x$enable_v4l_utils != xno -a x$linux_os = xyes])
- AM_CONDITIONAL([WITH_QV4L2],	    [test x${qt_pkgconfig} = xtrue -a x$enable_qv4l2 != xno])
- AM_CONDITIONAL([WITH_V4L_PLUGINS],  [test x$enable_dyn_libv4l != xno -a x$enable_shared != xno])
-@@ -477,11 +468,12 @@ AM_COND_IF([WITH_LIBDVBV5], [USE_LIBDVBV5="yes"], [USE_LIBDVBV5="no"])
- AM_COND_IF([WITH_DVBV5_REMOTE], [USE_DVBV5_REMOTE="yes"
- 				 AC_DEFINE([HAVE_DVBV5_REMOTE], [1], [Usage of DVBv5 remote enabled])],
- 			        [USE_DVBV5_REMOTE="no"])
--AM_COND_IF([WITH_LIBV4L], [USE_LIBV4L="yes"], [USE_LIBV4L="no"])
- AM_COND_IF([WITH_DYN_LIBV4L], [USE_DYN_LIBV4L="yes"], [USE_DYN_LIBV4L="no"])
- AM_COND_IF([WITH_V4LUTILS], [USE_V4LUTILS="yes"], [USE_V4LUTILS="no"])
- AM_COND_IF([WITH_QV4L2], [USE_QV4L2="yes"], [USE_QV4L2="no"])
--AM_COND_IF([WITH_V4L_PLUGINS], [USE_V4L_PLUGINS="yes"], [USE_V4L_PLUGINS="no"])
-+AM_COND_IF([WITH_V4L_PLUGINS], [USE_V4L_PLUGINS="yes"
-+				AC_DEFINE([HAVE_V4L_PLUGINS], [1], [V4L plugin support enabled])],
-+				[USE_V4L_PLUGINS="no"])
- AM_COND_IF([WITH_V4L_WRAPPERS], [USE_V4L_WRAPPERS="yes"], [USE_V4L_WRAPPERS="no"])
- AM_COND_IF([WITH_GCONV], [USE_GCONV="yes"], [USE_GCONV="no"])
- AM_COND_IF([WITH_V4L2_CTL_LIBV4L], [USE_V4L2_CTL_LIBV4L="yes"], [USE_V4L2_CTL_LIBV4L="no"])
-@@ -513,7 +505,6 @@ compile time options summary
- 
-     gconv                      : $USE_GCONV
- 
--    libv4l                     : $USE_LIBV4L
-     dynamic libv4l             : $USE_DYN_LIBV4L
-     v4l_plugins                : $USE_V4L_PLUGINS
-     v4l_wrappers               : $USE_V4L_WRAPPERS
-diff --git a/lib/libv4l2/Makefile.am b/lib/libv4l2/Makefile.am
-index 811c45c..3a1bb90 100644
---- a/lib/libv4l2/Makefile.am
-+++ b/lib/libv4l2/Makefile.am
-@@ -15,7 +15,11 @@ else
- noinst_LTLIBRARIES = libv4l2.la
- endif
- 
--libv4l2_la_SOURCES = libv4l2.c v4l2-plugin.c log.c libv4l2-priv.h
-+libv4l2_la_SOURCES = libv4l2.c log.c libv4l2-priv.h
-+if WITH_V4L_PLUGINS
-+libv4l2_la_SOURCES += v4l2-plugin.c
-+endif
-+
- libv4l2_la_CPPFLAGS = $(CFLAG_VISIBILITY) $(ENFORCE_LIBV4L_STATIC)
- libv4l2_la_LDFLAGS = $(LIBV4L2_VERSION) -lpthread $(DLOPEN_LIBS) $(ENFORCE_LIBV4L_STATIC)
- libv4l2_la_LIBADD = ../libv4lconvert/libv4lconvert.la
-diff --git a/lib/libv4l2/libv4l2-priv.h b/lib/libv4l2/libv4l2-priv.h
-index 343db5e..1924c91 100644
---- a/lib/libv4l2/libv4l2-priv.h
-+++ b/lib/libv4l2/libv4l2-priv.h
-@@ -107,10 +107,24 @@ struct v4l2_dev_info {
- };
- 
- /* From v4l2-plugin.c */
-+#if defined(HAVE_V4L_PLUGINS)
- void v4l2_plugin_init(int fd, void **plugin_lib_ret, void **plugin_priv_ret,
- 		      const struct libv4l_dev_ops **dev_ops_ret);
- void v4l2_plugin_cleanup(void *plugin_lib, void *plugin_priv,
- 			 const struct libv4l_dev_ops *dev_ops);
-+#else
-+static inline void v4l2_plugin_init(int fd, void **plugin_lib_ret, void **plugin_priv_ret,
-+				    const struct libv4l_dev_ops **dev_ops_ret)
-+{
-+	*dev_ops_ret = v4lconvert_get_default_dev_ops();
-+	*plugin_lib_ret = NULL;
-+	*plugin_priv_ret = NULL;
-+}
-+static inline void v4l2_plugin_cleanup(void *plugin_lib, void *plugin_priv,
-+				       const struct libv4l_dev_ops *dev_ops)
-+{
-+}
-+#endif /* WITH_V4L_PLUGINS */
- 
- /* From log.c */
- extern const char *v4l2_ioctls[];
-diff --git a/utils/Makefile.am b/utils/Makefile.am
-index ce710c2..d7708cc 100644
---- a/utils/Makefile.am
-+++ b/utils/Makefile.am
-@@ -13,12 +13,8 @@ SUBDIRS = \
- 	v4l2-sysfs-path \
- 	cec-ctl \
- 	cec-compliance \
--	cec-follower
--
--if WITH_LIBV4L
--SUBDIRS += \
-+	cec-follower \
- 	rds-ctl
--endif
- 
- if WITH_LIBDVBV5
- SUBDIRS += \
-diff --git a/utils/v4l2-compliance/Makefile.am b/utils/v4l2-compliance/Makefile.am
-index 0671fda..58bad86 100644
---- a/utils/v4l2-compliance/Makefile.am
-+++ b/utils/v4l2-compliance/Makefile.am
-@@ -7,16 +7,12 @@ v4l2_compliance_SOURCES = v4l2-compliance.cpp v4l2-test-debug.cpp v4l2-test-inpu
- 	v4l2-test-codecs.cpp v4l2-test-colors.cpp v4l2-compliance.h
- v4l2_compliance_CPPFLAGS = -I$(top_srcdir)/utils/common
- 
--if WITH_LIBV4L
- if WITH_V4L2_COMPLIANCE_LIBV4L
- v4l2_compliance_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la -lrt -lpthread
- else
- v4l2_compliance_LDADD = -lrt -lpthread
- DEFS += -DNO_LIBV4L2
- endif
--else
--DEFS += -DNO_LIBV4L2
--endif
- 
- EXTRA_DIST = Android.mk fixme.txt v4l2-compliance.1
- 
-diff --git a/utils/v4l2-ctl/Makefile.am b/utils/v4l2-ctl/Makefile.am
-index cae4e74..83fa49a 100644
---- a/utils/v4l2-ctl/Makefile.am
-+++ b/utils/v4l2-ctl/Makefile.am
-@@ -9,15 +9,11 @@ v4l2_ctl_SOURCES = v4l2-ctl.cpp v4l2-ctl.h v4l2-ctl-common.cpp v4l2-ctl-tuner.cp
- 	v4l2-tpg-colors.c v4l2-tpg-core.c v4l-stream.c v4l2-ctl-meta.cpp
- v4l2_ctl_CPPFLAGS = -I$(top_srcdir)/utils/common
- 
--if WITH_LIBV4L
- if WITH_V4L2_CTL_LIBV4L
- v4l2_ctl_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la -lrt -lpthread
- else
- DEFS += -DNO_LIBV4L2
- endif
--else
--DEFS += -DNO_LIBV4L2
--endif
- 
- if !WITH_V4L2_CTL_STREAM_TO
- DEFS += -DNO_STREAM_TO
+ 	/* Set bus width */
+ 	switch (dcmi->bus.bus_width) {
+ 	case 14:
+-		val &= CR_EDM_0 + CR_EDM_1;
++		val |= CR_EDM_0 | CR_EDM_1;
+ 		break;
+ 	case 12:
+-		val &= CR_EDM_1;
++		val |= CR_EDM_1;
+ 		break;
+ 	case 10:
+-		val &= CR_EDM_0;
++		val |= CR_EDM_0;
+ 		break;
+ 	default:
+ 		/* Set bus width to 8 bits by default */
 -- 
-2.9.4
+1.9.1
