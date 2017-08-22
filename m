@@ -1,67 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60958 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753631AbdHOKnS (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:36714 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754594AbdHVHPg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Aug 2017 06:43:18 -0400
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 0E44E60122
-        for <linux-media@vger.kernel.org>; Tue, 15 Aug 2017 13:43:17 +0300 (EEST)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakke@valkosipuli.retiisi.org.uk>)
-        id 1dhZJc-0007BS-KJ
-        for linux-media@vger.kernel.org; Tue, 15 Aug 2017 13:43:16 +0300
-Date: Tue, 15 Aug 2017 13:43:16 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+        Tue, 22 Aug 2017 03:15:36 -0400
+Message-ID: <72a154d1efc1eb0219d05eac19de7577@smtp-cloud7.xs4all.net>
+Date: Tue, 22 Aug 2017 09:15:33 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL v2 for 4.14] Flash LED class improvements
-Message-ID: <20170815104316.j6e6b7eugr42vxka@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Here is greybus flash memory leak fix as well as V4L2 flash class change
-for making the interface more logical by creating a sub-device per LED.
+Results of the daily build of media_tree:
 
-since v1: Fix arguments in nop implementation of v4l2_flash_init().
+date:			Tue Aug 22 08:34:26 CEST 2017
+media-tree git hash:	0779b8855c746c90b85bfe6e16d5dfa2a6a46655
+media_build git hash:	1d9cbbf82bfb79eb8c47747121903f762d9cc9fb
+v4l-utils git hash:	15df21b333e243827ac0f89d7f4f307bf0968baf
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3736-g1df01c62
+host hardware:		x86_64
+host os:		4.11.0-164
 
-Please pull.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
 
+Detailed results are available here:
 
-The following changes since commit ec0c3ec497cabbf3bfa03a9eb5edcc252190a4e0:
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-  media: ddbridge: split code into multiple files (2017-08-09 12:17:01 -0400)
+Full logs are available here:
 
-are available in the git repository at:
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-  ssh://linuxtv.org/git/sailus/media_tree.git flash
+The Media Infrastructure API from this daily build is here:
 
-for you to fetch changes up to f91e3cfb56025111d83d9d86a7024acc3a692c39:
-
-  v4l2-flash-led-class: Document v4l2_flash_init() references (2017-08-15 13:38:02 +0300)
-
-----------------------------------------------------------------
-Rui Miguel Silva (1):
-      staging: greybus: light: fix memory leak in v4l2 register
-
-Sakari Ailus (2):
-      v4l2-flash-led-class: Create separate sub-devices for indicators
-      v4l2-flash-led-class: Document v4l2_flash_init() references
-
- drivers/leds/leds-aat1290.c                    |   4 +-
- drivers/leds/leds-max77693.c                   |   4 +-
- drivers/media/v4l2-core/v4l2-flash-led-class.c | 113 +++++++++++++++----------
- drivers/staging/greybus/light.c                |  42 ++++-----
- include/media/v4l2-flash-led-class.h           |  46 +++++++---
- 5 files changed, 127 insertions(+), 82 deletions(-)
-
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+http://www.xs4all.nl/~hverkuil/spec/index.html
