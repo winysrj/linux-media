@@ -1,53 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:54497 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751218AbdH2FdI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 01:33:08 -0400
-Subject: [PATCH 2/4] [media] zr364xx: Improve a size determination in
- zr364xx_probe()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
-        Antoine Jacquet <royale@zerezo.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <d632eadf-98a3-7e05-4d9d-96d04b3619ff@users.sourceforge.net>
-Message-ID: <19adacd0-3862-188f-9128-5d09fd13ebae@users.sourceforge.net>
-Date: Tue, 29 Aug 2017 07:33:02 +0200
-MIME-Version: 1.0
-In-Reply-To: <d632eadf-98a3-7e05-4d9d-96d04b3619ff@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from mail-yw0-f195.google.com ([209.85.161.195]:32771 "EHLO
+        mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932729AbdHVM46 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 Aug 2017 08:56:58 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: hverkuil@xs4all.nl, mchehab@kernel.org, awalls@md.metrocast.net,
+        prabhakar.csengg@gmail.com, royale@zerezo.com
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-usb@vger.kernel.org
+Subject: [PATCH 0/4] constify videobuf_queue_ops structures
+Date: Tue, 22 Aug 2017 18:26:32 +0530
+Message-Id: <1503406596-28266-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 28 Aug 2017 22:28:02 +0200
+videobuf_queue_ops are not supposed to change at runtime. All functions
+working with videobuf_queue_ops provided by <media/videobuf-core.h> work
+with const videobuf_queue_ops. So mark the non-const structs as const.
 
-Replace the specification of a data structure by a pointer dereference
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer according to the Linux coding style convention.
+Arvind Yadav (4):
+  [PATCH 1/4] [media] saa7146: constify videobuf_queue_ops structures
+  [PATCH 2/4] [media] pci: constify videobuf_queue_ops structures
+  [PATCH 3/4] [media] platform: constify videobuf_queue_ops structures
+  [PATCH 4/4] [media] usb: constify videobuf_queue_ops structures
 
-This issue was detected by using the Coccinelle software.
+ drivers/media/common/saa7146/saa7146_vbi.c    | 2 +-
+ drivers/media/common/saa7146/saa7146_video.c  | 2 +-
+ drivers/media/pci/bt8xx/bttv-driver.c         | 2 +-
+ drivers/media/pci/cx18/cx18-streams.c         | 2 +-
+ drivers/media/platform/davinci/vpfe_capture.c | 2 +-
+ drivers/media/platform/fsl-viu.c              | 2 +-
+ drivers/media/usb/cx231xx/cx231xx-417.c       | 2 +-
+ drivers/media/usb/cx231xx/cx231xx-video.c     | 2 +-
+ drivers/media/usb/tm6000/tm6000-video.c       | 2 +-
+ drivers/media/usb/zr364xx/zr364xx.c           | 2 +-
+ 10 files changed, 10 insertions(+), 10 deletions(-)
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/usb/zr364xx/zr364xx.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/usb/zr364xx/zr364xx.c b/drivers/media/usb/zr364xx/zr364xx.c
-index 97af697dcc81..37cd6e20e68a 100644
---- a/drivers/media/usb/zr364xx/zr364xx.c
-+++ b/drivers/media/usb/zr364xx/zr364xx.c
-@@ -1421,7 +1421,7 @@ static int zr364xx_probe(struct usb_interface *intf,
- 		 le16_to_cpu(udev->descriptor.idVendor),
- 		 le16_to_cpu(udev->descriptor.idProduct));
- 
--	cam = kzalloc(sizeof(struct zr364xx_camera), GFP_KERNEL);
-+	cam = kzalloc(sizeof(*cam), GFP_KERNEL);
- 	if (!cam)
- 		return -ENOMEM;
- 
 -- 
-2.14.1
+1.9.1
