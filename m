@@ -1,80 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53439
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752153AbdHZKHc (ORCPT
+Received: from mail-yw0-f194.google.com ([209.85.161.194]:34052 "EHLO
+        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932907AbdHVM5G (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 06:07:32 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 6/6] media: dvbproperty.rst: minor editorial changes
-Date: Sat, 26 Aug 2017 07:07:14 -0300
-Message-Id: <d9f6164eb9319c8fc6eee20e2bd8da09886eebe1.1503742025.git.mchehab@s-opensource.com>
-In-Reply-To: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
-References: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
-In-Reply-To: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
-References: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
+        Tue, 22 Aug 2017 08:57:06 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: hverkuil@xs4all.nl, mchehab@kernel.org, awalls@md.metrocast.net,
+        prabhakar.csengg@gmail.com, royale@zerezo.com
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-usb@vger.kernel.org
+Subject: [PATCH 2/4] [media] pci: constify videobuf_queue_ops structures
+Date: Tue, 22 Aug 2017 18:26:34 +0530
+Message-Id: <1503406596-28266-3-git-send-email-arvind.yadav.cs@gmail.com>
+In-Reply-To: <1503406596-28266-1-git-send-email-arvind.yadav.cs@gmail.com>
+References: <1503406596-28266-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do some minor editorial changes to make this chapter visually
-better, and the example a little bit clearer.
+videobuf_queue_ops are not supposed to change at runtime. All functions
+working with videobuf_queue_ops provided by <media/videobuf-core.h> work
+with const videobuf_queue_ops. So mark the non-const structs as const.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 ---
- Documentation/media/uapi/dvb/dvbproperty.rst | 25 ++++++++++++-------------
- 1 file changed, 12 insertions(+), 13 deletions(-)
+ drivers/media/pci/bt8xx/bttv-driver.c | 2 +-
+ drivers/media/pci/cx18/cx18-streams.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/media/uapi/dvb/dvbproperty.rst b/Documentation/media/uapi/dvb/dvbproperty.rst
-index 1e8fc75e469d..843f1d70aff0 100644
---- a/Documentation/media/uapi/dvb/dvbproperty.rst
-+++ b/Documentation/media/uapi/dvb/dvbproperty.rst
-@@ -8,8 +8,8 @@ DVB Frontend properties
- Tuning into a Digital TV physical channel and starting decoding it
- requires changing a set of parameters, in order to control the tuner,
- the demodulator, the Linear Low-noise Amplifier (LNA) and to set the
--antenna subsystem via Satellite Equipment Control (SEC), on satellite
--systems. The actual parameters are specific to each particular digital
-+antenna subsystem via Satellite Equipment Control - SEC (on satellite
-+systems). The actual parameters are specific to each particular digital
- TV standards, and may change as the digital TV specs evolves.
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index ed319f1..c2f1ba0 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -1702,7 +1702,7 @@ static void buffer_release(struct videobuf_queue *q, struct videobuf_buffer *vb)
+ 	bttv_dma_free(q,fh->btv,buf);
+ }
  
- In the past (up to DVB API version 3), the strategy used was to have a
-@@ -41,25 +41,24 @@ with suppports all digital TV delivery systems.
-    4. DVB API version 5 is also called *S2API*, as the first
-       new standard added to it was DVB-S2.
+-static struct videobuf_queue_ops bttv_video_qops = {
++static const struct videobuf_queue_ops bttv_video_qops = {
+ 	.buf_setup    = buffer_setup,
+ 	.buf_prepare  = buffer_prepare,
+ 	.buf_queue    = buffer_queue,
+diff --git a/drivers/media/pci/cx18/cx18-streams.c b/drivers/media/pci/cx18/cx18-streams.c
+index 3c45e007..81d06c1 100644
+--- a/drivers/media/pci/cx18/cx18-streams.c
++++ b/drivers/media/pci/cx18/cx18-streams.c
+@@ -240,7 +240,7 @@ static void buffer_queue(struct videobuf_queue *q, struct videobuf_buffer *vb)
+ 	list_add_tail(&buf->vb.queue, &s->vb_capture);
+ }
  
--Example: with the properties based approach, in order to set the tuner
--to a DVB-C channel at 651 kHz, modulated with 256-QAM, FEC 3/4 and
--symbol rate of 5.217 Mbauds, those properties should be sent to
-+**Example**: in order to set the hardware to tune into a DVB-C channel
-+at 651 kHz, modulated with 256-QAM, FEC 3/4 and symbol rate of 5.217
-+Mbauds, those properties should be sent to
- :ref:`FE_SET_PROPERTY <FE_GET_PROPERTY>` ioctl:
- 
---  :ref:`DTV_DELIVERY_SYSTEM <DTV-DELIVERY-SYSTEM>` =
--   SYS_DVBC_ANNEX_A
-+  :ref:`DTV_DELIVERY_SYSTEM <DTV-DELIVERY-SYSTEM>` = SYS_DVBC_ANNEX_A
- 
---  :ref:`DTV_FREQUENCY <DTV-FREQUENCY>` = 651000000
-+  :ref:`DTV_FREQUENCY <DTV-FREQUENCY>` = 651000000
- 
---  :ref:`DTV_MODULATION <DTV-MODULATION>` = QAM_256
-+  :ref:`DTV_MODULATION <DTV-MODULATION>` = QAM_256
- 
---  :ref:`DTV_INVERSION <DTV-INVERSION>` = INVERSION_AUTO
-+  :ref:`DTV_INVERSION <DTV-INVERSION>` = INVERSION_AUTO
- 
---  :ref:`DTV_SYMBOL_RATE <DTV-SYMBOL-RATE>` = 5217000
-+  :ref:`DTV_SYMBOL_RATE <DTV-SYMBOL-RATE>` = 5217000
- 
---  :ref:`DTV_INNER_FEC <DTV-INNER-FEC>` = FEC_3_4
-+  :ref:`DTV_INNER_FEC <DTV-INNER-FEC>` = FEC_3_4
- 
---  :ref:`DTV_TUNE <DTV-TUNE>`
-+  :ref:`DTV_TUNE <DTV-TUNE>`
- 
- The code that would that would do the above is show in
- :ref:`dtv-prop-example`.
+-static struct videobuf_queue_ops cx18_videobuf_qops = {
++static const struct videobuf_queue_ops cx18_videobuf_qops = {
+ 	.buf_setup    = buffer_setup,
+ 	.buf_prepare  = buffer_prepare,
+ 	.buf_queue    = buffer_queue,
 -- 
-2.13.3
+1.9.1
