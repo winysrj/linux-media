@@ -1,66 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52738 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752460AbdH2Nqm (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51568 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932686AbdHVM3w (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 09:46:42 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 1/1] media: Check for active and has_no_links overrun
-Date: Tue, 29 Aug 2017 16:46:40 +0300
-Message-Id: <20170829134640.7054-1-sakari.ailus@linux.intel.com>
+        Tue, 22 Aug 2017 08:29:52 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, hverkuil@xs4all.nl, devicetree@vger.kernel.org
+Subject: Re: [PATCH v3 1/3] omap3isp: Drop redundant isp->subdevs field and ISP_MAX_SUBDEVS
+Date: Tue, 22 Aug 2017 15:30:22 +0300
+Message-ID: <3810750.ISKOUEcbCg@avalon>
+In-Reply-To: <20170818112317.30933-2-sakari.ailus@linux.intel.com>
+References: <20170818112317.30933-1-sakari.ailus@linux.intel.com> <20170818112317.30933-2-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Hi Sakari,
 
-The active and has_no_links arrays will overrun in
-media_entity_pipeline_start() if there's an entity which has more than
-MEDIA_ENTITY_MAX_PAD pads. Ensure in media_entity_init() that there are
-fewer pads than that.
+Thank you for the patch.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-entity.c | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+On Friday, 18 August 2017 14:23:15 EEST Sakari Ailus wrote:
+> struct omap3isp.subdevs field and ISP_MAX_SUBDEVS macro are both unused.
+> Remove them.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 2ace0410d277..f7c6d64e6031 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -214,12 +214,20 @@ void media_gobj_destroy(struct media_gobj *gobj)
- 	gobj->mdev = NULL;
- }
- 
-+/*
-+ * TODO: Get rid of this.
-+ */
-+#define MEDIA_ENTITY_MAX_PADS		512
-+
- int media_entity_pads_init(struct media_entity *entity, u16 num_pads,
- 			   struct media_pad *pads)
- {
- 	struct media_device *mdev = entity->graph_obj.mdev;
- 	unsigned int i;
- 
-+	if (num_pads >= MEDIA_ENTITY_MAX_PADS)
-+		return -E2BIG;
-+
- 	entity->num_pads = num_pads;
- 	entity->pads = pads;
- 
-@@ -280,11 +288,6 @@ static struct media_entity *stack_pop(struct media_graph *graph)
- #define link_top(en)	((en)->stack[(en)->top].link)
- #define stack_top(en)	((en)->stack[(en)->top].entity)
- 
--/*
-- * TODO: Get rid of this.
-- */
--#define MEDIA_ENTITY_MAX_PADS		512
--
- /**
-  * media_graph_walk_init - Allocate resources for graph walk
-  * @graph: Media graph structure that will be used to walk the graph
+The field and macro are still used, you only remove them in patch 2/3. You can 
+squash 1/3 and 2/3 together.
+
+> ---
+>  drivers/media/platform/omap3isp/isp.h | 3 ---
+>  1 file changed, 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.h
+> b/drivers/media/platform/omap3isp/isp.h index e528df6efc09..848cd96b67ca
+> 100644
+> --- a/drivers/media/platform/omap3isp/isp.h
+> +++ b/drivers/media/platform/omap3isp/isp.h
+> @@ -220,9 +220,6 @@ struct isp_device {
+> 
+>  	unsigned int sbl_resources;
+>  	unsigned int subclk_resources;
+> -
+> -#define ISP_MAX_SUBDEVS		8
+> -	struct v4l2_subdev *subdevs[ISP_MAX_SUBDEVS];
+>  };
+> 
+>  struct isp_async_subdev {
+
+
 -- 
-2.11.0
+Regards,
+
+Laurent Pinchart
