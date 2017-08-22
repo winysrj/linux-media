@@ -1,184 +1,435 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:60227
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752903AbdHTNyg (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47260 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932866AbdHVMa0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Aug 2017 09:54:36 -0400
-Date: Sun, 20 Aug 2017 10:54:26 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v4.14] RC changes (part #1)
-Message-ID: <20170820105426.1f5a6afd@vento.lan>
-In-Reply-To: <20170804151816.2s2rdxjtqvg6g5mj@gofer.mess.org>
-References: <20170804151816.2s2rdxjtqvg6g5mj@gofer.mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+        Tue, 22 Aug 2017 08:30:26 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
+Subject: [PATCH v4 2/3] v4l: fwnode: Support generic parsing of graph endpoints in a device
+Date: Tue, 22 Aug 2017 15:30:22 +0300
+Message-Id: <20170822123023.6149-3-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170822123023.6149-1-sakari.ailus@linux.intel.com>
+References: <20170822123023.6149-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 4 Aug 2017 16:18:16 +0100
-Sean Young <sean@mess.org> escreveu:
+The current practice is that drivers iterate over their endpoints and
+parse each endpoint separately. This is very similar in a number of
+drivers, implement a generic function for the job. Driver specific matters
+can be taken into account in the driver specific callback.
 
-> Hi Mauro,
-> 
-> This is missing David Härdeman lirc cleanups, since they conflict with 
-> a revert for v4.13.
-> 
-> What we do have is three new RC drivers: ZTE ZX family SoCs, and two
-> GPIO drivers for IR TX (one using pwm and another bit banging). These
-> two drivers are useful for the Raspberry Pi. Also RC core no longer
-> has any dependency on CONFIG_MEDIA_SUPPORT.
-> 
-> Thanks
-> 
-> Sean
-> 
-> 
-> The following changes since commit da48c948c263c9d87dfc64566b3373a858cc8aa2:
-> 
->   media: fix warning on v4l2_subdev_call() result interpreted as bool (2017-07-26 13:43:17 -0400)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/syoung/media_tree.git for-v4.14a
-> 
-> for you to fetch changes up to 7af1952a935c062490dd697cd2cf7c65ee75dc19:
-> 
->   [media] winbond-cir: buffer overrun during transmit (2017-08-04 15:59:50 +0100)
-> 
-> ----------------------------------------------------------------
-> Arvind Yadav (2):
->       [media] imon: constify attribute_group structures
->       [media] rc: constify attribute_group structures
-> 
-> David Härdeman (1):
->       [media] rc-core: consistent use of rc_repeat()
-> 
-> Gustavo A. R. Silva (1):
->       [media] sir_ir: remove unnecessary static in sir_interrupt()
-> 
-> Heiner Kallweit (1):
->       [media] rc: nuvoton: remove rudimentary transmit functionality
-> 
-> Philipp Zabel (2):
->       [media] st-rc: explicitly request exclusive reset control
->       [media] rc: sunxi-cir: explicitly request exclusive reset control
-> 
-> Sean Wang (4):
->       [media] dt-bindings: media: mtk-cir: Add support for MT7622 SoC
->       [media] rc: mtk-cir: add platform data to adapt into various hardware
->       [media] rc: mtk-cir: add support for MediaTek MT7622 SoC
->       [media] rc: mtk-cir: add MAINTAINERS entry for MediaTek CIR driver
-> 
-> Sean Young (10):
->       [media] rc-core: do not depend on MEDIA_SUPPORT
->       [media] rc-core: rename input_name to device_name
->       [media] rc: mce kbd decoder not needed for IR TX drivers
->       [media] rc: gpio-ir-tx: add new driver
->       [media] rc: pwm-ir-tx: add new driver
->       [media] dt-bindings: pwm-ir-tx: Add support for PWM IR Transmitter
->       [media] dt-bindings: gpio-ir-tx: add support for GPIO IR Transmitter
->       [media] lirc_zilog: driver only sends LIRCCODE
->       [media] mceusb: do not read data parameters unless required
->       [media] winbond-cir: buffer overrun during transmit
-> 
-> Shawn Guo (3):
->       [media] rc: ir-nec-decoder: move scancode composing code into a shared function
->       [media] dt-bindings: add bindings document for zx-irdec
->       [media] rc: add zx-irdec remote control driver
-> 
-> Yves Lemée (1):
->       [media] lirc_zilog: Clean up lirc zilog error codes
-> 
->  .../devicetree/bindings/leds/irled/gpio-ir-tx.txt  |  14 ++
->  .../devicetree/bindings/leds/irled/pwm-ir-tx.txt   |  13 ++
->  .../devicetree/bindings/media/mtk-cir.txt          |   8 +-
->  .../devicetree/bindings/media/zx-irdec.txt         |  14 ++
->  MAINTAINERS                                        |  17 ++
->  arch/arm/configs/imx_v6_v7_defconfig               |   2 +-
->  arch/arm/configs/omap2plus_defconfig               |   2 +-
->  arch/arm/configs/sunxi_defconfig                   |   2 +-
->  arch/mips/configs/pistachio_defconfig              |   2 +-
->  drivers/hid/hid-picolcd_cir.c                      |   2 +-
->  drivers/media/Kconfig                              |  17 +-
->  drivers/media/cec/cec-core.c                       |   4 +-
->  drivers/media/common/siano/smsir.c                 |   4 +-
->  drivers/media/i2c/ir-kbd-i2c.c                     |   2 +-
->  drivers/media/pci/bt8xx/bttv-input.c               |   2 +-
->  drivers/media/pci/cx23885/cx23885-input.c          |   2 +-
->  drivers/media/pci/cx88/cx88-input.c                |   2 +-
->  drivers/media/pci/dm1105/dm1105.c                  |   2 +-
->  drivers/media/pci/mantis/mantis_common.h           |   2 +-
->  drivers/media/pci/mantis/mantis_input.c            |   4 +-
->  drivers/media/pci/saa7134/saa7134-input.c          |   2 +-
->  drivers/media/pci/smipcie/smipcie-ir.c             |   4 +-
->  drivers/media/pci/smipcie/smipcie.h                |   2 +-
->  drivers/media/pci/ttpci/budget-ci.c                |   2 +-
->  drivers/media/rc/Kconfig                           |  53 ++++-
->  drivers/media/rc/Makefile                          |   3 +
->  drivers/media/rc/ati_remote.c                      |   2 +-
->  drivers/media/rc/ene_ir.c                          |   4 +-
->  drivers/media/rc/fintek-cir.c                      |   2 +-
->  drivers/media/rc/gpio-ir-recv.c                    |   2 +-
->  drivers/media/rc/gpio-ir-tx.c                      | 174 +++++++++++++++
->  drivers/media/rc/igorplugusb.c                     |   2 +-
->  drivers/media/rc/iguanair.c                        |   2 +-
->  drivers/media/rc/img-ir/img-ir-hw.c                |   2 +-
->  drivers/media/rc/img-ir/img-ir-raw.c               |   2 +-
->  drivers/media/rc/imon.c                            |   6 +-
->  drivers/media/rc/ir-hix5hd2.c                      |   2 +-
->  drivers/media/rc/ir-mce_kbd-decoder.c              |   6 +
->  drivers/media/rc/ir-nec-decoder.c                  |  42 +---
->  drivers/media/rc/ir-sanyo-decoder.c                |  10 +-
->  drivers/media/rc/ir-spi.c                          |   1 +
->  drivers/media/rc/ite-cir.c                         |   2 +-
->  drivers/media/rc/keymaps/Makefile                  |   3 +-
->  drivers/media/rc/keymaps/rc-zx-irdec.c             |  79 +++++++
->  drivers/media/rc/mceusb.c                          |  38 ++--
->  drivers/media/rc/meson-ir.c                        |   2 +-
->  drivers/media/rc/mtk-cir.c                         | 244 ++++++++++++++++-----
->  drivers/media/rc/nuvoton-cir.c                     | 116 +---------
->  drivers/media/rc/nuvoton-cir.h                     |  24 --
->  drivers/media/rc/pwm-ir-tx.c                       | 138 ++++++++++++
->  drivers/media/rc/rc-loopback.c                     |   2 +-
->  drivers/media/rc/rc-main.c                         |  20 +-
->  drivers/media/rc/redrat3.c                         |   2 +-
->  drivers/media/rc/serial_ir.c                       |  10 +-
->  drivers/media/rc/sir_ir.c                          |   4 +-
->  drivers/media/rc/st_rc.c                           |   4 +-
->  drivers/media/rc/streamzap.c                       |   2 +-
->  drivers/media/rc/sunxi-cir.c                       |   4 +-
->  drivers/media/rc/ttusbir.c                         |   2 +-
->  drivers/media/rc/winbond-cir.c                     |   4 +-
->  drivers/media/rc/zx-irdec.c                        | 183 ++++++++++++++++
->  drivers/media/usb/au0828/au0828-input.c            |   2 +-
->  drivers/media/usb/dvb-usb-v2/dvb_usb_core.c        |   5 +-
->  drivers/media/usb/dvb-usb/dvb-usb-remote.c         |   2 +-
->  drivers/media/usb/em28xx/em28xx-input.c            |   2 +-
->  drivers/media/usb/tm6000/tm6000-input.c            |   2 +-
->  drivers/staging/media/lirc/lirc_zilog.c            |  18 +-
->  include/media/cec.h                                |   2 +-
->  include/media/rc-core.h                            |  37 +++-
->  include/media/rc-map.h                             |   1 +
->  70 files changed, 1035 insertions(+), 361 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/leds/irled/gpio-ir-tx.txt
->  create mode 100644 Documentation/devicetree/bindings/leds/irled/pwm-ir-tx.txt
->  create mode 100644 Documentation/devicetree/bindings/media/zx-irdec.txt
->  create mode 100644 drivers/media/rc/gpio-ir-tx.c
->  create mode 100644 drivers/media/rc/keymaps/rc-zx-irdec.c
->  create mode 100644 drivers/media/rc/pwm-ir-tx.c
->  create mode 100644 drivers/media/rc/zx-irdec.c
+Convert the omap3isp as an example.
 
-Patches applied. Yet, some new drivers were added here. 
-Please add them to MAINTAINERS.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/platform/omap3isp/isp.c | 115 ++++++++++---------------------
+ drivers/media/v4l2-core/v4l2-fwnode.c | 125 ++++++++++++++++++++++++++++++++++
+ include/media/v4l2-async.h            |   4 +-
+ include/media/v4l2-fwnode.h           |   9 +++
+ 4 files changed, 172 insertions(+), 81 deletions(-)
 
-Regards,
-Mauro
-
-
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 83aea08b832d..93fc3d93e602 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2011,44 +2011,41 @@ enum isp_of_phy {
+ 	ISP_OF_PHY_CSIPHY2,
+ };
+ 
+-static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+-			    struct isp_async_subdev *isd)
++static int isp_fwnode_parse(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd)
+ {
++	struct isp_async_subdev *isd =
++		container_of(asd, struct isp_async_subdev, asd);
+ 	struct isp_bus_cfg *buscfg = &isd->bus;
+-	struct v4l2_fwnode_endpoint vep;
+-	unsigned int i;
+-	int ret;
+ 	bool csi1 = false;
+-
+-	ret = v4l2_fwnode_endpoint_parse(fwnode, &vep);
+-	if (ret)
+-		return ret;
++	unsigned int i;
+ 
+ 	dev_dbg(dev, "parsing endpoint %pOF, interface %u\n",
+-		to_of_node(fwnode), vep.base.port);
++		to_of_node(vep->base.local_fwnode), vep->base.port);
+ 
+-	switch (vep.base.port) {
++	switch (vep->base.port) {
+ 	case ISP_OF_PHY_PARALLEL:
+ 		buscfg->interface = ISP_INTERFACE_PARALLEL;
+ 		buscfg->bus.parallel.data_lane_shift =
+-			vep.bus.parallel.data_shift;
++			vep->bus.parallel.data_shift;
+ 		buscfg->bus.parallel.clk_pol =
+-			!!(vep.bus.parallel.flags
++			!!(vep->bus.parallel.flags
+ 			   & V4L2_MBUS_PCLK_SAMPLE_FALLING);
+ 		buscfg->bus.parallel.hs_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
++			!!(vep->bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
+ 		buscfg->bus.parallel.vs_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
++			!!(vep->bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
+ 		buscfg->bus.parallel.fld_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
++			!!(vep->bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
+ 		buscfg->bus.parallel.data_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
+-		buscfg->bus.parallel.bt656 = vep.bus_type == V4L2_MBUS_BT656;
++			!!(vep->bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
++		buscfg->bus.parallel.bt656 = vep->bus_type == V4L2_MBUS_BT656;
+ 		break;
+ 
+ 	case ISP_OF_PHY_CSIPHY1:
+ 	case ISP_OF_PHY_CSIPHY2:
+-		switch (vep.bus_type) {
++		switch (vep->bus_type) {
+ 		case V4L2_MBUS_CCP2:
+ 		case V4L2_MBUS_CSI1:
+ 			dev_dbg(dev, "CSI-1/CCP-2 configuration\n");
+@@ -2060,11 +2057,11 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+ 			break;
+ 		default:
+ 			dev_err(dev, "unsupported bus type %u\n",
+-				vep.bus_type);
++				vep->bus_type);
+ 			return -EINVAL;
+ 		}
+ 
+-		switch (vep.base.port) {
++		switch (vep->base.port) {
+ 		case ISP_OF_PHY_CSIPHY1:
+ 			if (csi1)
+ 				buscfg->interface = ISP_INTERFACE_CCP2B_PHY1;
+@@ -2080,47 +2077,47 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+ 		}
+ 		if (csi1) {
+ 			buscfg->bus.ccp2.lanecfg.clk.pos =
+-				vep.bus.mipi_csi1.clock_lane;
++				vep->bus.mipi_csi1.clock_lane;
+ 			buscfg->bus.ccp2.lanecfg.clk.pol =
+-				vep.bus.mipi_csi1.lane_polarity[0];
++				vep->bus.mipi_csi1.lane_polarity[0];
+ 			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+ 				buscfg->bus.ccp2.lanecfg.clk.pol,
+ 				buscfg->bus.ccp2.lanecfg.clk.pos);
+ 
+ 			buscfg->bus.ccp2.lanecfg.data[0].pos =
+-				vep.bus.mipi_csi1.data_lane;
++				vep->bus.mipi_csi1.data_lane;
+ 			buscfg->bus.ccp2.lanecfg.data[0].pol =
+-				vep.bus.mipi_csi1.lane_polarity[1];
++				vep->bus.mipi_csi1.lane_polarity[1];
+ 
+-			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
++			dev_dbg(dev, "data lane polarity %u, pos %u\n",
+ 				buscfg->bus.ccp2.lanecfg.data[0].pol,
+ 				buscfg->bus.ccp2.lanecfg.data[0].pos);
+ 
+ 			buscfg->bus.ccp2.strobe_clk_pol =
+-				vep.bus.mipi_csi1.clock_inv;
+-			buscfg->bus.ccp2.phy_layer = vep.bus.mipi_csi1.strobe;
++				vep->bus.mipi_csi1.clock_inv;
++			buscfg->bus.ccp2.phy_layer = vep->bus.mipi_csi1.strobe;
+ 			buscfg->bus.ccp2.ccp2_mode =
+-				vep.bus_type == V4L2_MBUS_CCP2;
++				vep->bus_type == V4L2_MBUS_CCP2;
+ 			buscfg->bus.ccp2.vp_clk_pol = 1;
+ 
+ 			buscfg->bus.ccp2.crc = 1;
+ 		} else {
+ 			buscfg->bus.csi2.lanecfg.clk.pos =
+-				vep.bus.mipi_csi2.clock_lane;
++				vep->bus.mipi_csi2.clock_lane;
+ 			buscfg->bus.csi2.lanecfg.clk.pol =
+-				vep.bus.mipi_csi2.lane_polarities[0];
++				vep->bus.mipi_csi2.lane_polarities[0];
+ 			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+ 				buscfg->bus.csi2.lanecfg.clk.pol,
+ 				buscfg->bus.csi2.lanecfg.clk.pos);
+ 
+ 			buscfg->bus.csi2.num_data_lanes =
+-				vep.bus.mipi_csi2.num_data_lanes;
++				vep->bus.mipi_csi2.num_data_lanes;
+ 
+ 			for (i = 0; i < buscfg->bus.csi2.num_data_lanes; i++) {
+ 				buscfg->bus.csi2.lanecfg.data[i].pos =
+-					vep.bus.mipi_csi2.data_lanes[i];
++					vep->bus.mipi_csi2.data_lanes[i];
+ 				buscfg->bus.csi2.lanecfg.data[i].pol =
+-					vep.bus.mipi_csi2.lane_polarities[i + 1];
++					vep->bus.mipi_csi2.lane_polarities[i + 1];
+ 				dev_dbg(dev,
+ 					"data lane %u polarity %u, pos %u\n", i,
+ 					buscfg->bus.csi2.lanecfg.data[i].pol,
+@@ -2137,57 +2134,13 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+ 
+ 	default:
+ 		dev_warn(dev, "%pOF: invalid interface %u\n",
+-			 to_of_node(fwnode), vep.base.port);
++			 to_of_node(vep->base.local_fwnode), vep->base.port);
+ 		return -EINVAL;
+ 	}
+ 
+ 	return 0;
+ }
+ 
+-static int isp_fwnodes_parse(struct device *dev,
+-			     struct v4l2_async_notifier *notifier)
+-{
+-	struct fwnode_handle *fwnode = NULL;
+-
+-	notifier->subdevs = devm_kcalloc(
+-		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
+-	if (!notifier->subdevs)
+-		return -ENOMEM;
+-
+-	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
+-	       (fwnode = fwnode_graph_get_next_endpoint(
+-			of_fwnode_handle(dev->of_node), fwnode))) {
+-		struct isp_async_subdev *isd;
+-
+-		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+-		if (!isd)
+-			goto error;
+-
+-		if (isp_fwnode_parse(dev, fwnode, isd)) {
+-			devm_kfree(dev, isd);
+-			continue;
+-		}
+-
+-		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
+-
+-		isd->asd.match.fwnode.fwnode =
+-			fwnode_graph_get_remote_port_parent(fwnode);
+-		if (!isd->asd.match.fwnode.fwnode) {
+-			dev_warn(dev, "bad remote port parent\n");
+-			goto error;
+-		}
+-
+-		isd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+-		notifier->num_subdevs++;
+-	}
+-
+-	return notifier->num_subdevs;
+-
+-error:
+-	fwnode_handle_put(fwnode);
+-	return -EINVAL;
+-}
+-
+ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
+ {
+ 	struct isp_device *isp = container_of(async, struct isp_device,
+@@ -2256,7 +2209,9 @@ static int isp_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
++	ret = v4l2_fwnode_endpoints_parse(
++		&pdev->dev, &isp->notifier, sizeof(struct isp_async_subdev),
++		isp_fwnode_parse);
+ 	if (ret < 0)
+ 		return ret;
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 5cd2687310fe..cb0fc4b4e3bf 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -26,6 +26,7 @@
+ #include <linux/string.h>
+ #include <linux/types.h>
+ 
++#include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
+ 
+ enum v4l2_fwnode_bus_type {
+@@ -383,6 +384,130 @@ void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link)
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fwnode_put_link);
+ 
++static int notifier_realloc(struct device *dev,
++			    struct v4l2_async_notifier *notifier,
++			    unsigned int max_subdevs)
++{
++	struct v4l2_async_subdev **subdevs;
++	unsigned int i;
++
++	if (max_subdevs + notifier->num_subdevs <= notifier->max_subdevs)
++		return 0;
++
++	subdevs = devm_kcalloc(
++		dev, max_subdevs + notifier->num_subdevs,
++		sizeof(*notifier->subdevs), GFP_KERNEL);
++	if (!subdevs)
++		return -ENOMEM;
++
++	if (notifier->subdevs) {
++		for (i = 0; i < notifier->num_subdevs; i++)
++			subdevs[i] = notifier->subdevs[i];
++
++		devm_kfree(dev, notifier->subdevs);
++	}
++
++	notifier->subdevs = subdevs;
++	notifier->max_subdevs = max_subdevs + notifier->num_subdevs;
++
++	return 0;
++}
++
++static int __v4l2_fwnode_endpoint_parse(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	struct fwnode_handle *endpoint, struct v4l2_async_subdev *asd,
++	int (*parse_single)(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd))
++{
++	struct v4l2_fwnode_endpoint *vep;
++	int ret;
++
++	/* Ignore endpoints the parsing of which failed. */
++	vep = v4l2_fwnode_endpoint_alloc_parse(endpoint);
++	if (IS_ERR(vep))
++		return 0;
++
++	notifier->subdevs[notifier->num_subdevs] = asd;
++
++	ret = parse_single(dev, vep, asd);
++	v4l2_fwnode_endpoint_free(vep);
++	if (ret)
++		return ret;
++
++	asd->match.fwnode.fwnode =
++		fwnode_graph_get_remote_port_parent(endpoint);
++	if (!asd->match.fwnode.fwnode) {
++		dev_warn(dev, "bad remote port parent\n");
++		return -EINVAL;
++	}
++
++	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
++	notifier->num_subdevs++;
++
++	return 0;
++}
++
++/**
++ * v4l2_fwnode_endpoint_parse - Parse V4L2 fwnode endpoints in a device node
++ * @dev: local struct device
++ * @notifier: async notifier related to @dev
++ * @asd_struct_size: size of the driver's async sub-device struct, including
++ *		     sizeof(struct v4l2_async_subdev)
++ * @parse_single: driver's callback function called on each V4L2 fwnode endpoint
++ *
++ * Parse all V4L2 fwnode endpoints related to the device.
++ *
++ * Note that this function is intended for drivers to replace the existing
++ * implementation that loops over all ports and endpoints. It is NOT INTENDED TO
++ * BE USED BY NEW DRIVERS.
++ */
++int v4l2_fwnode_endpoints_parse(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	size_t asd_struct_size,
++	int (*parse_single)(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd))
++{
++	struct fwnode_handle *fwnode = NULL;
++	unsigned int max_subdevs = notifier->max_subdevs;
++	int ret;
++
++	if (asd_struct_size < sizeof(struct v4l2_async_subdev))
++		return -EINVAL;
++
++	while ((fwnode = fwnode_graph_get_next_endpoint(dev_fwnode(dev),
++							fwnode)))
++		max_subdevs++;
++
++	ret = notifier_realloc(dev, notifier, max_subdevs);
++	if (ret)
++		return ret;
++
++	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
++				     dev_fwnode(dev), fwnode)) &&
++		     !WARN_ON(notifier->num_subdevs >= notifier->max_subdevs);
++		) {
++		struct v4l2_async_subdev *asd;
++
++		asd = devm_kzalloc(dev, asd_struct_size, GFP_KERNEL);
++		if (!asd) {
++			ret = -ENOMEM;
++			goto error;
++		}
++
++		ret = __v4l2_fwnode_endpoint_parse(dev, notifier, fwnode, asd,
++						   parse_single);
++		if (ret < 0)
++			goto error;
++	}
++
++error:
++	fwnode_handle_put(fwnode);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoints_parse);
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index c69d8c8a66d0..067f3687774b 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -78,7 +78,8 @@ struct v4l2_async_subdev {
+ /**
+  * struct v4l2_async_notifier - v4l2_device notifier data
+  *
+- * @num_subdevs: number of subdevices
++ * @num_subdevs: number of subdevices used in subdevs array
++ * @max_subdevs: number of subdevices allocated in subdevs array
+  * @subdevs:	array of pointers to subdevice descriptors
+  * @v4l2_dev:	pointer to struct v4l2_device
+  * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+@@ -90,6 +91,7 @@ struct v4l2_async_subdev {
+  */
+ struct v4l2_async_notifier {
+ 	unsigned int num_subdevs;
++	unsigned int max_subdevs;
+ 	struct v4l2_async_subdev **subdevs;
+ 	struct v4l2_device *v4l2_dev;
+ 	struct list_head waiting;
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index cb34dcb0bb65..c75a768d4ef7 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -25,6 +25,8 @@
+ #include <media/v4l2-mediabus.h>
+ 
+ struct fwnode_handle;
++struct v4l2_async_notifier;
++struct v4l2_async_subdev;
+ 
+ #define MAX_DATA_LANES	4
+ 
+@@ -122,4 +124,11 @@ int v4l2_fwnode_parse_link(struct fwnode_handle *fwnode,
+ 			   struct v4l2_fwnode_link *link);
+ void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
+ 
++int v4l2_fwnode_endpoints_parse(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	size_t asd_struct_size,
++	int (*parse_single)(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd));
++
+ #endif /* _V4L2_FWNODE_H */
+-- 
+2.11.0
