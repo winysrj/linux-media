@@ -1,130 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:49905 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751174AbdHEDwD (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:56032 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752789AbdHVX2r (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 Aug 2017 23:52:03 -0400
-Message-ID: <c21af46b41ab354d2cb5d44494894d75@smtp-cloud9.xs4all.net>
-Date: Sat, 05 Aug 2017 05:52:00 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Tue, 22 Aug 2017 19:28:47 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v6 16/25] rcar-vin: break out format alignment and checking
+Date: Wed, 23 Aug 2017 01:26:31 +0200
+Message-Id: <20170822232640.26147-17-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Part of the format aliment and checking can be shared with the Gen3
+format handling. Break that part out to it's own function. While doing
+this clean up the checking and add more checks.
 
-Results of the daily build of media_tree:
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 98 +++++++++++++++--------------
+ 1 file changed, 51 insertions(+), 47 deletions(-)
 
-date:			Sat Aug  5 05:00:16 CEST 2017
-media-tree git hash:	da48c948c263c9d87dfc64566b3373a858cc8aa2
-media_build git hash:	f01a9176bb03f22e3cd3b70282bd7fd272e504ae
-v4l-utils git hash:	4e234b854f194eb118b476e0c76b56e4af89d5ff
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.11.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index fb9f802e553e9b80..f71dea8d5d40323a 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -86,6 +86,56 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
+ 	return pix->bytesperline * pix->height;
+ }
+ 
++static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
++{
++	u32 walign;
++
++	/* If requested format is not supported fallback to the default */
++	if (!rvin_format_from_pixel(pix->pixelformat)) {
++		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
++			pix->pixelformat, RVIN_DEFAULT_FORMAT);
++		pix->pixelformat = RVIN_DEFAULT_FORMAT;
++	}
++
++	switch (pix->field) {
++	case V4L2_FIELD_TOP:
++	case V4L2_FIELD_BOTTOM:
++	case V4L2_FIELD_NONE:
++	case V4L2_FIELD_INTERLACED_TB:
++	case V4L2_FIELD_INTERLACED_BT:
++	case V4L2_FIELD_INTERLACED:
++		break;
++	default:
++		pix->field = V4L2_FIELD_NONE;
++		break;
++	}
++
++	/* Check that colorspace is resonable, if not keep current */
++	if (!pix->colorspace || pix->colorspace >= 0xff)
++		pix->colorspace = vin->format.colorspace;
++
++	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
++	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
++
++	/* Limit to VIN capabilities */
++	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
++			      &pix->height, 4, vin->info->max_height, 2, 0);
++
++	pix->bytesperline = rvin_format_bytesperline(pix);
++	pix->sizeimage = rvin_format_sizeimage(pix);
++
++	if (vin->info->chip == RCAR_M1 &&
++	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
++		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
++		return -EINVAL;
++	}
++
++	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
++		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
++
++	return 0;
++}
++
+ /* -----------------------------------------------------------------------------
+  * V4L2
+  */
+@@ -191,64 +241,18 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ static int __rvin_try_format(struct rvin_dev *vin,
+ 			     u32 which, struct v4l2_pix_format *pix)
+ {
+-	u32 walign;
+ 	int ret;
+ 
+ 	/* Keep current field if no specific one is asked for */
+ 	if (pix->field == V4L2_FIELD_ANY)
+ 		pix->field = vin->format.field;
+ 
+-	/* If requested format is not supported fallback to the default */
+-	if (!rvin_format_from_pixel(pix->pixelformat)) {
+-		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
+-			pix->pixelformat, RVIN_DEFAULT_FORMAT);
+-		pix->pixelformat = RVIN_DEFAULT_FORMAT;
+-	}
+-
+-	/* Always recalculate */
+-	pix->bytesperline = 0;
+-	pix->sizeimage = 0;
+-
+ 	/* Limit to source capabilities */
+ 	ret = __rvin_try_format_source(vin, which, pix);
+ 	if (ret)
+ 		return ret;
+ 
+-	switch (pix->field) {
+-	case V4L2_FIELD_TOP:
+-	case V4L2_FIELD_BOTTOM:
+-	case V4L2_FIELD_NONE:
+-	case V4L2_FIELD_INTERLACED_TB:
+-	case V4L2_FIELD_INTERLACED_BT:
+-	case V4L2_FIELD_INTERLACED:
+-		break;
+-	default:
+-		pix->field = V4L2_FIELD_NONE;
+-		break;
+-	}
+-
+-	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
+-	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
+-
+-	/* Limit to VIN capabilities */
+-	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
+-			      &pix->height, 4, vin->info->max_height, 2, 0);
+-
+-	pix->bytesperline = max_t(u32, pix->bytesperline,
+-				  rvin_format_bytesperline(pix));
+-	pix->sizeimage = max_t(u32, pix->sizeimage,
+-			       rvin_format_sizeimage(pix));
+-
+-	if (vin->info->chip == RCAR_M1 &&
+-	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
+-		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
+-		return -EINVAL;
+-	}
+-
+-	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
+-		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
+-
+-	return 0;
++	return rvin_format_align(vin, pix);
+ }
+ 
+ static int rvin_querycap(struct file *file, void *priv,
+-- 
+2.14.0
