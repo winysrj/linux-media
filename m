@@ -1,70 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:60325 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751233AbdHKGFG (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47270 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932867AbdHVMa1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Aug 2017 02:05:06 -0400
-Subject: Re: [PATCH RESEND 0/3] v4l2-compat-ioctl32.c: better detect pointer
- controls
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <f7340d67-cf7c-3407-e59a-aa0261185e82@xs4all.nl>
- <cover.1502409182.git.mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Daniel Mentz <danielmentz@google.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <173e50c4-77ae-a718-46bd-01963e07785f@xs4all.nl>
-Date: Fri, 11 Aug 2017 08:05:03 +0200
-MIME-Version: 1.0
-In-Reply-To: <cover.1502409182.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Tue, 22 Aug 2017 08:30:27 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
+Subject: [PATCH v4 3/3] v4l: fwnode: Support generic parsing of graph endpoints in a single port
+Date: Tue, 22 Aug 2017 15:30:23 +0300
+Message-Id: <20170822123023.6149-4-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170822123023.6149-1-sakari.ailus@linux.intel.com>
+References: <20170822123023.6149-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/08/17 02:16, Mauro Carvalho Chehab wrote:
-> In the past, only string controls were pointers. That changed when compounded
-> types got added, but the compat32 code was not updated.
-> 
-> We could just add those controls there, but maintaining it is flaw, as we
-> often forget about the compat code. So, instead, rely on the control type,
-> as this is always updated when new controls are added.
-> 
-> As both v4l2-ctrl and compat32 code are at videodev.ko module, we can
-> move the ctrl_is_pointer() helper function to v4l2-ctrl.c.
+This is the preferred way to parse the endpoints.
 
-This series doesn't really solve anything:
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/v4l2-fwnode.c | 51 +++++++++++++++++++++++++++++++++++
+ include/media/v4l2-fwnode.h           |  7 +++++
+ 2 files changed, 58 insertions(+)
 
-- it introduces a circular dependency between two modules
-- it doesn't handle driver-custom controls (the old code didn't either). For
-  example vivid has custom pointer controls.
-- it replaces a list of control IDs with a list of type IDs, which also has to
-  be kept up to date.
-
-I thought this over and I have a better and much simpler idea. I'll post a
-patch for that.
-
-Regards,
-
-	Hans
-
-> 
-> ---
-> 
-> Re-sending this patch series, as it was c/c to the linux-doc ML by mistake.
-> 
-> Mauro Carvalho Chehab (3):
->   media: v4l2-ctrls.h: better document the arguments for v4l2_ctrl_fill
->   media: v4l2-ctrls: prepare the function to be used by compat32 code
->   media: compat32: reimplement ctrl_is_pointer()
-> 
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 18 +---------
->  drivers/media/v4l2-core/v4l2-ctrls.c          | 49 +++++++++++++++++++++++++--
->  include/media/v4l2-ctrls.h                    | 28 ++++++++++-----
->  3 files changed, 67 insertions(+), 28 deletions(-)
-> 
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index cb0fc4b4e3bf..961bcdf22d9a 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -508,6 +508,57 @@ int v4l2_fwnode_endpoints_parse(
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoints_parse);
+ 
++/**
++ * v4l2_fwnode_endpoint_parse - Parse V4L2 fwnode endpoints in a port node
++ * @dev: local struct device
++ * @notifier: async notifier related to @dev
++ * @port: port number
++ * @endpoint: endpoint number
++ * @asd_struct_size: size of the driver's async sub-device struct, including
++ *		     sizeof(struct v4l2_async_subdev)
++ * @parse_single: driver's callback function called on each V4L2 fwnode endpoint
++ *
++ * Parse all V4L2 fwnode endpoints related to a given port. This is
++ * the preferred interface over v4l2_fwnode_endpoints_parse() and
++ * should be used by new drivers.
++ */
++int v4l2_fwnode_endpoint_parse_port(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	unsigned int port, unsigned int endpoint, size_t asd_struct_size,
++	int (*parse_single)(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd))
++{
++	struct fwnode_handle *fwnode;
++	struct v4l2_async_subdev *asd;
++	int ret;
++
++	fwnode = fwnode_graph_get_remote_node(dev_fwnode(dev), port, endpoint);
++	if (!fwnode)
++		return -ENOENT;
++
++	asd = devm_kzalloc(dev, asd_struct_size, GFP_KERNEL);
++	if (!asd)
++		return -ENOMEM;
++
++	ret = notifier_realloc(dev, notifier, notifier->num_subdevs + 1);
++	if (ret)
++		goto out_free;
++
++	ret = __v4l2_fwnode_endpoint_parse(dev, notifier, fwnode, asd,
++					   parse_single);
++	if (ret)
++		goto out_free;
++
++	return 0;
++
++out_free:
++	devm_kfree(dev, asd);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_parse_port);
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index c75a768d4ef7..5adf28e7b070 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -131,4 +131,11 @@ int v4l2_fwnode_endpoints_parse(
+ 			    struct v4l2_fwnode_endpoint *vep,
+ 			    struct v4l2_async_subdev *asd));
+ 
++int v4l2_fwnode_endpoint_parse_port(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	unsigned int port, unsigned int endpoint, size_t asd_struct_size,
++	int (*parse_single)(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd));
++
+ #endif /* _V4L2_FWNODE_H */
+-- 
+2.11.0
