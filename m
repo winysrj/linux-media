@@ -1,80 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:35485 "EHLO
-        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751275AbdH2IUp (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:47318 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754049AbdHVDnl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 04:20:45 -0400
-Received: by mail-wm0-f43.google.com with SMTP id y71so16098095wmd.0
-        for <linux-media@vger.kernel.org>; Tue, 29 Aug 2017 01:20:44 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH] media: venus: init registered list on streamoff
-Date: Tue, 29 Aug 2017 11:19:43 +0300
-Message-Id: <20170829081943.29277-1-stanimir.varbanov@linaro.org>
+        Mon, 21 Aug 2017 23:43:41 -0400
+Message-ID: <2f744c5c6dfec97b1b6d481269beab56@smtp-cloud7.xs4all.net>
+Date: Tue, 22 Aug 2017 05:43:39 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add missing init_list_head for the registered buffer list.
-Absence of the init could lead to a unhandled kernel paging
-request as below, when streamon/streamoff are called in row.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-[338046.571321] Unable to handle kernel paging request at virtual address fffffffffffffe00
-[338046.574849] pgd = ffff800034820000
-[338046.582381] [fffffffffffffe00] *pgd=00000000b60f5003[338046.582545]
-, *pud=00000000b1f31003
-, *pmd=0000000000000000[338046.592082]
-[338046.597754] Internal error: Oops: 96000004 [#1] PREEMPT SMP
-[338046.601671] Modules linked in: venus_enc venus_dec venus_core
-usb_f_ecm g_ether usb_f_rndis u_ether libcomposite ipt_MASQUERADE
-nf_nat_masquerade_ipv4 arc4 wcn36xx mac80211 btqcomsmd btqca iptable_nat
-nf_co]
-[338046.662408] CPU: 0 PID: 5433 Comm: irq/160-venus Tainted: G        W
-4.9.39+ #232
-[338046.668024] Hardware name: Qualcomm Technologies, Inc. APQ 8016 SBC
-(DT)
-[338046.675268] task: ffff80003541cb00 task.stack: ffff800026e20000
-[338046.682097] PC is at venus_helper_release_buf_ref+0x28/0x88
-[venus_core]
-[338046.688282] LR is at vdec_event_notify+0xe8/0x150 [venus_dec]
-[338046.695029] pc : [<ffff000000af6c48>] lr : [<ffff000000a6fc60>]
-pstate: a0000145
-[338046.701256] sp : ffff800026e23bc0
-[338046.708494] x29: ffff800026e23bc0 x28: 0000000000000000
-[338046.718853] x27: ffff000000afd4f8 x26: ffff800031faa700
-[338046.729253] x25: ffff000000afd790 x24: ffff800031faa618
-[338046.739664] x23: ffff800003e18138 x22: ffff800002fc9810
-[338046.750109] x21: ffff800026e23c28 x20: 0000000000000001
-[338046.760592] x19: ffff80002a13b800 x18: 0000000000000010
-[338046.771099] x17: 0000ffffa3d01600 x16: ffff000008100428
-[338046.781654] x15: 0000000000000006 x14: ffff000089045ba7
-[338046.792250] x13: ffff000009045bb6 x12: 00000000004f37c8
-[338046.802894] x11: 0000000000267211 x10: 0000000000000000
-[338046.813574] x9 : 0000000000032000 x8 : 00000000dc400000
-[338046.824274] x7 : 0000000000000000 x6 : ffff800031faa728
-[338046.835005] x5 : ffff80002a13b850 x4 : 0000000000000000
-[338046.845793] x3 : fffffffffffffdf8 x2 : 0000000000000000
-[338046.856602] x1 : 0000000000000003 x0 : ffff80002a13b800
+Results of the daily build of media_tree:
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- drivers/media/platform/qcom/venus/helpers.c | 1 +
- 1 file changed, 1 insertion(+)
+date:			Tue Aug 22 05:00:16 CEST 2017
+media-tree git hash:	0779b8855c746c90b85bfe6e16d5dfa2a6a46655
+media_build git hash:	1d9cbbf82bfb79eb8c47747121903f762d9cc9fb
+v4l-utils git hash:	15df21b333e243827ac0f89d7f4f307bf0968baf
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.11.0-164
 
-diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-index 68933d208063..9b2a401a4891 100644
---- a/drivers/media/platform/qcom/venus/helpers.c
-+++ b/drivers/media/platform/qcom/venus/helpers.c
-@@ -682,6 +682,7 @@ void venus_helper_vb2_stop_streaming(struct vb2_queue *q)
- 			hfi_session_abort(inst);
- 
- 		load_scale_clocks(core);
-+		INIT_LIST_HEAD(&inst->registeredbufs);
- 	}
- 
- 	venus_helper_buffers_done(inst, VB2_BUF_STATE_ERROR);
--- 
-2.11.0
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
