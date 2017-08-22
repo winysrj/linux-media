@@ -1,64 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57094 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47234 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751940AbdHJLJj (ORCPT
+        by vger.kernel.org with ESMTP id S932657AbdHVMaZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Aug 2017 07:09:39 -0400
-Date: Thu, 10 Aug 2017 14:09:37 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Harold Gomez <haroldgmz11@gmail.com>
-Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] Subject:drivers:staging:media:atomisp:
-Message-ID: <20170810110936.peuntngfo5xnnugg@valkosipuli.retiisi.org.uk>
-References: <20170810093826.GA3361@localhost.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170810093826.GA3361@localhost.localdomain>
+        Tue, 22 Aug 2017 08:30:25 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
+Subject: [PATCH v4 0/3] Unified fwnode endpoint parser
+Date: Tue, 22 Aug 2017 15:30:20 +0300
+Message-Id: <20170822123023.6149-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Harold,
+Hi folks,
 
-Please use a better subject line.
+We have a large influx of new, unmerged, drivers that are now parsing
+fwnode endpoints and each one of them is doing this a little bit
+differently. The needs are still exactly the same for the graph data
+structure is device independent. This is still a non-trivial task and the
+majority of the driver implementations are buggy, just buggy in different
+ways.
 
-On Thu, Aug 10, 2017 at 03:08:26PM +0530, Harold Gomez wrote:
-> Fix Warning from checkpatch.pl 
-> Block comments use * on subsequent lines
-> 
-> Signed-off-by: Harold Gomez <haroldgmz11@gmail.com>
-> ---
->  drivers/staging/media/atomisp/i2c/ap1302.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/staging/media/atomisp/i2c/ap1302.c b/drivers/staging/media/atomisp/i2c/ap1302.c
-> index 9d6ce36..ac1aa96 100644
-> --- a/drivers/staging/media/atomisp/i2c/ap1302.c
-> +++ b/drivers/staging/media/atomisp/i2c/ap1302.c
-> @@ -158,8 +158,9 @@ static struct ap1302_context_info context_info[] = {
->  };
->  
->  /* This array stores the description list for metadata.
-> -   The metadata contains exposure settings and face
-> -   detection results. */
-> + * The metadata contains exposure settings and face
-> + * detection results.
-> + */
+Facilitate parsing endpoints by adding a convenience function for parsing
+the endpoints, and make the omap3isp driver use it as an example.
 
-/*
- * Multi-line comments
- * look like this.
- */
+I plan to include the first and second patch to a pull request soonish, the
+third could go in with the first user.
 
->  static u16 ap1302_ss_list[] = {
->  	0xb01c, /* From 0x0186 with size 0x1C are exposure settings. */
->  	0x0186,
-> -- 
-> 2.1.4
-> 
+since v3:
+
+- Rebase on current mediatree master.
+
+since v2:
+
+- Rebase on CCP2 support patches.
+
+- Prepend a patch cleaning up omap3isp driver a little.
+
+since v1:
+
+- The first patch has been merged (it was a bugfix).
+
+- In anticipation that the parsing can take place over several iterations,
+  take the existing number of async sub-devices into account when
+  re-allocating an array of async sub-devices.
+
+- Rework the first patch to better anticipate parsing single endpoint at a
+  time by a driver.
+
+- Add a second patch that adds a function for parsing endpoints one at a
+  time based on port and endpoint numbers.
+
+Sakari Ailus (3):
+  omap3isp: Drop redundant isp->subdevs field and ISP_MAX_SUBDEVS
+  v4l: fwnode: Support generic parsing of graph endpoints in a device
+  v4l: fwnode: Support generic parsing of graph endpoints in a single
+    port
+
+ drivers/media/platform/omap3isp/isp.c | 116 +++++++---------------
+ drivers/media/platform/omap3isp/isp.h |   3 -
+ drivers/media/v4l2-core/v4l2-fwnode.c | 176 ++++++++++++++++++++++++++++++++++
+ include/media/v4l2-async.h            |   4 +-
+ include/media/v4l2-fwnode.h           |  16 ++++
+ 5 files changed, 231 insertions(+), 84 deletions(-)
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.11.0
+
+
+*** BLURB HERE ***
+
+Sakari Ailus (3):
+  omap3isp: Drop redundant isp->subdevs field and ISP_MAX_SUBDEVS
+  v4l: fwnode: Support generic parsing of graph endpoints in a device
+  v4l: fwnode: Support generic parsing of graph endpoints in a single
+    port
+
+ drivers/media/platform/omap3isp/isp.c | 115 +++++++---------------
+ drivers/media/platform/omap3isp/isp.h |   3 -
+ drivers/media/v4l2-core/v4l2-fwnode.c | 176 ++++++++++++++++++++++++++++++++++
+ include/media/v4l2-async.h            |   4 +-
+ include/media/v4l2-fwnode.h           |  16 ++++
+ 5 files changed, 230 insertions(+), 84 deletions(-)
+
+-- 
+2.11.0
