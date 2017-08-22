@@ -1,264 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:42882 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752995AbdHJQqy (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:56090 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752810AbdHVX2q (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Aug 2017 12:46:54 -0400
-Subject: Re: [PATCH] [media] rc: per-protocol repeat period
-To: Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20170809171916.16198-1-sean@mess.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <18249f91-a075-e7a7-47b7-6894ca70cf08@xs4all.nl>
-Date: Thu, 10 Aug 2017 18:46:51 +0200
+        Tue, 22 Aug 2017 19:28:46 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v6 12/25] rcar-vin: move media bus configuration to struct rvin_info
+Date: Wed, 23 Aug 2017 01:26:27 +0200
+Message-Id: <20170822232640.26147-13-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <20170809171916.16198-1-sean@mess.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/08/17 19:19, Sean Young wrote:
-> CEC needs a keypress timeout of 550ms, which is too high for the IR
-> protocols. Also fill in known repeat times, with 50ms error margin.
-> 
-> Also, combine all protocol data into one structure.
-> 
-> Signed-off-by: Sean Young <sean@mess.org>
-> Suggested-by: Hans Verkuil <hans.verkuil@cisco.com>
+Bus configuration will once the driver is extended to to support Gen3
+contain information not specific to only the directly connected parallel
+subdevice. Move it to struct rvin_info to show it's not always coupled
+to the parallel subdevice.
 
-Much better! I'll mark my rc-main patch as superseded.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 14 +++++++-------
+ drivers/media/platform/rcar-vin/rcar-dma.c  | 11 ++++++-----
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  2 +-
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  9 ++++-----
+ 4 files changed, 18 insertions(+), 18 deletions(-)
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Thanks!
-
-	Hans
-
-> ---
->  drivers/media/rc/rc-main.c | 138 +++++++++++++++++++++------------------------
->  1 file changed, 65 insertions(+), 73 deletions(-)
-> 
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index c494a4ddc138..981cccd6b988 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -30,8 +30,54 @@
->  #define IR_TAB_MAX_SIZE	8192
->  #define RC_DEV_MAX	256
->  
-> -/* FIXME: IR_KEYPRESS_TIMEOUT should be protocol specific */
-> -#define IR_KEYPRESS_TIMEOUT 250
-> +static const struct {
-> +	const char *name;
-> +	unsigned int repeat_period;
-> +	unsigned int scancode_bits;
-> +} protocols[] = {
-> +	[RC_PROTO_UNKNOWN] = { .name = "unknown", .repeat_period = 250 },
-> +	[RC_PROTO_OTHER] = { .name = "other", .repeat_period = 250 },
-> +	[RC_PROTO_RC5] = { .name = "rc-5",
-> +		.scancode_bits = 0x1f7f, .repeat_period = 164 },
-> +	[RC_PROTO_RC5X_20] = { .name = "rc-5x-20",
-> +		.scancode_bits = 0x1f7f3f, .repeat_period = 164 },
-> +	[RC_PROTO_RC5_SZ] = { .name = "rc-5-sz",
-> +		.scancode_bits = 0x2fff, .repeat_period = 164 },
-> +	[RC_PROTO_JVC] = { .name = "jvc",
-> +		.scancode_bits = 0xffff, .repeat_period = 250 },
-> +	[RC_PROTO_SONY12] = { .name = "sony-12",
-> +		.scancode_bits = 0x1f007f, .repeat_period = 100 },
-> +	[RC_PROTO_SONY15] = { .name = "sony-15",
-> +		.scancode_bits = 0xff007f, .repeat_period = 100 },
-> +	[RC_PROTO_SONY20] = { .name = "sony-20",
-> +		.scancode_bits = 0x1fff7f, .repeat_period = 100 },
-> +	[RC_PROTO_NEC] = { .name = "nec",
-> +		.scancode_bits = 0xffff, .repeat_period = 160 },
-> +	[RC_PROTO_NECX] = { .name = "nec-x",
-> +		.scancode_bits = 0xffffff, .repeat_period = 160 },
-> +	[RC_PROTO_NEC32] = { .name = "nec-32",
-> +		.scancode_bits = 0xffffffff, .repeat_period = 160 },
-> +	[RC_PROTO_SANYO] = { .name = "sanyo",
-> +		.scancode_bits = 0x1fffff, .repeat_period = 250 },
-> +	[RC_PROTO_MCIR2_KBD] = { .name = "mcir2-kbd",
-> +		.scancode_bits = 0xffff, .repeat_period = 150 },
-> +	[RC_PROTO_MCIR2_MSE] = { .name = "mcir2-mse",
-> +		.scancode_bits = 0x1fffff, .repeat_period = 150 },
-> +	[RC_PROTO_RC6_0] = { .name = "rc-6-0",
-> +		.scancode_bits = 0xffff, .repeat_period = 164 },
-> +	[RC_PROTO_RC6_6A_20] = { .name = "rc-6-6a-20",
-> +		.scancode_bits = 0xfffff, .repeat_period = 164 },
-> +	[RC_PROTO_RC6_6A_24] = { .name = "rc-6-6a-24",
-> +		.scancode_bits = 0xffffff, .repeat_period = 164 },
-> +	[RC_PROTO_RC6_6A_32] = { .name = "rc-6-6a-32",
-> +		.scancode_bits = 0xffffffff, .repeat_period = 164 },
-> +	[RC_PROTO_RC6_MCE] = { .name = "rc-6-mce",
-> +		.scancode_bits = 0xffff7fff, .repeat_period = 164 },
-> +	[RC_PROTO_SHARP] = { .name = "sharp",
-> +		.scancode_bits = 0x1fff, .repeat_period = 250 },
-> +	[RC_PROTO_XMP] = { .name = "xmp", .repeat_period = 250 },
-> +	[RC_PROTO_CEC] = { .name = "cec", .repeat_period = 550 },
-> +};
->  
->  /* Used to keep track of known keymaps */
->  static LIST_HEAD(rc_map_list);
-> @@ -613,6 +659,7 @@ static void ir_timer_keyup(unsigned long cookie)
->  void rc_repeat(struct rc_dev *dev)
->  {
->  	unsigned long flags;
-> +	unsigned int timeout = protocols[dev->last_protocol].repeat_period;
->  
->  	spin_lock_irqsave(&dev->keylock, flags);
->  
-> @@ -622,7 +669,7 @@ void rc_repeat(struct rc_dev *dev)
->  	input_event(dev->input_dev, EV_MSC, MSC_SCAN, dev->last_scancode);
->  	input_sync(dev->input_dev);
->  
-> -	dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
-> +	dev->keyup_jiffies = jiffies + msecs_to_jiffies(timeout);
->  	mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
->  
->  out:
-> @@ -693,7 +740,8 @@ void rc_keydown(struct rc_dev *dev, enum rc_proto protocol, u32 scancode,
->  	ir_do_keydown(dev, protocol, scancode, keycode, toggle);
->  
->  	if (dev->keypressed) {
-> -		dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
-> +		dev->keyup_jiffies = jiffies +
-> +			msecs_to_jiffies(protocols[protocol].repeat_period);
->  		mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
->  	}
->  	spin_unlock_irqrestore(&dev->keylock, flags);
-> @@ -734,33 +782,14 @@ EXPORT_SYMBOL_GPL(rc_keydown_notimeout);
->  static int rc_validate_filter(struct rc_dev *dev,
->  			      struct rc_scancode_filter *filter)
->  {
-> -	static const u32 masks[] = {
-> -		[RC_PROTO_RC5] = 0x1f7f,
-> -		[RC_PROTO_RC5X_20] = 0x1f7f3f,
-> -		[RC_PROTO_RC5_SZ] = 0x2fff,
-> -		[RC_PROTO_SONY12] = 0x1f007f,
-> -		[RC_PROTO_SONY15] = 0xff007f,
-> -		[RC_PROTO_SONY20] = 0x1fff7f,
-> -		[RC_PROTO_JVC] = 0xffff,
-> -		[RC_PROTO_NEC] = 0xffff,
-> -		[RC_PROTO_NECX] = 0xffffff,
-> -		[RC_PROTO_NEC32] = 0xffffffff,
-> -		[RC_PROTO_SANYO] = 0x1fffff,
-> -		[RC_PROTO_MCIR2_KBD] = 0xffff,
-> -		[RC_PROTO_MCIR2_MSE] = 0x1fffff,
-> -		[RC_PROTO_RC6_0] = 0xffff,
-> -		[RC_PROTO_RC6_6A_20] = 0xfffff,
-> -		[RC_PROTO_RC6_6A_24] = 0xffffff,
-> -		[RC_PROTO_RC6_6A_32] = 0xffffffff,
-> -		[RC_PROTO_RC6_MCE] = 0xffff7fff,
-> -		[RC_PROTO_SHARP] = 0x1fff,
-> -	};
-> -	u32 s = filter->data;
-> +	u32 mask, s = filter->data;
->  	enum rc_proto protocol = dev->wakeup_protocol;
->  
-> -	if (protocol >= ARRAY_SIZE(masks))
-> +	if (protocol >= ARRAY_SIZE(protocols))
->  		return -EINVAL;
->  
-> +	mask = protocols[protocol].scancode_bits;
-> +
->  	switch (protocol) {
->  	case RC_PROTO_NECX:
->  		if ((((s >> 16) ^ ~(s >> 8)) & 0xff) == 0)
-> @@ -782,14 +811,13 @@ static int rc_validate_filter(struct rc_dev *dev,
->  		break;
->  	}
->  
-> -	filter->data &= masks[protocol];
-> -	filter->mask &= masks[protocol];
-> +	filter->data &= mask;
-> +	filter->mask &= mask;
->  
->  	/*
->  	 * If we have to raw encode the IR for wakeup, we cannot have a mask
->  	 */
-> -	if (dev->encode_wakeup &&
-> -	    filter->mask != 0 && filter->mask != masks[protocol])
-> +	if (dev->encode_wakeup && filter->mask != 0 && filter->mask != mask)
->  		return -EINVAL;
->  
->  	return 0;
-> @@ -1303,40 +1331,6 @@ static ssize_t store_filter(struct device *device,
->  	return (ret < 0) ? ret : len;
->  }
->  
-> -/*
-> - * This is the list of all variants of all protocols, which is used by
-> - * the wakeup_protocols sysfs entry. In the protocols sysfs entry some
-> - * some protocols are grouped together (e.g. nec = nec + necx + nec32).
-> - *
-> - * For wakeup we need to know the exact protocol variant so the hardware
-> - * can be programmed exactly what to expect.
-> - */
-> -static const char * const proto_variant_names[] = {
-> -	[RC_PROTO_UNKNOWN] = "unknown",
-> -	[RC_PROTO_OTHER] = "other",
-> -	[RC_PROTO_RC5] = "rc-5",
-> -	[RC_PROTO_RC5X_20] = "rc-5x-20",
-> -	[RC_PROTO_RC5_SZ] = "rc-5-sz",
-> -	[RC_PROTO_JVC] = "jvc",
-> -	[RC_PROTO_SONY12] = "sony-12",
-> -	[RC_PROTO_SONY15] = "sony-15",
-> -	[RC_PROTO_SONY20] = "sony-20",
-> -	[RC_PROTO_NEC] = "nec",
-> -	[RC_PROTO_NECX] = "nec-x",
-> -	[RC_PROTO_NEC32] = "nec-32",
-> -	[RC_PROTO_SANYO] = "sanyo",
-> -	[RC_PROTO_MCIR2_KBD] = "mcir2-kbd",
-> -	[RC_PROTO_MCIR2_MSE] = "mcir2-mse",
-> -	[RC_PROTO_RC6_0] = "rc-6-0",
-> -	[RC_PROTO_RC6_6A_20] = "rc-6-6a-20",
-> -	[RC_PROTO_RC6_6A_24] = "rc-6-6a-24",
-> -	[RC_PROTO_RC6_6A_32] = "rc-6-6a-32",
-> -	[RC_PROTO_RC6_MCE] = "rc-6-mce",
-> -	[RC_PROTO_SHARP] = "sharp",
-> -	[RC_PROTO_XMP] = "xmp",
-> -	[RC_PROTO_CEC] = "cec",
-> -};
-> -
->  /**
->   * show_wakeup_protocols() - shows the wakeup IR protocol
->   * @device:	the device descriptor
-> @@ -1371,14 +1365,12 @@ static ssize_t show_wakeup_protocols(struct device *device,
->  	IR_dprintk(1, "%s: allowed - 0x%llx, enabled - %d\n",
->  		   __func__, (long long)allowed, enabled);
->  
-> -	for (i = 0; i < ARRAY_SIZE(proto_variant_names); i++) {
-> +	for (i = 0; i < ARRAY_SIZE(protocols); i++) {
->  		if (allowed & (1ULL << i)) {
->  			if (i == enabled)
-> -				tmp += sprintf(tmp, "[%s] ",
-> -						proto_variant_names[i]);
-> +				tmp += sprintf(tmp, "[%s] ", protocols[i].name);
->  			else
-> -				tmp += sprintf(tmp, "%s ",
-> -						proto_variant_names[i]);
-> +				tmp += sprintf(tmp, "%s ", protocols[i].name);
->  		}
->  	}
->  
-> @@ -1420,15 +1412,15 @@ static ssize_t store_wakeup_protocols(struct device *device,
->  	if (sysfs_streq(buf, "none")) {
->  		protocol = RC_PROTO_UNKNOWN;
->  	} else {
-> -		for (i = 0; i < ARRAY_SIZE(proto_variant_names); i++) {
-> +		for (i = 0; i < ARRAY_SIZE(protocols); i++) {
->  			if ((allowed & (1ULL << i)) &&
-> -			    sysfs_streq(buf, proto_variant_names[i])) {
-> +			    sysfs_streq(buf, protocols[i].name)) {
->  				protocol = i;
->  				break;
->  			}
->  		}
->  
-> -		if (i == ARRAY_SIZE(proto_variant_names)) {
-> +		if (i == ARRAY_SIZE(protocols)) {
->  			rc = -EINVAL;
->  			goto out;
->  		}
-> 
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 4dc148e7835439ab..65f01b6781c0aefd 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -45,15 +45,15 @@ static int rvin_find_pad(struct v4l2_subdev *sd, int direction)
+ 	return -EINVAL;
+ }
+ 
+-static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
++static bool rvin_mbus_supported(struct rvin_dev *vin)
+ {
+-	struct v4l2_subdev *sd = entity->subdev;
++	struct v4l2_subdev *sd = vin->digital.subdev;
+ 	struct v4l2_subdev_mbus_code_enum code = {
+ 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+ 	};
+ 
+ 	code.index = 0;
+-	code.pad = entity->source_pad;
++	code.pad = vin->digital.source_pad;
+ 	while (!v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code)) {
+ 		code.index++;
+ 		switch (code.code) {
+@@ -61,7 +61,7 @@ static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
+ 		case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		case MEDIA_BUS_FMT_UYVY10_2X10:
+ 		case MEDIA_BUS_FMT_RGB888_1X24:
+-			entity->code = code.code;
++			vin->code = code.code;
+ 			return true;
+ 		default:
+ 			break;
+@@ -78,14 +78,14 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
+ 	int ret;
+ 
+ 	/* Verify subdevices mbus format */
+-	if (!rvin_mbus_supported(&vin->digital)) {
++	if (!rvin_mbus_supported(vin)) {
+ 		vin_err(vin, "Unsupported media bus format for %s\n",
+ 			vin->digital.subdev->name);
+ 		return -EINVAL;
+ 	}
+ 
+ 	vin_dbg(vin, "Found media bus format for %s: %d\n",
+-		vin->digital.subdev->name, vin->digital.code);
++		vin->digital.subdev->name, vin->code);
+ 
+ 	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
+ 	if (ret < 0) {
+@@ -219,7 +219,7 @@ static int rvin_digital_graph_parse(struct rvin_dev *vin)
+ 	}
+ 	of_node_put(np);
+ 
+-	ret = rvin_digitial_parse_v4l2(vin, ep, &vin->digital.mbus_cfg);
++	ret = rvin_digitial_parse_v4l2(vin, ep, &vin->mbus_cfg);
+ 	of_node_put(ep);
+ 	if (ret)
+ 		return ret;
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index f22bec062db31772..9362e7dba5e3ba95 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -633,7 +633,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	/*
+ 	 * Input interface
+ 	 */
+-	switch (vin->digital.code) {
++	switch (vin->code) {
+ 	case MEDIA_BUS_FMT_YUYV8_1X16:
+ 		/* BT.601/BT.1358 16bit YCbCr422 */
+ 		vnmc |= VNMC_INF_YUV16;
+@@ -641,7 +641,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+-		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -650,7 +650,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY10_2X10:
+ 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+-		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -662,11 +662,11 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+ 
+ 	/* Hsync Signal Polarity Select */
+-	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
++	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_HPS;
+ 
+ 	/* Vsync Signal Polarity Select */
+-	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
++	if (!(vin->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_VPS;
+ 
+ 	/*
+@@ -875,6 +875,7 @@ static void rvin_capture_stop(struct rvin_dev *vin)
+ 	rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
+ }
+ 
++
+ /* -----------------------------------------------------------------------------
+  * DMA Functions
+  */
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 9f0aac9c3398d613..fb9f802e553e9b80 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -161,7 +161,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 
+ 	sd = vin_to_source(vin);
+ 
+-	v4l2_fill_mbus_format(&format.format, pix, vin->digital.code);
++	v4l2_fill_mbus_format(&format.format, pix, vin->code);
+ 
+ 	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
+ 	if (pad_cfg == NULL)
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index cd8d9a96f78f3267..82f074c601ea4efe 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -62,8 +62,6 @@ struct rvin_video_format {
+  * struct rvin_graph_entity - Video endpoint from async framework
+  * @asd:	sub-device descriptor for async framework
+  * @subdev:	subdevice matched using async framework
+- * @code:	Media bus format from source
+- * @mbus_cfg:	Media bus format from DT
+  * @source_pad:	source pad of remote subdevice
+  * @sink_pad:	sink pad of remote subdevice
+  */
+@@ -71,9 +69,6 @@ struct rvin_graph_entity {
+ 	struct v4l2_async_subdev asd;
+ 	struct v4l2_subdev *subdev;
+ 
+-	u32 code;
+-	struct v4l2_mbus_config mbus_cfg;
+-
+ 	unsigned int source_pad;
+ 	unsigned int sink_pad;
+ };
+@@ -115,6 +110,8 @@ struct rvin_info {
+  * @sequence:		V4L2 buffers sequence number
+  * @state:		keeps track of operation state
+  *
++ * @mbus_cfg:		media bus format from DT
++ * @code:		media bus coide from subdevice
+  * @format:		active V4L2 pixel format
+  *
+  * @crop:		active cropping
+@@ -141,6 +138,8 @@ struct rvin_dev {
+ 	unsigned int sequence;
+ 	enum rvin_dma_state state;
+ 
++	struct v4l2_mbus_config mbus_cfg;
++	u32 code;
+ 	struct v4l2_pix_format format;
+ 
+ 	struct v4l2_rect crop;
+-- 
+2.14.0
