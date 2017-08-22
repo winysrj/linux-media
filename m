@@ -1,143 +1,443 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:39654 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752154AbdHJIuD (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:39769 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932184AbdHVIbr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Aug 2017 04:50:03 -0400
-Subject: Re: [PATCH 0/4] drm/bridge/adv7511: add CEC support
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        devicetree@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
-References: <20170730130743.19681-1-hverkuil@xs4all.nl>
-From: Archit Taneja <architt@codeaurora.org>
-Message-ID: <9d1757b3-24f9-2f0f-1971-62d1ef4b79e3@codeaurora.org>
-Date: Thu, 10 Aug 2017 14:19:58 +0530
-MIME-Version: 1.0
-In-Reply-To: <20170730130743.19681-1-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Tue, 22 Aug 2017 04:31:47 -0400
+Message-ID: <1503390695.9244.1.camel@pengutronix.de>
+Subject: Re: [PATCH v2 1/2] docs-rst: media: Document s_stream() video op
+ usage for MC enabled devices
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+Date: Tue, 22 Aug 2017 10:31:35 +0200
+In-Reply-To: <20170821110100.241c0adf@vela.lan>
+References: <1502886018-31488-1-git-send-email-sakari.ailus@linux.intel.com>
+         <1502886018-31488-2-git-send-email-sakari.ailus@linux.intel.com>
+         <20170819073552.08a0ea2b@vento.lan>
+         <eb59fda5-ce07-22fa-2973-02fe33efc8d4@linux.intel.com>
+         <20170821060844.579521a4@vento.lan>
+         <17fc3226-9356-cf96-2857-895f1131b23a@xs4all.nl>
+         <20170821090650.506f91b6@silica>
+         <a6b68018-15fe-3241-e488-61f41f40b91d@xs4all.nl>
+         <20170821110100.241c0adf@vela.lan>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Mon, 2017-08-21 at 11:01 -0300, Mauro Carvalho Chehab wrote:
+> Em Mon, 21 Aug 2017 15:52:17 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > On 08/21/2017 02:07 PM, Mauro Carvalho Chehab wrote:
+> > > Em Mon, 21 Aug 2017 12:14:18 +0200
+> > > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > >   
+> > > > On 08/21/2017 11:08 AM, Mauro Carvalho Chehab wrote:  
+> > > > > Em Mon, 21 Aug 2017 09:36:49 +0300
+> > > > > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> > > > >     
+> > > > > > Hi Mauro,
+> > > > > > 
+> > > > > > Mauro Carvalho Chehab wrote:    
+> > > > > > > Hi Sakari,
+> > > > > > > 
+> > > > > > > Em Wed, 16 Aug 2017 15:20:17 +0300
+> > > > > > > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> > > > > > >      
+> > > > > > > > As we begin to add support for systems with Media
+> > > > > > > > controller pipelines
+> > > > > > > > controlled by more than one device driver, it is
+> > > > > > > > essential that we
+> > > > > > > > precisely define the responsibilities of each component
+> > > > > > > > in the stream
+> > > > > > > > control and common practices.
+> > > > > > > > 
+> > > > > > > > Specifically, streaming control is done per sub-device
+> > > > > > > > and sub-device
+> > > > > > > > drivers themselves are responsible for streaming setup
+> > > > > > > > in upstream
+> > > > > > > > sub-devices.      
+> > > > > > > 
+> > > > > > > IMO, before this patch, we need something like this:
+> > > > > > > 	https://patchwork.linuxtv.org/patch/43325/      
+> > > > > > 
+> > > > > > Thanks. I'll reply separately to that thread.
+> > > > > >    
+> > > > > > >      
+> > > > > > > > 
+> > > > > > > > Signed-off-by: Sakari Ailus
+> > > > > > > > <sakari.ailus@linux.intel.com>
+> > > > > > > > Acked-by: Niklas Söderlund
+> > > > > > > > <niklas.soderlund+renesas@ragnatech.se>
+> > > > > > > > ---
+> > > > > > > >  Documentation/media/kapi/v4l2-subdev.rst | 29
+> > > > > > > > +++++++++++++++++++++++++++++
+> > > > > > > >  1 file changed, 29 insertions(+)
+> > > > > > > > 
+> > > > > > > > diff --git a/Documentation/media/kapi/v4l2-subdev.rst
+> > > > > > > > b/Documentation/media/kapi/v4l2-subdev.rst
+> > > > > > > > index e1f0b72..45088ad 100644
+> > > > > > > > --- a/Documentation/media/kapi/v4l2-subdev.rst
+> > > > > > > > +++ b/Documentation/media/kapi/v4l2-subdev.rst
+> > > > > > > > @@ -262,6 +262,35 @@ is called. After all subdevices
+> > > > > > > > have been located the .complete() callback is
+> > > > > > > >  called. When a subdevice is removed from the system
+> > > > > > > > the .unbind() method is
+> > > > > > > >  called. All three callbacks are optional.
+> > > > > > > > 
+> > > > > > > > +Streaming control on Media controller enabled devices
+> > > > > > > > +^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> > > > > > > > +
+> > > > > > > > +Starting and stopping the stream are somewhat complex
+> > > > > > > > operations that
+> > > > > > > > +often require walking the media graph to enable
+> > > > > > > > streaming on
+> > > > > > > > +sub-devices which the pipeline consists of. This
+> > > > > > > > involves interaction
+> > > > > > > > +between multiple drivers, sometimes more than
+> > > > > > > > two.      
+> > > > > > > 
+> > > > > > > That's still not ok, as it creates a black hole for
+> > > > > > > devnode-based
+> > > > > > > devices.
+> > > > > > > 
+> > > > > > > I would change it to something like:
+> > > > > > > 
+> > > > > > > 	Streaming control
+> > > > > > > 	^^^^^^^^^^^^^^^^^
+> > > > > > > 
+> > > > > > > 	Starting and stopping the stream are somewhat complex
+> > > > > > > operations that
+> > > > > > > 	often require to enable streaming on sub-devices which
+> > > > > > > the pipeline
+> > > > > > > 	consists of. This involves interaction between multiple
+> > > > > > > drivers, sometimes
+> > > > > > > 	more than two.
+> > > > > > > 
+> > > > > > > 	The ``.s_stream()`` op in
+> > > > > > > :c:type:`v4l2_subdev_video_ops` is responsible
+> > > > > > > 	for starting and stopping the stream on the sub-device
+> > > > > > > it is called
+> > > > > > > 	on.
+> > > > > > > 
+> > > > > > > 	Streaming control on devnode-centric devices
+> > > > > > > 	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> > > > > > > 
+> > > > > > > 	On **devnode-centric** devices, the main driver is
+> > > > > > > responsible enable
+> > > > > > > 	stream all all sub-devices. On most cases, all the main
+> > > > > > > driver need
+> > > > > > > 	to do is to broadcast s_stream to all connected sub-
+> > > > > > > devices by calling
+> > > > > > > 	:c:func:`v4l2_device_call_all`, e. g.::
+> > > > > > > 
+> > > > > > > 		v4l2_device_call_all(&dev->v4l2_dev, 0, video,
+> > > > > > > s_stream, 1);      
+> > > > > > 
+> > > > > > Looks good to me.
+> > > > > >    
+> > > > > > > 
+> > > > > > > 	Streaming control on mc-centric devices
+> > > > > > > 	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> > > > > > > 
+> > > > > > > 	On **mc-centric** devices, it usually requires walking
+> > > > > > > the media graph
+> > > > > > > 	to enable streaming only at the sub-devices which the
+> > > > > > > pipeline consists
+> > > > > > > 	of.
+> > > > > > > 
+> > > > > > > 	(place here the details for such scenario)      
+> > > > > > 
+> > > > > > This part requires a more detailed description of the
+> > > > > > problem area. What 
+> > > > > > makes a difference here is that there's a pipeline this
+> > > > > > pipeline may be 
+> > > > > > controlled more than one driver. (More elaborate discussion
+> > > > > > below.)
+> > > > > >    
+> > > > > > >      
+> > > > > > > > +The ``.s_stream()`` op in
+> > > > > > > > :c:type:`v4l2_subdev_video_ops` is responsible
+> > > > > > > > +for starting and stopping the stream on the sub-device 
+> > > > > > > > it is called
+> > > > > > > > +on. A device driver is only responsible for calling
+> > > > > > > > the ``.s_stream()`` ops
+> > > > > > > > +of the adjacent sub-devices that are connected to its
+> > > > > > > > sink pads
+> > > > > > > > +through an enabled link. A driver may not call
+> > > > > > > > ``.s_stream()`` op
+> > > > > > > > +of any other sub-device further up in the pipeline,
+> > > > > > > > for instance.
+> > > > > > > > +
+> > > > > > > > +This means that a sub-device driver is thus in direct
+> > > > > > > > control of
+> > > > > > > > +whether the upstream sub-devices start (or stop)
+> > > > > > > > streaming before or
+> > > > > > > > +after the sub-device itself is set up for streaming.
+> > > > > > > > +
+> > > > > > > > +.. note::
+> > > > > > > > +
+> > > > > > > > +   As the ``.s_stream()`` callback is called
+> > > > > > > > recursively through the
+> > > > > > > > +   sub-devices along the pipeline, it is important to
+> > > > > > > > keep the
+> > > > > > > > +   recursion as short as possible. To this end,
+> > > > > > > > drivers are encouraged
+> > > > > > > > +   to avoid recursively calling ``.s_stream()``
+> > > > > > > > internally to reduce
+> > > > > > > > +   stack usage. Instead, the ``.s_stream()`` op of the
+> > > > > > > > directly
+> > > > > > > > +   connected sub-devices should come from the callback
+> > > > > > > > through which
+> > > > > > > > +   the driver was first called.
+> > > > > > > > +      
+> > > > > > > 
+> > > > > > > That sounds too complex, and can lead into troubles, if
+> > > > > > > the same
+> > > > > > > sub-device driver is used on completely different
+> > > > > > > devices.
+> > > > > > > 
+> > > > > > > IMHO, it should be up to the main driver to navigate at
+> > > > > > > the MC
+> > > > > > > pipeline and call s_stream(), and not to the sub-
+> > > > > > > drivers.      
+> > > > > > 
+> > > > > > I would agree with the above statement *if* we had no
+> > > > > > devices that 
+> > > > > > require doing this in a different way.
+> > > > > > 
+> > > > > > Consider the following case:
+> > > > > > 
+> > > > > > 	sensor   -> CSI-2 receiver -> ISP (DMA)
+> > > > > > 	subdev A -> subdev B	   -> video node    
+> > > > > 
+> > > > > Let me be clearer about the issue I see.
+> > > > > 
+> > > > > In the above example, what subdevs are supposed to multicast
+> > > > > the
+> > > > > s_stream() to their neighbors, and how they will know that
+> > > > > they
+> > > > > need to multicast it.
+> > > > > 
+> > > > > Let's say, that, in the first pipeline, it would be the
+> > > > > sensor
+> > > > > and subdev A. How "sensor" and "subdev A" will know that
+> > > > > they're
+> > > > > meant to broadcast s_stream(), and the other entities know
+> > > > > they
+> > > > > won't?    
+> > > > 
+> > > > So my understanding is that the bridge driver (ISP) will call
+> > > > s_stream
+> > > > for the CSI-2 receiver, and that in turn calls s_stream of the
+> > > > sensor.  
+> > > 
+> > > Alternatively, the ISP driver could call s_stream for both CSI-2
+> > > and
+> > > sensor.
+> > >   
+> > > > This should only be done for mc-centric devices, so we need a
+> > > > clear
+> > > > property telling a subdev whether it is part of an mc-centric
+> > > > pipeline
+> > > > or a devnode-centric pipeline. Since in the latter case it
+> > > > should not
+> > > > call s_stream in this way. For devnode-centric pipelines the
+> > > > bridge
+> > > > driver broadcasts s_stream to all subdevs.  
+> > > 
+> > > It would be easier to have a logic called by the ISP driver that
+> > > would
+> > > get all elements from an active pipeline and call s_stream()
+> > > there.
+> > > 
+> > > That would keep the flexibility that would be needed by devices
+> > > with a
+> > > separate CSI-2 receiver, while preventing the addition of an
+> > > extra
+> > > logic on every sub-device to teach them that s_stream() should be
+> > > called to communicate with some specific sub-device.
+> > > 
+> > > The thing is that, if you have a pipeline like:
+> > > 
+> > > source subdev -> subdev A -> subdev B -> subdev C -> subdev D ->
+> > > DMA
+> > > 
+> > > due to PM constraints, all subdevs on such pipeline may require
+> > > s_stream()
+> > > to control its power consumption. So, it is not just a CSI-2
+> > > device that
+> > > would need to enable power at the sensor, but an entire pipeline
+> > > that
+> > > would need to receive s_stream() calls.  
+> > 
+> > So? If DMA calls s_stream for subdev D, which calls s_stream for
+> > subdev C, etc.
+> > until the source subdev's s_stream is called, then they are all
+> > powered up,
+> > aren't they?
+> > 
+> > I don't see the difference between this and the DMA calling
+> > s_stream for all
+> > subdevs.
+> > 
+> > One clear difference is (as Sakari mentioned) stack usage. There
+> > having the
+> > DMA call s_stream is clearly better. See below for more comments...
+> 
+> That's not the only difference. If we pass this to subdevs, they
+> need to know that they're working on a mc-centric way.
+> 
+> There is another problem, with is more serious, and it is somewhat
+> related to stack usage: what happens if there's a loop inside a
+> pipeline? That would cause a Kernel crash. I can't see any easy
+> way to avoid that (nor stack starving, if the pipeline is too big).
+> 
+> > 
+> > > IMO, the best would be a logic similar to
+> > > media_entity_pipeline_start() that,
+> > > for each entity at the pipeline, s_stream() would be called, e.
+> > > g. something
+> > > like:
+> > > 
+> > > 	v4l2_subdev_pipeline_call()
+> > >   
+> > > > For the record, I am not aware of any subdevs that are used by
+> > > > both
+> > > > mc and devnode-centric scenarios AND that can sit in the middle
+> > > > of a
+> > > > pipeline. Sensors/video receiver subdevs can certainly be used
+> > > > in both
+> > > > scenarios, but they don't have to propagate a s_stream call.  
+> > > 
+> > > em28xx has a bunch of sensors that are also used on embedded
+> > > drivers.
+> > > It also has a tvp5150, with is also used by omap3.
+> > > 
+> > > On the only OMAP3 board whose has a DT upstream, the tvp5150 has
+> > > both source
+> > > pads connected to S-Video connectors, but nothing prevents that
+> > > someone
+> > > would add a tuner before it. I remember someone mentioned that
+> > > such device
+> > > exists (although its DT is not upstream).
+> > > 
+> > > On an embedded device with both tvp5150 and a tuner, s_stream()
+> > > should be
+> > > called by both.
+> > >   
+> > > > 
+> > > > It would be very helpful if we have a good description of these
+> > > > two
+> > > > scenarios in our documentation, and a capability indicating mc-
+> > > > centric
+> > > > behavior for devnodes. And also for v4l2-subdevs internally
+> > > > (i.e.
+> > > > am I used in a mc-centric scenario or not?).
+> > > > 
+> > > > Then this documentation will start to make more sense as well.
+> > > >  
+> > > > > Also, the same sensor may be used on a device whose CSI-2 is
+> > > > > integrated at the ISP driver (the main driver). That's why
+> > > > > I think that such logic should be started by the main driver,
+> > > > > as
+> > > > > it is the only part of the pipeline that it is aware about
+> > > > > what it is needed. Also, as the DMA engines are controlled by
+> > > > > the main driver (via its associated video devnodes), it is
+> > > > > the only
+> > > > > part of the pipeline that knows when a stream starts.    
+> > > > 
+> > > > Yes, and this driver is the one that calls s_stream on the
+> > > > adjacent subdevs. But just those and not all.
+> > > >  
+> > > > >     
+> > > > > > Assume that the CSI-2 receiver requires hardware setup both
+> > > > > > *before and 
+> > > > > > after* streaming has been enabled on the sensor.    
+> > > > > 
+> > > > > calling s_stream() before and after seems to be an abuse of
+> > > > > it.    
+> > > > 
+> > > > I think you misunderstand what Sakari tries to say.
+> > > > 
+> > > > In the scenario above the bridge driver calls s_stream for the
+> > > > CSI receiver. That in turn has code like this:
+> > > > 
+> > > > s_stream(bool enable)
+> > > > {
+> > > > 	... initialize CSI ...
+> > > > 	if error initializing CSI
+> > > > 		return error
+> > > > 	call s_stream for adjacent source subdev (i.e. sensor)
+> > > > 	if success
+> > > > 		return 0
+> > > > 	... de-initialize CSI
+> > > > 	return error
+> > > > }
+> > > > 
+> > > > This makes a lot of sense for mc-centric devices and is also
+> > > > much more
+> > > > precise than the broadcast that a devnode-centric device would
+> > > > do.
+> > > > 
+> > > > In the very unlikely case that this CSI subdev would also be
+> > > > used in
+> > > > a devnode-centric scenario the s_stream implementation would
+> > > > just
+> > > > return 0 after it initializes the CSI hardware. It will depend
+> > > > on
+> > > > the hardware whether that works or not.
+> > > > 
+> > > > subdevs used in devnode-centric scenarios tend to be pretty
+> > > > simple
+> > > > and are able to handle this.  
+> > > 
+> > > If I understand well, you're basically concerned about error
+> > > handling, right?
+> > > 
+> > > That could easily be handled with something like:
+> > > 
+> > > 	ret = v4l2_subdev_pipeline_call(source_entity, video, s_stream,
+> > > 1);
+> > > 	if (ret < 0) {
+> > > 		v4l2_subdev_pipeline_call(source_entity, video,
+> > > s_stream, 0);
+> > > 		return ret;
+> > > 	}  
+> > 
+> > That's not it. It is that some subdevs need to execute
+> > initialization code
+> > first before you can call s_stream on the sensor.
+> > 
+> > If you want to use a pipeline_call you would need to introduce
+> > stream_prepare
+> > and stream_unprepare ops to achieve the same (idea stolen from the
+> > clk API).
+> > 
+> > I'm not sure if this would fully resolve Sakari's issue.
+> 
+> If the problem is with initialization, all we need to enforce is
+> that the graph traversal will happen at the reverse order, e. g.
+> from subdev D to subdev A.
+> 
+> But yeah, if it is more complex, we may need a stream_prepare ops.
 
-On 07/30/2017 06:37 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This patch series adds CEC support to the drm adv7511/adv7533 drivers.
-> 
-> I have tested this with the Qualcomm Dragonboard C410 (adv7533 based)
-> and the Renesas R-Car Koelsch board (adv7511 based).
-> 
-> Note: the Dragonboard needs this patch:
-> 
-> https://patchwork.kernel.org/patch/9824773/
-> 
-> Archit, can you confirm that this patch will go to kernel 4.14?
-> 
-> And the Koelsch board needs this 4.13 fix:
-> 
-> https://patchwork.kernel.org/patch/9836865/
-> 
-> I only have the Koelsch board to test with, but it looks like other
-> R-Car boards use the same adv7511. It would be nice if someone can
-> add CEC support to the other R-Car boards as well. The main thing
-> to check is if they all use the same 12 MHz fixed CEC clock source.
-> 
-> Anyone who wants to test this will need the CEC utilities that
-> are part of the v4l-utils git repository:
-> 
-> git clone git://linuxtv.org/v4l-utils.git
-> cd v4l-utils
-> ./bootstrap.sh
-> ./configure
-> make
-> sudo make install
-> 
-> Now configure the CEC adapter as a Playback device:
-> 
-> cec-ctl --playback
-> 
-> Discover other CEC devices:
-> 
-> cec-ctl -S
+Have we just come full circle [1]?
 
-I tried the instructions, and I get the following output. I don't think I have
-any CEC device connected, though. Is this the expected behaviour?
+[1] https://patchwork.linuxtv.org/patch/37321/
 
-#cec-ctl -S
-Driver Info:
-         Driver Name                : adv7511
-         Adapter Name               : 3-0039
-         Capabilities               : 0x0000000e
-                 Logical Addresses
-                 Transmit
-                 Passthrough
-         Driver version             : 4.13.0
-         Available Logical Addresses: 3
-         Physical Address           : 1.0.0.0
-         Logical Address Mask       : 0x0000
-         CEC Version                : 2.0
-         Logical Addresses          : 0
+I'm not convinced anymore that this would be enough for all possible
+use cases, though. What if there are multiple chained CSI-2 links links
+in the pipeline, like a CSI-2 merge element between cameras and
+receiver that need to be perpared and started one link after the other?
 
-#cec-ctl --playback
-[ 1038.761545] cec-3-0039: cec_thread_func: message 44 timed out!
-Driver Info:
-         Driver Name                : adv7511
-         Adapter Name               : 3-0039
-         Capabilities               : 0x0000000e
-                 Logical Addresses
-                 Transmit
-                 Passthrough
-         Driver version             : 4.13.0
-         Available Logical Addresses: 3
-         Physical Address           : 1.0.0.0
-         Logical Address Mask       : 0x0010
-         CEC Version                : 2.0
-         Vendor ID                  : 0x000c03
-         Logical Addresses          : 1 (Allow RC Passthrough)
-
-           Logical Address          : 4
-             Primary Device Type    : Playback
-             Logical Address Type   : Playback
-             All Device Types       : Playback
-             RC TV Profile          : None
-             Device Features        :
-                 None
-
-
-[ 1041.063605] cec-3-0039: cec_thread_func: message 4f a6 06 10 00 00 timed out!
-[ 1043.367482] cec-3-0039: cec_thread_func: message 4f 84 10 00 04 timed out!
-
-Thanks,
-Archit
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> Hans Verkuil (4):
->    dt-bindings: adi,adv7511.txt: document cec clock
->    arm: dts: qcom: add cec clock for apq8016 board
->    arm: dts: renesas: add cec clock for Koelsch board
->    drm: adv7511/33: add HDMI CEC support
-> 
->   .../bindings/display/bridge/adi,adv7511.txt        |   4 +
->   arch/arm/boot/dts/r8a7791-koelsch.dts              |   8 +
->   arch/arm64/boot/dts/qcom/apq8016-sbc.dtsi          |   2 +
->   drivers/gpu/drm/bridge/adv7511/Kconfig             |   8 +
->   drivers/gpu/drm/bridge/adv7511/Makefile            |   1 +
->   drivers/gpu/drm/bridge/adv7511/adv7511.h           |  45 ++-
->   drivers/gpu/drm/bridge/adv7511/adv7511_cec.c       | 314 +++++++++++++++++++++
->   drivers/gpu/drm/bridge/adv7511/adv7511_drv.c       | 152 +++++++++-
->   drivers/gpu/drm/bridge/adv7511/adv7533.c           |  30 +-
->   9 files changed, 514 insertions(+), 50 deletions(-)
->   create mode 100644 drivers/gpu/drm/bridge/adv7511/adv7511_cec.c
-> 
-
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+regards
+Philipp
