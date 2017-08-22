@@ -1,40 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:33126 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752526AbdHKLuP (ORCPT
+Received: from esa2.microchip.iphmx.com ([68.232.149.84]:38034 "EHLO
+        esa2.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754616AbdHVHbO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Aug 2017 07:50:15 -0400
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-To: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org
-Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>
-Subject: [PATCH 0/2] More s5p-jpeg fixes
-Date: Fri, 11 Aug 2017 13:49:59 +0200
-Message-id: <1502452201-17171-1-git-send-email-andrzej.p@samsung.com>
-In-reply-to: <1502191352-11595-1-git-send-email-andrzej.p@samsung.com>
-References: <1502191352-11595-1-git-send-email-andrzej.p@samsung.com>
-        <CGME20170811115011eucas1p2d31daaa9e6f8d142291d9352ad5b732c@eucas1p2.samsung.com>
+        Tue, 22 Aug 2017 03:31:14 -0400
+From: <Wenyou.Yang@microchip.com>
+To: <hverkuil@xs4all.nl>, <mchehab@s-opensource.com>
+CC: <Nicolas.Ferre@microchip.com>, <linux-kernel@vger.kernel.org>,
+        <sakari.ailus@iki.fi>, <corbet@lwn.net>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>
+Subject: RE: [PATCH 1/3] media: atmel-isc: Not support RBG format from
+ sensor.
+Date: Tue, 22 Aug 2017 07:30:57 +0000
+Message-ID: <F9F4555C4E01D7469D37975B62D0EFBB6B695B@CHN-SV-EXMX07.mchp-main.com>
+References: <20170817071614.12767-1-wenyou.yang@microchip.com>
+ <20170817071614.12767-2-wenyou.yang@microchip.com>
+ <61cb51fa-8d05-6707-00cc-429c761fa6f5@xs4all.nl>
+ <14941b74-8931-4d00-0664-0735fad9b5d1@Microchip.com>
+ <ce6d074b-1c13-d3ea-5dfa-89cca2f26feb@xs4all.nl>
+In-Reply-To: <ce6d074b-1c13-d3ea-5dfa-89cca2f26feb@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
-
-The first patch in the series fixes decoding path,
-the second patch fixes encoding path. Please see
-appropriate commit messages.
-
-Andrzej Pietrasiewicz (2):
-  media: s5p-jpeg: don't overwrite result's "size" member
-  media: s5p-jpeg: set w/h when encoding
-
- drivers/media/platform/s5p-jpeg/jpeg-core.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
-
--- 
-1.9.1
+SGkgSGFucywNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBIYW5zIFZl
+cmt1aWwgW21haWx0bzpodmVya3VpbEB4czRhbGwubmxdDQo+IFNlbnQ6IDIwMTflubQ45pyIMjLm
+l6UgMTU6MDANCj4gVG86IFdlbnlvdSBZYW5nIC0gQTQxNTM1IDxXZW55b3UuWWFuZ0BtaWNyb2No
+aXAuY29tPjsgTWF1cm8gQ2FydmFsaG8NCj4gQ2hlaGFiIDxtY2hlaGFiQHMtb3BlbnNvdXJjZS5j
+b20+DQo+IENjOiBOaWNvbGFzIEZlcnJlIC0gTTQzMjM4IDxOaWNvbGFzLkZlcnJlQG1pY3JvY2hp
+cC5jb20+OyBsaW51eC0NCj4ga2VybmVsQHZnZXIua2VybmVsLm9yZzsgU2FrYXJpIEFpbHVzIDxz
+YWthcmkuYWlsdXNAaWtpLmZpPjsgSm9uYXRoYW4gQ29yYmV0DQo+IDxjb3JiZXRAbHduLm5ldD47
+IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZzsgTGludXggTWVkaWEgTWFpbGlu
+ZyBMaXN0DQo+IDxsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmc+DQo+IFN1YmplY3Q6IFJlOiBb
+UEFUQ0ggMS8zXSBtZWRpYTogYXRtZWwtaXNjOiBOb3Qgc3VwcG9ydCBSQkcgZm9ybWF0IGZyb20g
+c2Vuc29yLg0KPiANCj4gT24gMDgvMjIvMjAxNyAwMzoxOCBBTSwgWWFuZywgV2VueW91IHdyb3Rl
+Og0KPiA+IEhpIEhhbnMsDQo+ID4NCj4gPiBPbiAyMDE3LzgvMjEgMjI6MDcsIEhhbnMgVmVya3Vp
+bCB3cm90ZToNCj4gPj4gT24gMDgvMTcvMjAxNyAwOToxNiBBTSwgV2VueW91IFlhbmcgd3JvdGU6
+DQo+ID4+PiBUaGUgMTItYml0IHBhcmFsbGVsIGludGVyZmFjZSBzdXBwb3J0cyB0aGUgUmF3IEJh
+eWVyLCBZQ2JDciwNCj4gPj4+IE1vbm9jaHJvbWUgYW5kIEpQRUcgQ29tcHJlc3NlZCBwaXhlbCBm
+b3JtYXRzIGZyb20gdGhlIGV4dGVybmFsDQo+ID4+PiBzZW5zb3IsIG5vdCBzdXBwb3J0IFJCRyBw
+aXhlbCBmb3JtYXQuDQo+ID4+Pg0KPiA+Pj4gU2lnbmVkLW9mZi1ieTogV2VueW91IFlhbmcgPHdl
+bnlvdS55YW5nQG1pY3JvY2hpcC5jb20+DQo+ID4+PiAtLS0NCj4gPj4+DQo+ID4+PiAgIGRyaXZl
+cnMvbWVkaWEvcGxhdGZvcm0vYXRtZWwvYXRtZWwtaXNjLmMgfCA1ICsrKysrDQo+ID4+PiAgIDEg
+ZmlsZSBjaGFuZ2VkLCA1IGluc2VydGlvbnMoKykNCj4gPj4+DQo+ID4+PiBkaWZmIC0tZ2l0IGEv
+ZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9hdG1lbC9hdG1lbC1pc2MuYw0KPiA+Pj4gYi9kcml2ZXJz
+L21lZGlhL3BsYXRmb3JtL2F0bWVsL2F0bWVsLWlzYy5jDQo+ID4+PiBpbmRleCBkNGRmM2Q0Y2Nk
+ODUuLjUzNWJiMDM3ODNmZSAxMDA2NDQNCj4gPj4+IC0tLSBhL2RyaXZlcnMvbWVkaWEvcGxhdGZv
+cm0vYXRtZWwvYXRtZWwtaXNjLmMNCj4gPj4+ICsrKyBiL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0v
+YXRtZWwvYXRtZWwtaXNjLmMNCj4gPj4+IEBAIC0xNDc4LDYgKzE0NzgsMTEgQEAgc3RhdGljIGlu
+dCBpc2NfZm9ybWF0c19pbml0KHN0cnVjdCBpc2NfZGV2aWNlICppc2MpDQo+ID4+PiAgIAl3aGls
+ZSAoIXY0bDJfc3ViZGV2X2NhbGwoc3ViZGV2LCBwYWQsIGVudW1fbWJ1c19jb2RlLA0KPiA+Pj4g
+ICAJICAgICAgIE5VTEwsICZtYnVzX2NvZGUpKSB7DQo+ID4+PiAgIAkJbWJ1c19jb2RlLmluZGV4
+Kys7DQo+ID4+PiArDQo+ID4+PiArCQkvKiBOb3Qgc3VwcG9ydCB0aGUgUkdCIHBpeGVsIGZvcm1h
+dHMgZnJvbSBzZW5zb3IgKi8NCj4gPj4+ICsJCWlmICgobWJ1c19jb2RlLmNvZGUgJiAweGYwMDAp
+ID09IDB4MTAwMCkNCj4gPj4+ICsJCQljb250aW51ZTsNCj4gPj4gQW0gSSBtaXNzaW5nIHNvbWV0
+aGluZz8gSGVyZSB5b3Ugc2tpcCBhbnkgUkdCIG1lZGlhYnVzIGZvcm1hdHMsIGJ1dA0KPiA+PiBp
+biBwYXRjaCAzLzMgeW91IGFkZCBSR0IgbWVkaWFidXMgZm9ybWF0cy4gQnV0IHRoaXMgcGF0Y2gg
+cHJldmVudHMNCj4gPj4gdGhvc2UgbmV3IGZvcm1hdHMgZnJvbSBiZWluZyBzZWxlY3RlZCwgcmln
+aHQ/DQo+ID4gVGhpcyBwYXRjaCBwcmV2ZW50cyBnZXR0aW5nIHRoZSBSR0IgZm9ybWF0IGZyb20g
+dGhlIHNlbnNvciBkaXJlY3RseS4NCj4gPiBUaGUgUkdCIGZvcm1hdCBjYW4gYmUgcHJvZHVjZWQg
+YnkgSVNDIGNvbnRyb2xsZXIgYnkgaXRzZWxmLg0KPiANCj4gT0ssIEkgdGhpbmsgSSBzZWUgd2hh
+dCBpcyBnb2luZyBvbiBoZXJlLiBUaGUgaXNjX2Zvcm1hdHMgYXJyYXkgcmVhbGx5IGlzIHR3byBh
+cnJheXMNCj4gaW4gb25lOiB1cCB0byBSQVdfRk1UX0lORF9FTkQgaXQgZGVzY3JpYmVzIHdoYXQg
+aXQgY2FuIHJlY2VpdmUgZnJvbSB0aGUNCj4gc291cmNlLCBhbmQgYWZ0ZXIgdGhhdCBpdCBkZXNj
+cmliZXMgd2hhdCBpdCBjYW4gY29udmVydCBpdCB0by4NCg0KTm90IGV4YWN0bHkuDQoNClllcywg
+dXAgdG8gUkFXX0ZNVF9JTkRfRU5ELCB0aGVzZSBmb3JtYXRzIG11c3QgYmUgZ290IGZyb20gdGhl
+IHNlbm9yLCB0aGV5IGFyZSBSQVcgZm9ybWF0cy4NCkZyb20gSVNDX0ZNVF9JTkRfU1RBUlQgdG8g
+SVNDX0ZNVF9JTkRfRU5ELCB0aGV5IGNhbiBiZSBnZW5lcmF0ZWQgYnkgdGhlIElTQyBjb250cm9s
+bGVyLg0KSXQgaXMgcG9zc2libGUgdGhleSBjYW4gYmUgZ290IGZyb20gdGhlIHNlbnNvciB0b28s
+IHRoZSBkcml2ZXIgd2lsbCBjaGVjayBpdC4gDQpJZiBpdCBjYW4gYmUgZ290IGZyb20gYm90aCB0
+aGUgc2Vuc29yIGFuZCB0aGUgSVNDIGNvbnRyb2xsZXIsIHRoZSB1c2VyIGNhbiB1c2UgdGhlICJz
+ZW5zb3JfcHJlZmVycmVkIiBwYXJhbWV0ZXIgdG8gZGVjaWRlIGZyb20gd2hpY2ggb25lIHRvIGdl
+dC4NClRoZSBSQkcgZm9ybWF0cyBhcmUgdGhlIGV4Y2VwdGlvbi4NCg0KPiANCj4gQnV0IGlmIHlv
+dSBjYW4ndCBoYW5kbGUgUkdCIGZvcm1hdHMgZnJvbSB0aGUgc2Vuc29yLCB0aGVuIHdoeSBub3Qg
+bWFrZSBzdXJlDQo+IG5vbmUgb2YgdGhlIG1idXMgY29kZXMgaW4gaXNjX2Zvcm1hdHMgdXNlcyBS
+R0I/IFRoYXQgbWFrZXMgbXVjaCBtb3JlIHNlbnNlLg0KPiANCj4gRS5nLjoNCj4gDQo+ICAgICAg
+ICAgeyBWNEwyX1BJWF9GTVRfUkdCNTY1LCBNRURJQV9CVVNfRk1UX1JHQjU2NV8yWDhfTEUsIDE2
+LA0KPiAgICAgICAgICAgSVNDX1BGRV9DRkcwX0JQU19FSUdIVCwgSVNDX0JBWV9DRkdfQkdCRywN
+Cj4gSVNDX1JMUF9DRkdfTU9ERV9SR0I1NjUsDQo+ICAgICAgICAgICBJU0NfRENGR19JTU9ERV9Q
+QUNLRUQxNiwgSVNDX0RDVFJMX0RWSUVXX1BBQ0tFRCwgMHg3YiwNCj4gICAgICAgICAgIGZhbHNl
+LCBmYWxzZSB9LA0KPiANCj4gV2h5IHVzZSBNRURJQV9CVVNfRk1UX1JHQjU2NV8yWDhfTEUgaWYg
+dGhpcyBhcHBhcmVudGx5IGlzIG5vdCBzdXBwb3J0ZWQ/DQoNClRoaXMgYXJyYXkgaXMgYWxzbyB0
+aGUgbGlzdHMgb2YgYWxsIGZvcm1hdHMgc3VwcG9ydGVkIGJ5IHRoZSBJU0MoaW5jbHVkaW5nIGdv
+dCBmcm9tIHRoZSBzZW5zb3IpLg0KVGhlIFJHQiBmb3JtYXRzIGFyZSBvbmx5IGdlbmVyYXRlZCBi
+eSB0aGUgSVNDIGNvbnRyb2xsZXIsIG5vdCBmcm9tIHRoZSBzZW5zb3IuDQoNCj4gDQo+IFJlZ2Fy
+ZHMsDQo+IA0KPiAJSGFucw0KPiANCj4gPg0KPiA+PiBSZWdhcmRzLA0KPiA+Pg0KPiA+PiAJSGFu
+cw0KPiA+Pg0KPiA+Pj4gKw0KPiA+Pj4gICAJCWZtdCA9IGZpbmRfZm9ybWF0X2J5X2NvZGUobWJ1
+c19jb2RlLmNvZGUsICZpKTsNCj4gPj4+ICAgCQlpZiAoIWZtdCkNCj4gPj4+ICAgCQkJY29udGlu
+dWU7DQo+ID4+Pg0KPiA+DQo+ID4gQmVzdCBSZWdhcmRzLA0KPiA+IFdlbnlvdSBZYW5nDQo+ID4N
+Cg0KQmVzdCBSZWdhcmRzLA0KV2VueW91IFlhbmcNCg==
