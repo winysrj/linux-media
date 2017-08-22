@@ -1,157 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:10961 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932370AbdHVKJ3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 06:09:29 -0400
-Subject: Re: [PATCH v2 1/2] docs-rst: media: Document s_stream() video op
- usage for MC enabled devices
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
-References: <1502886018-31488-1-git-send-email-sakari.ailus@linux.intel.com>
- <1502886018-31488-2-git-send-email-sakari.ailus@linux.intel.com>
- <20170819073552.08a0ea2b@vento.lan>
- <eb59fda5-ce07-22fa-2973-02fe33efc8d4@linux.intel.com>
- <20170821060844.579521a4@vento.lan>
- <17fc3226-9356-cf96-2857-895f1131b23a@xs4all.nl>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <01290d34-da0e-a089-748f-9d25629ab01c@linux.intel.com>
-Date: Tue, 22 Aug 2017 13:09:26 +0300
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:56018 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752789AbdHVX2n (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 Aug 2017 19:28:43 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v6 07/25] rcar-vin: all Gen2 boards can scale simplify logic
+Date: Wed, 23 Aug 2017 01:26:22 +0200
+Message-Id: <20170822232640.26147-8-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <17fc3226-9356-cf96-2857-895f1131b23a@xs4all.nl>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+The logic to preserve the requested format width and height are too
+complex and come from a premature optimization for Gen3. All Gen2 SoC
+can scale and the Gen3 implementation will not use these functions at
+all so simply preserve the width and hight when interacting with the
+subdevice much like the field is preserved simplifies the logic quiet a
+bit.
 
-On 08/21/17 13:14, Hans Verkuil wrote:
-...
->>>>> +The ``.s_stream()`` op in :c:type:`v4l2_subdev_video_ops` is responsible
->>>>> +for starting and stopping the stream on the sub-device it is called
->>>>> +on. A device driver is only responsible for calling the ``.s_stream()`` ops
->>>>> +of the adjacent sub-devices that are connected to its sink pads
->>>>> +through an enabled link. A driver may not call ``.s_stream()`` op
->>>>> +of any other sub-device further up in the pipeline, for instance.
->>>>> +
->>>>> +This means that a sub-device driver is thus in direct control of
->>>>> +whether the upstream sub-devices start (or stop) streaming before or
->>>>> +after the sub-device itself is set up for streaming.
->>>>> +
->>>>> +.. note::
->>>>> +
->>>>> +   As the ``.s_stream()`` callback is called recursively through the
->>>>> +   sub-devices along the pipeline, it is important to keep the
->>>>> +   recursion as short as possible. To this end, drivers are encouraged
->>>>> +   to avoid recursively calling ``.s_stream()`` internally to reduce
->>>>> +   stack usage. Instead, the ``.s_stream()`` op of the directly
->>>>> +   connected sub-devices should come from the callback through which
->>>>> +   the driver was first called.
->>>>> +  
->>>>
->>>> That sounds too complex, and can lead into troubles, if the same
->>>> sub-device driver is used on completely different devices.
->>>>
->>>> IMHO, it should be up to the main driver to navigate at the MC
->>>> pipeline and call s_stream(), and not to the sub-drivers.  
->>>
->>> I would agree with the above statement *if* we had no devices that 
->>> require doing this in a different way.
->>>
->>> Consider the following case:
->>>
->>> 	sensor   -> CSI-2 receiver -> ISP (DMA)
->>> 	subdev A -> subdev B	   -> video node
->>
->> Let me be clearer about the issue I see.
->>
->> In the above example, what subdevs are supposed to multicast the
->> s_stream() to their neighbors, and how they will know that they
->> need to multicast it.
->>
->> Let's say, that, in the first pipeline, it would be the sensor
->> and subdev A. How "sensor" and "subdev A" will know that they're
->> meant to broadcast s_stream(), and the other entities know they
->> won't?
-> 
-> So my understanding is that the bridge driver (ISP) will call s_stream
-> for the CSI-2 receiver, and that in turn calls s_stream of the sensor.
-> 
-> This should only be done for mc-centric devices, so we need a clear
-> property telling a subdev whether it is part of an mc-centric pipeline
-> or a devnode-centric pipeline. Since in the latter case it should not
-> call s_stream in this way. For devnode-centric pipelines the bridge
-> driver broadcasts s_stream to all subdevs.
-> 
-> For the record, I am not aware of any subdevs that are used by both
-> mc and devnode-centric scenarios AND that can sit in the middle of a
-> pipeline. Sensors/video receiver subdevs can certainly be used in both
-> scenarios, but they don't have to propagate a s_stream call.
-> 
-> It would be very helpful if we have a good description of these two
-> scenarios in our documentation, and a capability indicating mc-centric
-> behavior for devnodes. And also for v4l2-subdevs internally (i.e.
-> am I used in a mc-centric scenario or not?).
-> 
-> Then this documentation will start to make more sense as well.
-> 
->> Also, the same sensor may be used on a device whose CSI-2 is
->> integrated at the ISP driver (the main driver). That's why
->> I think that such logic should be started by the main driver, as
->> it is the only part of the pipeline that it is aware about
->> what it is needed. Also, as the DMA engines are controlled by
->> the main driver (via its associated video devnodes), it is the only
->> part of the pipeline that knows when a stream starts.
-> 
-> Yes, and this driver is the one that calls s_stream on the
-> adjacent subdevs. But just those and not all.
-> 
->>
->>> Assume that the CSI-2 receiver requires hardware setup both *before and 
->>> after* streaming has been enabled on the sensor.
->>
->> calling s_stream() before and after seems to be an abuse of it.
-> 
-> I think you misunderstand what Sakari tries to say.
-> 
-> In the scenario above the bridge driver calls s_stream for the
-> CSI receiver. That in turn has code like this:
-> 
-> s_stream(bool enable)
-> {
-> 	... initialize CSI ...
-> 	if error initializing CSI
-> 		return error
-> 	call s_stream for adjacent source subdev (i.e. sensor)
-> 	if success
-> 		return 0
-> 	... de-initialize CSI
-> 	return error
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c  |  8 --------
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 22 ++++++++++------------
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  2 --
+ 3 files changed, 10 insertions(+), 22 deletions(-)
 
-This isn't really about error handling: error handling can and is being
-done by calling s_stream(0) on subdevs on which streaming had already
-been started.
-
-There are two purposes:
-
-1) The knowledge whether the the upstream sub-device should start
-streaming before or after is ultimately device specific. A driver for
-another device may not know that (or without this information being
-explicitly conveyed for which we don't have an API).
-
-2) There may be a need to prepare things before streaming is started on
-an upstream sub-device as well as proceed with hardware setup *after*
-starting streaming on an upstream sub-device. I.e.
-
-	subdev_s_stream(bool enable)
-	{
-		do some hardware setup;
-		call s_stream on a sensor;
-		do more hardware setup;
-	}
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 03a79de197d19e43..5f9674dc898305ba 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -585,14 +585,6 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
+ 		0, 0);
+ }
+ 
+-void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
+-		    u32 width, u32 height)
+-{
+-	/* All VIN channels on Gen2 have scalers */
+-	pix->width = width;
+-	pix->height = height;
+-}
+-
+ /* -----------------------------------------------------------------------------
+  * Hardware setup
+  */
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index ba88774bd5379a98..affdc128a75e502e 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -166,6 +166,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 		.which = which,
+ 	};
+ 	enum v4l2_field field;
++	u32 width, height;
+ 	int ret;
+ 
+ 	sd = vin_to_source(vin);
+@@ -178,7 +179,10 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 
+ 	format.pad = vin->digital.source_pad;
+ 
++	/* Allow the video device to override field and to scale */
+ 	field = pix->field;
++	width = pix->width;
++	height = pix->height;
+ 
+ 	ret = v4l2_subdev_call(sd, pad, set_fmt, pad_cfg, &format);
+ 	if (ret < 0 && ret != -ENOIOCTLCMD)
+@@ -191,6 +195,9 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 	source->width = pix->width;
+ 	source->height = pix->height;
+ 
++	pix->width = width;
++	pix->height = height;
++
+ 	vin_dbg(vin, "Source resolution: %ux%u\n", source->width,
+ 		source->height);
+ 
+@@ -204,13 +211,9 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 			     struct v4l2_pix_format *pix,
+ 			     struct rvin_source_fmt *source)
+ {
+-	u32 rwidth, rheight, walign;
++	u32 walign;
+ 	int ret;
+ 
+-	/* Requested */
+-	rwidth = pix->width;
+-	rheight = pix->height;
+-
+ 	/* Keep current field if no specific one is asked for */
+ 	if (pix->field == V4L2_FIELD_ANY)
+ 		pix->field = vin->format.field;
+@@ -248,10 +251,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 		break;
+ 	}
+ 
+-	/* If source can't match format try if VIN can scale */
+-	if (source->width != rwidth || source->height != rheight)
+-		rvin_scale_try(vin, pix, rwidth, rheight);
+-
+ 	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
+ 	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
+ 
+@@ -270,9 +269,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 		return -EINVAL;
+ 	}
+ 
+-	vin_dbg(vin, "Requested %ux%u Got %ux%u bpl: %d size: %d\n",
+-		rwidth, rheight, pix->width, pix->height,
+-		pix->bytesperline, pix->sizeimage);
++	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
++		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 2d8b362012ea46a3..b2bac06c0a3cfcb7 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -177,8 +177,6 @@ int rvin_reset_format(struct rvin_dev *vin);
+ const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
+ 
+ /* Cropping, composing and scaling */
+-void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
+-		    u32 width, u32 height);
+ void rvin_crop_scale_comp(struct rvin_dev *vin);
+ 
+ #endif
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.14.0
