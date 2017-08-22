@@ -1,69 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46416 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53754 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751874AbdHASrF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 1 Aug 2017 14:47:05 -0400
+        with ESMTP id S1751290AbdHVVDB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 Aug 2017 17:03:01 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: kieran.bingham@ideasonboard.com
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2 11/14] v4l: vsp1: Add support for header display lists in continuous mode
-Date: Tue, 01 Aug 2017 21:47:16 +0300
-Message-ID: <3464715.HJz2XH12Bc@avalon>
-In-Reply-To: <5051664d-1793-2245-28cd-94334f847977@ideasonboard.com>
-References: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com> <20170626181226.29575-12-laurent.pinchart+renesas@ideasonboard.com> <5051664d-1793-2245-28cd-94334f847977@ideasonboard.com>
+To: Cyprian Wronka <cwronka@cadence.com>
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Neil Webb <neilw@cadence.com>,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v2 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
+Date: Wed, 23 Aug 2017 00:03:32 +0300
+Message-ID: <2518768.foDtbh9bhx@avalon>
+In-Reply-To: <EB0D0DEA-1418-4237-910D-F0BE0B9069A1@cadence.com>
+References: <20170720092302.2982-1-maxime.ripard@free-electrons.com> <6400552.TlCMAsqn3H@avalon> <EB0D0DEA-1418-4237-910D-F0BE0B9069A1@cadence.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Hi Cyprian,
 
-On Tuesday 01 Aug 2017 18:35:48 Kieran Bingham wrote:
-> On 26/06/17 19:12, Laurent Pinchart wrote:
-> > The VSP supports both header and headerless display lists. The latter is
-> > easier to use when the VSP feeds data directly to the DU in continuous
-> > mode, and the driver thus uses headerless display lists for DU operation
-> > and header display lists otherwise.
-> > 
-> > Headerless display lists are only available on WPF.0. This has never
-> > been an issue so far, as only WPF.0 is connected to the DU. However, on
-> > H3 ES2.0, the VSP-DL instance has both WPF.0 and WPF.1 connected to the
-> > DU. We thus can't use headerless display lists unconditionally for DU
-> > operation.
-> 
-> Would it be crazy to suggest we drop headerless display lists?
-> 
-> If we must support header display lists in continuous mode - Rather than
-> having 2 cases for continuous modes to support (having to support
-> headerless, on WPF.0, and header on WPF.1) if we just use your header loop
-> trick - would that simplify our code maintenance?
-> 
-> (We can always remove headerless support later if you agree, this is more of
-> an idea at the moment)
+On Tuesday, 22 August 2017 22:25:49 EEST Cyprian Wronka wrote:
+> On 22/08/2017, 02:01, Laurent Pinchart wrote:
+>> On Tuesday, 22 August 2017 11:53:20 EEST Maxime Ripard wrote:
+>>> On Mon, Aug 07, 2017 at 11:18:03PM +0300, Laurent Pinchart wrote:
+>>>> On Thursday 20 Jul 2017 11:23:01 Maxime Ripard wrote:
+>>>> The Cadence MIPI-CSI2 RX controller is a CSI2RX bridge that
+>>>>> supports up to 4 CSI-2 lanes, and can route the frames to up to 4
+>>>>> streams, depending on the hardware implementation.
+>>>>> 
+>>>>> It can operate with an external D-PHY, an internal one or no D-PHY
+>>>>> at all in some configurations.
+>>>> 
+>>>> Without any PHY ? I'm curious, how does that work ?
+>>>
+>>> We're currently working on an FPGA exactly with that configuration.
+>>> So I guess the answer would be "it doesn't on an ASIC" :)
+>>>
+>> What's connected to the input of the CSI-2 receiver ?
+>> 
+> It is connected to an instance of a CSI TX digital interface.
 
-I had the exact same thought, but I believe we should wait a few kernel 
-releases to see if the next code is stable before removing the old one. I have 
-a debug patch that forces usage of header display lists unconditionally, and 
-I'll try to develop a few additional stress-tests for that.
+That makes sense. I suppose it's a test setup
 
-> > Implement support for continuous mode with header display lists, and use
-> > it for DU operation on WPF outputs that don't support headerless mode.
-> > 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
+>>>>> Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+>>>>> ---
+>>>>> 
+>>>>> 
+>>>>>  .../devicetree/bindings/media/cdns-csi2rx.txt> | 87
+>>>>>  ++++++++++++++++
+>>>>>  1 file changed, 87 insertions(+)
+>>>>>  create mode 100644
+>>>>>  Documentation/devicetree/bindings/media/cdns-csi2rx.txt
+>>>>> 
+>>>>> 
+>>>>> diff --git
+>>>>> a/Documentation/devicetree/bindings/media/cdns-csi2rx.txt
+>>>>> b/Documentation/devicetree/bindings/media/cdns-csi2rx.txt new file
+>>>>> mode 100644
+>>>>> index 000000000000..e08547abe885
+>>>>> --- /dev/null
+>>>>> +++ b/Documentation/devicetree/bindings/media/cdns-csi2rx.txt
+>>>>> @@ -0,0 +1,87 @@
+>>>>> +Cadence MIPI-CSI2 RX controller
+>>>>> +===============================
+>>>>> +
+>>>>> +The Cadence MIPI-CSI2 RX controller is a CSI-2 bridge supporting
+>>>>> up to 4 CSI
+>>>>> +lanes in input, and 4 different pixel streams in output.
+>>>>> +
+>>>>> +Required properties:
+>>>>> +  - compatible: must be set to "cdns,csi2rx" and an SoC-specific
+>>>>> compatible
+>>>>> +  - reg: base address and size of the memory mapped region
+>>>>> +  - clocks: phandles to the clocks driving the controller
+>>>>> +  - clock-names: must contain:
+>>>>> +    * sys_clk: main clock
+>>>>> +    * p_clk: register bank clock
+>>>>> +    * p_free_clk: free running register bank clock
+>>>>> +    * pixel_ifX_clk: pixel stream output clock, one for each
+>>>>> stream
+>>>>> +      implemented in hardware, between 0 and 3
+>>>> 
+>>>> Nitpicking, I would write the name is pixel_if[0-3]_clk, it took me
+>>>> a few seconds to see that the X was a placeholder.
+>>> 
+>>> Ok.
+>>> 
+>>>>> +    * dphy_rx_clk: D-PHY byte clock, if implemented in hardware
+>>>>> +  - phys: phandle to the external D-PHY
+>>>>> +  - phy-names: must contain dphy, if the implementation uses an
+>>>>> +     external D-PHY
+>>>> 
+>>>> I would move the last two properties in an optional category as
+>>>> they're effectively optional. I think you should also explain a bit more
+>>>> clearly that the phys property must not be present if the phy-names
+>>>> property is not present.
+>>> 
+>>> It's not really optional. The IP has a configuration register that
+>>> allows you to see if it's been synthesized with or without a PHY. If
+>>> the right bit is set, that property will be mandatory, if not, it's
+>>> useless.
+>> 
+>> Just to confirm, the PHY is a separate IP core, right ? Is the CSI-2
+>> receiver input interface different when used with a PHY and when used
+>> without one ? Could a third-party PHY be used as well ? If so, would the
+>> PHY synthesis bit be set or not ?
 > 
-> Except for future discussion points, I can't see anything wrong here so:
-> 
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> > ---
-> > 
-> >  drivers/media/platform/vsp1/vsp1_dl.c   | 195 +++++++++++++++++---------
-> >  drivers/media/platform/vsp1/vsp1_regs.h |   1 +
-> >  2 files changed, 127 insertions(+), 69 deletions(-)
+> The PHY (in our case a D-PHY) is a separate entity, it can be from a 3rd
+> party as the IP interface is standard, the SoC integrator would set the bit
+> accordingly based on whether any PHY is present or not. There is also an
+> option of routing digital output from a CSI-TX to a CSI-RX and in such case
+> a PHY would not need to be used (as in the case of our current platform). 
+
+OK, thank you for the clarification. 
+
+Maxime mentioned that a bit can be read from a register to notify whether a 
+PHY has been synthesized or not. Does it influence the CSI-2 RX input 
+interface at all, or is the CSI-2 RX IP core synthesized the same way 
+regardless of whether a PHY is present or not ?
+
+>>> Maybe it's just semantics, but to me, optional means that it can
+>>> operate with or without it under any circumstances. It's not really
+>>> the case here.
+>> 
+>> It's a semantic issue, but documenting a property as required when it can
+>> be ommitted under some circumstances seems even weirder to me :-) I
+>> understand the optional category as "can be ommitted in certain
+>> circumstances". 
+>> 
+>>>>> +
+>>>>> +Required subnodes:
+>>>>> +  - ports: A ports node with endpoint definitions as defined in
+>>>>> + Documentation/devicetree/bindings/media/video-interfaces.txt. The
+>>>>> + first port subnode should be the input endpoint, the
+>>>>> second one the
+>>>>> + outputs
+>>>>> +
+>>>>> +  The output port should have as many endpoints as stream
+>>>>> supported by
+>>>>> +  the hardware implementation, between 1 and 4, their ID being
+>>>>> the
+>>>>> +  stream output number used in the implementation.
+>>>> 
+>>>> I don't think that's correct. The IP has four independent outputs,
+>>>> it should have 4 output ports for a total for 5 ports. Multiple
+>>>> endpoints per port would describe multiple connections from the same
+>>>> output to different sinks.
+>>>
+>>> Ok.
 
 -- 
 Regards,
