@@ -1,57 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59920 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751880AbdHHMPP (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:55996 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752767AbdHVX2m (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Aug 2017 08:15:15 -0400
-Date: Tue, 8 Aug 2017 15:15:12 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        linux-media <linux-media@vger.kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>
-Subject: Re: [PATCH 1/2] [media] ov7670: Return the real error code
-Message-ID: <20170808121511.76mqltaiyeraxkvo@valkosipuli.retiisi.org.uk>
-References: <1500435259-5838-1-git-send-email-festevam@gmail.com>
- <20170808112406.gkr2jhedzjkdr2ww@valkosipuli.retiisi.org.uk>
- <CAOMZO5CDVNR563UD-na882hGijaxd6ob9hUt83K_ycqmSCSmgg@mail.gmail.com>
+        Tue, 22 Aug 2017 19:28:42 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v6 05/25] rcar-vin: change name of video device
+Date: Wed, 23 Aug 2017 01:26:20 +0200
+Message-Id: <20170822232640.26147-6-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOMZO5CDVNR563UD-na882hGijaxd6ob9hUt83K_ycqmSCSmgg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 08, 2017 at 08:56:14AM -0300, Fabio Estevam wrote:
-> Hi Sakari,
-> 
-> On Tue, Aug 8, 2017 at 8:24 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> 
-> > I don't think -EPROBE_DEFER is returned by clk_get() if the clock can't be
-> > found. The clock providers often are e.g. ISP drivers that may well be
-> 
-> Yes, it is.
-> 
-> Please check:
-> 
-> commit a34cd4666f3da84228a82f70c94b8d9b692034ea
-> Author: Jean-Francois Moine <moinejf@free.fr>
-> Date:   Mon Nov 25 19:47:04 2013 +0100
-> 
->     clk: return probe defer when DT clock not yet ready
-> 
->     At probe time, a clock device may not be ready when some other device
->     wants to use it.
-> 
->     This patch lets the functions clk_get/devm_clk_get return a probe defer
->     when the clock is defined in the DT but not yet available.
+The rcar-vin driver needs to be part of a media controller to support
+Gen3. Give each VIN instance a unique name so it can be referenced from
+userspace.
 
-Nice! I'll apply both then.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Thanks!
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 3c4dd08261a0d3f5..ba88774bd5379a98 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -878,7 +878,8 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 	vdev->fops = &rvin_fops;
+ 	vdev->v4l2_dev = &vin->v4l2_dev;
+ 	vdev->queue = &vin->queue;
+-	strlcpy(vdev->name, KBUILD_MODNAME, sizeof(vdev->name));
++	snprintf(vdev->name, sizeof(vdev->name), "%s %s", KBUILD_MODNAME,
++		 dev_name(vin->dev));
+ 	vdev->release = video_device_release_empty;
+ 	vdev->ioctl_ops = &rvin_ioctl_ops;
+ 	vdev->lock = &vin->lock;
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.14.0
