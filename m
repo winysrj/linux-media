@@ -1,110 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60262 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752457AbdHJPtu (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:41837
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753628AbdHWI5E (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Aug 2017 11:49:50 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: linux-leds@vger.kernel.org, jacek.anaszewski@gmail.com,
-        laurent.pinchart@ideasonboard.com, Johan Hovold <johan@kernel.org>,
-        Alex Elder <elder@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        greybus-dev@lists.linaro.org, devel@driverdev.osuosl.org,
-        viresh.kumar@linaro.org, Rui Miguel Silva <rmfrfs@gmail.com>
-Subject: [PATCH v3 1/3] staging: greybus: light: fix memory leak in v4l2 register
-Date: Thu, 10 Aug 2017 18:49:45 +0300
-Message-Id: <20170810154947.2283-2-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170810154947.2283-1-sakari.ailus@linux.intel.com>
-References: <20170810154947.2283-1-sakari.ailus@linux.intel.com>
+        Wed, 23 Aug 2017 04:57:04 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH v2 3/4] docs-rst: pdf: use same vertical margin on all Sphinx versions
+Date: Wed, 23 Aug 2017 05:56:56 -0300
+Message-Id: <0e6417df428a74e82e84aeb41f07e8aaa0aed495.1503477995.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503477995.git.mchehab@s-opensource.com>
+References: <cover.1503477995.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503477995.git.mchehab@s-opensource.com>
+References: <cover.1503477995.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Rui Miguel Silva <rmfrfs@gmail.com>
+Currently, on Sphinx up to version 1.4, pdf output uses a vertical
+margin of 1 inch. For upper versions, it uses a margin of 0.5 inches.
 
-We are allocating memory for the v4l2 flash configuration structure and
-leak it in the normal path. Just use the stack for this as we do not
-use it outside of this function.
+That causes both page headers and footers to be very close to the margin
+of the sheet. Not all printers support writing like that.
 
-Also use IS_ERR() instead of IS_ERR_OR_NULL() to check return value from
-v4l2_flash_init() for it never returns NULL.
+Also, there's no reason why the layout for newer versions would be
+different than for previous ones.
 
-Fixes: 2870b52bae4c ("greybus: lights: add lights implementation")
-Reported-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Rui Miguel Silva <rmfrfs@gmail.com>
-Reviewed-by: Viresh Kumar <viresh.kumar@linaro.org>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+So, standardize it, by always setting to 1 inch.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/staging/greybus/light.c | 29 +++++++++--------------------
- 1 file changed, 9 insertions(+), 20 deletions(-)
+ Documentation/conf.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/greybus/light.c b/drivers/staging/greybus/light.c
-index 129ceed39829..81469d087e74 100644
---- a/drivers/staging/greybus/light.c
-+++ b/drivers/staging/greybus/light.c
-@@ -534,25 +534,20 @@ static int gb_lights_light_v4l2_register(struct gb_light *light)
- {
- 	struct gb_connection *connection = get_conn_from_light(light);
- 	struct device *dev = &connection->bundle->dev;
--	struct v4l2_flash_config *sd_cfg;
-+	struct v4l2_flash_config sd_cfg = { {0} };
- 	struct led_classdev_flash *fled;
- 	struct led_classdev *iled = NULL;
- 	struct gb_channel *channel_torch, *channel_ind, *channel_flash;
--	int ret = 0;
--
--	sd_cfg = kcalloc(1, sizeof(*sd_cfg), GFP_KERNEL);
--	if (!sd_cfg)
--		return -ENOMEM;
+diff --git a/Documentation/conf.py b/Documentation/conf.py
+index 71b032bb44fd..8e74d68037a5 100644
+--- a/Documentation/conf.py
++++ b/Documentation/conf.py
+@@ -344,7 +344,7 @@ if major == 1 and minor > 3:
+ if major == 1 and minor <= 4:
+     latex_elements['preamble']  += '\\usepackage[margin=0.5in, top=1in, bottom=1in]{geometry}'
+ elif major == 1 and (minor > 5 or (minor == 5 and patch >= 3)):
+-    latex_elements['sphinxsetup'] = 'hmargin=0.5in, vmargin=0.5in'
++    latex_elements['sphinxsetup'] = 'hmargin=0.5in, vmargin=1in'
  
- 	channel_torch = get_channel_from_mode(light, GB_CHANNEL_MODE_TORCH);
- 	if (channel_torch)
- 		__gb_lights_channel_v4l2_config(&channel_torch->intensity_uA,
--						&sd_cfg->torch_intensity);
-+						&sd_cfg.torch_intensity);
  
- 	channel_ind = get_channel_from_mode(light, GB_CHANNEL_MODE_INDICATOR);
- 	if (channel_ind) {
- 		__gb_lights_channel_v4l2_config(&channel_ind->intensity_uA,
--						&sd_cfg->indicator_intensity);
-+						&sd_cfg.indicator_intensity);
- 		iled = &channel_ind->fled.led_cdev;
- 	}
- 
-@@ -561,27 +556,21 @@ static int gb_lights_light_v4l2_register(struct gb_light *light)
- 
- 	fled = &channel_flash->fled;
- 
--	snprintf(sd_cfg->dev_name, sizeof(sd_cfg->dev_name), "%s", light->name);
-+	snprintf(sd_cfg.dev_name, sizeof(sd_cfg.dev_name), "%s", light->name);
- 
- 	/* Set the possible values to faults, in our case all faults */
--	sd_cfg->flash_faults = LED_FAULT_OVER_VOLTAGE | LED_FAULT_TIMEOUT |
-+	sd_cfg.flash_faults = LED_FAULT_OVER_VOLTAGE | LED_FAULT_TIMEOUT |
- 		LED_FAULT_OVER_TEMPERATURE | LED_FAULT_SHORT_CIRCUIT |
- 		LED_FAULT_OVER_CURRENT | LED_FAULT_INDICATOR |
- 		LED_FAULT_UNDER_VOLTAGE | LED_FAULT_INPUT_VOLTAGE |
- 		LED_FAULT_LED_OVER_TEMPERATURE;
- 
- 	light->v4l2_flash = v4l2_flash_init(dev, NULL, fled, iled,
--					    &v4l2_flash_ops, sd_cfg);
--	if (IS_ERR_OR_NULL(light->v4l2_flash)) {
--		ret = PTR_ERR(light->v4l2_flash);
--		goto out_free;
--	}
-+					    &v4l2_flash_ops, &sd_cfg);
-+	if (IS_ERR(light->v4l2_flash))
-+		return PTR_ERR(light->v4l2_flash);
- 
--	return ret;
--
--out_free:
--	kfree(sd_cfg);
--	return ret;
-+	return 0;
- }
- 
- static void gb_lights_light_v4l2_unregister(struct gb_light *light)
+ # Grouping the document tree into LaTeX files. List of tuples
 -- 
-2.11.0
+2.13.3
