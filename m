@@ -1,157 +1,359 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-49.mail.aliyun.com ([115.124.20.49]:48038 "EHLO
-        out20-49.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751558AbdH1HBD (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:32806 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753445AbdHWJB1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Aug 2017 03:01:03 -0400
-Date: Mon, 28 Aug 2017 15:00:42 +0800
-From: Yong <yong.deng@magewell.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benoit Parrot <bparrot@ti.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
-Message-Id: <20170828150042.1832cfd1bfbeadf1e62e8019@magewell.com>
-In-Reply-To: <20170825134114.rwttrmzw5gbtwdx2@flea.lan>
-References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
-        <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
-        <20170728160233.xooevio4hoqkgfaq@flea.lan>
-        <20170731111640.d5a8e580a48183cfce85943d@magewell.com>
-        <20170822174339.6woauylgzkgqxygk@flea.lan>
-        <20170823103216.e43283308c195c4a80d929fa@magewell.com>
-        <20170825134114.rwttrmzw5gbtwdx2@flea.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Wed, 23 Aug 2017 05:01:27 -0400
+Date: Wed, 23 Aug 2017 12:01:24 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, hverkuil@xs4all.nl, devicetree@vger.kernel.org
+Subject: Re: [PATCH v3 2/3] v4l: fwnode: Support generic parsing of graph
+ endpoints in a device
+Message-ID: <20170823090123.ztqz6usu7l5qdwkj@valkosipuli.retiisi.org.uk>
+References: <20170818112317.30933-1-sakari.ailus@linux.intel.com>
+ <20170818112317.30933-3-sakari.ailus@linux.intel.com>
+ <2804301.TqBigdGaBJ@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2804301.TqBigdGaBJ@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+Hi Laurent,
 
-On Fri, 25 Aug 2017 15:41:14 +0200
-Maxime Ripard <maxime.ripard@free-electrons.com> wrote:
+Thanks for the critique.
 
-> Hi Yong,
+On Tue, Aug 22, 2017 at 03:52:33PM +0300, Laurent Pinchart wrote:
+> Hi Sakari,
 > 
-> On Wed, Aug 23, 2017 at 10:32:16AM +0800, Yong wrote:
-> > > > > > +static int sun6i_graph_notify_complete(struct v4l2_async_notifier *notifier)
-> > > > > > +{
-> > > > > > +	struct sun6i_csi *csi =
-> > > > > > +			container_of(notifier, struct sun6i_csi, notifier);
-> > > > > > +	struct sun6i_graph_entity *entity;
-> > > > > > +	int ret;
-> > > > > > +
-> > > > > > +	dev_dbg(csi->dev, "notify complete, all subdevs registered\n");
-> > > > > > +
-> > > > > > +	/* Create links for every entity. */
-> > > > > > +	list_for_each_entry(entity, &csi->entities, list) {
-> > > > > > +		ret = sun6i_graph_build_one(csi, entity);
-> > > > > > +		if (ret < 0)
-> > > > > > +			return ret;
-> > > > > > +	}
-> > > > > > +
-> > > > > > +	/* Create links for video node. */
-> > > > > > +	ret = sun6i_graph_build_video(csi);
-> > > > > > +	if (ret < 0)
-> > > > > > +		return ret;
-> > > > > 
-> > > > > Can you elaborate a bit on the difference between a node parsed with
-> > > > > _graph_build_one and _graph_build_video? Can't you just store the
-> > > > > remote sensor when you build the notifier, and reuse it here?
-> > > > 
-> > > > There maybe many usercases:
-> > > > 1. CSI->Sensor.
-> > > > 2. CSI->MIPI->Sensor.
-> > > > 3. CSI->FPGA->Sensor1
-> > > >             ->Sensor2.
-> > > > FPGA maybe some other video processor. FPGA, MIPI, Sensor can be
-> > > > registered as v4l2 subdevs. We do not care about the driver code
-> > > > of them. But they should be linked together here.
-> > > > 
-> > > > So, the _graph_build_one is used to link CSI port and subdevs. 
-> > > > _graph_build_video is used to link CSI port and video node.
-> > > 
-> > > So the graph_build_one is for the two first cases, and the
-> > > _build_video for the latter case?
+> Thank you for the patch.
+> 
+> On Friday, 18 August 2017 14:23:16 EEST Sakari Ailus wrote:
+> > The current practice is that drivers iterate over their endpoints and
+> > parse each endpoint separately. This is very similar in a number of
+> > drivers, implement a generic function for the job. Driver specific matters
+> > can be taken into account in the driver specific callback.
 > > 
-> > No. 
-> > The _graph_build_one is used to link the subdevs found in the device 
-> > tree. _build_video is used to link the closest subdev to video node.
-> > Video node is created in the driver, so the method to get it's pad is
-> > diffrent to the subdevs.
+> > Convert the omap3isp as an example.
 > 
-> Sorry for being slow here, I'm still not sure I get it.
-> 
-> In summary, both the sun6i_graph_build_one and sun6i_graph_build_video
-> will iterate over each endpoint, will retrieve the remote entity, and
-> will create the media link between the CSI pad and the remote pad.
-> 
-> As far as I can see, there's basically two things that
-> sun6i_graph_build_one does that sun6i_graph_build_video doesn't:
->   - It skips all the links that would connect to one of the CSI sinks
->   - It skips all the links that would connect to a remote node that is
->     equal to the CSI node.
-> 
-> I assume the latter is because you want to avoid going in an infinite
-> loop when you would follow one of the CSI endpoint (going to the
-> sensor), and then follow back the same link in the opposite
-> direction. Right?
+> It would be nice to convert at least two drivers to show that the code can 
+> indeed be shared between multiple drivers. Even better, you could convert all 
+> drivers.
 
-Not exactly. But any way, some code is true redundant here. I will 
-make some improve.
+That's the intent in the long run. There's still no definite need to do
+this in a single, big, hot patchset.
 
+>  
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> > drivers/media/platform/omap3isp/isp.c | 116 ++++++++++---------------------
+> > drivers/media/v4l2-core/v4l2-fwnode.c | 125 ++++++++++++++++++++++++++++++++
+> > include/media/v4l2-async.h            |   4 +-
+> > include/media/v4l2-fwnode.h           |   9 +++
+> > 4 files changed, 173 insertions(+), 81 deletions(-)
 > 
-> I'm confused about the first one though. All the pads you create in
-> your driver are sink pads, so wouldn't that skip all the pads of the
-> CSI nodes?
+> [snip]
 > 
-> Also, why do you iterate on all the CSI endpoints, when there's only
-> of them? You want to anticipate the future binding for devices with
-> multiple channels?
-> 
-> > > 
-> > > If so, you should take a look at the last iteration of the
-> > > subnotifiers rework by Nikas Söderlund (v4l2-async: add subnotifier
-> > > registration for subdevices).
-> > > 
-> > > It allows subdevs to register notifiers, and you don't have to build
-> > > the graph from the video device, each device and subdev can only care
-> > > about what's next in the pipeline, but not really what's behind it.
-> > > 
-> > > That would mean in your case that you can only deal with your single
-> > > CSI pad, and whatever subdev driver will use it care about its own.
+> > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c
+> > b/drivers/media/v4l2-core/v4l2-fwnode.c index 5cd2687310fe..cb0fc4b4e3bf
+> > 100644
+> > --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> > @@ -26,6 +26,7 @@
+> >  #include <linux/string.h>
+> >  #include <linux/types.h>
 > > 
-> > Do you mean the subdevs create pad link in the notifier registered by
-> > themself ?
+> > +#include <media/v4l2-async.h>
+> >  #include <media/v4l2-fwnode.h>
+> > 
+> >  enum v4l2_fwnode_bus_type {
+> > @@ -383,6 +384,130 @@ void v4l2_fwnode_put_link(struct v4l2_fwnode_link
+> > *link) }
+> >  EXPORT_SYMBOL_GPL(v4l2_fwnode_put_link);
+> > 
+> > +static int notifier_realloc(struct device *dev,
+> > +			    struct v4l2_async_notifier *notifier,
+> > +			    unsigned int max_subdevs)
 > 
-> Yes.
-> 
-> Thanks!
-> Maxime
-> 
-> -- 
-> Maxime Ripard, Free Electrons
-> Embedded Linux and Kernel engineering
-> http://free-electrons.com
+> It looks like you interpret the variable as an increment. You shouldn't call 
+> it max_subdevs in that case. I would however keep the name and pass the total 
+> number of subdevs instead of an increment, to mimic the realloc API.
 
+Works for me.
 
-Thanks,
-Yong
+> 
+> > +{
+> > +	struct v4l2_async_subdev **subdevs;
+> > +	unsigned int i;
+> > +
+> > +	if (max_subdevs + notifier->num_subdevs <= notifier->max_subdevs)
+> > +		return 0;
+> > +
+> > +	subdevs = devm_kcalloc(
+> > +		dev, max_subdevs + notifier->num_subdevs,
+> > +		sizeof(*notifier->subdevs), GFP_KERNEL);
+> 
+> We know that we'll have to move away from devm_* allocation to fix object 
+> lifetime management, so we could as well start now.
+
+The memory is in practice allocated using devm_() interface in existing
+drivers. The fact that it's in a single location makes it much easier
+getting rid of it.
+
+I'd rather get rid of memory allocation here in the first place, to be
+replaced by a linked list. But first the user of notifier->subdevs in
+drivers need to go. The framework interface doesn't need to change as a
+result.
+
+> 
+> > +	if (!subdevs)
+> > +		return -ENOMEM;
+> > +
+> > +	if (notifier->subdevs) {
+> > +		for (i = 0; i < notifier->num_subdevs; i++)
+> > +			subdevs[i] = notifier->subdevs[i];
+> 
+> Is there a reason to use a loop here instead of a memcpy() covering the whole 
+> array ?
+
+You could do that, yes, although I'd think this looks nicer. Performance is
+hardly a concern here.
+
+> 
+> > +		devm_kfree(dev, notifier->subdevs);
+> > +	}
+> > +
+> > +	notifier->subdevs = subdevs;
+> > +	notifier->max_subdevs = max_subdevs + notifier->num_subdevs;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int __v4l2_fwnode_endpoint_parse(
+> > +	struct device *dev, struct v4l2_async_notifier *notifier,
+> > +	struct fwnode_handle *endpoint, struct v4l2_async_subdev *asd,
+> > +	int (*parse_single)(struct device *dev,
+> > +			    struct v4l2_fwnode_endpoint *vep,
+> > +			    struct v4l2_async_subdev *asd))
+> > +{
+> > +	struct v4l2_fwnode_endpoint *vep;
+> > +	int ret;
+> > +
+> > +	/* Ignore endpoints the parsing of which failed. */
+> 
+> Silently ignoring invalid DT sounds bad, I'd rather catch errors and return 
+> with an error code to make sure that DT gets fixed.
+
+That would mean that if a single node is bad, none of the correct ones can
+be used either. I'm not sure everyone would be happy about it.
+
+> 
+> > +	vep = v4l2_fwnode_endpoint_alloc_parse(endpoint);
+> > +	if (IS_ERR(vep))
+> > +		return 0;
+> > +
+> > +	notifier->subdevs[notifier->num_subdevs] = asd;
+> > +
+> > +	ret = parse_single(dev, vep, asd);
+> > +	v4l2_fwnode_endpoint_free(vep);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	asd->match.fwnode.fwnode =
+> > +		fwnode_graph_get_remote_port_parent(endpoint);
+> > +	if (!asd->match.fwnode.fwnode) {
+> > +		dev_warn(dev, "bad remote port parent\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+> > +	notifier->num_subdevs++;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +/**
+> > + * v4l2_fwnode_endpoint_parse - Parse V4L2 fwnode endpoints in a device
+> > node
+> 
+> This doesn't match the function name.
+
+Will fix.
+
+> 
+> > + * @dev: local struct device
+> 
+> Based on the documentation only and without a priori knowledge of the API, 
+> local struct device is very vague.
+
+What would you use then?
+
+Write a fairytale about it? :-)
+
+> 
+> > + * @notifier: async notifier related to @dev
+> 
+> Ditto. You need more documentation, especially given that this is the first 
+> function in the core that fills a notifier from DT. You might also want to 
+> reflect that fact in the function name.
+
+I can add more documentation.
+
+> 
+> > + * @asd_struct_size: size of the driver's async sub-device struct,
+> > including
+> > + *		     sizeof(struct v4l2_async_subdev)
+> > + * @parse_single: driver's callback function called on each V4L2 fwnode
+> > endpoint
+> 
+> The parse_single return values should be documented.
+
+Agreed.
+
+> 
+> > + * Parse all V4L2 fwnode endpoints related to the device.
+> > + *
+> > + * Note that this function is intended for drivers to replace the existing
+> > + * implementation that loops over all ports and endpoints. It is NOT
+> > INTENDED TO
+> > + * BE USED BY NEW DRIVERS.
+> 
+> You should document what the preferred way is. And I'd much rather convert 
+> drivers to the preferred way instead of adding a helper function that is 
+> already deprecated.
+
+The preferred way is not a part of this patch but the second one. This is
+intended for moving the existing copies of the same code away from drivers.
+
+The preferred way would be to explicitly check ports and endpoints in them
+for connections. I'm not sure if the existing DT documentation is enough to
+cover this for it does not generally document endpoint numbering.
+
+> 
+> > + */
+> > +int v4l2_fwnode_endpoints_parse(
+> 
+> v4l2_fwnode_parse_endpoints() would sound more natural.
+
+We'll need to think more about naming this. v4l2_fwnode_endpoint_parse()
+will parse a single endpoint and is entirely unaware of the notifier.
+
+How about v4l2_async_notifier_parse_endpoints()? It's a big lengthy though.
+
+> 
+> > +	struct device *dev, struct v4l2_async_notifier *notifier,
+> > +	size_t asd_struct_size,
+> > +	int (*parse_single)(struct device *dev,
+> > +			    struct v4l2_fwnode_endpoint *vep,
+> > +			    struct v4l2_async_subdev *asd))
+> > +{
+> > +	struct fwnode_handle *fwnode = NULL;
+> > +	unsigned int max_subdevs = notifier->max_subdevs;
+> > +	int ret;
+> > +
+> > +	if (asd_struct_size < sizeof(struct v4l2_async_subdev))
+> > +		return -EINVAL;
+> > +
+> > +	while ((fwnode = fwnode_graph_get_next_endpoint(dev_fwnode(dev),
+> > +							fwnode)))
+> > +		max_subdevs++;
+> > +
+> > +	ret = notifier_realloc(dev, notifier, max_subdevs);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
+> > +				     dev_fwnode(dev), fwnode)) &&
+> > +		     !WARN_ON(notifier->num_subdevs >= notifier->max_subdevs);
+> 
+> It's nice to warn that the kernel will crash, but it would be even nicer to 
+> prevent the crash by returning an error instead of continuing parsing 
+> endpoints :-)
+
+I'm not quite sure what do you mean. If the number of sub-devices reaches
+what's allocated for them in the array, this will stop with a warning.
+
+> 
+> > +		) {
+> > +		struct v4l2_async_subdev *asd;
+> > +
+> > +		asd = devm_kzalloc(dev, asd_struct_size, GFP_KERNEL);
+> > +		if (!asd) {
+> > +			ret = -ENOMEM;
+> > +			goto error;
+> > +		}
+> > +
+> > +		ret = __v4l2_fwnode_endpoint_parse(dev, notifier, fwnode, asd,
+> > +						   parse_single);
+> > +		if (ret < 0)
+> > +			goto error;
+> > +	}
+> > +
+> > +error:
+> > +	fwnode_handle_put(fwnode);
+> > +	return ret;
+> > +}
+> > +EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoints_parse);
+> > +
+> >  MODULE_LICENSE("GPL");
+> >  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+> >  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+> > diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> > index c69d8c8a66d0..067f3687774b 100644
+> > --- a/include/media/v4l2-async.h
+> > +++ b/include/media/v4l2-async.h
+> > @@ -78,7 +78,8 @@ struct v4l2_async_subdev {
+> >  /**
+> >   * struct v4l2_async_notifier - v4l2_device notifier data
+> >   *
+> > - * @num_subdevs: number of subdevices
+> > + * @num_subdevs: number of subdevices used in subdevs array
+> > + * @max_subdevs: number of subdevices allocated in subdevs array
+> >   * @subdevs:	array of pointers to subdevice descriptors
+> >   * @v4l2_dev:	pointer to struct v4l2_device
+> >   * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+> > @@ -90,6 +91,7 @@ struct v4l2_async_subdev {
+> >   */
+> >  struct v4l2_async_notifier {
+> >  	unsigned int num_subdevs;
+> > +	unsigned int max_subdevs;
+> >  	struct v4l2_async_subdev **subdevs;
+> >  	struct v4l2_device *v4l2_dev;
+> >  	struct list_head waiting;
+> > diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+> > index cb34dcb0bb65..c75a768d4ef7 100644
+> > --- a/include/media/v4l2-fwnode.h
+> > +++ b/include/media/v4l2-fwnode.h
+> > @@ -25,6 +25,8 @@
+> >  #include <media/v4l2-mediabus.h>
+> > 
+> >  struct fwnode_handle;
+> > +struct v4l2_async_notifier;
+> > +struct v4l2_async_subdev;
+> > 
+> >  #define MAX_DATA_LANES	4
+> > 
+> > @@ -122,4 +124,11 @@ int v4l2_fwnode_parse_link(struct fwnode_handle
+> > *fwnode, struct v4l2_fwnode_link *link);
+> >  void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
+> > 
+> > +int v4l2_fwnode_endpoints_parse(
+> > +	struct device *dev, struct v4l2_async_notifier *notifier,
+> > +	size_t asd_struct_size,
+> > +	int (*parse_single)(struct device *dev,
+> > +			    struct v4l2_fwnode_endpoint *vep,
+> > +			    struct v4l2_async_subdev *asd));
+> > +
+> >  #endif /* _V4L2_FWNODE_H */
+> 
+> 
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
