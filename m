@@ -1,138 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:48856 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751263AbdHFLEH (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:45457 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932405AbdHWTYP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 6 Aug 2017 07:04:07 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] cec-api: log the reason for the -EINVAL in cec_s_mode
-Message-ID: <c38f37df-f07e-c91f-3421-a3f068b06c9d@xs4all.nl>
-Date: Sun, 6 Aug 2017 13:04:05 +0200
+        Wed, 23 Aug 2017 15:24:15 -0400
+Date: Wed, 23 Aug 2017 21:24:13 +0200
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Yong <yong.deng@magewell.com>
+Cc: Baruch Siach <baruch@tkos.co.il>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benoit Parrot <bparrot@ti.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
+Message-ID: <20170823192413.y5psmcgd3ghvpkbz@flea.home>
+References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
+ <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
+ <20170728160233.xooevio4hoqkgfaq@flea.lan>
+ <20170730060801.bkc2kvm72ktixy74@tarshish>
+ <20170821202145.kmxancepyq55v3o2@flea.lan>
+ <20170823104118.b4524830e4bb767d7714772c@magewell.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="gpulx6hmx2kzzbcc"
+Content-Disposition: inline
+In-Reply-To: <20170823104118.b4524830e4bb767d7714772c@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If cec_debug >= 1 then log why the requested mode returned -EINVAL.
 
-It can be hard to debug this since -EINVAL can be returned for many
-reasons. So this should help.
+--gpulx6hmx2kzzbcc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/cec/cec-api.c | 48 +++++++++++++++++++++++++++++++--------------
- 1 file changed, 33 insertions(+), 15 deletions(-)
+On Wed, Aug 23, 2017 at 10:41:18AM +0800, Yong wrote:
+> > > > > +static irqreturn_t sun6i_csi_isr(int irq, void *dev_id)
+> > > > > +{
+> > > > > +	struct sun6i_csi_dev *sdev =3D (struct sun6i_csi_dev *)dev_id;
+> > > > > +	struct regmap *regmap =3D sdev->regmap;
+> > > > > +	u32 status;
+> > > > > +
+> > > > > +	regmap_read(regmap, CSI_CH_INT_STA_REG, &status);
+> > > > > +
+> > > > > +	if ((status & CSI_CH_INT_STA_FIFO0_OF_PD) ||
+> > > > > +	    (status & CSI_CH_INT_STA_FIFO1_OF_PD) ||
+> > > > > +	    (status & CSI_CH_INT_STA_FIFO2_OF_PD) ||
+> > > > > +	    (status & CSI_CH_INT_STA_HB_OF_PD)) {
+> > > > > +		regmap_write(regmap, CSI_CH_INT_STA_REG, status);
+> > > > > +		regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN, 0);
+> > > > > +		regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN,
+> > > > > +				   CSI_EN_CSI_EN);
+> > > >=20
+> > > > You need to enable / disable it at every frame? How do you deal with
+> > > > double buffering? (or did you choose to ignore it for now?)
+> > >=20
+> > > These *_OF_PD status bits indicate an overflow error condition.
+> >=20
+> > Shouldn't we return an error code then? The names of these flags could
+> > be better too.
+>=20
+> Then, where and how to deal with the error coce.
 
-diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
-index 981d199ae4b4..4b03b4f20f11 100644
---- a/drivers/media/cec/cec-api.c
-+++ b/drivers/media/cec/cec-api.c
-@@ -357,34 +357,47 @@ static long cec_s_mode(struct cec_adapter *adap, struct cec_fh *fh,
+If you want to deal with FIFO overflow, I'm not sure you have anything
+to do. It means, you've been to slow to queue buffers, so I guess
+stopping the pipeline until more buffers are queued would make
+sense. And we should probably increase the sequence number while doing
+so to notify the userspace that some frames were lost.
 
- 	if (copy_from_user(&mode, parg, sizeof(mode)))
- 		return -EFAULT;
--	if (mode & ~(CEC_MODE_INITIATOR_MSK | CEC_MODE_FOLLOWER_MSK))
-+	if (mode & ~(CEC_MODE_INITIATOR_MSK | CEC_MODE_FOLLOWER_MSK)) {
-+		dprintk(1, "%s: invalid mode bits set\n", __func__);
- 		return -EINVAL;
-+	}
+Maxime
 
- 	mode_initiator = mode & CEC_MODE_INITIATOR_MSK;
- 	mode_follower = mode & CEC_MODE_FOLLOWER_MSK;
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
 
- 	if (mode_initiator > CEC_MODE_EXCL_INITIATOR ||
--	    mode_follower > CEC_MODE_MONITOR_ALL)
-+	    mode_follower > CEC_MODE_MONITOR_ALL) {
-+		dprintk(1, "%s: unknown mode\n", __func__);
- 		return -EINVAL;
-+	}
+--gpulx6hmx2kzzbcc
+Content-Type: application/pgp-signature; name="signature.asc"
 
- 	if (mode_follower == CEC_MODE_MONITOR_ALL &&
--	    !(adap->capabilities & CEC_CAP_MONITOR_ALL))
-+	    !(adap->capabilities & CEC_CAP_MONITOR_ALL)) {
-+		dprintk(1, "%s: MONITOR_ALL not supported\n", __func__);
- 		return -EINVAL;
-+	}
+-----BEGIN PGP SIGNATURE-----
 
- 	if (mode_follower == CEC_MODE_MONITOR_PIN &&
--	    !(adap->capabilities & CEC_CAP_MONITOR_PIN))
-+	    !(adap->capabilities & CEC_CAP_MONITOR_PIN)) {
-+		dprintk(1, "%s: MONITOR_PIN not supported\n", __func__);
- 		return -EINVAL;
-+	}
+iQIcBAEBAgAGBQJZndZdAAoJEBx+YmzsjxAgxNMP/j4dG39peK/0A3yVi0cULJeZ
+elrAmFZcV+zD7hvugBW1uvMUPJrE+wKYD7pn5Ku7zcqwE37mVTcnJHe2jtMNpWz7
+WpxEau3zgHFUnoVQDuAOIukdC9YB1sp9ocsPNlUmEFpnFe84Lp7fSMGp5SRy4ae/
+lA4vPMaxohiuNjAhKWB67zB/gOYP6L28gtAV4Y+xtAMii+5eT5aAheyGbjl4qi65
+UcqyjKSl+wXutJJ4vzp2FwRdNHBgwhLNd6Bx7LTKdsMx3oQqhQGQOynRg0dApf3Y
+wwDdCkrEXpjCPa/HOmCHM3mUV19QadeHrbufdhpn7CsqqE1sEfy/GkgbLBbb3gF9
+3kJ941WwrBk0ea8Q6EIn65yy0IZNL4rEf3gQ+mOKWT4ueDhtiVS4+6lgoPS6GRuM
+2i0jyc02tDn/4dIW75MOqXgAO+8k2esxPqO+Ok85KE72IBpRSrOknqQmbTGSZF5F
+ICVRLAqhKZLiYAqottL73DFl51fO7fdUfFGUAmwAwtGcR1GrlnMQAVDyOABn2EfV
+SgMYu2rifKYaTskdUfJe/KQ9WCxNJFVDBAwtedsdqbq1C+bv6PRrA2sCZMrtG+9e
+jR0j/Jp4U9A9l/mTC8n0bq5T2JrLSvj9de09tchELP+dwUWZ8vYWdh6MYKI9Pc4H
+ZoadvlBN3bQ8q91EUiMk
+=43hd
+-----END PGP SIGNATURE-----
 
- 	/* Follower modes should always be able to send CEC messages */
- 	if ((mode_initiator == CEC_MODE_NO_INITIATOR ||
- 	     !(adap->capabilities & CEC_CAP_TRANSMIT)) &&
- 	    mode_follower >= CEC_MODE_FOLLOWER &&
--	    mode_follower <= CEC_MODE_EXCL_FOLLOWER_PASSTHRU)
-+	    mode_follower <= CEC_MODE_EXCL_FOLLOWER_PASSTHRU) {
-+		dprintk(1, "%s: cannot transmit\n", __func__);
- 		return -EINVAL;
-+	}
-
- 	/* Monitor modes require CEC_MODE_NO_INITIATOR */
--	if (mode_initiator && mode_follower >= CEC_MODE_MONITOR_PIN)
-+	if (mode_initiator && mode_follower >= CEC_MODE_MONITOR_PIN) {
-+		dprintk(1, "%s: monitor modes require NO_INITIATOR\n",
-+			__func__);
- 		return -EINVAL;
-+	}
-
- 	/* Monitor modes require CAP_NET_ADMIN */
- 	if (mode_follower >= CEC_MODE_MONITOR_PIN && !capable(CAP_NET_ADMIN))
-@@ -465,8 +478,8 @@ static long cec_error_inj(struct cec_adapter *adap, struct cec_fh *fh,
- 			  u32 __user *parg)
- {
- 	struct cec_error_inj error_inj;
--	bool low_drive, inv_bit, stop_after_bit;
--	u8 low_drive_pos, inv_bit_pos, stop_after_bit_pos;
-+	bool invalid_ack, low_drive, inv_bit, stop_after_bit;
-+	u8 invalid_ack_pos, low_drive_pos, inv_bit_pos, stop_after_bit_pos;
-
- 	if (!(adap->capabilities & CEC_CAP_ERROR_INJ))
- 		return -ENOTTY;
-@@ -486,8 +499,9 @@ static long cec_error_inj(struct cec_adapter *adap, struct cec_fh *fh,
- 	}
- 	error_inj.rx_error &= 0x0000ffff;
- 	error_inj.tx_error &= 0x00ffff1f;
--	if (!(error_inj.rx_error & CEC_ERROR_INJ_RX_INVALID_ACK))
--		error_inj.rx_error &= ~0xf0;
-+	invalid_ack = error_inj.rx_error & CEC_ERROR_INJ_RX_INVALID_ACK;
-+	if (!invalid_ack)
-+		error_inj.rx_error &= ~0x00f0;
- 	low_drive = error_inj.rx_error & CEC_ERROR_INJ_RX_LOW_DRIVE;
- 	if (!low_drive)
- 		error_inj.rx_error &= ~0xff00;
-@@ -497,6 +511,7 @@ static long cec_error_inj(struct cec_adapter *adap, struct cec_fh *fh,
- 	stop_after_bit = error_inj.tx_error & CEC_ERROR_INJ_TX_STOP_EARLY;
- 	if (!stop_after_bit)
- 		error_inj.tx_error &= ~0xff0000;
-+	invalid_ack_pos = (error_inj.rx_error & 0x00f0) >> 4;
- 	low_drive_pos = (error_inj.rx_error & 0xff00) >> 8;
- 	inv_bit_pos = (error_inj.tx_error & 0xff00) >> 8;
- 	stop_after_bit_pos = (error_inj.tx_error & 0xff0000) >> 16;
-@@ -505,11 +520,14 @@ static long cec_error_inj(struct cec_adapter *adap, struct cec_fh *fh,
- 		dprintk(1, "%s: bit position > 160\n", __func__);
- 		return -EINVAL;
- 	}
--	if (error_inj.cmd < 256 &&
--	    ((low_drive && low_drive_pos <= 16) ||
--	     (inv_bit && inv_bit_pos <= 16) ||
--	     (stop_after_bit && stop_after_bit_pos <= 16))) {
--		dprintk(1, "%s: bit position <= 16 when cmd < 256\n", __func__);
-+	if (error_inj.cmd < 256 && low_drive && low_drive_pos <= 18) {
-+		dprintk(1, "%s: low drive bit position <= 18 when cmd < 256\n",
-+			__func__);
-+		return -EINVAL;
-+	}
-+	if (error_inj.cmd < 256 && invalid_ack && !invalid_ack_pos) {
-+		dprintk(1, "%s: invalid ack bit position == 0 when cmd < 256\n",
-+			__func__);
- 		return -EINVAL;
- 	}
- 	if (inv_bit_pos &&
--- 
-2.13.2
+--gpulx6hmx2kzzbcc--
