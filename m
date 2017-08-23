@@ -1,77 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f53.google.com ([74.125.83.53]:33040 "EHLO
-        mail-pg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754207AbdHXR0P (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:41831
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753603AbdHWI5D (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Aug 2017 13:26:15 -0400
-Received: by mail-pg0-f53.google.com with SMTP id t3so696771pgt.0
-        for <linux-media@vger.kernel.org>; Thu, 24 Aug 2017 10:26:15 -0700 (PDT)
-Date: Thu, 24 Aug 2017 10:26:09 -0700
-From: Bjorn Andersson <bjorn.andersson@linaro.org>
-To: Bhumika Goyal <bhumirks@gmail.com>
-Cc: julia.lawall@lip6.fr, bp@alien8.de, mchehab@kernel.org,
-        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
-        seanpaul@chromium.org, airlied@linux.ie, g.liakhovetski@gmx.de,
-        tomas.winkler@intel.com, dwmw2@infradead.org,
-        computersforpeace@gmail.com, boris.brezillon@free-electrons.com,
-        marek.vasut@gmail.com, richard@nod.at, cyrille.pitchen@wedev4u.fr,
-        peda@axentia.se, kishon@ti.com, bhelgaas@google.com,
-        thierry.reding@gmail.com, jonathanh@nvidia.com,
-        dvhart@infradead.org, andy@infradead.org, ohad@wizery.com,
-        freude@de.ibm.com, schwidefsky@de.ibm.com,
-        heiko.carstens@de.ibm.com, jth@kernel.org, jejb@linux.vnet.ibm.com,
-        martin.petersen@oracle.com, lduncan@suse.com, cleech@redhat.com,
-        johan@kernel.org, elder@kernel.org, gregkh@linuxfoundation.org,
-        heikki.krogerus@linux.intel.com, linux-edac@vger.kernel.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
-        linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, greybus-dev@lists.linaro.org,
-        devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
-Subject: Re: [PATCH 11/15] remoteproc: make device_type const
-Message-ID: <20170824172609.GF20643@builder>
-References: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
- <1503130946-2854-12-git-send-email-bhumirks@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1503130946-2854-12-git-send-email-bhumirks@gmail.com>
+        Wed, 23 Aug 2017 04:57:03 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        SeongJae Park <sj38.park@gmail.com>,
+        Markus Heiser <markus.heiser@darmarit.de>
+Subject: [PATCH v2 4/4] docs-rst: Allow Sphinx version 1.6
+Date: Wed, 23 Aug 2017 05:56:57 -0300
+Message-Id: <0552b7adf6e023f33494987c3e908101d75250d2.1503477995.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503477995.git.mchehab@s-opensource.com>
+References: <cover.1503477995.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503477995.git.mchehab@s-opensource.com>
+References: <cover.1503477995.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat 19 Aug 01:22 PDT 2017, Bhumika Goyal wrote:
+Now that the PDF building issues with Sphinx 1.6 got fixed,
+update the documentation and scripts accordingly.
 
-> Make this const as it is only stored in the type field of a device
-> structure, which is const.
-> Done using Coccinelle.
-> 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/conf.py              | 3 ---
+ Documentation/doc-guide/sphinx.rst | 4 +---
+ scripts/sphinx-pre-install         | 1 -
+ 3 files changed, 1 insertion(+), 7 deletions(-)
 
-Applied, thanks.
-
-Regards,
-Bjorn
-
-> ---
->  drivers/remoteproc/remoteproc_core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
-> index 364ef28..48b2c5d 100644
-> --- a/drivers/remoteproc/remoteproc_core.c
-> +++ b/drivers/remoteproc/remoteproc_core.c
-> @@ -1360,7 +1360,7 @@ static void rproc_type_release(struct device *dev)
->  	kfree(rproc);
->  }
->  
-> -static struct device_type rproc_type = {
-> +static const struct device_type rproc_type = {
->  	.name		= "remoteproc",
->  	.release	= rproc_type_release,
->  };
-> -- 
-> 1.9.1
-> 
+diff --git a/Documentation/conf.py b/Documentation/conf.py
+index 8e74d68037a5..0834a9933d69 100644
+--- a/Documentation/conf.py
++++ b/Documentation/conf.py
+@@ -331,9 +331,6 @@ latex_elements = {
+         \\setromanfont{DejaVu Sans}
+         \\setmonofont{DejaVu Sans Mono}
+ 
+-	% To allow adjusting table sizes
+-	\\usepackage{adjustbox}
+-
+      '''
+ }
+ 
+diff --git a/Documentation/doc-guide/sphinx.rst b/Documentation/doc-guide/sphinx.rst
+index 8faafb9b2d86..a2417633fdd8 100644
+--- a/Documentation/doc-guide/sphinx.rst
++++ b/Documentation/doc-guide/sphinx.rst
+@@ -80,9 +80,7 @@ output.
+ PDF and LaTeX builds
+ --------------------
+ 
+-Such builds are currently supported only with Sphinx versions 1.4 and 1.5.
+-
+-Currently, it is not possible to do pdf builds with Sphinx version 1.6.
++Such builds are currently supported only with Sphinx versions 1.4 and upper.
+ 
+ For PDF and LaTeX output, you'll also need ``XeLaTeX`` version 3.14159265.
+ 
+diff --git a/scripts/sphinx-pre-install b/scripts/sphinx-pre-install
+index 677756ae34c9..067459760a7b 100755
+--- a/scripts/sphinx-pre-install
++++ b/scripts/sphinx-pre-install
+@@ -40,7 +40,6 @@ my $virtualenv = 1;
+ #
+ 
+ my %texlive = (
+-	'adjustbox.sty'      => 'texlive-adjustbox',
+ 	'amsfonts.sty'       => 'texlive-amsfonts',
+ 	'amsmath.sty'        => 'texlive-amsmath',
+ 	'amssymb.sty'        => 'texlive-amsfonts',
+-- 
+2.13.3
