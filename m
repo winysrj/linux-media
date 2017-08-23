@@ -1,85 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50741
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S933600AbdHYPMI (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:52255 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753738AbdHWKhv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Aug 2017 11:12:08 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v3 6/7] media: videodev2: add a flag for MC-centric devices
-Date: Fri, 25 Aug 2017 12:11:56 -0300
-Message-Id: <9a74d8dd04ae59abc341cb8fbaf71206c86c0e13.1503673702.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503673702.git.mchehab@s-opensource.com>
-References: <cover.1503673702.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503673702.git.mchehab@s-opensource.com>
-References: <cover.1503673702.git.mchehab@s-opensource.com>
+        Wed, 23 Aug 2017 06:37:51 -0400
+Subject: Re: [PATCH 1/3] media: atmel-isc: Not support RBG format from sensor.
+To: Wenyou.Yang@microchip.com, mchehab@s-opensource.com
+Cc: Nicolas.Ferre@microchip.com, linux-kernel@vger.kernel.org,
+        sakari.ailus@iki.fi, corbet@lwn.net,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+References: <20170817071614.12767-1-wenyou.yang@microchip.com>
+ <20170817071614.12767-2-wenyou.yang@microchip.com>
+ <61cb51fa-8d05-6707-00cc-429c761fa6f5@xs4all.nl>
+ <14941b74-8931-4d00-0664-0735fad9b5d1@Microchip.com>
+ <ce6d074b-1c13-d3ea-5dfa-89cca2f26feb@xs4all.nl>
+ <F9F4555C4E01D7469D37975B62D0EFBB6B695B@CHN-SV-EXMX07.mchp-main.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <bbeb178a-d284-7b4c-701e-050bacba83bf@xs4all.nl>
+Date: Wed, 23 Aug 2017 12:37:43 +0200
+MIME-Version: 1.0
+In-Reply-To: <F9F4555C4E01D7469D37975B62D0EFBB6B695B@CHN-SV-EXMX07.mchp-main.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As both vdev-centric and MC-centric devices may implement the
-same APIs, we need a flag to allow userspace to distinguish
-between them.
+On 08/22/17 09:30, Wenyou.Yang@microchip.com wrote:
+> Hi Hans,
+> 
+>> -----Original Message-----
+>> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>> Sent: 2017年8月22日 15:00
+>> To: Wenyou Yang - A41535 <Wenyou.Yang@microchip.com>; Mauro Carvalho
+>> Chehab <mchehab@s-opensource.com>
+>> Cc: Nicolas Ferre - M43238 <Nicolas.Ferre@microchip.com>; linux-
+>> kernel@vger.kernel.org; Sakari Ailus <sakari.ailus@iki.fi>; Jonathan Corbet
+>> <corbet@lwn.net>; linux-arm-kernel@lists.infradead.org; Linux Media Mailing List
+>> <linux-media@vger.kernel.org>
+>> Subject: Re: [PATCH 1/3] media: atmel-isc: Not support RBG format from sensor.
+>>
+>> On 08/22/2017 03:18 AM, Yang, Wenyou wrote:
+>>> Hi Hans,
+>>>
+>>> On 2017/8/21 22:07, Hans Verkuil wrote:
+>>>> On 08/17/2017 09:16 AM, Wenyou Yang wrote:
+>>>>> The 12-bit parallel interface supports the Raw Bayer, YCbCr,
+>>>>> Monochrome and JPEG Compressed pixel formats from the external
+>>>>> sensor, not support RBG pixel format.
+>>>>>
+>>>>> Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+>>>>> ---
+>>>>>
+>>>>>   drivers/media/platform/atmel/atmel-isc.c | 5 +++++
+>>>>>   1 file changed, 5 insertions(+)
+>>>>>
+>>>>> diff --git a/drivers/media/platform/atmel/atmel-isc.c
+>>>>> b/drivers/media/platform/atmel/atmel-isc.c
+>>>>> index d4df3d4ccd85..535bb03783fe 100644
+>>>>> --- a/drivers/media/platform/atmel/atmel-isc.c
+>>>>> +++ b/drivers/media/platform/atmel/atmel-isc.c
+>>>>> @@ -1478,6 +1478,11 @@ static int isc_formats_init(struct isc_device *isc)
+>>>>>   	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code,
+>>>>>   	       NULL, &mbus_code)) {
+>>>>>   		mbus_code.index++;
+>>>>> +
+>>>>> +		/* Not support the RGB pixel formats from sensor */
+>>>>> +		if ((mbus_code.code & 0xf000) == 0x1000)
+>>>>> +			continue;
+>>>> Am I missing something? Here you skip any RGB mediabus formats, but
+>>>> in patch 3/3 you add RGB mediabus formats. But this patch prevents
+>>>> those new formats from being selected, right?
+>>> This patch prevents getting the RGB format from the sensor directly.
+>>> The RGB format can be produced by ISC controller by itself.
+>>
+>> OK, I think I see what is going on here. The isc_formats array really is two arrays
+>> in one: up to RAW_FMT_IND_END it describes what it can receive from the
+>> source, and after that it describes what it can convert it to.
+> 
+> Not exactly.
+> 
+> Yes, up to RAW_FMT_IND_END, these formats must be got from the senor, they are RAW formats.
+> From ISC_FMT_IND_START to ISC_FMT_IND_END, they can be generated by the ISC controller.
+> It is possible they can be got from the sensor too, the driver will check it. 
+> If it can be got from both the sensor and the ISC controller, the user can use the "sensor_preferred" parameter to decide from which one to get.
+> The RBG formats are the exception.
+> 
+>>
+>> But if you can't handle RGB formats from the sensor, then why not make sure
+>> none of the mbus codes in isc_formats uses RGB? That makes much more sense.
+>>
+>> E.g.:
+>>
+>>         { V4L2_PIX_FMT_RGB565, MEDIA_BUS_FMT_RGB565_2X8_LE, 16,
+>>           ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG,
+>> ISC_RLP_CFG_MODE_RGB565,
+>>           ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x7b,
+>>           false, false },
+>>
+>> Why use MEDIA_BUS_FMT_RGB565_2X8_LE if this apparently is not supported?
+> 
+> This array is also the lists of all formats supported by the ISC(including got from the sensor).
+> The RGB formats are only generated by the ISC controller, not from the sensor.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/v4l/open.rst            | 7 +++++++
- Documentation/media/uapi/v4l/vidioc-querycap.rst | 5 +++++
- include/uapi/linux/videodev2.h                   | 2 ++
- 3 files changed, 14 insertions(+)
+You're adding code that skips any entries of the table where mbus_code is an
+RGB code. But this can also be done by not having RGB mbus codes in the table
+in the first place since they make no sense if the HW cannot handle that!
+Set the mbus_code to e.g. 0 for such entries, that makes more sense.
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index b5140dbba49a..3257a0527ac9 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -48,6 +48,13 @@ sub-devices' configuration can be controlled via the
- :ref:`sub-device API <subdev>`, whith creates one device node
- per sub-device.
- 
-+.. attention::
-+
-+   Devices that require **mc-centric** hardware peripheral control should
-+   report a ``V4L2_MC_CENTRIC`` :c:type:`v4l2_capability` flag
-+   (see :ref:`VIDIOC_QUERYCAP`).
-+
-+
- In summary, for **MC-centric** hardware peripheral control:
- 
- - The **V4L2 device** node is responsible for controlling the streaming
-diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-index 12e0d9a63cd8..2b08723375bc 100644
---- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-@@ -252,6 +252,11 @@ specification the ioctl returns an ``EINVAL`` error code.
-     * - ``V4L2_CAP_TOUCH``
-       - 0x10000000
-       - This is a touch device.
-+    * - ``V4L2_MC_CENTRIC``
-+      - 0x20000000
-+      - Indicates that the device require **mc-centric** hardware
-+        control, and thus can't be used by **v4l2-centric** applications.
-+        See :ref:`v4l2_hardware_control` for more details.
-     * - ``V4L2_CAP_DEVICE_CAPS``
-       - 0x80000000
-       - The driver fills the ``device_caps`` field. This capability can
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 45cf7359822c..7b490fe97980 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -460,6 +460,8 @@ struct v4l2_capability {
- 
- #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
- 
-+#define V4L2_CAP_MC_CENTRIC             0x20000000  /* Device require mc-centric hardware control */
-+
- #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device capabilities field */
- 
- /*
--- 
-2.13.3
+I also strongly suggest changing how the table is organized since those
+_FMT_IND_ indices are all to easy to get wrong (and frankly hard to understand).
+
+Regards,
+
+	Hans
+
+> 
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>>
+>>>> Regards,
+>>>>
+>>>> 	Hans
+>>>>
+>>>>> +
+>>>>>   		fmt = find_format_by_code(mbus_code.code, &i);
+>>>>>   		if (!fmt)
+>>>>>   			continue;
+>>>>>
+>>>
+>>> Best Regards,
+>>> Wenyou Yang
+>>>
+> 
+> Best Regards,
+> Wenyou Yang
+> 
