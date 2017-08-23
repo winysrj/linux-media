@@ -1,372 +1,283 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:33940 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752022AbdHIUbg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Aug 2017 16:31:36 -0400
-Received: by mail-wr0-f193.google.com with SMTP id o33so5202448wrb.1
-        for <linux-media@vger.kernel.org>; Wed, 09 Aug 2017 13:31:35 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
-        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
-Subject: [PATCH v3 03/12] [media] ddbridge: split off IRQ handling
-Date: Wed,  9 Aug 2017 22:31:19 +0200
-Message-Id: <20170809203128.31476-4-d.scheller.oss@gmail.com>
-In-Reply-To: <20170809203128.31476-1-d.scheller.oss@gmail.com>
-References: <20170809203128.31476-1-d.scheller.oss@gmail.com>
+Received: from gofer.mess.org ([88.97.38.141]:36403 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753445AbdHWIj1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 23 Aug 2017 04:39:27 -0400
+Date: Wed, 23 Aug 2017 09:39:25 +0100
+From: Sean Young <sean@mess.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Maciej Purski <m.purski@samsung.com>,
+        dri-devel@lists.freedesktop.org, b.zolnierkie@samsung.com,
+        Laurent.pinchart@ideasonboard.com,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v3] drm/bridge/sii8620: add remote control support
+Message-ID: <20170823083924.ulhghb7tqqb7xlhx@gofer.mess.org>
+References: <CGME20170821093335eucas1p2e979406e4ad0b823a57f575c1e6d92d0@eucas1p2.samsung.com>
+ <1503308001-20661-1-git-send-email-m.purski@samsung.com>
+ <a1790a39-22f9-5e47-d3bf-34a8a7c57863@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <a1790a39-22f9-5e47-d3bf-34a8a7c57863@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Hi,
 
-This not only helps keep the ddbridge-core tidy, but also gets rid of
-defined-but-unused-function warnings which might be triggered depending of
-CONFIG_PCI_MSI, without having to clutter the code with #ifdef'ery.
+Some review comments below.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-Tested-by: Richard Scobie <r.scobie@clear.net.nz>
-Tested-by: Jasmin Jessich <jasmin@anw.at>
-Tested-by: Dietmar Spingler <d_spingler@freenet.de>
-Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
----
- drivers/media/pci/ddbridge/Makefile        |   3 +-
- drivers/media/pci/ddbridge/ddbridge-core.c | 117 -----------------------
- drivers/media/pci/ddbridge/ddbridge-irq.c  | 148 +++++++++++++++++++++++++++++
- drivers/media/pci/ddbridge/ddbridge.h      |  12 +--
- 4 files changed, 155 insertions(+), 125 deletions(-)
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-irq.c
+On Wed, Aug 23, 2017 at 09:03:18AM +0200, Hans Verkuil wrote:
+> Maciej,
+> 
+> I'm cross-posting this to linux-media and the rc maintainer Sean Young.
+> 
+> Note that various RC defines have been renamed in the upcoming 4.14. It might be
+> better to base your code on top of https://git.linuxtv.org/media_tree.git/
+> which has those patches merged.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> On 08/21/2017 11:33 AM, Maciej Purski wrote:
+> > MHL specification defines Remote Control Protocol(RCP) to
+> > send input events between MHL devices.
+> > The driver now recognizes RCP messages and reacts to them
+> > by reporting key events to input subsystem, allowing
+> > a user to control a device using TV remote control.
+> > 
+> > Changes in v2:
+> > - use RC subsystem (including CEC keymap)
+> > - RC device initialized in attach drm_bridge callback and
+> >   removed in detach callback. This is necessary, because RC_CORE,
+> >   which is needed during rc_dev init, is loaded after sii8620.
+> >   DRM bridge is binded later which solves the problem.
+> > - add RC_CORE dependency
+> > 
+> > Changes in v3:
+> > - fix error handling in init_rcp and in attach callback
+> > 
+> > Signed-off-by: Maciej Purski <m.purski@samsung.com>
+> > ---
+> >  drivers/gpu/drm/bridge/Kconfig       |   2 +-
+> >  drivers/gpu/drm/bridge/sil-sii8620.c | 101 +++++++++++++++++++++++++++++++++--
+> >  include/drm/bridge/mhl.h             |   4 ++
+> >  3 files changed, 101 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/drivers/gpu/drm/bridge/Kconfig b/drivers/gpu/drm/bridge/Kconfig
+> > index adf9ae0..6ef901c 100644
+> > --- a/drivers/gpu/drm/bridge/Kconfig
+> > +++ b/drivers/gpu/drm/bridge/Kconfig
+> > @@ -71,7 +71,7 @@ config DRM_PARADE_PS8622
+> >  
+> >  config DRM_SIL_SII8620
+> >  	tristate "Silicon Image SII8620 HDMI/MHL bridge"
+> > -	depends on OF
+> > +	depends on OF && RC_CORE
+> >  	select DRM_KMS_HELPER
+> >  	help
+> >  	  Silicon Image SII8620 HDMI/MHL bridge chip driver.
+> > diff --git a/drivers/gpu/drm/bridge/sil-sii8620.c b/drivers/gpu/drm/bridge/sil-sii8620.c
+> > index 2d51a22..e072bca 100644
+> > --- a/drivers/gpu/drm/bridge/sil-sii8620.c
+> > +++ b/drivers/gpu/drm/bridge/sil-sii8620.c
+> > @@ -28,6 +28,8 @@
+> >  #include <linux/regulator/consumer.h>
+> >  #include <linux/slab.h>
+> >  
+> > +#include <media/rc-core.h>
+> > +
+> >  #include "sil-sii8620.h"
+> >  
+> >  #define SII8620_BURST_BUF_LEN 288
+> > @@ -58,6 +60,7 @@ enum sii8620_mt_state {
+> >  struct sii8620 {
+> >  	struct drm_bridge bridge;
+> >  	struct device *dev;
+> > +	struct rc_dev *rc_dev;
+> >  	struct clk *clk_xtal;
+> >  	struct gpio_desc *gpio_reset;
+> >  	struct gpio_desc *gpio_int;
+> > @@ -431,6 +434,16 @@ static void sii8620_mt_rap(struct sii8620 *ctx, u8 code)
+> >  	sii8620_mt_msc_msg(ctx, MHL_MSC_MSG_RAP, code);
+> >  }
+> >  
+> > +static void sii8620_mt_rcpk(struct sii8620 *ctx, u8 code)
+> > +{
+> > +	sii8620_mt_msc_msg(ctx, MHL_MSC_MSG_RCPK, code);
+> > +}
+> > +
+> > +static void sii8620_mt_rcpe(struct sii8620 *ctx, u8 code)
+> > +{
+> > +	sii8620_mt_msc_msg(ctx, MHL_MSC_MSG_RCPE, code);
+> > +}
+> > +
+> >  static void sii8620_mt_read_devcap_send(struct sii8620 *ctx,
+> >  					struct sii8620_mt_msg *msg)
+> >  {
+> > @@ -1753,6 +1766,25 @@ static void sii8620_send_features(struct sii8620 *ctx)
+> >  	sii8620_write_buf(ctx, REG_MDT_XMIT_WRITE_PORT, buf, ARRAY_SIZE(buf));
+> >  }
+> >  
+> > +static bool sii8620_rcp_consume(struct sii8620 *ctx, u8 scancode)
+> > +{
+> > +	bool pressed = !(scancode & MHL_RCP_KEY_RELEASED_MASK);
+> > +
+> > +	scancode &= MHL_RCP_KEY_ID_MASK;
+> > +
+> > +	if (!ctx->rc_dev) {
+> > +		dev_dbg(ctx->dev, "RCP input device not initialized\n");
+> > +		return false;
+> > +	}
+> > +
+> > +	if (pressed)
+> > +		rc_keydown(ctx->rc_dev, RC_TYPE_CEC, scancode, 0);
+> > +	else
+> > +		rc_keyup(ctx->rc_dev);
+> > +
+> > +	return true;
+> > +}
+> > +
+> >  static void sii8620_msc_mr_set_int(struct sii8620 *ctx)
+> >  {
+> >  	u8 ints[MHL_INT_SIZE];
+> > @@ -1804,19 +1836,25 @@ static void sii8620_msc_mt_done(struct sii8620 *ctx)
+> >  
+> >  static void sii8620_msc_mr_msc_msg(struct sii8620 *ctx)
+> >  {
+> > -	struct sii8620_mt_msg *msg = sii8620_msc_msg_first(ctx);
+> > +	struct sii8620_mt_msg *msg;
+> >  	u8 buf[2];
+> >  
+> > -	if (!msg)
+> > -		return;
+> > -
+> >  	sii8620_read_buf(ctx, REG_MSC_MR_MSC_MSG_RCVD_1ST_DATA, buf, 2);
+> >  
+> >  	switch (buf[0]) {
+> >  	case MHL_MSC_MSG_RAPK:
+> > +		msg = sii8620_msc_msg_first(ctx);
+> > +		if (!msg)
+> > +			return;
+> >  		msg->ret = buf[1];
+> >  		ctx->mt_state = MT_STATE_DONE;
+> >  		break;
+> > +	case MHL_MSC_MSG_RCP:
+> > +		if (!sii8620_rcp_consume(ctx, buf[1]))
+> > +			sii8620_mt_rcpe(ctx,
+> > +					MHL_RCPE_STATUS_INEFFECTIVE_KEY_CODE);
+> > +		sii8620_mt_rcpk(ctx, buf[1]);
+> > +		break;
+> >  	default:
+> >  		dev_err(ctx->dev, "%s message type %d,%d not supported",
+> >  			__func__, buf[0], buf[1]);
+> > @@ -2102,11 +2140,62 @@ static void sii8620_cable_in(struct sii8620 *ctx)
+> >  	enable_irq(to_i2c_client(ctx->dev)->irq);
+> >  }
+> >  
+> > +static void sii8620_init_rcp_input_dev(struct sii8620 *ctx)
+> > +{
+> > +	struct rc_dev *rc_dev;
+> > +	int ret;
+> > +
+> > +	rc_dev = rc_allocate_device(RC_DRIVER_SCANCODE);
+> > +	if (!rc_dev) {
+> > +		dev_err(ctx->dev, "Failed to allocate RC device\n");
+> > +		ctx->error = -ENOMEM;
+> > +		return;
+> > +	}
+> > +
+> > +	rc_dev->input_phys = "sii8620/input0";
+> > +	rc_dev->input_id.bustype = BUS_VIRTUAL;
+> > +	rc_dev->map_name = RC_MAP_CEC;
+> > +	rc_dev->allowed_protocols = RC_BIT_CEC;
+> > +	rc_dev->driver_name = "sii8620";
+> > +	rc_dev->input_name = "sii8620";
 
-diff --git a/drivers/media/pci/ddbridge/Makefile b/drivers/media/pci/ddbridge/Makefile
-index fe8ff0c681ad..0a7caa95a3b6 100644
---- a/drivers/media/pci/ddbridge/Makefile
-+++ b/drivers/media/pci/ddbridge/Makefile
-@@ -2,7 +2,8 @@
- # Makefile for the ddbridge device driver
- #
- 
--ddbridge-objs := ddbridge-main.o ddbridge-core.o ddbridge-i2c.o
-+ddbridge-objs := ddbridge-main.o ddbridge-core.o ddbridge-i2c.o \
-+		ddbridge-irq.o
- 
- obj-$(CONFIG_DVB_DDBRIDGE) += ddbridge.o
- 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 177775d7be4d..0799f7c5400c 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -2691,123 +2691,6 @@ void ddb_ports_release(struct ddb *dev)
- /****************************************************************************/
- /****************************************************************************/
- 
--#define IRQ_HANDLE(_nr) \
--	do { if ((s & (1UL << ((_nr) & 0x1f))) && dev->handler[0][_nr]) \
--		dev->handler[0][_nr](dev->handler_data[0][_nr]); } \
--	while (0)
--
--static void irq_handle_msg(struct ddb *dev, u32 s)
--{
--	dev->i2c_irq++;
--	IRQ_HANDLE(0);
--	IRQ_HANDLE(1);
--	IRQ_HANDLE(2);
--	IRQ_HANDLE(3);
--}
--
--static void irq_handle_io(struct ddb *dev, u32 s)
--{
--	dev->ts_irq++;
--	if ((s & 0x000000f0)) {
--		IRQ_HANDLE(4);
--		IRQ_HANDLE(5);
--		IRQ_HANDLE(6);
--		IRQ_HANDLE(7);
--	}
--	if ((s & 0x0000ff00)) {
--		IRQ_HANDLE(8);
--		IRQ_HANDLE(9);
--		IRQ_HANDLE(10);
--		IRQ_HANDLE(11);
--		IRQ_HANDLE(12);
--		IRQ_HANDLE(13);
--		IRQ_HANDLE(14);
--		IRQ_HANDLE(15);
--	}
--	if ((s & 0x00ff0000)) {
--		IRQ_HANDLE(16);
--		IRQ_HANDLE(17);
--		IRQ_HANDLE(18);
--		IRQ_HANDLE(19);
--		IRQ_HANDLE(20);
--		IRQ_HANDLE(21);
--		IRQ_HANDLE(22);
--		IRQ_HANDLE(23);
--	}
--	if ((s & 0xff000000)) {
--		IRQ_HANDLE(24);
--		IRQ_HANDLE(25);
--		IRQ_HANDLE(26);
--		IRQ_HANDLE(27);
--		IRQ_HANDLE(28);
--		IRQ_HANDLE(29);
--		IRQ_HANDLE(30);
--		IRQ_HANDLE(31);
--	}
--}
--
--#ifdef DDB_USE_MSI_IRQHANDLERS
--irqreturn_t irq_handler0(int irq, void *dev_id)
--{
--	struct ddb *dev = (struct ddb *) dev_id;
--	u32 s = ddbreadl(dev, INTERRUPT_STATUS);
--
--	do {
--		if (s & 0x80000000)
--			return IRQ_NONE;
--		if (!(s & 0xfffff00))
--			return IRQ_NONE;
--		ddbwritel(dev, s & 0xfffff00, INTERRUPT_ACK);
--		irq_handle_io(dev, s);
--	} while ((s = ddbreadl(dev, INTERRUPT_STATUS)));
--
--	return IRQ_HANDLED;
--}
--
--irqreturn_t irq_handler1(int irq, void *dev_id)
--{
--	struct ddb *dev = (struct ddb *) dev_id;
--	u32 s = ddbreadl(dev, INTERRUPT_STATUS);
--
--	do {
--		if (s & 0x80000000)
--			return IRQ_NONE;
--		if (!(s & 0x0000f))
--			return IRQ_NONE;
--		ddbwritel(dev, s & 0x0000f, INTERRUPT_ACK);
--		irq_handle_msg(dev, s);
--	} while ((s = ddbreadl(dev, INTERRUPT_STATUS)));
--
--	return IRQ_HANDLED;
--}
--#endif
--
--irqreturn_t irq_handler(int irq, void *dev_id)
--{
--	struct ddb *dev = (struct ddb *) dev_id;
--	u32 s = ddbreadl(dev, INTERRUPT_STATUS);
--	int ret = IRQ_HANDLED;
--
--	if (!s)
--		return IRQ_NONE;
--	do {
--		if (s & 0x80000000)
--			return IRQ_NONE;
--		ddbwritel(dev, s, INTERRUPT_ACK);
--
--		if (s & 0x0000000f)
--			irq_handle_msg(dev, s);
--		if (s & 0x0fffff00)
--			irq_handle_io(dev, s);
--	} while ((s = ddbreadl(dev, INTERRUPT_STATUS)));
--
--	return ret;
--}
--
--/****************************************************************************/
--/****************************************************************************/
--/****************************************************************************/
--
- static int reg_wait(struct ddb *dev, u32 reg, u32 bit)
- {
- 	u32 count = 0;
-diff --git a/drivers/media/pci/ddbridge/ddbridge-irq.c b/drivers/media/pci/ddbridge/ddbridge-irq.c
-new file mode 100644
-index 000000000000..7215767120aa
---- /dev/null
-+++ b/drivers/media/pci/ddbridge/ddbridge-irq.c
-@@ -0,0 +1,148 @@
-+/*
-+ * ddbridge-irq.c: Digital Devices bridge irq handlers
-+ *
-+ * Copyright (C) 2010-2017 Digital Devices GmbH
-+ *                         Ralph Metzler <rjkm@metzlerbros.de>
-+ *                         Marcus Metzler <mocm@metzlerbros.de>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 only, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/delay.h>
-+#include <linux/slab.h>
-+#include <linux/poll.h>
-+#include <linux/io.h>
-+#include <linux/pci.h>
-+#include <linux/pci_ids.h>
-+#include <linux/timer.h>
-+#include <linux/i2c.h>
-+#include <linux/swab.h>
-+#include <linux/vmalloc.h>
-+
-+#include "ddbridge.h"
-+#include "ddbridge-regs.h"
-+#include "ddbridge-io.h"
-+
-+/******************************************************************************/
-+
-+#define IRQ_HANDLE(_nr) \
-+	do { if ((s & (1UL << ((_nr) & 0x1f))) && dev->handler[0][_nr]) \
-+		dev->handler[0][_nr](dev->handler_data[0][_nr]); } \
-+	while (0)
-+
-+static void irq_handle_msg(struct ddb *dev, u32 s)
-+{
-+	dev->i2c_irq++;
-+	IRQ_HANDLE(0);
-+	IRQ_HANDLE(1);
-+	IRQ_HANDLE(2);
-+	IRQ_HANDLE(3);
-+}
-+
-+static void irq_handle_io(struct ddb *dev, u32 s)
-+{
-+	dev->ts_irq++;
-+	if ((s & 0x000000f0)) {
-+		IRQ_HANDLE(4);
-+		IRQ_HANDLE(5);
-+		IRQ_HANDLE(6);
-+		IRQ_HANDLE(7);
-+	}
-+	if ((s & 0x0000ff00)) {
-+		IRQ_HANDLE(8);
-+		IRQ_HANDLE(9);
-+		IRQ_HANDLE(10);
-+		IRQ_HANDLE(11);
-+		IRQ_HANDLE(12);
-+		IRQ_HANDLE(13);
-+		IRQ_HANDLE(14);
-+		IRQ_HANDLE(15);
-+	}
-+	if ((s & 0x00ff0000)) {
-+		IRQ_HANDLE(16);
-+		IRQ_HANDLE(17);
-+		IRQ_HANDLE(18);
-+		IRQ_HANDLE(19);
-+		IRQ_HANDLE(20);
-+		IRQ_HANDLE(21);
-+		IRQ_HANDLE(22);
-+		IRQ_HANDLE(23);
-+	}
-+	if ((s & 0xff000000)) {
-+		IRQ_HANDLE(24);
-+		IRQ_HANDLE(25);
-+		IRQ_HANDLE(26);
-+		IRQ_HANDLE(27);
-+		IRQ_HANDLE(28);
-+		IRQ_HANDLE(29);
-+		IRQ_HANDLE(30);
-+		IRQ_HANDLE(31);
-+	}
-+}
-+
-+irqreturn_t irq_handler0(int irq, void *dev_id)
-+{
-+	struct ddb *dev = (struct ddb *) dev_id;
-+	u32 s = ddbreadl(dev, INTERRUPT_STATUS);
-+
-+	do {
-+		if (s & 0x80000000)
-+			return IRQ_NONE;
-+		if (!(s & 0xfffff00))
-+			return IRQ_NONE;
-+		ddbwritel(dev, s & 0xfffff00, INTERRUPT_ACK);
-+		irq_handle_io(dev, s);
-+	} while ((s = ddbreadl(dev, INTERRUPT_STATUS)));
-+
-+	return IRQ_HANDLED;
-+}
-+
-+irqreturn_t irq_handler1(int irq, void *dev_id)
-+{
-+	struct ddb *dev = (struct ddb *) dev_id;
-+	u32 s = ddbreadl(dev, INTERRUPT_STATUS);
-+
-+	do {
-+		if (s & 0x80000000)
-+			return IRQ_NONE;
-+		if (!(s & 0x0000f))
-+			return IRQ_NONE;
-+		ddbwritel(dev, s & 0x0000f, INTERRUPT_ACK);
-+		irq_handle_msg(dev, s);
-+	} while ((s = ddbreadl(dev, INTERRUPT_STATUS)));
-+
-+	return IRQ_HANDLED;
-+}
-+
-+irqreturn_t irq_handler(int irq, void *dev_id)
-+{
-+	struct ddb *dev = (struct ddb *) dev_id;
-+	u32 s = ddbreadl(dev, INTERRUPT_STATUS);
-+	int ret = IRQ_HANDLED;
-+
-+	if (!s)
-+		return IRQ_NONE;
-+	do {
-+		if (s & 0x80000000)
-+			return IRQ_NONE;
-+		ddbwritel(dev, s, INTERRUPT_ACK);
-+
-+		if (s & 0x0000000f)
-+			irq_handle_msg(dev, s);
-+		if (s & 0x0fffff00)
-+			irq_handle_io(dev, s);
-+	} while ((s = ddbreadl(dev, INTERRUPT_STATUS)));
-+
-+	return ret;
-+}
-diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
-index 3790fd8465a4..7dddc7d3b405 100644
---- a/drivers/media/pci/ddbridge/ddbridge.h
-+++ b/drivers/media/pci/ddbridge/ddbridge.h
-@@ -65,10 +65,6 @@
- 
- #define DDBRIDGE_VERSION "0.9.29-integrated"
- 
--#ifdef CONFIG_PCI_MSI
--#define DDB_USE_MSI_IRQHANDLERS
--#endif
--
- #define DDB_MAX_I2C    32
- #define DDB_MAX_PORT   32
- #define DDB_MAX_INPUT  64
-@@ -378,9 +374,6 @@ void ddb_ports_detach(struct ddb *dev);
- void ddb_ports_release(struct ddb *dev);
- void ddb_buffers_free(struct ddb *dev);
- void ddb_device_destroy(struct ddb *dev);
--irqreturn_t irq_handler0(int irq, void *dev_id);
--irqreturn_t irq_handler1(int irq, void *dev_id);
--irqreturn_t irq_handler(int irq, void *dev_id);
- void ddb_ports_init(struct ddb *dev);
- int ddb_buffers_alloc(struct ddb *dev);
- int ddb_ports_attach(struct ddb *dev);
-@@ -389,4 +382,9 @@ int ddb_class_create(void);
- void ddb_class_destroy(void);
- int ddb_init(struct ddb *dev);
- 
-+/* ddbridge-irq.c */
-+irqreturn_t irq_handler0(int irq, void *dev_id);
-+irqreturn_t irq_handler1(int irq, void *dev_id);
-+irqreturn_t irq_handler(int irq, void *dev_id);
-+
- #endif /* DDBRIDGE_H */
--- 
-2.13.0
+input_name is already renamed to device_name (just like RC_BIT_CEC is
+RC_PROTO_BIT_CEC now, as Hans pointed out already).
+
+> > +
+> > +	ret = rc_register_device(rc_dev);
+> > +	ctx->rc_dev = rc_dev;
+> > +
+> > +	if (ret) {
+> > +		dev_err(ctx->dev, "Failed to register RC device\n");
+> > +		ctx->error = ret;
+> > +		rc_free_device(ctx->rc_dev);
+> > +	}
+
+In this error path, ctx->rc_dev is still set but contains a pointer to
+something which is already freed.
+
+> > +}
+> > +
+> > +static void sii8620_remove_rcp_input_dev(struct sii8620 *ctx)
+> > +{
+> > +	rc_unregister_device(ctx->rc_dev);
+> > +	rc_free_device(ctx->rc_dev);
+
+rc_unregister_device() already frees the rc_dev, don't call rc_free_device()
+as well.
+
+> > +}
+> > +
+> >  static inline struct sii8620 *bridge_to_sii8620(struct drm_bridge *bridge)
+> >  {
+> >  	return container_of(bridge, struct sii8620, bridge);
+> >  }
+> >  
+> > +static int sii8620_attach(struct drm_bridge *bridge)
+> > +{
+> > +	struct sii8620 *ctx = bridge_to_sii8620(bridge);
+> > +
+> > +	sii8620_init_rcp_input_dev(ctx);
+> > +
+> > +	return sii8620_clear_error(ctx);
+> > +}
+> > +
+> > +static void sii8620_detach(struct drm_bridge *bridge)
+> > +{
+> > +	struct sii8620 *ctx = bridge_to_sii8620(bridge);
+> > +
+> > +	sii8620_remove_rcp_input_dev(ctx);
+> > +}
+> > +
+> >  static bool sii8620_mode_fixup(struct drm_bridge *bridge,
+> >  			       const struct drm_display_mode *mode,
+> >  			       struct drm_display_mode *adjusted_mode)
+> > @@ -2151,6 +2240,8 @@ static bool sii8620_mode_fixup(struct drm_bridge *bridge,
+> >  }
+> >  
+> >  static const struct drm_bridge_funcs sii8620_bridge_funcs = {
+> > +	.attach = sii8620_attach,
+> > +	.detach = sii8620_detach,
+> >  	.mode_fixup = sii8620_mode_fixup,
+> >  };
+> >  
+> > @@ -2217,8 +2308,8 @@ static int sii8620_remove(struct i2c_client *client)
+> >  	struct sii8620 *ctx = i2c_get_clientdata(client);
+> >  
+> >  	disable_irq(to_i2c_client(ctx->dev)->irq);
+> > -	drm_bridge_remove(&ctx->bridge);
+> >  	sii8620_hw_off(ctx);
+> > +	drm_bridge_remove(&ctx->bridge);
+> >  
+> >  	return 0;
+> >  }
+> > diff --git a/include/drm/bridge/mhl.h b/include/drm/bridge/mhl.h
+> > index fbdfc8d..96a5e0f 100644
+> > --- a/include/drm/bridge/mhl.h
+> > +++ b/include/drm/bridge/mhl.h
+> > @@ -262,6 +262,10 @@ enum {
+> >  #define MHL_RAPK_UNSUPPORTED	0x02	/* Rcvd RAP action code not supported */
+> >  #define MHL_RAPK_BUSY		0x03	/* Responder too busy to respond */
+> >  
+> > +/* Bit masks for RCP messages */
+> > +#define MHL_RCP_KEY_RELEASED_MASK	0x80
+> > +#define MHL_RCP_KEY_ID_MASK		0x7F
+> > +
+> >  /*
+> >   * Error status codes for RCPE messages
+> >   */
+> > 
