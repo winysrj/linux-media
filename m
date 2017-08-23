@@ -1,41 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:38860 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751858AbdHSTVE (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:38709 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754136AbdHWQKG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Aug 2017 15:21:04 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: hans.verkuil@cisco.com, mchehab@kernel.org, matrandg@cisco.com
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH 3/6] [media] adv7842: constify i2c_device_id
-Date: Sun, 20 Aug 2017 00:50:44 +0530
-Message-Id: <1503170447-18533-4-git-send-email-arvind.yadav.cs@gmail.com>
-In-Reply-To: <1503170447-18533-1-git-send-email-arvind.yadav.cs@gmail.com>
-References: <1503170447-18533-1-git-send-email-arvind.yadav.cs@gmail.com>
+        Wed, 23 Aug 2017 12:10:06 -0400
+Received: by mail-wr0-f195.google.com with SMTP id k10so340954wre.5
+        for <linux-media@vger.kernel.org>; Wed, 23 Aug 2017 09:10:06 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at
+Subject: [PATCH 0/5] last-minute misc ddbridge related changed
+Date: Wed, 23 Aug 2017 18:09:57 +0200
+Message-Id: <20170823161002.25459-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-i2c_device_id are not supposed to change at runtime. All functions
-working with i2c_device_id provided by <linux/i2c.h> work with
-const i2c_device_id. So mark the non-const structs as const.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
----
- drivers/media/i2c/adv7842.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This small series improves on a few things related to the recently merged
+ddbridge driver update:
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 303effd..9b959ec 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -3608,7 +3608,7 @@ static int adv7842_remove(struct i2c_client *client)
- 
- /* ----------------------------------------------------------------------- */
- 
--static struct i2c_device_id adv7842_id[] = {
-+static const struct i2c_device_id adv7842_id[] = {
- 	{ "adv7842", 0 },
- 	{ }
- };
+stv0910:
+  * add an explanation for the mutex_lock needs in gate_ctrl() and release
+    the lock in case of I2C ctrl errors
+  * announce 100Ksyms/s as minimum symbol rate
+ddbridge:
+  * fix the teardown and deregistration order wrt the i2c_client usage
+  * fix most warnings reported by sparse (sparse still reports four
+    spinlock/context warnings, that code will be kept as-is - there
+    won't be locking problems since the checked pointers won't suddenly
+    vanish)
+staging/cxd2099:
+  * disable buffer mode by default and make that controllable by a module
+    parameter (suggested, requested and tested by Jasmin, modparm switch
+    done by me)
+
+Please pull these patches in for the 4.14 merge window, together with the
+two ([1], [2]) remaining ones on patchwork - thank you very much!
+
+[1] https://patchwork.linuxtv.org/patch/43350/
+[2] https://patchwork.linuxtv.org/patch/43202/
+
+Daniel Scheller (5):
+  [media] dvb-frontends/stv0910: release lock on gate_ctrl() failure
+  [media] ddbridge: fix teardown/deregistration order in
+    ddb_input_detach()
+  [media] ddbridge: fix sparse warnings
+  [media] staging/cxd2099: Add module parameter for buffer mode
+  [media] dvb-frontends/stv0910: change minsymrate to 100Ksyms/s
+
+ drivers/media/dvb-frontends/stv0910.c      | 27 +++++++++++++++++-----
+ drivers/media/pci/ddbridge/ddbridge-core.c | 37 +++++++++++++++---------------
+ drivers/media/pci/ddbridge/ddbridge-io.h   | 12 +++++-----
+ drivers/staging/media/cxd2099/cxd2099.c    | 21 +++++++++--------
+ 4 files changed, 57 insertions(+), 40 deletions(-)
+
 -- 
-2.7.4
+2.13.0
