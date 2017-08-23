@@ -1,89 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:38838 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752050AbdHIUbn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Aug 2017 16:31:43 -0400
-Received: by mail-wm0-f66.google.com with SMTP id y206so737425wmd.5
-        for <linux-media@vger.kernel.org>; Wed, 09 Aug 2017 13:31:43 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
-        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
-Subject: [PATCH v3 11/12] [media] ddbridge: Kconfig option to control the MSI modparam default
-Date: Wed,  9 Aug 2017 22:31:27 +0200
-Message-Id: <20170809203128.31476-12-d.scheller.oss@gmail.com>
-In-Reply-To: <20170809203128.31476-1-d.scheller.oss@gmail.com>
-References: <20170809203128.31476-1-d.scheller.oss@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:60387 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751728AbdHWVUN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 23 Aug 2017 17:20:13 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>, linux-media@vger.kernel.org,
+        Max Kellermann <max.kellermann@gmail.com>
+Subject: [RFC 2/3] dvb_frontend: Add dvb_frontend_init() function
+Date: Thu, 24 Aug 2017 00:20:38 +0300
+Message-Id: <20170823212039.27751-3-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20170823212039.27751-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20170823212039.27751-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+The function is meant to initialize a newly allocated frontend before it
+can be used. This ensures that fields needed to release the frontend
+(such as the refcount) are initialized early enough before frontend
+registration to be usable in error handling code paths.
 
-It is known that MSI interrupts - while working quite well so far - can
-still cause issues on some hardware platforms (causing I2C timeouts due
-to unhandled interrupts). The msi variable/option is set to 1 by default.
-So, add a Kconfig option prefixed with "EXPERIMENTAL" that will control
-the default value of that modparam, defaulting to off for a better
-user experience and (guaranteed) stable operation "per default".
-
-Cc: Ralph Metzler <rjkm@metzlerbros.de>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-Tested-by: Richard Scobie <r.scobie@clear.net.nz>
-Tested-by: Jasmin Jessich <jasmin@anw.at>
-Tested-by: Dietmar Spingler <d_spingler@freenet.de>
-Tested-by: Manfred Knick <Manfred.Knick@t-online.de>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/pci/ddbridge/Kconfig         | 15 +++++++++++++++
- drivers/media/pci/ddbridge/ddbridge-main.c | 11 +++++++++--
- 2 files changed, 24 insertions(+), 2 deletions(-)
+ drivers/media/dvb-core/dvb_frontend.c | 44 +++++++++++++++++++++--------------
+ drivers/media/dvb-core/dvb_frontend.h | 11 +++++++++
+ 2 files changed, 38 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/media/pci/ddbridge/Kconfig b/drivers/media/pci/ddbridge/Kconfig
-index c79a58fa5fc3..1330b2ecc72a 100644
---- a/drivers/media/pci/ddbridge/Kconfig
-+++ b/drivers/media/pci/ddbridge/Kconfig
-@@ -26,3 +26,18 @@ config DVB_DDBRIDGE
- 	  - CineS2 V7/V7A and DuoFlex S2 V4 (ST STV0910-based)
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index f8caedc83d70..f957511a4037 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -2679,7 +2679,7 @@ EXPORT_SYMBOL(dvb_frontend_resume);
+ int dvb_register_frontend(struct dvb_adapter* dvb,
+ 			  struct dvb_frontend* fe)
+ {
+-	struct dvb_frontend_private *fepriv;
++	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+ 	const struct dvb_device dvbdev_template = {
+ 		.users = ~0,
+ 		.writers = 1,
+@@ -2696,28 +2696,15 @@ int dvb_register_frontend(struct dvb_adapter* dvb,
+ 	if (mutex_lock_interruptible(&frontend_mutex))
+ 		return -ERESTARTSYS;
  
- 	  Say Y if you own such a card and want to use it.
+-	fe->frontend_priv = kzalloc(sizeof(struct dvb_frontend_private), GFP_KERNEL);
+-	if (fe->frontend_priv == NULL) {
+-		mutex_unlock(&frontend_mutex);
+-		return -ENOMEM;
+-	}
+-	fepriv = fe->frontend_priv;
+-
+-	kref_init(&fe->refcount);
++	printk(KERN_INFO "%s: frontend %p (id %d)\n", __func__, fe, fe->id);
+ 
+ 	/*
+-	 * After initialization, there need to be two references: one
+-	 * for dvb_unregister_frontend(), and another one for
+-	 * dvb_frontend_detach().
++	 * Take a reference to the frontend that will be released at
++	 * unregistration time.
+ 	 */
+ 	dvb_frontend_get(fe);
+ 
+-	sema_init(&fepriv->sem, 1);
+-	init_waitqueue_head (&fepriv->wait_queue);
+-	init_waitqueue_head (&fepriv->events.wait_queue);
+-	mutex_init(&fepriv->events.mtx);
+ 	fe->dvb = dvb;
+-	fepriv->inversion = INVERSION_OFF;
+ 
+ 	dev_info(fe->dvb->device,
+ 			"DVB: registering adapter %i frontend %i (%s)...\n",
+@@ -2775,3 +2762,26 @@ void dvb_frontend_detach(struct dvb_frontend* fe)
+ 	dvb_frontend_put(fe);
+ }
+ EXPORT_SYMBOL(dvb_frontend_detach);
 +
-+config DVB_DDBRIDGE_MSIENABLE
-+	bool "Enable Message Signaled Interrupts (MSI) per default (EXPERIMENTAL)"
-+	depends on DVB_DDBRIDGE
-+	depends on PCI_MSI
-+	default n
-+	---help---
-+	  Use PCI MSI (Message Signaled Interrupts) per default. Enabling this
-+	  might lead to I2C errors originating from the bridge in conjunction
-+	  with certain SATA controllers, requiring a reload of the ddbridge
-+	  module. MSI can still be disabled by passing msi=0 as option, as
-+	  this will just change the msi option default value.
++int dvb_frontend_init(struct dvb_frontend *fe)
++{
++	struct dvb_frontend_private *fepriv;
 +
-+	  If you're unsure, concerned about stability and don't want to pass
-+	  module options in case of troubles, say N.
-diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
-index 5094d2ef79d6..5a930a6e9fb2 100644
---- a/drivers/media/pci/ddbridge/ddbridge-main.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-main.c
-@@ -47,10 +47,17 @@ MODULE_PARM_DESC(adapter_alloc,
- 		 "0-one adapter per io, 1-one per tab with io, 2-one per tab, 3-one for all");
++	fepriv = kzalloc(sizeof(*fepriv), GFP_KERNEL);
++	if (fepriv == NULL)
++		return -ENOMEM;
++
++	fe->frontend_priv = fepriv;
++
++	kref_init(&fe->refcount);
++
++	sema_init(&fepriv->sem, 1);
++	init_waitqueue_head(&fepriv->wait_queue);
++	init_waitqueue_head(&fepriv->events.wait_queue);
++	mutex_init(&fepriv->events.mtx);
++
++	fepriv->inversion = INVERSION_OFF;
++
++	return 0;
++}
++EXPORT_SYMBOL(dvb_frontend_init);
+diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+index 907a05bde162..02fa16ab8650 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -707,6 +707,17 @@ int dvb_register_frontend(struct dvb_adapter *dvb,
+ int dvb_unregister_frontend(struct dvb_frontend *fe);
  
- #ifdef CONFIG_PCI_MSI
-+#ifdef CONFIG_DVB_DDBRIDGE_MSIENABLE
- int msi = 1;
-+#else
-+int msi;
-+#endif
- module_param(msi, int, 0444);
--MODULE_PARM_DESC(msi,
--		 " Control MSI interrupts: 0-disable, 1-enable (default)");
-+#ifdef CONFIG_DVB_DDBRIDGE_MSIENABLE
-+MODULE_PARM_DESC(msi, "Control MSI interrupts: 0-disable, 1-enable (default)");
-+#else
-+MODULE_PARM_DESC(msi, "Control MSI interrupts: 0-disable (default), 1-enable");
-+#endif
- #endif
- 
- int ci_bitrate = 70000;
+ /**
++ * dvb_frontend_init() - Initialize a frontend after allocation
++ * @fe: the frontend to be initialized
++ *
++ * This function must be called by frontend drivers in their attach handler to
++ * initialize the frontend structure they allocate.
++ *
++ * Return 0 on success and a negative error code on failure.
++ */
++int dvb_frontend_init(struct dvb_frontend *fe);
++
++/**
+  * dvb_frontend_detach() - Detaches and frees frontend specific data
+  *
+  * @fe: pointer to the frontend struct
 -- 
-2.13.0
+Regards,
+
+Laurent Pinchart
