@@ -1,78 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:46007 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752293AbdHBSlO (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:34293 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753691AbdHWLBz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 Aug 2017 14:41:14 -0400
+        Wed, 23 Aug 2017 07:01:55 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Hugues FRUCHET <hugues.fruchet@st.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCHv3 0/4] dw-hdmi CEC support
-Date: Wed,  2 Aug 2017 20:41:04 +0200
-Message-Id: <20170802184108.7913-1-hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.14] STM32 DCMI camera interface crop support
+Message-ID: <54c92b09-71d7-907a-b159-cab8e49b8c62@xs4all.nl>
+Date: Wed, 23 Aug 2017 13:01:49 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The following changes since commit 0779b8855c746c90b85bfe6e16d5dfa2a6a46655:
 
-Russell's v2 cover letter:
+  media: ddbridge: fix semicolon.cocci warnings (2017-08-20 10:25:22 -0400)
 
-------------------
-Hi,
+are available in the git repository at:
 
-This series adds dw-hdmi CEC support.  This is done in four stages:
+  git://linuxtv.org/hverkuil/media_tree.git stm32
 
-1. Add cec-notifier support
-2. Fix up the clkdis register support, as this register contains a
-   clock disable bit for the CEC module.
-3. Add the driver.
-4. Remove definitions that are not required from dw-hdmi.h
+for you to fetch changes up to 745df347907e36a5ecd0ac915d27b05ca4af38e9:
 
-The CEC driver has been updated to use the register accessors in the
-main driver - it would be nice if it was possible to use the regmap
-support directly, but there's some knowledge private to the main
-driver that's required to correctly access the registers.  (I don't
-understand why the register stride isn't part of regmap.)
+  stm32-dcmi: g_/s_selection crop support (2017-08-23 12:52:22 +0200)
 
- drivers/gpu/drm/bridge/synopsys/Kconfig       |  10 +
- drivers/gpu/drm/bridge/synopsys/Makefile      |   1 +
- drivers/gpu/drm/bridge/synopsys/dw-hdmi-cec.c | 326 ++++++++++++++++++++++++++
- drivers/gpu/drm/bridge/synopsys/dw-hdmi-cec.h |  19 ++
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.c     |  93 +++++++-
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.h     |  46 +---
- 6 files changed, 437 insertions(+), 58 deletions(-)
+----------------------------------------------------------------
+Hugues Fruchet (4):
+      stm32-dcmi: catch dma submission error
+      stm32-dcmi: revisit control register handling
+      stm32-dcmi: cleanup variable/fields namings
+      stm32-dcmi: g_/s_selection crop support
 
-v2 - fix selection of CEC_NOTIFIER in Kconfig
-------------------
-
-Changes in this v3:
-
-- add missing cec_notifier_put to remove()
-- some checkpatch unsigned -> unsigned int changes
-- cec_transmit_done is replaced by the newer cec_transmit_attempt_done
-- added missing CEC_CAP_PASSTHROUGH
-
-Regards,
-
-	Hans
-
-Russell King (4):
-  drm/bridge: dw-hdmi: add cec notifier support
-  drm/bridge: dw-hdmi: add better clock disable control
-  drm/bridge: dw-hdmi: add cec driver
-  drm/bridge: dw-hdmi: remove CEC engine register definitions
-
- drivers/gpu/drm/bridge/synopsys/Kconfig       |  10 +
- drivers/gpu/drm/bridge/synopsys/Makefile      |   1 +
- drivers/gpu/drm/bridge/synopsys/dw-hdmi-cec.c | 327 ++++++++++++++++++++++++++
- drivers/gpu/drm/bridge/synopsys/dw-hdmi-cec.h |  19 ++
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.c     |  96 +++++++-
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.h     |  46 +---
- 6 files changed, 441 insertions(+), 58 deletions(-)
- create mode 100644 drivers/gpu/drm/bridge/synopsys/dw-hdmi-cec.c
- create mode 100644 drivers/gpu/drm/bridge/synopsys/dw-hdmi-cec.h
-
--- 
-2.13.2
+ drivers/media/platform/stm32/stm32-dcmi.c | 491 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 430 insertions(+), 61 deletions(-)
