@@ -1,122 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50132
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1755508AbdHYM6o (ORCPT
+Received: from mail-yw0-f173.google.com ([209.85.161.173]:36526 "EHLO
+        mail-yw0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754156AbdHWOuY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Aug 2017 08:58:44 -0400
-Date: Fri, 25 Aug 2017 09:58:27 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH v2 1/3] media: open.rst: better document device node
- naming
-Message-ID: <20170825095827.3fac2e1f@vento.lan>
-In-Reply-To: <65c6702e967614245c261b54d9f3fb0e69ec93d0.1503665390.git.mchehab@s-opensource.com>
-References: <cover.1503665390.git.mchehab@s-opensource.com>
-        <65c6702e967614245c261b54d9f3fb0e69ec93d0.1503665390.git.mchehab@s-opensource.com>
+        Wed, 23 Aug 2017 10:50:24 -0400
+Received: by mail-yw0-f173.google.com with SMTP id y64so2090006ywf.3
+        for <linux-media@vger.kernel.org>; Wed, 23 Aug 2017 07:50:24 -0700 (PDT)
+Received: from mail-yw0-f176.google.com (mail-yw0-f176.google.com. [209.85.161.176])
+        by smtp.gmail.com with ESMTPSA id c16sm630334ywa.67.2017.08.23.07.50.22
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 23 Aug 2017 07:50:22 -0700 (PDT)
+Received: by mail-yw0-f176.google.com with SMTP id s143so2192739ywg.1
+        for <linux-media@vger.kernel.org>; Wed, 23 Aug 2017 07:50:22 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <CAAFQd5B0w-xQ-T56NHNOxLCRE-ow0C3PCXk_bfn_Rn4zHifQvQ@mail.gmail.com>
+References: <6F87890CF0F5204F892DEA1EF0D77A59725E1A1D@FMSMSX114.amr.corp.intel.com>
+ <CAAFQd5B0w-xQ-T56NHNOxLCRE-ow0C3PCXk_bfn_Rn4zHifQvQ@mail.gmail.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Wed, 23 Aug 2017 23:50:01 +0900
+Message-ID: <CAAFQd5DFpk7LyfLCJASZUZfvGGxk+4Qi-MYS6iCEn0HZ0ptnsA@mail.gmail.com>
+Subject: Re: [GIT PULL] linux-firmware: intel: Add Kabylake IPU3 firmware
+To: Kyle McMartin <kyle@kernel.org>
+Cc: "linux-firmware@kernel.org" <linux-firmware@kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Zhi, Yong" <yong.zhi@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 25 Aug 2017 09:52:40 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+Hi Kyle,
 
-> Right now, only kAPI documentation describes the device naming.
-> However, such description is needed at the uAPI too. Add it,
-> and describe how to get an unique identify for a given device.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  Documentation/media/uapi/v4l/open.rst | 40 ++++++++++++++++++++++++++++++-----
->  1 file changed, 35 insertions(+), 5 deletions(-)
-> 
-> diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-> index afd116edb40d..9b98d10d5153 100644
-> --- a/Documentation/media/uapi/v4l/open.rst
-> +++ b/Documentation/media/uapi/v4l/open.rst
-> @@ -7,12 +7,12 @@ Opening and Closing Devices
->  ***************************
->  
->  
-> -Device Naming
-> -=============
-> +V4L2 Device Node Naming
-> +=======================
->  
->  V4L2 drivers are implemented as kernel modules, loaded manually by the
->  system administrator or automatically when a device is first discovered.
-> -The driver modules plug into the "videodev" kernel module. It provides
-> +The driver modules plug into the ``videodev`` kernel module. It provides
->  helper functions and a common application interface specified in this
->  document.
->  
-> @@ -20,8 +20,38 @@ Each driver thus loaded registers one or more device nodes with major
->  number 81 and a minor number between 0 and 255. Minor numbers are
->  allocated dynamically unless the kernel is compiled with the kernel
->  option CONFIG_VIDEO_FIXED_MINOR_RANGES. In that case minor numbers
-> -are allocated in ranges depending on the device node type (video, radio,
-> -etc.).
-> +are allocated in ranges depending on the device node type.
-> +
-> +The existing V4L2 device node types are:
-> +
-> +======================== ======================================================
-> +Default device node name Usage
-> +======================== ======================================================
-> +``/dev/videoX``		 Video input/output devices
-> +``/dev/vbiX``		 Vertical blank data (i.e. closed captions, teletext)
-> +``/dev/radioX``		 Radio tuners
-> +``/dev/swradioX``	 Software Defined Radio tuners
-> +``/dev/v4l-touchX``	 Touch sensors
-> +======================== ======================================================
-> +
-> +Where ``X`` is a non-negative number.
-> +
-> +.. note::
-> +
-> +   1. The actual device node name is system-dependent, as udev rules may apply.
-> +   2. There's not warranty that ``X`` will remain the same for the same
-> +      device, as the number depends on the device driver's probe order.
-> +      If you need an unique name, udev default rules produce
-> +      ``/dev/v4l/by-id/`` and ``/dev/v4l/by-path/`` that can use to uniquelly
-> +      identify a V4L2 device node::
-> +
+Are you perhaps the right person to take a look at this? Thanks in
+advance. (Judging by git log. Sorry if that's not the case.)
 
-In time:
-
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index c6ab5fef4443..3b93a32777c2 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -106,8 +106,8 @@ Where ``X`` is a non-negative number.
-    2. There's not warranty that ``X`` will remain the same for the same
-       device, as the number depends on the device driver's probe order.
-       If you need an unique name, udev default rules produce
--      ``/dev/v4l/by-id/`` and ``/dev/v4l/by-path/`` that can use to uniquelly
--      identify a V4L2 device node::
-+      ``/dev/v4l/by-id/`` and ``/dev/v4l/by-path/`` that can be used to
-+      uniquely identify a V4L2 device node::
- 
-        $ tree /dev/v4l
-        /dev/v4l
+Best regards,
+Tomasz
 
 
-> +	$ tree /dev/v4l
-> +	/dev/v4l
-> +	├── by-id
-> +	│   └── usb-OmniVision._USB_Camera-B4.04.27.1-video-index0 -> ../../video0
-> +	└── by-path
-> +	    └── pci-0000:00:14.0-usb-0:2:1.0-video-index0 -> ../../video0
-> +
->  
->  Many drivers support "video_nr", "radio_nr" or "vbi_nr" module
->  options to select specific video/radio/vbi node numbers. This allows the
-
-
-
-Thanks,
-Mauro
+On Tue, Aug 15, 2017 at 8:32 PM, Tomasz Figa <tfiga@chromium.org> wrote:
+> Hi everyone,
+>
+> On Sat, Aug 5, 2017 at 9:04 AM, Mani, Rajmohan <rajmohan.mani@intel.com> wrote:
+>> Hi,
+>>
+>> Please review this PULL request to add Kabylake IPU3 firmware to the linux-firmware repository.
+>>
+>>
+>> The following changes since commit 7d2c913dcd1be083350d97a8cb1eba24cfacbc8a:
+>>
+>>   ath10k: update year in license (2017-06-22 12:06:02 -0700)
+>>
+>> are available in the git repository at:
+>>
+>>   https://github.com/RajmohanMani/linux-firmware.git tags/v1
+>>
+>> for you to fetch changes up to 2c27b0cb02f18c022d8378e0e1abaf8b7ae8188f:
+>>
+>>   linux-firmware: intel: Add Kabylake IPU3 firmware (2017-08-04 15:53:13 -0700)
+>>
+>> ----------------------------------------------------------------
+>> IPU3 firmware version irci_irci_ecr-master_20161208_0213_20170112_1500
+>>
+>> ----------------------------------------------------------------
+>> Rajmohan Mani (1):
+>>       linux-firmware: intel: Add Kabylake IPU3 firmware
+>>
+>>  LICENSE.ipu3_firmware                                      |  36 ++++++++++++++++++++++++++++++++++++
+>>  WHENCE                                                     |  11 +++++++++++
+>>  intel/ipu3-fw.bin                                          |   1 +
+>>  intel/irci_irci_ecr-master_20161208_0213_20170112_1500.bin | Bin 0 -> 1212984 bytes
+>>  4 files changed, 48 insertions(+)
+>>  create mode 100644 LICENSE.ipu3_firmware
+>>  create mode 120000 intel/ipu3-fw.bin
+>>  create mode 100644 intel/irci_irci_ecr-master_20161208_0213_20170112_1500.bin
+>
+> A gentle ping. Perhaps any issue with this pull request?
+>
+> Best regards,
+> Tomasz
