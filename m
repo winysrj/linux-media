@@ -1,47 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:52558 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752504AbdHEAE2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 Aug 2017 20:04:28 -0400
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-To: "linux-firmware@kernel.org" <linux-firmware@kernel.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Zhi, Yong" <yong.zhi@intel.com>
-Subject: [GIT PULL] linux-firmware: intel: Add Kabylake IPU3 firmware
-Date: Sat, 5 Aug 2017 00:04:26 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A59725E1A1D@FMSMSX114.amr.corp.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:35045 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753658AbdHWJJX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 23 Aug 2017 05:09:23 -0400
+Subject: Re: [RFC 00/19] Async sub-notifiers and how to use them
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com
+References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
+ <eb0ff309-bdf5-30f9-06da-2fc6c35fbf6a@xs4all.nl>
+ <20170720161400.ijud3kppizb44acw@valkosipuli.retiisi.org.uk>
+ <20170721065754.GC20077@bigcity.dyn.berto.se>
+ <4fa22637-c58e-79e3-be22-575b0a4ff3f9@iki.fi>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <ea92d79c-bba0-ca22-c0a7-0535d635729c@xs4all.nl>
+Date: Wed, 23 Aug 2017 11:09:15 +0200
 MIME-Version: 1.0
+In-Reply-To: <4fa22637-c58e-79e3-be22-575b0a4ff3f9@iki.fi>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksDQoNClBsZWFzZSByZXZpZXcgdGhpcyBQVUxMIHJlcXVlc3QgdG8gYWRkIEthYnlsYWtlIElQ
-VTMgZmlybXdhcmUgdG8gdGhlIGxpbnV4LWZpcm13YXJlIHJlcG9zaXRvcnkuDQoNCg0KVGhlIGZv
-bGxvd2luZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdCA3ZDJjOTEzZGNkMWJlMDgzMzUwZDk3YThjYjFl
-YmEyNGNmYWNiYzhhOg0KDQogIGF0aDEwazogdXBkYXRlIHllYXIgaW4gbGljZW5zZSAoMjAxNy0w
-Ni0yMiAxMjowNjowMiAtMDcwMCkNCg0KYXJlIGF2YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9zaXRv
-cnkgYXQ6DQoNCiAgaHR0cHM6Ly9naXRodWIuY29tL1Jham1vaGFuTWFuaS9saW51eC1maXJtd2Fy
-ZS5naXQgdGFncy92MQ0KDQpmb3IgeW91IHRvIGZldGNoIGNoYW5nZXMgdXAgdG8gMmMyN2IwY2Iw
-MmYxOGMwMjJkODM3OGUwZTFhYmFmOGI3YWU4MTg4ZjoNCg0KICBsaW51eC1maXJtd2FyZTogaW50
-ZWw6IEFkZCBLYWJ5bGFrZSBJUFUzIGZpcm13YXJlICgyMDE3LTA4LTA0IDE1OjUzOjEzIC0wNzAw
-KQ0KDQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tDQpJUFUzIGZpcm13YXJlIHZlcnNpb24gaXJjaV9pcmNpX2Vjci1tYXN0ZXJf
-MjAxNjEyMDhfMDIxM18yMDE3MDExMl8xNTAwDQoNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NClJham1vaGFuIE1hbmkgKDEp
-Og0KICAgICAgbGludXgtZmlybXdhcmU6IGludGVsOiBBZGQgS2FieWxha2UgSVBVMyBmaXJtd2Fy
-ZQ0KDQogTElDRU5TRS5pcHUzX2Zpcm13YXJlICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICB8ICAzNiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysNCiBXSEVO
-Q0UgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwg
-IDExICsrKysrKysrKysrDQogaW50ZWwvaXB1My1mdy5iaW4gICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICB8ICAgMSArDQogaW50ZWwvaXJjaV9pcmNpX2Vjci1tYXN0ZXJf
-MjAxNjEyMDhfMDIxM18yMDE3MDExMl8xNTAwLmJpbiB8IEJpbiAwIC0+IDEyMTI5ODQgYnl0ZXMN
-CiA0IGZpbGVzIGNoYW5nZWQsIDQ4IGluc2VydGlvbnMoKykNCiBjcmVhdGUgbW9kZSAxMDA2NDQg
-TElDRU5TRS5pcHUzX2Zpcm13YXJlDQogY3JlYXRlIG1vZGUgMTIwMDAwIGludGVsL2lwdTMtZncu
-YmluDQogY3JlYXRlIG1vZGUgMTAwNjQ0IGludGVsL2lyY2lfaXJjaV9lY3ItbWFzdGVyXzIwMTYx
-MjA4XzAyMTNfMjAxNzAxMTJfMTUwMC5iaW4NCg0KDQpUaGFua3MNClJhag0K
+On 08/04/17 20:25, Sakari Ailus wrote:
+> Niklas Söderlund wrote:
+>> Hi Sakari,
+>>
+>> On 2017-07-20 19:14:01 +0300, Sakari Ailus wrote:
+>>> Hi Hans,
+>>>
+>>> Thanks for the review.
+>>>
+>>> On Wed, Jul 19, 2017 at 01:42:55PM +0200, Hans Verkuil wrote:
+>>>> On 18/07/17 21:03, Sakari Ailus wrote:
+>>>>> Hi folks,
+>>>>>
+>>>>> This RFC patchset achieves a number of things which I've put to the same
+>>>>> patchset for they need to be show together to demonstrate the use cases.
+>>>>>
+>>>>> I don't really intend this to compete with Niklas's patchset but much of
+>>>>> the problem area addressed by the two is the same.
+>>>>>
+>>>>> Comments would be welcome.
+>>>>>
+>>>>> - Add AS3645A LED flash class driver.
+>>>>>
+>>>>> - Add async notifiers (by Niklas).
+>>>>>
+>>>>> - V4L2 sub-device node registration is moved to take place at the same time
+>>>>>   with the registration of the sub-device itself. With this change,
+>>>>>   sub-device node registration behaviour is aligned with video node
+>>>>>   registration.
+>>>>>
+>>>>> - The former is made possible by moving the bound() callback after
+>>>>>   sub-device registration.
+>>>>>
+>>>>> - As all the device node registration and link creation is done as the
+>>>>>   respective devices are probed, there is no longer dependency to the
+>>>>>   notifier complete callback which as itself is seen problematic. The
+>>>>>   complete callback still exists but there's no need to use it, pending
+>>>>>   changes in individual drivers.
+>>>>>
+>>>>>   See:
+>>>>>   <URL:http://www.spinics.net/lists/linux-media/msg118323.html>
+>>>>>
+>>>>>   As a result, if a part of the media device fails to initialise because it
+>>>>>   is e.g. physically broken, it will be possible to use what works.
+>>>>
+>>>> I've got major problems with this from a userspace point of view. In the vast
+>>>> majority of cases you just want to bail out if one or more subdevs fail.
+>>>
+>>> I admit it's easier for the user space if the device becomes available only
+>>> when all its component drivers have registered.
+>>>
+>>> Also remember that video nodes are registered in the file system right on
+>>> device probe time. It's only sub-device and media device node registration
+>>> that has taken place in the notifier's complete handler.
+>>
+>> Is this always the case? In the R-Car VIN driver I register the video 
+>> devices using video_register_device() in the complete handler. Am I 
+>> doing things wrong in that driver? I had a patch where I moved the 
+>> video_register_device() call to probe time but it got shoot down in 
+>> review and was dropped.
+> 
+> I don't think the current implementation is wrong, it's just different
+> from other drivers; there's really no requirement regarding this AFAIU.
+> It's one of the things where no attention has been paid I presume.
+
+It actually is a requirement: when a device node appears applications can
+reasonably expect to have a fully functioning device. True for any device
+node. You don't want to have to wait until some unspecified time before
+the full functionality is there.
+
+I try to pay attention to this when reviewing code, since not following this
+rule basically introduces a race condition which is hard to test.
+
+> However doing anything that can fail earlier on would be nicer since
+> there's no reasonable way to signal an error from complete callback either.
+
+Right.
+
+Adding support for cases where devices may not be present is very desirable,
+but this should go through an RFC process first to hammer out all the details.
+
+Today we do not support this and we have to review code with that in mind.
+
+So the first async subnotifiers implementation should NOT support this (although
+it can of course be designed with this in mind). Once it is in we can start
+on an RFC on how to support partial pipelines. I have a lot of questions about
+that that need to be answered first.
+
+One thing at a time. Trying to do everything at once never works.
+
+Regards,
+
+	Hans
