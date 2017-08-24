@@ -1,168 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42483 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751860AbdHGURt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Aug 2017 16:17:49 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, Cyprian Wronka <cwronka@cadence.com>,
-        Neil Webb <neilw@cadence.com>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v2 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
-Date: Mon, 07 Aug 2017 23:18:03 +0300
-Message-ID: <2362756.VjbdGaYBzu@avalon>
-In-Reply-To: <20170720092302.2982-2-maxime.ripard@free-electrons.com>
-References: <20170720092302.2982-1-maxime.ripard@free-electrons.com> <20170720092302.2982-2-maxime.ripard@free-electrons.com>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:39530 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751218AbdHXLOe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 24 Aug 2017 07:14:34 -0400
+Date: Thu, 24 Aug 2017 12:14:31 +0100
+From: Brian Starkey <brian.starkey@arm.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        jonathan.chai@arm.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>
+Subject: Re: DRM Format Modifiers in v4l2
+Message-ID: <20170824111430.GB25711@e107564-lin.cambridge.arm.com>
+References: <20170821155203.GB38943@e107564-lin.cambridge.arm.com>
+ <CAKMK7uFdQPUomZDCp_ak6sTsUayZuut4us08defjKmiy=24QnA@mail.gmail.com>
+ <47128f36-2990-bd45-ead9-06a31ed8cde0@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <47128f36-2990-bd45-ead9-06a31ed8cde0@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+Hi Hans,
 
-Thank you for the patch.
+On Mon, Aug 21, 2017 at 06:36:29PM +0200, Hans Verkuil wrote:
+>On 08/21/2017 06:01 PM, Daniel Vetter wrote:
+>> On Mon, Aug 21, 2017 at 5:52 PM, Brian Starkey <brian.starkey@arm.com> wrote:
+>>> Hi all,
+>>>
+>>> I couldn't find this topic talked about elsewhere, but apologies if
+>>> it's a duplicate - I'll be glad to be steered in the direction of a
+>>> thread.
+>>>
+>>> We'd like to support DRM format modifiers in v4l2 in order to share
+>>> the description of different (mostly proprietary) buffer formats
+>>> between e.g. a v4l2 device and a DRM device.
+>>>
+>>> DRM format modifiers are defined in include/uapi/drm/drm_fourcc.h and
+>>> are a vendor-namespaced 64-bit value used to describe various
+>>> vendor-specific buffer layouts. They are combined with a (DRM) FourCC
+>>> code to give a complete description of the data contained in a buffer.
+>>>
+>>> The same modifier definition is used in the Khronos EGL extension
+>>> EGL_EXT_image_dma_buf_import_modifiers, and is supported in the
+>>> Wayland linux-dmabuf protocol.
+>>>
+>>>
+>>> This buffer information could of course be described in the
+>>> vendor-specific part of V4L2_PIX_FMT_*, but this would duplicate the
+>>> information already defined in drm_fourcc.h. Additionally, there
+>>> would be quite a format explosion where a device supports a dozen or
+>>> more formats, all of which can use one or more different
+>>> layouts/compression schemes.
+>>>
+>>> So, I'm wondering if anyone has views on how/whether this could be
+>>> incorporated?
+>>>
+>>> I spoke briefly about this to Laurent at LPC last year, and he
+>>> suggested v4l2_control as one approach.
+>>>
+>>> I also wondered if could be added in v4l2_pix_format_mplane - looks
+>>> like there's 8 bytes left before it exceeds the 200 bytes, or could go
+>>> in the reserved portion of v4l2_plane_pix_format.
+>>>
+>>> Thanks for any thoughts,
+>>
+>> One problem is that the modifers sometimes reference the DRM fourcc
+>> codes. v4l has a different (and incompatible set) of fourcc codes,
+>> whereas all the protocols and specs (you can add DRI3.1 for Xorg to
+>> that list btw) use both drm fourcc and drm modifiers.
+>>
+>> This might or might not make this proposal unworkable, but it's
+>> something I'd at least review carefully.
+>>
+>> Otherwise I think it'd be great if we could have one namespace for all
+>> modifiers, that's pretty much why we have them. Please also note that
+>> for drm_fourcc.h we don't require an in-kernel user for a new modifier
+>> since a bunch of them might need to be allocated just for
+>> userspace-to-userspace buffer sharing (e.g. in EGL/vk). One example
+>> for this would be compressed surfaces with fast-clearing, which is
+>> planned for i915 (but current hw can't scan it out). And we really
+>> want to have one namespace for everything.
+>
+>Who sets these modifiers? Kernel or userspace? Or can it be set by both?
+>I assume any userspace code that sets/reads this is code specific for that
+>hardware?
 
-On Thursday 20 Jul 2017 11:23:01 Maxime Ripard wrote:
-> The Cadence MIPI-CSI2 RX controller is a CSI2RX bridge that supports up to
-> 4 CSI-2 lanes, and can route the frames to up to 4 streams, depending on
-> the hardware implementation.
-> 
-> It can operate with an external D-PHY, an internal one or no D-PHY at all
-> in some configurations.
+I think normally the modifier would be set by userspace. However it
+might not necessarily be device-specific code. In DRM the intention is
+for userspace to query the set of modifiers which are supported, and
+then use them without necessarily knowing exactly what they mean
+(insofar as that is possible).
 
-Without any PHY ? I'm curious, how does that work ?
+e.g. if I have two devices which support MODIFIER_FOO, I could attempt
+to share a buffer between them which uses MODIFIER_FOO without
+necessarily knowing exactly what it is/does.
 
-> Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
-> ---
->  .../devicetree/bindings/media/cdns-csi2rx.txt      | 87 ++++++++++++++++++
->  1 file changed, 87 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/cdns-csi2rx.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/cdns-csi2rx.txt
-> b/Documentation/devicetree/bindings/media/cdns-csi2rx.txt new file mode
-> 100644
-> index 000000000000..e08547abe885
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/cdns-csi2rx.txt
-> @@ -0,0 +1,87 @@
-> +Cadence MIPI-CSI2 RX controller
-> +===============================
-> +
-> +The Cadence MIPI-CSI2 RX controller is a CSI-2 bridge supporting up to 4
-> CSI
-> +lanes in input, and 4 different pixel streams in output.
-> +
-> +Required properties:
-> +  - compatible: must be set to "cdns,csi2rx" and an SoC-specific compatible
-> +  - reg: base address and size of the memory mapped region
-> +  - clocks: phandles to the clocks driving the controller
-> +  - clock-names: must contain:
-> +    * sys_clk: main clock
-> +    * p_clk: register bank clock
-> +    * p_free_clk: free running register bank clock
-> +    * pixel_ifX_clk: pixel stream output clock, one for each stream
-> +                     implemented in hardware, between 0 and 3
+>
+>I think Laurent's suggestion of using a 64 bit V4L2 control for this makes
+>the most sense.
+>
+>Especially if you can assume that whoever sets this knows the hardware.
+>
+>I think this only makes sense if you pass buffers from one HW device to another.
+>
+>Because you cannot expect generic video capture code to be able to interpret
+>all the zillion different combinations of modifiers.
 
-Nitpicking, I would write the name is pixel_if[0-3]_clk, it took me a few 
-seconds to see that the X was a placeholder.
+I don't quite follow this last bit. The control could report the set
+of supported modifiers.
 
-> +    * dphy_rx_clk: D-PHY byte clock, if implemented in hardware
-> +  - phys: phandle to the external D-PHY
-> +  - phy-names: must contain dphy, if the implementation uses an
-> +               external D-PHY
+However, in DRM the API lets you get the supported formats for each
+modifier as-well-as the modifier list itself. I'm not sure how exactly
+to provide that in a control.
 
-I would move the last two properties in an optional category as they're 
-effectively optional. I think you should also explain a bit more clearly that 
-the phys property must not be present if the phy-names property is not 
-present.
+Thanks,
+-Brian
 
-> +
-> +Required subnodes:
-> +  - ports: A ports node with endpoint definitions as defined in
-> +           Documentation/devicetree/bindings/media/video-interfaces.txt.
-> The
-> +           first port subnode should be the input endpoint, the second one
-> the
-> +           outputs
-> +
-> +  The output port should have as many endpoints as stream supported by
-> +  the hardware implementation, between 1 and 4, their ID being the
-> +  stream output number used in the implementation.
-
-I don't think that's correct. The IP has four independent outputs, it should 
-have 4 output ports for a total for 5 ports. Multiple endpoints per port would 
-describe multiple connections from the same output to different sinks.
-
-> +Example:
-> +
-> +csi2rx: csi-bridge@0d060000 {
-> +	compatible = "cdns,csi2rx";
-> +	reg = <0x0d060000 0x1000>;
-> +	clocks = <&byteclock>, <&byteclock>, <&byteclock>,
-> +		 <&coreclock>, <&coreclock>,
-> +		 <&coreclock>, <&coreclock>;
-> +	clock-names = "sys_clk", "p_clk", "p_free_clk",
-> +		      "pixel_if0_clk", "pixel_if1_clk",
-> +		      "pixel_if2_clk", "pixel_if3_clk";
-> +
-> +	ports {
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +
-> +		port@0 {
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +			reg = <0>;
-> +
-> +			csi2rx_in_sensor: endpoint@0 {
-> +				reg = <0>;
-> +				remote-endpoint = <&sensor_out_csi2rx>;
-> +				clock-lanes = <0>;
-> +				data-lanes = <1 2>;
-> +			};
-> +		};
-> +
-> +		port@1 {
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +			reg = <1>;
-> +
-> +			csi2rx_out_grabber0: endpoint@0 {
-> +				reg = <0>;
-> +				remote-endpoint = <&grabber0_in_csi2rx>;
-> +			};
-> +
-> +			csi2rx_out_grabber1: endpoint@1 {
-> +				reg = <1>;
-> +				remote-endpoint = <&grabber1_in_csi2rx>;
-> +			};
-> +
-> +			csi2rx_out_grabber2: endpoint@2 {
-> +				reg = <2>;
-> +				remote-endpoint = <&grabber2_in_csi2rx>;
-> +			};
-> +
-> +			csi2rx_out_grabber3: endpoint@3 {
-> +				reg = <3>;
-> +				remote-endpoint = <&grabber3_in_csi2rx>;
-> +			};
-> +		};
-> +	};
-> +};
-
--- 
-Regards,
-
-Laurent Pinchart
+>
+>Regards,
+>
+>	Hans
