@@ -1,113 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f48.google.com ([209.85.215.48]:35744 "EHLO
-        mail-lf0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751264AbdHRNmM (ORCPT
+Received: from out20-38.mail.aliyun.com ([115.124.20.38]:46172 "EHLO
+        out20-38.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751026AbdHXBn1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 09:42:12 -0400
-Received: by mail-lf0-f48.google.com with SMTP id t128so42956969lff.2
-        for <linux-media@vger.kernel.org>; Fri, 18 Aug 2017 06:42:11 -0700 (PDT)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Fri, 18 Aug 2017 15:42:07 +0200
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-Subject: Re: [PATCH 1/4] v4l: async: fix unbind error in
- v4l2_async_notifier_unregister()
-Message-ID: <20170818134207.GA8460@bigcity.dyn.berto.se>
-References: <20170730223158.14405-1-niklas.soderlund+renesas@ragnatech.se>
- <20170730223158.14405-2-niklas.soderlund+renesas@ragnatech.se>
- <20170815161604.5qjrd3eas4tlvrt6@valkosipuli.retiisi.org.uk>
- <2638355.RUWT87hFr5@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <2638355.RUWT87hFr5@avalon>
+        Wed, 23 Aug 2017 21:43:27 -0400
+Date: Thu, 24 Aug 2017 09:43:08 +0800
+From: Yong <yong.deng@magewell.com>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Baruch Siach <baruch@tkos.co.il>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benoit Parrot <bparrot@ti.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
+Message-Id: <20170824094308.c78aab49c64f4755a7706453@magewell.com>
+In-Reply-To: <20170823192413.y5psmcgd3ghvpkbz@flea.home>
+References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
+        <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
+        <20170728160233.xooevio4hoqkgfaq@flea.lan>
+        <20170730060801.bkc2kvm72ktixy74@tarshish>
+        <20170821202145.kmxancepyq55v3o2@flea.lan>
+        <20170823104118.b4524830e4bb767d7714772c@magewell.com>
+        <20170823192413.y5psmcgd3ghvpkbz@flea.home>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wed, 23 Aug 2017 21:24:13 +0200
+Maxime Ripard <maxime.ripard@free-electrons.com> wrote:
 
-On 2017-08-18 14:15:26 +0300, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Tuesday 15 Aug 2017 19:16:14 Sakari Ailus wrote:
-> > On Mon, Jul 31, 2017 at 12:31:55AM +0200, Niklas Söderlund wrote:
-> > > The call to v4l2_async_cleanup() will set sd->asd to NULL so passing it
-> > > to notifier->unbind() have no effect and leaves the notifier confused.
-> > > Call the unbind() callback prior to cleaning up the subdevice to avoid
-> > > this.
+> On Wed, Aug 23, 2017 at 10:41:18AM +0800, Yong wrote:
+> > > > > > +static irqreturn_t sun6i_csi_isr(int irq, void *dev_id)
+> > > > > > +{
+> > > > > > +	struct sun6i_csi_dev *sdev = (struct sun6i_csi_dev *)dev_id;
+> > > > > > +	struct regmap *regmap = sdev->regmap;
+> > > > > > +	u32 status;
+> > > > > > +
+> > > > > > +	regmap_read(regmap, CSI_CH_INT_STA_REG, &status);
+> > > > > > +
+> > > > > > +	if ((status & CSI_CH_INT_STA_FIFO0_OF_PD) ||
+> > > > > > +	    (status & CSI_CH_INT_STA_FIFO1_OF_PD) ||
+> > > > > > +	    (status & CSI_CH_INT_STA_FIFO2_OF_PD) ||
+> > > > > > +	    (status & CSI_CH_INT_STA_HB_OF_PD)) {
+> > > > > > +		regmap_write(regmap, CSI_CH_INT_STA_REG, status);
+> > > > > > +		regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN, 0);
+> > > > > > +		regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN,
+> > > > > > +				   CSI_EN_CSI_EN);
+> > > > > 
+> > > > > You need to enable / disable it at every frame? How do you deal with
+> > > > > double buffering? (or did you choose to ignore it for now?)
+> > > > 
+> > > > These *_OF_PD status bits indicate an overflow error condition.
 > > > 
-> > > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > > Shouldn't we return an error code then? The names of these flags could
+> > > be better too.
 > > 
-> > This is a bugfix and worthy without any other patches and so should be
-> > applied separately.
-> > 
-> > I think it'd be safer to store sd->asd locally and call the notifier unbind
-> > with that. Now you're making changes to the order in which things work, and
-> > that's not necessary to achieve the objective of passing the async subdev
-> > pointer to the notifier.
+> > Then, where and how to deal with the error coce.
 > 
-> But on the other hand I think the unbind notification should be called before 
-> the subdevice gets unbound, the same way the bound notification is called 
-> after it gets bound. One of the purposes of the unbind notification is to 
-> allow drivers to prepare for subdev about to be unbound, and they can't 
-> prepare if the unbind happened already.
+> If you want to deal with FIFO overflow, I'm not sure you have anything
+> to do. It means, you've been to slow to queue buffers, so I guess
+> stopping the pipeline until more buffers are queued would make
+> sense. And we should probably increase the sequence number while doing
+> so to notify the userspace that some frames were lost.
 
-I'm not opposed to move in the direction suggested by Sakari but I agree 
-with Laurent here. It makes more sens that the unbind callback is called 
-before the actual unbind happens. At the same time I agree that it dose 
-change the behavior, but I think it's for the better.
+If there is no queued buffers, the CSI must has been already stoped by
+sun6i_video_frame_done. So, the FIFO overflow may only occur on some 
+unpredictable conditions or something I don't know.
+
+For sequence number, I can't actually get the number of the lost frames.
+
+Maybe I misunderstood you. Did you mean use IRQ_RETVAL(error) instead
+of IRQ_HANDLED?
 
 > 
-> > With that changed,
-> > 
-> > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > 
-> > > ---
-> > > 
-> > >  drivers/media/v4l2-core/v4l2-async.c | 6 +++---
-> > >  1 file changed, 3 insertions(+), 3 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/v4l2-core/v4l2-async.c
-> > > b/drivers/media/v4l2-core/v4l2-async.c index
-> > > 851f128eba2219ad..0acf288d7227ba97 100644
-> > > --- a/drivers/media/v4l2-core/v4l2-async.c
-> > > +++ b/drivers/media/v4l2-core/v4l2-async.c
-> > > @@ -226,14 +226,14 @@ void v4l2_async_notifier_unregister(struct
-> > > v4l2_async_notifier *notifier)> 
-> > >  		d = get_device(sd->dev);
-> > > 
-> > > +		if (notifier->unbind)
-> > > +			notifier->unbind(notifier, sd, sd->asd);
-> > > +
-> > > 
-> > >  		v4l2_async_cleanup(sd);
-> > >  		
-> > >  		/* If we handled USB devices, we'd have to lock the parent too 
-> */
-> > >  		device_release_driver(d);
-> > > 
-> > > -		if (notifier->unbind)
-> > > -			notifier->unbind(notifier, sd, sd->asd);
-> > > -
-> > > 
-> > >  		/*
-> > >  		
-> > >  		 * Store device at the device cache, in order to call
-> > >  		 * put_device() on the final step
+> Maxime
 > 
 > -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+> Maxime Ripard, Free Electrons
+> Embedded Linux and Kernel engineering
+> http://free-electrons.com
 
--- 
-Regards,
-Niklas Söderlund
+
+Thanks,
+Yong
