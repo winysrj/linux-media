@@ -1,65 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:38405 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754090AbdHWOx2 (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:42540 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751111AbdHXGr7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Aug 2017 10:53:28 -0400
-Message-ID: <1503500007.10112.15.camel@pengutronix.de>
-Subject: Re: Support for direct playback of camera input on imx6q
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Stephan Bauroth <stephanbauroth@web.de>,
-        linux-media@vger.kernel.org
-Date: Wed, 23 Aug 2017 16:53:27 +0200
-In-Reply-To: <13b9d535-094d-c63b-54f9-3ea54e2b138e@web.de>
-References: <13b9d535-094d-c63b-54f9-3ea54e2b138e@web.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Thu, 24 Aug 2017 02:47:59 -0400
+Subject: Re: [PATCH] [media_build] rc: Fix ktime erros in rc_ir_raw.c
+To: "Jasmin J." <jasmin@anw.at>, linux-media@vger.kernel.org
+Cc: d.scheller@gmx.net, Sean Young <sean@mess.org>
+References: <1503531988-15429-1-git-send-email-jasmin@anw.at>
+ <9b070969-9422-b809-3611-648d8da0e121@anw.at>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <93053a66-18f2-9c4f-1987-49687d8f3069@xs4all.nl>
+Date: Thu, 24 Aug 2017 08:47:54 +0200
+MIME-Version: 1.0
+In-Reply-To: <9b070969-9422-b809-3611-648d8da0e121@anw.at>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stephan,
-
-On Wed, 2017-08-23 at 13:25 +0200, Stephan Bauroth wrote:
-> Dear List,
+On 08/24/2017 02:07 AM, Jasmin J. wrote:
+> Hi!
 > 
-> I'm trying to directly output a captured video signal to an LVDS
-> panel 
-> on an imx6q. Capturing frames works fine using the staging imx-media 
-> driver. I can grab JPGs using v4l2grab and I can stream the input to
-> the 
-> display with gstreamer. However, when streaming, one of the cores is 
-> utilized by ~66%, and I have to use the videoconvert module of
-> gstreamer.
+> Just some notes on that patch.
 > 
-> The IPU in imx6 can directly stream an captured signal back to the 
-> display processor (DP) according to [1]. While the capturing paths 
-> within the IPU are managed by the staging media-imx driver, its
-> output 
-> paths are not, so I can not simply set up links using media-ctl.
-
-We do not support the direct CSI -> DP path because that requires
-synchronised clocks between sensor and display. But it is possible to
-stream buffers through system RAM without much CPU involvement using
-the dmabuf mechanism.
-
-> So, my question is whether it is possible to hook up the captured
-> signal 
-> to the DP using either the ipuv3 driver or the frame buffer driver 
-> (mxcfb) or something else, and if yes, how?
+> I have *not* tested it due to the lack of an ir remote control. So someone
+> needs to test this on an <= 4.9 Kernel, if the ir core is still working as
+> expected.
 > 
-> Thanks for any help and/or hints
-> Stephan
-> 
-> [1] http://www.nxp.com/docs/en/reference-manual/IMX6DQRM.pdf, pg.
-> 2732 
-> or chapter 37.1.2.1.4.1, 'Camera Preview'
+> Even if I fixed that in media_build, it may be better to apply this code change
+> in media_tree. This because the involved variables are all of type ktime_t and
+> there are accessor and converter functions available for that type, which
+> should have been used by the original author of 86fe1ac0d and 48b2de197 in my
+> opinion.
 
-To avoid CPU copies, you'd have to transfer dmabufs from the V4L2
-capture device to the DRM output. On current GStreamer this can be
-achieved with a pipeline like:
+Sean,
 
-    v4l2src io-mode=dmabuf ! kmssink
+I agree with Jasmin here. I noticed the same errors in the daily build and it
+is really caused by not using the correct functions. I just didn't have the
+time to follow up on it.
 
-regards
-Philipp
+Can you take a look at Jasmin's patch and, if OK, make a pull request for
+it?
+
+Regards,
+
+	Hans
