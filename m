@@ -1,54 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-he1eur01on0100.outbound.protection.outlook.com ([104.47.0.100]:49607
-        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751819AbdHLV2Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Aug 2017 17:28:25 -0400
-Subject: Re: [linux-media] Patch notification: 3 patches updated
-To: linux-media@vger.kernel.org
-References: <20170809150102.15003.17916@www.linuxtv.org>
-From: Peter Rosin <peda@axentia.se>
-Message-ID: <3b28dcf2-3508-4433-4d27-62864a85ddcd@axentia.se>
-Date: Sat, 12 Aug 2017 23:28:19 +0200
+Received: from mail.anw.at ([195.234.101.228]:45551 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751066AbdHXAHm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 23 Aug 2017 20:07:42 -0400
+Subject: Re: [PATCH] [media_build] rc: Fix ktime erros in rc_ir_raw.c
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: d.scheller@gmx.net, Sean Young <sean@mess.org>
+References: <1503531988-15429-1-git-send-email-jasmin@anw.at>
+From: "Jasmin J." <jasmin@anw.at>
+Message-ID: <9b070969-9422-b809-3611-648d8da0e121@anw.at>
+Date: Thu, 24 Aug 2017 02:07:37 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170809150102.15003.17916@www.linuxtv.org>
+In-Reply-To: <1503531988-15429-1-git-send-email-jasmin@anw.at>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2017-08-09 17:01, Patchwork wrote:
-> Hello,
-> 
-> The following patches (submitted by you) have been updated in patchwork:
-> 
->  * linux-media: [2/3,media] cx231xx: drop return value of cx231xx_i2c_unregister
->      - http://patchwork.linuxtv.org/patch/42858/
->      - for: Linux Media kernel patches
->     was: Under Review
->     now: Superseded
-> 
->  * linux-media: [3/3,media] cx231xx: only unregister successfully registered i2c adapters
->      - http://patchwork.linuxtv.org/patch/42857/
->      - for: Linux Media kernel patches
->     was: Under Review
->     now: Superseded
-> 
->  * linux-media: [1/3,media] cx231xx: fail probe if i2c_add_adapter fails
->      - http://patchwork.linuxtv.org/patch/42859/
->      - for: Linux Media kernel patches
->     was: Under Review
->     now: Superseded
-> 
-> This email is a notification only - you do not need to respond.
+Hi!
 
-*snip*
+Just some notes on that patch.
 
-> If you think any status change is a mistake, please send an email to the ML.
+I have *not* tested it due to the lack of an ir remote control. So someone
+needs to test this on an <= 4.9 Kernel, if the ir core is still working as
+expected.
 
-I think the correct status should be "Accepted", right? Because I got mails
-saying all three were queued...
+Even if I fixed that in media_build, it may be better to apply this code change
+in media_tree. This because the involved variables are all of type ktime_t and
+there are accessor and converter functions available for that type, which
+should have been used by the original author of 86fe1ac0d and 48b2de197 in my
+opinion.
 
-Cheers,
-peda
+BR,
+   Jasmin
