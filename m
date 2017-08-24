@@ -1,43 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:32997 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752051AbdHZLOZ (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:35454 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752380AbdHXMHl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 07:14:25 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, mchehab@kernel.org,
-        maintainers@bluecherrydvr.com, anton@corp.bluecherry.net,
-        andrey.utkin@corp.bluecherry.net, ismael@iodev.co.uk,
-        hverkuil@xs4all.nl, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 5/5] [media] tw68:  make video_device const
-Date: Sat, 26 Aug 2017 16:43:34 +0530
-Message-Id: <1503746014-16489-6-git-send-email-bhumirks@gmail.com>
-In-Reply-To: <1503746014-16489-1-git-send-email-bhumirks@gmail.com>
-References: <1503746014-16489-1-git-send-email-bhumirks@gmail.com>
+        Thu, 24 Aug 2017 08:07:41 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Cc: "mchehab@s-opensource.com" <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH RFC v2] media: open.rst: document devnode-centric and mc-centric types
+Date: Thu, 24 Aug 2017 09:07:35 -0300
+Message-Id: <779378fa18f93929547665467990ff9284a60521.1503576451.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make this const as it is only used in a copy operation.
+From: "mchehab@s-opensource.com" <mchehab@s-opensource.com>
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+When we added support for omap3, back in 2010, we added a new
+type of V4L2 devices that aren't fully controlled via the V4L2
+device node. Yet, we never made it clear, at the V4L2 spec,
+about the differences between both types.
+
+Let's document them with the current implementation.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/pci/tw68/tw68-video.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/media/uapi/v4l/open.rst | 47 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-diff --git a/drivers/media/pci/tw68/tw68-video.c b/drivers/media/pci/tw68/tw68-video.c
-index 58c4dd7..8c1f4a0 100644
---- a/drivers/media/pci/tw68/tw68-video.c
-+++ b/drivers/media/pci/tw68/tw68-video.c
-@@ -916,7 +916,7 @@ static int vidioc_s_register(struct file *file, void *priv,
- #endif
- };
+diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+index afd116edb40d..cf522d9bb53c 100644
+--- a/Documentation/media/uapi/v4l/open.rst
++++ b/Documentation/media/uapi/v4l/open.rst
+@@ -6,6 +6,53 @@
+ Opening and Closing Devices
+ ***************************
  
--static struct video_device tw68_video_template = {
-+static const struct video_device tw68_video_template = {
- 	.name			= "tw68_video",
- 	.fops			= &video_fops,
- 	.ioctl_ops		= &video_ioctl_ops,
++Types of V4L2 device control
++============================
++
++V4L2 devices are usually complex: they're implemented via a main driver and
++often several additional drivers. The main driver always exposes one or
++more **V4L2 device** devnodes (see :ref:`v4l2_device_naming`). The other
++devices are called **V4L2 sub-devices**. They are usually controlled via a
++serial bus (I2C or SMBus).
++
++When V4L2 started, there was only one type of device control. The entire
++device was controlled via the **V4L2 device nodes**. We refer to this
++kind of control as **V4L2 device-centric** (or, simply, **device-centric**).
++
++Since the end of 2010, a new type of V4L2 device control was added in order
++to support complex devices that are common on embedded systems. Those
++devices are controlled mainly via the media controller and sub-devices.
++So, they're called: **media controller centric** (or, simply,
++"**mc-centric**").
++
++On **device-centric** control, the device and their corresponding hardware
++pipelines are controlled via the **V4L2 device** node. They may optionally
++expose the hardware pipelines via the
++:ref:`media controller API <media_controller>`.
++
++On a **mc-centric**, before using the V4L2 device, it is required to
++set the hardware pipelines via the
++:ref:`media controller API <media_controller>`. On those devices, the
++sub-devices' configuration can be controlled via the
++:ref:`sub-device API <subdev>`, with creates one device node per sub device.
++
++In summary, on **mc-centric** devices:
++
++- The **V4L2 device** node is mainly responsible for controlling the
++  streaming features;
++- The **media controller device** is responsible to setup the pipelines
++  and image settings (like size and format);
++- The **V4L2 sub-devices** are responsible for sub-device
++  specific settings.
++
++.. note::
++
++   It is forbidden for **device-centric** devices to expose V4L2
++   sub-devices via :ref:`sub-device API <subdev>`, although this
++   might change in the future.
++
++
++.. _v4l2_device_naming:
+ 
+ Device Naming
+ =============
 -- 
-1.9.1
+2.13.5
