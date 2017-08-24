@@ -1,93 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36562 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751031AbdHOQJg (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:36931 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751135AbdHXDlN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Aug 2017 12:09:36 -0400
-Date: Tue, 15 Aug 2017 19:09:33 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-Subject: Re: [PATCH 4/4] v4l: async: add comment about re-probing to
- v4l2_async_notifier_unregister()
-Message-ID: <20170815160932.fizwqqkaivtz3nqu@valkosipuli.retiisi.org.uk>
-References: <20170730223158.14405-1-niklas.soderlund+renesas@ragnatech.se>
- <20170730223158.14405-5-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170730223158.14405-5-niklas.soderlund+renesas@ragnatech.se>
+        Wed, 23 Aug 2017 23:41:13 -0400
+Message-ID: <066562e0246aa9b300556a5fa57d387d@smtp-cloud8.xs4all.net>
+Date: Thu, 24 Aug 2017 05:41:10 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks for the patchset.
+Results of the daily build of media_tree:
 
-On Mon, Jul 31, 2017 at 12:31:58AM +0200, Niklas Söderlund wrote:
-> The re-probing of subdevices when unregistering a notifier is tricky to
-> understand, and implemented somewhat as a hack. Add a comment trying to
-> explain why the re-probing is needed in the first place and why existing
-> helper functions can't be used in this situation.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 17 +++++++++++++++++
->  1 file changed, 17 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index d91ff0a33fd3eaff..a3c5a1f6d4d2ab03 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -234,6 +234,23 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->  
->  	mutex_unlock(&list_lock);
->  
-> +	/*
-> +	 * Try to re-probe the subdevices which where part of the notifier.
-> +	 * This is done so subdevices which where part of the notifier will
-> +	 * be re-probed to a pristine state and put back on the global
-> +	 * list of subdevices so they can once more be found and associated
-> +	 * with a new notifier.
+date:			Thu Aug 24 05:00:16 CEST 2017
+media-tree git hash:	0779b8855c746c90b85bfe6e16d5dfa2a6a46655
+media_build git hash:	1d9cbbf82bfb79eb8c47747121903f762d9cc9fb
+v4l-utils git hash:	5a6e0c38468c629f3f6f4fb988acebb9e66e2917
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.11.0-164
 
-Instead of tweaking the code trying to handle unhandleable error conditions
-in notifier unregistration and adding lengthy stories on why this is done
-the way it is, could we simply get rid of the driver re-probing?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
 
-I can't see why drivers shouldn't simply cope with the current interfaces
-without re-probing to which I've never seen any reasoned cause. When a
-sub-device driver is unbound, simply return the sub-device node to the list
-of async sub-devices.
+Detailed results are available here:
 
-Or can someone come up with a valid reason why the re-probing code should
-stay? :-)
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-> +	 *
-> +	 * One might be tempted to use device_reprobe() to handle the re-
-> +	 * probing. Unfortunately this is not possible since some video
-> +	 * device drivers call v4l2_async_notifier_unregister() from
-> +	 * there remove function leading to a dead lock situation on
-> +	 * device_lock(dev->parent). This lock is held when video device
-> +	 * drivers remove function is called and device_reprobe() also
-> +	 * tries to take the same lock, so using it here could lead to a
-> +	 * dead lock situation.
-> +	 */
-> +
->  	for (i = 0; i < count; i++) {
->  		/* If we handled USB devices, we'd have to lock the parent too */
->  		device_release_driver(dev[i]);
+Full logs are available here:
 
--- 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
