@@ -1,62 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:39078 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752927AbdHKJ5V (ORCPT
+Received: from esa4.microchip.iphmx.com ([68.232.154.123]:33753 "EHLO
+        esa4.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751038AbdHXG0G (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Aug 2017 05:57:21 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 02/20] v4l2-subdev.h: add pad and stream aware s_stream
-Date: Fri, 11 Aug 2017 11:56:45 +0200
-Message-Id: <20170811095703.6170-3-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
+        Thu, 24 Aug 2017 02:26:06 -0400
+Subject: Re: [PATCH 1/3] media: atmel-isc: Not support RBG format from sensor.
+To: Hans Verkuil <hverkuil@xs4all.nl>, <mchehab@s-opensource.com>
+CC: <Nicolas.Ferre@microchip.com>, <linux-kernel@vger.kernel.org>,
+        <sakari.ailus@iki.fi>, <corbet@lwn.net>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>
+References: <20170817071614.12767-1-wenyou.yang@microchip.com>
+ <20170817071614.12767-2-wenyou.yang@microchip.com>
+ <61cb51fa-8d05-6707-00cc-429c761fa6f5@xs4all.nl>
+ <14941b74-8931-4d00-0664-0735fad9b5d1@Microchip.com>
+ <ce6d074b-1c13-d3ea-5dfa-89cca2f26feb@xs4all.nl>
+ <F9F4555C4E01D7469D37975B62D0EFBB6B695B@CHN-SV-EXMX07.mchp-main.com>
+ <bbeb178a-d284-7b4c-701e-050bacba83bf@xs4all.nl>
+From: "Yang, Wenyou" <Wenyou.Yang@Microchip.com>
+Message-ID: <4556e520-a57a-6f26-4188-9b32f1701515@Microchip.com>
+Date: Thu, 24 Aug 2017 14:25:12 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <bbeb178a-d284-7b4c-701e-050bacba83bf@xs4all.nl>
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To be able to start and stop individual streams of a multiplexed pad the
-s_stream operation needs to be both pad and stream aware. Add a new
-operation to pad ops to facilitate this.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- include/media/v4l2-subdev.h | 5 +++++
- 1 file changed, 5 insertions(+)
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 7e63124450a963da..c258b1524f94f8ff 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -643,6 +643,9 @@ struct v4l2_subdev_pad_config {
-  *
-  * @set_frame_desc: set the low level media bus frame parameters, @fd array
-  *                  may be adjusted by the subdev driver to device capabilities.
-+ *
-+ * @s_stream: used to notify the driver that a stream will start or has
-+ *	stopped.
-  */
- struct v4l2_subdev_pad_ops {
- 	int (*init_cfg)(struct v4l2_subdev *sd,
-@@ -683,6 +686,8 @@ struct v4l2_subdev_pad_ops {
- 			      struct v4l2_mbus_frame_desc *fd);
- 	int (*set_frame_desc)(struct v4l2_subdev *sd, unsigned int pad,
- 			      struct v4l2_mbus_frame_desc *fd);
-+	int (*s_stream)(struct v4l2_subdev *sd, unsigned int pad,
-+			unsigned int stream, int enable);
- };
- 
- /**
--- 
-2.13.3
+On 2017/8/23 18:37, Hans Verkuil wrote:
+> On 08/22/17 09:30, Wenyou.Yang@microchip.com wrote:
+>> Hi Hans,
+>>
+>>> -----Original Message-----
+>>> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>>> Sent: 2017年8月22日 15:00
+>>> To: Wenyou Yang - A41535 <Wenyou.Yang@microchip.com>; Mauro Carvalho
+>>> Chehab <mchehab@s-opensource.com>
+>>> Cc: Nicolas Ferre - M43238 <Nicolas.Ferre@microchip.com>; linux-
+>>> kernel@vger.kernel.org; Sakari Ailus <sakari.ailus@iki.fi>; Jonathan Corbet
+>>> <corbet@lwn.net>; linux-arm-kernel@lists.infradead.org; Linux Media Mailing List
+>>> <linux-media@vger.kernel.org>
+>>> Subject: Re: [PATCH 1/3] media: atmel-isc: Not support RBG format from sensor.
+>>>
+>>> On 08/22/2017 03:18 AM, Yang, Wenyou wrote:
+>>>> Hi Hans,
+>>>>
+>>>> On 2017/8/21 22:07, Hans Verkuil wrote:
+>>>>> On 08/17/2017 09:16 AM, Wenyou Yang wrote:
+>>>>>> The 12-bit parallel interface supports the Raw Bayer, YCbCr,
+>>>>>> Monochrome and JPEG Compressed pixel formats from the external
+>>>>>> sensor, not support RBG pixel format.
+>>>>>>
+>>>>>> Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+>>>>>> ---
+>>>>>>
+>>>>>>    drivers/media/platform/atmel/atmel-isc.c | 5 +++++
+>>>>>>    1 file changed, 5 insertions(+)
+>>>>>>
+>>>>>> diff --git a/drivers/media/platform/atmel/atmel-isc.c
+>>>>>> b/drivers/media/platform/atmel/atmel-isc.c
+>>>>>> index d4df3d4ccd85..535bb03783fe 100644
+>>>>>> --- a/drivers/media/platform/atmel/atmel-isc.c
+>>>>>> +++ b/drivers/media/platform/atmel/atmel-isc.c
+>>>>>> @@ -1478,6 +1478,11 @@ static int isc_formats_init(struct isc_device *isc)
+>>>>>>    	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code,
+>>>>>>    	       NULL, &mbus_code)) {
+>>>>>>    		mbus_code.index++;
+>>>>>> +
+>>>>>> +		/* Not support the RGB pixel formats from sensor */
+>>>>>> +		if ((mbus_code.code & 0xf000) == 0x1000)
+>>>>>> +			continue;
+>>>>> Am I missing something? Here you skip any RGB mediabus formats, but
+>>>>> in patch 3/3 you add RGB mediabus formats. But this patch prevents
+>>>>> those new formats from being selected, right?
+>>>> This patch prevents getting the RGB format from the sensor directly.
+>>>> The RGB format can be produced by ISC controller by itself.
+>>> OK, I think I see what is going on here. The isc_formats array really is two arrays
+>>> in one: up to RAW_FMT_IND_END it describes what it can receive from the
+>>> source, and after that it describes what it can convert it to.
+>> Not exactly.
+>>
+>> Yes, up to RAW_FMT_IND_END, these formats must be got from the senor, they are RAW formats.
+>>  From ISC_FMT_IND_START to ISC_FMT_IND_END, they can be generated by the ISC controller.
+>> It is possible they can be got from the sensor too, the driver will check it.
+>> If it can be got from both the sensor and the ISC controller, the user can use the "sensor_preferred" parameter to decide from which one to get.
+>> The RBG formats are the exception.
+>>
+>>> But if you can't handle RGB formats from the sensor, then why not make sure
+>>> none of the mbus codes in isc_formats uses RGB? That makes much more sense.
+>>>
+>>> E.g.:
+>>>
+>>>          { V4L2_PIX_FMT_RGB565, MEDIA_BUS_FMT_RGB565_2X8_LE, 16,
+>>>            ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG,
+>>> ISC_RLP_CFG_MODE_RGB565,
+>>>            ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x7b,
+>>>            false, false },
+>>>
+>>> Why use MEDIA_BUS_FMT_RGB565_2X8_LE if this apparently is not supported?
+>> This array is also the lists of all formats supported by the ISC(including got from the sensor).
+>> The RGB formats are only generated by the ISC controller, not from the sensor.
+> You're adding code that skips any entries of the table where mbus_code is an
+> RGB code. But this can also be done by not having RGB mbus codes in the table
+> in the first place since they make no sense if the HW cannot handle that!
+> Set the mbus_code to e.g. 0 for such entries, that makes more sense.
+>
+> I also strongly suggest changing how the table is organized since those
+> _FMT_IND_ indices are all to easy to get wrong (and frankly hard to understand).
+Yes, you are right, I will change it. Do you have some advice?
+
+Thank you.
+
+>
+> Regards,
+>
+> 	Hans
+>
+>>> Regards,
+>>>
+>>> 	Hans
+>>>
+>>>>> Regards,
+>>>>>
+>>>>> 	Hans
+>>>>>
+>>>>>> +
+>>>>>>    		fmt = find_format_by_code(mbus_code.code, &i);
+>>>>>>    		if (!fmt)
+>>>>>>    			continue;
+>>>>>>
+>>>> Best Regards,
+>>>> Wenyou Yang
+>>>>
+>> Best Regards,
+>> Wenyou Yang
+Best Regards,
+Wenyou Yang
