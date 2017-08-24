@@ -1,90 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:16178 "EHLO
-        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751282AbdH3LjH (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:33331 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752842AbdHXTDv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Aug 2017 07:39:07 -0400
-Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
-        by mx07-00252a01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v7UB1I5k024725
-        for <linux-media@vger.kernel.org>; Wed, 30 Aug 2017 12:04:40 +0100
-Received: from mail-pf0-f198.google.com (mail-pf0-f198.google.com [209.85.192.198])
-        by mx07-00252a01.pphosted.com with ESMTP id 2cjxcyt1et-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
-        for <linux-media@vger.kernel.org>; Wed, 30 Aug 2017 12:04:40 +0100
-Received: by mail-pf0-f198.google.com with SMTP id v22so11206398pfk.4
-        for <linux-media@vger.kernel.org>; Wed, 30 Aug 2017 04:04:40 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <154d1076-89b6-2c6b-07c1-f1c45eca3727@xs4all.nl>
-References: <cover.1497452006.git.dave.stevenson@raspberrypi.org>
- <55eba688-5765-72dc-0984-7b642abaf38e@xs4all.nl> <CAAoAYcM5E5vsQ0Cn4X4XSJOO6uNuLqjXaBs1bBHwfiQbi5oHXw@mail.gmail.com>
- <154d1076-89b6-2c6b-07c1-f1c45eca3727@xs4all.nl>
-From: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Date: Wed, 30 Aug 2017 12:04:37 +0100
-Message-ID: <CAAoAYcP3xqP=QQ4xTfBiiy9oXiJykPMbJrTBM5pa4WNSiPbSUg@mail.gmail.com>
-Subject: Re: [RFC 0/2] BCM283x Camera Receiver driver
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-rpi-kernel@lists.infradead.org
-Content-Type: text/plain; charset="UTF-8"
+        Thu, 24 Aug 2017 15:03:51 -0400
+Received: by mail-wm0-f67.google.com with SMTP id e67so375331wmd.0
+        for <linux-media@vger.kernel.org>; Thu, 24 Aug 2017 12:03:50 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: jasmin@anw.at
+Subject: [PATCH] [media_build] ddbridge: backport to enable_msi_block, require kernel 3.8
+Date: Thu, 24 Aug 2017 21:03:47 +0200
+Message-Id: <20170824190347.1705-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 30 August 2017 at 11:45, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 30/08/17 11:40, Dave Stevenson wrote:
->> Hi Hans.
->>
->> On 28 August 2017 at 15:15, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> Hi Dave,
->>>
->>> What is the status of this work? I ask because I tried to use this driver
->>> plus my tc358743 on my rpi-2b without any luck. Specifically the tc358843
->>> isn't able to read from the i2c bus.
->>
->> I was on other things until last week, but will try to get a V2 sorted
->> either this week or early next.
->> The world moved on slightly too, so there are a few more updates
->> around fwnode stuff that I ought to adopt.
->>
->>> This is probably a bug in my dts, if you have a tree somewhere containing
->>> a working dts for this, then that would be very helpful.
->>
->> Almost certainly just pin ctrl on the I2C bus. The default for i2c0 is
->> normally to GPIOs 0&1 as that is exposed on the 40 pin header
->> (physical pins 27&28). The camera is on GPIOs 28&29 (alt0) for the
->> majority of Pi models (not the Pi3, or the early model B).
->
-> Yep, that was the culprit!
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Great. I like easy ones :-)
+Backport to pci_enable_msi_block for kernels <3.14 (picked from upstream
+dddvb package). Also, ddbridge requires the PCI_DEVICE_SUB macro, which
+was added in 3.8.
 
-> I now see the tc, but streaming doesn't work yet. I'm not getting any
-> interrupts in the unicam driver.
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Jasmin Jessich <jasmin@anw.at>
+---
+This should finally silence all current media_build compile issues related
+to the ddbridge pcie driver.
 
-What resolution were you streaming at? There are a couple of things
-that come to mind and I don't have solutions for yet.
-Firstly the TC358743 driver assumes that all 4 CSI lanes are
-available, whilst the Pi only has 2 lanes exposed. IIRC 1080P30 RGB
-just trickles over into wanting 3 lanes with the default link
-frequencies and you indeed don't get anything if one or more lane is
-physically not connected.
-Secondly was the FIFOCTL register set via state->pdata.fifo_level that
-we discussed before. The default is 16, which is too small for some of
-the smaller resolutions. 300 seems reasonable. You do get frames in
-that situation, but they're generally corrupt.
-I'm intending to try and make the TC358743 more flexible than just
-accepting >720P, and if I can support multiple link frequencies then
-so much the better as 1080P50 UYVY should be just possible on 2 lane,
-however the lower resolutions are unlikely to work due to FIFO
-underflow.
+ backports/backports.txt               |  3 +++
+ backports/v3.13_ddbridge_pcimsi.patch | 29 +++++++++++++++++++++++++++++
+ v4l/versions.txt                      |  2 ++
+ 3 files changed, 34 insertions(+)
+ create mode 100644 backports/v3.13_ddbridge_pcimsi.patch
 
-> BTW, when s_dv_timings is called, then you need to update the v4l2_format
-> as well to the new width and height. I noticed that that didn't happen.
-
-Yes, that came up in the previous discussions and is already fixed.
-
-> Anyway, this is good enough for me for now since I want to add CEC support
-> to the tc driver, and I do not need streaming for that...
-
-That sounds fun.
-  Dave
+diff --git a/backports/backports.txt b/backports/backports.txt
+index 873b2f5..87b9ee8 100644
+--- a/backports/backports.txt
++++ b/backports/backports.txt
+@@ -84,6 +84,9 @@ add v3.16_netdev.patch
+ add v3.16_wait_on_bit.patch
+ add v3.16_void_gpiochip_remove.patch
+ 
++[3.13.255]
++add v3.13_ddbridge_pcimsi.patch
++
+ [3.12.255]
+ add v3.12_kfifo_in.patch
+ 
+diff --git a/backports/v3.13_ddbridge_pcimsi.patch b/backports/v3.13_ddbridge_pcimsi.patch
+new file mode 100644
+index 0000000..80b93a0
+--- /dev/null
++++ b/backports/v3.13_ddbridge_pcimsi.patch
+@@ -0,0 +1,29 @@
++diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
++index 9ab4736..50c3b4f 100644
++--- a/drivers/media/pci/ddbridge/ddbridge-main.c
+++++ b/drivers/media/pci/ddbridge/ddbridge-main.c
++@@ -129,13 +129,18 @@ static void ddb_irq_msi(struct ddb *dev, int nr)
++ 	int stat;
++ 
++ 	if (msi && pci_msi_enabled()) {
++-		stat = pci_enable_msi_range(dev->pdev, 1, nr);
++-		if (stat >= 1) {
++-			dev->msi = stat;
++-			dev_info(dev->dev, "using %d MSI interrupt(s)\n",
++-				dev->msi);
++-		} else
+++		stat = pci_enable_msi_block(dev->pdev, nr);
+++		if (stat == 0) {
+++			dev->msi = nr;
+++		} else if (stat == 1) {
+++			stat = pci_enable_msi(dev->pdev);
+++			dev->msi = 1;
+++		}
+++		if (stat < 0)
++ 			dev_info(dev->dev, "MSI not available.\n");
+++		else
+++			dev_info(dev->dev, "using %d MSI interrupts\n",
+++				 dev->msi);
++ 	}
++ }
++ #endif
+diff --git a/v4l/versions.txt b/v4l/versions.txt
+index 5f0b301..abf3b27 100644
+--- a/v4l/versions.txt
++++ b/v4l/versions.txt
+@@ -126,6 +126,8 @@ IR_SPI
+ [3.8.0]
+ # needs regmap lock/unlock ops
+ DVB_TS2020
++# needs the PCI_DEVICE_SUB macro
++DVB_DDBRIDGE
+ 
+ [3.7.0]
+ # i2c_add_mux_adapter prototype change
+-- 
+2.13.0
