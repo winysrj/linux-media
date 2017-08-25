@@ -1,56 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:47157 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752293AbdHRHqg (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50714
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S933579AbdHYPME (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 03:46:36 -0400
-Message-ID: <1503042394.7730.3.camel@pengutronix.de>
-Subject: Re: [PATCH] [media] mx2_emmaprp: Check for platform_get_irq() error
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Fabio Estevam <festevam@gmail.com>, mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>
-Date: Fri, 18 Aug 2017 09:46:34 +0200
-In-Reply-To: <1503004325-23655-1-git-send-email-festevam@gmail.com>
-References: <1503004325-23655-1-git-send-email-festevam@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Fri, 25 Aug 2017 11:12:04 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH v3 0/7] document types of hardware control for V4L2
+Date: Fri, 25 Aug 2017 12:11:50 -0300
+Message-Id: <cover.1503673702.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fabio,
+On 2010, we introduced a new way to control complex V4L2 devices used
+on embedded systems, but this was never documented, nor it is possible
+for an userspace applicatin to detect the kind of control a device supports.
 
-On Thu, 2017-08-17 at 18:12 -0300, Fabio Estevam wrote:
-> From: Fabio Estevam <fabio.estevam@nxp.com>
-> 
-> platform_get_irq() may fail, so we should better check its return
-> value and propagate it in the case of error.
-> 
-> Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
-> ---
->  drivers/media/platform/mx2_emmaprp.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/media/platform/mx2_emmaprp.c
-> b/drivers/media/platform/mx2_emmaprp.c
-> index 03e47e0..f90eaa0 100644
-> --- a/drivers/media/platform/mx2_emmaprp.c
-> +++ b/drivers/media/platform/mx2_emmaprp.c
-> @@ -942,6 +942,8 @@ static int emmaprp_probe(struct platform_device
-> *pdev)
->  	platform_set_drvdata(pdev, pcdev);
->  
->  	irq = platform_get_irq(pdev, 0);
-> +	if (irq < 0)
-> +		return irq;
->  	ret = devm_request_irq(&pdev->dev, irq, emmaprp_irq, 0,
->  			       dev_name(&pdev->dev), pcdev);
->  	if (ret)
+This series fill the gap.
 
-For IORESOURCE_MEM + devm_ioremap_resource pairs this seems to be a
-pattern in the kernel, though.
-Does devm_request_irq reliably return an error when irq is negative? If
-so, this check would be redundant.
+Mauro Carvalho Chehab (7):
+  media: add glossary.rst with a glossary of terms used at V4L2 spec
+  media: open.rst: better document device node naming
+  media: open.rst: remove the minor number range
+  media: open.rst: document devnode-centric and mc-centric types
+  media: open.rst: Adjust some terms to match the glossary
+  media: videodev2: add a flag for MC-centric devices
+  media: open.rst: add a notice about subdev-API on vdev-centric
 
-regards
-Philipp
+v3:
+
+- Add a glossary to be used by the new documentation about hardware control;
+- Add a patch removing minor number range
+- Use glossary terms at open.rst
+- Split the notice about subdev-API on vdev-centric, as this change
+   will require further discussions.
+
+v2:
+
+- added a patch at the beginning of the series better defining the
+  device node naming rules;
+- better defined the differenes between device hardware and V4L2 device node
+  as suggested by Laurent and with changes proposed by Hans and Sakari
+- changed the caps flag to indicate MC-centric devices
+- removed the final patch that would use the new caps flag. I'll write it
+  once we agree on the new caps flag.
+
+
+ Documentation/media/uapi/v4l/glossary.rst        |  95 +++++++++++++++++
+ Documentation/media/uapi/v4l/open.rst            | 125 ++++++++++++++++++++---
+ Documentation/media/uapi/v4l/v4l2.rst            |   1 +
+ Documentation/media/uapi/v4l/vidioc-querycap.rst |   5 +
+ include/uapi/linux/videodev2.h                   |   2 +
+ 5 files changed, 214 insertions(+), 14 deletions(-)
+ create mode 100644 Documentation/media/uapi/v4l/glossary.rst
+
+-- 
+2.13.3
