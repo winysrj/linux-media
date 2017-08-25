@@ -1,123 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:32910 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750825AbdH1JmC (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:54003 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754249AbdHYDlR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Aug 2017 05:42:02 -0400
-Subject: Re: [PATCH v4 6/7] media: videodev2: add a flag for MC-centric
- devices
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <cover.1503747774.git.mchehab@s-opensource.com>
- <638ed268ca84c5e8ea810a2c27e397ab7e90585b.1503747774.git.mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <7c8a51f6-92b7-0262-9a41-7eb28234638f@xs4all.nl>
-Date: Mon, 28 Aug 2017 11:41:58 +0200
-MIME-Version: 1.0
-In-Reply-To: <638ed268ca84c5e8ea810a2c27e397ab7e90585b.1503747774.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Thu, 24 Aug 2017 23:41:17 -0400
+Message-ID: <d3114203711dc88714fe3899a4fcc925@smtp-cloud8.xs4all.net>
+Date: Fri, 25 Aug 2017 05:41:15 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26/08/17 13:53, Mauro Carvalho Chehab wrote:
-> As both vdev-centric and MC-centric devices may implement the
-> same APIs, we need a flag to allow userspace to distinguish
-> between them.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  Documentation/media/uapi/v4l/open.rst            | 7 +++++++
->  Documentation/media/uapi/v4l/vidioc-querycap.rst | 5 +++++
->  Documentation/media/videodev2.h.rst.exceptions   | 1 +
->  include/uapi/linux/videodev2.h                   | 2 ++
->  4 files changed, 15 insertions(+)
-> 
-> diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-> index 64b1de047b1b..d0930fc170f0 100644
-> --- a/Documentation/media/uapi/v4l/open.rst
-> +++ b/Documentation/media/uapi/v4l/open.rst
-> @@ -46,6 +46,13 @@ the periferal can be used. For such devices, the sub-devices' configuration
->  can be controlled via the :ref:`sub-device API <subdev>`, which creates one
->  device node per sub-device.
->  
-> +.. attention::
-> +
-> +   Devices that require **mc-centric** hardware peripheral control should
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-MC-centric
+Results of the daily build of media_tree:
 
-As mentioned in my review of a previous patch I dislike the term "peripheral".
-I think it should be dropped here.
+date:			Fri Aug 25 05:00:17 CEST 2017
+media-tree git hash:	0779b8855c746c90b85bfe6e16d5dfa2a6a46655
+media_build git hash:	4a73db0fa0115ef58537be61da6099c828f57d2b
+v4l-utils git hash:	5a6e0c38468c629f3f6f4fb988acebb9e66e2917
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.11.0-164
 
-> +   report a ``V4L2_MC_CENTRIC`` :c:type:`v4l2_capability` flag
-> +   (see :ref:`VIDIOC_QUERYCAP`).
-> +
-> +
->  In summary, for **MC-centric** hardware peripheral control:
->  
->  - The **V4L2 device** node is responsible for controlling the streaming
-> diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-> index 12e0d9a63cd8..2b08723375bc 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-> @@ -252,6 +252,11 @@ specification the ioctl returns an ``EINVAL`` error code.
->      * - ``V4L2_CAP_TOUCH``
->        - 0x10000000
->        - This is a touch device.
-> +    * - ``V4L2_MC_CENTRIC``
-> +      - 0x20000000
-> +      - Indicates that the device require **mc-centric** hardware
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
 
-MC-centric
+Detailed results are available here:
 
-> +        control, and thus can't be used by **v4l2-centric** applications.
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-vdev-centric
+Full logs are available here:
 
-TBD: I still think I prefer V4L2-centric over vdev-centric.
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-> +        See :ref:`v4l2_hardware_control` for more details.
->      * - ``V4L2_CAP_DEVICE_CAPS``
->        - 0x80000000
->        - The driver fills the ``device_caps`` field. This capability can
-> diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-> index a5cb0a8686ac..b51a575f9f75 100644
-> --- a/Documentation/media/videodev2.h.rst.exceptions
-> +++ b/Documentation/media/videodev2.h.rst.exceptions
-> @@ -157,6 +157,7 @@ replace define V4L2_CAP_META_CAPTURE device-capabilities
->  replace define V4L2_CAP_READWRITE device-capabilities
->  replace define V4L2_CAP_ASYNCIO device-capabilities
->  replace define V4L2_CAP_STREAMING device-capabilities
-> +replace define V4L2_CAP_MC_CENTRIC device-capabilities
->  replace define V4L2_CAP_DEVICE_CAPS device-capabilities
->  replace define V4L2_CAP_TOUCH device-capabilities
->  
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 45cf7359822c..7b490fe97980 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -460,6 +460,8 @@ struct v4l2_capability {
->  
->  #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
->  
-> +#define V4L2_CAP_MC_CENTRIC             0x20000000  /* Device require mc-centric hardware control */
+The Media Infrastructure API from this daily build is here:
 
-requires
-MC-centric
-
-> +
->  #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device capabilities field */
->  
->  /*
-> 
-
-Regards,
-
-	Hans
+http://www.xs4all.nl/~hverkuil/spec/index.html
