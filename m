@@ -1,42 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:29027 "EHLO
-        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751662AbdHGT2D (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50726
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S933583AbdHYPMF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Aug 2017 15:28:03 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        adi-buildroot-devel@lists.sourceforge.net,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] vs6624: constify vs6624_default_fmt
-Date: Mon,  7 Aug 2017 21:02:32 +0200
-Message-Id: <1502132552-2131-1-git-send-email-Julia.Lawall@lip6.fr>
+        Fri, 25 Aug 2017 11:12:05 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH v3 5/7] media: open.rst: Adjust some terms to match the glossary
+Date: Fri, 25 Aug 2017 12:11:55 -0300
+Message-Id: <2e4999001b7ab488338313f07da82365ce4c688b.1503673702.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503673702.git.mchehab@s-opensource.com>
+References: <cover.1503673702.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503673702.git.mchehab@s-opensource.com>
+References: <cover.1503673702.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The structure vs6624_default_fmt is only copied into another
-structure field, so it can be const.
+As we now have a glossary, some terms used on open.rst
+require adjustments.
 
-Done with the help of Coccinelle.
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/i2c/vs6624.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/media/uapi/v4l/open.rst | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/i2c/vs6624.c b/drivers/media/i2c/vs6624.c
-index f0741ab..5607382 100644
---- a/drivers/media/i2c/vs6624.c
-+++ b/drivers/media/i2c/vs6624.c
-@@ -58,7 +58,7 @@ struct vs6624 {
- 	},
- };
+diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+index 0a92eadfe936..b5140dbba49a 100644
+--- a/Documentation/media/uapi/v4l/open.rst
++++ b/Documentation/media/uapi/v4l/open.rst
+@@ -149,7 +149,7 @@ Related Devices
+ Devices can support several functions. For example video capturing, VBI
+ capturing and radio support.
  
--static struct v4l2_mbus_framefmt vs6624_default_fmt = {
-+static const struct v4l2_mbus_framefmt vs6624_default_fmt = {
- 	.width = VGA_WIDTH,
- 	.height = VGA_HEIGHT,
- 	.code = MEDIA_BUS_FMT_UYVY8_2X8,
+-The V4L2 API creates different nodes for each of these functions.
++The V4L2 API creates different V4L2 device nodes for each of these functions.
+ 
+ The V4L2 API was designed with the idea that one device node could
+ support all functions. However, in practice this never worked: this
+@@ -159,17 +159,17 @@ switching a device node between different functions only works when
+ using the streaming I/O API, not with the
+ :ref:`read() <func-read>`/\ :ref:`write() <func-write>` API.
+ 
+-Today each device node supports just one function.
++Today each V4L2 device node supports just one function.
+ 
+ Besides video input or output the hardware may also support audio
+ sampling or playback. If so, these functions are implemented as ALSA PCM
+ devices with optional ALSA audio mixer devices.
+ 
+ One problem with all these devices is that the V4L2 API makes no
+-provisions to find these related devices. Some really complex devices
+-use the Media Controller (see :ref:`media_controller`) which can be
+-used for this purpose. But most drivers do not use it, and while some
+-code exists that uses sysfs to discover related devices (see
++provisions to find these related V4L2 device nodes. Some really complex
++hardware use the Media Controller (see :ref:`media_controller`) which can
++be used for this purpose. But several drivers do not use it, and while some
++code exists that uses sysfs to discover related V4L2 device nodes (see
+ libmedia_dev in the
+ `v4l-utils <http://git.linuxtv.org/cgit.cgi/v4l-utils.git/>`__ git
+ repository), there is no library yet that can provide a single API
+-- 
+2.13.3
