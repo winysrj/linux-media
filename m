@@ -1,68 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35762 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752547AbdHDP5Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 Aug 2017 11:57:24 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v3 6/7] v4l: vsp1: Provide UDS register updates
-Date: Fri,  4 Aug 2017 16:57:10 +0100
-Message-Id: <366d84abf033d73653643e2bb27c9ac4865ff7e7.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50132
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755508AbdHYM6o (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 Aug 2017 08:58:44 -0400
+Date: Fri, 25 Aug 2017 09:58:27 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: Re: [PATCH v2 1/3] media: open.rst: better document device node
+ naming
+Message-ID: <20170825095827.3fac2e1f@vento.lan>
+In-Reply-To: <65c6702e967614245c261b54d9f3fb0e69ec93d0.1503665390.git.mchehab@s-opensource.com>
+References: <cover.1503665390.git.mchehab@s-opensource.com>
+        <65c6702e967614245c261b54d9f3fb0e69ec93d0.1503665390.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Provide register definitions required for UDS phase and partition
-algorithm support. The registers and bits defined here are available on
-Gen3 hardware only.
+Em Fri, 25 Aug 2017 09:52:40 -0300
+Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_regs.h | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+> Right now, only kAPI documentation describes the device naming.
+> However, such description is needed at the uAPI too. Add it,
+> and describe how to get an unique identify for a given device.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  Documentation/media/uapi/v4l/open.rst | 40 ++++++++++++++++++++++++++++++-----
+>  1 file changed, 35 insertions(+), 5 deletions(-)
+> 
+> diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+> index afd116edb40d..9b98d10d5153 100644
+> --- a/Documentation/media/uapi/v4l/open.rst
+> +++ b/Documentation/media/uapi/v4l/open.rst
+> @@ -7,12 +7,12 @@ Opening and Closing Devices
+>  ***************************
+>  
+>  
+> -Device Naming
+> -=============
+> +V4L2 Device Node Naming
+> +=======================
+>  
+>  V4L2 drivers are implemented as kernel modules, loaded manually by the
+>  system administrator or automatically when a device is first discovered.
+> -The driver modules plug into the "videodev" kernel module. It provides
+> +The driver modules plug into the ``videodev`` kernel module. It provides
+>  helper functions and a common application interface specified in this
+>  document.
+>  
+> @@ -20,8 +20,38 @@ Each driver thus loaded registers one or more device nodes with major
+>  number 81 and a minor number between 0 and 255. Minor numbers are
+>  allocated dynamically unless the kernel is compiled with the kernel
+>  option CONFIG_VIDEO_FIXED_MINOR_RANGES. In that case minor numbers
+> -are allocated in ranges depending on the device node type (video, radio,
+> -etc.).
+> +are allocated in ranges depending on the device node type.
+> +
+> +The existing V4L2 device node types are:
+> +
+> +======================== ======================================================
+> +Default device node name Usage
+> +======================== ======================================================
+> +``/dev/videoX``		 Video input/output devices
+> +``/dev/vbiX``		 Vertical blank data (i.e. closed captions, teletext)
+> +``/dev/radioX``		 Radio tuners
+> +``/dev/swradioX``	 Software Defined Radio tuners
+> +``/dev/v4l-touchX``	 Touch sensors
+> +======================== ======================================================
+> +
+> +Where ``X`` is a non-negative number.
+> +
+> +.. note::
+> +
+> +   1. The actual device node name is system-dependent, as udev rules may apply.
+> +   2. There's not warranty that ``X`` will remain the same for the same
+> +      device, as the number depends on the device driver's probe order.
+> +      If you need an unique name, udev default rules produce
+> +      ``/dev/v4l/by-id/`` and ``/dev/v4l/by-path/`` that can use to uniquelly
+> +      identify a V4L2 device node::
+> +
 
-diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
-index cd3e32af6e3b..362f4f8b1148 100644
---- a/drivers/media/platform/vsp1/vsp1_regs.h
-+++ b/drivers/media/platform/vsp1/vsp1_regs.h
-@@ -388,6 +388,7 @@
- #define VI6_UDS_CTRL_NE_RCR		(1 << 18)
- #define VI6_UDS_CTRL_NE_GY		(1 << 17)
- #define VI6_UDS_CTRL_NE_BCB		(1 << 16)
-+#define VI6_UDS_CTRL_AMDSLH		(1 << 2)
- #define VI6_UDS_CTRL_TDIPC		(1 << 1)
+In time:
+
+diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+index c6ab5fef4443..3b93a32777c2 100644
+--- a/Documentation/media/uapi/v4l/open.rst
++++ b/Documentation/media/uapi/v4l/open.rst
+@@ -106,8 +106,8 @@ Where ``X`` is a non-negative number.
+    2. There's not warranty that ``X`` will remain the same for the same
+       device, as the number depends on the device driver's probe order.
+       If you need an unique name, udev default rules produce
+-      ``/dev/v4l/by-id/`` and ``/dev/v4l/by-path/`` that can use to uniquelly
+-      identify a V4L2 device node::
++      ``/dev/v4l/by-id/`` and ``/dev/v4l/by-path/`` that can be used to
++      uniquely identify a V4L2 device node::
  
- #define VI6_UDS_SCALE			0x2304
-@@ -420,11 +421,24 @@
- #define VI6_UDS_PASS_BWIDTH_V_MASK	(0x7f << 0)
- #define VI6_UDS_PASS_BWIDTH_V_SHIFT	0
- 
-+#define VI6_UDS_HPHASE			0x2314
-+#define VI6_UDS_HPHASE_HSTP_MASK	(0xfff << 16)
-+#define VI6_UDS_HPHASE_HSTP_SHIFT	16
-+#define VI6_UDS_HPHASE_HEDP_MASK	(0xfff << 0)
-+#define VI6_UDS_HPHASE_HEDP_SHIFT	0
-+
- #define VI6_UDS_IPC			0x2318
- #define VI6_UDS_IPC_FIELD		(1 << 27)
- #define VI6_UDS_IPC_VEDP_MASK		(0xfff << 0)
- #define VI6_UDS_IPC_VEDP_SHIFT		0
- 
-+#define VI6_UDS_HSZCLIP			0x231c
-+#define VI6_UDS_HSZCLIP_HCEN		(1 << 28)
-+#define VI6_UDS_HSZCLIP_HCL_OFST_MASK	(0xff << 16)
-+#define VI6_UDS_HSZCLIP_HCL_OFST_SHIFT	16
-+#define VI6_UDS_HSZCLIP_HCL_SIZE_MASK	(0x1fff << 0)
-+#define VI6_UDS_HSZCLIP_HCL_SIZE_SHIFT	0
-+
- #define VI6_UDS_CLIP_SIZE		0x2324
- #define VI6_UDS_CLIP_SIZE_HSIZE_MASK	(0x1fff << 16)
- #define VI6_UDS_CLIP_SIZE_HSIZE_SHIFT	16
--- 
-git-series 0.9.1
+        $ tree /dev/v4l
+        /dev/v4l
+
+
+> +	$ tree /dev/v4l
+> +	/dev/v4l
+> +	├── by-id
+> +	│   └── usb-OmniVision._USB_Camera-B4.04.27.1-video-index0 -> ../../video0
+> +	└── by-path
+> +	    └── pci-0000:00:14.0-usb-0:2:1.0-video-index0 -> ../../video0
+> +
+>  
+>  Many drivers support "video_nr", "radio_nr" or "vbi_nr" module
+>  options to select specific video/radio/vbi node numbers. This allows the
+
+
+
+Thanks,
+Mauro
