@@ -1,265 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55374
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49825
         "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751152AbdH0M3h (ORCPT
+        with ESMTP id S1754727AbdHYLPP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 27 Aug 2017 08:29:37 -0400
-Date: Sun, 27 Aug 2017 09:29:27 -0300
+        Fri, 25 Aug 2017 07:15:15 -0400
+Date: Fri, 25 Aug 2017 08:15:03 -0300
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Maciej Purski <m.purski@samsung.com>
-Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org, sean@mess.org,
-        dri-devel@lists.freedesktop.org, airlied@linux.ie,
-        architt@codeaurora.org, a.hajda@samsung.com,
-        Laurent.pinchart@ideasonboard.com, b.zolnierkie@samsung.com
-Subject: Re: [PATCH v4] drm/bridge/sii8620: add remote control support
-Message-ID: <20170827092927.03feae40@vento.lan>
-In-Reply-To: <1503565087-19730-1-git-send-email-m.purski@samsung.com>
-References: <CGME20170824085828eucas1p1b3d00ffc06f14cf7c8b9fe84a8f7a0c9@eucas1p1.samsung.com>
-        <1503565087-19730-1-git-send-email-m.purski@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hansverk@cisco.com>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 2/3] media: videodev2: add a flag for vdev-centric
+ devices
+Message-ID: <20170825081503.13e4df80@vento.lan>
+In-Reply-To: <d118d078-429b-5ea4-02d1-8852c7c662f2@xs4all.nl>
+References: <cover.1503653839.git.mchehab@s-opensource.com>
+        <8d504be517755ee9449a007b5f2de52738c2df63.1503653839.git.mchehab@s-opensource.com>
+        <4f771cfa-0e0d-3548-a363-6470b32a6634@cisco.com>
+        <20170825070632.28580858@vento.lan>
+        <44bdeabc-8899-8f7e-dd26-4284c5b589a1@cisco.com>
+        <20170825073517.1112d618@vento.lan>
+        <7d5f952b-028d-0770-0f37-39ab011ec740@cisco.com>
+        <20170825075044.7ffe3232@vento.lan>
+        <d118d078-429b-5ea4-02d1-8852c7c662f2@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 24 Aug 2017 10:58:07 +0200
-Maciej Purski <m.purski@samsung.com> escreveu:
+Em Fri, 25 Aug 2017 12:56:30 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> MHL specification defines Remote Control Protocol(RCP) to
-> send input events between MHL devices.
-> The driver now recognizes RCP messages and reacts to them
-> by reporting key events to input subsystem, allowing
-> a user to control a device using TV remote control.
+> On 25/08/17 12:50, Mauro Carvalho Chehab wrote:
+> > Em Fri, 25 Aug 2017 12:42:51 +0200
+> > Hans Verkuil <hansverk@cisco.com> escreveu:
+> >   
+> >> On 08/25/2017 12:35 PM, Mauro Carvalho Chehab wrote:  
+> >>> Em Fri, 25 Aug 2017 12:13:53 +0200
+> >>> Hans Verkuil <hansverk@cisco.com> escreveu:
+> >>>     
+> >>>> On 08/25/2017 12:06 PM, Mauro Carvalho Chehab wrote:    
+> >>>>> Em Fri, 25 Aug 2017 11:44:27 +0200
+> >>>>> Hans Verkuil <hansverk@cisco.com> escreveu:
+> >>>>>       
+> >>>>>> On 08/25/2017 11:40 AM, Mauro Carvalho Chehab wrote:      
+> >>>>>>> From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >>>>>>>
+> >>>>>>> As both vdev-centric and mc-centric devices may implement the
+> >>>>>>> same APIs, we need a flag to allow userspace to distinguish
+> >>>>>>> between them.
+> >>>>>>>
+> >>>>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >>>>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> >>>>>>> ---
+> >>>>>>>  Documentation/media/uapi/v4l/open.rst            | 6 ++++++
+> >>>>>>>  Documentation/media/uapi/v4l/vidioc-querycap.rst | 4 ++++
+> >>>>>>>  include/uapi/linux/videodev2.h                   | 2 ++
+> >>>>>>>  3 files changed, 12 insertions(+)
+> >>>>>>>
+> >>>>>>> diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+> >>>>>>> index a72d142897c0..eb3f0ec57edb 100644
+> >>>>>>> --- a/Documentation/media/uapi/v4l/open.rst
+> >>>>>>> +++ b/Documentation/media/uapi/v4l/open.rst
+> >>>>>>> @@ -33,6 +33,12 @@ For **vdev-centric** control, the device and their corresponding hardware
+> >>>>>>>  pipelines are controlled via the **V4L2 device** node. They may optionally
+> >>>>>>>  expose via the :ref:`media controller API <media_controller>`.
+> >>>>>>>  
+> >>>>>>> +.. note::
+> >>>>>>> +
+> >>>>>>> +   **vdev-centric** devices should report V4L2_VDEV_CENTERED        
+> >>>>>>
+> >>>>>> You mean CENTRIC, not CENTERED.      
+> >>>>>
+> >>>>> Yeah, true. I'll fix it.
+> >>>>>       
+> >>>>>> But I would change this to MC_CENTRIC: the vast majority of drivers are VDEV centric,
+> >>>>>> so it makes a lot more sense to keep that as the default and only set the cap for
+> >>>>>> MC-centric drivers.      
+> >>>>>
+> >>>>> I actually focused it on what an userspace application would do.
+> >>>>>
+> >>>>> An specialized application for a given hardware will likely just
+> >>>>> ignore whatever flag is added, and use vdev, mc and subdev APIs
+> >>>>> as it pleases. So, those applications don't need any flag at all.
+> >>>>>
+> >>>>> However, a generic application needs a flag to allow them to check
+> >>>>> if a given hardware can be controlled by the traditional way
+> >>>>> to control the device (e. g. if it accepts vdev-centric type of
+> >>>>> hardware control).
+> >>>>>
+> >>>>> It is an old desire (since when MC was designed) to allow that
+> >>>>> generic V4L2 apps to also work with MC-centric hardware somehow.      
+> >>>>
+> >>>> No, not true. The desire is that they can use the MC to find the
+> >>>> various device nodes (video, radio, vbi, rc, cec, ...). But they
+> >>>> remain vdev-centric. vdev vs mc centric has nothing to do with the
+> >>>> presence of the MC. It's how they are controlled.    
+> >>>
+> >>> No, that's not I'm talking about. I'm talking about libv4l plugin
+> >>> (or whatever) that would allow a generic app to work with a mc-centric
+> >>> device. That's there for a long time (since when we were reviewing
+> >>> the MC patches back in 2009 or 2010).    
+> >>
+> >> So? Such a plugin would obviously remove the MC_CENTRIC cap. Which makes
+> >> perfect sense.
+> >>
+> >> There are a lot of userspace applications that do not use libv4l. It's
+> >> optional, not required, to use that library. We cannot design our API with
+> >> the assumption that this library will be used.
+> >>  
+> >>>     
+> >>>>
+> >>>> Regarding userspace applications: they can't check for a VDEV_CENTRIC
+> >>>> cap since we never had any. I.e., if they do:
+> >>>>
+> >>>> 	if (!(caps & VDEV_CENTRIC))
+> >>>> 		/* unsupported device */
+> >>>>
+> >>>> then they would fail for older kernels that do not set this flag.
+> >>>>
+> >>>> But this works:
+> >>>>
+> >>>> 	if (caps & MC_CENTRIC)
+> >>>> 		/* unsupported device */
+> >>>>
+> >>>> So this really needs to be an MC_CENTRIC capability.    
+> >>>
+> >>> That won't work. The test should take into account the API version
+> >>> too.
+> >>>
+> >>> Assuming that such flag would be added for version 4.15, with a VDEV_CENTRIC,
+> >>> the check would be:
+> >>>
+> >>>
+> >>> 	/*
+> >>>          * There's no need to check version here: libv4l may override it
+> >>> 	 * to support a mc-centric device even for older versions of the
+> >>> 	 * Kernel
+> >>>          */
+> >>> 	if (caps & V4L2_CAP_VDEV_CENTRIC)
+> >>> 		is_supported = true;
+> >>>
+> >>> 	/*
+> >>> 	 * For API version lower than 4.15, there's no way to know for
+> >>> 	 * sure if the device is vdev-centric or not. So, either additional
+> >>> 	 * tests are needed, or it would assume vdev-centric and output
+> >>> 	 * some note about that.
+> >>> 	 */
+> >>> 	if (version < KERNEL_VERSION(4, 15, 0))
+> >>> 		maybe_supported = true;    
+> >>
+> >>
+> >> 	is_supported = true;
+> >> 	if (caps & V4L2_CAP_MC_CENTRIC)
+> >> 		is_supported = false;
+> >>  	if (version < KERNEL_VERSION(4, 15, 0))
+> >>  		maybe_supported = true;
+> >>
+> >> I don't see the difference. BTW, no application will ever do that version check.
+> >> It doesn't help them in any way to know that it 'may' be supported.  
+> > 
+> > Yeah, this can work. The only drawback is that, if we end by
+> > implementing vdev compatible support is that such drivers will
+> > have to clean the V4L2_CAP_MC_CENTRIC flag.  
 > 
-> Signed-off-by: Maciej Purski <m.purski@samsung.com>
+> You mean implementing vdev compatible support in libv4l? (Just making sure
+> I understand you correctly)
 
-Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Yes, either there or at the Kernel, as it seems we'll never have it
+there, as nobody is working on it anymore.
 
+> In that case it doesn't matter if the libv4l code would set the VDEV_CENTRIC flag
+> or remove the MC_CENTRIC flag. That makes no difference, or course.
 
-> ---
-> 
-> Changes in v2:
-> - use RC subsystem (including CEC keymap)
-> - RC device initialized in attach drm_bridge callback and
->   removed in detach callback. This is necessary, because RC_CORE,
->   which is needed during rc_dev init, is loaded after sii8620.
->   DRM bridge is binded later which solves the problem.
-> - add RC_CORE dependency
-> 
-> Changes in v3:
-> - fix error handling in init_rcp and in attach callback
-> 
-> Changes in v4:
-> - usage of rc-core API compatible with upcoming changes
-> - fix error handling in init_rcp
-> - fix commit message
-> ---
->  drivers/gpu/drm/bridge/Kconfig       |  2 +-
->  drivers/gpu/drm/bridge/sil-sii8620.c | 96 ++++++++++++++++++++++++++++++++++--
->  include/drm/bridge/mhl.h             |  4 ++
->  3 files changed, 96 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/bridge/Kconfig b/drivers/gpu/drm/bridge/Kconfig
-> index adf9ae0..6ef901c 100644
-> --- a/drivers/gpu/drm/bridge/Kconfig
-> +++ b/drivers/gpu/drm/bridge/Kconfig
-> @@ -71,7 +71,7 @@ config DRM_PARADE_PS8622
->  
->  config DRM_SIL_SII8620
->  	tristate "Silicon Image SII8620 HDMI/MHL bridge"
-> -	depends on OF
-> +	depends on OF && RC_CORE
->  	select DRM_KMS_HELPER
->  	help
->  	  Silicon Image SII8620 HDMI/MHL bridge chip driver.
-> diff --git a/drivers/gpu/drm/bridge/sil-sii8620.c b/drivers/gpu/drm/bridge/sil-sii8620.c
-> index 2d51a22..ecb26c4 100644
-> --- a/drivers/gpu/drm/bridge/sil-sii8620.c
-> +++ b/drivers/gpu/drm/bridge/sil-sii8620.c
-> @@ -28,6 +28,8 @@
->  #include <linux/regulator/consumer.h>
->  #include <linux/slab.h>
->  
-> +#include <media/rc-core.h>
-> +
->  #include "sil-sii8620.h"
->  
->  #define SII8620_BURST_BUF_LEN 288
-> @@ -58,6 +60,7 @@ enum sii8620_mt_state {
->  struct sii8620 {
->  	struct drm_bridge bridge;
->  	struct device *dev;
-> +	struct rc_dev *rc_dev;
->  	struct clk *clk_xtal;
->  	struct gpio_desc *gpio_reset;
->  	struct gpio_desc *gpio_int;
-> @@ -431,6 +434,16 @@ static void sii8620_mt_rap(struct sii8620 *ctx, u8 code)
->  	sii8620_mt_msc_msg(ctx, MHL_MSC_MSG_RAP, code);
->  }
->  
-> +static void sii8620_mt_rcpk(struct sii8620 *ctx, u8 code)
-> +{
-> +	sii8620_mt_msc_msg(ctx, MHL_MSC_MSG_RCPK, code);
-> +}
-> +
-> +static void sii8620_mt_rcpe(struct sii8620 *ctx, u8 code)
-> +{
-> +	sii8620_mt_msc_msg(ctx, MHL_MSC_MSG_RCPE, code);
-> +}
-> +
->  static void sii8620_mt_read_devcap_send(struct sii8620 *ctx,
->  					struct sii8620_mt_msg *msg)
->  {
-> @@ -1753,6 +1766,25 @@ static void sii8620_send_features(struct sii8620 *ctx)
->  	sii8620_write_buf(ctx, REG_MDT_XMIT_WRITE_PORT, buf, ARRAY_SIZE(buf));
->  }
->  
-> +static bool sii8620_rcp_consume(struct sii8620 *ctx, u8 scancode)
-> +{
-> +	bool pressed = !(scancode & MHL_RCP_KEY_RELEASED_MASK);
-> +
-> +	scancode &= MHL_RCP_KEY_ID_MASK;
-> +
-> +	if (!ctx->rc_dev) {
-> +		dev_dbg(ctx->dev, "RCP input device not initialized\n");
-> +		return false;
-> +	}
-> +
-> +	if (pressed)
-> +		rc_keydown(ctx->rc_dev, RC_PROTO_CEC, scancode, 0);
-> +	else
-> +		rc_keyup(ctx->rc_dev);
-> +
-> +	return true;
-> +}
-> +
->  static void sii8620_msc_mr_set_int(struct sii8620 *ctx)
->  {
->  	u8 ints[MHL_INT_SIZE];
-> @@ -1804,19 +1836,25 @@ static void sii8620_msc_mt_done(struct sii8620 *ctx)
->  
->  static void sii8620_msc_mr_msc_msg(struct sii8620 *ctx)
->  {
-> -	struct sii8620_mt_msg *msg = sii8620_msc_msg_first(ctx);
-> +	struct sii8620_mt_msg *msg;
->  	u8 buf[2];
->  
-> -	if (!msg)
-> -		return;
-> -
->  	sii8620_read_buf(ctx, REG_MSC_MR_MSC_MSG_RCVD_1ST_DATA, buf, 2);
->  
->  	switch (buf[0]) {
->  	case MHL_MSC_MSG_RAPK:
-> +		msg = sii8620_msc_msg_first(ctx);
-> +		if (!msg)
-> +			return;
->  		msg->ret = buf[1];
->  		ctx->mt_state = MT_STATE_DONE;
->  		break;
-> +	case MHL_MSC_MSG_RCP:
-> +		if (!sii8620_rcp_consume(ctx, buf[1]))
-> +			sii8620_mt_rcpe(ctx,
-> +					MHL_RCPE_STATUS_INEFFECTIVE_KEY_CODE);
-> +		sii8620_mt_rcpk(ctx, buf[1]);
-> +		break;
->  	default:
->  		dev_err(ctx->dev, "%s message type %d,%d not supported",
->  			__func__, buf[0], buf[1]);
-> @@ -2102,11 +2140,57 @@ static void sii8620_cable_in(struct sii8620 *ctx)
->  	enable_irq(to_i2c_client(ctx->dev)->irq);
->  }
->  
-> +static void sii8620_init_rcp_input_dev(struct sii8620 *ctx)
-> +{
-> +	struct rc_dev *rc_dev;
-> +	int ret;
-> +
-> +	rc_dev = rc_allocate_device(RC_DRIVER_SCANCODE);
-> +	if (!rc_dev) {
-> +		dev_err(ctx->dev, "Failed to allocate RC device\n");
-> +		ctx->error = -ENOMEM;
-> +		return;
-> +	}
-> +
-> +	rc_dev->input_phys = "sii8620/input0";
-> +	rc_dev->input_id.bustype = BUS_VIRTUAL;
-> +	rc_dev->map_name = RC_MAP_CEC;
-> +	rc_dev->allowed_protocols = RC_PROTO_BIT_CEC;
-> +	rc_dev->driver_name = "sii8620";
-> +	rc_dev->device_name = "sii8620";
-> +
-> +	ret = rc_register_device(rc_dev);
-> +
-> +	if (ret) {
-> +		dev_err(ctx->dev, "Failed to register RC device\n");
-> +		ctx->error = ret;
-> +		rc_free_device(ctx->rc_dev);
-> +		return;
-> +	}
-> +	ctx->rc_dev = rc_dev;
-> +}
-> +
->  static inline struct sii8620 *bridge_to_sii8620(struct drm_bridge *bridge)
->  {
->  	return container_of(bridge, struct sii8620, bridge);
->  }
->  
-> +static int sii8620_attach(struct drm_bridge *bridge)
-> +{
-> +	struct sii8620 *ctx = bridge_to_sii8620(bridge);
-> +
-> +	sii8620_init_rcp_input_dev(ctx);
-> +
-> +	return sii8620_clear_error(ctx);
-> +}
-> +
-> +static void sii8620_detach(struct drm_bridge *bridge)
-> +{
-> +	struct sii8620 *ctx = bridge_to_sii8620(bridge);
-> +
-> +	rc_unregister_device(ctx->rc_dev);
-> +}
-> +
->  static bool sii8620_mode_fixup(struct drm_bridge *bridge,
->  			       const struct drm_display_mode *mode,
->  			       struct drm_display_mode *adjusted_mode)
-> @@ -2151,6 +2235,8 @@ static bool sii8620_mode_fixup(struct drm_bridge *bridge,
->  }
->  
->  static const struct drm_bridge_funcs sii8620_bridge_funcs = {
-> +	.attach = sii8620_attach,
-> +	.detach = sii8620_detach,
->  	.mode_fixup = sii8620_mode_fixup,
->  };
->  
-> @@ -2217,8 +2303,8 @@ static int sii8620_remove(struct i2c_client *client)
->  	struct sii8620 *ctx = i2c_get_clientdata(client);
->  
->  	disable_irq(to_i2c_client(ctx->dev)->irq);
-> -	drm_bridge_remove(&ctx->bridge);
->  	sii8620_hw_off(ctx);
-> +	drm_bridge_remove(&ctx->bridge);
->  
->  	return 0;
->  }
-> diff --git a/include/drm/bridge/mhl.h b/include/drm/bridge/mhl.h
-> index fbdfc8d..96a5e0f 100644
-> --- a/include/drm/bridge/mhl.h
-> +++ b/include/drm/bridge/mhl.h
-> @@ -262,6 +262,10 @@ enum {
->  #define MHL_RAPK_UNSUPPORTED	0x02	/* Rcvd RAP action code not supported */
->  #define MHL_RAPK_BUSY		0x03	/* Responder too busy to respond */
->  
-> +/* Bit masks for RCP messages */
-> +#define MHL_RCP_KEY_RELEASED_MASK	0x80
-> +#define MHL_RCP_KEY_ID_MASK		0x7F
-> +
->  /*
->   * Error status codes for RCPE messages
->   */
-
-
+True, but the text will have to be clear that a MC_CENTRIC device is a
+device that can't be controlled by a V4L2-centric application.
 
 Thanks,
 Mauro
