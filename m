@@ -1,136 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:39198 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752935AbdHKJ5Z (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:55855 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932649AbdHYNbc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Aug 2017 05:57:25 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 05/20] v4l2-core: verify all streams formats on multiplexed links
-Date: Fri, 11 Aug 2017 11:56:48 +0200
-Message-Id: <20170811095703.6170-6-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
+        Fri, 25 Aug 2017 09:31:32 -0400
+Subject: Re: [PATCH v2 1/3] media: open.rst: better document device node
+ naming
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <cover.1503665390.git.mchehab@s-opensource.com>
+ <65c6702e967614245c261b54d9f3fb0e69ec93d0.1503665390.git.mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <1c670bfe-aedf-3b3a-5fe6-ed224fd85496@xs4all.nl>
+Date: Fri, 25 Aug 2017 15:31:27 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <65c6702e967614245c261b54d9f3fb0e69ec93d0.1503665390.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Extend the format validation for multiplexed pads to verify all streams
-which are part of the multiplexed link. This might take the verification
-to an extreme as it could be argued that one should be able to configure
-and start just one stream without having to configure other streams
-which the user never intends to start.
+On 25/08/17 14:52, Mauro Carvalho Chehab wrote:
+> Right now, only kAPI documentation describes the device naming.
+> However, such description is needed at the uAPI too. Add it,
+> and describe how to get an unique identify for a given device.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  Documentation/media/uapi/v4l/open.rst | 40 ++++++++++++++++++++++++++++++-----
+>  1 file changed, 35 insertions(+), 5 deletions(-)
+> 
+> diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+> index afd116edb40d..9b98d10d5153 100644
+> --- a/Documentation/media/uapi/v4l/open.rst
+> +++ b/Documentation/media/uapi/v4l/open.rst
+> @@ -7,12 +7,12 @@ Opening and Closing Devices
+>  ***************************
+>  
+>  
+> -Device Naming
+> -=============
+> +V4L2 Device Node Naming
+> +=======================
+>  
+>  V4L2 drivers are implemented as kernel modules, loaded manually by the
+>  system administrator or automatically when a device is first discovered.
+> -The driver modules plug into the "videodev" kernel module. It provides
+> +The driver modules plug into the ``videodev`` kernel module. It provides
+>  helper functions and a common application interface specified in this
+>  document.
+>  
+> @@ -20,8 +20,38 @@ Each driver thus loaded registers one or more device nodes with major
+>  number 81 and a minor number between 0 and 255. Minor numbers are
+>  allocated dynamically unless the kernel is compiled with the kernel
+>  option CONFIG_VIDEO_FIXED_MINOR_RANGES. In that case minor numbers
+> -are allocated in ranges depending on the device node type (video, radio,
+> -etc.).
+> +are allocated in ranges depending on the device node type.
+> +
+> +The existing V4L2 device node types are:
+> +
+> +======================== ======================================================
+> +Default device node name Usage
+> +======================== ======================================================
+> +``/dev/videoX``		 Video input/output devices
+> +``/dev/vbiX``		 Vertical blank data (i.e. closed captions, teletext)
+> +``/dev/radioX``		 Radio tuners
 
-It could also be argued that the multiplexer and demultiplexer needs to
-know about all formats which could be activated before any stream could
-be started. In such case the number of streams described in the frame
-descriptor should be dynamic and only possible and configured streams
-should be reported which would then solve this issue.
+add: and modulators.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/v4l2-core/v4l2-subdev.c | 72 +++++++++++++++++++++++++++++++----
- 1 file changed, 64 insertions(+), 8 deletions(-)
+> +``/dev/swradioX``	 Software Defined Radio tuners
 
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index d6c1a3b777dd2fcd..43cd2b5e3d8ea323 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -541,20 +541,76 @@ v4l2_subdev_link_validate_get_format(struct media_pad *pad,
- 	return -EINVAL;
- }
- 
-+static int v4l2_subdev_link_validate_muxed(struct media_link *link)
-+{
-+	struct v4l2_mbus_frame_desc sink_fd, source_fd;
-+	struct v4l2_subdev *sink_sd, *source_sd;
-+	unsigned int i;
-+	int ret;
-+
-+	/* Require both pads in a link to be multiplexed */
-+	if ((link->source->flags & MEDIA_PAD_FL_MUXED) == 0 ||
-+	    (link->sink->flags & MEDIA_PAD_FL_MUXED) == 0)
-+		return -EINVAL;
-+
-+	sink_sd = media_entity_to_v4l2_subdev(link->sink->entity);
-+	source_sd = media_entity_to_v4l2_subdev(link->source->entity);
-+
-+	/* If not both provide frame descs there is not much to be done */
-+	ret = v4l2_subdev_call(sink_sd, pad, get_frame_desc,
-+			       link->sink->index, &sink_fd);
-+	if (ret < 0)
-+		return 0;
-+	ret = v4l2_subdev_call(source_sd, pad, get_frame_desc,
-+			       link->source->index, &source_fd);
-+	if (ret < 0)
-+		return 0;
-+
-+	/* Check both side multiplex same number of streams */
-+	if (sink_fd.num_entries != source_fd.num_entries)
-+		return -EINVAL;
-+
-+	/* Verify all formats of the multiplexed pads by examining the
-+	 * format of the pads which are routed to them. Maybe this is
-+	 * a bad idea...
-+	 */
-+	for (i = 0; i < sink_fd.num_entries; i++) {
-+		struct v4l2_subdev_format sink_fmt, source_fmt;
-+
-+		sink_fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+		sink_fmt.pad = sink_fd.entry[i].csi2.pad;
-+		ret = v4l2_subdev_call(sink_sd, pad, get_fmt, NULL, &sink_fmt);
-+		if (ret < 0)
-+			return 0;
-+
-+		source_fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+		source_fmt.pad = source_fd.entry[i].csi2.pad;
-+		ret = v4l2_subdev_call(source_sd, pad, get_fmt, NULL,
-+				       &source_fmt);
-+		if (ret < 0)
-+			return 0;
-+
-+		ret = v4l2_subdev_call(sink_sd, pad, link_validate, link,
-+					&source_fmt, &sink_fmt);
-+		if (ret == -ENOIOCTLCMD)
-+			ret = v4l2_subdev_link_validate_default(sink_sd, link,
-+								&source_fmt,
-+								&sink_fmt);
-+		if (ret)
-+			return -EPIPE;
-+	}
-+
-+	return 0;
-+}
-+
- int v4l2_subdev_link_validate(struct media_link *link)
- {
- 	struct v4l2_subdev *sink;
- 	struct v4l2_subdev_format sink_fmt, source_fmt;
- 	int rval;
- 
--	/* Require both pads in a link to be multiplexed if one is */
--	if ((link->source->flags | link->sink->flags) & MEDIA_PAD_FL_MUXED) {
--		if ((link->source->flags & MEDIA_PAD_FL_MUXED) == 0)
--			return -EINVAL;
--		if ((link->sink->flags & MEDIA_PAD_FL_MUXED) == 0)
--			return -EINVAL;
--		return 0;
--	}
-+	if ((link->source->flags | link->sink->flags) & MEDIA_PAD_FL_MUXED)
-+		return v4l2_subdev_link_validate_muxed(link);
- 
- 	rval = v4l2_subdev_link_validate_get_format(
- 		link->source, &source_fmt);
--- 
-2.13.3
+Ditto.
+
+> +``/dev/v4l-touchX``	 Touch sensors
+> +======================== ======================================================
+> +
+> +Where ``X`` is a non-negative number.
+> +
+> +.. note::
+> +
+> +   1. The actual device node name is system-dependent, as udev rules may apply.
+> +   2. There's not warranty that ``X`` will remain the same for the same
+
+"There is no"
+
+> +      device, as the number depends on the device driver's probe order.
+> +      If you need an unique name, udev default rules produce
+> +      ``/dev/v4l/by-id/`` and ``/dev/v4l/by-path/`` that can use to uniquelly
+
+      ``/dev/v4l/by-id/`` and ``/dev/v4l/by-path/`` directories containing links
+	that be can used to uniquely
+
+> +      identify a V4L2 device node::
+> +
+> +	$ tree /dev/v4l
+> +	/dev/v4l
+> +	├── by-id
+> +	│   └── usb-OmniVision._USB_Camera-B4.04.27.1-video-index0 -> ../../video0
+> +	└── by-path
+> +	    └── pci-0000:00:14.0-usb-0:2:1.0-video-index0 -> ../../video0
+> +
+>  
+>  Many drivers support "video_nr", "radio_nr" or "vbi_nr" module
+>  options to select specific video/radio/vbi node numbers. This allows the
+> 
+
+With these changes:
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Thanks!
+
+	Hans
