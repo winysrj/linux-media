@@ -1,53 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:55996 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752767AbdHVX2m (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49420
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754537AbdHYJkO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 19:28:42 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Fri, 25 Aug 2017 05:40:14 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v6 05/25] rcar-vin: change name of video device
-Date: Wed, 23 Aug 2017 01:26:20 +0200
-Message-Id: <20170822232640.26147-6-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 2/3] media: videodev2: add a flag for vdev-centric devices
+Date: Fri, 25 Aug 2017 06:40:06 -0300
+Message-Id: <8d504be517755ee9449a007b5f2de52738c2df63.1503653839.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503653839.git.mchehab@s-opensource.com>
+References: <cover.1503653839.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503653839.git.mchehab@s-opensource.com>
+References: <cover.1503653839.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The rcar-vin driver needs to be part of a media controller to support
-Gen3. Give each VIN instance a unique name so it can be referenced from
-userspace.
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+As both vdev-centric and mc-centric devices may implement the
+same APIs, we need a flag to allow userspace to distinguish
+between them.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/media/uapi/v4l/open.rst            | 6 ++++++
+ Documentation/media/uapi/v4l/vidioc-querycap.rst | 4 ++++
+ include/uapi/linux/videodev2.h                   | 2 ++
+ 3 files changed, 12 insertions(+)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 3c4dd08261a0d3f5..ba88774bd5379a98 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -878,7 +878,8 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 	vdev->fops = &rvin_fops;
- 	vdev->v4l2_dev = &vin->v4l2_dev;
- 	vdev->queue = &vin->queue;
--	strlcpy(vdev->name, KBUILD_MODNAME, sizeof(vdev->name));
-+	snprintf(vdev->name, sizeof(vdev->name), "%s %s", KBUILD_MODNAME,
-+		 dev_name(vin->dev));
- 	vdev->release = video_device_release_empty;
- 	vdev->ioctl_ops = &rvin_ioctl_ops;
- 	vdev->lock = &vin->lock;
+diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+index a72d142897c0..eb3f0ec57edb 100644
+--- a/Documentation/media/uapi/v4l/open.rst
++++ b/Documentation/media/uapi/v4l/open.rst
+@@ -33,6 +33,12 @@ For **vdev-centric** control, the device and their corresponding hardware
+ pipelines are controlled via the **V4L2 device** node. They may optionally
+ expose via the :ref:`media controller API <media_controller>`.
+ 
++.. note::
++
++   **vdev-centric** devices should report V4L2_VDEV_CENTERED
++   :c:type:`v4l2_capability` flag (see :ref:`VIDIOC_QUERYCAP`).
++
++
+ For **MC-centric** control, before using the V4L2 device, it is required to
+ set the hardware pipelines via the
+ :ref:`media controller API <media_controller>`. For those devices, the
+diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+index 12e0d9a63cd8..4856821b7608 100644
+--- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
++++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+@@ -252,6 +252,10 @@ specification the ioctl returns an ``EINVAL`` error code.
+     * - ``V4L2_CAP_TOUCH``
+       - 0x10000000
+       - This is a touch device.
++    * - ``V4L2_VDEV_CENTERED``
++      - 0x20000000
++      - This is controlled via V4L2 device nodes (radio, video, vbi,
++        sdr
+     * - ``V4L2_CAP_DEVICE_CAPS``
+       - 0x80000000
+       - The driver fills the ``device_caps`` field. This capability can
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 45cf7359822c..d89090d99042 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -460,6 +460,8 @@ struct v4l2_capability {
+ 
+ #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
+ 
++#define V4L2_CAP_VDEV_CENTERED          0x20000000  /* V4L2 Device is controlled via V4L2 device devnode */
++
+ #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device capabilities field */
+ 
+ /*
 -- 
-2.14.0
+2.13.3
