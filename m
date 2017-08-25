@@ -1,63 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:34710 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751163AbdHSIYd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Aug 2017 04:24:33 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, bp@alien8.de, mchehab@kernel.org,
-        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
-        seanpaul@chromium.org, airlied@linux.ie, g.liakhovetski@gmx.de,
-        tomas.winkler@intel.com, dwmw2@infradead.org,
-        computersforpeace@gmail.com, boris.brezillon@free-electrons.com,
-        marek.vasut@gmail.com, richard@nod.at, cyrille.pitchen@wedev4u.fr,
-        peda@axentia.se, kishon@ti.com, bhelgaas@google.com,
-        thierry.reding@gmail.com, jonathanh@nvidia.com,
-        dvhart@infradead.org, andy@infradead.org, ohad@wizery.com,
-        bjorn.andersson@linaro.org, freude@de.ibm.com,
-        schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, jth@kernel.org,
-        jejb@linux.vnet.ibm.com, martin.petersen@oracle.com,
-        lduncan@suse.com, cleech@redhat.com, johan@kernel.org,
-        elder@kernel.org, gregkh@linuxfoundation.org,
-        heikki.krogerus@linux.intel.com, linux-edac@vger.kernel.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
-        linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, greybus-dev@lists.linaro.org,
-        devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 05/15] mei: make device_type const
-Date: Sat, 19 Aug 2017 13:52:16 +0530
-Message-Id: <1503130946-2854-6-git-send-email-bhumirks@gmail.com>
-In-Reply-To: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
-References: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
+Received: from shell.v3.sk ([92.60.52.57]:38635 "EHLO shell.v3.sk"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754535AbdHYJxS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 Aug 2017 05:53:18 -0400
+Message-ID: <1503654425.6909.16.camel@v3.sk>
+Subject: Re: [PATCH 3/3] media: add V4L2_CAP_VDEV_CENTERED flag on
+ vdev-centric drivers
+From: Lubomir Rintel <lkundrak@v3.sk>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Fri, 25 Aug 2017 11:47:05 +0200
+In-Reply-To: <e0dfe1dc52d5c91bc75ffdb011a6714494409761.1503653839.git.mchehab@s-opensource.com>
+References: <cover.1503653839.git.mchehab@s-opensource.com>
+         <e0dfe1dc52d5c91bc75ffdb011a6714494409761.1503653839.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make this const as it is only stored in the type field of a device
-structure, which is const.
-Done using Coccinelle.
+On Fri, 2017-08-25 at 06:40 -0300, Mauro Carvalho Chehab wrote:
+> From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> Those devices are controlled via their V4L2 device. Add a
+> flag to indicate them as such.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
----
- drivers/misc/mei/bus.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Acked-by: Lubomir Rintel <lkundrak@v3.sk>
 
-diff --git a/drivers/misc/mei/bus.c b/drivers/misc/mei/bus.c
-index 40c7908..1ac10cb 100644
---- a/drivers/misc/mei/bus.c
-+++ b/drivers/misc/mei/bus.c
-@@ -845,7 +845,7 @@ static void mei_cl_bus_dev_release(struct device *dev)
- 	kfree(cldev);
- }
- 
--static struct device_type mei_cl_device_type = {
-+static const struct device_type mei_cl_device_type = {
- 	.release	= mei_cl_bus_dev_release,
- };
- 
--- 
-1.9.1
+for the usbtv driver.
+
+> ---
+>  drivers/media/usb/usbtv/usbtv-video.c          |  2 +-
+
+> diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
+> index 8135614f395a..724dbcb8de9b 100644
+> --- a/drivers/media/usb/usbtv/usbtv-video.c
+> +++ b/drivers/media/usb/usbtv/usbtv-video.c
+> @@ -520,7 +520,7 @@ static int usbtv_querycap(struct file *file, void *priv,
+>  	strlcpy(cap->driver, "usbtv", sizeof(cap->driver));
+>  	strlcpy(cap->card, "usbtv", sizeof(cap->card));
+>  	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
+> -	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE;
+> +	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VDEV_CENTERED;
+>  	cap->device_caps |= V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
+>  	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+>  	return 0;
+> 
