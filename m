@@ -1,99 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:57976 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752330AbdHIKBx (ORCPT
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:13025 "EHLO
+        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932207AbdHYKmy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 9 Aug 2017 06:01:53 -0400
-Subject: Re: [PATCH 0/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX
- support
-References: <20170711133011.41139-1-hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        David Airlie <airlied@linux.ie>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: dri-devel <dri-devel@lists.freedesktop.org>
-Message-ID: <d6ccf2e4-a0b5-cffa-a0ca-60f52d4c615e@xs4all.nl>
-Date: Wed, 9 Aug 2017 12:01:49 +0200
+        Fri, 25 Aug 2017 06:42:54 -0400
+Subject: Re: [PATCH 2/3] media: videodev2: add a flag for vdev-centric devices
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <cover.1503653839.git.mchehab@s-opensource.com>
+ <8d504be517755ee9449a007b5f2de52738c2df63.1503653839.git.mchehab@s-opensource.com>
+ <4f771cfa-0e0d-3548-a363-6470b32a6634@cisco.com>
+ <20170825070632.28580858@vento.lan>
+ <44bdeabc-8899-8f7e-dd26-4284c5b589a1@cisco.com>
+ <20170825073517.1112d618@vento.lan>
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <7d5f952b-028d-0770-0f37-39ab011ec740@cisco.com>
+Date: Fri, 25 Aug 2017 12:42:51 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170711133011.41139-1-hverkuil@xs4all.nl>
+In-Reply-To: <20170825073517.1112d618@vento.lan>
 Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/07/17 15:30, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On 08/25/2017 12:35 PM, Mauro Carvalho Chehab wrote:
+> Em Fri, 25 Aug 2017 12:13:53 +0200
+> Hans Verkuil <hansverk@cisco.com> escreveu:
 > 
-> This patch series adds support for the DisplayPort CEC-Tunneling-over-AUX
-> feature. This patch series is based on the latest mainline kernel (as of today)
-> which has all the needed cec and drm 4.13 patches merged.
+>> On 08/25/2017 12:06 PM, Mauro Carvalho Chehab wrote:
+>>> Em Fri, 25 Aug 2017 11:44:27 +0200
+>>> Hans Verkuil <hansverk@cisco.com> escreveu:
+>>>   
+>>>> On 08/25/2017 11:40 AM, Mauro Carvalho Chehab wrote:  
+>>>>> From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>>>>
+>>>>> As both vdev-centric and mc-centric devices may implement the
+>>>>> same APIs, we need a flag to allow userspace to distinguish
+>>>>> between them.
+>>>>>
+>>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+>>>>> ---
+>>>>>  Documentation/media/uapi/v4l/open.rst            | 6 ++++++
+>>>>>  Documentation/media/uapi/v4l/vidioc-querycap.rst | 4 ++++
+>>>>>  include/uapi/linux/videodev2.h                   | 2 ++
+>>>>>  3 files changed, 12 insertions(+)
+>>>>>
+>>>>> diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+>>>>> index a72d142897c0..eb3f0ec57edb 100644
+>>>>> --- a/Documentation/media/uapi/v4l/open.rst
+>>>>> +++ b/Documentation/media/uapi/v4l/open.rst
+>>>>> @@ -33,6 +33,12 @@ For **vdev-centric** control, the device and their corresponding hardware
+>>>>>  pipelines are controlled via the **V4L2 device** node. They may optionally
+>>>>>  expose via the :ref:`media controller API <media_controller>`.
+>>>>>  
+>>>>> +.. note::
+>>>>> +
+>>>>> +   **vdev-centric** devices should report V4L2_VDEV_CENTERED    
+>>>>
+>>>> You mean CENTRIC, not CENTERED.  
+>>>
+>>> Yeah, true. I'll fix it.
+>>>   
+>>>> But I would change this to MC_CENTRIC: the vast majority of drivers are VDEV centric,
+>>>> so it makes a lot more sense to keep that as the default and only set the cap for
+>>>> MC-centric drivers.  
+>>>
+>>> I actually focused it on what an userspace application would do.
+>>>
+>>> An specialized application for a given hardware will likely just
+>>> ignore whatever flag is added, and use vdev, mc and subdev APIs
+>>> as it pleases. So, those applications don't need any flag at all.
+>>>
+>>> However, a generic application needs a flag to allow them to check
+>>> if a given hardware can be controlled by the traditional way
+>>> to control the device (e. g. if it accepts vdev-centric type of
+>>> hardware control).
+>>>
+>>> It is an old desire (since when MC was designed) to allow that
+>>> generic V4L2 apps to also work with MC-centric hardware somehow.  
+>>
+>> No, not true. The desire is that they can use the MC to find the
+>> various device nodes (video, radio, vbi, rc, cec, ...). But they
+>> remain vdev-centric. vdev vs mc centric has nothing to do with the
+>> presence of the MC. It's how they are controlled.
 > 
-> This patch series has been tested with my NUC7i5BNK and a Samsung USB-C to 
-> HDMI adapter.
+> No, that's not I'm talking about. I'm talking about libv4l plugin
+> (or whatever) that would allow a generic app to work with a mc-centric
+> device. That's there for a long time (since when we were reviewing
+> the MC patches back in 2009 or 2010).
 
-Ping?
+So? Such a plugin would obviously remove the MC_CENTRIC cap. Which makes
+perfect sense.
 
-> Please note this comment at the start of drm_dp_cec.c:
-> 
-> ----------------------------------------------------------------------
-> Unfortunately it turns out that we have a chicken-and-egg situation
-> here. Quite a few active (mini-)DP-to-HDMI or USB-C-to-HDMI adapters
-> have a converter chip that supports CEC-Tunneling-over-AUX (usually the
-> Parade PS176), but they do not wire up the CEC pin, thus making CEC
-> useless.
-> 
-> Sadly there is no way for this driver to know this. What happens is 
-> that a /dev/cecX device is created that is isolated and unable to see
-> any of the other CEC devices. Quite literally the CEC wire is cut
-> (or in this case, never connected in the first place).
-> 
-> I suspect that the reason so few adapters support this is that this
-> tunneling protocol was never supported by any OS. So there was no 
-> easy way of testing it, and no incentive to correctly wire up the
-> CEC pin.
+There are a lot of userspace applications that do not use libv4l. It's
+optional, not required, to use that library. We cannot design our API with
+the assumption that this library will be used.
 
-I got confirmation of this suspicion. This is indeed the reason why so
-few adapters hook this up. Having native linux support for this feature
-will definitely help the adoption of CEC over DP.
+> 
+>>
+>> Regarding userspace applications: they can't check for a VDEV_CENTRIC
+>> cap since we never had any. I.e., if they do:
+>>
+>> 	if (!(caps & VDEV_CENTRIC))
+>> 		/* unsupported device */
+>>
+>> then they would fail for older kernels that do not set this flag.
+>>
+>> But this works:
+>>
+>> 	if (caps & MC_CENTRIC)
+>> 		/* unsupported device */
+>>
+>> So this really needs to be an MC_CENTRIC capability.
+> 
+> That won't work. The test should take into account the API version
+> too.
+> 
+> Assuming that such flag would be added for version 4.15, with a VDEV_CENTRIC,
+> the check would be:
+> 
+> 
+> 	/*
+>          * There's no need to check version here: libv4l may override it
+> 	 * to support a mc-centric device even for older versions of the
+> 	 * Kernel
+>          */
+> 	if (caps & V4L2_CAP_VDEV_CENTRIC)
+> 		is_supported = true;
+> 
+> 	/*
+> 	 * For API version lower than 4.15, there's no way to know for
+> 	 * sure if the device is vdev-centric or not. So, either additional
+> 	 * tests are needed, or it would assume vdev-centric and output
+> 	 * some note about that.
+> 	 */
+> 	if (version < KERNEL_VERSION(4, 15, 0))
+> 		maybe_supported = true;
+
+
+	is_supported = true;
+	if (caps & V4L2_CAP_MC_CENTRIC)
+		is_supported = false;
+ 	if (version < KERNEL_VERSION(4, 15, 0))
+ 		maybe_supported = true;
+
+I don't see the difference. BTW, no application will ever do that version check.
+It doesn't help them in any way to know that it 'may' be supported.
 
 Regards,
 
 	Hans
-
-> Hopefully by creating this driver it will be easier for vendors to 
-> finally fix their adapters and test the CEC functionality.
-> 
-> I keep a list of known working adapters here:
-> 
-> https://hverkuil.home.xs4all.nl/cec-status.txt
-> 
-> Please mail me (hverkuil@xs4all.nl) if you find an adapter that works
-> and is not yet listed there.
-> ----------------------------------------------------------------------
-> 
-> I really hope that this work will provide an incentive for vendors to
-> finally connect the CEC pin. It's a shame that there are so few adapters
-> that work (I found only two USB-C to HDMI adapters that work, and no
-> (mini-)DP to HDMI adapters at all).
-> 
-> Daniel, I incorporated all your suggestions/comments from the RFC patch
-> series from about 2 months ago.
-> 
-> Regards,
-> 
->         Hans
-> 
-> Hans Verkuil (3):
->   drm: add support for DisplayPort CEC-Tunneling-over-AUX
->   drm-kms-helpers.rst: document the DP CEC helpers
->   drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
-> 
->  Documentation/gpu/drm-kms-helpers.rst |   9 +
->  drivers/gpu/drm/Kconfig               |  10 ++
->  drivers/gpu/drm/Makefile              |   1 +
->  drivers/gpu/drm/drm_dp_cec.c          | 308 ++++++++++++++++++++++++++++++++++
->  drivers/gpu/drm/i915/intel_dp.c       |  18 +-
->  include/drm/drm_dp_helper.h           |  24 +++
->  6 files changed, 366 insertions(+), 4 deletions(-)
->  create mode 100644 drivers/gpu/drm/drm_dp_cec.c
-> 
