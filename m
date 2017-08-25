@@ -1,136 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:60016 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751786AbdHRVeT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 17:34:19 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: linux-api@vger.kernel.org, tfiga@chromium.org, yong.zhi@intel.com
-Subject: [PATCH 2/2] docs-rst: v4l: Document V4L2_BUF_TYPE_META_OUTPUT interface
-Date: Sat, 19 Aug 2017 00:30:56 +0300
-Message-Id: <1503091856-18294-3-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1503091856-18294-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1503091856-18294-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41075 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934471AbdHYQeY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 Aug 2017 12:34:24 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Cyprian Wronka <cwronka@cadence.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Neil Webb <neilw@cadence.com>,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v2 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
+Date: Fri, 25 Aug 2017 19:34:55 +0300
+Message-ID: <1955840.czSnNPfaK8@avalon>
+In-Reply-To: <20170825144440.beettgwsynics3hs@flea.lan>
+References: <20170720092302.2982-1-maxime.ripard@free-electrons.com> <2518768.foDtbh9bhx@avalon> <20170825144440.beettgwsynics3hs@flea.lan>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document the interface for metadata output, including
-V4L2_BUF_TYPE_META_OUTPUT buffer type and V4L2_CAP_META_OUTPUT capability
-bits.
+Hi Maxime,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/media/uapi/v4l/buffer.rst          |  3 +++
- Documentation/media/uapi/v4l/dev-meta.rst        | 33 ++++++++++++++----------
- Documentation/media/uapi/v4l/vidioc-querycap.rst |  3 +++
- Documentation/media/videodev2.h.rst.exceptions   |  2 ++
- 4 files changed, 28 insertions(+), 13 deletions(-)
+On Friday, 25 August 2017 17:44:40 EEST Maxime Ripard wrote:
+> On Wed, Aug 23, 2017 at 12:03:32AM +0300, Laurent Pinchart wrote:
+> >>>>>> +  - phys: phandle to the external D-PHY
+> >>>>>> +  - phy-names: must contain dphy, if the implementation uses an
+> >>>>>> +     external D-PHY
+> >>>>> 
+> >>>>> I would move the last two properties in an optional category as
+> >>>>> they're effectively optional. I think you should also explain a bit
+> >>>>> more clearly that the phys property must not be present if the phy-
+> >>>>> names property is not present.
+> >>>> 
+> >>>> It's not really optional. The IP has a configuration register that
+> >>>> allows you to see if it's been synthesized with or without a PHY. If
+> >>>> the right bit is set, that property will be mandatory, if not, it's
+> >>>> useless.
+> >>> 
+> >>> Just to confirm, the PHY is a separate IP core, right ? Is the CSI-2
+> >>> receiver input interface different when used with a PHY and when used
+> >>> without one ? Could a third-party PHY be used as well ? If so, would
+> >>> the PHY synthesis bit be set or not ?
+> >> 
+> >> The PHY (in our case a D-PHY) is a separate entity, it can be from a 3rd
+> >> party as the IP interface is standard, the SoC integrator would set the
+> >> bit accordingly based on whether any PHY is present or not. There is also
+> >> an option of routing digital output from a CSI-TX to a CSI-RX and in such
+> >> case a PHY would not need to be used (as in the case of our current
+> >> platform).
+> > 
+> > OK, thank you for the clarification.
+> > 
+> > Maxime mentioned that a bit can be read from a register to notify whether
+> > a PHY has been synthesized or not. Does it influence the CSI-2 RX input
+> > interface at all, or is the CSI-2 RX IP core synthesized the same way
+> > regardless of whether a PHY is present or not ?
+> 
+> So we got an answer to this, and the physical interface remains the
+> same.
+> 
+> However, the PHY bit is set only when there's an internal D-PHY, which
+> means we have basically three cases:
+>   - No D-PHY at all, D-PHY presence bit not set
+>   - Internal D-PHY, D-PHY presence bit set
+>   - External D-PHY, D-PHY presence bit not set
+> 
+> I guess that solves our discussion about whether the phys property
+> should be marked optional or not. It should indeed be optional, and
+> when it's not there, the D-PHY presence bit will tell whether we have
+> to program the internal D-PHY or not.
 
-diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
-index ae6ee73..33b932e 100644
---- a/Documentation/media/uapi/v4l/buffer.rst
-+++ b/Documentation/media/uapi/v4l/buffer.rst
-@@ -452,6 +452,9 @@ enum v4l2_buf_type
-     * - ``V4L2_BUF_TYPE_META_CAPTURE``
-       - 13
-       - Buffer for metadata capture, see :ref:`metadata`.
-+    * - ``V4L2_BUF_TYPE_META_OUTPUT``
-+      - 14
-+      - Buffer for metadata output, see :ref:`metadata`.
- 
- 
- 
-diff --git a/Documentation/media/uapi/v4l/dev-meta.rst b/Documentation/media/uapi/v4l/dev-meta.rst
-index 62518ad..a1e54bc 100644
---- a/Documentation/media/uapi/v4l/dev-meta.rst
-+++ b/Documentation/media/uapi/v4l/dev-meta.rst
-@@ -7,21 +7,27 @@ Metadata Interface
- ******************
- 
- Metadata refers to any non-image data that supplements video frames with
--additional information. This may include statistics computed over the image
--or frame capture parameters supplied by the image source. This interface is
--intended for transfer of metadata to userspace and control of that operation.
-+additional information. This may include statistics computed over the image,
-+frame capture parameters supplied by the image source or device specific
-+parameters for specifying how the device processes images. This interface is
-+intended for transfer of metadata between the userspace and the hardware and
-+control of that operation.
- 
--The metadata interface is implemented on video capture device nodes. The device
--can be dedicated to metadata or can implement both video and metadata capture
--as specified in its reported capabilities.
-+The metadata interface is implemented on video device nodes. The device can be
-+dedicated to metadata or can support both video and metadata as specified in its
-+reported capabilities.
- 
- Querying Capabilities
- =====================
- 
--Device nodes supporting the metadata interface set the ``V4L2_CAP_META_CAPTURE``
--flag in the ``device_caps`` field of the
-+Device nodes supporting the metadata capture interface set the
-+``V4L2_CAP_META_CAPTURE`` flag in the ``device_caps`` field of the
- :c:type:`v4l2_capability` structure returned by the :c:func:`VIDIOC_QUERYCAP`
--ioctl. That flag means the device can capture metadata to memory.
-+ioctl. That flag means the device can capture metadata to memory. Similarly,
-+device nodes supporting metadata output interface set the
-+``V4L2_CAP_META_OUTPUT`` flag in the ``device_caps`` field of
-+:c:type:`v4l2_capability` structure. That flag means the device can read
-+metadata from memory.
- 
- At least one of the read/write or streaming I/O methods must be supported.
- 
-@@ -35,10 +41,11 @@ to the basic :ref:`format` ioctls, the :c:func:`VIDIOC_ENUM_FMT` ioctl must be
- supported as well.
- 
- To use the :ref:`format` ioctls applications set the ``type`` field of the
--:c:type:`v4l2_format` structure to ``V4L2_BUF_TYPE_META_CAPTURE`` and use the
--:c:type:`v4l2_meta_format` ``meta`` member of the ``fmt`` union as needed per
--the desired operation. Both drivers and applications must set the remainder of
--the :c:type:`v4l2_format` structure to 0.
-+:c:type:`v4l2_format` structure to ``V4L2_BUF_TYPE_META_CAPTURE`` or to
-+``V4L2_BUF_TYPE_META_OUTPUT`` and use the :c:type:`v4l2_meta_format` ``meta``
-+member of the ``fmt`` union as needed per the desired operation. Both drivers
-+and applications must set the remainder of the :c:type:`v4l2_format` structure
-+to 0.
- 
- .. _v4l2-meta-format:
- 
-diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-index 12e0d9a..36bf879 100644
---- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-@@ -249,6 +249,9 @@ specification the ioctl returns an ``EINVAL`` error code.
-     * - ``V4L2_CAP_STREAMING``
-       - 0x04000000
-       - The device supports the :ref:`streaming <mmap>` I/O method.
-+    * - ``V4L2_CAP_META_OUTPUT``
-+      - 0x08000000
-+      - The device supports the :ref:`metadata` output interface.
-     * - ``V4L2_CAP_TOUCH``
-       - 0x10000000
-       - This is a touch device.
-diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-index a5cb0a8..32172db 100644
---- a/Documentation/media/videodev2.h.rst.exceptions
-+++ b/Documentation/media/videodev2.h.rst.exceptions
-@@ -28,6 +28,7 @@ replace symbol V4L2_FIELD_TOP :c:type:`v4l2_field`
- 
- # Documented enum v4l2_buf_type
- replace symbol V4L2_BUF_TYPE_META_CAPTURE :c:type:`v4l2_buf_type`
-+replace symbol V4L2_BUF_TYPE_META_OUTPUT :c:type:`v4l2_buf_type`
- replace symbol V4L2_BUF_TYPE_SDR_CAPTURE :c:type:`v4l2_buf_type`
- replace symbol V4L2_BUF_TYPE_SDR_OUTPUT :c:type:`v4l2_buf_type`
- replace symbol V4L2_BUF_TYPE_SLICED_VBI_CAPTURE :c:type:`v4l2_buf_type`
-@@ -157,6 +158,7 @@ replace define V4L2_CAP_META_CAPTURE device-capabilities
- replace define V4L2_CAP_READWRITE device-capabilities
- replace define V4L2_CAP_ASYNCIO device-capabilities
- replace define V4L2_CAP_STREAMING device-capabilities
-+replace define V4L2_CAP_META_OUTPUT device-capabilities
- replace define V4L2_CAP_DEVICE_CAPS device-capabilities
- replace define V4L2_CAP_TOUCH device-capabilities
- 
+Is the internal D-PHY programmed through the register space of the CSI2-RX ? 
+If so I agree with you.
+
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
