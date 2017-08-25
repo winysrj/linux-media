@@ -1,61 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mxout017.mail.hostpoint.ch ([217.26.49.177]:48237 "EHLO
-        mxout017.mail.hostpoint.ch" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751186AbdH2TU0 (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50719
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S933580AbdHYPMF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 15:20:26 -0400
-Received: from [10.0.2.46] (helo=asmtp013.mail.hostpoint.ch)
-        by mxout017.mail.hostpoint.ch with esmtp (Exim 4.89 (FreeBSD))
-        (envelope-from <linux-dvb@kaiser-linux.li>)
-        id 1dmloZ-0003wd-0H
-        for linux-media@vger.kernel.org; Tue, 29 Aug 2017 21:04:43 +0200
-Received: from 80-72-52-213.dynamic.modem.fl1.li ([80.72.52.213] helo=[192.168.0.104])
-        by asmtp013.mail.hostpoint.ch with esmtpsa (TLSv1.2:ECDHE-RSA-AES256-GCM-SHA384:256)
-        (Exim 4.89 (FreeBSD))
-        (envelope-from <linux-dvb@kaiser-linux.li>)
-        id 1dmloY-0000RO-UO
-        for linux-media@vger.kernel.org; Tue, 29 Aug 2017 21:04:42 +0200
-To: linux-media <linux-media@vger.kernel.org>
-From: Thomas Kaiser <linux-dvb@kaiser-linux.li>
-Subject: make menuconfig on media_build
-Message-ID: <ff182a17-1ff8-cd92-5be7-7cb30f7e91ad@kaiser-linux.li>
-Date: Tue, 29 Aug 2017 21:04:41 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Fri, 25 Aug 2017 11:12:05 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH v3 3/7] media: open.rst: remove the minor number range
+Date: Fri, 25 Aug 2017 12:11:53 -0300
+Message-Id: <4c53c2f40dde4e2a082cea39824bfdd93092311c.1503673702.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503673702.git.mchehab@s-opensource.com>
+References: <cover.1503673702.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503673702.git.mchehab@s-opensource.com>
+References: <cover.1503673702.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear List
+minor numbers use to range between 0 to 255, but that
+was changed a long time ago. While it still applies when
+CONFIG_VIDEO_FIXED_MINOR_RANGES, when the minor number is
+dynamically allocated, this may not be true. In any case,
+this is not relevant, as udev will take care of it.
 
-When I run "make menuconfig" on media_build the following errors occur:
+So, remove this useless misinformation.
 
-thomas@Intel64:~/Projects/dvb/media_build$ make menuconfig
-make -C /home/thomas/Projects/dvb/media_build/v4l menuconfig
-make[1]: Entering directory '/home/thomas/Projects/dvb/media_build/v4l'
-/lib/modules/4.10.0-33-generic/build/scripts/kconfig/mconf ./Kconfig
-./Kconfig:5033: syntax error
-./Kconfig:5032: unknown option "Choose"
-./Kconfig:5035: syntax error
-./Kconfig:5034:warning: ignoring unsupported character ','
-./Kconfig:5034: unknown option "In"
-./Kconfig:5035: unknown option "that"
-./Kconfig:5036: unknown option "this"
-./Kconfig:5036:warning: ignoring unsupported character '<'
-./Kconfig:5037:warning: ignoring unsupported character ':'
-./Kconfig:5037: unknown option "file"
-Makefile:379: recipe for target 'menuconfig' failed
-make[1]: *** [menuconfig] Error 1
-make[1]: Leaving directory '/home/thomas/Projects/dvb/media_build/v4l'
-Makefile:26: recipe for target 'menuconfig' failed
-make: *** [menuconfig] Error 2
-thomas@Intel64:~/Projects/dvb/media_build$
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/v4l/open.rst | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-The 2 spaces in the 2 lines after the "--help--" entry of "config RADIO_WL128X" are the problem (v4l/Kconfig).
-
-Anyway I don't know where these 2 spaces come from. In the media_tree, I don't see these two spaces.
-
-Can somebody look what is going wrong here, thanks.
-
-Thomas
+diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+index e7160f667499..20f9fe29479b 100644
+--- a/Documentation/media/uapi/v4l/open.rst
++++ b/Documentation/media/uapi/v4l/open.rst
+@@ -19,11 +19,10 @@ helper functions and a common application interface specified in this
+ document.
+ 
+ Each driver thus loaded registers one or more device nodes with major
+-number 81 and a minor number between 0 and 255. Minor numbers are
+-allocated dynamically unless the kernel is compiled with the kernel
+-option CONFIG_VIDEO_FIXED_MINOR_RANGES. In that case minor numbers
+-are allocated in ranges depending on the device node type (video, radio,
+-etc.).
++number 81. Minor numbers are allocated dynamically unless the kernel
++is compiled with the kernel option CONFIG_VIDEO_FIXED_MINOR_RANGES.
++In that case minor numbers are allocated in ranges depending on the
++device node type.
+ 
+ The existing V4L2 device node types are:
+ 
+-- 
+2.13.3
