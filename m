@@ -1,75 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:34373 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751003AbdHSIXd (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49565
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754850AbdHYKGm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Aug 2017 04:23:33 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, bp@alien8.de, mchehab@kernel.org,
-        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
-        seanpaul@chromium.org, airlied@linux.ie, g.liakhovetski@gmx.de,
-        tomas.winkler@intel.com, dwmw2@infradead.org,
-        computersforpeace@gmail.com, boris.brezillon@free-electrons.com,
-        marek.vasut@gmail.com, richard@nod.at, cyrille.pitchen@wedev4u.fr,
-        peda@axentia.se, kishon@ti.com, bhelgaas@google.com,
-        thierry.reding@gmail.com, jonathanh@nvidia.com,
-        dvhart@infradead.org, andy@infradead.org, ohad@wizery.com,
-        bjorn.andersson@linaro.org, freude@de.ibm.com,
-        schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, jth@kernel.org,
-        jejb@linux.vnet.ibm.com, martin.petersen@oracle.com,
-        lduncan@suse.com, cleech@redhat.com, johan@kernel.org,
-        elder@kernel.org, gregkh@linuxfoundation.org,
-        heikki.krogerus@linux.intel.com, linux-edac@vger.kernel.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
-        linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, greybus-dev@lists.linaro.org,
-        devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 02/15] drm: make device_type const
-Date: Sat, 19 Aug 2017 13:52:13 +0530
-Message-Id: <1503130946-2854-3-git-send-email-bhumirks@gmail.com>
-In-Reply-To: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
-References: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
+        Fri, 25 Aug 2017 06:06:42 -0400
+Date: Fri, 25 Aug 2017 07:06:32 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 2/3] media: videodev2: add a flag for vdev-centric
+ devices
+Message-ID: <20170825070632.28580858@vento.lan>
+In-Reply-To: <4f771cfa-0e0d-3548-a363-6470b32a6634@cisco.com>
+References: <cover.1503653839.git.mchehab@s-opensource.com>
+        <8d504be517755ee9449a007b5f2de52738c2df63.1503653839.git.mchehab@s-opensource.com>
+        <4f771cfa-0e0d-3548-a363-6470b32a6634@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make these const as they are only stored in the type field of a device
-structure, which is const.
-Done using Coccinelle.
----
- drivers/gpu/drm/drm_sysfs.c      | 2 +-
- drivers/gpu/drm/ttm/ttm_module.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Em Fri, 25 Aug 2017 11:44:27 +0200
+Hans Verkuil <hansverk@cisco.com> escreveu:
 
-diff --git a/drivers/gpu/drm/drm_sysfs.c b/drivers/gpu/drm/drm_sysfs.c
-index 1c5b5ce..84e4ebe 100644
---- a/drivers/gpu/drm/drm_sysfs.c
-+++ b/drivers/gpu/drm/drm_sysfs.c
-@@ -39,7 +39,7 @@
-  * drm_connector_unregister().
-  */
- 
--static struct device_type drm_sysfs_device_minor = {
-+static const struct device_type drm_sysfs_device_minor = {
- 	.name = "drm_minor"
- };
- 
-diff --git a/drivers/gpu/drm/ttm/ttm_module.c b/drivers/gpu/drm/ttm/ttm_module.c
-index 66fc639..e6604e0 100644
---- a/drivers/gpu/drm/ttm/ttm_module.c
-+++ b/drivers/gpu/drm/ttm/ttm_module.c
-@@ -37,7 +37,7 @@
- static DECLARE_WAIT_QUEUE_HEAD(exit_q);
- static atomic_t device_released;
- 
--static struct device_type ttm_drm_class_type = {
-+static const struct device_type ttm_drm_class_type = {
- 	.name = "ttm",
- 	/**
- 	 * Add pm ops here.
--- 
-1.9.1
+> On 08/25/2017 11:40 AM, Mauro Carvalho Chehab wrote:
+> > From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > As both vdev-centric and mc-centric devices may implement the
+> > same APIs, we need a flag to allow userspace to distinguish
+> > between them.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > ---
+> >  Documentation/media/uapi/v4l/open.rst            | 6 ++++++
+> >  Documentation/media/uapi/v4l/vidioc-querycap.rst | 4 ++++
+> >  include/uapi/linux/videodev2.h                   | 2 ++
+> >  3 files changed, 12 insertions(+)
+> > 
+> > diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+> > index a72d142897c0..eb3f0ec57edb 100644
+> > --- a/Documentation/media/uapi/v4l/open.rst
+> > +++ b/Documentation/media/uapi/v4l/open.rst
+> > @@ -33,6 +33,12 @@ For **vdev-centric** control, the device and their corresponding hardware
+> >  pipelines are controlled via the **V4L2 device** node. They may optionally
+> >  expose via the :ref:`media controller API <media_controller>`.
+> >  
+> > +.. note::
+> > +
+> > +   **vdev-centric** devices should report V4L2_VDEV_CENTERED  
+> 
+> You mean CENTRIC, not CENTERED.
+
+Yeah, true. I'll fix it.
+
+> But I would change this to MC_CENTRIC: the vast majority of drivers are VDEV centric,
+> so it makes a lot more sense to keep that as the default and only set the cap for
+> MC-centric drivers.
+
+I actually focused it on what an userspace application would do.
+
+An specialized application for a given hardware will likely just
+ignore whatever flag is added, and use vdev, mc and subdev APIs
+as it pleases. So, those applications don't need any flag at all.
+
+However, a generic application needs a flag to allow them to check
+if a given hardware can be controlled by the traditional way
+to control the device (e. g. if it accepts vdev-centric type of
+hardware control).
+
+It is an old desire (since when MC was designed) to allow that
+generic V4L2 apps to also work with MC-centric hardware somehow.
+
+At the moment we add that (either in Kernelspace, as proposed for
+iMX6 [1] or via libv4l), a mc-centric hardware can also be 
+vdev-centric.
+
+[1] one alternative proposed for iMX6 driver, would be to enable
+    vdev-centric control only for hardware with a single camera
+    slot, like those cheap RPi3-camera compatible hardware, by
+    using some info at the DT.
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > +   :c:type:`v4l2_capability` flag (see :ref:`VIDIOC_QUERYCAP`).
+> > +
+> > +
+> >  For **MC-centric** control, before using the V4L2 device, it is required to
+> >  set the hardware pipelines via the
+> >  :ref:`media controller API <media_controller>`. For those devices, the
+> > diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+> > index 12e0d9a63cd8..4856821b7608 100644
+> > --- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
+> > +++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+> > @@ -252,6 +252,10 @@ specification the ioctl returns an ``EINVAL`` error code.
+> >      * - ``V4L2_CAP_TOUCH``
+> >        - 0x10000000
+> >        - This is a touch device.
+> > +    * - ``V4L2_VDEV_CENTERED``
+> > +      - 0x20000000
+> > +      - This is controlled via V4L2 device nodes (radio, video, vbi,
+> > +        sdr
+> >      * - ``V4L2_CAP_DEVICE_CAPS``
+> >        - 0x80000000
+> >        - The driver fills the ``device_caps`` field. This capability can
+> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> > index 45cf7359822c..d89090d99042 100644
+> > --- a/include/uapi/linux/videodev2.h
+> > +++ b/include/uapi/linux/videodev2.h
+> > @@ -460,6 +460,8 @@ struct v4l2_capability {
+> >  
+> >  #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
+> >  
+> > +#define V4L2_CAP_VDEV_CENTERED          0x20000000  /* V4L2 Device is controlled via V4L2 device devnode */
+> > +
+> >  #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device capabilities field */
+> >  
+> >  /*
+> >   
+> 
+
+
+
+Thanks,
+Mauro
