@@ -1,133 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:51370 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752387AbdHBIyO (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:56634 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754565AbdHYJRL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 Aug 2017 04:54:14 -0400
+        Fri, 25 Aug 2017 05:17:11 -0400
+Subject: Re: [PATCH 4/4] v4l: async: add comment about re-probing to
+ v4l2_async_notifier_unregister()
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <20170730223158.14405-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170730223158.14405-5-niklas.soderlund+renesas@ragnatech.se>
+ <20170815160932.fizwqqkaivtz3nqu@valkosipuli.retiisi.org.uk>
+ <2865661.SePdnx8dyz@avalon> <20170818134237.GB6304@bigcity.dyn.berto.se>
+ <20170823190314.GB12099@bigcity.dyn.berto.se>
+ <75ab2de0-156c-ac8a-b4db-58661e1f432c@xs4all.nl>
+ <20170824161735.3oa4qvdtzicjhgua@valkosipuli.retiisi.org.uk>
+Cc: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 3/9] omapdrm: hdmi4: make low-level functions available
-Date: Wed,  2 Aug 2017 10:54:02 +0200
-Message-Id: <20170802085408.16204-4-hverkuil@xs4all.nl>
-In-Reply-To: <20170802085408.16204-1-hverkuil@xs4all.nl>
-References: <20170802085408.16204-1-hverkuil@xs4all.nl>
+Message-ID: <d0acc2c2-f3ac-15ef-37f0-bf429a84f888@xs4all.nl>
+Date: Fri, 25 Aug 2017 11:17:04 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170824161735.3oa4qvdtzicjhgua@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 24/08/17 18:17, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Thu, Aug 24, 2017 at 09:59:41AM +0200, Hans Verkuil wrote:
+>> On 08/23/17 21:03, Niklas Söderlund wrote:
+>>> Hi,
+>>>
+>>> On 2017-08-18 15:42:37 +0200, Niklas Söderlund wrote:
+>>>> Hi Sakari and Laurent,
+>>>>
+>>>> Thanks for your feedback.
+>>>>
+>>>> On 2017-08-18 14:20:08 +0300, Laurent Pinchart wrote:
+>>>>> Hello,
+>>>>>
+>>>>> On Tuesday 15 Aug 2017 19:09:33 Sakari Ailus wrote:
+>>>>>> On Mon, Jul 31, 2017 at 12:31:58AM +0200, Niklas Söderlund wrote:
+>>>>>>> The re-probing of subdevices when unregistering a notifier is tricky to
+>>>>>>> understand, and implemented somewhat as a hack. Add a comment trying to
+>>>>>>> explain why the re-probing is needed in the first place and why existing
+>>>>>>> helper functions can't be used in this situation.
+>>>>>>>
+>>>>>>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+>>>>>>> ---
+>>>>>>>
+>>>>>>>  drivers/media/v4l2-core/v4l2-async.c | 17 +++++++++++++++++
+>>>>>>>  1 file changed, 17 insertions(+)
+>>>>>>>
+>>>>>>> diff --git a/drivers/media/v4l2-core/v4l2-async.c
+>>>>>>> b/drivers/media/v4l2-core/v4l2-async.c index
+>>>>>>> d91ff0a33fd3eaff..a3c5a1f6d4d2ab03 100644
+>>>>>>> --- a/drivers/media/v4l2-core/v4l2-async.c
+>>>>>>> +++ b/drivers/media/v4l2-core/v4l2-async.c
+>>>>>>> @@ -234,6 +234,23 @@ void v4l2_async_notifier_unregister(struct
+>>>>>>> v4l2_async_notifier *notifier)> 
+>>>>>>>  	mutex_unlock(&list_lock);
+>>>>>>>
+>>>>>>> +	/*
+>>>>>>> +	 * Try to re-probe the subdevices which where part of the notifier.
+>>>>>>> +	 * This is done so subdevices which where part of the notifier will
+>>>>>>> +	 * be re-probed to a pristine state and put back on the global
+>>>>>>> +	 * list of subdevices so they can once more be found and associated
+>>>>>>> +	 * with a new notifier.
+>>>>>>
+>>>>>> Instead of tweaking the code trying to handle unhandleable error conditions
+>>>>>> in notifier unregistration and adding lengthy stories on why this is done
+>>>>>> the way it is, could we simply get rid of the driver re-probing?
+>>>>>>
+>>>>>> I can't see why drivers shouldn't simply cope with the current interfaces
+>>>>>> without re-probing to which I've never seen any reasoned cause. When a
+>>>>>> sub-device driver is unbound, simply return the sub-device node to the list
+>>>>>> of async sub-devices.
+>>>>>
+>>>>> I agree, this is a hack that we should get rid of. Reprobing has been there 
+>>>>> from the very beginning, it's now 4 years and a half old, let's allow it to 
+>>>>> retire :-)
+>>>>
+>>>> I would also be happy to see this code go away :-)
+>>>>
+>>>>>
+>>>>>> Or can someone come up with a valid reason why the re-probing code should
+>>>>>> stay? :-)
+>>>>
+>>>> Hans kindly dug out the original reason talking about why this code was 
+>>>> added in the first place at
+>>>>
+>>>>     http://lkml.iu.edu/hypermail/linux/kernel/1210.2/00713.html
+>>>>
+>>>> I would also like record here what Laurent stated about this after 
+>>>> reading the above on #v4l 
+>>>>
+>>>> 13:53  pinchartl : what could happen is this
+>>>> 13:53  pinchartl : the master could export resources used by the subdev
+>>>> 13:53  pinchartl : the omap3 isp driver, for instance, is a clock source
+>>>> 13:54  pinchartl : and the clock can be used by sensors
+>>>> 13:54  pinchartl : so if you remove the omap3 isp, the clock won't be 
+>>>>    there anymore
+>>>> 13:54  pinchartl : and that's bad for the subdev
+> 
+> Re-probing never helped anything with omap3isp driver as the clock is
+> removed *after* unregistering async notifier. This means that the
+> re-probing sub-device driver will get the same clock which is about to be
+> removed and continues with that happily, only to find the clock gone in a
+> brief moment.
+> 
+> This could be fixed in the omap3isp driver but it is telling that _no-one
+> ever complained_.
+> 
+>>>>
+>>>>
+>>>> I don't claim I fully understand all the consequences of removing this 
+>>>> reprobing now. But maybe it's safer to lave the current behavior in for 
+>>>> now until the full problem is understood and move forward whit these 
+>>>> patches since at least they document the behavior and removes another 
+>>>> funky bit when trying to handle the situation where the memory 
+>>>> allocation fails? What do you guys think?
+>>>
+>>> Any thoughts about how I can move forward with this? The reason I'm 
+>>> asking is that this is a dependency for the sub-notifier patches which 
+>>> in turn is dependency for the R-Car CSI-2 driver :-) If someone wants to 
+>>> think more about this that is fine I just don't want it to be forgotten.  
+>>> As I see it these are the options open to me, but as always I'm always 
+>>> open to other solutions which I'm to narrow minded to see :-)
+>>>
+>>> - If after the latest discussions it feels the safest option is to keep 
+>>>   the re-probe logic but separating the v4l2 housekeeping from re-probe 
+>>>   logic move forward with this series as-is.
+>>
+>> I prefer this. We can always remove the reprobe code later once we have
+>> a better understanding. I see no downside to this cleanup series and it
+>> doesn't block any future development.
+> 
+> One thing we could do is to remove the memory allocation there. After that
+> it couldn't fail anymore, leaving the device in an unknown state.
+> 
+>>
+>>> - Post 1/4 separately and repost patch 2/4 -- 4/4 in a v2 to allow for 
+>>>   more input on what is the right thing to do here.
+>>
+>> I'm OK with this as well, we missed the 4.14 merge window anyway.
+> 
+> Agreed.
+> 
 
-Three low-level functions in hdmi4.c and hdmi4_core.c are
-made available for use by the OMAP4 CEC support.
+I want to add another option:
 
-Renamed the prefix to hdmi4 since these are OMAP4 specific.
+Keep it, finish the async work, then as a final patch remove the reprobe code.
 
-These function deal with the HDMI core and are needed to
-power it up for use with CEC, even when the HPD is low.
+If we discover that this actually breaks something then we can just revert that
+final patch without having to rework the whole series.
 
-Background: even if the HPD is low it should still be possible
-to use CEC. Some displays will set the HPD low when they go into standby or
-when they switch to another input, but CEC is still available and able
-to wake up/change input for such a display.
+Regards,
 
-This is explicitly allowed by the CEC standard.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/gpu/drm/omapdrm/dss/hdmi4.c      | 12 ++++++------
- drivers/gpu/drm/omapdrm/dss/hdmi4_core.c |  6 +++---
- drivers/gpu/drm/omapdrm/dss/hdmi4_core.h |  4 ++++
- 3 files changed, 13 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4.c b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-index 284b4942b9ac..99af926ca0f5 100644
---- a/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-+++ b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-@@ -394,11 +394,11 @@ static void hdmi_display_disable(struct omap_dss_device *dssdev)
- 	mutex_unlock(&hdmi.lock);
- }
- 
--static int hdmi_core_enable(struct omap_dss_device *dssdev)
-+int hdmi4_core_enable(struct omap_dss_device *dssdev)
- {
- 	int r = 0;
- 
--	DSSDBG("ENTER omapdss_hdmi_core_enable\n");
-+	DSSDBG("ENTER omapdss_hdmi4_core_enable\n");
- 
- 	mutex_lock(&hdmi.lock);
- 
-@@ -416,9 +416,9 @@ static int hdmi_core_enable(struct omap_dss_device *dssdev)
- 	return r;
- }
- 
--static void hdmi_core_disable(struct omap_dss_device *dssdev)
-+void hdmi4_core_disable(struct omap_dss_device *dssdev)
- {
--	DSSDBG("Enter omapdss_hdmi_core_disable\n");
-+	DSSDBG("Enter omapdss_hdmi4_core_disable\n");
- 
- 	mutex_lock(&hdmi.lock);
- 
-@@ -476,7 +476,7 @@ static int hdmi_read_edid(struct omap_dss_device *dssdev,
- 	need_enable = hdmi.core_enabled == false;
- 
- 	if (need_enable) {
--		r = hdmi_core_enable(dssdev);
-+		r = hdmi4_core_enable(dssdev);
- 		if (r)
- 			return r;
- 	}
-@@ -484,7 +484,7 @@ static int hdmi_read_edid(struct omap_dss_device *dssdev,
- 	r = read_edid(edid, len);
- 
- 	if (need_enable)
--		hdmi_core_disable(dssdev);
-+		hdmi4_core_disable(dssdev);
- 
- 	return r;
- }
-diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4_core.c b/drivers/gpu/drm/omapdrm/dss/hdmi4_core.c
-index ed6001613405..b91244378ed1 100644
---- a/drivers/gpu/drm/omapdrm/dss/hdmi4_core.c
-+++ b/drivers/gpu/drm/omapdrm/dss/hdmi4_core.c
-@@ -208,9 +208,9 @@ static void hdmi_core_init(struct hdmi_core_video_config *video_cfg)
- 	video_cfg->tclk_sel_clkmult = HDMI_FPLL10IDCK;
- }
- 
--static void hdmi_core_powerdown_disable(struct hdmi_core_data *core)
-+void hdmi4_core_powerdown_disable(struct hdmi_core_data *core)
- {
--	DSSDBG("Enter hdmi_core_powerdown_disable\n");
-+	DSSDBG("Enter hdmi4_core_powerdown_disable\n");
- 	REG_FLD_MOD(core->base, HDMI_CORE_SYS_SYS_CTRL1, 0x1, 0, 0);
- }
- 
-@@ -336,7 +336,7 @@ void hdmi4_configure(struct hdmi_core_data *core,
- 	hdmi_core_swreset_assert(core);
- 
- 	/* power down off */
--	hdmi_core_powerdown_disable(core);
-+	hdmi4_core_powerdown_disable(core);
- 
- 	v_core_cfg.pkt_mode = HDMI_PACKETMODE24BITPERPIXEL;
- 	v_core_cfg.hdmi_dvi = cfg->hdmi_dvi_mode;
-diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4_core.h b/drivers/gpu/drm/omapdrm/dss/hdmi4_core.h
-index a069f96ec6f6..b6ab579e44d2 100644
---- a/drivers/gpu/drm/omapdrm/dss/hdmi4_core.h
-+++ b/drivers/gpu/drm/omapdrm/dss/hdmi4_core.h
-@@ -266,6 +266,10 @@ void hdmi4_configure(struct hdmi_core_data *core, struct hdmi_wp_data *wp,
- void hdmi4_core_dump(struct hdmi_core_data *core, struct seq_file *s);
- int hdmi4_core_init(struct platform_device *pdev, struct hdmi_core_data *core);
- 
-+int hdmi4_core_enable(struct omap_dss_device *dssdev);
-+void hdmi4_core_disable(struct omap_dss_device *dssdev);
-+void hdmi4_core_powerdown_disable(struct hdmi_core_data *core);
-+
- int hdmi4_audio_start(struct hdmi_core_data *core, struct hdmi_wp_data *wp);
- void hdmi4_audio_stop(struct hdmi_core_data *core, struct hdmi_wp_data *wp);
- int hdmi4_audio_config(struct hdmi_core_data *core, struct hdmi_wp_data *wp,
--- 
-2.13.2
+	Hans
