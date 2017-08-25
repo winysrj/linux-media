@@ -1,178 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-110.mail.aliyun.com ([115.124.20.110]:48621 "EHLO
-        out20-110.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753057AbdHWClj (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49761
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754518AbdHYKux (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 22:41:39 -0400
-Date: Wed, 23 Aug 2017 10:41:18 +0800
-From: Yong <yong.deng@magewell.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Baruch Siach <baruch@tkos.co.il>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benoit Parrot <bparrot@ti.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
-Message-Id: <20170823104118.b4524830e4bb767d7714772c@magewell.com>
-In-Reply-To: <20170821202145.kmxancepyq55v3o2@flea.lan>
-References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
-        <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
-        <20170728160233.xooevio4hoqkgfaq@flea.lan>
-        <20170730060801.bkc2kvm72ktixy74@tarshish>
-        <20170821202145.kmxancepyq55v3o2@flea.lan>
-Mime-Version: 1.0
+        Fri, 25 Aug 2017 06:50:53 -0400
+Date: Fri, 25 Aug 2017 07:50:44 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 2/3] media: videodev2: add a flag for vdev-centric
+ devices
+Message-ID: <20170825075044.7ffe3232@vento.lan>
+In-Reply-To: <7d5f952b-028d-0770-0f37-39ab011ec740@cisco.com>
+References: <cover.1503653839.git.mchehab@s-opensource.com>
+        <8d504be517755ee9449a007b5f2de52738c2df63.1503653839.git.mchehab@s-opensource.com>
+        <4f771cfa-0e0d-3548-a363-6470b32a6634@cisco.com>
+        <20170825070632.28580858@vento.lan>
+        <44bdeabc-8899-8f7e-dd26-4284c5b589a1@cisco.com>
+        <20170825073517.1112d618@vento.lan>
+        <7d5f952b-028d-0770-0f37-39ab011ec740@cisco.com>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 21 Aug 2017 22:21:45 +0200
-Maxime Ripard <maxime.ripard@free-electrons.com> wrote:
+Em Fri, 25 Aug 2017 12:42:51 +0200
+Hans Verkuil <hansverk@cisco.com> escreveu:
 
-> Hi Baruch,
-> 
-> On Sun, Jul 30, 2017 at 09:08:01AM +0300, Baruch Siach wrote:
-> > On Fri, Jul 28, 2017 at 06:02:33PM +0200, Maxime Ripard wrote:
-> > > Hi, 
-> > > 
-> > > Thanks for the second iteration!
-> > > 
-> > > On Thu, Jul 27, 2017 at 01:01:35PM +0800, Yong Deng wrote:
-> > > > Allwinner V3s SoC have two CSI module. CSI0 is used for MIPI interface
-> > > > and CSI1 is used for parallel interface. This is not documented in
-> > > > datasheet but by testing and guess.
-> > > > 
-> > > > This patch implement a v4l2 framework driver for it.
-> > > > 
-> > > > Currently, the driver only support the parallel interface. MIPI-CSI2,
-> > > > ISP's support are not included in this patch.
-> > > > 
-> > > > Signed-off-by: Yong Deng <yong.deng@magewell.com>
+> On 08/25/2017 12:35 PM, Mauro Carvalho Chehab wrote:
+> > Em Fri, 25 Aug 2017 12:13:53 +0200
+> > Hans Verkuil <hansverk@cisco.com> escreveu:
+> >   
+> >> On 08/25/2017 12:06 PM, Mauro Carvalho Chehab wrote:  
+> >>> Em Fri, 25 Aug 2017 11:44:27 +0200
+> >>> Hans Verkuil <hansverk@cisco.com> escreveu:
+> >>>     
+> >>>> On 08/25/2017 11:40 AM, Mauro Carvalho Chehab wrote:    
+> >>>>> From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >>>>>
+> >>>>> As both vdev-centric and mc-centric devices may implement the
+> >>>>> same APIs, we need a flag to allow userspace to distinguish
+> >>>>> between them.
+> >>>>>
+> >>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> >>>>> ---
+> >>>>>  Documentation/media/uapi/v4l/open.rst            | 6 ++++++
+> >>>>>  Documentation/media/uapi/v4l/vidioc-querycap.rst | 4 ++++
+> >>>>>  include/uapi/linux/videodev2.h                   | 2 ++
+> >>>>>  3 files changed, 12 insertions(+)
+> >>>>>
+> >>>>> diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+> >>>>> index a72d142897c0..eb3f0ec57edb 100644
+> >>>>> --- a/Documentation/media/uapi/v4l/open.rst
+> >>>>> +++ b/Documentation/media/uapi/v4l/open.rst
+> >>>>> @@ -33,6 +33,12 @@ For **vdev-centric** control, the device and their corresponding hardware
+> >>>>>  pipelines are controlled via the **V4L2 device** node. They may optionally
+> >>>>>  expose via the :ref:`media controller API <media_controller>`.
+> >>>>>  
+> >>>>> +.. note::
+> >>>>> +
+> >>>>> +   **vdev-centric** devices should report V4L2_VDEV_CENTERED      
+> >>>>
+> >>>> You mean CENTRIC, not CENTERED.    
+> >>>
+> >>> Yeah, true. I'll fix it.
+> >>>     
+> >>>> But I would change this to MC_CENTRIC: the vast majority of drivers are VDEV centric,
+> >>>> so it makes a lot more sense to keep that as the default and only set the cap for
+> >>>> MC-centric drivers.    
+> >>>
+> >>> I actually focused it on what an userspace application would do.
+> >>>
+> >>> An specialized application for a given hardware will likely just
+> >>> ignore whatever flag is added, and use vdev, mc and subdev APIs
+> >>> as it pleases. So, those applications don't need any flag at all.
+> >>>
+> >>> However, a generic application needs a flag to allow them to check
+> >>> if a given hardware can be controlled by the traditional way
+> >>> to control the device (e. g. if it accepts vdev-centric type of
+> >>> hardware control).
+> >>>
+> >>> It is an old desire (since when MC was designed) to allow that
+> >>> generic V4L2 apps to also work with MC-centric hardware somehow.    
+> >>
+> >> No, not true. The desire is that they can use the MC to find the
+> >> various device nodes (video, radio, vbi, rc, cec, ...). But they
+> >> remain vdev-centric. vdev vs mc centric has nothing to do with the
+> >> presence of the MC. It's how they are controlled.  
 > > 
-> > [...]
-> > 
-> > > > +#ifdef DEBUG
-> > > > +static void sun6i_csi_dump_regs(struct sun6i_csi_dev *sdev)
-> > > > +{
-> > > > +	struct regmap *regmap = sdev->regmap;
-> > > > +	u32 val;
-> > > > +
-> > > > +	regmap_read(regmap, CSI_EN_REG, &val);
-> > > > +	printk("CSI_EN_REG=0x%x\n",		val);
-> > > > +	regmap_read(regmap, CSI_IF_CFG_REG, &val);
-> > > > +	printk("CSI_IF_CFG_REG=0x%x\n",		val);
-> > > > +	regmap_read(regmap, CSI_CAP_REG, &val);
-> > > > +	printk("CSI_CAP_REG=0x%x\n",		val);
-> > > > +	regmap_read(regmap, CSI_SYNC_CNT_REG, &val);
-> > > > +	printk("CSI_SYNC_CNT_REG=0x%x\n",	val);
-> > > > +	regmap_read(regmap, CSI_FIFO_THRS_REG, &val);
-> > > > +	printk("CSI_FIFO_THRS_REG=0x%x\n",	val);
-> > > > +	regmap_read(regmap, CSI_PTN_LEN_REG, &val);
-> > > > +	printk("CSI_PTN_LEN_REG=0x%x\n",	val);
-> > > > +	regmap_read(regmap, CSI_PTN_ADDR_REG, &val);
-> > > > +	printk("CSI_PTN_ADDR_REG=0x%x\n",	val);
-> > > > +	regmap_read(regmap, CSI_VER_REG, &val);
-> > > > +	printk("CSI_VER_REG=0x%x\n",		val);
-> > > > +	regmap_read(regmap, CSI_CH_CFG_REG, &val);
-> > > > +	printk("CSI_CH_CFG_REG=0x%x\n",		val);
-> > > > +	regmap_read(regmap, CSI_CH_SCALE_REG, &val);
-> > > > +	printk("CSI_CH_SCALE_REG=0x%x\n",	val);
-> > > > +	regmap_read(regmap, CSI_CH_F0_BUFA_REG, &val);
-> > > > +	printk("CSI_CH_F0_BUFA_REG=0x%x\n",	val);
-> > > > +	regmap_read(regmap, CSI_CH_F1_BUFA_REG, &val);
-> > > > +	printk("CSI_CH_F1_BUFA_REG=0x%x\n",	val);
-> > > > +	regmap_read(regmap, CSI_CH_F2_BUFA_REG, &val);
-> > > > +	printk("CSI_CH_F2_BUFA_REG=0x%x\n",	val);
-> > > > +	regmap_read(regmap, CSI_CH_STA_REG, &val);
-> > > > +	printk("CSI_CH_STA_REG=0x%x\n",		val);
-> > > > +	regmap_read(regmap, CSI_CH_INT_EN_REG, &val);
-> > > > +	printk("CSI_CH_INT_EN_REG=0x%x\n",	val);
-> > > > +	regmap_read(regmap, CSI_CH_INT_STA_REG, &val);
-> > > > +	printk("CSI_CH_INT_STA_REG=0x%x\n",	val);
-> > > > +	regmap_read(regmap, CSI_CH_FLD1_VSIZE_REG, &val);
-> > > > +	printk("CSI_CH_FLD1_VSIZE_REG=0x%x\n",	val);
-> > > > +	regmap_read(regmap, CSI_CH_HSIZE_REG, &val);
-> > > > +	printk("CSI_CH_HSIZE_REG=0x%x\n",	val);
-> > > > +	regmap_read(regmap, CSI_CH_VSIZE_REG, &val);
-> > > > +	printk("CSI_CH_VSIZE_REG=0x%x\n",	val);
-> > > > +	regmap_read(regmap, CSI_CH_BUF_LEN_REG, &val);
-> > > > +	printk("CSI_CH_BUF_LEN_REG=0x%x\n",	val);
-> > > > +	regmap_read(regmap, CSI_CH_FLIP_SIZE_REG, &val);
-> > > > +	printk("CSI_CH_FLIP_SIZE_REG=0x%x\n",	val);
-> > > > +	regmap_read(regmap, CSI_CH_FRM_CLK_CNT_REG, &val);
-> > > > +	printk("CSI_CH_FRM_CLK_CNT_REG=0x%x\n",	val);
-> > > > +	regmap_read(regmap, CSI_CH_ACC_ITNL_CLK_CNT_REG, &val);
-> > > > +	printk("CSI_CH_ACC_ITNL_CLK_CNT_REG=0x%x\n",	val);
-> > > > +	regmap_read(regmap, CSI_CH_FIFO_STAT_REG, &val);
-> > > > +	printk("CSI_CH_FIFO_STAT_REG=0x%x\n",	val);
-> > > > +	regmap_read(regmap, CSI_CH_PCLK_STAT_REG, &val);
-> > > > +	printk("CSI_CH_PCLK_STAT_REG=0x%x\n",	val);
-> > > > +}
-> > > > +#endif
-> > > 
-> > > You can already dump a regmap through debugfs, that's redundant.
-> > 
-> > The advantage of in-code registers dump routine is the ability to
-> > synchronize the snapshot with the driver code execution. This is
-> > particularly important for the capture statistics registers. I have
-> > found it useful here.
+> > No, that's not I'm talking about. I'm talking about libv4l plugin
+> > (or whatever) that would allow a generic app to work with a mc-centric
+> > device. That's there for a long time (since when we were reviewing
+> > the MC patches back in 2009 or 2010).  
 > 
-> You also have the option to use the traces to do that, but if that's
-> useful, this should be added to regmap itself. It can benefit others
-> too.
+> So? Such a plugin would obviously remove the MC_CENTRIC cap. Which makes
+> perfect sense.
 > 
-> > > > +static irqreturn_t sun6i_csi_isr(int irq, void *dev_id)
-> > > > +{
-> > > > +	struct sun6i_csi_dev *sdev = (struct sun6i_csi_dev *)dev_id;
-> > > > +	struct regmap *regmap = sdev->regmap;
-> > > > +	u32 status;
-> > > > +
-> > > > +	regmap_read(regmap, CSI_CH_INT_STA_REG, &status);
-> > > > +
-> > > > +	if ((status & CSI_CH_INT_STA_FIFO0_OF_PD) ||
-> > > > +	    (status & CSI_CH_INT_STA_FIFO1_OF_PD) ||
-> > > > +	    (status & CSI_CH_INT_STA_FIFO2_OF_PD) ||
-> > > > +	    (status & CSI_CH_INT_STA_HB_OF_PD)) {
-> > > > +		regmap_write(regmap, CSI_CH_INT_STA_REG, status);
-> > > > +		regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN, 0);
-> > > > +		regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN,
-> > > > +				   CSI_EN_CSI_EN);
-> > > 
-> > > You need to enable / disable it at every frame? How do you deal with
-> > > double buffering? (or did you choose to ignore it for now?)
+> There are a lot of userspace applications that do not use libv4l. It's
+> optional, not required, to use that library. We cannot design our API with
+> the assumption that this library will be used.
+> 
+> >   
+> >>
+> >> Regarding userspace applications: they can't check for a VDEV_CENTRIC
+> >> cap since we never had any. I.e., if they do:
+> >>
+> >> 	if (!(caps & VDEV_CENTRIC))
+> >> 		/* unsupported device */
+> >>
+> >> then they would fail for older kernels that do not set this flag.
+> >>
+> >> But this works:
+> >>
+> >> 	if (caps & MC_CENTRIC)
+> >> 		/* unsupported device */
+> >>
+> >> So this really needs to be an MC_CENTRIC capability.  
 > > 
-> > These *_OF_PD status bits indicate an overflow error condition.
+> > That won't work. The test should take into account the API version
+> > too.
+> > 
+> > Assuming that such flag would be added for version 4.15, with a VDEV_CENTRIC,
+> > the check would be:
+> > 
+> > 
+> > 	/*
+> >          * There's no need to check version here: libv4l may override it
+> > 	 * to support a mc-centric device even for older versions of the
+> > 	 * Kernel
+> >          */
+> > 	if (caps & V4L2_CAP_VDEV_CENTRIC)
+> > 		is_supported = true;
+> > 
+> > 	/*
+> > 	 * For API version lower than 4.15, there's no way to know for
+> > 	 * sure if the device is vdev-centric or not. So, either additional
+> > 	 * tests are needed, or it would assume vdev-centric and output
+> > 	 * some note about that.
+> > 	 */
+> > 	if (version < KERNEL_VERSION(4, 15, 0))
+> > 		maybe_supported = true;  
 > 
-> Shouldn't we return an error code then? The names of these flags could
-> be better too.
+> 
+> 	is_supported = true;
+> 	if (caps & V4L2_CAP_MC_CENTRIC)
+> 		is_supported = false;
+>  	if (version < KERNEL_VERSION(4, 15, 0))
+>  		maybe_supported = true;
+> 
+> I don't see the difference. BTW, no application will ever do that version check.
+> It doesn't help them in any way to know that it 'may' be supported.
 
-Then, where and how to deal with the error coce.
-
-> 
-> Maxime
-> 
-> -- 
-> Maxime Ripard, Free Electrons
-> Embedded Linux and Kernel engineering
-> http://free-electrons.com
-
+Yeah, this can work. The only drawback is that, if we end by
+implementing vdev compatible support is that such drivers will
+have to clean the V4L2_CAP_MC_CENTRIC flag.
 
 Thanks,
-Yong
+Mauro
