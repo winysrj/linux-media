@@ -1,84 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40398 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751576AbdHNPNj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Aug 2017 11:13:39 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v2 0/8] vsp1: TLB optimisation and DL caching
-Date: Mon, 14 Aug 2017 16:13:23 +0100
-Message-Id: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50728
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S933585AbdHYPMF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 Aug 2017 11:12:05 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH v3 2/7] media: open.rst: better document device node naming
+Date: Fri, 25 Aug 2017 12:11:52 -0300
+Message-Id: <154729518e406bac4fdd53ce22e027936ece7b35.1503673702.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503673702.git.mchehab@s-opensource.com>
+References: <cover.1503673702.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+In-Reply-To: <cover.1503673702.git.mchehab@s-opensource.com>
+References: <cover.1503673702.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Each display list currently allocates an area of DMA memory to store register
-settings for the VSP1 to process. Each of these allocations adds pressure to
-the IPMMU TLB entries.
+Right now, only kAPI documentation describes the device naming.
+However, such description is needed at the uAPI too. Add it,
+and describe how to get an unique identify for a given device.
 
-We can reduce the pressure by pre-allocating larger areas and dividing the area
-across multiple bodies represented as a pool.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/v4l/open.rst | 39 ++++++++++++++++++++++++++++++++---
+ 1 file changed, 36 insertions(+), 3 deletions(-)
 
-With this reconfiguration of bodies, we can adapt the configuration code to
-separate out constant hardware configuration and cache it for re-use.
-
-Patch 1 adds protection to ensure that the display list body does not overflow
-and will allow us to reduce the size of the body allocations in the future (it
-has already helped me catch an overflow during the development of this series,
-so I thought it was a worth while addition)
-
-Patch 2 implements the fragment pool object and provides function helpers to
-interact with the pool
-
-Patch 3 converts the existing allocations to use the new fragment pool.
-
->From patch 4 to 7, we then refactor the display list handling code to separate
-out the two stages of stream setup and frame configuration and then configure
-directly into display list bodies. This allows us to cache the constant stream
-configuration in a reusable display list body which also repairs suspend/resume
-cycles for the video pipelines.
-
-Finally in patch 8, the size of the internal display list body is reduced down
-to 64 entries, as the maximum used is now 41 slots. The cached video pipeline
-stream configuration appears to use a maximum of 64 entries, but to allow for
-expansion this is set to 128 for now to prevent unexpected overflows.
-
-Kieran Bingham (8):
-  v4l: vsp1: Protect fragments against overflow
-  v4l: vsp1: Provide a fragment pool
-  v4l: vsp1: Convert display lists to use new fragment pool
-  v4l: vsp1: Use reference counting for fragments
-  v4l: vsp1: Refactor display list configure operations
-  v4l: vsp1: Adapt entities to configure into a body
-  v4l: vsp1: Move video configuration to a cached dlb
-  v4l: vsp1: Reduce display list body size
-
- drivers/media/platform/vsp1/vsp1_bru.c    |  32 +--
- drivers/media/platform/vsp1/vsp1_clu.c    |  86 +++---
- drivers/media/platform/vsp1/vsp1_clu.h    |   1 +-
- drivers/media/platform/vsp1/vsp1_dl.c     | 331 ++++++++++++-----------
- drivers/media/platform/vsp1/vsp1_dl.h     |  13 +-
- drivers/media/platform/vsp1/vsp1_drm.c    |  21 +-
- drivers/media/platform/vsp1/vsp1_entity.c |  23 +-
- drivers/media/platform/vsp1/vsp1_entity.h |  31 +--
- drivers/media/platform/vsp1/vsp1_hgo.c    |  26 +--
- drivers/media/platform/vsp1/vsp1_hgt.c    |  28 +--
- drivers/media/platform/vsp1/vsp1_hsit.c   |  20 +-
- drivers/media/platform/vsp1/vsp1_lif.c    |  23 +--
- drivers/media/platform/vsp1/vsp1_lut.c    |  65 +++--
- drivers/media/platform/vsp1/vsp1_lut.h    |   1 +-
- drivers/media/platform/vsp1/vsp1_pipe.c   |   8 +-
- drivers/media/platform/vsp1/vsp1_pipe.h   |   7 +-
- drivers/media/platform/vsp1/vsp1_rpf.c    | 179 ++++++------
- drivers/media/platform/vsp1/vsp1_sru.c    |  24 +--
- drivers/media/platform/vsp1/vsp1_uds.c    |  73 ++---
- drivers/media/platform/vsp1/vsp1_uds.h    |   2 +-
- drivers/media/platform/vsp1/vsp1_video.c  |  82 +++---
- drivers/media/platform/vsp1/vsp1_video.h  |   2 +-
- drivers/media/platform/vsp1/vsp1_wpf.c    | 325 ++++++++++++-----------
- 23 files changed, 753 insertions(+), 650 deletions(-)
-
-base-commit: f44bd631453bf7dcbe57f79b924db3a6dd038bff
+diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+index afd116edb40d..e7160f667499 100644
+--- a/Documentation/media/uapi/v4l/open.rst
++++ b/Documentation/media/uapi/v4l/open.rst
+@@ -7,12 +7,14 @@ Opening and Closing Devices
+ ***************************
+ 
+ 
+-Device Naming
+-=============
++.. _v4l2_device_naming:
++
++V4L2 Device Node Naming
++=======================
+ 
+ V4L2 drivers are implemented as kernel modules, loaded manually by the
+ system administrator or automatically when a device is first discovered.
+-The driver modules plug into the "videodev" kernel module. It provides
++The driver modules plug into the ``videodev`` kernel module. It provides
+ helper functions and a common application interface specified in this
+ document.
+ 
+@@ -23,6 +25,37 @@ option CONFIG_VIDEO_FIXED_MINOR_RANGES. In that case minor numbers
+ are allocated in ranges depending on the device node type (video, radio,
+ etc.).
+ 
++The existing V4L2 device node types are:
++
++======================== ======================================================
++Default device node name Usage
++======================== ======================================================
++``/dev/videoX``		 Video input/output devices
++``/dev/vbiX``		 Vertical blank data (i.e. closed captions, teletext)
++``/dev/radioX``		 Radio tuners
++``/dev/swradioX``	 Software Defined Radio tuners
++``/dev/v4l-touchX``	 Touch sensors
++======================== ======================================================
++
++Where ``X`` is a non-negative number.
++
++.. note::
++
++   1. The actual device node name is system-dependent, as udev rules may apply.
++   2. There's not warranty that ``X`` will remain the same for the same
++      device, as the number depends on the device driver's probe order.
++      If you need an unique name, udev default rules produce
++      ``/dev/v4l/by-id/`` and ``/dev/v4l/by-path/`` that can be used to
++      uniquely identify a V4L2 device node::
++
++	$ tree /dev/v4l
++	/dev/v4l
++	├── by-id
++	│   └── usb-OmniVision._USB_Camera-B4.04.27.1-video-index0 -> ../../video0
++	└── by-path
++	    └── pci-0000:00:14.0-usb-0:2:1.0-video-index0 -> ../../video0
++
++
+ Many drivers support "video_nr", "radio_nr" or "vbi_nr" module
+ options to select specific video/radio/vbi node numbers. This allows the
+ user to request that the device node is named e.g. /dev/video5 instead
 -- 
-git-series 0.9.1
+2.13.3
