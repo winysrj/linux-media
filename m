@@ -1,97 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:38721 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752311AbdHBImr (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49705
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754535AbdHYKf1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 Aug 2017 04:42:47 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, Eric Anholt <eric@anholt.net>,
-        devicetree@vger.kernel.org
-Subject: [PATCH 0/3] cec-gpio: add HDMI CEC GPIO-based driver
-Date: Wed,  2 Aug 2017 10:42:39 +0200
-Message-Id: <20170802084242.14947-1-hverkuil@xs4all.nl>
+        Fri, 25 Aug 2017 06:35:27 -0400
+Date: Fri, 25 Aug 2017 07:35:17 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 2/3] media: videodev2: add a flag for vdev-centric
+ devices
+Message-ID: <20170825073517.1112d618@vento.lan>
+In-Reply-To: <44bdeabc-8899-8f7e-dd26-4284c5b589a1@cisco.com>
+References: <cover.1503653839.git.mchehab@s-opensource.com>
+        <8d504be517755ee9449a007b5f2de52738c2df63.1503653839.git.mchehab@s-opensource.com>
+        <4f771cfa-0e0d-3548-a363-6470b32a6634@cisco.com>
+        <20170825070632.28580858@vento.lan>
+        <44bdeabc-8899-8f7e-dd26-4284c5b589a1@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Fri, 25 Aug 2017 12:13:53 +0200
+Hans Verkuil <hansverk@cisco.com> escreveu:
 
-This driver adds support for CEC implementations that use a pull-up
-GPIO pin. While SoCs exist that do this, the primary use-case is to
-turn a single-board computer into a cheap CEC debugger.
+> On 08/25/2017 12:06 PM, Mauro Carvalho Chehab wrote:
+> > Em Fri, 25 Aug 2017 11:44:27 +0200
+> > Hans Verkuil <hansverk@cisco.com> escreveu:
+> >   
+> >> On 08/25/2017 11:40 AM, Mauro Carvalho Chehab wrote:  
+> >>> From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >>>
+> >>> As both vdev-centric and mc-centric devices may implement the
+> >>> same APIs, we need a flag to allow userspace to distinguish
+> >>> between them.
+> >>>
+> >>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >>> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> >>> ---
+> >>>  Documentation/media/uapi/v4l/open.rst            | 6 ++++++
+> >>>  Documentation/media/uapi/v4l/vidioc-querycap.rst | 4 ++++
+> >>>  include/uapi/linux/videodev2.h                   | 2 ++
+> >>>  3 files changed, 12 insertions(+)
+> >>>
+> >>> diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+> >>> index a72d142897c0..eb3f0ec57edb 100644
+> >>> --- a/Documentation/media/uapi/v4l/open.rst
+> >>> +++ b/Documentation/media/uapi/v4l/open.rst
+> >>> @@ -33,6 +33,12 @@ For **vdev-centric** control, the device and their corresponding hardware
+> >>>  pipelines are controlled via the **V4L2 device** node. They may optionally
+> >>>  expose via the :ref:`media controller API <media_controller>`.
+> >>>  
+> >>> +.. note::
+> >>> +
+> >>> +   **vdev-centric** devices should report V4L2_VDEV_CENTERED    
+> >>
+> >> You mean CENTRIC, not CENTERED.  
+> > 
+> > Yeah, true. I'll fix it.
+> >   
+> >> But I would change this to MC_CENTRIC: the vast majority of drivers are VDEV centric,
+> >> so it makes a lot more sense to keep that as the default and only set the cap for
+> >> MC-centric drivers.  
+> > 
+> > I actually focused it on what an userspace application would do.
+> > 
+> > An specialized application for a given hardware will likely just
+> > ignore whatever flag is added, and use vdev, mc and subdev APIs
+> > as it pleases. So, those applications don't need any flag at all.
+> > 
+> > However, a generic application needs a flag to allow them to check
+> > if a given hardware can be controlled by the traditional way
+> > to control the device (e. g. if it accepts vdev-centric type of
+> > hardware control).
+> > 
+> > It is an old desire (since when MC was designed) to allow that
+> > generic V4L2 apps to also work with MC-centric hardware somehow.  
+> 
+> No, not true. The desire is that they can use the MC to find the
+> various device nodes (video, radio, vbi, rc, cec, ...). But they
+> remain vdev-centric. vdev vs mc centric has nothing to do with the
+> presence of the MC. It's how they are controlled.
 
-Together with 'cec-ctl --monitor-pin' you can do low-level CEC bus
-monitoring and do protocol analysis. And error injection is also
-planned for the future.
+No, that's not I'm talking about. I'm talking about libv4l plugin
+(or whatever) that would allow a generic app to work with a mc-centric
+device. That's there for a long time (since when we were reviewing
+the MC patches back in 2009 or 2010).
 
-Here is an example using the Raspberry Pi 3:
+> 
+> Regarding userspace applications: they can't check for a VDEV_CENTRIC
+> cap since we never had any. I.e., if they do:
+> 
+> 	if (!(caps & VDEV_CENTRIC))
+> 		/* unsupported device */
+> 
+> then they would fail for older kernels that do not set this flag.
+> 
+> But this works:
+> 
+> 	if (caps & MC_CENTRIC)
+> 		/* unsupported device */
+> 
+> So this really needs to be an MC_CENTRIC capability.
 
-https://hverkuil.home.xs4all.nl/rpi3-cec.jpg
+That won't work. The test should take into account the API version
+too.
 
-A patch for the Raspberry Pi 2B/3 is added below for reference.
-It uses pin 7 aka BCM4 aka GPCLK0 on the GPIO pin header.
-
-While this example is for the Rpi, this driver will work for any
-SoC with a pull-up GPIO pin.
-
-I have one question: is there a generic way to check/force the gpio
-to pull-up mode? I have not found that, but I am no gpio-expert.
-
-Regards,
-
-	Hans
-
---- cut here ---
-diff --git a/arch/arm/boot/dts/bcm2836-rpi-2-b.dts b/arch/arm/boot/dts/bcm2836-rpi-2-b.dts
-index bf19e8cfb9e6..8cb82a70f33d 100644
---- a/arch/arm/boot/dts/bcm2836-rpi-2-b.dts
-+++ b/arch/arm/boot/dts/bcm2836-rpi-2-b.dts
-@@ -24,6 +24,11 @@
- 			linux,default-trigger = "default-on";
- 		};
- 	};
-+
-+	cec-gpio {
-+		compatible = "cec-gpio";
-+		gpio = <&gpio 4 GPIO_ACTIVE_HIGH>;
-+	};
- };
- 
- &gpio {
-diff --git a/arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-b.dts b/arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-b.dts
-index 972f14db28ac..cd0ec70732f4 100644
---- a/arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-b.dts
-+++ b/arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-b.dts
-@@ -17,6 +17,11 @@
- 			gpios = <&gpio 47 0>;
- 		};
- 	};
-+
-+	cec-gpio {
-+		compatible = "cec-gpio";
-+		gpio = <&gpio 4 GPIO_ACTIVE_HIGH>;
-+	};
- };
- 
- &uart1 {
---- cut here ---
+Assuming that such flag would be added for version 4.15, with a VDEV_CENTRIC,
+the check would be:
 
 
-Hans Verkuil (3):
-  dt-bindings: document the CEC GPIO bindings
-  cec-gpio: add HDMI CEC GPIO driver
-  MAINTAINERS: add cec-gpio entry
+	/*
+         * There's no need to check version here: libv4l may override it
+	 * to support a mc-centric device even for older versions of the
+	 * Kernel
+         */
+	if (caps & V4L2_CAP_VDEV_CENTRIC)
+		is_supported = true;
 
- .../devicetree/bindings/media/cec-gpio.txt         |  18 ++
- MAINTAINERS                                        |   9 +
- drivers/media/platform/Kconfig                     |  10 ++
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/cec-gpio/Makefile           |   1 +
- drivers/media/platform/cec-gpio/cec-gpio.c         | 190 +++++++++++++++++++++
- 6 files changed, 230 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/cec-gpio.txt
- create mode 100644 drivers/media/platform/cec-gpio/Makefile
- create mode 100644 drivers/media/platform/cec-gpio/cec-gpio.c
+	/*
+	 * For API version lower than 4.15, there's no way to know for
+	 * sure if the device is vdev-centric or not. So, either additional
+	 * tests are needed, or it would assume vdev-centric and output
+	 * some note about that.
+	 */
+	if (version < KERNEL_VERSION(4, 15, 0))
+		maybe_supported = true;
 
--- 
-2.13.2
+Thanks,
+Mauro
