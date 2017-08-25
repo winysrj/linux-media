@@ -1,144 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51265 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932205AbdHVJAl (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:33642 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754375AbdHYK4c (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 05:00:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, Cyprian Wronka <cwronka@cadence.com>,
-        Neil Webb <neilw@cadence.com>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v2 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
-Date: Tue, 22 Aug 2017 12:01:11 +0300
-Message-ID: <6400552.TlCMAsqn3H@avalon>
-In-Reply-To: <20170822085320.pdxbxfv53rb75btu@flea.lan>
-References: <20170720092302.2982-1-maxime.ripard@free-electrons.com> <2362756.VjbdGaYBzu@avalon> <20170822085320.pdxbxfv53rb75btu@flea.lan>
+        Fri, 25 Aug 2017 06:56:32 -0400
+Subject: Re: [PATCH 2/3] media: videodev2: add a flag for vdev-centric devices
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hansverk@cisco.com>
+References: <cover.1503653839.git.mchehab@s-opensource.com>
+ <8d504be517755ee9449a007b5f2de52738c2df63.1503653839.git.mchehab@s-opensource.com>
+ <4f771cfa-0e0d-3548-a363-6470b32a6634@cisco.com>
+ <20170825070632.28580858@vento.lan>
+ <44bdeabc-8899-8f7e-dd26-4284c5b589a1@cisco.com>
+ <20170825073517.1112d618@vento.lan>
+ <7d5f952b-028d-0770-0f37-39ab011ec740@cisco.com>
+ <20170825075044.7ffe3232@vento.lan>
+Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <d118d078-429b-5ea4-02d1-8852c7c662f2@xs4all.nl>
+Date: Fri, 25 Aug 2017 12:56:30 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20170825075044.7ffe3232@vento.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
-
-On Tuesday, 22 August 2017 11:53:20 EEST Maxime Ripard wrote:
-> On Mon, Aug 07, 2017 at 11:18:03PM +0300, Laurent Pinchart wrote:
-> > On Thursday 20 Jul 2017 11:23:01 Maxime Ripard wrote:
-> >> The Cadence MIPI-CSI2 RX controller is a CSI2RX bridge that supports up
-> >> to 4 CSI-2 lanes, and can route the frames to up to 4 streams, depending
-> >> on the hardware implementation.
-> >> 
-> >> It can operate with an external D-PHY, an internal one or no D-PHY at
-> >> all in some configurations.
-> > 
-> > Without any PHY ? I'm curious, how does that work ?
+On 25/08/17 12:50, Mauro Carvalho Chehab wrote:
+> Em Fri, 25 Aug 2017 12:42:51 +0200
+> Hans Verkuil <hansverk@cisco.com> escreveu:
 > 
-> We're currently working on an FPGA exactly with that configuration. So
-> I guess the answer would be "it doesn't on an ASIC" :)
-
-What's connected to the input of the CSI-2 receiver ?
-
-> >> Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
-> >> ---
-> >> 
-> >>  .../devicetree/bindings/media/cdns-csi2rx.txt      | 87 ++++++++++++++++
-> >>  1 file changed, 87 insertions(+)
-> >>  create mode 100644
-> >>  Documentation/devicetree/bindings/media/cdns-csi2rx.txt
-> >> 
-> >> diff --git a/Documentation/devicetree/bindings/media/cdns-csi2rx.txt
-> >> b/Documentation/devicetree/bindings/media/cdns-csi2rx.txt new file mode
-> >> 100644
-> >> index 000000000000..e08547abe885
-> >> --- /dev/null
-> >> +++ b/Documentation/devicetree/bindings/media/cdns-csi2rx.txt
-> >> @@ -0,0 +1,87 @@
-> >> +Cadence MIPI-CSI2 RX controller
-> >> +===============================
-> >> +
-> >> +The Cadence MIPI-CSI2 RX controller is a CSI-2 bridge supporting up to
-> >> 4> CSI
-> >> +lanes in input, and 4 different pixel streams in output.
-> >> +
-> >> +Required properties:
-> >> +  - compatible: must be set to "cdns,csi2rx" and an SoC-specific
-> >> compatible
-> >> +  - reg: base address and size of the memory mapped region
-> >> +  - clocks: phandles to the clocks driving the controller
-> >> +  - clock-names: must contain:
-> >> +    * sys_clk: main clock
-> >> +    * p_clk: register bank clock
-> >> +    * p_free_clk: free running register bank clock
-> >> +    * pixel_ifX_clk: pixel stream output clock, one for each stream
-> >> +                     implemented in hardware, between 0 and 3
-> > 
-> > Nitpicking, I would write the name is pixel_if[0-3]_clk, it took me a few
-> > seconds to see that the X was a placeholder.
+>> On 08/25/2017 12:35 PM, Mauro Carvalho Chehab wrote:
+>>> Em Fri, 25 Aug 2017 12:13:53 +0200
+>>> Hans Verkuil <hansverk@cisco.com> escreveu:
+>>>   
+>>>> On 08/25/2017 12:06 PM, Mauro Carvalho Chehab wrote:  
+>>>>> Em Fri, 25 Aug 2017 11:44:27 +0200
+>>>>> Hans Verkuil <hansverk@cisco.com> escreveu:
+>>>>>     
+>>>>>> On 08/25/2017 11:40 AM, Mauro Carvalho Chehab wrote:    
+>>>>>>> From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>>>>>>
+>>>>>>> As both vdev-centric and mc-centric devices may implement the
+>>>>>>> same APIs, we need a flag to allow userspace to distinguish
+>>>>>>> between them.
+>>>>>>>
+>>>>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>>>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+>>>>>>> ---
+>>>>>>>  Documentation/media/uapi/v4l/open.rst            | 6 ++++++
+>>>>>>>  Documentation/media/uapi/v4l/vidioc-querycap.rst | 4 ++++
+>>>>>>>  include/uapi/linux/videodev2.h                   | 2 ++
+>>>>>>>  3 files changed, 12 insertions(+)
+>>>>>>>
+>>>>>>> diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+>>>>>>> index a72d142897c0..eb3f0ec57edb 100644
+>>>>>>> --- a/Documentation/media/uapi/v4l/open.rst
+>>>>>>> +++ b/Documentation/media/uapi/v4l/open.rst
+>>>>>>> @@ -33,6 +33,12 @@ For **vdev-centric** control, the device and their corresponding hardware
+>>>>>>>  pipelines are controlled via the **V4L2 device** node. They may optionally
+>>>>>>>  expose via the :ref:`media controller API <media_controller>`.
+>>>>>>>  
+>>>>>>> +.. note::
+>>>>>>> +
+>>>>>>> +   **vdev-centric** devices should report V4L2_VDEV_CENTERED      
+>>>>>>
+>>>>>> You mean CENTRIC, not CENTERED.    
+>>>>>
+>>>>> Yeah, true. I'll fix it.
+>>>>>     
+>>>>>> But I would change this to MC_CENTRIC: the vast majority of drivers are VDEV centric,
+>>>>>> so it makes a lot more sense to keep that as the default and only set the cap for
+>>>>>> MC-centric drivers.    
+>>>>>
+>>>>> I actually focused it on what an userspace application would do.
+>>>>>
+>>>>> An specialized application for a given hardware will likely just
+>>>>> ignore whatever flag is added, and use vdev, mc and subdev APIs
+>>>>> as it pleases. So, those applications don't need any flag at all.
+>>>>>
+>>>>> However, a generic application needs a flag to allow them to check
+>>>>> if a given hardware can be controlled by the traditional way
+>>>>> to control the device (e. g. if it accepts vdev-centric type of
+>>>>> hardware control).
+>>>>>
+>>>>> It is an old desire (since when MC was designed) to allow that
+>>>>> generic V4L2 apps to also work with MC-centric hardware somehow.    
+>>>>
+>>>> No, not true. The desire is that they can use the MC to find the
+>>>> various device nodes (video, radio, vbi, rc, cec, ...). But they
+>>>> remain vdev-centric. vdev vs mc centric has nothing to do with the
+>>>> presence of the MC. It's how they are controlled.  
+>>>
+>>> No, that's not I'm talking about. I'm talking about libv4l plugin
+>>> (or whatever) that would allow a generic app to work with a mc-centric
+>>> device. That's there for a long time (since when we were reviewing
+>>> the MC patches back in 2009 or 2010).  
+>>
+>> So? Such a plugin would obviously remove the MC_CENTRIC cap. Which makes
+>> perfect sense.
+>>
+>> There are a lot of userspace applications that do not use libv4l. It's
+>> optional, not required, to use that library. We cannot design our API with
+>> the assumption that this library will be used.
+>>
+>>>   
+>>>>
+>>>> Regarding userspace applications: they can't check for a VDEV_CENTRIC
+>>>> cap since we never had any. I.e., if they do:
+>>>>
+>>>> 	if (!(caps & VDEV_CENTRIC))
+>>>> 		/* unsupported device */
+>>>>
+>>>> then they would fail for older kernels that do not set this flag.
+>>>>
+>>>> But this works:
+>>>>
+>>>> 	if (caps & MC_CENTRIC)
+>>>> 		/* unsupported device */
+>>>>
+>>>> So this really needs to be an MC_CENTRIC capability.  
+>>>
+>>> That won't work. The test should take into account the API version
+>>> too.
+>>>
+>>> Assuming that such flag would be added for version 4.15, with a VDEV_CENTRIC,
+>>> the check would be:
+>>>
+>>>
+>>> 	/*
+>>>          * There's no need to check version here: libv4l may override it
+>>> 	 * to support a mc-centric device even for older versions of the
+>>> 	 * Kernel
+>>>          */
+>>> 	if (caps & V4L2_CAP_VDEV_CENTRIC)
+>>> 		is_supported = true;
+>>>
+>>> 	/*
+>>> 	 * For API version lower than 4.15, there's no way to know for
+>>> 	 * sure if the device is vdev-centric or not. So, either additional
+>>> 	 * tests are needed, or it would assume vdev-centric and output
+>>> 	 * some note about that.
+>>> 	 */
+>>> 	if (version < KERNEL_VERSION(4, 15, 0))
+>>> 		maybe_supported = true;  
+>>
+>>
+>> 	is_supported = true;
+>> 	if (caps & V4L2_CAP_MC_CENTRIC)
+>> 		is_supported = false;
+>>  	if (version < KERNEL_VERSION(4, 15, 0))
+>>  		maybe_supported = true;
+>>
+>> I don't see the difference. BTW, no application will ever do that version check.
+>> It doesn't help them in any way to know that it 'may' be supported.
 > 
-> Ok.
-> 
-> >> +    * dphy_rx_clk: D-PHY byte clock, if implemented in hardware
-> >> +  - phys: phandle to the external D-PHY
-> >> +  - phy-names: must contain dphy, if the implementation uses an
-> >> +               external D-PHY
-> > 
-> > I would move the last two properties in an optional category as they're
-> > effectively optional. I think you should also explain a bit more clearly
-> > that the phys property must not be present if the phy-names property is
-> > not present.
-> 
-> It's not really optional. The IP has a configuration register that
-> allows you to see if it's been synthesized with or without a PHY. If
-> the right bit is set, that property will be mandatory, if not, it's
-> useless.
+> Yeah, this can work. The only drawback is that, if we end by
+> implementing vdev compatible support is that such drivers will
+> have to clean the V4L2_CAP_MC_CENTRIC flag.
 
-Just to confirm, the PHY is a separate IP core, right ? Is the CSI-2 receiver 
-input interface different when used with a PHY and when used without one ? 
-Could a third-party PHY be used as well ? If so, would the PHY synthesis bit 
-be set or not ?
+You mean implementing vdev compatible support in libv4l? (Just making sure
+I understand you correctly)
 
-> Maybe it's just semantics, but to me, optional means that it can
-> operate with or without it under any circumstances. It's not really
-> the case here.
+In that case it doesn't matter if the libv4l code would set the VDEV_CENTRIC flag
+or remove the MC_CENTRIC flag. That makes no difference, or course.
 
-It'sa semantic issue, but documenting a property as required when it can be 
-ommitted under some circumstances seems even weirder to me :-) I understand 
-the optional category as "can be ommitted in certain circumstances".
-
-> >> +
-> >> +Required subnodes:
-> >> +  - ports: A ports node with endpoint definitions as defined in
-> >> +          
-> >> Documentation/devicetree/bindings/media/video-interfaces.txt.
-> >> The
-> >> +           first port subnode should be the input endpoint, the second
-> >> one the
-> >> +           outputs
-> >> +
-> >> +  The output port should have as many endpoints as stream supported by
-> >> +  the hardware implementation, between 1 and 4, their ID being the
-> >> +  stream output number used in the implementation.
-> > 
-> > I don't think that's correct. The IP has four independent outputs, it
-> > should have 4 output ports for a total for 5 ports. Multiple endpoints
-> > per port would describe multiple connections from the same output to
-> > different sinks.
->
-> Ok.
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
