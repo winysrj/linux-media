@@ -1,34 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:38532 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751754AbdHCXf4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 Aug 2017 19:35:56 -0400
-Date: Thu, 3 Aug 2017 18:35:53 -0500
-From: Rob Herring <robh@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-renesas-soc@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 1/4] dt-bindings: adi,adv7511.txt: document cec clock
-Message-ID: <20170803233553.xazboombv4jpggxg@rob-hp-laptop>
-References: <20170730130743.19681-1-hverkuil@xs4all.nl>
- <20170730130743.19681-2-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170730130743.19681-2-hverkuil@xs4all.nl>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:38762 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750737AbdHZGCh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 26 Aug 2017 02:02:37 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, awalls@md.metrocast.net, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH] [media] cx18: make v4l2_file_operations const
+Date: Sat, 26 Aug 2017 11:32:08 +0530
+Message-Id: <1503727328-29254-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jul 30, 2017 at 03:07:40PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Document the cec clock binding.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt | 4 ++++
->  1 file changed, 4 insertions(+)
+Make this const as it is only stored in a const field of a
+video_device structure.
 
-Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/media/pci/cx18/cx18-streams.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/pci/cx18/cx18-streams.c b/drivers/media/pci/cx18/cx18-streams.c
+index 81d06c1..8385411 100644
+--- a/drivers/media/pci/cx18/cx18-streams.c
++++ b/drivers/media/pci/cx18/cx18-streams.c
+@@ -31,7 +31,7 @@
+ 
+ #define CX18_DSP0_INTERRUPT_MASK     	0xd0004C
+ 
+-static struct v4l2_file_operations cx18_v4l2_enc_fops = {
++static const struct v4l2_file_operations cx18_v4l2_enc_fops = {
+ 	.owner = THIS_MODULE,
+ 	.read = cx18_v4l2_read,
+ 	.open = cx18_v4l2_open,
+-- 
+1.9.1
