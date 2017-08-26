@@ -1,95 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34785
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53602
         "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753457AbdH2NSH (ORCPT
+        with ESMTP id S1752322AbdHZLxf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 09:18:07 -0400
+        Sat, 26 Aug 2017 07:53:35 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH v6 0/7] document types of hardware control for V4L2
-Date: Tue, 29 Aug 2017 10:17:49 -0300
-Message-Id: <cover.1504012579.git.mchehab@s-opensource.com>
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v4 7/7] media: open.rst: add a notice about subdev-API on vdev-centric
+Date: Sat, 26 Aug 2017 08:53:25 -0300
+Message-Id: <a77ff374ebde22ea20e1cec7c94026db817ed89d.1503747774.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503747774.git.mchehab@s-opensource.com>
+References: <cover.1503747774.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503747774.git.mchehab@s-opensource.com>
+References: <cover.1503747774.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The documentation doesn't mention if vdev-centric hardware
+control would have subdev API or not.
 
-On Kernel 2.6.39, the omap3 driver was introduced together with a new way
-to control complex V4L2 devices used on embedded systems, but this was
-never documented, as the original idea were to have "soon" support for
-standard apps to use it as well, via libv4l, but that didn't happen so far.
+Add a notice about that, reflecting the current status, where
+three drivers use it, in order to support some subdev-specific
+controls.
 
-Also, it is not possible for an userspace applicatin to detect the kind of
-control a device supports.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/v4l/open.rst | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-This series fill the gap, by documenting the new type of hardware
-control and adding a way for userspace to detect if the device can be
-used or not by an standard V4L2 application.
-
-Notes:
-====
-
-1) For the sake of better review, this series start with the addition of a
-glossary, as requested by Laurent. Please notice, however, that
-the glossary there references some new captions that will only be added
-by subsequent patches. So, when this series get applied, the glossary
-patch should actually be merged after the patches that introduce those
-new captions, in order to avoid warnings for non-existing references.
-
-2) This series doesn't contain patches that actually use the new flag.
-This will be added after such patch gets reviewed.
-
-v6:
-- Some editorial changes based on comments from Hans and Sakari.
-
-v5:
-- Added more terms to the glossary
-- Adjusted some wording as proposed by Hans on a few patches
-  and added his ack on others
-
-v4:
-
-- Addressed Hans comments for v2;
-- Fixed broken references at the glossary.rst
-
-v3:
-
-- Add a glossary to be used by the new documentation about hardware control;
-- Add a patch removing minor number range
-- Use glossary terms at open.rst
-- Split the notice about subdev-API on vdev-centric, as this change
-   will require further discussions.
-
-v2:
-
-- added a patch at the beginning of the series better defining the
-  device node naming rules;
-- better defined the differenes between device hardware and V4L2 device node
-  as suggested by Laurent and with changes proposed by Hans and Sakari
-- changed the caps flag to indicate MC-centric devices
-- removed the final patch that would use the new caps flag. I'll write it
-  once we agree on the new caps flag.
-
-Mauro Carvalho Chehab (7):
-  media: add glossary.rst with a glossary of terms used at V4L2 spec
-  media: open.rst: better document device node naming
-  media: open.rst: remove the minor number range
-  media: open.rst: document devnode-centric and mc-centric types
-  media: open.rst: Adjust some terms to match the glossary
-  media: videodev2: add a flag for MC-centric devices
-  media: open.rst: add a notice about subdev-API on vdev-centric
-
- Documentation/media/uapi/v4l/glossary.rst        | 150 +++++++++++++++++++++++
- Documentation/media/uapi/v4l/open.rst            | 119 +++++++++++++++---
- Documentation/media/uapi/v4l/v4l2.rst            |   1 +
- Documentation/media/uapi/v4l/vidioc-querycap.rst |   5 +
- Documentation/media/videodev2.h.rst.exceptions   |   1 +
- include/uapi/linux/videodev2.h                   |   2 +
- 6 files changed, 264 insertions(+), 14 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/glossary.rst
-
+diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+index d0930fc170f0..48f628bbabc7 100644
+--- a/Documentation/media/uapi/v4l/open.rst
++++ b/Documentation/media/uapi/v4l/open.rst
+@@ -46,6 +46,13 @@ the periferal can be used. For such devices, the sub-devices' configuration
+ can be controlled via the :ref:`sub-device API <subdev>`, which creates one
+ device node per sub-device.
+ 
++.. note::
++
++   A **vdev-centric** may also optionally expose V4L2 sub-devices via
++   :ref:`sub-device API <subdev>`. In that case, it has to implement
++   the :ref:`media controller API <media_controller>` as well.
++
++
+ .. attention::
+ 
+    Devices that require **mc-centric** hardware peripheral control should
 -- 
-2.13.5
+2.13.3
