@@ -1,48 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:32939 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751904AbdHIUbq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Aug 2017 16:31:46 -0400
-Received: by mail-wm0-f66.google.com with SMTP id q189so770649wmd.0
-        for <linux-media@vger.kernel.org>; Wed, 09 Aug 2017 13:31:45 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: r.scobie@clear.net.nz, jasmin@anw.at, d_spingler@freenet.de,
-        Manfred.Knick@t-online.de, rjkm@metzlerbros.de
-Subject: [PATCH v3 12/12] [media] MAINTAINERS: add entry for ddbridge
-Date: Wed,  9 Aug 2017 22:31:28 +0200
-Message-Id: <20170809203128.31476-13-d.scheller.oss@gmail.com>
-In-Reply-To: <20170809203128.31476-1-d.scheller.oss@gmail.com>
-References: <20170809203128.31476-1-d.scheller.oss@gmail.com>
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:38003 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751464AbdHZIgC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 26 Aug 2017 04:36:02 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, crope@iki.fi, mchehab@kernel.org,
+        hans.verkuil@cisco.com, isely@pobox.com,
+        ezequiel@vanguardiasur.com.ar, royale@zerezo.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-usb@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 04/11] [media] s2255drv:  make video_device const
+Date: Sat, 26 Aug 2017 14:05:08 +0530
+Message-Id: <1503736515-15366-5-git-send-email-bhumirks@gmail.com>
+In-Reply-To: <1503736515-15366-1-git-send-email-bhumirks@gmail.com>
+References: <1503736515-15366-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Make this const as it is only used in a copy operation.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 ---
- MAINTAINERS | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/media/usb/s2255/s2255drv.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 931abca006b7..0453a1365c3a 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8421,6 +8421,14 @@ T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/dvb-frontends/stv6111*
+diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+index 23f606e..b2f239c 100644
+--- a/drivers/media/usb/s2255/s2255drv.c
++++ b/drivers/media/usb/s2255/s2255drv.c
+@@ -1590,7 +1590,7 @@ static void s2255_video_device_release(struct video_device *vdev)
+ 	return;
+ }
  
-+MEDIA DRIVERS FOR DIGITAL DEVICES PCIE DEVICES
-+M:	Daniel Scheller <d.scheller.oss@gmail.com>
-+L:	linux-media@vger.kernel.org
-+W:	https://linuxtv.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/pci/ddbridge/*
-+
- MEDIA INPUT INFRASTRUCTURE (V4L/DVB)
- M:	Mauro Carvalho Chehab <mchehab@s-opensource.com>
- M:	Mauro Carvalho Chehab <mchehab@kernel.org>
+-static struct video_device template = {
++static const struct video_device template = {
+ 	.name = "s2255v",
+ 	.fops = &s2255_fops_v4l,
+ 	.ioctl_ops = &s2255_ioctl_ops,
 -- 
-2.13.0
+1.9.1
