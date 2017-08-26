@@ -1,54 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:34651 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751562AbdHBDU3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 1 Aug 2017 23:20:29 -0400
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, nicolas@ndufresne.ca,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Yakir Yang <ykk@rock-chips.com>
-Subject: [PATCH v5 5/6] ARM: dts: rockchip: add RGA device node for RK3399
-Date: Wed,  2 Aug 2017 11:19:46 +0800
-Message-Id: <1501643987-27847-6-git-send-email-jacob-chen@iotwrt.com>
-In-Reply-To: <1501643987-27847-1-git-send-email-jacob-chen@iotwrt.com>
-References: <1501643987-27847-1-git-send-email-jacob-chen@iotwrt.com>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:36132 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751302AbdHZIgK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 26 Aug 2017 04:36:10 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, crope@iki.fi, mchehab@kernel.org,
+        hans.verkuil@cisco.com, isely@pobox.com,
+        ezequiel@vanguardiasur.com.ar, royale@zerezo.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-usb@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 05/11] [media] pwc: make video_device const
+Date: Sat, 26 Aug 2017 14:05:09 +0530
+Message-Id: <1503736515-15366-6-git-send-email-bhumirks@gmail.com>
+In-Reply-To: <1503736515-15366-1-git-send-email-bhumirks@gmail.com>
+References: <1503736515-15366-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add the RGA dt config of RK3399 SoC.
+Make this const as it is only used in a copy operation.
 
-Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
-Signed-off-by: Yakir Yang <ykk@rock-chips.com>
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 ---
- arch/arm64/boot/dts/rockchip/rk3399.dtsi | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/media/usb/pwc/pwc-if.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm64/boot/dts/rockchip/rk3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-index 8e6d1bd..0133a5f 100644
---- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-+++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-@@ -1056,6 +1056,17 @@
- 		status = "disabled";
- 	};
- 
-+	rga: rga@ff680000 {
-+		compatible = "rockchip,rk3399-rga";
-+		reg = <0x0 0xff680000 0x0 0x10000>;
-+		interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH 0>;
-+		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA_CORE>;
-+		clock-names = "aclk", "hclk", "sclk";
-+		resets = <&cru SRST_RGA_CORE>, <&cru SRST_A_RGA>, <&cru SRST_H_RGA>;
-+		reset-names = "core", "axi", "ahb";
-+		power-domains = <&power RK3399_PD_RGA>;
-+	};
-+
- 	efuse0: efuse@ff690000 {
- 		compatible = "rockchip,rk3399-efuse";
- 		reg = <0x0 0xff690000 0x0 0x80>;
+diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+index 22420c1..eb6921d 100644
+--- a/drivers/media/usb/pwc/pwc-if.c
++++ b/drivers/media/usb/pwc/pwc-if.c
+@@ -146,7 +146,7 @@
+ 	.mmap =		vb2_fop_mmap,
+ 	.unlocked_ioctl = video_ioctl2,
+ };
+-static struct video_device pwc_template = {
++static const struct video_device pwc_template = {
+ 	.name =		"Philips Webcam",	/* Filled in later */
+ 	.release =	video_device_release_empty,
+ 	.fops =         &pwc_fops,
 -- 
-2.7.4
+1.9.1
