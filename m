@@ -1,42 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:37612 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751900AbdHBRPZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Aug 2017 13:15:25 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 4/9] [media] ttpci: budget-ci: constify pci_device_id.
-Date: Wed,  2 Aug 2017 22:44:52 +0530
-Message-Id: <1501694097-16207-5-git-send-email-arvind.yadav.cs@gmail.com>
-In-Reply-To: <1501694097-16207-1-git-send-email-arvind.yadav.cs@gmail.com>
-References: <1501694097-16207-1-git-send-email-arvind.yadav.cs@gmail.com>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:35756 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751464AbdHZInx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 26 Aug 2017 04:43:53 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, mchehab@kernel.org, edubezval@gmail.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH] [media] radio: make video_device const
+Date: Sat, 26 Aug 2017 14:13:43 +0530
+Message-Id: <1503737023-15550-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-pci_device_id are not supposed to change at runtime. All functions
-working with pci_device_id provided by <media/drv-intf/saa7146.h>
-and <linux/pci.h> work with const pci_device_id. So mark the non-const
-structs as const.
+Make these const as they are only used in a copy operation.
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 ---
- drivers/media/pci/ttpci/budget-ci.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/radio/radio-tea5764.c                | 2 +-
+ drivers/media/radio/radio-wl1273.c                 | 2 +-
+ drivers/media/radio/si4713/radio-platform-si4713.c | 2 +-
+ drivers/media/radio/wl128x/fmdrv_v4l2.c            | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/pci/ttpci/budget-ci.c b/drivers/media/pci/ttpci/budget-ci.c
-index 11b9227..5b8aab4 100644
---- a/drivers/media/pci/ttpci/budget-ci.c
-+++ b/drivers/media/pci/ttpci/budget-ci.c
-@@ -1538,7 +1538,7 @@ MAKE_BUDGET_INFO(ttc1501, "TT-Budget C-1501 PCI", BUDGET_TT);
- MAKE_BUDGET_INFO(tt3200, "TT-Budget S2-3200 PCI", BUDGET_TT);
- MAKE_BUDGET_INFO(ttbs1500b, "TT-Budget S-1500B PCI", BUDGET_TT);
+diff --git a/drivers/media/radio/radio-tea5764.c b/drivers/media/radio/radio-tea5764.c
+index 9db8331..bc7e69e 100644
+--- a/drivers/media/radio/radio-tea5764.c
++++ b/drivers/media/radio/radio-tea5764.c
+@@ -414,7 +414,7 @@ static int tea5764_s_ctrl(struct v4l2_ctrl *ctrl)
+ };
  
--static struct pci_device_id pci_tbl[] = {
-+static const struct pci_device_id pci_tbl[] = {
- 	MAKE_EXTENSION_PCI(ttbci, 0x13c2, 0x100c),
- 	MAKE_EXTENSION_PCI(ttbci, 0x13c2, 0x100f),
- 	MAKE_EXTENSION_PCI(ttbcci, 0x13c2, 0x1010),
+ /* V4L2 interface */
+-static struct video_device tea5764_radio_template = {
++static const struct video_device tea5764_radio_template = {
+ 	.name		= "TEA5764 FM-Radio",
+ 	.fops           = &tea5764_fops,
+ 	.ioctl_ops 	= &tea5764_ioctl_ops,
+diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
+index 17e82a9..903fcd5 100644
+--- a/drivers/media/radio/radio-wl1273.c
++++ b/drivers/media/radio/radio-wl1273.c
+@@ -1982,7 +1982,7 @@ static void wl1273_vdev_release(struct video_device *dev)
+ 	.vidioc_log_status      = wl1273_fm_vidioc_log_status,
+ };
+ 
+-static struct video_device wl1273_viddev_template = {
++static const struct video_device wl1273_viddev_template = {
+ 	.fops			= &wl1273_fops,
+ 	.ioctl_ops		= &wl1273_ioctl_ops,
+ 	.name			= WL1273_FM_DRIVER_NAME,
+diff --git a/drivers/media/radio/si4713/radio-platform-si4713.c b/drivers/media/radio/si4713/radio-platform-si4713.c
+index 6f93ef1..27339ec 100644
+--- a/drivers/media/radio/si4713/radio-platform-si4713.c
++++ b/drivers/media/radio/si4713/radio-platform-si4713.c
+@@ -135,7 +135,7 @@ static long radio_si4713_default(struct file *file, void *p,
+ };
+ 
+ /* radio_si4713_vdev_template - video device interface */
+-static struct video_device radio_si4713_vdev_template = {
++static const struct video_device radio_si4713_vdev_template = {
+ 	.fops			= &radio_si4713_fops,
+ 	.name			= "radio-si4713",
+ 	.release		= video_device_release_empty,
+diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+index 71423f4..fc5a7ab 100644
+--- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
++++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+@@ -509,7 +509,7 @@ static int fm_v4l2_vidioc_s_modulator(struct file *file, void *priv,
+ };
+ 
+ /* V4L2 RADIO device parent structure */
+-static struct video_device fm_viddev_template = {
++static const struct video_device fm_viddev_template = {
+ 	.fops = &fm_drv_fops,
+ 	.ioctl_ops = &fm_drv_ioctl_ops,
+ 	.name = FM_DRV_NAME,
 -- 
-2.7.4
+1.9.1
