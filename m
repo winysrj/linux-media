@@ -1,255 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:37460 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752695AbdHUMVq (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53630
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754527AbdHZLxh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Aug 2017 08:21:46 -0400
-Subject: Re: [PATCH 1/7 v3] media: vb2: add bidirectional flag in vb2_queue
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Pawel Osciak <pawel@osciak.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <9757cfb2-66b3-7c8e-bb60-25b14706fbe9@samsung.com>
-Date: Mon, 21 Aug 2017 14:21:40 +0200
-MIME-version: 1.0
-In-reply-to: <20170821113410.17542-1-stanimir.varbanov@linaro.org>
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Content-transfer-encoding: 7bit
-Content-language: en-US
-References: <20170818141606.4835-2-stanimir.varbanov@linaro.org>
-        <CGME20170821113451epcas5p14ba601f0848c8198c269f8da53129595@epcas5p1.samsung.com>
-        <20170821113410.17542-1-stanimir.varbanov@linaro.org>
+        Sat, 26 Aug 2017 07:53:37 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH v4 0/7] document types of hardware control for V4L2
+Date: Sat, 26 Aug 2017 08:53:18 -0300
+Message-Id: <cover.1503747774.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stanimir,
 
-On 2017-08-21 13:34, Stanimir Varbanov wrote:
-> This change is intended to give to the v4l2 drivers a choice to
-> change the default behavior of the v4l2-core DMA mapping direction
-> from DMA_TO/FROM_DEVICE (depending on the buffer type CAPTURE or
-> OUTPUT) to DMA_BIDIRECTIONAL during queue_init time.
->
-> Initially the issue with DMA mapping direction has been found in
-> Venus encoder driver where the hardware (firmware side) adds few
-> lines padding on bottom of the image buffer, and the consequence
-> is triggering of IOMMU protection faults.
->
-> This will help supporting venus encoder (and probably other drivers
-> in the future) which wants to map output type of buffers as
-> read/write.
->
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+On Kernel 2.6.39, the omap3 driver was introduced together with a new way
+to control complex V4L2 devices used on embedded systems, but this was
+never documented, as the original idea were to have "soon" support for
+standard apps to use it as well, via libv4l, but that didn't happen so far.
 
-Thanks for the patch.
+Also, it is not possible for an userspace applicatin to detect the kind of
+control a device supports.
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+This series fill the gap, by documenting the new type of hardware
+control and adding a way for userspace to detect if the device can be
+used or not by an standard V4L2 application.
 
-While touching this, I would love to unify set_page_dirty_lock()
-related code in videobuf2-dc, videobuf2-sg and videobuf2-vmalloc.
+Notes:
+====
 
-IMHO the pattern used in videobuf2-vmalloc should be copied to
-videobuf2-sg (currently checks for dma_dir for every single page)
-and videobuf2-dc (currently it lacks any checks and calls
-set_page_dirty_lock() unconditionally). If you have a little bit
-of spare time, please prepare a separate patch for the above
-mentioned fix.
+1) For the sake of better review, this series start with the addition of a
+glossary, as requested by Laurent. Please notice, however, that
+the glossary there references some new captions that will only be added
+by subsequent patches. So, when this series get applied, the glossary
+patch should actually be merged after the patches that introduce those
+new captions, in order to avoid warnings for non-existing references.
 
-> ---
-> v3: update V4L2 dma-sg/contig and vmalloc memory type ops with a
->      check for DMA_BIDIRECTIONAL.
-> v2: move dma_dir into private section.
->
->   drivers/media/v4l2-core/videobuf2-core.c       | 17 ++++++++---------
->   drivers/media/v4l2-core/videobuf2-dma-contig.c |  3 ++-
->   drivers/media/v4l2-core/videobuf2-dma-sg.c     |  6 ++++--
->   drivers/media/v4l2-core/videobuf2-vmalloc.c    |  6 ++++--
->   include/media/videobuf2-core.h                 | 13 +++++++++++++
->   5 files changed, 31 insertions(+), 14 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 0924594989b4..cb115ba6a1d2 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -194,8 +194,6 @@ static void __enqueue_in_driver(struct vb2_buffer *vb);
->   static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
->   {
->   	struct vb2_queue *q = vb->vb2_queue;
-> -	enum dma_data_direction dma_dir =
-> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
->   	void *mem_priv;
->   	int plane;
->   	int ret = -ENOMEM;
-> @@ -209,7 +207,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
->   
->   		mem_priv = call_ptr_memop(vb, alloc,
->   				q->alloc_devs[plane] ? : q->dev,
-> -				q->dma_attrs, size, dma_dir, q->gfp_flags);
-> +				q->dma_attrs, size, q->dma_dir, q->gfp_flags);
->   		if (IS_ERR_OR_NULL(mem_priv)) {
->   			if (mem_priv)
->   				ret = PTR_ERR(mem_priv);
-> @@ -978,8 +976,6 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
->   	void *mem_priv;
->   	unsigned int plane;
->   	int ret = 0;
-> -	enum dma_data_direction dma_dir =
-> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
->   	bool reacquired = vb->planes[0].mem_priv == NULL;
->   
->   	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
-> @@ -1030,7 +1026,7 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
->   		mem_priv = call_ptr_memop(vb, get_userptr,
->   				q->alloc_devs[plane] ? : q->dev,
->   				planes[plane].m.userptr,
-> -				planes[plane].length, dma_dir);
-> +				planes[plane].length, q->dma_dir);
->   		if (IS_ERR(mem_priv)) {
->   			dprintk(1, "failed acquiring userspace memory for plane %d\n",
->   				plane);
-> @@ -1096,8 +1092,6 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
->   	void *mem_priv;
->   	unsigned int plane;
->   	int ret = 0;
-> -	enum dma_data_direction dma_dir =
-> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
->   	bool reacquired = vb->planes[0].mem_priv == NULL;
->   
->   	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
-> @@ -1156,7 +1150,7 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
->   		/* Acquire each plane's memory */
->   		mem_priv = call_ptr_memop(vb, attach_dmabuf,
->   				q->alloc_devs[plane] ? : q->dev,
-> -				dbuf, planes[plane].length, dma_dir);
-> +				dbuf, planes[plane].length, q->dma_dir);
->   		if (IS_ERR(mem_priv)) {
->   			dprintk(1, "failed to attach dmabuf\n");
->   			ret = PTR_ERR(mem_priv);
-> @@ -2003,6 +1997,11 @@ int vb2_core_queue_init(struct vb2_queue *q)
->   	if (q->buf_struct_size == 0)
->   		q->buf_struct_size = sizeof(struct vb2_buffer);
->   
-> +	if (q->bidirectional)
-> +		q->dma_dir = DMA_BIDIRECTIONAL;
-> +	else
-> +		q->dma_dir = q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
-> +
->   	return 0;
->   }
->   EXPORT_SYMBOL_GPL(vb2_core_queue_init);
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> index 5b90a66b9e78..9f389f36566d 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> @@ -508,7 +508,8 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
->   	buf->dma_dir = dma_dir;
->   
->   	offset = vaddr & ~PAGE_MASK;
-> -	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
-> +	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE ||
-> +					       dma_dir == DMA_BIDIRECTIONAL);
->   	if (IS_ERR(vec)) {
->   		ret = PTR_ERR(vec);
->   		goto fail_buf;
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> index 54f33938d45b..6808231a6bdc 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> @@ -239,7 +239,8 @@ static void *vb2_dma_sg_get_userptr(struct device *dev, unsigned long vaddr,
->   	buf->offset = vaddr & ~PAGE_MASK;
->   	buf->size = size;
->   	buf->dma_sgt = &buf->sg_table;
-> -	vec = vb2_create_framevec(vaddr, size, buf->dma_dir == DMA_FROM_DEVICE);
-> +	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE ||
-> +					       dma_dir == DMA_BIDIRECTIONAL);
->   	if (IS_ERR(vec))
->   		goto userptr_fail_pfnvec;
->   	buf->vec = vec;
-> @@ -292,7 +293,8 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
->   		vm_unmap_ram(buf->vaddr, buf->num_pages);
->   	sg_free_table(buf->dma_sgt);
->   	while (--i >= 0) {
-> -		if (buf->dma_dir == DMA_FROM_DEVICE)
-> +		if (buf->dma_dir == DMA_FROM_DEVICE ||
-> +		    buf->dma_dir == DMA_BIDIRECTIONAL)
->   			set_page_dirty_lock(buf->pages[i]);
->   	}
->   	vb2_destroy_framevec(buf->vec);
-> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-> index 6bc130fe84f6..3a7c80cd1a17 100644
-> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-> @@ -87,7 +87,8 @@ static void *vb2_vmalloc_get_userptr(struct device *dev, unsigned long vaddr,
->   	buf->dma_dir = dma_dir;
->   	offset = vaddr & ~PAGE_MASK;
->   	buf->size = size;
-> -	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
-> +	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE ||
-> +					       dma_dir == DMA_BIDIRECTIONAL);
->   	if (IS_ERR(vec)) {
->   		ret = PTR_ERR(vec);
->   		goto fail_pfnvec_create;
-> @@ -137,7 +138,8 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
->   		pages = frame_vector_pages(buf->vec);
->   		if (vaddr)
->   			vm_unmap_ram((void *)vaddr, n_pages);
-> -		if (buf->dma_dir == DMA_FROM_DEVICE)
-> +		if (buf->dma_dir == DMA_FROM_DEVICE ||
-> +		    buf->dma_dir == DMA_BIDIRECTIONAL)
->   			for (i = 0; i < n_pages; i++)
->   				set_page_dirty_lock(pages[i]);
->   	} else {
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index cb97c224be73..ef9b64398c8c 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -427,6 +427,16 @@ struct vb2_buf_ops {
->    * @dev:	device to use for the default allocation context if the driver
->    *		doesn't fill in the @alloc_devs array.
->    * @dma_attrs:	DMA attributes to use for the DMA.
-> + * @bidirectional: when this flag is set the DMA direction for the buffers of
-> + *		this queue will be overridden with DMA_BIDIRECTIONAL direction.
-> + *		This is useful in cases where the hardware (firmware) writes to
-> + *		a buffer which is mapped as read (DMA_TO_DEVICE), or reads from
-> + *		buffer which is mapped for write (DMA_FROM_DEVICE) in order
-> + *		to satisfy some internal hardware restrictions or adds a padding
-> + *		needed by the processing algorithm. In case the DMA mapping is
-> + *		not bidirectional but the hardware (firmware) trying to access
-> + *		the buffer (in the opposite direction) this could lead to an
-> + *		IOMMU protection faults.
->    * @fileio_read_once:		report EOF after reading the first buffer
->    * @fileio_write_immediately:	queue buffer after each write() call
->    * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
-> @@ -465,6 +475,7 @@ struct vb2_buf_ops {
->    * Private elements (won't appear at the uAPI book):
->    * @mmap_lock:	private mutex used when buffers are allocated/freed/mmapped
->    * @memory:	current memory type used
-> + * @dma_dir:	DMA mapping direction.
->    * @bufs:	videobuf buffer structures
->    * @num_buffers: number of allocated/used buffers
->    * @queued_list: list of buffers currently queued from userspace
-> @@ -495,6 +506,7 @@ struct vb2_queue {
->   	unsigned int			io_modes;
->   	struct device			*dev;
->   	unsigned long			dma_attrs;
-> +	unsigned			bidirectional:1;
->   	unsigned			fileio_read_once:1;
->   	unsigned			fileio_write_immediately:1;
->   	unsigned			allow_zero_bytesused:1;
-> @@ -516,6 +528,7 @@ struct vb2_queue {
->   	/* private: internal use only */
->   	struct mutex			mmap_lock;
->   	unsigned int			memory;
-> +	enum dma_data_direction		dma_dir;
->   	struct vb2_buffer		*bufs[VB2_MAX_FRAME];
->   	unsigned int			num_buffers;
->   
+2) This series doesn't contain patches that actually use the new flag.
+This will be added after such patch gets reviewed.
 
-Best regards
+v4:
+
+- Addressed Hans comments for v2;
+- Fixed broken references at the glossary.rst
+
+v3:
+
+- Add a glossary to be used by the new documentation about hardware control;
+- Add a patch removing minor number range
+- Use glossary terms at open.rst
+- Split the notice about subdev-API on vdev-centric, as this change
+   will require further discussions.
+
+v2:
+
+- added a patch at the beginning of the series better defining the
+  device node naming rules;
+- better defined the differenes between device hardware and V4L2 device node
+  as suggested by Laurent and with changes proposed by Hans and Sakari
+- changed the caps flag to indicate MC-centric devices
+- removed the final patch that would use the new caps flag. I'll write it
+  once we agree on the new caps flag.
+
+
+Mauro Carvalho Chehab (7):
+  media: add glossary.rst with a glossary of terms used at V4L2 spec
+  media: open.rst: better document device node naming
+  media: open.rst: remove the minor number range
+  media: open.rst: document devnode-centric and mc-centric types
+  media: open.rst: Adjust some terms to match the glossary
+  media: videodev2: add a flag for MC-centric devices
+  media: open.rst: add a notice about subdev-API on vdev-centric
+
+ Documentation/media/uapi/v4l/glossary.rst        |  98 ++++++++++++++++++
+ Documentation/media/uapi/v4l/open.rst            | 123 ++++++++++++++++++++---
+ Documentation/media/uapi/v4l/v4l2.rst            |   1 +
+ Documentation/media/uapi/v4l/vidioc-querycap.rst |   5 +
+ Documentation/media/videodev2.h.rst.exceptions   |   1 +
+ include/uapi/linux/videodev2.h                   |   2 +
+ 6 files changed, 216 insertions(+), 14 deletions(-)
+ create mode 100644 Documentation/media/uapi/v4l/glossary.rst
+
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+2.13.3
