@@ -1,88 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60086 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752984AbdHDQjS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Aug 2017 12:39:18 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        hans.verkuil@cisco.com, kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v4 0/7] vsp1 partition algorithm improvements
-Date: Fri, 04 Aug 2017 19:39:31 +0300
-Message-ID: <1576481.bIWHKWdUO9@avalon>
-In-Reply-To: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.b619f10db4b4618832ca73df5688ce9f2f36596b.1501864274.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from aserp1040.oracle.com ([141.146.126.69]:40928 "EHLO
+        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750737AbdHZGS4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 26 Aug 2017 02:18:56 -0400
+Date: Sat, 26 Aug 2017 09:18:41 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [PATCH 2/2] [media] dib8000: remove some bogus dead code
+Message-ID: <20170826061841.7hepoocimf5kit5g@mwanda>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+This function is broken.  It sets the wrong front_end to NULL.  But it's
+not used, so let's just delete it.
 
-On Friday 04 Aug 2017 17:32:37 Kieran Bingham wrote:
-> Hans, this series should be ready for integration now. Could you pick up
-> these patches please?
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Just a note for Hans: the series merges cleanly with Dave's drm-next branch 
-(git://people.freedesktop.org/~airlied/linux) that contains a large series of 
-VSP patches. There should thus be no merge conflict (at least none that git 
-won't solve automatically) when merging upstream.
-
-> Some updates and initial improvements for the VSP1 partition algorithm that
-> remove redundant processing and variables, reducing the processing done in
-> interrupt context slightly.
-> 
-> Patch 1, fixes up a bug to release buffers back to vb2 if errors occur in
-> vsp1_video_start_streaming()
-> 
-> Patches 2, 3 and 4 clean up the calculation of the partition windows such
-> that they are only calculated once at streamon.
-> 
-> Patch 5 improves the allocations with a new vsp1_partition object to track
-> each window state.
-> 
-> Patches 6, and 7 then go on to enhance the partition algorithm by allowing
-> each entity to calculate the requirements for it's pipeline predecessor to
-> successfully generate the requested output window. This system allows the
-> entity objects to specify what they need to fulfil the output for the next
-> entity in the pipeline.
-> 
-> v2:
->  - Rebased to v4.12-rc1
->  - Partition tables dynamically allocated
->  - review fixups
-> 
-> v3:
->  - Review fixes and changes from Laurent
->  - v4l: vsp1: Release buffers in start_streaming error path
-> 
-> v4:
->  - (Final) fixups from Laurent's review, and picked up his reviewed-by tags.
-> 
-> Kieran Bingham (7):
->   v4l: vsp1: Release buffers in start_streaming error path
->   v4l: vsp1: Move vsp1_video_pipeline_setup_partitions() function
->   v4l: vsp1: Calculate partition sizes at stream start
->   v4l: vsp1: Remove redundant context variables
->   v4l: vsp1: Move partition rectangles to struct and operate directly
->   v4l: vsp1: Provide UDS register updates
->   v4l: vsp1: Allow entities to participate in the partition algorithm
-> 
->  drivers/media/platform/vsp1/vsp1_entity.h |   7 +-
->  drivers/media/platform/vsp1/vsp1_pipe.c   |  22 +++-
->  drivers/media/platform/vsp1/vsp1_pipe.h   |  46 +++++-
->  drivers/media/platform/vsp1/vsp1_regs.h   |  14 ++-
->  drivers/media/platform/vsp1/vsp1_rpf.c    |  27 +--
->  drivers/media/platform/vsp1/vsp1_sru.c    |  26 +++-
->  drivers/media/platform/vsp1/vsp1_uds.c    |  57 ++++++-
->  drivers/media/platform/vsp1/vsp1_video.c  | 182 ++++++++++++-----------
->  drivers/media/platform/vsp1/vsp1_wpf.c    |  24 ++-
->  9 files changed, 289 insertions(+), 116 deletions(-)
-> 
-> base-commit: 520eccdfe187591a51ea9ab4c1a024ae4d0f68d9
-
--- 
-Regards,
-
-Laurent Pinchart
+diff --git a/drivers/media/dvb-frontends/dib8000.h b/drivers/media/dvb-frontends/dib8000.h
+index 2b8b4b1656a2..75cc8e47ec8f 100644
+--- a/drivers/media/dvb-frontends/dib8000.h
++++ b/drivers/media/dvb-frontends/dib8000.h
+@@ -53,7 +53,6 @@ struct dib8000_ops {
+ 	enum frontend_tune_state (*get_tune_state)(struct dvb_frontend *fe);
+ 	int (*set_tune_state)(struct dvb_frontend *fe, enum frontend_tune_state tune_state);
+ 	int (*set_slave_frontend)(struct dvb_frontend *fe, struct dvb_frontend *fe_slave);
+-	int (*remove_slave_frontend)(struct dvb_frontend *fe);
+ 	struct dvb_frontend *(*get_slave_frontend)(struct dvb_frontend *fe, int slave_index);
+ 	int (*i2c_enumeration)(struct i2c_adapter *host, int no_of_demods,
+ 		u8 default_addr, u8 first_addr, u8 is_dib8096p);
+diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
+index a179a3f6563d..5d9381509b07 100644
+--- a/drivers/media/dvb-frontends/dib8000.c
++++ b/drivers/media/dvb-frontends/dib8000.c
+@@ -4255,23 +4255,6 @@ static int dib8000_set_slave_frontend(struct dvb_frontend *fe, struct dvb_fronte
+ 	return -ENOMEM;
+ }
+ 
+-static int dib8000_remove_slave_frontend(struct dvb_frontend *fe)
+-{
+-	struct dib8000_state *state = fe->demodulator_priv;
+-	u8 index_frontend = 1;
+-
+-	while ((index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[index_frontend] != NULL))
+-		index_frontend++;
+-	if (index_frontend != 1) {
+-		dprintk("remove slave fe %p (index %i)\n", state->fe[index_frontend-1], index_frontend-1);
+-		state->fe[index_frontend] = NULL;
+-		return 0;
+-	}
+-
+-	dprintk("no frontend to be removed\n");
+-	return -ENODEV;
+-}
+-
+ static struct dvb_frontend *dib8000_get_slave_frontend(struct dvb_frontend *fe, int slave_index)
+ {
+ 	struct dib8000_state *state = fe->demodulator_priv;
+@@ -4506,7 +4489,6 @@ void *dib8000_attach(struct dib8000_ops *ops)
+ 	ops->get_slave_frontend = dib8000_get_slave_frontend;
+ 	ops->set_tune_state = dib8000_set_tune_state;
+ 	ops->pid_filter_ctrl = dib8000_pid_filter_ctrl;
+-	ops->remove_slave_frontend = dib8000_remove_slave_frontend;
+ 	ops->get_adc_power = dib8000_get_adc_power;
+ 	ops->update_pll = dib8000_update_pll;
+ 	ops->tuner_sleep = dib8096p_tuner_sleep;
