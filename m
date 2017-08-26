@@ -1,42 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:36817 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752519AbdHBRP2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Aug 2017 13:15:28 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 5/9] [media] ttpci: budget-av: constify pci_device_id.
-Date: Wed,  2 Aug 2017 22:44:53 +0530
-Message-Id: <1501694097-16207-6-git-send-email-arvind.yadav.cs@gmail.com>
-In-Reply-To: <1501694097-16207-1-git-send-email-arvind.yadav.cs@gmail.com>
-References: <1501694097-16207-1-git-send-email-arvind.yadav.cs@gmail.com>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:35196 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752051AbdHZLOJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 26 Aug 2017 07:14:09 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, mchehab@kernel.org,
+        maintainers@bluecherrydvr.com, anton@corp.bluecherry.net,
+        andrey.utkin@corp.bluecherry.net, ismael@iodev.co.uk,
+        hverkuil@xs4all.nl, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 3/5] [media] solo6x10:  make video_device const
+Date: Sat, 26 Aug 2017 16:43:32 +0530
+Message-Id: <1503746014-16489-4-git-send-email-bhumirks@gmail.com>
+In-Reply-To: <1503746014-16489-1-git-send-email-bhumirks@gmail.com>
+References: <1503746014-16489-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-pci_device_id are not supposed to change at runtime. All functions
-working with pci_device_id provided by <media/drv-intf/saa7146.h>
-and <linux/pci.h> work with const pci_device_id. So mark the non-const
-structs as const.
+Make this const as it is only used in a copy operation.
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 ---
- drivers/media/pci/ttpci/budget-av.c | 2 +-
+ drivers/media/pci/solo6x10/solo6x10-v4l2.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/pci/ttpci/budget-av.c b/drivers/media/pci/ttpci/budget-av.c
-index dc7be8f..ac83fff 100644
---- a/drivers/media/pci/ttpci/budget-av.c
-+++ b/drivers/media/pci/ttpci/budget-av.c
-@@ -1567,7 +1567,7 @@ MAKE_BUDGET_INFO(cin1200c, "Terratec Cinergy 1200 DVB-C", BUDGET_CIN1200C);
- MAKE_BUDGET_INFO(cin1200cmk3, "Terratec Cinergy 1200 DVB-C MK3", BUDGET_CIN1200C_MK3);
- MAKE_BUDGET_INFO(cin1200t, "Terratec Cinergy 1200 DVB-T", BUDGET_CIN1200T);
+diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2.c b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
+index 3266fc2..99ffd1e 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-v4l2.c
++++ b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
+@@ -630,7 +630,7 @@ static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+ };
  
--static struct pci_device_id pci_tbl[] = {
-+static const struct pci_device_id pci_tbl[] = {
- 	MAKE_EXTENSION_PCI(knc1s, 0x1131, 0x4f56),
- 	MAKE_EXTENSION_PCI(knc1s, 0x1131, 0x0010),
- 	MAKE_EXTENSION_PCI(knc1s, 0x1894, 0x0010),
+-static struct video_device solo_v4l2_template = {
++static const struct video_device solo_v4l2_template = {
+ 	.name			= SOLO6X10_NAME,
+ 	.fops			= &solo_v4l2_fops,
+ 	.ioctl_ops		= &solo_v4l2_ioctl_ops,
 -- 
-2.7.4
+1.9.1
