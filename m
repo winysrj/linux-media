@@ -1,70 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44950
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751898AbdHaXrK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 19:47:10 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 10/15] media: dmx.h: get rid of unused DMX_KERNEL_CLIENT
-Date: Thu, 31 Aug 2017 20:46:57 -0300
-Message-Id: <6eafbc65d25e0c7b9581e74f6218461a1829f951.1504222628.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
-References: <cover.1504222628.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
-References: <cover.1504222628.git.mchehab@s-opensource.com>
+Received: from mail.anw.at ([195.234.101.228]:50342 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751508AbdHZCM5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 Aug 2017 22:12:57 -0400
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, d.scheller@gmx.net, jasmin@anw.at
+Subject: [PATCH 0/1] build: ddbridge can be now compiled for kernels older than 3.8
+Date: Sat, 26 Aug 2017 04:12:48 +0200
+Message-Id: <1503713569-32443-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There's a flag defined for Digital TV demux that is not used
-anywhere, called DMX_KERNEL_CLIENT. Get rid of it.
+From: Jasmin Jessich <jasmin@anw.at>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/dmx.h.rst.exceptions   | 1 -
- Documentation/media/uapi/dvb/dmx_types.rst | 1 -
- include/uapi/linux/dvb/dmx.h               | 1 -
- 3 files changed, 3 deletions(-)
+When you have already applied patch
+  https://www.mail-archive.com/linux-media@vger.kernel.org/msg117633.html
+this patch will re-enable ddbridge for all older Kernels.
+I have tested it with Kernel 2.6.36, 2.6.37, 3.4, 3.13 and 4.4.
 
-diff --git a/Documentation/media/dmx.h.rst.exceptions b/Documentation/media/dmx.h.rst.exceptions
-index 2fdb458564ba..933ca5a61ce1 100644
---- a/Documentation/media/dmx.h.rst.exceptions
-+++ b/Documentation/media/dmx.h.rst.exceptions
-@@ -56,7 +56,6 @@ replace symbol DMX_SOURCE_DVR3 :c:type:`dmx_source`
- replace define DMX_CHECK_CRC :c:type:`dmx_sct_filter_params`
- replace define DMX_ONESHOT :c:type:`dmx_sct_filter_params`
- replace define DMX_IMMEDIATE_START :c:type:`dmx_sct_filter_params`
--replace define DMX_KERNEL_CLIENT :c:type:`dmx_sct_filter_params`
- 
- # some typedefs should point to struct/enums
- replace typedef dmx_caps_t :c:type:`dmx_caps`
-diff --git a/Documentation/media/uapi/dvb/dmx_types.rst b/Documentation/media/uapi/dvb/dmx_types.rst
-index 80dd659860d7..0f0113205c94 100644
---- a/Documentation/media/uapi/dvb/dmx_types.rst
-+++ b/Documentation/media/uapi/dvb/dmx_types.rst
-@@ -147,7 +147,6 @@ struct dmx_sct_filter_params
-     #define DMX_CHECK_CRC       1
-     #define DMX_ONESHOT         2
-     #define DMX_IMMEDIATE_START 4
--    #define DMX_KERNEL_CLIENT   0x8000
-     };
- 
- 
-diff --git a/include/uapi/linux/dvb/dmx.h b/include/uapi/linux/dvb/dmx.h
-index 427e4899ed69..d4934e650e6b 100644
---- a/include/uapi/linux/dvb/dmx.h
-+++ b/include/uapi/linux/dvb/dmx.h
-@@ -105,7 +105,6 @@ struct dmx_sct_filter_params
- #define DMX_CHECK_CRC       1
- #define DMX_ONESHOT         2
- #define DMX_IMMEDIATE_START 4
--#define DMX_KERNEL_CLIENT   0x8000
- };
- 
- 
+Please note, that you need to apply the patch series
+  "fix compile for kernel 3.3 and older"
+    ->  build: Add compat code for PCI_DEVICE_SUB
+        build: Fixed backports/v3.3_eprobe_defer.patch
+to be able to compile ddbridge for Kernels <=3.3.
+
+Jasmin Jessich (1):
+  build: ddbridge can be now compiled for kernels older than 3.8
+
+ v4l/versions.txt | 2 --
+ 1 file changed, 2 deletions(-)
+
 -- 
-2.13.5
+2.7.4
