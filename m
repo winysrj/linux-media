@@ -1,93 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:38853 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753823AbdHUOfE (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53299
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752350AbdHZJ2h (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Aug 2017 10:35:04 -0400
-MIME-Version: 1.0
-In-Reply-To: <20170821125107.20746-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170821125107.20746-1-niklas.soderlund+renesas@ragnatech.se>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 21 Aug 2017 16:35:03 +0200
-Message-ID: <CAMuHMdUpUW2Vyq=8vBWSMz+xF05Wc=rOo9KNZmZjkU0BDVjzJw@mail.gmail.com>
-Subject: Re: [PATCH] device property: preserve usecount for node passed to of_fwnode_graph_get_port_parent()
-To: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Sat, 26 Aug 2017 05:28:37 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 4/4] docs-rst: don't require adjustbox anymore
+Date: Sat, 26 Aug 2017 06:28:28 -0300
+Message-Id: <4d7980a4b72da95c73976b48c9769004974cd0bc.1503739177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503739177.git.mchehab@s-opensource.com>
+References: <cover.1503739177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503739177.git.mchehab@s-opensource.com>
+References: <cover.1503739177.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Only the media PDF book was requiring adjustbox, in order to
+scale big tables. That worked pretty good with Sphinx versions
+1.4 and 1.5, but Spinx 1.6 changed the way tables are produced,
+by introducing some weird macros before tabulary.
+That causes adjustbox to fail. So, it can't be used anymore,
+and its usage was removed from the media book.
 
-On Mon, Aug 21, 2017 at 2:51 PM, Niklas S=C3=B6derlund
-<niklas.soderlund+renesas@ragnatech.se> wrote:
-> Using CONFIG_OF_DYNAMIC=3Dy uncovered an imbalance in the usecount of the
-> node being passed to of_fwnode_graph_get_port_parent(). Preserve the
-> usecount just like it is done in of_graph_get_port_parent().
->
-> Fixes: 3b27d00e7b6d7c88 ("device property: Move fwnode graph ops to firmw=
-are specific locations")
-> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.=
-se>
-> ---
->  drivers/of/property.c | 6 ++++++
->  1 file changed, 6 insertions(+)
->
-> diff --git a/drivers/of/property.c b/drivers/of/property.c
-> index 067f9fab7b77c794..637dcb4833e2af60 100644
-> --- a/drivers/of/property.c
-> +++ b/drivers/of/property.c
-> @@ -922,6 +922,12 @@ of_fwnode_graph_get_port_parent(struct fwnode_handle=
- *fwnode)
->  {
->         struct device_node *np;
->
-> +       /*
-> +        * Preserve usecount for passed in node as of_get_next_parent()
-> +        * will do of_node_put() on it.
-> +        */
-> +       of_node_get(to_of_node(fwnode));
-> +
->         /* Get the parent of the port */
->         np =3D of_get_next_parent(to_of_node(fwnode));
->         if (!np)
+So, let's remove it from conf.py and sphinx-pre-install.
 
-FWIW, I'd use "np" to store the intermediate value:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/conf.py      | 3 ---
+ scripts/sphinx-pre-install | 1 -
+ 2 files changed, 4 deletions(-)
 
-    struct device_node *np =3D to_of_node(fwnode);
-
-     /*
-      * Preserve usecount for passed in node as of_get_next_parent()
-      * will do of_node_put() on it.
-      */
-    of_node_get(np);
-
-    /* Get the parent of the port */
-    np =3D of_get_next_parent(np);
-
-Alternatively, perhaps to_of_node() should increment the refcount and
-call of_node_get()? Oh, there's (static) of_fwnode_get(), too.
-
-Is drivers/iommu/iommu.c:iommu_fwspec_init() really the only place outside
-drivers/of/property.c that calls of_node_get() on a node obtained by
-to_of_node()?
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
-.org
-
-In personal conversations with technical people, I call myself a hacker. Bu=
-t
-when I'm talking to journalists I just say "programmer" or something like t=
-hat.
-                                -- Linus Torvalds
+diff --git a/Documentation/conf.py b/Documentation/conf.py
+index f9054ab60cb1..4c87bc10220c 100644
+--- a/Documentation/conf.py
++++ b/Documentation/conf.py
+@@ -331,9 +331,6 @@ latex_elements = {
+         \\setromanfont{DejaVu Sans}
+         \\setmonofont{DejaVu Sans Mono}
+ 
+-	% To allow adjusting table sizes
+-	\\usepackage{adjustbox}
+-
+      '''
+ }
+ 
+diff --git a/scripts/sphinx-pre-install b/scripts/sphinx-pre-install
+index 677756ae34c9..067459760a7b 100755
+--- a/scripts/sphinx-pre-install
++++ b/scripts/sphinx-pre-install
+@@ -40,7 +40,6 @@ my $virtualenv = 1;
+ #
+ 
+ my %texlive = (
+-	'adjustbox.sty'      => 'texlive-adjustbox',
+ 	'amsfonts.sty'       => 'texlive-amsfonts',
+ 	'amsmath.sty'        => 'texlive-amsmath',
+ 	'amssymb.sty'        => 'texlive-amsfonts',
+-- 
+2.13.3
