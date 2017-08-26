@@ -1,70 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:37896 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751097AbdHMMbK (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:46816 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752938AbdHZDkg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 13 Aug 2017 08:31:10 -0400
-Received: by mail-qt0-f193.google.com with SMTP id p3so7497384qtg.5
-        for <linux-media@vger.kernel.org>; Sun, 13 Aug 2017 05:31:10 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170813100629.24034-1-rosca.eugeniu@gmail.com>
-References: <20170813100629.24034-1-rosca.eugeniu@gmail.com>
-From: Michael Ira Krufky <mkrufky@linuxtv.org>
-Date: Sun, 13 Aug 2017 08:31:09 -0400
-Message-ID: <CAOcJUbyLpQ1A8xGfsU3pMxT63qYTJghbAC5kK3tr8t2DaZ9ykw@mail.gmail.com>
-Subject: Re: [PATCH] [media] mxl111sf: Fix potential null pointer dereference
-To: Eugeniu Rosca <roscaeugeniu@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Eugeniu Rosca <erosca@de.adit-jv.com>
-Content-Type: text/plain; charset="UTF-8"
+        Fri, 25 Aug 2017 23:40:36 -0400
+Message-ID: <87d6e8762d5881fe498a4b3bb084ccf0@smtp-cloud7.xs4all.net>
+Date: Sat, 26 Aug 2017 05:40:34 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Aug 13, 2017 at 6:06 AM, Eugeniu Rosca <roscaeugeniu@gmail.com> wrote:
-> From: Eugeniu Rosca <erosca@de.adit-jv.com>
->
-> Reviewing the delta between cppcheck output of v4.9.39 and v4.9.40
-> stable updates, I stumbled on the new warning:
->
-> mxl111sf.c:80: (warning) Possible null pointer dereference: rbuf
->
-> Since copying state->rcvbuf into rbuf is not needed in the 'write-only'
-> scenario (i.e. calling mxl111sf_ctrl_msg() from mxl111sf_i2c_send_data()
-> or from mxl111sf_write_reg()), bypass memcpy() in this case.
->
-> Fixes: d90b336f3f65 ("[media] mxl111sf: Fix driver to use heap allocate buffers for USB messages")
-> Signed-off-by: Eugeniu Rosca <erosca@de.adit-jv.com>
-> ---
->  drivers/media/usb/dvb-usb-v2/mxl111sf.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-Reviewed-by:  Michael Ira Krufky <mkrufky@linuxtv.org>
+date:			Sat Aug 26 05:00:15 CEST 2017
+media-tree git hash:	0779b8855c746c90b85bfe6e16d5dfa2a6a46655
+media_build git hash:	4a73db0fa0115ef58537be61da6099c828f57d2b
+v4l-utils git hash:	5a6e0c38468c629f3f6f4fb988acebb9e66e2917
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
 
-Thank you for this, Eugeniu
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-> index b0d5904a4ea6..67953360fda5 100644
-> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-> @@ -77,7 +77,9 @@ int mxl111sf_ctrl_msg(struct mxl111sf_state *state,
->                 dvb_usbv2_generic_rw(d, state->sndbuf, 1+wlen, state->rcvbuf,
->                                      rlen);
->
-> -       memcpy(rbuf, state->rcvbuf, rlen);
-> +       if (rbuf)
-> +               memcpy(rbuf, state->rcvbuf, rlen);
-> +
->         mutex_unlock(&state->msg_lock);
->
->         mxl_fail(ret);
-> --
-> 2.14.1
->
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
