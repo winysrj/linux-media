@@ -1,106 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:34624 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752783AbdHTMLa (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:34632 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752356AbdHZM5m (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Aug 2017 08:11:30 -0400
-Received: by mail-wr0-f195.google.com with SMTP id p14so7865186wrg.1
-        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 05:11:29 -0700 (PDT)
-Date: Sun, 20 Aug 2017 14:11:26 +0200
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: rjkm@metzlerbros.de, linux-media@vger.kernel.org,
-        mchehab@kernel.org, jasmin@anw.at
-Subject: Re: [PATCH] [media] ddbridge: add IOCTLs
-Message-ID: <20170820141126.17b24bf1@audiostation.wuest.de>
-In-Reply-To: <20170820085356.0aa87e66@vento.lan>
-References: <20170820110855.7127-1-d.scheller.oss@gmail.com>
-        <20170820085356.0aa87e66@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Sat, 26 Aug 2017 08:57:42 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, mchehab@kernel.org, corbet@lwn.net,
+        kyungmin.park@samsung.com, kamil@wypas.org, a.hajda@samsung.com,
+        bparrot@ti.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH v2] [media] platform: make video_device const
+Date: Sat, 26 Aug 2017 18:27:26 +0530
+Message-Id: <1503752246-19643-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Sun, 20 Aug 2017 08:53:56 -0300
-schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+Make these const as they are only used during a copy operation.
+Done using Coccinelle:
 
-> Em Sun, 20 Aug 2017 13:08:55 +0200
-> Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
-> 
-> > From: Daniel Scheller <d.scheller@gmx.net>
-> > 
-> > This patch adds back the IOCTL API/functionality which is present
-> > in the upstream dddvb driver package. In comparison, the IOCTL
-> > handler has been factored to a separate object (and with that, some
-> > functionality from -core has been moved there aswell), the IOCTLs
-> > are defined in an include in the uAPI, and ioctl-number.txt is
-> > updated to document that there are IOCTLs present in this driver.
-> > 
-> > Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> > ---
-> > This patch depends on the ddbridge-0.9.29 bump, see [1]. The
-> > functionality was part of the driver before.
-> > 
-> > [1] http://www.spinics.net/lists/linux-media/msg119911.html
-> > 
-> >  Documentation/ioctl/ioctl-number.txt        |   1 +
-> >  MAINTAINERS                                 |   1 +
-> >  drivers/media/pci/ddbridge/Makefile         |   2 +-
-> >  drivers/media/pci/ddbridge/ddbridge-core.c  | 111 +--------
-> >  drivers/media/pci/ddbridge/ddbridge-ioctl.c | 334
-> > ++++++++++++++++++++++++++++
-> > drivers/media/pci/ddbridge/ddbridge-ioctl.h |  32 +++
-> > include/uapi/linux/ddbridge-ioctl.h         | 110 +++++++++ 7 files
-> > changed, 481 insertions(+), 110 deletions(-) create mode 100644
-> > drivers/media/pci/ddbridge/ddbridge-ioctl.c create mode 100644
-> > drivers/media/pci/ddbridge/ddbridge-ioctl.h create mode 100644
-> > include/uapi/linux/ddbridge-ioctl.h
-> > 
-> > diff --git a/Documentation/ioctl/ioctl-number.txt
-> > b/Documentation/ioctl/ioctl-number.txt index
-> > 3e3fdae5f3ed..d78d1cd092d2 100644 ---
-> > a/Documentation/ioctl/ioctl-number.txt +++
-> > b/Documentation/ioctl/ioctl-number.txt @@ -215,6 +215,7 @@ Code
-> > Seq#(hex)	Include File		Comments 'c'
-> > A0-AF   arch/x86/include/asm/msr.h	conflict! 'd'
-> > 00-FF	linux/char/drm/drm.h	conflict! 'd'
-> > 02-40	pcmcia/ds.h		conflict! +'d'
-> > 00-0B	linux/ddbridge-ioctl.h	conflict!  
-> 
-> That's where the problem with this patch starts: we don't add
-> conflicts here :-)
-> 
-> We need more discussions with regards to the features added by this
-> patchset.
+@match disable optional_qualifier@
+identifier s;
+@@
+static struct video_device s = {...};
 
-Understood. The "good" thing is that this isn't a requirement to drive
-any tuner boards (at the moment), however we shouldn't lose track on
-this. Since this is the only complaint for now:
+@ref@
+position p;
+identifier match.s;
+@@
+s@p
 
-- We need to clear with Ralph if changing the MAGIC to something
-  different is an option. In the end, if we change the userspace apps
-  to include the uAPI header from mainline if available (else fallback
-  to what ie. dddvb carries), I don't see an issue with this. But if
-  userspace apps keep on using private stuff, this will break ofc.
-- Other option: Fork dddvb and change userspace apps accordingly, and
-  keep them in sync with upstream. Since we already have to care about
-  the kernel part, this option is rather suboptimal.
+@good1@
+identifier match.s;
+expression list[3] es;
+position ref.p;
+@@
+cx88_vdev_init(es,&s@p,...)
 
-Ralph, Ping :-)
+@good2@
+position ref.p;
+identifier match.s,f,c;
+expression e;
+@@
+(
+e = s@p
+|
+e = s@p.f
+|
+c(...,s@p.f,...)
+|
+c(...,s@p,...)
+)
 
-> Anyway, I applied today the ddbridge patches we had. I solved a few
-> conflicts while merging some things, so I'd appreciate if you could
-> check if everything is ok. If not, please send patches :-)
+@bad depends on  !good1 && !good2@
+position ref.p;
+identifier match.s;
+@@
+s@p
 
-Wohoooo! Thanks very much, especially for the mxl5xx! Looks like 4.14
-will be a hell of a kernel for all DD card owners! :)
+@depends on forall !bad disable optional_qualifier@
+identifier match.s;
+@@
+static
++ const
+struct video_device s;
 
-Will check if something's wrong now (saw you missed the stv0910
-constify patch from Colin King) and shove out patches _today_ if
-neccessary.
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+Changes in v2:
+* Combine the patch series sent for drivers/media/platform/ into a 
+single patch.
 
-Best regards,
-Daniel Scheller
+ drivers/media/platform/fsl-viu.c                | 2 +-
+ drivers/media/platform/m2m-deinterlace.c        | 2 +-
+ drivers/media/platform/marvell-ccic/mcam-core.c | 2 +-
+ drivers/media/platform/mx2_emmaprp.c            | 2 +-
+ drivers/media/platform/s5p-g2d/g2d.c            | 2 +-
+ drivers/media/platform/ti-vpe/cal.c             | 2 +-
+ drivers/media/platform/ti-vpe/vpe.c             | 2 +-
+ drivers/media/platform/via-camera.c             | 2 +-
+ drivers/media/platform/vim2m.c                  | 2 +-
+ 9 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
+index f7b88e5..b3b91cb 100644
+--- a/drivers/media/platform/fsl-viu.c
++++ b/drivers/media/platform/fsl-viu.c
+@@ -1380,7 +1380,7 @@ static int viu_mmap(struct file *file, struct vm_area_struct *vma)
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+ 
+-static struct video_device viu_template = {
++static const struct video_device viu_template = {
+ 	.name		= "FSL viu",
+ 	.fops		= &viu_fops,
+ 	.minor		= -1,
+diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
+index 98f6db2..c8a1249 100644
+--- a/drivers/media/platform/m2m-deinterlace.c
++++ b/drivers/media/platform/m2m-deinterlace.c
+@@ -979,7 +979,7 @@ static int deinterlace_mmap(struct file *file, struct vm_area_struct *vma)
+ 	.mmap		= deinterlace_mmap,
+ };
+ 
+-static struct video_device deinterlace_videodev = {
++static const struct video_device deinterlace_videodev = {
+ 	.name		= MEM2MEM_NAME,
+ 	.fops		= &deinterlace_fops,
+ 	.ioctl_ops	= &deinterlace_ioctl_ops,
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index 8cac2f2..b07a251 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -1639,7 +1639,7 @@ static int mcam_v4l_release(struct file *filp)
+  * This template device holds all of those v4l2 methods; we
+  * clone it for specific real devices.
+  */
+-static struct video_device mcam_v4l_template = {
++static const struct video_device mcam_v4l_template = {
+ 	.name = "mcam",
+ 	.fops = &mcam_v4l_fops,
+ 	.ioctl_ops = &mcam_v4l_ioctl_ops,
+diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+index 7fd209e..3493d40 100644
+--- a/drivers/media/platform/mx2_emmaprp.c
++++ b/drivers/media/platform/mx2_emmaprp.c
+@@ -873,7 +873,7 @@ static int emmaprp_mmap(struct file *file, struct vm_area_struct *vma)
+ 	.mmap		= emmaprp_mmap,
+ };
+ 
+-static struct video_device emmaprp_videodev = {
++static const struct video_device emmaprp_videodev = {
+ 	.name		= MEM2MEM_NAME,
+ 	.fops		= &emmaprp_fops,
+ 	.ioctl_ops	= &emmaprp_ioctl_ops,
+diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
+index bd655b5..66aa8cf 100644
+--- a/drivers/media/platform/s5p-g2d/g2d.c
++++ b/drivers/media/platform/s5p-g2d/g2d.c
+@@ -602,7 +602,7 @@ static irqreturn_t g2d_isr(int irq, void *prv)
+ 	.vidioc_cropcap			= vidioc_cropcap,
+ };
+ 
+-static struct video_device g2d_videodev = {
++static const struct video_device g2d_videodev = {
+ 	.name		= G2D_NAME,
+ 	.fops		= &g2d_fops,
+ 	.ioctl_ops	= &g2d_ioctl_ops,
+diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
+index 0c7ddf8..42e383a 100644
+--- a/drivers/media/platform/ti-vpe/cal.c
++++ b/drivers/media/platform/ti-vpe/cal.c
+@@ -1420,7 +1420,7 @@ static void cal_stop_streaming(struct vb2_queue *vq)
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+ 
+-static struct video_device cal_videodev = {
++static const struct video_device cal_videodev = {
+ 	.name		= CAL_MODULE_NAME,
+ 	.fops		= &cal_fops,
+ 	.ioctl_ops	= &cal_ioctl_ops,
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 2873c22..45bd105 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -2421,7 +2421,7 @@ static int vpe_release(struct file *file)
+ 	.mmap		= v4l2_m2m_fop_mmap,
+ };
+ 
+-static struct video_device vpe_videodev = {
++static const struct video_device vpe_videodev = {
+ 	.name		= VPE_MODULE_NAME,
+ 	.fops		= &vpe_fops,
+ 	.ioctl_ops	= &vpe_ioctl_ops,
+diff --git a/drivers/media/platform/via-camera.c b/drivers/media/platform/via-camera.c
+index e16f70a..805d4a8 100644
+--- a/drivers/media/platform/via-camera.c
++++ b/drivers/media/platform/via-camera.c
+@@ -1259,7 +1259,7 @@ static int viacam_resume(void *priv)
+  * Setup stuff.
+  */
+ 
+-static struct video_device viacam_v4l_template = {
++static const struct video_device viacam_v4l_template = {
+ 	.name		= "via-camera",
+ 	.minor		= -1,
+ 	.tvnorms	= V4L2_STD_NTSC_M,
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index afbaa35..b01fba0 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -974,7 +974,7 @@ static int vim2m_release(struct file *file)
+ 	.mmap		= v4l2_m2m_fop_mmap,
+ };
+ 
+-static struct video_device vim2m_videodev = {
++static const struct video_device vim2m_videodev = {
+ 	.name		= MEM2MEM_NAME,
+ 	.vfl_dir	= VFL_DIR_M2M,
+ 	.fops		= &vim2m_fops,
 -- 
-https://github.com/herrnst
+1.9.1
