@@ -1,94 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34779
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753021AbdH2NSH (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:36096 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754709AbdHZKVv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 09:18:07 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v6 4/7] media: open.rst: document devnode-centric and mc-centric types
-Date: Tue, 29 Aug 2017 10:17:53 -0300
-Message-Id: <5fb4150ad686d7fbf8550daba9269d058996cd9d.1504012579.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504012579.git.mchehab@s-opensource.com>
-References: <cover.1504012579.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-In-Reply-To: <cover.1504012579.git.mchehab@s-opensource.com>
-References: <cover.1504012579.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Sat, 26 Aug 2017 06:21:51 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, mchehab@kernel.org, hverkuil@xs4all.nl,
+        corbet@lwn.net, kyungmin.park@samsung.com, kamil@wypas.org,
+        a.hajda@samsung.com, bparrot@ti.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 10/10] [media] vim2m: make video_device const
+Date: Sat, 26 Aug 2017 15:50:12 +0530
+Message-Id: <1503742812-16139-11-git-send-email-bhumirks@gmail.com>
+In-Reply-To: <1503742812-16139-1-git-send-email-bhumirks@gmail.com>
+References: <1503742812-16139-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When we added support for omap3, back in 2010, we added a new
-type of V4L2 devices that aren't fully controlled via the V4L2
-device node.
+Make this const as it is only used in a copy operation.
 
-Yet, we have never clearly documented in the V4L2 specification
-the differences between the two types.
-
-Let's document them based on the the current implementation.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 ---
- Documentation/media/uapi/v4l/open.rst | 40 +++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ drivers/media/platform/vim2m.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index 18030131ef77..bcfa654d5d71 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -7,6 +7,46 @@ Opening and Closing Devices
- ***************************
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index afbaa35..b01fba0 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -974,7 +974,7 @@ static int vim2m_release(struct file *file)
+ 	.mmap		= v4l2_m2m_fop_mmap,
+ };
  
- 
-+.. _v4l2_hardware_control:
-+
-+
-+Types of V4L2 hardware peripheral control
-+=========================================
-+
-+V4L2 hardware periferal is usually complex: support for it is
-+implemented via a V4L2 main driver and often by several additional drivers.
-+The main driver always exposes one or more **V4L2 device nodes**
-+(see :ref:`v4l2_device_naming`) with are responsible for implementing
-+data streaming, if applicable.
-+
-+The other drivers are called **V4L2 sub-devices** and provide control to
-+other hardware components usually connected via a serial bus (like
-+I²C, SMBus or SPI). Depending on the main driver, they can be implicitly
-+controlled directly by the main driver or explicitly via
-+the **V4L2 sub-device API** (see :ref:`subdev`).
-+
-+When V4L2 was originally designed, there was only one type of
-+peripheral control: via the **V4L2 device nodes**. We refer to this kind
-+of control as **V4L2 device node centric** (or, simply, "**vdev-centric**").
-+
-+Later (kernel 2.6.39), a new type of periferal control was
-+added in order to support complex peripherals that are common for embedded
-+systems. This type of periferal is controlled mainly via the media
-+controller and V4L2 sub-devices. So, it is called
-+**Media controller centric** (or, simply, "**MC-centric**") control.
-+
-+For **vdev-centric** hardware peripheral control, the peripheral is
-+controlled via the **V4L2 device nodes**. They may optionally support the
-+:ref:`media controller API <media_controller>` as well,
-+in order to inform the application which device nodes are available
-+(see :ref:`related`).
-+
-+For **MC-centric** hardware peripheral control it is required to configure
-+the pipelines via the :ref:`media controller API <media_controller>` before
-+the periferal can be used. For such devices, the sub-devices' configuration
-+can be controlled via the :ref:`sub-device API <subdev>`, which creates one
-+device node per sub-device.
-+
- .. _v4l2_device_naming:
- 
- V4L2 Device Node Naming
+-static struct video_device vim2m_videodev = {
++static const struct video_device vim2m_videodev = {
+ 	.name		= MEM2MEM_NAME,
+ 	.vfl_dir	= VFL_DIR_M2M,
+ 	.fops		= &vim2m_fops,
 -- 
-2.13.5
+1.9.1
