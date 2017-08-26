@@ -1,69 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56301 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754054AbdHWNzX (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:34172 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751302AbdHZIhG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Aug 2017 09:55:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Pavel Machek <pavel@ucw.cz>,
-        Sebastian Reichel <sre@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: omap3isp: fix uninitialized variable use
-Date: Wed, 23 Aug 2017 16:55:53 +0300
-Message-ID: <1715918.7tP7qczlmH@avalon>
-In-Reply-To: <20170823133044.686146-1-arnd@arndb.de>
-References: <20170823133044.686146-1-arnd@arndb.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Sat, 26 Aug 2017 04:37:06 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, crope@iki.fi, mchehab@kernel.org,
+        hans.verkuil@cisco.com, isely@pobox.com,
+        ezequiel@vanguardiasur.com.ar, royale@zerezo.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-usb@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 11/11] [media] airspy: make video_device const
+Date: Sat, 26 Aug 2017 14:05:15 +0530
+Message-Id: <1503736515-15366-12-git-send-email-bhumirks@gmail.com>
+In-Reply-To: <1503736515-15366-1-git-send-email-bhumirks@gmail.com>
+References: <1503736515-15366-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+Make this const as it is only used in a copy operation.
 
-Thank you for the patch.
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/media/usb/airspy/airspy.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On Wednesday, 23 August 2017 16:30:19 EEST Arnd Bergmann wrote:
-> A debug printk statement was copied incorrectly into the new
-> csi1 parser code and causes a warning there:
-> 
-> drivers/media/platform/omap3isp/isp.c: In function 'isp_probe':
-> include/linux/dynamic_debug.h:134:3: error: 'i' may be used uninitialized in
-> this function [-Werror=maybe-uninitialized]
-> 
-> Since there is only one lane, the index is never set. This
-> changes the debug print to always print a zero instead,
-> keeping the original format of the message.
-> 
-> Fixes: 9211434bad30 ("media: omap3isp: Parse CSI1 configuration from the
-> device tree")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/platform/omap3isp/isp.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index 83aea08b832d..30c825bf80d9
-> 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -2092,7 +2092,7 @@ static int isp_fwnode_parse(struct device *dev, struct
-> fwnode_handle *fwnode, buscfg->bus.ccp2.lanecfg.data[0].pol =
->  				vep.bus.mipi_csi1.lane_polarity[1];
-> 
-> -			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
-> +			dev_dbg(dev, "data lane 0 polarity %u, pos %u\n",
->  				buscfg->bus.ccp2.lanecfg.data[0].pol,
->  				buscfg->bus.ccp2.lanecfg.data[0].pos);
-
-
+diff --git a/drivers/media/usb/airspy/airspy.c b/drivers/media/usb/airspy/airspy.c
+index 07f3f4e..e70c9e2 100644
+--- a/drivers/media/usb/airspy/airspy.c
++++ b/drivers/media/usb/airspy/airspy.c
+@@ -859,7 +859,7 @@ static int airspy_enum_freq_bands(struct file *file, void *priv,
+ 	.unlocked_ioctl           = video_ioctl2,
+ };
+ 
+-static struct video_device airspy_template = {
++static const struct video_device airspy_template = {
+ 	.name                     = "AirSpy SDR",
+ 	.release                  = video_device_release_empty,
+ 	.fops                     = &airspy_fops,
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
