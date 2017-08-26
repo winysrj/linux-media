@@ -1,60 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59682 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751127AbdHaNKI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 09:10:08 -0400
-Date: Thu, 31 Aug 2017 15:10:39 +0200
-From: Eugene Syromiatnikov <esyr@redhat.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        y2038 Mailman List <y2038@lists.linaro.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Linux API <linux-api@vger.kernel.org>,
-        "moderated list:ARM/SAMSUNG EXYNOS ARM ARCHITECTURES"
-        <linux-samsung-soc@vger.kernel.org>,
-        "Dmitry V. Levin" <ldv@altlinux.org>,
-        Gleb Fotengauer-Malinovskiy <glebfm@altlinux.org>
-Subject: Re: [3/7,media] dvb: don't use 'time_t' in event ioctl
-Message-ID: <20170831131039.GO4037@asgard.redhat.com>
-References: <1442332148-488079-4-git-send-email-arnd@arndb.de>
- <20170828153243.GA27121@asgard.redhat.com>
- <CAK8P3a3+ng+kNNH4C2yG1hJf6DUu_sYb5dC388XGPigePw1uAg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAK8P3a3+ng+kNNH4C2yG1hJf6DUu_sYb5dC388XGPigePw1uAg@mail.gmail.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53436
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752126AbdHZKHc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 26 Aug 2017 06:07:32 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 2/6] media: frontend.rst: fix supported delivery systems
+Date: Sat, 26 Aug 2017 07:07:10 -0300
+Message-Id: <255f26aa7277d1a92a6b904f502d0da7299a8bf6.1503742025.git.mchehab@s-opensource.com>
+In-Reply-To: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
+References: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
+In-Reply-To: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
+References: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 30, 2017 at 10:25:01PM +0200, Arnd Bergmann wrote:
-> >> diff --git a/include/uapi/linux/dvb/video.h b/include/uapi/linux/dvb/video.h
-> >> index d3d14a59d2d5..6c7f9298d7c2 100644
-> >> --- a/include/uapi/linux/dvb/video.h
-> >> +++ b/include/uapi/linux/dvb/video.h
-> >> @@ -135,7 +135,8 @@ struct video_event {
-> >>  #define VIDEO_EVENT_FRAME_RATE_CHANGED       2
-> >>  #define VIDEO_EVENT_DECODER_STOPPED  3
-> >>  #define VIDEO_EVENT_VSYNC            4
-> >> -     __kernel_time_t timestamp;
-> >> +     /* unused, make sure to use atomic time for y2038 if it ever gets used */
-> >> +     long timestamp;
-> >
-> > This change breaks x32 ABI (and possibly MIPS n32 ABI), as __kernel_time_t
-> > there is 64 bit already:
-> > https://sourceforge.net/p/strace/mailman/message/36015326/
-> >
-> > Note the change in structure size from 0x20 to 0x14 for VIDEO_GET_EVENT
-> > command in linux/x32/ioctls_inc0.h.
-> 
-> Are you sure it worked before the change? I don't see any handler in the kernel
-> for the x32 compat ioctl call here, only the compat_video_event handling, so
-> my guess is that the change unintentionally fixes x32.
+The introduction for the frontend chapter is not quite
+correct:
+  - it tells that it supports only three types of
+    delivery systems, in opposite to three *groups*;
+  - It adds ISDB-C to the list of supported systems,
+    but, this is not true.
 
-Yes, you're right; unfortunately, I decided to check which ioctl handler
-x32 code is using only after sending the e-mail, and now in the process
-of preparing some RFC patch for the ioctl commands which have discrepancies
-between x32 and compat sizes.
+Fix it.
 
-> 
->          Arnd
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/dvb/frontend.rst | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/media/uapi/dvb/frontend.rst b/Documentation/media/uapi/dvb/frontend.rst
+index e051a9012540..313f46a4c6a6 100644
+--- a/Documentation/media/uapi/dvb/frontend.rst
++++ b/Documentation/media/uapi/dvb/frontend.rst
+@@ -5,13 +5,15 @@
+ ################
+ DVB Frontend API
+ ################
+-The DVB frontend API was designed to support three types of delivery
+-systems:
++
++The DVB frontend API was designed to support three groups of delivery
++systems: Terrestrial, cable and Satellite. Currently, the following
++delivery systems are supported:
+ 
+ -  Terrestrial systems: DVB-T, DVB-T2, ATSC, ATSC M/H, ISDB-T, DVB-H,
+    DTMB, CMMB
+ 
+--  Cable systems: DVB-C Annex A/C, ClearQAM (DVB-C Annex B), ISDB-C
++-  Cable systems: DVB-C Annex A/C, ClearQAM (DVB-C Annex B)
+ 
+ -  Satellite systems: DVB-S, DVB-S2, DVB Turbo, ISDB-S, DSS
+ 
+-- 
+2.13.3
