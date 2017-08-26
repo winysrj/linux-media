@@ -1,38 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:37140 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751135AbdHXHnZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Aug 2017 03:43:25 -0400
-Subject: Re: [PATCH] [media_build] rc: Fix ktime erros in rc_ir_raw.c
-To: linux-media@vger.kernel.org, Sean Young <sean@mess.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, d.scheller@gmx.net
-References: <1503531988-15429-1-git-send-email-jasmin@anw.at>
- <9b070969-9422-b809-3611-648d8da0e121@anw.at>
- <93053a66-18f2-9c4f-1987-49687d8f3069@xs4all.nl>
-From: "Jasmin J." <jasmin@anw.at>
-Message-ID: <13836306-3ca4-4e9c-0606-be2e8d377aa5@anw.at>
-Date: Thu, 24 Aug 2017 09:43:20 +0200
-MIME-Version: 1.0
-In-Reply-To: <93053a66-18f2-9c4f-1987-49687d8f3069@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:35526 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752051AbdHZLOR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 26 Aug 2017 07:14:17 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, mchehab@kernel.org,
+        maintainers@bluecherrydvr.com, anton@corp.bluecherry.net,
+        andrey.utkin@corp.bluecherry.net, ismael@iodev.co.uk,
+        hverkuil@xs4all.nl, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 4/5] [media] sta2x11: make video_device const
+Date: Sat, 26 Aug 2017 16:43:33 +0530
+Message-Id: <1503746014-16489-5-git-send-email-bhumirks@gmail.com>
+In-Reply-To: <1503746014-16489-1-git-send-email-bhumirks@gmail.com>
+References: <1503746014-16489-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sean!
+Make this const as it is only used in a copy operation.
 
-> I agree with Jasmin here. I noticed the same errors in the daily build and it
-> is really caused by not using the correct functions. I just didn't have the
-> time to follow up on it.
-I started to fix also gpio-ir-tx.c, but stopped that because it was too late.
-So I simply deactivated the driver:
-   https://www.mail-archive.com/linux-media@vger.kernel.org/msg117607.html
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/media/pci/sta2x11/sta2x11_vip.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Maybe you can fix gpio-ir-tx.c also by using the right functions to access
-ktime_t, so that this driver would be available for older Kernels, too.
-But there was another problem beside the ktime_t accessors, which I didn't
-analyze (symbol missing).
-
-BR,
-   Jasmin
+diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
+index 6343d24..eb5a9ea 100644
+--- a/drivers/media/pci/sta2x11/sta2x11_vip.c
++++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
+@@ -754,7 +754,7 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+ 
+-static struct video_device video_dev_template = {
++static const struct video_device video_dev_template = {
+ 	.name = KBUILD_MODNAME,
+ 	.release = video_device_release_empty,
+ 	.fops = &vip_fops,
+-- 
+1.9.1
