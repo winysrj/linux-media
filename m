@@ -1,86 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:45514 "EHLO
-        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750895AbdHaRyh (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:34810 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751302AbdHZIgb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 13:54:37 -0400
-Subject: Re: [PATCH 1/2] docs: kernel-doc comments are ASCII
-From: Randy Dunlap <rdunlap@infradead.org>
-To: Jani Nikula <jani.nikula@linux.intel.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>
-References: <54c23e8e-89c0-5cea-0dcc-e938952c5642@infradead.org>
- <20170830152314.0486fafb@lwn.net>
- <3390facf-69ae-ba18-8abe-09b5695a6b31@infradead.org>
- <20170831064941.1fb18d20@vento.lan> <87h8wn98bv.fsf@intel.com>
- <20170831105602.5607fe52@vento.lan> <20170831081721.38be05ef@lwn.net>
- <f9e30c84-7ad7-39dd-a39f-f62581f0b893@infradead.org>
- <87d17b90zb.fsf@intel.com> <87a82f8zjc.fsf@intel.com>
- <58800275-b969-5377-2fd8-da8e13bad344@infradead.org>
-Message-ID: <fee43de9-a032-6550-7c67-3d16f95f170b@infradead.org>
-Date: Thu, 31 Aug 2017 10:54:35 -0700
-MIME-Version: 1.0
-In-Reply-To: <58800275-b969-5377-2fd8-da8e13bad344@infradead.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Sat, 26 Aug 2017 04:36:31 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, crope@iki.fi, mchehab@kernel.org,
+        hans.verkuil@cisco.com, isely@pobox.com,
+        ezequiel@vanguardiasur.com.ar, royale@zerezo.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-usb@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 07/11] [media] msi2500: make video_device const
+Date: Sat, 26 Aug 2017 14:05:11 +0530
+Message-Id: <1503736515-15366-8-git-send-email-bhumirks@gmail.com>
+In-Reply-To: <1503736515-15366-1-git-send-email-bhumirks@gmail.com>
+References: <1503736515-15366-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/31/17 10:34, Randy Dunlap wrote:
-> On 08/31/17 09:36, Jani Nikula wrote:
->> On Thu, 31 Aug 2017, Jani Nikula <jani.nikula@linux.intel.com> wrote:
->>> On Thu, 31 Aug 2017, Randy Dunlap <rdunlap@infradead.org> wrote:
->>>> On 08/31/17 07:17, Jonathan Corbet wrote:
->>>>> On Thu, 31 Aug 2017 10:56:26 -0300
->>>>> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
->>>>>
->>>>>> It should have something to do with python version and/or to some
->>>>>> locale info at the system, as neither I or Jon can reproduce it.
->>>>>
->>>>> I can't reproduce it here, but I have certainly seen situations where
->>>>> Python 2 wants to run with the ascii codec by default.
->>>>>
->>>>> Note that the exception happens in our Sphinx extension, not in Sphinx
->>>>> itself.  We've had other non-ascii text in our docs, so I think Sphinx is
->>>>> doing the right thing.  The problem is with our own code.  If I could
->>>>> reproduce it, it shouldn't be too hard to track down - take out that
->>>>> massive "except anything" block and see where it explodes.
->>>>>
->>>>> Randy, which distribution are you running, and are you using their version
->>>>> of Sphinx?
->>>>
->>>> opensuse LEAP 42.2
->>>> Yes, their sphinx 1.3.1.
->>>
->>> What's your LANG setting? I think that's what it boils down to, and
->>> trying to work around non-UTF-8 LANG in both python 2 and 3 compatible
->>> ways.
->>>
->>> The odd thing is that I can reproduce the issue using a small python
->>> snippet, but not through Sphinx.
->>
->> Your original error message suggests your Sphinx actually uses python
->> 3. Can you check that? The clue is that it's the *decode* that fails.
-> 
-> Where do you see that clue?
-> My /usr/bin/python is linked to python2.7:
-> 
->> ll /usr/bin/python
-> lrwxrwxrwx 1 root root 9 Jun 10 19:59 /usr/bin/python -> python2.7*
-> 
->> Does the below patch help? It avoids the implicit ascii decoding due to
->> universal_newlines=True and your LANG setting, and does explicit utf-8
->> decoding instead.
->>
->> Fingers crossed.
-> 
-> testing now.
+Make this const as it is only used in a copy operation.
 
-Yes, that works for me.  Thanks.
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/media/usb/msi2500/msi2500.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/media/usb/msi2500/msi2500.c b/drivers/media/usb/msi2500/msi2500.c
+index 79bfd2d..a097d3d 100644
+--- a/drivers/media/usb/msi2500/msi2500.c
++++ b/drivers/media/usb/msi2500/msi2500.c
+@@ -1143,7 +1143,7 @@ static int msi2500_enum_freq_bands(struct file *file, void *priv,
+ 	.unlocked_ioctl           = video_ioctl2,
+ };
+ 
+-static struct video_device msi2500_template = {
++static const struct video_device msi2500_template = {
+ 	.name                     = "Mirics MSi3101 SDR Dongle",
+ 	.release                  = video_device_release_empty,
+ 	.fops                     = &msi2500_fops,
 -- 
-~Randy
+1.9.1
