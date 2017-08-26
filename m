@@ -1,75 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:33803
-        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751326AbdHFIu6 (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:34575 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754657AbdHZKVK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 6 Aug 2017 04:50:58 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Rick Chang <rick.chang@mediatek.com>
-Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org,
-        Bin Liu <bin.liu@mediatek.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 05/12] [media] vcodec: mediatek: constify v4l2_m2m_ops structures
-Date: Sun,  6 Aug 2017 10:25:14 +0200
-Message-Id: <1502007921-22968-6-git-send-email-Julia.Lawall@lip6.fr>
-In-Reply-To: <1502007921-22968-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1502007921-22968-1-git-send-email-Julia.Lawall@lip6.fr>
+        Sat, 26 Aug 2017 06:21:10 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, mchehab@kernel.org, hverkuil@xs4all.nl,
+        corbet@lwn.net, kyungmin.park@samsung.com, kamil@wypas.org,
+        a.hajda@samsung.com, bparrot@ti.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 05/10] [media]: s5p-g2d: make video_device const
+Date: Sat, 26 Aug 2017 15:50:07 +0530
+Message-Id: <1503742812-16139-6-git-send-email-bhumirks@gmail.com>
+In-Reply-To: <1503742812-16139-1-git-send-email-bhumirks@gmail.com>
+References: <1503742812-16139-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2_m2m_ops structures are only passed as the only
-argument to v4l2_m2m_init, which is declared as const.
-Thus the v4l2_m2m_ops structures themselves can be const.
+Make this const as it is only used in a copy operation.
 
-Done with the help of Coccinelle.
-
-// <smpl>
-@r disable optional_qualifier@
-identifier i;
-position p;
-@@
-static struct v4l2_m2m_ops i@p = { ... };
-
-@ok1@
-identifier r.i;
-position p;
-@@
-v4l2_m2m_init(&i@p)
-
-@bad@
-position p != {r.p,ok1.p};
-identifier r.i;
-struct v4l2_m2m_ops e;
-@@
-e@i@p
-
-@depends on !bad disable optional_qualifier@
-identifier r.i;
-@@
-static
-+const
- struct v4l2_m2m_ops i = { ... };
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 ---
- drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c |    2 +-
+ drivers/media/platform/s5p-g2d/g2d.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
-index f17a86b..226f908 100644
---- a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
-+++ b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
-@@ -865,7 +865,7 @@ static void mtk_jpeg_job_abort(void *priv)
- {
- }
+diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
+index bd655b5..66aa8cf 100644
+--- a/drivers/media/platform/s5p-g2d/g2d.c
++++ b/drivers/media/platform/s5p-g2d/g2d.c
+@@ -602,7 +602,7 @@ static irqreturn_t g2d_isr(int irq, void *prv)
+ 	.vidioc_cropcap			= vidioc_cropcap,
+ };
  
--static struct v4l2_m2m_ops mtk_jpeg_m2m_ops = {
-+static const struct v4l2_m2m_ops mtk_jpeg_m2m_ops = {
- 	.device_run = mtk_jpeg_device_run,
- 	.job_ready  = mtk_jpeg_job_ready,
- 	.job_abort  = mtk_jpeg_job_abort,
+-static struct video_device g2d_videodev = {
++static const struct video_device g2d_videodev = {
+ 	.name		= G2D_NAME,
+ 	.fops		= &g2d_fops,
+ 	.ioctl_ops	= &g2d_ioctl_ops,
+-- 
+1.9.1
