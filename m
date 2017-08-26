@@ -1,114 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:35129 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752336AbdHPU2L (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53429
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751918AbdHZKHb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Aug 2017 16:28:11 -0400
-Subject: Re: [PATCH 1/3] dt: bindings: Document DT bindings for Analog devices
- as3645a
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <20170816125440.27534-1-sakari.ailus@linux.intel.com>
- <20170816125514.27634-1-sakari.ailus@linux.intel.com>
-Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@iki.fi>
-From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Message-ID: <8b966328-138a-5777-f8b5-692e692567e8@gmail.com>
-Date: Wed, 16 Aug 2017 22:27:27 +0200
+        Sat, 26 Aug 2017 06:07:31 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 1/6] media: dvb/intro.rst: Use verbatim font where needed
+Date: Sat, 26 Aug 2017 07:07:09 -0300
+Message-Id: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-In-Reply-To: <20170816125514.27634-1-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+The device numbering for DVB uses "M" and "N" as vars for the
+number of the device, but sometimes this is printed using normal
+font instead of verbatim.
 
-Thanks for the patch. One issue below.
+While here, remove an extra space after quotation marks.
 
-On 08/16/2017 02:55 PM, Sakari Ailus wrote:
-> From: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  .../devicetree/bindings/leds/ams,as3645a.txt       | 56 ++++++++++++++++++++++
->  1 file changed, 56 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/leds/ams,as3645a.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/leds/ams,as3645a.txt b/Documentation/devicetree/bindings/leds/ams,as3645a.txt
-> new file mode 100644
-> index 000000000000..00066e3f9036
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/leds/ams,as3645a.txt
-> @@ -0,0 +1,56 @@
-> +Analog devices AS3645A device tree bindings
-> +
-> +The AS3645A flash LED controller can drive two LEDs, one high current
-> +flash LED and one indicator LED. The high current flash LED can be
-> +used in torch mode as well.
-> +
-> +Ranges below noted as [a, b] are closed ranges between a and b, i.e. a
-> +and b are included in the range.
-> +
-> +
-> +Required properties
-> +===================
-> +
-> +compatible	: Must be "ams,as3645a".
-> +reg		: The I2C address of the device. Typically 0x30.
-> +
-> +
-> +Required properties of the "flash" child node
-> +=============================================
-> +
-> +flash-timeout-us: Flash timeout in microseconds. The value must be in
-> +		  the range [100000, 850000] and divisible by 50000.
-> +flash-max-microamp: Maximum flash current in microamperes. Has to be
-> +		    in the range between [200000, 500000] and
-> +		    divisible by 20000.
-> +led-max-microamp: Maximum torch (assist) current in microamperes. The
-> +		  value must be in the range between [20000, 160000] and
-> +		  divisible by 20000.
-> +ams,input-max-microamp: Maximum flash controller input current. The
-> +			value must be in the range [1250000, 2000000]
-> +			and divisible by 50000.
-> +
-> +
-> +Required properties of the "indicator" child node
-> +=================================================
-> +
-> +led-max-microamp: Maximum indicator current. The allowed values are
-> +		  2500, 5000, 7500 and 10000.
+This is a minor cleanup with no changes at the text.
 
-Most LED bindings mention also optional label property in the form:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/dvb/intro.rst | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-- label : See Documentation/devicetree/bindings/leds/common.txt
-
-> +
-> +Example
-> +=======
-> +
-> +	as3645a: flash@30 {
-> +		reg = <0x30>;
-> +		compatible = "ams,as3645a";
-> +		flash {
-
-			label = "as3645a:flash";
-
-> +			flash-timeout-us = <150000>;
-> +			flash-max-microamp = <320000>;
-> +			led-max-microamp = <60000>;
-> +			ams,input-max-microamp = <1750000>;
-> +		};
-> +		indicator {
-
-			label = "as3645a:indicator";
-
-> +			led-max-microamp = <10000>;
-> +		};
-> +	};
-> 
-
+diff --git a/Documentation/media/uapi/dvb/intro.rst b/Documentation/media/uapi/dvb/intro.rst
+index 652c4aacd2c6..20bd7aec2665 100644
+--- a/Documentation/media/uapi/dvb/intro.rst
++++ b/Documentation/media/uapi/dvb/intro.rst
+@@ -137,9 +137,9 @@ individual devices are called:
+ 
+ -  ``/dev/dvb/adapterN/caM``,
+ 
+-where N enumerates the DVB PCI cards in a system starting from 0, and M
++where ``N`` enumerates the DVB PCI cards in a system starting from 0, and ``M``
+ enumerates the devices of each type within each adapter, starting
+-from 0, too. We will omit the “ ``/dev/dvb/adapterN/``\ ” in the further
++from 0, too. We will omit the “``/dev/dvb/adapterN/``\ ” in the further
+ discussion of these devices.
+ 
+ More details about the data structures and function calls of all the
 -- 
-Best regards,
-Jacek Anaszewski
+2.13.3
