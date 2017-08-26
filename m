@@ -1,47 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:59439 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751429AbdHGUWi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Aug 2017 16:22:38 -0400
-Date: Mon, 7 Aug 2017 21:22:37 +0100
-From: Sean Young <sean@mess.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] keytable.c: add support for the CEC protocol
-Message-ID: <20170807202236.6fgbhxt3mk4svelc@gofer.mess.org>
-References: <991a08f5-40e1-e364-1400-91236c6fbeb0@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <991a08f5-40e1-e364-1400-91236c6fbeb0@xs4all.nl>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53293
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752206AbdHZJ2h (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 26 Aug 2017 05:28:37 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 1/4] docs-rst: fix verbatim font size on tables
+Date: Sat, 26 Aug 2017 06:28:25 -0300
+Message-Id: <a19557366d2e69ff9d52628baa2472faa57fe8ca.1503739177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503739177.git.mchehab@s-opensource.com>
+References: <cover.1503739177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503739177.git.mchehab@s-opensource.com>
+References: <cover.1503739177.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 07, 2017 at 02:52:01PM +0200, Hans Verkuil wrote:
-> The CEC protocol wasn't known, so 'Supported protocols:' would just say
-> 'other' instead of 'cec'.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+On Sphinx 1.6, fancy boxes are used for verbatim. The sphinx.sty
+sets verbatim font is always \small. That causes a problem
+inside tables that use smaller fonts, as it can be too big for
+the box.
 
-Acked-by: Sean Young <sean@mess.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/conf.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> ---
-> diff --git a/utils/keytable/keytable.c b/utils/keytable/keytable.c
-> index 634f4561..55abfc19 100644
-> --- a/utils/keytable/keytable.c
-> +++ b/utils/keytable/keytable.c
-> @@ -106,6 +106,7 @@ enum sysfs_protocols {
->  	SYSFS_RC6		= (1 << 10),
->  	SYSFS_SHARP		= (1 << 11),
->  	SYSFS_XMP		= (1 << 12),
-> +	SYSFS_CEC		= (1 << 13),
->  	SYSFS_INVALID		= 0,
->  };
-> 
-> @@ -138,6 +139,7 @@ const struct protocol_map_entry protocol_map[] = {
->  	{ "rc-6-mce",	NULL,		SYSFS_INVALID	},
->  	{ "sharp",	NULL,		SYSFS_SHARP	},
->  	{ "xmp",	"/xmp_decoder",	SYSFS_XMP	},
-> +	{ "cec",	NULL,		SYSFS_CEC	},
->  	{ NULL,		NULL,		SYSFS_INVALID	},
->  };
+diff --git a/Documentation/conf.py b/Documentation/conf.py
+index 9e941be37b94..f9054ab60cb1 100644
+--- a/Documentation/conf.py
++++ b/Documentation/conf.py
+@@ -345,7 +345,7 @@ if major == 1 and minor <= 4:
+     latex_elements['preamble']  += '\\usepackage[margin=0.5in, top=1in, bottom=1in]{geometry}'
+ elif major == 1 and (minor > 5 or (minor == 5 and patch >= 3)):
+     latex_elements['sphinxsetup'] = 'hmargin=0.5in, vmargin=1in'
+-
++    latex_elements['preamble']  += '\\fvset{fontsize=auto}\n'
+ 
+ # Grouping the document tree into LaTeX files. List of tuples
+ # (source start file, target name, title,
+-- 
+2.13.3
