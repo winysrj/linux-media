@@ -1,160 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53516
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752129AbdHZK6T (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:33654 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754533AbdHZNId (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 06:58:19 -0400
-Date: Sat, 26 Aug 2017 07:58:10 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH v2 2/3] media: open.rst: document devnode-centric and
- mc-centric types
-Message-ID: <20170826075810.123a8939@vento.lan>
-In-Reply-To: <b1f6f019-50dd-b067-d631-87f0ab0d866b@xs4all.nl>
-References: <cover.1503665390.git.mchehab@s-opensource.com>
-        <e789d3d71c7f784d17ffcd8389ce56ae950f736e.1503665390.git.mchehab@s-opensource.com>
-        <b1f6f019-50dd-b067-d631-87f0ab0d866b@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+        Sat, 26 Aug 2017 09:08:33 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: mchehab@kernel.org, hverkuil@xs4all.nl,
+        maintainers@bluecherrydvr.com, anton@corp.bluecherry.net,
+        andrey.utkin@corp.bluecherry.net, ismael@iodev.co.uk,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH v2] [media] pci: make video_device const
+Date: Sat, 26 Aug 2017 18:38:11 +0530
+Message-Id: <1503752891-19879-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 25 Aug 2017 15:42:21 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Make these const as they are either used during a copy operation or
+passed to a const argument of the function cx88_vdev_init.
 
-> On 25/08/17 14:52, Mauro Carvalho Chehab wrote:
-> > From: "mchehab@s-opensource.com" <mchehab@s-opensource.com>
-> > 
-> > When we added support for omap3, back in 2010, we added a new
-> > type of V4L2 devices that aren't fully controlled via the V4L2
-> > device node. Yet, we never made it clear, at the V4L2 spec,
-> > about the differences between both types.
-> > 
-> > Let's document them with the current implementation.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > ---
-> >  Documentation/media/uapi/v4l/open.rst | 53 +++++++++++++++++++++++++++++++++++
-> >  1 file changed, 53 insertions(+)
-> > 
-> > diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-> > index 9b98d10d5153..bbd1887f83a0 100644
-> > --- a/Documentation/media/uapi/v4l/open.rst
-> > +++ b/Documentation/media/uapi/v4l/open.rst
-> > @@ -6,6 +6,59 @@
-> >  Opening and Closing Devices
-> >  ***************************
-> >  
-> > +Types of V4L2 hardware control
-> > +==============================
-> > +
-> > +V4L2 hardware is usually complex: support for the hardware is implemented
-> > +via a main driver (also known as bridge driver) and often several
-> > +additional drivers. The main driver always exposes one or
-> > +more **V4L2 device nodes** (see :ref:`v4l2_device_naming`).
-> > +
-> > +The other drivers are called **V4L2 sub-devices** and provide control to
-> > +other parts of the hardware usually connected via a serial bus (like
-> > +I²C, SMBus or SPI). Depending on the main driver, they can be implicitly
-> > +controlled directly by the main driver or explicitly via
-> > +the **V4L2 sub-device API** (see :ref:`subdev`).
-> > +
-> > +When V4L2 was originally designed, there was only one type of hardware
-> > +control. The entire V4L2 hardware is controlled via the
-> > +**V4L2 device nodes**. We refer to this kind of control as
-> > +**V4L2 device node centric** (or, simply, **vdev-centric**).
-> > +
-> > +Since the end of 2010, a new type of V4L2 hardware control was added, in  
-> 
-> Just drop 'the end of'.
-> 
-> s/, in/ in/
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+* Combine the patch series sent for drivers/media/pci/ into a
+single patch.
 
-I anded by changing it to:
+ drivers/media/pci/cx88/cx88-blackbird.c     | 2 +-
+ drivers/media/pci/dt3155/dt3155.c           | 2 +-
+ drivers/media/pci/meye/meye.c               | 2 +-
+ drivers/media/pci/saa7134/saa7134-empress.c | 2 +-
+ drivers/media/pci/solo6x10/solo6x10-v4l2.c  | 2 +-
+ drivers/media/pci/sta2x11/sta2x11_vip.c     | 2 +-
+ drivers/media/pci/tw68/tw68-video.c         | 2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
 
-	Later (kernel 2.6.39),
-
-> 
-> > +order to support complex devices that are common for embedded systems.
-> > +Those hardware are controlled mainly via the media controller and  
-> 
-> Such hardware is
-> 
-> > +sub-devices. So, they are called: **Media controller centric**
-> > +(or, simply, "**MC-centric**").
-> > +
-> > +For **vdev-centric** hardware control, the hardware is controlled via
-> > +the **V4L2 device nodes**. They may optionally support the
-> > +:ref:`media controller API <media_controller>` as well, in order to let
-> > +the application to know with device nodes are available.  
-> 
-> to know with -> know which
-> 
-> > +
-> > +.. note::
-> > +
-> > +   A **vdev-centric** may optionally expose V4L2 sub-devices via  
-> 
-> I propose adding 'also' before 'expose' to indicate that it is in
-> addition to the V4L2 device nodes that were mentioned in the previous
-> paragraph.
-> 
-> > +   :ref:`sub-device API <subdev>`. In that case, it has to implement
-> > +   the :ref:`media controller API <media_controller>` as well.
-> > +
-> > +For **MC-centric** hardware control, before using the V4L2 hardware,
-> > +it is required to set the pipelines via the  
-> 
-> I'd reword this a bit:
-> 
-> For **MC-centric** hardware control it is required to configure the pipelines
-> via the :ref:`media controller API <media_controller>` before the hardware can be used.
-> 
-> > +:ref:`media controller API <media_controller>`. For those devices, the  
-> 
-> s/those/such/
-> 
-> > +sub-devices' configuration can be controlled via the
-> > +:ref:`sub-device API <subdev>`, whith creates one device node  
-> 
-> s/whith/which/
-> 
-> > +per sub-device.
-> > +
-> > +In summary, for **MC-centric** hardware control:
-> > +
-> > +- The **V4L2 device** node is responsible for controlling the streaming
-> > +  features;
-> > +- The **media controller device** is responsible to setup the pipelines;
-> > +- The **V4L2 sub-devices** are responsible for sub-device
-> > +  specific settings.
-> > +
-> > +
-> > +.. _v4l2_device_naming:
-> >  
-> >  V4L2 Device Node Naming
-> >  =======================
-
-Changes done. I'll place on a new version of this series.
-
-> >   
-> 
-> The only thing I am not sure about is vdev-centric vs V4L2-centric. 'Laziness while
-> typing' is not a convincing argument :-)
-
-Despite the laziness of playing a lot with shifts to type V4L2-centric,
-the thing that bothers me with V4L2 is that the subdev API is part of
-V4L2 spec. So, IMHO, it is still a confusing name.
-
-As this actually refers to "V4L2 Device Node", with is now properly
-specified (due to patch 1/3), "vdev" is a good shortcut for it.
-
-Let's reverse the question: what's wrong with "vdev-centric"?
-
-Thanks,
-Mauro
+diff --git a/drivers/media/pci/cx88/cx88-blackbird.c b/drivers/media/pci/cx88/cx88-blackbird.c
+index aa49c95..e3101f0 100644
+--- a/drivers/media/pci/cx88/cx88-blackbird.c
++++ b/drivers/media/pci/cx88/cx88-blackbird.c
+@@ -1075,7 +1075,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
+ 	.vidioc_unsubscribe_event    = v4l2_event_unsubscribe,
+ };
+ 
+-static struct video_device cx8802_mpeg_template = {
++static const struct video_device cx8802_mpeg_template = {
+ 	.name                 = "cx8802",
+ 	.fops                 = &mpeg_fops,
+ 	.ioctl_ops	      = &mpeg_ioctl_ops,
+diff --git a/drivers/media/pci/dt3155/dt3155.c b/drivers/media/pci/dt3155/dt3155.c
+index 6a21969..1775c36 100644
+--- a/drivers/media/pci/dt3155/dt3155.c
++++ b/drivers/media/pci/dt3155/dt3155.c
+@@ -499,7 +499,7 @@ static int dt3155_init_board(struct dt3155_priv *pd)
+ 	return 0;
+ }
+ 
+-static struct video_device dt3155_vdev = {
++static const struct video_device dt3155_vdev = {
+ 	.name = DT3155_NAME,
+ 	.fops = &dt3155_fops,
+ 	.ioctl_ops = &dt3155_ioctl_ops,
+diff --git a/drivers/media/pci/meye/meye.c b/drivers/media/pci/meye/meye.c
+index 0fe76be..49e047e 100644
+--- a/drivers/media/pci/meye/meye.c
++++ b/drivers/media/pci/meye/meye.c
+@@ -1533,7 +1533,7 @@ static int meye_mmap(struct file *file, struct vm_area_struct *vma)
+ 	.vidioc_default		= vidioc_default,
+ };
+ 
+-static struct video_device meye_template = {
++static const struct video_device meye_template = {
+ 	.name		= "meye",
+ 	.fops		= &meye_fops,
+ 	.ioctl_ops 	= &meye_ioctl_ops,
+diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
+index b1d3648..66acfd3 100644
+--- a/drivers/media/pci/saa7134/saa7134-empress.c
++++ b/drivers/media/pci/saa7134/saa7134-empress.c
+@@ -205,7 +205,7 @@ static int empress_try_fmt_vid_cap(struct file *file, void *priv,
+ 
+ /* ----------------------------------------------------------- */
+ 
+-static struct video_device saa7134_empress_template = {
++static const struct video_device saa7134_empress_template = {
+ 	.name          = "saa7134-empress",
+ 	.fops          = &ts_fops,
+ 	.ioctl_ops     = &ts_ioctl_ops,
+diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2.c b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
+index 3266fc2..99ffd1e 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-v4l2.c
++++ b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
+@@ -630,7 +630,7 @@ static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+ };
+ 
+-static struct video_device solo_v4l2_template = {
++static const struct video_device solo_v4l2_template = {
+ 	.name			= SOLO6X10_NAME,
+ 	.fops			= &solo_v4l2_fops,
+ 	.ioctl_ops		= &solo_v4l2_ioctl_ops,
+diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
+index 6343d24..eb5a9ea 100644
+--- a/drivers/media/pci/sta2x11/sta2x11_vip.c
++++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
+@@ -754,7 +754,7 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+ 
+-static struct video_device video_dev_template = {
++static const struct video_device video_dev_template = {
+ 	.name = KBUILD_MODNAME,
+ 	.release = video_device_release_empty,
+ 	.fops = &vip_fops,
+diff --git a/drivers/media/pci/tw68/tw68-video.c b/drivers/media/pci/tw68/tw68-video.c
+index 58c4dd7..8c1f4a0 100644
+--- a/drivers/media/pci/tw68/tw68-video.c
++++ b/drivers/media/pci/tw68/tw68-video.c
+@@ -916,7 +916,7 @@ static int vidioc_s_register(struct file *file, void *priv,
+ #endif
+ };
+ 
+-static struct video_device tw68_video_template = {
++static const struct video_device tw68_video_template = {
+ 	.name			= "tw68_video",
+ 	.fops			= &video_fops,
+ 	.ioctl_ops		= &video_ioctl_ops,
+-- 
+1.9.1
