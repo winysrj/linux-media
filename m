@@ -1,266 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35758 "EHLO mail.kernel.org"
+Received: from cnc.isely.net ([75.149.91.89]:49861 "EHLO cnc.isely.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752612AbdHDP5W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 Aug 2017 11:57:22 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v3 5/7] v4l: vsp1: Move partition rectangles to struct and operate directly
-Date: Fri,  4 Aug 2017 16:57:09 +0100
-Message-Id: <f15506e25b4de0c44dbc1e71730f45d42f82c668.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.109dff74bad8730bc9559578df79f47dae253305.1501861813.git-series.kieran.bingham+renesas@ideasonboard.com>
+        id S1751062AbdHZPvx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 26 Aug 2017 11:51:53 -0400
+Date: Sat, 26 Aug 2017 10:51:51 -0500 (CDT)
+From: isely@isely.net
+Reply-To: Mike Isely at pobox <isely@pobox.com>
+To: Bhumika Goyal <bhumirks@gmail.com>
+cc: julia.lawall@lip.fr, crope@iki.fi, mchehab@kernel.org,
+        hans.verkuil@cisco.com, ezequiel@vanguardiasur.com.ar,
+        royale@zerezo.com, linux-media@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-usb@vger.kernel.org, Mike Isely at pobox <isely@pobox.com>
+Subject: Re: [PATCH v2] [media] usb: make video_device const
+In-Reply-To: <1503753090-19987-1-git-send-email-bhumirks@gmail.com>
+Message-ID: <alpine.DEB.2.11.1708261051260.11734@lochley.isely.net>
+References: <1503753090-19987-1-git-send-email-bhumirks@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we develop the partition algorithm, we need to store more information
-per partition to describe the phase and other parameters.
 
-To keep this data together, further abstract the existing v4l2_rect
-into a partition specific structure. As partitions only have horizontal
-coordinates, store the left and width values only.
+Acked-by: Mike Isely <isely@pobox.com>
 
-When generating the partition windows, operate directly on the partition
-struct rather than copying and duplicating the processed data
+  -Mike
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_pipe.h  | 15 +++++++--
- drivers/media/platform/vsp1/vsp1_rpf.c   |  4 +-
- drivers/media/platform/vsp1/vsp1_uds.c   | 18 +++++-----
- drivers/media/platform/vsp1/vsp1_video.c | 43 +++++++++++--------------
- drivers/media/platform/vsp1/vsp1_wpf.c   | 14 ++++----
- 5 files changed, 51 insertions(+), 43 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index 9653ef5cfb0c..4e9fd96108be 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -58,6 +58,17 @@ enum vsp1_pipeline_state {
- };
- 
- /*
-+ * struct vsp1_partition - A description of a slice for the partition algorithm
-+ * @left: horizontal coordinate of the partition start in pixels relative to the
-+ *	  left edge of the image
-+ * @width: partition width in pixels
-+ */
-+struct vsp1_partition {
-+	unsigned int left;
-+	unsigned int width;
-+};
-+
-+/*
-  * struct vsp1_pipeline - A VSP1 hardware pipeline
-  * @pipe: the media pipeline
-  * @irqlock: protects the pipeline state
-@@ -114,8 +125,8 @@ struct vsp1_pipeline {
- 	struct vsp1_dl_list *dl;
- 
- 	unsigned int partitions;
--	struct v4l2_rect partition;
--	struct v4l2_rect *part_table;
-+	struct vsp1_partition *partition;
-+	struct vsp1_partition *part_table;
- };
- 
- void vsp1_pipeline_reset(struct vsp1_pipeline *pipe);
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index 8feddd59cf8d..126741f00ae3 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -108,9 +108,9 @@ static void rpf_configure(struct vsp1_entity *entity,
- 			output = vsp1_entity_get_pad_format(wpf, wpf->config,
- 							    RWPF_PAD_SINK);
- 
--			crop.width = pipe->partition.width * input_width
-+			crop.width = pipe->partition->width * input_width
- 				   / output->width;
--			crop.left += pipe->partition.left * input_width
-+			crop.left += pipe->partition->left * input_width
- 				   / output->width;
- 		}
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
-index 4226403ad235..4a43e7413b68 100644
---- a/drivers/media/platform/vsp1/vsp1_uds.c
-+++ b/drivers/media/platform/vsp1/vsp1_uds.c
-@@ -271,23 +271,25 @@ static void uds_configure(struct vsp1_entity *entity,
- 	unsigned int vscale;
- 	bool multitap;
- 
-+	input = vsp1_entity_get_pad_format(&uds->entity, uds->entity.config,
-+					   UDS_PAD_SINK);
-+	output = vsp1_entity_get_pad_format(&uds->entity, uds->entity.config,
-+					    UDS_PAD_SOURCE);
-+
- 	if (params == VSP1_ENTITY_PARAMS_PARTITION) {
--		const struct v4l2_rect *clip = &pipe->partition;
-+		struct vsp1_partition *partition = pipe->partition;
- 
- 		vsp1_uds_write(uds, dl, VI6_UDS_CLIP_SIZE,
--			       (clip->width << VI6_UDS_CLIP_SIZE_HSIZE_SHIFT) |
--			       (clip->height << VI6_UDS_CLIP_SIZE_VSIZE_SHIFT));
-+			       (partition->width
-+					<< VI6_UDS_CLIP_SIZE_HSIZE_SHIFT) |
-+			       (output->height
-+					<< VI6_UDS_CLIP_SIZE_VSIZE_SHIFT));
- 		return;
- 	}
- 
- 	if (params != VSP1_ENTITY_PARAMS_INIT)
- 		return;
- 
--	input = vsp1_entity_get_pad_format(&uds->entity, uds->entity.config,
--					   UDS_PAD_SINK);
--	output = vsp1_entity_get_pad_format(&uds->entity, uds->entity.config,
--					    UDS_PAD_SOURCE);
--
- 	hscale = uds_compute_ratio(input->width, output->width);
- 	vscale = uds_compute_ratio(input->height, output->height);
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index f8c3186c0fb6..5522595e9323 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -183,19 +183,19 @@ static int __vsp1_video_try_format(struct vsp1_video *video,
-  */
- 
- /**
-- * vsp1_video_partition - Calculate the active partition output window
-+ * vsp1_video_calculate_partition - Calculate the active partition output window
-  *
-+ * @pipe: the pipeline
-+ * @partition: partition that will hold the calculated values
-  * @div_size: pre-determined maximum partition division size
-  * @index: partition index
-- *
-- * Returns a v4l2_rect describing the partition window.
-  */
--static struct v4l2_rect vsp1_video_partition(struct vsp1_pipeline *pipe,
--					     unsigned int div_size,
--					     unsigned int index)
-+static void vsp1_video_calculate_partition(struct vsp1_pipeline *pipe,
-+					   struct vsp1_partition *partition,
-+					   unsigned int div_size,
-+					   unsigned int index)
- {
- 	const struct v4l2_mbus_framefmt *format;
--	struct v4l2_rect partition;
- 	unsigned int modulus;
- 
- 	/*
-@@ -208,18 +208,14 @@ static struct v4l2_rect vsp1_video_partition(struct vsp1_pipeline *pipe,
- 
- 	/* A single partition simply processes the output size in full. */
- 	if (pipe->partitions <= 1) {
--		partition.left = 0;
--		partition.top = 0;
--		partition.width = format->width;
--		partition.height = format->height;
--		return partition;
-+		partition->left = 0;
-+		partition->width = format->width;
-+		return;
- 	}
- 
- 	/* Initialise the partition with sane starting conditions. */
--	partition.left = index * div_size;
--	partition.top = 0;
--	partition.width = div_size;
--	partition.height = format->height;
-+	partition->left = index * div_size;
-+	partition->width = div_size;
- 
- 	modulus = format->width % div_size;
- 
-@@ -242,18 +238,16 @@ static struct v4l2_rect vsp1_video_partition(struct vsp1_pipeline *pipe,
- 		if (modulus < div_size / 2) {
- 			if (index == partitions - 1) {
- 				/* Halve the penultimate partition. */
--				partition.width = div_size / 2;
-+				partition->width = div_size / 2;
- 			} else if (index == partitions) {
- 				/* Increase the final partition. */
--				partition.width = (div_size / 2) + modulus;
--				partition.left -= div_size / 2;
-+				partition->width = (div_size / 2) + modulus;
-+				partition->left -= div_size / 2;
- 			}
- 		} else if (index == partitions) {
--			partition.width = modulus;
-+			partition->width = modulus;
- 		}
- 	}
--
--	return partition;
- }
- 
- static int vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
-@@ -297,7 +291,8 @@ static int vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
- 		return -ENOMEM;
- 
- 	for (i = 0; i < pipe->partitions; ++i)
--		pipe->part_table[i] = vsp1_video_partition(pipe, div_size, i);
-+		vsp1_video_calculate_partition(pipe, &pipe->part_table[i],
-+					       div_size, i);
- 
- 	return 0;
- }
-@@ -383,7 +378,7 @@ static void vsp1_video_pipeline_run_partition(struct vsp1_pipeline *pipe,
- {
- 	struct vsp1_entity *entity;
- 
--	pipe->partition = pipe->part_table[partition];
-+	pipe->partition = &pipe->part_table[partition];
- 
- 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
- 		if (entity->ops->configure)
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 32df109b119f..c8f7cf048841 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -291,7 +291,7 @@ static void wpf_configure(struct vsp1_entity *entity,
- 		 * multiple slices.
- 		 */
- 		if (pipe->partitions > 1)
--			width = pipe->partition.width;
-+			width = pipe->partition->width;
- 
- 		vsp1_wpf_write(wpf, dl, VI6_WPF_HSZCLIP, VI6_WPF_SZCLIP_EN |
- 			       (0 << VI6_WPF_SZCLIP_OFST_SHIFT) |
-@@ -320,13 +320,13 @@ static void wpf_configure(struct vsp1_entity *entity,
- 		 * is applied horizontally or vertically accordingly.
- 		 */
- 		if (flip & BIT(WPF_CTRL_HFLIP) && !wpf->flip.rotate)
--			offset = format->width - pipe->partition.left
--				- pipe->partition.width;
-+			offset = format->width - pipe->partition->left
-+				- pipe->partition->width;
- 		else if (flip & BIT(WPF_CTRL_VFLIP) && wpf->flip.rotate)
--			offset = format->height - pipe->partition.left
--				- pipe->partition.width;
-+			offset = format->height - pipe->partition->left
-+				- pipe->partition->width;
- 		else
--			offset = pipe->partition.left;
-+			offset = pipe->partition->left;
- 
- 		for (i = 0; i < format->num_planes; ++i) {
- 			unsigned int hsub = i > 0 ? fmtinfo->hsub : 1;
-@@ -348,7 +348,7 @@ static void wpf_configure(struct vsp1_entity *entity,
- 			 * image height.
- 			 */
- 			if (wpf->flip.rotate)
--				height = pipe->partition.width;
-+				height = pipe->partition->width;
- 			else
- 				height = format->height;
- 
+On Sat, 26 Aug 2017, Bhumika Goyal wrote:
+
+> Make these const as they are only used during a copy operation.
+> 
+> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+> ---
+> Changes in v2:
+> * Combine the patch series sent for drivers/media/usb/ into a
+> single patch.
+> 
+>  drivers/media/usb/airspy/airspy.c        | 2 +-
+>  drivers/media/usb/cpia2/cpia2_v4l.c      | 2 +-
+>  drivers/media/usb/go7007/go7007-v4l2.c   | 2 +-
+>  drivers/media/usb/hackrf/hackrf.c        | 2 +-
+>  drivers/media/usb/msi2500/msi2500.c      | 2 +-
+>  drivers/media/usb/pvrusb2/pvrusb2-v4l2.c | 2 +-
+>  drivers/media/usb/pwc/pwc-if.c           | 2 +-
+>  drivers/media/usb/s2255/s2255drv.c       | 2 +-
+>  drivers/media/usb/stk1160/stk1160-v4l.c  | 2 +-
+>  drivers/media/usb/stkwebcam/stk-webcam.c | 2 +-
+>  drivers/media/usb/zr364xx/zr364xx.c      | 2 +-
+>  11 files changed, 11 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/usb/airspy/airspy.c b/drivers/media/usb/airspy/airspy.c
+> index 07f3f4e..e70c9e2 100644
+> --- a/drivers/media/usb/airspy/airspy.c
+> +++ b/drivers/media/usb/airspy/airspy.c
+> @@ -859,7 +859,7 @@ static int airspy_enum_freq_bands(struct file *file, void *priv,
+>  	.unlocked_ioctl           = video_ioctl2,
+>  };
+>  
+> -static struct video_device airspy_template = {
+> +static const struct video_device airspy_template = {
+>  	.name                     = "AirSpy SDR",
+>  	.release                  = video_device_release_empty,
+>  	.fops                     = &airspy_fops,
+> diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+> index 7122023..3dedd83 100644
+> --- a/drivers/media/usb/cpia2/cpia2_v4l.c
+> +++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+> @@ -1075,7 +1075,7 @@ static void reset_camera_struct_v4l(struct camera_data *cam)
+>  	.mmap		= cpia2_mmap,
+>  };
+>  
+> -static struct video_device cpia2_template = {
+> +static const struct video_device cpia2_template = {
+>  	/* I could not find any place for the old .initialize initializer?? */
+>  	.name =		"CPiA2 Camera",
+>  	.fops =		&cpia2_fops,
+> diff --git a/drivers/media/usb/go7007/go7007-v4l2.c b/drivers/media/usb/go7007/go7007-v4l2.c
+> index 445f17b..98cd57e 100644
+> --- a/drivers/media/usb/go7007/go7007-v4l2.c
+> +++ b/drivers/media/usb/go7007/go7007-v4l2.c
+> @@ -901,7 +901,7 @@ static int go7007_s_ctrl(struct v4l2_ctrl *ctrl)
+>  	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+>  };
+>  
+> -static struct video_device go7007_template = {
+> +static const struct video_device go7007_template = {
+>  	.name		= "go7007",
+>  	.fops		= &go7007_fops,
+>  	.release	= video_device_release_empty,
+> diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
+> index a41b305..7eb5351 100644
+> --- a/drivers/media/usb/hackrf/hackrf.c
+> +++ b/drivers/media/usb/hackrf/hackrf.c
+> @@ -1263,7 +1263,7 @@ static int hackrf_enum_freq_bands(struct file *file, void *priv,
+>  	.unlocked_ioctl           = video_ioctl2,
+>  };
+>  
+> -static struct video_device hackrf_template = {
+> +static const struct video_device hackrf_template = {
+>  	.name                     = "HackRF One",
+>  	.release                  = video_device_release_empty,
+>  	.fops                     = &hackrf_fops,
+> diff --git a/drivers/media/usb/msi2500/msi2500.c b/drivers/media/usb/msi2500/msi2500.c
+> index 79bfd2d..a097d3d 100644
+> --- a/drivers/media/usb/msi2500/msi2500.c
+> +++ b/drivers/media/usb/msi2500/msi2500.c
+> @@ -1143,7 +1143,7 @@ static int msi2500_enum_freq_bands(struct file *file, void *priv,
+>  	.unlocked_ioctl           = video_ioctl2,
+>  };
+>  
+> -static struct video_device msi2500_template = {
+> +static const struct video_device msi2500_template = {
+>  	.name                     = "Mirics MSi3101 SDR Dongle",
+>  	.release                  = video_device_release_empty,
+>  	.fops                     = &msi2500_fops,
+> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+> index 8f13c60..4320bda 100644
+> --- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+> +++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+> @@ -1226,7 +1226,7 @@ static unsigned int pvr2_v4l2_poll(struct file *file, poll_table *wait)
+>  };
+>  
+>  
+> -static struct video_device vdev_template = {
+> +static const struct video_device vdev_template = {
+>  	.fops       = &vdev_fops,
+>  };
+>  
+> diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+> index 22420c1..eb6921d 100644
+> --- a/drivers/media/usb/pwc/pwc-if.c
+> +++ b/drivers/media/usb/pwc/pwc-if.c
+> @@ -146,7 +146,7 @@
+>  	.mmap =		vb2_fop_mmap,
+>  	.unlocked_ioctl = video_ioctl2,
+>  };
+> -static struct video_device pwc_template = {
+> +static const struct video_device pwc_template = {
+>  	.name =		"Philips Webcam",	/* Filled in later */
+>  	.release =	video_device_release_empty,
+>  	.fops =         &pwc_fops,
+> diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+> index 23f606e..b2f239c 100644
+> --- a/drivers/media/usb/s2255/s2255drv.c
+> +++ b/drivers/media/usb/s2255/s2255drv.c
+> @@ -1590,7 +1590,7 @@ static void s2255_video_device_release(struct video_device *vdev)
+>  	return;
+>  }
+>  
+> -static struct video_device template = {
+> +static const struct video_device template = {
+>  	.name = "s2255v",
+>  	.fops = &s2255_fops_v4l,
+>  	.ioctl_ops = &s2255_ioctl_ops,
+> diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
+> index a132faa..77b759a 100644
+> --- a/drivers/media/usb/stk1160/stk1160-v4l.c
+> +++ b/drivers/media/usb/stk1160/stk1160-v4l.c
+> @@ -751,7 +751,7 @@ static void stop_streaming(struct vb2_queue *vq)
+>  	.wait_finish		= vb2_ops_wait_finish,
+>  };
+>  
+> -static struct video_device v4l_template = {
+> +static const struct video_device v4l_template = {
+>  	.name = "stk1160",
+>  	.tvnorms = V4L2_STD_525_60 | V4L2_STD_625_50,
+>  	.fops = &stk1160_fops,
+> diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
+> index 39abb58..c0bba77 100644
+> --- a/drivers/media/usb/stkwebcam/stk-webcam.c
+> +++ b/drivers/media/usb/stkwebcam/stk-webcam.c
+> @@ -1244,7 +1244,7 @@ static void stk_v4l_dev_release(struct video_device *vd)
+>  	kfree(dev);
+>  }
+>  
+> -static struct video_device stk_v4l_data = {
+> +static const struct video_device stk_v4l_data = {
+>  	.name = "stkwebcam",
+>  	.fops = &v4l_stk_fops,
+>  	.ioctl_ops = &v4l_stk_ioctl_ops,
+> diff --git a/drivers/media/usb/zr364xx/zr364xx.c b/drivers/media/usb/zr364xx/zr364xx.c
+> index d4bb56b..4ff8d0a 100644
+> --- a/drivers/media/usb/zr364xx/zr364xx.c
+> +++ b/drivers/media/usb/zr364xx/zr364xx.c
+> @@ -1335,7 +1335,7 @@ static unsigned int zr364xx_poll(struct file *file,
+>  	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+>  };
+>  
+> -static struct video_device zr364xx_template = {
+> +static const struct video_device zr364xx_template = {
+>  	.name = DRIVER_DESC,
+>  	.fops = &zr364xx_fops,
+>  	.ioctl_ops = &zr364xx_ioctl_ops,
+> 
+
 -- 
-git-series 0.9.1
+
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
