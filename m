@@ -1,171 +1,432 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f41.google.com ([209.85.215.41]:38686 "EHLO
-        mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753948AbdHWM7N (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54254
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751056AbdHZSOO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Aug 2017 08:59:13 -0400
-Received: by mail-lf0-f41.google.com with SMTP id y15so6981469lfd.5
-        for <linux-media@vger.kernel.org>; Wed, 23 Aug 2017 05:59:12 -0700 (PDT)
-Date: Wed, 23 Aug 2017 14:59:10 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com
-Subject: Re: [RFC 00/19] Async sub-notifiers and how to use them
-Message-ID: <20170823125909.GA12099@bigcity.dyn.berto.se>
-References: <20170718190401.14797-1-sakari.ailus@linux.intel.com>
- <eb0ff309-bdf5-30f9-06da-2fc6c35fbf6a@xs4all.nl>
- <20170720161400.ijud3kppizb44acw@valkosipuli.retiisi.org.uk>
- <20170721065754.GC20077@bigcity.dyn.berto.se>
- <4fa22637-c58e-79e3-be22-575b0a4ff3f9@iki.fi>
- <ea92d79c-bba0-ca22-c0a7-0535d635729c@xs4all.nl>
+        Sat, 26 Aug 2017 14:14:14 -0400
+Date: Sat, 26 Aug 2017 15:14:06 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v4.14] v2: More constify, some fixes
+Message-ID: <20170826151400.03ab8274@vento.lan>
+In-Reply-To: <84bd1126-a313-6477-b79c-2896eec62db9@cisco.com>
+References: <84bd1126-a313-6477-b79c-2896eec62db9@cisco.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <ea92d79c-bba0-ca22-c0a7-0535d635729c@xs4all.nl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Wed, 23 Aug 2017 16:48:25 +0200
+Hans Verkuil <hansverk@cisco.com> escreveu:
 
-On 2017-08-23 11:09:15 +0200, Hans Verkuil wrote:
-> On 08/04/17 20:25, Sakari Ailus wrote:
-> > Niklas Söderlund wrote:
-> >> Hi Sakari,
-> >>
-> >> On 2017-07-20 19:14:01 +0300, Sakari Ailus wrote:
-> >>> Hi Hans,
-> >>>
-> >>> Thanks for the review.
-> >>>
-> >>> On Wed, Jul 19, 2017 at 01:42:55PM +0200, Hans Verkuil wrote:
-> >>>> On 18/07/17 21:03, Sakari Ailus wrote:
-> >>>>> Hi folks,
-> >>>>>
-> >>>>> This RFC patchset achieves a number of things which I've put to the same
-> >>>>> patchset for they need to be show together to demonstrate the use cases.
-> >>>>>
-> >>>>> I don't really intend this to compete with Niklas's patchset but much of
-> >>>>> the problem area addressed by the two is the same.
-> >>>>>
-> >>>>> Comments would be welcome.
-> >>>>>
-> >>>>> - Add AS3645A LED flash class driver.
-> >>>>>
-> >>>>> - Add async notifiers (by Niklas).
-> >>>>>
-> >>>>> - V4L2 sub-device node registration is moved to take place at the same time
-> >>>>>   with the registration of the sub-device itself. With this change,
-> >>>>>   sub-device node registration behaviour is aligned with video node
-> >>>>>   registration.
-> >>>>>
-> >>>>> - The former is made possible by moving the bound() callback after
-> >>>>>   sub-device registration.
-> >>>>>
-> >>>>> - As all the device node registration and link creation is done as the
-> >>>>>   respective devices are probed, there is no longer dependency to the
-> >>>>>   notifier complete callback which as itself is seen problematic. The
-> >>>>>   complete callback still exists but there's no need to use it, pending
-> >>>>>   changes in individual drivers.
-> >>>>>
-> >>>>>   See:
-> >>>>>   <URL:http://www.spinics.net/lists/linux-media/msg118323.html>
-> >>>>>
-> >>>>>   As a result, if a part of the media device fails to initialise because it
-> >>>>>   is e.g. physically broken, it will be possible to use what works.
-> >>>>
-> >>>> I've got major problems with this from a userspace point of view. In the vast
-> >>>> majority of cases you just want to bail out if one or more subdevs fail.
-> >>>
-> >>> I admit it's easier for the user space if the device becomes available only
-> >>> when all its component drivers have registered.
-> >>>
-> >>> Also remember that video nodes are registered in the file system right on
-> >>> device probe time. It's only sub-device and media device node registration
-> >>> that has taken place in the notifier's complete handler.
-> >>
-> >> Is this always the case? In the R-Car VIN driver I register the video 
-> >> devices using video_register_device() in the complete handler. Am I 
-> >> doing things wrong in that driver? I had a patch where I moved the 
-> >> video_register_device() call to probe time but it got shoot down in 
-> >> review and was dropped.
-> > 
-> > I don't think the current implementation is wrong, it's just different
-> > from other drivers; there's really no requirement regarding this AFAIU.
-> > It's one of the things where no attention has been paid I presume.
+> Hi Mauro,
 > 
-> It actually is a requirement: when a device node appears applications can
-> reasonably expect to have a fully functioning device. True for any device
-> node. You don't want to have to wait until some unspecified time before
-> the full functionality is there.
+> Some more constify stuff and some fixes. The vb2 patch required to fix a
+> venus bug is the most interesting change here.
 > 
-> I try to pay attention to this when reviewing code, since not following this
-> rule basically introduces a race condition which is hard to test.
+> I tried the -p flag for this pull request. I'm not convinced how useful it
+> is since it doesn't include the commit logs.
 
-In the latest version of the R-Car VIN series I have now moved the video 
-device registration to happen at probe time... So I think it would be a 
-good time to clarify what and what is not the intended way of where this 
-can happen. I'm not keen on reworking that series for each time it's 
-posted to where the video device is registered :-) I can see both good 
-and bad things with both solutions.
+I really liked it :-) I can quickly check if the patchset is ok, even
+before pulling all patches ;)
 
-If the video device is registered in the complete callback it do make it 
-easier to spot some race conditions (my VIN series got review comments 
-where I missed this almost instantly). It is also clear to user-space 
-when a device is ready to be used. At the same time as Sakari points out 
-this prevents partially complete graphs which might contain a valid 
-pipeline to be able to function, which of these two behaviors is the 
-most opportune I assume differs with use-cases and which one is best 
-from a framework point of view I don't know.
+Ok, if the number of changed lines were too big, then it would not
+be productive, but with patches like that, IMHO, it helps.
 
-But I do know that if a video device is registered from the complete 
-callback it's reasonable that it should be unregistered if the unbind 
-callback is called, right? Else the same situation as registering it at 
-probe time is reached if a subdevice is ever unbound and the driver 
-needs to handle the corner cases of both situations. And this use-case 
-is today broken in v4l2! If a video device is registered in the complete 
-callback, unregistered in the unbind callback and later re-registered in 
-the complete callback once the subdevice is re-bound everything blows up 
-with
+Regards,
+Mauro
 
-  kobject (eb3be918): tried to init an initialized object, something is seriously wrong.
-
-But yes if the video device is registered at probe time there are more 
-races and object life-time issues for the driver to handle, but these 
-needs to be considered anyhow if the unbind/re-bind scenario is to be 
-fixed, right? So maybe it don't really matter where the video device is 
-registered and both methods should be allowed and documented (so all 
-drivers returns same -ENOSUBDEVBOUNDYET etc) and leave it up to each 
-driver to handle this for how it perceives it primary use-case to be?  
-And instead we should talk about how to fix the bind/unbind issues as 
-this is where IMHO where the real problem is.
-
-> 
-> > However doing anything that can fail earlier on would be nicer since
-> > there's no reasonable way to signal an error from complete callback either.
-> 
-> Right.
-> 
-> Adding support for cases where devices may not be present is very desirable,
-> but this should go through an RFC process first to hammer out all the details.
-> 
-> Today we do not support this and we have to review code with that in mind.
-> 
-> So the first async subnotifiers implementation should NOT support this (although
-> it can of course be designed with this in mind). Once it is in we can start
-> on an RFC on how to support partial pipelines. I have a lot of questions about
-> that that need to be answered first.
-> 
-> One thing at a time. Trying to do everything at once never works.
 > 
 > Regards,
 > 
 > 	Hans
+> 
+> Change since the v1 pull request (marked that as superseded):
+> 
+> Added fix "media: venus: venc: set correct resolution on compressed stream"
+> (with a CC to stable for 4.13)
+> 
+> 
+> The following changes since commit 0779b8855c746c90b85bfe6e16d5dfa2a6a46655:
+> 
+>   media: ddbridge: fix semicolon.cocci warnings (2017-08-20 10:25:22 -0400)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git for-v4.14k
+> 
+> for you to fetch changes up to 373ad449f9d3ad8a9c701034920a43f71885c98b:
+> 
+>   venus: fix copy/paste error in return_buf_error (2017-08-23 16:45:47 +0200)
+> 
+> ----------------------------------------------------------------
+> Arvind Yadav (3):
+>       saa7146: constify videobuf_queue_ops structures
+>       pci: constify videobuf_queue_ops structures
+>       platform: constify videobuf_queue_ops structures
+> 
+> Bhumika Goyal (2):
+>       bt8xx: Make i2c_algo_bit_data const
+>       cx18: Make i2c_algo_bit_data const
+> 
+> Colin Ian King (1):
+>       em28xx: calculate left volume level correctly
+> 
+> Gustavo A. R. Silva (1):
+>       venus: fix copy/paste error in return_buf_error
+> 
+> Stanimir Varbanov (2):
+>       media: vb2: add bidirectional flag in vb2_queue
+>       media: venus: venc: set correct resolution on compressed stream
+> 
+>  drivers/media/common/saa7146/saa7146_vbi.c     |  2 +-
+>  drivers/media/common/saa7146/saa7146_video.c   |  2 +-
+>  drivers/media/pci/bt8xx/bttv-driver.c          |  2 +-
+>  drivers/media/pci/bt8xx/bttv-i2c.c             |  2 +-
+>  drivers/media/pci/cx18/cx18-i2c.c              |  2 +-
+>  drivers/media/platform/davinci/vpfe_capture.c  |  2 +-
+>  drivers/media/platform/fsl-viu.c               |  2 +-
+>  drivers/media/platform/qcom/venus/helpers.c    |  2 +-
+>  drivers/media/platform/qcom/venus/venc.c       |  8 +++++---
+>  drivers/media/usb/em28xx/em28xx-audio.c        |  2 +-
+>  drivers/media/v4l2-core/videobuf2-core.c       | 17 ++++++++---------
+>  drivers/media/v4l2-core/videobuf2-dma-contig.c |  3 ++-
+>  drivers/media/v4l2-core/videobuf2-dma-sg.c     |  6 ++++--
+>  drivers/media/v4l2-core/videobuf2-vmalloc.c    |  6 ++++--
+>  include/media/videobuf2-core.h                 | 13 +++++++++++++
+>  15 files changed, 45 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/media/common/saa7146/saa7146_vbi.c b/drivers/media/common/saa7146/saa7146_vbi.c
+> index 3553ac4cba5c..d79e4d7ecd9f 100644
+> --- a/drivers/media/common/saa7146/saa7146_vbi.c
+> +++ b/drivers/media/common/saa7146/saa7146_vbi.c
+> @@ -308,7 +308,7 @@ static void buffer_release(struct videobuf_queue *q, struct videobuf_buffer *vb)
+>  	saa7146_dma_free(dev,q,buf);
+>  }
+> 
+> -static struct videobuf_queue_ops vbi_qops = {
+> +static const struct videobuf_queue_ops vbi_qops = {
+>  	.buf_setup    = buffer_setup,
+>  	.buf_prepare  = buffer_prepare,
+>  	.buf_queue    = buffer_queue,
+> diff --git a/drivers/media/common/saa7146/saa7146_video.c b/drivers/media/common/saa7146/saa7146_video.c
+> index b3b29d4f36ed..37b4654dc21c 100644
+> --- a/drivers/media/common/saa7146/saa7146_video.c
+> +++ b/drivers/media/common/saa7146/saa7146_video.c
+> @@ -1187,7 +1187,7 @@ static void buffer_release(struct videobuf_queue *q, struct videobuf_buffer *vb)
+>  	release_all_pagetables(dev, buf);
+>  }
+> 
+> -static struct videobuf_queue_ops video_qops = {
+> +static const struct videobuf_queue_ops video_qops = {
+>  	.buf_setup    = buffer_setup,
+>  	.buf_prepare  = buffer_prepare,
+>  	.buf_queue    = buffer_queue,
+> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+> index 40110be4e986..227086a2e99c 100644
+> --- a/drivers/media/pci/bt8xx/bttv-driver.c
+> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+> @@ -1702,7 +1702,7 @@ static void buffer_release(struct videobuf_queue *q, struct videobuf_buffer *vb)
+>  	bttv_dma_free(q,fh->btv,buf);
+>  }
+> 
+> -static struct videobuf_queue_ops bttv_video_qops = {
+> +static const struct videobuf_queue_ops bttv_video_qops = {
+>  	.buf_setup    = buffer_setup,
+>  	.buf_prepare  = buffer_prepare,
+>  	.buf_queue    = buffer_queue,
+> diff --git a/drivers/media/pci/bt8xx/bttv-i2c.c b/drivers/media/pci/bt8xx/bttv-i2c.c
+> index 274fd036b306..eccd1e3d717a 100644
+> --- a/drivers/media/pci/bt8xx/bttv-i2c.c
+> +++ b/drivers/media/pci/bt8xx/bttv-i2c.c
+> @@ -97,7 +97,7 @@ static int bttv_bit_getsda(void *data)
+>  	return state;
+>  }
+> 
+> -static struct i2c_algo_bit_data bttv_i2c_algo_bit_template = {
+> +static const struct i2c_algo_bit_data bttv_i2c_algo_bit_template = {
+>  	.setsda  = bttv_bit_setsda,
+>  	.setscl  = bttv_bit_setscl,
+>  	.getsda  = bttv_bit_getsda,
+> diff --git a/drivers/media/pci/cx18/cx18-i2c.c b/drivers/media/pci/cx18/cx18-i2c.c
+> index b89fbcbfb491..a99bd9997f33 100644
+> --- a/drivers/media/pci/cx18/cx18-i2c.c
+> +++ b/drivers/media/pci/cx18/cx18-i2c.c
+> @@ -216,7 +216,7 @@ static struct i2c_adapter cx18_i2c_adap_template = {
+>  #define CX18_SCL_PERIOD (10) /* usecs. 10 usec is period for a 100 KHz clock */
+>  #define CX18_ALGO_BIT_TIMEOUT (2) /* seconds */
+> 
+> -static struct i2c_algo_bit_data cx18_i2c_algo_template = {
+> +static const struct i2c_algo_bit_data cx18_i2c_algo_template = {
+>  	.setsda		= cx18_setsda,
+>  	.setscl		= cx18_setscl,
+>  	.getsda		= cx18_getsda,
+> diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
+> index b1bf4a7e8eb7..6792da16d9c7 100644
+> --- a/drivers/media/platform/davinci/vpfe_capture.c
+> +++ b/drivers/media/platform/davinci/vpfe_capture.c
+> @@ -1288,7 +1288,7 @@ static void vpfe_videobuf_release(struct videobuf_queue *vq,
+>  	vb->state = VIDEOBUF_NEEDS_INIT;
+>  }
+> 
+> -static struct videobuf_queue_ops vpfe_videobuf_qops = {
+> +static const struct videobuf_queue_ops vpfe_videobuf_qops = {
+>  	.buf_setup      = vpfe_videobuf_setup,
+>  	.buf_prepare    = vpfe_videobuf_prepare,
+>  	.buf_queue      = vpfe_videobuf_queue,
+> diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
+> index f7b88e58d00e..2e06dd564442 100644
+> --- a/drivers/media/platform/fsl-viu.c
+> +++ b/drivers/media/platform/fsl-viu.c
+> @@ -549,7 +549,7 @@ static void buffer_release(struct videobuf_queue *vq,
+>  	free_buffer(vq, buf);
+>  }
+> 
+> -static struct videobuf_queue_ops viu_video_qops = {
+> +static const struct videobuf_queue_ops viu_video_qops = {
+>  	.buf_setup      = buffer_setup,
+>  	.buf_prepare    = buffer_prepare,
+>  	.buf_queue      = buffer_queue,
+> diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+> index 5f4434c0a8f1..2d6187904552 100644
+> --- a/drivers/media/platform/qcom/venus/helpers.c
+> +++ b/drivers/media/platform/qcom/venus/helpers.c
+> @@ -243,7 +243,7 @@ static void return_buf_error(struct venus_inst *inst,
+>  	if (vbuf->vb2_buf.type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+>  		v4l2_m2m_src_buf_remove_by_buf(m2m_ctx, vbuf);
+>  	else
+> -		v4l2_m2m_src_buf_remove_by_buf(m2m_ctx, vbuf);
+> +		v4l2_m2m_dst_buf_remove_by_buf(m2m_ctx, vbuf);
+> 
+>  	v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
+>  }
+> diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+> index 39748e7a08e4..01af1ac89edf 100644
+> --- a/drivers/media/platform/qcom/venus/venc.c
+> +++ b/drivers/media/platform/qcom/venus/venc.c
+> @@ -289,7 +289,7 @@ venc_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
+>  	pixmp->height = clamp(pixmp->height, inst->cap_height.min,
+>  			      inst->cap_height.max);
+> 
+> -	if (inst->core->res->hfi_version == HFI_VERSION_1XX)
+> +	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+>  		pixmp->height = ALIGN(pixmp->height, 32);
+> 
+>  	pixmp->width = ALIGN(pixmp->width, 2);
+> @@ -747,8 +747,8 @@ static int venc_init_session(struct venus_inst *inst)
+>  	if (ret)
+>  		return ret;
+> 
+> -	ret = venus_helper_set_input_resolution(inst, inst->out_width,
+> -						inst->out_height);
+> +	ret = venus_helper_set_input_resolution(inst, inst->width,
+> +						inst->height);
+>  	if (ret)
+>  		goto deinit;
+> 
+> @@ -1010,6 +1010,8 @@ static int m2m_queue_init(void *priv, struct vb2_queue *src_vq,
+>  	src_vq->allow_zero_bytesused = 1;
+>  	src_vq->min_buffers_needed = 1;
+>  	src_vq->dev = inst->core->dev;
+> +	if (inst->core->res->hfi_version == HFI_VERSION_1XX)
+> +		src_vq->bidirectional = 1;
+>  	ret = vb2_queue_init(src_vq);
+>  	if (ret)
+>  		return ret;
+> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+> index 261620a57420..4628d73f46f2 100644
+> --- a/drivers/media/usb/em28xx/em28xx-audio.c
+> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
+> @@ -564,7 +564,7 @@ static int em28xx_vol_get(struct snd_kcontrol *kcontrol,
+>  		val, (int)kcontrol->private_value);
+> 
+>  	value->value.integer.value[0] = 0x1f - (val & 0x1f);
+> -	value->value.integer.value[1] = 0x1f - ((val << 8) & 0x1f);
+> +	value->value.integer.value[1] = 0x1f - ((val >> 8) & 0x1f);
+> 
+>  	return 0;
+>  }
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 0924594989b4..cb115ba6a1d2 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -194,8 +194,6 @@ static void __enqueue_in_driver(struct vb2_buffer *vb);
+>  static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+>  {
+>  	struct vb2_queue *q = vb->vb2_queue;
+> -	enum dma_data_direction dma_dir =
+> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+>  	void *mem_priv;
+>  	int plane;
+>  	int ret = -ENOMEM;
+> @@ -209,7 +207,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+> 
+>  		mem_priv = call_ptr_memop(vb, alloc,
+>  				q->alloc_devs[plane] ? : q->dev,
+> -				q->dma_attrs, size, dma_dir, q->gfp_flags);
+> +				q->dma_attrs, size, q->dma_dir, q->gfp_flags);
+>  		if (IS_ERR_OR_NULL(mem_priv)) {
+>  			if (mem_priv)
+>  				ret = PTR_ERR(mem_priv);
+> @@ -978,8 +976,6 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
+>  	void *mem_priv;
+>  	unsigned int plane;
+>  	int ret = 0;
+> -	enum dma_data_direction dma_dir =
+> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+>  	bool reacquired = vb->planes[0].mem_priv == NULL;
+> 
+>  	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
+> @@ -1030,7 +1026,7 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
+>  		mem_priv = call_ptr_memop(vb, get_userptr,
+>  				q->alloc_devs[plane] ? : q->dev,
+>  				planes[plane].m.userptr,
+> -				planes[plane].length, dma_dir);
+> +				planes[plane].length, q->dma_dir);
+>  		if (IS_ERR(mem_priv)) {
+>  			dprintk(1, "failed acquiring userspace memory for plane %d\n",
+>  				plane);
+> @@ -1096,8 +1092,6 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
+>  	void *mem_priv;
+>  	unsigned int plane;
+>  	int ret = 0;
+> -	enum dma_data_direction dma_dir =
+> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+>  	bool reacquired = vb->planes[0].mem_priv == NULL;
+> 
+>  	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
+> @@ -1156,7 +1150,7 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
+>  		/* Acquire each plane's memory */
+>  		mem_priv = call_ptr_memop(vb, attach_dmabuf,
+>  				q->alloc_devs[plane] ? : q->dev,
+> -				dbuf, planes[plane].length, dma_dir);
+> +				dbuf, planes[plane].length, q->dma_dir);
+>  		if (IS_ERR(mem_priv)) {
+>  			dprintk(1, "failed to attach dmabuf\n");
+>  			ret = PTR_ERR(mem_priv);
+> @@ -2003,6 +1997,11 @@ int vb2_core_queue_init(struct vb2_queue *q)
+>  	if (q->buf_struct_size == 0)
+>  		q->buf_struct_size = sizeof(struct vb2_buffer);
+> 
+> +	if (q->bidirectional)
+> +		q->dma_dir = DMA_BIDIRECTIONAL;
+> +	else
+> +		q->dma_dir = q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+> +
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL_GPL(vb2_core_queue_init);
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> index 5b90a66b9e78..9f389f36566d 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -508,7 +508,8 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+>  	buf->dma_dir = dma_dir;
+> 
+>  	offset = vaddr & ~PAGE_MASK;
+> -	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
+> +	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE ||
+> +					       dma_dir == DMA_BIDIRECTIONAL);
+>  	if (IS_ERR(vec)) {
+>  		ret = PTR_ERR(vec);
+>  		goto fail_buf;
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> index 54f33938d45b..6808231a6bdc 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> @@ -239,7 +239,8 @@ static void *vb2_dma_sg_get_userptr(struct device *dev, unsigned long vaddr,
+>  	buf->offset = vaddr & ~PAGE_MASK;
+>  	buf->size = size;
+>  	buf->dma_sgt = &buf->sg_table;
+> -	vec = vb2_create_framevec(vaddr, size, buf->dma_dir == DMA_FROM_DEVICE);
+> +	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE ||
+> +					       dma_dir == DMA_BIDIRECTIONAL);
+>  	if (IS_ERR(vec))
+>  		goto userptr_fail_pfnvec;
+>  	buf->vec = vec;
+> @@ -292,7 +293,8 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+>  		vm_unmap_ram(buf->vaddr, buf->num_pages);
+>  	sg_free_table(buf->dma_sgt);
+>  	while (--i >= 0) {
+> -		if (buf->dma_dir == DMA_FROM_DEVICE)
+> +		if (buf->dma_dir == DMA_FROM_DEVICE ||
+> +		    buf->dma_dir == DMA_BIDIRECTIONAL)
+>  			set_page_dirty_lock(buf->pages[i]);
+>  	}
+>  	vb2_destroy_framevec(buf->vec);
+> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> index 6bc130fe84f6..3a7c80cd1a17 100644
+> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> @@ -87,7 +87,8 @@ static void *vb2_vmalloc_get_userptr(struct device *dev, unsigned long vaddr,
+>  	buf->dma_dir = dma_dir;
+>  	offset = vaddr & ~PAGE_MASK;
+>  	buf->size = size;
+> -	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
+> +	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE ||
+> +					       dma_dir == DMA_BIDIRECTIONAL);
+>  	if (IS_ERR(vec)) {
+>  		ret = PTR_ERR(vec);
+>  		goto fail_pfnvec_create;
+> @@ -137,7 +138,8 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
+>  		pages = frame_vector_pages(buf->vec);
+>  		if (vaddr)
+>  			vm_unmap_ram((void *)vaddr, n_pages);
+> -		if (buf->dma_dir == DMA_FROM_DEVICE)
+> +		if (buf->dma_dir == DMA_FROM_DEVICE ||
+> +		    buf->dma_dir == DMA_BIDIRECTIONAL)
+>  			for (i = 0; i < n_pages; i++)
+>  				set_page_dirty_lock(pages[i]);
+>  	} else {
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index cb97c224be73..ef9b64398c8c 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -427,6 +427,16 @@ struct vb2_buf_ops {
+>   * @dev:	device to use for the default allocation context if the driver
+>   *		doesn't fill in the @alloc_devs array.
+>   * @dma_attrs:	DMA attributes to use for the DMA.
+> + * @bidirectional: when this flag is set the DMA direction for the buffers of
+> + *		this queue will be overridden with DMA_BIDIRECTIONAL direction.
+> + *		This is useful in cases where the hardware (firmware) writes to
+> + *		a buffer which is mapped as read (DMA_TO_DEVICE), or reads from
+> + *		buffer which is mapped for write (DMA_FROM_DEVICE) in order
+> + *		to satisfy some internal hardware restrictions or adds a padding
+> + *		needed by the processing algorithm. In case the DMA mapping is
+> + *		not bidirectional but the hardware (firmware) trying to access
+> + *		the buffer (in the opposite direction) this could lead to an
+> + *		IOMMU protection faults.
+>   * @fileio_read_once:		report EOF after reading the first buffer
+>   * @fileio_write_immediately:	queue buffer after each write() call
+>   * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
+> @@ -465,6 +475,7 @@ struct vb2_buf_ops {
+>   * Private elements (won't appear at the uAPI book):
+>   * @mmap_lock:	private mutex used when buffers are allocated/freed/mmapped
+>   * @memory:	current memory type used
+> + * @dma_dir:	DMA mapping direction.
+>   * @bufs:	videobuf buffer structures
+>   * @num_buffers: number of allocated/used buffers
+>   * @queued_list: list of buffers currently queued from userspace
+> @@ -495,6 +506,7 @@ struct vb2_queue {
+>  	unsigned int			io_modes;
+>  	struct device			*dev;
+>  	unsigned long			dma_attrs;
+> +	unsigned			bidirectional:1;
+>  	unsigned			fileio_read_once:1;
+>  	unsigned			fileio_write_immediately:1;
+>  	unsigned			allow_zero_bytesused:1;
+> @@ -516,6 +528,7 @@ struct vb2_queue {
+>  	/* private: internal use only */
+>  	struct mutex			mmap_lock;
+>  	unsigned int			memory;
+> +	enum dma_data_direction		dma_dir;
+>  	struct vb2_buffer		*bufs[VB2_MAX_FRAME];
+>  	unsigned int			num_buffers;
+> 
 
--- 
-Regards,
-Niklas Söderlund
+
+
+Thanks,
+Mauro
