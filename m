@@ -1,98 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33048 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932722AbdHYNg3 (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53437
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752129AbdHZKHc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Aug 2017 09:36:29 -0400
-Received: by mail-wm0-f66.google.com with SMTP id e67so2640018wmd.0
-        for <linux-media@vger.kernel.org>; Fri, 25 Aug 2017 06:36:28 -0700 (PDT)
-Date: Fri, 25 Aug 2017 15:36:24 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Bhumika Goyal <bhumirks@gmail.com>
-Cc: julia.lawall@lip6.fr, bp@alien8.de, mchehab@kernel.org,
-        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
-        seanpaul@chromium.org, airlied@linux.ie, g.liakhovetski@gmx.de,
-        tomas.winkler@intel.com, dwmw2@infradead.org,
-        computersforpeace@gmail.com, boris.brezillon@free-electrons.com,
-        marek.vasut@gmail.com, richard@nod.at, cyrille.pitchen@wedev4u.fr,
-        peda@axentia.se, kishon@ti.com, bhelgaas@google.com,
-        thierry.reding@gmail.com, jonathanh@nvidia.com,
-        dvhart@infradead.org, andy@infradead.org, ohad@wizery.com,
-        bjorn.andersson@linaro.org, freude@de.ibm.com,
-        schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, jth@kernel.org,
-        jejb@linux.vnet.ibm.com, martin.petersen@oracle.com,
-        lduncan@suse.com, cleech@redhat.com, johan@kernel.org,
-        elder@kernel.org, gregkh@linuxfoundation.org,
-        heikki.krogerus@linux.intel.com, linux-edac@vger.kernel.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
-        linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, greybus-dev@lists.linaro.org,
-        devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
-Subject: Re: [PATCH 02/15] drm: make device_type const
-Message-ID: <20170825133623.3jbkpvq5k62rabf5@phenom.ffwll.local>
-References: <1503130946-2854-1-git-send-email-bhumirks@gmail.com>
- <1503130946-2854-3-git-send-email-bhumirks@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1503130946-2854-3-git-send-email-bhumirks@gmail.com>
+        Sat, 26 Aug 2017 06:07:32 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 5/6] media: dvbproperty.rst: improve notes about legacy frontend calls
+Date: Sat, 26 Aug 2017 07:07:13 -0300
+Message-Id: <b91d0e4c931674cf173dfcdad342a1756d7e6a46.1503742025.git.mchehab@s-opensource.com>
+In-Reply-To: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
+References: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
+In-Reply-To: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
+References: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Aug 19, 2017 at 01:52:13PM +0530, Bhumika Goyal wrote:
-> Make these const as they are only stored in the type field of a device
-> structure, which is const.
-> Done using Coccinelle.
+The description of the DVBv5 API was written a long time ago,
+where the API was still new, and there were not apps using it.
 
-I can't apply this, it's missing your s-o-b line. You can just replay with
-that.
+Now that the API is stable and used by new applications, clarify
+that DVBv3 calls should not be used and why.
 
-Thanks, Daniel
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/dvb/dvbproperty.rst | 39 ++++++++++++++++++----------
+ 1 file changed, 25 insertions(+), 14 deletions(-)
 
-> ---
->  drivers/gpu/drm/drm_sysfs.c      | 2 +-
->  drivers/gpu/drm/ttm/ttm_module.c | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/drm_sysfs.c b/drivers/gpu/drm/drm_sysfs.c
-> index 1c5b5ce..84e4ebe 100644
-> --- a/drivers/gpu/drm/drm_sysfs.c
-> +++ b/drivers/gpu/drm/drm_sysfs.c
-> @@ -39,7 +39,7 @@
->   * drm_connector_unregister().
->   */
->  
-> -static struct device_type drm_sysfs_device_minor = {
-> +static const struct device_type drm_sysfs_device_minor = {
->  	.name = "drm_minor"
->  };
->  
-> diff --git a/drivers/gpu/drm/ttm/ttm_module.c b/drivers/gpu/drm/ttm/ttm_module.c
-> index 66fc639..e6604e0 100644
-> --- a/drivers/gpu/drm/ttm/ttm_module.c
-> +++ b/drivers/gpu/drm/ttm/ttm_module.c
-> @@ -37,7 +37,7 @@
->  static DECLARE_WAIT_QUEUE_HEAD(exit_q);
->  static atomic_t device_released;
->  
-> -static struct device_type ttm_drm_class_type = {
-> +static const struct device_type ttm_drm_class_type = {
->  	.name = "ttm",
->  	/**
->  	 * Add pm ops here.
-> -- 
-> 1.9.1
-> 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
-
+diff --git a/Documentation/media/uapi/dvb/dvbproperty.rst b/Documentation/media/uapi/dvb/dvbproperty.rst
+index dd2d71ce43fa..1e8fc75e469d 100644
+--- a/Documentation/media/uapi/dvb/dvbproperty.rst
++++ b/Documentation/media/uapi/dvb/dvbproperty.rst
+@@ -12,23 +12,34 @@ antenna subsystem via Satellite Equipment Control (SEC), on satellite
+ systems. The actual parameters are specific to each particular digital
+ TV standards, and may change as the digital TV specs evolves.
+ 
+-In the past, the strategy used was to have a union with the parameters
+-needed to tune for DVB-S, DVB-C, DVB-T and ATSC delivery systems grouped
+-there. The problem is that, as the second generation standards appeared,
+-those structs were not big enough to contain the additional parameters.
+-Also, the union didn't have any space left to be expanded without
+-breaking userspace. So, the decision was to deprecate the legacy
+-union/struct based approach, in favor of a properties set approach.
++In the past (up to DVB API version 3), the strategy used was to have a
++union with the parameters needed to tune for DVB-S, DVB-C, DVB-T and
++ATSC delivery systems grouped there. The problem is that, as the second
++generation standards appeared, the size of such union was not big
++enough to group the structs that would be required for those new
++standards. Also, extending it would break userspace.
++
++So, the legacy union/struct based approach was deprecated, in favor
++of a properties set approach.
++
++This section describes the new and recommended way to set the frontend,
++with suppports all digital TV delivery systems.
+ 
+ .. note::
+ 
+-   On Linux DVB API version 3, setting a frontend were done via
+-   struct :c:type:`dvb_frontend_parameters`.
+-   This got replaced on version 5 (also called "S2API", as this API were
+-   added originally_enabled to provide support for DVB-S2), because the
+-   old API has a very limited support to new standards and new hardware.
+-   This section describes the new and recommended way to set the frontend,
+-   with suppports all digital TV delivery systems.
++   1. On Linux DVB API version 3, setting a frontend was done via
++      struct :c:type:`dvb_frontend_parameters`.
++
++   2. Don't use DVB API version 3 calls on hardware with supports
++      newer standards. Such API provides no suport or a very limited
++      support to new standards and/or new hardware.
++
++   3. Nowadays, most frontends support multiple delivery systems.
++      Only with DVB v5 calls it is possible to switch between
++      the multiple delivery systems supported by a frontend.
++
++   4. DVB API version 5 is also called *S2API*, as the first
++      new standard added to it was DVB-S2.
+ 
+ Example: with the properties based approach, in order to set the tuner
+ to a DVB-C channel at 651 kHz, modulated with 256-QAM, FEC 3/4 and
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+2.13.3
