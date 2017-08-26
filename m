@@ -1,59 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:44272 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751455AbdH3QKs (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:34713 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754632AbdHZLNy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Aug 2017 12:10:48 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 3/5] dt-bindings: document the CEC GPIO bindings
-Date: Wed, 30 Aug 2017 18:10:42 +0200
-Message-Id: <20170830161044.26571-4-hverkuil@xs4all.nl>
-In-Reply-To: <20170830161044.26571-1-hverkuil@xs4all.nl>
-References: <20170830161044.26571-1-hverkuil@xs4all.nl>
+        Sat, 26 Aug 2017 07:13:54 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, mchehab@kernel.org,
+        maintainers@bluecherrydvr.com, anton@corp.bluecherry.net,
+        andrey.utkin@corp.bluecherry.net, ismael@iodev.co.uk,
+        hverkuil@xs4all.nl, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 1/5] [media] meye:  make video_device const
+Date: Sat, 26 Aug 2017 16:43:30 +0530
+Message-Id: <1503746014-16489-2-git-send-email-bhumirks@gmail.com>
+In-Reply-To: <1503746014-16489-1-git-send-email-bhumirks@gmail.com>
+References: <1503746014-16489-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Make this const as it is only used in a copy operation.
 
-Document the bindings for the cec-gpio module for hardware where the
-CEC pin and optionally the HPD pin are connected to GPIO pins.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 ---
- .../devicetree/bindings/media/cec-gpio.txt         | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/cec-gpio.txt
+ drivers/media/pci/meye/meye.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/media/cec-gpio.txt b/Documentation/devicetree/bindings/media/cec-gpio.txt
-new file mode 100644
-index 000000000000..d1df742af0ac
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/cec-gpio.txt
-@@ -0,0 +1,22 @@
-+* HDMI CEC GPIO driver
-+
-+The HDMI CEC GPIO module supports CEC implementations where the CEC pin
-+is hooked up to a pull-up GPIO pin and - optionally - the HPD pin is
-+hooked up to a pull-down GPIO pin.
-+
-+Required properties:
-+  - compatible: value must be "cec-gpio"
-+  - cec-gpio: gpio that the CEC line is connected to
-+
-+Optional property:
-+  - hpd-gpio: gpio that the HPD line is connected to
-+
-+Example for the Raspberry Pi 3 where the CEC line is connected to
-+pin 26 aka BCM7 aka CE1 on the GPIO pin header and the HPD line is
-+connected to pin 11 aka BCM17:
-+
-+cec-gpio@7 {
-+       compatible = "cec-gpio";
-+       cec-gpio = <&gpio 7 GPIO_ACTIVE_HIGH>;
-+       hpd-gpio = <&gpio 17 GPIO_ACTIVE_HIGH>;
-+};
+diff --git a/drivers/media/pci/meye/meye.c b/drivers/media/pci/meye/meye.c
+index 0fe76be..49e047e 100644
+--- a/drivers/media/pci/meye/meye.c
++++ b/drivers/media/pci/meye/meye.c
+@@ -1533,7 +1533,7 @@ static int meye_mmap(struct file *file, struct vm_area_struct *vma)
+ 	.vidioc_default		= vidioc_default,
+ };
+ 
+-static struct video_device meye_template = {
++static const struct video_device meye_template = {
+ 	.name		= "meye",
+ 	.fops		= &meye_fops,
+ 	.ioctl_ops 	= &meye_ioctl_ops,
 -- 
-2.14.1
+1.9.1
