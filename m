@@ -1,64 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:36923 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752420AbdHTKlS (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53431
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752102AbdHZKHc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Aug 2017 06:41:18 -0400
-Received: by mail-wr0-f196.google.com with SMTP id z91so13149675wrc.4
-        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 03:41:17 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, rjkm@metzlerbros.de
-Subject: [PATCH 1/6] [media] ddbridge: fix gap handling
-Date: Sun, 20 Aug 2017 12:41:09 +0200
-Message-Id: <20170820104114.6515-2-d.scheller.oss@gmail.com>
-In-Reply-To: <20170820104114.6515-1-d.scheller.oss@gmail.com>
-References: <20170820104114.6515-1-d.scheller.oss@gmail.com>
+        Sat, 26 Aug 2017 06:07:32 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 3/6] media: frontend.rst: convert SEC note into footnote
+Date: Sat, 26 Aug 2017 07:07:11 -0300
+Message-Id: <14fbbe83c1f14a851dbd2ea9005bcc2c7df288be.1503742025.git.mchehab@s-opensource.com>
+In-Reply-To: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
+References: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
+In-Reply-To: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
+References: <5874bbbb1ab7e717699fd09be97559776ad19fc5.1503742025.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+The description of what SEC means fits well as a footnote.
+That makes the need of saying that SEC is only for Satellite
+when it was mentioned, as the footnote already says that.
 
-Force gap setting if given by attribute and enable gap for older regmaps.
-Also, setting a gap value of 128 via sysfs will now disable gap.
-
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/pci/ddbridge/ddbridge-core.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ Documentation/media/uapi/dvb/frontend.rst | 19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index c290d3fecc8d..98a12c644e44 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -336,6 +336,7 @@ static void calc_con(struct ddb_output *output, u32 *con, u32 *con2, u32 flags)
- 	if (output->port->gap != 0xffffffff) {
- 		flags |= 1;
- 		gap = output->port->gap;
-+		max_bitrate = 0;
- 	}
- 	if (dev->link[0].info->type == DDB_OCTOPUS_CI && output->port->nr > 1) {
- 		*con = 0x10c;
-@@ -372,6 +373,7 @@ static void calc_con(struct ddb_output *output, u32 *con, u32 *con2, u32 flags)
- 				*con |= 0x810; /* 96 MBit/s and gap */
- 				max_bitrate = 96000;
- 			}
-+			*con |= 0x10; /* enable gap */
- 		}
- 	}
- 	if (max_bitrate > 0) {
-@@ -3203,8 +3205,10 @@ static ssize_t gap_store(struct device *device, struct device_attribute *attr,
+diff --git a/Documentation/media/uapi/dvb/frontend.rst b/Documentation/media/uapi/dvb/frontend.rst
+index 313f46a4c6a6..0bfade2b72cf 100644
+--- a/Documentation/media/uapi/dvb/frontend.rst
++++ b/Documentation/media/uapi/dvb/frontend.rst
+@@ -25,7 +25,7 @@ The DVB frontend controls several sub-devices including:
  
- 	if (sscanf(buf, "%u\n", &val) != 1)
- 		return -EINVAL;
--	if (val > 20)
-+	if (val > 128)
- 		return -EINVAL;
-+	if (val == 128)
-+		val = 0xffffffff;
- 	dev->port[num].gap = val;
- 	return count;
- }
+ -  Low noise amplifier (LNA)
+ 
+--  Satellite Equipment Control (SEC) hardware (only for Satellite).
++-  Satellite Equipment Control (SEC) [#f1]_.
+ 
+ The frontend can be accessed through ``/dev/dvb/adapter?/frontend?``.
+ Data types and ioctl definitions can be accessed by including
+@@ -36,13 +36,16 @@ Data types and ioctl definitions can be accessed by including
+    Transmission via the internet (DVB-IP) is not yet handled by this
+    API but a future extension is possible.
+ 
+-On Satellite systems, the API support for the Satellite Equipment
+-Control (SEC) allows to power control and to send/receive signals to
+-control the antenna subsystem, selecting the polarization and choosing
+-the Intermediate Frequency IF) of the Low Noise Block Converter Feed
+-Horn (LNBf). It supports the DiSEqC and V-SEC protocols. The DiSEqC
+-(digital SEC) specification is available at
+-`Eutelsat <http://www.eutelsat.com/satellites/4_5_5.html>`__.
++
++.. [#f1]
++
++   On Satellite systems, the API support for the Satellite Equipment
++   Control (SEC) allows to power control and to send/receive signals to
++   control the antenna subsystem, selecting the polarization and choosing
++   the Intermediate Frequency IF) of the Low Noise Block Converter Feed
++   Horn (LNBf). It supports the DiSEqC and V-SEC protocols. The DiSEqC
++   (digital SEC) specification is available at
++   `Eutelsat <http://www.eutelsat.com/satellites/4_5_5.html>`__.
+ 
+ 
+ .. toctree::
 -- 
-2.13.0
+2.13.3
