@@ -1,122 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:53347 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752758AbdHBIyP (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53277
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751203AbdHZJ2g (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 Aug 2017 04:54:15 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 9/9] omapdrm: omapdss_hdmi_ops: add lost_hotplug op
-Date: Wed,  2 Aug 2017 10:54:08 +0200
-Message-Id: <20170802085408.16204-10-hverkuil@xs4all.nl>
-In-Reply-To: <20170802085408.16204-1-hverkuil@xs4all.nl>
-References: <20170802085408.16204-1-hverkuil@xs4all.nl>
+        Sat, 26 Aug 2017 05:28:36 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        SeongJae Park <sj38.park@gmail.com>,
+        Markus Heiser <markus.heiser@darmarit.de>
+Subject: [PATCH 3/4] sphinx.rst: Allow Sphinx version 1.6 at the docs
+Date: Sat, 26 Aug 2017 06:28:27 -0300
+Message-Id: <cc17359229d67b2c7f4022ffbc57c8c0178cc37f.1503739177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503739177.git.mchehab@s-opensource.com>
+References: <cover.1503739177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503739177.git.mchehab@s-opensource.com>
+References: <cover.1503739177.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Now that the PDF building issues with Sphinx 1.6 got fixed,
+update the documentation and scripts accordingly.
 
-The CEC framework needs to know when the hotplug detect signal
-disappears, since that means the CEC physical address has to be
-invalidated (i.e. set to f.f.f.f).
-
-Add a lost_hotplug op that is called when the HPD signal goes away.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/gpu/drm/omapdrm/displays/connector-hdmi.c    | 8 ++++++--
- drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c | 6 +++++-
- drivers/gpu/drm/omapdrm/dss/hdmi4.c                  | 8 ++++++--
- drivers/gpu/drm/omapdrm/dss/omapdss.h                | 1 +
- 4 files changed, 18 insertions(+), 5 deletions(-)
+ Documentation/doc-guide/sphinx.rst | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/displays/connector-hdmi.c b/drivers/gpu/drm/omapdrm/displays/connector-hdmi.c
-index d9d25df6fc1b..4600d3841c25 100644
---- a/drivers/gpu/drm/omapdrm/displays/connector-hdmi.c
-+++ b/drivers/gpu/drm/omapdrm/displays/connector-hdmi.c
-@@ -165,11 +165,15 @@ static bool hdmic_detect(struct omap_dss_device *dssdev)
- {
- 	struct panel_drv_data *ddata = to_panel_data(dssdev);
- 	struct omap_dss_device *in = ddata->in;
-+	bool connected;
+diff --git a/Documentation/doc-guide/sphinx.rst b/Documentation/doc-guide/sphinx.rst
+index 8faafb9b2d86..a2417633fdd8 100644
+--- a/Documentation/doc-guide/sphinx.rst
++++ b/Documentation/doc-guide/sphinx.rst
+@@ -80,9 +80,7 @@ output.
+ PDF and LaTeX builds
+ --------------------
  
- 	if (gpio_is_valid(ddata->hpd_gpio))
--		return gpio_get_value_cansleep(ddata->hpd_gpio);
-+		connected = gpio_get_value_cansleep(ddata->hpd_gpio);
- 	else
--		return in->ops.hdmi->detect(in);
-+		connected = in->ops.hdmi->detect(in);
-+	if (!connected && in->ops.hdmi->lost_hotplug)
-+		in->ops.hdmi->lost_hotplug(in);
-+	return connected;
- }
- 
- static int hdmic_register_hpd_cb(struct omap_dss_device *dssdev,
-diff --git a/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c b/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
-index 293b8fd07cfc..20058800aab3 100644
---- a/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
-+++ b/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
-@@ -159,8 +159,12 @@ static int tpd_read_edid(struct omap_dss_device *dssdev,
- static bool tpd_detect(struct omap_dss_device *dssdev)
- {
- 	struct panel_drv_data *ddata = to_panel_data(dssdev);
-+	struct omap_dss_device *in = ddata->in;
-+	bool connected = gpiod_get_value_cansleep(ddata->hpd_gpio);
- 
--	return gpiod_get_value_cansleep(ddata->hpd_gpio);
-+	if (!connected)
-+		in->ops.hdmi->lost_hotplug(in);
-+	return connected;
- }
- 
- static int tpd_register_hpd_cb(struct omap_dss_device *dssdev,
-diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4.c b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-index e535010218e6..0eeba0d1a2f5 100644
---- a/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-+++ b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-@@ -402,8 +402,6 @@ static void hdmi_display_disable(struct omap_dss_device *dssdev)
- 
- 	DSSDBG("Enter hdmi_display_disable\n");
- 
--	hdmi4_cec_set_phys_addr(&hdmi.core, CEC_PHYS_ADDR_INVALID);
+-Such builds are currently supported only with Sphinx versions 1.4 and 1.5.
 -
- 	mutex_lock(&hdmi.lock);
+-Currently, it is not possible to do pdf builds with Sphinx version 1.6.
++Such builds are currently supported only with Sphinx versions 1.4 and upper.
  
- 	spin_lock_irqsave(&hdmi.audio_playing_lock, flags);
-@@ -515,6 +513,11 @@ static int hdmi_read_edid(struct omap_dss_device *dssdev,
- 	return r;
- }
+ For PDF and LaTeX output, you'll also need ``XeLaTeX`` version 3.14159265.
  
-+static void hdmi_lost_hotplug(struct omap_dss_device *dssdev)
-+{
-+	hdmi4_cec_set_phys_addr(&hdmi.core, CEC_PHYS_ADDR_INVALID);
-+}
-+
- static int hdmi_set_infoframe(struct omap_dss_device *dssdev,
- 		const struct hdmi_avi_infoframe *avi)
- {
-@@ -541,6 +544,7 @@ static const struct omapdss_hdmi_ops hdmi_ops = {
- 	.get_timings		= hdmi_display_get_timings,
- 
- 	.read_edid		= hdmi_read_edid,
-+	.lost_hotplug		= hdmi_lost_hotplug,
- 	.set_infoframe		= hdmi_set_infoframe,
- 	.set_hdmi_mode		= hdmi_set_hdmi_mode,
- };
-diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-index b9b0bb27069a..482a385894d7 100644
---- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
-+++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-@@ -402,6 +402,7 @@ struct omapdss_hdmi_ops {
- 			    struct videomode *vm);
- 
- 	int (*read_edid)(struct omap_dss_device *dssdev, u8 *buf, int len);
-+	void (*lost_hotplug)(struct omap_dss_device *dssdev);
- 	bool (*detect)(struct omap_dss_device *dssdev);
- 
- 	int (*register_hpd_cb)(struct omap_dss_device *dssdev,
 -- 
-2.13.2
+2.13.3
