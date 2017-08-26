@@ -1,79 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:33418 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751077AbdHRLMy (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53619
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752480AbdHZLxg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 07:12:54 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-Subject: Re: [PATCH 1/4] v4l: async: fix unbind error in v4l2_async_notifier_unregister()
-Date: Fri, 18 Aug 2017 14:13:17 +0300
-Message-ID: <3708304.dzPkAFdM1e@avalon>
-In-Reply-To: <20170730223158.14405-2-niklas.soderlund+renesas@ragnatech.se>
-References: <20170730223158.14405-1-niklas.soderlund+renesas@ragnatech.se> <20170730223158.14405-2-niklas.soderlund+renesas@ragnatech.se>
+        Sat, 26 Aug 2017 07:53:36 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v4 2/7] media: open.rst: better document device node naming
+Date: Sat, 26 Aug 2017 08:53:20 -0300
+Message-Id: <c7a824a3412f321ac3952bd7c7963e183be08379.1503747774.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503747774.git.mchehab@s-opensource.com>
+References: <cover.1503747774.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <cover.1503747774.git.mchehab@s-opensource.com>
+References: <cover.1503747774.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Right now, only kAPI documentation describes the device naming.
+However, such description is needed at the uAPI too. Add it,
+and describe how to get an unique identify for a given device.
 
-Thank you for the patch.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/v4l/open.rst | 39 ++++++++++++++++++++++++++++++++---
+ 1 file changed, 36 insertions(+), 3 deletions(-)
 
-On Monday 31 Jul 2017 00:31:55 Niklas S=F6derlund wrote:
-> The call to v4l2_async_cleanup() will set sd->asd to NULL so passing =
-it
-> to notifier->unbind() have no effect and leaves the notifier confused=
-.
-> Call the unbind() callback prior to cleaning up the subdevice to avoi=
-d
-> this.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech=
-.se>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->=20
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c
-> b/drivers/media/v4l2-core/v4l2-async.c index
-> 851f128eba2219ad..0acf288d7227ba97 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -226,14 +226,14 @@ void v4l2_async_notifier_unregister(struct
-> v4l2_async_notifier *notifier)
->=20
->  =09=09d =3D get_device(sd->dev);
->=20
-> +=09=09if (notifier->unbind)
-> +=09=09=09notifier->unbind(notifier, sd, sd->asd);
-> +
->  =09=09v4l2_async_cleanup(sd);
->=20
->  =09=09/* If we handled USB devices, we'd have to lock the parent too=
-=20
-*/
->  =09=09device_release_driver(d);
->=20
-> -=09=09if (notifier->unbind)
-> -=09=09=09notifier->unbind(notifier, sd, sd->asd);
-> -
->  =09=09/*
->  =09=09 * Store device at the device cache, in order to call
->  =09=09 * put_device() on the final step
-
---=20
-Regards,
-
-Laurent Pinchart
+diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+index afd116edb40d..fc0037091814 100644
+--- a/Documentation/media/uapi/v4l/open.rst
++++ b/Documentation/media/uapi/v4l/open.rst
+@@ -7,12 +7,14 @@ Opening and Closing Devices
+ ***************************
+ 
+ 
+-Device Naming
+-=============
++.. _v4l2_device_naming:
++
++V4L2 Device Node Naming
++=======================
+ 
+ V4L2 drivers are implemented as kernel modules, loaded manually by the
+ system administrator or automatically when a device is first discovered.
+-The driver modules plug into the "videodev" kernel module. It provides
++The driver modules plug into the ``videodev`` kernel module. It provides
+ helper functions and a common application interface specified in this
+ document.
+ 
+@@ -23,6 +25,37 @@ option CONFIG_VIDEO_FIXED_MINOR_RANGES. In that case minor numbers
+ are allocated in ranges depending on the device node type (video, radio,
+ etc.).
+ 
++The existing V4L2 device node types are:
++
++======================== ======================================================
++Default device node name Usage
++======================== ======================================================
++``/dev/videoX``		 Video input/output devices
++``/dev/vbiX``		 Vertical blank data (i.e. closed captions, teletext)
++``/dev/radioX``		 Radio tuners and modulators
++``/dev/swradioX``	 Software Defined Radio tuners and modulators
++``/dev/v4l-touchX``	 Touch sensors
++======================== ======================================================
++
++Where ``X`` is a non-negative number.
++
++.. note::
++
++   1. The actual device node name is system-dependent, as udev rules may apply.
++   2. There is no warranty that ``X`` will remain the same for the same
++      device, as the number depends on the device driver's probe order.
++      If you need an unique name, udev default rules produce
++      ``/dev/v4l/by-id/`` and ``/dev/v4l/by-path/`` directoiries containing
++      links that can be used uniquely to identify a V4L2 device node::
++
++	$ tree /dev/v4l
++	/dev/v4l
++	├── by-id
++	│   └── usb-OmniVision._USB_Camera-B4.04.27.1-video-index0 -> ../../video0
++	└── by-path
++	    └── pci-0000:00:14.0-usb-0:2:1.0-video-index0 -> ../../video0
++
++
+ Many drivers support "video_nr", "radio_nr" or "vbi_nr" module
+ options to select specific video/radio/vbi node numbers. This allows the
+ user to request that the device node is named e.g. /dev/video5 instead
+-- 
+2.13.3
