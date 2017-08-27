@@ -1,44 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49788 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750967AbdHRIdJ (ORCPT
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:33695 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751182AbdH0QbE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 04:33:09 -0400
-Date: Fri, 18 Aug 2017 11:33:06 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] et8ek8: Decrease stack usage
-Message-ID: <20170818083306.rsh3k2sv6zdilkxs@valkosipuli.retiisi.org.uk>
-References: <1502868825-4531-1-git-send-email-sakari.ailus@linux.intel.com>
- <20170817213842.GA13909@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170817213842.GA13909@amd>
+        Sun, 27 Aug 2017 12:31:04 -0400
+Received: by mail-qt0-f193.google.com with SMTP id q53so3499501qtq.0
+        for <linux-media@vger.kernel.org>; Sun, 27 Aug 2017 09:31:03 -0700 (PDT)
+From: Fabio Estevam <festevam@gmail.com>
+To: mchehab@kernel.org
+Cc: hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
+        linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>
+Subject: [PATCH 3/4] [media] ov2640: Propagate the real error on devm_clk_get() failure
+Date: Sun, 27 Aug 2017 13:30:37 -0300
+Message-Id: <1503851438-4949-3-git-send-email-festevam@gmail.com>
+In-Reply-To: <1503851438-4949-1-git-send-email-festevam@gmail.com>
+References: <1503851438-4949-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 17, 2017 at 11:38:43PM +0200, Pavel Machek wrote:
-> On Wed 2017-08-16 10:33:45, Sakari Ailus wrote:
-> > The et8ek8 driver combines I²C register writes to a single array that it
-> > passes to i2c_transfer(). The maximum number of writes is 48 at once,
-> > decrease it to 8 and make more transfers if needed, thus avoiding a
-> > warning on stack usage.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> > Pavel: this is just compile tested. Could you test it on N900, please?
-> 
-> (More than 1 et8ek8 device makes static bad idea).
-> 
-> Acked-by: Pavel Machek <pavel@ucw.cz>
-> Tested-by: Pavel Machek <pavel@ucw.cz>
+From: Fabio Estevam <fabio.estevam@nxp.com>
 
-Thanks!
+devm_clk_get() may return different error codes other than -EPROBE_DEFER,
+so it is better to return the real error code instead.
 
+Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
+---
+ drivers/media/i2c/ov2640.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
+index e6d0c1f..e6cbe01 100644
+--- a/drivers/media/i2c/ov2640.c
++++ b/drivers/media/i2c/ov2640.c
+@@ -1107,7 +1107,7 @@ static int ov2640_probe(struct i2c_client *client,
+ 	if (client->dev.of_node) {
+ 		priv->clk = devm_clk_get(&client->dev, "xvclk");
+ 		if (IS_ERR(priv->clk))
+-			return -EPROBE_DEFER;
++			return PTR_ERR(priv->clk);
+ 		clk_prepare_enable(priv->clk);
+ 	}
+ 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.7.4
