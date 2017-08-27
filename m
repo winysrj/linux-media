@@ -1,135 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:41926 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751387AbdH3OlZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Aug 2017 10:41:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Mats Randgaard <matrandg@cisco.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/2] tc358743_regs.h: add CEC registers
-Date: Wed, 30 Aug 2017 16:41:21 +0200
-Message-Id: <20170830144122.29054-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170830144122.29054-1-hverkuil@xs4all.nl>
-References: <20170830144122.29054-1-hverkuil@xs4all.nl>
+Received: from smtp.gentoo.org ([140.211.166.183]:37456 "EHLO smtp.gentoo.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751189AbdH0KZE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 27 Aug 2017 06:25:04 -0400
+Subject: Fwd: Aw: Fwd: [PATCH 1/2] cx23885: Fix use-after-free when
+ unregistering the i2c_client for the dvb demod
+References: <trinity-baaff6e7-791e-44b8-bf92-f3c2cf7c194f-1503829135710@3c-app-gmx-bs65>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        mchehab@osg.samsung.com
+Cc: crope@iki.fi, =?UTF-8?Q?Sven_M=c3=bcller?= <xpert-reactos@gmx.de>
+From: Matthias Schwarzott <zzam@gentoo.org>
+Message-ID: <cea98caf-eefa-296d-0a8d-9f5c96aaf088@gentoo.org>
+Date: Sun, 27 Aug 2017 12:25:04 +0200
+MIME-Version: 1.0
+In-Reply-To: <trinity-baaff6e7-791e-44b8-bf92-f3c2cf7c194f-1503829135710@3c-app-gmx-bs65>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Forwarding a tested-by statement (using a HVR-5500).
 
-Add the missing CEC register defines.
+Regards
+Matthias
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/tc358743_regs.h | 94 ++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 92 insertions(+), 2 deletions(-)
+-------- Weitergeleitete Nachricht --------
+Betreff: Aw: Fwd: [PATCH 1/2] cx23885: Fix use-after-free when
+unregistering the i2c_client for the dvb demod
+Datum: Sun, 27 Aug 2017 12:18:55 +0200
+Von: "Sven Müller" <xpert-reactos@gmx.de>
+An: Matthias Schwarzott <zzam@gentoo.org>
 
-diff --git a/drivers/media/i2c/tc358743_regs.h b/drivers/media/i2c/tc358743_regs.h
-index 657ef50f215f..227b46471793 100644
---- a/drivers/media/i2c/tc358743_regs.h
-+++ b/drivers/media/i2c/tc358743_regs.h
-@@ -193,8 +193,98 @@
- #define CSI_START                             0x0518
- #define MASK_STRT                             0x00000001
- 
--#define CECEN                                 0x0600
--#define MASK_CECEN                            0x0001
-+/* *** CEC (32 bit) *** */
-+#define CECHCLK				      0x0028	/* 16 bits */
-+#define MASK_CECHCLK			      (0x7ff << 0)
-+
-+#define CECLCLK				      0x002a	/* 16 bits */
-+#define MASK_CECLCLK			      (0x7ff << 0)
-+
-+#define CECEN				      0x0600
-+#define MASK_CECEN			      0x0001
-+
-+#define CECADD				      0x0604
-+#define CECRST				      0x0608
-+#define MASK_CECRESET			      0x0001
-+
-+#define CECREN				      0x060c
-+#define MASK_CECREN			      0x0001
-+
-+#define CECRCTL1			      0x0614
-+#define MASK_CECACKDIS			      (1 << 24)
-+#define MASK_CECHNC			      (3 << 20)
-+#define MASK_CECLNC			      (7 << 16)
-+#define MASK_CECMIN			      (7 << 12)
-+#define MASK_CECMAX			      (7 << 8)
-+#define MASK_CECDAT			      (7 << 4)
-+#define MASK_CECTOUT			      (3 << 2)
-+#define MASK_CECRIHLD			      (1 << 1)
-+#define MASK_CECOTH			      (1 << 0)
-+
-+#define CECRCTL2			      0x0618
-+#define MASK_CECSWAV3			      (7 << 12)
-+#define MASK_CECSWAV2			      (7 << 8)
-+#define MASK_CECSWAV1			      (7 << 4)
-+#define MASK_CECSWAV0			      (7 << 0)
-+
-+#define CECRCTL3			      0x061c
-+#define MASK_CECWAV3			      (7 << 20)
-+#define MASK_CECWAV2			      (7 << 16)
-+#define MASK_CECWAV1			      (7 << 12)
-+#define MASK_CECWAV0			      (7 << 8)
-+#define MASK_CECACKEI			      (1 << 4)
-+#define MASK_CECMINEI			      (1 << 3)
-+#define MASK_CECMAXEI			      (1 << 2)
-+#define MASK_CECRSTEI			      (1 << 1)
-+#define MASK_CECWAVEI			      (1 << 0)
-+
-+#define CECTEN				      0x0620
-+#define MASK_CECTBUSY			      (1 << 1)
-+#define MASK_CECTEN			      (1 << 0)
-+
-+#define CECTCTL				      0x0628
-+#define MASK_CECSTRS			      (7 << 20)
-+#define MASK_CECSPRD			      (7 << 16)
-+#define MASK_CECDTRS			      (7 << 12)
-+#define MASK_CECDPRD			      (15 << 8)
-+#define MASK_CECBRD			      (1 << 4)
-+#define MASK_CECFREE			      (15 << 0)
-+
-+#define CECRSTAT			      0x062c
-+#define MASK_CECRIWA			      (1 << 6)
-+#define MASK_CECRIOR			      (1 << 5)
-+#define MASK_CECRIACK			      (1 << 4)
-+#define MASK_CECRIMIN			      (1 << 3)
-+#define MASK_CECRIMAX			      (1 << 2)
-+#define MASK_CECRISTA			      (1 << 1)
-+#define MASK_CECRIEND			      (1 << 0)
-+
-+#define CECTSTAT			      0x0630
-+#define MASK_CECTIUR			      (1 << 4)
-+#define MASK_CECTIACK			      (1 << 3)
-+#define MASK_CECTIAL			      (1 << 2)
-+#define MASK_CECTIEND			      (1 << 1)
-+
-+#define CECRBUF1			      0x0634
-+#define MASK_CECRACK			      (1 << 9)
-+#define MASK_CECEOM			      (1 << 8)
-+#define MASK_CECRBYTE			      (0xff << 0)
-+
-+#define CECTBUF1			      0x0674
-+#define MASK_CECTEOM			      (1 << 8)
-+#define MASK_CECTBYTE			      (0xff << 0)
-+
-+#define CECRCTR				      0x06b4
-+#define MASK_CECRCTR			      (0x1f << 0)
-+
-+#define CECIMSK				      0x06c0
-+#define MASK_CECTIM			      (1 << 1)
-+#define MASK_CECRIM			      (1 << 0)
-+
-+#define CECICLR				      0x06cc
-+#define MASK_CECTICLR			      (1 << 1)
-+#define MASK_CECRICLR			      (1 << 0)
-+
- 
- #define HDMI_INT0                             0x8500
- #define MASK_I_KEY                            0x80
--- 
-2.14.1
+Tested-by: Sven Müller <xpert-reactos@gmx.de>
+
+> Gesendet: Sonntag, 27. August 2017 um 12:12 Uhr
+> Von: "Matthias Schwarzott" <zzam@gentoo.org>
+> An: "Sven Müller" <xpert-reactos@gmx.de>
+> Betreff: Fwd: [PATCH 1/2] cx23885: Fix use-after-free when unregistering the i2c_client for the dvb demod
+>
+> 
+> 
+> 
+> -------- Weitergeleitete Nachricht --------
+> Betreff: [PATCH 1/2] cx23885: Fix use-after-free when unregistering the
+> i2c_client for the dvb demod
+> Datum: Wed,  2 Aug 2017 18:45:59 +0200
+> Von: Matthias Schwarzott <zzam@gentoo.org>
+> An: linux-media@vger.kernel.org
+> Kopie (CC): mchehab@osg.samsung.com, crope@iki.fi, Matthias Schwarzott
+> <zzam@gentoo.org>
+> 
+> Unregistering the i2c_client of the demod driver destroys the frontend
+> object.
+> Calling vb2_dvb_unregister_bus later accesses the frontend (and with the
+> refcount_t) conversion the refcount_t code complains:
+> 
+> kernel: ------------[ cut here ]------------
+> kernel: WARNING: CPU: 0 PID: 7883 at lib/refcount.c:128
+> refcount_sub_and_test+0x70/0x80
+> kernel: refcount_t: underflow; use-after-free.
+> kernel: Modules linked in: bluetooth si2165(O) a8293(O) tda10071(O)
+> tea5767(O) tuner(O) cx23885(O-) tda18271(O) videobuf2_dvb(O)
+> videobuf2_dma_sg(O) m88ds3103(O) tveeprom(O) cx2341x(O) v4l2_common(O)
+> dvb_core(O) rc_core(O) videobuf2_memops(O) videobuf2_v4l2(O) ums_realtek
+> videobuf2_core(O) uas videodev(O) media(O) rtl8192cu i2c_mux usb_storage
+> rtl_usb rtl8192c_common rtlwifi snd_hda_codec_hdmi snd_hda_codec_realtek
+> snd_hda_codec_generic snd_hda_intel snd_hda_codec snd_hwdep snd_hda_core
+> x86_pkg_temp_thermal kvm_intel kvm irqbypass
+> kernel: CPU: 0 PID: 7883 Comm: rmmod Tainted: G        W  O
+> 4.11.3-gentoo #3
+> kernel: Hardware name: MEDION E2050 2391/H81H3-EM2, BIOS H81EM2W08.308
+> 08/25/2014
+> kernel: Call Trace:
+> kernel:  dump_stack+0x4d/0x66
+> kernel:  __warn+0xc6/0xe0
+> kernel:  warn_slowpath_fmt+0x46/0x50
+> kernel:  ? kobject_put+0x2f/0x60
+> kernel:  refcount_sub_and_test+0x70/0x80
+> kernel:  refcount_dec_and_test+0x11/0x20
+> kernel:  dvb_unregister_frontend+0x42/0x60 [dvb_core]
+> kernel:  vb2_dvb_dealloc_frontends+0x9e/0x100 [videobuf2_dvb]
+> kernel:  vb2_dvb_unregister_bus+0xd/0x20 [videobuf2_dvb]
+> kernel:  cx23885_dvb_unregister+0xc3/0x110 [cx23885]
+> kernel:  cx23885_dev_unregister+0xea/0x150 [cx23885]
+> kernel:  cx23885_finidev+0x4f/0x70 [cx23885]
+> kernel:  pci_device_remove+0x34/0xb0
+> kernel:  device_release_driver_internal+0x150/0x200
+> kernel:  driver_detach+0x33/0x70
+> kernel:  bus_remove_driver+0x47/0xa0
+> kernel:  driver_unregister+0x27/0x50
+> kernel:  pci_unregister_driver+0x34/0x90
+> kernel:  cx23885_fini+0x10/0x12 [cx23885]
+> kernel:  SyS_delete_module+0x166/0x220
+> kernel:  ? exit_to_usermode_loop+0x7b/0x80
+> kernel:  entry_SYSCALL_64_fastpath+0x17/0x98
+> kernel: RIP: 0033:0x7f5901680b07
+> kernel: RSP: 002b:00007ffdf6cdb028 EFLAGS: 00000206 ORIG_RAX:
+> 00000000000000b0
+> kernel: RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 00007f5901680b07
+> kernel: RDX: 000000000000000a RSI: 0000000000000800 RDI: 0000000001500258
+> kernel: RBP: 00000000015001f0 R08: 0000000000000000 R09: 1999999999999999
+> kernel: R10: 0000000000000884 R11: 0000000000000206 R12: 00007ffdf6cda010
+> kernel: R13: 0000000000000000 R14: 00000000015001f0 R15: 00000000014ff010
+> kernel: ---[ end trace c3a4659b89086061 ]---
+> 
+> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+> ---
+>  drivers/media/pci/cx23885/cx23885-dvb.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c
+> b/drivers/media/pci/cx23885/cx23885-dvb.c
+> index 979b66627f60..e795ddeb7fe2 100644
+> --- a/drivers/media/pci/cx23885/cx23885-dvb.c
+> +++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+> @@ -2637,6 +2637,11 @@ int cx23885_dvb_unregister(struct cx23885_tsport
+> *port)
+>  	struct vb2_dvb_frontend *fe0;
+>  	struct i2c_client *client;
+>  +	fe0 = vb2_dvb_get_frontend(&port->frontends, 1);
+> +
+> +	if (fe0 && fe0->dvb.frontend)
+> +		vb2_dvb_unregister_bus(&port->frontends);
+> +
+>  	/* remove I2C client for CI */
+>  	client = port->i2c_client_ci;
+>  	if (client) {
+> @@ -2665,11 +2670,6 @@ int cx23885_dvb_unregister(struct cx23885_tsport
+> *port)
+>  		i2c_unregister_device(client);
+>  	}
+>  -	fe0 = vb2_dvb_get_frontend(&port->frontends, 1);
+> -
+> -	if (fe0 && fe0->dvb.frontend)
+> -		vb2_dvb_unregister_bus(&port->frontends);
+> -
+>  	switch (port->dev->board) {
+>  	case CX23885_BOARD_NETUP_DUAL_DVBS2_CI:
+>  		netup_ci_exit(port);
+> -- 
+> 2.13.3
+> 
+> 
+>
