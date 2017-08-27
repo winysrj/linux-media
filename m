@@ -1,72 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:42593 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751399AbdHGNb1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Aug 2017 09:31:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.anw.at ([195.234.101.228]:50133 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751128AbdH0BaQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 26 Aug 2017 21:30:16 -0400
+From: "Jasmin J." <jasmin@anw.at>
 To: linux-media@vger.kernel.org
-Cc: Sean Young <sean@mess.org>, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/2] rc-main: support CEC protocol keypress timeout
-Date: Mon,  7 Aug 2017 15:31:23 +0200
-Message-Id: <20170807133124.30682-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170807133124.30682-1-hverkuil@xs4all.nl>
-References: <20170807133124.30682-1-hverkuil@xs4all.nl>
+Cc: hverkuil@xs4all.nl, d.scheller@gmx.net, sean@mess.org,
+        jasmin@anw.at
+Subject: [PATCH 0/1] build: gpio-ir-tx for 3.13
+Date: Sun, 27 Aug 2017 03:30:09 +0200
+Message-Id: <1503797410-11860-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Jasmin Jessich <jasmin@anw.at>
 
-The CEC protocol has a keypress timeout of 550ms. Add support for this.
+Kernel 3.17 introduces GPIOD_OUT_LOW/HIGH. gpio-ir-tx requires this
+definitions. This patch adds the API calls prior to 3.17 to be used
+by gpio-ir-tx.
+With that gpio-ir-tx can be compiled back to Kernel 3.13.
+I tested the compilation (not the functionality!) on 4.4, 3.13 and
+3.4.
 
-Note: this really should be defined in a protocol struct.
+@Sean: Please check if the code in v3.16_gpio-ir-tx.patch looks
+feasible for you (can't test this here). If not, we will drop this
+patch and simply disable gpio-ir-tx for Kernels older than 3.17.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/rc/rc-main.c | 17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+Jasmin Jessich (1):
+  build: gpio-ir-tx backport
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index a9eba0013525..073407a78f70 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -33,6 +33,9 @@
- /* FIXME: IR_KEYPRESS_TIMEOUT should be protocol specific */
- #define IR_KEYPRESS_TIMEOUT 250
- 
-+/* The CEC protocol needs a timeout of 550 */
-+#define IR_KEYPRESS_CEC_TIMEOUT 550
-+
- /* Used to keep track of known keymaps */
- static LIST_HEAD(rc_map_list);
- static DEFINE_SPINLOCK(rc_map_lock);
-@@ -622,7 +625,12 @@ void rc_repeat(struct rc_dev *dev)
- 	if (!dev->keypressed)
- 		goto out;
- 
--	dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
-+	if (dev->last_protocol == RC_TYPE_CEC)
-+		dev->keyup_jiffies = jiffies +
-+			msecs_to_jiffies(IR_KEYPRESS_CEC_TIMEOUT);
-+	else
-+		dev->keyup_jiffies = jiffies +
-+			msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
- 	mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
- 
- out:
-@@ -692,7 +700,12 @@ void rc_keydown(struct rc_dev *dev, enum rc_type protocol, u32 scancode, u8 togg
- 	ir_do_keydown(dev, protocol, scancode, keycode, toggle);
- 
- 	if (dev->keypressed) {
--		dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
-+		if (protocol == RC_TYPE_CEC)
-+			dev->keyup_jiffies = jiffies +
-+				msecs_to_jiffies(IR_KEYPRESS_CEC_TIMEOUT);
-+		else
-+			dev->keyup_jiffies = jiffies +
-+				msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
- 		mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
- 	}
- 	spin_unlock_irqrestore(&dev->keylock, flags);
+ backports/backports.txt          |  1 +
+ backports/v3.16_gpio-ir-tx.patch | 27 +++++++++++++++++++++++++++
+ v4l/versions.txt                 |  1 +
+ 3 files changed, 29 insertions(+)
+ create mode 100644 backports/v3.16_gpio-ir-tx.patch
+
 -- 
-2.13.2
+2.7.4
