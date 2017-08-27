@@ -1,73 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam03on0061.outbound.protection.outlook.com ([104.47.42.61]:20262
-        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751209AbdH2BlH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Aug 2017 21:41:07 -0400
-From: Soren Brinkmann <soren.brinkmann@xilinx.com>
-To: <mchehab@kernel.org>, <robh+dt@kernel.org>, <mark.rutland@arm.com>,
-        <hans.verkuil@cisco.com>, <sakari.ailus@linux.intel.com>
-CC: <linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>,
-        Leon Luo <leonl@leopardimaging.com>,
-        =?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>
-Subject: [PATCH v2 1/2] media:imx274 device tree binding file
-Date: Mon, 28 Aug 2017 18:40:25 -0700
-Message-ID: <20170829014026.26551-1-soren.brinkmann@xilinx.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:36867 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751182AbdH0QbG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 27 Aug 2017 12:31:06 -0400
+Received: by mail-qt0-f194.google.com with SMTP id g13so3490537qta.4
+        for <linux-media@vger.kernel.org>; Sun, 27 Aug 2017 09:31:06 -0700 (PDT)
+From: Fabio Estevam <festevam@gmail.com>
+To: mchehab@kernel.org
+Cc: hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
+        linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>
+Subject: [PATCH 4/4] [media] ov2640: Check the return value from clk_prepare_enable()
+Date: Sun, 27 Aug 2017 13:30:38 -0300
+Message-Id: <1503851438-4949-4-git-send-email-festevam@gmail.com>
+In-Reply-To: <1503851438-4949-1-git-send-email-festevam@gmail.com>
+References: <1503851438-4949-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Leon Luo <leonl@leopardimaging.com>
+From: Fabio Estevam <fabio.estevam@nxp.com>
 
-The binding file for imx274 CMOS sensor V4l2 driver
+clk_prepare_enable() may fail, so we should better check its return value
+and propagate it in the case of error.
 
-Signed-off-by: Leon Luo <leonl@leopardimaging.com>
-Acked-by: Sören Brinkmann <soren.brinkmann@xilinx.com>
+Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
 ---
- .../devicetree/bindings/media/i2c/imx274.txt       | 32 ++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/imx274.txt
+ drivers/media/i2c/ov2640.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/imx274.txt b/Documentation/devicetree/bindings/media/i2c/imx274.txt
-new file mode 100644
-index 000000000000..9154666d1149
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/imx274.txt
-@@ -0,0 +1,32 @@
-+* Sony 1/2.5-Inch 8.51Mp CMOS Digital Image Sensor
-+
-+The Sony imx274 is a 1/2.5-inch CMOS active pixel digital image sensor with
-+an active array size of 3864H x 2202V. It is programmable through I2C
-+interface. The I2C address is fixed to 0x1a as per sensor data sheet.
-+Image data is sent through MIPI CSI-2, which is configured as 4 lanes
-+at 1440 Mbps.
-+
-+
-+Required Properties:
-+- compatible: value should be "sony,imx274" for imx274 sensor
-+
-+Optional Properties:
-+- reset-gpios: Sensor reset GPIO
-+
-+For further reading on port node refer to
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+	imx274: sensor@1a{
-+		compatible = "sony,imx274";
-+		reg = <0x1a>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		reset-gpios = <&gpio_sensor 0 0>;
-+		port@0 {
-+			reg = <0>;
-+			sensor_out: endpoint {
-+				remote-endpoint = <&csiss_in>;
-+			};
-+		};
-+	};
+diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
+index e6cbe01..5f013c8 100644
+--- a/drivers/media/i2c/ov2640.c
++++ b/drivers/media/i2c/ov2640.c
+@@ -1108,7 +1108,9 @@ static int ov2640_probe(struct i2c_client *client,
+ 		priv->clk = devm_clk_get(&client->dev, "xvclk");
+ 		if (IS_ERR(priv->clk))
+ 			return PTR_ERR(priv->clk);
+-		clk_prepare_enable(priv->clk);
++		ret = clk_prepare_enable(priv->clk);
++		if (ret)
++			return ret;
+ 	}
+ 
+ 	ret = ov2640_probe_dt(client, priv);
 -- 
-2.14.1.3.g5766cf452
+2.7.4
