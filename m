@@ -1,249 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40670 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752874AbdHYNKn (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:59327 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751152AbdH0DjO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Aug 2017 09:10:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH 1/3] media: open.rst: document devnode-centric and mc-centric types
-Date: Fri, 25 Aug 2017 16:11:15 +0300
-Message-ID: <14323646.WPb2L3qxUc@avalon>
-In-Reply-To: <bef8524bf9eb1fbf51fff93d59c42602009858c1.1503653839.git.mchehab@s-opensource.com>
-References: <cover.1503653839.git.mchehab@s-opensource.com> <bef8524bf9eb1fbf51fff93d59c42602009858c1.1503653839.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+        Sat, 26 Aug 2017 23:39:14 -0400
+Message-ID: <0f257258c9fb629fd333494866dbce09@smtp-cloud7.xs4all.net>
+Date: Sun, 27 Aug 2017 05:39:11 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thank you for the patch.
+Results of the daily build of media_tree:
 
-On Friday, 25 August 2017 12:40:05 EEST Mauro Carvalho Chehab wrote:
-> From: "mchehab@s-opensource.com" <mchehab@s-opensource.com>
->=20
-> When we added support for omap3, back in 2010, we added a new
-> type of V4L2 devices that aren't fully controlled via the V4L2
-> device node. Yet, we never made it clear, at the V4L2 spec,
-> about the differences between both types.
+date:			Sun Aug 27 05:00:17 CEST 2017
+media-tree git hash:	0b56d1c8fd8991b0ae5255151c54ed20deb49a28
+media_build git hash:	4a73db0fa0115ef58537be61da6099c828f57d2b
+v4l-utils git hash:	5a6e0c38468c629f3f6f4fb988acebb9e66e2917
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-Nitpicking (and there will be lots of nitpicking in this review as I think=
-=20
-it's very important to get this piece of the documentation right down to=20
-details):
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
 
-s/at the V4L2 spec/in the V4L2 spec/
+Detailed results are available here:
 
-"make it clear about" doesn't sound good to me. How about the following ?
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-"Yet, we have never clearly documented in the V4L2 specification the=20
-differences between the two types."
+Full logs are available here:
 
-> Let's document them with the current implementation.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-s/with the/based on the/
+The Media Infrastructure API from this daily build is here:
 
->=20
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  Documentation/media/uapi/v4l/open.rst | 50 +++++++++++++++++++++++++++++=
-+++
->  1 file changed, 50 insertions(+)
->=20
-> diff --git a/Documentation/media/uapi/v4l/open.rst
-> b/Documentation/media/uapi/v4l/open.rst index afd116edb40d..a72d142897c0
-> 100644
-> --- a/Documentation/media/uapi/v4l/open.rst
-> +++ b/Documentation/media/uapi/v4l/open.rst
-> @@ -6,6 +6,56 @@
->  Opening and Closing Devices
->  ***************************
->=20
-> +Types of V4L2 hardware control
-> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D
-> +
-> +V4L2 devices are usually complex: they are implemented via a main driver
-> and
-> +often several additional drivers. The main driver always exposes one or
-> +more **V4L2 device** devnodes (see :ref:`v4l2_device_naming`).
-
-=46irst of all, as stated in a previous e-mail, I think we should start by=
-=20
-defining the terms we are going to use. The word "device" is ambiguous, it =
-can=20
-mean
-
-=2D device node
-
-The /dev device node through which a character- or block-based API is expos=
-ed=20
-through userspace.
-
-The term "device node" is commonly used in the kernel, I think we can use i=
-t=20
-as-is without ambiguity.
-
-=2D kernel struct device
-
-An instance of the kernel struct device. Kernel devices are used to represe=
-nt=20
-hardware devices (and are then embedded in bus-specific device structure su=
-ch=20
-as platform_device, pci_device or i2c_client) and logical devices (and are=
-=20
-then embedded in class-spcific device structures such as struct video_devic=
-e=20
-or struct net_device).
-
-=46or now I believe this isn't relevant to the V4L2 userspace API discussio=
-n, so=20
-we can leave it out.
-
-=2D hardware device
-
-The hardware counterpart of the first category of the kernel struct device,=
- a=20
-hardware (and thus physical) device such as an SoC IP core or an I2C chip.
-
-We could call this "hardware device" or "hardware component". Other proposa=
-ls=20
-are welcome.
-
-=2D hardware peripheral
-
-A group of hardware devices that together make a larger user-facing functio=
-nal=20
-peripheral. For instance the SoC ISP IP cores and external camera sensors=20
-together make a camera peripheral.
-
-If we call the previous device a "hardware component" this could be called=
-=20
-"hardware device". Otherwise "hardware peripheral" is a possible name, but =
-we=20
-can probably come up with a better name.
-
-=2D software peripheral
-
-The software counterpart of the hardware peripheral. In V4L2 this is modele=
-d=20
-by a struct v4l2_device, often associated with a struct media_device.
-
-I don't like the name "software peripheral", other proposals are welcome.
-
-Once we agree on names and definitions I'll comment on the reworked version=
- of=20
-this patch, as it's pointless to bikeshed the wording without first agreein=
-g=20
-on clear definitions of the concepts we're discussing. Please still see bel=
-ow=20
-for a few comments not related to particular wording.
-
-> +The other drivers are called **V4L2 sub-devices** and provide control to
-> +other parts of the hardware usually connected via a serial bus (like
-> +I=B2C, SMBus or SPI). They can be implicitly controlled directly by the
-> +main driver or explicitly through via the **V4L2 sub-device API**
-> interface.
-> +
-> +When V4L2 was originally designed, there was only one type of device
-> control.
-> +The entire device was controlled via the **V4L2 device nodes**. We refer=
- to
-> +this kind of control as **V4L2 device node centric** (or,
-> simply, +**vdev-centric**).
-> +
-> +Since the end of 2010, a new type of V4L2 device control was added in or=
-der
-> +to support complex devices that are common for embedded systems. Those
-> +devices are controlled mainly via the media controller and sub-devices.
-> +So, they're called: **Media controller centric** (or, simply,
-> +"**MC-centric**").
-
-Do we really need to explain the development history with dates ? I don't=20
-think it helps understanding the separation between vdev-centric and MC-
-centric devices. For instance the previous paragraph that explains that V4L=
-2=20
-originally had a single type of device control that we now call vdev-centri=
-c=20
-doesn't really help understanding what a vdev-centric device is.
-
-It would be clearer in my opinion to explain the two kind of devices with a=
-n=20
-associated use case, without referring to the history.
-
-> +For **vdev-centric** control, the device and their corresponding hardware
-> +pipelines are controlled via the **V4L2 device** node. They may optional=
-ly
-> +expose via the :ref:`media controller API <media_controller>`.
-> +
-> +For **MC-centric** control, before using the V4L2 device, it is required=
- to
-> +set the hardware pipelines via the
-> +:ref:`media controller API <media_controller>`. For those devices, the
-> +sub-devices' configuration can be controlled via the
-> +:ref:`sub-device API <subdev>`, with creates one device node per sub
-> device.
-> +
-> +In summary, for **MC-centric** devices:
-> +
-> +- The **V4L2 device** node is responsible for controlling the streaming
-> +  features;
-> +- The **media controller device** is responsible to setup the pipelines;
-> +- The **V4L2 sub-devices** are responsible for sub-device
-> +  specific settings.
-
-How about a summary of vdev-centric devices too ? Or, possibly, no summary =
-at=20
-all ? The need to summarize 5 short paragraphs probably indicates that thos=
-e=20
-paragraphis are not clear enough :-)
-
-I can try to help by proposing enhancements to the documentation once we ag=
-ree=20
-on the glossary above.
-
-> +.. note::
-> +
-> +   A **vdev-centric** may optionally expose V4L2 sub-devices via
-> +   :ref:`sub-device API <subdev>`. In that case, it has to implement
-> +   the :ref:`media controller API <media_controller>` as well.
-
-The separation between vdev-centric and MC-centric devices is quite clear. =
-If=20
-we allow a vdev-centric device to expose subdev nodes we will open the door=
- to=20
-all kind of hybrid implementations that have no clear definition today. It=
-=20
-will be very important in that case to document in details what is allowed =
-and=20
-what isn't, and how the video device nodes and subdev device nodes interact=
-=20
-with each other. I prefer not giving a green light to such implementations=
-=20
-until we have to, and I also prefer discussing this topic separately. It wi=
-ll=20
-require a fair amount of work to document (and thus first agree on), and=20
-there's no need to block the rest of this patch until we complete that work=
-=2E=20
-=46or those reasons I would like to explicitly disallow those hybrid device=
-s in=20
-this patch, and start discussing the use cases we have for them, and how th=
-ey=20
-would operate.
-
-> +.. _v4l2_device_naming:
->=20
->  Device Naming
->  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+http://www.xs4all.nl/~hverkuil/spec/index.html
