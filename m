@@ -1,56 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:38125 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752061AbdHNR5t (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55339
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751130AbdH0MGB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Aug 2017 13:57:49 -0400
-Subject: Re: [PATCH] [media] media: imx: depends on V4L2 sub-device userspace
- API
-To: Cihangir Akturk <cakturk@gmail.com>
-Cc: p.zabel@pengutronix.de, mchehab@kernel.org,
-        gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-References: <1502708457-13344-1-git-send-email-cakturk@gmail.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <5ac43a35-f7ec-7ffc-3e6e-c0af8f4ac497@gmail.com>
-Date: Mon, 14 Aug 2017 10:57:46 -0700
+        Sun, 27 Aug 2017 08:06:01 -0400
+Date: Sun, 27 Aug 2017 09:05:53 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: panic <lists@xandea.de>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] [em28xx] add config for em28xx-based board by MAGIX
+Message-ID: <20170827090553.5e7ab121@vento.lan>
+In-Reply-To: <592d2d47-df0a-2f60-0667-edf776218bd4@xandea.de>
+References: <592d2d47-df0a-2f60-0667-edf776218bd4@xandea.de>
 MIME-Version: 1.0
-In-Reply-To: <1502708457-13344-1-git-send-email-cakturk@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Akturk, this has already been fixed, see
+Em Fri, 18 Aug 2017 12:11:00 +0000
+panic <lists@xandea.de> escreveu:
 
-4560cb4a0c ("media: imx: add VIDEO_V4L2_SUBDEV_API dependency").
+> Hi,
+> 
+> the patch below adds the entries to the config arrays for a capture-only
+> board distributed by MAGIX [0]. The hardware itself (EM2860, SAA7113,
+> EMP202) is already supported.
 
-Steve
+> This patch lacks the configuration for the GPIO pin, because I had/have
+> no time yet to figure out how it works. Video and audio work fine for me
+> in mplayer/mencoder.
 
-On 08/14/2017 04:00 AM, Cihangir Akturk wrote:
-> This driver uses various v4l2_subdev_get_try_*() functions provided by
-> V4L2 sub-device userspace API. Current configuration of Kconfig file
-> allows us to enable VIDEO_IMX_MEDIA without enabling this API. This
-> breaks the build of driver.
->
-> Depend on VIDEO_V4L2_SUBDEV_API to fix this issue.
->
-> Signed-off-by: Cihangir Akturk <cakturk@gmail.com>
-> ---
->   drivers/staging/media/imx/Kconfig | 3 ++-
->   1 file changed, 2 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/staging/media/imx/Kconfig b/drivers/staging/media/imx/Kconfig
-> index 7eff50b..d8c3890 100644
-> --- a/drivers/staging/media/imx/Kconfig
-> +++ b/drivers/staging/media/imx/Kconfig
-> @@ -1,6 +1,7 @@
->   config VIDEO_IMX_MEDIA
->   	tristate "i.MX5/6 V4L2 media core driver"
-> -	depends on MEDIA_CONTROLLER && VIDEO_V4L2 && ARCH_MXC && IMX_IPUV3_CORE
-> +	depends on MEDIA_CONTROLLER && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && \
-> +		ARCH_MXC && IMX_IPUV3_CORE
->   	select V4L2_FWNODE
->   	---help---
->   	  Say yes here to enable support for video4linux media controller
+You may won't need to touch it. Several capture-only boards just don't
+use GPIO at all. That's easy to test: just connect the hardware on your
+machine with Linux booted with the driver. If it works as-is, you
+won't need to touch GPIOs. If, on the other hand, you need to first
+boot it with the original driver and reboot linux, then you'll need
+to sniff what the original driver is doing with regards to GPIO.
+
+> The patch works against Linux 4.9.0 from Debian stretch/stable.
+> 
+> This is my first kernel submission, so tell me if you need more info or
+> if something should be changed. Thanks!
+> 
+> Cheers,
+> panic
+> 
+> [0] contains not much info, but for the record:
+>     http://www.magix.com/gb/rescue-your-videotapes/
+
+The patch itself is OK, except that it should be based on upstream
+Kernel (although I can easily rebase it, as the enclosed version).
+
+The main issue with it is that you need to follow the
+submission rules of the Kernel. In particular, all patches
+should contain your real name and a Signed-off-by with it, as
+stated at:
+
+	https://www.kernel.org/doc/html/latest/process/submitting-patches.html#sign-your-work-the-developer-s-certificate-of-origin
+
+As reference, I enclosed how the patch should like, rebased to
+the upstream Kernel version. You'll need to put your real name
+on it.
+
+Thanks,
+Mauro
+
+
+-
+
+[em28xx] add config for em28xx-based board by MAGIX
+
+From: your real name <lists@xandea.de>
+
+Adds the entries to the config arrays for a capture-only board 
+distributed by MAGIX [0]. The hardware itself (EM2860, SAA7113,
+EMP202) is already supported.
+
+[0] contains not much info, but for the record:
+    http://www.magix.com/gb/rescue-your-videotapes/
+
+Signed-off-by: your real name <lists@xandea.de>
+
+
+---
+ drivers/media/usb/em28xx/em28xx-cards.c |   20 ++++++++++++++++++++
+ drivers/media/usb/em28xx/em28xx.h       |    1 +
+ 2 files changed, 21 insertions(+)
+
+--- patchwork.orig/drivers/media/usb/em28xx/em28xx-cards.c
++++ patchwork/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2421,6 +2421,24 @@ struct em28xx_board em28xx_boards[] = {
+ 		.ir_codes      = RC_MAP_HAUPPAUGE,
+ 		.leds          = hauppauge_dualhd_leds,
+ 	},
++	/*
++	 * 1b80:e349 MAGIX "Rescue your Videotapes!"
++	 * Empia EM2860, Philips SAA7113, Empia EMP202, No Tuner
++	 */
++	[EM2860_BOARD_MAGIX] = {
++		.name         = "MAGIX",
++		.tuner_type   = TUNER_ABSENT,
++		.decoder      = EM28XX_SAA711X,
++		.input        = { {
++			.type     = EM28XX_VMUX_COMPOSITE,
++			.vmux     = SAA7115_COMPOSITE0,
++			.amux     = EM28XX_AMUX_AUX,
++		}, {
++			.type     = EM28XX_VMUX_SVIDEO,
++			.vmux     = SAA7115_SVIDEO3,
++			.amux     = EM28XX_AMUX_AUX,
++		} },
++	},
+ };
+ EXPORT_SYMBOL_GPL(em28xx_boards);
+ 
+@@ -2620,6 +2638,8 @@ struct usb_device_id em28xx_id_table[] =
+ 			.driver_info = EM28178_BOARD_PLEX_PX_BCUD },
+ 	{ USB_DEVICE(0xeb1a, 0x5051), /* Ion Video 2 PC MKII / Startech svid2usb23 / Raygo R12-41373 */
+ 			.driver_info = EM2860_BOARD_TVP5150_REFERENCE_DESIGN },
++	{ USB_DEVICE(0x1b80, 0xe349),
++			.driver_info = EM2860_BOARD_MAGIX },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(usb, em28xx_id_table);
+--- patchwork.orig/drivers/media/usb/em28xx/em28xx.h
++++ patchwork/drivers/media/usb/em28xx/em28xx.h
+@@ -149,6 +149,7 @@
+ #define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB  99
+ #define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595 100
+ #define EM2884_BOARD_TERRATEC_H6		  101
++#define EM2860_BOARD_MAGIX                        102
+ 
+ /* Limits minimum and default number of buffers */
+ #define EM28XX_MIN_BUF 4
