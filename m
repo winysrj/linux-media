@@ -1,72 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f47.google.com ([209.85.214.47]:37199 "EHLO
-        mail-it0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754560AbdHZMMg (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58250
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751286AbdH1MyK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 08:12:36 -0400
-MIME-Version: 1.0
-In-Reply-To: <20170826085942.78e0d222@vento.lan>
-References: <1503742812-16139-1-git-send-email-bhumirks@gmail.com> <20170826085942.78e0d222@vento.lan>
-From: Bhumika Goyal <bhumirks@gmail.com>
-Date: Sat, 26 Aug 2017 17:42:34 +0530
-Message-ID: <CAOH+1jH0BUgoyJK7=QUQcBMpqYf+W0TeMyJ+T2JSyxzY2Ha8fQ@mail.gmail.com>
-Subject: Re: [PATCH 00/10] [media] platform: make video_device const
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Julia Lawall <julia.lawall@lip6.fr>, mchehab@kernel.org,
-        hverkuil@xs4all.nl, Jonathan Corbet <corbet@lwn.net>,
-        Kyungmin Park <kyungmin.park@samsung.com>, kamil@wypas.org,
-        a.hajda@samsung.com, bparrot@ti.com, linux-media@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel@lists.infradead.org
-Content-Type: text/plain; charset="UTF-8"
+        Mon, 28 Aug 2017 08:54:10 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v5 5/7] media: open.rst: Adjust some terms to match the glossary
+Date: Mon, 28 Aug 2017 09:53:59 -0300
+Message-Id: <e173f9d7a787511e6ee46cec702ab98963a10af0.1503924361.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503924361.git.mchehab@s-opensource.com>
+References: <cover.1503924361.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1503924361.git.mchehab@s-opensource.com>
+References: <cover.1503924361.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Aug 26, 2017 at 5:29 PM, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
-> Em Sat, 26 Aug 2017 15:50:02 +0530
-> Bhumika Goyal <bhumirks@gmail.com> escreveu:
->
->> Make make video_device const.
->>
->> Bhumika Goyal (10):
->>   [media] cx88: make video_device const
->>   [media] dt3155: make video_device const
->>   [media]: marvell-ccic: make video_device const
->>   [media] mx2-emmaprp: make video_device const
->>   [media]: s5p-g2d: make video_device const
->>   [media]: ti-vpe:  make video_device const
->>   [media] via-camera: make video_device const
->>   [media]: fsl-viu: make video_device const
->>   [media] m2m-deinterlace: make video_device const
->>   [media] vim2m: make video_device const
->>
->>  drivers/media/pci/cx88/cx88-blackbird.c         | 2 +-
->>  drivers/media/pci/dt3155/dt3155.c               | 2 +-
->>  drivers/media/platform/fsl-viu.c                | 2 +-
->>  drivers/media/platform/m2m-deinterlace.c        | 2 +-
->>  drivers/media/platform/marvell-ccic/mcam-core.c | 2 +-
->>  drivers/media/platform/mx2_emmaprp.c            | 2 +-
->>  drivers/media/platform/s5p-g2d/g2d.c            | 2 +-
->>  drivers/media/platform/ti-vpe/cal.c             | 2 +-
->>  drivers/media/platform/ti-vpe/vpe.c             | 2 +-
->>  drivers/media/platform/via-camera.c             | 2 +-
->>  drivers/media/platform/vim2m.c                  | 2 +-
->
-> Please, don't do one such cleanup patch per file. Instead, group
-> it per subdirectory, e. g. on e patch for:
->         drivers/media/platform/
->
-> and another one for:
->         drivers/media/pci/
->
-> That makes a lot easier to review and apply.
->
+As we now have a glossary, some terms used on open.rst
+require adjustments.
 
-Okay, I will keep this in mind. Should I send a v2 for both the series?
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/v4l/open.rst | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-Thanks,
-Bhumika
-
-> Thanks,
-> Mauro
+diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+index 21b8f7c5ca55..2575b6aea029 100644
+--- a/Documentation/media/uapi/v4l/open.rst
++++ b/Documentation/media/uapi/v4l/open.rst
+@@ -138,7 +138,7 @@ Related Devices
+ Devices can support several functions. For example video capturing, VBI
+ capturing and radio support.
+ 
+-The V4L2 API creates different nodes for each of these functions.
++The V4L2 API creates different V4L2 device nodes for each of these functions.
+ 
+ The V4L2 API was designed with the idea that one device node could
+ support all functions. However, in practice this never worked: this
+@@ -148,17 +148,17 @@ switching a device node between different functions only works when
+ using the streaming I/O API, not with the
+ :ref:`read() <func-read>`/\ :ref:`write() <func-write>` API.
+ 
+-Today each device node supports just one function.
++Today each V4L2 device node supports just one function.
+ 
+ Besides video input or output the hardware may also support audio
+ sampling or playback. If so, these functions are implemented as ALSA PCM
+ devices with optional ALSA audio mixer devices.
+ 
+ One problem with all these devices is that the V4L2 API makes no
+-provisions to find these related devices. Some really complex devices
+-use the Media Controller (see :ref:`media_controller`) which can be
+-used for this purpose. But most drivers do not use it, and while some
+-code exists that uses sysfs to discover related devices (see
++provisions to find these related V4L2 device nodes. Some really complex
++hardware use the Media Controller (see :ref:`media_controller`) which can
++be used for this purpose. But several drivers do not use it, and while some
++code exists that uses sysfs to discover related V4L2 device nodes (see
+ libmedia_dev in the
+ `v4l-utils <http://git.linuxtv.org/cgit.cgi/v4l-utils.git/>`__ git
+ repository), there is no library yet that can provide a single API
+-- 
+2.13.5
