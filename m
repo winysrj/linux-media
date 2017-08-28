@@ -1,81 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:57458 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753021AbdHULuF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Aug 2017 07:50:05 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.14] More constify & venus fixes
-Message-ID: <337ca7e4-995c-9829-192e-c073123e1dd3@xs4all.nl>
-Date: Mon, 21 Aug 2017 13:50:01 +0200
+Received: from mout.web.de ([212.227.17.11]:61485 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751211AbdH1LP4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 Aug 2017 07:15:56 -0400
+Subject: [PATCH 2/3] [media] Siano: Improve a size determination in six
+ functions
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <386b5a60-548e-1896-5271-4875fa2aea94@users.sourceforge.net>
+Message-ID: <444ee06a-458c-675f-f8ae-a551b32d5d83@users.sourceforge.net>
+Date: Mon, 28 Aug 2017 13:15:27 +0200
 MIME-Version: 1.0
+In-Reply-To: <386b5a60-548e-1896-5271-4875fa2aea94@users.sourceforge.net>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 0779b8855c746c90b85bfe6e16d5dfa2a6a46655:
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 28 Aug 2017 12:38:39 +0200
 
-  media: ddbridge: fix semicolon.cocci warnings (2017-08-20 10:25:22 -0400)
+Replace the specification of data structures by pointer dereferences
+as the parameter for the operator "sizeof" to make the corresponding size
+determination a bit safer according to the Linux coding style convention.
 
-are available in the git repository at:
+This issue was detected by using the Coccinelle software.
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.14j
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/common/siano/smscoreapi.c | 14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-for you to fetch changes up to b7573e3c684cb552cfbc86712279c131a691acef:
-
-  media: venus: venc: drop VP9 codec support (2017-08-21 13:43:07 +0200)
-
-----------------------------------------------------------------
-Arvind Yadav (6):
-      ad9389b: constify i2c_device_id
-      adv7511: constify i2c_device_id
-      adv7842: constify i2c_device_id
-      saa7127: constify i2c_device_id
-      tc358743: constify i2c_device_id
-      ths8200: constify i2c_device_id
-
-Bhumika Goyal (5):
-      usb: make i2c_algorithm const
-      i2c: make device_type const
-      media: pci: make i2c_adapter const
-      radio-usb-si4713: make i2c_adapter const
-      usb: make i2c_adapter const
-
-Stanimir Varbanov (5):
-      media: venus: mark venc and vdec PM functions as __maybe_unused
-      media: venus: fill missing video_device name
-      media: venus: add helper to check supported codecs
-      media: venus: use helper function to check supported codecs
-      media: venus: venc: drop VP9 codec support
-
- drivers/media/i2c/ad9389b.c                       |  2 +-
- drivers/media/i2c/adv7511.c                       |  2 +-
- drivers/media/i2c/adv7842.c                       |  2 +-
- drivers/media/i2c/saa7127.c                       |  2 +-
- drivers/media/i2c/soc_camera/mt9t031.c            |  2 +-
- drivers/media/i2c/tc358743.c                      |  2 +-
- drivers/media/i2c/ths8200.c                       |  2 +-
- drivers/media/pci/cobalt/cobalt-i2c.c             |  2 +-
- drivers/media/pci/cx18/cx18-i2c.c                 |  2 +-
- drivers/media/pci/cx23885/cx23885-i2c.c           |  2 +-
- drivers/media/pci/cx25821/cx25821-i2c.c           |  2 +-
- drivers/media/pci/ivtv/ivtv-i2c.c                 |  4 ++--
- drivers/media/pci/netup_unidvb/netup_unidvb_i2c.c |  2 +-
- drivers/media/pci/saa7134/saa7134-i2c.c           |  2 +-
- drivers/media/pci/saa7164/saa7164-i2c.c           |  2 +-
- drivers/media/platform/qcom/venus/helpers.c       | 49 +++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/platform/qcom/venus/helpers.h       |  1 +
- drivers/media/platform/qcom/venus/vdec.c          | 31 ++++++++++++++++++++-----------
- drivers/media/platform/qcom/venus/venc.c          | 39 ++++++++++++++++++++++-----------------
- drivers/media/radio/si4713/radio-usb-si4713.c     |  2 +-
- drivers/media/usb/au0828/au0828-i2c.c             |  4 ++--
- drivers/media/usb/cx231xx/cx231xx-i2c.c           |  2 +-
- drivers/media/usb/em28xx/em28xx-i2c.c             |  2 +-
- drivers/media/usb/hdpvr/hdpvr-i2c.c               |  2 +-
- drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c      |  4 ++--
- drivers/media/usb/stk1160/stk1160-i2c.c           |  2 +-
- drivers/media/usb/usbvision/usbvision-i2c.c       |  4 ++--
- 27 files changed, 119 insertions(+), 55 deletions(-)
+diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
+index 889b486fbc72..ad1c41f727b1 100644
+--- a/drivers/media/common/siano/smscoreapi.c
++++ b/drivers/media/common/siano/smscoreapi.c
+@@ -447,5 +447,5 @@ static struct smscore_registry_entry_t *smscore_find_registry(char *devpath)
+ 			return entry;
+ 		}
+ 	}
+-	entry = kmalloc(sizeof(struct smscore_registry_entry_t), GFP_KERNEL);
++	entry = kmalloc(sizeof(*entry), GFP_KERNEL);
+ 	if (entry) {
+@@ -536,7 +536,5 @@ int smscore_register_hotplug(hotplug_t hotplug)
+ 	int rc = 0;
+ 
+ 	kmutex_lock(&g_smscore_deviceslock);
+-
+-	notifyee = kmalloc(sizeof(struct smscore_device_notifyee_t),
+-			   GFP_KERNEL);
++	notifyee = kmalloc(sizeof(*notifyee), GFP_KERNEL);
+ 	if (notifyee) {
+@@ -627,5 +625,5 @@ smscore_buffer_t *smscore_createbuffer(u8 *buffer, void *common_buffer,
+ {
+ 	struct smscore_buffer_t *cb;
+ 
+-	cb = kzalloc(sizeof(struct smscore_buffer_t), GFP_KERNEL);
++	cb = kzalloc(sizeof(*cb), GFP_KERNEL);
+ 	if (!cb)
+@@ -655,5 +653,5 @@ int smscore_register_device(struct smsdevice_params_t *params,
+ 	struct smscore_device_t *dev;
+ 	u8 *buffer;
+ 
+-	dev = kzalloc(sizeof(struct smscore_device_t), GFP_KERNEL);
++	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+ 	if (!dev)
+@@ -1684,5 +1682,5 @@ static int smscore_validate_client(struct smscore_device_t *coredev,
+ 		pr_err("The msg ID already registered to another client.\n");
+ 		return -EEXIST;
+ 	}
+-	listentry = kzalloc(sizeof(struct smscore_idlist_t), GFP_KERNEL);
++	listentry = kzalloc(sizeof(*listentry), GFP_KERNEL);
+ 	if (!listentry)
+@@ -1721,5 +1719,5 @@ int smscore_register_client(struct smscore_device_t *coredev,
+ 		return -EEXIST;
+ 	}
+ 
+-	newclient = kzalloc(sizeof(struct smscore_client_t), GFP_KERNEL);
++	newclient = kzalloc(sizeof(*newclient), GFP_KERNEL);
+ 	if (!newclient)
+-- 
+2.14.1
