@@ -1,130 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:57244 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751223AbdHFDxD (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58361
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751152AbdH1N2B (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 5 Aug 2017 23:53:03 -0400
-Message-ID: <5ce63621587ddc393fe87eefca438e85@smtp-cloud9.xs4all.net>
-Date: Sun, 06 Aug 2017 05:53:00 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Mon, 28 Aug 2017 09:28:01 -0400
+Date: Mon, 28 Aug 2017 10:27:51 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: V4L2 device node centric - Was: [PATCH v4 6/7] media: videodev2:
+ add a flag for MC-centric  devices
+Message-ID: <20170828102751.76f8b93f@vento.lan>
+In-Reply-To: <7c8a51f6-92b7-0262-9a41-7eb28234638f@xs4all.nl>
+References: <cover.1503747774.git.mchehab@s-opensource.com>
+        <638ed268ca84c5e8ea810a2c27e397ab7e90585b.1503747774.git.mchehab@s-opensource.com>
+        <7c8a51f6-92b7-0262-9a41-7eb28234638f@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Mon, 28 Aug 2017 11:41:58 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Results of the daily build of media_tree:
+> > +        control, and thus can't be used by **v4l2-centric** applications.  
+> 
+> vdev-centric
+> 
+> TBD: I still think I prefer V4L2-centric over vdev-centric.
 
-date:			Sun Aug  6 05:00:32 CEST 2017
-media-tree git hash:	da48c948c263c9d87dfc64566b3373a858cc8aa2
-media_build git hash:	f01a9176bb03f22e3cd3b70282bd7fd272e504ae
-v4l-utils git hash:	172b663ea1fd16909a390f508851098a58061d9b
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.11.0-164
+I'm splitting it on a separate thread, to make easier for us to discuss.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+For those that aren't tracking the patchset that are documenting those
+terms, when MC was added, we got a hole new series of V4L2 devices that
+are incompatible with standard V4L2 applications, as they require 
+knowledge about the hardware sub-devices. We are referring to such
+devices as MC-centric. We need another term to refer to the V4L2 devices
+that can be used by a generic application, and are fully controlled via a 
+V4L2 device (/dev/video*, /dev/radio*, /dev/swradio*, /dev/vbi*,
+/dev/v4l-touch*).
 
-Detailed results are available here:
+The proposed documentation patch series solves this issue by
+adding a glossary (patch 1) that defines what a "V4L2 device node"
+as:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+    V4L2 device node
+	 A device node that it is associated to a V4L2 main driver,
+	 as specified at :ref:`v4l2_device_naming`.
 
-Full logs are available here:
+And, at the device naming chapter, at the spec (patch 2), it
+explicitly lists all V4L2 device node names:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+	.. _v4l2_device_naming:
 
-The Media Infrastructure API from this daily build is here:
+	V4L2 Device Node Naming
+	=======================
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+	... 
+ 
+	The existing V4L2 device node types are:
+
+	======================== ======================================================
+	Default device node name Usage
+	======================== ======================================================
+	``/dev/videoX``		 Video input/output devices
+	``/dev/vbiX``		 Vertical blank data (i.e. closed captions, teletext)
+	``/dev/radioX``		 Radio tuners and modulators
+	``/dev/swradioX``	 Software Defined Radio tuners and modulators
+	``/dev/v4l-touchX``	 Touch sensors
+	======================== ======================================================
+
+So, the concept of "V4L2 Device Node" is now clear, and doesn't
+include V4L2 sub-device device nodes (/dev/v4l-subdev*).
+
+For devices controlled via media controller, everybody seems to be
+comfortable of calling them as MC-centric.
+
+There are currently two proposals to refer to the media hardware that
+is controlled via a V4L2 Device Node:
+
+	- vdev-centric
+	- V4L2-centric
+
+The last one sounds confusing to me, as subdev API is part of the V4L2
+specification. "V4L2-centric" name sounds to include subdevs. 
+
+That's why IMHO, vdev-centric is better.
+
+We could go to some other naming for them, that would also be
+an alias for "V4L2 Device Node":
+
+	- VD-centric
+	- VDN-centric
+
+Comments?
+
+Thanks,
+Mauro
