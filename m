@@ -1,55 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f170.google.com ([209.85.128.170]:37424 "EHLO
-        mail-wr0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752684AbdHHOjV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Aug 2017 10:39:21 -0400
-Received: by mail-wr0-f170.google.com with SMTP id 33so13737262wrz.4
-        for <linux-media@vger.kernel.org>; Tue, 08 Aug 2017 07:39:21 -0700 (PDT)
-Message-ID: <5989CD1C.7080308@baylibre.com>
-Date: Tue, 08 Aug 2017 16:39:24 +0200
-From: Neil Armstrong <narmstrong@baylibre.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:57329 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751172AbdH1LJy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 Aug 2017 07:09:54 -0400
+Date: Mon, 28 Aug 2017 13:09:52 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, javier@dowhile0.org,
+        jacek.anaszewski@gmail.com, linux-leds@vger.kernel.org,
+        devicetree@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v2 1/3] dt: bindings: Document DT bindings for Analog
+ devices as3645a
+Message-ID: <20170828110951.GC492@amd>
+References: <20170819212410.3084-1-sakari.ailus@linux.intel.com>
+ <20170819212410.3084-2-sakari.ailus@linux.intel.com>
+ <20170828103351.GF18012@amd>
+ <46aaf723-a657-3b43-7be7-8d899d3db9c3@linux.intel.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: "open list:ARM/Amlogic Meson..." <linux-amlogic@lists.infradead.org>
-Subject: Re: [PATCH] MAINTAINERS: add entry for meson ao cec driver
-References: <323ef568-a88f-5bc1-390c-fd630dfc4535@xs4all.nl>
-In-Reply-To: <323ef568-a88f-5bc1-390c-fd630dfc4535@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="iFRdW5/EC4oqxDHL"
+Content-Disposition: inline
+In-Reply-To: <46aaf723-a657-3b43-7be7-8d899d3db9c3@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 08/08/2017 16:18, Hans Verkuil a écrit :
-> Add entry to the MAINTAINERS file for the meson ao cec driver.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 9826a918d37a..ed568e1ac856 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -8671,6 +8671,16 @@ F:	drivers/leds/leds-menf21bmc.c
->  F:	drivers/hwmon/menf21bmc_hwmon.c
->  F:	Documentation/hwmon/menf21bmc
-> 
-> +MESON AO CEC DRIVER FOR AMLOGIC SOCS
-> +M:	Neil Armstrong <narmstrong@baylibre.com>
-> +L:	linux-media@lists.freedesktop.org
-> +L:	linux-amlogic@lists.infradead.org
-> +W:	http://linux-meson.com/
-> +S:	Supported
-> +F:	drivers/media/platform/meson/ao-cec.c
-> +F:	Documentation/devicetree/bindings/media/meson-ao-cec.txt
-> +T:	git git://linuxtv.org/media_tree.git
-> +
->  METAG ARCHITECTURE
->  M:	James Hogan <james.hogan@imgtec.com>
->  L:	linux-metag@vger.kernel.org
-> 
 
-Hi Hans,
+--iFRdW5/EC4oqxDHL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks !
+Hi!
 
-Acked-by: Neil Armstrong <narmstrong@baylibre.com>
+> Thanks for the review!
+>=20
+> On 08/28/17 13:33, Pavel Machek wrote:
+> > Hi!
+> >=20
+> >> +
+> >> +Ranges below noted as [a, b] are closed ranges between a and b, i.e. a
+> >> +and b are included in the range.
+> >=20
+> > Normally I've seen <a, b> for closed ranges, (a, b) for open
+> > ranges. Is that different in your country?
+>=20
+> I guess there are different notations. :-) I've seen regular parentheses
+> being used for open ranges, too, but not < and >.
+>=20
+> Open range is documented in a related well written Wikipedia article:
+>=20
+> <URL:https://en.wikipedia.org/wiki/Open_range>
+>=20
+> Are there such open ranges in Czechia? For instance, reindeer generally
+> roam freely in Finnish Lappland.
+
+:-). Well, we have pigs and roes roaming freely in the woods, but
+would not normally call it open range.
+
+> What comes to the patch, I guess "interval" could be a more appropriate
+> term to use in this case:
+>=20
+> <URL:https://en.wikipedia.org/wiki/Interval_(mathematics)>
+>=20
+> The patch is in line with the Wikipedia article in notation but not in
+> terminology. I'll send a fix.
+
+Ok, that was really nitpicking, thanks!
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--iFRdW5/EC4oqxDHL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlmj+f8ACgkQMOfwapXb+vKT8wCeP7CFUOb2o/Zi58xXCmOWFDTE
+cngAnjV1r76Q6zIJ8X28ISzD+isjVrwk
+=ZoXD
+-----END PGP SIGNATURE-----
+
+--iFRdW5/EC4oqxDHL--
