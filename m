@@ -1,88 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:33064 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753686AbdHUTEc (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:39773 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751726AbdH1Di5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Aug 2017 15:04:32 -0400
-Subject: Re: [PATCH v2.1 2/3] leds: as3645a: Add LED flash class driver
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <20170819212410.3084-3-sakari.ailus@linux.intel.com>
- <20170819214226.20736-1-sakari.ailus@linux.intel.com>
- <fc6c7893-863b-53ff-48e3-d14297364e5d@gmail.com>
- <07392419-c586-a791-a994-bed39f73da94@iki.fi>
-Cc: javier@dowhile0.org, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org
-From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Message-ID: <cadbcd5b-ad5b-4c6c-8360-1f59aa2e5bf4@gmail.com>
-Date: Mon, 21 Aug 2017 21:03:47 +0200
-MIME-Version: 1.0
-In-Reply-To: <07392419-c586-a791-a994-bed39f73da94@iki.fi>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+        Sun, 27 Aug 2017 23:38:57 -0400
+Message-ID: <f6599e54d001167cf211c2d8ea55f273@smtp-cloud8.xs4all.net>
+Date: Mon, 28 Aug 2017 05:38:54 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 08/21/2017 03:53 PM, Sakari Ailus wrote:
-> Hi Jacek,
-> 
-> Jacek Anaszewski wrote:
->> Hi Sakari,
->>
->> Thanks for the update.
->> I've noticed that you added node labels to the child device nodes
->> in [0]:
->>
->> "as3645a_flash : flash" and "as3645a_indicator : indicator"
-> 
-> The phandle references (as3645a_flash and as3645a_indicator) should
-> actually be moved to the patch adding the flash property to the sensor
-> device node. It doesn't do anything here, yet.
-> 
->>
->> I am still seeing problems with this approach:
->>
->> 1) AFAIK these labels are only used for referencing nodes inside dts
->>    files and they don't affect the name property of struct device_node
-> 
-> That's right.
-> 
->> 2) Even if you changed the node name from flash to as3645a_flash, you
->>    would get weird LED class device name "as3645a_flash:flash" in case
->>    label property is absent. Do you have any objections against the
->>    approach I proposed in the previous review?:
->>
->>
->>     snprintf(names->flash, sizeof(names->flash),
->> 	     AS_NAME":%s", node->name);
-> 
-> In the current patch, the device node of the flash controller is used,
-> postfixed with colon and the name of the LED ("flash" or "indicator") if
-> no label is defined. In other words, with that DT source you'll have
-> "as3645a:flash" and "as3645a:indicator". So if you change the name of
-> the device node of the I²C device, that will be reflected in the label.
-> 
-> If a label exists, then the label is used as such.
-> 
-> I don't really have objections to what you're proposing as such but my
-> question is: is it useful? With that, the flash and indicator labels
-> will not come from DT if label properties are undefined. They'll always
-> be "as3645a:flash" and "as3645a:indicator", independently of the names
-> of the device nodes.
-> 
+Results of the daily build of media_tree:
 
-Ah, indeed, the node->name is put in place of devicename segment and
-the node points to the LED controller node. Neat approach, likely to
-be adopted as a pattern from now on for all new LED class drivers.
+date:			Mon Aug 28 05:00:16 CEST 2017
+media-tree git hash:	9a45bf28bc39ff6ed45a008f7201289c8e9e60a6
+media_build git hash:	96c1c79a9847387da3e8f51c1230b3118eed3ea6
+v4l-utils git hash:	5a6e0c38468c629f3f6f4fb988acebb9e66e2917
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
 
-For the patch going through media tree:
+Detailed results are available here:
 
-Acked-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
--- 
-Best regards,
-Jacek Anaszewski
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
