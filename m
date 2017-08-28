@@ -1,140 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:45659 "EHLO
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:57912 "EHLO
         lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752169AbdHJIb3 (ORCPT
+        by vger.kernel.org with ESMTP id S1751207AbdH1JGT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Aug 2017 04:31:29 -0400
+        Mon, 28 Aug 2017 05:06:19 -0400
+Subject: Re: [PATCH v4 1/7] media: add glossary.rst with a glossary of terms
+ used at V4L2 spec
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <cover.1503747774.git.mchehab@s-opensource.com>
+ <e529a2ac2346e50c5c314d1f1352d88fdb7180c4.1503747774.git.mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-tegra@vger.kernel.org, devicetree@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 4/4] drm/tegra: add cec-notifier support
-Date: Thu, 10 Aug 2017 10:31:25 +0200
-Message-Id: <20170810083125.36649-5-hverkuil@xs4all.nl>
-In-Reply-To: <20170810083125.36649-1-hverkuil@xs4all.nl>
-References: <20170810083125.36649-1-hverkuil@xs4all.nl>
+Message-ID: <3d6b460f-2ac0-58ae-4a96-5e66a5ab3995@xs4all.nl>
+Date: Mon, 28 Aug 2017 11:06:12 +0200
+MIME-Version: 1.0
+In-Reply-To: <e529a2ac2346e50c5c314d1f1352d88fdb7180c4.1503747774.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This is a partial review. I think I need to review the other patches first
+before continuing this review. But it doesn't hurt to post this now.
 
-In order to support CEC the HDMI driver has to inform the CEC driver
-whenever the physical address changes. So when the EDID is read the
-CEC driver has to be informed and whenever the hotplug detect goes
-away.
+On 26/08/17 13:53, Mauro Carvalho Chehab wrote:
+> Add a glossary of terms for V4L2, as several concepts are complex
+> enough to cause misunderstandings.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  Documentation/media/uapi/v4l/glossary.rst | 98 +++++++++++++++++++++++++++++++
+>  Documentation/media/uapi/v4l/v4l2.rst     |  1 +
+>  2 files changed, 99 insertions(+)
+>  create mode 100644 Documentation/media/uapi/v4l/glossary.rst
+> 
+> diff --git a/Documentation/media/uapi/v4l/glossary.rst b/Documentation/media/uapi/v4l/glossary.rst
+> new file mode 100644
+> index 000000000000..e55cd357dad3
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/glossary.rst
+> @@ -0,0 +1,98 @@
+> +========
+> +Glossary
+> +========
+> +
+> +.. note::
+> +
+> +   This goal of section is to standardize the terms used within the V4L2
+> +   documentation. It is written incrementally as they're standardized at
 
-This is done through the cec-notifier framework.
+they're -> they are
+at -> in
 
-The link between the HDMI driver and the CEC driver is done through
-the hdmi_phandle in the tegra-cec node in the device tree.
+> +   the V4L2 documentation. So, it is an incomplete Work In Progress.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/gpu/drm/tegra/Kconfig  | 1 +
- drivers/gpu/drm/tegra/drm.h    | 3 +++
- drivers/gpu/drm/tegra/hdmi.c   | 9 +++++++++
- drivers/gpu/drm/tegra/output.c | 6 ++++++
- 4 files changed, 19 insertions(+)
+an incomplete Work -> a Work
 
-diff --git a/drivers/gpu/drm/tegra/Kconfig b/drivers/gpu/drm/tegra/Kconfig
-index 2db29d67193d..c882918c2024 100644
---- a/drivers/gpu/drm/tegra/Kconfig
-+++ b/drivers/gpu/drm/tegra/Kconfig
-@@ -8,6 +8,7 @@ config DRM_TEGRA
- 	select DRM_PANEL
- 	select TEGRA_HOST1X
- 	select IOMMU_IOVA if IOMMU_SUPPORT
-+	select CEC_CORE if CEC_NOTIFIER
- 	help
- 	  Choose this option if you have an NVIDIA Tegra SoC.
- 
-diff --git a/drivers/gpu/drm/tegra/drm.h b/drivers/gpu/drm/tegra/drm.h
-index 6d6da01282f3..c0a18b60caf1 100644
---- a/drivers/gpu/drm/tegra/drm.h
-+++ b/drivers/gpu/drm/tegra/drm.h
-@@ -212,6 +212,8 @@ int tegra_dc_state_setup_clock(struct tegra_dc *dc,
- 			       struct clk *clk, unsigned long pclk,
- 			       unsigned int div);
- 
-+struct cec_notifier;
-+
- struct tegra_output {
- 	struct device_node *of_node;
- 	struct device *dev;
-@@ -219,6 +221,7 @@ struct tegra_output {
- 	struct drm_panel *panel;
- 	struct i2c_adapter *ddc;
- 	const struct edid *edid;
-+	struct cec_notifier *notifier;
- 	unsigned int hpd_irq;
- 	int hpd_gpio;
- 	enum of_gpio_flags hpd_gpio_flags;
-diff --git a/drivers/gpu/drm/tegra/hdmi.c b/drivers/gpu/drm/tegra/hdmi.c
-index cda0491ed6bf..fbf14e1efd0e 100644
---- a/drivers/gpu/drm/tegra/hdmi.c
-+++ b/drivers/gpu/drm/tegra/hdmi.c
-@@ -21,6 +21,8 @@
- 
- #include <sound/hda_verbs.h>
- 
-+#include <media/cec-notifier.h>
-+
- #include "hdmi.h"
- #include "drm.h"
- #include "dc.h"
-@@ -1720,6 +1722,10 @@ static int tegra_hdmi_probe(struct platform_device *pdev)
- 		return PTR_ERR(hdmi->vdd);
- 	}
- 
-+	hdmi->output.notifier = cec_notifier_get(&pdev->dev);
-+	if (hdmi->output.notifier == NULL)
-+		return -ENOMEM;
-+
- 	hdmi->output.dev = &pdev->dev;
- 
- 	err = tegra_output_probe(&hdmi->output);
-@@ -1778,6 +1784,9 @@ static int tegra_hdmi_remove(struct platform_device *pdev)
- 
- 	tegra_output_remove(&hdmi->output);
- 
-+	if (hdmi->output.notifier)
-+		cec_notifier_put(hdmi->output.notifier);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/gpu/drm/tegra/output.c b/drivers/gpu/drm/tegra/output.c
-index 595d1ec3e02e..57c052521a44 100644
---- a/drivers/gpu/drm/tegra/output.c
-+++ b/drivers/gpu/drm/tegra/output.c
-@@ -11,6 +11,8 @@
- #include <drm/drm_panel.h>
- #include "drm.h"
- 
-+#include <media/cec-notifier.h>
-+
- int tegra_output_connector_get_modes(struct drm_connector *connector)
- {
- 	struct tegra_output *output = connector_to_output(connector);
-@@ -33,6 +35,7 @@ int tegra_output_connector_get_modes(struct drm_connector *connector)
- 		edid = drm_get_edid(connector, output->ddc);
- 
- 	drm_mode_connector_update_edid_property(connector, edid);
-+	cec_notifier_set_phys_addr_from_edid(output->notifier, edid);
- 
- 	if (edid) {
- 		err = drm_add_edid_modes(connector, edid);
-@@ -68,6 +71,9 @@ tegra_output_connector_detect(struct drm_connector *connector, bool force)
- 			status = connector_status_connected;
- 	}
- 
-+	if (status != connector_status_connected)
-+		cec_notifier_phys_addr_invalidate(output->notifier);
-+
- 	return status;
- }
- 
--- 
-2.13.2
+(a work in progress is by definition incomplete :-) )
+
+> +
+> +.. Please keep the glossary entries in alphabetical order
+> +
+> +.. glossary::
+> +
+> +    Bridge driver
+> +	 The same as V4L2 main driver.
+> +
+> +    Device Node
+> +	 A character device node at the file system used to control and do
+
+at -> in
+
+> +	 input/output data transfers to a Kernel driver.
+
+to -> from/to
+
+> +
+> +    Driver
+> +	 The part of the Linux Kernel that implements support
+> +	 for a hardware component.
+> +
+> +    Inter-Integrated Circuit - I²C
+> +	 A  multi-master, multi-slave, packet switched, single-ended,
+> +	 serial computer bus used to control V4L2 sub-devices
+
+Missing . at the end. Perhaps add a link to the i2c spec or wikipedia page?
+
+Also, this entry is not in alphabetical order.
+
+> +
+> +    Hardware component
+> +	 a subset of the media hardware.
+
+Could use some examples:
+
+"For example an i2c or SPI device, or an IP block inside an SoC or FPGA
+(https://en.wikipedia.org/wiki/Semiconductor_intellectual_property_core)."
+
+> +
+> +    Hardware peripheral
+> +	 A group of hardware components that together make a larger
+> +	 user-facing functional peripheral. For instance the SoC ISP IP
+> +	 cores and external camera sensors together make a
+> +	 camera hardware peripheral.
+> +	 Also known as peripheral.
+
+SoC, ISP and IP core need their own entries here.
+
+> +
+> +    Hardware peripheral control
+> +	 Type of control that it is possible for a V4L2 hardware peripheral.
+
+This sentence makes no sense.
+
+> +
+> +	 See :ref:`v4l2_hardware_control`.
+> +
+> +    Peripheral
+> +	 The same as hardware peripheral.
+> +
+> +    Media Controller
+> +	 An API used to identify the hardware components.
+
+...components and (optionally) change the links between hardware components.
+
+> +
+> +	 See :ref:`media_controller`.
+> +
+> +    MC-centric
+> +	 V4L2 hardware that requires a Media controller to be controlled.
+
+I think I would just drop the 'to be controlled' bit.
+
+> +
+> +	 See :ref:`v4l2_hardware_control`.
+> +
+> +    SMBus
+> +	 A subset of I²C, with defines a stricter usage of the bus.
+> +
+> +    Serial Peripheral Interface Bus - SPI
+> +	 Synchronous serial communication interface specification used for
+> +	 short distance communication, primarily in embedded systems.
+> +
+> +    Sub-device hardware components
+> +	 hardware components that aren't controlled by the
+
+hardware -> Hardware
+
+> +	 V4L2 main driver.
+> +
+> +    V4L2 device node
+> +	 A device node that it is associated to a V4L2 main driver,
+
+it is -> is
+to -> with
+
+> +	 as specified at :ref:`v4l2_device_naming`.
+
+at -> in
+
+> +
+> +    V4L2 hardware
+> +	 A hardware used to on a media device supported by the V4L2
+> +	 subsystem.
+> +
+> +    V4L2 hardware control
+> +	 The type of hardware control that a device supports.
+> +
+> +	 See :ref:`v4l2_hardware_control`.
+> +
+> +    V4L2 main driver
+> +	 The V4L2 device driver that implements the main logic to talk with
+> +	 the V4L2 hardware.
+> +	 Also known as bridge driver.
+> +
+> +	 See :ref:`v4l2_hardware_control`.
+> +
+> +    V4L2 sub-device
+> +	 part of the media hardware that it is implemented by a device
+> +	 driver that is not part of the main V4L2 driver.
+> +
+> +	 See :ref:`subdev`.
+> +
+> +    Vdev-centric
+> +	 V4L2 hardware that it is controlled via V4L2 device nodes.
+> +
+> +	 See :ref:`v4l2_hardware_control`.
+> diff --git a/Documentation/media/uapi/v4l/v4l2.rst b/Documentation/media/uapi/v4l/v4l2.rst
+> index f52a11c949d3..1ee4b86d18e1 100644
+> --- a/Documentation/media/uapi/v4l/v4l2.rst
+> +++ b/Documentation/media/uapi/v4l/v4l2.rst
+> @@ -31,6 +31,7 @@ This part describes the Video for Linux API version 2 (V4L2 API) specification.
+>      videodev
+>      capture-example
+>      v4l2grab-example
+> +    glossary
+>      biblio
+>  
+>  
+> 
