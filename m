@@ -1,95 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59069 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752207AbdHNNdS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Aug 2017 09:33:18 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, pavel@ucw.cz
-Subject: Re: [PATCH v1.2 1/1] omap3isp: Skip CSI-2 receiver initialisation in CCP2 configuration
-Date: Mon, 14 Aug 2017 16:33:39 +0300
-Message-ID: <6578002.YS5YEteNhM@avalon>
-In-Reply-To: <20170814105327.s6hbksmwjjchwejn@valkosipuli.retiisi.org.uk>
-References: <20170811095709.3069-1-sakari.ailus@linux.intel.com> <29475894.0Ps0lzjic1@avalon> <20170814105327.s6hbksmwjjchwejn@valkosipuli.retiisi.org.uk>
+Received: from mail-by2nam01on0043.outbound.protection.outlook.com ([104.47.34.43]:20305
+        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751419AbdH1PQE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 Aug 2017 11:16:04 -0400
+From: Soren Brinkmann <soren.brinkmann@xilinx.com>
+To: <mchehab@kernel.org>, <robh+dt@kernel.org>, <mark.rutland@arm.com>,
+        <hans.verkuil@cisco.com>, <sakari.ailus@linux.intel.com>
+CC: <linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        Leon Luo <leonl@leopardimaging.com>,
+        =?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>
+Subject: [PATCH 1/2] media:imx274 device tree binding file
+Date: Mon, 28 Aug 2017 08:15:33 -0700
+Message-ID: <20170828151534.13045-1-soren.brinkmann@xilinx.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Leon Luo <leonl@leopardimaging.com>
 
-On Monday 14 Aug 2017 13:53:27 Sakari Ailus wrote:
-> On Fri, Aug 11, 2017 at 02:32:00PM +0300, Laurent Pinchart wrote:
-> > On Friday 11 Aug 2017 12:57:09 Sakari Ailus wrote:
-> >> If the CSI-2 receiver isn't part of the pipeline (or isn't there to
-> >> begin with), skip its initialisation.
-> > 
-> > I don't think the commit message really describes the patch.
-> > 
-> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >> Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com> # on
-> >> Beagleboard-xM + MPT9P031 Acked-by: Pavel Machek <pavel@ucw.cz>
-> >> ---
-> >> since v1.1:
-> >> 
-> >> - Assign phy->entity before calling omap3isp_csiphy_config(), for
-> >> 
-> >>   phy->entity is used by omap3isp_csiphy_config(). (Thanks to Pavel for
-> >>   spotting this.)
-> >>  
-> >>  drivers/media/platform/omap3isp/ispccp2.c   |  2 +-
-> >>  drivers/media/platform/omap3isp/ispcsi2.c   |  4 +--
-> >>  drivers/media/platform/omap3isp/ispcsiphy.c | 38 ++++++++++------------
-> >>  drivers/media/platform/omap3isp/ispcsiphy.h |  6 +++--
-> >>  4 files changed, 27 insertions(+), 23 deletions(-)
-> >> 
+The binding file for imx274 CMOS sensor V4l2 driver
 
-[snip]
+Signed-off-by: Leon Luo <leonl@leopardimaging.com>
+Acked-by: Sören Brinkmann <soren.brinkmann@xilinx.com>
+---
+ .../devicetree/bindings/media/i2c/imx274.txt       | 32 ++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/imx274.txt
 
-> >> diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c
-> >> b/drivers/media/platform/omap3isp/ispcsiphy.c index
-> >> 2028bb519108..aedd88fa8246 100644
-> >> --- a/drivers/media/platform/omap3isp/ispcsiphy.c
-> >> +++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-> >> @@ -164,15 +164,18 @@ static int csiphy_set_power(struct isp_csiphy
-> >> *phy, u32 power)
-> >> 
-> >>  static int omap3isp_csiphy_config(struct isp_csiphy *phy)
-> >>  {
-> >> -	struct isp_csi2_device *csi2 = phy->csi2;
-> >> -	struct isp_pipeline *pipe = to_isp_pipeline(&csi2->subdev.entity);
-> >> -	struct isp_bus_cfg *buscfg = pipe->external->host_priv;
-> >> +	struct isp_pipeline *pipe = to_isp_pipeline(phy->entity);
-> >> +	struct isp_bus_cfg *buscfg;
-> >>  	struct isp_csiphy_lanes_cfg *lanes;
-> >>  	int csi2_ddrclk_khz;
-> >>  	unsigned int num_data_lanes, used_lanes = 0;
-> >>  	unsigned int i;
-> >>  	u32 reg;
-> >> 
-> >> +	if (!pipe)
-> >> +		return -EBUSY;
-> > 
-> > When can this happen ?
-> 
-> It shouldn't. Just in case, it'd be a driver bug if it did. What would you
-> think of adding WARN_ON() here?
-
-I throw WARN_ON()s in when I believe that driver could get it wrong. In this 
-particular case, given that this function is called from .s_stream() handlers 
-only, I wonder if the check makes sense at all.
-
-> >> +	buscfg = pipe->external->host_priv;
-> >>  	if (!buscfg) {
-> >>  		struct isp_async_subdev *isd =
-> >>  			container_of(pipe->external->asd,
-
-[snip]
-
+diff --git a/Documentation/devicetree/bindings/media/i2c/imx274.txt b/Documentation/devicetree/bindings/media/i2c/imx274.txt
+new file mode 100644
+index 000000000000..9154666d1149
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/imx274.txt
+@@ -0,0 +1,32 @@
++* Sony 1/2.5-Inch 8.51Mp CMOS Digital Image Sensor
++
++The Sony imx274 is a 1/2.5-inch CMOS active pixel digital image sensor with
++an active array size of 3864H x 2202V. It is programmable through I2C
++interface. The I2C address is fixed to 0x1a as per sensor data sheet.
++Image data is sent through MIPI CSI-2, which is configured as 4 lanes
++at 1440 Mbps.
++
++
++Required Properties:
++- compatible: value should be "sony,imx274" for imx274 sensor
++
++Optional Properties:
++- reset-gpios: Sensor reset GPIO
++
++For further reading on port node refer to
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++	imx274: sensor@1a{
++		compatible = "sony,imx274";
++		reg = <0x1a>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++		reset-gpios = <&gpio_sensor 0 0>;
++		port@0 {
++			reg = <0>;
++			sensor_out: endpoint {
++				remote-endpoint = <&csiss_in>;
++			};
++		};
++	};
 -- 
-Regards,
-
-Laurent Pinchart
+2.14.1.3.g5766cf452
