@@ -1,192 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:48187 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752731AbdHUKVS (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:36185 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751172AbdH1HmT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Aug 2017 06:21:18 -0400
-Subject: Re: [PATCH 1/7 v2] media: vb2: add bidirectional flag in vb2_queue
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Pawel Osciak <pawel@osciak.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-References: <20170818141606.4835-2-stanimir.varbanov@linaro.org>
- <CGME20170821090953epcas3p1121178ff7dbd3125a423a807c79ee33b@epcas3p1.samsung.com>
- <20170821090909.32614-1-stanimir.varbanov@linaro.org>
- <de7f1b28-378d-8f4e-17d4-0526f77bd1c9@samsung.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <d68ce072-81ae-bc40-b86c-19f8721505c3@xs4all.nl>
-Date: Mon, 21 Aug 2017 12:21:12 +0200
-MIME-Version: 1.0
-In-Reply-To: <de7f1b28-378d-8f4e-17d4-0526f77bd1c9@samsung.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Mon, 28 Aug 2017 03:42:19 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, mchehab@kernel.org, awalls@md.metrocast.net,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH] [media] pci: make i2c_client const
+Date: Mon, 28 Aug 2017 13:12:09 +0530
+Message-Id: <1503906129-10960-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/21/2017 11:29 AM, Marek Szyprowski wrote:
-> Hi Stanimir,
-> 
-> On 2017-08-21 11:09, Stanimir Varbanov wrote:
->> This change is intended to give to the v4l2 drivers a choice to
->> change the default behavior of the v4l2-core DMA mapping direction
->> from DMA_TO/FROM_DEVICE (depending on the buffer type CAPTURE or
->> OUTPUT) to DMA_BIDIRECTIONAL during queue_init time.
->>
->> Initially the issue with DMA mapping direction has been found in
->> Venus encoder driver where the hardware (firmware side) adds few
->> lines padding on bottom of the image buffer, and the consequence
->> is triggering of IOMMU protection faults.
->>
->> This will help supporting venus encoder (and probably other drivers
->> in the future) which wants to map output type of buffers as
->> read/write.
->>
->> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-> 
-> This has been already discussed about a year ago, but it got lost in
-> meantime, probably due to lack of users. I hope that this time it
-> finally will get into vb2.
-> 
-> For the reference, see https://patchwork.kernel.org/patch/9388163/
+Make these const as they are only used in a copy operation.
+Done using Coccinelle.
 
-Interesting.
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/media/pci/cx23885/cx23885-i2c.c | 2 +-
+ drivers/media/pci/cx25821/cx25821-i2c.c | 2 +-
+ drivers/media/pci/ivtv/ivtv-i2c.c       | 2 +-
+ drivers/media/pci/saa7134/saa7134-i2c.c | 2 +-
+ drivers/media/pci/saa7164/saa7164-i2c.c | 2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-Stanimir, I like your implementation better than the macro in the old
-patch. But as it said there, videobuf2-dma-sg/contig/vmalloc.c have references
-to DMA_FROM_DEVICE that won't work with BIDIRECTIONAL, so those need
-to be adapted as well. I missed that when I reviewed your patch :-(
-
-Regards,
-
-	Hans
-
-> 
->> ---
->> v2: move dma_dir into private section.
->>
->>   drivers/media/v4l2-core/videobuf2-core.c | 17 ++++++++---------
->>   include/media/videobuf2-core.h           | 13 +++++++++++++
->>   2 files changed, 21 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->> index 0924594989b4..cb115ba6a1d2 100644
->> --- a/drivers/media/v4l2-core/videobuf2-core.c
->> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->> @@ -194,8 +194,6 @@ static void __enqueue_in_driver(struct vb2_buffer *vb);
->>   static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
->>   {
->>   	struct vb2_queue *q = vb->vb2_queue;
->> -	enum dma_data_direction dma_dir =
->> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
->>   	void *mem_priv;
->>   	int plane;
->>   	int ret = -ENOMEM;
->> @@ -209,7 +207,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
->>   
->>   		mem_priv = call_ptr_memop(vb, alloc,
->>   				q->alloc_devs[plane] ? : q->dev,
->> -				q->dma_attrs, size, dma_dir, q->gfp_flags);
->> +				q->dma_attrs, size, q->dma_dir, q->gfp_flags);
->>   		if (IS_ERR_OR_NULL(mem_priv)) {
->>   			if (mem_priv)
->>   				ret = PTR_ERR(mem_priv);
->> @@ -978,8 +976,6 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
->>   	void *mem_priv;
->>   	unsigned int plane;
->>   	int ret = 0;
->> -	enum dma_data_direction dma_dir =
->> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
->>   	bool reacquired = vb->planes[0].mem_priv == NULL;
->>   
->>   	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
->> @@ -1030,7 +1026,7 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
->>   		mem_priv = call_ptr_memop(vb, get_userptr,
->>   				q->alloc_devs[plane] ? : q->dev,
->>   				planes[plane].m.userptr,
->> -				planes[plane].length, dma_dir);
->> +				planes[plane].length, q->dma_dir);
->>   		if (IS_ERR(mem_priv)) {
->>   			dprintk(1, "failed acquiring userspace memory for plane %d\n",
->>   				plane);
->> @@ -1096,8 +1092,6 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
->>   	void *mem_priv;
->>   	unsigned int plane;
->>   	int ret = 0;
->> -	enum dma_data_direction dma_dir =
->> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
->>   	bool reacquired = vb->planes[0].mem_priv == NULL;
->>   
->>   	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
->> @@ -1156,7 +1150,7 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
->>   		/* Acquire each plane's memory */
->>   		mem_priv = call_ptr_memop(vb, attach_dmabuf,
->>   				q->alloc_devs[plane] ? : q->dev,
->> -				dbuf, planes[plane].length, dma_dir);
->> +				dbuf, planes[plane].length, q->dma_dir);
->>   		if (IS_ERR(mem_priv)) {
->>   			dprintk(1, "failed to attach dmabuf\n");
->>   			ret = PTR_ERR(mem_priv);
->> @@ -2003,6 +1997,11 @@ int vb2_core_queue_init(struct vb2_queue *q)
->>   	if (q->buf_struct_size == 0)
->>   		q->buf_struct_size = sizeof(struct vb2_buffer);
->>   
->> +	if (q->bidirectional)
->> +		q->dma_dir = DMA_BIDIRECTIONAL;
->> +	else
->> +		q->dma_dir = q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
->> +
->>   	return 0;
->>   }
->>   EXPORT_SYMBOL_GPL(vb2_core_queue_init);
->> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
->> index cb97c224be73..ef9b64398c8c 100644
->> --- a/include/media/videobuf2-core.h
->> +++ b/include/media/videobuf2-core.h
->> @@ -427,6 +427,16 @@ struct vb2_buf_ops {
->>    * @dev:	device to use for the default allocation context if the driver
->>    *		doesn't fill in the @alloc_devs array.
->>    * @dma_attrs:	DMA attributes to use for the DMA.
->> + * @bidirectional: when this flag is set the DMA direction for the buffers of
->> + *		this queue will be overridden with DMA_BIDIRECTIONAL direction.
->> + *		This is useful in cases where the hardware (firmware) writes to
->> + *		a buffer which is mapped as read (DMA_TO_DEVICE), or reads from
->> + *		buffer which is mapped for write (DMA_FROM_DEVICE) in order
->> + *		to satisfy some internal hardware restrictions or adds a padding
->> + *		needed by the processing algorithm. In case the DMA mapping is
->> + *		not bidirectional but the hardware (firmware) trying to access
->> + *		the buffer (in the opposite direction) this could lead to an
->> + *		IOMMU protection faults.
->>    * @fileio_read_once:		report EOF after reading the first buffer
->>    * @fileio_write_immediately:	queue buffer after each write() call
->>    * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
->> @@ -465,6 +475,7 @@ struct vb2_buf_ops {
->>    * Private elements (won't appear at the uAPI book):
->>    * @mmap_lock:	private mutex used when buffers are allocated/freed/mmapped
->>    * @memory:	current memory type used
->> + * @dma_dir:	DMA mapping direction.
->>    * @bufs:	videobuf buffer structures
->>    * @num_buffers: number of allocated/used buffers
->>    * @queued_list: list of buffers currently queued from userspace
->> @@ -495,6 +506,7 @@ struct vb2_queue {
->>   	unsigned int			io_modes;
->>   	struct device			*dev;
->>   	unsigned long			dma_attrs;
->> +	unsigned			bidirectional:1;
->>   	unsigned			fileio_read_once:1;
->>   	unsigned			fileio_write_immediately:1;
->>   	unsigned			allow_zero_bytesused:1;
->> @@ -516,6 +528,7 @@ struct vb2_queue {
->>   	/* private: internal use only */
->>   	struct mutex			mmap_lock;
->>   	unsigned int			memory;
->> +	enum dma_data_direction		dma_dir;
->>   	struct vb2_buffer		*bufs[VB2_MAX_FRAME];
->>   	unsigned int			num_buffers;
->>   
-> 
-> Best regards
-> 
+diff --git a/drivers/media/pci/cx23885/cx23885-i2c.c b/drivers/media/pci/cx23885/cx23885-i2c.c
+index 8528032..5bbbdec 100644
+--- a/drivers/media/pci/cx23885/cx23885-i2c.c
++++ b/drivers/media/pci/cx23885/cx23885-i2c.c
+@@ -270,7 +270,7 @@ static u32 cx23885_functionality(struct i2c_adapter *adap)
+ 	.algo              = &cx23885_i2c_algo_template,
+ };
+ 
+-static struct i2c_client cx23885_i2c_client_template = {
++static const struct i2c_client cx23885_i2c_client_template = {
+ 	.name	= "cx23885 internal",
+ };
+ 
+diff --git a/drivers/media/pci/cx25821/cx25821-i2c.c b/drivers/media/pci/cx25821/cx25821-i2c.c
+index 263a1cf..012e93a 100644
+--- a/drivers/media/pci/cx25821/cx25821-i2c.c
++++ b/drivers/media/pci/cx25821/cx25821-i2c.c
+@@ -291,7 +291,7 @@ static u32 cx25821_functionality(struct i2c_adapter *adap)
+ 	.algo = &cx25821_i2c_algo_template,
+ };
+ 
+-static struct i2c_client cx25821_i2c_client_template = {
++static const struct i2c_client cx25821_i2c_client_template = {
+ 	.name = "cx25821 internal",
+ };
+ 
+diff --git a/drivers/media/pci/ivtv/ivtv-i2c.c b/drivers/media/pci/ivtv/ivtv-i2c.c
+index 69b4fa6..09f95f1 100644
+--- a/drivers/media/pci/ivtv/ivtv-i2c.c
++++ b/drivers/media/pci/ivtv/ivtv-i2c.c
+@@ -700,7 +700,7 @@ static int ivtv_getsda_old(void *data)
+ 	.timeout	= IVTV_ALGO_BIT_TIMEOUT * HZ,         /* jiffies */
+ };
+ 
+-static struct i2c_client ivtv_i2c_client_template = {
++static const struct i2c_client ivtv_i2c_client_template = {
+ 	.name = "ivtv internal",
+ };
+ 
+diff --git a/drivers/media/pci/saa7134/saa7134-i2c.c b/drivers/media/pci/saa7134/saa7134-i2c.c
+index 9d0e69e..af94aee 100644
+--- a/drivers/media/pci/saa7134/saa7134-i2c.c
++++ b/drivers/media/pci/saa7134/saa7134-i2c.c
+@@ -345,7 +345,7 @@ static u32 functionality(struct i2c_adapter *adap)
+ 	.algo          = &saa7134_algo,
+ };
+ 
+-static struct i2c_client saa7134_client_template = {
++static const struct i2c_client saa7134_client_template = {
+ 	.name	= "saa7134 internal",
+ };
+ 
+diff --git a/drivers/media/pci/saa7164/saa7164-i2c.c b/drivers/media/pci/saa7164/saa7164-i2c.c
+index 430f678..e06b617 100644
+--- a/drivers/media/pci/saa7164/saa7164-i2c.c
++++ b/drivers/media/pci/saa7164/saa7164-i2c.c
+@@ -84,7 +84,7 @@ static u32 saa7164_functionality(struct i2c_adapter *adap)
+ 	.algo              = &saa7164_i2c_algo_template,
+ };
+ 
+-static struct i2c_client saa7164_i2c_client_template = {
++static const struct i2c_client saa7164_i2c_client_template = {
+ 	.name	= "saa7164 internal",
+ };
+ 
+-- 
+1.9.1
