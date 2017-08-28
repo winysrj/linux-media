@@ -1,145 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55312
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751124AbdH0Lh4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 27 Aug 2017 07:37:56 -0400
-Date: Sun, 27 Aug 2017 08:37:48 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-Subject: Re: [RFC PATCH v4 3/6] i2c: add docs to clarify DMA handling
-Message-ID: <20170827083748.248e2430@vento.lan>
-In-Reply-To: <20170817141449.23958-4-wsa+renesas@sang-engineering.com>
-References: <20170817141449.23958-1-wsa+renesas@sang-engineering.com>
-        <20170817141449.23958-4-wsa+renesas@sang-engineering.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mout1.freenet.de ([195.4.92.91]:54156 "EHLO mout1.freenet.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750866AbdH1PIL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 Aug 2017 11:08:11 -0400
+From: Branislav Radocaj <branislav@radocaj.org>
+To: mchehab@kernel.org, gregkh@linuxfoundation.org
+Cc: jb@abbadie.fr, hans.verkuil@cisco.com, nikola.jelic83@gmail.com,
+        ran.algawi@gmail.com, aquannie@gmail.com, branislav@radocaj.org,
+        shilpapri@gmail.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] Staging: bcm2048 fix bare use of 'unsigned' in radio-bcm2048.c
+Date: Mon, 28 Aug 2017 17:02:44 +0200
+Message-Id: <20170828150244.2952-1-branislav@radocaj.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 17 Aug 2017 16:14:46 +0200
-Wolfram Sang <wsa+renesas@sang-engineering.com> escreveu:
+This is a patch to the radio-bcm2048.c file that fixes up
+a warning found by the checkpatch.pl tool.
 
-> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-> ---
->  Documentation/i2c/DMA-considerations | 50 ++++++++++++++++++++++++++++++++++++
->  1 file changed, 50 insertions(+)
->  create mode 100644 Documentation/i2c/DMA-considerations
-> 
-> diff --git a/Documentation/i2c/DMA-considerations b/Documentation/i2c/DMA-considerations
-> new file mode 100644
-> index 00000000000000..a4b4a107102452
-> --- /dev/null
-> +++ b/Documentation/i2c/DMA-considerations
-> @@ -0,0 +1,50 @@
-> +Linux I2C and DMA
-> +-----------------
+Removed unused 'size' argument from property_read macro.
+In property_write macro, 'signal, size' is replaced by 'prop_type'.
+This change implys the update of DEFINE_SYSFS_PROPERTY macro
+and all places of its usage as well.
 
-I would use, instead:
+Signed-off-by: Branislav Radocaj <branislav@radocaj.org>
+---
+ drivers/staging/media/bcm2048/radio-bcm2048.c | 60 +++++++++++++--------------
+ 1 file changed, 30 insertions(+), 30 deletions(-)
 
-=================
-Linux I2C and DMA
-=================
-
-As this is the way we're starting document titles, after converted to
-ReST. So, better to have it already using the right format, as one day
-someone will convert i2c documentation to ReST. So, it would be
-really cool if this document could be just renamed without needing
-to patch it during such conversion :-)
-
-There are also a couple of things here that Sphinx would complain.
-So, it could be worth to rename it to *.rst, while you're writing
-it, and see what:
-	make htmldocs
-will complain and how it will look in html.
-
-> +
-> +Given that I2C is a low-speed bus where largely small messages are transferred,
-> +it is not considered a prime user of DMA access. At this time of writing, only
-> +10% of I2C bus master drivers have DMA support implemented.
-
-Are you sure about that? I'd say that, on media, at least half of the
-drivers use DMA for I2C bus access, as the I2C bus is on a remote
-board that talks with CPU via USB, using DMA, and all communication
-with USB should be DMA-safe.
-
-I guess what you really wanted to say on most of this section is
-about SoC (and other CPUs) where the I2C bus master is is at the
-mainboard, and not on some peripheral.
-
-> And the vast
-> +majority of transactions are so small that setting up DMA for it will likely
-> +add more overhead than a plain PIO transfer.
-> +
-> +Therefore, it is *not* mandatory that the buffer of an I2C message is DMA safe.
-
-Again, that may not be true on media boards. The code that implements the
-I2C transfers there, on most boards, have to be DMA safe, as it won't
-otherwise send/receive commands from the chips that are after the USB
-bridge.
-
-> +It does not seem reasonable to apply additional burdens when the feature is so
-> +rarely used. However, it is recommended to use a DMA-safe buffer if your
-> +message size is likely applicable for DMA. Most drivers have this threshold
-> +around 8 bytes (as of today, this is mostly an educated guess, however). For
-> +any message of 16 byte or larger, it is probably a really good idea.
-> +
-> +If you use such a buffer in a i2c_msg, set the I2C_M_DMA_SAFE flag with it.
-> +Then, the I2C core and drivers know they can safely operate DMA on it. Note
-> +that setting this flag makes only sense in kernel space. User space data is
-> +copied into kernel space anyhow. The I2C core makes sure the destination
-> +buffers in kernel space are always DMA capable.
-> +
-> +FIXME: Need to implement i2c_master_{send|receive}_dma and proper buffers for i2c_smbus_xfer_emulated.
-> +
-> +Drivers wishing to implement DMA can use helper functions from the I2C core.
-> +One gives you a DMA-safe buffer for a given i2c_msg as long as a certain
-> +threshold is met.
-> +
-> +	dma_buf = i2c_get_dma_safe_msg_buf(msg, threshold_in_byte);
-
-I'm concerned about the new bits added by this call. Right now,
-USB drivers just use kalloc() for transfer buffers used to send and
-receive URB control messages for both setting the main device and
-for I2C messages. Before this changeset, buffers allocated this
-way are DMA save and have been working for years.
-
-When you add some flags that would make the I2C subsystem aware
-that a buffer is now DMA safe, I guess you could be breaking
-those drivers, as a DMA safe buffer will now be considered as
-DMA-unsafe.
-
-So, you'll likely need to patch all media USB drivers to fix it,
-or come up with some other solution.
-
-> +
-> +If a buffer is returned, it either msg->buf for the I2C_M_DMA_SAFE case or a
-> +bounce buffer. But you don't need to care about that detail. If NULL is
-> +returned, the threshold was not met or a bounce buffer could not be allocated.
-> +Fall back to PIO in that case.
-> +
-> +In any case, a buffer obtained from above needs to be released. It ensures data
-> +is copied back to the message and a potentially used bounce buffer is freed.
-> +
-> +	i2c_release_dma_safe_msg_buf(msg, dma_buf);
-> +
-> +The bounce buffer handling from the core is generic and simple. It will always
-> +allocate a new bounce buffer. If you want a more sophisticated handling (e.g.
-> +reusing pre-allocated buffers), you are free to implement your own.
-> +
-> +Please also check the in-kernel documentation for details. The i2c-sh_mobile
-> +driver can be used as a reference example how to use the above helpers.
-> +
-> +Final note: If you plan to use DMA with I2C (or with anything else, actually)
-> +make sure you have CONFIG_DMA_API_DEBUG enabled during development. It can help
-> +you find various issues which can be complex to debug otherwise.
-
-
-
-Thanks,
-Mauro
+diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+index 38f72d069e27..b1e664aeb6ab 100644
+--- a/drivers/staging/media/bcm2048/radio-bcm2048.c
++++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+@@ -1965,7 +1965,7 @@ static ssize_t bcm2048_##prop##_write(struct device *dev,		\
+ 	return err < 0 ? err : count;					\
+ }
+ 
+-#define property_read(prop, size, mask)					\
++#define property_read(prop, mask)					\
+ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
+ 					struct device_attribute *attr,	\
+ 					char *buf)			\
+@@ -2000,9 +2000,9 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
+ 	return sprintf(buf, mask "\n", value);				\
+ }
+ 
+-#define DEFINE_SYSFS_PROPERTY(prop, signal, size, mask, check)		\
+-property_write(prop, signal size, mask, check)				\
+-property_read(prop, size, mask)
++#define DEFINE_SYSFS_PROPERTY(prop, prop_type, mask, check)		\
++property_write(prop, prop_type, mask, check)				\
++property_read(prop, mask)						\
+ 
+ #define property_str_read(prop, size)					\
+ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
+@@ -2028,39 +2028,39 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
+ 	return count;							\
+ }
+ 
+-DEFINE_SYSFS_PROPERTY(power_state, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(mute, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(audio_route, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(dac_output, unsigned, int, "%u", 0)
+-
+-DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned, int, "%u", value > 3)
+-
+-DEFINE_SYSFS_PROPERTY(rds, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_wline, unsigned, int, "%u", 0)
+-property_read(rds_pi, unsigned int, "%x")
++DEFINE_SYSFS_PROPERTY(power_state, unsigned int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(mute, unsigned int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(audio_route, unsigned int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(dac_output, unsigned int, "%u", 0)
++
++DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned int, "%u", value > 3)
++
++DEFINE_SYSFS_PROPERTY(rds, unsigned int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_wline, unsigned int, "%u", 0)
++property_read(rds_pi, "%x")
+ property_str_read(rds_rt, (BCM2048_MAX_RDS_RT + 1))
+ property_str_read(rds_ps, (BCM2048_MAX_RDS_PS + 1))
+ 
+-property_read(fm_rds_flags, unsigned int, "%u")
++property_read(fm_rds_flags, "%u")
+ property_str_read(rds_data, BCM2048_MAX_RDS_RADIO_TEXT * 5)
+ 
+-property_read(region_bottom_frequency, unsigned int, "%u")
+-property_read(region_top_frequency, unsigned int, "%u")
++property_read(region_bottom_frequency, "%u")
++property_read(region_top_frequency, "%u")
+ property_signed_read(fm_carrier_error, int, "%d")
+ property_signed_read(fm_rssi, int, "%d")
+-DEFINE_SYSFS_PROPERTY(region, unsigned, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(region, unsigned int, "%u", 0)
+ 
+ static struct device_attribute attrs[] = {
+ 	__ATTR(power_state, 0644, bcm2048_power_state_read,
+-- 
+2.11.0
