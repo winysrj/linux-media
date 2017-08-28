@@ -1,43 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:38003 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751464AbdHZIgC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 04:36:02 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, crope@iki.fi, mchehab@kernel.org,
-        hans.verkuil@cisco.com, isely@pobox.com,
-        ezequiel@vanguardiasur.com.ar, royale@zerezo.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-usb@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 04/11] [media] s2255drv:  make video_device const
-Date: Sat, 26 Aug 2017 14:05:08 +0530
-Message-Id: <1503736515-15366-5-git-send-email-bhumirks@gmail.com>
-In-Reply-To: <1503736515-15366-1-git-send-email-bhumirks@gmail.com>
-References: <1503736515-15366-1-git-send-email-bhumirks@gmail.com>
+Received: from mout.web.de ([212.227.17.11]:50093 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751187AbdH1KMV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 Aug 2017 06:12:21 -0400
+Subject: [PATCH 2/2] [media] Cypress: Improve a size determination in
+ cypress_load_firmware()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <f95552e6-edf1-ceed-0c16-c8d23b8309ea@users.sourceforge.net>
+Message-ID: <f67848f4-268c-9764-65f5-200a1f569724@users.sourceforge.net>
+Date: Mon, 28 Aug 2017 12:12:08 +0200
+MIME-Version: 1.0
+In-Reply-To: <f95552e6-edf1-ceed-0c16-c8d23b8309ea@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make this const as it is only used in a copy operation.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 28 Aug 2017 11:55:16 +0200
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+Replace the specification of a data structure by a pointer dereference
+as the parameter for the operator "sizeof" to make the corresponding size
+determination a bit safer according to the Linux coding style convention.
+
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/usb/s2255/s2255drv.c | 2 +-
+ drivers/media/common/cypress_firmware.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-index 23f606e..b2f239c 100644
---- a/drivers/media/usb/s2255/s2255drv.c
-+++ b/drivers/media/usb/s2255/s2255drv.c
-@@ -1590,7 +1590,7 @@ static void s2255_video_device_release(struct video_device *vdev)
- 	return;
- }
+diff --git a/drivers/media/common/cypress_firmware.c b/drivers/media/common/cypress_firmware.c
+index bfe47bc5f716..8895158c1962 100644
+--- a/drivers/media/common/cypress_firmware.c
++++ b/drivers/media/common/cypress_firmware.c
+@@ -74,7 +74,7 @@ int cypress_load_firmware(struct usb_device *udev,
+ 	struct hexline *hx;
+ 	int ret, pos = 0;
  
--static struct video_device template = {
-+static const struct video_device template = {
- 	.name = "s2255v",
- 	.fops = &s2255_fops_v4l,
- 	.ioctl_ops = &s2255_ioctl_ops,
+-	hx = kmalloc(sizeof(struct hexline), GFP_KERNEL);
++	hx = kmalloc(sizeof(*hx), GFP_KERNEL);
+ 	if (!hx)
+ 		return -ENOMEM;
+ 
 -- 
-1.9.1
+2.14.1
