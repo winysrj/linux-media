@@ -1,88 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53630
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754527AbdHZLxh (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:38250 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751236AbdH1QIz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 07:53:37 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH v4 0/7] document types of hardware control for V4L2
-Date: Sat, 26 Aug 2017 08:53:18 -0300
-Message-Id: <cover.1503747774.git.mchehab@s-opensource.com>
+        Mon, 28 Aug 2017 12:08:55 -0400
+Received: by mail-wm0-f66.google.com with SMTP id u26so1040645wma.5
+        for <linux-media@vger.kernel.org>; Mon, 28 Aug 2017 09:08:55 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@kernel.org, hverkuil@xs4all.nl, jasmin@anw.at
+Subject: [PATCH] [media_build] update v4.7_dma_attrs.patch
+Date: Mon, 28 Aug 2017 18:08:51 +0200
+Message-Id: <20170828160851.618-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Daniel Scheller <d.scheller@gmx.net>
 
-On Kernel 2.6.39, the omap3 driver was introduced together with a new way
-to control complex V4L2 devices used on embedded systems, but this was
-never documented, as the original idea were to have "soon" support for
-standard apps to use it as well, via libv4l, but that didn't happen so far.
+Fixes apply_patches wrt
 
-Also, it is not possible for an userspace applicatin to detect the kind of
-control a device supports.
+  commit 5b6f9abe5a49 ("media: vb2: add bidirectional flag in vb2_queue")
 
-This series fill the gap, by documenting the new type of hardware
-control and adding a way for userspace to detect if the device can be
-used or not by an standard V4L2 application.
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Jasmin Jessich <jasmin@anw.at>
+---
+Tested and verified by Jasmin on 3.13, 3.4 and 2.6.36, and by me on 4.4.
 
-Notes:
-====
+ backports/v4.7_dma_attrs.patch | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-1) For the sake of better review, this series start with the addition of a
-glossary, as requested by Laurent. Please notice, however, that
-the glossary there references some new captions that will only be added
-by subsequent patches. So, when this series get applied, the glossary
-patch should actually be merged after the patches that introduce those
-new captions, in order to avoid warnings for non-existing references.
-
-2) This series doesn't contain patches that actually use the new flag.
-This will be added after such patch gets reviewed.
-
-v4:
-
-- Addressed Hans comments for v2;
-- Fixed broken references at the glossary.rst
-
-v3:
-
-- Add a glossary to be used by the new documentation about hardware control;
-- Add a patch removing minor number range
-- Use glossary terms at open.rst
-- Split the notice about subdev-API on vdev-centric, as this change
-   will require further discussions.
-
-v2:
-
-- added a patch at the beginning of the series better defining the
-  device node naming rules;
-- better defined the differenes between device hardware and V4L2 device node
-  as suggested by Laurent and with changes proposed by Hans and Sakari
-- changed the caps flag to indicate MC-centric devices
-- removed the final patch that would use the new caps flag. I'll write it
-  once we agree on the new caps flag.
-
-
-Mauro Carvalho Chehab (7):
-  media: add glossary.rst with a glossary of terms used at V4L2 spec
-  media: open.rst: better document device node naming
-  media: open.rst: remove the minor number range
-  media: open.rst: document devnode-centric and mc-centric types
-  media: open.rst: Adjust some terms to match the glossary
-  media: videodev2: add a flag for MC-centric devices
-  media: open.rst: add a notice about subdev-API on vdev-centric
-
- Documentation/media/uapi/v4l/glossary.rst        |  98 ++++++++++++++++++
- Documentation/media/uapi/v4l/open.rst            | 123 ++++++++++++++++++++---
- Documentation/media/uapi/v4l/v4l2.rst            |   1 +
- Documentation/media/uapi/v4l/vidioc-querycap.rst |   5 +
- Documentation/media/videodev2.h.rst.exceptions   |   1 +
- include/uapi/linux/videodev2.h                   |   2 +
- 6 files changed, 216 insertions(+), 14 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/glossary.rst
-
+diff --git a/backports/v4.7_dma_attrs.patch b/backports/v4.7_dma_attrs.patch
+index 28d8dbc..40a7e5b 100644
+--- a/backports/v4.7_dma_attrs.patch
++++ b/backports/v4.7_dma_attrs.patch
+@@ -294,18 +294,18 @@ index 9a144f2..c5e3113 100644
+   *		doesn't fill in the @alloc_devs array.
+ - * @dma_attrs:	DMA attributes to use for the DMA.
+ + * @dma_attrs:	DMA attributes to use for the DMA. May be NULL.
+-  * @fileio_read_once:		report EOF after reading the first buffer
+-  * @fileio_write_immediately:	queue buffer after each write() call
+-  * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
++  * @bidirectional: when this flag is set the DMA direction for the buffers of
++  *		this queue will be overridden with DMA_BIDIRECTIONAL direction.
++  *		This is useful in cases where the hardware (firmware) writes to
+ @@ -494,7 +494,7 @@ struct vb2_queue {
+  	unsigned int			type;
+  	unsigned int			io_modes;
+  	struct device			*dev;
+ -	unsigned long			dma_attrs;
+ +	const struct dma_attrs		*dma_attrs;
++ 	unsigned			bidirectional:1;
+  	unsigned			fileio_read_once:1;
+  	unsigned			fileio_write_immediately:1;
+- 	unsigned			allow_zero_bytesused:1;
+ diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
+ index 5604818..df2aabe 100644
+ --- a/include/media/videobuf2-dma-contig.h
 -- 
-2.13.3
+2.13.5
