@@ -1,62 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f41.google.com ([209.85.215.41]:36713 "EHLO
-        mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932922AbdHVPAx (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36508 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751135AbdH1Jg0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 11:00:53 -0400
-Received: by mail-lf0-f41.google.com with SMTP id l137so5313845lfg.3
-        for <linux-media@vger.kernel.org>; Tue, 22 Aug 2017 08:00:53 -0700 (PDT)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Tue, 22 Aug 2017 17:00:50 +0200
-To: Rob Herring <robh@kernel.org>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        "open list:MEDIA DRIVERS FOR RENESAS - FCP"
-        <linux-renesas-soc@vger.kernel.org>
-Subject: Re: [PATCH v2] device property: preserve usecount for node passed to
- of_fwnode_graph_get_port_parent()
-Message-ID: <20170822150050.GD14873@bigcity.dyn.berto.se>
-References: <20170822001912.27638-1-niklas.soderlund+renesas@ragnatech.se>
- <CAL_Jsq+ABipq+YCpSwu_vhjk0rkZQimCD2vG1x5GL91wi6dzKw@mail.gmail.com>
+        Mon, 28 Aug 2017 05:36:26 -0400
+Date: Mon, 28 Aug 2017 12:36:23 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] cobalt: do not register subdev nodes
+Message-ID: <20170828093623.jk6sxiov6kxc7dp2@valkosipuli.retiisi.org.uk>
+References: <d913ad14-79e1-1c2d-e692-4941ccf9b9a5@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAL_Jsq+ABipq+YCpSwu_vhjk0rkZQimCD2vG1x5GL91wi6dzKw@mail.gmail.com>
+In-Reply-To: <d913ad14-79e1-1c2d-e692-4941ccf9b9a5@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+On Mon, Aug 28, 2017 at 10:45:58AM +0200, Hans Verkuil wrote:
+> In the distant past the adv7604 driver used private controls. In order to access
+> them the v4l-subdevX nodes were needed. Later the is_private tag was removed in
+> the adv7604 driver and the need for v4l-subdevX device nodes disappeared.
+> 
+> Remove the creation of those device nodes from this driver.
+> 
+> Note: the cobalt card is only used inside Cisco and we never actually used the
+> v4l-subdevX nodes for anything. So this API change can be done safely without
+> breaking anything.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 2017-08-22 09:49:35 -0500, Rob Herring wrote:
-> On Mon, Aug 21, 2017 at 7:19 PM, Niklas Söderlund
-> <niklas.soderlund+renesas@ragnatech.se> wrote:
-> > Using CONFIG_OF_DYNAMIC=y uncovered an imbalance in the usecount of the
-> > node being passed to of_fwnode_graph_get_port_parent(). Preserve the
-> > usecount by using of_get_parent() instead of of_get_next_parent() which
-> > don't decrement the usecount of the node passed to it.
-> >
-> > Fixes: 3b27d00e7b6d7c88 ("device property: Move fwnode graph ops to firmware specific locations")
-> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  drivers/of/property.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> Isn't this already fixed with this fix:
-> 
-> commit c0a480d1acf7dc184f9f3e7cf724483b0d28dc2e
-> Author: Tony Lindgren <tony@atomide.com>
-> Date:   Fri Jul 28 01:23:15 2017 -0700
-> 
-> device property: Fix usecount for of_graph_get_port_parent()
-
-No, that commit fixes it for of_graph_get_port_parent() while this 
-commit fixes it for of_fwnode_graph_get_port_parent(). But in essence it 
-is the same issue but needs two separate fixes.
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
 -- 
-Regards,
-Niklas Söderlund
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
