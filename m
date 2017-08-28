@@ -1,43 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:23075 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751164AbdHUHsT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Aug 2017 03:48:19 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: tfiga@chromium.org, yong.zhi@intel.com, hverkuil@xs4all.nl
-Subject: [v4l-utils PATCH v2 1/2] Add metadata output definitions from metadata output patches
-Date: Mon, 21 Aug 2017 10:48:12 +0300
-Message-Id: <20170821074813.20934-2-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170821074813.20934-1-sakari.ailus@linux.intel.com>
-References: <20170821074813.20934-1-sakari.ailus@linux.intel.com>
+Received: from mail-io0-f182.google.com ([209.85.223.182]:38648 "EHLO
+        mail-io0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751184AbdH1SHZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 Aug 2017 14:07:25 -0400
+Received: by mail-io0-f182.google.com with SMTP id 81so4877436ioj.5
+        for <linux-media@vger.kernel.org>; Mon, 28 Aug 2017 11:07:25 -0700 (PDT)
+Message-ID: <1503943642.3316.7.camel@ndufresne.ca>
+Subject: Re: DRM Format Modifiers in v4l2
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Brian Starkey <brian.starkey@arm.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        jonathan.chai@arm.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>
+Date: Mon, 28 Aug 2017 14:07:22 -0400
+In-Reply-To: <20170824122647.GA28829@e107564-lin.cambridge.arm.com>
+References: <20170821155203.GB38943@e107564-lin.cambridge.arm.com>
+         <CAKMK7uFdQPUomZDCp_ak6sTsUayZuut4us08defjKmiy=24QnA@mail.gmail.com>
+         <47128f36-2990-bd45-ead9-06a31ed8cde0@xs4all.nl>
+         <20170824111430.GB25711@e107564-lin.cambridge.arm.com>
+         <ba202456-4bc6-733e-4950-88ce64ca990e@xs4all.nl>
+         <20170824122647.GA28829@e107564-lin.cambridge.arm.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-sAn3iQ3EgHCdjXFmQIyv"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- include/linux/videodev2.h | 2 ++
- 1 file changed, 2 insertions(+)
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 49fe06c97..4db47dba4 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -142,6 +142,7 @@ enum v4l2_buf_type {
- 	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
- 	V4L2_BUF_TYPE_SDR_OUTPUT           = 12,
- 	V4L2_BUF_TYPE_META_CAPTURE         = 13,
-+	V4L2_BUF_TYPE_META_OUTPUT	   = 14,
- 	/* Deprecated, do not use */
- 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
- };
-@@ -453,6 +454,7 @@ struct v4l2_capability {
- #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
- #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
- #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
-+#define V4L2_CAP_META_OUTPUT		0x08000000  /* Is a metadata output device */
- 
- #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
- 
--- 
-2.11.0
+--=-sAn3iQ3EgHCdjXFmQIyv
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Le jeudi 24 ao=C3=BBt 2017 =C3=A0 13:26 +0100, Brian Starkey a =C3=A9crit :
+> > What I mean was: an application can use the modifier to give buffers fr=
+om
+> > one device to another without needing to understand it.
+> >=20
+> > But a generic video capture application that processes the video itself
+> > cannot be expected to know about the modifiers. It's a custom HW specif=
+ic
+> > format that you only use between two HW devices or with software writte=
+n
+> > for that hardware.
+> >=20
+>=20
+> Yes, makes sense.
+>=20
+> > >=20
+> > > However, in DRM the API lets you get the supported formats for each
+> > > modifier as-well-as the modifier list itself. I'm not sure how exactl=
+y
+> > > to provide that in a control.
+> >=20
+> > We have support for a 'menu' of 64 bit integers: V4L2_CTRL_TYPE_INTEGER=
+_MENU.
+> > You use VIDIOC_QUERYMENU to enumerate the available modifiers.
+> >=20
+> > So enumerating these modifiers would work out-of-the-box.
+>=20
+> Right. So I guess the supported set of formats could be somehow
+> enumerated in the menu item string. In DRM the pairs are (modifier +
+> bitmask) where bits represent formats in the supported formats list
+> (commit db1689aa61bd in drm-next). Printing a hex representation of
+> the bitmask would be functional but I concede not very pretty.
+
+The problem is that the list of modifiers depends on the format
+selected. Having to call S_FMT to obtain this list is quite
+inefficient.
+
+Also, be aware that DRM_FORMAT_MOD_SAMSUNG_64_32_TILE modifier has been
+implemented in V4L2 with a direct format (V4L2_PIX_FMT_NV12MT). I think
+an other one made it the same way recently, something from Mediatek if
+I remember. Though, unlike the Intel one, the same modifier does not
+have various result depending on the hardware revision.
+
+regards,
+Nicolas
+
+
+--=-sAn3iQ3EgHCdjXFmQIyv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCWaRb2gAKCRBxUwItrAao
+HOAJAJ9XSiK8gT82E2pe/YOM+8j5nA624gCdF9GSU/Q6jBIWn4rnE750R3s9rI0=
+=+Is1
+-----END PGP SIGNATURE-----
+
+--=-sAn3iQ3EgHCdjXFmQIyv--
