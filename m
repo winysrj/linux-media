@@ -1,55 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53602
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752322AbdHZLxf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 07:53:35 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v4 7/7] media: open.rst: add a notice about subdev-API on vdev-centric
-Date: Sat, 26 Aug 2017 08:53:25 -0300
-Message-Id: <a77ff374ebde22ea20e1cec7c94026db817ed89d.1503747774.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503747774.git.mchehab@s-opensource.com>
-References: <cover.1503747774.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503747774.git.mchehab@s-opensource.com>
-References: <cover.1503747774.git.mchehab@s-opensource.com>
+Received: from mout.web.de ([217.72.192.78]:50974 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751194AbdH1LNe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 Aug 2017 07:13:34 -0400
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/3] [media] Siano: Adjustments for some function
+ implementations
+Message-ID: <386b5a60-548e-1896-5271-4875fa2aea94@users.sourceforge.net>
+Date: Mon, 28 Aug 2017 13:13:21 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The documentation doesn't mention if vdev-centric hardware
-control would have subdev API or not.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 28 Aug 2017 12:55:43 +0200
 
-Add a notice about that, reflecting the current status, where
-three drivers use it, in order to support some subdev-specific
-controls.
+A few update suggestions were taken into account
+from static source code analysis.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/v4l/open.rst | 7 +++++++
- 1 file changed, 7 insertions(+)
+Markus Elfring (3):
+  Delete an error message for a failed memory allocation in three functions
+  Improve a size determination in six functions
+  Adjust five checks for null pointers
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index d0930fc170f0..48f628bbabc7 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -46,6 +46,13 @@ the periferal can be used. For such devices, the sub-devices' configuration
- can be controlled via the :ref:`sub-device API <subdev>`, which creates one
- device node per sub-device.
- 
-+.. note::
-+
-+   A **vdev-centric** may also optionally expose V4L2 sub-devices via
-+   :ref:`sub-device API <subdev>`. In that case, it has to implement
-+   the :ref:`media controller API <media_controller>` as well.
-+
-+
- .. attention::
- 
-    Devices that require **mc-centric** hardware peripheral control should
+ drivers/media/common/siano/smscoreapi.c | 39 ++++++++++++++-------------------
+ 1 file changed, 16 insertions(+), 23 deletions(-)
+
 -- 
-2.13.3
+2.14.1
