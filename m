@@ -1,92 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:33315 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751560AbdHGHcg (ORCPT
+Received: from merlin.infradead.org ([205.233.59.134]:33754 "EHLO
+        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751189AbdH1XKS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Aug 2017 03:32:36 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCHv2] cec-api: log the reason for the -EINVAL in cec_s_mode
-Message-ID: <b897ed0f-8898-54bd-2d28-de87e3e8ec9f@xs4all.nl>
-Date: Mon, 7 Aug 2017 09:32:34 +0200
+        Mon, 28 Aug 2017 19:10:18 -0400
+To: LKML <linux-kernel@vger.kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+        "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: [PATCH 2/2] media: dvb-core: fix demux.h non-ASCII characters
+Message-ID: <5fb15c64-e376-f461-8a7c-d0c6776870c9@infradead.org>
+Date: Mon, 28 Aug 2017 16:10:16 -0700
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If cec_debug >= 1 then log why the requested mode returned -EINVAL.
+From: Randy Dunlap <rdunlap@infradead.org>
 
-It can be hard to debug this since -EINVAL can be returned for many
-reasons. So this should help.
+Fix non-ASCII charactes in kernel-doc comment to prevent the kernel-doc
+build warning below.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+WARNING: kernel-doc '../scripts/kernel-doc -rst -enable-lineno ../drivers/media/dvb-core/demux.h' processing failed with: 'ascii' codec can't decode byte 0xe2 in position 6368: ordinal not in range(128)
+
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 ---
-Changes since v1:
+ drivers/media/dvb-core/demux.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Removed some error injection code that inadvertently ended up in the patch
-I posted.
----
- drivers/media/cec/cec-api.c | 25 +++++++++++++++++++------
- 1 file changed, 19 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
-index 8dd16e263452..00d43d74020f 100644
---- a/drivers/media/cec/cec-api.c
-+++ b/drivers/media/cec/cec-api.c
-@@ -357,34 +357,47 @@ static long cec_s_mode(struct cec_adapter *adap, struct cec_fh *fh,
-
- 	if (copy_from_user(&mode, parg, sizeof(mode)))
- 		return -EFAULT;
--	if (mode & ~(CEC_MODE_INITIATOR_MSK | CEC_MODE_FOLLOWER_MSK))
-+	if (mode & ~(CEC_MODE_INITIATOR_MSK | CEC_MODE_FOLLOWER_MSK)) {
-+		dprintk(1, "%s: invalid mode bits set\n", __func__);
- 		return -EINVAL;
-+	}
-
- 	mode_initiator = mode & CEC_MODE_INITIATOR_MSK;
- 	mode_follower = mode & CEC_MODE_FOLLOWER_MSK;
-
- 	if (mode_initiator > CEC_MODE_EXCL_INITIATOR ||
--	    mode_follower > CEC_MODE_MONITOR_ALL)
-+	    mode_follower > CEC_MODE_MONITOR_ALL) {
-+		dprintk(1, "%s: unknown mode\n", __func__);
- 		return -EINVAL;
-+	}
-
- 	if (mode_follower == CEC_MODE_MONITOR_ALL &&
--	    !(adap->capabilities & CEC_CAP_MONITOR_ALL))
-+	    !(adap->capabilities & CEC_CAP_MONITOR_ALL)) {
-+		dprintk(1, "%s: MONITOR_ALL not supported\n", __func__);
- 		return -EINVAL;
-+	}
-
- 	if (mode_follower == CEC_MODE_MONITOR_PIN &&
--	    !(adap->capabilities & CEC_CAP_MONITOR_PIN))
-+	    !(adap->capabilities & CEC_CAP_MONITOR_PIN)) {
-+		dprintk(1, "%s: MONITOR_PIN not supported\n", __func__);
- 		return -EINVAL;
-+	}
-
- 	/* Follower modes should always be able to send CEC messages */
- 	if ((mode_initiator == CEC_MODE_NO_INITIATOR ||
- 	     !(adap->capabilities & CEC_CAP_TRANSMIT)) &&
- 	    mode_follower >= CEC_MODE_FOLLOWER &&
--	    mode_follower <= CEC_MODE_EXCL_FOLLOWER_PASSTHRU)
-+	    mode_follower <= CEC_MODE_EXCL_FOLLOWER_PASSTHRU) {
-+		dprintk(1, "%s: cannot transmit\n", __func__);
- 		return -EINVAL;
-+	}
-
- 	/* Monitor modes require CEC_MODE_NO_INITIATOR */
--	if (mode_initiator && mode_follower >= CEC_MODE_MONITOR_PIN)
-+	if (mode_initiator && mode_follower >= CEC_MODE_MONITOR_PIN) {
-+		dprintk(1, "%s: monitor modes require NO_INITIATOR\n",
-+			__func__);
- 		return -EINVAL;
-+	}
-
- 	/* Monitor modes require CAP_NET_ADMIN */
- 	if (mode_follower >= CEC_MODE_MONITOR_PIN && !capable(CAP_NET_ADMIN))
--- 
-2.13.2
+--- lnx-413-rc7.orig/drivers/media/dvb-core/demux.h
++++ lnx-413-rc7/drivers/media/dvb-core/demux.h
+@@ -210,7 +210,7 @@ struct dmx_section_feed {
+  * the start of the first undelivered TS packet within a circular buffer.
+  * The @buffer2 buffer parameter is normally NULL, except when the received
+  * TS packets have crossed the last address of the circular buffer and
+- * ”wrapped” to the beginning of the buffer. In the latter case the @buffer1
++ * "wrapped" to the beginning of the buffer. In the latter case the @buffer1
+  * parameter would contain an address within the circular buffer, while the
+  * @buffer2 parameter would contain the first address of the circular buffer.
+  * The number of bytes delivered with this function (i.e. @buffer1_length +
