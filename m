@@ -1,45 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:33695 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751182AbdH0QbE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 27 Aug 2017 12:31:04 -0400
-Received: by mail-qt0-f193.google.com with SMTP id q53so3499501qtq.0
-        for <linux-media@vger.kernel.org>; Sun, 27 Aug 2017 09:31:03 -0700 (PDT)
-From: Fabio Estevam <festevam@gmail.com>
-To: mchehab@kernel.org
-Cc: hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
-        linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>
-Subject: [PATCH 3/4] [media] ov2640: Propagate the real error on devm_clk_get() failure
-Date: Sun, 27 Aug 2017 13:30:37 -0300
-Message-Id: <1503851438-4949-3-git-send-email-festevam@gmail.com>
-In-Reply-To: <1503851438-4949-1-git-send-email-festevam@gmail.com>
-References: <1503851438-4949-1-git-send-email-festevam@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:35888 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750866AbdH1PcJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 Aug 2017 11:32:09 -0400
+Date: Mon, 28 Aug 2017 17:32:43 +0200
+From: Eugene Syromiatnikov <esyr@redhat.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        y2038@lists.linaro.org,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        linux-api@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        ldv@altlinux.org, glebfm@altlinux.org
+Subject: Re: [3/7,media] dvb: don't use 'time_t' in event ioctl
+Message-ID: <20170828153243.GA27121@asgard.redhat.com>
+References: <1442332148-488079-4-git-send-email-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1442332148-488079-4-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabio Estevam <fabio.estevam@nxp.com>
+On Tue, Sep 15, 2015 at 05:49:04PM +0200, Arnd Bergmann wrote:
+> 'struct video_event' is used for the VIDEO_GET_EVENT ioctl, implemented
+> by drivers/media/pci/ivtv/ivtv-ioctl.c and
+> drivers/media/pci/ttpci/av7110_av.c. The structure contains a 'time_t',
+> which will be redefined in the future to be 64-bit wide, causing an
+> incompatible ABI change for this ioctl.
+> 
+> As it turns out, neither of the drivers currently sets the timestamp
+> field, and it is presumably useless anyway because of the limited
+> resolutions (no sub-second times). This means we can simply change
+> the structure definition to use a 'long' instead of 'time_t' and
+> remain compatible with all existing user space binaries when time_t
+> gets changed.
+> 
+> If anybody ever starts using this field, they have to make sure not
+> to use 1970 based seconds in there, as those overflow in 2038.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  include/uapi/linux/dvb/video.h | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/uapi/linux/dvb/video.h b/include/uapi/linux/dvb/video.h
+> index d3d14a59d2d5..6c7f9298d7c2 100644
+> --- a/include/uapi/linux/dvb/video.h
+> +++ b/include/uapi/linux/dvb/video.h
+> @@ -135,7 +135,8 @@ struct video_event {
+>  #define VIDEO_EVENT_FRAME_RATE_CHANGED	2
+>  #define VIDEO_EVENT_DECODER_STOPPED 	3
+>  #define VIDEO_EVENT_VSYNC 		4
+> -	__kernel_time_t timestamp;
+> +	/* unused, make sure to use atomic time for y2038 if it ever gets used */
+> +	long timestamp;
 
-devm_clk_get() may return different error codes other than -EPROBE_DEFER,
-so it is better to return the real error code instead.
+This change breaks x32 ABI (and possibly MIPS n32 ABI), as __kernel_time_t
+there is 64 bit already:
+https://sourceforge.net/p/strace/mailman/message/36015326/
 
-Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
----
- drivers/media/i2c/ov2640.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Note the change in structure size from 0x20 to 0x14 for VIDEO_GET_EVENT
+command in linux/x32/ioctls_inc0.h.
 
-diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
-index e6d0c1f..e6cbe01 100644
---- a/drivers/media/i2c/ov2640.c
-+++ b/drivers/media/i2c/ov2640.c
-@@ -1107,7 +1107,7 @@ static int ov2640_probe(struct i2c_client *client,
- 	if (client->dev.of_node) {
- 		priv->clk = devm_clk_get(&client->dev, "xvclk");
- 		if (IS_ERR(priv->clk))
--			return -EPROBE_DEFER;
-+			return PTR_ERR(priv->clk);
- 		clk_prepare_enable(priv->clk);
- 	}
- 
--- 
-2.7.4
+>  	union {
+>  		video_size_t size;
+>  		unsigned int frame_rate;	/* in frames per 1000sec */
