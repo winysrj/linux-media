@@ -1,48 +1,245 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:37471 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751283AbdHDIID (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Aug 2017 04:08:03 -0400
-Date: Fri, 4 Aug 2017 11:07:51 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [PATCH] [media] adv7604: Prevent out of bounds access
-Message-ID: <20170804080751.ysp543gbsg4peqdp@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50754 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752424AbdH2LDR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 Aug 2017 07:03:17 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
+Subject: [PATCH v5 1/5] v4l: fwnode: Move KernelDoc documentation to the header
+Date: Tue, 29 Aug 2017 14:03:09 +0300
+Message-Id: <20170829110313.19538-2-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170829110313.19538-1-sakari.ailus@linux.intel.com>
+References: <20170829110313.19538-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These can only be accessed with CAP_SYS_ADMIN so it's not a critical
-security issue.  The problem is that "page" is controlled by the user in
-the ioctl().  The test to see if the bit is set in state->info->page_mask
-is not sufficient because "page" can be very high and shift wrap around
-to a bit which is set.
+In V4L2 the practice is to have the KernelDoc documentation in the header
+and not in .c source code files. This consequientally makes the V4L2
+fwnode function documentation part of the Media documentation build.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Also correct the link related function and argument naming in
+documentation.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 660bacb8f7d9..8c633b8f30e7 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -618,7 +618,7 @@ static int adv76xx_read_reg(struct v4l2_subdev *sd, unsigned int reg)
- 	unsigned int val;
- 	int err;
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/v4l2-fwnode.c | 75 --------------------------------
+ include/media/v4l2-fwnode.h           | 81 ++++++++++++++++++++++++++++++++++-
+ 2 files changed, 80 insertions(+), 76 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 40b2fbfe8865..706f9e7b90f1 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -181,25 +181,6 @@ v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_handle *fwnode,
+ 		vep->bus_type = V4L2_MBUS_CSI1;
+ }
  
--	if (!(BIT(page) & state->info->page_mask))
-+	if (page >= ADV76XX_PAGE_MAX || !(BIT(page) & state->info->page_mask))
- 		return -EINVAL;
+-/**
+- * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
+- * @fwnode: pointer to the endpoint's fwnode handle
+- * @vep: pointer to the V4L2 fwnode data structure
+- *
+- * All properties are optional. If none are found, we don't set any flags. This
+- * means the port has a static configuration and no properties have to be
+- * specified explicitly. If any properties that identify the bus as parallel
+- * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
+- * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
+- * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
+- * reference to @fwnode.
+- *
+- * NOTE: This function does not parse properties the size of which is variable
+- * without a low fixed limit. Please use v4l2_fwnode_endpoint_alloc_parse() in
+- * new drivers instead.
+- *
+- * Return: 0 on success or a negative error code on failure.
+- */
+ int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+ 			       struct v4l2_fwnode_endpoint *vep)
+ {
+@@ -239,14 +220,6 @@ int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_parse);
  
- 	reg &= 0xff;
-@@ -633,7 +633,7 @@ static int adv76xx_write_reg(struct v4l2_subdev *sd, unsigned int reg, u8 val)
- 	struct adv76xx_state *state = to_state(sd);
- 	unsigned int page = reg >> 8;
+-/*
+- * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
+- * v4l2_fwnode_endpoint_alloc_parse()
+- * @vep - the V4L2 fwnode the resources of which are to be released
+- *
+- * It is safe to call this function with NULL argument or on a V4L2 fwnode the
+- * parsing of which failed.
+- */
+ void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep)
+ {
+ 	if (IS_ERR_OR_NULL(vep))
+@@ -257,29 +230,6 @@ void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep)
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_free);
  
--	if (!(BIT(page) & state->info->page_mask))
-+	if (page >= ADV76XX_PAGE_MAX || !(BIT(page) & state->info->page_mask))
- 		return -EINVAL;
+-/**
+- * v4l2_fwnode_endpoint_alloc_parse() - parse all fwnode node properties
+- * @fwnode: pointer to the endpoint's fwnode handle
+- *
+- * All properties are optional. If none are found, we don't set any flags. This
+- * means the port has a static configuration and no properties have to be
+- * specified explicitly. If any properties that identify the bus as parallel
+- * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
+- * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
+- * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
+- * reference to @fwnode.
+- *
+- * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
+- * v4l2_fwnode_endpoint_parse():
+- *
+- * 1. It also parses variable size data.
+- *
+- * 2. The memory it has allocated to store the variable size data must be freed
+- *    using v4l2_fwnode_endpoint_free() when no longer needed.
+- *
+- * Return: Pointer to v4l2_fwnode_endpoint if successful, on an error pointer
+- * on error.
+- */
+ struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
+ 	struct fwnode_handle *fwnode)
+ {
+@@ -322,24 +272,6 @@ struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_alloc_parse);
  
- 	reg &= 0xff;
+-/**
+- * v4l2_fwnode_endpoint_parse_link() - parse a link between two endpoints
+- * @__fwnode: pointer to the endpoint's fwnode at the local end of the link
+- * @link: pointer to the V4L2 fwnode link data structure
+- *
+- * Fill the link structure with the local and remote nodes and port numbers.
+- * The local_node and remote_node fields are set to point to the local and
+- * remote port's parent nodes respectively (the port parent node being the
+- * parent node of the port node if that node isn't a 'ports' node, or the
+- * grand-parent node of the port node otherwise).
+- *
+- * A reference is taken to both the local and remote nodes, the caller must use
+- * v4l2_fwnode_endpoint_put_link() to drop the references when done with the
+- * link.
+- *
+- * Return: 0 on success, or -ENOLINK if the remote endpoint fwnode can't be
+- * found.
+- */
+ int v4l2_fwnode_parse_link(struct fwnode_handle *__fwnode,
+ 			   struct v4l2_fwnode_link *link)
+ {
+@@ -374,13 +306,6 @@ int v4l2_fwnode_parse_link(struct fwnode_handle *__fwnode,
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fwnode_parse_link);
+ 
+-/**
+- * v4l2_fwnode_put_link() - drop references to nodes in a link
+- * @link: pointer to the V4L2 fwnode link data structure
+- *
+- * Drop references to the local and remote nodes in the link. This function
+- * must be called on every link parsed with v4l2_fwnode_parse_link().
+- */
+ void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link)
+ {
+ 	fwnode_handle_put(link->local_node);
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index 7adec9851d9e..68eb22ba571b 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -113,13 +113,92 @@ struct v4l2_fwnode_link {
+ 	unsigned int remote_port;
+ };
+ 
++/**
++ * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
++ * @fwnode: pointer to the endpoint's fwnode handle
++ * @vep: pointer to the V4L2 fwnode data structure
++ *
++ * All properties are optional. If none are found, we don't set any flags. This
++ * means the port has a static configuration and no properties have to be
++ * specified explicitly. If any properties that identify the bus as parallel
++ * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
++ * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
++ * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
++ * reference to @fwnode.
++ *
++ * NOTE: This function does not parse properties the size of which is variable
++ * without a low fixed limit. Please use v4l2_fwnode_endpoint_alloc_parse() in
++ * new drivers instead.
++ *
++ * Return: 0 on success or a negative error code on failure.
++ */
+ int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+ 			       struct v4l2_fwnode_endpoint *vep);
++
++/*
++ * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
++ * v4l2_fwnode_endpoint_alloc_parse()
++ * @vep - the V4L2 fwnode the resources of which are to be released
++ *
++ * It is safe to call this function with NULL argument or on a V4L2 fwnode the
++ * parsing of which failed.
++ */
++void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
++
++/**
++ * v4l2_fwnode_endpoint_alloc_parse() - parse all fwnode node properties
++ * @fwnode: pointer to the endpoint's fwnode handle
++ *
++ * All properties are optional. If none are found, we don't set any flags. This
++ * means the port has a static configuration and no properties have to be
++ * specified explicitly. If any properties that identify the bus as parallel
++ * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
++ * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
++ * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
++ * reference to @fwnode.
++ *
++ * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
++ * v4l2_fwnode_endpoint_parse():
++ *
++ * 1. It also parses variable size data.
++ *
++ * 2. The memory it has allocated to store the variable size data must be freed
++ *    using v4l2_fwnode_endpoint_free() when no longer needed.
++ *
++ * Return: Pointer to v4l2_fwnode_endpoint if successful, on an error pointer
++ * on error.
++ */
+ struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
+ 	struct fwnode_handle *fwnode);
+-void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
++
++/**
++ * v4l2_fwnode_parse_link() - parse a link between two endpoints
++ * @fwnode: pointer to the endpoint's fwnode at the local end of the link
++ * @link: pointer to the V4L2 fwnode link data structure
++ *
++ * Fill the link structure with the local and remote nodes and port numbers.
++ * The local_node and remote_node fields are set to point to the local and
++ * remote port's parent nodes respectively (the port parent node being the
++ * parent node of the port node if that node isn't a 'ports' node, or the
++ * grand-parent node of the port node otherwise).
++ *
++ * A reference is taken to both the local and remote nodes, the caller must use
++ * v4l2_fwnode_put_link() to drop the references when done with the
++ * link.
++ *
++ * Return: 0 on success, or -ENOLINK if the remote endpoint fwnode can't be
++ * found.
++ */
+ int v4l2_fwnode_parse_link(struct fwnode_handle *fwnode,
+ 			   struct v4l2_fwnode_link *link);
++
++/**
++ * v4l2_fwnode_put_link() - drop references to nodes in a link
++ * @link: pointer to the V4L2 fwnode link data structure
++ *
++ * Drop references to the local and remote nodes in the link. This function
++ * must be called on every link parsed with v4l2_fwnode_parse_link().
++ */
+ void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
+ 
+ #endif /* _V4L2_FWNODE_H */
+-- 
+2.11.0
