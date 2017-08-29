@@ -1,203 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([75.149.91.89]:49861 "EHLO cnc.isely.net"
+Received: from foss.arm.com ([217.140.101.70]:58366 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751062AbdHZPvx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 11:51:53 -0400
-Date: Sat, 26 Aug 2017 10:51:51 -0500 (CDT)
-From: isely@isely.net
-Reply-To: Mike Isely at pobox <isely@pobox.com>
-To: Bhumika Goyal <bhumirks@gmail.com>
-cc: julia.lawall@lip.fr, crope@iki.fi, mchehab@kernel.org,
-        hans.verkuil@cisco.com, ezequiel@vanguardiasur.com.ar,
-        royale@zerezo.com, linux-media@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-usb@vger.kernel.org, Mike Isely at pobox <isely@pobox.com>
-Subject: Re: [PATCH v2] [media] usb: make video_device const
-In-Reply-To: <1503753090-19987-1-git-send-email-bhumirks@gmail.com>
-Message-ID: <alpine.DEB.2.11.1708261051260.11734@lochley.isely.net>
-References: <1503753090-19987-1-git-send-email-bhumirks@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+        id S1751600AbdH2JrF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 Aug 2017 05:47:05 -0400
+Date: Tue, 29 Aug 2017 10:47:01 +0100
+From: Brian Starkey <brian.starkey@arm.com>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        jonathan.chai@arm.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>
+Subject: Re: DRM Format Modifiers in v4l2
+Message-ID: <20170829094701.GB26907@e107564-lin.cambridge.arm.com>
+References: <20170821155203.GB38943@e107564-lin.cambridge.arm.com>
+ <CAKMK7uFdQPUomZDCp_ak6sTsUayZuut4us08defjKmiy=24QnA@mail.gmail.com>
+ <47128f36-2990-bd45-ead9-06a31ed8cde0@xs4all.nl>
+ <20170824111430.GB25711@e107564-lin.cambridge.arm.com>
+ <ba202456-4bc6-733e-4950-88ce64ca990e@xs4all.nl>
+ <20170824122647.GA28829@e107564-lin.cambridge.arm.com>
+ <1503943642.3316.7.camel@ndufresne.ca>
+ <CAKMK7uGaQ+9cZ2PyLkwC06Qpch3AK+Tkr4SZFZVLfUqUFKyygQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <CAKMK7uGaQ+9cZ2PyLkwC06Qpch3AK+Tkr4SZFZVLfUqUFKyygQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, Aug 28, 2017 at 10:49:07PM +0200, Daniel Vetter wrote:
+>On Mon, Aug 28, 2017 at 8:07 PM, Nicolas Dufresne <nicolas@ndufresne.ca> wrote:
+>> Le jeudi 24 ao??t 2017 ?? 13:26 +0100, Brian Starkey a ??crit :
+>>> > What I mean was: an application can use the modifier to give buffers from
+>>> > one device to another without needing to understand it.
+>>> >
+>>> > But a generic video capture application that processes the video itself
+>>> > cannot be expected to know about the modifiers. It's a custom HW specific
+>>> > format that you only use between two HW devices or with software written
+>>> > for that hardware.
+>>> >
+>>>
+>>> Yes, makes sense.
+>>>
+>>> > >
+>>> > > However, in DRM the API lets you get the supported formats for each
+>>> > > modifier as-well-as the modifier list itself. I'm not sure how exactly
+>>> > > to provide that in a control.
+>>> >
+>>> > We have support for a 'menu' of 64 bit integers: V4L2_CTRL_TYPE_INTEGER_MENU.
+>>> > You use VIDIOC_QUERYMENU to enumerate the available modifiers.
+>>> >
+>>> > So enumerating these modifiers would work out-of-the-box.
+>>>
+>>> Right. So I guess the supported set of formats could be somehow
+>>> enumerated in the menu item string. In DRM the pairs are (modifier +
+>>> bitmask) where bits represent formats in the supported formats list
+>>> (commit db1689aa61bd in drm-next). Printing a hex representation of
+>>> the bitmask would be functional but I concede not very pretty.
+>>
+>> The problem is that the list of modifiers depends on the format
+>> selected. Having to call S_FMT to obtain this list is quite
+>> inefficient.
+>>
+>> Also, be aware that DRM_FORMAT_MOD_SAMSUNG_64_32_TILE modifier has been
+>> implemented in V4L2 with a direct format (V4L2_PIX_FMT_NV12MT). I think
+>> an other one made it the same way recently, something from Mediatek if
+>> I remember. Though, unlike the Intel one, the same modifier does not
+>> have various result depending on the hardware revision.
+>
+>Note on the intel modifers: On most recent platforms (iirc gen9) the
+>modifier is well defined and always describes the same byte layout. We
+>simply didn't want to rewrite our entire software stack for all the
+>old gunk platforms, hence the language. I guess we could/should
+>describe the layout in detail, but atm we're the only ones using it.
+>
+>On your topic of v4l2 encoding the drm fourcc+modifier combo into a
+>special v4l fourcc: That's exactly the mismatch I was thinking of.
+>There's other examples of v4l2 fourcc being more specific than their
+>drm counters (e.g. specific way the different planes are laid out).
 
-Acked-by: Mike Isely <isely@pobox.com>
+I'm not entirely clear on the v4l2 fourccs being more specific than
+DRM ones - do you mean e.g. NV12 vs NV12M? Specifically in the case of
+multi-planar formats I think it's a non-issue because modifiers are
+allowed to alter the number of planes and the meanings of them. Also
+V4L2 NV12M is a superset of NV12 - so NV12M would always be able to
+describe a DRM NV12 buffer.
 
-  -Mike
+I don't see the "special v4l2 format already exists" case as a problem
+either. It would be up to any drivers that already have special
+formats to decide if they want to also support it via a more generic
+modifiers API or not.
 
+The fact is, adding special formats for each combination is
+unmanageable - we're talking dozens in the case of our hardware.
 
-On Sat, 26 Aug 2017, Bhumika Goyal wrote:
+Cheers,
+-Brian
 
-> Make these const as they are only used during a copy operation.
-> 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
-> ---
-> Changes in v2:
-> * Combine the patch series sent for drivers/media/usb/ into a
-> single patch.
-> 
->  drivers/media/usb/airspy/airspy.c        | 2 +-
->  drivers/media/usb/cpia2/cpia2_v4l.c      | 2 +-
->  drivers/media/usb/go7007/go7007-v4l2.c   | 2 +-
->  drivers/media/usb/hackrf/hackrf.c        | 2 +-
->  drivers/media/usb/msi2500/msi2500.c      | 2 +-
->  drivers/media/usb/pvrusb2/pvrusb2-v4l2.c | 2 +-
->  drivers/media/usb/pwc/pwc-if.c           | 2 +-
->  drivers/media/usb/s2255/s2255drv.c       | 2 +-
->  drivers/media/usb/stk1160/stk1160-v4l.c  | 2 +-
->  drivers/media/usb/stkwebcam/stk-webcam.c | 2 +-
->  drivers/media/usb/zr364xx/zr364xx.c      | 2 +-
->  11 files changed, 11 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/usb/airspy/airspy.c b/drivers/media/usb/airspy/airspy.c
-> index 07f3f4e..e70c9e2 100644
-> --- a/drivers/media/usb/airspy/airspy.c
-> +++ b/drivers/media/usb/airspy/airspy.c
-> @@ -859,7 +859,7 @@ static int airspy_enum_freq_bands(struct file *file, void *priv,
->  	.unlocked_ioctl           = video_ioctl2,
->  };
->  
-> -static struct video_device airspy_template = {
-> +static const struct video_device airspy_template = {
->  	.name                     = "AirSpy SDR",
->  	.release                  = video_device_release_empty,
->  	.fops                     = &airspy_fops,
-> diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
-> index 7122023..3dedd83 100644
-> --- a/drivers/media/usb/cpia2/cpia2_v4l.c
-> +++ b/drivers/media/usb/cpia2/cpia2_v4l.c
-> @@ -1075,7 +1075,7 @@ static void reset_camera_struct_v4l(struct camera_data *cam)
->  	.mmap		= cpia2_mmap,
->  };
->  
-> -static struct video_device cpia2_template = {
-> +static const struct video_device cpia2_template = {
->  	/* I could not find any place for the old .initialize initializer?? */
->  	.name =		"CPiA2 Camera",
->  	.fops =		&cpia2_fops,
-> diff --git a/drivers/media/usb/go7007/go7007-v4l2.c b/drivers/media/usb/go7007/go7007-v4l2.c
-> index 445f17b..98cd57e 100644
-> --- a/drivers/media/usb/go7007/go7007-v4l2.c
-> +++ b/drivers/media/usb/go7007/go7007-v4l2.c
-> @@ -901,7 +901,7 @@ static int go7007_s_ctrl(struct v4l2_ctrl *ctrl)
->  	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
->  };
->  
-> -static struct video_device go7007_template = {
-> +static const struct video_device go7007_template = {
->  	.name		= "go7007",
->  	.fops		= &go7007_fops,
->  	.release	= video_device_release_empty,
-> diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
-> index a41b305..7eb5351 100644
-> --- a/drivers/media/usb/hackrf/hackrf.c
-> +++ b/drivers/media/usb/hackrf/hackrf.c
-> @@ -1263,7 +1263,7 @@ static int hackrf_enum_freq_bands(struct file *file, void *priv,
->  	.unlocked_ioctl           = video_ioctl2,
->  };
->  
-> -static struct video_device hackrf_template = {
-> +static const struct video_device hackrf_template = {
->  	.name                     = "HackRF One",
->  	.release                  = video_device_release_empty,
->  	.fops                     = &hackrf_fops,
-> diff --git a/drivers/media/usb/msi2500/msi2500.c b/drivers/media/usb/msi2500/msi2500.c
-> index 79bfd2d..a097d3d 100644
-> --- a/drivers/media/usb/msi2500/msi2500.c
-> +++ b/drivers/media/usb/msi2500/msi2500.c
-> @@ -1143,7 +1143,7 @@ static int msi2500_enum_freq_bands(struct file *file, void *priv,
->  	.unlocked_ioctl           = video_ioctl2,
->  };
->  
-> -static struct video_device msi2500_template = {
-> +static const struct video_device msi2500_template = {
->  	.name                     = "Mirics MSi3101 SDR Dongle",
->  	.release                  = video_device_release_empty,
->  	.fops                     = &msi2500_fops,
-> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-> index 8f13c60..4320bda 100644
-> --- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-> +++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-> @@ -1226,7 +1226,7 @@ static unsigned int pvr2_v4l2_poll(struct file *file, poll_table *wait)
->  };
->  
->  
-> -static struct video_device vdev_template = {
-> +static const struct video_device vdev_template = {
->  	.fops       = &vdev_fops,
->  };
->  
-> diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
-> index 22420c1..eb6921d 100644
-> --- a/drivers/media/usb/pwc/pwc-if.c
-> +++ b/drivers/media/usb/pwc/pwc-if.c
-> @@ -146,7 +146,7 @@
->  	.mmap =		vb2_fop_mmap,
->  	.unlocked_ioctl = video_ioctl2,
->  };
-> -static struct video_device pwc_template = {
-> +static const struct video_device pwc_template = {
->  	.name =		"Philips Webcam",	/* Filled in later */
->  	.release =	video_device_release_empty,
->  	.fops =         &pwc_fops,
-> diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-> index 23f606e..b2f239c 100644
-> --- a/drivers/media/usb/s2255/s2255drv.c
-> +++ b/drivers/media/usb/s2255/s2255drv.c
-> @@ -1590,7 +1590,7 @@ static void s2255_video_device_release(struct video_device *vdev)
->  	return;
->  }
->  
-> -static struct video_device template = {
-> +static const struct video_device template = {
->  	.name = "s2255v",
->  	.fops = &s2255_fops_v4l,
->  	.ioctl_ops = &s2255_ioctl_ops,
-> diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
-> index a132faa..77b759a 100644
-> --- a/drivers/media/usb/stk1160/stk1160-v4l.c
-> +++ b/drivers/media/usb/stk1160/stk1160-v4l.c
-> @@ -751,7 +751,7 @@ static void stop_streaming(struct vb2_queue *vq)
->  	.wait_finish		= vb2_ops_wait_finish,
->  };
->  
-> -static struct video_device v4l_template = {
-> +static const struct video_device v4l_template = {
->  	.name = "stk1160",
->  	.tvnorms = V4L2_STD_525_60 | V4L2_STD_625_50,
->  	.fops = &stk1160_fops,
-> diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
-> index 39abb58..c0bba77 100644
-> --- a/drivers/media/usb/stkwebcam/stk-webcam.c
-> +++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-> @@ -1244,7 +1244,7 @@ static void stk_v4l_dev_release(struct video_device *vd)
->  	kfree(dev);
->  }
->  
-> -static struct video_device stk_v4l_data = {
-> +static const struct video_device stk_v4l_data = {
->  	.name = "stkwebcam",
->  	.fops = &v4l_stk_fops,
->  	.ioctl_ops = &v4l_stk_ioctl_ops,
-> diff --git a/drivers/media/usb/zr364xx/zr364xx.c b/drivers/media/usb/zr364xx/zr364xx.c
-> index d4bb56b..4ff8d0a 100644
-> --- a/drivers/media/usb/zr364xx/zr364xx.c
-> +++ b/drivers/media/usb/zr364xx/zr364xx.c
-> @@ -1335,7 +1335,7 @@ static unsigned int zr364xx_poll(struct file *file,
->  	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
->  };
->  
-> -static struct video_device zr364xx_template = {
-> +static const struct video_device zr364xx_template = {
->  	.name = DRIVER_DESC,
->  	.fops = &zr364xx_fops,
->  	.ioctl_ops = &zr364xx_ioctl_ops,
-> 
-
--- 
-
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+>-Daniel
+>-- 
+>Daniel Vetter
+>Software Engineer, Intel Corporation
+>+41 (0) 79 365 57 48 - http://blog.ffwll.ch
