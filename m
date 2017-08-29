@@ -1,106 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:33436 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750709AbdHRLPC (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34779
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753021AbdH2NSH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 07:15:02 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-Subject: Re: [PATCH 1/4] v4l: async: fix unbind error in v4l2_async_notifier_unregister()
-Date: Fri, 18 Aug 2017 14:15:26 +0300
-Message-ID: <2638355.RUWT87hFr5@avalon>
-In-Reply-To: <20170815161604.5qjrd3eas4tlvrt6@valkosipuli.retiisi.org.uk>
-References: <20170730223158.14405-1-niklas.soderlund+renesas@ragnatech.se> <20170730223158.14405-2-niklas.soderlund+renesas@ragnatech.se> <20170815161604.5qjrd3eas4tlvrt6@valkosipuli.retiisi.org.uk>
+        Tue, 29 Aug 2017 09:18:07 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v6 4/7] media: open.rst: document devnode-centric and mc-centric types
+Date: Tue, 29 Aug 2017 10:17:53 -0300
+Message-Id: <5fb4150ad686d7fbf8550daba9269d058996cd9d.1504012579.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504012579.git.mchehab@s-opensource.com>
+References: <cover.1504012579.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <cover.1504012579.git.mchehab@s-opensource.com>
+References: <cover.1504012579.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+When we added support for omap3, back in 2010, we added a new
+type of V4L2 devices that aren't fully controlled via the V4L2
+device node.
 
-On Tuesday 15 Aug 2017 19:16:14 Sakari Ailus wrote:
-> On Mon, Jul 31, 2017 at 12:31:55AM +0200, Niklas S=F6derlund wrote:
-> > The call to v4l2_async_cleanup() will set sd->asd to NULL so passin=
-g it
-> > to notifier->unbind() have no effect and leaves the notifier confus=
-ed.
-> > Call the unbind() callback prior to cleaning up the subdevice to av=
-oid
-> > this.
-> >=20
-> > Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnate=
-ch.se>
->=20
-> This is a bugfix and worthy without any other patches and so should b=
-e
-> applied separately.
->=20
-> I think it'd be safer to store sd->asd locally and call the notifier =
-unbind
-> with that. Now you're making changes to the order in which things wor=
-k, and
-> that's not necessary to achieve the objective of passing the async su=
-bdev
-> pointer to the notifier.
+Yet, we have never clearly documented in the V4L2 specification
+the differences between the two types.
 
-But on the other hand I think the unbind notification should be called =
-before=20
-the subdevice gets unbound, the same way the bound notification is call=
-ed=20
-after it gets bound. One of the purposes of the unbind notification is =
-to=20
-allow drivers to prepare for subdev about to be unbound, and they can't=
-=20
-prepare if the unbind happened already.
+Let's document them based on the the current implementation.
 
-> With that changed,
->=20
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->=20
-> > ---
-> >=20
-> >  drivers/media/v4l2-core/v4l2-async.c | 6 +++---
-> >  1 file changed, 3 insertions(+), 3 deletions(-)
-> >=20
-> > diff --git a/drivers/media/v4l2-core/v4l2-async.c
-> > b/drivers/media/v4l2-core/v4l2-async.c index
-> > 851f128eba2219ad..0acf288d7227ba97 100644
-> > --- a/drivers/media/v4l2-core/v4l2-async.c
-> > +++ b/drivers/media/v4l2-core/v4l2-async.c
-> > @@ -226,14 +226,14 @@ void v4l2_async_notifier_unregister(struct
-> > v4l2_async_notifier *notifier)>=20
-> >  =09=09d =3D get_device(sd->dev);
-> >=20
-> > +=09=09if (notifier->unbind)
-> > +=09=09=09notifier->unbind(notifier, sd, sd->asd);
-> > +
-> >=20
-> >  =09=09v4l2_async_cleanup(sd);
-> >  =09=09
-> >  =09=09/* If we handled USB devices, we'd have to lock the parent t=
-oo=20
-*/
-> >  =09=09device_release_driver(d);
-> >=20
-> > -=09=09if (notifier->unbind)
-> > -=09=09=09notifier->unbind(notifier, sd, sd->asd);
-> > -
-> >=20
-> >  =09=09/*
-> >  =09=09
-> >  =09=09 * Store device at the device cache, in order to call
-> >  =09=09 * put_device() on the final step
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/v4l/open.rst | 40 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 
---=20
-Regards,
-
-Laurent Pinchart
+diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+index 18030131ef77..bcfa654d5d71 100644
+--- a/Documentation/media/uapi/v4l/open.rst
++++ b/Documentation/media/uapi/v4l/open.rst
+@@ -7,6 +7,46 @@ Opening and Closing Devices
+ ***************************
+ 
+ 
++.. _v4l2_hardware_control:
++
++
++Types of V4L2 hardware peripheral control
++=========================================
++
++V4L2 hardware periferal is usually complex: support for it is
++implemented via a V4L2 main driver and often by several additional drivers.
++The main driver always exposes one or more **V4L2 device nodes**
++(see :ref:`v4l2_device_naming`) with are responsible for implementing
++data streaming, if applicable.
++
++The other drivers are called **V4L2 sub-devices** and provide control to
++other hardware components usually connected via a serial bus (like
++I²C, SMBus or SPI). Depending on the main driver, they can be implicitly
++controlled directly by the main driver or explicitly via
++the **V4L2 sub-device API** (see :ref:`subdev`).
++
++When V4L2 was originally designed, there was only one type of
++peripheral control: via the **V4L2 device nodes**. We refer to this kind
++of control as **V4L2 device node centric** (or, simply, "**vdev-centric**").
++
++Later (kernel 2.6.39), a new type of periferal control was
++added in order to support complex peripherals that are common for embedded
++systems. This type of periferal is controlled mainly via the media
++controller and V4L2 sub-devices. So, it is called
++**Media controller centric** (or, simply, "**MC-centric**") control.
++
++For **vdev-centric** hardware peripheral control, the peripheral is
++controlled via the **V4L2 device nodes**. They may optionally support the
++:ref:`media controller API <media_controller>` as well,
++in order to inform the application which device nodes are available
++(see :ref:`related`).
++
++For **MC-centric** hardware peripheral control it is required to configure
++the pipelines via the :ref:`media controller API <media_controller>` before
++the periferal can be used. For such devices, the sub-devices' configuration
++can be controlled via the :ref:`sub-device API <subdev>`, which creates one
++device node per sub-device.
++
+ .. _v4l2_device_naming:
+ 
+ V4L2 Device Node Naming
+-- 
+2.13.5
