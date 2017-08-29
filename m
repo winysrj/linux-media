@@ -1,155 +1,267 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:37906 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752232AbdHMIzO (ORCPT
+Received: from mail-lf0-f53.google.com ([209.85.215.53]:38475 "EHLO
+        mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751963AbdH2Mup (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 13 Aug 2017 04:55:14 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: crope@iki.fi, mchehab@kernel.org, ezequiel@vanguardiasur.com.ar,
-        laurent.pinchart@ideasonboard.com, royale@zerezo.com,
-        sean@mess.org, klimov.linux@gmail.com, hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 3/3] [media] radio: constify usb_device_id
-Date: Sun, 13 Aug 2017 14:24:45 +0530
-Message-Id: <1502614485-2150-4-git-send-email-arvind.yadav.cs@gmail.com>
-In-Reply-To: <1502614485-2150-1-git-send-email-arvind.yadav.cs@gmail.com>
-References: <1502614485-2150-1-git-send-email-arvind.yadav.cs@gmail.com>
+        Tue, 29 Aug 2017 08:50:45 -0400
+Received: by mail-lf0-f53.google.com with SMTP id d202so12888304lfd.5
+        for <linux-media@vger.kernel.org>; Tue, 29 Aug 2017 05:50:44 -0700 (PDT)
+Date: Tue, 29 Aug 2017 14:50:41 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
+Subject: Re: [PATCH v5 1/5] v4l: fwnode: Move KernelDoc documentation to the
+ header
+Message-ID: <20170829125041.GE12099@bigcity.dyn.berto.se>
+References: <20170829110313.19538-1-sakari.ailus@linux.intel.com>
+ <20170829110313.19538-2-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170829110313.19538-2-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-usb_device_id are not supposed to change at runtime. All functions
-working with usb_device_id provided by <linux/usb.h> work with
-const usb_device_id. So mark the non-const structs as const.
+Hi Sakari,
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
----
- drivers/media/radio/dsbr100.c                 | 2 +-
- drivers/media/radio/radio-keene.c             | 2 +-
- drivers/media/radio/radio-ma901.c             | 2 +-
- drivers/media/radio/radio-mr800.c             | 2 +-
- drivers/media/radio/radio-raremono.c          | 2 +-
- drivers/media/radio/radio-shark.c             | 2 +-
- drivers/media/radio/radio-shark2.c            | 2 +-
- drivers/media/radio/si470x/radio-si470x-usb.c | 2 +-
- drivers/media/radio/si4713/radio-usb-si4713.c | 2 +-
- 9 files changed, 9 insertions(+), 9 deletions(-)
+Thanks for your patch.
 
-diff --git a/drivers/media/radio/dsbr100.c b/drivers/media/radio/dsbr100.c
-index 53bc8c0..8521bb2 100644
---- a/drivers/media/radio/dsbr100.c
-+++ b/drivers/media/radio/dsbr100.c
-@@ -408,7 +408,7 @@ static int usb_dsbr100_probe(struct usb_interface *intf,
- 	return retval;
- }
- 
--static struct usb_device_id usb_dsbr100_device_table[] = {
-+static const struct usb_device_id usb_dsbr100_device_table[] = {
- 	{ USB_DEVICE(DSB100_VENDOR, DSB100_PRODUCT) },
- 	{ }						/* Terminating entry */
- };
-diff --git a/drivers/media/radio/radio-keene.c b/drivers/media/radio/radio-keene.c
-index 53a7c2e..f2ea8bc 100644
---- a/drivers/media/radio/radio-keene.c
-+++ b/drivers/media/radio/radio-keene.c
-@@ -45,7 +45,7 @@ MODULE_LICENSE("GPL");
- #define FREQ_MUL 16000U
- 
- /* USB Device ID List */
--static struct usb_device_id usb_keene_device_table[] = {
-+static const struct usb_device_id usb_keene_device_table[] = {
- 	{USB_DEVICE_AND_INTERFACE_INFO(USB_KEENE_VENDOR, USB_KEENE_PRODUCT,
- 							USB_CLASS_HID, 0, 0) },
- 	{ }						/* Terminating entry */
-diff --git a/drivers/media/radio/radio-ma901.c b/drivers/media/radio/radio-ma901.c
-index c2010a9..fdc4812 100644
---- a/drivers/media/radio/radio-ma901.c
-+++ b/drivers/media/radio/radio-ma901.c
-@@ -444,7 +444,7 @@ static int usb_ma901radio_probe(struct usb_interface *intf,
- }
- 
- /* USB Device ID List */
--static struct usb_device_id usb_ma901radio_device_table[] = {
-+static const struct usb_device_id usb_ma901radio_device_table[] = {
- 	{ USB_DEVICE_AND_INTERFACE_INFO(USB_MA901_VENDOR, USB_MA901_PRODUCT,
- 							USB_CLASS_HID, 0, 0) },
- 	{ }						/* Terminating entry */
-diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
-index 95c1253..c9f5912 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -587,7 +587,7 @@ static int usb_amradio_probe(struct usb_interface *intf,
- }
- 
- /* USB Device ID List */
--static struct usb_device_id usb_amradio_device_table[] = {
-+static const struct usb_device_id usb_amradio_device_table[] = {
- 	{ USB_DEVICE_AND_INTERFACE_INFO(USB_AMRADIO_VENDOR, USB_AMRADIO_PRODUCT,
- 							USB_CLASS_HID, 0, 0) },
- 	{ }						/* Terminating entry */
-diff --git a/drivers/media/radio/radio-raremono.c b/drivers/media/radio/radio-raremono.c
-index bfb3a6d..3c0a22a 100644
---- a/drivers/media/radio/radio-raremono.c
-+++ b/drivers/media/radio/radio-raremono.c
-@@ -58,7 +58,7 @@ MODULE_LICENSE("GPL v2");
-  */
- 
- /* USB Device ID List */
--static struct usb_device_id usb_raremono_device_table[] = {
-+static const struct usb_device_id usb_raremono_device_table[] = {
- 	{USB_DEVICE_AND_INTERFACE_INFO(0x10c4, 0x818a, USB_CLASS_HID, 0, 0) },
- 	{ }						/* Terminating entry */
- };
-diff --git a/drivers/media/radio/radio-shark.c b/drivers/media/radio/radio-shark.c
-index 23971f5..22f3466 100644
---- a/drivers/media/radio/radio-shark.c
-+++ b/drivers/media/radio/radio-shark.c
-@@ -392,7 +392,7 @@ static int usb_shark_resume(struct usb_interface *intf)
- #endif
- 
- /* Specify the bcdDevice value, as the radioSHARK and radioSHARK2 share ids */
--static struct usb_device_id usb_shark_device_table[] = {
-+static const struct usb_device_id usb_shark_device_table[] = {
- 	{ .match_flags = USB_DEVICE_ID_MATCH_DEVICE_AND_VERSION |
- 			 USB_DEVICE_ID_MATCH_INT_CLASS,
- 	  .idVendor     = 0x077d,
-diff --git a/drivers/media/radio/radio-shark2.c b/drivers/media/radio/radio-shark2.c
-index b50638e..4d1a4b3 100644
---- a/drivers/media/radio/radio-shark2.c
-+++ b/drivers/media/radio/radio-shark2.c
-@@ -358,7 +358,7 @@ static int usb_shark_resume(struct usb_interface *intf)
- #endif
- 
- /* Specify the bcdDevice value, as the radioSHARK and radioSHARK2 share ids */
--static struct usb_device_id usb_shark_device_table[] = {
-+static const struct usb_device_id usb_shark_device_table[] = {
- 	{ .match_flags = USB_DEVICE_ID_MATCH_DEVICE_AND_VERSION |
- 			 USB_DEVICE_ID_MATCH_INT_CLASS,
- 	  .idVendor     = 0x077d,
-diff --git a/drivers/media/radio/si470x/radio-si470x-usb.c b/drivers/media/radio/si470x/radio-si470x-usb.c
-index 571f29a..c311f99 100644
---- a/drivers/media/radio/si470x/radio-si470x-usb.c
-+++ b/drivers/media/radio/si470x/radio-si470x-usb.c
-@@ -38,7 +38,7 @@
- 
- 
- /* USB Device ID List */
--static struct usb_device_id si470x_usb_driver_id_table[] = {
-+static const struct usb_device_id si470x_usb_driver_id_table[] = {
- 	/* Silicon Labs USB FM Radio Reference Design */
- 	{ USB_DEVICE_AND_INTERFACE_INFO(0x10c4, 0x818a, USB_CLASS_HID, 0, 0) },
- 	/* ADS/Tech FM Radio Receiver (formerly Instant FM Music) */
-diff --git a/drivers/media/radio/si4713/radio-usb-si4713.c b/drivers/media/radio/si4713/radio-usb-si4713.c
-index e5e5a16..febc9c1 100644
---- a/drivers/media/radio/si4713/radio-usb-si4713.c
-+++ b/drivers/media/radio/si4713/radio-usb-si4713.c
-@@ -49,7 +49,7 @@ MODULE_LICENSE("GPL v2");
- #define USB_RESP_TIMEOUT		50000
- 
- /* USB Device ID List */
--static struct usb_device_id usb_si4713_usb_device_table[] = {
-+static const struct usb_device_id usb_si4713_usb_device_table[] = {
- 	{USB_DEVICE_AND_INTERFACE_INFO(USB_SI4713_VENDOR, USB_SI4713_PRODUCT,
- 							USB_CLASS_HID, 0, 0) },
- 	{ }						/* Terminating entry */
+On 2017-08-29 14:03:09 +0300, Sakari Ailus wrote:
+> In V4L2 the practice is to have the KernelDoc documentation in the header
+> and not in .c source code files. This consequientally makes the V4L2
+> fwnode function documentation part of the Media documentation build.
+> 
+> Also correct the link related function and argument naming in
+> documentation.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
+> ---
+>  drivers/media/v4l2-core/v4l2-fwnode.c | 75 --------------------------------
+>  include/media/v4l2-fwnode.h           | 81 ++++++++++++++++++++++++++++++++++-
+>  2 files changed, 80 insertions(+), 76 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> index 40b2fbfe8865..706f9e7b90f1 100644
+> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> @@ -181,25 +181,6 @@ v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_handle *fwnode,
+>  		vep->bus_type = V4L2_MBUS_CSI1;
+>  }
+>  
+> -/**
+> - * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
+> - * @fwnode: pointer to the endpoint's fwnode handle
+> - * @vep: pointer to the V4L2 fwnode data structure
+> - *
+> - * All properties are optional. If none are found, we don't set any flags. This
+> - * means the port has a static configuration and no properties have to be
+> - * specified explicitly. If any properties that identify the bus as parallel
+> - * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
+> - * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
+> - * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
+> - * reference to @fwnode.
+> - *
+> - * NOTE: This function does not parse properties the size of which is variable
+> - * without a low fixed limit. Please use v4l2_fwnode_endpoint_alloc_parse() in
+> - * new drivers instead.
+> - *
+> - * Return: 0 on success or a negative error code on failure.
+> - */
+>  int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+>  			       struct v4l2_fwnode_endpoint *vep)
+>  {
+> @@ -239,14 +220,6 @@ int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_parse);
+>  
+> -/*
+> - * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
+> - * v4l2_fwnode_endpoint_alloc_parse()
+> - * @vep - the V4L2 fwnode the resources of which are to be released
+> - *
+> - * It is safe to call this function with NULL argument or on a V4L2 fwnode the
+> - * parsing of which failed.
+> - */
+>  void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep)
+>  {
+>  	if (IS_ERR_OR_NULL(vep))
+> @@ -257,29 +230,6 @@ void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep)
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_free);
+>  
+> -/**
+> - * v4l2_fwnode_endpoint_alloc_parse() - parse all fwnode node properties
+> - * @fwnode: pointer to the endpoint's fwnode handle
+> - *
+> - * All properties are optional. If none are found, we don't set any flags. This
+> - * means the port has a static configuration and no properties have to be
+> - * specified explicitly. If any properties that identify the bus as parallel
+> - * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
+> - * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
+> - * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
+> - * reference to @fwnode.
+> - *
+> - * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
+> - * v4l2_fwnode_endpoint_parse():
+> - *
+> - * 1. It also parses variable size data.
+> - *
+> - * 2. The memory it has allocated to store the variable size data must be freed
+> - *    using v4l2_fwnode_endpoint_free() when no longer needed.
+> - *
+> - * Return: Pointer to v4l2_fwnode_endpoint if successful, on an error pointer
+> - * on error.
+> - */
+>  struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
+>  	struct fwnode_handle *fwnode)
+>  {
+> @@ -322,24 +272,6 @@ struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_alloc_parse);
+>  
+> -/**
+> - * v4l2_fwnode_endpoint_parse_link() - parse a link between two endpoints
+> - * @__fwnode: pointer to the endpoint's fwnode at the local end of the link
+> - * @link: pointer to the V4L2 fwnode link data structure
+> - *
+> - * Fill the link structure with the local and remote nodes and port numbers.
+> - * The local_node and remote_node fields are set to point to the local and
+> - * remote port's parent nodes respectively (the port parent node being the
+> - * parent node of the port node if that node isn't a 'ports' node, or the
+> - * grand-parent node of the port node otherwise).
+> - *
+> - * A reference is taken to both the local and remote nodes, the caller must use
+> - * v4l2_fwnode_endpoint_put_link() to drop the references when done with the
+> - * link.
+> - *
+> - * Return: 0 on success, or -ENOLINK if the remote endpoint fwnode can't be
+> - * found.
+> - */
+>  int v4l2_fwnode_parse_link(struct fwnode_handle *__fwnode,
+>  			   struct v4l2_fwnode_link *link)
+>  {
+> @@ -374,13 +306,6 @@ int v4l2_fwnode_parse_link(struct fwnode_handle *__fwnode,
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_fwnode_parse_link);
+>  
+> -/**
+> - * v4l2_fwnode_put_link() - drop references to nodes in a link
+> - * @link: pointer to the V4L2 fwnode link data structure
+> - *
+> - * Drop references to the local and remote nodes in the link. This function
+> - * must be called on every link parsed with v4l2_fwnode_parse_link().
+> - */
+>  void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link)
+>  {
+>  	fwnode_handle_put(link->local_node);
+> diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+> index 7adec9851d9e..68eb22ba571b 100644
+> --- a/include/media/v4l2-fwnode.h
+> +++ b/include/media/v4l2-fwnode.h
+> @@ -113,13 +113,92 @@ struct v4l2_fwnode_link {
+>  	unsigned int remote_port;
+>  };
+>  
+> +/**
+> + * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
+> + * @fwnode: pointer to the endpoint's fwnode handle
+> + * @vep: pointer to the V4L2 fwnode data structure
+> + *
+> + * All properties are optional. If none are found, we don't set any flags. This
+> + * means the port has a static configuration and no properties have to be
+> + * specified explicitly. If any properties that identify the bus as parallel
+> + * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
+> + * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
+> + * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
+> + * reference to @fwnode.
+> + *
+> + * NOTE: This function does not parse properties the size of which is variable
+> + * without a low fixed limit. Please use v4l2_fwnode_endpoint_alloc_parse() in
+> + * new drivers instead.
+> + *
+> + * Return: 0 on success or a negative error code on failure.
+> + */
+>  int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+>  			       struct v4l2_fwnode_endpoint *vep);
+> +
+> +/*
+> + * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
+> + * v4l2_fwnode_endpoint_alloc_parse()
+> + * @vep - the V4L2 fwnode the resources of which are to be released
+> + *
+> + * It is safe to call this function with NULL argument or on a V4L2 fwnode the
+> + * parsing of which failed.
+> + */
+> +void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
+> +
+> +/**
+> + * v4l2_fwnode_endpoint_alloc_parse() - parse all fwnode node properties
+> + * @fwnode: pointer to the endpoint's fwnode handle
+> + *
+> + * All properties are optional. If none are found, we don't set any flags. This
+> + * means the port has a static configuration and no properties have to be
+> + * specified explicitly. If any properties that identify the bus as parallel
+> + * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
+> + * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
+> + * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
+> + * reference to @fwnode.
+> + *
+> + * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
+> + * v4l2_fwnode_endpoint_parse():
+> + *
+> + * 1. It also parses variable size data.
+> + *
+> + * 2. The memory it has allocated to store the variable size data must be freed
+> + *    using v4l2_fwnode_endpoint_free() when no longer needed.
+> + *
+> + * Return: Pointer to v4l2_fwnode_endpoint if successful, on an error pointer
+> + * on error.
+> + */
+>  struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
+>  	struct fwnode_handle *fwnode);
+> -void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
+> +
+> +/**
+> + * v4l2_fwnode_parse_link() - parse a link between two endpoints
+> + * @fwnode: pointer to the endpoint's fwnode at the local end of the link
+> + * @link: pointer to the V4L2 fwnode link data structure
+> + *
+> + * Fill the link structure with the local and remote nodes and port numbers.
+> + * The local_node and remote_node fields are set to point to the local and
+> + * remote port's parent nodes respectively (the port parent node being the
+> + * parent node of the port node if that node isn't a 'ports' node, or the
+> + * grand-parent node of the port node otherwise).
+> + *
+> + * A reference is taken to both the local and remote nodes, the caller must use
+> + * v4l2_fwnode_put_link() to drop the references when done with the
+> + * link.
+> + *
+> + * Return: 0 on success, or -ENOLINK if the remote endpoint fwnode can't be
+> + * found.
+> + */
+>  int v4l2_fwnode_parse_link(struct fwnode_handle *fwnode,
+>  			   struct v4l2_fwnode_link *link);
+> +
+> +/**
+> + * v4l2_fwnode_put_link() - drop references to nodes in a link
+> + * @link: pointer to the V4L2 fwnode link data structure
+> + *
+> + * Drop references to the local and remote nodes in the link. This function
+> + * must be called on every link parsed with v4l2_fwnode_parse_link().
+> + */
+>  void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
+>  
+>  #endif /* _V4L2_FWNODE_H */
+> -- 
+> 2.11.0
+> 
+
 -- 
-2.7.4
+Regards,
+Niklas Söderlund
