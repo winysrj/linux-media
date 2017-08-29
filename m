@@ -1,121 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:46373 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752737AbdHJQeU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Aug 2017 12:34:20 -0400
-Date: Thu, 10 Aug 2017 17:34:17 +0100
-From: Sean Young <sean@mess.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 2/2] cec: fix remote control passthrough
-Message-ID: <20170810163417.sd2cbqwhcp3b435i@gofer.mess.org>
-References: <20170807133124.30682-1-hverkuil@xs4all.nl>
- <20170807133124.30682-3-hverkuil@xs4all.nl>
- <20170807205803.awtowjuiujlzt3nf@gofer.mess.org>
- <ff2a26c2-d500-f3cb-832f-27939b638b65@xs4all.nl>
- <20170809211745.ceavwat4gob3vlee@gofer.mess.org>
- <b9807339-5d1e-5572-c4b5-06ef3d022f2c@xs4all.nl>
- <20170810140020.5rfetxbvztm5owsj@gofer.mess.org>
+Received: from bombadil.infradead.org ([65.50.211.133]:59881 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751186AbdH2Shj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 Aug 2017 14:37:39 -0400
+Date: Tue, 29 Aug 2017 11:37:38 -0700
+From: Kyle McMartin <kyle@infradead.org>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Kyle McMartin <kyle@infradead.org>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Zhi, Yong" <yong.zhi@intel.com>, linux-firmware@kernel.org
+Subject: Re: [PATCH] linux-firmware: intel: Add Kabylake IPU3 firmware
+Message-ID: <20170829183738.GC5405@bombadil.infradead.org>
+References: <1500350210-1119-1-git-send-email-rajmohan.mani@intel.com>
+ <6F87890CF0F5204F892DEA1EF0D77A59725DD5BF@FMSMSX114.amr.corp.intel.com>
+ <20170823165441.GT13400@bombadil.infradead.org>
+ <CAAFQd5AS-KSLZiFn85vxQvhfy406Uw8nBB8F8W9xM4GryQcurg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170810140020.5rfetxbvztm5owsj@gofer.mess.org>
+In-Reply-To: <CAAFQd5AS-KSLZiFn85vxQvhfy406Uw8nBB8F8W9xM4GryQcurg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 10, 2017 at 03:00:21PM +0100, Sean Young wrote:
-> On Thu, Aug 10, 2017 at 12:45:42PM +0200, Hans Verkuil wrote:
-> > On 09/08/17 23:17, Sean Young wrote:
-> > > On Tue, Aug 08, 2017 at 10:11:13AM +0200, Hans Verkuil wrote:
-> > >> On 07/08/17 22:58, Sean Young wrote:
-> > >>> On Mon, Aug 07, 2017 at 03:31:24PM +0200, Hans Verkuil wrote:
-> > >>>> From: Hans Verkuil <hans.verkuil@cisco.com>
-> > >>>>
-> > >>>> The 'Press and Hold' operation was not correctly implemented, in
-> > >>>> particular the requirement that the repeat doesn't start until
-> > >>>> the second identical keypress arrives. The REP_DELAY value also
-> > >>>> had to be adjusted (see the comment in the code) to achieve the
-> > >>>> desired behavior.
-> > >>>
-> > >>> I'm afraid I've caused some confusion; I had not read your last message
-> > >>> about autorepeat on irc correctly, when I said "exactly".
-> > >>>
-> > >>> So if the input layer has not received a key up event after a key down
-> > >>> event, after REP_DELAY it will generate another key down event every
-> > >>> REP_PERIOD. So for example, here I'm holding a button on a rc-5 device
-> > >>> for some time. Comments on lines with parentheses.
-> > >>>
-> > >>> # ir-keytable -t
-> > >>> Testing events. Please, press CTRL-C to abort.
-> > >>> 1502138577.703695: event type EV_MSC(0x04): scancode = 0x1e11
-> > >>> (each time a driver receives something, scancode is reported.)
-> > >>> 1502138577.703695: event type EV_KEY(0x01) key_down: KEY_VOLUMEDOWN(0x0072)
-> > >>> 1502138577.703695: event type EV_SYN(0x00).
-> > >>> 1502138577.817682: event type EV_MSC(0x04): scancode = 0x1e11
-> > >>> 1502138577.817682: event type EV_SYN(0x00).
-> > >>> (rc-5 repeats the command after 115ms).
-> > >>> 1502138577.930676: event type EV_MSC(0x04): scancode = 0x1e11
-> > >>> 1502138577.930676: event type EV_SYN(0x00).
-> > >>> 1502138578.044682: event type EV_MSC(0x04): scancode = 0x1e11
-> > >>> 1502138578.044682: event type EV_SYN(0x00).
-> > >>> 1502138578.181690: event type EV_MSC(0x04): scancode = 0x1e11
-> > >>> 1502138578.181690: event type EV_SYN(0x00).
-> > >>> 1502138578.205667: event type EV_KEY(0x01) key_down: KEY_VOLUMEDOWN(0x0072)
-> > >>> (this is 500ms after the initial key down, so this key down is generated
-> > >>> by the input layer).
-> > >>> 1502138578.205667: event type EV_SYN(0x00).
-> > >>> 1502138578.333667: event type EV_KEY(0x01) key_down: KEY_VOLUMEDOWN(0x0072)
-> > >>> (this is 500 + 125 ms, so another key down event generated by input layer).
-> > >>> 1502138578.333667: event type EV_SYN(0x00).
-> > >>> 1502138578.437662: event type EV_KEY(0x01) key_up: KEY_VOLUMEDOWN(0x0072)
-> > >>> 1502138578.437662: event type EV_SYN(0x00).
-> > >>> (key up generated by rc-core after 250ms after last scancode received)
-> > >>>
-> > >>> So I think the autorepeat can do exactly what you want, without cec
-> > >>> having any special code for it.
-> > >>
-> > >> It comes close, but not quite, to what I need. It has more to do with the
-> > >> CEC peculiarities than the rc code.
-> > >>
-> > >> Specifically the CEC spec strongly recommends that the first reported key
-> > >> press is always handled as a single non-repeating key press. Only if a second
-> > >> identical key press is received within 550 ms will the 'Press and Hold' feature
-> > >> kick in and will the key start repeating. This until a Release message is
-> > >> received, a different key press is received or nothing is received for 550 ms.
-> > > 
-> > > Right, that make sense.
-> > > 
-> > >> Effectively the REP_DELAY is equal to the time between the first and second
-> > >> key press message, and it immediately switches to repeat mode once the second
-> > >> key press is received.
-> > >>
-> > >> This code models this behavior exactly.
-> > > 
-> > > Ok, although you're sending a keyup directly after the first keydown.
-> > 
-> > Yes, that's to prevent it from going into repeat mode. It shouldn't for
-> > the first CEC key press message. Remember that CEC is slow, so it may
-> > well take 500ms before you get the next message. And if REP_DELAY < 500ms
-> > it will already start repeating which is not what you want for the first
-> > key press. Calling keyup immediately will prevent this from happening.
-> > 
-> > > Another way of doing this is to set REP_DELAY/REP_PERIOD to 0 and
-> > > sending the repeats yourself.
-> > 
-> > No, because you want the user to be able to influence the repeat speed.
-> > And the repeat speed is supposed to be that of linux, the repeated CEC
-> > messages are just to tell linux that it has to remain in key repeating
-> > mode. I.e. if you receive 5 CEC messages while in Press and Hold mode,
-> > then that can translate to 20 actual repeats (depending on the REP_PERIOD).
-> > 
-> > Besides, I don't want to have to write the timer code to repeat the keys
-> > myself, after all, it's already there.
+On Thu, Aug 24, 2017 at 10:10:25AM +0900, Tomasz Figa wrote:
+> On Thu, Aug 24, 2017 at 1:54 AM, Kyle McMartin <kyle@infradead.org> wrote:
+> > On Fri, Jul 21, 2017 at 12:08:32AM +0000, Mani, Rajmohan wrote:
+> >> I am also following up on the second approach to submit the IPU3 firmware patch.
+> >>
+> >> git remote add ipu3fw https://github.com/RajmohanMani/linux-firmware.git
+> >> git remote update
+> >> git pull ipu3fw master
+> >>
+> >
+> > I assume this was covered by the later pull request I got today?
+> >
 > 
-> Yes, agreed. I don't think the key up is ideal, but the alternatives
-> are worse.
+> Yes, this patch was an initial attempt, but given the binary size, we
+> decided to go with a pull request to make things easier.
+> 
+> Thanks for handling this.
+> 
 
-Acked-by: Sean Young <sean@mess.org>
+no worries, thanks for your patience.
 
-Thanks
-
-Sean
+regards, kyle
