@@ -1,59 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:61984 "EHLO
-        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752038AbdHHLYD (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34798
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753614AbdH2NSI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Aug 2017 07:24:03 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 3/6] staging: atomisp: constify video_subdev structures
-Date: Tue,  8 Aug 2017 12:58:29 +0200
-Message-Id: <1502189912-28794-4-git-send-email-Julia.Lawall@lip6.fr>
-In-Reply-To: <1502189912-28794-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1502189912-28794-1-git-send-email-Julia.Lawall@lip6.fr>
+        Tue, 29 Aug 2017 09:18:08 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v6 5/7] media: open.rst: Adjust some terms to match the glossary
+Date: Tue, 29 Aug 2017 10:17:54 -0300
+Message-Id: <4bcb27a5a252d4c041b438d6af348a53a26f383b.1504012579.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504012579.git.mchehab@s-opensource.com>
+References: <cover.1504012579.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504012579.git.mchehab@s-opensource.com>
+References: <cover.1504012579.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These structures are both stored in fields of v4l2_subdev_ops
-structures, all of which are const, so these structures can be
-const as well.
+As we now have a glossary, some terms used on open.rst
+require adjustments.
 
-Done with the help of Coccinelle.
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/staging/media/atomisp/i2c/ap1302.c  |    2 +-
- drivers/staging/media/atomisp/i2c/mt9m114.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ Documentation/media/uapi/v4l/open.rst | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/staging/media/atomisp/i2c/ap1302.c b/drivers/staging/media/atomisp/i2c/ap1302.c
-index bacffbe..de687c6 100644
---- a/drivers/staging/media/atomisp/i2c/ap1302.c
-+++ b/drivers/staging/media/atomisp/i2c/ap1302.c
-@@ -1098,7 +1098,7 @@ static long ap1302_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
- 	},
- };
+diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+index bcfa654d5d71..e19295b6dafe 100644
+--- a/Documentation/media/uapi/v4l/open.rst
++++ b/Documentation/media/uapi/v4l/open.rst
+@@ -143,7 +143,7 @@ Related Devices
+ Devices can support several functions. For example video capturing, VBI
+ capturing and radio support.
  
--static struct v4l2_subdev_sensor_ops ap1302_sensor_ops = {
-+static const struct v4l2_subdev_sensor_ops ap1302_sensor_ops = {
- 	.g_skip_frames	= ap1302_g_skip_frames,
- };
+-The V4L2 API creates different nodes for each of these functions.
++The V4L2 API creates different V4L2 device nodes for each of these functions.
  
-diff --git a/drivers/staging/media/atomisp/i2c/mt9m114.c b/drivers/staging/media/atomisp/i2c/mt9m114.c
-index 448e072..36a0636 100644
---- a/drivers/staging/media/atomisp/i2c/mt9m114.c
-+++ b/drivers/staging/media/atomisp/i2c/mt9m114.c
-@@ -1806,7 +1806,7 @@ static int mt9m114_g_skip_frames(struct v4l2_subdev *sd, u32 *frames)
- 	.g_frame_interval = mt9m114_g_frame_interval,
- };
+ The V4L2 API was designed with the idea that one device node could
+ support all functions. However, in practice this never worked: this
+@@ -153,17 +153,17 @@ switching a device node between different functions only works when
+ using the streaming I/O API, not with the
+ :ref:`read() <func-read>`/\ :ref:`write() <func-write>` API.
  
--static struct v4l2_subdev_sensor_ops mt9m114_sensor_ops = {
-+static const struct v4l2_subdev_sensor_ops mt9m114_sensor_ops = {
- 	.g_skip_frames	= mt9m114_g_skip_frames,
- };
+-Today each device node supports just one function.
++Today each V4L2 device node supports just one function.
  
+ Besides video input or output the hardware may also support audio
+ sampling or playback. If so, these functions are implemented as ALSA PCM
+ devices with optional ALSA audio mixer devices.
+ 
+ One problem with all these devices is that the V4L2 API makes no
+-provisions to find these related devices. Some really complex devices
+-use the Media Controller (see :ref:`media_controller`) which can be
+-used for this purpose. But most drivers do not use it, and while some
+-code exists that uses sysfs to discover related devices (see
++provisions to find these related V4L2 device nodes. Some really complex
++hardware use the Media Controller (see :ref:`media_controller`) which can
++be used for this purpose. But several drivers do not use it, and while some
++code exists that uses sysfs to discover related V4L2 device nodes (see
+ libmedia_dev in the
+ `v4l-utils <http://git.linuxtv.org/cgit.cgi/v4l-utils.git/>`__ git
+ repository), there is no library yet that can provide a single API
+-- 
+2.13.5
