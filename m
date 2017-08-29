@@ -1,67 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47740 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752175AbdHPLUV (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34792
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753626AbdH2NSJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Aug 2017 07:20:21 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.de, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
-Subject: [PATCH v2 0/2] Unified fwnode endpoint parser
-Date: Wed, 16 Aug 2017 14:20:17 +0300
-Message-Id: <20170816112019.9250-1-sakari.ailus@linux.intel.com>
+        Tue, 29 Aug 2017 09:18:09 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v6 7/7] media: open.rst: add a notice about subdev-API on vdev-centric
+Date: Tue, 29 Aug 2017 10:17:56 -0300
+Message-Id: <7167c8620af7e9b45e37f5121662317f2d1efda1.1504012579.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504012579.git.mchehab@s-opensource.com>
+References: <cover.1504012579.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504012579.git.mchehab@s-opensource.com>
+References: <cover.1504012579.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi folks,
+The documentation doesn't mention if vdev-centric hardware
+control would have subdev API or not.
 
-We have a large influx of new, unmerged, drivers that are now parsing
-fwnode endpoints and each one of them is doing this a little bit
-differently. The needs are still exactly the same for the graph data
-structure is device independent. This is still a non-trivial task and the
-majority of the driver implementations are buggy, just buggy in different
-ways.
+Add a notice about that, reflecting the current status, where
+three drivers use it, in order to support some subdev-specific
+controls.
 
-Facilitate parsing endpoints by adding a convenience function for parsing
-the endpoints, and make the omap3isp driver use it as an example.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/v4l/open.rst | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-The parser succeeds an essential bugfix in the set.
-
-I plan to include the first patch to a pull request soonish, the second
-could go in with the first user.
-
-Open question: should we designate an error code to silently skip endpoints
-from driver's parse_endpoint() callback? Would that be useful? An error
-code not relevant for parsing endpoints in general (such as EISDIR) could
-be chosen, otherwise we're hampering with error codes that can be returned
-in general.
-
-since v1:
-
-- The first patch has been merged (it was a bugfix).
-
-- In anticipation that the parsing can take place over several iterations,
-  take the existing number of async sub-devices into account when
-  re-allocating an array of async sub-devices.
-
-- Rework the first patch to better anticipate parsing single endpoint at a
-  time by a driver.
-
-- Add a second patch that adds a function for parsing endpoints one at a
-  time based on port and endpoint numbers.
-
-Sakari Ailus (2):
-  v4l: fwnode: Support generic parsing of graph endpoints in a device
-  v4l: fwnode: Support generic parsing of graph endpoints in a single
-    port
-
- drivers/media/platform/omap3isp/isp.c | 116 +++++++---------------
- drivers/media/platform/omap3isp/isp.h |   3 -
- drivers/media/v4l2-core/v4l2-fwnode.c | 176 ++++++++++++++++++++++++++++++++++
- include/media/v4l2-async.h            |   4 +-
- include/media/v4l2-fwnode.h           |  16 ++++
- 5 files changed, 231 insertions(+), 84 deletions(-)
-
+diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+index 7de8b2fe3096..250f0b865943 100644
+--- a/Documentation/media/uapi/v4l/open.rst
++++ b/Documentation/media/uapi/v4l/open.rst
+@@ -47,6 +47,13 @@ the periferal can be used. For such devices, the sub-devices' configuration
+ can be controlled via the :ref:`sub-device API <subdev>`, which creates one
+ device node per sub-device.
+ 
++.. note::
++
++   A **vdev-centric** may also optionally expose V4L2 sub-devices via
++   :ref:`sub-device API <subdev>`. In that case, it has to implement
++   the :ref:`media controller API <media_controller>` as well.
++
++
+ .. attention::
+ 
+    Devices that require **MC-centric** hardware peripheral control should
 -- 
-2.11.0
+2.13.5
