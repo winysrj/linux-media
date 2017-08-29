@@ -1,42 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:34227 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752113AbdHAR5x (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 1 Aug 2017 13:57:53 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: corbet@lwn.net, mchehab@kernel.org, awalls@md.metrocast.net,
-        hverkuil@xs4all.nl, serjk@netup.ru, aospan@netup.ru,
-        hans.verkuil@cisco.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 11/18] [media] cobalt: constify pci_device_id.
-Date: Tue,  1 Aug 2017 23:26:27 +0530
-Message-Id: <1501610194-8231-12-git-send-email-arvind.yadav.cs@gmail.com>
-In-Reply-To: <1501610194-8231-1-git-send-email-arvind.yadav.cs@gmail.com>
-References: <1501610194-8231-1-git-send-email-arvind.yadav.cs@gmail.com>
+Received: from mout.web.de ([212.227.15.4]:55452 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751275AbdH2Uah (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 Aug 2017 16:30:37 -0400
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/3] [media] cx24113: Adjustments for cx24113_attach()
+Message-ID: <36a5402f-c7a2-edf0-1af8-b98b0684d8e5@users.sourceforge.net>
+Date: Tue, 29 Aug 2017 22:30:17 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-pci_device_id are not supposed to change at runtime. All functions
-working with pci_device_id provided by <linux/pci.h> work with
-const pci_device_id. So mark the non-const structs as const.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Tue, 29 Aug 2017 22:23:45 +0200
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
----
- drivers/media/pci/cobalt/cobalt-driver.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Three update suggestions were taken into account
+from static source code analysis.
 
-diff --git a/drivers/media/pci/cobalt/cobalt-driver.c b/drivers/media/pci/cobalt/cobalt-driver.c
-index f8e173f..98b6cb9 100644
---- a/drivers/media/pci/cobalt/cobalt-driver.c
-+++ b/drivers/media/pci/cobalt/cobalt-driver.c
-@@ -36,7 +36,7 @@
- #include "cobalt-omnitek.h"
- 
- /* add your revision and whatnot here */
--static struct pci_device_id cobalt_pci_tbl[] = {
-+static const struct pci_device_id cobalt_pci_tbl[] = {
- 	{PCI_VENDOR_ID_CISCO, PCI_DEVICE_ID_COBALT,
- 	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
- 	{0,}
+Markus Elfring (3):
+  Delete an error message for a failed memory allocation
+  Return directly after a failed kzalloc()
+  Improve a size determination
+
+ drivers/media/dvb-frontends/cx24113.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
 -- 
-2.7.4
+2.14.1
