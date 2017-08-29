@@ -1,206 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:31760 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751514AbdHaITn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 04:19:43 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 88A9E2006B
-        for <linux-media@vger.kernel.org>; Thu, 31 Aug 2017 11:19:41 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/1] staging: media: atomisp: Use tabs in Kconfig
-Date: Thu, 31 Aug 2017 11:17:12 +0300
-Message-Id: <1504167432-8723-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:37562 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751250AbdH2QnL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 Aug 2017 12:43:11 -0400
+Date: Tue, 29 Aug 2017 11:43:09 -0500
+From: Rob Herring <robh@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, jacek.anaszewski@gmail.com,
+        linux-leds@vger.kernel.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH 1/1] dt: bindings: Add a binding for flash devices
+ associated to a sensor
+Message-ID: <20170829164309.shx2v2acucmvrs7y@rob-hp-laptop>
+References: <20170818125857.13430-1-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170818125857.13430-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use tabs in Kconfig for indentation rather than spaces.
+On Fri, Aug 18, 2017 at 03:58:57PM +0300, Sakari Ailus wrote:
+> Camera flash drivers (and LEDs) are separate from the sensor devices in
+> DT. In order to make an association between the two, provide the
+> association information to the software.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> Hi Rob and Jacek, others,
+> 
+> I know I've submitted previous versions of this patch that I have changed
+> since getting your acks... that's bad. I realised there will be problems
+> due to the vague referencing in the old version.
+> 
+> Instead of referring to the flash LED controller itself, the references are
+> now suggested to be made to the LEDs explicitly.
+> 
+> While most of the time all LEDs are associated to the same camera sensor,
+> there's nothing that suggests that this will always be the case. This will
+> work rather nicely with this change to the V4L2 flash class:
+> 
+> <URL:https://git.linuxtv.org/sailus/media_tree.git/commit/?h=flash&id=ef62781f4468d93ba8328caf7db629add453e01d>
+> 
+> An alternative to this could be to refer to the LEDs using the LED
+> controller node and integer arguments. That would require e.g. #led-cells
+> property to tell how many arguments there are. The actual LEDs also have
+> device nodes already so I thought using them would probably be a good idea
+> so we continue to have a single way to refer to LEDs.
 
-The patch has been created using the following command:
+There are some advantages to this approach, but I don't think it fits 
+the normal pattern since we do have LED nodes.
 
-find drivers/staging/media/atomisp/ -name Kconfig| \
-	xargs perl -i -pe 's/ {8}/\t/g'
+> 
+> Let me know your thoughts / if you're ok with the patch.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/staging/media/atomisp/Kconfig            | 10 ++--
- drivers/staging/media/atomisp/i2c/Kconfig        | 70 ++++++++++++------------
- drivers/staging/media/atomisp/i2c/ov5693/Kconfig |  8 +--
- 3 files changed, 44 insertions(+), 44 deletions(-)
+So, I think this patch is the right way to do it.
 
-diff --git a/drivers/staging/media/atomisp/Kconfig b/drivers/staging/media/atomisp/Kconfig
-index 8eb13c3..52b86b7 100644
---- a/drivers/staging/media/atomisp/Kconfig
-+++ b/drivers/staging/media/atomisp/Kconfig
-@@ -1,9 +1,9 @@
- menuconfig INTEL_ATOMISP
--        bool "Enable support to Intel MIPI camera drivers"
--        depends on X86 && EFI && MEDIA_CONTROLLER && PCI && ACPI
--        help
--          Enable support for the Intel ISP2 camera interfaces and MIPI
--          sensor drivers.
-+	bool "Enable support to Intel MIPI camera drivers"
-+	depends on X86 && EFI && MEDIA_CONTROLLER && PCI && ACPI
-+	help
-+	  Enable support for the Intel ISP2 camera interfaces and MIPI
-+	  sensor drivers.
- 
- if INTEL_ATOMISP
- source "drivers/staging/media/atomisp/pci/Kconfig"
-diff --git a/drivers/staging/media/atomisp/i2c/Kconfig b/drivers/staging/media/atomisp/i2c/Kconfig
-index e628b5c..57505b7 100644
---- a/drivers/staging/media/atomisp/i2c/Kconfig
-+++ b/drivers/staging/media/atomisp/i2c/Kconfig
-@@ -9,85 +9,85 @@ config VIDEO_OV2722
-        tristate "OVT ov2722 sensor support"
-        depends on I2C && VIDEO_V4L2
-        ---help---
--         This is a Video4Linux2 sensor-level driver for the OVT
--         OV2722 raw camera.
-+	 This is a Video4Linux2 sensor-level driver for the OVT
-+	 OV2722 raw camera.
- 
--         OVT is a 2M raw sensor.
-+	 OVT is a 2M raw sensor.
- 
--         It currently only works with the atomisp driver.
-+	 It currently only works with the atomisp driver.
- 
- config VIDEO_GC2235
-        tristate "Galaxy gc2235 sensor support"
-        depends on I2C && VIDEO_V4L2
-        ---help---
--         This is a Video4Linux2 sensor-level driver for the OVT
--         GC2235 raw camera.
-+	 This is a Video4Linux2 sensor-level driver for the OVT
-+	 GC2235 raw camera.
- 
--         GC2235 is a 2M raw sensor.
-+	 GC2235 is a 2M raw sensor.
- 
--         It currently only works with the atomisp driver.
-+	 It currently only works with the atomisp driver.
- 
- config VIDEO_OV8858
-        tristate "Omnivision ov8858 sensor support"
-        depends on I2C && VIDEO_V4L2 && VIDEO_ATOMISP
-        ---help---
--         This is a Video4Linux2 sensor-level driver for the Omnivision
--         ov8858 RAW sensor.
-+	 This is a Video4Linux2 sensor-level driver for the Omnivision
-+	 ov8858 RAW sensor.
- 
- 	 OV8858 is a 8M raw sensor.
- 
--         It currently only works with the atomisp driver.
-+	 It currently only works with the atomisp driver.
- 
- config VIDEO_MSRLIST_HELPER
-        tristate "Helper library to load, parse and apply large register lists."
-        depends on I2C
-        ---help---
--         This is a helper library to be used from a sensor driver to load, parse
--         and apply large register lists.
-+	 This is a helper library to be used from a sensor driver to load, parse
-+	 and apply large register lists.
- 
--         To compile this driver as a module, choose M here: the
--         module will be called libmsrlisthelper.
-+	 To compile this driver as a module, choose M here: the
-+	 module will be called libmsrlisthelper.
- 
- config VIDEO_MT9M114
-        tristate "Aptina mt9m114 sensor support"
-        depends on I2C && VIDEO_V4L2
-        ---help---
--         This is a Video4Linux2 sensor-level driver for the Micron
--         mt9m114 1.3 Mpixel camera.
-+	 This is a Video4Linux2 sensor-level driver for the Micron
-+	 mt9m114 1.3 Mpixel camera.
- 
--         mt9m114 is video camera sensor.
-+	 mt9m114 is video camera sensor.
- 
--         It currently only works with the atomisp driver.
-+	 It currently only works with the atomisp driver.
- 
- config VIDEO_AP1302
-        tristate "AP1302 external ISP support"
-        depends on I2C && VIDEO_V4L2
-        select REGMAP_I2C
-        ---help---
--         This is a Video4Linux2 sensor-level driver for the external
--         ISP AP1302.
-+	 This is a Video4Linux2 sensor-level driver for the external
-+	 ISP AP1302.
- 
--         AP1302 is an exteral ISP.
-+	 AP1302 is an exteral ISP.
- 
--         It currently only works with the atomisp driver.
-+	 It currently only works with the atomisp driver.
- 
- config VIDEO_GC0310
- 	tristate "GC0310 sensor support"
--        depends on I2C && VIDEO_V4L2
--        ---help---
--          This is a Video4Linux2 sensor-level driver for the Galaxycore
--          GC0310 0.3MP sensor.
-+	depends on I2C && VIDEO_V4L2
-+	---help---
-+	  This is a Video4Linux2 sensor-level driver for the Galaxycore
-+	  GC0310 0.3MP sensor.
- 	 
- config VIDEO_OV2680
-        tristate "Omnivision OV2680 sensor support"
-        depends on I2C && VIDEO_V4L2
-        ---help---
--         This is a Video4Linux2 sensor-level driver for the Omnivision
--         OV2680 raw camera.
-+	 This is a Video4Linux2 sensor-level driver for the Omnivision
-+	 OV2680 raw camera.
- 
--         ov2680 is a 2M raw sensor.
-+	 ov2680 is a 2M raw sensor.
- 
--         It currently only works with the atomisp driver.
-+	 It currently only works with the atomisp driver.
- 
- #
- # Kconfig for flash drivers
-@@ -97,10 +97,10 @@ config VIDEO_LM3554
-        tristate "LM3554 flash light driver"
-        depends on VIDEO_V4L2 && I2C
-        ---help---
--         This is a Video4Linux2 sub-dev driver for the LM3554
--         flash light driver.
-+	 This is a Video4Linux2 sub-dev driver for the LM3554
-+	 flash light driver.
- 
--         To compile this driver as a module, choose M here: the
--         module will be called lm3554
-+	 To compile this driver as a module, choose M here: the
-+	 module will be called lm3554
- 
- 
-diff --git a/drivers/staging/media/atomisp/i2c/ov5693/Kconfig b/drivers/staging/media/atomisp/i2c/ov5693/Kconfig
-index 9fb1bff..9e8d325 100644
---- a/drivers/staging/media/atomisp/i2c/ov5693/Kconfig
-+++ b/drivers/staging/media/atomisp/i2c/ov5693/Kconfig
-@@ -2,10 +2,10 @@ config VIDEO_OV5693
-        tristate "Omnivision ov5693 sensor support"
-        depends on I2C && VIDEO_V4L2
-        ---help---
--         This is a Video4Linux2 sensor-level driver for the Micron
--         ov5693 5 Mpixel camera.
-+	 This is a Video4Linux2 sensor-level driver for the Micron
-+	 ov5693 5 Mpixel camera.
- 
--         ov5693 is video camera sensor.
-+	 ov5693 is video camera sensor.
- 
--         It currently only works with the atomisp driver.
-+	 It currently only works with the atomisp driver.
- 
--- 
-2.7.4
+Acked-by: Rob Herring <robh@kernel.org>
+
+> 
+>  Documentation/devicetree/bindings/media/video-interfaces.txt | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> index 852041a7480c..fee73cf2a714 100644
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -67,6 +67,14 @@ are required in a relevant parent node:
+>  		    identifier, should be 1.
+>   - #size-cells    : should be zero.
+>  
+> +
+> +Optional properties
+> +-------------------
+> +
+> +- flash: An array of phandles referring to the flash LED, a sub-node
+> +  of the LED driver device node.
+> +
+> +
+>  Optional endpoint properties
+>  ----------------------------
+>  
+> -- 
+> 2.11.0
+> 
