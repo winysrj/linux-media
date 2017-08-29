@@ -1,143 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.horus.com ([78.46.148.228]:38732 "EHLO mail.horus.com"
+Received: from sauhun.de ([88.99.104.3]:46274 "EHLO pokefinder.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752440AbdHCKIk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 Aug 2017 06:08:40 -0400
-Date: Thu, 3 Aug 2017 12:08:38 +0200
-From: Matthias Reichl <hias@horus.com>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH] [media] rc: gpio-ir-tx: switch to gpiod, fix inverted
- polarity
-Message-ID: <20170803100837.r7pxmyvpyflg552i@camel2.lan>
-References: <cover.1499419624.git.sean@mess.org>
- <92a66fd9852c3143d5726eb3869d58e28d841c84.1499419624.git.sean@mess.org>
- <20170721141245.3uv55fqxa557dmnt@camel2.lan>
- <20170731202908.hk7dpclt5m5lhpdd@gofer.mess.org>
+        id S1750909AbdH2UaI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 Aug 2017 16:30:08 -0400
+Date: Tue, 29 Aug 2017 22:30:06 +0200
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Bhumika Goyal <bhumirks@gmail.com>
+Cc: julia.lawall@lip6.fr, jacmet@sunsite.dk, jglauber@cavium.com,
+        david.daney@cavium.com, hans.verkuil@cisco.com, mchehab@kernel.org,
+        awalls@md.metrocast.net, serjk@netup.ru, aospan@netup.ru,
+        isely@pobox.com, ezequiel@vanguardiasur.com.ar,
+        linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/4] [media] media: pci: make i2c_adapter const
+Message-ID: <20170829203006.xeghbqp56kwhriba@ninjato>
+References: <1503138855-585-1-git-send-email-bhumirks@gmail.com>
+ <1503138855-585-3-git-send-email-bhumirks@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="j76ftz66xhtsdhgo"
 Content-Disposition: inline
-In-Reply-To: <20170731202908.hk7dpclt5m5lhpdd@gofer.mess.org>
+In-Reply-To: <1503138855-585-3-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Manual handling of gpio output polarity was inverted.
-Switch to using gpiod, this allows us to simplify the code,
-delegate polarity handling to gpiod and remove the buggy local
-polarity handling code.
 
-Signed-off-by: Matthias Reichl <hias@horus.com>
----
+--j76ftz66xhtsdhgo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This patch is against [PATCH v2 3/6] [media] rc: gpio-ir-tx:
-add new driver.
+On Sat, Aug 19, 2017 at 04:04:13PM +0530, Bhumika Goyal wrote:
+> Make these const as they are only used in a copy operation.
+> Done using Coccinelle
+>=20
+> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 
-Feel free to squash these two patches into one for v3.
+Acked-by: Wolfram Sang <wsa@the-dreams.de>
 
-so long,
 
-Hias
+--j76ftz66xhtsdhgo
+Content-Type: application/pgp-signature; name="signature.asc"
 
- drivers/media/rc/gpio-ir-tx.c | 41 +++++++++++++----------------------------
- 1 file changed, 13 insertions(+), 28 deletions(-)
+-----BEGIN PGP SIGNATURE-----
 
-diff --git a/drivers/media/rc/gpio-ir-tx.c b/drivers/media/rc/gpio-ir-tx.c
-index 7a5371dbb360..ca6834d09467 100644
---- a/drivers/media/rc/gpio-ir-tx.c
-+++ b/drivers/media/rc/gpio-ir-tx.c
-@@ -13,11 +13,10 @@
- 
- #include <linux/kernel.h>
- #include <linux/module.h>
--#include <linux/gpio.h>
-+#include <linux/gpio/consumer.h>
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/of.h>
--#include <linux/of_gpio.h>
- #include <linux/platform_device.h>
- #include <media/rc-core.h>
- 
-@@ -25,8 +24,7 @@
- #define DEVICE_NAME	"GPIO Bit Banging IR Transmitter"
- 
- struct gpio_ir {
--	int gpio_nr;
--	bool active_low;
-+	struct gpio_desc *gpio;
- 	unsigned int carrier;
- 	unsigned int duty_cycle;
- 	/* we need a spinlock to hold the cpu while transmitting */
-@@ -101,14 +99,12 @@ static int gpio_ir_tx(struct rc_dev *dev, unsigned int *txbuf,
- 			ktime_t last = ktime_add_us(edge, txbuf[i]);
- 
- 			while (ktime_get() < last) {
--				gpio_set_value(gpio_ir->gpio_nr,
--					       gpio_ir->active_low);
-+				gpiod_set_value(gpio_ir->gpio, 1);
- 				edge += pulse;
- 				delta = edge - ktime_get();
- 				if (delta > 0)
- 					ndelay(delta);
--				gpio_set_value(gpio_ir->gpio_nr,
--					       !gpio_ir->active_low);
-+				gpiod_set_value(gpio_ir->gpio, 0);
- 				edge += space;
- 				delta = edge - ktime_get();
- 				if (delta > 0)
-@@ -128,16 +124,7 @@ static int gpio_ir_tx_probe(struct platform_device *pdev)
- {
- 	struct gpio_ir *gpio_ir;
- 	struct rc_dev *rcdev;
--	enum of_gpio_flags flags;
--	int rc, gpio;
--
--	gpio = of_get_gpio_flags(pdev->dev.of_node, 0, &flags);
--	if (gpio < 0) {
--		if (gpio != -EPROBE_DEFER)
--			dev_err(&pdev->dev, "Failed to get gpio flags (%d)\n",
--				gpio);
--		return -EINVAL;
--	}
-+	int rc;
- 
- 	gpio_ir = devm_kmalloc(&pdev->dev, sizeof(*gpio_ir), GFP_KERNEL);
- 	if (!gpio_ir)
-@@ -147,6 +134,14 @@ static int gpio_ir_tx_probe(struct platform_device *pdev)
- 	if (!rcdev)
- 		return -ENOMEM;
- 
-+	gpio_ir->gpio = devm_gpiod_get(&pdev->dev, NULL, GPIOD_OUT_LOW);
-+	if (IS_ERR(gpio_ir->gpio)) {
-+		if (PTR_ERR(gpio_ir->gpio) != -EPROBE_DEFER)
-+			dev_err(&pdev->dev, "Failed to get gpio (%ld)\n",
-+				PTR_ERR(gpio_ir->gpio));
-+		return PTR_ERR(gpio_ir->gpio);
-+	}
-+
- 	rcdev->priv = gpio_ir;
- 	rcdev->driver_name = DRIVER_NAME;
- 	rcdev->device_name = DEVICE_NAME;
-@@ -154,20 +149,10 @@ static int gpio_ir_tx_probe(struct platform_device *pdev)
- 	rcdev->s_tx_duty_cycle = gpio_ir_tx_set_duty_cycle;
- 	rcdev->s_tx_carrier = gpio_ir_tx_set_carrier;
- 
--	gpio_ir->gpio_nr = gpio;
--	gpio_ir->active_low = (flags & OF_GPIO_ACTIVE_LOW) != 0;
- 	gpio_ir->carrier = 38000;
- 	gpio_ir->duty_cycle = 50;
- 	spin_lock_init(&gpio_ir->lock);
- 
--	rc = devm_gpio_request(&pdev->dev, gpio, "gpio-ir-tx");
--	if (rc < 0)
--		return rc;
--
--	rc = gpio_direction_output(gpio, !gpio_ir->active_low);
--	if (rc < 0)
--		return rc;
--
- 	rc = devm_rc_register_device(&pdev->dev, rcdev);
- 	if (rc < 0)
- 		dev_err(&pdev->dev, "failed to register rc device\n");
--- 
-2.11.0
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlmlzs0ACgkQFA3kzBSg
+KbZQMQ//a+QSzHsCE79UbDXtal22KvUCQ+3K73Vd33GrFBZB6vIsXtonygCxIriI
+yw/t6Br5Zg/cvWnA5HB//2v5AWKbzr1dvoOU+RD5OF3yx/IT89eLITP1w1X97spb
+W+49ua+xEW5KNn+7J/eKHHsQACf/D2wSpf7A7aVXUZAKYnC6EwOuMjNGsc1j7KOI
+iBnrvlsaqTItGWhXpdhsRV5v7pyRBiAPtJoIVXCJ7xCJQbY8FesFZbI8fkk7s5dZ
+tZS5IKZtwJYkZ7QZfO5qsbKqE99iexQb67mtGC/LHEh3Tr3yXs1CTIObRHR1JQwK
+O8HAnUU+hWDruZA3hRvaRhQSWag+hX44LkGmwLCG0ciHVzVny7viFXy5pMGYdXdn
+9k6J7TY0f5q0/EvgW35iB4yl+AwSiMMmDlJioEV9He/wmMl5he6rhHnJe9FhTEan
+7hsVvsQX0aCOAN1jdnbCH7r6vrohCvK9j8BMaAJjdQYwLer+kltPoxplr6TfZgge
+t/4/CtlP/sRGC5HV1Qrnnnjfy0KDIPf7PKUa0ah3xIxUrSstYNtHZaxzZkYueV8M
+kHtATn3YfgjI9c2uTecj3ym2EjZXnVVA6pkxoiel64DZiC4zm9G4Xhh8wR9AZtag
+oG3AwkrgOn/ZoNAmhGAtmePbloQJykdtIFFI70Gb/tfTEB2nZdk=
+=zPA/
+-----END PGP SIGNATURE-----
+
+--j76ftz66xhtsdhgo--
