@@ -1,143 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57955
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751446AbdHSKk7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Aug 2017 06:40:59 -0400
-Date: Sat, 19 Aug 2017 07:40:50 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [PATCH v2 1/2] docs-rst: media: Document s_stream() video op
- usage for MC enabled devices
-Message-ID: <20170819074050.4a2c9a5f@vento.lan>
-In-Reply-To: <20170819073552.08a0ea2b@vento.lan>
-References: <1502886018-31488-1-git-send-email-sakari.ailus@linux.intel.com>
-        <1502886018-31488-2-git-send-email-sakari.ailus@linux.intel.com>
-        <20170819073552.08a0ea2b@vento.lan>
+Received: from mout.web.de ([212.227.15.14]:51495 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751537AbdH2LEL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 Aug 2017 07:04:11 -0400
+To: linux-media@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Geliang Tang <geliangtang@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Sean Young <sean@mess.org>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/2] [media] imon: Adjustments for two function
+ implementations
+Message-ID: <09417655-9241-72f4-6484-a3c8b3eae87a@users.sourceforge.net>
+Date: Tue, 29 Aug 2017 13:03:46 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 19 Aug 2017 07:35:52 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Tue, 29 Aug 2017 12:56:54 +0200
 
-> Hi Sakari,
-> 
-> Em Wed, 16 Aug 2017 15:20:17 +0300
-> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> 
-> > As we begin to add support for systems with Media controller pipelines
-> > controlled by more than one device driver, it is essential that we
-> > precisely define the responsibilities of each component in the stream
-> > control and common practices.
-> > 
-> > Specifically, streaming control is done per sub-device and sub-device
-> > drivers themselves are responsible for streaming setup in upstream
-> > sub-devices.  
-> 
-> IMO, before this patch, we need something like this:
-> 	https://patchwork.linuxtv.org/patch/43325/
-> 
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > ---
-> >  Documentation/media/kapi/v4l2-subdev.rst | 29 +++++++++++++++++++++++++++++
-> >  1 file changed, 29 insertions(+)
-> > 
-> > diff --git a/Documentation/media/kapi/v4l2-subdev.rst b/Documentation/media/kapi/v4l2-subdev.rst
-> > index e1f0b72..45088ad 100644
-> > --- a/Documentation/media/kapi/v4l2-subdev.rst
-> > +++ b/Documentation/media/kapi/v4l2-subdev.rst
-> > @@ -262,6 +262,35 @@ is called. After all subdevices have been located the .complete() callback is
-> >  called. When a subdevice is removed from the system the .unbind() method is
-> >  called. All three callbacks are optional.
-> >  
-> > +Streaming control on Media controller enabled devices
-> > +^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> > +
-> > +Starting and stopping the stream are somewhat complex operations that
-> > +often require walking the media graph to enable streaming on
-> > +sub-devices which the pipeline consists of. This involves interaction
-> > +between multiple drivers, sometimes more than two.  
-> 
-> That's still not ok, as it creates a black hole for devnode-based
-> devices.
-> 
-> I would change it to something like:
-> 
-> 	Streaming control
-> 	^^^^^^^^^^^^^^^^^
-> 
-> 	Starting and stopping the stream are somewhat complex operations that
-> 	often require to enable streaming on sub-devices which the pipeline 
-> 	consists of. This involves interaction between multiple drivers, sometimes
-> 	more than two. 
-> 
-> 	The ``.s_stream()`` op in :c:type:`v4l2_subdev_video_ops` is responsible
-> 	for starting and stopping the stream on the sub-device it is called
-> 	on. 
-> 
-> 	Streaming control on devnode-centric devices
-> 	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> 
-> 	On **devnode-centric** devices, the main driver is responsible enable
-> 	stream all all sub-devices. On most cases, all the main driver need
-> 	to do is to broadcast s_stream to all connected sub-devices by calling
-> 	:c:func:`v4l2_device_call_all`, e. g.::
-> 
-> 		v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_stream, 1);
-> 
-> 	Streaming control on mc-centric devices
-> 	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> 
-> 	On **mc-centric** devices, it usually requires walking the media graph
-> 	to enable streaming only at the sub-devices which the pipeline consists
-> 	of.
-> 
-> 	(place here the details for such scenario)
-> 
-> > +The ``.s_stream()`` op in :c:type:`v4l2_subdev_video_ops` is responsible
-> > +for starting and stopping the stream on the sub-device it is called
-> > +on. A device driver is only responsible for calling the ``.s_stream()`` ops
-> > +of the adjacent sub-devices that are connected to its sink pads
-> > +through an enabled link. A driver may not call ``.s_stream()`` op
-> > +of any other sub-device further up in the pipeline, for instance.
-> > +
-> > +This means that a sub-device driver is thus in direct control of
-> > +whether the upstream sub-devices start (or stop) streaming before or
-> > +after the sub-device itself is set up for streaming.
-> > +
-> > +.. note::
-> > +
-> > +   As the ``.s_stream()`` callback is called recursively through the
-> > +   sub-devices along the pipeline, it is important to keep the
-> > +   recursion as short as possible. To this end, drivers are encouraged
-> > +   to avoid recursively calling ``.s_stream()`` internally to reduce
-> > +   stack usage. Instead, the ``.s_stream()`` op of the directly
-> > +   connected sub-devices should come from the callback through which
-> > +   the driver was first called.
-> > +  
-> 
-> That sounds too complex, and can lead into troubles, if the same
-> sub-device driver is used on completely different devices.
-> 
-> IMHO, it should be up to the main driver to navigate at the MC
-> pipeline and call s_stream(), and not to the sub-drivers.
+Two update suggestions were taken into account
+from static source code analysis.
 
-Forgot to mention, but, IMHO, we should also have a macro like 
-v4l2_device_call_all() that would implement the "multicast" logic
-to send a command from the main driver through all sub-devices
-that are currently part of the streaming pipeline.
+Markus Elfring (2):
+  Delete an error message for a failed memory allocation in imon_init_intf0()
+  Improve a size determination in two functions
 
-> 
-> Thanks,
-> Mauro
+ drivers/media/rc/imon.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-
-
-Thanks,
-Mauro
+-- 
+2.14.1
