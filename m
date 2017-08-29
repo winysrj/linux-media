@@ -1,93 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58239
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751270AbdH1MyI (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52738 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752460AbdH2Nqm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Aug 2017 08:54:08 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v5 4/7] media: open.rst: document devnode-centric and mc-centric types
-Date: Mon, 28 Aug 2017 09:53:58 -0300
-Message-Id: <828e47356d5c133a0a052f34e97be24ea3037df2.1503924361.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503924361.git.mchehab@s-opensource.com>
-References: <cover.1503924361.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-In-Reply-To: <cover.1503924361.git.mchehab@s-opensource.com>
-References: <cover.1503924361.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Tue, 29 Aug 2017 09:46:42 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 1/1] media: Check for active and has_no_links overrun
+Date: Tue, 29 Aug 2017 16:46:40 +0300
+Message-Id: <20170829134640.7054-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When we added support for omap3, back in 2010, we added a new
-type of V4L2 devices that aren't fully controlled via the V4L2
-device node.
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-Yet, we have never clearly documented in the V4L2 specification
-the differences between the two types.
+The active and has_no_links arrays will overrun in
+media_entity_pipeline_start() if there's an entity which has more than
+MEDIA_ENTITY_MAX_PAD pads. Ensure in media_entity_init() that there are
+fewer pads than that.
 
-Let's document them based on the the current implementation.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/media/uapi/v4l/open.rst | 40 +++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ drivers/media/media-entity.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index 96ac972c1fa2..21b8f7c5ca55 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -7,6 +7,46 @@ Opening and Closing Devices
- ***************************
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 2ace0410d277..f7c6d64e6031 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -214,12 +214,20 @@ void media_gobj_destroy(struct media_gobj *gobj)
+ 	gobj->mdev = NULL;
+ }
  
++/*
++ * TODO: Get rid of this.
++ */
++#define MEDIA_ENTITY_MAX_PADS		512
++
+ int media_entity_pads_init(struct media_entity *entity, u16 num_pads,
+ 			   struct media_pad *pads)
+ {
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+ 	unsigned int i;
  
-+.. _v4l2_hardware_control:
++	if (num_pads >= MEDIA_ENTITY_MAX_PADS)
++		return -E2BIG;
 +
-+
-+Types of V4L2 hardware peripheral control
-+=========================================
-+
-+V4L2 hardware periferal is usually complex: support for it is
-+implemented via a V4L2 main driver and often by several additional drivers.
-+The main driver always exposes one or more **V4L2 device nodes**
-+(see :ref:`v4l2_device_naming`) with are responsible for implementing
-+data streaming, if applicable.
-+
-+The other drivers are called **V4L2 sub-devices** and provide control to
-+other hardware components usually connected via a serial bus (like
-+I²C, SMBus or SPI). Depending on the main driver, they can be implicitly
-+controlled directly by the main driver or explicitly via
-+the **V4L2 sub-device API** (see :ref:`subdev`).
-+
-+When V4L2 was originally designed, there was only one type of
-+peripheral control: via the **V4L2 device nodes**. We refer to this kind
-+of control as **V4L2 device node centric** (or, simply, "**vdev-centric**").
-+
-+Later (kernel 2.6.39), a new type of periferal control was
-+added in order to support complex peripherals that are common for embedded
-+systems. This type of periferal is controlled mainly via the media
-+controller and V4L2 sub-devices. So, it is called
-+**Media controller centric** (or, simply, "**MC-centric**") control.
-+
-+For **vdev-centric** hardware peripheral control, the peripheral is
-+controlled via the **V4L2 device nodes**. They may optionally support the
-+:ref:`media controller API <media_controller>` as well,
-+in order to inform the application which device nodes are available
-+(see :ref:`related`).
-+
-+For **MC-centric** hardware peripheral control it is required to configure
-+the pipelines via the :ref:`media controller API <media_controller>` before
-+the periferal can be used. For such devices, the sub-devices' configuration
-+can be controlled via the :ref:`sub-device API <subdev>`, which creates one
-+device node per sub-device.
-+
- .. _v4l2_device_naming:
+ 	entity->num_pads = num_pads;
+ 	entity->pads = pads;
  
- V4L2 Device Node Naming
+@@ -280,11 +288,6 @@ static struct media_entity *stack_pop(struct media_graph *graph)
+ #define link_top(en)	((en)->stack[(en)->top].link)
+ #define stack_top(en)	((en)->stack[(en)->top].entity)
+ 
+-/*
+- * TODO: Get rid of this.
+- */
+-#define MEDIA_ENTITY_MAX_PADS		512
+-
+ /**
+  * media_graph_walk_init - Allocate resources for graph walk
+  * @graph: Media graph structure that will be used to walk the graph
 -- 
-2.13.5
+2.11.0
