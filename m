@@ -1,48 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:45400 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751761AbdHGWpj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Aug 2017 18:45:39 -0400
-Date: Tue, 8 Aug 2017 01:45:32 +0300
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50776 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752425AbdH2LDR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 Aug 2017 07:03:17 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        jacek.anaszewski@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 2/2] v4l2-flash-led-class: Create separate sub-devices
- for indicators
-Message-ID: <20170807222502.ctdehs5tyce2hkfj@kekkonen.localdomain>
-References: <20170718184107.10598-1-sakari.ailus@linux.intel.com>
- <20170718184107.10598-3-sakari.ailus@linux.intel.com>
- <20170719120246.GB23510@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170719120246.GB23510@amd>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
+Subject: [PATCH v5 3/5] docs-rst: v4l: Include Qualcomm CAMSS in documentation build
+Date: Tue, 29 Aug 2017 14:03:11 +0300
+Message-Id: <20170829110313.19538-4-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170829110313.19538-1-sakari.ailus@linux.intel.com>
+References: <20170829110313.19538-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 19, 2017 at 02:02:46PM +0200, Pavel Machek wrote:
-> On Tue 2017-07-18 21:41:07, Sakari Ailus wrote:
-> > The V4L2 flash interface allows controlling multiple LEDs through a single
-> > sub-devices if, and only if, these LEDs are of different types. This
-> > approach scales badly for flash controllers that drive multiple flash LEDs
-> > or for LED specific associations. Essentially, the original assumption of a
-> > LED driver chip that drives a single flash LED and an indicator LED is no
-> > longer valid.
-> > 
-> > Address the matter by registering one sub-device per LED.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> Acked-by: Pavel Machek <pavel@ucw.cz>
+Qualcomm CAMSS was left out from documentation build. Fix this.
 
-Thanks!
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ Documentation/media/v4l-drivers/index.rst | 1 +
+ 1 file changed, 1 insertion(+)
 
-> Does anything need to be done with drivers/media/i2c/adp1653.c ?
-
-No, it's stand-alone and does not use the V4L2 flash LED class
-framework-let.
-
+diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
+index 10f2ce42ece2..5c202e23616b 100644
+--- a/Documentation/media/v4l-drivers/index.rst
++++ b/Documentation/media/v4l-drivers/index.rst
+@@ -50,6 +50,7 @@ For more details see the file COPYING in the source distribution of Linux.
+ 	philips
+ 	pvrusb2
+ 	pxa_camera
++	qcom_camss
+ 	radiotrack
+ 	rcar-fdp1
+ 	saa7134
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.11.0
