@@ -1,204 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51922 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751949AbdHPQww (ORCPT
+Received: from relmlor3.renesas.com ([210.160.252.173]:41070 "EHLO
+        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751219AbdH2IbU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Aug 2017 12:52:52 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: pavel@ucw.cz, laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2.1 5/5] omap3isp: Quit using struct v4l2_subdev.host_priv field
-Date: Wed, 16 Aug 2017 19:52:50 +0300
-Message-Id: <20170816165250.19769-1-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170816125150.27199-6-sakari.ailus@linux.intel.com>
-References: <20170816125150.27199-6-sakari.ailus@linux.intel.com>
+        Tue, 29 Aug 2017 04:31:20 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        "Hans Verkuil" <hans.verkuil@cisco.com>,
+        Chris Paterson <Chris.Paterson2@renesas.com>
+Subject: RE: [PATCH v4 7/7] media: open.rst: add a notice about subdev-API on
+ vdev-centric
+Date: Tue, 29 Aug 2017 08:31:15 +0000
+Message-ID: <KL1PR0601MB2038F8301E02CF3B5EAF6C00C39F0@KL1PR0601MB2038.apcprd06.prod.outlook.com>
+References: <cover.1503747774.git.mchehab@s-opensource.com>
+ <a77ff374ebde22ea20e1cec7c94026db817ed89d.1503747774.git.mchehab@s-opensource.com>
+ <ac21c30e-1d41-881d-d22e-2244a3dcde2e@xs4all.nl>
+ <20170828073009.3762b293@vento.lan>
+ <31b0ab20-3079-9c4a-e0f7-d9173b865db5@xs4all.nl>
+In-Reply-To: <31b0ab20-3079-9c4a-e0f7-d9173b865db5@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-struct v4l2_subdev.host_priv is intended to be used by another driver. This
-is hardly good design but back in the days of platform data was a quick
-hack to get things done.
+Hi Hans,
 
-As the sub-device specific bus information can be stored to the ISP driver
-specific struct allocated along with v4l2_async_subdev, keep the
-information there and only there.
+> On 28/08/17 12:30, Mauro Carvalho Chehab wrote:
+> > Em Mon, 28 Aug 2017 12:05:06 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >
+> >> On 26/08/17 13:53, Mauro Carvalho Chehab wrote:
+> >>> The documentation doesn't mention if vdev-centric hardware control
+> >>> would have subdev API or not.
+> >>>
+> >>> Add a notice about that, reflecting the current status, where three
+> >>> drivers use it, in order to support some subdev-specific controls.
+> >>
+> >> I posted a patch removing v4l-subdevX support for cobalt. It's only
+> >> used within Cisco, so this is safe to do and won't break any userspace
+> support.
+> >
+> > OK.
+> >
+> >> atmel-isc is another driver that creates subdev nodes. Like cobalt,
+> >> this is unnecessary. There are no sensors that use private controls.
+> >
+> > The question is not if the driver has private controls. Private
+> > controls can be V4L2 device node oriented.
+> >
+> > The real question is if userspace applications use subdevs or not in
+> > order to set something specific to a subdev, on a pipeline where
+> > multiple subdevs could use the same control.
+> >
+> > E. g. even on a simple case where the driver would have something like:
+> >
+> > sensor -> processing -> DMA
+> >
+> > both "sensor" and "processing" could provide the same control (bright,
+> > contrast, gain, or whatever). Only by exposing such control via subdev
+> > is possible to pinpoint what part of the hardware pipeline would be
+> > affected when such control is changed.
+>=20
+> In theory, yes. In practice this does not happen for any of the V4L2-
+> centric drivers. Including for the three drivers under discussion.
+>=20
+> >
+> >> This driver is not referenced anywhere (dts or board file) in the
+> kernel.
+> >> It is highly unlikely anyone would use v4l-subdevX nodes when there
+> >> is no need to do so. My suggestion is to add a kernel option for this
+> >> driver to enable v4l-subdevX support, but set it to 'default n'.
+> >> Perhaps with a note in the Kconfig description and a message in the
+> >> kernel log that this will be removed in the future.
+> >>
+> >> The final driver is rcar_drif that uses this to set the "I2S Enable"
+> >> private control of the max2175 driver.
+> >>
+> >> I remember that there was a long discussion over this control. I
+> >> still think that there is no need to mark this private.
+> >
+> > The problem with I2S is that a device may have multiple places where
+> > I2S could be used. I don't know how the rcar-drif driver uses it, but
+> > there are several vdev-centric boards that use I2S for audio.
+> >
+> > On several of the devices I worked with, the I2S can be enabled, in
+> > runtime, if the audio signal would be directed to some digital output,
+> > or it can be disabled if the audio signal would be directed to some
+> > analog output. Thankfully, on those devices, I2S can be indirectly
+> > controlled via either an ALSA mixer or via VIDIOC A/V routing ioctls.
+> > Also, there's just one I2S bus on them.
+> >
+> > However, on a device that have multiple I2S bus, userspace should be
+> > able to control each of them individually, as some parts of the
+> > pipeline may require it enabled while others may require it disabled.
+> > So, I strongly believe that this should be a subdev control on such
+> > hardware.
+> >
+> > That's said, I don't know how rcar_drif uses it. If it has just one
+> > I2S bus and it is used only for audio, then VIDIOC A/V routing ioctls
+> > and/or an ALSA mixer could replace it. If not, then it should be kept
+> > as-is and the driver would need to add support for MC, in order for
+> > applications to identify the right sub-devices that are associated
+> > with the pipelines where I2S will be controlled.
+>=20
+> Ramesh, do applications using rcar_drif + max2175 have to manually enable
+> the i2s? Shouldn't this be part of the device tree description instead?
+>=20
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-This patch replaces patch "omap3isp: Correctly configure routing in PHY
-release".
+Yes, applications have to control this explicitly. It is not only enable bu=
+t also disable control is used at run time and hence DT is not applicable.=
+=20
 
- drivers/media/platform/omap3isp/isp.c       | 31 +++++++++--------------------
- drivers/media/platform/omap3isp/ispccdc.c   | 20 ++++++++++++-------
- drivers/media/platform/omap3isp/ispccp2.c   |  4 +++-
- drivers/media/platform/omap3isp/ispcsi2.c   |  3 ++-
- drivers/media/platform/omap3isp/ispcsiphy.c | 11 +++++-----
- 5 files changed, 33 insertions(+), 36 deletions(-)
+rcar_drif has two registers to write to enable rx on two data pins. It expe=
+cts a sequence where the master stops output (in this max2175 i2s output - =
+disable) - enable rcar_drif rx and then the master starts output (max2175 i=
+2s output - enable). The application ensures this sequence today. It is one=
+ I2S bus and it is not used for audio but raw I/Q samples from max2175 tune=
+r.=20
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 6cb1f0495804..27c577fac8e9 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2188,26 +2188,12 @@ static int isp_fwnodes_parse(struct device *dev,
- 	return -EINVAL;
- }
- 
--static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
--				     struct v4l2_subdev *subdev,
--				     struct v4l2_async_subdev *asd)
--{
--	struct isp_async_subdev *isd =
--		container_of(asd, struct isp_async_subdev, asd);
--
--	isd->sd = subdev;
--	isd->sd->host_priv = &isd->bus;
--
--	return 0;
--}
--
- static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
- {
- 	struct isp_device *isp = container_of(async, struct isp_device,
- 					      notifier);
- 	struct v4l2_device *v4l2_dev = &isp->v4l2_dev;
- 	struct v4l2_subdev *sd;
--	struct isp_bus_cfg *bus;
- 	int ret;
- 
- 	ret = media_entity_enum_init(&isp->crashed, &isp->media_dev);
-@@ -2215,13 +2201,15 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
- 		return ret;
- 
- 	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
--		/* Only try to link entities whose interface was set on bound */
--		if (sd->host_priv) {
--			bus = (struct isp_bus_cfg *)sd->host_priv;
--			ret = isp_link_entity(isp, &sd->entity, bus->interface);
--			if (ret < 0)
--				return ret;
--		}
-+		struct isp_async_subdev *isd;
-+
-+		if (!sd->asd)
-+			continue;
-+
-+		isd = container_of(sd->asd, struct isp_async_subdev, asd);
-+		ret = isp_link_entity(isp, &sd->entity, isd->bus.interface);
-+		if (ret < 0)
-+			return ret;
- 	}
- 
- 	ret = v4l2_device_register_subdev_nodes(&isp->v4l2_dev);
-@@ -2399,7 +2387,6 @@ static int isp_probe(struct platform_device *pdev)
- 	if (ret < 0)
- 		goto error_register_entities;
- 
--	isp->notifier.bound = isp_subdev_notifier_bound;
- 	isp->notifier.complete = isp_subdev_notifier_complete;
- 
- 	ret = v4l2_async_notifier_register(&isp->v4l2_dev, &isp->notifier);
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index 4947876cfadf..0145b3dcd7a7 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -1139,8 +1139,12 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	pad = media_entity_remote_pad(&ccdc->pads[CCDC_PAD_SINK]);
- 	sensor = media_entity_to_v4l2_subdev(pad->entity);
- 	if (ccdc->input == CCDC_INPUT_PARALLEL) {
--		parcfg = &((struct isp_bus_cfg *)sensor->host_priv)
--			->bus.parallel;
-+		struct isp_pipeline *pipe =
-+			to_isp_pipeline(&ccdc->subdev.entity);
-+
-+		parcfg = &container_of(pipe->external->asd,
-+				       struct isp_async_subdev,
-+				       asd)->bus.bus.parallel;
- 		ccdc->bt656 = parcfg->bt656;
- 	}
- 
-@@ -2412,11 +2416,13 @@ static int ccdc_link_validate(struct v4l2_subdev *sd,
- 
- 	/* We've got a parallel sensor here. */
- 	if (ccdc->input == CCDC_INPUT_PARALLEL) {
--		struct isp_parallel_cfg *parcfg =
--			&((struct isp_bus_cfg *)
--			  media_entity_to_v4l2_subdev(link->source->entity)
--			  ->host_priv)->bus.parallel;
--		parallel_shift = parcfg->data_lane_shift;
-+		struct isp_pipeline *pipe =
-+			to_isp_pipeline(&ccdc->subdev.entity);
-+
-+		parallel_shift =
-+			container_of(pipe->external->asd,
-+				     struct isp_async_subdev,
-+				     asd)->bus.bus.parallel.data_lane_shift;
- 	} else {
- 		parallel_shift = 0;
- 	}
-diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
-index 3db8df09cd9a..8561c4e4c5ac 100644
---- a/drivers/media/platform/omap3isp/ispccp2.c
-+++ b/drivers/media/platform/omap3isp/ispccp2.c
-@@ -350,6 +350,7 @@ static void ccp2_lcx_config(struct isp_ccp2_device *ccp2,
-  */
- static int ccp2_if_configure(struct isp_ccp2_device *ccp2)
- {
-+	struct isp_pipeline *pipe = to_isp_pipeline(&ccp2->subdev.entity);
- 	const struct isp_bus_cfg *buscfg;
- 	struct v4l2_mbus_framefmt *format;
- 	struct media_pad *pad;
-@@ -361,7 +362,8 @@ static int ccp2_if_configure(struct isp_ccp2_device *ccp2)
- 
- 	pad = media_entity_remote_pad(&ccp2->pads[CCP2_PAD_SINK]);
- 	sensor = media_entity_to_v4l2_subdev(pad->entity);
--	buscfg = sensor->host_priv;
-+	buscfg = &container_of(pipe->external->asd,
-+			       struct isp_async_subdev, asd)->bus;
- 
- 	ret = ccp2_phyif_config(ccp2, &buscfg->bus.ccp2);
- 	if (ret < 0)
-diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
-index 3ec37fed710b..2802f70fc8b3 100644
---- a/drivers/media/platform/omap3isp/ispcsi2.c
-+++ b/drivers/media/platform/omap3isp/ispcsi2.c
-@@ -566,7 +566,8 @@ static int csi2_configure(struct isp_csi2_device *csi2)
- 
- 	pad = media_entity_remote_pad(&csi2->pads[CSI2_PAD_SINK]);
- 	sensor = media_entity_to_v4l2_subdev(pad->entity);
--	buscfg = sensor->host_priv;
-+	buscfg = &container_of(pipe->external->asd,
-+			       struct isp_async_subdev, asd)->bus;
- 
- 	csi2->frame_skip = 0;
- 	v4l2_subdev_call(sensor, sensor, g_skip_frames, &csi2->frame_skip);
-diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
-index ed1eb9907ae0..ef79bf37c2dd 100644
---- a/drivers/media/platform/omap3isp/ispcsiphy.c
-+++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-@@ -165,10 +165,9 @@ static int csiphy_set_power(struct isp_csiphy *phy, u32 power)
- static int omap3isp_csiphy_config(struct isp_csiphy *phy)
- {
- 	struct isp_pipeline *pipe = to_isp_pipeline(phy->entity);
--	struct isp_async_subdev *isd =
--		container_of(pipe->external->asd, struct isp_async_subdev, asd);
--	struct isp_bus_cfg *buscfg = pipe->external->host_priv ?
--		pipe->external->host_priv : &isd->bus;
-+	struct isp_bus_cfg *buscfg =
-+		&container_of(pipe->external->asd,
-+			      struct isp_async_subdev, asd)->bus;
- 	struct isp_csiphy_lanes_cfg *lanes;
- 	int csi2_ddrclk_khz;
- 	unsigned int num_data_lanes, used_lanes = 0;
-@@ -311,7 +310,9 @@ void omap3isp_csiphy_release(struct isp_csiphy *phy)
- 	mutex_lock(&phy->mutex);
- 	if (phy->entity) {
- 		struct isp_pipeline *pipe = to_isp_pipeline(phy->entity);
--		struct isp_bus_cfg *buscfg = pipe->external->host_priv;
-+		struct isp_bus_cfg *buscfg =
-+			&container_of(pipe->external->asd,
-+				      struct isp_async_subdev, asd)->bus;
- 
- 		csiphy_routing_cfg(phy, buscfg->interface, false,
- 				   buscfg->bus.ccp2.phy_layer);
--- 
-2.11.0
+The v4l2_subdev_tuner_ops does not have .s_stream api as in v4l2_subdev_vid=
+eo_ops and v4l2_subdev_audio_ops. If we plan to have one this functionality=
+ may be hidden inside it and no need for an explicit control. I too do not =
+like a private control option.
+
+Thanks,
+Ramesh
