@@ -1,136 +1,664 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:42128 "EHLO smtp.gentoo.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753318AbdHWHVi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Aug 2017 03:21:38 -0400
-Subject: Re: analog support for WinTV-HVR-900H/930C-HD
-To: Sven Verdoolaege <sven.verdoolaege@gmail.com>,
-        linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
-        "olli.salonen" <olli.salonen@iki.fi>
-References: <20170819194636.GM6785MdfPADPa@purples.kotnet.org>
-From: Matthias Schwarzott <zzam@gentoo.org>
-Message-ID: <bcc367e0-00f0-d178-274f-a93d6cba800b@gentoo.org>
-Date: Wed, 23 Aug 2017 09:21:37 +0200
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57494 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754100AbdH2OCV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 Aug 2017 10:02:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, hverkuil@xs4all.nl, devicetree@vger.kernel.org
+Subject: Re: [PATCH v5 4/5] v4l: fwnode: Support generic parsing of graph endpoints in a device
+Date: Tue, 29 Aug 2017 17:02:54 +0300
+Message-ID: <2739432.dQ1BSg1MPy@avalon>
+In-Reply-To: <20170829110313.19538-5-sakari.ailus@linux.intel.com>
+References: <20170829110313.19538-1-sakari.ailus@linux.intel.com> <20170829110313.19538-5-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20170819194636.GM6785MdfPADPa@purples.kotnet.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 19.08.2017 um 21:46 schrieb Sven Verdoolaege:
-> Hi,
-> 
+Hi Sakari,
 
-Hi!
+Thank you for the patch.
 
-> I hope this is the right place for asking about support
-> for analog TV on Hauppauge cards.
+On Tuesday, 29 August 2017 14:03:12 EEST Sakari Ailus wrote:
+> The current practice is that drivers iterate over their endpoints and
+> parse each endpoint separately. This is very similar in a number of
+> drivers, implement a generic function for the job. Driver specific matters
+> can be taken into account in the driver specific callback.
 > 
-> I recently bought what I thought is a Hauppauge WinTV-HVR-900H
-> (that's what it says on the stick itself) because according
-> to https://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-900H
-> analog TV should work on those sticks.
-> However, the stick is identified as a
-> "Hauppauge WinTV 930C-HD (1114xx) / HVR-901H (1114xx) / PCTV QuatroStick 522e"
-> instead and it seems that there is no support for analog TV
-> for this device (yet?).
+> Convert the omap3isp as an example.
 > 
-> In particular, when I try to run tvtime, I get
-> videoinput: Can't get tuner info: Inappropriate ioctl for device
-> videoinput: Can't set tuner audio mode: Inappropriate ioctl for device
-> videoinput: Can't get tuner info: Inappropriate ioctl for device
-> videoinput: Can't set tuner audio mode: Inappropriate ioctl for device
-> videoinput: Tuner present, but our request to change to
-> videoinput: frequency 62250 failed with this error: Inappropriate ioctl for device.
-> videoinput: Please file a bug report at http://tvtime.net/
-> videoinput: Tuner refuses to tell us the current frequency: Inappropriate ioctl for device
-> videoinput: Please file a bug report at http://tvtime.net/
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/platform/omap3isp/isp.c | 115 ++++++++++-------------------
+>  drivers/media/platform/omap3isp/isp.h |   5 +-
+>  drivers/media/v4l2-core/v4l2-async.c  |  16 +++++
+>  drivers/media/v4l2-core/v4l2-fwnode.c | 132
+> ++++++++++++++++++++++++++++++++++ include/media/v4l2-async.h            | 
+> 20 +++++-
+>  include/media/v4l2-fwnode.h           |  39 ++++++++++
+>  6 files changed, 242 insertions(+), 85 deletions(-)
 > 
-> Is anyone working on support for such devices?
-> Or does it already work and am I doing something wrong?
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 1a428fe9f070..a546cf774d40
+> 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -2001,6 +2001,7 @@ static int isp_remove(struct platform_device *pdev)
+>  	__omap3isp_put(isp, false);
 > 
-> I'm pasting the relevant dmesg output below.
-> Kernel version is 4.4.0-83-generic #106-Ubuntu.
+>  	media_entity_enum_cleanup(&isp->crashed);
+> +	v4l2_async_notifier_release(&isp->notifier);
 > 
-> Thanks,
+>  	return 0;
+>  }
+> @@ -2011,44 +2012,41 @@ enum isp_of_phy {
+>  	ISP_OF_PHY_CSIPHY2,
+>  };
 > 
-> skimo
+> -static int isp_fwnode_parse(struct device *dev, struct fwnode_handle
+> *fwnode, -			    struct isp_async_subdev *isd)
+> +static int isp_fwnode_parse(struct device *dev,
+> +			    struct v4l2_fwnode_endpoint *vep,
+> +			    struct v4l2_async_subdev *asd)
+>  {
+> +	struct isp_async_subdev *isd =
+> +		container_of(asd, struct isp_async_subdev, asd);
+>  	struct isp_bus_cfg *buscfg = &isd->bus;
+> -	struct v4l2_fwnode_endpoint vep;
+> -	unsigned int i;
+> -	int ret;
+>  	bool csi1 = false;
+> -
+> -	ret = v4l2_fwnode_endpoint_parse(fwnode, &vep);
+> -	if (ret)
+> -		return ret;
+> +	unsigned int i;
 > 
-> [   44.522766] usb 3-4: new high-speed USB device number 2 using xhci_hcd
-> [   44.653945] usb 3-4: New USB device found, idVendor=2013, idProduct=025e
-> [   44.653947] usb 3-4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-> [   44.653949] usb 3-4: Product: Hauppauge Device
-> [   44.653950] usb 3-4: Manufacturer: Hauppauge
-> [   44.653951] usb 3-4: SerialNumber: 4035578631
-> [   44.698824] Registered IR keymap rc-pinnacle-pctv-hd
-> [   44.698928] input: Conexant Hybrid TV (cx231xx) MCE IR no TX (2013:025e) as /devices/pci0000:00/0000:00:14.0/usb3/3-4/3-4:1.0/rc/rc0/input23
-> [   44.698985] rc0: Conexant Hybrid TV (cx231xx) MCE IR no TX (2013:025e) as /devices/pci0000:00/0000:00:14.0/usb3/3-4/3-4:1.0/rc/rc0
-> [   44.703474] IR NEC protocol handler initialized
-> [   44.703661] IR Sony protocol handler initialized
-> [   44.703955] IR JVC protocol handler initialized
-> [   44.703958] IR RC6 protocol handler initialized
-> [   44.704086] IR SANYO protocol handler initialized
-> [   44.704636] IR RC5(x/sz) protocol handler initialized
-> [   44.704930] IR Sharp protocol handler initialized
-> [   44.705056] input: MCE IR Keyboard/Mouse (mceusb) as /devices/virtual/input/input24
-> [   44.705140] IR MCE Keyboard/mouse protocol handler initialized
-> [   44.705330] IR XMP protocol handler initialized
-> [   44.705705] lirc_dev: IR Remote Control driver registered, major 240 
-> [   44.707056] rc rc0: lirc_dev: driver ir-lirc-codec (mceusb) registered at minor = 0
-> [   44.707058] IR LIRC bridge handler initialized
-> [   44.907035] mceusb 3-4:1.0: Registered Hauppauge Hauppauge Device with mce emulator interface version 1
-> [   44.907038] mceusb 3-4:1.0: 2 tx ports (0x3 cabled) and 2 rx sensors (0x1 active)
-> [   44.907130] usbcore: registered new interface driver mceusb
-> [   44.918365] cx231xx 3-4:1.1: New device Hauppauge Hauppauge Device @ 480 Mbps (2013:025e) with 7 interfaces
-> [   44.918441] cx231xx 3-4:1.1: Identified as Hauppauge WinTV 930C-HD (1114xx) / HVR-901H (1114xx) / PCTV QuatroStick 522e (card=20)
-> [   44.918733] i2c i2c-12: Added multiplexed i2c bus 14
-> [   44.918775] i2c i2c-12: Added multiplexed i2c bus 15
-> [   45.062403] cx25840 11-0044: cx23102 A/V decoder found @ 0x88 (cx231xx #0-0)
-> [   47.044238] cx25840 11-0044: loaded v4l-cx231xx-avcore-01.fw firmware (16382 bytes)
-> [   47.101579] tveeprom 14-0050: Hauppauge model 111429, rev E2I6, serial# 4035578631
-> [   47.101582] tveeprom 14-0050: MAC address is 00:0d:fe:8a:0b:07
-> [   47.101583] tveeprom 14-0050: tuner model is SiLabs Si2157 (idx 186, type 4)
-> [   47.101584] tveeprom 14-0050: TV standards PAL(B/G) PAL(I) SECAM(L/L') PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xf4)
-> [   47.101585] tveeprom 14-0050: audio processor is CX23102 (idx 47)
-> [   47.101586] tveeprom 14-0050: decoder processor is CX23102 (idx 46)
-> [   47.101587] tveeprom 14-0050: has radio, has IR receiver, has no IR transmitter
-> [   47.102572] cx231xx 3-4:1.1: v4l2 driver version 0.0.3
-> [   47.157788] cx231xx 3-4:1.1: Unknown tuner type configuring SIF
-> [   47.182657] cx231xx 3-4:1.1: Registered video device video1 [v4l2]
-> [   47.182721] cx231xx 3-4:1.1: Registered VBI device vbi0
-> [   47.182725] cx231xx 3-4:1.1: video EndPoint Addr 0x84, Alternate settings: 5
-> [   47.182728] cx231xx 3-4:1.1: VBI EndPoint Addr 0x85, Alternate settings: 2
-> [   47.182730] cx231xx 3-4:1.1: sliced CC EndPoint Addr 0x86, Alternate settings: 2
-> [   47.182732] cx231xx 3-4:1.1: TS EndPoint Addr 0x81, Alternate settings: 6
-> [   47.182784] usbcore: registered new interface driver cx231xx
-> [   47.188184] cx231xx 3-4:1.1: audio EndPoint Addr 0x83, Alternate settings: 3
-> [   47.188187] cx231xx 3-4:1.1: Cx231xx Audio Extension initialized
-> [   47.251193] i2c i2c-15: si2165: Detected Silicon Labs Si2165-D (type 7, rev 3)
-> [   47.251197] i2c i2c-15: si2165: DVB-C is not yet supported.
-> [   47.254581] si2157 15-0060: Silicon Labs Si2147/2148/2157/2158 successfully attached
-> [   47.254588] DVB: registering new adapter (cx231xx #0)
-> [   47.254591] cx231xx 3-4:1.1: DVB: registering adapter 0 frontend 0 (Silicon Labs Si2165 DVB-T)...
-> [   47.254850] cx231xx 3-4:1.1: Successfully loaded cx231xx-dvb
-> [   47.254855] cx231xx 3-4:1.1: Cx231xx dvb Extension initialized
-> [  100.672828] cx231xx 3-4:1.1: Unknown tuner type configuring SIF
-> [  100.748631] cx231xx 3-4:1.1: Unknown tuner type configuring SIF
+>  	dev_dbg(dev, "parsing endpoint %pOF, interface %u\n",
+> -		to_of_node(fwnode), vep.base.port);
+> +		to_of_node(vep->base.local_fwnode), vep->base.port);
 > 
+> -	switch (vep.base.port) {
+> +	switch (vep->base.port) {
+>  	case ISP_OF_PHY_PARALLEL:
+>  		buscfg->interface = ISP_INTERFACE_PARALLEL;
+>  		buscfg->bus.parallel.data_lane_shift =
+> -			vep.bus.parallel.data_shift;
+> +			vep->bus.parallel.data_shift;
+>  		buscfg->bus.parallel.clk_pol =
+> -			!!(vep.bus.parallel.flags
+> +			!!(vep->bus.parallel.flags
+>  			   & V4L2_MBUS_PCLK_SAMPLE_FALLING);
+>  		buscfg->bus.parallel.hs_pol =
+> -			!!(vep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
+> +			!!(vep->bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
+>  		buscfg->bus.parallel.vs_pol =
+> -			!!(vep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
+> +			!!(vep->bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
+>  		buscfg->bus.parallel.fld_pol =
+> -			!!(vep.bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
+> +			!!(vep->bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
+>  		buscfg->bus.parallel.data_pol =
+> -			!!(vep.bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
+> -		buscfg->bus.parallel.bt656 = vep.bus_type == V4L2_MBUS_BT656;
+> +			!!(vep->bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
+> +		buscfg->bus.parallel.bt656 = vep->bus_type == V4L2_MBUS_BT656;
+>  		break;
+> 
+>  	case ISP_OF_PHY_CSIPHY1:
+>  	case ISP_OF_PHY_CSIPHY2:
+> -		switch (vep.bus_type) {
+> +		switch (vep->bus_type) {
+>  		case V4L2_MBUS_CCP2:
+>  		case V4L2_MBUS_CSI1:
+>  			dev_dbg(dev, "CSI-1/CCP-2 configuration\n");
+> @@ -2060,11 +2058,11 @@ static int isp_fwnode_parse(struct device *dev,
+> struct fwnode_handle *fwnode, break;
+>  		default:
+>  			dev_err(dev, "unsupported bus type %u\n",
+> -				vep.bus_type);
+> +				vep->bus_type);
+>  			return -EINVAL;
+>  		}
+> 
+> -		switch (vep.base.port) {
+> +		switch (vep->base.port) {
+>  		case ISP_OF_PHY_CSIPHY1:
+>  			if (csi1)
+>  				buscfg->interface = ISP_INTERFACE_CCP2B_PHY1;
+> @@ -2080,47 +2078,47 @@ static int isp_fwnode_parse(struct device *dev,
+> struct fwnode_handle *fwnode, }
+>  		if (csi1) {
+>  			buscfg->bus.ccp2.lanecfg.clk.pos =
+> -				vep.bus.mipi_csi1.clock_lane;
+> +				vep->bus.mipi_csi1.clock_lane;
+>  			buscfg->bus.ccp2.lanecfg.clk.pol =
+> -				vep.bus.mipi_csi1.lane_polarity[0];
+> +				vep->bus.mipi_csi1.lane_polarity[0];
+>  			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+>  				buscfg->bus.ccp2.lanecfg.clk.pol,
+>  				buscfg->bus.ccp2.lanecfg.clk.pos);
+> 
+>  			buscfg->bus.ccp2.lanecfg.data[0].pos =
+> -				vep.bus.mipi_csi1.data_lane;
+> +				vep->bus.mipi_csi1.data_lane;
+>  			buscfg->bus.ccp2.lanecfg.data[0].pol =
+> -				vep.bus.mipi_csi1.lane_polarity[1];
+> +				vep->bus.mipi_csi1.lane_polarity[1];
+> 
+>  			dev_dbg(dev, "data lane polarity %u, pos %u\n",
+>  				buscfg->bus.ccp2.lanecfg.data[0].pol,
+>  				buscfg->bus.ccp2.lanecfg.data[0].pos);
+> 
+>  			buscfg->bus.ccp2.strobe_clk_pol =
+> -				vep.bus.mipi_csi1.clock_inv;
+> -			buscfg->bus.ccp2.phy_layer = vep.bus.mipi_csi1.strobe;
+> +				vep->bus.mipi_csi1.clock_inv;
+> +			buscfg->bus.ccp2.phy_layer = vep->bus.mipi_csi1.strobe;
+>  			buscfg->bus.ccp2.ccp2_mode =
+> -				vep.bus_type == V4L2_MBUS_CCP2;
+> +				vep->bus_type == V4L2_MBUS_CCP2;
+>  			buscfg->bus.ccp2.vp_clk_pol = 1;
+> 
+>  			buscfg->bus.ccp2.crc = 1;
+>  		} else {
+>  			buscfg->bus.csi2.lanecfg.clk.pos =
+> -				vep.bus.mipi_csi2.clock_lane;
+> +				vep->bus.mipi_csi2.clock_lane;
+>  			buscfg->bus.csi2.lanecfg.clk.pol =
+> -				vep.bus.mipi_csi2.lane_polarities[0];
+> +				vep->bus.mipi_csi2.lane_polarities[0];
+>  			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+>  				buscfg->bus.csi2.lanecfg.clk.pol,
+>  				buscfg->bus.csi2.lanecfg.clk.pos);
+> 
+>  			buscfg->bus.csi2.num_data_lanes =
+> -				vep.bus.mipi_csi2.num_data_lanes;
+> +				vep->bus.mipi_csi2.num_data_lanes;
+> 
+>  			for (i = 0; i < buscfg->bus.csi2.num_data_lanes; i++) {
+>  				buscfg->bus.csi2.lanecfg.data[i].pos =
+> -					vep.bus.mipi_csi2.data_lanes[i];
+> +					vep->bus.mipi_csi2.data_lanes[i];
+>  				buscfg->bus.csi2.lanecfg.data[i].pol =
+> -					vep.bus.mipi_csi2.lane_polarities[i + 1];
+> +					vep->bus.mipi_csi2.lane_polarities[i + 1];
+>  				dev_dbg(dev,
+>  					"data lane %u polarity %u, pos %u\n", i,
+>  					buscfg->bus.csi2.lanecfg.data[i].pol,
+> @@ -2137,57 +2135,13 @@ static int isp_fwnode_parse(struct device *dev,
+> struct fwnode_handle *fwnode,
+> 
+>  	default:
+>  		dev_warn(dev, "%pOF: invalid interface %u\n",
+> -			 to_of_node(fwnode), vep.base.port);
+> +			 to_of_node(vep->base.local_fwnode), vep->base.port);
+>  		return -EINVAL;
+>  	}
+> 
+>  	return 0;
+>  }
+> 
+> -static int isp_fwnodes_parse(struct device *dev,
+> -			     struct v4l2_async_notifier *notifier)
+> -{
+> -	struct fwnode_handle *fwnode = NULL;
+> -
+> -	notifier->subdevs = devm_kcalloc(
+> -		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
+> -	if (!notifier->subdevs)
+> -		return -ENOMEM;
+> -
+> -	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
+> -	       (fwnode = fwnode_graph_get_next_endpoint(
+> -			of_fwnode_handle(dev->of_node), fwnode))) {
+> -		struct isp_async_subdev *isd;
+> -
+> -		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+> -		if (!isd)
+> -			goto error;
+> -
+> -		if (isp_fwnode_parse(dev, fwnode, isd)) {
+> -			devm_kfree(dev, isd);
+> -			continue;
+> -		}
+> -
+> -		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
+> -
+> -		isd->asd.match.fwnode.fwnode =
+> -			fwnode_graph_get_remote_port_parent(fwnode);
+> -		if (!isd->asd.match.fwnode.fwnode) {
+> -			dev_warn(dev, "bad remote port parent\n");
+> -			goto error;
+> -		}
+> -
+> -		isd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+> -		notifier->num_subdevs++;
+> -	}
+> -
+> -	return notifier->num_subdevs;
+> -
+> -error:
+> -	fwnode_handle_put(fwnode);
+> -	return -EINVAL;
+> -}
+> -
+>  static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
+>  {
+>  	struct isp_device *isp = container_of(async, struct isp_device,
+> @@ -2256,7 +2210,9 @@ static int isp_probe(struct platform_device *pdev)
+>  	if (ret)
+>  		return ret;
+> 
+> -	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
+> +	ret = v4l2_async_notifier_parse_fwnode_endpoints(
+> +		&pdev->dev, &isp->notifier, sizeof(struct isp_async_subdev),
+> +		isp_fwnode_parse);
+>  	if (ret < 0)
+>  		return ret;
+> 
+> @@ -2407,6 +2363,7 @@ static int isp_probe(struct platform_device *pdev)
+>  	__omap3isp_put(isp, false);
+>  error:
+>  	mutex_destroy(&isp->isp_mutex);
+> +	v4l2_async_notifier_release(&isp->notifier);
+> 
+>  	return ret;
+>  }
+> diff --git a/drivers/media/platform/omap3isp/isp.h
+> b/drivers/media/platform/omap3isp/isp.h index e528df6efc09..8b9043db94b3
+> 100644
+> --- a/drivers/media/platform/omap3isp/isp.h
+> +++ b/drivers/media/platform/omap3isp/isp.h
+> @@ -220,14 +220,11 @@ struct isp_device {
+> 
+>  	unsigned int sbl_resources;
+>  	unsigned int subclk_resources;
+> -
+> -#define ISP_MAX_SUBDEVS		8
+> -	struct v4l2_subdev *subdevs[ISP_MAX_SUBDEVS];
+>  };
+> 
+>  struct isp_async_subdev {
+> -	struct isp_bus_cfg bus;
+>  	struct v4l2_async_subdev asd;
+> +	struct isp_bus_cfg bus;
+>  };
+> 
+>  #define v4l2_subdev_to_bus_cfg(sd) \
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c
+> b/drivers/media/v4l2-core/v4l2-async.c index 851f128eba22..c490acf5ae82
+> 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -22,6 +22,7 @@
+> 
+>  #include <media/v4l2-async.h>
+>  #include <media/v4l2-device.h>
+> +#include <media/v4l2-fwnode.h>
+>  #include <media/v4l2-subdev.h>
+> 
+>  static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev
+> *asd) @@ -278,6 +279,21 @@ void v4l2_async_notifier_unregister(struct
+> v4l2_async_notifier *notifier) }
+>  EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+> 
+> +void v4l2_async_notifier_release(struct v4l2_async_notifier *notifier)
+> +{
+> +	unsigned int i;
+> +
+> +	if (!notifier->max_subdevs)
+> +		return;
+> +
+> +	for (i = 0; i < notifier->num_subdevs; i++)
+> +		kfree(notifier->subdevs[i]);
+> +
+> +	kvfree(notifier->subdevs);
+> +	notifier->max_subdevs = 0;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_async_notifier_release);
+> +
+>  int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+>  {
+>  	struct v4l2_async_notifier *notifier;
+> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c
+> b/drivers/media/v4l2-core/v4l2-fwnode.c index 706f9e7b90f1..39a587c6992a
+> 100644
+> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> @@ -19,6 +19,7 @@
+>   */
+>  #include <linux/acpi.h>
+>  #include <linux/kernel.h>
+> +#include <linux/mm.h>
+>  #include <linux/module.h>
+>  #include <linux/of.h>
+>  #include <linux/property.h>
+> @@ -26,6 +27,7 @@
+>  #include <linux/string.h>
+>  #include <linux/types.h>
+> 
+> +#include <media/v4l2-async.h>
+>  #include <media/v4l2-fwnode.h>
+> 
+>  enum v4l2_fwnode_bus_type {
+> @@ -313,6 +315,136 @@ void v4l2_fwnode_put_link(struct v4l2_fwnode_link
+> *link) }
+>  EXPORT_SYMBOL_GPL(v4l2_fwnode_put_link);
+> 
+> +static int notifier_realloc(struct v4l2_async_notifier *notifier,
+> +			    unsigned int max_subdevs)
 
-Your stick is labeled as WinTV-HVR-900H but you got a different hardware
-than described by the wiki page mentioned above.
+I'd prefix static functions with v4l2_async_ to avoid namespace clashes.
 
-According to your dmesg output your card has USB IDs: 2013:025e and that
-is the same ID as used for PCTV 522e DVB-T/C (Si2158+Si2165)
+> +{
+> +	struct v4l2_async_subdev **subdevs;
+> +	unsigned int i;
+> +
+> +	if (max_subdevs <= notifier->max_subdevs)
+> +		return 0;
+> +
+> +	subdevs = kvmalloc_array(
+> +		max_subdevs, sizeof(*notifier->subdevs),
+> +		GFP_KERNEL | __GFP_ZERO);
 
-The output shows that the chips si2158 and si2165 are successfully
-identified.
+Should it be mentioned in the documentation that the address of the subdevs 
+array will change during parsing and should not be stored by drivers ? It 
+might be overkill.
 
-The driver for the tuner (si2157) does currently not support analog
-reception. I do not know what is necessary to add this support.
+> +	if (!subdevs)
+> +		return -ENOMEM;
+> +
+> +	if (notifier->subdevs) {
+> +		for (i = 0; i < notifier->num_subdevs; i++)
+> +			subdevs[i] = notifier->subdevs[i];
 
-Maybe Antti or Olli can answer that question.
+To answer your previous question, yes, I would find
 
-Regards
-Matthias
+	memcpy(subdevs, notifier->subdevs, sizeof(*subdevs) * num_subdevs);
+
+easier to read :-)
+
+> +		kvfree(notifier->subdevs);
+> +	}
+> +
+> +	notifier->subdevs = subdevs;
+> +	notifier->max_subdevs = max_subdevs;
+> +
+> +	return 0;
+> +}
+> +
+> +static int parse_endpoint(
+> +	struct device *dev, struct v4l2_async_notifier *notifier,
+> +	struct fwnode_handle *endpoint, unsigned int asd_struct_size,
+> +	int (*parse_single)(struct device *dev,
+> +			    struct v4l2_fwnode_endpoint *vep,
+> +			    struct v4l2_async_subdev *asd))
+> +{
+> +	struct v4l2_async_subdev *asd;
+> +	struct v4l2_fwnode_endpoint *vep;
+> +	int ret = 0;
+> +
+> +	asd = kzalloc(asd_struct_size, GFP_KERNEL);
+> +	if (!asd)
+> +		return -ENOMEM;
+> +
+> +	asd->match.fwnode.fwnode =
+> +		fwnode_graph_get_remote_port_parent(endpoint);
+> +	if (!asd->match.fwnode.fwnode) {
+> +		dev_warn(dev, "bad remote port parent\n");
+> +		ret = -EINVAL;
+> +		goto out_err;
+> +	}
+> +
+> +	/* Ignore endpoints the parsing of which failed. */
+
+You don't ignore them anymore, the comment should be updated.
+
+> +	vep = v4l2_fwnode_endpoint_alloc_parse(endpoint);
+> +	if (IS_ERR(vep)) {
+> +		ret = PTR_ERR(vep);
+> +		dev_warn(dev, "unable to parse V4L2 fwnode endpoint (%d)\n",
+> +			 ret);
+> +		goto out_err;
+> +	}
+> +
+> +	ret = parse_single(dev, vep, asd);
+> +	v4l2_fwnode_endpoint_free(vep);
+> +	if (ret) {
+> +		dev_warn(dev, "driver could not parse endpoint (%d)\n", ret);
+> +		goto out_err;
+> +	}
+> +
+> +	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+> +	notifier->subdevs[notifier->num_subdevs] = asd;
+> +	notifier->num_subdevs++;
+> +
+> +	return 0;
+> +
+> +out_err:
+> +	fwnode_handle_put(asd->match.fwnode.fwnode);
+> +	kfree(asd);
+> +
+> +	return ret;
+> +}
+> +
+> +int v4l2_async_notifier_parse_fwnode_endpoints(
+> +	struct device *dev, struct v4l2_async_notifier *notifier,
+> +	size_t asd_struct_size,
+> +	int (*parse_single)(struct device *dev,
+> +			    struct v4l2_fwnode_endpoint *vep,
+> +			    struct v4l2_async_subdev *asd))
+> +{
+> +	struct fwnode_handle *fwnode = NULL;
+> +	unsigned int max_subdevs = notifier->max_subdevs;
+> +	int ret;
+> +
+> +	if (asd_struct_size < sizeof(struct v4l2_async_subdev) ||
+> +	    notifier->v4l2_dev)
+> +		return -EINVAL;
+> +
+> +	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
+> +				     dev_fwnode(dev), fwnode)); )
+> +		if (fwnode_device_is_available(
+> +			    fwnode_graph_get_port_parent(fwnode)))
+> +			max_subdevs++;
+> +
+> +	/* No subdevs to add? Return here. */
+> +	if (max_subdevs == notifier->max_subdevs)
+> +		return 0;
+> +
+> +	ret = notifier_realloc(notifier, max_subdevs);
+> +	if (ret)
+> +		return ret;
+> +
+> +	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
+> +				     dev_fwnode(dev), fwnode)); ) {
+> +		if (!fwnode_device_is_available(
+> +			    fwnode_graph_get_port_parent(fwnode)))
+> +			continue;
+> +
+> +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs))
+> +			break;
+> +
+> +		ret = parse_endpoint(dev, notifier, fwnode, asd_struct_size,
+> +				     parse_single);
+> +		if (ret < 0)
+> +			break;
+> +	}
+> +
+> +	fwnode_handle_put(fwnode);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints);
+> +
+>  MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+>  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> index c69d8c8a66d0..4a44ab47ab04 100644
+> --- a/include/media/v4l2-async.h
+> +++ b/include/media/v4l2-async.h
+> @@ -18,7 +18,6 @@ struct device;
+>  struct device_node;
+>  struct v4l2_device;
+>  struct v4l2_subdev;
+> -struct v4l2_async_notifier;
+> 
+>  /* A random max subdevice number, used to allocate an array on stack */
+>  #define V4L2_MAX_SUBDEVS 128U
+> @@ -78,7 +77,8 @@ struct v4l2_async_subdev {
+>  /**
+>   * struct v4l2_async_notifier - v4l2_device notifier data
+>   *
+> - * @num_subdevs: number of subdevices
+> + * @num_subdevs: number of subdevices used in subdevs array
+> + * @max_subdevs: number of subdevices allocated in subdevs array
+>   * @subdevs:	array of pointers to subdevice descriptors
+>   * @v4l2_dev:	pointer to struct v4l2_device
+>   * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+> @@ -90,6 +90,7 @@ struct v4l2_async_subdev {
+>   */
+>  struct v4l2_async_notifier {
+>  	unsigned int num_subdevs;
+> +	unsigned int max_subdevs;
+>  	struct v4l2_async_subdev **subdevs;
+>  	struct v4l2_device *v4l2_dev;
+>  	struct list_head waiting;
+> @@ -121,6 +122,21 @@ int v4l2_async_notifier_register(struct v4l2_device
+> *v4l2_dev, void v4l2_async_notifier_unregister(struct v4l2_async_notifier
+> *notifier);
+> 
+>  /**
+> + * v4l2_async_notifier_release - release notifier resources
+> + * @notifier: pointer to &struct v4l2_async_notifier
+
+That's quite obvious given the type of the argument. It would be much more 
+useful to tell which notifier pointer this function expects (although in this 
+case it should be obvious too): "(pointer to )?the notifier whose resources 
+will be released".
+
+> + *
+> + * Release memory resources related to a notifier, including the async
+> + * sub-devices allocated for the purposes of the notifier. The user is
+> + * responsible for releasing the notifier's resources after calling
+> + * @v4l2_async_notifier_parse_fwnode_endpoints.
+> + *
+> + * There is no harm from calling v4l2_async_notifier_release in other
+> + * cases as long as its memory has been zeroed after it has been
+> + * allocated.
+
+Zeroing the memory is pretty much a requirement, as 
+v4l2_async_notifier_parse_fwnode_endpoints() won't operate correctly if memory 
+contains random data anyway. Maybe we should introduce 
+v4l2_async_notifier_init() and make v4l2_async_notifier_release() mandatory, 
+but that's out of scope for this patch.
+
+> + */
+> +void v4l2_async_notifier_release(struct v4l2_async_notifier *notifier);
+> +
+> +/**
+>   * v4l2_async_register_subdev - registers a sub-device to the asynchronous
+>   * 	subdevice framework
+>   *
+> diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+> index 68eb22ba571b..46521e8c8872 100644
+> --- a/include/media/v4l2-fwnode.h
+> +++ b/include/media/v4l2-fwnode.h
+> @@ -25,6 +25,8 @@
+>  #include <media/v4l2-mediabus.h>
+> 
+>  struct fwnode_handle;
+> +struct v4l2_async_notifier;
+> +struct v4l2_async_subdev;
+> 
+>  #define V4L2_FWNODE_CSI2_MAX_DATA_LANES	4
+> 
+> @@ -201,4 +203,41 @@ int v4l2_fwnode_parse_link(struct fwnode_handle
+> *fwnode, */
+>  void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
+> 
+> +/**
+> + * v4l2_async_notifier_parse_fwnode_endpoints - Parse V4L2 fwnode endpoints
+> in a
+> + *						device node
+> + * @dev: @struct device pointer
+
+Similarly to my previous comment (and my comments to v3), you should tell 
+which device the function expects.
+
+> + * @notifier: pointer to &struct v4l2_async_notifier
+> + * @asd_struct_size: size of the driver's async sub-device struct,
+> including
+> + *		     sizeof(struct v4l2_async_subdev). The &struct
+> + *		     v4l2_async_subdev shall be the first member of
+> + *		     the driver's async sub-device struct, i.e. both
+> + *		     begin at the same memory address.
+
+Should this be documented in the kerneldoc of the v4l2_async_subdev structure 
+?
+
+> + * @parse_single: driver's callback function called on each V4L2 fwnode
+> endpoint
+> + *
+> + * Allocate async sub-device array and sub-devices for each fwnode
+> endpoint,
+> + * parse the related fwnode endpoints and finally call driver's callback
+> + * function to that V4L2 fwnode endpoint.
+
+I'd document this from the notifier point of view.
+
+"Parse the fwnode endpoints of the @dev device and populate the async sub-
+devices array of the notifier. The @parse_endpoint callback function is called 
+for each endpoint with the corresponding async sub-device pointer to let the 
+caller initialize the driver-specific part of the async sub-device structure."
+
+> + * The function may not be called on a registered notifier.
+
+You should mention that the function may be called multiple times on an 
+unregistered notifier.
+
+"The function can be called multiple times to populate the same notifier from 
+endpoints of different @dev devices before registering the notifier. It can't 
+be called anymore once the notifier has been registered."
+
+> + *
+> + * Once the user has called this function, the resources released by it
+> need to
+> + * be released by callin v4l2_async_notifier_release after the notifier has
+> been
+> + * unregistered and the sub-devices are no longer in use.
+
+"Any notifier populated using this function must be released with a call to 
+v4l2_async_notifier_release() after it has been unregistered and the async 
+sub-devices are no longer in use."
+
+> + *
+> + * A driver supporting fwnode (currently Devicetree and ACPI) should call
+> this
+> + * function as part of its probe function before it registers the notifier.
+> + *
+> + * Return: %0 on success, including when no async sub-devices are found
+> + *	   %-ENOMEM if memory allocation failed
+> + *	   %-EINVAL if graph or endpoint parsing failed
+> + *	   Other error codes as returned by @parse_single
+> + */
+> +int v4l2_async_notifier_parse_fwnode_endpoints(
+> +	struct device *dev, struct v4l2_async_notifier *notifier,
+> +	size_t asd_struct_size,
+> +	int (*parse_single)(struct device *dev,
+> +			    struct v4l2_fwnode_endpoint *vep,
+> +			    struct v4l2_async_subdev *asd));
+> +
+>  #endif /* _V4L2_FWNODE_H */
+
+
+-- 
+Regards,
+
+Laurent Pinchart
