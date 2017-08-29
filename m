@@ -1,70 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([218.249.47.111]:35104 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751407AbdHGCmL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 6 Aug 2017 22:42:11 -0400
-Message-ID: <1502073725.2886.2.camel@mtksdaap41>
-Subject: Re: [PATCH 05/12] [media] vcodec: mediatek: constify v4l2_m2m_ops
- structures
-From: Rick Chang <rick.chang@mediatek.com>
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-CC: <bhumirks@gmail.com>, <kernel-janitors@vger.kernel.org>,
-        Bin Liu <bin.liu@mediatek.com>,
+Received: from mout.web.de ([212.227.15.4]:54202 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751270AbdH2Ubc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 Aug 2017 16:31:32 -0400
+Subject: [PATCH 1/3] [media] cx24113: Delete an error message for a failed
+ memory allocation in cx24113_attach()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        <linux-media@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-mediatek@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>
-Date: Mon, 7 Aug 2017 10:42:05 +0800
-In-Reply-To: <1502007921-22968-6-git-send-email-Julia.Lawall@lip6.fr>
-References: <1502007921-22968-1-git-send-email-Julia.Lawall@lip6.fr>
-         <1502007921-22968-6-git-send-email-Julia.Lawall@lip6.fr>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+        Max Kellermann <max.kellermann@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <36a5402f-c7a2-edf0-1af8-b98b0684d8e5@users.sourceforge.net>
+Message-ID: <8273a111-9edf-7079-fc6a-ea674b06f43a@users.sourceforge.net>
+Date: Tue, 29 Aug 2017 22:31:23 +0200
 MIME-Version: 1.0
+In-Reply-To: <36a5402f-c7a2-edf0-1af8-b98b0684d8e5@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2017-08-06 at 10:25 +0200, Julia Lawall wrote:
-> The v4l2_m2m_ops structures are only passed as the only
-> argument to v4l2_m2m_init, which is declared as const.
-> Thus the v4l2_m2m_ops structures themselves can be const.
-> 
-> Done with the help of Coccinelle.
-> 
-> // <smpl>
-> @r disable optional_qualifier@
-> identifier i;
-> position p;
-> @@
-> static struct v4l2_m2m_ops i@p = { ... };
-> 
-> @ok1@
-> identifier r.i;
-> position p;
-> @@
-> v4l2_m2m_init(&i@p)
-> 
-> @bad@
-> position p != {r.p,ok1.p};
-> identifier r.i;
-> struct v4l2_m2m_ops e;
-> @@
-> e@i@p
-> 
-> @depends on !bad disable optional_qualifier@
-> identifier r.i;
-> @@
-> static
-> +const
->  struct v4l2_m2m_ops i = { ... };
-> // </smpl>
-> 
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-> 
----
->  drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Tue, 29 Aug 2017 22:08:09 +0200
 
-Acked-by: Rick Chang <rick.chang@mediatek.com>
+Omit an extra message for a memory allocation failure in this function.
+
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/dvb-frontends/cx24113.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/cx24113.c b/drivers/media/dvb-frontends/cx24113.c
+index 0118c2658cf7..8fc7333c76b7 100644
+--- a/drivers/media/dvb-frontends/cx24113.c
++++ b/drivers/media/dvb-frontends/cx24113.c
+@@ -557,8 +557,7 @@ struct dvb_frontend *cx24113_attach(struct dvb_frontend *fe,
+ 	int rc;
+-	if (state == NULL) {
+-		cx_err("Unable to kzalloc\n");
++
++	if (!state)
+ 		goto error;
+-	}
+ 
+ 	/* setup the state */
+ 	state->config = config;
+-- 
+2.14.1
