@@ -1,483 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:52259 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752558AbdHBIyP (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:60859 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753674AbdH2Ojw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 Aug 2017 04:54:15 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 7/9] omapdrm: hdmi4_cec: add OMAP4 HDMI CEC support
-Date: Wed,  2 Aug 2017 10:54:06 +0200
-Message-Id: <20170802085408.16204-8-hverkuil@xs4all.nl>
-In-Reply-To: <20170802085408.16204-1-hverkuil@xs4all.nl>
-References: <20170802085408.16204-1-hverkuil@xs4all.nl>
+        Tue, 29 Aug 2017 10:39:52 -0400
+Date: Tue, 29 Aug 2017 16:39:51 +0200
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: Re: [PATCH 00/20] Add multiplexed media pads to support CSI-2
+ virtual channels
+Message-ID: <20170829143950.j5jhdvyt72qzjmnt@flea.lan>
+References: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="4vlwlrh45ujvoroj"
+Content-Disposition: inline
+In-Reply-To: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add the source and header for the OMAP4 HDMI CEC support.
+--4vlwlrh45ujvoroj
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This code is not yet hooked up, that will happen in the next patch.
+Hi Niklas,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c | 381 ++++++++++++++++++++++++++++++++
- drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h |  55 +++++
- 2 files changed, 436 insertions(+)
- create mode 100644 drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
- create mode 100644 drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h
+On Fri, Aug 11, 2017 at 11:56:43AM +0200, Niklas S=F6derlund wrote:
+> This series is a RFC for how I think one could add CSI-2 virtual channel=
+=20
+> support to the V4L2 framework. The problem is that there is no way to in=
+=20
+> the media framework describe and control links between subdevices which=
+=20
+> carry more then one video stream, for example a CSI-2 bus which can have=
+=20
+> 4 virtual channels carrying different video streams.
+>=20
+> This series adds a new pad flag which would indicate that a pad carries=
+=20
+> multiplexed streams, adds a new s_stream() operation to the pad=20
+> operations structure which takes a new argument 'stream'. This new=20
+> s_stream() operation then is both pad and stream aware. It also extends=
+=20
+> struct v4l2_mbus_frame_desc_entry with a new sub-struct to describe how=
+=20
+> a CSI-2 link multiplexes virtual channels. I also include one=20
+> implementation based on Renesas R-Car which makes use of these patches=20
+> as I think they help with understanding but they have no impact on the=20
+> RFC feature itself.
+>=20
+> The idea is that on both sides of the multiplexed media link there are=20
+> one multiplexer subdevice and one demultiplexer subdevice. These two=20
+> subdevices can't do any format conversions, there sole purpose is to=20
+> (de)multiplex the CSI-2 link. If there is hardware which can do both=20
+> CSI-2 multiplexing and format conversions they can be modeled as two=20
+> subdevices from the same device driver and using the still pending=20
+> incremental async mechanism to connect the external pads. The reason=20
+> there is no format conversion is important as the multiplexed pads can't=
+=20
+> have a format in the current V4L2 model, get/set_fmt are not aware of=20
+> streams.
+>=20
+>         +------------------+              +------------------+
+>      +-------+  subdev 1   |              |  subdev 2   +-------+
+>   +--+ Pad 1 |             |              |             | Pad 3 +---+
+>      +--+----+   +---------+---+      +---+---------+   +----+--+
+>         |        | Muxed pad A +------+ Muxed pad B |        |
+>      +--+----+   +---------+---+      +---+---------+   +----+--+
+>   +--+ Pad 2 |             |              |             | Pad 4 +---+
+>      +-------+             |              |             +-------+
+>         +------------------+              +------------------+
+>=20
+> In the simple example above Pad 1 is routed to Pad 3 and Pad 2 to Pad 4,=
+=20
+> and the video data for both of them travels the link between pad A and=20
+> B. One shortcoming of this RFC is that there currently are no way to=20
+> express to user-space which pad is routed to which stream of the=20
+> multiplexed link. But inside the kernel this is known and format=20
+> validation is done by comparing the format of Pad 1 to Pad 3 and Pad 2=20
+> to Pad 4 by the V4L2 framework. But it would be nice for the user to=20
+> also be able to get this information while setting up the MC graph in=20
+> user-space.
 
-diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
-new file mode 100644
-index 000000000000..d86873f2abe6
---- /dev/null
-+++ b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
-@@ -0,0 +1,381 @@
-+/*
-+ * HDMI CEC
-+ *
-+ * Based on the CEC code from hdmi_ti_4xxx_ip.c from Android.
-+ *
-+ * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com/
-+ * Authors: Yong Zhi
-+ *	Mythri pk <mythripk@ti.com>
-+ *
-+ * Heavily modified to use the linux CEC framework:
-+ *
-+ * Copyright 2016-2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ *
-+ * This program is free software; you may redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+
-+#include "dss.h"
-+#include "hdmi.h"
-+#include "hdmi4_core.h"
-+#include "hdmi4_cec.h"
-+
-+/* HDMI CEC */
-+#define HDMI_CEC_DEV_ID                         0x900
-+#define HDMI_CEC_SPEC                           0x904
-+
-+/* Not really a debug register, more a low-level control register */
-+#define HDMI_CEC_DBG_3                          0x91C
-+#define HDMI_CEC_TX_INIT                        0x920
-+#define HDMI_CEC_TX_DEST                        0x924
-+#define HDMI_CEC_SETUP                          0x938
-+#define HDMI_CEC_TX_COMMAND                     0x93C
-+#define HDMI_CEC_TX_OPERAND                     0x940
-+#define HDMI_CEC_TRANSMIT_DATA                  0x97C
-+#define HDMI_CEC_CA_7_0                         0x988
-+#define HDMI_CEC_CA_15_8                        0x98C
-+#define HDMI_CEC_INT_STATUS_0                   0x998
-+#define HDMI_CEC_INT_STATUS_1                   0x99C
-+#define HDMI_CEC_INT_ENABLE_0                   0x990
-+#define HDMI_CEC_INT_ENABLE_1                   0x994
-+#define HDMI_CEC_RX_CONTROL                     0x9B0
-+#define HDMI_CEC_RX_COUNT                       0x9B4
-+#define HDMI_CEC_RX_CMD_HEADER                  0x9B8
-+#define HDMI_CEC_RX_COMMAND                     0x9BC
-+#define HDMI_CEC_RX_OPERAND                     0x9C0
-+
-+#define HDMI_CEC_TX_FIFO_INT_MASK		0x64
-+#define HDMI_CEC_RETRANSMIT_CNT_INT_MASK	0x2
-+
-+#define HDMI_CORE_CEC_RETRY    200
-+
-+static void hdmi_cec_received_msg(struct hdmi_core_data *core)
-+{
-+	u32 cnt = hdmi_read_reg(core->base, HDMI_CEC_RX_COUNT) & 0xff;
-+
-+	/* While there are CEC frames in the FIFO */
-+	while (cnt & 0x70) {
-+		/* and the frame doesn't have an error */
-+		if (!(cnt & 0x80)) {
-+			struct cec_msg msg = {};
-+			unsigned int i;
-+
-+			/* then read the message */
-+			msg.len = cnt & 0xf;
-+			msg.msg[0] = hdmi_read_reg(core->base,
-+						   HDMI_CEC_RX_CMD_HEADER);
-+			msg.msg[1] = hdmi_read_reg(core->base,
-+						   HDMI_CEC_RX_COMMAND);
-+			for (i = 0; i < msg.len; i++) {
-+				unsigned int reg = HDMI_CEC_RX_OPERAND + i * 4;
-+
-+				msg.msg[2 + i] =
-+					hdmi_read_reg(core->base, reg);
-+			}
-+			msg.len += 2;
-+			cec_received_msg(core->adap, &msg);
-+		}
-+		/* Clear the current frame from the FIFO */
-+		hdmi_write_reg(core->base, HDMI_CEC_RX_CONTROL, 1);
-+		/* Wait until the current frame is cleared */
-+		while (hdmi_read_reg(core->base, HDMI_CEC_RX_CONTROL) & 1)
-+			udelay(1);
-+		/*
-+		 * Re-read the count register and loop to see if there are
-+		 * more messages in the FIFO.
-+		 */
-+		cnt = hdmi_read_reg(core->base, HDMI_CEC_RX_COUNT) & 0xff;
-+	}
-+}
-+
-+static void hdmi_cec_transmit_fifo_empty(struct hdmi_core_data *core, u32 stat1)
-+{
-+	if (stat1 & 2) {
-+		u32 dbg3 = hdmi_read_reg(core->base, HDMI_CEC_DBG_3);
-+
-+		cec_transmit_done(core->adap,
-+				  CEC_TX_STATUS_NACK |
-+				  CEC_TX_STATUS_MAX_RETRIES,
-+				  0, (dbg3 >> 4) & 7, 0, 0);
-+	} else if (stat1 & 1) {
-+		cec_transmit_done(core->adap,
-+				  CEC_TX_STATUS_ARB_LOST |
-+				  CEC_TX_STATUS_MAX_RETRIES,
-+				  0, 0, 0, 0);
-+	} else if (stat1 == 0) {
-+		cec_transmit_done(core->adap, CEC_TX_STATUS_OK,
-+				  0, 0, 0, 0);
-+	}
-+}
-+
-+void hdmi4_cec_irq(struct hdmi_core_data *core)
-+{
-+	u32 stat0 = hdmi_read_reg(core->base, HDMI_CEC_INT_STATUS_0);
-+	u32 stat1 = hdmi_read_reg(core->base, HDMI_CEC_INT_STATUS_1);
-+
-+	hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_0, stat0);
-+	hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_1, stat1);
-+
-+	if (stat0 & 0x40)
-+		REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, 0x1, 7, 7);
-+	else if (stat0 & 0x24)
-+		hdmi_cec_transmit_fifo_empty(core, stat1);
-+	if (stat1 & 2) {
-+		u32 dbg3 = hdmi_read_reg(core->base, HDMI_CEC_DBG_3);
-+
-+		cec_transmit_done(core->adap,
-+				  CEC_TX_STATUS_NACK |
-+				  CEC_TX_STATUS_MAX_RETRIES,
-+				  0, (dbg3 >> 4) & 7, 0, 0);
-+	} else if (stat1 & 1) {
-+		cec_transmit_done(core->adap,
-+				  CEC_TX_STATUS_ARB_LOST |
-+				  CEC_TX_STATUS_MAX_RETRIES,
-+				  0, 0, 0, 0);
-+	}
-+	if (stat0 & 0x02)
-+		hdmi_cec_received_msg(core);
-+	if (stat1 & 0x3)
-+		REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, 0x1, 7, 7);
-+}
-+
-+static bool hdmi_cec_clear_tx_fifo(struct cec_adapter *adap)
-+{
-+	struct hdmi_core_data *core = cec_get_drvdata(adap);
-+	int retry = HDMI_CORE_CEC_RETRY;
-+	int temp;
-+
-+	REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, 0x1, 7, 7);
-+	while (retry) {
-+		temp = hdmi_read_reg(core->base, HDMI_CEC_DBG_3);
-+		if (FLD_GET(temp, 7, 7) == 0)
-+			break;
-+		retry--;
-+	}
-+	return retry != 0;
-+}
-+
-+static bool hdmi_cec_clear_rx_fifo(struct cec_adapter *adap)
-+{
-+	struct hdmi_core_data *core = cec_get_drvdata(adap);
-+	int retry = HDMI_CORE_CEC_RETRY;
-+	int temp;
-+
-+	hdmi_write_reg(core->base, HDMI_CEC_RX_CONTROL, 0x3);
-+	retry = HDMI_CORE_CEC_RETRY;
-+	while (retry) {
-+		temp = hdmi_read_reg(core->base, HDMI_CEC_RX_CONTROL);
-+		if (FLD_GET(temp, 1, 0) == 0)
-+			break;
-+		retry--;
-+	}
-+	return retry != 0;
-+}
-+
-+static int hdmi_cec_adap_enable(struct cec_adapter *adap, bool enable)
-+{
-+	struct hdmi_core_data *core = cec_get_drvdata(adap);
-+	int temp, err;
-+
-+	if (!enable) {
-+		hdmi_write_reg(core->base, HDMI_CEC_INT_ENABLE_0, 0);
-+		hdmi_write_reg(core->base, HDMI_CEC_INT_ENABLE_1, 0);
-+		REG_FLD_MOD(core->base, HDMI_CORE_SYS_INTR_UNMASK4, 0, 3, 3);
-+		hdmi_wp_clear_irqenable(core->wp, HDMI_IRQ_CORE);
-+		hdmi_wp_set_irqstatus(core->wp, HDMI_IRQ_CORE);
-+		hdmi4_core_disable(NULL);
-+		return 0;
-+	}
-+	err = hdmi4_core_enable(NULL);
-+	if (err)
-+		return err;
-+
-+	/* Clear TX FIFO */
-+	if (!hdmi_cec_clear_tx_fifo(adap)) {
-+		pr_err("cec-%s: could not clear TX FIFO\n", adap->name);
-+		return -EIO;
-+	}
-+
-+	/* Clear RX FIFO */
-+	if (!hdmi_cec_clear_rx_fifo(adap)) {
-+		pr_err("cec-%s: could not clear RX FIFO\n", adap->name);
-+		return -EIO;
-+	}
-+
-+	/* Clear CEC interrupts */
-+	hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_1,
-+		hdmi_read_reg(core->base, HDMI_CEC_INT_STATUS_1));
-+	hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_0,
-+		hdmi_read_reg(core->base, HDMI_CEC_INT_STATUS_0));
-+
-+	/* Enable HDMI core interrupts */
-+	hdmi_wp_set_irqenable(core->wp, HDMI_IRQ_CORE);
-+	/* Unmask CEC interrupt */
-+	REG_FLD_MOD(core->base, HDMI_CORE_SYS_INTR_UNMASK4, 0x1, 3, 3);
-+	/*
-+	 * Enable CEC interrupts:
-+	 * Transmit Buffer Full/Empty Change event
-+	 * Transmitter FIFO Empty event
-+	 * Receiver FIFO Not Empty event
-+	 */
-+	hdmi_write_reg(core->base, HDMI_CEC_INT_ENABLE_0, 0x26);
-+	/*
-+	 * Enable CEC interrupts:
-+	 * RX FIFO Overrun Error event
-+	 * Short Pulse Detected event
-+	 * Frame Retransmit Count Exceeded event
-+	 * Start Bit Irregularity event
-+	 */
-+	hdmi_write_reg(core->base, HDMI_CEC_INT_ENABLE_1, 0x0f);
-+
-+	/* cec calibration enable (self clearing) */
-+	hdmi_write_reg(core->base, HDMI_CEC_SETUP, 0x03);
-+	msleep(20);
-+	hdmi_write_reg(core->base, HDMI_CEC_SETUP, 0x04);
-+
-+	temp = hdmi_read_reg(core->base, HDMI_CEC_SETUP);
-+	if (FLD_GET(temp, 4, 4) != 0) {
-+		temp = FLD_MOD(temp, 0, 4, 4);
-+		hdmi_write_reg(core->base, HDMI_CEC_SETUP, temp);
-+
-+		/*
-+		 * If we enabled CEC in middle of a CEC message on the bus,
-+		 * we could have start bit irregularity and/or short
-+		 * pulse event. Clear them now.
-+		 */
-+		temp = hdmi_read_reg(core->base, HDMI_CEC_INT_STATUS_1);
-+		temp = FLD_MOD(0x0, 0x5, 2, 0);
-+		hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_1, temp);
-+	}
-+	return 0;
-+}
-+
-+static int hdmi_cec_adap_log_addr(struct cec_adapter *adap, u8 log_addr)
-+{
-+	struct hdmi_core_data *core = cec_get_drvdata(adap);
-+	u32 v;
-+
-+	if (log_addr == CEC_LOG_ADDR_INVALID) {
-+		hdmi_write_reg(core->base, HDMI_CEC_CA_7_0, 0);
-+		hdmi_write_reg(core->base, HDMI_CEC_CA_15_8, 0);
-+		return 0;
-+	}
-+	if (log_addr <= 7) {
-+		v = hdmi_read_reg(core->base, HDMI_CEC_CA_7_0);
-+		v |= 1 << log_addr;
-+		hdmi_write_reg(core->base, HDMI_CEC_CA_7_0, v);
-+	} else {
-+		v = hdmi_read_reg(core->base, HDMI_CEC_CA_15_8);
-+		v |= 1 << (log_addr - 8);
-+		hdmi_write_reg(core->base, HDMI_CEC_CA_15_8, v);
-+	}
-+	return 0;
-+}
-+
-+static int hdmi_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
-+				   u32 signal_free_time, struct cec_msg *msg)
-+{
-+	struct hdmi_core_data *core = cec_get_drvdata(adap);
-+	int temp;
-+	u32 i;
-+
-+	/* Clear TX FIFO */
-+	if (!hdmi_cec_clear_tx_fifo(adap)) {
-+		pr_err("cec-%s: could not clear TX FIFO for transmit\n",
-+		       adap->name);
-+		return -EIO;
-+	}
-+
-+	/* Clear TX interrupts */
-+	hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_0,
-+		       HDMI_CEC_TX_FIFO_INT_MASK);
-+
-+	hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_1,
-+		       HDMI_CEC_RETRANSMIT_CNT_INT_MASK);
-+
-+	/* Set the retry count */
-+	REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, attempts - 1, 6, 4);
-+
-+	/* Set the initiator addresses */
-+	hdmi_write_reg(core->base, HDMI_CEC_TX_INIT, cec_msg_initiator(msg));
-+
-+	/* Set destination id */
-+	temp = cec_msg_destination(msg);
-+	if (msg->len == 1)
-+		temp |= 0x80;
-+	hdmi_write_reg(core->base, HDMI_CEC_TX_DEST, temp);
-+	if (msg->len == 1)
-+		return 0;
-+
-+	/* Setup command and arguments for the command */
-+	hdmi_write_reg(core->base, HDMI_CEC_TX_COMMAND, msg->msg[1]);
-+
-+	for (i = 0; i < msg->len - 2; i++)
-+		hdmi_write_reg(core->base, HDMI_CEC_TX_OPERAND + i * 4,
-+			       msg->msg[2 + i]);
-+
-+	/* Operand count */
-+	hdmi_write_reg(core->base, HDMI_CEC_TRANSMIT_DATA,
-+		       (msg->len - 2) | 0x10);
-+	return 0;
-+}
-+
-+static const struct cec_adap_ops hdmi_cec_adap_ops = {
-+	.adap_enable = hdmi_cec_adap_enable,
-+	.adap_log_addr = hdmi_cec_adap_log_addr,
-+	.adap_transmit = hdmi_cec_adap_transmit,
-+};
-+
-+void hdmi4_cec_set_phys_addr(struct hdmi_core_data *core, u16 pa)
-+{
-+	cec_s_phys_addr(core->adap, pa, false);
-+}
-+
-+int hdmi4_cec_init(struct platform_device *pdev, struct hdmi_core_data *core,
-+		  struct hdmi_wp_data *wp)
-+{
-+	const u32 caps = CEC_CAP_TRANSMIT | CEC_CAP_LOG_ADDRS |
-+			 CEC_CAP_PASSTHROUGH | CEC_CAP_RC;
-+	unsigned int ret;
-+
-+	core->adap = cec_allocate_adapter(&hdmi_cec_adap_ops, core,
-+		"omap4", caps, CEC_MAX_LOG_ADDRS);
-+	ret = PTR_ERR_OR_ZERO(core->adap);
-+	if (ret < 0)
-+		return ret;
-+	core->wp = wp;
-+
-+	/*
-+	 * Initialize CEC clock divider: CEC needs 2MHz clock hence
-+	 * set the devider to 24 to get 48/24=2MHz clock
-+	 */
-+	REG_FLD_MOD(core->wp->base, HDMI_WP_CLK, 0x18, 5, 0);
-+
-+	ret = cec_register_adapter(core->adap, &pdev->dev);
-+	if (ret < 0) {
-+		cec_delete_adapter(core->adap);
-+		return ret;
-+	}
-+	return 0;
-+}
-+
-+void hdmi4_cec_uninit(struct hdmi_core_data *core)
-+{
-+	cec_unregister_adapter(core->adap);
-+}
-diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h
-new file mode 100644
-index 000000000000..0292337c97cc
---- /dev/null
-+++ b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.h
-@@ -0,0 +1,55 @@
-+/*
-+ * HDMI header definition for OMAP4 HDMI CEC IP
-+ *
-+ * Copyright 2016-2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ *
-+ * This program is free software; you may redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#ifndef _HDMI4_CEC_H_
-+#define _HDMI4_CEC_H_
-+
-+struct hdmi_core_data;
-+struct hdmi_wp_data;
-+struct platform_device;
-+
-+/* HDMI CEC funcs */
-+#ifdef CONFIG_OMAP4_DSS_HDMI_CEC
-+void hdmi4_cec_set_phys_addr(struct hdmi_core_data *core, u16 pa);
-+void hdmi4_cec_irq(struct hdmi_core_data *core);
-+int hdmi4_cec_init(struct platform_device *pdev, struct hdmi_core_data *core,
-+		  struct hdmi_wp_data *wp);
-+void hdmi4_cec_uninit(struct hdmi_core_data *core);
-+#else
-+static inline void hdmi4_cec_set_phys_addr(struct hdmi_core_data *core, u16 pa)
-+{
-+}
-+
-+static inline void hdmi4_cec_irq(struct hdmi_core_data *core)
-+{
-+}
-+
-+static inline int hdmi4_cec_init(struct platform_device *pdev,
-+				struct hdmi_core_data *core,
-+				struct hdmi_wp_data *wp)
-+{
-+	return 0;
-+}
-+
-+static inline void hdmi4_cec_uninit(struct hdmi_core_data *core)
-+{
-+}
-+#endif
-+
-+#endif
--- 
-2.13.2
+Thanks for your patches.
+
+I guess I already have a different use-case for this, one you might
+not have envisionned (on top of the Cadence CSI2-RX driver I've been
+posting and that would need it at some point).
+
+I have a CSI2-TX controller that I'm currently writing a driver
+for. That controller takes 4 video streams in input, and aggregates
+them on a single CSI-2 link. Those video streams use some kind of
+parallel interfaces. So far, so good.
+
+However, those parallel interfaces come with additional signals that
+set the virtual channel and data types of the associated video
+signal. Those signals are under control of the upstream video output
+device, and can change at runtime.
+
+The virtual channel are direcly mapped to the CSI-2 Virtual Channels,
+so that part is completely transparent to the transmitter. However,
+the video input datatype is a 0-7 value. Each data type value has a
+separate set of registers where you need to set up the width and
+height of the video data, and the corresponding CSI-2 Data Type.
+
+You can use this to do some interleaving of either the virtual
+channels or the data types, or both.
+
+To make things (slightly) more complicated, the FIFO registers are
+per-video input. Which means that while most of the (input)
+configuration will be done per-datatype, we still have to know which
+input stream is generating it, for example to optimise the FIFO fill
+levels to the resolution...
+
+Since the stream is multiplexed both using the virtual channels and
+the data-types, I'm not sure representing it using only muxed pads
+like you did would work.
+
+And I don't really know what a good stop gap measure would be either.
+
+Thanks!
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
+
+--4vlwlrh45ujvoroj
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJZpXy2AAoJEBx+YmzsjxAgJ1oP/ilI8bx+SWkbY3IcqTjfAg+r
+BHq5Y+80e0unJJ4pYN4aLAz0vTyCo4MaaRm2zM1JmD04YWudttkcw4e5AjuSpCQo
+WEPvcSDiRSYxsd7GgBalKRnRyxN/PJxL1/qOnSCEncMxEawKMwsGdLmQ8eiJFU/y
+gCEtTEkMgmlNRrKZsJZoifEDsk7/0CxUrU0mhYUkODVr6iTLuOOn4uV/doGyV/Jh
++fkgeUgzygLmD4jzdtm+mYwMOWSDYHdbsk794fd9hZOY6F7wx66ijuvGoeEH4njJ
+Ti3tzRsLTRBLsOVwyXYTcI3ap4tDiDz7gNnOS+zVHAxdOJFnzWA9oDzCXq0lYZCh
+uWKyaNOiM8BHdu36JmWXF3d3SqkEIyBcCoFypSV7qZ04FGXTiRw7QT3GWfDo6/lL
+AgcOah/aJY27bW1BLpr59liZVNHBp1cD3iBd5R79GZzB1azDWWlK+01Ry6eFk8/U
+JA6sOYlr3CzH463dsi85/JYmStZSgcKmYco7ui7RaSRNOwb564PkJaeZeab0R+HU
+NmY5d6GHc089b62/YeewHhc8WoyUUtDQclH+NzRkfBLXW4TVmpTp3teT586c7s7G
+E+uhfrVyadYNlDdu+5Jf4l/asE5g+o04/Dml46zAPwdd3hBuLVOFHaxx1LBvOlJM
+qHQz/+PH3K+ByS5EUs7l
+=goIk
+-----END PGP SIGNATURE-----
+
+--4vlwlrh45ujvoroj--
