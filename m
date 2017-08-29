@@ -1,62 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56486 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750857AbdHQQLG (ORCPT
+Received: from mail-lf0-f53.google.com ([209.85.215.53]:36053 "EHLO
+        mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751286AbdH2Mwi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Aug 2017 12:11:06 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 8/8] v4l: vsp1: Reduce display list body size
-Date: Thu, 17 Aug 2017 19:11:30 +0300
-Message-ID: <3704707.T2fvHgbeUE@avalon>
-In-Reply-To: <fa078611769415d7adbad208f1299d05bee3bda8.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com> <fa078611769415d7adbad208f1299d05bee3bda8.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
+        Tue, 29 Aug 2017 08:52:38 -0400
+Received: by mail-lf0-f53.google.com with SMTP id z12so12938281lfd.3
+        for <linux-media@vger.kernel.org>; Tue, 29 Aug 2017 05:52:37 -0700 (PDT)
+Date: Tue, 29 Aug 2017 14:52:35 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
+Subject: Re: [PATCH v5 2/5] v4l: async: Add V4L2 async documentation to the
+ documentation build
+Message-ID: <20170829125235.GF12099@bigcity.dyn.berto.se>
+References: <20170829110313.19538-1-sakari.ailus@linux.intel.com>
+ <20170829110313.19538-3-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170829110313.19538-3-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Hi Sakari,
 
-Thank you for the patch.
+Thanks for your patch.
 
-On Monday 14 Aug 2017 16:13:31 Kieran Bingham wrote:
-> The display list originally allocated a body of 256 entries to store all
-> of the register lists required for each frame.
+On 2017-08-29 14:03:10 +0300, Sakari Ailus wrote:
+> The V4L2 async wasn't part of the documentation build. Fix this.
 > 
-> This has now been separated into fragments for constant stream setup, and
-> runtime updates.
-> 
-> Empirical testing shows that the body0 now uses a maximum of 41
-> registers for each frame, for both DRM and Video API pipelines thus a
-> rounded 64 entries provides a suitable allocation.
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Didn't you mention in patch 7/8 that one of the fragments uses exactly 64 
-entries ? Which one is it, and is there a risk it could use more ? 
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 > ---
->  drivers/media/platform/vsp1/vsp1_dl.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  Documentation/media/kapi/v4l2-async.rst | 3 +++
+>  Documentation/media/kapi/v4l2-core.rst  | 1 +
+>  2 files changed, 4 insertions(+)
+>  create mode 100644 Documentation/media/kapi/v4l2-async.rst
 > 
-> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
-> b/drivers/media/platform/vsp1/vsp1_dl.c index 176a258146ac..b3f5eb2f9a4f
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_dl.c
-> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
-> @@ -21,7 +21,7 @@
->  #include "vsp1.h"
->  #include "vsp1_dl.h"
+> diff --git a/Documentation/media/kapi/v4l2-async.rst b/Documentation/media/kapi/v4l2-async.rst
+> new file mode 100644
+> index 000000000000..523ff9eb09a0
+> --- /dev/null
+> +++ b/Documentation/media/kapi/v4l2-async.rst
+> @@ -0,0 +1,3 @@
+> +V4L2 async kAPI
+> +^^^^^^^^^^^^^^^
+> +.. kernel-doc:: include/media/v4l2-async.h
+> diff --git a/Documentation/media/kapi/v4l2-core.rst b/Documentation/media/kapi/v4l2-core.rst
+> index c7434f38fd9c..5cf292037a48 100644
+> --- a/Documentation/media/kapi/v4l2-core.rst
+> +++ b/Documentation/media/kapi/v4l2-core.rst
+> @@ -19,6 +19,7 @@ Video4Linux devices
+>      v4l2-mc
+>      v4l2-mediabus
+>      v4l2-mem2mem
+> +    v4l2-async
+>      v4l2-fwnode
+>      v4l2-rect
+>      v4l2-tuner
+> -- 
+> 2.11.0
 > 
-> -#define VSP1_DL_NUM_ENTRIES		256
-> +#define VSP1_DL_NUM_ENTRIES		64
-> 
->  #define VSP1_DLH_INT_ENABLE		(1 << 1)
->  #define VSP1_DLH_AUTO_START		(1 << 0)
 
 -- 
 Regards,
-
-Laurent Pinchart
+Niklas Söderlund
