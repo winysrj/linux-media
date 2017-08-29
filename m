@@ -1,140 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:52247 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932291AbdHYNmX (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51942 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751469AbdH2Ml2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Aug 2017 09:42:23 -0400
-Subject: Re: [PATCH v2 2/3] media: open.rst: document devnode-centric and
- mc-centric types
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <cover.1503665390.git.mchehab@s-opensource.com>
- <e789d3d71c7f784d17ffcd8389ce56ae950f736e.1503665390.git.mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b1f6f019-50dd-b067-d631-87f0ab0d866b@xs4all.nl>
-Date: Fri, 25 Aug 2017 15:42:21 +0200
-MIME-Version: 1.0
-In-Reply-To: <e789d3d71c7f784d17ffcd8389ce56ae950f736e.1503665390.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+        Tue, 29 Aug 2017 08:41:28 -0400
+Received: from lanttu.localdomain (unknown [IPv6:2001:1bc8:1a6:d3d5::e1:1002])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id EC923600FA
+        for <linux-media@vger.kernel.org>; Tue, 29 Aug 2017 15:41:26 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 4/4] smiapp: Make clock control optional
+Date: Tue, 29 Aug 2017 15:41:25 +0300
+Message-Id: <20170829124125.30879-5-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170829124125.30879-1-sakari.ailus@linux.intel.com>
+References: <20170829124125.30879-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 25/08/17 14:52, Mauro Carvalho Chehab wrote:
-> From: "mchehab@s-opensource.com" <mchehab@s-opensource.com>
-> 
-> When we added support for omap3, back in 2010, we added a new
-> type of V4L2 devices that aren't fully controlled via the V4L2
-> device node. Yet, we never made it clear, at the V4L2 spec,
-> about the differences between both types.
-> 
-> Let's document them with the current implementation.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  Documentation/media/uapi/v4l/open.rst | 53 +++++++++++++++++++++++++++++++++++
->  1 file changed, 53 insertions(+)
-> 
-> diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-> index 9b98d10d5153..bbd1887f83a0 100644
-> --- a/Documentation/media/uapi/v4l/open.rst
-> +++ b/Documentation/media/uapi/v4l/open.rst
-> @@ -6,6 +6,59 @@
->  Opening and Closing Devices
->  ***************************
->  
-> +Types of V4L2 hardware control
-> +==============================
-> +
-> +V4L2 hardware is usually complex: support for the hardware is implemented
-> +via a main driver (also known as bridge driver) and often several
-> +additional drivers. The main driver always exposes one or
-> +more **V4L2 device nodes** (see :ref:`v4l2_device_naming`).
-> +
-> +The other drivers are called **V4L2 sub-devices** and provide control to
-> +other parts of the hardware usually connected via a serial bus (like
-> +I²C, SMBus or SPI). Depending on the main driver, they can be implicitly
-> +controlled directly by the main driver or explicitly via
-> +the **V4L2 sub-device API** (see :ref:`subdev`).
-> +
-> +When V4L2 was originally designed, there was only one type of hardware
-> +control. The entire V4L2 hardware is controlled via the
-> +**V4L2 device nodes**. We refer to this kind of control as
-> +**V4L2 device node centric** (or, simply, **vdev-centric**).
-> +
-> +Since the end of 2010, a new type of V4L2 hardware control was added, in
+The clock control is not explicitly controlled by the driver in two cases:
+ACPI based systems and when the clock is part of the power sequence of the
+camera module.
 
-Just drop 'the end of'.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-s/, in/ in/
-
-> +order to support complex devices that are common for embedded systems.
-> +Those hardware are controlled mainly via the media controller and
-
-Such hardware is
-
-> +sub-devices. So, they are called: **Media controller centric**
-> +(or, simply, "**MC-centric**").
-> +
-> +For **vdev-centric** hardware control, the hardware is controlled via
-> +the **V4L2 device nodes**. They may optionally support the
-> +:ref:`media controller API <media_controller>` as well, in order to let
-> +the application to know with device nodes are available.
-
-to know with -> know which
-
-> +
-> +.. note::
-> +
-> +   A **vdev-centric** may optionally expose V4L2 sub-devices via
-
-I propose adding 'also' before 'expose' to indicate that it is in
-addition to the V4L2 device nodes that were mentioned in the previous
-paragraph.
-
-> +   :ref:`sub-device API <subdev>`. In that case, it has to implement
-> +   the :ref:`media controller API <media_controller>` as well.
-> +
-> +For **MC-centric** hardware control, before using the V4L2 hardware,
-> +it is required to set the pipelines via the
-
-I'd reword this a bit:
-
-For **MC-centric** hardware control it is required to configure the pipelines
-via the :ref:`media controller API <media_controller>` before the hardware can be used.
-
-> +:ref:`media controller API <media_controller>`. For those devices, the
-
-s/those/such/
-
-> +sub-devices' configuration can be controlled via the
-> +:ref:`sub-device API <subdev>`, whith creates one device node
-
-s/whith/which/
-
-> +per sub-device.
-> +
-> +In summary, for **MC-centric** hardware control:
-> +
-> +- The **V4L2 device** node is responsible for controlling the streaming
-> +  features;
-> +- The **media controller device** is responsible to setup the pipelines;
-> +- The **V4L2 sub-devices** are responsible for sub-device
-> +  specific settings.
-> +
-> +
-> +.. _v4l2_device_naming:
->  
->  V4L2 Device Node Naming
->  =======================
-> 
-
-The only thing I am not sure about is vdev-centric vs V4L2-centric. 'Laziness while
-typing' is not a convincing argument :-)
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 009b5e26204b..fbd851be51d2 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2892,7 +2892,10 @@ static int smiapp_probe(struct i2c_client *client,
+ 	}
+ 
+ 	sensor->ext_clk = devm_clk_get(&client->dev, NULL);
+-	if (IS_ERR(sensor->ext_clk)) {
++	if (PTR_ERR(sensor->ext_clk) == -ENOENT) {
++		dev_info(&client->dev, "no clock defined, continuing...\n");
++		sensor->ext_clk = NULL;
++	} else if (IS_ERR(sensor->ext_clk)) {
+ 		dev_err(&client->dev, "could not get clock (%ld)\n",
+ 			PTR_ERR(sensor->ext_clk));
+ 		return -EPROBE_DEFER;
+-- 
+2.11.0
