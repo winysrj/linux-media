@@ -1,124 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout1.freenet.de ([195.4.92.91]:54156 "EHLO mout1.freenet.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750866AbdH1PIL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Aug 2017 11:08:11 -0400
-From: Branislav Radocaj <branislav@radocaj.org>
-To: mchehab@kernel.org, gregkh@linuxfoundation.org
-Cc: jb@abbadie.fr, hans.verkuil@cisco.com, nikola.jelic83@gmail.com,
-        ran.algawi@gmail.com, aquannie@gmail.com, branislav@radocaj.org,
-        shilpapri@gmail.com, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] Staging: bcm2048 fix bare use of 'unsigned' in radio-bcm2048.c
-Date: Mon, 28 Aug 2017 17:02:44 +0200
-Message-Id: <20170828150244.2952-1-branislav@radocaj.org>
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:45840 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751241AbdH2Ij4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 Aug 2017 04:39:56 -0400
+Subject: Re: [PATCH v4 7/7] media: open.rst: add a notice about subdev-API on
+ vdev-centric
+To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <cover.1503747774.git.mchehab@s-opensource.com>
+ <a77ff374ebde22ea20e1cec7c94026db817ed89d.1503747774.git.mchehab@s-opensource.com>
+ <ac21c30e-1d41-881d-d22e-2244a3dcde2e@xs4all.nl>
+ <20170828073009.3762b293@vento.lan>
+ <31b0ab20-3079-9c4a-e0f7-d9173b865db5@xs4all.nl>
+ <KL1PR0601MB2038F8301E02CF3B5EAF6C00C39F0@KL1PR0601MB2038.apcprd06.prod.outlook.com>
+Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Chris Paterson <Chris.Paterson2@renesas.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <c181c314-d19c-e7b3-5a8c-0e3b666bd07e@xs4all.nl>
+Date: Tue, 29 Aug 2017 10:39:52 +0200
+MIME-Version: 1.0
+In-Reply-To: <KL1PR0601MB2038F8301E02CF3B5EAF6C00C39F0@KL1PR0601MB2038.apcprd06.prod.outlook.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a patch to the radio-bcm2048.c file that fixes up
-a warning found by the checkpatch.pl tool.
+On 29/08/17 10:31, Ramesh Shanmugasundaram wrote:
+> Hi Hans,
+> 
+>> On 28/08/17 12:30, Mauro Carvalho Chehab wrote:
+>>> Em Mon, 28 Aug 2017 12:05:06 +0200
+>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>
+>>>> On 26/08/17 13:53, Mauro Carvalho Chehab wrote:
+>>>>> The documentation doesn't mention if vdev-centric hardware control
+>>>>> would have subdev API or not.
+>>>>>
+>>>>> Add a notice about that, reflecting the current status, where three
+>>>>> drivers use it, in order to support some subdev-specific controls.
+>>>>
+>>>> I posted a patch removing v4l-subdevX support for cobalt. It's only
+>>>> used within Cisco, so this is safe to do and won't break any userspace
+>> support.
+>>>
+>>> OK.
+>>>
+>>>> atmel-isc is another driver that creates subdev nodes. Like cobalt,
+>>>> this is unnecessary. There are no sensors that use private controls.
+>>>
+>>> The question is not if the driver has private controls. Private
+>>> controls can be V4L2 device node oriented.
+>>>
+>>> The real question is if userspace applications use subdevs or not in
+>>> order to set something specific to a subdev, on a pipeline where
+>>> multiple subdevs could use the same control.
+>>>
+>>> E. g. even on a simple case where the driver would have something like:
+>>>
+>>> sensor -> processing -> DMA
+>>>
+>>> both "sensor" and "processing" could provide the same control (bright,
+>>> contrast, gain, or whatever). Only by exposing such control via subdev
+>>> is possible to pinpoint what part of the hardware pipeline would be
+>>> affected when such control is changed.
+>>
+>> In theory, yes. In practice this does not happen for any of the V4L2-
+>> centric drivers. Including for the three drivers under discussion.
+>>
+>>>
+>>>> This driver is not referenced anywhere (dts or board file) in the
+>> kernel.
+>>>> It is highly unlikely anyone would use v4l-subdevX nodes when there
+>>>> is no need to do so. My suggestion is to add a kernel option for this
+>>>> driver to enable v4l-subdevX support, but set it to 'default n'.
+>>>> Perhaps with a note in the Kconfig description and a message in the
+>>>> kernel log that this will be removed in the future.
+>>>>
+>>>> The final driver is rcar_drif that uses this to set the "I2S Enable"
+>>>> private control of the max2175 driver.
+>>>>
+>>>> I remember that there was a long discussion over this control. I
+>>>> still think that there is no need to mark this private.
+>>>
+>>> The problem with I2S is that a device may have multiple places where
+>>> I2S could be used. I don't know how the rcar-drif driver uses it, but
+>>> there are several vdev-centric boards that use I2S for audio.
+>>>
+>>> On several of the devices I worked with, the I2S can be enabled, in
+>>> runtime, if the audio signal would be directed to some digital output,
+>>> or it can be disabled if the audio signal would be directed to some
+>>> analog output. Thankfully, on those devices, I2S can be indirectly
+>>> controlled via either an ALSA mixer or via VIDIOC A/V routing ioctls.
+>>> Also, there's just one I2S bus on them.
+>>>
+>>> However, on a device that have multiple I2S bus, userspace should be
+>>> able to control each of them individually, as some parts of the
+>>> pipeline may require it enabled while others may require it disabled.
+>>> So, I strongly believe that this should be a subdev control on such
+>>> hardware.
+>>>
+>>> That's said, I don't know how rcar_drif uses it. If it has just one
+>>> I2S bus and it is used only for audio, then VIDIOC A/V routing ioctls
+>>> and/or an ALSA mixer could replace it. If not, then it should be kept
+>>> as-is and the driver would need to add support for MC, in order for
+>>> applications to identify the right sub-devices that are associated
+>>> with the pipelines where I2S will be controlled.
+>>
+>> Ramesh, do applications using rcar_drif + max2175 have to manually enable
+>> the i2s? Shouldn't this be part of the device tree description instead?
+>>
+> 
+> Yes, applications have to control this explicitly. It is not only enable but also disable control is used at run time and hence DT is not applicable. 
+> 
+> rcar_drif has two registers to write to enable rx on two data pins. It expects a sequence where the master stops output (in this max2175 i2s output - disable) - enable rcar_drif rx and then the master starts output (max2175 i2s output - enable). The application ensures this sequence today. It is one I2S bus and it is not used for audio but raw I/Q samples from max2175 tuner. 
+> 
+> The v4l2_subdev_tuner_ops does not have .s_stream api as in v4l2_subdev_video_ops and v4l2_subdev_audio_ops. If we plan to have one this functionality may be hidden inside it and no need for an explicit control. I too do not like a private control option.
 
-Removed unused 'size' argument from property_read macro.
-In property_write macro, 'signal, size' is replaced by 'prop_type'.
-This change implys the update of DEFINE_SYSFS_PROPERTY macro
-and all places of its usage as well.
+I think it would be reasonable to use the audio ops s_stream for this. We're
+streaming data after all. The audio ops most closely fits what we want to do.
 
-Signed-off-by: Branislav Radocaj <branislav@radocaj.org>
----
- drivers/staging/media/bcm2048/radio-bcm2048.c | 60 +++++++++++++--------------
- 1 file changed, 30 insertions(+), 30 deletions(-)
+All this is an internal API, so can be changed in the future if needed.
 
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 38f72d069e27..b1e664aeb6ab 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -1965,7 +1965,7 @@ static ssize_t bcm2048_##prop##_write(struct device *dev,		\
- 	return err < 0 ? err : count;					\
- }
- 
--#define property_read(prop, size, mask)					\
-+#define property_read(prop, mask)					\
- static ssize_t bcm2048_##prop##_read(struct device *dev,		\
- 					struct device_attribute *attr,	\
- 					char *buf)			\
-@@ -2000,9 +2000,9 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
- 	return sprintf(buf, mask "\n", value);				\
- }
- 
--#define DEFINE_SYSFS_PROPERTY(prop, signal, size, mask, check)		\
--property_write(prop, signal size, mask, check)				\
--property_read(prop, size, mask)
-+#define DEFINE_SYSFS_PROPERTY(prop, prop_type, mask, check)		\
-+property_write(prop, prop_type, mask, check)				\
-+property_read(prop, mask)						\
- 
- #define property_str_read(prop, size)					\
- static ssize_t bcm2048_##prop##_read(struct device *dev,		\
-@@ -2028,39 +2028,39 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
- 	return count;							\
- }
- 
--DEFINE_SYSFS_PROPERTY(power_state, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(mute, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(audio_route, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(dac_output, unsigned, int, "%u", 0)
--
--DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned, int, "%u", value > 3)
--
--DEFINE_SYSFS_PROPERTY(rds, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_wline, unsigned, int, "%u", 0)
--property_read(rds_pi, unsigned int, "%x")
-+DEFINE_SYSFS_PROPERTY(power_state, unsigned int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(mute, unsigned int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(audio_route, unsigned int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(dac_output, unsigned int, "%u", 0)
-+
-+DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned int, "%u", value > 3)
-+
-+DEFINE_SYSFS_PROPERTY(rds, unsigned int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_wline, unsigned int, "%u", 0)
-+property_read(rds_pi, "%x")
- property_str_read(rds_rt, (BCM2048_MAX_RDS_RT + 1))
- property_str_read(rds_ps, (BCM2048_MAX_RDS_PS + 1))
- 
--property_read(fm_rds_flags, unsigned int, "%u")
-+property_read(fm_rds_flags, "%u")
- property_str_read(rds_data, BCM2048_MAX_RDS_RADIO_TEXT * 5)
- 
--property_read(region_bottom_frequency, unsigned int, "%u")
--property_read(region_top_frequency, unsigned int, "%u")
-+property_read(region_bottom_frequency, "%u")
-+property_read(region_top_frequency, "%u")
- property_signed_read(fm_carrier_error, int, "%d")
- property_signed_read(fm_rssi, int, "%d")
--DEFINE_SYSFS_PROPERTY(region, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(region, unsigned int, "%u", 0)
- 
- static struct device_attribute attrs[] = {
- 	__ATTR(power_state, 0644, bcm2048_power_state_read,
--- 
-2.11.0
+I like that a lot better than this weird control.
+
+What do you think, Mauro?
+
+Regards,
+
+	Hans
