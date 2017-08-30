@@ -1,43 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:33704 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753136AbdHQL4g (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Aug 2017 07:56:36 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: mchehab@kernel.org, hverkuil@xs4all.nl
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH] [media] usb: rainshadow-cec: constify serio_device_id
-Date: Thu, 17 Aug 2017 17:26:24 +0530
-Message-Id: <d5f108ac6d73151cf75ab37deb537c4f244748b7.1502970772.git.arvind.yadav.cs@gmail.com>
-In-Reply-To: <e7621768ad407ec297b173e3a768a29f9136a780.1502970772.git.arvind.yadav.cs@gmail.com>
-References: <e7621768ad407ec297b173e3a768a29f9136a780.1502970772.git.arvind.yadav.cs@gmail.com>
-In-Reply-To: <e7621768ad407ec297b173e3a768a29f9136a780.1502970772.git.arvind.yadav.cs@gmail.com>
-References: <e7621768ad407ec297b173e3a768a29f9136a780.1502970772.git.arvind.yadav.cs@gmail.com>
+Received: from mout.web.de ([212.227.17.12]:63071 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750872AbdH3TOy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 Aug 2017 15:14:54 -0400
+To: linux-media@vger.kernel.org,
+        Colin Ian King <colin.king@canonical.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/2] [media] DRXD: Adjustments for three function
+ implementations
+Message-ID: <62e6221c-226c-3b25-08bb-4baff9b23cbb@users.sourceforge.net>
+Date: Wed, 30 Aug 2017 21:14:29 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-serio_device_id are not supposed to change at runtime. All functions
-working with serio_device_id provided by <linux/serio.h> work with
-const serio_device_id. So mark the non-const structs as const.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Wed, 30 Aug 2017 21:10:12 +0200
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
----
- drivers/media/usb/rainshadow-cec/rainshadow-cec.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Two update suggestions were taken into account
+from static source code analysis.
 
-diff --git a/drivers/media/usb/rainshadow-cec/rainshadow-cec.c b/drivers/media/usb/rainshadow-cec/rainshadow-cec.c
-index f203699..b82e37c 100644
---- a/drivers/media/usb/rainshadow-cec/rainshadow-cec.c
-+++ b/drivers/media/usb/rainshadow-cec/rainshadow-cec.c
-@@ -361,7 +361,7 @@ static int rain_connect(struct serio *serio, struct serio_driver *drv)
- 	return err;
- }
- 
--static struct serio_device_id rain_serio_ids[] = {
-+static const struct serio_device_id rain_serio_ids[] = {
- 	{
- 		.type	= SERIO_RS232,
- 		.proto	= SERIO_RAINSHADOW_CEC,
+Markus Elfring (2):
+  Delete an error message for a failed memory allocation in load_firmware()
+  Adjust a null pointer check in three functions
+
+ drivers/media/dvb-frontends/drxd_hard.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
 -- 
-2.7.4
+2.14.1
