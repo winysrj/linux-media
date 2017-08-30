@@ -1,141 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:52255 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753738AbdHWKhv (ORCPT
+Received: from mail-lf0-f54.google.com ([209.85.215.54]:35951 "EHLO
+        mail-lf0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750780AbdH3II1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Aug 2017 06:37:51 -0400
-Subject: Re: [PATCH 1/3] media: atmel-isc: Not support RBG format from sensor.
-To: Wenyou.Yang@microchip.com, mchehab@s-opensource.com
-Cc: Nicolas.Ferre@microchip.com, linux-kernel@vger.kernel.org,
-        sakari.ailus@iki.fi, corbet@lwn.net,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-References: <20170817071614.12767-1-wenyou.yang@microchip.com>
- <20170817071614.12767-2-wenyou.yang@microchip.com>
- <61cb51fa-8d05-6707-00cc-429c761fa6f5@xs4all.nl>
- <14941b74-8931-4d00-0664-0735fad9b5d1@Microchip.com>
- <ce6d074b-1c13-d3ea-5dfa-89cca2f26feb@xs4all.nl>
- <F9F4555C4E01D7469D37975B62D0EFBB6B695B@CHN-SV-EXMX07.mchp-main.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <bbeb178a-d284-7b4c-701e-050bacba83bf@xs4all.nl>
-Date: Wed, 23 Aug 2017 12:37:43 +0200
+        Wed, 30 Aug 2017 04:08:27 -0400
+Received: by mail-lf0-f54.google.com with SMTP id z12so21685813lfd.3
+        for <linux-media@vger.kernel.org>; Wed, 30 Aug 2017 01:08:26 -0700 (PDT)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Wed, 30 Aug 2017 10:08:24 +0200
+To: Simon Horman <horms@verge.net.au>
+Cc: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 20/20] arm64: dts: renesas: salvator: use VC1 for CVBS
+Message-ID: <20170830080824.GK12099@bigcity.dyn.berto.se>
+References: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170811095703.6170-21-niklas.soderlund+renesas@ragnatech.se>
+ <20170830073637.GM10398@verge.net.au>
 MIME-Version: 1.0
-In-Reply-To: <F9F4555C4E01D7469D37975B62D0EFBB6B695B@CHN-SV-EXMX07.mchp-main.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170830073637.GM10398@verge.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/22/17 09:30, Wenyou.Yang@microchip.com wrote:
-> Hi Hans,
-> 
->> -----Original Message-----
->> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
->> Sent: 2017å¹´8æœˆ22æ—¥ 15:00
->> To: Wenyou Yang - A41535 <Wenyou.Yang@microchip.com>; Mauro Carvalho
->> Chehab <mchehab@s-opensource.com>
->> Cc: Nicolas Ferre - M43238 <Nicolas.Ferre@microchip.com>; linux-
->> kernel@vger.kernel.org; Sakari Ailus <sakari.ailus@iki.fi>; Jonathan Corbet
->> <corbet@lwn.net>; linux-arm-kernel@lists.infradead.org; Linux Media Mailing List
->> <linux-media@vger.kernel.org>
->> Subject: Re: [PATCH 1/3] media: atmel-isc: Not support RBG format from sensor.
->>
->> On 08/22/2017 03:18 AM, Yang, Wenyou wrote:
->>> Hi Hans,
->>>
->>> On 2017/8/21 22:07, Hans Verkuil wrote:
->>>> On 08/17/2017 09:16 AM, Wenyou Yang wrote:
->>>>> The 12-bit parallel interface supports the Raw Bayer, YCbCr,
->>>>> Monochrome and JPEG Compressed pixel formats from the external
->>>>> sensor, not support RBG pixel format.
->>>>>
->>>>> Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
->>>>> ---
->>>>>
->>>>>   drivers/media/platform/atmel/atmel-isc.c | 5 +++++
->>>>>   1 file changed, 5 insertions(+)
->>>>>
->>>>> diff --git a/drivers/media/platform/atmel/atmel-isc.c
->>>>> b/drivers/media/platform/atmel/atmel-isc.c
->>>>> index d4df3d4ccd85..535bb03783fe 100644
->>>>> --- a/drivers/media/platform/atmel/atmel-isc.c
->>>>> +++ b/drivers/media/platform/atmel/atmel-isc.c
->>>>> @@ -1478,6 +1478,11 @@ static int isc_formats_init(struct isc_device *isc)
->>>>>   	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code,
->>>>>   	       NULL, &mbus_code)) {
->>>>>   		mbus_code.index++;
->>>>> +
->>>>> +		/* Not support the RGB pixel formats from sensor */
->>>>> +		if ((mbus_code.code & 0xf000) == 0x1000)
->>>>> +			continue;
->>>> Am I missing something? Here you skip any RGB mediabus formats, but
->>>> in patch 3/3 you add RGB mediabus formats. But this patch prevents
->>>> those new formats from being selected, right?
->>> This patch prevents getting the RGB format from the sensor directly.
->>> The RGB format can be produced by ISC controller by itself.
->>
->> OK, I think I see what is going on here. The isc_formats array really is two arrays
->> in one: up to RAW_FMT_IND_END it describes what it can receive from the
->> source, and after that it describes what it can convert it to.
-> 
-> Not exactly.
-> 
-> Yes, up to RAW_FMT_IND_END, these formats must be got from the senor, they are RAW formats.
-> From ISC_FMT_IND_START to ISC_FMT_IND_END, they can be generated by the ISC controller.
-> It is possible they can be got from the sensor too, the driver will check it. 
-> If it can be got from both the sensor and the ISC controller, the user can use the "sensor_preferred" parameter to decide from which one to get.
-> The RBG formats are the exception.
-> 
->>
->> But if you can't handle RGB formats from the sensor, then why not make sure
->> none of the mbus codes in isc_formats uses RGB? That makes much more sense.
->>
->> E.g.:
->>
->>         { V4L2_PIX_FMT_RGB565, MEDIA_BUS_FMT_RGB565_2X8_LE, 16,
->>           ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG,
->> ISC_RLP_CFG_MODE_RGB565,
->>           ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x7b,
->>           false, false },
->>
->> Why use MEDIA_BUS_FMT_RGB565_2X8_LE if this apparently is not supported?
-> 
-> This array is also the lists of all formats supported by the ISC(including got from the sensor).
-> The RGB formats are only generated by the ISC controller, not from the sensor.
+Hi Simon,
 
-You're adding code that skips any entries of the table where mbus_code is an
-RGB code. But this can also be done by not having RGB mbus codes in the table
-in the first place since they make no sense if the HW cannot handle that!
-Set the mbus_code to e.g. 0 for such entries, that makes more sense.
+On 2017-08-30 09:36:37 +0200, Simon Horman wrote:
+> On Fri, Aug 11, 2017 at 11:57:03AM +0200, Niklas Söderlund wrote:
+> > In order to test Virtual Channels use VC1 for CVBS input from the
+> > adv748x.
+> > 
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > ---
+> >  arch/arm64/boot/dts/renesas/salvator-common.dtsi | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/arch/arm64/boot/dts/renesas/salvator-common.dtsi b/arch/arm64/boot/dts/renesas/salvator-common.dtsi
+> > index 7b67efcb1d22090a..8047fe1df065d63b 100644
+> > --- a/arch/arm64/boot/dts/renesas/salvator-common.dtsi
+> > +++ b/arch/arm64/boot/dts/renesas/salvator-common.dtsi
+> > @@ -41,7 +41,7 @@
+> >  	};
+> >  
+> >  	chosen {
+> > -		bootargs = "ignore_loglevel rw root=/dev/nfs ip=dhcp";
+> > +		bootargs = "ignore_loglevel rw root=/dev/nfs ip=dhcp adv748x.txbvc=1";
+> >  		stdout-path = "serial0:115200n8";
+> >  	};
+> 
+> Hi Niklas,
+> 
+> I'm somewhat surprised to see what appears to be a new module parameter.
+> I'm not going to reject this but did you give consideration to doing this
+> another way?
 
-I also strongly suggest changing how the table is organized since those
-_FMT_IND_ indices are all to easy to get wrong (and frankly hard to understand).
+This is my fault when sending this series out it should be marked as RFC 
+as it's stated in the cover-letter. This new module parameter is not 
+intended to be unstreamed, not even the driver parts. It's only usage is 
+to be able to easy test the multiplexed media pad using the onboard 
+Salvator-X components.
 
+> 
+> In any case I have marked this as "Deferred" pending acceptance of the
+> driver change. If you think it can go in now then I'm open to discussion.
+
+You can mark it as rejected and forget about it :-)
+
+-- 
 Regards,
-
-	Hans
-
-> 
->>
->> Regards,
->>
->> 	Hans
->>
->>>
->>>> Regards,
->>>>
->>>> 	Hans
->>>>
->>>>> +
->>>>>   		fmt = find_format_by_code(mbus_code.code, &i);
->>>>>   		if (!fmt)
->>>>>   			continue;
->>>>>
->>>
->>> Best Regards,
->>> Wenyou Yang
->>>
-> 
-> Best Regards,
-> Wenyou Yang
-> 
+Niklas Söderlund
