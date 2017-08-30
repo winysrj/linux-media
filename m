@@ -1,136 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35236 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41854 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754727AbdHYLIb (ORCPT
+        by vger.kernel.org with ESMTP id S1750862AbdH3V2V (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Aug 2017 07:08:31 -0400
-Date: Fri, 25 Aug 2017 14:08:27 +0300
+        Wed, 30 Aug 2017 17:28:21 -0400
+Date: Thu, 31 Aug 2017 00:28:19 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH 1/3] media: open.rst: document devnode-centric and
- mc-centric types
-Message-ID: <20170825110827.7kghpjmeqqxbhoa2@valkosipuli.retiisi.org.uk>
-References: <cover.1503653839.git.mchehab@s-opensource.com>
- <bef8524bf9eb1fbf51fff93d59c42602009858c1.1503653839.git.mchehab@s-opensource.com>
+To: Rajmohan Mani <rajmohan.mani@intel.com>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        hverkuil@xs4all.nl, tfiga@chromium.org, s.nawrocki@samsung.com,
+        tuukka.toivonen@intel.com
+Subject: Re: [PATCH] [media] dw9714: Set the v4l2 focus ctrl step as 1
+Message-ID: <20170830212819.6tepof4jzdiqtezd@valkosipuli.retiisi.org.uk>
+References: <1504115332-26651-1-git-send-email-rajmohan.mani@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <bef8524bf9eb1fbf51fff93d59c42602009858c1.1503653839.git.mchehab@s-opensource.com>
+In-Reply-To: <1504115332-26651-1-git-send-email-rajmohan.mani@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Rajmohan,
 
-Thanks for the update. A few more small comments below.
+On Wed, Aug 30, 2017 at 10:48:52AM -0700, Rajmohan Mani wrote:
+> Current v4l2 focus ctrl step value of 16, limits
+> the minimum granularity of focus positions to 16.
+> Setting this value as 1, enables more accurate
+> focus positions.
 
-On Fri, Aug 25, 2017 at 06:40:05AM -0300, Mauro Carvalho Chehab wrote:
-> From: "mchehab@s-opensource.com" <mchehab@s-opensource.com>
+Thanks for the patch.
+
+The recommended limit for line length is 75, not 50 (or 25 or whatever) as
+it might be in certain Gerrit installations. :-) Please make good use of
+lines in the future, I've rewrapped the text this time. Thanks.
+
 > 
-> When we added support for omap3, back in 2010, we added a new
-> type of V4L2 devices that aren't fully controlled via the V4L2
-> device node. Yet, we never made it clear, at the V4L2 spec,
-> about the differences between both types.
-> 
-> Let's document them with the current implementation.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
 > ---
->  Documentation/media/uapi/v4l/open.rst | 50 +++++++++++++++++++++++++++++++++++
->  1 file changed, 50 insertions(+)
+>  drivers/media/i2c/dw9714.c | 7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
 > 
-> diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-> index afd116edb40d..a72d142897c0 100644
-> --- a/Documentation/media/uapi/v4l/open.rst
-> +++ b/Documentation/media/uapi/v4l/open.rst
-> @@ -6,6 +6,56 @@
->  Opening and Closing Devices
->  ***************************
+> diff --git a/drivers/media/i2c/dw9714.c b/drivers/media/i2c/dw9714.c
+> index 6a607d7..f9212a8 100644
+> --- a/drivers/media/i2c/dw9714.c
+> +++ b/drivers/media/i2c/dw9714.c
+> @@ -22,6 +22,11 @@
+>  #define DW9714_NAME		"dw9714"
+>  #define DW9714_MAX_FOCUS_POS	1023
+>  /*
+> + * This sets the minimum granularity for the focus positions.
+> + * A value of 1 gives maximum accuracy for a desired focus position
+> + */
+> +#define DW9714_FOCUS_STEPS	1
+> +/*
+>   * This acts as the minimum granularity of lens movement.
+>   * Keep this value power of 2, so the control steps can be
+>   * uniformly adjusted for gradual lens movement, with desired
+> @@ -138,7 +143,7 @@ static int dw9714_init_controls(struct dw9714_device *dev_vcm)
+>  	v4l2_ctrl_handler_init(hdl, 1);
 >  
-> +Types of V4L2 hardware control
-> +==============================
-> +
-> +V4L2 devices are usually complex: they are implemented via a main driver and
-> +often several additional drivers. The main driver always exposes one or
-> +more **V4L2 device** devnodes (see :ref:`v4l2_device_naming`).
-
-s/V4L2 device\*\* devnodes/V4L2 device nodes\*\*/
-
-(As you also have a few paragraphs below.)
-
-> +
-> +The other drivers are called **V4L2 sub-devices** and provide control to
-> +other parts of the hardware usually connected via a serial bus (like
-> +I²C, SMBus or SPI). They can be implicitly controlled directly by the
-
-s/They/Depending on the main driver, they/
-
-> +main driver or explicitly through via the **V4L2 sub-device API** interface.
-
-Through or via, but not both. " interface" is redundant.
-
-> +
-> +When V4L2 was originally designed, there was only one type of device control.
-> +The entire device was controlled via the **V4L2 device nodes**. We refer to
-> +this kind of control as **V4L2 device node centric** (or, simply,
-> +**vdev-centric**).
-
-s/vdev-centric/V4L2-centric/ ?
-
-> +
-> +Since the end of 2010, a new type of V4L2 device control was added in order
-> +to support complex devices that are common for embedded systems. Those
-> +devices are controlled mainly via the media controller and sub-devices.
-> +So, they're called: **Media controller centric** (or, simply,
-> +"**MC-centric**").
-> +
-> +For **vdev-centric** control, the device and their corresponding hardware
-> +pipelines are controlled via the **V4L2 device** node. They may optionally
-
-I'd add highlighting to " node" as well.
-
-> +expose via the :ref:`media controller API <media_controller>`.
-> +
-> +For **MC-centric** control, before using the V4L2 device, it is required to
-> +set the hardware pipelines via the
-> +:ref:`media controller API <media_controller>`. For those devices, the
-> +sub-devices' configuration can be controlled via the
-> +:ref:`sub-device API <subdev>`, with creates one device node per sub device.
-> +
-> +In summary, for **MC-centric** devices:
-> +
-> +- The **V4L2 device** node is responsible for controlling the streaming
-> +  features;
-
-Same here. Or, just remove node. The other device nodes are just as much
-nodes as this one.
-
-> +- The **media controller device** is responsible to setup the pipelines;
-> +- The **V4L2 sub-devices** are responsible for sub-device
-> +  specific settings.
-> +
-> +.. note::
-> +
-> +   A **vdev-centric** may optionally expose V4L2 sub-devices via
-> +   :ref:`sub-device API <subdev>`. In that case, it has to implement
-> +   the :ref:`media controller API <media_controller>` as well.
-
-Looks good!
-
-> +
-> +
-> +
-> +.. _v4l2_device_naming:
+>  	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
+> -			  0, DW9714_MAX_FOCUS_POS, DW9714_CTRL_STEPS, 0);
+> +			  0, DW9714_MAX_FOCUS_POS, DW9714_FOCUS_STEPS, 0);
 >  
->  Device Naming
->  =============
+>  	if (hdl->error)
+>  		dev_err(&client->dev, "%s fail error: 0x%x\n",
 
 -- 
-Kind regards,
+Regards,
 
 Sakari Ailus
 e-mail: sakari.ailus@iki.fi
