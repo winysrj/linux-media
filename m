@@ -1,98 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53608
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752356AbdHZLxf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 07:53:35 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v4 6/7] media: videodev2: add a flag for MC-centric devices
-Date: Sat, 26 Aug 2017 08:53:24 -0300
-Message-Id: <638ed268ca84c5e8ea810a2c27e397ab7e90585b.1503747774.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503747774.git.mchehab@s-opensource.com>
-References: <cover.1503747774.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503747774.git.mchehab@s-opensource.com>
-References: <cover.1503747774.git.mchehab@s-opensource.com>
+Received: from mga07.intel.com ([134.134.136.100]:4817 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751205AbdH3Vj5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 Aug 2017 17:39:57 -0400
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "s.nawrocki@samsung.com" <s.nawrocki@samsung.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>
+Subject: RE: [PATCH] [media] dw9714: Set the v4l2 focus ctrl step as 1
+Date: Wed, 30 Aug 2017 21:39:56 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5972FBB1AE@FMSMSX114.amr.corp.intel.com>
+References: <1504115332-26651-1-git-send-email-rajmohan.mani@intel.com>
+ <20170830212819.6tepof4jzdiqtezd@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20170830212819.6tepof4jzdiqtezd@valkosipuli.retiisi.org.uk>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As both vdev-centric and MC-centric devices may implement the
-same APIs, we need a flag to allow userspace to distinguish
-between them.
+Hi Sakari,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/v4l/open.rst            | 7 +++++++
- Documentation/media/uapi/v4l/vidioc-querycap.rst | 5 +++++
- Documentation/media/videodev2.h.rst.exceptions   | 1 +
- include/uapi/linux/videodev2.h                   | 2 ++
- 4 files changed, 15 insertions(+)
+Thanks for the review.
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index 64b1de047b1b..d0930fc170f0 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -46,6 +46,13 @@ the periferal can be used. For such devices, the sub-devices' configuration
- can be controlled via the :ref:`sub-device API <subdev>`, which creates one
- device node per sub-device.
- 
-+.. attention::
-+
-+   Devices that require **mc-centric** hardware peripheral control should
-+   report a ``V4L2_MC_CENTRIC`` :c:type:`v4l2_capability` flag
-+   (see :ref:`VIDIOC_QUERYCAP`).
-+
-+
- In summary, for **MC-centric** hardware peripheral control:
- 
- - The **V4L2 device** node is responsible for controlling the streaming
-diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-index 12e0d9a63cd8..2b08723375bc 100644
---- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-@@ -252,6 +252,11 @@ specification the ioctl returns an ``EINVAL`` error code.
-     * - ``V4L2_CAP_TOUCH``
-       - 0x10000000
-       - This is a touch device.
-+    * - ``V4L2_MC_CENTRIC``
-+      - 0x20000000
-+      - Indicates that the device require **mc-centric** hardware
-+        control, and thus can't be used by **v4l2-centric** applications.
-+        See :ref:`v4l2_hardware_control` for more details.
-     * - ``V4L2_CAP_DEVICE_CAPS``
-       - 0x80000000
-       - The driver fills the ``device_caps`` field. This capability can
-diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-index a5cb0a8686ac..b51a575f9f75 100644
---- a/Documentation/media/videodev2.h.rst.exceptions
-+++ b/Documentation/media/videodev2.h.rst.exceptions
-@@ -157,6 +157,7 @@ replace define V4L2_CAP_META_CAPTURE device-capabilities
- replace define V4L2_CAP_READWRITE device-capabilities
- replace define V4L2_CAP_ASYNCIO device-capabilities
- replace define V4L2_CAP_STREAMING device-capabilities
-+replace define V4L2_CAP_MC_CENTRIC device-capabilities
- replace define V4L2_CAP_DEVICE_CAPS device-capabilities
- replace define V4L2_CAP_TOUCH device-capabilities
- 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 45cf7359822c..7b490fe97980 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -460,6 +460,8 @@ struct v4l2_capability {
- 
- #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
- 
-+#define V4L2_CAP_MC_CENTRIC             0x20000000  /* Device require mc-centric hardware control */
-+
- #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device capabilities field */
- 
- /*
--- 
-2.13.3
+> Subject: Re: [PATCH] [media] dw9714: Set the v4l2 focus ctrl step as 1
+> 
+> Hi Rajmohan,
+> 
+> On Wed, Aug 30, 2017 at 10:48:52AM -0700, Rajmohan Mani wrote:
+> > Current v4l2 focus ctrl step value of 16, limits the minimum
+> > granularity of focus positions to 16.
+> > Setting this value as 1, enables more accurate focus positions.
+> 
+> Thanks for the patch.
+> 
+> The recommended limit for line length is 75, not 50 (or 25 or whatever) as it
+> might be in certain Gerrit installations. :-) Please make good use of lines in the
+> future, I've rewrapped the text this time. Thanks.
+> 
+
+Ack. I have been overly cautious here.
