@@ -1,129 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:59327 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751152AbdH0DjO (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:49481 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751693AbdH3JyB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 23:39:14 -0400
-Message-ID: <0f257258c9fb629fd333494866dbce09@smtp-cloud7.xs4all.net>
-Date: Sun, 27 Aug 2017 05:39:11 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Wed, 30 Aug 2017 05:54:01 -0400
+Subject: Re: DRM Format Modifiers in v4l2
+To: Brian Starkey <brian.starkey@arm.com>
+References: <CAKMK7uFdQPUomZDCp_ak6sTsUayZuut4us08defjKmiy=24QnA@mail.gmail.com>
+ <47128f36-2990-bd45-ead9-06a31ed8cde0@xs4all.nl>
+ <20170824111430.GB25711@e107564-lin.cambridge.arm.com>
+ <ba202456-4bc6-733e-4950-88ce64ca990e@xs4all.nl>
+ <20170824122647.GA28829@e107564-lin.cambridge.arm.com>
+ <1503943642.3316.7.camel@ndufresne.ca>
+ <CAKMK7uGaQ+9cZ2PyLkwC06Qpch3AK+Tkr4SZFZVLfUqUFKyygQ@mail.gmail.com>
+ <20170829094701.GB26907@e107564-lin.cambridge.arm.com>
+ <20170830075035.ojzhefm3ysqzigkg@phenom.ffwll.local>
+ <4399d87d-9b60-1d8b-cb83-b62f134a0aa5@xs4all.nl>
+ <20170830093621.GB15136@e107564-lin.cambridge.arm.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        jonathan.chai@arm.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f41c48df-6337-6d15-c629-9d365e478873@xs4all.nl>
+Date: Wed, 30 Aug 2017 11:53:58 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170830093621.GB15136@e107564-lin.cambridge.arm.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 30/08/17 11:36, Brian Starkey wrote:
+> On Wed, Aug 30, 2017 at 10:10:01AM +0200, Hans Verkuil wrote:
+>> On 30/08/17 09:50, Daniel Vetter wrote:
+>>> On Tue, Aug 29, 2017 at 10:47:01AM +0100, Brian Starkey wrote:
+>>>> The fact is, adding special formats for each combination is
+>>>> unmanageable - we're talking dozens in the case of our hardware.
+>>>
+>>> Hm right, we can just remap the special combos to the drm-fourcc +
+>>> modifier style. Bonus point if v4l does that in the core so not everyone
+>>> has to reinvent that wheel :-)
+>>
+>> Probably not something we'll do: there are I believe only two drivers that
+>> are affected (exynos & mediatek), so they can do that in their driver.
+>>
+>> Question: how many modifiers will typically apply to a format? I ask
+>> because I realized that V4L2 could use VIDIOC_ENUMFMT to make the link
+>> between a fourcc and modifiers:
+>>
+>> https://hverkuil.home.xs4all.nl/spec/uapi/v4l/vidioc-enum-fmt.html
+>>
+>> The __u32 reserved[4] array can be used to provide a bitmask to modifier
+>> indices (for the integer menu control). It's similar to what drm does,
+>> except instead of modifiers mapping to fourccs it is the other way around.
+>>
+>> This would avoid having to change the modifiers control whenever a new
+>> format is set and it makes it easy to enumerate all combinations.
+>>
+>> But this only works if the total number of modifiers used by a single driver
+>> is expected to remain small (let's say no more than 64).
+> 
+> In our current (yet to be submitted) description, we've got around a
+> dozen modifiers for any one format to describe our compression
+> variants. We have a lot of on/off toggles which leads to combinatorial
+> expansion, so it can grow pretty quickly (though I am trying to limit
+> the valid combinations as much as possible).
+> 
+> How about if the mask fills up then VIDIOC_ENUM_FMT can return another
+> fmtdsc with the same FourCC and different modifier bitmask, where the
+> second one's modifier bitmask is for the next "N" modifiers?
 
-Results of the daily build of media_tree:
+I was thinking along similar lines, but it could cause some problems with
+the ABI since applications currently assume that no fourcc will appear
+twice when enumerating formats. Admittedly, we never explicitly said in
+the spec that that can't happen, but it is kind of expected.
 
-date:			Sun Aug 27 05:00:17 CEST 2017
-media-tree git hash:	0b56d1c8fd8991b0ae5255151c54ed20deb49a28
-media_build git hash:	4a73db0fa0115ef58537be61da6099c828f57d2b
-v4l-utils git hash:	5a6e0c38468c629f3f6f4fb988acebb9e66e2917
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+There are ways around that, but if possible I'd like to avoid that.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
+In theory there are up to 128 bits available but I can't help thinking
+that if you create more than, say, 64 modifiers for a HW platform you
+have a big mess anyway.
 
-Detailed results are available here:
+If I am wrong, then I need to know because then I can prepare for it
+(or whoever is going to actually implement this...)
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+If the number of modifiers is expected to be limited then making 64 bits
+available would be good enough, at least for now.
 
-Full logs are available here:
+BTW, is a modifier always optional? I.e. for all fourccs, is the unmodified
+format always available? Or are there fourccs that require the use of a
+modifier?
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+Regards,
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+	Hans
