@@ -1,69 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43442 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753212AbdHQVGJ (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:35609 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751415AbdH3QKs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Aug 2017 17:06:09 -0400
-Date: Fri, 18 Aug 2017 00:06:05 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+        Wed, 30 Aug 2017 12:10:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: pavel@ucw.cz
-Subject: [GIT PULL v2 for 4.14] Omap3isp CCP2 support
-Message-ID: <20170817210605.2juop3gefkyqjue4@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 1/5] cec: add CEC_EVENT_PIN_HPD_LOW/HIGH events
+Date: Wed, 30 Aug 2017 18:10:40 +0200
+Message-Id: <20170830161044.26571-2-hverkuil@xs4all.nl>
+In-Reply-To: <20170830161044.26571-1-hverkuil@xs4all.nl>
+References: <20170830161044.26571-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-These patches add functional CCP2 support for the omap3isp, as needed for
-the Nokia N900.
+Add support for two new low-level events: PIN_HPD_LOW and PIN_HPD_HIGH.
 
-since v1:
+This is specifically meant for use with the upcoming cec-gpio driver
+and makes it possible to trace when the HPD pin changes. Some HDMI
+sinks do strange things with the HPD and this makes it easy to debug
+this.
 
-- Take further review comments into account, in particular store the entity
-  associated to a given PHY struct (omap3isp) and add a patch cleaning up
-  storing information on external sub-devices' bus configuration
-  (omap3isp).
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/cec/cec-adap.c | 18 +++++++++++++++++-
+ drivers/media/cec/cec-api.c  | 18 ++++++++++++++----
+ include/media/cec-pin.h      |  4 ++++
+ include/media/cec.h          | 12 +++++++++++-
+ include/uapi/linux/cec.h     |  2 ++
+ 5 files changed, 48 insertions(+), 6 deletions(-)
 
-Please pull.
-
-
-The following changes since commit ec0c3ec497cabbf3bfa03a9eb5edcc252190a4e0:
-
-  media: ddbridge: split code into multiple files (2017-08-09 12:17:01 -0400)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git ccp2
-
-for you to fetch changes up to d5107162567b192a58efc9ad930dd65cb70c4530:
-
-  omap3isp: Quit using struct v4l2_subdev.host_priv field (2017-08-17 22:18:22 +0300)
-
-----------------------------------------------------------------
-Pavel Machek (2):
-      omap3isp: Parse CSI1 configuration from the device tree
-      omap3isp: Correctly set IO_OUT_SEL and VP_CLK_POL for CCP2 mode
-
-Sakari Ailus (3):
-      omap3isp: Always initialise isp and mutex for csiphy1
-      omap3isp: csiphy: Don't assume the CSI receiver is a CSI2 module
-      omap3isp: Quit using struct v4l2_subdev.host_priv field
-
- drivers/media/platform/omap3isp/isp.c       | 134 ++++++++++++++++++----------
- drivers/media/platform/omap3isp/isp.h       |   4 +-
- drivers/media/platform/omap3isp/ispccdc.c   |  16 ++--
- drivers/media/platform/omap3isp/ispccp2.c   |  12 ++-
- drivers/media/platform/omap3isp/ispcsi2.c   |   6 +-
- drivers/media/platform/omap3isp/ispcsiphy.c |  50 +++++------
- drivers/media/platform/omap3isp/ispcsiphy.h |   6 +-
- drivers/media/platform/omap3isp/ispreg.h    |   4 +
- drivers/media/platform/omap3isp/omap3isp.h  |   1 +
- 9 files changed, 139 insertions(+), 94 deletions(-)
-
+diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
+index dd769e40416f..eb904a71609a 100644
+--- a/drivers/media/cec/cec-adap.c
++++ b/drivers/media/cec/cec-adap.c
+@@ -86,7 +86,7 @@ void cec_queue_event_fh(struct cec_fh *fh,
+ 			const struct cec_event *new_ev, u64 ts)
+ {
+ 	static const u8 max_events[CEC_NUM_EVENTS] = {
+-		1, 1, 64, 64,
++		1, 1, 64, 64, 8, 8,
+ 	};
+ 	struct cec_event_entry *entry;
+ 	unsigned int ev_idx = new_ev->event - 1;
+@@ -170,6 +170,22 @@ void cec_queue_pin_cec_event(struct cec_adapter *adap, bool is_high, ktime_t ts)
+ }
+ EXPORT_SYMBOL_GPL(cec_queue_pin_cec_event);
+ 
++/* Notify userspace that the HPD pin changed state at the given time. */
++void cec_queue_pin_hpd_event(struct cec_adapter *adap, bool is_high, ktime_t ts)
++{
++	struct cec_event ev = {
++		.event = is_high ? CEC_EVENT_PIN_HPD_HIGH :
++				   CEC_EVENT_PIN_HPD_LOW,
++	};
++	struct cec_fh *fh;
++
++	mutex_lock(&adap->devnode.lock);
++	list_for_each_entry(fh, &adap->devnode.fhs, list)
++		cec_queue_event_fh(fh, &ev, ktime_to_ns(ts));
++	mutex_unlock(&adap->devnode.lock);
++}
++EXPORT_SYMBOL_GPL(cec_queue_pin_hpd_event);
++
+ /*
+  * Queue a new message for this filehandle.
+  *
+diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
+index a079f7fe018c..465bb3ec21f6 100644
+--- a/drivers/media/cec/cec-api.c
++++ b/drivers/media/cec/cec-api.c
+@@ -529,7 +529,7 @@ static int cec_open(struct inode *inode, struct file *filp)
+ 	 * Initial events that are automatically sent when the cec device is
+ 	 * opened.
+ 	 */
+-	struct cec_event ev_state = {
++	struct cec_event ev = {
+ 		.event = CEC_EVENT_STATE_CHANGE,
+ 		.flags = CEC_EVENT_FL_INITIAL_STATE,
+ 	};
+@@ -569,9 +569,19 @@ static int cec_open(struct inode *inode, struct file *filp)
+ 	filp->private_data = fh;
+ 
+ 	/* Queue up initial state events */
+-	ev_state.state_change.phys_addr = adap->phys_addr;
+-	ev_state.state_change.log_addr_mask = adap->log_addrs.log_addr_mask;
+-	cec_queue_event_fh(fh, &ev_state, 0);
++	ev.state_change.phys_addr = adap->phys_addr;
++	ev.state_change.log_addr_mask = adap->log_addrs.log_addr_mask;
++	cec_queue_event_fh(fh, &ev, 0);
++#ifdef CONFIG_CEC_PIN
++	if (adap->pin && adap->pin->ops->read_hpd) {
++		err = adap->pin->ops->read_hpd(adap);
++		if (err >= 0) {
++			ev.event = err ? CEC_EVENT_PIN_HPD_HIGH :
++					 CEC_EVENT_PIN_HPD_LOW;
++			cec_queue_event_fh(fh, &ev, 0);
++		}
++	}
++#endif
+ 
+ 	list_add(&fh->list, &devnode->fhs);
+ 	mutex_unlock(&devnode->lock);
+diff --git a/include/media/cec-pin.h b/include/media/cec-pin.h
+index f09cc9579d53..ea84b9c9e0c3 100644
+--- a/include/media/cec-pin.h
++++ b/include/media/cec-pin.h
+@@ -97,6 +97,9 @@ enum cec_pin_state {
+  * @free:	optional. Free any allocated resources. Called when the
+  *		adapter is deleted.
+  * @status:	optional, log status information.
++ * @read_hpd:	read the HPD pin. Return true if high, false if low or
++ *		an error if negative. If NULL or -ENOTTY is returned,
++ *		then this is not supported.
+  *
+  * These operations are used by the cec pin framework to manipulate
+  * the CEC pin.
+@@ -109,6 +112,7 @@ struct cec_pin_ops {
+ 	void (*disable_irq)(struct cec_adapter *adap);
+ 	void (*free)(struct cec_adapter *adap);
+ 	void (*status)(struct cec_adapter *adap, struct seq_file *file);
++	int  (*read_hpd)(struct cec_adapter *adap);
+ };
+ 
+ #define CEC_NUM_PIN_EVENTS 128
+diff --git a/include/media/cec.h b/include/media/cec.h
+index df6b3bd31284..9d0f983faea9 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -91,7 +91,7 @@ struct cec_event_entry {
+ };
+ 
+ #define CEC_NUM_CORE_EVENTS 2
+-#define CEC_NUM_EVENTS CEC_EVENT_PIN_CEC_HIGH
++#define CEC_NUM_EVENTS CEC_EVENT_PIN_HPD_HIGH
+ 
+ struct cec_fh {
+ 	struct list_head	list;
+@@ -296,6 +296,16 @@ static inline void cec_received_msg(struct cec_adapter *adap,
+ void cec_queue_pin_cec_event(struct cec_adapter *adap,
+ 			     bool is_high, ktime_t ts);
+ 
++/**
++ * cec_queue_pin_hpd_event() - queue a pin event with a given timestamp.
++ *
++ * @adap:	pointer to the cec adapter
++ * @is_high:	when true the HPD pin is high, otherwise it is low
++ * @ts:		the timestamp for this event
++ *
++ */
++void cec_queue_pin_hpd_event(struct cec_adapter *adap, bool is_high, ktime_t ts);
++
+ /**
+  * cec_get_edid_phys_addr() - find and return the physical address
+  *
+diff --git a/include/uapi/linux/cec.h b/include/uapi/linux/cec.h
+index 4351c3481aea..b9f8df3a0477 100644
+--- a/include/uapi/linux/cec.h
++++ b/include/uapi/linux/cec.h
+@@ -410,6 +410,8 @@ struct cec_log_addrs {
+ #define CEC_EVENT_LOST_MSGS		2
+ #define CEC_EVENT_PIN_CEC_LOW		3
+ #define CEC_EVENT_PIN_CEC_HIGH		4
++#define CEC_EVENT_PIN_HPD_LOW		5
++#define CEC_EVENT_PIN_HPD_HIGH		6
+ 
+ #define CEC_EVENT_FL_INITIAL_STATE	(1 << 0)
+ #define CEC_EVENT_FL_DROPPED_EVENTS	(1 << 1)
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.14.1
