@@ -1,77 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:40298 "EHLO extserv.mm-sol.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752365AbdHHNa6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Aug 2017 09:30:58 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, hans.verkuil@cisco.com, s.nawrocki@samsung.com,
-        sakari.ailus@iki.fi, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
-Cc: Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v4 11/21] media: camss: Enable building
-Date: Tue,  8 Aug 2017 16:30:08 +0300
-Message-Id: <1502199018-28250-12-git-send-email-todor.tomov@linaro.org>
-In-Reply-To: <1502199018-28250-1-git-send-email-todor.tomov@linaro.org>
-References: <1502199018-28250-1-git-send-email-todor.tomov@linaro.org>
+Received: from mout.kundenserver.de ([217.72.192.74]:63623 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751300AbdH3LEp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 Aug 2017 07:04:45 -0400
+Subject: Re: [RFC 0/2] BCM283x Camera Receiver driver
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Dave Stevenson <dave.stevenson@raspberrypi.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-rpi-kernel@lists.infradead.org, linux-media@vger.kernel.org
+References: <cover.1497452006.git.dave.stevenson@raspberrypi.org>
+ <55eba688-5765-72dc-0984-7b642abaf38e@xs4all.nl>
+ <CAAoAYcM5E5vsQ0Cn4X4XSJOO6uNuLqjXaBs1bBHwfiQbi5oHXw@mail.gmail.com>
+ <154d1076-89b6-2c6b-07c1-f1c45eca3727@xs4all.nl>
+From: Stefan Wahren <stefan.wahren@i2se.com>
+Message-ID: <85685932-ddee-81ee-1675-a93da99f0f42@i2se.com>
+Date: Wed, 30 Aug 2017 13:04:04 +0200
+MIME-Version: 1.0
+In-Reply-To: <154d1076-89b6-2c6b-07c1-f1c45eca3727@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add Makefile and update platform/Kconfig and platform/Makefile
-to enable building of the QCom CAMSS driver.
+Hi Hans,
 
-Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
----
- drivers/media/platform/Kconfig                  |  7 +++++++
- drivers/media/platform/Makefile                 |  2 ++
- drivers/media/platform/qcom/camss-8x16/Makefile | 11 +++++++++++
- 3 files changed, 20 insertions(+)
- create mode 100644 drivers/media/platform/qcom/camss-8x16/Makefile
+Am 30.08.2017 um 12:45 schrieb Hans Verkuil:
+> On 30/08/17 11:40, Dave Stevenson wrote:
+>> Hi Hans.
+>>
+>> On 28 August 2017 at 15:15, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>> Hi Dave,
+>>>
+>>> What is the status of this work? I ask because I tried to use this driver
+>>> plus my tc358743 on my rpi-2b without any luck. Specifically the tc358843
+>>> isn't able to read from the i2c bus.
+>> I was on other things until last week, but will try to get a V2 sorted
+>> either this week or early next.
+>> The world moved on slightly too, so there are a few more updates
+>> around fwnode stuff that I ought to adopt.
+>>
+>>> This is probably a bug in my dts, if you have a tree somewhere containing
+>>> a working dts for this, then that would be very helpful.
+>> Almost certainly just pin ctrl on the I2C bus. The default for i2c0 is
+>> normally to GPIOs 0&1 as that is exposed on the 40 pin header
+>> (physical pins 27&28). The camera is on GPIOs 28&29 (alt0) for the
+>> majority of Pi models (not the Pi3, or the early model B).
+> Yep, that was the culprit!
+>
+> I now see the tc, but streaming doesn't work yet. I'm not getting any
+> interrupts in the unicam driver.
+>
+> BTW, when s_dv_timings is called, then you need to update the v4l2_format
+> as well to the new width and height. I noticed that that didn't happen.
+>
+> Anyway, this is good enough for me for now since I want to add CEC support
+> to the tc driver, and I do not need streaming for that...
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 0c741d1..f8263e4 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -110,6 +110,13 @@ config VIDEO_PXA27x
- 	---help---
- 	  This is a v4l2 driver for the PXA27x Quick Capture Interface
- 
-+config VIDEO_QCOM_CAMSS
-+	tristate "Qualcomm 8x16 V4L2 Camera Subsystem driver"
-+	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-+	depends on (ARCH_QCOM && IOMMU_DMA) || COMPILE_TEST
-+	select VIDEOBUF2_DMA_SG
-+	select V4L2_FWNODE
-+
- config VIDEO_S3C_CAMIF
- 	tristate "Samsung S3C24XX/S3C64XX SoC Camera Interface driver"
- 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 9beadc7..10c099c 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -85,4 +85,6 @@ obj-$(CONFIG_VIDEO_MEDIATEK_MDP)	+= mtk-mdp/
- 
- obj-$(CONFIG_VIDEO_MEDIATEK_JPEG)	+= mtk-jpeg/
- 
-+obj-$(CONFIG_VIDEO_QCOM_CAMSS)		+= qcom/camss-8x16/
-+
- obj-$(CONFIG_VIDEO_QCOM_VENUS)		+= qcom/venus/
-diff --git a/drivers/media/platform/qcom/camss-8x16/Makefile b/drivers/media/platform/qcom/camss-8x16/Makefile
-new file mode 100644
-index 0000000..3c4024f
---- /dev/null
-+++ b/drivers/media/platform/qcom/camss-8x16/Makefile
-@@ -0,0 +1,11 @@
-+# Makefile for Qualcomm CAMSS driver
-+
-+qcom-camss-objs += \
-+		camss.o \
-+		camss-csid.o \
-+		camss-csiphy.o \
-+		camss-ispif.o \
-+		camss-vfe.o \
-+		camss-video.o \
-+
-+obj-$(CONFIG_VIDEO_QCOM_CAMSS) += qcom-camss.o
--- 
-2.7.4
+i'm not sure this is related, but there is an issue in VCHIQ with 
+HIGHMEM and VMSPLIT on RPi 2 [1].
+
+Maybe the mentioned kmap fix could be helpful.
+
+Btw: The VCHIQ driver in Dave's repo is a bit outdated.
+
+[1] - https://github.com/raspberrypi/linux/issues/1996
+
+>
+> Regards,
+>
+> 	Hans
+>
+> _______________________________________________
+> linux-rpi-kernel mailing list
+> linux-rpi-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-rpi-kernel
