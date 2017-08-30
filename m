@@ -1,49 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:37832 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752947AbdHTM7P (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Aug 2017 08:59:15 -0400
-Received: by mail-wr0-f196.google.com with SMTP id z91so13504549wrc.4
-        for <linux-media@vger.kernel.org>; Sun, 20 Aug 2017 05:59:15 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, Colin Ian King <colin.king@canonical.com>
-Subject: [PATCH 1/2] [media] dvb-frontends/stv0910: declare global list_head stvlist static
-Date: Sun, 20 Aug 2017 14:59:11 +0200
-Message-Id: <20170820125912.9716-2-d.scheller.oss@gmail.com>
-In-Reply-To: <20170820125912.9716-1-d.scheller.oss@gmail.com>
-References: <20170820125912.9716-1-d.scheller.oss@gmail.com>
+Received: from mout.web.de ([217.72.192.78]:51663 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751306AbdH3HVM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 Aug 2017 03:21:12 -0400
+Subject: [PATCH 3/6] [media] cx24116: Delete an unnecessary variable
+ initialisation in cx24116_writeregN()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <d01b4a11-6e93-bc40-72de-dab9ce7b997a@users.sourceforge.net>
+Message-ID: <7af2ff80-ee62-d2d1-77af-35f34976780b@users.sourceforge.net>
+Date: Wed, 30 Aug 2017 09:21:07 +0200
+MIME-Version: 1.0
+In-Reply-To: <d01b4a11-6e93-bc40-72de-dab9ce7b997a@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Wed, 30 Aug 2017 08:10:38 +0200
 
-Cleans up smatch warning:
-symbol 'stvlist' was not declared. Should it be static?
+The variable "ret" will eventually be set to an appropriate value
+a bit later. Thus omit the explicit initialisation at the beginning.
 
-Patch originally submitted by Colin Ian King <colin.king@canonical.com>,
-remainder after the merge of all other stv0910 fixes.
-
-Cc: Colin Ian King <colin.king@canonical.com>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/dvb-frontends/stv0910.c | 2 +-
+ drivers/media/dvb-frontends/cx24116.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
-index d0a8ed36b899..d1ae9553f74c 100644
---- a/drivers/media/dvb-frontends/stv0910.c
-+++ b/drivers/media/dvb-frontends/stv0910.c
-@@ -34,7 +34,7 @@
- #define BER_SRC_S    0x20
- #define BER_SRC_S2   0x20
- 
--LIST_HEAD(stvlist);
-+static LIST_HEAD(stvlist);
- 
- enum receive_mode { RCVMODE_NONE, RCVMODE_DVBS, RCVMODE_DVBS2, RCVMODE_AUTO };
+diff --git a/drivers/media/dvb-frontends/cx24116.c b/drivers/media/dvb-frontends/cx24116.c
+index 69c156443b50..54f09a5a5075 100644
+--- a/drivers/media/dvb-frontends/cx24116.c
++++ b/drivers/media/dvb-frontends/cx24116.c
+@@ -221,7 +221,7 @@ static int cx24116_writereg(struct cx24116_state *state, int reg, int data)
+ static int cx24116_writeregN(struct cx24116_state *state, int reg,
+ 			     const u8 *data, u16 len)
+ {
+-	int ret = -EREMOTEIO;
++	int ret;
+ 	struct i2c_msg msg;
+ 	u8 *buf;
  
 -- 
-2.13.0
+2.14.1
