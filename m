@@ -1,51 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-dm3nam03on0059.outbound.protection.outlook.com ([104.47.41.59]:9100
-        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752301AbdHIBbc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Aug 2017 21:31:32 -0400
-From: Jeffrey Mouroux <jeff.mouroux@xilinx.com>
-To: <mchehab@kernel.org>, <hansverk@cisco.com>,
-        <laurent.pinchart+renesas@ideasonboard.com>,
-        <sakari.ailus@linux.intel.com>, <tiffany.lin@mediatek.com>,
-        <ricardo.ribalda@gmail.com>, <evgeni.raikhel@intel.com>,
-        <nick@shmanahar.org>
-CC: <linux-media@vger.kernel.org>,
-        Jeffrey Mouroux <jmouroux@xilinx.com>
-Subject: [PATCH v1 0/2] New fourcc codes needed by Video DMA Driver
-Date: Tue, 8 Aug 2017 18:31:16 -0700
-Message-ID: <1502242278-14686-1-git-send-email-jmouroux@xilinx.com>
+Received: from mout.web.de ([212.227.17.12]:61258 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751127AbdH3UWX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 Aug 2017 16:22:23 -0400
+Subject: [PATCH 2/4] [media] ds3000: Improve a size determination in
+ ds3000_attach()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <c854b845-3b79-ca7a-a597-4abc5f32ec54@users.sourceforge.net>
+Message-ID: <01634417-dd3f-acc0-f550-11a33e5c2a59@users.sourceforge.net>
+Date: Wed, 30 Aug 2017 22:22:17 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <c854b845-3b79-ca7a-a597-4abc5f32ec54@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch set is introduced to support a driver we are developing
-for our new Video Framebuffer DMA IP, a DMA device that is "video format aware".
-Clients need only specify memory layout information for a single plane
-(i.e. luma) and then provide a video format code (e.g. YUV420) which will permit
-for intelligent reads or writes (depending on the IP configuration) to host
-memory with only a minimal set of video memory configuration data.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Wed, 30 Aug 2017 21:49:22 +0200
 
-The IP supports a variety of 8-bit and 10-bit video formats, some of which
-are not represented in the current V4L2 user api or framework.  This patch
-set introduces these needed video format codes and updates the 
-framework with the metadata required.
+Replace the specification of a data structure by a pointer dereference
+as the parameter for the operator "sizeof" to make the corresponding size
+determination a bit safer according to the Linux coding style convention.
 
-The DMA driver requiring these updates is not being submitted as part of this
-patch set as it is still undergoing final development.
+This issue was detected by using the Coccinelle software.
 
-We are submitting this patch series for review and comment with regard to
-ensuring we haven't missed any required framework updates and/or in regards to
-the choices we've made to the fourcc string values.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/dvb-frontends/ds3000.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Jeffrey Mouroux (2):
-  uapi: media: New fourcc codes needed by Xilinx Video IP
-  media: v4l2-core: Update V4L2 framework with new fourcc codes
-
- drivers/media/v4l2-core/v4l2-ioctl.c | 9 +++++++++
- include/uapi/linux/videodev2.h       | 9 +++++++++
- 2 files changed, 18 insertions(+)
-
+diff --git a/drivers/media/dvb-frontends/ds3000.c b/drivers/media/dvb-frontends/ds3000.c
+index c2959a9695a7..988a464de3e9 100644
+--- a/drivers/media/dvb-frontends/ds3000.c
++++ b/drivers/media/dvb-frontends/ds3000.c
+@@ -839,7 +839,7 @@ struct dvb_frontend *ds3000_attach(const struct ds3000_config *config,
+ 	dprintk("%s\n", __func__);
+ 
+ 	/* allocate memory for the internal state */
+-	state = kzalloc(sizeof(struct ds3000_state), GFP_KERNEL);
++	state = kzalloc(sizeof(*state), GFP_KERNEL);
+ 	if (!state)
+ 		goto error2;
+ 
 -- 
-1.9.1
+2.14.1
