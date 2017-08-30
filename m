@@ -1,46 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:44289 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753985AbdHWPIx (ORCPT
+Received: from xavier.telenet-ops.be ([195.130.132.52]:36636 "EHLO
+        xavier.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751323AbdH3J5e (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Aug 2017 11:08:53 -0400
-Subject: Re: [GIT PULL FOR v4.14] v2: More constify, some fixes
-To: Hans Verkuil <hansverk@cisco.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <84bd1126-a313-6477-b79c-2896eec62db9@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b90ca238-78ca-2fc0-bece-2d809121e305@xs4all.nl>
-Date: Wed, 23 Aug 2017 17:08:48 +0200
-MIME-Version: 1.0
-In-Reply-To: <84bd1126-a313-6477-b79c-2896eec62db9@cisco.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Wed, 30 Aug 2017 05:57:34 -0400
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+Cc: devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org,
+        Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: [PATCH] [media] v4l: vsp1: Use generic node name
+Date: Wed, 30 Aug 2017 11:57:31 +0200
+Message-Id: <1504087051-5449-1-git-send-email-geert+renesas@glider.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/23/17 16:48, Hans Verkuil wrote:
-> Hi Mauro,
-> 
-> Some more constify stuff and some fixes. The vb2 patch required to fix a
-> venus bug is the most interesting change here.
-> 
-> I tried the -p flag for this pull request. I'm not convinced how useful it
-> is since it doesn't include the commit logs.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> Change since the v1 pull request (marked that as superseded):
-> 
-> Added fix "media: venus: venc: set correct resolution on compressed stream"
-> (with a CC to stable for 4.13)
+Use the preferred generic node name in the example.
 
-Oops, I meant: "venus: fix copy/paste error in return_buf_error".
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+---
+ Documentation/devicetree/bindings/media/renesas,vsp1.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The pull request is correct, my cover letter wasn't.
-
-Regards,
-
-	Hans
+diff --git a/Documentation/devicetree/bindings/media/renesas,vsp1.txt b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
+index 9b695bcbf2190bdd..16427017cb45561e 100644
+--- a/Documentation/devicetree/bindings/media/renesas,vsp1.txt
++++ b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
+@@ -22,7 +22,7 @@ Optional properties:
+ 
+ Example: R8A7790 (R-Car H2) VSP1-S node
+ 
+-	vsp1@fe928000 {
++	vsp@fe928000 {
+ 		compatible = "renesas,vsp1";
+ 		reg = <0 0xfe928000 0 0x8000>;
+ 		interrupts = <0 267 IRQ_TYPE_LEVEL_HIGH>;
+-- 
+2.7.4
