@@ -1,85 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f51.google.com ([209.85.214.51]:34628 "EHLO
-        mail-it0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753983AbdHUQBZ (ORCPT
+Received: from merlin.infradead.org ([205.233.59.134]:32954 "EHLO
+        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751237AbdH3XEc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Aug 2017 12:01:25 -0400
-Received: by mail-it0-f51.google.com with SMTP id x187so1516533ite.1
-        for <linux-media@vger.kernel.org>; Mon, 21 Aug 2017 09:01:25 -0700 (PDT)
+        Wed, 30 Aug 2017 19:04:32 -0400
+Subject: Re: [PATCH 1/2] docs: kernel-doc comments are ASCII
+To: Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-media <linux-media@vger.kernel.org>
+References: <54c23e8e-89c0-5cea-0dcc-e938952c5642@infradead.org>
+ <20170830152314.0486fafb@lwn.net>
+ <3390facf-69ae-ba18-8abe-09b5695a6b31@infradead.org>
+ <20170830191553.179a79d6@vento.lan> <20170830163139.1abf9baa@lwn.net>
+ <228e1748-37dc-1e1e-d5ec-f35e6bfb5636@infradead.org>
+From: Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <9bbf28b9-73be-04a2-fa7b-0c3a56ed03bb@infradead.org>
+Date: Wed, 30 Aug 2017 16:04:29 -0700
 MIME-Version: 1.0
-In-Reply-To: <20170821155203.GB38943@e107564-lin.cambridge.arm.com>
-References: <20170821155203.GB38943@e107564-lin.cambridge.arm.com>
-From: Daniel Vetter <daniel@ffwll.ch>
-Date: Mon, 21 Aug 2017 18:01:24 +0200
-Message-ID: <CAKMK7uFdQPUomZDCp_ak6sTsUayZuut4us08defjKmiy=24QnA@mail.gmail.com>
-Subject: Re: DRM Format Modifiers in v4l2
-To: Brian Starkey <brian.starkey@arm.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        jonathan.chai@arm.com,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <228e1748-37dc-1e1e-d5ec-f35e6bfb5636@infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 21, 2017 at 5:52 PM, Brian Starkey <brian.starkey@arm.com> wrote:
-> Hi all,
->
-> I couldn't find this topic talked about elsewhere, but apologies if
-> it's a duplicate - I'll be glad to be steered in the direction of a
-> thread.
->
-> We'd like to support DRM format modifiers in v4l2 in order to share
-> the description of different (mostly proprietary) buffer formats
-> between e.g. a v4l2 device and a DRM device.
->
-> DRM format modifiers are defined in include/uapi/drm/drm_fourcc.h and
-> are a vendor-namespaced 64-bit value used to describe various
-> vendor-specific buffer layouts. They are combined with a (DRM) FourCC
-> code to give a complete description of the data contained in a buffer.
->
-> The same modifier definition is used in the Khronos EGL extension
-> EGL_EXT_image_dma_buf_import_modifiers, and is supported in the
-> Wayland linux-dmabuf protocol.
->
->
-> This buffer information could of course be described in the
-> vendor-specific part of V4L2_PIX_FMT_*, but this would duplicate the
-> information already defined in drm_fourcc.h. Additionally, there
-> would be quite a format explosion where a device supports a dozen or
-> more formats, all of which can use one or more different
-> layouts/compression schemes.
->
-> So, I'm wondering if anyone has views on how/whether this could be
-> incorporated?
->
-> I spoke briefly about this to Laurent at LPC last year, and he
-> suggested v4l2_control as one approach.
->
-> I also wondered if could be added in v4l2_pix_format_mplane - looks
-> like there's 8 bytes left before it exceeds the 200 bytes, or could go
-> in the reserved portion of v4l2_plane_pix_format.
->
-> Thanks for any thoughts,
+On 08/30/17 16:01, Randy Dunlap wrote:
+> On 08/30/17 15:31, Jonathan Corbet wrote:
+>> On Wed, 30 Aug 2017 19:15:53 -0300
+>> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+>>
+>>> I suspect that the problem is not related to the version, but to
+>>> what you might have set on LANG.
+>>>
+>>> Maybe if we add something like:
+>>> 	LANG=C.utf-8
+>>>
+>>> to the Documentation/Makefile 
+>>
+>> That's worth a try; Randy, can you give it a quick go?
+> 
+> Yes, that fixes it for me.  Thanks.
 
-One problem is that the modifers sometimes reference the DRM fourcc
-codes. v4l has a different (and incompatible set) of fourcc codes,
-whereas all the protocols and specs (you can add DRI3.1 for Xorg to
-that list btw) use both drm fourcc and drm modifiers.
+Wait!  I forgot to unpatch demux.h.  I'll test again now....
 
-This might or might not make this proposal unworkable, but it's
-something I'd at least review carefully.
+>>> or adding:
+>>>
+>>> 	.. -*- coding: utf-8; mode: rst -*-
+>>>
+>>> as the first line on the *.rst file that include the kernel-doc 
+>>> directive would solve the issue.
+>>
+>> I guess I don't see how that would help, instead.  Emacs reads that line,
+>> but it's not involved in the problem.
+>>
+>> I wish I could reproduce this, then we could see what in that massive
+>> try..except block in kerneldoc.py is throwing the exception.  Putting in
+>> an explicit decode call might be enough to make the problem go away.
+> 
+> 
+> 
 
-Otherwise I think it'd be great if we could have one namespace for all
-modifiers, that's pretty much why we have them. Please also note that
-for drm_fourcc.h we don't require an in-kernel user for a new modifier
-since a bunch of them might need to be allocated just for
-userspace-to-userspace buffer sharing (e.g. in EGL/vk). One example
-for this would be compressed surfaces with fast-clearing, which is
-planned for i915 (but current hw can't scan it out). And we really
-want to have one namespace for everything.
--Daniel
+
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+~Randy
