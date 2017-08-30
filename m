@@ -1,99 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:35123 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752667AbdHNXOw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Aug 2017 19:14:52 -0400
-Subject: Re: [PATCH 6/6] [media] media: imx: capture: constify vb2_ops
- structures
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org,
-        Philipp Zabel <p.zabel@pengutronix.de>,
+Received: from mout.web.de ([212.227.17.11]:61292 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750756AbdH3TQL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 Aug 2017 15:16:11 -0400
+Subject: [PATCH 1/2] [media] drxd: Delete an error message for a failed memory
+ allocation in load_firmware()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Colin Ian King <colin.king@canonical.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-References: <1501930033-18249-1-git-send-email-Julia.Lawall@lip6.fr>
- <1501930033-18249-7-git-send-email-Julia.Lawall@lip6.fr>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <2a79a4c7-b1e4-f142-6740-0b9f2d2a6f4d@gmail.com>
-Date: Mon, 14 Aug 2017 16:14:49 -0700
+        Max Kellermann <max.kellermann@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <62e6221c-226c-3b25-08bb-4baff9b23cbb@users.sourceforge.net>
+Message-ID: <190c120b-6974-e232-a171-e0e103a3e9a6@users.sourceforge.net>
+Date: Wed, 30 Aug 2017 21:15:58 +0200
 MIME-Version: 1.0
-In-Reply-To: <1501930033-18249-7-git-send-email-Julia.Lawall@lip6.fr>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+In-Reply-To: <62e6221c-226c-3b25-08bb-4baff9b23cbb@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks,
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Wed, 30 Aug 2017 20:47:12 +0200
 
-Reviewed-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Omit an extra message for a memory allocation failure in this function.
 
-Steve
+This issue was detected by using the Coccinelle software.
 
-On 08/05/2017 03:47 AM, Julia Lawall wrote:
-> These vb2_ops structures are only stored in the ops field of a
-> vb2_queue structure, which is declared as const.  Thus the vb2_ops
-> structures themselves can be const.
->
-> Done with the help of Coccinelle.
->
-> // <smpl>
-> @r disable optional_qualifier@
-> identifier i;
-> position p;
-> @@
-> static struct vb2_ops i@p = { ... };
->
-> @ok@
-> identifier r.i;
-> struct vb2_queue e;
-> position p;
-> @@
-> e.ops = &i@p;
->
-> @bad@
-> position p != {r.p,ok.p};
-> identifier r.i;
-> struct vb2_ops e;
-> @@
-> e@i@p
->
-> @depends on !bad disable optional_qualifier@
-> identifier r.i;
-> @@
-> static
-> +const
->   struct vb2_ops i = { ... };
-> // </smpl>
->
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
->
-> ---
->   drivers/staging/media/imx/imx-media-capture.c |    4 ++--
->   1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
-> index ddab4c2..ea145ba 100644
-> --- a/drivers/staging/media/imx/imx-media-capture.c
-> +++ b/drivers/staging/media/imx/imx-media-capture.c
-> @@ -62,7 +62,7 @@ struct capture_priv {
->   /* In bytes, per queue */
->   #define VID_MEM_LIMIT	SZ_64M
->   
-> -static struct vb2_ops capture_qops;
-> +static const struct vb2_ops capture_qops;
->   
->   /*
->    * Video ioctls follow
-> @@ -503,7 +503,7 @@ static void capture_stop_streaming(struct vb2_queue *vq)
->   	spin_unlock_irqrestore(&priv->q_lock, flags);
->   }
->   
-> -static struct vb2_ops capture_qops = {
-> +static const struct vb2_ops capture_qops = {
->   	.queue_setup	 = capture_queue_setup,
->   	.buf_init        = capture_buf_init,
->   	.buf_prepare	 = capture_buf_prepare,
->
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/dvb-frontends/drxd_hard.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/media/dvb-frontends/drxd_hard.c b/drivers/media/dvb-frontends/drxd_hard.c
+index 7d04400b18dd..47b0d37e70ba 100644
+--- a/drivers/media/dvb-frontends/drxd_hard.c
++++ b/drivers/media/dvb-frontends/drxd_hard.c
+@@ -911,7 +911,6 @@ static int load_firmware(struct drxd_state *state, const char *fw_name)
+ 	state->microcode = kmemdup(fw->data, fw->size, GFP_KERNEL);
+ 	if (state->microcode == NULL) {
+ 		release_firmware(fw);
+-		printk(KERN_ERR "drxd: firmware load failure: no memory\n");
+ 		return -ENOMEM;
+ 	}
+ 
+-- 
+2.14.1
