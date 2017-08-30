@@ -1,93 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:41075 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934471AbdHYQeY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Aug 2017 12:34:24 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Cyprian Wronka <cwronka@cadence.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:41612 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750835AbdH3JgZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 Aug 2017 05:36:25 -0400
+Date: Wed, 30 Aug 2017 10:36:21 +0100
+From: Brian Starkey <brian.starkey@arm.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>,
         "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Neil Webb <neilw@cadence.com>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v2 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
-Date: Fri, 25 Aug 2017 19:34:55 +0300
-Message-ID: <1955840.czSnNPfaK8@avalon>
-In-Reply-To: <20170825144440.beettgwsynics3hs@flea.lan>
-References: <20170720092302.2982-1-maxime.ripard@free-electrons.com> <2518768.foDtbh9bhx@avalon> <20170825144440.beettgwsynics3hs@flea.lan>
+        jonathan.chai@arm.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>
+Subject: Re: DRM Format Modifiers in v4l2
+Message-ID: <20170830093621.GB15136@e107564-lin.cambridge.arm.com>
+References: <CAKMK7uFdQPUomZDCp_ak6sTsUayZuut4us08defjKmiy=24QnA@mail.gmail.com>
+ <47128f36-2990-bd45-ead9-06a31ed8cde0@xs4all.nl>
+ <20170824111430.GB25711@e107564-lin.cambridge.arm.com>
+ <ba202456-4bc6-733e-4950-88ce64ca990e@xs4all.nl>
+ <20170824122647.GA28829@e107564-lin.cambridge.arm.com>
+ <1503943642.3316.7.camel@ndufresne.ca>
+ <CAKMK7uGaQ+9cZ2PyLkwC06Qpch3AK+Tkr4SZFZVLfUqUFKyygQ@mail.gmail.com>
+ <20170829094701.GB26907@e107564-lin.cambridge.arm.com>
+ <20170830075035.ojzhefm3ysqzigkg@phenom.ffwll.local>
+ <4399d87d-9b60-1d8b-cb83-b62f134a0aa5@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <4399d87d-9b60-1d8b-cb83-b62f134a0aa5@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+On Wed, Aug 30, 2017 at 10:10:01AM +0200, Hans Verkuil wrote:
+>On 30/08/17 09:50, Daniel Vetter wrote:
+>> On Tue, Aug 29, 2017 at 10:47:01AM +0100, Brian Starkey wrote:
+>>> The fact is, adding special formats for each combination is
+>>> unmanageable - we're talking dozens in the case of our hardware.
+>>
+>> Hm right, we can just remap the special combos to the drm-fourcc +
+>> modifier style. Bonus point if v4l does that in the core so not everyone
+>> has to reinvent that wheel :-)
+>
+>Probably not something we'll do: there are I believe only two drivers that
+>are affected (exynos & mediatek), so they can do that in their driver.
+>
+>Question: how many modifiers will typically apply to a format? I ask
+>because I realized that V4L2 could use VIDIOC_ENUMFMT to make the link
+>between a fourcc and modifiers:
+>
+>https://hverkuil.home.xs4all.nl/spec/uapi/v4l/vidioc-enum-fmt.html
+>
+>The __u32 reserved[4] array can be used to provide a bitmask to modifier
+>indices (for the integer menu control). It's similar to what drm does,
+>except instead of modifiers mapping to fourccs it is the other way around.
+>
+>This would avoid having to change the modifiers control whenever a new
+>format is set and it makes it easy to enumerate all combinations.
+>
+>But this only works if the total number of modifiers used by a single driver
+>is expected to remain small (let's say no more than 64).
 
-On Friday, 25 August 2017 17:44:40 EEST Maxime Ripard wrote:
-> On Wed, Aug 23, 2017 at 12:03:32AM +0300, Laurent Pinchart wrote:
-> >>>>>> +  - phys: phandle to the external D-PHY
-> >>>>>> +  - phy-names: must contain dphy, if the implementation uses an
-> >>>>>> +     external D-PHY
-> >>>>> 
-> >>>>> I would move the last two properties in an optional category as
-> >>>>> they're effectively optional. I think you should also explain a bit
-> >>>>> more clearly that the phys property must not be present if the phy-
-> >>>>> names property is not present.
-> >>>> 
-> >>>> It's not really optional. The IP has a configuration register that
-> >>>> allows you to see if it's been synthesized with or without a PHY. If
-> >>>> the right bit is set, that property will be mandatory, if not, it's
-> >>>> useless.
-> >>> 
-> >>> Just to confirm, the PHY is a separate IP core, right ? Is the CSI-2
-> >>> receiver input interface different when used with a PHY and when used
-> >>> without one ? Could a third-party PHY be used as well ? If so, would
-> >>> the PHY synthesis bit be set or not ?
-> >> 
-> >> The PHY (in our case a D-PHY) is a separate entity, it can be from a 3rd
-> >> party as the IP interface is standard, the SoC integrator would set the
-> >> bit accordingly based on whether any PHY is present or not. There is also
-> >> an option of routing digital output from a CSI-TX to a CSI-RX and in such
-> >> case a PHY would not need to be used (as in the case of our current
-> >> platform).
-> > 
-> > OK, thank you for the clarification.
-> > 
-> > Maxime mentioned that a bit can be read from a register to notify whether
-> > a PHY has been synthesized or not. Does it influence the CSI-2 RX input
-> > interface at all, or is the CSI-2 RX IP core synthesized the same way
-> > regardless of whether a PHY is present or not ?
-> 
-> So we got an answer to this, and the physical interface remains the
-> same.
-> 
-> However, the PHY bit is set only when there's an internal D-PHY, which
-> means we have basically three cases:
->   - No D-PHY at all, D-PHY presence bit not set
->   - Internal D-PHY, D-PHY presence bit set
->   - External D-PHY, D-PHY presence bit not set
-> 
-> I guess that solves our discussion about whether the phys property
-> should be marked optional or not. It should indeed be optional, and
-> when it's not there, the D-PHY presence bit will tell whether we have
-> to program the internal D-PHY or not.
+In our current (yet to be submitted) description, we've got around a
+dozen modifiers for any one format to describe our compression
+variants. We have a lot of on/off toggles which leads to combinatorial
+expansion, so it can grow pretty quickly (though I am trying to limit
+the valid combinations as much as possible).
 
-Is the internal D-PHY programmed through the register space of the CSI2-RX ? 
-If so I agree with you.
+How about if the mask fills up then VIDIOC_ENUM_FMT can return another
+fmtdsc with the same FourCC and different modifier bitmask, where the
+second one's modifier bitmask is for the next "N" modifiers?
 
--- 
-Regards,
-
-Laurent Pinchart
+-Brian
+>
+>Regards,
+>
+>	Hans
