@@ -1,98 +1,332 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34792
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753583AbdH2NSI (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:44254 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751589AbdH3QKs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 09:18:08 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [PATCH v6 6/7] media: videodev2: add a flag for MC-centric devices
-Date: Tue, 29 Aug 2017 10:17:55 -0300
-Message-Id: <7c496cd024440c00bbdb6e53c4e0c07a94346c02.1504012579.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504012579.git.mchehab@s-opensource.com>
-References: <cover.1504012579.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504012579.git.mchehab@s-opensource.com>
-References: <cover.1504012579.git.mchehab@s-opensource.com>
+        Wed, 30 Aug 2017 12:10:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 4/5] cec-gpio: add HDMI CEC GPIO driver
+Date: Wed, 30 Aug 2017 18:10:43 +0200
+Message-Id: <20170830161044.26571-5-hverkuil@xs4all.nl>
+In-Reply-To: <20170830161044.26571-1-hverkuil@xs4all.nl>
+References: <20170830161044.26571-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As both vdev-centric and MC-centric devices may implement the
-same APIs, we need a flag to allow userspace to distinguish
-between them.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Add a simple HDMI CEC GPIO driver that sits on top of the cec-pin framework.
+
+While I have heard of SoCs that use the GPIO pin for CEC (apparently an
+early RockChip SoC used that), the main use-case of this driver is to
+function as a debugging tool.
+
+By connecting the CEC line to a GPIO pin on a Raspberry Pi 3 for example
+it turns it into a CEC debugger and protocol analyzer.
+
+With 'cec-ctl --monitor-pin' the CEC traffic can be analyzed.
+
+But of course it can also be used with any hardware project where the
+HDMI CEC pin is hooked up to a pull-up gpio pin.
+
+In addition this has (optional) support for tracing HPD changes if the
+HPD is connected to a GPIO.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/media/uapi/v4l/open.rst            | 7 +++++++
- Documentation/media/uapi/v4l/vidioc-querycap.rst | 5 +++++
- Documentation/media/videodev2.h.rst.exceptions   | 1 +
- include/uapi/linux/videodev2.h                   | 2 ++
- 4 files changed, 15 insertions(+)
+ drivers/media/platform/Kconfig             |   9 ++
+ drivers/media/platform/Makefile            |   2 +
+ drivers/media/platform/cec-gpio/Makefile   |   1 +
+ drivers/media/platform/cec-gpio/cec-gpio.c | 237 +++++++++++++++++++++++++++++
+ 4 files changed, 249 insertions(+)
+ create mode 100644 drivers/media/platform/cec-gpio/Makefile
+ create mode 100644 drivers/media/platform/cec-gpio/cec-gpio.c
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index e19295b6dafe..7de8b2fe3096 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -47,6 +47,13 @@ the periferal can be used. For such devices, the sub-devices' configuration
- can be controlled via the :ref:`sub-device API <subdev>`, which creates one
- device node per sub-device.
- 
-+.. attention::
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 7e7cc49b8674..d95b0ee367d6 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -553,6 +553,15 @@ config VIDEO_MESON_AO_CEC
+ 	  This is a driver for Amlogic Meson SoCs AO CEC interface. It uses the
+ 	  generic CEC framework interface.
+ 	  CEC bus is present in the HDMI connector and enables communication
 +
-+   Devices that require **MC-centric** hardware peripheral control should
-+   report a ``V4L2_MC_CENTRIC`` :c:type:`v4l2_capability` flag
-+   (see :ref:`VIDIOC_QUERYCAP`).
++config CEC_GPIO
++	tristate "Generic GPIO-based CEC driver"
++	depends on PREEMPT
++	select CEC_CORE
++	select CEC_PIN
++	---help---
++	  This is a generic GPIO-based CEC driver.
++	  The CEC bus is present in the HDMI connector and enables communication
+ 	  between compatible devices.
+ 
+ config VIDEO_SAMSUNG_S5P_CEC
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index c1ef946bf032..9bf48f118537 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -26,6 +26,8 @@ obj-$(CONFIG_VIDEO_CODA) 		+= coda/
+ 
+ obj-$(CONFIG_VIDEO_SH_VEU)		+= sh_veu.o
+ 
++obj-$(CONFIG_CEC_GPIO)			+= cec-gpio/
 +
+ obj-$(CONFIG_VIDEO_MEM2MEM_DEINTERLACE)	+= m2m-deinterlace.o
+ 
+ obj-$(CONFIG_VIDEO_MUX)			+= video-mux.o
+diff --git a/drivers/media/platform/cec-gpio/Makefile b/drivers/media/platform/cec-gpio/Makefile
+new file mode 100644
+index 000000000000..e82b258afa55
+--- /dev/null
++++ b/drivers/media/platform/cec-gpio/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_CEC_GPIO) += cec-gpio.o
+diff --git a/drivers/media/platform/cec-gpio/cec-gpio.c b/drivers/media/platform/cec-gpio/cec-gpio.c
+new file mode 100644
+index 000000000000..a582cf91bf87
+--- /dev/null
++++ b/drivers/media/platform/cec-gpio/cec-gpio.c
+@@ -0,0 +1,237 @@
++/*
++ * Copyright 2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
++ *
++ * This program is free software; you may redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
 +
- .. _v4l2_device_naming:
- 
- V4L2 Device Node Naming
-diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-index 12e0d9a63cd8..3675f484b7ef 100644
---- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-@@ -252,6 +252,11 @@ specification the ioctl returns an ``EINVAL`` error code.
-     * - ``V4L2_CAP_TOUCH``
-       - 0x10000000
-       - This is a touch device.
-+    * - ``V4L2_MC_CENTRIC``
-+      - 0x20000000
-+      - Indicates that the device require **MC-centric** hardware
-+        control, and thus can't be used by **vdev-centric** applications.
-+        See :ref:`v4l2_hardware_control` for more details.
-     * - ``V4L2_CAP_DEVICE_CAPS``
-       - 0x80000000
-       - The driver fills the ``device_caps`` field. This capability can
-diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-index a5cb0a8686ac..b51a575f9f75 100644
---- a/Documentation/media/videodev2.h.rst.exceptions
-+++ b/Documentation/media/videodev2.h.rst.exceptions
-@@ -157,6 +157,7 @@ replace define V4L2_CAP_META_CAPTURE device-capabilities
- replace define V4L2_CAP_READWRITE device-capabilities
- replace define V4L2_CAP_ASYNCIO device-capabilities
- replace define V4L2_CAP_STREAMING device-capabilities
-+replace define V4L2_CAP_MC_CENTRIC device-capabilities
- replace define V4L2_CAP_DEVICE_CAPS device-capabilities
- replace define V4L2_CAP_TOUCH device-capabilities
- 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 45cf7359822c..a35d762c3eef 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -460,6 +460,8 @@ struct v4l2_capability {
- 
- #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
- 
-+#define V4L2_CAP_MC_CENTRIC             0x20000000  /* Device require MC-centric hardware control */
++#include <linux/module.h>
++#include <linux/interrupt.h>
++#include <linux/delay.h>
++#include <linux/platform_device.h>
++#include <linux/gpio.h>
++#include <linux/gpio/consumer.h>
++#include <linux/of_gpio.h>
++#include <media/cec-pin.h>
 +
- #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device capabilities field */
- 
- /*
++struct cec_gpio {
++	struct cec_adapter	*adap;
++	struct device		*dev;
++	int			gpio;
++	int			hpd_gpio;
++	int			irq;
++	int			hpd_irq;
++	bool			hpd_is_high;
++	ktime_t			hpd_ts;
++	bool			is_low;
++	bool			have_irq;
++};
++
++static bool cec_gpio_read(struct cec_adapter *adap)
++{
++	struct cec_gpio *cec = cec_get_drvdata(adap);
++
++	if (cec->is_low)
++		return false;
++	return gpio_get_value(cec->gpio);
++}
++
++static void cec_gpio_high(struct cec_adapter *adap)
++{
++	struct cec_gpio *cec = cec_get_drvdata(adap);
++
++	if (!cec->is_low)
++		return;
++	cec->is_low = false;
++	gpio_direction_input(cec->gpio);
++}
++
++static void cec_gpio_low(struct cec_adapter *adap)
++{
++	struct cec_gpio *cec = cec_get_drvdata(adap);
++
++	if (cec->is_low)
++		return;
++	if (WARN_ON_ONCE(cec->have_irq))
++		free_irq(cec->irq, cec);
++	cec->have_irq = false;
++	cec->is_low = true;
++	gpio_direction_output(cec->gpio, 0);
++}
++
++static irqreturn_t cec_hpd_gpio_irq_handler_thread(int irq, void *priv)
++{
++	struct cec_gpio *cec = priv;
++
++	cec_queue_pin_hpd_event(cec->adap, cec->hpd_is_high, cec->hpd_ts);
++	return IRQ_HANDLED;
++}
++
++static irqreturn_t cec_hpd_gpio_irq_handler(int irq, void *priv)
++{
++	struct cec_gpio *cec = priv;
++
++	cec->hpd_ts = ktime_get();
++	cec->hpd_is_high = gpio_get_value(cec->hpd_gpio);
++	return IRQ_WAKE_THREAD;
++}
++
++static irqreturn_t cec_gpio_irq_handler(int irq, void *priv)
++{
++	struct cec_gpio *cec = priv;
++
++	cec_pin_changed(cec->adap, gpio_get_value(cec->gpio));
++	return IRQ_HANDLED;
++}
++
++static bool cec_gpio_enable_irq(struct cec_adapter *adap)
++{
++	struct cec_gpio *cec = cec_get_drvdata(adap);
++
++	if (cec->have_irq)
++		return true;
++
++	if (request_irq(cec->irq, cec_gpio_irq_handler,
++			IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
++			adap->name, cec))
++		return false;
++	cec->have_irq = true;
++	return true;
++}
++
++static void cec_gpio_disable_irq(struct cec_adapter *adap)
++{
++	struct cec_gpio *cec = cec_get_drvdata(adap);
++
++	if (cec->have_irq)
++		free_irq(cec->irq, cec);
++	cec->have_irq = false;
++}
++
++static void cec_gpio_status(struct cec_adapter *adap, struct seq_file *file)
++{
++	struct cec_gpio *cec = cec_get_drvdata(adap);
++
++	seq_printf(file, "mode: %s\n", cec->is_low ? "low-drive" : "read");
++	if (cec->have_irq)
++		seq_printf(file, "using irq: %d\n", cec->irq);
++	if (cec->hpd_gpio >= 0)
++		seq_printf(file, "hpd: %s\n",
++			   cec->hpd_is_high ? "high" : "low");
++}
++
++static int cec_gpio_read_hpd(struct cec_adapter *adap)
++{
++	struct cec_gpio *cec = cec_get_drvdata(adap);
++
++	if (cec->hpd_gpio < 0)
++		return -ENOTTY;
++	return gpio_get_value(cec->hpd_gpio);
++}
++
++static void cec_gpio_free(struct cec_adapter *adap)
++{
++	cec_gpio_disable_irq(adap);
++}
++
++static const struct cec_pin_ops cec_gpio_pin_ops = {
++	.read = cec_gpio_read,
++	.low = cec_gpio_low,
++	.high = cec_gpio_high,
++	.enable_irq = cec_gpio_enable_irq,
++	.disable_irq = cec_gpio_disable_irq,
++	.status = cec_gpio_status,
++	.free = cec_gpio_free,
++	.read_hpd = cec_gpio_read_hpd,
++};
++
++static int cec_gpio_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	enum of_gpio_flags hpd_gpio_flags;
++	struct cec_gpio *cec;
++	int ret;
++
++	cec = devm_kzalloc(dev, sizeof(*cec), GFP_KERNEL);
++	if (!cec)
++		return -ENOMEM;
++
++	cec->gpio = of_get_named_gpio_flags(dev->of_node,
++					    "cec-gpio", 0, &hpd_gpio_flags);
++	if (cec->gpio < 0)
++		return cec->gpio;
++
++	cec->hpd_gpio = of_get_named_gpio_flags(dev->of_node,
++					    "hpd-gpio", 0, &hpd_gpio_flags);
++	cec->irq = gpio_to_irq(cec->gpio);
++	gpio_direction_input(cec->gpio);
++	cec->dev = dev;
++
++	if (cec->hpd_gpio >= 0) {
++		cec->hpd_irq = gpio_to_irq(cec->hpd_gpio);
++		gpio_direction_input(cec->hpd_gpio);
++		if (devm_request_threaded_irq(dev, cec->hpd_irq,
++				cec_hpd_gpio_irq_handler,
++				cec_hpd_gpio_irq_handler_thread,
++				IRQF_ONESHOT |
++				IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
++				"hpd-gpio", cec))
++			cec->hpd_gpio = -1;
++	}
++
++	cec->adap = cec_pin_allocate_adapter(&cec_gpio_pin_ops,
++		cec, pdev->name, CEC_CAP_DEFAULTS | CEC_CAP_PHYS_ADDR |
++				 CEC_CAP_MONITOR_ALL | CEC_CAP_MONITOR_PIN);
++	if (IS_ERR(cec->adap))
++		return PTR_ERR(cec->adap);
++
++	ret = cec_register_adapter(cec->adap, &pdev->dev);
++	if (ret) {
++		cec_delete_adapter(cec->adap);
++		return ret;
++	}
++
++	platform_set_drvdata(pdev, cec);
++	return 0;
++}
++
++static int cec_gpio_remove(struct platform_device *pdev)
++{
++	struct cec_gpio *cec = platform_get_drvdata(pdev);
++
++	cec_unregister_adapter(cec->adap);
++	return 0;
++}
++
++static const struct of_device_id cec_gpio_match[] = {
++	{
++		.compatible	= "cec-gpio",
++	},
++	{},
++};
++MODULE_DEVICE_TABLE(of, cec_gpio_match);
++
++static struct platform_driver cec_gpio_pdrv = {
++	.probe	= cec_gpio_probe,
++	.remove = cec_gpio_remove,
++	.driver = {
++		.name		= "cec-gpio",
++		.of_match_table	= cec_gpio_match,
++	},
++};
++
++module_platform_driver(cec_gpio_pdrv);
++
++MODULE_AUTHOR("Hans Verkuil <hans.verkuil@cisco.com>");
++MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("CEC GPIO driver");
 -- 
-2.13.5
+2.14.1
