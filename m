@@ -1,105 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50110
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1755111AbdHYMwy (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:40632 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750711AbdHaIM6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Aug 2017 08:52:54 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: "mchehab@s-opensource.com" <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH v2 2/3] media: open.rst: document devnode-centric and mc-centric types
-Date: Fri, 25 Aug 2017 09:52:41 -0300
-Message-Id: <e789d3d71c7f784d17ffcd8389ce56ae950f736e.1503665390.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1503665390.git.mchehab@s-opensource.com>
-References: <cover.1503665390.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-In-Reply-To: <cover.1503665390.git.mchehab@s-opensource.com>
-References: <cover.1503665390.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Thu, 31 Aug 2017 04:12:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
+        Mats Randgaard <matrandg@cisco.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 2/3] tc358743_regs.h: add CEC registers
+Date: Thu, 31 Aug 2017 10:12:54 +0200
+Message-Id: <20170831081255.23608-3-hverkuil@xs4all.nl>
+In-Reply-To: <20170831081255.23608-1-hverkuil@xs4all.nl>
+References: <20170831081255.23608-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "mchehab@s-opensource.com" <mchehab@s-opensource.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-When we added support for omap3, back in 2010, we added a new
-type of V4L2 devices that aren't fully controlled via the V4L2
-device node. Yet, we never made it clear, at the V4L2 spec,
-about the differences between both types.
+Add the missing CEC register defines.
 
-Let's document them with the current implementation.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/media/uapi/v4l/open.rst | 53 +++++++++++++++++++++++++++++++++++
- 1 file changed, 53 insertions(+)
+ drivers/media/i2c/tc358743_regs.h | 94 ++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 92 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index 9b98d10d5153..bbd1887f83a0 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -6,6 +6,59 @@
- Opening and Closing Devices
- ***************************
+diff --git a/drivers/media/i2c/tc358743_regs.h b/drivers/media/i2c/tc358743_regs.h
+index 657ef50f215f..227b46471793 100644
+--- a/drivers/media/i2c/tc358743_regs.h
++++ b/drivers/media/i2c/tc358743_regs.h
+@@ -193,8 +193,98 @@
+ #define CSI_START                             0x0518
+ #define MASK_STRT                             0x00000001
  
-+Types of V4L2 hardware control
-+==============================
+-#define CECEN                                 0x0600
+-#define MASK_CECEN                            0x0001
++/* *** CEC (32 bit) *** */
++#define CECHCLK				      0x0028	/* 16 bits */
++#define MASK_CECHCLK			      (0x7ff << 0)
 +
-+V4L2 hardware is usually complex: support for the hardware is implemented
-+via a main driver (also known as bridge driver) and often several
-+additional drivers. The main driver always exposes one or
-+more **V4L2 device nodes** (see :ref:`v4l2_device_naming`).
++#define CECLCLK				      0x002a	/* 16 bits */
++#define MASK_CECLCLK			      (0x7ff << 0)
 +
-+The other drivers are called **V4L2 sub-devices** and provide control to
-+other parts of the hardware usually connected via a serial bus (like
-+I²C, SMBus or SPI). Depending on the main driver, they can be implicitly
-+controlled directly by the main driver or explicitly via
-+the **V4L2 sub-device API** (see :ref:`subdev`).
++#define CECEN				      0x0600
++#define MASK_CECEN			      0x0001
 +
-+When V4L2 was originally designed, there was only one type of hardware
-+control. The entire V4L2 hardware is controlled via the
-+**V4L2 device nodes**. We refer to this kind of control as
-+**V4L2 device node centric** (or, simply, **vdev-centric**).
++#define CECADD				      0x0604
++#define CECRST				      0x0608
++#define MASK_CECRESET			      0x0001
 +
-+Since the end of 2010, a new type of V4L2 hardware control was added, in
-+order to support complex devices that are common for embedded systems.
-+Those hardware are controlled mainly via the media controller and
-+sub-devices. So, they are called: **Media controller centric**
-+(or, simply, "**MC-centric**").
++#define CECREN				      0x060c
++#define MASK_CECREN			      0x0001
 +
-+For **vdev-centric** hardware control, the hardware is controlled via
-+the **V4L2 device nodes**. They may optionally support the
-+:ref:`media controller API <media_controller>` as well, in order to let
-+the application to know with device nodes are available.
++#define CECRCTL1			      0x0614
++#define MASK_CECACKDIS			      (1 << 24)
++#define MASK_CECHNC			      (3 << 20)
++#define MASK_CECLNC			      (7 << 16)
++#define MASK_CECMIN			      (7 << 12)
++#define MASK_CECMAX			      (7 << 8)
++#define MASK_CECDAT			      (7 << 4)
++#define MASK_CECTOUT			      (3 << 2)
++#define MASK_CECRIHLD			      (1 << 1)
++#define MASK_CECOTH			      (1 << 0)
 +
-+.. note::
++#define CECRCTL2			      0x0618
++#define MASK_CECSWAV3			      (7 << 12)
++#define MASK_CECSWAV2			      (7 << 8)
++#define MASK_CECSWAV1			      (7 << 4)
++#define MASK_CECSWAV0			      (7 << 0)
 +
-+   A **vdev-centric** may optionally expose V4L2 sub-devices via
-+   :ref:`sub-device API <subdev>`. In that case, it has to implement
-+   the :ref:`media controller API <media_controller>` as well.
++#define CECRCTL3			      0x061c
++#define MASK_CECWAV3			      (7 << 20)
++#define MASK_CECWAV2			      (7 << 16)
++#define MASK_CECWAV1			      (7 << 12)
++#define MASK_CECWAV0			      (7 << 8)
++#define MASK_CECACKEI			      (1 << 4)
++#define MASK_CECMINEI			      (1 << 3)
++#define MASK_CECMAXEI			      (1 << 2)
++#define MASK_CECRSTEI			      (1 << 1)
++#define MASK_CECWAVEI			      (1 << 0)
 +
-+For **MC-centric** hardware control, before using the V4L2 hardware,
-+it is required to set the pipelines via the
-+:ref:`media controller API <media_controller>`. For those devices, the
-+sub-devices' configuration can be controlled via the
-+:ref:`sub-device API <subdev>`, whith creates one device node
-+per sub-device.
++#define CECTEN				      0x0620
++#define MASK_CECTBUSY			      (1 << 1)
++#define MASK_CECTEN			      (1 << 0)
 +
-+In summary, for **MC-centric** hardware control:
++#define CECTCTL				      0x0628
++#define MASK_CECSTRS			      (7 << 20)
++#define MASK_CECSPRD			      (7 << 16)
++#define MASK_CECDTRS			      (7 << 12)
++#define MASK_CECDPRD			      (15 << 8)
++#define MASK_CECBRD			      (1 << 4)
++#define MASK_CECFREE			      (15 << 0)
 +
-+- The **V4L2 device** node is responsible for controlling the streaming
-+  features;
-+- The **media controller device** is responsible to setup the pipelines;
-+- The **V4L2 sub-devices** are responsible for sub-device
-+  specific settings.
++#define CECRSTAT			      0x062c
++#define MASK_CECRIWA			      (1 << 6)
++#define MASK_CECRIOR			      (1 << 5)
++#define MASK_CECRIACK			      (1 << 4)
++#define MASK_CECRIMIN			      (1 << 3)
++#define MASK_CECRIMAX			      (1 << 2)
++#define MASK_CECRISTA			      (1 << 1)
++#define MASK_CECRIEND			      (1 << 0)
 +
++#define CECTSTAT			      0x0630
++#define MASK_CECTIUR			      (1 << 4)
++#define MASK_CECTIACK			      (1 << 3)
++#define MASK_CECTIAL			      (1 << 2)
++#define MASK_CECTIEND			      (1 << 1)
 +
-+.. _v4l2_device_naming:
++#define CECRBUF1			      0x0634
++#define MASK_CECRACK			      (1 << 9)
++#define MASK_CECEOM			      (1 << 8)
++#define MASK_CECRBYTE			      (0xff << 0)
++
++#define CECTBUF1			      0x0674
++#define MASK_CECTEOM			      (1 << 8)
++#define MASK_CECTBYTE			      (0xff << 0)
++
++#define CECRCTR				      0x06b4
++#define MASK_CECRCTR			      (0x1f << 0)
++
++#define CECIMSK				      0x06c0
++#define MASK_CECTIM			      (1 << 1)
++#define MASK_CECRIM			      (1 << 0)
++
++#define CECICLR				      0x06cc
++#define MASK_CECTICLR			      (1 << 1)
++#define MASK_CECRICLR			      (1 << 0)
++
  
- V4L2 Device Node Naming
- =======================
+ #define HDMI_INT0                             0x8500
+ #define MASK_I_KEY                            0x80
 -- 
-2.13.3
+2.14.1
