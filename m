@@ -1,240 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56996 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752664AbdHQS2v (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44944
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751911AbdHaXrL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Aug 2017 14:28:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, pavel@ucw.cz
-Subject: Re: [PATCH v2.5 5/5] omap3isp: Quit using struct v4l2_subdev.host_priv field
-Date: Thu, 17 Aug 2017 21:29:15 +0300
-Message-ID: <15032716.Bqg0yJF0nM@avalon>
-In-Reply-To: <20170817132738.8539-1-sakari.ailus@linux.intel.com>
-References: <20170816203906.29989-1-sakari.ailus@linux.intel.com> <20170817132738.8539-1-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Thu, 31 Aug 2017 19:47:11 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 12/15] media: dmx.h: get rid of DMX_SET_SOURCE
+Date: Thu, 31 Aug 2017 20:46:59 -0300
+Message-Id: <cf4b97ba0e68bf92cf899d04a3862cad1b3a7874.1504222628.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
+References: <cover.1504222628.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
+References: <cover.1504222628.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+No driver uses this ioctl, nor it is documented anywhere.
 
-Thank you for the patch.
+So, get rid of it.
 
-On Thursday 17 Aug 2017 16:27:38 Sakari Ailus wrote:
-> struct v4l2_subdev.host_priv is intended to be used by another driver. This
-> is hardly good design but back in the days of platform data was a quick
-> hack to get things done.
-> 
-> As the sub-device specific bus information can be stored to the ISP driver
-> specific struct allocated along with v4l2_async_subdev, keep the
-> information there and only there.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/dmx.h.rst.exceptions        | 13 --------
+ Documentation/media/uapi/dvb/dmx-set-source.rst | 44 -------------------------
+ Documentation/media/uapi/dvb/dmx_fcalls.rst     |  1 -
+ Documentation/media/uapi/dvb/dmx_types.rst      | 20 -----------
+ include/uapi/linux/dvb/dmx.h                    | 12 -------
+ 5 files changed, 90 deletions(-)
+ delete mode 100644 Documentation/media/uapi/dvb/dmx-set-source.rst
 
-Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
-> since v2.4:
-> 
-> - Use temporary variables to avoid somewhat lengthy statements.
-> 
->  drivers/media/platform/omap3isp/isp.c       | 29 ++++++--------------------
->  drivers/media/platform/omap3isp/isp.h       |  4 +++-
->  drivers/media/platform/omap3isp/ispccdc.c   | 16 +++++++++-------
->  drivers/media/platform/omap3isp/ispccp2.c   |  3 ++-
->  drivers/media/platform/omap3isp/ispcsi2.c   |  2 +-
->  drivers/media/platform/omap3isp/ispcsiphy.c |  8 +++-----
->  6 files changed, 25 insertions(+), 37 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index 6cb1f0495804..c3014c82d64d
-> 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -2188,26 +2188,12 @@ static int isp_fwnodes_parse(struct device *dev,
->  	return -EINVAL;
->  }
-> 
-> -static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
-> -				     struct v4l2_subdev *subdev,
-> -				     struct v4l2_async_subdev *asd)
-> -{
-> -	struct isp_async_subdev *isd =
-> -		container_of(asd, struct isp_async_subdev, asd);
-> -
-> -	isd->sd = subdev;
-> -	isd->sd->host_priv = &isd->bus;
-> -
-> -	return 0;
-> -}
-> -
->  static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
->  {
->  	struct isp_device *isp = container_of(async, struct isp_device,
->  					      notifier);
->  	struct v4l2_device *v4l2_dev = &isp->v4l2_dev;
->  	struct v4l2_subdev *sd;
-> -	struct isp_bus_cfg *bus;
->  	int ret;
-> 
->  	ret = media_entity_enum_init(&isp->crashed, &isp->media_dev);
-> @@ -2215,13 +2201,13 @@ static int isp_subdev_notifier_complete(struct
-> v4l2_async_notifier *async) return ret;
-> 
->  	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
-> -		/* Only try to link entities whose interface was set on bound 
-*/
-> -		if (sd->host_priv) {
-> -			bus = (struct isp_bus_cfg *)sd->host_priv;
-> -			ret = isp_link_entity(isp, &sd->entity, bus-
->interface);
-> -			if (ret < 0)
-> -				return ret;
-> -		}
-> +		if (!sd->asd)
-> +			continue;
-> +
-> +		ret = isp_link_entity(isp, &sd->entity,
-> +				      v4l2_subdev_to_bus_cfg(sd)->interface);
-> +		if (ret < 0)
-> +			return ret;
->  	}
-> 
->  	ret = v4l2_device_register_subdev_nodes(&isp->v4l2_dev);
-> @@ -2399,7 +2385,6 @@ static int isp_probe(struct platform_device *pdev)
->  	if (ret < 0)
->  		goto error_register_entities;
-> 
-> -	isp->notifier.bound = isp_subdev_notifier_bound;
->  	isp->notifier.complete = isp_subdev_notifier_complete;
-> 
->  	ret = v4l2_async_notifier_register(&isp->v4l2_dev, &isp->notifier);
-> diff --git a/drivers/media/platform/omap3isp/isp.h
-> b/drivers/media/platform/omap3isp/isp.h index 2f2ae609c548..e528df6efc09
-> 100644
-> --- a/drivers/media/platform/omap3isp/isp.h
-> +++ b/drivers/media/platform/omap3isp/isp.h
-> @@ -226,11 +226,13 @@ struct isp_device {
->  };
-> 
->  struct isp_async_subdev {
-> -	struct v4l2_subdev *sd;
->  	struct isp_bus_cfg bus;
->  	struct v4l2_async_subdev asd;
->  };
-> 
-> +#define v4l2_subdev_to_bus_cfg(sd) \
-> +	(&container_of((sd)->asd, struct isp_async_subdev, asd)->bus)
-> +
->  #define v4l2_dev_to_isp_device(dev) \
->  	container_of(dev, struct isp_device, v4l2_dev)
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispccdc.c
-> b/drivers/media/platform/omap3isp/ispccdc.c index
-> 4947876cfadf..b66276ab5765 100644
-> --- a/drivers/media/platform/omap3isp/ispccdc.c
-> +++ b/drivers/media/platform/omap3isp/ispccdc.c
-> @@ -1139,8 +1139,10 @@ static void ccdc_configure(struct isp_ccdc_device
-> *ccdc) pad = media_entity_remote_pad(&ccdc->pads[CCDC_PAD_SINK]);
->  	sensor = media_entity_to_v4l2_subdev(pad->entity);
->  	if (ccdc->input == CCDC_INPUT_PARALLEL) {
-> -		parcfg = &((struct isp_bus_cfg *)sensor->host_priv)
-> -			->bus.parallel;
-> +		struct v4l2_subdev *sd =
-> +			to_isp_pipeline(&ccdc->subdev.entity)->external;
-> +
-> +		parcfg = &v4l2_subdev_to_bus_cfg(sd)->bus.parallel;
->  		ccdc->bt656 = parcfg->bt656;
->  	}
-> 
-> @@ -2412,11 +2414,11 @@ static int ccdc_link_validate(struct v4l2_subdev
-> *sd,
-> 
->  	/* We've got a parallel sensor here. */
->  	if (ccdc->input == CCDC_INPUT_PARALLEL) {
-> -		struct isp_parallel_cfg *parcfg =
-> -			&((struct isp_bus_cfg *)
-> -			  media_entity_to_v4l2_subdev(link->source->entity)
-> -			  ->host_priv)->bus.parallel;
-> -		parallel_shift = parcfg->data_lane_shift;
-> +		struct v4l2_subdev *sd =
-> +			media_entity_to_v4l2_subdev(link->source->entity);
-> +		struct isp_bus_cfg *bus_cfg = v4l2_subdev_to_bus_cfg(sd);
-> +
-> +		parallel_shift = bus_cfg->bus.parallel.data_lane_shift;
->  	} else {
->  		parallel_shift = 0;
->  	}
-> diff --git a/drivers/media/platform/omap3isp/ispccp2.c
-> b/drivers/media/platform/omap3isp/ispccp2.c index
-> 3db8df09cd9a..e062939d0d05 100644
-> --- a/drivers/media/platform/omap3isp/ispccp2.c
-> +++ b/drivers/media/platform/omap3isp/ispccp2.c
-> @@ -350,6 +350,7 @@ static void ccp2_lcx_config(struct isp_ccp2_device
-> *ccp2, */
->  static int ccp2_if_configure(struct isp_ccp2_device *ccp2)
->  {
-> +	struct isp_pipeline *pipe = to_isp_pipeline(&ccp2->subdev.entity);
->  	const struct isp_bus_cfg *buscfg;
->  	struct v4l2_mbus_framefmt *format;
->  	struct media_pad *pad;
-> @@ -361,7 +362,7 @@ static int ccp2_if_configure(struct isp_ccp2_device
-> *ccp2)
-> 
->  	pad = media_entity_remote_pad(&ccp2->pads[CCP2_PAD_SINK]);
->  	sensor = media_entity_to_v4l2_subdev(pad->entity);
-> -	buscfg = sensor->host_priv;
-> +	buscfg = v4l2_subdev_to_bus_cfg(pipe->external);
-> 
->  	ret = ccp2_phyif_config(ccp2, &buscfg->bus.ccp2);
->  	if (ret < 0)
-> diff --git a/drivers/media/platform/omap3isp/ispcsi2.c
-> b/drivers/media/platform/omap3isp/ispcsi2.c index
-> 3ec37fed710b..a4d3d030e81e 100644
-> --- a/drivers/media/platform/omap3isp/ispcsi2.c
-> +++ b/drivers/media/platform/omap3isp/ispcsi2.c
-> @@ -566,7 +566,7 @@ static int csi2_configure(struct isp_csi2_device *csi2)
-> 
->  	pad = media_entity_remote_pad(&csi2->pads[CSI2_PAD_SINK]);
->  	sensor = media_entity_to_v4l2_subdev(pad->entity);
-> -	buscfg = sensor->host_priv;
-> +	buscfg = v4l2_subdev_to_bus_cfg(pipe->external);
-> 
->  	csi2->frame_skip = 0;
->  	v4l2_subdev_call(sensor, sensor, g_skip_frames, &csi2->frame_skip);
-> diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c
-> b/drivers/media/platform/omap3isp/ispcsiphy.c index
-> ed1eb9907ae0..a28fb79abaac 100644
-> --- a/drivers/media/platform/omap3isp/ispcsiphy.c
-> +++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-> @@ -165,10 +165,7 @@ static int csiphy_set_power(struct isp_csiphy *phy, u32
-> power) static int omap3isp_csiphy_config(struct isp_csiphy *phy)
->  {
->  	struct isp_pipeline *pipe = to_isp_pipeline(phy->entity);
-> -	struct isp_async_subdev *isd =
-> -		container_of(pipe->external->asd, struct isp_async_subdev, 
-asd);
-> -	struct isp_bus_cfg *buscfg = pipe->external->host_priv ?
-> -		pipe->external->host_priv : &isd->bus;
-> +	struct isp_bus_cfg *buscfg = v4l2_subdev_to_bus_cfg(pipe->external);
->  	struct isp_csiphy_lanes_cfg *lanes;
->  	int csi2_ddrclk_khz;
->  	unsigned int num_data_lanes, used_lanes = 0;
-> @@ -311,7 +308,8 @@ void omap3isp_csiphy_release(struct isp_csiphy *phy)
->  	mutex_lock(&phy->mutex);
->  	if (phy->entity) {
->  		struct isp_pipeline *pipe = to_isp_pipeline(phy->entity);
-> -		struct isp_bus_cfg *buscfg = pipe->external->host_priv;
-> +		struct isp_bus_cfg *buscfg =
-> +			v4l2_subdev_to_bus_cfg(pipe->external);
-> 
->  		csiphy_routing_cfg(phy, buscfg->interface, false,
->  				   buscfg->bus.ccp2.phy_layer);
-
+diff --git a/Documentation/media/dmx.h.rst.exceptions b/Documentation/media/dmx.h.rst.exceptions
+index 5572d2dc9d0e..d2dac35bb84b 100644
+--- a/Documentation/media/dmx.h.rst.exceptions
++++ b/Documentation/media/dmx.h.rst.exceptions
+@@ -40,18 +40,6 @@ replace enum dmx_input :c:type:`dmx_input`
+ replace symbol DMX_IN_FRONTEND :c:type:`dmx_input`
+ replace symbol DMX_IN_DVR :c:type:`dmx_input`
+ 
+-# dmx_source_t symbols
+-replace enum dmx_source :c:type:`dmx_source`
+-replace symbol DMX_SOURCE_FRONT0 :c:type:`dmx_source`
+-replace symbol DMX_SOURCE_FRONT1 :c:type:`dmx_source`
+-replace symbol DMX_SOURCE_FRONT2 :c:type:`dmx_source`
+-replace symbol DMX_SOURCE_FRONT3 :c:type:`dmx_source`
+-replace symbol DMX_SOURCE_DVR0 :c:type:`dmx_source`
+-replace symbol DMX_SOURCE_DVR1 :c:type:`dmx_source`
+-replace symbol DMX_SOURCE_DVR2 :c:type:`dmx_source`
+-replace symbol DMX_SOURCE_DVR3 :c:type:`dmx_source`
+-
+-
+ # Flags for struct dmx_sct_filter_params
+ replace define DMX_CHECK_CRC :c:type:`dmx_sct_filter_params`
+ replace define DMX_ONESHOT :c:type:`dmx_sct_filter_params`
+@@ -61,4 +49,3 @@ replace define DMX_IMMEDIATE_START :c:type:`dmx_sct_filter_params`
+ replace typedef dmx_filter_t :c:type:`dmx_filter`
+ replace typedef dmx_pes_type_t :c:type:`dmx_pes_type`
+ replace typedef dmx_input_t :c:type:`dmx_input`
+-replace typedef dmx_source_t :c:type:`dmx_source`
+diff --git a/Documentation/media/uapi/dvb/dmx-set-source.rst b/Documentation/media/uapi/dvb/dmx-set-source.rst
+deleted file mode 100644
+index ac7f77b25e06..000000000000
+--- a/Documentation/media/uapi/dvb/dmx-set-source.rst
++++ /dev/null
+@@ -1,44 +0,0 @@
+-.. -*- coding: utf-8; mode: rst -*-
+-
+-.. _DMX_SET_SOURCE:
+-
+-==============
+-DMX_SET_SOURCE
+-==============
+-
+-Name
+-----
+-
+-DMX_SET_SOURCE
+-
+-
+-Synopsis
+---------
+-
+-.. c:function:: int ioctl(fd, DMX_SET_SOURCE, struct dmx_source *src)
+-    :name: DMX_SET_SOURCE
+-
+-
+-Arguments
+----------
+-
+-
+-``fd``
+-    File descriptor returned by :c:func:`open() <dvb-dmx-open>`.
+-
+-``src``
+-   Undocumented.
+-
+-
+-Description
+------------
+-
+-.. note:: This ioctl is undocumented. Documentation is welcome.
+-
+-
+-Return Value
+-------------
+-
+-On success 0 is returned, on error -1 and the ``errno`` variable is set
+-appropriately. The generic error codes are described at the
+-:ref:`Generic Error Codes <gen-errors>` chapter.
+diff --git a/Documentation/media/uapi/dvb/dmx_fcalls.rst b/Documentation/media/uapi/dvb/dmx_fcalls.rst
+index 49e013d4540f..be98d60877f2 100644
+--- a/Documentation/media/uapi/dvb/dmx_fcalls.rst
++++ b/Documentation/media/uapi/dvb/dmx_fcalls.rst
+@@ -21,6 +21,5 @@ Demux Function Calls
+     dmx-get-event
+     dmx-get-stc
+     dmx-get-pes-pids
+-    dmx-set-source
+     dmx-add-pid
+     dmx-remove-pid
+diff --git a/Documentation/media/uapi/dvb/dmx_types.rst b/Documentation/media/uapi/dvb/dmx_types.rst
+index 9e907b85cf16..a205c02ccdc1 100644
+--- a/Documentation/media/uapi/dvb/dmx_types.rst
++++ b/Documentation/media/uapi/dvb/dmx_types.rst
+@@ -197,23 +197,3 @@ struct dmx_stc
+ 	unsigned int base;  /* output: divisor for stc to get 90 kHz clock */
+ 	__u64 stc;      /* output: stc in 'base'*90 kHz units */
+     };
+-
+-
+-
+-enum dmx_source
+-===============
+-
+-.. c:type:: dmx_source
+-
+-.. code-block:: c
+-
+-    typedef enum dmx_source {
+-	DMX_SOURCE_FRONT0 = 0,
+-	DMX_SOURCE_FRONT1,
+-	DMX_SOURCE_FRONT2,
+-	DMX_SOURCE_FRONT3,
+-	DMX_SOURCE_DVR0   = 16,
+-	DMX_SOURCE_DVR1,
+-	DMX_SOURCE_DVR2,
+-	DMX_SOURCE_DVR3
+-    } dmx_source_t;
+diff --git a/include/uapi/linux/dvb/dmx.h b/include/uapi/linux/dvb/dmx.h
+index c0ee44fbdb13..dd2b832c02ce 100644
+--- a/include/uapi/linux/dvb/dmx.h
++++ b/include/uapi/linux/dvb/dmx.h
+@@ -117,17 +117,6 @@ struct dmx_pes_filter_params
+ 	__u32          flags;
+ };
+ 
+-typedef enum dmx_source {
+-	DMX_SOURCE_FRONT0 = 0,
+-	DMX_SOURCE_FRONT1,
+-	DMX_SOURCE_FRONT2,
+-	DMX_SOURCE_FRONT3,
+-	DMX_SOURCE_DVR0   = 16,
+-	DMX_SOURCE_DVR1,
+-	DMX_SOURCE_DVR2,
+-	DMX_SOURCE_DVR3
+-} dmx_source_t;
+-
+ struct dmx_stc {
+ 	unsigned int num;	/* input : which STC? 0..N */
+ 	unsigned int base;	/* output: divisor for stc to get 90 kHz clock */
+@@ -140,7 +129,6 @@ struct dmx_stc {
+ #define DMX_SET_PES_FILTER       _IOW('o', 44, struct dmx_pes_filter_params)
+ #define DMX_SET_BUFFER_SIZE      _IO('o', 45)
+ #define DMX_GET_PES_PIDS         _IOR('o', 47, __u16[5])
+-#define DMX_SET_SOURCE           _IOW('o', 49, dmx_source_t)
+ #define DMX_GET_STC              _IOWR('o', 50, struct dmx_stc)
+ #define DMX_ADD_PID              _IOW('o', 51, __u16)
+ #define DMX_REMOVE_PID           _IOW('o', 52, __u16)
 -- 
-Regards,
-
-Laurent Pinchart
+2.13.5
