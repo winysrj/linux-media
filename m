@@ -1,141 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa4.microchip.iphmx.com ([68.232.154.123]:33753 "EHLO
-        esa4.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751038AbdHXG0G (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Aug 2017 02:26:06 -0400
-Subject: Re: [PATCH 1/3] media: atmel-isc: Not support RBG format from sensor.
-To: Hans Verkuil <hverkuil@xs4all.nl>, <mchehab@s-opensource.com>
-CC: <Nicolas.Ferre@microchip.com>, <linux-kernel@vger.kernel.org>,
-        <sakari.ailus@iki.fi>, <corbet@lwn.net>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>
-References: <20170817071614.12767-1-wenyou.yang@microchip.com>
- <20170817071614.12767-2-wenyou.yang@microchip.com>
- <61cb51fa-8d05-6707-00cc-429c761fa6f5@xs4all.nl>
- <14941b74-8931-4d00-0664-0735fad9b5d1@Microchip.com>
- <ce6d074b-1c13-d3ea-5dfa-89cca2f26feb@xs4all.nl>
- <F9F4555C4E01D7469D37975B62D0EFBB6B695B@CHN-SV-EXMX07.mchp-main.com>
- <bbeb178a-d284-7b4c-701e-050bacba83bf@xs4all.nl>
-From: "Yang, Wenyou" <Wenyou.Yang@Microchip.com>
-Message-ID: <4556e520-a57a-6f26-4188-9b32f1701515@Microchip.com>
-Date: Thu, 24 Aug 2017 14:25:12 +0800
+Received: from mga03.intel.com ([134.134.136.65]:24428 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751735AbdHaQFg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 31 Aug 2017 12:05:36 -0400
+From: Jani Nikula <jani.nikula@linux.intel.com>
+To: Randy Dunlap <rdunlap@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: "linux-doc\@vger.kernel.org" <linux-doc@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/2] docs: kernel-doc comments are ASCII
+In-Reply-To: <f9e30c84-7ad7-39dd-a39f-f62581f0b893@infradead.org>
+References: <54c23e8e-89c0-5cea-0dcc-e938952c5642@infradead.org> <20170830152314.0486fafb@lwn.net> <3390facf-69ae-ba18-8abe-09b5695a6b31@infradead.org> <20170831064941.1fb18d20@vento.lan> <87h8wn98bv.fsf@intel.com> <20170831105602.5607fe52@vento.lan> <20170831081721.38be05ef@lwn.net> <f9e30c84-7ad7-39dd-a39f-f62581f0b893@infradead.org>
+Date: Thu, 31 Aug 2017 19:05:28 +0300
+Message-ID: <87d17b90zb.fsf@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <bbeb178a-d284-7b4c-701e-050bacba83bf@xs4all.nl>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 2017/8/23 18:37, Hans Verkuil wrote:
-> On 08/22/17 09:30, Wenyou.Yang@microchip.com wrote:
->> Hi Hans,
->>
->>> -----Original Message-----
->>> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
->>> Sent: 2017年8月22日 15:00
->>> To: Wenyou Yang - A41535 <Wenyou.Yang@microchip.com>; Mauro Carvalho
->>> Chehab <mchehab@s-opensource.com>
->>> Cc: Nicolas Ferre - M43238 <Nicolas.Ferre@microchip.com>; linux-
->>> kernel@vger.kernel.org; Sakari Ailus <sakari.ailus@iki.fi>; Jonathan Corbet
->>> <corbet@lwn.net>; linux-arm-kernel@lists.infradead.org; Linux Media Mailing List
->>> <linux-media@vger.kernel.org>
->>> Subject: Re: [PATCH 1/3] media: atmel-isc: Not support RBG format from sensor.
->>>
->>> On 08/22/2017 03:18 AM, Yang, Wenyou wrote:
->>>> Hi Hans,
->>>>
->>>> On 2017/8/21 22:07, Hans Verkuil wrote:
->>>>> On 08/17/2017 09:16 AM, Wenyou Yang wrote:
->>>>>> The 12-bit parallel interface supports the Raw Bayer, YCbCr,
->>>>>> Monochrome and JPEG Compressed pixel formats from the external
->>>>>> sensor, not support RBG pixel format.
->>>>>>
->>>>>> Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
->>>>>> ---
->>>>>>
->>>>>>    drivers/media/platform/atmel/atmel-isc.c | 5 +++++
->>>>>>    1 file changed, 5 insertions(+)
->>>>>>
->>>>>> diff --git a/drivers/media/platform/atmel/atmel-isc.c
->>>>>> b/drivers/media/platform/atmel/atmel-isc.c
->>>>>> index d4df3d4ccd85..535bb03783fe 100644
->>>>>> --- a/drivers/media/platform/atmel/atmel-isc.c
->>>>>> +++ b/drivers/media/platform/atmel/atmel-isc.c
->>>>>> @@ -1478,6 +1478,11 @@ static int isc_formats_init(struct isc_device *isc)
->>>>>>    	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code,
->>>>>>    	       NULL, &mbus_code)) {
->>>>>>    		mbus_code.index++;
->>>>>> +
->>>>>> +		/* Not support the RGB pixel formats from sensor */
->>>>>> +		if ((mbus_code.code & 0xf000) == 0x1000)
->>>>>> +			continue;
->>>>> Am I missing something? Here you skip any RGB mediabus formats, but
->>>>> in patch 3/3 you add RGB mediabus formats. But this patch prevents
->>>>> those new formats from being selected, right?
->>>> This patch prevents getting the RGB format from the sensor directly.
->>>> The RGB format can be produced by ISC controller by itself.
->>> OK, I think I see what is going on here. The isc_formats array really is two arrays
->>> in one: up to RAW_FMT_IND_END it describes what it can receive from the
->>> source, and after that it describes what it can convert it to.
->> Not exactly.
->>
->> Yes, up to RAW_FMT_IND_END, these formats must be got from the senor, they are RAW formats.
->>  From ISC_FMT_IND_START to ISC_FMT_IND_END, they can be generated by the ISC controller.
->> It is possible they can be got from the sensor too, the driver will check it.
->> If it can be got from both the sensor and the ISC controller, the user can use the "sensor_preferred" parameter to decide from which one to get.
->> The RBG formats are the exception.
->>
->>> But if you can't handle RGB formats from the sensor, then why not make sure
->>> none of the mbus codes in isc_formats uses RGB? That makes much more sense.
->>>
->>> E.g.:
->>>
->>>          { V4L2_PIX_FMT_RGB565, MEDIA_BUS_FMT_RGB565_2X8_LE, 16,
->>>            ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG,
->>> ISC_RLP_CFG_MODE_RGB565,
->>>            ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x7b,
->>>            false, false },
->>>
->>> Why use MEDIA_BUS_FMT_RGB565_2X8_LE if this apparently is not supported?
->> This array is also the lists of all formats supported by the ISC(including got from the sensor).
->> The RGB formats are only generated by the ISC controller, not from the sensor.
-> You're adding code that skips any entries of the table where mbus_code is an
-> RGB code. But this can also be done by not having RGB mbus codes in the table
-> in the first place since they make no sense if the HW cannot handle that!
-> Set the mbus_code to e.g. 0 for such entries, that makes more sense.
+On Thu, 31 Aug 2017, Randy Dunlap <rdunlap@infradead.org> wrote:
+> On 08/31/17 07:17, Jonathan Corbet wrote:
+>> On Thu, 31 Aug 2017 10:56:26 -0300
+>> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+>> 
+>>> It should have something to do with python version and/or to some
+>>> locale info at the system, as neither I or Jon can reproduce it.
+>> 
+>> I can't reproduce it here, but I have certainly seen situations where
+>> Python 2 wants to run with the ascii codec by default.
+>> 
+>> Note that the exception happens in our Sphinx extension, not in Sphinx
+>> itself.  We've had other non-ascii text in our docs, so I think Sphinx is
+>> doing the right thing.  The problem is with our own code.  If I could
+>> reproduce it, it shouldn't be too hard to track down - take out that
+>> massive "except anything" block and see where it explodes.
+>> 
+>> Randy, which distribution are you running, and are you using their version
+>> of Sphinx?
 >
-> I also strongly suggest changing how the table is organized since those
-> _FMT_IND_ indices are all to easy to get wrong (and frankly hard to understand).
-Yes, you are right, I will change it. Do you have some advice?
+> opensuse LEAP 42.2
+> Yes, their sphinx 1.3.1.
 
-Thank you.
+What's your LANG setting? I think that's what it boils down to, and
+trying to work around non-UTF-8 LANG in both python 2 and 3 compatible
+ways.
 
->
-> Regards,
->
-> 	Hans
->
->>> Regards,
->>>
->>> 	Hans
->>>
->>>>> Regards,
->>>>>
->>>>> 	Hans
->>>>>
->>>>>> +
->>>>>>    		fmt = find_format_by_code(mbus_code.code, &i);
->>>>>>    		if (!fmt)
->>>>>>    			continue;
->>>>>>
->>>> Best Regards,
->>>> Wenyou Yang
->>>>
->> Best Regards,
->> Wenyou Yang
-Best Regards,
-Wenyou Yang
+The odd thing is that I can reproduce the issue using a small python
+snippet, but not through Sphinx.
+
+BR,
+Jani.
+
+-- 
+Jani Nikula, Intel Open Source Technology Center
