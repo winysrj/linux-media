@@ -1,72 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f53.google.com ([209.85.215.53]:36053 "EHLO
-        mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751286AbdH2Mwi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Aug 2017 08:52:38 -0400
-Received: by mail-lf0-f53.google.com with SMTP id z12so12938281lfd.3
-        for <linux-media@vger.kernel.org>; Tue, 29 Aug 2017 05:52:37 -0700 (PDT)
-Date: Tue, 29 Aug 2017 14:52:35 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
-Subject: Re: [PATCH v5 2/5] v4l: async: Add V4L2 async documentation to the
- documentation build
-Message-ID: <20170829125235.GF12099@bigcity.dyn.berto.se>
-References: <20170829110313.19538-1-sakari.ailus@linux.intel.com>
- <20170829110313.19538-3-sakari.ailus@linux.intel.com>
+Received: from mout.web.de ([217.72.192.78]:62296 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751725AbdHaT4v (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 31 Aug 2017 15:56:51 -0400
+Subject: [PATCH 1/3] [media] mb86a20s: Delete an error message for a failed
+ memory allocation in mb86a20s_attach()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <9571ee6c-5137-15f4-4cdb-9f03b5cb9268@users.sourceforge.net>
+Message-ID: <b977ca6f-5839-380c-e4b1-0b6108fb4274@users.sourceforge.net>
+Date: Thu, 31 Aug 2017 21:56:44 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+In-Reply-To: <9571ee6c-5137-15f4-4cdb-9f03b5cb9268@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170829110313.19538-3-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 31 Aug 2017 21:10:25 +0200
 
-Thanks for your patch.
+Omit an extra message for a memory allocation failure in this function.
 
-On 2017-08-29 14:03:10 +0300, Sakari Ailus wrote:
-> The V4L2 async wasn't part of the documentation build. Fix this.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+This issue was detected by using the Coccinelle software.
 
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/dvb-frontends/mb86a20s.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-> ---
->  Documentation/media/kapi/v4l2-async.rst | 3 +++
->  Documentation/media/kapi/v4l2-core.rst  | 1 +
->  2 files changed, 4 insertions(+)
->  create mode 100644 Documentation/media/kapi/v4l2-async.rst
-> 
-> diff --git a/Documentation/media/kapi/v4l2-async.rst b/Documentation/media/kapi/v4l2-async.rst
-> new file mode 100644
-> index 000000000000..523ff9eb09a0
-> --- /dev/null
-> +++ b/Documentation/media/kapi/v4l2-async.rst
-> @@ -0,0 +1,3 @@
-> +V4L2 async kAPI
-> +^^^^^^^^^^^^^^^
-> +.. kernel-doc:: include/media/v4l2-async.h
-> diff --git a/Documentation/media/kapi/v4l2-core.rst b/Documentation/media/kapi/v4l2-core.rst
-> index c7434f38fd9c..5cf292037a48 100644
-> --- a/Documentation/media/kapi/v4l2-core.rst
-> +++ b/Documentation/media/kapi/v4l2-core.rst
-> @@ -19,6 +19,7 @@ Video4Linux devices
->      v4l2-mc
->      v4l2-mediabus
->      v4l2-mem2mem
-> +    v4l2-async
->      v4l2-fwnode
->      v4l2-rect
->      v4l2-tuner
-> -- 
-> 2.11.0
-> 
-
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index e8ac8c3e2ec0..340984100aec 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -2075,8 +2075,5 @@ struct dvb_frontend *mb86a20s_attach(const struct mb86a20s_config *config,
+-	if (state == NULL) {
+-		dev_err(&i2c->dev,
+-			"%s: unable to allocate memory for state\n", __func__);
++	if (!state)
+ 		goto error;
+-	}
+ 
+ 	/* setup the state */
+ 	state->config = config;
 -- 
-Regards,
-Niklas Söderlund
+2.14.1
