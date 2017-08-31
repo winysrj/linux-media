@@ -1,46 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:51976 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752195AbdHQINX (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44959
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751900AbdHaXrK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Aug 2017 04:13:23 -0400
-Date: Thu, 17 Aug 2017 10:13:20 +0200
-From: Simon Horman <horms@verge.net.au>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        DRI Development <dri-devel@lists.freedesktop.org>,
-        "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>,
-        Archit Taneja <architt@codeaurora.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 3/4] arm: dts: renesas: add cec clock for Koelsch board
-Message-ID: <20170817081320.GD26170@verge.net.au>
-References: <20170730130743.19681-1-hverkuil@xs4all.nl>
- <20170730130743.19681-4-hverkuil@xs4all.nl>
- <CAMuHMdXSHz2vKNOfJGM3ByzTankzd66Hj_Q_KewmHSWhSmV1Sg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAMuHMdXSHz2vKNOfJGM3ByzTankzd66Hj_Q_KewmHSWhSmV1Sg@mail.gmail.com>
+        Thu, 31 Aug 2017 19:47:10 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 03/15] media: dvb/intro: update the history part of the document
+Date: Thu, 31 Aug 2017 20:46:50 -0300
+Message-Id: <742fbd957fdc01a2ca3ae903a25ab29e637a96b6.1504222628.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
+References: <cover.1504222628.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
+References: <cover.1504222628.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 14, 2017 at 05:34:41PM +0200, Geert Uytterhoeven wrote:
-> On Sun, Jul 30, 2017 at 3:07 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Probably the one-line summary should be
-> 
->     ARM: dts: koelsch: Add CEC clock  for HDMI transmitter
-> 
-> > The adv7511 on the Koelsch board has a 12 MHz fixed clock
-> > for the CEC block. Specify this in the dts to enable CEC support.
-> >
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Convergence doesn't exist anymore. The community itself maintains
+the spec. Update accordingly.
 
-Thanks, I have applied this patch with the updated one-line summary.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/dvb/intro.rst | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/Documentation/media/uapi/dvb/intro.rst b/Documentation/media/uapi/dvb/intro.rst
+index 991643d3b461..4e1594816ef4 100644
+--- a/Documentation/media/uapi/dvb/intro.rst
++++ b/Documentation/media/uapi/dvb/intro.rst
+@@ -39,15 +39,19 @@ grabber cards. As such it was not really well suited to be used for DVB
+ cards and their new features like recording MPEG streams and filtering
+ several section and PES data streams at the same time.
+ 
+-In early 2000, we were approached by Nokia with a proposal for a new
++In early 2000, Convergence was approached by Nokia with a proposal for a new
+ standard Linux DVB API. As a commitment to the development of terminals
+ based on open standards, Nokia and Convergence made it available to all
+ Linux developers and published it on https://linuxtv.org in September
+-2000. Convergence is the maintainer of the Linux DVB API. Together with
+-the LinuxTV community (i.e. you, the reader of this document), the Linux
+-DVB API will be constantly reviewed and improved. With the Linux driver
+-for the Siemens/Hauppauge DVB PCI card Convergence provides a first
+-implementation of the Linux DVB API.
++2000. With the Linux driver for the Siemens/Hauppauge DVB PCI card,
++Convergence provided a first implementation of the Linux DVB API.
++Convergence was the maintainer of the Linux DVB API in the early
++days.
++
++Now, the API is maintained by the LinuxTV community (i.e. you, the reader
++of this document). The Linux  Digital TV API is constantly reviewed and
++improved together with the improvements at the subsystem's core at the
++Kernel.
+ 
+ 
+ .. _overview:
+-- 
+2.13.5
