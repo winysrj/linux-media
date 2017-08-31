@@ -1,130 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:39559 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752250AbdHJDj1 (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44914
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751345AbdHaXrI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 9 Aug 2017 23:39:27 -0400
-Message-ID: <d6ad831db7297bb86962a059a6be2b0b@smtp-cloud7.xs4all.net>
-Date: Thu, 10 Aug 2017 05:39:25 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Thu, 31 Aug 2017 19:47:08 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Shuah Khan <shuah@kernel.org>,
+        Colin Ian King <colin.king@canonical.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Ingo Molnar <mingo@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH 05/15] media: dvb/frontend.h: move out a private internal structure
+Date: Thu, 31 Aug 2017 20:46:52 -0300
+Message-Id: <424dfef4f0a55038a84110466da8796915f4aee6.1504222628.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
+References: <cover.1504222628.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
+References: <cover.1504222628.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+struct dtv_cmds_h is just an ancillary struct used by the
+dvb_frontend.c to internally store frontend commands.
 
-Results of the daily build of media_tree:
+It doesn't belong to the userspace header, nor it is used anywhere,
+except inside the DVB core. So, remove it from the header.
 
-date:			Thu Aug 10 05:00:17 CEST 2017
-media-tree git hash:	ec0c3ec497cabbf3bfa03a9eb5edcc252190a4e0
-media_build git hash:	3a2afb881d1efadba33831f9c56321c4bcbe7178
-v4l-utils git hash:	8824782aaa2d22ca6ca21afb054c189caf3c3531
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.11.0-164
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-core/dvb_frontend.c | 11 +++++++++++
+ include/uapi/linux/dvb/frontend.h     | 11 -----------
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: WARNINGS
-linux-4.9.26-i686: WARNINGS
-linux-4.10.14-i686: WARNINGS
-linux-4.11-i686: WARNINGS
-linux-4.12.1-i686: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 114994ca0929..2fcba1616168 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -1000,6 +1000,17 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+ 	.buffer = b \
+ }
+ 
++struct dtv_cmds_h {
++	char	*name;		/* A display name for debugging purposes */
++
++	__u32	cmd;		/* A unique ID */
++
++	/* Flags */
++	__u32	set:1;		/* Either a set or get property */
++	__u32	buffer:1;	/* Does this property use the buffer? */
++	__u32	reserved:30;	/* Align */
++};
++
+ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
+ 	_DTV_CMD(DTV_TUNE, 1, 0),
+ 	_DTV_CMD(DTV_CLEAR, 1, 0),
+diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+index afc3972b0879..3a80f3d1da1c 100644
+--- a/include/uapi/linux/dvb/frontend.h
++++ b/include/uapi/linux/dvb/frontend.h
+@@ -384,17 +384,6 @@ enum atscmh_rs_code_mode {
+ #define NO_STREAM_ID_FILTER	(~0U)
+ #define LNA_AUTO                (~0U)
+ 
+-struct dtv_cmds_h {
+-	char	*name;		/* A display name for debugging purposes */
+-
+-	__u32	cmd;		/* A unique ID */
+-
+-	/* Flags */
+-	__u32	set:1;		/* Either a set or get property */
+-	__u32	buffer:1;	/* Does this property use the buffer? */
+-	__u32	reserved:30;	/* Align */
+-};
+-
+ /**
+  * Scale types for the quality parameters.
+  * @FE_SCALE_NOT_AVAILABLE: That QoS measure is not available. That
+-- 
+2.13.5
