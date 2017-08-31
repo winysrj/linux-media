@@ -1,77 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53728
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752470AbdHZM3K (ORCPT
+Received: from merlin.infradead.org ([205.233.59.134]:41944 "EHLO
+        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751715AbdHaPrO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 08:29:10 -0400
-Date: Sat, 26 Aug 2017 09:28:59 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Bhumika Goyal <bhumirks@gmail.com>
-Cc: Julia Lawall <julia.lawall@lip6.fr>, mchehab@kernel.org,
-        hverkuil@xs4all.nl, Jonathan Corbet <corbet@lwn.net>,
-        Kyungmin Park <kyungmin.park@samsung.com>, kamil@wypas.org,
-        a.hajda@samsung.com, bparrot@ti.com, linux-media@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 00/10] [media] platform: make video_device const
-Message-ID: <20170826092859.23ee1639@vento.lan>
-In-Reply-To: <CAOH+1jH0BUgoyJK7=QUQcBMpqYf+W0TeMyJ+T2JSyxzY2Ha8fQ@mail.gmail.com>
-References: <1503742812-16139-1-git-send-email-bhumirks@gmail.com>
-        <20170826085942.78e0d222@vento.lan>
-        <CAOH+1jH0BUgoyJK7=QUQcBMpqYf+W0TeMyJ+T2JSyxzY2Ha8fQ@mail.gmail.com>
+        Thu, 31 Aug 2017 11:47:14 -0400
+Subject: Re: [PATCH 1/2] docs: kernel-doc comments are ASCII
+To: Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>,
+        "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-media <linux-media@vger.kernel.org>
+References: <54c23e8e-89c0-5cea-0dcc-e938952c5642@infradead.org>
+ <20170830152314.0486fafb@lwn.net>
+ <3390facf-69ae-ba18-8abe-09b5695a6b31@infradead.org>
+ <20170831064941.1fb18d20@vento.lan> <87h8wn98bv.fsf@intel.com>
+ <20170831105602.5607fe52@vento.lan> <20170831081721.38be05ef@lwn.net>
+From: Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <f9e30c84-7ad7-39dd-a39f-f62581f0b893@infradead.org>
+Date: Thu, 31 Aug 2017 08:47:10 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20170831081721.38be05ef@lwn.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 26 Aug 2017 17:42:34 +0530
-Bhumika Goyal <bhumirks@gmail.com> escreveu:
-
-> On Sat, Aug 26, 2017 at 5:29 PM, Mauro Carvalho Chehab
-> <mchehab@s-opensource.com> wrote:
-> > Em Sat, 26 Aug 2017 15:50:02 +0530
-> > Bhumika Goyal <bhumirks@gmail.com> escreveu:
-> >  
-> >> Make make video_device const.
-> >>
-> >> Bhumika Goyal (10):
-> >>   [media] cx88: make video_device const
-> >>   [media] dt3155: make video_device const
-> >>   [media]: marvell-ccic: make video_device const
-> >>   [media] mx2-emmaprp: make video_device const
-> >>   [media]: s5p-g2d: make video_device const
-> >>   [media]: ti-vpe:  make video_device const
-> >>   [media] via-camera: make video_device const
-> >>   [media]: fsl-viu: make video_device const
-> >>   [media] m2m-deinterlace: make video_device const
-> >>   [media] vim2m: make video_device const
-> >>
-> >>  drivers/media/pci/cx88/cx88-blackbird.c         | 2 +-
-> >>  drivers/media/pci/dt3155/dt3155.c               | 2 +-
-> >>  drivers/media/platform/fsl-viu.c                | 2 +-
-> >>  drivers/media/platform/m2m-deinterlace.c        | 2 +-
-> >>  drivers/media/platform/marvell-ccic/mcam-core.c | 2 +-
-> >>  drivers/media/platform/mx2_emmaprp.c            | 2 +-
-> >>  drivers/media/platform/s5p-g2d/g2d.c            | 2 +-
-> >>  drivers/media/platform/ti-vpe/cal.c             | 2 +-
-> >>  drivers/media/platform/ti-vpe/vpe.c             | 2 +-
-> >>  drivers/media/platform/via-camera.c             | 2 +-
-> >>  drivers/media/platform/vim2m.c                  | 2 +-  
-> >
-> > Please, don't do one such cleanup patch per file. Instead, group
-> > it per subdirectory, e. g. on e patch for:
-> >         drivers/media/platform/
-> >
-> > and another one for:
-> >         drivers/media/pci/
-> >
-> > That makes a lot easier to review and apply.
-> >  
+On 08/31/17 07:17, Jonathan Corbet wrote:
+> On Thu, 31 Aug 2017 10:56:26 -0300
+> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
 > 
-> Okay, I will keep this in mind. Should I send a v2 for both the series?
+>> It should have something to do with python version and/or to some
+>> locale info at the system, as neither I or Jon can reproduce it.
+> 
+> I can't reproduce it here, but I have certainly seen situations where
+> Python 2 wants to run with the ascii codec by default.
+> 
+> Note that the exception happens in our Sphinx extension, not in Sphinx
+> itself.  We've had other non-ascii text in our docs, so I think Sphinx is
+> doing the right thing.  The problem is with our own code.  If I could
+> reproduce it, it shouldn't be too hard to track down - take out that
+> massive "except anything" block and see where it explodes.
+> 
+> Randy, which distribution are you running, and are you using their version
+> of Sphinx?
 
-Yes, please.
+opensuse LEAP 42.2
+Yes, their sphinx 1.3.1.
 
-Thanks,
-Mauro
+
+-- 
+~Randy
