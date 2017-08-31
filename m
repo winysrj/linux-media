@@ -1,131 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:33944 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751959AbdHUK5x (ORCPT
+Received: from merlin.infradead.org ([205.233.59.134]:41866 "EHLO
+        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751915AbdHaPo0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Aug 2017 06:57:53 -0400
-Subject: Re: [PATCH] Staging: bcm2048: fix bare use of 'unsigned' in
- radio-bcm2048.c
-To: Branislav Radocaj <branislav@radocaj.org>, mchehab@kernel.org,
-        gregkh@linuxfoundation.org
-Cc: jb@abbadie.fr, hans.verkuil@cisco.com, nikola.jelic83@gmail.com,
-        ran.algawi@gmail.com, aquannie@gmail.com, shilpapri@gmail.com,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-References: <20170804145824.11768-1-branislav@radocaj.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <f140e262-4f3e-a46f-0dd8-df02915cf9e6@xs4all.nl>
-Date: Mon, 21 Aug 2017 12:57:47 +0200
+        Thu, 31 Aug 2017 11:44:26 -0400
+Subject: Re: [PATCH 1/2] docs: kernel-doc comments are ASCII
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+        "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-media <linux-media@vger.kernel.org>
+References: <54c23e8e-89c0-5cea-0dcc-e938952c5642@infradead.org>
+ <20170830152314.0486fafb@lwn.net>
+ <3390facf-69ae-ba18-8abe-09b5695a6b31@infradead.org>
+ <20170831064941.1fb18d20@vento.lan>
+From: Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <5e451631-e92d-5300-0b0c-ee9f3c1bbb30@infradead.org>
+Date: Thu, 31 Aug 2017 08:44:23 -0700
 MIME-Version: 1.0
-In-Reply-To: <20170804145824.11768-1-branislav@radocaj.org>
+In-Reply-To: <20170831064941.1fb18d20@vento.lan>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/04/2017 04:58 PM, Branislav Radocaj wrote:
-> This is a patch to the radio-bcm2048.c file that fixes up
-> a warning found by the checkpatch.pl tool.
+On 08/31/17 02:49, Mauro Carvalho Chehab wrote:
+> Em Wed, 30 Aug 2017 15:02:59 -0700
+> Randy Dunlap <rdunlap@infradead.org> escreveu:
 > 
-> Signed-off-by: Branislav Radocaj <branislav@radocaj.org>
-> ---
->  drivers/staging/media/bcm2048/radio-bcm2048.c | 50 +++++++++++++--------------
->  1 file changed, 25 insertions(+), 25 deletions(-)
+>> On 08/30/17 14:23, Jonathan Corbet wrote:
+>>> On Mon, 28 Aug 2017 16:10:09 -0700
+>>> Randy Dunlap <rdunlap@infradead.org> wrote:
+>>>   
+>>>> kernel-doc parsing uses as ASCII codec, so let people know that
+>>>> kernel-doc comments should be in ASCII characters only.
+>>>>
+>>>> WARNING: kernel-doc '../scripts/kernel-doc -rst -enable-lineno ../drivers/media/dvb-core/demux.h' processing failed with: 'ascii' codec can't decode byte 0xe2 in position 6368: ordinal not in range(128)  
+>>>
+>>> So I don't get this error.  What kind of system are you running the docs
+>>> build on?  I would really rather that the docs system could handle modern
+>>> text if possible, so it would be better to figure out what's going on
+>>> here...  
+>>
+>> I'm OK with that. Source files in general don't need to be ASCII (0-127).
+>>
+>> I did this patch based on this (private) comment:
+>>
+>>> Yes, using ASCII should fix the problem.  
+>>
+>> what kind of system?  HP laptop.
+>>
+>> Linux midway.site 4.4.79-18.26-default #1 SMP Thu Aug 10 20:30:05 UTC 2017 (fa5a935) x86_64 x86_64 x86_64 GNU/Linux
+>>
+>>> sphinx-build --version  
+>> Sphinx (sphinx-build) 1.3.1
 > 
-> diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-> index 38f72d069e27..90b8f05201ba 100644
-> --- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-> +++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-> @@ -2000,9 +2000,9 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
->  	return sprintf(buf, mask "\n", value);				\
->  }
->  
-> -#define DEFINE_SYSFS_PROPERTY(prop, signal, size, mask, check)		\
-> -property_write(prop, signal size, mask, check)				\
-> -property_read(prop, size, mask)
-> +#define DEFINE_SYSFS_PROPERTY(prop, signal_size, size, mask, check)	\
-> +property_write(prop, signal_size, mask, check)				\
-> +property_read(prop, size, mask)						\
-
-Jeez, the code in this header is awful.
-
-Let's improve this a bit more:
-
-The 'size' argument in property_read is unused AFAICT, so remove it from that
-macro and wherever it is used.
-
-The 'signal, size' arguments of property_write is just a type, so replace
-'signal, size' by prop_type. Update DEFINE_SYSFS_PROPERTY accordingly and
-then all the DEFINE_SYSFS_PROPERTY lines become:
-
-DEFINE_SYSFS_PROPERTY(power_state, unsigned int, "%u", 0)
-
-which finally makes sense when you read it.
-
-Regards,
-
-	Hans
-
->  
->  #define property_str_read(prop, size)					\
->  static ssize_t bcm2048_##prop##_read(struct device *dev,		\
-> @@ -2028,27 +2028,27 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
->  	return count;							\
->  }
->  
-> -DEFINE_SYSFS_PROPERTY(power_state, unsigned, int, "%u", 0)
-> -DEFINE_SYSFS_PROPERTY(mute, unsigned, int, "%u", 0)
-> -DEFINE_SYSFS_PROPERTY(audio_route, unsigned, int, "%u", 0)
-> -DEFINE_SYSFS_PROPERTY(dac_output, unsigned, int, "%u", 0)
-> -
-> -DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned, int, "%u", 0)
-> -DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned, int, "%u", 0)
-> -DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned, int, "%u", 0)
-> -DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned, int, "%u", 0)
-> -DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned, int, "%u", 0)
-> -DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned, int, "%u", 0)
-> -DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned, int, "%u", 0)
-> -DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned, int, "%u", 0)
-> -DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned, int, "%u", value > 3)
-> -
-> -DEFINE_SYSFS_PROPERTY(rds, unsigned, int, "%u", 0)
-> -DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned, int, "%u", 0)
-> -DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned, int, "%u", 0)
-> -DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned, int, "%u", 0)
-> -DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned, int, "%u", 0)
-> -DEFINE_SYSFS_PROPERTY(rds_wline, unsigned, int, "%u", 0)
-> +DEFINE_SYSFS_PROPERTY(power_state, unsigned int, int, "%u", 0)
-> +DEFINE_SYSFS_PROPERTY(mute, unsigned int, int, "%u", 0)
-> +DEFINE_SYSFS_PROPERTY(audio_route, unsigned int, int, "%u", 0)
-> +DEFINE_SYSFS_PROPERTY(dac_output, unsigned int, int, "%u", 0)
-> +
-> +DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned int, int, "%u", 0)
-> +DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned int, int, "%u", 0)
-> +DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned int, int, "%u", 0)
-> +DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned int, int, "%u", 0)
-> +DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned int, int, "%u", 0)
-> +DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned int, int, "%u", 0)
-> +DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned int, int, "%u", 0)
-> +DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned int, int, "%u", 0)
-> +DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned int, int, "%u", value > 3)
-> +
-> +DEFINE_SYSFS_PROPERTY(rds, unsigned int, int, "%u", 0)
-> +DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned int, int, "%u", 0)
-> +DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned int, int, "%u", 0)
-> +DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned int, int, "%u", 0)
-> +DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned int, int, "%u", 0)
-> +DEFINE_SYSFS_PROPERTY(rds_wline, unsigned int, int, "%u", 0)
->  property_read(rds_pi, unsigned int, "%x")
->  property_str_read(rds_rt, (BCM2048_MAX_RDS_RT + 1))
->  property_str_read(rds_ps, (BCM2048_MAX_RDS_PS + 1))
-> @@ -2060,7 +2060,7 @@ property_read(region_bottom_frequency, unsigned int, "%u")
->  property_read(region_top_frequency, unsigned int, "%u")
->  property_signed_read(fm_carrier_error, int, "%d")
->  property_signed_read(fm_rssi, int, "%d")
-> -DEFINE_SYSFS_PROPERTY(region, unsigned, int, "%u", 0)
-> +DEFINE_SYSFS_PROPERTY(region, unsigned int, int, "%u", 0)
->  
->  static struct device_attribute attrs[] = {
->  	__ATTR(power_state, 0644, bcm2048_power_state_read,
+> I tried hard to reproduce the error here... I even added some Chinese
+> chars on a kernel-doc markup and changed the language on my system
+> to LANG=en_US.iso885915.
 > 
+> No luck. 
+> 
+> As Documentation/conf.py has:
+> 
+> 	# -*- coding: utf-8 -*-
+> 
+> on its first line, I suspect that the error you're getting is likely
+> due to the usage of a python version that doesn't recognize this.
+> 
+> It seems that such dialect was introduced on python version 2.3:
+> 
+> 	https://docs.python.org/2.3/whatsnew/section-encodings.html
+> 
+> Yet, the documentation there seems to require a line before it,
+> e. g.:
+> 
+> 	#!/usr/bin/env python
+> 	# -*- coding: UTF-8 -*-
+> 
+> I suspect, however, that, if such line is added, on some systems it
+> may not work, e. g. if both python 2 and 3 are installed, it could
+> use the python version that doesn't have Sphinx installed.
+> 
+> So, I suspect that the safest way to fix it is with something like the
+> enclosed patch. Still, it could be useful to know what's happening,
+> just in case we get other reports.
+> 
+> Randy,
+> 
+> What's your python version?
+
+> python --version
+Python 2.7.13
+
+
+
+-- 
+~Randy
