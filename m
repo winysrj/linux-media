@@ -1,108 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:18120 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751301AbdHYEWf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Aug 2017 00:22:35 -0400
-From: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: tfiga@chromium.org, jian.xu.zheng@intel.com,
-        tian.shu.qiu@intel.com, rajmohan.mani@intel.com,
-        hyungwoo.yang@intel.com,
-        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
-Subject: [PATCH v1] media: ov5670: Use recommended black level and output bias
-Date: Thu, 24 Aug 2017 21:20:55 -0700
-Message-Id: <1503634855-5740-1-git-send-email-chiranjeevi.rapolu@intel.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44930
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751815AbdHaXrJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 31 Aug 2017 19:47:09 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 09/15] media: fe_property_parameters.rst: better document bandwidth
+Date: Thu, 31 Aug 2017 20:46:56 -0300
+Message-Id: <3ed72e42a2eba581a84074b3b26c9190563c6310.1504222628.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
+References: <cover.1504222628.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
+References: <cover.1504222628.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Previously, images were relatively darker due to non-optimal
-settings for black target level and bias.
+Use a table to document the supported bandwidths. That makes
+it clearer to readers.
 
-Now, use recommended settings for black target level and output bias
-as default values. The same default settings apply to all the resolutions.
-Given these recommeneded settings do not change dynamically, add these to
-existing mode register settings.
-
-Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/i2c/ov5670.c | 30 ++++++++++++++++++++++++------
- 1 file changed, 24 insertions(+), 6 deletions(-)
+ .../media/uapi/dvb/fe_property_parameters.rst      | 44 +++++++++++++---------
+ 1 file changed, 26 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/i2c/ov5670.c b/drivers/media/i2c/ov5670.c
-index 6f7a1d6..759ca62 100644
---- a/drivers/media/i2c/ov5670.c
-+++ b/drivers/media/i2c/ov5670.c
-@@ -390,7 +390,10 @@ struct ov5670_mode {
- 	{0x5792, 0x00},
- 	{0x5793, 0x52},
- 	{0x5794, 0xa3},
--	{0x3503, 0x00}
-+	{0x3503, 0x00},
-+	{0x5045, 0x05},
-+	{0x4003, 0x40},
-+	{0x5048, 0x40}
- };
+diff --git a/Documentation/media/uapi/dvb/fe_property_parameters.rst b/Documentation/media/uapi/dvb/fe_property_parameters.rst
+index e085e84fef38..49470f7dda02 100644
+--- a/Documentation/media/uapi/dvb/fe_property_parameters.rst
++++ b/Documentation/media/uapi/dvb/fe_property_parameters.rst
+@@ -116,30 +116,38 @@ Should be set only for terrestrial delivery systems.
+ Possible values: ``1712000``, ``5000000``, ``6000000``, ``7000000``,
+ ``8000000``, ``10000000``.
  
- static const struct ov5670_reg mode_1296x972_regs[] = {
-@@ -653,7 +656,10 @@ struct ov5670_mode {
- 	{0x5792, 0x00},
- 	{0x5793, 0x52},
- 	{0x5794, 0xa3},
--	{0x3503, 0x00}
-+	{0x3503, 0x00},
-+	{0x5045, 0x05},
-+	{0x4003, 0x40},
-+	{0x5048, 0x40}
- };
++======================= =======================================================
++Terrestrial Standard	Possible values for bandwidth
++======================= =======================================================
++ATSC (version 1)	No need to set. It is always 6MHz.
++DMTB			No need to set. It is always 8MHz.
++DVB-T			6MHz, 7MHz and 8MHz.
++DVB-T2			1.172 MHz, 5MHz, 6MHz, 7MHz, 8MHz and 10MHz
++ISDB-T			5MHz, 6MHz, 7MHz and 8MHz, although most places
++			use 6MHz.
++======================= =======================================================
++
++
+ .. note::
  
- static const struct ov5670_reg mode_648x486_regs[] = {
-@@ -916,7 +922,10 @@ struct ov5670_mode {
- 	{0x5792, 0x00},
- 	{0x5793, 0x52},
- 	{0x5794, 0xa3},
--	{0x3503, 0x00}
-+	{0x3503, 0x00},
-+	{0x5045, 0x05},
-+	{0x4003, 0x40},
-+	{0x5048, 0x40}
- };
+-  #. DVB-T supports 6, 7 and 8MHz.
  
- static const struct ov5670_reg mode_2560x1440_regs[] = {
-@@ -1178,7 +1187,10 @@ struct ov5670_mode {
- 	{0x5791, 0x06},
- 	{0x5792, 0x00},
- 	{0x5793, 0x52},
--	{0x5794, 0xa3}
-+	{0x5794, 0xa3},
-+	{0x5045, 0x05},
-+	{0x4003, 0x40},
-+	{0x5048, 0x40}
- };
+-  #. DVB-T2 supports 1.172, 5, 6, 7, 8 and 10MHz.
++  #. For ISDB-Tsb, the bandwidth can vary depending on the number of
++     connected segments.
  
- static const struct ov5670_reg mode_1280x720_regs[] = {
-@@ -1441,7 +1453,10 @@ struct ov5670_mode {
- 	{0x5792, 0x00},
- 	{0x5793, 0x52},
- 	{0x5794, 0xa3},
--	{0x3503, 0x00}
-+	{0x3503, 0x00},
-+	{0x5045, 0x05},
-+	{0x4003, 0x40},
-+	{0x5048, 0x40}
- };
+-  #. ISDB-T supports 5MHz, 6MHz, 7MHz and 8MHz, although most
+-     places use 6MHz.
+-
+-  #. On DVB-C and DVB-S/S2, the bandwidth depends on the symbol rate.
+-     So, the Kernel will silently ignore setting :ref:`DTV-BANDWIDTH-HZ`.
+-
+-  #. For DVB-C and DVB-S/S2, the Kernel will return an estimation of the
+-     bandwidth, calculated from :ref:`DTV-SYMBOL-RATE` and from
+-     the rolloff, with is fixed for DVB-C and DVB-S.
+-
+-  #. For DVB-S2, the bandwidth estimation will use :ref:`DTV-ROLLOFF`.
+-
+-  #. For ISDB-Tsb, it can vary depending on the number of connected
+-     segments.
+-
+-  #. Bandwidth in ISDB-Tsb can be easily derived from other parameters
++     It can be easily derived from other parameters
+      (DTV_ISDBT_SB_SEGMENT_IDX, DTV_ISDBT_SB_SEGMENT_COUNT).
  
- static const struct ov5670_reg mode_640x360_regs[] = {
-@@ -1704,7 +1719,10 @@ struct ov5670_mode {
- 	{0x5792, 0x00},
- 	{0x5793, 0x52},
- 	{0x5794, 0xa3},
--	{0x3503, 0x00}
-+	{0x3503, 0x00},
-+	{0x5045, 0x05},
-+	{0x4003, 0x40},
-+	{0x5048, 0x40}
- };
++  #. On Satellite and Cable delivery systems, the bandwidth depends on
++     the symbol rate. So, the Kernel will silently ignore any setting
++     :ref:`DTV-BANDWIDTH-HZ`. I will however fill it back with a
++     bandwidth estimation.
++
++     Such bandwidth estimation takes into account the symbol rate set with
++     :ref:`DTV-SYMBOL-RATE`, and the rolloff factor, with is fixed for
++     DVB-C and DVB-S.
++
++     For DVB-S2, the rolloff should also be set via :ref:`DTV-ROLLOFF`.
++
  
- static const char * const ov5670_test_pattern_menu[] = {
+ .. _DTV-INVERSION:
+ 
 -- 
-1.9.1
+2.13.5
