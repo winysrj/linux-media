@@ -1,101 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:59938 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753146AbdHQOOz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Aug 2017 10:14:55 -0400
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-To: linux-i2c@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: [RFC PATCH v4 2/6] i2c: add helpers to ease DMA handling
-Date: Thu, 17 Aug 2017 16:14:45 +0200
-Message-Id: <20170817141449.23958-3-wsa+renesas@sang-engineering.com>
-In-Reply-To: <20170817141449.23958-1-wsa+renesas@sang-engineering.com>
-References: <20170817141449.23958-1-wsa+renesas@sang-engineering.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44922
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751693AbdHaXrI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 31 Aug 2017 19:47:08 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 02/15] media: dvb/intro: update references for TV standards
+Date: Thu, 31 Aug 2017 20:46:49 -0300
+Message-Id: <48d1f5611b7f4537e0208798763f92f6b2be18c0.1504222628.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
+References: <cover.1504222628.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
+References: <cover.1504222628.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-One helper checks if DMA is suitable and optionally creates a bounce
-buffer, if not. The other function returns the bounce buffer and makes
-sure the data is properly copied back to the message.
+The references there are only for DVB. Add missing references for
+ATSC and ISDB standards.
 
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/i2c/i2c-core-base.c | 45 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/i2c.h         |  3 +++
- 2 files changed, 48 insertions(+)
+ Documentation/media/uapi/dvb/intro.rst | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-index 12822a4b8f8f09..a104ebc2d05af8 100644
---- a/drivers/i2c/i2c-core-base.c
-+++ b/drivers/i2c/i2c-core-base.c
-@@ -2241,6 +2241,51 @@ void i2c_put_adapter(struct i2c_adapter *adap)
- }
- EXPORT_SYMBOL(i2c_put_adapter);
+diff --git a/Documentation/media/uapi/dvb/intro.rst b/Documentation/media/uapi/dvb/intro.rst
+index de432ffcba50..991643d3b461 100644
+--- a/Documentation/media/uapi/dvb/intro.rst
++++ b/Documentation/media/uapi/dvb/intro.rst
+@@ -18,10 +18,13 @@ part I of the MPEG2 specification ISO/IEC 13818 (aka ITU-T H.222), i.e
+ you should know what a program/transport stream (PS/TS) is and what is
+ meant by a packetized elementary stream (PES) or an I-frame.
  
-+/**
-+ * i2c_get_dma_safe_msg_buf() - get a DMA safe buffer for the given i2c_msg
-+ * @msg: the message to be checked
-+ * @threshold: the amount of byte from which using DMA makes sense
-+ *
-+ * Return: NULL if a DMA safe buffer was not obtained. Use msg->buf with PIO.
-+ *
-+ *	   Or a valid pointer to be used with DMA. Note that it can either be
-+ *	   msg->buf or a bounce buffer. After use, release it by calling
-+ *	   i2c_release_dma_safe_msg_buf().
-+ *
-+ * This function must only be called from process context!
-+ */
-+u8 *i2c_get_dma_safe_msg_buf(struct i2c_msg *msg, unsigned int threshold)
-+{
-+	if (msg->len < threshold)
-+		return NULL;
-+
-+	if (msg->flags & I2C_M_DMA_SAFE)
-+		return msg->buf;
-+
-+	if (msg->flags & I2C_M_RD)
-+		return kzalloc(msg->len, GFP_KERNEL);
-+	else
-+		return kmemdup(msg->buf, msg->len, GFP_KERNEL);
-+}
-+EXPORT_SYMBOL_GPL(i2c_get_dma_safe_msg_buf);
-+
-+/**
-+ * i2c_release_dma_safe_msg_buf - release DMA safe buffer and sync with i2c_msg
-+ * @msg: the message to be synced with
-+ * @buf: the buffer obtained from i2c_get_dma_safe_msg_buf(). May be NULL.
-+ */
-+void i2c_release_dma_safe_msg_buf(struct i2c_msg *msg, u8 *buf)
-+{
-+	if (!buf || buf == msg->buf)
-+		return;
-+
-+	if (msg->flags & I2C_M_RD)
-+		memcpy(msg->buf, buf, msg->len);
-+
-+	kfree(buf);
-+}
-+EXPORT_SYMBOL_GPL(i2c_release_dma_safe_msg_buf);
-+
- MODULE_AUTHOR("Simon G. Vogl <simon@tk.uni-linz.ac.at>");
- MODULE_DESCRIPTION("I2C-Bus main module");
- MODULE_LICENSE("GPL");
-diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-index d501d3956f13f0..1e99342f180f45 100644
---- a/include/linux/i2c.h
-+++ b/include/linux/i2c.h
-@@ -767,6 +767,9 @@ static inline u8 i2c_8bit_addr_from_msg(const struct i2c_msg *msg)
- 	return (msg->addr << 1) | (msg->flags & I2C_M_RD ? 1 : 0);
- }
+-Various DVB standards documents are available from http://www.dvb.org
+-and/or http://www.etsi.org.
++Various Digital TV standards documents are available for download at:
  
-+u8 *i2c_get_dma_safe_msg_buf(struct i2c_msg *msg, unsigned int threshold);
-+void i2c_release_dma_safe_msg_buf(struct i2c_msg *msg, u8 *buf);
+-It is also necessary to know how to access unix/linux devices and how to
++- European standards (DVB): http://www.dvb.org and/or http://www.etsi.org.
++- American standards (ATSC): https://www.atsc.org/standards/
++- Japanese standards (ISDB): http://www.dibeg.org/
 +
- int i2c_handle_smbus_host_notify(struct i2c_adapter *adap, unsigned short addr);
- /**
-  * module_i2c_driver() - Helper macro for registering a modular I2C driver
++It is also necessary to know how to access Linux devices and how to
+ use ioctl calls. This also includes the knowledge of C or C++.
+ 
+ 
 -- 
-2.11.0
+2.13.5
