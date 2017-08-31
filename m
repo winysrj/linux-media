@@ -1,75 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:38239 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754136AbdHWQKI (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:59620 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751398AbdHaIM7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Aug 2017 12:10:08 -0400
-Received: by mail-wm0-f65.google.com with SMTP id l19so547376wmi.5
-        for <linux-media@vger.kernel.org>; Wed, 23 Aug 2017 09:10:07 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 2/5] [media] ddbridge: fix teardown/deregistration order in ddb_input_detach()
-Date: Wed, 23 Aug 2017 18:09:59 +0200
-Message-Id: <20170823161002.25459-3-d.scheller.oss@gmail.com>
-In-Reply-To: <20170823161002.25459-1-d.scheller.oss@gmail.com>
-References: <20170823161002.25459-1-d.scheller.oss@gmail.com>
+        Thu, 31 Aug 2017 04:12:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
+        Mats Randgaard <matrandg@cisco.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 1/3] cec.h: initialize *parent and *port in cec_phys_addr_validate
+Date: Thu, 31 Aug 2017 10:12:53 +0200
+Message-Id: <20170831081255.23608-2-hverkuil@xs4all.nl>
+In-Reply-To: <20170831081255.23608-1-hverkuil@xs4all.nl>
+References: <20170831081255.23608-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Brought to attention by Matthias Schwarzott <zzam@gentoo.org> by fixing
-possible use-after-free faults in some demod drivers:
+Make sure these values are set to avoid 'uninitialized variable'
+warnings. Hasn't happened yet, but better safe than sorry.
 
-In ddb_input_detach(), the i2c_client is unregistered and removed before
-dvb frontends are unregistered and detached. While no use-after-free issue
-was observed so far, there is another issue with this:
-
-dvb->attached keeps track of the state of the input/output registration,
-and the i2c_client unregistration takes place only if everything was
-successful (dvb->attached == 0x31). If for some reason an error occurred
-during the frontend setup, that value stays at 0x20. In the following
-error handling and cleanup, ddb_input_detach() will skip down to that
-state, leaving the i2c_client registered, causing refcount issues.
-
-Fix this by moving the i2c_client deregistration down to case 0x20.
-
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/ddbridge/ddbridge-core.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ include/media/cec.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 2464bde1c432..281b6739b0c1 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -1255,11 +1255,6 @@ static void dvb_input_detach(struct ddb_input *input)
+diff --git a/include/media/cec.h b/include/media/cec.h
+index df6b3bd31284..b96423d7058a 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -417,6 +417,10 @@ static inline u16 cec_phys_addr_for_input(u16 phys_addr, u8 input)
  
- 	switch (dvb->attached) {
- 	case 0x31:
--		client = dvb->i2c_client[0];
--		if (client) {
--			module_put(client->dev.driver->owner);
--			i2c_unregister_device(client);
--		}
- 		if (dvb->fe2)
- 			dvb_unregister_frontend(dvb->fe2);
- 		if (dvb->fe)
-@@ -1273,6 +1268,12 @@ static void dvb_input_detach(struct ddb_input *input)
- 		dvb->fe = dvb->fe2 = NULL;
- 		/* fallthrough */
- 	case 0x20:
-+		client = dvb->i2c_client[0];
-+		if (client) {
-+			module_put(client->dev.driver->owner);
-+			i2c_unregister_device(client);
-+		}
-+
- 		dvb_net_release(&dvb->dvbnet);
- 		/* fallthrough */
- 	case 0x12:
+ static inline int cec_phys_addr_validate(u16 phys_addr, u16 *parent, u16 *port)
+ {
++	if (parent)
++		*parent = phys_addr;
++	if (port)
++		*port = 0;
+ 	return 0;
+ }
+ 
 -- 
-2.13.0
+2.14.1
