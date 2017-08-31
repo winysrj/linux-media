@@ -1,57 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43932 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752782AbdHNKbk (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:34841 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750768AbdHaHtG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Aug 2017 06:31:40 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com
-Subject: [PATCH 2/2] v4l: fwnode: The clock lane is the first lane in lane_polarities
-Date: Mon, 14 Aug 2017 13:31:37 +0300
-Message-Id: <20170814103137.17882-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170814103137.17882-1-sakari.ailus@linux.intel.com>
-References: <20170814103137.17882-1-sakari.ailus@linux.intel.com>
+        Thu, 31 Aug 2017 03:49:06 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: alan@linux.intel.com, gregkh@linuxfoundation.org,
+        mchehab@kernel.org
+Cc: linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-media@vger.kernel.org
+Subject: [PATCH] Staging: atomisp: constify driver_attribute
+Date: Thu, 31 Aug 2017 13:18:37 +0530
+Message-Id: <a6ed8285b5512f245f0950f2446b07b50c6843dd.1504165443.git.arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The clock lane is the first lane in the lane_polarities array. Reflect this
-consistently by putting the number of data lanes after the number of clock
-lanes.
+driver_attribute are not supposed to change at runtime.
+Functions driver_create_file/driver_remove_file are working with
+const driver_attribute. So mark the non-const structs as const.
 
-Fixes: 4ee236219f6d ("media: v4l2-fwnode: suppress a warning at OF parsing logic")
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 ---
- drivers/media/v4l2-core/v4l2-fwnode.c | 2 +-
- include/media/v4l2-fwnode.h           | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index 29e41312f04a..c9147ec398b3 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -48,7 +48,7 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c
+index 1ae2358..9f74b2d 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c
+@@ -162,7 +162,7 @@ static ssize_t iunit_dbgopt_store(struct device_driver *drv, const char *buf,
+ 	return size;
+ }
  
- 	rval = fwnode_property_read_u32_array(fwnode, "data-lanes", NULL, 0);
- 	if (rval > 0) {
--		u32 array[MAX_DATA_LANES + 1];
-+		u32 array[1 + MAX_DATA_LANES];
- 
- 		bus->num_data_lanes = min_t(int, MAX_DATA_LANES, rval);
- 
-diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-index b373c43f65e8..8da716a6a1b8 100644
---- a/include/media/v4l2-fwnode.h
-+++ b/include/media/v4l2-fwnode.h
-@@ -42,7 +42,7 @@ struct v4l2_fwnode_bus_mipi_csi2 {
- 	unsigned char data_lanes[MAX_DATA_LANES];
- 	unsigned char clock_lane;
- 	unsigned short num_data_lanes;
--	bool lane_polarities[MAX_DATA_LANES + 1];
-+	bool lane_polarities[1 + MAX_DATA_LANES];
- };
- 
- /**
+-static struct driver_attribute iunit_drvfs_attrs[] = {
++static const struct driver_attribute iunit_drvfs_attrs[] = {
+ 	__ATTR(dbglvl, 0644, iunit_dbglvl_show, iunit_dbglvl_store),
+ 	__ATTR(dbgfun, 0644, iunit_dbgfun_show, iunit_dbgfun_store),
+ 	__ATTR(dbgopt, 0644, iunit_dbgopt_show, iunit_dbgopt_store),
 -- 
-2.11.0
+1.9.1
