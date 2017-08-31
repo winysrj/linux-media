@@ -1,129 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:46816 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752938AbdHZDkg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Aug 2017 23:40:36 -0400
-Message-ID: <87d6e8762d5881fe498a4b3bb084ccf0@smtp-cloud7.xs4all.net>
-Date: Sat, 26 Aug 2017 05:40:34 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from vps-vb.mhejs.net ([37.28.154.113]:51573 "EHLO vps-vb.mhejs.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751793AbdHaW3H (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 31 Aug 2017 18:29:07 -0400
+From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
+Subject: Re: [PATCH 5/5] [media] cxusb: add analog mode support for Medion
+ MD95700
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Andy Walls <awalls@md.metrocast.net>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org
+References: <6a74971c-171f-7336-065c-59cede29f624@maciej.szmigiero.name>
+ <ea6ab30f-85d4-9afb-d545-d8743e7dd195@xs4all.nl>
+Message-ID: <ed5f3e5f-a57d-6ee6-33f5-187ba49b9aa6@maciej.szmigiero.name>
+Date: Fri, 1 Sep 2017 00:29:04 +0200
+MIME-Version: 1.0
+In-Reply-To: <ea6ab30f-85d4-9afb-d545-d8743e7dd195@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Hans,
 
-Results of the daily build of media_tree:
+On 21.08.2017 15:23, Hans Verkuil wrote:
+> Hi Maciej,
+> 
+> On 08/10/2017 11:53 PM, Maciej S. Szmigiero wrote:
+>> This patch adds support for analog part of Medion 95700 in the cxusb
+>> driver.
+>>
+>> What works:
+>> * Video capture at various sizes with sequential fields,
+>> * Input switching (TV Tuner, Composite, S-Video),
+>> * TV and radio tuning,
+>> * Video standard switching and auto detection,
+>> * Radio mode switching (stereo / mono),
+>> * Unplugging while capturing,
+>> * DVB / analog coexistence,
+>> * Raw BT.656 stream support.
+> 
+> Another scary patch :-)
 
-date:			Sat Aug 26 05:00:15 CEST 2017
-media-tree git hash:	0779b8855c746c90b85bfe6e16d5dfa2a6a46655
-media_build git hash:	4a73db0fa0115ef58537be61da6099c828f57d2b
-v4l-utils git hash:	5a6e0c38468c629f3f6f4fb988acebb9e66e2917
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+Although this isn't a single-liner, most of the code in cxusb-analog.c are
+simple implementations of v4l2 and videobuf2 callbacks - only the buffer
+management code is a bit more complicated.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
+> A high-level question first: is any of the code in cxusb-analog medion
+> specific? There are a lot of cxusb_medion_ prefixes, but I wonder if that
+> shouldn't be cxusb_analog_.
 
-Detailed results are available here:
+>From all the devices cxusb driver supports it looks like only Medion 95700
+and FusionHDTV5 USB have an analog part.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+However, FusionHDTV5 USB has a different tuner and a different digital
+frontend, doesn't support power off command, has a different USB interface
+number for digital mode than Medion and requires upload of a firmware upon
+plugging in (while Medion doesn't), so it's unlikely the current code for
+Medion would work for it without significant changes.
 
-Full logs are available here:
+> There are some obvious code cleanups that need to take place first, such
+> as the huge functions with too many indentations. I would also split off
+> cxusb-analog.c as a separate patch.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+For example like splitting this part into two:
+1) one that adds required analog support to cxusb with functions that are
+provided by cxusb-analog.c (analog init, register, unregister) replaced
+with stubs,
 
-The Media Infrastructure API from this daily build is here:
+2) the second one that actually provides correct implementations via
+cxusb-analog.c?
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> 
+> Regards,
+> 
+> 	Hans
+
+Best regards,
+Maciej
