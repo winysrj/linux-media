@@ -1,72 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:34455 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932329AbdHVO6o (ORCPT
+Received: from merlin.infradead.org ([205.233.59.134]:45034 "EHLO
+        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751622AbdHaRfB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Aug 2017 10:58:44 -0400
+        Thu, 31 Aug 2017 13:35:01 -0400
+Subject: Re: [PATCH 1/2] docs: kernel-doc comments are ASCII
+To: Jani Nikula <jani.nikula@linux.intel.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-media <linux-media@vger.kernel.org>
+References: <54c23e8e-89c0-5cea-0dcc-e938952c5642@infradead.org>
+ <20170830152314.0486fafb@lwn.net>
+ <3390facf-69ae-ba18-8abe-09b5695a6b31@infradead.org>
+ <20170831064941.1fb18d20@vento.lan> <87h8wn98bv.fsf@intel.com>
+ <20170831105602.5607fe52@vento.lan> <20170831081721.38be05ef@lwn.net>
+ <f9e30c84-7ad7-39dd-a39f-f62581f0b893@infradead.org>
+ <87d17b90zb.fsf@intel.com> <87a82f8zjc.fsf@intel.com>
+From: Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <58800275-b969-5377-2fd8-da8e13bad344@infradead.org>
+Date: Thu, 31 Aug 2017 10:34:57 -0700
 MIME-Version: 1.0
-In-Reply-To: <CAL_Jsq+ABipq+YCpSwu_vhjk0rkZQimCD2vG1x5GL91wi6dzKw@mail.gmail.com>
-References: <20170822001912.27638-1-niklas.soderlund+renesas@ragnatech.se> <CAL_Jsq+ABipq+YCpSwu_vhjk0rkZQimCD2vG1x5GL91wi6dzKw@mail.gmail.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 22 Aug 2017 16:58:43 +0200
-Message-ID: <CAMuHMdXU1j=vwJJnhjt96=g5ikCVhuoH7AZysk+WAd5HYJnV4w@mail.gmail.com>
-Subject: Re: [PATCH v2] device property: preserve usecount for node passed to of_fwnode_graph_get_port_parent()
-To: Rob Herring <robh@kernel.org>
-Cc: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        "open list:MEDIA DRIVERS FOR RENESAS - FCP"
-        <linux-renesas-soc@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <87a82f8zjc.fsf@intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
-
-On Tue, Aug 22, 2017 at 4:49 PM, Rob Herring <robh@kernel.org> wrote:
-> On Mon, Aug 21, 2017 at 7:19 PM, Niklas S=C3=B6derlund
-> <niklas.soderlund+renesas@ragnatech.se> wrote:
->> Using CONFIG_OF_DYNAMIC=3Dy uncovered an imbalance in the usecount of th=
-e
->> node being passed to of_fwnode_graph_get_port_parent(). Preserve the
->> usecount by using of_get_parent() instead of of_get_next_parent() which
->> don't decrement the usecount of the node passed to it.
+On 08/31/17 09:36, Jani Nikula wrote:
+> On Thu, 31 Aug 2017, Jani Nikula <jani.nikula@linux.intel.com> wrote:
+>> On Thu, 31 Aug 2017, Randy Dunlap <rdunlap@infradead.org> wrote:
+>>> On 08/31/17 07:17, Jonathan Corbet wrote:
+>>>> On Thu, 31 Aug 2017 10:56:26 -0300
+>>>> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+>>>>
+>>>>> It should have something to do with python version and/or to some
+>>>>> locale info at the system, as neither I or Jon can reproduce it.
+>>>>
+>>>> I can't reproduce it here, but I have certainly seen situations where
+>>>> Python 2 wants to run with the ascii codec by default.
+>>>>
+>>>> Note that the exception happens in our Sphinx extension, not in Sphinx
+>>>> itself.  We've had other non-ascii text in our docs, so I think Sphinx is
+>>>> doing the right thing.  The problem is with our own code.  If I could
+>>>> reproduce it, it shouldn't be too hard to track down - take out that
+>>>> massive "except anything" block and see where it explodes.
+>>>>
+>>>> Randy, which distribution are you running, and are you using their version
+>>>> of Sphinx?
+>>>
+>>> opensuse LEAP 42.2
+>>> Yes, their sphinx 1.3.1.
 >>
->> Fixes: 3b27d00e7b6d7c88 ("device property: Move fwnode graph ops to firm=
-ware specific locations")
->> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech=
-.se>
->> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->> ---
->>  drivers/of/property.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> Isn't this already fixed with this fix:
->
-> commit c0a480d1acf7dc184f9f3e7cf724483b0d28dc2e
-> Author: Tony Lindgren <tony@atomide.com>
-> Date:   Fri Jul 28 01:23:15 2017 -0700
->
-> device property: Fix usecount for of_graph_get_port_parent()
+>> What's your LANG setting? I think that's what it boils down to, and
+>> trying to work around non-UTF-8 LANG in both python 2 and 3 compatible
+>> ways.
+>>
+>> The odd thing is that I can reproduce the issue using a small python
+>> snippet, but not through Sphinx.
+> 
+> Your original error message suggests your Sphinx actually uses python
+> 3. Can you check that? The clue is that it's the *decode* that fails.
 
-No, this one is for of_fwnode_graph_get_port_parent().
+Where do you see that clue?
+My /usr/bin/python is linked to python2.7:
 
-You're letting too many similarly-named new functions through ;-)
+> ll /usr/bin/python
+lrwxrwxrwx 1 root root 9 Jun 10 19:59 /usr/bin/python -> python2.7*
 
-Gr{oetje,eeting}s,
+> Does the below patch help? It avoids the implicit ascii decoding due to
+> universal_newlines=True and your LANG setting, and does explicit utf-8
+> decoding instead.
+> 
+> Fingers crossed.
 
-                        Geert
+testing now.
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
-.org
-
-In personal conversations with technical people, I call myself a hacker. Bu=
-t
-when I'm talking to journalists I just say "programmer" or something like t=
-hat.
-                                -- Linus Torvalds
+-- 
+~Randy
