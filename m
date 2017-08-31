@@ -1,66 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51640 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751108AbdHRLXT (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44942
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751842AbdHaXrJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Aug 2017 07:23:19 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
-Subject: [PATCH v3 0/3] Unified fwnode endpoint parser
-Date: Fri, 18 Aug 2017 14:23:14 +0300
-Message-Id: <20170818112317.30933-1-sakari.ailus@linux.intel.com>
+        Thu, 31 Aug 2017 19:47:09 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 13/15] media: dmx.h: get rid of GET_DMX_EVENT
+Date: Thu, 31 Aug 2017 20:47:00 -0300
+Message-Id: <dd7d1f980509c454f8bbad4ffb8522091564191d.1504222628.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
+References: <cover.1504222628.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
+References: <cover.1504222628.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi folks,
+This seems to be a pure fictional API :-)
 
-We have a large influx of new, unmerged, drivers that are now parsing
-fwnode endpoints and each one of them is doing this a little bit
-differently. The needs are still exactly the same for the graph data
-structure is device independent. This is still a non-trivial task and the
-majority of the driver implementations are buggy, just buggy in different
-ways.
+It only exists at the DVB book, with no code implemeting it.
 
-Facilitate parsing endpoints by adding a convenience function for parsing
-the endpoints, and make the omap3isp driver use it as an example.
+So, just get rid of it.
 
-I plan to include the first patch to a pull request soonish, the second
-could go in with the first user.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/dvb/dmx-get-event.rst | 60 --------------------------
+ Documentation/media/uapi/dvb/dmx_fcalls.rst    |  1 -
+ Documentation/media/uapi/dvb/dmx_types.rst     | 19 --------
+ 3 files changed, 80 deletions(-)
+ delete mode 100644 Documentation/media/uapi/dvb/dmx-get-event.rst
 
-since v2:
-
-- Rebase on CCP2 support patches.
-
-- Prepend a patch cleaning up omap3isp driver a little.
-
-since v1:
-
-- The first patch has been merged (it was a bugfix).
-
-- In anticipation that the parsing can take place over several iterations,
-  take the existing number of async sub-devices into account when
-  re-allocating an array of async sub-devices.
-
-- Rework the first patch to better anticipate parsing single endpoint at a
-  time by a driver.
-
-- Add a second patch that adds a function for parsing endpoints one at a
-  time based on port and endpoint numbers.
-
-Sakari Ailus (3):
-  omap3isp: Drop redundant isp->subdevs field and ISP_MAX_SUBDEVS
-  v4l: fwnode: Support generic parsing of graph endpoints in a device
-  v4l: fwnode: Support generic parsing of graph endpoints in a single
-    port
-
- drivers/media/platform/omap3isp/isp.c | 116 +++++++---------------
- drivers/media/platform/omap3isp/isp.h |   3 -
- drivers/media/v4l2-core/v4l2-fwnode.c | 176 ++++++++++++++++++++++++++++++++++
- include/media/v4l2-async.h            |   4 +-
- include/media/v4l2-fwnode.h           |  16 ++++
- 5 files changed, 231 insertions(+), 84 deletions(-)
-
+diff --git a/Documentation/media/uapi/dvb/dmx-get-event.rst b/Documentation/media/uapi/dvb/dmx-get-event.rst
+deleted file mode 100644
+index 8be626c29158..000000000000
+--- a/Documentation/media/uapi/dvb/dmx-get-event.rst
++++ /dev/null
+@@ -1,60 +0,0 @@
+-.. -*- coding: utf-8; mode: rst -*-
+-
+-.. _DMX_GET_EVENT:
+-
+-=============
+-DMX_GET_EVENT
+-=============
+-
+-Name
+-----
+-
+-DMX_GET_EVENT
+-
+-
+-Synopsis
+---------
+-
+-.. c:function:: int ioctl( int fd, DMX_GET_EVENT, struct dmx_event *ev)
+-    :name: DMX_GET_EVENT
+-
+-
+-Arguments
+----------
+-
+-``fd``
+-    File descriptor returned by :c:func:`open() <dvb-dmx-open>`.
+-
+-``ev``
+-    Pointer to the location where the event is to be stored.
+-
+-
+-Description
+------------
+-
+-This ioctl call returns an event if available. If an event is not
+-available, the behavior depends on whether the device is in blocking or
+-non-blocking mode. In the latter case, the call fails immediately with
+-errno set to ``EWOULDBLOCK``. In the former case, the call blocks until an
+-event becomes available.
+-
+-
+-Return Value
+-------------
+-
+-On success 0 is returned, on error -1 and the ``errno`` variable is set
+-appropriately. The generic error codes are described at the
+-:ref:`Generic Error Codes <gen-errors>` chapter.
+-
+-
+-
+-.. flat-table::
+-    :header-rows:  0
+-    :stub-columns: 0
+-
+-
+-    -  .. row 1
+-
+-       -  ``EWOULDBLOCK``
+-
+-       -  There is no event pending, and the device is in non-blocking mode.
+diff --git a/Documentation/media/uapi/dvb/dmx_fcalls.rst b/Documentation/media/uapi/dvb/dmx_fcalls.rst
+index be98d60877f2..a17289143220 100644
+--- a/Documentation/media/uapi/dvb/dmx_fcalls.rst
++++ b/Documentation/media/uapi/dvb/dmx_fcalls.rst
+@@ -18,7 +18,6 @@ Demux Function Calls
+     dmx-set-filter
+     dmx-set-pes-filter
+     dmx-set-buffer-size
+-    dmx-get-event
+     dmx-get-stc
+     dmx-get-pes-pids
+     dmx-add-pid
+diff --git a/Documentation/media/uapi/dvb/dmx_types.rst b/Documentation/media/uapi/dvb/dmx_types.rst
+index a205c02ccdc1..171205ed86a4 100644
+--- a/Documentation/media/uapi/dvb/dmx_types.rst
++++ b/Documentation/media/uapi/dvb/dmx_types.rst
+@@ -166,25 +166,6 @@ struct dmx_pes_filter_params
+ 	__u32          flags;
+     };
+ 
+-
+-struct dmx_event
+-================
+-
+-.. c:type:: dmx_event
+-
+-.. code-block:: c
+-
+-     struct dmx_event
+-     {
+-	 dmx_event_t          event;
+-	 time_t               timeStamp;
+-	 union
+-	 {
+-	     dmx_scrambling_status_t scrambling;
+-	 } u;
+-     };
+-
+-
+ struct dmx_stc
+ ==============
+ 
 -- 
-2.11.0
+2.13.5
