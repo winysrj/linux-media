@@ -1,38 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:51204 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752966AbdHGKTp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Aug 2017 06:19:45 -0400
-Subject: Re: [PATCH 11/12] [media] exynos4-is: constify v4l2_m2m_ops
- structures
-To: Julia Lawall <Julia.Lawall@lip6.fr>, linux-media@vger.kernel.org
-Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <dc25a655-df4a-3301-384a-00c85f0ee6d8@samsung.com>
-Date: Mon, 07 Aug 2017 12:19:36 +0200
-MIME-version: 1.0
-In-reply-to: <1502007921-22968-12-git-send-email-Julia.Lawall@lip6.fr>
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <1502007921-22968-1-git-send-email-Julia.Lawall@lip6.fr>
-        <1502007921-22968-12-git-send-email-Julia.Lawall@lip6.fr>
-        <CGME20170807101941epcas2p446c04b9a0813cb56f33202e6b4fdc49b@epcas2p4.samsung.com>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:38385 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751264AbdHaLB7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 31 Aug 2017 07:01:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
+        Linus Walleij <linus.walleij@linaro.org>
+Subject: [PATCHv4 0/5] cec-gpio: add HDMI CEC GPIO-based driver
+Date: Thu, 31 Aug 2017 13:01:51 +0200
+Message-Id: <20170831110156.11018-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/06/2017 10:25 AM, Julia Lawall wrote:
-> The v4l2_m2m_ops structures are only passed as the only
-> argument to v4l2_m2m_init, which is declared as const.
-> Thus the v4l2_m2m_ops structures themselves can be const.
-> 
-> Done with the help of Coccinelle.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+This driver adds support for CEC implementations that use a pull-up
+GPIO line. While SoCs exist that do this, the primary use-case is to
+turn a single-board computer into a cheap CEC debugger.
 
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Together with 'cec-ctl --monitor-pin' you can do low-level CEC bus
+monitoring and do protocol analysis. And error injection is also
+planned for the future.
+
+Here is an example using the Raspberry Pi 3:
+
+https://hverkuil.home.xs4all.nl/rpi3-cec.jpg
+
+While this example is for the Rpi, this driver will work for any
+SoC with a pull-up GPIO line.
+
+In addition the cec-gpio driver can optionally monitor the HPD line.
+The state of the HPD line influences the CEC behavior so it is very
+useful to be able to monitor both.
+
+And some HDMI sinks are known to quickly toggle the HPD when e.g.
+switching between inputs. So it is useful to be able to see an event
+when the HPD changes value.
+
+The first two patches add support for the new HPD events. The last
+three patches are for the cec-gpio driver itself.
+
+Regards,
+
+        Hans
+
+Changes since v3:
+
+- cec-gpio.txt: refer to lines instead of pins and use OPEN_DRAIN
+  in the example.
+- Kconfig: add select GPIOLIB
+- cec-gpio.c: switch to gpiod.
+- cec-core.c: initialize the devnode mutex/list in allocate_adapter.
+  Doing this in register_adapter is too late if the HPD is high.
+
+Changes since v2:
+
+- Add support for HPD events.
+- Switch from pin BCM4 to pin BCM7 in the bindings example
+
+Changes since v1:
+
+- Updated the bindings doc to not refer to the driver, instead
+  refer to the hardware.
+
+
+Hans Verkuil (5):
+  cec: add CEC_EVENT_PIN_HPD_LOW/HIGH events
+  cec-ioc-dqevent.rst: document new CEC_EVENT_PIN_HPD_LOW/HIGH events
+  dt-bindings: document the CEC GPIO bindings
+  cec-gpio: add HDMI CEC GPIO driver
+  MAINTAINERS: add cec-gpio entry
+
+ .../devicetree/bindings/media/cec-gpio.txt         |  22 ++
+ Documentation/media/uapi/cec/cec-ioc-dqevent.rst   |  18 ++
+ MAINTAINERS                                        |   9 +
+ drivers/media/cec/cec-adap.c                       |  18 +-
+ drivers/media/cec/cec-api.c                        |  18 +-
+ drivers/media/cec/cec-core.c                       |   8 +-
+ drivers/media/platform/Kconfig                     |  10 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/cec-gpio/Makefile           |   1 +
+ drivers/media/platform/cec-gpio/cec-gpio.c         | 236 +++++++++++++++++++++
+ include/media/cec-pin.h                            |   4 +
+ include/media/cec.h                                |  12 +-
+ include/uapi/linux/cec.h                           |   2 +
+ 13 files changed, 350 insertions(+), 10 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/cec-gpio.txt
+ create mode 100644 drivers/media/platform/cec-gpio/Makefile
+ create mode 100644 drivers/media/platform/cec-gpio/cec-gpio.c
+
+-- 
+2.14.1
