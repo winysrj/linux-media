@@ -1,101 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:14291 "EHLO
-        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752044AbdI1IUw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Sep 2017 04:20:52 -0400
-From: Wenyou Yang <wenyou.yang@microchip.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-CC: <linux-kernel@vger.kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        "Jonathan Corbet" <corbet@lwn.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        <linux-arm-kernel@lists.infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH v3 1/5] media: atmel-isc: Add spin lock for clock enable ops
-Date: Thu, 28 Sep 2017 16:18:24 +0800
-Message-ID: <20170928081828.20335-2-wenyou.yang@microchip.com>
-In-Reply-To: <20170928081828.20335-1-wenyou.yang@microchip.com>
-References: <20170928081828.20335-1-wenyou.yang@microchip.com>
+Received: from mout.web.de ([212.227.15.3]:60324 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752400AbdIATqC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Sep 2017 15:46:02 -0400
+Subject: [PATCH 4/4] [media] sp2: Adjust three null pointer checks in
+ sp2_exit()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Olli Salonen <olli.salonen@iki.fi>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <6142ca34-fcda-f2b6-bc35-dbbde0d34378@users.sourceforge.net>
+Message-ID: <2d2b6ac7-eb35-a439-3dab-ed4e01e3a9f8@users.sourceforge.net>
+Date: Fri, 1 Sep 2017 21:45:49 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <6142ca34-fcda-f2b6-bc35-dbbde0d34378@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the spin lock for the clock enable and disable operations.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Fri, 1 Sep 2017 21:16:06 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+The script “checkpatch.pl” pointed information out like the following.
+
+Comparison to NULL could be written !…
+
+Thus fix the affected source code places.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
+ drivers/media/dvb-frontends/sp2.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Changes in v3:
- - Fix the wrong used spinlock.
- - s/_/- on the subject.
-
-Changes in v2: None
-
- drivers/media/platform/atmel/atmel-isc.c | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-index 2f8e345d297e..991f962b7023 100644
---- a/drivers/media/platform/atmel/atmel-isc.c
-+++ b/drivers/media/platform/atmel/atmel-isc.c
-@@ -65,6 +65,7 @@ struct isc_clk {
- 	struct clk_hw   hw;
- 	struct clk      *clk;
- 	struct regmap   *regmap;
-+	spinlock_t	lock;
- 	u8		id;
- 	u8		parent_id;
- 	u32		div;
-@@ -312,26 +313,37 @@ static int isc_clk_enable(struct clk_hw *hw)
- 	struct isc_clk *isc_clk = to_isc_clk(hw);
- 	u32 id = isc_clk->id;
- 	struct regmap *regmap = isc_clk->regmap;
-+	unsigned long flags;
-+	unsigned int status;
+diff --git a/drivers/media/dvb-frontends/sp2.c b/drivers/media/dvb-frontends/sp2.c
+index b2a7a54174ae..9bd71ba36d86 100644
+--- a/drivers/media/dvb-frontends/sp2.c
++++ b/drivers/media/dvb-frontends/sp2.c
+@@ -357,14 +357,14 @@ static int sp2_exit(struct i2c_client *client)
  
- 	dev_dbg(isc_clk->dev, "ISC CLK: %s, div = %d, parent id = %d\n",
- 		__func__, isc_clk->div, isc_clk->parent_id);
+ 	dev_dbg(&client->dev, "\n");
  
-+	spin_lock_irqsave(&isc_clk->lock, flags);
- 	regmap_update_bits(regmap, ISC_CLKCFG,
- 			   ISC_CLKCFG_DIV_MASK(id) | ISC_CLKCFG_SEL_MASK(id),
- 			   (isc_clk->div << ISC_CLKCFG_DIV_SHIFT(id)) |
- 			   (isc_clk->parent_id << ISC_CLKCFG_SEL_SHIFT(id)));
+-	if (client == NULL)
++	if (!client)
+ 		return 0;
  
- 	regmap_write(regmap, ISC_CLKEN, ISC_CLK(id));
-+	spin_unlock_irqrestore(&isc_clk->lock, flags);
+ 	s = i2c_get_clientdata(client);
+-	if (s == NULL)
++	if (!s)
+ 		return 0;
  
--	return 0;
-+	regmap_read(regmap, ISC_CLKSR, &status);
-+	if (status & ISC_CLK(id))
-+		return 0;
-+	else
-+		return -EINVAL;
- }
+-	if (s->ca.data == NULL)
++	if (!s->ca.data)
+ 		return 0;
  
- static void isc_clk_disable(struct clk_hw *hw)
- {
- 	struct isc_clk *isc_clk = to_isc_clk(hw);
- 	u32 id = isc_clk->id;
-+	unsigned long flags;
- 
-+	spin_lock_irqsave(&isc_clk->lock, flags);
- 	regmap_write(isc_clk->regmap, ISC_CLKDIS, ISC_CLK(id));
-+	spin_unlock_irqrestore(&isc_clk->lock, flags);
- }
- 
- static int isc_clk_is_enabled(struct clk_hw *hw)
-@@ -492,6 +504,7 @@ static int isc_clk_register(struct isc_device *isc, unsigned int id)
- 	isc_clk->regmap		= regmap;
- 	isc_clk->id		= id;
- 	isc_clk->dev		= isc->dev;
-+	spin_lock_init(&isc_clk->lock);
- 
- 	isc_clk->clk = clk_register(isc->dev, &isc_clk->hw);
- 	if (IS_ERR(isc_clk->clk)) {
+ 	dvb_ca_en50221_release(&s->ca);
 -- 
-2.13.0
+2.14.1
