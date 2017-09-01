@@ -1,127 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:6970 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751865AbdIUOIo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Sep 2017 10:08:44 -0400
-Date: Thu, 21 Sep 2017 15:08:21 +0100
-From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-CC: Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        <linux-i2c@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-renesas-soc@vger.kernel.org>, <linux-iio@vger.kernel.org>,
-        <linux-input@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <dri-devel@lists.freedesktop.org>
-Subject: Re: [RFC PATCH v5 3/6] i2c: add docs to clarify DMA handling
-Message-ID: <20170921150821.000036a3@huawei.com>
-In-Reply-To: <20170920165626.2b41a587@recife.lan>
-References: <20170920185956.13874-1-wsa+renesas@sang-engineering.com>
-        <20170920185956.13874-4-wsa+renesas@sang-engineering.com>
-        <20170920165626.2b41a587@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46989
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752124AbdIANZD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:25:03 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH v2 22/27] media: ca-get-cap.rst: document this ioctl
+Date: Fri,  1 Sep 2017 10:24:44 -0300
+Message-Id: <759969ab0434f05b3ad0afae31e5334bf9309849.1504272067.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
+References: <cover.1504272067.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
+References: <cover.1504272067.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 20 Sep 2017 16:56:48 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+Instead of a generic boilerplate, fill it with relevant
+information about this ioctl.
 
-> Em Wed, 20 Sep 2017 20:59:53 +0200
-> Wolfram Sang <wsa+renesas@sang-engineering.com> escreveu:
-> 
-> > Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>  
-> 
-> Documentation looks OK on my eyes. So:
-> 
-> Reviewed-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/dvb/ca-get-cap.rst | 36 ++++-------------------------
+ 1 file changed, 5 insertions(+), 31 deletions(-)
 
-Really minor suggestion inline. I don't really care either way as
-what you had is perfectly comprehensible. 
-
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-
-> 
-> > ---
-> >  Documentation/i2c/DMA-considerations | 58 ++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 58 insertions(+)
-> >  create mode 100644 Documentation/i2c/DMA-considerations
-> > 
-> > diff --git a/Documentation/i2c/DMA-considerations b/Documentation/i2c/DMA-considerations
-> > new file mode 100644
-> > index 00000000000000..5a63355c6a9b6f
-> > --- /dev/null
-> > +++ b/Documentation/i2c/DMA-considerations
-> > @@ -0,0 +1,58 @@
-> > +=================
-> > +Linux I2C and DMA
-> > +=================
-> > +
-> > +Given that I2C is a low-speed bus where largely small messages are transferred,
-
-Slightly nicer as:
-
-Given that i2c is a low-speed bus, over which the majority of messages transferred are small,
-
-> > +it is not considered a prime user of DMA access. At this time of writing, only
-> > +10% of I2C bus master drivers have DMA support implemented. And the vast
-> > +majority of transactions are so small that setting up DMA for it will likely
-> > +add more overhead than a plain PIO transfer.
-> > +
-> > +Therefore, it is *not* mandatory that the buffer of an I2C message is DMA safe.
-> > +It does not seem reasonable to apply additional burdens when the feature is so
-> > +rarely used. However, it is recommended to use a DMA-safe buffer if your
-> > +message size is likely applicable for DMA. Most drivers have this threshold
-> > +around 8 bytes (as of today, this is mostly an educated guess, however). For
-> > +any message of 16 byte or larger, it is probably a really good idea. Please
-> > +note that other subsystems you use might add requirements. E.g., if your
-> > +I2C bus master driver is using USB as a bridge, then you need to have DMA
-> > +safe buffers always, because USB requires it.
-> > +
-> > +For clients, if you use a DMA safe buffer in i2c_msg, set the I2C_M_DMA_SAFE
-> > +flag with it. Then, the I2C core and drivers know they can safely operate DMA
-> > +on it. Note that using this flag is optional. I2C host drivers which are not
-> > +updated to use this flag will work like before. And like before, they risk
-> > +using an unsafe DMA buffer. To improve this situation, using I2C_M_DMA_SAFE in
-> > +more and more clients and host drivers is the planned way forward. Note also
-> > +that setting this flag makes only sense in kernel space. User space data is
-> > +copied into kernel space anyhow. The I2C core makes sure the destination
-> > +buffers in kernel space are always DMA capable.
-> > +
-> > +FIXME: Need to implement i2c_master_{send|receive}_dma and proper buffers for i2c_smbus_xfer_emulated.
-> > +
-> > +Drivers wishing to implement safe DMA can use helper functions from the I2C
-> > +core. One gives you a DMA-safe buffer for a given i2c_msg as long as a certain
-> > +threshold is met::
-> > +
-> > +	dma_buf = i2c_get_dma_safe_msg_buf(msg, threshold_in_byte);
-> > +
-> > +If a buffer is returned, it is either msg->buf for the I2C_M_DMA_SAFE case or a
-> > +bounce buffer. But you don't need to care about that detail, just use the
-> > +returned buffer. If NULL is returned, the threshold was not met or a bounce
-> > +buffer could not be allocated. Fall back to PIO in that case.
-> > +
-> > +In any case, a buffer obtained from above needs to be released. It ensures data
-> > +is copied back to the message and a potentially used bounce buffer is freed::
-> > +
-> > +	i2c_release_dma_safe_msg_buf(msg, dma_buf);
-> > +
-> > +The bounce buffer handling from the core is generic and simple. It will always
-> > +allocate a new bounce buffer. If you want a more sophisticated handling (e.g.
-> > +reusing pre-allocated buffers), you are free to implement your own.
-> > +
-> > +Please also check the in-kernel documentation for details. The i2c-sh_mobile
-> > +driver can be used as a reference example how to use the above helpers.
-> > +
-> > +Final note: If you plan to use DMA with I2C (or with anything else, actually)
-> > +make sure you have CONFIG_DMA_API_DEBUG enabled during development. It can help
-> > +you find various issues which can be complex to debug otherwise.  
-> 
-> 
-> 
-> Thanks,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-iio" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/Documentation/media/uapi/dvb/ca-get-cap.rst b/Documentation/media/uapi/dvb/ca-get-cap.rst
+index fbf7e359cb8a..02d64acfb087 100644
+--- a/Documentation/media/uapi/dvb/ca-get-cap.rst
++++ b/Documentation/media/uapi/dvb/ca-get-cap.rst
+@@ -28,43 +28,17 @@ Arguments
+ ``caps``
+   Pointer to struct :c:type:`ca_caps`.
+ 
+-.. c:type:: struct ca_caps
+-
+-.. flat-table:: struct ca_caps
+-    :header-rows:  1
+-    :stub-columns: 0
+-
+-    -
+-      - type
+-      - name
+-      - description
+-    -
+-      -	unsigned int
+-      - slot_num
+-      - total number of CA card and module slots
+-    -
+-      - unsigned int
+-      - slot_type
+-      - bitmask with all supported slot types
+-    -
+-      - unsigned int
+-      - descr_num
+-      - total number of descrambler slots (keys)
+-    -
+-      - unsigned int
+-      - descr_type
+-      - bit mask with all supported descr types
+-
+-
+ Description
+ -----------
+ 
+-.. note:: This ioctl is undocumented. Documentation is welcome.
+-
++Queries the Kernel for information about the available CA and descrambler
++slots, and their types.
+ 
+ Return Value
+ ------------
+ 
+-On success 0 is returned, on error -1 and the ``errno`` variable is set
++On success 0 is returned and :c:type:`ca_caps` is filled.
++
++On error, -1 is returned and the ``errno`` variable is set
+ appropriately. The generic error codes are described at the
+ :ref:`Generic Error Codes <gen-errors>` chapter.
+-- 
+2.13.5
