@@ -1,109 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39056 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752149AbdI0HQa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 03:16:30 -0400
-Date: Wed, 27 Sep 2017 10:16:26 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Wenyou Yang <wenyou.yang@microchip.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        linux-kernel@vger.kernel.org,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        linux-arm-kernel@lists.infradead.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 1/5] media: atmel_isc: Add spin lock for clock enable
- ops
-Message-ID: <20170927071626.mok5h3ckisyipy53@valkosipuli.retiisi.org.uk>
-References: <20170918063925.6372-1-wenyou.yang@microchip.com>
- <20170918063925.6372-2-wenyou.yang@microchip.com>
+Received: from mail-qk0-f194.google.com ([209.85.220.194]:36179 "EHLO
+        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751511AbdIAIka (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 04:40:30 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170918063925.6372-2-wenyou.yang@microchip.com>
+In-Reply-To: <cover.1504222628.git.mchehab@s-opensource.com>
+References: <cover.1504222628.git.mchehab@s-opensource.com>
+From: =?UTF-8?Q?Honza_Petrou=C5=A1?= <jpetrous@gmail.com>
+Date: Fri, 1 Sep 2017 10:40:28 +0200
+Message-ID: <CAJbz7-0QaB3Hpi23pZZ_DLFQyqQ7kynRiP6J0a8UUj9RzooLCA@mail.gmail.com>
+Subject: Re: [PATCH 00/15] Improve DVB documentation and reduce its gap
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Shuah Khan <shuah@kernel.org>, Ingo Molnar <mingo@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Colin Ian King <colin.king@canonical.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Wenyou,
+2017-09-01 1:46 GMT+02:00 Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> The DVB documentation was negligected for a long time, with
+> resulted on several gaps between the API description and its
+> documentation.
+>
+> I'm doing a new reading at the documentation. As result of it,
+> this series:
+>
+> - improves the introductory chapter, making it more generic;
+> - Do some adjustments at the frontend API, using kernel-doc
+>   when possible.
+> - Remove unused APIs at DVB demux. I suspect that the drivers
+>   implementing such APIs were either never merged upstream,
+>   or the API itself  were never used or was deprecated a long
+>   time ago. In any case, it doesn't make any sense to carry
+>   on APIs that aren't properly documented, nor are used on the
+>   upstream Kernel.
+>
+> With this patch series, the gap between documentation and
+> code is solved for 3 DVB APIs:
+>
+>   - Frontend API;
+>   - Demux API;
+>   - Net API.
+>
+> There is still a gap at the CA API that I'll try to address when I
+> have some time[1].
+>
+> [1] There's a gap also on the legacy audio, video and OSD APIs,
+>     but, as those are used only by a single very old deprecated
+>     hardware (av7110), it is probably not worth the efforts.
+>
 
-On subject:
+I agree that av7110 is very very old piece of hw (but it is already
+in my hall of fame because of its Skystar 1 incarnation as
+first implementation of DVB in Linux) and it is sad that we still
+don't have at least one driver for any SoC with embedded DVB
+devices.
 
-s/_/-/
+I understand that the main issue is that no any DVB-enabled
+SoC vendor is interested in upstreaming theirs code, but I still hope
+it will change in near future(*)
 
-On Mon, Sep 18, 2017 at 02:39:21PM +0800, Wenyou Yang wrote:
-> Add the spin lock for the clock enable and disable operations.
-> 
-> Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
-> ---
-> 
-> Changes in v2: None
-> 
->  drivers/media/platform/atmel/atmel-isc.c | 14 +++++++++++++-
->  1 file changed, 13 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-> index 2f8e345d297e..78114193af4c 100644
-> --- a/drivers/media/platform/atmel/atmel-isc.c
-> +++ b/drivers/media/platform/atmel/atmel-isc.c
-> @@ -65,6 +65,7 @@ struct isc_clk {
->  	struct clk_hw   hw;
->  	struct clk      *clk;
->  	struct regmap   *regmap;
-> +	spinlock_t	*lock;
+Without having full-featured DVB device in vanilla, we surely don't
+get some parts of DVB API covered. I can imagine that  when
+somebody comes with such full-featured device he wants to reinvent
+just removed bits.
 
-Can this work? I don't see lock being assigned anywhere. Did you mean
+It's my 5 cents
+/Honza
 
-	spinlock_t	lock;
+(*) My favourite is HiSilicon with very nice Hi3798 4K chip
+with announced support from Linaro and already available
+devboard for reasonable price.
 
-?
-
->  	u8		id;
->  	u8		parent_id;
->  	u32		div;
-> @@ -312,26 +313,37 @@ static int isc_clk_enable(struct clk_hw *hw)
->  	struct isc_clk *isc_clk = to_isc_clk(hw);
->  	u32 id = isc_clk->id;
->  	struct regmap *regmap = isc_clk->regmap;
-> +	unsigned long flags;
-> +	unsigned int status;
->  
->  	dev_dbg(isc_clk->dev, "ISC CLK: %s, div = %d, parent id = %d\n",
->  		__func__, isc_clk->div, isc_clk->parent_id);
->  
-> +	spin_lock_irqsave(isc_clk->lock, flags);
->  	regmap_update_bits(regmap, ISC_CLKCFG,
->  			   ISC_CLKCFG_DIV_MASK(id) | ISC_CLKCFG_SEL_MASK(id),
->  			   (isc_clk->div << ISC_CLKCFG_DIV_SHIFT(id)) |
->  			   (isc_clk->parent_id << ISC_CLKCFG_SEL_SHIFT(id)));
->  
->  	regmap_write(regmap, ISC_CLKEN, ISC_CLK(id));
-> +	spin_unlock_irqrestore(isc_clk->lock, flags);
->  
-> -	return 0;
-> +	regmap_read(regmap, ISC_CLKSR, &status);
-> +	if (status & ISC_CLK(id))
-> +		return 0;
-> +	else
-> +		return -EINVAL;
->  }
->  
->  static void isc_clk_disable(struct clk_hw *hw)
->  {
->  	struct isc_clk *isc_clk = to_isc_clk(hw);
->  	u32 id = isc_clk->id;
-> +	unsigned long flags;
->  
-> +	spin_lock_irqsave(isc_clk->lock, flags);
->  	regmap_write(isc_clk->regmap, ISC_CLKDIS, ISC_CLK(id));
-> +	spin_unlock_irqrestore(isc_clk->lock, flags);
->  }
->  
->  static int isc_clk_is_enabled(struct clk_hw *hw)
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+PS: I'm in no any way connected with HiSilicon nor
+any other DVB-enabled SoC vendor.
