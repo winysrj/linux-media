@@ -1,63 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34358
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752520AbdI1BM0 (ORCPT
+Received: from p3plsmtpa09-04.prod.phx3.secureserver.net ([173.201.193.233]:54548
+        "EHLO p3plsmtpa09-04.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752423AbdIAUkr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 21:12:26 -0400
-Date: Wed, 27 Sep 2017 22:12:17 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: Re: [PATCH v2 07/13] docs: kernel-doc.rst: add documentation about
- man pages
-Message-ID: <20170927221217.31b6b184@vento.lan>
-In-Reply-To: <6ef754d0-4c7f-0547-e7e9-8afb87b28506@infradead.org>
-References: <cover.1506546492.git.mchehab@s-opensource.com>
-        <d728e50a675aad84310e1418c2d4ec9495322982.1506546492.git.mchehab@s-opensource.com>
-        <6ef754d0-4c7f-0547-e7e9-8afb87b28506@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Fri, 1 Sep 2017 16:40:47 -0400
+From: Leon Luo <leonl@leopardimaging.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, leonl@leopardimaging.com,
+        soren.brinkmann@xilinx.com
+Subject: [PATCH v4 1/2] media:imx274 device tree binding file
+Date: Fri,  1 Sep 2017 13:32:42 -0700
+Message-Id: <20170901203243.25694-1-leonl@leopardimaging.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 27 Sep 2017 14:20:03 -0700
-Randy Dunlap <rdunlap@infradead.org> escreveu:
+The binding file for imx274 CMOS sensor V4l2 driver
 
-> On 09/27/17 14:10, Mauro Carvalho Chehab wrote:
-> > kernel-doc-nano-HOWTO.txt has a chapter about man pages  
-> 
->   kernel-doc.rst has a chapter (or section)
+Signed-off-by: Leon Luo <leonl@leopardimaging.com>
+---
+v4:
+ - no changes
+v3:
+ - remove redundant properties and references
+ - document 'reg' property
+v2:
+ - no changes
+---
+ .../devicetree/bindings/media/i2c/imx274.txt       | 32 ++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/imx274.txt
 
-I actually meant to say that kernel-doc-nano-HOWTO.txt has a chapter
-about man pages, but such chapter is missing at kernel-doc.rst.
-
-I'll make it clearer at the patch's description.
-
-Thanks!
-Mauro
-
-> 
-> > production. While we don't have a working  "make manpages"
-> > target, add it.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > ---
-> >  Documentation/doc-guide/kernel-doc.rst | 34 ++++++++++++++++++++++++++++++++++
-> >  1 file changed, 34 insertions(+)
-> > 
-> > diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
-> > index 0923c8bd5769..96012f9e314d 100644
-> > --- a/Documentation/doc-guide/kernel-doc.rst
-> > +++ b/Documentation/doc-guide/kernel-doc.rst  
-> 
-> 
-
-
-
-Thanks,
-Mauro
+diff --git a/Documentation/devicetree/bindings/media/i2c/imx274.txt b/Documentation/devicetree/bindings/media/i2c/imx274.txt
+new file mode 100644
+index 000000000000..1f03256b35db
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/imx274.txt
+@@ -0,0 +1,32 @@
++* Sony 1/2.5-Inch 8.51Mp CMOS Digital Image Sensor
++
++The Sony imx274 is a 1/2.5-inch CMOS active pixel digital image sensor with
++an active array size of 3864H x 2202V. It is programmable through I2C
++interface. The I2C address is fixed to 0x1a as per sensor data sheet.
++Image data is sent through MIPI CSI-2, which is configured as 4 lanes
++at 1440 Mbps.
++
++
++Required Properties:
++- compatible: value should be "sony,imx274" for imx274 sensor
++- reg: I2C bus address of the device
++
++Optional Properties:
++- reset-gpios: Sensor reset GPIO
++
++For further reading on port node refer to
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++	sensor@1a {
++		compatible = "sony,imx274";
++		reg = <0x1a>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++		reset-gpios = <&gpio_sensor 0 0>;
++		port {
++			sensor_out: endpoint {
++				remote-endpoint = <&csiss_in>;
++			};
++		};
++	};
+-- 
+2.14.1.145.gb3622a4
