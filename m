@@ -1,48 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailoutvs7.siol.net ([213.250.19.138]:55716 "EHLO mail.siol.net"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751663AbdITUIm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 16:08:42 -0400
-From: Jernej Skrabec <jernej.skrabec@siol.net>
-To: maxime.ripard@free-electrons.com, wens@csie.org
-Cc: Laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-        narmstrong@baylibre.com, dri-devel@lists.freedesktop.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org,
-        icenowy@aosc.io, linux-sunxi@googlegroups.com,
-        linux-media@vger.kernel.org
-Subject: [RESEND RFC PATCH 1/7] drm: bridge: Enable polling hpd event in dw_hdmi
-Date: Wed, 20 Sep 2017 22:01:18 +0200
-Message-Id: <20170920200124.20457-2-jernej.skrabec@siol.net>
-In-Reply-To: <20170920200124.20457-1-jernej.skrabec@siol.net>
-References: <20170920200124.20457-1-jernej.skrabec@siol.net>
+Received: from mail-wr0-f174.google.com ([209.85.128.174]:32942 "EHLO
+        mail-wr0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752005AbdIAQfV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 12:35:21 -0400
+Received: by mail-wr0-f174.google.com with SMTP id k94so1917531wrc.0
+        for <linux-media@vger.kernel.org>; Fri, 01 Sep 2017 09:35:20 -0700 (PDT)
+Received: from [192.168.1.5] ([37.248.155.247])
+        by smtp.gmail.com with ESMTPSA id g106sm766171wrd.4.2017.09.01.09.35.18
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 01 Sep 2017 09:35:19 -0700 (PDT)
+To: linux-media@vger.kernel.org
+From: Rafal <fatwildcat@gmail.com>
+Subject: v4l2_ioctl vidioc_s_fmt/vidioc_try_fmt pix <--> pix_mp conversion
+Message-ID: <f4dba9e7-0ce9-1ba9-fd75-679709661e9d@gmail.com>
+Date: Fri, 1 Sep 2017 18:35:17 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some custom phys don't support hpd interrupts. Add support for polling
-such events.
+Could somebody explain to me some strange behavior of v4l2_ioctl call?
 
-Signed-off-by: Jernej Skrabec <jernej.skrabec@siol.net>
----
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+When a device supports |V4L2_CAP_VIDEO_OUTPUT_MPLANE capability but does 
+not support ||V4L2_CAP_VIDEO_OUTPUT, the |v4l2_ioctl function converts 
+VIDIOC_S_FMT ioctl call: for example, when the specified buffer type is 
+V4L2_BUF_TYPE_VIDEO_OUTPUT, it is changed to 
+V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE. But the num_planes value is not 
+checked after the ioctl call, like after VIDIOC_G_FMT ioctl call is 
+made. Device may change the num_planes value in call, especially since 
+number of planes is determined by pixelformat. For example, V4L2 
+distinguishes single-plane variant of YUV420 format 
+(V4L2_PIX_FMT_YUV420) from multi-plane one (V4L2_PIX_FMT_YUV420M). If 
+the number of planes is not checked, program may select multi-plane 
+variant, which will not handle correctly. Shouldn't the library check 
+the number of planes after ioctl call?
 
-diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-index bf14214fa464..09cb5a3e4c71 100644
---- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-+++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-@@ -1954,7 +1954,11 @@ static int dw_hdmi_bridge_attach(struct drm_bridge *bridge)
- 	struct drm_connector *connector = &hdmi->connector;
- 
- 	connector->interlace_allowed = 1;
--	connector->polled = DRM_CONNECTOR_POLL_HPD;
-+	if (hdmi->phy.ops->setup_hpd)
-+		connector->polled = DRM_CONNECTOR_POLL_HPD;
-+	else
-+		connector->polled = DRM_CONNECTOR_POLL_CONNECT |
-+				    DRM_CONNECTOR_POLL_DISCONNECT;
- 
- 	drm_connector_helper_add(connector, &dw_hdmi_connector_helper_funcs);
- 
--- 
-2.14.1
+
+Rafal
