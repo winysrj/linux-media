@@ -1,350 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56885
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S967769AbdIZU34 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 16:29:56 -0400
-Date: Tue, 26 Sep 2017 17:29:47 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        linux-kernel@vger.kernel.org,
-        Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: Re: [PATCH 09/10] scripts: kernel-doc: parse next structs/unions
-Message-ID: <20170926172947.54b88bf5@recife.lan>
-In-Reply-To: <e0ee97325e570a7f783122c88e152d89c755c254.1506448061.git.mchehab@s-opensource.com>
-References: <cover.1506448061.git.mchehab@s-opensource.com>
-        <e0ee97325e570a7f783122c88e152d89c755c254.1506448061.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mga11.intel.com ([192.55.52.93]:46984 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752039AbdIANhQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Sep 2017 09:37:16 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org, Alan Cox <alan@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 6/7] staging: atomisp: Remove dead code for MID (#4)
+Date: Fri,  1 Sep 2017 16:36:39 +0300
+Message-Id: <20170901133640.17589-6-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20170901133640.17589-1-andriy.shevchenko@linux.intel.com>
+References: <20170901133640.17589-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 26 Sep 2017 14:59:19 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+Since we switched to upstream IOSF MBI API the custom code become not in
+use anymore.
 
-> There are several places within the Kernel tree with nested
-> structs/unions, like this one:
-> 
->   struct ingenic_cgu_clk_info {
->     const char *name;
->     enum {
->       CGU_CLK_NONE = 0,
->       CGU_CLK_EXT = BIT(0),
->       CGU_CLK_PLL = BIT(1),
->       CGU_CLK_GATE = BIT(2),
->       CGU_CLK_MUX = BIT(3),
->       CGU_CLK_MUX_GLITCHFREE = BIT(4),
->       CGU_CLK_DIV = BIT(5),
->       CGU_CLK_FIXDIV = BIT(6),
->       CGU_CLK_CUSTOM = BIT(7),
->     } type;
->     int parents[4];
->     union {
->       struct ingenic_cgu_pll_info pll;
->       struct {
->         struct ingenic_cgu_gate_info gate;
->         struct ingenic_cgu_mux_info mux;
->         struct ingenic_cgu_div_info div;
->         struct ingenic_cgu_fixdiv_info fixdiv;
->       };
->       struct ingenic_cgu_custom_info custom;
->     };
->   };
-> 
-> Currently, such struct is documented as:
-> 
-> 	**Definition**
-> 
-> 	::
-> 	struct ingenic_cgu_clk_info {
-> 	    const char * name;
-> 	};
-> 
-> 	**Members**
-> 
-> 	``name``
-> 	  name of the clock
-> 
-> With is obvioulsy wrong. It also generates an error:
-> 	drivers/clk/ingenic/cgu.h:169: warning: No description found for parameter 'enum'
-> 
-> However, there's nothing wrong with this kernel-doc markup: everything
-> is documented there.
-> 
-> It makes sense to document all fields there. So, add a
-> way for the core to parse those structs.
-> 
-> With this patch, all documented fields will properly generate
-> documentation.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  Documentation/doc-guide/kernel-doc.rst |  46 +++++++++++++
->  scripts/kernel-doc                     | 120 ++++++++++++++++++---------------
->  2 files changed, 112 insertions(+), 54 deletions(-)
-> 
-> diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
-> index 50473f0db345..3916a28b82b7 100644
-> --- a/Documentation/doc-guide/kernel-doc.rst
-> +++ b/Documentation/doc-guide/kernel-doc.rst
-> @@ -281,6 +281,52 @@ comment block.
->  The kernel-doc data structure comments describe each member of the structure,
->  in order, with the member descriptions.
->  
-> +Nested structs/unions
-> +~~~~~~~~~~~~~~~~~~~~~
-> +
-> +It is possible to document nested structs unions, like::
-> +
-> +      /**
-> +       * struct nested_foobar - a struct with nested unions and structs
-> +       * @arg1: - first argument of anonymous union/anonymous struct
-> +       * @arg2: - second argument of anonymous union/anonymous struct
-> +       * @arg3: - third argument of anonymous union/anonymous struct
-> +       * @arg4: - fourth argument of anonymous union/anonymous struct
-> +       * @bar.st1.arg1 - first argument of struct st1 on union bar
-> +       * @bar.st1.arg2 - second argument of struct st1 on union bar
-> +       * @bar.st2.arg1 - first argument of struct st2 on union bar
-> +       * @bar.st2.arg2 - second argument of struct st2 on union bar
-> +      struct nested_foobar {
-> +        /* Anonymous union/struct*/
-> +        union {
-> +          struct {
-> +            int arg1;
-> +            int arg2;
-> +	  }
-> +          struct {
-> +            void *arg3;
-> +            int arg4;
-> +	  }
-> +	}
-> +	union {
-> +          struct {
-> +            int arg1;
-> +            int arg2;
-> +	  } st1;
-> +          struct {
-> +            void *arg1;
-> +            int arg2;
-> +	  } st2;
-> +	} bar;
-> +      };
-> +
-> +.. note::
-> +
-> +   #) When documenting nested structs or unions, if the struct/union ``foo``
-> +      is named, the argument ``bar`` inside it should be documented as
-> +      ``@foo.bar:``
-> +   #) When the nested struct/union is anonymous, the argument ``bar`` on it
-> +      should be documented as ``@bar:``
->  
->  Typedef documentation
->  ---------------------
-> diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-> index b6f3f6962897..880a196c7dc7 100755
-> --- a/scripts/kernel-doc
-> +++ b/scripts/kernel-doc
-> @@ -210,7 +210,7 @@ my $anon_struct_union = 0;
->  my $type_constant = '\b``([^\`]+)``\b';
->  my $type_constant2 = '\%([-_\w]+)';
->  my $type_func = '(\w+)\(\)';
-> -my $type_param = '\@(\w+(\.\.\.)?)';
-> +my $type_param = '\@(\w[\.\w]*(\.\.\.)?)';
->  my $type_fp_param = '\@(\w+)\(\)';  # Special RST handling for func ptr params
->  my $type_env = '(\$\w+)';
->  my $type_enum = '\&(enum\s*([_\w]+))';
-> @@ -663,32 +663,12 @@ sub output_struct_man(%) {
->      print ".SH NAME\n";
->      print $args{'type'} . " " . $args{'struct'} . " \\- " . $args{'purpose'} . "\n";
->  
-> +    my $declaration = $args{'definition'};
-> +    $declaration =~ s/\t/  /g;
-> +    $declaration =~ s/\n/"\n.br\n.BI \"/g;
->      print ".SH SYNOPSIS\n";
->      print $args{'type'} . " " . $args{'struct'} . " {\n.br\n";
-> -
-> -    foreach my $parameter (@{$args{'parameterlist'}}) {
-> -	if ($parameter =~ /^#/) {
-> -	    print ".BI \"$parameter\"\n.br\n";
-> -	    next;
-> -	}
-> -	my $parameter_name = $parameter;
-> -	$parameter_name =~ s/\[.*//;
-> -
-> -	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
-> -	$type = $args{'parametertypes'}{$parameter};
-> -	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
-> -	    # pointer-to-function
-> -	    print ".BI \"    " . $1 . "\" " . $parameter . " \") (" . $2 . ")" . "\"\n;\n";
-> -	} elsif ($type =~ m/^(.*?)\s*(:.*)/) {
-> -	    # bitfield
-> -	    print ".BI \"    " . $1 . "\ \" " . $parameter . $2 . " \"" . "\"\n;\n";
-> -	} else {
-> -	    $type =~ s/([^\*])$/$1 /;
-> -	    print ".BI \"    " . $type . "\" " . $parameter . " \"" . "\"\n;\n";
-> -	}
-> -	print "\n.br\n";
-> -    }
-> -    print "};\n.br\n";
-> +    print ".BI \"$declaration\n};\n.br\n\n";
->  
->      print ".SH Members\n";
->      foreach $parameter (@{$args{'parameterlist'}}) {
-> @@ -926,29 +906,9 @@ sub output_struct_rst(%) {
->  
->      print "**Definition**\n\n";
->      print "::\n\n";
-> -    print "  " . $args{'type'} . " " . $args{'struct'} . " {\n";
-> -    foreach $parameter (@{$args{'parameterlist'}}) {
-> -	if ($parameter =~ /^#/) {
-> -	    print "  " . "$parameter\n";
-> -	    next;
-> -	}
-> -
-> -	my $parameter_name = $parameter;
-> -	$parameter_name =~ s/\[.*//;
-> -
-> -	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
-> -	$type = $args{'parametertypes'}{$parameter};
-> -	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
-> -	    # pointer-to-function
-> -	    print "    $1 $parameter) ($2);\n";
-> -	} elsif ($type =~ m/^(.*?)\s*(:.*)/) {
-> -	    # bitfield
-> -	    print "    $1 $parameter$2;\n";
-> -	} else {
-> -	    print "    " . $type . " " . $parameter . ";\n";
-> -	}
-> -    }
-> -    print "  };\n\n";
-> +    my $declaration = $args{'definition'};
-> +    $declaration =~ s/\t/  /g;
-> +    print "  " . $args{'type'} . " " . $args{'struct'} . " {\n$declaration  };\n\n";
->  
->      print "**Members**\n\n";
->      $lineprefix = "  ";
-> @@ -1022,20 +982,15 @@ sub dump_struct($$) {
->      my $nested;
->  
->      if ($x =~ /(struct|union)\s+(\w+)\s*{(.*)}/) {
-> -	#my $decl_type = $1;
-> +	my $decl_type = $1;
->  	$declaration_name = $2;
->  	my $members = $3;
->  
-> -	# ignore embedded structs or unions
-> -	$members =~ s/({.*})//g;
-> -	$nested = $1;
-> -
->  	# ignore members marked private:
->  	$members =~ s/\/\*\s*private:.*?\/\*\s*public:.*?\*\///gosi;
->  	$members =~ s/\/\*\s*private:.*//gosi;
->  	# strip comments:
->  	$members =~ s/\/\*.*?\*\///gos;
-> -	$nested =~ s/\/\*.*?\*\///gos;
->  	# strip kmemcheck_bitfield_{begin,end}.*;
->  	$members =~ s/kmemcheck_bitfield_.*?;//gos;
->  	# strip attributes
-> @@ -1047,13 +1002,70 @@ sub dump_struct($$) {
->  	# replace DECLARE_HASHTABLE
->  	$members =~ s/DECLARE_HASHTABLE\s*\(([^,)]+), ([^,)]+)\)/unsigned long $1\[1 << (($2) - 1)\]/gos;
->  
-> +	my $declaration = $members;
-> +
-> +	# Split nested struct/union elements as newer ones
-> +	my $cont = 1;
-> +	while ($cont) {
-> +		$cont = 0;
-> +		while ($members =~ m/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/) {
-> +			my $newmember = "$1 $4;";
-> +			my $id = $4;
-> +			my $content = $3;
-> +			$id =~ s/[:\[].*//;
-> +			foreach my $arg (split /;/, $content) {
-> +				next if ($arg =~ m/^\s*$/);
-> +				my $type = $arg;
-> +				my $name = $arg;
-> +				$type =~ s/\s\S+$//;
-> +				$name =~ s/.*\s//;
-> +				next if (($name =~ m/^\s*$/));
-> +				if ($id =~ m/^\s*$/) {
-> +					# anonymous struct/union
-> +					$newmember .= "$type $name;";
-> +				} else {
-> +					$newmember .= "$type $id.$name;";
-> +				}
-> +			}
-> +			$members =~ s/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/$newmember/;
-> +			$cont = 1;
-> +		};
-> +	};
-> +
-> +	# Ignore other nested elements, like enums
-> +	$members =~ s/({[^\{\}]*})//g;
-> +	$nested = $decl_type;
-> +	$nested =~ s/\/\*.*?\*\///gos;
-> +
->  	create_parameterlist($members, ';', $file);
->  	check_sections($file, $declaration_name, "struct", $sectcheck, $struct_actual, $nested);
->  
-> +	# Adjust declaration for better display
-> +	$declaration =~ s/([{;])/$1\n/g;
-> +	$declaration =~ s/}\s+;/};/g;
-> +	# Better handle inlined enums
-> +	do {} while ($declaration =~ s/(enum\s+{[^}]+),([^\n])/$1,\n$2/);
-> +
-> +	my @def_args = split /\n/, $declaration;
-> +	my $level = 1;
-> +	$declaration = "";
-> +	foreach my $clause (@def_args) {
-> +		$clause =~ s/^\s+//;
-> +		$clause =~ s/\s+$//;
-> +		$clause =~ s/\s+/ /;
-> +		next if (!$clause);
-> +		$level-- if ($clause =~ m/(})/ && $level > 1);
-> +		if (!($clause =~ m/^\s*#/)) {
-> +			$declaration .= "\t" x $level;
-> +		}
-> +		$declaration .= "\t" . $clause . "\n";
-> +		$level++ if ($clause =~ m/({)/ && !($clause =~m/}/));
-> +	}
->  	output_declaration($declaration_name,
->  			   'struct',
->  			   {'struct' => $declaration_name,
->  			    'module' => $modulename,
-> +			    'definition' => $declaration,
->  			    'parameterlist' => \@parameterlist,
->  			    'parameterdescs' => \%parameterdescs,
->  			    'parametertypes' => \%parametertypes,
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ .../atomisp/include/asm/intel_mid_pcihelpers.h     | 22 -----
+ .../media/atomisp/pci/atomisp2/atomisp_internal.h  |  1 -
+ .../media/atomisp/platform/intel-mid/Makefile      |  1 -
+ .../platform/intel-mid/intel_mid_pcihelpers.c      | 98 ----------------------
+ 4 files changed, 122 deletions(-)
+ delete mode 100644 drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h
+ delete mode 100644 drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
 
-This patch actually need a fixup, in order to handle pointer,
-array and bitmask IDs.
-
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index cff66ee91f2c..1aebeda444fa 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -1012,12 +1012,15 @@ sub dump_struct($$) {
- 			my $id = $4;
- 			my $content = $3;
- 			$id =~ s/[:\[].*//;
-+			$id =~ s/^\*+//;
- 			foreach my $arg (split /;/, $content) {
- 				next if ($arg =~ m/^\s*$/);
- 				my $type = $arg;
- 				my $name = $arg;
- 				$type =~ s/\s\S+$//;
- 				$name =~ s/.*\s//;
-+				$name =~ s/[:\[].*//;
-+				$name =~ s/^\*+//;
- 				next if (($name =~ m/^\s*$/));
- 				if ($id =~ m/^\s*$/) {
- 					# anonymous struct/union
-
-
-Thanks,
-Mauro
+diff --git a/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h b/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h
+deleted file mode 100644
+index bf39f42c1c96..000000000000
+--- a/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h
++++ /dev/null
+@@ -1,22 +0,0 @@
+-/*
+- * Access to message bus through three registers
+- * in CUNIT(0:0:0) PCI configuration space.
+- * MSGBUS_CTRL_REG(0xD0):
+- *   31:24      = message bus opcode
+- *   23:16      = message bus port
+- *   15:8       = message bus address, low 8 bits.
+- *   7:4        = message bus byte enables
+- * MSGBUS_CTRL_EXT_REG(0xD8):
+- *   31:8       = message bus address, high 24 bits.
+- * MSGBUS_DATA_REG(0xD4):
+- *   hold the data for write or read
+- */
+-#define PCI_ROOT_MSGBUS_CTRL_REG        0xD0
+-#define PCI_ROOT_MSGBUS_DATA_REG        0xD4
+-#define PCI_ROOT_MSGBUS_CTRL_EXT_REG    0xD8
+-#define PCI_ROOT_MSGBUS_READ            0x10
+-#define PCI_ROOT_MSGBUS_WRITE           0x11
+-#define PCI_ROOT_MSGBUS_DWORD_ENABLE    0xf0
+-
+-u32 intel_mid_msgbus_read32(u8 port, u32 addr);
+-void intel_mid_msgbus_write32(u8 port, u32 addr, u32 data);
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
+index 7542a72f1d0f..1fe1711387a2 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
+@@ -30,7 +30,6 @@
+ #include <linux/idr.h>
+ 
+ #include <asm/intel-mid.h>
+-#include "../../include/asm/intel_mid_pcihelpers.h"
+ 
+ #include <media/media-device.h>
+ #include <media/v4l2-subdev.h>
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/Makefile b/drivers/staging/media/atomisp/platform/intel-mid/Makefile
+index 4621261c35db..c53db1364e21 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/Makefile
++++ b/drivers/staging/media/atomisp/platform/intel-mid/Makefile
+@@ -1,5 +1,4 @@
+ #
+ # Makefile for intel-mid devices.
+ #
+-obj-$(CONFIG_INTEL_ATOMISP) += intel_mid_pcihelpers.o
+ obj-$(CONFIG_INTEL_ATOMISP) += atomisp_gmin_platform.o
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
+deleted file mode 100644
+index 4ed3268c4e63..000000000000
+--- a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
++++ /dev/null
+@@ -1,98 +0,0 @@
+-#include <linux/export.h>
+-#include <linux/pci.h>
+-#include <linux/pm_qos.h>
+-#include <linux/delay.h>
+-
+-/* G-Min addition: "platform_is()" lives in intel_mid_pm.h in the MCG
+- * tree, but it's just platform ID info and we don't want to pull in
+- * the whole SFI-based PM architecture.
+- */
+-#define INTEL_ATOM_MRST 0x26
+-#define INTEL_ATOM_MFLD 0x27
+-#define INTEL_ATOM_CLV 0x35
+-#define INTEL_ATOM_MRFLD 0x4a
+-#define INTEL_ATOM_BYT 0x37
+-#define INTEL_ATOM_MOORFLD 0x5a
+-#define INTEL_ATOM_CHT 0x4c
+-static inline int platform_is(u8 model)
+-{
+-	return (boot_cpu_data.x86_model == model);
+-}
+-
+-#include "../../include/asm/intel_mid_pcihelpers.h"
+-
+-/* Unified message bus read/write operation */
+-static DEFINE_SPINLOCK(msgbus_lock);
+-
+-static struct pci_dev *pci_root;
+-static struct pm_qos_request pm_qos;
+-
+-#define DW_I2C_NEED_QOS	(platform_is(INTEL_ATOM_BYT))
+-
+-static int intel_mid_msgbus_init(void)
+-{
+-	pci_root = pci_get_bus_and_slot(0, PCI_DEVFN(0, 0));
+-	if (!pci_root) {
+-		pr_err("%s: Error: msgbus PCI handle NULL\n", __func__);
+-		return -ENODEV;
+-	}
+-
+-	if (DW_I2C_NEED_QOS) {
+-		pm_qos_add_request(&pm_qos,
+-			PM_QOS_CPU_DMA_LATENCY,
+-			PM_QOS_DEFAULT_VALUE);
+-	}
+-	return 0;
+-}
+-fs_initcall(intel_mid_msgbus_init);
+-
+-u32 intel_mid_msgbus_read32(u8 port, u32 addr)
+-{
+-	unsigned long irq_flags;
+-	u32 data;
+-	u32 cmd;
+-	u32 cmdext;
+-
+-	cmd = (PCI_ROOT_MSGBUS_READ << 24) | (port << 16) |
+-		((addr & 0xff) << 8) | PCI_ROOT_MSGBUS_DWORD_ENABLE;
+-	cmdext = addr & 0xffffff00;
+-
+-	spin_lock_irqsave(&msgbus_lock, irq_flags);
+-
+-	if (cmdext) {
+-		/* This resets to 0 automatically, no need to write 0 */
+-		pci_write_config_dword(pci_root, PCI_ROOT_MSGBUS_CTRL_EXT_REG,
+-					cmdext);
+-	}
+-
+-	pci_write_config_dword(pci_root, PCI_ROOT_MSGBUS_CTRL_REG, cmd);
+-	pci_read_config_dword(pci_root, PCI_ROOT_MSGBUS_DATA_REG, &data);
+-	spin_unlock_irqrestore(&msgbus_lock, irq_flags);
+-
+-	return data;
+-}
+-EXPORT_SYMBOL(intel_mid_msgbus_read32);
+-
+-void intel_mid_msgbus_write32(u8 port, u32 addr, u32 data)
+-{
+-	unsigned long irq_flags;
+-	u32 cmd;
+-	u32 cmdext;
+-
+-	cmd = (PCI_ROOT_MSGBUS_WRITE << 24) | (port << 16) |
+-		((addr & 0xFF) << 8) | PCI_ROOT_MSGBUS_DWORD_ENABLE;
+-	cmdext = addr & 0xffffff00;
+-
+-	spin_lock_irqsave(&msgbus_lock, irq_flags);
+-	pci_write_config_dword(pci_root, PCI_ROOT_MSGBUS_DATA_REG, data);
+-
+-	if (cmdext) {
+-		/* This resets to 0 automatically, no need to write 0 */
+-		pci_write_config_dword(pci_root, PCI_ROOT_MSGBUS_CTRL_EXT_REG,
+-					cmdext);
+-	}
+-
+-	pci_write_config_dword(pci_root, PCI_ROOT_MSGBUS_CTRL_REG, cmd);
+-	spin_unlock_irqrestore(&msgbus_lock, irq_flags);
+-}
+-EXPORT_SYMBOL(intel_mid_msgbus_write32);
+-- 
+2.14.1
