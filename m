@@ -1,93 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:35454 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752380AbdHXMHl (ORCPT
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:35277 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751395AbdIABvE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Aug 2017 08:07:41 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Cc: "mchehab@s-opensource.com" <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH RFC v2] media: open.rst: document devnode-centric and mc-centric types
-Date: Thu, 24 Aug 2017 09:07:35 -0300
-Message-Id: <779378fa18f93929547665467990ff9284a60521.1503576451.git.mchehab@osg.samsung.com>
+        Thu, 31 Aug 2017 21:51:04 -0400
+Received: by mail-qt0-f193.google.com with SMTP id u11so1008836qtu.2
+        for <linux-media@vger.kernel.org>; Thu, 31 Aug 2017 18:51:03 -0700 (PDT)
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v2 05/14] [media] vivid: assign the specific device to the vb2_queue->dev
+Date: Thu, 31 Aug 2017 22:50:32 -0300
+Message-Id: <20170901015041.7757-6-gustavo@padovan.org>
+In-Reply-To: <20170901015041.7757-1-gustavo@padovan.org>
+References: <20170901015041.7757-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "mchehab@s-opensource.com" <mchehab@s-opensource.com>
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-When we added support for omap3, back in 2010, we added a new
-type of V4L2 devices that aren't fully controlled via the V4L2
-device node. Yet, we never made it clear, at the V4L2 spec,
-about the differences between both types.
+Instead of assigning the global v4l2 device, assign the specific device.
+This was causing trouble when using using V4L2 events with vivid
+devices. The device's queue should be the same we opened in userspace.
 
-Let's document them with the current implementation.
+This is needed for the upcoming V4L2_EVENT_BUF_QUEUED support. The current
+vivid code isn't wrong, it just needs to be changed so V4L2_EVENT_BUF_QUEUED
+can be supported. The change doesn't affect any other behaviour of vivid.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/media/uapi/v4l/open.rst | 47 +++++++++++++++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
+ drivers/media/platform/vivid/vivid-core.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index afd116edb40d..cf522d9bb53c 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -6,6 +6,53 @@
- Opening and Closing Devices
- ***************************
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 5f316a5e38db..608bcceed463 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -1070,7 +1070,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->vid_cap_dev.dev;
  
-+Types of V4L2 device control
-+============================
-+
-+V4L2 devices are usually complex: they're implemented via a main driver and
-+often several additional drivers. The main driver always exposes one or
-+more **V4L2 device** devnodes (see :ref:`v4l2_device_naming`). The other
-+devices are called **V4L2 sub-devices**. They are usually controlled via a
-+serial bus (I2C or SMBus).
-+
-+When V4L2 started, there was only one type of device control. The entire
-+device was controlled via the **V4L2 device nodes**. We refer to this
-+kind of control as **V4L2 device-centric** (or, simply, **device-centric**).
-+
-+Since the end of 2010, a new type of V4L2 device control was added in order
-+to support complex devices that are common on embedded systems. Those
-+devices are controlled mainly via the media controller and sub-devices.
-+So, they're called: **media controller centric** (or, simply,
-+"**mc-centric**").
-+
-+On **device-centric** control, the device and their corresponding hardware
-+pipelines are controlled via the **V4L2 device** node. They may optionally
-+expose the hardware pipelines via the
-+:ref:`media controller API <media_controller>`.
-+
-+On a **mc-centric**, before using the V4L2 device, it is required to
-+set the hardware pipelines via the
-+:ref:`media controller API <media_controller>`. On those devices, the
-+sub-devices' configuration can be controlled via the
-+:ref:`sub-device API <subdev>`, with creates one device node per sub device.
-+
-+In summary, on **mc-centric** devices:
-+
-+- The **V4L2 device** node is mainly responsible for controlling the
-+  streaming features;
-+- The **media controller device** is responsible to setup the pipelines
-+  and image settings (like size and format);
-+- The **V4L2 sub-devices** are responsible for sub-device
-+  specific settings.
-+
-+.. note::
-+
-+   It is forbidden for **device-centric** devices to expose V4L2
-+   sub-devices via :ref:`sub-device API <subdev>`, although this
-+   might change in the future.
-+
-+
-+.. _v4l2_device_naming:
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1090,7 +1090,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->vid_out_dev.dev;
  
- Device Naming
- =============
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1110,7 +1110,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->vbi_cap_dev.dev;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1130,7 +1130,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->vbi_out_dev.dev;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1149,7 +1149,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 8;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->sdr_cap_dev.dev;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
 -- 
 2.13.5
