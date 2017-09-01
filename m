@@ -1,89 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:45913 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751436AbdIUMbd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Sep 2017 08:31:33 -0400
-Message-ID: <1505997089.10081.9.camel@pengutronix.de>
-Subject: Re: [PATCH] tc358743: fix connected/active CSI-2 lane reporting
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mats Randgaard <matrandg@cisco.com>
-Date: Thu, 21 Sep 2017 14:31:29 +0200
-In-Reply-To: <CAAoAYcPckrO5-Z1quY+TCsMMgr7mRDsaqy5B3yYtSCBBdn0LiA@mail.gmail.com>
-References: <20170921102428.30709-1-p.zabel@pengutronix.de>
-         <CAAoAYcPckrO5-Z1quY+TCsMMgr7mRDsaqy5B3yYtSCBBdn0LiA@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mga07.intel.com ([134.134.136.100]:14543 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752315AbdIANgo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Sep 2017 09:36:44 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org, Alan Cox <alan@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 2/7] staging: atomisp: Don't override D3 delay settings here
+Date: Fri,  1 Sep 2017 16:36:35 +0300
+Message-Id: <20170901133640.17589-2-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20170901133640.17589-1-andriy.shevchenko@linux.intel.com>
+References: <20170901133640.17589-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2017-09-21 at 12:41 +0100, Dave Stevenson wrote:
-> Hi Philipp
-> 
-> On 21 September 2017 at 11:24, Philipp Zabel <p.zabel@pengutronix.de>
-> wrote:
-[...]
-> > +       if (state->csi_lanes_in_use > 4)
-> 
-> One could suggest
-> if (state->csi_lanes_in_use > state->bus.num_data_lanes)
-> here. Needing to use more lanes than are configured is surely an
-> error, although that may be detectable at the other end. See below
-> too.
+The d3_delay parameter is set by arch/x86/pci/intel_mid_pci.c and
+drivers/pci/quirks.c.
 
-True. The OF parser could be improved to make sure that
-num_data_lanes <= 4, and also that all lanes are in the correct order.
+No need to override that settings in unrelated driver.
 
-[...]
-> > +/*
-> > + * Number of lanes in use, 0 == use all available lanes (default)
-> > + *
-> > + * This is a temporary fix for devices that need to reduce the number of active
-> > + * lanes for certain modes, until g_mbus_config() can be replaced with a better
-> > + * solution.
-> > + */
-> > +#define V4L2_MBUS_CSI2_LANE_MASK                (3 << 10)
-> 
-> I know this was Hans' suggested define, but are we saying 4 lanes is
-> not a valid value? If it is then the mask needs to be at least (7 <<
-> 10).
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ .../atomisp/include/asm/intel_mid_pcihelpers.h     |  8 ------
+ .../platform/intel-mid/intel_mid_pcihelpers.c      | 33 ----------------------
+ 2 files changed, 41 deletions(-)
 
-0 must map to "all lanes" for backwards compatibility, but I see no
-reason why we shouldn't add another bit here to support reporting 4
-lanes explicitly.
-
-> 4 lanes is not necessarily "all available lanes".
-
-Correct.
-
-> - There are now CSI2 devices supporting up to 8 lanes (although
-> V4L2_FWNODE_CSI2_MAX_DATA_LANES limits you to 4 at the moment).
-
-So how about we just add two bits, then?
-
-#define V4L2_MBUS_CSI2_LANE_MASK                (0xf << 10)
-
-> - Or you could have 2 lanes configured in DT and ask TC358743 for (eg)
-> 1080P60 UYVY at 594Mbps (needs 4 lanes) which passes the current logic
-> in the TC358743 driver and would return 0, when it is actually going
-> to use 4 lanes. That could be classed as a driver bug though.
-
-Right, the driver shouldn't try to start streaming at all if it knows
-that the available CSI-2 bandwidth will be exceeded.
-
-> My view is that if a driver is going to report how many lanes to use
-> then it should always report it explicitly. The default 0 value should
-> only be used for devices that will never change it from the DT
-> settings. Perhaps others disagree
-> 
-> Otherwise the patch works for me.
-
-I'm fine with changing this as you suggest.
-
-regards
-Philipp
+diff --git a/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h b/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h
+index b7c079f3630a..0d7f5c618b56 100644
+--- a/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h
++++ b/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h
+@@ -18,14 +18,6 @@
+ #define PCI_ROOT_MSGBUS_WRITE           0x11
+ #define PCI_ROOT_MSGBUS_DWORD_ENABLE    0xf0
+ 
+-/* In BYT platform for all internal PCI devices d3 delay
+- * of 3 ms is sufficient. Default value of 10 ms is overkill.
+- */
+-#define INTERNAL_PCI_PM_D3_WAIT		3
+-
+-#define ISP_SUB_CLASS			0x80
+-#define SUB_CLASS_MASK			0xFF00
+-
+ u32 intel_mid_msgbus_read32_raw(u32 cmd);
+ u32 intel_mid_msgbus_read32(u8 port, u32 addr);
+ void intel_mid_msgbus_write32_raw(u32 cmd, u32 data);
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
+index 0d01a269989d..341bfd3ab313 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
+@@ -161,36 +161,3 @@ u32 intel_mid_soc_stepping(void)
+ 	return pci_root->revision;
+ }
+ EXPORT_SYMBOL(intel_mid_soc_stepping);
+-
+-static bool is_south_complex_device(struct pci_dev *dev)
+-{
+-	unsigned int base_class = dev->class >> 16;
+-	unsigned int sub_class  = (dev->class & SUB_CLASS_MASK) >> 8;
+-
+-	/* other than camera, pci bridges and display,
+-	 * everything else are south complex devices.
+-	 */
+-	if (((base_class == PCI_BASE_CLASS_MULTIMEDIA) &&
+-	     (sub_class == ISP_SUB_CLASS)) ||
+-	    (base_class == PCI_BASE_CLASS_BRIDGE) ||
+-	    ((base_class == PCI_BASE_CLASS_DISPLAY) && !sub_class))
+-		return false;
+-	else
+-		return true;
+-}
+-
+-/* In BYT platform, d3_delay for internal south complex devices,
+- * they are not subject to 10 ms d3 to d0 delay required by pci spec.
+- */
+-static void pci_d3_delay_fixup(struct pci_dev *dev)
+-{
+-	if (platform_is(INTEL_ATOM_BYT) ||
+-		platform_is(INTEL_ATOM_CHT)) {
+-		/* All internal devices are in bus 0. */
+-		if (dev->bus->number == 0 && is_south_complex_device(dev)) {
+-			dev->d3_delay = INTERNAL_PCI_PM_D3_WAIT;
+-			dev->d3cold_delay = INTERNAL_PCI_PM_D3_WAIT;
+-		}
+-	}
+-}
+-DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, PCI_ANY_ID, pci_d3_delay_fixup);
+-- 
+2.14.1
