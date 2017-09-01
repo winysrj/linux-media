@@ -1,65 +1,262 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:64790 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751602AbdIMLmS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 07:42:18 -0400
-From: Hoegeun Kwon <hoegeun.kwon@samsung.com>
-To: inki.dae@samsung.com, airlied@linux.ie, kgene@kernel.org,
-        krzk@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        catalin.marinas@arm.com, will.deacon@arm.com, mchehab@kernel.org,
-        s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-        robin.murphy@arm.com
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org, a.hajda@samsung.com,
-        Hoegeun Kwon <hoegeun.kwon@samsung.com>
-Subject: [PATCH v4 1/4] [media] exynos-gsc: Add compatible for Exynos 5250
- and 5420 specific version
-Date: Wed, 13 Sep 2017 20:41:52 +0900
-Message-id: <1505302915-15699-2-git-send-email-hoegeun.kwon@samsung.com>
-In-reply-to: <1505302915-15699-1-git-send-email-hoegeun.kwon@samsung.com>
-References: <1505302915-15699-1-git-send-email-hoegeun.kwon@samsung.com>
-        <CGME20170913114214epcas2p3158b964f9eec03fa24b4e8f6b919c2cb@epcas2p3.samsung.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46865
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751911AbdIANGp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:06:45 -0400
+Date: Fri, 1 Sep 2017 10:06:37 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Honza =?UTF-8?B?UGV0cm91xaE=?= <jpetrous@gmail.com>
+Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: Re: [PATCH 12/15] media: dmx.h: get rid of DMX_SET_SOURCE
+Message-ID: <20170901100637.60df7a3a@vento.lan>
+In-Reply-To: <CAJbz7-3tnMxNLhXVzbZ1v-GQoKWh-t_L5gnw+Lj2eay6_C5Q-g@mail.gmail.com>
+References: <cover.1504222628.git.mchehab@s-opensource.com>
+        <cf4b97ba0e68bf92cf899d04a3862cad1b3a7874.1504222628.git.mchehab@s-opensource.com>
+        <CAJbz7-1PijPZm1Sa87cHQmwMDURtW4PVUZZT9OvHPTfeFQafHg@mail.gmail.com>
+        <20170901063703.673d2d37@vento.lan>
+        <CAJbz7-10_dX2rL9piwKPdwE6V6n8w-_=u4Mf7NccufrwpYEdog@mail.gmail.com>
+        <20170901074513.5e5ddbbe@vento.lan>
+        <CAJbz7-3tnMxNLhXVzbZ1v-GQoKWh-t_L5gnw+Lj2eay6_C5Q-g@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Exynos 5250 and 5420 have different hardware rotation limits.
-Since we have to distinguish between these two, we add different
-compatible(samsung,exynos5250-gsc and samsung,exynos5420-gsc).
+Em Fri, 1 Sep 2017 13:14:04 +0200
+Honza Petrouš <jpetrous@gmail.com> escreveu:
 
-Signed-off-by: Hoegeun Kwon <hoegeun.kwon@samsung.com>
----
- Documentation/devicetree/bindings/media/exynos5-gsc.txt | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+> 2017-09-01 12:45 GMT+02:00 Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> > Em Fri, 1 Sep 2017 11:53:11 +0200
+> > Honza Petrouš <jpetrous@gmail.com> escreveu:
+> >  
+> >> 2017-09-01 11:37 GMT+02:00 Mauro Carvalho Chehab <mchehab@s-opensource.com>:  
+> >> > Em Fri, 1 Sep 2017 08:28:20 +0200
+> >> > Honza Petrouš <jpetrous@gmail.com> escreveu:
+> >> >  
+> >> >> 2017-09-01 1:46 GMT+02:00 Mauro Carvalho Chehab <mchehab@s-opensource.com>:  
+> >> >> > No driver uses this ioctl, nor it is documented anywhere.
+> >> >> >
+> >> >> > So, get rid of it.
+> >> >> >
+> >> >> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> >> >> > ---
+> >> >> >  Documentation/media/dmx.h.rst.exceptions        | 13 --------
+> >> >> >  Documentation/media/uapi/dvb/dmx-set-source.rst | 44 -------------------------
+> >> >> >  Documentation/media/uapi/dvb/dmx_fcalls.rst     |  1 -
+> >> >> >  Documentation/media/uapi/dvb/dmx_types.rst      | 20 -----------
+> >> >> >  include/uapi/linux/dvb/dmx.h                    | 12 -------
+> >> >> >  5 files changed, 90 deletions(-)
+> >> >> >  delete mode 100644 Documentation/media/uapi/dvb/dmx-set-source.rst
+> >> >> >
+> >> >> > diff --git a/Documentation/media/dmx.h.rst.exceptions b/Documentation/media/dmx.h.rst.exceptions
+> >> >> > index 5572d2dc9d0e..d2dac35bb84b 100644
+> >> >> > --- a/Documentation/media/dmx.h.rst.exceptions
+> >> >> > +++ b/Documentation/media/dmx.h.rst.exceptions
+> >> >> > @@ -40,18 +40,6 @@ replace enum dmx_input :c:type:`dmx_input`
+> >> >> >  replace symbol DMX_IN_FRONTEND :c:type:`dmx_input`
+> >> >> >  replace symbol DMX_IN_DVR :c:type:`dmx_input`
+> >> >> >
+> >> >> > -# dmx_source_t symbols
+> >> >> > -replace enum dmx_source :c:type:`dmx_source`
+> >> >> > -replace symbol DMX_SOURCE_FRONT0 :c:type:`dmx_source`
+> >> >> > -replace symbol DMX_SOURCE_FRONT1 :c:type:`dmx_source`
+> >> >> > -replace symbol DMX_SOURCE_FRONT2 :c:type:`dmx_source`
+> >> >> > -replace symbol DMX_SOURCE_FRONT3 :c:type:`dmx_source`
+> >> >> > -replace symbol DMX_SOURCE_DVR0 :c:type:`dmx_source`
+> >> >> > -replace symbol DMX_SOURCE_DVR1 :c:type:`dmx_source`
+> >> >> > -replace symbol DMX_SOURCE_DVR2 :c:type:`dmx_source`
+> >> >> > -replace symbol DMX_SOURCE_DVR3 :c:type:`dmx_source`
+> >> >> > -
+> >> >> > -
+> >> >> >  # Flags for struct dmx_sct_filter_params
+> >> >> >  replace define DMX_CHECK_CRC :c:type:`dmx_sct_filter_params`
+> >> >> >  replace define DMX_ONESHOT :c:type:`dmx_sct_filter_params`
+> >> >> > @@ -61,4 +49,3 @@ replace define DMX_IMMEDIATE_START :c:type:`dmx_sct_filter_params`
+> >> >> >  replace typedef dmx_filter_t :c:type:`dmx_filter`
+> >> >> >  replace typedef dmx_pes_type_t :c:type:`dmx_pes_type`
+> >> >> >  replace typedef dmx_input_t :c:type:`dmx_input`
+> >> >> > -replace typedef dmx_source_t :c:type:`dmx_source`
+> >> >> > diff --git a/Documentation/media/uapi/dvb/dmx-set-source.rst b/Documentation/media/uapi/dvb/dmx-set-source.rst
+> >> >> > deleted file mode 100644
+> >> >> > index ac7f77b25e06..000000000000
+> >> >> > --- a/Documentation/media/uapi/dvb/dmx-set-source.rst
+> >> >> > +++ /dev/null
+> >> >> > @@ -1,44 +0,0 @@
+> >> >> > -.. -*- coding: utf-8; mode: rst -*-
+> >> >> > -
+> >> >> > -.. _DMX_SET_SOURCE:
+> >> >> > -
+> >> >> > -==============
+> >> >> > -DMX_SET_SOURCE
+> >> >> > -==============
+> >> >> > -
+> >> >> > -Name
+> >> >> > -----
+> >> >> > -
+> >> >> > -DMX_SET_SOURCE
+> >> >> > -
+> >> >> > -
+> >> >> > -Synopsis
+> >> >> > ---------
+> >> >> > -
+> >> >> > -.. c:function:: int ioctl(fd, DMX_SET_SOURCE, struct dmx_source *src)
+> >> >> > -    :name: DMX_SET_SOURCE
+> >> >> > -
+> >> >> > -
+> >> >> > -Arguments
+> >> >> > ----------
+> >> >> > -
+> >> >> > -
+> >> >> > -``fd``
+> >> >> > -    File descriptor returned by :c:func:`open() <dvb-dmx-open>`.
+> >> >> > -
+> >> >> > -``src``
+> >> >> > -   Undocumented.
+> >> >> > -
+> >> >> > -
+> >> >> > -Description
+> >> >> > ------------
+> >> >> > -
+> >> >> > -.. note:: This ioctl is undocumented. Documentation is welcome.
+> >> >> > -
+> >> >> > -
+> >> >> > -Return Value
+> >> >> > -------------
+> >> >> > -
+> >> >> > -On success 0 is returned, on error -1 and the ``errno`` variable is set
+> >> >> > -appropriately. The generic error codes are described at the
+> >> >> > -:ref:`Generic Error Codes <gen-errors>` chapter.
+> >> >> > diff --git a/Documentation/media/uapi/dvb/dmx_fcalls.rst b/Documentation/media/uapi/dvb/dmx_fcalls.rst
+> >> >> > index 49e013d4540f..be98d60877f2 100644
+> >> >> > --- a/Documentation/media/uapi/dvb/dmx_fcalls.rst
+> >> >> > +++ b/Documentation/media/uapi/dvb/dmx_fcalls.rst
+> >> >> > @@ -21,6 +21,5 @@ Demux Function Calls
+> >> >> >      dmx-get-event
+> >> >> >      dmx-get-stc
+> >> >> >      dmx-get-pes-pids
+> >> >> > -    dmx-set-source
+> >> >> >      dmx-add-pid
+> >> >> >      dmx-remove-pid
+> >> >> > diff --git a/Documentation/media/uapi/dvb/dmx_types.rst b/Documentation/media/uapi/dvb/dmx_types.rst
+> >> >> > index 9e907b85cf16..a205c02ccdc1 100644
+> >> >> > --- a/Documentation/media/uapi/dvb/dmx_types.rst
+> >> >> > +++ b/Documentation/media/uapi/dvb/dmx_types.rst
+> >> >> > @@ -197,23 +197,3 @@ struct dmx_stc
+> >> >> >         unsigned int base;  /* output: divisor for stc to get 90 kHz clock */
+> >> >> >         __u64 stc;      /* output: stc in 'base'*90 kHz units */
+> >> >> >      };
+> >> >> > -
+> >> >> > -
+> >> >> > -
+> >> >> > -enum dmx_source
+> >> >> > -===============
+> >> >> > -
+> >> >> > -.. c:type:: dmx_source
+> >> >> > -
+> >> >> > -.. code-block:: c
+> >> >> > -
+> >> >> > -    typedef enum dmx_source {
+> >> >> > -       DMX_SOURCE_FRONT0 = 0,
+> >> >> > -       DMX_SOURCE_FRONT1,
+> >> >> > -       DMX_SOURCE_FRONT2,
+> >> >> > -       DMX_SOURCE_FRONT3,
+> >> >> > -       DMX_SOURCE_DVR0   = 16,
+> >> >> > -       DMX_SOURCE_DVR1,
+> >> >> > -       DMX_SOURCE_DVR2,
+> >> >> > -       DMX_SOURCE_DVR3
+> >> >> > -    } dmx_source_t;
+> >> >> > diff --git a/include/uapi/linux/dvb/dmx.h b/include/uapi/linux/dvb/dmx.h
+> >> >> > index c0ee44fbdb13..dd2b832c02ce 100644
+> >> >> > --- a/include/uapi/linux/dvb/dmx.h
+> >> >> > +++ b/include/uapi/linux/dvb/dmx.h
+> >> >> > @@ -117,17 +117,6 @@ struct dmx_pes_filter_params
+> >> >> >         __u32          flags;
+> >> >> >  };
+> >> >> >
+> >> >> > -typedef enum dmx_source {
+> >> >> > -       DMX_SOURCE_FRONT0 = 0,
+> >> >> > -       DMX_SOURCE_FRONT1,
+> >> >> > -       DMX_SOURCE_FRONT2,
+> >> >> > -       DMX_SOURCE_FRONT3,
+> >> >> > -       DMX_SOURCE_DVR0   = 16,
+> >> >> > -       DMX_SOURCE_DVR1,
+> >> >> > -       DMX_SOURCE_DVR2,
+> >> >> > -       DMX_SOURCE_DVR3
+> >> >> > -} dmx_source_t;
+> >> >> > -
+> >> >> >  struct dmx_stc {
+> >> >> >         unsigned int num;       /* input : which STC? 0..N */
+> >> >> >         unsigned int base;      /* output: divisor for stc to get 90 kHz clock */
+> >> >> > @@ -140,7 +129,6 @@ struct dmx_stc {
+> >> >> >  #define DMX_SET_PES_FILTER       _IOW('o', 44, struct dmx_pes_filter_params)
+> >> >> >  #define DMX_SET_BUFFER_SIZE      _IO('o', 45)
+> >> >> >  #define DMX_GET_PES_PIDS         _IOR('o', 47, __u16[5])
+> >> >> > -#define DMX_SET_SOURCE           _IOW('o', 49, dmx_source_t)
+> >> >> >  #define DMX_GET_STC              _IOWR('o', 50, struct dmx_stc)
+> >> >> >  #define DMX_ADD_PID              _IOW('o', 51, __u16)
+> >> >> >  #define DMX_REMOVE_PID           _IOW('o', 52, __u16)
+> >> >> > --
+> >> >> > 2.13.5
+> >> >> >  
+> >> >>
+> >> >> Hi Mauro.
+> >> >>
+> >> >> May be I missed something, but how it should be managed the demux
+> >> >> source without that?
+> >> >> Do we have some other way how to set the demux input?  
+> >> >
+> >> > Yes: via the media controller.
+> >> >  
+> >> >> Even in one-frontend configuration we should have to have option
+> >> >> to switch between DMX_SOURCE_FRONT0 & DMX_SOURCE_DVR0.  
+> >> >
+> >> > Actually, the sources are configured when a filter is set. I've  
+> >>
+> >> Do you mean in DMX_SET_FILTER?
+> >>
+> >> I don't see any way how to do it inside struct:
+> >>
+> >> struct dmx_sct_filter_params
+> >> {
+> >>         __u16          pid;
+> >>         dmx_filter_t   filter;
+> >>         __u32          timeout;
+> >>         __u32          flags;
+> >> #define DMX_CHECK_CRC       1
+> >> #define DMX_ONESHOT         2
+> >> #define DMX_IMMEDIATE_START 4
+> >> #define DMX_KERNEL_CLIENT   0x8000
+> >> };  
+> >
+> >
+> > No, I'm actually talking about DMX_SET_PES_FILTER filter:
+> >
+> > struct dmx_pes_filter_params
+> > {
+> >         __u16           pid;
+> >         enum dmx_input  input;
+> >         enum dmx_output output;
+> >         enum dmx_ts_pes pes_type;
+> >         __u32           flags;
+> > };
+> >
+> > it explicitly allows setting both input and output, per PES filter.  
+> 
+> Sure, but ONLY for PES filtering. The sections are out of business.
+> 
+> Let me again note that doing demux source switch as side-effectr of
+> setting PES filter looks more then strange. More logical looks
+> the possibility to switch source independently (DMX_SET_SOURCE).
+> 
+> Of course, it is only my POV.
 
-diff --git a/Documentation/devicetree/bindings/media/exynos5-gsc.txt b/Documentation/devicetree/bindings/media/exynos5-gsc.txt
-index 26ca25b..0d4fdae 100644
---- a/Documentation/devicetree/bindings/media/exynos5-gsc.txt
-+++ b/Documentation/devicetree/bindings/media/exynos5-gsc.txt
-@@ -3,8 +3,11 @@
- G-Scaler is used for scaling and color space conversion on EXYNOS5 SoCs.
- 
- Required properties:
--- compatible: should be "samsung,exynos5-gsc" (for Exynos 5250, 5420 and
--	      5422 SoCs) or "samsung,exynos5433-gsc" (Exynos 5433)
-+- compatible: should be one of
-+	      "samsung,exynos5250-gsc"
-+	      "samsung,exynos5420-gsc"
-+	      "samsung,exynos5433-gsc"
-+	      "samsung,exynos5-gsc" (deprecated)
- - reg: should contain G-Scaler physical address location and length.
- - interrupts: should contain G-Scaler interrupt number
- 
-@@ -15,7 +18,7 @@ Optional properties:
- Example:
- 
- gsc_0:  gsc@0x13e00000 {
--	compatible = "samsung,exynos5-gsc";
-+	compatible = "samsung,exynos5250-gsc";
- 	reg = <0x13e00000 0x1000>;
- 	interrupts = <0 85 0>;
- };
--- 
-1.9.1
+Yeah, I agree, but it is too late to change it ;)
+
+Both Kernelspace and userspace apps rely on such behavior.
+
+Thanks,
+Mauro
