@@ -1,47 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:11182 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750984AbdIKHva (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 03:51:30 -0400
-Subject: Re: [PATCH v9 02/24] v4l: async: Remove re-probing support
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
- <20170908131235.30294-3-sakari.ailus@linux.intel.com>
- <787019fe-7402-7edb-3de6-9a683de78d71@xs4all.nl>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <041af454-9aa7-653c-fa40-6f484829d36e@linux.intel.com>
-Date: Mon, 11 Sep 2017 10:51:25 +0300
-MIME-Version: 1.0
-In-Reply-To: <787019fe-7402-7edb-3de6-9a683de78d71@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48354
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752329AbdIATiA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 15:38:00 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 13/14] media: intro.rst: don't assume audio and video codecs to be MPEG2
+Date: Fri,  1 Sep 2017 16:37:49 -0300
+Message-Id: <92351e29059e3678ec714eb66ee7f10c4fcca3b0.1504293108.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504293108.git.mchehab@s-opensource.com>
+References: <cover.1504293108.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504293108.git.mchehab@s-opensource.com>
+References: <cover.1504293108.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/11/17 10:47, Hans Verkuil wrote:
-> On 09/08/2017 03:11 PM, Sakari Ailus wrote:
->> Remove V4L2 async re-probing support. The re-probing support has been
->> there to support cases where the sub-devices require resources provided by
->> the main driver's hardware to function, such as clocks.
->>
->> Reprobing has allowed unbinding and again binding the main driver without
->> explicilty unbinding the sub-device drivers. This is certainly not a
->> common need, and the responsibility will be the user's going forward.
->>
->> An alternative could have been to introduce notifier specific locks.
->> Considering the complexity of the re-probing and that it isn't really a
->> solution to a problem but a workaround, remove re-probing instead.
->>
->> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> I Acked the v8 version, but don't see my Ack here. Did you miss it?
+Originally, when DVB was introduced, all codecs would be part of
+MPEG2 standard. That's not true anymore, as there are a large
+number of codec standards used on digital TV nowadays.
 
-I think I sent v9 around the time you sent the ack. :-) It will be in v10.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/dvb/intro.rst | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
+diff --git a/Documentation/media/uapi/dvb/intro.rst b/Documentation/media/uapi/dvb/intro.rst
+index fbae687414ce..79b4d0e4e920 100644
+--- a/Documentation/media/uapi/dvb/intro.rst
++++ b/Documentation/media/uapi/dvb/intro.rst
+@@ -94,11 +94,10 @@ Demultiplexer which filters the incoming Digital TV MPEG-TS stream
+    streams it also contains data streams with information about the
+    programs offered in this or other streams of the same provider.
+ 
+-MPEG2 audio and video decoder
+-   The main targets of the demultiplexer are the MPEG2 audio and video
+-   decoders. After decoding they pass on the uncompressed audio and
+-   video to the computer screen or (through a PAL/NTSC encoder) to a TV
+-   set.
++Audio and video decoder
++   The main targets of the demultiplexer are audio and video
++   decoders. After decoding, they pass on the uncompressed audio and
++   video to the computer screen or to a TV set.
+ 
+    .. note::
+ 
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.13.5
