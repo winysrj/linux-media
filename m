@@ -1,137 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51764
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46940
         "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751611AbdICNev (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Sep 2017 09:34:51 -0400
+        with ESMTP id S1752049AbdIANY5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:24:57 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
         linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH v2] media: net.h: add kernel-doc and use it at Documentation/
-Date: Sun,  3 Sep 2017 10:34:44 -0300
-Message-Id: <3e67ef8566fbb045eacb8b139020c2379e0d7ca1.1504445626.git.mchehab@s-opensource.com>
+Subject: [PATCH v2 15/27] media: dmx.h: get rid of GET_DMX_EVENT
+Date: Fri,  1 Sep 2017 10:24:37 -0300
+Message-Id: <02294126b52fedd272d1ff5da461a01b25f71440.1504272067.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
+References: <cover.1504272067.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
+References: <cover.1504272067.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we did with frontend.h, ca.h and dmx.h, move the struct
-definition to net.h.
+This seems to be a pure fictional API :-)
 
-That should help to keep it updated, as more stuff gets
-added there.
+It only exists at the DVB book, with no code implemeting it.
+
+So, just get rid of it.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
+ Documentation/media/uapi/dvb/dmx-get-event.rst | 60 --------------------------
+ Documentation/media/uapi/dvb/dmx_fcalls.rst    |  1 -
+ Documentation/media/uapi/dvb/dmx_types.rst     | 19 --------
+ 3 files changed, 80 deletions(-)
+ delete mode 100644 Documentation/media/uapi/dvb/dmx-get-event.rst
 
-v2:
-  - Version 1 was broken: it was missing net-types.rst file and if_num was
-    called "ifnum", causing a warning.
-
- Documentation/media/uapi/dvb/net-add-if.rst | 34 -----------------------------
- Documentation/media/uapi/dvb/net-types.rst  |  9 ++++++++
- Documentation/media/uapi/dvb/net.rst        |  1 +
- include/uapi/linux/dvb/net.h                | 15 +++++++++++++
- 4 files changed, 25 insertions(+), 34 deletions(-)
- create mode 100644 Documentation/media/uapi/dvb/net-types.rst
-
-diff --git a/Documentation/media/uapi/dvb/net-add-if.rst b/Documentation/media/uapi/dvb/net-add-if.rst
-index 1087efb9baa0..6749b70246c5 100644
---- a/Documentation/media/uapi/dvb/net-add-if.rst
-+++ b/Documentation/media/uapi/dvb/net-add-if.rst
-@@ -41,40 +41,6 @@ created.
- The struct :c:type:`dvb_net_if`::ifnum field will be
- filled with the number of the created interface.
- 
--.. c:type:: dvb_net_if
+diff --git a/Documentation/media/uapi/dvb/dmx-get-event.rst b/Documentation/media/uapi/dvb/dmx-get-event.rst
+deleted file mode 100644
+index 8be626c29158..000000000000
+--- a/Documentation/media/uapi/dvb/dmx-get-event.rst
++++ /dev/null
+@@ -1,60 +0,0 @@
+-.. -*- coding: utf-8; mode: rst -*-
 -
--.. flat-table:: struct dvb_net_if
--    :header-rows:  1
+-.. _DMX_GET_EVENT:
+-
+-=============
+-DMX_GET_EVENT
+-=============
+-
+-Name
+-----
+-
+-DMX_GET_EVENT
+-
+-
+-Synopsis
+---------
+-
+-.. c:function:: int ioctl( int fd, DMX_GET_EVENT, struct dmx_event *ev)
+-    :name: DMX_GET_EVENT
+-
+-
+-Arguments
+----------
+-
+-``fd``
+-    File descriptor returned by :c:func:`open() <dvb-dmx-open>`.
+-
+-``ev``
+-    Pointer to the location where the event is to be stored.
+-
+-
+-Description
+------------
+-
+-This ioctl call returns an event if available. If an event is not
+-available, the behavior depends on whether the device is in blocking or
+-non-blocking mode. In the latter case, the call fails immediately with
+-errno set to ``EWOULDBLOCK``. In the former case, the call blocks until an
+-event becomes available.
+-
+-
+-Return Value
+-------------
+-
+-On success 0 is returned, on error -1 and the ``errno`` variable is set
+-appropriately. The generic error codes are described at the
+-:ref:`Generic Error Codes <gen-errors>` chapter.
+-
+-
+-
+-.. flat-table::
+-    :header-rows:  0
 -    :stub-columns: 0
 -
 -
 -    -  .. row 1
 -
--       -  ID
+-       -  ``EWOULDBLOCK``
 -
--       -  Description
--
--    -  .. row 2
--
--       -  pid
--
--       -  Packet ID (PID) of the MPEG-TS that contains data
--
--    -  .. row 3
--
--       -  ifnum
--
--       -  number of the Digital TV interface.
--
--    -  .. row 4
--
--       -  feedtype
--
--       -  Encapsulation type of the feed. It can be:
--	  ``DVB_NET_FEEDTYPE_MPE`` for MPE encoding or
--	  ``DVB_NET_FEEDTYPE_ULE`` for ULE encoding.
--
--
- Return Value
- ============
+-       -  There is no event pending, and the device is in non-blocking mode.
+diff --git a/Documentation/media/uapi/dvb/dmx_fcalls.rst b/Documentation/media/uapi/dvb/dmx_fcalls.rst
+index be98d60877f2..a17289143220 100644
+--- a/Documentation/media/uapi/dvb/dmx_fcalls.rst
++++ b/Documentation/media/uapi/dvb/dmx_fcalls.rst
+@@ -18,7 +18,6 @@ Demux Function Calls
+     dmx-set-filter
+     dmx-set-pes-filter
+     dmx-set-buffer-size
+-    dmx-get-event
+     dmx-get-stc
+     dmx-get-pes-pids
+     dmx-add-pid
+diff --git a/Documentation/media/uapi/dvb/dmx_types.rst b/Documentation/media/uapi/dvb/dmx_types.rst
+index a205c02ccdc1..171205ed86a4 100644
+--- a/Documentation/media/uapi/dvb/dmx_types.rst
++++ b/Documentation/media/uapi/dvb/dmx_types.rst
+@@ -166,25 +166,6 @@ struct dmx_pes_filter_params
+ 	__u32          flags;
+     };
  
-diff --git a/Documentation/media/uapi/dvb/net-types.rst b/Documentation/media/uapi/dvb/net-types.rst
-new file mode 100644
-index 000000000000..e1177bdcd623
---- /dev/null
-+++ b/Documentation/media/uapi/dvb/net-types.rst
-@@ -0,0 +1,9 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _dmx_types:
-+
-+**************
-+Net Data Types
-+**************
-+
-+.. kernel-doc:: include/uapi/linux/dvb/net.h
-diff --git a/Documentation/media/uapi/dvb/net.rst b/Documentation/media/uapi/dvb/net.rst
-index fdb5301a4b1f..e0cd4e402627 100644
---- a/Documentation/media/uapi/dvb/net.rst
-+++ b/Documentation/media/uapi/dvb/net.rst
-@@ -35,6 +35,7 @@ Digital TV net Function Calls
- .. toctree::
-     :maxdepth: 1
+-
+-struct dmx_event
+-================
+-
+-.. c:type:: dmx_event
+-
+-.. code-block:: c
+-
+-     struct dmx_event
+-     {
+-	 dmx_event_t          event;
+-	 time_t               timeStamp;
+-	 union
+-	 {
+-	     dmx_scrambling_status_t scrambling;
+-	 } u;
+-     };
+-
+-
+ struct dmx_stc
+ ==============
  
-+    net-types
-     net-add-if
-     net-remove-if
-     net-get-if
-diff --git a/include/uapi/linux/dvb/net.h b/include/uapi/linux/dvb/net.h
-index f451e7eb0b0b..89d805f9a5a6 100644
---- a/include/uapi/linux/dvb/net.h
-+++ b/include/uapi/linux/dvb/net.h
-@@ -26,6 +26,21 @@
- 
- #include <linux/types.h>
- 
-+/**
-+ * struct dvb_net_if - describes a DVB network interface
-+ *
-+ * @pid: Packet ID (PID) of the MPEG-TS that contains data
-+ * @if_num: number of the Digital TV interface.
-+ * @feedtype: Encapsulation type of the feed.
-+ *
-+ * A MPEG-TS stream may contain packet IDs with IP packages on it.
-+ * This struct describes it, and the type of encoding.
-+ *
-+ * @feedtype can be:
-+ *
-+ *	- %DVB_NET_FEEDTYPE_MPE for MPE encoding
-+ *	- %DVB_NET_FEEDTYPE_ULE for ULE encoding.
-+ */
- struct dvb_net_if {
- 	__u16 pid;
- 	__u16 if_num;
 -- 
 2.13.5
