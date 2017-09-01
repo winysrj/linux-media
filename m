@@ -1,230 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:42593 "EHLO gofer.mess.org"
+Received: from mail.anw.at ([195.234.101.228]:55148 "EHLO mail.anw.at"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965980AbdIZUOI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 16:14:08 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 20/20] media: lirc: document LIRC_MODE_SCANCODE
-Date: Tue, 26 Sep 2017 21:13:59 +0100
-Message-Id: <873c209c7c3a81b2be76760262aeeef82109af3a.1506455086.git.sean@mess.org>
-In-Reply-To: <2d8072bb3a5e80de4a6dd175a358cb2034c12d3e.1506455086.git.sean@mess.org>
-References: <2d8072bb3a5e80de4a6dd175a358cb2034c12d3e.1506455086.git.sean@mess.org>
-In-Reply-To: <cover.1506455086.git.sean@mess.org>
-References: <cover.1506455086.git.sean@mess.org>
+        id S1751022AbdIAHly (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Sep 2017 03:41:54 -0400
+Subject: Re: [PATCH] [media_build] update v4.7_dma_attrs.patch
+To: Daniel Scheller <d.scheller.oss@gmail.com>,
+        linux-media@vger.kernel.org
+Cc: mchehab@kernel.org, hverkuil@xs4all.nl
+References: <20170828160851.618-1-d.scheller.oss@gmail.com>
+From: "Jasmin J." <jasmin@anw.at>
+Message-ID: <e91ae137-433c-b9c1-c64a-c82b95f517ff@anw.at>
+Date: Fri, 1 Sep 2017 09:41:57 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170828160851.618-1-d.scheller.oss@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Lirc supports a new mode which requires documentation.
+Hi!
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- Documentation/media/lirc.h.rst.exceptions          | 49 ++++++++++++++++++++++
- Documentation/media/uapi/rc/lirc-dev-intro.rst     | 25 +++++++++++
- Documentation/media/uapi/rc/lirc-get-features.rst  | 16 +++++++
- Documentation/media/uapi/rc/lirc-get-rec-mode.rst  |  6 ++-
- Documentation/media/uapi/rc/lirc-get-send-mode.rst |  4 +-
- Documentation/media/uapi/rc/lirc-read.rst          |  6 +++
- Documentation/media/uapi/rc/lirc-write.rst         |  8 ++++
- 7 files changed, 111 insertions(+), 3 deletions(-)
+To get media-build working again this is needs to be merged also.
 
-diff --git a/Documentation/media/lirc.h.rst.exceptions b/Documentation/media/lirc.h.rst.exceptions
-index c130617a9986..d86f5df12f75 100644
---- a/Documentation/media/lirc.h.rst.exceptions
-+++ b/Documentation/media/lirc.h.rst.exceptions
-@@ -28,6 +28,55 @@ ignore define LIRC_CAN_SEND_MASK
- ignore define LIRC_CAN_REC_MASK
- ignore define LIRC_CAN_SET_REC_DUTY_CYCLE
- 
-+# rc protocols
-+
-+ignore symbol RC_PROTO_UNKNOWN
-+ignore symbol RC_PROTO_OTHER
-+ignore symbol RC_PROTO_RC5
-+ignore symbol RC_PROTO_RC5X_20
-+ignore symbol RC_PROTO_RC5_SZ
-+ignore symbol RC_PROTO_JVC
-+ignore symbol RC_PROTO_SONY12
-+ignore symbol RC_PROTO_SONY15
-+ignore symbol RC_PROTO_SONY20
-+ignore symbol RC_PROTO_NEC
-+ignore symbol RC_PROTO_NECX
-+ignore symbol RC_PROTO_NEC32
-+ignore symbol RC_PROTO_SANYO
-+ignore symbol RC_PROTO_MCIR2_KBD
-+ignore symbol RC_PROTO_MCIR2_MSE
-+ignore symbol RC_PROTO_RC6_0
-+ignore symbol RC_PROTO_RC6_6A_20
-+ignore symbol RC_PROTO_RC6_6A_24
-+ignore symbol RC_PROTO_RC6_6A_32
-+ignore symbol RC_PROTO_RC6_MCE
-+ignore symbol RC_PROTO_SHARP
-+ignore symbol RC_PROTO_XMP
-+ignore symbol RC_PROTO_CEC
-+ignore symbol RC_PROTO_UNKNOWN
-+ignore symbol RC_PROTO_OTHER
-+ignore symbol RC_PROTO_RC5
-+ignore symbol RC_PROTO_RC5X_20
-+ignore symbol RC_PROTO_RC5_SZ
-+ignore symbol RC_PROTO_JVC
-+ignore symbol RC_PROTO_SONY12
-+ignore symbol RC_PROTO_SONY15
-+ignore symbol RC_PROTO_SONY20
-+ignore symbol RC_PROTO_NEC
-+ignore symbol RC_PROTO_NECX
-+ignore symbol RC_PROTO_NEC32
-+ignore symbol RC_PROTO_SANYO
-+ignore symbol RC_PROTO_MCIR2_KBD
-+ignore symbol RC_PROTO_MCIR2_MSE
-+ignore symbol RC_PROTO_RC6_0
-+ignore symbol RC_PROTO_RC6_6A_20
-+ignore symbol RC_PROTO_RC6_6A_24
-+ignore symbol RC_PROTO_RC6_6A_32
-+ignore symbol RC_PROTO_RC6_MCE
-+ignore symbol RC_PROTO_SHARP
-+ignore symbol RC_PROTO_XMP
-+ignore symbol RC_PROTO_CEC
-+
- # Undocumented macros
- 
- ignore define PULSE_BIT
-diff --git a/Documentation/media/uapi/rc/lirc-dev-intro.rst b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-index a3fa3c1ef169..bf05cf6985df 100644
---- a/Documentation/media/uapi/rc/lirc-dev-intro.rst
-+++ b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-@@ -36,6 +36,31 @@ LIRC modes
- LIRC supports some modes of receiving and sending IR codes, as shown
- on the following table.
- 
-+.. _lirc-mode-scancode:
-+.. _lirc-scancode-flag-toggle:
-+.. _lirc-scancode-flag-repeat:
-+
-+``LIRC_MODE_SCANCODE``
-+
-+    This mode is for both sending and receiving IR.
-+
-+    For transmitting (aka sending), create a ``struct lirc_scancode`` with
-+    the desired scancode set in the ``scancode`` member, ``rc_proto`` set
-+    the IR protocol, and ``flags`` set to 0. Write this to the lirc device.
-+
-+    For receiving, you read ``struct lirc_scancode`` from the lirc device,
-+    with ``scancode`` set to the received scancode in the IR protocol
-+    ``rc_proto``. The ``flags`` can have ``LIRC_SCANCODE_FLAG_TOGGLE`` set
-+    if the toggle bit is set in protocols that support it (e.g. rc-5 and rc-6),
-+    or ``LIRC_SCANCODE_FLAG_REPEAT`` for when a repeat is received for protocols
-+    that support it (e.g. nec).
-+
-+    The ``timestamp`` field is filled with the time nanoseconds
-+    (in ``CLOCK_MONOTONIC``) when the scancode was decoded.
-+
-+    An ``enum rc_proto`` in the :ref:`lirc_header` lists all the supported
-+    IR protocols.
-+
- .. _lirc-mode-mode2:
- 
- ``LIRC_MODE_MODE2``
-diff --git a/Documentation/media/uapi/rc/lirc-get-features.rst b/Documentation/media/uapi/rc/lirc-get-features.rst
-index 50c2c26d8e89..3ee44067de63 100644
---- a/Documentation/media/uapi/rc/lirc-get-features.rst
-+++ b/Documentation/media/uapi/rc/lirc-get-features.rst
-@@ -64,6 +64,14 @@ LIRC features
- 
-     Unused. Kept just to avoid breaking uAPI.
- 
-+.. _LIRC-CAN-REC-SCANCODE:
-+
-+``LIRC_CAN_REC_SCANCODE``
-+
-+    The driver is capable of receiving using
-+    :ref:`LIRC_MODE_SCANCODE <lirc-mode-SCANCODE>`.
-+
-+
- .. _LIRC-CAN-SET-SEND-CARRIER:
- 
- ``LIRC_CAN_SET_SEND_CARRIER``
-@@ -171,6 +179,14 @@ LIRC features
- 
-     Unused. Kept just to avoid breaking uAPI.
- 
-+.. _LIRC-CAN-SEND-SCANCODE:
-+
-+``LIRC_CAN_SEND_SCANCODE``
-+
-+    The driver supports sending (also called as IR blasting or IR TX) using
-+    :ref:`LIRC_MODE_SCANCODE <lirc-mode-SCANCODE>`.
-+
-+
- Return Value
- ============
- 
-diff --git a/Documentation/media/uapi/rc/lirc-get-rec-mode.rst b/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-index b89de9add921..221f093db125 100644
---- a/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-+++ b/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-@@ -33,8 +33,10 @@ Arguments
- Description
- ===========
- 
--Get/set supported receive modes. Only :ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>`
--is supported for IR receive.
-+Get/set supported receive modes. Only :ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>`,
-+:ref:`LIRC_MODE_LIRCCODE <lirc-mode-lirccode>` and
-+:ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` are supported for IR
-+Use :ref:`lirc_get_features` to find out which modes the driver supports.
- 
- Return Value
- ============
-diff --git a/Documentation/media/uapi/rc/lirc-get-send-mode.rst b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-index e686b21689a0..be0992ebd6f9 100644
---- a/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-+++ b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-@@ -36,7 +36,9 @@ Description
- 
- Get/set current transmit mode.
- 
--Only :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>` is supported by for IR send,
-+Only :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>`,
-+:ref:`LIRC_MODE_LIRCCODE <lirc-mode-lirccode>` and
-+:ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` is supported by for IR send,
- depending on the driver. Use :ref:`lirc_get_features` to find out which
- modes the driver supports.
- 
-diff --git a/Documentation/media/uapi/rc/lirc-read.rst b/Documentation/media/uapi/rc/lirc-read.rst
-index ff14a69104e5..2577c5aeec6b 100644
---- a/Documentation/media/uapi/rc/lirc-read.rst
-+++ b/Documentation/media/uapi/rc/lirc-read.rst
-@@ -52,6 +52,12 @@ The generally preferred mode for receive is
- in which packets containing an int value describing an IR signal are
- read from the chardev.
- 
-+Alternatively, :ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` might be available.
-+Some hardware only produces scancodes so this might be the only available mode.
-+In this mode, full decoded scancodes read from the chardev with their protocol
-+information.
-+
-+
- Return Value
- ============
- 
-diff --git a/Documentation/media/uapi/rc/lirc-write.rst b/Documentation/media/uapi/rc/lirc-write.rst
-index 2aad0fef4a5b..fba5ecb811ac 100644
---- a/Documentation/media/uapi/rc/lirc-write.rst
-+++ b/Documentation/media/uapi/rc/lirc-write.rst
-@@ -53,6 +53,14 @@ samples. The write function must block until the data has been transmitted
- by the hardware. If more data is provided than the hardware can send, the
- driver returns ``EINVAL``.
- 
-+When in :ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` mode, one
-+``struct lirc_scancode`` must be written to the chardev. The ``flags``
-+and ``timestamp`` members must be 0, and ``rc_proto`` must be set to a
-+valid protocol. Set the desired scancode in the ``scancode`` member. If
-+there is no protocol encoder for the protocol or the scancode is not
-+valid for the specified protocol, ``EINVAL`` is returned.
-+
-+
- Return Value
- ============
- 
--- 
-2.13.5
+BR,
+   Jasmin
+
+
+On 08/28/2017 06:08 PM, Daniel Scheller wrote:
+> From: Daniel Scheller <d.scheller@gmx.net>
+> 
+> Fixes apply_patches wrt
+> 
+>   commit 5b6f9abe5a49 ("media: vb2: add bidirectional flag in vb2_queue")
+> 
+> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+> Tested-by: Jasmin Jessich <jasmin@anw.at>
+> ---
+> Tested and verified by Jasmin on 3.13, 3.4 and 2.6.36, and by me on 4.4.
+> 
+>  backports/v4.7_dma_attrs.patch | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/backports/v4.7_dma_attrs.patch b/backports/v4.7_dma_attrs.patch
+> index 28d8dbc..40a7e5b 100644
+> --- a/backports/v4.7_dma_attrs.patch
+> +++ b/backports/v4.7_dma_attrs.patch
+> @@ -294,18 +294,18 @@ index 9a144f2..c5e3113 100644
+>    *		doesn't fill in the @alloc_devs array.
+>  - * @dma_attrs:	DMA attributes to use for the DMA.
+>  + * @dma_attrs:	DMA attributes to use for the DMA. May be NULL.
+> -  * @fileio_read_once:		report EOF after reading the first buffer
+> -  * @fileio_write_immediately:	queue buffer after each write() call
+> -  * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
+> +  * @bidirectional: when this flag is set the DMA direction for the buffers of
+> +  *		this queue will be overridden with DMA_BIDIRECTIONAL direction.
+> +  *		This is useful in cases where the hardware (firmware) writes to
+>  @@ -494,7 +494,7 @@ struct vb2_queue {
+>   	unsigned int			type;
+>   	unsigned int			io_modes;
+>   	struct device			*dev;
+>  -	unsigned long			dma_attrs;
+>  +	const struct dma_attrs		*dma_attrs;
+> + 	unsigned			bidirectional:1;
+>   	unsigned			fileio_read_once:1;
+>   	unsigned			fileio_write_immediately:1;
+> - 	unsigned			allow_zero_bytesused:1;
+>  diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
+>  index 5604818..df2aabe 100644
+>  --- a/include/media/videobuf2-dma-contig.h
+> 
