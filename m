@@ -1,209 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:21161 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751410AbdISMkf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 08:40:35 -0400
-Date: Tue, 19 Sep 2017 15:39:30 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, robh@kernel.org,
-        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
-        sre@kernel.org
-Subject: Re: [PATCH v13 07/25] rcar-vin: Use generic parser for parsing
- fwnode endpoints
-Message-ID: <20170919123930.xtq44elhwy6vdfxv@paasikivi.fi.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
- <20170915141724.23124-8-sakari.ailus@linux.intel.com>
- <3549838.F21OCYHXEu@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3549838.F21OCYHXEu@avalon>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:42816 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751040AbdIADig (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 31 Aug 2017 23:38:36 -0400
+Message-ID: <a62547b26e56f8b9e22254d0db19e4f3@smtp-cloud9.xs4all.net>
+Date: Fri, 01 Sep 2017 05:38:34 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Tue, Sep 19, 2017 at 02:53:16PM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thank you for the patch.
-> 
-> On Friday, 15 September 2017 17:17:06 EEST Sakari Ailus wrote:
-> > Instead of using driver implementation, use
-> 
-> Same comment as for patch 06/25.
+Results of the daily build of media_tree:
 
-Will fix.
+date:			Fri Sep  1 05:00:21 CEST 2017
+media-tree git hash:	fce4b371fe5c99a9c05db8493d72f0d1a474ab26
+media_build git hash:	96c1c79a9847387da3e8f51c1230b3118eed3ea6
+v4l-utils git hash:	3296adfa7fa169111bf37c041c0ca70ac8506054
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-> 
-> > v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoints
-> > of the device.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/platform/rcar-vin/rcar-core.c | 112 ++++++++-----------------
-> >  drivers/media/platform/rcar-vin/rcar-dma.c  |  10 +--
-> >  drivers/media/platform/rcar-vin/rcar-v4l2.c |  14 ++--
-> >  drivers/media/platform/rcar-vin/rcar-vin.h  |   4 +-
-> >  4 files changed, 48 insertions(+), 92 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
-> > b/drivers/media/platform/rcar-vin/rcar-core.c index
-> > 142de447aaaa..62b4a94f9a39 100644
-> > --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> > +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> 
-> [snip]
-> 
-> > @@ -120,117 +121,70 @@ static int rvin_digital_notify_bound(struct
-> 
-> [snip]
-> 
-> > -static int rvin_digitial_parse_v4l2(struct rvin_dev *vin,
-> > -				    struct device_node *ep,
-> > -				    struct v4l2_mbus_config *mbus_cfg)
-> > +static int rvin_digital_parse_v4l2(struct device *dev,
-> > +				   struct v4l2_fwnode_endpoint *vep,
-> > +				   struct v4l2_async_subdev *asd)
-> >  {
-> > -	struct v4l2_fwnode_endpoint v4l2_ep;
-> > -	int ret;
-> > +	struct rvin_dev *vin = dev_get_drvdata(dev);
-> 
-> Doesn't this show that we miss a context argument to the callback function ? 
-> Storing the context in device driver data is probably OK if the driver parsing 
-> the endpoints controls the struct device, but is that always the case ?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
 
-How does a driver know the hardware other than, uh, the device?
+Detailed results are available here:
 
-I guess we could add a private pointer when the async notifier is
-registered if there's a real need for it. The notifier could be an
-alternative but it wouldn't be applicable to sub-devices.
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-> 
-> > +	struct rvin_graph_entity *rvge =
-> > +		container_of(asd, struct rvin_graph_entity, asd);
-> > 
-> > -	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
-> > -	if (ret) {
-> > -		vin_err(vin, "Could not parse v4l2 endpoint\n");
-> > -		return -EINVAL;
-> > -	}
-> > +	if (vep->base.port || vep->base.id)
-> > +		return -ENOTCONN;
-> > 
-> > -	mbus_cfg->type = v4l2_ep.bus_type;
-> > +	rvge->mbus_cfg.type = vep->bus_type;
-> > 
-> > -	switch (mbus_cfg->type) {
-> > +	switch (rvge->mbus_cfg.type) {
-> >  	case V4L2_MBUS_PARALLEL:
-> >  		vin_dbg(vin, "Found PARALLEL media bus\n");
-> > -		mbus_cfg->flags = v4l2_ep.bus.parallel.flags;
-> > +		rvge->mbus_cfg.flags = vep->bus.parallel.flags;
-> >  		break;
-> >  	case V4L2_MBUS_BT656:
-> >  		vin_dbg(vin, "Found BT656 media bus\n");
-> > -		mbus_cfg->flags = 0;
-> > +		rvge->mbus_cfg.flags = 0;
-> >  		break;
-> >  	default:
-> >  		vin_err(vin, "Unknown media bus type\n");
-> >  		return -EINVAL;
-> >  	}
-> > 
-> > -	return 0;
-> > -}
-> > -
-> > -static int rvin_digital_graph_parse(struct rvin_dev *vin)
-> > -{
-> > -	struct device_node *ep, *np;
-> > -	int ret;
-> > -
-> > -	vin->digital.asd.match.fwnode.fwnode = NULL;
-> > -	vin->digital.subdev = NULL;
-> > -
-> > -	/*
-> > -	 * Port 0 id 0 is local digital input, try to get it.
-> > -	 * Not all instances can or will have this, that is OK
-> > -	 */
-> > -	ep = of_graph_get_endpoint_by_regs(vin->dev->of_node, 0, 0);
-> > -	if (!ep)
-> > -		return 0;
-> > -
-> > -	np = of_graph_get_remote_port_parent(ep);
-> > -	if (!np) {
-> > -		vin_err(vin, "No remote parent for digital input\n");
-> > -		of_node_put(ep);
-> > -		return -EINVAL;
-> > -	}
-> > -	of_node_put(np);
-> > -
-> > -	ret = rvin_digitial_parse_v4l2(vin, ep, &vin->digital.mbus_cfg);
-> > -	of_node_put(ep);
-> > -	if (ret)
-> > -		return ret;
-> > -
-> > -	vin->digital.asd.match.fwnode.fwnode = of_fwnode_handle(np);
-> > -	vin->digital.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-> > +	vin->digital = rvge;
-> > 
-> >  	return 0;
-> >  }
-> > 
-> >  static int rvin_digital_graph_init(struct rvin_dev *vin)
-> >  {
-> > -	struct v4l2_async_subdev **subdevs = NULL;
-> >  	int ret;
-> > 
-> > -	ret = rvin_digital_graph_parse(vin);
-> > +	ret = v4l2_async_notifier_parse_fwnode_endpoints(
-> > +		vin->dev, &vin->notifier,
-> > +		sizeof(struct rvin_graph_entity), rvin_digital_parse_v4l2);
-> >  	if (ret)
-> >  		return ret;
-> > 
-> > -	if (!vin->digital.asd.match.fwnode.fwnode) {
-> > -		vin_dbg(vin, "No digital subdevice found\n");
-> > -		return -ENODEV;
-> > -	}
-> > -
-> > -	/* Register the subdevices notifier. */
-> > -	subdevs = devm_kzalloc(vin->dev, sizeof(*subdevs), GFP_KERNEL);
-> > -	if (subdevs == NULL)
-> > -		return -ENOMEM;
-> > -
-> > -	subdevs[0] = &vin->digital.asd;
-> > -
-> > -	vin_dbg(vin, "Found digital subdevice %pOF\n",
-> > -		to_of_node(subdevs[0]->match.fwnode.fwnode));
-> > +	if (vin->digital)
-> > +		vin_dbg(vin, "Found digital subdevice %pOF\n",
-> > +			to_of_node(
-> > +				vin->digital->asd.match.fwnode.fwnode));
-> 
-> Isn't this is a change in behaviour ? The driver currently returns -ENODEV 
-> when no digital subdev is found.
+Full logs are available here:
 
-Seems so, I'll address that in v14.
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-> 
-> > -	vin->notifier.num_subdevs = 1;
-> > -	vin->notifier.subdevs = subdevs;
-> >  	vin->notifier.bound = rvin_digital_notify_bound;
-> >  	vin->notifier.unbind = rvin_digital_notify_unbind;
-> >  	vin->notifier.complete = rvin_digital_notify_complete;
-> > -
-> >  	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
-> >  	if (ret < 0) {
-> >  		vin_err(vin, "Notifier registration failed\n");
-> 
+The Media Infrastructure API from this daily build is here:
 
--- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+http://www.xs4all.nl/~hverkuil/spec/index.html
