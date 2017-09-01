@@ -1,98 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:37931 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751317AbdIKM36 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 08:29:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-tegra@vger.kernel.org, devicetree@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, thierry.reding@gmail.com
-Subject: [PATCHv4 0/4] tegra-cec: add Tegra HDMI CEC support
-Date: Mon, 11 Sep 2017 14:29:48 +0200
-Message-Id: <20170911122952.33980-1-hverkuil@xs4all.nl>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46935
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752041AbdIANY5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:24:57 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH v2 27/27] media: dst_ca: remove CA_SET_DESCR boilerplate
+Date: Fri,  1 Sep 2017 10:24:49 -0300
+Message-Id: <7c3a5b3fee1e681d2e0fb1d68862cce7c207c986.1504272067.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
+References: <cover.1504272067.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
+References: <cover.1504272067.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This ioctl is not implemented at dst_ca driver. There's just
+a boilerplate code there. Remove it, as it is unlikely that
+anyone would implement it those days.
 
-This patch series adds support for the Tegra CEC functionality.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/pci/bt8xx/dst_ca.c | 17 -----------------
+ 1 file changed, 17 deletions(-)
 
-This v4 has been rebased to the latest 4.14 pre-rc1 mainline.
-
-Please review! Other than for the bindings that are now Acked I have not
-received any feedback.
-
-The first patch documents the CEC bindings, the second adds support
-for this to tegra124.dtsi and enables it for the Jetson TK1.
-
-The third patch adds the CEC driver itself and the final patch adds
-the cec notifier support to the drm/tegra driver in order to notify
-the CEC driver whenever the physical address changes.
-
-I expect that the dts changes apply as well to the Tegra X1/X2 and possibly
-other Tegra SoCs, but I can only test this with my Jetson TK1 board.
-
-The dt-bindings and the tegra-cec driver would go in through the media
-subsystem, the drm/tegra part through the drm subsystem and the dts
-changes through (I guess) the linux-tegra developers. Luckily they are
-all independent of one another.
-
-To test this you need the CEC utilities from git://linuxtv.org/v4l-utils.git.
-
-To build this:
-
-git clone git://linuxtv.org/v4l-utils.git
-cd v4l-utils
-./bootstrap.sh; ./configure
-make
-sudo make install # optional, you really only need utils/cec*
-
-To test:
-
-cec-ctl --playback # configure as playback device
-cec-ctl -S # detect all connected CEC devices
-
-See here for the public CEC API:
-
-https://hverkuil.home.xs4all.nl/spec/uapi/cec/cec-api.html
-
-Regards,
-
-	Hans
-
-Changes since v3:
-
-- Use the new CEC_CAP_DEFAULTS define
-- Use IS_ERR(cec->adap) instead of IS_ERR_OR_NULL(cec->adap)
-  (cec_allocate_adapter never returns a NULL pointer)
-- Drop the device_init_wakeup: wakeup is not (yet) supported by
-  the CEC framework and I have never tested it.
-
-Hans Verkuil (4):
-  dt-bindings: document the tegra CEC bindings
-  ARM: tegra: add CEC support to tegra124.dtsi
-  tegra-cec: add Tegra HDMI CEC driver
-  drm/tegra: add cec-notifier support
-
- .../devicetree/bindings/media/tegra-cec.txt        |  27 ++
- MAINTAINERS                                        |   8 +
- arch/arm/boot/dts/tegra124-jetson-tk1.dts          |   4 +
- arch/arm/boot/dts/tegra124.dtsi                    |  12 +-
- drivers/gpu/drm/tegra/Kconfig                      |   1 +
- drivers/gpu/drm/tegra/drm.h                        |   3 +
- drivers/gpu/drm/tegra/hdmi.c                       |   9 +
- drivers/gpu/drm/tegra/output.c                     |   6 +
- drivers/media/platform/Kconfig                     |  11 +
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/tegra-cec/Makefile          |   1 +
- drivers/media/platform/tegra-cec/tegra_cec.c       | 501 +++++++++++++++++++++
- drivers/media/platform/tegra-cec/tegra_cec.h       | 127 ++++++
- 13 files changed, 711 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/devicetree/bindings/media/tegra-cec.txt
- create mode 100644 drivers/media/platform/tegra-cec/Makefile
- create mode 100644 drivers/media/platform/tegra-cec/tegra_cec.c
- create mode 100644 drivers/media/platform/tegra-cec/tegra_cec.h
-
+diff --git a/drivers/media/pci/bt8xx/dst_ca.c b/drivers/media/pci/bt8xx/dst_ca.c
+index 5ebb86f22935..530b3e9764ce 100644
+--- a/drivers/media/pci/bt8xx/dst_ca.c
++++ b/drivers/media/pci/bt8xx/dst_ca.c
+@@ -57,13 +57,6 @@ static unsigned int verbose = 5;
+ module_param(verbose, int, 0644);
+ MODULE_PARM_DESC(verbose, "verbose startup messages, default is 1 (yes)");
+ 
+-/*	Need some more work	*/
+-static int ca_set_slot_descr(void)
+-{
+-	/*	We could make this more graceful ?	*/
+-	return -EOPNOTSUPP;
+-}
+-
+ static void put_command_and_length(u8 *data, int command, int length)
+ {
+ 	data[0] = (command >> 16) & 0xff;
+@@ -615,16 +608,6 @@ static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioct
+ 		}
+ 		dprintk(verbose, DST_CA_INFO, 1, " -->CA_GET_DESCR_INFO Success !");
+ 		break;
+-	case CA_SET_DESCR:
+-		dprintk(verbose, DST_CA_INFO, 1, " Setting descrambler");
+-		result = ca_set_slot_descr();
+-		if (result < 0) {
+-			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_SET_DESCR Failed !");
+-			result = -1;
+-			goto free_mem_and_exit;
+-		}
+-		dprintk(verbose, DST_CA_INFO, 1, " -->CA_SET_DESCR Success !");
+-		break;
+ 	default:
+ 		result = -EOPNOTSUPP;
+ 	}
 -- 
-2.14.1
+2.13.5
