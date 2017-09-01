@@ -1,96 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53286
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752183AbdHZJ2h (ORCPT
+Received: from mail-qk0-f194.google.com ([209.85.220.194]:34461 "EHLO
+        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751721AbdIABvX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Aug 2017 05:28:37 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Jouni Ukkonen <jouni.ukkonen@intel.com>,
-        SeongJae Park <sj38.park@gmail.com>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Evgeni Raikhel <evgeni.raikhel@intel.com>,
-        Masanari Iida <standby24x7@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Pavel Machek <pavel@ucw.cz>,
-        Archit Taneja <architt@codeaurora.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Aviv Greenberg <aviv.d.greenberg@intel.com>,
-        Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
-Subject: [PATCH 0/4] Fix problems on building documentation with Sphinx 1.6
-Date: Sat, 26 Aug 2017 06:28:24 -0300
-Message-Id: <cover.1503739177.git.mchehab@s-opensource.com>
+        Thu, 31 Aug 2017 21:51:23 -0400
+Received: by mail-qk0-f194.google.com with SMTP id a77so1002345qkb.1
+        for <linux-media@vger.kernel.org>; Thu, 31 Aug 2017 18:51:23 -0700 (PDT)
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH v2 11/14] [media] vb2: add videobuf2 dma-buf fence helpers
+Date: Thu, 31 Aug 2017 22:50:38 -0300
+Message-Id: <20170901015041.7757-12-gustavo@padovan.org>
+In-Reply-To: <20170901015041.7757-1-gustavo@padovan.org>
+References: <20170901015041.7757-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sphinx 1.6 changed the way tables are produced, adding some new
-macros before tables that do vertical alignments. This is incompatible
-with adjustbox, used by the media book, causing build to fail.
+From: Javier Martinez Canillas <javier@osg.samsung.com>
 
-This series fix such issues and make the layout on Sphinx 1.6 acceptable.
+Add a videobuf2-fence.h header file that contains different helpers
+for DMA buffer sharing explicit fence support in videobuf2.
 
-The first patch in this series is just a minor fix: it adjust the top and
-bottom margins to 1 inch, for newer Sphinx versions, just like on
-Spinx 1.4;
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ include/media/videobuf2-fence.h | 49 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
+ create mode 100644 include/media/videobuf2-fence.h
 
-The second patch gets rid of adjustbox at the media book and 
-adjust its tables to better fit on the output layout, making it
-compatible with Sphinx 1.6;
-
-The third patch updates sphinx.rst to remove the restriction for
-Sphinx 1.6.
-
-The final patch is just a cleanup patch: it removes adjustbox dependency
-from LaTeX output and stop requiring it when checking for
-build system dependencies. It should only be applied after
-patch 2 is merged.
-
-Jon,
-
-IMHO, the best is if I apply patch 2 on my trees. Please apply
-patches 1 and 3 on your tree.
-
-Patch 4 can only be applied after  patch 2 gets merged, but it
-is just a cleanup patch that can be applied any time later.
-
-Mauro Carvalho Chehab (4):
-  docs-rst: fix verbatim font size on tables
-  media: fix pdf build with Spinx 1.6
-  sphinx.rst: Allow Sphinx version 1.6 at the docs
-  docs-rst: don't require adjustbox anymore
-
- Documentation/conf.py                              |   5 +-
- Documentation/doc-guide/sphinx.rst                 |   4 +-
- Documentation/media/uapi/v4l/dev-meta.rst          |   2 +
- Documentation/media/uapi/v4l/dev-sliced-vbi.rst    |  23 ++-
- Documentation/media/uapi/v4l/dev-subdev.rst        |   6 +-
- Documentation/media/uapi/v4l/extended-controls.rst |   6 +-
- Documentation/media/uapi/v4l/pixfmt-inzi.rst       |   7 +-
- Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst |  30 ++--
- Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst | 186 +++++++++++----------
- Documentation/media/uapi/v4l/pixfmt-packed-yuv.rst |  50 +++---
- Documentation/media/uapi/v4l/pixfmt-srggb10p.rst   |   7 +-
- Documentation/media/uapi/v4l/subdev-formats.rst    |  17 +-
- Documentation/media/uapi/v4l/vidioc-dqevent.rst    |   2 +-
- .../media/uapi/v4l/vidioc-dv-timings-cap.rst       |   2 +-
- .../media/uapi/v4l/vidioc-enum-frameintervals.rst  |   2 +
- Documentation/media/uapi/v4l/vidioc-enumstd.rst    |   9 +-
- .../media/uapi/v4l/vidioc-g-dv-timings.rst         |   4 +-
- .../media/uapi/v4l/vidioc-g-enc-index.rst          |   2 +-
- .../media/uapi/v4l/vidioc-g-ext-ctrls.rst          |   2 +-
- .../media/uapi/v4l/vidioc-g-sliced-vbi-cap.rst     |   6 +-
- Documentation/media/uapi/v4l/vidioc-g-tuner.rst    |   4 +-
- Documentation/media/uapi/v4l/vidioc-queryctrl.rst  |   2 +-
- scripts/sphinx-pre-install                         |   1 -
- 23 files changed, 204 insertions(+), 175 deletions(-)
-
+diff --git a/include/media/videobuf2-fence.h b/include/media/videobuf2-fence.h
+new file mode 100644
+index 000000000000..ed5612ca03d6
+--- /dev/null
++++ b/include/media/videobuf2-fence.h
+@@ -0,0 +1,49 @@
++/*
++ * videobuf2-fence.h - DMA buffer sharing fence helpers for videobuf 2
++ *
++ * Copyright (C) 2016 Samsung Electronics
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++
++#include <linux/dma-fence.h>
++#include <linux/slab.h>
++
++static DEFINE_SPINLOCK(vb2_fence_lock);
++
++static inline const char *vb2_fence_get_driver_name(struct dma_fence *fence)
++{
++	return "vb2_fence";
++}
++
++static inline const char *vb2_fence_get_timeline_name(struct dma_fence *fence)
++{
++	return "vb2_fence_timeline";
++}
++
++static inline bool vb2_fence_enable_signaling(struct dma_fence *fence)
++{
++	return true;
++}
++
++static const struct dma_fence_ops vb2_fence_ops = {
++	.get_driver_name = vb2_fence_get_driver_name,
++	.get_timeline_name = vb2_fence_get_timeline_name,
++	.enable_signaling = vb2_fence_enable_signaling,
++	.wait = dma_fence_default_wait,
++};
++
++static inline struct dma_fence *vb2_fence_alloc(void)
++{
++	struct dma_fence *vb2_fence = kzalloc(sizeof(*vb2_fence), GFP_KERNEL);
++
++	if (!vb2_fence)
++		return NULL;
++
++	dma_fence_init(vb2_fence, &vb2_fence_ops, &vb2_fence_lock,
++		       dma_fence_context_alloc(1), 1);
++
++	return vb2_fence;
++}
 -- 
-2.13.3
+2.13.5
