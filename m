@@ -1,159 +1,413 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:35406 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756029AbdIGSnX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 14:43:23 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [PATCH v3 13/15] [media] vb2: add infrastructure to support out-fences
-Date: Thu,  7 Sep 2017 15:42:24 -0300
-Message-Id: <20170907184226.27482-14-gustavo@padovan.org>
-In-Reply-To: <20170907184226.27482-1-gustavo@padovan.org>
-References: <20170907184226.27482-1-gustavo@padovan.org>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46940
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752090AbdIANY7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:24:59 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH v2 16/27] media: dmx.h: add kernel-doc markups and use it at Documentation/
+Date: Fri,  1 Sep 2017 10:24:38 -0300
+Message-Id: <2361b45ebf1d0562f388c65efd7597f2206a8d2d.1504272067.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
+References: <cover.1504272067.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
+References: <cover.1504272067.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+The demux documentation is pretty poor nowadays: most of the
+structs and enums aren't documented at all.
 
-Add vb2_setup_out_fence() and the needed members to struct vb2_buffer.
+Add proper kernel-doc markups for them and use it.
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Now, the demux API is fully documented :-)
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 55 ++++++++++++++++++++++++++++++++
- include/media/videobuf2-core.h           | 34 ++++++++++++++++++++
- 2 files changed, 89 insertions(+)
+ Documentation/media/dmx.h.rst.exceptions   |   5 +
+ Documentation/media/uapi/dvb/dmx_types.rst | 173 +----------------------------
+ include/uapi/linux/dvb/dmx.h               | 139 ++++++++++++++++++-----
+ 3 files changed, 120 insertions(+), 197 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index bbbae0eed567..34adf1916194 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -23,8 +23,11 @@
- #include <linux/sched.h>
- #include <linux/freezer.h>
- #include <linux/kthread.h>
-+#include <linux/sync_file.h>
-+#include <linux/dma-fence.h>
+diff --git a/Documentation/media/dmx.h.rst.exceptions b/Documentation/media/dmx.h.rst.exceptions
+index d2dac35bb84b..629db384104a 100644
+--- a/Documentation/media/dmx.h.rst.exceptions
++++ b/Documentation/media/dmx.h.rst.exceptions
+@@ -49,3 +49,8 @@ replace define DMX_IMMEDIATE_START :c:type:`dmx_sct_filter_params`
+ replace typedef dmx_filter_t :c:type:`dmx_filter`
+ replace typedef dmx_pes_type_t :c:type:`dmx_pes_type`
+ replace typedef dmx_input_t :c:type:`dmx_input`
++
++ignore symbol DMX_OUT_DECODER
++ignore symbol DMX_OUT_TAP
++ignore symbol DMX_OUT_TS_TAP
++ignore symbol DMX_OUT_TSDEMUX_TAP
+diff --git a/Documentation/media/uapi/dvb/dmx_types.rst b/Documentation/media/uapi/dvb/dmx_types.rst
+index 171205ed86a4..2a023a4f516c 100644
+--- a/Documentation/media/uapi/dvb/dmx_types.rst
++++ b/Documentation/media/uapi/dvb/dmx_types.rst
+@@ -6,175 +6,4 @@
+ Demux Data Types
+ ****************
  
- #include <media/videobuf2-core.h>
-+#include <media/videobuf2-fence.h>
- #include <media/v4l2-mc.h>
+-Output for the demux
+-====================
+-
+-.. c:type:: dmx_output
+-
+-.. tabularcolumns:: |p{5.0cm}|p{12.5cm}|
+-
+-.. flat-table:: enum dmx_output
+-    :header-rows:  1
+-    :stub-columns: 0
+-
+-
+-    -  .. row 1
+-
+-       -  ID
+-
+-       -  Description
+-
+-    -  .. row 2
+-
+-       -  .. _DMX-OUT-DECODER:
+-
+-	  DMX_OUT_DECODER
+-
+-       -  Streaming directly to decoder.
+-
+-    -  .. row 3
+-
+-       -  .. _DMX-OUT-TAP:
+-
+-	  DMX_OUT_TAP
+-
+-       -  Output going to a memory buffer (to be retrieved via the read
+-	  command). Delivers the stream output to the demux device on which
+-	  the ioctl is called.
+-
+-    -  .. row 4
+-
+-       -  .. _DMX-OUT-TS-TAP:
+-
+-	  DMX_OUT_TS_TAP
+-
+-       -  Output multiplexed into a new TS (to be retrieved by reading from
+-	  the logical DVR device). Routes output to the logical DVR device
+-	  ``/dev/dvb/adapter?/dvr?``, which delivers a TS multiplexed from
+-	  all filters for which ``DMX_OUT_TS_TAP`` was specified.
+-
+-    -  .. row 5
+-
+-       -  .. _DMX-OUT-TSDEMUX-TAP:
+-
+-	  DMX_OUT_TSDEMUX_TAP
+-
+-       -  Like :ref:`DMX_OUT_TS_TAP <DMX-OUT-TS-TAP>` but retrieved
+-	  from the DMX device.
+-
+-
+-dmx_input_t
+-===========
+-
+-.. c:type:: dmx_input
+-
+-.. code-block:: c
+-
+-    typedef enum
+-    {
+-	DMX_IN_FRONTEND, /* Input from a front-end device.  */
+-	DMX_IN_DVR       /* Input from the logical DVR device.  */
+-    } dmx_input_t;
+-
+-
+-dmx_pes_type_t
+-==============
+-
+-.. c:type:: dmx_pes_type
+-
+-
+-.. code-block:: c
+-
+-    typedef enum
+-    {
+-	DMX_PES_AUDIO0,
+-	DMX_PES_VIDEO0,
+-	DMX_PES_TELETEXT0,
+-	DMX_PES_SUBTITLE0,
+-	DMX_PES_PCR0,
+-
+-	DMX_PES_AUDIO1,
+-	DMX_PES_VIDEO1,
+-	DMX_PES_TELETEXT1,
+-	DMX_PES_SUBTITLE1,
+-	DMX_PES_PCR1,
+-
+-	DMX_PES_AUDIO2,
+-	DMX_PES_VIDEO2,
+-	DMX_PES_TELETEXT2,
+-	DMX_PES_SUBTITLE2,
+-	DMX_PES_PCR2,
+-
+-	DMX_PES_AUDIO3,
+-	DMX_PES_VIDEO3,
+-	DMX_PES_TELETEXT3,
+-	DMX_PES_SUBTITLE3,
+-	DMX_PES_PCR3,
+-
+-	DMX_PES_OTHER
+-    } dmx_pes_type_t;
+-
+-
+-struct dmx_filter
+-=================
+-
+-.. c:type:: dmx_filter
+-
+-.. code-block:: c
+-
+-     typedef struct dmx_filter
+-    {
+-	__u8  filter[DMX_FILTER_SIZE];
+-	__u8  mask[DMX_FILTER_SIZE];
+-	__u8  mode[DMX_FILTER_SIZE];
+-    } dmx_filter_t;
+-
+-
+-.. c:type:: dmx_sct_filter_params
+-
+-struct dmx_sct_filter_params
+-============================
+-
+-
+-.. code-block:: c
+-
+-    struct dmx_sct_filter_params
+-    {
+-	__u16          pid;
+-	dmx_filter_t   filter;
+-	__u32          timeout;
+-	__u32          flags;
+-    #define DMX_CHECK_CRC       1
+-    #define DMX_ONESHOT         2
+-    #define DMX_IMMEDIATE_START 4
+-    };
+-
+-
+-struct dmx_pes_filter_params
+-============================
+-
+-.. c:type:: dmx_pes_filter_params
+-
+-.. code-block:: c
+-
+-    struct dmx_pes_filter_params
+-    {
+-	__u16          pid;
+-	dmx_input_t    input;
+-	dmx_output_t   output;
+-	dmx_pes_type_t pes_type;
+-	__u32          flags;
+-    };
+-
+-struct dmx_stc
+-==============
+-
+-.. c:type:: dmx_stc
+-
+-.. code-block:: c
+-
+-    struct dmx_stc {
+-	unsigned int num;   /* input : which STC? 0..N */
+-	unsigned int base;  /* output: divisor for stc to get 90 kHz clock */
+-	__u64 stc;      /* output: stc in 'base'*90 kHz units */
+-    };
++.. kernel-doc:: include/uapi/linux/dvb/dmx.h
+diff --git a/include/uapi/linux/dvb/dmx.h b/include/uapi/linux/dvb/dmx.h
+index 08dc17060321..867177b62d68 100644
+--- a/include/uapi/linux/dvb/dmx.h
++++ b/include/uapi/linux/dvb/dmx.h
+@@ -32,26 +32,74 @@
  
- #include <trace/events/vb2.h>
-@@ -1317,6 +1320,58 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
- }
- EXPORT_SYMBOL_GPL(vb2_core_prepare_buf);
+ #define DMX_FILTER_SIZE 16
  
-+int vb2_setup_out_fence(struct vb2_queue *q)
-+{
-+	struct vb2_fence *fence;
-+
-+	fence = kzalloc(sizeof(*fence), GFP_KERNEL);
-+	if (!fence)
-+		return -ENOMEM;
-+
-+	fence->out_fence_fd = get_unused_fd_flags(O_CLOEXEC);
-+	if (fence->out_fence_fd < 0) {
-+		kfree(fence);
-+		return fence->out_fence_fd;
-+	}
-+
-+	fence->out_fence = vb2_fence_alloc();
-+	if (!fence->out_fence)
-+		goto err_fence;
-+
-+	fence->sync_file = sync_file_create(fence->out_fence);
-+	if (!fence->sync_file) {
-+		dma_fence_put(fence->out_fence);
-+		goto err_fence;
-+	}
-+
-+	spin_lock(&q->out_fence_lock);
-+	list_add_tail(&fence->entry, &q->out_fence_list);
-+	spin_unlock(&q->out_fence_lock);
-+
-+	return 0;
-+
-+err_fence:
-+	kfree(fence);
-+	put_unused_fd(fence->out_fence_fd);
-+	return -ENOMEM;
-+}
-+EXPORT_SYMBOL_GPL(vb2_setup_out_fence);
-+
-+void vb2_cleanup_out_fence(struct vb2_queue *q)
-+{
-+	struct vb2_fence *fence;
-+
-+	spin_lock(&q->out_fence_lock);
-+	fence = list_last_entry(&q->out_fence_list,
-+				    struct vb2_fence, entry);
-+	put_unused_fd(fence->out_fence_fd);
-+	fput(fence->sync_file->file);
-+	list_del(&fence->entry);
-+	spin_unlock(&q->out_fence_lock);
-+	kfree(fence);
-+}
-+EXPORT_SYMBOL_GPL(vb2_cleanup_out_fence);
-+
- /**
-  * vb2_start_streaming() - Attempt to start streaming.
-  * @q:		videobuf2 queue
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 20099dc22f26..84e5e7216a1e 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -427,6 +427,24 @@ struct vb2_buf_ops {
- 	void (*buffer_queued)(struct vb2_buffer *vb);
+-enum dmx_output
+-{
+-	DMX_OUT_DECODER, /* Streaming directly to decoder. */
+-	DMX_OUT_TAP,     /* Output going to a memory buffer */
+-			 /* (to be retrieved via the read command).*/
+-	DMX_OUT_TS_TAP,  /* Output multiplexed into a new TS  */
+-			 /* (to be retrieved by reading from the */
+-			 /* logical DVR device).                 */
+-	DMX_OUT_TSDEMUX_TAP /* Like TS_TAP but retrieved from the DMX device */
++/**
++ * enum dmx_output - Output for the demux.
++ *
++ * @DMX_OUT_DECODER:
++ *	Streaming directly to decoder.
++ * @DMX_OUT_TAP:
++ *	Output going to a memory buffer (to be retrieved via the read command).
++ *	Delivers the stream output to the demux device on which the ioctl
++ *	is called.
++ * @DMX_OUT_TS_TAP:
++ *	Output multiplexed into a new TS (to be retrieved by reading from the
++ *	logical DVR device). Routes output to the logical DVR device
++ *	``/dev/dvb/adapter?/dvr?``, which delivers a TS multiplexed from all
++ *	filters for which @DMX_OUT_TS_TAP was specified.
++ * @DMX_OUT_TSDEMUX_TAP:
++ *	Like @DMX_OUT_TS_TAP but retrieved from the DMX device.
++ */
++enum dmx_output {
++	DMX_OUT_DECODER,
++	DMX_OUT_TAP,
++	DMX_OUT_TS_TAP,
++	DMX_OUT_TSDEMUX_TAP
  };
  
-+/*
-+ * struct vb2_fence - storage for fence data before queueing to the driver.
-+ *
-+ * @out_fence_fd:	the fd where to install the sync_file
-+ * @out_fence:		the fence associated to the sync_file
-+ * @sync_file:		the sync_file to be shared with userspace via the
-+ *			out_fence_fd
-+ * @files:		stores files struct for cleanup purposes
-+ * @entry:		the list head element for the out_fence_list
-+ */
-+struct vb2_fence {
-+	int out_fence_fd;
-+	struct dma_fence *out_fence;
-+	struct sync_file *sync_file;
-+	struct files_struct *files;
-+	struct list_head entry;
-+};
+-enum dmx_input
+-{
+-	DMX_IN_FRONTEND, /* Input from a front-end device.  */
+-	DMX_IN_DVR       /* Input from the logical DVR device.  */
 +
- /**
-  * struct vb2_queue - a videobuf queue
-  *
-@@ -734,6 +752,22 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
- int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
++/**
++ * enum dmx_input - Input from the demux.
++ *
++ * @DMX_IN_FRONTEND:	Input from a front-end device.
++ * @DMX_IN_DVR:		Input from the logical DVR device.
++ */
++enum dmx_input {
++	DMX_IN_FRONTEND,
++	DMX_IN_DVR
+ };
  
- /**
-+ * vb2_setup_out_fence() - setup new out-fence
-+ * @q:		The vb2_queue where to setup it
++/**
++ * enum dmx_ts_pes - type of the PES filter.
 + *
-+ * Setup the file descriptor, the fence and the sync_file for the next
-+ * buffer to be queued and add everything to the tail of the q->out_fence_list.
++ * @DMX_PES_AUDIO0:	first audio PID. Also referred as @DMX_PES_AUDIO.
++ * @DMX_PES_VIDEO0:	first video PID. Also referred as @DMX_PES_VIDEO.
++ * @DMX_PES_TELETEXT0:	first teletext PID. Also referred as @DMX_PES_TELETEXT.
++ * @DMX_PES_SUBTITLE0:	first subtitle PID. Also referred as @DMX_PES_SUBTITLE.
++ * @DMX_PES_PCR0:	first Program Clock Reference PID.
++ * 			Also refered as @DMX_PES_PCR.
++ *
++ * @DMX_PES_AUDIO1:	second audio PID.
++ * @DMX_PES_VIDEO1:	second video PID.
++ * @DMX_PES_TELETEXT1:	second teletext PID.
++ * @DMX_PES_SUBTITLE1:	second subtitle PID.
++ * @DMX_PES_PCR1:	second Program Clock Reference PID.
++ *
++ * @DMX_PES_AUDIO2:	third audio PID.
++ * @DMX_PES_VIDEO2:	third video PID.
++ * @DMX_PES_TELETEXT2:	third teletext PID.
++ * @DMX_PES_SUBTITLE2:	third subtitle PID.
++ * @DMX_PES_PCR2:	third Program Clock Reference PID.
++ *
++ * @DMX_PES_AUDIO3:	fourth audio PID.
++ * @DMX_PES_VIDEO3:	fourth video PID.
++ * @DMX_PES_TELETEXT3:	fourth teletext PID.
++ * @DMX_PES_SUBTITLE3:	fourth subtitle PID.
++ * @DMX_PES_PCR3:	fourth Program Clock Reference PID.
++ *
++ * @DMX_PES_OTHER:	any other PID.
 + */
-+int vb2_setup_out_fence(struct vb2_queue *q);
+ 
+-enum dmx_ts_pes
+-{
++enum dmx_ts_pes {
+ 	DMX_PES_AUDIO0,
+ 	DMX_PES_VIDEO0,
+ 	DMX_PES_TELETEXT0,
+@@ -86,16 +134,42 @@ enum dmx_ts_pes
+ #define DMX_PES_PCR      DMX_PES_PCR0
+ 
+ 
+-struct dmx_filter
+-{
 +
 +/**
-+ * vb2_cleanup_out_fence() - cleanup out-fence
-+ * @q:		The vb2_queue to use for cleanup
++ * struct dmx_filter - Specifies a section header filter.
 + *
-+ * Clean up the last fence on the list. Used only when QBUF fails.
++ * @filter: bit array with bits to be matched at the section header.
++ * @mask: bits that are valid at the filter bit array.
++ * @mode: mode of match: if bit is zero, it will match if equal (positive
++ * 	  match); if bit is one, it will match if the bit is negated.
++ *
++ * Note: All arrays in this struct have a size of DMX_FILTER_SIZE (16 bytes).
 + */
-+void vb2_cleanup_out_fence(struct vb2_queue *q);
++struct dmx_filter {
+ 	__u8  filter[DMX_FILTER_SIZE];
+ 	__u8  mask[DMX_FILTER_SIZE];
+ 	__u8  mode[DMX_FILTER_SIZE];
+ };
+ 
+-
+-struct dmx_sct_filter_params
+-{
 +/**
-  * vb2_core_qbuf() - Queue a buffer from userspace
-  *
-  * @q:		videobuf2 queue
++ * struct dmx_sct_filter_params - Specifies a section filter.
++ *
++ * @pid: PID to be filtered.
++ * @filter: section header filter, as defined by &struct dmx_filter.
++ * @timeout: maximum time to filter, in milliseconds.
++ * @flags: extra flags for the section filter.
++ *
++ * Carries the configuration for a MPEG-TS section filter.
++ *
++ * The @flags can be:
++ *
++ *	- %DMX_CHECK_CRC - only deliver sections where the CRC check succeeded;
++ *	- %DMX_ONESHOT - disable the section filter after one section
++ *	  has been delivered;
++ *	- %DMX_IMMEDIATE_START - Start filter immediately without requiring a
++ *	  :ref:`DMX_START`.
++ */
++struct dmx_sct_filter_params {
+ 	__u16             pid;
+ 	struct dmx_filter filter;
+ 	__u32             timeout;
+@@ -105,7 +179,16 @@ struct dmx_sct_filter_params
+ #define DMX_IMMEDIATE_START 4
+ };
+ 
+-
++/**
++ * struct dmx_pes_filter_params - Specifies Packetized Elementary Stream (PES)
++ *	filter parameters.
++ *
++ * @pid:	PID to be filtered.
++ * @input:	Demux input, as specified by &enum dmx_input.
++ * @output:	Demux output, as specified by &enum dmx_output.
++ * @pes_type:	Type of the pes filter, as specified by &enum dmx_pes_type.
++ * @flags:	Demux PES flags.
++ */
+ struct dmx_pes_filter_params
+ {
+ 	__u16           pid;
+@@ -115,11 +198,17 @@ struct dmx_pes_filter_params
+ 	__u32           flags;
+ };
+ 
+-
++/**
++ * struct dmx_stc - Stores System Time Counter (STC) information.
++ *
++ * @num: input data: number of the STC, from 0 to N.
++ * @base: output: divisor for STC to get 90 kHz clock.
++ * @stc: output: stc in @base * 90 kHz units.
++ */
+ struct dmx_stc {
+-	unsigned int num;	/* input : which STC? 0..N */
+-	unsigned int base;	/* output: divisor for stc to get 90 kHz clock */
+-	__u64 stc;		/* output: stc in 'base'*90 kHz units */
++	unsigned int num;
++	unsigned int base;
++	__u64 stc;
+ };
+ 
+ #define DMX_START                _IO('o', 41)
 -- 
 2.13.5
