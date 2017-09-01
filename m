@@ -1,106 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:3795 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751263AbdI0SZP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 14:25:15 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 06/13] staging: atomisp: Remove unneeded gpio.h inclusion
-Date: Wed, 27 Sep 2017 21:25:01 +0300
-Message-Id: <20170927182508.52119-7-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20170927182508.52119-1-andriy.shevchenko@linux.intel.com>
-References: <20170927182508.52119-1-andriy.shevchenko@linux.intel.com>
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:32803 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751864AbdIAKqU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Sep 2017 06:46:20 -0400
+Subject: Re: [PATCH v6 3/5] docs-rst: v4l: Include Qualcomm CAMSS in
+ documentation build
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+References: <20170830114946.17743-1-sakari.ailus@linux.intel.com>
+ <20170830114946.17743-4-sakari.ailus@linux.intel.com>
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <7fdb19c5-331e-39f3-adb4-3c6fdeafbbda@xs4all.nl>
+Date: Fri, 1 Sep 2017 12:46:18 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170830114946.17743-4-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-GPIO handling is done only in two modules, the rest do not need to
-include linux/gpio.h header.
+On 30/08/17 13:49, Sakari Ailus wrote:
+> Qualcomm CAMSS was left out from documentation build. Fix this.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/staging/media/atomisp/i2c/gc0310.c        | 1 -
- drivers/staging/media/atomisp/i2c/gc2235.c        | 1 -
- drivers/staging/media/atomisp/i2c/mt9m114.c       | 1 -
- drivers/staging/media/atomisp/i2c/ov2680.c        | 1 -
- drivers/staging/media/atomisp/i2c/ov2722.c        | 1 -
- drivers/staging/media/atomisp/i2c/ov5693/ov5693.c | 1 -
- 6 files changed, 6 deletions(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/staging/media/atomisp/i2c/gc0310.c b/drivers/staging/media/atomisp/i2c/gc0310.c
-index 6f54304f1ca0..0e6fcf44b656 100644
---- a/drivers/staging/media/atomisp/i2c/gc0310.c
-+++ b/drivers/staging/media/atomisp/i2c/gc0310.c
-@@ -26,7 +26,6 @@
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/i2c.h>
--#include <linux/gpio.h>
- #include <linux/moduleparam.h>
- #include <media/v4l2-device.h>
- #include <linux/io.h>
-diff --git a/drivers/staging/media/atomisp/i2c/gc2235.c b/drivers/staging/media/atomisp/i2c/gc2235.c
-index 8ed12e16caf4..94b93ccc6aeb 100644
---- a/drivers/staging/media/atomisp/i2c/gc2235.c
-+++ b/drivers/staging/media/atomisp/i2c/gc2235.c
-@@ -26,7 +26,6 @@
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/i2c.h>
--#include <linux/gpio.h>
- #include <linux/moduleparam.h>
- #include <media/v4l2-device.h>
- #include "../include/linux/atomisp_gmin_platform.h"
-diff --git a/drivers/staging/media/atomisp/i2c/mt9m114.c b/drivers/staging/media/atomisp/i2c/mt9m114.c
-index 8c75372782d8..4ac1ad045283 100644
---- a/drivers/staging/media/atomisp/i2c/mt9m114.c
-+++ b/drivers/staging/media/atomisp/i2c/mt9m114.c
-@@ -32,7 +32,6 @@
- #include <linux/slab.h>
- #include <linux/delay.h>
- #include <linux/i2c.h>
--#include <linux/gpio.h>
- #include <linux/acpi.h>
- #include "../include/linux/atomisp_gmin_platform.h"
- #include <media/v4l2-device.h>
-diff --git a/drivers/staging/media/atomisp/i2c/ov2680.c b/drivers/staging/media/atomisp/i2c/ov2680.c
-index 99c6d699f899..a42adeeb748c 100644
---- a/drivers/staging/media/atomisp/i2c/ov2680.c
-+++ b/drivers/staging/media/atomisp/i2c/ov2680.c
-@@ -26,7 +26,6 @@
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/i2c.h>
--#include <linux/gpio.h>
- #include <linux/moduleparam.h>
- #include <media/v4l2-device.h>
- #include <linux/io.h>
-diff --git a/drivers/staging/media/atomisp/i2c/ov2722.c b/drivers/staging/media/atomisp/i2c/ov2722.c
-index 2481fda345c0..1b7012f47303 100644
---- a/drivers/staging/media/atomisp/i2c/ov2722.c
-+++ b/drivers/staging/media/atomisp/i2c/ov2722.c
-@@ -26,7 +26,6 @@
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/i2c.h>
--#include <linux/gpio.h>
- #include <linux/moduleparam.h>
- #include <media/v4l2-device.h>
- #include "../include/linux/atomisp_gmin_platform.h"
-diff --git a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
-index a083c61ad3ea..357821af4db0 100644
---- a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
-+++ b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
-@@ -31,7 +31,6 @@
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/i2c.h>
--#include <linux/gpio.h>
- #include <linux/moduleparam.h>
- #include <media/v4l2-device.h>
- #include <linux/io.h>
--- 
-2.14.1
+Regards,
+
+	Hans
+
+
+> ---
+>  Documentation/media/v4l-drivers/index.rst | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
+> index 10f2ce42ece2..5c202e23616b 100644
+> --- a/Documentation/media/v4l-drivers/index.rst
+> +++ b/Documentation/media/v4l-drivers/index.rst
+> @@ -50,6 +50,7 @@ For more details see the file COPYING in the source distribution of Linux.
+>  	philips
+>  	pvrusb2
+>  	pxa_camera
+> +	qcom_camss
+>  	radiotrack
+>  	rcar-fdp1
+>  	saa7134
+> 
