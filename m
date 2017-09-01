@@ -1,63 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:55577 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751190AbdH1Kd4 (ORCPT
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:34709 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751009AbdIABuv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Aug 2017 06:33:56 -0400
-Date: Mon, 28 Aug 2017 12:33:52 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, javier@dowhile0.org,
-        jacek.anaszewski@gmail.com, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v2 1/3] dt: bindings: Document DT bindings for Analog
- devices as3645a
-Message-ID: <20170828103351.GF18012@amd>
-References: <20170819212410.3084-1-sakari.ailus@linux.intel.com>
- <20170819212410.3084-2-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="1Ow488MNN9B9o/ov"
-Content-Disposition: inline
-In-Reply-To: <20170819212410.3084-2-sakari.ailus@linux.intel.com>
+        Thu, 31 Aug 2017 21:50:51 -0400
+Received: by mail-qt0-f193.google.com with SMTP id v20so1015342qtg.1
+        for <linux-media@vger.kernel.org>; Thu, 31 Aug 2017 18:50:51 -0700 (PDT)
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v2 01/14] [media] vb2: add explicit fence user API
+Date: Thu, 31 Aug 2017 22:50:28 -0300
+Message-Id: <20170901015041.7757-2-gustavo@padovan.org>
+In-Reply-To: <20170901015041.7757-1-gustavo@padovan.org>
+References: <20170901015041.7757-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
---1Ow488MNN9B9o/ov
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Turn the reserved2 field into fence_fd that we will use to send
+an in-fence to the kernel and return an out-fence from the kernel to
+userspace.
 
-Hi!
+Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
+when sending a fence to the kernel to be waited on, and
+V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
 
-> +
-> +Ranges below noted as [a, b] are closed ranges between a and b, i.e. a
-> +and b are included in the range.
+v2: add documentation
 
-Normally I've seen <a, b> for closed ranges, (a, b) for open
-ranges. Is that different in your country?
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ Documentation/media/uapi/v4l/buffer.rst       | 19 +++++++++++++++++++
+ drivers/media/usb/cpia2/cpia2_v4l.c           |  2 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  4 ++--
+ drivers/media/v4l2-core/videobuf2-v4l2.c      |  2 +-
+ include/uapi/linux/videodev2.h                |  4 +++-
+ 5 files changed, 26 insertions(+), 5 deletions(-)
 
-Otherwise
-
-Acked-by: Pavel Machek <pavel@ucw.cz>
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---1Ow488MNN9B9o/ov
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlmj8Y8ACgkQMOfwapXb+vLv2QCcDDuYKtiJuKG4IJfyJOP7otb5
-bkoAnRrWG+ypsWGkuTT4NV3gC2Xeulqw
-=Ur/3
------END PGP SIGNATURE-----
-
---1Ow488MNN9B9o/ov--
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index ae6ee73f151c..664507ad06c6 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -648,6 +648,25 @@ Buffer Flags
+       - Start Of Exposure. The buffer timestamp has been taken when the
+ 	exposure of the frame has begun. This is only valid for the
+ 	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
++    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
++
++      - ``V4L2_BUF_FLAG_IN_FENCE``
++      - 0x00200000
++      - Ask V4L2 to wait on fence passed in ``fence_fd`` field. The buffer
++	won't be queued to the driver until the fence signals.
++
++    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
++
++      - ``V4L2_BUF_FLAG_OUT_FENCE``
++      - 0x00400000
++      - Request a fence for the next buffer to be queued to V4L2 driver.
++	The fence received back through the ``fence_fd`` field  doesn't
++	necessarily relate to the current buffer in the
++	:ref:`VIDIOC_QBUF <VIDIOC_QBUF>` ioctl. Although, most of the time
++	the fence will relate to the current buffer it can't be guaranteed.
++	So to tell userspace which buffer is associated to the out_fence,
++	one should listen for the ``V4L2_EVENT_BUF_QUEUED`` event that
++	provide the id of the buffer when it is queued to the V4L2 driver.
+ 
+ 
+ 
+diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+index 3dedd83f0b19..6cde686bf44c 100644
+--- a/drivers/media/usb/cpia2/cpia2_v4l.c
++++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+@@ -948,7 +948,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ 	buf->sequence = cam->buffers[buf->index].seq;
+ 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
+ 	buf->length = cam->frame_size;
+-	buf->reserved2 = 0;
++	buf->fence_fd = -1;
+ 	buf->reserved = 0;
+ 	memset(&buf->timecode, 0, sizeof(buf->timecode));
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 821f2aa299ae..d624fb5df130 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -370,7 +370,7 @@ struct v4l2_buffer32 {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	__s32			fence_fd;
+ 	__u32			reserved;
+ };
+ 
+@@ -533,8 +533,8 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
+ 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
+ 		put_user(kp->sequence, &up->sequence) ||
+-		put_user(kp->reserved2, &up->reserved2) ||
+ 		put_user(kp->reserved, &up->reserved) ||
++		put_user(kp->fence_fd, &up->fence_fd) ||
+ 		put_user(kp->length, &up->length))
+ 			return -EFAULT;
+ 
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 0c0669976bdc..110fb45fef6f 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	b->timestamp = ns_to_timeval(vb->timestamp);
+ 	b->timecode = vbuf->timecode;
+ 	b->sequence = vbuf->sequence;
+-	b->reserved2 = 0;
++	b->fence_fd = -1;
+ 	b->reserved = 0;
+ 
+ 	if (q->is_multiplanar) {
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 185d6a0acc06..e5abab9a908c 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -924,7 +924,7 @@ struct v4l2_buffer {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	__s32			fence_fd;
+ 	__u32			reserved;
+ };
+ 
+@@ -961,6 +961,8 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+ /* mem2mem encoder/decoder */
+ #define V4L2_BUF_FLAG_LAST			0x00100000
++#define V4L2_BUF_FLAG_IN_FENCE			0x00200000
++#define V4L2_BUF_FLAG_OUT_FENCE			0x00400000
+ 
+ /**
+  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+-- 
+2.13.5
