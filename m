@@ -1,43 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pide.tip.net.au ([203.10.76.2]:33048 "EHLO pide.tip.net.au"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750711AbdIREdU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Sep 2017 00:33:20 -0400
-Received: from pide.tip.net.au (pide.tip.net.au [IPv6:2401:fc00:0:107::2])
-        by mailhost.tip.net.au (Postfix) with ESMTP id 3xwXy1069vzFskm
-        for <linux-media@vger.kernel.org>; Mon, 18 Sep 2017 14:26:17 +1000 (AEST)
-Received: from e4.eyal.emu.id.au (124-171-98-224.dyn.iinet.net.au [124.171.98.224])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by pide.tip.net.au (Postfix) with ESMTPSA id 3xwXy06q8bz9B59
-        for <linux-media@vger.kernel.org>; Mon, 18 Sep 2017 14:26:16 +1000 (AEST)
-To: list linux-media <linux-media@vger.kernel.org>
-From: Eyal Lebedinsky <eyal@eyal.emu.id.au>
-Subject: Urgent: dvb_usb_rtl28xxu not tuning "Leadtek Winfast DTV2000 DS PLUS
- TV"
-Message-ID: <00ad85dd-2fe3-5f15-6c0c-47fcf580f541@eyal.emu.id.au>
-Date: Mon, 18 Sep 2017 14:26:12 +1000
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-AU
-Content-Transfer-Encoding: 7bit
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46998
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752126AbdIANZE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:25:04 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH v2 26/27] media: dvb rst: identify the documentation gap at the API
+Date: Fri,  1 Sep 2017 10:24:48 -0300
+Message-Id: <45073d226a002d80218abcf49c1ac8c5b5246260.1504272067.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
+References: <cover.1504272067.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
+References: <cover.1504272067.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have just upgraded to f24. I am now using the standard dvb_usb_rtl28xxu fe
-which logs messages suggesting all is well (I get the /dev/dvb/adapter? etc.)
-but I get no channels tuned when I run mythfrontend or scandvb.
+Now that DVB spec is almost in sync, document what's missing.
 
-Is anyone using this combination?
-Is this the correct way to use this tuner?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/dvb/ca.rst              | 5 +++++
+ Documentation/media/uapi/dvb/legacy_dvb_apis.rst | 5 +++++
+ 2 files changed, 10 insertions(+)
 
-BTW:
-
-Until f22 I was using the out of kernel driver from
-	https://github.com/jaredquinn/DVB-Realtek-RTL2832U.git
-but I now get a compile error.
-
-TIA
-
+diff --git a/Documentation/media/uapi/dvb/ca.rst b/Documentation/media/uapi/dvb/ca.rst
+index 14b14abda1ae..e3de778a5678 100644
+--- a/Documentation/media/uapi/dvb/ca.rst
++++ b/Documentation/media/uapi/dvb/ca.rst
+@@ -10,6 +10,11 @@ accessed through ``/dev/dvb/adapter?/ca?``. Data types and and ioctl
+ definitions can be accessed by including ``linux/dvb/ca.h`` in your
+ application.
+ 
++.. note::
++
++   There are three ioctls at this API that aren't documented:
++   :ref:`CA_GET_MSG`, :ref:`CA_SEND_MSG` and :ref:`CA_SET_DESCR`.
++   Documentation for them are welcome.
+ 
+ .. toctree::
+     :maxdepth: 1
+diff --git a/Documentation/media/uapi/dvb/legacy_dvb_apis.rst b/Documentation/media/uapi/dvb/legacy_dvb_apis.rst
+index 2957f5a988b0..dac349a1bb27 100644
+--- a/Documentation/media/uapi/dvb/legacy_dvb_apis.rst
++++ b/Documentation/media/uapi/dvb/legacy_dvb_apis.rst
+@@ -12,6 +12,11 @@ drivers should use it. Instead, audio and video should be using the V4L2
+ and ALSA APIs, and the pipelines should be set using the Media
+ Controller API
+ 
++.. note::
++
++   The APIs described here doesn't necessarily reflect the current
++   code implementation.
++
+ 
+ .. toctree::
+     :maxdepth: 1
 -- 
-Eyal Lebedinsky (eyal@eyal.emu.id.au)
+2.13.5
