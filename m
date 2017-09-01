@@ -1,52 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:59045 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751449AbdIQB1N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Sep 2017 21:27:13 -0400
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, rjkm@metzlerbros.de, d.scheller@gmx.net,
-        jasmin@anw.at
-Subject: [PATCH 0/2] Add timers to en50221 protocol driver
-Date: Sun, 17 Sep 2017 03:27:20 +0200
-Message-Id: <1505611642-6552-1-git-send-email-jasmin@anw.at>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48367
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752317AbdIATiA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 15:38:00 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 11/14] media: dmx-get-pes-pids.rst: document the ioctl
+Date: Fri,  1 Sep 2017 16:37:47 -0300
+Message-Id: <dbbc595c0a13ca5121ba465b2db9a024584b44d0.1504293108.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504293108.git.mchehab@s-opensource.com>
+References: <cover.1504293108.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504293108.git.mchehab@s-opensource.com>
+References: <cover.1504293108.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+This ioctl is supported by the DVB core, but was never
+documented.
 
-Some (older) CAMs are really slow in accepting data. I got sometimes the 
-already known error "CAM tried to send a buffer larger than the ecount 
-size". I could track it down to the dvb_ca_en50221_write_data function not 
-waiting between sending the data length high/low and data bytes. In fact
-the CAM reported a WR error, which triggered later on the mentioned error.
+Add a documentation for it.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/dvb/dmx-get-pes-pids.rst | 22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/media/uapi/dvb/dmx-get-pes-pids.rst b/Documentation/media/uapi/dvb/dmx-get-pes-pids.rst
+index 20288c11d279..fbdbc12869d1 100644
+--- a/Documentation/media/uapi/dvb/dmx-get-pes-pids.rst
++++ b/Documentation/media/uapi/dvb/dmx-get-pes-pids.rst
+@@ -25,13 +25,31 @@ Arguments
+     File descriptor returned by :c:func:`open() <dvb-dmx-open>`.
  
-The problem is that a simple module parameter can't be used to solve this
-by adding timer values, because the protocol handler is used for any CI
-interface. A module parameter would be influence all the CAMs on all CI
-interfaces. Thus individual timer definitions per CI interface and CAM are
-required.
-There are two possibilities to implement that, ioctl's and SysFS.
-ioctl's require changes in usermode programs and it my take a lot of time
-to get this implemented there.
-SysFS can be used by simple "cat" and "echo" commands and can be therefore
-simply controlled by scripting, which is immediately available.
-
-I decided to go for the SysFS approach, but the required device to add the
-SysFS files was not available in the "struct dvb_device". The first patch
-of this series adds this device to the structure and also the setting code.
-
-The second patch adds the functions to create the SysFS nodes for all
-timers and the new timeouts in the en50221 protocol driver.
-
-Jasmin Jessich (2):
-  Store device structure in dvb_register_device
-  Added timers for dvb_ca_en50221_write_data
-
- drivers/media/dvb-core/dvb_ca_en50221.c | 132 +++++++++++++++++++++++++++++++-
- drivers/media/dvb-core/dvbdev.c         |   1 +
- drivers/media/dvb-core/dvbdev.h         |   4 +-
- 3 files changed, 135 insertions(+), 2 deletions(-)
-
+ ``pids``
+-    Undocumented.
++    Array used to store 5 Program IDs.
+ 
+ 
+ Description
+ -----------
+ 
+-.. note:: This ioctl is undocumented. Documentation is welcome.
++This ioctl allows to query a DVB device to return the first PID used
++by audio, video, textext, subtitle and PCR programs on a given service.
++They're stored as:
++
++=======================	========	=======================================
++PID  element		position	content
++=======================	========	=======================================
++pids[DMX_PES_AUDIO]	0		first audio PID
++pids[DMX_PES_VIDEO]	1		first video PID
++pids[DMX_PES_TELETEXT]	2		first teletext PID
++pids[DMX_PES_SUBTITLE]	3		first subtitle PID
++pids[DMX_PES_PCR]	4		first Program Clock Reference PID
++=======================	========	=======================================
++
++
++.. note::
++
++	A value equal to 0xffff means that the PID was not filled by the
++	Kernel.
+ 
+ 
+ Return Value
 -- 
-2.7.4
+2.13.5
