@@ -1,54 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48348
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752295AbdIATh7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 15:37:59 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 09/14] media: dvbapi.rst: add an entry to DVB revision history
-Date: Fri,  1 Sep 2017 16:37:45 -0300
-Message-Id: <4ef49f905843b6b12eede18b30d96998fe946859.1504293108.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504293108.git.mchehab@s-opensource.com>
-References: <cover.1504293108.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504293108.git.mchehab@s-opensource.com>
-References: <cover.1504293108.git.mchehab@s-opensource.com>
+Received: from mout.web.de ([212.227.15.4]:64011 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752302AbdIATmv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Sep 2017 15:42:51 -0400
+Subject: [PATCH 1/4] [media] sp2: Delete an error message for a failed memory
+ allocation in sp2_probe()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Olli Salonen <olli.salonen@iki.fi>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <6142ca34-fcda-f2b6-bc35-dbbde0d34378@users.sourceforge.net>
+Message-ID: <22129d4f-f26c-c63b-6704-0e5f5d9f854e@users.sourceforge.net>
+Date: Fri, 1 Sep 2017 21:42:38 +0200
+MIME-Version: 1.0
+In-Reply-To: <6142ca34-fcda-f2b6-bc35-dbbde0d34378@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several missing items at the API history. Yet,
-as we're doing a significant change there, add a new entry.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Fri, 1 Sep 2017 20:44:05 +0200
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Omit an extra message for a memory allocation failure in this function.
+
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- Documentation/media/uapi/dvb/dvbapi.rst | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/media/dvb-frontends/sp2.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/Documentation/media/uapi/dvb/dvbapi.rst b/Documentation/media/uapi/dvb/dvbapi.rst
-index 268bf69db281..7d26e98e5a41 100644
---- a/Documentation/media/uapi/dvb/dvbapi.rst
-+++ b/Documentation/media/uapi/dvb/dvbapi.rst
-@@ -66,12 +66,17 @@ Authors:
+diff --git a/drivers/media/dvb-frontends/sp2.c b/drivers/media/dvb-frontends/sp2.c
+index 43d47dfcc7b8..d3b4f8822096 100644
+--- a/drivers/media/dvb-frontends/sp2.c
++++ b/drivers/media/dvb-frontends/sp2.c
+@@ -385,6 +385,5 @@ static int sp2_probe(struct i2c_client *client,
+ 	if (!s) {
+ 		ret = -ENOMEM;
+-		dev_err(&client->dev, "kzalloc() failed\n");
+ 		goto err;
+ 	}
  
- **Copyright** |copy| 2002-2003 : Convergence GmbH
- 
--**Copyright** |copy| 2009-2016 : Mauro Carvalho Chehab
-+**Copyright** |copy| 2009-2017 : Mauro Carvalho Chehab
- 
- ****************
- Revision History
- ****************
- 
-+:revision: 2.2.0 / 2017-09-01 (*mcc*)
-+
-+Most gaps between the uAPI document and the Kernel implementation
-+got fixed for the non-legacy API.
-+
- :revision: 2.1.0 / 2015-05-29 (*mcc*)
- 
- DocBook improvements and cleanups, in order to document the system calls
 -- 
-2.13.5
+2.14.1
