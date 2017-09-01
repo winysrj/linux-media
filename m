@@ -1,39 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([92.60.52.57]:39041 "EHLO shell.v3.sk"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751741AbdITRR0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 13:17:26 -0400
-Message-ID: <1505927837.26708.8.camel@v3.sk>
-Subject: A patch slipped through the cracks?
-From: Lubomir Rintel <lkundrak@v3.sk>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-kernel@vger.kernel.org
-Date: Wed, 20 Sep 2017 19:17:17 +0200
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47001
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752127AbdIANZF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:25:05 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH v2 04/27] media: dvb/intro: update references for TV standards
+Date: Fri,  1 Sep 2017 10:24:26 -0300
+Message-Id: <4e4f27a925612df7cf96d896ad12d04b86c64b29.1504272067.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
+References: <cover.1504272067.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
+References: <cover.1504272067.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The references there are only for DVB. Add missing references for
+ATSC and ISDB standards.
 
-we're trying to get this reasonably trivial patch [1] applied for more
-than a year and four attempts now. (I'm not including it in this
-message so that this message won't be ignored for the same reason the
-submissions were, whatever they are.)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/dvb/intro.rst | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-[1] https://patchwork.linuxtv.org/patch/40862/
-
-I have no idea what went wrong. There was a suspicion (somewhat
-confirmed by the initial patch submitter) that spam filtering could
-have dropped the first message. Since then the patch did make it to the
-list numerous times and was picked up by patchwork.
-
-The patchwork's idea about the patch being "Superseded" is wrong -- I
-have no idea why. But someone *please* look into this and apply the
-patch.
-
-Thank you
-Lubo
+diff --git a/Documentation/media/uapi/dvb/intro.rst b/Documentation/media/uapi/dvb/intro.rst
+index de432ffcba50..991643d3b461 100644
+--- a/Documentation/media/uapi/dvb/intro.rst
++++ b/Documentation/media/uapi/dvb/intro.rst
+@@ -18,10 +18,13 @@ part I of the MPEG2 specification ISO/IEC 13818 (aka ITU-T H.222), i.e
+ you should know what a program/transport stream (PS/TS) is and what is
+ meant by a packetized elementary stream (PES) or an I-frame.
+ 
+-Various DVB standards documents are available from http://www.dvb.org
+-and/or http://www.etsi.org.
++Various Digital TV standards documents are available for download at:
+ 
+-It is also necessary to know how to access unix/linux devices and how to
++- European standards (DVB): http://www.dvb.org and/or http://www.etsi.org.
++- American standards (ATSC): https://www.atsc.org/standards/
++- Japanese standards (ISDB): http://www.dibeg.org/
++
++It is also necessary to know how to access Linux devices and how to
+ use ioctl calls. This also includes the knowledge of C or C++.
+ 
+ 
+-- 
+2.13.5
