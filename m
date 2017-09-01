@@ -1,69 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:53952 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751545AbdIMJ2D (ORCPT
+Received: from esa3.microchip.iphmx.com ([68.232.153.233]:61483 "EHLO
+        esa3.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750762AbdIADVY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 05:28:03 -0400
-Subject: Re: [PATCH v3 4/6] [media] exynos-gsc: Add hardware rotation limits
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: mchehab@kernel.org, inki.dae@samsung.com, airlied@linux.ie,
-        kgene@kernel.org, krzk@kernel.org, robh+dt@kernel.org,
-        mark.rutland@arm.com, catalin.marinas@arm.com, will.deacon@arm.com,
-        m.szyprowski@samsung.com, devicetree@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        Hoegeun Kwon <hoegeun.kwon@samsung.com>
-From: Hoegeun Kwon <hoegeun.kwon@samsung.com>
-Message-id: <21b6ae5d-a77b-3ab1-bc84-5f30e76fab50@samsung.com>
-Date: Wed, 13 Sep 2017 18:28:02 +0900
-MIME-version: 1.0
-In-reply-to: <a915a1f7-2c01-472b-b9ee-5367c488a89f@samsung.com>
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Content-transfer-encoding: 7bit
-Content-language: en-US
-References: <1504850560-27950-1-git-send-email-hoegeun.kwon@samsung.com>
-        <CGME20170908060309epcas1p3d48dd0871d3fde02ba3c9921bbe5a7a6@epcas1p3.samsung.com>
-        <1504850560-27950-5-git-send-email-hoegeun.kwon@samsung.com>
-        <27b46679-e6c7-2471-f10e-3f0634178ebf@samsung.com>
-        <bb025fcb-e316-dfe9-a8eb-8a9535f35b93@samsung.com>
-        <a915a1f7-2c01-472b-b9ee-5367c488a89f@samsung.com>
+        Thu, 31 Aug 2017 23:21:24 -0400
+Subject: Re: [PATCH 1/3] media: atmel-isc: Not support RBG format from sensor.
+To: Hans Verkuil <hverkuil@xs4all.nl>, <mchehab@s-opensource.com>
+CC: <Nicolas.Ferre@microchip.com>, <linux-kernel@vger.kernel.org>,
+        <sakari.ailus@iki.fi>, <corbet@lwn.net>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>
+References: <20170817071614.12767-1-wenyou.yang@microchip.com>
+ <20170817071614.12767-2-wenyou.yang@microchip.com>
+ <61cb51fa-8d05-6707-00cc-429c761fa6f5@xs4all.nl>
+ <14941b74-8931-4d00-0664-0735fad9b5d1@Microchip.com>
+ <ce6d074b-1c13-d3ea-5dfa-89cca2f26feb@xs4all.nl>
+ <F9F4555C4E01D7469D37975B62D0EFBB6B695B@CHN-SV-EXMX07.mchp-main.com>
+ <bbeb178a-d284-7b4c-701e-050bacba83bf@xs4all.nl>
+ <4556e520-a57a-6f26-4188-9b32f1701515@Microchip.com>
+ <cc8f9d8b-4ad6-f023-a667-16eb575e2c82@xs4all.nl>
+From: "Yang, Wenyou" <Wenyou.Yang@Microchip.com>
+Message-ID: <7687e258-bca1-d7f5-c678-f7d1a4412d09@Microchip.com>
+Date: Fri, 1 Sep 2017 11:20:31 +0800
+MIME-Version: 1.0
+In-Reply-To: <cc8f9d8b-4ad6-f023-a667-16eb575e2c82@xs4all.nl>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/13/2017 06:11 PM, Sylwester Nawrocki wrote:
-> Hi Hoegeun,
->
-> On 09/13/2017 04:33 AM, Hoegeun Kwon wrote:
->>>> @@ -1017,8 +1083,12 @@ static irqreturn_t gsc_irq_handler(int irq,
->>>> void *priv)
->>>>       static const struct of_device_id exynos_gsc_match[] = {
->>>>         {
->>>> -        .compatible = "samsung,exynos5-gsc",
->>>> -        .data = &gsc_v_100_drvdata,
->>> Can you keep the "samsung,exynos5-gsc" entry with the gsc_v_5250_variant
->>> data, so that it can work with "samsung,exynos5-gsc" compatible in DT
->>> on both exynos5250 and exynos5420 SoCs?
+Hi Hans,
+
+
+On 2017/8/24 14:41, Hans Verkuil wrote:
+> On 08/24/2017 08:25 AM, Yang, Wenyou wrote:
+>>
+>> On 2017/8/23 18:37, Hans Verkuil wrote:
+>>> On 08/22/17 09:30, Wenyou.Yang@microchip.com wrote:
+>>>> Hi Hans,
+>>>>
+>>>>> -----Original Message-----
+>>>>> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>>>>> Sent: 2017年8月22日 15:00
+>>>>> To: Wenyou Yang - A41535 <Wenyou.Yang@microchip.com>; Mauro Carvalho
+>>>>> Chehab <mchehab@s-opensource.com>
+>>>>> Cc: Nicolas Ferre - M43238 <Nicolas.Ferre@microchip.com>; linux-
+>>>>> kernel@vger.kernel.org; Sakari Ailus <sakari.ailus@iki.fi>; Jonathan Corbet
+>>>>> <corbet@lwn.net>; linux-arm-kernel@lists.infradead.org; Linux Media Mailing List
+>>>>> <linux-media@vger.kernel.org>
+>>>>> Subject: Re: [PATCH 1/3] media: atmel-isc: Not support RBG format from sensor.
+>>>>>
+>>>>> On 08/22/2017 03:18 AM, Yang, Wenyou wrote:
+>>>>>> Hi Hans,
+>>>>>>
+>>>>>> On 2017/8/21 22:07, Hans Verkuil wrote:
+>>>>>>> On 08/17/2017 09:16 AM, Wenyou Yang wrote:
+>>>>>>>> The 12-bit parallel interface supports the Raw Bayer, YCbCr,
+>>>>>>>> Monochrome and JPEG Compressed pixel formats from the external
+>>>>>>>> sensor, not support RBG pixel format.
+>>>>>>>>
+>>>>>>>> Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+>>>>>>>> ---
+>>>>>>>>
+>>>>>>>>     drivers/media/platform/atmel/atmel-isc.c | 5 +++++
+>>>>>>>>     1 file changed, 5 insertions(+)
+>>>>>>>>
+>>>>>>>> diff --git a/drivers/media/platform/atmel/atmel-isc.c
+>>>>>>>> b/drivers/media/platform/atmel/atmel-isc.c
+>>>>>>>> index d4df3d4ccd85..535bb03783fe 100644
+>>>>>>>> --- a/drivers/media/platform/atmel/atmel-isc.c
+>>>>>>>> +++ b/drivers/media/platform/atmel/atmel-isc.c
+>>>>>>>> @@ -1478,6 +1478,11 @@ static int isc_formats_init(struct isc_device *isc)
+>>>>>>>>     	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code,
+>>>>>>>>     	       NULL, &mbus_code)) {
+>>>>>>>>     		mbus_code.index++;
+>>>>>>>> +
+>>>>>>>> +		/* Not support the RGB pixel formats from sensor */
+>>>>>>>> +		if ((mbus_code.code & 0xf000) == 0x1000)
+>>>>>>>> +			continue;
+>>>>>>> Am I missing something? Here you skip any RGB mediabus formats, but
+>>>>>>> in patch 3/3 you add RGB mediabus formats. But this patch prevents
+>>>>>>> those new formats from being selected, right?
+>>>>>> This patch prevents getting the RGB format from the sensor directly.
+>>>>>> The RGB format can be produced by ISC controller by itself.
+>>>>> OK, I think I see what is going on here. The isc_formats array really is two arrays
+>>>>> in one: up to RAW_FMT_IND_END it describes what it can receive from the
+>>>>> source, and after that it describes what it can convert it to.
+>>>> Not exactly.
+>>>>
+>>>> Yes, up to RAW_FMT_IND_END, these formats must be got from the senor, they are RAW formats.
+>>>>   From ISC_FMT_IND_START to ISC_FMT_IND_END, they can be generated by the ISC controller.
+>>>> It is possible they can be got from the sensor too, the driver will check it.
+>>>> If it can be got from both the sensor and the ISC controller, the user can use the "sensor_preferred" parameter to decide from which one to get.
+>>>> The RBG formats are the exception.
+>>>>
+>>>>> But if you can't handle RGB formats from the sensor, then why not make sure
+>>>>> none of the mbus codes in isc_formats uses RGB? That makes much more sense.
+>>>>>
+>>>>> E.g.:
+>>>>>
+>>>>>           { V4L2_PIX_FMT_RGB565, MEDIA_BUS_FMT_RGB565_2X8_LE, 16,
+>>>>>             ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG,
+>>>>> ISC_RLP_CFG_MODE_RGB565,
+>>>>>             ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x7b,
+>>>>>             false, false },
+>>>>>
+>>>>> Why use MEDIA_BUS_FMT_RGB565_2X8_LE if this apparently is not supported?
+>>>> This array is also the lists of all formats supported by the ISC(including got from the sensor).
+>>>> The RGB formats are only generated by the ISC controller, not from the sensor.
+>>> You're adding code that skips any entries of the table where mbus_code is an
+>>> RGB code. But this can also be done by not having RGB mbus codes in the table
+>>> in the first place since they make no sense if the HW cannot handle that!
+>>> Set the mbus_code to e.g. 0 for such entries, that makes more sense.
 >>>
->> Thank you for your question.
->>
->> Exynos 5250 and 5420 have different hardware rotation limits.
->> Exynos 5250 is '.real_rot_en_w/h = 2016' and 5420 is '.real_rot_en_w/h =
->> 2048'.
->>
->> So my opinion they must have different compatible.
-> I think there is some misunderstanding, mu suggestion was to keep the
-> "samsung,exynos5-gsc" compatible entry in addition to the new introduced
-> ones: "samsung,exynos5250-gsc" and "samsung,exynos5420-gsc". That's in
-> order to make your changes possibly backward compatible, in theory
-> the updated driver should still work without changes in dts.
+>>> I also strongly suggest changing how the table is organized since those
+>>> _FMT_IND_ indices are all to easy to get wrong (and frankly hard to understand).
+>> Yes, you are right, I will change it. Do you have some advice?
+> Two options spring to mind: split into two tables or add a bool that tells whether
+> the format can be created by the isc or not.
+I reworked the format table, 
+http://lists.infradead.org/pipermail/linux-arm-kernel/2017-August/529683.html
+Please give your comments.
 
+>
+> Regards,
+>
+> 	Hans
 
-Thank you again for your explanation.
-
-Yes, I understood.
-I will keep "samsung,exynos5-gsc" compatible,
-and add Exynos 5250/5420/5433 compatible.
-
-Best regards,
-Hoegeun
+Best Regards,
+Wenyou Yang
