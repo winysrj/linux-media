@@ -1,150 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr00094.outbound.protection.outlook.com ([40.107.0.94]:17376
-        "EHLO EUR02-AM5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S936407AbdIZQrA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 12:47:00 -0400
-Subject: Re: [PATCH v4 4/9] em28xx: fix em28xx_dvb_init for KASAN
-To: Arnd Bergmann <arnd@arndb.de>,
-        David Laight <David.Laight@aculab.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jiri Pirko <jiri@resnulli.us>,
-        Arend van Spriel <arend.vanspriel@broadcom.com>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Michal Marek <mmarek@suse.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Kees Cook <keescook@chromium.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>,
-        "brcm80211-dev-list.pdl@broadcom.com"
-        <brcm80211-dev-list.pdl@broadcom.com>,
-        "brcm80211-dev-list@cypress.com" <brcm80211-dev-list@cypress.com>,
-        "kasan-dev@googlegroups.com" <kasan-dev@googlegroups.com>,
-        "linux-kbuild@vger.kernel.org" <linux-kbuild@vger.kernel.org>,
-        Jakub Jelinek <jakub@gcc.gnu.org>,
-        =?UTF-8?Q?Martin_Li=c5=a1ka?= <marxin@gcc.gnu.org>,
-        "stable@vger.kernel.org" <stable@vger.kernel.org>
-References: <20170922212930.620249-1-arnd@arndb.de>
- <20170922212930.620249-5-arnd@arndb.de>
- <063D6719AE5E284EB5DD2968C1650D6DD007F521@AcuExch.aculab.com>
- <CAK8P3a1zxjMsQTBPijCo8FJjEU5aRVTr7n_NZ1YM2UnDPKoRLw@mail.gmail.com>
- <CAK8P3a37Ts5q7BvA2JWse87huyAp+=e18CUXEt8731RrBnB+Ow@mail.gmail.com>
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Message-ID: <e7e6418e-4340-5057-aa17-800082aca5fb@virtuozzo.com>
-Date: Tue, 26 Sep 2017 19:49:48 +0300
-MIME-Version: 1.0
-In-Reply-To: <CAK8P3a37Ts5q7BvA2JWse87huyAp+=e18CUXEt8731RrBnB+Ow@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mga09.intel.com ([134.134.136.24]:51251 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751983AbdIANho (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Sep 2017 09:37:44 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org, Alan Cox <alan@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 3/7] staging: atomisp: Remove dead code for MID (#2)
+Date: Fri,  1 Sep 2017 16:36:36 +0300
+Message-Id: <20170901133640.17589-3-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20170901133640.17589-1-andriy.shevchenko@linux.intel.com>
+References: <20170901133640.17589-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+intel_mid_soc_stepping() is not used anywhere.
 
-
-On 09/26/2017 09:47 AM, Arnd Bergmann wrote:
-> On Mon, Sep 25, 2017 at 11:32 PM, Arnd Bergmann <arnd@arndb.de> wrote:
->> On Mon, Sep 25, 2017 at 7:41 AM, David Laight <David.Laight@aculab.com> wrote:
->>> From: Arnd Bergmann
->>>> Sent: 22 September 2017 22:29
->>> ...
->>>> It seems that this is triggered in part by using strlcpy(), which the
->>>> compiler doesn't recognize as copying at most 'len' bytes, since strlcpy
->>>> is not part of the C standard.
->>>
->>> Neither is strncpy().
->>>
->>> It'll almost certainly be a marker in a header file somewhere,
->>> so it should be possibly to teach it about other functions.
->>
->> I'm currently travelling and haven't investigated in detail, but from
->> taking a closer look here, I found that the hardened 'strlcpy()'
->> in include/linux/string.h triggers it. There is also a hardened
->> (much shorted) 'strncpy()' that doesn't trigger it in the same file,
->> and having only the extern declaration of strncpy also doesn't.
-> 
-> And a little more experimenting leads to this simple patch that fixes
-> the problem:
-> 
-> --- a/include/linux/string.h
-> +++ b/include/linux/string.h
-> @@ -254,7 +254,7 @@ __FORTIFY_INLINE size_t strlcpy(char *p, const
-> char *q, size_t size)
->         size_t q_size = __builtin_object_size(q, 0);
->         if (p_size == (size_t)-1 && q_size == (size_t)-1)
->                 return __real_strlcpy(p, q, size);
-> -       ret = strlen(q);
-> +       ret = __builtin_strlen(q);
-
-
-I think this is not correct. Fortified strlen called here on purpose. If sizeof q is known at compile time
-and 'q' contains not-null fortified strlen() will panic.
-
-
->         if (size) {
->                 size_t len = (ret >= size) ? size - 1 : ret;
->                 if (__builtin_constant_p(len) && len >= p_size)
-> 
-> The problem is apparently that the fortified strlcpy calls the fortified strlen,
-> which in turn calls strnlen and that ends up calling the extern '__real_strnlen'
-> that gcc cannot reduce to a constant expression for a constant input.
-
-
-Per my observation, it's the code like this:
-	if () 
-		fortify_panic(__func__);
-
-
-somehow prevent gcc to merge several "struct i2c_board_info info;" into one stack slot.
-With the hack bellow, stack usage reduced to ~1,6K:
-
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- include/linux/string.h | 4 ----
- 1 file changed, 4 deletions(-)
+ drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h   | 1 -
+ .../media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c        | 7 -------
+ 2 files changed, 8 deletions(-)
 
-diff --git a/include/linux/string.h b/include/linux/string.h
-index 54d21783e18d..9a96ff3ebf94 100644
---- a/include/linux/string.h
-+++ b/include/linux/string.h
-@@ -261,8 +261,6 @@ __FORTIFY_INLINE __kernel_size_t strlen(const char *p)
- 	if (p_size == (size_t)-1)
- 		return __builtin_strlen(p);
- 	ret = strnlen(p, p_size);
--	if (p_size <= ret)
--		fortify_panic(__func__);
- 	return ret;
+diff --git a/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h b/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h
+index 0d7f5c618b56..5d8451ee391e 100644
+--- a/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h
++++ b/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h
+@@ -24,4 +24,3 @@ void intel_mid_msgbus_write32_raw(u32 cmd, u32 data);
+ void intel_mid_msgbus_write32(u8 port, u32 addr, u32 data);
+ u32 intel_mid_msgbus_read32_raw_ext(u32 cmd, u32 cmd_ext);
+ void intel_mid_msgbus_write32_raw_ext(u32 cmd, u32 cmd_ext, u32 data);
+-u32 intel_mid_soc_stepping(void);
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
+index 341bfd3ab313..c34f461653db 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
+@@ -154,10 +154,3 @@ void intel_mid_msgbus_write32(u8 port, u32 addr, u32 data)
+ 	spin_unlock_irqrestore(&msgbus_lock, irq_flags);
  }
- 
-@@ -271,8 +269,6 @@ __FORTIFY_INLINE __kernel_size_t strnlen(const char *p, __kernel_size_t maxlen)
- {
- 	size_t p_size = __builtin_object_size(p, 0);
- 	__kernel_size_t ret = __real_strnlen(p, maxlen < p_size ? maxlen : p_size);
--	if (p_size <= ret && maxlen != ret)
--		fortify_panic(__func__);
- 	return ret;
- }
-
-
-
-
-> Not sure if that change is the best fix, but it seems to address the problem in
-> this driver and probably leads to better code in other places as well.
-> 
-
-Probably it would be better to solve this on the strlcpy side, but I haven't found the way to do this right.
-Alternative solutions:
-
- - use memcpy() instead of strlcpy(). All source strings are smaller than I2C_NAME_SIZE, so we could
-   do something like this - memcpy(info.type, "si2168", sizeof("si2168"));
-   Also this should be faster.
-
- - Move code under different "case:" in the switch(dev->model) to the separate function should help as well.
-   But it might be harder to backport into stables.
+ EXPORT_SYMBOL(intel_mid_msgbus_write32);
+-
+-/* called only from where is later then fs_initcall */
+-u32 intel_mid_soc_stepping(void)
+-{
+-	return pci_root->revision;
+-}
+-EXPORT_SYMBOL(intel_mid_soc_stepping);
+-- 
+2.14.1
