@@ -1,107 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:38564 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750995AbdIQPv7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Sep 2017 11:51:59 -0400
-Received: by mail-qt0-f195.google.com with SMTP id f24so4317354qte.5
-        for <linux-media@vger.kernel.org>; Sun, 17 Sep 2017 08:51:58 -0700 (PDT)
+Received: from mga05.intel.com ([192.55.52.43]:33611 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751752AbdIAJFI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Sep 2017 05:05:08 -0400
+Date: Fri, 1 Sep 2017 12:04:35 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+        niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v5 4/5] v4l: fwnode: Support generic parsing of graph
+ endpoints in a device
+Message-ID: <20170901090434.5xyjz5ooswbx2kt2@paasikivi.fi.intel.com>
+References: <20170829110313.19538-1-sakari.ailus@linux.intel.com>
+ <2739432.dQ1BSg1MPy@avalon>
+ <20170829143121.6sjdx3lgcoxm6mva@valkosipuli.retiisi.org.uk>
+ <4764194.MvKE5XMHvq@avalon>
 MIME-Version: 1.0
-From: Laurent Caumont <lcaumont2@gmail.com>
-Date: Sun, 17 Sep 2017 17:51:57 +0200
-Message-ID: <CACG2uryMkGmekDPD0X9JwdLQrxxBCp9AczkGyy4_Q684RRLNUA@mail.gmail.com>
-Subject: 'LITE-ON USB2.0 DVB-T Tune' not working with kernel 4.10 / ubuntu 17.04
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4764194.MvKE5XMHvq@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Laurent,
 
-The hardware was working with kernel 4.4.
-I'm trying to make my DVB-T to work with my Ubuntu 17.04 and kernel 4.10.
-The complied version installed didn't work (with error:
-dvb_usb_dibusb_mc_common: Unknown symbol __symbol_get (err 0))
-So I'm trying to make it work with the latest code version.
-It works a little better but fail to create the frontend.(see below)
+On Fri, Sep 01, 2017 at 11:55:43AM +0300, Laurent Pinchart wrote:
+...
+> > >> +static int parse_endpoint(
+> > >> +	struct device *dev, struct v4l2_async_notifier *notifier,
+> > >> +	struct fwnode_handle *endpoint, unsigned int asd_struct_size,
+> > >> +	int (*parse_single)(struct device *dev,
+> > >> +			    struct v4l2_fwnode_endpoint *vep,
+> > >> +			    struct v4l2_async_subdev *asd))
+> > >> +{
+> > >> +	struct v4l2_async_subdev *asd;
+> > >> +	struct v4l2_fwnode_endpoint *vep;
+> > >> +	int ret = 0;
+> > >> +
+> > >> +	asd = kzalloc(asd_struct_size, GFP_KERNEL);
+> > >> +	if (!asd)
+> > >> +		return -ENOMEM;
+> > >> +
+> > >> +	asd->match.fwnode.fwnode =
+> > >> +		fwnode_graph_get_remote_port_parent(endpoint);
+> > >> +	if (!asd->match.fwnode.fwnode) {
+> > >> +		dev_warn(dev, "bad remote port parent\n");
+> > >> +		ret = -EINVAL;
+> > >> +		goto out_err;
+> > >> +	}
+> > >> +
+> > >> +	/* Ignore endpoints the parsing of which failed. */
+> > > 
+> > > You don't ignore them anymore, the comment should be updated.
+> > 
+> > Hmm. I actually intended to do something else about this. :-) As there's a
+> > single error code, handling that would need to be done a little bit
+> > differently right now.
+> > 
+> > I'd print a warning and proceed. What do you think?
+> > 
+> > Even if there's a bad DT endpoint, that shouldn't prevent the rest from
+> > working, right?
+> 
+> I think it should, to make sure we catch DT issues. We both know how many 
+> vendors don't care about warnings, so I'd rather fail completely to ensure DT 
+> will be fixed (and even ten I wouldn't be surprised if some vendors patched 
+> the code to remove the check instead of fixing their DT ;-)).
 
-I'm software developer, so I can help you identify what goes wrong but
-I really don't know how this code works.
-I didn't find what the -11 error code from usb_bulk_msg means.
+If they test the DTS, they should find out that the device does not work.
 
+If they do not, some devices will work even if others fail.
+
+Therefore I don't see why everything should fail when a part of faulty.
+Extending that a little, you should also halt the system to make sure the
+problem will be noticed. :-)
+
+> > >> @@ -121,6 +122,21 @@ int v4l2_async_notifier_register(struct v4l2_device
+> > >> *v4l2_dev, void v4l2_async_notifier_unregister(struct
+> > >> v4l2_async_notifier *notifier);
+> > >> 
+> > >>  /**
+> > >> + * v4l2_async_notifier_release - release notifier resources
+> > >> + * @notifier: pointer to &struct v4l2_async_notifier
+> > > 
+> > > That's quite obvious given the type of the argument. It would be much more
+> > > useful to tell which notifier pointer this function expects (although in
+> > > this case it should be obvious too): "(pointer to )?the notifier whose
+> > > resources will be released".
+> > 
+> > This fully matches to the documentation elsewhere in the same file. :-)
+> 
+> Feel free to fix the rest of the file :-)
+
+That's out of scope of this patch.
+
+> > > "The function can be called multiple times to populate the same notifier
+> > > from endpoints of different @dev devices before registering the notifier.
+> > > It can't be called anymore once the notifier has been registered."
+> > 
+> > I don't think there's really a use case for calling this for more than one
+> > device, is there?
+> 
+> I don't have one in mind, but I was wondering. If there isn't then you don't 
+> need notifier_realloc(), which could be moved to the next patch.
+
+I don't think there's even benefit from moving it to the next patch, it
+just adds to the reviewable code, nothing else.
+
+-- 
 Regards,
-Laurent
 
-uname -a
-Linux bureau 4.10.0-33-generic #37-Ubuntu SMP Fri Aug 11 10:55:28 UTC
-2017 x86_64 x86_64 x86_64 GNU/Linux
-
-
-[ 2731.415087] usb 1-8: new high-speed USB device number 14 using xhci_hcd
-[ 2731.555379] usb 1-8: New USB device found, idVendor=04ca, idProduct=f000
-[ 2731.555383] usb 1-8: New USB device strings: Mfr=0, Product=0, SerialNumber=0
-[ 2731.565107] media: Linux media interface: v0.10
-[ 2731.565934] WARNING: You are using an experimental version of the
-media stack.
-                   As the driver is backported to an older kernel, it
-doesn't offer
-                   enough quality for its usage in production.
-                   Use it with care.
-               Latest git patches (needed if you report a bug to
-linux-media@vger.kernel.org):
-                   1efdf1776e2253b77413c997bed862410e4b6aaf media:
-leds: as3645a: add V4L2_FLASH_LED_CLASS dependency
-                   4cd7d6c957b085d319bcf97814f95854375da0a6 media: get
-rid of removed DMX_GET_CAPS and DMX_SET_SOURCE leftovers
-                   12f92866f13f9ca12e158c07978246ed83d52ed0 media:
-Revert [media] v4l: async: make v4l2 coexist with devicetree nodes in
-a dt overlay
-[ 2731.566963] WARNING: You are using an experimental version of the
-media stack.
-                   As the driver is backported to an older kernel, it
-doesn't offer
-                   enough quality for its usage in production.
-                   Use it with care.
-               Latest git patches (needed if you report a bug to
-linux-media@vger.kernel.org):
-                   1efdf1776e2253b77413c997bed862410e4b6aaf media:
-leds: as3645a: add V4L2_FLASH_LED_CLASS dependency
-                   4cd7d6c957b085d319bcf97814f95854375da0a6 media: get
-rid of removed DMX_GET_CAPS and DMX_SET_SOURCE leftovers
-                   12f92866f13f9ca12e158c07978246ed83d52ed0 media:
-Revert [media] v4l: async: make v4l2 coexist with devicetree nodes in
-a dt overlay
-[ 2731.568725] dvb-usb: found a 'LITE-ON USB2.0 DVB-T Tuner' in cold
-state, will try to load a firmware
-[ 2731.568741] dvb-usb: downloading firmware from file
-'dvb-usb-dibusb-6.0.0.8.fw'
-[ 2731.585694] usbcore: registered new interface driver dvb_usb_dibusb_mc
-[ 2731.588259] usb 1-8: USB disconnect, device number 14
-[ 2731.588275] dvb-usb: generic DVB-USB module successfully
-deinitialized and disconnected.
-[ 2733.367133] usb 1-8: new high-speed USB device number 15 using xhci_hcd
-[ 2733.515454] usb 1-8: New USB device found, idVendor=04ca, idProduct=f001
-[ 2733.515457] usb 1-8: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-[ 2733.515460] usb 1-8: Product: TvTUNER
-[ 2733.515462] usb 1-8: Manufacturer: SKGZ
-[ 2733.516489] dvb-usb: found a 'LITE-ON USB2.0 DVB-T Tuner' in warm state.
-[ 2733.516760] dvb-usb: will pass the complete MPEG2 transport stream
-to the software demuxer.
-[ 2733.520673] dvbdev: DVB: registering new adapter (LITE-ON USB2.0 DVB-T Tuner)
-[ 2733.520680] usb 1-8: media controller created
-[ 2733.521231] dvbdev: dvb_create_media_entity: media entity
-'dvb-demux' registered.
-[ 2738.631185] dvb-usb: recv bulk message failed: -11
-[ 2738.631510] dvb-usb: recv bulk message failed: -11
-[ 2738.631522] dvb-usb: no frontend was attached by 'LITE-ON USB2.0 DVB-T Tuner'
-[ 2748.871180] input: IR-receiver inside an USB DVB receiver as
-/devices/pci0000:00/0000:00:14.0/usb1/1-8/input/input18
-[ 2748.871390] dvb-usb: schedule remote query interval to 150 msecs.
-[ 2748.871394] dvb-usb: LITE-ON USB2.0 DVB-T Tuner successfully
-initialized and connected.
-[ 2751.046991] dvb-usb: bulk message failed: -110 (1/0)
-[ 2751.046998] dvb-usb: error while querying for an remote control event.
-[ 2753.222966] dvb-usb: bulk message failed: -110 (1/0)
-[ 2753.222973] dvb-usb: error while querying for an remote control event.
-[ 2755.398971] dvb-usb: bulk message failed: -110 (1/0)
-[ 2755.398978] dvb-usb: error while querying for an remote control event.
+Sakari Ailus
+sakari.ailus@linux.intel.com
