@@ -1,46 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailoutvs7.siol.net ([213.250.19.138]:55726 "EHLO mail.siol.net"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751661AbdITUIm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 16:08:42 -0400
-From: Jernej Skrabec <jernej.skrabec@siol.net>
-To: maxime.ripard@free-electrons.com, wens@csie.org
-Cc: Laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-        narmstrong@baylibre.com, dri-devel@lists.freedesktop.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org,
-        icenowy@aosc.io, linux-sunxi@googlegroups.com,
-        linux-media@vger.kernel.org
-Subject: [RESEND RFC PATCH 3/7] clk: sunxi: Add CLK_SET_RATE_PARENT flag for H3 HDMI clock
-Date: Wed, 20 Sep 2017 22:01:20 +0200
-Message-Id: <20170920200124.20457-4-jernej.skrabec@siol.net>
-In-Reply-To: <20170920200124.20457-1-jernej.skrabec@siol.net>
-References: <20170920200124.20457-1-jernej.skrabec@siol.net>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48344
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752226AbdIATh6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 15:37:58 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 14/14] media: frontend.h: Avoid the term DVB when doesn't refer to a delivery system
+Date: Fri,  1 Sep 2017 16:37:50 -0300
+Message-Id: <c101d7c6905dea8ac030504d89e0b3b03ce71a9f.1504293108.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504293108.git.mchehab@s-opensource.com>
+References: <cover.1504293108.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504293108.git.mchehab@s-opensource.com>
+References: <cover.1504293108.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When setting the HDMI clock of H3, the PLL_VIDEO clock needs to be set.
+The DVB term can either refer to the subsystem or to a delivery
+system. Avoid it in the first case at the kernel-doc markups.
 
-Add CLK_SET_RATE_PARENT flag for H3 HDMI clock.
-
-Signed-off-by: Jernej Skrabec <jernej.skrabec@siol.net>
-Signed-off-by: Icenowy Zheng <icenowy@aosc.io>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/clk/sunxi-ng/ccu-sun8i-h3.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/uapi/linux/dvb/frontend.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/clk/sunxi-ng/ccu-sun8i-h3.c b/drivers/clk/sunxi-ng/ccu-sun8i-h3.c
-index 7a222ff1ad0a..36224ba93f9d 100644
---- a/drivers/clk/sunxi-ng/ccu-sun8i-h3.c
-+++ b/drivers/clk/sunxi-ng/ccu-sun8i-h3.c
-@@ -474,7 +474,7 @@ static SUNXI_CCU_GATE(avs_clk,		"avs",		"osc24M",
- 
- static const char * const hdmi_parents[] = { "pll-video" };
- static SUNXI_CCU_M_WITH_MUX_GATE(hdmi_clk, "hdmi", hdmi_parents,
--				 0x150, 0, 4, 24, 2, BIT(31), 0);
-+				 0x150, 0, 4, 24, 2, BIT(31), CLK_SET_RATE_PARENT);
- 
- static SUNXI_CCU_GATE(hdmi_ddc_clk,	"hdmi-ddc",	"osc24M",
- 		      0x154, BIT(31), 0);
+diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+index 8c5191f74bd4..b81b74efbd02 100644
+--- a/include/uapi/linux/dvb/frontend.h
++++ b/include/uapi/linux/dvb/frontend.h
+@@ -239,11 +239,11 @@ enum fe_sec_mini_cmd {
+  * @FE_NONE:		The frontend doesn't have any kind of lock.
+  *			That's the initial frontend status
+  * @FE_HAS_SIGNAL:	Has found something above the noise level.
+- * @FE_HAS_CARRIER:	Has found a DVB signal.
++ * @FE_HAS_CARRIER:	Has found a signal.
+  * @FE_HAS_VITERBI:	FEC inner coding (Viterbi, LDPC or other inner code).
+  * 			is stable.
+  * @FE_HAS_SYNC:	Synchronization bytes was found.
+- * @FE_HAS_LOCK:	DVB were locked and everything is working.
++ * @FE_HAS_LOCK:	Digital TV were locked and everything is working.
+  * @FE_TIMEDOUT:	Fo lock within the last about 2 seconds.
+  * @FE_REINIT:		Frontend was reinitialized, application is recommended
+  *			to reset DiSEqC, tone and parameters.
+@@ -269,7 +269,7 @@ enum fe_status {
+  * This parameter indicates if spectral inversion should be presumed or
+  * not. In the automatic setting (``INVERSION_AUTO``) the hardware will try
+  * to figure out the correct setting by itself. If the hardware doesn't
+- * support, the DVB core will try to lock at the carrier first with
++ * support, the %dvb_frontend will try to lock at the carrier first with
+  * inversion off. If it fails, it will try to enable inversion.
+  */
+ enum fe_spectral_inversion {
 -- 
-2.14.1
+2.13.5
