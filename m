@@ -1,87 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33160
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752152AbdI0Vku (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:40:50 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 20/37] media: dvb_demux.h: add an enum for DMX_STATE_* and document
-Date: Wed, 27 Sep 2017 18:40:21 -0300
-Message-Id: <8dc15c61a73bd5a54c2501722f45f63ff4a9f442.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
+Received: from mout.web.de ([212.227.15.3]:53266 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752245AbdIAToF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Sep 2017 15:44:05 -0400
+Subject: [PATCH 2/4] [media] sp2: Improve a size determination in sp2_probe()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Olli Salonen <olli.salonen@iki.fi>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <6142ca34-fcda-f2b6-bc35-dbbde0d34378@users.sourceforge.net>
+Message-ID: <f07cbc6e-9179-6270-31a6-0fa55cb57f02@users.sourceforge.net>
+Date: Fri, 1 Sep 2017 21:43:42 +0200
+MIME-Version: 1.0
+In-Reply-To: <6142ca34-fcda-f2b6-bc35-dbbde0d34378@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kernel-doc allows documenting enums. Also, it makes clearer
-about the meaning of each field on structures.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Fri, 1 Sep 2017 20:46:18 +0200
 
-So, convert DMX_STATE_* to an enum.
+Replace the specification of a data structure by a pointer dereference
+as the parameter for the operator "sizeof" to make the corresponding size
+determination a bit safer according to the Linux coding style convention.
 
-While here, get rid of the unused DMX_STATE_SET.
+This issue was detected by using the Coccinelle software.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/dvb-core/dvb_demux.h | 25 ++++++++++++++++++-------
- 1 file changed, 18 insertions(+), 7 deletions(-)
+ drivers/media/dvb-frontends/sp2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-core/dvb_demux.h b/drivers/media/dvb-core/dvb_demux.h
-index 6bc4b27dbff3..b24d69b5a20f 100644
---- a/drivers/media/dvb-core/dvb_demux.h
-+++ b/drivers/media/dvb-core/dvb_demux.h
-@@ -37,11 +37,22 @@ enum dvb_dmx_filter_type {
- 	DMX_TYPE_SEC,
- };
+diff --git a/drivers/media/dvb-frontends/sp2.c b/drivers/media/dvb-frontends/sp2.c
+index d3b4f8822096..dd556012ceb6 100644
+--- a/drivers/media/dvb-frontends/sp2.c
++++ b/drivers/media/dvb-frontends/sp2.c
+@@ -381,6 +381,6 @@ static int sp2_probe(struct i2c_client *client,
  
--#define DMX_STATE_FREE      0
--#define DMX_STATE_ALLOCATED 1
--#define DMX_STATE_SET       2
--#define DMX_STATE_READY     3
--#define DMX_STATE_GO        4
-+/**
-+ * enum dvb_dmx_state - state machine for a demux filter.
-+ *
-+ * @DMX_STATE_FREE:		indicates that the filter is freed.
-+ * @DMX_STATE_ALLOCATED:	indicates that the filter was allocated
-+ *				to be used.
-+ * @DMX_STATE_READY:		indicates that the filter is ready
-+ *				to be used.
-+ * @DMX_STATE_GO:		indicates that the filter is running.
-+ */
-+enum dvb_dmx_state {
-+	DMX_STATE_FREE,
-+	DMX_STATE_ALLOCATED,
-+	DMX_STATE_READY,
-+	DMX_STATE_GO,
-+};
+ 	dev_dbg(&client->dev, "\n");
  
- #define DVB_DEMUX_MASK_MAX 18
- 
-@@ -58,7 +69,7 @@ struct dvb_demux_filter {
- 	struct dvb_demux_filter *next;
- 	struct dvb_demux_feed *feed;
- 	int index;
--	int state;
-+	enum dvb_dmx_state state;
- 	enum dvb_dmx_filter_type type;
- 
- 	u16 hw_handle;
-@@ -81,7 +92,7 @@ struct dvb_demux_feed {
- 	struct dvb_demux *demux;
- 	void *priv;
- 	enum dvb_dmx_filter_type type;
--	int state;
-+	enum dvb_dmx_state state;
- 	u16 pid;
- 
- 	ktime_t timeout;
+-	s = kzalloc(sizeof(struct sp2), GFP_KERNEL);
++	s = kzalloc(sizeof(*s), GFP_KERNEL);
+ 	if (!s) {
+ 		ret = -ENOMEM;
 -- 
-2.13.5
+2.14.1
