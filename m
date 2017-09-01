@@ -1,72 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:52451 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751551AbdITQ6R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 12:58:17 -0400
-Subject: [PATCH 1/5] [media] s2255drv: Delete three error messages for a
- failed memory allocation in s2255_probe()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mike Isely <isely@pobox.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <55718a41-d76f-36bf-7197-db92014dcd3c@users.sourceforge.net>
-Message-ID: <40736ede-e614-e498-8768-b8e5a1553f34@users.sourceforge.net>
-Date: Wed, 20 Sep 2017 18:57:52 +0200
-MIME-Version: 1.0
-In-Reply-To: <55718a41-d76f-36bf-7197-db92014dcd3c@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46995
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752125AbdIANZE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:25:04 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH v2 20/27] media: dst_ca: return a proper error code from CA errors
+Date: Fri,  1 Sep 2017 10:24:42 -0300
+Message-Id: <5c5db5628c08e106216aac6a9843f28128f4c9c9.1504272067.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
+References: <cover.1504272067.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
+References: <cover.1504272067.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 20 Sep 2017 16:30:13 +0200
+Right now, on several places, the driver is returning a
+"-1" error to userspace, instead of a proper error code.
 
-Omit extra messages for a memory allocation failure in this function.
+Fix it.
 
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/s2255/s2255drv.c | 13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ drivers/media/pci/bt8xx/dst_ca.c | 41 +++++++++++++++++++++-------------------
+ 1 file changed, 22 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-index b2f239c4ba42..29285e8cd742 100644
---- a/drivers/media/usb/s2255/s2255drv.c
-+++ b/drivers/media/usb/s2255/s2255drv.c
-@@ -2242,13 +2242,9 @@ static int s2255_probe(struct usb_interface *interface,
--	if (dev == NULL) {
--		s2255_dev_err(&interface->dev, "out of memory\n");
-+	if (!dev)
- 		return -ENOMEM;
--	}
+diff --git a/drivers/media/pci/bt8xx/dst_ca.c b/drivers/media/pci/bt8xx/dst_ca.c
+index 7db47d8bbe15..5ebb86f22935 100644
+--- a/drivers/media/pci/bt8xx/dst_ca.c
++++ b/drivers/media/pci/bt8xx/dst_ca.c
+@@ -137,7 +137,7 @@ static int dst_put_ci(struct dst_state *state, u8 *data, int len, u8 *ca_string,
+ 	}
  
- 	dev->cmdbuf = kzalloc(S2255_CMDBUF_SIZE, GFP_KERNEL);
--	if (dev->cmdbuf == NULL) {
--		s2255_dev_err(&interface->dev, "out of memory\n");
-+	if (!dev->cmdbuf)
- 		goto errorFWDATA1;
--	}
+ 	if(dst_ca_comm_err == RETRIES)
+-		return -1;
++		return -EIO;
  
- 	atomic_set(&dev->num_channels, 0);
- 	dev->pid = id->idProduct;
-@@ -2303,7 +2299,6 @@ static int s2255_probe(struct usb_interface *interface,
--	if (!dev->fw_data->pfw_data) {
--		dev_err(&interface->dev, "out of memory!\n");
-+	if (!dev->fw_data->pfw_data)
- 		goto errorFWDATA2;
--	}
+ 	return 0;
+ }
+@@ -152,7 +152,7 @@ static int ca_get_app_info(struct dst_state *state)
+ 	put_checksum(&command[0], command[0]);
+ 	if ((dst_put_ci(state, command, sizeof(command), state->messages, GET_REPLY)) < 0) {
+ 		dprintk(verbose, DST_CA_ERROR, 1, " -->dst_put_ci FAILED !");
+-		return -1;
++		return -EIO;
+ 	}
+ 	dprintk(verbose, DST_CA_INFO, 1, " -->dst_put_ci SUCCESS !");
+ 	dprintk(verbose, DST_CA_INFO, 1, " ================================ CI Module Application Info ======================================");
+@@ -191,7 +191,7 @@ static int ca_get_ca_info(struct dst_state *state)
+ 	put_checksum(&slot_command[0], slot_command[0]);
+ 	if ((dst_put_ci(state, slot_command, sizeof (slot_command), state->messages, GET_REPLY)) < 0) {
+ 		dprintk(verbose, DST_CA_ERROR, 1, " -->dst_put_ci FAILED !");
+-		return -1;
++		return -EIO;
+ 	}
+ 	dprintk(verbose, DST_CA_INFO, 1, " -->dst_put_ci SUCCESS !");
+ 
+@@ -235,7 +235,7 @@ static int ca_get_slot_caps(struct dst_state *state, struct ca_caps *p_ca_caps,
+ 	put_checksum(&slot_command[0], slot_command[0]);
+ 	if ((dst_put_ci(state, slot_command, sizeof (slot_command), slot_cap, GET_REPLY)) < 0) {
+ 		dprintk(verbose, DST_CA_ERROR, 1, " -->dst_put_ci FAILED !");
+-		return -1;
++		return -EIO;
+ 	}
+ 	dprintk(verbose, DST_CA_NOTICE, 1, " -->dst_put_ci SUCCESS !");
+ 
+@@ -275,7 +275,7 @@ static int ca_get_slot_info(struct dst_state *state, struct ca_slot_info *p_ca_s
+ 	put_checksum(&slot_command[0], 7);
+ 	if ((dst_put_ci(state, slot_command, sizeof (slot_command), slot_info, GET_REPLY)) < 0) {
+ 		dprintk(verbose, DST_CA_ERROR, 1, " -->dst_put_ci FAILED !");
+-		return -1;
++		return -EIO;
+ 	}
+ 	dprintk(verbose, DST_CA_INFO, 1, " -->dst_put_ci SUCCESS !");
+ 
+@@ -347,7 +347,7 @@ static int handle_dst_tag(struct dst_state *state, struct ca_msg *p_ca_message,
+ 	} else {
+ 		if (length > 247) {
+ 			dprintk(verbose, DST_CA_ERROR, 1, " Message too long ! *** Bailing Out *** !");
+-			return -1;
++			return -EIO;
+ 		}
+ 		hw_buffer->msg[0] = (length & 0xff) + 7;
+ 		hw_buffer->msg[1] = 0x40;
+@@ -373,7 +373,7 @@ static int write_to_8820(struct dst_state *state, struct ca_msg *hw_buffer, u8 l
+ 		dprintk(verbose, DST_CA_ERROR, 1, " DST-CI Command failed.");
+ 		dprintk(verbose, DST_CA_NOTICE, 1, " Resetting DST.");
+ 		rdc_reset_state(state);
+-		return -1;
++		return -EIO;
+ 	}
+ 	dprintk(verbose, DST_CA_NOTICE, 1, " DST-CI Command success.");
+ 
+@@ -446,7 +446,7 @@ static int dst_check_ca_pmt(struct dst_state *state, struct ca_msg *p_ca_message
+ 	if (ca_pmt_reply_test) {
+ 		if ((ca_set_pmt(state, p_ca_message, hw_buffer, 1, GET_REPLY)) < 0) {
+ 			dprintk(verbose, DST_CA_ERROR, 1, " ca_set_pmt.. failed !");
+-			return -1;
++			return -EIO;
+ 		}
+ 
+ 	/*	Process CA PMT Reply		*/
+@@ -457,7 +457,7 @@ static int dst_check_ca_pmt(struct dst_state *state, struct ca_msg *p_ca_message
+ 	if (!ca_pmt_reply_test) {
+ 		if ((ca_set_pmt(state, p_ca_message, hw_buffer, 0, NO_REPLY)) < 0) {
+ 			dprintk(verbose, DST_CA_ERROR, 1, " ca_set_pmt.. failed !");
+-			return -1;
++			return -EIO;
+ 		}
+ 		dprintk(verbose, DST_CA_NOTICE, 1, " ca_set_pmt.. success !");
+ 	/*	put a dummy message		*/
+@@ -566,17 +566,18 @@ static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioct
+ 	switch (cmd) {
+ 	case CA_SEND_MSG:
+ 		dprintk(verbose, DST_CA_INFO, 1, " Sending message");
+-		if ((ca_send_message(state, p_ca_message, arg)) < 0) {
++		result = ca_send_message(state, p_ca_message, arg);
 +
- 	/* load the first chunk */
- 	if (request_firmware(&dev->fw_data->fw,
- 			     FIRMWARE_FILE_NAME, &dev->udev->dev)) {
++		if (result < 0) {
+ 			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_SEND_MSG Failed !");
+-			result = -1;
+ 			goto free_mem_and_exit;
+ 		}
+ 		break;
+ 	case CA_GET_MSG:
+ 		dprintk(verbose, DST_CA_INFO, 1, " Getting message");
+-		if ((ca_get_message(state, p_ca_message, arg)) < 0) {
++		result = ca_get_message(state, p_ca_message, arg);
++		if (result < 0) {
+ 			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_GET_MSG Failed !");
+-			result = -1;
+ 			goto free_mem_and_exit;
+ 		}
+ 		dprintk(verbose, DST_CA_INFO, 1, " -->CA_GET_MSG Success !");
+@@ -588,7 +589,8 @@ static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioct
+ 		break;
+ 	case CA_GET_SLOT_INFO:
+ 		dprintk(verbose, DST_CA_INFO, 1, " Getting Slot info");
+-		if ((ca_get_slot_info(state, p_ca_slot_info, arg)) < 0) {
++		result = ca_get_slot_info(state, p_ca_slot_info, arg);
++		if (result < 0) {
+ 			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_GET_SLOT_INFO Failed !");
+ 			result = -1;
+ 			goto free_mem_and_exit;
+@@ -597,25 +599,26 @@ static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioct
+ 		break;
+ 	case CA_GET_CAP:
+ 		dprintk(verbose, DST_CA_INFO, 1, " Getting Slot capabilities");
+-		if ((ca_get_slot_caps(state, p_ca_caps, arg)) < 0) {
++		result = ca_get_slot_caps(state, p_ca_caps, arg);
++		if (result < 0) {
+ 			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_GET_CAP Failed !");
+-			result = -1;
+ 			goto free_mem_and_exit;
+ 		}
+ 		dprintk(verbose, DST_CA_INFO, 1, " -->CA_GET_CAP Success !");
+ 		break;
+ 	case CA_GET_DESCR_INFO:
+ 		dprintk(verbose, DST_CA_INFO, 1, " Getting descrambler description");
+-		if ((ca_get_slot_descr(state, p_ca_message, arg)) < 0) {
++		result = ca_get_slot_descr(state, p_ca_message, arg);
++		if (result < 0) {
+ 			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_GET_DESCR_INFO Failed !");
+-			result = -1;
+ 			goto free_mem_and_exit;
+ 		}
+ 		dprintk(verbose, DST_CA_INFO, 1, " -->CA_GET_DESCR_INFO Success !");
+ 		break;
+ 	case CA_SET_DESCR:
+ 		dprintk(verbose, DST_CA_INFO, 1, " Setting descrambler");
+-		if ((ca_set_slot_descr()) < 0) {
++		result = ca_set_slot_descr();
++		if (result < 0) {
+ 			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_SET_DESCR Failed !");
+ 			result = -1;
+ 			goto free_mem_and_exit;
 -- 
-2.14.1
+2.13.5
