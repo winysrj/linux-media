@@ -1,53 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33500 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751363AbdILImq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 04:42:46 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v11 12/24] v4l: async: Register sub-devices before calling bound callback
-Date: Tue, 12 Sep 2017 11:42:24 +0300
-Message-Id: <20170912084236.1154-13-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
-References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48335
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752213AbdIATh6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 15:37:58 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 05/14] media: ca-fopen.rst: Fixes the device node name for CA
+Date: Fri,  1 Sep 2017 16:37:41 -0300
+Message-Id: <74308980422ba1ae05a8f6279e5dce6095a3e797.1504293108.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504293108.git.mchehab@s-opensource.com>
+References: <cover.1504293108.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504293108.git.mchehab@s-opensource.com>
+References: <cover.1504293108.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Register the sub-device before calling the notifier's bound callback.
-Doing this the other way around is problematic as the struct v4l2_device
-has not assigned for the sub-device yet and may be required by the bound
-callback.
+The device node name for CA is wrong since ever. I suspect
+that the name there was before DVBv3 (with was the first API
+introduced at the Kernel).
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Anyway, use the right name there.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/media/uapi/dvb/ca-fopen.rst | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index c34f93593b41..7b396ff4302b 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -130,13 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- {
- 	int ret;
+diff --git a/Documentation/media/uapi/dvb/ca-fopen.rst b/Documentation/media/uapi/dvb/ca-fopen.rst
+index c974a212b618..51ac27dfec75 100644
+--- a/Documentation/media/uapi/dvb/ca-fopen.rst
++++ b/Documentation/media/uapi/dvb/ca-fopen.rst
+@@ -49,8 +49,8 @@ Arguments
+ Description
+ -----------
  
--	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
-+	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
- 	if (ret < 0)
- 		return ret;
+-This system call opens a named ca device (e.g. /dev/ost/ca) for
+-subsequent use.
++This system call opens a named ca device (e.g. ``/dev/dvb/adapter?/ca?``)
++for subsequent use.
  
--	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
-+	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
- 	if (ret < 0) {
--		v4l2_async_notifier_call_unbind(notifier, sd, asd);
-+		v4l2_device_unregister_subdev(sd);
- 		return ret;
- 	}
- 
+ When an open() call has succeeded, the device will be ready for use. The
+ significance of blocking or non-blocking mode is described in the
 -- 
-2.11.0
+2.13.5
