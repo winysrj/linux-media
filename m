@@ -1,120 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:59123 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755980AbdIRN52 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Sep 2017 09:57:28 -0400
-Subject: [PATCH 4/6] [media] go7007: Use common error handling code in
- s2250_probe()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <b36ece3f-0f31-9bb6-14ae-c4abf7cd23ee@users.sourceforge.net>
-Message-ID: <c4d2e584-39ca-6e30-43ee-56088905149e@users.sourceforge.net>
-Date: Mon, 18 Sep 2017 15:57:21 +0200
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41198 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751330AbdIAHNU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 03:13:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Nicolas Dufresne <nicolas@ndufresne.ca>
+Cc: Brian Starkey <brian.starkey@arm.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        jonathan.chai@arm.com, dri-devel <dri-devel@lists.freedesktop.org>
+Subject: Re: DRM Format Modifiers in v4l2
+Date: Fri, 01 Sep 2017 10:13:53 +0300
+Message-ID: <1962548.KP01uVGcTd@avalon>
+In-Reply-To: <1504195978.18413.14.camel@ndufresne.ca>
+References: <20170821155203.GB38943@e107564-lin.cambridge.arm.com> <4559442.sz5HF0f0o4@avalon> <1504195978.18413.14.camel@ndufresne.ca>
 MIME-Version: 1.0
-In-Reply-To: <b36ece3f-0f31-9bb6-14ae-c4abf7cd23ee@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 18 Sep 2017 13:50:45 +0200
+Hi Nicolas,
 
-Adjust jump targets so that a bit of exception handling can be better
-reused at the end of this function.
+On Thursday, 31 August 2017 19:12:58 EEST Nicolas Dufresne wrote:
+> Le jeudi 31 ao=FBt 2017 =E0 17:28 +0300, Laurent Pinchart a =E9crit :
+> >> e.g. if I have two devices which support MODIFIER_FOO, I could attempt
+> >> to share a buffer between them which uses MODIFIER_FOO without
+> >> necessarily knowing exactly what it is/does.
+> >=20
+> > Userspace could certainly set modifiers blindly, but the point of
+> > modifiers is to generate side effects benefitial to the use case at hand
+> > (for instance by optimizing the memory access pattern). To use them
+> > meaningfully userspace would need to have at least an idea of the side
+> > effects they generate.
+>=20
+> Generic userspace will basically pick some random combination.
 
-This refactoring might fix also an error situation where the
-function "i2c_unregister_device" was not called after a software failure
-was noticed by the data member "hdl.error".
+In that case userspace could set no modifier at all by default (except in t=
+he=20
+case where unmodified formats are not supported by the hardware, but I don'=
+t=20
+expect that to be the most common case).
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/usb/go7007/s2250-board.c | 37 +++++++++++++++++-----------------
- 1 file changed, 18 insertions(+), 19 deletions(-)
+> To allow generically picking the optimal configuration we could indeed re=
+ly
+> on the application knowledge, but we could also enhance the spec so that
+> the order in the enumeration becomes meaningful.
 
-diff --git a/drivers/media/usb/go7007/s2250-board.c b/drivers/media/usb/go7007/s2250-board.c
-index 1fd4c09dd516..1bd9a7f2e7a3 100644
---- a/drivers/media/usb/go7007/s2250-board.c
-+++ b/drivers/media/usb/go7007/s2250-board.c
-@@ -510,6 +510,7 @@ static int s2250_probe(struct i2c_client *client,
- 	u8 *data;
- 	struct go7007 *go = i2c_get_adapdata(adapter);
- 	struct go7007_usb *usb = go->hpi_context;
-+	int code;
- 
- 	audio = i2c_new_dummy(adapter, TLV320_ADDRESS >> 1);
- 	if (!audio)
-@@ -517,8 +518,8 @@ static int s2250_probe(struct i2c_client *client,
- 
- 	state = kzalloc(sizeof(*state), GFP_KERNEL);
- 	if (!state) {
--		i2c_unregister_device(audio);
--		return -ENOMEM;
-+		code = -ENOMEM;
-+		goto unregister_device;
- 	}
- 
- 	sd = &state->sd;
-@@ -538,11 +539,8 @@ static int s2250_probe(struct i2c_client *client,
- 		V4L2_CID_HUE, -512, 511, 1, 0);
- 	sd->ctrl_handler = &state->hdl;
- 	if (state->hdl.error) {
--		int err = state->hdl.error;
--
--		v4l2_ctrl_handler_free(&state->hdl);
--		kfree(state);
--		return err;
-+		code = state->hdl.error;
-+		goto free_handler;
- 	}
- 
- 	state->std = V4L2_STD_NTSC;
-@@ -555,17 +553,13 @@ static int s2250_probe(struct i2c_client *client,
- 	/* initialize the audio */
- 	if (write_regs(audio, aud_regs) < 0) {
- 		dev_err(&client->dev, "error initializing audio\n");
--		goto fail;
-+		goto e_io;
- 	}
- 
--	if (write_regs(client, vid_regs) < 0) {
--		dev_err(&client->dev, "error initializing decoder\n");
--		goto fail;
--	}
--	if (write_regs_fp(client, vid_regs_fp) < 0) {
--		dev_err(&client->dev, "error initializing decoder\n");
--		goto fail;
--	}
-+	if (write_regs(client, vid_regs) < 0 ||
-+	    write_regs_fp(client, vid_regs_fp) < 0)
-+		goto report_write_failure;
-+
- 	/* set default channel */
- 	/* composite */
- 	write_reg_fp(client, 0x20, 0x020 | 1);
-@@ -602,11 +596,16 @@ static int s2250_probe(struct i2c_client *client,
- 	v4l2_info(sd, "initialized successfully\n");
- 	return 0;
- 
--fail:
--	i2c_unregister_device(audio);
-+report_write_failure:
-+	dev_err(&client->dev, "error initializing decoder\n");
-+e_io:
-+	code = -EIO;
-+free_handler:
- 	v4l2_ctrl_handler_free(&state->hdl);
- 	kfree(state);
--	return -EIO;
-+unregister_device:
-+	i2c_unregister_device(audio);
-+	return code;
- }
- 
- static int s2250_remove(struct i2c_client *client)
--- 
-2.14.1
+I'm not sure how far we should go. I could imagine a system where the API=20
+would report capabilities for modifiers (e.g. this modifier lowers the=20
+bandwidth, this one enhances the quality, ...), but going in that direction=
+,=20
+where do we stop ? In practice I expect userspace to know some information=
+=20
+about the hardware, so I'd rather avoid over-engineering the API.
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
