@@ -1,72 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f177.google.com ([209.85.223.177]:52222 "EHLO
-        mail-io0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751307AbdITSU5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 14:20:57 -0400
-Received: by mail-io0-f177.google.com with SMTP id l15so5544462iol.8
-        for <linux-media@vger.kernel.org>; Wed, 20 Sep 2017 11:20:57 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <79e447f8-f2e3-57e3-b5fe-503e5feb2f82@amd.com>
-References: <1504531653-13779-1-git-send-email-deathsimple@vodafone.de>
- <150453243791.23157.6907537389223890207@mail.alporthouse.com>
- <67fe7e05-7743-40c8-558b-41b08eb986e9@amd.com> <150512037119.16759.472484663447331384@mail.alporthouse.com>
- <3c412ee3-854a-292a-e036-7c5fd7888979@amd.com> <150512178199.16759.73667469529688@mail.alporthouse.com>
- <5ff4b100-b580-a93d-aa5e-c66173ac091d@amd.com> <150512410278.16759.10537429613477592631@mail.alporthouse.com>
- <79e447f8-f2e3-57e3-b5fe-503e5feb2f82@amd.com>
-From: Daniel Vetter <daniel@ffwll.ch>
-Date: Wed, 20 Sep 2017 20:20:56 +0200
-Message-ID: <CAKMK7uGkEFzbrhAS1qWs-g3dC20jubXitR5ALkTg4PhMwoQ-Rg@mail.gmail.com>
-Subject: Re: [PATCH] dma-fence: fix dma_fence_get_rcu_safe
-To: =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Gustavo Padovan <gustavo@padovan.org>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Received: from mga11.intel.com ([192.55.52.93]:46984 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752039AbdIANhO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Sep 2017 09:37:14 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org, Alan Cox <alan@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 1/7] staging: atomisp: Remove dead code for MID (#1)
+Date: Fri,  1 Sep 2017 16:36:34 +0300
+Message-Id: <20170901133640.17589-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 11, 2017 at 01:06:32PM +0200, Christian K=C3=B6nig wrote:
-> Am 11.09.2017 um 12:01 schrieb Chris Wilson:
-> > [SNIP]
-> > > Yeah, but that is illegal with a fence objects.
-> > >
-> > > When anybody allocates fences this way it breaks at least
-> > > reservation_object_get_fences_rcu(),
-> > > reservation_object_wait_timeout_rcu() and
-> > > reservation_object_test_signaled_single().
-> > Many, many months ago I sent patches to fix them all.
->
-> Found those after a bit a searching. Yeah, those patches where proposed m=
-ore
-> than a year ago, but never pushed upstream.
->
-> Not sure if we really should go this way. dma_fence objects are shared
-> between drivers and since we can't judge if it's the correct fence based =
-on
-> a criteria in the object (only the read counter which is outside) all
-> drivers need to be correct for this.
->
-> I would rather go the way and change dma_fence_release() to wrap
-> fence->ops->release into call_rcu() to keep the whole RCU handling outsid=
-e
-> of the individual drivers.
+Remove dead code. If someone needs it the P-Unit semaphore is handled by
+I2C DesignWare driver (drivers/i2c/busses/i2c-designware-baytrail.c).
 
-Hm, I entirely dropped the ball on this, I kinda assumed that we managed
-to get some agreement on this between i915 and dma_fence. Adding a pile
-more people.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ .../atomisp/include/asm/intel_mid_pcihelpers.h     |   2 -
+ .../platform/intel-mid/intel_mid_pcihelpers.c      | 101 ---------------------
+ 2 files changed, 103 deletions(-)
 
-Joonas, Tvrtko, I guess we need to fix this one way or the other.
--Daniel
---=20
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+diff --git a/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h b/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h
+index c5e22bba455a..b7c079f3630a 100644
+--- a/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h
++++ b/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h
+@@ -33,5 +33,3 @@ void intel_mid_msgbus_write32(u8 port, u32 addr, u32 data);
+ u32 intel_mid_msgbus_read32_raw_ext(u32 cmd, u32 cmd_ext);
+ void intel_mid_msgbus_write32_raw_ext(u32 cmd, u32 cmd_ext, u32 data);
+ u32 intel_mid_soc_stepping(void);
+-int intel_mid_dw_i2c_acquire_ownership(void);
+-int intel_mid_dw_i2c_release_ownership(void);
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
+index cd452cc20fea..0d01a269989d 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
+@@ -14,13 +14,6 @@
+ #define INTEL_ATOM_BYT 0x37
+ #define INTEL_ATOM_MOORFLD 0x5a
+ #define INTEL_ATOM_CHT 0x4c
+-/* synchronization for sharing the I2C controller */
+-#define PUNIT_PORT	0x04
+-#define PUNIT_DOORBELL_OPCODE	(0xE0)
+-#define PUNIT_DOORBELL_REG	(0x0)
+-#ifndef CSTATE_EXIT_LATENCY
+-#define CSTATE_EXIT_LATENCY_C1 1
+-#endif
+ static inline int platform_is(u8 model)
+ {
+ 	return (boot_cpu_data.x86_model == model);
+@@ -201,97 +194,3 @@ static void pci_d3_delay_fixup(struct pci_dev *dev)
+ 	}
+ }
+ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, PCI_ANY_ID, pci_d3_delay_fixup);
+-
+-#define PUNIT_SEMAPHORE	(platform_is(INTEL_ATOM_BYT) ? 0x7 : 0x10E)
+-#define GET_SEM() (intel_mid_msgbus_read32(PUNIT_PORT, PUNIT_SEMAPHORE) & 0x1)
+-
+-static void reset_semaphore(void)
+-{
+-	u32 data;
+-
+-	data = intel_mid_msgbus_read32(PUNIT_PORT, PUNIT_SEMAPHORE);
+-	smp_mb();
+-	data = data & 0xfffffffc;
+-	intel_mid_msgbus_write32(PUNIT_PORT, PUNIT_SEMAPHORE, data);
+-	smp_mb();
+-
+-}
+-
+-int intel_mid_dw_i2c_acquire_ownership(void)
+-{
+-	u32 ret = 0;
+-	u32 data = 0; /* data sent to PUNIT */
+-	u32 cmd;
+-	u32 cmdext;
+-	int timeout = 1000;
+-
+-	if (DW_I2C_NEED_QOS)
+-		pm_qos_update_request(&pm_qos, CSTATE_EXIT_LATENCY_C1 - 1);
+-
+-	/*
+-	 * We need disable irq. Otherwise, the main thread
+-	 * might be preempted and the other thread jumps to
+-	 * disable irq for a long time. Another case is
+-	 * some irq handlers might trigger power voltage change
+-	 */
+-	BUG_ON(irqs_disabled());
+-	local_irq_disable();
+-
+-	/* host driver writes 0x2 to side band register 0x7 */
+-	intel_mid_msgbus_write32(PUNIT_PORT, PUNIT_SEMAPHORE, 0x2);
+-	smp_mb();
+-
+-	/* host driver sends 0xE0 opcode to PUNIT and writes 0 register */
+-	cmd = (PUNIT_DOORBELL_OPCODE << 24) | (PUNIT_PORT << 16) |
+-	((PUNIT_DOORBELL_REG & 0xFF) << 8) | PCI_ROOT_MSGBUS_DWORD_ENABLE;
+-	cmdext = PUNIT_DOORBELL_REG & 0xffffff00;
+-
+-	if (cmdext)
+-		intel_mid_msgbus_write32_raw_ext(cmd, cmdext, data);
+-	else
+-		intel_mid_msgbus_write32_raw(cmd, data);
+-
+-	/* host driver waits for bit 0 to be set in side band 0x7 */
+-	while (GET_SEM() != 0x1) {
+-		udelay(100);
+-		timeout--;
+-		if (timeout <= 0) {
+-			pr_err("Timeout: semaphore timed out, reset sem\n");
+-			ret = -ETIMEDOUT;
+-			reset_semaphore();
+-			/*Delay 1ms in case race with punit*/
+-			udelay(1000);
+-			if (GET_SEM() != 0) {
+-				/*Reset again as kernel might race with punit*/
+-				reset_semaphore();
+-			}
+-			pr_err("PUNIT SEM: %d\n",
+-					intel_mid_msgbus_read32(PUNIT_PORT,
+-						PUNIT_SEMAPHORE));
+-			local_irq_enable();
+-
+-			if (DW_I2C_NEED_QOS) {
+-				pm_qos_update_request(&pm_qos,
+-					 PM_QOS_DEFAULT_VALUE);
+-			}
+-
+-			return ret;
+-		}
+-	}
+-	smp_mb();
+-
+-	return ret;
+-}
+-EXPORT_SYMBOL(intel_mid_dw_i2c_acquire_ownership);
+-
+-int intel_mid_dw_i2c_release_ownership(void)
+-{
+-	reset_semaphore();
+-	local_irq_enable();
+-
+-	if (DW_I2C_NEED_QOS)
+-		pm_qos_update_request(&pm_qos, PM_QOS_DEFAULT_VALUE);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(intel_mid_dw_i2c_release_ownership);
+-- 
+2.14.1
