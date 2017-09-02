@@ -1,98 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35532 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751375AbdILMEu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 08:04:50 -0400
-Date: Tue, 12 Sep 2017 15:04:47 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        jacek.anaszewski@gmail.com, linux-leds@vger.kernel.org,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        sre@kernel.org
-Subject: Re: as3645a flash userland interface
-Message-ID: <20170912120447.yqdwbdfgd7ac4xpn@valkosipuli.retiisi.org.uk>
-References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
- <20170912084236.1154-25-sakari.ailus@linux.intel.com>
- <20170912103628.GB27117@amd>
- <20170912104720.ifyouc5pa5et6gzk@valkosipuli.retiisi.org.uk>
- <20170912114051.GA1655@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170912114051.GA1655@amd>
+Received: from gofer.mess.org ([88.97.38.141]:50995 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752037AbdIBLmv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 2 Sep 2017 07:42:51 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 2/7] media: dvb: a800: port to rc-core
+Date: Sat,  2 Sep 2017 12:42:43 +0100
+Message-Id: <81d85c75a1edc4b7ab89587508a2df97752aa759.1504352252.git.sean@mess.org>
+In-Reply-To: <cover.1504352252.git.sean@mess.org>
+References: <cover.1504352252.git.sean@mess.org>
+In-Reply-To: <cover.1504352252.git.sean@mess.org>
+References: <cover.1504352252.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ahoy!
+This receiver only accepts nec16 messages, I've tried many other protocols
+and they're all dropped.
 
-On Tue, Sep 12, 2017 at 01:40:51PM +0200, Pavel Machek wrote:
-> Hi!
-> 
-> > On Tue, Sep 12, 2017 at 12:36:28PM +0200, Pavel Machek wrote:
-> > > Hi!
-> > > 
-> > > There were some changes to as3645a flash controller. Before we have
-> > > stable interface we have to keep forever I want to ask:
-> > > 
-> > > What directory are the flash controls in?
-> > > 
-> > > /sys/class/leds/led-controller:flash ?
-> > > 
-> > > Could we arrange for something less generic, like
-> > > 
-> > > /sys/class/leds/main-camera:flash ?
-> > > 
-> > > Thanks,
-> > 
-> > The LEDs are called as3645a:flash and as3645a:indicator currently, based on
-> > the name of the LED controller's device node. There are no patches related
-> > to this set though; these have already been merged.
-> > 
-> > The label should be a "human readable string describing the device" (from
-> > ePAPR, please excuse me for not having a newer spec), and the led common
-> > bindings define it as:
-> > 
-> > - label : The label for this LED. If omitted, the label is taken from the node
-> >           name (excluding the unit address). It has to uniquely identify
-> >           a device, i.e. no other LED class device can be assigned the same
-> >           label.
-> 
-> Ok, can we set the label to "main_camera" for N9 and n950 cases?
-> 
-> "as3645a:flash" is really wrong name for a LED. Information that
-> as3645 is already present elsewhere in /sys. Information where the LED
-> is and what it does is not.
-> 
-> I'd like to have torch application that just writes
-> /sys/class/leds/main_camera:white:flash/brightness . It should not
-> need to know hardware details of differnet phones.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/usb/dvb-usb/a800.c | 65 +++++++++-------------------------------
+ 1 file changed, 14 insertions(+), 51 deletions(-)
 
-Hmm. There don't seem to be a uniform way to form labels.
-
-What I'd do is to look up a LED that implements LED flash class and use
-that; it's a flash LED and is likely to be the most powerful in the system.
-There could be several as well, some more recent flash controllers have
-more than one.
-
-I wonder what Jacek thinks.
-
-> 
-> > I don't think that you should be looking to use this to associate it with
-> > the camera as such. The association information with the sensor is
-> > available to the kernel but there's no interface that could meaningfully
-> > expose it to the user right now.
-> 
-> Yeah, I'm not looking for sensor association. I'm looking for
-> reasonable userland interface.
-
-Ack. Hopefully we can provide the association some day, too...
-
+diff --git a/drivers/media/usb/dvb-usb/a800.c b/drivers/media/usb/dvb-usb/a800.c
+index 7ba975bea96a..540886b3bb29 100644
+--- a/drivers/media/usb/dvb-usb/a800.c
++++ b/drivers/media/usb/dvb-usb/a800.c
+@@ -37,48 +37,9 @@ static int a800_identify_state(struct usb_device *udev, struct dvb_usb_device_pr
+ 	return 0;
+ }
+ 
+-static struct rc_map_table rc_map_a800_table[] = {
+-	{ 0x0201, KEY_MODE },      /* SOURCE */
+-	{ 0x0200, KEY_POWER2 },      /* POWER */
+-	{ 0x0205, KEY_1 },           /* 1 */
+-	{ 0x0206, KEY_2 },           /* 2 */
+-	{ 0x0207, KEY_3 },           /* 3 */
+-	{ 0x0209, KEY_4 },           /* 4 */
+-	{ 0x020a, KEY_5 },           /* 5 */
+-	{ 0x020b, KEY_6 },           /* 6 */
+-	{ 0x020d, KEY_7 },           /* 7 */
+-	{ 0x020e, KEY_8 },           /* 8 */
+-	{ 0x020f, KEY_9 },           /* 9 */
+-	{ 0x0212, KEY_LEFT },        /* L / DISPLAY */
+-	{ 0x0211, KEY_0 },           /* 0 */
+-	{ 0x0213, KEY_RIGHT },       /* R / CH RTN */
+-	{ 0x0217, KEY_CAMERA },      /* SNAP SHOT */
+-	{ 0x0210, KEY_LAST },        /* 16-CH PREV */
+-	{ 0x021e, KEY_VOLUMEDOWN },  /* VOL DOWN */
+-	{ 0x020c, KEY_ZOOM },        /* FULL SCREEN */
+-	{ 0x021f, KEY_VOLUMEUP },    /* VOL UP */
+-	{ 0x0214, KEY_MUTE },        /* MUTE */
+-	{ 0x0208, KEY_AUDIO },       /* AUDIO */
+-	{ 0x0219, KEY_RECORD },      /* RECORD */
+-	{ 0x0218, KEY_PLAY },        /* PLAY */
+-	{ 0x021b, KEY_STOP },        /* STOP */
+-	{ 0x021a, KEY_PLAYPAUSE },   /* TIMESHIFT / PAUSE */
+-	{ 0x021d, KEY_BACK },        /* << / RED */
+-	{ 0x021c, KEY_FORWARD },     /* >> / YELLOW */
+-	{ 0x0203, KEY_TEXT },        /* TELETEXT */
+-	{ 0x0204, KEY_EPG },         /* EPG */
+-	{ 0x0215, KEY_MENU },        /* MENU */
+-
+-	{ 0x0303, KEY_CHANNELUP },   /* CH UP */
+-	{ 0x0302, KEY_CHANNELDOWN }, /* CH DOWN */
+-	{ 0x0301, KEY_FIRST },       /* |<< / GREEN */
+-	{ 0x0300, KEY_LAST },        /* >>| / BLUE */
+-
+-};
+-
+-static int a800_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
++static int a800_rc_query(struct dvb_usb_device *d)
+ {
+-	int ret;
++	int ret = 0;
+ 	u8 *key = kmalloc(5, GFP_KERNEL);
+ 	if (!key)
+ 		return -ENOMEM;
+@@ -90,11 +51,12 @@ static int a800_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 		goto out;
+ 	}
+ 
+-	/* call the universal NEC remote processor, to find out the key's state and event */
+-	dvb_usb_nec_rc_key_to_event(d,key,event,state);
+-	if (key[0] != 0)
+-		deb_rc("key: %*ph\n", 5, key);
+-	ret = 0;
++	/* Note that extended nec and nec32 are dropped */
++	if (key[0] == 1)
++		rc_keydown(d->rc_dev, RC_PROTO_NEC,
++			   RC_SCANCODE_NEC(key[1], key[3]), 0);
++	else if (key[0] == 2)
++		rc_repeat(d->rc_dev);
+ out:
+ 	kfree(key);
+ 	return ret;
+@@ -157,11 +119,12 @@ static struct dvb_usb_device_properties a800_properties = {
+ 	.power_ctrl       = a800_power_ctrl,
+ 	.identify_state   = a800_identify_state,
+ 
+-	.rc.legacy = {
+-		.rc_interval      = DEFAULT_RC_INTERVAL,
+-		.rc_map_table     = rc_map_a800_table,
+-		.rc_map_size      = ARRAY_SIZE(rc_map_a800_table),
+-		.rc_query         = a800_rc_query,
++	.rc.core = {
++		.rc_interval	= DEFAULT_RC_INTERVAL,
++		.rc_codes	= RC_MAP_AVERMEDIA_M135A,
++		.module_name	= KBUILD_MODNAME,
++		.rc_query	= a800_rc_query,
++		.allowed_protos = RC_PROTO_BIT_NEC,
+ 	},
+ 
+ 	.i2c_algo         = &dibusb_i2c_algo,
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.13.5
