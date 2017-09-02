@@ -1,43 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59478 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753764AbdIDQHP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Sep 2017 12:07:15 -0400
-Date: Mon, 4 Sep 2017 19:07:13 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, laurent.pinchart@ideasonboard.com,
-        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
-Subject: Re: [PATCH v7 07/18] omap3isp: Fix check for our own sub-devices
-Message-ID: <20170904160712.ha6n3k52swgzlbkm@valkosipuli.retiisi.org.uk>
-References: <20170903174958.27058-1-sakari.ailus@linux.intel.com>
- <20170903174958.27058-8-sakari.ailus@linux.intel.com>
- <f8a4ba8c-f749-26ab-0897-c929b3f23e9f@xs4all.nl>
+Received: from mout.web.de ([212.227.17.11]:49551 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752399AbdIBNIA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 2 Sep 2017 09:08:00 -0400
+Subject: [PATCH 2/4] [media] adv7604: Adjust a null pointer check in three
+ functions
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <0e67e095-4931-b78f-a925-7335326ab69c@users.sourceforge.net>
+Message-ID: <b0d8f437-f0ea-154a-c68a-71ee73aa6587@users.sourceforge.net>
+Date: Sat, 2 Sep 2017 15:07:51 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <f8a4ba8c-f749-26ab-0897-c929b3f23e9f@xs4all.nl>
+In-Reply-To: <0e67e095-4931-b78f-a925-7335326ab69c@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 04, 2017 at 03:28:04PM +0200, Hans Verkuil wrote:
-> On 09/03/2017 07:49 PM, Sakari Ailus wrote:
-> > We only want to link sub-devices that were bound to the async notifier the
-> > isp driver registered but there may be other sub-devices in the
-> > v4l2_device as well. Check for the correct async notifier.
-> 
-> Just to be sure I understand this correctly: the original code wasn't wrong as such,
-> but this new test is just more precise.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 2 Sep 2017 11:43:00 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Well, it would be wrong very soon. :-)
+The script “checkpatch.pl” pointed information out like the following.
 
-So yes. As long as there's just a single user of the async notifiers in for
-a V4L2 device, what used to be there works. The other drivers don't seem to
-be affected.
+Comparison to NULL could be written !…
 
+Thus fix the affected source code places.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/i2c/adv7604.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index cc693ef71f33..0a774d025858 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1948,7 +1948,7 @@ static int adv76xx_set_format(struct v4l2_subdev *sd,
+ 		return -EINVAL;
+ 
+ 	info = adv76xx_format_info(state, format->format.code);
+-	if (info == NULL)
++	if (!info)
+ 		info = adv76xx_format_info(state, MEDIA_BUS_FMT_YUYV8_2X8);
+ 
+ 	adv76xx_fill_format(state, &format->format);
+@@ -2256,7 +2256,7 @@ static int adv76xx_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+ 		return 0;
+ 	}
+ 
+-	if (data == NULL)
++	if (!data)
+ 		return -ENODATA;
+ 
+ 	if (edid->start_block >= state->edid.blocks)
+@@ -3480,7 +3480,7 @@ static int adv76xx_probe(struct i2c_client *client,
+ 		state->i2c_clients[i] =
+ 			adv76xx_dummy_client(sd, state->pdata.i2c_addresses[i],
+ 					     0xf2 + i);
+-		if (state->i2c_clients[i] == NULL) {
++		if (!state->i2c_clients[i]) {
+ 			err = -ENOMEM;
+ 			v4l2_err(sd, "failed to create i2c client %u\n", i);
+ 			goto err_i2c;
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.14.1
