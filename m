@@ -1,406 +1,267 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48378
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752437AbdIATiC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 15:38:02 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 10/14] media: dvb uAPI docs: minor editorial changes
-Date: Fri,  1 Sep 2017 16:37:46 -0300
-Message-Id: <aa5d12b0d628c1a9b9e4201300175a5a0508e5ee.1504293108.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504293108.git.mchehab@s-opensource.com>
-References: <cover.1504293108.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-In-Reply-To: <cover.1504293108.git.mchehab@s-opensource.com>
-References: <cover.1504293108.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from gofer.mess.org ([88.97.38.141]:37827 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751652AbdIBLmv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 2 Sep 2017 07:42:51 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Cc: stable@vger.kernel.org
+Subject: [PATCH 1/7] media: dvb: i2c transfers over usb cannot be done from stack
+Date: Sat,  2 Sep 2017 12:42:42 +0100
+Message-Id: <50974f0773c1471cf0fbd590f48878fa649b8427.1504352252.git.sean@mess.org>
+In-Reply-To: <cover.1504352252.git.sean@mess.org>
+References: <cover.1504352252.git.sean@mess.org>
+In-Reply-To: <cover.1504352252.git.sean@mess.org>
+References: <cover.1504352252.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do minor editorial changes to improve documentation readability:
+Since commit 29d2fef8be11 ("usb: catch attempts to submit urbs
+with a vmalloc'd transfer buffer"), the AverMedia AverTV DVB-T
+USB 2.0 (a800) fails to probe.
 
-- mark literals as such;
-- add table markups to hint sizes;
-- define what PES means;
-- instead of hardcoding devnode numbers to zero (like adapter0/) use a
-  question mark, to indicate that multiple devnodes may exist;
-- add cross-references where useful.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: stable@vger.kernel.org
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- Documentation/media/uapi/dvb/ca-fopen.rst          | 25 +++++++++++-----------
- Documentation/media/uapi/dvb/dmx-add-pid.rst       |  4 ++--
- Documentation/media/uapi/dvb/dmx-fclose.rst        |  5 +++--
- Documentation/media/uapi/dvb/dmx-fopen.rst         | 23 +++++++++++---------
- Documentation/media/uapi/dvb/dmx-fread.rst         |  8 +++----
- Documentation/media/uapi/dvb/dmx-fwrite.rst        |  4 ++--
- Documentation/media/uapi/dvb/dmx-get-stc.rst       | 13 +++++------
- Documentation/media/uapi/dvb/dmx-remove-pid.rst    |  4 ++--
- .../media/uapi/dvb/dmx-set-buffer-size.rst         |  2 +-
- Documentation/media/uapi/dvb/dmx-set-filter.rst    |  4 ++--
- Documentation/media/uapi/dvb/dmx-stop.rst          |  4 ++--
- .../media/uapi/dvb/dvb-fe-read-status.rst          |  2 +-
- .../media/uapi/dvb/fe-diseqc-send-master-cmd.rst   |  3 ++-
- Documentation/media/uapi/dvb/fe-get-info.rst       |  4 ++--
- .../media/uapi/dvb/fe-set-frontend-tune-mode.rst   |  4 ++--
- Documentation/media/uapi/dvb/fe-type-t.rst         |  2 +-
- 16 files changed, 59 insertions(+), 52 deletions(-)
+ drivers/media/dvb-frontends/dib3000mc.c | 50 ++++++++++++++++++++++------
+ drivers/media/dvb-frontends/dvb-pll.c   | 21 +++++++++---
+ drivers/media/tuners/mt2060.c           | 59 ++++++++++++++++++++++++++-------
+ 3 files changed, 102 insertions(+), 28 deletions(-)
 
-diff --git a/Documentation/media/uapi/dvb/ca-fopen.rst b/Documentation/media/uapi/dvb/ca-fopen.rst
-index a03a01abf3da..056c71b53a70 100644
---- a/Documentation/media/uapi/dvb/ca-fopen.rst
-+++ b/Documentation/media/uapi/dvb/ca-fopen.rst
-@@ -28,20 +28,20 @@ Arguments
- ``flags``
-   A bit-wise OR of the following flags:
+diff --git a/drivers/media/dvb-frontends/dib3000mc.c b/drivers/media/dvb-frontends/dib3000mc.c
+index 224283fe100a..31ade5512a36 100644
+--- a/drivers/media/dvb-frontends/dib3000mc.c
++++ b/drivers/media/dvb-frontends/dib3000mc.c
+@@ -55,29 +55,57 @@ struct dib3000mc_state {
  
-+.. tabularcolumns:: |p{2.5cm}|p{15.0cm}|
+ static u16 dib3000mc_read_word(struct dib3000mc_state *state, u16 reg)
+ {
+-	u8 wb[2] = { (reg >> 8) | 0x80, reg & 0xff };
+-	u8 rb[2];
+ 	struct i2c_msg msg[2] = {
+-		{ .addr = state->i2c_addr >> 1, .flags = 0,        .buf = wb, .len = 2 },
+-		{ .addr = state->i2c_addr >> 1, .flags = I2C_M_RD, .buf = rb, .len = 2 },
++		{ .addr = state->i2c_addr >> 1, .flags = 0,        .len = 2 },
++		{ .addr = state->i2c_addr >> 1, .flags = I2C_M_RD, .len = 2 },
+ 	};
++	u16 word;
++	u8 *b;
 +
- .. flat-table::
-     :header-rows:  0
-     :stub-columns: 0
-+    :widths: 1 16
- 
--    -
--       - O_RDONLY
-+    -  - ``O_RDONLY``
-        - read-only access
- 
--    -
--       - O_RDWR
-+    -  - ``O_RDWR``
-        - read/write access
- 
--    -
--       - O_NONBLOCK
-+    -  - ``O_NONBLOCK``
-        - open in non-blocking mode
-          (blocking mode is the default)
- 
-@@ -52,15 +52,16 @@ Description
- This system call opens a named ca device (e.g. ``/dev/dvb/adapter?/ca?``)
- for subsequent use.
- 
--When an open() call has succeeded, the device will be ready for use. The
-+When an ``open()`` call has succeeded, the device will be ready for use. The
- significance of blocking or non-blocking mode is described in the
- documentation for functions where there is a difference. It does not
--affect the semantics of the open() call itself. A device opened in
-+affect the semantics of the ``open()`` call itself. A device opened in
- blocking mode can later be put into non-blocking mode (and vice versa)
--using the F_SETFL command of the fcntl system call. This is a standard
--system call, documented in the Linux manual page for fcntl. Only one
--user can open the CA Device in O_RDWR mode. All other attempts to open
--the device in this mode will fail, and an error code will be returned.
-+using the ``F_SETFL`` command of the ``fcntl`` system call. This is a
-+standard system call, documented in the Linux manual page for fcntl.
-+Only one user can open the CA Device in ``O_RDWR`` mode. All other
-+attempts to open the device in this mode will fail, and an error code
-+will be returned.
- 
- 
- Return Value
-diff --git a/Documentation/media/uapi/dvb/dmx-add-pid.rst b/Documentation/media/uapi/dvb/dmx-add-pid.rst
-index 0aab2fcaacab..4d5632dfb43e 100644
---- a/Documentation/media/uapi/dvb/dmx-add-pid.rst
-+++ b/Documentation/media/uapi/dvb/dmx-add-pid.rst
-@@ -33,8 +33,8 @@ Description
- -----------
- 
- This ioctl call allows to add multiple PIDs to a transport stream filter
--previously set up with DMX_SET_PES_FILTER and output equal to
--DMX_OUT_TSDEMUX_TAP.
-+previously set up with :ref:`DMX_SET_PES_FILTER` and output equal to
-+:c:type:`DMX_OUT_TSDEMUX_TAP <dmx_output>`.
- 
- 
- Return Value
-diff --git a/Documentation/media/uapi/dvb/dmx-fclose.rst b/Documentation/media/uapi/dvb/dmx-fclose.rst
-index 8693501dbd4d..578e929f4bde 100644
---- a/Documentation/media/uapi/dvb/dmx-fclose.rst
-+++ b/Documentation/media/uapi/dvb/dmx-fclose.rst
-@@ -23,13 +23,14 @@ Arguments
- ---------
- 
- ``fd``
--  File descriptor returned by a previous call to :c:func:`open() <dvb-ca-open>`.
-+  File descriptor returned by a previous call to
-+  :c:func:`open() <dvb-dmx-open>`.
- 
- Description
- -----------
- 
- This system call deactivates and deallocates a filter that was
--previously allocated via the open() call.
-+previously allocated via the :c:func:`open() <dvb-dmx-open>` call.
- 
- 
- Return Value
-diff --git a/Documentation/media/uapi/dvb/dmx-fopen.rst b/Documentation/media/uapi/dvb/dmx-fopen.rst
-index 3dee019522db..55628a18ba67 100644
---- a/Documentation/media/uapi/dvb/dmx-fopen.rst
-+++ b/Documentation/media/uapi/dvb/dmx-fopen.rst
-@@ -27,20 +27,23 @@ Arguments
- ``flags``
-   A bit-wise OR of the following flags:
- 
-+.. tabularcolumns:: |p{2.5cm}|p{15.0cm}|
++	b = kmalloc(4, GFP_KERNEL);
++	if (!b)
++		return 0;
 +
- .. flat-table::
-     :header-rows:  0
-     :stub-columns: 0
-+    :widths: 1 16
++	b[0] = (reg >> 8) | 0x80;
++	b[1] = reg;
++	b[2] = 0;
++	b[3] = 0;
++
++	msg[0].buf = b;
++	msg[1].buf = b + 2;
  
-     -
--       - O_RDONLY
-+       - ``O_RDONLY``
-        - read-only access
+ 	if (i2c_transfer(state->i2c_adap, msg, 2) != 2)
+ 		dprintk("i2c read error on %d\n",reg);
  
-     -
--       - O_RDWR
-+       - ``O_RDWR``
-        - read/write access
+-	return (rb[0] << 8) | rb[1];
++	word = b[2] << 8 | b[3];
++	kfree(b);
++
++	return word;
+ }
  
-     -
--       - O_NONBLOCK
-+       - ``O_NONBLOCK``
-        - open in non-blocking mode
-          (blocking mode is the default)
+ static int dib3000mc_write_word(struct dib3000mc_state *state, u16 reg, u16 val)
+ {
+-	u8 b[4] = {
+-		(reg >> 8) & 0xff, reg & 0xff,
+-		(val >> 8) & 0xff, val & 0xff,
+-	};
+ 	struct i2c_msg msg = {
+-		.addr = state->i2c_addr >> 1, .flags = 0, .buf = b, .len = 4
++		.addr = state->i2c_addr >> 1, .flags = 0, .len = 4
+ 	};
+-	return i2c_transfer(state->i2c_adap, &msg, 1) != 1 ? -EREMOTEIO : 0;
++	int rc;
++	u8 *b;
++
++	b = kmalloc(4, GFP_KERNEL);
++	if (!b)
++		return -ENOMEM;
++
++	b[0] = reg >> 8;
++	b[1] = reg;
++	b[2] = val >> 8;
++	b[3] = val;
++
++	msg.buf = b;
++
++	rc = i2c_transfer(state->i2c_adap, &msg, 1) != 1 ? -EREMOTEIO : 0;
++	kfree(b);
++
++	return rc;
+ }
  
-@@ -48,22 +51,22 @@ Arguments
- Description
- -----------
+ static int dib3000mc_identify(struct dib3000mc_state *state)
+diff --git a/drivers/media/dvb-frontends/dvb-pll.c b/drivers/media/dvb-frontends/dvb-pll.c
+index 7bec3e028bee..453c4f2a9012 100644
+--- a/drivers/media/dvb-frontends/dvb-pll.c
++++ b/drivers/media/dvb-frontends/dvb-pll.c
+@@ -753,13 +753,18 @@ struct dvb_frontend *dvb_pll_attach(struct dvb_frontend *fe, int pll_addr,
+ 				    struct i2c_adapter *i2c,
+ 				    unsigned int pll_desc_id)
+ {
+-	u8 b1 [] = { 0 };
+-	struct i2c_msg msg = { .addr = pll_addr, .flags = I2C_M_RD,
+-			       .buf = b1, .len = 1 };
++	u8 *b1;
++	struct i2c_msg msg = { .addr = pll_addr, .flags = I2C_M_RD, .len = 1 };
+ 	struct dvb_pll_priv *priv = NULL;
+ 	int ret;
+ 	const struct dvb_pll_desc *desc;
  
--This system call, used with a device name of /dev/dvb/adapter0/demux0,
-+This system call, used with a device name of ``/dev/dvb/adapter?/demux?``,
- allocates a new filter and returns a handle which can be used for
- subsequent control of that filter. This call has to be made for each
- filter to be used, i.e. every returned file descriptor is a reference to
--a single filter. /dev/dvb/adapter0/dvr0 is a logical device to be used
-+a single filter. ``/dev/dvb/adapter?/dvr?`` is a logical device to be used
- for retrieving Transport Streams for digital video recording. When
- reading from this device a transport stream containing the packets from
- all PES filters set in the corresponding demux device
--(/dev/dvb/adapter0/demux0) having the output set to DMX_OUT_TS_TAP. A
--recorded Transport Stream is replayed by writing to this device.
-+(``/dev/dvb/adapter?/demux?``) having the output set to ``DMX_OUT_TS_TAP``.
-+A recorded Transport Stream is replayed by writing to this device.
++	b1 = kmalloc(1, GFP_KERNEL);
++	if (!b1)
++		return NULL;
++
++	msg.buf = b1;
++
+ 	if ((id[dvb_pll_devcount] > DVB_PLL_UNDEFINED) &&
+ 	    (id[dvb_pll_devcount] < ARRAY_SIZE(pll_list)))
+ 		pll_desc_id = id[dvb_pll_devcount];
+@@ -773,15 +778,19 @@ struct dvb_frontend *dvb_pll_attach(struct dvb_frontend *fe, int pll_addr,
+ 			fe->ops.i2c_gate_ctrl(fe, 1);
  
- The significance of blocking or non-blocking mode is described in the
- documentation for functions where there is a difference. It does not
--affect the semantics of the open() call itself. A device opened in
--blocking mode can later be put into non-blocking mode (and vice versa)
--using the F_SETFL command of the fcntl system call.
-+affect the semantics of the ``open()`` call itself. A device opened
-+in blocking mode can later be put into non-blocking mode (and vice versa)
-+using the ``F_SETFL`` command of the fcntl system call.
+ 		ret = i2c_transfer (i2c, &msg, 1);
+-		if (ret != 1)
++		if (ret != 1) {
++			kfree(b1);
+ 			return NULL;
++		}
+ 		if (fe->ops.i2c_gate_ctrl)
+ 			     fe->ops.i2c_gate_ctrl(fe, 0);
+ 	}
  
+ 	priv = kzalloc(sizeof(struct dvb_pll_priv), GFP_KERNEL);
+-	if (priv == NULL)
++	if (!priv) {
++		kfree(b1);
+ 		return NULL;
++	}
  
- Return Value
-diff --git a/Documentation/media/uapi/dvb/dmx-fread.rst b/Documentation/media/uapi/dvb/dmx-fread.rst
-index 36ba851bc0af..488bdc4ba178 100644
---- a/Documentation/media/uapi/dvb/dmx-fread.rst
-+++ b/Documentation/media/uapi/dvb/dmx-fread.rst
-@@ -33,10 +33,10 @@ Arguments
- Description
- -----------
+ 	priv->pll_i2c_address = pll_addr;
+ 	priv->i2c = i2c;
+@@ -811,6 +820,8 @@ struct dvb_frontend *dvb_pll_attach(struct dvb_frontend *fe, int pll_addr,
+ 				"insmod option" : "autodetected");
+ 	}
  
--This system call returns filtered data, which might be section or PES
--data. The filtered data is transferred from the driver’s internal
--circular buffer to buf. The maximum amount of data to be transferred is
--implied by count.
-+This system call returns filtered data, which might be section or Packetized
-+Elementary Stream (PES) data. The filtered data is transferred from
-+the driver’s internal circular buffer to ``buf``. The maximum amount of data
-+to be transferred is implied by count.
++	kfree(b1);
++
+ 	return fe;
+ }
+ EXPORT_SYMBOL(dvb_pll_attach);
+diff --git a/drivers/media/tuners/mt2060.c b/drivers/media/tuners/mt2060.c
+index 2e487f9a2cc3..4983eeb39f36 100644
+--- a/drivers/media/tuners/mt2060.c
++++ b/drivers/media/tuners/mt2060.c
+@@ -38,41 +38,74 @@ MODULE_PARM_DESC(debug, "Turn on/off debugging (default:off).");
+ static int mt2060_readreg(struct mt2060_priv *priv, u8 reg, u8 *val)
+ {
+ 	struct i2c_msg msg[2] = {
+-		{ .addr = priv->cfg->i2c_address, .flags = 0,        .buf = &reg, .len = 1 },
+-		{ .addr = priv->cfg->i2c_address, .flags = I2C_M_RD, .buf = val,  .len = 1 },
++		{ .addr = priv->cfg->i2c_address, .flags = 0, .len = 1 },
++		{ .addr = priv->cfg->i2c_address, .flags = I2C_M_RD, .len = 1 },
+ 	};
++	int rc = 0;
++	u8 *b;
++
++	b = kmalloc(2, GFP_KERNEL);
++	if (!b)
++		return -ENOMEM;
++
++	b[0] = reg;
++	b[1] = 0;
++
++	msg[0].buf = b;
++	msg[1].buf = b + 1;
  
- .. note::
+ 	if (i2c_transfer(priv->i2c, msg, 2) != 2) {
+ 		printk(KERN_WARNING "mt2060 I2C read failed\n");
+-		return -EREMOTEIO;
++		rc = -EREMOTEIO;
+ 	}
+-	return 0;
++	*val = b[1];
++	kfree(b);
++
++	return rc;
+ }
  
-diff --git a/Documentation/media/uapi/dvb/dmx-fwrite.rst b/Documentation/media/uapi/dvb/dmx-fwrite.rst
-index 77f138f6234f..519e5733e53b 100644
---- a/Documentation/media/uapi/dvb/dmx-fwrite.rst
-+++ b/Documentation/media/uapi/dvb/dmx-fwrite.rst
-@@ -34,10 +34,10 @@ Description
- -----------
+ // Writes a single register
+ static int mt2060_writereg(struct mt2060_priv *priv, u8 reg, u8 val)
+ {
+-	u8 buf[2] = { reg, val };
+ 	struct i2c_msg msg = {
+-		.addr = priv->cfg->i2c_address, .flags = 0, .buf = buf, .len = 2
++		.addr = priv->cfg->i2c_address, .flags = 0, .len = 2
+ 	};
++	u8 *buf;
++	int rc = 0;
++
++	buf = kmalloc(2, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
++
++	buf[0] = reg;
++	buf[1] = val;
++
++	msg.buf = buf;
  
- This system call is only provided by the logical device
--/dev/dvb/adapter0/dvr0, associated with the physical demux device that
-+``/dev/dvb/adapter?/dvr?``, associated with the physical demux device that
- provides the actual DVR functionality. It is used for replay of a
- digitally recorded Transport Stream. Matching filters have to be defined
--in the corresponding physical demux device, /dev/dvb/adapter0/demux0.
-+in the corresponding physical demux device, ``/dev/dvb/adapter?/demux?``.
- The amount of data to be transferred is implied by count.
+ 	if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
+ 		printk(KERN_WARNING "mt2060 I2C write failed\n");
+-		return -EREMOTEIO;
++		rc = -EREMOTEIO;
+ 	}
+-	return 0;
++	kfree(buf);
++	return rc;
+ }
  
+ // Writes a set of consecutive registers
+ static int mt2060_writeregs(struct mt2060_priv *priv,u8 *buf, u8 len)
+ {
+ 	int rem, val_len;
+-	u8 xfer_buf[16];
++	u8 *xfer_buf;
++	int rc = 0;
+ 	struct i2c_msg msg = {
+-		.addr = priv->cfg->i2c_address, .flags = 0, .buf = xfer_buf
++		.addr = priv->cfg->i2c_address, .flags = 0
+ 	};
  
-diff --git a/Documentation/media/uapi/dvb/dmx-get-stc.rst b/Documentation/media/uapi/dvb/dmx-get-stc.rst
-index 6d5d069d4e6c..604031f7904b 100644
---- a/Documentation/media/uapi/dvb/dmx-get-stc.rst
-+++ b/Documentation/media/uapi/dvb/dmx-get-stc.rst
-@@ -25,18 +25,19 @@ Arguments
-     File descriptor returned by :c:func:`open() <dvb-dmx-open>`.
++	xfer_buf = kmalloc(16, GFP_KERNEL);
++	if (!xfer_buf)
++		return -ENOMEM;
++
++	msg.buf = xfer_buf;
++
+ 	for (rem = len - 1; rem > 0; rem -= priv->i2c_max_regs) {
+ 		val_len = min_t(int, rem, priv->i2c_max_regs);
+ 		msg.len = 1 + val_len;
+@@ -81,11 +114,13 @@ static int mt2060_writeregs(struct mt2060_priv *priv,u8 *buf, u8 len)
  
- ``stc``
--    Pointer to the location where the stc is to be stored.
-+    Pointer to :c:type:`dmx_stc` where the stc data is to be stored.
+ 		if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
+ 			printk(KERN_WARNING "mt2060 I2C write failed (len=%i)\n", val_len);
+-			return -EREMOTEIO;
++			rc = -EREMOTEIO;
++			break;
+ 		}
+ 	}
  
+-	return 0;
++	kfree(xfer_buf);
++	return rc;
+ }
  
- Description
- -----------
- 
- This ioctl call returns the current value of the system time counter
--(which is driven by a PES filter of type DMX_PES_PCR). Some hardware
--supports more than one STC, so you must specify which one by setting the
--num field of stc before the ioctl (range 0...n). The result is returned
--in form of a ratio with a 64 bit numerator and a 32 bit denominator, so
--the real 90kHz STC value is stc->stc / stc->base .
-+(which is driven by a PES filter of type :c:type:`DMX_PES_PCR <dmx_ts_pes>`).
-+Some hardware supports more than one STC, so you must specify which one by
-+setting the :c:type:`num <dmx_stc>` field of stc before the ioctl (range 0...n).
-+The result is returned in form of a ratio with a 64 bit numerator
-+and a 32 bit denominator, so the real 90kHz STC value is
-+``stc->stc / stc->base``.
- 
- 
- Return Value
-diff --git a/Documentation/media/uapi/dvb/dmx-remove-pid.rst b/Documentation/media/uapi/dvb/dmx-remove-pid.rst
-index 1faa40ab11bd..456cc2ded2c0 100644
---- a/Documentation/media/uapi/dvb/dmx-remove-pid.rst
-+++ b/Documentation/media/uapi/dvb/dmx-remove-pid.rst
-@@ -34,8 +34,8 @@ Description
- 
- This ioctl call allows to remove a PID when multiple PIDs are set on a
- transport stream filter, e. g. a filter previously set up with output
--equal to DMX_OUT_TSDEMUX_TAP, created via either
--DMX_SET_PES_FILTER or DMX_ADD_PID.
-+equal to :c:type:`DMX_OUT_TSDEMUX_TAP <dmx_output>`, created via either
-+:ref:`DMX_SET_PES_FILTER` or :ref:`DMX_ADD_PID`.
- 
- 
- Return Value
-diff --git a/Documentation/media/uapi/dvb/dmx-set-buffer-size.rst b/Documentation/media/uapi/dvb/dmx-set-buffer-size.rst
-index a659dd7ca7e6..74fd076a9b90 100644
---- a/Documentation/media/uapi/dvb/dmx-set-buffer-size.rst
-+++ b/Documentation/media/uapi/dvb/dmx-set-buffer-size.rst
-@@ -33,7 +33,7 @@ Description
- 
- This ioctl call is used to set the size of the circular buffer used for
- filtered data. The default size is two maximum sized sections, i.e. if
--this function is not called a buffer size of 2 \* 4096 bytes will be
-+this function is not called a buffer size of ``2 * 4096`` bytes will be
- used.
- 
- 
-diff --git a/Documentation/media/uapi/dvb/dmx-set-filter.rst b/Documentation/media/uapi/dvb/dmx-set-filter.rst
-index d6ee52321717..88594b8d3846 100644
---- a/Documentation/media/uapi/dvb/dmx-set-filter.rst
-+++ b/Documentation/media/uapi/dvb/dmx-set-filter.rst
-@@ -40,8 +40,8 @@ state whether a section should be CRC-checked, whether the filter should
- be a ”one-shot” filter, i.e. if the filtering operation should be
- stopped after the first section is received, and whether the filtering
- operation should be started immediately (without waiting for a
--DMX_START ioctl call). If a filter was previously set-up, this filter
--will be canceled, and the receive buffer will be flushed.
-+:ref:`DMX_START` ioctl call). If a filter was previously set-up, this
-+filter will be canceled, and the receive buffer will be flushed.
- 
- 
- Return Value
-diff --git a/Documentation/media/uapi/dvb/dmx-stop.rst b/Documentation/media/uapi/dvb/dmx-stop.rst
-index 5f4bf63868c1..6d9c927bcd5f 100644
---- a/Documentation/media/uapi/dvb/dmx-stop.rst
-+++ b/Documentation/media/uapi/dvb/dmx-stop.rst
-@@ -29,8 +29,8 @@ Description
- -----------
- 
- This ioctl call is used to stop the actual filtering operation defined
--via the ioctl calls DMX_SET_FILTER or DMX_SET_PES_FILTER and
--started via the DMX_START command.
-+via the ioctl calls :ref:`DMX_SET_FILTER` or :ref:`DMX_SET_PES_FILTER` and
-+started via the :ref:`DMX_START` command.
- 
- 
- Return Value
-diff --git a/Documentation/media/uapi/dvb/dvb-fe-read-status.rst b/Documentation/media/uapi/dvb/dvb-fe-read-status.rst
-index 76c20612b274..212f032cad8b 100644
---- a/Documentation/media/uapi/dvb/dvb-fe-read-status.rst
-+++ b/Documentation/media/uapi/dvb/dvb-fe-read-status.rst
-@@ -20,6 +20,6 @@ Signal statistics are provided via
- .. note::
- 
-    Most statistics require the demodulator to be fully locked
--   (e. g. with FE_HAS_LOCK bit set). See
-+   (e. g. with :c:type:`FE_HAS_LOCK <fe_status>` bit set). See
-    :ref:`Frontend statistics indicators <frontend-stat-properties>` for
-    more details.
-diff --git a/Documentation/media/uapi/dvb/fe-diseqc-send-master-cmd.rst b/Documentation/media/uapi/dvb/fe-diseqc-send-master-cmd.rst
-index d274be7316ff..6bd3994edfc2 100644
---- a/Documentation/media/uapi/dvb/fe-diseqc-send-master-cmd.rst
-+++ b/Documentation/media/uapi/dvb/fe-diseqc-send-master-cmd.rst
-@@ -33,7 +33,8 @@ Arguments
- Description
- ===========
- 
--Sends the DiSEqC command pointed by ``argp`` to the antenna subsystem.
-+Sends the DiSEqC command pointed by :c:type:`dvb_diseqc_master_cmd`
-+to the antenna subsystem.
- 
- Return Value
- ============
-diff --git a/Documentation/media/uapi/dvb/fe-get-info.rst b/Documentation/media/uapi/dvb/fe-get-info.rst
-index 9e5a7a27e158..49307c0abfee 100644
---- a/Documentation/media/uapi/dvb/fe-get-info.rst
-+++ b/Documentation/media/uapi/dvb/fe-get-info.rst
-@@ -34,8 +34,8 @@ Arguments
- Description
- ===========
- 
--All Digital TV frontend devices support the ``FE_GET_INFO`` ioctl. It is used
--to identify kernel devices compatible with this specification and to
-+All Digital TV frontend devices support the :ref:`FE_GET_INFO` ioctl. It is
-+used to identify kernel devices compatible with this specification and to
- obtain information about driver and hardware capabilities. The ioctl
- takes a pointer to dvb_frontend_info which is filled by the driver.
- When the driver is not compatible with this specification the ioctl
-diff --git a/Documentation/media/uapi/dvb/fe-set-frontend-tune-mode.rst b/Documentation/media/uapi/dvb/fe-set-frontend-tune-mode.rst
-index 37a9cef1b6bd..3c4bc179b313 100644
---- a/Documentation/media/uapi/dvb/fe-set-frontend-tune-mode.rst
-+++ b/Documentation/media/uapi/dvb/fe-set-frontend-tune-mode.rst
-@@ -30,7 +30,7 @@ Arguments
- 
-     -  0 - normal tune mode
- 
--    -  FE_TUNE_MODE_ONESHOT - When set, this flag will disable any
-+    -  ``FE_TUNE_MODE_ONESHOT`` - When set, this flag will disable any
-        zigzagging or other "normal" tuning behaviour. Additionally,
-        there will be no automatic monitoring of the lock status, and
-        hence no frontend events will be generated. If a frontend device
-@@ -42,7 +42,7 @@ Description
- ===========
- 
- Allow setting tuner mode flags to the frontend, between 0 (normal) or
--FE_TUNE_MODE_ONESHOT mode
-+``FE_TUNE_MODE_ONESHOT`` mode
- 
- 
- Return Value
-diff --git a/Documentation/media/uapi/dvb/fe-type-t.rst b/Documentation/media/uapi/dvb/fe-type-t.rst
-index 548b965188d0..dee32ae104d7 100644
---- a/Documentation/media/uapi/dvb/fe-type-t.rst
-+++ b/Documentation/media/uapi/dvb/fe-type-t.rst
-@@ -78,7 +78,7 @@ parameter.
- 
- In the old days, struct :c:type:`dvb_frontend_info`
- used to contain ``fe_type_t`` field to indicate the delivery systems,
--filled with either FE_QPSK, FE_QAM, FE_OFDM or FE_ATSC. While this
-+filled with either ``FE_QPSK, FE_QAM, FE_OFDM`` or ``FE_ATSC``. While this
- is still filled to keep backward compatibility, the usage of this field
- is deprecated, as it can report just one delivery system, but some
- devices support multiple delivery systems. Please use
+ // Initialisation sequences
 -- 
 2.13.5
