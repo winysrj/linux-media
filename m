@@ -1,79 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33131
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751969AbdI0Vkr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:40:47 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>
-Subject: [PATCH v2 04/37] media: friio-fe: get rid of set_property()
-Date: Wed, 27 Sep 2017 18:40:05 -0300
-Message-Id: <0a14a3b9462395059ee2fe112534f727b6c81ac4.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
+Received: from mout.web.de ([212.227.17.12]:57930 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752441AbdIBNK2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 2 Sep 2017 09:10:28 -0400
+Subject: [PATCH 4/4] [media] adv7842: Improve a size determination in
+ adv7842_probe()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <0e67e095-4931-b78f-a925-7335326ab69c@users.sourceforge.net>
+Message-ID: <0ffbe17f-7de1-a456-a066-227f25642fa1@users.sourceforge.net>
+Date: Sat, 2 Sep 2017 15:10:13 +0200
+MIME-Version: 1.0
+In-Reply-To: <0e67e095-4931-b78f-a925-7335326ab69c@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This callback is not actually doing anything but making it to
-return an error depending on the DTV frontend command. Well,
-that could break userspace for no good reason, and, if needed,
-should be implemented, instead, at set_frontend() callback.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 2 Sep 2017 12:53:15 +0200
 
-So, get rid of it.
+Replace the specification of a data structure by a pointer dereference
+as the parameter for the operator "sizeof" to make the corresponding size
+determination a bit safer according to the Linux coding style convention.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/usb/dvb-usb/friio-fe.c | 24 ------------------------
- 1 file changed, 24 deletions(-)
+ drivers/media/i2c/adv7842.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/dvb-usb/friio-fe.c b/drivers/media/usb/dvb-usb/friio-fe.c
-index 0251a4e91d47..41261317bd5c 100644
---- a/drivers/media/usb/dvb-usb/friio-fe.c
-+++ b/drivers/media/usb/dvb-usb/friio-fe.c
-@@ -261,28 +261,6 @@ static int jdvbt90502_read_signal_strength(struct dvb_frontend *fe,
- 	return 0;
- }
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 366a294edd7b..aa8b3bcdd750 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -3467,5 +3467,5 @@ static int adv7842_probe(struct i2c_client *client,
+ 		return -ENODEV;
+ 	}
  
--
--/* filter out un-supported properties to notify users */
--static int jdvbt90502_set_property(struct dvb_frontend *fe,
--				   struct dtv_property *tvp)
--{
--	int r = 0;
--
--	switch (tvp->cmd) {
--	case DTV_DELIVERY_SYSTEM:
--		if (tvp->u.data != SYS_ISDBT)
--			r = -EINVAL;
--		break;
--	case DTV_CLEAR:
--	case DTV_TUNE:
--	case DTV_FREQUENCY:
--		break;
--	default:
--		r = -EINVAL;
--	}
--	return r;
--}
--
- static int jdvbt90502_set_frontend(struct dvb_frontend *fe)
- {
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-@@ -457,8 +435,6 @@ static const struct dvb_frontend_ops jdvbt90502_ops = {
- 	.init = jdvbt90502_init,
- 	.write = _jdvbt90502_write,
- 
--	.set_property = jdvbt90502_set_property,
--
- 	.set_frontend = jdvbt90502_set_frontend,
- 
- 	.read_status = jdvbt90502_read_status,
+-	state = devm_kzalloc(&client->dev, sizeof(struct adv7842_state), GFP_KERNEL);
++	state = devm_kzalloc(&client->dev, sizeof(*state), GFP_KERNEL);
+ 	if (!state)
 -- 
-2.13.5
+2.14.1
