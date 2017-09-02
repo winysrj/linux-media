@@ -1,79 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eddie.linux-mips.org ([148.251.95.138]:42566 "EHLO
-        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750739AbdIGXij (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 19:38:39 -0400
-Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
-        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
-        id S23993950AbdIGXiiW5O7k (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 01:38:38 +0200
-Date: Fri, 8 Sep 2017 01:38:20 +0200
-From: Ladislav Michl <ladis@linux-mips.org>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>, Andi Shyti <andi.shyti@samsung.com>
-Subject: [PATCH v2 07/10] media: rc: gpio-ir-recv: use devm_request_irq
-Message-ID: <20170907233820.nfve3zfuiu2bhwvu@lenoch>
-References: <20170907233355.bv3hsv3rfhcx52i3@lenoch>
+Received: from mout.web.de ([212.227.17.11]:49987 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751596AbdIBSmS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 2 Sep 2017 14:42:18 -0400
+Subject: [PATCH 2/3] [media] cx18: Improve a size determination in
+ cx18_probe()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <016d4c9c-1d8e-e277-5d7c-f433553cf0fa@users.sourceforge.net>
+Message-ID: <bd9956e3-041a-2efc-702e-07db3e8077a3@users.sourceforge.net>
+Date: Sat, 2 Sep 2017 20:42:04 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170907233355.bv3hsv3rfhcx52i3@lenoch>
+In-Reply-To: <016d4c9c-1d8e-e277-5d7c-f433553cf0fa@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use of devm_request_irq simplifies error unwinding and as
-free_irq was the last user of driver remove function,
-remove it too.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 2 Sep 2017 19:42:12 +0200
 
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+Replace the specification of a data structure by a pointer dereference
+as the parameter for the operator "sizeof" to make the corresponding size
+determination a bit safer according to the Linux coding style convention.
+
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- Changes:
- -v2: rebased to current linux.git
+ drivers/media/pci/cx18/cx18-driver.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/media/rc/gpio-ir-recv.c | 22 +++-------------------
- 1 file changed, 3 insertions(+), 19 deletions(-)
-
-diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
-index 110276d49495..1d115f8531ba 100644
---- a/drivers/media/rc/gpio-ir-recv.c
-+++ b/drivers/media/rc/gpio-ir-recv.c
-@@ -161,25 +161,10 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+diff --git a/drivers/media/pci/cx18/cx18-driver.c b/drivers/media/pci/cx18/cx18-driver.c
+index b267590e0877..49fc9b72ada5 100644
+--- a/drivers/media/pci/cx18/cx18-driver.c
++++ b/drivers/media/pci/cx18/cx18-driver.c
+@@ -909,5 +909,5 @@ static int cx18_probe(struct pci_dev *pci_dev,
+ 		return -ENOMEM;
+ 	}
  
- 	platform_set_drvdata(pdev, gpio_dev);
- 
--	rc = request_irq(gpio_to_irq(pdata->gpio_nr),
-+	return devm_request_irq(dev, gpio_to_irq(pdata->gpio_nr),
- 				gpio_ir_recv_irq,
--			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
--					"gpio-ir-recv-irq", gpio_dev);
--	if (rc < 0)
--		goto err_request_irq;
--
--	return 0;
--
--err_request_irq:
--	return rc;
--}
--
--static int gpio_ir_recv_remove(struct platform_device *pdev)
--{
--	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
--
--	free_irq(gpio_to_irq(gpio_dev->gpio_nr), gpio_dev);
--	return 0;
-+				IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
-+				"gpio-ir-recv-irq", gpio_dev);
- }
- 
- #ifdef CONFIG_PM
-@@ -217,7 +202,6 @@ static const struct dev_pm_ops gpio_ir_recv_pm_ops = {
- 
- static struct platform_driver gpio_ir_recv_driver = {
- 	.probe  = gpio_ir_recv_probe,
--	.remove = gpio_ir_recv_remove,
- 	.driver = {
- 		.name   = GPIO_IR_DRIVER_NAME,
- 		.of_match_table = of_match_ptr(gpio_ir_recv_of_match),
+-	cx = kzalloc(sizeof(struct cx18), GFP_ATOMIC);
++	cx = kzalloc(sizeof(*cx), GFP_ATOMIC);
+ 	if (!cx)
 -- 
-2.11.0
+2.14.1
