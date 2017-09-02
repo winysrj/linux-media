@@ -1,57 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:48849 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757293AbdIIJTg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 9 Sep 2017 05:19:36 -0400
-Date: Sat, 9 Sep 2017 11:19:34 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        sre@kernel.org
-Subject: Re: [PATCH v9 18/24] as3645a: Switch to fwnode property API
-Message-ID: <20170909091934.GM27428@amd>
-References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
- <20170908131822.31020-14-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="wKTlTxfx0Fr6BT7S"
-Content-Disposition: inline
-In-Reply-To: <20170908131822.31020-14-sakari.ailus@linux.intel.com>
+Received: from gofer.mess.org ([88.97.38.141]:37551 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751608AbdIBLmu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 2 Sep 2017 07:42:50 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 0/7] a800 dvb rc changes
+Date: Sat,  2 Sep 2017 12:42:41 +0100
+Message-Id: <cover.1504352252.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Various changes to make the a800 dvb adapter work again and to
+improve its ir receiver.
 
---wKTlTxfx0Fr6BT7S
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sean Young (7):
+  media: dvb: i2c transfers over usb cannot be done from stack
+  media: dvb: a800: port to rc-core
+  media: rc: avermedia keymap for a800
+  media: rc: ensure that protocols are enabled for scancode drivers
+  media: rc: dvb: use dvb device name for rc device
+  media: rc: if protocols can't be changed, don't be writable
+  media: rc: include device name in rc udev event
 
-On Fri 2017-09-08 16:18:16, Sakari Ailus wrote:
-> Switch the as3645a from OF to the fwnode property API. Also add ACPI
-> support.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+ drivers/media/cec/cec-core.c                  |  1 -
+ drivers/media/dvb-frontends/dib3000mc.c       | 50 ++++++++++++++++-----
+ drivers/media/dvb-frontends/dvb-pll.c         | 21 ++++++---
+ drivers/media/i2c/ir-kbd-i2c.c                |  1 -
+ drivers/media/rc/keymaps/rc-avermedia-m135a.c |  3 +-
+ drivers/media/rc/rc-main.c                    | 33 +++++++++++---
+ drivers/media/tuners/mt2060.c                 | 59 +++++++++++++++++++-----
+ drivers/media/usb/dvb-usb/a800.c              | 65 ++++++---------------------
+ drivers/media/usb/dvb-usb/dvb-usb-remote.c    |  2 +-
+ 9 files changed, 145 insertions(+), 90 deletions(-)
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---wKTlTxfx0Fr6BT7S
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlmzsiYACgkQMOfwapXb+vKHdACgkOiC4GK5nr6gq4B55x3CQNIL
-IyoAnjYlsC4ax4Q6aH0VdU636nQE2fjw
-=N+AI
------END PGP SIGNATURE-----
-
---wKTlTxfx0Fr6BT7S--
+-- 
+2.13.5
