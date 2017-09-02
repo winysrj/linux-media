@@ -1,20 +1,20 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:52943 "EHLO mout.web.de"
+Received: from mout.web.de ([217.72.192.78]:57178 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750995AbdIQG6I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Sep 2017 02:58:08 -0400
-Subject: [PATCH 1/2] [media] si2157: Delete an error message for a failed
- memory allocation in si2157_probe()
+        id S1751192AbdIBUlN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 2 Sep 2017 16:41:13 -0400
+Subject: [PATCH 1/7] [media] Hopper: Delete an error message for a failed
+ memory allocation in hopper_pci_probe()
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
+To: linux-media@vger.kernel.org,
         Mauro Carvalho Chehab <mchehab@kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
         kernel-janitors@vger.kernel.org
-References: <87f4a386-ac11-87f5-2d22-7bfc0593de34@users.sourceforge.net>
-Message-ID: <e9510d39-2aff-ca78-5e51-1cf97555a2e3@users.sourceforge.net>
-Date: Sun, 17 Sep 2017 08:57:45 +0200
+References: <9ba22d42-0ec0-b865-dec5-4ce67ad443fb@users.sourceforge.net>
+Message-ID: <e664da42-bfb2-17da-38c9-9086ada8f542@users.sourceforge.net>
+Date: Sat, 2 Sep 2017 22:41:08 +0200
 MIME-Version: 1.0
-In-Reply-To: <87f4a386-ac11-87f5-2d22-7bfc0593de34@users.sourceforge.net>
+In-Reply-To: <9ba22d42-0ec0-b865-dec5-4ce67ad443fb@users.sourceforge.net>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
@@ -22,7 +22,7 @@ Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 17 Sep 2017 08:20:04 +0200
+Date: Sat, 2 Sep 2017 21:19:05 +0200
 
 Omit an extra message for a memory allocation failure in this function.
 
@@ -30,19 +30,17 @@ This issue was detected by using the Coccinelle software.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/tuners/si2157.c | 1 -
+ drivers/media/pci/mantis/hopper_cards.c | 1 -
  1 file changed, 1 deletion(-)
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index e35b1faf0ddc..aefa85718496 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -439,6 +439,5 @@ static int si2157_probe(struct i2c_client *client,
- 	if (!dev) {
- 		ret = -ENOMEM;
--		dev_err(&client->dev, "kzalloc() failed\n");
- 		goto err;
+diff --git a/drivers/media/pci/mantis/hopper_cards.c b/drivers/media/pci/mantis/hopper_cards.c
+index 68b5800030b7..cc1bb04d8cb4 100644
+--- a/drivers/media/pci/mantis/hopper_cards.c
++++ b/drivers/media/pci/mantis/hopper_cards.c
+@@ -168,4 +168,3 @@ static int hopper_pci_probe(struct pci_dev *pdev,
+-		printk(KERN_ERR "%s ERROR: Out of memory\n", __func__);
+ 		err = -ENOMEM;
+ 		goto fail0;
  	}
- 
 -- 
 2.14.1
