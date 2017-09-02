@@ -1,54 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:61715 "EHLO mout.web.de"
+Received: from mout.web.de ([212.227.17.11]:64243 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752555AbdIRQKp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Sep 2017 12:10:45 -0400
+        id S1752684AbdIBPtu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 2 Sep 2017 11:49:50 -0400
+Subject: [PATCH 2/7] [media] ov2640: Improve a size determination in
+ ov2640_probe()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
 To: linux-media@vger.kernel.org, Bhumika Goyal <bhumirks@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
+        =?UTF-8?Q?Frank_Sch=c3=a4fer?= <fschaefer.oss@googlemail.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: LKML <linux-kernel@vger.kernel.org>,
         kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH] [media] gspca: Delete two error messages for a failed memory
- allocation in gspca_dev_probe2()
-Message-ID: <6bef0198-a455-6ede-c6da-58667771a45a@users.sourceforge.net>
-Date: Mon, 18 Sep 2017 18:10:22 +0200
+References: <c9f2ba21-c742-e1e8-26d9-a56c51c56d65@users.sourceforge.net>
+Message-ID: <457f2678-da7f-cb67-8893-5cdb7ce804dd@users.sourceforge.net>
+Date: Sat, 2 Sep 2017 17:49:28 +0200
 MIME-Version: 1.0
+In-Reply-To: <c9f2ba21-c742-e1e8-26d9-a56c51c56d65@users.sourceforge.net>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 18 Sep 2017 17:47:58 +0200
+Date: Sat, 2 Sep 2017 16:09:35 +0200
 
-Omit extra messages for a memory allocation failure in this function.
+Replace the specification of a data structure by a pointer dereference
+as the parameter for the operator "sizeof" to make the corresponding size
+determination a bit safer according to the Linux coding style convention.
 
 This issue was detected by using the Coccinelle software.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/usb/gspca/gspca.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/media/i2c/ov2640.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
-index 0f141762abf1..8be1c81b7cab 100644
---- a/drivers/media/usb/gspca/gspca.c
-+++ b/drivers/media/usb/gspca/gspca.c
-@@ -2037,10 +2037,8 @@ int gspca_dev_probe2(struct usb_interface *intf,
--	if (!gspca_dev) {
--		pr_err("couldn't kzalloc gspca struct\n");
-+	if (!gspca_dev)
- 		return -ENOMEM;
--	}
-+
- 	gspca_dev->usb_buf = kmalloc(USB_BUF_SZ, GFP_KERNEL);
- 	if (!gspca_dev->usb_buf) {
--		pr_err("out of memory\n");
- 		ret = -ENOMEM;
- 		goto out;
+diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
+index e4ae53410097..456aa977bce8 100644
+--- a/drivers/media/i2c/ov2640.c
++++ b/drivers/media/i2c/ov2640.c
+@@ -1097,5 +1097,5 @@ static int ov2640_probe(struct i2c_client *client,
+ 		return -EIO;
  	}
+ 
+-	priv = devm_kzalloc(&client->dev, sizeof(struct ov2640_priv), GFP_KERNEL);
++	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
+ 	if (!priv)
 -- 
 2.14.1
