@@ -1,49 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:45153 "EHLO mga01.intel.com"
+Received: from mout.web.de ([217.72.192.78]:54604 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751125AbdIMWke (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 18:40:34 -0400
-From: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: tfiga@chromium.org, jian.xu.zheng@intel.com,
-        tian.shu.qiu@intel.com, andy.yeh@intel.com,
-        rajmohan.mani@intel.com, hyungwoo.yang@intel.com,
-        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
-Subject: [PATCH v1] media: ov13858: Fix 4224x3136 video flickering at some vblanks
-Date: Wed, 13 Sep 2017 15:38:45 -0700
-Message-Id: <1505342325-9180-1-git-send-email-chiranjeevi.rapolu@intel.com>
+        id S1752399AbdIBNGY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 2 Sep 2017 09:06:24 -0400
+Subject: [PATCH 1/4] [media] adv7604: Delete an error message for a failed
+ memory allocation in adv76xx_probe()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <0e67e095-4931-b78f-a925-7335326ab69c@users.sourceforge.net>
+Message-ID: <e714ab2d-4d08-8103-6d05-2eee7a58ba10@users.sourceforge.net>
+Date: Sat, 2 Sep 2017 15:06:16 +0200
+MIME-Version: 1.0
+In-Reply-To: <0e67e095-4931-b78f-a925-7335326ab69c@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Previously, the sensor was outputting blank every other frame at 4224x3136
-video when vblank was in the range [79, 86]. This resulted in video
-flickering.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 2 Sep 2017 11:28:55 +0200
 
-Omni Vision recommends us to use their settings for crop start/end for
-4224x3136.
+Omit an extra message for a memory allocation failure in this function.
 
-Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/i2c/ov13858.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/i2c/adv7604.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
-index af7af0d..f7c5771 100644
---- a/drivers/media/i2c/ov13858.c
-+++ b/drivers/media/i2c/ov13858.c
-@@ -238,11 +238,11 @@ struct ov13858_mode {
- 	{0x3800, 0x00},
- 	{0x3801, 0x00},
- 	{0x3802, 0x00},
--	{0x3803, 0x00},
-+	{0x3803, 0x08},
- 	{0x3804, 0x10},
- 	{0x3805, 0x9f},
- 	{0x3806, 0x0c},
--	{0x3807, 0x5f},
-+	{0x3807, 0x57},
- 	{0x3808, 0x10},
- 	{0x3809, 0x80},
- 	{0x380a, 0x0c},
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 660bacb8f7d9..cc693ef71f33 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -3319,7 +3319,5 @@ static int adv76xx_probe(struct i2c_client *client,
+-	if (!state) {
+-		v4l_err(client, "Could not allocate adv76xx_state memory!\n");
++	if (!state)
+ 		return -ENOMEM;
+-	}
+ 
+ 	state->i2c_clients[ADV76XX_PAGE_IO] = client;
+ 
 -- 
-1.9.1
+2.14.1
