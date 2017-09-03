@@ -1,188 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:46984 "EHLO mga11.intel.com"
+Received: from mout.gmx.net ([212.227.17.21]:53884 "EHLO mout.gmx.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752039AbdIANhQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Sep 2017 09:37:16 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org, Alan Cox <alan@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 6/7] staging: atomisp: Remove dead code for MID (#4)
-Date: Fri,  1 Sep 2017 16:36:39 +0300
-Message-Id: <20170901133640.17589-6-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20170901133640.17589-1-andriy.shevchenko@linux.intel.com>
-References: <20170901133640.17589-1-andriy.shevchenko@linux.intel.com>
+        id S1752899AbdICPLo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 3 Sep 2017 11:11:44 -0400
+Date: Sun, 3 Sep 2017 17:11:36 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] v4l: use struct v4l2_buffer explicitly instead of void
+ *
+In-Reply-To: <20170827190546.2c01463f@vento.lan>
+Message-ID: <Pine.LNX.4.64.1709031710330.29016@axis700.grange>
+References: <Pine.LNX.4.64.1707281439030.16637@axis700.grange>
+ <20170827190546.2c01463f@vento.lan>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since we switched to upstream IOSF MBI API the custom code become not in
-use anymore.
+Hi Mauro,
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- .../atomisp/include/asm/intel_mid_pcihelpers.h     | 22 -----
- .../media/atomisp/pci/atomisp2/atomisp_internal.h  |  1 -
- .../media/atomisp/platform/intel-mid/Makefile      |  1 -
- .../platform/intel-mid/intel_mid_pcihelpers.c      | 98 ----------------------
- 4 files changed, 122 deletions(-)
- delete mode 100644 drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h
- delete mode 100644 drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
+On Sun, 27 Aug 2017, Mauro Carvalho Chehab wrote:
 
-diff --git a/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h b/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h
-deleted file mode 100644
-index bf39f42c1c96..000000000000
---- a/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h
-+++ /dev/null
-@@ -1,22 +0,0 @@
--/*
-- * Access to message bus through three registers
-- * in CUNIT(0:0:0) PCI configuration space.
-- * MSGBUS_CTRL_REG(0xD0):
-- *   31:24      = message bus opcode
-- *   23:16      = message bus port
-- *   15:8       = message bus address, low 8 bits.
-- *   7:4        = message bus byte enables
-- * MSGBUS_CTRL_EXT_REG(0xD8):
-- *   31:8       = message bus address, high 24 bits.
-- * MSGBUS_DATA_REG(0xD4):
-- *   hold the data for write or read
-- */
--#define PCI_ROOT_MSGBUS_CTRL_REG        0xD0
--#define PCI_ROOT_MSGBUS_DATA_REG        0xD4
--#define PCI_ROOT_MSGBUS_CTRL_EXT_REG    0xD8
--#define PCI_ROOT_MSGBUS_READ            0x10
--#define PCI_ROOT_MSGBUS_WRITE           0x11
--#define PCI_ROOT_MSGBUS_DWORD_ENABLE    0xf0
--
--u32 intel_mid_msgbus_read32(u8 port, u32 addr);
--void intel_mid_msgbus_write32(u8 port, u32 addr, u32 data);
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
-index 7542a72f1d0f..1fe1711387a2 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
-@@ -30,7 +30,6 @@
- #include <linux/idr.h>
- 
- #include <asm/intel-mid.h>
--#include "../../include/asm/intel_mid_pcihelpers.h"
- 
- #include <media/media-device.h>
- #include <media/v4l2-subdev.h>
-diff --git a/drivers/staging/media/atomisp/platform/intel-mid/Makefile b/drivers/staging/media/atomisp/platform/intel-mid/Makefile
-index 4621261c35db..c53db1364e21 100644
---- a/drivers/staging/media/atomisp/platform/intel-mid/Makefile
-+++ b/drivers/staging/media/atomisp/platform/intel-mid/Makefile
-@@ -1,5 +1,4 @@
- #
- # Makefile for intel-mid devices.
- #
--obj-$(CONFIG_INTEL_ATOMISP) += intel_mid_pcihelpers.o
- obj-$(CONFIG_INTEL_ATOMISP) += atomisp_gmin_platform.o
-diff --git a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
-deleted file mode 100644
-index 4ed3268c4e63..000000000000
---- a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
-+++ /dev/null
-@@ -1,98 +0,0 @@
--#include <linux/export.h>
--#include <linux/pci.h>
--#include <linux/pm_qos.h>
--#include <linux/delay.h>
--
--/* G-Min addition: "platform_is()" lives in intel_mid_pm.h in the MCG
-- * tree, but it's just platform ID info and we don't want to pull in
-- * the whole SFI-based PM architecture.
-- */
--#define INTEL_ATOM_MRST 0x26
--#define INTEL_ATOM_MFLD 0x27
--#define INTEL_ATOM_CLV 0x35
--#define INTEL_ATOM_MRFLD 0x4a
--#define INTEL_ATOM_BYT 0x37
--#define INTEL_ATOM_MOORFLD 0x5a
--#define INTEL_ATOM_CHT 0x4c
--static inline int platform_is(u8 model)
--{
--	return (boot_cpu_data.x86_model == model);
--}
--
--#include "../../include/asm/intel_mid_pcihelpers.h"
--
--/* Unified message bus read/write operation */
--static DEFINE_SPINLOCK(msgbus_lock);
--
--static struct pci_dev *pci_root;
--static struct pm_qos_request pm_qos;
--
--#define DW_I2C_NEED_QOS	(platform_is(INTEL_ATOM_BYT))
--
--static int intel_mid_msgbus_init(void)
--{
--	pci_root = pci_get_bus_and_slot(0, PCI_DEVFN(0, 0));
--	if (!pci_root) {
--		pr_err("%s: Error: msgbus PCI handle NULL\n", __func__);
--		return -ENODEV;
--	}
--
--	if (DW_I2C_NEED_QOS) {
--		pm_qos_add_request(&pm_qos,
--			PM_QOS_CPU_DMA_LATENCY,
--			PM_QOS_DEFAULT_VALUE);
--	}
--	return 0;
--}
--fs_initcall(intel_mid_msgbus_init);
--
--u32 intel_mid_msgbus_read32(u8 port, u32 addr)
--{
--	unsigned long irq_flags;
--	u32 data;
--	u32 cmd;
--	u32 cmdext;
--
--	cmd = (PCI_ROOT_MSGBUS_READ << 24) | (port << 16) |
--		((addr & 0xff) << 8) | PCI_ROOT_MSGBUS_DWORD_ENABLE;
--	cmdext = addr & 0xffffff00;
--
--	spin_lock_irqsave(&msgbus_lock, irq_flags);
--
--	if (cmdext) {
--		/* This resets to 0 automatically, no need to write 0 */
--		pci_write_config_dword(pci_root, PCI_ROOT_MSGBUS_CTRL_EXT_REG,
--					cmdext);
--	}
--
--	pci_write_config_dword(pci_root, PCI_ROOT_MSGBUS_CTRL_REG, cmd);
--	pci_read_config_dword(pci_root, PCI_ROOT_MSGBUS_DATA_REG, &data);
--	spin_unlock_irqrestore(&msgbus_lock, irq_flags);
--
--	return data;
--}
--EXPORT_SYMBOL(intel_mid_msgbus_read32);
--
--void intel_mid_msgbus_write32(u8 port, u32 addr, u32 data)
--{
--	unsigned long irq_flags;
--	u32 cmd;
--	u32 cmdext;
--
--	cmd = (PCI_ROOT_MSGBUS_WRITE << 24) | (port << 16) |
--		((addr & 0xFF) << 8) | PCI_ROOT_MSGBUS_DWORD_ENABLE;
--	cmdext = addr & 0xffffff00;
--
--	spin_lock_irqsave(&msgbus_lock, irq_flags);
--	pci_write_config_dword(pci_root, PCI_ROOT_MSGBUS_DATA_REG, data);
--
--	if (cmdext) {
--		/* This resets to 0 automatically, no need to write 0 */
--		pci_write_config_dword(pci_root, PCI_ROOT_MSGBUS_CTRL_EXT_REG,
--					cmdext);
--	}
--
--	pci_write_config_dword(pci_root, PCI_ROOT_MSGBUS_CTRL_REG, cmd);
--	spin_unlock_irqrestore(&msgbus_lock, irq_flags);
--}
--EXPORT_SYMBOL(intel_mid_msgbus_write32);
--- 
-2.14.1
+> Em Fri, 28 Jul 2017 14:45:37 +0200 (CEST)
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
+> 
+> > A number of functions use void * for a struct v4l2_buffer parameter.
+> > Avoid that to improve compile-time checking.
+> 
+> Nack.
+> 
+> The videbuf2-core should be be independent of videobuf2-v4l2. The
+> plan is to use it for DVB too. There's a patch floating around,
+> lacking people to take a look.
+> 
+> I intend to review and merge it when I have some time along
+> the year.
+
+Ok, I thought there would be a reason similar to this, thanks for 
+explaining.
+
+Regards
+Guennadi
+
+> > Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> > ---
+> > 
+> > This probably was done on purpose, maybe to reuse the video buffers by 
+> > other than V4L2 users, but I haven't found any, and the code doesn't seem 
+> > very new...
+> > 
+> >  drivers/media/v4l2-core/videobuf2-core.c | 17 +++++++++--------
+> >  drivers/media/v4l2-core/videobuf2-v4l2.c | 15 +++++++--------
+> >  include/media/videobuf2-core.h           | 19 ++++++++++++-------
+> >  3 files changed, 28 insertions(+), 23 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> > index 14f83cec..170a416 100644
+> > --- a/drivers/media/v4l2-core/videobuf2-core.c
+> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> > @@ -958,7 +958,7 @@ void vb2_discard_done(struct vb2_queue *q)
+> >  /**
+> >   * __prepare_mmap() - prepare an MMAP buffer
+> >   */
+> > -static int __prepare_mmap(struct vb2_buffer *vb, const void *pb)
+> > +static int __prepare_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *pb)
+> >  {
+> >  	int ret = 0;
+> >  
+> > @@ -971,7 +971,7 @@ static int __prepare_mmap(struct vb2_buffer *vb, const void *pb)
+> >  /**
+> >   * __prepare_userptr() - prepare a USERPTR buffer
+> >   */
+> > -static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
+> > +static int __prepare_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *pb)
+> >  {
+> >  	struct vb2_plane planes[VB2_MAX_PLANES];
+> >  	struct vb2_queue *q = vb->vb2_queue;
+> > @@ -1089,7 +1089,7 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
+> >  /**
+> >   * __prepare_dmabuf() - prepare a DMABUF buffer
+> >   */
+> > -static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
+> > +static int __prepare_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *pb)
+> >  {
+> >  	struct vb2_plane planes[VB2_MAX_PLANES];
+> >  	struct vb2_queue *q = vb->vb2_queue;
+> > @@ -1236,7 +1236,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+> >  	call_void_vb_qop(vb, buf_queue, vb);
+> >  }
+> >  
+> > -static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
+> > +static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *pb)
+> >  {
+> >  	struct vb2_queue *q = vb->vb2_queue;
+> >  	unsigned int plane;
+> > @@ -1279,7 +1279,8 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
+> >  	return 0;
+> >  }
+> >  
+> > -int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
+> > +int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index,
+> > +			 struct v4l2_buffer *pb)
+> >  {
+> >  	struct vb2_buffer *vb;
+> >  	int ret;
+> > @@ -1514,7 +1515,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+> >   * Will sleep if required for nonblocking == false.
+> >   */
+> >  static int __vb2_get_done_vb(struct vb2_queue *q, struct vb2_buffer **vb,
+> > -			     void *pb, int nonblocking)
+> > +			     struct v4l2_buffer *pb, int nonblocking)
+> >  {
+> >  	unsigned long flags;
+> >  	int ret = 0;
+> > @@ -1583,8 +1584,8 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
+> >  		}
+> >  }
+> >  
+> > -int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
+> > -		   bool nonblocking)
+> > +int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex,
+> > +		   struct v4l2_buffer *pb, bool nonblocking)
+> >  {
+> >  	struct vb2_buffer *vb = NULL;
+> >  	int ret;
+> > diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> > index 0c06699..3c425ea 100644
+> > --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
+> > +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> > @@ -53,7 +53,8 @@
+> >   * __verify_planes_array() - verify that the planes array passed in struct
+> >   * v4l2_buffer from userspace can be safely used
+> >   */
+> > -static int __verify_planes_array(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+> > +static int __verify_planes_array(struct vb2_buffer *vb,
+> > +				 const struct v4l2_buffer *b)
+> >  {
+> >  	if (!V4L2_TYPE_IS_MULTIPLANAR(b->type))
+> >  		return 0;
+> > @@ -73,7 +74,8 @@ static int __verify_planes_array(struct vb2_buffer *vb, const struct v4l2_buffer
+> >  	return 0;
+> >  }
+> >  
+> > -static int __verify_planes_array_core(struct vb2_buffer *vb, const void *pb)
+> > +static int __verify_planes_array_core(struct vb2_buffer *vb,
+> > +				      const struct v4l2_buffer *pb)
+> >  {
+> >  	return __verify_planes_array(vb, pb);
+> >  }
+> > @@ -118,9 +120,8 @@ static int __verify_length(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+> >  	return 0;
+> >  }
+> >  
+> > -static void __copy_timestamp(struct vb2_buffer *vb, const void *pb)
+> > +static void __copy_timestamp(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+> >  {
+> > -	const struct v4l2_buffer *b = pb;
+> >  	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> >  	struct vb2_queue *q = vb->vb2_queue;
+> >  
+> > @@ -185,9 +186,8 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+> >   * __fill_v4l2_buffer() - fill in a struct v4l2_buffer with information to be
+> >   * returned to userspace
+> >   */
+> > -static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+> > +static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+> >  {
+> > -	struct v4l2_buffer *b = pb;
+> >  	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> >  	struct vb2_queue *q = vb->vb2_queue;
+> >  	unsigned int plane;
+> > @@ -292,10 +292,9 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+> >   * v4l2_buffer has a valid number of planes.
+> >   */
+> >  static int __fill_vb2_buffer(struct vb2_buffer *vb,
+> > -		const void *pb, struct vb2_plane *planes)
+> > +		const struct v4l2_buffer *b, struct vb2_plane *planes)
+> >  {
+> >  	struct vb2_queue *q = vb->vb2_queue;
+> > -	const struct v4l2_buffer *b = pb;
+> >  	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> >  	unsigned int plane;
+> >  	int ret;
+> > diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> > index cb97c22..86e9605 100644
+> > --- a/include/media/videobuf2-core.h
+> > +++ b/include/media/videobuf2-core.h
+> > @@ -395,6 +395,8 @@ struct vb2_ops {
+> >  	void (*buf_queue)(struct vb2_buffer *vb);
+> >  };
+> >  
+> > +struct v4l2_buffer;
+> > +
+> >  /**
+> >   * struct vb2_buf_ops - driver-specific callbacks
+> >   *
+> > @@ -410,11 +412,13 @@ struct vb2_ops {
+> >   *			the vb2_buffer struct.
+> >   */
+> >  struct vb2_buf_ops {
+> > -	int (*verify_planes_array)(struct vb2_buffer *vb, const void *pb);
+> > -	void (*fill_user_buffer)(struct vb2_buffer *vb, void *pb);
+> > -	int (*fill_vb2_buffer)(struct vb2_buffer *vb, const void *pb,
+> > +	int (*verify_planes_array)(struct vb2_buffer *vb,
+> > +				const struct v4l2_buffer *pb);
+> > +	void (*fill_user_buffer)(struct vb2_buffer *vb, struct v4l2_buffer *b);
+> > +	int (*fill_vb2_buffer)(struct vb2_buffer *vb, const struct v4l2_buffer *pb,
+> >  				struct vb2_plane *planes);
+> > -	void (*copy_timestamp)(struct vb2_buffer *vb, const void *pb);
+> > +	void (*copy_timestamp)(struct vb2_buffer *vb,
+> > +				const struct v4l2_buffer *b);
+> >  };
+> >  
+> >  /**
+> > @@ -704,7 +708,8 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
+> >   * The return values from this function are intended to be directly returned
+> >   * from vidioc_prepare_buf handler in driver.
+> >   */
+> > -int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
+> > +int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index,
+> > +			 struct v4l2_buffer *pb);
+> >  
+> >  /**
+> >   * vb2_core_qbuf() - Queue a buffer from userspace
+> > @@ -753,8 +758,8 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
+> >   * The return values from this function are intended to be directly returned
+> >   * from vidioc_dqbuf handler in driver.
+> >   */
+> > -int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
+> > -		   bool nonblocking);
+> > +int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex,
+> > +		   struct v4l2_buffer *pb, bool nonblocking);
+> >  
+> >  int vb2_core_streamon(struct vb2_queue *q, unsigned int type);
+> >  int vb2_core_streamoff(struct vb2_queue *q, unsigned int type);
+> 
+> 
+> 
+> Thanks,
+> Mauro
+> 
