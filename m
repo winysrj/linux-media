@@ -1,56 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:37073 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755468AbdIGSnH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 14:43:07 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49466 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753188AbdICRuF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 3 Sep 2017 13:50:05 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [PATCH v3 10/15] [media] vb2: add 'ordered' property to queues
-Date: Thu,  7 Sep 2017 15:42:21 -0300
-Message-Id: <20170907184226.27482-11-gustavo@padovan.org>
-In-Reply-To: <20170907184226.27482-1-gustavo@padovan.org>
-References: <20170907184226.27482-1-gustavo@padovan.org>
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v7 18/18] arm: dts: omap3: N9/N950: Add flash references to the camera
+Date: Sun,  3 Sep 2017 20:49:58 +0300
+Message-Id: <20170903174958.27058-19-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170903174958.27058-1-sakari.ailus@linux.intel.com>
+References: <20170903174958.27058-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Add flash and indicator LED phandles to the sensor node.
 
-For explicit synchronization (and soon for HAL3/Request API) we need
-the v4l2-driver to guarantee the ordering in which the buffers were queued
-by userspace. This is already true for many drivers, but we never needed
-to say it.
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- include/media/videobuf2-core.h | 4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm/boot/dts/omap3-n9.dts       | 1 +
+ arch/arm/boot/dts/omap3-n950-n9.dtsi | 4 ++--
+ arch/arm/boot/dts/omap3-n950.dts     | 1 +
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 5ed8d3402474..20099dc22f26 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -508,6 +508,9 @@ struct vb2_buf_ops {
-  * @last_buffer_dequeued: used in poll() and DQBUF to immediately return if the
-  *		last decoded buffer was already dequeued. Set for capture queues
-  *		when a buffer with the V4L2_BUF_FLAG_LAST is dequeued.
-+ * @ordered: if the driver can guarantee that the queue will be ordered or not.
-+ *		The default is not ordered unless the driver sets this flag. It
-+ *		is mandatory for using explicit fences.
-  * @fileio:	file io emulator internal data, used only if emulator is active
-  * @threadio:	thread io internal data, used only if thread is active
-  */
-@@ -560,6 +563,7 @@ struct vb2_queue {
- 	unsigned int			is_output:1;
- 	unsigned int			copy_timestamp:1;
- 	unsigned int			last_buffer_dequeued:1;
-+	unsigned int			ordered:1;
- 
- 	struct vb2_fileio_data		*fileio;
- 	struct vb2_threadio_data	*threadio;
+diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
+index b9e58c536afd..a2944010f62f 100644
+--- a/arch/arm/boot/dts/omap3-n9.dts
++++ b/arch/arm/boot/dts/omap3-n9.dts
+@@ -26,6 +26,7 @@
+ 		clocks = <&isp 0>;
+ 		clock-frequency = <9600000>;
+ 		nokia,nvm-size = <(16 * 64)>;
++		flash = <&as3645a_flash &as3645a_indicator>;
+ 		port {
+ 			smia_1_1: endpoint {
+ 				link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index cb47ae79a5f9..92c1a1da28d3 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -269,13 +269,13 @@
+ 	as3645a@30 {
+ 		reg = <0x30>;
+ 		compatible = "ams,as3645a";
+-		flash {
++		as3645a_flash: flash {
+ 			flash-timeout-us = <150000>;
+ 			flash-max-microamp = <320000>;
+ 			led-max-microamp = <60000>;
+ 			peak-current-limit = <1750000>;
+ 		};
+-		indicator {
++		as3645a_indicator: indicator {
+ 			led-max-microamp = <10000>;
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
+index 646601a3ebd8..bba5c5a6950c 100644
+--- a/arch/arm/boot/dts/omap3-n950.dts
++++ b/arch/arm/boot/dts/omap3-n950.dts
+@@ -60,6 +60,7 @@
+ 		clocks = <&isp 0>;
+ 		clock-frequency = <9600000>;
+ 		nokia,nvm-size = <(16 * 64)>;
++		flash = <&as3645a_flash &as3645a_indicator>;
+ 		port {
+ 			smia_1_1: endpoint {
+ 				link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
 -- 
-2.13.5
+2.11.0
