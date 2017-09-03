@@ -1,79 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eddie.linux-mips.org ([148.251.95.138]:37710 "EHLO
-        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751737AbdIFIJC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 04:09:02 -0400
-Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
-        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
-        id S23990889AbdIFIJA518q4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 10:09:00 +0200
-Date: Wed, 6 Sep 2017 10:08:54 +0200
-From: Ladislav Michl <ladis@linux-mips.org>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>, Andi Shyti <andi.shyti@samsung.com>
-Subject: [PATCH 01/10] media: rc: gpio-ir-recv: use helper vaiable to acess
- device info
-Message-ID: <20170906080854.xanrfwmywy6w4irj@lenoch>
-References: <20170906080748.wgxbmunfsu33bd6x@lenoch>
+Received: from mout.web.de ([212.227.15.3]:60443 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752329AbdICUcY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 3 Sep 2017 16:32:24 -0400
+Subject: [PATCH 2/7] [media] saa7164: Improve a size determination in two
+ functions
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <170abf7f-3b62-a37c-966a-8b574acae230@users.sourceforge.net>
+Message-ID: <76397eaa-9c30-af07-e7be-cecee2a9abc6@users.sourceforge.net>
+Date: Sun, 3 Sep 2017 22:32:03 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170906080748.wgxbmunfsu33bd6x@lenoch>
+In-Reply-To: <170abf7f-3b62-a37c-966a-8b574acae230@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using explicit struct device variable makes code a bit more readable.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 3 Sep 2017 17:53:05 +0200
 
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+Replace the specification of data structures by pointer dereferences
+as the parameter for the operator "sizeof" to make the corresponding size
+determination a bit safer according to the Linux coding style convention.
+
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/rc/gpio-ir-recv.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/media/pci/saa7164/saa7164-buffer.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
-index b4f773b9dc1d..2f6233186ce9 100644
---- a/drivers/media/rc/gpio-ir-recv.c
-+++ b/drivers/media/rc/gpio-ir-recv.c
-@@ -116,18 +116,18 @@ static void flush_timer(unsigned long arg)
- 
- static int gpio_ir_recv_probe(struct platform_device *pdev)
- {
-+	struct device *dev = &pdev->dev;
- 	struct gpio_rc_dev *gpio_dev;
- 	struct rc_dev *rcdev;
--	const struct gpio_ir_recv_platform_data *pdata =
--					pdev->dev.platform_data;
-+	const struct gpio_ir_recv_platform_data *pdata = dev->platform_data;
- 	int rc;
- 
- 	if (pdev->dev.of_node) {
- 		struct gpio_ir_recv_platform_data *dtpdata =
--			devm_kzalloc(&pdev->dev, sizeof(*dtpdata), GFP_KERNEL);
-+			devm_kzalloc(dev, sizeof(*dtpdata), GFP_KERNEL);
- 		if (!dtpdata)
- 			return -ENOMEM;
--		rc = gpio_ir_recv_get_devtree_pdata(&pdev->dev, dtpdata);
-+		rc = gpio_ir_recv_get_devtree_pdata(dev, dtpdata);
- 		if (rc)
- 			return rc;
- 		pdata = dtpdata;
-@@ -156,7 +156,7 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
- 	rcdev->input_id.vendor = 0x0001;
- 	rcdev->input_id.product = 0x0001;
- 	rcdev->input_id.version = 0x0100;
--	rcdev->dev.parent = &pdev->dev;
-+	rcdev->dev.parent = dev;
- 	rcdev->driver_name = GPIO_IR_DRIVER_NAME;
- 	rcdev->min_timeout = 1;
- 	rcdev->timeout = IR_DEFAULT_TIMEOUT;
-@@ -183,7 +183,7 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
- 
- 	rc = rc_register_device(rcdev);
- 	if (rc < 0) {
--		dev_err(&pdev->dev, "failed to register rc device\n");
-+		dev_err(dev, "failed to register rc device\n");
- 		goto err_register_rc_device;
+diff --git a/drivers/media/pci/saa7164/saa7164-buffer.c b/drivers/media/pci/saa7164/saa7164-buffer.c
+index 6bd665ea190d..c83b2e914dcb 100644
+--- a/drivers/media/pci/saa7164/saa7164-buffer.c
++++ b/drivers/media/pci/saa7164/saa7164-buffer.c
+@@ -98,5 +98,5 @@ struct saa7164_buffer *saa7164_buffer_alloc(struct saa7164_port *port,
+ 		goto ret;
  	}
  
+-	buf = kzalloc(sizeof(struct saa7164_buffer), GFP_KERNEL);
++	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+ 	if (!buf)
+@@ -281,5 +281,5 @@ struct saa7164_user_buffer *saa7164_buffer_alloc_user(struct saa7164_dev *dev,
+ {
+ 	struct saa7164_user_buffer *buf;
+ 
+-	buf = kzalloc(sizeof(struct saa7164_user_buffer), GFP_KERNEL);
++	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+ 	if (!buf)
 -- 
-2.11.0
+2.14.1
