@@ -1,148 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48354
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752258AbdIATh7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 15:37:59 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Colin Ian King <colin.king@canonical.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Andrew Morton <akpm@linux-foundation.org>,
+Received: from mout.web.de ([212.227.15.14]:56697 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752828AbdICOCf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 3 Sep 2017 10:02:35 -0400
+Subject: [PATCH 1/2] [media] meye: Delete three error messages for a failed
+ memory allocation in meye_probe()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
         Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pan Bian <bianpan2016@163.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 00/14] Another set of DVB documentation patches
-Date: Fri,  1 Sep 2017 16:37:36 -0300
-Message-Id: <cover.1504293108.git.mchehab@s-opensource.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <4370c644-e440-1268-089b-8a8686bbcd5c@users.sourceforge.net>
+Message-ID: <ba90af37-ef8d-ed7f-f331-c15694064672@users.sourceforge.net>
+Date: Sun, 3 Sep 2017 16:02:17 +0200
+MIME-Version: 1.0
+In-Reply-To: <4370c644-e440-1268-089b-8a8686bbcd5c@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series should come after this series: 
-	[PATCH v2 00/26] Improve DVB documentation and reduce its gap
-	(with actually has 27 patches :-p )
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 3 Sep 2017 15:30:04 +0200
 
-It adds documentation for a dmx.h ioctl (DMX_GET_PES_PIDS) and do
-a cleanup at the documentation, to make it more coherent with the other
-media uAPI docs. In particular, it fixes the error codes for ioctls, removing
-redundant and non-existing error codes.
+Omit extra messages for a memory allocation failure in this function.
 
-It also fixes some random other problems I found while re-reading the
-documentation.
+This issue was detected by using the Coccinelle software.
 
-Mauro Carvalho Chehab (14):
-  media: dvb uapi docs: better organize header files
-  media: gen-errors.rst: remove row number comments
-  media: gen-errors.rst: document ENXIO error code
-  media: dvb uAPI docs: adjust return value ioctl descriptions
-  media: ca-fopen.rst: Fixes the device node name for CA
-  media: dvb uAPI docs: Prefer use "Digital TV instead of "DVB"
-  media: dmx-fread.rst: specify how DMX_CHECK_CRC works
-  media: dvb-frontend-parameters.rst: fix the name of a struct
-  media: dvbapi.rst: add an entry to DVB revision history
-  media: dvb uAPI docs: minor editorial changes
-  media: dmx-get-pes-pids.rst: document the ioctl
-  media: dvbstb.svg: use dots for the optional parts of the hardware
-  media: intro.rst: don't assume audio and video codecs to be MPEG2
-  media: frontend.h: Avoid the term DVB when doesn't refer to a delivery
-    system
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/pci/meye/meye.c | 13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
- .../media/uapi/dvb/audio-channel-select.rst        |  2 +-
- Documentation/media/uapi/dvb/audio-fclose.rst      |  8 +--
- Documentation/media/uapi/dvb/audio-fopen.rst       |  8 +--
- Documentation/media/uapi/dvb/audio-fwrite.rst      |  8 +--
- Documentation/media/uapi/dvb/audio-set-av-sync.rst |  2 +-
- .../media/uapi/dvb/audio-set-bypass-mode.rst       |  6 +-
- Documentation/media/uapi/dvb/audio-set-mute.rst    |  2 +-
- Documentation/media/uapi/dvb/audio.rst             | 13 ++--
- Documentation/media/uapi/dvb/audio_h.rst           |  9 ---
- Documentation/media/uapi/dvb/ca-fclose.rst         | 21 +++---
- Documentation/media/uapi/dvb/ca-fopen.rst          | 71 +++++++-------------
- Documentation/media/uapi/dvb/ca-get-cap.rst        |  4 +-
- Documentation/media/uapi/dvb/ca-get-msg.rst        |  9 ++-
- Documentation/media/uapi/dvb/ca-get-slot-info.rst  | 10 ++-
- Documentation/media/uapi/dvb/ca-reset.rst          |  8 ++-
- Documentation/media/uapi/dvb/ca-send-msg.rst       |  8 ++-
- Documentation/media/uapi/dvb/ca-set-descr.rst      |  8 ++-
- Documentation/media/uapi/dvb/ca.rst                | 11 +--
- Documentation/media/uapi/dvb/ca_h.rst              |  9 ---
- Documentation/media/uapi/dvb/demux.rst             | 13 ++--
- Documentation/media/uapi/dvb/dmx-add-pid.rst       | 12 ++--
- Documentation/media/uapi/dvb/dmx-fclose.rst        | 26 ++++----
- Documentation/media/uapi/dvb/dmx-fopen.rst         | 66 ++++++++----------
- Documentation/media/uapi/dvb/dmx-fread.rst         | 78 +++++++++-------------
- Documentation/media/uapi/dvb/dmx-fwrite.rst        | 41 ++++++------
- Documentation/media/uapi/dvb/dmx-get-pes-pids.rst  | 30 +++++++--
- Documentation/media/uapi/dvb/dmx-get-stc.rst       | 28 +++++---
- Documentation/media/uapi/dvb/dmx-remove-pid.rst    | 12 ++--
- .../media/uapi/dvb/dmx-set-buffer-size.rst         | 11 ++-
- Documentation/media/uapi/dvb/dmx-set-filter.rst    | 13 ++--
- .../media/uapi/dvb/dmx-set-pes-filter.rst          | 12 +++-
- Documentation/media/uapi/dvb/dmx-start.rst         | 15 +++--
- Documentation/media/uapi/dvb/dmx-stop.rst          | 12 ++--
- Documentation/media/uapi/dvb/dmx_h.rst             |  9 ---
- .../media/uapi/dvb/dvb-fe-read-status.rst          |  2 +-
- .../media/uapi/dvb/dvb-frontend-parameters.rst     |  2 +-
- Documentation/media/uapi/dvb/dvbapi.rst            | 39 +++++++----
- Documentation/media/uapi/dvb/dvbproperty.rst       |  4 +-
- Documentation/media/uapi/dvb/dvbstb.svg            | 31 +++++----
- Documentation/media/uapi/dvb/examples.rst          |  4 +-
- .../media/uapi/dvb/fe-diseqc-recv-slave-reply.rst  |  8 ++-
- .../media/uapi/dvb/fe-diseqc-reset-overload.rst    | 10 ++-
- .../media/uapi/dvb/fe-diseqc-send-burst.rst        |  8 ++-
- .../media/uapi/dvb/fe-diseqc-send-master-cmd.rst   | 11 ++-
- .../uapi/dvb/fe-dishnetwork-send-legacy-cmd.rst    |  8 ++-
- .../media/uapi/dvb/fe-enable-high-lnb-voltage.rst  |  8 ++-
- Documentation/media/uapi/dvb/fe-get-event.rst      |  9 ++-
- Documentation/media/uapi/dvb/fe-get-frontend.rst   | 10 +--
- Documentation/media/uapi/dvb/fe-get-info.rst       | 15 +++--
- Documentation/media/uapi/dvb/fe-get-property.rst   | 10 ++-
- Documentation/media/uapi/dvb/fe-read-ber.rst       |  8 ++-
- .../media/uapi/dvb/fe-read-signal-strength.rst     |  8 ++-
- Documentation/media/uapi/dvb/fe-read-snr.rst       |  8 ++-
- Documentation/media/uapi/dvb/fe-read-status.rst    | 10 ++-
- .../media/uapi/dvb/fe-read-uncorrected-blocks.rst  |  8 ++-
- .../media/uapi/dvb/fe-set-frontend-tune-mode.rst   | 12 ++--
- Documentation/media/uapi/dvb/fe-set-frontend.rst   | 15 +++--
- Documentation/media/uapi/dvb/fe-set-tone.rst       |  8 ++-
- Documentation/media/uapi/dvb/fe-set-voltage.rst    |  8 ++-
- Documentation/media/uapi/dvb/fe-type-t.rst         |  2 +-
- .../media/uapi/dvb/fe_property_parameters.rst      |  4 +-
- .../dvb/frontend-property-terrestrial-systems.rst  |  2 +-
- Documentation/media/uapi/dvb/frontend.rst          | 10 +--
- Documentation/media/uapi/dvb/frontend_f_close.rst  | 16 +++--
- Documentation/media/uapi/dvb/frontend_f_open.rst   | 44 +++++++-----
- Documentation/media/uapi/dvb/frontend_h.rst        |  9 ---
- .../media/uapi/dvb/frontend_legacy_dvbv3_api.rst   |  6 +-
- Documentation/media/uapi/dvb/headers.rst           | 21 ++++++
- Documentation/media/uapi/dvb/intro.rst             | 27 ++++----
- Documentation/media/uapi/dvb/legacy_dvb_apis.rst   |  6 +-
- Documentation/media/uapi/dvb/net-add-if.rst        | 10 ++-
- Documentation/media/uapi/dvb/net-get-if.rst        |  8 ++-
- Documentation/media/uapi/dvb/net-remove-if.rst     |  8 ++-
- Documentation/media/uapi/dvb/net.rst               | 13 ++--
- Documentation/media/uapi/dvb/net_h.rst             |  9 ---
- .../media/uapi/dvb/query-dvb-frontend-info.rst     |  4 +-
- Documentation/media/uapi/dvb/video-continue.rst    |  2 +-
- Documentation/media/uapi/dvb/video-freeze.rst      |  4 +-
- Documentation/media/uapi/dvb/video-get-event.rst   |  2 +-
- Documentation/media/uapi/dvb/video-play.rst        |  2 +-
- .../media/uapi/dvb/video-select-source.rst         |  2 +-
- Documentation/media/uapi/dvb/video-stop.rst        |  2 +-
- Documentation/media/uapi/dvb/video.rst             | 15 +++--
- Documentation/media/uapi/dvb/video_h.rst           |  9 ---
- Documentation/media/uapi/gen-errors.rst            | 49 +++++---------
- include/uapi/linux/dvb/frontend.h                  |  6 +-
- 86 files changed, 630 insertions(+), 521 deletions(-)
- delete mode 100644 Documentation/media/uapi/dvb/audio_h.rst
- delete mode 100644 Documentation/media/uapi/dvb/ca_h.rst
- delete mode 100644 Documentation/media/uapi/dvb/dmx_h.rst
- delete mode 100644 Documentation/media/uapi/dvb/frontend_h.rst
- create mode 100644 Documentation/media/uapi/dvb/headers.rst
- delete mode 100644 Documentation/media/uapi/dvb/net_h.rst
- delete mode 100644 Documentation/media/uapi/dvb/video_h.rst
-
+diff --git a/drivers/media/pci/meye/meye.c b/drivers/media/pci/meye/meye.c
+index 9c4a024745de..db36040770a6 100644
+--- a/drivers/media/pci/meye/meye.c
++++ b/drivers/media/pci/meye/meye.c
+@@ -1626,23 +1626,18 @@ static int meye_probe(struct pci_dev *pcidev, const struct pci_device_id *ent)
+ 	meye.mchip_dev = pcidev;
+ 
+ 	meye.grab_temp = vmalloc(MCHIP_NB_PAGES_MJPEG * PAGE_SIZE);
+-	if (!meye.grab_temp) {
+-		v4l2_err(v4l2_dev, "grab buffer allocation failed\n");
++	if (!meye.grab_temp)
+ 		goto outvmalloc;
+-	}
+ 
+ 	spin_lock_init(&meye.grabq_lock);
+ 	if (kfifo_alloc(&meye.grabq, sizeof(int) * MEYE_MAX_BUFNBRS,
+-				GFP_KERNEL)) {
+-		v4l2_err(v4l2_dev, "fifo allocation failed\n");
++			GFP_KERNEL))
+ 		goto outkfifoalloc1;
+-	}
++
+ 	spin_lock_init(&meye.doneq_lock);
+ 	if (kfifo_alloc(&meye.doneq, sizeof(int) * MEYE_MAX_BUFNBRS,
+-				GFP_KERNEL)) {
+-		v4l2_err(v4l2_dev, "fifo allocation failed\n");
++			GFP_KERNEL))
+ 		goto outkfifoalloc2;
+-	}
+ 
+ 	meye.vdev = meye_template;
+ 	meye.vdev.v4l2_dev = &meye.v4l2_dev;
 -- 
-2.13.5
+2.14.1
