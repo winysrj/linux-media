@@ -1,99 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34690 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1032173AbdIZVev (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 17:34:51 -0400
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 08F1560107
-        for <linux-media@vger.kernel.org>; Wed, 27 Sep 2017 00:34:50 +0300 (EEST)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakke@valkosipuli.retiisi.org.uk>)
-        id 1dwxVB-0007Kc-HM
-        for linux-media@vger.kernel.org; Wed, 27 Sep 2017 00:34:49 +0300
-Date: Wed, 27 Sep 2017 00:34:49 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for 4.15] Camera sensor patches
-Message-ID: <20170926213449.475bgle4kectae4f@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50958
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752859AbdICCfL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Sep 2017 22:35:11 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Aviv Greenberg <aviv.d.greenberg@intel.com>
+Subject: [PATCH 04/12] media: v4l uAPI docs: adjust some tables for PDF output
+Date: Sat,  2 Sep 2017 23:34:56 -0300
+Message-Id: <6f6b0f6ddbcd2ee028487e6bd7c0518023154e31.1504405125.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504405124.git.mchehab@s-opensource.com>
+References: <cover.1504405124.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504405124.git.mchehab@s-opensource.com>
+References: <cover.1504405124.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On tests with Spinx 1.4, some tables are still writing text
+outside cells. Adjust those tables.
 
-Here's the first set of camera sensor patches for 4.15.
+PS.: As this was revisited several times, I suspect that this
+will only be fully fixed if we add tabularcolumns to all tables
+at the V4L2 part of the book.
 
-There's one framework patch included, "media: Check for active and
-has_no_links overrun".
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/v4l/colorspaces-defs.rst       | 2 ++
+ Documentation/media/uapi/v4l/pixfmt-srggb10p.rst        | 2 +-
+ Documentation/media/uapi/v4l/v4l2-selection-targets.rst | 2 +-
+ Documentation/media/uapi/v4l/vidioc-enum-framesizes.rst | 2 ++
+ Documentation/media/uapi/v4l/vidioc-querycap.rst        | 2 +-
+ Documentation/media/uapi/v4l/vidioc-subscribe-event.rst | 4 ++--
+ 6 files changed, 9 insertions(+), 5 deletions(-)
 
-Please pull.
-
-
-The following changes since commit d5426f4c2ebac8cf05de43988c3fccddbee13d28:
-
-  media: staging: atomisp: use clock framework for camera clocks (2017-09-23 15:09:37 -0400)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git for-4.15-1
-
-for you to fetch changes up to a0b4db3ddd14b6202b2dba9dfa90572d6767b571:
-
-  smiapp: Make clock control optional (2017-09-26 23:58:56 +0300)
-
-----------------------------------------------------------------
-Chiranjeevi Rapolu (4):
-      media: ov5670: Use recommended black level and output bias
-      media: ov5670: Fix not streaming issue after resume.
-      media: ov13858: Calculate pixel-rate at runtime, use mode
-      media: ov13858: Fix 4224x3136 video flickering at some vblanks
-
-Colin Ian King (1):
-      ov2640: make array reset_seq static, reduces object code size
-
-Fabio Estevam (3):
-      mt9m111: Propagate the real error on v4l2_clk_get() failure
-      ov2640: Propagate the real error on devm_clk_get() failure
-      ov2640: Check the return value from clk_prepare_enable()
-
-Markus Elfring (7):
-      ov2640: Delete an error message for a failed memory allocation in ov2640_probe()
-      ov2640: Improve a size determination in ov2640_probe()
-      ov6650: Delete an error message for a failed memory allocation in ov6650_probe()
-      ov9640: Delete an error message for a failed memory allocation in ov9640_probe()
-      ov9640: Improve a size determination in ov9640_probe()
-      ov9740: Delete an error message for a failed memory allocation in ov9740_probe()
-      ov9740: Improve a size determination in ov9740_probe()
-
-Rajmohan Mani (1):
-      dw9714: Set the v4l2 focus ctrl step as 1
-
-Sakari Ailus (6):
-      media: Check for active and has_no_links overrun
-      ov13858: Use do_div() for dividing a 64-bit number
-      smiapp: Fix error handling in power on sequence
-      smiapp: Verify clock frequency after setting it, prevent changing it
-      smiapp: Get clock rate if it's not available through DT
-      smiapp: Make clock control optional
-
- drivers/media/i2c/dw9714.c             |  7 +++-
- drivers/media/i2c/mt9m111.c            |  2 +-
- drivers/media/i2c/ov13858.c            | 59 +++++++++++++++++++++-------------
- drivers/media/i2c/ov2640.c             | 15 ++++-----
- drivers/media/i2c/ov5670.c             | 35 ++++++++++++++------
- drivers/media/i2c/ov6650.c             |  5 +--
- drivers/media/i2c/smiapp/smiapp-core.c | 50 +++++++++++++++++++++-------
- drivers/media/i2c/soc_camera/ov9640.c  |  7 ++--
- drivers/media/i2c/soc_camera/ov9740.c  |  6 ++--
- drivers/media/media-entity.c           | 13 +++++---
- 10 files changed, 127 insertions(+), 72 deletions(-)
-
-
+diff --git a/Documentation/media/uapi/v4l/colorspaces-defs.rst b/Documentation/media/uapi/v4l/colorspaces-defs.rst
+index e67ed1e0b3fa..410907fe9415 100644
+--- a/Documentation/media/uapi/v4l/colorspaces-defs.rst
++++ b/Documentation/media/uapi/v4l/colorspaces-defs.rst
+@@ -76,6 +76,8 @@ whole range, 0-255, dividing the angular value by 1.41. The enum
+ 
+ .. c:type:: v4l2_xfer_func
+ 
++.. tabularcolumns:: |p{5.5cm}|p{12.0cm}|
++
+ .. flat-table:: V4L2 Transfer Function
+     :header-rows:  1
+     :stub-columns: 0
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
+index 86cd07e5bfa3..9e52610aa954 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
+@@ -36,7 +36,7 @@ Each cell is one byte.
+ 
+ .. raw:: latex
+ 
+-    \small
++    \newline\small
+ 
+ .. tabularcolumns:: |p{2.0cm}|p{1.0cm}|p{1.0cm}|p{1.0cm}|p{1.0cm}|p{10.0cm}|
+ 
+diff --git a/Documentation/media/uapi/v4l/v4l2-selection-targets.rst b/Documentation/media/uapi/v4l/v4l2-selection-targets.rst
+index cab07de6f4da..87433ec76c6b 100644
+--- a/Documentation/media/uapi/v4l/v4l2-selection-targets.rst
++++ b/Documentation/media/uapi/v4l/v4l2-selection-targets.rst
+@@ -12,7 +12,7 @@ of the two interfaces they are used.
+ 
+ .. _v4l2-selection-targets-table:
+ 
+-.. tabularcolumns:: |p{5.8cm}|p{1.4cm}|p{6.5cm}|p{1.2cm}|p{1.6cm}|
++.. tabularcolumns:: |p{6.0cm}|p{1.4cm}|p{7.4cm}|p{1.2cm}|p{1.4cm}|
+ 
+ .. flat-table:: Selection target definitions
+     :header-rows:  1
+diff --git a/Documentation/media/uapi/v4l/vidioc-enum-framesizes.rst b/Documentation/media/uapi/v4l/vidioc-enum-framesizes.rst
+index 8fcc46d307d5..6de117f163e0 100644
+--- a/Documentation/media/uapi/v4l/vidioc-enum-framesizes.rst
++++ b/Documentation/media/uapi/v4l/vidioc-enum-framesizes.rst
+@@ -140,6 +140,8 @@ application should zero out all members except for the *IN* fields.
+ 
+ .. c:type:: v4l2_frmsizeenum
+ 
++.. tabularcolumns:: |p{1.4cm}|p{5.9cm}|p{2.3cm}|p{8.0cm}|
++
+ .. flat-table:: struct v4l2_frmsizeenum
+     :header-rows:  0
+     :stub-columns: 0
+diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+index 7553b44692b4..66fb1b3d6e6e 100644
+--- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
++++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+@@ -133,7 +133,7 @@ specification the ioctl returns an ``EINVAL`` error code.
+ 
+ 
+ 
+-.. tabularcolumns:: |p{6cm}|p{2.2cm}|p{8.8cm}|
++.. tabularcolumns:: |p{6.1cm}|p{2.2cm}|p{8.7cm}|
+ 
+ .. _device-capabilities:
+ 
+diff --git a/Documentation/media/uapi/v4l/vidioc-subscribe-event.rst b/Documentation/media/uapi/v4l/vidioc-subscribe-event.rst
+index a95cbf2a126d..b521efa53ceb 100644
+--- a/Documentation/media/uapi/v4l/vidioc-subscribe-event.rst
++++ b/Documentation/media/uapi/v4l/vidioc-subscribe-event.rst
+@@ -40,7 +40,7 @@ Subscribe or unsubscribe V4L2 event. Subscribed events are dequeued by
+ using the :ref:`VIDIOC_DQEVENT` ioctl.
+ 
+ 
+-.. tabularcolumns:: |p{4.4cm}|p{4.4cm}|p{8.7cm}|
++.. tabularcolumns:: |p{4.6cm}|p{4.4cm}|p{8.7cm}|
+ 
+ .. c:type:: v4l2_event_subscription
+ 
+@@ -73,7 +73,7 @@ using the :ref:`VIDIOC_DQEVENT` ioctl.
+ 
+ 
+ 
+-.. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
++.. tabularcolumns:: |p{6.8cm}|p{2.2cm}|p{8.5cm}|
+ 
+ .. _event-flags:
+ 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.13.5
