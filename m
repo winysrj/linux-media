@@ -1,274 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37648 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751800AbdI2KkI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Sep 2017 06:40:08 -0400
-Received: from lanttu.localdomain (unknown [IPv6:2001:1bc8:1a6:d3d5::e1:1002])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 1CCF0600EC
-        for <linux-media@vger.kernel.org>; Fri, 29 Sep 2017 13:40:07 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/2] smiapp: Rely on runtime PM
-Date: Fri, 29 Sep 2017 13:40:06 +0300
-Message-Id: <20170929104006.29892-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170929104006.29892-1-sakari.ailus@linux.intel.com>
-References: <20170929104006.29892-1-sakari.ailus@linux.intel.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52303
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751766AbdICTEB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Sep 2017 15:04:01 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 6/7] media: pixfmt*.rst: replace a two dots by a comma
+Date: Sun,  3 Sep 2017 16:03:52 -0300
+Message-Id: <0e43c3db0c0db61f65afba8354fbbd61fe4e0e55.1504464984.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504464984.git.mchehab@s-opensource.com>
+References: <cover.1504464984.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504464984.git.mchehab@s-opensource.com>
+References: <cover.1504464984.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of relying on a mix of runtime PM and the s_power() callback, drop
-the s_power() callback altogether and use runtime PM solely.
+On several tables, the color sample location table preamble is
+written as:
+	Color Sample Location..
+Instead of:
+	Color Sample Location:
 
-As device access is required during device power-on and power-off
-sequences, runtime PM alone cannot tell whether the device is available.
-Thus the "active" field is introduced in struct smiapp_sensor to tell
-whether it is safe to write to the device.
+I suspect that the repetition of such pattern was due to some
+copy-and-paste (or perhaps some error during DocBook conversion).
 
-Consequently there is no need to power on the device whenever a file
-handle is open. This functionality is removed as well. The user may still
-control the device power management through sysfs. Autosuspend remains
-enabled, with 1 s delay.
+Anyway, fix it.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/i2c/smiapp/smiapp-core.c | 101 ++++++++++++---------------------
- drivers/media/i2c/smiapp/smiapp-regs.c |   3 +
- drivers/media/i2c/smiapp/smiapp.h      |   1 +
- 3 files changed, 40 insertions(+), 65 deletions(-)
+ Documentation/media/uapi/v4l/pixfmt-m420.rst    | 2 +-
+ Documentation/media/uapi/v4l/pixfmt-nv12.rst    | 2 +-
+ Documentation/media/uapi/v4l/pixfmt-nv12m.rst   | 2 +-
+ Documentation/media/uapi/v4l/pixfmt-nv16.rst    | 2 +-
+ Documentation/media/uapi/v4l/pixfmt-nv16m.rst   | 2 +-
+ Documentation/media/uapi/v4l/pixfmt-uyvy.rst    | 2 +-
+ Documentation/media/uapi/v4l/pixfmt-vyuy.rst    | 2 +-
+ Documentation/media/uapi/v4l/pixfmt-y41p.rst    | 2 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv410.rst  | 2 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv411p.rst | 2 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv420.rst  | 2 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv420m.rst | 2 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv422m.rst | 2 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv422p.rst | 2 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv444m.rst | 2 +-
+ Documentation/media/uapi/v4l/pixfmt-yuyv.rst    | 2 +-
+ Documentation/media/uapi/v4l/pixfmt-yvyu.rst    | 2 +-
+ 17 files changed, 17 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 8de444080b8f..faf567569799 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -1239,6 +1239,10 @@ static int smiapp_power_on(struct device *dev)
- 	sleep = SMIAPP_RESET_DELAY(sensor->hwcfg->ext_clk);
- 	usleep_range(sleep, sleep);
+diff --git a/Documentation/media/uapi/v4l/pixfmt-m420.rst b/Documentation/media/uapi/v4l/pixfmt-m420.rst
+index 7dd47c071e2f..6703f4079c3e 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-m420.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-m420.rst
+@@ -66,7 +66,7 @@ Each cell is one byte.
+       - Cr\ :sub:`11`
  
-+	mutex_lock(&sensor->mutex);
-+
-+	sensor->active = true;
-+
- 	/*
- 	 * Failures to respond to the address change command have been noticed.
- 	 * Those failures seem to be caused by the sensor requiring a longer
-@@ -1321,32 +1325,28 @@ static int smiapp_power_on(struct device *dev)
- 		goto out_cci_addr_fail;
- 	}
  
--	/* Are we still initialising...? If yes, return here. */
--	if (!sensor->pixel_array)
--		return 0;
--
--	mutex_lock(&sensor->mutex);
--
--	rval = __v4l2_ctrl_handler_setup(&sensor->pixel_array->ctrl_handler);
--	if (rval)
--		goto out_unlock;
-+	/* Are we still initialising...? If not, proceed with control setup. */
-+	if (sensor->pixel_array) {
-+		rval = __v4l2_ctrl_handler_setup(
-+			&sensor->pixel_array->ctrl_handler);
-+		if (rval)
-+			goto out_cci_addr_fail;
+-**Color Sample Location..**
++**Color Sample Location:**
  
--	rval = __v4l2_ctrl_handler_setup(&sensor->src->ctrl_handler);
--	if (rval)
--		goto out_unlock;
-+		rval = __v4l2_ctrl_handler_setup(&sensor->src->ctrl_handler);
-+		if (rval)
-+			goto out_cci_addr_fail;
  
--	rval = smiapp_update_mode(sensor);
--	if (rval < 0)
--		goto out_unlock;
-+		rval = smiapp_update_mode(sensor);
-+		if (rval < 0)
-+			goto out_cci_addr_fail;
-+	}
  
- 	mutex_unlock(&sensor->mutex);
+diff --git a/Documentation/media/uapi/v4l/pixfmt-nv12.rst b/Documentation/media/uapi/v4l/pixfmt-nv12.rst
+index 5b45a6d2ac95..2776b41377d5 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-nv12.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-nv12.rst
+@@ -71,7 +71,7 @@ Each cell is one byte.
+       - Cr\ :sub:`11`
  
- 	return 0;
  
--out_unlock:
--	mutex_unlock(&sensor->mutex);
--
- out_cci_addr_fail:
-+	mutex_unlock(&sensor->mutex);
- 	gpiod_set_value(sensor->xshutdown, 0);
- 	clk_disable_unprepare(sensor->ext_clk);
+-**Color Sample Location..**
++**Color Sample Location:**
  
-@@ -1364,6 +1364,8 @@ static int smiapp_power_off(struct device *dev)
- 	struct smiapp_sensor *sensor =
- 		container_of(ssd, struct smiapp_sensor, ssds[0]);
+ .. flat-table::
+     :header-rows:  0
+diff --git a/Documentation/media/uapi/v4l/pixfmt-nv12m.rst b/Documentation/media/uapi/v4l/pixfmt-nv12m.rst
+index de3051fd6b50..c1a2779f604c 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-nv12m.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-nv12m.rst
+@@ -83,7 +83,7 @@ Each cell is one byte.
+       - Cr\ :sub:`11`
  
-+	mutex_lock(&sensor->mutex);
-+
- 	/*
- 	 * Currently power/clock to lens are enable/disabled separately
- 	 * but they are essentially the same signals. So if the sensor is
-@@ -1376,6 +1378,10 @@ static int smiapp_power_off(struct device *dev)
- 			     SMIAPP_REG_U8_SOFTWARE_RESET,
- 			     SMIAPP_SOFTWARE_RESET);
  
-+	sensor->active = false;
-+
-+	mutex_unlock(&sensor->mutex);
-+
- 	gpiod_set_value(sensor->xshutdown, 0);
- 	clk_disable_unprepare(sensor->ext_clk);
- 	usleep_range(5000, 5000);
-@@ -1385,29 +1391,6 @@ static int smiapp_power_off(struct device *dev)
- 	return 0;
- }
+-**Color Sample Location..**
++**Color Sample Location:**
  
--static int smiapp_set_power(struct v4l2_subdev *subdev, int on)
--{
--	int rval;
--
--	if (!on) {
--		pm_runtime_mark_last_busy(subdev->dev);
--		pm_runtime_put_autosuspend(subdev->dev);
--
--		return 0;
--	}
--
--	rval = pm_runtime_get_sync(subdev->dev);
--	if (rval >= 0)
--		return 0;
--
--	if (rval != -EBUSY && rval != -EAGAIN)
--		pm_runtime_set_active(subdev->dev);
--
--	pm_runtime_put(subdev->dev);
--
--	return rval;
--}
--
- /* -----------------------------------------------------------------------------
-  * Video stream management
-  */
-@@ -1564,19 +1547,31 @@ static int smiapp_stop_streaming(struct smiapp_sensor *sensor)
- static int smiapp_set_stream(struct v4l2_subdev *subdev, int enable)
- {
- 	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
-+	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
- 	int rval;
  
- 	if (sensor->streaming == enable)
- 		return 0;
  
- 	if (enable) {
-+		rval = pm_runtime_get_sync(&client->dev);
-+		if (rval < 0) {
-+			if (rval != -EBUSY && rval != -EAGAIN)
-+				pm_runtime_set_active(&client->dev);
-+			pm_runtime_put(&client->dev);
-+			return rval;
-+		}
-+
- 		sensor->streaming = true;
-+
- 		rval = smiapp_start_streaming(sensor);
- 		if (rval < 0)
- 			sensor->streaming = false;
- 	} else {
- 		rval = smiapp_stop_streaming(sensor);
- 		sensor->streaming = false;
-+		pm_runtime_mark_last_busy(&client->dev);
-+		pm_runtime_put_autosuspend(&client->dev);
- 	}
+diff --git a/Documentation/media/uapi/v4l/pixfmt-nv16.rst b/Documentation/media/uapi/v4l/pixfmt-nv16.rst
+index 8ceba79ff636..f0fdad3006cf 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-nv16.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-nv16.rst
+@@ -79,7 +79,7 @@ Each cell is one byte.
+       - Cr\ :sub:`31`
  
- 	return rval;
-@@ -2654,7 +2649,6 @@ static int smiapp_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
- 	struct smiapp_subdev *ssd = to_smiapp_subdev(sd);
- 	struct smiapp_sensor *sensor = ssd->sensor;
- 	unsigned int i;
--	int rval;
  
- 	mutex_lock(&sensor->mutex);
+-**Color Sample Location..**
++**Color Sample Location:**
  
-@@ -2681,22 +2675,6 @@ static int smiapp_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
  
- 	mutex_unlock(&sensor->mutex);
  
--	rval = pm_runtime_get_sync(sd->dev);
--	if (rval >= 0)
--		return 0;
--
--	if (rval != -EBUSY && rval != -EAGAIN)
--		pm_runtime_set_active(sd->dev);
--	pm_runtime_put(sd->dev);
--
--	return rval;
--}
--
--static int smiapp_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
--{
--	pm_runtime_mark_last_busy(sd->dev);
--	pm_runtime_put_autosuspend(sd->dev);
--
- 	return 0;
- }
+diff --git a/Documentation/media/uapi/v4l/pixfmt-nv16m.rst b/Documentation/media/uapi/v4l/pixfmt-nv16m.rst
+index 4d46ab39f9f1..c45f036763e7 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-nv16m.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-nv16m.rst
+@@ -83,7 +83,7 @@ Each cell is one byte.
+       - Cr\ :sub:`32`
  
-@@ -2704,10 +2682,6 @@ static const struct v4l2_subdev_video_ops smiapp_video_ops = {
- 	.s_stream = smiapp_set_stream,
- };
  
--static const struct v4l2_subdev_core_ops smiapp_core_ops = {
--	.s_power = smiapp_set_power,
--};
--
- static const struct v4l2_subdev_pad_ops smiapp_pad_ops = {
- 	.enum_mbus_code = smiapp_enum_mbus_code,
- 	.get_fmt = smiapp_get_format,
-@@ -2722,7 +2696,6 @@ static const struct v4l2_subdev_sensor_ops smiapp_sensor_ops = {
- };
+-**Color Sample Location..**
++**Color Sample Location:**
  
- static const struct v4l2_subdev_ops smiapp_ops = {
--	.core = &smiapp_core_ops,
- 	.video = &smiapp_video_ops,
- 	.pad = &smiapp_pad_ops,
- 	.sensor = &smiapp_sensor_ops,
-@@ -2736,12 +2709,10 @@ static const struct v4l2_subdev_internal_ops smiapp_internal_src_ops = {
- 	.registered = smiapp_registered,
- 	.unregistered = smiapp_unregistered,
- 	.open = smiapp_open,
--	.close = smiapp_close,
- };
  
- static const struct v4l2_subdev_internal_ops smiapp_internal_ops = {
- 	.open = smiapp_open,
--	.close = smiapp_close,
- };
  
- /* -----------------------------------------------------------------------------
-diff --git a/drivers/media/i2c/smiapp/smiapp-regs.c b/drivers/media/i2c/smiapp/smiapp-regs.c
-index d6779e35d36f..145653dc81da 100644
---- a/drivers/media/i2c/smiapp/smiapp-regs.c
-+++ b/drivers/media/i2c/smiapp/smiapp-regs.c
-@@ -231,6 +231,9 @@ int smiapp_write_no_quirk(struct smiapp_sensor *sensor, u32 reg, u32 val)
- 	     len != SMIAPP_REG_32BIT) || flags)
- 		return -EINVAL;
+diff --git a/Documentation/media/uapi/v4l/pixfmt-uyvy.rst b/Documentation/media/uapi/v4l/pixfmt-uyvy.rst
+index 30660e04dd0e..ecdc2d94c209 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-uyvy.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-uyvy.rst
+@@ -65,7 +65,7 @@ Each cell is one byte.
+       - Y'\ :sub:`33`
  
-+	if (!sensor->active)
-+		return 0;
-+
- 	msg.addr = client->addr;
- 	msg.flags = 0; /* Write */
- 	msg.len = 2 + len;
-diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
-index f74d695018b9..e6a5ab402d7f 100644
---- a/drivers/media/i2c/smiapp/smiapp.h
-+++ b/drivers/media/i2c/smiapp/smiapp.h
-@@ -206,6 +206,7 @@ struct smiapp_sensor {
  
- 	u8 hvflip_inv_mask; /* H/VFLIP inversion due to sensor orientation */
- 	u8 frame_skip;
-+	bool active; /* is the sensor powered on? */
- 	u16 embedded_start; /* embedded data start line */
- 	u16 embedded_end;
- 	u16 image_start; /* image data start line */
+-**Color Sample Location..**
++**Color Sample Location:**
+ 
+ 
+ 
+diff --git a/Documentation/media/uapi/v4l/pixfmt-vyuy.rst b/Documentation/media/uapi/v4l/pixfmt-vyuy.rst
+index a3f61f280b94..670c339c1714 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-vyuy.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-vyuy.rst
+@@ -65,7 +65,7 @@ Each cell is one byte.
+       - Y'\ :sub:`33`
+ 
+ 
+-**Color Sample Location..**
++**Color Sample Location:**
+ 
+ .. flat-table::
+     :header-rows:  0
+diff --git a/Documentation/media/uapi/v4l/pixfmt-y41p.rst b/Documentation/media/uapi/v4l/pixfmt-y41p.rst
+index 05d040c46a47..e1fe548807a4 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-y41p.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-y41p.rst
+@@ -88,7 +88,7 @@ Each cell is one byte.
+       - Y'\ :sub:`37`
+ 
+ 
+-**Color Sample Location..**
++**Color Sample Location:**
+ 
+ .. flat-table::
+     :header-rows:  0
+diff --git a/Documentation/media/uapi/v4l/pixfmt-yuv410.rst b/Documentation/media/uapi/v4l/pixfmt-yuv410.rst
+index 0c49915af850..b51a0d1c6108 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-yuv410.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-yuv410.rst
+@@ -67,7 +67,7 @@ Each cell is one byte.
+       - Cb\ :sub:`00`
+ 
+ 
+-**Color Sample Location..**
++**Color Sample Location:**
+ 
+ 
+ 
+diff --git a/Documentation/media/uapi/v4l/pixfmt-yuv411p.rst b/Documentation/media/uapi/v4l/pixfmt-yuv411p.rst
+index 2cf33fad7254..2582341972db 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-yuv411p.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-yuv411p.rst
+@@ -75,7 +75,7 @@ Each cell is one byte.
+       - Cr\ :sub:`30`
+ 
+ 
+-**Color Sample Location..**
++**Color Sample Location:**
+ 
+ 
+ 
+diff --git a/Documentation/media/uapi/v4l/pixfmt-yuv420.rst b/Documentation/media/uapi/v4l/pixfmt-yuv420.rst
+index fd98904058ed..a9b85c4b1dbc 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-yuv420.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-yuv420.rst
+@@ -76,7 +76,7 @@ Each cell is one byte.
+       - Cb\ :sub:`11`
+ 
+ 
+-**Color Sample Location..**
++**Color Sample Location:**
+ 
+ 
+ 
+diff --git a/Documentation/media/uapi/v4l/pixfmt-yuv420m.rst b/Documentation/media/uapi/v4l/pixfmt-yuv420m.rst
+index cce8c477fdfc..32c68c33f2b1 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-yuv420m.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-yuv420m.rst
+@@ -85,7 +85,7 @@ Each cell is one byte.
+       - Cr\ :sub:`11`
+ 
+ 
+-**Color Sample Location..**
++**Color Sample Location:**
+ 
+ 
+ 
+diff --git a/Documentation/media/uapi/v4l/pixfmt-yuv422m.rst b/Documentation/media/uapi/v4l/pixfmt-yuv422m.rst
+index d986393aa934..9e7028c4967c 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-yuv422m.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-yuv422m.rst
+@@ -96,7 +96,7 @@ Each cell is one byte.
+       - Cr\ :sub:`31`
+ 
+ 
+-**Color Sample Location..**
++**Color Sample Location:**
+ 
+ 
+ 
+diff --git a/Documentation/media/uapi/v4l/pixfmt-yuv422p.rst b/Documentation/media/uapi/v4l/pixfmt-yuv422p.rst
+index e6f5de546dba..a96f836c7fa5 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-yuv422p.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-yuv422p.rst
+@@ -84,7 +84,7 @@ Each cell is one byte.
+       - Cr\ :sub:`31`
+ 
+ 
+-**Color Sample Location..**
++**Color Sample Location:**
+ 
+ 
+ 
+diff --git a/Documentation/media/uapi/v4l/pixfmt-yuv444m.rst b/Documentation/media/uapi/v4l/pixfmt-yuv444m.rst
+index 830fbf6fcd1d..8605bfaee112 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-yuv444m.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-yuv444m.rst
+@@ -106,7 +106,7 @@ Each cell is one byte.
+       - Cr\ :sub:`33`
+ 
+ 
+-**Color Sample Location..**
++**Color Sample Location:**
+ 
+ 
+ 
+diff --git a/Documentation/media/uapi/v4l/pixfmt-yuyv.rst b/Documentation/media/uapi/v4l/pixfmt-yuyv.rst
+index e1bdd6b1aefc..53e876d053fb 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-yuyv.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-yuyv.rst
+@@ -68,7 +68,7 @@ Each cell is one byte.
+       - Cr\ :sub:`31`
+ 
+ 
+-**Color Sample Location..**
++**Color Sample Location:**
+ 
+ 
+ 
+diff --git a/Documentation/media/uapi/v4l/pixfmt-yvyu.rst b/Documentation/media/uapi/v4l/pixfmt-yvyu.rst
+index 0244ce6741a6..b9c31746e565 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-yvyu.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-yvyu.rst
+@@ -65,7 +65,7 @@ Each cell is one byte.
+       - Cb\ :sub:`31`
+ 
+ 
+-**Color Sample Location..**
++**Color Sample Location:**
+ 
+ .. flat-table::
+     :header-rows:  0
 -- 
-2.11.0
+2.13.5
